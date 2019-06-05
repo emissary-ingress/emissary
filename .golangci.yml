@@ -1,10 +1,13 @@
 linters:
   enable-all: true
   disable:
-    - dupl # specs duplicate things, we duplicate things
-    - gochecknoglobals
+    - dupl # specs duplicate things, so we duplicate things
     - interfacer # author says it's deprecated, gives very subjective advice
     - lll
+    - maligned
+    # Disable temporarily
+    - gochecknoglobals
+    - gochecknoinits
     # Integrations with golint and unused are buggy; run them separately/manually
     - golint
     - unused
@@ -13,3 +16,9 @@ linters-settings:
     # treat code as a program (not a library) and report unused
     # exported identifiers
     check-exported: true
+  goconst:
+    min-len: 5
+issues:
+  exclude-rules:
+    - linters: [gocritic]
+      text: "elseif: can replace 'else {if cond {}}' with 'else if cond {}'"

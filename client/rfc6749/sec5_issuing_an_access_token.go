@@ -163,7 +163,7 @@ func (r TokenErrorResponse) MarshalJSON() ([]byte, error) {
 func (r TokenErrorResponse) isTokenResponse() {}
 
 // ErrorMeaning returns a human-readable meaning of the .Error code.
-// Returns an emtpy string for unknown error codes.
+// Returns an empty string for unknown error codes.
 func (r TokenErrorResponse) ErrorMeaning() string {
 	ecode := rfc6749.GetTokenError(r.Error)
 	if ecode == nil {

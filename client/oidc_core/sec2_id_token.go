@@ -78,10 +78,10 @@ func (idt IDTokenClaims) Valid() error {
 		return errors.Errorf("claim %q URL must use %q scheme: %q", "iss", "https", idt.Issuer.String())
 	}
 	if idt.Issuer.RawQuery != "" {
-		return errors.Errorf("claim %q URL must not include a query component", "iss", idt.Issuer.String())
+		return errors.Errorf("claim %q URL must not include a query component: %q", "iss", idt.Issuer.String())
 	}
 	if idt.Issuer.Fragment != "" {
-		return errors.Errorf("claim %q URL must not include a fragment component", "iss", idt.Issuer.String())
+		return errors.Errorf("claim %q URL must not include a fragment component: %q", "iss", idt.Issuer.String())
 	}
 
 	if len(idt.Subject) > 255 {

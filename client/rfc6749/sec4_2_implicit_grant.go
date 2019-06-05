@@ -178,7 +178,7 @@ func (r ImplicitAccessTokenErrorResponse) isImplicitAccessTokenResponse() {}
 func (r ImplicitAccessTokenErrorResponse) GetState() string { return r.State }
 
 // ErrorMeaning returns a human-readable meaning of the .Error code.
-// Returns an emtpy string for unknown error codes.
+// Returns an empty string for unknown error codes.
 func (r ImplicitAccessTokenErrorResponse) ErrorMeaning() string {
 	ecode := rfc6749.GetImplicitGrantError(r.Error)
 	if ecode == nil {
