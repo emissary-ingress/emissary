@@ -318,7 +318,7 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
                 mapping.cluster = self.add_cluster_for_mapping(ir, aconf, mapping)
 
                 # Next, does this mapping have a weight assigned?
-                if not mapping.get('weight', 0):
+                if 'weight' not in mapping:
                     unspecified_mappings += 1
                 else:
                     total_weight += mapping.weight
@@ -328,7 +328,7 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
             # sum to 100 exactly by doing this, so we'll need to fix that up later.
             if unspecified_mappings:
                 for mapping in self.mappings:
-                    if not mapping.get("weight", 0):
+                    if 'weight' not in mapping:
                         mapping.weight = round((100.0 - total_weight)/unspecified_mappings)
             elif total_weight != 100.0:
                 for mapping in self.mappings:
