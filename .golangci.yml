@@ -5,6 +5,9 @@ linters:
     - gochecknoglobals
     - interfacer # author says it's deprecated, gives very subjective advice
     - lll
+    # Integrations with golint and unused are buggy; run them separately/manually
+    - golint
+    - unused
 linters-settings:
   unused:
     # treat code as a program (not a library) and report unused
