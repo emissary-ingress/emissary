@@ -54,6 +54,15 @@ spec:
   - name: consul
     image: consul:1.4.3
   restartPolicy: Always
+---
+apiVersion: getambassador.io/v1
+kind: ConsulResolver
+metadata:
+  name: {self.path.k8s}-resolver
+spec:
+  ambassador_id: consultest
+  address: {self.path.k8s}-consul:8500
+  datacenter: dc1
 """ + SECRETS)
 
     def config(self):
@@ -82,12 +91,6 @@ service: {self.path.k8s}-consul-service
 resolver: {self.path.k8s}-resolver
 load_balancer:
   policy: round_robin
----
-apiVersion: ambassador/v1
-kind: ConsulResolver
-name: {self.path.k8s}-resolver
-address: {self.path.k8s}-consul:8500
-datacenter: dc1
 ---
 apiVersion: ambassador/v1
 kind:  TLSContext

@@ -470,9 +470,17 @@ class Diagnostics:
             self.add_ambassador_service(self.ir.tracing, 'TracingService (%s)' % self.ir.tracing.driver)
 
         self.ambassador_resolvers = []
+        used_resolvers = {}
+
+        for group in self.groups.values():
+            for mapping in group.mappings:
+                resolver_name = mapping.resolver
+                group_list = used_resolvers.setdefault(resolver_name, [])
+                group_list.append(group)
 
         for name, resolver in sorted(self.ir.resolvers.items()):
-            self.add_ambassador_resolver(resolver)
+            if name in used_resolvers:
+                self.add_ambassador_resolver(resolver, used_resolvers[name])
 
     def add_ambassador_service(self, svc, type_name) -> None:
         """
@@ -496,17 +504,19 @@ class Diagnostics:
                 '_service_weight': svc_weight
             })
 
-    def add_ambassador_resolver(self, resolver) -> None:
+    def add_ambassador_resolver(self, resolver, group_list) -> None:
         """
         Remember information about a given Ambassador-wide resolver.
 
         :param resolver: resolver record
+        :param group_list: list of groups that use this resolver
         """
 
         self.ambassador_resolvers.append({
             'kind': resolver.kind,
             '_source': resolver.location,
-            'name': resolver.name
+            'name': resolver.name,
+            'groups': group_list
         })
 
     @staticmethod
