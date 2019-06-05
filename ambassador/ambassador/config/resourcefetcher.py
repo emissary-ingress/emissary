@@ -150,7 +150,9 @@ class ResourceFetcher:
                     self.handle_k8s(obj)
 
             # ...then handle Ambassador CRDs.
-            for key in [ 'AuthService', 'Mapping', 'Module', 'RateLimitService',
+            for key in [ 'AuthService', 'ConsulResolver',
+                         'KubernetesEndpointResolver', 'KubernetesServiceResolver',
+                         'Mapping', 'Module', 'RateLimitService',
                          'TCPMapping', 'TLSContext', 'TracingService']:
                 for obj in watt_k8s.get(key) or []:
                     self.handle_k8s_crd(obj)
