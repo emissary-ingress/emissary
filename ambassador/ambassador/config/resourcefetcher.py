@@ -210,7 +210,7 @@ class ResourceFetcher:
         metadata = obj.get('metadata') or {}
         name = metadata.get('name')
         namespace = metadata.get('namespace') or 'default'
-        spec = obj.get('spec')
+        spec = obj.get('spec') or {}
 
         if not name:
             self.logger.debug(f'{self.location}: ignoring K8s {kind} CRD, no name')
@@ -220,9 +220,9 @@ class ResourceFetcher:
             self.logger.debug(f'{self.location}: ignoring K8s {kind} CRD {name}: no apiVersion')
             return
 
-        if not spec:
-            self.logger.debug(f'{self.location}: ignoring K8s {kind} CRD {name}: no spec')
-            return
+        # if not spec:
+        #     self.logger.debug(f'{self.location}: ignoring K8s {kind} CRD {name}: no spec')
+        #     return
 
         # We use this resource identifier as a key into self.k8s_services, and of course for logging .
         resource_identifier = f'{name}.{namespace}'
