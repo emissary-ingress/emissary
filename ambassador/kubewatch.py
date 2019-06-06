@@ -119,29 +119,30 @@ def main(debug):
 
     if cluster_id:
         found = "environment"
-    elif v1:
-        # No ID from the environment, but we can try a lookup using Kube.
-        logger.debug("looking up ID for namespace %s" % wanted)
+    else:
+        if v1:
+            # No ID from the environment, but we can try a lookup using Kube.
+            logger.debug("looking up ID for namespace %s" % wanted)
 
-        try:
-            ret = v1.read_namespace(wanted)
-            root_id = ret.metadata.uid
-            found = "namespace %s" % wanted
-        except ApiException as e:
-            # This means our namespace wasn't found?
-            logger.error("couldn't read namespace %s? %s" % (wanted, e))
+            try:
+                ret = v1.read_namespace(wanted)
+                root_id = ret.metadata.uid
+                found = "namespace %s" % wanted
+            except ApiException as e:
+                # This means our namespace wasn't found?
+                logger.error("couldn't read namespace %s? %s" % (wanted, e))
 
-    if not root_id:
-        # OK, so we had a crack at this and something went wrong. Give up and hardcode
-        # something.
-        root_id = "00000000-0000-0000-0000-000000000000"
-        found = "hardcoded ID"
+        if not root_id:
+            # OK, so we had a crack at this and something went wrong. Give up and hardcode
+            # something.
+            root_id = "00000000-0000-0000-0000-000000000000"
+            found = "hardcoded ID"
 
-    # One way or the other, we need to generate an ID here.
-    cluster_url = "d6e_id://%s/%s" % (root_id, ambassador_id)
-    logger.debug("cluster ID URL is %s" % cluster_url)
+        # One way or the other, we need to generate an ID here.
+        cluster_url = "d6e_id://%s/%s" % (root_id, ambassador_id)
+        logger.debug("cluster ID URL is %s" % cluster_url)
 
-    cluster_id = str(uuid.uuid5(uuid.NAMESPACE_URL, cluster_url)).lower()
+        cluster_id = str(uuid.uuid5(uuid.NAMESPACE_URL, cluster_url)).lower()
 
     # How about CRDs?
 

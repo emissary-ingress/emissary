@@ -102,10 +102,9 @@ class DiagApp (Flask):
     diag: Diagnostics
     notices: 'Notices'
     scout: Scout
-    # scout_args: Dict[str, Any]
-    # scout_result: Dict[str, Any]
     watcher: 'AmbassadorEventWatcher'
     stats_updater: Optional[PeriodicTrigger]
+    scout_checker: Optional[PeriodicTrigger]
     last_request_info: Dict[str, int]
     last_request_time: Optional[datetime.datetime]
 
@@ -142,6 +141,7 @@ class DiagApp (Flask):
 
         self.ir = None
         self.stats_updater = None
+        self.scout_checker = None
 
         self.last_request_info = {}
         self.last_request_time = None
@@ -565,6 +565,9 @@ class AmbassadorEventWatcher(threading.Thread):
         self.post('ESTATS', '')
 
     def run(self):
+        self.logger.info("starting Scout checker")
+        self.app.scout_checker = PeriodicTrigger(lambda: self.check_scout("checkin"), period=86400)     # Yup, one day.
+
         self.logger.info("starting event watcher")
 
         while True:
@@ -795,7 +798,6 @@ class AmbassadorEventWatcher(threading.Thread):
         if app.health_checks and not app.stats_updater:
             app.logger.info("starting Envoy status updater")
             app.stats_updater = PeriodicTrigger(app.watcher.update_estats, period=5)
-            # app.scout_updater = PeriodicTrigger(lambda: app.watcher.check_scout("30s"), period=30)
 
         # Don't use app.check_scout; it will deadlock. And don't bother doing the Scout
         # update until after we've taken care of Envoy.
