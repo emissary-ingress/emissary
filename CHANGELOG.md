@@ -101,6 +101,8 @@ Format:
 - Feature: diag UI shows active Resolvers [#1453]
 - Feature: CRDs exist for Resolvers [#1563]
 - Feature: Resolvers with custom names work, even as CRDs [#1497]
+- Feature: The `/metrics` endpoint provides direct access to Prometheus-format stats (thanks to [Rotem Tamir](https://github.com/rotemtam)!)
+- Bugfix: `statsd-exporter` now correctly defaults to port 8125 (thanks to [Jonathan Suever](https://github.com/suever)!)
 - Bugfix: redirect_cleartext_from no longer strips the URL path [#1463]
 - Bugfix: canary weights of 0 and 100 work correctly [#1379]
 - Bugfix: `docker run` works again for the Ambassador demo, and is part of our tests now [#1569]
