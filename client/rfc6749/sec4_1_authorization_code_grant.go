@@ -1,6 +1,7 @@
 package rfc6749
 
 import (
+	"fmt"
 	"net/http"
 	"net/url"
 
@@ -42,6 +43,17 @@ func NewAuthorizationCodeClient(
 	return ret, nil
 }
 
+// AuthorizationCodeClientSessionData is the session data that must be
+// persisted between requests when using an AuthorizationCodeClient.
+type AuthorizationCodeClientSessionData struct {
+	Request struct {
+		RedirectURI *url.URL
+		Scope       Scope
+		State       string
+	}
+	TokenResponse *TokenSuccessResponse
+}
+
 // AuthorizationRequest returns an URI that the Client should direct
 // the User-Agent to perform a GET request for, in order to perform an
 // Authorization Request, per §4.1.1.
@@ -66,7 +78,7 @@ func NewAuthorizationCodeClient(
 // redirect, that 302 "Found" may or MAY NOT convert POST->GET; and
 // that to reliably have the User-Agent perform a GET, one should use
 // 303 "See Other" which MUST convert to GET.
-func (client *AuthorizationCodeClient) AuthorizationRequest(redirectURI *url.URL, scope Scope, state string) (*url.URL, error) {
+func (client *AuthorizationCodeClient) AuthorizationRequest(redirectURI *url.URL, scope Scope, state string) (*url.URL, *AuthorizationCodeClientSessionData, error) {
 	parameters := url.Values{
 		"response_type": {"code"},
 		"client_id":     {client.clientID},
@@ -74,7 +86,7 @@ func (client *AuthorizationCodeClient) AuthorizationRequest(redirectURI *url.URL
 	if redirectURI != nil {
 		err := validateRedirectionEndpointURI(redirectURI)
 		if err != nil {
-			return nil, errors.Wrap(err, "cannot build Authorization Request URI")
+			return nil, nil, errors.Wrap(err, "cannot build Authorization Request URI")
 		}
 		parameters.Set("redirect_uri", redirectURI.String())
 	}
@@ -84,22 +96,40 @@ func (client *AuthorizationCodeClient) AuthorizationRequest(redirectURI *url.URL
 	if state != "" {
 		parameters.Set("state", state)
 	}
-	return buildAuthorizationRequestURI(client.authorizationEndpoint, parameters)
+
+	session := &AuthorizationCodeClientSessionData{}
+	session.Request.RedirectURI = redirectURI
+	session.Request.Scope = scope
+	session.Request.State = state
+
+	u, err := buildAuthorizationRequestURI(client.authorizationEndpoint, parameters)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return u, session, nil
 }
 
 // ParseAuthorizationResponse parses the Authorization Response out
 // from the HTTP request URL, as specified by §4.1.2.
 //
-// The returned response is either an
-// AuthorizationCodeAuthorizationSuccessResponse or an
-// AuthorizationCodeAuthorizationErrorResponse.  Either way, you
-// should check that the .GetState() is valid before doing anything
-// else with it.
-//
 // This should be called from the http.Handler for the Client's
 // Redirection Endpoint.
-func (client *AuthorizationCodeClient) ParseAuthorizationResponse(requestURL *url.URL) (AuthorizationCodeAuthorizationResponse, error) {
+//
+// If the server sent a semantically valid error response, the
+// returned error is of type
+// AuthorizationCodeAuthorizationErrorResponse.  On protocol errors, a
+// different error type is returned.
+func (client *AuthorizationCodeClient) ParseAuthorizationResponse(session *AuthorizationCodeClientSessionData, requestURL *url.URL) (authorizationCode string, err error) {
 	parameters := requestURL.Query()
+
+	// The "state" parameter is shared by both success and error
+	// responses.  Let's check this early, to avoid unnecessary
+	// resource usage.
+	if parameters.Get("state") != session.Request.State {
+		return "", errors.New("refusing to parse response: response state parameter does not match request state parameter; XSRF attack likely")
+	}
+
 	if errs := parameters["error"]; len(errs) > 0 {
 		// §4.1.2.1 error
 		var errorURI *url.URL
@@ -107,83 +137,49 @@ func (client *AuthorizationCodeClient) ParseAuthorizationResponse(requestURL *ur
 			var err error
 			errorURI, err = url.Parse(errorURIs[0])
 			if err != nil {
-				return nil, errors.Wrap(err, "cannot parse error response: invalid error_uri")
+				return "", errors.Wrap(err, "cannot parse error response: invalid error_uri")
 			}
 		}
-		return AuthorizationCodeAuthorizationErrorResponse{
-			Error:            errs[0],
+		return "", AuthorizationCodeAuthorizationErrorResponse{
+			ErrorCode:        errs[0],
 			ErrorDescription: parameters.Get("error_description"),
 			ErrorURI:         errorURI,
-		}, nil
+		}
 	}
 	// §4.1.2 success
 	codes := parameters["code"]
 	if len(codes) == 0 {
-		return nil, errors.New("cannot parse response: missing required \"code\" parameter")
+		return "", errors.New("cannot parse response: missing required \"code\" parameter")
 	}
-	return AuthorizationCodeAuthorizationSuccessResponse{
-		Code:  codes[0],
-		State: parameters.Get("state"),
-	}, nil
+	return codes[0], nil
 }
-
-// AuthorizationCodeAuthorizationResponse encapsulates the possible
-// responses to an Authorization Request in the Authorization Code
-// flow.
-//
-// This is implemented by
-// AuthorizationCodeAuthorizationSuccessResponse and an
-// AuthorizationCodeAuthorizationErrorResponse.
-type AuthorizationCodeAuthorizationResponse interface {
-	isAuthorizationCodeAuthorizationResponse()
-	GetState() string
-}
-
-// An AuthorizationCodeAuthorizationSuccessResponse is a successful
-// response to an Authorization Request in the Authorization Code
-// flow, as defined in §4.1.2.
-type AuthorizationCodeAuthorizationSuccessResponse struct {
-	Code  string
-	State string
-}
-
-func (r AuthorizationCodeAuthorizationSuccessResponse) isAuthorizationCodeAuthorizationResponse() {}
-
-// GetState returns the state parameter (if any) included in the response.
-func (r AuthorizationCodeAuthorizationSuccessResponse) GetState() string { return r.State }
 
 // An AuthorizationCodeAuthorizationErrorResponse is an error response
 // to an Authorization Request in the Authorization Code flow, as
 // defined in §4.1.2.1.
 type AuthorizationCodeAuthorizationErrorResponse struct {
-	Error string
+	// REQUIRED.  A single ASCII error code.
+	ErrorCode string
 
 	// OPTIONAL.  Human-readable ASCII providing additional
-	// information.
+	// information, used to assist the client developer.
 	ErrorDescription string
 
 	// OPTIONAL.  A URI identifying a human-readable web page with
-	// information about the error.
+	// information about the error, used to provide the client
+	// developer with additional information.
 	ErrorURI *url.URL
-
-	// REQUIRED if a "state" parameter was present in the
-	// Authorization Request.
-	State string
 }
 
-func (r AuthorizationCodeAuthorizationErrorResponse) isAuthorizationCodeAuthorizationResponse() {}
-
-// GetState returns the state parameter (if any) included in the response.
-func (r AuthorizationCodeAuthorizationErrorResponse) GetState() string { return r.State }
-
-// ErrorMeaning returns a human-readable meaning of the .Error code.
-// Returns an empty string for unknown error codes.
-func (r AuthorizationCodeAuthorizationErrorResponse) ErrorMeaning() string {
-	ecode := rfc6749.GetAuthorizationCodeGrantError(r.Error)
-	if ecode == nil {
-		return ""
+func (r AuthorizationCodeAuthorizationErrorResponse) Error() string {
+	ret := fmt.Sprintf("error response: error=%q", r.ErrorCode)
+	if r.ErrorDescription != "" {
+		ret = fmt.Sprintf("%s error_description=%q", ret, r.ErrorDescription)
 	}
-	return ecode.Meaning()
+	if r.ErrorURI != nil {
+		ret = fmt.Sprintf("%s error_uri=%q", ret, r.ErrorURI.String())
+	}
+	return ret
 }
 
 func newAuthorizationCodeError(name, meaning string) {
@@ -240,22 +236,19 @@ func init() {
 // for an Access Token (and maybe a Refresh Token); submitting the
 // request per §4.1.3, and handling the response per §4.1.4.
 //
-// redirectURI MUST match the redirectURI passed to
-// .AuthorizationRequest().
-//
 // The returned response is either a TokenSuccessResponse or a
 // TokenErrorResponse.
-func (client *AuthorizationCodeClient) AccessToken(httpClient *http.Client, code string, redirectURI *url.URL) (TokenResponse, error) {
+func (client *AuthorizationCodeClient) AccessToken(session *AuthorizationCodeClientSessionData, httpClient *http.Client, authorizationCode string) (TokenResponse, error) {
 	parameters := url.Values{
 		"grant_type": {"authorization_code"},
-		"code":       {code},
+		"code":       {authorizationCode},
 	}
-	if redirectURI != nil {
-		parameters.Set("redirect_uri", redirectURI.String())
+	if session.Request.RedirectURI != nil {
+		parameters.Set("redirect_uri", session.Request.RedirectURI.String())
 	}
 	if client.explicitClient.clientAuthentication == nil {
 		parameters.Set("client_id", client.clientID)
 	}
 
-	return client.explicitClient.postForm(httpClient, parameters)
+	return client.postForm(httpClient, parameters)
 }

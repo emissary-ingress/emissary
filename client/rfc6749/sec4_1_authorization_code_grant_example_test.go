@@ -1,6 +1,8 @@
 package rfc6749_test
 
 import (
+	"crypto/rand"
+	"encoding/base64"
 	"html/template"
 	"log"
 	"net/http"
@@ -45,6 +47,14 @@ var errorResponsePage = template.Must(template.New("error-response-page").Parse(
 </html>
 `))
 
+func randomToken() string {
+	d := make([]byte, 128)
+	if _, err := rand.Read(d); err != nil {
+		panic(err)
+	}
+	return base64.RawURLEncoding.EncodeToString(d)
+}
+
 func ExampleAuthorizationCodeClient() {
 	client, err := rfc6749.NewAuthorizationCodeClient(
 		"example-client",
@@ -56,46 +66,64 @@ func ExampleAuthorizationCodeClient() {
 		log.Fatal(err)
 	}
 
-	http.HandleFunc("/action", func(w http.ResponseWriter, r *http.Request) {
-		u, err := client.AuthorizationRequest(mustParseURL("https://example-client.example.com/redirection"), rfc6749.Scope{
+	sessionStore := map[string]*rfc6749.AuthorizationCodeClientSessionData{}
+
+	http.HandleFunc("/.well-known/internal/action", func(w http.ResponseWriter, r *http.Request) {
+		sessionID := randomToken()
+
+		requiredScopes := rfc6749.Scope{
 			"scope-a": struct{}{},
 			"scope-B": struct{}{},
-		}, "mystate")
+		}
+		u, sessionData, err := client.AuthorizationRequest(
+			mustParseURL("https://example-client.example.com/redirection"),
+			requiredScopes,
+			randomToken())
 		if err != nil {
 			http.Error(w, "could not construct authorization request URI", http.StatusInternalServerError)
 			return
 		}
+		sessionStore[sessionID] = sessionData
+
+		http.SetCookie(w, &http.Cookie{
+			Name:  "session",
+			Value: sessionID,
+		})
 		http.Redirect(w, r, u.String(), http.StatusSeeOther)
 	})
-	http.HandleFunc("/redirecton", func(w http.ResponseWriter, r *http.Request) {
-		authorizationResponse, err := client.ParseAuthorizationResponse(r.URL)
+
+	http.HandleFunc("/.well-known/internal/redirecton", func(w http.ResponseWriter, r *http.Request) {
+
+		cookie, err := r.Cookie("session")
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		if authorizationResponse.GetState() != "mystate" {
-			http.Error(w, "invalid state (likely XSRF attempt)", http.StatusBadRequest)
+		sessionData := sessionStore[cookie.Value]
+		if sessionData == nil {
+			http.Error(w, "unrecognized session ID", http.StatusBadRequest)
+			return
 		}
-		switch authorizationResponse := authorizationResponse.(type) {
-		case rfc6749.AuthorizationCodeAuthorizationErrorResponse:
+
+		authorizationCode, err := client.ParseAuthorizationResponse(sessionData, r.URL)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		tokenResponse, err := client.AccessToken(sessionData, nil, authorizationCode)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadGateway)
+			return
+		}
+		switch tokenResponse := tokenResponse.(type) {
+		case rfc6749.TokenErrorResponse:
 			w.Header().Set("Content-Type", "text/html")
 			w.WriteHeader(http.StatusUnauthorized)
-			_ = errorResponsePage.Execute(w, authorizationResponse)
+			_ = errorResponsePage.Execute(w, tokenResponse)
 			return
-		case rfc6749.AuthorizationCodeAuthorizationSuccessResponse:
-			tokenResponse, err := client.AccessToken(nil, authorizationResponse.Code, mustParseURL("https://example-client.example.com/redirection"))
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusBadGateway)
-			}
-			switch tokenResponse := tokenResponse.(type) {
-			case rfc6749.TokenErrorResponse:
-				w.Header().Set("Content-Type", "text/html")
-				w.WriteHeader(http.StatusUnauthorized)
-				_ = errorResponsePage.Execute(w, tokenResponse)
-				return
-			case rfc6749.TokenSuccessResponse:
-				// TODO
-			}
+		case rfc6749.TokenSuccessResponse:
+			// TODO
 		}
 	})
 
