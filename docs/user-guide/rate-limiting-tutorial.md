@@ -75,25 +75,43 @@ Ambassador will see the annotations and reconfigure itself within a few seconds.
 
 Ambassador only validates requests on Mappings which set rate limiting descriptors. If Ambassador cannot contact the rate limit service, it will allow the request to be processed as if there were no rate limit service configuration.
 
-We already have the `qotm` service running, so let's apply some rate limits to the service. The easiest way to do that is to annotate the `qotm` service. While we could use `kubectl patch` for this, it's simpler to just modify the service definition and re-apply.
+We already have the `tour` service running, so let's apply some rate limits to the service. The easiest way to do that is to annotate the `tour` service. While we could use `kubectl patch` for this, it's simpler to just modify the service definition and re-apply.
 
 ### v1 API
 Ambassador 0.50.0 and later requires the `v1` API Version for rate limiting. The `v1` API uses the `labels` attribute to attach rate limiting descriptors. Review the [Rate Limits configuration documentation](/reference/rate-limits#request-labels) for more information.
 
+Replace the label that is applied to the `tour-backend_mapping` with:
+
+```yaml
+labels:
+  ambassador:
+    - request_label_group:
+      - x-ambassador-test-allow:
+          header: "x-ambassador-test-allow"
+          omit_if_not_present: true
+```
+
+so the full service definition will now look like this:
 ```yaml
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: qotm
+  name: tour
   annotations:
     getambassador.io/config: |
       ---
       apiVersion: ambassador/v1
-      kind:  Mapping
-      name:  qotm_mapping
-      prefix: /qotm/
-      service: qotm
+      kind: Mapping
+      name: tour-ui_mapping
+      prefix: /
+      service: tour:5000
+      ---
+      apiVersion: ambassador/v1
+      kind: Mapping
+      name: tour-backend_mapping
+      prefix: /backend/
+      service: tour:8080
       labels:
         ambassador:
           - request_label_group:
@@ -101,13 +119,15 @@ metadata:
                 header: "x-ambassador-test-allow"
                 omit_if_not_present: true
 spec:
-  type: ClusterIP
-  selector:
-    app: qotm
   ports:
-  - port: 80
-    name: http-qotm
-    targetPort: http-api
+  - name: ui
+    port: 5000
+    targetPort: 5000
+  - name: backend
+    port: 8080
+    targetPort: 8080
+  selector:
+    app: tour
 ```
 
 ### v0 API
@@ -119,27 +139,35 @@ Ambassador versions 0.40.2 and earlier use the `v0` API version which uses the `
 apiVersion: v1
 kind: Service
 metadata:
-  name: qotm
+  name: tour
   annotations:
     getambassador.io/config: |
       ---
       apiVersion: ambassador/v0
       kind: Mapping
-      name: qotm_mapping
-      prefix: /qotm/
-      service: qotm
+      name: tour-ui_mapping
+      prefix: /
+      service: tour:5000
+      ---
+      apiVersion: ambassador/v0
+      kind: Mapping
+      name: tour-backend_mapping
+      prefix: /backend/
+      service: tour:8080
       rate_limits:
         - descriptor: A test case
           headers:
             - "x-ambassador-test-allow"
 spec:
-  type: ClusterIP
-  selector:
-    app: qotm
   ports:
-  - port: 80
-    name: http-qotm
-    targetPort: http-api
+  - name: ui
+    port: 5000
+    targetPort: 5000
+  - name: backend
+    port: 8080
+    targetPort: 8080
+  selector:
+    app: tour
 ```
 
 This configuration tells Ambassador about the rate limit rules to apply, notably that it needs the `x-ambassador-test-allow` header, and that it should set "A test case" as the `generic_key` descriptor when performing the gRPC request.
@@ -153,7 +181,7 @@ Ambassador would also perform multiple requests to `example-rate-limit:5000` if 
 If we `curl` to a rate-limited URL:
 
 ```shell
-$ curl -v -H "x-ambassador-test-allow: probably" $AMBASSADORURL/qotm/quote/1
+$ curl -v -H "x-ambassador-test-allow: probably" $AMBASSADORURL/backend/
 ```
 
 We get a 429, since we are limited.
@@ -167,29 +195,27 @@ content-length: 0
 If we set the correct header value to the service request, we will get a quote successfully:
 
 ```shell
-$ curl -v -H "x-ambassador-test-allow: true" $AMBASSADORURL/qotm/quote/1
+$ curl -v -H "x-ambassador-test-allow: true" $AMBASSADORURL/backend/
 
 TCP_NODELAY set
 * Connected to 35.196.173.175 (35.196.173.175) port 80 (#0)
-> GET /qotm/quote/1 HTTP/1.1
+> GET /backed HTTP/1.1
 > Host: 35.196.173.175
 > User-Agent: curl/7.54.0
 > Accept: */*
 >
 < HTTP/1.1 200 OK
 < content-type: application/json
-< x-qotm-session: 069da5de-5433-46c0-a8de-d266e327d451
+< date: Thu, 23 May 2019 15:25:06 GMT
 < content-length: 172
+< x-envoy-upstream-service-time: 0
 < server: envoy
-< date: Wed, 27 Sep 2017 18:53:38 GMT
-< x-envoy-upstream-service-time: 25
-<
+< 
 {
- \"hostname\": \"qotm-1827164760-gf534\",
- \"ok\": true,
- \"quote\": \"A late night does not make any sense.\",
- \"time\": \"2017-09-27T18:53:39.376073\",
- \"version\": \"1.1\"
+    "server": "humble-blueberry-o2v493st",
+    "quote": "Nihilism gambles with lives, happiness, and even destiny itself!",
+    "time": "2019-05-23T15:25:06.544417902Z"
+* Connection #0 to host 54.165.128.189 left intact
 }
 ```
 

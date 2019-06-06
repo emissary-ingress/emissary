@@ -6,7 +6,7 @@ Ambassador _must_ have one or more mappings defined to provide access to any ser
 
 ## `Mapping`
 
-An Ambassador `Mapping` associates REST [_resources_](#resources) with Kubernetes [_services_](#services). A resource, here, is a group of things defined by a URL prefix; a service is exactly the same as in Kubernetes. 
+An Ambassador `Mapping` associates REST [_resources_](#resources) with Kubernetes [_services_](#services). A resource, here, is a group of things defined by a URL prefix; a service is exactly the same as in Kubernetes.
 
 Each mapping can also specify, among other things:
 
@@ -38,11 +38,12 @@ Ambassador supports a number of attributes to configure and customize mappings.
 | `method_regex`            | if true, tells the system to interpret the `method` as a [regular expression](http://en.cppreference.com/w/cpp/regex/ecmascript) |
 | `prefix_regex`            | if true, tells the system to interpret the `prefix` as a [regular expression](http://en.cppreference.com/w/cpp/regex/ecmascript) |
 | [`rate_limits`](/reference/rate-limits) | specifies a list rate limit rules on a mapping |
-| [`remove_response_headers`](/reference/remove_response_headers) | specifies a list of HTTP headers that are dropped from the response before sending to client || [`remove_request_headers`](/reference/remove_request_headers) | specifies a list of HTTP headers that are dropped from the request before sending to upstream |    
+| [`remove_request_headers`](/reference/remove_request_headers) | specifies a list of HTTP headers that are dropped from the request before sending to upstream |
+| [`remove_response_headers`](/reference/remove_response_headers) | specifies a list of HTTP headers that are dropped from the response before sending to client |
 | [`regex_headers`](/reference/headers)           | specifies a list of HTTP headers and [regular expressions](http://en.cppreference.com/w/cpp/regex/ecmascript) which _must_ match for this mapping to be used to route the request |
 | [`rewrite`](/reference/rewrites)      | replaces the URL prefix with when talking to the service |
 | [`retry_policy`](/reference/retries) | performs automatic retries upon request failures |
-| [`timeout_ms`](/reference/timeouts)            | the timeout, in milliseconds, for requests through this `Mapping`. Defaults to 5000. |
+| [`timeout_ms`](/reference/timeouts)            | the timeout, in milliseconds, for requests through this `Mapping`. Defaults to 3000. |
 | [`connect_timeout_ms`](/reference/timeouts)      | the timeout, in milliseconds, for requests coming through the `Cluster` for this `Mapping`. Defaults to 3000. |
 | [`idle_timeout_ms`](/reference/timeouts)         | the timeout, in milliseconds, after which connections through this `Mapping` will be terminated if no traffic is seen. Defaults to 300000 (5 minutes). |
 | [`tls`](#using-tls)       | if true, tells the system that it should use HTTPS to contact this service. (It's also possible to use `tls` to specify a certificate to present to the service.) |
@@ -85,9 +86,9 @@ metadata:
       ---
       apiVersion: ambassador/v1
       kind:  Mapping
-      name:  qotm_mapping
-      prefix: /qotm/
-      service: http://qotm
+      name:  tour-ui_mapping
+      prefix: /
+      service: http://tour
 spec:
   ports:
   - name: httpbin
@@ -101,10 +102,10 @@ The same `Mapping` can be created as an independent resource:
 apiVersion: getambassador.io/v1
 kind:  Mapping
 metadata:
-  name:  qotm_mapping
+  name:  tour-ui
 spec:
-  prefix: /qotm/
-  service: http://qotm
+  prefix: /
+  service: http://tour
 ```
 
 If you're new to Ambassador, start with the CRD approach. Note that you *must* use the `getambassador.io/v1` `apiVersion` as noted above.
@@ -117,10 +118,10 @@ Here's an example for a REST service which Ambassador will contact using HTTPS:
 ---
 apiVersion: ambassador/v1
 kind:  Mapping
-name:  quote_mapping
-prefix: /qotm/quote/
-rewrite: /quotation/
-service: https://qotm
+name:  backend-https_mapping
+prefix: /backend/secure/
+rewrite: /secure/
+service: https://tour
 ```
 
 (Note that the 'http://' prefix for an HTTP service is optional.)
@@ -202,7 +203,7 @@ Ambassador routes traffic to a `service`. A `service` is defined as:
 Where everything except for the `service` is optional.
 
 - `scheme` can be either `http` or `https`; if not present, the default is `http`.
-- `service` is the name of a service (typically the service name in Kubernetes or Consul); it is not allowed to contain the `.` character. 
+- `service` is the name of a service (typically the service name in Kubernetes or Consul); it is not allowed to contain the `.` character.
 - `namespace` is the namespace in which the service is running. If not supplied, it defaults to the namespace in which Ambassador is running. When using a Consul resolver, `namespace` is not allowed.
 - `port` is the port to which a request should be sent. If not specified, it defaults to `80` when the scheme is `http` or `443` when the scheme is `https`. Note that the [resolver](/reference/core/resolvers) may return a port in which case the `port` setting is ignored.
 

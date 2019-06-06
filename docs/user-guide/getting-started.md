@@ -73,40 +73,94 @@ The YAML above creates a Kubernetes service for Ambassador of type `LoadBalancer
 
 If you have a static IP provided by your cloud provider you can set as `loadBalancerIP`.
 
-## 3. Creating your first route
+## 3. Creating your first service
 
-Create the following YAML and put it in a file called `httpbin.yaml`.
+Create the following YAML and put it in a file called `tour.yaml`.
 
 ```yaml
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: httpbin
+  name: tour
   annotations:
     getambassador.io/config: |
       ---
       apiVersion: ambassador/v1
-      kind:  Mapping
-      name:  httpbin_mapping
-      prefix: /httpbin/
-      service: httpbin.org:80
-      host_rewrite: httpbin.org
+      kind: Mapping
+      name: tour-ui_mapping
+      prefix: /
+      service: tour:5000
+      ---
+      apiVersion: ambassador/v1
+      kind: Mapping
+      name: tour-backend_mapping
+      prefix: /backend/
+      service: tour:8080
+      labels:
+        ambassador:
+          - request_label:
+            - backend
 spec:
   ports:
-  - name: httpbin
-    port: 80
+  - name: ui
+    port: 5000
+    targetPort: 5000
+  - name: backend
+    port: 8080
+    targetPort: 8080
+  selector:
+    app: tour
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tour
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tour
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: tour
+    spec:
+      containers:
+      - name: tour-ui
+        image: quay.io/datawire/tour:ui-%tourVersion%
+        ports:
+        - name: http
+          containerPort: 5000
+      - name: quote
+        image: quay.io/datawire/tour:backend-%tourVersion%
+        ports:
+        - name: http
+          containerPort: 8080
+        resources:
+          limits:
+            cpu: "0.1"
+            memory: 100Mi
+
 ```
 
 Then, apply it to the Kubernetes with `kubectl`:
 
 ```shell
-$ kubectl apply -f httpbin.yaml
+$ kubectl apply -f tour.yaml
+```
+
+This YAML has also been published so you can deploy it remotely:
+
+```
+kubectl apply -f https://getambassador.io/yaml/tour/tour.yaml
 ```
 
 When the service is deployed, Ambassador will notice the `getambassador.io/config` annotation on the service, and use the `Mapping` contained in it to configure the route.  (There's no restriction on what kinds of Ambassador configuration can go into the annotation, but it's important to note that Ambassador only looks at annotations on Kubernetes `Service`s.)
 
-In this case, the mapping creates a route that will route traffic from the `/httpbin/` endpoint to the public `httpbin.org` service. Note that we are using the `host_rewrite` attribute for the `httpbin_mapping` &mdash; this forces the HTTP `Host` header, and is often a good idea when mapping to external services. Ambassador supports [many different configuration options](/reference/configuration).
+In this case, the mapping creates two routes. One that will route traffic from the `/` endpoint to the `tour-ui` React application and one that will route traffic from the `/backend/` endpoint to the `tour-backend` service. Note the port assignments in the `service` field of the `Mapping`. This allows us to use a single service to route to both the containers running on the `tour` pod.
 
 ## 4. Testing the Mapping
 
@@ -122,11 +176,11 @@ Eventually, this should give you something like:
 NAME         CLUSTER-IP      EXTERNAL-IP     PORT(S)        AGE
 ambassador   10.11.12.13     35.36.37.38     80:31656/TCP   1m
 ```
-You should now be able to use `curl` to `httpbin` (don't forget the trailing `/`):
 
-```shell
-$ curl 35.36.37.38/httpbin/
-```
+
+You should now be able to reach the `tour-ui` application from a web browser:
+
+http://35.36.37.38/
 
 or on minikube:
 
@@ -138,91 +192,22 @@ $ minikube service list
 | default     | ambassador-admin     | http://192.168.99.107:30319 |
 | default     | ambassador           | http://192.168.99.107:31893 |
 |-------------|----------------------|-----------------------------|
-$ curl http://192.168.99.107:31893/httpbin/
 ```
+http://192.168.99.107:31893/
 
-or on Docker for Mac/Windows
+or on Docker for Mac/Windows:
 
 ```shell
 $ kubectl get svc
 NAME               TYPE           CLUSTER-IP       EXTERNAL-IP   PORT(S)          AGE
 ambassador         LoadBalancer   10.106.108.64    localhost     80:32324/TCP     13m
 ambassador-admin   NodePort       10.107.188.149   <none>        8877:30993/TCP   14m
-httpbin            ClusterIP      10.107.77.153    <none>        80/TCP           13m
+tour               ClusterIP      10.107.77.153    <none>        80/TCP           13m
 kubernetes         ClusterIP      10.96.0.1        <none>        443/TCP          84d
-$ curl http://localhost/httpbin/
 ```
+http://localhost/
 
-## 5. Adding a Service
-
-You can add a Service route simply by deploying it with an appropriate Ambassador annotation. For example, we can deploy the QoTM service locally in this cluster, and automatically map it through Ambassador by creating `qotm.yaml` with the following configuration:
-
-```yaml
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: qotm
-  annotations:
-    getambassador.io/config: |
-      ---
-      apiVersion: ambassador/v1
-      kind:  Mapping
-      name:  qotm_mapping
-      prefix: /qotm/
-      service: qotm
-spec:
-  selector:
-    app: qotm
-  ports:
-  - port: 80
-    name: http-qotm
-    targetPort: http-api
----
-apiVersion: extensions/v1beta1
-kind: Deployment
-metadata:
-  name: qotm
-spec:
-  replicas: 1
-  strategy:
-    type: RollingUpdate
-  template:
-    metadata:
-      labels:
-        app: qotm
-    spec:
-      containers:
-      - name: qotm
-        image: datawire/qotm:1.2
-        ports:
-        - name: http-api
-          containerPort: 5000
-        readinessProbe:
-          httpGet:
-            path: /health
-            port: 5000
-          initialDelaySeconds: 30
-          periodSeconds: 3
-        resources:
-          limits:
-            cpu: "0.1"
-            memory: 100Mi
-```
-
-and then applying it with:
-
-```
-kubectl apply -f qotm.yaml
-```
-
-A few seconds after the QoTM service is running, Ambassador should be configured for it. Try it with
-
-```shell
-$ curl http://${AMBASSADOR_IP}/qotm/
-```
-
-## 6. The Diagnostics Service in Kubernetes
+## 5. The Diagnostics Service in Kubernetes
 
 Ambassador includes an integrated diagnostics service to help with troubleshooting. By default, this is not exposed to the Internet. To view it, we'll need to get the name of one of the Ambassador pods:
 
@@ -241,7 +226,7 @@ kubectl port-forward ambassador-3655608000-43x86 8877
 
 will then let us view the diagnostics at http://localhost:8877/ambassador/v0/diag/.
 
-## 7. Next
+## 6. Next
 
 We've just done a quick tour of some of the core features of Ambassador: diagnostics, routing, configuration, and authentication.
 
