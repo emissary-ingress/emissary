@@ -42,6 +42,9 @@ The full set of CRDs supported by Ambassador in 0.70.0:
 | `Kind` | Kubernetes singular | Kubernetes plural |
 | :----- | :------------------ | :---------------- |
 | `AuthService` | `authservice` | `authservices` |
+| `ConsulResolver` | `consulresolver` | `consulresolvers` |
+| `KubernetesEndpointResolver` | `kubernetesendpointresolver` | `kubernetesendpointresolvers` |
+| `KubernetesServiceResolver` | `kubernetesserviceresolver` | `kubernetesserviceresolvers` |
 | `Mapping` | `mapping` | `mappings` |
 | `Module` | `module` | `modules` |
 | `RateLimitService` | `ratelimitservice` | `ratelimitservices` |
@@ -94,6 +97,57 @@ spec:
     plural: authservices
     singular: authservice
     kind: AuthService
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: consulresolvers.getambassador.io
+spec:
+  group: getambassador.io
+  version: v1
+  versions:
+  - name: v1
+    served: true
+    storage: true
+  scope: Namespaced
+  names:
+    plural: consulresolvers
+    singular: consulresolver
+    kind: ConsulResolver
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: kubernetesendpointresolvers.getambassador.io
+spec:
+  group: getambassador.io
+  version: v1
+  versions:
+  - name: v1
+    served: true
+    storage: true
+  scope: Namespaced
+  names:
+    plural: kubernetesendpointresolvers
+    singular: kubernetesendpointresolver
+    kind: KubernetesEndpointResolver
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: kubernetesserviceresolvers.getambassador.io
+spec:
+  group: getambassador.io
+  version: v1
+  versions:
+  - name: v1
+    served: true
+    storage: true
+  scope: Namespaced
+  names:
+    plural: kubernetesserviceresolvers
+    singular: kubernetesserviceresolver  
+    kind: KubernetesServiceResolver
 ---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
