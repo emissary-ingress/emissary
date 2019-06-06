@@ -12,31 +12,31 @@ You may have multiple mappings listing the same resource but different `host` at
 ---
 apiVersion: ambassador/v1
 kind:  Mapping
-name:  qotm_mapping
-prefix: /qotm/
-service: qotm1
+name:  tour-ui_mapping
+prefix: /
+service: tour1
 ---
 apiVersion: ambassador/v1
 kind:  Mapping
-name:  qotm_mapping
-prefix: /qotm/
-host: qotm.datawire.io
-service: qotm2
+name:  tour-ui2_mapping
+prefix: /
+host: tour.datawire.io
+service: tour2
 ---
 apiVersion: ambassador/v1
 kind:  Mapping
-name:  qotm_mapping
-prefix: /qotm/
-host: "^qotm[2-9]\\.datawire\\.io$"
+name:  tour-ui3_mapping
+prefix: /
+host: "^tour[2-9]\\.datawire\\.io$"
 host_regex: true
-service: qotm3
+service: tour3
 ```
 
-will map requests for `/qotm/` to
+will map requests for `/` to
 
-- the `qotm2` service if the `Host` header is `qotm.datawire.io`;
-- the `qotm3` service if the `Host` header matches `^qotm[2-9]\\.datawire\\.io$`; and to
-- the `qotm1` service otherwise.
+- the `tour2` service if the `Host` header is `tour.datawire.io`;
+- the `toru3` service if the `Host` header matches `^tour[2-9]\\.datawire\\.io$`; and to
+- the `tour1` service otherwise.
 
 Note that enclosing regular expressions in quotes can be important to prevent backslashes from being doubled.
 

@@ -4,7 +4,7 @@ Ambassador enables you to control timeouts in several different ways.
 
 ## Request timeout: `timeout_ms`
 
-`timeout_ms` is the timeout for an entire user-level transaction. By default, this is 5000ms. This spans the point at which the entire downstream request has been processed (i.e., end of stream) to the point where the upstream response has been processed. This timeout includes all retries. 
+`timeout_ms` is the timeout for an entire user-level transaction. By default, this is 3000ms. This spans the point at which the entire downstream request has been processed (i.e., end of stream) to the point where the upstream response has been processed. This timeout includes all retries.
 
 ## Idle timeout: `idle_timeout_ms`
 
@@ -22,9 +22,9 @@ The various timeouts are applied onto a `Mapping` resource and can be combined.
 ---
 apiVersion: ambassador/v1
 kind:  Mapping
-name:  qotm_mapping
-prefix: /qotm/
-service: qotm
+name:  tour-backend_mapping
+prefix: /backend/
+service: tour
 timeout_ms: 4000
 idle_timeout_ms: 500000
 connect_timeout_ms: 4000

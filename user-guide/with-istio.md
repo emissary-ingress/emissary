@@ -255,11 +255,13 @@ metadata:
         server:
           enabled: True
           redirect_cleartext_from: 8080
-        client:
-          enabled: False
-        upstream:
-          cert_chain_file: /etc/istiocerts/cert-chain.pem
-          private_key_file: /etc/istiocerts/key.pem
+      ---
+      apiVersion: ambassador/v1
+      kind: TLSContext
+      name: istio-upstream
+      cert_chain_file: /etc/istiocerts/cert-chain.pem
+      private_key_file: /etc/istiocerts/key.pem
+      cacert_chain_file: /etc/istiocerts/root-cert.pem
 spec:
   type: LoadBalancer
   ports:
@@ -270,7 +272,7 @@ spec:
     service: ambassador
 ```
 
-This will define an `upstream` that uses the Istio certificates. We can now reuse the `upstream` in all Ambassador mappings to enable communication with Istio pods.
+This will define an `upstream` that uses the Istio certificates. We can now reuse the `istio-upstream` in all Ambassador mappings to enable communication with Istio pods.
 
 ``` yaml
 apiVersion: v1
@@ -287,8 +289,8 @@ metadata:
       name: productpage_mapping
       prefix: /productpage/
       rewrite: /productpage
-      tls: upstream
       service: https://productpage:9080
+      tls: istio-upstream
 spec:
   ports:
   - port: 9080
@@ -297,7 +299,7 @@ spec:
   selector:
     app: productpage
 ```
-Note the `tls: upstream`, which lets Ambassador know which certificate to use when communicating with that service.
+Note the `tls: istio-upstream`, which lets Ambassador know which certificate to use when communicating with that service.
 
 In the definition above we also have TLS termination enabled; please see [the TLS termination tutorial](https://www.getambassador.io/user-guide/tls-termination) for more details.
 
