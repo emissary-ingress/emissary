@@ -272,6 +272,20 @@ for mname, mapping in mappings.items():
                     }
                 )
 
+                mapping_lb = mapping.get('load_balancer', None)
+                if mapping_lb is not None:
+                    if mapping_lb.get('drain_connections', None) is not None:
+                        # drain_connections is set, let's add the pod watcher now
+                        label_selector = fetcher.get_selector_from_service(svc.hostname)
+                        kube_watches.append(
+                            {
+                                "kind": "pods",
+                                # "namespace": k8s_service.get('namespace'),
+                                "label-selector": label_selector
+                            }
+                        )
+                        logger.debug("Adding pod watcher for mapping {} for label selector {}".format(mapping, label_selector))
+
 for secret_key, secret_info in fake.secret_handler.needed.items():
     logger.debug(f'need secret {secret_info.name}.{secret_info.namespace}')
 

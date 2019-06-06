@@ -20,7 +20,7 @@ metadata:
   name: ambassador
 rules:
 - apiGroups: [""]
-  resources: [ "endpoints", "namespaces", "secrets", "services" ]
+  resources: [ "endpoints", "namespaces", "secrets", "services", "pods" ]
   verbs: ["get", "list", "watch"]
 - apiGroups: [ "getambassador.io" ]
   resources: [ "*" ]

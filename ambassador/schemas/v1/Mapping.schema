@@ -150,7 +150,8 @@
                     "additionalProperties": false
                 },
                 "header":  { "type": "string" },
-                "source_ip": {"type": "boolean"}
+                "source_ip": {"type": "boolean"},
+                "drain_connections": {"type": "boolean"}
             },
             "required": ["policy"],
             "additionalProperties": false
