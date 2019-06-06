@@ -1,13 +1,17 @@
+.DEFAULT_GOAL = lint
 export GO111MODULE = on
 
-lint:
+build:
 	go build ./...
+test: build
+	go test ./...
+lint: test
 	@{ r=0; PS4=; set -x; \
 	golangci-lint run ./... || r=$$?; \
 	go list ./... | xargs golint -set_exit_status || r=$$?; \
 	unused -exported ./... || r=$$?; \
 	}; exit $$r
-.PHONY: lint
+.PHONY: build test lint
 
 go.module = github.com/datawire/liboauth2
 go-doc: .gopath
