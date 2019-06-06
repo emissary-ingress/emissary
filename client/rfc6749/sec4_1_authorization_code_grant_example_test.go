@@ -1,4 +1,4 @@
-package main
+package rfc6749_test
 
 import (
 	"html/template"
@@ -30,7 +30,7 @@ var errorResponsePage = template.Must(template.New("error-response-page").Parse(
       <dt>error code</dt>
       <dd><tt>{{.Error}}</tt> : {{.Error.Description}}</dd>
 
-{{ if .ErrorDescription | ne "" }}  
+{{ if .ErrorDescription | ne "" }}
       <dt>error description</dt>
       <dd>{{.ErrorDescription}}</dd>
 {{ end }}
@@ -45,7 +45,7 @@ var errorResponsePage = template.Must(template.New("error-response-page").Parse(
 </html>
 `))
 
-func main() {
+func ExampleAuthorizationCodeClient() {
 	client, err := rfc6749.NewAuthorizationCodeClient(
 		"example-client",
 		mustParseURL("https://authorization-server.example.com/authorization"),
@@ -80,7 +80,7 @@ func main() {
 		case rfc6749.AuthorizationCodeAuthorizationErrorResponse:
 			w.Header().Set("Content-Type", "text/html")
 			w.WriteHeader(http.StatusUnauthorized)
-			errorResponsePage.Execute(w, authorizationResponse)
+			_ = errorResponsePage.Execute(w, authorizationResponse)
 			return
 		case rfc6749.AuthorizationCodeAuthorizationSuccessResponse:
 			tokenResponse, err := client.AccessToken(nil, authorizationResponse.Code, mustParseURL("https://example-client.example.com/redirection"))
@@ -91,7 +91,7 @@ func main() {
 			case rfc6749.TokenErrorResponse:
 				w.Header().Set("Content-Type", "text/html")
 				w.WriteHeader(http.StatusUnauthorized)
-				errorResponsePage.Execute(w, tokenResponse)
+				_ = errorResponsePage.Execute(w, tokenResponse)
 				return
 			case rfc6749.TokenSuccessResponse:
 				// TODO
