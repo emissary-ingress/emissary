@@ -1,10 +1,12 @@
-.DEFAULT_GOAL = lint
 export GO111MODULE = on
+
+all: lint test.cov.html test.cov.func.txt
 
 build:
 	go build ./...
-test: build
-	go test ./...
+test: test.cov
+test.cov: build
+	go test -coverprofile=test.cov ./...
 lint: test
 	@{ r=0; PS4=; set -x; \
 	golangci-lint run ./... || r=$$?; \
@@ -12,6 +14,12 @@ lint: test
 	unused -exported ./... || r=$$?; \
 	}; exit $$r
 .PHONY: build test lint
+
+%.cov.html: %.cov
+	go tool cover -html $< -o $@
+%.cov.func.txt: %.cov
+	go tool cover -func $< -o $@
+
 
 go.module = github.com/datawire/liboauth2
 go-doc: .gopath
