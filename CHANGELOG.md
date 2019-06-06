@@ -106,7 +106,7 @@ Format:
 - Bugfix: `docker run` works again for the Ambassador demo, and is part of our tests now [#1569]
 - Bugfix: Scout `DEBUG` messages don’t get leaked into the diag UI [#1573]
 - Maintenance: warn of upcoming protocol version changes
-- Maintenance: check in with Scout every 24 hours, but no more than once per day
+- Maintenance: check in with Scout every 24 hours, but no more than twice per day
 
 [#744]: https://github.com/datawire/ambassador/issues/744
 [#1379]: https://github.com/datawire/ambassador/issues/1379
