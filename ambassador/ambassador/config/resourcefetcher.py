@@ -46,6 +46,7 @@ class ResourceFetcher:
         self.ocount: int = 1
         self.saved: List[Tuple[Optional[str], int]] = []
 
+        self.k8s_pods: Dict[str, AnyDict] = {}
         self.k8s_endpoints: Dict[str, AnyDict] = {}
         self.k8s_services: Dict[str, AnyDict] = {}
         self.services: Dict[str, AnyDict] = {}
@@ -53,6 +54,41 @@ class ResourceFetcher:
     @property
     def location(self):
         return "%s.%d" % (self.filename or "anonymous YAML", self.ocount)
+
+    def get_k8s_service_by_name(self, service_name):
+        for service in self.k8s_services.values():
+            if service.get('name') == service_name:
+                return service
+        return None
+
+    def get_selector_from_service(self, service_name):
+        label_selector = None
+        k8s_service = self.get_k8s_service_by_name(service_name)
+        if k8s_service is not None:
+            selector = k8s_service.get('selector')
+            if selector is not None:
+                for k, v in selector.items():
+                    label_selector = "{}={}".format(k, v)
+        return label_selector
+
+    def get_pods_for_service(self, service_name):
+        pods = []
+
+        selector = self.get_selector_from_service(service_name)
+        if selector is None:
+            return []
+
+        for k8s_pod in self.k8s_pods.values():
+            labels = k8s_pod.get('labels')
+            if labels is None:
+                return []
+
+            for k, v in labels.items():
+                formatted_label = "{}={}".format(k, v)
+                if formatted_label == selector:
+                    pods.append(k8s_pod)
+
+        return pods
 
     def push_location(self, filename: Optional[str], ocount: int) -> None:
         self.saved.append((self.filename, self.ocount))
@@ -148,7 +184,7 @@ class ResourceFetcher:
             watt_k8s = watt_dict.get('Kubernetes', {})
 
             # Handle normal Kube objects...
-            for key in [ 'service', 'endpoints', 'secret' ]:
+            for key in [ 'service', 'endpoints', 'secret', 'pods' ]:
                 for obj in watt_k8s.get(key) or []:
                     self.handle_k8s(obj)
 
@@ -186,6 +222,7 @@ class ResourceFetcher:
             return
 
         handler_name = f'handle_k8s_{kind.lower()}'
+        self.logger.debug("Looking for handler: {}".format(handler_name))
         handler = getattr(self, handler_name, None)
 
         if not handler:
@@ -313,6 +350,35 @@ class ResourceFetcher:
 
     def sorted(self, key=lambda x: x.rkey):  # returns an iterator, probably
         return sorted(self.elements, key=key)
+
+    def handle_k8s_pod(self, k8s_object: AnyDict) -> HandlerResult:
+        # Don't include Pods unless endpoint routing is enabled.
+        if not Config.enable_endpoints:
+            return None
+
+        pod_details = {}
+        resource_identifier = ''
+
+        metadata = k8s_object.get('metadata', None)
+        if metadata is not None:
+            pod_details['name'] = metadata.get('name', None)
+            pod_details['namespace'] = metadata.get('namespace', 'default')
+            resource_identifier = '{}.{}'.format(pod_details['name'], pod_details['namespace'])
+
+            pod_details['labels'] = metadata.get('labels', None)
+
+            # A pod is terminating if deletionTimestamp is set! I swear!
+            pod_details['terminating'] = False
+            if metadata.get('deletionTimestamp', None) is not None:
+                self.logger.debug("Pod {} has deletionTimestamp {} - marking it as terminating".format(pod_details['name'], metadata.get('deletionTimestamp')))
+                pod_details['terminating'] = True
+
+        status = k8s_object.get('status', None)
+        if status is not None:
+            pod_details['ip'] = status.get('podIP', None)
+
+        self.k8s_pods[resource_identifier] = pod_details
+        return None
 
     def handle_k8s_endpoints(self, k8s_object: AnyDict) -> HandlerResult:
         # Don't include Endpoints unless endpoint routing is enabled.
@@ -477,12 +543,14 @@ class ResourceFetcher:
 
         spec = k8s_object.get('spec', None)
         ports = spec.get('ports', None) if spec else None
+        selector = spec.get('selector') if spec else None
 
         if spec and ports:
             self.k8s_services[resource_identifier] = {
                 'name': resource_name,
                 'namespace': resource_namespace,
-                'ports': ports
+                'ports': ports,
+                'selector': selector
             }
         else:
             self.logger.debug(f"not saving K8s Service {resource_name}.{resource_namespace} with no ports")
@@ -641,6 +709,7 @@ class ResourceFetcher:
             'elements': [ x.as_dict() for x in self.elements ],
             'k8s_endpoints': self.k8s_endpoints,
             'k8s_services': self.k8s_services,
+            'k8s_pods': self.k8s_pods,
             'services': self.services
         }
 
@@ -783,6 +852,8 @@ class ResourceFetcher:
                     'port': target_port
                 } for target_addr in target_addrs ]
 
+            service_pods = self.get_pods_for_service(k8s_name)
+
             # Nope. Set this up for service routing.
             self.services[f'k8s-{k8s_name}-{k8s_namespace}'] = {
                 'apiVersion': 'ambassador/v1',
@@ -790,7 +861,8 @@ class ResourceFetcher:
                 'kind': 'Service',
                 'name': k8s_name,
                 'namespace': k8s_namespace,
-                'endpoints': svc_endpoints
+                'endpoints': svc_endpoints,
+                'pods': service_pods
             }
 
         # OK. After all that, go turn all of the things in self.services into Ambassador
@@ -806,6 +878,7 @@ class ResourceFetcher:
             'elements': [ x.as_dict() for x in self.elements ],
             'k8s_endpoints': self.k8s_endpoints,
             'k8s_services': self.k8s_services,
+            'k8s_pods': self.k8s_pods,
             'services': self.services
         }
 

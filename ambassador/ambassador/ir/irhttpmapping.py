@@ -278,6 +278,11 @@ class IRHTTPMapping (IRBaseMapping):
                 elif 'source_ip' in load_balancer:
                     is_valid = True
 
+        drain_connections = load_balancer.get('drain_connections', None)
+        if drain_connections is not None:
+            if lb_policy in ['ring_hash', 'maglev']:
+                is_valid = True
+
         return is_valid
 
     def _group_id(self) -> str:

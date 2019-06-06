@@ -143,7 +143,27 @@ class IRServiceResolver(IRResource):
             (svc, namespace) = svc.split(".", 2)[0:2]
 
         # Find endpoints, and try for a port match!
-        return self.get_endpoints(ir, f'k8s-{svc}-{namespace}', port)
+        targets = self.get_endpoints(ir, f'k8s-{svc}-{namespace}', port)
+
+        # Now configure for draining connections
+        drain_connections = False
+        cluster_lb = cluster.get('load_balancer', None)
+        if cluster_lb is not None:
+            if cluster_lb.get('drain_connections', False):
+                drain_connections = True
+
+        if drain_connections:
+            draining_pods = self.configure_drain_connections(ir=ir, key=f'k8s-{svc}-{namespace}')
+            if targets is None and draining_pods is not None:
+                targets = draining_pods
+            elif targets is not None and draining_pods is None:
+                pass
+            elif targets is None and draining_pods is None:
+                targets = None
+            else:
+                targets = targets + draining_pods
+
+        return targets
 
     @resolve.when("ConsulResolver")
     def _consul_resolver(self, ir: 'IR', cluster: 'IRCluster', svc_name: str, port: int) -> Optional[SvcEndpointSet]:
@@ -152,6 +172,43 @@ class IRServiceResolver(IRResource):
         # being present, actually).
 
         return self.get_endpoints(ir, f'consul-{svc_name}-{self.datacenter}', None)
+
+    def configure_drain_connections(self, ir: 'IR', key: str):
+        targets = []
+
+        service = ir.services.get(key)
+
+        if not service:
+            self.logger.debug(f'Resolver {self.name}: {key} matches no Service')
+            return None
+
+        self.logger.debug(f'Resolver {self.name}: {key} matches %s' % service.as_json())
+
+        pods = service.get('pods', [])
+        if len(pods) == 0:
+            self.logger.debug("Service {} has no pods".format(key))
+            return None
+
+        endpoints = service.get('endpoints', [])
+
+        endpoint_ports = []
+        for endpoint_list in endpoints.values():
+            for endpoint in endpoint_list:
+                ep_port = endpoint.get('port')
+                if ep_port not in endpoint_ports:
+                    endpoint_ports.append(ep_port)
+
+        for pod in pods:
+            # If the pod is terminating, add it
+            if pod.get('terminating'):
+                for port in endpoint_ports:
+                    targets.append({
+                        'ip': pod.get('ip'),
+                        'port': port,
+                        'terminating': True
+                    })
+
+        return targets
 
     def get_endpoints(self, ir: 'IR', key: str, port: Optional[int]) -> Optional[SvcEndpointSet]:
         # OK. Do we have a Service by this key?
