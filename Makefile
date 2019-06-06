@@ -44,3 +44,8 @@ vendor: FORCE
 	go list ./... | sed -e 's,^$(go.module),,' -e 's,$$,/*.go,' | rsync --archive --prune-empty-dirs --delete-excluded --include='*/' --include-from=/dev/stdin --exclude='*' ./ $@/
 
 .PHONY: FORCE
+
+clean:
+	rm -rf vendor .gopath
+	rm -f test.cov test.cov.*
+.PHONY: clean
