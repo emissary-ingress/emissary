@@ -32,6 +32,22 @@ func NewImplicitClient(
 	return ret, nil
 }
 
+// ImplicitClientSessionData is the session data that must be
+// persisted between requests when using an ImplicitClient
+type ImplicitClientSessionData struct {
+	Request struct {
+		RedirectURI *url.URL
+		Scope       Scope
+		State       string
+	}
+	CurrentAccessToken struct {
+		Token     string
+		TokenType string
+		ExpiresAt time.Time
+		Scope     Scope
+	}
+}
+
 // AuthorizationRequest returns an URI that the Client should direct
 // the User-Agent to perform a GET request for, in order to perform an
 // Authorization Request, per §4.2.1.
@@ -56,7 +72,7 @@ func NewImplicitClient(
 // redirect, that 302 "Found" may or MAY NOT convert POST->GET; and
 // that to reliably have the User-Agent perform a GET, one should use
 // 303 "See Other" which MUST convert to GET.
-func (client *ImplicitClient) AuthorizationRequest(redirectURI *url.URL, scope Scope, state string) (*url.URL, error) {
+func (client *ImplicitClient) AuthorizationRequest(redirectURI *url.URL, scope Scope, state string) (*url.URL, *ImplicitClientSessionData, error) {
 	parameters := url.Values{
 		"response_type": {"token"},
 		"client_id":     {client.clientID},
@@ -64,7 +80,7 @@ func (client *ImplicitClient) AuthorizationRequest(redirectURI *url.URL, scope S
 	if redirectURI != nil {
 		err := validateRedirectionEndpointURI(redirectURI)
 		if err != nil {
-			return nil, errors.Wrap(err, "cannot build Authorization Request URI")
+			return nil, nil, errors.Wrap(err, "cannot build Authorization Request URI")
 		}
 		parameters.Set("redirect_uri", redirectURI.String())
 	}
@@ -74,25 +90,43 @@ func (client *ImplicitClient) AuthorizationRequest(redirectURI *url.URL, scope S
 	if state != "" {
 		parameters.Set("state", state)
 	}
-	return buildAuthorizationRequestURI(client.authorizationEndpoint, parameters)
+
+	session := &ImplicitClientSessionData{}
+	session.Request.RedirectURI = redirectURI
+	session.Request.Scope = scope
+	session.Request.State = state
+
+	u, err := buildAuthorizationRequestURI(client.authorizationEndpoint, parameters)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return u, session, nil
 }
 
 // ParseAccessTokenResponse parses the URI fragment that contains the
 // Access Token Response, as specified by §4.2.2.
 //
-// The returned response is either an
-// ImplicitAccessTokenSuccessResponse or an
-// ImplicitAccessTokenErrorResponse.  Either way, you should check
-// that the .GetState() is valid before doing anything else with it.
-//
 // The fragment is normally not accessible to the HTTP server.  You
 // will need to use JavaScript in the user-agent to somehow get it to
 // the server.
-func (client *ImplicitClient) ParseAccessTokenResponse(fragment string) (ImplicitAccessTokenResponse, error) {
+//
+// If the server sent a semantically valid error response, the
+// returned error is of type ImplicitGrantErrorResponse.  On protocol
+// errors, a different error type is returned.
+func (client *ImplicitClient) ParseAccessTokenResponse(session *ImplicitClientSessionData, fragment string) (ImplicitAccessTokenResponse, error) {
 	parameters, err := url.ParseQuery(fragment)
 	if err != nil {
 		return nil, err
 	}
+
+	// The "state" parameter is shared by both success and error
+	// responses.  Let's check this early, to avoid unnecessary
+	// resource usage.
+	if parameters.Get("state") != session.Request.State {
+		return "", errors.New("refusing to parse response: response state parameter does not match request state parameter; XSRF attack likely")
+	}
+
 	if errs := parameters["error"]; len(errs) > 0 {
 		// §4.2.2.1 error
 		var errorURI *url.URL
@@ -103,35 +137,33 @@ func (client *ImplicitClient) ParseAccessTokenResponse(fragment string) (Implici
 				return nil, errors.Wrap(err, "cannot parse error response: invalid error_uri")
 			}
 		}
-		return ImplicitAccessTokenErrorResponse{
-			Error:            errs[0],
+		return nil, ImplicitGrantErrorResponse{
+			ErrorCode:        errs[0],
 			ErrorDescription: parameters.Get("error_description"),
 			ErrorURI:         errorURI,
-			State:            parameters.Get("state"),
-		}, nil
+		}
 	}
 	// §4.2.2 success
 	accessTokens := parameters["access_token"]
 	if len(accessTokens) == 0 {
 		return nil, errors.New("cannot parse response: missing required \"access_token\" parameter")
 	}
-	tokenTypes := parameters["token_types"]
+	tokenTypes := parameters["token_type"]
 	if len(tokenTypes) == 0 {
 		return nil, errors.New("cannot parse response: missing required \"token_type\" parameter")
 	}
 	ret := ImplicitAccessTokenSuccessResponse{
 		AccessToken: accessTokens[0],
 		TokenType:   tokenTypes[0],
-		State:       parameters.Get("state"),
 	}
-	if expiresIns := parameters["expires_in"]; len(expiresIns) != 0 {
+	if expiresIns := parameters["expires_in"]; len(expiresIns) > 0 {
 		seconds, err := strconv.ParseFloat(expiresIns[0], 64)
 		if err != nil {
 			return nil, errors.Wrap(err, "cannot parse response: cannot parse \"expires_in\" parameter")
 		}
 		ret.ExpiresAt = time.Now().Add(time.Duration(seconds * float64(time.Second)))
 	}
-	if scopes := parameters["scopes"]; len(scopes) != 0 {
+	if scopes := parameters["scopes"]; len(scopes) > 0 {
 		ret.Scope = parseScope(scopes[0])
 	}
 	return ret, nil
@@ -147,7 +179,7 @@ type ImplicitAccessTokenResponse interface {
 	GetState() string
 }
 
-// An ImplicitAccessTokenSuccessResponse is a successful response to
+// An ImplicitAccessTokenResponse is a successful response to
 // an Authorization Request in the Implicit flow, as defined in
 // §4.2.2.
 type ImplicitAccessTokenSuccessResponse struct {
@@ -155,7 +187,6 @@ type ImplicitAccessTokenSuccessResponse struct {
 	TokenType   string    // REQUIRED.
 	ExpiresAt   time.Time // RECOMMENDED.
 	Scope       Scope     // OPTIONAL if identical to scope requested by the client; otherwise REQUIRED.
-	State       string    // REQUIRED if the "state" parameter was present in the request.
 }
 
 func (r ImplicitAccessTokenSuccessResponse) isImplicitAccessTokenResponse() {}
@@ -163,28 +194,23 @@ func (r ImplicitAccessTokenSuccessResponse) isImplicitAccessTokenResponse() {}
 // GetState returns the state parameter (if any) included in the response.
 func (r ImplicitAccessTokenSuccessResponse) GetState() string { return r.State }
 
-// An ImplicitAccessTokenErrorResponse is an error response to an
+// An ImplicitGrantErrorResponse is an error response to an
 // Authorization Request in the Implicit flow, as defined in §4.2.2.1.
-type ImplicitAccessTokenErrorResponse struct {
-	Error            string
+type ImplicitGrantErrorResponse struct {
+	ErrorCode        string
 	ErrorDescription string
 	ErrorURI         *url.URL
-	State            string
 }
 
-func (r ImplicitAccessTokenErrorResponse) isImplicitAccessTokenResponse() {}
-
-// GetState returns the state parameter (if any) included in the response.
-func (r ImplicitAccessTokenErrorResponse) GetState() string { return r.State }
-
-// ErrorMeaning returns a human-readable meaning of the .Error code.
-// Returns an empty string for unknown error codes.
-func (r ImplicitAccessTokenErrorResponse) ErrorMeaning() string {
-	ecode := rfc6749.GetImplicitGrantError(r.Error)
-	if ecode == nil {
-		return ""
+func (r ImplicitGrantErrorResponse) Error() string {
+	ret := fmt.Sprintf("error response: error=%q", r.ErrorCode)
+	if r.ErrorDescription != "" {
+		ret = fmt.Sprintf("%s error_description=%q", ret, r.ErrorDescription)
 	}
-	return ecode.Meaning()
+	if r.ErrorURI != nil {
+		ret = fmt.Sprintf("%s error_uri=%q", ret, r.ErrorURI.String())
+	}
+	return ret
 }
 
 func newImplicitAccessTokenError(name, meaning string) {

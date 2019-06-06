@@ -19,34 +19,6 @@ func mustParseURL(s string) *url.URL {
 	return u
 }
 
-var errorResponsePage = template.Must(template.New("error-response-page").Parse(`
-<!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8">
-    <title>Error Response: {{.Error}}</title>
-  </head>
-  <body>
-    <dl>
-
-      <dt>error code</dt>
-      <dd><tt>{{.Error}}</tt> : {{.Error.Description}}</dd>
-
-{{ if .ErrorDescription | ne "" }}
-      <dt>error description</dt>
-      <dd>{{.ErrorDescription}}</dd>
-{{ end }}
-
-{{ if .ErrorURI | ne nil }}
-      <dt>error URI</dt>
-      <dd><a href="{{.ErrorURI}}">{{.ErrorURI}}</a></dd>
-{{ end }}
-
-    </dl>
-  </body>
-</html>
-`))
-
 func randomToken() string {
 	d := make([]byte, 128)
 	if _, err := rand.Read(d); err != nil {
@@ -56,11 +28,9 @@ func randomToken() string {
 }
 
 func ExampleAuthorizationCodeClient() {
-	client, err := rfc6749.NewAuthorizationCodeClient(
+	client, err := rfc6749.NewImplicitClient(
 		"example-client",
 		mustParseURL("https://authorization-server.example.com/authorization"),
-		mustParseURL("https://authorization-server.example.com/token"),
-		rfc6749.ClientPasswordHeader("example-client", "example-password"),
 	)
 	if err != nil {
 		log.Fatal(err)
@@ -93,6 +63,11 @@ func ExampleAuthorizationCodeClient() {
 	})
 
 	http.HandleFunc("/.well-known/internal/redirecton", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/html")
+		io.WriteString(w, `<script>window.location = "/.well-known/internal/redirection_helper?fragment=" + encodeURIComponent(window.location.hash.substring(1))</script>`)
+	})
+
+	http.HandleFunc("/.well-known/internal/redirecton_helper", func(w http.ResponseWriter, r *http.Request) {
 		cookie, err := r.Cookie("session")
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
@@ -104,26 +79,10 @@ func ExampleAuthorizationCodeClient() {
 			return
 		}
 
-		authorizationCode, err := client.ParseAuthorizationResponse(sessionData, r.URL)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
-		}
+		fragment := r.URL.Query().Get("fragment")
 
-		tokenResponse, err := client.AccessToken(sessionData, nil, authorizationCode)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadGateway)
-			return
-		}
-		switch tokenResponse := tokenResponse.(type) {
-		case rfc6749.TokenErrorResponse:
-			w.Header().Set("Content-Type", "text/html")
-			w.WriteHeader(http.StatusUnauthorized)
-			_ = errorResponsePage.Execute(w, tokenResponse)
-			return
-		case rfc6749.TokenSuccessResponse:
-			// TODO
-		}
+		token, err := client.ParseAccessTokenResponse(sessionData, fragment)
+		// TODO
 	})
 
 	http.HandleFunc("/dashboard", func(w http.ResponseWriter, r *http.Request) {

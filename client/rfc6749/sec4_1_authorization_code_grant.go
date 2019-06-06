@@ -51,7 +51,6 @@ type AuthorizationCodeClientSessionData struct {
 		Scope       Scope
 		State       string
 	}
-	TokenResponse *TokenSuccessResponse
 }
 
 // AuthorizationRequest returns an URI that the Client should direct
@@ -117,9 +116,8 @@ func (client *AuthorizationCodeClient) AuthorizationRequest(redirectURI *url.URL
 // Redirection Endpoint.
 //
 // If the server sent a semantically valid error response, the
-// returned error is of type
-// AuthorizationCodeAuthorizationErrorResponse.  On protocol errors, a
-// different error type is returned.
+// returned error is of type AuthorizationCodeGrantErrorResponse.  On
+// protocol errors, a different error type is returned.
 func (client *AuthorizationCodeClient) ParseAuthorizationResponse(session *AuthorizationCodeClientSessionData, requestURL *url.URL) (authorizationCode string, err error) {
 	parameters := requestURL.Query()
 
@@ -140,7 +138,7 @@ func (client *AuthorizationCodeClient) ParseAuthorizationResponse(session *Autho
 				return "", errors.Wrap(err, "cannot parse error response: invalid error_uri")
 			}
 		}
-		return "", AuthorizationCodeAuthorizationErrorResponse{
+		return "", AuthorizationCodeGrantErrorResponse{
 			ErrorCode:        errs[0],
 			ErrorDescription: parameters.Get("error_description"),
 			ErrorURI:         errorURI,
@@ -154,10 +152,10 @@ func (client *AuthorizationCodeClient) ParseAuthorizationResponse(session *Autho
 	return codes[0], nil
 }
 
-// An AuthorizationCodeAuthorizationErrorResponse is an error response
+// An AuthorizationCodeGrantErrorResponse is an error response
 // to an Authorization Request in the Authorization Code flow, as
 // defined in §4.1.2.1.
-type AuthorizationCodeAuthorizationErrorResponse struct {
+type AuthorizationCodeGrantErrorResponse struct {
 	// REQUIRED.  A single ASCII error code.
 	ErrorCode string
 
@@ -171,7 +169,7 @@ type AuthorizationCodeAuthorizationErrorResponse struct {
 	ErrorURI *url.URL
 }
 
-func (r AuthorizationCodeAuthorizationErrorResponse) Error() string {
+func (r AuthorizationCodeGrantErrorResponse) Error() string {
 	ret := fmt.Sprintf("error response: error=%q", r.ErrorCode)
 	if r.ErrorDescription != "" {
 		ret = fmt.Sprintf("%s error_description=%q", ret, r.ErrorDescription)

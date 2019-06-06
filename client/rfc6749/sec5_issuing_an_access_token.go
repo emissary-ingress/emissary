@@ -65,7 +65,7 @@ func parseTokenResponse(res *http.Response) (TokenResponse, error) {
 		}
 		return ret, nil
 	case res.StatusCode/100 == 4:
-		// The spec says "400, unless otherwise specified".  rfc6749 doesn't (yet?) keep track of HTTP
+		// The spec says "400, unless otherwise specified".  This package doesn't (yet?) keep track of HTTP
 		// statuses associated with different error codes.  Even if it did, Auth0 returns 403 for
 		// error=invalid_grant, when the spec is clear that it should be using 400 for that.  Assuming that
 		// anything in the 4XX range suggests an Error Response seams reasonable.

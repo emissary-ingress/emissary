@@ -51,7 +51,7 @@ func validateTokenEndpointURI(endpoint *url.URL) error {
 	return nil
 }
 
-// Scope represents a list of scopes as defined by §3.3.
+// Scope represents an unordered list of scopes as defined by §3.3.
 type Scope map[string]struct{}
 
 // String serializes the set of scopes for use as a parameter, per
