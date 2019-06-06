@@ -366,6 +366,32 @@ class Diagnostics:
         self.ambassador_services: List[dict] = []
         self.ambassador_resolvers: List[dict] = []
 
+        # Warn people about upcoming deprecations.
+
+        warn_auth = False
+        warn_ratelimit = False
+
+        for filter in self.ir.filters:
+            if filter.kind == 'IRAuth':
+                proto = filter.get('proto') or 'http'
+
+                if proto.lower() != 'http':
+                    warn_auth = True
+
+            if filter.kind == 'IRRateLimit':
+                warn_ratelimit = True
+
+        things_to_warn = []
+
+        if warn_auth:
+            things_to_warn.append('AuthServices')
+
+        if warn_ratelimit:
+            things_to_warn.append('RateLimitServices')
+
+        if things_to_warn:
+            self.ir.aconf.post_notice(f'A future Ambassador version will change the GRPC protocol version for {" and ".join(things_to_warn)}. See the CHANGELOG for details.')
+
         # # Warn people about the default port change.
         # if self.ir.ambassador_module.service_port < 1024:
         #     # Does it look like they explicitly asked for this?

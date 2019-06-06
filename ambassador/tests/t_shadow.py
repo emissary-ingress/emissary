@@ -7,7 +7,7 @@ from kat.harness import sanitize, variants, Query, Runner
 from kat import manifests
 
 from abstract_tests import AmbassadorTest, HTTP
-from abstract_tests import MappingTest, OptionTest, ServiceType, Node, Test
+from abstract_tests import DEFAULT_ERRORS, MappingTest, OptionTest, ServiceType, Node, Test
 
 
 class ShadowTest(MappingTest):
@@ -134,7 +134,7 @@ service: shadow.plain-namespace
     def check(self):
         # XXX Ew. If self.results[0].json is empty, the harness won't convert it to a response.
         errors = self.results[0].json or {}
-        assert(len(errors) == 1)
+        assert(errors == DEFAULT_ERRORS)
 
         for result in self.results:
             if "mark" in result.query.url:

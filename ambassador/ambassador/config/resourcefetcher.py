@@ -137,7 +137,10 @@ class ResourceFetcher:
     def parse_watt(self, serialization: str) -> None:
 
         if os.path.isfile(os.path.abspath('.ambassador_ignore_crds')):
-            self.aconf.post_error("Ambassador could not find all the required CRDs. Please visit https://www.getambassador.io/reference/core/crds/ for more information. You can continue using Ambassador via Kubernetes annotations, any configuration via CRDs will be ignored...")
+            self.aconf.post_error("Ambassador could not find core CRD definitions. Please visit https://www.getambassador.io/reference/core/crds/ for more information. You can continue using Ambassador via Kubernetes annotations, any configuration via CRDs will be ignored...")
+
+        if os.path.isfile(os.path.abspath('.ambassador_ignore_crds_2')):
+            self.aconf.post_error("Ambassador could not find Resolver type CRD definitions. Please visit https://www.getambassador.io/reference/core/crds/ for more information. You can continue using Ambassador via Kubernetes annotations, any configuration via CRDs will be ignored...")
 
         try:
             watt_dict = json.loads(serialization)

@@ -183,8 +183,13 @@ fi
 ################################################################################
 if [[ -z "${AMBASSADOR_NO_KUBEWATCH}" ]]; then
     KUBEWATCH_SYNC_KINDS="-s service"
+
     if [ ! -f .ambassador_ignore_crds ]; then
-        KUBEWATCH_SYNC_KINDS="$KUBEWATCH_SYNC_KINDS -s AuthService -s ConsulResolver -s KubernetesEndpointResolver -s KubernetesServiceResolver -s Mapping -s Module -s RateLimitService -s TCPMapping -s TLSContext -s TracingService"
+        KUBEWATCH_SYNC_KINDS="$KUBEWATCH_SYNC_KINDS -s AuthService -s Mapping -s Module -s RateLimitService -s TCPMapping -s TLSContext -s TracingService"
+    fi
+
+    if [ ! -f .ambassador_ignore_crds_2 ]; then
+        KUBEWATCH_SYNC_KINDS="$KUBEWATCH_SYNC_KINDS -s ConsulResolver -s KubernetesEndpointResolver -s KubernetesServiceResolver"
     fi
 
     launch /ambassador/watt \
