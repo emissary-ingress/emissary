@@ -138,8 +138,8 @@ AMBASSADOR_EXTERNAL_DOCKER_IMAGE ?= $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(AMBASSA
 # UPDATE THESE VERSION NUMBERS IF YOU UPDATE ANY OF THE VALUES ABOVE, THEN
 # RUN make docker-update-base.
 ENVOY_BASE_IMAGE ?= quay.io/datawire/ambassador-base:envoy-11
-AMBASSADOR_DOCKER_IMAGE_CACHED ?= quay.io/datawire/ambassador-base:go-11
-AMBASSADOR_BASE_IMAGE ?= quay.io/datawire/ambassador-base:ambassador-11
+AMBASSADOR_DOCKER_IMAGE_CACHED ?= quay.io/datawire/ambassador-base:go-12
+AMBASSADOR_BASE_IMAGE ?= quay.io/datawire/ambassador-base:ambassador-12
 
 # Default to _NOT_ using Kubernaut. At Datawire, we can set this to true,
 # but outside, it works much better to assume that user has set up something
@@ -284,6 +284,7 @@ kill-docker-registry:
 	fi
 
 envoy: .FORCE
+	@echo "Getting Envoy sources..."
 	git init $@
 	cd $@ && \
 	if git remote get-url origin &>/dev/null; then \
@@ -293,7 +294,9 @@ envoy: .FORCE
 	fi && \
 	git fetch --tags origin && \
 	$(if $(filter-out -,$(ENVOY_COMMIT)),git checkout $(ENVOY_COMMIT),if ! git rev-parse HEAD >/dev/null 2>&1; then git checkout origin/master; fi)
+
 envoy-build-image.txt: .FORCE envoy
+	@echo "Making $@..."
 	set -e; \
 	cd envoy; . ci/envoy_build_sha.sh; cd ..; \
 	echo docker.io/envoyproxy/envoy-build-ubuntu:$$ENVOY_BUILD_SHA > .tmp.$@.tmp; \
@@ -322,11 +325,23 @@ envoy-shell: envoy-build-image.txt
 	docker run --rm --privileged --volume=envoy-build:/root:rw --workdir=/root/envoy -it $$(cat envoy-build-image.txt)
 .PHONY: envoy-shell
 
-docker-base-images: envoy-bin/envoy-static-stripped
+docker-base-images:
 	@if [ -n "$(AMBASSADOR_DEV)" ]; then echo "Do not run this from a dev shell" >&2; exit 1; fi
-	docker build $(DOCKER_OPTS) -t $(ENVOY_BASE_IMAGE) -f Dockerfile.envoy .
-	docker build --build-arg ENVOY_BASE_IMAGE=$(ENVOY_BASE_IMAGE) $(DOCKER_OPTS) -t $(AMBASSADOR_DOCKER_IMAGE_CACHED) -f Dockerfile.cached .
-	docker build --build-arg ENVOY_BASE_IMAGE=$(ENVOY_BASE_IMAGE) $(DOCKER_OPTS) -t $(AMBASSADOR_BASE_IMAGE) -f Dockerfile.ambassador .
+	@if ! docker run --rm --entrypoint=true $(ENVOY_BASE_IMAGE); then \
+		echo "Building Envoy binary..." ;\
+		if $(MAKE) envoy-bin/envoy-static-stripped; then \
+			echo "Building Envoy Docker image..." ;\
+		    docker build $(DOCKER_OPTS) -t $(ENVOY_BASE_IMAGE) -f Dockerfile.envoy . ;\
+		fi ;\
+	fi
+	@if ! docker run --rm --entrypoint=true $(AMBASSADOR_DOCKER_IMAGE_CACHED); then \
+		echo "Building $(AMBASSADOR_DOCKER_IMAGE_CACHED)" ;\
+		docker build --build-arg ENVOY_BASE_IMAGE=$(ENVOY_BASE_IMAGE) $(DOCKER_OPTS) -t $(AMBASSADOR_DOCKER_IMAGE_CACHED) -f Dockerfile.cached . ;\
+	fi
+	@if ! docker run --rm --entrypoint=true $(AMBASSADOR_BASE_IMAGE); then \
+		echo "Building $(AMBASSADOR_BASE_IMAGE)" ;\
+		docker build --build-arg ENVOY_BASE_IMAGE=$(ENVOY_BASE_IMAGE) $(DOCKER_OPTS) -t $(AMBASSADOR_BASE_IMAGE) -f Dockerfile.ambassador . ;\
+	fi
 	@echo "RESTART ANY DEV SHELLS to make sure they use your new images."
 
 docker-push-base-images:

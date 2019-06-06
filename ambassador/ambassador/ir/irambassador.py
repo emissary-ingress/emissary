@@ -11,6 +11,7 @@ from .irtlscontext import IRTLSContext
 from .ircors import IRCORS
 from .irretrypolicy import IRRetryPolicy
 from .irbuffer import IRBuffer
+from .irgzip import IRGzip
 from .irfilter import IRFilter
 
 if TYPE_CHECKING:
@@ -224,6 +225,16 @@ class IRAmbassador (IRResource):
                                         config={'inline_code': amod.lua_scripts})
             self.lua_scripts.sourced_by(amod)
             ir.save_filter(self.lua_scripts)
+
+        # Gzip.
+        if amod and ('gzip' in amod):
+            self.gzip = IRGzip(ir=ir, aconf=aconf, location=self.location, **amod.gzip)
+
+            if self.gzip:
+                ir.save_filter(self.gzip)
+            else:
+                return False
+
 
          # Buffer.
         if amod and ('buffer' in amod):

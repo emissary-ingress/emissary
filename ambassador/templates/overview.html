@@ -208,6 +208,43 @@ limitations under the License
       </div>
       {% endif %}
   
+      {% if ambassador_resolvers %}
+      <div class="row">
+        <div class="col-12">
+          Ambassador Resolvers In Use
+
+          <div class="row">
+            <div class="col-12">
+              <table cellpadding="2em" width="100%">
+                <thead>
+                  <td><b>Kind</b></td>
+                  <td><b>Resolver</b></td>
+                </thead>
+                <tbody>
+                  {% for resolver in ambassador_resolvers %}
+                  <tr
+                    {% if loop.index % 2 %}
+                      style="background: rgba(86,61,124,.05);"
+                    {% endif %}
+                    >
+                    <td>
+                      <samp>{{ resolver.kind }}</samp>
+                    </td>
+                    <td>
+                        <a href="/ambassador/v0/diag/{{ resolver['_source'] }}">
+                            {{ resolver.name }}
+                      </a>
+                    </td>
+                  {% endfor %}
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
       <div class="row">
         <div class="col-12">
           Ambassador Route Table
