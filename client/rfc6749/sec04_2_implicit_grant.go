@@ -68,7 +68,11 @@ func (session ImplicitClientSessionData) IsDirty() bool { return session.isDirty
 // plain HTTP redirect, or perhaps something fancy with JavaScript).  Note that if using an HTTP
 // redirect, that 302 "Found" may or MAY NOT convert POST->GET; and that to reliably have the
 // User-Agent perform a GET, one should use 303 "See Other" which MUST convert to GET.
-func (client *ImplicitClient) AuthorizationRequest(redirectURI *url.URL, scope Scope, state string) (*url.URL, *ImplicitClientSessionData, error) {
+func (client *ImplicitClient) AuthorizationRequest(
+	redirectURI *url.URL,
+	scope Scope,
+	state string,
+) (*url.URL, *ImplicitClientSessionData, error) {
 	parameters := url.Values{
 		"response_type": {"token"},
 		"client_id":     {client.clientID},
@@ -109,7 +113,10 @@ func (client *ImplicitClient) AuthorizationRequest(redirectURI *url.URL, scope S
 //
 // If the Authorization Server sent a semantically valid error response, the returned error is of
 // type ImplicitGrantErrorResponse.  On protocol errors, a different error type is returned.
-func (client *ImplicitClient) ParseAccessTokenResponse(session *ImplicitClientSessionData, fragment string) error {
+func (client *ImplicitClient) ParseAccessTokenResponse(
+	session *ImplicitClientSessionData,
+	fragment string,
+) error {
 	parameters, err := url.ParseQuery(fragment)
 	if err != nil {
 		return errors.Wrap(err, "cannot parse response")

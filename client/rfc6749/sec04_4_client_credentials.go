@@ -62,7 +62,9 @@ func (session ClientCredentialsClientSessionData) IsDirty() bool { return sessio
 // The scopes argument is optional.
 //
 // The returned response is either a TokenSuccessResponse or a TokenErrorResponse.
-func (client *ClientCredentialsClient) AccessToken(scope Scope) (*ClientCredentialsClientSessionData, error) {
+func (client *ClientCredentialsClient) AccessToken(
+	scope Scope,
+) (*ClientCredentialsClientSessionData, error) {
 	parameters := url.Values{
 		"grant_type": {"client_credentials"},
 	}

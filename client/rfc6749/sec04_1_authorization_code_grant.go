@@ -130,7 +130,10 @@ func (client *AuthorizationCodeClient) AuthorizationRequest(redirectURI *url.URL
 //
 // If the server sent a semantically valid error response, the returned error is of type
 // AuthorizationCodeGrantErrorResponse.  On protocol errors, a different error type is returned.
-func (client *AuthorizationCodeClient) ParseAuthorizationResponse(session *AuthorizationCodeClientSessionData, requestURL *url.URL) (authorizationCode string, err error) {
+func (client *AuthorizationCodeClient) ParseAuthorizationResponse(
+	session *AuthorizationCodeClientSessionData,
+	requestURL *url.URL,
+) (authorizationCode string, err error) {
 	parameters := requestURL.Query()
 
 	// The "state" parameter is shared by both success and error responses.  Let's check this
@@ -248,7 +251,10 @@ func init() {
 //
 // If the Authorization Server sent a semantically valid error response, an error of type
 // TokenErrorResponse is returned.  On protocol errors, an error of a different type is returned.
-func (client *AuthorizationCodeClient) AccessToken(session *AuthorizationCodeClientSessionData, authorizationCode string) error {
+func (client *AuthorizationCodeClient) AccessToken(
+	session *AuthorizationCodeClientSessionData,
+	authorizationCode string,
+) error {
 	parameters := url.Values{
 		"grant_type": {"authorization_code"},
 		"code":       {authorizationCode},

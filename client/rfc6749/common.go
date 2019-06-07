@@ -52,7 +52,8 @@ func (client *explicitClient) postForm(form url.Values) (TokenResponse, error) {
 		client.clientAuthentication(header, form)
 	}
 
-	req, err := http.NewRequest("POST", client.tokenEndpoint.String(), strings.NewReader(form.Encode()))
+	req, err := http.NewRequest("POST", client.tokenEndpoint.String(),
+		strings.NewReader(form.Encode()))
 	if err != nil {
 		return TokenResponse{}, err
 	}

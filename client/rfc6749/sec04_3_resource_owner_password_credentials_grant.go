@@ -60,7 +60,11 @@ func (session ResourceOwnerPasswordCredentialsClientSessionData) IsDirty() bool 
 // The scopes argument is optional.
 //
 // The returned response is either a TokenSuccessResponse or a TokenErrorResponse.
-func (client *ResourceOwnerPasswordCredentialsClient) AccessToken(username string, password string, scope Scope) (*ResourceOwnerPasswordCredentialsClientSessionData, error) {
+func (client *ResourceOwnerPasswordCredentialsClient) AccessToken(
+	username string,
+	password string,
+	scope Scope,
+) (*ResourceOwnerPasswordCredentialsClientSessionData, error) {
 	parameters := url.Values{
 		"grant_type": {"password"},
 		"username":   {username},
