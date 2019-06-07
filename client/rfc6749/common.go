@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/pkg/errors"
 )
@@ -15,8 +16,8 @@ var (
 	// authorization flow has been completed.
 	ErrNoAccessToken = errors.New("no Access Token data")
 
-	// ErrNoRefreshToken indicates that .RefreshToken() was called but the server did not give
-	// us a Refresh Token to use.
+	// ErrNoRefreshToken indicates that .RefreshToken() was called but the Authorization Server
+	// did not give us a Refresh Token to use.
 	ErrNoRefreshToken = errors.New("no Refresh Token")
 )
 

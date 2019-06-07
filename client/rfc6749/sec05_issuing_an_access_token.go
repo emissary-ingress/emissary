@@ -18,8 +18,8 @@ import (
 //
 // This will NOT close the response Body for you.
 //
-// If the server sent a semantically valid error response, the returned error is of type
-// TokenErrorResponse.  On protocol errors, a different error type is returned.
+// If the Authorization Server sent a semantically valid error response, the returned error is of
+// type TokenErrorResponse.  On protocol errors, a different error type is returned.
 func parseTokenResponse(res *http.Response) (TokenResponse, error) {
 	switch {
 	case res.StatusCode == http.StatusOK:

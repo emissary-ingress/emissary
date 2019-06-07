@@ -8,8 +8,8 @@ import (
 // (and maybe a new Refresh Token); per §6.
 //
 // If the authorization flow for the session has not yet been completed, ErrNoAccessToken is
-// returned.  If the authorization server declined to issue a Refresh Roken during the authorization
-// flow, ErrNoRefreshToken is returned.  If the authorization server sent a semantically valid error
+// returned.  If the Authorization Server declined to issue a Refresh Roken during the authorization
+// flow, ErrNoRefreshToken is returned.  If the Authorization Server sent a semantically valid error
 // response, an error of type TokenErrorResponse is returned.  On protocol errors, an error of a
 // different type is returned.
 //
@@ -62,11 +62,11 @@ func (client *explicitClient) refreshToken(session explicitClientSessionData, sc
 // RefreshToken talks to the Authorization Server to exchange a Refresh Token for an Access Token
 // (and maybe a new Refresh Token); per §6.
 //
-// If the authorization flow for the session has not yet been completed, ErrNoAccessToken is
-// returned.  If the authorization server declined to issue a Refresh Roken during the authorization
-// flow, ErrNoRefreshToken is returned.  If the authorization server sent a semantically valid error
-// response, an error of type TokenErrorResponse is returned.  On protocol errors, an error of a
-// different type is returned.
+// If the authorization flow for the session has not yet been completed (a successful call to
+// `.AccessToken()` has not yet been made), ErrNoAccessToken is returned.  If the Authorization
+// Server declined to issue a Refresh Roken during the authorization flow, ErrNoRefreshToken is
+// returned.  If the Authorization Server sent a semantically valid error response, an error of type
+// TokenErrorResponse is returned.  On protocol errors, an error of a different type is returned.
 func (client *AuthorizationCodeClient) RefreshToken(session *AuthorizationCodeClientSessionData, scope Scope) error {
 	return client.refreshToken(session, scope)
 }
@@ -75,8 +75,8 @@ func (client *AuthorizationCodeClient) RefreshToken(session *AuthorizationCodeCl
 // (and maybe a new Refresh Token); per §6.
 //
 // If the authorization flow for the session has not yet been completed, ErrNoAccessToken is
-// returned.  If the authorization server declined to issue a Refresh Roken during the authorization
-// flow, ErrNoRefreshToken is returned.  If the authorization server sent a semantically valid error
+// returned.  If the Authorization Server declined to issue a Refresh Roken during the authorization
+// flow, ErrNoRefreshToken is returned.  If the Authorization Server sent a semantically valid error
 // response, an error of type TokenErrorResponse is returned.  On protocol errors, an error of a
 // different type is returned.
 func (client *ResourceOwnerPasswordCredentialsClient) RefreshToken(session *ResourceOwnerPasswordCredentialsClientSessionData, scope Scope) error {
@@ -87,8 +87,8 @@ func (client *ResourceOwnerPasswordCredentialsClient) RefreshToken(session *Reso
 // (and maybe a new Refresh Token); per §6.
 //
 // If the authorization flow for the session has not yet been completed, ErrNoAccessToken is
-// returned.  If the authorization server declined to issue a Refresh Roken during the authorization
-// flow, ErrNoRefreshToken is returned.  If the authorization server sent a semantically valid error
+// returned.  If the Authorization Server declined to issue a Refresh Roken during the authorization
+// flow, ErrNoRefreshToken is returned.  If the Authorization Server sent a semantically valid error
 // response, an error of type TokenErrorResponse is returned.  On protocol errors, an error of a
 // different type is returned.
 func (client *ClientCredentialsClient) RefreshToken(session *ClientCredentialsClientSessionData, scope Scope) error {

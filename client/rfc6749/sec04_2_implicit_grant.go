@@ -104,11 +104,11 @@ func (client *ImplicitClient) AuthorizationRequest(redirectURI *url.URL, scope S
 // ParseAccessTokenResponse parses the URI fragment that contains the Access Token Response, as
 // specified by §4.2.2.
 //
-// The fragment is normally not accessible to the HTTP server.  You will need to use JavaScript in
-// the user-agent to somehow get it to the server.
+// The fragment is normally not accessible to HTTP servers; you will need to use JavaScript in the
+// user-agent to somehow get it to the Client HTTP server.
 //
-// If the server sent a semantically valid error response, the returned error is of type
-// ImplicitGrantErrorResponse.  On protocol errors, a different error type is returned.
+// If the Authorization Server sent a semantically valid error response, the returned error is of
+// type ImplicitGrantErrorResponse.  On protocol errors, a different error type is returned.
 func (client *ImplicitClient) ParseAccessTokenResponse(session *ImplicitClientSessionData, fragment string) error {
 	parameters, err := url.ParseQuery(fragment)
 	if err != nil {
