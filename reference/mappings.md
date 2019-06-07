@@ -36,7 +36,7 @@ Ambassador supports a number of attributes to configure and customize mappings.
 | [`load_balancer`](/reference/core/load-balancer) | configures load balancer on a mapping
 | [`method`](/reference/method)                  | defines the HTTP method for this mapping (e.g. GET, PUT, etc. -- must be all uppercase) |
 | `method_regex`            | if true, tells the system to interpret the `method` as a [regular expression](http://en.cppreference.com/w/cpp/regex/ecmascript) |
-| `prefix_regex`            | if true, tells the system to interpret the `prefix` as a [regular expression](http://en.cppreference.com/w/cpp/regex/ecmascript) |
+| `prefix_regex`            | if true, tells the system to interpret the `prefix` as a [regular expression](http://en.cppreference.com/w/cpp/regex/ecmascript) and requires that the entire path must match the regex, not just the prefix. |
 | [`rate_limits`](/reference/rate-limits) | specifies a list rate limit rules on a mapping |
 | [`remove_request_headers`](/reference/remove_request_headers) | specifies a list of HTTP headers that are dropped from the request before sending to upstream |
 | [`remove_response_headers`](/reference/remove_response_headers) | specifies a list of HTTP headers that are dropped from the response before sending to client |
