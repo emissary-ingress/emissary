@@ -366,6 +366,32 @@ class Diagnostics:
         self.ambassador_services: List[dict] = []
         self.ambassador_resolvers: List[dict] = []
 
+        # Warn people about upcoming deprecations.
+
+        warn_auth = False
+        warn_ratelimit = False
+
+        for filter in self.ir.filters:
+            if filter.kind == 'IRAuth':
+                proto = filter.get('proto') or 'http'
+
+                if proto.lower() != 'http':
+                    warn_auth = True
+
+            if filter.kind == 'IRRateLimit':
+                warn_ratelimit = True
+
+        things_to_warn = []
+
+        if warn_auth:
+            things_to_warn.append('AuthServices')
+
+        if warn_ratelimit:
+            things_to_warn.append('RateLimitServices')
+
+        if things_to_warn:
+            self.ir.aconf.post_notice(f'A future Ambassador version will change the GRPC protocol version for {" and ".join(things_to_warn)}. See the CHANGELOG for details.')
+
         # # Warn people about the default port change.
         # if self.ir.ambassador_module.service_port < 1024:
         #     # Does it look like they explicitly asked for this?
@@ -470,9 +496,17 @@ class Diagnostics:
             self.add_ambassador_service(self.ir.tracing, 'TracingService (%s)' % self.ir.tracing.driver)
 
         self.ambassador_resolvers = []
+        used_resolvers = {}
+
+        for group in self.groups.values():
+            for mapping in group.mappings:
+                resolver_name = mapping.resolver
+                group_list = used_resolvers.setdefault(resolver_name, [])
+                group_list.append(group)
 
         for name, resolver in sorted(self.ir.resolvers.items()):
-            self.add_ambassador_resolver(resolver)
+            if name in used_resolvers:
+                self.add_ambassador_resolver(resolver, used_resolvers[name])
 
     def add_ambassador_service(self, svc, type_name) -> None:
         """
@@ -496,17 +530,19 @@ class Diagnostics:
                 '_service_weight': svc_weight
             })
 
-    def add_ambassador_resolver(self, resolver) -> None:
+    def add_ambassador_resolver(self, resolver, group_list) -> None:
         """
         Remember information about a given Ambassador-wide resolver.
 
         :param resolver: resolver record
+        :param group_list: list of groups that use this resolver
         """
 
         self.ambassador_resolvers.append({
             'kind': resolver.kind,
             '_source': resolver.location,
-            'name': resolver.name
+            'name': resolver.name,
+            'groups': group_list
         })
 
     @staticmethod

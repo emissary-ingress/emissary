@@ -21,16 +21,16 @@ Specifying a weight only makes sense if you have multiple mappings for the same 
 ---
 apiVersion: ambassador/v1
 kind:  Mapping
-name:  qotm_mapping
-prefix: /qotm/
-service: qotm
+name:  tour-backend_mapping
+prefix: /backend/
+service: tour
 ---
 apiVersion: ambassador/v1
 kind: Mapping
-name: qotm2_mapping
-prefix: /qotm/
-service: qotmv2
+name: tour-backend2_mapping
+prefix: /backend/
+service: tourv2
 weight: 10
 ```
 
-In this case, the `qotm2_mapping` will receive 10% of the requests for `/qotm/`, and Ambassador will assign the remaining 90% to the `qotm_mapping`.
+In this case, the `tour-backend2_mapping` will receive 10% of the requests for `/backend/`, and Ambassador will assign the remaining 90% to the `tour-backend_mapping`.

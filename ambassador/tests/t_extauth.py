@@ -135,7 +135,9 @@ allowed_authorization_headers:
 - X-Foo
 - Set-Cookie
 
-allow_request_body: True
+include_body:
+  max_bytes: 4096
+  allow_partial: true
 """)
         yield self, self.format("""
 ---

@@ -12,11 +12,11 @@ The `remove_request_headers` attribute takes a list of keys used to match to the
 ---
 apiVersion: ambassador/v1
 kind:  Mapping
-name:  qotm_mapping
-prefix: /qotm/
+name:  tour-ui_mapping
+prefix: /
 remove_request_headers:
 - authorization
-service: qotm
+service: tour
 ```
 
 will drop header with key `authorization`.

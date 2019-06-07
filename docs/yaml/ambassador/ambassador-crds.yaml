@@ -15,6 +15,59 @@ spec:
     plural: authservices
     singular: authservice
     kind: AuthService
+    categories:
+    - ambassador-crds
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: consulresolvers.getambassador.io
+spec:
+  group: getambassador.io
+  version: v1
+  versions:
+  - name: v1
+    served: true
+    storage: true
+  scope: Namespaced
+  names:
+    plural: consulresolvers
+    singular: consulresolver
+    kind: ConsulResolver
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: kubernetesendpointresolvers.getambassador.io
+spec:
+  group: getambassador.io
+  version: v1
+  versions:
+  - name: v1
+    served: true
+    storage: true
+  scope: Namespaced
+  names:
+    plural: kubernetesendpointresolvers
+    singular: kubernetesendpointresolver
+    kind: KubernetesEndpointResolver
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: kubernetesserviceresolvers.getambassador.io
+spec:
+  group: getambassador.io
+  version: v1
+  versions:
+  - name: v1
+    served: true
+    storage: true
+  scope: Namespaced
+  names:
+    plural: kubernetesserviceresolvers
+    singular: kubernetesserviceresolver
+    kind: KubernetesServiceResolver
 ---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
@@ -32,6 +85,8 @@ spec:
     plural: mappings
     singular: mapping
     kind: Mapping
+    categories:
+    - ambassador-crds
 ---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
@@ -49,6 +104,8 @@ spec:
     plural: modules
     singular: module
     kind: Module
+    categories:
+    - ambassador-crds
 ---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
@@ -66,6 +123,8 @@ spec:
     plural: ratelimitservices
     singular: ratelimitservice
     kind: RateLimitService
+    categories:
+    - ambassador-crds
 ---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
@@ -83,6 +142,8 @@ spec:
     plural: tcpmappings
     singular: tcpmapping
     kind: TCPMapping
+    categories:
+    - ambassador-crds
 ---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
@@ -100,6 +161,8 @@ spec:
     plural: tlscontexts
     singular: tlscontext
     kind: TLSContext
+    categories:
+    - ambassador-crds
 ---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
@@ -117,3 +180,5 @@ spec:
     plural: tracingservices
     singular: tracingservice
     kind: TracingService
+    categories:
+    - ambassador-crds

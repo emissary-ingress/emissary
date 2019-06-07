@@ -216,7 +216,7 @@ class CanaryMapping(MappingTest):
     @classmethod
     def variants(cls):
         for v in variants(ServiceType):
-            for w in (10, 50):
+            for w in (0, 10, 50, 100):
                 yield cls(v, v.clone("canary"), w, name="{self.target.name}-{self.weight}")
 
     def init(self, target: ServiceType, canary: ServiceType, weight):
@@ -253,10 +253,18 @@ weight: {self.weight}
         for r in self.results:
             hist[r.backend.name] = hist.get(r.backend.name, 0) + 1
 
-        canary = 100*hist.get(self.canary.path.k8s, 0)/len(self.results)
-        # main = 100*hist.get(self.target.path.k8s, 0)/len(self.results)
+        if self.weight == 0:
+            assert hist.get(self.canary.path.k8s, 0) == 0
+            assert hist.get(self.target.path.k8s, 0) == 100
+        elif self.weight == 100:
+            assert hist.get(self.canary.path.k8s, 0) == 100
+            assert hist.get(self.target.path.k8s, 0) == 0
+        else:
+            canary = 100*hist.get(self.canary.path.k8s, 0)/len(self.results)
+            main = 100*hist.get(self.target.path.k8s, 0)/len(self.results)
 
-        assert abs(self.weight - canary) < 25, (self.weight, canary)
+            assert abs(self.weight - canary) < 25, f'weight {self.weight} routed {canary}% to canary'
+            assert abs(100 - (canary + main)) < 2, f'weight {self.weight} routed only {canary + main}% at all?'
 
 class AddReqHeadersMapping(MappingTest):
     parent: AmbassadorTest

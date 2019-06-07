@@ -70,6 +70,17 @@ class EndpointGrpcTest(AmbassadorTest):
     def init(self):
         self.target = EGRPC()
 
+    def manifests(self) -> str:
+        return super().manifests() + self.format('''
+---
+apiVersion: getambassador.io/v1
+kind: KubernetesEndpointResolver
+metadata:
+    name: my-endpoint
+spec:    
+    ambassador_id: endpointgrpctest 
+''')
+
     def config(self):
         yield self, self.format("""
 ---
@@ -80,7 +91,7 @@ prefix: /echo.EchoService/
 rewrite: /echo.EchoService/
 name:  {self.target.path.k8s}
 service: {self.target.path.k8s}
-resolver: endpoint
+resolver: my-endpoint
 load_balancer:
   policy: round_robin
 """)
