@@ -3,7 +3,6 @@ linters:
   disable:
     - dupl # specs duplicate things, so we duplicate things
     - interfacer # author says it's deprecated, gives very subjective advice
-    - lll
     - maligned
     # Disable temporarily
     - gochecknoglobals
@@ -18,6 +17,9 @@ linters-settings:
     check-exported: true
   goconst:
     min-len: 5
+  lll:
+    line-length: 100 # mimic gofmt's go/printer.printer.funcBody().maxSize
+    tab-width: 8 # mimic gofmt's cmd/gofmt.tabWidth
 issues:
   exclude-rules:
     - linters: [gocritic]
