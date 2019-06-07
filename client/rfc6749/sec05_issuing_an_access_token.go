@@ -100,8 +100,7 @@ type TokenResponse struct {
 	TokenType    string    // REQUIRED.
 	ExpiresAt    time.Time // RECOMMENDED.
 	RefreshToken *string   // OPTIONAL.
-	Scope        Scope     // OPTIONAL if identical to scope requested by the client; otherwise
-			       // REQUIRED.
+	Scope        Scope     // OPTIONAL if identical to scope requested by the client; otherwise REQUIRED.
 }
 
 // TokenErrorResponse stores an error response, as specified in §5.2.

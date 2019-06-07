@@ -48,7 +48,7 @@ func ExampleResourceOwnerPasswordCredentialsClient(mux *http.ServeMux) error {
 		case http.MethodGet:
 			if _, sessionData := LoadSession(r); sessionData != nil {
 				w.Header().Set("Content-Type", "text/html")
-				io.WriteString(w, `<p>Already logged in. <a href="/dashboard">Return to dashboard.</a></p>`)
+				_, _ = io.WriteString(w, `<p>Already logged in. <a href="/dashboard">Return to dashboard.</a></p>`)
 				return
 			}
 			sessionID := randomToken()
@@ -68,7 +68,7 @@ func ExampleResourceOwnerPasswordCredentialsClient(mux *http.ServeMux) error {
 		case http.MethodPost:
 			if _, sessionData := LoadSession(r); sessionData != nil {
 				w.Header().Set("Content-Type", "text/html")
-				io.WriteString(w, `<p>Already logged in. <a href="/dashboard">Return to dashboard.</a></p>`)
+				_, _ = io.WriteString(w, `<p>Already logged in. <a href="/dashboard">Return to dashboard.</a></p>`)
 				return
 			}
 			cookie, _ := r.Cookie("session")
@@ -103,7 +103,7 @@ func ExampleResourceOwnerPasswordCredentialsClient(mux *http.ServeMux) error {
 		sessionID, sessionData := LoadSession(r)
 		if sessionData == nil {
 			w.Header().Set("Content-Type", "text/html")
-			io.WriteString(w, `<p><a href="/login">Click to log in</a></p>`)
+			_, _ = io.WriteString(w, `<p><a href="/login">Click to log in</a></p>`)
 			return
 		}
 		defer func() {

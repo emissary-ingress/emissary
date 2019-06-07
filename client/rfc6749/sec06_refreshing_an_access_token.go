@@ -36,13 +36,7 @@ func (client *explicitClient) refreshToken(session clientSessionData, scope Scop
 		return err
 	}
 
-	newAccessTokenData := accessTokenData{
-		AccessToken:  tokenResponse.AccessToken,
-		TokenType:    tokenResponse.TokenType,
-		ExpiresAt:    tokenResponse.ExpiresAt,
-		RefreshToken: tokenResponse.RefreshToken,
-		Scope:        tokenResponse.Scope,
-	}
+	newAccessTokenData := accessTokenData(tokenResponse)
 	if newAccessTokenData.RefreshToken == nil {
 		newAccessTokenData.RefreshToken = session.currentAccessToken().RefreshToken
 	}
@@ -67,7 +61,10 @@ func (client *explicitClient) refreshToken(session clientSessionData, scope Scop
 // Server declined to issue a Refresh Roken during the authorization flow, ErrNoRefreshToken is
 // returned.  If the Authorization Server sent a semantically valid error response, an error of type
 // TokenErrorResponse is returned.  On protocol errors, an error of a different type is returned.
-func (client *AuthorizationCodeClient) RefreshToken(session *AuthorizationCodeClientSessionData, scope Scope) error {
+func (client *AuthorizationCodeClient) RefreshToken(
+	session *AuthorizationCodeClientSessionData,
+	scope Scope,
+) error {
 	return client.refreshToken(session, scope)
 }
 
@@ -79,7 +76,10 @@ func (client *AuthorizationCodeClient) RefreshToken(session *AuthorizationCodeCl
 // flow, ErrNoRefreshToken is returned.  If the Authorization Server sent a semantically valid error
 // response, an error of type TokenErrorResponse is returned.  On protocol errors, an error of a
 // different type is returned.
-func (client *ResourceOwnerPasswordCredentialsClient) RefreshToken(session *ResourceOwnerPasswordCredentialsClientSessionData, scope Scope) error {
+func (client *ResourceOwnerPasswordCredentialsClient) RefreshToken(
+	session *ResourceOwnerPasswordCredentialsClientSessionData,
+	scope Scope,
+) error {
 	return client.refreshToken(session, scope)
 }
 
@@ -91,6 +91,9 @@ func (client *ResourceOwnerPasswordCredentialsClient) RefreshToken(session *Reso
 // flow, ErrNoRefreshToken is returned.  If the Authorization Server sent a semantically valid error
 // response, an error of type TokenErrorResponse is returned.  On protocol errors, an error of a
 // different type is returned.
-func (client *ClientCredentialsClient) RefreshToken(session *ClientCredentialsClientSessionData, scope Scope) error {
+func (client *ClientCredentialsClient) RefreshToken(
+	session *ClientCredentialsClientSessionData,
+	scope Scope,
+) error {
 	return client.refreshToken(session, scope)
 }

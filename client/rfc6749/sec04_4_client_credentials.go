@@ -75,19 +75,13 @@ func (client *ClientCredentialsClient) AccessToken(scope Scope) (*ClientCredenti
 		return nil, err
 	}
 
-	newAccessTokenData := &accessTokenData{
-		AccessToken:  tokenResponse.AccessToken,
-		TokenType:    tokenResponse.TokenType,
-		ExpiresAt:    tokenResponse.ExpiresAt,
-		RefreshToken: tokenResponse.RefreshToken,
-		Scope:        tokenResponse.Scope,
-	}
+	newAccessTokenData := accessTokenData(tokenResponse)
 	if len(newAccessTokenData.Scope) == 0 {
 		newAccessTokenData.Scope = scope
 	}
 
 	return &ClientCredentialsClientSessionData{
-		CurrentAccessToken: newAccessTokenData,
+		CurrentAccessToken: &newAccessTokenData,
 		isDirty:            true,
 	}, nil
 }

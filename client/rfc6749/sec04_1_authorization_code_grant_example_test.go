@@ -1,9 +1,9 @@
 package rfc6749_test
 
 import (
+	"io"
 	"log"
 	"net/http"
-	"io"
 	"sync"
 
 	"github.com/datawire/liboauth2/client/rfc6749"
@@ -47,7 +47,7 @@ func ExampleAuthorizationCodeClient(mux *http.ServeMux) error {
 	mux.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {
 		if _, sessionData := LoadSession(r); sessionData != nil {
 			w.Header().Set("Content-Type", "text/html")
-			io.WriteString(w, `<p>Already logged in. <a href="/dashboard">Return to dashboard.</a></p>`)
+			_, _ = io.WriteString(w, `<p>Already logged in. <a href="/dashboard">Return to dashboard.</a></p>`)
 			return
 		}
 
@@ -78,7 +78,7 @@ func ExampleAuthorizationCodeClient(mux *http.ServeMux) error {
 		sessionID, sessionData := LoadSession(r)
 		if sessionData == nil {
 			w.Header().Set("Content-Type", "text/html")
-			io.WriteString(w, `<p><a href="/login">Click to log in</a></p>`)
+			_, _ = io.WriteString(w, `<p><a href="/login">Click to log in</a></p>`)
 			return
 		}
 		defer func() {
@@ -107,7 +107,7 @@ func ExampleAuthorizationCodeClient(mux *http.ServeMux) error {
 		sessionID, sessionData := LoadSession(r)
 		if sessionData == nil {
 			w.Header().Set("Content-Type", "text/html")
-			io.WriteString(w, `<p><a href="/login">Click to log in</a></p>`)
+			_, _ = io.WriteString(w, `<p><a href="/login">Click to log in</a></p>`)
 			return
 		}
 		defer func() {

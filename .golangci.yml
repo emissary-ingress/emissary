@@ -5,6 +5,7 @@ linters:
     - interfacer # author says it's deprecated, gives very subjective advice
     - maligned
     # Disable temporarily
+    - lll
     - gochecknoglobals
     - gochecknoinits
     # Integrations with golint and unused are buggy; run them separately/manually

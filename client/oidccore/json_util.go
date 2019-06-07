@@ -67,6 +67,8 @@ func (jo *jsonUnixTime) UnmarshalJSON(data []byte) error {
 	if err := json.Unmarshal(data, &seconds); err != nil {
 		return err
 	}
-	*jo = jsonUnixTime{Value: time.Unix(0, 0).Add(time.Duration(seconds * float64(time.Second)))}
+	*jo = jsonUnixTime{
+		Value: time.Unix(0, 0).Add(time.Duration(seconds * float64(time.Second))),
+	}
 	return nil
 }
