@@ -127,6 +127,8 @@
               link: /reference/headers
             - title: Host Header
               link: /reference/host
+            - title: Prefix Regex
+              link: /reference/prefix_regex
             - title: Rate Limits
               link: /reference/rate-limits
             - title: Redirects
