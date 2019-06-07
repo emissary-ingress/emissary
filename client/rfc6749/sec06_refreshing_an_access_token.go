@@ -6,20 +6,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-type accessTokenData struct {
-	AccessToken  string
-	TokenType    string   
-	ExpiresAt    time.Time
-	RefreshToken *string
-	Scope        Scope 
-}
-
-type explicitClientSessionData interface {
-	currentAccessToken() *accessTokenData
-	setDirty()
-	IsDirty() bool
-}
-
 // RefreshToken talks to the Authorization Server to exchange a
 // Refresh Token for an Access Token (and maybe a new Refresh Token);
 // per §6.
@@ -34,9 +20,11 @@ type explicitClientSessionData interface {
 // returned error is of type TokenErrorResponse.  On protocol errors,
 // a different error type is returned.
 func (client *explicitClient) refreshToken(session explicitClientSessionData, scope Scope) error {
-	accessTokenData := session.currentAccessTokenData()
-	if accessTokenData == nil {
-		return errors.New("RefreshToken(): CurrentAccessTokenData is nil")
+	if session.currentAccessTokenData() == nil {
+		return ErrNoAccessToken
+	}
+	if session.currentAccessTokenData().RefreshToken == nil {
+		return ErrNoRefreshToken
 	}
 
 	parameters := url.Values{
@@ -52,18 +40,22 @@ func (client *explicitClient) refreshToken(session explicitClientSessionData, sc
 		return err
 	}
 
-	newAccessTokenData := 
-	if tokenResponse.RefreshToken != nil {
-		session.currentAccessTokenData().RefreshToken = tokenResponse.RefreshToken
-		session.setDirty()
+	newAccessTokenData := accessTokenData{
+		AccessToken:  tokenResponse.AccessToken,
+		TokenType:    tokenResponse.TokenType,
+		ExpiresAt:    tokenResponse.ExpiresAt,
+		RefreshToken: tokenResponse.RefreshToken,
+		Scope:        Scope,
 	}
-	if tokenResponse.Scope != nil {
-		session.currentAccessTokenData().Scope = tokenResponse.Scope
+	if newAccessTokenData.RefreshToken == nil {
+		newAccessTokenData.RefreshToken = session.currentAccessTokenData().RefreshToken
+	}
+	if len(newAccessTokenData) == 0 {
+		newAccessTokenData.Scope = session.currentAccessTokenData().Scope
 	}
 
+	*session.currentAccessTokenData() = newAccessTokenData
 	session.setDirty()
 
-	return res, nil
+	return nil
 }
-
-func (

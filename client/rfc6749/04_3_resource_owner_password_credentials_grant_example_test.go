@@ -89,7 +89,6 @@ func ExampleResourceOwnerPasswordCredentialsClient(mux *http.ServerMux) error {
 				return
 			}
 
-			 
 			SaveSession(sessionID, sessionData)
 
 			http.Redirect(w, r, "/dashboard", http.StatusSeeOther)

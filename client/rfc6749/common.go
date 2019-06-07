@@ -4,7 +4,37 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+
+	"github.com/pkg/errors"
 )
+
+var (
+	// ErrNoAccessToken indicates that
+	// .AuthorizationForResourceRequest() or .RefreshToken() was
+	// called with session data that has not had Access Token data
+	// added to it.  This progably indicates a programming error;
+	// trying to call one of those functions before the
+	// authorization flow has been completed.
+	ErrNoAccessToken = errors.New("no Access Token data")
+
+	// ErrNoRefreshToken indicates that .RefreshToken() was called
+	// but the server did not give us a Refresh Token to use.
+	ErrNoRefreshToken = errors.New("no Refresh Token")
+)
+
+type accessTokenData struct {
+	AccessToken  string
+	TokenType    string
+	ExpiresAt    time.Time
+	RefreshToken *string
+	Scope        Scope
+}
+
+type clientSessionData interface {
+	currentAccessToken() *accessTokenData
+	setDirty()
+	IsDirty() bool
+}
 
 type explicitClient struct {
 	tokenEndpoint        *url.URL
