@@ -54,8 +54,7 @@ func validateTokenEndpointURI(endpoint *url.URL) error {
 // Scope represents an unordered list of scopes as defined by §3.3.
 type Scope map[string]struct{}
 
-// String serializes the set of scopes for use as a parameter, per
-// §3.3.
+// String serializes the set of scopes for use as a parameter, per §3.3.
 func (scope Scope) String() string {
 	strs := make([]string, 0, len(scope))
 	for k := range scope {
@@ -64,8 +63,7 @@ func (scope Scope) String() string {
 	return strings.Join(strs, " ")
 }
 
-// parseScope de-serializes the set of scopes from use as a parameter, per
-// §3.3.
+// parseScope de-serializes the set of scopes from use as a parameter, per §3.3.
 func parseScope(str string) Scope {
 	strs := strings.Split(str, " ")
 	ret := make(Scope, len(strs))

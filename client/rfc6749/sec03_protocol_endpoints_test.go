@@ -19,11 +19,13 @@ func TestBuildAuthorizationRequestURI(t *testing.T) {
 		{"https://example.com/authz?foo=init", url.Values{"foo": {"FOO"}}, ""},
 		{"https://example.com/authz", url.Values{"foo": {"fooa", "foob"}}, ""},
 
-		// we have to retain application/x-www-form-urlencoded queries, but don't have to retain other queries
+		// we have to retain application/x-www-form-urlencoded queries, but don't have to
+		// retain other queries
 		{"https://example.com/authz?bad%GGencoding", url.Values{"foo": {"FOO"}}, "https://example.com/authz?foo=FOO"},
 
-		// RFC 6749 references the HTML 4.01 definition of application/x-www-form-urlencoded, but lets go ahead and
-		// make sure that it handles HTML-5-incorporated value-less fields.
+		// RFC 6749 references the HTML 4.01 definition of
+		// application/x-www-form-urlencoded, but lets go ahead and make sure that it
+		// handles HTML-5-incorporated value-less fields.
 		{"https://example.com/authz?frob", url.Values{"foo": {"FOO"}}, "https://example.com/authz?frob=&foo=FOO"},
 	}
 	for i, testcase := range testcases {

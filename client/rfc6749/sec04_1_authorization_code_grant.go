@@ -10,8 +10,8 @@ import (
 	"github.com/datawire/liboauth2/common/rfc6749"
 )
 
-// An AuthorizationCodeClient is a Client that utilizes the
-// "Authorization Code" Grant-type, as defined by §4.1.
+// An AuthorizationCodeClient is a Client that utilizes the "Authorization Code" Grant-type, as
+// defined by §4.1.
 type AuthorizationCodeClient struct {
 	clientID              string
 	authorizationEndpoint *url.URL
@@ -20,8 +20,7 @@ type AuthorizationCodeClient struct {
 	accessTokenTypeRegistry
 }
 
-// NewAuthorizationCodeClient creates a new AuthorizationCodeClient as
-// defined by §4.1.
+// NewAuthorizationCodeClient creates a new AuthorizationCodeClient as defined by §4.1.
 func NewAuthorizationCodeClient(
 	clientID string,
 	authorizationEndpoint *url.URL,
@@ -50,8 +49,8 @@ func NewAuthorizationCodeClient(
 	return ret, nil
 }
 
-// AuthorizationCodeClientSessionData is the session data that must be
-// persisted between requests when using an AuthorizationCodeClient.
+// AuthorizationCodeClientSessionData is the session data that must be persisted between requests
+// when using an AuthorizationCodeClient.
 type AuthorizationCodeClientSessionData struct {
 	Request struct {
 		RedirectURI *url.URL
@@ -67,35 +66,30 @@ func (session AuthorizationCodeClientSessionData) accessToken() *accessTokenData
 }
 func (session AuthorizationCodeClientSessionData) setDirty() { session.isDirty = true }
 
-// IsDirty indicates whether the session data has been mutated since
-// that last time that it was unmarshaled.  This is only useful if you
-// marshal it to and unmarshal it from an external datastore.
+// IsDirty indicates whether the session data has been mutated since that last time that it was
+// unmarshaled.  This is only useful if you marshal it to and unmarshal it from an external
+// datastore.
 func (session AuthorizationCodeClientSessionData) IsDirty() bool { return session.isDirty }
 
-// AuthorizationRequest returns an URI that the Client should direct
-// the User-Agent to perform a GET request for, in order to perform an
-// Authorization Request, per §4.1.1.
+// AuthorizationRequest returns an URI that the Client should direct the User-Agent to perform a GET
+// request for, in order to perform an Authorization Request, per §4.1.1.
 //
 // OAuth arguments:
 //
-//  - redirectURI: OPTIONAL if exactly 1 complete Redirection Endpoint
-//    was registered with the Authorization Server when registering
-//    the Client.  If the Client was not registered with the
-//    Authorization Server, it was registered with 0 Redirection
-//    Endpoints, it was registered with a partial Redirection
-//    Endpoint, or it was registered with more than 1 Redirection
-//    Endpoint, then this argument is REQUIRED.
+//  - redirectURI: OPTIONAL if exactly 1 complete Redirection Endpoint was registered with the
+//    Authorization Server when registering the Client.  If the Client was not registered with the
+//    Authorization Server, it was registered with 0 Redirection Endpoints, it was registered with a
+//    partial Redirection Endpoint, or it was registered with more than 1 Redirection Endpoint, then
+//    this argument is REQUIRED.
 //
 //  - scope: OPTIONAL.
 //
 //  - state: RECOMMENDED.
 //
-// The Client is free to use whichever redirection mechanisms it has
-// available to it (perhaps a plain HTTP redirect, or perhaps
-// something fancy with JavaScript).  Note that if using an HTTP
-// redirect, that 302 "Found" may or MAY NOT convert POST->GET; and
-// that to reliably have the User-Agent perform a GET, one should use
-// 303 "See Other" which MUST convert to GET.
+// The Client is free to use whichever redirection mechanisms it has available to it (perhaps a
+// plain HTTP redirect, or perhaps something fancy with JavaScript).  Note that if using an HTTP
+// redirect, that 302 "Found" may or MAY NOT convert POST->GET; and that to reliably have the
+// User-Agent perform a GET, one should use 303 "See Other" which MUST convert to GET.
 func (client *AuthorizationCodeClient) AuthorizationRequest(redirectURI *url.URL, scope Scope, state string) (*url.URL, *AuthorizationCodeClientSessionData, error) {
 	parameters := url.Values{
 		"response_type": {"code"},
@@ -129,21 +123,18 @@ func (client *AuthorizationCodeClient) AuthorizationRequest(redirectURI *url.URL
 	return u, session, nil
 }
 
-// ParseAuthorizationResponse parses the Authorization Response out
-// from the HTTP request URL, as specified by §4.1.2.
+// ParseAuthorizationResponse parses the Authorization Response out from the HTTP request URL, as
+// specified by §4.1.2.
 //
-// This should be called from the http.Handler for the Client's
-// Redirection Endpoint.
+// This should be called from the http.Handler for the Client's Redirection Endpoint.
 //
-// If the server sent a semantically valid error response, the
-// returned error is of type AuthorizationCodeGrantErrorResponse.  On
-// protocol errors, a different error type is returned.
+// If the server sent a semantically valid error response, the returned error is of type
+// AuthorizationCodeGrantErrorResponse.  On protocol errors, a different error type is returned.
 func (client *AuthorizationCodeClient) ParseAuthorizationResponse(session *AuthorizationCodeClientSessionData, requestURL *url.URL) (authorizationCode string, err error) {
 	parameters := requestURL.Query()
 
-	// The "state" parameter is shared by both success and error
-	// responses.  Let's check this early, to avoid unnecessary
-	// resource usage.
+	// The "state" parameter is shared by both success and error responses.  Let's check this
+	// early, to avoid unnecessary resource usage.
 	if parameters.Get("state") != session.Request.State {
 		return "", errors.New("refusing to parse response: response state parameter does not match request state parameter; XSRF attack likely")
 	}
@@ -172,20 +163,18 @@ func (client *AuthorizationCodeClient) ParseAuthorizationResponse(session *Autho
 	return codes[0], nil
 }
 
-// An AuthorizationCodeGrantErrorResponse is an error response
-// to an Authorization Request in the Authorization Code flow, as
-// defined in §4.1.2.1.
+// An AuthorizationCodeGrantErrorResponse is an error response to an Authorization Request in the
+// Authorization Code flow, as defined in §4.1.2.1.
 type AuthorizationCodeGrantErrorResponse struct {
 	// REQUIRED.  A single ASCII error code.
 	ErrorCode string
 
-	// OPTIONAL.  Human-readable ASCII providing additional
-	// information, used to assist the client developer.
+	// OPTIONAL.  Human-readable ASCII providing additional information, used to assist the
+	// client developer.
 	ErrorDescription string
 
-	// OPTIONAL.  A URI identifying a human-readable web page with
-	// information about the error, used to provide the client
-	// developer with additional information.
+	// OPTIONAL.  A URI identifying a human-readable web page with information about the error,
+	// used to provide the client developer with additional information.
 	ErrorURI *url.URL
 }
 
@@ -211,8 +200,8 @@ func newAuthorizationCodeError(name, meaning string) {
 }
 
 // These are the built-in error codes that may be present in an
-// AuthorizationCodeAuthorizationErrorResponse, as enumerated in
-// §4.1.2.1.  This set may be extended by extension error registry.
+// AuthorizationCodeAuthorizationErrorResponse, as enumerated in §4.1.2.1.  This set may be extended
+// by extension error registry.
 func init() {
 	newAuthorizationCodeError("invalid_request", ""+
 		"The request is missing a required parameter, includes an "+
@@ -249,13 +238,11 @@ func init() {
 		"to the client via an HTTP redirect.)")
 }
 
-// AccessToken talks to the Authorization Server to exchange an
-// Authorization Code (obtained from `.ParseAuthorizationResponse()`)
-// for an Access Token (and maybe a Refresh Token); submitting the
+// AccessToken talks to the Authorization Server to exchange an Authorization Code (obtained from
+// `.ParseAuthorizationResponse()`) for an Access Token (and maybe a Refresh Token); submitting the
 // request per §4.1.3, and handling the response per §4.1.4.
 //
-// The returned response is either a TokenSuccessResponse or a
-// TokenErrorResponse.
+// The returned response is either a TokenSuccessResponse or a TokenErrorResponse.
 func (client *AuthorizationCodeClient) AccessToken(session *AuthorizationCodeClientSessionData, authorizationCode string) (TokenResponse, error) {
 	parameters := url.Values{
 		"grant_type": {"authorization_code"},

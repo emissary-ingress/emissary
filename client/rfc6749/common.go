@@ -9,16 +9,14 @@ import (
 )
 
 var (
-	// ErrNoAccessToken indicates that
-	// .AuthorizationForResourceRequest() or .RefreshToken() was
-	// called with session data that has not had Access Token data
-	// added to it.  This progably indicates a programming error;
-	// trying to call one of those functions before the
+	// ErrNoAccessToken indicates that .AuthorizationForResourceRequest() or .RefreshToken() was
+	// called with session data that has not had Access Token data added to it.  This progably
+	// indicates a programming error; trying to call one of those functions before the
 	// authorization flow has been completed.
 	ErrNoAccessToken = errors.New("no Access Token data")
 
-	// ErrNoRefreshToken indicates that .RefreshToken() was called
-	// but the server did not give us a Refresh Token to use.
+	// ErrNoRefreshToken indicates that .RefreshToken() was called but the server did not give
+	// us a Refresh Token to use.
 	ErrNoRefreshToken = errors.New("no Refresh Token")
 )
 
@@ -42,11 +40,10 @@ type explicitClient struct {
 	httpClient           *http.Client
 }
 
-// postForm is the common bits of request/response handling per
-// §4.1.3/§4.1.4, §4.3.2/§4.3.3, §4.4.2/§4.4.3, and §6.  I'm not a
-// huge fan of it being factored out here, instead of being duplicated
-// in sec4_{1,3,4}_*.go and sec6_*.go.  But that's the only sane way I
-// could figure to structure it such that the refresh API is sane.
+// postForm is the common bits of request/response handling per §4.1.3/§4.1.4, §4.3.2/§4.3.3,
+// §4.4.2/§4.4.3, and §6.  I'm not a huge fan of it being factored out here, instead of being
+// duplicated in sec4_{1,3,4}_*.go and sec6_*.go.  But that's the only sane way I could figure to
+// structure it such that the refresh API is sane.
 func (client *explicitClient) postForm(form url.Values) (TokenResponse, error) {
 	header := make(http.Header)
 

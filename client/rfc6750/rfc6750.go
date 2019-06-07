@@ -1,5 +1,4 @@
-// Package rfc6750 provides Bearer Token support for OAuth 2.0
-// Clients.
+// Package rfc6750 provides Bearer Token support for OAuth 2.0 Clients.
 package rfc6750
 
 import (
@@ -9,21 +8,18 @@ import (
 
 	"github.com/datawire/liboauth2/common/rfc6749"
 
-	// Register error codes shared between client and
-	// resourceserver.
+	// Register error codes shared between client and resourceserver.
 	_ "github.com/datawire/liboauth2/common/rfc6750"
 )
 
-// AddToHeader adds a Bearer Token to an HTTP request header through
-// the (RFC 7235, formerly RFC 2617) "Authorization" header field, as
-// specified by §2.1.
+// AddToHeader adds a Bearer Token to an HTTP request header through the (RFC 7235, formerly RFC
+// 2617) "Authorization" header field, as specified by §2.1.
 func AddToHeader(token string, header http.Header) {
 	header.Set("Authorization", "Bearer "+token)
 }
 
-// AddToBody adds a Bearer Token to an
-// "application/xwww-form-urlencoded" request body, as specified by
-// §2.2.
+// AddToBody adds a Bearer Token to an "application/xwww-form-urlencoded" request body, as specified
+// by §2.2.
 func AddToBody(token string, body url.Values) {
 	body.Set("access_token", token)
 }

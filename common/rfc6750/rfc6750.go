@@ -1,5 +1,4 @@
-// Package rfc6750 registers Bearer Token error codes for clients and
-// resource servers.
+// Package rfc6750 registers Bearer Token error codes for clients and resource servers.
 package rfc6750
 
 import (

@@ -11,8 +11,7 @@ import (
 	"github.com/datawire/liboauth2/common/rfc6749"
 )
 
-// An ImplicitClient is a Client that utilizes the "Implicit"
-// Grant-type, as defined by §4.2.
+// An ImplicitClient is a Client that utilizes the "Implicit" Grant-type, as defined by §4.2.
 type ImplicitClient struct {
 	clientID              string
 	authorizationEndpoint *url.URL
@@ -33,8 +32,8 @@ func NewImplicitClient(
 	return ret, nil
 }
 
-// ImplicitClientSessionData is the session data that must be
-// persisted between requests when using an ImplicitClient.
+// ImplicitClientSessionData is the session data that must be persisted between requests when using
+// an ImplicitClient.
 type ImplicitClientSessionData struct {
 	Request struct {
 		RedirectURI *url.URL
@@ -45,35 +44,30 @@ type ImplicitClientSessionData struct {
 	isDirty            bool
 }
 
-// IsDirty indicates whether the session data has been mutated since
-// that last time that it was unmarshaled.  This is only useful if you
-// marshal it to and unmarshal it from an external datastore.
+// IsDirty indicates whether the session data has been mutated since that last time that it was
+// unmarshaled.  This is only useful if you marshal it to and unmarshal it from an external
+// datastore.
 func (session ImplicitClientSessionData) IsDirty() bool { return session.isDirty }
 
-// AuthorizationRequest returns an URI that the Client should direct
-// the User-Agent to perform a GET request for, in order to perform an
-// Authorization Request, per §4.2.1.
+// AuthorizationRequest returns an URI that the Client should direct the User-Agent to perform a GET
+// request for, in order to perform an Authorization Request, per §4.2.1.
 //
 // OAuth arguments:
 //
-//  - redirectURI: OPTIONAL if exactly 1 complete Redirection Endpoint
-//    was registered with the Authorization Server when registering
-//    the Client.  If the Client was not registered with the
-//    Authorization Server, it was registered with 0 Redirection
-//    Endpoints, it was registered with a partial Redirection
-//    Endpoint, or it was registered with more than 1 Redirection
-//    Endpoint, then this argument is REQUIRED.
+//  - redirectURI: OPTIONAL if exactly 1 complete Redirection Endpoint was registered with the
+//    Authorization Server when registering the Client.  If the Client was not registered with the
+//    Authorization Server, it was registered with 0 Redirection Endpoints, it was registered with a
+//    partial Redirection Endpoint, or it was registered with more than 1 Redirection Endpoint, then
+//    this argument is REQUIRED.
 //
 //  - scope: OPTIONAL.
 //
 //  - state: RECOMMENDED.
 //
-// The Client is free to use whichever redirection mechanisms it has
-// available to it (perhaps a plain HTTP redirect, or perhaps
-// something fancy with JavaScript).  Note that if using an HTTP
-// redirect, that 302 "Found" may or MAY NOT convert POST->GET; and
-// that to reliably have the User-Agent perform a GET, one should use
-// 303 "See Other" which MUST convert to GET.
+// The Client is free to use whichever redirection mechanisms it has available to it (perhaps a
+// plain HTTP redirect, or perhaps something fancy with JavaScript).  Note that if using an HTTP
+// redirect, that 302 "Found" may or MAY NOT convert POST->GET; and that to reliably have the
+// User-Agent perform a GET, one should use 303 "See Other" which MUST convert to GET.
 func (client *ImplicitClient) AuthorizationRequest(redirectURI *url.URL, scope Scope, state string) (*url.URL, *ImplicitClientSessionData, error) {
 	parameters := url.Values{
 		"response_type": {"token"},
@@ -107,25 +101,22 @@ func (client *ImplicitClient) AuthorizationRequest(redirectURI *url.URL, scope S
 	return u, session, nil
 }
 
-// ParseAccessTokenResponse parses the URI fragment that contains the
-// Access Token Response, as specified by §4.2.2.
+// ParseAccessTokenResponse parses the URI fragment that contains the Access Token Response, as
+// specified by §4.2.2.
 //
-// The fragment is normally not accessible to the HTTP server.  You
-// will need to use JavaScript in the user-agent to somehow get it to
-// the server.
+// The fragment is normally not accessible to the HTTP server.  You will need to use JavaScript in
+// the user-agent to somehow get it to the server.
 //
-// If the server sent a semantically valid error response, the
-// returned error is of type ImplicitGrantErrorResponse.  On protocol
-// errors, a different error type is returned.
+// If the server sent a semantically valid error response, the returned error is of type
+// ImplicitGrantErrorResponse.  On protocol errors, a different error type is returned.
 func (client *ImplicitClient) ParseAccessTokenResponse(session *ImplicitClientSessionData, fragment string) error {
 	parameters, err := url.ParseQuery(fragment)
 	if err != nil {
 		return errors.Wrap(err, "cannot parse response")
 	}
 
-	// The "state" parameter is shared by both success and error
-	// responses.  Let's check this early, to avoid unnecessary
-	// resource usage.
+	// The "state" parameter is shared by both success and error responses.  Let's check this
+	// early, to avoid unnecessary resource usage.
 	if parameters.Get("state") != session.Request.State {
 		return errors.New("refusing to parse response: response state parameter does not match request state parameter; XSRF attack likely")
 	}
@@ -175,8 +166,8 @@ func (client *ImplicitClient) ParseAccessTokenResponse(session *ImplicitClientSe
 	return nil
 }
 
-// An ImplicitGrantErrorResponse is an error response to an
-// Authorization Request in the Implicit flow, as defined in §4.2.2.1.
+// An ImplicitGrantErrorResponse is an error response to an Authorization Request in the Implicit
+// flow, as defined in §4.2.2.1.
 type ImplicitGrantErrorResponse struct {
 	ErrorCode        string
 	ErrorDescription string
@@ -204,8 +195,8 @@ func newImplicitAccessTokenError(name, meaning string) {
 	}.Register()
 }
 
-// These are the error codes that may be present in an
-// ImplicitAccessTokenErrorResponse, as enumerated in §4.2.2.1.
+// These are the error codes that may be present in an ImplicitAccessTokenErrorResponse, as
+// enumerated in §4.2.2.1.
 func init() {
 	newImplicitAccessTokenError("invalid_request", ""+
 		"The request is missing a required parameter, includes an "+

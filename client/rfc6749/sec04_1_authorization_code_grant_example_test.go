@@ -20,12 +20,10 @@ func ExampleAuthorizationCodeClient(mux *http.ServerMux) error {
 		return err
 	}
 
-	// This is a toy in-memory store for demonstration purposes.
-	// Because it's in-memory and stores pointers, it isn't
-	// actually nescessary to update the store whenever the
-	// session data changes.  However, save-on-change is
-	// implemented in this example in order to demonstrate how to
-	// save it for external data stores.
+	// This is a toy in-memory store for demonstration purposes.  Because it's in-memory and
+	// stores pointers, it isn't actually nescessary to update the store whenever the session
+	// data changes.  However, save-on-change is implemented in this example in order to
+	// demonstrate how to save it for external data stores.
 	sessionStore := map[string]*rfc6749.AuthorizationCodeClientSessionData{}
 	var sessionStoreLock sync.Mutex
 	LoadSession := func(r *http.Request) (sessionID string, sessionData *rfc6749.AuthorizationCodeClientSessionData) {

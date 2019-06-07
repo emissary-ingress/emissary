@@ -10,8 +10,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-// IDTokenClaims implements JWT-claim handling for an ID token, as
-// specified by §2.
+// IDTokenClaims implements JWT-claim handling for an ID token, as specified by §2.
 type IDTokenClaims struct {
 	Issuer                              *url.URL  `json:"iss"`
 	Subject                             string    `json:"sub"`

@@ -1,5 +1,4 @@
-// Package rfc6750 provides Bearer Token support for OAuth 2.0
-// Resource Servers.
+// Package rfc6750 provides Bearer Token support for OAuth 2.0 Resource Servers.
 package rfc6750
 
 import (
@@ -12,14 +11,12 @@ import (
 
 	"github.com/datawire/liboauth2/common/rfc6749"
 
-	// Register error codes shared between client and
-	// resourceserver.
+	// Register error codes shared between client and resourceserver.
 	_ "github.com/datawire/liboauth2/common/rfc6750"
 )
 
-// GetFromHeader returns the Bearer Token in an HTTP request header as
-// specified by §2.1.  If there is no Bearer Token, it returns an
-// empty string.
+// GetFromHeader returns the Bearer Token in an HTTP request header as specified by §2.1.  If there
+// is no Bearer Token, it returns an empty string.
 func GetFromHeader(header http.Header) string {
 	valueParts := strings.SplitN(header.Get("Authorization"), " ", 2)
 	if len(valueParts) != 2 || !strings.EqualFold(valueParts[0], "Bearer") {
@@ -28,9 +25,8 @@ func GetFromHeader(header http.Header) string {
 	return valueParts[1]
 }
 
-// GetFromBody returns the Bearer Token in an
-// "application/x-www-form-urlencoded" request body, as specified by
-// §2.2.  If there is no Bearer Token, it returns an empty string.
+// GetFromBody returns the Bearer Token in an "application/x-www-form-urlencoded" request body, as
+// specified by §2.2.  If there is no Bearer Token, it returns an empty string.
 func GetFromBody(body url.Values) string {
 	if len(body["access_token"]) != 1 {
 		return ""

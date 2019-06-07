@@ -18,9 +18,8 @@ import (
 //
 // This will NOT close the response Body for you.
 //
-// If the server sent a semantically valid error response, the
-// returned error is of type TokenErrorResponse.  On protocol errors,
-// a different error type is returned.
+// If the server sent a semantically valid error response, the returned error is of type
+// TokenErrorResponse.  On protocol errors, a different error type is returned.
 func parseTokenResponse(res *http.Response) (TokenResponse, error) {
 	switch {
 	case res.StatusCode == http.StatusOK:
@@ -67,10 +66,11 @@ func parseTokenResponse(res *http.Response) (TokenResponse, error) {
 		}
 		return ret, nil
 	case res.StatusCode/100 == 4:
-		// The spec says "400, unless otherwise specified".  This package doesn't (yet?) keep track of HTTP
-		// statuses associated with different error codes.  Even if it did, Auth0 returns 403 for
-		// error=invalid_grant, when the spec is clear that it should be using 400 for that.  Assuming that
-		// anything in the 4XX range suggests an Error Response seams reasonable.
+		// The spec says "400, unless otherwise specified".  This package doesn't (yet?)
+		// keep track of HTTP statuses associated with different error codes.  Even if it
+		// did, Auth0 returns 403 for error=invalid_grant, when the spec is clear that it
+		// should be using 400 for that.  Assuming that anything in the 4XX range suggests
+		// an Error Response seams reasonable.
 		mediatype, _, err := mime.ParseMediaType(res.Header.Get("Content-Type"))
 		if err != nil {
 			return TokenResponse{}, err
@@ -100,7 +100,8 @@ type TokenResponse struct {
 	TokenType    string    // REQUIRED.
 	ExpiresAt    time.Time // RECOMMENDED.
 	RefreshToken *string   // OPTIONAL.
-	Scope        Scope     // OPTIONAL if identical to scope requested by the client; otherwise REQUIRED.
+	Scope        Scope     // OPTIONAL if identical to scope requested by the client; otherwise
+			       // REQUIRED.
 }
 
 // TokenErrorResponse stores an error response, as specified in §5.2.
@@ -174,8 +175,7 @@ func newTokenError(name, meaning string) {
 	}.Register()
 }
 
-// These are the error codes that may be present in a
-// TokenErrorResponse, as enumerated in §5.2.
+// These are the error codes that may be present in a TokenErrorResponse, as enumerated in §5.2.
 func init() {
 	newTokenError("invalid_request", ""+
 		"The request is missing a required parameter, includes an "+
