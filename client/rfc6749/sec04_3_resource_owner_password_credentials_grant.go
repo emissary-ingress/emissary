@@ -41,7 +41,7 @@ type ResourceOwnerPasswordCredentialsClientSessionData struct {
 	isDirty            bool
 }
 
-func (session ResourceOwnerPasswordCredentialsClientSessionData) accessToken() *accessTokenData {
+func (session ResourceOwnerPasswordCredentialsClientSessionData) currentAccessToken() *accessTokenData {
 	return session.CurrentAccessToken
 }
 func (session ResourceOwnerPasswordCredentialsClientSessionData) setDirty() { session.isDirty = true }
@@ -75,11 +75,19 @@ func (client *ResourceOwnerPasswordCredentialsClient) AccessToken(username strin
 		return nil, err
 	}
 
-	if len(tokenResponse.Scope) == 0 {
-		tokenResponse.Scope = scope
+	newAccessTokenData := &accessTokenData{
+		AccessToken:  tokenResponse.AccessToken,
+		TokenType:    tokenResponse.TokenType,
+		ExpiresAt:    tokenResponse.ExpiresAt,
+		RefreshToken: tokenResponse.RefreshToken,
+		Scope:        tokenResponse.Scope,
 	}
+	if len(newAccessTokenData.Scope) == 0 {
+		newAccessTokenData.Scope = scope
+	}
+
 	return &ResourceOwnerPasswordCredentialsClientSessionData{
-		CurrentAccessToken: &tokenResponse,
+		CurrentAccessToken: newAccessTokenData,
 		isDirty:            true,
 	}, nil
 }

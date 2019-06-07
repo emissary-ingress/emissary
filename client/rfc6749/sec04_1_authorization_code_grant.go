@@ -61,7 +61,7 @@ type AuthorizationCodeClientSessionData struct {
 	isDirty            bool
 }
 
-func (session AuthorizationCodeClientSessionData) accessToken() *accessTokenData {
+func (session AuthorizationCodeClientSessionData) currentAccessToken() *accessTokenData {
 	return session.CurrentAccessToken
 }
 func (session AuthorizationCodeClientSessionData) setDirty() { session.isDirty = true }
@@ -242,8 +242,13 @@ func init() {
 // `.ParseAuthorizationResponse()`) for an Access Token (and maybe a Refresh Token); submitting the
 // request per §4.1.3, and handling the response per §4.1.4.
 //
-// The returned response is either a TokenSuccessResponse or a TokenErrorResponse.
-func (client *AuthorizationCodeClient) AccessToken(session *AuthorizationCodeClientSessionData, authorizationCode string) (TokenResponse, error) {
+// If the call is successful, the Access Token information is stored in to the session data, and the
+// session data may then be used with `.AuthorizationForResourceRequest()` and (if a Refresh Token
+// was included) `.RefreshToken()`.
+//
+// If the Authorization Server sent a semantically valid error response, an error of type
+// TokenErrorResponse is returned.  On protocol errors, an error of a different type is returned.
+func (client *AuthorizationCodeClient) AccessToken(session *AuthorizationCodeClientSessionData, authorizationCode string) error {
 	parameters := url.Values{
 		"grant_type": {"authorization_code"},
 		"code":       {authorizationCode},
@@ -255,5 +260,23 @@ func (client *AuthorizationCodeClient) AccessToken(session *AuthorizationCodeCli
 		parameters.Set("client_id", client.clientID)
 	}
 
-	return client.postForm(parameters)
+	tokenResponse, err := client.postForm(parameters)
+	if err != nil {
+		return err
+	}
+
+	newAccessTokenData := &accessTokenData{
+		AccessToken:  tokenResponse.AccessToken,
+		TokenType:    tokenResponse.TokenType,
+		ExpiresAt:    tokenResponse.ExpiresAt,
+		RefreshToken: tokenResponse.RefreshToken,
+		Scope:        tokenResponse.Scope,
+	}
+	if len(newAccessTokenData.Scope) == 0 {
+		newAccessTokenData.Scope = session.Request.Scope
+	}
+
+	session.CurrentAccessToken = newAccessTokenData
+	session.isDirty = true
+	return nil
 }

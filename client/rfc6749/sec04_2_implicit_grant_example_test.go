@@ -4,11 +4,12 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"sync"
 
 	"github.com/datawire/liboauth2/client/rfc6749"
 )
 
-func ExampleImplicitClient(mux *http.ServerMux) error {
+func ExampleImplicitClient(mux *http.ServeMux) error {
 	client, err := rfc6749.NewImplicitClient(
 		"example-client",
 		mustParseURL("https://authorization-server.example.com/authorization"),
@@ -26,7 +27,7 @@ func ExampleImplicitClient(mux *http.ServerMux) error {
 	LoadSession := func(r *http.Request) (sessionID string, sessionData *rfc6749.ImplicitClientSessionData) {
 		cookie, _ := r.Cookie("session")
 		if cookie == nil {
-			return nil
+			return "", nil
 		}
 		sessionID = cookie.Value
 		sessionStoreLock.Lock()
@@ -76,7 +77,7 @@ func ExampleImplicitClient(mux *http.ServerMux) error {
 	})
 
 	mux.HandleFunc("/.well-known/internal/redirecton_helper", func(w http.ResponseWriter, r *http.Request) {
-		sessionID, sessionData := GetSessionData(r)
+		sessionID, sessionData := LoadSession(r)
 		if sessionData == nil {
 			w.Header().Set("Content-Type", "text/html")
 			io.WriteString(w, `<p><a href="/login">Click to log in</a></p>`)
@@ -101,7 +102,7 @@ func ExampleImplicitClient(mux *http.ServerMux) error {
 	})
 
 	mux.HandleFunc("/dashboard", func(w http.ResponseWriter, r *http.Request) {
-		sessionID, sessionData := GetSessionData(r)
+		sessionID, sessionData := LoadSession(r)
 		if sessionData == nil {
 			w.Header().Set("Content-Type", "text/html")
 			io.WriteString(w, `<p><a href="/login">Click to log in</a></p>`)

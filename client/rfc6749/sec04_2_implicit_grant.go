@@ -146,23 +146,25 @@ func (client *ImplicitClient) ParseAccessTokenResponse(session *ImplicitClientSe
 	if len(tokenTypes) == 0 {
 		return errors.New("cannot parse response: missing required \"token_type\" parameter")
 	}
-	session.CurrentAccessToken = &TokenResponse{
+	newAccessTokenData := &accessTokenData{
 		AccessToken: accessTokens[0],
 		TokenType:   tokenTypes[0],
 	}
-	session.isDirty = true
 	if expiresIns := parameters["expires_in"]; len(expiresIns) > 0 {
 		seconds, err := strconv.ParseFloat(expiresIns[0], 64)
 		if err != nil {
 			return errors.Wrap(err, "cannot parse response: cannot parse \"expires_in\" parameter")
 		}
-		session.CurrentAccessToken.ExpiresAt = time.Now().Add(time.Duration(seconds * float64(time.Second)))
+		newAccessTokenData.ExpiresAt = time.Now().Add(time.Duration(seconds * float64(time.Second)))
 	}
 	if scopes := parameters["scopes"]; len(scopes) > 0 {
-		session.CurrentAccessToken.Scope = parseScope(scopes[0])
+		newAccessTokenData.Scope = parseScope(scopes[0])
 	} else {
-		session.CurrentAccessToken.Scope = session.Request.Scope
+		newAccessTokenData.Scope = session.Request.Scope
 	}
+
+	session.CurrentAccessToken = newAccessTokenData
+	session.isDirty = true
 	return nil
 }
 

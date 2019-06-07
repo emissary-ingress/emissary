@@ -15,17 +15,17 @@ import (
 //
 // This method is unexported, and accepts an interface, so that the implementation can be shared.
 // An exported wrapper around it for each client type takes a concrete type instead of an interface.
-func (client *explicitClient) refreshToken(session explicitClientSessionData, scope Scope) error {
-	if session.currentAccessTokenData() == nil {
+func (client *explicitClient) refreshToken(session clientSessionData, scope Scope) error {
+	if session.currentAccessToken() == nil {
 		return ErrNoAccessToken
 	}
-	if session.currentAccessTokenData().RefreshToken == nil {
+	if session.currentAccessToken().RefreshToken == nil {
 		return ErrNoRefreshToken
 	}
 
 	parameters := url.Values{
 		"grant_type":    {"refresh_token"},
-		"refresh_token": {*oldtoken.RefreshToken},
+		"refresh_token": {*session.currentAccessToken().RefreshToken},
 	}
 	if len(scope) != 0 {
 		parameters.Set("scope", scope.String())
@@ -41,16 +41,16 @@ func (client *explicitClient) refreshToken(session explicitClientSessionData, sc
 		TokenType:    tokenResponse.TokenType,
 		ExpiresAt:    tokenResponse.ExpiresAt,
 		RefreshToken: tokenResponse.RefreshToken,
-		Scope:        Scope,
+		Scope:        tokenResponse.Scope,
 	}
 	if newAccessTokenData.RefreshToken == nil {
-		newAccessTokenData.RefreshToken = session.currentAccessTokenData().RefreshToken
+		newAccessTokenData.RefreshToken = session.currentAccessToken().RefreshToken
 	}
-	if len(newAccessTokenData) == 0 {
-		newAccessTokenData.Scope = session.currentAccessTokenData().Scope
+	if len(newAccessTokenData.Scope) == 0 {
+		newAccessTokenData.Scope = session.currentAccessToken().Scope
 	}
 
-	*session.currentAccessTokenData() = newAccessTokenData
+	*session.currentAccessToken() = newAccessTokenData
 	session.setDirty()
 
 	return nil

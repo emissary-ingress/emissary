@@ -3,12 +3,13 @@ package rfc6749_test
 import (
 	"log"
 	"net/http"
+	"io"
 	"sync"
 
 	"github.com/datawire/liboauth2/client/rfc6749"
 )
 
-func ExampleAuthorizationCodeClient(mux *http.ServerMux) error {
+func ExampleAuthorizationCodeClient(mux *http.ServeMux) error {
 	client, err := rfc6749.NewAuthorizationCodeClient(
 		"example-client",
 		mustParseURL("https://authorization-server.example.com/authorization"),
@@ -29,7 +30,7 @@ func ExampleAuthorizationCodeClient(mux *http.ServerMux) error {
 	LoadSession := func(r *http.Request) (sessionID string, sessionData *rfc6749.AuthorizationCodeClientSessionData) {
 		cookie, _ := r.Cookie("session")
 		if cookie == nil {
-			return nil
+			return "", nil
 		}
 		sessionID = cookie.Value
 		sessionStoreLock.Lock()
@@ -74,7 +75,7 @@ func ExampleAuthorizationCodeClient(mux *http.ServerMux) error {
 	})
 
 	mux.HandleFunc("/.well-known/internal/redirection", func(w http.ResponseWriter, r *http.Request) {
-		sessionID, sessionData := GetSessionData(r)
+		sessionID, sessionData := LoadSession(r)
 		if sessionData == nil {
 			w.Header().Set("Content-Type", "text/html")
 			io.WriteString(w, `<p><a href="/login">Click to log in</a></p>`)
@@ -92,7 +93,7 @@ func ExampleAuthorizationCodeClient(mux *http.ServerMux) error {
 			return
 		}
 
-		err := client.AccessToken(sessionData, authorizationCode)
+		err = client.AccessToken(sessionData, authorizationCode)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadGateway)
 			return
@@ -103,7 +104,7 @@ func ExampleAuthorizationCodeClient(mux *http.ServerMux) error {
 	})
 
 	mux.HandleFunc("/dashboard", func(w http.ResponseWriter, r *http.Request) {
-		sessionID, sessionData := GetSessionData(r)
+		sessionID, sessionData := LoadSession(r)
 		if sessionData == nil {
 			w.Header().Set("Content-Type", "text/html")
 			io.WriteString(w, `<p><a href="/login">Click to log in</a></p>`)

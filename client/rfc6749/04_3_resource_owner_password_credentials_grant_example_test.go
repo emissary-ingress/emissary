@@ -1,17 +1,20 @@
 package rfc6749_test
 
 import (
+	"fmt"
 	"io"
 	"log"
 	"net/http"
+	"sync"
 
 	"github.com/datawire/liboauth2/client/rfc6749"
 )
 
-func ExampleResourceOwnerPasswordCredentialsClient(mux *http.ServerMux) error {
-	client, err := rfc6749.NewImplicitClient(
-		"example-client",
-		mustParseURL("https://authorization-server.example.com/authorization"),
+func ExampleResourceOwnerPasswordCredentialsClient(mux *http.ServeMux) error {
+	client, err := rfc6749.NewResourceOwnerPasswordCredentialsClient(
+		mustParseURL("https://authorization-server.example.com/token"),
+		rfc6749.ClientPasswordHeader("example-client", "example-password"),
+		http.DefaultClient,
 	)
 	if err != nil {
 		return err
@@ -21,12 +24,12 @@ func ExampleResourceOwnerPasswordCredentialsClient(mux *http.ServerMux) error {
 	// stores pointers, it isn't actually nescessary to update the store whenever the session
 	// data changes.  However, save-on-change is implemented in this example in order to
 	// demonstrate how to save it for external data stores.
-	sessionStore := map[string]*rfc6749.ImplicitClientSessionData{}
+	sessionStore := map[string]*rfc6749.ResourceOwnerPasswordCredentialsClientSessionData{}
 	var sessionStoreLock sync.Mutex
-	LoadSession := func(r *http.Request) (sessionID string, sessionData *rfc6749.ImplicitClientSessionData) {
+	LoadSession := func(r *http.Request) (sessionID string, sessionData *rfc6749.ResourceOwnerPasswordCredentialsClientSessionData) {
 		cookie, _ := r.Cookie("session")
 		if cookie == nil {
-			return nil
+			return "", nil
 		}
 		sessionID = cookie.Value
 		sessionStoreLock.Lock()
@@ -34,7 +37,7 @@ func ExampleResourceOwnerPasswordCredentialsClient(mux *http.ServerMux) error {
 		sessionStoreLock.Unlock()
 		return sessionID, sessionData
 	}
-	SaveSession := func(sessionID string, sessionData *rfc6749.ImplicitClientSessionData) {
+	SaveSession := func(sessionID string, sessionData *rfc6749.ResourceOwnerPasswordCredentialsClientSessionData) {
 		sessionStoreLock.Lock()
 		sessionStore[sessionID] = sessionData
 		sessionStoreLock.Unlock()
@@ -81,7 +84,7 @@ func ExampleResourceOwnerPasswordCredentialsClient(mux *http.ServerMux) error {
 				"scope-a": struct{}{},
 				"scope-B": struct{}{},
 			}
-			token, err := client.AccessToken(username, password, requiredScopes)
+			sessionData, err := client.AccessToken(username, password, requiredScopes)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
@@ -97,7 +100,7 @@ func ExampleResourceOwnerPasswordCredentialsClient(mux *http.ServerMux) error {
 	})
 
 	mux.HandleFunc("/dashboard", func(w http.ResponseWriter, r *http.Request) {
-		sessionID, sessionData := GetSessionData(r)
+		sessionID, sessionData := LoadSession(r)
 		if sessionData == nil {
 			w.Header().Set("Content-Type", "text/html")
 			io.WriteString(w, `<p><a href="/login">Click to log in</a></p>`)

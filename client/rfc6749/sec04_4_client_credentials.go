@@ -45,7 +45,7 @@ type ClientCredentialsClientSessionData struct {
 	isDirty            bool
 }
 
-func (session ClientCredentialsClientSessionData) accessToken() *accessTokenData {
+func (session ClientCredentialsClientSessionData) currentAccessToken() *accessTokenData {
 	return session.CurrentAccessToken
 }
 func (session ClientCredentialsClientSessionData) setDirty() { session.isDirty = true }
@@ -75,11 +75,19 @@ func (client *ClientCredentialsClient) AccessToken(scope Scope) (*ClientCredenti
 		return nil, err
 	}
 
-	if len(tokenResponse.Scope) == 0 {
-		tokenResponse.Scope = scope
+	newAccessTokenData := &accessTokenData{
+		AccessToken:  tokenResponse.AccessToken,
+		TokenType:    tokenResponse.TokenType,
+		ExpiresAt:    tokenResponse.ExpiresAt,
+		RefreshToken: tokenResponse.RefreshToken,
+		Scope:        tokenResponse.Scope,
 	}
+	if len(newAccessTokenData.Scope) == 0 {
+		newAccessTokenData.Scope = scope
+	}
+
 	return &ClientCredentialsClientSessionData{
-		CurrentAccessToken: &tokenResponse,
+		CurrentAccessToken: newAccessTokenData,
 		isDirty:            true,
 	}, nil
 }
