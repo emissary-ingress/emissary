@@ -27,6 +27,7 @@ func NewAuthorizationCodeClient(
 	authorizationEndpoint *url.URL,
 	tokenEndpoint *url.URL,
 	clientAuthentication ClientAuthenticationMethod,
+	httpClient *http.Client,
 ) (*AuthorizationCodeClient, error) {
 	if err := validateAuthorizationEndpointURI(authorizationEndpoint); err != nil {
 		return nil, err
@@ -34,12 +35,16 @@ func NewAuthorizationCodeClient(
 	if err := validateTokenEndpointURI(tokenEndpoint); err != nil {
 		return nil, err
 	}
+	if httpClient == nil {
+		httpClient = http.DefaultClient
+	}
 	ret := &AuthorizationCodeClient{
 		clientID:              clientID,
 		authorizationEndpoint: authorizationEndpoint,
 		explicitClient: explicitClient{
 			tokenEndpoint:        tokenEndpoint,
 			clientAuthentication: clientAuthentication,
+			httpClient:           httpClient,
 		},
 	}
 	return ret, nil
@@ -245,7 +250,7 @@ func init() {
 //
 // The returned response is either a TokenSuccessResponse or a
 // TokenErrorResponse.
-func (client *AuthorizationCodeClient) AccessToken(session *AuthorizationCodeClientSessionData, httpClient *http.Client, authorizationCode string) (TokenResponse, error) {
+func (client *AuthorizationCodeClient) AccessToken(session *AuthorizationCodeClientSessionData, authorizationCode string) (TokenResponse, error) {
 	parameters := url.Values{
 		"grant_type": {"authorization_code"},
 		"code":       {authorizationCode},
@@ -257,5 +262,5 @@ func (client *AuthorizationCodeClient) AccessToken(session *AuthorizationCodeCli
 		parameters.Set("client_id", client.clientID)
 	}
 
-	return client.postForm(httpClient, parameters)
+	return client.postForm(parameters)
 }

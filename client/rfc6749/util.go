@@ -9,6 +9,7 @@ import (
 type explicitClient struct {
 	tokenEndpoint        *url.URL
 	clientAuthentication ClientAuthenticationMethod
+	httpClient           *http.Client
 }
 
 // postForm is the common bits of request/response handling per
@@ -16,11 +17,7 @@ type explicitClient struct {
 // huge fan of it being factored out here, instead of being duplicated
 // in sec4_{1,3,4}_*.go and sec6_*.go.  But that's the only sane way I
 // could figure to structure it such that the refresh API is sane.
-func (client *explicitClient) postForm(httpClient *http.Client, form url.Values) (TokenResponse, error) {
-	if httpClient == nil {
-		httpClient = http.DefaultClient
-	}
-
+func (client *explicitClient) postForm(form url.Values) (TokenResponse, error) {
 	header := make(http.Header)
 
 	if client.clientAuthentication != nil {
@@ -34,7 +31,7 @@ func (client *explicitClient) postForm(httpClient *http.Client, form url.Values)
 	req.Header = header
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	res, err := httpClient.Do(req)
+	res, err := client.httpClient.Do(req)
 	if err != nil {
 		return TokenResponse{}, err
 	}

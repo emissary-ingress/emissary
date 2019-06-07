@@ -1,7 +1,6 @@
 package rfc6749
 
 import (
-	"net/http"
 	"net/url"
 
 	"github.com/pkg/errors"
@@ -20,7 +19,7 @@ import (
 // If the server sent a semantically valid error response, the
 // returned error is of type TokenErrorResponse.  On protocol errors,
 // a different error type is returned.
-func (client *explicitClient) RefreshToken(httpClient *http.Client, oldtoken TokenResponse, scope Scope) (TokenResponse, error) {
+func (client *explicitClient) RefreshToken(oldtoken TokenResponse, scope Scope) (TokenResponse, error) {
 	if oldtoken.RefreshToken == nil {
 		return TokenResponse{}, errors.New("RefreshToken(): oldtoken.RefreshToken must not be nil")
 	}
@@ -33,7 +32,7 @@ func (client *explicitClient) RefreshToken(httpClient *http.Client, oldtoken Tok
 		parameters.Set("scope", scope.String())
 	}
 
-	res, err := client.postForm(httpClient, parameters)
+	res, err := client.postForm(parameters)
 	if err != nil {
 		return TokenResponse{}, err
 	}

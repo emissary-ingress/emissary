@@ -17,14 +17,19 @@ type ResourceOwnerPasswordCredentialsClient struct {
 func NewResourceOwnerPasswordCredentialsClient(
 	tokenEndpoint *url.URL,
 	clientAuthentication ClientAuthenticationMethod,
+	httpClient *http.Client,
 ) (*ResourceOwnerPasswordCredentialsClient, error) {
 	if err := validateTokenEndpointURI(tokenEndpoint); err != nil {
 		return nil, err
+	}
+	if httpClient == nil {
+		httpClient = http.DefaultClient
 	}
 	ret := &ResourceOwnerPasswordCredentialsClient{
 		explicitClient: explicitClient{
 			tokenEndpoint:        tokenEndpoint,
 			clientAuthentication: clientAuthentication,
+			httpClient:           httpClient,
 		},
 	}
 	return ret, nil
@@ -39,7 +44,7 @@ func NewResourceOwnerPasswordCredentialsClient(
 //
 // The returned response is either a TokenSuccessResponse or a
 // TokenErrorResponse.
-func (client *ResourceOwnerPasswordCredentialsClient) AccessToken(httpClient *http.Client, username string, password string, scope Scope) (TokenResponse, error) {
+func (client *ResourceOwnerPasswordCredentialsClient) AccessToken(username string, password string, scope Scope) (TokenResponse, error) {
 	parameters := url.Values{
 		"grant_type": {"password"},
 		"username":   {username},
@@ -49,5 +54,5 @@ func (client *ResourceOwnerPasswordCredentialsClient) AccessToken(httpClient *ht
 		parameters.Set("scope", scope.String())
 	}
 
-	return client.explicitClient.postForm(httpClient, parameters)
+	return client.explicitClient.postForm(parameters)
 }

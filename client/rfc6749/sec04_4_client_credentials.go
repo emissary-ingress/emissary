@@ -18,6 +18,7 @@ type ClientCredentialsClient struct {
 func NewClientCredentialsClient(
 	tokenEndpoint *url.URL,
 	clientAuthentication ClientAuthenticationMethod,
+	httpClient *http.Client,
 ) (*ClientCredentialsClient, error) {
 	if err := validateTokenEndpointURI(tokenEndpoint); err != nil {
 		return nil, err
@@ -25,10 +26,14 @@ func NewClientCredentialsClient(
 	if clientAuthentication == nil {
 		return nil, errors.New("clientAuthentication must be set")
 	}
+	if httpClient == nil {
+		httpClient = http.DefaultClient
+	}
 	ret := &ClientCredentialsClient{
 		explicitClient: explicitClient{
 			tokenEndpoint:        tokenEndpoint,
 			clientAuthentication: clientAuthentication,
+			httpClient:           httpClient,
 		},
 	}
 	return ret, nil
@@ -43,7 +48,7 @@ func NewClientCredentialsClient(
 //
 // The returned response is either a TokenSuccessResponse or a
 // TokenErrorResponse.
-func (client *ClientCredentialsClient) AccessToken(httpClient *http.Client, scope Scope) (TokenResponse, error) {
+func (client *ClientCredentialsClient) AccessToken(scope Scope) (TokenResponse, error) {
 	parameters := url.Values{
 		"grant_type": {"client_credentials"},
 	}
@@ -51,5 +56,5 @@ func (client *ClientCredentialsClient) AccessToken(httpClient *http.Client, scop
 		parameters.Set("scope", scope.String())
 	}
 
-	return client.explicitClient.postForm(httpClient, parameters)
+	return client.explicitClient.postForm(parameters)
 }

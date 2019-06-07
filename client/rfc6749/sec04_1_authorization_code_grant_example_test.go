@@ -13,6 +13,7 @@ func ExampleAuthorizationCodeClient() {
 		mustParseURL("https://authorization-server.example.com/authorization"),
 		mustParseURL("https://authorization-server.example.com/token"),
 		rfc6749.ClientPasswordHeader("example-client", "example-password"),
+		nil,
 	)
 	if err != nil {
 		log.Fatal(err)
@@ -62,7 +63,7 @@ func ExampleAuthorizationCodeClient() {
 			return
 		}
 
-		tokenResponse, err := client.AccessToken(sessionData, nil, authorizationCode)
+		tokenResponse, err := client.AccessToken(sessionData, authorizationCode)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadGateway)
 			return
