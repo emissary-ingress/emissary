@@ -1,6 +1,7 @@
 package rfc6749
 
 import (
+	"fmt"
 	"net/url"
 	"strconv"
 	"time"
@@ -33,20 +34,21 @@ func NewImplicitClient(
 }
 
 // ImplicitClientSessionData is the session data that must be
-// persisted between requests when using an ImplicitClient
+// persisted between requests when using an ImplicitClient.
 type ImplicitClientSessionData struct {
 	Request struct {
 		RedirectURI *url.URL
 		Scope       Scope
 		State       string
 	}
-	CurrentAccessToken struct {
-		Token     string
-		TokenType string
-		ExpiresAt time.Time
-		Scope     Scope
-	}
+	CurrentAccessToken *TokenResponse
+	isDirty            bool
 }
+
+// IsDirty indicates whether the session data has been mutated since
+// that last time that it was unmarshaled.  This is only useful if you
+// marshal it to and unmarshal it from an external datastore.
+func (session ImplicitClientSessionData) IsDirty() bool { return session.isDirty }
 
 // AuthorizationRequest returns an URI that the Client should direct
 // the User-Agent to perform a GET request for, in order to perform an
@@ -95,6 +97,7 @@ func (client *ImplicitClient) AuthorizationRequest(redirectURI *url.URL, scope S
 	session.Request.RedirectURI = redirectURI
 	session.Request.Scope = scope
 	session.Request.State = state
+	session.isDirty = true
 
 	u, err := buildAuthorizationRequestURI(client.authorizationEndpoint, parameters)
 	if err != nil {
@@ -114,17 +117,17 @@ func (client *ImplicitClient) AuthorizationRequest(redirectURI *url.URL, scope S
 // If the server sent a semantically valid error response, the
 // returned error is of type ImplicitGrantErrorResponse.  On protocol
 // errors, a different error type is returned.
-func (client *ImplicitClient) ParseAccessTokenResponse(session *ImplicitClientSessionData, fragment string) (ImplicitAccessTokenResponse, error) {
+func (client *ImplicitClient) ParseAccessTokenResponse(session *ImplicitClientSessionData, fragment string) error {
 	parameters, err := url.ParseQuery(fragment)
 	if err != nil {
-		return nil, err
+		return errors.Wrap(err, "cannot parse response")
 	}
 
 	// The "state" parameter is shared by both success and error
 	// responses.  Let's check this early, to avoid unnecessary
 	// resource usage.
 	if parameters.Get("state") != session.Request.State {
-		return "", errors.New("refusing to parse response: response state parameter does not match request state parameter; XSRF attack likely")
+		return errors.New("refusing to parse response: response state parameter does not match request state parameter; XSRF attack likely")
 	}
 
 	if errs := parameters["error"]; len(errs) > 0 {
@@ -134,10 +137,10 @@ func (client *ImplicitClient) ParseAccessTokenResponse(session *ImplicitClientSe
 			var err error
 			errorURI, err = url.Parse(errorURIs[0])
 			if err != nil {
-				return nil, errors.Wrap(err, "cannot parse error response: invalid error_uri")
+				return errors.Wrap(err, "cannot parse error response: invalid error_uri")
 			}
 		}
-		return nil, ImplicitGrantErrorResponse{
+		return ImplicitGrantErrorResponse{
 			ErrorCode:        errs[0],
 			ErrorDescription: parameters.Get("error_description"),
 			ErrorURI:         errorURI,
@@ -146,53 +149,31 @@ func (client *ImplicitClient) ParseAccessTokenResponse(session *ImplicitClientSe
 	// §4.2.2 success
 	accessTokens := parameters["access_token"]
 	if len(accessTokens) == 0 {
-		return nil, errors.New("cannot parse response: missing required \"access_token\" parameter")
+		return errors.New("cannot parse response: missing required \"access_token\" parameter")
 	}
 	tokenTypes := parameters["token_type"]
 	if len(tokenTypes) == 0 {
-		return nil, errors.New("cannot parse response: missing required \"token_type\" parameter")
+		return errors.New("cannot parse response: missing required \"token_type\" parameter")
 	}
-	ret := ImplicitAccessTokenSuccessResponse{
+	session.CurrentAccessToken = &TokenResponse{
 		AccessToken: accessTokens[0],
 		TokenType:   tokenTypes[0],
 	}
+	session.isDirty = true
 	if expiresIns := parameters["expires_in"]; len(expiresIns) > 0 {
 		seconds, err := strconv.ParseFloat(expiresIns[0], 64)
 		if err != nil {
-			return nil, errors.Wrap(err, "cannot parse response: cannot parse \"expires_in\" parameter")
+			return errors.Wrap(err, "cannot parse response: cannot parse \"expires_in\" parameter")
 		}
-		ret.ExpiresAt = time.Now().Add(time.Duration(seconds * float64(time.Second)))
+		session.CurrentAccessToken.ExpiresAt = time.Now().Add(time.Duration(seconds * float64(time.Second)))
 	}
 	if scopes := parameters["scopes"]; len(scopes) > 0 {
-		ret.Scope = parseScope(scopes[0])
+		session.CurrentAccessToken.Scope = parseScope(scopes[0])
+	} else {
+		session.CurrentAccessToken.Scope = session.Request.Scope
 	}
-	return ret, nil
+	return nil
 }
-
-// ImplicitAccessTokenResponse encapsulates the possible responses to
-// an Authorization Request in the Implicit flow.
-//
-// This is implemented by ImplicitAccessTokenSuccessResponse and an
-// ImplicitAccessTokenErrorResponse.
-type ImplicitAccessTokenResponse interface {
-	isImplicitAccessTokenResponse()
-	GetState() string
-}
-
-// An ImplicitAccessTokenResponse is a successful response to
-// an Authorization Request in the Implicit flow, as defined in
-// §4.2.2.
-type ImplicitAccessTokenSuccessResponse struct {
-	AccessToken string    // REQUIRED.
-	TokenType   string    // REQUIRED.
-	ExpiresAt   time.Time // RECOMMENDED.
-	Scope       Scope     // OPTIONAL if identical to scope requested by the client; otherwise REQUIRED.
-}
-
-func (r ImplicitAccessTokenSuccessResponse) isImplicitAccessTokenResponse() {}
-
-// GetState returns the state parameter (if any) included in the response.
-func (r ImplicitAccessTokenSuccessResponse) GetState() string { return r.State }
 
 // An ImplicitGrantErrorResponse is an error response to an
 // Authorization Request in the Implicit flow, as defined in §4.2.2.1.
@@ -203,7 +184,7 @@ type ImplicitGrantErrorResponse struct {
 }
 
 func (r ImplicitGrantErrorResponse) Error() string {
-	ret := fmt.Sprintf("error response: error=%q", r.ErrorCode)
+	ret := fmt.Sprintf("implicit grant error response: error=%q", r.ErrorCode)
 	if r.ErrorDescription != "" {
 		ret = fmt.Sprintf("%s error_description=%q", ret, r.ErrorDescription)
 	}

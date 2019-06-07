@@ -14,7 +14,7 @@ import (
 // authorize the requests, per §7.1.
 //
 // This should be called separately for each outgoing request.
-func (token TokenSuccessResponse) AuthorizationForResourceRequest(getBody func() io.Reader) (http.Header, error) {
+func (token TokenResponse) AuthorizationForResourceRequest(getBody func() io.Reader) (http.Header, error) {
 	typeDriver := rfc6749.GetAccessTokenTypeClientDriver(token.TokenType)
 	if typeDriver == nil {
 		return nil, errors.Errorf("unsupported token_type: %q", token.TokenType)

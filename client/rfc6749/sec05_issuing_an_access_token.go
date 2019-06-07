@@ -2,6 +2,7 @@ package rfc6749
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"mime"
 	"net/http"
@@ -15,23 +16,24 @@ import (
 
 // parseTokenResponse parses a response from a Token Endpoint, per §5.
 //
-// The returned response is either a TokenSuccessResponse or a
-// TokenErrorResponse.
-//
 // This will NOT close the response Body for you.
+//
+// If the server sent a semantically valid error response, the
+// returned error is of type TokenErrorResponse.  On protocol errors,
+// a different error type is returned.
 func parseTokenResponse(res *http.Response) (TokenResponse, error) {
 	switch {
 	case res.StatusCode == http.StatusOK:
 		mediatype, _, err := mime.ParseMediaType(res.Header.Get("Content-Type"))
 		if err != nil {
-			return nil, err
+			return TokenResponse{}, err
 		}
 		if mediatype != "application/json" {
-			return nil, errors.Errorf("expected \"application/json\" media type, got %q", mediatype)
+			return TokenResponse{}, errors.Errorf("expected \"application/json\" media type, got %q", mediatype)
 		}
 		bodyBytes, err := ioutil.ReadAll(res.Body)
 		if err != nil {
-			return nil, err
+			return TokenResponse{}, err
 		}
 		var rawResponse struct {
 			AccessToken  *string  `json:"access_token"`
@@ -42,15 +44,15 @@ func parseTokenResponse(res *http.Response) (TokenResponse, error) {
 		}
 		err = json.Unmarshal(bodyBytes, &rawResponse)
 		if err != nil {
-			return nil, err
+			return TokenResponse{}, err
 		}
 		if rawResponse.AccessToken == nil {
-			return nil, errors.New("parameter \"access_token\" is missing")
+			return TokenResponse{}, errors.New("parameter \"access_token\" is missing")
 		}
 		if rawResponse.TokenType == nil {
-			return nil, errors.New("parameter \"token_type\" is missing")
+			return TokenResponse{}, errors.New("parameter \"token_type\" is missing")
 		}
-		ret := TokenSuccessResponse{
+		ret := TokenResponse{
 			AccessToken: *rawResponse.AccessToken,
 			TokenType:   *rawResponse.TokenType,
 		}
@@ -71,37 +73,29 @@ func parseTokenResponse(res *http.Response) (TokenResponse, error) {
 		// anything in the 4XX range suggests an Error Response seams reasonable.
 		mediatype, _, err := mime.ParseMediaType(res.Header.Get("Content-Type"))
 		if err != nil {
-			return nil, err
+			return TokenResponse{}, err
 		}
 		if mediatype != "application/json" {
-			return nil, errors.Errorf("expected \"application/json\" media type, got %q", mediatype)
+			return TokenResponse{}, errors.Errorf("expected \"application/json\" media type, got %q", mediatype)
 		}
 		bodyBytes, err := ioutil.ReadAll(res.Body)
 		if err != nil {
-			return nil, err
+			return TokenResponse{}, err
 		}
 		var ret TokenErrorResponse
 		err = json.Unmarshal(bodyBytes, &ret)
 		if err != nil {
-			return nil, err
+			return TokenResponse{}, err
 		}
-		return ret, nil
+		return TokenResponse{}, ret
 	default:
-		return nil, errors.Errorf("unexpected response code: %v", res.Status)
+		return TokenResponse{}, errors.Errorf("unexpected response code: %v", res.Status)
 	}
 }
 
-// TokenResponse encapsulates the possible responses to an Token
-// Request, as defined in §5.
-//
-// This is implemented by TokenSuccessResponse and TokenErrorResponse.
-type TokenResponse interface {
-	isTokenResponse()
-}
-
-// TokenSuccessResponse stores a successful response containing a
-// token, as specified in §5.1.
-type TokenSuccessResponse struct {
+// TokenResponse stores a successful response containing a token, as
+// specified in §5.1.
+type TokenResponse struct {
 	AccessToken  string    // REQUIRED.
 	TokenType    string    // REQUIRED.
 	ExpiresAt    time.Time // RECOMMENDED.
@@ -109,20 +103,28 @@ type TokenSuccessResponse struct {
 	Scope        Scope     // OPTIONAL if identical to scope requested by the client; otherwise REQUIRED.
 }
 
-func (r TokenSuccessResponse) isTokenResponse() {}
-
-// TokenErrorResponse stores an error response, as specified in
-// §5.2.
+// TokenErrorResponse stores an error response, as specified in §5.2.
 type TokenErrorResponse struct {
-	Error            string
+	ErrorCode        string
 	ErrorDescription string
 	ErrorURI         *url.URL
 }
 
 type rawTokenErrorResponse struct {
-	Error            *string `json:"error"`
+	ErrorCode        *string `json:"error"`
 	ErrorDescription *string `json:"error_description,omitempty"`
 	ErrorURI         *string `json:"error_uri,omitempty"`
+}
+
+func (r TokenErrorResponse) Error() string {
+	ret := fmt.Sprintf("token error response: error=%q", r.ErrorCode)
+	if r.ErrorDescription != "" {
+		ret = fmt.Sprintf("%s error_description=%q", ret, r.ErrorDescription)
+	}
+	if r.ErrorURI != nil {
+		ret = fmt.Sprintf("%s error_uri=%q", ret, r.ErrorURI.String())
+	}
+	return ret
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
@@ -132,10 +134,10 @@ func (r *TokenErrorResponse) UnmarshalJSON(bodyBytes []byte) error {
 	if err != nil {
 		return err
 	}
-	if rawResponse.Error == nil {
+	if rawResponse.ErrorCode == nil {
 		return errors.New("parameter \"error\" is missing")
 	}
-	r.Error = *rawResponse.Error
+	r.ErrorCode = *rawResponse.ErrorCode
 	if rawResponse.ErrorDescription != nil {
 		r.ErrorDescription = *rawResponse.ErrorDescription
 	}
@@ -151,7 +153,7 @@ func (r *TokenErrorResponse) UnmarshalJSON(bodyBytes []byte) error {
 // MarshalJSON implements json.Marshaler.
 func (r TokenErrorResponse) MarshalJSON() ([]byte, error) {
 	var rawResponse rawTokenErrorResponse
-	rawResponse.Error = &r.Error
+	rawResponse.ErrorCode = &r.ErrorCode
 	if r.ErrorDescription != "" {
 		rawResponse.ErrorDescription = &r.ErrorDescription
 	}
@@ -160,18 +162,6 @@ func (r TokenErrorResponse) MarshalJSON() ([]byte, error) {
 		rawResponse.ErrorURI = &str
 	}
 	return json.Marshal(rawResponse)
-}
-
-func (r TokenErrorResponse) isTokenResponse() {}
-
-// ErrorMeaning returns a human-readable meaning of the .Error code.
-// Returns an empty string for unknown error codes.
-func (r TokenErrorResponse) ErrorMeaning() string {
-	ecode := rfc6749.GetTokenError(r.Error)
-	if ecode == nil {
-		return ""
-	}
-	return ecode.Meaning()
 }
 
 func newTokenError(name, meaning string) {

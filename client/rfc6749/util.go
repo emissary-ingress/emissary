@@ -29,14 +29,14 @@ func (client *explicitClient) postForm(httpClient *http.Client, form url.Values)
 
 	req, err := http.NewRequest("POST", client.tokenEndpoint.String(), strings.NewReader(form.Encode()))
 	if err != nil {
-		return nil, err
+		return TokenResponse{}, err
 	}
 	req.Header = header
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	res, err := httpClient.Do(req)
 	if err != nil {
-		return nil, err
+		return TokenResponse{}, err
 	}
 	defer res.Body.Close()
 

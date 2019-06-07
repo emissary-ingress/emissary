@@ -1,59 +1,11 @@
 package rfc6749_test
 
 import (
-	"crypto/rand"
-	"encoding/base64"
-	"html/template"
 	"log"
 	"net/http"
-	"net/url"
 
 	"github.com/datawire/liboauth2/client/rfc6749"
 )
-
-func mustParseURL(s string) *url.URL {
-	u, err := url.Parse(s)
-	if err != nil {
-		panic(err)
-	}
-	return u
-}
-
-var errorResponsePage = template.Must(template.New("error-response-page").Parse(`
-<!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8">
-    <title>Error Response: {{.Error}}</title>
-  </head>
-  <body>
-    <dl>
-
-      <dt>error code</dt>
-      <dd><tt>{{.Error}}</tt> : {{.Error.Description}}</dd>
-
-{{ if .ErrorDescription | ne "" }}
-      <dt>error description</dt>
-      <dd>{{.ErrorDescription}}</dd>
-{{ end }}
-
-{{ if .ErrorURI | ne nil }}
-      <dt>error URI</dt>
-      <dd><a href="{{.ErrorURI}}">{{.ErrorURI}}</a></dd>
-{{ end }}
-
-    </dl>
-  </body>
-</html>
-`))
-
-func randomToken() string {
-	d := make([]byte, 128)
-	if _, err := rand.Read(d); err != nil {
-		panic(err)
-	}
-	return base64.RawURLEncoding.EncodeToString(d)
-}
 
 func ExampleAuthorizationCodeClient() {
 	client, err := rfc6749.NewAuthorizationCodeClient(
@@ -115,15 +67,8 @@ func ExampleAuthorizationCodeClient() {
 			http.Error(w, err.Error(), http.StatusBadGateway)
 			return
 		}
-		switch tokenResponse := tokenResponse.(type) {
-		case rfc6749.TokenErrorResponse:
-			w.Header().Set("Content-Type", "text/html")
-			w.WriteHeader(http.StatusUnauthorized)
-			_ = errorResponsePage.Execute(w, tokenResponse)
-			return
-		case rfc6749.TokenSuccessResponse:
-			// TODO
-		}
+		// TODO
+		log.Println(tokenResponse)
 	})
 
 	http.HandleFunc("/dashboard", func(w http.ResponseWriter, r *http.Request) {
@@ -135,6 +80,7 @@ func ExampleAuthorizationCodeClient() {
 		sessionData := sessionStore[cookie.Value]
 
 		// TODO
+		log.Println(sessionData)
 	})
 
 	log.Println("Listening on :9000...")

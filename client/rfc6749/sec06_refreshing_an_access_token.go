@@ -17,12 +17,12 @@ import (
 // with _reduced_ scope.  It is not valid to list a scope that is not
 // present in the original Token.
 //
-// The returned response is either a TokenSuccessResponse or a
-// TokenErrorResponse.  If it is a TokenSuccessResponse, then you
-// should replace your store of the oldtoken with it.
-func (client *explicitClient) RefreshToken(httpClient *http.Client, oldtoken TokenSuccessResponse, scope Scope) (TokenResponse, error) {
+// If the server sent a semantically valid error response, the
+// returned error is of type TokenErrorResponse.  On protocol errors,
+// a different error type is returned.
+func (client *explicitClient) RefreshToken(httpClient *http.Client, oldtoken TokenResponse, scope Scope) (TokenResponse, error) {
 	if oldtoken.RefreshToken == nil {
-		return nil, errors.New("RefreshToken(): oldtoken.RefreshToken must not be nil")
+		return TokenResponse{}, errors.New("RefreshToken(): oldtoken.RefreshToken must not be nil")
 	}
 
 	parameters := url.Values{
@@ -35,16 +35,14 @@ func (client *explicitClient) RefreshToken(httpClient *http.Client, oldtoken Tok
 
 	res, err := client.postForm(httpClient, parameters)
 	if err != nil {
-		return nil, err
+		return TokenResponse{}, err
 	}
 
-	if res, ok := res.(TokenSuccessResponse); ok {
-		if res.RefreshToken == nil && oldtoken.RefreshToken != nil {
-			res.RefreshToken = oldtoken.RefreshToken
-		}
-		if res.Scope == nil && oldtoken.Scope != nil {
-			res.Scope = oldtoken.Scope
-		}
+	if res.RefreshToken == nil && oldtoken.RefreshToken != nil {
+		res.RefreshToken = oldtoken.RefreshToken
+	}
+	if res.Scope == nil && oldtoken.Scope != nil {
+		res.Scope = oldtoken.Scope
 	}
 
 	return res, nil

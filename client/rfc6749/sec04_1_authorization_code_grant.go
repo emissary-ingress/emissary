@@ -15,7 +15,9 @@ import (
 type AuthorizationCodeClient struct {
 	clientID              string
 	authorizationEndpoint *url.URL
+
 	explicitClient
+	accessTokenTypeRegistry
 }
 
 // NewAuthorizationCodeClient creates a new AuthorizationCodeClient as
@@ -51,7 +53,13 @@ type AuthorizationCodeClientSessionData struct {
 		Scope       Scope
 		State       string
 	}
+	isDirty bool
 }
+
+// IsDirty indicates whether the session data has been mutated since
+// that last time that it was unmarshaled.  This is only useful if you
+// marshal it to and unmarshal it from an external datastore.
+func (session AuthorizationCodeClientSessionData) IsDirty() bool { return session.isDirty }
 
 // AuthorizationRequest returns an URI that the Client should direct
 // the User-Agent to perform a GET request for, in order to perform an
@@ -100,6 +108,7 @@ func (client *AuthorizationCodeClient) AuthorizationRequest(redirectURI *url.URL
 	session.Request.RedirectURI = redirectURI
 	session.Request.Scope = scope
 	session.Request.State = state
+	session.isDirty = true
 
 	u, err := buildAuthorizationRequestURI(client.authorizationEndpoint, parameters)
 	if err != nil {
@@ -170,7 +179,7 @@ type AuthorizationCodeGrantErrorResponse struct {
 }
 
 func (r AuthorizationCodeGrantErrorResponse) Error() string {
-	ret := fmt.Sprintf("error response: error=%q", r.ErrorCode)
+	ret := fmt.Sprintf("authorization code grant error response: error=%q", r.ErrorCode)
 	if r.ErrorDescription != "" {
 		ret = fmt.Sprintf("%s error_description=%q", ret, r.ErrorDescription)
 	}

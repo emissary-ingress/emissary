@@ -1,33 +1,14 @@
 package rfc6749_test
 
 import (
-	"crypto/rand"
-	"encoding/base64"
-	"html/template"
+	"io"
 	"log"
 	"net/http"
-	"net/url"
 
 	"github.com/datawire/liboauth2/client/rfc6749"
 )
 
-func mustParseURL(s string) *url.URL {
-	u, err := url.Parse(s)
-	if err != nil {
-		panic(err)
-	}
-	return u
-}
-
-func randomToken() string {
-	d := make([]byte, 128)
-	if _, err := rand.Read(d); err != nil {
-		panic(err)
-	}
-	return base64.RawURLEncoding.EncodeToString(d)
-}
-
-func ExampleAuthorizationCodeClient() {
+func ExampleImplicitClient() {
 	client, err := rfc6749.NewImplicitClient(
 		"example-client",
 		mustParseURL("https://authorization-server.example.com/authorization"),
@@ -36,7 +17,7 @@ func ExampleAuthorizationCodeClient() {
 		log.Fatal(err)
 	}
 
-	sessionStore := map[string]*rfc6749.AuthorizationCodeClientSessionData{}
+	sessionStore := map[string]*rfc6749.ImplicitClientSessionData{}
 
 	http.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {
 		sessionID := randomToken()
@@ -64,7 +45,7 @@ func ExampleAuthorizationCodeClient() {
 
 	http.HandleFunc("/.well-known/internal/redirecton", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/html")
-		io.WriteString(w, `<script>window.location = "/.well-known/internal/redirection_helper?fragment=" + encodeURIComponent(window.location.hash.substring(1))</script>`)
+		_, _ = io.WriteString(w, `<script>window.location = "/.well-known/internal/redirection_helper?fragment=" + encodeURIComponent(window.location.hash.substring(1))</script>`)
 	})
 
 	http.HandleFunc("/.well-known/internal/redirecton_helper", func(w http.ResponseWriter, r *http.Request) {
@@ -81,8 +62,10 @@ func ExampleAuthorizationCodeClient() {
 
 		fragment := r.URL.Query().Get("fragment")
 
-		token, err := client.ParseAccessTokenResponse(sessionData, fragment)
+		err = client.ParseAccessTokenResponse(sessionData, fragment)
+
 		// TODO
+		log.Println(sessionData, err)
 	})
 
 	http.HandleFunc("/dashboard", func(w http.ResponseWriter, r *http.Request) {
@@ -94,6 +77,7 @@ func ExampleAuthorizationCodeClient() {
 		sessionData := sessionStore[cookie.Value]
 
 		// TODO
+		log.Println(sessionData)
 	})
 
 	log.Println("Listening on :9000...")
