@@ -131,6 +131,10 @@
               link: /reference/rate-limits
             - title: Redirects
               link: /reference/redirects
+            - title: Remove Request Headers
+              link: /reference/remove_request_headers
+            - title: Remove Response Headers
+              link: /reference/remove_response_headers
             - title: Request Headers
               link: /reference/add_request_headers
             - title: Response Headers

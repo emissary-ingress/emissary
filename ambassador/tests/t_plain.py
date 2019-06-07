@@ -2,7 +2,7 @@ from typing import Tuple, Union
 
 from kat.harness import variants, Query
 
-from abstract_tests import AmbassadorTest
+from abstract_tests import AmbassadorTest, DEFAULT_ERRORS
 from abstract_tests import MappingTest, Node
 
 # Plain is the place that all the MappingTests get pulled in.
@@ -74,4 +74,4 @@ config: {}
     def check(self):
         # XXX Ew. If self.results[0].json is empty, the harness won't convert it to a response.
         errors = self.results[0].json
-        assert(len(errors) == 1)
+        assert(errors == DEFAULT_ERRORS)

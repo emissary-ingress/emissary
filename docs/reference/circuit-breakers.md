@@ -38,9 +38,9 @@ Circuit breakers defined on a single mapping:
 ```yaml
 apiVersion: ambassador/v1
 kind:  Mapping
-name:  qotm_mapping
-prefix: /qotm/
-service: qotm
+name:  tour-backend_mapping
+prefix: /backend/
+service: tour
 circuit_breakers:
 - max_connections: 2048
   max_pending_requests: 2048
@@ -59,9 +59,9 @@ config:
 ---
 apiVersion: ambassador/v1
 kind:  Mapping
-name:  qotm_mapping
-prefix: /qotm/
-service: qotm
+name:  tour-backend_mapping
+prefix: /backend/
+service: tour
 ```
 
 ## Circuit breakers and automatic retries

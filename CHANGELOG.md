@@ -2,6 +2,18 @@
 
 ## BREAKING NEWS
 
+### UPCOMING PROTOCOL CHANGES
+
+*In a future version*, Ambassador will change the versions of the GRPC protocols used to
+communicate with `AuthService`s and `RatelimitService`s:
+
+| Resource | Current version | Upcoming version |
+| :------- | :-------------- | :--------------- |
+| `AuthService` | `envoy.service.auth.v2alpha` | `envoy.service.auth.v2` |
+| `RateLimitService` | `pb.lyft.ratelimit.RateLimitService` | `envoy.service.ratelimit.v2.RateLimitService` |
+
+These changes will not take effect until at least Ambassador 0.80.0. We expect to support both protocol versions during a transition period.
+
 ### DEFAULT PORTS CHANGED IN AMBASSADOR 0.60
 
 Ambassador 0.60 by default listens for cleartext HTTP on port 8080 (rather than 80),
@@ -82,6 +94,31 @@ Format:
 --->
 
 <!--- CueAddReleaseNotes --->
+## [0.71.0] June 06, 2019
+[0.71.0]: https://github.com/datawire/ambassador/compare/0.70.1...0.71.0
+
+- Feature: GZIP support [#744]
+- Feature: diag UI shows active Resolvers [#1453]
+- Feature: CRDs exist for Resolvers [#1563]
+- Feature: Resolvers with custom names work, even as CRDs [#1497]
+- Feature: The `/metrics` endpoint provides direct access to Prometheus-format stats (thanks to [Rotem Tamir](https://github.com/rotemtam)!)
+- Bugfix: `statsd-exporter` now correctly defaults to port 8125 (thanks to [Jonathan Suever](https://github.com/suever)!)
+- Bugfix: redirect_cleartext_from no longer strips the URL path [#1463]
+- Bugfix: canary weights of 0 and 100 work correctly [#1379]
+- Bugfix: `docker run` works again for the Ambassador demo, and is part of our tests now [#1569]
+- Bugfix: Scout `DEBUG` messages don’t get leaked into the diag UI [#1573]
+- Maintenance: warn of upcoming protocol version changes
+- Maintenance: check in with Scout every 24 hours, but no more than twice per day
+
+[#744]: https://github.com/datawire/ambassador/issues/744
+[#1379]: https://github.com/datawire/ambassador/issues/1379
+[#1453]: https://github.com/datawire/ambassador/issues/1453
+[#1463]: https://github.com/datawire/ambassador/issues/1463
+[#1497]: https://github.com/datawire/ambassador/issues/1497
+[#1563]: https://github.com/datawire/ambassador/issues/1563
+[#1569]: https://github.com/datawire/ambassador/issues/1569
+[#1573]: https://github.com/datawire/ambassador/issues/1573
+
 ## [0.70.1] May 24, 2019
 [0.70.1]: https://github.com/datawire/ambassador/compare/0.70.0...0.70.1
 

@@ -191,12 +191,12 @@ the values here are used. Most Ambassador installations will probably be able to
 
 ### Readiness and Liveness probes (`readiness_probe` and `liveness_probe`)
 
-The default liveness and readiness probes map `/ambassador/v0/check_alive` and `ambassador/v0/check_ready` internally to check Envoy itself. If you'd like to, you can change these to route requests to some other service. For example, to have the readiness probe map to the Quote of the Moment's health check, you could do
+The default liveness and readiness probes map `/ambassador/v0/check_alive` and `ambassador/v0/check_ready` internally to check Envoy itself. If you'd like to, you can change these to route requests to some other service. For example, to have the readiness probe map to the tour application's health check, you could do
 
 ```yaml
 readiness_probe:
-  service: qotm
-  rewrite: /health
+  service: tour
+  rewrite: /backend/health
 ```
 
 The liveness and readiness probe both support `prefix`, `rewrite`, and `service`, with the same meanings as for [mappings](/reference/mappings). Additionally, the `enabled` boolean may be set to `false` (as in the commented-out examples above) to disable support for the probe entirely.

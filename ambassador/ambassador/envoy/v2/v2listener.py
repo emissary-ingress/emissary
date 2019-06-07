@@ -230,13 +230,24 @@ def v2filter_authv1(auth: IRAuth, v2config: 'V2Config'):
 
     assert auth.proto
 
-    body_info = auth.get('include_body')
+    raw_body_info: Optional[Dict[str, int]] = auth.get('include_body')
 
-    if not body_info and auth.get('allow_request_body', False):
-        body_info = {
-            'max_request_bytes': 4096,
-            'allow_partial_message': True
+    if not raw_body_info and auth.get('allow_request_body', False):
+        raw_body_info = {
+            'max_bytes': 4096,
+            'allow_partial': True
         }
+
+    body_info: Optional[Dict[str, int]] = None
+
+    if raw_body_info:
+        body_info = {}
+
+        if 'max_bytes' in raw_body_info:
+            body_info['max_request_bytes'] = raw_body_info['max_bytes']
+
+        if 'allow_partial' in raw_body_info:
+            body_info['allow_partial_message'] = raw_body_info['allow_partial']
 
     auth_info: Dict[str, Any] = {}
 

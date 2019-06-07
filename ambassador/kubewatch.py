@@ -119,29 +119,30 @@ def main(debug):
 
     if cluster_id:
         found = "environment"
-    elif v1:
-        # No ID from the environment, but we can try a lookup using Kube.
-        logger.debug("looking up ID for namespace %s" % wanted)
+    else:
+        if v1:
+            # No ID from the environment, but we can try a lookup using Kube.
+            logger.debug("looking up ID for namespace %s" % wanted)
 
-        try:
-            ret = v1.read_namespace(wanted)
-            root_id = ret.metadata.uid
-            found = "namespace %s" % wanted
-        except ApiException as e:
-            # This means our namespace wasn't found?
-            logger.error("couldn't read namespace %s? %s" % (wanted, e))
+            try:
+                ret = v1.read_namespace(wanted)
+                root_id = ret.metadata.uid
+                found = "namespace %s" % wanted
+            except ApiException as e:
+                # This means our namespace wasn't found?
+                logger.error("couldn't read namespace %s? %s" % (wanted, e))
 
-    if not root_id:
-        # OK, so we had a crack at this and something went wrong. Give up and hardcode
-        # something.
-        root_id = "00000000-0000-0000-0000-000000000000"
-        found = "hardcoded ID"
+        if not root_id:
+            # OK, so we had a crack at this and something went wrong. Give up and hardcode
+            # something.
+            root_id = "00000000-0000-0000-0000-000000000000"
+            found = "hardcoded ID"
 
-    # One way or the other, we need to generate an ID here.
-    cluster_url = "d6e_id://%s/%s" % (root_id, ambassador_id)
-    logger.debug("cluster ID URL is %s" % cluster_url)
+        # One way or the other, we need to generate an ID here.
+        cluster_url = "d6e_id://%s/%s" % (root_id, ambassador_id)
+        logger.debug("cluster ID URL is %s" % cluster_url)
 
-    cluster_id = str(uuid.uuid5(uuid.NAMESPACE_URL, cluster_url)).lower()
+        cluster_id = str(uuid.uuid5(uuid.NAMESPACE_URL, cluster_url)).lower()
 
     # How about CRDs?
 
@@ -149,16 +150,27 @@ def main(debug):
         # We were able to connect to Kube, so let's try to check for missing CRDs too.
 
         required_crds = [
-            'authservices.getambassador.io',
-            'mappings.getambassador.io',
-            'modules.getambassador.io',
-            'ratelimitservices.getambassador.io',
-            'tcpmappings.getambassador.io',
-            'tlscontexts.getambassador.io',
-            'tracingservices.getambassador.io'
+            (
+                '.ambassador_ignore_crds', 'Main CRDs',
+                [
+                    'authservices.getambassador.io',
+                    'mappings.getambassador.io',
+                    'modules.getambassador.io',
+                    'ratelimitservices.getambassador.io',
+                    'tcpmappings.getambassador.io',
+                    'tlscontexts.getambassador.io',
+                    'tracingservices.getambassador.io'
+                ]
+            ),
+            (
+                '.ambassador_ignore_crds_2', 'Resolver CRDs',
+                [
+                    'consulresolvers.getambassador.io',
+                    'kubernetesendpointresolvers.getambassador.io',
+                    'kubernetesserviceresolvers.getambassador.io'
+                ]
+            )
         ]
-
-        crd_errors = False
 
         # Flynn would say "Ew.", but we need to patch this till https://github.com/kubernetes-client/python/issues/376
         # and https://github.com/kubernetes-client/gen/issues/52 are fixed \_(0.0)_/
@@ -166,22 +178,25 @@ def main(debug):
         client.models.V1beta1CustomResourceDefinitionStatus.conditions = conditions
         client.models.V1beta1CustomResourceDefinitionStatus.stored_versions = stored_versions
 
-        for crd in required_crds:
-            try:
-                client.apis.ApiextensionsV1beta1Api().read_custom_resource_definition(crd)
-            except client.rest.ApiException as e:
-                crd_errors = True
+        for touchfile, description, required in required_crds:
+            crd_errors = False
 
-                if e.status == 404:
-                    logger.debug(f'CRD type definition not found for {crd}')
-                else:
-                    logger.debug(f'CRD type definition unreadable for {crd}: {e.reason}')
+            for crd in required:
+                try:
+                    client.apis.ApiextensionsV1beta1Api().read_custom_resource_definition(crd)
+                except client.rest.ApiException as e:
+                    crd_errors = True
 
-            if crd_errors:
-                Path('.ambassador_ignore_crds').touch()
-                logger.debug('CRDs are not available.' +
-                             ' To enable CRD support, configure the Ambassador CRD type definitions and RBAC,' +
-                             ' then restart the Ambassador pod.')
+                    if e.status == 404:
+                        logger.debug(f'CRD type definition not found for {crd}')
+                    else:
+                        logger.debug(f'CRD type definition unreadable for {crd}: {e.reason}')
+
+                if crd_errors:
+                    Path(touchfile).touch()
+                    logger.debug(f'{description} are not available.' +
+                                 ' To enable CRD support, configure the Ambassador CRD type definitions and RBAC,' +
+                                 ' then restart the Ambassador pod.')
     else:
         # If we couldn't talk to Kube, log that, but broadly we'll expect our caller
         # to DTRT around CRDs.
