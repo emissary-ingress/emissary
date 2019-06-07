@@ -91,7 +91,7 @@ func ExampleImplicitClient() {
 
 		fragment := r.URL.Query().Get("fragment")
 
-		err = client.ParseAccessTokenResponse(sessionData, fragment)
+		err = client.ParseAuthorizationResponse(sessionData, fragment)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return

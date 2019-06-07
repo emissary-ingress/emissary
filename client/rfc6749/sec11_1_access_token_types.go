@@ -22,21 +22,19 @@ type AccessTokenType struct {
 	AuthorizationForResourceRequest func(token string, body io.Reader) (http.Header, error)
 }
 
-type accessTokenTypeRegistry map[string]AccessTokenType
-
 // RegisterAccessTokenType registers an Access Token Type with the Client such that the Client can
 // make use of tokens of that type.
 //
 // It is a runtime error (panic) to register the same type name multiple times.
-func (registry accessTokenTypeRegistry) RegisterAccessTokenType(tokenType AccessTokenType) {
+func (registry extensionRegistry) registerAccessTokenType(tokenType AccessTokenType) {
 	typeName := strings.ToLower(tokenType.Name)
-	if _, set := registry[typeName]; set {
+	if _, set := registry.accessTokenTypes[typeName]; set {
 		panic(errors.Errorf("token_type=%q already registered", typeName))
 	}
-	registry[typeName] = tokenType
+	registry.accessTokenTypes[typeName] = tokenType
 }
 
-func (registry accessTokenTypeRegistry) getAccessTokenType(typeName string) (AccessTokenType, bool) {
-	tokenType, ok := registry[strings.ToLower(typeName)]
+func (registry extensionRegistry) getAccessTokenType(typeName string) (AccessTokenType, bool) {
+	tokenType, ok := registry.accessTokenTypes[strings.ToLower(typeName)]
 	return tokenType, ok
 }

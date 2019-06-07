@@ -12,12 +12,35 @@ import (
 
 // An AuthorizationCodeClient is a Client that utilizes the "Authorization Code" Grant-type, as
 // defined by §4.1.
+//
+// There are 3 methods that need to be called during an AuthorizationCodeClient's authorization
+// flow:
+//
+//     client := NewAuthorizationCodeClient(...)
+//
+//     // 1
+//     request, session, err := client.AuthorizationRequest(...)
+//     errcheck(err)
+//     directUserAgentToMakeRequest(request)
+//
+//     // 2
+//     response := getResponseFromUserAgent()
+//     authorizationCode, err := client.ParseAuthorizationResponse(session, responce)
+//     errcheck(err)
+//
+//     // 3
+//     err := client.AccessToken(session, authorizationCode)
+//     errcheck(err)
+//
+// It is up to Client application implementations to determine the appropriate values for "..." and
+// to provide appropriate implementations of "errcheck", "directUserAgentToMakeRequest", and
+// "getResponseFromUserAgent".
 type AuthorizationCodeClient struct {
 	clientID              string
 	authorizationEndpoint *url.URL
 
 	explicitClient
-	accessTokenTypeRegistry
+	extensionRegistry
 }
 
 // NewAuthorizationCodeClient creates a new AuthorizationCodeClient as defined by §4.1.
@@ -90,7 +113,11 @@ func (session AuthorizationCodeClientSessionData) IsDirty() bool { return sessio
 // plain HTTP redirect, or perhaps something fancy with JavaScript).  Note that if using an HTTP
 // redirect, that 302 "Found" may or MAY NOT convert POST->GET; and that to reliably have the
 // User-Agent perform a GET, one should use 303 "See Other" which MUST convert to GET.
-func (client *AuthorizationCodeClient) AuthorizationRequest(redirectURI *url.URL, scope Scope, state string) (*url.URL, *AuthorizationCodeClientSessionData, error) {
+func (client *AuthorizationCodeClient) AuthorizationRequest(
+	redirectURI *url.URL,
+	scope Scope,
+	state string,
+) (*url.URL, *AuthorizationCodeClientSessionData, error) {
 	parameters := url.Values{
 		"response_type": {"code"},
 		"client_id":     {client.clientID},
@@ -247,7 +274,7 @@ func init() {
 //
 // If the call is successful, the Access Token information is stored in to the session data, and the
 // session data may then be used with `.AuthorizationForResourceRequest()` and (if a Refresh Token
-// was included) `.RefreshToken()`.
+// was included) `.Refresh()`.
 //
 // If the Authorization Server sent a semantically valid error response, an error of type
 // TokenErrorResponse is returned.  On protocol errors, an error of a different type is returned.

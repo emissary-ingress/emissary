@@ -11,6 +11,7 @@ import (
 // defined by §4.4.
 type ClientCredentialsClient struct {
 	explicitClient
+	extensionRegistry
 }
 
 // NewClientCredentialsClient creates a new ClientCredentialsClient as defined by §4.4.
@@ -55,14 +56,14 @@ func (session ClientCredentialsClientSessionData) setDirty() { session.isDirty =
 // datastore.
 func (session ClientCredentialsClientSessionData) IsDirty() bool { return session.isDirty }
 
-// AccessToken talks to the Authorization Server to exchange Client credentials for an Access Token
-// (and maybe a Refresh Token); submitting the request per §4.4.2, and handling the response per
-// §4.4.3.
+// AuthorizationRequest talks to the Authorization Server to exchange Client credentials for an
+// Access Token (and maybe a Refresh Token); submitting the request per §4.4.2, and handling the
+// response per §4.4.3.
 //
 // The scopes argument is optional.
 //
 // The returned response is either a TokenSuccessResponse or a TokenErrorResponse.
-func (client *ClientCredentialsClient) AccessToken(
+func (client *ClientCredentialsClient) AuthorizationRequest(
 	scope Scope,
 ) (*ClientCredentialsClientSessionData, error) {
 	parameters := url.Values{

@@ -9,6 +9,7 @@ import (
 // Credentials" Grant-type, as defined by §4.3.
 type ResourceOwnerPasswordCredentialsClient struct {
 	explicitClient
+	extensionRegistry
 }
 
 // NewResourceOwnerPasswordCredentialsClient creates a new ResourceOwnerPasswordCredentialsClient as
@@ -53,14 +54,14 @@ func (session ResourceOwnerPasswordCredentialsClientSessionData) IsDirty() bool 
 	return session.isDirty
 }
 
-// AccessToken talks to the Authorization Server to exchange a username and password for an Access
-// Token (and maybe a Refresh Token); submitting the request per §4.3.2, and handling the response
-// per §4.3.3.
+// AuthorizationRequest talks to the Authorization Server to exchange a username and password for an
+// Access Token (and maybe a Refresh Token); submitting the request per §4.3.2, and handling the
+// response per §4.3.3.
 //
 // The scopes argument is optional.
 //
 // The returned response is either a TokenSuccessResponse or a TokenErrorResponse.
-func (client *ResourceOwnerPasswordCredentialsClient) AccessToken(
+func (client *ResourceOwnerPasswordCredentialsClient) AuthorizationRequest(
 	username string,
 	password string,
 	scope Scope,

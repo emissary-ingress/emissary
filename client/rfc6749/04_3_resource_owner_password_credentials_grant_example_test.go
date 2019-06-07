@@ -84,7 +84,7 @@ func ExampleResourceOwnerPasswordCredentialsClient() {
 				"scope-a": struct{}{},
 				"scope-B": struct{}{},
 			}
-			sessionData, err := client.AccessToken(username, password, requiredScopes)
+			sessionData, err := client.AuthorizationRequest(username, password, requiredScopes)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return

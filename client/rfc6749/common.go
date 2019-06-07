@@ -10,15 +10,19 @@ import (
 )
 
 var (
-	// ErrNoAccessToken indicates that .AuthorizationForResourceRequest() or .RefreshToken() was
-	// called with session data that has not had Access Token data added to it.  This progably
+	// ErrNoAccessToken indicates that `.AuthorizationForResourceRequest()` or `.Refresh()` was
+	// called with session data that has not had Access Token data added to it.  This probably
 	// indicates a programming error; trying to call one of those functions before the
 	// authorization flow has been completed.
 	ErrNoAccessToken = errors.New("no Access Token data")
 
-	// ErrNoRefreshToken indicates that .RefreshToken() was called but the Authorization Server
-	// did not give us a Refresh Token to use.
+	// ErrNoRefreshToken indicates that `.Refresh()` was called but the Authorization Server did
+	// not give us a Refresh Token to use.
 	ErrNoRefreshToken = errors.New("no Refresh Token")
+
+	// ErrAccessTokenExpired indicates that the Access Token is expired, and could not be
+	// refreshed.
+	ErrAccessTokenExpired = errors.New("Access Token expired")
 )
 
 type accessTokenData struct {

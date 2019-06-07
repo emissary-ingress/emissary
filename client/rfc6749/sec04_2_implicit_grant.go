@@ -15,6 +15,7 @@ import (
 type ImplicitClient struct {
 	clientID              string
 	authorizationEndpoint *url.URL
+	extensionRegistry
 }
 
 // NewImplicitClient creates a new ImplicitClient as defined by §4.2.
@@ -105,7 +106,7 @@ func (client *ImplicitClient) AuthorizationRequest(
 	return u, session, nil
 }
 
-// ParseAccessTokenResponse parses the URI fragment that contains the Access Token Response, as
+// ParseAuthorizationResponse parses the URI fragment that contains the Access Token Response, as
 // specified by §4.2.2.
 //
 // The fragment is normally not accessible to HTTP servers; you will need to use JavaScript in the
@@ -113,7 +114,7 @@ func (client *ImplicitClient) AuthorizationRequest(
 //
 // If the Authorization Server sent a semantically valid error response, the returned error is of
 // type ImplicitGrantErrorResponse.  On protocol errors, a different error type is returned.
-func (client *ImplicitClient) ParseAccessTokenResponse(
+func (client *ImplicitClient) ParseAuthorizationResponse(
 	session *ImplicitClientSessionData,
 	fragment string,
 ) error {
