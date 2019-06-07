@@ -35,6 +35,26 @@ func NewResourceOwnerPasswordCredentialsClient(
 	return ret, nil
 }
 
+// ResourceOwnerPasswordCredentialsClientSessionData is the session
+// data that must be persisted between requests when using an
+// ResourceOwnerPasswordCredentialsClient
+type ResourceOwnerPasswordCredentialsClientSessionData struct {
+	CurrentAccessToken *accessTokenData
+	isDirty            bool
+}
+
+func (session ResourceOwnerPasswordCredentialsClientSessionData) accessToken() *accessTokenData {
+	return session.CurrentAccessToken
+}
+func (session ResourceOwnerPasswordCredentialsClientSessionData) setDirty() { session.isDirty = true }
+
+// IsDirty indicates whether the session data has been mutated since
+// that last time that it was unmarshaled.  This is only useful if you
+// marshal it to and unmarshal it from an external datastore.
+func (session ResourceOwnerPasswordCredentialsClientSessionData) IsDirty() bool {
+	return session.isDirty
+}
+
 // AccessToken talks to the Authorization Server to exchange a
 // username and password for an Access Token (and maybe a Refresh
 // Token); submitting the request per §4.3.2, and handling the
@@ -44,7 +64,7 @@ func NewResourceOwnerPasswordCredentialsClient(
 //
 // The returned response is either a TokenSuccessResponse or a
 // TokenErrorResponse.
-func (client *ResourceOwnerPasswordCredentialsClient) AccessToken(username string, password string, scope Scope) (TokenResponse, error) {
+func (client *ResourceOwnerPasswordCredentialsClient) AccessToken(username string, password string, scope Scope) (*ResourceOwnerPasswordCredentialsClientSessionData, error) {
 	parameters := url.Values{
 		"grant_type": {"password"},
 		"username":   {username},
@@ -54,5 +74,16 @@ func (client *ResourceOwnerPasswordCredentialsClient) AccessToken(username strin
 		parameters.Set("scope", scope.String())
 	}
 
-	return client.explicitClient.postForm(parameters)
+	tokenResponse, err := client.explicitClient.postForm(parameters)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(tokenResponse.Scope) == 0 {
+		tokenResponse.Scope = scope
+	}
+	return &ResourceOwnerPasswordCredentialsClientSessionData{
+		CurrentAccessToken: &tokenResponse,
+		isDirty:            true,
+	}, nil
 }

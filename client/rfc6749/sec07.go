@@ -26,7 +26,7 @@ func (token TokenResponse) AuthorizationForResourceRequest(getBody func() io.Rea
 	return typeDriver.AuthorizationForResourceRequest(token.AccessToken, body)
 }
 
-// GetResourceAccessErrorMeaning returns a humman-readable meaning of
+// GetResourceAccessErrorMeaning returns a human-readable meaning of
 // an error code in an error response from a resource access request,
 // per §7.2.  Returns an empty string for unknown error codes.
 func GetResourceAccessErrorMeaning(errorCodeName string) string {

@@ -41,7 +41,7 @@ type ImplicitClientSessionData struct {
 		Scope       Scope
 		State       string
 	}
-	CurrentAccessToken *TokenResponse
+	CurrentAccessToken *accessTokenData
 	isDirty            bool
 }
 

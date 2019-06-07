@@ -31,7 +31,7 @@ func (client *explicitClient) postForm(form url.Values) (TokenResponse, error) {
 	req.Header = header
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	res, err := client.httpClient.Do(req)
+	res, err := httpClient.Do(req)
 	if err != nil {
 		return TokenResponse{}, err
 	}

@@ -6,6 +6,20 @@ import (
 	"github.com/pkg/errors"
 )
 
+type accessTokenData struct {
+	AccessToken  string
+	TokenType    string   
+	ExpiresAt    time.Time
+	RefreshToken *string
+	Scope        Scope 
+}
+
+type explicitClientSessionData interface {
+	currentAccessToken() *accessTokenData
+	setDirty()
+	IsDirty() bool
+}
+
 // RefreshToken talks to the Authorization Server to exchange a
 // Refresh Token for an Access Token (and maybe a new Refresh Token);
 // per §6.
@@ -19,9 +33,10 @@ import (
 // If the server sent a semantically valid error response, the
 // returned error is of type TokenErrorResponse.  On protocol errors,
 // a different error type is returned.
-func (client *explicitClient) RefreshToken(oldtoken TokenResponse, scope Scope) (TokenResponse, error) {
-	if oldtoken.RefreshToken == nil {
-		return TokenResponse{}, errors.New("RefreshToken(): oldtoken.RefreshToken must not be nil")
+func (client *explicitClient) refreshToken(session explicitClientSessionData, scope Scope) error {
+	accessTokenData := session.currentAccessTokenData()
+	if accessTokenData == nil {
+		return errors.New("RefreshToken(): CurrentAccessTokenData is nil")
 	}
 
 	parameters := url.Values{
@@ -32,17 +47,23 @@ func (client *explicitClient) RefreshToken(oldtoken TokenResponse, scope Scope) 
 		parameters.Set("scope", scope.String())
 	}
 
-	res, err := client.postForm(parameters)
+	tokenResponse, err := client.postForm(parameters)
 	if err != nil {
-		return TokenResponse{}, err
+		return err
 	}
 
-	if res.RefreshToken == nil && oldtoken.RefreshToken != nil {
-		res.RefreshToken = oldtoken.RefreshToken
+	newAccessTokenData := 
+	if tokenResponse.RefreshToken != nil {
+		session.currentAccessTokenData().RefreshToken = tokenResponse.RefreshToken
+		session.setDirty()
 	}
-	if res.Scope == nil && oldtoken.Scope != nil {
-		res.Scope = oldtoken.Scope
+	if tokenResponse.Scope != nil {
+		session.currentAccessTokenData().Scope = tokenResponse.Scope
 	}
+
+	session.setDirty()
 
 	return res, nil
 }
+
+func (

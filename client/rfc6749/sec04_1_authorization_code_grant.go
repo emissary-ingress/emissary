@@ -58,8 +58,14 @@ type AuthorizationCodeClientSessionData struct {
 		Scope       Scope
 		State       string
 	}
-	isDirty bool
+	CurrentAccessToken *accessTokenData
+	isDirty            bool
 }
+
+func (session AuthorizationCodeClientSessionData) accessToken() *accessTokenData {
+	return session.CurrentAccessToken
+}
+func (session AuthorizationCodeClientSessionData) setDirty() { session.isDirty = true }
 
 // IsDirty indicates whether the session data has been mutated since
 // that last time that it was unmarshaled.  This is only useful if you

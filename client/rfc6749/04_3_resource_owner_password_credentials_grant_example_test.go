@@ -8,7 +8,7 @@ import (
 	"github.com/datawire/liboauth2/client/rfc6749"
 )
 
-func ExampleImplicitClient(mux *http.ServerMux) error {
+func ExampleResourceOwnerPasswordCredentialsClient(mux *http.ServerMux) error {
 	client, err := rfc6749.NewImplicitClient(
 		"example-client",
 		mustParseURL("https://authorization-server.example.com/authorization"),
@@ -43,63 +43,60 @@ func ExampleImplicitClient(mux *http.ServerMux) error {
 	}
 
 	mux.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {
-		if _, sessionData := LoadSession(r); sessionData != nil {
-			w.Header().Set("Content-Type", "text/html")
-			io.WriteString(w, `<p>Already logged in. <a href="/dashboard">Return to dashboard.</a></p>`)
-			return
-		}
-
-		sessionID := randomToken()
-
-		requiredScopes := rfc6749.Scope{
-			"scope-a": struct{}{},
-			"scope-B": struct{}{},
-		}
-		u, sessionData, err := client.AuthorizationRequest(
-			mustParseURL("https://example-client.example.com/dashboard"),
-			requiredScopes,
-			randomToken())
-		if err != nil {
-			http.Error(w, "could not construct authorization request URI", http.StatusInternalServerError)
-			return
-		}
-		SaveSession(sessionID, sessionData)
-
-		http.SetCookie(w, &http.Cookie{
-			Name:  "session",
-			Value: sessionID,
-		})
-		http.Redirect(w, r, u.String(), http.StatusSeeOther)
-	})
-
-	mux.HandleFunc("/.well-known/internal/redirecton", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "text/html")
-		_, _ = io.WriteString(w, `<script>window.location = "/.well-known/internal/redirection_helper?fragment=" + encodeURIComponent(window.location.hash.substring(1))</script>`)
-	})
-
-	mux.HandleFunc("/.well-known/internal/redirecton_helper", func(w http.ResponseWriter, r *http.Request) {
-		sessionID, sessionData := GetSessionData(r)
-		if sessionData == nil {
-			w.Header().Set("Content-Type", "text/html")
-			io.WriteString(w, `<p><a href="/login">Click to log in</a></p>`)
-			return
-		}
-		defer func() {
-			if sessionData.IsDirty() {
-				SaveSession(sessionID, sessionData)
+		switch r.Method {
+		case http.MethodGet:
+			if _, sessionData := LoadSession(r); sessionData != nil {
+				w.Header().Set("Content-Type", "text/html")
+				io.WriteString(w, `<p>Already logged in. <a href="/dashboard">Return to dashboard.</a></p>`)
+				return
 			}
-		}()
+			sessionID := randomToken()
+			http.SetCookie(w, &http.Cookie{
+				Name:  "session",
+				Value: sessionID,
+			})
+			w.Header().Set("Content-Type", "text/html")
+			fmt.Fprintf(w, `
+				<form action="/login" method="POST">
+				  <input name="xsrf_token" type="hidden" value="%s" />
+				  <label>Username: <input name="username" type="text" /></label>
+				  <label>Password: <input name="password" type="password" /></label>
+				  <input type="submit" />
+				</form>`, sessionID)
 
-		fragment := r.URL.Query().Get("fragment")
+		case http.MethodPost:
+			if _, sessionData := LoadSession(r); sessionData != nil {
+				w.Header().Set("Content-Type", "text/html")
+				io.WriteString(w, `<p>Already logged in. <a href="/dashboard">Return to dashboard.</a></p>`)
+				return
+			}
+			cookie, _ := r.Cookie("session")
+			if cookie == nil || r.PostFormValue("xsrf_token") != cookie.Value {
+				http.Error(w, "XSRF attack detected", http.StatusBadRequest)
+				return
+			}
+			sessionID := cookie.Value
 
-		err = client.ParseAccessTokenResponse(sessionData, fragment)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
+			username := r.PostFormValue("username")
+			password := r.PostFormValue("password")
+			requiredScopes := rfc6749.Scope{
+				"scope-a": struct{}{},
+				"scope-B": struct{}{},
+			}
+			token, err := client.AccessToken(username, password, requiredScopes)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+
+			 
+			SaveSession(sessionID, sessionData)
+
+			http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
+
+		default:
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 		}
-
-		// TODO
-		log.Println(sessionData)
 	})
 
 	mux.HandleFunc("/dashboard", func(w http.ResponseWriter, r *http.Request) {

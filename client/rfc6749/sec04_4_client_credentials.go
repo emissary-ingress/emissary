@@ -39,6 +39,24 @@ func NewClientCredentialsClient(
 	return ret, nil
 }
 
+// ClientCredentialsClientSessionData is the session
+// data that must be persisted between requests when using an
+// ClientCredentialsClient
+type ClientCredentialsClientSessionData struct {
+	CurrentAccessToken *accessTokenData
+	isDirty            bool
+}
+
+func (session ClientCredentialsClientSessionData) accessToken() *accessTokenData {
+	return session.CurrentAccessToken
+}
+func (session ClientCredentialsClientSessionData) setDirty() { session.isDirty = true }
+
+// IsDirty indicates whether the session data has been mutated since
+// that last time that it was unmarshaled.  This is only useful if you
+// marshal it to and unmarshal it from an external datastore.
+func (session ClientCredentialsClientSessionData) IsDirty() bool { return session.isDirty }
+
 // AccessToken talks to the Authorization Server to exchange Client
 // credentials for an Access Token (and maybe a Refresh Token);
 // submitting the request per §4.4.2, and handling the response per
@@ -48,7 +66,7 @@ func NewClientCredentialsClient(
 //
 // The returned response is either a TokenSuccessResponse or a
 // TokenErrorResponse.
-func (client *ClientCredentialsClient) AccessToken(scope Scope) (TokenResponse, error) {
+func (client *ClientCredentialsClient) AccessToken(scope Scope) (*ClientCredentialsClientSessionData, error) {
 	parameters := url.Values{
 		"grant_type": {"client_credentials"},
 	}
@@ -56,5 +74,16 @@ func (client *ClientCredentialsClient) AccessToken(scope Scope) (TokenResponse, 
 		parameters.Set("scope", scope.String())
 	}
 
-	return client.explicitClient.postForm(parameters)
+	tokenResponse, err := client.explicitClient.postForm(parameters)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(tokenResponse.Scope) == 0 {
+		tokenResponse.Scope = scope
+	}
+	return &ClientCredentialsClientSessionData{
+		CurrentAccessToken: &tokenResponse,
+		isDirty:            true,
+	}, nil
 }
