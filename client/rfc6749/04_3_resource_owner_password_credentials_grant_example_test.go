@@ -10,14 +10,14 @@ import (
 	"github.com/datawire/liboauth2/client/rfc6749"
 )
 
-func ExampleResourceOwnerPasswordCredentialsClient(mux *http.ServeMux) error {
+func ExampleResourceOwnerPasswordCredentialsClient() {
 	client, err := rfc6749.NewResourceOwnerPasswordCredentialsClient(
 		mustParseURL("https://authorization-server.example.com/token"),
 		rfc6749.ClientPasswordHeader("example-client", "example-password"),
 		http.DefaultClient,
 	)
 	if err != nil {
-		return err
+		log.Fatal(err)
 	}
 
 	// This is a toy in-memory store for demonstration purposes.  Because it's in-memory and
@@ -43,7 +43,7 @@ func ExampleResourceOwnerPasswordCredentialsClient(mux *http.ServeMux) error {
 		sessionStoreLock.Unlock()
 	}
 
-	mux.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodGet:
 			if _, sessionData := LoadSession(r); sessionData != nil {
@@ -99,7 +99,7 @@ func ExampleResourceOwnerPasswordCredentialsClient(mux *http.ServeMux) error {
 		}
 	})
 
-	mux.HandleFunc("/dashboard", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/dashboard", func(w http.ResponseWriter, r *http.Request) {
 		sessionID, sessionData := LoadSession(r)
 		if sessionData == nil {
 			w.Header().Set("Content-Type", "text/html")
@@ -115,6 +115,4 @@ func ExampleResourceOwnerPasswordCredentialsClient(mux *http.ServeMux) error {
 		// TODO
 		log.Println(sessionData)
 	})
-
-	return nil
 }

@@ -9,7 +9,7 @@ import (
 	"github.com/datawire/liboauth2/client/rfc6749"
 )
 
-func ExampleAuthorizationCodeClient(mux *http.ServeMux) error {
+func ExampleAuthorizationCodeClient() {
 	client, err := rfc6749.NewAuthorizationCodeClient(
 		"example-client",
 		mustParseURL("https://authorization-server.example.com/authorization"),
@@ -18,7 +18,7 @@ func ExampleAuthorizationCodeClient(mux *http.ServeMux) error {
 		http.DefaultClient,
 	)
 	if err != nil {
-		return err
+		log.Fatal(err)
 	}
 
 	// This is a toy in-memory store for demonstration purposes.  Because it's in-memory and
@@ -44,7 +44,7 @@ func ExampleAuthorizationCodeClient(mux *http.ServeMux) error {
 		sessionStoreLock.Unlock()
 	}
 
-	mux.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {
 		if _, sessionData := LoadSession(r); sessionData != nil {
 			w.Header().Set("Content-Type", "text/html")
 			_, _ = io.WriteString(w, `<p>Already logged in. <a href="/dashboard">Return to dashboard.</a></p>`)
@@ -74,7 +74,7 @@ func ExampleAuthorizationCodeClient(mux *http.ServeMux) error {
 		http.Redirect(w, r, u.String(), http.StatusSeeOther)
 	})
 
-	mux.HandleFunc("/.well-known/internal/redirection", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/.well-known/internal/redirection", func(w http.ResponseWriter, r *http.Request) {
 		sessionID, sessionData := LoadSession(r)
 		if sessionData == nil {
 			w.Header().Set("Content-Type", "text/html")
@@ -103,7 +103,7 @@ func ExampleAuthorizationCodeClient(mux *http.ServeMux) error {
 		log.Println(sessionData)
 	})
 
-	mux.HandleFunc("/dashboard", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/dashboard", func(w http.ResponseWriter, r *http.Request) {
 		sessionID, sessionData := LoadSession(r)
 		if sessionData == nil {
 			w.Header().Set("Content-Type", "text/html")
@@ -119,6 +119,4 @@ func ExampleAuthorizationCodeClient(mux *http.ServeMux) error {
 		// TODO
 		log.Println(sessionData)
 	})
-
-	return nil
 }
