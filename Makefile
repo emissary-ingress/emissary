@@ -137,9 +137,9 @@ AMBASSADOR_EXTERNAL_DOCKER_IMAGE ?= $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(AMBASSA
 
 # UPDATE THESE VERSION NUMBERS IF YOU UPDATE ANY OF THE VALUES ABOVE, THEN
 # RUN make docker-update-base.
-ENVOY_BASE_IMAGE ?= quay.io/datawire/ambassador-base:envoy-12-rc1
-AMBASSADOR_DOCKER_IMAGE_CACHED ?= quay.io/datawire/ambassador-base:go-13-rc1
-AMBASSADOR_BASE_IMAGE ?= quay.io/datawire/ambassador-base:ambassador-13-rc1
+ENVOY_BASE_IMAGE ?= quay.io/datawire/ambassador-base:envoy-12
+AMBASSADOR_DOCKER_IMAGE_CACHED ?= quay.io/datawire/ambassador-base:go-13
+AMBASSADOR_BASE_IMAGE ?= quay.io/datawire/ambassador-base:ambassador-13
 
 # Default to _NOT_ using Kubernaut. At Datawire, we can set this to true,
 # but outside, it works much better to assume that user has set up something
