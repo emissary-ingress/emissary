@@ -164,6 +164,8 @@
           items:
             - title: Auth0
               link: /reference/idp-support/auth0
+            - title: Google
+              link: /reference/idp-support/google
             - title: Keycloak
               link: /reference/idp-support/keycloak
             - title: Okta
