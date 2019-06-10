@@ -8,6 +8,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"io/ioutil"
 )
 
 // HTTP server object (all fields are required).
@@ -115,6 +116,11 @@ func (h *HTTP) handler(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
+
+	if b, _ := ioutil.ReadAll(r.Body); b != nil {
+		w.Header()[http.CanonicalHeaderKey("Auth-Request-Body")] = []string{string(b)}
+	}
+	defer r.Body.Close()
 
 	cookies, ok := r.Header["Requested-Cookie"]
 	if ok {
