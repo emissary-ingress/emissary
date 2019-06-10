@@ -89,6 +89,76 @@ service: {self.target.path.fqdn}
         assert self.results[3].headers["Server"] == ["envoy"]
         assert self.results[3].headers["Authorization"] == ["foo-11111"]
 
+
+class AuthenticationHTTPPartialBufferTest(AmbassadorTest):
+
+    target: ServiceType
+    auth: ServiceType
+
+    def init(self):
+        self.target = HTTP()
+        self.auth = HTTP(name="auth")
+
+    def config(self):
+        yield self, self.format("""
+---
+apiVersion: ambassador/v1
+kind: TLSContext
+name: {self.name}-same-context-1
+secret: same-secret-1.secret-namespace
+
+---
+apiVersion: ambassador/v1
+kind: AuthService
+name:  {self.auth.path.k8s}
+auth_service: "{self.auth.path.fqdn}"
+path_prefix: "/extauth"
+timeout_ms: 5000
+tls: {self.name}-same-context-1
+
+allowed_request_headers:
+- Requested-Status
+- Requested-Header
+
+allowed_authorization_headers:
+- Auth-Request-Body
+
+include_body:
+  max_bytes: 7
+  allow_partial: true
+""")
+        yield self, self.format("""
+---
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  {self.target.path.k8s}
+prefix: /target/
+service: {self.target.path.fqdn}
+""")
+
+    def queries(self):
+        # [0]
+        yield Query(self.url("target/"), headers={"Requested-Status": "200"}, body="message_body", expected=200)
+        
+        # [1]
+        yield Query(self.url("target/"), headers={"Requested-Status": "200"}, body="body", expected=200)
+
+    def check(self):
+        # [0] Verifies that the authorization server received the partial message body.
+        extauth_res1 = json.loads(self.results[0].headers["Extauth"][0])
+        assert self.results[0].backend.request.headers["requested-status"] == ["200"]
+        assert self.results[0].status == 200
+        assert self.results[0].headers["Server"] == ["envoy"]
+        assert extauth_res1["request"]["headers"]["auth-request-body"] == ["message"]
+        
+        # [1] Verifies that the authorization server received the full message body.
+        extauth_res2 = json.loads(self.results[1].headers["Extauth"][0])
+        assert self.results[1].backend.request.headers["requested-status"] == ["200"]
+        assert self.results[1].status == 200
+        assert self.results[1].headers["Server"] == ["envoy"]
+        assert extauth_res2["request"]["headers"]["auth-request-body"] == ["body"]
+
+
 class AuthenticationHTTPBufferedTest(AmbassadorTest):
 
     target: ServiceType
@@ -133,7 +203,7 @@ allowed_request_headers:
 
 allowed_authorization_headers:
 - X-Foo
-- Set-Cookie
+- Set-Cookie 
 
 include_body:
   max_bytes: 4096

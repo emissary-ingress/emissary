@@ -130,16 +130,16 @@ NETLIFY_SITE=datawire-ambassador
 # IF YOU MESS WITH ANY OF THESE VALUES, YOU MUST UPDATE THE VERSION NUMBERS
 # BELOW AND THEN RUN make docker-update-base
 ENVOY_REPO ?= git://github.com/datawire/envoy.git
-ENVOY_COMMIT ?= a484da25f765a28546b0f312115a8a346959f15c
+ENVOY_COMMIT ?= 59b502c0a8e723aa262335de49f737c305eb1521
 AMBASSADOR_DOCKER_TAG ?= $(GIT_VERSION)
 AMBASSADOR_DOCKER_IMAGE ?= $(AMBASSADOR_DOCKER_REPO):$(AMBASSADOR_DOCKER_TAG)
 AMBASSADOR_EXTERNAL_DOCKER_IMAGE ?= $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(AMBASSADOR_DOCKER_TAG)
 
 # UPDATE THESE VERSION NUMBERS IF YOU UPDATE ANY OF THE VALUES ABOVE, THEN
 # RUN make docker-update-base.
-ENVOY_BASE_IMAGE ?= quay.io/datawire/ambassador-base:envoy-11
-AMBASSADOR_DOCKER_IMAGE_CACHED ?= quay.io/datawire/ambassador-base:go-12
-AMBASSADOR_BASE_IMAGE ?= quay.io/datawire/ambassador-base:ambassador-12
+ENVOY_BASE_IMAGE ?= quay.io/datawire/ambassador-base:envoy-12
+AMBASSADOR_DOCKER_IMAGE_CACHED ?= quay.io/datawire/ambassador-base:go-13
+AMBASSADOR_BASE_IMAGE ?= quay.io/datawire/ambassador-base:ambassador-13
 
 # Default to _NOT_ using Kubernaut. At Datawire, we can set this to true,
 # but outside, it works much better to assume that user has set up something
