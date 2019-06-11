@@ -18,8 +18,7 @@ commands:
           echo 'export NVM_DIR=/opt/circleci/.nvm' >> ${BASH_ENV}
           echo 'source $NVM_DIR/nvm.sh' >> ${BASH_ENV}
       - run: |
-          nvm install 8
-          nvm alias default 8
+          nvm alias default 10
 
   golang-install:
     parameters:
