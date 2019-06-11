@@ -1,10 +1,18 @@
 #!/usr/bin/env bash
-if ! type docker >& /dev/null; then
-	echo 'TAP version 13'
-	echo 1..2
-	echo 'ok 1 # SKIP docker not installed'
-	echo 'ok 2 # SKIP docker not installed'
-else
-	cd "${BASH_SOURCE[0]%/*}/../.." &&
-	set -a && . ./k8s-env.sh && cd tests/cluster/oauth-e2e && ./node_modules/.bin/mocha ./*test.js* --timeout 15000 --reporter tap
-fi
+
+cd "${BASH_SOURCE[0]%.tap.gen}" &&
+./node_modules/.bin/mocha ./main.js --timeout 10000 --reporter tap 2>&1 |
+	# Do this in Bash instead of 'sed' so that it doesn't buffer stdout.
+	while IFS= read -r line; do
+		case "$line" in
+			' '*) printf '#%s\n' "$line";; # mocha outputs invalid lines
+			'not ok'*)
+				if type docker &>/dev/null; then
+					printf '%s\n' "$line"
+				else
+					sed -E 's/\s*#.*/ # SKIP docker is not installed/' <<<"$line"
+				fi
+				;;
+			*) printf '%s\n' "$line";;
+		esac
+	done

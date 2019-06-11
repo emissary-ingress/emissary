@@ -70,6 +70,26 @@ Docker's list of "Insecure registries":
   <img src="README-macos-insecure-registries.png" alt="Docker for Mac &quot;Preferences…&quot; dialog to set the list of &quot;Insecure registries&quot;"/>
 </p>
 
+#### Troubleshooting the development environment
+
+    $ make help
+
+Lists all the available targets. See also the [`build-aux` docs](./build-aux/docs/intro.md)
+
+    $ make status
+
+Shows the status of kubernaut cluster claim and status of teleproxy
+
+    $ make claim
+    $ make unclaim
+    
+Manage the claim of the kubernaut cluster. Claims usually expire within a day.
+
+    $ make proxy
+    $ make unproxy
+    
+Start/stop the teleproxy. If proxy does not want to start have a look at `build-aux/teleproxy.log`
+
 ## Documentation
 
 The documentation lives in
@@ -97,10 +117,13 @@ information on what this does, and on the format of the tag names.
 
         $ make pull-docs
 
-2. Update `./docs/versions.yml` to use the new version number, and
-   commit that (with a commit message like "Prepare release").
+2. Determine the version number. We currently use the `0.x.y` versioning
+   scheme. If there is new functionality, we should increment `x`. If
+   there are only bug fixes, we should increment `y`.
 
-3. Tag and push that commit:
+3. Update the CHANGELOG.md.
+
+4. Tag and push that commit:
 
         $ git tag v0.1.2
         $ git push origin v0.1.2 master
@@ -111,35 +134,34 @@ information on what this does, and on the format of the tag names.
    This will publish Docker images, `apictl`, and associated
    artifacts, but won't yet publicize it on the website.
 
-4. (this step may be performed before CI for step 3 had finished)
+5. (this step may be performed before CI for step 3 had finished) Create
+   a PR against <https://github.com/datawire/ambassador-docs> that
+   updates the `version.yml` with the new version number.
+
+6. (this step may be performed before CI for step 3 had finished)
    Create a PR against <https://github.com/datawire/pro-ref-arch> that
    updates it for the new version.  This may be as simple as updating
    the version numbers in the several YAML files that mention it.
 
-5. (CI for step 3 must finish before performing this step) Create a PR
+7. (CI for step 3 must finish before performing this step) Create a PR
    against <https://github.com/datawire/apro-example-plugin> that
    bumps `Makefile:APRO_VERSION` to the new version.  Run `make` to
    verify whether any `go.mod` changes are necessary when updating a
    plugin to the new version.  If `go.mod` changes are necessary, make
    them and include them in the PR.
 
-6. Put the release through manual acceptance testing.  If there are
-   zero changes (other than bumping `docs/versions.yml`) from an RC
-   that has gone through acceptance testing, it may be possible to
-   skip this step.
+8. Put the release through manual acceptance testing. We'll do this by
+   upgrading `tour.k736.net` to the latest version of Pro, and making
+   sure that `tour.k736.net` still functions.
 
-   Test the different modules in `pro-ref-arch` by following the
-   individual READMEs.
-
-   Once the release has been sufficiently tested, and you are ready to
-   publicize it, proceed.
-
-7. From apro.git, with the tag version tag checked out, run `make
+9. From apro.git, with the tag version tag checked out, run `make
    push-docs`:
 
         $ git checkout v0.1.2
         $ make push-docs
 
-8. Merge the `pro-ref-arch` PR created in step 4.
+10. Merge the `ambassador-docs` PR created in step 4.
 
-9. Merge the `apro-example-plugin` PR created in step 5.
+11. Merge the `pro-ref-arch` PR created in step 5.
+
+12. Merge the `apro-example-plugin` PR created in step 6.
