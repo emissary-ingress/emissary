@@ -135,11 +135,12 @@ class ResourceFetcher:
         self.finalize()
 
     def parse_watt(self, serialization: str) -> None:
+        basedir = os.environ.get('AMBASSADOR_CONFIG_BASE_DIR', '/ambassador')
 
-        if os.path.isfile(os.path.abspath('.ambassador_ignore_crds')):
+        if os.path.isfile(os.path.join(basedir, '.ambassador_ignore_crds')):
             self.aconf.post_error("Ambassador could not find core CRD definitions. Please visit https://www.getambassador.io/reference/core/crds/ for more information. You can continue using Ambassador via Kubernetes annotations, any configuration via CRDs will be ignored...")
 
-        if os.path.isfile(os.path.abspath('.ambassador_ignore_crds_2')):
+        if os.path.isfile(os.path.join(basedir, '.ambassador_ignore_crds_2')):
             self.aconf.post_error("Ambassador could not find Resolver type CRD definitions. Please visit https://www.getambassador.io/reference/core/crds/ for more information. You can continue using Ambassador via Kubernetes annotations, any configuration via CRDs will be ignored...")
 
         try:
