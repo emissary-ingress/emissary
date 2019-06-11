@@ -70,6 +70,26 @@ Docker's list of "Insecure registries":
   <img src="README-macos-insecure-registries.png" alt="Docker for Mac &quot;Preferences…&quot; dialog to set the list of &quot;Insecure registries&quot;"/>
 </p>
 
+#### Troubleshooting the development environment
+
+    $ make help
+
+Lists all the available targets. See also the [`build-aux` docs](./build-aux/docs/intro.md)
+
+    $ make status
+
+Shows the status of kubernaut cluster claim and status of teleproxy
+
+    $ make claim
+    $ make unclaim
+    
+Manage the claim of the kubernaut cluster. Claims usually expire within a day.
+
+    $ make proxy
+    $ make unproxy
+    
+Start/stop the teleproxy. If proxy does not want to start have a look at `build-aux/teleproxy.log`
+
 ## Documentation
 
 The documentation lives in
