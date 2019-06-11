@@ -25,6 +25,9 @@ export SCOUT_DISABLE = 1
 # _FORTIFY_SOURCE=2 by default.
 export CGO_CPPFLAGS += -U_FORTIFY_SOURCE
 
+include build-aux/kubernaut-ui.mk
+# Include kubernaut-ui.mk before anything else, because it sets
+# KUBECONFIG, which generally is eager.
 include build-aux/go-mod.mk
 include build-aux/go-version.mk
 include build-aux/k8s.mk
@@ -33,8 +36,6 @@ include build-aux/pidfile.mk
 include build-aux/help.mk
 
 .DEFAULT_GOAL = help
-
-HAVE_DOCKER := $(shell which docker 2>/dev/null)
 
 status: ## Report on the status of Kubernaut and Teleproxy
 status: status-pro-tel
@@ -88,7 +89,7 @@ bin_%/$(word 1,$(subst :, ,$(lyft.bin))): bin_%/.cache.$(word 1,$(subst :, ,$(ly
 	}
 endef
 $(foreach lyft.bin,$(lyft.bins),$(eval $(lyft.bin.rule)))
-build: $(addprefix bin_$(GOOS)_$(GOARCH)/,$(foreach lyft.bin,$(lyft.bins),$(word 1,$(subst :, ,$(lyft.bin)))))
+build: $(foreach _go.PLATFORM,$(go.PLATFORMS),$(addprefix bin_$(_go.PLATFORM)/,$(foreach lyft.bin,$(lyft.bins),$(word 1,$(subst :, ,$(lyft.bin))))))
 
 #
 # Plugins
@@ -137,12 +138,12 @@ $(foreach plugin.name,$(plugins),$(eval $(plugin.rule)))
 # B: Needed for Telepresence local-dev
 
 # always do plugins on native-builds
-go-build: $(foreach p,$(plugins),bin_$(GOOS)_$(GOARCH)/$p.so)
+go-build: $(foreach p,$(plugins),bin_$(GOHOSTOS)_$(GOHOSTARCH)/$p.so)
 _cgo_files = amb-sidecar apro-plugin-runner $(addsuffix .so,$(plugins))
-$(addprefix bin_$(GOOS)_$(GOARCH)/,$(_cgo_files)): CGO_ENABLED=1
+$(addprefix bin_$(GOHOSTOS)_$(GOHOSTARCH)/,$(_cgo_files)): CGO_ENABLED=1
 
 # but cross-builds are the complex story
-ifneq ($(GOOS)_$(GOARCH),linux_amd64)
+ifneq ($(GOHOSTOS)_$(GOHOSTARCH),linux_amd64)
 ifneq ($(HAVE_DOCKER),)
 
 go-build: $(foreach p,$(plugins),bin_linux_amd64/$p.so)
@@ -195,6 +196,11 @@ $(image)/clean:
 clean: $(image)/clean
 endef
 $(foreach image,$(image.all),$(eval $(docker.bins_rule)))
+
+_gocache_volume_clobber:
+	if docker volume ls | grep -q apro-gocache; then docker volume rm apro-gocache; fi
+.PHONY: _gocache_volume_clobber
+clobber: _gocache_volume_clobber
 
 docker/app-sidecar.docker: docker/app-sidecar/ambex
 docker/app-sidecar/ambex:
@@ -298,11 +304,11 @@ help-local-dev: ## (LocalDev) Describe how to use local dev features
 	@echo "make launch-pro-tel  relaunch Telepresence if needed"
 	@echo
 	@echo "Launch auth manually:"
-	@echo '  env $$(cat pro-env.sh)' "bin_$(GOOS)_$(GOARCH)/amb-sidecar auth"
+	@echo '  env $$(cat pro-env.sh)' "bin_$(GOHOSTOS)_$(GOHOSTARCH)/amb-sidecar auth"
 .PHONY: help-local-dev
 run-auth: ## (LocalDev) Build and launch the auth service locally
-run-auth: bin_$(GOOS)_$(GOARCH)/amb-sidecar
-	env $$(cat pro-env.sh) APP_LOG_LEVEL=debug bin_$(GOOS)_$(GOARCH)/amb-sidecar main
+run-auth: bin_$(GOHOSTOS)_$(GOHOSTARCH)/amb-sidecar
+	env $$(cat pro-env.sh) APP_LOG_LEVEL=debug bin_$(GOHOSTOS)_$(GOHOSTARCH)/amb-sidecar main
 .PHONY: run-auth
 
 #
@@ -417,6 +423,7 @@ clobber:
 .PHONY: release release-%
 
 release: ## Cut a release; upload binaries to S3 and Docker images to Quay
+release: build
 release: release-bin release-docker
 release-bin: ## Upload binaries to S3
 release-bin: $(foreach platform,$(go.PLATFORMS), release/bin_$(platform)/apictl             )

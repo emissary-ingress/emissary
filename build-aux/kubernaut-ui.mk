@@ -3,13 +3,16 @@
 # Makefile snippet for providing claim/unclaim/shell user-facing
 # targets for interacting with kubernaut.
 #
-## Inputs ##
+## Eager inputs ##
 #  - Variable: export KUBECONFIG := $(or $(NAME),cluster).knaut
+## Lazy inputs ##
+#  (none)
 ## Outputs ##
 #  - .PHONY Target: claim
 #  - .PHONY Target: unclaim
 #  - .PHONY Target: shell
 #  - .PHONY Target: status-cluster
+#  - Variable: export KUBECONFIG := $(or $(NAME),cluster).knaut
 ## common.mk targets ##
 #  - clean
 #
@@ -19,25 +22,27 @@
 # Makefile rules that need to talk to the cluster should declare a
 # dependency on `$(KUBECONFIG)`
 #
-# `kubernaut-ui.mk` sets `KUBECONFIG` (well, it has `kubernaut.mk` set
-# it).  The user can override this to point to an existing cluster
-# (instead of a Kubernaut cluster), but NOT with an environment
-# variable.  To override it, you must set it with a `make` argument:
-# `make KUBECONFIG=...`
+# `kubernaut-ui.mk` sets `KUBECONFIG`.  The user can override this to
+# point to an existing cluster (instead of a Kubernaut cluster), but
+# NOT with an environment variable.  To override it, you must set it
+# with a `make` argument: `make KUBECONFIG=...`
 #
 ifeq ($(words $(filter $(abspath $(lastword $(MAKEFILE_LIST))),$(abspath $(MAKEFILE_LIST)))),1)
 _kubernaut-ui.mk := $(lastword $(MAKEFILE_LIST))
 include $(dir $(_kubernaut-ui.mk))kubernaut.mk
 
-_KUBECONFIG := $(abspath $(dir $(_kubernaut-ui.mk))$(or $(NAME),cluster).knaut)
-export KUBECONFIG = $(_KUBECONFIG)
+# We have a separate private _kubernaut-ui.KUBECONFIG that the user
+# can't override, in order to ensure that `make unclaim` never deletes
+# a non-Kubernaut-generated KUBECONFIG file.
+_kubernaut-ui.KUBECONFIG := $(abspath $(dir $(_kubernaut-ui.mk))$(or $(NAME),cluster).knaut)
+export KUBECONFIG = $(_kubernaut-ui.KUBECONFIG)
 
 claim: ## (Kubernaut) Obtain an ephemeral cluster from kubernaut.io
 claim: $(KUBECONFIG)
 .PHONY: claim
 
 unclaim: ## (Kubernaut) Destroy the cluster
-unclaim: $(_KUBECONFIG).clean
+unclaim: $(_kubernaut-ui.KUBECONFIG).clean
 .PHONY: unclaim
 
 shell: ## (Kubernaut) Run an interactive Bash shell with KUBECONFIG= set to the Kubernaut claim

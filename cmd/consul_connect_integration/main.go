@@ -12,7 +12,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
-	"github.com/datawire/consul-x/pkg/consulwatch"
+	"github.com/datawire/teleproxy/pkg/consulwatch"
 )
 
 var logger = logrus.New()

@@ -50,6 +50,8 @@ spec:
           value: intercepted
         - name: APPPORT
           value: "80"
+        - name: APP_LOG_LEVEL
+          value: "debug"
         - name: AMBASSADOR_LICENSE_KEY
           value: {{env "AMBASSADOR_LICENSE_KEY"}}
         ports:

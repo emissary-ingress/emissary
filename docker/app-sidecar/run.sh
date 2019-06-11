@@ -28,6 +28,8 @@ cat > bootstrap-ads.yaml "$dir"/bootstrap-ads.yaml - <<EOF
 EOF
 cp -a "$dir"/data .
 
+APP_LOG_LEVEL="${APP_LOG_LEVEL:-info}"
+
 # Initialize job management
 trap 'jobs -p | xargs -r kill --' INT
 launch() {
@@ -40,7 +42,7 @@ launch() {
 # Launch each of the worker processes
 launch sh -c "exec ${dir}/ambex -watch data >/dev/null 2>&1"
 launch "$dir"/app-sidecar
-launch envoy -l debug -c bootstrap-ads.yaml
+launch envoy -l "$APP_LOG_LEVEL" -c bootstrap-ads.yaml
 
 # Wait for one of them to quit, then kill the others
 wait -n

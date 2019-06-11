@@ -226,7 +226,7 @@ metadata:
   annotations:
     getambassador.io/config: |
       ---
-      apiVersion: ambassador/v0
+      apiVersion: ambassador/v1
       kind: Module
       name: tls
       config:
@@ -240,10 +240,10 @@ spec:
   ports:
   - name: http
     port: 80
-    targetPort: 80
+    targetPort: http
   - name: https
     port: 443
-    targetPort: 443
+    targetPort: https
   selector:
     service: ambassador
 ---
@@ -253,9 +253,6 @@ metadata:
   name: ambassador
 spec:
   replicas: 1 # XXX: Kubernaut
-  selector:
-    matchLabels:
-      service: ambassador
   template:
     metadata:
       annotations:
@@ -284,12 +281,12 @@ spec:
         - name: AMBASSADOR_SINGLE_NAMESPACE
           value: "true"
         ports:
-        - name: http
-          containerPort: 80
-        - name: https
-          containerPort: 443
-        - name: admin
-          containerPort: 8877
+          - name: http
+            containerPort: 8080
+          - name: https
+            containerPort: 8443
+          - name: admin
+            containerPort: 8877
         livenessProbe:
           httpGet:
             path: /ambassador/v0/check_alive
@@ -305,12 +302,24 @@ spec:
       - name: ambassador-pro
         image: {{env "AMB_SIDECAR_IMAGE"}}
         ports:
-        - name: grpc-auth
-          containerPort: 8500
-        - name: grpc-ratelimit
-          containerPort: 8501
-        - name: http-debug
-          containerPort: 8502
+          - name: grpc-auth
+            containerPort: 8500
+          - name: grpc-ratelimit
+            containerPort: 8501
+          - name: http-debug
+            containerPort: 8502
+        livenessProbe:
+          httpGet:
+            path: /_/sys/healthz
+            port: 8500
+          initialDelaySeconds: 30
+          periodSeconds: 5
+        readinessProbe:
+          httpGet:
+            path: /_/sys/readyz
+            port: 8500
+          initialDelaySeconds: 30
+          periodSeconds: 5
         env:
         - name: APP_LOG_LEVEL
           value: warn
