@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
 
-cd "${BASH_SOURCE[0]%/*}/../.." &&
-set -a && . ./k8s-env.sh &&
-cd tests/cluster/oauth-e2e &&
+cd "${BASH_SOURCE[0]%.tap.gen}" &&
 ./node_modules/.bin/mocha ./main.js --timeout 5000 --reporter tap 2>&1 |
 	# Do this in Bash instead of 'sed' so that it doesn't buffer stdout.
 	while IFS= read -r line; do
