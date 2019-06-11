@@ -4,7 +4,6 @@ go 1.12
 
 require (
 	github.com/Jeffail/gabs v1.2.0
-	github.com/PuerkitoBio/goquery v1.5.0
 	github.com/datawire/kat-backend v1.1.0
 	github.com/datawire/teleproxy v0.5.1
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
@@ -26,10 +25,9 @@ require (
 	github.com/sirupsen/logrus v1.4.0
 	github.com/spf13/cobra v0.0.3
 	github.com/spf13/pflag v1.0.3
-	github.com/urfave/negroni v1.0.0 // indirect
 	golang.org/x/net v0.0.0-20190322120337-addf6b3196f6
 	golang.org/x/sync v0.0.0-20190227155943-e225da77a7e6
-	golang.org/x/tools v0.0.0-20190308174544-00c44ba9c14f // indirect
+	golang.org/x/tools v0.0.0-20190226205152-f727befe758c // indirect
 	google.golang.org/grpc v1.18.0
 	gopkg.in/yaml.v2 v2.2.2
 	k8s.io/apimachinery v0.0.0-20190119020841-d41becfba9ee
