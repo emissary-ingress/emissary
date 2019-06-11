@@ -147,8 +147,7 @@ func TestIDP(ctx *AuthenticationContext) {
 	// header was being ignored.
 	virginHTTPClient := NewHTTPClient(5*time.Second, false)
 
-	//finalDestination, err := virginHTTPClient.Do(unauthorizedRequest)
-	_, err = virginHTTPClient.Do(unauthorizedRequest)
+	finalDestination, err := virginHTTPClient.Do(unauthorizedRequest)
 	assert.NotError(err)
-	//assert.HTTPResponseStatusEQ(finalDestination, http.StatusOK)
+	assert.HTTPResponseStatusEQ(finalDestination, http.StatusOK)
 }

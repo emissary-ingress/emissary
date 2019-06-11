@@ -84,7 +84,7 @@ func (k *keycloak) Authenticate(ctx *oidctest.AuthenticationContext) (string, er
 		return token, err
 	}
 
-	assert.HTTPResponseStatusEQ(loginCallbackResponse, http.StatusSeeOther)
+	assert.HTTPResponseStatusEQ(loginCallbackResponse, http.StatusTemporaryRedirect)
 	cookies, err = oidctest.ExtractCookies(loginCallbackResponse, []string{"access_token"})
 	if err != nil {
 		return token, err
