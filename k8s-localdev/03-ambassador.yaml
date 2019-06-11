@@ -1,3 +1,5 @@
+# @TEMPLATE@
+#
 # This file is roughly:
 # cat <(curl https://getambassador.io/yaml/ambassador/ambassador-rbac.yaml) \
 #     <(curl https://getambassador.io/yaml/ambassador/ambassador-service.yaml)
@@ -78,23 +80,24 @@ metadata:
   annotations:
     getambassador.io/config: |
       ---
-      apiVersion: ambassador/v0
+      apiVersion: ambassador/v1
       kind: Module
       name: tls
       config:
         server:
           enabled: True
           redirect_cleartext_from: 80
+          alpn_protocols: h2
 spec:
   type: NodePort # XXX: Kubernaut
   externalTrafficPolicy: Local
   ports:
   - name: http
     port: 80
-    targetPort: 80
+    targetPort: http
   - name: https
     port: 443
-    targetPort: 443
+    targetPort: https
   selector:
     service: ambassador
 ---
@@ -116,7 +119,7 @@ spec:
       serviceAccountName: ambassador
       containers:
       - name: ambassador
-        image: quay.io/datawire/ambassador:0.50.2
+        image: quay.io/datawire/ambassador:{{env "AMBASSADOR_VERSION"}}
 # XXX: Kubernaut
 #        resources:
 #          limits:
@@ -133,12 +136,12 @@ spec:
         - name: AMBASSADOR_SINGLE_NAMESPACE
           value: "true"
         ports:
-        - name: http
-          containerPort: 80
-        - name: https
-          containerPort: 443
-        - name: admin
-          containerPort: 8877
+          - name: http
+            containerPort: 8080
+          - name: https
+            containerPort: 8443
+          - name: admin
+            containerPort: 8877
         livenessProbe:
           httpGet:
             path: /ambassador/v0/check_alive
