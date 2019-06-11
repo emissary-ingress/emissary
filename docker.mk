@@ -3,11 +3,14 @@
 # Makefile snippet for building Docker images, and for pushing them to
 # kubernaut.io clusters.
 #
-## Inputs ##
-#  - Variable: VERSION
+## Eager inputs ##
+#  - Variable: KUBECONFIG (optional)
+## Lazy inputs ##
+#  - Variable: VERSION (optional)
 #  - Variable: DOCKER_IMAGE ?= $(DOCKER_REGISTRY)/$(notdir $*):$(or $(VERSION),latest)
 #  - Variable: DOCKER_K8S_ENABLE_PVC ?=
 ## Outputs ##
+#  - Variable      : HAVE_DOCKER             # non-empty if true, empty if false
 #  - Target        : %.docker: %/Dockerfile  # tags image as localhost:31000/$(notdir $*):$(VERSION)
 #  - .PHONY Target : %.docker.clean
 #  - Target        : %.docker.knaut-push     # pushes to private in-kubernaut-cluster registry
@@ -87,11 +90,10 @@
 #
 ifeq ($(words $(filter $(abspath $(lastword $(MAKEFILE_LIST))),$(abspath $(MAKEFILE_LIST)))),1)
 _docker.mk := $(lastword $(MAKEFILE_LIST))
-include $(dir $(_docker.mk))flock.mk
+include $(dir $(_docker.mk))prelude.mk
 include $(dir $(_docker.mk))kubeapply.mk
-include $(dir $(_docker.mk))kubernaut-ui.mk
 
-ifeq ($(GOOS),darwin)
+ifeq ($(GOHOSTOS),darwin)
 docker.LOCALHOST = host.docker.internal
 else
 docker.LOCALHOST = localhost
@@ -99,6 +101,8 @@ endif
 
 DOCKER_IMAGE ?= $(DOCKER_REGISTRY)/$(notdir $*):$(or $(VERSION),latest)
 DOCKER_K8S_ENABLE_PVC ?=
+
+HAVE_DOCKER = $(call lazyonce,HAVE_DOCKER,$(shell which docker 2>/dev/null))
 
 _docker.port-forward = $(dir $(_docker.mk))docker-port-forward
 

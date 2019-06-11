@@ -4,6 +4,35 @@
 # go-workspace.mk.  Don't include this directly from your Makefile,
 # include either go-mod.mk or go-workspace.mk!
 #
+## Eager inputs ##
+#  - Variable: go.module (INTERNAL)
+#  - Variable: go.DISABLE_GO_TEST ?=
+#  - Variable: go.PLATFORMS ?= $(GOOS)_$(GOARCH)
+## Lazy inputs ##
+#  - Variable: go.pkgs (INTERNAL)
+#  - Variable: go.GOBUILD ?= go build
+#  - Variable: go.LDFLAGS ?=
+#  - Variable: go.GOLANG_LINT_VERSION ?= …
+#  - Variable: go.GOLANG_LINT_FLAGS ?= …$(wildcard .golangci.yml .golangci.toml .golangci.json)…
+#  - Variable: CI
+## Outputs ##
+#  - Variable: NAME ?= $(notdir $(go.module))
+#  - Variable: go.bins = List of "main" Go packages
+#  - Function: go.list = $(shell go list $1), but ignores submodules and doesn't download things
+#  - Targets: bin_$(OS)_$(ARCH)/$(CMD)
+#  - .PHONY Target: go-get (implementation is left up to go-FOO.mk)
+#  - .PHONY Target: go-build
+#  - .PHONY Target: go-lint
+#  - .PHONY Target: go-fmt
+#  - .PHONY Target: go-test
+## common.mk targets ##
+#  - build
+#  - lint
+#  - format
+#  - check
+#  - clean
+#  - clobber
+#
 # _go-common.mk needs 3 things of the calling go-FOO.mk:
 #  1. set $(go.module) to github.com/datawire/whatever
 #  2. set $(go.pkgs) to something morally equivalent to `./...`.  When
@@ -12,11 +41,14 @@
 #     to expand the list before passing it to Go.
 #  3. write the recipe for `go-get`
 #
-# It is acceptable to set $(go.pkgs) *after* including _go-common.mk
+# `go.PLATFORMS` is a list of OS_ARCH pairs that specifies which
+# platforms `make build` should compile for.  Unlike most variables,
+# it must be specified *before* including go-workspace.mk.
 ifeq ($(go.module),)
 $(error Do not include _go-common.mk directly, include go-mod.mk or go-workspace.mk)
 endif
 _go-common.mk := $(lastword $(MAKEFILE_LIST))
+include $(dir $(_go-common.mk))common.mk
 
 NAME ?= $(notdir $(go.module))
 
