@@ -58,7 +58,7 @@ func (c *OAuth2Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		return
 	}
-	logger.Debug(tokenErr)
+	logger.Debugln("token status:", tokenErr)
 
 	switch originalURL.Path {
 	case "/callback":
