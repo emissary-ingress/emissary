@@ -44,12 +44,20 @@ export APPDIR="${APPDIR:-$ambassador_root}"
 
 # If we don't set PYTHON_EGG_CACHE explicitly, /.cache is set by
 # default, which fails when running as a non-privileged user
-export PYTHON_EGG_CACHE="${PYTHON_EGG_CACHE:-$APPDIR}/.cache"
+export PYTHON_EGG_CACHE="${PYTHON_EGG_CACHE:-$AMBASSADOR_CONFIG_BASE_DIR}/.cache"
 export PYTHONUNBUFFERED=true
 
 config_dir="${AMBASSADOR_CONFIG_BASE_DIR}/ambassador-config"
 snapshot_dir="${AMBASSADOR_CONFIG_BASE_DIR}/snapshots"
 diagd_flags=('--notices' "${AMBASSADOR_CONFIG_BASE_DIR}/notices.json")
+
+# Make sure that base dir exists.
+if [[ ! -d "$AMBASSADOR_CONFIG_BASE_DIR" ]]; then
+    if ! mkdir -p "$AMBASSADOR_CONFIG_BASE_DIR"; then
+        echo "Could not create $AMBASSADOR_CONFIG_BASE_DIR" >&2
+        exit 1
+    fi
+fi
 
 # Note that the envoy_config_file really is in ENVOY_DIR, rather than
 # being in AMBASSADOR_CONFIG_BASE_DIR.
@@ -184,11 +192,11 @@ fi
 if [[ -z "${AMBASSADOR_NO_KUBEWATCH}" ]]; then
     KUBEWATCH_SYNC_KINDS="-s service"
 
-    if [ ! -f .ambassador_ignore_crds ]; then
+    if [ ! -f "${AMBASSADOR_CONFIG_BASE_DIR}/.ambassador_ignore_crds" ]; then
         KUBEWATCH_SYNC_KINDS="$KUBEWATCH_SYNC_KINDS -s AuthService -s Mapping -s Module -s RateLimitService -s TCPMapping -s TLSContext -s TracingService"
     fi
 
-    if [ ! -f .ambassador_ignore_crds_2 ]; then
+    if [ ! -f "${AMBASSADOR_CONFIG_BASE_DIR}/.ambassador_ignore_crds_2" ]; then
         KUBEWATCH_SYNC_KINDS="$KUBEWATCH_SYNC_KINDS -s ConsulResolver -s KubernetesEndpointResolver -s KubernetesServiceResolver"
     fi
 
