@@ -4,9 +4,17 @@ cd "${BASH_SOURCE[0]%/*}/../.." &&
 set -a && . ./k8s-env.sh &&
 cd tests/cluster/oauth-e2e &&
 ./node_modules/.bin/mocha ./main.js --timeout 5000 --reporter tap 2>&1 |
-	sed 's/^ /# /' |
-	if type docker &>/dev/null; then
-		cat
-	else
-		sed -E '/^(not )?ok/s/\s*#.*/ # SKIP docker is not installed/'
-	fi
+	# Do this in Bash instead of 'sed' so that it doesn't buffer stdout.
+	while IFS= read -r line; do
+		case "$line" in
+			' '*) printf '#%s\n' "$line";; # mocha outputs invalid lines
+			'not ok'*)
+				if type docker &>/dev/null; then
+					printf '%s\n' "$line"
+				else
+					sed -E 's/\s*#.*/ # SKIP docker is not installed/' <<<"$line"
+				fi
+				;;
+			*) printf '%s\n' "$line";;
+		esac
+	done
