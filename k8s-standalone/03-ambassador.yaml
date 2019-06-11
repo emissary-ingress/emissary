@@ -1,3 +1,5 @@
+# @TEMPLATE@
+#
 # This file is roughly:
 # cat <(curl https://getambassador.io/yaml/ambassador/ambassador-rbac.yaml) \
 #     <(curl https://getambassador.io/yaml/ambassador/ambassador-service.yaml)
@@ -85,6 +87,7 @@ metadata:
         server:
           enabled: True
           redirect_cleartext_from: 80
+          alpn_protocols: h2
 spec:
   type: NodePort # XXX: Kubernaut
   externalTrafficPolicy: Local
@@ -116,7 +119,7 @@ spec:
       serviceAccountName: ambassador
       containers:
       - name: ambassador
-        image: quay.io/datawire/ambassador:0.60.3
+        image: quay.io/datawire/ambassador:{{env "AMBASSADOR_VERSION"}}
 # XXX: Kubernaut
 #        resources:
 #          limits:

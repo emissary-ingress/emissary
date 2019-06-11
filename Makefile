@@ -204,13 +204,27 @@ clobber: _gocache_volume_clobber
 
 docker/app-sidecar.docker: docker/app-sidecar/ambex
 docker/app-sidecar/ambex:
-	cd $(@D) && wget -q 'https://s3.amazonaws.com/datawire-static-files/ambex/0.1.0/ambex'
+	curl -o $@ --fail 'https://s3.amazonaws.com/datawire-static-files/ambex/0.1.0/ambex'
 	chmod 755 $@
 
 docker/amb-sidecar-plugins/Dockerfile: docker/amb-sidecar-plugins/Dockerfile.gen docker/amb-sidecar.docker
 	$^ > $@
 docker/amb-sidecar-plugins.docker: docker/amb-sidecar.docker # ".SECONDARY:" (in common.mk) coming back to bite us
 docker/amb-sidecar-plugins.docker: $(foreach p,$(plugins),docker/amb-sidecar-plugins/$p.so)
+
+docker/consul_connect_integration.docker: docker/consul_connect_integration/kubectl
+
+docker/max-load.docker: docker/max-load/03-ambassador.yaml
+docker/max-load.docker: docker/max-load/kubeapply
+docker/max-load.docker: docker/max-load/kubectl
+docker/max-load.docker: docker/max-load/test.sh
+docker/max-load/kubeapply:
+	curl -o $@ --fail https://s3.amazonaws.com/datawire-static-files/kubeapply/$(KUBEAPPLY_VERSION)/linux/amd64/kubeapply
+	chmod 755 $@
+
+docker/%/kubectl:
+	curl -o $@ --fail 'https://storage.googleapis.com/kubernetes-release/release/v1.13.0/bin/linux/amd64/kubectl'
+	chmod 755 $@
 
 #
 # Deploy
@@ -326,9 +340,36 @@ tests/cluster/oauth-e2e/node_modules: tests/cluster/oauth-e2e/package.json $(wil
 check tests/cluster/oauth-e2e.tap: tests/cluster/oauth-e2e/node_modules
 
 #
+# Load-testing
+
+infra/loadtest-cluster/.terraform: FORCE
+	cd infra/loadtest-cluster && terraform init
+infra/loadtest-cluster/loadtest.kubeconfig: infra/loadtest-cluster/.terraform FORCE
+	cd infra/loadtest-cluster && terraform plan -out create.tfplan && terraform apply create.tfplan
+infra/loadtest-cluster/loadtest.kubeconfig.clean: %.clean:
+	if [ -e $* ]; then cd infra/loadtest-cluster && terraform plan -destroy -out destroy.tfplan && terraform apply destroy.tfplan; fi
+	rm -f $*
+
+loadtest-destroy: ## Destroy the load-testing cluster
+loadtest-destroy: infra/loadtest-cluster/loadtest.kubeconfig.clean
+loadtest-clean: ## Remove loadtest files
+loadtest-clean: loadtest-destroy
+	rm -rf infra/loadtest-cluster/.terraform
+	rm -f infra/loadtest-cluster/*tfplan
+
+loadtest-apply: ## Apply YAML to the load-testing cluster
+loadtest-deploy: ## Push images and apply YAML to the load-testing cluster
+loadtest-shell: ## Run a shell with loadtest variables set
+loadtest-proxy: ## Launch teleproxy to the loadtest cluster
+loadtest-apply loadtest-deploy loadtest-shell loadtest-proxy: loadtest-%: infra/loadtest-cluster/loadtest.kubeconfig
+	$(MAKE) DOCKER_K8S_ENABLE_PVC=true KUBECONFIG=$$PWD/infra/loadtest-cluster/loadtest.kubeconfig K8S_DIRS=k8s-load $*
+
+.PHONY: loadtest-%
+
+#
 # Clean
 
-clean: $(addsuffix .clean,$(wildcard docker/*.docker))
+clean: $(addsuffix .clean,$(wildcard docker/*.docker)) loadtest-clean
 	rm -f apro-abi.txt
 	rm -f tests/*.log tests/*.tap tests/*/*.log tests/*/*.tap
 	rm -f docker/amb-sidecar-plugins/Dockerfile docker/amb-sidecar-plugins/*.so
@@ -371,7 +412,9 @@ clean: $(addsuffix .clean,$(wildcard docker/*.docker))
 	rm -f docker/ambassador-oauth/ambassador-oauth
 	rm -f docker/traffic-sidecar/ambex
 clobber:
-	rm -f docker/app-sidecar/ambex
+	rm -f docker/*/ambex
+	rm -f docker/*/kubeapply
+	rm -f docker/*/kubectl
 	rm -rf tests/cluster/oauth-e2e/node_modules
 
 #

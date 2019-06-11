@@ -1,0 +1,7 @@
+# Kubernetes
+*kubeconfig
+
+# Terraform
+.terraform
+*tfstate*
+*tfplan*
