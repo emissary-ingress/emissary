@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 cd "${BASH_SOURCE[0]%.tap.gen}" &&
-./node_modules/.bin/mocha ./main.js --timeout 5000 --reporter tap 2>&1 |
+./node_modules/.bin/mocha ./main.js --timeout 10000 --reporter tap 2>&1 |
 	# Do this in Bash instead of 'sed' so that it doesn't buffer stdout.
 	while IFS= read -r line; do
 		case "$line" in
