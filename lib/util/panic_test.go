@@ -2,6 +2,7 @@ package util_test
 
 import (
 	"fmt"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -9,6 +10,18 @@ import (
 
 	"github.com/datawire/apro/lib/util"
 )
+
+var thispackage, thisfile = func() (string, string) {
+	pc, file, _, _ := runtime.Caller(0)
+	name := runtime.FuncForPC(pc).Name()
+	// name is "foo.bar/baz/pkg.func1.func2"; we want
+	// "foo.bar/baz/pkg".  That is: We trim at the first dot after
+	// the last slash.  This logic is similar to that from
+	// github.com/pkg/errors.funcname().
+	slash := strings.LastIndex(name, "/")
+	dot := slash + strings.Index(name[slash:], ".")
+	return name[:dot], file
+}()
 
 func TestPanicToError(t *testing.T) {
 	checkErr := func(t *testing.T, err error) {
@@ -63,6 +76,19 @@ func TestPanicToError(t *testing.T) {
 		}
 		if !strings.Contains(v, "panic_test.go") {
 			t.Errorf("error: %s doesn't include a stack trace: %q", k, v)
+		}
+		if strings.Contains(v, ".PanicToError") {
+			t.Errorf("error: %s doesn't trim enough of the stack trace: %q", k, v)
+		}
+		lines := strings.Split(v, "\n")
+		if len(lines) <= 3 { // we check the first 3 lines, and assert that there are more
+			t.Errorf("error: %s doesn't include enough of a stack trace: %q", k, v)
+		}
+		if !strings.HasPrefix(lines[1], thispackage+".") {
+			t.Errorf("error: %s the stack trace doesn't start in package %q: %q", k, thispackage, v)
+		}
+		if !strings.HasPrefix(lines[2], "\t"+thisfile+":") {
+			t.Errorf("error: %s the stack trace doesn't start in file %q: %q", k, thisfile, v)
 		}
 		////////////////////////////////////////////////////////////////
 	}
