@@ -467,44 +467,50 @@ class V2Listener(dict):
 
         self.routes: List[dict] = [ {
                 'match': {
-                    'prefix': '/'
+                    'prefix': '/',
+                },
+                'redirect': {
+                    'https_redirect': True
                 }
             } ]
 
-        # Use the actual listener name & port number
-        self.name = "ambassador-listener-%s" % listener.service_port
+        if listener.redirect_listener:
+            self.http_filters = [{'name': 'envoy.router'}]
+        else:
+            # Use the actual listener name & port number
+            self.name = "ambassador-listener-%s" % listener.service_port
 
-        # Use a sane access log spec
-        self.access_log = [ {
-            'name': 'envoy.file_access_log',
-            'config': {
-                'path': '/dev/fd/1',
-                'format': 'ACCESS [%START_TIME%] \"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\" %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% \"%REQ(X-FORWARDED-FOR)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\" \"%UPSTREAM_HOST%\"\n'
-            }
-        } ]
+            # Use a sane access log spec
+            self.access_log = [ {
+                'name': 'envoy.file_access_log',
+                'config': {
+                    'path': '/dev/fd/1',
+                    'format': 'ACCESS [%START_TIME%] \"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\" %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% \"%REQ(X-FORWARDED-FOR)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\" \"%UPSTREAM_HOST%\"\n'
+                }
+            } ]
 
-        # Assemble filters
-        for f in config.ir.filters:
-            v2f: dict = v2filter(f, config)
+            # Assemble filters
+            for f in config.ir.filters:
+                v2f: dict = v2filter(f, config)
 
-            if v2f:
-                self.http_filters.append(v2f)
+                if v2f:
+                    self.http_filters.append(v2f)
 
-        # Grab routes from the config (we do this as a shallow copy).
-        self.routes = [ dict(r) for r in config.routes ]
+            # Grab routes from the config (we do this as a shallow copy).
+            self.routes = [ dict(r) for r in config.routes ]
 
-        # Don't require TLS.
-        if not listener.redirect_listener:
-            self.require_tls = None
+            # Don't require TLS.
+            if not listener.require_tls:
+                self.require_tls = None
 
-        # Save upgrade configs.
-        for group in config.ir.ordered_groups():
-            if group.get('use_websocket'):
-                self.upgrade_configs = [{ 'upgrade_type': 'websocket' }]
-                break
+            # Save upgrade configs.
+            for group in config.ir.ordered_groups():
+                if group.get('use_websocket'):
+                    self.upgrade_configs = [{ 'upgrade_type': 'websocket' }]
+                    break
 
-        # Let self.handle_sni do the heavy lifting for SNI.
-        self.handle_sni(config)
+            # Let self.handle_sni do the heavy lifting for SNI.
+            self.handle_sni(config)
 
         # If the filter chain is empty here, we had no contexts. Add a single empty element to
         # to filter chain to make the logic below a bit simpler.
