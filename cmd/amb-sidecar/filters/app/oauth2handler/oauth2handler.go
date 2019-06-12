@@ -10,6 +10,7 @@ import (
 	"time"
 
 	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/mediocregopher/radix.v2/pool"
 	"github.com/pkg/errors"
 	uuid "github.com/satori/go.uuid"
 
@@ -39,6 +40,7 @@ type ambassadorBearerToken struct {
 type OAuth2Filter struct {
 	PrivateKey *rsa.PrivateKey
 	PublicKey  *rsa.PublicKey
+	RedisPool  *pool.Pool
 	Spec       crd.FilterOAuth2
 	Arguments  crd.FilterOAuth2Arguments
 }

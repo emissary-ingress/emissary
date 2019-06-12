@@ -222,9 +222,9 @@ spec:
         - name: tel-check
           containerPort: 38888
         env:
-        - name: REDIS_SOCKET_TYPE # For ratelimit
+        - name: REDIS_SOCKET_TYPE
           value: tcp
-        - name: REDIS_URL # For ratelimit
+        - name: REDIS_URL
           value: ambassador-pro-redis:6379
         - name: AMBASSADOR_NAMESPACE
           valueFrom:

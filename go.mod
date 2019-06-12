@@ -25,6 +25,7 @@ require (
 	github.com/jcuga/golongpoll v0.0.0-20180711123949-939e3befd837
 	github.com/lyft/ratelimit v1.3.0
 	github.com/mailru/easyjson v0.0.0-20190312143242-1de009706dbe // indirect
+	github.com/mediocregopher/radix.v2 v0.0.0-20180603022615-94360be26253
 	github.com/myzhan/boomer v0.0.0-20190321085146-9f3c9f575895
 	github.com/nu7hatch/gouuid v0.0.0-20131221200532-179d4d0c4d8d // indirect
 	github.com/onsi/gomega v1.4.3

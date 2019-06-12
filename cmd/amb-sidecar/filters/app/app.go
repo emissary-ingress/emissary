@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/mediocregopher/radix.v2/pool"
 	"github.com/pkg/errors"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
@@ -30,6 +31,10 @@ func NewFilterMux(
 	if err != nil {
 		return nil, errors.Wrap(err, "secret")
 	}
+	redisPool, err := pool.New(config.RedisSocketType, config.RedisURL, config.RedisPoolSize)
+	if err != nil {
+		return nil, errors.Wrap(err, "redis pool")
+	}
 
 	filterMux := &FilterMux{
 		DefaultRule: &crd.Rule{
@@ -39,6 +44,7 @@ func NewFilterMux(
 		PrivateKey: privKey,
 		PublicKey:  pubKey,
 		Logger:     logger,
+		RedisPool:  redisPool,
 	}
 
 	grpcServer := grpc.NewServer()

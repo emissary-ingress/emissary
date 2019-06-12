@@ -9,6 +9,7 @@ import (
 	"time"
 
 	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/mediocregopher/radix.v2/pool"
 	"github.com/pkg/errors"
 
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta2"
@@ -30,6 +31,7 @@ type FilterMux struct {
 	PrivateKey  *rsa.PrivateKey
 	PublicKey   *rsa.PublicKey
 	Logger      types.Logger
+	RedisPool   *pool.Pool
 }
 
 func logResponse(logger types.Logger, ret filterapi.FilterResponse, took time.Duration) {
@@ -131,6 +133,7 @@ func (c *FilterMux) filter(ctx context.Context, request *filterapi.FilterRequest
 			_filterImpl := &oauth2handler.OAuth2Filter{
 				PrivateKey: c.PrivateKey,
 				PublicKey:  c.PublicKey,
+				RedisPool:  c.RedisPool,
 				Spec:       filterCRD,
 			}
 			if err := mapstructure.Convert(filterRef.Arguments, &_filterImpl.Arguments); err != nil {
