@@ -60,7 +60,8 @@ func (session ResourceOwnerPasswordCredentialsClientSessionData) IsDirty() bool 
 //
 // The scopes argument is optional.
 //
-// The returned response is either a TokenSuccessResponse or a TokenErrorResponse.
+// If the Authorization Server sent a semantically valid error response, an error of type
+// TokenErrorResponse is returned. On protocol errors, an error of a different type is returned.
 func (client *ResourceOwnerPasswordCredentialsClient) AuthorizationRequest(
 	username string,
 	password string,

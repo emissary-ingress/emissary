@@ -25,7 +25,7 @@ import (
 //
 //     // 2
 //     response := getResponseFromUserAgent()
-//     authorizationCode, err := client.ParseAuthorizationResponse(session, responce)
+//     authorizationCode, err := client.ParseAuthorizationResponse(session, response)
 //     errcheck(err)
 //
 //     // 3
