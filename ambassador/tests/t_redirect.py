@@ -1,7 +1,7 @@
 from kat.harness import Query
 
 from abstract_tests import AmbassadorTest, HTTP
-from abstract_tests import ServiceType, TLSRedirect
+from abstract_tests import ServiceType
 
 
 #####
@@ -200,7 +200,7 @@ service: {self.target.path.fqdn}
     #     assert(len(errors) == 0)
 
 
-class XFPRedirect(TLSRedirect):
+class XFPRedirect(AmbassadorTest):
     parent: AmbassadorTest
     target: ServiceType
 
@@ -226,19 +226,22 @@ service: foobar.com
 
     def queries(self):
         # [0]
-        yield Query(self.parent.url(self.name + "/target/"), headers={ "X-Forwarded-Proto": "http" }, expected=301)
+        yield Query(self.url(self.name + "/target/"), headers={ "X-Forwarded-Proto": "http" }, expected=301)
 
         # [1]
-        yield Query(self.parent.url(self.name + "/target/"), headers={ "X-Forwarded-Proto": "https" }, expected=200)
+        yield Query(self.url(self.name + "/target/"), headers={ "X-Forwarded-Proto": "https" }, expected=200)
 
         # [2] -- PHASE 2
-        yield Query(self.url("ambassador/v0/diag/?json=true&filter=errors", headers={ "X-Forwarded-Proto": "https" }), phase=2)
+        yield Query(self.url("ambassador/v0/diag/?json=true&filter=errors"), headers={ "X-Forwarded-Proto": "https" }, phase=2)
 
     def check(self):
         # For query 0, check the redirection target.
-        assert self.results[0].headers['Location'] == [
-            self.format("https://foobar.com/target/")
-        ]
+        expected_location = ["https://" + self.path.fqdn + "/" + self.name + "/target/"]
+        actual_location = self.results[0].headers['Location']
+        assert actual_location == expected_location, "Expected redirect location to be {}, got {} instead".format(
+            expected_location,
+            actual_location
+        )
 
         # For query 1, we don't have to check anything, the "expected" clause is enough.
 
@@ -246,3 +249,8 @@ service: foobar.com
         # XXX Ew. If self.results[2].json is empty, the harness won't convert it to a response.
         errors = self.results[2].json
         assert(len(errors) == 0)
+
+    def requirements(self):
+        yield ("url", Query(self.url("ambassador/v0/check_ready"), headers={"X-Forwarded-Proto": "https"}))
+        yield ("url", Query(self.url("ambassador/v0/check_alive"), headers={"X-Forwarded-Proto": "https"}))
+

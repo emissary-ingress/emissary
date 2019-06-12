@@ -340,24 +340,6 @@ class ServiceTypeGrpc(Node):
         yield ("url", Query("http://%s" % self.path.fqdn))
         yield ("url", Query("https://%s" % self.path.fqdn))
 
-@abstract_test
-class TLSRedirect(Node):
-
-    path: Name
-
-    def __init__(self, service_manifests: str=None, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-        self._manifests = service_manifests or manifests.BACKEND
-
-    def config(self):
-        yield from ()
-
-    def manifests(self):
-        return self.format(self._manifests)
-
-    def requirements(self):
-        yield ("url", Query("http://%s" % self.path.fqdn,  headers={ "X-Forwarded-Proto": "http" }))
-        yield ("url", Query("https://%s" % self.path.fqdn))
 
 class HTTP(ServiceType):
     pass
