@@ -30,6 +30,28 @@ func TestPanicToError(t *testing.T) {
 			t.Errorf("error: %s looks like it nested wrong: %q", k, v)
 		}
 		////////////////////////////////////////////////////////////////
+		k = "fmt.Sprintf(\"%q\", err)"
+		v = fmt.Sprintf("%q", err)
+		t.Logf("debug: %s: %q", k, v)
+		if !strings.HasPrefix(v, "\"") {
+			t.Errorf("error: %s doesn't look quoted: %q", k, v)
+		} else if !strings.HasPrefix(v, "\"PANIC: ") {
+			t.Errorf("error: %s doesn't look like a panic: %q", k, v)
+		}
+		if strings.Count(v, "PANIC") != 1 {
+			t.Errorf("error: %s looks like it nested wrong: %q", k, v)
+		}
+		////////////////////////////////////////////////////////////////
+		k = "fmt.Sprintf(\"%v\", err)"
+		v = fmt.Sprintf("%v", err)
+		t.Logf("debug: %s: %q", k, v)
+		if !strings.HasPrefix(v, "PANIC: ") {
+			t.Errorf("error: %s doesn't look like a panic: %q", k, v)
+		}
+		if strings.Count(v, "PANIC") != 1 {
+			t.Errorf("error: %s looks like it nested wrong: %q", k, v)
+		}
+		////////////////////////////////////////////////////////////////
 		k = "fmt.Sprintf(\"%+v\", err)"
 		v = fmt.Sprintf("%+v", err)
 		t.Logf("debug: %s: %q", k, v)
