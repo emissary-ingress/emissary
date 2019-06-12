@@ -8,7 +8,7 @@ require (
 	github.com/asaskevich/EventBus v0.0.0-20180315140547-d46933a94f05 // indirect
 	github.com/bmizerany/perks v0.0.0-20141205001514-d9a9656a3a4b // indirect
 	github.com/datawire/kat-backend v1.1.0
-	github.com/datawire/liboauth2 v0.0.0-20190528220730-c19497f31033
+	github.com/datawire/liboauth2 v0.0.0-20190612154031-5e48e0169344
 	github.com/datawire/teleproxy v0.5.1
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/dgryski/go-gk v0.0.0-20140819190930-201884a44051 // indirect

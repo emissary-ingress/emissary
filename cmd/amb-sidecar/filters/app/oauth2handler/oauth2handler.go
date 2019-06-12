@@ -14,8 +14,8 @@ import (
 	"github.com/pkg/errors"
 	uuid "github.com/satori/go.uuid"
 
-	"github.com/datawire/liboauth2/rfc6749/rfc6749client"
-	"github.com/datawire/liboauth2/rfc6750"
+	"github.com/datawire/liboauth2/client/rfc6749"
+	"github.com/datawire/liboauth2/client/rfc6750"
 
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta2"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/app/httpclient"
@@ -30,7 +30,7 @@ const (
 )
 
 type ambassadorBearerToken struct {
-	UpstreamResponse rfc6749client.TokenSuccessResponse
+	SessionData *rfc6749.AuthorizationCodeClientSessionData
 }
 
 // OAuth2Filter looks up the appropriate Tenant and Rule objects from
@@ -46,7 +46,6 @@ type OAuth2Filter struct {
 }
 
 func (c *OAuth2Filter) Filter(ctx context.Context, request *filterapi.FilterRequest) (filterapi.FilterResponse, error) {
-	//func (c *OAuth2Filter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	logger := middleware.GetLogger(ctx)
 	httpClient := httpclient.NewHTTPClient(logger, c.Spec.MaxStale, c.Spec.InsecureTLS)
 
@@ -56,34 +55,37 @@ func (c *OAuth2Filter) Filter(ctx context.Context, request *filterapi.FilterRequ
 			errors.Wrap(err, "OIDC-discovery"), nil), nil
 	}
 
-	token, err := c.getToken(request)
+	sessionData, err := c.getSession(request)
 	if err != nil {
-		logger.Infoln(errors.Wrapf(err, "proceeding with no %s", accessTokenCookie))
+		logger.Debugln("session status:", errors.Wrapf(err, "proceeding with no %s", accessTokenCookie))
+	} else if sessionData.CurrentAccessToken == nil {
+		logger.Debugln("session status:", "proceeding with non-authenticated session")
+	} else if err := c.validateAccessToken(sessionData.CurrentAccessToken.AccessToken, discovered, httpClient, logger); err != nil {
+		logger.Debugln("session status:", errors.Wrap(err, "invalid access token"))
+		return middleware.NewErrorResponse(ctx, http.StatusBadRequest, err, nil), nil
 	} else {
-		err = c.validateAccessToken(token.UpstreamResponse.AccessToken, discovered, httpClient, logger)
-		if err != nil {
-			return middleware.NewErrorResponse(ctx, http.StatusBadRequest, err, nil), nil
-		} else {
-			header := make(http.Header)
-			rfc6750.AddToHeader(token.UpstreamResponse.AccessToken, header)
-			ret := &filterapi.HTTPRequestModification{}
-			for k, vs := range header {
-				for _, v := range vs {
-					ret.Header = append(ret.Header, &filterapi.HTTPHeaderReplaceValue{
-						Key:   k,
-						Value: v,
-					})
-				}
+		logger.Debugln("session status:", "valid access token")
+		header := make(http.Header)
+		rfc6750.AddToHeader(sessionData.CurrentAccessToken.AccessToken, header)
+		ret := &filterapi.HTTPRequestModification{}
+		for k, vs := range header {
+			for _, v := range vs {
+				ret.Header = append(ret.Header, &filterapi.HTTPHeaderReplaceValue{
+					Key:   k,
+					Value: v,
+				})
 			}
-			return ret, nil
 		}
+		return ret, nil
 	}
+	logger.Debugf("session data: %#v", sessionData)
 
-	oauthClient, err := rfc6749client.NewAuthorizationCodeClient(
+	oauthClient, err := rfc6749.NewAuthorizationCodeClient(
 		c.Spec.ClientID,
 		discovered.AuthorizationEndpoint,
 		discovered.TokenEndpoint,
-		rfc6749client.ClientPasswordHeader(c.Spec.ClientID, c.Spec.Secret),
+		rfc6749.ClientPasswordHeader(c.Spec.ClientID, c.Spec.Secret),
+		httpClient,
 	)
 	if err != nil {
 		return middleware.NewErrorResponse(ctx, http.StatusBadGateway,
@@ -97,72 +99,42 @@ func (c *OAuth2Filter) Filter(ctx context.Context, request *filterapi.FilterRequ
 	}
 	switch u.Path {
 	case "/callback":
-		authorizationResponse, err := oauthClient.ParseAuthorizationResponse(u)
+		authorizationCode, err := oauthClient.ParseAuthorizationResponse(sessionData, u)
 		if err != nil {
 			return middleware.NewErrorResponse(ctx, http.StatusBadRequest,
 				err, nil), nil
 		}
-		redirectURLstr, err := checkState(authorizationResponse.GetState(), c.PublicKey)
+		originalURL, err := checkState(sessionData.Request.State, c.PublicKey)
 		if err != nil {
-			// This mostly indicates an XSRF-type attack.
-			// The request wasn't malformed, but one of
-			// the credentials in it (the 'state'
-			// parameter) was.
-			return middleware.NewErrorResponse(ctx, http.StatusUnauthorized,
-				errors.Wrap(err, "state parameter"), nil), nil
-		}
-		redirectURL, err := url.Parse(redirectURLstr)
-		if err != nil {
-			// this should never happen -- the state was
-			// signed as valid; for this to happen, either
-			// (1) the crypto apocalypse has come, or (2)
-			// we generated an invalid state when we
-			// submitted the authorization request.
-			// Assuming that (2) is more likely, that's an
-			// internal server issue.
+			// This should never happen--the state matched
+			// what we stored in Redis.  For this to
+			// happen, either (1) our Redis server was
+			// cracked, or (2) we generated an invalid
+			// state when we submitted the authorization
+			// request.  Assuming that (2) is more likely,
+			// that's an internal server issue.
 			return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
-				errors.Wrapf(err, "state parameter: redirect_url: %q", redirectURLstr), nil), nil
+				errors.Wrapf(err, "invalid state"), nil), nil
 		}
-		switch authorizationResponse := authorizationResponse.(type) {
-		case rfc6749client.AuthorizationCodeAuthorizationErrorResponse:
-			return middleware.NewErrorResponse(ctx, http.StatusUnauthorized,
-				errors.New("unauthorized: authorization request failed"), map[string]interface{}{
-					"upstream_response": authorizationResponse,
-					"error_meaning":     authorizationResponse.ErrorMeaning(),
-				}), nil
-		case rfc6749client.AuthorizationCodeAuthorizationSuccessResponse:
-			tokenResponse, err := oauthClient.AccessToken(httpClient, authorizationResponse.Code, c.Spec.CallbackURL())
-			if err != nil {
-				return middleware.NewErrorResponse(ctx, http.StatusBadGateway,
-					err, nil), nil
-			}
-			switch tokenResponse := tokenResponse.(type) {
-			case rfc6749client.TokenErrorResponse:
-				return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
-					errors.New("token request failed"), map[string]interface{}{
-						"upstream_response": tokenResponse,
-						"error_meaning":     tokenResponse.ErrorMeaning(),
-					}), nil
-			case rfc6749client.TokenSuccessResponse:
-				logger.Debug("setting authorization cookie")
-				cookie, err := c.setToken(ambassadorBearerToken{
-					UpstreamResponse: tokenResponse,
-				})
-				if err != nil {
-					return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
-						err, nil), nil
-				}
-				logger.Debugf("redirecting user-agent to: %s", redirectURL)
-				return &filterapi.HTTPResponse{
-					StatusCode: http.StatusSeeOther,
-					Header: http.Header{
-						"Set-Cookie": {cookie.String()},
-						"Location":   {redirectURL.String()},
-					},
-					Body: "",
-				}, nil
-			}
+		if err := oauthClient.AccessToken(sessionData, authorizationCode); err != nil {
+			return middleware.NewErrorResponse(ctx, http.StatusBadGateway,
+				err, nil), nil
 		}
+		logger.Debug("setting authorization cookie")
+		cookie, err := c.setSession(sessionData)
+		if err != nil {
+			return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
+				err, nil), nil
+		}
+		logger.Debugf("redirecting user-agent to: %s", originalURL)
+		return &filterapi.HTTPResponse{
+			StatusCode: http.StatusSeeOther,
+			Header: http.Header{
+				"Set-Cookie": {cookie.String()},
+				"Location":   {originalURL},
+			},
+			Body: "",
+		}, nil
 	default:
 		// https://github.com/datawire/ambassador/issues/1581
 		originalURL, err := url.ParseRequestURI(request.GetRequest().GetHttp().GetHeaders()["x-forwarded-proto"] + "://" + request.GetRequest().GetHttp().GetHost() + request.GetRequest().GetHttp().GetPath())
@@ -170,12 +142,18 @@ func (c *OAuth2Filter) Filter(ctx context.Context, request *filterapi.FilterRequ
 			return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
 				errors.Wrap(err, "failed to construct URL"), nil), nil
 		}
-		scope := make(rfc6749client.Scope, len(c.Arguments.Scopes))
+		scope := make(rfc6749.Scope, len(c.Arguments.Scopes))
 		for _, s := range c.Arguments.Scopes {
 			scope[s] = struct{}{}
 		}
 		scope["openid"] = struct{}{}
-		authorizationRequestURI, err := oauthClient.AuthorizationRequest(c.Spec.CallbackURL(), scope, c.signState(originalURL, logger))
+		authorizationRequestURI, sessionData, err := oauthClient.AuthorizationRequest(c.Spec.CallbackURL(), scope, c.signState(originalURL, logger))
+		if err != nil {
+			return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
+				err, nil), nil
+		}
+		logger.Debug("setting authorization cookie")
+		cookie, err := c.setSession(sessionData)
 		if err != nil {
 			return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
 				err, nil), nil
@@ -187,12 +165,12 @@ func (c *OAuth2Filter) Filter(ctx context.Context, request *filterapi.FilterRequ
 			// "See Other" which MUST convert to GET.
 			StatusCode: http.StatusSeeOther,
 			Header: http.Header{
-				"Location": {authorizationRequestURI.String()},
+				"Set-Cookie": {cookie.String()},
+				"Location":   {authorizationRequestURI.String()},
 			},
 			Body: "",
 		}, nil
 	}
-	panic("not reached")
 }
 
 func (j *OAuth2Filter) validateAccessToken(token string, discovered *Discovered, httpClient *http.Client, logger types.Logger) error {
@@ -304,7 +282,7 @@ func (j *OAuth2Filter) validateAccessToken(token string, discovered *Discovered,
 // 	return false
 // }
 
-func (c *OAuth2Filter) getToken(request *filterapi.FilterRequest) (ambassadorBearerToken, error) {
+func (c *OAuth2Filter) getSession(request *filterapi.FilterRequest) (*rfc6749.AuthorizationCodeClientSessionData, error) {
 	// BS to leverage net/http's cookie-parsing
 	r := &http.Request{
 		Header: make(http.Header),
@@ -315,27 +293,27 @@ func (c *OAuth2Filter) getToken(request *filterapi.FilterRequest) (ambassadorBea
 
 	cookie, err := r.Cookie(accessTokenCookie)
 	if err != nil {
-		return ambassadorBearerToken{}, err
+		return nil, err
 	}
 	ciphertext, err := base64.RawURLEncoding.DecodeString(cookie.Value)
 	if err != nil {
-		return ambassadorBearerToken{}, err
+		return nil, err
 	}
 	//cleartext, err := c.cryptoDecryptAndVerify(ciphertext, []byte(accessTokenCookie))
 	//if err != nil {
-	//	return ambassadorBearerToken{}, err
+	//	return nil, err
 	//}
 	cleartext := ciphertext // TODO(lukeshu): Begone with cleartext := ciphertext
 	var token ambassadorBearerToken
 	err = json.Unmarshal(cleartext, &token)
 	if err != nil {
-		return ambassadorBearerToken{}, err
+		return nil, err
 	}
-	return token, nil
+	return token.SessionData, nil
 }
 
-func (c *OAuth2Filter) setToken(token ambassadorBearerToken) (*http.Cookie, error) {
-	cleartext, err := json.Marshal(token)
+func (c *OAuth2Filter) setSession(session *rfc6749.AuthorizationCodeClientSessionData) (*http.Cookie, error) {
+	cleartext, err := json.Marshal(ambassadorBearerToken{session})
 	if err != nil {
 		return nil, err
 	}
