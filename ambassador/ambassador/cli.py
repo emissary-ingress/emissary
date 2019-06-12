@@ -114,7 +114,7 @@ class CLISecretHandler(SecretHandler):
 
 
 def dump(config_dir_path: Parameter.REQUIRED, *,
-         watt=False, debug=False, debug_scout=False, k8s=False, recurse=False,
+         secret_dir_path=None, watt=False, debug=False, debug_scout=False, k8s=False, recurse=False,
          aconf=False, ir=False, v2=False, diag=False, features=False):
     """
     Dump various forms of an Ambassador configuration for debugging
@@ -123,6 +123,7 @@ def dump(config_dir_path: Parameter.REQUIRED, *,
     will be dumped.
 
     :param config_dir_path: Configuration directory to scan for Ambassador YAML files
+    :param secret_dir_path: Directory into which to save secrets
     :param watt: If set, input must be a WATT snapshot
     :param debug: If set, generate debugging output
     :param debug_scout: If set, generate debugging output
@@ -134,6 +135,12 @@ def dump(config_dir_path: Parameter.REQUIRED, *,
     :param diag: If set, dump the Diagnostics overview
     :param features: If set, dump the feature set
     """
+
+    if not secret_dir_path:
+        secret_dir_path = config_dir_path
+
+        if not os.path.isdir(secret_dir_path):
+            secret_dir_path = os.path.dirname(secret_dir_path)
 
     if debug:
         logger.setLevel(logging.DEBUG)
@@ -174,7 +181,7 @@ def dump(config_dir_path: Parameter.REQUIRED, *,
         if dump_aconf:
             od['aconf'] = aconf.as_dict()
 
-        secret_handler = CLISecretHandler(logger, config_dir_path, config_dir_path, "0")
+        secret_handler = CLISecretHandler(logger, config_dir_path, secret_dir_path, "0")
 
         ir = IR(aconf, file_checker=file_checker, secret_handler=secret_handler)
 
