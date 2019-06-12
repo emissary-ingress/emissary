@@ -34,8 +34,13 @@ func (pe panicError) Error() string                 { return "PANIC: " + pe.err.
 func (pe panicError) Cause() error                  { return pe.err }
 func (pe panicError) StackTrace() errors.StackTrace { return pe.err.StackTrace()[1:] }
 func (pe panicError) Format(s fmt.State, verb rune) {
-	io.WriteString(s, "PANIC: ")
-	pe.err.Format(s, verb)
+	switch verb {
+	case 'v', 's':
+		io.WriteString(s, "PANIC: ")
+		pe.err.Format(s, verb)
+	case 'q':
+		fmt.Fprintf(s, "%q", pe.Error())
+	}
 }
 
 var _ causer = panicError{}
