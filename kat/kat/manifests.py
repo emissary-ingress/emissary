@@ -474,7 +474,15 @@ metadata:
   labels:
     service: {self.path.k8s}
 spec:
+  securityContext:
+    runAsUser: 8888
   serviceAccountName: {self.path.k8s}
+  restartPolicy: Always
+  volumes:
+    - name: scratchpad
+      emptyDir:
+        medium: Memory
+        sizeLimit: "45Mi"
   containers:
   - name: ambassador
     image: {image}
@@ -488,6 +496,11 @@ spec:
       value: {self.path.k8s}
     - name: AMBASSADOR_SNAPSHOT_COUNT
       value: "0"
+    - name: AMBASSADOR_CONFIG_BASE_DIR
+      value: "/tmp/ambassador"
+    securityContext:
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true  
     livenessProbe:
       httpGet:
         path: /ambassador/v0/check_alive
@@ -500,7 +513,9 @@ spec:
         port: 8877
       initialDelaySeconds: 30
       periodSeconds: 3
-  restartPolicy: Always
+    volumeMounts:
+      - mountPath: /tmp/
+        name: scratchpad
 """
 
 HTTPBIN = """

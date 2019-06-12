@@ -193,10 +193,14 @@ def main(debug):
                         logger.debug(f'CRD type definition unreadable for {crd}: {e.reason}')
 
                 if crd_errors:
-                    Path(touchfile).touch()
+                    basedir = os.environ.get('AMBASSADOR_CONFIG_BASE_DIR', '/ambassador')
+                    touchpath = Path(basedir, touchfile)
+                    touchpath.touch()
+
                     logger.debug(f'{description} are not available.' +
                                  ' To enable CRD support, configure the Ambassador CRD type definitions and RBAC,' +
                                  ' then restart the Ambassador pod.')
+                    # logger.debug(f'touched {touchpath}')
     else:
         # If we couldn't talk to Kube, log that, but broadly we'll expect our caller
         # to DTRT around CRDs.
