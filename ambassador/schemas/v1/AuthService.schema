@@ -39,7 +39,9 @@
             },
             "required": [ "max_bytes", "allow_partial" ],
             "additionalProperties": false
-        }
+        },
+        "status_on_error": { "type": "string" },
+        "failure_mode_allow": { "type": "string", "boolean" }
     },
     "required": [ "apiVersion", "kind", "name", "auth_service" ],
     "additionalProperties": false

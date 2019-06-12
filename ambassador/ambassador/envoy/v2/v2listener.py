@@ -238,6 +238,9 @@ def v2filter_authv1(auth: IRAuth, v2config: 'V2Config'):
             'allow_partial': True
         }
 
+    status_on_error =  auth.get('status_on_error', 403)
+    failure_mode_allow =  auth.get('failure_mode_allow', False)
+
     body_info: Optional[Dict[str, int]] = None
 
     if raw_body_info:
@@ -284,7 +287,9 @@ def v2filter_authv1(auth: IRAuth, v2config: 'V2Config'):
                         'allowed_client_headers': {
                             'patterns': allowed_authorization_headers
                         }
-                    }
+                    },
+                    'status_on_error': status_on_error,
+                    'failure_mode_allow': failure_mode_allow
                 },
             }
         }
@@ -299,7 +304,9 @@ def v2filter_authv1(auth: IRAuth, v2config: 'V2Config'):
                     },
                     'timeout': "%0.3fs" % (float(auth.timeout_ms) / 1000.0)
                 },
-                'use_alpha': True
+                'use_alpha': True,
+                'status_on_error': status_on_error,
+                'failure_mode_allow': failure_mode_allow
             }
         }
 
