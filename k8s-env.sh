@@ -59,3 +59,18 @@ IDP_OKTA_PROVIDER_URL=${_Okta_Org_URL}/oauth2/default
 IDP_OKTA_AUDIENCE=api://default
 IDP_OKTA_CLIENT_ID=${_Okta_Client_ID}
 IDP_OKTA_CLIENT_SECRET=${_Okta_Client_Secret}
+
+# 04-tenants.yaml
+# These come directly from https://portal.azure.com/#blade/Microsoft_AAD_RegisteredApps/ApplicationMenuBlade/Overview/appId/3e1ce1e1-094d-4ff5-baed-5ba99e32f809/isMSAApp/
+_Azure_Client_ID=3e1ce1e1-094d-4ff5-baed-5ba99e32f809
+_Azure_Tenant_ID=8538d7d0-9b03-40c9-b72f-378b44ed97e2
+# This comes directly from https://portal.azure.com/#blade/Microsoft_AAD_RegisteredApps/ApplicationMenuBlade/Credentials/appId/3e1ce1e1-094d-4ff5-baed-5ba99e32f809/isMSAApp/
+_Azure_Client_Secret='d@HzogM7321tAHXVhI]E]Lt@6.s=TEyb'
+# Make sure that:
+#  - "${AUTH_TENANT_URL}/callback" is added as a "Redirect URI" at https://portal.azure.com/#blade/Microsoft_AAD_RegisteredApps/ApplicationMenuBlade/Authentication/appId/3e1ce1e1-094d-4ff5-baed-5ba99e32f809/isMSAApp/
+#  - A test user account is set up (and configured in ./tests/cluster/oauth-e2e/idp_azure.js)
+# The administrator credentials to log in to portal.azure.com are at
+#    $(keybase config get -b mountdir)/team/datawireio/secrets/azure.portal.apro-testing.*
+IDP_AZURE_PROVIDER_URL=https://login.microsoftonline.com/${_Azure_Tenant_ID}/v2.0
+IDP_AZURE_CLIENT_ID=${_Azure_Client_ID}
+IDP_AZURE_CLIENT_SECRET=${_Azure_Client_Secret}
