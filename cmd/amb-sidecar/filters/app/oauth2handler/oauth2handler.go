@@ -2,8 +2,9 @@ package oauth2handler
 
 import (
 	"context"
+	"crypto/rand"
 	"crypto/rsa"
-	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"net/http"
 	"net/url"
@@ -11,6 +12,7 @@ import (
 
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/mediocregopher/radix.v2/pool"
+	"github.com/mediocregopher/radix.v2/redis"
 	"github.com/pkg/errors"
 	uuid "github.com/satori/go.uuid"
 
@@ -27,11 +29,10 @@ import (
 const (
 	// AccessTokenCookie cookie's name
 	accessTokenCookie = "ambassador_session"
-)
 
-type ambassadorBearerToken struct {
-	SessionData *rfc6749.AuthorizationCodeClientSessionData
-}
+	// How long Redis should remember sessions for, since "last use".
+	sessionExpiry = 365 * 24 * time.Hour
+)
 
 // OAuth2Filter looks up the appropriate Tenant and Rule objects from
 // the CRD Controller, and validates the signed JWT tokens when
@@ -55,11 +56,30 @@ func (c *OAuth2Filter) Filter(ctx context.Context, request *filterapi.FilterRequ
 			errors.Wrap(err, "OIDC-discovery"), nil), nil
 	}
 
-	sessionData, err := c.getSession(request)
+	redisClient, err := c.RedisPool.Get()
 	if err != nil {
-		logger.Debugln("session status:", errors.Wrapf(err, "proceeding with no %s", accessTokenCookie))
+		return middleware.NewErrorResponse(ctx, http.StatusBadGateway,
+			errors.Wrap(err, "Redis"), nil), nil
+	}
+
+	sessionID, sessionData, sessionErr := c.loadSession(redisClient, request)
+	defer func() {
+		if sessionData != nil {
+			err := c.saveSession(redisClient, sessionID, sessionData)
+			if err != nil {
+				// Letting FilterMux recover() this
+				// panic() and generate an error
+				// message isn't the *worst* way of
+				// handling this error.
+				panic(err)
+			}
+		}
+		c.RedisPool.Put(redisClient)
+	}()
+	if sessionErr != nil {
+		logger.Debugln("session status:", errors.Wrap(sessionErr, "no session"))
 	} else if sessionData.CurrentAccessToken == nil {
-		logger.Debugln("session status:", "proceeding with non-authenticated session")
+		logger.Debugln("session status:", "non-authenticated session")
 	} else if err := c.validateAccessToken(sessionData.CurrentAccessToken.AccessToken, discovered, httpClient, logger); err != nil {
 		logger.Debugln("session status:", errors.Wrap(err, "invalid access token"))
 		return middleware.NewErrorResponse(ctx, http.StatusBadRequest, err, nil), nil
@@ -99,6 +119,10 @@ func (c *OAuth2Filter) Filter(ctx context.Context, request *filterapi.FilterRequ
 	}
 	switch u.Path {
 	case "/callback":
+		if sessionData == nil {
+			return middleware.NewErrorResponse(ctx, http.StatusForbidden,
+				errors.Errorf("no %q cookie", accessTokenCookie), nil), nil
+		}
 		authorizationCode, err := oauthClient.ParseAuthorizationResponse(sessionData, u)
 		if err != nil {
 			return middleware.NewErrorResponse(ctx, http.StatusBadRequest,
@@ -120,44 +144,73 @@ func (c *OAuth2Filter) Filter(ctx context.Context, request *filterapi.FilterRequ
 			return middleware.NewErrorResponse(ctx, http.StatusBadGateway,
 				err, nil), nil
 		}
-		logger.Debug("setting authorization cookie")
-		cookie, err := c.setSession(sessionData)
-		if err != nil {
-			return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
-				err, nil), nil
-		}
 		logger.Debugf("redirecting user-agent to: %s", originalURL)
 		return &filterapi.HTTPResponse{
 			StatusCode: http.StatusSeeOther,
 			Header: http.Header{
-				"Set-Cookie": {cookie.String()},
-				"Location":   {originalURL},
+				"Location": {originalURL},
 			},
 			Body: "",
 		}, nil
 	default:
+		// Use X-Forwarded-Proto instead of .GetScheme() to build the URL.
 		// https://github.com/datawire/ambassador/issues/1581
 		originalURL, err := url.ParseRequestURI(request.GetRequest().GetHttp().GetHeaders()["x-forwarded-proto"] + "://" + request.GetRequest().GetHttp().GetHost() + request.GetRequest().GetHttp().GetPath())
 		if err != nil {
 			return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
 				errors.Wrap(err, "failed to construct URL"), nil), nil
 		}
+
+		// Build the scope
 		scope := make(rfc6749.Scope, len(c.Arguments.Scopes))
 		for _, s := range c.Arguments.Scopes {
 			scope[s] = struct{}{}
 		}
-		scope["openid"] = struct{}{}
-		authorizationRequestURI, sessionData, err := oauthClient.AuthorizationRequest(c.Spec.CallbackURL(), scope, c.signState(originalURL, logger))
+		scope["openid"] = struct{}{} // TODO(lukeshu): More carefully consider always asserting OIDC
+
+		// Build the sessionID and the associated cookie
+		sessionID, err = randomString(256) // NB: Do NOT re-declare sessionID
+		if err != nil {
+			return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
+				errors.Wrap(err, "failed to generate session ID"), nil), nil
+		}
+		cookie := &http.Cookie{
+			Name:  accessTokenCookie,
+			Value: sessionID,
+
+			// Expose the cookie to all paths on this host, not just directories of {{originalURL.Path}}.
+			// This is important, because `/callback` is probably not a subdirectory of originalURL.Path.
+			Path: "/",
+
+			// Strictly match {{originalURL.Hostname}}.  Explicitly setting it to originalURL.Hostname()
+			// would instead also "*.{{originalURL.Hostname}}".
+			Domain: "",
+
+			// How long should the User-Agent retain the cookie?  If unset, it will expire at the end of the
+			// "session" (when they close their browser).
+			Expires: time.Time{},                                // as a time (low precedence)
+			MaxAge:  int((10 * 365 * 24 * time.Hour).Seconds()), // as a duration (high precedence)
+
+			// Whether to send the cookie for non-TLS requests.
+			// TODO(lukeshu): consider using originalURL.Scheme
+			Secure: c.Spec.TLS(),
+
+			// Don't expose the cookie to JavaScript.
+			HttpOnly: true,
+		}
+
+		// Build the full request
+		var authorizationRequestURI *url.URL
+		authorizationRequestURI, sessionData, err = oauthClient.AuthorizationRequest( // NB: Do NOT re-declare sessionData
+			c.Spec.CallbackURL(),
+			scope,
+			c.signState(originalURL, logger),
+		)
 		if err != nil {
 			return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
 				err, nil), nil
 		}
-		logger.Debug("setting authorization cookie")
-		cookie, err := c.setSession(sessionData)
-		if err != nil {
-			return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
-				err, nil), nil
-		}
+
 		return &filterapi.HTTPResponse{
 			// A 302 "Found" may or may not convert POST->GET.  We want
 			// the UA to GET the Authorization URI, so we shouldn't use
@@ -282,7 +335,16 @@ func (j *OAuth2Filter) validateAccessToken(token string, discovered *Discovered,
 // 	return false
 // }
 
-func (c *OAuth2Filter) getSession(request *filterapi.FilterRequest) (*rfc6749.AuthorizationCodeClientSessionData, error) {
+func randomString(bits int) (string, error) {
+	buf := make([]byte, (bits+1)/8)
+	_, err := rand.Read(buf)
+	if err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(buf), nil
+}
+
+func (c *OAuth2Filter) loadSession(redisClient *redis.Client, request *filterapi.FilterRequest) (sessionID string, sessionData *rfc6749.AuthorizationCodeClientSessionData, err error) {
 	// BS to leverage net/http's cookie-parsing
 	r := &http.Request{
 		Header: make(http.Header),
@@ -291,44 +353,40 @@ func (c *OAuth2Filter) getSession(request *filterapi.FilterRequest) (*rfc6749.Au
 		r.Header.Set(k, v)
 	}
 
+	// get the sessionID from the cookie
 	cookie, err := r.Cookie(accessTokenCookie)
-	if err != nil {
-		return nil, err
+	if cookie == nil {
+		return "", nil, err
 	}
-	ciphertext, err := base64.RawURLEncoding.DecodeString(cookie.Value)
+	sessionID = cookie.Value
+
+	// get the sessionData from Redis
+	sessionDataBytes, err := redisClient.Cmd("GET", "session:"+sessionID).Bytes()
 	if err != nil {
-		return nil, err
+		return "", nil, err
 	}
-	//cleartext, err := c.cryptoDecryptAndVerify(ciphertext, []byte(accessTokenCookie))
-	//if err != nil {
-	//	return nil, err
-	//}
-	cleartext := ciphertext // TODO(lukeshu): Begone with cleartext := ciphertext
-	var token ambassadorBearerToken
-	err = json.Unmarshal(cleartext, &token)
-	if err != nil {
-		return nil, err
+	sessionData = new(rfc6749.AuthorizationCodeClientSessionData)
+	if err := json.Unmarshal(sessionDataBytes, sessionData); err != nil {
+		return "", nil, err
 	}
-	return token.SessionData, nil
+
+	return sessionID, sessionData, nil
 }
 
-func (c *OAuth2Filter) setSession(session *rfc6749.AuthorizationCodeClientSessionData) (*http.Cookie, error) {
-	cleartext, err := json.Marshal(ambassadorBearerToken{session})
-	if err != nil {
-		return nil, err
+func (c *OAuth2Filter) saveSession(redisClient *redis.Client, sessionID string, sessionData *rfc6749.AuthorizationCodeClientSessionData) error {
+	if sessionData.IsDirty() {
+		sessionDataBytes, err := json.Marshal(sessionData)
+		if err != nil {
+			return err
+		}
+		if err := redisClient.Cmd("SET", "session:"+sessionID, string(sessionDataBytes)).Err; err != nil {
+			return err
+		}
 	}
-	//ciphertext, err := c.cryptoSignAndEncrypt(cleartext, []byte(accessTokenCookie))
-	//if err != nil {
-	//	return nil, err
-	//}
-	ciphertext := cleartext // TODO(lukeshu): Begone with ciphertext := cleartext
-	return &http.Cookie{
-		Name:  accessTokenCookie,
-		Value: base64.RawURLEncoding.EncodeToString(ciphertext),
-		// TODO(lukeshu): Verify that these are sane cookie parameters
-		HttpOnly: true,
-		Secure:   c.Spec.TLS(),
-	}, nil
+	if err := redisClient.Cmd("EXPIRE", "session:"+sessionID, int64(sessionExpiry.Seconds())).Err; err != nil {
+		return err
+	}
+	return nil
 }
 
 func (h *OAuth2Filter) signState(originalURL *url.URL, logger types.Logger) string {
