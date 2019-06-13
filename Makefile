@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-CI_DEBUG_KAT_BRANCH=
+CI_DEBUG_KAT_BRANCH=concaf/fix/kyle-xfp-fix
 
 SHELL = bash
 
