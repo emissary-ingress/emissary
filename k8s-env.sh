@@ -19,10 +19,10 @@ OPENAPI_SERVER_IMAGE=$(cat docker/example-service.docker.knaut-push)
 # 03-ambassador-pro-*.yaml
 AMBASSADOR_LICENSE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImRldiIsImV4cCI6NDcwMDgyNjEzM30.wCxi5ICR6C5iEz6WkKpurNItK3zER12VNhM8F1zGkA8
 
-# 04-tenants.yaml
+# 04-filter-oauth2-*.yaml
 AUTH_TENANT_URL=https://ambassador.standalone.svc.cluster.local
 
-# 04-tenants.yaml
+# 04-filter-oauth2-auth0.yaml
 # These come directly from https://manage.auth0.com/#/applications/DOzF9q7U2OrvB7QniW9ikczS1onJgyiC/settings
 # The administrator credentials to see that page are at
 #    $(keybase config get -b mountdir)/team/datawireio/secrets/auth0.auth0.apro-testing.*
@@ -38,14 +38,14 @@ IDP_AUTH0_AUDIENCE=https://${_Auth0_Domain}/api/v2/
 IDP_AUTH0_CLIENT_ID=${_Auth0_Client_ID}
 IDP_AUTH0_CLIENT_SECRET=${_Auth0_Client_Secret}
 
-# 04-tenants.yaml
+# 04-filter-oauth2-keycloak.yaml
 # Keycloak is configured statically in 04-keycloak.yaml
 IDP_KEYCLOAK_PROVIDER_URL=http://keycloak.localdev.svc.cluster.local/auth/realms/apro
 IDP_KEYCLOAK_AUDIENCE=app
 IDP_KEYCLOAK_CLIENT_ID=app
 IDP_KEYCLOAK_CLIENT_SECRET=8517c278-0ae8-40e5-b418-20199b7e3fb5
 
-# 04-tenants.yaml
+# 04-filter-oauth2-okta.yaml
 # These come directly from https://dev-264701-admin.okta.com/admin/app/oidc_client/instance/0oaeshpr0wKNbyWQn356/#tab-general
 # The administrator credentials to view that page are at
 #    $(keybase config get -b mountdir)/team/datawireio/secrets/okta.dev-264701.firstname_lastname.*
