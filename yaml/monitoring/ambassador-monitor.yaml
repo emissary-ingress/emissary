@@ -1,0 +1,17 @@
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: ambassador-monitor
+  namespace: monitoring
+  labels:
+    ambassador: monitoring
+spec:
+  namespaceSelector:
+    matchNames:
+    - default
+  selector:
+    matchLabels:
+      service: ambassador-admin
+  endpoints:
+  - port: ambassador-admin

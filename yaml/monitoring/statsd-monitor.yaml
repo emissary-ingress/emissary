@@ -1,0 +1,17 @@
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: statsd-monitor
+  namespace: monitoring
+  labels:
+    ambassador: monitoring
+spec:
+  namespaceSelector:
+    matchNames:
+    - monitoring
+  selector:
+    matchLabels:
+      service: statsd-sink
+  endpoints:
+  - port: prometheus-metrics
