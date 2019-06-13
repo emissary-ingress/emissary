@@ -1,6 +1,6 @@
 #!/hint/sh
 
-AMBASSADOR_VERSION=0.60.3
+AMBASSADOR_VERSION=0.72.0
 
 AMB_SIDECAR_IMAGE=$(cat docker/amb-sidecar-plugins.docker.knaut-push)
 PROXY_IMAGE=$(cat docker/traffic-proxy.docker.knaut-push)
