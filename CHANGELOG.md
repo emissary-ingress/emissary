@@ -97,12 +97,12 @@ Format:
 ## [0.72.0] June 13, 2019
 [0.72.0]: https://github.com/datawire/ambassador/compare/0.71.0...0.72.0
 
-Envoy: Update Envoy to commit 8f57f7d765
-Bugfix: Auth spans are now properly connected to requests ([#1414])
-Bugfix: `include_body` now works correctly ([#1531], [#1595])
-Bugfix: `x_forwarded_proto_redirect` works again (thanks to [Kyle Martin](https://github.com/KyleMartin901)!) ([#1571])
-Bugfix: Ambassador works correctly with read-only filesystems (thanks, [Niko Kurtti](https://github.com/n1koo)!) ([#1614], [#1619])
-Bugfix: Correctly render groups associated with a given resolver in diagnostics JSON output
+- Envoy: Update Envoy to commit 8f57f7d765
+- Bugfix: Auth spans are now properly connected to requests ([#1414])
+- Bugfix: `include_body` now works correctly ([#1531], [#1595])
+- Bugfix: `x_forwarded_proto_redirect` works again (thanks to [Kyle Martin](https://github.com/KyleMartin901)!) ([#1571])
+- Bugfix: Ambassador works correctly with read-only filesystems (thanks, [Niko Kurtti](https://github.com/n1koo)!) ([#1614], [#1619])
+- Bugfix: Correctly render groups associated with a given resolver in diagnostics JSON output
 Feature: Give the Ambassador CLI a way to specify the directory into which to write secrets.
 
 [#1414]: https://github.com/datawire/ambassador/issues/1414
