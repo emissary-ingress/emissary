@@ -500,7 +500,8 @@ class V2Listener(dict):
             self.routes = [ dict(r) for r in config.routes ]
 
             # Don't require TLS.
-            self.require_tls = None
+            if not listener.require_tls:
+                self.require_tls = None
 
             # Save upgrade configs.
             for group in config.ir.ordered_groups():
