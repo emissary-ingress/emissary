@@ -542,7 +542,7 @@ class Diagnostics:
             'kind': resolver.kind,
             '_source': resolver.location,
             'name': resolver.name,
-            'groups': group_list
+            'groups': [ g.as_dict() for g in group_list ]
         })
 
     @staticmethod
