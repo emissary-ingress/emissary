@@ -163,30 +163,13 @@ func (c *FilterMux) filter(ctx context.Context, request *filterapi.FilterRequest
 		case *filterapi.HTTPResponse:
 			return response, nil
 		case *filterapi.HTTPRequestModification:
-			handleRequestModification(request, response)
+			filterutil.ApplyRequestModification(request, response)
 			sumResponse.Header = append(sumResponse.Header, response.Header...)
 		default:
 			panic(errors.Errorf("unexpexted filter response type %T", response))
 		}
 	}
 	return sumResponse, nil
-}
-
-func handleRequestModification(req *filterapi.FilterRequest, mod *filterapi.HTTPRequestModification) {
-	for _, hmod := range mod.Header {
-		switch hmod := hmod.(type) {
-		case *filterapi.HTTPHeaderAppendValue:
-			if cur, ok := req.Request.Http.Headers[http.CanonicalHeaderKey(hmod.Key)]; ok {
-				req.Request.Http.Headers[http.CanonicalHeaderKey(hmod.Key)] = cur + "," + hmod.Value
-			} else {
-				req.Request.Http.Headers[http.CanonicalHeaderKey(hmod.Key)] = hmod.Value
-			}
-		case *filterapi.HTTPHeaderReplaceValue:
-			req.Request.Http.Headers[http.CanonicalHeaderKey(hmod.Key)] = hmod.Value
-		default:
-			panic(errors.Errorf("unexpected header modification type %T", hmod))
-		}
-	}
 }
 
 func ruleForURL(c *controller.Controller, u *url.URL) *crd.Rule {
