@@ -1,6 +1,7 @@
 package rfc6749
 
 import (
+	"fmt"
 	"net/http"
 	"net/url"
 	"strings"
@@ -20,10 +21,21 @@ var (
 	// not give us a Refresh Token to use.
 	ErrNoRefreshToken = errors.New("no Refresh Token")
 
-	// ErrAccessTokenExpired indicates that the Access Token is expired, and could not be
+	// ErrExpiredAccessToken indicates that the Access Token is expired, and could not be
 	// refreshed.
-	ErrAccessTokenExpired = errors.New("Access Token expired")
+	ErrExpiredAccessToken = errors.New("expired Access Token")
 )
+
+// UnsupportedTokenTypeError is the type of error returned from .AuthorizationForResourceRequest()
+// if the Access Token Type has not been registered with the Client through
+// .RegisterProtocolExtensions().
+type UnsupportedTokenTypeError struct {
+	TokenType string
+}
+
+func (e *UnsupportedTokenTypeError) Error() string {
+	return fmt.Sprintf("unsupported token type %q", e.TokenType)
+}
 
 type accessTokenData struct {
 	AccessToken  string
