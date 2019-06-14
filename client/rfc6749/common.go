@@ -45,6 +45,18 @@ type accessTokenData struct {
 	Scope        Scope
 }
 
+func (d *accessTokenData) GoString() string {
+	if d == nil {
+		return fmt.Sprintf("(%T)(nil)", d)
+	}
+	refreshToken := "(*string)(nil)" // #nosec G101
+	if d.RefreshToken != nil {
+		refreshToken = fmt.Sprintf("&%q", *d.RefreshToken)
+	}
+	return fmt.Sprintf("%T{AccessToken:%#v, TokenType:%#v, ExpiresAt:%#v, RefreshToken:%s, Scope: %#v}",
+		d, d.AccessToken, d.TokenType, d.ExpiresAt, refreshToken, d.Scope)
+}
+
 type clientSessionData interface {
 	currentAccessToken() *accessTokenData
 	setDirty()
