@@ -146,6 +146,7 @@ func httpGet(url string, internalSecret string, logger *log.Entry) ([]byte, erro
 		logger.Error(err)
 		return nil, err
 	}
+	defer response.Body.Close()
 	if response.StatusCode != 200 {
 		logger.WithFields(
 			log.Fields{"status_code": response.StatusCode}).Error(
