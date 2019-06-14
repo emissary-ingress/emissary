@@ -120,6 +120,13 @@ case_sensitive: false
 prefix: /reset/
 rewrite: /RESET/
 service: statsd-sink
+---
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  metrics
+prefix: /metrics
+rewrite: /metrics
+service: http://127.0.0.1:8877
 """)
 
     def requirements(self):
@@ -130,9 +137,10 @@ service: statsd-sink
             yield Query(self.url(self.name + "/"), phase=1)
 
         yield Query("http://statsd-sink/DUMP/", phase=2, debug=True)
+        yield Query(self.url("metrics"), phase=2)
 
     def check(self):
-        stats = self.results[-1].json or {}
+        stats = self.results[-2].json or {}
 
         cluster_stats = stats.get('cluster_http___statsdtest_http', {})
         rq_total = cluster_stats.get('upstream_rq_total', -1)
@@ -141,46 +149,10 @@ service: statsd-sink
         assert rq_total == 1000, f'expected 1000 total calls, got {rq_total}'
         assert rq_200 > 990, f'expected 1000 successful calls, got {rq_200}'
 
-
-class PrometheusTest(AmbassadorTest):
-    def init(self):
-        self.target = HTTP()
-        if DEV:
-            self.skip_node = True
-
-    def manifests(self) -> str:
-        envs = ""
-        return self.format(RBAC_CLUSTER_SCOPE + AMBASSADOR, image=os.environ["AMBASSADOR_DOCKER_IMAGE"],
-                           envs=envs, extra_ports="")
-
-    def config(self):
-        yield self.target, self.format("""
----
-apiVersion: ambassador/v0
-kind:  Mapping
-name:  {self.name}
-prefix: /{self.name}/
-service: http://{self.target.path.fqdn}
----
-apiVersion: ambassador/v0
-kind:  Mapping
-name:  metrics
-prefix: /metrics
-rewrite: /metrics
-service: http://127.0.0.1:8877
-""")
-
-    def queries(self):
-        for i in range(1000):
-            yield Query(self.url(self.name + "/"), phase=1)
-
-        yield Query(self.url("metrics"), phase=2)
-
-    def check(self):
         metrics = self.results[-1].text
         wanted_metric = 'envoy_cluster_internal_upstream_rq'
         wanted_status = 'envoy_response_code="200"'
-        wanted_cluster_name = 'envoy_cluster_name="cluster_http___prometheustest_http'
+        wanted_cluster_name = 'envoy_cluster_name="cluster_http___statsdtest_http'
 
         for line in metrics.split("\n"):
             if wanted_metric in line and wanted_status in line and wanted_cluster_name in line:
