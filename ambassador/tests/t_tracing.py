@@ -6,7 +6,7 @@ from typing import ClassVar, Dict, List, Sequence, Tuple, Union
 from kat.harness import sanitize, variants, Query, Runner
 from kat import manifests
 
-from abstract_tests import AmbassadorTest, HTTP
+from abstract_tests import AmbassadorTest, HTTP, AHTTP
 from abstract_tests import MappingTest, OptionTest, ServiceType, Node, Test
 
 
@@ -112,3 +112,101 @@ driver: zipkin
 
         # Look for the host that we actually queried, since that's what appears in the spans.
         assert self.results[0].backend.request.host in tracelist
+
+
+# This test asserts that the external authorization server receives the proper tracing
+# headers when Ambassador is configured with an HTTP AuthService.
+class TracingExternalAuthTest(AmbassadorTest):
+  
+    def init(self):
+        self.target = HTTP()
+        self.auth = AHTTP(name="auth")
+        
+    def manifests(self) -> str:
+        return super().manifests() + """
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: zipkin
+spec:
+  selector:
+    app: zipkin
+  ports:
+  - port: 9411
+    name: http
+    targetPort: http
+  type: NodePort
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: zipkin
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: zipkin
+    spec:
+      containers:
+      - name: zipkin
+        image: openzipkin/zipkin
+        imagePullPolicy: Always
+        ports:
+        - name: http
+          containerPort: 9411
+"""
+
+    def config(self):
+        yield self.target, self.format("""
+---
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  tracing_target_mapping
+prefix: /target/
+service: {self.target.path.fqdn}
+""")
+
+        yield self, self.format("""
+---
+apiVersion: ambassador/v0
+kind: TracingService
+name: tracing
+service: zipkin:9411
+driver: zipkin
+""")
+
+        yield self, self.format("""
+---
+apiVersion: ambassador/v1
+kind: AuthService
+name:  {self.auth.path.k8s}
+auth_service: "{self.auth.path.fqdn}"
+path_prefix: "/extauth"
+allowed_headers:
+- Requested-Status
+- Requested-Header
+""")
+
+    def requirements(self):
+        yield from super().requirements()
+        yield ("url", Query("http://zipkin:9411/api/v2/services"))
+
+    def queries(self):
+        yield Query(self.url("target/"), headers={"Requested-Status": "200"}, expected=200, phase=1)
+
+    def check(self):
+        extauth_res = json.loads(self.results[0].headers["Extauth"][0])
+        request_headers = self.results[0].backend.request.headers
+
+        assert self.results[0].status == 200
+        assert self.results[0].headers["Server"] == ["envoy"]
+        assert extauth_res["request"]["headers"]["x-b3-parentspanid"] == request_headers["x-b3-parentspanid"]
+        assert extauth_res["request"]["headers"]["x-b3-sampled"] == request_headers["x-b3-sampled"]
+        assert extauth_res["request"]["headers"]["x-b3-spanid"] == request_headers["x-b3-spanid"]
+        assert extauth_res["request"]["headers"]["x-b3-traceid"] == request_headers["x-b3-traceid"]
+        assert extauth_res["request"]["headers"]["x-request-id"] == request_headers["x-request-id"]
+ 
