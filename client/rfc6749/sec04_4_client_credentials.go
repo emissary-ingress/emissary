@@ -49,7 +49,7 @@ type ClientCredentialsClientSessionData struct {
 func (session ClientCredentialsClientSessionData) currentAccessToken() *accessTokenData {
 	return session.CurrentAccessToken
 }
-func (session ClientCredentialsClientSessionData) setDirty() { session.isDirty = true }
+func (session *ClientCredentialsClientSessionData) setDirty() { session.isDirty = true }
 
 // IsDirty indicates whether the session data has been mutated since that last time that it was
 // unmarshaled.  This is only useful if you marshal it to and unmarshal it from an external
