@@ -17,6 +17,7 @@ class IRListener (IRResource):
                  service_port: int,
                  require_tls: bool,
                  use_proxy_proto: bool,
+                 redirect_listener: bool = False,
 
                  rkey: str="ir.listener",
                  kind: str="IRListener",
@@ -31,7 +32,8 @@ class IRListener (IRResource):
             use_proxy_proto=use_proxy_proto,
             **kwargs)
 
-        self.redirect_listener: bool = require_tls
+        self.redirect_listener: bool = redirect_listener
+        self.require_tls: bool = require_tls
         self.add_dict_helper('tls_contexts', IRListener.helper_contexts)
 
 class ListenerFactory:
@@ -105,10 +107,9 @@ class ListenerFactory:
                 # Note: no TLS context here, this is a cleartext listener.
                 # We can set require_tls True because we can let the upstream
                 # tell us about that.
-                require_tls=True
+                require_tls=True,
+                redirect_listener=True
             )
-
-            new_listener.redirect_listener = True
 
             if 'use_remote_address' in amod:
                 new_listener.use_remote_address = amod.use_remote_address

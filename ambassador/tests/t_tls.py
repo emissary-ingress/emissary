@@ -209,8 +209,8 @@ config:
   upstream:
     secret: test-certs-secret
   upstream-files:
-    cert_chain_file: /ambassador/snapshots/default/secrets-decoded/test-certs-secret/F94E4DCF30ABC50DEF240AA8024599B67CC03991.crt
-    private_key_file: /ambassador/snapshots/default/secrets-decoded/test-certs-secret/F94E4DCF30ABC50DEF240AA8024599B67CC03991.key
+    cert_chain_file: /tmp/ambassador/snapshots/default/secrets-decoded/test-certs-secret/F94E4DCF30ABC50DEF240AA8024599B67CC03991.crt
+    private_key_file: /tmp/ambassador/snapshots/default/secrets-decoded/test-certs-secret/F94E4DCF30ABC50DEF240AA8024599B67CC03991.key
 """)
 
         yield self, self.format("""
