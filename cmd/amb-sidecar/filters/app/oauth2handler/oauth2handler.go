@@ -6,8 +6,10 @@ import (
 	"crypto/rsa"
 	"encoding/hex"
 	"encoding/json"
+	"io"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 
 	jwt "github.com/dgrijalva/jwt-go"
@@ -16,14 +18,16 @@ import (
 	"github.com/pkg/errors"
 	uuid "github.com/satori/go.uuid"
 
-	"github.com/datawire/liboauth2/client/rfc6749"
-	"github.com/datawire/liboauth2/client/rfc6750"
+	rfc6749client "github.com/datawire/liboauth2/client/rfc6749"
+	rfc6750client "github.com/datawire/liboauth2/client/rfc6750"
+	rfc6750resourceserver "github.com/datawire/liboauth2/resourceserver/rfc6750"
 
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta2"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/app/httpclient"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/app/middleware"
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
 	"github.com/datawire/apro/lib/filterapi"
+	"github.com/datawire/apro/lib/filterapi/filterutil"
 )
 
 const (
@@ -56,77 +60,127 @@ func (c *OAuth2Filter) Filter(ctx context.Context, request *filterapi.FilterRequ
 			errors.Wrap(err, "OIDC-discovery"), nil), nil
 	}
 
+	clientResponse := c.filterClient(ctx, logger, httpClient, discovered, request)
+	switch clientResponse := clientResponse.(type) {
+	case *filterapi.HTTPResponse:
+		return clientResponse, nil
+	case *filterapi.HTTPRequestModification:
+		filterutil.ApplyRequestModification(request, clientResponse)
+	default:
+		panic(errors.Errorf("unexpexted filter response type %T", clientResponse))
+	}
+
+	resourceResponse := c.filterResourceServer(ctx, logger, httpClient, discovered, request)
+	switch resourceResponse := resourceResponse.(type) {
+	case *filterapi.HTTPResponse:
+		if resourceResponse.StatusCode == http.StatusUnauthorized {
+			// The upstream Resource Server returns 401 Unauthorized to the Client--the Client does NOT pass
+			// 401 along to the User Agent; the User Agent is NOT using an RFC 7235-compatible
+			// authentication scheme to talk to the Client; 401 would be inappropriate.
+			//
+			// Instead, wrap the 401 response in a 403 Forbidden response.
+			return middleware.NewErrorResponse(ctx, http.StatusForbidden,
+				errors.New("authorization rejected"),
+				map[string]interface{}{
+					"synthesized_upstream_response": resourceResponse,
+				},
+			), nil
+		}
+		return resourceResponse, nil
+	case nil:
+		// do nothing
+	default:
+		panic(errors.Errorf("unexpexted filter response type %T", resourceResponse))
+	}
+
+	return clientResponse, nil
+}
+
+// filterClient implements the OAuth Client part of the Filter.
+func (c *OAuth2Filter) filterClient(ctx context.Context, logger types.Logger, httpClient *http.Client, discovered *Discovered, request *filterapi.FilterRequest) filterapi.FilterResponse {
 	redisClient, err := c.RedisPool.Get()
 	if err != nil {
 		return middleware.NewErrorResponse(ctx, http.StatusBadGateway,
-			errors.Wrap(err, "Redis"), nil), nil
+			errors.Wrap(err, "Redis"), nil)
 	}
+
+	oauthClient, err := rfc6749client.NewAuthorizationCodeClient(
+		c.Spec.ClientID,
+		discovered.AuthorizationEndpoint,
+		discovered.TokenEndpoint,
+		rfc6749client.ClientPasswordHeader(c.Spec.ClientID, c.Spec.Secret),
+		httpClient,
+	)
+	if err != nil {
+		return middleware.NewErrorResponse(ctx, http.StatusBadGateway,
+			err, nil)
+	}
+	oauthClient.RegisterProtocolExtensions(rfc6750client.OAuthProtocolExtension)
 
 	sessionID, sessionData, sessionErr := c.loadSession(redisClient, request)
 	defer func() {
 		if sessionData != nil {
 			err := c.saveSession(redisClient, sessionID, sessionData)
 			if err != nil {
-				// Letting FilterMux recover() this
-				// panic() and generate an error
-				// message isn't the *worst* way of
-				// handling this error.
+				// TODO(lukeshu): Letting FilterMux recover() this panic() and generate an error message
+				// isn't the *worst* way of handling this error.
 				panic(err)
 			}
 		}
 		c.RedisPool.Put(redisClient)
 	}()
-	if sessionErr != nil {
-		logger.Debugln("session status:", errors.Wrap(sessionErr, "no session"))
-	} else if sessionData.CurrentAccessToken == nil {
-		logger.Debugln("session status:", "non-authenticated session")
-	} else if err := c.validateAccessToken(sessionData.CurrentAccessToken.AccessToken, discovered, httpClient, logger); err != nil {
-		logger.Debugln("session status:", errors.Wrap(err, "invalid access token"))
-		return middleware.NewErrorResponse(ctx, http.StatusBadRequest, err, nil), nil
-	} else {
-		logger.Debugln("session status:", "valid access token")
-		header := make(http.Header)
-		rfc6750.AddToHeader(sessionData.CurrentAccessToken.AccessToken, header)
-		ret := &filterapi.HTTPRequestModification{}
-		for k, vs := range header {
-			for _, v := range vs {
-				ret.Header = append(ret.Header, &filterapi.HTTPHeaderReplaceValue{
-					Key:   k,
-					Value: v,
-				})
-			}
-		}
-		return ret, nil
-	}
 	logger.Debugf("session data: %#v", sessionData)
-
-	oauthClient, err := rfc6749.NewAuthorizationCodeClient(
-		c.Spec.ClientID,
-		discovered.AuthorizationEndpoint,
-		discovered.TokenEndpoint,
-		rfc6749.ClientPasswordHeader(c.Spec.ClientID, c.Spec.Secret),
-		httpClient,
-	)
-	if err != nil {
-		return middleware.NewErrorResponse(ctx, http.StatusBadGateway,
-			err, nil), nil
+	switch {
+	case sessionErr != nil:
+		logger.Debugln("session status:", errors.Wrap(sessionErr, "no session"))
+	case sessionData.CurrentAccessToken == nil:
+		logger.Debugln("session status:", "non-authenticated session")
+	default:
+		logger.Debugln("session status:", "authenticated session")
+		authorization, err := oauthClient.AuthorizationForResourceRequest(sessionData, func() io.Reader {
+			return strings.NewReader(request.GetRequest().GetHttp().GetBody().String())
+		})
+		if err == nil {
+			ret := &filterapi.HTTPRequestModification{}
+			for k, vs := range authorization {
+				for _, v := range vs {
+					ret.Header = append(ret.Header, &filterapi.HTTPHeaderReplaceValue{
+						Key:   k,
+						Value: v,
+					})
+				}
+			}
+			return ret
+		} else if err == rfc6749client.ErrNoAccessToken {
+			// This indicates a programming error; we've check that there is an access token.
+			panic(err)
+		} else if err == rfc6749client.ErrExpiredAccessToken {
+			logger.Debugln("access token expired; continuing as if non-authenticated session")
+			// continue as if this `.CurrentAccessToken == nil`
+		} else if _, ok := err.(*rfc6749client.UnsupportedTokenTypeError); ok {
+			return middleware.NewErrorResponse(ctx, http.StatusBadGateway,
+				err, nil)
+		} else {
+			return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
+				errors.Wrap(err, "unknown error"), nil)
+		}
 	}
 
 	u, err := url.ParseRequestURI(request.GetRequest().GetHttp().GetPath())
 	if err != nil {
 		return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
-			errors.Wrapf(err, "could not parse URI: %q", request.GetRequest().GetHttp().GetPath()), nil), nil
+			errors.Wrapf(err, "could not parse URI: %q", request.GetRequest().GetHttp().GetPath()), nil)
 	}
 	switch u.Path {
 	case "/callback":
 		if sessionData == nil {
 			return middleware.NewErrorResponse(ctx, http.StatusForbidden,
-				errors.Errorf("no %q cookie", accessTokenCookie), nil), nil
+				errors.Errorf("no %q cookie", accessTokenCookie), nil)
 		}
 		authorizationCode, err := oauthClient.ParseAuthorizationResponse(sessionData, u)
 		if err != nil {
 			return middleware.NewErrorResponse(ctx, http.StatusBadRequest,
-				err, nil), nil
+				err, nil)
 		}
 		originalURL, err := checkState(sessionData.Request.State, c.PublicKey)
 		if err != nil {
@@ -138,11 +192,11 @@ func (c *OAuth2Filter) Filter(ctx context.Context, request *filterapi.FilterRequ
 			// request.  Assuming that (2) is more likely,
 			// that's an internal server issue.
 			return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
-				errors.Wrapf(err, "invalid state"), nil), nil
+				errors.Wrapf(err, "invalid state"), nil)
 		}
 		if err := oauthClient.AccessToken(sessionData, authorizationCode); err != nil {
 			return middleware.NewErrorResponse(ctx, http.StatusBadGateway,
-				err, nil), nil
+				err, nil)
 		}
 		logger.Debugf("redirecting user-agent to: %s", originalURL)
 		return &filterapi.HTTPResponse{
@@ -151,18 +205,18 @@ func (c *OAuth2Filter) Filter(ctx context.Context, request *filterapi.FilterRequ
 				"Location": {originalURL},
 			},
 			Body: "",
-		}, nil
+		}
 	default:
 		// Use X-Forwarded-Proto instead of .GetScheme() to build the URL.
 		// https://github.com/datawire/ambassador/issues/1581
 		originalURL, err := url.ParseRequestURI(request.GetRequest().GetHttp().GetHeaders()["x-forwarded-proto"] + "://" + request.GetRequest().GetHttp().GetHost() + request.GetRequest().GetHttp().GetPath())
 		if err != nil {
 			return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
-				errors.Wrap(err, "failed to construct URL"), nil), nil
+				errors.Wrap(err, "failed to construct URL"), nil)
 		}
 
 		// Build the scope
-		scope := make(rfc6749.Scope, len(c.Arguments.Scopes))
+		scope := make(rfc6749client.Scope, len(c.Arguments.Scopes))
 		for _, s := range c.Arguments.Scopes {
 			scope[s] = struct{}{}
 		}
@@ -172,7 +226,7 @@ func (c *OAuth2Filter) Filter(ctx context.Context, request *filterapi.FilterRequ
 		sessionID, err = randomString(256) // NB: Do NOT re-declare sessionID
 		if err != nil {
 			return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
-				errors.Wrap(err, "failed to generate session ID"), nil), nil
+				errors.Wrap(err, "failed to generate session ID"), nil)
 		}
 		cookie := &http.Cookie{
 			Name:  accessTokenCookie,
@@ -208,7 +262,7 @@ func (c *OAuth2Filter) Filter(ctx context.Context, request *filterapi.FilterRequ
 		)
 		if err != nil {
 			return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
-				err, nil), nil
+				err, nil)
 		}
 
 		return &filterapi.HTTPResponse{
@@ -222,8 +276,21 @@ func (c *OAuth2Filter) Filter(ctx context.Context, request *filterapi.FilterRequ
 				"Location":   {authorizationRequestURI.String()},
 			},
 			Body: "",
-		}, nil
+		}
 	}
+}
+
+// filterResourceServer implements the OAuth Resource Server part of the Filter.
+func (c *OAuth2Filter) filterResourceServer(ctx context.Context, logger types.Logger, httpClient *http.Client, discovered *Discovered, request *filterapi.FilterRequest) filterapi.FilterResponse {
+	header := make(http.Header)
+	for k, v := range request.GetRequest().GetHttp().GetHeaders() {
+		header.Set(k, v)
+	}
+	token := rfc6750resourceserver.GetFromHeader(header)
+	if err := c.validateAccessToken(token, discovered, httpClient, logger); err != nil {
+		return middleware.NewErrorResponse(ctx, http.StatusBadRequest, err, nil)
+	}
+	return nil
 }
 
 func (j *OAuth2Filter) validateAccessToken(token string, discovered *Discovered, httpClient *http.Client, logger types.Logger) error {
@@ -231,7 +298,7 @@ func (j *OAuth2Filter) validateAccessToken(token string, discovered *Discovered,
 	if err != nil {
 		return err
 	}
-	rfc6750.AddToHeader(token, req.Header)
+	rfc6750client.AddToHeader(token, req.Header)
 	res, err := httpClient.Do(req)
 	if err != nil {
 		return err
@@ -344,7 +411,7 @@ func randomString(bits int) (string, error) {
 	return hex.EncodeToString(buf), nil
 }
 
-func (c *OAuth2Filter) loadSession(redisClient *redis.Client, request *filterapi.FilterRequest) (sessionID string, sessionData *rfc6749.AuthorizationCodeClientSessionData, err error) {
+func (c *OAuth2Filter) loadSession(redisClient *redis.Client, request *filterapi.FilterRequest) (sessionID string, sessionData *rfc6749client.AuthorizationCodeClientSessionData, err error) {
 	// BS to leverage net/http's cookie-parsing
 	r := &http.Request{
 		Header: make(http.Header),
@@ -365,7 +432,7 @@ func (c *OAuth2Filter) loadSession(redisClient *redis.Client, request *filterapi
 	if err != nil {
 		return "", nil, err
 	}
-	sessionData = new(rfc6749.AuthorizationCodeClientSessionData)
+	sessionData = new(rfc6749client.AuthorizationCodeClientSessionData)
 	if err := json.Unmarshal(sessionDataBytes, sessionData); err != nil {
 		return "", nil, err
 	}
@@ -373,7 +440,7 @@ func (c *OAuth2Filter) loadSession(redisClient *redis.Client, request *filterapi
 	return sessionID, sessionData, nil
 }
 
-func (c *OAuth2Filter) saveSession(redisClient *redis.Client, sessionID string, sessionData *rfc6749.AuthorizationCodeClientSessionData) error {
+func (c *OAuth2Filter) saveSession(redisClient *redis.Client, sessionID string, sessionData *rfc6749client.AuthorizationCodeClientSessionData) error {
 	if sessionData.IsDirty() {
 		sessionDataBytes, err := json.Marshal(sessionData)
 		if err != nil {

@@ -132,7 +132,7 @@ type Filter interface {
 // set depends on whether `allow_request_body` is true or false in the
 // Ambassador AuthService YAML.
 //
-// TODO(lukesh): Consider defining this as a more convenient struct,
+// TODO(lukeshu): Consider defining this as a more convenient struct,
 // and translating envoyAuthV2.AttributeContext to it, instead of just
 // type-aliasing it.
 type FilterRequest = envoyAuthV2.AttributeContext
