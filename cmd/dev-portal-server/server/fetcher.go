@@ -4,6 +4,7 @@ import (
 	"crypto/tls"
 	"fmt"
 	"io/ioutil"
+	"net"
 	"net/http"
 	"strings"
 	"time"
@@ -115,6 +116,10 @@ func getString(o *gabs.Container, attr string) string {
 	return o.S(attr).Data().(string)
 }
 
+var dialer = &net.Dialer{
+	Timeout: time.Second * 2,
+}
+
 var client = &http.Client{
 	Timeout: time.Second * 2,
 
@@ -122,6 +127,7 @@ var client = &http.Client{
 	Transport: &http.Transport{
 		/* #nosec */
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		Dial:            dialer.Dial,
 	},
 }
 
