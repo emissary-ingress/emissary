@@ -117,7 +117,7 @@ driver: zipkin
 # This test asserts that the external authorization server receives the proper tracing
 # headers when Ambassador is configured with an HTTP AuthService.
 class TracingExternalAuthTest(AmbassadorTest):
-  
+
     def init(self):
         self.target = HTTP()
         self.auth = AHTTP(name="auth")
@@ -209,4 +209,3 @@ allowed_headers:
         assert extauth_res["request"]["headers"]["x-b3-spanid"] == request_headers["x-b3-spanid"]
         assert extauth_res["request"]["headers"]["x-b3-traceid"] == request_headers["x-b3-traceid"]
         assert extauth_res["request"]["headers"]["x-request-id"] == request_headers["x-request-id"]
- 
