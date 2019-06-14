@@ -148,8 +148,8 @@ github.com/dancannon/gorethink v4.0.0+incompatible h1:KFV7Gha3AuqT+gr0B/eKvGhbjm
 github.com/dancannon/gorethink v4.0.0+incompatible/go.mod h1:BLvkat9KmZc1efyYwhz3WnybhRZtgF1K929FD8z1avU=
 github.com/datawire/kat-backend v1.1.0 h1:bl1zZYKWjzG/DY7unLlOGGGFWL6701aIe8pHe+ATmAo=
 github.com/datawire/kat-backend v1.1.0/go.mod h1:pQGCrjQX4mG8cBaDldM99UH4/N9qAHiuviulA2YiCEQ=
-github.com/datawire/liboauth2 v0.0.0-20190614154621-8bf4c169f146 h1:wvhlTxzPlIK5WvNYZ0d88axPhUlFRUppTjh1Ox2mHJQ=
-github.com/datawire/liboauth2 v0.0.0-20190614154621-8bf4c169f146/go.mod h1:vI7KpNOeaANjxLPc3HLAyaY3GI0NCKUfetudypJ0640=
+github.com/datawire/liboauth2 v0.0.0-20190614202010-1192716209f9 h1:LU6CKpIpV/kgE9jVK+mkH+x0SRLqh5unG4gnG517Iyo=
+github.com/datawire/liboauth2 v0.0.0-20190614202010-1192716209f9/go.mod h1:vI7KpNOeaANjxLPc3HLAyaY3GI0NCKUfetudypJ0640=
 github.com/datawire/pf v0.0.0-20180510150411-31a823f9495a/go.mod h1:H8uUmE8qqo7z9u30MYB9riLyRckPHOPBk9ZdCuH+dQQ=
 github.com/datawire/teleproxy v0.5.1 h1:VY6N1JXE1twYrBrWBn8StHP7aTMrMx8MaSbDueafwME=
 github.com/datawire/teleproxy v0.5.1/go.mod h1:vyLyCV9Q2/if1sw8e1fcVLfwNlQvBxQJsgEV68wEUjg=

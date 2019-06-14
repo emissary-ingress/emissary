@@ -12,7 +12,6 @@ spec:
     audience: {{env "IDP_OKTA_AUDIENCE"}}
     clientID: {{env "IDP_OKTA_CLIENT_ID"}}
     secret: {{env "IDP_OKTA_CLIENT_SECRET"}}
-    scopes: openid
 ---
 apiVersion: getambassador.io/v1
 kind: Mapping

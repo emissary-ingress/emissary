@@ -11,7 +11,6 @@ spec:
     clientURL: {{env "AUTH_TENANT_URL"}}
     clientID: {{env "IDP_AZURE_CLIENT_ID"}}
     secret: {{env "IDP_AZURE_CLIENT_SECRET"}}
-    scopes: openid
 ---
 apiVersion: getambassador.io/v1
 kind: Mapping
@@ -36,3 +35,6 @@ spec:
       path: /azure/httpbin/**
       filters:
         - name: azure
+          arguments:
+            scopes:
+              - offline_access # request refresh tokens
