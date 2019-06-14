@@ -26,7 +26,7 @@ type AccessTokenType struct {
 // make use of tokens of that type.
 //
 // It is a runtime error (panic) to register the same type name multiple times.
-func (registry extensionRegistry) registerAccessTokenType(tokenType AccessTokenType) {
+func (registry *extensionRegistry) registerAccessTokenType(tokenType AccessTokenType) {
 	typeName := strings.ToLower(tokenType.Name)
 	if _, set := registry.accessTokenTypes[typeName]; set {
 		panic(errors.Errorf("token_type=%q already registered", typeName))
@@ -34,7 +34,8 @@ func (registry extensionRegistry) registerAccessTokenType(tokenType AccessTokenT
 	registry.accessTokenTypes[typeName] = tokenType
 }
 
-func (registry extensionRegistry) getAccessTokenType(typeName string) (AccessTokenType, bool) {
+func (registry *extensionRegistry) getAccessTokenType(typeName string) (AccessTokenType, bool) {
+	registry.ensureInitialized()
 	tokenType, ok := registry.accessTokenTypes[strings.ToLower(typeName)]
 	return tokenType, ok
 }

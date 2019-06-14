@@ -23,7 +23,7 @@ import (
 // This method is unexported, and accepts an interface, so that the implementation can be shared.
 // An exported wrapper around it for each client type takes a concrete type instead of an interface.
 func authorizationForResourceRequest(
-	registry extensionRegistry,
+	registry *extensionRegistry,
 	explicitClient *explicitClient, // optional
 	session clientSessionData,
 	getBody func() io.Reader,
@@ -71,7 +71,7 @@ func (client *AuthorizationCodeClient) AuthorizationForResourceRequest(
 	session *AuthorizationCodeClientSessionData,
 	getBody func() io.Reader,
 ) (http.Header, error) {
-	return authorizationForResourceRequest(client.extensionRegistry, &client.explicitClient, session, getBody)
+	return authorizationForResourceRequest(&client.extensionRegistry, &client.explicitClient, session, getBody)
 }
 
 // AuthorizationForResourceRequest returns a set of HTTP header fields to inject in to HTTP requests
@@ -88,7 +88,7 @@ func (client *ImplicitClient) AuthorizationForResourceRequest(
 	session *ImplicitClientSessionData,
 	getBody func() io.Reader,
 ) (http.Header, error) {
-	return authorizationForResourceRequest(client.extensionRegistry, nil, session, getBody)
+	return authorizationForResourceRequest(&client.extensionRegistry, nil, session, getBody)
 }
 
 // AuthorizationForResourceRequest returns a set of HTTP header fields to inject in to HTTP requests
@@ -108,7 +108,7 @@ func (client *ResourceOwnerPasswordCredentialsClient) AuthorizationForResourceRe
 	session *ResourceOwnerPasswordCredentialsClientSessionData,
 	getBody func() io.Reader,
 ) (http.Header, error) {
-	return authorizationForResourceRequest(client.extensionRegistry, &client.explicitClient, session, getBody)
+	return authorizationForResourceRequest(&client.extensionRegistry, &client.explicitClient, session, getBody)
 }
 
 // AuthorizationForResourceRequest returns a set of HTTP header fields to inject in to HTTP requests
@@ -128,5 +128,5 @@ func (client *ClientCredentialsClient) AuthorizationForResourceRequest(
 	session *ClientCredentialsClientSessionData,
 	getBody func() io.Reader,
 ) (http.Header, error) {
-	return authorizationForResourceRequest(client.extensionRegistry, &client.explicitClient, session, getBody)
+	return authorizationForResourceRequest(&client.extensionRegistry, &client.explicitClient, session, getBody)
 }

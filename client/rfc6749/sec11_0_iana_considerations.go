@@ -11,8 +11,15 @@ type ProtocolExtension struct {
 	AccessTokenTypes []AccessTokenType
 }
 
+func (registry *extensionRegistry) ensureInitialized() {
+	if registry.accessTokenTypes == nil {
+		registry.accessTokenTypes = make(map[string]AccessTokenType)
+	}
+}
+
 // RegisterProtocolExtensions adds support for an OAuth ProtocolExtension to the Client.
-func (registry extensionRegistry) RegisterProtocolExtensions(exts ...ProtocolExtension) {
+func (registry *extensionRegistry) RegisterProtocolExtensions(exts ...ProtocolExtension) {
+	registry.ensureInitialized()
 	for _, ext := range exts {
 		for _, tokenType := range ext.AccessTokenTypes {
 			registry.registerAccessTokenType(tokenType)
