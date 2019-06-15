@@ -285,7 +285,7 @@ def v2filter_authv1(auth: IRAuth, v2config: 'V2Config'):
                             'patterns': allowed_authorization_headers
                         }
                     }
-                }
+                },
             }
         }
 
@@ -307,7 +307,6 @@ def v2filter_authv1(auth: IRAuth, v2config: 'V2Config'):
         if body_info:
             auth_info['config']['with_request_body'] = body_info
 
-        print(auth.status_on_error)
         if auth.retry_policy:
             auth_info['config']["retry_policy"] = auth.retry_policy.as_dict()
 
