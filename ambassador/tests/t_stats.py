@@ -22,8 +22,10 @@ spec:
     spec:
       containers:
       - name: {0}
-        image: hopsoft/graphite-statsd:v0.9.15-phusion0.9.18
-      restartPolicy: Always
+        image: dwflynn/stats-test:0.1.0
+        env:
+        - name: STATSD_TEST_CLUSTER
+          value: cluster_http___statsdtest_http
 ---
 apiVersion: v1
 kind: Service
@@ -35,10 +37,12 @@ spec:
   ports:
   - protocol: UDP
     port: 8125
+    targetPort: 8125
     name: statsd-metrics
   - protocol: TCP
     port: 80
-    name: graphite-www
+    targetPort: 3000
+    name: statsd-www
   selector:
     service: {0}
 """
@@ -59,12 +63,10 @@ spec:
     spec:
       containers:
       - name: {0}
-        image: patricksanders/statsdebug:0.1.0
-        ports:
-        - containerPort: 8080
-        - containerPort: 8125
-          protocol: UDP
-      restartPolicy: Always
+        image: dwflynn/stats-test:0.1.0
+        env:
+        - name: STATSD_TEST_CLUSTER
+          value: cluster_http___dogstatsdtest_http
 ---
 apiVersion: v1
 kind: Service
@@ -76,11 +78,12 @@ spec:
   ports:
   - protocol: UDP
     port: 8125
-    name: statsdebug-statsd
+    targetPort: 8125
+    name: statsd-metrics
   - protocol: TCP
     port: 80
-    targetPort: 8080
-    name: statsdebug-http
+    targetPort: 3000
+    name: statsd-www
   selector:
     service: {0}
 """
@@ -104,42 +107,19 @@ class StatsdTest(AmbassadorTest):
     def config(self):
         yield self.target, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: ambassador/v1
 kind:  Mapping
 name:  {self.name}
 prefix: /{self.name}/
 service: http://{self.target.path.fqdn}
-""")
-
-    def queries(self):
-        for i in range(1000):
-            yield Query(self.url(self.name + "/"), phase=1)
-
-        yield Query("http://statsd-sink/render?format=json&target=summarize(stats_counts.envoy.cluster.cluster_http___statsdtest_http.upstream_rq_200,'1hour','sum',true)&from=-1hour", phase=2)
-
-    def check(self):
-        assert 0 < self.results[-1].json[0]['datapoints'][0][0] <= 1000
-
-
-class PrometheusTest(AmbassadorTest):
-    def init(self):
-        self.target = HTTP()
-        if DEV:
-            self.skip_node = True
-
-    def manifests(self) -> str:
-        envs = ""
-        return self.format(RBAC_CLUSTER_SCOPE + AMBASSADOR, image=os.environ["AMBASSADOR_DOCKER_IMAGE"],
-                           envs=envs, extra_ports="")
-
-    def config(self):
-        yield self.target, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: ambassador/v1
 kind:  Mapping
-name:  {self.name}
-prefix: /{self.name}/
-service: http://{self.target.path.fqdn}
+name:  {self.name}-reset
+case_sensitive: false
+prefix: /reset/
+rewrite: /RESET/
+service: statsd-sink
 ---
 apiVersion: ambassador/v0
 kind:  Mapping
@@ -149,17 +129,30 @@ rewrite: /metrics
 service: http://127.0.0.1:8877
 """)
 
+    def requirements(self):
+        yield ("url", Query(self.url("RESET/")))
+
     def queries(self):
         for i in range(1000):
             yield Query(self.url(self.name + "/"), phase=1)
 
+        yield Query("http://statsd-sink/DUMP/", phase=2, debug=True)
         yield Query(self.url("metrics"), phase=2)
 
     def check(self):
+        stats = self.results[-2].json or {}
+
+        cluster_stats = stats.get('cluster_http___statsdtest_http', {})
+        rq_total = cluster_stats.get('upstream_rq_total', -1)
+        rq_200 = cluster_stats.get('upstream_rq_200', -1)
+
+        assert rq_total == 1000, f'expected 1000 total calls, got {rq_total}'
+        assert rq_200 > 990, f'expected 1000 successful calls, got {rq_200}'
+
         metrics = self.results[-1].text
         wanted_metric = 'envoy_cluster_internal_upstream_rq'
         wanted_status = 'envoy_response_code="200"'
-        wanted_cluster_name = 'envoy_cluster_name="cluster_http___prometheustest_http'
+        wanted_cluster_name = 'envoy_cluster_name="cluster_http___statsdtest_http'
 
         for line in metrics.split("\n"):
             if wanted_metric in line and wanted_status in line and wanted_cluster_name in line:
@@ -194,15 +187,31 @@ kind:  Mapping
 name:  {self.name}
 prefix: /{self.name}/
 service: http://{self.target.path.fqdn}
+---
+apiVersion: ambassador/v1
+kind:  Mapping
+name:  {self.name}-reset
+case_sensitive: false
+prefix: /reset/
+rewrite: /RESET/
+service: dogstatsd-sink
 """)
+
+    def requirements(self):
+        yield ("url", Query(self.url("RESET/")))
 
     def queries(self):
         for i in range(1000):
             yield Query(self.url(self.name + "/"), phase=1)
 
-        yield Query("http://dogstatsd-sink/all", phase=2)
+        yield Query("http://dogstatsd-sink/DUMP/", phase=2, debug=True)
 
     def check(self):
-        # If we have a envoy.http.downstream_rq_total metric, we can safely
-        # assume that envoy is sending dogstatsd.
-        assert 0 < self.results[-1].json['envoy.http.downstream_rq_total'] <= 1000
+        stats = self.results[-1].json or {}
+
+        cluster_stats = stats.get('cluster_http___dogstatsdtest_http', {})
+        rq_total = cluster_stats.get('upstream_rq_total', -1)
+        rq_200 = cluster_stats.get('upstream_rq_200', -1)
+
+        assert rq_total == 1000, f'expected 1000 total calls, got {rq_total}'
+        assert rq_200 > 990, f'expected 1000 successful calls, got {rq_200}'
