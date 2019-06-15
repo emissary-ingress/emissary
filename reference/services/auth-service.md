@@ -25,8 +25,12 @@ allowed_authorization_headers:
 include_body:
   max_bytes: 4096
   allow_partial: true
-status_on_error: 403
+status_on_error: 
+  code: 503
 failure_mode_allow: false
+retry_policy:
+  retry_on: "5xx"
+  num_retries: 2
 ```
 
 - `proto` (optional) specifies the protocol to use when communicating with the auth service. Valid options are `http` (default) or `grpc`.
@@ -56,7 +60,8 @@ failure_mode_allow: false
 
 - `allow_request_body` is deprecated. It is exactly equivalent to `include_body` with `max_bytes` 4096 and `allow_partial` true.
 
-- `status_on_error` (optional) status code returned when unable to communicate with auth service. Defaults to 403
+- `status_on_error` (optional) status code returned when unable to communicate with auth service. 
+    * `code` Defaults to 403
 
 - `failure_mode_allow` (optional) if requests should be allowed on auth service failure. Defaults to false
 
