@@ -72,7 +72,7 @@ class AmbassadorTest(Test):
     configs: Dict[str, str] = {}                # configuration elements
     namespaces: List[str] = []                  # list of namespaces to create
     extra_ports: Optional[List[int]] = None     # list of additional ports to expose
-    extra_pods: Dict[str, dict] = {}            # list of additional pods to create
+    upstreams: Dict[str, dict] = {}            # list of additional pods to create
     debug_diagd: bool = False                   # should we debug diagd?
 
     _environ: Dict[str, str] = {}   # __init__ builds up the full environment here
@@ -124,8 +124,8 @@ metadata:
 
         epods = ''
 
-        if self.extra_pods:
-            for pod_name, pod_info in self.extra_pods.items():
+        if self.upstreams:
+            for pod_name, pod_info in self.upstreams.items():
                 pod_def = {
                     'apiVersion': 'v1',
                     'kind': 'Pod',

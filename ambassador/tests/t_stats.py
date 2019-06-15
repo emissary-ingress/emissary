@@ -37,7 +37,7 @@ service: http://127.0.0.1:8877
 '''
     }
 
-    extra_pods = {
+    upstreams = {
         'statsdtest-statsd': {
             'image': 'dwflynn/stats-test:0.1.0',
             'envs': {
@@ -113,7 +113,7 @@ service: dogstatsdtest-statsd
 '''
     }
 
-    extra_pods = {
+    upstreams = {
         'dogstatsdtest-statsd': {
             'image': 'dwflynn/stats-test:0.1.0',
             'envs': {

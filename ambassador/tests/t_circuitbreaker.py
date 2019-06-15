@@ -12,7 +12,7 @@ class CircuitBreakingTest(AmbassadorTest):
         'STATSD_HOST': 'circuitbreakertest-statsd'
     }
 
-    extra_pods = {
+    upstreams = {
         'circuitbreakertest-statsd': {
             'image': 'dwflynn/stats-test:0.1.0',
             'envs': {
