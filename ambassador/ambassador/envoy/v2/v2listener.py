@@ -238,9 +238,6 @@ def v2filter_authv1(auth: IRAuth, v2config: 'V2Config'):
             'allow_partial': True
         }
 
-    status_on_error =  auth.get('status_on_error', 403)
-    failure_mode_allow =  auth.get('failure_mode_allow', False)
-
     body_info: Optional[Dict[str, int]] = None
 
     if raw_body_info:
@@ -287,10 +284,8 @@ def v2filter_authv1(auth: IRAuth, v2config: 'V2Config'):
                         'allowed_client_headers': {
                             'patterns': allowed_authorization_headers
                         }
-                    },
-                    'status_on_error': status_on_error,
-                    'failure_mode_allow': failure_mode_allow
-                },
+                    }
+                }
             }
         }
 
@@ -304,15 +299,24 @@ def v2filter_authv1(auth: IRAuth, v2config: 'V2Config'):
                     },
                     'timeout': "%0.3fs" % (float(auth.timeout_ms) / 1000.0)
                 },
-                'use_alpha': True,
-                'status_on_error': status_on_error,
-                'failure_mode_allow': failure_mode_allow
+                'use_alpha': True
             }
         }
 
     if auth_info:
         if body_info:
             auth_info['config']['with_request_body'] = body_info
+
+        print(auth.status_on_error)
+        if auth.retry_policy:
+            auth_info['config']["retry_policy"] = auth.retry_policy.as_dict()
+
+        if auth.failure_mode_allow:
+            auth_info['config']["failure_mode_allow"] = auth.failure_mode_allow
+        
+        if auth.status_on_error:
+            status_on_error: Optional[Dict[str, int]] = auth.get('status_on_error')
+            auth_info['config']["status_on_error"] = status_on_error
 
         return auth_info
 

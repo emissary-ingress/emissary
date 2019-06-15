@@ -7,6 +7,7 @@ from ..resource import Resource
 
 from .irfilter import IRFilter
 from .ircluster import IRCluster
+from .irretrypolicy import IRRetryPolicy
 
 if TYPE_CHECKING:
     from .ir import IR
@@ -121,11 +122,15 @@ class IRAuth (IRFilter):
         self["proto"] = module.get("proto", "http")
         self["timeout_ms"] = module.get("timeout_ms", 5000)
         self["connect_timeout_ms"] = module.get("connect_timeout_ms", 3000)
-        self["status_on_error"] = module.get("status_on_error", 403)
-        self["failure_mode_allow"] = module.get("failure_mode_allow", False)
+        self["status_on_error"] = module.get("status_on_error", None)
+        self["failure_mode_allow"] = module.get("failure_mode_allow", None)
+        self["retry_policy"] = module.get("retry_policy", None)
         self.__to_header_list('allowed_headers', module)
         self.__to_header_list('allowed_request_headers', module)
         self.__to_header_list('allowed_authorization_headers', module)
+
+        if not self["retry_policy"] == None:
+            self["retry_policy"] = IRRetryPolicy(ir=self.ir, aconf=self.ir.aconf, **self["retry_policy"])
 
         # Required fields check.
         if self["api_version"] == None:
