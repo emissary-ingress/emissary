@@ -46,7 +46,7 @@
                 "code": { "type": "int" }
             }
         },
-        "failure_mode_allow": { "type": "string", "boolean" }
+        "failure_mode_allow": { "type": "boolean" },
         "retry_policy": {
             "type": "object",
             "properties": {
