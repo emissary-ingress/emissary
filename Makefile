@@ -10,7 +10,6 @@ test.cov: build
 lint: test
 	@{ r=0; PS4=; set -x; \
 	golangci-lint run ./... || r=$$?; \
-	go list ./... | xargs golint -set_exit_status || r=$$?; \
 	unused -exported ./... || r=$$?; \
 	}; exit $$r
 .PHONY: build test lint

@@ -92,7 +92,7 @@ func (client *explicitClient) postForm(form url.Values) (TokenResponse, error) {
 	if err != nil {
 		return TokenResponse{}, err
 	}
-	defer res.Body.Close()
+	defer func() { _ = res.Body.Close() }()
 
 	return parseTokenResponse(res)
 }

@@ -8,8 +8,7 @@ linters:
     - lll
     - gochecknoglobals
     - gochecknoinits
-    # Integrations with golint and unused are buggy; run them separately/manually
-    - golint
+    # Integration with unused is buggy; run it separately/manually
     - unused
 linters-settings:
   unused:
@@ -22,6 +21,7 @@ linters-settings:
     line-length: 100 # mimic gofmt's go/printer.printer.funcBody().maxSize
     tab-width: 8 # mimic gofmt's cmd/gofmt.tabWidth
 issues:
+  exclude-use-default: false
   exclude-rules:
     - linters: [gocritic]
       text: "elseif: can replace 'else {if cond {}}' with 'else if cond {}'"
