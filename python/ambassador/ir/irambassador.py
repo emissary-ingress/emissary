@@ -44,6 +44,7 @@ class IRAmbassador (IRResource):
         'envoy_log_format',
         'envoy_log_path',
         'envoy_log_type',
+        'forward_client_cert_details',
         # Do not include envoy_validation_timeout; we let finalize() type-check it.
         # Do not include ip_allow or ip_deny; we let finalize() type-check them.
         'keepalive',
@@ -61,6 +62,7 @@ class IRAmbassador (IRResource):
         'header_case_overrides',
         'server_name',
         'service_port',
+        'set_current_client_cert_details',
         'statsd',
         'use_ambassador_namespace_for_service_resolution',
         'use_proxy_proto',
