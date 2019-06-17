@@ -11,8 +11,6 @@ from abstract_tests import MappingTest, OptionTest, ServiceType, Node, Test
 
 
 class TracingTest(AmbassadorTest):
-    # debug = True
-
     def init(self):
         self.target = HTTP()
         # self.with_tracing = AmbassadorTest(name="ambassador-with-tracing")
@@ -89,7 +87,8 @@ driver: zipkin
         # yield Query(self.no_tracing.url("target/"))
 
         for i in range(100):
-            yield Query(self.url("target/"), phase=1)
+              yield Query(self.url("target/"), phase=1)
+
 
         # ...then ask the Zipkin for services and spans. Including debug=True in these queries
         # is particularly helpful.
@@ -117,7 +116,7 @@ driver: zipkin
 # This test asserts that the external authorization server receives the proper tracing
 # headers when Ambassador is configured with an HTTP AuthService.
 class TracingExternalAuthTest(AmbassadorTest):
-
+    
     def init(self):
         self.target = HTTP()
         self.auth = AHTTP(name="auth")
@@ -128,10 +127,10 @@ class TracingExternalAuthTest(AmbassadorTest):
 apiVersion: v1
 kind: Service
 metadata:
-  name: zipkin
+  name: zipkin-auth
 spec:
   selector:
-    app: zipkin
+    app: zipkin-auth
   ports:
   - port: 9411
     name: http
@@ -141,7 +140,7 @@ spec:
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: zipkin
+  name: zipkin-auth
 spec:
   replicas: 1
   strategy:
@@ -149,10 +148,10 @@ spec:
   template:
     metadata:
       labels:
-        app: zipkin
+        app: zipkin-auth
     spec:
       containers:
-      - name: zipkin
+      - name: zipkin-auth
         image: openzipkin/zipkin
         imagePullPolicy: Always
         ports:
@@ -174,8 +173,8 @@ service: {self.target.path.fqdn}
 ---
 apiVersion: ambassador/v0
 kind: TracingService
-name: tracing
-service: zipkin:9411
+name: tracing-auth
+service: zipkin-auth:9411
 driver: zipkin
 """)
 
@@ -193,10 +192,10 @@ allowed_headers:
 
     def requirements(self):
         yield from super().requirements()
-        yield ("url", Query("http://zipkin:9411/api/v2/services"))
+        yield ("url", Query("http://zipkin-auth:9411/api/v2/services"))
 
     def queries(self):
-        yield Query(self.url("target/"), headers={"Requested-Status": "200"}, expected=200, phase=1)
+        yield Query(self.url("target/"), headers={"Requested-Status": "200"}, expected=200)
 
     def check(self):
         extauth_res = json.loads(self.results[0].headers["Extauth"][0])
