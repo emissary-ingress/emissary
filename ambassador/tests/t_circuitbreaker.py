@@ -50,10 +50,12 @@ class CircuitBreakingTest(AmbassadorTest):
         envs = """
     - name: STATSD_ENABLED
       value: 'true'
+    - name: STATSD_HOST
+      value: 'cbstatsd-sink'
 """
 
         return self.format(RBAC_CLUSTER_SCOPE + AMBASSADOR, image=os.environ["AMBASSADOR_DOCKER_IMAGE"],
-                           envs=envs, extra_ports="") + GRAPHITE_CONFIG.format('statsd-sink')
+                           envs=envs, extra_ports="") + GRAPHITE_CONFIG.format('cbstatsd-sink')
 
     def config(self):
         yield self, self.format("""
@@ -75,7 +77,7 @@ circuit_breakers:
             yield Query(self.url(self.name) + '-pr/200?sleep=1000', ignore_result=True, phase=1)
 
         for i in range(20):
-            yield Query("http://statsd-sink/render?format=json&target=summarize(stats.envoy.cluster.cluster_httpstat_us.upstream_rq_pending_overflow,'1hour','sum',true)&from=-1hour", phase=2, ignore_result=True)
+            yield Query("http://cbstatsd-sink/render?format=json&target=summarize(stats.envoy.cluster.cluster_httpstat_us.upstream_rq_pending_overflow,'1hour','sum',true)&from=-1hour", phase=2, ignore_result=True)
 
     def check(self):
 
