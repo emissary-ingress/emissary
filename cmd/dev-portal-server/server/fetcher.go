@@ -141,6 +141,7 @@ func httpGet(url string, internalSecret string, logger *log.Entry) ([]byte, erro
 		return nil, err
 	}
 	req.Header.Set("X-Ambassador-Internal-Auth", internalSecret)
+	req.Close = true
 
 	response, err := client.Do(req)
 	if err != nil {
