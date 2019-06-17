@@ -44,9 +44,13 @@
                     "enabled": true,
                     "secret": "test-clientcert-client-secret"
                 },
+                "forward_client_cert_details": "SANITIZE_SET",
                 "server": {
                     "enabled": true,
                     "secret": "test-clientcert-server-secret"
+                },
+                "set_current_client_cert_details": {
+                    "subject": true
                 }
             },
             "kind": "Module",
@@ -59,7 +63,7 @@
             "name": "tls",
             "namespace": "default",
             "rkey": "clientcertificateauthentication.default.1",
-            "serialization": "_force_validation: true\nambassador_id: clientcertificateauthentication\napiVersion: ambassador/v0\nconfig:\n  client:\n    cert_required: true\n    enabled: true\n    secret: test-clientcert-client-secret\n  server:\n    enabled: true\n    secret: test-clientcert-server-secret\nkind: Module\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: clientcertificateauthentication\n  scope: AmbassadorTest\nname: tls\nnamespace: default\n"
+            "serialization": "_force_validation: true\nambassador_id: clientcertificateauthentication\napiVersion: ambassador/v0\nconfig:\n  client:\n    cert_required: true\n    enabled: true\n    secret: test-clientcert-client-secret\n  forward_client_cert_details: SANITIZE_SET\n  server:\n    enabled: true\n    secret: test-clientcert-server-secret\n  set_current_client_cert_details:\n    subject: true\nkind: Module\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: clientcertificateauthentication\n  scope: AmbassadorTest\nname: tls\nnamespace: default\n"
         },
         "clientcertificateauthentication.default.2": {
             "_referenced_by": {},
@@ -189,6 +193,7 @@
                 "enabled": true,
                 "secret": "test-clientcert-client-secret"
             },
+            "forward_client_cert_details": "SANITIZE_SET",
             "kind": "Module",
             "metadata_labels": {
                 "app.kubernetes.io/component": "ambassador-service",
@@ -200,6 +205,9 @@
             "server": {
                 "enabled": true,
                 "secret": "test-clientcert-server-secret"
+            },
+            "set_current_client_cert_details": {
+                "subject": true
             }
         }
     },

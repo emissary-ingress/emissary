@@ -40,6 +40,7 @@ class IRAmbassador (IRResource):
         # Do not include envoy_validation_timeout; we let finalize() type-check it.
         'enable_ipv4',
         'cluster_idle_timeout_ms',
+        'forward_client_cert_details',
         'listener_idle_timeout_ms',
         'liveness_probe',
         'load_balancer',
@@ -52,6 +53,7 @@ class IRAmbassador (IRResource):
         'debug_mode',
         'server_name',
         'service_port',
+        'set_current_client_cert_details',
         'statsd',
         'use_proxy_proto',
         'use_remote_address',

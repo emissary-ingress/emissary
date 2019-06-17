@@ -816,6 +816,12 @@ class V2Listener(dict):
         if 'preserve_external_request_id' in self.config.ir.ambassador_module:
             self.base_http_config["preserve_external_request_id"] = self.config.ir.ambassador_module.preserve_external_request_id
 
+        if 'forward_client_cert_details' in self.config.ir.ambassador_module:
+            self.base_http_config["forward_client_cert_details"] = self.config.ir.ambassador_module.forward_client_cert_details
+
+        if 'set_current_client_cert_details' in self.config.ir.ambassador_module:
+            self.base_http_config["set_current_client_cert_details"] = self.config.ir.ambassador_module.set_current_client_cert_details
+
         if self.config.ir.tracing:
             self.base_http_config["generate_request_id"] = True
 

@@ -178,10 +178,13 @@ data:
         yield self, self.format("""
 ---
 apiVersion: ambassador/v0
-kind:  Module
+kind: Module
 ambassador_id: {self.ambassador_id}
 name: tls
 config:
+  forward_client_cert_details: SANITIZE_SET
+  set_current_client_cert_details:
+    subject: true
   server:
     enabled: True
     secret: test-clientcert-server-secret
@@ -204,7 +207,8 @@ service: {self.target.path.fqdn}
         return "https"
 
     def queries(self):
-        yield Query(self.url(self.name + "/"), insecure=True, client_crt=self.presto_crt, client_key=self.presto_key, client_cert_required=True, ca_cert=self.ca_cert)
+        yield Query(self.url(self.name + "/"), insecure=True,
+                    client_crt=self.presto_crt, client_key=self.presto_key, client_cert_required=True, ca_cert=self.ca_cert)
 
         # In TLS < 1.3, there's not a dedicated alert code for "the client forgot to include a certificate",
         # so we get a generic alert=40 ("handshake_failure").
@@ -222,6 +226,10 @@ service: {self.target.path.fqdn}
         # person, it's OK to replace the string "certificate required" with the correct one for alert=116.
         yield Query(self.url(self.name + "/"), insecure=True, minTLSv="v1.3",
                     error=["tls: alert(116)", "tls: certificate required", "read: connection reset"])
+
+    def check(self):
+        assert self.results[0].backend.request.headers["X-Forwarded-Client-Cert"] == \
+            ["Hash=c2d41a5977dcd28a3ba21f59ed5508cc6538defa810843d8a593e668306c8c4f;Subject=\"C=IN, ST=KA, L=Bangalore2, O=Presto, OU=Engineering, CN=presto.example.com\""]
 
     def requirements(self):
         for r in super().requirements():

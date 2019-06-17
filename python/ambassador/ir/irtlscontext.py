@@ -36,6 +36,9 @@ class IRTLSContext(IRResource):
         "redirect_cleartext_from",
         "secret_namespacing",
         "sni",
+        "verify_certificate_hash",
+        "verify_certificate_spki",
+        "match_subject_alt_names",
     }
 
     AllowedTLSVersions = ["v1.0", "v1.1", "v1.2", "v1.3"]
@@ -52,6 +55,9 @@ class IRTLSContext(IRResource):
     secret_namespacing: Optional[bool]
     secret_info: dict
     sni: Optional[str]
+    verify_certificate_hash: Optional[List[str]]
+    verify_certificate_spki: Optional[List[str]]
+    match_subject_alt_names: Optional[List[str]]
 
     is_fallback: bool
 

@@ -34,7 +34,10 @@
         "ecdh_curves": { "type": "array", "items": { "type": "string" }  },
         "secret_namespacing": { "type": "boolean" },
         "redirect_cleartext_from": { "type": "integer" },
-        "sni": { "type": "string" }
+        "sni": { "type": "string" },
+        "verify_certificate_spki": { "type": "array", "items": { "type": "string" } },
+        "verify_certificate_hash": { "type": "array", "items": { "type": "string" } },
+        "match_subject_alt_names": { "type": "array", "items": { "type": "string" } }
     },
     "required": [ "apiVersion", "kind", "name" ],
     "additionalProperties": false
