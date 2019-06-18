@@ -25,8 +25,11 @@ service: {self.target.path.fqdn}
 
     target: ServiceType
 
-    def init(self):
-        self.target = HTTP()
+    upstreams = {
+        'target': {
+            'servicetype': 'HTTP'
+        }
+    }
 
     def queries(self):
         yield Query(self.url("target/"))

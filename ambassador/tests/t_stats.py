@@ -38,6 +38,9 @@ service: http://127.0.0.1:8877
     }
 
     upstreams = {
+        'target': {
+            'servicetype': 'HTTP'
+        },
         'statsdtest-statsd': {
             'image': 'dwflynn/stats-test:0.1.0',
             'envs': {
@@ -50,9 +53,6 @@ service: http://127.0.0.1:8877
             ]
         }
     }
-
-    def init(self):
-        self.target = HTTP()
 
     def requirements(self):
         yield ("url", Query(self.url("RESET/")))
@@ -114,6 +114,9 @@ service: dogstatsdtest-statsd
     }
 
     upstreams = {
+        'target': {
+            'servicetype': 'HTTP'
+        },
         'dogstatsdtest-statsd': {
             'image': 'dwflynn/stats-test:0.1.0',
             'envs': {
@@ -125,9 +128,6 @@ service: dogstatsdtest-statsd
             ]
         }
     }
-
-    def init(self):
-        self.target = HTTP()
 
     def requirements(self):
         yield ("url", Query(self.url("RESET/")))

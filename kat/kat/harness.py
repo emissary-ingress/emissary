@@ -221,6 +221,13 @@ class Node(ABC):
         self.children = []
         if self.parent is not None:
             self.parent.children.append(self)
+
+        try:
+            init_upstreams = getattr(self, "init_upstreams", lambda *a, **kw: None)
+            init_upstreams()
+        finally:
+            _local.current = saved
+
         try:
             init = getattr(self, "init", lambda *a, **kw: None)
             init(*_argprocess(args), **_argprocess(kwargs))

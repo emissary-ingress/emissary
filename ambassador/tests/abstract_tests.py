@@ -155,6 +155,10 @@ metadata:
 
         if self.upstreams:
             for pod_name, pod_info in self.upstreams.items():
+                # Defer servicetype stuff
+                if pod_info.get('servicetype'):
+                    continue
+
                 pod_def = {
                     'apiVersion': 'v1',
                     'kind': 'Pod',
@@ -245,6 +249,23 @@ metadata:
         else:
             return self.format(base + manifests.AMBASSADOR,
                                image=os.environ["AMBASSADOR_DOCKER_IMAGE"], envs=envs, extra_ports=eports)
+
+    def init_upstreams(self):
+        if self.upstreams:
+            for pod_name, pod_info in self.upstreams.items():
+                svctype = pod_info.get('servicetype', None)
+
+                if svctype:
+                    # OK, this is us.
+                    extras = dict(pod_info)
+                    extras.pop('servicetype')
+
+                    typeclass = globals().get(svctype, None)
+
+                    if not typeclass:
+                        raise Exception(f'{self.name} wants {pod_name} of unknown type {svctype}')
+
+                    setattr(self, pod_name, typeclass(**extras))
 
     # Subclasses can override this. Of course.
     def config(self):
