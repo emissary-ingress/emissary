@@ -95,6 +95,34 @@ class AmbassadorTest(Test):
             self.skip_node = True
 
     def manifests(self) -> str:
+        crd_array = []
+        crds = ''
+
+        if self.configs:
+            crd_configs = self.format(self.configs.pop('CRD', ""))
+
+            for config in yaml.load_all(crd_configs, Loader=yaml_loader):
+                spec = dict(config)
+                api_version = spec.pop('apiVersion', None)
+                kind = spec.pop('kind', None)
+                name = spec.pop('name', None)
+
+                if not api_version or not kind or not name:
+                    raise Exception(f'{self.name}: CRD config must have apiVersion, kind, and name')
+
+                spec['ambassador_id'] = self.ambassador_id
+
+                crd_array.append({
+                    'apiVersion': api_version,
+                    'kind': kind,
+                    'metadata': {
+                        'name': name
+                    },
+                    'spec': spec
+                })
+
+            crds = '---\n' + yaml.dump_all(crd_array, Dumper=yaml_dumper)
+
         ns = ""
 
         for namespace in self.namespaces:
@@ -209,7 +237,7 @@ metadata:
       value: "{value}"
 '''
 
-        base = ns + rbac + epods
+        base = ns + rbac + epods + crds
 
         if DEV:
             return self.format(base + AMBASSADOR_LOCAL, extra_ports=eports)
