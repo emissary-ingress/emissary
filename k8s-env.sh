@@ -11,6 +11,7 @@ MODEL_CLUSTER_GRPC_AUTH_IMAGE=$(cat docker/model-cluster-grpc-auth.docker.knaut-
 MODEL_CLUSTER_HTTP_AUTH_IMAGE=$(cat docker/model-cluster-http-auth.docker.knaut-push)
 MODEL_CLUSTER_LOAD_GRPC_AUTH_IMAGE=$(cat docker/model-cluster-load-grpc-auth.docker.knaut-push)
 MODEL_CLUSTER_LOAD_HTTP_AUTH_IMAGE=$(cat docker/model-cluster-load-http-auth.docker.knaut-push)
+MODEL_CLUSTER_UAA_IMAGE=$(cat docker/model-cluster-uaa.docker.knaut-push)
 MAX_LOAD_IMAGE=$(cat docker/max-load.docker.knaut-push)
 DEV_PORTAL_IMAGE=$(cat docker/dev-portal-server.docker.knaut-push)
 INTERNAL_ACCESS_IMAGE=$(cat docker/apro-internal-access.docker.knaut-push)
@@ -60,7 +61,7 @@ IDP_OKTA_AUDIENCE=api://default
 IDP_OKTA_CLIENT_ID=${_Okta_Client_ID}
 IDP_OKTA_CLIENT_SECRET=${_Okta_Client_Secret}
 
-# 04-tenants.yaml
+# 04-filter-oauth2-azure.yaml
 # These come directly from https://portal.azure.com/#blade/Microsoft_AAD_RegisteredApps/ApplicationMenuBlade/Overview/appId/3e1ce1e1-094d-4ff5-baed-5ba99e32f809/isMSAApp/
 _Azure_Client_ID=3e1ce1e1-094d-4ff5-baed-5ba99e32f809
 _Azure_Tenant_ID=8538d7d0-9b03-40c9-b72f-378b44ed97e2
@@ -74,3 +75,9 @@ _Azure_Client_Secret='d@HzogM7321tAHXVhI]E]Lt@6.s=TEyb'
 IDP_AZURE_PROVIDER_URL=https://login.microsoftonline.com/${_Azure_Tenant_ID}/v2.0
 IDP_AZURE_CLIENT_ID=${_Azure_Client_ID}
 IDP_AZURE_CLIENT_SECRET=${_Azure_Client_Secret}
+
+# 04-filter-oauth2-uaa.yaml, 04-uaa.yaml
+# UAA is configured statically in 04-uaa.yaml
+IDP_UAA_PROVIDER_URL=http://uaa.standalone.svc.cluster.local/uaa
+IDP_UAA_CLIENT_ID=ambassador
+IDP_UAA_CLIENT_SECRET=ambassador
