@@ -263,7 +263,7 @@ metadata:
                     typeclass = globals().get(svctype, None)
 
                     if not typeclass:
-                        raise Exception(f'{self.name} wants {pod_name} of unknown type {svctype}')
+                        raise Exception(f'{self} wants {pod_name} of unknown type {svctype}')
 
                     setattr(self, pod_name, typeclass(**extras))
 

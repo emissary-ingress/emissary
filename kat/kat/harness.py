@@ -223,14 +223,11 @@ class Node(ABC):
             self.parent.children.append(self)
 
         try:
-            init_upstreams = getattr(self, "init_upstreams", lambda *a, **kw: None)
-            init_upstreams()
-        finally:
-            _local.current = saved
-
-        try:
             init = getattr(self, "init", lambda *a, **kw: None)
             init(*_argprocess(args), **_argprocess(kwargs))
+
+            init_upstreams = getattr(self, "init_upstreams", lambda: None)
+            init_upstreams()
         finally:
             _local.current = saved
 
@@ -959,7 +956,7 @@ class Runner:
                             continue
                         break
                 else:
-                    assert False, "no service found for target: %s" % target.path
+                    assert False, f'no K8s Service found for {target.path}'
 
         yaml = ""
         for v in manifests.values():
