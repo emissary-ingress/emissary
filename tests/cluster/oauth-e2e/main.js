@@ -27,6 +27,10 @@ for (idpFile of glob.sync("./idp_*.js")) {
 		let testcase = idp.testcases[testname];
 		describe(testname, function() {
 			it('can authorize requests', () => withBrowserTab(async (browsertab) => {
+				if (testcase.before) {
+					testcase.before()
+				}
+
 				const response = await browsertab.goto(testcase.resource);
 				// verify that we got redirected to the IDP
 				expect(response.request().redirectChain()).to.not.be.empty;
@@ -38,6 +42,10 @@ for (idpFile of glob.sync("./idp_*.js")) {
 				// verify that backend service received the authorization
 				const echoedRequest = JSON.parse(await browsertab.evaluate(() => {return document.body.textContent}));
 				expect(echoedRequest.headers.Authorization).to.match(/^Bearer /);
+
+				if (testcase.after) {
+					testcase.after()
+				}
 			}));
 			if (testname === "Auth0 (/httpbin)") {
 				it('can be chained with other filters', () => withBrowserTab(async (browsertab) => {

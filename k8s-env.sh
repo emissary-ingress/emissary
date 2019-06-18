@@ -81,3 +81,9 @@ IDP_AZURE_CLIENT_SECRET=${_Azure_Client_Secret}
 IDP_UAA_PROVIDER_URL=http://uaa.standalone.svc.cluster.local/uaa
 IDP_UAA_CLIENT_ID=ambassador
 IDP_UAA_CLIENT_SECRET=ambassador
+
+# 04-filter-oauth2-google.yaml
+# These come directly from https://console.developers.google.com/apis/credentials/oauthclient/863968914497-8u7d8610nhvnpdf52s3krtsqahlss5mv.apps.googleusercontent.com?project=datawireio&folder&organizationId=1023803081209
+IDP_GOOGLE_PROVIDER_URL=https://accounts.google.com/
+IDP_GOOGLE_CLIENT_ID=863968914497-8u7d8610nhvnpdf52s3krtsqahlss5mv.apps.googleusercontent.com
+IDP_GOOGLE_CLIENT_SECRET=x1LhmCCGk_5AHs3iGlRiyvOV
