@@ -92,6 +92,9 @@ class IRCluster (IRResource):
         if marker:
             name_fields.append(marker)
 
+        # Set this flag to True if you discover something that's grave enough to warrant ignoring this cluster
+        self.ignore_cluster = False
+
         self.logger = ir.logger
 
         # Toss in the original service before we mess with it, too.
@@ -169,7 +172,13 @@ class IRCluster (IRResource):
         # p is read-only, so break stuff out.
 
         hostname = p.hostname
-        port = p.port
+        try:
+            port = p.port
+        except ValueError as e:
+            errors.append("found invalid port for service {}. Please specify a valid port between 0 and 65535 - {}".format(service, e))
+            errors.append("service {} cluster will be ignored, please re-configure".format(service))
+            self.ignore_cluster = True
+            port = 0
 
         # If the port is unset, fix it up.
         if not port:
@@ -278,6 +287,9 @@ class IRCluster (IRResource):
                 ir.post_error(error, resource=self)
 
     def setup(self, ir: 'IR', aconf: Config) -> bool:
+        if self.ignore_cluster:
+            return False
+
         # Resolve our actual targets.
         targets = ir.resolve_targets(self, self._resolver, self._hostname, self._port)
 
