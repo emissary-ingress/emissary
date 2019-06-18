@@ -10,6 +10,26 @@ This guide goes over considerations that must be made when using these annotatio
 
 **Note:** By default `type: LoadBalancer` will deploy an Elastic Load Balancer (ELB) running in L4 mode. This is typically enough for most users and the configuration options laid out below are not required.
 
+## AWS load balancer notes
+
+AWS provides three types of load balancers:
+
+* "Classic" Load Balancer (abbreviated ELB or CLB, sometimes referred to as ELBv1 or Elastic Load Balancer)
+  * Supports L4 (TCP, TCP+SSL) and L7 load balancing (HTTP 1.1, HTTPS 1.1)
+  * Does not support WebSockets unless running in L4 mode
+  * Does not support HTTP 2 (which is required for GRPC) unless running in L4 mode
+  * Can perform SSL/TLS offload
+* Application Load Balancer (abbreviated ALB, sometimes referred to as ELBv2)
+  * Supports L7 only
+  * Supports WebSockets
+  * Supports a broken implementation of HTTP2 (trailers are not supported and these are needed for GRPC)
+  * Can perform SSL/TLS offload
+* Network Load Balancer (abbreviated NLB)
+  * Supports L4 only
+  * Cannot perform SSL/TLS offload
+
+In Kubernetes, when using the AWS integration and a service of type `LoadBalancer`, the only types of load balancers that can be created are ELBs and NLBs (in Kubernetes 1.9 and later). When `aws-load-balancer-backend-protocol` is set to `tcp`, AWS will create a L4 ELB. When `aws-load-balancer-backend-protocol` is set to `http`, AWS will create a L7 ELB.
+
 ## Load Balancer Annotations
 
 There are a number of `aws-load-balancer` annotations that can be configured in the Ambassador service to control the AWS load balancer it deploys. You can view all of them in the [Kubernetes documentation](https://kubernetes.io/docs/concepts/cluster-administration/cloud-providers/#load-balancers). This document will go over the subset that is most relevant when deploying Ambassador.
@@ -111,30 +131,10 @@ service:
 
 Install with: 
 ```
-helm install --name ambassador -f values.aws.yaml stable/ambassador
+helm install --name ambassador stable/ambassador
 ```
 
 In this configuration, an ELB is deployed with a multi-domain AWS Certificate Manager certificate. The ELB is configured to route in L7 mode, which means only HTTP(S) traffic is supported, and not web sockets. TLS termination occurs at the ELB. Automatic redirection of HTTP to HTTPS is enabled. Downstream services can extract the client IP from the `X-FORWARDED-FOR` header
-
-## Ambassador and AWS load balancer notes
-
-AWS provides three types of load balancers:
-
-* "Classic" Load Balancer (abbreviated ELB or CLB, sometimes referred to as ELBv1 or Elastic Load Balancer)
-  * Supports L4 (TCP, TCP+SSL) and L7 load balancing (HTTP 1.1, HTTPS 1.1)
-  * Does not support WebSockets unless running in L4 mode
-  * Does not support HTTP 2 (which is required for GRPC) unless running in L4 mode
-  * Can perform SSL/TLS offload
-* Application Load Balancer (abbreviated ALB, sometimes referred to as ELBv2)
-  * Supports L7 only
-  * Supports WebSockets
-  * Supports a broken implementation of HTTP2 (trailers are not supported and these are needed for GRPC)
-  * Can perform SSL/TLS offload
-* Network Load Balancer (abbreviated NLB)
-  * Supports L4 only
-  * Cannot perform SSL/TLS offload
-
-In Kubernetes, when using the AWS integration and a service of type `LoadBalancer`, the only types of load balancers that can be created are ELBs and NLBs (in Kubernetes 1.9 and later). When `aws-load-balancer-backend-protocol` is set to `tcp`, AWS will create a L4 ELB. When `aws-load-balancer-backend-protocol` is set to `http`, AWS will create a L7 ELB.
 
 ## TLS Termination
 
