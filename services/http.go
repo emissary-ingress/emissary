@@ -3,12 +3,12 @@ package services
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 	"strconv"
 	"strings"
-	"io/ioutil"
 )
 
 // HTTP server object (all fields are required).
@@ -118,7 +118,9 @@ func (h *HTTP) handler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if b, _ := ioutil.ReadAll(r.Body); b != nil {
-		w.Header()[http.CanonicalHeaderKey("Auth-Request-Body")] = []string{string(b)}
+		body := string(b)
+		log.Printf("received body: %s", body)
+		w.Header()[http.CanonicalHeaderKey("Auth-Request-Body")] = []string{body}
 	}
 	defer r.Body.Close()
 
