@@ -208,7 +208,7 @@ class Topology:
             for k, v in _env.items():
                 node_environment[k] = n.format(v)
 
-        print(f'...{n.name}')
+        # print(f'...{n.name}')
 
         cfgs = formatted_config(n, configs, 'self')
         crds = formatted_config(n, configs, 'CRD')
@@ -237,7 +237,7 @@ class Topology:
             if target:
                 target_name = target.path.k8s
 
-            print(f'    {target_name}: {pod_info}')
+            # print(f'    {target_name}: {pod_info}')
 
             svctype = pod_info.get('servicetype', None)
 
