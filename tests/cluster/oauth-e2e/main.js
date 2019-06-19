@@ -26,7 +26,7 @@ for (idpFile of glob.sync("./idp_*.js")) {
 	for (const testname in idp.testcases) {
 		let testcase = idp.testcases[testname];
 		describe(testname, function() {
-			it('can authorize requests', () => withBrowserTab(async (browsertab) => {
+			it('can authorize requests', function() { return withBrowserTab(async (browsertab) => {
 				if (testcase.before) {
 					testcase.before();
 				}
@@ -36,7 +36,7 @@ for (idpFile of glob.sync("./idp_*.js")) {
 					expect(response.request().redirectChain()).to.not.be.empty;
 					expect((new URL(browsertab.url())).hostname).to.not.contain((new URL(testcase.resource)).hostname);
 					// authenticate to the IDP
-					await idp.authenticate(browsertab, testcase.username, testcase.password);
+					await idp.authenticate(browsertab, testcase.username, testcase.password, () => {this.skip();});
 					// verify that we got redirected properly
 					expect(browsertab.url()).to.equal(testcase.resource);
 					// verify that backend service received the authorization
@@ -47,9 +47,9 @@ for (idpFile of glob.sync("./idp_*.js")) {
 						testcase.after();
 					}
 				}
-			}));
+			});});
 			if (testname === "Auth0 (/httpbin)") {
-				it('can be chained with other filters', () => withBrowserTab(async (browsertab) => {
+				it('can be chained with other filters', function() { return withBrowserTab(async (browsertab) => {
 					// this is mostly the same as the 'can authorize requests' test, but has more at the end
 
 					const response = await browsertab.goto(testcase.resource);
@@ -57,7 +57,7 @@ for (idpFile of glob.sync("./idp_*.js")) {
 					expect(response.request().redirectChain()).to.not.be.empty;
 					expect((new URL(browsertab.url())).hostname).to.not.contain((new URL(testcase.resource)).hostname);
 					// authenticate to the IDP
-					await idp.authenticate(browsertab, testcase.username, testcase.password);
+					await idp.authenticate(browsertab, testcase.username, testcase.password, () => {this.skip();});
 					// verify that we got redirected properly
 					expect(browsertab.url()).to.equal(testcase.resource);
 					// verify that backend service received the authorization
@@ -66,15 +66,15 @@ for (idpFile of glob.sync("./idp_*.js")) {
 
 					// this is the extra bit at the end
 					expect(echoedRequest.headers['X-Wikipedia']).to.not.be.undefined
-				}));
-				it('can be turned off for specific paths', () => withBrowserTab(async (browsertab) => {
+				});});
+				it('can be turned off for specific paths', function() { return withBrowserTab(async (browsertab) => {
 					const response = await browsertab.goto((new URL("ip", testcase.resource)).toString())
 					// verify that there were no redirects
 					expect(response.request().redirectChain()).to.be.empty;
 					// verify that the response looks correct
 					const responseBody = JSON.parse(await browsertab.evaluate(() => {return document.body.textContent}));
 					expect(responseBody.origin).to.be.a('string');
-				}));
+				});});
 			}
 		});
 	}

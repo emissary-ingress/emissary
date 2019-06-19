@@ -13,7 +13,8 @@ module.exports.testcases = {
 	},
 };
 
-module.exports.authenticate = async function(browsertab, username, password) {
+// This is a private variable instead of 'module.exports.authenticate' so we can wrap it below.
+const authenticate = async function(browsertab, username, password) {
 	// page 1: Username
 	await browsertab.waitForSelector('input[type="email"]', { visible: true });
 	await browsertab.waitForSelector('[role="button"]#identifierNext', { visible: true });
@@ -31,4 +32,13 @@ module.exports.authenticate = async function(browsertab, username, password) {
 	});
 	await browsertab.click('[role="button"]#passwordNext');
 	await done;
+};
+
+module.exports.authenticate = function(browsertab, username, password, skipfn) {
+	return Promise.race([
+		// If at any point it decides to show us a Captcha, just skip the test :-/
+		browsertab.waitForSelector('img#captchaimg', { visible: true }).then(() => {skipfn();}),
+		// otherwise, authenticate as normal.
+		authenticate(browsertab, username, password),
+	]);
 };
