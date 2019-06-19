@@ -413,9 +413,9 @@ func (j *OAuth2Filter) validateJWT(claims jwt.MapClaims, discovered *Discovered,
 	}
 
 	// Validate 'aud' claim.
-	if !claims.VerifyAudience(j.Spec.Audience, false) {
-		return errors.Errorf("token has wrong audience: token=%#v expected=%q", claims["aud"], j.Spec.Audience)
-	}
+	//if !claims.VerifyAudience(j.Spec.Audience, false) {
+	//	return errors.Errorf("token has wrong audience: token=%#v expected=%q", claims["aud"], j.Spec.Audience)
+	//}
 
 	// Validate 'iss' claim.
 	if !claims.VerifyIssuer(discovered.Issuer, false) {
