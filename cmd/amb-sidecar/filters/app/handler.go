@@ -134,6 +134,7 @@ func (c *FilterMux) filter(ctx context.Context, request *filterapi.FilterRequest
 				PrivateKey: c.PrivateKey,
 				PublicKey:  c.PublicKey,
 				RedisPool:  c.RedisPool,
+				QName:      filterQName,
 				Spec:       filterCRD,
 			}
 			if err := mapstructure.Convert(filterRef.Arguments, &_filterImpl.Arguments); err != nil {

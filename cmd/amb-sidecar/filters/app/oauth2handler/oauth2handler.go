@@ -31,9 +31,6 @@ import (
 )
 
 const (
-	// AccessTokenCookie cookie's name
-	accessTokenCookie = "ambassador_session"
-
 	// How long Redis should remember sessions for, since "last use".
 	sessionExpiry = 365 * 24 * time.Hour
 )
@@ -46,8 +43,13 @@ type OAuth2Filter struct {
 	PrivateKey *rsa.PrivateKey
 	PublicKey  *rsa.PublicKey
 	RedisPool  *pool.Pool
+	QName      string
 	Spec       crd.FilterOAuth2
 	Arguments  crd.FilterOAuth2Arguments
+}
+
+func (c *OAuth2Filter) sessionCookieName() string {
+	return "ambassador_session." + c.QName
 }
 
 func (c *OAuth2Filter) Filter(ctx context.Context, request *filterapi.FilterRequest) (filterapi.FilterResponse, error) {
@@ -185,7 +187,7 @@ func (c *OAuth2Filter) filterClient(ctx context.Context, logger types.Logger, ht
 	case "/callback":
 		if sessionData == nil {
 			return middleware.NewErrorResponse(ctx, http.StatusForbidden,
-				errors.Errorf("no %q cookie", accessTokenCookie), nil)
+				errors.Errorf("no %q cookie", c.sessionCookieName()), nil)
 		}
 		authorizationCode, err := oauthClient.ParseAuthorizationResponse(sessionData, u)
 		if err != nil {
@@ -247,7 +249,7 @@ func (c *OAuth2Filter) filterClient(ctx context.Context, logger types.Logger, ht
 				errors.Wrap(err, "failed to generate session ID"), nil)
 		}
 		cookie := &http.Cookie{
-			Name:  accessTokenCookie,
+			Name:  c.sessionCookieName(),
 			Value: sessionID,
 
 			// Expose the cookie to all paths on this host, not just directories of {{originalURL.Path}}.
@@ -469,7 +471,7 @@ func (c *OAuth2Filter) loadSession(redisClient *redis.Client, request *filterapi
 	}
 
 	// get the sessionID from the cookie
-	cookie, err := r.Cookie(accessTokenCookie)
+	cookie, err := r.Cookie(c.sessionCookieName())
 	if cookie == nil {
 		return "", nil, err
 	}
