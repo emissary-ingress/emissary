@@ -3,7 +3,6 @@ package server
 import (
 	"crypto/tls"
 	"fmt"
-	"io/ioutil"
 	"net"
 	"net/http"
 	"strings"
@@ -14,6 +13,7 @@ import (
 
 	"github.com/datawire/apro/cmd/apro-internal-access/secret"
 	"github.com/datawire/apro/cmd/dev-portal-server/kubernetes"
+	"github.com/datawire/apro/lib/util"
 )
 
 // Add a new/updated service.
@@ -128,7 +128,7 @@ var dialer = &net.Dialer{
 	Timeout: time.Second * 2,
 }
 
-var client = &http.Client{
+var client = util.SimpleClient{Client: &http.Client{
 	Timeout: time.Second * 2,
 
 	// TODO: We should make this an explicit opt-in
@@ -137,7 +137,7 @@ var client = &http.Client{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 		Dial:            dialer.Dial,
 	},
-}
+}}
 
 func httpGet(url string, internalSecret string, logger *log.Entry) ([]byte, error) {
 	logger = logger.WithFields(log.Fields{"url": url})
@@ -150,19 +150,15 @@ func httpGet(url string, internalSecret string, logger *log.Entry) ([]byte, erro
 	req.Header.Set("X-Ambassador-Internal-Auth", internalSecret)
 	req.Close = true
 
-	response, err := client.Do(req)
-	if err != nil {
-		logger.Error(err)
-		return nil, err
-	}
-	defer response.Body.Close()
-	if response.StatusCode != 200 {
-		logger.WithFields(
-			log.Fields{"status_code": response.StatusCode}).Error(
-			"Bad HTTP response")
-		return nil, fmt.Errorf("HTTP error %d from %s", response.StatusCode, url)
-	}
-	buf, err := ioutil.ReadAll(response.Body)
+	buf, err := client.DoBodyBytes(req, func(response *http.Response, body []byte) (err error) {
+		if response.StatusCode != 200 {
+			logger.WithFields(
+				log.Fields{"status_code": response.StatusCode}).Error(
+				"Bad HTTP response")
+			err = fmt.Errorf("HTTP error %d from %s", response.StatusCode, url)
+		}
+		return
+	})
 	if err != nil {
 		logger.Error(err)
 		return nil, err
