@@ -63,8 +63,8 @@ func (scope Scope) String() string {
 	return strings.Join(strs, " ")
 }
 
-// parseScope de-serializes the set of scopes from use as a parameter, per §3.3.
-func parseScope(str string) Scope {
+// ParseScope de-serializes the set of scopes from use as a parameter, per §3.3.
+func ParseScope(str string) Scope {
 	strs := strings.Split(str, " ")
 	ret := make(Scope, len(strs))
 	for _, s := range strs {
