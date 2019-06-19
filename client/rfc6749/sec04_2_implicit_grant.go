@@ -171,7 +171,7 @@ func (client *ImplicitClient) ParseAuthorizationResponse(
 		newAccessTokenData.ExpiresAt = time.Now().Add(time.Duration(seconds * float64(time.Second)))
 	}
 	if scopes := parameters["scopes"]; len(scopes) > 0 {
-		newAccessTokenData.Scope = parseScope(scopes[0])
+		newAccessTokenData.Scope = ParseScope(scopes[0])
 	} else {
 		newAccessTokenData.Scope = session.Request.Scope
 	}

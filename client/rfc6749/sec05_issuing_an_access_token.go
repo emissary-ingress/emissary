@@ -62,7 +62,7 @@ func parseTokenResponse(res *http.Response) (TokenResponse, error) {
 			ret.RefreshToken = rawResponse.RefreshToken
 		}
 		if rawResponse.Scope != nil {
-			ret.Scope = parseScope(*rawResponse.Scope)
+			ret.Scope = ParseScope(*rawResponse.Scope)
 		}
 		return ret, nil
 	case res.StatusCode/100 == 4:
