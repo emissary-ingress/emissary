@@ -34,7 +34,16 @@ class View:
     def mode_ify(self):
         return self
 
+
 class MappingView(View, Mapping):
+    def as_python(self):
+        # This is obnoxious. Our keys and values are e.g. ScalarNodes, which aren't
+        # actually scalars but also don't have the as_python method. We have to use
+        # view(..., ViewMode.NODE) to force them to the correct View types. (You'd
+        # think maybe that'd be ViewMode.VIEW, but nope.)
+
+        return { view(k, ViewMode.NODE).as_python(): view(v, ViewMode.NODE).as_python()
+                 for k, v in self.node.value }
 
     def get(self, key, default=None):
         for k, v in self.node.value:
@@ -87,7 +96,14 @@ class MappingView(View, Mapping):
         return "{%s}" % ", ".join("%r: %r" % (view(k, ViewMode.PYTHON), view(v, ViewMode.PYTHON))
                                   for k, v in self.node.value)
 
+
 class SequenceView(View, Sequence):
+    def as_python(self):
+        # We could use 'for x in self' and let self.view() get called for us here...
+        # but self.view relies on self.mode, and nope, I want to be certain of the
+        # View types here, since I want to call .as_python() on the thing.
+
+        return [ view(x, ViewMode.NODE).as_python() for x in self.node.value ]
 
     def __getitem__(self, idx):
         return view(self.node.value[idx], self.mode)
@@ -115,6 +131,7 @@ class SequenceView(View, Sequence):
     def __repr__(self):
         return repr([v for v in self])
 
+
 PYJECTIONS = {
     Tag.INT: lambda x: int(x),
     Tag.FLOAT: lambda x: float(x),
@@ -123,7 +140,10 @@ PYJECTIONS = {
     Tag.NULL: lambda x: None
 }
 
+
 class ScalarView(View):
+    def as_python(self):
+        return PYJECTIONS[Tag(self.tag)](self.node.value)
 
     def mode_ify(self):
         if self.mode == ViewMode.PYTHON:
@@ -136,15 +156,18 @@ class ScalarView(View):
     def __repr__(self):
         return self.node.value
 
+
 VIEWS: Mapping[Type[Node], Type[View]] = {
     MappingNode: MappingView,
     SequenceNode: SequenceView,
     ScalarNode: ScalarView
 }
 
+
 def view(value: Any, mode: ViewMode) -> Any:
     nd = node(value)
     return VIEWS[type(nd)](nd, mode).mode_ify()
+
 
 COERCIONS: Mapping[Type, Callable[[Any], Node]] = {
     MappingNode: lambda n: n,
@@ -162,8 +185,10 @@ COERCIONS: Mapping[Type, Callable[[Any], Node]] = {
     dict: lambda d: MappingNode(Tag.MAPPING.value, [(node(k), node(v)) for k, v in d.items()])
 }
 
+
 def node(value: Any) -> Node:
     return COERCIONS[type(value)](value)
+
 
 def load(name: str, value: Any, *allowed: Tag) -> SequenceView:
     if isinstance(value, str):
@@ -176,11 +201,13 @@ def load(name: str, value: Any, *allowed: Tag) -> SequenceView:
                                                        r.node.tag))
     return result
 
+
 def dump(value: SequenceView):
     st = dump_all(value, default_flow_style=False)
     if not st.startswith('---'):
         st = '---\n' + st
     return st
+
 
 def view_representer(dumper, data):
     return data.node

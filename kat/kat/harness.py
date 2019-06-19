@@ -16,12 +16,13 @@ import time
 import threading
 import traceback
 
-from .manifests import BACKEND_SERVICE, SUPERPOD_POD, CRDS
-
-from yaml.scanner import ScannerError as YAMLScanError
+from .topology import Topology, Superpod
+from .manifests import BACKEND_SERVICE, CRDS
+from .parser import dump, load, Tag
 
 from multi import multi
-from .parser import dump, load, Tag
+
+from yaml.scanner import ScannerError as YAMLScanError
 
 
 def run(cmd):
@@ -675,58 +676,6 @@ def run_queries(queries: Sequence[Query]) -> Sequence[Result]:
 DOCTEST = False
 
 
-class Superpod:
-    def __init__(self, namespace: str) -> None:
-        self.namespace = namespace
-        self.next_clear = 8080
-        self.next_tls = 8443
-        self.service_names: Dict[int, str] = {}
-        self.name = 'superpod-%s' % (self.namespace or 'default')
-
-    def allocate(self, service_name) -> List[int]:
-        ports = [ self.next_clear, self.next_tls ]
-        self.service_names[self.next_clear] = service_name
-        self.service_names[self.next_tls] = service_name
-
-        self.next_clear += 1
-        self.next_tls += 1
-
-        return ports
-
-    def get_manifest_list(self) -> List[Dict[str, Any]]:
-        manifest = load('superpod', SUPERPOD_POD, Tag.MAPPING)
-
-        assert len(manifest) == 1, "SUPERPOD manifest must have exactly one object"
-
-        m = manifest[0]
-
-        template = m['spec']['template']
-
-        ports: List[Dict[str, int]] = []
-        envs: List[Dict[str, Union[str, int]]] = template['spec']['containers'][0]['env']
-
-        for p in sorted(self.service_names.keys()):
-            ports.append({ 'containerPort': p })
-            envs.append({ 'name': f'BACKEND_{p}', 'value': self.service_names[p] })
-
-        template['spec']['containers'][0]['ports'] = ports
-
-        if 'metadata' not in m:
-            m['metadata'] = {}
-
-        metadata = m['metadata']
-        metadata['name'] = self.name
-
-        m['spec']['selector']['matchLabels']['backend'] = self.name
-        template['metadata']['labels']['backend'] = self.name
-
-        if self.namespace:
-            # Fix up the namespace.
-            if 'namespace' not in metadata:
-                metadata['namespace'] = self.namespace
-
-        return list(manifest)
-
 class Runner:
 
     def __init__(self, *classes, scope=None):
@@ -736,6 +685,8 @@ class Runner:
         self.tests = [n for n in self.nodes if isinstance(n, Test)]
         self.ids = [t.path for t in self.tests]
         self.done = False
+
+        self.topology = Topology()
 
         @pytest.mark.parametrize("t", self.tests, ids=self.ids)
         def test(request, capsys, t):
@@ -795,7 +746,8 @@ class Runner:
                     expanded.add(n)
 
             try:
-                self._setup_k8s(expanded)
+                # self._setup_k8s(expanded)
+                self._init_topology(expanded)
 
                 for t in self.tests:
                     if t in expanded_up:
@@ -810,6 +762,16 @@ class Runner:
                 pytest.exit("setup failed")
             finally:
                 self.done = True
+
+    def _init_topology(self, selected):
+        print("INITIALIZING TOPOLOGY")
+
+        for n in (n for n in self.nodes if n in selected):
+            self.topology.process_node(n)
+
+        print(json.dumps(self.topology.as_dict(), sort_keys=True, indent=4))
+
+        raise Exception('halting')
 
     def get_manifests(self, selected) -> OrderedDict:
         manifests = OrderedDict()
