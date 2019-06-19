@@ -133,6 +133,12 @@ class Namespace:
 
         clear, tls = self.superpod.allocate(svc_name)
 
+        self.superpod_container.envs[f'BACKEND_{clear}'] = svc_name
+        self.superpod_container.envs[f'BACKEND_{tls}'] = svc_name
+
+        self.superpod_container.ports.append(( 'tcp', clear, clear ))
+        self.superpod_container.ports.append(( 'tcp', tls, tls ))
+
         if configs:
             configs = configs.strip()
 
