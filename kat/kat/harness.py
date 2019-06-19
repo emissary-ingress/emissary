@@ -184,6 +184,7 @@ class Node(ABC):
         self.skip_node = False
 
         name = kwargs.pop("name", None)
+        exclude_class_name = kwargs.pop("_no_classname", None)
 
         if 'namespace' in kwargs:
             self.namespace = kwargs.pop('namespace', None)
@@ -202,8 +203,16 @@ class Node(ABC):
         else:
             self._args = args
             self._kwargs = kwargs
+
             if name:
-                name = Name("-".join((self.__class__.__name__, name)))
+                els = []
+
+                if not exclude_class_name:
+                    els.append(self.__class__.__name__)
+
+                els.append(name)
+
+                name = Name("-".join(els))
             else:
                 name = Name(self.__class__.__name__)
 

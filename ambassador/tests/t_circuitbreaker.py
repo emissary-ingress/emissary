@@ -9,11 +9,11 @@ class CircuitBreakingTest(AmbassadorTest):
 
     envs = {
         'STATSD_ENABLED': 'true',
-        'STATSD_HOST': 'circuitbreakertest-statsd'
+        'STATSD_HOST': '{self.statsd.path.fqdn}'
     }
 
     upstreams = {
-        'circuitbreakertest-statsd': {
+        'statsd': {
             'image': 'dwflynn/stats-test:0.1.0',
             'envs': {
                 'STATSD_TEST_CLUSTER': "cluster_httpstat_us",
@@ -49,7 +49,15 @@ name:  {self.name}-reset
 case_sensitive: false
 prefix: /reset/
 rewrite: /RESET/
-service: circuitbreakertest-statsd
+service: {self.statsd.path.fqdn}
+---
+apiVersion: ambassador/v1
+kind:  Mapping
+name:  {self.name}-dump
+case_sensitive: false
+prefix: /dump/
+rewrite: /DUMP/
+service: {self.statsd.path.fqdn}
 '''
     }
 
@@ -57,8 +65,7 @@ service: circuitbreakertest-statsd
         for i in range(500):
             yield Query(self.url(self.name) + '-pr/200?sleep=1000', ignore_result=True, phase=1)
 
-        yield Query("http://circuitbreakertest-statsd/DUMP/", phase=2)
-
+        yield Query(self.url("DUMP/"), phase=2)
 
     def requirements(self):
         yield ("url", Query(self.url("RESET/")))

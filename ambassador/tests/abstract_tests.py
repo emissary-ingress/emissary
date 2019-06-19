@@ -266,6 +266,10 @@ metadata:
                         raise Exception(f'{self} wants {pod_name} of unknown type {svctype}')
 
                     setattr(self, pod_name, typeclass(**extras))
+                else:
+                    setattr(self, pod_name, UpstreamService(name=pod_name, _no_classname=True, **pod_info))
+
+                    print(f'{self}: adding {pod_name}: {getattr(self, pod_name)}')
 
     # Subclasses can override this. Of course.
     def config(self):
@@ -430,6 +434,23 @@ metadata:
     def requirements(self):
         yield ("url", Query(self.url("ambassador/v0/check_ready")))
         yield ("url", Query(self.url("ambassador/v0/check_alive")))
+
+
+@abstract_test
+class UpstreamService(Node):
+    path: Name
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+
+    def config(self):
+        yield from ()
+
+    def manifests(self):
+        return None
+
+    def requirements(self):
+        yield from ()
 
 
 @abstract_test

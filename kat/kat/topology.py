@@ -192,7 +192,15 @@ class Topology:
         if not upstreams or not configs:
             return
 
-        node_environment: Optional[Dict[str, str]] = getattr(n, '_environ', None)
+        node_environment: Optional[Dict[str, str]] = None
+
+        _env = getattr(n, '_environ', None)
+
+        if _env:
+            node_environment = {}
+
+            for k, v in _env.items():
+                node_environment[k] = n.format(v)
 
         print(f'...{n.name}')
 

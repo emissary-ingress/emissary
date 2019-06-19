@@ -8,7 +8,7 @@ class StatsdTest(AmbassadorTest):
 
     envs = {
         'STATSD_ENABLED': 'true',
-        'STATSD_HOST': 'statsdtest-statsd'
+        'STATSD_HOST': '{self.statsd.path.fqdn}'
     }
 
     configs = {
@@ -26,7 +26,15 @@ name:  {self.name}-reset
 case_sensitive: false
 prefix: /reset/
 rewrite: /RESET/
-service: statsdtest-statsd
+service: {self.statsd.path.fqdn}
+---
+apiVersion: ambassador/v1
+kind:  Mapping
+name:  {self.name}-dump
+case_sensitive: false
+prefix: /dump/
+rewrite: /DUMP/
+service: {self.statsd.path.fqdn}
 ---
 apiVersion: ambassador/v0
 kind:  Mapping
@@ -41,7 +49,7 @@ service: http://127.0.0.1:8877
         'target': {
             'servicetype': 'HTTP'
         },
-        'statsdtest-statsd': {
+        'statsd': {
             'image': 'dwflynn/stats-test:0.1.0',
             'envs': {
                 'STATSD_TEST_CLUSTER': "cluster_http___statsdtest_http",
@@ -61,7 +69,7 @@ service: http://127.0.0.1:8877
         for i in range(1000):
             yield Query(self.url(self.name + "/"), phase=1)
 
-        yield Query("http://statsdtest-statsd/DUMP/", phase=2)
+        yield Query(self.url("dump/"), phase=2)
         yield Query(self.url("metrics"), phase=2)
 
     def check(self):
@@ -90,7 +98,7 @@ class DogstatsdTest(AmbassadorTest):
 
     envs = {
         'STATSD_ENABLED': 'true',
-        'STATSD_HOST': 'dogstatsdtest-statsd',
+        'STATSD_HOST': '{self.statsd.path.fqdn}',
         'DOGSTATSD': 'true'
     }
 
@@ -110,6 +118,14 @@ case_sensitive: false
 prefix: /reset/
 rewrite: /RESET/
 service: dogstatsdtest-statsd
+---
+apiVersion: ambassador/v1
+kind:  Mapping
+name:  {self.name}-dump
+case_sensitive: false
+prefix: /dump/
+rewrite: /DUMP/
+service: {self.statsd.path.fqdn}
 '''
     }
 
@@ -117,7 +133,7 @@ service: dogstatsdtest-statsd
         'target': {
             'servicetype': 'HTTP'
         },
-        'dogstatsdtest-statsd': {
+        'statsd': {
             'image': 'dwflynn/stats-test:0.1.0',
             'envs': {
                 'STATSD_TEST_CLUSTER': "cluster_http___dogstatsdtest_http"
@@ -136,7 +152,7 @@ service: dogstatsdtest-statsd
         for i in range(1000):
             yield Query(self.url(self.name + "/"), phase=1)
 
-        yield Query("http://dogstatsdtest-statsd/DUMP/", phase=2, debug=True)
+        yield Query(self.url("dump/"), phase=2, debug=True)
 
     def check(self):
         stats = self.results[-1].json or {}
