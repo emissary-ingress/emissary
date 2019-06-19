@@ -30,21 +30,22 @@ for (idpFile of glob.sync("./idp_*.js")) {
 				if (testcase.before) {
 					testcase.before()
 				}
-
-				const response = await browsertab.goto(testcase.resource);
-				// verify that we got redirected to the IDP
-				expect(response.request().redirectChain()).to.not.be.empty;
-				expect((new URL(browsertab.url())).hostname).to.not.contain((new URL(testcase.resource)).hostname);
-				// authenticate to the IDP
-				await idp.authenticate(browsertab, testcase.username, testcase.password);
-				// verify that we got redirected properly
-				expect(browsertab.url()).to.equal(testcase.resource);
-				// verify that backend service received the authorization
-				const echoedRequest = JSON.parse(await browsertab.evaluate(() => {return document.body.textContent}));
-				expect(echoedRequest.headers.Authorization).to.match(/^Bearer /);
-
-				if (testcase.after) {
-					testcase.after()
+				try {
+					const response = await browsertab.goto(testcase.resource);
+					// verify that we got redirected to the IDP
+					expect(response.request().redirectChain()).to.not.be.empty;
+					expect((new URL(browsertab.url())).hostname).to.not.contain((new URL(testcase.resource)).hostname);
+					// authenticate to the IDP
+					await idp.authenticate(browsertab, testcase.username, testcase.password);
+					// verify that we got redirected properly
+					expect(browsertab.url()).to.equal(testcase.resource);
+					// verify that backend service received the authorization
+					const echoedRequest = JSON.parse(await browsertab.evaluate(() => {return document.body.textContent}));
+					expect(echoedRequest.headers.Authorization).to.match(/^Bearer /);
+				} finally {
+					if (testcase.after) {
+						testcase.after()
+					}
 				}
 			}));
 			if (testname === "Auth0 (/httpbin)") {
