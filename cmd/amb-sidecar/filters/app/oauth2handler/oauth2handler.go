@@ -230,8 +230,15 @@ func (c *OAuth2Filter) filterClient(ctx context.Context, logger types.Logger, ht
 		for _, s := range c.Arguments.Scopes {
 			scope[s] = struct{}{}
 		}
-		scope["openid"] = struct{}{}         // TODO(lukeshu): More carefully consider always asserting OIDC
-		scope["offline_access"] = struct{}{} // this is safe as long as "openid" is included
+
+		scope["openid"] = struct{}{} // TODO(lukeshu): More carefully consider always asserting OIDC
+
+		// You'd be tempted to include "offline_access" here, but if offline access isn't
+		// allowed, some Authorization Servers (including Google, Keycloak, and UAA) will
+		// reject the entire authorization request, instead of simply issuing an Access
+		// Token without a Refresh Token.
+		//
+		//scope["offline_access"] = struct{}{}
 
 		// Build the sessionID and the associated cookie
 		sessionID, err = randomString(256) // NB: Do NOT re-declare sessionID
