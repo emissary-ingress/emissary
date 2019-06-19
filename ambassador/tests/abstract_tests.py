@@ -21,6 +21,7 @@ except AttributeError:
 
 from kat.harness import abstract_test, sanitize, Name, Node, Test, Query
 from kat import manifests
+from kat.utils import ShellCommand
 
 AMBASSADOR_LOCAL = """
 ---
@@ -38,13 +39,6 @@ DEFAULT_ERRORS = [
     [ "", "Ambassador could not find core CRD definitions. Please visit https://www.getambassador.io/reference/core/crds/ for more information. You can continue using Ambassador via Kubernetes annotations, any configuration via CRDs will be ignored..." ],
     [ "", "Ambassador could not find Resolver type CRD definitions. Please visit https://www.getambassador.io/reference/core/crds/ for more information. You can continue using Ambassador via Kubernetes annotations, any configuration via CRDs will be ignored..." ]
 ]
-
-
-def run(*args, **kwargs):
-    for arg in "stdout", "stderr":
-        if arg not in kwargs:
-            kwargs[arg] = subprocess.PIPE
-    return subprocess.run(args, **kwargs)
 
 
 DEV = os.environ.get("AMBASSADOR_DEV", "0").lower() in ("1", "yes", "true")
@@ -313,22 +307,32 @@ metadata:
         if not AmbassadorTest.IMAGE_BUILT:
             AmbassadorTest.IMAGE_BUILT = True
 
-            print("Killing old containers...")
-            run("bash", "-c", 'docker kill $(docker ps -a -f \'label=kat-family=ambassador\' --format \'{{.ID}}\')')
-            run("bash", "-c", 'docker rm $(docker ps -a -f \'label=kat-family=ambassador\' --format \'{{.ID}}\')')
+            cmd = ShellCommand('docker', 'ps', '-a', '-f', 'label=kat-family=ambassador', '--format', '{{.ID}}')
+
+            if cmd.check('find old docker container IDs'):
+                ids = cmd.stdout.split('\n')
+
+                while ids:
+                    if ids[-1]:
+                        break
+
+                    ids.pop()
+
+                if ids:
+                    print("Killing old containers...")
+                    ShellCommand.run('kill old containers', 'docker', 'kill', *ids, verbose=True)
+                    ShellCommand.run('rm old containers', 'docker', 'rm', *ids, verbose=True)
 
             context = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 
             print("Starting docker build...", end="")
             sys.stdout.flush()
 
-            result = run("docker", "build", "--build-arg", "CACHED_CONTAINER_IMAGE={}".format(cached_image), "--build-arg", "AMBASSADOR_BASE_IMAGE={}".format(ambassador_base_image), context, "-t", image)
+            cmd = ShellCommand("docker", "build", "--build-arg", "CACHED_CONTAINER_IMAGE={}".format(cached_image), "--build-arg", "AMBASSADOR_BASE_IMAGE={}".format(ambassador_base_image), context, "-t", image)
 
-            try:
-                result.check_returncode()
+            if cmd.check("docker build Ambassador image"):
                 print("done.")
-            except Exception as e:
-                print((result.stdout + b"\n" + result.stderr).decode("utf8"))
+            else:
                 pytest.exit("container failed to build")
 
         fname = "/tmp/k8s-%s.yaml" % self.path.k8s
@@ -338,11 +342,16 @@ metadata:
         else:
             nsp = getattr(self, 'namespace', None) or 'default'
 
-            result = run("kubectl", "get", "-n", nsp, "-o", "yaml", "secret", self.path.k8s)
-            result.check_returncode()
+            cmd = ShellCommand("kubectl", "get", "-n", nsp, "-o", "yaml", "secret", self.path.k8s)
+
+            if not cmd.check(f'fetch secret for {self.path.k8s}'):
+                pytest.exit(f'could not fetch secret for {self.path.k8s}')
+
+            content = cmd.stdout
+
             with open(fname, "wb") as fd:
-                fd.write(result.stdout)
-            content = result.stdout
+                fd.write(content.encode('utf-8'))
+
         try:
             secret = yaml.load(content, Loader=yaml_loader)
         except Exception as e:
@@ -396,18 +405,24 @@ metadata:
         if os.environ.get('KAT_SHOW_DOCKER'):
             print(" ".join(command))
 
-        result = run(*command)
-        result.check_returncode()
+        cmd = ShellCommand(*command)
+
+        if not cmd.check(f'start container for {self.path.k8s}'):
+            pytest.exit(f'could not start container for {self.path.k8s}')
 
     def queries(self):
         if DEV:
-            result = run("docker", "ps", "-qf", "name=%s" % self.path.k8s)
-            result.check_returncode()
-            if not result.stdout.strip():
-                result = run("docker", "logs", self.path.k8s, stderr=subprocess.STDOUT)
-                result.check_returncode()
-                print(result.stdout.decode("utf8"), end="")
-                pytest.exit("container failed to start")
+            cmd = ShellCommand("docker", "ps", "-qf", "name=%s" % self.path.k8s)
+
+            if not cmd.check(f'docker check for {self.path.k8s}'):
+                if not cmd.stdout.strip():
+                    log_cmd = ShellCommand("docker", "logs", self.path.k8s, stderr=subprocess.STDOUT)
+
+                    if log_cmd.check(f'docker logs for {self.path.k8s}'):
+                        print(cmd.stdout)
+
+                    pytest.exit(f'container failed to start for {self.path.k8s}')
+
         return ()
 
     def scheme(self) -> str:
@@ -482,13 +497,7 @@ class ServiceType(Node):
                  namespace: Optional[str] = None,
                  service_manifests: Optional[str] = None,
                  *args, **kwargs) -> None:
-        if namespace is not None:
-            print("%s init %s" % (type(self), namespace))
-
         super().__init__(namespace=namespace, *args, **kwargs)
-
-        if namespace is not None:
-            print("%s %s after super %s" % (type(self), self.name, self.namespace))
 
         self._manifests = service_manifests
 
