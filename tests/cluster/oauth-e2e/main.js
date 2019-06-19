@@ -12,7 +12,7 @@ const withBrowserTab = async function(fn) {
 			'--disable-dev-shm-usage',
 			'--no-sandbox'
 		]
-	})
+	});
 	try {
 		const browsertab = await browser.newPage();
 		await fn(browsertab);
@@ -28,7 +28,7 @@ for (idpFile of glob.sync("./idp_*.js")) {
 		describe(testname, function() {
 			it('can authorize requests', () => withBrowserTab(async (browsertab) => {
 				if (testcase.before) {
-					testcase.before()
+					testcase.before();
 				}
 				try {
 					const response = await browsertab.goto(testcase.resource);
@@ -44,7 +44,7 @@ for (idpFile of glob.sync("./idp_*.js")) {
 					expect(echoedRequest.headers.Authorization).to.match(/^Bearer /);
 				} finally {
 					if (testcase.after) {
-						testcase.after()
+						testcase.after();
 					}
 				}
 			}));
