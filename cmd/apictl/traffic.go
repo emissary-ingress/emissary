@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
@@ -19,6 +18,8 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+
+	"github.com/datawire/apro/lib/util"
 
 	"github.com/datawire/teleproxy/pkg/k8s"
 	"github.com/datawire/teleproxy/pkg/tpu"
@@ -421,29 +422,23 @@ func (e *FatalError) Error() string {
 	return e.s
 }
 
+var client = &util.SimpleClient{Client: &http.Client{}}
+
 func request(name string, method string, data []byte) (result string, err error) {
 	url := fmt.Sprintf("http://127.0.0.1:%d/intercept/%s", apiPort, name)
 	req, err := http.NewRequest(method, url, bytes.NewBuffer(data))
 	if err != nil {
 		return
 	}
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode == 404 {
-		return "", &FatalError{fmt.Sprintf("no such deployment: %s", name)}
-	}
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return
-	}
-	if !(resp.StatusCode >= 200 && resp.StatusCode <= 299) {
-		err = fmt.Errorf("%s: %s", http.StatusText(resp.StatusCode), string(body))
-		return
-	}
+	body, err := client.DoBodyBytes(req, func(resp *http.Response, body []byte) (err error) {
+		if resp.StatusCode == 404 {
+			return &FatalError{fmt.Sprintf("no such deployment: %s", name)}
+		}
+		if !(resp.StatusCode >= 200 && resp.StatusCode <= 299) {
+			return fmt.Errorf("%s: %s", http.StatusText(resp.StatusCode), string(body))
+		}
+		return nil
+	})
 	result = string(body)
 	return
 }
