@@ -76,16 +76,39 @@ commands:
       - run: |
           GOPROXY=file://$HOME/goproxy make go-get || true
 
+  save-go-build-cache:
+    steps:
+      - run:
+          command: |
+            mkdir -p "$(go env GOCACHE)"
+            rsync -av --delete "$(go env GOCACHE)/" ~/gobuild
+          when: always
+      - save_cache:
+          key: go-build-cache-{{ arch }}-{{ .BuildNum }}
+          paths: "~/gobuild"
+          when: always
+  restore-go-build-cache:
+    steps:
+      - restore_cache:
+          keys:
+            - go-build-cache-{{ arch }}-{{ .BuildNum }}
+            - go-build-cache-{{ arch }}-
+      - run: |
+          mkdir -p "$(go env GOCACHE)"
+          rsync -av --delete ~/gobuild/ "$(go env GOCACHE)"
+
   main:
     steps:
       - checkout
       - restore-go-mod-cache
+      - restore-go-build-cache
       - run: make build
       - save-go-mod-cache
       - run: |
           trap 'make unclaim' EXIT
           set -x
           make check
+      - save-go-build-cache
       - run:
           name: "gather logs"
           when: always
