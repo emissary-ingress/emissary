@@ -134,11 +134,21 @@ class AmbassadorTest(Test):
         if not AmbassadorTest.IMAGE_BUILT:
             AmbassadorTest.IMAGE_BUILT = True
 
-            print("Killing old containers...")
-            ShellCommand.run("kill old containers",
-                             "bash", "-c", 'docker kill $(docker ps -a -f \'label=kat-family=ambassador\' --format \'{{.ID}}\')')
-            ShellCommand.run("rm old containers",
-                             "bash", "-c", 'docker rm $(docker ps -a -f \'label=kat-family=ambassador\' --format \'{{.ID}}\')')
+            cmd = ShellCommand('docker', 'ps', '-a', '-f', 'label=kat-family=ambassador', '--format', '{{.ID}}')
+
+            if cmd.check('find old docker container IDs'):
+                ids = cmd.stdout.split('\n')
+
+                while ids:
+                    if ids[-1]:
+                        break
+
+                    ids.pop()
+
+                if ids:
+                    print("Killing old containers...")
+                    ShellCommand.run('kill old containers', 'docker', 'kill', *ids, verbose=True)
+                    ShellCommand.run('rm old containers', 'docker', 'rm', *ids, verbose=True)
 
             context = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 
