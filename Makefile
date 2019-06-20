@@ -630,7 +630,7 @@ venv/bin/protoc-gen-validate: go.mod | venv/bin/activate
 
 # Search path for .proto files
 gomoddir = $(shell $(FLOCK) go.mod go list $1/... >/dev/null 2>/dev/null; $(FLOCK) go.mod go list -m -f='{{.Dir}}' $1)
-imports += $(CURDIR)/envoy/api
+imports += $(CURDIR)/envoy-src/api
 imports += $(call gomoddir,github.com/envoyproxy/protoc-gen-validate)
 imports += $(call gomoddir,github.com/gogo/protobuf)
 imports += $(call gomoddir,github.com/gogo/protobuf)/protobuf
