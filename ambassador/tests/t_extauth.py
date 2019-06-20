@@ -289,6 +289,66 @@ service: {self.target.path.fqdn}
         assert self.results[4].headers["Server"] == ["envoy"]
         assert self.results[4].headers["Authorization"] == ["foo-11111"]
 
+class AuthenticationHTTPFailureModeAllowTest(AmbassadorTest):
+    
+    target: ServiceType
+    auth: ServiceType
+
+    def init(self):
+        self.target = HTTP()
+        self.auth = HTTP(name="auth")
+
+    def config(self):
+        yield self, self.format("""
+---
+apiVersion: ambassador/v1
+kind: TLSContext
+name: {self.name}-same-context-1
+secret: same-secret-1.secret-namespace
+
+---
+apiVersion: ambassador/v1
+kind: AuthService
+name:  {self.auth.path.k8s}
+auth_service: "{self.auth.path.fqdn}"
+path_prefix: "/extauth"
+timeout_ms: 5000
+tls: {self.name}-same-context-1
+
+allowed_request_headers:
+- Requested-Status
+- Requested-Header
+
+failure_mode_allow: true
+""")
+        yield self, self.format("""
+---
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  {self.target.path.k8s}
+prefix: /target/
+service: {self.target.path.fqdn}
+""")
+
+    def queries(self):
+        # [0]
+        yield Query(self.url("target/"), headers={"Requested-Status": "200"}, expected=200)
+        
+        # [1]
+        yield Query(self.url("target/"), headers={"Requested-Status": "401"}, expected=200)
+
+    def check(self):
+        # [0] Verifies that the authorization server received the partial message body.
+        extauth_res1 = json.loads(self.results[0].headers["Extauth"][0])
+        assert self.results[0].backend.request.headers["requested-status"] == ["200"]
+        assert self.results[0].status == 200
+        assert self.results[0].headers["Server"] == ["envoy"]
+        
+        # [1] Verifies that the authorization server received the full message body.
+        extauth_res2 = json.loads(self.results[1].headers["Extauth"][0])
+        assert self.results[1].backend.request.headers["requested-status"] == ["401"]
+        assert self.results[1].status == 200
+        assert self.results[1].headers["Server"] == ["envoy"]
 
 class AuthenticationTestV1(AmbassadorTest):
 
@@ -342,6 +402,14 @@ allowed_request_headers:
 allowed_authorization_headers:
 - X-Foo
 - Extauth
+
+status_on_error:
+- code: 503
+
+retry_policy:
+  retry_on: "5xx"
+  num_retries: 2
+
 """)
         yield self, self.format("""
 ---
@@ -386,6 +454,9 @@ bypass_auth: true
 
         # [6]
         yield Query(self.url("target/unauthed/"), headers={"Requested-Status": "200"}, expected=200)
+
+        # [7]
+        yield Query(self.url("target/"), headers={"Requested-Status": "503"}, expected=503)
 
     def check_backend_name(self, result) -> bool:
         backend_name = result.backend.name
@@ -476,6 +547,11 @@ bypass_auth: true
 
         assert self.backend_counts.get(self.auth1.path.k8s, 0) > 0, "auth1 got no requests"
         assert self.backend_counts.get(self.auth2.path.k8s, 0) > 0, "auth2 got no requests"
+
+        # [7] Verifies that envoy returns customized status_on_error code.
+        assert self.check_backend_name(self.results[7])
+        assert self.results[7].backend.request.headers["requested-status"] == ["503"]
+        assert self.results[7].status == 503
 
         # TODO(gsagula): Write tests for all UCs which request header headers
         # are overridden, e.g. Authorization.

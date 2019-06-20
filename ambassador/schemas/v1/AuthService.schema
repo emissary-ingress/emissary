@@ -43,7 +43,7 @@
         "status_on_error": { 
             "type": "object",
             "properties": {
-                "code": { "type": "int" }
+                "code": { "type": "integer" }
             }
         },
         "failure_mode_allow": { "type": "boolean" },

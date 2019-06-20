@@ -307,13 +307,13 @@ def v2filter_authv1(auth: IRAuth, v2config: 'V2Config'):
         if body_info:
             auth_info['config']['with_request_body'] = body_info
 
-        if auth.retry_policy:
+        if 'retry_policy' in auth:
             auth_info['config']["retry_policy"] = auth.retry_policy.as_dict()
 
-        if auth.failure_mode_allow:
+        if 'failure_mode_allow' in auth:
             auth_info['config']["failure_mode_allow"] = auth.failure_mode_allow
         
-        if auth.status_on_error:
+        if 'status_on_error' in auth:
             status_on_error: Optional[Dict[str, int]] = auth.get('status_on_error')
             auth_info['config']["status_on_error"] = status_on_error
 

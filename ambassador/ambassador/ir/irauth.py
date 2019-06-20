@@ -122,15 +122,21 @@ class IRAuth (IRFilter):
         self["proto"] = module.get("proto", "http")
         self["timeout_ms"] = module.get("timeout_ms", 5000)
         self["connect_timeout_ms"] = module.get("connect_timeout_ms", 3000)
-        self["status_on_error"] = module.get("status_on_error", None)
-        self["failure_mode_allow"] = module.get("failure_mode_allow", None)
-        self["retry_policy"] = module.get("retry_policy", None)
         self.__to_header_list('allowed_headers', module)
         self.__to_header_list('allowed_request_headers', module)
         self.__to_header_list('allowed_authorization_headers', module)
 
-        if not self["retry_policy"] == None:
-            self["retry_policy"] = IRRetryPolicy(ir=self.ir, aconf=self.ir.aconf, **self["retry_policy"])
+        status_on_error = module.get('status_on_error', None)
+        if status_on_error:
+            self['status_on_error'] = status_on_error
+        
+        failure_mode_allow = module.get('failure_mode_allow', None)
+        if failure_mode_allow:
+            self['failure_mode_allow'] = failure_mode_allow
+        
+        retry_policy = module.get('retry_policy', None)
+        if retry_policy:
+            self["retry_policy"] = IRRetryPolicy(ir=self.ir, aconf=self.ir.aconf, **retry_policy)
 
         # Required fields check.
         if self["api_version"] == None:
