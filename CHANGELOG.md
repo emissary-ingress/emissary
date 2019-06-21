@@ -6,6 +6,7 @@
  * Now also handles requests for `envoy.service.auth.v2`, not just `envoy.service.auth.v2alpha`.
  * Everything is now on one port: `APRO_HTTP_PORT`, which defaults to `8500`.
  * `LOG_LEVEL` no longer exists; everything obeys `APP_LOG_LEVEL`.
+ * Fixed a resource leak in dev-portal-server
 
 ## 0.5.0 (2019-06-21)
 
@@ -38,6 +39,7 @@ Behavior:
 Other:
 
  * Open Source dependency licence compliance is now automated as part of the release machinery.  Source releases for the Docker images are now present in the images themselves at `/*.opensource.tar.gz`.
+=======
 
 ## 0.4.3 (2019-05-15)
 
