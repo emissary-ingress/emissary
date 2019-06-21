@@ -23,6 +23,10 @@ type OpenIDConfig struct {
 	// Endpoint used to perform token authorization
 	TokenEndpoint string `json:"token_endpoint"`
 
+	// Endpoint used to look up user info (which can be used to
+	// validate opaque access tokens).
+	UserInfoEndpoint string `json:"userinfo_endpoint"`
+
 	// A set of public RSA keys used to sign the tokens
 	JSONWebKeySetURI string `json:"jwks_uri"`
 }
@@ -33,6 +37,7 @@ type Discovered struct {
 	Issuer                string
 	AuthorizationEndpoint *url.URL
 	TokenEndpoint         *url.URL
+	UserInfoEndpoint      *url.URL
 	JSONWebKeySet         jwks.JWKS
 }
 
@@ -57,6 +62,11 @@ func Discover(client *http.Client, mw crd.FilterOAuth2, logger types.Logger) (*D
 	ret.TokenEndpoint, err = url.Parse(config.TokenEndpoint)
 	if err != nil {
 		return nil, errors.Wrap(err, "discovery token_endpoint")
+	}
+
+	ret.UserInfoEndpoint, err = url.Parse(config.UserInfoEndpoint)
+	if err != nil {
+		return nil, errors.Wrap(err, "discovery userinfo_endpoint")
 	}
 
 	ret.JSONWebKeySet, err = jwks.FetchJWKS(client, config.JSONWebKeySetURI)

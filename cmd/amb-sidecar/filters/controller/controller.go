@@ -7,7 +7,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	coreV1client "k8s.io/client-go/kubernetes/typed/core/v1"
+	k8sClientCoreV1 "k8s.io/client-go/kubernetes/typed/core/v1"
 
 	"github.com/datawire/teleproxy/pkg/k8s"
 
@@ -36,20 +36,15 @@ func countTrue(args ...bool) int {
 }
 
 // Watch monitor changes in k8s cluster and updates rules
-func (c *Controller) Watch(ctx context.Context) error {
+func (c *Controller) Watch(ctx context.Context, kubeinfo *k8s.KubeInfo) error {
 	c.Rules.Store([]crd.Rule{})
 	c.Filters.Store(map[string]interface{}{})
-
-	kubeinfo, err := k8s.NewKubeInfo("", "", "") // Empty file/ctx/ns for defaults
-	if err != nil {
-		return err
-	}
 
 	restconfig, err := kubeinfo.GetRestConfig()
 	if err != nil {
 		return err
 	}
-	coreClient, err := coreV1client.NewForConfig(restconfig)
+	coreClient, err := k8sClientCoreV1.NewForConfig(restconfig)
 	if err != nil {
 		return err
 	}

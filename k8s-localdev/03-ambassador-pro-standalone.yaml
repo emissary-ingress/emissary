@@ -52,7 +52,7 @@ subjects:
 
 
 ######################################################################
-# Create a CRDs used to configure ambassador-pro
+# Create the CRDs used to configure ambassador-pro
 ---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
@@ -222,9 +222,9 @@ spec:
         - name: tel-check
           containerPort: 38888
         env:
-        - name: REDIS_SOCKET_TYPE # For ratelimit
+        - name: REDIS_SOCKET_TYPE
           value: tcp
-        - name: REDIS_URL # For ratelimit
+        - name: REDIS_URL
           value: ambassador-pro-redis:6379
         - name: AMBASSADOR_NAMESPACE
           valueFrom:

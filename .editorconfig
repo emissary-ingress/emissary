@@ -13,5 +13,8 @@ indent_size = 2
 indent_style = space
 
 [*.js]
+indent_style = tab
+
+[package.json]
 indent_style = space
 indent_size = 2

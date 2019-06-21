@@ -28,6 +28,8 @@ type FilterOAuth2 struct {
 	MaxStale    time.Duration `json:"-"` // calculated from RawMaxStale
 
 	InsecureTLS bool `json:"insecureTLS"`
+
+	AccessTokenValidation string `json:"accessTokenValidation"`
 }
 
 func (m *FilterOAuth2) Validate(namespace string, secretsGetter coreV1client.SecretsGetter) error {
@@ -83,6 +85,16 @@ func (m *FilterOAuth2) Validate(namespace string, secretsGetter coreV1client.Sec
 			return errors.Errorf("secret name=%q namespace=%q does not contain an oauth2-client-secret field", m.SecretName, m.SecretNamespace)
 		}
 		m.Secret = string(secretVal)
+	}
+
+	switch m.AccessTokenValidation {
+	case "":
+		m.AccessTokenValidation = "auto"
+	case "auto", "jwt", "userinfo":
+		// do nothing
+	default:
+		return errors.Errorf("accessTokenValidation=%q is invalid; valid values are %q",
+			m.AccessTokenValidation, []string{"auto", "jwt", "userinfo"})
 	}
 
 	return nil

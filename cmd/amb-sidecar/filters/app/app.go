@@ -4,34 +4,47 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/datawire/apro/cmd/amb-sidecar/filters/app/health"
-
+	"github.com/mediocregopher/radix.v2/pool"
 	"github.com/pkg/errors"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
 	"google.golang.org/grpc"
 
+	k8sClientCoreV1 "k8s.io/client-go/kubernetes/typed/core/v1"
+
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta2"
-	_secret "github.com/datawire/apro/cmd/amb-sidecar/filters/app/secret"
+	"github.com/datawire/apro/cmd/amb-sidecar/filters/app/health"
+	secret "github.com/datawire/apro/cmd/amb-sidecar/filters/app/secret"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/controller"
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
 	"github.com/datawire/apro/lib/filterapi"
 )
 
 // Handler returns an app handler that should be consumed by an HTTP server.
-func NewFilterMux(config types.Config, logger types.Logger, controller *controller.Controller) (http.Handler, error) {
-	secret, err := _secret.New(config, logger) // RSA keys
+func NewFilterMux(
+	config types.Config,
+	logger types.Logger,
+	controller *controller.Controller,
+	secretsGetter k8sClientCoreV1.SecretsGetter,
+) (http.Handler, error) {
+	privKey, pubKey, err := secret.GetKeyPair(config, secretsGetter)
 	if err != nil {
 		return nil, errors.Wrap(err, "secret")
+	}
+	redisPool, err := pool.New(config.RedisSocketType, config.RedisURL, config.RedisPoolSize)
+	if err != nil {
+		return nil, errors.Wrap(err, "redis pool")
 	}
 
 	filterMux := &FilterMux{
 		DefaultRule: &crd.Rule{
 			Filters: nil,
 		},
-		Controller:   controller,
-		OAuth2Secret: secret,
-		Logger:       logger,
+		Controller: controller,
+		PrivateKey: privKey,
+		PublicKey:  pubKey,
+		Logger:     logger,
+		RedisPool:  redisPool,
 	}
 
 	grpcServer := grpc.NewServer()

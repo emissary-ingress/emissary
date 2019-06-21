@@ -5,6 +5,15 @@ export GRPC_PORT=${GRPC_PORT:-8501} # RLS gRPC
 export DEBUG_PORT=${DEBUG_PORT:-8502} # RLS debug (HTTP)
 export PORT=${PORT:-8503} # RLS HTTP ???
 
+if test -z "$REDIS_URL"; then
+	echo 'Error: ${REDIS_URL} is not set; not starting'
+	exit 1
+fi
+if test -z "$REDIS_SOCKET_TYPE"; then
+	echo 'Error: ${REDIS_SOCKET_TYPE} is not set; not starting'
+	exit 1
+fi
+
 exe="${BASH_SOURCE[0]%/*}/amb-sidecar"
 trap 'jobs -p | xargs -r kill --' INT
 
@@ -21,14 +30,7 @@ mkdir -p ${RUN_DIR}
 export RLS_RUNTIME_DIR=${RUN_DIR}/config
 
 # Launch each of the worker processes
-if test -z "$REDIS_URL"; then
-	echo 'Warning: ${REDIS_URL} is not set; not starting ratelimit service'
-else
-	# Setting the PORT is important only because the default PORT
-	# is 8080, which would clash with non-root-Ambassador when
-	# running as a sidecar.
-	launch USE_STATSD=false RUNTIME_ROOT=${RUN_DIR}/config RUNTIME_SUBDIRECTORY=config "$exe" ratelimit
-fi
+launch USE_STATSD=false RUNTIME_ROOT=${RUN_DIR}/config RUNTIME_SUBDIRECTORY=config "$exe" ratelimit
 launch "$exe" main
 
 # Wait for one of them to quit, then kill the others

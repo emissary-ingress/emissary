@@ -1,14 +1,11 @@
 {
-  "name": "puppeteer-mocha",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "private": true,
+  "engines": {
+    "node": ">=10.0.0"
+  },
   "dependencies": {
-    "chai": "^4.1.2",
-    "mocha": "^4.0.1",
-    "puppeteer": "^1.12.2"
+    "chai": "^4.2.0",
+    "mocha": "^6.1.4",
+    "puppeteer": "^1.17.0"
   }
 }

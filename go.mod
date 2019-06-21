@@ -8,6 +8,7 @@ require (
 	github.com/asaskevich/EventBus v0.0.0-20180315140547-d46933a94f05 // indirect
 	github.com/bmizerany/perks v0.0.0-20141205001514-d9a9656a3a4b // indirect
 	github.com/datawire/kat-backend v1.1.0
+	github.com/datawire/liboauth2 v0.0.0-20190619201518-4d7cc6073e44
 	github.com/datawire/teleproxy v0.5.1
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/dgryski/go-gk v0.0.0-20140819190930-201884a44051 // indirect
@@ -24,6 +25,7 @@ require (
 	github.com/jcuga/golongpoll v0.0.0-20180711123949-939e3befd837
 	github.com/lyft/ratelimit v1.3.0
 	github.com/mailru/easyjson v0.0.0-20190312143242-1de009706dbe // indirect
+	github.com/mediocregopher/radix.v2 v0.0.0-20180603022615-94360be26253
 	github.com/myzhan/boomer v0.0.0-20190321085146-9f3c9f575895
 	github.com/nu7hatch/gouuid v0.0.0-20131221200532-179d4d0c4d8d // indirect
 	github.com/onsi/gomega v1.4.3
@@ -41,6 +43,7 @@ require (
 	golang.org/x/tools v0.0.0-20190226205152-f727befe758c // indirect
 	google.golang.org/grpc v1.18.0
 	gopkg.in/yaml.v2 v2.2.2
+	k8s.io/api v0.0.0-20190111032252-67edc246be36
 	k8s.io/apimachinery v0.0.0-20190119020841-d41becfba9ee
 	k8s.io/client-go v10.0.0+incompatible
 )

@@ -2,6 +2,7 @@ package types
 
 import (
 	"os"
+	"strconv"
 
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -14,15 +15,18 @@ type Config struct {
 	AmbassadorSingleNamespace bool
 
 	// Auth
-	PvtKPath string // the path for private key file
-	PubKPath string // the path for public key file
-	AuthPort string
+	KeyPairSecretName      string
+	KeyPairSecretNamespace string
+	AuthPort               string
 
 	// Rate Limit
 	Output string // e.g.: "/run/amb/config"; same as the RUNTIME_ROOT for Lyft ratelimit
 
 	// General
-	LogLevel string // log level ("error" < "warn"/"warning" < "info" < "debug" < "trace")
+	LogLevel        string // log level ("error" < "warn"/"warning" < "info" < "debug" < "trace")
+	RedisPoolSize   int
+	RedisSocketType string
+	RedisURL        string
 }
 
 func getenvDefault(varname, def string) string {
@@ -41,15 +45,21 @@ func ConfigFromEnv() (cfg Config, warn []error, fatal []error) {
 		AmbassadorSingleNamespace: os.Getenv("AMBASSADOR_SINGLE_NAMESPACE") != "",
 
 		// Auth
-		PvtKPath: os.Getenv("APP_PRIVATE_KEY_PATH"),
-		PubKPath: os.Getenv("APP_PUBLIC_KEY_PATH"),
-		AuthPort: getenvDefault("APRO_AUTH_PORT", "8082"),
+		KeyPairSecretName:      getenvDefault("APRO_KEYPAIR_SECRET_NAME", "ambassador-pro-keypair"),
+		KeyPairSecretNamespace: getenvDefault("APRO_KEYPAIR_SECRET_NAMESPACE", getenvDefault("AMBASSADOR_NAMESPACE", "default")),
+		AuthPort:               getenvDefault("APRO_AUTH_PORT", "8082"),
 
 		// Rate Limit
 		Output: os.Getenv("RLS_RUNTIME_DIR"),
 
 		// General
-		LogLevel: getenvDefault("APP_LOG_LEVEL", "info"),
+		LogLevel:        getenvDefault("APP_LOG_LEVEL", "info"),
+		RedisSocketType: os.Getenv("REDIS_SOCKET_TYPE"),
+		RedisURL:        os.Getenv("REDIS_URL"),
+	}
+
+	if cfg.Output == "" {
+		fatal = append(fatal, errors.Errorf("must set RLS_RUNTIME_DIR (aborting)"))
 	}
 
 	if _, err := logrus.ParseLevel(cfg.LogLevel); err != nil {
@@ -57,8 +67,10 @@ func ConfigFromEnv() (cfg Config, warn []error, fatal []error) {
 		cfg.LogLevel = "info"
 	}
 
-	if cfg.Output == "" {
-		fatal = append(fatal, errors.Errorf("must set RLS_RUNTIME_DIR (aborting)"))
+	var err error
+	if cfg.RedisPoolSize, err = strconv.Atoi(getenvDefault("REDIS_POOL_SIZE", "10")); err != nil {
+		warn = append(warn, errors.Wrap(err, "invalid REDIS_POOL_SIZE (falling back to default 10)"))
+		cfg.RedisPoolSize = 10
 	}
 
 	return cfg, warn, fatal
