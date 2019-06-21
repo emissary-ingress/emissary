@@ -56,6 +56,17 @@ If `REDIS_PERSECOND` is true, a third Redis connection pool is created
 (to a potentially different Redis instance) that is only used for
 per-second RateLimits.
 
+If the `APRO_KEYPAIR_SECRET_NAME`/`APRO_KEYPAIR_SECRET_NAMESPACE`
+Kubernetes secret does not already exist when Ambassador Pro starts,
+it will be automatically created; which obviously requires permission
+in the ClusterRole to create secrets.  If the secret already exists
+(either because an earlier instance of Ambassador Pro already created
+it, or because it was created manually), then the "create" permission
+for secrets can be be removed from the ClusterRole.  If manually
+providing the secret, it must have the "Opaque" type, with two data
+fields: `rsa.key` and `rsa.crt`, which contain PEM-encoded RSA private
+and public keys respectively.
+
 [^1]: This may change in a future release to reflect the Pods's
     namespace if deployed to a namespace other than `default`.
     https://github.com/datawire/ambassador/issues/1583
