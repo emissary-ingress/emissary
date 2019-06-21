@@ -538,4 +538,7 @@ class Config:
                             (resource, resource.kind, key, storage[key].location),
                             resource=resource)
 
+        self.logger.debug("%s: saving %s %s" %
+                          (resource, resource.kind, key))
+
         storage[key] = resource
