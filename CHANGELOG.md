@@ -25,6 +25,11 @@ Behavior:
  * The `OAuth2` Filter will no longer consider a user-agent-provided `Authorization` header, it will only consider the cookie.
  * The `OAuth2` Filter now supports Refresh Tokens; they must be requested by listing `offline_access` in the `scopes` argument in the FilterPolicy.
  * The `OAuth2` Filter's `/callback` endpoint is no longer vulnerable to XSRF attacks
+ * The Developer Portal file descriptor leak is fixed.
+
+Other:
+
+ * Open Source dependency licence compliance is now automated as part of the release machinery.  Source releases for the Docker images are now present in the images themselves at `/*.opensource.tar.gz`.
 
 ## 0.4.3 (2019-05-15)
 
