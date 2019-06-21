@@ -411,18 +411,17 @@ clobber:
 #
 # Release
 
-.PHONY: release release-%
+release.bins = apictl apictl-key apro-plugin-runner
+release.images = $(filter-out $(image.norelease),$(image.all))
 
 release: ## Cut a release; upload binaries to S3 and Docker images to Quay
 release: build
 release: release-bin release-docker
 release-bin: ## Upload binaries to S3
-release-bin: $(foreach platform,$(go.PLATFORMS), release/bin_$(platform)/apictl             )
-release-bin: $(foreach platform,$(go.PLATFORMS), release/bin_$(platform)/apictl-key         )
-release-bin: $(foreach platform,$(go.PLATFORMS), release/bin_$(platform)/apro-plugin-runner )
+release-bin: $(foreach platform,$(go.PLATFORMS),$(foreach bin,$(release.bins),release/bin_$(platform)/$(bin)))
 release-bin: release/apro-abi.txt
 release-docker: ## Upload Docker images to Quay
-release-docker: $(addsuffix .docker.push,$(filter-out $(image.norelease),$(image.all)))
+release-docker: $(addsuffix .docker.push,$(release.images))
 
 _release_os   = $(word 2,$(subst _, ,$(@D)))
 _release_arch = $(word 3,$(subst _, ,$(@D)))
@@ -431,3 +430,5 @@ release/%: %
 
 release/apro-abi.txt: release/%: %
 	aws s3 cp --acl public-read $< 's3://datawire-static-files/apro-abi/apro-abi@$(VERSION).txt'
+
+.PHONY: release release-% release/%
