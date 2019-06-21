@@ -5,6 +5,7 @@ RUN apk add --no-cache \
 	&& adduser -u 1000 -S datawire -G datawire
 
 COPY ./run.sh ./amb-sidecar /opt/ambassador-pro/
+COPY ./*.opensource.tar.gz /
 
 USER datawire
 CMD [ "/opt/ambassador-pro/run.sh" ]

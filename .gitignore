@@ -13,6 +13,7 @@ venv
 *.docker.knaut-push
 *.knaut
 *.knaut.claim
+*.tar.gz
 *.yaml.o
 *.tap
 *.pid

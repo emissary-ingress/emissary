@@ -6,5 +6,6 @@ COPY ./data/* /opt/ambassador-pro/data/
 
 # Files that DO have the version number embedded
 COPY ./app-sidecar /opt/ambassador-pro/
+COPY ./*.opensource.tar.gz /
 
 CMD [ "/opt/ambassador-pro/run.sh" ]

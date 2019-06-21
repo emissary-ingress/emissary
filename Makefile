@@ -178,7 +178,7 @@ build: $(if $(HAVE_DOCKER),$(addsuffix .docker,$(image.all)))
 # assumption so far, and forces us to name things in a consistent
 # manner.
 define docker.bins_rule
-$(if $(filter $(notdir $(image)),$(notdir $(go.bins))),$(image).docker: $(image)/$(notdir $(image)))
+$(if $(filter $(notdir $(image)),$(notdir $(go.bins))),$(image).docker: $(image)/$(notdir $(image)) $(image)/$(notdir $(image)).opensource.tar.gz)
 $(image)/%: bin_linux_amd64/%
 	cp $$< $$@
 $(image)/clean:
@@ -364,6 +364,7 @@ clean: $(addsuffix .clean,$(wildcard docker/*.docker)) loadtest-clean
 	rm -f apro-abi.txt
 	rm -f tests/*.log tests/*.tap tests/*/*.log tests/*/*.tap
 	rm -f docker/amb-sidecar-plugins/Dockerfile docker/amb-sidecar-plugins/*.so
+	rm -r docker/*/*.opensource.tar.gz
 	rm -f k8s-*/??-ambassador-certs.yaml k8s-*/*.pem
 	rm -f k8s-*/??-auth0-secret.yaml
 	rm -f docker/*.knaut-push
@@ -425,8 +426,9 @@ release-docker: $(addsuffix .docker.push,$(release.images))
 
 _release_os   = $(word 2,$(subst _, ,$(@D)))
 _release_arch = $(word 3,$(subst _, ,$(@D)))
-release/%: %
-	aws s3 cp --acl public-read $< 's3://datawire-static-files/$(@F)/$(VERSION)/$(_release_os)/$(_release_arch)/$(@F)'
+release/%: % %.opensource.tar.gz
+	aws s3 cp --acl public-read $<                   's3://datawire-static-files/$(@F)/$(VERSION)/$(_release_os)/$(_release_arch)/$(@F)'
+	aws s3 cp --acl public-read $<.opensource.tar.gz 's3://datawire-static-files/$(@F)/$(VERSION)/$(_release_os)/$(_release_arch)/$(@F).opensource.tar.gz'
 
 release/apro-abi.txt: release/%: %
 	aws s3 cp --acl public-read $< 's3://datawire-static-files/apro-abi/apro-abi@$(VERSION).txt'

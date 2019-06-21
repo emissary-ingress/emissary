@@ -6,8 +6,9 @@ RUN apk add --no-cache openssh && \
     echo "telepresence::1000:0:Telepresence User:/app:/bin/ash" >> /etc/passwd && \
     chmod g+w /etc/passwd
 
+COPY ./run.sh ./traffic-proxy /app/
+COPY ./*.opensource.tar.gz /
+
 USER 1000:0
 WORKDIR /app
-COPY run.sh .
-COPY traffic-proxy .
 CMD ["/app/run.sh"]
