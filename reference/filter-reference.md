@@ -193,8 +193,21 @@ spec:
         - "scope2"
 ```
 
-You may specify a list of OAuth2 scopes to apply to the authorization
-request.
+You may specify a list of OAuth scope values to include in the scope
+of the authorization request.  If one of the scope values for a path
+is not granted, then access to that resource is forbidden; if the
+`scopes` argument lists `foo`, but the authorization response from the
+provider does not include `foo` in the scope, then it will be taken to
+mean that the authorization server forbade access to this path, as the
+authenticated user does not have the `foo` resource scope.
+
+The `openid` scope value is always included in the requested scope,
+even if it is not listed in the `FilterPolicy` argument.
+
+As a special case, if the `offline_access` scope value is requested,
+but not included in the response then access is not forbidden.  With
+many identity providers, requesting the `offline_access` scope is
+necessary in order to receive a Refresh Token.
 
 ### Filter Type: `Plugin`
 
@@ -338,7 +351,7 @@ spec:
 ## Installing self-signed certificates
 
 The JWT and OAuth2 filters speak to other servers over HTTP or HTTPS.
-If those servers are condifured to speak HTTPS using a self-signed
+If those servers are configured to speak HTTPS using a self-signed
 certificate, attempting to talk to them will result in a error
 mentioning `ERR x509: certificate signed by unknown authority`.  You
 can fix this by installing that self-signed certificate in to the Pro
