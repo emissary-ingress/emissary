@@ -27,7 +27,7 @@ func usage() {
 	fmt.Printf("Run an Ambassador Pro middleware plugin as an Ambassador AuthService, for plugin development\n")
 	fmt.Printf("\n")
 	fmt.Printf("OPTIONS:\n")
-	fmt.Printf("  --docker   Force the use Docker, for increased realism\n")
+	fmt.Printf("  --docker   Force the use of Docker, for increased realism\n")
 	if mainNative == nil {
 		fmt.Printf("             (no-op; this build of apro-plugin-runner always uses Docker)\n")
 	}
