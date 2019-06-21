@@ -56,6 +56,7 @@ class IRHTTPMapping (IRBaseMapping):
         "auto_host_rewrite": True,
         "case_sensitive": True,
         "circuit_breakers": True,
+        "add_linkerd_headers": True,
         "cors": True,
         "retry_policy": True,
         "enable_ipv4": True,
@@ -116,6 +117,7 @@ class IRHTTPMapping (IRBaseMapping):
 
         # ...then set up the headers (since we need them to compute our group ID).
         hdrs = []
+        
 
         if 'headers' in kwargs:
             for name, value in kwargs.get('headers', {}).items():
@@ -131,6 +133,10 @@ class IRHTTPMapping (IRBaseMapping):
         if 'host' in kwargs:
             hdrs.append(Header(":authority", kwargs['host'], kwargs.get('host_regex', False)))
             self.tls_context = self.match_tls_context(kwargs['host'], ir)
+
+        if 'service' in kwargs:     
+            if 'add_linkerd_headers' in kwargs and kwargs['add_linkerd_headers']:
+                hdrs.append(Header("l5d-dst-override", kwargs['service']))
 
         if 'method' in kwargs:
             hdrs.append(Header(":method", kwargs['method'], kwargs.get('method_regex', False)))
