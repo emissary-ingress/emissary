@@ -364,7 +364,7 @@ clean: $(addsuffix .clean,$(wildcard docker/*.docker)) loadtest-clean
 	rm -f apro-abi.txt
 	rm -f tests/*.log tests/*.tap tests/*/*.log tests/*/*.tap
 	rm -f docker/amb-sidecar-plugins/Dockerfile docker/amb-sidecar-plugins/*.so
-	rm -r docker/*/*.opensource.tar.gz
+	rm -f docker/*/*.opensource.tar.gz
 	rm -f k8s-*/??-ambassador-certs.yaml k8s-*/*.pem
 	rm -f k8s-*/??-auth0-secret.yaml
 	rm -f docker/*.knaut-push
