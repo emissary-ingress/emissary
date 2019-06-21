@@ -14,7 +14,7 @@
 /docker-port-forward.log
 /docker-registry.yaml.o
 
-# _go-common.mk
+# go-mod.mk
 /golangci-lint
 /go-test.tap
 
