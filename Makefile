@@ -412,25 +412,26 @@ clobber:
 #
 # Release
 
+RELEASE_DRYRUN ?=
 release.bins = apictl apictl-key apro-plugin-runner
 release.images = $(filter-out $(image.norelease),$(image.all))
 
 release: ## Cut a release; upload binaries to S3 and Docker images to Quay
 release: build
-release: release-bin release-docker
-release-bin: ## Upload binaries to S3
-release-bin: $(foreach platform,$(go.PLATFORMS),$(foreach bin,$(release.bins),release/bin_$(platform)/$(bin)))
-release-bin: release/apro-abi.txt
-release-docker: ## Upload Docker images to Quay
-release-docker: $(addsuffix .docker.push,$(release.images))
+release: $(foreach platform,$(go.PLATFORMS),$(foreach bin,$(release.bins),release/bin_$(platform)/$(bin)))
+release: release/apro-abi.txt
+release: $(addsuffix .docker.push$(if $(RELEASE_DRYRUN),.dryrun),$(release.images))
+.PHONY: release
+
+%.docker.push.dryrun: %.docker
+	@echo 'DRYRUN docker push (( $< ))'
+.PHONY: %.docker.push.dryrun
 
 _release_os   = $(word 2,$(subst _, ,$(@D)))
 _release_arch = $(word 3,$(subst _, ,$(@D)))
 release/%: % %.opensource.tar.gz
-	aws s3 cp --acl public-read $<                   's3://datawire-static-files/$(@F)/$(VERSION)/$(_release_os)/$(_release_arch)/$(@F)'
-	aws s3 cp --acl public-read $<.opensource.tar.gz 's3://datawire-static-files/$(@F)/$(VERSION)/$(_release_os)/$(_release_arch)/$(@F).opensource.tar.gz'
-
+	$(if $(RELEASE_DRYRUN),@echo DRYRUN )aws s3 cp --acl public-read $<                   's3://datawire-static-files/$(@F)/$(VERSION)/$(_release_os)/$(_release_arch)/$(@F)'
+	$(if $(RELEASE_DRYRUN),@echo DRYRUN )aws s3 cp --acl public-read $<.opensource.tar.gz 's3://datawire-static-files/$(@F)/$(VERSION)/$(_release_os)/$(_release_arch)/$(@F).opensource.tar.gz'
 release/apro-abi.txt: release/%: %
-	aws s3 cp --acl public-read $< 's3://datawire-static-files/apro-abi/apro-abi@$(VERSION).txt'
-
-.PHONY: release release-% release/%
+	$(if $(RELEASE_DRYRUN),@echo DRYRUN )aws s3 cp --acl public-read $< 's3://datawire-static-files/apro-abi/apro-abi@$(VERSION).txt'
+.PHONY: release/%
