@@ -5,7 +5,7 @@ NAME            = ambassador-pro
 DOCKER_IMAGE    = quay.io/datawire/ambassador_pro:$(notdir $*)-$(VERSION)
 # For Makefile
 image.all       = $(sort $(patsubst %/Dockerfile,%,$(wildcard docker/*/Dockerfile)) docker/amb-sidecar-plugins)
-image.norelease = docker/amb-sidecar-plugins $(filter docker/model-cluster-%,$(image.all))
+image.norelease = docker/amb-sidecar-plugins docker/example-service docker/max-load $(filter docker/model-cluster-%,$(image.all))
 image.nocluster = docker/apro-plugin-runner
 # For k8s.mk
 K8S_IMAGES      = $(filter-out $(image.nocluster),$(image.all))
@@ -75,28 +75,18 @@ go-get-lyft:
 lyft.bins  = ratelimit_client:github.com/lyft/ratelimit/src/client_cmd
 lyft.bins += ratelimit_check:github.com/lyft/ratelimit/src/config_check_cmd
 
-# This mimics _go-common.mk
-define lyft.bin.rule
-bin_%/.cache.$(word 1,$(subst :, ,$(lyft.bin))): go-get FORCE
-	$$(go.GOBUILD) -o $$@ -o $$@ $(word 2,$(subst :, ,$(lyft.bin)))
-bin_%/$(word 1,$(subst :, ,$(lyft.bin))): bin_%/.cache.$(word 1,$(subst :, ,$(lyft.bin)))
-	@{ \
-		PS4=''; set -x; \
-		if ! cmp -s $$< $$@; then \
-			$(if $(CI),if test -e $$@; then false This should not happen in CI: $$@ should not change; fi &&) \
-			cp -f $$< $$@; \
-		fi; \
-	}
-endef
-$(foreach lyft.bin,$(lyft.bins),$(eval $(lyft.bin.rule)))
-build: $(foreach _go.PLATFORM,$(go.PLATFORMS),$(addprefix bin_$(_go.PLATFORM)/,$(foreach lyft.bin,$(lyft.bins),$(word 1,$(subst :, ,$(lyft.bin))))))
+lyft.bin.name = $(word 1,$(subst :, ,$(lyft.bin)))
+lyft.bin.pkg  = $(word 2,$(subst :, ,$(lyft.bin)))
+$(foreach lyft.bin,$(lyft.bins),$(eval $(call go.bin.rule,$(lyft.bin.name),$(lyft.bin.pkg))))
+go-build: $(foreach _go.PLATFORM,$(go.PLATFORMS),$(foreach lyft.bin,$(lyft.bins), bin_$(_go.PLATFORM)/$(lyft.bin.name) ))
 
 #
 # Plugins
 
-apro-abi.txt: go-get
+apro-abi.txt: bin_linux_amd64/amb-sidecar
+	$(if $(CI),@set -e; if test -e $@; then echo 'This should not happen in CI: $@ rebuild triggered by $+' >&2; false; fi)
 	{ \
-		echo '# _GOVERSION=$(patsubst go%,%,$(filter go1%,$(shell go version)))'; \
+		echo '# _GOVERSION=$(go.goversion)'; \
 		echo "# GOPATH=$$(go env GOPATH)"; \
 		echo '# GOOS=linux'; \
 		echo '# GOARCH=amd64'; \
@@ -149,6 +139,7 @@ ifneq ($(HAVE_DOCKER),)
 go-build: $(foreach p,$(plugins),bin_linux_amd64/$p.so)
 
 # For cross-compiled CGO binaries, we'll compile them in Docker.
+$(addprefix bin_linux_amd64/,$(_cgo_files)): CGO_ENABLED = 1
 $(addprefix bin_linux_amd64/,$(_cgo_files)): go.GOBUILD = $(_cgo_GOBUILD)
 _cgo_GOBUILD  = docker run --rm
 _cgo_GOBUILD += --env GOOS
@@ -187,7 +178,7 @@ build: $(if $(HAVE_DOCKER),$(addsuffix .docker,$(image.all)))
 # assumption so far, and forces us to name things in a consistent
 # manner.
 define docker.bins_rule
-$(if $(filter $(notdir $(image)),$(notdir $(go.bins))),$(image).docker: $(image)/$(notdir $(image)))
+$(if $(filter $(notdir $(image)),$(notdir $(go.bins))),$(image).docker: $(image)/$(notdir $(image)) $(image)/$(notdir $(image)).opensource.tar.gz)
 $(image)/%: bin_linux_amd64/%
 	cp $$< $$@
 $(image)/clean:
@@ -373,6 +364,7 @@ clean: $(addsuffix .clean,$(wildcard docker/*.docker)) loadtest-clean
 	rm -f apro-abi.txt
 	rm -f tests/*.log tests/*.tap tests/*/*.log tests/*/*.tap
 	rm -f docker/amb-sidecar-plugins/Dockerfile docker/amb-sidecar-plugins/*.so
+	rm -f docker/*/*.opensource.tar.gz
 	rm -f k8s-*/??-ambassador-certs.yaml k8s-*/*.pem
 	rm -f k8s-*/??-auth0-secret.yaml
 	rm -f docker/*.knaut-push
@@ -420,23 +412,26 @@ clobber:
 #
 # Release
 
-.PHONY: release release-%
+RELEASE_DRYRUN ?=
+release.bins = apictl apictl-key apro-plugin-runner
+release.images = $(filter-out $(image.norelease),$(image.all))
 
 release: ## Cut a release; upload binaries to S3 and Docker images to Quay
 release: build
-release: release-bin release-docker
-release-bin: ## Upload binaries to S3
-release-bin: $(foreach platform,$(go.PLATFORMS), release/bin_$(platform)/apictl             )
-release-bin: $(foreach platform,$(go.PLATFORMS), release/bin_$(platform)/apictl-key         )
-release-bin: $(foreach platform,$(go.PLATFORMS), release/bin_$(platform)/apro-plugin-runner )
-release-bin: release/apro-abi.txt
-release-docker: ## Upload Docker images to Quay
-release-docker: $(addsuffix .docker.push,$(filter-out $(image.norelease),$(image.all)))
+release: $(foreach platform,$(go.PLATFORMS),$(foreach bin,$(release.bins),release/bin_$(platform)/$(bin)))
+release: release/apro-abi.txt
+release: $(addsuffix .docker.push$(if $(RELEASE_DRYRUN),.dryrun),$(release.images))
+.PHONY: release
+
+%.docker.push.dryrun: %.docker
+	@echo 'DRYRUN docker push (( $< ))'
+.PHONY: %.docker.push.dryrun
 
 _release_os   = $(word 2,$(subst _, ,$(@D)))
 _release_arch = $(word 3,$(subst _, ,$(@D)))
-release/%: %
-	aws s3 cp --acl public-read $< 's3://datawire-static-files/$(@F)/$(VERSION)/$(_release_os)/$(_release_arch)/$(@F)'
-
+release/%: % %.opensource.tar.gz
+	$(if $(RELEASE_DRYRUN),@echo DRYRUN )aws s3 cp --acl public-read $<                   's3://datawire-static-files/$(@F)/$(VERSION)/$(_release_os)/$(_release_arch)/$(@F)'
+	$(if $(RELEASE_DRYRUN),@echo DRYRUN )aws s3 cp --acl public-read $<.opensource.tar.gz 's3://datawire-static-files/$(@F)/$(VERSION)/$(_release_os)/$(_release_arch)/$(@F).opensource.tar.gz'
 release/apro-abi.txt: release/%: %
-	aws s3 cp --acl public-read $< 's3://datawire-static-files/apro-abi/apro-abi@$(VERSION).txt'
+	$(if $(RELEASE_DRYRUN),@echo DRYRUN )aws s3 cp --acl public-read $< 's3://datawire-static-files/apro-abi/apro-abi@$(VERSION).txt'
+.PHONY: release/%

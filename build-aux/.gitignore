@@ -14,9 +14,10 @@
 /docker-port-forward.log
 /docker-registry.yaml.o
 
-# _go-common.mk
+# go-mod.mk
 /golangci-lint
 /go-test.tap
+/go1*.src.tar.gz
 
 # --- Files ignored by older versions ---
 # Remove the tail of this list when the commit making the change gets

@@ -104,6 +104,8 @@ commands:
               export AWS_SECRET_ACCESS_KEY=$DEPLOY_KEY
               docker login -u="datawire+releasebot" -p="${DOCKER_TOKEN}" quay.io
               make release
+          else
+              make release RELEASE_DRYRUN=y
           fi
 
 jobs:

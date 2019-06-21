@@ -10,6 +10,8 @@
 #  - Variable: export GOHOSTOS
 #  - Variable: export GOHOSTARCH
 #  - Variable: FLOCK
+#  - Variable: COPY_IFCHANGED
+#  - Variable: WRITE_IFCHANGE
 #  - Variable: NL
 #  - Variable: SPACE
 #  - Function: joinlist
@@ -33,6 +35,8 @@ export GOHOSTOS   = $(call lazyonce,GOHOSTOS  ,$(if $(_prelude.HAVE_GO),$(shell 
 export GOHOSTARCH = $(call lazyonce,GOHOSTARCH,$(if $(_prelude.HAVE_GO),$(shell go env GOHOSTARCH),$(patsubst i%86,386,$(patsubst x86_64,amd64,$(shell uname -m)))))
 
 FLOCK = $(call lazyonce,FLOCK,$(if $(shell which flock 2>/dev/null),flock,$(abspath $(dir $(_prelude.mk))flock)))
+COPY_IFCHANGED = $(abspath $(dir $(_prelude.mk))copy-ifchanged)
+WRITE_IFCHANGED = $(abspath $(dir $(_prelude.mk))write-ifchanged)
 
 # NOTE: this is not a typo, this is actually how you spell newline in Make
 define NL
