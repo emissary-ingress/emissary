@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 	"syscall"
+	"text/template"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
@@ -56,7 +57,26 @@ func main() {
 		errusage(err.Error())
 	}
 	if *flagVersion {
-		fmt.Printf("apro-plugin-runner %s (%s %s/%s)\n", Version, runtime.Version(), runtime.GOOS, runtime.GOARCH)
+		t := template.New("top")
+		template.Must(t.Parse(`{{.Name}} version {{.Version}} ({{.GoVersion}} {{.GOOS}}/{{.GOARCH}})
+Copyright 2019 Datawire. All rights reserved.
+
+Information about open source code used in this executable is found at
+<https://s3.amazonaws.com/datawire-static-files/{{.Name}}/{{.Version}}/{{.GOOS}/{{.GOARCH}/{{.Name}}.opensource.tar.gz>.
+
+Information about open source code used in the Docker image used by
+'--docker' is found in the '/{{.Name}}.opensource.tar.gz' file in
+the 'quay.io/datawire/ambassador_pro:{{.Name}}-{{.Version}}'
+Docker image.
+`))
+		t.Execute(os.Stdout, map[string]string{
+			"Name":      "apro-plugin-runner",
+			"Version":   Version,
+			"GoVersion": runtime.Version(),
+			"GOOS":      runtime.GOOS,
+			"GOARCH":    runtime.GOARCH,
+		})
+		return
 	}
 	if argparser.NArg() != 2 {
 		errusage(fmt.Sprintf("expected exactly 2 arguments, but got %d", argparser.NArg()))
