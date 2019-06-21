@@ -139,6 +139,7 @@ ifneq ($(HAVE_DOCKER),)
 go-build: $(foreach p,$(plugins),bin_linux_amd64/$p.so)
 
 # For cross-compiled CGO binaries, we'll compile them in Docker.
+$(addprefix bin_linux_amd64/,$(_cgo_files)): CGO_ENABLED = 1
 $(addprefix bin_linux_amd64/,$(_cgo_files)): go.GOBUILD = $(_cgo_GOBUILD)
 _cgo_GOBUILD  = docker run --rm
 _cgo_GOBUILD += --env GOOS
