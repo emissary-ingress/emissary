@@ -75,28 +75,18 @@ go-get-lyft:
 lyft.bins  = ratelimit_client:github.com/lyft/ratelimit/src/client_cmd
 lyft.bins += ratelimit_check:github.com/lyft/ratelimit/src/config_check_cmd
 
-# This mimics _go-common.mk
-define lyft.bin.rule
-bin_%/.cache.$(word 1,$(subst :, ,$(lyft.bin))): go-get FORCE
-	$$(go.GOBUILD) -o $$@ -o $$@ $(word 2,$(subst :, ,$(lyft.bin)))
-bin_%/$(word 1,$(subst :, ,$(lyft.bin))): bin_%/.cache.$(word 1,$(subst :, ,$(lyft.bin)))
-	@{ \
-		PS4=''; set -x; \
-		if ! cmp -s $$< $$@; then \
-			$(if $(CI),if test -e $$@; then false This should not happen in CI: $$@ should not change; fi &&) \
-			cp -f $$< $$@; \
-		fi; \
-	}
-endef
-$(foreach lyft.bin,$(lyft.bins),$(eval $(lyft.bin.rule)))
-build: $(foreach _go.PLATFORM,$(go.PLATFORMS),$(addprefix bin_$(_go.PLATFORM)/,$(foreach lyft.bin,$(lyft.bins),$(word 1,$(subst :, ,$(lyft.bin))))))
+lyft.bin.name = $(word 1,$(subst :, ,$(lyft.bin)))
+lyft.bin.pkg  = $(word 2,$(subst :, ,$(lyft.bin)))
+$(foreach lyft.bin,$(lyft.bins),$(eval $(call go.bin.rule,$(lyft.bin.name),$(lyft.bin.pkg))))
+go-build: $(foreach _go.PLATFORM,$(go.PLATFORMS),$(foreach lyft.bin,$(lyft.bins), bin_$(_go.PLATFORM)/$(lyft.bin.name) ))
 
 #
 # Plugins
 
-apro-abi.txt: go-get
+apro-abi.txt: bin_linux_amd64/amb-sidecar
+	$(if $(CI),@set -e; if test -e $@; then echo 'This should not happen in CI: $@ rebuild triggered by $+' >&2; false; fi)
 	{ \
-		echo '# _GOVERSION=$(patsubst go%,%,$(filter go1%,$(shell go version)))'; \
+		echo '# _GOVERSION=$(go.goversion)'; \
 		echo "# GOPATH=$$(go env GOPATH)"; \
 		echo '# GOOS=linux'; \
 		echo '# GOARCH=amd64'; \
