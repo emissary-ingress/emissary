@@ -18,6 +18,7 @@
 #  - Variable: export GO111MODULE = on
 #  - Variable: NAME ?= $(notdir $(go.module))
 #
+#  - Variable: go.goversion = $(patsubst go%,%,$(filter go1%,$(shell go version)))
 #  - Variable: go.module = EXAMPLE.COM/YOU/YOURREPO
 #  - Variable: go.bins = List of "main" Go packages
 #  - Variable: go.pkgs = ./...
@@ -26,6 +27,7 @@
 #  - Function: go.bin.rule = Only use this if you know what you are doing
 #
 #  - Targets: bin_$(OS)_$(ARCH)/$(CMD)
+#  - Targets: bin_$(OS)_$(ARCH)/$(CMD).opensource.tar.gz
 #  - .PHONY Target: go-get
 #  - .PHONY Target: go-build
 #  - .PHONY Target: go-lint
@@ -50,11 +52,13 @@ include $(dir $(_go-mod.mk))common.mk
 #
 # Configure the `go` command
 
+go.goversion = $(call lazyonce,go.goversion,$(patsubst go%,%,$(filter go1%,$(shell go version))))
+
 export GO111MODULE = on
 
 # Disable parallel builds on Go 1.11; the module cache is not
 # concurrency-safe.  This is fixed in 1.12.
-ifneq ($(filter go1.11.%,$(shell go version)),)
+ifneq ($(filter 1.11.%,$(go.goversion)),)
 .NOTPARALLEL:
 endif
 
@@ -105,17 +109,31 @@ go-get: ## (Go) Download Go dependencies
 	go mod download
 .PHONY: go-get
 
+vendor: go-get FORCE
+	go mod vendor
+	@test -d $@
+vendor.hash: vendor
+	find vendor -type f -exec sha256sum {} + | sort | sha256sum | $(WRITE_IFCHANGED) $@
+
+$(dir $(_go-mod.mk))go1%.src.tar.gz:
+	curl -o $@ --fail https://dl.google.com/go/$(@F)
+
 # Usage: $(eval $(call go.bin.rule,BINNAME,GOPACKAGE))
 define go.bin.rule
 bin_%/$1: go-get FORCE
 	$$(go.GOBUILD) $$(if $$(go.LDFLAGS),--ldflags $$(call quote.shell,$$(go.LDFLAGS))) -o $$(@D)/.cache.$$(@F) $2
+	go list -deps -f='{{.Module}}' $2 | LC_COLLATE=C sort -u | $$(WRITE_IFCHANGED) $$(@D)/.deps.$$(@F)
 	$$(COPY_IFCHANGED) $$(@D)/.cache.$$(@F) $$@
+
+bin_%/$1.opensource.tar.gz: bin_%/$1 vendor.hash $$(dir $$(_go-mod.mk))go-opensource $$(dir $$(_go-mod.mk))go$$(go.goversion).src.tar.gz
+	$$(if $$(CI),@set -e; if test -e $$@; then echo 'This should not happen in CI: $$@ rebuild triggered by $$+' >&2; false; fi)
+	$$(dir $$(_go-mod.mk))go-opensource --output=$$@ --package=$2 --depsfile=$$(<D)/.deps.$$(<F) --gotar=$$(dir $$(_go-mod.mk))go$$(go.goversion).src.tar.gz
 endef
 
 _go.bin.name = $(notdir $(_go.bin))
 _go.bin.pkg = $(_go.bin)
 $(foreach _go.bin,$(go.bins),$(eval $(call go.bin.rule,$(_go.bin.name),$(_go.bin.pkg))))
-go-build: $(foreach _go.PLATFORM,$(go.PLATFORMS),$(foreach _go.bin,$(go.bins), bin_$(_go.PLATFORM)/$(_go.bin.name) ))
+go-build: $(foreach _go.PLATFORM,$(go.PLATFORMS),$(foreach _go.bin,$(go.bins), bin_$(_go.PLATFORM)/$(_go.bin.name).opensource.tar.gz ))
 
 go-build: ## (Go) Build the code with `go build`
 .PHONY: go-build
@@ -162,7 +180,7 @@ _go-clean:
 
 clobber: _go-clobber
 _go-clobber:
-	rm -f $(dir $(_go-mod.mk))golangci-lint
+	rm -f $(dir $(_go-mod.mk))golangci-lint $(dir $(_go-mod.mk))go1*.src.tar.gz
 .PHONY: _go-clobber
 
 #
