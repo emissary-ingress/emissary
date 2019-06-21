@@ -170,7 +170,8 @@ test-suite.tap: $(if $(go.DISABLE_GO_TEST),,$(dir $(_go-mod.mk))go-test.tap)
 
 clean: _go-clean
 _go-clean:
-	rm -f $(dir $(_go-mod.mk))go-test.tap
+	rm -f $(dir $(_go-mod.mk))go-test.tap vendor.hash
+	rm -rf vendor/
 # Files made by older versions.  Remove the tail of this list when the
 # commit making the change gets far enough in to the past.
 #
