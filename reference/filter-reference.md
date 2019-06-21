@@ -114,14 +114,14 @@ metadata:
   name: "example-filter"
 spec:
   OAuth2:
-    authorizationURL: "url-string"      # required
-    clientURL:        "url-string"      # required
-    stateTTL:         "duration-string" # optional; default is "5m"
-    insecureTLS:      bool              # optional; default is false
-    audience:         "string"
-    clientID:         "string"
-    secret:           "string"
-    MaxStale:         "duration-string" # optional; default is "0"
+    authorizationURL:      "url-string"      # required
+    clientURL:             "url-string"      # required
+    stateTTL:              "duration-string" # optional; default is "5m"
+    insecureTLS:           bool              # optional; default is false
+    clientID:              "string"
+    secret:                "string"
+    maxStale:              "duration-string" # optional; default is "0"
+    accessTokenValidation: "enum-string"     # optional; default is "auto"
 ```
 
  - `authorizationURL`: Identifies where to look for the
@@ -138,7 +138,7 @@ spec:
    `https://` identity provider.  This is discouraged in favor of
    either using plain `http://` or [installing a self-signed
    certificate](#installing-self-signed-certificates).
- - `audience`: The OIDC audience.
+   <!-- - `audience`: The OIDC audience. -->
  - `clientID`: The Client ID you get from your identity provider.
  - `secret`: The client secret you get from your identity provider.
  - `maxStale`: How long to keep stale cached OIDC replies for.  This
@@ -146,6 +146,26 @@ spec:
    ignores the `no-store` and `no-cache` Cache-Control directives on
    responses.  This is useful for working with identity providers with
    mis-configured Cache-Control.
+ - `accessTokenValidation`: How to verify the liveness and scope of
+   Access Tokens issued by the identity provider.  Valid values are
+   either `"auto"`, `"jwt"`, or `"userinfo"`.  Empty or unset is
+   equivalent to `"auto"`.
+   * `"jwt"`: Validates the Access Token as a JWT.  It accepts the
+     RS256, RS384, or RS512 signature algorithms, and validates the
+     signature against the JWKS from OIDC Discovery.  It then
+     validates the `exp`, `iat`, `nbf`, `iss` (with the Issuer from
+     OIDC Discovery), and `scope` claims; if present, none of the
+     scopes are required to be present.  This relies on the identity
+     provider using non-encrypted signed JWTs as Access Tokens, and
+     configuring the signing appropriately.
+   * `"userinfo"`: Validates the access token by polling the OIDC
+     UserInfo Endpoint.  This means that Ambassador Pro must initiate
+     an HTTP request to the identity provider for each authorized request to a
+     protected resource.  This performs poorly, but functions properly
+     with a wider range of identity providers.
+   * `"auto"` attempts has it do `"jwt"` validation if the Access
+     Token parses as a JWT and the signature is valid, and otherwise
+     falls back to `"userinfo"` validation.
 
 `"duration-string"` strings are parsed as a sequence of decimal
 numbers, each with optional fraction and a unit suffix, such as
