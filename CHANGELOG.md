@@ -6,6 +6,7 @@ Configuration:
 
  * Redis is now always required to be configured.
  * The `amb-sidecar` environment variables `$APRO_PRIVATE_KEY_PATH` and `$APRO_PUBLIC_KEY_PATH` are replaced by a Kubernetes secret and the `$APRO_KEYPAIR_SECRET_NAME` and `$APRO_KEYPAIR_SECRET_NAMESPACE` environment variables.
+ * If the `$APRO_KEYPAIR_SECRET_NAME` Kubernetes secret (above) does not exist, `amb-sidecar` now needs the "create" permission for secrets in its ClusterRole.
  * The `OAuth2` Filter now ignores the `audience` field setting.  I expect it to make a come-back in 0.5.1 though.
  * The `OAuth2` Filter now acts as if the `openid` scope value is always included in the FilterPolicy's `scopes` argument.
  * The `OAuth2` Filter can verify Access Tokens with several different methods; configured with the `accessTokenValidation` field.
