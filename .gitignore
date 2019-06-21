@@ -30,7 +30,7 @@ package-lock.json
 node_modules
 unused-e2e
 
-/envoy/
+/envoy-src/
 /envoy-bin/
 /envoy-build-image.txt
 
@@ -56,3 +56,10 @@ ambassador-secrets-deployment.yaml
 *failures.txt
 kubernaut-claim.txt
 *.swp
+
+# --- Files ignored by older versions ---
+# Remove the tail of this list when the commit making the change gets
+# far enough in to the past.
+
+# 2019-06-14
+/envoy/
