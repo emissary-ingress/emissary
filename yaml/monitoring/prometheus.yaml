@@ -3,15 +3,16 @@ apiVersion: monitoring.coreos.com/v1
 kind: Prometheus
 metadata:
   name: prometheus
-  namespace: monitoring
 spec:
+  externalUrl: http://${AMBASSADOR_IP}/prometheus
+  routePrefix: /prometheus
   ruleSelector:
     matchLabels:
       app: prometheus-operator
-  serviceAccountName: prometheus-operator
+  serviceAccountName: prometheus
   serviceMonitorSelector:
     matchLabels:
-      ambassador: monitoring
+      app: ambassador
   resources:
     requests:
       memory: 400Mi
@@ -20,7 +21,15 @@ apiVersion: v1
 kind: Service
 metadata:
   name: prometheus
-  namespace: monitoring
+  annotations:
+    getambassador.io/config: |
+       ---
+       apiVersion: ambassador/v1
+       kind: Mapping
+       name: prometheus_mapping
+       prefix: /prometheus/
+       rewrite: ""
+       service: prometheus:9090
 spec:
   type: ClusterIP
   ports:
