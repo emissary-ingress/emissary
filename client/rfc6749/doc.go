@@ -10,8 +10,8 @@
 //  4. ClientCredentialsClient
 //
 // After creating the Client object, but before using it, applications will need to register the
-// OAuth 2.0 protoco extensions that they will be using, by calling `.RegisterProtocolExtensions()`
-// on the client.
+// OAuth 2.0 protocol extensions that they will be using, by calling `.RegisterProtocolExtensions()`
+// on the Client object.
 //
 // Once the Client object has been initialized, the application will call the (client-type-specific)
 // method to initiate the authorization flow, which will return a struct containing session data.
