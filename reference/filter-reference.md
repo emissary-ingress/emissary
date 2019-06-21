@@ -124,25 +124,27 @@ spec:
     MaxStale:         "duration-string" # optional; default is "0"
 ```
 
- - `authorizationURL` identifies where to look for the
+ - `authorizationURL`: Identifies where to look for the
    `/.well-known/openid-configuration` descriptor to figure out how to
    talk to the OAuth2 provider.
- - `clientURL` identifies a hostname that can appropriately set cookies
-   for the application.  Only the scheme (`https://`) and authority
-   (`example.com:1234`) parts are used; the path part of the URL is
-   ignored.
- - stateTTL: How long Ambassador will wait for the user to submit credentials to the IDP and receive a response to that effect from the IDP
- - `insecureTLS` disables TLS verification when speeking to an
-   `https://` IDP.  This is discouraged in favor of either using plain
-   `http://` or [installing a self-signed
+ - `clientURL`: Identifies a hostname that can appropriately set
+   cookies for the application.  Only the scheme (`https://`) and
+   authority (`example.com:1234`) parts are used; the path part of the
+   URL is ignored.
+ - `stateTTL`: How long Ambassador will wait for the user to submit
+   credentials to the identity provider and receive a response to that
+   effect from the identity provider
+ - `insecureTLS` disables TLS verification when speaking to an
+   `https://` identity provider.  This is discouraged in favor of
+   either using plain `http://` or [installing a self-signed
    certificate](#installing-self-signed-certificates).
- - audience: The OIDC audience.
- - clientID: The client ID you get from your IDP.
- - secret: The client secret you get from your IDP.
- - `maxStale`: How long to keep stale cache OIDC replies for.  This
+ - `audience`: The OIDC audience.
+ - `clientID`: The Client ID you get from your identity provider.
+ - `secret`: The client secret you get from your identity provider.
+ - `maxStale`: How long to keep stale cached OIDC replies for.  This
    sets the `max-stale` Cache-Control directive on requests, and also
    ignores the `no-store` and `no-cache` Cache-Control directives on
-   responses.  This is useful for working with IDPs with
+   responses.  This is useful for working with identity providers with
    mis-configured Cache-Control.
 
 `"duration-string"` strings are parsed as a sequence of decimal
