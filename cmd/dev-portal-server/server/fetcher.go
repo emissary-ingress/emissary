@@ -4,6 +4,7 @@ import (
 	"crypto/tls"
 	"fmt"
 	"io/ioutil"
+	"net"
 	"net/http"
 	"strings"
 	"time"
@@ -115,18 +116,24 @@ func getString(o *gabs.Container, attr string) string {
 	return o.S(attr).Data().(string)
 }
 
+var dialer = &net.Dialer{
+	Timeout: time.Second * 2,
+}
+
+var client = &http.Client{
+	Timeout: time.Second * 2,
+
+	// TODO: We should make this an explicit opt-in
+	Transport: &http.Transport{
+		/* #nosec */
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		Dial:            dialer.Dial,
+	},
+}
+
 func httpGet(url string, internalSecret string, logger *log.Entry) ([]byte, error) {
 	logger = logger.WithFields(log.Fields{"url": url})
 	logger.Info("HTTP GET")
-	client := &http.Client{
-		Timeout: time.Second * 2,
-
-		// TODO: We should make this an explicit opt-in
-		Transport: &http.Transport{
-			/* #nosec */
-			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-		},
-	}
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		logger.Error(err)
@@ -139,6 +146,7 @@ func httpGet(url string, internalSecret string, logger *log.Entry) ([]byte, erro
 		logger.Error(err)
 		return nil, err
 	}
+	defer response.Body.Close()
 	if response.StatusCode != 200 {
 		logger.WithFields(
 			log.Fields{"status_code": response.StatusCode}).Error(
