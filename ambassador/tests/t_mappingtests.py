@@ -89,104 +89,6 @@ service: http://{self.target.path.fqdn}
                 assert r.backend.name == self.target.path.k8s, (r.backend.name, self.target.path.k8s)
                 assert r.backend.request.headers['x-envoy-original-path'][0] == f'/{self.name}/'
 
-
-# class LinkerdHeaderMapping(MappingTest):
-
-#     parent: AmbassadorTest
-#     target: ServiceType
-
-#     def config(self):
-#         yield self, self.format("""
-# ---
-# apiVersion: ambassador/v1
-# kind:  Mapping
-# name:  {self.name}
-# prefix: /{self.name}/
-# host: {self.target}
-# add_linkerd_header: true
-# service: http://{self.target.path.fqdn}
-# """)
-
-#     def queries(self):
-#         yield Query(self.parent.url(self.name + "/")
-
-#     def check(self):
-#         assert self.results[0].backend.request.headers['l5d-dst-override'] == self.target
-    
-class LinkerdHeaderMapping(AmbassadorTest):
-    target: ServiceType
-
-    def init(self):
-        self.target = HTTP()
-
-    def config(self):
-        yield self, self.format("""
----
-apiVersion: ambassador/v0
-kind: Mapping
-name: {self.target.path.k8s}
-prefix: /target/
-service: {self.target.path.fqdn}
-add_linkerd_headers: true
-""")
-
-    def queries(self):
-        yield Query(self.url("target/"), expected=200)
-        
-    def check(self):
-        assert self.results[0].backend.request.headers['l5d-dst-override'] == self.target
-
-
-# class AddReqHeadersMapping(MappingTest):
-#     parent: AmbassadorTest
-#     target: ServiceType
-
-#     @classmethod
-#     def variants(cls):
-#         for st in variants(ServiceType):
-#             yield cls(st, name="{self.target.name}")
-
-#     def config(self):
-#         yield self, self.format("""
-# ---
-# apiVersion: ambassador/v1
-# kind:  Mapping
-# name:  {self.name}
-# prefix: /{self.name}/
-# service: http://{self.target.path.fqdn}
-# add_request_headers:
-#     zoo:
-#         append: False
-#         value: Zoo
-#     aoo:
-#         append: True
-#         value: aoo
-#     boo:
-#         value: boo
-#     foo: Foo
-# """)
-
-#     def queries(self):
-#         yield Query(self.parent.url(self.name + "/"), headers={
-#             "zoo": "ZooZ",
-#             "aoo": "AooA",
-#             "boo": "BooB",
-#             "foo": "FooF"
-#         })
-
-#     def check(self):
-#         for r in self.results:
-#             if r.backend:
-#                 assert r.backend.request.headers['zoo'] == ['Zoo']
-#                 assert r.backend.request.headers['aoo'] == ['AooA','aoo']
-#                 assert r.backend.request.headers['boo'] == ['BooB','boo']
-#                 assert r.backend.request.headers['foo'] == ['FooF','Foo']
-
-
-
-
-
-
 class HostHeaderMapping(MappingTest):
 
     parent: AmbassadorTest
@@ -477,3 +379,27 @@ remove_request_headers:
                 assert r.json['headers']['Foo'] == 'FooF'
                 assert 'Zoo' not in r.json['headers']
                 assert 'Aoo' not in r.json['headers']
+
+class LinkerdHeaderMapping(AmbassadorTest):
+    target: ServiceType
+
+    def init(self):
+        self.target = HTTP()
+
+    def config(self):
+        yield self, self.format("""
+---
+apiVersion: ambassador/v1
+kind: Mapping
+name: {self.target.path.k8s}
+prefix: /target/
+service: {self.target.path.fqdn}
+add_linkerd_headers: true
+""")
+
+    def queries(self):
+        yield Query(self.url("target/"), headers={'l5d-dst-override': self.target.path.fqdn}, expected=200)
+        
+    def check(self):
+        assert len(self.results[0].backend.request.headers['l5d-dst-override']) > 0
+        assert self.results[0].backend.request.headers['l5d-dst-override'] == [self.target.path.fqdn]
