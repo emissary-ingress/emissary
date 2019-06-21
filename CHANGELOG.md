@@ -1,6 +1,30 @@
 ## Ambassador Pro CHANGELOG
 
-## 0.4.4 (TBD)
+## 0.5.0 (TBD)
+
+Configuration:
+
+ * Redis is now always required to be configured.
+ * The `amb-sidecar` environment variables `$APRO_PRIVATE_KEY_PATH` and `$APRO_PUBLIC_KEY_PATH` are replaced by a Kubernetes secret and the `$APRO_KEYPAIR_SECRET_NAME` and `$APRO_KEYPAIR_SECRET_NAMESPACE` environment variables.
+ * The `OAuth2` Filter now ignores the `audience` field setting.  I expect it to make a come-back in 0.5.1 though.
+ * The `OAuth2` Filter now acts as if the `openid` scope value is always included in the FilterPolicy's `scopes` argument.
+ * The `OAuth2` Filter can verify Access Tokens with several different methods; configured with the `accessTokenValidation` field.
+
+Behavior:
+
+ * The `OAuth2` Filter is now strictly compliant with OAuth 2.0.  It is verified to work properly with:
+   - Auth0
+   - Azure AD
+   - Google
+   - Keycloak
+   - Okta
+   - UAA
+ * The `OAuth2` Filter browser cookie has changed:
+   - It is now named `ambassador_session.{{filter_name}}.{{filter_namespace}}` instead of `access_token`.
+   - It is now an opaque string instead of a JWT Access Token.  The Access Token is still available in the injected `Authorization` header.
+ * The `OAuth2` Filter will no longer consider a user-agent-provided `Authorization` header, it will only consider the cookie.
+ * The `OAuth2` Filter now supports Refresh Tokens; they must be requested by listing `offline_access` in the `scopes` argument in the FilterPolicy.
+ * The `OAuth2` Filter's `/callback` endpoint is no longer vulnerable to XSRF attacks
 
 ## 0.4.3 (2019-05-15)
 
@@ -41,7 +65,7 @@
  * Switch to using Ambassador OSS gRPC API
  * No longer nescessary to set `allowed_request_headers` or `allowed_authorization_headers` for `Plugin` Filters
  * RLS logs requests as `info` instead of `warn`
- * Officially support Octa as an IDP
+ * Officially support Okta as an IDP
 
 ## 0.2.5 (2019-04-02)
 
