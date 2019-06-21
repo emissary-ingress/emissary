@@ -23,6 +23,7 @@
 #  - Variable: go.pkgs = ./...
 #
 #  - Function: go.list = like $(shell go list $1), but ignores nested Go modules and doesn't download things
+#  - Function: go.bin.rule = Only use this if you know what you are doing
 #
 #  - Targets: bin_$(OS)_$(ARCH)/$(CMD)
 #  - .PHONY Target: go-get
@@ -104,21 +105,17 @@ go-get: ## (Go) Download Go dependencies
 	go mod download
 .PHONY: go-get
 
-define _go.bin.rule
-bin_%/.cache.$(notdir $(go.bin)): go-get FORCE
-	$$(go.GOBUILD) $$(if $$(go.LDFLAGS),--ldflags $$(call quote.shell,$$(go.LDFLAGS))) -o $$@ $(go.bin)
-bin_%/$(notdir $(go.bin)): bin_%/.cache.$(notdir $(go.bin))
-	@{ \
-		PS4=''; set -x; \
-		if ! cmp -s $$< $$@; then \
-			$(if $(CI),if test -e $$@; then false This should not happen in CI: $$@ should not change; fi &&) \
-			cp -f $$< $$@; \
-		fi; \
-	}
+# Usage: $(eval $(call go.bin.rule,BINNAME,GOPACKAGE))
+define go.bin.rule
+bin_%/$1: go-get FORCE
+	$$(go.GOBUILD) $$(if $$(go.LDFLAGS),--ldflags $$(call quote.shell,$$(go.LDFLAGS))) -o $$(@D)/.cache.$$(@F) $2
+	$$(COPY_IFCHANGED) $$(@D)/.cache.$$(@F) $$@
 endef
-$(foreach go.bin,$(go.bins),$(eval $(_go.bin.rule)))
 
-go-build: $(foreach _go.PLATFORM,$(go.PLATFORMS),$(addprefix bin_$(_go.PLATFORM)/,$(notdir $(go.bins))))
+_go.bin.name = $(notdir $(_go.bin))
+_go.bin.pkg = $(_go.bin)
+$(foreach _go.bin,$(go.bins),$(eval $(call go.bin.rule,$(_go.bin.name),$(_go.bin.pkg))))
+go-build: $(foreach _go.PLATFORM,$(go.PLATFORMS),$(foreach _go.bin,$(go.bins), bin_$(_go.PLATFORM)/$(_go.bin.name) ))
 
 go-build: ## (Go) Build the code with `go build`
 .PHONY: go-build
