@@ -335,7 +335,7 @@ service: {self.target.path.fqdn}
         yield Query(self.url("target/"), headers={"Requested-Status": "200"}, expected=200)
         
         # [1]
-        yield Query(self.url("target/"), headers={"Requested-Status": "503"}, expected=200)
+        yield Query(self.url("target/"), headers={"Requested-Status": "503"}, expected=503)
 
     def check(self):
         # [0] Verifies that the authorization server received the partial message body.
@@ -347,7 +347,6 @@ service: {self.target.path.fqdn}
         # [1] Verifies that the authorization server received the full message body.
         extauth_res2 = json.loads(self.results[1].headers["Extauth"][0])
         assert self.results[1].backend.request.headers["requested-status"] == ["503"]
-        assert self.results[1].status == 200
         assert self.results[1].headers["Server"] == ["envoy"]
 
 class AuthenticationTestV1(AmbassadorTest):
