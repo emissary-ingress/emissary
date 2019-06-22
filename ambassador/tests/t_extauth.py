@@ -335,7 +335,7 @@ service: {self.target.path.fqdn}
         yield Query(self.url("target/"), headers={"Requested-Status": "200"}, expected=200)
         
         # [1]
-        yield Query(self.url("target/"), headers={"Requested-Status": "401"}, expected=200)
+        yield Query(self.url("target/"), headers={"Requested-Status": "503"}, expected=200)
 
     def check(self):
         # [0] Verifies that the authorization server received the partial message body.
@@ -346,7 +346,7 @@ service: {self.target.path.fqdn}
         
         # [1] Verifies that the authorization server received the full message body.
         extauth_res2 = json.loads(self.results[1].headers["Extauth"][0])
-        assert self.results[1].backend.request.headers["requested-status"] == ["401"]
+        assert self.results[1].backend.request.headers["requested-status"] == ["503"]
         assert self.results[1].status == 200
         assert self.results[1].headers["Server"] == ["envoy"]
 
@@ -382,6 +382,13 @@ allowed_request_headers:
 allowed_authorization_headers:
 - X-Foo
 - Extauth
+
+status_on_error:
+- code: 503
+
+retry_policy:
+  retry_on: "5xx"
+  num_retries: 2
 
 ---
 apiVersion: ambassador/v1
