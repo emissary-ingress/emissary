@@ -331,6 +331,7 @@ auth_service: "{self.auth2.path.fqdn}"
 proto: http
 path_prefix: "/extauth"
 timeout_ms: 5000
+add_linkerd_headers: true
 
 allowed_request_headers:
 - X-Foo
@@ -442,6 +443,10 @@ bypass_auth: true
         assert self.results[4].status == 200
         assert self.results[4].headers["Server"] == ["envoy"]
         assert self.results[4].headers["Authorization"] == ["foo-11111"]
+
+        extauth_res = json.loads(self.results[4].headers["Extauth"][0])
+        assert extauth_res["request"]["headers"]["l5d-dst-override"] ==  [ self.url ]
+
 
         # [5] Verify that X-Forwarded-Proto makes it to the auth service.
         #
