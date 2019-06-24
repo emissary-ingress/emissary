@@ -48,6 +48,7 @@ Ambassador supports a number of attributes to configure and customize mappings.
 | [`idle_timeout_ms`](/reference/timeouts)         | the timeout, in milliseconds, after which connections through this `Mapping` will be terminated if no traffic is seen. Defaults to 300000 (5 minutes). |
 | [`tls`](#using-tls)       | if true, tells the system that it should use HTTPS to contact this service. (It's also possible to use `tls` to specify a certificate to present to the service.) |
 | `use_websocket`           | if true, tells Ambassador that this service will use websockets |
+| `add_linkerd_headers`           | when true, Ambassador adds the `l5d-dst-override` header to the request and the `service` field is used as a value. |
 
 If both `enable_ipv4` and `enable_ipv6` are set, Ambassador will prefer IPv6 to IPv4. See the [Ambassador module](/reference/modules) documentation for more information.
 
