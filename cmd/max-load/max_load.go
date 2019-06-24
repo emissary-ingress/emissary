@@ -109,7 +109,7 @@ OPTIONS (cooldown):
 
   Between loads, cooldown at ${rps} until all 3 conditions are met:
 
-    1. It has made ${until-min-smaples} consecutive successful
+    1. It has made ${until-min-samples} consecutive successful
        requests.
     2. It is ${until-min-latency-confidence} % sure that the mean
        latency is accurate to at least ± ${until-max-latency-margin}.

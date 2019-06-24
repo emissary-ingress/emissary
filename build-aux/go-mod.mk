@@ -69,7 +69,7 @@ go.GOBUILD ?= go build
 go.DISABLE_GO_TEST ?=
 go.LDFLAGS ?=
 go.PLATFORMS ?= $(GOOS)_$(GOARCH)
-go.GOLANG_LINT_VERSION ?= 1.15.0
+go.GOLANG_LINT_VERSION ?= 1.17.1
 go.GOLANG_LINT_FLAGS ?= $(if $(wildcard .golangci.yml .golangci.toml .golangci.json),,--disable-all --enable=gofmt --enable=govet)
 CI ?=
 

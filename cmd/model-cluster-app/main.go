@@ -39,6 +39,7 @@ func home(release string) http.HandlerFunc {
 			fail("get failed", err)
 			return
 		}
+		defer resp.Body.Close()
 		targetRes, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
 			fail("reading body failed", err)
