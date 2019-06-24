@@ -444,8 +444,8 @@ bypass_auth: true
         assert self.results[4].headers["Server"] == ["envoy"]
         assert self.results[4].headers["Authorization"] == ["foo-11111"]
 
-        extauth_res = json.loads(self.results[4].headers["Extauth"][0])
-        assert extauth_res["request"]["headers"]["l5d-dst-override"] ==  [ self.url ]
+        extauth_req = json.loads(self.results[4].backend.request.headers["extauth"][0])
+        assert extauth_req["request"]["headers"]["l5d-dst-override"] ==  [ 'http://extauth' ]
 
 
         # [5] Verify that X-Forwarded-Proto makes it to the auth service.
