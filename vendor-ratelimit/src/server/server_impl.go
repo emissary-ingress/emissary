@@ -4,15 +4,13 @@ import (
 	"expvar"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"net/http/pprof"
-	"sort"
-
 	"os"
 	"os/signal"
+	"sort"
 	"syscall"
-
-	"net"
 
 	"github.com/gorilla/mux"
 	reuseport "github.com/kavu/go_reuseport"

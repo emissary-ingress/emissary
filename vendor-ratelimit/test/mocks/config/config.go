@@ -12,6 +12,7 @@ import (
 	gostats "github.com/lyft/gostats"
 
 	ratelimit "github.com/lyft/ratelimit/proto/envoy/api/v2/ratelimit"
+
 	config "github.com/lyft/ratelimit/src/config"
 )
 

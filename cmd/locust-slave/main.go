@@ -5,9 +5,10 @@ import (
 	"fmt"
 	"time"
 
-	envoyAuthV2 "github.com/datawire/kat-backend/xds/envoy/service/auth/v2alpha"
 	"github.com/myzhan/boomer"
 	"google.golang.org/grpc"
+
+	envoyAuthV2 "github.com/datawire/kat-backend/xds/envoy/service/auth/v2alpha"
 
 	pb "github.com/lyft/ratelimit/proto/ratelimit"
 )

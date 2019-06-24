@@ -6,10 +6,10 @@ import (
 	"net/http"
 	"time"
 
+	logger "github.com/sirupsen/logrus"
+
 	pb "github.com/lyft/ratelimit/proto/envoy/service/ratelimit/v2"
 	pb_legacy "github.com/lyft/ratelimit/proto/ratelimit"
-
-	logger "github.com/sirupsen/logrus"
 
 	"github.com/lyft/ratelimit/src/config"
 	"github.com/lyft/ratelimit/src/redis"

@@ -2,19 +2,17 @@ package redis_test
 
 import (
 	"context"
+	"math/rand"
 	"testing"
 
-	stats "github.com/lyft/gostats"
-
-	pb "github.com/lyft/ratelimit/proto/envoy/service/ratelimit/v2"
-	"github.com/lyft/ratelimit/src/config"
-	"github.com/lyft/ratelimit/src/redis"
-
-	"math/rand"
-
 	"github.com/golang/mock/gomock"
+	stats "github.com/lyft/gostats"
 	"github.com/stretchr/testify/assert"
 
+	pb "github.com/lyft/ratelimit/proto/envoy/service/ratelimit/v2"
+
+	"github.com/lyft/ratelimit/src/config"
+	"github.com/lyft/ratelimit/src/redis"
 	"github.com/lyft/ratelimit/test/common"
 	mock_redis "github.com/lyft/ratelimit/test/mocks/redis"
 )
