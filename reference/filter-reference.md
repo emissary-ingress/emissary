@@ -114,36 +114,58 @@ metadata:
   name: "example-filter"
 spec:
   OAuth2:
-    authorizationURL: "url-string"      # required
-    clientURL:        "url-string"      # required
-    stateTTL:         "duration-string" # optional; default is "5m"
-    insecureTLS:      bool              # optional; default is false
-    audience:         "string"
-    clientID:         "string"
-    secret:           "string"
-    MaxStale:         "duration-string" # optional; default is "0"
+    authorizationURL:      "url-string"      # required
+    clientURL:             "url-string"      # required
+    stateTTL:              "duration-string" # optional; default is "5m"
+    insecureTLS:           bool              # optional; default is false
+    clientID:              "string"
+    secret:                "string"
+    maxStale:              "duration-string" # optional; default is "0"
+    accessTokenValidation: "enum-string"     # optional; default is "auto"
 ```
 
- - `authorizationURL` identifies where to look for the
+ - `authorizationURL`: Identifies where to look for the
    `/.well-known/openid-configuration` descriptor to figure out how to
    talk to the OAuth2 provider.
- - `clientURL` identifies a hostname that can appropriately set cookies
-   for the application.  Only the scheme (`https://`) and authority
-   (`example.com:1234`) parts are used; the path part of the URL is
-   ignored.
- - stateTTL: How long Ambassador will wait for the user to submit credentials to the IDP and receive a response to that effect from the IDP
- - `insecureTLS` disables TLS verification when speeking to an
-   `https://` IDP.  This is discouraged in favor of either using plain
-   `http://` or [installing a self-signed
+ - `clientURL`: Identifies a hostname that can appropriately set
+   cookies for the application.  Only the scheme (`https://`) and
+   authority (`example.com:1234`) parts are used; the path part of the
+   URL is ignored.
+ - `stateTTL`: How long Ambassador will wait for the user to submit
+   credentials to the identity provider and receive a response to that
+   effect from the identity provider
+ - `insecureTLS` disables TLS verification when speaking to an
+   `https://` identity provider.  This is discouraged in favor of
+   either using plain `http://` or [installing a self-signed
    certificate](#installing-self-signed-certificates).
- - audience: The OIDC audience.
- - clientID: The client ID you get from your IDP.
- - secret: The client secret you get from your IDP.
- - `maxStale`: How long to keep stale cache OIDC replies for.  This
+   <!-- - `audience`: The OIDC audience. -->
+ - `clientID`: The Client ID you get from your identity provider.
+ - `secret`: The client secret you get from your identity provider.
+ - `maxStale`: How long to keep stale cached OIDC replies for.  This
    sets the `max-stale` Cache-Control directive on requests, and also
    ignores the `no-store` and `no-cache` Cache-Control directives on
-   responses.  This is useful for working with IDPs with
+   responses.  This is useful for working with identity providers with
    mis-configured Cache-Control.
+ - `accessTokenValidation`: How to verify the liveness and scope of
+   Access Tokens issued by the identity provider.  Valid values are
+   either `"auto"`, `"jwt"`, or `"userinfo"`.  Empty or unset is
+   equivalent to `"auto"`.
+   * `"jwt"`: Validates the Access Token as a JWT.  It accepts the
+     RS256, RS384, or RS512 signature algorithms, and validates the
+     signature against the JWKS from OIDC Discovery.  It then
+     validates the `exp`, `iat`, `nbf`, `iss` (with the Issuer from
+     OIDC Discovery), and `scope` claims; if present, none of the
+     scopes are required to be present.  This relies on the identity
+     provider using non-encrypted signed JWTs as Access Tokens, and
+     configuring the signing appropriately.
+   * `"userinfo"`: Validates the access token by polling the OIDC
+     UserInfo Endpoint.  This means that Ambassador Pro must initiate
+     an HTTP request to the identity provider for each authorized request to a
+     protected resource.  This performs poorly, but functions properly
+     with a wider range of identity providers.
+   * `"auto"` attempts has it do `"jwt"` validation if the Access
+     Token parses as a JWT and the signature is valid, and otherwise
+     falls back to `"userinfo"` validation.
 
 `"duration-string"` strings are parsed as a sequence of decimal
 numbers, each with optional fraction and a unit suffix, such as
@@ -171,8 +193,21 @@ spec:
         - "scope2"
 ```
 
-You may specify a list of OAuth2 scopes to apply to the authorization
-request.
+You may specify a list of OAuth scope values to include in the scope
+of the authorization request.  If one of the scope values for a path
+is not granted, then access to that resource is forbidden; if the
+`scopes` argument lists `foo`, but the authorization response from the
+provider does not include `foo` in the scope, then it will be taken to
+mean that the authorization server forbade access to this path, as the
+authenticated user does not have the `foo` resource scope.
+
+The `openid` scope value is always included in the requested scope,
+even if it is not listed in the `FilterPolicy` argument.
+
+As a special case, if the `offline_access` scope value is requested,
+but not included in the response then access is not forbidden.  With
+many identity providers, requesting the `offline_access` scope is
+necessary in order to receive a Refresh Token.
 
 ### Filter Type: `Plugin`
 
@@ -316,7 +351,7 @@ spec:
 ## Installing self-signed certificates
 
 The JWT and OAuth2 filters speak to other servers over HTTP or HTTPS.
-If those servers are condifured to speak HTTPS using a self-signed
+If those servers are configured to speak HTTPS using a self-signed
 certificate, attempting to talk to them will result in a error
 mentioning `ERR x509: certificate signed by unknown authority`.  You
 can fix this by installing that self-signed certificate in to the Pro
