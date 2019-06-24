@@ -383,7 +383,7 @@ allowed_authorization_headers:
 - Extauth
 
 status_on_error:
-- code: 503
+  code: 503
 
 retry_policy:
   retry_on: "5xx"
@@ -410,7 +410,7 @@ allowed_authorization_headers:
 - Extauth
 
 status_on_error:
-- code: 503
+  code: 503
 
 retry_policy:
   retry_on: "5xx"
