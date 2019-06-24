@@ -3,6 +3,7 @@
 package integration_test
 
 import (
+	"context"
 	"fmt"
 	"math/rand"
 	"os"
@@ -11,7 +12,6 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 
 	pb "github.com/lyft/ratelimit/proto/envoy/service/ratelimit/v2"

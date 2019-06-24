@@ -1,12 +1,12 @@
 package config
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
 	stats "github.com/lyft/gostats"
 	logger "github.com/sirupsen/logrus"
-	"golang.org/x/net/context"
 	"gopkg.in/yaml.v2"
 
 	pb_struct "github.com/lyft/ratelimit/proto/envoy/api/v2/ratelimit"

@@ -1,7 +1,7 @@
 package redis
 
 import (
-	"golang.org/x/net/context"
+	"context"
 
 	pb "github.com/lyft/ratelimit/proto/envoy/service/ratelimit/v2"
 

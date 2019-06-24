@@ -1,13 +1,13 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"os"
 	"strings"
 
 	"github.com/pkg/errors"
-	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 
 	pb_struct "github.com/lyft/ratelimit/proto/envoy/api/v2/ratelimit"

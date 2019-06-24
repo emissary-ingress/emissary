@@ -1,13 +1,13 @@
 package ratelimit_test
 
 import (
+	"context"
 	"testing"
 
 	"github.com/golang/mock/gomock"
 	"github.com/golang/protobuf/jsonpb"
 	stats "github.com/lyft/gostats"
 	"github.com/stretchr/testify/assert"
-	"golang.org/x/net/context"
 
 	pb_struct "github.com/lyft/ratelimit/proto/envoy/api/v2/ratelimit"
 	pb "github.com/lyft/ratelimit/proto/envoy/service/ratelimit/v2"

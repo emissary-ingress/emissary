@@ -1,8 +1,9 @@
 package config
 
 import (
+	"context"
+
 	stats "github.com/lyft/gostats"
-	"golang.org/x/net/context"
 
 	pb_struct "github.com/lyft/ratelimit/proto/envoy/api/v2/ratelimit"
 	pb "github.com/lyft/ratelimit/proto/envoy/service/ratelimit/v2"

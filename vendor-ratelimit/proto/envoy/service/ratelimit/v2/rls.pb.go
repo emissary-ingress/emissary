@@ -10,7 +10,8 @@ import _ "github.com/lyft/protoc-gen-validate/validate"
 import ratelimit "github.com/lyft/ratelimit/proto/envoy/api/v2/ratelimit"
 
 import (
-	context "golang.org/x/net/context"
+	context "context"
+
 	grpc "google.golang.org/grpc"
 )
 

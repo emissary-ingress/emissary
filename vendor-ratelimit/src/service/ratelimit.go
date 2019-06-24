@@ -1,13 +1,13 @@
 package ratelimit
 
 import (
+	"context"
 	"strings"
 	"sync"
 
 	"github.com/lyft/goruntime/loader"
 	stats "github.com/lyft/gostats"
 	logger "github.com/sirupsen/logrus"
-	"golang.org/x/net/context"
 
 	pb "github.com/lyft/ratelimit/proto/envoy/service/ratelimit/v2"
 

@@ -2,6 +2,7 @@ package redis
 
 import (
 	"bytes"
+	"context"
 	"math"
 	"math/rand"
 	"strconv"
@@ -9,7 +10,6 @@ import (
 	"time"
 
 	logger "github.com/sirupsen/logrus"
-	"golang.org/x/net/context"
 
 	pb_struct "github.com/lyft/ratelimit/proto/envoy/api/v2/ratelimit"
 	pb "github.com/lyft/ratelimit/proto/envoy/service/ratelimit/v2"

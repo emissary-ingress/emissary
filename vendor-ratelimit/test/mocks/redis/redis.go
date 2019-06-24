@@ -4,8 +4,9 @@
 package mock_redis
 
 import (
+	context "context"
+
 	gomock "github.com/golang/mock/gomock"
-	context "golang.org/x/net/context"
 
 	ratelimit "github.com/lyft/ratelimit/proto/envoy/service/ratelimit/v2"
 

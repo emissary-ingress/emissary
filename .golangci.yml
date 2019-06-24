@@ -27,6 +27,7 @@ linters-settings:
     include-go-root: true
     packages:
       - errors # use "github.com/pkg/errors"
+      - golang.org/x/net/context # use "context"
 run:
   build-tags:
     - test
