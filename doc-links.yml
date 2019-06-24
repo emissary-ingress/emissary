@@ -108,6 +108,8 @@
           items:
             - title: Ambassador Core Configuration
               link: /reference/core/ambassador
+            - title: Gzip compression
+              link: /reference/gzip
             - title: Load Balancing Configuration
               link: /reference/core/load-balancer
             - title: Service Discovery Configuration
@@ -127,6 +129,8 @@
               link: /reference/headers
             - title: Host Header
               link: /reference/host
+            - title: Prefix Regex
+              link: /reference/prefix_regex
             - title: Rate Limits
               link: /reference/rate-limits
             - title: Redirects
@@ -172,6 +176,12 @@
               link: /reference/idp-support/okta
             - title: User Account and Authentication (UAA)
               link: /reference/idp-support/uaa
+        - title: Pro
+          items:
+            - title: Environment
+              link: /reference/pro/environment
+            - title: Authentication
+              link: /reference/pro/authentication
         - title: Custom Resource Definitions
           link: /reference/core/crds
         - title: Filters

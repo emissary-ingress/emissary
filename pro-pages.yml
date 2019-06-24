@@ -16,6 +16,8 @@
 - /reference/idp-support/okta
 - /reference/idp-support/uaa
 - /reference/idp-support/google
+- /reference/pro/authentication
+- /reference/pro/environment
 - /docs/guides/filter-dev-guide
 - /docs/dev-guide/service-preview
 - /about/support
