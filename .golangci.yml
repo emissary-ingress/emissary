@@ -30,3 +30,4 @@ linters-settings:
 run:
   build-tags:
     - test
+    - integration
