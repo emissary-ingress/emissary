@@ -4,11 +4,12 @@ import (
 	"io/ioutil"
 	"testing"
 
-	"github.com/lyft/gostats"
+	stats "github.com/lyft/gostats"
+	"github.com/stretchr/testify/assert"
+
 	pb_struct "github.com/lyft/ratelimit/proto/envoy/api/v2/ratelimit"
 	pb "github.com/lyft/ratelimit/proto/envoy/service/ratelimit/v2"
 	"github.com/lyft/ratelimit/src/config"
-	"github.com/stretchr/testify/assert"
 )
 
 func loadFile(path string) []config.RateLimitConfigToLoad {

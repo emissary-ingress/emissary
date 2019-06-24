@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/lyft/goruntime/loader"
-	"github.com/lyft/gostats"
+	stats "github.com/lyft/gostats"
 	"google.golang.org/grpc"
 )
 

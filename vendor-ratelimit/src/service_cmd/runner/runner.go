@@ -9,12 +9,13 @@ import (
 	pb "github.com/lyft/ratelimit/proto/envoy/service/ratelimit/v2"
 	pb_legacy "github.com/lyft/ratelimit/proto/ratelimit"
 
+	logger "github.com/sirupsen/logrus"
+
 	"github.com/lyft/ratelimit/src/config"
 	"github.com/lyft/ratelimit/src/redis"
 	"github.com/lyft/ratelimit/src/server"
-	"github.com/lyft/ratelimit/src/service"
+	ratelimit "github.com/lyft/ratelimit/src/service"
 	"github.com/lyft/ratelimit/src/settings"
-	logger "github.com/sirupsen/logrus"
 )
 
 func Run() {

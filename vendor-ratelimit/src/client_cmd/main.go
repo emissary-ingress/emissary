@@ -7,10 +7,11 @@ import (
 	"os"
 	"strings"
 
-	pb_struct "github.com/lyft/ratelimit/proto/envoy/api/v2/ratelimit"
-	pb "github.com/lyft/ratelimit/proto/envoy/service/ratelimit/v2"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
+
+	pb_struct "github.com/lyft/ratelimit/proto/envoy/api/v2/ratelimit"
+	pb "github.com/lyft/ratelimit/proto/envoy/service/ratelimit/v2"
 )
 
 type descriptorValue struct {

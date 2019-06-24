@@ -3,16 +3,19 @@ package redis_test
 import (
 	"testing"
 
-	"github.com/lyft/gostats"
+	stats "github.com/lyft/gostats"
+
 	pb "github.com/lyft/ratelimit/proto/envoy/service/ratelimit/v2"
 	"github.com/lyft/ratelimit/src/config"
 	"github.com/lyft/ratelimit/src/redis"
 
-	"github.com/golang/mock/gomock"
-	"github.com/lyft/ratelimit/test/common"
-	"github.com/lyft/ratelimit/test/mocks/redis"
-	"github.com/stretchr/testify/assert"
 	"math/rand"
+
+	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/assert"
+
+	"github.com/lyft/ratelimit/test/common"
+	mock_redis "github.com/lyft/ratelimit/test/mocks/redis"
 )
 
 func TestRedis(t *testing.T) {

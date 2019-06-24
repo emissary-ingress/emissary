@@ -5,18 +5,19 @@ import (
 	"testing"
 
 	"github.com/golang/mock/gomock"
-	"github.com/lyft/gostats"
+	stats "github.com/lyft/gostats"
+	"github.com/stretchr/testify/assert"
+	"golang.org/x/net/context"
+
 	pb "github.com/lyft/ratelimit/proto/envoy/service/ratelimit/v2"
 	"github.com/lyft/ratelimit/src/config"
 	"github.com/lyft/ratelimit/src/redis"
-	"github.com/lyft/ratelimit/src/service"
+	ratelimit "github.com/lyft/ratelimit/src/service"
 	"github.com/lyft/ratelimit/test/common"
-	"github.com/lyft/ratelimit/test/mocks/config"
-	"github.com/lyft/ratelimit/test/mocks/redis"
-	"github.com/lyft/ratelimit/test/mocks/runtime/loader"
-	"github.com/lyft/ratelimit/test/mocks/runtime/snapshot"
-	"github.com/stretchr/testify/assert"
-	"golang.org/x/net/context"
+	mock_config "github.com/lyft/ratelimit/test/mocks/config"
+	mock_redis "github.com/lyft/ratelimit/test/mocks/redis"
+	mock_loader "github.com/lyft/ratelimit/test/mocks/runtime/loader"
+	mock_snapshot "github.com/lyft/ratelimit/test/mocks/runtime/snapshot"
 )
 
 type barrier struct {

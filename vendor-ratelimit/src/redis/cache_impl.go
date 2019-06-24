@@ -8,12 +8,13 @@ import (
 	"sync"
 	"time"
 
+	logger "github.com/sirupsen/logrus"
+	"golang.org/x/net/context"
+
 	pb_struct "github.com/lyft/ratelimit/proto/envoy/api/v2/ratelimit"
 	pb "github.com/lyft/ratelimit/proto/envoy/service/ratelimit/v2"
 	"github.com/lyft/ratelimit/src/assert"
 	"github.com/lyft/ratelimit/src/config"
-	logger "github.com/sirupsen/logrus"
-	"golang.org/x/net/context"
 )
 
 type rateLimitCacheImpl struct {

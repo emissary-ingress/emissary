@@ -7,7 +7,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/lyft/gostats"
+	stats "github.com/lyft/gostats"
+
 	"github.com/lyft/ratelimit/src/config"
 )
 

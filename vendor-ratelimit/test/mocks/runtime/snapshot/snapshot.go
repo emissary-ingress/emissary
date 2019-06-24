@@ -5,10 +5,11 @@
 package mock_snapshot
 
 import (
-	gomock "github.com/golang/mock/gomock"
-	entry "github.com/lyft/goruntime/snapshot/entry"
 	reflect "reflect"
 	time "time"
+
+	gomock "github.com/golang/mock/gomock"
+	entry "github.com/lyft/goruntime/snapshot/entry"
 )
 
 // MockIFace is a mock of IFace interface

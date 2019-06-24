@@ -5,16 +5,17 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/golang/protobuf/jsonpb"
-	"github.com/lyft/gostats"
+	stats "github.com/lyft/gostats"
+	"github.com/stretchr/testify/assert"
+	"golang.org/x/net/context"
+
 	pb_struct "github.com/lyft/ratelimit/proto/envoy/api/v2/ratelimit"
 	pb "github.com/lyft/ratelimit/proto/envoy/service/ratelimit/v2"
 	pb_legacy "github.com/lyft/ratelimit/proto/ratelimit"
 	"github.com/lyft/ratelimit/src/config"
 	"github.com/lyft/ratelimit/src/redis"
-	"github.com/lyft/ratelimit/src/service"
+	ratelimit "github.com/lyft/ratelimit/src/service"
 	"github.com/lyft/ratelimit/test/common"
-	"github.com/stretchr/testify/assert"
-	"golang.org/x/net/context"
 )
 
 func convertRatelimit(ratelimit *pb.RateLimitResponse_RateLimit) (*pb_legacy.RateLimit, error) {

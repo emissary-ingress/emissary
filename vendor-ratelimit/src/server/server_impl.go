@@ -15,14 +15,15 @@ import (
 	"net"
 
 	"github.com/gorilla/mux"
-	"github.com/kavu/go_reuseport"
+	reuseport "github.com/kavu/go_reuseport"
 	"github.com/lyft/goruntime/loader"
-	"github.com/lyft/gostats"
-	"github.com/lyft/ratelimit/src/settings"
+	stats "github.com/lyft/gostats"
 	logger "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health"
 	healthpb "google.golang.org/grpc/health/grpc_health_v1"
+
+	"github.com/lyft/ratelimit/src/settings"
 )
 
 type serverDebugListener struct {
