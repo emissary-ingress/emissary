@@ -1,23 +1,21 @@
 package main
 
 import (
-	"fmt"
+	"text/template"
 
 	"github.com/spf13/cobra"
 )
 
-var version = &cobra.Command{
-	Use:   "version",
-	Short: "Show the program's version number",
-	Run:   showVersion,
-
-	PersistentPreRun: func(cmd *cobra.Command, args []string) {},
-}
-
 func init() {
-	apictl.AddCommand(version)
-}
+	apictl.AddCommand(&cobra.Command{
+		Use:   "version",
+		Short: "Show the program's version number",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			t := template.New("top")
+			template.Must(t.Parse(cmd.VersionTemplate()))
+			return t.Execute(cmd.OutOrStdout(), apictl)
+		},
 
-func showVersion(cmd *cobra.Command, args []string) {
-	fmt.Println(Version)
+		PersistentPreRun: func(cmd *cobra.Command, args []string) {},
+	})
 }

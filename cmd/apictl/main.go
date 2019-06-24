@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"runtime"
 
 	"github.com/spf13/cobra"
 
@@ -28,6 +29,22 @@ func init() {
 		os.Exit(1)
 	}
 	apictl.Version = Version
+	apictl.SetVersionTemplate(`{{with .Name}}{{printf "%s " .}}{{end}}{{printf "version %s" .Version}}
+Copyright 2019 Datawire. All rights reserved.
+
+Information about open source code used in this executable is found at
+<https://s3.amazonaws.com/datawire-static-files/{{.Name}}/{{.Version}}/` + runtime.GOOS + `/` + runtime.GOARCH + `/{{.Name}}.opensource.tar.gz>.
+
+Information about open source code used in the Docker image installed by
+'apictl traffic initialize' is found in the '/traffic-proxy.opensource.tar.gz'
+file in the 'quay.io/datawire/ambassador_pro:traffic-proxy-{{.Version}}'
+Docker image.
+
+Information about open source code used in the Docker image installed by
+'apictl traffic inject' is found in the '/app-sidecar.opensource.tar.gz'
+file in the 'quay.io/datawire/ambassador_pro:app-sidecar-{{.Version}}'
+Docker image.
+`)
 }
 
 func recoverFromCrash() {
