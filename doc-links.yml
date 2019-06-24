@@ -180,10 +180,10 @@
               link: /reference/idp-support/uaa
         - title: Pro
           items:
+            - title: Overview
+              link: /reference/pro/authentication
             - title: Environment
               link: /reference/pro/environment
-            - title: Authentication
-              link: /reference/pro/authentication
         - title: Custom Resource Definitions
           link: /reference/core/crds
         - title: Filters
