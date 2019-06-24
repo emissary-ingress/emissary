@@ -10,10 +10,10 @@
 | `GRPC_PORT`                     | `8501`                                            | TCP port number or name                                                       | RateLimitService (gRPC)       |
 | `DEBUG_PORT`                    | `8502`                                            | TCP port number or name                                                       | RateLimitService debug (HTTP) |
 | `PORT`                          | `8503`                                            | TCP port number or name                                                       | RateLimitService misc (HTTP)  |
-|---------------------------------|---------------------------------------------------|-------------------------------------------------------------------------------|-------------------------------|
+|---------------------------------||||
 | `APP_LOG_LEVEL`                 | `info`                                            | log level                                                                     | Filter                        |
 | `LOG_LEVEL`                     | `WARN`                                            | log level                                                                     | RateLimit                     |
-|---------------------------------|---------------------------------------------------|-------------------------------------------------------------------------------|-------------------------------|
+|---------------------------------||||
 | `APRO_KEYPAIR_SECRET_NAME`      | `ambassador-pro-keypair`                          | Kubernetes name                                                               | Filter                        |
 | `APRO_KEYPAIR_SECRET_NAMESPACE` | use the value of `AMBASSADOR_NAMESPACE`           | Kubernetes namespace                                                          | Filter                        |
 | `REDIS_POOL_SIZE`               | `10`                                              | integer                                                                       | Filter, RateLimit             |
