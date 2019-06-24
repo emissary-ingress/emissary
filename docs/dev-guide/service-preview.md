@@ -13,6 +13,8 @@ Download the latest version of the client:
 
 Make sure the client is somewhere on your PATH. In addition, place your license key in `~/.ambassador.key`.
 
+Information about open source code used in `apictl` can be found by running `apictl --version`.
+
 ## Getting started
 
 In this quick start, we're going to preview a change we make to the backend service of the tour application, without impacting normal users of the application. Before getting started, make sure the [tour application is installed](https://www.getambassador.io/user-guide/getting-started#3-creating-your-first-service) on your cluster and you've installed the `apictl` command line tool, as explained above.
