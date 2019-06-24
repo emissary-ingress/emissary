@@ -1,3 +1,4 @@
+import sys
 import traceback
 from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING
 # from typing import cast as typecast
@@ -312,7 +313,7 @@ class ResourceFetcher:
             r = ACResource.from_dict(rkey, rkey, serialization, obj)
             self.elements.append(r)
         except Exception as e:
-            self.aconf.errors[rkey] = traceback.format_exc(e, chain=False)
+            self.aconf.errors[rkey] = sys.exc_value(e)
             traceback.print_exc()
 
         # self.logger.debug("%s PROCESS %s save %s: %s" % (self.location, obj['kind'], rkey, serialization))
