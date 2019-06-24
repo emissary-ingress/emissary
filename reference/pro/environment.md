@@ -5,7 +5,7 @@
 | `AMBASSADOR_ID`                 | `default`                                         | plain string                                                                  | Ambassador                    |
 | `AMBASSADOR_NAMESPACE`          | `default`[^1]                                     | Kubernetes namespace                                                          | Ambassador                    |
 | `AMBASSADOR_SINGLE_NAMESPACE`   | empty                                             | Boolean; non-empty=true, empty=false                                          | Ambasador                     |
-|---------------------------------|---------------------------------------------------|-------------------------------------------------------------------------------|-------------------------------|
+|---------------------------------||||
 | `APRO_AUTH_PORT`                | `8500`                                            | TCP port number or name                                                       | Filtering AuthService (gRPC)  |
 | `GRPC_PORT`                     | `8501`                                            | TCP port number or name                                                       | RateLimitService (gRPC)       |
 | `DEBUG_PORT`                    | `8502`                                            | TCP port number or name                                                       | RateLimitService debug (HTTP) |
