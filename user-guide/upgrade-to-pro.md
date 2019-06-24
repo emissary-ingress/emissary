@@ -2,6 +2,8 @@
 
 If you are already using Ambassador open source, upgrading to using Ambassador Pro is straight-forward. In this demo we will walk-through integrating Ambassador Pro into your currently running Ambassador instance and show how quickly you can secure your APIs with JWT authentication.
 
+Information about open source code used in Ambassador Pro can be found in `/*.opensource.tar.gz` files in each Docker image.
+
 ## 1. Clone the Ambassador Pro configuration repository
 
 Ambassador Pro is a module that communicates with Ambassador, exposing the various Pro services to Ambassador. Ambassador Pro is typically deployed as a sidecar service to Ambassador, allowing for it to communicate with Ambassador locally. While this is the recommended deployment topology, for evaluation purposes it is simpler to deploy Ambassador Pro as a separate service in your Kubernetes cluster. 

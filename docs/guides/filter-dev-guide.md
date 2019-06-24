@@ -52,6 +52,8 @@ To install the runner, download the latest version:
 
 Note that the plugin runner must match the version of Ambassador Pro that you are running. Place the binary somewhere in your `$PATH`.
 
+Information about open source code used in `apro-plugin-runner` can be found by running `apro-plugin-runner --version`.
+
 Now, you can quickly test and develop your filter.
 
 1. In your filter directory, type: `apro-plugin-runner :8080 ./param-plugin.so`.
