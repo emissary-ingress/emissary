@@ -265,7 +265,7 @@ def v2filter_authv1(auth: IRAuth, v2config: 'V2Config'):
 
         if auth.get('add_linkerd_headers', False):
             headers_to_add.append({
-                'key' : 'l5d-dst-override' 
+                'key' : 'l5d-dst-override', 
                 'value': auth_cluster_uri(auth, cluster)
             })
 
@@ -280,11 +280,11 @@ def v2filter_authv1(auth: IRAuth, v2config: 'V2Config'):
                     },
                     'path_prefix': auth.path_prefix,
                     'authorization_request': {
-                    'allowed_headers': {
+                        'allowed_headers': {
                             'patterns': allowed_request_headers
-                        }
+                        },
+                        'headers_to_add' : headers_to_add
                     },
-                    'headers_to_add' : headers_to_add,
                     'authorization_response' : {
                         'allowed_upstream_headers': {
                             'patterns': allowed_authorization_headers
