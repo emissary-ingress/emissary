@@ -4,7 +4,6 @@ package main
 
 import (
 	"encoding/base64"
-	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -13,6 +12,7 @@ import (
 
 	"github.com/Jeffail/gabs"
 	"github.com/hashicorp/consul/api"
+	"github.com/pkg/errors"
 
 	"github.com/datawire/apro/lib/testutil"
 )

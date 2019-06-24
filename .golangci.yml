@@ -22,6 +22,11 @@ linters-settings:
     # put imports beginning with prefix after 3rd-party packages;
     # it's a comma-separated list of prefixes
     local-prefixes: github.com/datawire/apro,github.com/lyft/ratelimit
+  depguard:
+    list-type: blacklist
+    include-go-root: true
+    packages:
+      - errors # use "github.com/pkg/errors"
 run:
   build-tags:
     - test

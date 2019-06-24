@@ -2,12 +2,13 @@ package longpoll
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
 	"sync/atomic"
 	"time"
+
+	"github.com/pkg/errors"
 )
 
 // Based on https://github.com/jcuga/golongpoll/blob/master/go-client/glpclient/client.go
