@@ -462,7 +462,7 @@ bypass_auth: true
         yield Query(self.url("target/unauthed/"), headers={"Requested-Status": "200"}, expected=200)
 
         # [7]
-        yield Query(self.url("target/"), headers={"Requested-Status": "503"}, expected=503)
+        yield Query(self.url("target/"), headers={"Requested-Status": "500"}, expected=503)
 
     def check_backend_name(self, result) -> bool:
         backend_name = result.backend.name
@@ -555,8 +555,6 @@ bypass_auth: true
         assert self.backend_counts.get(self.auth2.path.k8s, 0) > 0, "auth2 got no requests"
 
         # [7] Verifies that envoy returns customized status_on_error code.
-        assert self.check_backend_name(self.results[7])
-        assert self.results[7].backend.request.headers["requested-status"] == ["503"]
         assert self.results[7].status == 503
 
         # TODO(gsagula): Write tests for all UCs which request header headers
