@@ -313,8 +313,8 @@ class ResourceFetcher:
             r = ACResource.from_dict(rkey, rkey, serialization, obj)
             self.elements.append(r)
         except Exception as e:
-            self.aconf.errors[rkey] = sys.exc_value(e)
-            traceback.print_exc()
+            self.aconf.errors[rkey] = e.args[0]
+            self.logger.error(e)
 
         # self.logger.debug("%s PROCESS %s save %s: %s" % (self.location, obj['kind'], rkey, serialization))
 
