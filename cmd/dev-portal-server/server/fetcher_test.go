@@ -7,10 +7,11 @@ import (
 	"sort"
 	"testing"
 
-	. "github.com/datawire/apro/cmd/dev-portal-server/kubernetes"
-	. "github.com/datawire/apro/cmd/dev-portal-server/openapi"
 	. "github.com/onsi/gomega"
 	log "github.com/sirupsen/logrus"
+
+	. "github.com/datawire/apro/cmd/dev-portal-server/kubernetes"
+	. "github.com/datawire/apro/cmd/dev-portal-server/openapi"
 )
 
 var testdataAmbassadorDiagJSON, _ = ioutil.ReadFile("testdata/ambassador-diag.json")

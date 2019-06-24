@@ -12,8 +12,9 @@ import (
 	"time"
 
 	"github.com/Jeffail/gabs"
-	"github.com/datawire/apro/lib/testutil"
 	"github.com/hashicorp/consul/api"
+
+	"github.com/datawire/apro/lib/testutil"
 )
 
 func TestConsulConnectTLSCertificateChainIsPresentAsKubernetesSecret(t *testing.T) {

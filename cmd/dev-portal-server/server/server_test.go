@@ -6,9 +6,10 @@ import (
 	"testing"
 
 	"github.com/Jeffail/gabs"
+	. "github.com/onsi/gomega"
+
 	. "github.com/datawire/apro/cmd/dev-portal-server/kubernetes"
 	. "github.com/datawire/apro/cmd/dev-portal-server/openapi"
-	. "github.com/onsi/gomega"
 )
 
 // We can add a service to the internal memory representation, and it gets

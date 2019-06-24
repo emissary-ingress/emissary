@@ -7,10 +7,10 @@ import (
 	"time"
 
 	log "github.com/sirupsen/logrus"
+	"github.com/spf13/cobra"
 
 	"github.com/datawire/apro/cmd/dev-portal-server/server"
 	"github.com/datawire/apro/lib/licensekeys"
-	"github.com/spf13/cobra"
 )
 
 // Version is inserted at build using --ldflags -X

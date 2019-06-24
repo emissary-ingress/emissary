@@ -4,8 +4,9 @@ import (
 	"testing"
 
 	"github.com/Jeffail/gabs"
-	"github.com/datawire/apro/cmd/dev-portal-server/openapi"
 	. "github.com/onsi/gomega"
+
+	"github.com/datawire/apro/cmd/dev-portal-server/openapi"
 )
 
 func testStoreInterface(s ServiceStore, t *testing.T) {

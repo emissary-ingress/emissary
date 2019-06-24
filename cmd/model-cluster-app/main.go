@@ -13,13 +13,14 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/gorilla/mux"
+
 	"github.com/datawire/apro/cmd/model-cluster-app/comments"
 	"github.com/datawire/apro/cmd/model-cluster-app/events"
 	"github.com/datawire/apro/cmd/model-cluster-app/health"
 	"github.com/datawire/apro/cmd/model-cluster-app/posts"
 	"github.com/datawire/apro/cmd/model-cluster-app/users"
 	"github.com/datawire/apro/lib/util"
-	"github.com/gorilla/mux"
 )
 
 // Version is inserted at build using --ldflags -X

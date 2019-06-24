@@ -10,9 +10,10 @@ import (
 	"time"
 
 	"github.com/Jeffail/gabs"
+	log "github.com/sirupsen/logrus"
+
 	"github.com/datawire/apro/cmd/apro-internal-access/secret"
 	"github.com/datawire/apro/cmd/dev-portal-server/kubernetes"
-	log "github.com/sirupsen/logrus"
 )
 
 // Add a new/updated service.
