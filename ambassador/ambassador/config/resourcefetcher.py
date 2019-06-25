@@ -16,6 +16,7 @@ from ..utils import parse_yaml, dump_yaml
 AnyDict = Dict[str, Any]
 HandlerResult = Optional[Tuple[str, List[AnyDict]]]
 
+
 # Some thoughts:
 # - loading a bunch of Ambassador resources is different from loading a bunch of K8s
 #   services, because we should assume that if we're being a fed a bunch of Ambassador
@@ -64,11 +65,11 @@ class ResourceFetcher:
     def pop_location(self) -> None:
         self.filename, self.ocount = self.saved.pop()
 
-    def load_from_filesystem(self, config_dir_path, recurse: bool=False, k8s: bool=False):
+    def load_from_filesystem(self, config_dir_path, recurse: bool = False, k8s: bool = False):
         inputs: List[Tuple[str, str]] = []
 
         if os.path.isdir(config_dir_path):
-            dirs = [ config_dir_path ]
+            dirs = [config_dir_path]
 
             while dirs:
                 dirpath = dirs.pop(0)
@@ -108,8 +109,8 @@ class ResourceFetcher:
 
         self.finalize()
 
-    def parse_yaml(self, serialization: str, k8s=False, rkey: Optional[str]=None,
-                   filename: Optional[str]=None) -> None:
+    def parse_yaml(self, serialization: str, k8s=False, rkey: Optional[str] = None,
+                   filename: Optional[str] = None) -> None:
         # self.logger.debug("%s: parsing %d byte%s of YAML:\n%s" %
         #                   (self.location, len(serialization), "" if (len(serialization) == 1) else "s",
         #                    serialization))
@@ -122,8 +123,8 @@ class ResourceFetcher:
 
         self.finalize()
 
-    def parse_json(self, serialization: str, k8s=False, rkey: Optional[str]=None,
-                   filename: Optional[str]=None) -> None:
+    def parse_json(self, serialization: str, k8s=False, rkey: Optional[str] = None,
+                   filename: Optional[str] = None) -> None:
         # self.logger.debug("%s: parsing %d byte%s of YAML:\n%s" %
         #                   (self.location, len(serialization), "" if (len(serialization) == 1) else "s",
         #                    serialization))
@@ -140,10 +141,12 @@ class ResourceFetcher:
         basedir = os.environ.get('AMBASSADOR_CONFIG_BASE_DIR', '/ambassador')
 
         if os.path.isfile(os.path.join(basedir, '.ambassador_ignore_crds')):
-            self.aconf.post_error("Ambassador could not find core CRD definitions. Please visit https://www.getambassador.io/reference/core/crds/ for more information. You can continue using Ambassador via Kubernetes annotations, any configuration via CRDs will be ignored...")
+            self.aconf.post_error(
+                "Ambassador could not find core CRD definitions. Please visit https://www.getambassador.io/reference/core/crds/ for more information. You can continue using Ambassador via Kubernetes annotations, any configuration via CRDs will be ignored...")
 
         if os.path.isfile(os.path.join(basedir, '.ambassador_ignore_crds_2')):
-            self.aconf.post_error("Ambassador could not find Resolver type CRD definitions. Please visit https://www.getambassador.io/reference/core/crds/ for more information. You can continue using Ambassador via Kubernetes annotations, any configuration via CRDs will be ignored...")
+            self.aconf.post_error(
+                "Ambassador could not find Resolver type CRD definitions. Please visit https://www.getambassador.io/reference/core/crds/ for more information. You can continue using Ambassador via Kubernetes annotations, any configuration via CRDs will be ignored...")
 
         try:
             watt_dict = json.loads(serialization)
@@ -151,15 +154,15 @@ class ResourceFetcher:
             watt_k8s = watt_dict.get('Kubernetes', {})
 
             # Handle normal Kube objects...
-            for key in [ 'service', 'endpoints', 'secret' ]:
+            for key in ['service', 'endpoints', 'secret']:
                 for obj in watt_k8s.get(key) or []:
                     self.handle_k8s(obj)
 
             # ...then handle Ambassador CRDs.
-            for key in [ 'AuthService', 'ConsulResolver',
-                         'KubernetesEndpointResolver', 'KubernetesServiceResolver',
-                         'Mapping', 'Module', 'RateLimitService',
-                         'TCPMapping', 'TLSContext', 'TracingService']:
+            for key in ['AuthService', 'ConsulResolver',
+                        'KubernetesEndpointResolver', 'KubernetesServiceResolver',
+                        'Mapping', 'Module', 'RateLimitService',
+                        'TCPMapping', 'TLSContext', 'TracingService']:
                 for obj in watt_k8s.get(key) or []:
                     self.handle_k8s_crd(obj)
 
@@ -242,9 +245,9 @@ class ResourceFetcher:
         amb_object['kind'] = kind
 
         # Done. Parse it.
-        self.parse_object([ amb_object ], k8s=False, filename=self.filename, rkey=resource_identifier)
+        self.parse_object([amb_object], k8s=False, filename=self.filename, rkey=resource_identifier)
 
-    def parse_object(self, objects, k8s=False, rkey: Optional[str]=None, filename: Optional[str]=None):
+    def parse_object(self, objects, k8s=False, rkey: Optional[str] = None, filename: Optional[str] = None):
         self.push_location(filename, 1)
 
         # self.logger.debug("PARSE_OBJECT: incoming %d" % len(objects))
@@ -263,7 +266,7 @@ class ResourceFetcher:
 
         self.pop_location()
 
-    def process_object(self, obj: dict, rkey: Optional[str]=None) -> None:
+    def process_object(self, obj: dict, rkey: Optional[str] = None) -> None:
         if not isinstance(obj, dict):
             # Bug!!
             if not obj:
@@ -313,7 +316,7 @@ class ResourceFetcher:
             r = ACResource.from_dict(rkey, rkey, serialization, obj)
             self.elements.append(r)
         except Exception as e:
-            self.aconf.errors[rkey] = e.args[0]
+            self.aconf.errors[rkey].append(e.args[0])
             self.logger.error(e)
 
         # self.logger.debug("%s PROCESS %s save %s: %s" % (self.location, obj['kind'], rkey, serialization))
@@ -571,7 +574,7 @@ class ResourceFetcher:
         if tls_key:
             secret_info['tls_key'] = tls_key
 
-        return resource_identifier, [ secret_info ]
+        return resource_identifier, [secret_info]
 
     # Handler for Consul services
     def handle_consul_service(self,
@@ -645,7 +648,7 @@ class ResourceFetcher:
         #    routing rather than endpoint routing.
 
         od = {
-            'elements': [ x.as_dict() for x in self.elements ],
+            'elements': [x.as_dict() for x in self.elements],
             'k8s_endpoints': self.k8s_endpoints,
             'k8s_services': self.k8s_services,
             'services': self.services
@@ -727,8 +730,8 @@ class ResourceFetcher:
                     found_key = False
                     fallback: Optional[int] = None
 
-                    for attr in [ 'targetPort', 'name', 'port' ]:
-                        port_key = port.get(attr)   # This could be a name or a number, in general.
+                    for attr in ['targetPort', 'name', 'port']:
+                        port_key = port.get(attr)  # This could be a name or a number, in general.
 
                         if port_key:
                             found_key = True
@@ -748,7 +751,8 @@ class ResourceFetcher:
 
                     if not found_key:
                         # WTFO. This is impossible.
-                        self.logger.error(f"Kubernetes service {key} port {src_port} has an empty port spec at index {idx}?")
+                        self.logger.error(
+                            f"Kubernetes service {key} port {src_port} has an empty port spec at index {idx}?")
                         continue
 
                     if not k8s_target:
@@ -782,13 +786,13 @@ class ResourceFetcher:
 
             if not target_addrs:
                 self.logger.debug(f'{key} falling back to service routing')
-                target_addrs = [ key ]
+                target_addrs = [key]
 
             for src_port, target_port in target_ports.items():
-                svc_endpoints[src_port] = [ {
+                svc_endpoints[src_port] = [{
                     'ip': target_addr,
                     'port': target_port
-                } for target_addr in target_addrs ]
+                } for target_addr in target_addrs]
 
             # Nope. Set this up for service routing.
             self.services[f'k8s-{k8s_name}-{k8s_namespace}'] = {
@@ -810,7 +814,7 @@ class ResourceFetcher:
             self.elements.append(r)
 
         od = {
-            'elements': [ x.as_dict() for x in self.elements ],
+            'elements': [x.as_dict() for x in self.elements],
             'k8s_endpoints': self.k8s_endpoints,
             'k8s_services': self.k8s_services,
             'services': self.services
