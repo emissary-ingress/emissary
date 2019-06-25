@@ -84,6 +84,12 @@ config:
     redirect_cleartext_from: 8080
 ```
 
+**Note:**
+
+`redirect_cleartext_from` tells Envoy to issue a 301 redirect on all requests over the cleartext port (8080 above) to HTTPS. This redirection will use the same host as the incoming request. This means requests that include a port (i.e. http://54.xxx.xxx.xxx:30954/) will most likely fail since they will be redirected to https over that same port (https://54.xxx.xxx.xxx:30954/). 
+
+If using a `NodePort` service, you may need to deploy a load balancer in front to get cleartext redirection working.
+
 ## `x_forwarded_proto_redirect`
 
 In cases when TLS is being terminated at an external layer 7 load balancer, then you would want to redirect only the originating HTTP requests to HTTPS, and let the originating HTTPS requests pass through.
