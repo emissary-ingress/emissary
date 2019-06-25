@@ -316,7 +316,7 @@ class ResourceFetcher:
             r = ACResource.from_dict(rkey, rkey, serialization, obj)
             self.elements.append(r)
         except Exception as e:
-            if self.aconf.errors[rkey]:
+            if rkey in self.aconf.errors:
                 self.aconf.errors[rkey].append(e.args[0])
             else:
                 self.aconf.errors.setdefault(rkey, [e.args[0]])
