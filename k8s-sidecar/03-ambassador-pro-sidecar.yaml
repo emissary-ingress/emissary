@@ -468,6 +468,8 @@ spec:
               fieldPath: metadata.namespace
         - name: AMBASSADOR_SINGLE_NAMESPACE
           value: "true"
+        - name: SCOUT_DISABLE
+          value: "1"
         ports:
           - name: http
             containerPort: 8080
