@@ -94,6 +94,8 @@
         link: /user-guide/gitops-ambassador
       - title: Istio and Ambassador
         link: /user-guide/with-istio
+      - title: Monitoring Ingress with Prometheus and Grafana
+        link: /user-guide/monitoring
       - title: Testing in Production with Canary Releases
         link: /docs/dev-guide/canary-release-concepts
 

@@ -4,7 +4,7 @@ Prometheus is an open-source monitoring and alerting system. When used along wit
 
 ## Deployment
 
-This guide will focus on deploying Prometheus and Grafana alongside Ambassador in Kubernetes in a new namespace named `Monitoring`. 
+This guide will focus on deploying Prometheus and Grafana alongside Ambassador in Kubernetes using the [Prometheus Operator](https://github.com/coreos/prometheus-operator)
 
 **Note:** Both Prometheus and Grafana can be deployed as standalone applications outside of Kubernetes. This process is well documented in the documentation for their individual projects. 
 
@@ -12,15 +12,15 @@ This guide will focus on deploying Prometheus and Grafana alongside Ambassador i
 
 Ambassador makes it easy to output Envoy generated statistics to Prometheus. 
 
-To Envoy statistics in a way Prometheus can ingest, we need to use the [Prometheus StatsD Exporter](https://github.com/prometheus/statsd_exporter). 
+Starting with Ambassador `0.71.0`, Prometheus and scape statistics directly from Envoy's `/metrics` endpoint removing the need to configure Ambassador to output statistics to StatsD as done above. Statistics scraped from the `/metrics` endpoint are not the same as the ones scraped from StatsD.
 
-1. Deploy the StatsD Exporter in the `Monitoring` namespace
+If running a pre-`0.71.0` version of Ambassador, you will need to configure Envoy to output statistics to a separate collector before being scraped by Prometheus. We will use the [Prometheus StatsD Exporter](https://github.com/prometheus/statsd_exporter) to do this.
+
+1. Deploy the StatsD Exporter in the `default` namespace
 
     ```
     kubectl apply -f https://getambassador.io/yaml/monitoring/statsd-sink.yaml
     ```
-
-    This will create the `Monitoring` namespace and the `statsd-sink` service and deployment for exposing the StatsD Exporter tool to Ambassador.
 
 2. Configure Ambassador to output statistics to statsd
 
@@ -36,58 +36,297 @@ To Envoy statistics in a way Prometheus can ingest, we need to use the [Promethe
             - name: STATSD_ENABLED
               value: "true"
             - name: STATSD_HOST
-              value: "statsd-sink.monitoring.svc.cluster.local"
+              value: "statsd-sink.default.svc.cluster.local"
     ...  
     ``` 
 
 Ambassador will now be configured to output statistics to the Prometheus StatsD exporter.
 
-**Note:** Starting with Ambassador `0.71.0`, Prometheus and scape statistics directly from Envoy's `/metrics` endpoint removing the need to configure Ambassador to output statistics to StatsD as done above. Statistics scraped from the `/metrics` endpoint are not the same as the ones scraped from StatsD. [Click here]() for a full list of statistics at each endpoint.
-
 ### Prometheus Operator
 
-The Prometheus Operator for Kubernetes provides an easy way to manage your Prometheus deployment using Kubernetes-style resources.
-
-Use the published YAML files to quickly deploy the Prometheus Operator in the `Monitoring` namespace.
+The [Prometheus Operator](https://github.com/coreos/prometheus-operator) for Kubernetes provides an easy way to manage your Prometheus deployment using Kubernetes-style resources with custom resource definitions (CRDs).
 
 1. Deploy the Prometheus Operator
 
-    ```
-    kubectl apply -f https://getambassador.io/yaml/monitoring/prometheus-operator.yaml
-    ```
-
-2. Deploy Prometheus
+   To deploy the Prometheus Operator, you can clone the repository and follow the instructions in the README, or simply apply the published YAML with `kubectl`.
 
     ```
-    kubectl apply -f https://getambassador.io/yaml/monitoring/prometheus.yaml
+    kubectl apply -f https://raw.githubusercontent.com/coreos/prometheus-operator/master/bundle.yaml
     ```
 
-3. Create the `ServiceMonitor`
+2. Deploy Prometheus by creating a `Prometheus` CRD.
+
+    First, create RBAC resources for your Prometheus instance
+
+    ```
+    kubectl apply -f https://www.getambassador.io/yaml/monitoring/prometheus-rbac.yaml
+    ``` 
+
+    Then, copy the YAML below and save it in a file called `prometheus.yaml`
+
+    ```yaml
+    ---
+    apiVersion: v1
+    kind: Service
+    metadata:
+      name: prometheus
+    spec:
+      type: ClusterIP
+      ports:
+      - name: web
+        port: 9090
+        protocol: TCP
+        targetPort: 9090
+      selector:
+        prometheus: prometheus
+    ---
+    apiVersion: monitoring.coreos.com/v1
+    kind: Prometheus
+    metadata:
+      name: prometheus
+    spec:
+      ruleSelector:
+        matchLabels:
+          app: prometheus-operator
+      serviceAccountName: prometheus
+      serviceMonitorSelector:
+        matchLabels:
+          app: ambassador
+      resources:
+        requests:
+          memory: 400Mi
+    ```
+
+    ```
+    kubectl apply -f prometheus.yaml
+    ```
+
+
+3. Create a `ServiceMonitor`
+
+   Finally, we need tell Prometheus where to scrape metrics from. The Prometheus Operator easily manages this using a `ServiceMonitor` CRD. To tell Prometheus to scrape metrics from Ambassador's `/metrics` endpoint, copy the following YAML to a file called `ambassador-monitor.yaml` and apply it with `kubectl`.
 
     If you are running a version higher than 0.71.0 and want to scrape metrics directly from the `/metrics` endpoint of Ambassador running in the `default` namespace:
 
-    ```
-    kubectl apply -f https://getambassador.io/yaml/monitoring/ambassador-monitor.yaml
+    ```yaml
+    ---
+    apiVersion: monitoring.coreos.com/v1
+    kind: ServiceMonitor
+    metadata:
+      name: ambassador-monitor
+      namespace: monitoring
+      labels:
+        app: ambassador
+    spec:
+      namespaceSelector:
+        matchNames:
+        - default
+      selector:
+        matchLabels:
+          service: ambassador-admin
+      endpoints:
+      - port: ambassador-admin
     ```
 
-    If you are scrapping metrics from a `statsd-sink` deployment running in the `monitoring` namespace:
+    If you are scrapping metrics from a `statsd-sink` deployment:
 
-    ```
-    kubectl apply -f https://getambassador.io/yaml/monitoring/statsd-monitor.yaml
+    ```yaml
+    ---
+    apiVersion: monitoring.coreos.com/v1
+    kind: ServiceMonitor
+    metadata:
+      name: statsd-monitor
+      namespace: monitoring
+      labels:
+        app: ambassador
+    spec:
+      namespaceSelector:
+        matchNames:
+        - default
+      selector:
+        matchLabels:
+          service: statsd-sink
+      endpoints:
+      - port: prometheus-metrics
     ```
 
+Prometheus is now configured to gather metrics from Ambassador.
 
 #### Helm
 
+You can also use helm to install prometheus via the prometheus operator. The default [helm chart](https://github.com/helm/charts/tree/master/stable/prometheus-operator) will install Prometheus and configure it to monitor your Kubernetes cluster.
 
+This section will focus on setting up Prometheus to scrape statistics from Ambassador. Configuration of the helm chart and analysis of statics from other cluster components is outside of the scope of this documentation. 
 
+1. Install the Prometheus Operator from the helm chart
 
-Now you will have a full deployment of Prometheus running in your cluster. 
+    ```
+    helm install -n prometheus stable/prometheus-operator
+    ```
 
-Access the Prometheus UI to see it in action by running:
+2. Create a `ServiceMonitor` 
+
+    The Prometheus Operator Helm chart creates a Prometheus instance that is looking for `ServiceMonitor`s with `label: release=prometheus`.
+
+    If you are running a version higher than 0.71.0 and want to scrape metrics directly from the `/metrics` endpoint of Ambassador running in the `default` namespace:
+
+    ```yaml
+    ---
+    apiVersion: monitoring.coreos.com/v1
+    kind: ServiceMonitor
+    metadata:
+      name: ambassador-monitor
+      namespace: monitoring
+      labels:
+        release: prometheus
+    spec:
+      namespaceSelector:
+        matchNames:
+        - default
+      selector:
+        matchLabels:
+          service: ambassador-admin
+      endpoints:
+      - port: ambassador-admin
+    ```
+
+    If you are scrapping metrics from a `statsd-sink` deployment:
+
+    ```yaml
+    ---
+    apiVersion: monitoring.coreos.com/v1
+    kind: ServiceMonitor
+    metadata:
+      name: statsd-monitor
+      namespace: monitoring
+      labels:
+        release: prometheus
+    spec:
+      namespaceSelector:
+        matchNames:
+        - default
+      selector:
+        matchLabels:
+          service: statsd-sink
+      endpoints:
+      - port: prometheus-metrics
+    ```
+
+Prometheus is now configured to gather metrics from Ambassador. 
+
+#### Notes on the Prometheus Operator
+
+The Prometheus Operator creates a series of Kubernetes Custom Resource Definitions (CRDs) for managing Prometheus in Kubernetes.
+
+| Custom Resource Definition | Description |
+| -------------------------- | ------------------------------------------------------------- |
+| `AlertManager`             | An AlertManager handles alerts sent by the Prometheus server. |
+| `PrometheusRule`           | Registers altering and reporting rules with Prometheus.       |
+| `Prometheus`               | Creates a Prometheus instance.                                |
+| `ServiceMonitor`           | Tells Prometheus where to scrape metrics from.                |
+
+CoreOS has published a full [API reference](https://coreos.com/operators/prometheus/docs/latest/api.html) to these different CRDs.
+
+### Grafana
+
+Grafana is an open source graphing tool for plotting data points. Grafana allows you to create dynamic dashboards for monitoring your ingress traffic statistics collected from Prometheus.
+
+We have published a [sample dashboard](https://grafana.com/dashboards/10434) you can use for monitoring your ingress traffic. Since the statistics from the `/metrics` and `/stats` endpoints are different, you will see a section in the dashboard for each use case.
+
+**Note:** If you deployed the Prometheus Operator via the helm chart, a Grafana dashboard is created by default. You can use this dashboard or set `grafana.enabled: false` and follow the instructions below.
+
+To deploy Grafana behind Ambassador: replace `{{AMBASSADOR_IP}}` with the IP address of your Ambassador service, copy the YAML below, and apply it with `kubectl`:
+
+```yaml
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: grafana
+  namespace: default
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: grafana
+        component: core
+    spec:
+      containers:
+      - image: grafana/grafana:5.0.4
+        name: grafana-core
+        imagePullPolicy: IfNotPresent
+        resources:
+          limits:
+            cpu: 100m
+            memory: 100Mi
+          requests:
+            cpu: 100m
+            memory: 100Mi
+        env:
+          - name: GR_SERVER_ROOT_URL
+            value: {{AMBASSADOR_IP}}/grafana
+          - name: GF_AUTH_BASIC_ENABLED
+            value: "true"
+          - name: GF_AUTH_ANONYMOUS_ENABLED
+            value: "false"
+        readinessProbe:
+          httpGet:
+            path: /login
+            port: 3000
+        volumeMounts:
+        - name: grafana-persistent-storage
+          mountPath: /var
+      volumes:
+      - name: grafana-persistent-storage
+        emptyDir: {}
 ```
-kubectl port-forward -n monitoring service/prometheus  9090
+
+Now, create a service and `Mapping` to expose Grafana behind Ambassador:
+
+```yaml
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: grafana
+  namespace: monitoring
+  annotations:
+    getambassador.io/config: |
+      ---
+      apiVersion: ambassador/v1
+      kind: Mapping
+      name: grafana-mapping
+      prefix: /grafana/
+      service: grafana.monitoring
+spec:
+  ports:
+    - port: 80
+      targetPort: 3000
+  selector:
+    app: grafana
+    component: core
+```
+
+Now, access Grafana by going to `{AMBASSADOR_IP}/grafana/` and logging in with `username: admin` : `password: admin`. 
+
+Import the [provided dashboard](https://grafana.com/dashboards/10434) by clicking the plus sign in the left side-bar, clicking `New Dashboard` in the top left, selecting `Import Dashboard`, and entering the dashboard ID(10434).
+
+## Viewing Statistics
+
+Above, we have created an environment where we have Ambassador as an API gateway, Prometheus scraping and collecting statistics output by Envoy about ingress into our cluster, and a Grafana dashboard to view these statistics. 
+
+You can easily view a sample of these statistics via the Grafana dashboard at `{AMBASSADOR_IP}/grafana/` and logging in with the credentials above
+
+The example dashboard we installed above displays statistics about the API response codes, number of connections, connection length, and number of registered services.
+
+To veiw the full set of statistics available to Prometheus you can access the Prometheus UI by running:
+
+```
+kubectl port-forward -n monitoring service/prometheus 9090
 ```
 and going to http://localhost:9090/ from a web browser
 
 In the UI, click the dropdown and see all of the stats Prometheus is able to scrape from Ambassador! 
+
+The Prometheus data model is, at it's core, time-series based. Therefore, it makes it easy to represent rates, averages, peaks, minimums, and histograms. Review the [Prometheus documentation](https://prometheus.io/docs/concepts/data_model/) for a full reference on how to work with this data model.
