@@ -25,18 +25,23 @@ import (
 )
 
 type server struct {
-	port          int
-	grpcPort      int
-	debugPort     int
-	router        *mux.Router
-	grpcServer    *grpc.Server
-	store         stats.Store
-	scope         stats.Scope
-	runtime       loader.IFace
+	grpcServer *grpc.Server
+	// ports
+	port      int
+	grpcPort  int
+	debugPort int
+	// stats
+	store stats.Store
+	scope stats.Scope
+	// runtime
+	runtime loader.IFace
+	// heathcheck
+	healthGRPC *health.Server
+	healthHTTP HealthChecker
+	router     *mux.Router
+	// debug
 	debugHandler  *serverDebugHandler
 	debugListener net.Listener
-	healthGRPC    *health.Server
-	healthHTTP    HealthChecker
 }
 
 func (server *server) DebugHTTPHandler() DebugHTTPHandler {
@@ -47,6 +52,9 @@ func (server *server) GrpcServer() *grpc.Server {
 	return server.grpcServer
 }
 
+// - http.Serve(sock, server.debugHandler)
+// - server.grpcServer.Serve(sock)
+// - http.Serve(sock, server.router) // healthcheck
 func (server *server) Start() {
 	go func() {
 		addr := fmt.Sprintf(":%d", server.debugPort)
