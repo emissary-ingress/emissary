@@ -457,7 +457,7 @@ def collect_errors_and_notices(request, reqid, what: str, diag: Diagnostics) -> 
             err_key = ""
 
         for err in err_list:
-            errors.append((err_key, err))
+            errors.append((err_key, err['error']))
 
     dnotices = ddict.pop('notices', {})
 
