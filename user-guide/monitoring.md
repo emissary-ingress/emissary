@@ -12,7 +12,7 @@ This guide will focus on deploying Prometheus and Grafana alongside Ambassador i
 
 Ambassador makes it easy to output Envoy generated statistics to Prometheus. 
 
-Starting with Ambassador `0.71.0`, Prometheus and scape statistics directly from Envoy's `/metrics` endpoint removing the need to configure Ambassador to output statistics to StatsD as done above. Statistics scraped from the `/metrics` endpoint are not the same as the ones scraped from StatsD.
+Starting with Ambassador `0.71.0`, Prometheus and scrape statistics directly from Envoy's `/metrics` endpoint removing the need to configure Ambassador to output statistics to StatsD as done above. Statistics scraped from the `/metrics` endpoint are not the same as the ones scraped from StatsD.
 
 If running a pre-`0.71.0` version of Ambassador, you will need to configure Envoy to output statistics to a separate collector before being scraped by Prometheus. We will use the [Prometheus StatsD Exporter](https://github.com/prometheus/statsd_exporter) to do this.
 
@@ -128,7 +128,7 @@ The [Prometheus Operator](https://github.com/coreos/prometheus-operator) for Kub
       - port: ambassador-admin
     ```
 
-    If you are scrapping metrics from a `statsd-sink` deployment:
+    If you are scraping metrics from a `statsd-sink` deployment:
 
     ```yaml
     ---
@@ -190,7 +190,7 @@ This section will focus on setting up Prometheus to scrape statistics from Ambas
       - port: ambassador-admin
     ```
 
-    If you are scrapping metrics from a `statsd-sink` deployment:
+    If you are scraping metrics from a `statsd-sink` deployment:
 
     ```yaml
     ---
@@ -320,7 +320,7 @@ You can easily view a sample of these statistics via the Grafana dashboard at `{
 
 The example dashboard we installed above displays statistics about the API response codes, number of connections, connection length, and number of registered services.
 
-To veiw the full set of statistics available to Prometheus you can access the Prometheus UI by running:
+To view the full set of statistics available to Prometheus you can access the Prometheus UI by running:
 
 ```
 kubectl port-forward -n monitoring service/prometheus 9090
