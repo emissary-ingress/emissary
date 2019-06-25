@@ -253,7 +253,7 @@ spec:
         component: core
     spec:
       containers:
-      - image: grafana/grafana:5.0.4
+      - image: grafana/grafana:6.2.0
         name: grafana-core
         imagePullPolicy: IfNotPresent
         resources:
