@@ -72,6 +72,7 @@ ambassador_targets = {
     'module': 'https://www.getambassador.io/reference/configuration#modules',
 }
 
+
 # envoy_targets = {
 #     'route': 'https://envoyproxy.github.io/envoy/configuration/http_conn_man/route_config/route.html',
 #     'cluster': 'https://envoyproxy.github.io/envoy/configuration/cluster_manager/cluster.html',
@@ -82,7 +83,7 @@ def number_of_workers():
     return (multiprocessing.cpu_count() * 2) + 1
 
 
-class DiagApp (Flask):
+class DiagApp(Flask):
     ambex_pid: int
     kick: Optional[str]
     estats: EnvoyStats
@@ -152,6 +153,7 @@ class DiagApp (Flask):
 
     def check_scout(self, what: str) -> None:
         self.watcher.post("SCOUT", (what, self.ir))
+
 
 # Get the Flask app defined early. Setup happens later.
 app = DiagApp(__name__,
@@ -225,7 +227,7 @@ class Notices:
         except OSError:
             pass
         except:
-            local_notices.append({ 'level': 'ERROR', 'message': 'bad local notices: %s' % local_data })
+            local_notices.append({'level': 'ERROR', 'message': 'bad local notices: %s' % local_data})
 
         self.notices = local_notices
         # app.logger.info("Notices: after RESET: %s" % json.dumps(self.notices))
@@ -248,10 +250,10 @@ class Notices:
 def td_format(td_object):
     seconds = int(td_object.total_seconds())
     periods = [
-        ('year',   60*60*24*365),
-        ('month',  60*60*24*30),
-        ('day',    60*60*24),
-        ('hour',   60*60),
+        ('year', 60 * 60 * 24 * 365),
+        ('month', 60 * 60 * 24 * 30),
+        ('day', 60 * 60 * 24),
+        ('hour', 60 * 60),
         ('minute', 60),
         ('second', 1)
     ]
@@ -307,12 +309,12 @@ def envoy_status(estats):
     }
 
 
-@app.route('/_internal/v0/ping', methods=[ 'GET' ])
+@app.route('/_internal/v0/ping', methods=['GET'])
 def handle_ping():
     return "ACK", 200
 
 
-@app.route('/_internal/v0/update', methods=[ 'POST' ])
+@app.route('/_internal/v0/update', methods=['POST'])
 def handle_kubewatch_update():
     url = request.args.get('url', None)
 
@@ -322,12 +324,12 @@ def handle_kubewatch_update():
 
     app.logger.info("Update requested: kubewatch, %s" % url)
 
-    status, info = app.watcher.post('CONFIG', ( 'kw', url ))
+    status, info = app.watcher.post('CONFIG', ('kw', url))
 
     return info, status
 
 
-@app.route('/_internal/v0/watt', methods=[ 'POST' ])
+@app.route('/_internal/v0/watt', methods=['POST'])
 def handle_watt_update():
     url = request.args.get('url', None)
 
@@ -337,7 +339,7 @@ def handle_watt_update():
 
     app.logger.info("Update requested: watt, %s" % url)
 
-    status, info = app.watcher.post('CONFIG', ( 'watt', url ))
+    status, info = app.watcher.post('CONFIG', ('watt', url))
 
     return info, status
 
@@ -357,14 +359,14 @@ def handle_watt_update():
 #     return info, status
 
 
-@app.route('/ambassador/v0/favicon.ico', methods=[ 'GET' ])
+@app.route('/ambassador/v0/favicon.ico', methods=['GET'])
 def favicon():
     template_path = resource_filename(Requirement.parse("ambassador"), "templates")
 
     return send_from_directory(template_path, "favicon.ico")
 
 
-@app.route('/ambassador/v0/check_alive', methods=[ 'GET' ])
+@app.route('/ambassador/v0/check_alive', methods=['GET'])
 def check_alive():
     status = envoy_status(app.estats)
 
@@ -374,7 +376,7 @@ def check_alive():
         return "ambassador seems to have died (%s)" % status['uptime'], 503
 
 
-@app.route('/ambassador/v0/check_ready', methods=[ 'GET' ])
+@app.route('/ambassador/v0/check_ready', methods=['GET'])
 def check_ready():
     if not app.ir:
         return "ambassador waiting for config", 503
@@ -387,7 +389,7 @@ def check_ready():
         return "ambassador not ready (%s)" % status['since_update'], 503
 
 
-@app.route('/ambassador/v0/diag/', methods=[ 'GET' ])
+@app.route('/ambassador/v0/diag/', methods=['GET'])
 @standard_handler
 def show_overview(reqid=None):
     app.logger.debug("OV %s - showing overview" % reqid)
@@ -434,7 +436,7 @@ def collect_errors_and_notices(request, reqid, what: str, diag: Diagnostics) -> 
         app.logger.debug("%s %s -- requesting loglevel %s" % (what, reqid, loglevel))
 
         if not app.estats.update_log_levels(time.time(), level=loglevel):
-            notice = { 'level': 'WARNING', 'message': "Could not update log level!" }
+            notice = {'level': 'WARNING', 'message': "Could not update log level!"}
         # else:
         #     return redirect("/ambassador/v0/diag/", code=302)
 
@@ -455,7 +457,7 @@ def collect_errors_and_notices(request, reqid, what: str, diag: Diagnostics) -> 
             err_key = ""
 
         for err in err_list:
-            errors.append((err_key, err[ 'error' ]))
+            errors.append((err_key, err['error']))
 
     dnotices = ddict.pop('notices', {})
 
@@ -472,7 +474,7 @@ def collect_errors_and_notices(request, reqid, what: str, diag: Diagnostics) -> 
     return ddict
 
 
-@app.route('/ambassador/v0/diag/<path:source>', methods=[ 'GET' ])
+@app.route('/ambassador/v0/diag/<path:source>', methods=['GET'])
 @standard_handler
 def show_intermediate(source=None, reqid=None):
     app.logger.debug("SRC %s - getting intermediate for '%s'" % (reqid, source))
@@ -519,10 +521,10 @@ def pretty_json(obj):
     if isinstance(obj, dict):
         obj = dict(**obj)
 
-        keys_to_drop = [ key for key in obj.keys() if key.startswith('_') ]
+        keys_to_drop = [key for key in obj.keys() if key.startswith('_')]
 
         for key in keys_to_drop:
-            del(obj[key])
+            del (obj[key])
 
     return json.dumps(obj, indent=4, sort_keys=True)
 
@@ -549,6 +551,7 @@ def source_lookup(name, sources):
 def get_prometheus_metrics(*args, **kwargs):
     return app.estats.get_prometheus_state()
 
+
 class AmbassadorEventWatcher(threading.Thread):
     def __init__(self, app: DiagApp) -> None:
         super().__init__(name="AmbassadorEventWatcher", daemon=True)
@@ -568,7 +571,7 @@ class AmbassadorEventWatcher(threading.Thread):
 
     def run(self):
         self.logger.info("starting Scout checker")
-        self.app.scout_checker = PeriodicTrigger(lambda: self.check_scout("checkin"), period=86400)     # Yup, one day.
+        self.app.scout_checker = PeriodicTrigger(lambda: self.check_scout("checkin"), period=86400)  # Yup, one day.
 
         self.logger.info("starting event watcher")
 
@@ -735,7 +738,8 @@ class AmbassadorEventWatcher(threading.Thread):
         bootstrap_config, ads_config = econf.split_config()
 
         if not self.validate_envoy_config(config=ads_config):
-            self.logger.info("no updates were performed due to invalid envoy configuration, continuing with current configuration...")
+            self.logger.info(
+                "no updates were performed due to invalid envoy configuration, continuing with current configuration...")
             # Don't use app.check_scout; it will deadlock.
             self.check_scout("attempted bad update")
             self._respond(rqueue, 500, 'ignoring: invalid Envoy configuration in snapshot %s' % snapshot)
@@ -752,16 +756,16 @@ class AmbassadorEventWatcher(threading.Thread):
             # into [ ( "-3", "-4" ), ( "-2", "-3" ), ( "-1", "-2" ) ]...
             # which is the list of suffixes to rename to rotate the snapshots.
 
-            snaplist += [ (str(x+1), str(x)) for x in range(-1 * snapcount, -1) ]
+            snaplist += [(str(x + 1), str(x)) for x in range(-1 * snapcount, -1)]
 
             # After dealing with that, we need to rotate the current file into -1.
-            snaplist.append(( '', '-1' ))
+            snaplist.append(('', '-1'))
 
         # Whether or not we do any rotation, we need to cycle in the '-tmp' file.
-        snaplist.append(( '-tmp', '' ))
+        snaplist.append(('-tmp', ''))
 
         for from_suffix, to_suffix in snaplist:
-            for fmt in [ "aconf{}.json", "econf{}.json", "ir{}.json", "snapshot{}.yaml" ]:
+            for fmt in ["aconf{}.json", "econf{}.json", "ir{}.json", "snapshot{}.yaml"]:
                 from_path = os.path.join(app.snapshot_path, fmt.format(from_suffix))
                 to_path = os.path.join(app.snapshot_path, fmt.format(to_suffix))
 
@@ -905,7 +909,9 @@ class AmbassadorEventWatcher(threading.Thread):
             self.logger.info("successfully validated the resulting envoy configuration, continuing...")
             return True
 
-        self.logger.info("{}\ncould not validate the envoy configuration above, failed with error \n{}\nAborting update...".format(config_json, odict['output']))
+        self.logger.info(
+            "{}\ncould not validate the envoy configuration above, failed with error \n{}\nAborting update...".format(
+                config_json, odict['output']))
         return False
 
 
