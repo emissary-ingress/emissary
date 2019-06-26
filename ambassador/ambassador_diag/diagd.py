@@ -111,7 +111,7 @@ class DiagApp (Flask):
     def setup(self, snapshot_path: str, bootstrap_path: str, ads_path: str,
               config_path: Optional[str], ambex_pid: int, kick: Optional[str],
               k8s=False, do_checks=True, no_envoy=False, reload=False, debug=False, verbose=False,
-              notices=None):
+              notices=None, validation_retries=5):
         self.estats = EnvoyStats()
         self.health_checks = do_checks
         self.no_envoy = no_envoy
@@ -121,6 +121,7 @@ class DiagApp (Flask):
         self.notices = Notices(self.notice_path)
         self.notices.reset()
         self.k8s = k8s
+        self.validation_retries = validation_retries
 
         # This will raise an exception and crash if you pass it a string. That's intentional.
         self.ambex_pid = int(ambex_pid)
@@ -732,7 +733,7 @@ class AmbassadorEventWatcher(threading.Thread):
 
         bootstrap_config, ads_config = econf.split_config()
 
-        if not self.validate_envoy_config(config=ads_config):
+        if not self.validate_envoy_config(config=ads_config, retries=self.app.validation_retries):
             self.logger.info("no updates were performed due to invalid envoy configuration, continuing with current configuration...")
             # Don't use app.check_scout; it will deadlock.
             self.check_scout("attempted bad update")
@@ -869,7 +870,7 @@ class AmbassadorEventWatcher(threading.Thread):
         self.app.logger.info("Scout notices: %s" % json.dumps(scout_notices))
         self.app.logger.debug("App notices after scout: %s" % json.dumps(app.notices.notices))
 
-    def validate_envoy_config(self, config) -> bool:
+    def validate_envoy_config(self, config, retries) -> bool:
         if self.app.no_envoy:
             self.app.logger.debug("Skipping validation")
             return True
@@ -891,18 +892,31 @@ class AmbassadorEventWatcher(threading.Thread):
             'output': ''
         }
 
-        try:
-            odict['output'] = subprocess.check_output(command, stderr=subprocess.STDOUT, timeout=5)
-            odict['exit_code'] = 0
-        except subprocess.CalledProcessError as e:
-            odict['exit_code'] = e.returncode
-            odict['output'] = e.output
+        # Try to validate the Envoy config. Short circuit and fall through
+        # immediately on concrete success or failure, and retry (up to the
+        # limit) on timeout.
+        timeout = 5
+        for retry in range(retries):
+            try:
+                odict['output'] = subprocess.check_output(command, stderr=subprocess.STDOUT, timeout=timeout)
+                odict['exit_code'] = 0
+                break
+            except subprocess.CalledProcessError as e:
+                odict['exit_code'] = e.returncode
+                odict['output'] = e.output
+                break
+            except subprocess.TimeoutExpired as e:
+                odict['exit_code'] = e.returncode
+                odict['output'] = e.output
+                self.logger.warn("envoy configuration validation timed out after {} seconds{}\n{}",
+                    timeout, ', retrying...' if retry < retries - 1 else '', e.output)
+                continue
 
         if odict['exit_code'] == 0:
             self.logger.info("successfully validated the resulting envoy configuration, continuing...")
             return True
 
-        self.logger.info("{}\ncould not validate the envoy configuration above, failed with error \n{}\nAborting update...".format(config_json, odict['output']))
+        self.logger.error("{}\ncould not validate the envoy configuration above after {} retries, failed with error \n{}\nAborting update...".format(config_json, retries, odict['output']))
         return False
 
 
@@ -932,7 +946,8 @@ class StandaloneApplication(gunicorn.app.base.BaseApplication):
 def _main(snapshot_path: Parameter.REQUIRED, bootstrap_path: Parameter.REQUIRED, ads_path: Parameter.REQUIRED,
           *, config_path=None, ambex_pid=0, kick=None, k8s=False,
           no_checks=False, no_envoy=False, reload=False, debug=False, verbose=False,
-          workers=None, port=Constants.DIAG_PORT, host='0.0.0.0', notices=None):
+          workers=None, port=Constants.DIAG_PORT, host='0.0.0.0', notices=None,
+          validation_retries=5):
     """
     Run the diagnostic daemon.
 
@@ -952,6 +967,7 @@ def _main(snapshot_path: Parameter.REQUIRED, bootstrap_path: Parameter.REQUIRED,
     :param host: Interface on which to listen
     :param port: Port on which to listen
     :param notices: Optional file to read for local notices
+    :param validation_retries: Number of times to retry Envoy configuration validation after a timeout
     """
 
     if no_envoy:
@@ -959,7 +975,8 @@ def _main(snapshot_path: Parameter.REQUIRED, bootstrap_path: Parameter.REQUIRED,
 
     # Create the application itself.
     app.setup(snapshot_path, bootstrap_path, ads_path, config_path, ambex_pid, kick,
-              k8s, not no_checks, no_envoy, reload, debug, verbose, notices)
+              k8s, not no_checks, no_envoy, reload, debug, verbose, notices,
+              validation_retries)
 
     if not workers:
         workers = number_of_workers()
