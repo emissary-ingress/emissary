@@ -221,7 +221,7 @@ apiVersion: ambassador/v0
 kind:  Mapping
 name:  {self.name}
 prefix: /{self.name}/
-service: foobar.com
+service: {self.target.path.fqdn}
 """)
 
     def queries(self):
@@ -232,7 +232,7 @@ service: foobar.com
         yield Query(self.url(self.name + "/target/"), headers={ "X-Forwarded-Proto": "https" }, expected=200)
 
         # [2] -- PHASE 2
-        yield Query(self.url("ambassador/v0/diag/?json=true&filter=errors"), headers={ "X-Forwarded-Proto": "https" }, debug=True, phase=2)
+        yield Query(self.url("ambassador/v0/diag/?json=true&filter=errors"), headers={ "X-Forwarded-Proto": "https" }, phase=2)
 
     def check(self):
         # For query 0, check the redirection target.
