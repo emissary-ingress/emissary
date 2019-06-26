@@ -115,6 +115,38 @@ host: inspector.external
         yield Query(self.parent.url(self.name + "/"), headers={"Host": "inspector.external"})
 
 
+class InvalidPortMapping(MappingTest):
+
+    parent: AmbassadorTest
+
+    @classmethod
+    def variants(cls):
+        for st in variants(ServiceType):
+            yield cls(st, name="{self.target.name}")
+
+    def config(self):
+        yield self, self.format("""
+---
+apiVersion: ambassador/v1
+kind:  Mapping
+name:  {self.name}
+prefix: /{self.name}/
+service: http://{self.target.path.fqdn}:80.invalid
+""")
+
+    def queries(self):
+        yield Query(self.parent.url("ambassador/v0/diag/?json=true&filter=errors"))
+
+    def check(self):
+        error_string = 'found invalid port for service'
+        found_error = False
+        for error_list in self.results[0].json:
+            for error in error_list:
+                if error.find(error_string) != -1:
+                    found_error = True
+        assert found_error, "could not find the relevant error - {}".format(error_string)
+
+
 class WebSocketMapping(MappingTest):
 
     parent: AmbassadorTest
