@@ -63,13 +63,14 @@ func (d *diffCalculator) Add(s kubernetes.Service) {
 }
 
 type fetcher struct {
-	add     AddServiceFunc
-	delete  DeleteServiceFunc
-	httpGet HTTPGetFunc
-	done    chan bool
-	ticker  *time.Ticker
-	diff    *diffCalculator
-	logger  *log.Entry
+	add       AddServiceFunc
+	delete    DeleteServiceFunc
+	httpGet   HTTPGetFunc
+	done      chan bool
+	ticker    *time.Ticker
+	retriever chan chan bool
+	diff      *diffCalculator
+	logger    *log.Entry
 	// diagd's URL
 	diagURL string
 	// ambassador's URL
@@ -91,6 +92,7 @@ func NewFetcher(
 		httpGet:        httpGet,
 		done:           make(chan bool),
 		ticker:         time.NewTicker(duration),
+		retriever:      make(chan chan bool),
 		diff:           NewDiffCalculator(known),
 		logger:         log.WithFields(log.Fields{"subsystem": "fetcher"}),
 		diagURL:        strings.TrimRight(diagURL, "/"),
@@ -102,10 +104,15 @@ func NewFetcher(
 		for {
 			select {
 			case <-f.done:
+				f.ticker.Stop()
 				return
 			case <-f.ticker.C:
-				// Retrieve all services:
-				f.retrieve()
+				f._retrieve("timer")
+				break
+			case ack := <-f.retriever:
+				f._retrieve("request")
+				ack <- true
+				break
 			}
 		}
 	}()
@@ -165,7 +172,13 @@ func httpGet(url string, internalSecret string, logger *log.Entry) ([]byte, erro
 }
 
 func (f *fetcher) retrieve() {
-	f.logger.Info("Iteration started")
+	waiter := make(chan bool)
+	f.retriever <- waiter
+	<-waiter
+}
+
+func (f *fetcher) _retrieve(reason string) {
+	f.logger.Info("Iteration started ", reason, " ")
 	buf, err := f.httpGet(f.diagURL+"/ambassador/v0/diag/?json=true", "", f.logger)
 	if err != nil {
 		log.Print(err)
