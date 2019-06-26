@@ -6,8 +6,14 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/gorilla/mux"
+	"github.com/lyft/goruntime/loader"
+	stats "github.com/lyft/gostats"
 	logger "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/health"
+
+	healthpb "google.golang.org/grpc/health/grpc_health_v1"
 
 	pb_legacy "github.com/datawire/ambassador/go/apis/envoy/service/ratelimit/v1"
 	pb "github.com/datawire/ambassador/go/apis/envoy/service/ratelimit/v2"
@@ -20,6 +26,7 @@ import (
 )
 
 func Run() {
+	// Parse settings
 	s := settings.NewSettings()
 
 	logLevel, err := logger.ParseLevel(s.LogLevel)
@@ -36,35 +43,47 @@ func Run() {
 		opt(&s)
 	}
 
+	// Initialize stats store
+	statsStore := stats.NewDefaultStore()
+	statsScopeRatelimit := statsStore.Scope("ratelimit")
+	statsStore.AddStatGenerator(stats.NewRuntimeStats(statsScopeRatelimit.Scope("go")))
+
+	// Create the top-level things for the 3 ports we listen on
 	grpcServer := grpc.NewServer(s.GrpcUnaryInterceptor)
 	debugHTTPHandler := server.NewDebugHTTPHandler()
+	healthHTTPHandler := mux.NewRouter()
 
-	srv := server.NewServer("ratelimit", s, grpcServer, debugHTTPHandler)
+	// Health Service
+	healthGRPCHandler := health.NewServer()
+	healthpb.RegisterHealthServer(grpcServer, healthGRPCHandler)
+	healthHTTPHandler.Path("/healthcheck").Handler(server.NewHealthChecker(healthGRPCHandler))
 
+	// Rate Limit Service
 	var perSecondPool redis.Pool
 	if s.RedisPerSecond {
-		perSecondPool = redis.NewPoolImpl(srv.Scope().Scope("redis_per_second_pool"), s.RedisPerSecondSocketType, s.RedisPerSecondUrl, s.RedisPerSecondPoolSize)
-
+		perSecondPool = redis.NewPoolImpl(statsScopeRatelimit.Scope("redis_per_second_pool"), s.RedisPerSecondSocketType, s.RedisPerSecondUrl, s.RedisPerSecondPoolSize)
 	}
-
 	service := ratelimit.NewService(
-		srv.Runtime(),
+		loader.New(
+			s.RuntimePath,               // runtime path
+			s.RuntimeSubdirectory,       // runtime subdirectory
+			statsStore.Scope("runtime"), // stats scope
+			&loader.SymlinkRefresher{RuntimePath: s.RuntimePath}, // refresher
+		),
 		redis.NewRateLimitCacheImpl(
-			redis.NewPoolImpl(srv.Scope().Scope("redis_pool"), s.RedisSocketType, s.RedisUrl, s.RedisPoolSize),
+			redis.NewPoolImpl(statsScopeRatelimit.Scope("redis_pool"), s.RedisSocketType, s.RedisUrl, s.RedisPoolSize),
 			perSecondPool,
 			redis.NewTimeSourceImpl(),
 			rand.New(redis.NewLockedSource(time.Now().Unix())),
 			s.ExpirationJitterMaxSeconds),
 		config.NewRateLimitConfigLoaderImpl(),
-		srv.Scope().Scope("service"))
-
+		statsScopeRatelimit.Scope("service"))
 	debugHTTPHandler.AddEndpoint(
 		"/rlconfig",
 		"print out the currently loaded configuration for debugging",
 		func(writer http.ResponseWriter, request *http.Request) {
 			io.WriteString(writer, service.GetCurrentConfig().Dump())
 		})
-
 	// Ratelimit is compatible with two proto definitions
 	// 1. data-plane-api rls.proto: https://github.com/envoyproxy/data-plane-api/blob/master/envoy/service/ratelimit/v2/rls.proto
 	pb.RegisterRateLimitServiceServer(grpcServer, service)
@@ -72,5 +91,6 @@ func Run() {
 	pb_legacy.RegisterRateLimitServiceServer(grpcServer, service.GetLegacyService())
 	// (1) is the current definition, and (2) is the legacy definition.
 
-	srv.Start()
+	// Now Run everything
+	server.Run(s, grpcServer, debugHTTPHandler, healthHTTPHandler, healthGRPCHandler)
 }

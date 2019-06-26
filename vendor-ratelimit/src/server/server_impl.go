@@ -12,44 +12,18 @@ import (
 	"sort"
 	"syscall"
 
-	"github.com/gorilla/mux"
 	reuseport "github.com/kavu/go_reuseport"
-	"github.com/lyft/goruntime/loader"
-	stats "github.com/lyft/gostats"
 	logger "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health"
-	healthpb "google.golang.org/grpc/health/grpc_health_v1"
 
 	"github.com/lyft/ratelimit/src/settings"
 )
 
-type server struct {
-	grpcServer   *grpc.Server
-	debugHandler http.Handler
-	// ports
-	port      int
-	grpcPort  int
-	debugPort int
-	// stats
-	store stats.Store
-	scope stats.Scope
-	// runtime
-	runtime loader.IFace
-	// heathcheck
-	healthGRPC *health.Server
-	healthHTTP HealthChecker
-	router     *mux.Router
-	// debug
-}
-
-// - http.Serve(sock, server.debugHandler)
-// - server.grpcServer.Serve(sock)
-// - http.Serve(sock, server.router) // healthcheck
-func (server *server) Start() {
+func Run(s settings.Settings, grpcServer *grpc.Server, debugHTTPHandler http.Handler, healthHTTPHandler http.Handler, healthGRPCHandler *health.Server) {
 	var debugListener net.Listener
 	go func() {
-		addr := fmt.Sprintf(":%d", server.debugPort)
+		addr := fmt.Sprintf(":%d", s.DebugPort)
 		logger.Warnf("Listening for debug on '%s'", addr)
 		var err error
 		debugListener, err = reuseport.Listen("tcp", addr)
@@ -58,18 +32,18 @@ func (server *server) Start() {
 			logger.Errorf("Failed to open debug HTTP listener: '%+v'", err)
 			return
 		}
-		err = http.Serve(debugListener, server.debugHandler)
+		err = http.Serve(debugListener, debugHTTPHandler)
 		logger.Infof("Failed to start debug server '%+v'", err)
 	}()
 
 	go func() {
-		addr := fmt.Sprintf(":%d", server.grpcPort)
+		addr := fmt.Sprintf(":%d", s.GrpcPort)
 		logger.Warnf("Listening for gRPC on '%s'", addr)
 		lis, err := reuseport.Listen("tcp", addr)
 		if err != nil {
 			logger.Fatalf("Failed to listen for gRPC: %v", err)
 		}
-		server.grpcServer.Serve(lis)
+		grpcServer.Serve(lis)
 	}()
 
 	sigs := make(chan os.Signal, 1)
@@ -78,66 +52,21 @@ func (server *server) Start() {
 		sig := <-sigs
 
 		logger.Infof("Ratelimit server received %v, shutting down gracefully", sig)
-		server.healthGRPC.Shutdown()
-		server.grpcServer.GracefulStop()
+		healthGRPCHandler.Shutdown()
+		grpcServer.GracefulStop()
 		if debugListener != nil {
 			debugListener.Close()
 		}
 		os.Exit(0)
 	}()
 
-	addr := fmt.Sprintf(":%d", server.port)
+	addr := fmt.Sprintf(":%d", s.Port)
 	logger.Warnf("Listening for HTTP on '%s'", addr)
 	list, err := reuseport.Listen("tcp", addr)
 	if err != nil {
 		logger.Fatalf("Failed to open HTTP listener: '%+v'", err)
 	}
-	logger.Fatal(http.Serve(list, server.router))
-}
-
-func (server *server) Scope() stats.Scope {
-	return server.scope
-}
-
-func (server *server) Runtime() loader.IFace {
-	return server.runtime
-}
-
-func NewServer(name string, s settings.Settings, grpcServer *grpc.Server, debugHTTPHandler http.Handler) Server {
-	ret := &server{
-		grpcServer:   grpcServer,
-		debugHandler: debugHTTPHandler,
-	}
-
-	// setup ports
-	ret.port = s.Port
-	ret.grpcPort = s.GrpcPort
-	ret.debugPort = s.DebugPort
-
-	// setup stats
-	ret.store = stats.NewDefaultStore()
-	ret.scope = ret.store.Scope(name)
-	ret.store.AddStatGenerator(stats.NewRuntimeStats(ret.scope.Scope("go")))
-
-	// setup runtime
-	ret.runtime = loader.New(
-		s.RuntimePath,              // runtime path
-		s.RuntimeSubdirectory,      // runtime subdirectory
-		ret.store.Scope("runtime"), // stats scope
-		&loader.SymlinkRefresher{RuntimePath: s.RuntimePath}, // refresher
-	)
-
-	// setup http router
-	ret.router = mux.NewRouter()
-
-	// setup healthcheck path
-	ret.healthGRPC = health.NewServer()
-	healthpb.RegisterHealthServer(ret.grpcServer, ret.healthGRPC)
-
-	ret.healthHTTP = NewHealthChecker(ret.healthGRPC)
-	ret.router.Path("/healthcheck").Handler(ret.healthHTTP)
-
-	return ret
+	logger.Fatal(http.Serve(list, healthHTTPHandler))
 }
 
 type serverDebugHandler struct {
