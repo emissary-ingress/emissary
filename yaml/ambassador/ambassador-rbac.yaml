@@ -28,6 +28,12 @@ rules:
 - apiGroups: [ "apiextensions.k8s.io" ]
   resources: [ "customresourcedefinitions" ]
   verbs: ["get", "list", "watch"]
+- apiGroups: [ "networking.internal.knative.dev" ]
+  resources: [ "clusteringresses" ]
+  verbs: ["get", "list", "watch"]
+- apiGroups: [ "serving.knative.dev" ]
+  resources: [ "services" ]
+  verbs: ["get", "list", "watch"]
 ---
 apiVersion: v1
 kind: ServiceAccount
