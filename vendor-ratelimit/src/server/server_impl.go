@@ -40,8 +40,7 @@ type server struct {
 	healthHTTP HealthChecker
 	router     *mux.Router
 	// debug
-	debugHandler  *serverDebugHandler
-	debugListener net.Listener
+	debugHandler *serverDebugHandler
 }
 
 func (server *server) DebugHTTPHandler() DebugHTTPHandler {
@@ -56,17 +55,18 @@ func (server *server) GrpcServer() *grpc.Server {
 // - server.grpcServer.Serve(sock)
 // - http.Serve(sock, server.router) // healthcheck
 func (server *server) Start() {
+	var debugListener net.Listener
 	go func() {
 		addr := fmt.Sprintf(":%d", server.debugPort)
 		logger.Warnf("Listening for debug on '%s'", addr)
 		var err error
-		server.debugListener, err = reuseport.Listen("tcp", addr)
+		debugListener, err = reuseport.Listen("tcp", addr)
 
 		if err != nil {
 			logger.Errorf("Failed to open debug HTTP listener: '%+v'", err)
 			return
 		}
-		err = http.Serve(server.debugListener, server.debugHandler)
+		err = http.Serve(debugListener, server.debugHandler)
 		logger.Infof("Failed to start debug server '%+v'", err)
 	}()
 
@@ -88,8 +88,8 @@ func (server *server) Start() {
 		logger.Infof("Ratelimit server received %v, shutting down gracefully", sig)
 		server.healthGRPC.Shutdown()
 		server.grpcServer.GracefulStop()
-		if server.debugListener != nil {
-			server.debugListener.Close()
+		if debugListener != nil {
+			debugListener.Close()
 		}
 		os.Exit(0)
 	}()
