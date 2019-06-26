@@ -293,9 +293,13 @@ class IR:
         # in the Ambassador's namespace...
         namespace = self.ambassador_namespace
 
-        # ...but allow secrets to override the namespace, too.
-        if "." in secret_name:
-            secret_name, namespace = secret_name.split('.', 1)
+        # TODO Actually doing this check causes https://github.com/datawire/ambassador/issues/1255
+        # which is problematic (and related to https://github.com/datawire/ambassador/issues/1475).
+        # Disabling until we have a good use case and a good solution. (Flynn, 26 June 2019)
+        #
+        # # ...but allow secrets to override the namespace, too.
+        # if "." in secret_name:
+        #     secret_name, namespace = secret_name.split('.', 1)
 
         # OK. Do we already have a SavedSecret for this?
         ss_key = f'{secret_name}.{namespace}'
