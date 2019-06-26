@@ -175,8 +175,7 @@ class IRCluster (IRResource):
         try:
             port = p.port
         except ValueError as e:
-            errors.append("found invalid port for service {}. Please specify a valid port between 0 and 65535 - {}".format(service, e))
-            errors.append("service {} cluster will be ignored, please re-configure".format(service))
+            errors.append("found invalid port for service {}. Please specify a valid port between 0 and 65535 - {}. Service {} cluster will be ignored, please re-configure".format(service, e, service))
             self.ignore_cluster = True
             port = 0
 
