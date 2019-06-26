@@ -76,9 +76,29 @@ func (server *server) Start() {
 		logger.Infof("Failed to start debug server '%+v'", err)
 	}()
 
-	go server.startGrpc()
+	go func() {
+		addr := fmt.Sprintf(":%d", server.grpcPort)
+		logger.Warnf("Listening for gRPC on '%s'", addr)
+		lis, err := reuseport.Listen("tcp", addr)
+		if err != nil {
+			logger.Fatalf("Failed to listen for gRPC: %v", err)
+		}
+		server.grpcServer.Serve(lis)
+	}()
 
-	server.handleGracefulShutdown()
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
+	go func() {
+		sig := <-sigs
+
+		logger.Infof("Ratelimit server received %v, shutting down gracefully", sig)
+		server.healthGRPC.Shutdown()
+		server.grpcServer.GracefulStop()
+		if server.debugListener != nil {
+			server.debugListener.Close()
+		}
+		os.Exit(0)
+	}()
 
 	addr := fmt.Sprintf(":%d", server.port)
 	logger.Warnf("Listening for HTTP on '%s'", addr)
@@ -87,16 +107,6 @@ func (server *server) Start() {
 		logger.Fatalf("Failed to open HTTP listener: '%+v'", err)
 	}
 	logger.Fatal(http.Serve(list, server.router))
-}
-
-func (server *server) startGrpc() {
-	addr := fmt.Sprintf(":%d", server.grpcPort)
-	logger.Warnf("Listening for gRPC on '%s'", addr)
-	lis, err := reuseport.Listen("tcp", addr)
-	if err != nil {
-		logger.Fatalf("Failed to listen for gRPC: %v", err)
-	}
-	server.grpcServer.Serve(lis)
 }
 
 func (server *server) Scope() stats.Scope {
@@ -194,21 +204,4 @@ func newDebugHTTPHandler() *serverDebugHandler {
 		})
 
 	return ret
-}
-
-func (server *server) handleGracefulShutdown() {
-	sigs := make(chan os.Signal, 1)
-	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
-
-	go func() {
-		sig := <-sigs
-
-		logger.Infof("Ratelimit server received %v, shutting down gracefully", sig)
-		server.healthGRPC.Shutdown()
-		server.grpcServer.GracefulStop()
-		if server.debugListener != nil {
-			server.debugListener.Close()
-		}
-		os.Exit(0)
-	}()
 }
