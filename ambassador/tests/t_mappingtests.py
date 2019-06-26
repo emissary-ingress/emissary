@@ -427,11 +427,17 @@ name: {self.target.path.k8s}
 prefix: /target/
 service: {self.target.path.fqdn}
 add_linkerd_headers: true
+add_request_headers:
+    fruit:
+        append: False
+        value: banana
 """)
 
     def queries(self):
-        yield Query(self.url("target/"), headers={'l5d-dst-override': self.target.path.fqdn}, expected=200)
+        yield Query(self.url("target/"), expected=200)
         
     def check(self):
         assert len(self.results[0].backend.request.headers['l5d-dst-override']) > 0
         assert self.results[0].backend.request.headers['l5d-dst-override'] == [self.target.path.fqdn]
+        assert len(self.results[0].backend.request.headers['fruit']) > 0
+        assert self.results[0].backend.request.headers['fruit'] == [ 'banana']
