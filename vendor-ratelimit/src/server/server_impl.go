@@ -24,11 +24,6 @@ import (
 	"github.com/lyft/ratelimit/src/settings"
 )
 
-type serverDebugHandler struct {
-	endpoints map[string]string
-	debugMux  *http.ServeMux
-}
-
 type server struct {
 	port          int
 	grpcPort      int
@@ -42,15 +37,6 @@ type server struct {
 	debugListener net.Listener
 	healthGRPC    *health.Server
 	healthHTTP    HealthChecker
-}
-
-func (debugHandler *serverDebugHandler) AddEndpoint(path string, help string, handler http.HandlerFunc) {
-	debugHandler.debugMux.HandleFunc(path, handler)
-	debugHandler.endpoints[path] = help
-}
-
-func (debugHandler *serverDebugHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	debugHandler.debugMux.ServeHTTP(w, r)
 }
 
 func (server *server) DebugHTTPHandler() DebugHTTPHandler {
@@ -165,6 +151,11 @@ func newServer(name string, opts ...settings.Option) *server {
 	return ret
 }
 
+type serverDebugHandler struct {
+	endpoints map[string]string
+	debugMux  *http.ServeMux
+}
+
 func newDebugHTTPHandler() *serverDebugHandler {
 	ret := &serverDebugHandler{}
 
@@ -204,4 +195,13 @@ func newDebugHTTPHandler() *serverDebugHandler {
 		})
 
 	return ret
+}
+
+func (debugHandler *serverDebugHandler) AddEndpoint(path string, help string, handler http.HandlerFunc) {
+	debugHandler.debugMux.HandleFunc(path, handler)
+	debugHandler.endpoints[path] = help
+}
+
+func (debugHandler *serverDebugHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	debugHandler.debugMux.ServeHTTP(w, r)
 }
