@@ -417,16 +417,34 @@ class LinkerdHeaderMapping(AmbassadorTest):
 
     def init(self):
         self.target = HTTP()
+        self.target_no_header = HTTP(name="noheader")
 
     def config(self):
         yield self, self.format("""
+
+---
+apiVersion: ambassador/v0
+kind:  Module
+name:  ambassador
+config:
+  add_linkerd_headers: true
+---
+apiVersion: ambassador/v1
+kind: Mapping
+name: {self.target_no_header.path.k8s}
+prefix: /target_no_header/
+service: {self.target_no_header.path.fqdn}
+add_linkerd_headers: false
+add_request_headers:
+    fruit:
+        append: False
+        value: orange
 ---
 apiVersion: ambassador/v1
 kind: Mapping
 name: {self.target.path.k8s}
 prefix: /target/
 service: {self.target.path.fqdn}
-add_linkerd_headers: true
 add_request_headers:
     fruit:
         append: False
@@ -434,10 +452,20 @@ add_request_headers:
 """)
 
     def queries(self):
+        # [0] expect Linkerd headers set through mapping
         yield Query(self.url("target/"), expected=200)
+
+        # [1] expect no Linkerd headers
+        yield Query(self.url("target_no_header/"), expected=200)
         
     def check(self):
+        # [0]
         assert len(self.results[0].backend.request.headers['l5d-dst-override']) > 0
         assert self.results[0].backend.request.headers['l5d-dst-override'] == [self.target.path.fqdn]
         assert len(self.results[0].backend.request.headers['fruit']) > 0
         assert self.results[0].backend.request.headers['fruit'] == [ 'banana']
+
+        # [1]
+        assert 'l5d-dst-override' not in self.results[1].backend.request.headers
+        assert len(self.results[1].backend.request.headers['fruit']) > 0
+        assert self.results[1].backend.request.headers['fruit'] == [ 'orange']

@@ -117,6 +117,7 @@ class IRHTTPMapping (IRBaseMapping):
 
         # ...then set up the headers (since we need them to compute our group ID).
         hdrs = []
+        add_request_hdrs = kwargs.get('add_request_headers', {})
 
         if 'headers' in kwargs:
             for name, value in kwargs.get('headers', {}).items():
@@ -134,11 +135,13 @@ class IRHTTPMapping (IRBaseMapping):
             self.tls_context = self.match_tls_context(kwargs['host'], ir)
 
         if 'service' in kwargs:
-            key = 'add_linkerd_headers'
-            if key in kwargs and kwargs[key] or key in ir.ambassador_module and ir.ambassador_module.add_linkerd_headers:
-                add_request_hdrs = kwargs.get('add_request_headers', {})
-                add_request_hdrs['l5d-dst-override'] = kwargs['service']
-           
+            if 'add_linkerd_headers' in kwargs:
+                if kwargs['add_linkerd_headers'] is True: 
+                    add_request_hdrs['l5d-dst-override'] = kwargs['service']
+            else:
+                if 'add_linkerd_headers' in ir.ambassador_module and ir.ambassador_module.add_linkerd_headers is True:
+                    add_request_hdrs['l5d-dst-override'] = kwargs['service']
+
         if 'method' in kwargs:
             hdrs.append(Header(":method", kwargs['method'], kwargs.get('method_regex', False)))
 
@@ -146,7 +149,7 @@ class IRHTTPMapping (IRBaseMapping):
         super().__init__(
             ir=ir, aconf=aconf, rkey=rkey, location=location,
             kind=kind, name=name, apiVersion=apiVersion,
-            headers=hdrs,  precedence=precedence, rewrite=rewrite,
+            headers=hdrs, precedence=precedence, rewrite=rewrite,
             **new_args
         )
 

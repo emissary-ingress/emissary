@@ -40,7 +40,8 @@ class IRAmbassador (IRResource):
         'use_remote_address',
         'x_forwarded_proto_redirect',
         'xff_num_trusted_hops',
-        'enable_http10'
+        'enable_http10',
+        'add_linkerd_headers'
     ]
 
     service_port: int
