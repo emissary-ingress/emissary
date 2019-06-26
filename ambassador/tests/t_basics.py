@@ -2,7 +2,7 @@ from typing import Tuple, Union
 
 from kat.harness import Query
 
-from abstract_tests import AmbassadorTest, DEFAULT_ERRORS, HTTP, Node, ServiceType
+from abstract_tests import AmbassadorTest, assert_default_errors, HTTP, Node, ServiceType
 
 
 class Empty(AmbassadorTest):
@@ -31,7 +31,7 @@ metadata:
     def check(self):
         # XXX Ew. If self.results[0].json is empty, the harness won't convert it to a response.
         errors = self.results[0].json
-        assert(errors == DEFAULT_ERRORS)
+        assert_default_errors(errors)
 
 
 class AmbassadorIDTest(AmbassadorTest):
