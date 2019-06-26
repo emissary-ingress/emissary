@@ -307,8 +307,11 @@ class ResourceFetcher:
         # Fine. Fine fine fine.
         serialization = dump_yaml(obj, default_flow_style=False)
 
-        r = ACResource.from_dict(rkey, rkey, serialization, obj)
-        self.elements.append(r)
+        try:
+            r = ACResource.from_dict(rkey, rkey, serialization, obj)
+            self.elements.append(r)
+        except Exception as e:
+            self.aconf.post_error(e.args[0])
 
         # self.logger.debug("%s PROCESS %s save %s: %s" % (self.location, obj['kind'], rkey, serialization))
 
