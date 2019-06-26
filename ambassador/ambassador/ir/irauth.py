@@ -7,6 +7,7 @@ from ..resource import Resource
 
 from .irfilter import IRFilter
 from .ircluster import IRCluster
+from .irretrypolicy import IRRetryPolicy
 
 if TYPE_CHECKING:
     from .ir import IR
@@ -124,6 +125,18 @@ class IRAuth (IRFilter):
         self.__to_header_list('allowed_headers', module)
         self.__to_header_list('allowed_request_headers', module)
         self.__to_header_list('allowed_authorization_headers', module)
+
+        status_on_error = module.get('status_on_error', None)
+        if status_on_error:
+            self['status_on_error'] = status_on_error
+        
+        failure_mode_allow = module.get('failure_mode_allow', None)
+        if failure_mode_allow:
+            self['failure_mode_allow'] = failure_mode_allow
+        
+        retry_policy = module.get('retry_policy', None)
+        if retry_policy:
+            self["retry_policy"] = IRRetryPolicy(ir=self.ir, aconf=self.ir.aconf, **retry_policy)
 
         # Required fields check.
         if self["api_version"] == None:
