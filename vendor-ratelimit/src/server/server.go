@@ -5,7 +5,6 @@ import (
 
 	"github.com/lyft/goruntime/loader"
 	stats "github.com/lyft/gostats"
-	"google.golang.org/grpc"
 )
 
 type DebugHTTPHandler interface {
@@ -20,8 +19,8 @@ type DebugHTTPHandler interface {
 type Server interface {
 	/**
 	 * Starts the HTTP and gRPC servers. This should be done after
-	 * all endpoints have been registered with the
-	 * DebugHTTPHandler() and the GrpcServer().
+	 * all endpoints have been registered with the DebugHTTPHandler
+	 * and grpc.Server that were passed to NewServer().
 	 */
 	Start()
 
@@ -29,16 +28,6 @@ type Server interface {
 	 * Returns the root of the stats tree for the server
 	 */
 	Scope() stats.Scope
-
-	/**
-	 * Returns the embedded HTTP handler to be used for debugging.
-	 */
-	DebugHTTPHandler() DebugHTTPHandler
-
-	/**
-	 * Returns the embedded gRPC server to be used for registering gRPC endpoints.
-	 */
-	GrpcServer() *grpc.Server
 
 	/**
 	 * Returns the runtime configuration for the server.

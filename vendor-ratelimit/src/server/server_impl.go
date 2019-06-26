@@ -25,7 +25,8 @@ import (
 )
 
 type server struct {
-	grpcServer *grpc.Server
+	grpcServer   *grpc.Server
+	debugHandler http.Handler
 	// ports
 	port      int
 	grpcPort  int
@@ -40,15 +41,6 @@ type server struct {
 	healthHTTP HealthChecker
 	router     *mux.Router
 	// debug
-	debugHandler *serverDebugHandler
-}
-
-func (server *server) DebugHTTPHandler() DebugHTTPHandler {
-	return server.debugHandler
-}
-
-func (server *server) GrpcServer() *grpc.Server {
-	return server.grpcServer
 }
 
 // - http.Serve(sock, server.debugHandler)
@@ -111,19 +103,11 @@ func (server *server) Runtime() loader.IFace {
 	return server.runtime
 }
 
-func NewServer(name string, opts ...settings.Option) Server {
-	return newServer(name, opts...)
-}
-
-func newServer(name string, opts ...settings.Option) *server {
-	s := settings.NewSettings()
-
-	for _, opt := range opts {
-		opt(&s)
+func NewServer(name string, s settings.Settings, grpcServer *grpc.Server, debugHTTPHandler http.Handler) Server {
+	ret := &server{
+		grpcServer:   grpcServer,
+		debugHandler: debugHTTPHandler,
 	}
-
-	ret := new(server)
-	ret.grpcServer = grpc.NewServer(s.GrpcUnaryInterceptor)
 
 	// setup ports
 	ret.port = s.Port
@@ -153,9 +137,6 @@ func newServer(name string, opts ...settings.Option) *server {
 	ret.healthHTTP = NewHealthChecker(ret.healthGRPC)
 	ret.router.Path("/healthcheck").Handler(ret.healthHTTP)
 
-	// setup default debug listener
-	ret.debugHandler = newDebugHTTPHandler()
-
 	return ret
 }
 
@@ -164,7 +145,7 @@ type serverDebugHandler struct {
 	debugMux  *http.ServeMux
 }
 
-func newDebugHTTPHandler() *serverDebugHandler {
+func NewDebugHTTPHandler() DebugHTTPHandler {
 	ret := &serverDebugHandler{}
 
 	ret.debugMux = http.NewServeMux()

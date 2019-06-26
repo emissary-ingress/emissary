@@ -7,6 +7,7 @@ import (
 	"time"
 
 	logger "github.com/sirupsen/logrus"
+	"google.golang.org/grpc"
 
 	pb_legacy "github.com/datawire/ambassador/go/apis/envoy/service/ratelimit/v1"
 	pb "github.com/datawire/ambassador/go/apis/envoy/service/ratelimit/v2"
@@ -28,7 +29,17 @@ func Run() {
 		logger.SetLevel(logLevel)
 	}
 
-	srv := server.NewServer("ratelimit", settings.GrpcUnaryInterceptor(nil))
+	opts := []settings.Option{
+		settings.GrpcUnaryInterceptor(nil),
+	}
+	for _, opt := range opts {
+		opt(&s)
+	}
+
+	grpcServer := grpc.NewServer(s.GrpcUnaryInterceptor)
+	debugHTTPHandler := server.NewDebugHTTPHandler()
+
+	srv := server.NewServer("ratelimit", s, grpcServer, debugHTTPHandler)
 
 	var perSecondPool redis.Pool
 	if s.RedisPerSecond {
@@ -47,7 +58,7 @@ func Run() {
 		config.NewRateLimitConfigLoaderImpl(),
 		srv.Scope().Scope("service"))
 
-	srv.DebugHTTPHandler().AddEndpoint(
+	debugHTTPHandler.AddEndpoint(
 		"/rlconfig",
 		"print out the currently loaded configuration for debugging",
 		func(writer http.ResponseWriter, request *http.Request) {
@@ -56,9 +67,9 @@ func Run() {
 
 	// Ratelimit is compatible with two proto definitions
 	// 1. data-plane-api rls.proto: https://github.com/envoyproxy/data-plane-api/blob/master/envoy/service/ratelimit/v2/rls.proto
-	pb.RegisterRateLimitServiceServer(srv.GrpcServer(), service)
+	pb.RegisterRateLimitServiceServer(grpcServer, service)
 	// 2. ratelimit.proto defined in this repository: https://github.com/lyft/ratelimit/blob/0ded92a2af8261d43096eba4132e45b99a3b8b14/proto/ratelimit/ratelimit.proto
-	pb_legacy.RegisterRateLimitServiceServer(srv.GrpcServer(), service.GetLegacyService())
+	pb_legacy.RegisterRateLimitServiceServer(grpcServer, service.GetLegacyService())
 	// (1) is the current definition, and (2) is the legacy definition.
 
 	srv.Start()
