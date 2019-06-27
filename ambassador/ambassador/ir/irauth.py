@@ -116,10 +116,10 @@ class IRAuth (IRFilter):
 
             self.referenced_by(module)
 
-        if module.get("add_linkerd_headers") not None:
-            self["add_linkerd_headers"] = module.get("add_linkerd_headers")
+        if module.get('add_linkerd_headers', None):
+            self["add_linkerd_headers"] = module.get("add_linkerd_headers", False)
         else:
-            self["add_linkerd_headers"] = 'add_linkerd_headers' in self.ir.ambassador_module and self.ir.ambassador_module.add_linkerd_headers is True
+            self["add_linkerd_headers"] = 'add_linkerd_headers' in self.ir.ambassador_module and self.ir.ambassador_module.add_linkerd_headers
         
         self["allow_request_body"] = module.get("allow_request_body", False)
         self["include_body"] = module.get("include_body", None)
