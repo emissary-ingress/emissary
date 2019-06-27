@@ -309,16 +309,21 @@ class ResourceFetcher:
 
         # self.logger.debug("%s PROCESS %s updated rkey to %s" % (self.location, obj['kind'], rkey))
 
-        # Fine. Fine fine fine.
-        serialization = dump_yaml(obj, default_flow_style=False)
+        # Brutal hackery.
+        if obj['kind'] == 'Service':
+            self.logger.debug("%s PROCESS saving service %s" % (self.location, obj['name']))
+            self.services[obj['name']] = obj
+        else:
+            # Fine. Fine fine fine.
+            serialization = dump_yaml(obj, default_flow_style=False)
 
-        try:
-            r = ACResource.from_dict(rkey, rkey, serialization, obj)
-            self.elements.append(r)
-        except Exception as e:
-            self.aconf.post_error(e.args[0])
+            try:
+                r = ACResource.from_dict(rkey, rkey, serialization, obj)
+                self.elements.append(r)
+            except Exception as e:
+                self.aconf.post_error(e.args[0])
 
-        # self.logger.debug("%s PROCESS %s save %s: %s" % (self.location, obj['kind'], rkey, serialization))
+            self.logger.debug("%s PROCESS %s save %s: %s" % (self.location, obj['kind'], rkey, serialization))
 
     def sorted(self, key=lambda x: x.rkey):  # returns an iterator, probably
         return sorted(self.elements, key=key)
