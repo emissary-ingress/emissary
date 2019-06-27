@@ -906,7 +906,7 @@ class AmbassadorEventWatcher(threading.Thread):
                 odict['output'] = e.output
                 break
             except subprocess.TimeoutExpired as e:
-                odict['exit_code'] = e.returncode
+                odict['exit_code'] = 1
                 odict['output'] = e.output
                 self.logger.warn("envoy configuration validation timed out after {} seconds{}\n{}",
                     timeout, ', retrying...' if retry < retries - 1 else '', e.output)
