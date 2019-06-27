@@ -71,7 +71,7 @@ func (rw *responseWriter) toFilterResponse() filterapi.FilterResponse {
 func grpcRequestToHTTPServerRequest(g *filterapi.FilterRequest, ctx context.Context) (*http.Request, error) {
 	var err error
 
-	body := g.GetRequest().GetHttp().GetBody().String()
+	body := g.GetRequest().GetHttp().GetBody()
 	httpVer := g.GetRequest().GetHttp().GetProtocol()
 	httpVerMajor, httpVerMinor, ok := http.ParseHTTPVersion(httpVer)
 	if !ok {

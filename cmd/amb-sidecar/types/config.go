@@ -14,15 +14,14 @@ type Config struct {
 	AmbassadorNamespace       string
 	AmbassadorSingleNamespace bool
 
-	// Auth
 	KeyPairSecretName      string
 	KeyPairSecretNamespace string
-	AuthPort               string
 
 	// Rate Limit
 	Output string // e.g.: "/run/amb/config"; same as the RUNTIME_ROOT for Lyft ratelimit
 
 	// General
+	HTTPPort        string
 	LogLevel        string // log level ("error" < "warn"/"warning" < "info" < "debug" < "trace")
 	RedisPoolSize   int
 	RedisSocketType string
@@ -47,12 +46,12 @@ func ConfigFromEnv() (cfg Config, warn []error, fatal []error) {
 		// Auth
 		KeyPairSecretName:      getenvDefault("APRO_KEYPAIR_SECRET_NAME", "ambassador-pro-keypair"),
 		KeyPairSecretNamespace: getenvDefault("APRO_KEYPAIR_SECRET_NAMESPACE", getenvDefault("AMBASSADOR_NAMESPACE", "default")),
-		AuthPort:               getenvDefault("APRO_AUTH_PORT", "8082"),
 
 		// Rate Limit
 		Output: os.Getenv("RLS_RUNTIME_DIR"),
 
 		// General
+		HTTPPort:        getenvDefault("APRO_HTTP_PORT", "8500"),
 		LogLevel:        getenvDefault("APP_LOG_LEVEL", "info"),
 		RedisSocketType: os.Getenv("REDIS_SOCKET_TYPE"),
 		RedisURL:        os.Getenv("REDIS_URL"),
