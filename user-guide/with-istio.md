@@ -303,6 +303,24 @@ Note the `tls: istio-upstream`, which lets Ambassador know which certificate to 
 
 In the definition above we also have TLS termination enabled; please see [the TLS termination tutorial](https://www.getambassador.io/user-guide/tls-termination) for more details.
 
+### PERMISSIVE mTLS
+
+Istio can be configured in either [`PERMISSIVE`](https://istio.io/docs/concepts/security/#permissive-mode) or STRICT mode for mTLS. `PERMISSIVE` mode allows for services to opt-in to mTLS to make the transition easier.
+
+For service-to-service calls via the Istio proxy, Istio will automatically handle this mTLS opt-in when you configure a [`DestinationRule`](https://istio.io/docs/reference/config/networking/v1alpha3/destination-rule/). However, since there is no Istio proxy running sidecar to Ambassador, to do mTLS between Ambassador and an Istio service in `PERMISSIVE` mode, we need to tell the service to listen for mTLS traffic by setting `alpn_protocols: "istio"` in the `TLSContext`:
+
+```yaml
+---
+apiVersion: ambassador/v1
+kind: TLSContext
+name: istio-upstream
+cert_chain_file: /etc/istiocerts/cert-chain.pem
+private_key_file: /etc/istiocerts/key.pem
+cacert_chain_file: /etc/istiocerts/root-cert.pem
+alpn_protocol: "istio"
+```
+
+
 ### Istio RBAC Authorization
 
 While using `istio.default` secret works for mutual TLS only, to be able to interop with [Istio RBAC Authorization](https://istio.io/docs/concepts/security/#authorization) the Ambassador needs to have Istio certificate that matches service account that Ambassador deployment is using (by default the service account is `ambassador`).
