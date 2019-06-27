@@ -517,7 +517,7 @@ add_request_headers:
     def check(self):
         # [0]
         assert len(self.results[0].backend.request.headers['l5d-dst-override']) > 0
-        assert self.results[0].backend.request.headers['l5d-dst-override'] == [self.target.path.fqdn]
+        assert self.results[0].backend.request.headers['l5d-dst-override'] == ["{}:80".format(self.target.path.fqdn)]
         assert len(self.results[0].backend.request.headers['fruit']) > 0
         assert self.results[0].backend.request.headers['fruit'] == [ 'banana']
 
@@ -528,4 +528,4 @@ add_request_headers:
 
         # [2]
         assert len(self.results[2].backend.request.headers['l5d-dst-override']) > 0
-        assert self.results[2].backend.request.headers['l5d-dst-override'] == [self.target_add_linkerd_header_only.path.fqdn]
+        assert self.results[2].backend.request.headers['l5d-dst-override'] == ["{}:80".format(self.target_add_linkerd_header_only.path.fqdn)]

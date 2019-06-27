@@ -297,7 +297,7 @@ service: {self.target.path.fqdn}
         assert self.results[4].headers["Authorization"] == ["foo-11111"]
 
         extauth_req = json.loads(self.results[4].backend.request.headers["extauth"][0])
-        assert extauth_req["request"]["headers"]["l5d-dst-override"] ==  [ 'http://extauth' ]
+        assert extauth_req["request"]["headers"]["l5d-dst-override"] ==  [ 'extauth:80' ]
 
 class AuthenticationHTTPFailureModeAllowTest(AmbassadorTest):
     
@@ -532,7 +532,7 @@ bypass_auth: true
         assert self.results[4].headers["Authorization"] == ["foo-11111"]
 
         extauth_req = json.loads(self.results[4].backend.request.headers["extauth"][0])
-        assert extauth_req["request"]["headers"]["l5d-dst-override"] ==  [ 'http://extauth' ]
+        assert extauth_req["request"]["headers"]["l5d-dst-override"] ==  [ 'extauth:80' ]
 
         # [5] Verify that X-Forwarded-Proto makes it to the auth service.
         #

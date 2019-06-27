@@ -30,11 +30,42 @@ from ...ir.ircors import IRCORS
 from ...ir.ircluster import IRCluster
 from ...ir.irtcpmappinggroup import IRTCPMappingGroup
 
+from ambassador.utils import ParsedService as Service
+
+import logging
+import sys
+
+loglevel = logging.INFO
+
+args = sys.argv[1:]
+
+if args:
+    if args[0] == '--debug':
+        loglevel = logging.DEBUG
+        args.pop(0)
+    elif args[0].startswith('--'):
+        raise Exception(f'Usage: {os.path.basename(sys.argv[0])} [--debug] [path]')
+
+logging.basicConfig(
+    level=loglevel,
+    format="%(asctime)s v2listner %(levelname)s: %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S"
+)
+
+alogger = logging.getLogger('ambassador')
+alogger.setLevel(loglevel)
+
+logger = logging.getLogger('v2listner')
+logger.setLevel(loglevel)
+
 from .v2tls import V2TLSContext
 # from .v2route import V2Route
 
 if TYPE_CHECKING:
     from . import V2Config
+
+
+
 
 # Static header keys normally used in the context of an authorization request.
 AllowedRequestHeaders = frozenset([
@@ -264,9 +295,10 @@ def v2filter_authv1(auth: IRAuth, v2config: 'V2Config'):
             allowed_request_headers.append({"exact": key})
 
         if auth.get('add_linkerd_headers', False):
+            svc = Service(logger, auth_cluster_uri(auth, cluster))
             headers_to_add.append({
                 'key' : 'l5d-dst-override', 
-                'value': auth_cluster_uri(auth, cluster)
+                'value': svc.hostname_port
             })
 
         auth_info = {

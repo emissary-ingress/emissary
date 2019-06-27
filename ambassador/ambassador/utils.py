@@ -28,6 +28,7 @@ import requests
 import yaml
 
 from .VERSION import Version
+from urllib.parse import urlparse
 
 if TYPE_CHECKING:
     from .ir.irtlscontext import IRTLSContext
@@ -521,3 +522,74 @@ class KubewatchSecretHandler(SecretHandler):
             self.logger.error("TLSContext %s: SCC.url_reader could not load %s" % (context.name, source))
 
         return self.secret_info_from_k8s(context, secret_name, namespace, source, serialization)
+
+# TODO(gsagula): This duplicates code from ircluster.py.
+class ParsedService:
+    def __init__(self, logger, service: str, allow_scheme=True, ctx_name: str=None) -> None:
+        original_service = service
+
+        originate_tls = False
+
+        self.scheme = 'http'
+        self.errors: List[str] = []
+        self.name_fields: List[str] = []
+        self.ctx_name = ctx_name
+
+        if allow_scheme and service.lower().startswith("https://"):
+            service = service[len("https://"):]
+
+            originate_tls = True
+            self.name_fields.append('otls')
+
+        elif allow_scheme and service.lower().startswith("http://"):
+            service = service[ len("http://"): ]
+
+            if ctx_name:
+                self.errors.append(f'Originate-TLS context {ctx_name} being used even though service {service} lists HTTP')
+                originate_tls = True
+                self.name_fields.append('otls')
+            else:
+                originate_tls = False
+
+        elif ctx_name:
+            # No scheme (or schemes are ignored), but we have a context.
+            originate_tls = True
+            self.name_fields.append('otls')
+            self.name_fields.append(ctx_name)
+
+        if '://' in service:
+            idx = service.index('://')
+            scheme = service[0:idx]
+
+            if allow_scheme:
+                self.errors.append(f'service {service} has unknown scheme {scheme}, assuming {self.scheme}')
+            else:
+                self.errors.append(f'ignoring scheme {scheme} for service {service}, since it is being used for a non-HTTP mapping')
+
+            service = service[idx + 3:]
+
+        # # XXX Should this be checking originate_tls? Why does it do that?
+        # if originate_tls and host_rewrite:
+        #     name_fields.append("hr-%s" % host_rewrite)
+
+        # Parse the service as a URL. Note that we have to supply a scheme to urllib's
+        # parser, because it's kind of stupid.
+
+        logger.debug(f'Service: {original_service} otls {originate_tls} ctx {ctx_name} -> {self.scheme}, {service}')
+        p = urlparse('random://' + service)
+
+        # Is there any junk after the host?
+
+        if p.path or p.params or p.query or p.fragment:
+            self.errors.append(f'service {service} has extra URL components; ignoring everything but the host and port')
+
+        # p is read-only, so break stuff out.
+
+        self.hostname = p.hostname
+        self.port = p.port
+
+        # If the port is unset, fix it up.
+        if not self.port:
+            self.port = 443 if originate_tls else 80
+
+        self.hostname_port = f'{self.hostname}:{self.port}'

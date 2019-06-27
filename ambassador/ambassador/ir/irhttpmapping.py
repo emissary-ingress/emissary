@@ -1,4 +1,6 @@
 from ambassador.utils import RichStatus
+from ambassador.utils import ParsedService as Service
+
 from typing import Any, ClassVar, Dict, List, Optional, Type, Union, TYPE_CHECKING
 
 from ..config import Config
@@ -10,6 +12,31 @@ from .ircors import IRCORS
 from .irretrypolicy import IRRetryPolicy
 
 import hashlib
+import logging
+import sys
+
+loglevel = logging.INFO
+
+args = sys.argv[1:]
+
+if args:
+    if args[0] == '--debug':
+        loglevel = logging.DEBUG
+        args.pop(0)
+    elif args[0].startswith('--'):
+        raise Exception(f'Usage: {os.path.basename(sys.argv[0])} [--debug] [path]')
+
+logging.basicConfig(
+    level=loglevel,
+    format="%(asctime)s irhttpmapping %(levelname)s: %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S"
+)
+
+alogger = logging.getLogger('ambassador')
+alogger.setLevel(loglevel)
+
+logger = logging.getLogger('irhttpmapping')
+logger.setLevel(loglevel)
 
 if TYPE_CHECKING:
     from .ir import IR
@@ -136,12 +163,14 @@ class IRHTTPMapping (IRBaseMapping):
             self.tls_context = self.match_tls_context(kwargs['host'], ir)
 
         if 'service' in kwargs:
+            svc = Service(logger, kwargs['service'])
+
             if 'add_linkerd_headers' in kwargs:
                 if kwargs['add_linkerd_headers'] is True: 
-                    add_request_hdrs['l5d-dst-override'] = kwargs['service']
+                    add_request_hdrs['l5d-dst-override'] = svc.hostname_port
             else:
                 if 'add_linkerd_headers' in ir.ambassador_module and ir.ambassador_module.add_linkerd_headers is True:
-                    add_request_hdrs['l5d-dst-override'] = kwargs['service']
+                    add_request_hdrs['l5d-dst-override'] = svc.hostname_port
 
         if 'method' in kwargs:
             hdrs.append(Header(":method", kwargs['method'], kwargs.get('method_regex', False)))
