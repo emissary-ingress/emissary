@@ -42,6 +42,7 @@ class Header (dict):
 class IRHTTPMapping (IRBaseMapping):
     prefix: str
     headers: List[Header]
+    add_request_headers: Dict[str, str]
     method: Optional[str]
     service: str
     group_id: str
@@ -51,7 +52,7 @@ class IRHTTPMapping (IRBaseMapping):
     sni: bool
 
     AllowedKeys: ClassVar[Dict[str, bool]] = {
-        "add_request_headers": True,
+        # Do not include add_request_headers
         "add_response_headers": True,
         "auto_host_rewrite": True,
         "case_sensitive": True,
@@ -145,11 +146,13 @@ class IRHTTPMapping (IRBaseMapping):
         if 'method' in kwargs:
             hdrs.append(Header(":method", kwargs['method'], kwargs.get('method_regex', False)))
 
+
         # ...and then init the superclass.
         super().__init__(
             ir=ir, aconf=aconf, rkey=rkey, location=location,
             kind=kind, name=name, apiVersion=apiVersion,
-            headers=hdrs, precedence=precedence, rewrite=rewrite,
+            headers=hdrs, add_request_headers=add_request_hdrs, 
+            precedence=precedence, rewrite=rewrite,
             **new_args
         )
 

@@ -465,16 +465,22 @@ class LinkerdHeaderMapping(AmbassadorTest):
     def init(self):
         self.target = HTTP()
         self.target_no_header = HTTP(name="noheader")
+        self.target_add_linkerd_header_only = HTTP(name="addlinkerdonly")
 
     def config(self):
         yield self, self.format("""
-
 ---
 apiVersion: ambassador/v0
 kind:  Module
 name:  ambassador
 config:
   add_linkerd_headers: true
+---
+apiVersion: ambassador/v1
+kind: Mapping
+name: {self.target_add_linkerd_header_only.path.k8s}
+prefix: /target_add_linkerd_header_only/
+service: {self.target_add_linkerd_header_only.path.fqdn}
 ---
 apiVersion: ambassador/v1
 kind: Mapping
@@ -504,6 +510,9 @@ add_request_headers:
 
         # [1] expect no Linkerd headers
         yield Query(self.url("target_no_header/"), expected=200)
+
+        # [2] expect Linkerd headers only
+        yield Query(self.url("target_add_linkerd_header_only/"), expected=200)
         
     def check(self):
         # [0]
@@ -516,3 +525,7 @@ add_request_headers:
         assert 'l5d-dst-override' not in self.results[1].backend.request.headers
         assert len(self.results[1].backend.request.headers['fruit']) > 0
         assert self.results[1].backend.request.headers['fruit'] == [ 'orange']
+
+        # [2]
+        assert len(self.results[2].backend.request.headers['l5d-dst-override']) > 0
+        assert self.results[2].backend.request.headers['l5d-dst-override'] == [self.target_add_linkerd_header_only.path.fqdn]

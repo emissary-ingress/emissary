@@ -20,6 +20,7 @@ if TYPE_CHECKING:
 
 class IRAmbassador (IRResource):
     AModTransparentKeys: ClassVar = [
+        'add_linkerd_headers',
         'admin_port',
         'auth_enabled',
         'circuit_breakers',
@@ -27,6 +28,7 @@ class IRAmbassador (IRResource):
         'default_labels',
         'diag_port',
         'diagnostics',
+        'enable_http10',
         'enable_ipv6',
         'enable_ipv4',
         'liveness_probe',
@@ -39,9 +41,7 @@ class IRAmbassador (IRResource):
         'use_proxy_proto',
         'use_remote_address',
         'x_forwarded_proto_redirect',
-        'xff_num_trusted_hops',
-        'enable_http10',
-        'add_linkerd_headers'
+        'xff_num_trusted_hops'
     ]
 
     service_port: int
