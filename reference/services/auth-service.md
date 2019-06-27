@@ -66,7 +66,7 @@ add_linkerd_headers: true
 
 - `failure_mode_allow` (optional) if requests should be allowed on auth service failure. Defaults to false
 
-- `add_linkerd_headers` (optional) when true, adds `l5d-dst-override` to the authorization request and set the hostname of the authorization server as the header value. Note that when `add_linkerd_headers` is set to true in the Ambassador Module, the configuration will be applied to all auth services. Ambassador module and individual auth service's configuration can be used together and individual setting will always take precedence over what is in the module. 
+- `add_linkerd_headers` (optional) when true, adds `l5d-dst-override` to the authorization request and set the hostname of the authorization server as the header value.
 
 ### v0 (Ambassador versions prior to 0.50.0)
 
