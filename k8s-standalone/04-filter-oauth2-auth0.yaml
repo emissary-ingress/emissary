@@ -34,6 +34,8 @@ metadata:
   name: wiki-plugin
   namespace: standalone
 spec:
+  # set ambassador_id as a test of https://github.com/datawire/apro/issues/227
+  ambassador_id: "default"
   Plugin:
     name: wiki-plugin
 ---

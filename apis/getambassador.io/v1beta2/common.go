@@ -19,10 +19,12 @@ func (aid *AmbassadorID) UnmarshalJSON(data []byte) error {
 
 	if err = json.Unmarshal(data, &single); err == nil {
 		*aid = AmbassadorID([]string{single})
+		return nil
 	}
 
 	if err = json.Unmarshal(data, &list); err == nil {
 		*aid = AmbassadorID(list)
+		return nil
 	}
 
 	return err
