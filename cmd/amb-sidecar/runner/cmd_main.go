@@ -2,11 +2,15 @@ package runner
 
 import (
 	"context"
+	"io"
+	"math/rand"
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
 	// 3rd-party libraries
+	"github.com/lyft/goruntime/loader"
 	"github.com/mediocregopher/radix.v2/pool"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -14,25 +18,35 @@ import (
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
 	"google.golang.org/grpc"
+	grpchealth "google.golang.org/grpc/health"
 
 	// first-party libraries
 	"github.com/datawire/teleproxy/pkg/k8s"
+	stats "github.com/lyft/gostats"
 
 	// internal libraries: github.com/datawire/apro
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/app"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/app/health"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/controller"
-	"github.com/datawire/apro/cmd/amb-sidecar/rls"
+	rlscontroller "github.com/datawire/apro/cmd/amb-sidecar/rls"
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
 	"github.com/datawire/apro/lib/util"
 
 	// internal libraries: github.com/lyft/ratelimit
+	lyftconfig "github.com/lyft/ratelimit/src/config"
+	lyftredis "github.com/lyft/ratelimit/src/redis"
 	lyftserver "github.com/lyft/ratelimit/src/server"
+	lyftservice "github.com/lyft/ratelimit/src/service"
+	lyftsettings "github.com/lyft/ratelimit/src/settings"
 
 	// k8s clients
 	k8sClientCoreV1 "k8s.io/client-go/kubernetes/typed/core/v1"
 
 	// gRPC service APIs
+	rlsV1api "github.com/datawire/ambassador/go/apis/envoy/service/ratelimit/v1"
+	rlsV2api "github.com/datawire/ambassador/go/apis/envoy/service/ratelimit/v2"
+	healthapi "google.golang.org/grpc/health/grpc_health_v1"
+
 	"github.com/datawire/apro/lib/filterapi"
 )
 
@@ -69,6 +83,7 @@ func cmdMain(cmd *cobra.Command, args []string) error {
 	// ConfigFromEnv(), no need to error-check.
 	level, _ := logrus.ParseLevel(cfg.LogLevel)
 	l.SetLevel(level)
+	logrus.SetLevel(level) // FIXME(lukeshu): Some Lyft code still uses the global logger
 
 	kubeinfo, err := k8s.NewKubeInfo("", "", "") // Empty file/ctx/ns for defaults
 	if err != nil {
@@ -85,7 +100,7 @@ func cmdMain(cmd *cobra.Command, args []string) error {
 	// RateLimit controller
 	if os.Getenv("REDIS_URL") != "" {
 		group.Go("ratelimit_controller", func(hardCtx, softCtx context.Context, cfg types.Config, l types.Logger) error {
-			return rls.DoWatch(softCtx, cfg, l)
+			return rlscontroller.DoWatch(softCtx, cfg, l)
 		})
 	}
 
@@ -97,11 +112,25 @@ func cmdMain(cmd *cobra.Command, args []string) error {
 		return ct.Watch(softCtx, kubeinfo)
 	})
 
-	// Auth HTTP server
-	group.Go("auth_http", func(hardCtx, softCtx context.Context, cfg types.Config, l types.Logger) error {
+	// HTTP server
+	group.Go("http", func(hardCtx, softCtx context.Context, cfg types.Config, l types.Logger) error {
+		// A good chunk of this code mimics github.com/lyft/ratelimit/src/service_cmd/runner.Run()
+		rateLimitSettings := lyftsettings.NewSettings() // FIXME(lukeshu): Integrate this with cfg / types.Config
+
+		statsStore := stats.NewDefaultStore()
+		statsStore.AddStatGenerator(stats.NewRuntimeStats(statsStore.Scope("go")))
+
 		redisPool, err := pool.New(cfg.RedisSocketType, cfg.RedisURL, cfg.RedisPoolSize)
 		if err != nil {
 			return errors.Wrap(err, "redis pool")
+		}
+
+		var redisPerSecondPool *pool.Pool
+		if rateLimitSettings.RedisPerSecond {
+			redisPerSecondPool, err = pool.New(rateLimitSettings.RedisPerSecondSocketType, rateLimitSettings.RedisPerSecondUrl, rateLimitSettings.RedisPerSecondPoolSize)
+			if err != nil {
+				return errors.Wrap(err, "redis per-second pool")
+			}
 		}
 
 		// Now attach services to these 2 handlers
@@ -129,6 +158,18 @@ func cmdMain(cmd *cobra.Command, args []string) error {
 		httpHandler.AddEndpoint("/_/sys/readyz", "readiness probe endpoint", healthprobeHandler)
 		httpHandler.AddEndpoint("/_/sys/healthz", "liveness probe endpoint", healthprobeHandler)
 
+		// HealthService
+		healthService := grpchealth.NewServer()
+		healthapi.RegisterHealthServer(grpcHandler, healthService)
+		go func() {
+			<-softCtx.Done()
+			healthService.Shutdown()
+		}()
+		httpHandler.AddEndpoint(
+			"/healthcheck",
+			"check the health of Ambassador Pro",
+			lyftserver.NewHealthChecker(healthService).ServeHTTP)
+
 		// AuthService
 		restconfig, err := kubeinfo.GetRestConfig()
 		if err != nil {
@@ -144,9 +185,35 @@ func cmdMain(cmd *cobra.Command, args []string) error {
 		}
 		filterapi.RegisterFilterService(grpcHandler, authService)
 
+		// RateLimitService
+		rateLimitScope := statsStore.Scope("ratelimit")
+		rateLimitService := lyftservice.NewService(
+			loader.New(
+				rateLimitSettings.RuntimePath,                                        // runtime path
+				rateLimitSettings.RuntimeSubdirectory,                                // runtime subdirectory
+				rateLimitScope.Scope("runtime"),                                      // stats scope
+				&loader.SymlinkRefresher{RuntimePath: rateLimitSettings.RuntimePath}, // refresher
+			),
+			lyftredis.NewRateLimitCacheImpl(
+				lyftredis.NewPool(rateLimitScope.Scope("redis_pool"), redisPool),
+				lyftredis.NewPool(rateLimitScope.Scope("redis_per_second_pool"), redisPerSecondPool),
+				lyftredis.NewTimeSourceImpl(),
+				rand.New(lyftredis.NewLockedSource(time.Now().Unix())),
+				rateLimitSettings.ExpirationJitterMaxSeconds),
+			lyftconfig.NewRateLimitConfigLoaderImpl(),
+			rateLimitScope.Scope("service"))
+		rlsV1api.RegisterRateLimitServiceServer(grpcHandler, rateLimitService.GetLegacyService())
+		rlsV2api.RegisterRateLimitServiceServer(grpcHandler, rateLimitService)
+		httpHandler.AddEndpoint(
+			"/rlconfig",
+			"print out the currently loaded configuration for debugging",
+			func(writer http.ResponseWriter, request *http.Request) {
+				io.WriteString(writer, rateLimitService.GetCurrentConfig().Dump())
+			})
+
 		// Launch the server
 		server := &http.Server{
-			Addr:     ":" + cfg.AuthPort,
+			Addr:     ":" + cfg.HTTPPort,
 			ErrorLog: l.WithField("SUB", "http-server").StdLogger(types.LogLevelError),
 			// The net/http.Server doesn't support h2c (unencrypted
 			// HTTP/2) built-in.  Since we want to have gRPC and plain
