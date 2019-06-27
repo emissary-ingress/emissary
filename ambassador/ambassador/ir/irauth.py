@@ -27,7 +27,7 @@ class IRAuth (IRFilter):
         super().__init__(
             ir=ir, aconf=aconf, rkey=rkey, kind=kind, name=name,
             cluster=None,
-            timeout_ms=5000,
+            timeout_ms=None,
             connect_timeout_ms=3000,
             path_prefix=None,
             api_version=None,
