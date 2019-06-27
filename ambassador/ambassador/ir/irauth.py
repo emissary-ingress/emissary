@@ -118,8 +118,12 @@ class IRAuth (IRFilter):
         
         if module.get("add_linkerd_headers"):
             self["add_linkerd_headers"] = module.get("add_linkerd_headers")
-        else:
-            self["add_linkerd_headers"] = 'add_linkerd_headers' in ir.ambassador_module and ir.ambassador_module.add_linkerd_headers
+        # TODO(gsagula): This is not working. User will need to explecitlly configured the auth service with
+        # `add_linkerd_headers: true`.
+        # else:
+        #     add_linkerd_headers = module.get('add_linkerd_headers', None)
+        #     if add_linkerd_headers is None:
+        #         self["add_linkerd_headers"] = ir.ambassador_module.get('add_linkerd_headers', False)
 
         self["allow_request_body"] = module.get("allow_request_body", False)
         self["include_body"] = module.get("include_body", None)
