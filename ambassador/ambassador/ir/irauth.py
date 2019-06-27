@@ -42,13 +42,13 @@ class IRAuth (IRFilter):
         module_info = aconf.get_module("authentication")
 
         if module_info:
-            self._load_auth(module_info)
+            self._load_auth(module_info, ir)
 
         config_info = aconf.get_config("auth_configs")
 
         if config_info:
             for config in config_info.values():
-                self._load_auth(config)
+                self._load_auth(config, ir)
 
         if not self.hosts:
             self.logger.debug("IRAuth: found no hosts! going inactive")
@@ -94,7 +94,7 @@ class IRAuth (IRFilter):
             ir.add_cluster(typecast(IRCluster, self.cluster))
             self.referenced_by(typecast(IRCluster, self.cluster))
 
-    def _load_auth(self, module: Resource):
+    def _load_auth(self, module: Resource, ir: 'IR'):
         if self.location == '--internal--':
             self.sourced_by(module)
 
@@ -115,8 +115,12 @@ class IRAuth (IRFilter):
                     self[key] = value
 
             self.referenced_by(module)
+        
+        if module.get("add_linkerd_headers"):
+            self["add_linkerd_headers"] = module.get("add_linkerd_headers")
+        else:
+            self["add_linkerd_headers"] = 'add_linkerd_headers' in ir.ambassador_module and ir.ambassador_module.add_linkerd_headers
 
-        self["add_linkerd_headers"] = module.get("add_linkerd_headers", False)
         self["allow_request_body"] = module.get("allow_request_body", False)
         self["include_body"] = module.get("include_body", None)
         self["api_version"] = module.get("apiVersion", None)
