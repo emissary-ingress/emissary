@@ -190,6 +190,8 @@ spec:
         - name: STATSD_ENABLED
           value: "true"
 {{end}}
+        - name: SCOUT_DISABLE
+          value: "1"
         ports:
         - name: http
           containerPort: 80
