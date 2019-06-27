@@ -313,7 +313,7 @@ name:  {self.auth.path.k8s}
 auth_service: "{self.auth.path.fqdn}"
 path_prefix: "/extauth"
 timeout_ms: 5000
-tls: {self.name}-same-context-1
+tls: {self.name}-same-context-1 
 
 allowed_request_headers:
 - Requested-Status
@@ -332,7 +332,7 @@ service: {self.target.path.fqdn}
 
     def queries(self):
         # [0]
-        yield Query(self.url("target/"), headers={"Requested-Status": "200"}, expected=200)
+        yield Query(self.url("target/"), headers={"Requested-Status": "200"}, expected=200, debug=True)
         
         # [1]
         yield Query(self.url("target/"), headers={"Requested-Status": "503"}, expected=503)
