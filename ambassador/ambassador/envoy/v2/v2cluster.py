@@ -35,11 +35,16 @@ class V2Cluster(dict):
             else:
                 dns_lookup_family = 'V6_ONLY'
 
+        cluster_idle_timeout_ms = cluster.ir.ambassador_module.get('cluster_idle_timeout_ms', 30000)
+
         fields = {
             'name': cluster.name,
             'type': cluster.type.upper(),
             'lb_policy': cluster.lb_type.upper(),
             'connect_timeout':"%0.3fs" % (float(cluster.connect_timeout_ms) / 1000.0),
+            'common_http_protocol_options': {
+                'idle_timeout': "%0.3fs" % (float(cluster_idle_timeout_ms) / 1000.0)
+            },
             'load_assignment': {
                 'cluster_name': cluster.name,
                 'endpoints': [

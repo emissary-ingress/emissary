@@ -29,6 +29,7 @@ class IRAmbassador (IRResource):
         'diagnostics',
         'enable_ipv6',
         'enable_ipv4',
+        'cluster_idle_timeout_ms',
         'liveness_probe',
         'load_balancer',
         'readiness_probe',
