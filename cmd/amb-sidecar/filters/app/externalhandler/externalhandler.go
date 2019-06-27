@@ -24,7 +24,7 @@ func grpcRequestToHTTPClientRequest(g *filterapi.FilterRequest, serviceURL strin
 
 	var body string
 	if allowRequestBody {
-		body = g.GetRequest().GetHttp().GetBody().String()
+		body = g.GetRequest().GetHttp().GetBody()
 	}
 	h := &http.Request{
 		Method:           g.GetRequest().GetHttp().GetMethod(),
@@ -146,7 +146,7 @@ func (f *ExternalFilter) Filter(ctx context.Context, r *filterapi.FilterRequest)
 		defer grpcClientConn.Close()
 		if !f.Spec.AllowRequestBody {
 			_body := r.Request.Http.Body
-			r.Request.Http.Body = nil
+			r.Request.Http.Body = ""
 			defer func() { r.Request.Http.Body = _body }()
 		}
 		return filterapi.NewFilterClient(grpcClientConn).Filter(ctx, r)

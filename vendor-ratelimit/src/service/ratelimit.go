@@ -9,7 +9,7 @@ import (
 	stats "github.com/lyft/gostats"
 	logger "github.com/sirupsen/logrus"
 
-	pb "github.com/lyft/ratelimit/proto/envoy/service/ratelimit/v2"
+	pb "github.com/datawire/ambassador/go/apis/envoy/service/ratelimit/v2"
 
 	"github.com/lyft/ratelimit/src/assert"
 	"github.com/lyft/ratelimit/src/config"
