@@ -25,6 +25,7 @@ import (
 // server.
 func RegisterFilterService(grpcServer *grpc.Server, filterService Filter) {
 	envoyAuthV2alpha.RegisterAuthorizationServer(grpcServer, authorizationService{Filter: filterService})
+	envoyAuthV2.RegisterAuthorizationServer(grpcServer, authorizationService{Filter: filterService})
 }
 
 type authorizationService struct {
