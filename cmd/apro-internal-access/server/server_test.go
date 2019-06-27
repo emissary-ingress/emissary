@@ -6,8 +6,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/datawire/apro/cmd/apro-internal-access/secret"
 	. "github.com/onsi/gomega"
+
+	"github.com/datawire/apro/cmd/apro-internal-access/secret"
 )
 
 // If the correct shared secret is given in X-Ambassador-Internal-Auth header,

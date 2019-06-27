@@ -344,6 +344,7 @@ func (j *OAuth2Filter) validateAccessTokenUserinfo(token string, discovered *Dis
 	if err != nil {
 		return err
 	}
+	defer res.Body.Close()
 	if res.StatusCode != 200 {
 		return errors.Errorf("token validation through userinfo endpoint failed: HTTP %d", res.StatusCode)
 	}

@@ -13,6 +13,7 @@ K8S_DIRS        = k8s-sidecar k8s-standalone k8s-localdev
 K8S_ENVS        = k8s-env.sh
 # For go.mk
 go.PLATFORMS    = linux_amd64 darwin_amd64
+go.pkgs         = ./... github.com/lyft/ratelimit/...
 
 export CGO_ENABLED = 0
 export SCOUT_DISABLE = 1
@@ -79,6 +80,12 @@ lyft.bin.name = $(word 1,$(subst :, ,$(lyft.bin)))
 lyft.bin.pkg  = $(word 2,$(subst :, ,$(lyft.bin)))
 $(foreach lyft.bin,$(lyft.bins),$(eval $(call go.bin.rule,$(lyft.bin.name),$(lyft.bin.pkg))))
 go-build: $(foreach _go.PLATFORM,$(go.PLATFORMS),$(foreach lyft.bin,$(lyft.bins), bin_$(_go.PLATFORM)/$(lyft.bin.name) ))
+
+# https://github.com/golangci/golangci-lint/issues/587
+go-lint: _go-lint-lyft
+_go-lint-lyft: build-aux/golangci-lint go-get
+	cd vendor-ratelimit && ../build-aux/golangci-lint run -c ../.golangci.yml ./...
+.PHONY: _go-lint-lyft
 
 #
 # Plugins

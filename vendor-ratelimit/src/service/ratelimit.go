@@ -1,17 +1,19 @@
 package ratelimit
 
 import (
+	"context"
 	"strings"
 	"sync"
 
 	"github.com/lyft/goruntime/loader"
-	"github.com/lyft/gostats"
+	stats "github.com/lyft/gostats"
+	logger "github.com/sirupsen/logrus"
+
 	pb "github.com/lyft/ratelimit/proto/envoy/service/ratelimit/v2"
+
 	"github.com/lyft/ratelimit/src/assert"
 	"github.com/lyft/ratelimit/src/config"
 	"github.com/lyft/ratelimit/src/redis"
-	logger "github.com/sirupsen/logrus"
-	"golang.org/x/net/context"
 )
 
 type shouldRateLimitStats struct {
@@ -78,7 +80,10 @@ func (this *service) reloadConfig() {
 			continue
 		}
 
-		files = append(files, config.RateLimitConfigToLoad{key, snapshot.Get(key)})
+		files = append(files, config.RateLimitConfigToLoad{
+			Name:      key,
+			FileBytes: snapshot.Get(key),
+		})
 	}
 
 	newConfig := this.configLoader.Load(files, this.rlStatsScope)

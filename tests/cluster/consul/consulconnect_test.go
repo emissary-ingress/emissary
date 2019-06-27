@@ -4,7 +4,6 @@ package main
 
 import (
 	"encoding/base64"
-	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -12,8 +11,10 @@ import (
 	"time"
 
 	"github.com/Jeffail/gabs"
-	"github.com/datawire/apro/lib/testutil"
 	"github.com/hashicorp/consul/api"
+	"github.com/pkg/errors"
+
+	"github.com/datawire/apro/lib/testutil"
 )
 
 func TestConsulConnectTLSCertificateChainIsPresentAsKubernetesSecret(t *testing.T) {

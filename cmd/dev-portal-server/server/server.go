@@ -6,11 +6,12 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"github.com/gorilla/mux"
+	log "github.com/sirupsen/logrus"
+
 	"github.com/datawire/apro/cmd/dev-portal-server/kubernetes"
 	"github.com/datawire/apro/cmd/dev-portal-server/openapi"
 	"github.com/datawire/apro/lib/logging"
-	"github.com/gorilla/mux"
-	log "github.com/sirupsen/logrus"
 )
 
 type server struct {

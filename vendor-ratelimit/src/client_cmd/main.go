@@ -1,16 +1,17 @@
 package main
 
 import (
-	"errors"
+	"context"
 	"flag"
 	"fmt"
 	"os"
 	"strings"
 
+	"github.com/pkg/errors"
+	"google.golang.org/grpc"
+
 	pb_struct "github.com/lyft/ratelimit/proto/envoy/api/v2/ratelimit"
 	pb "github.com/lyft/ratelimit/proto/envoy/service/ratelimit/v2"
-	"golang.org/x/net/context"
-	"google.golang.org/grpc"
 )
 
 type descriptorValue struct {

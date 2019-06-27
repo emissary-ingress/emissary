@@ -1,10 +1,12 @@
 package config
 
 import (
-	"github.com/lyft/gostats"
+	"context"
+
+	stats "github.com/lyft/gostats"
+
 	pb_struct "github.com/lyft/ratelimit/proto/envoy/api/v2/ratelimit"
 	pb "github.com/lyft/ratelimit/proto/envoy/service/ratelimit/v2"
-	"golang.org/x/net/context"
 )
 
 // The NearLimitRation constant defines the ratio of total_hits over

@@ -6,11 +6,14 @@ package mock_config
 
 import (
 	context "context"
+	reflect "reflect"
+
 	gomock "github.com/golang/mock/gomock"
 	gostats "github.com/lyft/gostats"
+
 	ratelimit "github.com/lyft/ratelimit/proto/envoy/api/v2/ratelimit"
+
 	config "github.com/lyft/ratelimit/src/config"
-	reflect "reflect"
 )
 
 // MockRateLimitConfig is a mock of RateLimitConfig interface

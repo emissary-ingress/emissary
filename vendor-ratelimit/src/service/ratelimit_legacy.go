@@ -1,11 +1,13 @@
 package ratelimit
 
 import (
+	"context"
+
 	"github.com/golang/protobuf/jsonpb"
-	"github.com/lyft/gostats"
+	stats "github.com/lyft/gostats"
+
 	pb "github.com/lyft/ratelimit/proto/envoy/service/ratelimit/v2"
 	pb_legacy "github.com/lyft/ratelimit/proto/ratelimit"
-	"golang.org/x/net/context"
 )
 
 type RateLimitLegacyServiceServer interface {

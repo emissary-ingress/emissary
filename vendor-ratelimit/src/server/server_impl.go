@@ -4,25 +4,24 @@ import (
 	"expvar"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"net/http/pprof"
-	"sort"
-
 	"os"
 	"os/signal"
+	"sort"
 	"syscall"
 
-	"net"
-
 	"github.com/gorilla/mux"
-	"github.com/kavu/go_reuseport"
+	reuseport "github.com/kavu/go_reuseport"
 	"github.com/lyft/goruntime/loader"
-	"github.com/lyft/gostats"
-	"github.com/lyft/ratelimit/src/settings"
+	stats "github.com/lyft/gostats"
 	logger "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health"
 	healthpb "google.golang.org/grpc/health/grpc_health_v1"
+
+	"github.com/lyft/ratelimit/src/settings"
 )
 
 type serverDebugListener struct {
@@ -124,7 +123,12 @@ func newServer(name string, opts ...settings.Option) *server {
 	ret.store.AddStatGenerator(stats.NewRuntimeStats(ret.scope.Scope("go")))
 
 	// setup runtime
-	ret.runtime = loader.New(s.RuntimePath, s.RuntimeSubdirectory, ret.store.Scope("runtime"), &loader.SymlinkRefresher{s.RuntimePath})
+	ret.runtime = loader.New(
+		s.RuntimePath,              // runtime path
+		s.RuntimeSubdirectory,      // runtime subdirectory
+		ret.store.Scope("runtime"), // stats scope
+		&loader.SymlinkRefresher{RuntimePath: s.RuntimePath}, // refresher
+	)
 
 	// setup http router
 	ret.router = mux.NewRouter()
