@@ -24,6 +24,8 @@ require (
 	github.com/hashicorp/serf v0.8.3 // indirect
 	github.com/influxdata/tdigest v0.0.0-20181121200506-bf2b5ad3c0a9
 	github.com/jcuga/golongpoll v0.0.0-20180711123949-939e3befd837
+	github.com/lyft/goruntime v0.1.8
+	github.com/lyft/gostats v0.2.6
 	github.com/lyft/ratelimit v1.3.0
 	github.com/mailru/easyjson v0.0.0-20190312143242-1de009706dbe // indirect
 	github.com/mediocregopher/radix.v2 v0.0.0-20180603022615-94360be26253

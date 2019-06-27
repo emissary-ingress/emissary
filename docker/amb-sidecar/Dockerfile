@@ -9,4 +9,4 @@ COPY ./*.opensource.tar.gz /
 
 USER datawire
 CMD [ "/opt/ambassador-pro/run.sh" ]
-EXPOSE 8500 8501 8502
+EXPOSE 8500

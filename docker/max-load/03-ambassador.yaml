@@ -112,7 +112,7 @@ metadata:
       apiVersion: ambassador/v1
       kind: RateLimitService
       name: ambassador-pro-ratelimit
-      service: "127.0.0.1:8501"
+      service: "127.0.0.1:8500"
 {{end}}
 {{if $useProAuth}}
       ---
@@ -215,16 +215,10 @@ spec:
       - name: ambassador-pro
         image: {{env "AMB_SIDECAR_IMAGE"}}
         ports:
-        - name: grpc-auth
+        - name: http
           containerPort: 8500
-        - name: grpc-ratelimit
-          containerPort: 8501
-        - name: http-debug
-          containerPort: 8502
         env:
         - name: APP_LOG_LEVEL
-          value: warn
-        - name: LOG_LEVEL
           value: warn
         - name: REDIS_SOCKET_TYPE # For ratelimit
           value: tcp
