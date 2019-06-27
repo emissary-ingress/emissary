@@ -207,8 +207,11 @@ class AmbassadorTest(Test):
         print("Launching %s container." % self.path.k8s)
         command = ["docker", "run", "-d", "-l", "kat-family=ambassador", "--name", self.path.k8s]
 
-        envs = ["KUBERNETES_SERVICE_HOST=kubernetes", "KUBERNETES_SERVICE_PORT=443",
-                "AMBASSADOR_SNAPSHOT_COUNT=1", "AMBASSADOR_ID=%s" % self.ambassador_id]
+        envs = [ "KUBERNETES_SERVICE_HOST=kubernetes",
+                 "KUBERNETES_SERVICE_PORT=443",
+                 "AMBASSADOR_SNAPSHOT_COUNT=1",
+                 "AMBASSADOR_CONFIG_BASE_DIR=/tmp/ambassador",
+                 "AMBASSADOR_ID=%s" % self.ambassador_id]
 
         if self.namespace:
             envs.append("AMBASSADOR_NAMESPACE=%s" % self.namespace)
