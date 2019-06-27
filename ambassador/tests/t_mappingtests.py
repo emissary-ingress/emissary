@@ -375,6 +375,7 @@ add_response_headers:
                 assert r.headers['Test'] == ['Test', 'boo']
                 assert r.headers['Foo'] == ['Foo']
 
+
 class RemoveReqHeadersMapping(MappingTest):
     parent: AmbassadorTest
     target: ServiceType
@@ -411,6 +412,52 @@ remove_request_headers:
                 assert r.json['headers']['Foo'] == 'FooF'
                 assert 'Zoo' not in r.json['headers']
                 assert 'Aoo' not in r.json['headers']
+
+class AddReqHeadersMapping(MappingTest):
+    parent: AmbassadorTest
+    target: ServiceType
+
+    @classmethod
+    def variants(cls):
+        for st in variants(ServiceType):
+            yield cls(st, name="{self.target.name}")
+
+    def config(self):
+        yield self, self.format("""
+---
+apiVersion: ambassador/v1
+kind:  Mapping
+name:  {self.name}
+prefix: /{self.name}/
+service: http://{self.target.path.fqdn}
+add_request_headers:
+    zoo:
+        append: False
+        value: Zoo
+    aoo:
+        append: True
+        value: aoo
+    boo:
+        value: boo
+    foo: Foo
+""")
+
+    def queries(self):
+        yield Query(self.parent.url(self.name + "/"), headers={
+            "zoo": "ZooZ",
+            "aoo": "AooA",
+            "boo": "BooB",
+            "foo": "FooF"
+        })
+
+    def check(self):
+        for r in self.results:
+            if r.backend:
+                assert r.backend.request.headers['zoo'] == ['Zoo']
+                assert r.backend.request.headers['aoo'] == ['AooA','aoo']
+                assert r.backend.request.headers['boo'] == ['BooB','boo']
+                assert r.backend.request.headers['foo'] == ['FooF','Foo']
+
 
 class LinkerdHeaderMapping(AmbassadorTest):
     target: ServiceType
