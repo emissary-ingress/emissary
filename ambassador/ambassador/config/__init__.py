@@ -16,3 +16,4 @@ from .acresource import ACResource
 from .acmapping import ACMapping
 from .acpragma import ACPragma
 from .config import Config
+from .resourcefetcher import ResourceFetcher
