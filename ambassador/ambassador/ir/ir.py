@@ -128,8 +128,19 @@ class IR:
         self.groups = {}
         self.resolvers = {}
 
-        # OK, time to get this show on the road. Grab whatever information our aconf
-        # has about secrets...
+        # OK, time to get this show on the road. First things first: set up the
+        # Ambassador module.
+        #
+        # The Ambassador module is special: it doesn't do anything in its setup() method, but
+        # instead defers all its heavy lifting to its finalize() method. Why? Because we need
+        # to create the Ambassador module very early to allow IRResource.lookup() to work, but
+        # we need to go pull in secrets and such before we can get all the Ambassador-module
+        # stuff fully set up.
+        #
+        # So. First, create the module.
+        self.ambassador_module = typecast(IRAmbassador, self.save_resource(IRAmbassador(self, aconf)))
+
+        # Next, grab whatever information our aconf has about secrets...
         self.save_secret_info(aconf)
 
         # ...and then it's on to default TLS stuff, both from the TLS module and from
@@ -142,9 +153,11 @@ class IR:
         TLSModuleFactory.load_all(self, aconf)
         self.save_tls_contexts(aconf)
 
-        # Next, handle the "Ambassador" module. This is last so that the Ambassador module has all
-        # the TLS contexts available to it.
-        self.ambassador_module = typecast(IRAmbassador, self.save_resource(IRAmbassador(self, aconf)))
+        # Now we can finalize the Ambassador module, to tidy up secrets et al. We do this
+        # here so that secrets and TLS contexts are available.
+        if not self.ambassador_module.finalize(self, aconf):
+            # Uhoh.
+            self.ambassador_module.set_active(False)    # This can't be good.
 
         # Save circuit breakers, outliers, and services.
         self.breakers = aconf.get_config("CircuitBreaker") or {}
