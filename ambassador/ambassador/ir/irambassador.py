@@ -25,6 +25,7 @@ class IRAmbassador (IRResource):
         'circuit_breakers',
         'default_label_domain',
         'default_labels',
+        'defaults',
         'diag_port',
         'diagnostics',
         'enable_ipv6',

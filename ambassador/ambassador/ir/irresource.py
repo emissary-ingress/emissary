@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Tuple, Union, TYPE_CHECKING
+from typing import Any, Dict, List, Optional, Tuple, Union, TYPE_CHECKING
 
 from ..config import Config
 from ..resource import Resource
@@ -62,7 +62,7 @@ class IRResource (Resource):
         # ...before we override it with the setup results.
         self.set_active(self.setup(ir, aconf))
 
-    def lookup(self, key: str, *args, default_class: str=None, default_key: str=None) -> Any:
+    def lookup(self, key: str, *args, default_class: Optional[str]=None, default_key: Optional[str]=None) -> Any:
         """
         Look up a key in this IRResource, with a fallback to the Ambassador module's "defaults"
         element.
@@ -78,6 +78,7 @@ class IRResource (Resource):
             - otherwise, look up the default class in Ambassador's "defaults", then look up
               the fallback value from that dict (the passed in "default_class" wins if both
               are set).
+            - (if the default class is '/', explictly skip descending into a sub-directory)
         - if no key is present in self, and no fallback is found, but a default value was passed
           in as *args[0], return that.
         - if all else fails, return None.
@@ -97,15 +98,15 @@ class IRResource (Resource):
             default_value = args[0]
 
         if value is None:
-            get_from = self.ir.ambassador_module
+            get_from = self.ir.ambassador_module.get('defaults', {})
 
             dfl_class = default_class
 
             if not dfl_class:
                 dfl_class = self.get('default_class', None)
 
-            if dfl_class:
-                get_from = self.ir.ambassador_module.get(dfl_class)
+            if dfl_class and (dfl_class != '/'):
+                get_from = get_from.get(dfl_class, None)
 
             if get_from:
                 if not default_key:
