@@ -62,6 +62,61 @@ class IRResource (Resource):
         # ...before we override it with the setup results.
         self.set_active(self.setup(ir, aconf))
 
+    def lookup(self, key: str, *args, default_class: str=None, default_key: str=None) -> Any:
+        """
+        Look up a key in this IRResource, with a fallback to the Ambassador module's "defaults"
+        element.
+
+        Here's the resolution order:
+
+        - if key is present in self, use its value.
+        - if not, we'll try to look up a fallback value in the Ambassador module:
+            - the key for the lookup will be the value of "default_key" if that's set,
+              otherwise the same key we just tried in self.
+            - if "default_class" wasn't passed in, and self.default_class isn't set, just
+              look up a fallback value from the "defaults" dict in the Ambassador module.
+            - otherwise, look up the default class in Ambassador's "defaults", then look up
+              the fallback value from that dict (the passed in "default_class" wins if both
+              are set).
+        - if no key is present in self, and no fallback is found, but a default value was passed
+          in as *args[0], return that.
+        - if all else fails, return None.
+
+        :param key: the key to look up
+        :param default_class: the default class for the fallback lookup (optional, see above)
+        :param default_key: the key for the fallback lookup (optional, defaults to key)
+        :param args: an all-else-fails default value can go here, see above
+        :return: Any
+        """
+
+        value = self.get(key, None)
+
+        default_value = None
+
+        if len(args) > 0:
+            default_value = args[0]
+
+        if value is None:
+            get_from = self.ir.ambassador_module
+
+            dfl_class = default_class
+
+            if not dfl_class:
+                dfl_class = self.get('default_class', None)
+
+            if dfl_class:
+                get_from = self.ir.ambassador_module.get(dfl_class)
+
+            if get_from:
+                if not default_key:
+                    default_key = key
+
+                value = get_from.get(default_key, default_value)
+            else:
+                value = default_value
+
+        return value
+
     def add_dict_helper(self, key: str, helper) -> None:
         self.__as_dict_helpers[key] = helper
 

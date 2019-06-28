@@ -92,7 +92,12 @@ class IRAmbassador (IRResource):
             **kwargs
         )
 
-    def setup(self, ir: 'IR', aconf: Config) -> bool:
+    # We allow 'setup' to just return True for the Ambassador module, and do the heavy lifting
+    # in 'finalize', so that we can do fallback lookups for TLS configuration stuff during
+    # finalize. As it happens, finalize is called _immediately_ after setup finishes, from
+    # ir.py.
+
+    def finalize(self, ir: 'IR', aconf: Config) -> bool:
         # We're interested in the 'ambassador' module from the Config, if any...
         amod = aconf.get_module("ambassador")
 
@@ -234,7 +239,6 @@ class IRAmbassador (IRResource):
                 ir.save_filter(self.gzip)
             else:
                 return False
-
 
          # Buffer.
         if amod and ('buffer' in amod):
