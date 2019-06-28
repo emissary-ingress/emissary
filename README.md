@@ -42,7 +42,7 @@ credentials.
 ### Building
 
 Because the `go.mod` specifies dependencies on a private repo
-(https://github.com/datawire/liboauth2.git), it is nescessary to
+(https://github.com/datawire/liboauth2.git), it is necessary to
 configure `git` such that `go get` will be able to fetch it.  That
 means sticking this in your `~/.config/git/config`:
 
