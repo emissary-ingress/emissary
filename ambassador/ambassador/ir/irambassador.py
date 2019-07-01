@@ -93,12 +93,25 @@ class IRAmbassador (IRResource):
             **kwargs
         )
 
-    # We allow 'setup' to just return True for the Ambassador module, and do the heavy lifting
-    # in 'finalize', so that we can do fallback lookups for TLS configuration stuff during
-    # finalize. As it happens, finalize is called _immediately_ after setup finishes, from
-    # ir.py.
+        self._finalized = False
+
+    def setup(self, ir: 'IR', aconf: Config) -> bool:
+        # The heavy lifting here is mostly in the finalize() method, so that when we do fallback
+        # lookups for TLS configuration stuff, the defaults are present in the Ambassador module.
+        #
+        # Of course, that means that we have to copy the defaults in here.
+
+        # We're interested in the 'ambassador' module from the Config, if any...
+        amod = aconf.get_module("ambassador")
+
+        if amod and 'defaults' in amod:
+            self['defaults'] = amod['defaults']
+
+        return True
 
     def finalize(self, ir: 'IR', aconf: Config) -> bool:
+        self._finalized = True
+
         # We're interested in the 'ambassador' module from the Config, if any...
         amod = aconf.get_module("ambassador")
 
@@ -168,8 +181,15 @@ class IRAmbassador (IRResource):
                     ir.save_tls_context(ctx)
 
         # Finally, check TLSContext resources to see if we should enable TLS termination.
-        for ctx in ir.get_tls_contexts():
-            if ctx.get('hosts', None):
+        to_delete = []
+
+        for ctx_name, ctx in ir.tls_contexts.items():
+            if not ctx.resolve():
+                # Welllll this ain't good.
+                ctx.set_active(False)
+                to_delete.append(ctx_name)
+
+            if ctx and ctx.get('hosts', None):
                 # This is a termination context
                 self.logger.debug("TLSContext %s is a termination context, enabling TLS termination" % ctx.name)
                 self.service_port = Constants.SERVICE_PORT_HTTPS
@@ -177,6 +197,9 @@ class IRAmbassador (IRResource):
                 if ctx.get('ca_cert', None):
                     # Client-side TLS is enabled.
                     self.logger.debug("TLSContext %s enables client certs!" % ctx.name)
+
+        for ctx_name in to_delete:
+            del(ir.tls_contexts[ctx_name])
 
         # After that, check for port definitions, probes, etc., and copy them in
         # as we find them.

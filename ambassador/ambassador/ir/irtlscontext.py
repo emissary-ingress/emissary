@@ -78,14 +78,16 @@ class IRTLSContext(IRResource):
 
         # ir.logger.debug("IRTLSContext at setup: %s" % self.as_json())
 
-        rc = False
+        # rc = False
+        #
+        # if self.get('_ambassador_enabled', False):
+        #     ir.logger.debug("IRTLSContext skipping resolution of null context")
+        #     rc = True
+        # else:
+        #     if self.resolve():
+        #         rc = True
 
-        if self.get('_ambassador_enabled', False):
-            ir.logger.debug("IRTLSContext skipping resolution of null context")
-            rc = True
-        else:
-            if self.resolve():
-                rc = True
+        rc = True
 
         ir.logger.debug("IRTLSContext setup done (returning %s): %s" % (rc, self.as_json()))
 
@@ -123,6 +125,10 @@ class IRTLSContext(IRResource):
         return True
 
     def resolve(self) -> bool:
+        if self.get('_ambassador_enabled', False):
+            self.ir.logger.debug("IRTLSContext skipping resolution of null context")
+            return True
+
         # is_valid determines if the TLS context is valid
         is_valid = False
 
