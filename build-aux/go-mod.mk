@@ -112,7 +112,7 @@ go-get: ## (Go) Download Go dependencies
 vendor: go-get FORCE
 	go mod vendor
 	@test -d $@
-vendor.hash: vendor
+vendor.hash: vendor $(WRITE_IFCHANGED)
 	find vendor -type f -exec sha256sum {} + | sort | sha256sum | $(WRITE_IFCHANGED) $@
 
 $(dir $(_go-mod.mk))go1%.src.tar.gz:
@@ -124,7 +124,7 @@ _go.mkopensource = $(dir $(_go-mod.mk))go-opensource
 define go.bin.rule
 bin_%/.$1.stamp: go-get FORCE
 	$$(go.GOBUILD) $$(if $$(go.LDFLAGS),--ldflags $$(call quote.shell,$$(go.LDFLAGS))) -o $$@ $2
-bin_%/$1: bin_%/.$1.stamp
+bin_%/$1: bin_%/.$1.stamp $$(COPY_IFCHANGED)
 	$$(COPY_IFCHANGED) $$< $$@
 
 bin_%/.$1.deps: bin_%/$1

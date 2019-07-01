@@ -7,11 +7,11 @@
 ## Lazy inputs ##
 #  (none)
 ## Outputs ##
+#  - Executable: FLOCK           ?= $(CURDIR)/build-aux/flock # or /usr/bin/flock
+#  - Executable: COPY_IFCHANGED  ?= $(CURDIR)/build-aux/copy-ifchanged
+#  - Executable: WRITE_IFCHANGED ?= $(CURDIR)/build-aux/write-ifchanged
 #  - Variable: export GOHOSTOS
 #  - Variable: export GOHOSTARCH
-#  - Variable: FLOCK
-#  - Variable: COPY_IFCHANGED
-#  - Variable: WRITE_IFCHANGE
 #  - Variable: NL
 #  - Variable: SPACE
 #  - Function: joinlist
@@ -34,9 +34,9 @@ _prelude.HAVE_GO = $(call lazyonce,_prelude.HAVE_GO,$(shell which go 2>/dev/null
 export GOHOSTOS   = $(call lazyonce,GOHOSTOS  ,$(if $(_prelude.HAVE_GO),$(shell go env GOHOSTOS  ),$(shell uname -s | tr A-Z a-z)))
 export GOHOSTARCH = $(call lazyonce,GOHOSTARCH,$(if $(_prelude.HAVE_GO),$(shell go env GOHOSTARCH),$(patsubst i%86,386,$(patsubst x86_64,amd64,$(shell uname -m)))))
 
-FLOCK = $(call lazyonce,FLOCK,$(if $(shell which flock 2>/dev/null),flock,$(abspath $(dir $(_prelude.mk))flock)))
-COPY_IFCHANGED = $(abspath $(dir $(_prelude.mk))copy-ifchanged)
-WRITE_IFCHANGED = $(abspath $(dir $(_prelude.mk))write-ifchanged)
+FLOCK           ?= $(call lazyonce,FLOCK,$(or $(shell which flock 2>/dev/null),$(abspath $(dir $(_prelude.mk))flock)))
+COPY_IFCHANGED  ?= $(abspath $(dir $(_prelude.mk))copy-ifchanged)
+WRITE_IFCHANGED ?= $(abspath $(dir $(_prelude.mk))write-ifchanged)
 
 # NOTE: this is not a typo, this is actually how you spell newline in Make
 define NL
