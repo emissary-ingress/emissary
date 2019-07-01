@@ -162,7 +162,7 @@ ifeq ($(go.DISABLE_GO_TEST),)
 endif
 
 $(dir $(_go-mod.mk))go-test.tap: FORCE
-	@go test -json $(go.pkgs) 2>&1 | GO111MODULE=off go run $(dir $(_go-mod.mk))gotest2tap.go | tee $@ | $(dir $(_go-mod.mk))tap-driver stream -n go-test
+	@go test -json $(go.pkgs) 2>&1 | $(dir $(_go-mod.mk))gotest2tap | tee $@ | $(dir $(_go-mod.mk))tap-driver stream -n go-test
 
 #
 # Hook in to common.mk

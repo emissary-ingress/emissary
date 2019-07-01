@@ -5,11 +5,11 @@
 ## Eager inputs ##
 #  (none)
 ## Lazy inputs ##
-#  - Variable: GUBERNAUT ?= go run …/gubernaut.go
+#  - Variable: GUBERNAUT ?= ./build-aux/gubernaut
 ## Outputs ##
 #  - Target       : `%.knaut`
 #  - .PHONY Target: `%.knaut.clean`
-#  - Variable: GUBERNAUT ?= go run …/gubernaut.go
+#  - Variable: GUBERNAUT ?= ./build-aux/gubernaut
 ## common.mk targets ##
 #  - clobber
 #
@@ -20,7 +20,7 @@
 # the NAME.knaut file.
 #
 # The GUBERNAUT variable may be used to adjust the gubernaut command
-# called; by default it looks up 'gubernaut' in $PATH.
+# called.
 #
 ## Quickstart ##
 #
@@ -51,7 +51,7 @@
 ifeq ($(words $(filter $(abspath $(lastword $(MAKEFILE_LIST))),$(abspath $(MAKEFILE_LIST)))),1)
 _kubernaut.mk := $(lastword $(MAKEFILE_LIST))
 
-GUBERNAUT = GO111MODULE=off go run $(dir $(_kubernaut.mk))gubernaut.go
+GUBERNAUT ?= $(dir $(_kubernaut.mk))gubernaut
 
 %.knaut.claim:
 	echo $(*F)-$${USER}-$$(uuidgen) > $@
