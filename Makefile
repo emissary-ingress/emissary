@@ -83,8 +83,8 @@ go-build: $(foreach _go.PLATFORM,$(go.PLATFORMS),$(foreach lyft.bin,$(lyft.bins)
 
 # https://github.com/golangci/golangci-lint/issues/587
 go-lint: _go-lint-lyft
-_go-lint-lyft: $(GOLANGCI_LINT) go-get
-	cd vendor-ratelimit && $(GOLANGCI_LINT) run -c ../.golangci.yml ./...
+_go-lint-lyft: $(GOLANGCI_LINT) go-get $(go.lock)
+	cd vendor-ratelimit && $(go.lock)$(GOLANGCI_LINT) run -c ../.golangci.yml ./...
 .PHONY: _go-lint-lyft
 
 #
