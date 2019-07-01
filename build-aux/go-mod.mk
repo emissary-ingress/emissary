@@ -15,6 +15,9 @@
 #  - Variable: CI ?=
 #
 ## Outputs ##
+#  - Executable: GOTEST2TAP    ?= $(CURDIR)/build-aux/gotest2tap
+#  - Executable: GOLANGCI_LINT ?= $(CURDIR)/build-aux/golangci-lint
+#
 #  - Variable: export GO111MODULE = on
 #  - Variable: NAME ?= $(notdir $(go.module))
 #
@@ -75,6 +78,9 @@ CI ?=
 
 #
 # Set output variables and functions
+
+GOTEST2TAP    ?= $(abspath $(dir $(_go-mod.mk))gotest2tap)
+GOLANGCI_LINT ?= $(abspath $(dir $(_go-mod.mk))golangci-lint)
 
 NAME ?= $(notdir $(go.module))
 
@@ -142,12 +148,12 @@ go-build: $(foreach _go.PLATFORM,$(go.PLATFORMS),$(foreach _go.bin,$(go.bins), b
 go-build: ## (Go) Build the code with `go build`
 .PHONY: go-build
 
-$(dir $(_go-mod.mk))golangci-lint: $(_go-mod.mk)
+$(abspath $(dir $(_go-mod.mk))golangci-lint): $(_go-mod.mk)
 	curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(@D) v$(go.GOLANG_LINT_VERSION)
 
 go-lint: ## (Go) Check the code with `golangci-lint`
-go-lint: $(dir $(_go-mod.mk))golangci-lint go-get
-	$(dir $(_go-mod.mk))golangci-lint run $(go.GOLANG_LINT_FLAGS) $(go.pkgs)
+go-lint: $(GOLANGCI_LINT) go-get
+	$(GOLANGCI_LINT) run $(go.GOLANG_LINT_FLAGS) $(go.pkgs)
 .PHONY: go-lint
 
 go-fmt: ## (Go) Fixup the code with `go fmt`
@@ -161,8 +167,8 @@ ifeq ($(go.DISABLE_GO_TEST),)
 	$(MAKE) $(dir $(_go-mod.mk))go-test.tap.summary
 endif
 
-$(dir $(_go-mod.mk))go-test.tap: FORCE
-	@go test -json $(go.pkgs) 2>&1 | $(dir $(_go-mod.mk))gotest2tap | tee $@ | $(dir $(_go-mod.mk))tap-driver stream -n go-test
+$(dir $(_go-mod.mk))go-test.tap: $(GOTEST2TAP) FORCE
+	@go test -json $(go.pkgs) 2>&1 | $(GOTEST2TAP) | tee $@ | $(dir $(_go-mod.mk))tap-driver stream -n go-test
 
 #
 # Hook in to common.mk

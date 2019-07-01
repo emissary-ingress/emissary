@@ -83,8 +83,8 @@ go-build: $(foreach _go.PLATFORM,$(go.PLATFORMS),$(foreach lyft.bin,$(lyft.bins)
 
 # https://github.com/golangci/golangci-lint/issues/587
 go-lint: _go-lint-lyft
-_go-lint-lyft: build-aux/golangci-lint go-get
-	cd vendor-ratelimit && ../build-aux/golangci-lint run -c ../.golangci.yml ./...
+_go-lint-lyft: $(GOLANGCI_LINT) go-get
+	cd vendor-ratelimit && $(GOLANGCI_LINT) run -c ../.golangci.yml ./...
 .PHONY: _go-lint-lyft
 
 #
@@ -330,6 +330,8 @@ tests/cluster.tap: $(patsubst %.test,%.tap,$(wildcard tests/cluster/*.test))
 tests/cluster.tap: $(patsubst %.tap.gen,%.tap,$(wildcard tests/cluster/*.tap.gen))
 tests/cluster.tap:
 	@./build-aux/tap-driver cat $^ > $@
+
+tests/cluster/external.tap: $(GOTEST2TAP)
 
 tests/cluster/oauth-e2e/node_modules: tests/cluster/oauth-e2e/package.json $(wildcard tests/cluster/oauth-e2e/package-lock.json)
 	cd $(@D) && npm install
