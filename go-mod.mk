@@ -22,6 +22,8 @@
 #  - Variable: NAME ?= $(notdir $(go.module))
 #
 #  - Variable: go.goversion = $(patsubst go%,%,$(filter go1%,$(shell go version)))
+#  - Variable: go.lock = $(FLOCK)                   # if nescessary, in dependencies
+#  -                or = $(FLOCK) $(GOPATH)/pkg/mod # if nescessary, in recipes
 #  - Variable: go.module = EXAMPLE.COM/YOU/YOURREPO
 #  - Variable: go.bins = List of "main" Go packages
 #  - Variable: go.pkgs ?= ./...
@@ -55,15 +57,11 @@ include $(dir $(_go-mod.mk))common.mk
 #
 # Configure the `go` command
 
+_go.GOPATH = $(call lazyonce,_go.GOPATH,$(shell go env GOPATH))
 go.goversion = $(call lazyonce,go.goversion,$(patsubst go%,%,$(filter go1%,$(shell go version))))
+go.lock = $(if $(filter 1.11 1.11.%,$(go.goversion)),$(FLOCK)$(if $@, $(_go.GOPATH)/pkg/mod ))
 
 export GO111MODULE = on
-
-# Disable parallel builds on Go 1.11; the module cache is not
-# concurrency-safe.  This is fixed in 1.12.
-ifneq ($(filter 1.11.%,$(go.goversion)),)
-.NOTPARALLEL:
-endif
 
 #
 # Set default values for input variables
@@ -112,11 +110,13 @@ go.pkgs ?= ./...
 # Rules
 
 go-get: ## (Go) Download Go dependencies
-	go mod download
+go-get: $(go.lock)
+	$(go.lock)go mod download
 .PHONY: go-get
 
 vendor: go-get FORCE
-	go mod vendor
+vendor: $(go.lock)
+	$(go.lock)go mod vendor
 	@test -d $@
 vendor.hash: vendor $(WRITE_IFCHANGED)
 	find vendor -type f -exec sha256sum {} + | sort | sha256sum | $(WRITE_IFCHANGED) $@
@@ -128,13 +128,13 @@ _go.mkopensource = $(dir $(_go-mod.mk))go-opensource
 
 # Usage: $(eval $(call go.bin.rule,BINNAME,GOPACKAGE))
 define go.bin.rule
-bin_%/.$1.stamp: go-get FORCE
-	$$(go.GOBUILD) $$(if $$(go.LDFLAGS),--ldflags $$(call quote.shell,$$(go.LDFLAGS))) -o $$@ $2
+bin_%/.$1.stamp: go-get $$(go.lock) FORCE
+	$$(go.lock)$$(go.GOBUILD) $$(if $$(go.LDFLAGS),--ldflags $$(call quote.shell,$$(go.LDFLAGS))) -o $$@ $2
 bin_%/$1: bin_%/.$1.stamp $$(COPY_IFCHANGED)
 	$$(COPY_IFCHANGED) $$< $$@
 
-bin_%/.$1.deps: bin_%/$1
-	go list -deps -f='{{.Module}}' $2 | LC_COLLATE=C sort -u > $$@
+bin_%/.$1.deps: bin_%/$1 $$(go.lock)
+	$$(go.lock)go list -deps -f='{{.Module}}' $2 | LC_COLLATE=C sort -u > $$@
 bin_%/$1.opensource.tar.gz: bin_%/.$1.deps vendor.hash $$(_go.mkopensource) $$(dir $$(_go-mod.mk))go$$(go.goversion).src.tar.gz
 	$$(if $$(CI),@set -e; if test -e $$@; then echo 'This should not happen in CI: $$@ rebuild triggered by $$+' >&2; false; fi)
 	$$(_go.mkopensource) --output=$$@ --package=$2 --depsfile=$$< --gotar=$$(dir $$(_go-mod.mk))go$$(go.goversion).src.tar.gz
@@ -152,13 +152,13 @@ $(abspath $(dir $(_go-mod.mk))golangci-lint): $(_go-mod.mk)
 	curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(@D) v$(go.GOLANG_LINT_VERSION)
 
 go-lint: ## (Go) Check the code with `golangci-lint`
-go-lint: $(GOLANGCI_LINT) go-get
-	$(GOLANGCI_LINT) run $(go.GOLANG_LINT_FLAGS) $(go.pkgs)
+go-lint: $(GOLANGCI_LINT) go-get $(go.lock)
+	$(go.lock)$(GOLANGCI_LINT) run $(go.GOLANG_LINT_FLAGS) $(go.pkgs)
 .PHONY: go-lint
 
 go-fmt: ## (Go) Fixup the code with `go fmt`
-go-fmt: go-get
-	go fmt $(go.pkgs)
+go-fmt: go-get $(go.lock)
+	$(go.lock)go fmt $(go.pkgs)
 .PHONY: go-fmt
 
 go-test: ## (Go) Check the code with `go test`
@@ -167,8 +167,8 @@ ifeq ($(go.DISABLE_GO_TEST),)
 	$(MAKE) $(dir $(_go-mod.mk))go-test.tap.summary
 endif
 
-$(dir $(_go-mod.mk))go-test.tap: $(GOTEST2TAP) FORCE
-	@go test -json $(go.pkgs) 2>&1 | $(GOTEST2TAP) | tee $@ | $(dir $(_go-mod.mk))tap-driver stream -n go-test
+$(dir $(_go-mod.mk))go-test.tap: $(GOTEST2TAP) $(go.lock) FORCE
+	@$(go.lock)go test -json $(go.pkgs) 2>&1 | $(GOTEST2TAP) | tee $@ | $(dir $(_go-mod.mk))tap-driver stream -n go-test
 
 #
 # Hook in to common.mk
