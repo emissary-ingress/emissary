@@ -25,6 +25,7 @@ import time
 import os
 import logging
 import requests
+import tempfile
 import yaml
 
 from .VERSION import Version
@@ -467,6 +468,32 @@ class SecretHandler:
             return None
 
         return SecretInfo.from_dict(context, secret_name, source, namespace, cert_data)
+
+
+class NullSecretHandler(SecretHandler):
+    def __init__(self, logger: logging.Logger, source_root: Optional[str], cache_dir: Optional[str], version: str) -> None:
+        """
+        Returns a valid SecretInfo (with fake keys) for any requested secret. Also, you can pass
+        None for source_root and cache_dir to use random temporary directories for them.
+        """
+
+        if not source_root:
+            self.tempdir_source = tempfile.TemporaryDirectory(prefix="null-secret-", suffix="-source")
+            source_root = self.tempdir_source.name
+
+        if not cache_dir:
+            self.tempdir_cache = tempfile.TemporaryDirectory(prefix="null-secret-", suffix="-cache")
+            cache_dir = self.tempdir_cache.name
+
+        logger.info(f'NullSecretHandler using source_root {source_root}, cache_dir {cache_dir}')
+
+        super().__init__(logger, source_root, cache_dir, version)
+
+    def load_secret(self, context: 'IRTLSContext', secret_name: str, namespace: str) -> Optional[SecretInfo]:
+        # In the Real World, the secret loader should, y'know, load secrets..
+        # Here we're just gonna fake it.
+
+        return SecretInfo(secret_name, namespace, "fake-tls-crt", "fake-tls-key")
 
 
 class FSSecretHandler(SecretHandler):

@@ -110,11 +110,13 @@ class FakeIR(IR):
         self.saved_secrets = {}
         self.secret_info = {}
 
+        self.ambassador_module = IRAmbassador(self, aconf)
+
         IRServiceResolverFactory.load_all(self, aconf)
         TLSModuleFactory.load_all(self, aconf)
         self.save_tls_contexts(aconf)
 
-        self.ambassador_module = IRAmbassador(self, aconf)
+        self.ambassador_module.finalize(self, aconf)
 
     # Don't bother actually saving resources that come up when working with
     # the faked modules.
