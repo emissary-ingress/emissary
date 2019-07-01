@@ -29,6 +29,7 @@ class IRTLSContext(IRResource):
     min_tls_version: Optional[str]
     max_tls_version: Optional[str]
     redirect_cleartext_from: Optional[int]
+    secret_namespacing: Optional[bool]
     secret_info: dict
 
     def __init__(self, ir: 'IR', config,
@@ -59,6 +60,7 @@ class IRTLSContext(IRResource):
         self.cert_required = config.get('cert_required')
         self.min_tls_version = config.get('min_tls_version')
         self.max_tls_version = config.get('max_tls_version')
+        self.secret_namespacing = config.get('secret_namespacing', None)
 
         rcf = config.get('redirect_cleartext_from')
 
