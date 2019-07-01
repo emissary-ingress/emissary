@@ -319,17 +319,17 @@ check-local: ## Check: Run only tests that do not talk to the cluster
 check-local: lint go-build
 	$(MAKE) tests/local-all.tap.summary
 .PHONY: check-local
-tests/local-all.tap: build-aux/go-test.tap tests/local.tap
-	@./build-aux/tap-driver cat $^ > $@
+tests/local-all.tap: build-aux/go-test.tap tests/local.tap $(TAP_DRIVER)
+	@$(TAP_DRIVER) cat $^ > $@
 tests/local.tap: $(patsubst %.test,%.tap,$(wildcard tests/local/*.test))
 tests/local.tap: $(patsubst %.tap.gen,%.tap,$(wildcard tests/local/*.tap.gen))
-tests/local.tap:
-	@./build-aux/tap-driver cat $^ > $@
+tests/local.tap: $(TAP_DRIVER)
+	@$(TAP_DRIVER) cat $^ > $@
 
 tests/cluster.tap: $(patsubst %.test,%.tap,$(wildcard tests/cluster/*.test))
 tests/cluster.tap: $(patsubst %.tap.gen,%.tap,$(wildcard tests/cluster/*.tap.gen))
-tests/cluster.tap:
-	@./build-aux/tap-driver cat $^ > $@
+tests/cluster.tap: $(TAP_DRIVER)
+	@$(TAP_DRIVER) cat $^ > $@
 
 tests/cluster/external.tap: $(GOTEST2TAP)
 
