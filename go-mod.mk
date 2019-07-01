@@ -167,8 +167,8 @@ ifeq ($(go.DISABLE_GO_TEST),)
 	$(MAKE) $(dir $(_go-mod.mk))go-test.tap.summary
 endif
 
-$(dir $(_go-mod.mk))go-test.tap: $(GOTEST2TAP) $(go.lock) FORCE
-	@$(go.lock)go test -json $(go.pkgs) 2>&1 | $(GOTEST2TAP) | tee $@ | $(dir $(_go-mod.mk))tap-driver stream -n go-test
+$(dir $(_go-mod.mk))go-test.tap: $(GOTEST2TAP) $(TAP_DRIVER) $(go.lock) FORCE
+	@$(go.lock)go test -json $(go.pkgs) 2>&1 | $(GOTEST2TAP) | tee $@ | $(TAP_DRIVER) stream -n go-test
 
 #
 # Hook in to common.mk

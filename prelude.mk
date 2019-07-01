@@ -10,6 +10,7 @@
 #  - Executable: FLOCK           ?= $(CURDIR)/build-aux/flock # or /usr/bin/flock
 #  - Executable: COPY_IFCHANGED  ?= $(CURDIR)/build-aux/copy-ifchanged
 #  - Executable: WRITE_IFCHANGED ?= $(CURDIR)/build-aux/write-ifchanged
+#  - Executable: TAP_DRIVER      ?= $(CURDIR)/build-aux/tap-driver
 #  - Variable: export GOHOSTOS
 #  - Variable: export GOHOSTARCH
 #  - Variable: NL
@@ -37,6 +38,7 @@ export GOHOSTARCH = $(call lazyonce,GOHOSTARCH,$(if $(_prelude.HAVE_GO),$(shell 
 FLOCK           ?= $(call lazyonce,FLOCK,$(or $(shell which flock 2>/dev/null),$(abspath $(dir $(_prelude.mk))flock)))
 COPY_IFCHANGED  ?= $(abspath $(dir $(_prelude.mk))copy-ifchanged)
 WRITE_IFCHANGED ?= $(abspath $(dir $(_prelude.mk))write-ifchanged)
+TAP_DRIVER      ?= $(abspath $(dir $(_prelude.mk))tap-driver)
 
 # NOTE: this is not a typo, this is actually how you spell newline in Make
 define NL
