@@ -187,7 +187,7 @@ clean: clean-test
 
 clobber: clean
 	-rm -rf watt
-	-$(if $(filter-out -,$(ENVOY_COMMIT)),rm -rf envoy)
+	-$(if $(filter-out -,$(ENVOY_COMMIT)),rm -rf envoy envoy-src)
 	-rm -rf docs/node_modules
 	-rm -rf .skip_test_warning	# reset the test warning too
 	-rm -rf venv && echo && echo "Deleted venv, run 'deactivate' command if your virtualenv is activated" || true
@@ -283,8 +283,10 @@ kill-docker-registry:
 		echo "Docker registry should not be running" ;\
 	fi
 
-envoy: .FORCE
+envoy-src: .FORCE
 	@echo "Getting Envoy sources..."
+	@if test -d envoy && ! test -d envoy-src; then PS4=; set -x; mv envoy envoy-src; fi
+	@PS4=; set -x; \
 	git init $@
 	cd $@ && \
 	if git remote get-url origin &>/dev/null; then \
@@ -295,34 +297,45 @@ envoy: .FORCE
 	git fetch --tags origin && \
 	$(if $(filter-out -,$(ENVOY_COMMIT)),git checkout $(ENVOY_COMMIT),if ! git rev-parse HEAD >/dev/null 2>&1; then git checkout origin/master; fi)
 
-envoy-build-image.txt: .FORCE envoy
+envoy-build-image.txt: .FORCE envoy-src
 	@echo "Making $@..."
 	set -e; \
-	cd envoy; . ci/envoy_build_sha.sh; cd ..; \
+	cd envoy-src; . ci/envoy_build_sha.sh; cd ..; \
 	echo docker.io/envoyproxy/envoy-build-ubuntu:$$ENVOY_BUILD_SHA > .tmp.$@.tmp; \
 	if cmp -s .tmp.$@.tmp $@; then \
 		rm -f .tmp.$@.tmp; \
 	else \
 		mv .tmp.$@.tmp $@; \
 	fi
+
 # We rsync to a persistent named-volume (instead of building directly
 # on the bind-mount volume) because Docker for Mac's osxfs is very
 # slow.
+ENVOY_SYNC_HOST_TO_DOCKER = docker run --rm --volume=$(CURDIR)/envoy-src:/xfer:ro --volume=envoy-build:/root:rw $$(cat envoy-build-image.txt) rsync -Pav --delete /xfer/ /root/envoy
+ENVOY_SYNC_DOCKER_TO_HOST = docker run --rm --volume=$(CURDIR)/envoy-src:/xfer:rw --volume=envoy-build:/root:ro $$(cat envoy-build-image.txt) rsync -Pav --delete /root/envoy/ /xfer
+
 envoy-bin/envoy-static: .FORCE envoy-build-image.txt
-	docker run --rm --volume=$(CURDIR)/envoy:/xfer:ro --volume=envoy-build:/root:rw $$(cat envoy-build-image.txt) rsync -Pav /xfer/ /root/envoy
-	docker run --rm --volume=envoy-build:/root:rw --workdir=/root/envoy $$(cat envoy-build-image.txt) bazel build --verbose_failures -c dbg //source/exe:envoy-static
-	docker run --rm --volume=envoy-build:/root:rw $$(cat envoy-build-image.txt) chmod 755 /root /root/.cache
+	$(ENVOY_SYNC_HOST_TO_DOCKER)
+	@PS4=; set -ex; trap '$(ENVOY_SYNC_DOCKER_TO_HOST)' EXIT; { \
+	    docker run --rm --volume=envoy-build:/root:rw --workdir=/root/envoy $$(cat envoy-build-image.txt) bazel build --verbose_failures -c dbg //source/exe:envoy-static; \
+	    docker run --rm --volume=envoy-build:/root:rw $$(cat envoy-build-image.txt) chmod 755 /root /root/.cache; \
+	}
 	mkdir -p envoy-bin
-	docker run --rm --volume=envoy-build:/root:ro --volume=$(CURDIR)/envoy-bin:/xfer:rw --user=$$(id -u):$$(id -g) $$(cat envoy-build-image.txt) rsync -Pav /root/envoy/bazel-bin/source/exe/envoy-static /xfer/envoy-static
+	docker run --rm --volume=envoy-build:/root:ro --volume=$(CURDIR)/envoy-bin:/xfer:rw --user=$$(id -u):$$(id -g) $$(cat envoy-build-image.txt) rsync -Pav --delete /root/envoy/bazel-bin/source/exe/envoy-static /xfer/envoy-static
 %-stripped: % envoy-build-image.txt
 	docker run --rm --volume=$(abspath $(@D)):/xfer:rw $$(cat envoy-build-image.txt) strip /xfer/$(<F) -o /xfer/$(@F)
 
 check-envoy: envoy-bin/envoy-static envoy-build-image.txt
-	docker run --rm --privileged --volume=envoy-build:/root:rw --workdir=/root/envoy $$(cat envoy-build-image.txt) bazel test --verbose_failures -c dbg --test_env=ENVOY_IP_TEST_VERSIONS=v4only //test/...
+	$(ENVOY_SYNC_HOST_TO_DOCKER)
+	@PS4=; set -ex; trap '$(ENVOY_SYNC_DOCKER_TO_HOST)' EXIT; { \
+	    docker run --rm --privileged --volume=envoy-build:/root:rw --workdir=/root/envoy $$(cat envoy-build-image.txt) bazel test --verbose_failures -c dbg --test_env=ENVOY_IP_TEST_VERSIONS=v4only //test/...; \
+	}
 .PHONY: check-envoy
 
 envoy-shell: envoy-build-image.txt
-	docker run --rm --privileged --volume=envoy-build:/root:rw --workdir=/root/envoy -it $$(cat envoy-build-image.txt)
+	$(ENVOY_SYNC_HOST_TO_DOCKER)
+	docker run --rm --privileged --volume=envoy-build:/root:rw --workdir=/root/envoy -it $$(cat envoy-build-image.txt) || true
+	$(ENVOY_SYNC_DOCKER_TO_HOST)
 .PHONY: envoy-shell
 
 docker-base-images:
@@ -617,7 +630,7 @@ venv/bin/protoc-gen-validate: go.mod | venv/bin/activate
 
 # Search path for .proto files
 gomoddir = $(shell $(FLOCK) go.mod go list $1/... >/dev/null 2>/dev/null; $(FLOCK) go.mod go list -m -f='{{.Dir}}' $1)
-imports += $(CURDIR)/envoy/api
+imports += $(CURDIR)/envoy-src/api
 imports += $(call gomoddir,github.com/envoyproxy/protoc-gen-validate)
 imports += $(call gomoddir,github.com/gogo/protobuf)
 imports += $(call gomoddir,github.com/gogo/protobuf)/protobuf
@@ -640,15 +653,15 @@ mappings += google/rpc/error_details.proto=github.com/gogo/googleapis/google/rpc
 mappings += google/rpc/status.proto=github.com/gogo/googleapis/google/rpc
 mappings += metrics.proto=istio.io/gogo-genproto/prometheus
 mappings += trace.proto=istio.io/gogo-genproto/opencensus/proto/trace/v1
-mappings += $(shell find $(CURDIR)/envoy/api/envoy -type f -name '*.proto' | sed -E 's,^$(CURDIR)/envoy/api/((.*)/[^/]*),\1=github.com/datawire/ambassador/go/apis/\2,')
+mappings += $(shell find $(CURDIR)/envoy-src/api/envoy -type f -name '*.proto' | sed -E 's,^$(CURDIR)/envoy-src/api/((.*)/[^/]*),\1=github.com/datawire/ambassador/go/apis/\2,')
 
 joinlist=$(if $(word 2,$2),$(firstword $2)$1$(call joinlist,$1,$(wordlist 2,$(words $2),$2)),$2)
 comma = ,
 
-go/apis/envoy: envoy venv/bin/protoc venv/bin/protoc-gen-gogofast venv/bin/protoc-gen-validate
+go/apis/envoy: envoy-src venv/bin/protoc venv/bin/protoc-gen-gogofast venv/bin/protoc-gen-validate
 	rm -rf $@
 	mkdir -p $@
-	set -e; find $(CURDIR)/envoy/api/envoy -type f -name '*.proto' | sed 's,/[^/]*$$,,' | uniq | while read -r dir; do \
+	set -e; find $(CURDIR)/envoy-src/api/envoy -type f -name '*.proto' | sed 's,/[^/]*$$,,' | uniq | while read -r dir; do \
 		echo "Generating $$dir"; \
 		./venv/bin/protoc \
 			$(addprefix --proto_path=,$(imports))  \

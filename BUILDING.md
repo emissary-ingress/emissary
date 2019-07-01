@@ -163,10 +163,10 @@ Updating Ambassador's Envoy
 
 Ambassador currently relies on a custom Envoy build. This build lives in `https://github.com/datawire/envoy`, which is a fork of `https://github.com/envoyproxy/envoy`, and it'll need to be updated at least as often as Envoy releases happen. To do that:
 
- 1. Run `make envoy` to instruct Make to clone `$ENVOY_REPO` to `./envoy/`.  It will check out `$ENVOY_COMMMIT` (instead of `master`).
+ 1. Run `make envoy-src` to instruct Make to clone `$ENVOY_REPO` to `./envoy/`.  It will check out `$ENVOY_COMMMIT` (instead of `master`).
 
     ```
-    $ make envoy
+    $ make envoy-src
     git init envoy
     …
     HEAD is now at a484da25f updated legacy RLS name
@@ -182,7 +182,7 @@ Ambassador currently relies on a custom Envoy build. This build lives in `https:
     …
     ```
 
- 3. Run `ENVOY_COMMIT=- make envoy-bin/envoy-static` to make sure that your new Envoy commit compiles correctly.  If there are problems with the build, you can run `ENVOY_COMMIT=- make envoy-shell` to get a shell in to the Docker image where Envoy is compiled.  Do note that if you edit the sources in the Docker image, the changes WILL NOT be automatically copied back out to the host's `./envoy/` directory.
+ 3. Run `ENVOY_COMMIT=- make envoy-bin/envoy-static` to make sure that your new Envoy commit compiles correctly.  If there are problems with the build, you can run `ENVOY_COMMIT=- make envoy-shell` to get a shell in to the Docker image where Envoy is compiled.  Any changes you make in the Docker image WILL be copied back to the host, potentially OVERWRITING changes you made  in the host's `./envoy-src/` directory.
 
  4. Run `ENVOY_COMMIT=- make check-envoy` to make sure that your new Envoy commit passes Envoy's own test-suite.
 
