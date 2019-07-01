@@ -118,16 +118,20 @@ vendor.hash: vendor
 $(dir $(_go-mod.mk))go1%.src.tar.gz:
 	curl -o $@ --fail https://dl.google.com/go/$(@F)
 
+_go.mkopensource = $(dir $(_go-mod.mk))go-opensource
+
 # Usage: $(eval $(call go.bin.rule,BINNAME,GOPACKAGE))
 define go.bin.rule
-bin_%/$1: go-get FORCE
-	$$(go.GOBUILD) $$(if $$(go.LDFLAGS),--ldflags $$(call quote.shell,$$(go.LDFLAGS))) -o $$(@D)/.cache.$$(@F) $2
-	go list -deps -f='{{.Module}}' $2 | LC_COLLATE=C sort -u | $$(WRITE_IFCHANGED) $$(@D)/.deps.$$(@F)
-	$$(COPY_IFCHANGED) $$(@D)/.cache.$$(@F) $$@
+bin_%/.$1.stamp: go-get FORCE
+	$$(go.GOBUILD) $$(if $$(go.LDFLAGS),--ldflags $$(call quote.shell,$$(go.LDFLAGS))) -o $$@ $2
+bin_%/$1: bin_%/.$1.stamp
+	$$(COPY_IFCHANGED) $$< $$@
 
-bin_%/$1.opensource.tar.gz: bin_%/$1 vendor.hash $$(dir $$(_go-mod.mk))go-opensource $$(dir $$(_go-mod.mk))go$$(go.goversion).src.tar.gz
+bin_%/.$1.deps: bin_%/$1
+	go list -deps -f='{{.Module}}' $2 | LC_COLLATE=C sort -u > $$@
+bin_%/$1.opensource.tar.gz: bin_%/.$1.deps vendor.hash $$(_go.mkopensource) $$(dir $$(_go-mod.mk))go$$(go.goversion).src.tar.gz
 	$$(if $$(CI),@set -e; if test -e $$@; then echo 'This should not happen in CI: $$@ rebuild triggered by $$+' >&2; false; fi)
-	$$(dir $$(_go-mod.mk))go-opensource --output=$$@ --package=$2 --depsfile=$$(<D)/.deps.$$(<F) --gotar=$$(dir $$(_go-mod.mk))go$$(go.goversion).src.tar.gz
+	$$(_go.mkopensource) --output=$$@ --package=$2 --depsfile=$$< --gotar=$$(dir $$(_go-mod.mk))go$$(go.goversion).src.tar.gz
 endef
 
 _go.bin.name = $(notdir $(_go.bin))
