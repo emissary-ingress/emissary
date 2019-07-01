@@ -3,28 +3,27 @@
 # Makefile snippet for installing `kubeapply`
 #
 ## Eager inputs ##
-#  - Variable: KUBEAPPLY ?= ./build-aux/kubeapply
+#  (none)
 ## Lazy inputs ##
 #  (none)
 ## Outputs ##
-#  - Variable: KUBEAPPLY ?= ./build-aux/kubeapply
-#  - Target: $(KUBEAPPLY)
+#  - Executable: KUBEAPPLY ?= $(CURDIR)/build-aux/kubeapply
 ## common.mk targets ##
 #  - clobber
 ifeq ($(words $(filter $(abspath $(lastword $(MAKEFILE_LIST))),$(abspath $(MAKEFILE_LIST)))),1)
 _kubeapply.mk := $(lastword $(MAKEFILE_LIST))
 include $(dir $(lastword $(MAKEFILE_LIST)))prelude.mk
 
-KUBEAPPLY ?= $(dir $(_kubeapply.mk))kubeapply
+KUBEAPPLY ?= $(abspath $(dir $(_kubeapply.mk))kubeapply)
 KUBEAPPLY_VERSION = 0.3.11
 
-$(KUBEAPPLY): $(_kubeapply.mk)
+$(abspath $(dir $(_kubeapply.mk))kubeapply): $(_kubeapply.mk)
 	curl -o $@ --fail https://s3.amazonaws.com/datawire-static-files/kubeapply/$(KUBEAPPLY_VERSION)/$(GOHOSTOS)/$(GOHOSTARCH)/kubeapply
 	chmod go-w,a+x $@
 
 clobber: _clobber-kubeapply
 _clobber-kubeapply:
-	rm -f $(KUBEAPPLY)
+	rm -f $(dir $(_kubeapply.mk))kubeapply
 .PHONY: _clobber-kubeapply
 
 endif

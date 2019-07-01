@@ -5,11 +5,11 @@
 ## Eager inputs ##
 #  (none)
 ## Lazy inputs ##
-#  - Variable: GUBERNAUT ?= ./build-aux/gubernaut
+#  (none)
 ## Outputs ##
+#  - Executable: GUBERNAUT ?= $(CURDIR)/build-aux/gubernaut
 #  - Target       : `%.knaut`
 #  - .PHONY Target: `%.knaut.clean`
-#  - Variable: GUBERNAUT ?= ./build-aux/gubernaut
 ## common.mk targets ##
 #  - clobber
 #
@@ -18,9 +18,6 @@
 #
 # Calling the NAME.knaut.clean file releases the claim, and removes
 # the NAME.knaut file.
-#
-# The GUBERNAUT variable may be used to adjust the gubernaut command
-# called.
 #
 ## Quickstart ##
 #
@@ -51,15 +48,15 @@
 ifeq ($(words $(filter $(abspath $(lastword $(MAKEFILE_LIST))),$(abspath $(MAKEFILE_LIST)))),1)
 _kubernaut.mk := $(lastword $(MAKEFILE_LIST))
 
-GUBERNAUT ?= $(dir $(_kubernaut.mk))gubernaut
+GUBERNAUT ?= $(abspath $(dir $(_kubernaut.mk))gubernaut)
 
 %.knaut.claim:
 	echo $(*F)-$${USER}-$$(uuidgen) > $@
-%.knaut: %.knaut.claim
+%.knaut: %.knaut.claim $(GUBERNAUT)
 	$(GUBERNAUT) -release $$(cat $<)
 	$(GUBERNAUT) -claim $$(cat $<) -output $@
 
-%.knaut.clean:
+%.knaut.clean: $(GUBERNAUT)
 	if [ -e $*.knaut.claim ]; then $(GUBERNAUT) -release $$(cat $*.knaut.claim); fi
 	rm -f $*.knaut $*.knaut.claim
 .PHONY: %.knaut.clean
