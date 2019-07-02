@@ -115,13 +115,11 @@ vendor: go-get FORCE
 vendor: $(go.lock)
 	$(go.lock)go mod vendor
 	@test -d $@
-vendor.hash: vendor $(WRITE_IFCHANGED)
-	find vendor -type f -exec sha256sum {} + | sort | sha256sum | $(WRITE_IFCHANGED) $@
 
 $(dir $(_go-mod.mk))go1%.src.tar.gz:
 	curl -o $@ --fail https://dl.google.com/go/$(@F)
 
-_go.mkopensource = $(build-aux.bindir)/go-opensource
+_go.mkopensource = $(build-aux.bindir)/go-mkopensource
 
 # Usage: $(eval $(call go.bin.rule,BINNAME,GOPACKAGE))
 define go.bin.rule
@@ -130,17 +128,14 @@ bin_%/.$1.stamp: go-get $$(go.lock) FORCE
 bin_%/$1: bin_%/.$1.stamp $$(COPY_IFCHANGED)
 	$$(COPY_IFCHANGED) $$< $$@
 
-bin_%/.$1.deps: bin_%/$1 $$(go.lock)
-	$$(go.lock)go list -deps -f='{{.Module}}' $2 | LC_COLLATE=C sort -u > $$@
-bin_%/$1.opensource.tar.gz: bin_%/.$1.deps vendor.hash $$(_go.mkopensource) $$(dir $$(_go-mod.mk))go$$(go.goversion).src.tar.gz
-	$$(if $$(CI),@set -e; if test -e $$@; then echo 'This should not happen in CI: $$@ rebuild triggered by $$+' >&2; false; fi)
-	$$(_go.mkopensource) --output=$$@ --package=$2 --depsfile=$$< --gotar=$$(dir $$(_go-mod.mk))go$$(go.goversion).src.tar.gz
+bin_%/$1.opensource.tar.gz: vendor $$(_go.mkopensource) $$(dir $$(_go-mod.mk))go$$(go.goversion).src.tar.gz $$(WRITE_IFCHANGED) $$(go.lock)
+	$$(go.lock)$$(_go.mkopensource) --output-name=$1.opensource --package=$2 --gotar=$$(dir $$(_go-mod.mk))go$$(go.goversion).src.tar.gz | $$(WRITE_IFCHANGED) $$@
 endef
 
 _go.bin.name = $(notdir $(_go.bin))
 _go.bin.pkg = $(_go.bin)
 $(foreach _go.bin,$(go.bins),$(eval $(call go.bin.rule,$(_go.bin.name),$(_go.bin.pkg))))
-go-build: $(foreach _go.PLATFORM,$(go.PLATFORMS),$(foreach _go.bin,$(go.bins), bin_$(_go.PLATFORM)/$(_go.bin.name).opensource.tar.gz ))
+go-build: $(foreach _go.PLATFORM,$(go.PLATFORMS),$(foreach _go.bin,$(go.bins), bin_$(_go.PLATFORM)/$(_go.bin.name) bin_$(_go.PLATFORM)/$(_go.bin.name).opensource.tar.gz ))
 
 go-build: ## (Go) Build the code with `go build`
 .PHONY: go-build
