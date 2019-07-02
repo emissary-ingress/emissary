@@ -12,12 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-import os
-
 from typing import ClassVar, TYPE_CHECKING
 
 from ..config import Config
 from .irresource import IRResource as IRResource
+from .irtlscontext import IRTLSContext
 from ambassador.utils import RichStatus
 
 if TYPE_CHECKING:
@@ -50,7 +49,7 @@ class IRAmbassadorTLS (IRResource):
         Initialize an IRAmbassadorTLS from the raw fields of its Resource.
         """
 
-        # ir.logger.debug("IRAmbassadorTLS __init__ (%s %s %s)" % (kind, name, kwargs))
+        ir.logger.debug("IRAmbassadorTLS __init__ (%s %s %s)" % (kind, name, kwargs))
 
         super().__init__(
             ir=ir, aconf=aconf, rkey=rkey, kind=kind, name=name,
@@ -84,7 +83,76 @@ class TLSModuleFactory:
                                             location=new_location,
                                             **new_args)
 
-            # ir.logger.debug("TLSModuleFactory saved TLS module: %s" % ir.tls_module.as_json())
+            ir.logger.debug("TLSModuleFactory saved TLS module: %s" % ir.tls_module.as_json())
+
+        # Next, a TLS module in the Ambassador module overrides any other TLS Module.
+        amod = aconf.get_module("ambassador")
+
+        if amod:
+            ir.ambassador_module.sourced_by(amod)
+            ir.ambassador_module.referenced_by(amod)
+
+            amod_tls = amod.get('tls', None)
+
+            if amod_tls:
+                # XXX What a hack. IRAmbassadorTLS.from_resource() should be able to make
+                # this painless.
+                new_args = dict(amod_tls)
+                new_rkey = new_args.pop('rkey', amod.rkey)
+                new_kind = new_args.pop('kind', 'Module')
+                new_name = new_args.pop('name', 'tls-from-ambassador-module')
+                new_location = new_args.pop('location', amod.location)
+
+                # Overwrite any existing TLS module.
+                ir.tls_module = IRAmbassadorTLS(ir, aconf,
+                                                rkey=new_rkey,
+                                                kind=new_kind,
+                                                name=new_name,
+                                                location=new_location,
+                                                **new_args)
+
+                ir.logger.debug("TLSModuleFactory saving TLS module from Ambassador module: %s" % ir.tls_module.as_json())
+
+        # Finally, if we have a TLS Module, turn it into a TLSContext.
+        if ir.tls_module:
+            ir.logger.debug("TLSModuleFactory translating TLS module to TLSContext")
+
+            # Stash a sane rkey and location for contexts we create.
+            ctx_rkey = ir.tls_module.get('rkey', ir.ambassador_module.rkey)
+            ctx_location = ir.tls_module.get('location', ir.ambassador_module.location)
+
+            # The TLS module 'server' and 'client' blocks are actually a _single_ TLSContext
+            # to Ambassador.
+
+            server = ir.tls_module.pop('server', None)
+            client = ir.tls_module.pop('client', None)
+
+            if server and server.get('enabled', True):
+                # We have a server half. Excellent.
+
+                ctx = IRTLSContext.from_legacy(ir, 'server', ctx_rkey, ctx_location,
+                                               cert=server, termination=True, validation_ca=client)
+
+                if ctx.is_active():
+                    ir.save_tls_context(ctx)
+
+            # Other blocks in the TLS module weren't ever really documented, so I seriously doubt
+            # that they're a factor... but, weirdly, we have a test for them...
+
+            for legacy_name, legacy_ctx in ir.tls_module.as_dict().items():
+                if (legacy_name.startswith('_') or
+                    (legacy_name == 'name') or
+                    (legacy_name == 'location') or
+                    (legacy_name == 'kind') or
+                    (legacy_name == 'enabled')):
+                    continue
+
+                ctx = IRTLSContext.from_legacy(ir, legacy_name, ctx_rkey, ctx_location,
+                                               cert=legacy_ctx, termination=False, validation_ca=None)
+
+                if ctx.is_active():
+                    ir.save_tls_context(ctx)
+
 
     @classmethod
     def finalize(cls, ir: 'IR', aconf: Config) -> None:

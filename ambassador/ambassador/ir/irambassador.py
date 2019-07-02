@@ -24,8 +24,10 @@ class IRAmbassador (IRResource):
         'auth_enabled',
         'circuit_breakers',
         'default_label_domain',
+
+
         'default_labels',
-        'defaults',
+        # Do not inculde defaults, that's handled manually in setup.
         'diag_port',
         'diagnostics',
         'enable_ipv6',
@@ -93,83 +95,34 @@ class IRAmbassador (IRResource):
             **kwargs
         )
 
-    # We allow 'setup' to just return True for the Ambassador module, and do the heavy lifting
-    # in 'finalize', so that we can do fallback lookups for TLS configuration stuff during
-    # finalize. As it happens, finalize is called _immediately_ after setup finishes, from
-    # ir.py.
+        self._finalized = False
 
-    def finalize(self, ir: 'IR', aconf: Config) -> bool:
+    def setup(self, ir: 'IR', aconf: Config) -> bool:
+        # The heavy lifting here is mostly in the finalize() method, so that when we do fallback
+        # lookups for TLS configuration stuff, the defaults are present in the Ambassador module.
+        #
+        # Of course, that means that we have to copy the defaults in here.
+
         # We're interested in the 'ambassador' module from the Config, if any...
         amod = aconf.get_module("ambassador")
 
-        # Is there a TLS module in the Ambassador module?
-        if amod:
-            self.sourced_by(amod)
-            self.referenced_by(amod)
+        if amod and 'defaults' in amod:
+            self['defaults'] = amod['defaults']
 
-            amod_tls = amod.get('tls', None)
+        return True
 
-            if amod_tls:
-                # XXX What a hack. IRAmbassadorTLS.from_resource() should be able to make
-                # this painless.
-                new_args = dict(amod_tls)
-                new_rkey = new_args.pop('rkey', amod.rkey)
-                new_kind = new_args.pop('kind', 'Module')
-                new_name = new_args.pop('name', 'tls-from-ambassador-module')
-                new_location = new_args.pop('location', amod.location)
+    def finalize(self, ir: 'IR', aconf: Config) -> bool:
+        self._finalized = True
 
-                # Overwrite any existing TLS module.
-                ir.tls_module = IRAmbassadorTLS(ir, aconf,
-                                                rkey=new_rkey,
-                                                kind=new_kind,
-                                                name=new_name,
-                                                location=new_location,
-                                                **new_args)
+        # Check TLSContext resources to see if we should enable TLS termination.
+        to_delete = []
 
-                # ir.logger.debug("IRAmbassador saving TLS module: %s" % ir.tls_module.as_json())
-
-        if ir.tls_module:
-            self.logger.debug("final TLS module: %s" % ir.tls_module.as_json())
-
-            # Stash a sane rkey and location for contexts we create.
-            ctx_rkey = ir.tls_module.get('rkey', self.rkey)
-            ctx_location = ir.tls_module.get('location', self.location)
-
-            # The TLS module 'server' and 'client' blocks are actually a _single_ TLSContext
-            # to Ambassador.
-
-            server = ir.tls_module.pop('server', None)
-            client = ir.tls_module.pop('client', None)
-
-            if server and server.get('enabled', True):
-                # We have a server half. Excellent.
-
-                ctx = IRTLSContext.from_legacy(ir, 'server', ctx_rkey, ctx_location,
-                                               cert=server, termination=True, validation_ca=client)
-
-                if ctx.is_active():
-                    ir.save_tls_context(ctx)
-
-            # Other blocks in the TLS module weren't ever really documented, so I seriously doubt
-            # that they're a factor... but, weirdly, we have a test for them...
-
-            for legacy_name, legacy_ctx in ir.tls_module.as_dict().items():
-                if (legacy_name.startswith('_') or
-                    (legacy_name == 'name') or
-                    (legacy_name == 'location') or
-                    (legacy_name == 'kind') or
-                    (legacy_name == 'enabled')):
-                    continue
-
-                ctx = IRTLSContext.from_legacy(ir, legacy_name, ctx_rkey, ctx_location,
-                                               cert=legacy_ctx, termination=False, validation_ca=None)
-
-                if ctx.is_active():
-                    ir.save_tls_context(ctx)
-
-        # Finally, check TLSContext resources to see if we should enable TLS termination.
-        for ctx in ir.get_tls_contexts():
-            if ctx.get('hosts', None):
+        for ctx_name, ctx in ir.tls_contexts.items():
+            if not ctx.resolve():
+                # Welllll this ain't good.
+                ctx.set_active(False)
+                to_delete.append(ctx_name)
+            elif ctx.get('hosts', None):
                 # This is a termination context
                 self.logger.debug("TLSContext %s is a termination context, enabling TLS termination" % ctx.name)
                 self.service_port = Constants.SERVICE_PORT_HTTPS
@@ -178,8 +131,13 @@ class IRAmbassador (IRResource):
                     # Client-side TLS is enabled.
                     self.logger.debug("TLSContext %s enables client certs!" % ctx.name)
 
+        for ctx_name in to_delete:
+            del(ir.tls_contexts[ctx_name])
+
         # After that, check for port definitions, probes, etc., and copy them in
         # as we find them.
+        amod = aconf.get_module("ambassador")
+
         for key in IRAmbassador.AModTransparentKeys:
             if amod and (key in amod):
                 # Yes. It overrides the default.
