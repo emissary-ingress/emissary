@@ -176,15 +176,8 @@ kind:  Module
 name:  ambassador
 config:
   add_linkerd_headers: true
-
----
-apiVersion: ambassador/v0
-kind:  Module
-name:  ambassador
-config:
   buffer:
     max_request_bytes: 16384
-
 ---
 apiVersion: ambassador/v1
 kind: TLSContext
@@ -296,9 +289,8 @@ service: {self.target.path.fqdn}
         assert self.results[4].headers["Server"] == ["envoy"]
         assert self.results[4].headers["Authorization"] == ["foo-11111"]
         
-        # TODO(gsagula): fix required - Logic for handling Ambassador Module is not working.
-        # extauth_req = json.loads(self.results[4].backend.request.headers["extauth"][0])
-        # assert extauth_req["request"]["headers"]["l5d-dst-override"] ==  [ 'extauth:80' ]
+        extauth_req = json.loads(self.results[4].backend.request.headers["extauth"][0])
+        assert extauth_req["request"]["headers"]["l5d-dst-override"] ==  [ 'extauth:80' ]
 
 class AuthenticationHTTPFailureModeAllowTest(AmbassadorTest):
     
