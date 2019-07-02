@@ -6,10 +6,10 @@ import os
 from ..utils import RichStatus, SavedSecret
 from ..config import ACResource
 from .irresource import IRResource
-from .irtls import IRAmbassadorTLS
 
 if TYPE_CHECKING:
     from .ir import IR
+    from .irtls import IRAmbassadorTLS
 
 
 class IRTLSContext(IRResource):
@@ -79,7 +79,7 @@ class IRTLSContext(IRResource):
                 self.secret_info[key] = config[key]
 
         # ir.logger.debug("IRTLSContext at setup: %s" % self.as_json())
-
+        #
         # rc = False
         #
         # if self.get('_ambassador_enabled', False):
@@ -270,8 +270,8 @@ class IRTLSContext(IRResource):
 
     @classmethod
     def from_legacy(cls, ir: 'IR', name: str, rkey: str, location: str,
-                    cert: IRAmbassadorTLS, termination: bool,
-                    validation_ca: Optional[IRAmbassadorTLS]) -> 'IRTLSContext':
+                    cert: 'IRAmbassadorTLS', termination: bool,
+                    validation_ca: Optional['IRAmbassadorTLS']) -> 'IRTLSContext':
         """
         Create an IRTLSContext from a legacy TLS-module style definition.
 
