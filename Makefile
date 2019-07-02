@@ -217,7 +217,7 @@ docker/max-load.docker: docker/max-load/kubeapply
 docker/max-load.docker: docker/max-load/kubectl
 docker/max-load.docker: docker/max-load/test.sh
 docker/max-load/kubeapply:
-	curl -o $@ --fail https://s3.amazonaws.com/datawire-static-files/kubeapply/$(KUBEAPPLY_VERSION)/linux/amd64/kubeapply
+	curl -o $@ --fail https://s3.amazonaws.com/datawire-static-files/kubeapply/0.3.11/linux/amd64/kubeapply
 	chmod 755 $@
 
 docker/%/kubectl:
@@ -320,16 +320,16 @@ check-local: lint go-build
 	$(MAKE) tests/local-all.tap.summary
 .PHONY: check-local
 tests/local-all.tap: build-aux/go-test.tap tests/local.tap $(TAP_DRIVER)
-	@$(TAP_DRIVER) cat $^ > $@
+	@$(TAP_DRIVER) cat $(sort $(filter %.tap,$^)) > $@
 tests/local.tap: $(patsubst %.test,%.tap,$(wildcard tests/local/*.test))
 tests/local.tap: $(patsubst %.tap.gen,%.tap,$(wildcard tests/local/*.tap.gen))
 tests/local.tap: $(TAP_DRIVER)
-	@$(TAP_DRIVER) cat $^ > $@
+	@$(TAP_DRIVER) cat $(sort $(filter %.tap,$^)) > $@
 
 tests/cluster.tap: $(patsubst %.test,%.tap,$(wildcard tests/cluster/*.test))
 tests/cluster.tap: $(patsubst %.tap.gen,%.tap,$(wildcard tests/cluster/*.tap.gen))
 tests/cluster.tap: $(TAP_DRIVER)
-	@$(TAP_DRIVER) cat $^ > $@
+	@$(TAP_DRIVER) cat $(sort $(filter %.tap,$^)) > $@
 
 tests/cluster/external.tap: $(GOTEST2TAP)
 

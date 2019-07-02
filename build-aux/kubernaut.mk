@@ -7,11 +7,10 @@
 ## Lazy inputs ##
 #  (none)
 ## Outputs ##
-#  - Executable: GUBERNAUT ?= $(CURDIR)/build-aux/gubernaut
 #  - Target       : `%.knaut`
 #  - .PHONY Target: `%.knaut.clean`
 ## common.mk targets ##
-#  - clobber
+#  - clean
 #
 # Creating the NAME.knaut creates the Kubernaut claim.  The file may
 # be used as a KUBECONFIG file.
@@ -47,8 +46,9 @@
 #
 ifeq ($(words $(filter $(abspath $(lastword $(MAKEFILE_LIST))),$(abspath $(MAKEFILE_LIST)))),1)
 _kubernaut.mk := $(lastword $(MAKEFILE_LIST))
+include $(dir $(_kubernaut.mk))prelude.mk
 
-GUBERNAUT ?= $(abspath $(dir $(_kubernaut.mk))gubernaut)
+GUBERNAUT ?= $(build-aux.bindir)/gubernaut
 
 %.knaut.claim:
 	echo $(*F)-$${USER}-$$(uuidgen) > $@
@@ -61,6 +61,6 @@ GUBERNAUT ?= $(abspath $(dir $(_kubernaut.mk))gubernaut)
 	rm -f $*.knaut $*.knaut.claim
 .PHONY: %.knaut.clean
 
-clobber: $(addsuffix .clean,$(wildcard *.knaut))
+clean: $(addsuffix .clean,$(wildcard *.knaut) $(wildcard $(build-aux.dir)/*.knaut))
 
 endif

@@ -10,13 +10,12 @@
 ## Lazy inputs ##
 #  - Variable: go.GOBUILD ?= go build
 #  - Variable: go.LDFLAGS ?=
-#  - Variable: go.GOLANG_LINT_VERSION ?= …
 #  - Variable: go.GOLANG_LINT_FLAGS ?= …$(wildcard .golangci.yml .golangci.toml .golangci.json)…
 #  - Variable: CI ?=
 #
 ## Outputs ##
-#  - Executable: GOTEST2TAP    ?= $(CURDIR)/build-aux/gotest2tap
-#  - Executable: GOLANGCI_LINT ?= $(CURDIR)/build-aux/golangci-lint
+#  - Executable: GOTEST2TAP    ?= $(CURDIR)/build-aux/bin/gotest2tap
+#  - Executable: GOLANGCI_LINT ?= $(CURDIR)/build-aux/bin/golangci-lint
 #
 #  - Variable: export GO111MODULE = on
 #  - Variable: NAME ?= $(notdir $(go.module))
@@ -57,9 +56,8 @@ include $(dir $(_go-mod.mk))common.mk
 #
 # Configure the `go` command
 
-_go.GOPATH = $(call lazyonce,_go.GOPATH,$(shell go env GOPATH))
-go.goversion = $(call lazyonce,go.goversion,$(patsubst go%,%,$(filter go1%,$(shell go version))))
-go.lock = $(if $(filter 1.11 1.11.%,$(go.goversion)),$(FLOCK)$(if $@, $(_go.GOPATH)/pkg/mod ))
+go.goversion = $(_prelude.go.goversion)
+go.lock = $(_prelude.go.lock)
 
 export GO111MODULE = on
 
@@ -70,15 +68,14 @@ go.GOBUILD ?= go build
 go.DISABLE_GO_TEST ?=
 go.LDFLAGS ?=
 go.PLATFORMS ?= $(GOOS)_$(GOARCH)
-go.GOLANG_LINT_VERSION ?= 1.17.1
 go.GOLANG_LINT_FLAGS ?= $(if $(wildcard .golangci.yml .golangci.toml .golangci.json),,--disable-all --enable=gofmt --enable=govet)
 CI ?=
 
 #
 # Set output variables and functions
 
-GOTEST2TAP    ?= $(abspath $(dir $(_go-mod.mk))gotest2tap)
-GOLANGCI_LINT ?= $(abspath $(dir $(_go-mod.mk))golangci-lint)
+GOTEST2TAP    ?= $(build-aux.bindir)/gotest2tap
+GOLANGCI_LINT ?= $(build-aux.bindir)/golangci-lint
 
 NAME ?= $(notdir $(go.module))
 
@@ -124,7 +121,7 @@ vendor.hash: vendor $(WRITE_IFCHANGED)
 $(dir $(_go-mod.mk))go1%.src.tar.gz:
 	curl -o $@ --fail https://dl.google.com/go/$(@F)
 
-_go.mkopensource = $(dir $(_go-mod.mk))go-opensource
+_go.mkopensource = $(build-aux.bindir)/go-opensource
 
 # Usage: $(eval $(call go.bin.rule,BINNAME,GOPACKAGE))
 define go.bin.rule
@@ -148,8 +145,8 @@ go-build: $(foreach _go.PLATFORM,$(go.PLATFORMS),$(foreach _go.bin,$(go.bins), b
 go-build: ## (Go) Build the code with `go build`
 .PHONY: go-build
 
-$(abspath $(dir $(_go-mod.mk))golangci-lint): $(_go-mod.mk)
-	curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(@D) v$(go.GOLANG_LINT_VERSION)
+$(build-aux.bindir)/golangci-lint: $(build-aux.dir)/go.mod $(_prelude.go.lock) | $(build-aux.bindir)
+	$(build-aux.go-build) -o $@ github.com/golangci/golangci-lint/cmd/golangci-lint
 
 go-lint: ## (Go) Check the code with `golangci-lint`
 go-lint: $(GOLANGCI_LINT) go-get $(go.lock)
@@ -185,13 +182,15 @@ _go-clean:
 # Files made by older versions.  Remove the tail of this list when the
 # commit making the change gets far enough in to the past.
 #
+# 2018-07-01
+	rm -f $(dir $(_go-mod.mk))golangci-lint
 # 2019-02-06
 	rm -f $(dir $(_go-mod.mk))patter.go $(dir $(_go-mod.mk))patter.go.tmp
 .PHONY: _go-clean
 
 clobber: _go-clobber
 _go-clobber:
-	rm -f $(dir $(_go-mod.mk))golangci-lint $(dir $(_go-mod.mk))go1*.src.tar.gz
+	rm -f $(dir $(_go-mod.mk))go1*.src.tar.gz
 .PHONY: _go-clobber
 
 #
