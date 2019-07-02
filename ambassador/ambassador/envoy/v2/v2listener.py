@@ -38,7 +38,6 @@ from .v2tls import V2TLSContext
 if TYPE_CHECKING:
     from . import V2Config
 
-
 # Static header keys normally used in the context of an authorization request.
 AllowedRequestHeaders = frozenset([
     'authorization',
