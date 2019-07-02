@@ -18,6 +18,9 @@
 #  - .PHONY Target: clobber
 ## common.mk targets ##
 #  (N/A)
+#
+# Dependencies of `clobber` MUST NOT depend on programs in
+# `$(build-aux.bindir)/`.
 ifeq ($(words $(filter $(abspath $(lastword $(MAKEFILE_LIST))),$(abspath $(MAKEFILE_LIST)))),1)
 _common.mk := $(lastword $(MAKEFILE_LIST))
 include $(dir $(_common.mk))prelude.mk

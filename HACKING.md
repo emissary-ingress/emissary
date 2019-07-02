@@ -2,8 +2,6 @@
 
 ## Misc notes
 
- - Any `.go` files should say `// +build ignore` to prevent `go list
-   ./...` from picking them up.
  - If you have a dependency on another `.mk` file includes, include it
    with `include $(dir $(lastword $(MAKEFILE_LIST)))common.mk`.
  - `.PHONY` targets that you wish to be user-visible should have a `##
