@@ -613,7 +613,11 @@ class ParsedService:
         # p is read-only, so break stuff out.
 
         self.hostname = p.hostname
-        self.port = p.port
+        try:
+            self.port = p.port
+        except ValueError as e:
+            self.errors.append("found invalid port for service {}. Please specify a valid port between 0 and 65535 - {}. Service {} cluster will be ignored, please re-configure".format(service, e, service))
+            self.port = 0
 
         # If the port is unset, fix it up.
         if not self.port:
