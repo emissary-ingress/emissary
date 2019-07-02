@@ -239,7 +239,7 @@ service: {self.target.path.fqdn}
         # [4]
         yield Query(self.url("target/"), headers={"Requested-Status": "200",
                                                   "Authorization": "foo-11111",
-                                                  "Requested-Header": "Authorization"}, expected=200)
+                                                  "Requested-Header": "Authorization"}, expected=200, debug=True)
 
     def check(self):
         # [0] Verifies all request headers sent to the authorization server.
@@ -285,12 +285,10 @@ service: {self.target.path.fqdn}
         assert self.results[4].backend.request.headers["requested-status"] == ["200"]
         assert self.results[4].backend.request.headers["requested-header"] == ["Authorization"]
         assert self.results[4].backend.request.headers["authorization"] == ["foo-11111"]
+        assert self.results[4].backend.request.headers["l5d-dst-override"] ==  [ 'authenticationhttpbufferedtest-http:80' ]
         assert self.results[4].status == 200
         assert self.results[4].headers["Server"] == ["envoy"]
         assert self.results[4].headers["Authorization"] == ["foo-11111"]
-        
-        extauth_req = json.loads(self.results[4].backend.request.headers["extauth"][0])
-        assert extauth_req["request"]["headers"]["l5d-dst-override"] ==  [ 'extauth:80' ]
 
 class AuthenticationHTTPFailureModeAllowTest(AmbassadorTest):
     
