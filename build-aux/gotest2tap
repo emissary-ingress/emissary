@@ -1,6 +1,0 @@
-#!/bin/sh
-# Copyright 2019 Datawire. All rights reserved.
-#
-# Wrapper around `go run ./gotest2tap.go` to set GO111MODULE appropriately.
-
-GO111MODULE=off go run "$0.go" "$@"
