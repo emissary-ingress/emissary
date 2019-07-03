@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 PortSpec = List[Tuple[str, int, int]]
 EnvSpec = Dict[str, str]
 ConfigSpec = Dict[str, str]
-
+ConfigList = List[dict]
 
 class Superpod:
     def __init__(self, namespace: str) -> None:
@@ -68,12 +68,17 @@ class Superpod:
 
 
 class Container:
-    def __init__(self, name: str, namespace: str, image: str,
-                 envs: Optional[EnvSpec], ports: Optional[PortSpec]=None,
-                 configs: Optional[str]=None, crds: Optional[str]=None) -> None:
+    def __init__(self, node: 'Node', name: str, namespace: str, path: str, image: str,
+                 ambassador_id: Optional[str]=None, is_ambassador: Optional[bool]=False,
+                 envs: Optional[EnvSpec]=None, ports: Optional[PortSpec]=None,
+                 configs: Optional[ConfigList]=None, crds: Optional[ConfigList]=None) -> None:
+        self.node = node
         self.name = name
         self.namespace = namespace
+        self.path = path
         self.image = image
+        self.ambassador_id = ambassador_id
+        self.is_ambassador = is_ambassador
         self.envs = envs
         self.ports = ports or []
         self.configs = configs
@@ -83,26 +88,47 @@ class Container:
         rd = {
             'name': self.name,
             'namespace': self.namespace,
+            'path': self.path,
             'image': self.image,
-            'envs': self.envs,
             'ports': self.ports,
         }
 
+        if self.envs:
+            rd['envs'] = self.envs
+
+        if self.ambassador_id:
+            rd['ambassador_id'] = self.ambassador_id
+
+        if self.is_ambassador:
+            rd['is_ambassador'] = self.is_ambassador
+
         if self.configs:
-            cfgs = load(f'{self.name}.{self.namespace} configs', self.configs, Tag.MAPPING)
-            rd['configs'] = cfgs.as_python()
-            # rd['configs'] = self.configs
+            rd['configs'] = self.configs
 
         if self.crds:
-            crds = load(f'{self.name}.{self.namespace} CRDs', self.crds, Tag.MAPPING)
-            rd['crds'] = crds.as_python()
-            # rd['crds'] = self.crds
+            rd['crds'] = self.crds
 
         return rd
 
     def set_ip(self, ip: str) -> None:
         self.ip = ip
 
+    def all_configs(self):
+        if self.configs:
+            yield from self.configs
+
+        if self.crds:
+            yield from self.crds
+
+
+class AmbassadorContainer(Container):
+    def __init__(self, node: 'Node', name: str, namespace: str, path: str, image: str,
+                 ambassador_id: Optional[str]=None,
+                 envs: Optional[EnvSpec]=None, ports: Optional[PortSpec]=None,
+                 configs: Optional[ConfigList]=None, crds: Optional[ConfigList]=None) -> None:
+        super().__init__(node=node, name=path, namespace=namespace, path=path,
+                         image=image, ambassador_id=ambassador_id, is_ambassador=True,
+                         envs=envs, ports=ports, configs=configs, crds=crds)
 
 class Namespace:
     def __init__(self, name: str):
@@ -110,12 +136,22 @@ class Namespace:
         self.containers = {}
 
         self.superpod = Superpod(self.name)
-        self.superpod_container = self.add_container(Container(name=self.superpod.name,
+        self.superpod_container = self.add_container(Container(node=None,
+                                                               name=self.superpod.name,
+                                                               path=self.superpod.name,
                                                                namespace=self.name,
                                                                image='quay.io/datawire/kat-backend:13',
                                                                envs={ 'INCLUDE_EXTAUTH_HEADER': 'yes' }))
 
         self.routes = {}
+
+    def all_containers(self) -> List[Container]:
+        for k in sorted(self.containers.keys()):
+            yield self.containers[k]
+
+    def all_routes(self) -> List[Dict[str, Union[int, str]]]:
+        for k in sorted(self.routes.keys()):
+            yield self.routes[k]
 
     def add_container(self, c: Container) -> Container:
         if c.name in self.containers:
@@ -124,11 +160,11 @@ class Namespace:
         self.containers[c.name] = c
 
         for protocol, src_port, dest_port in c.ports:
-            self.add_route(protocol, c.name, src_port, c, dest_port)
+            self.add_route(protocol, c.path, src_port, c, dest_port)
 
         return c
 
-    def register_superpod(self, svc_name: str, svc_type: str, configs: Optional[str]) -> None:
+    def register_superpod(self, svc_name: str, svc_type: str, configs: Optional[ConfigList]) -> None:
         del svc_type       # silence typing error
 
         clear, tls = self.superpod.allocate(svc_name)
@@ -140,18 +176,14 @@ class Namespace:
         self.superpod_container.ports.append(( 'tcp', tls, tls ))
 
         if configs:
-            configs = configs.strip()
+            extant_cfgs = self.superpod_container.configs or []
 
-            if not configs.startswith('---'):
-                configs = '---\n' + configs
-
-            cfg = self.superpod_container.configs or ''
-            cfg += configs
-
-            self.superpod_container.configs = cfg
+            self.superpod_container.configs = extant_cfgs + configs
 
         self.add_route('tcp', svc_name, 80, self.superpod_container, clear)
+        self.add_route('tcp', f'{svc_name}.{self.name}', 80, self.superpod_container, clear)
         self.add_route('tcp', svc_name, 443, self.superpod_container, tls)
+        self.add_route('tcp', f'{svc_name}.{self.name}', 443, self.superpod_container, clear)
 
     def add_route(self, protocol: str, src_name: str, src_port: int, dest: Container, dest_port: int) -> None:
         key = f'{src_name}:{src_port}'
@@ -160,7 +192,7 @@ class Namespace:
             'protocol': protocol,
             'src_name': src_name,
             'src_port': src_port,
-            'dest_name': dest.name,
+            'dest_name': dest.path,
             'dest_port': dest_port
         }
 
@@ -177,11 +209,21 @@ class Namespace:
         }
 
 
-def formatted_config(n: 'Node', configs: Dict[str, str], key: str) -> Optional[str]:
+def parsed_configs(n: 'Node', configs: Dict[str, str], key: str,
+                   ambassador_id: Optional[str]) -> Optional[List[dict]]:
     v = configs.get(key)
 
     if v:
-        return n.format(v)
+        v = n.format(v)
+
+        cfgs = load(f'{n.name}.{n.namespace} {key}', v, Tag.MAPPING)
+
+        if ambassador_id:
+            for el in cfgs:
+                if not 'ambassador_id' in el:
+                    el['ambassador_id'] = ambassador_id
+
+        return cfgs.as_python()
 
     return None
 
@@ -210,12 +252,18 @@ class Topology:
 
         # print(f'...{n.name}')
 
-        cfgs = formatted_config(n, configs, 'self')
-        crds = formatted_config(n, configs, 'CRD')
+        ambassador_id = getattr(n, 'ambassador_id', None)
 
+        cfgs = parsed_configs(n, configs, 'self', ambassador_id)
+        crds = parsed_configs(n, configs, 'CRD', ambassador_id)
+
+        # This is an Ambassador pod.
         self.add_container(
-            Container(
+            AmbassadorContainer(
+                node=n,
                 name=n.name,
+                path=n.path.fqdn,
+                ambassador_id=ambassador_id,
                 namespace=n.namespace,
                 image=os.environ['AMBASSADOR_DOCKER_IMAGE'],
                 envs=node_environment,
@@ -230,12 +278,14 @@ class Topology:
 
         for pod_name, pod_info in upstreams.items():
             target_name = pod_name
-            tgt_configs = formatted_config(n, configs, target_name)
+            target_path = pod_name
+            tgt_configs = parsed_configs(n, configs, target_name, ambassador_id)
 
             target = getattr(n, pod_name, None)
 
             if target:
                 target_name = target.path.k8s
+                target_path = target.path.fqdn
 
             # print(f'    {target_name}: {pod_info}')
 
@@ -244,14 +294,26 @@ class Topology:
             if svctype:
                 self.register_superpod(n.namespace, target_name, svctype, tgt_configs)
             else:
-                self.add_container(Container(namespace=n.namespace, name=target_name,
-                                             configs=tgt_configs, **pod_info))
+                self.add_container(Container(node=n, namespace=n.namespace, name=target_name,
+                                             path=target_path, configs=tgt_configs, **pod_info))
 
     def get_namespace(self, name: str) -> Namespace:
         if name not in self.namespaces:
             self.namespaces[name] = Namespace(name)
 
         return self.namespaces[name]
+
+    def all_namespaces(self) -> List[Namespace]:
+        for k in sorted(self.namespaces.keys()):
+            yield self.namespaces[k]
+
+    def all_containers(self) -> List[Container]:
+        for namespace in self.all_namespaces():
+            yield from namespace.all_containers()
+
+    def all_routes(self) -> List[Dict[str, Union[int, str]]]:
+        for namespace in self.all_namespaces():
+            yield from namespace.all_routes()
 
     def add_container(self, c: Container) -> None:
         self.get_namespace(c.namespace).add_container(c)
