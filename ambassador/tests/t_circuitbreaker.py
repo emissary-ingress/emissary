@@ -90,7 +90,15 @@ service: {self.statsd.path.fqdn}
 
         # pending requests tests
         pending_overloaded = 0
+
+        printed = False
+
         for result in pending_results:
+            if not printed:
+                import json
+                print(json.dumps(result.as_dict(), sort_keys=True, indent=2))
+                printed = True
+
             if 'X-Envoy-Overloaded' in result.headers:
                 pending_overloaded += 1
 
