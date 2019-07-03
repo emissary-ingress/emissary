@@ -12,11 +12,13 @@ class CircuitBreakingTest(AmbassadorTest):
         'STATSD_HOST': '{self.statsd.path.fqdn}'
     }
 
+    TARGET_CLUSTER='cluster_httpstat_us_er_round_robin'
+
     upstreams = {
         'statsd': {
             'image': 'dwflynn/stats-test:0.1.0',
             'envs': {
-                'STATSD_TEST_CLUSTER': "cluster_httpstat_us",
+                'STATSD_TEST_CLUSTER': TARGET_CLUSTER,
                 # 'STATSD_TEST_DEBUG': 'true'
             },
             'ports': [
@@ -31,6 +33,14 @@ class CircuitBreakingTest(AmbassadorTest):
 
     configs = {
         'self': '''
+---
+apiVersion: ambassador/v1
+kind:  Module
+name:  ambassador
+config:
+  resolver: endpoint
+  load_balancer:
+    policy: round_robin
 ---
 apiVersion: ambassador/v1
 kind:  Mapping
@@ -86,7 +96,7 @@ service: {self.statsd.path.fqdn}
 
         assert 450 < pending_overloaded < 500, f'Expected between 450 and 500 overloaded, got {pending_overloaded}'
 
-        cluster_stats = stats.get('cluster_httpstat_us', {})
+        cluster_stats = stats.get(self.__class__.TARGET_CLUSTER, {})
         rq_completed = cluster_stats.get('upstream_rq_completed', -1)
         rq_pending_overflow = cluster_stats.get('upstream_rq_pending_overflow', -1)
 

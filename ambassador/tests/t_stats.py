@@ -139,6 +139,8 @@ service: {self.statsd.path.fqdn}
 '''
     }
 
+    TARGET_CLUSTER='cluster_http___dogstatsdtest_http_er_round_robin'
+
     upstreams = {
         'target': {
             'servicetype': 'HTTP'
@@ -146,7 +148,7 @@ service: {self.statsd.path.fqdn}
         'statsd': {
             'image': 'dwflynn/stats-test:0.1.0',
             'envs': {
-                'STATSD_TEST_CLUSTER': "cluster_http___dogstatsdtest_http"
+                'STATSD_TEST_CLUSTER': TARGET_CLUSTER
             },
             'ports': [
                 ( 'tcp', 80, 3000 ),
@@ -162,12 +164,12 @@ service: {self.statsd.path.fqdn}
         for i in range(1000):
             yield Query(self.url(self.name + "/"), phase=1)
 
-        yield Query(self.url("dump/"), phase=2, debug=True)
+        yield Query(self.url("dump/"), phase=2)
 
     def check(self):
         stats = self.results[-1].json or {}
 
-        cluster_stats = stats.get('cluster_http___dogstatsdtest_http', {})
+        cluster_stats = stats.get(self.__class__.TARGET_CLUSTER, {})
         rq_total = cluster_stats.get('upstream_rq_total', -1)
         rq_200 = cluster_stats.get('upstream_rq_200', -1)
 

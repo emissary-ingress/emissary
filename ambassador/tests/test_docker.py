@@ -8,6 +8,9 @@ def docker_ready():
     cmd = [ 'docker', 'run', '--rm', '--name', 'ambassador', '-p8888:8080',
             DockerImage, '--demo']
 
+    print(f'Starting demo Ambassador:')
+    print(' '.join(cmd))
+
     subproc_future = asyncio.create_subprocess_exec(*cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
 
     subproc = yield from subproc_future
@@ -86,7 +89,7 @@ async def asynchronicity():
     succeeded = False
 
     try:
-        returncode = await asyncio.wait_for(docker_ready(), timeout=10.0)
+        returncode = await asyncio.wait_for(docker_ready(), timeout=20.0)
 
         if returncode == 0:
             ready = True

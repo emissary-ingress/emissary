@@ -690,7 +690,7 @@ class Runner:
     def __init__(self, *classes, scope=None):
         self.scope = scope or "-".join(c.__name__ for c in classes)
         self.roots = tuple(v for c in classes for v in variants(c))
-        self.nodes = [n for r in self.roots for n in r.traversal if not n.skip_node]
+        self.nodes = [n for r in self.roots for n in r.traversal if self.runnable(n)]
         self.tests = [n for n in self.nodes if isinstance(n, Test)]
         self.ids = [t.path for t in self.tests]
         self.done = False
@@ -712,6 +712,18 @@ class Runner:
 
         self.__func__ = test
         self.__test__ = True
+
+    def runnable(self, n: Node) -> bool:
+        if n.skip_node:
+            return False
+
+        upstreams: dict = getattr(n, 'upstreams', None)
+        configs: dict = getattr(n, 'configs', None)
+
+        if not upstreams or not configs:
+            return False
+
+        return True
 
     def __call__(self):
         assert False, "this is here for py.test discovery purposes only"
@@ -758,6 +770,9 @@ class Runner:
                 # self._setup_k8s(expanded)
                 self._init_topology(expanded)
 
+                if os.environ.get('KAT_JUST_TOPOLOGY', None):
+                    pytest.exit("User requested topology only")
+
                 driver_name = os.environ.get('KAT_TEST_DRIVER', 'Docker')
                 driver_class_name = f'{driver_name}Driver'
 
@@ -782,6 +797,9 @@ class Runner:
 
                 print(f'{driver_name} passed readiness check!')
 
+                if os.environ.get('KAT_JUST_READINESS', None):
+                    pytest.exit("User requested readiness only")
+
                 for t in self.tests:
                     if t in expanded_up:
                         pre_query: Callable = getattr(t, "pre_query", None)
@@ -803,9 +821,6 @@ class Runner:
             self.topology.process_node(n)
 
         print(json.dumps(self.topology.as_dict(), sort_keys=True, indent=4))
-
-        if os.environ.get('KAT_JUST_TOPOLOGY', None):
-            pytest.exit("User requested topology only")
 
     def driver_query(self, queries: Sequence[Query]) -> Sequence[Result]:
         jsonified = []

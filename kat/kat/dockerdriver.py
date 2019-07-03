@@ -186,6 +186,10 @@ class DockerDriver:
         :return: True if all is ready to go, False if we couldn't get things running
         """
 
+        if os.environ.get('KAT_DOCKER_READY', None):
+            print(f'DockerDriver assuming Docker is already set up')
+            return True
+
         DockerDriver.kill_old_world()
 
         subnet = 1
@@ -353,7 +357,7 @@ class DockerDriver:
         return (True, None)
 
     def run_queries(self, queries: Sequence[dict]) -> Sequence[dict]:
-        print('DockerDriver: running %d queries' % len(queries))
+        # print('DockerDriver: running %d queries' % len(queries))
 
         with open("/tmp/kat-DockerDriver-hostinfo/urls.json", "w") as f:
             json.dump(queries, f)
