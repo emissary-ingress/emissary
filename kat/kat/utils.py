@@ -20,35 +20,59 @@ def quote(arg):
 
 
 class ShellCommand:
-    def __init__(self, *args, **kwargs) -> None:
-        self.verbose = kwargs.pop('verbose', False)
+    def __init__(self, what, *args, defer: bool=False, fake: bool=False, verbose: bool=False, may_fail: bool=False, **kwargs) -> None:
+        self.what = what
+        self.defer = defer
+        self.fake = fake
+        self.verbose = verbose
+        self.may_fail = may_fail
 
         for arg in "stdout", "stderr":
             if arg not in kwargs:
                 kwargs[arg] = subprocess.PIPE
 
-        self.cmdline = " ".join([quote(x) for x in args])
+        self.args = args
+        self.kwargs = kwargs
 
+        self.cmdline = " ".join([quote(x) for x in self.args])
+
+        if self.defer:
+            if self.verbose:
+                print(f'---- deferring: {self.cmdline}')
+        else:
+            self.start()
+
+    def start(self) -> None:
         if self.verbose:
-            print(f'---- running: {self.cmdline}')
+            verb = 'faking' if self.fake else 'running'
 
-        self.proc = subprocess.run(args, **kwargs)
+            print(f'---- {verb}: {self.cmdline}')
 
-    def check(self, what: str) -> bool:
+        if not self.fake:
+            self.proc = subprocess.run(self.args, **self.kwargs)
+
+    def check(self) -> bool:
+        if self.fake:
+            return True
+
         try:
             self.proc.check_returncode()
             return True
         except Exception as e:
-            print(f"==== COMMAND FAILED: {what}")
-            print("---- command line ----")
-            print(self.cmdline)
-            print("---- stdout ----")
-            print(self.stdout)
-            print("")
-            print("---- stderr ----")
-            print(self.stderr)
+            if self.verbose or not self.may_fail:
+                print(f"==== COMMAND FAILED: {self.what}")
+                print("---- command line ----")
+                print(self.cmdline)
+                print("---- stdout ----")
+                print(self.stdout)
+                print("")
+                print("---- stderr ----")
+                print(self.stderr)
 
-            return False
+            if self.may_fail:
+                return True
+            else:
+                return False
 
     @property
     def stdout(self) -> str:
@@ -59,5 +83,5 @@ class ShellCommand:
         return self.proc.stderr.decode("utf-8")
 
     @classmethod
-    def run(cls, what: str, *args, **kwargs) -> None:
-        ShellCommand(*args, **kwargs).check(what)
+    def run(cls, what: str, *args, **kwargs) -> bool:
+        return ShellCommand(what, *args, **kwargs).check()
