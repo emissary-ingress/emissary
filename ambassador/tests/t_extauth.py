@@ -175,9 +175,9 @@ apiVersion: ambassador/v0
 kind:  Module
 name:  ambassador
 config:
+  add_linkerd_headers: true
   buffer:
     max_request_bytes: 16384
-
 ---
 apiVersion: ambassador/v1
 kind: TLSContext
@@ -239,7 +239,7 @@ service: {self.target.path.fqdn}
         # [4]
         yield Query(self.url("target/"), headers={"Requested-Status": "200",
                                                   "Authorization": "foo-11111",
-                                                  "Requested-Header": "Authorization"}, expected=200)
+                                                  "Requested-Header": "Authorization"}, expected=200, debug=True)
 
     def check(self):
         # [0] Verifies all request headers sent to the authorization server.
@@ -285,6 +285,7 @@ service: {self.target.path.fqdn}
         assert self.results[4].backend.request.headers["requested-status"] == ["200"]
         assert self.results[4].backend.request.headers["requested-header"] == ["Authorization"]
         assert self.results[4].backend.request.headers["authorization"] == ["foo-11111"]
+        assert self.results[4].backend.request.headers["l5d-dst-override"] ==  [ 'authenticationhttpbufferedtest-http:80' ]
         assert self.results[4].status == 200
         assert self.results[4].headers["Server"] == ["envoy"]
         assert self.results[4].headers["Authorization"] == ["foo-11111"]
@@ -410,6 +411,7 @@ auth_service: "{self.auth2.path.fqdn}"
 proto: http
 path_prefix: "/extauth"
 timeout_ms: 5000
+add_linkerd_headers: true
 
 allowed_request_headers:
 - X-Foo
@@ -532,6 +534,9 @@ bypass_auth: true
         assert self.results[4].status == 200
         assert self.results[4].headers["Server"] == ["envoy"]
         assert self.results[4].headers["Authorization"] == ["foo-11111"]
+
+        extauth_req = json.loads(self.results[4].backend.request.headers["extauth"][0])
+        assert extauth_req["request"]["headers"]["l5d-dst-override"] ==  [ 'extauth:80' ]
 
         # [5] Verify that X-Forwarded-Proto makes it to the auth service.
         #

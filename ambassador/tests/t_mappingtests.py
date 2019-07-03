@@ -53,6 +53,42 @@ service: http://{self.target.path.fqdn}
                 assert r.backend.request.headers['x-envoy-original-path'][0] == f'/{self.name}/'
 
 
+class SimpleMapping(MappingTest):
+
+    parent: AmbassadorTest
+    target: ServiceType
+
+    @classmethod
+    def variants(cls):
+        for st in variants(ServiceType):
+            yield cls(st, name="{self.target.name}")
+
+            for mot in variants(OptionTest):
+                yield cls(st, (mot,), name="{self.target.name}-{self.options[0].name}")
+
+            yield cls(st, unique(v for v in variants(OptionTest)
+                                 if not getattr(v, "isolated", False)), name="{self.target.name}-all")
+
+    def config(self):
+        yield self, self.format("""
+---
+apiVersion: ambassador/v1
+kind:  Mapping
+name:  {self.name}
+prefix: /{self.name}/
+service: http://{self.target.path.fqdn}
+""")
+
+    def queries(self):
+        yield Query(self.parent.url(self.name + "/"))
+        yield Query(self.parent.url(f'need-normalization/../{self.name}/'))
+
+    def check(self):
+        for r in self.results:
+            if r.backend:
+                assert r.backend.name == self.target.path.k8s, (r.backend.name, self.target.path.k8s)
+                assert r.backend.request.headers['x-envoy-original-path'][0] == f'/{self.name}/'
+
 class HostHeaderMapping(MappingTest):
 
     parent: AmbassadorTest
@@ -298,6 +334,85 @@ weight: {self.weight}
             assert abs(self.weight - canary) < 25, f'weight {self.weight} routed {canary}% to canary'
             assert abs(100 - (canary + main)) < 2, f'weight {self.weight} routed only {canary + main}% at all?'
 
+class AddRespHeadersMapping(MappingTest):
+    parent: AmbassadorTest
+    target: ServiceType
+
+    @classmethod
+    def variants(cls):
+        for st in variants(ServiceType):
+            yield cls(st, name="{self.target.name}")
+
+    def config(self):
+        yield self, self.format("""
+---
+apiVersion: ambassador/v1
+kind:  Mapping
+name:  {self.name}
+prefix: /{self.name}/
+service: http://httpbin.org
+add_response_headers:
+    koo:
+        append: False
+        value: KooK
+    zoo:
+        append: True
+        value: ZooZ
+    test:
+        value: boo
+    foo: Foo
+""")
+
+    def queries(self):
+        yield Query(self.parent.url(self.name)+"/response-headers?zoo=Zoo&test=Test&koo=Koot")
+
+    def check(self):
+        for r in self.results:
+            if r.headers:
+                print(r.headers)
+                assert r.headers['Koo'] == ['KooK']
+                assert r.headers['Zoo'] == ['Zoo', 'ZooZ']
+                assert r.headers['Test'] == ['Test', 'boo']
+                assert r.headers['Foo'] == ['Foo']
+
+
+class RemoveReqHeadersMapping(MappingTest):
+    parent: AmbassadorTest
+    target: ServiceType
+
+    @classmethod
+    def variants(cls):
+        for st in variants(ServiceType):
+            yield cls(st, name="{self.target.name}")
+
+    def config(self):
+        yield self, self.format("""
+---
+apiVersion: ambassador/v1
+kind:  Mapping
+name:  {self.name}
+prefix: /{self.name}/
+service: http://httpbin.org
+remove_request_headers:
+- zoo
+- aoo
+""")
+
+    def queries(self):
+        yield Query(self.parent.url(self.name + "/headers"), headers={
+            "zoo": "ZooZ",
+            "aoo": "AooA",
+            "foo": "FooF"
+        })
+
+    def check(self):
+        for r in self.results:
+            print(r.json)
+            if 'headers' in r.json:
+                assert r.json['headers']['Foo'] == 'FooF'
+                assert 'Zoo' not in r.json['headers']
+                assert 'Aoo' not in r.json['headers']
+
 class AddReqHeadersMapping(MappingTest):
     parent: AmbassadorTest
     target: ServiceType
@@ -343,80 +458,74 @@ add_request_headers:
                 assert r.backend.request.headers['boo'] == ['BooB','boo']
                 assert r.backend.request.headers['foo'] == ['FooF','Foo']
 
-class AddRespHeadersMapping(MappingTest):
-    parent: AmbassadorTest
+
+class LinkerdHeaderMapping(AmbassadorTest):
     target: ServiceType
 
-    @classmethod
-    def variants(cls):
-        for st in variants(ServiceType):
-            yield cls(st, name="{self.target.name}")
+    def init(self):
+        self.target = HTTP()
+        self.target_no_header = HTTP(name="noheader")
+        self.target_add_linkerd_header_only = HTTP(name="addlinkerdonly")
 
     def config(self):
         yield self, self.format("""
 ---
+apiVersion: ambassador/v0
+kind:  Module
+name:  ambassador
+config:
+  add_linkerd_headers: true
+---
 apiVersion: ambassador/v1
-kind:  Mapping
-name:  {self.name}
-prefix: /{self.name}/
-service: http://httpbin.org
-add_response_headers:
-    koo:
+kind: Mapping
+name: {self.target_add_linkerd_header_only.path.k8s}
+prefix: /target_add_linkerd_header_only/
+service: {self.target_add_linkerd_header_only.path.fqdn}
+---
+apiVersion: ambassador/v1
+kind: Mapping
+name: {self.target_no_header.path.k8s}
+prefix: /target_no_header/
+service: {self.target_no_header.path.fqdn}
+add_linkerd_headers: false
+add_request_headers:
+    fruit:
         append: False
-        value: KooK
-    zoo:
-        append: True
-        value: ZooZ
-    test:
-        value: boo
-    foo: Foo
-""")
-
-    def queries(self):
-        yield Query(self.parent.url(self.name)+"/response-headers?zoo=Zoo&test=Test&koo=Koot")
-
-    def check(self):
-        for r in self.results:
-            if r.headers:
-                print(r.headers)
-                assert r.headers['Koo'] == ['KooK']
-                assert r.headers['Zoo'] == ['Zoo', 'ZooZ']
-                assert r.headers['Test'] == ['Test', 'boo']
-                assert r.headers['Foo'] == ['Foo']
-
-class RemoveReqHeadersMapping(MappingTest):
-    parent: AmbassadorTest
-    target: ServiceType
-
-    @classmethod
-    def variants(cls):
-        for st in variants(ServiceType):
-            yield cls(st, name="{self.target.name}")
-
-    def config(self):
-        yield self, self.format("""
+        value: orange
 ---
 apiVersion: ambassador/v1
-kind:  Mapping
-name:  {self.name}
-prefix: /{self.name}/
-service: http://httpbin.org
-remove_request_headers:
-- zoo
-- aoo
+kind: Mapping
+name: {self.target.path.k8s}
+prefix: /target/
+service: {self.target.path.fqdn}
+add_request_headers:
+    fruit:
+        append: False
+        value: banana
 """)
 
     def queries(self):
-        yield Query(self.parent.url(self.name + "/headers"), headers={
-            "zoo": "ZooZ",
-            "aoo": "AooA",
-            "foo": "FooF"
-        })
+        # [0] expect Linkerd headers set through mapping
+        yield Query(self.url("target/"), expected=200)
 
+        # [1] expect no Linkerd headers
+        yield Query(self.url("target_no_header/"), expected=200)
+
+        # [2] expect Linkerd headers only
+        yield Query(self.url("target_add_linkerd_header_only/"), expected=200)
+        
     def check(self):
-        for r in self.results:
-            print(r.json)
-            if 'headers' in r.json:
-                assert r.json['headers']['Foo'] == 'FooF'
-                assert 'Zoo' not in r.json['headers']
-                assert 'Aoo' not in r.json['headers']
+        # [0]
+        assert len(self.results[0].backend.request.headers['l5d-dst-override']) > 0
+        assert self.results[0].backend.request.headers['l5d-dst-override'] == ["{}:80".format(self.target.path.fqdn)]
+        assert len(self.results[0].backend.request.headers['fruit']) > 0
+        assert self.results[0].backend.request.headers['fruit'] == [ 'banana']
+
+        # [1]
+        assert 'l5d-dst-override' not in self.results[1].backend.request.headers
+        assert len(self.results[1].backend.request.headers['fruit']) > 0
+        assert self.results[1].backend.request.headers['fruit'] == [ 'orange']
+
+        # [2]
+        assert len(self.results[2].backend.request.headers['l5d-dst-override']) > 0
+        assert self.results[2].backend.request.headers['l5d-dst-override'] == ["{}:80".format(self.target_add_linkerd_header_only.path.fqdn)]
