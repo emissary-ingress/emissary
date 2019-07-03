@@ -440,6 +440,9 @@ metadata:
         else:
             host_and_port = self.path.fqdn
 
+            if not port:
+                port = 8443 if scheme == 'https' else 8080
+
             if port:
                 host_and_port += f':{port}'
 

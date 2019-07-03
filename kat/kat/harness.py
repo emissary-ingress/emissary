@@ -1000,7 +1000,7 @@ class Runner:
 
         self._wait(selected)
 
-    def _wait(self, selected):
+    def _wait(self, selected) -> bool:
         requirements = [(node, kind, name) for node in self.nodes for kind, name in node.requirements()
                         if node in selected]
 
@@ -1020,8 +1020,14 @@ class Runner:
         holdouts = {}
 
         while time.time() - start < limit:
+            if not kinds:
+                print("all requirements satisfied")
+                return True
+
             for kind in kinds:
                 if kind not in homogenous:
+                    print("Dropping non-homogenous %s requirements" % kind)
+                    kinds.remove(kind)
                     continue
 
                 reqs = homogenous[kind]
@@ -1048,8 +1054,6 @@ class Runner:
                     kinds.remove(kind)
 
                 break
-            else:
-                return
 
         print("requirements not satisfied in %s seconds:" % limit)
 
@@ -1059,7 +1063,7 @@ class Runner:
             if _holdouts:
                 print("  %s:\n    %s" % (kind, "\n    ".join(_holdouts)))
 
-        assert False, "requirements not satisfied in %s seconds" % limit
+        return False
 
     @multi
     def _ready(self, kind, _):
@@ -1156,7 +1160,7 @@ class Runner:
             print("Querying %s urls in phase %s..." % (len(phase_queries), phase), end="")
             sys.stdout.flush()
 
-            results = run_queries(phase_queries)
+            results = self.driver_query(phase_queries)
 
             print(" done.")
 

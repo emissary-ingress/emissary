@@ -3,6 +3,8 @@ from abstract_tests import AmbassadorTest, ServiceType, HTTP
 
 
 class LuaTest(AmbassadorTest):
+    namespace = 'lua'
+
     configs = {
         'CRD': '''
 ---

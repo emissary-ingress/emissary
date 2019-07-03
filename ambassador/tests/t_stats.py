@@ -15,6 +15,14 @@ class StatsdTest(AmbassadorTest):
         'target': '''
 ---
 apiVersion: ambassador/v1
+kind:  Module
+name:  ambassador
+config:
+  resolver: endpoint
+  load_balancer:
+    policy: round_robin
+---
+apiVersion: ambassador/v1
 kind:  Mapping
 name:  {self.name}
 prefix: /{self.name}/
@@ -45,6 +53,8 @@ service: http://127.0.0.1:8877
 '''
     }
 
+    TARGET_CLUSTER='cluster_http___statsdtest_http_er_round_robin'
+
     upstreams = {
         'target': {
             'servicetype': 'HTTP'
@@ -52,7 +62,7 @@ service: http://127.0.0.1:8877
         'statsd': {
             'image': 'dwflynn/stats-test:0.1.0',
             'envs': {
-                'STATSD_TEST_CLUSTER': "cluster_http___statsdtest_http",
+                'STATSD_TEST_CLUSTER': TARGET_CLUSTER,
                 # 'STATSD_TEST_DEBUG': 'true'
             },
             'ports': [
@@ -75,7 +85,7 @@ service: http://127.0.0.1:8877
     def check(self):
         stats = self.results[-2].json or {}
 
-        cluster_stats = stats.get('cluster_http___statsdtest_http', {})
+        cluster_stats = stats.get(self.__class__.TARGET_CLUSTER, {})
         rq_total = cluster_stats.get('upstream_rq_total', -1)
         rq_200 = cluster_stats.get('upstream_rq_200', -1)
 
@@ -85,7 +95,7 @@ service: http://127.0.0.1:8877
         metrics = self.results[-1].text
         wanted_metric = 'envoy_cluster_internal_upstream_rq'
         wanted_status = 'envoy_response_code="200"'
-        wanted_cluster_name = 'envoy_cluster_name="cluster_http___statsdtest_http'
+        wanted_cluster_name = f'envoy_cluster_name="{self.__class__.TARGET_CLUSTER}"'
 
         for line in metrics.split("\n"):
             if wanted_metric in line and wanted_status in line and wanted_cluster_name in line:
