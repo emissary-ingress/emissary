@@ -1,5 +1,8 @@
 # Datawire build-aux CHANGELOG
 
+ - 2019-07-03: `go-mod.mk`: `.opensource.tar.gz` files are still part
+   of `make build`, but no longer part of `make go-build`.
+
  - 2019-07-03: Rewrite the `go-opensource` Bash script as
    `go-mkopensource` in Go.
 

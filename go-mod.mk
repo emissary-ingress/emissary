@@ -135,7 +135,8 @@ endef
 _go.bin.name = $(notdir $(_go.bin))
 _go.bin.pkg = $(_go.bin)
 $(foreach _go.bin,$(go.bins),$(eval $(call go.bin.rule,$(_go.bin.name),$(_go.bin.pkg))))
-go-build: $(foreach _go.PLATFORM,$(go.PLATFORMS),$(foreach _go.bin,$(go.bins), bin_$(_go.PLATFORM)/$(_go.bin.name) bin_$(_go.PLATFORM)/$(_go.bin.name).opensource.tar.gz ))
+go-build: $(foreach _go.PLATFORM,$(go.PLATFORMS),$(foreach _go.bin,$(go.bins), bin_$(_go.PLATFORM)/$(_go.bin.name)                   ))
+build:    $(foreach _go.PLATFORM,$(go.PLATFORMS),$(foreach _go.bin,$(go.bins), bin_$(_go.PLATFORM)/$(_go.bin.name).opensource.tar.gz ))
 
 go-build: ## (Go) Build the code with `go build`
 .PHONY: go-build
