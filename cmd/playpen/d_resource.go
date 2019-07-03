@@ -20,12 +20,13 @@ type Resource interface {
 
 // ResourceBase has helpers to create a monitored resource
 type ResourceBase struct {
-	name     string
-	doCheck  func(*supervisor.Process) error
-	doQuit   func() error
-	tasks    chan func() error
-	quitting bool // (Close) to get everything to quit
-	okay     bool // (monitor) cmd is running and check passes
+	name    string
+	doCheck func(*supervisor.Process) error
+	doQuit  func() error
+	tasks   chan func() error
+	okay    bool          // (monitor) cmd is running and check passes
+	done    bool          // (Close) to get everything to quit
+	end     chan struct{} // (Close) closed when the processor finishes
 }
 
 // Name implements Resource
@@ -50,19 +51,12 @@ func (rb *ResourceBase) IsOkay() bool {
 
 // Close shuts down this resource
 func (rb *ResourceBase) Close() error {
-	done := make(chan struct{})
-	rb.tasks <- func() error {
-		defer close(done)
-		return rb.quit()
-	}
-	<-done
-
-	// FIXME: Wait until things have closed?
+	rb.tasks <- rb.quit
+	<-rb.end // Wait until things have closed
 	return nil
 }
 
 func (rb *ResourceBase) quit() error {
-	rb.quitting = true
 	return rb.doQuit()
 }
 
@@ -81,6 +75,8 @@ func (rb *ResourceBase) monitor(p *supervisor.Process) error {
 func (rb *ResourceBase) processor(p *supervisor.Process) error {
 	ticker := time.NewTicker(3 * time.Second)
 	defer ticker.Stop()
+	rb.end = make(chan struct{})
+	defer close(rb.end)
 	p.Ready()
 	for {
 		var task func() error
@@ -95,7 +91,8 @@ func (rb *ResourceBase) processor(p *supervisor.Process) error {
 		if err := task(); err != nil {
 			return err
 		}
-		if rb.quitting {
+		if rb.done {
+			p.Log("done")
 			return nil
 		}
 	}
@@ -159,7 +156,7 @@ func TrackKCluster(p *supervisor.Process, args *ConnectArgs) (*KCluster, error) 
 		},
 	}
 	c.doCheck = c.check
-	c.doQuit = func() error { return nil }
+	c.doQuit = func() error { c.done = true; return nil }
 
 	if err := c.check(p); err != nil {
 		return nil, err
@@ -189,27 +186,32 @@ func TrackKCluster(p *supervisor.Process, args *ConnectArgs) (*KCluster, error) 
 
 // crCmd is a handle to a checked retrying command
 type crCmd struct {
-	args    []string
-	rai     *RunAsInfo
-	check   func() error
-	callerP *supervisor.Process // processor's Process
-	cmd     *supervisor.Cmd     // (run loop) tracks the cmd for killing it
+	args       []string
+	rai        *RunAsInfo
+	check      func() error
+	startGrace time.Duration
+	callerP    *supervisor.Process // processor's Process
+	cmd        *supervisor.Cmd     // (run loop) tracks the cmd for killing it
+	quitting   bool                // (run loop) enables Close()
+	startedAt  time.Time
 	ResourceBase
 }
 
 // CheckedRetryingCommand launches a command, restarting it repeatedly if it
 // quits, and killing and restarting it if it fails the given check.
 func CheckedRetryingCommand(
-	p *supervisor.Process, name string, args []string, rai *RunAsInfo, check func() error,
+	p *supervisor.Process, name string, args []string, rai *RunAsInfo,
+	check func() error, startGrace time.Duration,
 ) (Resource, error) {
 	if check == nil {
 		check = func() error { return nil }
 	}
 	crc := &crCmd{
-		args:    args,
-		rai:     rai,
-		check:   check,
-		callerP: p,
+		args:       args,
+		rai:        rai,
+		check:      check,
+		startGrace: startGrace,
+		callerP:    p,
 		ResourceBase: ResourceBase{
 			name:  name,
 			tasks: make(chan func() error, 1),
@@ -228,43 +230,66 @@ func CheckedRetryingCommand(
 	return crc, nil
 }
 
+func (crc *crCmd) subprocessEnded() error {
+	crc.cmd = nil
+	if crc.quitting {
+		crc.done = true
+	}
+	return nil
+}
+
 func (crc *crCmd) launch() error {
 	if crc.cmd != nil {
 		panic(fmt.Errorf("launching %s: already launched", crc.name))
 	}
+	sup := crc.callerP.Supervisor()
+
+	// Launch the subprocess (set up logging using a worker)
 	launchErr := make(chan error)
-	crc.callerP.Supervisor().Supervise(&supervisor.Worker{
-		Name: crc.name + "/proc",
+	sup.Supervise(&supervisor.Worker{
+		Name: crc.name + "/out",
 		Work: func(p *supervisor.Process) error {
-			// Launch the subprocess
 			crc.cmd = crc.rai.Command(p, crc.args...)
-			if err := crc.cmd.Start(); err != nil {
-				launchErr <- err
-				return nil
-			}
-			launchErr <- nil
-			p.Ready()
-
-			// Wait for the subprocess to end, log
-			p.Logf("subprocess ended: %v", p.DoClean(crc.cmd.Wait, crc.kill))
-			crc.cmd = nil
-
+			launchErr <- crc.cmd.Start()
 			return nil
 		},
 	})
+
+	// Wait for it to start
 	select {
 	case err := <-launchErr:
-		return err
+		if err != nil {
+			return err
+		}
 	case <-crc.callerP.Shutdown():
 		return nil
 	}
+	crc.startedAt = time.Now()
+
+	// Launch a worker to Wait() for it to finish
+	sup.Supervise(&supervisor.Worker{
+		Name: crc.name + "/end",
+		Work: func(p *supervisor.Process) error {
+			// Wait for the subprocess to end. The processor worker will call
+			// kill() on shutdown (via quit()) so we don't need to worry about
+			// supervisor shutdown ourselves.
+			p.Log(crc.cmd.Wait())
+			crc.tasks <- crc.subprocessEnded
+			return nil
+		},
+	})
+
+	return nil
 }
 
 func (crc *crCmd) kill() error {
 	if crc.cmd != nil {
-		return crc.cmd.Process.Signal(syscall.SIGTERM)
+		crc.callerP.Log("killing...")
+		if err := crc.cmd.Process.Signal(syscall.SIGTERM); err != nil {
+			crc.callerP.Logf("kill failed (ignoring): %v", err)
+		}
 	}
-	return nil // Or fmt.Errorf("trying to kill non-running subprocess for %s", crc.name)
+	return nil
 }
 
 func (crc *crCmd) doQuit() error {
@@ -275,14 +300,24 @@ func (crc *crCmd) doQuit() error {
 // doCheck determines whether the subprocess is running and healthy
 func (crc *crCmd) doCheck(p *supervisor.Process) error {
 	if crc.cmd == nil {
+		if crc.quitting {
+			crc.done = true
+			return nil
+		}
 		crc.tasks <- crc.launch
 		return errors.New("not running")
 	}
 	if err := crc.check(); err != nil {
 		p.Logf("check failed: %v", err)
-		// Kill the process because it's in a bad state
-		if err := crc.kill(); err != nil {
-			p.Logf("failed to kill: %v", err)
+		runTime := time.Since(crc.startedAt)
+		if runTime > crc.startGrace {
+			p.Log("Killing...")
+			// Kill the process because it's in a bad state
+			if err := crc.kill(); err != nil {
+				p.Logf("failed to kill: %v", err)
+			}
+		} else {
+			p.Logf("Not killing yet (%v < %v)", runTime, crc.startGrace)
 		}
 		return err // from crc.check() above
 	}
