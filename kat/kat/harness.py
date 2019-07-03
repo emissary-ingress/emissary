@@ -758,6 +758,30 @@ class Runner:
                 # self._setup_k8s(expanded)
                 self._init_topology(expanded)
 
+                driver_name = os.environ.get('KAT_TEST_DRIVER', 'Docker')
+                driver_class_name = f'{driver_name}Driver'
+
+                try:
+                    driver_module = __import__(f'kat.{driver_class_name.lower()}',
+                                               globals(), locals(), fromlist=[ driver_class_name ])
+                except ImportError as e:
+                    raise Exception(f'KAT_TEST_DRIVER {driver_name} could not be imported: {e}')
+
+                driver_class = getattr(driver_module, driver_class_name, None)
+
+                if not driver_class:
+                    raise Exception(f'{driver_name} contains no driver class {driver_class_name}')
+
+                self.driver = driver_class(self.topology)
+
+                if not self.driver.setup():
+                    raise Exception(f'{driver_name} failed setup')
+
+                if not self._wait(selected):
+                    raise Exception(f'{driver_name} failed readiness check')
+
+                print(f'{driver_name} passed readiness check!')
+
                 for t in self.tests:
                     if t in expanded_up:
                         pre_query: Callable = getattr(t, "pre_query", None)
@@ -780,7 +804,27 @@ class Runner:
 
         print(json.dumps(self.topology.as_dict(), sort_keys=True, indent=4))
 
-        raise Exception('halting')
+        if os.environ.get('KAT_JUST_TOPOLOGY', None):
+            pytest.exit("User requested topology only")
+
+    def driver_query(self, queries: Sequence[Query]) -> Sequence[Result]:
+        jsonified = []
+        byid = {}
+
+        for q in queries:
+            jsonified.append(q.as_json())
+            byid[id(q)] = q
+
+        json_results = self.driver.run_queries(jsonified)
+
+        results = []
+
+        for r in json_results:
+            res = r["result"]
+            q = byid[r["id"]]
+            results.append(Result(q, res))
+
+        return results
 
     def get_manifests(self, selected) -> OrderedDict:
         manifests = OrderedDict()
@@ -989,6 +1033,10 @@ class Runner:
                 is_ready, _holdouts = self._ready(kind, reqs)
 
                 if not is_ready:
+                    num_holdouts = len(_holdouts)
+                    first = _holdouts[0]
+                    print("%d not ready (%s) " % (num_holdouts, first), end="")
+
                     holdouts[kind] = _holdouts
                     delay = int(min(delay*2, 10))
                     print("sleeping %ss..." % delay)
@@ -1019,18 +1067,20 @@ class Runner:
 
     @_ready.when("pod")
     def _ready(self, _, requirements):
-        pods = self._pods()
-        not_ready = []
+        return self.driver.pods_ready(requirements)
 
-        for node, name in requirements:
-            if not pods.get(name, False):
-                not_ready.append(name)
-
-        if not_ready:
-            print("%d not ready (%s), " % (len(not_ready), name), end="")
-            return (False, not_ready)
-
-        return (True, None)
+        # pods = self._pods()
+        # not_ready = []
+        #
+        # for node, name in requirements:
+        #     if not pods.get(name, False):
+        #         not_ready.append(name)
+        #
+        # if not_ready:
+        #     print("%d not ready (%s), " % (len(not_ready), name), end="")
+        #     return (False, not_ready)
+        #
+        # return (True, None)
 
     @_ready.when("url")
     def _ready(self, _, requirements):
@@ -1040,13 +1090,16 @@ class Runner:
             q.parent = node
             queries.append(q)
 
-        result = run_queries(queries)
+        results = self.driver_query(queries)
 
-        not_ready = [r for r in result if r.status != r.query.expected]
+        if not results:
+            return (False, [ "no results!" ])
+
+        not_ready = [r for r in results if r.status != r.query.expected]
 
         if not_ready:
-            first = not_ready[0]
-            print("%d not ready (%s: %s) " % (len(not_ready), first.query.url, first.status or first.error), end="")
+            # first = not_ready[0]
+            # print("%d not ready (%s: %s) " % (len(not_ready), first.query.url, first.status or first.error), end="")
             return (False, [ "%s -- %s" % (x.query.url, x.status or x.error) for x in not_ready ])
         else:
             return (True, None)

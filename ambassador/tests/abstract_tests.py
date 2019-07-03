@@ -21,7 +21,8 @@ except AttributeError:
 
 from kat.harness import abstract_test, sanitize, Name, Node, Test, Query
 from kat import manifests
-from kat.utils import ShellCommand
+from kat.utils import ShellCommand, KAT_FAMILY
+from kat.dockerdriver import DockerDriver
 
 AMBASSADOR_LOCAL = """
 ---
@@ -50,7 +51,8 @@ def assert_default_errors(errors):
         assert 'found invalid port' in error[1], "Could not find 'found invalid port' in the error {}".format(error[1])
 
 
-DEV = os.environ.get("AMBASSADOR_DEV", "0").lower() in ("1", "yes", "true")
+#DEV = os.environ.get("AMBASSADOR_DEV", "0").lower() in ("1", "yes", "true")
+DEV = False
 
 
 @abstract_test
@@ -316,30 +318,18 @@ metadata:
         if not AmbassadorTest.IMAGE_BUILT:
             AmbassadorTest.IMAGE_BUILT = True
 
-            cmd = ShellCommand('docker', 'ps', '-a', '-f', 'label=kat-family=ambassador', '--format', '{{.ID}}')
-
-            if cmd.check('find old docker container IDs'):
-                ids = cmd.stdout.split('\n')
-
-                while ids:
-                    if ids[-1]:
-                        break
-
-                    ids.pop()
-
-                if ids:
-                    print("Killing old containers...")
-                    ShellCommand.run('kill old containers', 'docker', 'kill', *ids, verbose=True)
-                    ShellCommand.run('rm old containers', 'docker', 'rm', *ids, verbose=True)
+            DockerDriver.kill_old_containers()
 
             context = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 
             print("Starting docker build...", end="")
             sys.stdout.flush()
 
-            cmd = ShellCommand("docker", "build", "--build-arg", "CACHED_CONTAINER_IMAGE={}".format(cached_image), "--build-arg", "AMBASSADOR_BASE_IMAGE={}".format(ambassador_base_image), context, "-t", image)
-
-            if cmd.check("docker build Ambassador image"):
+            if ShellCommand.run("docker build Ambassador image",
+                                "docker", "build",
+                                "--build-arg", "CACHED_CONTAINER_IMAGE={}".format(cached_image),
+                                "--build-arg", "AMBASSADOR_BASE_IMAGE={}".format(ambassador_base_image),
+                                context, "-t", image):
                 print("done.")
             else:
                 pytest.exit("container failed to build")
@@ -351,9 +341,8 @@ metadata:
         else:
             nsp = getattr(self, 'namespace', None) or 'default'
 
-            cmd = ShellCommand("kubectl", "get", "-n", nsp, "-o", "yaml", "secret", self.path.k8s)
-
-            if not cmd.check(f'fetch secret for {self.path.k8s}'):
+            if not ShellCommand.run(f'fetch secret for {self.path.k8s}',
+                                    "kubectl", "get", "-n", nsp, "-o", "yaml", "secret", self.path.k8s):
                 pytest.exit(f'could not fetch secret for {self.path.k8s}')
 
             content = cmd.stdout
@@ -378,7 +367,7 @@ metadata:
             with open(os.path.join(secret_dir, k), "wb") as f:
                 f.write(base64.decodebytes(bytes(v, "utf8")))
         print("Launching %s container." % self.path.k8s)
-        command = ["docker", "run", "-d", "-l", "kat-family=ambassador", "--name", self.path.k8s]
+        command = ["docker", "run", "-d", "-l", f'kat-family={KAT_FAMILY}', "--name", self.path.k8s]
 
         envs = [ f'{key}={value}' for key, value in self._environ.items() ]
 
@@ -415,20 +404,20 @@ metadata:
         if os.environ.get('KAT_SHOW_DOCKER'):
             print(" ".join(command))
 
-        cmd = ShellCommand(*command)
-
-        if not cmd.check(f'start container for {self.path.k8s}'):
+        if not ShellCommand.run(f'start container for {self.path.k8s}', *command):
             pytest.exit(f'could not start container for {self.path.k8s}')
 
     def queries(self):
         if DEV:
-            cmd = ShellCommand("docker", "ps", "-qf", "name=%s" % self.path.k8s)
+            cmd = ShellCommand(f'docker check for {self.path.k8s}',
+                               "docker", "ps", "-qf", "name=%s" % self.path.k8s)
 
-            if not cmd.check(f'docker check for {self.path.k8s}'):
+            if not cmd.check():
                 if not cmd.stdout.strip():
-                    log_cmd = ShellCommand("docker", "logs", self.path.k8s, stderr=subprocess.STDOUT)
+                    log_cmd = ShellCommand(f'docker logs for {self.path.k8s}',
+                                           "docker", "logs", self.path.k8s, stderr=subprocess.STDOUT)
 
-                    if log_cmd.check(f'docker logs for {self.path.k8s}'):
+                    if log_cmd.check():
                         print(cmd.stdout)
 
                     pytest.exit(f'container failed to start for {self.path.k8s}')

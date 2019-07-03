@@ -16,11 +16,11 @@ ConfigList = List[dict]
 
 class Superpod:
     def __init__(self, namespace: str) -> None:
+        self.name = 'superpod'
         self.namespace = namespace
         self.next_clear = 8080
         self.next_tls = 8443
         self.service_names: Dict[int, str] = {}
-        self.name = 'superpod-%s' % (self.namespace or 'default')
 
     def allocate(self, service_name) -> List[int]:
         ports = [ self.next_clear, self.next_tls ]
@@ -126,7 +126,7 @@ class AmbassadorContainer(Container):
                  ambassador_id: Optional[str]=None,
                  envs: Optional[EnvSpec]=None, ports: Optional[PortSpec]=None,
                  configs: Optional[ConfigList]=None, crds: Optional[ConfigList]=None) -> None:
-        super().__init__(node=node, name=path, namespace=namespace, path=path,
+        super().__init__(node=node, name=name, namespace=namespace, path=path,
                          image=image, ambassador_id=ambassador_id, is_ambassador=True,
                          envs=envs, ports=ports, configs=configs, crds=crds)
 
@@ -139,7 +139,7 @@ class Namespace:
         self.superpod = Superpod(self.name)
         self.superpod_container = self.add_container(Container(node=None,
                                                                name=self.superpod.name,
-                                                               path=self.superpod.name,
+                                                               path=f'{self.superpod.name}.{self.name}',
                                                                namespace=self.name,
                                                                image='quay.io/datawire/kat-backend:13',
                                                                envs={ 'INCLUDE_EXTAUTH_HEADER': 'yes' }))
@@ -272,7 +272,7 @@ class Topology:
         self.add_container(
             AmbassadorContainer(
                 node=n,
-                name=n.name,
+                name=n.path.k8s,
                 path=n.path.fqdn,
                 ambassador_id=ambassador_id,
                 namespace=n.namespace,

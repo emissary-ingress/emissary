@@ -1,6 +1,7 @@
 import re
 import subprocess
 
+KAT_FAMILY='skinningkats'
 
 _quote_pos = re.compile('(?=[^-0-9a-zA-Z_./\n])')
 
