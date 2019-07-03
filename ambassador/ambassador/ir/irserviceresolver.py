@@ -171,7 +171,7 @@ class IRServiceResolver(IRResource):
 
         # Do we have a match for the port they're asking for (y'know, if they're asking for one)?
 
-        targets = endpoints.get(port or '*')
+        targets = endpoints.get(str(port or '*'))
 
         if targets:
             # Yes!

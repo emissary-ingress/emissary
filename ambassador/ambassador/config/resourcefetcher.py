@@ -312,6 +312,13 @@ class ResourceFetcher:
         # Brutal hackery.
         if obj['kind'] == 'Service':
             self.logger.debug("%s PROCESS saving service %s" % (self.location, obj['name']))
+
+            endpoints = obj.get('endpoints', None)
+
+            if endpoints:
+                ep = { str(x): endpoints[x] for x in endpoints.keys() }
+                obj['endpoints'] = ep
+
             self.services[obj['name']] = obj
         else:
             # Fine. Fine fine fine.
