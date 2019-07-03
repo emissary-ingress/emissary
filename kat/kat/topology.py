@@ -134,6 +134,7 @@ class Namespace:
     def __init__(self, name: str):
         self.name = name
         self.containers = {}
+        self.dns = {}
 
         self.superpod = Superpod(self.name)
         self.superpod_container = self.add_container(Container(node=None,
@@ -153,11 +154,19 @@ class Namespace:
         for k in sorted(self.routes.keys()):
             yield self.routes[k]
 
+    def add_dns(self, name: str, c: Container) -> None:
+        self.dns[name] = c
+
+    def get_ip(self, name: str) -> str:
+        return self.dns[name].ip
+
     def add_container(self, c: Container) -> Container:
         if c.name in self.containers:
             raise Exception(f'Namespace {self.name}: container name {c.name} is already in use')
 
         self.containers[c.name] = c
+
+        self.add_dns(c.path, c)
 
         for protocol, src_port, dest_port in c.ports:
             self.add_route(protocol, c.path, src_port, c, dest_port)
@@ -180,6 +189,7 @@ class Namespace:
 
             self.superpod_container.configs = extant_cfgs + configs
 
+        self.add_dns(svc_name, self.superpod_container)
         self.add_route('tcp', svc_name, 80, self.superpod_container, clear)
         self.add_route('tcp', f'{svc_name}.{self.name}', 80, self.superpod_container, clear)
         self.add_route('tcp', svc_name, 443, self.superpod_container, tls)
@@ -204,6 +214,7 @@ class Namespace:
     def as_dict(self) -> dict:
         return {
             'name': self.name,
+            'dns': { name: ( c.path, getattr(c, 'ip', '-no IP yet-') ) for name, c in self.dns.items() },
             'containers': { name: c.as_dict() for name, c in self.containers.items() },
             'routes': self.routes
         }
