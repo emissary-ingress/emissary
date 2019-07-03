@@ -31,6 +31,7 @@
             "items": { "type": "string" }
         },
         "allow_request_body": { "type": "boolean" },
+        "add_linkerd_headers": { "type": "boolean" },
         "include_body": {
             "type": "object",
             "properties": {

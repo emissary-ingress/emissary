@@ -1,4 +1,6 @@
 from ambassador.utils import RichStatus
+from ambassador.utils import ParsedService as Service
+
 from typing import Any, ClassVar, Dict, List, Optional, Type, Union, TYPE_CHECKING
 
 from ..config import Config
@@ -42,6 +44,7 @@ class Header (dict):
 class IRHTTPMapping (IRBaseMapping):
     prefix: str
     headers: List[Header]
+    add_request_headers: Dict[str, str]
     method: Optional[str]
     service: str
     group_id: str
@@ -51,11 +54,12 @@ class IRHTTPMapping (IRBaseMapping):
     sni: bool
 
     AllowedKeys: ClassVar[Dict[str, bool]] = {
-        "add_request_headers": True,
+        # Do not include add_request_headers
         "add_response_headers": True,
         "auto_host_rewrite": True,
         "case_sensitive": True,
         "circuit_breakers": True,
+        "add_linkerd_headers": True,
         "cors": True,
         "retry_policy": True,
         "enable_ipv4": True,
@@ -116,6 +120,7 @@ class IRHTTPMapping (IRBaseMapping):
 
         # ...then set up the headers (since we need them to compute our group ID).
         hdrs = []
+        add_request_hdrs = kwargs.get('add_request_headers', {})
 
         if 'headers' in kwargs:
             for name, value in kwargs.get('headers', {}).items():
@@ -132,14 +137,26 @@ class IRHTTPMapping (IRBaseMapping):
             hdrs.append(Header(":authority", kwargs['host'], kwargs.get('host_regex', False)))
             self.tls_context = self.match_tls_context(kwargs['host'], ir)
 
+        if 'service' in kwargs:
+            svc = Service(ir.logger, kwargs['service'])
+
+            if 'add_linkerd_headers' in kwargs:
+                if kwargs['add_linkerd_headers'] is True: 
+                    add_request_hdrs['l5d-dst-override'] = svc.hostname_port
+            else:
+                if 'add_linkerd_headers' in ir.ambassador_module and ir.ambassador_module.add_linkerd_headers is True:
+                    add_request_hdrs['l5d-dst-override'] = svc.hostname_port
+
         if 'method' in kwargs:
             hdrs.append(Header(":method", kwargs['method'], kwargs.get('method_regex', False)))
+
 
         # ...and then init the superclass.
         super().__init__(
             ir=ir, aconf=aconf, rkey=rkey, location=location,
             kind=kind, name=name, apiVersion=apiVersion,
-            headers=hdrs, precedence=precedence, rewrite=rewrite,
+            headers=hdrs, add_request_headers=add_request_hdrs, 
+            precedence=precedence, rewrite=rewrite,
             **new_args
         )
 

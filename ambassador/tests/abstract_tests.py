@@ -386,6 +386,7 @@ metadata:
             "KUBERNETES_SERVICE_HOST=kubernetes",
             "KUBERNETES_SERVICE_PORT=443",
             "AMBASSADOR_SNAPSHOT_COUNT=1",
+            "AMBASSADOR_CONFIG_BASE_DIR=/tmp/ambassador",
             f"AMBASSADOR_ID={self.ambassador_id}"
         ]
 

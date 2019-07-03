@@ -30,6 +30,8 @@ from ...ir.ircors import IRCORS
 from ...ir.ircluster import IRCluster
 from ...ir.irtcpmappinggroup import IRTCPMappingGroup
 
+from ambassador.utils import ParsedService as Service
+
 from .v2tls import V2TLSContext
 # from .v2route import V2Route
 
@@ -253,6 +255,7 @@ def v2filter_authv1(auth: IRAuth, v2config: 'V2Config'):
 
     if auth.proto == "http":
         allowed_authorization_headers = []
+        headers_to_add = []
 
         for key in list(set(auth.allowed_authorization_headers).union(AllowedAuthorizationHeaders)):
             allowed_authorization_headers.append({"exact": key})
@@ -261,6 +264,13 @@ def v2filter_authv1(auth: IRAuth, v2config: 'V2Config'):
 
         for key in list(set(auth.allowed_request_headers).union(AllowedRequestHeaders)):
             allowed_request_headers.append({"exact": key})
+
+        if auth.get('add_linkerd_headers', False):
+            svc = Service(auth.ir.logger, auth_cluster_uri(auth, cluster))
+            headers_to_add.append({
+                'key' : 'l5d-dst-override', 
+                'value': svc.hostname_port
+            })
 
         auth_info = {
             'name': 'envoy.ext_authz',
@@ -273,9 +283,10 @@ def v2filter_authv1(auth: IRAuth, v2config: 'V2Config'):
                     },
                     'path_prefix': auth.path_prefix,
                     'authorization_request': {
-                    'allowed_headers': {
+                        'allowed_headers': {
                             'patterns': allowed_request_headers
-                        }
+                        },
+                        'headers_to_add' : headers_to_add
                     },
                     'authorization_response' : {
                         'allowed_upstream_headers': {
