@@ -50,6 +50,7 @@ class Config:
     ambassador_namespace: ClassVar[str] = os.environ.get('AMBASSADOR_NAMESPACE', 'default')
     single_namespace: ClassVar[bool] = bool(os.environ.get('AMBASSADOR_SINGLE_NAMESPACE'))
     enable_endpoints: ClassVar[bool] = not bool(os.environ.get('AMBASSADOR_DISABLE_ENDPOINTS'))
+    envoy_log_format: ClassVar[str] = os.environ.get('ENVOY_LOG_FORMAT', '')
 
     StorageByKind: ClassVar[Dict[str, str]] = {
         'authservice': "auth_configs",

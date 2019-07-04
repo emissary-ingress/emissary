@@ -14,6 +14,7 @@
 
 from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING
 from typing import cast as typecast
+from ...config import Config
 
 import json
 
@@ -509,6 +510,38 @@ class V2Listener(dict):
                     'format': 'ACCESS [%START_TIME%] \"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\" %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% \"%REQ(X-FORWARDED-FOR)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\" \"%UPSTREAM_HOST%\"\n'
                 }
             } ]
+             # Use sane access log spec in JSON
+            if Config.envoy_log_format == "json" :
+                self.access_log = [ {
+                    'name': 'envoy.file_access_log',
+                    "config": {
+                        'path': '/dev/fd/1',
+                        "json_format": {
+                            "start_time": "%START_TIME%",
+                            "method":"%REQ(:METHOD)%",
+                            "path":"%REQ(X-ENVOY-ORIGINAL-PATH?:PATH)%",
+                            "protocol": "%PROTOCOL%",
+                            "response_code":"%RESPONSE_CODE%",
+                            "response_flags":"%RESPONSE_FLAGS%",
+                            "bytes_received":"%BYTES_RECEIVED%",
+                            "bytes_sent":"%BYTES_SENT%",
+                            "duration": "%DURATION%",
+                            "upstream_service_time": "%RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)%",
+                            "x_forwarded_for": "%REQ(X-FORWARDED-FOR)%",
+                            "user_agent": "%REQ(USER-AGENT)%",
+                            "request_id": "%REQ(X-REQUEST-ID)%",
+                            "authority": "%REQ(:AUTHORITY)%",
+                            "upstream_host":"%UPSTREAM_HOST%",
+                            "upstream_cluster": "%UPSTREAM_CLUSTER%",
+                            "upstream_local_address": "%UPSTREAM_LOCAL_ADDRESS%",
+                            "downstream_local_address": "%DOWNSTREAM_LOCAL_ADDRESS%",
+                            "downstream_remote_address": "%DOWNSTREAM_REMOTE_ADDRESS%",
+                            "requested_server_name": "%REQUESTED_SERVER_NAME%",
+                            "istio_policy_status": "%DYNAMIC_METADATA(istio.mixer:status)%",
+                            "upstream_transport_failure_reason":"%UPSTREAM_TRANSPORT_FAILURE_REASON%"
+                        }
+                    }
+                } ]
 
             # Assemble filters
             for f in config.ir.filters:
