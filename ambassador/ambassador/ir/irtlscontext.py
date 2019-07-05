@@ -6,10 +6,10 @@ import os
 from ..utils import RichStatus, SavedSecret
 from ..config import ACResource
 from .irresource import IRResource
-from .irtls import IRAmbassadorTLS
 
 if TYPE_CHECKING:
     from .ir import IR
+    from .irtls import IRAmbassadorTLS
 
 
 class IRTLSContext(IRResource):
@@ -29,6 +29,7 @@ class IRTLSContext(IRResource):
     min_tls_version: Optional[str]
     max_tls_version: Optional[str]
     redirect_cleartext_from: Optional[int]
+    secret_namespacing: Optional[bool]
     secret_info: dict
 
     def __init__(self, ir: 'IR', config,
@@ -59,6 +60,7 @@ class IRTLSContext(IRResource):
         self.cert_required = config.get('cert_required')
         self.min_tls_version = config.get('min_tls_version')
         self.max_tls_version = config.get('max_tls_version')
+        self.secret_namespacing = config.get('secret_namespacing', None)
 
         rcf = config.get('redirect_cleartext_from')
 
@@ -77,15 +79,17 @@ class IRTLSContext(IRResource):
                 self.secret_info[key] = config[key]
 
         # ir.logger.debug("IRTLSContext at setup: %s" % self.as_json())
+        #
+        # rc = False
+        #
+        # if self.get('_ambassador_enabled', False):
+        #     ir.logger.debug("IRTLSContext skipping resolution of null context")
+        #     rc = True
+        # else:
+        #     if self.resolve():
+        #         rc = True
 
-        rc = False
-
-        if self.get('_ambassador_enabled', False):
-            ir.logger.debug("IRTLSContext skipping resolution of null context")
-            rc = True
-        else:
-            if self.resolve():
-                rc = True
+        rc = True
 
         ir.logger.debug("IRTLSContext setup done (returning %s): %s" % (rc, self.as_json()))
 
@@ -123,6 +127,10 @@ class IRTLSContext(IRResource):
         return True
 
     def resolve(self) -> bool:
+        if self.get('_ambassador_enabled', False):
+            self.ir.logger.debug("IRTLSContext skipping resolution of null context")
+            return True
+
         # is_valid determines if the TLS context is valid
         is_valid = False
 
@@ -262,8 +270,8 @@ class IRTLSContext(IRResource):
 
     @classmethod
     def from_legacy(cls, ir: 'IR', name: str, rkey: str, location: str,
-                    cert: IRAmbassadorTLS, termination: bool,
-                    validation_ca: Optional[IRAmbassadorTLS]) -> 'IRTLSContext':
+                    cert: 'IRAmbassadorTLS', termination: bool,
+                    validation_ca: Optional['IRAmbassadorTLS']) -> 'IRTLSContext':
         """
         Create an IRTLSContext from a legacy TLS-module style definition.
 

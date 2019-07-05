@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # Copyright 2018 Datawire. All rights reserved.
 #
@@ -22,37 +22,59 @@ APPDIR=${APPDIR:-/application}
 env | grep V
 echo "STATS-TEST: args $@"
 
-pids=()
+pids=""
+
+diediedie() {
+    NAME=$1
+    STATUS=$2
+
+    if [ $STATUS -eq 0 ]; then
+        echo "STATS-TEST: $NAME claimed success, but exited \?\?\?\?"
+    else
+        echo "STATS-TEST: $NAME exited with status $STATUS"
+    fi
+
+    ambassador_exit 1
+}
 
 handle_chld() {
-    local tmp=()
-
-    for (( i=0; i<${#pids[@]}; ++i )); do
-        split=(${pids[$i]//;/ })    # the space after the trailing / is critical!
-        pid=${split[0]}
-        name=${split[1]}
-
-        if [ ! -d /proc/$pid ]; then
-            wait $pid
-            echo "AUTH: $name exited: $?"
-            echo "AUTH: shutting down"
-            exit 1
+    trap - CHLD
+    local tmp
+    for entry in $pids; do
+        local pid="${entry%:*}"
+        local name="${entry#*:}"
+        if [ ! -d "/proc/${pid}" ]; then
+            wait "${pid}"
+            STATUS=$?
+            diediedie "${name}" "$STATUS"
         else
-            tmp+=(${pids[i]})
+            tmp="${tmp:+${tmp} }${entry}"
         fi
     done
 
-    pids=(${tmp[@]})
+    pids="$tmp"
+    trap "handle_chld" CHLD
 }
 
-set -o monitor
+handle_int() {
+    echo "Exiting due to Control-C"
+}
+
+# set -o monitor
 trap "handle_chld" CHLD
+trap "handle_int" INT
 
 ROOT=$$
 
 echo "STATS-TEST: starting stats-test service"
 /usr/bin/python3 "$APPDIR/stats-test.py" "$@" &
-pids+=("$!;stats-test")
+TEST_PID=$!
+pids="${pids:+${pids} }${TEST_PID}:stats-test"
+
+echo "STATS-TEST: starting stats-web service"
+/usr/bin/python3 "$APPDIR/stats-web.py" &
+WEB_PID=$!
+pids="${pids:+${pids} }${WEB_PID}:stats-web"
 
 echo "STATS-TEST: waiting"
 wait

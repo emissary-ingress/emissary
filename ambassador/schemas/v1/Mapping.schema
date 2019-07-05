@@ -19,6 +19,7 @@
         "service": { "type": "string" },
         "add_request_headers": { "$ref": "#/definitions/mapStrObj" },
         "add_response_headers": { "$ref": "#/definitions/mapStrObj" },
+        "add_linkerd_headers": { "type": "boolean" },
         "auto_host_rewrite": { "type": "boolean" },
         "case_sensitive": { "type": "boolean" },
         "enable_ipv4": { "type": "boolean" },

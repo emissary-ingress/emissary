@@ -29,7 +29,11 @@ teardown=yes
 if [ \( -n "$CI_DEBUG_KAT_BRANCH" \) ]; then
 	if [ "$GIT_BRANCH" = "$CI_DEBUG_KAT_BRANCH" ]; then
 		echo "Leaving Kat cluster intact for debugging:"
+		echo "===="
 		kubectl cluster-info
+        echo "==== CLUSTER.YAML ===="
+	    gzip -9 < cluster.yaml | base64
+		
 		teardown=
 	else
 		echo "Not running on debug branch ${CI_DEBUG_KAT_BRANCH}"

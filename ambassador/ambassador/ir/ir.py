@@ -128,8 +128,19 @@ class IR:
         self.groups = {}
         self.resolvers = {}
 
-        # OK, time to get this show on the road. Grab whatever information our aconf
-        # has about secrets...
+        # OK, time to get this show on the road. First things first: set up the
+        # Ambassador module.
+        #
+        # The Ambassador module is special: it doesn't do anything in its setup() method, but
+        # instead defers all its heavy lifting to its finalize() method. Why? Because we need
+        # to create the Ambassador module very early to allow IRResource.lookup() to work, but
+        # we need to go pull in secrets and such before we can get all the Ambassador-module
+        # stuff fully set up.
+        #
+        # So. First, create the module.
+        self.ambassador_module = typecast(IRAmbassador, self.save_resource(IRAmbassador(self, aconf)))
+
+        # Next, grab whatever information our aconf has about secrets...
         self.save_secret_info(aconf)
 
         # ...and then it's on to default TLS stuff, both from the TLS module and from
@@ -142,9 +153,11 @@ class IR:
         TLSModuleFactory.load_all(self, aconf)
         self.save_tls_contexts(aconf)
 
-        # Next, handle the "Ambassador" module. This is last so that the Ambassador module has all
-        # the TLS contexts available to it.
-        self.ambassador_module = typecast(IRAmbassador, self.save_resource(IRAmbassador(self, aconf)))
+        # Now we can finalize the Ambassador module, to tidy up secrets et al. We do this
+        # here so that secrets and TLS contexts are available.
+        if not self.ambassador_module.finalize(self, aconf):
+            # Uhoh.
+            self.ambassador_module.set_active(False)    # This can't be good.
 
         # Save circuit breakers, outliers, and services.
         self.breakers = aconf.get_config("CircuitBreaker") or {}
@@ -293,8 +306,19 @@ class IR:
         # in the Ambassador's namespace...
         namespace = self.ambassador_namespace
 
-        # ...but allow secrets to override the namespace, too.
-        if "." in secret_name:
+        # You can't just always allow '.' in a secret name to span namespaces, or you end up with
+        # https://github.com/datawire/ambassador/issues/1255, which is particularly problematic
+        # because (https://github.com/datawire/ambassador/issues/1475) Istio likes to use '.' in
+        # mTLS secret names. So we default to allowing the '.' as a namespace separator, but
+        # you can set secret_namespacing to False in a TLSContext or tls_secret_namespacing False
+        # in the Ambassador module's defaults to prevent that.
+
+        secret_namespacing = context.lookup('secret_namespacing', True,
+                                            default_key='tls_secret_namespacing')
+
+        self.logger.info(f"resolve_secret {secret_name}, namespace {namespace}: namespacing is {secret_namespacing}")
+
+        if "." in secret_name and secret_namespacing:
             secret_name, namespace = secret_name.split('.', 1)
 
         # OK. Do we already have a SavedSecret for this?
@@ -304,17 +328,17 @@ class IR:
 
         if ss:
             # Done. Return it.
-            self.logger.debug(f"resolve_secret {ss_key}: using cached SavedSecret")
+            self.logger.info(f"resolve_secret {ss_key}: using cached SavedSecret")
             return ss
 
         # OK, do we have a secret_info for it??
         secret_info = self.secret_info.get(ss_key, None)
 
         if secret_info:
-            self.logger.debug(f"resolve_secret {ss_key}: found secret_info")
+            self.logger.info(f"resolve_secret {ss_key}: found secret_info")
         else:
             # No secret_info, so ask the secret_handler to find us one.
-            self.logger.debug(f"resolve_secret {ss_key}: asking handler to load")
+            self.logger.info(f"resolve_secret {ss_key}: asking handler to load")
             secret_info = self.secret_handler.load_secret(context, secret_name, namespace)
 
         if not secret_info:
@@ -322,7 +346,7 @@ class IR:
 
             ss = SavedSecret(secret_name, namespace, None, None, None)
         else:
-            self.logger.debug(f"resolve_secret {ss_key}: asking handler to cache")
+            self.logger.info(f"resolve_secret {ss_key}: asking handler to cache")
 
             # OK, we got a secret_info. Cache that using the secret handler.
             ss = self.secret_handler.cache_secret(context, secret_info)

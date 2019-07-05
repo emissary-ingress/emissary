@@ -31,6 +31,7 @@
             "items": { "type": "string" }
         },
         "allow_request_body": { "type": "boolean" },
+        "add_linkerd_headers": { "type": "boolean" },
         "include_body": {
             "type": "object",
             "properties": {
@@ -38,6 +39,25 @@
                 "allow_partial": { "type": "boolean" }
             },
             "required": [ "max_bytes", "allow_partial" ],
+            "additionalProperties": false
+        },
+        "status_on_error": { 
+            "type": "object",
+            "properties": {
+                "code": { "type": "integer" }
+            }
+        },
+        "failure_mode_allow": { "type": "boolean" },
+        "retry_policy": {
+            "type": "object",
+            "properties": {
+                "retry_on":  {
+                    "type": "string",
+                    "enum": ["5xx", "gateway-error", "connect-failure", "retriable-4xx", "refused-stream", "retriable-status-codes"]
+                },
+                "num_retries": { "type": "integer" },
+                "per_try_timeout": { "type": "string" }
+            },
             "additionalProperties": false
         }
     },

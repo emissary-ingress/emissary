@@ -1,17 +1,16 @@
 # Gzip Compression
 
-Gzip enables Ambassador to compress upstream data upon client request. Compression is useful in situations where large payloads need to be transmitted without compromising the response time.
-
+Gzip enables Ambassador to compress upstream data upon client request. Compression is useful in situations where large payloads need to be transmitted without compromising the response time. Compression can also save on bandwidth costs at the expense of increased compute cost.
 
 # How does it work
 
-When gzip filter is enabled, request and response headers are inspected to determine whether or not the content should be compressed. The content is compressed and then sent to the client with the appropriate headers if either response and request allow.
+When the gzip filter is enabled, request and response headers are inspected to determine whether or not the content should be compressed. The content is compressed and then sent to the client with the appropriate headers if either response and request allow.
 
 For more details see [Envoy - Gzip](https://www.envoyproxy.io/docs/envoy/latest/configuration/http_filters/gzip_filter#how-it-works)
 
-## The `gzip` api
+## The `gzip` API
 
-- `memory_level`: Value from 1 to 9 that controls the amount of internal memory used by zlib. Higher values use more memory, but are faster and produce better compression results. The default value is 5
+- `memory_level`: Value from 1 to 9 that controls the amount of internal memory used by zlib. Higher values use more memory, but are faster and produce better compression results. The default value is 5.
 - `min_content_length`: Minimum response length, in bytes, which will trigger compression. The default value is 30.
 - `compression_level`: A value used for selecting the zlib compression level. This setting will affect speed and amount of compression applied to the content. “BEST” provides higher compression at the cost of higher latency, “SPEED” provides lower compression with minimum impact on response time. “DEFAULT” provides an optimal result between speed and compression. This field will be set to “DEFAULT” if not specified.
 - `compression_strategy`: A value used for selecting the zlib compression strategy which is directly related to the characteristics of the content. Most of the time “DEFAULT” will be the best choice, though there are situations which changing this parameter might produce better results. For example, run-length encoding (RLE) is typically used when the content is known for having sequences which same data occurs many consecutive times. For more information about each strategy, please refer to zlib manual.

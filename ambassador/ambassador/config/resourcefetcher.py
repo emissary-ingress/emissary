@@ -62,7 +62,8 @@ class ResourceFetcher:
     def pop_location(self) -> None:
         self.filename, self.ocount = self.saved.pop()
 
-    def load_from_filesystem(self, config_dir_path, recurse: bool=False, k8s: bool=False):
+    def load_from_filesystem(self, config_dir_path, recurse: bool=False,
+                             k8s: bool=False, finalize: bool=True):
         inputs: List[Tuple[str, str]] = []
 
         if os.path.isdir(config_dir_path):
@@ -100,14 +101,15 @@ class ResourceFetcher:
 
             try:
                 serialization = open(filepath, "r").read()
-                self.parse_yaml(serialization, k8s=k8s, filename=filename)
+                self.parse_yaml(serialization, k8s=k8s, filename=filename, finalize=False)
             except IOError as e:
                 self.aconf.post_error("could not read YAML from %s: %s" % (filepath, e))
 
-        self.finalize()
+        if finalize:
+            self.finalize()
 
     def parse_yaml(self, serialization: str, k8s=False, rkey: Optional[str]=None,
-                   filename: Optional[str]=None) -> None:
+                   filename: Optional[str]=None, finalize: bool=True) -> None:
         # self.logger.debug("%s: parsing %d byte%s of YAML:\n%s" %
         #                   (self.location, len(serialization), "" if (len(serialization) == 1) else "s",
         #                    serialization))
@@ -118,10 +120,11 @@ class ResourceFetcher:
         except yaml.error.YAMLError as e:
             self.aconf.post_error("%s: could not parse YAML: %s" % (self.location, e))
 
-        self.finalize()
+        if finalize:
+            self.finalize()
 
     def parse_json(self, serialization: str, k8s=False, rkey: Optional[str]=None,
-                   filename: Optional[str]=None) -> None:
+                   filename: Optional[str]=None, finalize: bool=True) -> None:
         # self.logger.debug("%s: parsing %d byte%s of YAML:\n%s" %
         #                   (self.location, len(serialization), "" if (len(serialization) == 1) else "s",
         #                    serialization))
@@ -132,14 +135,16 @@ class ResourceFetcher:
         except json.decoder.JSONDecodeError as e:
             self.aconf.post_error("%s: could not parse YAML: %s" % (self.location, e))
 
-        self.finalize()
+        if finalize:
+            self.finalize()
 
-    def parse_watt(self, serialization: str) -> None:
+    def parse_watt(self, serialization: str, finalize: bool=True) -> None:
+        basedir = os.environ.get('AMBASSADOR_CONFIG_BASE_DIR', '/ambassador')
 
-        if os.path.isfile(os.path.abspath('.ambassador_ignore_crds')):
+        if os.path.isfile(os.path.join(basedir, '.ambassador_ignore_crds')):
             self.aconf.post_error("Ambassador could not find core CRD definitions. Please visit https://www.getambassador.io/reference/core/crds/ for more information. You can continue using Ambassador via Kubernetes annotations, any configuration via CRDs will be ignored...")
 
-        if os.path.isfile(os.path.abspath('.ambassador_ignore_crds_2')):
+        if os.path.isfile(os.path.join(basedir, '.ambassador_ignore_crds_2')):
             self.aconf.post_error("Ambassador could not find Resolver type CRD definitions. Please visit https://www.getambassador.io/reference/core/crds/ for more information. You can continue using Ambassador via Kubernetes annotations, any configuration via CRDs will be ignored...")
 
         try:
@@ -174,7 +179,8 @@ class ResourceFetcher:
         except json.decoder.JSONDecodeError as e:
             self.aconf.post_error("%s: could not parse WATT: %s" % (self.location, e))
 
-        self.finalize()
+        if finalize:
+            self.finalize()
 
     def handle_k8s(self, obj: dict) -> None:
         # self.logger.debug("handle_k8s obj %s" % json.dumps(obj, indent=4, sort_keys=True))
@@ -303,13 +309,21 @@ class ResourceFetcher:
 
         # self.logger.debug("%s PROCESS %s updated rkey to %s" % (self.location, obj['kind'], rkey))
 
-        # Fine. Fine fine fine.
-        serialization = dump_yaml(obj, default_flow_style=False)
+        # Brutal hackery.
+        if obj['kind'] == 'Service':
+            self.logger.debug("%s PROCESS saving service %s" % (self.location, obj['name']))
+            self.services[obj['name']] = obj
+        else:
+            # Fine. Fine fine fine.
+            serialization = dump_yaml(obj, default_flow_style=False)
 
-        r = ACResource.from_dict(rkey, rkey, serialization, obj)
-        self.elements.append(r)
+            try:
+                r = ACResource.from_dict(rkey, rkey, serialization, obj)
+                self.elements.append(r)
+            except Exception as e:
+                self.aconf.post_error(e.args[0])
 
-        # self.logger.debug("%s PROCESS %s save %s: %s" % (self.location, obj['kind'], rkey, serialization))
+            self.logger.debug("%s PROCESS %s save %s: %s" % (self.location, obj['kind'], rkey, serialization))
 
     def sorted(self, key=lambda x: x.rkey):  # returns an iterator, probably
         return sorted(self.elements, key=key)

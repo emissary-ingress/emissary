@@ -7,6 +7,7 @@ from ..resource import Resource
 
 from .irfilter import IRFilter
 from .ircluster import IRCluster
+from .irretrypolicy import IRRetryPolicy
 
 if TYPE_CHECKING:
     from .ir import IR
@@ -41,13 +42,13 @@ class IRAuth (IRFilter):
         module_info = aconf.get_module("authentication")
 
         if module_info:
-            self._load_auth(module_info)
+            self._load_auth(module_info, ir)
 
         config_info = aconf.get_config("auth_configs")
 
         if config_info:
             for config in config_info.values():
-                self._load_auth(config)
+                self._load_auth(config, ir)
 
         if not self.hosts:
             self.logger.debug("IRAuth: found no hosts! going inactive")
@@ -93,7 +94,7 @@ class IRAuth (IRFilter):
             ir.add_cluster(typecast(IRCluster, self.cluster))
             self.referenced_by(typecast(IRCluster, self.cluster))
 
-    def _load_auth(self, module: Resource):
+    def _load_auth(self, module: Resource, ir: 'IR'):
         if self.location == '--internal--':
             self.sourced_by(module)
 
@@ -114,6 +115,13 @@ class IRAuth (IRFilter):
                     self[key] = value
 
             self.referenced_by(module)
+        
+        if module.get("add_linkerd_headers"):
+            self["add_linkerd_headers"] = module.get("add_linkerd_headers")
+        else:
+            add_linkerd_headers = module.get('add_linkerd_headers', None)
+            if add_linkerd_headers is None:
+                self["add_linkerd_headers"] = ir.ambassador_module.get('add_linkerd_headers', False)
 
         self["allow_request_body"] = module.get("allow_request_body", False)
         self["include_body"] = module.get("include_body", None)
@@ -124,6 +132,18 @@ class IRAuth (IRFilter):
         self.__to_header_list('allowed_headers', module)
         self.__to_header_list('allowed_request_headers', module)
         self.__to_header_list('allowed_authorization_headers', module)
+
+        status_on_error = module.get('status_on_error', None)
+        if status_on_error:
+            self['status_on_error'] = status_on_error
+        
+        failure_mode_allow = module.get('failure_mode_allow', None)
+        if failure_mode_allow:
+            self['failure_mode_allow'] = failure_mode_allow
+        
+        retry_policy = module.get('retry_policy', None)
+        if retry_policy:
+            self["retry_policy"] = IRRetryPolicy(ir=self.ir, aconf=self.ir.aconf, **retry_policy)
 
         # Required fields check.
         if self["api_version"] == None:
