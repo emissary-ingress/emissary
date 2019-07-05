@@ -619,7 +619,6 @@ venv/bin/protoc-gen-validate: go.mod | venv/bin/activate
 gomoddir = $(shell $(FLOCK) go.mod go list $1/... >/dev/null 2>/dev/null; $(FLOCK) go.mod go list -m -f='{{.Dir}}' $1)
 imports += $(CURDIR)/envoy/api
 imports += $(call gomoddir,github.com/envoyproxy/protoc-gen-validate)
-imports += $(call gomoddir,github.com/gogo/protobuf)
 imports += $(call gomoddir,github.com/gogo/protobuf)/protobuf
 imports += $(call gomoddir,istio.io/gogo-genproto)/prometheus
 imports += $(call gomoddir,istio.io/gogo-genproto)/googleapis
