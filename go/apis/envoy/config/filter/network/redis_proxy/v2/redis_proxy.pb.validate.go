@@ -370,6 +370,21 @@ func (m *RedisProxy_PrefixRoutes) Validate() error {
 
 	// no validation rules for CatchAllCluster
 
+	{
+		tmp := m.GetCatchAllRoute()
+
+		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+			if err := v.Validate(); err != nil {
+				return RedisProxy_PrefixRoutesValidationError{
+					field:  "CatchAllRoute",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+	}
+
 	return nil
 }
 
@@ -437,12 +452,7 @@ func (m *RedisProxy_PrefixRoutes_Route) Validate() error {
 		return nil
 	}
 
-	if len(m.GetPrefix()) < 1 {
-		return RedisProxy_PrefixRoutes_RouteValidationError{
-			field:  "Prefix",
-			reason: "value length must be at least 1 bytes",
-		}
-	}
+	// no validation rules for Prefix
 
 	// no validation rules for RemovePrefix
 
@@ -451,6 +461,26 @@ func (m *RedisProxy_PrefixRoutes_Route) Validate() error {
 			field:  "Cluster",
 			reason: "value length must be at least 1 bytes",
 		}
+	}
+
+	for idx, item := range m.GetRequestMirrorPolicy() {
+		_, _ = idx, item
+
+		{
+			tmp := item
+
+			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+				if err := v.Validate(); err != nil {
+					return RedisProxy_PrefixRoutes_RouteValidationError{
+						field:  fmt.Sprintf("RequestMirrorPolicy[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					}
+				}
+			}
+		}
+
 	}
 
 	return nil
@@ -512,3 +542,103 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = RedisProxy_PrefixRoutes_RouteValidationError{}
+
+// Validate checks the field values on
+// RedisProxy_PrefixRoutes_Route_RequestMirrorPolicy with the rules defined in
+// the proto definition for this message. If any rules are violated, an error
+// is returned.
+func (m *RedisProxy_PrefixRoutes_Route_RequestMirrorPolicy) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	if len(m.GetCluster()) < 1 {
+		return RedisProxy_PrefixRoutes_Route_RequestMirrorPolicyValidationError{
+			field:  "Cluster",
+			reason: "value length must be at least 1 bytes",
+		}
+	}
+
+	{
+		tmp := m.GetRuntimeFraction()
+
+		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+			if err := v.Validate(); err != nil {
+				return RedisProxy_PrefixRoutes_Route_RequestMirrorPolicyValidationError{
+					field:  "RuntimeFraction",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+	}
+
+	// no validation rules for ExcludeReadCommands
+
+	return nil
+}
+
+// RedisProxy_PrefixRoutes_Route_RequestMirrorPolicyValidationError is the
+// validation error returned by
+// RedisProxy_PrefixRoutes_Route_RequestMirrorPolicy.Validate if the
+// designated constraints aren't met.
+type RedisProxy_PrefixRoutes_Route_RequestMirrorPolicyValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e RedisProxy_PrefixRoutes_Route_RequestMirrorPolicyValidationError) Field() string {
+	return e.field
+}
+
+// Reason function returns reason value.
+func (e RedisProxy_PrefixRoutes_Route_RequestMirrorPolicyValidationError) Reason() string {
+	return e.reason
+}
+
+// Cause function returns cause value.
+func (e RedisProxy_PrefixRoutes_Route_RequestMirrorPolicyValidationError) Cause() error {
+	return e.cause
+}
+
+// Key function returns key value.
+func (e RedisProxy_PrefixRoutes_Route_RequestMirrorPolicyValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e RedisProxy_PrefixRoutes_Route_RequestMirrorPolicyValidationError) ErrorName() string {
+	return "RedisProxy_PrefixRoutes_Route_RequestMirrorPolicyValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e RedisProxy_PrefixRoutes_Route_RequestMirrorPolicyValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sRedisProxy_PrefixRoutes_Route_RequestMirrorPolicy.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = RedisProxy_PrefixRoutes_Route_RequestMirrorPolicyValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = RedisProxy_PrefixRoutes_Route_RequestMirrorPolicyValidationError{}

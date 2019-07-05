@@ -33,6 +33,70 @@ var (
 	_ = types.DynamicAny{}
 )
 
+// Validate checks the field values on TdsDummy with the rules defined in the
+// proto definition for this message. If any rules are violated, an error is returned.
+func (m *TdsDummy) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	return nil
+}
+
+// TdsDummyValidationError is the validation error returned by
+// TdsDummy.Validate if the designated constraints aren't met.
+type TdsDummyValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e TdsDummyValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e TdsDummyValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e TdsDummyValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e TdsDummyValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e TdsDummyValidationError) ErrorName() string { return "TdsDummyValidationError" }
+
+// Error satisfies the builtin error interface
+func (e TdsDummyValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sTdsDummy.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = TdsDummyValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = TdsDummyValidationError{}
+
 // Validate checks the field values on Runtime with the rules defined in the
 // proto definition for this message. If any rules are violated, an error is returned.
 func (m *Runtime) Validate() error {
