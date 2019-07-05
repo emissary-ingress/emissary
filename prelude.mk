@@ -28,7 +28,7 @@
 #  - Function: lazyonce
 #  - .PHONY Target: FORCE
 #
-#  - target: _prelude_clobber
+#  - Target: _prelude_clobber
 ## common.mk targets ##
 #  - clobber
 ifeq ($(words $(filter $(abspath $(lastword $(MAKEFILE_LIST))),$(abspath $(MAKEFILE_LIST)))),1)

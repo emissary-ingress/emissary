@@ -14,6 +14,12 @@
 
    include guards to make sure they are only included once; similar to
    how you would with a C header file.
+ - The Make `export` directive *only* affects recipes, and does *not*
+   affect `$(shell …)`.  Because of this, you shoud not call `go`
+   inside of `$(shell …)`, as `$GO111MODULE` may not have the correct
+   value.
+ - Make sure to pass `--fail` to `curl` when downloading things;
+   otherwise it will silently save 404 HTML/XML pages.
 
 ## Naming conventions
 
@@ -41,10 +47,13 @@
    (including macOS).  Therefore, `--` working is a reasonable base
    assumption.  Known exceptions:
     * macOS `chmod`
+ - Prefer `curl` to `wget`; macOS ships with `curl`, it doesn't ship
+   with `wget`.
 
 ## Style guide
 
- - (see "Naming conventions")
+ - See "Naming conventions"..
+ - See [`docs/conventions.md`](./docs/conventions.md).
  - Place `.PHONY:` immediately *after* the rule definition.
  - Use pattern rules instead of "old-fashioned suffix rules" (as the
    GNU Make manual refers to them).
