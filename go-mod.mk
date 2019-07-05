@@ -164,32 +164,6 @@ $(dir $(_go-mod.mk))go-test.tap: $(GOTEST2TAP) $(TAP_DRIVER) $(go.lock) FORCE
 	@$(go.lock)go test -json $(go.pkgs) 2>&1 | $(GOTEST2TAP) | tee $@ | $(TAP_DRIVER) stream -n go-test
 
 #
-# Hook in to common.mk
-
-build: go-build
-lint: go-lint
-format: go-fmt
-test-suite.tap: $(if $(go.DISABLE_GO_TEST),,$(dir $(_go-mod.mk))go-test.tap)
-
-clean: _go-clean
-_go-clean:
-	rm -f $(dir $(_go-mod.mk))go-test.tap vendor.hash
-	rm -rf vendor/
-# Files made by older versions.  Remove the tail of this list when the
-# commit making the change gets far enough in to the past.
-#
-# 2018-07-01
-	rm -f $(dir $(_go-mod.mk))golangci-lint
-# 2019-02-06
-	rm -f $(dir $(_go-mod.mk))patter.go $(dir $(_go-mod.mk))patter.go.tmp
-.PHONY: _go-clean
-
-clobber: _go-clobber
-_go-clobber:
-	rm -f $(dir $(_go-mod.mk))go1*.src.tar.gz
-.PHONY: _go-clobber
-
-#
 
 go-doc: ## (Go) Run a `godoc -http` server
 go-doc: $(dir $(_go-common.mk))gopath
@@ -217,5 +191,31 @@ clean: _clean-gopath
 _clean-gopath:
 	rm -rf $(dir $(_go-common.mk))gopath vendor
 .PHONY: _clean-gopath
+
+#
+# Hook in to common.mk
+
+build: go-build
+lint: go-lint
+format: go-fmt
+test-suite.tap: $(if $(go.DISABLE_GO_TEST),,$(dir $(_go-mod.mk))go-test.tap)
+
+clean: _go-clean
+_go-clean:
+	rm -f $(dir $(_go-mod.mk))go-test.tap vendor.hash
+	rm -rf vendor/
+# Files made by older versions.  Remove the tail of this list when the
+# commit making the change gets far enough in to the past.
+#
+# 2018-07-01
+	rm -f $(dir $(_go-mod.mk))golangci-lint
+# 2019-02-06
+	rm -f $(dir $(_go-mod.mk))patter.go $(dir $(_go-mod.mk))patter.go.tmp
+.PHONY: _go-clean
+
+clobber: _go-clobber
+_go-clobber:
+	rm -f $(dir $(_go-mod.mk))go1*.src.tar.gz
+.PHONY: _go-clobber
 
 endif
