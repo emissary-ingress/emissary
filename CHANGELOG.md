@@ -1,6 +1,9 @@
 <!-- -*- fill-column: 100 -*- -->
 # Datawire build-aux CHANGELOG
 
+ - 2019-07-05: `build-aux-push`: Work around problem with `git subtree`; avoid accidentally pushing
+               proprietary code to build-aux.git.
+
  - 2019-07-03: `go-mod.mk`: `.opensource.tar.gz` files are still part of `make build`, but no longer
                part of `make go-build`.
 

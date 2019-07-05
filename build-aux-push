@@ -1,9 +1,25 @@
 #!/bin/sh
 set -eux
+
+# Fetch before the split.
+#
+# If a `git-subtree-split:` line refers to a commit that we don't have
+# locally (because it has been garbage collected, because
+# build-aux.git isn't a remote in .git/config), then `git subtree`
+# will do the wrong thing (instead of just aborting, because crappy
+# error handling), and potentially push proprietary code to
+# build-aux.git.  So do a fetch first, to guarantee that build-aux
+# commits exist locally.
+git fetch https://github.com/datawire/build-aux.git
+
+# Split.
 origin=$(git remote get-url origin)
 name=$(printf '%s\n' "$origin" | sed -e 's,\.git/*$,,' -e 's,.*/,,')
 commit=$(git subtree split --annotate="(${name}) " --prefix=build-aux HEAD)
+
+# Push the split.
 git push git@github.com:datawire/build-aux.git "${commit}:master"
+
 # Rejoin after the split.
 #
 # If project A does a `build-aux-push` to push some commits to
