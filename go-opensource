@@ -26,14 +26,15 @@ dirfor_module() {
 	esac
 	if [[ "$(head -n1 "${license[0]}")" == "Mozilla Public License, version 2.0" ]]; then
 		# Copyleft
-		cp -a "vendor/$modname" -T "$destdir/$modname"
+                rmdir "$destdir/$modname"
+		cp -a "vendor/$modname" "$destdir/$modname"
 	else
 		# Permissive
 		local extrafiles=(
 			"vendor/$modname"/NOTICE* # required for Apache 2.0 compliance
 			"vendor/$modname"/PATENT* # for BSD and MIT, which do not include a patent grant
 		)
-		cp "${license[@]}" ${extrafiles:+"${extrafiles[@]}"} -t "$destdir/$modname"
+		cp "${license[@]}" ${extrafiles:+"${extrafiles[@]}"} "$destdir/$modname"
 	fi
 }
 
