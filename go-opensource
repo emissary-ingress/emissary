@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euE -o pipefail
 shopt -s nullglob
+PATH="/usr/local/opt/gnu-getopt/bin:$PATH"
 
 dirfor_std() {
 	(( $# == 0 ))
