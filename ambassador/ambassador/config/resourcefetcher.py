@@ -161,7 +161,8 @@ class ResourceFetcher:
             for key in [ 'AuthService', 'ConsulResolver',
                          'KubernetesEndpointResolver', 'KubernetesServiceResolver',
                          'Mapping', 'Module', 'RateLimitService',
-                         'TCPMapping', 'TLSContext', 'TracingService']:
+                         'TCPMapping', 'TLSContext', 'TracingService',
+                         'ClusterIngress', 'kservice']:
                 for obj in watt_k8s.get(key) or []:
                     self.handle_k8s_crd(obj)
 
@@ -214,6 +215,9 @@ class ResourceFetcher:
         if not kind:
             self.logger.debug("%s: ignoring K8s CRD, no kind" % self.location)
             return
+
+        if kind == 'Service':
+            kind = 'kservice'
 
         apiVersion = obj.get('apiVersion')
         metadata = obj.get('metadata') or {}
@@ -277,7 +281,7 @@ class ResourceFetcher:
             return
 
         if not self.aconf.good_ambassador_id(obj):
-            # self.logger.debug("%s ignoring K8s Service with mismatched ambassador_id" % self.location)
+            self.logger.debug("%s ignoring object with mismatched ambassador_id" % self.location)
             return
 
         if 'kind' not in obj:
