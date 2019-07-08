@@ -68,10 +68,10 @@ TAP_DRIVER      ?= $(build-aux.bindir)/tap-driver
 $(build-aux.bindir):
 	mkdir $@
 
-clobber: _prelude-clobber
-_prelude-clobber:
+clobber: _clobber-prelude
+_clobber-prelude:
 	rm -rf $(build-aux.bindir)
-.PHONY: _globber-prelude
+.PHONY: _clobber-prelude
 
 $(build-aux.bindir)/%: $(build-aux.dir)/bin-sh/%.sh | $(build-aux.bindir)
 	install $< $@
