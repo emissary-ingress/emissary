@@ -614,6 +614,11 @@ release:
 # Go gRPC bindings
 # ------------------------------------------------------------------------------
 
+# The version numbers of `protoc` (in this Makefile),
+# `protoc-gen-gogofast` (in go.mod), and `protoc-gen-validate` (in
+# go.mod) are based on
+# https://github.com/envoyproxy/go-control-plane/blob/master/Dockerfile.ci
+
 PROTOC_VERSION = 3.5.1
 PROTOC_PLATFORM = $(patsubst darwin,osx,$(GOOS))-$(patsubst amd64,x86_64,$(patsubst 386,x86_32,$(GOARCH)))
 
@@ -630,29 +635,28 @@ venv/bin/protoc-gen-validate: go.mod | venv/bin/activate
 
 # Search path for .proto files
 gomoddir = $(shell $(FLOCK) go.mod go list $1/... >/dev/null 2>/dev/null; $(FLOCK) go.mod go list -m -f='{{.Dir}}' $1)
+# This list is based 'imports=()' in https://github.com/envoyproxy/go-control-plane/blob/master/build/generate_protos.sh
 imports += $(CURDIR)/envoy-src/api
 imports += $(call gomoddir,github.com/envoyproxy/protoc-gen-validate)
-imports += $(call gomoddir,github.com/gogo/protobuf)
+imports += $(call gomoddir,github.com/gogo/googleapis)
 imports += $(call gomoddir,github.com/gogo/protobuf)/protobuf
+imports += $(call gomoddir,istio.io/gogo-genproto)
 imports += $(call gomoddir,istio.io/gogo-genproto)/prometheus
-imports += $(call gomoddir,istio.io/gogo-genproto)/googleapis
-imports += $(call gomoddir,istio.io/gogo-genproto)/opencensus/proto/trace/v1
 
 # Map from .proto files to Go package names
+# This list is based 'mappings=()' in https://github.com/envoyproxy/go-control-plane/blob/master/build/generate_protos.sh
 mappings += gogoproto/gogo.proto=github.com/gogo/protobuf/gogoproto
 mappings += google/api/annotations.proto=github.com/gogo/googleapis/google/api
-mappings += google/api/http.proto=github.com/gogo/googleapis/google/api
 mappings += google/protobuf/any.proto=github.com/gogo/protobuf/types
 mappings += google/protobuf/duration.proto=github.com/gogo/protobuf/types
 mappings += google/protobuf/empty.proto=github.com/gogo/protobuf/types
 mappings += google/protobuf/struct.proto=github.com/gogo/protobuf/types
 mappings += google/protobuf/timestamp.proto=github.com/gogo/protobuf/types
 mappings += google/protobuf/wrappers.proto=github.com/gogo/protobuf/types
-mappings += google/rpc/code.proto=github.com/gogo/googleapis/google/rpc
-mappings += google/rpc/error_details.proto=github.com/gogo/googleapis/google/rpc
 mappings += google/rpc/status.proto=github.com/gogo/googleapis/google/rpc
 mappings += metrics.proto=istio.io/gogo-genproto/prometheus
-mappings += trace.proto=istio.io/gogo-genproto/opencensus/proto/trace/v1
+mappings += opencensus/proto/trace/v1/trace.proto=istio.io/gogo-genproto/opencensus/proto/trace/v1
+mappings += opencensus/proto/trace/v1/trace_config.proto=istio.io/gogo-genproto/opencensus/proto/trace/v1
 mappings += $(shell find $(CURDIR)/envoy-src/api/envoy -type f -name '*.proto' | sed -E 's,^$(CURDIR)/envoy-src/api/((.*)/[^/]*),\1=github.com/datawire/ambassador/go/apis/\2,')
 
 joinlist=$(if $(word 2,$2),$(firstword $2)$1$(call joinlist,$1,$(wordlist 2,$(words $2),$2)),$2)
