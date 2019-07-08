@@ -14,7 +14,6 @@
 
 from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING
 from typing import cast as typecast
-from ...config import Config
 
 import json
 
@@ -503,7 +502,7 @@ class V2Listener(dict):
             self.name = "ambassador-listener-%s" % listener.service_port
 
             # Use sane access log spec in JSON
-            if Config.envoy_log_format.lower() == 'json' :
+            if(config.ir.ambassador_module.envoy_log_type.lower() == "json") :
                 self.access_log = [ {
                     'name': 'envoy.file_access_log',
                     'config': {
