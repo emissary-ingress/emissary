@@ -157,6 +157,9 @@ kube_watches = []
 
 global_resolver = fake.ambassador_module.get('resolver', None)
 
+label_selector = os.environ.get('AMBASSADOR_LABEL_SELECTOR', '')
+logger.debug('label-selector: %s' % label_selector)
+
 for mname, mapping in mappings.items():
     res_name = mapping.get('resolver', None)
     res_source = 'mapping'
@@ -203,6 +206,7 @@ for mname, mapping in mappings.items():
                     {
                         "kind": "endpoints",
                         "namespace": namespace,
+                        "label-selector": label_selector,
                         "field-selector": f'metadata.name={host}'
                     }
                 )
@@ -214,6 +218,7 @@ for secret_key, secret_info in fake.secret_handler.needed.items():
         {
             "kind": "secret",
             "namespace": secret_info.namespace,
+            "label-selector": label_selector,
             "field-selector": f'metadata.name={secret_info.name}'
         }
     )
