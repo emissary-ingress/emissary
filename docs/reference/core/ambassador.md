@@ -77,6 +77,9 @@ config:
 # protocol on incoming requests.
 # use_proxy_proto: false
 
+# envoy_log_type defines the type of log envoy will use , currently only support json or text
+# envoy_log_type: text
+
 # use_remote_address controls whether Envoy will trust the remote
 # address of incoming connections or rely exclusively on the
 # X-Forwarded_For header.
