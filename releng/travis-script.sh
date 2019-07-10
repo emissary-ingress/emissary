@@ -51,8 +51,8 @@ if [ "${COMMIT_TYPE}" != "GA" ]; then
     # Makes it much easier to actually debug when you see what the Makefile sees
     make print-vars
 
-    printf "========\nkubectl version...\n"
-    kubectl version
+    printf "========\nkubectl client version...\n"
+    kubectl version --client
 
     printf "========\nStarting build...\n"
 
