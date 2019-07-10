@@ -51,6 +51,9 @@ if [ "${COMMIT_TYPE}" != "GA" ]; then
     # Makes it much easier to actually debug when you see what the Makefile sees
     make print-vars
 
+    printf "========\nkubectl version...\n"
+    kubectl version
+
     printf "========\nStarting build...\n"
 
     make setup-develop cluster.yaml docker-registry
