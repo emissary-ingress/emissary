@@ -317,7 +317,7 @@ name: istio-upstream
 cert_chain_file: /etc/istiocerts/cert-chain.pem
 private_key_file: /etc/istiocerts/key.pem
 cacert_chain_file: /etc/istiocerts/root-cert.pem
-alpn_protocol: "istio"
+alpn_protocols: "istio"
 ```
 
 
