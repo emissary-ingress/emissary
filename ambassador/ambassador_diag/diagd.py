@@ -550,12 +550,35 @@ def source_lookup(name, sources):
 def get_prometheus_metrics(*args, **kwargs):
     return app.estats.get_prometheus_state()
 
+
+def bool_fmt(b: bool) -> str:
+    return 'T' if b else 'F'
+
+
 class AmbassadorEventWatcher(threading.Thread):
+    # The key for 'Actions' is chimed - chimed_ok - env_good. This will make more sense
+    # if you read through the _load_ir method.
+
+    Actions = {
+        'F-F-F': ( 'unhealthy',     True  ),    # make sure the first chime always gets out
+        'F-F-T': ( 'now-healthy',   True  ),    # make sure the first chime always gets out
+        'F-T-F': ( 'now-unhealthy', True  ),    # make sure the first chime always gets out
+        'F-T-T': ( 'healthy',       True  ),    # this is actually impossible
+        'T-F-F': ( 'unhealthy',     False ),
+        'T-F-T': ( 'now-healthy',   True  ),
+        'T-T-F': ( 'now-unhealthy', True  ),
+        'T-T-T': ( 'update',        False ),
+    }
+
     def __init__(self, app: DiagApp) -> None:
         super().__init__(name="AmbassadorEventWatcher", daemon=True)
         self.app = app
         self.logger = self.app.logger
         self.events: queue.Queue = queue.Queue()
+
+        # Have we sent the first-time chimes about whether the environment was plausible?
+        self.chimed = False
+        self.chimed_ok = False
 
     def post(self, cmd: str, arg: Union[str, Tuple[str, Optional[IR]]]) -> Tuple[int, str]:
         rqueue: queue.Queue = queue.Queue()
@@ -803,11 +826,81 @@ class AmbassadorEventWatcher(threading.Thread):
             app.logger.info("starting Envoy status updater")
             app.stats_updater = PeriodicTrigger(app.watcher.update_estats, period=5)
 
+        # In general, our reports here should be action "update", and they should honor the
+        # Scout cache, but we need to tweak that depending on whether we've done this before
+        # and on whether the environment looks OK.
+
+        already_chimed = bool_fmt(self.chimed)
+        was_ok = bool_fmt(self.chimed_ok)
+        env_good, failures = self.check_environment()
+        now_ok = bool_fmt(env_good)
+
+        # Poor man's state machine...
+        action_key = f'{already_chimed}-{was_ok}-{now_ok}'
+        action, no_cache = AmbassadorEventWatcher.Actions[action_key]
+
         # Don't use app.check_scout; it will deadlock. And don't bother doing the Scout
         # update until after we've taken care of Envoy.
-        self.check_scout("update")
+        self.check_scout(action, no_cache=no_cache, failures=failures)
 
-    def check_scout(self, what: str, ir: Optional[IR] = None) -> None:
+    def check_environment(self, ir: Optional[IR]=None) -> bool:
+        if not ir:
+            ir = app.ir
+
+        env_good = True
+        failures = {}
+
+        for err_key, err_list in ir.aconf.errors.items():
+            if err_key == "-global-":
+                err_key = ""
+
+            for err in err_list:
+                err_text = err['error']
+
+                self.app.logger.info(f'error {err_key} {err_text}')
+
+                if err_text.find('CRD') >= 0:
+                    if err_text.find('core') >= 0:
+                        failures['core CRDs'] = True
+                    else:
+                        failures['other CRDs'] = True
+
+                    env_good = False
+                elif err_text.find('TLS') >= 0:
+                    failures['TLS errors'] = True
+                    env_good = False
+
+        some_tls = False
+
+        for context in ir.tls_contexts:
+            if context:
+                some_tls = True
+                break
+
+        if not some_tls:
+            failures['no TLS contexts'] = True
+            env_good = False
+
+        some_mappings = False
+
+        for group in ir.groups.values():
+            if group and (group.location != '--internal--'):
+                some_mappings = True
+                break
+
+        if not some_mappings:
+            failures['no Mappings'] = True
+            env_good = False
+
+        failure_list = None
+
+        if not env_good:
+            failure_list = list(sorted(failures.keys()))
+
+        return env_good, failure_list
+
+    def check_scout(self, what: str, no_cache: Optional[bool]=False,
+                    ir: Optional[IR]=None, failures: Optional[List[str]]=None) -> None:
         now = datetime.datetime.now()
         uptime = now - boot_time
         hr_uptime = td_format(uptime)
@@ -821,6 +914,9 @@ class AmbassadorEventWatcher(threading.Thread):
             "uptime": int(uptime.total_seconds()),
             "hr_uptime": hr_uptime
         }
+
+        if failures:
+            scout_args['failures'] = failures
 
         if ir:
             self.app.logger.debug("check_scout: we have an IR")
@@ -852,7 +948,7 @@ class AmbassadorEventWatcher(threading.Thread):
 
                 scout_args["features"] = feat
 
-        scout_result = self.app.scout.report(mode="diagd", action=what, **scout_args)
+        scout_result = self.app.scout.report(mode="diagd", action=what, no_cache=no_cache, **scout_args)
         scout_notices = scout_result.pop('notices', [])
 
         global_loglevel = self.app.logger.getEffectiveLevel()
@@ -928,6 +1024,11 @@ class StandaloneApplication(gunicorn.app.base.BaseApplication):
         self.options = options or {}
         self.application = app
         super(StandaloneApplication, self).__init__()
+
+        # Boot chime. This is basically the earliest point at which we can consider an Ambassador
+        # to be "running".
+        scout_result = self.application.scout.report(mode="boot", action="boot1", no_cache=True)
+        self.application.logger.info(f'BOOT: Scout result {json.dumps(scout_result)}')
 
     def load_config(self):
         config = dict([(key, value) for key, value in iteritems(self.options)
