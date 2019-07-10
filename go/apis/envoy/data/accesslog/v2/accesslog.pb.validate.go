@@ -477,6 +477,8 @@ func (m *AccessLogCommon) Validate() error {
 
 	// no validation rules for UpstreamTransportFailureReason
 
+	// no validation rules for RouteName
+
 	return nil
 }
 
@@ -703,6 +705,8 @@ func (m *TLSProperties) Validate() error {
 		}
 	}
 
+	// no validation rules for TlsSessionId
+
 	return nil
 }
 
@@ -896,6 +900,8 @@ func (m *HTTPResponseProperties) Validate() error {
 	// no validation rules for ResponseHeaders
 
 	// no validation rules for ResponseTrailers
+
+	// no validation rules for ResponseCodeDetails
 
 	return nil
 }

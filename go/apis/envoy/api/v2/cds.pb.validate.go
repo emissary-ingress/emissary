@@ -1292,6 +1292,8 @@ func (m *Cluster_CommonLbConfig) Validate() error {
 		}
 	}
 
+	// no validation rules for IgnoreNewHostsUntilFirstHc
+
 	switch m.LocalityConfigSpecifier.(type) {
 
 	case *Cluster_CommonLbConfig_ZoneAwareLbConfig_:
