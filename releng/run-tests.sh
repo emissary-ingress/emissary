@@ -26,6 +26,9 @@ if [ $RESULT -ne 0 ]; then
         docker ps -a
     fi
 
+    echo "==== logs for tracingtest"
+    kubectl logs tracingtest
+
     exit 1
 fi
 
