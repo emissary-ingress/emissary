@@ -25,6 +25,7 @@ SHELL = bash
     .FORCE clean version setup-develop print-vars \
     docker-login docker-push docker-images \
     teleproxy-restart teleproxy-stop
+.SECONDARY:
 
 # MAIN_BRANCH
 # -----------
@@ -169,6 +170,7 @@ all:
 	$(MAKE) test
 
 include build-aux/prelude.mk
+include build-aux/var.mk
 
 clean: clean-test
 	rm -rf docs/_book docs/_site docs/package-lock.json
@@ -442,7 +444,7 @@ TELEPROXY_VERSION=0.4.11
 GOOS=$(shell go env GOOS)
 GOARCH=$(shell go env GOARCH)
 
-$(TELEPROXY): | venv/bin/activate
+$(TELEPROXY): $(var.)TELEPROXY_VERSION $(var.)GOOS $(var.)GOARCH | venv/bin/activate
 	curl -o $(TELEPROXY) https://s3.amazonaws.com/datawire-static-files/teleproxy/$(TELEPROXY_VERSION)/$(GOOS)/$(GOARCH)/teleproxy
 	sudo chown root $(TELEPROXY)
 ifeq ($(shell uname -s), Darwin)
@@ -460,7 +462,7 @@ run_teleproxy = $(TELEPROXY)
 endif
 
 # This is for the docker image, so we don't use the current arch, we hardcode to linux/amd64
-$(WATT):
+$(WATT): $(var.)WATT_VERSION
 	curl -o $(WATT) https://s3.amazonaws.com/datawire-static-files/watt/$(WATT_VERSION)/linux/amd64/watt
 	chmod go-w,a+x $(WATT)
 
@@ -479,7 +481,7 @@ $(CLAIM_FILE):
 		echo kat-$${USER}-$(shell uuidgen) > $@; \
 	fi
 
-$(KUBERNAUT): | venv/bin/activate
+$(KUBERNAUT): $(var.)KUBERNAUT_VERSION $(var.)GOOS $(var.)GOARCH | venv/bin/activate
 	curl -o $(KUBERNAUT) http://releases.datawire.io/kubernaut/$(KUBERNAUT_VERSION)/$(GOOS)/$(GOARCH)/kubernaut
 	chmod +x $(KUBERNAUT)
 
@@ -622,15 +624,15 @@ release:
 PROTOC_VERSION = 3.5.1
 PROTOC_PLATFORM = $(patsubst darwin,osx,$(GOOS))-$(patsubst amd64,x86_64,$(patsubst 386,x86_32,$(GOARCH)))
 
-venv/protoc-$(PROTOC_VERSION)-$(PROTOC_PLATFORM).zip: | venv/bin/activate
+venv/protoc-$(PROTOC_VERSION)-$(PROTOC_PLATFORM).zip: $(var.)PROTOC_VERSION | venv/bin/activate
 	curl -o $@ --fail -L https://github.com/protocolbuffers/protobuf/releases/download/v$(PROTOC_VERSION)/$(@F)
 venv/bin/protoc: venv/protoc-$(PROTOC_VERSION)-$(PROTOC_PLATFORM).zip
 	bsdtar -xf $< -C venv bin/protoc
 
-venv/bin/protoc-gen-gogofast: go.mod | venv/bin/activate
+venv/bin/protoc-gen-gogofast: go.mod $(FLOCK) | venv/bin/activate
 	$(FLOCK) go.mod go build -o $@ github.com/gogo/protobuf/protoc-gen-gogofast
 
-venv/bin/protoc-gen-validate: go.mod | venv/bin/activate
+venv/bin/protoc-gen-validate: go.mod $(FLOCK) | venv/bin/activate
 	$(FLOCK) go.mod go build -o $@ github.com/envoyproxy/protoc-gen-validate
 
 # Search path for .proto files
@@ -662,7 +664,7 @@ mappings += $(shell find $(CURDIR)/envoy-src/api/envoy -type f -name '*.proto' |
 joinlist=$(if $(word 2,$2),$(firstword $2)$1$(call joinlist,$1,$(wordlist 2,$(words $2),$2)),$2)
 comma = ,
 
-go/apis/envoy: envoy-src venv/bin/protoc venv/bin/protoc-gen-gogofast venv/bin/protoc-gen-validate
+go/apis/envoy: envoy-src $(FLOCK) venv/bin/protoc venv/bin/protoc-gen-gogofast venv/bin/protoc-gen-validate
 	rm -rf $@
 	mkdir -p $@
 	set -e; find $(CURDIR)/envoy-src/api/envoy -type f -name '*.proto' | sed 's,/[^/]*$$,,' | uniq | while read -r dir; do \
