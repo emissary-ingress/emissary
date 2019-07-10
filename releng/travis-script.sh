@@ -51,13 +51,14 @@ if [ "${COMMIT_TYPE}" != "GA" ]; then
     # Makes it much easier to actually debug when you see what the Makefile sees
     make print-vars
 
-    printf "========\nkubectl client version...\n"
-    kubectl version --client
-
     printf "========\nStarting build...\n"
 
     make setup-develop cluster.yaml docker-registry
     make docker-push
+
+    printf "========\nkubectl version...\n"
+    kubectl version
+
     make KAT_REQ_LIMIT=900 test
 
     if [[ ${GIT_BRANCH} = ${MAIN_BRANCH} ]]; then
