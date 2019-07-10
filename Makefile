@@ -627,10 +627,10 @@ venv/protoc-$(PROTOC_VERSION)-$(PROTOC_PLATFORM).zip: | venv/bin/activate
 venv/bin/protoc: venv/protoc-$(PROTOC_VERSION)-$(PROTOC_PLATFORM).zip
 	bsdtar -xf $< -C venv bin/protoc
 
-venv/bin/protoc-gen-gogofast: go.mod | venv/bin/activate
+venv/bin/protoc-gen-gogofast: go.mod $(FLOCK) | venv/bin/activate
 	$(FLOCK) go.mod go build -o $@ github.com/gogo/protobuf/protoc-gen-gogofast
 
-venv/bin/protoc-gen-validate: go.mod | venv/bin/activate
+venv/bin/protoc-gen-validate: go.mod $(FLOCK) | venv/bin/activate
 	$(FLOCK) go.mod go build -o $@ github.com/envoyproxy/protoc-gen-validate
 
 # Search path for .proto files
@@ -662,7 +662,7 @@ mappings += $(shell find $(CURDIR)/envoy-src/api/envoy -type f -name '*.proto' |
 joinlist=$(if $(word 2,$2),$(firstword $2)$1$(call joinlist,$1,$(wordlist 2,$(words $2),$2)),$2)
 comma = ,
 
-go/apis/envoy: envoy-src venv/bin/protoc venv/bin/protoc-gen-gogofast venv/bin/protoc-gen-validate
+go/apis/envoy: envoy-src $(FLOCK) venv/bin/protoc venv/bin/protoc-gen-gogofast venv/bin/protoc-gen-validate
 	rm -rf $@
 	mkdir -p $@
 	set -e; find $(CURDIR)/envoy-src/api/envoy -type f -name '*.proto' | sed 's,/[^/]*$$,,' | uniq | while read -r dir; do \
