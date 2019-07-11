@@ -79,7 +79,7 @@ class AmbassadorTest(Test):
         rbac = manifests.RBAC_CLUSTER_SCOPE
 
         if self.ambassador_id:
-            envs += f"""
+            self.manifest_envs += f"""
     - name: AMBASSADOR_LABEL_SELECTOR
       value: "kat-ambassador-id={self.ambassador_id}"
 """
