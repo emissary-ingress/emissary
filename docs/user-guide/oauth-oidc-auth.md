@@ -53,6 +53,7 @@ Save the configuration to a file and apply it to the cluster: `kubectl apply -f 
 You will need to configure your IDP to handle authentication requests. The way to do this varies by IDP.
 
 - [Auth0](/reference/idp-support/auth0)
+- [Google](/reference/idp-support/google)
 - [Keycloak](/reference/idp-support/keycloak)
 - [Okta](/reference/idp-support/okta)
 - [UAA](/reference/idp-support/uaa)

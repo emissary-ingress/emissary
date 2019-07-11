@@ -262,7 +262,7 @@ Make a new file called `config/auth.yaml` with an auth definition inside:
 apiVersion: ambassador/v1
 kind:  AuthService
 name:  authentication
-auth_service: "example-auth:3000"
+auth_service: "auth:3000"
 path_prefix: "/extauth"
 allowed_request_headers:
 - "x-qotm-session"
