@@ -26,6 +26,13 @@ if [ $RESULT -ne 0 ]; then
         docker ps -a
     fi
 
+    for pod in $(kubectl get pods -o jsonpath='{range .items[?(@.status.phase != "Running")]}{.metadata.name}:{.status.phase}{"\n"}{end}'); do
+        # WTFO.
+        echo "==== logs for $pod"
+        podname=$(echo $pod | cut -d: -f1)
+        kubectl logs $podname
+    done
+
     exit 1
 fi
 
