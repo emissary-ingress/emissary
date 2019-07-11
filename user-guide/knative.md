@@ -1,8 +1,15 @@
 # Knative Integration
 
-[Knative](https://knative.dev/) is is a popular Kubernetes-based platform for managing serverless workloads.
+[Knative](https://knative.dev/) is a popular Kubernetes-based platform for managing serverless workloads with 3 main components:
+- Build - Source-to-container build orchestration
+- Eventing - Management and delivery of events
+- Serving - Request-driven compute that can scale to zero
 
-Replacing Istio with Ambassador can potentially reduce the operational overhead of running Knative. Ambassador can watch for changes in Knative configuration in your Kubernetes cluster and set up routing accordingly.
+We will be focusing on Knative Serving which builds on Kubernetes and Istio to support deploying and serving of serverless applications and functions.
+
+Replacing Istio with Ambassador can potentially reduce the operational overhead of running Knative.
+
+Ambassador can watch for changes in Knative configuration in your Kubernetes cluster and set up routing accordingly.
 
 ## Getting started
 
@@ -10,16 +17,12 @@ Replacing Istio with Ambassador can potentially reduce the operational overhead 
 
 Knative requires a Kubernetes cluster v1.11 or newer with the MutatingAdmissionWebhook admission controller enabled. kubectl v1.10 is also required. This guide assumes that you’ve already created a Kubernetes cluster which you’re comfortable installing alpha software on.
 
-1. Install and configure Knative:
+#### Installation
+
+1. Install Knative:
 
    ```
    kubectl apply -f https://github.com/knative/serving/releases/download/v0.7.1/serving.yaml
-   ```
-   
-   By default, Knative uses Istio of all ingress traffic. After applying the above manifests, edit the `config-network` ConfigMap to use Ambassador:
-   
-   ```
-   kubectl patch configmap -n knative-serving config-network -p '{"data": {"clusteringress.class": "ambassador.ingress.networking.knative.dev"}}'
    ```
    
 2. Install Ambassador::
@@ -53,3 +56,6 @@ Knative requires a Kubernetes cluster v1.11 or newer with the MutatingAdmissionW
    ```
    curl -H “Host: <hostname>” <ambassador IP>
    ```
+
+**Note**:
+Knative integration in Ambassador is a very recent and an experimental feature, please use at your discretion.
