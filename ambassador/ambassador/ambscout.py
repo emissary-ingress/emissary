@@ -87,12 +87,19 @@ class AmbScout:
 
         return self._scout
 
-    def report(self, force_result: Optional[dict]=None, **kwargs) -> dict:
+    def report(self, force_result: Optional[dict]=None, no_cache=False, **kwargs) -> dict:
         _notices: List[ScoutNotice] = []
 
-        env_result = os.environ.get("AMBASSADOR_SCOUT_RESULT", None)
-        if env_result:
-            force_result = json.loads(env_result)
+        # Silly, right?
+        use_cache = not no_cache
+
+        env_result = None
+
+        if use_cache:
+            env_result = os.environ.get("AMBASSADOR_SCOUT_RESULT", None)
+
+            if env_result:
+                force_result = json.loads(env_result)
 
         result: Optional[dict] = force_result
         result_was_cached: bool = False
@@ -114,9 +121,10 @@ class AmbScout:
 
             needs_update = True
 
-            if self._last_update:
-                since_last_update = now - typecast(datetime.datetime, self._last_update)
-                needs_update = (since_last_update > self._update_frequency)
+            if use_cache:
+                if self._last_update:
+                    since_last_update = now - typecast(datetime.datetime, self._last_update)
+                    needs_update = (since_last_update > self._update_frequency)
 
             if needs_update:
                 if self.scout:

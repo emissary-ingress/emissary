@@ -55,7 +55,11 @@ if [ "${COMMIT_TYPE}" != "GA" ]; then
 
     make setup-develop cluster.yaml docker-registry
     make docker-push
-    make KAT_REQ_LIMIT=900 test
+
+    printf "========\nkubectl version...\n"
+    kubectl version
+
+    make KAT_REQ_LIMIT=1200 test
 
     if [[ ${GIT_BRANCH} = ${MAIN_BRANCH} ]]; then
         # By fiat, _any commit_ on the main branch pushes production docs.

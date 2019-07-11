@@ -200,11 +200,27 @@ if [[ -z "${AMBASSADOR_NO_KUBEWATCH}" ]]; then
         KUBEWATCH_SYNC_KINDS="$KUBEWATCH_SYNC_KINDS -s ConsulResolver -s KubernetesEndpointResolver -s KubernetesServiceResolver"
     fi
 
+    AMBASSADOR_FIELD_SELECTOR_ARG=""
+    if [ -n "$AMBASSADOR_FIELD_SELECTOR" ] ; then
+	    AMBASSADOR_FIELD_SELECTOR_ARG="--fields $AMBASSADOR_FIELD_SELECTOR"
+    fi
+
+    AMBASSADOR_LABEL_SELECTOR_ARG=""
+    if [ -n "$AMBASSADOR_LABEL_SELECTOR" ] ; then
+	    AMBASSADOR_LABEL_SELECTOR_ARG="--labels $AMBASSADOR_LABEL_SELECTOR"
+    fi
+
+    if [ ${AMBASSADOR_KNATIVE_SUPPORT} = true ]; then
+        KUBEWATCH_SYNC_KINDS="$KUBEWATCH_SYNC_KINDS -s ClusterIngress"
+    fi
+
     launch /ambassador/watt \
            --port 8002 \
            ${AMBASSADOR_SINGLE_NAMESPACE:+ --namespace "${AMBASSADOR_NAMESPACE}" } \
            --notify 'sh /ambassador/post_watt.sh' \
            ${KUBEWATCH_SYNC_KINDS} \
+           ${AMBASSADOR_FIELD_SELECTOR_ARG} \
+           ${AMBASSADOR_LABEL_SELECTOR_ARG} \
            --watch /ambassador/watch_hook.py
 fi
 

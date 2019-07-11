@@ -59,6 +59,23 @@ func (m *ExtAuthz) Validate() error {
 		}
 	}
 
+	// no validation rules for ClearRouteCache
+
+	{
+		tmp := m.GetStatusOnError()
+
+		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+			if err := v.Validate(); err != nil {
+				return ExtAuthzValidationError{
+					field:  "StatusOnError",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+	}
+
 	switch m.Services.(type) {
 
 	case *ExtAuthz_GrpcService:

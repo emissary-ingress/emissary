@@ -25,6 +25,7 @@ SHELL = bash
     .FORCE clean version setup-develop print-vars \
     docker-login docker-push docker-images \
     teleproxy-restart teleproxy-stop
+.SECONDARY:
 
 # MAIN_BRANCH
 # -----------
@@ -159,7 +160,7 @@ KAT_BACKEND_RELEASE = 1.4.2-rc
 
 # Allow overriding which watt we use.
 WATT ?= watt
-WATT_VERSION ?= 0.5.1
+WATT_VERSION ?= 0.6.0
 
 # "make" by itself doesn't make the website. It takes too long and it doesn't
 # belong in the inner dev loop.
@@ -169,6 +170,7 @@ all:
 	$(MAKE) test
 
 include build-aux/prelude.mk
+include build-aux/var.mk
 
 clean: clean-test
 	rm -rf docs/_book docs/_site docs/package-lock.json
@@ -442,7 +444,7 @@ TELEPROXY_VERSION=0.4.11
 GOOS=$(shell go env GOOS)
 GOARCH=$(shell go env GOARCH)
 
-$(TELEPROXY): | venv/bin/activate
+$(TELEPROXY): $(var.)TELEPROXY_VERSION $(var.)GOOS $(var.)GOARCH | venv/bin/activate
 	curl -o $(TELEPROXY) https://s3.amazonaws.com/datawire-static-files/teleproxy/$(TELEPROXY_VERSION)/$(GOOS)/$(GOARCH)/teleproxy
 	sudo chown root $(TELEPROXY)
 ifeq ($(shell uname -s), Darwin)
@@ -460,7 +462,7 @@ run_teleproxy = $(TELEPROXY)
 endif
 
 # This is for the docker image, so we don't use the current arch, we hardcode to linux/amd64
-$(WATT):
+$(WATT): $(var.)WATT_VERSION
 	curl -o $(WATT) https://s3.amazonaws.com/datawire-static-files/watt/$(WATT_VERSION)/linux/amd64/watt
 	chmod go-w,a+x $(WATT)
 
@@ -479,7 +481,7 @@ $(CLAIM_FILE):
 		echo kat-$${USER}-$(shell uuidgen) > $@; \
 	fi
 
-$(KUBERNAUT): | venv/bin/activate
+$(KUBERNAUT): $(var.)KUBERNAUT_VERSION $(var.)GOOS $(var.)GOARCH | venv/bin/activate
 	curl -o $(KUBERNAUT) http://releases.datawire.io/kubernaut/$(KUBERNAUT_VERSION)/$(GOOS)/$(GOARCH)/kubernaut
 	chmod +x $(KUBERNAUT)
 
@@ -614,51 +616,55 @@ release:
 # Go gRPC bindings
 # ------------------------------------------------------------------------------
 
+# The version numbers of `protoc` (in this Makefile),
+# `protoc-gen-gogofast` (in go.mod), and `protoc-gen-validate` (in
+# go.mod) are based on
+# https://github.com/envoyproxy/go-control-plane/blob/master/Dockerfile.ci
+
 PROTOC_VERSION = 3.5.1
 PROTOC_PLATFORM = $(patsubst darwin,osx,$(GOOS))-$(patsubst amd64,x86_64,$(patsubst 386,x86_32,$(GOARCH)))
 
-venv/protoc-$(PROTOC_VERSION)-$(PROTOC_PLATFORM).zip: | venv/bin/activate
+venv/protoc-$(PROTOC_VERSION)-$(PROTOC_PLATFORM).zip: $(var.)PROTOC_VERSION | venv/bin/activate
 	curl -o $@ --fail -L https://github.com/protocolbuffers/protobuf/releases/download/v$(PROTOC_VERSION)/$(@F)
 venv/bin/protoc: venv/protoc-$(PROTOC_VERSION)-$(PROTOC_PLATFORM).zip
 	bsdtar -xf $< -C venv bin/protoc
 
-venv/bin/protoc-gen-gogofast: go.mod | venv/bin/activate
+venv/bin/protoc-gen-gogofast: go.mod $(FLOCK) | venv/bin/activate
 	$(FLOCK) go.mod go build -o $@ github.com/gogo/protobuf/protoc-gen-gogofast
 
-venv/bin/protoc-gen-validate: go.mod | venv/bin/activate
+venv/bin/protoc-gen-validate: go.mod $(FLOCK) | venv/bin/activate
 	$(FLOCK) go.mod go build -o $@ github.com/envoyproxy/protoc-gen-validate
 
 # Search path for .proto files
 gomoddir = $(shell $(FLOCK) go.mod go list $1/... >/dev/null 2>/dev/null; $(FLOCK) go.mod go list -m -f='{{.Dir}}' $1)
+# This list is based 'imports=()' in https://github.com/envoyproxy/go-control-plane/blob/master/build/generate_protos.sh
 imports += $(CURDIR)/envoy-src/api
 imports += $(call gomoddir,github.com/envoyproxy/protoc-gen-validate)
-imports += $(call gomoddir,github.com/gogo/protobuf)
+imports += $(call gomoddir,github.com/gogo/googleapis)
 imports += $(call gomoddir,github.com/gogo/protobuf)/protobuf
+imports += $(call gomoddir,istio.io/gogo-genproto)
 imports += $(call gomoddir,istio.io/gogo-genproto)/prometheus
-imports += $(call gomoddir,istio.io/gogo-genproto)/googleapis
-imports += $(call gomoddir,istio.io/gogo-genproto)/opencensus/proto/trace/v1
 
 # Map from .proto files to Go package names
+# This list is based 'mappings=()' in https://github.com/envoyproxy/go-control-plane/blob/master/build/generate_protos.sh
 mappings += gogoproto/gogo.proto=github.com/gogo/protobuf/gogoproto
 mappings += google/api/annotations.proto=github.com/gogo/googleapis/google/api
-mappings += google/api/http.proto=github.com/gogo/googleapis/google/api
 mappings += google/protobuf/any.proto=github.com/gogo/protobuf/types
 mappings += google/protobuf/duration.proto=github.com/gogo/protobuf/types
 mappings += google/protobuf/empty.proto=github.com/gogo/protobuf/types
 mappings += google/protobuf/struct.proto=github.com/gogo/protobuf/types
 mappings += google/protobuf/timestamp.proto=github.com/gogo/protobuf/types
 mappings += google/protobuf/wrappers.proto=github.com/gogo/protobuf/types
-mappings += google/rpc/code.proto=github.com/gogo/googleapis/google/rpc
-mappings += google/rpc/error_details.proto=github.com/gogo/googleapis/google/rpc
 mappings += google/rpc/status.proto=github.com/gogo/googleapis/google/rpc
 mappings += metrics.proto=istio.io/gogo-genproto/prometheus
-mappings += trace.proto=istio.io/gogo-genproto/opencensus/proto/trace/v1
+mappings += opencensus/proto/trace/v1/trace.proto=istio.io/gogo-genproto/opencensus/proto/trace/v1
+mappings += opencensus/proto/trace/v1/trace_config.proto=istio.io/gogo-genproto/opencensus/proto/trace/v1
 mappings += $(shell find $(CURDIR)/envoy-src/api/envoy -type f -name '*.proto' | sed -E 's,^$(CURDIR)/envoy-src/api/((.*)/[^/]*),\1=github.com/datawire/ambassador/go/apis/\2,')
 
 joinlist=$(if $(word 2,$2),$(firstword $2)$1$(call joinlist,$1,$(wordlist 2,$(words $2),$2)),$2)
 comma = ,
 
-go/apis/envoy: envoy-src venv/bin/protoc venv/bin/protoc-gen-gogofast venv/bin/protoc-gen-validate
+go/apis/envoy: envoy-src $(FLOCK) venv/bin/protoc venv/bin/protoc-gen-gogofast venv/bin/protoc-gen-validate
 	rm -rf $@
 	mkdir -p $@
 	set -e; find $(CURDIR)/envoy-src/api/envoy -type f -name '*.proto' | sed 's,/[^/]*$$,,' | uniq | while read -r dir; do \

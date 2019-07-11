@@ -77,7 +77,7 @@ class AmbassadorTest(Test):
     configs: Dict[str, str] = {}                # configuration elements
     namespaces: List[str] = []                  # list of namespaces to create
     extra_ports: Optional[List[int]] = None     # list of additional ports to expose
-    upstreams: Dict[str, dict] = {}            # list of additional pods to create
+    upstreams: Dict[str, dict] = {}             # list of additional pods to create
     debug_diagd: bool = False                   # should we debug diagd?
 
     _environ: Dict[str, str] = {}   # __init__ builds up the full environment here

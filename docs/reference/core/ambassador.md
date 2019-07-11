@@ -30,6 +30,9 @@ config:
 # diagnostics:
 #   enabled: true
 
+# Should we automatically add Linkerd `l5d-dst-override` headers?
+# add_linkerd_headers: false
+
 # Should we enable the gRPC-http11 bridge?
 # enable_grpc_http11_bridge: false
 
@@ -76,6 +79,9 @@ config:
 # use_proxy_protocol controls whether Envoy will honor the PROXY
 # protocol on incoming requests.
 # use_proxy_proto: false
+
+# envoy_log_type defines the type of log envoy will use , currently only support json or text
+# envoy_log_type: text
 
 # use_remote_address controls whether Envoy will trust the remote
 # address of incoming connections or rely exclusively on the
@@ -167,6 +173,10 @@ Some caveats around the embedded scripts:
 * They're run on every request/response to every URL
 
 If you need more flexible and configurable options, Ambassador Pro supports a [pluggable Filter system](/reference/filter-reference).
+
+### Linkerd Interoperability (`add_linkerd_headers`)
+
+When using Linkerd, requests going to an upstream service need to include the `l5d-dst-override` header to ensure that Linkerd will route them correctly. Setting `add_linkerd_headers` does this automatically; see the [Mapping](/reference/mappings) documentation for more details.
 
 ### gRPC HTTP/1.1 bridge (`enable_grpc_http11_bridge`)
 

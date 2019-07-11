@@ -201,8 +201,7 @@ func (m *OkHttpResponse) GetHeaders() []*core.HeaderValueOption {
 
 // Intended for gRPC and Network Authorization servers `only`.
 type CheckResponse struct {
-	// Status `OK` allows the request. Status `UNKNOWN` causes Envoy to abort. Any other status
-	// indicates the request should be denied.
+	// Status `OK` allows the request. Any other status indicates the request should be denied.
 	Status *rpc.Status `protobuf:"bytes,1,opt,name=status,proto3" json:"status,omitempty"`
 	// An message that contains HTTP response attributes. This message is
 	// used when the authorization service needs to send custom responses to the

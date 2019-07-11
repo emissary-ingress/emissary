@@ -8,9 +8,10 @@ Key [features](https://www.getambassador.io/features) include:
 * Self-service configuration, via Kubernetes annotations
 * Support for [gRPC and HTTP/2](https://www.getambassador.io/user-guide/grpc), [TCP](https://www.getambassador.io/reference/tcpmappings), and [WebSockets](https://www.getambassador.io/user-guide/websockets-ambassador)
 * Support for CORS, timeouts, weighted round robin ([canary](https://www.getambassador.io/reference/canary)), sticky sessions, [rate limiting](https://www.getambassador.io/reference/services/rate-limit-service)
-* [Consul](https://www.getambassador.io/user-guide/consul) and [Istio](https://www.getambassador.io/user-guide/with-istio) integration
+* [Consul](https://www.getambassador.io/user-guide/consul), Linkerd, and [Istio](https://www.getambassador.io/user-guide/with-istio) service mesh integration
 * [Authentication](https://www.getambassador.io/reference/services/auth-service)
 * Robust TLS support, including TLS client-certificate authentication and [SNI](https://www.getambassador.io/user-guide/sni)
+* [Knative serverless integration](https://www.getambassador.io/user-guide/knative/)
 * Comprehensive [metrics](https://www.getambassador.io/reference/statistics) support
 
 Architecture

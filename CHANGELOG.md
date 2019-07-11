@@ -94,6 +94,33 @@ Format:
 --->
 
 <!--- CueAddReleaseNotes --->
+## [0.73.0] July 11, 2019
+[0.73.0]: https://github.com/datawire/ambassador/compare/0.72.0...0.73.0
+
+- Feature: Experimental native support for Knative! ([#1579])
+- Feature: Better Linkerd interoperability! ([#1578], [#1594])
+
+- Feature: Add a legend for the colors of service names on the diagnostic overview (thanks, [Wyatt Pearsall](https://github.com/wpears)!)
+- Feature: Allow switching Envoy to output JSON logs (thanks, [Pedro Tavares](https://github.com/ServerlessP)!)
+- Feature: Allow setting `AMBASSADOR_LABEL_SELECTOR` and `AMBASSADOR_FIELD_SELECTOR` to let Ambassador use Kubernetes selectors to determine which things to read (thanks, [John Esmet](https://github.com/esmet)!) ([#1292])
+- Feature: Allow configuring retries for `AuthService` (thanks, [Kevin Dagostino](https://github.com/TonkWorks)!) ([#1622], [#1461])
+
+- Bugfix: Allow Ambassador to ride through Envoy-validation timeouts (thanks, [John Morrisey](https://github.com/jwm)!)
+- Bugfix: Allow Ambassador to ride through parse errors on input resources (thanks, [Andrei Predoiu](https://github.com/Andrei-Predoiu)!) ([#1625])
+- Bugfix: Allow '.' in a `secret` name to just be a '.' ([#1255])
+
+- Bugfix: Allow manually defining an Ambassador `Service` resource, same as any other resource
+- Bugfix: Prevent spurious duplicate-resource errors when loading config from the filesystem
+
+[#1255]: https://github.com/datawire/ambassador/issues/1255
+[#1292]: https://github.com/datawire/ambassador/issuse/1292
+[#1461]: https://github.com/datawire/ambassador/issues/1461
+[#1578]: https://github.com/datawire/ambassador/issuse/1578
+[#1579]: https://github.com/datawire/ambassador/issuse/1579
+[#1594]: https://github.com/datawire/ambassador/issuse/1594
+[#1622]: https://github.com/datawire/ambassador/issues/1622
+[#1625]: https://github.com/datawire/ambassador/issues/1625
+
 ## [0.72.0] June 13, 2019
 [0.72.0]: https://github.com/datawire/ambassador/compare/0.71.0...0.72.0
 

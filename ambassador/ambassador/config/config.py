@@ -63,6 +63,8 @@ class Config:
         'tracingservice': "tracing_configs",
     }
 
+    KnativeResources = {'ClusterIngress'}
+
     SupportedVersions: ClassVar[Dict[str, str]] = {
         "v0": "is deprecated, consider upgrading",
         "v1": "ok",
@@ -203,6 +205,11 @@ class Config:
     # Often good_ambassador_id will be passed an ACResource, but sometimes
     # just a plain old dict.
     def good_ambassador_id(self, resource: dict):
+        resource_kind = resource.get('kind')
+        if resource_kind in self.KnativeResources:
+            self.logger.debug(f"Knative resource: {resource_kind} does not require an Ambassador ID")
+            return True
+
         # Is an ambassador_id present in this object?
         allowed_ids: StringOrList = resource.get('ambassador_id', 'default')
 
@@ -213,7 +220,12 @@ class Config:
             if type(allowed_ids) != list:
                 allowed_ids = typecast(StringOrList, [ allowed_ids ])
 
-            return Config.ambassador_id in allowed_ids
+            if Config.ambassador_id in allowed_ids:
+                return True
+            else:
+                self.logger.debug(f"Ambassador ID {Config.ambassador_id} does not exist in allowed IDs {allowed_ids}")
+                self.logger.debug(resource)
+                return False
 
     def save_source(self, resource: ACResource) -> None:
         """
@@ -230,6 +242,8 @@ class Config:
         rcount = 0
 
         for resource in resources:
+            self.logger.debug(f"Trying to parse resource: {resource}")
+
             rcount += 1
 
             if not self.good_ambassador_id(resource):
@@ -372,19 +386,26 @@ class Config:
             apiVersion = apiVersion.replace('getambassador.io/', 'ambassador/')
             resource.apiVersion = apiVersion
 
+        is_ambassador = False
+
         # Ditch the leading ambassador/ that really needs to be there.
         if apiVersion.startswith("ambassador/"):
+            is_ambassador = True
             apiVersion = apiVersion.split('/')[1]
+        elif apiVersion.startswith('networking.internal.knative.dev'):
+            # This is not an Ambassador resource, we're trying to parse Knative here
+            pass
         else:
             return RichStatus.fromError("apiVersion %s unsupported" % apiVersion)
 
         version = apiVersion.lower()
 
         # Is this deprecated?
-        status = Config.SupportedVersions.get(version, 'is totally bogus')
+        if is_ambassador:
+            status = Config.SupportedVersions.get(version, 'is not supported')
 
-        if status != 'ok':
-            self.post_notice(f"apiVersion {originalApiVersion} {status}", resource=resource)
+            if status != 'ok':
+                self.post_notice(f"apiVersion {originalApiVersion} {status}", resource=resource)
 
         if resource.kind.lower() in Config.NoSchema:
             return RichStatus.OK(msg=f"no schema for {resource.kind} so calling it good")
