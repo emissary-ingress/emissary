@@ -51,11 +51,11 @@ def kube_client_version():
 
 
 def is_knative():
-    is_cluster_compatible = False
+    is_cluster_compatible = True
     server_version = kube_server_version()
     client_version = kube_client_version()
     if (version.parse(server_version) < version.parse('1.11')) and (version.parse(client_version) < version.parse('1.10')):
-        is_cluster_compatible = True
+        is_cluster_compatible = False
 
     return is_cluster_compatible
 
