@@ -1,0 +1,56 @@
+# Knative Integration
+
+[Knative](https://knative.dev/) is is a popular Kubernetes-based platform for managing serverless workloads.
+
+Replacing Istio with Ambassador can potentially reduce the operational overhead of running Knative. Ambassador can watch for changes in Knative configuration in your Kubernetes cluster and set up routing accordingly.
+
+## Getting started
+
+#### Prerequisites
+
+Knative requires a Kubernetes cluster v1.11 or newer with the MutatingAdmissionWebhook admission controller enabled. kubectl v1.10 is also required. This guide assumes that you’ve already created a Kubernetes cluster which you’re comfortable installing alpha software on.
+
+1. Install and configure Knative:
+
+   ```
+   kubectl apply -f https://github.com/knative/serving/releases/download/v0.7.1/serving.yaml
+   ```
+   
+   By default, Knative uses Istio of all ingress traffic. After applying the above manifests, edit the `config-network` ConfigMap to use Ambassador:
+   
+   ```
+   kubectl patch configmap -n knative-serving config-network -p '{"data": {"clusteringress.class": "ambassador.ingress.networking.knative.dev"}}'
+   ```
+   
+2. Install Ambassador in `ambassador` namespace:
+   
+   ```
+   kubectl create namespace ambassador
+   kubectl apply -n ambassador -f https://getambassador.io/yaml/ambassador/ambassador-rbac.yaml
+   kubectl apply -n ambassador -f https://getambassador.io/yaml/ambassador/ambassador-service.yaml
+   ```
+   
+3. Set `AMBASSADOR_KNATIVE_SUPPORT: "true"` in `ambassador` deployment. Ambassador will only watch for Knative resources when this environment variable is set.
+
+4. Deploy an example Knative Service:
+
+   ```yaml
+   apiVersion: serving.knative.dev/v1alpha1
+   kind: Service
+   metadata:
+    name: helloworld-go
+    namespace: default
+   spec:
+    template:
+      spec:
+        containers:
+        - image: gcr.io/knative-samples/helloworld-go
+          env:
+          - name: TARGET
+            value: "Ambassador is Awesome"
+   ```
+   
+5. Send a request to Ambassador with the hostname assigned to the Knative Service:
+   ```
+   curl -H “Host: <hostname>” <ambassador IP>
+   ```
