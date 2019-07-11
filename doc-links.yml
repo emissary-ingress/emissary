@@ -94,6 +94,8 @@
         link: /user-guide/gitops-ambassador
       - title: Istio and Ambassador
         link: /user-guide/with-istio
+      - title: Monitoring Ingress with Prometheus and Grafana
+        link: /user-guide/monitoring
       - title: Testing in Production with Canary Releases
         link: /docs/dev-guide/canary-release-concepts
 
@@ -168,12 +170,22 @@
           items:
             - title: Auth0
               link: /reference/idp-support/auth0
+            - title: Azure AD
+              link: /reference/idp-support/azure
+            - title: Google
+              link: /reference/idp-support/google
             - title: Keycloak
               link: /reference/idp-support/keycloak
             - title: Okta
               link: /reference/idp-support/okta
             - title: User Account and Authentication (UAA)
               link: /reference/idp-support/uaa
+        - title: Pro
+          items:
+            - title: Overview
+              link: /reference/pro/authentication
+            - title: Environment
+              link: /reference/pro/environment
         - title: Custom Resource Definitions
           link: /reference/core/crds
         - title: Filters
