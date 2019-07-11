@@ -864,6 +864,9 @@ class Runner:
                 else:
                     cur = cur.parent
 
+            # Does it have an ambassador_id?
+            ambassador_id = getattr(n, 'ambassador_id', None)
+
             # OK. Does this node want to use a superpod?
             if getattr(n, 'use_superpod', False):
                 # Yup. OK. Do we already have a superpod for this namespace?
@@ -885,6 +888,10 @@ class Runner:
                 # Update the manifest's selector...
                 m['spec']['selector']['backend'] = superpod.name
 
+                # ...and labels if needed...
+                if ambassador_id:
+                    m['metadata']['labels'] = { 'kat-ambassador-id': ambassador_id }
+
                 # ...and target ports.
                 superpod_ports = superpod.allocate(n.path.k8s)
 
@@ -900,14 +907,22 @@ class Runner:
             if manifest:
                 # print(manifest)
 
-                # Make sure namespaces are properly set.
-                if nsp:
-                    for m in manifest:
-                        if 'metadata' not in m:
-                            m['metadata'] = {}
+                # Make sure namespaces and labels are properly set.
+                for m in manifest:
+                    if 'metadata' not in m:
+                        m['metadata'] = {}
 
-                        if 'namespace' not in m['metadata']:
-                            m['metadata']['namespace'] = nsp
+                    metadata = m['metadata']
+
+                    if 'labels' not in metadata:
+                        metadata['labels'] = {}
+
+                    if ambassador_id:
+                        metadata['labels']['kat-ambassador-id'] = ambassador_id
+
+                    if nsp:
+                        if 'namespace' not in metadata:
+                            metadata['namespace'] = nsp
 
                 # ...and, finally, save the manifest list.
                 manifests[n] = manifest
