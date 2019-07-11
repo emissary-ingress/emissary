@@ -211,7 +211,7 @@ if [[ -z "${AMBASSADOR_NO_KUBEWATCH}" ]]; then
     fi
 
     if [ ${AMBASSADOR_KNATIVE_SUPPORT} = true ]; then
-        KUBEWATCH_SYNC_KINDS="$KUBEWATCH_SYNC_KINDS -s ClusterIngress -s kservice"
+        KUBEWATCH_SYNC_KINDS="$KUBEWATCH_SYNC_KINDS -s ClusterIngress"
     fi
 
     launch /ambassador/watt \

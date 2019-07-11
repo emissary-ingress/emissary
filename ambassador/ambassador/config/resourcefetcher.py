@@ -162,7 +162,7 @@ class ResourceFetcher:
                          'KubernetesEndpointResolver', 'KubernetesServiceResolver',
                          'Mapping', 'Module', 'RateLimitService',
                          'TCPMapping', 'TLSContext', 'TracingService',
-                         'ClusterIngress', 'kservice']:
+                         'ClusterIngress']:
                 for obj in watt_k8s.get(key) or []:
                     self.handle_k8s_crd(obj)
 
@@ -215,9 +215,6 @@ class ResourceFetcher:
         if not kind:
             self.logger.debug("%s: ignoring K8s CRD, no kind" % self.location)
             return
-
-        if kind == 'Service':
-            kind = 'kservice'
 
         apiVersion = obj.get('apiVersion')
         metadata = obj.get('metadata') or {}
