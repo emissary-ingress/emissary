@@ -449,10 +449,10 @@ class IR:
             return
 
         for ci_name, ci in cluster_ingresses.items():
-            self.logger.debug("Parsing ClusterIngress {}".format(ci_name))
+            self.logger.debug(f"Parsing ClusterIngress {ci_name}")
 
             ci_rules = ci.get('rules', [])
-            for ci_rule in ci_rules:
+            for rule_count, ci_rule in enumerate(ci_rules):
                 ci_hosts = ci_rule.get('hosts', [])
 
                 mapping_host = ""
@@ -465,12 +465,13 @@ class IR:
                 ci_http = ci_rule.get('http', None)
                 if ci_http is not None:
                     ci_paths = ci_http.get('paths', [])
-                    for ci_path in ci_paths:
+                    for path_count, ci_path in enumerate(ci_paths):
                         ci_headers = ci_path.get('appendHeaders', [])
 
                         ci_splits = ci_path.get('splits', [])
-                        for ci_split in ci_splits:
-                            mapping_identifier = ci_name + '-' + ''.join(random.sample(string.ascii_lowercase, 5))
+                        for split_count, ci_split in enumerate(ci_splits):
+                            unique_suffix = f"{rule_count}{path_count}"
+                            mapping_identifier = ci_name + '-' + unique_suffix
                             ci_mapping = {
                                 'rkey': mapping_identifier,
                                 'location': mapping_identifier,
@@ -481,7 +482,7 @@ class IR:
                             }
 
                             if mapping_host != "":
-                                ci_mapping['host'] = "^({})$".format(mapping_host)
+                                ci_mapping['host'] = f"^({mapping_host})$"
                                 ci_mapping['host_regex'] = True
 
                             if len(ci_headers) > 0:
@@ -498,9 +499,9 @@ class IR:
                             ci_namespace = ci_split.get('serviceNamespace', 'default')
                             ci_port = ci_split.get('servicePort', 80)
 
-                            ci_mapping['service'] = "{}.{}:{}".format(ci_service, ci_namespace, ci_port)
+                            ci_mapping['service'] = f"{ci_service}.{ci_namespace}:{ci_port}"
 
-                            self.logger.debug("Generated mapping from ClusterIngress: {}".format(ci_mapping))
+                            self.logger.debug(f"Generated mapping from ClusterIngress: {ci_mapping}")
                             if 'mappings' not in aconf.config:
                                 aconf.config['mappings'] = {}
                             aconf.config['mappings'][mapping_identifier] = ci_mapping

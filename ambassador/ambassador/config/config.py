@@ -63,7 +63,7 @@ class Config:
         'tracingservice': "tracing_configs",
     }
 
-    KnativeResources = ['ClusterIngress']
+    KnativeResources = {'ClusterIngress'}
 
     SupportedVersions: ClassVar[Dict[str, str]] = {
         "v0": "is deprecated, consider upgrading",
@@ -207,7 +207,7 @@ class Config:
     def good_ambassador_id(self, resource: dict):
         resource_kind = resource.get('kind')
         if resource_kind in self.KnativeResources:
-            self.logger.debug("Knative resource: {} does not require an Ambassador ID".format(resource_kind))
+            self.logger.debug(f"Knative resource: {resource_kind} does not require an Ambassador ID")
             return True
 
         # Is an ambassador_id present in this object?
@@ -223,7 +223,7 @@ class Config:
             if Config.ambassador_id in allowed_ids:
                 return True
             else:
-                self.logger.debug("Ambassador ID {} does not exist in allowed IDs {}".format(Config.ambassador_id, allowed_ids))
+                self.logger.debug(f"Ambassador ID {Config.ambassador_id} does not exist in allowed IDs {allowed_ids}")
                 self.logger.debug(resource)
                 return False
 
@@ -242,7 +242,8 @@ class Config:
         rcount = 0
 
         for resource in resources:
-            self.logger.debug("Trying to parse resource: {}".format(resource))
+            self.logger.debug(f"Trying to parse resource: {resource}")
+
             rcount += 1
 
             if not self.good_ambassador_id(resource):
@@ -391,7 +392,8 @@ class Config:
         if apiVersion.startswith("ambassador/"):
             is_ambassador = True
             apiVersion = apiVersion.split('/')[1]
-        elif apiVersion.startswith('serving.knative.dev') or apiVersion.startswith('networking.internal.knative.dev'):
+        elif apiVersion.startswith('networking.internal.knative.dev'):
+            # This is not an Ambassador resource, we're trying to parse Knative here
             pass
         else:
             return RichStatus.fromError("apiVersion %s unsupported" % apiVersion)
@@ -400,7 +402,7 @@ class Config:
 
         # Is this deprecated?
         if is_ambassador:
-            status = Config.SupportedVersions.get(version, 'is totally bogus')
+            status = Config.SupportedVersions.get(version, 'is not supported')
 
             if status != 'ok':
                 self.post_notice(f"apiVersion {originalApiVersion} {status}", resource=resource)
