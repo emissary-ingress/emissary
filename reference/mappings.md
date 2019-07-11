@@ -22,6 +22,7 @@ Ambassador supports a number of attributes to configure and customize mappings.
 
 | Attribute                 | Description               |
 | :------------------------ | :------------------------ |
+| [`add_linkerd_headers`] | if true, automatically adds `l5d-dst-override` headers for Linkerd interoperability (the default is set by the [Ambassador module](/reference/modules)) |
 | [`add_request_headers`](/reference/add_request_headers) | specifies a dictionary of other HTTP headers that should be added to each request when talking to the service |
 | [`add_response_headers`](/reference/add_response_headers) | specifies a dictionary of other HTTP headers that should be added to each response when returning response to client |
 | [`cors`](/reference/cors)           | enables Cross-Origin Resource Sharing (CORS) setting on a mapping |
@@ -48,6 +49,7 @@ Ambassador supports a number of attributes to configure and customize mappings.
 | [`idle_timeout_ms`](/reference/timeouts)         | the timeout, in milliseconds, after which connections through this `Mapping` will be terminated if no traffic is seen. Defaults to 300000 (5 minutes). |
 | [`tls`](#using-tls)       | if true, tells the system that it should use HTTPS to contact this service. (It's also possible to use `tls` to specify a certificate to present to the service.) |
 | `use_websocket`           | if true, tells Ambassador that this service will use websockets |
+| `add_linkerd_headers`           | when true, Ambassador adds the `l5d-dst-override` header to the request and the `service` field is used as a value. Note that when `add_linkerd_headers` is set to true in the Ambassador Module, the configuration will be applied to all mappings, including auth. Ambassador module and individual mapping configuration can be used together and the lastest will always take precedence over what is in the module. |
 
 If both `enable_ipv4` and `enable_ipv6` are set, Ambassador will prefer IPv6 to IPv4. See the [Ambassador module](/reference/modules) documentation for more information.
 
@@ -251,3 +253,8 @@ Given that `AMBASSADOR_NAMESPACE` is correctly set, Ambassador can map to servic
 - `service: servicename` will route to a service in the same namespace as the Ambassador, and
 - `service: servicename.namespace` will route to a service in a different namespace.
 
+### Linkerd Interoperability (`add_linkerd_headers`)
+
+When using Linkerd, requests going to an upstream service need to include the `l5d-dst-override` header to ensure that Linkerd will route them correctly. Setting `add_linkerd_headers` does this automatically, based on the `service` attribute in the `Mapping`. 
+
+If `add_linkerd_headers` is not specified for a given `Mapping`, the default is taken from the [Ambassador module](/reference/modules). The overall default is `false`: you must explicitly enable `add_linkerd_headers` for Ambassador to add the header for you (although you can always add it yourself with `add_request_headers`, of course).
