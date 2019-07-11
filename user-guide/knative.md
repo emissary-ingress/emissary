@@ -24,6 +24,8 @@ Knative requires a Kubernetes cluster v1.11 or newer with the MutatingAdmissionW
    ```
    kubectl apply -f https://github.com/knative/serving/releases/download/v0.7.1/serving.yaml
    ```
+
+   **Note:** You can safely ignore the `no matches for kind "Gateway" in version "networking.istio.io/v1alpha3"` warnings during the installation since we will be using Ambassador instead of the Istio gateway.
    
 2. Install Ambassador::
    
