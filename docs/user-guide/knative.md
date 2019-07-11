@@ -22,12 +22,11 @@ Knative requires a Kubernetes cluster v1.11 or newer with the MutatingAdmissionW
    kubectl patch configmap -n knative-serving config-network -p '{"data": {"clusteringress.class": "ambassador.ingress.networking.knative.dev"}}'
    ```
    
-2. Install Ambassador in `ambassador` namespace:
+2. Install Ambassador::
    
    ```
-   kubectl create namespace ambassador
-   kubectl apply -n ambassador -f https://getambassador.io/yaml/ambassador/ambassador-rbac.yaml
-   kubectl apply -n ambassador -f https://getambassador.io/yaml/ambassador/ambassador-service.yaml
+   kubectl apply -f https://getambassador.io/yaml/ambassador/ambassador-rbac.yaml
+   kubectl apply -f https://getambassador.io/yaml/ambassador/ambassador-service.yaml
    ```
    
 3. Set `AMBASSADOR_KNATIVE_SUPPORT: "true"` in `ambassador` deployment. Ambassador will only watch for Knative resources when this environment variable is set.
