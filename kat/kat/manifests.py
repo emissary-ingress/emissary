@@ -552,7 +552,7 @@ spec:
     - containerPort: 80
 """
 
-KNATIVE_SERVICE_CRDS = """
+KNATIVE_SERVING_CRDS = """
 ---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
@@ -909,8 +909,6 @@ spec:
     served: true
     storage: true
 """
-
-CRDS += KNATIVE_SERVICE_CRDS
 
 KNATIVE_SERVING = """
 ---

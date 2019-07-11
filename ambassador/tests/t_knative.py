@@ -1,4 +1,4 @@
-from kat.harness import Query, kube_server_version, kube_client_version
+from kat.harness import Query, is_knative
 from kat.manifests import KNATIVE_SERVING
 
 from packaging import version
@@ -27,9 +27,7 @@ class KnativeTest(AmbassadorTest):
     target: ServiceType
 
     def init(self) -> None:
-        server_version = kube_server_version()
-        client_version = kube_client_version()
-        if version.parse(server_version) < version.parse('1.11') or version.parse(client_version) < version.parse('1.10'):
+        if not is_knative():
             self.skip_node = True
 
         self.target = HTTP()
