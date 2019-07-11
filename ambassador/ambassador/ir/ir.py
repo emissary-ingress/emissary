@@ -11,8 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License
-import random
-import string
 from typing import Any, Callable, Dict, Iterable, List, Optional, Type, Union, ValuesView
 from typing import cast as typecast
 
@@ -470,7 +468,7 @@ class IR:
 
                         ci_splits = ci_path.get('splits', [])
                         for split_count, ci_split in enumerate(ci_splits):
-                            unique_suffix = f"{rule_count}{path_count}"
+                            unique_suffix = f"{rule_count}-{path_count}"
                             mapping_identifier = ci_name + '-' + unique_suffix
                             ci_mapping = {
                                 'rkey': mapping_identifier,
