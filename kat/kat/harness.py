@@ -1,3 +1,4 @@
+import subprocess
 import sys
 
 from abc import ABC
@@ -28,6 +29,24 @@ def run(cmd):
     status = os.system(cmd)
     if status != 0:
         raise RuntimeError("command failed[%s]: %s" % (status, cmd))
+
+
+def kube_version_json():
+    result = subprocess.Popen('kubectl version -o json', stdout=subprocess.PIPE, shell=True)
+    stdout, _ = result.communicate()
+    return json.loads(stdout)
+
+
+def kube_server_version():
+    version_json = kube_version_json()
+    server_json = version_json['serverVersion']
+    return f"{server_json['major']}.{server_json['minor']}"
+
+
+def kube_client_version():
+    version_json = kube_version_json()
+    client_json = version_json['clientVersion']
+    return f"{client_json['major']}.{client_json['minor']}"
 
 
 def get_digest(data: str) -> str:
