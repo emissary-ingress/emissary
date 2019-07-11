@@ -132,6 +132,7 @@ NETLIFY_SITE=datawire-ambassador
 # BELOW AND THEN RUN make docker-update-base
 ENVOY_REPO ?= git://github.com/datawire/envoy.git
 ENVOY_COMMIT ?= 8f57f7d765939552a999721e8dac9b5a9a5cbb8b
+ENVOY_COMPILATION_MODE ?= dbg
 AMBASSADOR_DOCKER_TAG ?= $(GIT_VERSION)
 AMBASSADOR_DOCKER_IMAGE ?= $(AMBASSADOR_DOCKER_REPO):$(AMBASSADOR_DOCKER_TAG)
 AMBASSADOR_EXTERNAL_DOCKER_IMAGE ?= $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(AMBASSADOR_DOCKER_TAG)
@@ -318,7 +319,7 @@ ENVOY_SYNC_DOCKER_TO_HOST = docker run --rm --volume=$(CURDIR)/envoy-src:/xfer:r
 envoy-bin/envoy-static: .FORCE envoy-build-image.txt
 	$(ENVOY_SYNC_HOST_TO_DOCKER)
 	@PS4=; set -ex; trap '$(ENVOY_SYNC_DOCKER_TO_HOST)' EXIT; { \
-	    docker run --rm --volume=envoy-build:/root:rw --workdir=/root/envoy $$(cat envoy-build-image.txt) bazel build --verbose_failures -c dbg //source/exe:envoy-static; \
+	    docker run --rm --volume=envoy-build:/root:rw --workdir=/root/envoy $$(cat envoy-build-image.txt) bazel build --verbose_failures -c $(ENVOY_COMPILATION_MODE) //source/exe:envoy-static; \
 	    docker run --rm --volume=envoy-build:/root:rw $$(cat envoy-build-image.txt) chmod 755 /root /root/.cache; \
 	}
 	mkdir -p envoy-bin
