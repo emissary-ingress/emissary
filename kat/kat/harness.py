@@ -1,9 +1,11 @@
+import subprocess
 import sys
 
 from abc import ABC
 from collections import OrderedDict
 from hashlib import sha256
 from typing import Any, Callable, Dict, List, Sequence, Tuple, Type, Union
+from packaging import version
 
 import base64
 import fnmatch
@@ -16,7 +18,7 @@ import time
 import threading
 import traceback
 
-from .manifests import BACKEND_SERVICE, SUPERPOD_POD, CRDS
+from .manifests import BACKEND_SERVICE, SUPERPOD_POD, CRDS, KNATIVE_SERVING_CRDS
 
 from yaml.scanner import ScannerError as YAMLScanError
 
@@ -28,6 +30,43 @@ def run(cmd):
     status = os.system(cmd)
     if status != 0:
         raise RuntimeError("command failed[%s]: %s" % (status, cmd))
+
+
+def kube_version_json():
+    result = subprocess.Popen('kubectl version -o json', stdout=subprocess.PIPE, shell=True)
+    stdout, _ = result.communicate()
+    return json.loads(stdout)
+
+
+def kube_server_version():
+    version_json = kube_version_json()
+    server_json = version_json['serverVersion']
+    return f"{server_json['major']}.{server_json['minor']}"
+
+
+def kube_client_version():
+    version_json = kube_version_json()
+    client_json = version_json['clientVersion']
+    return f"{client_json['major']}.{client_json['minor']}"
+
+
+def is_knative():
+    is_cluster_compatible = True
+    server_version = kube_server_version()
+    client_version = kube_client_version()
+    if version.parse(server_version) < version.parse('1.11'):
+        print(f"server version {server_version} is incompatible with Knative")
+        is_cluster_compatible = False
+    else:
+        print(f"server version {server_version} is compatible with Knative")
+
+    if version.parse(client_version) < version.parse('1.10'):
+        print(f"client version {client_version} is incompatible with Knative")
+        is_cluster_compatible = False
+    else:
+        print(f"client version {client_version} is compatible with Knative")
+
+    return is_cluster_compatible
 
 
 def get_digest(data: str) -> str:
@@ -880,7 +919,10 @@ class Runner:
 
     def _setup_k8s(self, selected):
         # First up: CRDs.
-        changed, reason = has_changed(CRDS, "/tmp/k8s-CRDs.yaml")
+        final_crds = CRDS
+        if is_knative():
+            final_crds += KNATIVE_SERVING_CRDS
+        changed, reason = has_changed(final_crds, "/tmp/k8s-CRDs.yaml")
 
         if changed:
             print(f'CRDS changed ({reason}), applying.')

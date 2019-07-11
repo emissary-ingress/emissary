@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License
-
 from typing import Any, Callable, Dict, Iterable, List, Optional, Type, Union, ValuesView
 from typing import cast as typecast
 
@@ -163,6 +162,8 @@ class IR:
         self.breakers = aconf.get_config("CircuitBreaker") or {}
         self.outliers = aconf.get_config("OutlierDetection") or {}
         self.services = aconf.get_config("service") or {}
+
+        self.cluster_ingresses_to_mappings(aconf)
 
         # Next up, initialize our IRServiceResolvers.
         IRServiceResolverFactory.load_all(self, aconf)
@@ -439,6 +440,69 @@ class IR:
             return group
         else:
             return None
+
+    def cluster_ingresses_to_mappings(self, aconf):
+        cluster_ingresses = aconf.get_config("ClusterIngress")
+        if cluster_ingresses is None:
+            return
+
+        for ci_name, ci in cluster_ingresses.items():
+            self.logger.debug(f"Parsing ClusterIngress {ci_name}")
+
+            ci_rules = ci.get('rules', [])
+            for rule_count, ci_rule in enumerate(ci_rules):
+                ci_hosts = ci_rule.get('hosts', [])
+
+                mapping_host = ""
+                for ci_host in ci_hosts:
+                    if mapping_host == "":
+                        mapping_host = ci_host
+                    else:
+                        mapping_host += "|" + ci_host
+
+                ci_http = ci_rule.get('http', None)
+                if ci_http is not None:
+                    ci_paths = ci_http.get('paths', [])
+                    for path_count, ci_path in enumerate(ci_paths):
+                        ci_headers = ci_path.get('appendHeaders', [])
+
+                        ci_splits = ci_path.get('splits', [])
+                        for split_count, ci_split in enumerate(ci_splits):
+                            unique_suffix = f"{rule_count}-{path_count}"
+                            mapping_identifier = ci_name + '-' + unique_suffix
+                            ci_mapping = {
+                                'rkey': mapping_identifier,
+                                'location': mapping_identifier,
+                                'apiVersion': 'ambassador/v1',
+                                'kind': 'Mapping',
+                                'name': mapping_identifier,
+                                'prefix': '/'
+                            }
+
+                            if mapping_host != "":
+                                ci_mapping['host'] = f"^({mapping_host})$"
+                                ci_mapping['host_regex'] = True
+
+                            if len(ci_headers) > 0:
+                                ci_mapping['add_request_headers'] = ci_headers
+
+                            ci_percent = ci_split.get('percent', None)
+                            if ci_percent is not None:
+                                ci_mapping['weight'] = ci_percent
+
+                            ci_service = ci_split.get('serviceName', None)
+                            if ci_service is None:
+                                continue
+
+                            ci_namespace = ci_split.get('serviceNamespace', 'default')
+                            ci_port = ci_split.get('servicePort', 80)
+
+                            ci_mapping['service'] = f"{ci_service}.{ci_namespace}:{ci_port}"
+
+                            self.logger.debug(f"Generated mapping from ClusterIngress: {ci_mapping}")
+                            if 'mappings' not in aconf.config:
+                                aconf.config['mappings'] = {}
+                            aconf.config['mappings'][mapping_identifier] = ci_mapping
 
     def ordered_groups(self) -> Iterable[IRBaseMappingGroup]:
         return reversed(sorted(self.groups.values(), key=lambda x: x['group_weight']))

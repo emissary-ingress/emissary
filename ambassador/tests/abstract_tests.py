@@ -71,22 +71,22 @@ class AmbassadorTest(Test):
     path: Name
     extra_ports: Optional[List[int]] = None
     debug_diagd: bool = False
+    manifest_envs = ""
     
     env = []
 
     def manifests(self) -> str:
-        envs = ""
         rbac = manifests.RBAC_CLUSTER_SCOPE
 
         if self.single_namespace:
-            envs += """
+            self.manifest_envs += """
     - name: AMBASSADOR_SINGLE_NAMESPACE
       value: "yes"
 """
             rbac = manifests.RBAC_NAMESPACE_SCOPE
 
         if self.disable_endpoints:
-            envs += """
+            self.manifest_envs += """
     - name: AMBASSADOR_DISABLE_ENDPOINTS
       value: "yes"
 """
@@ -106,7 +106,7 @@ class AmbassadorTest(Test):
             return self.format(rbac + AMBASSADOR_LOCAL, extra_ports=eports)
         else:
             return self.format(rbac + manifests.AMBASSADOR,
-                               image=os.environ["AMBASSADOR_DOCKER_IMAGE"], envs=envs, extra_ports=eports)
+                               image=os.environ["AMBASSADOR_DOCKER_IMAGE"], envs=self.manifest_envs, extra_ports=eports)
 
     # Will tear this out of the harness shortly
     @property

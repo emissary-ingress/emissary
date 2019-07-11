@@ -26,6 +26,7 @@ import t_tracing
 import t_retrypolicy
 import t_consul
 import t_circuitbreaker
+import t_knative
 
 # pytest will find this because Runner is a toplevel callable object in a file
 # that pytest is willing to look inside.
