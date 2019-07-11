@@ -22,6 +22,7 @@ Ambassador supports a number of attributes to configure and customize mappings.
 
 | Attribute                 | Description               |
 | :------------------------ | :------------------------ |
+| [`add_linkerd_headers`] | if true, automatically adds `l5d-dst-override` headers for Linkerd interoperability (the default is set by the [Ambassador module](/reference/modules)) |
 | [`add_request_headers`](/reference/add_request_headers) | specifies a dictionary of other HTTP headers that should be added to each request when talking to the service |
 | [`add_response_headers`](/reference/add_response_headers) | specifies a dictionary of other HTTP headers that should be added to each response when returning response to client |
 | [`cors`](/reference/cors)           | enables Cross-Origin Resource Sharing (CORS) setting on a mapping |
@@ -252,3 +253,8 @@ Given that `AMBASSADOR_NAMESPACE` is correctly set, Ambassador can map to servic
 - `service: servicename` will route to a service in the same namespace as the Ambassador, and
 - `service: servicename.namespace` will route to a service in a different namespace.
 
+### Linkerd Interoperability (`add_linkerd_headers`)
+
+When using Linkerd, requests going to an upstream service need to include the `l5d-dst-override` header to ensure that Linkerd will route them correctly. Setting `add_linkerd_headers` does this automatically, based on the `service` attribute in the `Mapping`. 
+
+If `add_linkerd_headers` is not specified for a given `Mapping`, the default is taken from the [Ambassador module](/reference/modules). The overall default is `false`: you must explicitly enable `add_linkerd_headers` for Ambassador to add the header for you (although you can always add it yourself with `add_request_headers`, of course).
