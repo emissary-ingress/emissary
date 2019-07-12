@@ -851,18 +851,29 @@ class Runner:
         superpods: Dict[str, Superpod] = {}
 
         for n in (n for n in self.nodes if n in selected):
-            # What namespace is this node in?
-            nsp = None
-            cur = n
             manifest = None
+            nsp = None
+            ambassador_id = None
+
+            print('manifesting for {n.path}')
+
+            # Walk up the parent chain to find our namespace and ambassador_id.
+            cur = n
 
             while cur:
-                nsp = getattr(cur, 'namespace', None)
+                if not nsp:
+                    nsp = getattr(cur, 'namespace', None)
+                    print(f'... {cur.name} has namespace {nsp}')
 
-                if nsp:
+                if not ambassador_id:
+                    ambassador_id = getattr(cur, 'ambassador_id', None)
+                    print(f'... {cur.name} has ambassador_id {ambassador_id}')
+
+                if nsp and ambassador_id:
+                    print(f'... good for namespace and ambassador_id')
                     break
-                else:
-                    cur = cur.parent
+
+                cur = cur.parent
 
             # OK. Does this node want to use a superpod?
             if getattr(n, 'use_superpod', False):
@@ -876,19 +887,6 @@ class Runner:
 
                 print(f'superpodifying {n.name}')
 
-                cur = n
-                kat_ambassador_id = None
-
-                while cur:
-                    kat_ambassador_id = getattr(cur, 'ambassador_id', None)
-
-                    if kat_ambassador_id:
-                        print(f'... found ambassador_id in {cur.name}')
-                        break
-                    else:
-                        print(f'... no ambassador_id in {cur.name}')
-                        cur = cur.parent
-
                 # Next up: use the BACKEND_SERVICE manifest as a template...
                 yaml = n.format(BACKEND_SERVICE)
                 manifest = load(n.path, yaml, Tag.MAPPING)
@@ -901,8 +899,8 @@ class Runner:
                 m['spec']['selector']['backend'] = superpod.name
 
                 # ...and labels if needed...
-                if kat_ambassador_id:
-                    m['metadata']['labels'] = { 'kat-ambassador-id': kat_ambassador_id }
+                if ambassador_id:
+                    m['metadata']['labels'] = { 'kat-ambassador-id': ambassador_id }
 
                 # ...and target ports.
                 superpod_ports = superpod.allocate(n.path.k8s)
@@ -928,9 +926,6 @@ class Runner:
 
                     if 'labels' not in metadata:
                         metadata['labels'] = {}
-
-                    # Does it have an ambassador_id?
-                    ambassador_id = getattr(n, 'ambassador_id', None)
 
                     if ambassador_id:
                         metadata['labels']['kat-ambassador-id'] = ambassador_id
