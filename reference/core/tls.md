@@ -137,13 +137,20 @@ kubectl create secret generic ambassador-cacert --from-file=tls.crt=$CACERT_PATH
 
 where `$CACERT_PATH` is the path to the single file mentioned above.
 
-If you want to _require_ client-cert authentication for every connection, you can add the `cert_required` key:
+If you want to _require_ client-cert authentication for every connection, set `cert_required` in your `TLSContext`.
 
-```shell
-kubectl create secret generic ambassador-cacert --from-file=tls.crt=$CACERT_PATH --from-literal=cert_required=true
+An example of a `TLSContext` with required client certificate validation is configured below:
+
+```yaml
+---
+apiVersion: ambassador/v1
+kind: TLSContext
+name: tls
+hosts: ["*"]
+secret: ambassador-certs
+ca_secret: ambassador-cacert
+cert_required: true
 ```
-
-When Ambassador starts, it will notice the `ambassador-cacert` secret and turn TLS client-certificate auth on (assuming that TLS termination is enabled).
 
 ### Using a user defined secret
 
