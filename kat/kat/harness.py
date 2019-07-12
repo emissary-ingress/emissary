@@ -864,9 +864,6 @@ class Runner:
                 else:
                     cur = cur.parent
 
-            # Does it have an ambassador_id?
-            ambassador_id = getattr(n, 'ambassador_id', None)
-
             # OK. Does this node want to use a superpod?
             if getattr(n, 'use_superpod', False):
                 # Yup. OK. Do we already have a superpod for this namespace?
@@ -876,6 +873,21 @@ class Runner:
                     # We don't have one, so we need to create one.
                     superpod = Superpod(nsp)
                     superpods[nsp] = superpod
+
+                print(f'superpodifying {n.name}')
+
+                cur = n
+                kat_ambassador_id = None
+
+                while cur:
+                    kat_ambassador_id = getattr(cur, 'ambassador_id', None)
+
+                    if kat_ambassador_id:
+                        print(f'... found ambassador_id in {cur.name}')
+                        break
+                    else:
+                        print(f'... no ambassador_id in {cur.name}')
+                        cur = cur.parent
 
                 # Next up: use the BACKEND_SERVICE manifest as a template...
                 yaml = n.format(BACKEND_SERVICE)
@@ -889,8 +901,8 @@ class Runner:
                 m['spec']['selector']['backend'] = superpod.name
 
                 # ...and labels if needed...
-                if ambassador_id:
-                    m['metadata']['labels'] = { 'kat-ambassador-id': ambassador_id }
+                if kat_ambassador_id:
+                    m['metadata']['labels'] = { 'kat-ambassador-id': kat_ambassador_id }
 
                 # ...and target ports.
                 superpod_ports = superpod.allocate(n.path.k8s)
@@ -916,6 +928,9 @@ class Runner:
 
                     if 'labels' not in metadata:
                         metadata['labels'] = {}
+
+                    # Does it have an ambassador_id?
+                    ambassador_id = getattr(n, 'ambassador_id', None)
 
                     if ambassador_id:
                         metadata['labels']['kat-ambassador-id'] = ambassador_id
