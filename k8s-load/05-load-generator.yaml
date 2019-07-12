@@ -84,8 +84,8 @@ spec:
         env:
         - name: AMBASSADOR_LICENSE_KEY
           value: {{env "AMBASSADOR_LICENSE_KEY"}}
-        - name: AMBASSADOR_VERSION
-          value: {{env "AMBASSADOR_VERSION"}}
+        - name: AMBASSADOR_IMAGE
+          value: {{env "AMBASSADOR_IMAGE"}}
         - name: AMB_SIDECAR_IMAGE
           value: {{env "AMB_SIDECAR_IMAGE"}}
         - name: MODEL_CLUSTER_LOAD_GRPC_AUTH_IMAGE

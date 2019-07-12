@@ -1,6 +1,6 @@
 #!/hint/sh
 
-AMBASSADOR_VERSION=0.72.0
+AMBASSADOR_IMAGE=quay.io/datawire/ambassador:0.72.0
 
 AMB_SIDECAR_IMAGE=$(cat docker/amb-sidecar-plugins.docker.knaut-push)
 PROXY_IMAGE=$(cat docker/traffic-proxy.docker.knaut-push)
