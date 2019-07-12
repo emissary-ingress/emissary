@@ -56,6 +56,26 @@ func (m *CheckRequest) Validate() error {
 		}
 	}
 
+	for idx, item := range m.GetDescriptors() {
+		_, _ = idx, item
+
+		{
+			tmp := item
+
+			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+				if err := v.Validate(); err != nil {
+					return CheckRequestValidationError{
+						field:  fmt.Sprintf("Descriptors[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					}
+				}
+			}
+		}
+
+	}
+
 	return nil
 }
 
