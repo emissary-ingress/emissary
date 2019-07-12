@@ -855,7 +855,7 @@ class Runner:
             nsp = None
             ambassador_id = None
 
-            print('manifesting for {n.path}')
+            # print('manifesting for {n.path}')
 
             # Walk up the parent chain to find our namespace and ambassador_id.
             cur = n
@@ -863,14 +863,14 @@ class Runner:
             while cur:
                 if not nsp:
                     nsp = getattr(cur, 'namespace', None)
-                    print(f'... {cur.name} has namespace {nsp}')
+                    # print(f'... {cur.name} has namespace {nsp}')
 
                 if not ambassador_id:
                     ambassador_id = getattr(cur, 'ambassador_id', None)
-                    print(f'... {cur.name} has ambassador_id {ambassador_id}')
+                    # print(f'... {cur.name} has ambassador_id {ambassador_id}')
 
                 if nsp and ambassador_id:
-                    print(f'... good for namespace and ambassador_id')
+                    # print(f'... good for namespace and ambassador_id')
                     break
 
                 cur = cur.parent
