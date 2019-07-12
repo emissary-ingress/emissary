@@ -180,7 +180,7 @@ driver: zipkin
 
         yield self, self.format("""
 ---
-apiVersion: ambassador/v1
+apiVersion: ambassador/v0
 kind: AuthService
 name:  {self.auth.path.k8s}
 auth_service: "{self.auth.path.fqdn}"
