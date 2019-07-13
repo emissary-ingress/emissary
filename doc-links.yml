@@ -57,19 +57,17 @@
 - title: Guides
   link: /docs/guides/
   items:
-    - title: Build
+    - title: Connecting Services
       items:
       - title: Adding a Custom Filter for Routing
         link: /docs/guides/filter-dev-guide
-      - title: Integration Testing with Service Preview
-        link: /docs/dev-guide/service-preview
       - title: Knative and Ambassador
         link: /user-guide/knative
       - title: Use gRPC with Ambassador
         link: /user-guide/grpc
       - title: Use WebSockets with Ambassador
         link: /user-guide/websockets-ambassador
-    - title: Secure
+    - title: Security
       link: /user-guide/security
       items:
       - title: Enabling Transport Level Security (TLS)
@@ -86,21 +84,24 @@
         link: /user-guide/rate-limiting-tutorial
       - title: Advanced Rate Limiting
         link: /user-guide/advanced-rate-limiting
-    - title: Release
+    - title: Service Mesh
       items:
       - title: Consul and Ambassador
         link: /user-guide/consul
-      - title: Distributed Tracing
-        link: /user-guide/tracing-tutorial
-      - title: Implementing GitOps with Ambassador
-        link: /user-guide/gitops-ambassador
       - title: Istio and Ambassador
         link: /user-guide/with-istio
-      - title: Monitoring Ingress with Prometheus and Grafana
-        link: /user-guide/monitoring
+    - title: Best Practices
+      - title: Integration Testing with Service Preview
+        link: /docs/dev-guide/service-preview
+      - title: Implementing GitOps with Ambassador
+        link: /user-guide/gitops-ambassador
       - title: Testing in Production with Canary Releases
         link: /docs/dev-guide/canary-release-concepts
-
+    - title: Observability
+      - title: Distributed Tracing
+        link: /user-guide/tracing-tutorial
+      - title: Monitoring Ingress with Prometheus and Grafana
+        link: /user-guide/monitoring
 - title: Reference
   collapsable: false
   items:
