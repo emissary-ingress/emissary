@@ -4,7 +4,7 @@ Guides are hands-on tutorials to walk you through configuring Ambassador for spe
 
 <table>
 <tr>
- <td>
+ <td style="vertical-align:top;">
   <strong>Connecting Services</strong>
  <ul>
   <li><a href="/user-guide/knative">Using the Knative serverless framework</a></li>
@@ -13,7 +13,7 @@ Guides are hands-on tutorials to walk you through configuring Ambassador for spe
   <li><a href="/docs/guides/filter-dev-guide">Request Transformation with Filters</a></li>
  </ul>
  </td>
- <td>
+ <td style="vertical-align:top;">
   <strong>Security</strong>
  <ul>
   <li><a href="/user-guide/tls-termination">Transport Layer Security (TLS) Guide</a></li>
@@ -25,7 +25,7 @@ Guides are hands-on tutorials to walk you through configuring Ambassador for spe
   <li><a href="/user-guide/advanced-rate-limiting">Advanced Rate Limiting</a></li>   
  </ul>
  </td>
- <td>
+ <td style="vertical-align:top;">
   <strong>Service Mesh</strong>
   <ul>
    <li><a href="/user-guide/consul">Using Consul for service discovery and mesh</a></li>
@@ -35,7 +35,7 @@ Guides are hands-on tutorials to walk you through configuring Ambassador for spe
  </td>
 </tr>
 <tr>
- <td>
+ <td style="vertical-align:top;">
   <strong>Best Practices</strong>
   <ul>
    <li><a href="/user-guide/gitops-ambassador">Implementing GitOps with Ambassador</a></li>
@@ -43,7 +43,7 @@ Guides are hands-on tutorials to walk you through configuring Ambassador for spe
    <li><a href="/docs/dev-guide/service-preview">Integration Testing with Service Preview</a></li>
   </ul>
  </td>
- <td>
+ <td style="vertical-align:top;">
   <strong>Observability</strong>
   <ul>
    <li><a href="/user-guide/tracing-tutorial">Distributing Tracing</a></li>
@@ -51,6 +51,6 @@ Guides are hands-on tutorials to walk you through configuring Ambassador for spe
   </ul>
   </td>
 </tr>
-table>
+</table>
 
 If you're interested in contributing to Ambassador, writing (or updating) a Guide is a great place to start. Join our [Slack channel](https://d6e.co/slack) in #ambassador-dev to get started.
