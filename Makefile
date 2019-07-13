@@ -191,7 +191,6 @@ clobber: clean
 	-rm -rf watt
 	-$(if $(filter-out -,$(ENVOY_COMMIT)),rm -rf envoy envoy-src)
 	-rm -rf docs/node_modules
-	-rm -rf .skip_test_warning	# reset the test warning too
 	-rm -rf venv && echo && echo "Deleted venv, run 'deactivate' command if your virtualenv is activated" || true
 
 print-%:
