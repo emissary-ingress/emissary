@@ -91,6 +91,7 @@
       - title: Istio and Ambassador
         link: /user-guide/with-istio
     - title: Best Practices
+      items:
       - title: Integration Testing with Service Preview
         link: /docs/dev-guide/service-preview
       - title: Implementing GitOps with Ambassador
@@ -98,6 +99,7 @@
       - title: Testing in Production with Canary Releases
         link: /docs/dev-guide/canary-release-concepts
     - title: Observability
+      items:
       - title: Distributed Tracing
         link: /user-guide/tracing-tutorial
       - title: Monitoring Ingress with Prometheus and Grafana
