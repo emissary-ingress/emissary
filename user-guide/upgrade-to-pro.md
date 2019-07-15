@@ -47,12 +47,12 @@ reason those assignments are problematic (perhaps you [set
 `service_port`](/reference/running/#running-as-non-root) to one of
 those), you can set adjust these by setting environment variables:
 
-| Purpose                       | Variable         | Default |
-| ---                           | ---              | ---     |
-| Filtering AuthService (gRPC)  | `APRO_AUTH_PORT` | 8500    |
-| RateLimitService (gRPC)       | `GRPC_PORT`      | 8501    |
-| RateLimitService debug (HTTP) | `DEBUG_PORT`     | 8502    |
-| RateLimitService misc (HTTP)  | `PORT`           | 8503    |
+| Purpose                        | Variable         | Default |
+| ---                            | ---              | ---     |
+| Filtering AuthService (gRPC)   | `APRO_AUTH_PORT` | 8500    |
+| RateLimitService (gRPC)        | `GRPC_PORT`      | 8501    |
+| RateLimitService debug (HTTP)  | `DEBUG_PORT`     | 8502    |
+| RateLimitService health (HTTP) | `PORT`           | 8503    |
 
 If you have deployed Ambassador with
 [`AMBASSADOR_NAMESPACE`, `AMBASSADOR_SINGLE_NAMESPACE`](/reference/running/#namespaces), or

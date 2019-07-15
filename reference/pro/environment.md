@@ -9,7 +9,7 @@
 | `APRO_AUTH_PORT`                | `8500`                                            | TCP port number or name                                                       | Filtering AuthService (gRPC)  |
 | `GRPC_PORT`                     | `8501`                                            | TCP port number or name                                                       | RateLimitService (gRPC)       |
 | `DEBUG_PORT`                    | `8502`                                            | TCP port number or name                                                       | RateLimitService debug (HTTP) |
-| `PORT`                          | `8503`                                            | TCP port number or name                                                       | RateLimitService misc (HTTP)  |
+| `PORT`                          | `8503`                                            | TCP port number or name                                                       | RateLimitService health (HTTP) |
 |---------------------------------||||
 | `APP_LOG_LEVEL`                 | `info`                                            | log level                                                                     | Filter                        |
 | `LOG_LEVEL`                     | `WARN`                                            | log level                                                                     | RateLimit                     |
