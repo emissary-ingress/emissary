@@ -346,7 +346,12 @@ service: {self.target.path.fqdn}
         yield Query(self.url("tls-target/"), insecure=True)
 
 
-class TLSInvalidSecret(TLS):
+class TLSInvalidSecret(AmbassadorTest):
+
+    target: ServiceType
+
+    def init(self):
+        self.target = HTTP()
 
     def config(self):
         yield self, self.format("""
