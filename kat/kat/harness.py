@@ -885,7 +885,7 @@ class Runner:
                     superpod = Superpod(nsp)
                     superpods[nsp] = superpod
 
-                print(f'superpodifying {n.name}')
+                # print(f'superpodifying {n.name}')
 
                 # Next up: use the BACKEND_SERVICE manifest as a template...
                 yaml = n.format(BACKEND_SERVICE)
