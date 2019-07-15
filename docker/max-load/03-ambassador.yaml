@@ -136,10 +136,10 @@ spec:
   ports:
   - name: http
     port: 80
-    targetPort: 80
+    targetPort: http
   - name: https
     port: 443
-    targetPort: 443
+    targetPort: https
   selector:
     service: ambassador{{$ambassadorSuffix}}
 ---
@@ -194,9 +194,9 @@ spec:
           value: "1"
         ports:
         - name: http
-          containerPort: 80
+          containerPort: 8080
         - name: https
-          containerPort: 443
+          containerPort: 8443
         - name: admin
           containerPort: 8877
         livenessProbe:
