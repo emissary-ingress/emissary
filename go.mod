@@ -3,7 +3,6 @@ module github.com/datawire/apro
 go 1.12
 
 require (
-	github.com/0xAX/notificator v0.0.0-20181105090803-d81462e38c21
 	github.com/Jeffail/gabs v1.2.0
 	github.com/aclements/go-moremath v0.0.0-20180329182055-b1aff36309c7
 	github.com/asaskevich/EventBus v0.0.0-20180315140547-d46933a94f05 // indirect
