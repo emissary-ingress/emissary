@@ -113,7 +113,7 @@ spec:
 
 
 ######################################################################
-# Redis for Ambassador Pro ratelimit
+# Redis for Ambassador Pro
 ---
 apiVersion: v1
 kind: Service

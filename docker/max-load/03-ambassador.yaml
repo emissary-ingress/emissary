@@ -17,9 +17,9 @@
 # doesn't need to have access to manage RBAC stuff.
 
 
-{{if $useProRateLimit}}
+{{if or $useProRateLimit $useProAuth }}
 ######################################################################
-# Redis for Ambassador Pro ratelimit
+# Redis for Ambassador Pro
 ---
 apiVersion: v1
 kind: Service
