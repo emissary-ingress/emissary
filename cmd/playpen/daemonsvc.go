@@ -32,7 +32,7 @@ func FindTeleproxy() error {
 			return err
 		}
 		output := string(outputBytes)
-		if !strings.Contains(output, "version 0.6") && !strings.Contains(output, "version 0.5.1-42-g4b3d893") {
+		if !strings.Contains(output, "version 0.6") {
 			return fmt.Errorf(
 				"required teleproxy 0.6.x not found; found %s in your PATH",
 				output,
@@ -131,6 +131,7 @@ func MakeDaemonService(p *supervisor.Process) (*DaemonService, error) {
 		[]string{teleproxy, "-mode", "intercept"},
 		&RunAsInfo{},
 		checkNetOverride,
+		10*time.Second,
 	)
 	if err != nil {
 		return nil, err
@@ -198,6 +199,7 @@ func (d *DaemonService) Connect(_ *http.Request, args *ConnectArgs, reply *Strin
 		[]string{teleproxy, "-mode", "bridge"},
 		args.RAI,
 		checkBridge,
+		10*time.Second,
 	)
 	if err != nil {
 		reply.Message = err.Error()
