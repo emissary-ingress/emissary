@@ -1,0 +1,130 @@
+#!/usr/bin/env bash
+set -euE -o pipefail
+shopt -s nullglob
+
+dirfor_std() {
+	(( $# == 0 ))
+	mkdir "$destdir/std"
+	tar xfO "$arg_gotar" go/LICENSE > "$destdir/std/LICENSE"
+}
+
+dirfor_module() {
+	(( $# == 1 ))
+	local modname="$1"
+	mkdir -p "$destdir/$modname"
+	local license=(
+		"vendor/$modname"/LICENSE*
+		"vendor/$modname"/license*
+		"vendor/$modname"/COPYING*
+		"vendor/$modname"/copying*
+	)
+	case ${#license[@]} in
+		0) echo "ERROR: $modname has no LICENSE file" >&2; false;;
+		1) :;;
+		*) echo "WARNING: $modname: found ${#license[@]} LICENSE files, heuristics more likely to be wrong" >&2;;
+	esac
+	if [[ "$(head -n1 "${license[0]}")" == "Mozilla Public License, version 2.0" ]]; then
+		# Copyleft
+		cp -a "vendor/$modname" -T "$destdir/$modname"
+	else
+		# Permissive
+		local extrafiles=(
+			"vendor/$modname"/NOTICE* # required for Apache 2.0 compliance
+			"vendor/$modname"/PATENT* # for BSD and MIT, which do not include a patent grant
+		)
+		cp "${license[@]}" ${extrafiles:+"${extrafiles[@]}"} -t "$destdir/$modname"
+	fi
+}
+
+main() {
+	local argstr
+	argstr=$(getopt -n "${0##*/}" -o '' -l 'output:,gotar:,package:,depsfile:' -- "$@")
+	eval "set -- $argstr"
+	local arg_output arg_gotar arg_package arg_depsfile
+	while (( $# > 0 )); do
+		case "$1" in
+			--output) arg_output=$2;;
+			--gotar) arg_gotar=$2;;
+			--package) arg_package=$2;;
+			--depsfile) arg_depsfile=$2;;
+			--) shift 1; break;;
+		esac
+		shift 2
+	done
+	(( $# == 0 ))
+	[[ "$arg_output" == *.tar.gz ]]
+	[[ "${arg_gotar##*/}" == go1.*.tar.gz ]]
+	[[ -f "$arg_gotar" ]]
+	[[ -n "$arg_package" ]]
+	local gopkg gomod
+	gopkg=$(go list "$arg_package")
+	gomod=$(go list -f='{{.Module}}' "$gopkg")
+
+	tmpdir=$(mktemp -dt "${0##*/}.XXXXXXXXXX")
+	trap 'rm -rf "$tmpdir"' EXIT
+	local destdir="${tmpdir}/${gopkg##*/}.opensource"
+	mkdir "$destdir"
+
+	{
+		fmt <<<"The program \"${gopkg##*/}\" incorporates the following Free and Open Source software:"
+		echo
+		{
+			if [[ -z "$arg_depsfile" ]]; then
+				go list -deps -f='{{.Module}}' "$gopkg" | sort -u
+			else
+				cat "$arg_depsfile"
+			fi
+		} | {
+			echo 'Name|Version'
+			echo '----|-------'
+			while read -r dep_modname dep_version; do
+				# Inspect the dep string and set variables, but don't actually do anything yet
+				dep_prettyname=
+				dep_vcsname=
+				case "$dep_modname" in
+					"$gomod"|'github.com/datawire/liboauth2'|'github.com/datawire/teleproxy')
+						continue
+						;;
+					'<nil>')
+						dep_modname='std'
+						dep_prettyname='the Go language standard library ("std")'
+						dep_version=$(tar xfO "$arg_gotar" go/VERSION | sed 's/^go/v/')
+						;;
+					*)
+						if [[ "$dep_version" == *'=>'* ]]; then
+							read -r -a _replacement <<<"${dep_version##* => }"
+							case ${#_replacement[@]} in
+								1)
+									dep_version='(modified)'
+									;;
+								2)
+									if [[ "${_replacement[0]}" != "${dep_modname}" ]]; then
+										dep_prettyname="${_replacement[0]} (modified from ${dep_modname})"
+									fi
+									dep_version=${_replacement[1]}
+									;;
+								*)
+									echo "ERROR: invalid version replacement: ${dep_version}" >&2
+									false
+									;;
+							esac
+						fi
+						;;
+				esac
+				# Now take action based on those variables
+				case "$dep_modname" in
+					std) dirfor_std;;
+					*) dirfor_module "$dep_modname";;
+				esac
+				printf '%s|%s\n' "${dep_prettyname:-${dep_modname}}" "${dep_version}"
+			done
+		} | {
+			column -s'|' -t | sed 's/^/    /'
+		}
+		echo
+		fmt <<<'The appropriate license notices and source code are in correspondingly named directories.'
+	} > "$destdir/OPENSOURCE.md"
+	tar -cz -f "$arg_output" -C "$tmpdir" "${destdir##*/}"
+}
+
+main "$@"
