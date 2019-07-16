@@ -33,6 +33,7 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
         'circuit_breakers': True,
         'cluster_timeout_ms': True,
         'connect_timeout_ms': True,
+        'cluster_idle_timeout_ms': True,
         'group_id': True,
         'headers': True,
         'host_rewrite': True,
@@ -195,6 +196,7 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
                             grpc=mapping.get('grpc', False),
                             load_balancer=mapping.get('load_balancer', None),
                             connect_timeout_ms=mapping.get('connect_timeout_ms', 3000),
+                            cluster_idle_timeout_ms=mapping.get('cluster_idle_timeout_ms', None),
                             circuit_breakers=mapping.get('circuit_breakers', None),
                             marker=marker)
 

@@ -50,6 +50,16 @@ class V2Cluster(dict):
             },
             'dns_lookup_family': dns_lookup_family
         }
+
+        if cluster.cluster_idle_timeout_ms:
+            cluster_idle_timeout_ms = cluster.cluster_idle_timeout_ms
+        else:
+            cluster_idle_timeout_ms = cluster.ir.ambassador_module.get('cluster_idle_timeout_ms', None)
+        if cluster_idle_timeout_ms:
+            fields['common_http_protocol_options'] = {
+                'idle_timeout': "%0.3fs" % (float(cluster_idle_timeout_ms) / 1000.0)
+            }
+
         circuit_breakers = self.get_circuit_breakers(cluster)
         if circuit_breakers is not None:
             fields['circuit_breakers'] = circuit_breakers

@@ -35,6 +35,7 @@ class IRAmbassador (IRResource):
         'enable_ipv6',
         'envoy_log_type',
         'enable_ipv4',
+        'cluster_idle_timeout_ms',
         'liveness_probe',
         'load_balancer',
         'readiness_probe',
