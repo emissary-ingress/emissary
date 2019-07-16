@@ -6,6 +6,7 @@
 .dmypy.json
 .python-version
 .DS_Store
+.skip_test_warning
 venv
 __pycache__
 VERSION.py
@@ -13,6 +14,7 @@ VERSION.py
 .mypy_cache
 cluster.yaml
 watt
+kat/kat/client
 
 *.egg-info
 build
