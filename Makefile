@@ -1,4 +1,4 @@
-TAG=12
+TAG=13
 
 all: xds echo backend client
 
@@ -63,12 +63,6 @@ client.build:
 .PHONY: sandbox
 
 # For calling the services with kat-client: $ client/bin/client_{OS}_amd64 --input urls.json
-
-sandbox.bridge:
-	@echo " ---> cleaning gRPC-Bridge sandbox"
-	@cd sandbox/grpc_bridge && docker-compose stop && docker-compose rm -f
-	@echo " ---> starting gRPC-Bridge sandbox"
-	@cd sandbox/grpc_bridge && docker-compose up --force-recreate --abort-on-container-exit --build
 
 sandbox.http-auth:
 	@echo " ---> cleaning HTTP auth sandbox"

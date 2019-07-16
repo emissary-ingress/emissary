@@ -9,18 +9,18 @@ kind: AuthService
 name: authentication
 auth_service: "auth-service:8080"
 path_prefix: "/extauth"
-proto: http
-allowed_request_headers:
-- requested-status
-- requested-cookie
-allowed_authorization_headers:
-- set-cookie
+proto: grpc
 allow_request_body: false    
 ---
 apiVersion: ambassador/v1
 kind:  Mapping
 name: echo-service
 prefix: /
-service: http://echo.websocket.org
-host_rewrite: echo.websocket.org
-use_websocket: false
+service: http://httpbin.org
+host_rewrite: httpbin.org
+---
+apiVersion: ambassador/v1
+kind: TracingService
+name: tracing
+service: "zipkin:9411"
+driver: zipkin
