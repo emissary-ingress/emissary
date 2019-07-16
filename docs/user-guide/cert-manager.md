@@ -86,7 +86,6 @@ The HTTP-01 challenge verifies ownership of the domain by sending a request for 
     Looking up Ingresses for selector certmanager.k8s.io/acme-http-domain=161156668,certmanager.k8s.io/acme-http-token=1100680922
     Error preparing issuer for certificate default/ambassador-certs: http-01 self check failed for domain "example.com
     ```
-    **Note:** Take note of `acme-http-domain` and `acme-http-token` values.
 
 4. Create a Mapping for the `/.well-known/acme-challenge` route.
 
@@ -111,8 +110,7 @@ The HTTP-01 challenge verifies ownership of the domain by sending a request for 
       - port: 80
         targetPort: 8089
       selector:
-        certmanager.k8s.io/acme-http-domain: "161156668"
-        certmanager.k8s.io/acme-http-token: "1100680922"   
+        certmanager.k8s.io/acme-http01-solver: "true"
     ```
     Apply the YAML and wait a couple of minutes. cert-manager will retry the challenge and issue the certificate. 
 
