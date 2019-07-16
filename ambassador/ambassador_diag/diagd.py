@@ -578,13 +578,10 @@ class AmbassadorEventWatcher(threading.Thread):
         self.logger = self.app.logger
         self.events: queue.Queue = queue.Queue()
 
-        # Have we sent the first-time chimes about whether the environment was plausible?
-        self.chimed = False
-        self.chimed_ok = False
-
-        # Is our environment good?
-        self.env_good = False
-        self.failure_list = [ 'unhealthy at boot' ]
+        self.chimed = False         # Have we ever sent a chime about the environment?
+        self.last_chime = False     # What was the status of our last chime? (starts as False)
+        self.env_good = False       # Is our environment currently believed to be OK?
+        self.failure_list = [ 'unhealthy at boot' ]     # What's making our environment not OK?
 
     def post(self, cmd: str, arg: Union[str, Tuple[str, Optional[IR]]]) -> Tuple[int, str]:
         rqueue: queue.Queue = queue.Queue()
@@ -885,16 +882,24 @@ class AmbassadorEventWatcher(threading.Thread):
         # and on whether the environment looks OK.
 
         already_chimed = bool_fmt(self.chimed)
-        was_ok = bool_fmt(self.chimed_ok)
+        was_ok = bool_fmt(self.last_chime)
         now_ok = bool_fmt(self.env_good)
 
         # Poor man's state machine...
         action_key = f'{already_chimed}-{was_ok}-{now_ok}'
         action, no_cache = AmbassadorEventWatcher.Actions[action_key]
 
+        self.logger.debug(f'CHIME: {action_key}')
+
         # Don't use app.check_scout; it will deadlock. And don't bother doing the Scout
         # update until after we've taken care of Envoy.
         self.check_scout(action, no_cache=no_cache, failures=self.failure_list)
+
+        # Remember that we have now chimed...
+        self.chimed = True
+
+        # ...and remember what we sent for that chime.
+        self.last_chime = self.env_good
 
     def check_environment(self, ir: Optional[IR]=None) -> None:
         if not ir:
