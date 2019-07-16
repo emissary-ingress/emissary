@@ -52,7 +52,7 @@ run_test() {
 	# Make it easy to tell apart clusters in the graphs
 	sleep 30
 	# Run the test
-	max-load --load-max-rps=20000 --csv-file="${iname}.csv.tmp" "$@" "$url" > "${iname}.log"
+	max-load --load-max-rps=10000 --csv-file="${iname}.csv.tmp" "$@" "$url" > "${iname}.log"
 	mv "${iname}.csv.tmp" "${iname}.csv"
 }
 
