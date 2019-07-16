@@ -164,6 +164,29 @@ $(dir $(_go-mod.mk))go-test.tap: $(GOTEST2TAP) $(TAP_DRIVER) $(go.lock) FORCE
 	@$(go.lock)go test -json $(go.pkgs) 2>&1 | $(GOTEST2TAP) | tee $@ | $(TAP_DRIVER) stream -n go-test
 
 #
+# go-doc
+
+go-doc: ## (Go) Run a `godoc -http` server
+go-doc: $(dir $(_go-mod.mk))gopath
+	{ \
+		while sleep 1; do \
+			$(MAKE) --quiet $(dir $(_go-mod.mk))gopath/src/$(go.module); \
+		done & \
+		trap "kill $$!" EXIT; \
+		GOPATH=$(dir $(_go-mod.mk))gopath godoc -http :8080; \
+	}
+.PHONY: go-doc
+
+$(dir $(_go-mod.mk))gopath: FORCE vendor
+	mkdir -p $(dir $(_go-mod.mk))gopath/src
+	echo 'module bogus' > $(dir $(_go-mod.mk))gopath/go.mod
+	rsync --archive --delete vendor/ $(dir $(_go-mod.mk))gopath/src/
+	$(MAKE) $(dir $(_go-mod.mk))gopath/src/$(go.module)
+$(dir $(_go-mod.mk))gopath/src/$(go.module): $(go.lock) FORCE
+	mkdir -p $@
+	$(go.lock)go list ./... | sed -e 's,^$(go.module),,' -e 's,$$,/*.go,' | rsync --archive --prune-empty-dirs --delete-excluded --include='*/' --include-from=/dev/stdin --exclude='*' ./ $@/
+
+#
 # Hook in to common.mk
 
 build: go-build
@@ -173,11 +196,13 @@ test-suite.tap: $(if $(go.DISABLE_GO_TEST),,$(dir $(_go-mod.mk))go-test.tap)
 
 clean: _go-clean
 _go-clean:
-	rm -f $(dir $(_go-mod.mk))go-test.tap vendor.hash
-	rm -rf vendor/
+	rm -f $(dir $(_go-mod.mk))go-test.tap
+	rm -rf $(dir $(_go-mod.mk))gopath/ vendor/
 # Files made by older versions.  Remove the tail of this list when the
 # commit making the change gets far enough in to the past.
 #
+# 2018-07-03
+	rm -f vendor.hash
 # 2018-07-01
 	rm -f $(dir $(_go-mod.mk))golangci-lint
 # 2019-02-06
@@ -189,5 +214,4 @@ _go-clobber:
 	rm -f $(dir $(_go-mod.mk))go1*.src.tar.gz
 .PHONY: _go-clobber
 
-#
 endif
