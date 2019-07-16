@@ -150,6 +150,9 @@ $(addprefix bin_linux_amd64/,$(_cgo_files)): CGO_ENABLED = 1
 $(addprefix bin_linux_amd64/,$(_cgo_files)): go.GOBUILD = $(_cgo_GOBUILD)
 _cgo_GOBUILD  = docker run --rm
 _cgo_GOBUILD += --env GOOS
+_cgo_GOBUILD += $(shell pinata-ssh-mount)
+_cgo_GOBUILD += -v $(CURDIR)/.gitconfig.docker:/root/.gitconfig
+_cgo_GOBUILD += -v ~/.ssh/known_hosts:/root/.ssh/known_hosts
 _cgo_GOBUILD += --env GOARCH
 _cgo_GOBUILD += --env GO111MODULE
 _cgo_GOBUILD += --env CGO_ENABLED
@@ -171,6 +174,11 @@ _cgo_GOBUILD += --workdir $$PWD
 # than hard-coding a version.
 _cgo_GOBUILD += docker.io/library/golang:$(patsubst go%,%,$(filter go1%,$(shell go version)))
 _cgo_GOBUILD += go build
+
+$(addprefix bin_linux_amd64/,$(_cgo_files)): _docker_ssh_agent_forward
+_docker_ssh_agent_forward:
+	pinata-ssh-forward || { echo ""; echo "Check README.md"; echo ""; exit 1; }
+.PHONY: _docker_ssh_agent_forward
 
 endif
 endif
