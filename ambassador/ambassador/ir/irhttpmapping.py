@@ -91,6 +91,7 @@ class IRHTTPMapping (IRBaseMapping):
         "service": True,
         "shadow": True,
         "connect_timeout_ms": True,
+        "cluster_idle_timeout_ms": True,
         "timeout_ms": True,
         "idle_timeout_ms": True,
         "tls": True,

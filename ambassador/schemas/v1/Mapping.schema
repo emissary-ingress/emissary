@@ -110,6 +110,7 @@
         "rewrite": { "type": "string" },
         "shadow": { "type": "boolean" },
         "connect_timeout_ms": { "type": "integer" },
+        "cluster_idle_timeout_ms": { "type": "integer" },
         "timeout_ms": { "type": "integer" },
         "idle_timeout_ms": { "type": "integer" },
         "tls": { "type": [ "string", "boolean" ] },
