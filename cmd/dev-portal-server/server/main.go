@@ -1,13 +1,21 @@
 package server
 
 import (
+	"net/url"
 	"time"
+
+	"github.com/datawire/apro/cmd/dev-portal-server/content"
 )
 
 func Main(
 	version string, diagdURL string, ambassadorURL string, publicURL string,
-	pollFrequency time.Duration, sharedSecretPath string) {
-	s := NewServer()
+	pollFrequency time.Duration, sharedSecretPath string, contentURL string) {
+	url, err := url.Parse(contentURL)
+	if err != nil {
+		panic(err)
+	}
+	content := content.NewContent(url)
+	s := NewServer(content)
 
 	knownServices := s.knownServices()
 	fetcher := NewFetcher(

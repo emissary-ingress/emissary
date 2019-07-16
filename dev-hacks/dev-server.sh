@@ -9,4 +9,7 @@ echo tbd > "$SHARED_SECRET_PATH"
 export AMBASSADOR_URL=http://localhost:8877
 export POLL_EVERY_SECS=5
 python fake-ambassador.py & trap 'curl -v "$AMBASSADOR_URL/_shutdown"' INT EXIT
+echo "======="
+pwd
+echo "======="
 ../bin_darwin_amd64/dev-portal-server

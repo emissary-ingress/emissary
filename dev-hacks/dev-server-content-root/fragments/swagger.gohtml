@@ -1,0 +1,16 @@
+{{define "swagger-head"}}
+<script src="https://unpkg.com/swagger-ui-dist@3/swagger-ui-bundle.js"></script>
+<script src="https://unpkg.com/swagger-ui-dist@3/swagger-standalone-preset.js"></script>
+<link rel="stylesheet" type="text/css" href="https://unpkg.com/swagger-ui-dist@3/swagger-ui.css" >
+{{end}}
+<span id="swagger-ui"></span>
+<script>
+const ui = SwaggerUIBundle({
+    url: "../../openapi/services/{{.rq.namespace}}/{{.rq.name}}/openapi.json",
+    dom_id: '#swagger-ui',
+    presets: [
+      SwaggerUIBundle.presets.apis,
+      SwaggerUIBundle.SwaggerUIStandalonePreset
+    ],
+  })
+</script>

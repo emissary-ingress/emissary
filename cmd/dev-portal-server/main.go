@@ -70,5 +70,5 @@ func main() {
 		}
 	}
 	server.Main(Version, diagdURL, ambassadorURL, publicURL, pollEverySecs,
-		sharedSeecretPath)
+		sharedSeecretPath, "dev-server-content-root")
 }
