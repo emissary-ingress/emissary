@@ -1047,8 +1047,8 @@ class StandaloneApplication(gunicorn.app.base.BaseApplication):
         return self.application
 
 
-def _main(snapshot_path: Parameter.REQUIRED, bootstrap_path: Parameter.REQUIRED, ads_path: Parameter.REQUIRED,
-          *, config_path=None, ambex_pid=0, kick=None, k8s=False,
+def _main(snapshot_path=None, bootstrap_path=None, ads_path=None,
+          *, dev_magic=False, config_path=None, ambex_pid=0, kick=None, k8s=False,
           no_checks=False, no_envoy=False, reload=False, debug=False, verbose=False,
           workers=None, port=Constants.DIAG_PORT, host='0.0.0.0', notices=None,
           validation_retries=5):
@@ -1066,6 +1066,7 @@ def _main(snapshot_path: Parameter.REQUIRED, bootstrap_path: Parameter.REQUIRED,
     :param no_envoy: If True, don't interact with Envoy at all
     :param reload: If True, run Flask in debug mode for live reloading
     :param debug: If True, do debug logging
+    :param dev_magic: If True, override a bunch of things for Datawire dev-loop stuff
     :param verbose: If True, do really verbose debug logging
     :param workers: Number of workers; default is based on the number of CPUs present
     :param host: Interface on which to listen
@@ -1073,6 +1074,23 @@ def _main(snapshot_path: Parameter.REQUIRED, bootstrap_path: Parameter.REQUIRED,
     :param notices: Optional file to read for local notices
     :param validation_retries: Number of times to retry Envoy configuration validation after a timeout
     """
+
+    if dev_magic:
+        # Override the world.
+        os.environ['SCOUT_HOST'] = '127.0.0.1:9999'
+        os.environ['SCOUT_HTTPS'] = 'no'
+
+        no_checks = True
+        no_envoy = True
+
+        os.makedirs('/tmp/snapshots', mode=0o755, exist_ok=True)
+
+        snapshot_path = '/tmp/snapshots'
+        bootstrap_path = '/tmp/boot.json'
+        ads_path = '/tmp/ads.json'
+
+        debug = True
+        port = 9998
 
     if no_envoy:
         no_checks = True
