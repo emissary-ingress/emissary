@@ -502,6 +502,9 @@ cmd_summarize() {
 	colored_cnt "$PURPLE" ERROR $cnt_error
 	colored "$color" '============================================================================'
 	if ! $pass; then
+		if [[ "$arg_file" != /* ]]; then
+			arg_file="./${arg_file}"
+		fi
 		colored "$color" 'See %s' "$arg_file"
 		colored "$color" '============================================================================'
 	fi
