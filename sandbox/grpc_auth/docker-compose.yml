@@ -3,7 +3,7 @@ services:
 
   # curl -v -H "requested-cookie: foo, bar, baz" -H "requested-status:307"  http://localhost:61880/echo-service/get 
   ambassador:
-    image: quay.io/gsagula/ambassador:extauthz-http-tracing-910c8eee
+    image: quay.io/datawire/ambassador:0.73.0
     ports:
     - 61880:8080
     volumes:
@@ -13,19 +13,6 @@ services:
     networks:
     - ambassador
 
-  # curl -v -H "requested-cookie: foo, bar, baz" -H "requested-status:307"  http://localhost:61592/echo-service/get
-  # envoy:
-  #   build:
-  #     context: .
-  #     dockerfile: Dockerfile-proxy
-  #   volumes:
-  #     - ./config.yaml:/etc/config.yaml
-  #   networks:
-  #     - ambassador
-  #   ports:
-  #     - "61592:8000"
-  #     - "61593:8001"
-  
   # curl -v -H "requested-cookie: foo, bar, baz" -H "requested-status:307"  http://localhost:61594/echo-service/get
   # curl -v -H "requested-status:200" -H "x-grpc-auth-append: foo=bar; baz=bar" -H "foo: foo" http://localhost:61592/headers
   auth-service:

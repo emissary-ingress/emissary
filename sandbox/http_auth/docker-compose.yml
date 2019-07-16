@@ -6,7 +6,7 @@ services:
   # curl -v -H "requested-cookie: foo, bar, baz" -H "requested-status:200"  http://localhost:61880/get
   # curl -v -H "requested-cookie: foo, bar, baz" -H "requested-status:307"  http://localhost:61892/get
   ambassador:
-    image: quay.io/datawire/ambassador:0.72.0
+    image: quay.io/datawire/ambassador:0.73.0
     ports:
     - 61880:8080
     volumes:
@@ -15,22 +15,6 @@ services:
     - AMBASSADOR_NO_KUBEWATCH=true
     networks:
     - ambassador
-
-  # curl -v -H "requested-cookie: foo, bar, baz" -H "requested-status:307"  http://localhost:61892/get
-  envoy:
-    build:
-      context: .
-      dockerfile: Dockerfile-proxy
-    volumes:
-      - ./config.yaml:/etc/config.yaml
-    networks:
-      - ambassador
-    expose:
-      - "80"
-      - "8001"
-    ports:
-      - "61892:8000"
-      - "61893:8001"
   
   # curl -v -H "requested-cookie: foo, bar, baz" -H "requested-status:307"  http://localhost:61898/get
   auth-service:
