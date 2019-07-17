@@ -7,7 +7,7 @@ module.exports.testcases = {
 	"Google": {
 		resource: "https://ambassador.standalone.svc.cluster.local/google/httpbin/headers",
 		username: "ambassadorprotesting@gmail.com",
-		password: "IN5Kji47teRW2bJMh39O",
+		password: "NO2I27Bg1XY",
 		before: () => { server.listen(31001); },
 		after: () => { server.close(); },
 	},
