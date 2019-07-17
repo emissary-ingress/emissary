@@ -16,7 +16,7 @@ services:
   # curl -v -H "requested-cookie: foo, bar, baz" -H "requested-status:307"  http://localhost:61594/echo-service/get
   # curl -v -H "requested-status:200" -H "x-grpc-auth-append: foo=bar; baz=bar" -H "foo: foo" http://localhost:61592/headers
   auth-service:
-    image: quay.io/datawire/kat-backend:13
+    image: quay.io/datawire/kat-backend:14
     environment:
     - DEBUG=1
     - BACKEND=true
@@ -31,7 +31,10 @@ services:
       - "61594:8080"
 
   echo-service:
-    image: kennethreitz/httpbin:latest
+    image: quay.io/datawire/kat-backend:14
+    environment:
+    - DEBUG=1
+    - BACKEND=true
     networks:
       ambassador:
         aliases:
