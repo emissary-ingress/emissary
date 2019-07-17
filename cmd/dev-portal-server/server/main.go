@@ -21,6 +21,7 @@ func Main(
 	fetcher := NewFetcher(
 		s.getServiceAdd(), s.getServiceDelete(), httpGet, knownServices,
 		diagdURL, ambassadorURL, pollFrequency, publicURL, sharedSecretPath)
+	go fetcher.retrieve()
 	defer fetcher.Stop()
 	s.ServeHTTP()
 }

@@ -6,7 +6,7 @@
 <span id="swagger-ui"></span>
 <script>
 const ui = SwaggerUIBundle({
-    url: "../../openapi/services/{{.rq.namespace}}/{{.rq.name}}/openapi.json",
+    url: "../../openapi/services/{{.CurrentNamespace}}/{{.CurrentService}}/openapi.json",
     dom_id: '#swagger-ui',
     presets: [
       SwaggerUIBundle.presets.apis,

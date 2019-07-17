@@ -1,5 +1,7 @@
+<span>
 {{define "landing-head"}}
 {{end}}
+</span>
   <div class="row">
 		<div class="col-12">
 			Available Services
@@ -13,7 +15,7 @@
 							</tr>
 						</thead>
 						<tbody>
-							{{range $i, $element := .s.K8sStore.Slice }}
+							{{range $i, $element := .S.K8sStore.Slice }}
 							{{if isEven $i }}
 							<tr style="background: rgba(86,61,124,.05);">
 							{{else}}
@@ -24,7 +26,7 @@
 								</td>
 								<td>
 									{{if $element.Metadata.HasDoc}}
-    								<a href="{{$.prefix}}doc/{{$element.Service.Namespace}}/{{$element.Service.Name}}"><code>API Documentation</code></a>
+    								<a href="{{$.Prefix}}doc/{{$element.Service.Namespace}}/{{$element.Service.Name}}"><code>API Documentation</code></a>
 									{{else}}
 									  <code><span style="color:red">No API Documentation</span></code>
     							{{end}}

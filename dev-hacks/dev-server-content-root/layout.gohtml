@@ -7,26 +7,42 @@
 
 	  <!-- Custom styles for this template -->
 	  <link href="https://getbootstrap.com/docs/4.0/examples/grid/grid.css" rel="stylesheet">
-    {{if eq .ctx "landing"}}{{template "landing-head" $}}
-    {{else if eq .ctx "page"}}{{template "page-magic-head" $}}
-    {{else if eq .ctx "doc"}}{{template "swagger-head" $}}
+	  <link href="{{.Prefix}}static/devportal.css" rel="stylesheet">
+    {{if eq .Ctx "landing"}}
+    {{template "landing-head" $}}
+    {{else if eq .Ctx "page"}}
+    {{template "page-magic-head" $}}
+    {{else if eq .Ctx "doc"}}
+    {{template "swagger-head" $}}
     {{else}} UNKNOWN CONTEXT??
     {{end}}
+    {{define "landing-head"}}{{end}}
+    {{define "page-magic-head"}}{{end}}
+    {{define "swagger-head"}}{{end}}
 </head>
 <body>
     <div class="navigation-layout" >
+        <a href="{{.Prefix}}" ><img src="{{.Prefix}}static/logo.png" alt="missing logo"></a>
+        <hr>
         {{template "navigation" $}}
+        {{define "navigation"}}{{end}}
     </div>
     <div class="container">
 	      <h1>Developer Portal</h1>
-    {{if eq .ctx "landing"}}{{template "landing" $}}
-    {{else if eq .ctx "page"}}{{template "page-magic" $}}
-    {{else if eq .ctx "doc"}}{{template "swagger" $}}
-    {{else}} UNKNOWN CONTEXT??
-    {{end}}
+        {{if eq .Ctx "landing"}}
+        {{template "///landing" $}}
+        {{else if eq .Ctx "page"}}
+        {{template "///page-magic" $}}
+        {{else if eq .Ctx "doc"}}
+        {{template "swagger" $}}
+        {{else}} UNKNOWN CONTEXT??
+        {{end}}
+        {{define "///landing"}}{{end}}
+        {{define "///page-magic"}}{{end}}
+        {{define "swagger"}}{{end}}
     </div>
     <pre> Dot: {{.}}
-      {{._dbg}}
+        { {._dbg}}
     </pre>
 </body>
 </html>

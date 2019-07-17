@@ -2,7 +2,6 @@ package server
 
 import (
 	"encoding/json"
-	"html/template"
 	"io/ioutil"
 	"net/http"
 
@@ -93,7 +92,7 @@ func (s *Server) handleOpenAPIGet() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		metadata := s.K8sStore.Get(kubernetes.Service{
-			Name: vars["name"], Namespace: vars["namespace"]},
+			Name: vars["service"], Namespace: vars["namespace"]},
 			true)
 		if metadata == nil {
 			w.WriteHeader(http.StatusNotFound)
@@ -143,28 +142,40 @@ func (s *Server) handleOpenAPIUpdate() http.HandlerFunc {
 	}
 }
 
-type contentVars map[string]interface{}
-
-func (vars contentVars) GetString(key string) (sval string) {
-	val, ok := vars[key]
-	if !ok {
-		return
-	}
-
-	sval, ok = val.(string)
-	if !ok {
-		return
-	}
-	return
+type contentVars struct {
+	S      *Server
+	Ctx    string
+	Prefix string
+	Pages  []string
+	Rq     map[string]string
 }
 
 func (s *Server) vars(r *http.Request, context, prefix string) content.ContentVars {
-	return contentVars{
-		"s":      s,
-		"ctx":    context,
-		"prefix": prefix,
-		"rq":     mux.Vars(r),
+	return &contentVars{
+		S:      s,
+		Ctx:    context,
+		Prefix: prefix,
+		Rq:     mux.Vars(r),
 	}
+}
+
+func (vars *contentVars) SetPages(pages []string) {
+	vars.Pages = pages
+}
+
+func (vars *contentVars) CurrentPage() (page string) {
+	page, _ = vars.Rq["page"]
+	return
+}
+
+func (vars *contentVars) CurrentNamespace() (page string) {
+	page, _ = vars.Rq["namespace"]
+	return
+}
+
+func (vars *contentVars) CurrentService() (page string) {
+	page, _ = vars.Rq["service"]
+	return
 }
 
 func (s *Server) handleHTML(context string, prefix string) http.HandlerFunc {
@@ -175,29 +186,23 @@ func (s *Server) handleHTML(context string, prefix string) http.HandlerFunc {
 			log.Fatal(err)
 		}
 		w.Header().Set("Content-Type", "text/html")
-		err = tmpl.Lookup("layout").Execute(w, vars)
+		err = tmpl.Lookup("///layout").Execute(w, vars)
 		if err != nil {
 			log.Fatal(err)
 		}
 	}
 }
 
-func (s *Server) handleDocHTML() http.HandlerFunc {
+func (s *Server) handleStatic() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		tmpl, err := template.New("doc").Parse(`
-<head>
-</head>
-<body>
-</body>
-`)
+		content, err := s.content.GetStatic(r.URL.Path)
 		if err != nil {
-			log.Fatal(err)
+			log.Warn(err)
+			w.WriteHeader(http.StatusNotFound)
+			return
 		}
-		w.Header().Set("Content-Type", "text/html")
-		err = tmpl.Execute(w, s.vars(r, "doc", ""))
-		if err != nil {
-			log.Fatal(err)
-		}
+		http.ServeContent(w, r, content.Name, content.Modtime, content.Data)
+		content.Close()
 	}
 }
 
@@ -219,8 +224,9 @@ func NewServer(content *content.Content) *Server {
 	// have Javascript UI that queries the API endpoints. for this
 	// iteration, just doing it server-side.
 	router.HandleFunc("/", s.handleHTML("landing", ""))
+	router.PathPrefix("/static/").HandlerFunc(s.handleStatic())
 	router.HandleFunc("/page/{page}", s.handleHTML("page", "../"))
-	router.HandleFunc("/doc/{namespace}/{name}", s.handleHTML("doc", "../../"))
+	router.HandleFunc("/doc/{namespace}/{service}", s.handleHTML("doc", "../../"))
 
 	// *** Read-only API, requires less access control and may be exposed ***
 	// publicly:
@@ -231,7 +237,7 @@ func NewServer(content *content.Content) *Server {
 	// Return the OpenAPI JSON:
 	router.
 		HandleFunc(
-			"/openapi/services/{namespace}/{name}/openapi.json",
+			"/openapi/services/{namespace}/{service}/openapi.json",
 			s.handleOpenAPIGet()).
 		Methods("GET")
 
