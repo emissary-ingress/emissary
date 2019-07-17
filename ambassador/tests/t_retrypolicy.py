@@ -13,7 +13,7 @@ class RetryPolicyTest(AmbassadorTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: ambassador/v1
 kind:  Mapping
 name:  {self.name}-normal
 prefix: /{self.name}-normal/
