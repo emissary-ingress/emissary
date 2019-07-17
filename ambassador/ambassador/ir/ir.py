@@ -606,7 +606,8 @@ class IR:
         for key in [ 'diagnostics', 'liveness_probe', 'readiness_probe', 'statsd' ]:
             od[key] = self.ambassador_module.get(key, {}).get('enabled', False)
 
-        for key in [ 'use_proxy_proto', 'use_remote_address', 'x_forwarded_proto_redirect', 'enable_http10' ]:
+        for key in [ 'use_proxy_proto', 'use_remote_address', 'x_forwarded_proto_redirect', 'enable_http10',
+                     'add_linkerd_headers' ]:
             od[key] = self.ambassador_module.get(key, False)
 
         od['service_resource_total'] = len(list(self.services.keys()))
@@ -717,6 +718,10 @@ class IR:
         od['endpoint_routing_envoy_rr_count'] = endpoint_routing_envoy_rr_count
         od['endpoint_routing_envoy_rh_count'] = endpoint_routing_envoy_rh_count
         od['endpoint_routing_envoy_maglev_count'] = endpoint_routing_envoy_maglev_count
+
+        cluster_ingresses = self.aconf.get_config("ClusterIngress")
+
+        od['cluster_ingress_count'] = len(cluster_ingresses.keys()) if cluster_ingresses else 0
 
         extauth = False
         extauth_proto: Optional[str] = None
