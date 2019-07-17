@@ -1,7 +1,7 @@
 # Load libraries
 import time
 import sys
-from bottle import Bottle, run, debug
+from bottle import Bottle, run, debug, redirect
 from wsgiproxy import HostProxy
 
 FILTER_HEADERS = [
@@ -23,7 +23,7 @@ root.mount("/portal/", proxy)
 # Handle http requests to the root address
 @root.route('/')
 def index():
- return 'Go away.'
+  redirect("/portal/")
 
 # Handle http requests to the root address
 @root.route('/_shutdown')

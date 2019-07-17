@@ -312,6 +312,10 @@ run-auth: ## (LocalDev) Build and launch the auth service locally
 run-auth: bin_$(GOHOSTOS)_$(GOHOSTARCH)/amb-sidecar
 	env $$(cat pro-env.sh) APP_LOG_LEVEL=debug bin_$(GOHOSTOS)_$(GOHOSTARCH)/amb-sidecar main
 .PHONY: run-auth
+run-dev-portal: ## (LocalDev) Build and launch the dev server locally
+run-dev-portal: bin_$(GOHOSTOS)_$(GOHOSTARCH)/dev-portal-server
+	sh -x dev-hacks/dev-server.sh
+.PHONY: run-dev-portal
 
 #
 # Check
