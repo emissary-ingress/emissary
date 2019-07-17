@@ -83,6 +83,7 @@ class Config:
     ambassador_nodename: str = "ambassador"     # overridden in Config.reset
 
     current_resource: Optional[ACResource] = None
+    helm_chart: Optional[str]
 
     # XXX flat wrong
     schemas: Dict[str, dict]
@@ -139,6 +140,7 @@ class Config:
         self.logger.debug("ACONF RESET")
 
         self.current_resource = None
+        self.helm_chart = None
 
         self.schemas = {}
         self.config = {}
@@ -182,6 +184,9 @@ class Config:
             '_notices': self.notices,
             '_sources': {}
         }
+
+        if self.helm_chart:
+            od['_helm_chart'] = self.helm_chart
 
         for k, v in self.sources.items():
             sd = dict(v)    # Shallow copy
@@ -548,7 +553,7 @@ class Config:
     def handle_service(self, resource: ACResource) -> None:
         """
         Handles a Service resource. We need a handler for this because the key needs to be
-        the rkey, not the name.
+        the rkey, not the name, and because we need to check the helm_chart attribute.
         """
 
         storage = self.config.setdefault('service', {})
@@ -563,3 +568,8 @@ class Config:
                           (resource, resource.kind, key))
 
         storage[key] = resource
+
+        chart = resource.get('helm_chart', None)
+
+        if chart:
+            self.helm_chart = chart

@@ -573,6 +573,9 @@ class IR:
     def features(self) -> Dict[str, Any]:
         od: Dict[str, Union[bool, int, Optional[str]]] = {}
 
+        if self.aconf.helm_chart:
+            od['helm_chart'] = self.aconf.helm_chart
+
         tls_termination_count = 0   # TLS termination contexts
         tls_origination_count = 0   # TLS origination contexts
 

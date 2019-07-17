@@ -50,6 +50,9 @@ class ResourceFetcher:
         self.k8s_services: Dict[str, AnyDict] = {}
         self.services: Dict[str, AnyDict] = {}
 
+        # Ugh. Should we worry about multiple Helm charts for a single Ambassador?
+        self.helm_chart: Optional[str] = None
+
     @property
     def location(self):
         return "%s.%d" % (self.filename or "anonymous YAML", self.ocount)
@@ -465,6 +468,14 @@ class ResourceFetcher:
         if annotations:
             annotations = annotations.get('getambassador.io/config', None)
 
+        labels = metadata.get('labels')
+
+        if labels:
+            chart_version = labels.get('helm.sh/chart', None)
+
+            if chart_version and not self.helm_chart:
+                self.helm_chart = chart_version
+
         skip = False
 
         if not metadata:
@@ -815,6 +826,10 @@ class ResourceFetcher:
             serialization = dump_yaml(svc, default_flow_style=False)
 
             r = ACResource.from_dict(key, key, serialization, svc)
+
+            if self.helm_chart:
+                r['helm_chart'] = self.helm_chart
+
             self.elements.append(r)
 
         od = {
