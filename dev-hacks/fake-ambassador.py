@@ -29,7 +29,7 @@ def index():
 @root.route('/_shutdown')
 def index():
   print("\n\nFake ambassador: Shutting down\n\n")
-  sys.exit(0)
+  sys.stderr.close()
 
 @root.route('/ambassador/v0/diag/')
 def diag():

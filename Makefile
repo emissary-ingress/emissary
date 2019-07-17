@@ -425,6 +425,7 @@ clobber:
 	rm -f docker/*/kubeapply
 	rm -f docker/*/kubectl
 	rm -rf tests/cluster/oauth-e2e/node_modules
+	rm -rf dev-hacks/.venv/
 
 #
 # Release
