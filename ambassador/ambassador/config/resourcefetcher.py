@@ -663,13 +663,13 @@ class ResourceFetcher:
         #    Anything with no matching ports is _not_ dropped; it is assumed to use service
         #    routing rather than endpoint routing.
 
-        od = {
-            'elements': [ x.as_dict() for x in self.elements ],
-            'k8s_endpoints': self.k8s_endpoints,
-            'k8s_services': self.k8s_services,
-            'services': self.services
-        }
-
+        # od = {
+        #     'elements': [ x.as_dict() for x in self.elements ],
+        #     'k8s_endpoints': self.k8s_endpoints,
+        #     'k8s_services': self.k8s_services,
+        #     'services': self.services
+        # }
+        #
         # self.logger.debug("==== FINALIZE START\n%s" % json.dumps(od, sort_keys=True, indent=4))
 
         for key, k8s_svc in self.k8s_services.items():
@@ -832,11 +832,11 @@ class ResourceFetcher:
 
             self.elements.append(r)
 
-        od = {
-            'elements': [ x.as_dict() for x in self.elements ],
-            'k8s_endpoints': self.k8s_endpoints,
-            'k8s_services': self.k8s_services,
-            'services': self.services
-        }
+        # od = {
+        #     'elements': [ x.as_dict() for x in self.elements ],
+        #     'k8s_endpoints': self.k8s_endpoints,
+        #     'k8s_services': self.k8s_services,
+        #     'services': self.services
+        # }
 
         # self.logger.debug("==== FINALIZE END\n%s" % json.dumps(od, sort_keys=True, indent=4))
