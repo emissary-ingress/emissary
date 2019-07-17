@@ -8,6 +8,7 @@ import pexpect
 import requests
 
 DockerImage = os.environ["AMBASSADOR_DOCKER_IMAGE"]
+child = None    # see docker_start()
 
 SEQUENCES = [
     (
@@ -37,6 +38,9 @@ SEQUENCES = [
 ]
 
 def docker_start() -> bool:
+    # Use a global here so that the child process doesn't get killed
+    global child
+
     cmd = f'docker run --rm --name diagd -p9998:9998 {os.environ["AMBASSADOR_DOCKER_IMAGE"]} --dev-magic'
 
     child = pexpect.spawn(cmd, encoding='utf-8')
