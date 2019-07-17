@@ -16,7 +16,7 @@ metadata:
 spec:
   containers:
   - name: backend
-    image: quay.io/datawire/kat-backend:14
+    image: quay.io/datawire/kat-backend:11
     ports:
     - containerPort: 8080
     env:
