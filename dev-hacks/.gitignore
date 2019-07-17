@@ -1,1 +1,3 @@
 /.venv/
+/.license-key
+/.shared-secret
