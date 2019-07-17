@@ -81,21 +81,6 @@ def docker_kill():
 
     yield from subproc.communicate()
 
-async def timed_wait(coro, timeout=10.0) -> bool:
-    print(f'TIMED WAIT {coro}')
-
-    status = False
-
-    try:
-        returncode = await asyncio.wait_for(coro(), timeout=timeout)
-
-        if returncode == 0:
-            status = True
-    except asyncio.TimeoutError:
-        print('timeout')
-
-    return status
-
 def wait_for_diagd() -> bool:
     status = False
     tries_left = 5
@@ -226,6 +211,34 @@ def check_chimes() -> bool:
 
     return result
 
+async def asynchronicity():
+    test_status = True
+    status = True
+
+    try:
+        returncode = await asyncio.wait_for(docker_start(), timeout=10.0)
+
+        if returncode != 0:
+            status = False
+            print(f'Docker start status {status}')
+    except asyncio.TimeoutError:
+        print('timeout')
+
+    if not status:
+        print('Timed out waiting for output, but continuing anyway')
+
+    if not wait_for_diagd():
+        test_status = False
+    elif not check_chimes():
+        test_status = False
+
+    try:
+        await asyncio.wait_for(docker_kill(), timeout=0.5)
+    except asyncio.TimeoutError:
+        pass
+
+    assert test_status, f'docker test failed'
+
 def test_scout():
     test_status = True
 
@@ -233,20 +246,8 @@ def test_scout():
         assert False, f'You must set $AMBASSADOR_DOCKER_IMAGE'
     else:
         loop = asyncio.get_event_loop()
-        status = loop.run_until_complete(timed_wait(docker_start))
-
-        if not status:
-            print('Timed out waiting for output, but continuing anyway')
-
-        if not wait_for_diagd():
-            test_status = False
-        elif not check_chimes():
-            test_status = False
-
-        loop.run_until_complete(timed_wait(docker_kill, timeout=1.0))
+        loop.run_until_complete(asynchronicity())
         loop.close()
-
-        assert test_status
 
 if __name__ == '__main__':
     test_scout()
