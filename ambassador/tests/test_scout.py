@@ -1,10 +1,10 @@
 from typing import Any, Dict, List, Optional
 
-import asyncio
-import json
+import sys
 import os
 import time
 
+import pexpect
 import requests
 
 DockerImage = os.environ["AMBASSADOR_DOCKER_IMAGE"]
@@ -36,50 +36,30 @@ SEQUENCES = [
     ),
 ]
 
-@asyncio.coroutine
-def docker_start():
-    cmd = [ 'docker', 'run', '--rm', '--name', 'diagd', '-p9998:9998', DockerImage, '--dev-magic' ]
+def docker_start() -> bool:
+    cmd = f'docker run --rm --name diagd -p9998:9998 {os.environ["AMBASSADOR_DOCKER_IMAGE"]} --dev-magic'
 
-    subproc_future = asyncio.create_subprocess_exec(*cmd, stdout=asyncio.subprocess.PIPE,
-                                                    stderr=asyncio.subprocess.PIPE)
+    child = pexpect.spawn(cmd, encoding='utf-8')
+    child.logfile = sys.stdout
 
-    subproc = yield from subproc_future
-    status = 0
+    i = child.expect([ pexpect.EOF, pexpect.TIMEOUT, 'LocalScout: mode boot, action boot1' ])
 
-    while True:
-        data = yield from subproc.stdout.readline()
-        text = data.decode('utf-8').rstrip()
+    if i == 0:
+        print('diagd died?')
+        return False
+    elif i == 1:
+        print('diagd timed out?')
+        return False
+    else:
+        return True
 
-        if not text:
-            print("Diagd died?")
-            status = subproc.returncode
-
-            stdout, stderr = yield from subproc.communicate()
-
-            if stderr:
-                print("stderr:")
-                print(stderr.decode('utf-8').rstrip())
-
-            break
-
-        print(f'<-- {text}')
-
-        if (('AMBASSADOR: running with dev magic' in text) or
-            ('LocalScout: mode boot, action boot1' in text)):
-            print("Ready!")
-            break
-
-    return status
-
-@asyncio.coroutine
 def docker_kill():
-    cmd = [ 'docker', 'kill', 'diagd' ]
+    cmd = f'docker kill diagd'
 
-    subproc_future = asyncio.create_subprocess_exec(*cmd, stdout=asyncio.subprocess.PIPE)
+    child = pexpect.spawn(cmd, encoding='utf-8')
+    child.logfile = sys.stdout
 
-    subproc = yield from subproc_future
-
-    yield from subproc.communicate()
+    child.expect([ pexpect.EOF, pexpect.TIMEOUT ])
 
 def wait_for_diagd() -> bool:
     status = False
@@ -211,43 +191,22 @@ def check_chimes() -> bool:
 
     return result
 
-async def asynchronicity():
-    test_status = True
-    status = True
-
-    try:
-        returncode = await asyncio.wait_for(docker_start(), timeout=10.0)
-
-        if returncode != 0:
-            status = False
-            print(f'Docker start status {status}')
-    except asyncio.TimeoutError:
-        print('timeout')
-
-    if not status:
-        print('Timed out waiting for output, but continuing anyway')
-
-    if not wait_for_diagd():
-        test_status = False
-    elif not check_chimes():
-        test_status = False
-
-    try:
-        await asyncio.wait_for(docker_kill(), timeout=0.5)
-    except asyncio.TimeoutError:
-        pass
-
-    assert test_status, f'docker test failed'
-
 def test_scout():
     test_status = True
 
     if not DockerImage:
         assert False, f'You must set $AMBASSADOR_DOCKER_IMAGE'
     else:
-        loop = asyncio.get_event_loop()
-        loop.run_until_complete(asynchronicity())
-        loop.close()
+        assert docker_start(), 'diagd could not start'
+
+        if not wait_for_diagd():
+            test_status = False
+        elif not check_chimes():
+            test_status = False
+
+        docker_kill()
+
+        assert test_status, 'test failed'
 
 if __name__ == '__main__':
     test_scout()
