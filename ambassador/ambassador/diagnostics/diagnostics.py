@@ -216,7 +216,7 @@ class DiagResult:
             cluster = mapping['cluster']
 
             mapping_cluster = self.include_cluster(cluster.as_dict())
-            mapping_cluster.update({'weight': mapping['weight']})
+            mapping_cluster.update({'weight': mapping.get('weight', 0)})
 
             # self.logger.debug("GROUP %s CLUSTER %s %d%% (%s)" %
             #                   (group['group_id'], c_name, mapping['weight'], mapping_cluster))

@@ -16,6 +16,7 @@ from typing import List, TYPE_CHECKING
 
 from ..common import EnvoyRoute
 from ...ir.irhttpmappinggroup import IRHTTPMappingGroup
+from ...ir.irbasemapping import IRBaseMapping
 
 from .v2ratelimitaction import V2RateLimitAction
 
@@ -24,14 +25,21 @@ if TYPE_CHECKING:
 
 
 class V2Route(dict):
-    def __init__(self, config: 'V2Config', group: IRHTTPMappingGroup) -> None:
+    def __init__(self, config: 'V2Config', group: IRHTTPMappingGroup, mapping: IRBaseMapping) -> None:
         super().__init__()
 
         envoy_route = EnvoyRoute(group).envoy_route
 
         match = {
-            envoy_route: group.get('prefix'),
-            'case_sensitive': group.get('case_sensitive', True),
+            envoy_route: mapping.get('prefix'),
+            'case_sensitive': mapping.get('case_sensitive', True),
+            'runtime_fraction': {
+                'default_value': {
+                    'numerator': mapping.get('weight', 0),
+                    'denominator': 'HUNDRED'
+                },
+                'runtime_key': f'routing.traffic_shift.{mapping.cluster.name}'
+            }
         }
 
         headers = self.generate_headers(group)
@@ -44,30 +52,30 @@ class V2Route(dict):
         # `per_filter_config` is used for customization of an Envoy filter
         per_filter_config = {}
 
-        if group.get('bypass_auth', False):
+        if mapping.get('bypass_auth', False):
             per_filter_config['envoy.ext_authz'] = {'disabled': True}
 
         if per_filter_config:
             self['per_filter_config'] = per_filter_config
 
-        request_headers_to_add = group.get('add_request_headers', None)
+        request_headers_to_add = mapping.get('add_request_headers', None)
         if request_headers_to_add:
             self['request_headers_to_add'] = self.generate_headers_to_add(request_headers_to_add)
 
-        response_headers_to_add = group.get('add_response_headers', None)
+        response_headers_to_add = mapping.get('add_response_headers', None)
         if response_headers_to_add:
             self['response_headers_to_add'] = self.generate_headers_to_add(response_headers_to_add)
 
-        request_headers_to_remove = group.get('remove_request_headers', None)
+        request_headers_to_remove = mapping.get('remove_request_headers', None)
         if request_headers_to_remove:
             self['request_headers_to_remove'] = request_headers_to_remove
 
-        response_headers_to_remove = group.get('remove_response_headers', None)
+        response_headers_to_remove = mapping.get('remove_response_headers', None)
         if response_headers_to_remove:
             self['response_headers_to_remove'] = response_headers_to_remove
 
         # If a host_redirect is set, we won't do a 'route' entry.
-        host_redirect = group.get('host_redirect', None)
+        host_redirect = mapping.get('host_redirect', None)
 
         if host_redirect:
             # We have a host_redirect. Deal with it.
@@ -81,32 +89,25 @@ class V2Route(dict):
                 self['redirect']['path_redirect'] = path_redirect
         else:
             # No host_redirect. Do route stuff.
-            clusters = [ {
-                'name': mapping.cluster.name,
-                'weight': mapping.weight
-            } for mapping in group.mappings ]
-
             route = {
                 'priority': group.get('priority'),
-                'timeout': "%0.3fs" % (group.get('timeout_ms', 3000) / 1000.0),
-                'weighted_clusters': {
-                    'clusters': clusters
-                }
+                'timeout': "%0.3fs" % (mapping.get('timeout_ms', 3000) / 1000.0),
+                'cluster': mapping.cluster.name
             }
 
-            idle_timeout_ms = group.get('idle_timeout_ms', None)
+            idle_timeout_ms = mapping.get('idle_timeout_ms', None)
 
             if idle_timeout_ms is not None:
                 route['idle_timeout'] = "%0.3fs" % (idle_timeout_ms / 1000.0)
 
-            if group.get('rewrite', None):
-                route['prefix_rewrite'] = group['rewrite']
+            if mapping.get('rewrite', None):
+                route['prefix_rewrite'] = mapping['rewrite']
 
-            if 'host_rewrite' in group:
-                route['host_rewrite'] = group['host_rewrite']
+            if 'host_rewrite' in mapping:
+                route['host_rewrite'] = mapping['host_rewrite']
 
-            if 'auto_host_rewrite' in group:
-                route['auto_host_rewrite'] = group['auto_host_rewrite']
+            if 'auto_host_rewrite' in mapping:
+                route['auto_host_rewrite'] = mapping['auto_host_rewrite']
 
             hash_policy = self.generate_hash_policy(group)
             if len(hash_policy) > 0:
@@ -184,17 +185,17 @@ class V2Route(dict):
                 # We only want HTTP mapping groups here.
                 continue
 
-            # It's an HTTP group. Great.
-            route = config.save_element('route', irgroup, V2Route(config, irgroup))
+            for mapping in irgroup.mappings:
+                route = config.save_element('route', irgroup, V2Route(config, irgroup, mapping))
 
-            if irgroup.get('sni'):
-                info = {
-                    'hosts': irgroup['tls_context']['hosts'],
-                    'secret_info': irgroup['tls_context']['secret_info']
-                }
-                config.sni_routes.append({'route': route, 'info': info})
-            else:
-                config.routes.append(route)
+                if irgroup.get('sni'):
+                    info = {
+                        'hosts': irgroup['tls_context']['hosts'],
+                        'secret_info': irgroup['tls_context']['secret_info']
+                    }
+                    config.sni_routes.append({'route': route, 'info': info})
+                else:
+                    config.routes.append(route)
 
     @staticmethod
     def generate_headers(mapping_group: IRHTTPMappingGroup) -> List[dict]:

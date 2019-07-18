@@ -120,17 +120,17 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
     def add_mapping(self, aconf: Config, mapping: IRBaseMapping) -> None:
         mismatches = []
 
-        for k in IRHTTPMappingGroup.CoreMappingKeys:
-            if (k in mapping) and ((k not in self) or
-                                   (mapping[k] != self[k])):
-                mismatches.append((k, mapping[k], self.get(k, '-unset-')))
-
-        if mismatches:
-            self.post_error("cannot accept new mapping %s with mismatched %s" % (
-                                mapping.name,
-                                ", ".join([ "%s: %s != %s" % (x, y, z) for x, y, z in mismatches ])
-                            ))
-            return
+        # for k in IRHTTPMappingGroup.CoreMappingKeys:
+        #     if (k in mapping) and ((k not in self) or
+        #                            (mapping[k] != self[k])):
+        #         mismatches.append((k, mapping[k], self.get(k, '-unset-')))
+        #
+        # if mismatches:
+        #     self.post_error("cannot accept new mapping %s with mismatched %s" % (
+        #                         mapping.name,
+        #                         ", ".join([ "%s: %s != %s" % (x, y, z) for x, y, z in mismatches ])
+        #                     ))
+        #     return
 
         # self.ir.logger.debug("%s: add mapping %s" % (self, mapping.as_json()))
 
@@ -205,6 +205,58 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
 
         # ...and return it. Done.
         return stored
+
+    def normalize_weights_in_mappings(self):
+        weightless_mappings = []
+        num_weightless_mappings = 0
+
+        normalized_mappings = []
+
+        current_weight = 0
+        for mapping in self.mappings:
+            if 'weight' in mapping:
+                if mapping.weight > 100:
+                    self.post_error(f"Mapping {mapping.name} has invalid weight {mapping.weight}")
+                    return False
+
+                # increment current weight by mapping's weight
+                current_weight += round(mapping.weight)
+
+                # set mapping's new weight to current weight
+                self.logger.debug(f"Assigning weight {current_weight} to mapping {mapping.name}")
+                mapping.weight = current_weight
+
+                # add this mapping to normalized mappings
+                normalized_mappings.append(mapping)
+            else:
+                num_weightless_mappings += 1
+                weightless_mappings.append(mapping)
+
+        if current_weight > 100:
+            self.post_error(f"Total weight of mappings exceed 100, please reconfigure for correct behavior...")
+            return False
+
+        if num_weightless_mappings > 0:
+            remaining_weight = 100 - current_weight
+            weight_per_weightless_mapping = round(remaining_weight/num_weightless_mappings)
+
+            self.logger.debug(f"Assigning weight {weight_per_weightless_mapping} of remaining weight {remaining_weight} to each of {num_weightless_mappings} weightless mappings")
+
+            # Now, let's add weight to every weightless mapping and push to normalized_mappings
+            for i, weightless_mapping in enumerate(weightless_mappings):
+
+                # We need last mapping's weight to be 100
+                if i == num_weightless_mappings - 1:
+                    current_weight = 100
+                else:
+                    current_weight += weight_per_weightless_mapping
+
+                self.logger.debug(f"Assigning weight {current_weight} to weightless mapping {weightless_mapping.name}")
+                weightless_mapping['weight'] = current_weight
+                normalized_mappings.append(weightless_mapping)
+
+        self.mappings = normalized_mappings
+        return True
 
     def finalize(self, ir: 'IR', aconf: Config) -> List[IRCluster]:
         """
@@ -319,35 +371,40 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
             for mapping in self.mappings:
                 mapping.cluster = self.add_cluster_for_mapping(ir, aconf, mapping)
 
-                # Next, does this mapping have a weight assigned?
-                if 'weight' not in mapping:
-                    unspecified_mappings += 1
-                else:
-                    total_weight += mapping.weight
+            self.logger.debug(f"Normalizing weights in mappings now...")
+            if not self.normalize_weights_in_mappings():
+                self.post_error(f"Could not normalize mapping weights, ignoring...")
+                return []
 
-            # OK, once that's done normalize all the weights. Be sure to round each
-            # weight into an integer, since the Envoy spec expects that. We may not
-            # sum to 100 exactly by doing this, so we'll need to fix that up later.
-            if unspecified_mappings:
-                for mapping in self.mappings:
-                    if 'weight' not in mapping:
-                        mapping.weight = round((100.0 - total_weight)/unspecified_mappings)
-            elif total_weight != 100.0:
-                for mapping in self.mappings:
-                    mapping.weight = round(mapping.weight * (100.0/total_weight))
-
-            final_total = 0
-            for mapping in self.mappings:
-                final_total += mapping.weight
-
-            # Spread out the remainder evenly over the mappings.
-            while len(self.mappings) > 0 and final_total != 100:
-                step = 1 if final_total < 100 else -1
-                for mapping in self.mappings:
-                    mapping.weight += step
-                    final_total += step
-                    if final_total == 100:
-                        break
+            #     # Next, does this mapping have a weight assigned?
+            #     if 'weight' not in mapping:
+            #         unspecified_mappings += 1
+            #     else:
+            #         total_weight += mapping.weight
+            #
+            # # OK, once that's done normalize all the weights. Be sure to round each
+            # # weight into an integer, since the Envoy spec expects that. We may not
+            # # sum to 100 exactly by doing this, so we'll need to fix that up later.
+            # if unspecified_mappings:
+            #     for mapping in self.mappings:
+            #         if 'weight' not in mapping:
+            #             mapping.weight = round((100.0 - total_weight)/unspecified_mappings)
+            # elif total_weight != 100.0:
+            #     for mapping in self.mappings:
+            #         mapping.weight = round(mapping.weight * (100.0/total_weight))
+            #
+            # final_total = 0
+            # for mapping in self.mappings:
+            #     final_total += mapping.weight
+            #
+            # # Spread out the remainder evenly over the mappings.
+            # while len(self.mappings) > 0 and final_total != 100:
+            #     step = 1 if final_total < 100 else -1
+            #     for mapping in self.mappings:
+            #         mapping.weight += step
+            #         final_total += step
+            #         if final_total == 100:
+            #             break
 
             return list([ mapping.cluster for mapping in self.mappings ])
         else:
