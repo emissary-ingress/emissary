@@ -17,6 +17,43 @@ from .VERSION import Version, Build, BuildInfo
 ScoutNotice = Dict[str, str]
 
 
+class LocalScout:
+    def __init__(self, logger, app: str, version: str, install_id: str) -> None:
+        self.logger = logger
+        self.app = app
+        self.version = version
+        self.install_id = install_id
+
+        self.events = []
+
+        self.logger.info(f'LocalScout: initialized for {app} {version}: ID {install_id}')
+
+    def report(self, **kwargs) -> dict:
+        self.events.append(kwargs)
+
+        mode = kwargs['mode']
+        action = kwargs['action']
+
+        now = datetime.datetime.now().timestamp()
+
+        kwargs['local_scout_timestamp'] = now
+
+        if 'timestamp' not in kwargs:
+            kwargs['timestamp'] = now
+
+        self.logger.info(f"LocalScout: mode {mode}, action {action} ({kwargs})")
+
+        return {
+            "latest_version": self.version,
+            "application": self.app,
+            "cached": False,
+            "notices": [ { "level": "WARNING", "message": "Using LocalScout, result is faked!" } ],
+            "timestamp": now
+        }
+
+    def reset_events(self) -> None:
+        self.events = []
+
 class AmbScout:
     reTaggedBranch: ClassVar = re.compile(r'^(\d+\.\d+\.\d+)(-[a-zA-Z][a-zA-Z]\d+)?$')
     reGitDescription: ClassVar = re.compile(r'-(\d+)-g([0-9a-f]+)$')
@@ -39,7 +76,7 @@ class AmbScout:
     _latest_version: Optional[str] = None
     _latest_semver: Optional[semantic_version.Version] = None
 
-    def __init__(self, install_id=None, update_frequency=datetime.timedelta(hours=12)) -> None:
+    def __init__(self, install_id=None, update_frequency=datetime.timedelta(hours=12), local_only=False) -> None:
         if not install_id:
             install_id = os.environ.get('AMBASSADOR_CLUSTER_ID',
                                         os.environ.get('AMBASSADOR_SCOUT_ID', "00000000-0000-0000-0000-000000000000"))
@@ -62,12 +99,22 @@ class AmbScout:
         self._scout = None
         self._scout_error = None
 
+        self._local_only = local_only
+
         self._notices = None
         self._last_result = None
-        self._last_update = datetime.datetime.now() - datetime.timedelta(hours=24)
         self._update_frequency = update_frequency
         self._latest_version = None
         self._latest_semver = None
+
+        self.reset_cache_time()
+
+    def reset_cache_time(self) -> None:
+        self._last_update = datetime.datetime.now() - datetime.timedelta(hours=24)
+
+    def reset_events(self) -> None:
+        if self._local_only:
+            self._scout.reset_events()
 
     def __str__(self) -> str:
         return ("%s: %s" % ("OK" if self._scout else "??", 
@@ -76,14 +123,19 @@ class AmbScout:
     @property
     def scout(self) -> Optional[Scout]:
         if not self._scout:
-            try:
-                self._scout = Scout(app="ambassador", version=self.version, install_id=self.install_id)
-                self._scout_error = None
-                self.logger.debug("Scout connection established")
-            except OSError as e:
-                self._scout = None
-                self._scout_error = str(e)
-                self.logger.debug("Scout connection failed, will retry later: %s" % self._scout_error)
+            if self._local_only:
+                self._scout = LocalScout(logger=self.logger,
+                                         app="ambassador", version=self.version, install_id=self.install_id)
+                self.logger.debug("LocalScout initialized")
+            else:
+                try:
+                    self._scout = Scout(app="ambassador", version=self.version, install_id=self.install_id)
+                    self._scout_error = None
+                    self.logger.debug("Scout connection established")
+                except OSError as e:
+                    self._scout = None
+                    self._scout_error = str(e)
+                    self.logger.debug("Scout connection failed, will retry later: %s" % self._scout_error)
 
         return self._scout
 

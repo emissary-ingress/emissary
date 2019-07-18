@@ -47,6 +47,12 @@ export APPDIR="${APPDIR:-$ambassador_root}"
 export PYTHON_EGG_CACHE="${PYTHON_EGG_CACHE:-$AMBASSADOR_CONFIG_BASE_DIR}/.cache"
 export PYTHONUNBUFFERED=true
 
+if [[ "$1" == "--dev-magic" ]]; then
+    echo "AMBASSADOR: running with dev magic"
+    diagd --dev-magic
+    exit $?
+fi
+
 config_dir="${AMBASSADOR_CONFIG_BASE_DIR}/ambassador-config"
 snapshot_dir="${AMBASSADOR_CONFIG_BASE_DIR}/snapshots"
 diagd_flags=('--notices' "${AMBASSADOR_CONFIG_BASE_DIR}/notices.json")

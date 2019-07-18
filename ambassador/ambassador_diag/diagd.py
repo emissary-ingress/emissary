@@ -93,6 +93,8 @@ class DiagApp (Flask):
     health_checks: bool
     no_envoy: bool
     debugging: bool
+    allow_fs_commands: bool
+    report_action_keys: bool
     verbose: bool
     notice_path: str
     logger: logging.Logger
@@ -112,7 +114,8 @@ class DiagApp (Flask):
     def setup(self, snapshot_path: str, bootstrap_path: str, ads_path: str,
               config_path: Optional[str], ambex_pid: int, kick: Optional[str],
               k8s=False, do_checks=True, no_envoy=False, reload=False, debug=False, verbose=False,
-              notices=None, validation_retries=5):
+              notices=None, validation_retries=5, allow_fs_commands=False, local_scout=False,
+              report_action_keys=False):
         self.estats = EnvoyStats()
         self.health_checks = do_checks
         self.no_envoy = no_envoy
@@ -123,6 +126,9 @@ class DiagApp (Flask):
         self.notices.reset()
         self.k8s = k8s
         self.validation_retries = validation_retries
+        self.allow_fs_commands = allow_fs_commands
+        self.local_scout = local_scout
+        self.report_action_keys = report_action_keys
 
         # This will raise an exception and crash if you pass it a string. That's intentional.
         self.ambex_pid = int(ambex_pid)
@@ -149,7 +155,7 @@ class DiagApp (Flask):
         self.last_request_time = None
 
         # self.scout = Scout(update_frequency=datetime.timedelta(seconds=10))
-        self.scout = Scout()
+        self.scout = Scout(local_only=self.local_scout)
 
     def check_scout(self, what: str) -> None:
         self.watcher.post("SCOUT", (what, self.ir))
@@ -310,7 +316,7 @@ def envoy_status(estats):
 
 @app.route('/_internal/v0/ping', methods=[ 'GET' ])
 def handle_ping():
-    return "ACK", 200
+    return "ACK\n", 200
 
 
 @app.route('/_internal/v0/update', methods=[ 'POST' ])
@@ -319,7 +325,7 @@ def handle_kubewatch_update():
 
     if not url:
         app.logger.error("error: update requested with no URL")
-        return "error: update requested with no URL", 400
+        return "error: update requested with no URL\n", 400
 
     app.logger.info("Update requested: kubewatch, %s" % url)
 
@@ -334,7 +340,7 @@ def handle_watt_update():
 
     if not url:
         app.logger.error("error: watt update requested with no URL")
-        return "error: watt update requested with no URL", 400
+        return "error: watt update requested with no URL\n", 400
 
     app.logger.info("Update requested: watt, %s" % url)
 
@@ -343,19 +349,33 @@ def handle_watt_update():
     return info, status
 
 
-# @app.route('/_internal/v0/fs', methods=[ 'POST' ])
-# def handle_fs():
-#     path = request.args.get('path', None)
-#
-#     if not path:
-#         app.logger.error("error: update requested with no PATH")
-#         return "error: update requested with no PATH", 400
-#
-#     app.logger.info("Update requested from %s" % path)
-#
-#     status, info = app.watcher.post('CONFIG_FS', path)
-#
-#     return info, status
+@app.route('/_internal/v0/fs', methods=[ 'POST' ])
+def handle_fs():
+    path = request.args.get('path', None)
+
+    if not path:
+        app.logger.error("error: update requested with no PATH")
+        return "error: update requested with no PATH\n", 400
+
+    app.logger.info("Update requested from %s" % path)
+
+    status, info = app.watcher.post('CONFIG_FS', path)
+
+    return info, status
+
+
+@app.route('/_internal/v0/events', methods=[ 'GET' ])
+def handle_events():
+    if not app.local_scout:
+        return 'Local Scout is not enabled\n', 400
+
+    event_dump = [
+        ( x['local_scout_timestamp'], x['mode'], x['action'], x ) for x in app.scout._scout.events
+    ]
+
+    app.logger.info(f'Event dump {event_dump}')
+
+    return jsonify(event_dump)
 
 
 @app.route('/ambassador/v0/favicon.ico', methods=[ 'GET' ])
@@ -370,22 +390,22 @@ def check_alive():
     status = envoy_status(app.estats)
 
     if status['alive']:
-        return "ambassador liveness check OK (%s)" % status['uptime'], 200
+        return "ambassador liveness check OK (%s)\n" % status['uptime'], 200
     else:
-        return "ambassador seems to have died (%s)" % status['uptime'], 503
+        return "ambassador seems to have died (%s)\n" % status['uptime'], 503
 
 
 @app.route('/ambassador/v0/check_ready', methods=[ 'GET' ])
 def check_ready():
     if not app.ir:
-        return "ambassador waiting for config", 503
+        return "ambassador waiting for config\n", 503
 
     status = envoy_status(app.estats)
 
     if status['ready']:
-        return "ambassador readiness check OK (%s)" % status['since_update'], 200
+        return "ambassador readiness check OK (%s)\n" % status['since_update'], 200
     else:
-        return "ambassador not ready (%s)" % status['since_update'], 503
+        return "ambassador not ready (%s)\n" % status['since_update'], 503
 
 
 @app.route('/ambassador/v0/diag/', methods=[ 'GET' ])
@@ -562,7 +582,7 @@ class AmbassadorEventWatcher(threading.Thread):
     Actions = {
         'F-F-F': ( 'unhealthy',     True  ),    # make sure the first chime always gets out
         'F-F-T': ( 'now-healthy',   True  ),    # make sure the first chime always gets out
-        'F-T-F': ( 'now-unhealthy', True  ),    # make sure the first chime always gets out
+        'F-T-F': ( 'now-unhealthy', True  ),    # this is actually impossible
         'F-T-T': ( 'healthy',       True  ),    # this is actually impossible
         'T-F-F': ( 'unhealthy',     False ),
         'T-F-T': ( 'now-healthy',   True  ),
@@ -576,9 +596,10 @@ class AmbassadorEventWatcher(threading.Thread):
         self.logger = self.app.logger
         self.events: queue.Queue = queue.Queue()
 
-        # Have we sent the first-time chimes about whether the environment was plausible?
-        self.chimed = False
-        self.chimed_ok = False
+        self.chimed = False         # Have we ever sent a chime about the environment?
+        self.last_chime = False     # What was the status of our last chime? (starts as False)
+        self.env_good = False       # Is our environment currently believed to be OK?
+        self.failure_list = [ 'unhealthy at boot' ]     # What's making our environment not OK?
 
     def post(self, cmd: str, arg: Union[str, Tuple[str, Optional[IR]]]) -> Tuple[int, str]:
         rqueue: queue.Queue = queue.Queue()
@@ -643,6 +664,63 @@ class AmbassadorEventWatcher(threading.Thread):
 
     def load_config_fs(self, rqueue: queue.Queue, path: str) -> None:
         self.logger.info("loading configuration from disk: %s" % path)
+
+        # The "path" here can just be a path, but it can also be a command for testing,
+        # if the user has chosen to allow that.
+
+        if self.app.allow_fs_commands and (':' in path):
+            pfx, rest = path.split(':', 1)
+
+            if pfx.lower() == 'cmd':
+                fields = rest.split(':', 1)
+
+                cmd = fields[0].upper()
+
+                args = fields[1:] if (len(fields) > 1) else None
+
+                if cmd.upper() == 'CHIME':
+                    self.logger.info('CMD: Chiming')
+
+                    self.chime()
+
+                    self._respond(rqueue, 200, 'Chimed')
+                elif cmd.upper() == 'CHIME_RESET':
+                    self.chimed = False
+                    self.last_chime = False
+                    self.env_good = False
+
+                    self.app.scout.reset_events()
+                    self.app.scout.report(mode="boot", action="boot1", no_cache=True)
+
+                    self.logger.info('CMD: Reset chime state')
+                    self._respond(rqueue, 200, 'CMD: Reset chime state')
+                elif cmd.upper() == 'SCOUT_CACHE_RESET':
+                    self.app.scout.reset_cache_time()
+
+                    self.logger.info('CMD: Reset Scout cache time')
+                    self._respond(rqueue, 200, 'CMD: Reset Scout cache time')
+                elif cmd.upper() == 'ENV_OK':
+                    self.env_good = True
+                    self.failure_list = None
+
+                    self.logger.info('CMD: Marked environment good')
+                    self._respond(rqueue, 200, 'CMD: Marked environment good')
+                elif cmd.upper() == 'ENV_BAD':
+                    self.env_good = False
+                    self.failure_list = [ 'failure forced' ]
+
+                    self.logger.info('CMD: Marked environment bad')
+                    self._respond(rqueue, 200, 'CMD: Marked environment bad')
+                else:
+                    self.logger.info(f'CMD: no such command "{cmd}"')
+                    self._respond(rqueue, 400, f'CMD: no such command "{cmd}"')
+
+                return
+            else:
+                self.logger.info(f'CONFIG_FS: invalid prefix "{pfx}"')
+                self._respond(rqueue, 400, f'CONFIG_FS: invalid prefix "{pfx}"')
+
+            return
 
         snapshot = re.sub(r'[^A-Za-z0-9_-]', '_', path)
         scc = FSSecretHandler(app.logger, path, app.snapshot_path, "0")
@@ -826,24 +904,44 @@ class AmbassadorEventWatcher(threading.Thread):
             app.logger.info("starting Envoy status updater")
             app.stats_updater = PeriodicTrigger(app.watcher.update_estats, period=5)
 
+        # Check our environment...
+        self.check_environment()
+
+        self.chime()
+
+    def chime(self):
         # In general, our reports here should be action "update", and they should honor the
         # Scout cache, but we need to tweak that depending on whether we've done this before
         # and on whether the environment looks OK.
 
         already_chimed = bool_fmt(self.chimed)
-        was_ok = bool_fmt(self.chimed_ok)
-        env_good, failures = self.check_environment()
-        now_ok = bool_fmt(env_good)
+        was_ok = bool_fmt(self.last_chime)
+        now_ok = bool_fmt(self.env_good)
 
         # Poor man's state machine...
         action_key = f'{already_chimed}-{was_ok}-{now_ok}'
         action, no_cache = AmbassadorEventWatcher.Actions[action_key]
 
-        # Don't use app.check_scout; it will deadlock. And don't bother doing the Scout
-        # update until after we've taken care of Envoy.
-        self.check_scout(action, no_cache=no_cache, failures=failures)
+        self.logger.debug(f'CHIME: {action_key}')
 
-    def check_environment(self, ir: Optional[IR]=None) -> bool:
+        chime_args = {
+            'no_cache': no_cache,
+            'failures': self.failure_list
+        }
+
+        if self.app.report_action_keys:
+            chime_args['action_key'] = action_key
+
+        # Don't use app.check_scout; it will deadlock.
+        self.check_scout(action, **chime_args)
+
+        # Remember that we have now chimed...
+        self.chimed = True
+
+        # ...and remember what we sent for that chime.
+        self.last_chime = self.env_good
+
+    def check_environment(self, ir: Optional[IR]=None) -> None:
         if not ir:
             ir = app.ir
 
@@ -897,10 +995,12 @@ class AmbassadorEventWatcher(threading.Thread):
         if not env_good:
             failure_list = list(sorted(failures.keys()))
 
-        return env_good, failure_list
+        self.env_good = env_good
+        self.failure_list = failure_list
 
     def check_scout(self, what: str, no_cache: Optional[bool]=False,
-                    ir: Optional[IR]=None, failures: Optional[List[str]]=None) -> None:
+                    ir: Optional[IR]=None, failures: Optional[List[str]]=None,
+                    action_key: Optional[str]=None) -> None:
         now = datetime.datetime.now()
         uptime = now - boot_time
         hr_uptime = td_format(uptime)
@@ -917,6 +1017,9 @@ class AmbassadorEventWatcher(threading.Thread):
 
         if failures:
             scout_args['failures'] = failures
+
+        if action_key:
+            scout_args['action_key'] = action_key
 
         if ir:
             self.app.logger.debug("check_scout: we have an IR")
@@ -1047,11 +1150,12 @@ class StandaloneApplication(gunicorn.app.base.BaseApplication):
         return self.application
 
 
-def _main(snapshot_path: Parameter.REQUIRED, bootstrap_path: Parameter.REQUIRED, ads_path: Parameter.REQUIRED,
-          *, config_path=None, ambex_pid=0, kick=None, k8s=False,
+def _main(snapshot_path=None, bootstrap_path=None, ads_path=None,
+          *, dev_magic=False, config_path=None, ambex_pid=0, kick=None, k8s=False,
           no_checks=False, no_envoy=False, reload=False, debug=False, verbose=False,
           workers=None, port=Constants.DIAG_PORT, host='0.0.0.0', notices=None,
-          validation_retries=5):
+          validation_retries=5, allow_fs_commands=False, local_scout=False,
+          report_action_keys=False):
     """
     Run the diagnostic daemon.
 
@@ -1066,13 +1170,37 @@ def _main(snapshot_path: Parameter.REQUIRED, bootstrap_path: Parameter.REQUIRED,
     :param no_envoy: If True, don't interact with Envoy at all
     :param reload: If True, run Flask in debug mode for live reloading
     :param debug: If True, do debug logging
+    :param dev_magic: If True, override a bunch of things for Datawire dev-loop stuff
     :param verbose: If True, do really verbose debug logging
     :param workers: Number of workers; default is based on the number of CPUs present
     :param host: Interface on which to listen
     :param port: Port on which to listen
     :param notices: Optional file to read for local notices
     :param validation_retries: Number of times to retry Envoy configuration validation after a timeout
+    :param allow_fs_commands: If true, allow CONFIG_FS to support debug/testing commands
+    :param local_scout: Don't talk to remote Scout at all; keep everything purely local
+    :param report_action_keys: Report action keys when chiming
     """
+
+    if dev_magic:
+        # Override the world.
+        os.environ['SCOUT_HOST'] = '127.0.0.1:9999'
+        os.environ['SCOUT_HTTPS'] = 'no'
+
+        no_checks = True
+        no_envoy = True
+
+        os.makedirs('/tmp/snapshots', mode=0o755, exist_ok=True)
+
+        snapshot_path = '/tmp/snapshots'
+        bootstrap_path = '/tmp/boot.json'
+        ads_path = '/tmp/ads.json'
+
+        port = 9998
+
+        allow_fs_commands = True
+        local_scout = True
+        report_action_keys = True
 
     if no_envoy:
         no_checks = True
@@ -1080,7 +1208,7 @@ def _main(snapshot_path: Parameter.REQUIRED, bootstrap_path: Parameter.REQUIRED,
     # Create the application itself.
     app.setup(snapshot_path, bootstrap_path, ads_path, config_path, ambex_pid, kick,
               k8s, not no_checks, no_envoy, reload, debug, verbose, notices,
-              validation_retries)
+              validation_retries, allow_fs_commands, local_scout, report_action_keys)
 
     if not workers:
         workers = number_of_workers()
