@@ -224,7 +224,8 @@ func NewServer(content *content.Content) *Server {
 	// have Javascript UI that queries the API endpoints. for this
 	// iteration, just doing it server-side.
 	router.HandleFunc("/", s.handleHTML("landing", ""))
-	router.PathPrefix("/static/").HandlerFunc(s.handleStatic())
+	router.PathPrefix("/assets/").HandlerFunc(s.handleStatic())
+	router.PathPrefix("/styles/").HandlerFunc(s.handleStatic())
 	router.HandleFunc("/page/{page}", s.handleHTML("page", "../"))
 	router.HandleFunc("/doc/{namespace}/{service}", s.handleHTML("doc", "../../"))
 

@@ -1,29 +1,34 @@
-<div class="navigation">
-    <ul class="page-list">
-        {{range $i, $page := $.Pages}}
-            <li>
+<nav class="o-page__nav c-nav">
+    <div>
+        Pages:
+        <ul>
+            {{range $i, $page := $.Pages}}
+                {{$class := ""}}
                 {{if eq $.CurrentPage $page}}
-                    <span class="active-page">&gt; {{$page}}</span>
-                {{else}}
-                    <a href="{{$.Prefix}}page/{{$page}}">{{$page}}</a>
+                    {{$class = "c-nav__selected"}}
                 {{end}}
+                <li><a class="{{$class}}" href="{{$.Prefix}}page/{{$page}}">{{$page}}</a></li>
+            {{end}}
+        </ul>
+    </div>
+    <div>
+        Service docs:
+        {{range $i, $element := .S.K8sStore.Slice }}
+            {{$svc := $element.Service}}
+            {{$class := ""}}
+            {{if and (eq $.CurrentService $svc.Name) (eq $.CurrentNamespace $svc.Namespace)}}
+                {{$class := "c-nav__selected"}}
+            {{end}}
+		        <li>
+						    {{if $element.Metadata.HasDoc}}
+    						    <a class="{{$class}}" href="{{$.Prefix}}doc/{{$svc.Namespace}}/{{$svc.Name}}">
+						            {{$svc.Namespace}}.{{$svc.Name}}
+                    </a>
+						    {{else}}
+						        <samp>{{$svc.Namespace}}.{{$svc.Name}}</samp>
+    				    {{end}}
             </li>
         {{end}}
-    </ul>
-    <hr>
-    <p> Service docs:
-    <ul class="service-list">
-{{range $i, $element := .S.K8sStore.Slice }}
-		<li>
-        {{if and (eq $.CurrentService $element.Service.Name) (eq $.CurrentNamespace $element.Service.Namespace)}}&gt;{{end}}
-						{{if $element.Metadata.HasDoc}}
-    						<a href="{{$.Prefix}}doc/{{$element.Service.Namespace}}/{{$element.Service.Name}}">
-						        <samp>{{$element.Service.Namespace}}.{{$element.Service.Name}}</samp>
-                </a>
-						{{else}}
-						    <samp>{{$element.Service.Namespace}}.{{$element.Service.Name}}</samp>
-    				{{end}}
-        </li>
-{{end}}
-    </ul>
-</div>
+        </ul>
+    </div>
+</nav>

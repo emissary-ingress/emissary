@@ -1,0 +1,42 @@
+.c-nav {
+  border-right: solid 1px var(--terciary-color);
+}
+
+.c-nav a {
+  display: block;
+  padding: 1em;
+  position: relative;
+  color: var(--secondary-color);
+  line-height: initial;
+  border-bottom: solid 1px var(--terciary-color);
+  transition: background-color 100ms ease-in-out;
+}
+
+.c-nav a:hover {
+  background-color: var(--brand-color-light);
+  text-decoration: none;
+}
+
+.c-nav__sub > a {
+  font-weight: bold;
+}
+
+.c-nav__sub > ul {
+  margin-left: 2em;
+}
+
+.c-nav__selected {
+  color: var(--primary-color);
+  font-weight: bold;
+  position: relative;
+}
+
+.c-nav__selected:before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 3px;
+  background-color: var(--brand-color);
+}

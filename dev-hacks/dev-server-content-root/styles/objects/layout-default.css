@@ -1,0 +1,16 @@
+.o-page__header {
+  height: var(--header-height);
+}
+
+.o-page__nav {
+  /* Implement toggle, full screen width */
+}
+
+.o-page__main {
+  padding: 2em;
+}
+
+.o-page__footer {
+  padding: 1em;
+}
+
