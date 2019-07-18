@@ -105,7 +105,7 @@ host: my-host-2
 service: upstream-host-2:9999
 ```
 
-The example above will accept a TLS connection with SNI on port 2222. If the client requests SNI host `my-host-1`, the decrypted traffic will be relayed to `upstream-host-1`, port 9999. If the client requests SNI host `my-host-2`, the decrypted traffic will be relayed to `upstream-host-1`, port 9999. Any other SNI host will cause the TLS handshake to fail.
+The example above will accept a TLS connection with SNI on port 2222. If the client requests SNI host `my-host-1`, the decrypted traffic will be relayed to `upstream-host-1`, port 9999. If the client requests SNI host `my-host-2`, the decrypted traffic will be relayed to `upstream-host-2`, port 9999. Any other SNI host will cause the TLS handshake to fail.
 
 #### `host` and `tls` are both set.
 
