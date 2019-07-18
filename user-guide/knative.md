@@ -23,9 +23,7 @@ Ambassador can watch for changes in Knative configuration in your Kubernetes clu
 
 1. Install Knative:
 
-   ```
-   kubectl apply -f https://github.com/knative/serving/releases/download/v0.7.1/serving.yaml
-   ```
+   Knative is installed from remote YAML manifests. Check the [Knative install documentation](https://knative.dev/umentation/install/knative-with-ambassador/) to install the most recent version of Knative.
 
    **Note:** You can safely ignore the `no matches for kind "Gateway" in version "networking.istio.io/v1alpha3"` warnings during the installation since we will be using Ambassador instead of the Istio gateway.
    
@@ -101,4 +99,4 @@ Ambassador can watch for changes in Knative configuration in your Kubernetes clu
     curl -H “Host: helloworld-go.default.example.com” <ambassador IP>
     ```
 
-We have now installed Knative with Ambassador handling traffic to our serverless applications. See the [Knative documentation](https://knative.dev/docs/) for more information on what else Knative can do.
+We have now installed Knative with Ambassador handling traffic to our serverless applications. See the [Knative documentation](https://knative.dev/umentation/) for more information on what else Knative can do.
