@@ -679,7 +679,8 @@ go/apis/envoy: envoy-src $(FLOCK) venv/bin/protoc venv/bin/protoc-gen-gogofast v
 	done
 # go-control-plane `make generate-patch`
 # https://github.com/envoyproxy/go-control-plane/issues/173
-	find $(@D).envoy.tmp -name '*.validate.go' -exec sed -E -i 's,"(envoy/.*)"$$,"github.com/datawire/ambassador/go/apis/\1",' {} +
+	find $(@D).envoy.tmp -name '*.validate.go' -exec sed -E -i.bak 's,"(envoy/.*)"$$,"github.com/datawire/ambassador/go/apis/\1",' {} +
+	find $(@D).envoy.tmp -name '*.bak' -delete
 # move things in to place
 	mkdir -p $(@D)
 	mv $(@D).envoy.tmp/envoy $@
