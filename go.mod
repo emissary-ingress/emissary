@@ -32,6 +32,7 @@ require (
 	github.com/myzhan/boomer v0.0.0-20190321085146-9f3c9f575895
 	github.com/nu7hatch/gouuid v0.0.0-20131221200532-179d4d0c4d8d // indirect
 	github.com/onsi/gomega v1.4.3
+	github.com/oxtoacart/bpool v0.0.0-20190530202638-03653db5a59c
 	github.com/pkg/errors v0.8.1
 	github.com/satori/go.uuid v1.2.0
 	github.com/sirupsen/logrus v1.4.0

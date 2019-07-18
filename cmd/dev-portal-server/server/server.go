@@ -2,10 +2,12 @@ package server
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/oxtoacart/bpool"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/datawire/apro/cmd/dev-portal-server/content"
@@ -18,6 +20,8 @@ type Server struct {
 	router   *mux.Router
 	content  *content.Content
 	K8sStore kubernetes.ServiceStore
+
+	pool *bpool.BufferPool
 }
 
 func (s *Server) knownServices() []kubernetes.Service {
@@ -185,11 +189,19 @@ func (s *Server) handleHTML(context string, prefix string) http.HandlerFunc {
 		if err != nil {
 			log.Fatal(err)
 		}
-		w.Header().Set("Content-Type", "text/html")
-		err = tmpl.Lookup("///layout").Execute(w, vars)
+		buffer := s.pool.Get()
+		defer s.pool.Put(buffer)
+		err = tmpl.Lookup("///layout").Execute(buffer, vars)
 		if err != nil {
-			log.Fatal(err)
+			log.Warn(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(err.Error()))
+			return
 		}
+		w.Header().Set("Content-Type", "text/html")
+		w.Header().Set("Content-Length",
+			fmt.Sprintf("%d", buffer.Len()))
+		buffer.WriteTo(w)
 	}
 }
 
@@ -218,7 +230,9 @@ func NewServer(content *content.Content) *Server {
 	s := &Server{
 		router:   router,
 		content:  content,
-		K8sStore: kubernetes.NewInMemoryStore()}
+		K8sStore: kubernetes.NewInMemoryStore(),
+		pool:     bpool.NewBufferPool(64),
+	}
 
 	// TODO in a later design iteration, we would serve static HTML, and
 	// have Javascript UI that queries the API endpoints. for this
