@@ -54,6 +54,7 @@ require (
 	golang.org/x/tools v0.0.0-20190226205152-f727befe758c // indirect
 	google.golang.org/grpc v1.19.1
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0 // indirect
+	gopkg.in/russross/blackfriday.v2 v2.0.0-00010101000000-000000000000
 	gopkg.in/src-d/go-billy.v4 v4.2.1
 	gopkg.in/yaml.v2 v2.2.2
 	k8s.io/api v0.0.0-20190111032252-67edc246be36
@@ -88,3 +89,6 @@ replace (
 // golint in their go.sum, and (2) erroneously refer to it as
 // github.com/golang/lint instead of golang.org/x/lint
 replace github.com/golang/lint => golang.org/x/lint v0.0.0-20190227174305-5b3e6a55c961
+
+// https://github.com/russross/blackfriday/issues/500
+replace gopkg.in/russross/blackfriday.v2 => github.com/russross/blackfriday/v2 v2.0.1

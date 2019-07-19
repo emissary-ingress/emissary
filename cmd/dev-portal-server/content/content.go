@@ -11,7 +11,6 @@ import (
 	"time"
 
 	log "github.com/sirupsen/logrus"
-	"gitlab.com/golang-commonmark/markdown"
 	"gopkg.in/src-d/go-billy.v4"
 	"gopkg.in/src-d/go-billy.v4/osfs"
 )
@@ -30,6 +29,7 @@ type BetterFS struct {
 type Content struct {
 	fs      Globbable
 	funcMap template.FuncMap
+	md      MarkdownRenderer
 }
 type ContentVars interface {
 	SetPages(pages []string)
@@ -48,10 +48,13 @@ func NewContent(contentURL *url.URL) *Content {
 		},
 	}
 
+	renderer := &BlackfridayRenderer{}
+
 	if contentURL.Scheme == "" || contentURL.Scheme == "file" {
 		return &Content{
 			fs:      &BetterFS{osfs.New(contentURL.Path)},
 			funcMap: funcMap,
+			md:      renderer,
 		}
 	} else {
 		panic("TODO")
@@ -169,10 +172,9 @@ func (c *Content) loadTemplateMD(tmpl *template.Template, name, fn string) (err 
 		logger.Errorln("reading file", err)
 		return
 	}
-	md := markdown.New(
-		markdown.Tables(true),
-		markdown.HTML(true))
-	data := md.RenderToString(src)
+
+	data := c.md.Render(src)
+
 	debug := fn + ".debughtml"
 	fd, err2 := c.fs.Create(debug)
 	if err2 == nil {
