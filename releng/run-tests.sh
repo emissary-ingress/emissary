@@ -38,7 +38,7 @@ for el in "${seq[@]}"; do
     echo "==== running $el"
 
     kubectl delete namespaces -l scope=AmbassadorTest
-    kubectl delete all -l scope=AmbassadorTest --all-namespaces
+    kubectl delete all -l scope=AmbassadorTest
 
     pytest ${TEST_ARGS} -k "$el"
     true
