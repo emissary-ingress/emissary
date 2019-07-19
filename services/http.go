@@ -4,6 +4,7 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -137,6 +138,13 @@ func (h *HTTP) handler(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
+
+	if b, _ := ioutil.ReadAll(r.Body); b != nil {
+		body := string(b)
+		log.Printf("received body: %s", body)
+		w.Header()[http.CanonicalHeaderKey("Auth-Request-Body")] = []string{body}
+	}
+	defer r.Body.Close()
 
 	cookies, ok := r.Header["Requested-Cookie"]
 	if ok {

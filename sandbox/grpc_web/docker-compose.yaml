@@ -2,7 +2,7 @@ version: '3.5'
 
 services:
   ambassador:
-    image: quay.io/datawire/ambassador:grpc-web-merged-63b08e6
+    image: quay.io/datawire/ambassador:0.73.0
     ports:
     # expose port 80 via 8080 on the host machine
     - 7080:80
@@ -16,7 +16,7 @@ services:
     - ambassador
 
   grpc_echo:
-    image: quay.io/datawire/kat-backend:11
+    image: quay.io/datawire/kat-backend:13
     environment:
     - DEBUG=1
     - KAT_BACKEND_TYPE=grpc_echo
