@@ -1,6 +1,7 @@
 package services
 
 import (
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -9,6 +10,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // HTTP server object (all fields are required).
@@ -19,24 +21,45 @@ type HTTP struct {
 	SecureBackend string
 	Cert          string
 	Key           string
+	TLSVersion    string
+}
+
+func getTLSVersion(state *tls.ConnectionState) string {
+	switch state.Version {
+	case tls.VersionTLS10:
+		return "v1.0"
+	case tls.VersionTLS11:
+		return "v1.1"
+	case tls.VersionTLS12:
+		return "v1.2"
+	// TLS v1.3 is experimental.
+	case 0x0304:
+		return "v1.3"
+	default:
+		return "unknown"
+	}
 }
 
 // Start initializes the HTTP server.
 func (h *HTTP) Start() <-chan bool {
 	log.Printf("HTTP: %s listening on %d/%d", h.Backend, h.Port, h.SecurePort)
 
-	server := http.NewServeMux()
-	server.HandleFunc("/", h.handler)
+	mux := http.NewServeMux()
+	mux.HandleFunc("/", h.handler)
 
 	exited := make(chan bool)
 
 	go func() {
-		log.Fatal(http.ListenAndServe(fmt.Sprintf(":%v", h.Port), server))
+		log.Fatal(http.ListenAndServe(fmt.Sprintf(":%v", h.Port), mux))
 		close(exited)
 	}()
 
 	go func() {
-		log.Fatal(http.ListenAndServeTLS(fmt.Sprintf(":%v", h.SecurePort), h.Cert, h.Key, server))
+		s := &http.Server{
+			Addr:    fmt.Sprintf(":%v", h.SecurePort),
+			Handler: mux,
+		}
+		log.Fatal(s.ListenAndServeTLS(h.Cert, h.Key))
 		close(exited)
 	}()
 
@@ -74,23 +97,23 @@ func (h *HTTP) handler(w http.ResponseWriter, r *http.Request) {
 			url["password"] = pw
 		}
 	}
-
 	request["method"] = r.Method
 	request["headers"] = lower(r.Header)
 	request["host"] = r.Host
-	var tls = make(map[string]interface{})
-	request["tls"] = tls
 
-	tls["enabled"] = r.TLS != nil
+	var tlsrequest = make(map[string]interface{})
+	request["tls"] = tlsrequest
+
+	tlsrequest["enabled"] = r.TLS != nil
 
 	if r.TLS != nil {
 		// We're the secure side of the world, I guess.
 		backend = h.SecureBackend
 		conntype = "TLS"
 
-		tls["version"] = r.TLS.Version
-		tls["negotiated-protocol"] = r.TLS.NegotiatedProtocol
-		tls["server-name"] = r.TLS.ServerName
+		tlsrequest["negotiated-protocol"] = r.TLS.NegotiatedProtocol
+		tlsrequest["server-name"] = r.TLS.ServerName
+		tlsrequest["negotiated-protocol-version"] = getTLSVersion(r.TLS)
 	}
 
 	// respond with the requested status
@@ -160,6 +183,17 @@ func (h *HTTP) handler(w http.ResponseWriter, r *http.Request) {
 
 		w.Header()[http.CanonicalHeaderKey("extauth")] = eaArray
 	}
+
+	// Check header and delay response.
+	if h, ok := r.Header["Requested-Backend-Delay"]; ok {
+		if v, err := strconv.Atoi(h[0]); err == nil {
+			log.Printf("Delaying response by %v ms", v)
+			time.Sleep(time.Duration(v) * time.Millisecond)
+		}
+	}
+
+	// Set date response header.
+	w.Header().Set("Date", time.Now().Format("Wed, 17 Jul 2019 15:43:03 GMT"))
 
 	w.WriteHeader(statusCode)
 

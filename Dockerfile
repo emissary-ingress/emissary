@@ -1,11 +1,11 @@
-FROM golang:1.11.5-alpine3.8
+FROM golang:1.12.5-alpine3.9
 
 WORKDIR $GOPATH/src/github.com/datawire/kat-backend
 
 ENV GO111MODULE=on
 ENV CGO_ENABLED=0
 
-RUN apk add git && rm /var/cache/apk/*
+RUN apk add git curl && rm /var/cache/apk/*
 
 COPY server.crt server.crt
 COPY server.key server.key
