@@ -1048,16 +1048,18 @@ class Runner:
         self._wait(selected)
 
     def _wait(self, selected):
-        requirements = [(node, kind, name) for node in self.nodes for kind, name in node.requirements()
-                        if node in selected]
+        requirements = [ (node, kind, name) for node in self.nodes for kind, name in node.requirements()
+                         if node in selected ]
 
         homogenous = {}
+
         for node, kind, name in requirements:
             if kind not in homogenous:
                 homogenous[kind] = []
+
             homogenous[kind].append((node, name))
 
-        kinds = ["pod", "url"]
+        kinds = [ "pod", "url" ]
         delay = 5
         start = time.time()
         limit = int(os.environ.get("KAT_REQ_LIMIT", "300"))
@@ -1100,7 +1102,19 @@ class Runner:
             _holdouts = holdouts.get(kind, [])
 
             if _holdouts:
-                print("  %s:\n    %s" % (kind, "\n    ".join(_holdouts)))
+                DEV = os.environ.get("AMBASSADOR_DEV", "0").lower() in ("1", "yes", "true")
+
+                print(f'  {kind}:')
+
+                for node, text in _holdouts:
+                    print(f'\n================================ LOGS FOR {node.path.k8s} ({text})')
+
+                    if DEV:
+                        os.system(f'docker logs {node.path.k8s}')
+                    else:
+                        os.system(f'kubectl logs {node.path.k8s}')
+
+                    print(f'================================ END LOGS FOR {node.path.k8s} ({text})\n')
 
         assert False, "requirements not satisfied in %s seconds" % limit
 
@@ -1115,7 +1129,7 @@ class Runner:
 
         for node, name in requirements:
             if not pods.get(name, False):
-                not_ready.append(name)
+                not_ready.append((node, name))
 
         if not_ready:
             print("%d not ready (%s), " % (len(not_ready), name), end="")
@@ -1126,10 +1140,14 @@ class Runner:
     @_ready.when("url")
     def _ready(self, _, requirements):
         queries = []
+
         for node, q in requirements:
             q.insecure = True
             q.parent = node
             queries.append(q)
+
+        # print("URL Reqs:")
+        # print("\n".join([ f'{q.parent.name}: {q.url}' for q in queries ]))
 
         result = run_queries(queries)
 
@@ -1138,7 +1156,7 @@ class Runner:
         if not_ready:
             first = not_ready[0]
             print("%d not ready (%s: %s) " % (len(not_ready), first.query.url, first.status or first.error), end="")
-            return (False, [ "%s -- %s" % (x.query.url, x.status or x.error) for x in not_ready ])
+            return (False, [ (x.query.parent, "%s -- %s" % (x.query.url, x.status or x.error)) for x in not_ready ])
         else:
             return (True, None)
 
