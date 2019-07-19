@@ -1112,7 +1112,7 @@ class Runner:
                     if DEV:
                         os.system(f'docker logs {node.path.k8s}')
                     else:
-                        os.system(f'kubectl logs {node.path.k8s}')
+                        os.system(f'kubectl logs -n {node.namespace} {node.path.k8s}')
 
                     print(f'================================ END LOGS FOR {node.path.k8s} ({text})\n')
 
