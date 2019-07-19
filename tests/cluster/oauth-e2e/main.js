@@ -21,8 +21,7 @@ const withBrowserTab = async function(fn) {
 	}
 };
 
-for (_idpFile of glob.sync("./idp_*.js")) {
-	let idpFile = _idpFile;
+for (let idpFile of glob.sync("./idp_*.js")) {
 	let idp = require(idpFile);
 	for (const testname in idp.testcases) {
 		let testcase = idp.testcases[testname];
