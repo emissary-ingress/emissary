@@ -1,8 +1,7 @@
 #!/hint/sh
 
-AMBASSADOR_IMAGE=quay.io/datawire/ambassador:0.72.0
-
 # "Releasable" images
+AMBASSADOR_IMAGE=$(                  sed -n 2p ambassador-withlicense/ambassador.docker.push.cluster)
 AMB_SIDECAR_IMAGE=$(                 sed -n 2p docker/model-cluster-amb-sidecar-plugins.docker.push.cluster) # XXX: not releasable because plugins
 CONSUL_CONNECT_INTEGRATION_IMAGE=$(  sed -n 2p docker/consul_connect_integration.docker.push.cluster)
 DEV_PORTAL_IMAGE=$(                  sed -n 2p docker/dev-portal-server.docker.push.cluster)

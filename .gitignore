@@ -10,6 +10,9 @@ venv
 /vendor/
 /vendor.hash
 
+/ambassador-nolicense/
+/ambassador-withlicense/
+
 *.docker
 *.docker.tag.*
 *.docker.push.*

@@ -464,6 +464,8 @@ spec:
           value: "true"
         - name: SCOUT_DISABLE
           value: "1"
+        - name: AMBASSADOR_LICENSE_KEY
+          value: {{env "AMBASSADOR_LICENSE_KEY"}}
         ports:
           - name: http
             containerPort: 8080

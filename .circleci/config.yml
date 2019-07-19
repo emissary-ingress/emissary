@@ -107,6 +107,8 @@ commands:
       - run: make build
       - save-go-mod-cache
       - run: |
+          make push-docker-buildcache || true
+      - run: |
           trap 'make unclaim' EXIT
           set -x
           make check

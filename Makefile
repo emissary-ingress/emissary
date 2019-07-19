@@ -1,12 +1,16 @@
 NAME            = ambassador-pro
+# For Make itself
+SHELL           = bash -o pipefail
 # For Makefile
-image.all       = $(sort $(patsubst %/Dockerfile,%,$(wildcard docker/*/Dockerfile)) docker/model-cluster-amb-sidecar-plugins)
+image.all       = $(sort $(patsubst %/Dockerfile,%,$(wildcard docker/*/Dockerfile)) docker/model-cluster-amb-sidecar-plugins ambassador-withlicense/ambassador)
+image.nobinsrule= ambassador-withlicense/ambassador
 image.norelease = $(filter docker/model-cluster-% loadtest-%,$(image.all))
 image.nocluster = docker/apro-plugin-runner
 # For docker.mk
 # If you change docker.tag.release, you'll also need to change the
 # image names in `cmd/apictl/traffic.go`.
-docker.tag.release = quay.io/datawire/ambassador_pro:$(notdir $*)-$(VERSION)
+docker.tag.release    = quay.io/datawire/ambassador_pro:$(notdir $*)-$(VERSION)
+docker.tag.buildcache = $(BUILDCACHE_DOCKER_REPO):$(notdir $*)-$(VERSION)
 # For k8s.mk
 K8S_IMAGES      = $(filter-out $(image.nocluster),$(image.all))
 K8S_DIRS        = k8s-sidecar k8s-standalone k8s-localdev
@@ -34,7 +38,13 @@ include build-aux/go-version.mk
 include build-aux/k8s.mk
 include build-aux/teleproxy.mk
 include build-aux/pidfile.mk
+include build-aux/var.mk
 include build-aux/help.mk
+
+BUILDCACHE_DOCKER_REPO = quay.io/datawire/ambassador_pro-buildcache
+
+push-docker-buildcache: ## Push a build cache to https://quay.io/repository/datawire/ambassador_pro-buildcache
+.PHONY: push-docker-buildcache
 
 .DEFAULT_GOAL = help
 
@@ -59,7 +69,47 @@ push-docs: ## Publish ./docs to https://github.com/datawire/ambassador-docs
 .PHONY: pull-docs push-docs
 
 #
-# Lyft
+# Envoy
+
+AMBASSADOR_COMMIT = 0.75.0
+
+# Git clone
+# Ensure that GIT_DIR and GIT_WORK_TREE are unset so that `git bisect` and friends work properly.
+ambassador-nolicense ambassador-withlicense: ambassador-%: $(var.)AMBASSADOR_COMMIT
+	@PS4=; set -x; unset GIT_DIR GIT_WORK_TREE && if [ -d $@ ]; then cd $@ && git fetch || true; else git clone https://github.com/datawire/ambassador $@; fi
+	unset GIT_DIR GIT_WORK_TREE && cd $@ && git checkout $(AMBASSADOR_COMMIT)
+	touch $@
+
+# Build optimized Envoy
+ambassador-nolicense/base-envoy.docker: ambassador-nolicense
+	DOCKER_REGISTRY=- BASE_DOCKER_REPO=$(BUILDCACHE_DOCKER_REPO) ENVOY_COMPILATION_MODE=opt $(MAKE) -C $(@D) $(@F)
+ambassador-nolicense/base-envoy.docker.tag.buildcache: docker.tag.name.buildcache = $$(DOCKER_REGISTRY=- BASE_DOCKER_REPO=$(BUILDCACHE_DOCKER_REPO) ENVOY_COMPILATION_MODE=opt $(MAKE) -C $(@D) -j1 --no-print-directory print-BASE_ENVOY_IMAGE)
+
+# Add a license check to optimized Envoy
+cmd/certified-envoy/envoy.bin: ambassador-nolicense/base-envoy.docker
+	docker run --rm --volume=$(CURDIR)/$(@D):/xfer:rw $$(cat $<) cp /usr/local/bin/envoy /xfer/$(@F)
+cmd/certified-envoy/envoy.go: cmd/certified-envoy/envoy.bin cmd/certified-envoy/envoy-gen.go
+	go run cmd/certified-envoy/envoy-gen.go $< | $(WRITE_IFCHANGED) $@
+bin_%/certified-envoy: cmd/certified-envoy/envoy.go
+
+# Build Ambassador with license-checked Envoy
+ambassador-withlicense/envoy-bin/certified-envoy: bin_linux_amd64/certified-envoy | ambassador-withlicense
+	test -d $(@D) || mkdir $(@D)
+	cp $< $@
+ambassador-withlicense/ambassador.docker: ambassador-withlicense ambassador-withlicense/envoy-bin/certified-envoy
+	DOCKER_REGISTRY=- BASE_DOCKER_REPO=$(BUILDCACHE_DOCKER_REPO) ENVOY_COMPILATION_MODE=certified ENVOY_FILE=envoy-bin/certified-envoy $(MAKE) -C $(@D) $(@F)
+ambassador-withlicense/ambassador.docker.tag.release: docker.tag.name.release = quay.io/datawire/ambassador_pro:amb-core-$(VERSION)
+ambassador-withlicense/docker-push-base-images: ambassador-withlicense/ambassador.docker
+	DOCKER_REGISTRY=- BASE_DOCKER_REPO=$(BUILDCACHE_DOCKER_REPO) ENVOY_COMPILATION_MODE=certified ENVOY_FILE=envoy-bin/certified-envoy $(MAKE) -C $(@D) docker-push-base-images
+.PHONY: ambassador-withlicense/docker-push-base-images
+
+push-docker-buildcache: ambassador-nolicense/base-envoy.docker.push.buildcache
+push-docker-buildcache: ambassador-withlicense/docker-push-base-images
+
+go-get: ambassador-nolicense cmd/certified-envoy/envoy.go
+
+#
+# Lyft ratelimit
 
 RATELIMIT_VERSION=v1.3.0
 lyft-pull: # Update vendor-ratelimit from github.com/lyft/ratelimit.git
@@ -382,6 +432,7 @@ loadtest-apply loadtest-deploy loadtest-shell loadtest-proxy: loadtest-%: infra/
 
 clean: $(addsuffix .clean,$(wildcard docker/*.docker)) loadtest-clean
 	rm -f apro-abi.txt
+	rm -f cmd/certified-envoy/envoy.bin cmd/certified-envoy/envoy.go
 	rm -f docker/*/*.opensource.tar.gz
 	rm -f docker/model-cluster-amb-sidecar-plugins/Dockerfile docker/model-cluster-amb-sidecar-plugins/*.so
 	rm -f k8s-*/??-ambassador-certs.yaml k8s-*/*.pem
@@ -438,6 +489,7 @@ clobber:
 	rm -f docker/*/kubectl
 	rm -rf tests/cluster/oauth-e2e/node_modules
 	rm -rf venv
+	rm -rf ambassador-nolicense ambassador-withlicense
 
 #
 # Release
