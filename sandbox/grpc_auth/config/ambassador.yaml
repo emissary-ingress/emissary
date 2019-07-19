@@ -16,8 +16,8 @@ apiVersion: ambassador/v1
 kind:  Mapping
 name: echo-service
 prefix: /
-service: http://httpbin.org
-host_rewrite: httpbin.org
+service: http://echo-service:8080
+host_rewrite: echo-service
 ---
 apiVersion: ambassador/v1
 kind: TracingService

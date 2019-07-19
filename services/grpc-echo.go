@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"time"
 
 	// "os"
 	"strconv"
@@ -127,6 +128,17 @@ func (g *GRPC) Echo(ctx context.Context, r *pb.EchoRequest) (*pb.EchoResponse, e
 			Enabled: true,
 		}
 	}
+
+	// Check header and delay response.
+	if h, ok := md["Requested-Backend-Delay"]; ok {
+		if v, err := strconv.Atoi(h[0]); err == nil {
+			log.Printf("Delaying response by %v ms", v)
+			time.Sleep(time.Duration(v) * time.Millisecond)
+		}
+	}
+
+	// Set response date header.
+	response.Headers["date"] = time.Now().Format("Wed, 17 Jul 2019 15:43:03 GMT")
 
 	// Sets client requested metadata.
 	if len(md["requested-headers"]) > 0 {

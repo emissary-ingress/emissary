@@ -10,6 +10,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // HTTP server object (all fields are required).
@@ -182,6 +183,17 @@ func (h *HTTP) handler(w http.ResponseWriter, r *http.Request) {
 
 		w.Header()[http.CanonicalHeaderKey("extauth")] = eaArray
 	}
+
+	// Check header and delay response.
+	if h, ok := r.Header["Requested-Backend-Delay"]; ok {
+		if v, err := strconv.Atoi(h[0]); err == nil {
+			log.Printf("Delaying response by %v ms", v)
+			time.Sleep(time.Duration(v) * time.Millisecond)
+		}
+	}
+
+	// Set date response header.
+	w.Header().Set("Date", time.Now().Format("Wed, 17 Jul 2019 15:43:03 GMT"))
 
 	w.WriteHeader(statusCode)
 
