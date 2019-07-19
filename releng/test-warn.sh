@@ -1,3 +1,5 @@
+#!bash
+
 if [ ! -r ".skip_test_warning" ]; then
     cat <<EOF
 

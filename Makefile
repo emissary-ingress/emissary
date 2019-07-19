@@ -560,10 +560,7 @@ clean-test:
 	rm -f $(CLAIM_FILE)
 	$(call kill_teleproxy)
 
-test: setup-develop cluster-and-teleproxy 
-ifneq ($(USE_KUBERNAUT), true)
-	@sh releng/test-warn.sh
-endif	
+test: setup-develop
 	cd ambassador && \
 	AMBASSADOR_DOCKER_IMAGE="$(AMBASSADOR_DOCKER_IMAGE)" \
 	AMBASSADOR_DOCKER_IMAGE_CACHED="$(AMBASSADOR_DOCKER_IMAGE_CACHED)" \

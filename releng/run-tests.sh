@@ -1,4 +1,4 @@
-#!/bin/sh
+#!bash
 
 # Coverage checks are totally broken right now. I suspect that it's
 # probably the result of all the Ambassador stuff actually happen in
@@ -9,31 +9,55 @@
 # to the pytest line, and, uh, I guess recover and merge all the .coverage 
 # files from the containers??
 
+HERE=$(cd $(dirname $0); pwd)
+ROOT=$(cd .. ; pwd)
+
+echo "HERE: $HERE"
+echo "ROOT: $ROOT"
+
+set -e
+set -o pipefail
+
+if [[ "$USE_KUBERNAUT" != "true" ]]; then
+    ( cd "$ROOT"; bash "$HERE/test-warn.sh" )
+fi
+
 TEST_ARGS="--tb=short"
 
-if [ -n "${TEST_NAME}" ]; then
-    TEST_ARGS+=" -k ${TEST_NAME}"
+seq=('Plain' 'not Plain')
+
+if [[ -n "${TEST_NAME}" ]]; then
+    seq=("$TEST_NAME")
 fi
 
-pytest ${TEST_ARGS}
-RESULT=$?
+FULL_RESULT=0
 
-if [ $RESULT -ne 0 ]; then
-    kubectl get pods --all-namespaces
-    kubectl get svc --all-namespaces
+for el in "${seq[@]}"; do
+    echo "==== running $el"
 
-    if [ -n "${AMBASSADOR_DEV}" ]; then
-        docker ps -a
+    ( cd "$ROOT" ; make clean-test cluster-and-teleproxy )
+
+    pytest ${TEST_ARGS} -k "$el"
+    true
+    RESULT=$?
+
+    if [ $RESULT -ne 0 ]; then
+        FULL_RESULT=1
+
+        kubectl get pods --all-namespaces
+        kubectl get svc --all-namespaces
+
+        if [ -n "${AMBASSADOR_DEV}" ]; then
+            docker ps -a
+        fi
+
+        for pod in $(kubectl get pods -o jsonpath='{range .items[?(@.status.phase != "Running")]}{.metadata.name}:{.status.phase}{"\n"}{end}'); do
+            # WTFO.
+            echo "==== logs for $pod"
+            podname=$(echo $pod | cut -d: -f1)
+            kubectl logs $podname
+        done
     fi
+done
 
-    for pod in $(kubectl get pods -o jsonpath='{range .items[?(@.status.phase != "Running")]}{.metadata.name}:{.status.phase}{"\n"}{end}'); do
-        # WTFO.
-        echo "==== logs for $pod"
-        podname=$(echo $pod | cut -d: -f1)
-        kubectl logs $podname
-    done
-
-    exit 1
-fi
-
-exit 0
+exit $FULL_RESULT
