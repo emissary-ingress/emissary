@@ -87,9 +87,11 @@ func (c *Content) Get(vars ContentVars) (tmpl *template.Template, err error) {
 	}
 	// templates do not allow dynamic redirects so generate a dynamic template
 	page := vars.CurrentPage()
-	if pages.Contains(page) {
-		c.parseTemplate(tmpl, "///page-magic", "*code*", fmt.Sprintf(`{{template "%s" $}}`, page))
+	magic := fmt.Sprintf(`{{template "%s" $}}`, page)
+	if !pages.Contains(page) {
+		magic = `{{template "missing-page" $}}`
 	}
+	c.parseTemplate(tmpl, "///page-magic", "*code*", magic)
 	logger.Info("Ready")
 	return
 }
