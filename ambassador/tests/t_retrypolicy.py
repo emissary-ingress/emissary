@@ -4,6 +4,7 @@ from kat.harness import Query
 
 from abstract_tests import AmbassadorTest, HTTP, ServiceType
 
+
 class RetryPolicyTest(AmbassadorTest):
     target: ServiceType
 
@@ -13,7 +14,7 @@ class RetryPolicyTest(AmbassadorTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: ambassador/v1
+apiVersion: ambassador/v0
 kind:  Mapping
 name:  {self.name}-normal
 prefix: /{self.name}-normal/
