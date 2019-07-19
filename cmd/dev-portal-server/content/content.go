@@ -76,7 +76,8 @@ func (c *Content) Get(vars ContentVars) (tmpl *template.Template, err error) {
 	if err != nil {
 		return
 	}
-	pages, err := c.loadDirMD(tmpl, "pages")
+	pagePrefix := "page/"
+	pages, err := c.loadDirMD(tmpl, "pages", pagePrefix)
 	if err != nil {
 		return
 	}
@@ -87,7 +88,7 @@ func (c *Content) Get(vars ContentVars) (tmpl *template.Template, err error) {
 	}
 	// templates do not allow dynamic redirects so generate a dynamic template
 	page := vars.CurrentPage()
-	magic := fmt.Sprintf(`{{template "%s" $}}`, page)
+	magic := fmt.Sprintf(`{{template "%s%s" $}}`, pagePrefix, page)
 	if !pages.Contains(page) {
 		magic = `{{template "missing-page" $}}`
 	}
@@ -128,7 +129,7 @@ func (c *Content) loadDirHTML(tmpl *template.Template, dir string) (templates te
 	return
 }
 
-func (c *Content) loadDirMD(tmpl *template.Template, dir string) (templates templateList, err error) {
+func (c *Content) loadDirMD(tmpl *template.Template, dir string, templatePrefix string) (templates templateList, err error) {
 	logger := log.WithFields(log.Fields{
 		"subsystem": "content",
 		"dir":       dir,
@@ -140,7 +141,7 @@ func (c *Content) loadDirMD(tmpl *template.Template, dir string) (templates temp
 	}
 	for _, fn := range files {
 		name := JustName(fn)
-		err = c.loadTemplateMD(tmpl, name, c.fs.Join(dir, fn))
+		err = c.loadTemplateMD(tmpl, templatePrefix+name, c.fs.Join(dir, fn))
 		if err != nil {
 			return
 		}
