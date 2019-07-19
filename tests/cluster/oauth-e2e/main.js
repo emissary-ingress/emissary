@@ -21,7 +21,7 @@ const withBrowserTab = async function(fn) {
 	}
 };
 
-for (idpFile of glob.sync("./idp_*.js")) {
+for (let idpFile of glob.sync("./idp_*.js")) {
 	let idp = require(idpFile);
 	for (const testname in idp.testcases) {
 		let testcase = idp.testcases[testname];
@@ -43,6 +43,7 @@ for (idpFile of glob.sync("./idp_*.js")) {
 					const echoedRequest = JSON.parse(await browsertab.evaluate(() => {return document.body.textContent}));
 					expect(echoedRequest.headers.Authorization).to.match(/^Bearer /);
 				} finally {
+					await browsertab.screenshot({path: idpFile.replace(/\.js$/, ".png")});
 					if (testcase.after) {
 						testcase.after();
 					}
