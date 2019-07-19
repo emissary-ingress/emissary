@@ -32,10 +32,13 @@ fi
 
 FULL_RESULT=0
 
+( cd "$ROOT" ; make cluster-and-teleproxy )
+
 for el in "${seq[@]}"; do
     echo "==== running $el"
 
-    ( cd "$ROOT" ; make clean-test cluster-and-teleproxy )
+    kubectl delete namespaces -l scope=AmbassadorTest
+    kubectl delete all -l scope=AmbassadorTest --all-namespaces
 
     pytest ${TEST_ARGS} -k "$el"
     true
@@ -57,6 +60,10 @@ for el in "${seq[@]}"; do
             podname=$(echo $pod | cut -d: -f1)
             kubectl logs $podname
         done
+    fi
+
+    if [ -f /tmp/k8s-AmbassadorTest ]; then
+        mv /tmp/k8s-AmbassadorTest.yaml /tmp/k8s-$el-AmbassadorTest.yaml
     fi
 done
 

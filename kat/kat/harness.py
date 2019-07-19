@@ -109,6 +109,11 @@ def has_changed(data: str, path: str) -> Tuple[bool, str]:
             with open(path, "w") as f:
                 f.write(data)
 
+    # For now, we always have to reapply with split testing.
+    if not changed:
+        changed = True
+        reason = 'always reapply for split test'
+
     return (changed, reason)
 
 
@@ -947,6 +952,7 @@ class Runner:
         final_crds = CRDS
         if is_knative():
             final_crds += KNATIVE_SERVING_CRDS
+
         changed, reason = has_changed(final_crds, "/tmp/k8s-CRDs.yaml")
 
         if changed:
@@ -1026,8 +1032,18 @@ class Runner:
 
         fname = "/tmp/k8s-%s.yaml" % self.scope
 
+        # # Clear out old stuff.
+        # print("Clearing cluster...")
+        # ShellCommand.run('clear old Kubernetes namespaces',
+        #                  'kubectl', 'delete', 'namespaces', '-l', 'scope=AmbassadorTest',
+        #                  verbose=True)
+        # ShellCommand.run('clear old Kubernetes pods etc.',
+        #                  'kubectl', 'delete', 'all', '-l', 'scope=AmbassadorTest', '--all-namespaces',
+        #                  verbose=True)
+
         self.applied_manifests = False
 
+        # Always apply at this point, since we're doing the multi-run thing.
         changed, reason = has_changed(yaml, fname)
 
         if changed:
