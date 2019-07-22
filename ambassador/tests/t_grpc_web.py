@@ -1,8 +1,11 @@
+import json
+
 from kat.harness import Query
 
 from abstract_tests import AmbassadorTest, ServiceType, EGRPC
 
 class AcceptanceGrpcWebTest(AmbassadorTest):
+    debug = True
 
     target: ServiceType
 
@@ -48,8 +51,27 @@ service: {self.target.path.k8s}
                     grpc_type="web")
 
     def check(self):
+        print('AcceptanceGrpcWebTest results:')
+
+        i = 0
+
+        for result in self.results:
+            print(f'{i}: {json.dumps(result.as_dict(), sort_keys=True, indent=4)}')
+            print(f'    headers {json.dumps(result.headers, sort_keys=True)}')
+            print(f'    grpc-status {json.dumps(result.headers.get("Grpc-Status", "-none-"), sort_keys=True)}')
+            i += 1
+
         # [0]
-        assert self.results[0].headers["Grpc-Status"] == ["0"]
+        gstat = self.results[0].headers.get("Grpc-Status", "-none-")
+        print(f'    grpc-status {gstat}')
+
+        if gstat == [ '0' ]:
+            assert True
+        else:
+            assert False, f'0: got {gstat} instead of ["0"]'
+
+        # # [0]
+        # assert self.results[0].headers["Grpc-Status"] == ["0"]
 
         # [1]
         assert self.results[1].headers["Grpc-Status"] == ["7"]
