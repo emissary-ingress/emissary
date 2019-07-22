@@ -143,7 +143,7 @@ _docker.port-forward = $(dir $(_docker.mk))docker-port-forward
 # %.docker.knaut-push file contents:
 #
 #  line 1: in-cluster tag name (hash-based)
-%.docker.knaut-push: %.docker $(KUBEAPPLY) $(KUBECONFIG)
+%.docker.knaut-push: %.docker $(KUBEAPPLY) $(FLOCK) $(KUBECONFIG)
 # the FLOCK for KUBEAPPLY is to work around https://github.com/datawire/teleproxy/issues/77
 	DOCKER_K8S_ENABLE_PVC=$(DOCKER_K8S_ENABLE_PVC) $(FLOCK) $(_docker.port-forward).lock $(KUBEAPPLY) -f $(dir $(_docker.mk))docker-registry.yaml
 	{ \
@@ -158,7 +158,7 @@ _docker.port-forward = $(dir $(_docker.mk))docker-port-forward
 	docker push '$(DOCKER_IMAGE)'
 .PHONY: %.docker.push
 
-_clean-docker:
+_clean-docker: $(FLOCK)
 	$(FLOCK) $(_docker.port-forward).lock rm $(_docker.port-forward).lock
 	rm -f $(_docker.port-forward).log
 	rm -f $(dir $(_docker.mk))docker-registry.yaml.o
