@@ -35,7 +35,7 @@ class V2Route(dict):
             'case_sensitive': mapping.get('case_sensitive', True),
             'runtime_fraction': {
                 'default_value': {
-                    'numerator': mapping.get('weight', 0),
+                    'numerator': mapping.get('weight', 100),
                     'denominator': 'HUNDRED'
                 },
                 'runtime_key': f'routing.traffic_shift.{mapping.cluster.name}'

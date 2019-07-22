@@ -207,19 +207,9 @@ class IRTCPMappingGroup (IRBaseMappingGroup):
         for mapping in self.mappings:
             mapping.cluster = self.add_cluster_for_mapping(ir, aconf, mapping)
 
-            # Next, does this mapping have a weight assigned?
-            if not mapping.get('weight', 0):
-                unspecified_mappings += 1
-            else:
-                total_weight += mapping.weight
-
-        # OK, once that's done normalize all the weights.
-        if unspecified_mappings:
-            for mapping in self.mappings:
-                if not mapping.get("weight", 0):
-                    mapping.weight = (100.0 - total_weight)/unspecified_mappings
-        elif total_weight != 100.0:
-            for mapping in self.mappings:
-                mapping.weight *= 100.0/total_weight
+        self.logger.debug(f"Normalizing weights in mappings now...")
+        if not self.normalize_weights_in_mappings():
+            self.post_error(f"Could not normalize mapping weights, ignoring...")
+            return []
 
         return list([ mapping.cluster for mapping in self.mappings ])
