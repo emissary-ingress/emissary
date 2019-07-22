@@ -110,7 +110,7 @@ class RedirectTestsWithProxyProto(AmbassadorTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: ambassador/v1
 kind:  Module
 name:  ambassador
 config:
@@ -215,14 +215,14 @@ class XFPRedirect(AmbassadorTest):
     def config(self):
         yield self.target, self.format("""
 ---
-apiVersion: ambassador/v0
+apiVersion: ambassador/v1
 kind: Module
 name: ambassador
 config:
   x_forwarded_proto_redirect: true
   use_remote_address: false
 ---
-apiVersion: ambassador/v0
+apiVersion: ambassador/v1
 kind:  Mapping
 name:  {self.name}
 prefix: /{self.name}/
