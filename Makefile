@@ -137,8 +137,10 @@ AMBASSADOR_EXTERNAL_DOCKER_IMAGE ?= $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(AMBASSA
   ENVOY_COMMIT ?= 8f57f7d765939552a999721e8dac9b5a9a5cbb8b
   ENVOY_COMPILATION_MODE ?= dbg
 
-  # Increment BASE_ENVOY_RELVER on changes to `Dockerfile.base-envoy`, Envoy recipes in `Makefile`
-  BASE_ENVOY_RELVER ?= 1
+  ENVOY_FILE ?= envoy-bin/envoy-static-stripped
+
+  # Increment BASE_ENVOY_RELVER on changes to `Dockerfile.base-envoy`, ENVOY_FILE, or Envoy recipes
+  BASE_ENVOY_RELVER ?= 2
   # Increment BASE_GO_RELVER on changes to `Dockerfile.base-go`
   BASE_GO_RELVER    ?= 1
   # Increment BASE_PY_RELVER on changes to `Dockerfile.base-py`, `releng/*`, `multi/requirements.txt`, `ambassador/requirements.txt`
@@ -352,9 +354,9 @@ base-envoy.docker: Dockerfile.base-envoy $(var.)BASE_ENVOY_IMAGE
 	@if [ -n "$(AMBASSADOR_DEV)" ]; then echo "Do not run this from a dev shell" >&2; exit 1; fi
 	@if ! docker run --rm --entrypoint=true $(BASE_ENVOY_IMAGE); then \
 		echo "Building Envoy binary..." && \
-		$(MAKE) envoy-bin/envoy-static-stripped && \
+		$(MAKE) $(ENVOY_FILE) && \
 		echo "Building Envoy Docker image..." && \
-		docker build $(DOCKER_OPTS) -t $(BASE_ENVOY_IMAGE) -f $< .; \
+		docker build --build-arg ENVOY_FILE=$(ENVOY_FILE) $(DOCKER_OPTS) -t $(BASE_ENVOY_IMAGE) -f $< .; \
 	fi
 	@docker image inspect $(BASE_ENVOY_IMAGE) --format='{{.Id}}' | $(WRITE_IFCHANGED) $@
 
