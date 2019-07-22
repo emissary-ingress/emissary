@@ -186,6 +186,7 @@ clean: clean-test
 	rm -rf app.json
 	rm -rf venv/bin/ambassador
 	rm -rf ambassador/ambassador/VERSION.py*
+	rm -f *.docker
 	rm -rf ambassador/build ambassador/dist ambassador/ambassador.egg-info ambassador/__pycache__
 	find . \( -name .coverage -o -name .cache -o -name __pycache__ \) -print0 | xargs -0 rm -rf
 	find . \( -name *.log \) -print0 | xargs -0 rm -rf
@@ -347,22 +348,35 @@ envoy-shell: envoy-build-image.txt
 	$(ENVOY_SYNC_DOCKER_TO_HOST)
 .PHONY: envoy-shell
 
-docker-base-images:
+base-envoy.docker: Dockerfile.base-envoy $(var.)BASE_ENVOY_IMAGE
 	@if [ -n "$(AMBASSADOR_DEV)" ]; then echo "Do not run this from a dev shell" >&2; exit 1; fi
 	@if ! docker run --rm --entrypoint=true $(BASE_ENVOY_IMAGE); then \
 		echo "Building Envoy binary..." && \
 		$(MAKE) envoy-bin/envoy-static-stripped && \
 		echo "Building Envoy Docker image..." && \
-		docker build $(DOCKER_OPTS) -t $(BASE_ENVOY_IMAGE) -f Dockerfile.base-envoy .; \
+		docker build $(DOCKER_OPTS) -t $(BASE_ENVOY_IMAGE) -f $< .; \
 	fi
+	@docker image inspect $(BASE_ENVOY_IMAGE) --format='{{.Id}}' | $(WRITE_IFCHANGED) $@
+
+base-py.docker: Dockerfile.base-py base-envoy.docker $(var.)BASE_PY_IMAGE
+	@if [ -n "$(AMBASSADOR_DEV)" ]; then echo "Do not run this from a dev shell" >&2; exit 1; fi
 	@if ! docker run --rm --entrypoint=true $(BASE_PY_IMAGE); then \
 		echo "Building $(BASE_PY_IMAGE)" && \
-		docker build --build-arg BASE_ENVOY_IMAGE=$(BASE_ENVOY_IMAGE) $(DOCKER_OPTS) -t $(BASE_PY_IMAGE) -f Dockerfile.base-py .; \
+		docker build --build-arg BASE_ENVOY_IMAGE=$(BASE_ENVOY_IMAGE) $(DOCKER_OPTS) -t $(BASE_PY_IMAGE) -f $< .; \
 	fi
+	@docker image inspect $(BASE_PY_IMAGE) --format='{{.Id}}' | $(WRITE_IFCHANGED) $@
+
+base-go.docker: Dockerfile.base-go base-envoy.docker $(var.)BASE_GO_IMAGE
+	@if [ -n "$(AMBASSADOR_DEV)" ]; then echo "Do not run this from a dev shell" >&2; exit 1; fi
 	@if ! docker run --rm --entrypoint=true $(BASE_GO_IMAGE); then \
 		echo "Building $(BASE_GO_IMAGE)" && \
-		docker build --build-arg BASE_ENVOY_IMAGE=$(BASE_ENVOY_IMAGE) $(DOCKER_OPTS) -t $(BASE_GO_IMAGE) -f Dockerfile.base-go .; \
+		docker build --build-arg BASE_ENVOY_IMAGE=$(BASE_ENVOY_IMAGE) $(DOCKER_OPTS) -t $(BASE_GO_IMAGE) -f $< .; \
 	fi
+	@docker image inspect $(BASE_GO_IMAGE) --format='{{.Id}}' | $(WRITE_IFCHANGED) $@
+
+docker-base-images:
+	@if [ -n "$(AMBASSADOR_DEV)" ]; then echo "Do not run this from a dev shell" >&2; exit 1; fi
+	$(MAKE) base-envoy.docker base-go.docker base-py.docker
 	@echo "RESTART ANY DEV SHELLS to make sure they use your new images."
 
 docker-push-base-images:
@@ -376,8 +390,10 @@ docker-update-base:
 	$(MAKE) docker-base-images go/apis/envoy
 	$(MAKE) docker-push-base-images
 
-ambassador-docker-image: version $(WATT)
+ambassador-docker-image: ambassador.docker
+ambassador.docker: Dockerfile base-go.docker base-py.docker $(WATT) ambassador/ambassador/VERSION.py FORCE
 	docker build --build-arg BASE_GO_IMAGE=$(BASE_GO_IMAGE) --build-arg BASE_PY_IMAGE=$(BASE_PY_IMAGE) $(DOCKER_OPTS) -t $(AMBASSADOR_DOCKER_IMAGE) .
+	@docker image inspect $(AMBASSADOR_DOCKER_IMAGE) --format='{{.Id}}' | $(WRITE_IFCHANGED) $@
 
 docker-login:
 ifeq ($(DOCKER_LOGIN_FAKE), true)
@@ -426,7 +442,7 @@ else
 endif
 
 # TODO: validate version is conformant to some set of rules might be a good idea to add here
-ambassador/ambassador/VERSION.py:
+ambassador/ambassador/VERSION.py: FORCE
 	$(call check_defined, VERSION, VERSION is not set)
 	$(call check_defined, GIT_BRANCH, GIT_BRANCH is not set)
 	$(call check_defined, GIT_COMMIT, GIT_COMMIT is not set)
@@ -438,7 +454,7 @@ ambassador/ambassador/VERSION.py:
 		-e 's!{{GITDIRTY}}!$(GIT_DIRTY)!g' \
 		-e 's!{{GITCOMMIT}}!$(GIT_COMMIT)!g' \
 		-e 's!{{GITDESCRIPTION}}!$(GIT_DESCRIPTION)!g' \
-		< VERSION-template.py > ambassador/ambassador/VERSION.py
+		< VERSION-template.py | $(WRITE_IFCHANGED) $@
 
 version: ambassador/ambassador/VERSION.py
 
