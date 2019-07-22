@@ -30,16 +30,26 @@ class V2Route(dict):
 
         envoy_route = EnvoyRoute(group).envoy_route
 
-        match = {
-            envoy_route: mapping.get('prefix'),
-            'case_sensitive': mapping.get('case_sensitive', True),
-            'runtime_fraction': {
-                'default_value': {
-                    'numerator': mapping.get('weight', 100),
-                    'denominator': 'HUNDRED'
-                },
-                'runtime_key': f'routing.traffic_shift.{mapping.cluster.name}'
+        mapping_prefix = mapping.get('prefix', None)
+        route_prefix = mapping_prefix if mapping_prefix is not None else group.get('prefix')
+
+        mapping_case_sensitive = mapping.get('case_sensitive', None)
+        case_sensitive = mapping_case_sensitive if mapping_case_sensitive is not None else group.get('case_sensitive', True)
+
+        runtime_fraction = {
+            'default_value': {
+                'numerator': mapping.get('weight', 100),
+                'denominator': 'HUNDRED'
             }
+        }
+
+        if len(mapping) > 0:
+            runtime_fraction['runtime_key'] = f'routing.traffic_shift.{mapping.cluster.name}'
+
+        match = {
+            envoy_route: route_prefix,
+            'case_sensitive': case_sensitive,
+            'runtime_fraction': runtime_fraction
         }
 
         headers = self.generate_headers(group)
@@ -58,25 +68,23 @@ class V2Route(dict):
         if per_filter_config:
             self['per_filter_config'] = per_filter_config
 
-        request_headers_to_add = mapping.get('add_request_headers', None)
+        request_headers_to_add = group.get('add_request_headers', None)
         if request_headers_to_add:
             self['request_headers_to_add'] = self.generate_headers_to_add(request_headers_to_add)
 
-        response_headers_to_add = mapping.get('add_response_headers', None)
+        response_headers_to_add = group.get('add_response_headers', None)
         if response_headers_to_add:
             self['response_headers_to_add'] = self.generate_headers_to_add(response_headers_to_add)
 
-        request_headers_to_remove = mapping.get('remove_request_headers', None)
+        request_headers_to_remove = group.get('remove_request_headers', None)
         if request_headers_to_remove:
             self['request_headers_to_remove'] = request_headers_to_remove
 
-        response_headers_to_remove = mapping.get('remove_response_headers', None)
+        response_headers_to_remove = group.get('remove_response_headers', None)
         if response_headers_to_remove:
             self['response_headers_to_remove'] = response_headers_to_remove
 
-        # If a host_redirect is set, we won't do a 'route' entry.
-        host_redirect = group.get('host_redirect', None)
-
+        host_redirect = group.get('host_redirect', False)
         if host_redirect:
             # We have a host_redirect. Deal with it.
             self['redirect'] = {
@@ -87,94 +95,95 @@ class V2Route(dict):
 
             if path_redirect:
                 self['redirect']['path_redirect'] = path_redirect
-        else:
-            # No host_redirect. Do route stuff.
-            route = {
-                'priority': group.get('priority'),
-                'timeout': "%0.3fs" % (mapping.get('timeout_ms', 3000) / 1000.0),
-                'cluster': mapping.cluster.name
-            }
 
-            idle_timeout_ms = mapping.get('idle_timeout_ms', None)
+            return
 
-            if idle_timeout_ms is not None:
-                route['idle_timeout'] = "%0.3fs" % (idle_timeout_ms / 1000.0)
+        route = {
+            'priority': group.get('priority'),
+            'timeout': "%0.3fs" % (mapping.get('timeout_ms', 3000) / 1000.0),
+            'cluster': mapping.cluster.name
+        }
 
-            if mapping.get('rewrite', None):
-                route['prefix_rewrite'] = mapping['rewrite']
+        idle_timeout_ms = mapping.get('idle_timeout_ms', None)
 
-            if 'host_rewrite' in mapping:
-                route['host_rewrite'] = mapping['host_rewrite']
+        if idle_timeout_ms is not None:
+            route['idle_timeout'] = "%0.3fs" % (idle_timeout_ms / 1000.0)
 
-            if 'auto_host_rewrite' in mapping:
-                route['auto_host_rewrite'] = mapping['auto_host_rewrite']
+        if mapping.get('rewrite', None):
+            route['prefix_rewrite'] = mapping['rewrite']
 
-            hash_policy = self.generate_hash_policy(group)
-            if len(hash_policy) > 0:
-                route['hash_policy'] = [ hash_policy ]
+        if 'host_rewrite' in mapping:
+            route['host_rewrite'] = mapping['host_rewrite']
 
-            cors = None
+        if 'auto_host_rewrite' in mapping:
+            route['auto_host_rewrite'] = mapping['auto_host_rewrite']
 
-            if "cors" in group:
-                cors = group.cors.as_dict()
-            elif "cors" in config.ir.ambassador_module:
-                cors = config.ir.ambassador_module.cors.as_dict()
+        hash_policy = self.generate_hash_policy(group)
+        if len(hash_policy) > 0:
+            route['hash_policy'] = [ hash_policy ]
 
-            if cors:
-                route['cors'] = cors
+        cors = None
 
-            retry_policy = None
+        if "cors" in group:
+            cors = group.cors.as_dict()
+        elif "cors" in config.ir.ambassador_module:
+            cors = config.ir.ambassador_module.cors.as_dict()
 
-            if "retry_policy" in group:
-                retry_policy = group.retry_policy.as_dict()
-            elif "retry_policy" in config.ir.ambassador_module:
-                retry_policy = config.ir.ambassador_module.retry_policy.as_dict()
+        if cors:
+            route['cors'] = cors
 
-            if retry_policy:
-                route['retry_policy'] = retry_policy
+        retry_policy = None
 
-            # Is shadowing enabled?
-            shadow = group.get("shadows", None)
+        if "retry_policy" in group:
+            retry_policy = group.retry_policy.as_dict()
+        elif "retry_policy" in config.ir.ambassador_module:
+            retry_policy = config.ir.ambassador_module.retry_policy.as_dict()
 
-            if shadow:
-                shadow = shadow[0]
+        if retry_policy:
+            route['retry_policy'] = retry_policy
 
-                weight = shadow.get('weight', 100)
+        # Is shadowing enabled?
+        shadow = group.get("shadows", None)
 
-                route['request_mirror_policy'] = {
-                    'cluster': shadow.cluster.name,
-                    'runtime_fraction': {
-                        'default_value': {
-                            'numerator': weight,
-                            'denominator': 'HUNDRED'
-                        }
+        if shadow:
+            shadow = shadow[0]
+
+            weight = shadow.get('weight', 100)
+
+            route['request_mirror_policy'] = {
+                'cluster': shadow.cluster.name,
+                'runtime_fraction': {
+                    'default_value': {
+                        'numerator': weight,
+                        'denominator': 'HUNDRED'
                     }
                 }
+            }
 
-            # Is RateLimit a thing?
-            rlsvc = config.ir.ratelimit
+        # Is RateLimit a thing?
+        rlsvc = config.ir.ratelimit
 
-            if rlsvc:
-                # Yup. Build our labels into a set of RateLimitActions (remember that default
-                # labels have already been handled, as has translating from v0 'rate_limits' to
-                # v1 'labels').
+        if rlsvc:
+            # Yup. Build our labels into a set of RateLimitActions (remember that default
+            # labels have already been handled, as has translating from v0 'rate_limits' to
+            # v1 'labels').
 
-                if "labels" in group:
-                    # The Envoy RateLimit filter only supports one domain, so grab the configured domain
-                    # from the RateLimitService and use that to look up the labels we should use.
+            if "labels" in group:
+                # The Envoy RateLimit filter only supports one domain, so grab the configured domain
+                # from the RateLimitService and use that to look up the labels we should use.
 
-                    rate_limits = []
+                rate_limits = []
 
-                    for rl in group.labels.get(rlsvc.domain, []):
-                        action = V2RateLimitAction(config, rl)
+                for rl in group.labels.get(rlsvc.domain, []):
+                    action = V2RateLimitAction(config, rl)
 
-                        if action.valid:
-                            rate_limits.append(action.to_dict())
+                    if action.valid:
+                        rate_limits.append(action.to_dict())
 
-                    if rate_limits:
-                        route["rate_limits"] = rate_limits
+                if rate_limits:
+                    route["rate_limits"] = rate_limits
 
-            self['route'] = route
+        self['route'] = route
 
     @classmethod
     def generate(cls, config: 'V2Config') -> None:
@@ -184,6 +193,10 @@ class V2Route(dict):
             if not isinstance(irgroup, IRHTTPMappingGroup):
                 # We only want HTTP mapping groups here.
                 continue
+
+            if irgroup.get('host_redirect') is not None and len(irgroup.get('mappings', [])) == 0:
+                route = config.save_element('route', irgroup, V2Route(config, irgroup, {}))
+                config.routes.append(route)
 
             for mapping in irgroup.mappings:
                 route = config.save_element('route', irgroup, V2Route(config, irgroup, mapping))
