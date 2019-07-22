@@ -382,7 +382,11 @@ class EGRPC(ServiceType):
         super().__init__(*args, service_manifests=manifests.GRPC_ECHO_BACKEND, **kwargs)
 
     def requirements(self):
-        yield ("pod", self.path.k8s)
+        yield ("url", Query("http://%s/echo.EchoService/Echo" % self.path.fqdn,
+                            headers={ "content-type": "application/grpc",
+                                      "requested-status": "0" },
+                            expected=200,
+                            grpc_type="real"))
 
 class AHTTP(ServiceType):
     skip_variant: ClassVar[bool] = True
