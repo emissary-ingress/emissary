@@ -47,9 +47,6 @@ The workaround is:
     $ git clone https://github.com/bozzzzo/docker-ssh-agent-forward.git
     $ cd docker-ssh-agent-forward
     $ make install
-    
-    $ brew install gnu-getopt      # for go-opensource
-
 
 ### Building
 

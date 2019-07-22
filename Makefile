@@ -83,8 +83,8 @@ go-build: $(foreach _go.PLATFORM,$(go.PLATFORMS),$(foreach lyft.bin,$(lyft.bins)
 
 # https://github.com/golangci/golangci-lint/issues/587
 go-lint: _go-lint-lyft
-_go-lint-lyft: build-aux/golangci-lint go-get
-	cd vendor-ratelimit && ../build-aux/golangci-lint run -c ../.golangci.yml ./...
+_go-lint-lyft: $(GOLANGCI_LINT) go-get $(go.lock)
+	cd vendor-ratelimit && $(go.lock)$(GOLANGCI_LINT) run -c ../.golangci.yml ./...
 .PHONY: _go-lint-lyft
 
 #
@@ -175,7 +175,7 @@ _cgo_GOBUILD += --workdir $$PWD
 _cgo_GOBUILD += docker.io/library/golang:$(patsubst go%,%,$(filter go1%,$(shell go version)))
 _cgo_GOBUILD += go build
 
-go-build-setup-env: _docker_ssh_agent_forward
+$(addprefix bin_linux_amd64/,$(_cgo_files)): _docker_ssh_agent_forward
 _docker_ssh_agent_forward:
 	pinata-ssh-forward || { echo ""; echo "Check README.md"; echo ""; exit 1; }
 .PHONY: _docker_ssh_agent_forward
@@ -225,7 +225,7 @@ docker/max-load.docker: docker/max-load/kubeapply
 docker/max-load.docker: docker/max-load/kubectl
 docker/max-load.docker: docker/max-load/test.sh
 docker/max-load/kubeapply:
-	curl -o $@ --fail https://s3.amazonaws.com/datawire-static-files/kubeapply/$(KUBEAPPLY_VERSION)/linux/amd64/kubeapply
+	curl -o $@ --fail https://s3.amazonaws.com/datawire-static-files/kubeapply/0.3.11/linux/amd64/kubeapply
 	chmod 755 $@
 
 docker/%/kubectl:
@@ -327,17 +327,19 @@ check-local: ## Check: Run only tests that do not talk to the cluster
 check-local: lint go-build
 	$(MAKE) tests/local-all.tap.summary
 .PHONY: check-local
-tests/local-all.tap: build-aux/go-test.tap tests/local.tap
-	@./build-aux/tap-driver cat $^ > $@
+tests/local-all.tap: build-aux/go-test.tap tests/local.tap $(TAP_DRIVER)
+	@$(TAP_DRIVER) cat $(sort $(filter %.tap,$^)) > $@
 tests/local.tap: $(patsubst %.test,%.tap,$(wildcard tests/local/*.test))
 tests/local.tap: $(patsubst %.tap.gen,%.tap,$(wildcard tests/local/*.tap.gen))
-tests/local.tap:
-	@./build-aux/tap-driver cat $^ > $@
+tests/local.tap: $(TAP_DRIVER)
+	@$(TAP_DRIVER) cat $(sort $(filter %.tap,$^)) > $@
 
 tests/cluster.tap: $(patsubst %.test,%.tap,$(wildcard tests/cluster/*.test))
 tests/cluster.tap: $(patsubst %.tap.gen,%.tap,$(wildcard tests/cluster/*.tap.gen))
-tests/cluster.tap:
-	@./build-aux/tap-driver cat $^ > $@
+tests/cluster.tap: $(TAP_DRIVER)
+	@$(TAP_DRIVER) cat $(sort $(filter %.tap,$^)) > $@
+
+tests/cluster/external.tap: $(GOTEST2TAP)
 
 tests/cluster/oauth-e2e/node_modules: tests/cluster/oauth-e2e/package.json $(wildcard tests/cluster/oauth-e2e/package-lock.json)
 	cd $(@D) && npm install
