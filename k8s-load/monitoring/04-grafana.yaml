@@ -98,17 +98,17 @@ data:
           "steppedLine": false,
           "targets": [
             {
-              "expr": "rate(envoy_listener_0_0_0_0_80_http_ingress_http_downstream_rq_completed[2s])",
+              "expr": "rate(envoy_listener_0_0_0_0_8080_http_ingress_http_downstream_rq_completed[2s])",
               "format": "time_series",
               "intervalFactor": 1,
-              "legendFormat": "{{pod}}:80",
+              "legendFormat": "{{pod}}:8080",
               "refId": "A"
             },
             {
-              "expr": "rate(envoy_listener_0_0_0_0_443_http_ingress_http_downstream_rq_completed[2s])",
+              "expr": "rate(envoy_listener_0_0_0_0_8443_http_ingress_http_downstream_rq_completed[2s])",
               "format": "time_series",
               "intervalFactor": 1,
-              "legendFormat": "{{pod}}:443",
+              "legendFormat": "{{pod}}:8443",
               "refId": "B"
             }
           ],
@@ -190,17 +190,17 @@ data:
           "steppedLine": false,
           "targets": [
             {
-              "expr": "rate(envoy_listener_0_0_0_0_80_http_ingress_http_downstream_rq_completed[2s])",
+              "expr": "rate(envoy_listener_0_0_0_0_8080_http_ingress_http_downstream_rq_completed[2s])",
               "format": "time_series",
               "intervalFactor": 1,
-              "legendFormat": "{{pod}}:80",
+              "legendFormat": "{{pod}}:8080",
               "refId": "A"
             },
             {
-              "expr": "rate(envoy_listener_0_0_0_0_443_http_ingress_http_downstream_rq_completed[2s])",
+              "expr": "rate(envoy_listener_0_0_0_0_8443_http_ingress_http_downstream_rq_completed[2s])",
               "format": "time_series",
               "intervalFactor": 1,
-              "legendFormat": "{{pod}}:443",
+              "legendFormat": "{{pod}}:8443",
               "refId": "B"
             }
           ],
@@ -282,17 +282,17 @@ data:
           "steppedLine": false,
           "targets": [
             {
-              "expr": "rate(envoy_listener_0_0_0_0_80_http_ingress_http_downstream_rq_completed[2s])",
+              "expr": "rate(envoy_listener_0_0_0_0_8080_http_ingress_http_downstream_rq_completed[2s])",
               "format": "time_series",
               "intervalFactor": 1,
-              "legendFormat": "{{pod}}:80",
+              "legendFormat": "{{pod}}:8080",
               "refId": "A"
             },
             {
-              "expr": "rate(envoy_listener_0_0_0_0_443_http_ingress_http_downstream_rq_completed[2s])",
+              "expr": "rate(envoy_listener_0_0_0_0_8443_http_ingress_http_downstream_rq_completed[2s])",
               "format": "time_series",
               "intervalFactor": 1,
-              "legendFormat": "{{pod}}:443",
+              "legendFormat": "{{pod}}:8443",
               "refId": "B"
             }
           ],

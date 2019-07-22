@@ -13,6 +13,7 @@ K8S_DIRS        = k8s-sidecar k8s-standalone k8s-localdev
 K8S_ENVS        = k8s-env.sh
 # For go.mk
 go.PLATFORMS    = linux_amd64 darwin_amd64
+go.pkgs         = ./... github.com/lyft/ratelimit/...
 
 export CGO_ENABLED = 0
 export SCOUT_DISABLE = 1
@@ -80,6 +81,12 @@ lyft.bin.pkg  = $(word 2,$(subst :, ,$(lyft.bin)))
 $(foreach lyft.bin,$(lyft.bins),$(eval $(call go.bin.rule,$(lyft.bin.name),$(lyft.bin.pkg))))
 go-build: $(foreach _go.PLATFORM,$(go.PLATFORMS),$(foreach lyft.bin,$(lyft.bins), bin_$(_go.PLATFORM)/$(lyft.bin.name) ))
 
+# https://github.com/golangci/golangci-lint/issues/587
+go-lint: _go-lint-lyft
+_go-lint-lyft: $(GOLANGCI_LINT) go-get $(go.lock)
+	cd vendor-ratelimit && $(go.lock)$(GOLANGCI_LINT) run -c ../.golangci.yml ./...
+.PHONY: _go-lint-lyft
+
 #
 # Plugins
 
@@ -143,6 +150,9 @@ $(addprefix bin_linux_amd64/,$(_cgo_files)): CGO_ENABLED = 1
 $(addprefix bin_linux_amd64/,$(_cgo_files)): go.GOBUILD = $(_cgo_GOBUILD)
 _cgo_GOBUILD  = docker run --rm
 _cgo_GOBUILD += --env GOOS
+_cgo_GOBUILD += $(shell pinata-ssh-mount)
+_cgo_GOBUILD += -v $(CURDIR)/.gitconfig.docker:/root/.gitconfig
+_cgo_GOBUILD += -v ~/.ssh/known_hosts:/root/.ssh/known_hosts
 _cgo_GOBUILD += --env GOARCH
 _cgo_GOBUILD += --env GO111MODULE
 _cgo_GOBUILD += --env CGO_ENABLED
@@ -164,6 +174,11 @@ _cgo_GOBUILD += --workdir $$PWD
 # than hard-coding a version.
 _cgo_GOBUILD += docker.io/library/golang:$(patsubst go%,%,$(filter go1%,$(shell go version)))
 _cgo_GOBUILD += go build
+
+$(addprefix bin_linux_amd64/,$(_cgo_files)): _docker_ssh_agent_forward
+_docker_ssh_agent_forward:
+	pinata-ssh-forward || { echo ""; echo "Check README.md"; echo ""; exit 1; }
+.PHONY: _docker_ssh_agent_forward
 
 endif
 endif
@@ -210,7 +225,7 @@ docker/max-load.docker: docker/max-load/kubeapply
 docker/max-load.docker: docker/max-load/kubectl
 docker/max-load.docker: docker/max-load/test.sh
 docker/max-load/kubeapply:
-	curl -o $@ --fail https://s3.amazonaws.com/datawire-static-files/kubeapply/$(KUBEAPPLY_VERSION)/linux/amd64/kubeapply
+	curl -o $@ --fail https://s3.amazonaws.com/datawire-static-files/kubeapply/0.3.11/linux/amd64/kubeapply
 	chmod 755 $@
 
 docker/%/kubectl:
@@ -245,7 +260,7 @@ build-aux/tel-pro.pid: apply proxy
 		telepresence \
 			--logfile build-aux/tel-pro.log --env-file pro-env.tmp \
 			--namespace localdev -d ambassador-pro -m inject-tcp --mount false \
-			--expose 8500 --expose 8501 --expose 8502 --expose 38888 \
+			--expose 8500 --expose 38888 \
 			--run python3 -m http.server --bind 127.0.0.1 38888 \
 			> /dev/null 2>&1 & echo $$! > build-aux/tel-pro.pid ; \
 	fi
@@ -312,17 +327,19 @@ check-local: ## Check: Run only tests that do not talk to the cluster
 check-local: lint go-build
 	$(MAKE) tests/local-all.tap.summary
 .PHONY: check-local
-tests/local-all.tap: build-aux/go-test.tap tests/local.tap
-	@./build-aux/tap-driver cat $^ > $@
+tests/local-all.tap: build-aux/go-test.tap tests/local.tap $(TAP_DRIVER)
+	@$(TAP_DRIVER) cat $(sort $(filter %.tap,$^)) > $@
 tests/local.tap: $(patsubst %.test,%.tap,$(wildcard tests/local/*.test))
 tests/local.tap: $(patsubst %.tap.gen,%.tap,$(wildcard tests/local/*.tap.gen))
-tests/local.tap:
-	@./build-aux/tap-driver cat $^ > $@
+tests/local.tap: $(TAP_DRIVER)
+	@$(TAP_DRIVER) cat $(sort $(filter %.tap,$^)) > $@
 
 tests/cluster.tap: $(patsubst %.test,%.tap,$(wildcard tests/cluster/*.test))
 tests/cluster.tap: $(patsubst %.tap.gen,%.tap,$(wildcard tests/cluster/*.tap.gen))
-tests/cluster.tap:
-	@./build-aux/tap-driver cat $^ > $@
+tests/cluster.tap: $(TAP_DRIVER)
+	@$(TAP_DRIVER) cat $(sort $(filter %.tap,$^)) > $@
+
+tests/cluster/external.tap: $(GOTEST2TAP)
 
 tests/cluster/oauth-e2e/node_modules: tests/cluster/oauth-e2e/package.json $(wildcard tests/cluster/oauth-e2e/package-lock.json)
 	cd $(@D) && npm install
@@ -413,7 +430,7 @@ clobber:
 # Release
 
 RELEASE_DRYRUN ?=
-release.bins = apictl apictl-key apro-plugin-runner
+release.bins = apictl apictl-key apro-plugin-runner playpen
 release.images = $(filter-out $(image.norelease),$(image.all))
 
 release: ## Cut a release; upload binaries to S3 and Docker images to Quay

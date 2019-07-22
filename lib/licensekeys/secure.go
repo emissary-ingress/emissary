@@ -41,9 +41,10 @@ func PhoneHome(claims jwt.MapClaims, component, version string) error {
 	if err != nil {
 		panic(err)
 	}
-	_, err = http.Post("https://kubernaut.io/scout", "application/json", bytes.NewBuffer(body))
+	resp, err := http.Post("https://kubernaut.io/scout", "application/json", bytes.NewBuffer(body))
 	if err != nil {
 		return err
 	}
+	defer resp.Body.Close()
 	return nil
 }

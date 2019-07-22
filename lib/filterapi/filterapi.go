@@ -1,10 +1,6 @@
 // Package filterapi provides convenient type-aliases for all of the
 // types involved in writing a Filter.  It abstracts over the need to
-// import half a dozen different generated protobuf packages (the list
-// of which will change when we stuff in Ambassador's patched Envoy
-// lands upstream and we switch from
-// github.com/datawire/kat-backend/xds to
-// github.com/envoyproxy/go-control-plane).
+// import half a dozen different generated protobuf packages.
 //
 // Another part of the idea of this package is that at some point we
 // might expose it to plugins.
@@ -18,19 +14,17 @@ import (
 	"github.com/gogo/protobuf/types"
 	"google.golang.org/grpc"
 
-	//envoyAuthV2 "github.com/envoyproxy/go-control-plane/envoy/service/auth/v2alpha"
-	//envoyCoreV2 "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
-	//envoyType "github.com/envoyproxy/go-control-plane/envoy/type"
-
-	envoyCoreV2 "github.com/datawire/kat-backend/xds/envoy/api/v2/core"
-	envoyAuthV2 "github.com/datawire/kat-backend/xds/envoy/service/auth/v2alpha"
-	envoyType "github.com/datawire/kat-backend/xds/envoy/type"
+	envoyCoreV2 "github.com/datawire/ambassador/go/apis/envoy/api/v2/core"
+	envoyAuthV2 "github.com/datawire/ambassador/go/apis/envoy/service/auth/v2"
+	envoyAuthV2alpha "github.com/datawire/ambassador/go/apis/envoy/service/auth/v2alpha"
+	envoyType "github.com/datawire/ambassador/go/apis/envoy/type"
 )
 
 // RegisterFilterService registers a Filter to the handle the
-// "envoy.service.auth.v2alpha.Authorization" service for the gRPC
-// server.
+// "envoy.service.auth.v2alpha.Authorization" and
+// "envoy.service.auth.v2.Authorization" services for the gRPC server.
 func RegisterFilterService(grpcServer *grpc.Server, filterService Filter) {
+	envoyAuthV2alpha.RegisterAuthorizationServer(grpcServer, authorizationService{Filter: filterService})
 	envoyAuthV2.RegisterAuthorizationServer(grpcServer, authorizationService{Filter: filterService})
 }
 
@@ -64,7 +58,7 @@ func (fc *filterClient) Filter(ctx context.Context, in *FilterRequest, opts ...g
 			Header: nil,
 		}
 		for _, headerValueOption := range checkResponse.GetOkResponse().GetHeaders() {
-			asAppend := true // docs claim this is default https://godoc.org/github.com/datawire/kat-backend/xds/envoy/api/v2/core#HeaderValueOption
+			asAppend := true // docs claim this is default https://godoc.org/github.com/datawire/ambassador/go/apis/envoy/api/v2/core#HeaderValueOption
 			if headerValueOption.GetAppend() != nil {
 				asAppend = headerValueOption.GetAppend().GetValue()
 			}

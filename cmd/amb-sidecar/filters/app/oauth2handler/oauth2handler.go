@@ -140,7 +140,7 @@ func (c *OAuth2Filter) filterClient(ctx context.Context, logger types.Logger, ht
 	default:
 		logger.Debugln("session status:", "authenticated session")
 		authorization, err := oauthClient.AuthorizationForResourceRequest(sessionData, func() io.Reader {
-			return strings.NewReader(request.GetRequest().GetHttp().GetBody().String())
+			return strings.NewReader(request.GetRequest().GetHttp().GetBody())
 		})
 		if err == nil {
 			// Validate the scope values we were granted.  This really belongs in
@@ -344,6 +344,7 @@ func (j *OAuth2Filter) validateAccessTokenUserinfo(token string, discovered *Dis
 	if err != nil {
 		return err
 	}
+	defer res.Body.Close()
 	if res.StatusCode != 200 {
 		return errors.Errorf("token validation through userinfo endpoint failed: HTTP %d", res.StatusCode)
 	}

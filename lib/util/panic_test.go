@@ -112,6 +112,6 @@ func TestPanicToError(t *testing.T) {
 			checkErr(t, util.PanicToError(recover()))
 		}()
 		var str *string
-		fmt.Println(*str) // this will panic
+		fmt.Println(*str) //nolint:govet // this will panic
 	})
 }

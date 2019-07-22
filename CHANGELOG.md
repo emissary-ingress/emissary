@@ -2,7 +2,11 @@
 
 ## 0.5.1 (TBD)
 
- * Logging for Cisco.
+ * Fix CRD `ambassador_id` parsing bug.
+ * Now also handles requests for `envoy.service.auth.v2`, not just `envoy.service.auth.v2alpha`.
+ * Everything is now on one port: `APRO_HTTP_PORT`, which defaults to `8500`.
+ * `LOG_LEVEL` no longer exists; everything obeys `APP_LOG_LEVEL`.
+ * Logging improvement: debugf a stacktrace whenever httpcache errors (for PTC).
 
 ## 0.5.0 (2019-06-21)
 

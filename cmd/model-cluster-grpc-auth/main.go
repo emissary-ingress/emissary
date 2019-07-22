@@ -11,9 +11,10 @@ import (
 	"github.com/gogo/protobuf/types"
 	"google.golang.org/grpc"
 
-	envoyCoreV2 "github.com/datawire/kat-backend/xds/envoy/api/v2/core"
-	envoyAuthV2 "github.com/datawire/kat-backend/xds/envoy/service/auth/v2alpha"
-	envoyType "github.com/datawire/kat-backend/xds/envoy/type"
+	envoyCoreV2 "github.com/datawire/ambassador/go/apis/envoy/api/v2/core"
+	envoyAuthV2 "github.com/datawire/ambassador/go/apis/envoy/service/auth/v2"
+	envoyAuthV2alpha "github.com/datawire/ambassador/go/apis/envoy/service/auth/v2alpha"
+	envoyType "github.com/datawire/ambassador/go/apis/envoy/type"
 )
 
 func main() {
@@ -23,6 +24,7 @@ func main() {
 	}
 
 	grpcServer := grpc.NewServer()
+	envoyAuthV2alpha.RegisterAuthorizationServer(grpcServer, &AuthService{})
 	envoyAuthV2.RegisterAuthorizationServer(grpcServer, &AuthService{})
 
 	log.Print("starting...")

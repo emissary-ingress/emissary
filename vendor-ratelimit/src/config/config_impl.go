@@ -1,15 +1,16 @@
 package config
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
-	"github.com/lyft/gostats"
-	pb_struct "github.com/lyft/ratelimit/proto/envoy/api/v2/ratelimit"
-	pb "github.com/lyft/ratelimit/proto/envoy/service/ratelimit/v2"
+	stats "github.com/lyft/gostats"
 	logger "github.com/sirupsen/logrus"
-	"golang.org/x/net/context"
 	"gopkg.in/yaml.v2"
+
+	pb_struct "github.com/datawire/ambassador/go/apis/envoy/api/v2/ratelimit"
+	pb "github.com/datawire/ambassador/go/apis/envoy/service/ratelimit/v2"
 )
 
 type yamlRateLimit struct {

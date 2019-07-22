@@ -5,6 +5,7 @@ tests/cluster/consul/new_root.crt
 tests/cluster/consul/new_root.key
 venv
 
+/bin
 /bin_*/
 /vendor/
 /vendor.hash

@@ -12,8 +12,9 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/datawire/apro/cmd/max-load/metrics"
 	vegeta "github.com/tsenart/vegeta/lib"
+
+	"github.com/datawire/apro/cmd/max-load/metrics"
 )
 
 func maxFiles() int {

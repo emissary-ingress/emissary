@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -13,6 +12,7 @@ import (
 	"time"
 
 	"github.com/jcuga/golongpoll"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
 	"github.com/datawire/apro/lib/licensekeys"

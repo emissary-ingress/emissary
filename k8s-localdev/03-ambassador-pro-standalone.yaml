@@ -113,7 +113,7 @@ spec:
 
 
 ######################################################################
-# Redis for Ambassador Pro ratelimit
+# Redis for Ambassador Pro
 ---
 apiVersion: v1
 kind: Service
@@ -163,7 +163,7 @@ metadata:
       apiVersion: ambassador/v1
       kind: RateLimitService
       name: ambassador-pro
-      service: "ambassador-pro:81"
+      service: "ambassador-pro:80"
       ---
       apiVersion: ambassador/v1
       kind: AuthService
@@ -183,15 +183,9 @@ spec:
   selector:
     service: ambassador-pro
   ports:
-  - name: grpc-auth
+  - name: http
     port: 80
-    targetPort: grpc-auth
-  - name: grpc-ratelimit
-    port: 81
-    targetPort: grpc-ratelimit
-  - name: http-debug
-    port: 82
-    targetPort: http-debug
+    targetPort: http
 ---
 apiVersion: extensions/v1beta1
 kind: Deployment
@@ -213,14 +207,8 @@ spec:
       - name: ambassador-pro
         image: datawire/telepresence-k8s:0.97
         ports:
-        - name: grpc-auth
+        - name: http
           containerPort: 8500
-        - name: grpc-ratelimit
-          containerPort: 8501
-        - name: http-debug
-          containerPort: 8502
-        - name: tel-check
-          containerPort: 38888
         env:
         - name: REDIS_SOCKET_TYPE
           value: tcp

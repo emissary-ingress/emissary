@@ -3,11 +3,12 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"os/exec"
 	"time"
+
+	"github.com/pkg/errors"
 )
 
 func main() {

@@ -39,7 +39,33 @@ credentials.
 
 ## Local development
 
+### macOs extra setup
+
+MacOs docker does not know how to forward ssh-agent socket to the container.
+The workaround is:
+
+    $ git clone https://github.com/bozzzzo/docker-ssh-agent-forward.git
+    $ cd docker-ssh-agent-forward
+    $ make install
+
 ### Building
+
+Because the `go.mod` specifies dependencies on a private repo
+(https://github.com/datawire/liboauth2.git), it is necessary to
+configure `git` such that `go get` will be able to fetch it.  That
+means sticking this in your `~/.config/git/config`:
+
+    [url "git@github.com:datawire/liboauth2"]
+            insteadOf = https://github.com/datawire/liboauth2
+
+Or, I've been happy making that substitution for all GitHub repos:
+
+    [url "git@github.com:"]
+            pushInsteadOf = https://github.com/
+            insteadOf = https://github.com/
+
+Once you've configured Git, you should be able to build everything by
+simply running:
 
     $ make build
 

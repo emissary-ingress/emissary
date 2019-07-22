@@ -84,8 +84,8 @@ spec:
         env:
         - name: AMBASSADOR_LICENSE_KEY
           value: {{env "AMBASSADOR_LICENSE_KEY"}}
-        - name: AMBASSADOR_VERSION
-          value: {{env "AMBASSADOR_VERSION"}}
+        - name: AMBASSADOR_IMAGE
+          value: {{env "AMBASSADOR_IMAGE"}}
         - name: AMB_SIDECAR_IMAGE
           value: {{env "AMB_SIDECAR_IMAGE"}}
         - name: MODEL_CLUSTER_LOAD_GRPC_AUTH_IMAGE
@@ -95,3 +95,21 @@ spec:
         ports:
         - name: http
           containerPort: 8000
+        volumeMounts:
+        - mountPath: /var/lib/max-load
+          name: load-generator-data
+      volumes:
+      - name: load-generator-data
+        persistentVolumeClaim:
+          claimName: load-generator-volume-claim
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: load-generator-volume-claim
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi

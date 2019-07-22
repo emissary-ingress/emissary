@@ -1,11 +1,12 @@
 package redis
 
 import (
-	"github.com/lyft/gostats"
-	"github.com/lyft/ratelimit/src/assert"
+	stats "github.com/lyft/gostats"
 	"github.com/mediocregopher/radix.v2/pool"
 	"github.com/mediocregopher/radix.v2/redis"
 	logger "github.com/sirupsen/logrus"
+
+	"github.com/lyft/ratelimit/src/assert"
 )
 
 type poolStats struct {
@@ -66,10 +67,17 @@ func (this *poolImpl) Put(c Connection) {
 
 func NewPoolImpl(scope stats.Scope, socketType string, url string, poolSize int) Pool {
 	logger.Warnf("connecting to redis on %s %s with pool size %d", socketType, url, poolSize)
-	pool, err := pool.New(socketType, url, poolSize)
+	llpool, err := pool.New(socketType, url, poolSize)
 	checkError(err)
+	return NewPool(scope, llpool)
+}
+
+func NewPool(scope stats.Scope, llpool *pool.Pool) Pool {
+	if llpool == nil {
+		return nil
+	}
 	return &poolImpl{
-		pool:  pool,
+		pool:  llpool,
 		stats: newPoolStats(scope)}
 }
 

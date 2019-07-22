@@ -314,7 +314,7 @@ spec:
 
 
 ######################################################################
-# Redis for Ambassador Pro ratelimit
+# Redis for Ambassador Pro
 ---
 apiVersion: v1
 kind: Service
@@ -362,7 +362,7 @@ metadata:
       apiVersion: ambassador/v1
       kind: RateLimitService
       name: ambassador-pro
-      service: "127.0.0.1:8501"
+      service: "127.0.0.1:8500"
       ---
       apiVersion: ambassador/v1
       kind: AuthService
@@ -382,15 +382,9 @@ spec:
   selector:
     service: ambassador
   ports:
-  - name: grpc-auth
+  - name: http
     port: 80
-    targetPort: grpc-auth
-  - name: grpc-ratelimit
-    port: 81
-    targetPort: grpc-ratelimit
-  - name: http-debug
-    port: 82
-    targetPort: http-debug
+    targetPort: http
 ---
 apiVersion: v1
 kind: Service
@@ -452,7 +446,7 @@ spec:
       serviceAccountName: ambassador
       containers:
       - name: ambassador
-        image: quay.io/datawire/ambassador:{{env "AMBASSADOR_VERSION"}}
+        image: {{env "AMBASSADOR_IMAGE"}}
 # XXX: Kubernaut
 #        resources:
 #          limits:
@@ -468,6 +462,8 @@ spec:
               fieldPath: metadata.namespace
         - name: AMBASSADOR_SINGLE_NAMESPACE
           value: "true"
+        - name: SCOUT_DISABLE
+          value: "1"
         ports:
           - name: http
             containerPort: 8080
@@ -490,12 +486,8 @@ spec:
       - name: ambassador-pro
         image: {{env "AMB_SIDECAR_IMAGE"}}
         ports:
-          - name: grpc-auth
+          - name: http
             containerPort: 8500
-          - name: grpc-ratelimit
-            containerPort: 8501
-          - name: http-debug
-            containerPort: 8502
         livenessProbe:
           httpGet:
             path: /_/sys/healthz
@@ -510,8 +502,6 @@ spec:
           periodSeconds: 5
         env:
         - name: APP_LOG_LEVEL
-          value: warn
-        - name: LOG_LEVEL
           value: warn
         - name: REDIS_SOCKET_TYPE
           value: tcp

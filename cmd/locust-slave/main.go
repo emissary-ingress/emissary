@@ -5,10 +5,15 @@ import (
 	"fmt"
 	"time"
 
-	envoyAuthV2 "github.com/datawire/kat-backend/xds/envoy/service/auth/v2alpha"
-	pb "github.com/lyft/ratelimit/proto/ratelimit"
 	"github.com/myzhan/boomer"
 	"google.golang.org/grpc"
+
+	envoyAuthV2_new "github.com/datawire/ambassador/go/apis/envoy/service/auth/v2"
+	envoyAuthV2 "github.com/datawire/ambassador/go/apis/envoy/service/auth/v2alpha"
+
+	pb_struct "github.com/datawire/ambassador/go/apis/envoy/api/v2/ratelimit"
+	pb "github.com/datawire/ambassador/go/apis/envoy/service/ratelimit/v1"
+	pb_new "github.com/datawire/ambassador/go/apis/envoy/service/ratelimit/v2"
 )
 
 var rlsConn *grpc.ClientConn
@@ -27,11 +32,11 @@ func doRls() error {
 	defer cancel()
 
 	client := pb.NewRateLimitServiceClient(rlsConn)
-	req := new(pb.RateLimitRequest)
+	req := new(pb_new.RateLimitRequest)
 	req.Domain = "envoy"
-	entry := pb.RateLimitDescriptor_Entry{Key: "client_id", Value: "foo"}
-	entries := []*pb.RateLimitDescriptor_Entry{&entry}
-	req.Descriptors = []*pb.RateLimitDescriptor{{Entries: entries}}
+	entry := pb_struct.RateLimitDescriptor_Entry{Key: "client_id", Value: "foo"}
+	entries := []*pb_struct.RateLimitDescriptor_Entry{&entry}
+	req.Descriptors = []*pb_struct.RateLimitDescriptor{{Entries: entries}}
 
 	_, err = client.ShouldRateLimit(ctx, req)
 	if err != nil {
@@ -59,7 +64,7 @@ func doAuth() error {
 	defer cancel()
 
 	client := envoyAuthV2.NewAuthorizationClient(authConn)
-	req := new(envoyAuthV2.CheckRequest)
+	req := new(envoyAuthV2_new.CheckRequest)
 
 	_, err = client.Check(ctx, req)
 	if err != nil {

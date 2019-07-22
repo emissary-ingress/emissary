@@ -1,11 +1,12 @@
 package ratelimit
 
 import (
-	"github.com/golang/protobuf/jsonpb"
-	"github.com/lyft/gostats"
-	pb "github.com/lyft/ratelimit/proto/envoy/service/ratelimit/v2"
-	pb_legacy "github.com/lyft/ratelimit/proto/ratelimit"
-	"golang.org/x/net/context"
+	"context"
+
+	stats "github.com/lyft/gostats"
+
+	pb_legacy "github.com/datawire/ambassador/go/apis/envoy/service/ratelimit/v1"
+	pb "github.com/datawire/ambassador/go/apis/envoy/service/ratelimit/v2"
 )
 
 type RateLimitLegacyServiceServer interface {
@@ -36,62 +37,11 @@ func newShouldRateLimitLegacyStats(scope stats.Scope) shouldRateLimitLegacyStats
 
 func (this *legacyService) ShouldRateLimit(
 	ctx context.Context,
-	legacyRequest *pb_legacy.RateLimitRequest) (finalResponse *pb_legacy.RateLimitResponse, finalError error) {
+	request *pb.RateLimitRequest) (finalResponse *pb.RateLimitResponse, finalError error) {
 
-	request, err := ConvertLegacyRequest(legacyRequest)
-	if err != nil {
-		this.shouldRateLimitLegacyStats.reqConversionError.Inc()
-		return nil, err
-	}
 	resp, err := this.s.ShouldRateLimit(ctx, request)
 	if err != nil {
 		this.shouldRateLimitLegacyStats.shouldRateLimitError.Inc()
-		return nil, err
-	}
-
-	legacyResponse, err := ConvertResponse(resp)
-	if err != nil {
-		this.shouldRateLimitLegacyStats.respConversionError.Inc()
-		return nil, err
-	}
-
-	return legacyResponse, nil
-}
-
-func ConvertLegacyRequest(legacyRequest *pb_legacy.RateLimitRequest) (*pb.RateLimitRequest, error) {
-	if legacyRequest == nil {
-		return nil, nil
-	}
-
-	m := &jsonpb.Marshaler{}
-	s, err := m.MarshalToString(legacyRequest)
-	if err != nil {
-		return nil, err
-	}
-
-	req := &pb.RateLimitRequest{}
-	err = jsonpb.UnmarshalString(s, req)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
-func ConvertResponse(response *pb.RateLimitResponse) (*pb_legacy.RateLimitResponse, error) {
-	if response == nil {
-		return nil, nil
-	}
-
-	m := &jsonpb.Marshaler{}
-	s, err := m.MarshalToString(response)
-	if err != nil {
-		return nil, err
-	}
-
-	resp := &pb_legacy.RateLimitResponse{}
-	err = jsonpb.UnmarshalString(s, resp)
-	if err != nil {
 		return nil, err
 	}
 

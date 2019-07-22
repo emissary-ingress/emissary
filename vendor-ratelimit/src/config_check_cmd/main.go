@@ -7,7 +7,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/lyft/gostats"
+	stats "github.com/lyft/gostats"
+
 	"github.com/lyft/ratelimit/src/config"
 )
 
@@ -46,7 +47,10 @@ func main() {
 			fmt.Printf("error reading file %s: %s\n", finalPath, err.Error())
 			os.Exit(1)
 		}
-		allConfigs = append(allConfigs, config.RateLimitConfigToLoad{finalPath, string(bytes)})
+		allConfigs = append(allConfigs, config.RateLimitConfigToLoad{
+			Name:      finalPath,
+			FileBytes: string(bytes),
+		})
 	}
 
 	loadConfigs(allConfigs)

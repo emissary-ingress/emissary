@@ -1,14 +1,17 @@
 package config_test
 
 import (
+	"context"
 	"io/ioutil"
 	"testing"
 
-	"github.com/lyft/gostats"
-	pb_struct "github.com/lyft/ratelimit/proto/envoy/api/v2/ratelimit"
-	pb "github.com/lyft/ratelimit/proto/envoy/service/ratelimit/v2"
-	"github.com/lyft/ratelimit/src/config"
+	stats "github.com/lyft/gostats"
 	"github.com/stretchr/testify/assert"
+
+	pb_struct "github.com/datawire/ambassador/go/apis/envoy/api/v2/ratelimit"
+	pb "github.com/datawire/ambassador/go/apis/envoy/service/ratelimit/v2"
+
+	"github.com/lyft/ratelimit/src/config"
 )
 
 func loadFile(path string) []config.RateLimitConfigToLoad {
@@ -16,7 +19,9 @@ func loadFile(path string) []config.RateLimitConfigToLoad {
 	if err != nil {
 		panic(err)
 	}
-	return []config.RateLimitConfigToLoad{{path, string(contents)}}
+	return []config.RateLimitConfigToLoad{
+		{Name: path, FileBytes: string(contents)},
+	}
 }
 
 func TestBasicConfig(t *testing.T) {
@@ -24,39 +29,39 @@ func TestBasicConfig(t *testing.T) {
 	stats := stats.NewStore(stats.NewNullSink(), false)
 	rlConfig := config.NewRateLimitConfigImpl(loadFile("basic_config.yaml"), stats)
 	rlConfig.Dump()
-	assert.Nil(rlConfig.GetLimit(nil, "foo_domain", &pb_struct.RateLimitDescriptor{}))
-	assert.Nil(rlConfig.GetLimit(nil, "test-domain", &pb_struct.RateLimitDescriptor{}))
+	assert.Nil(rlConfig.GetLimit(context.Background(), "foo_domain", &pb_struct.RateLimitDescriptor{}))
+	assert.Nil(rlConfig.GetLimit(context.Background(), "test-domain", &pb_struct.RateLimitDescriptor{}))
 
 	rl := rlConfig.GetLimit(
-		nil, "test-domain",
+		context.Background(), "test-domain",
 		&pb_struct.RateLimitDescriptor{
 			Entries: []*pb_struct.RateLimitDescriptor_Entry{{Key: "key1", Value: "something"}},
 		})
 	assert.Nil(rl)
 
 	rl = rlConfig.GetLimit(
-		nil, "test-domain",
+		context.Background(), "test-domain",
 		&pb_struct.RateLimitDescriptor{
 			Entries: []*pb_struct.RateLimitDescriptor_Entry{{Key: "key1", Value: "value1"}},
 		})
 	assert.Nil(rl)
 
 	rl = rlConfig.GetLimit(
-		nil, "test-domain",
+		context.Background(), "test-domain",
 		&pb_struct.RateLimitDescriptor{
 			Entries: []*pb_struct.RateLimitDescriptor_Entry{{Key: "key2", Value: "value2"}, {Key: "subkey", Value: "subvalue"}},
 		})
 	assert.Nil(rl)
 
 	rl = rlConfig.GetLimit(
-		nil, "test-domain",
+		context.Background(), "test-domain",
 		&pb_struct.RateLimitDescriptor{
 			Entries: []*pb_struct.RateLimitDescriptor_Entry{{Key: "key5", Value: "value5"}, {Key: "subkey5", Value: "subvalue"}},
 		})
 	assert.Nil(rl)
 
 	rl = rlConfig.GetLimit(
-		nil, "test-domain",
+		context.Background(), "test-domain",
 		&pb_struct.RateLimitDescriptor{
 			Entries: []*pb_struct.RateLimitDescriptor_Entry{{Key: "key1", Value: "value1"}, {Key: "subkey1", Value: "something"}},
 		})
@@ -70,7 +75,7 @@ func TestBasicConfig(t *testing.T) {
 	assert.EqualValues(1, stats.NewCounter("test-domain.key1_value1.subkey1.near_limit").Value())
 
 	rl = rlConfig.GetLimit(
-		nil, "test-domain",
+		context.Background(), "test-domain",
 		&pb_struct.RateLimitDescriptor{
 			Entries: []*pb_struct.RateLimitDescriptor_Entry{{Key: "key1", Value: "value1"}, {Key: "subkey1", Value: "subvalue1"}},
 		})
@@ -87,7 +92,7 @@ func TestBasicConfig(t *testing.T) {
 		1, stats.NewCounter("test-domain.key1_value1.subkey1_subvalue1.near_limit").Value())
 
 	rl = rlConfig.GetLimit(
-		nil, "test-domain",
+		context.Background(), "test-domain",
 		&pb_struct.RateLimitDescriptor{
 			Entries: []*pb_struct.RateLimitDescriptor_Entry{{Key: "key2", Value: "something"}},
 		})
@@ -101,7 +106,7 @@ func TestBasicConfig(t *testing.T) {
 	assert.EqualValues(1, stats.NewCounter("test-domain.key2.near_limit").Value())
 
 	rl = rlConfig.GetLimit(
-		nil, "test-domain",
+		context.Background(), "test-domain",
 		&pb_struct.RateLimitDescriptor{
 			Entries: []*pb_struct.RateLimitDescriptor_Entry{{Key: "key2", Value: "value2"}},
 		})
@@ -115,14 +120,14 @@ func TestBasicConfig(t *testing.T) {
 	assert.EqualValues(1, stats.NewCounter("test-domain.key2_value2.near_limit").Value())
 
 	rl = rlConfig.GetLimit(
-		nil, "test-domain",
+		context.Background(), "test-domain",
 		&pb_struct.RateLimitDescriptor{
 			Entries: []*pb_struct.RateLimitDescriptor_Entry{{Key: "key2", Value: "value3"}},
 		})
 	assert.Nil(rl)
 
 	rl = rlConfig.GetLimit(
-		nil, "test-domain",
+		context.Background(), "test-domain",
 		&pb_struct.RateLimitDescriptor{
 			Entries: []*pb_struct.RateLimitDescriptor_Entry{{Key: "key3", Value: "foo"}},
 		})
@@ -136,7 +141,7 @@ func TestBasicConfig(t *testing.T) {
 	assert.EqualValues(1, stats.NewCounter("test-domain.key3.near_limit").Value())
 
 	rl = rlConfig.GetLimit(
-		nil, "test-domain",
+		context.Background(), "test-domain",
 		&pb_struct.RateLimitDescriptor{
 			Entries: []*pb_struct.RateLimitDescriptor_Entry{{Key: "key4", Value: "foo"}},
 		})

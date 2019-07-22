@@ -310,7 +310,7 @@ spec:
       serviceAccountName: ambassador
       containers:
       - name: ambassador
-        image: quay.io/datawire/ambassador:{{env "AMBASSADOR_VERSION"}}
+        image: {{env "AMBASSADOR_IMAGE"}}
 # XXX: Kubernaut
 #        resources:
 #          limits:
@@ -326,6 +326,8 @@ spec:
               fieldPath: metadata.namespace
         - name: AMBASSADOR_SINGLE_NAMESPACE
           value: "true"
+        - name: SCOUT_DISABLE
+          value: "1"
         ports:
           - name: http
             containerPort: 8080
