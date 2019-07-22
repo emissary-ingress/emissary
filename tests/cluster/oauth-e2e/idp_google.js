@@ -7,7 +7,7 @@ module.exports.testcases = {
 	"Google": {
 		resource: "https://ambassador.standalone.svc.cluster.local/google/httpbin/headers",
 		username: "ambassadorprotesting@gmail.com",
-		password: "IN5Kji47teRW2bJMh39O",
+		password: "NO2I27Bg1XY",
 		before: () => { server.listen(31001); },
 		after: () => { server.close(); },
 	},
@@ -34,10 +34,23 @@ const authenticate = async function(browsertab, username, password) {
 	await done;
 };
 
+const waitUntilRender = function(browsertab) {
+	return browsertab.waitForFunction(() => {
+		let view = document.querySelector("#initialView");
+		return (view === null) || (view.getAttribute("aria-busy") !== "true");
+	});
+};
+
 module.exports.authenticate = function(browsertab, username, password, skipfn) {
 	return Promise.race([
 		// If at any point it decides to show us a Captcha, just skip the test :-/
-		browsertab.waitForSelector('img#captchaimg', { visible: true }).then(() => {skipfn();}),
+		browsertab.waitForSelector('img#captchaimg', { visible: true })
+			.then(() => {return waitUntilRender(browsertab);})
+			.then(() => {skipfn();}),
+		// If Google decides to reject the signin, just skip the test :(
+		browsertab.waitForFunction(() => {return window.location.href.startsWith("https://accounts.google.com/signin/oauth/deniedsigninrejected?");})
+			.then(() => {return waitUntilRender(browsertab);})
+			.then(() => {skipfn();}),
 		// otherwise, authenticate as normal.
 		authenticate(browsertab, username, password),
 	]);

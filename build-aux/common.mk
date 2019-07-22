@@ -16,6 +16,7 @@
 #  - .PHONY Target: format
 #  - .PHONY Target: clean
 #  - .PHONY Target: clobber
+#  - Alias: bin/% -> bin_$(GOHOSTOS)_$(GOHOSTARCH)/%
 ## common.mk targets ##
 #  (N/A)
 #
@@ -74,8 +75,14 @@ clobber: clean
 clean: _common_clean
 _common_clean:
 	rm -rf -- bin_*
-	rm -f test-suite.tap
+	rm -f bin test-suite.tap
 .PHONY: _common_clean
+
+bin/%: bin_$(GOHOSTOS)_$(GOHOSTARCH)/% | bin
+	@test -e $@ && test -f $@ && test -x $@
+bin:
+	@rm -f $@
+	ln -s bin_$(GOHOSTOS)_$(GOHOSTARCH)/ $@
 
 check: lint build
 	$(MAKE) test-suite.tap.summary
