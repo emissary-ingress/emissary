@@ -75,7 +75,7 @@ class V2Route(dict):
             self['response_headers_to_remove'] = response_headers_to_remove
 
         # If a host_redirect is set, we won't do a 'route' entry.
-        host_redirect = mapping.get('host_redirect', None)
+        host_redirect = group.get('host_redirect', None)
 
         if host_redirect:
             # We have a host_redirect. Deal with it.
