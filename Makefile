@@ -128,21 +128,27 @@ PULL_BRANCH ?= master
 
 NETLIFY_SITE=datawire-ambassador
 
-# IF YOU MESS WITH ANY OF THESE VALUES, YOU MUST UPDATE THE VERSION NUMBERS
-# BELOW AND THEN RUN make docker-update-base
-ENVOY_REPO ?= git://github.com/datawire/envoy.git
-ENVOY_COMMIT ?= 8f57f7d765939552a999721e8dac9b5a9a5cbb8b
-ENVOY_COMPILATION_MODE ?= dbg
 AMBASSADOR_DOCKER_TAG ?= $(GIT_VERSION)
 AMBASSADOR_DOCKER_IMAGE ?= $(AMBASSADOR_DOCKER_REPO):$(AMBASSADOR_DOCKER_TAG)
 AMBASSADOR_EXTERNAL_DOCKER_IMAGE ?= $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(AMBASSADOR_DOCKER_TAG)
 
-BASE_DOCKER_REPO ?= quay.io/datawire/ambassador-base
-# UPDATE THESE VERSION NUMBERS IF YOU UPDATE ANY OF THE VALUES ABOVE, THEN
-# RUN make docker-update-base.
-BASE_ENVOY_IMAGE ?= $(BASE_DOCKER_REPO):envoy-13
-BASE_PY_IMAGE    ?= $(BASE_DOCKER_REPO):go-14
-BASE_GO_IMAGE    ?= $(BASE_DOCKER_REPO):ambassador-14
+# IF YOU MESS WITH ANY OF THESE VALUES, YOU MUST RUN `make docker-update-base`.
+  ENVOY_REPO ?= git://github.com/datawire/envoy.git
+  ENVOY_COMMIT ?= 8f57f7d765939552a999721e8dac9b5a9a5cbb8b
+  ENVOY_COMPILATION_MODE ?= dbg
+
+  # Increment BASE_ENVOY_RELVER on changes to `Dockerfile.base-envoy`, Envoy recipes in `Makefile`
+  BASE_ENVOY_RELVER ?= 1
+  # Increment BASE_GO_RELVER on changes to `Dockerfile.base-go`
+  BASE_GO_RELVER    ?= 1
+  # Increment BASE_PY_RELVER on changes to `Dockerfile.base-py`, `releng/*`, `multi/requirements.txt`, `ambassador/requirements.txt`
+  BASE_PY_RELVER    ?= 1
+
+  BASE_DOCKER_REPO ?= quay.io/datawire/ambassador-base
+  BASE_ENVOY_IMAGE ?= $(BASE_DOCKER_REPO):envoy-$(BASE_ENVOY_RELVER).$(ENVOY_COMMIT).$(ENVOY_COMPILATION_MODE)
+  BASE_GO_IMAGE    ?= $(BASE_DOCKER_REPO):go-$(BASE_ENVOY_RELVER).$(ENVOY_COMMIT).$(ENVOY_COMPILATION_MODE).$(BASE_GO_RELVER)
+  BASE_PY_IMAGE    ?= $(BASE_DOCKER_REPO):py-$(BASE_ENVOY_RELVER).$(ENVOY_COMMIT).$(ENVOY_COMPILATION_MODE).$(BASE_PY_RELVER)
+# END LIST OF VARIABLES REQUIRING `make docker-update-base`.
 
 # Default to _NOT_ using Kubernaut. At Datawire, we can set this to true,
 # but outside, it works much better to assume that user has set up something

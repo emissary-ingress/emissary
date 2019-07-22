@@ -19,10 +19,10 @@
 # main Dockerfile, so that we can use the Docker cache to more
 # effectively dodge network issues re-downloading the Golang stuff.
 #
-# If you have to change this - notably, if you switch to a new rev of
-# either Golang dependency - you _must_ update BASE_GO_IMAGE
-# in the Makefile, then run "make docker-update-base" to build and push
-# the new image.
+# If you have to change this file (e.g. if you switch to a new rev of
+# a Golang dependency), you _must_ update BASE_GO_RELVER in the
+# Makefile, then run "make docker-update-base" to build and push the
+# new image.
 
 ARG BASE_ENVOY_IMAGE
 FROM $BASE_ENVOY_IMAGE
