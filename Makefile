@@ -346,16 +346,16 @@ docker-base-images:
 		echo "Building Envoy binary..." ;\
 		if $(MAKE) envoy-bin/envoy-static-stripped; then \
 			echo "Building Envoy Docker image..." ;\
-		    docker build $(DOCKER_OPTS) -t $(ENVOY_BASE_IMAGE) -f Dockerfile.envoy . ;\
+		    docker build $(DOCKER_OPTS) -t $(ENVOY_BASE_IMAGE) -f Dockerfile.base-envoy . ;\
 		fi ;\
 	fi
 	@if ! docker run --rm --entrypoint=true $(AMBASSADOR_DOCKER_IMAGE_CACHED); then \
 		echo "Building $(AMBASSADOR_DOCKER_IMAGE_CACHED)" ;\
-		docker build --build-arg ENVOY_BASE_IMAGE=$(ENVOY_BASE_IMAGE) $(DOCKER_OPTS) -t $(AMBASSADOR_DOCKER_IMAGE_CACHED) -f Dockerfile.cached . ;\
+		docker build --build-arg ENVOY_BASE_IMAGE=$(ENVOY_BASE_IMAGE) $(DOCKER_OPTS) -t $(AMBASSADOR_DOCKER_IMAGE_CACHED) -f Dockerfile.base-py . ;\
 	fi
 	@if ! docker run --rm --entrypoint=true $(AMBASSADOR_BASE_IMAGE); then \
 		echo "Building $(AMBASSADOR_BASE_IMAGE)" ;\
-		docker build --build-arg ENVOY_BASE_IMAGE=$(ENVOY_BASE_IMAGE) $(DOCKER_OPTS) -t $(AMBASSADOR_BASE_IMAGE) -f Dockerfile.ambassador . ;\
+		docker build --build-arg ENVOY_BASE_IMAGE=$(ENVOY_BASE_IMAGE) $(DOCKER_OPTS) -t $(AMBASSADOR_BASE_IMAGE) -f Dockerfile.base-go . ;\
 	fi
 	@echo "RESTART ANY DEV SHELLS to make sure they use your new images."
 
