@@ -343,19 +343,18 @@ envoy-shell: envoy-build-image.txt
 docker-base-images:
 	@if [ -n "$(AMBASSADOR_DEV)" ]; then echo "Do not run this from a dev shell" >&2; exit 1; fi
 	@if ! docker run --rm --entrypoint=true $(BASE_ENVOY_IMAGE); then \
-		echo "Building Envoy binary..." ;\
-		if $(MAKE) envoy-bin/envoy-static-stripped; then \
-			echo "Building Envoy Docker image..." ;\
-		    docker build $(DOCKER_OPTS) -t $(BASE_ENVOY_IMAGE) -f Dockerfile.base-envoy . ;\
-		fi ;\
+		echo "Building Envoy binary..." && \
+		$(MAKE) envoy-bin/envoy-static-stripped && \
+		echo "Building Envoy Docker image..." && \
+		docker build $(DOCKER_OPTS) -t $(BASE_ENVOY_IMAGE) -f Dockerfile.base-envoy .; \
 	fi
 	@if ! docker run --rm --entrypoint=true $(BASE_PY_IMAGE); then \
-		echo "Building $(BASE_PY_IMAGE)" ;\
-		docker build --build-arg BASE_ENVOY_IMAGE=$(BASE_ENVOY_IMAGE) $(DOCKER_OPTS) -t $(BASE_PY_IMAGE) -f Dockerfile.base-py . ;\
+		echo "Building $(BASE_PY_IMAGE)" && \
+		docker build --build-arg BASE_ENVOY_IMAGE=$(BASE_ENVOY_IMAGE) $(DOCKER_OPTS) -t $(BASE_PY_IMAGE) -f Dockerfile.base-py .; \
 	fi
 	@if ! docker run --rm --entrypoint=true $(BASE_GO_IMAGE); then \
-		echo "Building $(BASE_GO_IMAGE)" ;\
-		docker build --build-arg BASE_ENVOY_IMAGE=$(BASE_ENVOY_IMAGE) $(DOCKER_OPTS) -t $(BASE_GO_IMAGE) -f Dockerfile.base-go . ;\
+		echo "Building $(BASE_GO_IMAGE)" && \
+		docker build --build-arg BASE_ENVOY_IMAGE=$(BASE_ENVOY_IMAGE) $(DOCKER_OPTS) -t $(BASE_GO_IMAGE) -f Dockerfile.base-go .; \
 	fi
 	@echo "RESTART ANY DEV SHELLS to make sure they use your new images."
 
