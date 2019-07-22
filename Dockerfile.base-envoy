@@ -19,4 +19,5 @@
 
 FROM frolvlad/alpine-glibc
 
-ADD envoy-bin/envoy-static-stripped /usr/local/bin/envoy
+ARG ENVOY_FILE
+ADD $ENVOY_FILE /usr/local/bin/envoy
