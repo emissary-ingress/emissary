@@ -120,17 +120,17 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
     def add_mapping(self, aconf: Config, mapping: IRBaseMapping) -> None:
         mismatches = []
 
-        # for k in IRHTTPMappingGroup.CoreMappingKeys:
-        #     if (k in mapping) and ((k not in self) or
-        #                            (mapping[k] != self[k])):
-        #         mismatches.append((k, mapping[k], self.get(k, '-unset-')))
-        #
-        # if mismatches:
-        #     self.post_error("cannot accept new mapping %s with mismatched %s" % (
-        #                         mapping.name,
-        #                         ", ".join([ "%s: %s != %s" % (x, y, z) for x, y, z in mismatches ])
-        #                     ))
-        #     return
+        for k in IRHTTPMappingGroup.CoreMappingKeys:
+            if (k in mapping) and ((k not in self) or
+                                   (mapping[k] != self[k])):
+                mismatches.append((k, mapping[k], self.get(k, '-unset-')))
+
+        if mismatches:
+            self.post_error("cannot accept new mapping %s with mismatched %s" % (
+                                mapping.name,
+                                ", ".join([ "%s: %s != %s" % (x, y, z) for x, y, z in mismatches ])
+                            ))
+            return
 
         # self.ir.logger.debug("%s: add mapping %s" % (self, mapping.as_json()))
 
