@@ -20,12 +20,12 @@
 # effectively dodge network issues re-downloading the Golang stuff.
 #
 # If you have to change this - notably, if you switch to a new rev of
-# either Golang dependency - you _must_ update AMBASSADOR_BASE_IMAGE
+# either Golang dependency - you _must_ update BASE_GO_IMAGE
 # in the Makefile, then run "make docker-update-base" to build and push
 # the new image.
 
-ARG ENVOY_BASE_IMAGE
-FROM $ENVOY_BASE_IMAGE
+ARG BASE_ENVOY_IMAGE
+FROM $BASE_ENVOY_IMAGE
 
 ENV AMBASSADOR_ROOT=/ambassador
 WORKDIR ${AMBASSADOR_ROOT}

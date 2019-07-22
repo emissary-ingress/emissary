@@ -13,7 +13,7 @@
 # limitations under the License
 
 ################################################################
-# This Dockerfile copies in the required packages from the CACHED_CONTAINER_IMAGE and configures
+# This Dockerfile copies in the required packages from the BASE_PY_IMAGE and configures
 # Ambassador. The reason packages are not installed and copied instead is that this pattern speeds up
 # the inner development loop, since packages do not need to be installed in every docker build.
 # Besides that, alpine mirrors have been found to be inconsistent over timezones, so this seems to
@@ -26,14 +26,14 @@
 # By default, Ambassador's config and other application-specific stuff gets written to /ambassador. You can
 # configure a different location for the runtime configuration elements via environment variables.
 
-ARG CACHED_CONTAINER_IMAGE
-ARG AMBASSADOR_BASE_IMAGE
+ARG BASE_PY_IMAGE
+ARG BASE_GO_IMAGE
 
 ################################################################
-# STAGE ONE: use the CACHED_CONTAINER_IMAGE's toolchains to
+# STAGE ONE: use the BASE_PY_IMAGE's toolchains to
 # build and install the Ambassador app itself.
 
-FROM $CACHED_CONTAINER_IMAGE as cached
+FROM $BASE_PY_IMAGE as cached
 
 # Install the application itself
 COPY multi/ multi
@@ -42,11 +42,11 @@ RUN releng/install-py.sh prd install */requirements.txt
 RUN rm -rf ./multi ./ambassador
 
 ################################################################
-# STAGE TWO: switch to the AMBASSADOR_BASE_IMAGE as the base of
+# STAGE TWO: switch to the BASE_GO_IMAGE as the base of
 # our actual runtime image, and copy the built artifacts from
 # stage one to here.
 
-FROM $AMBASSADOR_BASE_IMAGE
+FROM $BASE_GO_IMAGE
 
 ENV AMBASSADOR_ROOT=/ambassador
 WORKDIR ${AMBASSADOR_ROOT}

@@ -139,9 +139,9 @@ AMBASSADOR_EXTERNAL_DOCKER_IMAGE ?= $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(AMBASSA
 
 # UPDATE THESE VERSION NUMBERS IF YOU UPDATE ANY OF THE VALUES ABOVE, THEN
 # RUN make docker-update-base.
-ENVOY_BASE_IMAGE ?= quay.io/datawire/ambassador-base:envoy-13
-AMBASSADOR_DOCKER_IMAGE_CACHED ?= quay.io/datawire/ambassador-base:go-14
-AMBASSADOR_BASE_IMAGE ?= quay.io/datawire/ambassador-base:ambassador-14
+BASE_ENVOY_IMAGE ?= quay.io/datawire/ambassador-base:envoy-13
+BASE_PY_IMAGE ?= quay.io/datawire/ambassador-base:go-14
+BASE_GO_IMAGE ?= quay.io/datawire/ambassador-base:ambassador-14
 
 # Default to _NOT_ using Kubernaut. At Datawire, we can set this to true,
 # but outside, it works much better to assume that user has set up something
@@ -342,28 +342,28 @@ envoy-shell: envoy-build-image.txt
 
 docker-base-images:
 	@if [ -n "$(AMBASSADOR_DEV)" ]; then echo "Do not run this from a dev shell" >&2; exit 1; fi
-	@if ! docker run --rm --entrypoint=true $(ENVOY_BASE_IMAGE); then \
+	@if ! docker run --rm --entrypoint=true $(BASE_ENVOY_IMAGE); then \
 		echo "Building Envoy binary..." ;\
 		if $(MAKE) envoy-bin/envoy-static-stripped; then \
 			echo "Building Envoy Docker image..." ;\
-		    docker build $(DOCKER_OPTS) -t $(ENVOY_BASE_IMAGE) -f Dockerfile.base-envoy . ;\
+		    docker build $(DOCKER_OPTS) -t $(BASE_ENVOY_IMAGE) -f Dockerfile.base-envoy . ;\
 		fi ;\
 	fi
-	@if ! docker run --rm --entrypoint=true $(AMBASSADOR_DOCKER_IMAGE_CACHED); then \
-		echo "Building $(AMBASSADOR_DOCKER_IMAGE_CACHED)" ;\
-		docker build --build-arg ENVOY_BASE_IMAGE=$(ENVOY_BASE_IMAGE) $(DOCKER_OPTS) -t $(AMBASSADOR_DOCKER_IMAGE_CACHED) -f Dockerfile.base-py . ;\
+	@if ! docker run --rm --entrypoint=true $(BASE_PY_IMAGE); then \
+		echo "Building $(BASE_PY_IMAGE)" ;\
+		docker build --build-arg BASE_ENVOY_IMAGE=$(BASE_ENVOY_IMAGE) $(DOCKER_OPTS) -t $(BASE_PY_IMAGE) -f Dockerfile.base-py . ;\
 	fi
-	@if ! docker run --rm --entrypoint=true $(AMBASSADOR_BASE_IMAGE); then \
-		echo "Building $(AMBASSADOR_BASE_IMAGE)" ;\
-		docker build --build-arg ENVOY_BASE_IMAGE=$(ENVOY_BASE_IMAGE) $(DOCKER_OPTS) -t $(AMBASSADOR_BASE_IMAGE) -f Dockerfile.base-go . ;\
+	@if ! docker run --rm --entrypoint=true $(BASE_GO_IMAGE); then \
+		echo "Building $(BASE_GO_IMAGE)" ;\
+		docker build --build-arg BASE_ENVOY_IMAGE=$(BASE_ENVOY_IMAGE) $(DOCKER_OPTS) -t $(BASE_GO_IMAGE) -f Dockerfile.base-go . ;\
 	fi
 	@echo "RESTART ANY DEV SHELLS to make sure they use your new images."
 
 docker-push-base-images:
 	@if [ -n "$(AMBASSADOR_DEV)" ]; then echo "Do not run this from a dev shell" >&2; exit 1; fi
-	docker push $(ENVOY_BASE_IMAGE)
-	docker push $(AMBASSADOR_DOCKER_IMAGE_CACHED)
-	docker push $(AMBASSADOR_BASE_IMAGE)
+	docker push $(BASE_ENVOY_IMAGE)
+	docker push $(BASE_PY_IMAGE)
+	docker push $(BASE_GO_IMAGE)
 	@echo "RESTART ANY DEV SHELLS to make sure they use your new images."
 
 docker-update-base:
@@ -371,7 +371,7 @@ docker-update-base:
 	$(MAKE) docker-push-base-images
 
 ambassador-docker-image: version $(WATT)
-	docker build --build-arg AMBASSADOR_BASE_IMAGE=$(AMBASSADOR_BASE_IMAGE) --build-arg CACHED_CONTAINER_IMAGE=$(AMBASSADOR_DOCKER_IMAGE_CACHED) $(DOCKER_OPTS) -t $(AMBASSADOR_DOCKER_IMAGE) .
+	docker build --build-arg BASE_GO_IMAGE=$(BASE_GO_IMAGE) --build-arg BASE_PY_IMAGE=$(BASE_PY_IMAGE) $(DOCKER_OPTS) -t $(AMBASSADOR_DOCKER_IMAGE) .
 
 docker-login:
 ifeq ($(DOCKER_LOGIN_FAKE), true)
@@ -549,8 +549,8 @@ teleproxy-stop:
 
 shell: setup-develop
 	AMBASSADOR_DOCKER_IMAGE="$(AMBASSADOR_DOCKER_IMAGE)" \
-	AMBASSADOR_DOCKER_IMAGE_CACHED="$(AMBASSADOR_DOCKER_IMAGE_CACHED)" \
-	AMBASSADOR_BASE_IMAGE="$(AMBASSADOR_BASE_IMAGE)" \
+	BASE_PY_IMAGE="$(BASE_PY_IMAGE)" \
+	BASE_GO_IMAGE="$(BASE_GO_IMAGE)" \
 	MAKE_KUBECONFIG="$(KUBECONFIG)" \
 	AMBASSADOR_DEV=1 \
 	bash --init-file releng/init.sh -i
@@ -567,8 +567,8 @@ ifneq ($(USE_KUBERNAUT), true)
 endif	
 	cd ambassador && \
 	AMBASSADOR_DOCKER_IMAGE="$(AMBASSADOR_DOCKER_IMAGE)" \
-	AMBASSADOR_DOCKER_IMAGE_CACHED="$(AMBASSADOR_DOCKER_IMAGE_CACHED)" \
-	AMBASSADOR_BASE_IMAGE="$(AMBASSADOR_BASE_IMAGE)" \
+	BASE_PY_IMAGE="$(BASE_PY_IMAGE)" \
+	BASE_GO_IMAGE="$(BASE_GO_IMAGE)" \
 	KUBECONFIG="$(KUBECONFIG)" \
 	PATH="$(shell pwd)/venv/bin:$(PATH)" \
 	bash ../releng/run-tests.sh
