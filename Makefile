@@ -663,19 +663,28 @@ mappings += $(shell find $(CURDIR)/envoy-src/api/envoy -type f -name '*.proto' |
 joinlist=$(if $(word 2,$2),$(firstword $2)$1$(call joinlist,$1,$(wordlist 2,$(words $2),$2)),$2)
 comma = ,
 
-go/apis/envoy: envoy-src $(FLOCK) venv/bin/protoc venv/bin/protoc-gen-gogofast venv/bin/protoc-gen-validate
-	rm -rf $@
-	mkdir -p $@
-	set -e; find $(CURDIR)/envoy-src/api/envoy -type f -name '*.proto' | sed 's,/[^/]*$$,,' | uniq | while read -r dir; do \
+_imports = $(call lazyonce,_imports,$(imports))
+_mappings = $(call lazyonce,_mappings,$(mappings))
+go/apis/envoy: envoy-src $(FLOCK) venv/bin/protoc venv/bin/protoc-gen-gogofast venv/bin/protoc-gen-validate $(var.)_imports $(var.)_mappings
+	rm -rf $@ $(@D).envoy.tmp
+	mkdir -p $(@D).envoy.tmp
+# go-control-plane `make generate`
+	@set -e; find $(CURDIR)/envoy-src/api/envoy -type f -name '*.proto' | sed 's,/[^/]*$$,,' | uniq | while read -r dir; do \
 		echo "Generating $$dir"; \
 		./venv/bin/protoc \
-			$(addprefix --proto_path=,$(imports))  \
-			--plugin=$(CURDIR)/venv/bin/protoc-gen-gogofast --gogofast_out='$(call joinlist,$(comma),plugins=grpc $(addprefix M,$(mappings))):$(@D)' \
-			--plugin=$(CURDIR)/venv/bin/protoc-gen-validate --validate_out='lang=gogo:$(@D)' \
+			$(addprefix --proto_path=,$(_imports))  \
+			--plugin=$(CURDIR)/venv/bin/protoc-gen-gogofast --gogofast_out='$(call joinlist,$(comma),plugins=grpc $(addprefix M,$(_mappings))):$(@D).envoy.tmp' \
+			--plugin=$(CURDIR)/venv/bin/protoc-gen-validate --validate_out='lang=gogo:$(@D).envoy.tmp' \
 			"$$dir"/*.proto; \
 	done
+# go-control-plane `make generate-patch`
 # https://github.com/envoyproxy/go-control-plane/issues/173
-	find $@ -name '*.validate.go' -exec sed -E -i 's,"(envoy/.*)"$$,"github.com/datawire/ambassador/go/apis/\1",' {} +
+	find $(@D).envoy.tmp -name '*.validate.go' -exec sed -E -i.bak 's,"(envoy/.*)"$$,"github.com/datawire/ambassador/go/apis/\1",' {} +
+	find $(@D).envoy.tmp -name '*.bak' -delete
+# move things in to place
+	mkdir -p $(@D)
+	mv $(@D).envoy.tmp/envoy $@
+	rmdir $(@D).envoy.tmp
 
 # ------------------------------------------------------------------------------
 # Virtualenv
