@@ -198,7 +198,7 @@ Ambassador currently relies on a custom Envoy build. This build lives in `https:
 
  6. Edit `ENVOY_COMMIT ?=` in the Makefile to point to your new Envoy commit.  Follow the instructions in the Makefile when doing so:
 
-    a. Also update the number in the `ENVOY_BASE_IMAGE`, `AMBASSADOR_DOCKER_IMAGE_CACHED`, and `AMBASSADOR_BASE_IMAGE` variables.
+    a. Also update the number in the `BASE_ENVOY_IMAGE`, `BASE_PY_IMAGE`, and `BASE_GO_IMAGE` variables.
 
     b. Then run `make docker-update-base` to compile Envoy, and build+push new docker base images incorporating that Envoy binary.  This will also update the `go/apis/envoy/` directory if any of Envoy's protobuf definitions have changed; make sure to commit those changes when you commit the change to `ENVOY_COMMIT`.
 
