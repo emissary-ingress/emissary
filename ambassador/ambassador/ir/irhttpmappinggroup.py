@@ -332,7 +332,7 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
                 for mapping in self.mappings:
                     if 'weight' not in mapping:
                         mapping.weight = round((100.0 - total_weight)/unspecified_mappings)
-            elif total_weight != 100.0:
+            elif 0 < total_weight < 100.0:
                 for mapping in self.mappings:
                     mapping.weight = round(mapping.weight * (100.0/total_weight))
 
