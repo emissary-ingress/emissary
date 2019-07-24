@@ -12,11 +12,13 @@
 HERE=$(cd $(dirname $0); pwd)
 ROOT=$(cd .. ; pwd)
 
-echo "HERE: $HERE"
-echo "ROOT: $ROOT"
-
 set -e
 set -o pipefail
+
+if ! docker pull $AMBASSADOR_DOCKER_IMAGE; then
+    echo "could not pull $AMBASSADOR_DOCKER_IMAGE" >&2
+    exit 1
+fi
 
 if [[ "$USE_KUBERNAUT" != "true" ]]; then
     ( cd "$ROOT"; bash "$HERE/test-warn.sh" )
