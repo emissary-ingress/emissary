@@ -512,13 +512,15 @@ spec:
         path: /ambassador/v0/check_alive
         port: 8877
       initialDelaySeconds: 30
-      periodSeconds: 3
+      periodSeconds: 10
+      failureThreshold: 30
     readinessProbe:
       httpGet:
         path: /ambassador/v0/check_ready
         port: 8877
       initialDelaySeconds: 30
-      periodSeconds: 3
+      periodSeconds: 10
+      failureThreshold: 30
     volumeMounts:
       - mountPath: /tmp/
         name: scratchpad

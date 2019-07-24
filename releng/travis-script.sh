@@ -59,7 +59,8 @@ if [ "${COMMIT_TYPE}" != "GA" ]; then
     printf "========\nkubectl version...\n"
     kubectl version
 
-    make KAT_REQ_LIMIT=1200 test
+    # make KAT_REQ_LIMIT=1200 test
+    make test
 
     if [[ ${GIT_BRANCH} = ${MAIN_BRANCH} ]]; then
         # By fiat, _any commit_ on the main branch pushes production docs.

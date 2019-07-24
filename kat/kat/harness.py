@@ -109,6 +109,11 @@ def has_changed(data: str, path: str) -> Tuple[bool, str]:
             with open(path, "w") as f:
                 f.write(data)
 
+    # For now, we always have to reapply with split testing.
+    if not changed:
+        changed = True
+        reason = 'always reapply for split test'
+
     return (changed, reason)
 
 
@@ -947,6 +952,7 @@ class Runner:
         final_crds = CRDS
         if is_knative():
             final_crds += KNATIVE_SERVING_CRDS
+
         changed, reason = has_changed(final_crds, "/tmp/k8s-CRDs.yaml")
 
         if changed:
@@ -1026,8 +1032,18 @@ class Runner:
 
         fname = "/tmp/k8s-%s.yaml" % self.scope
 
+        # # Clear out old stuff.
+        # print("Clearing cluster...")
+        # ShellCommand.run('clear old Kubernetes namespaces',
+        #                  'kubectl', 'delete', 'namespaces', '-l', 'scope=AmbassadorTest',
+        #                  verbose=True)
+        # ShellCommand.run('clear old Kubernetes pods etc.',
+        #                  'kubectl', 'delete', 'all', '-l', 'scope=AmbassadorTest', '--all-namespaces',
+        #                  verbose=True)
+
         self.applied_manifests = False
 
+        # Always apply at this point, since we're doing the multi-run thing.
         changed, reason = has_changed(yaml, fname)
 
         if changed:
@@ -1048,16 +1064,18 @@ class Runner:
         self._wait(selected)
 
     def _wait(self, selected):
-        requirements = [(node, kind, name) for node in self.nodes for kind, name in node.requirements()
-                        if node in selected]
+        requirements = [ (node, kind, name) for node in self.nodes for kind, name in node.requirements()
+                         if node in selected ]
 
         homogenous = {}
+
         for node, kind, name in requirements:
             if kind not in homogenous:
                 homogenous[kind] = []
+
             homogenous[kind].append((node, name))
 
-        kinds = ["pod", "url"]
+        kinds = [ "pod", "url" ]
         delay = 5
         start = time.time()
         limit = int(os.environ.get("KAT_REQ_LIMIT", "300"))
@@ -1100,7 +1118,19 @@ class Runner:
             _holdouts = holdouts.get(kind, [])
 
             if _holdouts:
-                print("  %s:\n    %s" % (kind, "\n    ".join(_holdouts)))
+                DEV = os.environ.get("AMBASSADOR_DEV", "0").lower() in ("1", "yes", "true")
+
+                print(f'  {kind}:')
+
+                for node, text in _holdouts:
+                    print(f'\n================================ LOGS FOR {node.path.k8s} ({text})')
+
+                    if DEV:
+                        os.system(f'docker logs {node.path.k8s}')
+                    else:
+                        os.system(f'kubectl logs -n {node.namespace} {node.path.k8s}')
+
+                    print(f'================================ END LOGS FOR {node.path.k8s} ({text})\n')
 
         assert False, "requirements not satisfied in %s seconds" % limit
 
@@ -1115,7 +1145,7 @@ class Runner:
 
         for node, name in requirements:
             if not pods.get(name, False):
-                not_ready.append(name)
+                not_ready.append((node, name))
 
         if not_ready:
             print("%d not ready (%s), " % (len(not_ready), name), end="")
@@ -1126,10 +1156,14 @@ class Runner:
     @_ready.when("url")
     def _ready(self, _, requirements):
         queries = []
+
         for node, q in requirements:
             q.insecure = True
             q.parent = node
             queries.append(q)
+
+        # print("URL Reqs:")
+        # print("\n".join([ f'{q.parent.name}: {q.url}' for q in queries ]))
 
         result = run_queries(queries)
 
@@ -1138,7 +1172,7 @@ class Runner:
         if not_ready:
             first = not_ready[0]
             print("%d not ready (%s: %s) " % (len(not_ready), first.query.url, first.status or first.error), end="")
-            return (False, [ "%s -- %s" % (x.query.url, x.status or x.error) for x in not_ready ])
+            return (False, [ (x.query.parent, "%s -- %s" % (x.query.url, x.status or x.error)) for x in not_ready ])
         else:
             return (True, None)
 
