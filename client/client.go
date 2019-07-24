@@ -29,6 +29,9 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+// Should we output GRPCWeb debugging?
+var debug_grpc_web bool 	// We set this value in main()   XXX This is a hack
+
 // Limit concurrency
 
 // Semaphore is a counting semaphore that can be used to limit concurrency.
@@ -259,38 +262,80 @@ func (q Query) CheckErr(err error) bool {
 // DecodeGrpcWebTextBody treats the body as a series of base64-encode chunks. It
 // returns the decoded proto and trailers.
 func DecodeGrpcWebTextBody(body []byte) ([]byte, http.Header, error) {
-	// Process base64 blob into gRPC chunks
-	var chunks [][]byte
+	// First, decode all the base64 stuff coming in. An annoyance here
+	// is that while the data coming over the wire are encoded in 
+	// multiple chunks, we can't rely on seeing that framing when 
+	// decoding: a chunk that's the right length to not need any base-64
+	// padding will just run into the next chunk.
+	//
+	// So we loop to grab all the chunks, but we just serialize it into
+	// a single raw byte array.
+
+	var raw []byte
+
+	cycle := 0
+
 	for {
+		if debug_grpc_web {
+			log.Printf("%v: base64 body '%v'", cycle, body)
+		}
+
+		cycle++
+
 		if len(body) <= 0 {
 			break
 		}
-		buf := make([]byte, base64.StdEncoding.DecodedLen(len(body)))
-		n, err := base64.StdEncoding.Decode(buf, body)
+
+		chunk := make([]byte, base64.StdEncoding.DecodedLen(len(body)))
+		n, err := base64.StdEncoding.Decode(chunk, body)
+
 		if err != nil && n <= 0 {
 			log.Printf("Failed to process body: %v\n", err)
 			return nil, nil, err
 		}
-		chunk := buf[:n]
-		chunks = append(chunks, chunk)
+
+		raw = append(raw, chunk[:n]...)
+
 		consumed := base64.StdEncoding.EncodedLen(n)
+
 		body = body[consumed:]
 	}
 
-	trailers := make(http.Header)
-	var proto []byte
+	// Next up, we need to split this into protobuf data and trailers. We
+	// do this using grpc-web framing information for this -- each frame
+	// consists of one byte of type, four bytes of length, then the data
+	// itself.
+	//
+	// For our use case here, a type of 0 is the protobuf frame, and a type
+	// of 0x80 is the trailers.
 
-	// Segregate chunks into protos and trailer. Either the body is empty or
-	// there should be exactly one of each. We assume that but do not verify it.
-	for _, chunk := range chunks {
-		if len(chunk) == 0 {
-			// Not sure why this would happen...
-			continue
-		}
-		if (chunk[0] & 128) > 0 {
-			// Trailers chunk
-			data := string(chunk[5:])
-			lines := strings.Split(data, "\n")
+	trailers := make(http.Header)	// the trailers will get saved here
+	var proto []byte 				// this is what we hand off to protobuf decode
+
+	var frame_start, frame_len uint32
+	var frame_type byte
+	var frame []byte
+
+	frame_start = 0
+
+	if debug_grpc_web {
+		log.Printf("starting frame split, len %v: %v", len(raw), raw)
+	}
+
+	for (frame_start + 5) < uint32(len(raw)) {
+		frame_type = raw[frame_start]
+		frame_len = binary.BigEndian.Uint32(raw[frame_start + 1:frame_start + 5])
+
+		frame = raw[frame_start + 5:frame_start + 5 + frame_len]
+
+		if (frame_type & 128) > 0 {
+			// Trailers frame
+			if debug_grpc_web {
+				log.Printf("  trailers @%v (len %v, type %v) %v - %v", frame_start, frame_len, frame_type, len(frame), frame)
+			}
+
+			lines := strings.Split(string(frame), "\n")
+
 			for _, line := range lines {
 				split := strings.SplitN(strings.TrimSpace(line), ":", 2)
 				if len(split) == 2 {
@@ -300,9 +345,15 @@ func DecodeGrpcWebTextBody(body []byte) ([]byte, http.Header, error) {
 				}
 			}
 		} else {
-			// Message chunk
-			proto = chunk
+			// Protobuf frame
+			if debug_grpc_web {
+				log.Printf("  protobuf @%v (len %v, type %v) %v - %v", frame_start, frame_len, frame_type, len(frame), frame)
+			}
+
+			proto = frame
 		}
+
+		frame_start += frame_len + 5
 	}
 
 	return proto, trailers, nil
@@ -310,6 +361,9 @@ func DecodeGrpcWebTextBody(body []byte) ([]byte, http.Header, error) {
 
 // AddResponse populates a query's result with data from the query's HTTP
 // response object.
+//
+// This is not called for websockets or real GRPC. It _is_ called for 
+// GRPC-bridge, GRPC-web, and (of course) HTTP(s).
 func (q Query) AddResponse(resp *http.Response) {
 	result := q.Result()
 	result["status"] = resp.StatusCode
@@ -324,12 +378,19 @@ func (q Query) AddResponse(resp *http.Response) {
 		result["body"] = body
 		if q.GrpcType() != "" && len(body) > 5 {
 			if q.GrpcType() == "web" {
+				// This is the GRPC-web case. Go forth and decode the base64'd 
+				// GRPC-web body madness.
 				decodedBody, trailers, err := DecodeGrpcWebTextBody(body)
 				if q.CheckErr(err) {
 					log.Printf("Failed to decode grpc-web-text body: %v", err)
 					return
 				}
 				body = decodedBody
+
+				if debug_grpc_web {
+					log.Printf("decodedBody '%v'", body)
+				}
+
 				headers := result["headers"].(http.Header)
 				for key, values := range trailers {
 					for _, value := range values {
@@ -337,9 +398,14 @@ func (q Query) AddResponse(resp *http.Response) {
 					}
 				}
 
+			} else {
+				// This is the GRPC-bridge case -- throw away the five-byte type/length
+				// framing at the start, and just leave the protobuf.
+				body = body[5:]
 			}
+
 			response := &grpc_echo_pb.EchoResponse{}
-			err := proto.Unmarshal(body[5:], response)
+			err := proto.Unmarshal(body, response)
 			if q.CheckErr(err) {
 				log.Printf("Failed to unmarshal proto: %v", err)
 				return
@@ -653,6 +719,8 @@ func ExecuteQuery(query Query, secureTransport *http.Transport) {
 }
 
 func main() {
+	debug_grpc_web = false
+	
 	rlimit()
 
 	var input, output string
