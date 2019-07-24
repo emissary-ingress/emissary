@@ -20,12 +20,12 @@
 # Shop.
 #
 # If you have to change this - including changing Ambassador's dependency
-# graph, including multi! - you _must_ update AMBASSADOR_DOCKER_IMAGE_CACHED
+# graph, including multi! - you _must_ update BASE_PY_IMAGE
 # in the Makefile, then run "make docker-update-base" to build and push the
 # new image.
 
-ARG ENVOY_BASE_IMAGE
-FROM $ENVOY_BASE_IMAGE
+ARG BASE_ENVOY_IMAGE
+FROM $BASE_ENVOY_IMAGE
 
 MAINTAINER Datawire <flynn@datawire.io>
 

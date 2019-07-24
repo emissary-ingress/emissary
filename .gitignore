@@ -22,6 +22,7 @@ dist
 
 *.out
 *.log
+*.tmp
 
 docs/_book
 docs/_site

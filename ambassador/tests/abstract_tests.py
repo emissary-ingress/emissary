@@ -143,8 +143,8 @@ class AmbassadorTest(Test):
             return
 
         image = os.environ["AMBASSADOR_DOCKER_IMAGE"]
-        cached_image = os.environ["AMBASSADOR_DOCKER_IMAGE_CACHED"]
-        ambassador_base_image = os.environ["AMBASSADOR_BASE_IMAGE"]
+        cached_image = os.environ["BASE_PY_IMAGE"]
+        ambassador_base_image = os.environ["BASE_GO_IMAGE"]
 
         if not AmbassadorTest.IMAGE_BUILT:
             AmbassadorTest.IMAGE_BUILT = True
@@ -170,7 +170,7 @@ class AmbassadorTest(Test):
             print("Starting docker build...", end="")
             sys.stdout.flush()
 
-            cmd = ShellCommand("docker", "build", "--build-arg", "CACHED_CONTAINER_IMAGE={}".format(cached_image), "--build-arg", "AMBASSADOR_BASE_IMAGE={}".format(ambassador_base_image), context, "-t", image)
+            cmd = ShellCommand("docker", "build", "--build-arg", "BASE_PY_IMAGE={}".format(cached_image), "--build-arg", "BASE_GO_IMAGE={}".format(ambassador_base_image), context, "-t", image)
 
             if cmd.check("docker build Ambassador image"):
                 print("done.")
@@ -382,7 +382,11 @@ class EGRPC(ServiceType):
         super().__init__(*args, service_manifests=manifests.GRPC_ECHO_BACKEND, **kwargs)
 
     def requirements(self):
-        yield ("pod", self.path.k8s)
+        yield ("url", Query("http://%s/echo.EchoService/Echo" % self.path.fqdn,
+                            headers={ "content-type": "application/grpc",
+                                      "requested-status": "0" },
+                            expected=200,
+                            grpc_type="real"))
 
 class AHTTP(ServiceType):
     skip_variant: ClassVar[bool] = True
