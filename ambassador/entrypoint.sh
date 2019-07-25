@@ -1,5 +1,8 @@
 #!/bin/bash
 
+set -x
+exec 2>&1
+
 # Copyright 2018 Datawire. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -126,16 +129,60 @@ mkdir -p "${ENVOY_DIR}"
 ################################################################################
 # Set up job management                                                        #
 ################################################################################
+
+pids=()
+
 launch() {
-    echo "AMBASSADOR: launching worker process: ${*@Q}"
+    cmd="$1"
+    shift
+
+    echo "AMBASSADOR: launching worker process '${cmd}': ${*@Q}"
+
     # We do this 'eval' instead of just
     #     "$@" &
     # so that the pretty name for the job is the actual command line,
     # instead of the literal 4 characters "$@".
     eval "${@@Q} &"
+
+    pid=$!
+
+    pids+=("${pid}:${cmd}")
+
+    return $pid
 }
+
+handle_chld () {
+    trap - CHLD
+    local tmp=()
+
+    for entry in "${pids[@]}"; do
+        local pid="${entry%:*}"
+        local name="${entry#*:}"
+
+        if [ ! -d "/proc/${pid}" ]; then
+            wait "${pid}"
+            STATUS=$?
+
+            echo "AMBASSADOR: $name exited: $STATUS"
+            echo "AMBASSADOR: shutting down"
+
+#            diediedie "${name}" "$STATUS"
+            exit "$STATUS"
+        else
+            echo "AMBASSADOR: $name still running"
+            tmp+=("${entry}")
+        fi
+    done
+
+    # Reset $pids...
+    pids=(${tmp[@]})
+
+    trap "handle_chld" CHLD
+}
+
 set -m # We need this in order to trap on SIGCHLD
-trap 'jobs -n' CHLD # Notify when a job status changes
+
+trap 'handle_chld' CHLD # Notify when a job status changes
 
 trap 'echo "Received SIGINT (Control-C?); shutting down"; jobs -p | xargs -r kill --' INT
 
@@ -143,8 +190,8 @@ trap 'echo "Received SIGINT (Control-C?); shutting down"; jobs -p | xargs -r kil
 # WORKER: DEMO                                                                 #
 ################################################################################
 if [[ -n "$AMBASSADOR_DEMO_MODE" ]]; then
-    launch env PORT=5050 python3 demo-services/auth.py
-    launch python3 demo-services/qotm.py
+    launch "demo-auth" env PORT=5050 python3 demo-services/auth.py
+    launch "demo-qotm" python3 demo-services/qotm.py
 fi
 
 ################################################################################
@@ -152,19 +199,60 @@ fi
 ################################################################################
 if [[ -z "${DIAGD_ONLY}" ]]; then
     echo "AMBASSADOR: starting ads"
-    launch ambex -ads 8003 "${ENVOY_DIR}"
-    ambex_pid="$!"
-    diagd_flags+=('--kick' "/ambassador/kick_ads.sh ${ambex_pid@Q} ${envoy_flags[*]@Q}")
+    launch "ambex" ambex -ads 8003 "${ENVOY_DIR}"
+    ambex_pid=$?
+
+    diagd_flags+=('--kick' "kill -HUP $$")
 else
     diagd_flags+=('--no-checks' '--no-envoy')
 fi
+
+# Once Ambex is running, we can set up ADS management
+
+envoy_pid=
+
+kick_ads() {
+    if [ -n "$DIAGD_ONLY" ]; then
+        echo "kick_ads: ignoring kick since in diagd-only mode."
+    else
+        echo "KICK: my PID is $$"
+
+        if [ -n "${envoy_pid}" ]; then
+            if ! kill -0 "${envoy_pid}"; then
+                envoy_pid=
+            fi
+        fi
+
+        if [ -z "${envoy_pid}" ]; then
+            # Envoy isn't running. Start it.
+            launch "envoy" envoy "${envoy_flags[@]}"
+
+            envoy_pid=$?
+
+            echo "KICK: started Envoy as PID $envoy_pid"
+#            echo "$envoy_pid" > "$envoy_pid_file"
+        fi
+
+        # Once envoy is running, poke Ambex.
+        echo "KICK: kicking ambex"
+        kill -HUP "$ambex_pid"
+
+#        jobs -l
+#        sleep 30
+
+        echo "KICK: done"
+    fi
+}
+
+# On SIGHUP, kick ADS
+trap 'kick_ads' HUP
 
 ################################################################################
 # WORKER: DIAGD                                                                #
 ################################################################################
 # We can't start Envoy until the initial config happens, which means that diagd has to start it.
 echo "AMBASSADOR: starting diagd"
-launch diagd \
+launch "diagd" diagd \
        "${snapshot_dir}" \
        "${ENVOY_BOOTSTRAP_FILE}" \
        "${envoy_config_file}" \
@@ -191,6 +279,7 @@ if (( tries_left <= 0 )); then
 else
     echo "AMBASSADOR: diagd running"
 fi
+
 
 ################################################################################
 # WORKER: KUBEWATCH                                                            #
@@ -220,7 +309,7 @@ if [[ -z "${AMBASSADOR_NO_KUBEWATCH}" ]]; then
         KUBEWATCH_SYNC_KINDS="$KUBEWATCH_SYNC_KINDS -s ClusterIngress"
     fi
 
-    launch /ambassador/watt \
+    launch "watt" /ambassador/watt \
            --port 8002 \
            ${AMBASSADOR_SINGLE_NAMESPACE:+ --namespace "${AMBASSADOR_NAMESPACE}" } \
            --notify 'sh /ambassador/post_watt.sh' \
@@ -233,23 +322,43 @@ fi
 ################################################################################
 # Wait for one worker to quit, then kill the others                            #
 ################################################################################
-echo "AMBASSADOR: waiting"
-echo "AMBASSADOR: worker PIDs:" $(jobs -p)
 
 if [[ -n "$AMBASSADOR_DEMO_MODE" ]]; then
     echo "AMBASSADOR DEMO RUNNING"
 fi
 
-wait -n
-r=$?
-echo 'AMBASSADOR: one of the worker processes has exited; shutting down the others'
-while test -n "$(jobs -p)"; do
-    jobs -p | xargs -r kill --
-    wait -n
+#echo "==== PS"
+#ps -o pid,ppid,args
+#
+#jobs -p
+#
+#wait -n
+#r=$?
+#
+#echo "AMBASSADOR: one of the worker processes has exited ($r); shutting down the others"
+#jobs -p
+#
+#while test -n "$(jobs -p)"; do
+#    jobs -p | xargs -r kill --
+#    wait -n
+#done
+#
+#echo 'AMBASSADOR: all worker processes have exited'
+#
+#if [[ -n "$AMBASSADOR_EXIT_DELAY" ]]; then
+#    echo "AMBASSADOR: sleeping for debug"
+#    sleep $AMBASSADOR_EXIT_DELAY
+#fi
+#
+#exit $r
+
+echo "AMBASSADOR: waiting"
+echo "PIDS: $pids"
+
+while true; do
+    wait
+    echo "-ping-"
 done
-echo 'AMBASSADOR: all worker processes have exited'
-if [[ -n "$AMBASSADOR_EXIT_DELAY" ]]; then
-    echo "AMBASSADOR: sleeping for debug"
-    sleep $AMBASSADOR_EXIT_DELAY
-fi
-exit $r
+
+#ambassador_exit 0
+exit 0
