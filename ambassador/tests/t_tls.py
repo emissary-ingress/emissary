@@ -414,7 +414,7 @@ service: {self.target.path.fqdn}
         assert found == len(errors), "unexpected errors in list"
 
 
-class TLSContextABCTest(AmbassadorTest):
+class TLSContextTest(AmbassadorTest):
     # debug = True
 
     def init(self):
@@ -530,6 +530,15 @@ name: {self.name}-no-secret
 min_tls_version: v1.0
 max_tls_version: v1.3
 """)
+        # Ambassador should return and error for this configuration.
+        yield self, self.format("""
+---
+apiVersion: ambassador/v1
+kind: TLSContext
+name: {self.name}-same-context-error
+hosts:
+- tls-context-host-1
+""")
 
     def scheme(self) -> str:
         return "https"
@@ -607,8 +616,14 @@ max_tls_version: v1.3
         # XXX Ew. If self.results[0].json is empty, the harness won't convert it to a response.
         errors = self.results[0].json
         num_errors = len(errors)
-        assert num_errors == 0, "expected 0 errors, got {} -\n{}".format(num_errors, errors)
+        assert num_errors == 2, "expected 2 errors, got {} -\n{}".format(num_errors, errors)
+        
+        cert_err = errors[0]
+        pkey_err = errors[1]
 
+        assert cert_err[1] == 'TLSContext TLSContextTest-same-context-error is missing cert_chain_file'
+        assert pkey_err[1] == 'TLSContext TLSContextTest-same-context-error is missing private_key_file'
+        
         idx = 0
 
         for result in self.results:
