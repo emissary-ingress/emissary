@@ -40,7 +40,7 @@ spec:
     service: {0}
 """
 
-class CircuitBreakingTest(AmbassadorTest):
+class CircuitBreakingTestCANFLAKE(AmbassadorTest):
     target: ServiceType
 
     def init(self):
@@ -90,7 +90,7 @@ circuit_breakers:
         for result in pending_results:
             if 'X-Envoy-Overloaded' in result.headers:
                 pending_overloaded += 1
-        assert 450 < pending_overloaded < 500
+        assert 450 < pending_overloaded < 500, f'[CF] expected 450-500 pending_overloaded, got {pending_overloaded}'
 
         pending_datapoints = 0
         for stat in pending_stats:
@@ -98,7 +98,7 @@ circuit_breakers:
                 pending_datapoints = stat.json[0]['datapoints'][0][0]
                 break
         assert pending_datapoints > 0
-        assert 450 < pending_datapoints*10 <= 500
+        assert 450 < pending_datapoints*10 <= 500, f'[CF] expected 45-50 pending_datapoints, got {pending_datapoints}'
 
         assert abs(pending_overloaded-(pending_datapoints*10)) < 10
 
