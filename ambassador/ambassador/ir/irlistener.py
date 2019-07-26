@@ -14,6 +14,7 @@ class IRListener (IRResource):
 
     def __init__(self, ir: 'IR', aconf: Config,
 
+                 service_address: str,
                  service_port: int,
                  require_tls: bool,
                  use_proxy_proto: bool,
@@ -27,6 +28,7 @@ class IRListener (IRResource):
 
         super().__init__(
             ir=ir, aconf=aconf, rkey=rkey, kind=kind, name=name,
+            service_address=service_address,
             service_port=service_port,
             require_tls=require_tls,
             use_proxy_proto=use_proxy_proto,
@@ -43,6 +45,7 @@ class ListenerFactory:
         
         primary_listener = IRListener(
             ir=ir, aconf=aconf, location=amod.location,
+            service_address=amod.service_address,
             service_port=amod.service_port,
             require_tls=amod.get('x_forwarded_proto_redirect', False),
             use_proxy_proto=amod.use_proxy_proto

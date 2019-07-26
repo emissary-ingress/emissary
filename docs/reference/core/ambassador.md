@@ -67,6 +67,11 @@ config:
 # Override it with this variable
 # server_name: envoy
 
+# If present, service_address will be the address Ambassador listens
+# on for microservice access. If not present, Ambassador will
+# use 0.0.0.0. Set this to `::` to configure Ambassador to work with ipv6
+# service_address: 0.0.0.0
+
 # If present, service_port will be the port Ambassador listens
 # on for microservice access. If not present, Ambassador will
 # use 8443 if TLS is configured, 8080 otherwise.

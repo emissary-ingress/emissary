@@ -641,7 +641,7 @@ class V2Listener(dict):
             'name': self.name,
             'address': {
                 'socket_address': {
-                    'address': '0.0.0.0',
+                    'address': listener.service_address,
                     'port_value': listener.service_port,
                     'protocol': 'TCP'
                 }

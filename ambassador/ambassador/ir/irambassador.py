@@ -41,6 +41,7 @@ class IRAmbassador (IRResource):
         'readiness_probe',
         'resolver',
         'server_name',
+        'service_address',
         'service_port',
         'statsd',
         'use_proxy_proto',
@@ -49,6 +50,7 @@ class IRAmbassador (IRResource):
         'xff_num_trusted_hops'
     ]
 
+    service_address: str
     service_port: int
     diag_port: int
 
@@ -78,6 +80,7 @@ class IRAmbassador (IRResource):
 
         super().__init__(
             ir=ir, aconf=aconf, rkey=rkey, kind=kind, name=name,
+            service_address=Constants.SERVICE_ADDRESS_HTTP,
             service_port=Constants.SERVICE_PORT_HTTP,
             admin_port=Constants.ADMIN_PORT,
             diag_port=Constants.DIAG_PORT,
