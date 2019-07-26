@@ -139,13 +139,50 @@ mkdir -p "${snapshot_dir}"
 mkdir -p "${ENVOY_DIR}"
 
 ################################################################################
-# Set up job management                                                        #
+# Termination funcions                                                         #
 ################################################################################
 
-pids=()
+ambassador_exit() {
+    RC=${1:-1}
+
+    if [ -n "$AMBASSADOR_EXIT_DELAY" ]; then
+        echo "AMBASSADOR: sleeping before shutdown ($RC)"
+        sleep $AMBASSADOR_EXIT_DELAY
+    fi
+
+    echo "AMBASSADOR: killing extant processes"
+    jobs -p | xargs -r kill --
+
+    echo "AMBASSADOR: shutting down ($RC)"
+    exit $RC
+}
+
+diediedie() {
+    NAME=$1
+    STATUS=$2
+
+    if [ $STATUS -eq 0 ]; then
+        echo "AMBASSADOR: $NAME claimed success, but exited \?\?\?\?"
+    else
+        echo "AMBASSADOR: $NAME exited with status $STATUS"
+    fi
+
+    ambassador_exit 1
+}
+
+################################################################################
+# Set up job management                                                        #
+################################################################################
+#
+# We can't completely rely on Bash job control for this, because our SIGHUP
+# trap will trigger job control to think that something has exited! So we need
+# to explicitly trap SIGCHLD and make sure that the thing that exited isn't one
+# of our _important_ processes.
+
+pids=()         # array of pid:human-readable-name
 
 launch() {
-    cmd="$1"
+    cmd="$1"    # this is a human-readable name used only for logging.
     shift
 
     echo "AMBASSADOR: launching worker process '${cmd}': ${*@Q}"
@@ -175,13 +212,12 @@ handle_chld () {
             wait "${pid}"
             STATUS=$?
 
-            echo "AMBASSADOR: $name exited: $STATUS"
-            echo "AMBASSADOR: shutting down"
-
-#            diediedie "${name}" "$STATUS"
-            exit "$STATUS"
+            diediedie "${name}" "$STATUS"
         else
-            echo "AMBASSADOR: $name still running"
+            if [ -n "$ENTRYPOINT_DEBUG" ]; then
+                echo "AMBASSADOR: $name still running"
+            fi
+
             tmp+=("${entry}")
         fi
     done
@@ -196,7 +232,7 @@ set -m # We need this in order to trap on SIGCHLD
 
 trap 'handle_chld' CHLD # Notify when a job status changes
 
-trap 'echo "Received SIGINT (Control-C?); shutting down"; jobs -p | xargs -r kill --' INT
+trap 'echo "Received SIGINT (Control-C?); shutting down"; ambassador_exit 1' INT
 
 ################################################################################
 # WORKER: DEMO                                                                 #
@@ -269,6 +305,7 @@ kick_ads() {
                 delay=$(( delay * 2 ))
                 if (( delay > 10 )); then delay=5; fi
             done
+
             if (( tries_left <= 0 )); then
                 echo "AMBASSADOR: giving up on envoy and hoping for the best..."
             else
@@ -369,5 +406,5 @@ while true; do
     echo "-ping-"
 done
 
-#ambassador_exit 0
-exit 0
+ambassador_exit 2
+
