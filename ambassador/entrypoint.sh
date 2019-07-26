@@ -210,6 +210,7 @@ fi
 # Once Ambex is running, we can set up ADS management
 
 envoy_pid=
+demo_chimed=
 
 kick_ads() {
     if [ -n "$DIAGD_ONLY" ]; then
@@ -241,6 +242,35 @@ kick_ads() {
 #        sleep 30
 
 #        echo "KICK: done"
+
+        if [ -n "$AMBASSADOR_DEMO_MODE" -a -z "$demo_chimed" ]; then
+            # Wait for Envoy...
+            tries_left=10
+            delay=1
+
+            while (( tries_left > 0 )); do
+                echo "AMBASSADOR: pinging envoy ($tries_left)..."
+
+                status=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8001/ready)
+
+                if [ "$status" = "200" ]; then
+                    break
+                fi
+
+                tries_left=$(( tries_left - 1 ))
+                sleep $delay
+                delay=$(( delay * 2 ))
+                if (( delay > 10 )); then delay=5; fi
+            done
+            if (( tries_left <= 0 )); then
+                echo "AMBASSADOR: giving up on envoy and hoping for the best..."
+            else
+                echo "AMBASSADOR: envoy running"
+            fi
+
+            echo "AMBASSADOR DEMO RUNNING"
+            demo_chimed=yes
+        fi
     fi
 }
 
@@ -322,10 +352,6 @@ fi
 ################################################################################
 # Wait for one worker to quit, then kill the others                            #
 ################################################################################
-
-if [[ -n "$AMBASSADOR_DEMO_MODE" ]]; then
-    echo "AMBASSADOR DEMO RUNNING"
-fi
 
 #echo "==== PS"
 #ps -o pid,ppid,args
