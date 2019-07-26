@@ -72,8 +72,6 @@
       items:
       - title: Enabling Transport Level Security (TLS)
         link: /user-guide/tls-termination
-      - title: Server Name Indication (SNI)
-        link: /user-guide/sni
       - title: cert-manager with Ambassador
         link: /user-guide/cert-manager
       - title: Basic Authentication
@@ -123,6 +121,17 @@
               link: /reference/core/resolvers
             - title: TLS Configuration
               link: /reference/core/tls
+              items:
+                - title: HTTP -> HTTPS Redirection
+                  link: /reference/tls/cleartext-redirection
+                - title: TLS Origination
+                  link: /reference/tls/origination
+                - title: Mutual TLS (mTLS)
+                  link: /reference/tls/mtls
+                - title: Client Certificate Validation
+                  link: /reference/tls/client-cert-validation
+                - title: Server Name Indication (SNI)
+                  link: /user-guide/sni
         - title: Configuring Services
           link: /reference/mappings
           items:

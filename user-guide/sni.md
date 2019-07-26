@@ -4,44 +4,33 @@ Ambassador lets you supply separate TLS certificates for different domains, inst
 
 ## Configuring SNI
 
-1. Create a TLS certificate, and store the secret in a Kubernetes secret.
-    ```console
-    kubectl create secret tls <secret name> --cert <path to the certificate chain> --key <path to the private key>
-    ```
+SNI gives you the ability to host multiple domains behind a single Ambassador and use different TLS certificates for each domain. It is designed to be configured on a per-mapping basis, enabling application developers or service owners to individually manage how their service gets exposed over TLS. 
 
-2. Create a `TLSContext` resource which points to the certificate, and lists all the different hosts in the certificate. Typically, these would be the Subject Alternative Names you will be using. If you're using a wildcard certificate, you can put in any host values that you wish to use or use `"*.domain.com"`.
+To use SNI, you simply need to:
+
+1. Create a `TLSContext` for the domain
 
     ```yaml
     apiVersion: ambassador/v1
     kind: TLSContext
-    name: <TLSContext name>
-    hosts: # list of hosts to match against>
-    - host1
-    - host2
-    secret: <Kubernetes secret created in the first step>
+    name: example-tls
+    hosts: example.com
+    secret: example-cert
     ```
 
-   The `TLSContext` resource is typically added to the main Ambassador `service` where global Ambassador configuration is typically stored.
+2. Configure the `host` value on `Mapping`s associated with that domain
 
-3. Create additional `TLSContext` resources pointing to additional certificates as necessary.
+    ```yaml
+    apiVersion: ambassador/v1
+    kind:  Mapping
+    name:  example-mapping
+    prefix: /example/
+    service: example-service
+    host: example.com
+    ```
+Ambassador will check if any of the `TLSContext` resources have a matching host, and if it finds one, SNI configuration will be applied to that mapping. 
 
-4. Configure the global TLS configuration (e.g., `redirect_cleartext_from`) in the `tls` module. The `tls` configuration applies to all `TLSContext` resources. For more information on global TLS configuration, see the [reference section on TLS](/reference/core/tls).
-
-## Using SNI
-
-SNI is designed to be configured on a per-mapping basis. This enables application developers or service owners to individually manage how their service gets exposed over TLS. To use SNI, specify your SNI host in the `mapping` resource, e.g.,
-
-```yaml
-apiVersion: ambassador/v1
-kind:  Mapping
-name:  example-mapping
-prefix: /example/
-service: example.com:80
-host: <SNI host>
-```
-Ambassador will check if any of the `TLSContext` resources have a matching host, and if it finds one, SNI configuration will be applied to that mapping.
-
-Note that if the mapping does not have the `host` field, all valid SNI configurations will be applied to the given mapping.
+**Note**: If a `Mapping` does not specify a `host`, Ambassador will interpret it as `hosts: "*"` meaning that `Mapping` will be available for all domains.
 
 ## Examples
 
@@ -155,4 +144,4 @@ spec:
   ports:
   - port: 80
     targetPort: 80
-``````
+```
