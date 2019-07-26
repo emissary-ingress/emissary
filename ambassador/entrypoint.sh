@@ -26,6 +26,35 @@ in_array() {
     return 1
 }
 
+wait_for_url () {
+    name="$1"
+    url="$2"
+
+    tries_left=10
+    delay=1
+
+    while (( tries_left > 0 )); do
+        echo "AMBASSADOR: pinging $name ($tries_left)..."
+
+        status=$(curl -s -o /dev/null -w "%{http_code}" $url)
+
+        if [ "$status" = "200" ]; then
+            break
+        fi
+
+        tries_left=$(( tries_left - 1 ))
+        sleep $delay
+        delay=$(( delay * 2 ))
+        if (( delay > 10 )); then delay=5; fi
+    done
+
+    if (( tries_left <= 0 )); then
+        echo "AMBASSADOR: giving up on $name and hoping for the best..."
+    else
+        echo "AMBASSADOR: $name running"
+    fi
+}
+
 ################################################################################
 # CONFIG PARSING                                                               #
 ################################################################################
@@ -288,29 +317,7 @@ kick_ads() {
 
         if [ -n "$AMBASSADOR_DEMO_MODE" -a -z "$demo_chimed" ]; then
             # Wait for Envoy...
-            tries_left=10
-            delay=1
-
-            while (( tries_left > 0 )); do
-                echo "AMBASSADOR: pinging envoy ($tries_left)..."
-
-                status=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8001/ready)
-
-                if [ "$status" = "200" ]; then
-                    break
-                fi
-
-                tries_left=$(( tries_left - 1 ))
-                sleep $delay
-                delay=$(( delay * 2 ))
-                if (( delay > 10 )); then delay=5; fi
-            done
-
-            if (( tries_left <= 0 )); then
-                echo "AMBASSADOR: giving up on envoy and hoping for the best..."
-            else
-                echo "AMBASSADOR: envoy running"
-            fi
+            wait_for_url "envoy" "http://localhost:8001/ready"
 
             echo "AMBASSADOR DEMO RUNNING"
             demo_chimed=yes
@@ -333,28 +340,7 @@ launch "diagd" diagd \
        "${diagd_flags[@]}"
 
 # Wait for diagd to start
-tries_left=10
-delay=1
-while (( tries_left > 0 )); do
-    echo "AMBASSADOR: pinging diagd ($tries_left)..."
-
-    status=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8877/_internal/v0/ping)
-
-    if [ "$status" = "200" ]; then
-        break
-    fi
-
-    tries_left=$(( tries_left - 1 ))
-    sleep $delay
-    delay=$(( delay * 2 ))
-    if (( delay > 10 )); then delay=5; fi
-done
-if (( tries_left <= 0 )); then
-    echo "AMBASSADOR: giving up on diagd and hoping for the best..."
-else
-    echo "AMBASSADOR: diagd running"
-fi
-
+wait_for_url "diagd" "http://localhost:8877/_internal/v0/ping"
 
 ################################################################################
 # WORKER: KUBEWATCH                                                            #
