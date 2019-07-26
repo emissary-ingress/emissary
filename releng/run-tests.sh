@@ -29,7 +29,12 @@ TEST_ARGS="--tb=short -s"
 seq=('Plain' 'not Plain and (A or C)' 'not Plain and not (A or C)')
 
 if [[ -n "${TEST_NAME}" ]]; then
-    seq=("$TEST_NAME")
+    case "${TEST_NAME}" in
+    group1) seq=('Plain') ;;
+    group2) seq=('not Plain and (A or C)') ;;
+    group3) seq=('not Plain and not (A or C)') ;;
+    *) seq=("$TEST_NAME") ;;
+    esac
 fi
 
 FULL_RESULT=0
