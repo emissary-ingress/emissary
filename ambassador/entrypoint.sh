@@ -1,8 +1,5 @@
 #!/bin/bash
 
-set -x
-exec 2>&1
-
 # Copyright 2018 Datawire. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -50,6 +47,8 @@ export APPDIR="${APPDIR:-$ambassador_root}"
 export PYTHON_EGG_CACHE="${PYTHON_EGG_CACHE:-$AMBASSADOR_CONFIG_BASE_DIR}/.cache"
 export PYTHONUNBUFFERED=true
 
+ENTRYPOINT_DEBUG=
+
 if [[ "$1" == "--dev-magic" ]]; then
     echo "AMBASSADOR: running with dev magic"
     diagd --dev-magic
@@ -78,6 +77,19 @@ envoy_flags=('-c' "${ENVOY_BOOTSTRAP_FILE}")
 read -r -d '' -a ambassador_debug <<<"$AMBASSADOR_DEBUG"
 if in_array 'diagd' "${ambassador_debug[@]}"; then diagd_flags+=('--debug'); fi
 if in_array 'envoy' "${ambassador_debug[@]}"; then envoy_flags+=('-l' 'debug'); fi
+
+if in_array 'entrypoint'; then
+    ENTRYPOINT_DEBUG=true
+
+    echo "ENTRYPOINT_DEBUG enabled"
+fi
+
+if in_array 'entrypoint_trace'; then
+    echo "ENTRYPOINT_TRACE enabled"
+
+    echo 2>&1
+    set -x
+fi
 
 if [[ "$1" == "--demo" ]]; then
     # This is _not_ meant to be overridden by AMBASSADOR_CONFIG_BASE_DIR.
@@ -198,7 +210,6 @@ fi
 # WORKER: AMBEX                                                                #
 ################################################################################
 if [[ -z "${DIAGD_ONLY}" ]]; then
-    echo "AMBASSADOR: starting ads"
     launch "ambex" ambex -ads 8003 "${ENVOY_DIR}"
     ambex_pid=$?
 
@@ -216,8 +227,6 @@ kick_ads() {
     if [ -n "$DIAGD_ONLY" ]; then
         echo "kick_ads: ignoring kick since in diagd-only mode."
     else
-#        echo "KICK: my PID is $$"
-
         if [ -n "${envoy_pid}" ]; then
             if ! kill -0 "${envoy_pid}"; then
                 envoy_pid=
@@ -231,17 +240,15 @@ kick_ads() {
             envoy_pid=$?
 
             echo "KICK: started Envoy as PID $envoy_pid"
-#            echo "$envoy_pid" > "$envoy_pid_file"
         fi
 
         # Once envoy is running, poke Ambex.
-#        echo "KICK: kicking ambex"
+
+        if [ -n "$ENTRYPOINT_DEBUG" ]; then
+            echo "KICK: kicking ambex"
+        fi
+
         kill -HUP "$ambex_pid"
-
-#        jobs -l
-#        sleep 30
-
-#        echo "KICK: done"
 
         if [ -n "$AMBASSADOR_DEMO_MODE" -a -z "$demo_chimed" ]; then
             # Wait for Envoy...
@@ -281,12 +288,13 @@ trap 'kick_ads' HUP
 # WORKER: DIAGD                                                                #
 ################################################################################
 # We can't start Envoy until the initial config happens, which means that diagd has to start it.
-echo "AMBASSADOR: starting diagd"
+
 launch "diagd" diagd \
        "${snapshot_dir}" \
        "${ENVOY_BOOTSTRAP_FILE}" \
        "${envoy_config_file}" \
        "${diagd_flags[@]}"
+
 # Wait for diagd to start
 tries_left=10
 delay=1
