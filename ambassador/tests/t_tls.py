@@ -414,7 +414,7 @@ service: {self.target.path.fqdn}
         assert found == len(errors), "unexpected errors in list"
 
 
-class TLSContext(AmbassadorTest):
+class TLSContextABCTest(AmbassadorTest):
     # debug = True
 
     def init(self):
@@ -513,7 +513,6 @@ config:
     enabled: True
     secret: test-tlscontext-secret-0 
 """)
-
         yield self, self.format("""
 ---
 apiVersion: ambassador/v1
@@ -521,6 +520,15 @@ kind:  Mapping
 name:  {self.name}-other-mapping
 prefix: /{self.name}/
 service: https://{self.target.path.fqdn}
+""")
+        # Ambassador should not return an error when hostname is not present.
+        yield self, self.format("""
+---
+apiVersion: ambassador/v1
+kind: TLSContext
+name: {self.name}-no-secret
+min_tls_version: v1.0
+max_tls_version: v1.3
 """)
 
     def scheme(self) -> str:
