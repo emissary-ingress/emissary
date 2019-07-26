@@ -10,7 +10,7 @@ from abstract_tests import AmbassadorTest, HTTP
 from abstract_tests import assert_default_errors, MappingTest, OptionTest, ServiceType, Node, Test
 
 
-class ShadowTest(MappingTest):
+class ShadowTestCANFLAKE(MappingTest):
     parent: AmbassadorTest
     target: ServiceType
     shadow: ServiceType
