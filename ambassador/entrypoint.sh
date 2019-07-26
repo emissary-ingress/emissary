@@ -215,7 +215,7 @@ kick_ads() {
     if [ -n "$DIAGD_ONLY" ]; then
         echo "kick_ads: ignoring kick since in diagd-only mode."
     else
-        echo "KICK: my PID is $$"
+#        echo "KICK: my PID is $$"
 
         if [ -n "${envoy_pid}" ]; then
             if ! kill -0 "${envoy_pid}"; then
@@ -234,13 +234,13 @@ kick_ads() {
         fi
 
         # Once envoy is running, poke Ambex.
-        echo "KICK: kicking ambex"
+#        echo "KICK: kicking ambex"
         kill -HUP "$ambex_pid"
 
 #        jobs -l
 #        sleep 30
 
-        echo "KICK: done"
+#        echo "KICK: done"
     fi
 }
 
