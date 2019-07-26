@@ -361,31 +361,6 @@ fi
 # Wait for one worker to quit, then kill the others                            #
 ################################################################################
 
-#echo "==== PS"
-#ps -o pid,ppid,args
-#
-#jobs -p
-#
-#wait -n
-#r=$?
-#
-#echo "AMBASSADOR: one of the worker processes has exited ($r); shutting down the others"
-#jobs -p
-#
-#while test -n "$(jobs -p)"; do
-#    jobs -p | xargs -r kill --
-#    wait -n
-#done
-#
-#echo 'AMBASSADOR: all worker processes have exited'
-#
-#if [[ -n "$AMBASSADOR_EXIT_DELAY" ]]; then
-#    echo "AMBASSADOR: sleeping for debug"
-#    sleep $AMBASSADOR_EXIT_DELAY
-#fi
-#
-#exit $r
-
 echo "AMBASSADOR: waiting"
 echo "PIDS: $pids"
 
