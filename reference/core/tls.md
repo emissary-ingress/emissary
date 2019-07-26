@@ -2,12 +2,11 @@
 
 Ambassador's robust TLS support exposes configuration options for different TLS use cases including:
 
-- [Server Name Indication (SNI)](/user-guide/sni)
 - [Client Certification Validation](/reference/tls/client-cert-validation)
-- [TLS Origination](/reference/tls/origination)
-- [Mutual TLS](/reference/tls/mtls)
 - [HTTP -> HTTPS Redirection](/reference/tls/cleartext-redirection)
-
+- [Mutual TLS](/reference/tls/mtls)
+- [Server Name Indication (SNI)](/user-guide/sni)
+- [TLS Origination](/reference/tls/origination)
 
 ## TLSContext
 
