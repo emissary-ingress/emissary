@@ -231,7 +231,7 @@ class IRTLSContext(IRResource):
         errors = 0
 
         # self.ir.logger.debug("resolve_secrets before path checks: %s" % self.as_json())
-        if not self.hosts is None:
+        if len(self.hosts) > 0:
             for key in [ 'cert_chain_file', 'private_key_file', 'cacert_chain_file' ]:
                 path = self.secret_info.get(key, None)
 

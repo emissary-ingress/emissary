@@ -365,7 +365,9 @@ config:
   server:
     enabled: True
     secret: test-certs-secret-invalid
+    hosts: ["*"]
   missing-secret-key:
+    hosts: ["*"]
     cert_chain_file: /nonesuch
   bad-path-info:
     cert_chain_file: /nonesuch 
@@ -373,6 +375,7 @@ config:
   validation-without-termination:  
     enabled: True
     secret: test-certs-secret-invalid
+    hosts: ["*"]
     ca_secret: ambassador-certs
 """)
 
@@ -394,24 +397,21 @@ service: {self.target.path.fqdn}
     def check(self):
         errors = self.results[0].backend.response
 
-        assert(len(errors) == 5)
-
-        # I'm a little concerned about relying on specific text but hmm.
-        found = 0
-
-        wanted = {
+        expected = set({
             "TLSContext server found no certificate in secret test-certs-secret-invalid in namespace default, ignoring...",
             "TLSContext bad-path-info found no cert_chain_file '/nonesuch'",
             "TLSContext bad-path-info found no private_key_file '/nonesuch'",
             "TLSContext validation-without-termination found no certificate in secret test-certs-secret-invalid in namespace default, ignoring...",
             "TLSContext missing-secret-key: 'cert_chain_file' requires 'private_key_file' as well",
-        }
+        })
 
+        current = set({})
         for errsvc, errtext in errors:
-            if errtext in wanted:
-                found += 1
+            current.add(errtext)
 
-        assert found == len(errors), "unexpected errors in list"
+        diff = expected - current
+
+        assert len(diff) == 0, f'expected {len(expected)} errors, got {len(errors)}: Missing {diff}'
 
 
 class TLSContextTest(AmbassadorTest):
