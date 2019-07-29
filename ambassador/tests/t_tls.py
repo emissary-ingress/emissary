@@ -370,6 +370,7 @@ config:
     hosts: ["*"]
     cert_chain_file: /nonesuch
   bad-path-info:
+    hosts: ["*"]
     cert_chain_file: /nonesuch 
     private_key_file: /nonesuch
   validation-without-termination:  

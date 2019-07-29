@@ -231,19 +231,18 @@ class IRTLSContext(IRResource):
         errors = 0
 
         # self.ir.logger.debug("resolve_secrets before path checks: %s" % self.as_json())
-        if len(self.hosts) > 0:
-            for key in [ 'cert_chain_file', 'private_key_file', 'cacert_chain_file' ]:
-                path = self.secret_info.get(key, None)
+        for key in [ 'cert_chain_file', 'private_key_file', 'cacert_chain_file' ]:
+            path = self.secret_info.get(key, None)
 
-                if path:
-                    fc = getattr(self.ir, 'file_checker')
-                    if not fc(path):
-                        self.post_error("TLSContext %s found no %s '%s'" % (self.name, key, path))
-                        errors += 1
-                elif key != 'cacert_chain_file':
-                    self.post_error("TLSContext %s is missing %s" % (self.name, key))
+            if path:
+                fc = getattr(self.ir, 'file_checker')
+                if not fc(path):
+                    self.post_error("TLSContext %s found no %s '%s'" % (self.name, key, path))
                     errors += 1
-
+            elif key != 'cacert_chain_file':
+                self.post_error("TLSContext %s is missing %s" % (self.name, key))
+                errors += 1
+    
         if errors > 0:
             return False
 
