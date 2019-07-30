@@ -166,7 +166,8 @@ class IR:
         self.outliers = aconf.get_config("OutlierDetection") or {}
         self.services = aconf.get_config("service") or {}
 
-        self.cluster_ingresses_to_mappings(aconf)
+        self.cluster_ingresses_to_mappings()
+        self.ingresses_to_ambassador_resources()
 
         # Next up, initialize our IRServiceResolvers.
         IRServiceResolverFactory.load_all(self, aconf)
@@ -444,6 +445,80 @@ class IR:
         else:
             return None
 
+    def add_mapping_to_config(self, mapping: dict, mapping_identifier: str):
+        if 'mappings' not in self.aconf.config:
+            self.aconf.config['mappings'] = {}
+
+        self.aconf.config['mappings'][mapping_identifier] = mapping
+
+    def ingresses_to_ambassador_resources(self):
+        ingresses = self.aconf.get_config('ingresses')
+        if ingresses is None:
+            return
+
+        for ingress_name, ingress in ingresses.items():
+            self.logger.debug(f"Parsing Ingress {ingress_name}")
+
+            ingress_namespace = ingress.get('namespace', 'default')
+            ingress_spec = ingress.get('spec', {})
+
+            # parse ingress.spec.backend
+            default_backend = ingress_spec.get('backend', {})
+            db_service_name = default_backend.get('serviceName', None)
+            db_service_port = default_backend.get('servicePort', None)
+            if db_service_name is not None and db_service_port is not None:
+                db_mapping_identifier = f"{ingress_name}-default-backend"
+
+                default_backend_mapping = {
+                    'rkey': db_mapping_identifier,
+                    'location': db_mapping_identifier,
+                    'apiVersion': 'ambassador/v1',
+                    'kind': 'Mapping',
+                    'name': db_mapping_identifier,
+                    'prefix': '/',
+                    'service': f'{db_service_name}.{ingress_namespace}:{db_service_port}'
+                }
+
+                self.logger.debug(f"Generate mapping from Ingress {ingress_name}: {default_backend_mapping}")
+                self.add_mapping_to_config(mapping_identifier=db_mapping_identifier, mapping=default_backend_mapping)
+
+            # parse ingress.spec.rules
+            ingress_rules = ingress_spec.get('rules', [])
+            for rule_count, rule in enumerate(ingress_rules):
+                rule_http = rule.get('http', {})
+
+                rule_host = rule.get('host', None)
+
+                http_paths = rule_http.get('paths', [])
+                for path_count, path in enumerate(http_paths):
+                    path_backend = path.get('backend', {})
+
+                    service_name = path_backend.get('serviceName', None)
+                    service_port = path_backend.get('servicePort', None)
+                    service_path = path.get('path', None)
+
+                    if not service_name or not service_port or not service_path:
+                        continue
+
+                    unique_suffix = f"{rule_count}-{path_count}"
+                    mapping_identifier = f"{ingress_name}-{unique_suffix}"
+
+                    path_mapping = {
+                        'rkey': mapping_identifier,
+                        'location': mapping_identifier,
+                        'apiVersion': 'ambassador/v1',
+                        'kind': 'Mapping',
+                        'name': mapping_identifier,
+                        'prefix': service_path,
+                        'service': f'{service_name}.{ingress_namespace}:{service_port}'
+                    }
+
+                    if rule_host is not None:
+                        path_mapping['host'] = rule_host
+
+                    self.logger.debug(f"Generate mapping from Ingress {ingress_name}: {path_mapping}")
+                    self.add_mapping_to_config(mapping_identifier=mapping_identifier, mapping=path_mapping)
+
     def cluster_ingresses_to_mappings(self, aconf):
         cluster_ingresses = aconf.get_config("ClusterIngress")
         knative_ingresses = aconf.get_config("KnativeIngress")
@@ -519,9 +594,7 @@ class IR:
                             ci_mapping['service'] = f"{ci_service}.{ci_namespace}:{ci_port}"
 
                             self.logger.debug(f"Generated mapping from ClusterIngress: {ci_mapping}")
-                            if 'mappings' not in aconf.config:
-                                aconf.config['mappings'] = {}
-                            aconf.config['mappings'][mapping_identifier] = ci_mapping
+                            self.add_mapping_to_config(mapping=ci_mapping, mapping_identifier=mapping_identifier)
 
                             # Remember that we need to update status on this resource.
                             utcnow = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
