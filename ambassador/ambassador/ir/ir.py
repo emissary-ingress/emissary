@@ -145,6 +145,9 @@ class IR:
         # Next, grab whatever information our aconf has about secrets...
         self.save_secret_info(aconf)
 
+        # Let's convert all ingress resources to Ambassador Mappings and TLSContexts before we start reading them
+        self.ingresses_to_ambassador_resources()
+
         # ...and then it's on to default TLS stuff, both from the TLS module and from
         # any TLS contexts.
         #
@@ -167,7 +170,6 @@ class IR:
         self.services = aconf.get_config("service") or {}
 
         self.cluster_ingresses_to_mappings()
-        self.ingresses_to_ambassador_resources()
 
         # Next up, initialize our IRServiceResolvers.
         IRServiceResolverFactory.load_all(self, aconf)
@@ -451,6 +453,12 @@ class IR:
 
         self.aconf.config['mappings'][mapping_identifier] = mapping
 
+    def add_tls_context_to_config(self, tls_context: dict, identifier: str):
+        if 'tls_contexts' not in self.aconf.config:
+            self.aconf.config['tls_contexts'] = {}
+
+        self.aconf.config['tls_contexts'][identifier] = tls_context
+
     def ingresses_to_ambassador_resources(self):
         ingresses = self.aconf.get_config('ingresses')
         if ingresses is None:
@@ -461,6 +469,29 @@ class IR:
 
             ingress_namespace = ingress.get('namespace', 'default')
             ingress_spec = ingress.get('spec', {})
+
+            # Generate TLS Contexts first off
+            ingress_tls = ingress_spec.get('tls', [])
+            for tls_count, tls in enumerate(ingress_tls):
+                tls_unique_identifier = f"{ingress_name}-{tls_count}"
+
+                tls_secret = tls.get('secretName', None)
+
+                if tls_secret is not None:
+                    ingress_tls_context = {
+                        'rkey': tls_unique_identifier,
+                        'apiVersion': 'ambassador/v1',
+                        'kind': 'TLSContext',
+                        'name': tls_unique_identifier,
+                        'secret': tls_secret
+                    }
+
+                    tls_hosts = tls.get('hosts', None)
+                    if tls_hosts is not None:
+                        ingress_tls_context['hosts'] = tls_hosts
+
+                    self.logger.debug(f"Generated TLS Context from ingress {ingress_name}: {ingress_tls_context}")
+                    self.add_tls_context_to_config(identifier=tls_unique_identifier, tls_context=ingress_tls_context)
 
             # parse ingress.spec.backend
             default_backend = ingress_spec.get('backend', {})
