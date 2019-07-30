@@ -156,8 +156,9 @@ class ResourceFetcher:
             watt_k8s = watt_dict.get('Kubernetes', {})
 
             # Handle normal Kube objects...
-            for key in [ 'service', 'endpoints', 'secret' ]:
+            for key in [ 'service', 'endpoints', 'secret', 'ingresses' ]:
                 for obj in watt_k8s.get(key) or []:
+                    self.logger.debug(f"Handling Kubernetes {key}...")
                     self.handle_k8s(obj)
 
             # ...then handle Ambassador CRDs.
@@ -168,6 +169,7 @@ class ResourceFetcher:
                          'clusteringresses.networking.internal.knative.dev',
                          'ingresses.networking.internal.knative.dev']:
                 for obj in watt_k8s.get(key) or []:
+                    self.logger.debug(f"Handling CRD {key}...")
                     self.handle_k8s_crd(obj)
 
             watt_consul = watt_dict.get('Consul', {})
@@ -197,6 +199,7 @@ class ResourceFetcher:
             return
 
         handler_name = f'handle_k8s_{kind.lower()}'
+        self.logger.debug(f"looking for handler {handler_name}")
         handler = getattr(self, handler_name, None)
 
         if not handler:
@@ -344,6 +347,46 @@ class ResourceFetcher:
 
     def sorted(self, key=lambda x: x.rkey):  # returns an iterator, probably
         return sorted(self.elements, key=key)
+
+    def handle_k8s_ingress(self, k8s_object: AnyDict) -> HandlerResult:
+        metadata = k8s_object.get('metadata', None)
+        resource_name = metadata.get('name') if metadata else None
+        resource_namespace = metadata.get('namespace', 'default') if metadata else None
+
+        spec = k8s_object.get('spec', None)
+
+        skip = False
+
+        if not metadata:
+            self.logger.debug("ignoring K8s Ingress with no metadata")
+            skip = True
+
+        if not resource_name:
+            self.logger.debug("ignoring K8s Ingress with no name")
+            skip = True
+
+        if not spec:
+            self.logger.debug("ignoring K8s Ingress with no spec")
+            skip = True
+
+        # we don't need an ingress without ingress class set to ambassador
+        annotations = metadata.get('annotations', {})
+        if annotations.get('kubernetes.io/ingress.class', '').lower() != 'ambassador':
+            self.logger.info(f'ignoring Ingress {resource_name} without annotation - kubernetes.io/ingress.class: "ambassador"')
+            skip = True
+
+        if skip:
+            return None
+
+        resource_identifier = f'{resource_name}.{resource_namespace}'
+        ingress = {
+            'kind': 'Ingress',
+            'name': resource_name,
+            'namespace': resource_namespace,
+            'spec': spec
+        }
+
+        return resource_identifier, [ingress]
 
     def handle_k8s_endpoints(self, k8s_object: AnyDict) -> HandlerResult:
         # Don't include Endpoints unless endpoint routing is enabled.
