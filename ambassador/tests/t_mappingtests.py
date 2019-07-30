@@ -129,6 +129,40 @@ spec:
                 assert r.backend.request.headers['x-envoy-original-path'][0] == f'/{self.name}/'
 
 
+class HostHeaderMappingIngress(MappingTest):
+
+    parent: AmbassadorTest
+
+    @classmethod
+    def variants(cls):
+        for st in variants(ServiceType):
+            yield cls(st, name="{self.target.name}")
+
+    def manifests(self) -> str:
+        return f"""
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    kubernetes.io/ingress.class: ambassador
+  name: {self.name.lower()}
+spec:
+  rules:
+  - host: inspector.external
+    http:
+      paths:
+      - backend:
+          serviceName: {self.target.path.k8s}
+          servicePort: 80
+        path: /{self.name}/
+"""
+
+    def queries(self):
+        yield Query(self.parent.url(self.name + "/"), expected=404)
+        yield Query(self.parent.url(self.name + "/"), headers={"Host": "inspector.internal"}, expected=404)
+        yield Query(self.parent.url(self.name + "/"), headers={"Host": "inspector.external"})
+
+
 class HostHeaderMapping(MappingTest):
 
     parent: AmbassadorTest
