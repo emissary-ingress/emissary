@@ -134,6 +134,10 @@ config:
 #   methods: POST, GET, OPTIONS
 #   ...
 #   ...
+
+# Set the default upstream-connection idle timeout. If not set (the default), upstream
+# connections will never be closed due to idling.
+# cluster_idle_timeout_ms: 30000
 ```
 
 ### Overriding Default Ports
@@ -180,6 +184,10 @@ If you need more flexible and configurable options, Ambassador Pro supports a [p
 ### Linkerd Interoperability (`add_linkerd_headers`)
 
 When using Linkerd, requests going to an upstream service need to include the `l5d-dst-override` header to ensure that Linkerd will route them correctly. Setting `add_linkerd_headers` does this automatically; see the [Mapping](/reference/mappings) documentation for more details.
+
+### Upstream Idle Timeout (`cluster_idle_timeout_ms`)
+
+If set, `cluster_idle_timeout_ms` specifies the timeout (in milliseconds) after which an idle connection upstream will closed. If no `cluster_idle_timeout_ms` is specified, upstream connections will never be closed due to idling.
 
 ### gRPC HTTP/1.1 bridge (`enable_grpc_http11_bridge`)
 
