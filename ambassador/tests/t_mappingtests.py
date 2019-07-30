@@ -89,6 +89,46 @@ service: http://{self.target.path.fqdn}
                 assert r.backend.name == self.target.path.k8s, (r.backend.name, self.target.path.k8s)
                 assert r.backend.request.headers['x-envoy-original-path'][0] == f'/{self.name}/'
 
+
+class SimpleMappingIngress(MappingTest):
+
+    parent: AmbassadorTest
+    target: ServiceType
+
+    @classmethod
+    def variants(cls):
+        for st in variants(ServiceType):
+            yield cls(st, name="{self.target.name}")
+
+    def manifests(self) -> str:
+        return f"""
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    kubernetes.io/ingress.class: ambassador
+  name: {self.name.lower()}
+spec:
+  rules:
+  - http:
+      paths:
+      - backend:
+          serviceName: {self.target.path.k8s}
+          servicePort: 80
+        path: /{self.name}/
+"""
+
+    def queries(self):
+        yield Query(self.parent.url(self.name + "/"))
+        yield Query(self.parent.url(f'need-normalization/../{self.name}/'))
+
+    def check(self):
+        for r in self.results:
+            if r.backend:
+                assert r.backend.name == self.target.path.k8s, (r.backend.name, self.target.path.k8s)
+                assert r.backend.request.headers['x-envoy-original-path'][0] == f'/{self.name}/'
+
+
 class HostHeaderMapping(MappingTest):
 
     parent: AmbassadorTest

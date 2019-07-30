@@ -393,6 +393,9 @@ rules:
 - apiGroups: [ "networking.internal.knative.dev" ]
   resources: [ "ingresses/status", "clusteringresses/status" ]
   verbs: ["update"]
+- apiGroups: [ "extensions" ]
+  resources: [ "ingresses" ]
+  verbs: ["get", "list", "watch"]
 ---
 apiVersion: v1
 kind: ServiceAccount
@@ -429,6 +432,9 @@ rules:
   verbs: ["get", "list", "watch"]
 - apiGroups: [ "getambassador.io" ]
   resources: [ "*" ]
+  verbs: ["get", "list", "watch"]
+- apiGroups: [ "extensions" ]
+  resources: [ "ingresses" ]
   verbs: ["get", "list", "watch"]
 ---
 apiVersion: v1
