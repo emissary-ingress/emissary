@@ -15,7 +15,6 @@ VERSION.py
 cluster.yaml
 watt
 kat/kat/client
-*.docker
 
 *.egg-info
 build
