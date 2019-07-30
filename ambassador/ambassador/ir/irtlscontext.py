@@ -140,7 +140,7 @@ class IRTLSContext(IRResource):
             is_valid = True
 
         # If we don't have secret info, it's worth logging.
-        if not self.secret_info and self.hosts:
+        if not self.secret_info and not self.hosts is None:
             self.logger.info("TLSContext %s has no certificate information at all?" % self.name)
 
         self.ir.logger.debug("resolve_secrets working on: %s" % self.as_json())
@@ -230,8 +230,8 @@ class IRTLSContext(IRResource):
         # OK. Check paths.
         errors = 0
 
-        if self.hosts:
-            # self.ir.logger.debug("resolve_secrets before path checks: %s" % self.as_json())
+        # self.ir.logger.debug("resolve_secrets before path checks: %s" % self.as_json())
+        if not self.hosts is None:
             for key in [ 'cert_chain_file', 'private_key_file', 'cacert_chain_file' ]:
                 path = self.secret_info.get(key, None)
 
@@ -243,7 +243,7 @@ class IRTLSContext(IRResource):
                 elif key != 'cacert_chain_file':
                     self.post_error("TLSContext %s is missing %s" % (self.name, key))
                     errors += 1
-    
+
         if errors > 0:
             return False
 

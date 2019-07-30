@@ -365,18 +365,14 @@ config:
   server:
     enabled: True
     secret: test-certs-secret-invalid
-    hosts: ["*"]
   missing-secret-key:
-    hosts: ["*"]
     cert_chain_file: /nonesuch
   bad-path-info:
-    hosts: ["*"]
     cert_chain_file: /nonesuch 
     private_key_file: /nonesuch
   validation-without-termination:  
     enabled: True
     secret: test-certs-secret-invalid
-    hosts: ["*"]
     ca_secret: ambassador-certs
 """)
 
