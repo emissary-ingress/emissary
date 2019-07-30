@@ -34,7 +34,7 @@ func licenseEnforce() {
 
 func main() {
 	licenseEnforce()
-	var diagdURL, ambassadorURL, publicURL, pollEverySecsStr, sharedSeecretPath string
+	var diagdURL, ambassadorURL, publicURL, pollEverySecsStr, sharedSeecretPath, contentURL string
 	var pollEverySecs time.Duration = 60 * time.Second
 	var set bool
 	diagdURL, set = os.LookupEnv("DIAGD_URL")
@@ -69,6 +69,13 @@ func main() {
 			log.Print(err)
 		}
 	}
+	contentURL, set = os.LookupEnv("CODE_CONTENT_URL")
+	if !set {
+		// We need whoever is installing the Dev Portal to supply this,
+		// but since it ends up in documentation only it's OK to have a
+		// placeholder.
+		publicURL = "dev-server-content-root"
+	}
 	server.Main(Version, diagdURL, ambassadorURL, publicURL, pollEverySecs,
-		sharedSeecretPath, "dev-server-content-root")
+		sharedSeecretPath, contentURL)
 }

@@ -4,30 +4,18 @@ import (
 	"fmt"
 	"html/template"
 	"io"
-	"io/ioutil"
 	"net/url"
-	"path/filepath"
-	"strings"
 	"time"
 
 	log "github.com/sirupsen/logrus"
-	"gopkg.in/src-d/go-billy.v4"
-	"gopkg.in/src-d/go-billy.v4/osfs"
 )
 
-type Globbable interface {
-	billy.Filesystem
-	Glob(dir, pattern string) ([]string, error)
-	ReadFile(path string) (string, error)
-	ReadFileBytes(path string) ([]byte, error)
-}
-
-type BetterFS struct {
-	billy.Filesystem
+type GlobbableView interface {
+	Fs() Globbable
 }
 
 type Content struct {
-	fs      Globbable
+	store   GlobbableView
 	funcMap template.FuncMap
 	md      MarkdownRenderer
 }
@@ -36,7 +24,7 @@ type ContentVars interface {
 	CurrentPage() (page string)
 }
 
-func NewContent(contentURL *url.URL) *Content {
+func NewContent(contentURL *url.URL) (content *Content, err error) {
 	funcMap := template.FuncMap{
 		// The name "inc" is what the function will be called in the template text.
 		"isEven": func(i int) bool {
@@ -51,14 +39,27 @@ func NewContent(contentURL *url.URL) *Content {
 	renderer := &BlackfridayRenderer{}
 
 	if contentURL.Scheme == "" || contentURL.Scheme == "file" {
-		return &Content{
-			fs:      &BetterFS{osfs.New(contentURL.Path)},
+		content = &Content{
+			store:   NewLocalDir(contentURL.Path),
 			funcMap: funcMap,
 			md:      renderer,
 		}
 	} else {
-		panic("TODO")
+		opts := CheckoutOptions{
+			RepoURL: contentURL,
+		}
+		var checkout *Checkout
+		checkout, err = NewRepoCheckout(opts)
+		if err != nil {
+			return
+		}
+		content = &Content{
+			store:   checkout,
+			funcMap: funcMap,
+			md:      renderer,
+		}
 	}
+	return
 }
 
 func (c *Content) Get(vars ContentVars) (tmpl *template.Template, err error) {
@@ -114,13 +115,13 @@ func (c *Content) loadDirHTML(tmpl *template.Template, dir string) (templates te
 		"dir":       dir,
 	})
 	logger.Info("Scanning")
-	files, err := c.fs.Glob(dir, "*.gohtml")
+	files, err := c.store.Fs().Glob(dir, "*.gohtml")
 	if err != nil {
 		return
 	}
 	for _, fn := range files {
 		name := JustName(fn)
-		err = c.loadTemplateHTML(tmpl, name, c.fs.Join(dir, fn))
+		err = c.loadTemplateHTML(tmpl, name, c.store.Fs().Join(dir, fn))
 		if err != nil {
 			return
 		}
@@ -135,13 +136,13 @@ func (c *Content) loadDirMD(tmpl *template.Template, dir string, templatePrefix 
 		"dir":       dir,
 	})
 	logger.Info("Scanning")
-	files, err := c.fs.Glob(dir, "*.gomd")
+	files, err := c.store.Fs().Glob(dir, "*.gomd")
 	if err != nil {
 		return
 	}
 	for _, fn := range files {
 		name := JustName(fn)
-		err = c.loadTemplateMD(tmpl, templatePrefix+name, c.fs.Join(dir, fn))
+		err = c.loadTemplateMD(tmpl, templatePrefix+name, c.store.Fs().Join(dir, fn))
 		if err != nil {
 			return
 		}
@@ -156,7 +157,7 @@ func (c *Content) loadTemplateHTML(tmpl *template.Template, name, fn string) (er
 		"template-name": name,
 		"file":          fn,
 	})
-	data, err := c.fs.ReadFile(fn)
+	data, err := c.store.Fs().ReadFile(fn)
 	if err != nil {
 		logger.Errorln("reading file", err)
 		return
@@ -170,7 +171,7 @@ func (c *Content) loadTemplateMD(tmpl *template.Template, name, fn string) (err 
 		"template-name": name,
 		"file":          fn,
 	})
-	src, err := c.fs.ReadFileBytes(fn)
+	src, err := c.store.Fs().ReadFileBytes(fn)
 	if err != nil {
 		logger.Errorln("reading file", err)
 		return
@@ -179,7 +180,7 @@ func (c *Content) loadTemplateMD(tmpl *template.Template, name, fn string) (err 
 	data := c.md.Render(src)
 
 	debug := fn + ".debughtml"
-	fd, err2 := c.fs.Create(debug)
+	fd, err2 := c.store.Fs().Create(debug)
 	if err2 == nil {
 		defer fd.Close()
 		fd.Write([]byte(data))
@@ -187,7 +188,7 @@ func (c *Content) loadTemplateMD(tmpl *template.Template, name, fn string) (err 
 	err = c.parseTemplate(tmpl, name, debug, data)
 	if err != nil {
 		debug := fn + ".debugerr"
-		fd, err2 := c.fs.Create(debug)
+		fd, err2 := c.store.Fs().Create(debug)
 		if err2 == nil {
 			defer fd.Close()
 			fd.Write([]byte(err.Error()))
@@ -235,7 +236,7 @@ func (c *Content) GetStatic(fn string) (resource *StaticResource, err error) {
 		"subsystem": "content",
 		"file":      fn,
 	})
-	stat, err := c.fs.Stat(fn)
+	stat, err := c.store.Fs().Stat(fn)
 	if err != nil {
 		logger.Info(err)
 		return
@@ -244,7 +245,7 @@ func (c *Content) GetStatic(fn string) (resource *StaticResource, err error) {
 		logger.Info("will not serve directory")
 		return nil, fmt.Errorf("Will not serve directory %s", fn)
 	}
-	fd, err := c.fs.Open(fn)
+	fd, err := c.store.Fs().Open(fn)
 	if err != nil {
 		logger.Info(err)
 		return
@@ -256,57 +257,4 @@ func (c *Content) GetStatic(fn string) (resource *StaticResource, err error) {
 	}
 	logger.Info("Opened")
 	return
-}
-
-func (bfs *BetterFS) ReadFileBytes(fn string) (bytes []byte, err error) {
-	logger := log.WithFields(log.Fields{
-		"subsystem": "fs",
-		"file":      fn,
-	})
-	fd, err := bfs.Open(fn)
-	if err != nil {
-		logger.Error("opening")
-		return
-	}
-	defer fd.Close()
-	bytes, err = ioutil.ReadAll(fd)
-	if err != nil {
-		logger.Error("reading")
-		return
-	}
-	return
-}
-
-func (bfs *BetterFS) ReadFile(fn string) (data string, err error) {
-	bytes, err := bfs.ReadFileBytes(fn)
-	if err != nil {
-		return
-	}
-	data = string(bytes)
-	return
-}
-
-func (bfs *BetterFS) Glob(dir, pattern string) (names []string, err error) {
-	files, err := bfs.ReadDir(dir)
-	if err != nil {
-		return
-	}
-	for _, f := range files {
-		if f.IsDir() {
-			continue
-		}
-		var matches bool
-		matches, err = filepath.Match(pattern, f.Name())
-		if err != nil {
-			return
-		}
-		if matches {
-			names = append(names, f.Name())
-		}
-	}
-	return
-}
-
-func JustName(fn string) string {
-	return strings.TrimSuffix(fn, filepath.Ext(fn))
 }

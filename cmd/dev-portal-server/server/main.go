@@ -14,7 +14,10 @@ func Main(
 	if err != nil {
 		panic(err)
 	}
-	content := content.NewContent(url)
+	content, err := content.NewContent(url)
+	if err != nil {
+		panic(err)
+	}
 	s := NewServer(content)
 
 	knownServices := s.knownServices()
