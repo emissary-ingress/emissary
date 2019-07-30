@@ -153,7 +153,7 @@ The example above will accept a TLS connection with SNI on port 2222.
 
 If the client requests SNI host `my-host-1`, the traffic will be relayed over a TLS connection to `upstream-host-1`, port 9999. No client certificate will be offered for this connection.
 
-If the client requests SNI host `my-host-2`, the decrypted traffic will be relayed to `upstream-host-1`, port 9999. The client certificate from `origination-context` will be offered for this connection.
+If the client requests SNI host `my-host-2`, the decrypted traffic will be relayed to `upstream-host-2`, port 9999. The client certificate from `origination-context` will be offered for this connection.
 
 Any other SNI host will cause the TLS handshake to fail.
 
