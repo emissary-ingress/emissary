@@ -230,7 +230,7 @@ will then let us view the diagnostics at http://localhost:8877/ambassador/v0/dia
 
 We've just done a quick tour of some of the core features of Ambassador: diagnostics, routing, configuration, and authentication.
 
-- Join us on [Slack](https://join.slack.com/t/datawire-oss/shared_invite/enQtMzcwMDEwMTc5ODQ3LTE1NmIzZTFmZWE0OTQ1NDc2MzE2NTkzMDAzZWM0MDIxZTVjOGIxYmRjZjY3N2M2Mjk4NGI5Y2Q4NGY4Njc1Yjg);
+- Join us on [Slack](https://d6e.co/slack);
 - Learn how to [add authentication](/user-guide/auth-tutorial) to existing services; or
 - Learn how to [add rate limiting](/user-guide/rate-limiting-tutorial) to existing services; or
 - Learn how to [add tracing](/user-guide/tracing-tutorial); or

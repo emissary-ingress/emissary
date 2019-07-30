@@ -32,6 +32,7 @@ retry_policy:
   retry_on: "5xx"
   num_retries: 2
 add_linkerd_headers: true
+cluster_idle_timeout_ms: 30000
 ```
 
 - `proto` (optional) specifies the protocol to use when communicating with the auth service. Valid options are `http` (default) or `grpc`.
@@ -67,6 +68,8 @@ add_linkerd_headers: true
 - `failure_mode_allow` (optional) if requests should be allowed on auth service failure. Defaults to false
 
 - `add_linkerd_headers` (optional) when true, adds `l5d-dst-override` to the authorization request and set the hostname of the authorization server as the header value.
+
+- `cluster_idle_timeout_ms` (optional) sets the timeout, in milliseconds, before an idle connection upstream is closed. The default is provided by the `ambassador` `Module`; if no `cluster_idle_timeout_ms` is specified, upstream connections will never be closed due to idling.
 
 ### v0 (Ambassador versions prior to 0.50.0)
 

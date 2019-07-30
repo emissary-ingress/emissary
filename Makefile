@@ -128,29 +128,21 @@ PULL_BRANCH ?= master
 
 NETLIFY_SITE=datawire-ambassador
 
+# IF YOU MESS WITH ANY OF THESE VALUES, YOU MUST UPDATE THE VERSION NUMBERS
+# BELOW AND THEN RUN make docker-update-base
+ENVOY_REPO ?= git://github.com/datawire/envoy.git
+ENVOY_COMMIT ?= 8f57f7d765939552a999721e8dac9b5a9a5cbb8b
+ENVOY_COMPILATION_MODE ?= dbg
 AMBASSADOR_DOCKER_TAG ?= $(GIT_VERSION)
 AMBASSADOR_DOCKER_IMAGE ?= $(AMBASSADOR_DOCKER_REPO):$(AMBASSADOR_DOCKER_TAG)
 AMBASSADOR_EXTERNAL_DOCKER_IMAGE ?= $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(AMBASSADOR_DOCKER_TAG)
 
-# IF YOU MESS WITH ANY OF THESE VALUES, YOU MUST RUN `make docker-update-base`.
-  ENVOY_REPO ?= git://github.com/datawire/envoy.git
-  ENVOY_COMMIT ?= 8f57f7d765939552a999721e8dac9b5a9a5cbb8b
-  ENVOY_COMPILATION_MODE ?= dbg
-
-  ENVOY_FILE ?= envoy-bin/envoy-static-stripped
-
-  # Increment BASE_ENVOY_RELVER on changes to `Dockerfile.base-envoy`, ENVOY_FILE, or Envoy recipes
-  BASE_ENVOY_RELVER ?= 2
-  # Increment BASE_GO_RELVER on changes to `Dockerfile.base-go`
-  BASE_GO_RELVER    ?= 1
-  # Increment BASE_PY_RELVER on changes to `Dockerfile.base-py`, `releng/*`, `multi/requirements.txt`, `ambassador/requirements.txt`
-  BASE_PY_RELVER    ?= 1
-
-  BASE_DOCKER_REPO ?= quay.io/datawire/ambassador-base
-  BASE_ENVOY_IMAGE ?= $(BASE_DOCKER_REPO):envoy-$(BASE_ENVOY_RELVER).$(ENVOY_COMMIT).$(ENVOY_COMPILATION_MODE)
-  BASE_GO_IMAGE    ?= $(BASE_DOCKER_REPO):go-$(BASE_ENVOY_RELVER).$(ENVOY_COMMIT).$(ENVOY_COMPILATION_MODE).$(BASE_GO_RELVER)
-  BASE_PY_IMAGE    ?= $(BASE_DOCKER_REPO):py-$(BASE_ENVOY_RELVER).$(ENVOY_COMMIT).$(ENVOY_COMPILATION_MODE).$(BASE_PY_RELVER)
-# END LIST OF VARIABLES REQUIRING `make docker-update-base`.
+BASE_DOCKER_REPO ?= quay.io/datawire/ambassador-base
+# UPDATE THESE VERSION NUMBERS IF YOU UPDATE ANY OF THE VALUES ABOVE, THEN
+# RUN make docker-update-base.
+BASE_ENVOY_IMAGE ?= $(BASE_DOCKER_REPO):envoy-13
+BASE_PY_IMAGE    ?= $(BASE_DOCKER_REPO):go-14
+BASE_GO_IMAGE    ?= $(BASE_DOCKER_REPO):ambassador-14
 
 # Default to _NOT_ using Kubernaut. At Datawire, we can set this to true,
 # but outside, it works much better to assume that user has set up something
@@ -188,7 +180,6 @@ clean: clean-test
 	rm -rf app.json
 	rm -rf venv/bin/ambassador
 	rm -rf ambassador/ambassador/VERSION.py*
-	rm -f *.docker
 	rm -rf ambassador/build ambassador/dist ambassador/ambassador.egg-info ambassador/__pycache__
 	find . \( -name .coverage -o -name .cache -o -name __pycache__ \) -print0 | xargs -0 rm -rf
 	find . \( -name *.log \) -print0 | xargs -0 rm -rf
@@ -350,35 +341,22 @@ envoy-shell: envoy-build-image.txt
 	$(ENVOY_SYNC_DOCKER_TO_HOST)
 .PHONY: envoy-shell
 
-base-envoy.docker: Dockerfile.base-envoy $(var.)BASE_ENVOY_IMAGE
+docker-base-images:
 	@if [ -n "$(AMBASSADOR_DEV)" ]; then echo "Do not run this from a dev shell" >&2; exit 1; fi
 	@if ! docker run --rm --entrypoint=true $(BASE_ENVOY_IMAGE); then \
 		echo "Building Envoy binary..." && \
-		$(MAKE) $(ENVOY_FILE) && \
+		$(MAKE) envoy-bin/envoy-static-stripped && \
 		echo "Building Envoy Docker image..." && \
-		docker build --build-arg ENVOY_FILE=$(ENVOY_FILE) $(DOCKER_OPTS) -t $(BASE_ENVOY_IMAGE) -f $< .; \
+		docker build $(DOCKER_OPTS) -t $(BASE_ENVOY_IMAGE) -f Dockerfile.base-envoy .; \
 	fi
-	@docker image inspect $(BASE_ENVOY_IMAGE) --format='{{.Id}}' | $(WRITE_IFCHANGED) $@
-
-base-py.docker: Dockerfile.base-py base-envoy.docker $(var.)BASE_PY_IMAGE
-	@if [ -n "$(AMBASSADOR_DEV)" ]; then echo "Do not run this from a dev shell" >&2; exit 1; fi
 	@if ! docker run --rm --entrypoint=true $(BASE_PY_IMAGE); then \
 		echo "Building $(BASE_PY_IMAGE)" && \
-		docker build --build-arg BASE_ENVOY_IMAGE=$(BASE_ENVOY_IMAGE) $(DOCKER_OPTS) -t $(BASE_PY_IMAGE) -f $< .; \
+		docker build --build-arg BASE_ENVOY_IMAGE=$(BASE_ENVOY_IMAGE) $(DOCKER_OPTS) -t $(BASE_PY_IMAGE) -f Dockerfile.base-py .; \
 	fi
-	@docker image inspect $(BASE_PY_IMAGE) --format='{{.Id}}' | $(WRITE_IFCHANGED) $@
-
-base-go.docker: Dockerfile.base-go base-envoy.docker $(var.)BASE_GO_IMAGE
-	@if [ -n "$(AMBASSADOR_DEV)" ]; then echo "Do not run this from a dev shell" >&2; exit 1; fi
 	@if ! docker run --rm --entrypoint=true $(BASE_GO_IMAGE); then \
 		echo "Building $(BASE_GO_IMAGE)" && \
-		docker build --build-arg BASE_ENVOY_IMAGE=$(BASE_ENVOY_IMAGE) $(DOCKER_OPTS) -t $(BASE_GO_IMAGE) -f $< .; \
+		docker build --build-arg BASE_ENVOY_IMAGE=$(BASE_ENVOY_IMAGE) $(DOCKER_OPTS) -t $(BASE_GO_IMAGE) -f Dockerfile.base-go .; \
 	fi
-	@docker image inspect $(BASE_GO_IMAGE) --format='{{.Id}}' | $(WRITE_IFCHANGED) $@
-
-docker-base-images:
-	@if [ -n "$(AMBASSADOR_DEV)" ]; then echo "Do not run this from a dev shell" >&2; exit 1; fi
-	$(MAKE) base-envoy.docker base-go.docker base-py.docker
 	@echo "RESTART ANY DEV SHELLS to make sure they use your new images."
 
 docker-push-base-images:
@@ -392,10 +370,8 @@ docker-update-base:
 	$(MAKE) docker-base-images go/apis/envoy
 	$(MAKE) docker-push-base-images
 
-ambassador-docker-image: ambassador.docker
-ambassador.docker: Dockerfile base-go.docker base-py.docker $(WATT) ambassador/ambassador/VERSION.py FORCE
+ambassador-docker-image: version $(WATT)
 	docker build --build-arg BASE_GO_IMAGE=$(BASE_GO_IMAGE) --build-arg BASE_PY_IMAGE=$(BASE_PY_IMAGE) $(DOCKER_OPTS) -t $(AMBASSADOR_DOCKER_IMAGE) .
-	@docker image inspect $(AMBASSADOR_DOCKER_IMAGE) --format='{{.Id}}' | $(WRITE_IFCHANGED) $@
 
 docker-login:
 ifeq ($(DOCKER_LOGIN_FAKE), true)
@@ -444,7 +420,7 @@ else
 endif
 
 # TODO: validate version is conformant to some set of rules might be a good idea to add here
-ambassador/ambassador/VERSION.py: FORCE
+ambassador/ambassador/VERSION.py:
 	$(call check_defined, VERSION, VERSION is not set)
 	$(call check_defined, GIT_BRANCH, GIT_BRANCH is not set)
 	$(call check_defined, GIT_COMMIT, GIT_COMMIT is not set)
@@ -456,7 +432,7 @@ ambassador/ambassador/VERSION.py: FORCE
 		-e 's!{{GITDIRTY}}!$(GIT_DIRTY)!g' \
 		-e 's!{{GITCOMMIT}}!$(GIT_COMMIT)!g' \
 		-e 's!{{GITDESCRIPTION}}!$(GIT_DESCRIPTION)!g' \
-		< VERSION-template.py | $(WRITE_IFCHANGED) $@
+		< VERSION-template.py > ambassador/ambassador/VERSION.py
 
 version: ambassador/ambassador/VERSION.py
 

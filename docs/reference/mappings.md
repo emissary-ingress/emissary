@@ -22,9 +22,10 @@ Ambassador supports a number of attributes to configure and customize mappings.
 
 | Attribute                 | Description               |
 | :------------------------ | :------------------------ |
-| [`add_linkerd_headers`] | if true, automatically adds `l5d-dst-override` headers for Linkerd interoperability (the default is set by the [Ambassador module](/reference/modules)) |
+| `add_linkerd_headers` | if true, automatically adds `l5d-dst-override` headers for Linkerd interoperability (the default is set by the [Ambassador module](/reference/modules)) |
 | [`add_request_headers`](/reference/add_request_headers) | specifies a dictionary of other HTTP headers that should be added to each request when talking to the service |
 | [`add_response_headers`](/reference/add_response_headers) | specifies a dictionary of other HTTP headers that should be added to each response when returning response to client |
+| [`cluster_idle_timeout_ms`] | the timeout, in milliseconds, before an idle connection upstream is closed (may be set on a `Mapping`, `AuthService`, or in the `ambassador` `Module`) | 
 | [`cors`](/reference/cors)           | enables Cross-Origin Resource Sharing (CORS) setting on a mapping |
 | [`circuit_breakers`](/reference/circuit-breakers) | configures circuit breaking on a mapping
 | `enable_ipv4` | if true, enables IPv4 DNS lookups for this mapping's service (the default is set by the [Ambassador module](/reference/modules)) |

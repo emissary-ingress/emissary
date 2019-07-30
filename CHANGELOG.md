@@ -94,6 +94,15 @@ Format:
 --->
 
 <!--- CueAddReleaseNotes --->
+## [0.74.0] July 30, 2019
+[0.74.0]: https://github.com/datawire/ambassador/compare/0.73.0...0.74.0
+
+- Bugfix: Make sure that the pod dies if Envoy dies
+- Bugfix: Correctly allow setting `timeout_ms` for `AuthService` (thanks, [John Esmet!](https://www.github.com/esmet)!)
+- Feature: Permit configuring `cluster_idle_timeout_ms` for upstream services (thanks, [John Esmet!](https://www.github.com/esmet)!) ([#1542])
+
+[#1542]: https://github.com/datawire/ambassador/issues/1542
+
 ## [0.73.0] July 11, 2019
 [0.73.0]: https://github.com/datawire/ambassador/compare/0.72.0...0.73.0
 
