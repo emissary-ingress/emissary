@@ -446,20 +446,11 @@ GOARCH=$(shell go env GOARCH)
 
 $(TELEPROXY): $(var.)TELEPROXY_VERSION $(var.)GOOS $(var.)GOARCH | venv/bin/activate
 	curl -o $(TELEPROXY) https://s3.amazonaws.com/datawire-static-files/teleproxy/$(TELEPROXY_VERSION)/$(GOOS)/$(GOARCH)/teleproxy
-	sudo chown root $(TELEPROXY)
-ifeq ($(shell uname -s), Darwin)
-	sudo chmod go-w,a+x $(TELEPROXY)	# no SUID here
-else
-	sudo chmod go-w,a+sx $(TELEPROXY)	# SUID here
-endif
+	sudo chown 0:0 $(TELEPROXY)			# setting group 0 is very important for SUID on MacOS!	
+	sudo chmod go-w,a+sx $(TELEPROXY)
 
 kill_teleproxy = curl -s --connect-timeout 5 127.254.254.254/api/shutdown || true
-
-ifeq ($(shell uname -s), Darwin)
-run_teleproxy = sudo -p "Password (for teleproxy sudo): " true; sudo $(TELEPROXY)
-else
 run_teleproxy = $(TELEPROXY)
-endif
 
 # This is for the docker image, so we don't use the current arch, we hardcode to linux/amd64
 $(WATT): $(var.)WATT_VERSION
