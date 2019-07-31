@@ -91,4 +91,5 @@ RUN chmod 755 entrypoint.sh grab-snapshots.py kick_ads.sh kubewatch.py post_upda
 COPY watt .
 RUN chmod 755 watt
 
+RUN apk --no-cache add libcap && setcap 'cap_net_bind_service=+ep' /usr/local/bin/envoy
 ENTRYPOINT [ "./entrypoint.sh" ]
