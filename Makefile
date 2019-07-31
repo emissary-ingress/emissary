@@ -350,7 +350,7 @@ envoy-shell: envoy-build-image.txt
 	$(ENVOY_SYNC_DOCKER_TO_HOST)
 .PHONY: envoy-shell
 
-base-envoy.docker: Dockerfile.base-envoy $(var.)BASE_ENVOY_IMAGE
+base-envoy.docker: Dockerfile.base-envoy $(var.)BASE_ENVOY_IMAGE $(WRITE_IFCHANGED)
 	@if [ -n "$(AMBASSADOR_DEV)" ]; then echo "Do not run this from a dev shell" >&2; exit 1; fi
 	@if ! docker run --rm --entrypoint=true $(BASE_ENVOY_IMAGE); then \
 		echo "Building Envoy binary..." && \
@@ -360,7 +360,7 @@ base-envoy.docker: Dockerfile.base-envoy $(var.)BASE_ENVOY_IMAGE
 	fi
 	@docker image inspect $(BASE_ENVOY_IMAGE) --format='{{.Id}}' | $(WRITE_IFCHANGED) $@
 
-base-py.docker: Dockerfile.base-py base-envoy.docker $(var.)BASE_PY_IMAGE
+base-py.docker: Dockerfile.base-py base-envoy.docker $(var.)BASE_PY_IMAGE $(WRITE_IFCHANGED)
 	@if [ -n "$(AMBASSADOR_DEV)" ]; then echo "Do not run this from a dev shell" >&2; exit 1; fi
 	@if ! docker run --rm --entrypoint=true $(BASE_PY_IMAGE); then \
 		echo "Building $(BASE_PY_IMAGE)" && \
@@ -368,7 +368,7 @@ base-py.docker: Dockerfile.base-py base-envoy.docker $(var.)BASE_PY_IMAGE
 	fi
 	@docker image inspect $(BASE_PY_IMAGE) --format='{{.Id}}' | $(WRITE_IFCHANGED) $@
 
-base-go.docker: Dockerfile.base-go base-envoy.docker $(var.)BASE_GO_IMAGE
+base-go.docker: Dockerfile.base-go base-envoy.docker $(var.)BASE_GO_IMAGE $(WRITE_IFCHANGED)
 	@if [ -n "$(AMBASSADOR_DEV)" ]; then echo "Do not run this from a dev shell" >&2; exit 1; fi
 	@if ! docker run --rm --entrypoint=true $(BASE_GO_IMAGE); then \
 		echo "Building $(BASE_GO_IMAGE)" && \
@@ -393,7 +393,7 @@ docker-update-base:
 	$(MAKE) docker-push-base-images
 
 ambassador-docker-image: ambassador.docker
-ambassador.docker: Dockerfile base-go.docker base-py.docker $(WATT) ambassador/ambassador/VERSION.py FORCE
+ambassador.docker: Dockerfile base-go.docker base-py.docker $(WATT) $(WRITE_IFCHANGED) ambassador/ambassador/VERSION.py FORCE
 	docker build --build-arg BASE_GO_IMAGE=$(BASE_GO_IMAGE) --build-arg BASE_PY_IMAGE=$(BASE_PY_IMAGE) $(DOCKER_OPTS) -t $(AMBASSADOR_DOCKER_IMAGE) .
 	@docker image inspect $(AMBASSADOR_DOCKER_IMAGE) --format='{{.Id}}' | $(WRITE_IFCHANGED) $@
 
@@ -444,7 +444,7 @@ else
 endif
 
 # TODO: validate version is conformant to some set of rules might be a good idea to add here
-ambassador/ambassador/VERSION.py: FORCE
+ambassador/ambassador/VERSION.py: FORCE $(WRITE_IFCHANGED)
 	$(call check_defined, VERSION, VERSION is not set)
 	$(call check_defined, GIT_BRANCH, GIT_BRANCH is not set)
 	$(call check_defined, GIT_COMMIT, GIT_COMMIT is not set)
