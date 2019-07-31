@@ -123,6 +123,8 @@ jobs:
 
   machine-build:
     machine:
+      # If you bump this, be sure to bump the pyenv key in
+      # "restore_cache" and "save_cache" below.
       image: "ubuntu-1604:201903-01"
     working_directory: ~/repo
     steps:
@@ -132,7 +134,7 @@ jobs:
       - kubectl-install
       - node-install
       - restore_cache:
-          key: "pyenv-201711-01-3.6.3"
+          key: "pyenv-201903-01-3.6.3"
       - run:
           name: "Install Python 3.6"
           command: |
@@ -141,7 +143,7 @@ jobs:
             pyenv global 2.7.12 3.6.3
             pyenv versions
       - save_cache:
-          key: "pyenv-201711-01-3.6.3"
+          key: "pyenv-201903-01-3.6.3"
           paths:
             - "/opt/circleci/.pyenv"
       - main
