@@ -35,7 +35,7 @@ type jwkSlice struct {
 }
 
 // JWKS - JWK Set
-type JWKS map[string]*JWK
+type JWKS map[string]JWK
 
 func FetchJWKS(client *http.Client, jwksURI string) (JWKS, error) {
 	resp, err := client.Get(jwksURI)
@@ -56,14 +56,14 @@ func FetchJWKS(client *http.Client, jwksURI string) (JWKS, error) {
 
 	ret := make(JWKS, len(jwks.Keys))
 	for _, k := range jwks.Keys {
-		ret[k.Kid] = &k
+		ret[k.Kid] = k
 	}
 	return ret, nil
 }
 
 func (jwks JWKS) GetKey(kid string) (*rsa.PublicKey, error) {
-	jwk := jwks[kid]
-	if jwk == nil {
+	jwk, jwkOK := jwks[kid]
+	if !jwkOK {
 		return nil, errors.Errorf("KeyID=%q: JWK not found", kid)
 	}
 	// NOTE, plombardi@datawire.io: Multiple x5c entries?
@@ -89,7 +89,7 @@ func (jwks JWKS) GetKey(kid string) (*rsa.PublicKey, error) {
 	}
 }
 
-func assemblePubKeyFromNandE(jwk *JWK) (rsa.PublicKey, error) {
+func assemblePubKeyFromNandE(jwk JWK) (rsa.PublicKey, error) {
 	// Extract n and e values from the jwk
 	nStr := jwk.N
 	eStr := jwk.E
