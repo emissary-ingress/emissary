@@ -226,7 +226,9 @@ launch() {
 
     pids+=("${pid}:${cmd}")
 
-    return $pid
+    # Return the PID to the caller through LAUNCH_PID.
+    LAUNCH_PID=${pid}
+    return 0
 }
 
 handle_chld () {
@@ -276,7 +278,8 @@ fi
 ################################################################################
 if [[ -z "${DIAGD_ONLY}" ]]; then
     launch "ambex" ambex -ads 8003 "${ENVOY_DIR}"
-    ambex_pid=$?
+    ambex_pid=${LAUNCH_PID}
+    LAUNCH_PID=
 
     diagd_flags+=('--kick' "kill -HUP $$")
 else
@@ -301,8 +304,8 @@ kick_ads() {
         if [ -z "${envoy_pid}" ]; then
             # Envoy isn't running. Start it.
             launch "envoy" envoy "${envoy_flags[@]}"
-
-            envoy_pid=$?
+            envoy_pid=${LAUNCH_PID}
+            LAUNCH_PID=
 
             echo "KICK: started Envoy as PID $envoy_pid"
         fi
