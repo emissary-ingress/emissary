@@ -21,6 +21,7 @@ import (
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
 	"github.com/datawire/apro/lib/filterapi"
 	"github.com/datawire/apro/lib/filterapi/filterutil"
+	"github.com/datawire/apro/lib/jwtsupport"
 	"github.com/datawire/apro/lib/mapstructure"
 	"github.com/datawire/apro/lib/util"
 )
@@ -176,7 +177,7 @@ func (c *FilterMux) filter(ctx context.Context, request *filterapi.FilterRequest
 func ruleForURL(c *controller.Controller, u *url.URL) *crd.Rule {
 	if u.Path == "/callback" {
 		claims := jwt.MapClaims{}
-		_, _, err := new(jwt.Parser).ParseUnverified(u.Query().Get("state"), claims)
+		_, _, err := jwtsupport.SanitizeParseUnverified(new(jwt.Parser).ParseUnverified(u.Query().Get("state"), claims))
 		if err == nil {
 			if redirectURLstr, ok := claims["redirect_url"].(string); ok {
 				_u, err := url.Parse(redirectURLstr)

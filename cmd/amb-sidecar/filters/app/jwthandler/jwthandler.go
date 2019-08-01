@@ -12,6 +12,7 @@ import (
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/app/httpclient"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/app/middleware"
 	"github.com/datawire/apro/lib/jwks"
+	"github.com/datawire/apro/lib/jwtsupport"
 	"github.com/datawire/apro/lib/util"
 )
 
@@ -46,7 +47,7 @@ func validateToken(token string, filter crd.FilterJWT, httpClient *http.Client) 
 	jwtParser := jwt.Parser{ValidMethods: filter.ValidAlgorithms}
 
 	var claims jwt.MapClaims
-	_, err := jwtParser.ParseWithClaims(token, &claims, func(t *jwt.Token) (interface{}, error) {
+	_, err := jwtsupport.SanitizeParse(jwtParser.ParseWithClaims(token, &claims, func(t *jwt.Token) (interface{}, error) {
 		if t.Method == jwt.SigningMethodNone && inArray("none", filter.ValidAlgorithms) {
 			return jwt.UnsafeAllowNoneSignatureType, nil
 		}
@@ -66,7 +67,7 @@ func validateToken(token string, filter crd.FilterJWT, httpClient *http.Client) 
 			return nil, err
 		}
 		return keys.GetKey(kid)
-	})
+	}))
 	if err != nil {
 		return err
 	}
