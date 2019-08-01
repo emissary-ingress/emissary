@@ -1,6 +1,7 @@
 package testutil
 
 import (
+	"math/big"
 	"net/http"
 	"net/http/httputil"
 	"testing"
@@ -47,6 +48,17 @@ func (a *Assert) IntEQ(expected int, received int) {
 		a.T.Fatalf(`Assertion failed:
 Expected: %d
 Received: %d`,
+			expected, received)
+	}
+}
+
+// IntEQ assert that two integers are the same.
+func (a *Assert) BigIntEQ(expected *big.Int, received *big.Int) {
+	a.T.Helper()
+	if expected.Cmp(received) != 0 {
+		a.T.Fatalf(`Assertion failed:
+Expected: %v
+Received: %v`,
 			expected, received)
 	}
 }
