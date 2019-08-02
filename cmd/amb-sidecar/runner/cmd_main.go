@@ -2,6 +2,7 @@ package runner
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"math/rand"
 	"net/http"
@@ -19,6 +20,7 @@ import (
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
 	"google.golang.org/grpc"
+
 	grpchealth "google.golang.org/grpc/health"
 
 	// first-party libraries
@@ -31,6 +33,7 @@ import (
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/controller"
 	rlscontroller "github.com/datawire/apro/cmd/amb-sidecar/rls"
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
+	"github.com/datawire/apro/lib/licensekeys"
 	"github.com/datawire/apro/lib/util"
 
 	// internal libraries: github.com/lyft/ratelimit
@@ -50,15 +53,36 @@ import (
 	"github.com/datawire/apro/lib/filterapi"
 )
 
-func init() {
-	argparser.AddCommand(&cobra.Command{
-		Use:   "main",
-		Short: "Run the main Ambassador Pro process",
-		RunE:  cmdMain,
-	})
+func Main(version string) {
+	argparser := &cobra.Command{
+		Use:     os.Args[0],
+		Version: version,
+		RunE:    runE,
+	}
+
+	keycheck := licensekeys.InitializeCommandFlags(argparser.PersistentFlags(), "ambassador-sidecar", version)
+
+	argparser.PersistentPreRun = func(cmd *cobra.Command, args []string) {
+		// https://github.com/spf13/cobra/issues/340
+		cmd.SilenceUsage = true
+
+		// License key validation
+		err := keycheck(cmd.PersistentFlags())
+		if err == nil {
+			return
+		}
+		fmt.Fprintln(os.Stderr, err)
+		time.Sleep(5 * 60 * time.Second)
+		os.Exit(1)
+	}
+
+	err := argparser.Execute()
+	if err != nil {
+		os.Exit(1)
+	}
 }
 
-func cmdMain(cmd *cobra.Command, args []string) error {
+func runE(cmd *cobra.Command, args []string) error {
 	// Initialize the root logger.  We'll use this for top-level
 	// things that don't involve any specific worker process.
 	l := logrus.New()
