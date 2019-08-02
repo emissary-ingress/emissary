@@ -187,6 +187,9 @@ func (q Query) Headers() (result http.Header) {
 		for key, val := range headers.(map[string]interface{}) {
 			result.Add(key, val.(string))
 		}
+
+		// Add the client's start date.
+		result.Add("Client-Start-Date", time.Now().Format(time.RFC3339Nano))
 	}
 	return result
 }
@@ -689,9 +692,6 @@ func ExecuteQuery(query Query, secureTransport *http.Transport) {
 	for _, cookie := range query.Cookies() {
 		req.AddCookie(&cookie)
 	}
-
-	// Add the client's start date.
-	req.Header.Add("Client-Start-Date", time.Now().Format(time.RFC3339Nano))
 
 	// Handle host and SNI
 	host := req.Header.Get("Host")
