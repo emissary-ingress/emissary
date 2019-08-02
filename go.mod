@@ -19,7 +19,6 @@ require (
 	github.com/golang/protobuf v1.2.1-0.20190205222052-c823c79ea157 // indirect
 	github.com/google/uuid v1.1.0
 	github.com/gorilla/mux v1.6.1
-	github.com/gorilla/rpc v1.2.0
 	github.com/gregjones/httpcache v0.0.0-20181110185634-c63ab54fda8f
 	github.com/hashicorp/consul v1.4.4
 	github.com/hashicorp/serf v0.8.3 // indirect
@@ -41,7 +40,6 @@ require (
 	github.com/spf13/pflag v1.0.3
 	github.com/streadway/quantile v0.0.0-20150917103942-b0c588724d25 // indirect
 	github.com/tsenart/vegeta v12.2.1+incompatible
-	github.com/ybbus/jsonrpc v2.1.2+incompatible
 	github.com/zeromq/goczmq v4.1.0+incompatible // indirect
 	github.com/zeromq/gomq v0.0.0-20181008000130-95dc37dee5c4 // indirect
 	golang.org/x/crypto v0.0.0-20190320223903-b7391e95e576
