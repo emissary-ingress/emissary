@@ -28,6 +28,7 @@ import (
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
 	"github.com/datawire/apro/lib/filterapi"
 	"github.com/datawire/apro/lib/filterapi/filterutil"
+	"github.com/datawire/apro/lib/jwtsupport"
 )
 
 const (
@@ -363,7 +364,7 @@ func (j *OAuth2Filter) parseJWT(token string, discovered *Discovered) (jwt.MapCl
 	}
 
 	var claims jwt.MapClaims
-	_, err := jwtParser.ParseWithClaims(token, &claims, func(t *jwt.Token) (interface{}, error) {
+	_, err := jwtsupport.SanitizeParse(jwtParser.ParseWithClaims(token, &claims, func(t *jwt.Token) (interface{}, error) {
 		// Validates key id header.
 		if t.Header["kid"] == nil {
 			return nil, errors.New("missing kid")
@@ -376,7 +377,7 @@ func (j *OAuth2Filter) parseJWT(token string, discovered *Discovered) (jwt.MapCl
 
 		// Get RSA public key
 		return discovered.JSONWebKeySet.GetKey(kid)
-	})
+	}))
 	if err != nil {
 		return nil, err
 	}
@@ -530,12 +531,12 @@ func checkState(state string, pubkey *rsa.PublicKey) (string, error) {
 		return "", errors.New("empty state param")
 	}
 
-	token, err := jwt.Parse(state, func(t *jwt.Token) (interface{}, error) {
+	token, err := jwtsupport.SanitizeParse(jwt.Parse(state, func(t *jwt.Token) (interface{}, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodRSA); !ok {
 			return "", errors.Errorf("unexpected signing method %v", t.Header["redirect_url"])
 		}
 		return pubkey, nil
-	})
+	}))
 
 	if err != nil {
 		return "", err
