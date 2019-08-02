@@ -61,6 +61,11 @@ endif
 # 0.36.0-436-g8b8c5d3
 GIT_DESCRIPTION := $(shell git describe $(GIT_COMMIT))
 
+# IS_PRIVATE: empty=false, nonempty=true
+# Default is true if any of the git remotes have the string "private" in any of their URLs.
+_git_remote_urls := $(shell git remote | xargs -n1 git remote get-url --all)
+IS_PRIVATE ?= $(findstring private,$(_git_remote_urls))
+
 # Note that for everything except RC builds, VERSION will be set to the version
 # we'd use for a GA build. This is by design.
 ifneq ($(GIT_TAG_SANITIZED),)
@@ -76,11 +81,7 @@ ifndef DOCKER_REGISTRY
 $(error DOCKER_REGISTRY must be set. Use make DOCKER_REGISTRY=- for a purely local build.)
 endif
 
-ifeq ($(DOCKER_REGISTRY), -)
-AMBASSADOR_DOCKER_REPO ?= ambassador
-else
-AMBASSADOR_DOCKER_REPO ?= $(DOCKER_REGISTRY)/ambassador
-endif
+AMBASSADOR_DOCKER_REPO ?= $(if $(filter-out -,$(DOCKER_REGISTRY)),$(DOCKER_REGISTRY)/)ambassador$(if $(IS_PRIVATE),-private)
 
 ifneq ($(DOCKER_EXTERNAL_REGISTRY),)
 AMBASSADOR_EXTERNAL_DOCKER_REPO ?= $(DOCKER_EXTERNAL_REGISTRY)/ambassador
@@ -101,7 +102,7 @@ AMBASSADOR_DOCKER_IMAGE ?= $(AMBASSADOR_DOCKER_REPO):$(AMBASSADOR_DOCKER_TAG)
 AMBASSADOR_EXTERNAL_DOCKER_IMAGE ?= $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(AMBASSADOR_DOCKER_TAG)
 
 # IF YOU MESS WITH ANY OF THESE VALUES, YOU MUST RUN `make docker-update-base`.
-  ENVOY_REPO ?= git://github.com/datawire/envoy.git
+  ENVOY_REPO ?= $(if $(IS_PRIVATE),git@github.com:datawire/envoy-private.git,git://github.com/datawire/envoy.git)
   ENVOY_COMMIT ?= b1dae7dce0478c00e4f5fc3c0c5db8663f4d76ee
   ENVOY_COMPILATION_MODE ?= dbg
 
@@ -114,7 +115,7 @@ AMBASSADOR_EXTERNAL_DOCKER_IMAGE ?= $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(AMBASSA
   # Increment BASE_PY_RELVER on changes to `Dockerfile.base-py`, `releng/*`, `multi/requirements.txt`, `ambassador/requirements.txt`
   BASE_PY_RELVER    ?= 1
 
-  BASE_DOCKER_REPO ?= quay.io/datawire/ambassador-base
+  BASE_DOCKER_REPO ?= quay.io/datawire/ambassador-base$(if $(IS_PRIVATE),-private)
   BASE_ENVOY_IMAGE ?= $(BASE_DOCKER_REPO):envoy-$(BASE_ENVOY_RELVER).$(ENVOY_COMMIT).$(ENVOY_COMPILATION_MODE)
   BASE_GO_IMAGE    ?= $(BASE_DOCKER_REPO):go-$(BASE_ENVOY_RELVER).$(ENVOY_COMMIT).$(ENVOY_COMPILATION_MODE).$(BASE_GO_RELVER)
   BASE_PY_IMAGE    ?= $(BASE_DOCKER_REPO):py-$(BASE_ENVOY_RELVER).$(ENVOY_COMMIT).$(ENVOY_COMPILATION_MODE).$(BASE_PY_RELVER)
