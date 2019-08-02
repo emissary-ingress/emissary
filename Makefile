@@ -158,7 +158,7 @@ SCOUT_APP_KEY=
 
 # Sets the kat-backend release which contains the kat-client use for E2e testing.
 # For details https://github.com/datawire/kat-backend
-KAT_BACKEND_RELEASE = 1.4.4
+KAT_BACKEND_RELEASE = v1.5.0	# this needs to start with a 'v'
 
 # Allow overriding which watt we use.
 WATT ?= watt
@@ -479,7 +479,7 @@ $(KUBERNAUT): $(var.)KUBERNAUT_VERSION $(var.)GOOS $(var.)GOARCH | venv/bin/acti
 KAT_CLIENT=venv/bin/kat_client
 
 venv/kat-backend-$(KAT_BACKEND_RELEASE).tar.gz: | venv/bin/activate
-	curl -L -o $@ https://github.com/datawire/kat-backend/archive/v$(KAT_BACKEND_RELEASE).tar.gz
+	curl -L -o $@ https://github.com/datawire/kat-backend/archive/$(KAT_BACKEND_RELEASE).tar.gz
 $(KAT_CLIENT): venv/kat-backend-$(KAT_BACKEND_RELEASE).tar.gz
 	cd venv && tar -xzf $(<F) kat-backend-$(KAT_BACKEND_RELEASE)/client/bin/client_$(GOOS)_$(GOARCH)
 	install -m0755 venv/kat-backend-$(KAT_BACKEND_RELEASE)/client/bin/client_$(GOOS)_$(GOARCH) $(CURDIR)/$(KAT_CLIENT)
