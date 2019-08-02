@@ -49,23 +49,9 @@ after_script:
   - ./releng/travis-cleanup.sh
 
 deploy:
-  # Set "GIT_BRANCH" to the value of "MAIN_BRANCH" because the branch a tag originates from is not preserved by Git.
-  # Because releases occur from $MAIN_BRANCH all this does is ensure the correct Docker image lookups are performed
-  # for stable version publication.
-
-  # If this value is not set then our branch identification logic will set GIT_BRANCH automatically (and incorrectly)
-  # based on the logic in the Makefile. This will cause a release failure which is expected behavior
   - provider: script
-    # script: make release GIT_BRANCH=$(make print-MAIN_BRANCH)
     script: ./releng/travis-release.sh
     skip_cleanup: true
     on:
       all_branches: true
       condition: $GIT_BRANCH =~ ^[0-9]+\.[0-9]+\.[0-9]+$
-
-  # Perform doc publish on
-  - provider: script
-    script: make push-docs
-    skip_cleanup: true
-    on:
-      branch: stable

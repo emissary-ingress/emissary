@@ -27,14 +27,6 @@ SHELL = bash
     teleproxy-restart teleproxy-stop
 .SECONDARY:
 
-# MAIN_BRANCH
-# -----------
-#
-# The name of the main branch (e.g. "stable"). This is set as an variable because it makes it easy to develop and test
-# new automation code on a branch that is simulating the purpose of the main branch.
-#
-MAIN_BRANCH ?= stable
-
 # GIT_BRANCH on TravisCI needs to be set through some external custom logic. Default to a Git native mechanism or
 # use what is defined.
 #
@@ -222,7 +214,6 @@ print-vars:
 	@echo "KAT_BACKEND_RELEASE              = $(KAT_BACKEND_RELEASE)"
 	@echo "KUBECONFIG                       = $(KUBECONFIG)"
 	@echo "LATEST_RC                        = $(LATEST_RC)"
-	@echo "MAIN_BRANCH                      = $(MAIN_BRANCH)"
 	@echo "USE_KUBERNAUT                    = $(USE_KUBERNAUT)"
 	@echo "VERSION                          = $(VERSION)"
 
@@ -250,7 +241,6 @@ export-vars:
 	@echo "export KAT_BACKEND_RELEASE='$(KAT_BACKEND_RELEASE)'"
 	@echo "export KUBECONFIG='$(KUBECONFIG)'"
 	@echo "export LATEST_RC='$(LATEST_RC)'"
-	@echo "export MAIN_BRANCH='$(MAIN_BRANCH)'"
 	@echo "export USE_KUBERNAUT='$(USE_KUBERNAUT)'"
 	@echo "export VERSION='$(VERSION)'"
 
@@ -395,7 +385,7 @@ docker-images: ambassador-docker-image
 
 docker-push: docker-images
 ifneq ($(DOCKER_REGISTRY), -)
-	@if [ \( "$(GIT_DIRTY)" != "dirty" \) -o \( "$(GIT_BRANCH)" != "$(MAIN_BRANCH)" \) ]; then \
+	@if [ "$(GIT_DIRTY)" != "dirty" ]; then \
 		echo "PUSH $(AMBASSADOR_DOCKER_IMAGE), COMMIT_TYPE $(COMMIT_TYPE)"; \
 		docker push $(AMBASSADOR_DOCKER_IMAGE) | python releng/linify.py push.log; \
 		if [ \( "$(COMMIT_TYPE)" = "RC" \) -o \( "$(COMMIT_TYPE)" = "EA" \) ]; then \
@@ -412,7 +402,7 @@ ifneq ($(DOCKER_REGISTRY), -)
 			fi; \
 		fi; \
 	else \
-		printf "Git tree on MAIN_BRANCH '$(MAIN_BRANCH)' is dirty and therefore 'docker push' is not allowed!\n"; \
+		printf "Git tree is dirty and therefore 'docker push' is not allowed!\n"; \
 		exit 1; \
 	fi
 else
