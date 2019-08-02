@@ -39,15 +39,6 @@ credentials.
 
 ## Local development
 
-### macOs extra setup
-
-MacOs docker does not know how to forward ssh-agent socket to the container.
-The workaround is:
-
-    $ git clone https://github.com/bozzzzo/docker-ssh-agent-forward.git
-    $ cd docker-ssh-agent-forward
-    $ make install
-
 ### Building
 
 Because the `go.mod` specifies dependencies on a private repo
