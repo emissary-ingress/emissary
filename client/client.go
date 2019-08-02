@@ -187,9 +187,6 @@ func (q Query) Headers() (result http.Header) {
 		for key, val := range headers.(map[string]interface{}) {
 			result.Add(key, val.(string))
 		}
-
-		// Add the client's start date.
-		result.Add("Client-Start-Date", time.Now().Format(time.RFC3339Nano))
 	}
 	return result
 }
@@ -373,6 +370,9 @@ func (q Query) AddResponse(resp *http.Response) {
 	result["headers"] = resp.Header
 
 	headers := result["headers"].(http.Header)
+
+	// Copy in the client's start date.
+	headers.Add("Client-Start-Date", q["client-start-date"].(string))
 
 	// Add the client's end date.
 	headers.Add("Client-End-Date", time.Now().Format(time.RFC3339Nano))
@@ -689,9 +689,13 @@ func ExecuteQuery(query Query, secureTransport *http.Transport) {
 		return
 	}
 	req.Header = query.Headers()
+	log.Printf("headers %v", req.Header)
 	for _, cookie := range query.Cookies() {
 		req.AddCookie(&cookie)
 	}
+
+	// Save the client's start date.
+	query["client-start-date"] = time.Now().Format(time.RFC3339Nano)
 
 	// Handle host and SNI
 	host := req.Header.Get("Host")
