@@ -81,10 +81,10 @@ if [ "${COMMIT_TYPE}" != "GA" ]; then
 
     if [[ ${COMMIT_TYPE} == "RC" ]]; then
         # For RC builds, update AWS test keys.
-		make VERSION="$VERSION" SCOUT_APP_KEY=testapp.json STABLE_TXT_KEY=teststable.txt update-aws
+        make VERSION="$VERSION" SCOUT_APP_KEY=testapp.json STABLE_TXT_KEY=teststable.txt update-aws
     elif [[ ${COMMIT_TYPE} == "EA" ]]; then
         # For RC builds, update AWS EA keys.
-		make VERSION="$VERSION" SCOUT_APP_KEY=earlyapp.json STABLE_TXT_KEY=earlystable.txt update-aws
+        make VERSION="$VERSION" SCOUT_APP_KEY=earlyapp.json STABLE_TXT_KEY=earlystable.txt update-aws
     fi
 else
     echo "GA commit, will retag in deployment"
