@@ -368,6 +368,12 @@ func (q Query) AddResponse(resp *http.Response) {
 	result := q.Result()
 	result["status"] = resp.StatusCode
 	result["headers"] = resp.Header
+
+	headers := result["headers"].(http.Header)
+
+	// Add the client's end date.
+	headers.Add("Client-End-Date", time.Now().Format(time.RFC3339Nano))
+
 	if resp.TLS != nil {
 		result["tls_version"] = resp.TLS.Version
 		result["tls"] = resp.TLS.PeerCertificates
@@ -391,7 +397,6 @@ func (q Query) AddResponse(resp *http.Response) {
 					log.Printf("decodedBody '%v'", body)
 				}
 
-				headers := result["headers"].(http.Header)
 				for key, values := range trailers {
 					for _, value := range values {
 						headers.Add(key, value)
@@ -684,6 +689,9 @@ func ExecuteQuery(query Query, secureTransport *http.Transport) {
 	for _, cookie := range query.Cookies() {
 		req.AddCookie(&cookie)
 	}
+
+	// Add the client's start date.
+	req.Header.Add("Client-Start-Date", time.Now().Format(time.RFC3339Nano))
 
 	// Handle host and SNI
 	host := req.Header.Get("Host")
