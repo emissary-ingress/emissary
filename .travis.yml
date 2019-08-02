@@ -33,11 +33,11 @@ env:
     # Set from the repository settings:
     #- DOCKER_USERNAME=[secure]
     #- DOCKER_PASSWORD=[secure]
-    #- encrypted_95ce0d75e6f7_key=[secure]
-    #- encrypted_95ce0d75e6f7_iv=[secure]
+    #- encrypted_95ce0d75e6f7_key=[secure] # XXX: remove me
+    #- encrypted_95ce0d75e6f7_iv=[secure]  # XXX: remove me
     #- GH_TOKEN=[secure]                   # XXX: remove me
-    #- encrypted_21b00a486c76_key=[secure]
-    #- encrypted_21b00a486c76_iv=[secure]
+    #- encrypted_21b00a486c76_key=[secure] # XXX: remove me
+    #- encrypted_21b00a486c76_iv=[secure]  # XXX: remove me
 
     # Encrypted here:
     # - PACKAGECLOUD_TOKEN # XXX: remove me
