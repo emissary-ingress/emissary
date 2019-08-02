@@ -5,6 +5,8 @@ import (
 	"io"
 	"math/rand"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -75,6 +77,10 @@ func cmdMain(cmd *cobra.Command, args []string) error {
 	}
 	if len(fatal) > 0 {
 		return fatal[len(fatal)-1]
+	}
+
+	if err := os.MkdirAll(filepath.Dir(cfg.RLSRuntimeDir), 0777); err != nil {
+		return err
 	}
 
 	// cfg.LogLevel has already been validated in
@@ -184,10 +190,10 @@ func cmdMain(cmd *cobra.Command, args []string) error {
 		rateLimitScope := statsStore.Scope("ratelimit")
 		rateLimitService := lyftservice.NewService(
 			loader.New(
-				cfg.RuntimePath,                                        // runtime path
-				cfg.RuntimeSubdirectory,                                // runtime subdirectory
-				rateLimitScope.Scope("runtime"),                        // stats scope
-				&loader.SymlinkRefresher{RuntimePath: cfg.RuntimePath}, // refresher
+				cfg.RLSRuntimeDir,               // runtime path
+				cfg.RLSRuntimeSubdir,            // runtime subdirectory
+				rateLimitScope.Scope("runtime"), // stats scope
+				&loader.SymlinkRefresher{RuntimePath: cfg.RLSRuntimeDir}, // refresher
 			),
 			lyftredis.NewRateLimitCacheImpl(
 				lyftredis.NewPool(rateLimitScope.Scope("redis_pool"), redisPool),

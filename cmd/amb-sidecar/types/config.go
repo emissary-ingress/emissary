@@ -26,13 +26,12 @@ type Config struct {
 	KeyPairSecretNamespace string
 
 	// Rate Limit
-	Output                     string // e.g.: "/run/amb/config"; same as the RUNTIME_ROOT for Lyft ratelimit
+	RLSRuntimeDir              string // e.g.: "/tmp/amb-sidecar.XYZ/rls-snapshot"; same as the RUNTIME_ROOT for Lyft ratelimit.  Must point to a _symlink_ to a directory, not a real directory.  The symlink need not already exist at launch.  Unlike Lyft ratelimit, the parent doesn't need to exist at launch either.
+	RLSRuntimeSubdir           string // directory inside of RLSRuntimeDir; same as the RUNTIME_SUBDIRECTORY for Lyft ratelimit
 	RedisPerSecond             bool
 	RedisPerSecondPoolSize     int
 	RedisPerSecondSocketType   string
 	RedisPerSecondURL          string
-	RuntimePath                string
-	RuntimeSubdirectory        string
 	ExpirationJitterMaxSeconds int64
 }
 
@@ -64,14 +63,13 @@ func ConfigFromEnv() (cfg Config, warn []error, fatal []error) {
 		KeyPairSecretNamespace: getenvDefault("APRO_KEYPAIR_SECRET_NAMESPACE", getenvDefault("AMBASSADOR_NAMESPACE", "default")),
 
 		// Rate Limit
-		Output:                     os.Getenv("RLS_RUNTIME_DIR"),             // validated below
+		RLSRuntimeDir:              getenvDefault("RLS_RUNTIME_DIR", "/tmp/amb/config"),
+		RLSRuntimeSubdir:           "config",
 		RedisPerSecond:             false,                                    // set below
 		RedisPerSecondPoolSize:     0,                                        // set below
 		RedisPerSecondSocketType:   os.Getenv("REDIS_PERSECOND_SOCKET_TYPE"), // validated below
 		RedisPerSecondURL:          os.Getenv("REDIS_PERSECOND_URL"),         // validated below
-		RuntimePath:                getenvDefault("RUNTIME_ROOT", "/srv/runtime_data/current"),
-		RuntimeSubdirectory:        os.Getenv("RUNTIME_SUBDIRECTORY"),
-		ExpirationJitterMaxSeconds: 0, // set below
+		ExpirationJitterMaxSeconds: 0,                                        // set below
 	}
 
 	// Set the things marked "set below" (things that do require some parsing)
@@ -105,9 +103,6 @@ func ConfigFromEnv() (cfg Config, warn []error, fatal []error) {
 	}
 	if cfg.RedisURL == "" {
 		fatal = append(fatal, errors.New("must set REDIS_URL (aborting)"))
-	}
-	if cfg.Output == "" {
-		fatal = append(fatal, errors.New("must set RLS_RUNTIME_DIR (aborting)"))
 	}
 	if cfg.RedisPerSecond {
 		if cfg.RedisPerSecondSocketType == "" {
