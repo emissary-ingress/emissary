@@ -20,9 +20,8 @@ SHELL = bash
 
 # Welcome to the Ambassador Makefile...
 
-.FORCE:
 .PHONY: \
-    .FORCE clean version setup-develop print-vars \
+    clean version setup-develop print-vars \
     docker-login docker-push docker-images \
     teleproxy-restart teleproxy-stop
 .SECONDARY:
@@ -274,7 +273,7 @@ kill-docker-registry:
 		echo "Docker registry should not be running" ;\
 	fi
 
-envoy-src: .FORCE
+envoy-src: FORCE
 	@echo "Getting Envoy sources..."
 	@if test -d envoy && ! test -d envoy-src; then PS4=; set -x; mv envoy envoy-src; fi
 	@PS4=; set -x; \
@@ -288,7 +287,7 @@ envoy-src: .FORCE
 	git fetch --tags origin && \
 	$(if $(filter-out -,$(ENVOY_COMMIT)),git checkout $(ENVOY_COMMIT),if ! git rev-parse HEAD >/dev/null 2>&1; then git checkout origin/master; fi)
 
-envoy-build-image.txt: .FORCE envoy-src
+envoy-build-image.txt: FORCE envoy-src
 	@echo "Making $@..."
 	set -e; \
 	cd envoy-src; . ci/envoy_build_sha.sh; cd ..; \
@@ -305,7 +304,7 @@ envoy-build-image.txt: .FORCE envoy-src
 ENVOY_SYNC_HOST_TO_DOCKER = docker run --rm --volume=$(CURDIR)/envoy-src:/xfer:ro --volume=envoy-build:/root:rw $$(cat envoy-build-image.txt) rsync -Pav --delete /xfer/ /root/envoy
 ENVOY_SYNC_DOCKER_TO_HOST = docker run --rm --volume=$(CURDIR)/envoy-src:/xfer:rw --volume=envoy-build:/root:ro $$(cat envoy-build-image.txt) rsync -Pav --delete /root/envoy/ /xfer
 
-envoy-bin/envoy-static: .FORCE envoy-build-image.txt
+envoy-bin/envoy-static: FORCE envoy-build-image.txt
 	$(ENVOY_SYNC_HOST_TO_DOCKER)
 	@PS4=; set -ex; trap '$(ENVOY_SYNC_DOCKER_TO_HOST)' EXIT; { \
 	    docker run --rm --volume=envoy-build:/root:rw --workdir=/root/envoy $$(cat envoy-build-image.txt) bazel build --verbose_failures -c $(ENVOY_COMPILATION_MODE) //source/exe:envoy-static; \
