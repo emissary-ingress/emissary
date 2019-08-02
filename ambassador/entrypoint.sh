@@ -218,7 +218,7 @@ diediedie() {
 # to explicitly trap SIGCHLD and make sure that the thing that exited isn't one
 # of our _important_ processes.
 
-pids=()         # array of pid:human-readable-name
+declare -A pids # associative array of cmd:pid
 
 launch() {
     cmd="$1"    # this is a human-readable name used only for logging.
@@ -233,38 +233,35 @@ launch() {
     eval "${@@Q} &"
 
     pid=$!
+    pids[$cmd]=$pid
 
     log "AMBASSADOR: ${cmd} is PID ${pid}"
 
-    pids+=("${pid}:${cmd}")
-
-    return $pid
+    if [ -n "$ENTRYPOINT_DEBUG" ]; then
+        for K in "${!pids[@]}"; do
+            debug "AMBASSADOR pids $K --- ${pids[$K]}"
+        done
+    fi
 }
 
 handle_chld () {
     trap - CHLD
-    local tmp=()
 
-    for entry in "${pids[@]}"; do
-        local pid="${entry%:*}"
-        local name="${entry#*:}"
+    for cmd in "${!pids[@]}"; do
+        local pid=${pids[$cmd]}
 
         if [ ! -d "/proc/${pid}" ]; then
             wait "${pid}"
             STATUS=$?
 
-            diediedie "${name}" "$STATUS"
+            pids[$cmd]=
+            diediedie "${cmd}" "$STATUS"
         else
             if [ -n "$ENTRYPOINT_DEBUG" ]; then
-                debug "AMBASSADOR: $name still running"
+                debug "AMBASSADOR: $cmd still running"
             fi
-
-            tmp+=("${entry}")
         fi
     done
-
-    # Reset $pids...
-    pids=(${tmp[@]})
 
     trap "handle_chld" CHLD
 }
@@ -288,7 +285,6 @@ fi
 ################################################################################
 if [[ -z "${DIAGD_ONLY}" ]]; then
     launch "ambex" ambex -ads 8003 "${ENVOY_DIR}"
-    ambex_pid=$?
 
     diagd_flags+=('--kick' "kill -HUP $$")
 else
@@ -297,26 +293,23 @@ fi
 
 # Once Ambex is running, we can set up ADS management
 
-envoy_pid=
 demo_chimed=
 
 kick_ads() {
     if [ -n "$DIAGD_ONLY" ]; then
         debug "kick_ads: ignoring kick since in diagd-only mode."
     else
-        if [ -n "${envoy_pid}" ]; then
-            if ! kill -0 "${envoy_pid}"; then
-                envoy_pid=
+        if [ -n "${pids[envoy]}" ]; then
+            if ! kill -0 "${pids[envoy]}"; then
+                pids[envoy]=
             fi
         fi
 
-        if [ -z "${envoy_pid}" ]; then
+        if [ -z "${pids[envoy]}" ]; then
             # Envoy isn't running. Start it.
             launch "envoy" envoy "${envoy_flags[@]}"
 
-            envoy_pid=$?
-
-            log "KICK: started Envoy as PID $envoy_pid"
+            log "KICK: started Envoy as PID ${pids[envoy]}"
         fi
 
         # Once envoy is running, poke Ambex.
@@ -325,7 +318,7 @@ kick_ads() {
             log "KICK: kicking ambex"
         fi
 
-        kill -HUP "$ambex_pid"
+        kill -HUP "${pids[ambex]}"
 
         if [ -n "$AMBASSADOR_DEMO_MODE" -a -z "$demo_chimed" ]; then
             # Wait for Envoy...
