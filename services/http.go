@@ -193,7 +193,7 @@ func (h *HTTP) handler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Set date response header.
-	w.Header().Set("Date", time.Now().Format("Wed, 17 Jul 2019 15:43:03 GMT"))
+	w.Header().Set("Date", time.Now().Format(time.RFC1123))
 
 	w.WriteHeader(statusCode)
 
