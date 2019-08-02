@@ -1,4 +1,4 @@
-TAG=14
+TAG=v1.5.0
 
 all: xds echo backend client
 
