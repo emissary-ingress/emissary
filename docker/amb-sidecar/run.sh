@@ -1,16 +1,5 @@
 #!/bin/bash
 
-export APRO_HTTP_PORT=${APRO_HTTP_PORT:-8500}
-
-if test -z "$REDIS_URL"; then
-	echo 'Error: ${REDIS_URL} is not set; not starting'
-	exit 1
-fi
-if test -z "$REDIS_SOCKET_TYPE"; then
-	echo 'Error: ${REDIS_SOCKET_TYPE} is not set; not starting'
-	exit 1
-fi
-
 run_dir=/tmp/amb
 mkdir -p ${run_dir}
 

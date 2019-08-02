@@ -5,7 +5,6 @@ import (
 	"io"
 	"math/rand"
 	"net/http"
-	"os"
 	"strings"
 	"time"
 
@@ -97,11 +96,9 @@ func cmdMain(cmd *cobra.Command, args []string) error {
 	// Launch all of the worker goroutines...
 
 	// RateLimit controller
-	if os.Getenv("REDIS_URL") != "" {
-		group.Go("ratelimit_controller", func(hardCtx, softCtx context.Context, cfg types.Config, l types.Logger) error {
-			return rlscontroller.DoWatch(softCtx, cfg, l)
-		})
-	}
+	group.Go("ratelimit_controller", func(hardCtx, softCtx context.Context, cfg types.Config, l types.Logger) error {
+		return rlscontroller.DoWatch(softCtx, cfg, l)
+	})
 
 	// Filter+FilterPolicy controller
 	ct := &controller.Controller{}

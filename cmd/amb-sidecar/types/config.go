@@ -56,8 +56,8 @@ func ConfigFromEnv() (cfg Config, warn []error, fatal []error) {
 		HTTPPort:        getenvDefault("APRO_HTTP_PORT", "8500"),
 		LogLevel:        getenvDefault("APP_LOG_LEVEL", "info"), // validated below
 		RedisPoolSize:   0,                                      // set below
-		RedisSocketType: os.Getenv("REDIS_SOCKET_TYPE"),
-		RedisURL:        os.Getenv("REDIS_URL"),
+		RedisSocketType: os.Getenv("REDIS_SOCKET_TYPE"),         // validated below
+		RedisURL:        os.Getenv("REDIS_URL"),                 // validated below
 
 		// Auth (filters)
 		KeyPairSecretName:      getenvDefault("APRO_KEYPAIR_SECRET_NAME", "ambassador-pro-keypair"),
@@ -99,6 +99,12 @@ func ConfigFromEnv() (cfg Config, warn []error, fatal []error) {
 	if _, err := logrus.ParseLevel(cfg.LogLevel); err != nil {
 		warn = append(warn, errors.Wrap(err, "invalid APP_LOG_LEVEL (falling back to default \"info\")"))
 		cfg.LogLevel = "info"
+	}
+	if cfg.RedisSocketType == "" {
+		fatal = append(fatal, errors.New("must set REDIS_SOCKET_TYPE (aborting)"))
+	}
+	if cfg.RedisURL == "" {
+		fatal = append(fatal, errors.New("must set REDIS_URL (aborting)"))
 	}
 	if cfg.Output == "" {
 		fatal = append(fatal, errors.New("must set RLS_RUNTIME_DIR (aborting)"))
