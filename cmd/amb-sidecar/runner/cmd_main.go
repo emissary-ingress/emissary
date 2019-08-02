@@ -37,7 +37,6 @@ import (
 	lyftredis "github.com/lyft/ratelimit/src/redis"
 	lyftserver "github.com/lyft/ratelimit/src/server"
 	lyftservice "github.com/lyft/ratelimit/src/service"
-	lyftsettings "github.com/lyft/ratelimit/src/settings"
 
 	// k8s clients
 	k8sClientCoreV1 "k8s.io/client-go/kubernetes/typed/core/v1"
@@ -115,7 +114,6 @@ func cmdMain(cmd *cobra.Command, args []string) error {
 	// HTTP server
 	group.Go("http", func(hardCtx, softCtx context.Context, cfg types.Config, l types.Logger) error {
 		// A good chunk of this code mimics github.com/lyft/ratelimit/src/service_cmd/runner.Run()
-		rateLimitSettings := lyftsettings.NewSettings() // FIXME(lukeshu): Integrate this with cfg / types.Config
 
 		statsStore := stats.NewDefaultStore()
 		statsStore.AddStatGenerator(stats.NewRuntimeStats(statsStore.Scope("go")))
@@ -126,8 +124,8 @@ func cmdMain(cmd *cobra.Command, args []string) error {
 		}
 
 		var redisPerSecondPool *pool.Pool
-		if rateLimitSettings.RedisPerSecond {
-			redisPerSecondPool, err = pool.New(rateLimitSettings.RedisPerSecondSocketType, rateLimitSettings.RedisPerSecondUrl, rateLimitSettings.RedisPerSecondPoolSize)
+		if cfg.RedisPerSecond {
+			redisPerSecondPool, err = pool.New(cfg.RedisPerSecondSocketType, cfg.RedisPerSecondURL, cfg.RedisPerSecondPoolSize)
 			if err != nil {
 				return errors.Wrap(err, "redis per-second pool")
 			}
@@ -189,17 +187,17 @@ func cmdMain(cmd *cobra.Command, args []string) error {
 		rateLimitScope := statsStore.Scope("ratelimit")
 		rateLimitService := lyftservice.NewService(
 			loader.New(
-				rateLimitSettings.RuntimePath,                                        // runtime path
-				rateLimitSettings.RuntimeSubdirectory,                                // runtime subdirectory
-				rateLimitScope.Scope("runtime"),                                      // stats scope
-				&loader.SymlinkRefresher{RuntimePath: rateLimitSettings.RuntimePath}, // refresher
+				cfg.RuntimePath,                                        // runtime path
+				cfg.RuntimeSubdirectory,                                // runtime subdirectory
+				rateLimitScope.Scope("runtime"),                        // stats scope
+				&loader.SymlinkRefresher{RuntimePath: cfg.RuntimePath}, // refresher
 			),
 			lyftredis.NewRateLimitCacheImpl(
 				lyftredis.NewPool(rateLimitScope.Scope("redis_pool"), redisPool),
 				lyftredis.NewPool(rateLimitScope.Scope("redis_per_second_pool"), redisPerSecondPool),
 				lyftredis.NewTimeSourceImpl(),
 				rand.New(lyftredis.NewLockedSource(time.Now().Unix())),
-				rateLimitSettings.ExpirationJitterMaxSeconds),
+				cfg.ExpirationJitterMaxSeconds),
 			lyftconfig.NewRateLimitConfigLoaderImpl(),
 			rateLimitScope.Scope("service"))
 		rlsV1api.RegisterRateLimitServiceServer(grpcHandler, rateLimitService.GetLegacyService())
