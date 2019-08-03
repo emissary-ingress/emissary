@@ -158,7 +158,9 @@ SCOUT_APP_KEY=
 
 # Sets the kat-backend release which contains the kat-client use for E2e testing.
 # For details https://github.com/datawire/kat-backend
-KAT_BACKEND_RELEASE = v1.5.0	# this needs to start with a 'v'
+#
+# Note that this needs to start with the 'v'.
+KAT_BACKEND_RELEASE = v1.5.0
 
 # Allow overriding which watt we use.
 WATT ?= watt
