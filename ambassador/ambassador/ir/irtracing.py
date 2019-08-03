@@ -42,7 +42,7 @@ class IRTracing (IRResource):
 
         configs = config_info.values()
         number_configs = len(configs)
-        if number_configs is not 1:
+        if number_configs != 1:
             self.post_error(
                 RichStatus.fromError("exactly one TracingService is supported, got {}".format(number_configs),
                                      module=aconf))
