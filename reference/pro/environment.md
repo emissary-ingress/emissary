@@ -6,13 +6,9 @@
 | `AMBASSADOR_NAMESPACE`          | `default`[^1]                                     | Kubernetes namespace                                                          | Ambassador                                           |
 | `AMBASSADOR_SINGLE_NAMESPACE`   | empty                                             | Boolean; non-empty=true, empty=false                                          | Ambassador                                           |
 | <hr/>                           | <hr/>                                             | <hr/>                                                                         | <hr/>                                                |
-| `APRO_AUTH_PORT`                | `8500`                                            | TCP port number or name                                                       | Filtering AuthService (gRPC)                         |
-| `GRPC_PORT`                     | `8501`                                            | TCP port number or name                                                       | RateLimitService (gRPC)                              |
-| `DEBUG_PORT`                    | `8502`                                            | TCP port number or name                                                       | RateLimitService debug (HTTP)                        |
-| `PORT`                          | `8503`                                            | TCP port number or name                                                       | RateLimitService health (HTTP)                       |
+| `APRO_HTTP_PORT`                | `8500`                                            | TCP port number or name                                                       | Filter gRPC, RateLimit gRPC, health HTTP, debug HTTP |
 | <hr/>                           | <hr/>                                             | <hr/>                                                                         | <hr/>                                                |
-| `APP_LOG_LEVEL`                 | `info`                                            | log level                                                                     | Filter                                               |
-| `LOG_LEVEL`                     | `WARN`                                            | log level                                                                     | RateLimit                                            |
+| `APP_LOG_LEVEL`                 | `info`                                            | log level                                                                     | Ambassador Pro general-purpose                       |
 | <hr/>                           | <hr/>                                             | <hr/>                                                                         | <hr/>                                                |
 | `APRO_KEYPAIR_SECRET_NAME`      | `ambassador-pro-keypair`                          | Kubernetes name                                                               | Filter                                               |
 | `APRO_KEYPAIR_SECRET_NAMESPACE` | use the value of `AMBASSADOR_NAMESPACE`           | Kubernetes namespace                                                          | Filter                                               |
@@ -26,18 +22,8 @@
 
 <!--
 
-  The following variables are non-overridable in `run.sh`; don't add
-  them to the above table.
-  
-   cmd/amb-sidecar/types/config.go:
-    - `RLS_RUNTIME_DIR`
-
-   vendor-ratelimit/src/settings/settings.go:
-    - `USE_STATSD`
-       * `STATSD_HOST`
-       * `STATSD_PORT`
-    - `RUNTIME_ROOT`
-    - `RUNTIME_SUBDIRECTORY`
+  Intentionally omit `RLS_RUNTIME_DIR` from the above table; it exists
+  for development purposes and isn't meant to be set by end users.
 
 -->
 
@@ -48,13 +34,12 @@ Log levels are case-insensitive. From least verbose to most verbose,
 valid log levels are `error`, `warn`/`warning`, `info`, `debug`, and
 `trace`.
 
-The AuthService and the RateLimitService each maintain a separate
-Redis connection pool; so there will be up to 2×`REDIS_POOL_SIZE`
-connections to Redis.
+The AuthService and the RateLimitService share a Redis connection
+pool; there will be up to `REDIS_POOL_SIZE` connections to Redis.
 
-If `REDIS_PERSECOND` is true, a third Redis connection pool is created
-(to a potentially different Redis instance) that is only used for
-per-second RateLimits.
+If `REDIS_PERSECOND` is true, a second Redis connection pool is
+created (to a potentially different Redis instance) that is only used
+for per-second RateLimits.
 
 If the `APRO_KEYPAIR_SECRET_NAME`/`APRO_KEYPAIR_SECRET_NAMESPACE`
 Kubernetes secret does not already exist when Ambassador Pro starts,
