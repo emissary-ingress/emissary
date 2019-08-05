@@ -192,6 +192,8 @@
               link: /reference/idp-support/keycloak
             - title: Okta
               link: /reference/idp-support/okta
+            - title: Salesforce
+              link: /reference/idp-support/salesforce
             - title: User Account and Authentication (UAA)
               link: /reference/idp-support/uaa
         - title: Pro
