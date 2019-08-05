@@ -56,19 +56,13 @@ config:
         yield Query(self.url(self.name + '-normal/'), headers={"Requested-Status": "409", "Requested-Backend-Delay": "2000"}, expected=504)
 
     def get_timestamp(self, hdr):
-        m = re.match(r'^(.*)\.(\d+)([-+]\d+:\d+)$', hdr)
+        m = re.match(r'^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{1,6})', hdr)
 
         if m:
-            date_and_time = m.group(1)
-            fractional_seconds = m.group(2)
-            tzone = m.group(3)
-
-            while len(fractional_seconds) < 6:
-                fractional_seconds += '0'
-
-            hdr = f'{date_and_time}.{fractional_seconds}{tzone}'
-
-        return datetime.fromisoformat(hdr).timestamp()
+            return datetime.strptime(m.group(1), '%Y-%m-%dT%H:%M:%S.%f').timestamp()
+        else:
+            assert False, f'header timestamp "{hdr}" is not parseable'
+            return None
 
     def get_duration(self, result):
         start_time = self.get_timestamp(result.headers['Client-Start-Date'][0])
