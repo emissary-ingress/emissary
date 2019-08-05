@@ -14,6 +14,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
+ENTRYPOINT_DEBUG=
+
+log () {
+    echo "${@}" >&2
+}
+
+debug () {
+    if [ -n "$ENTRYPOINT_DEBUG" ]; then
+        echo "${@}" >&2
+    fi
+}
+
 in_array() {
     local needle straw haystack
     needle="$1"
@@ -34,7 +46,7 @@ wait_for_url () {
     delay=1
 
     while (( tries_left > 0 )); do
-        echo "AMBASSADOR: pinging $name ($tries_left)..."
+        debug "AMBASSADOR: pinging $name ($tries_left)..."
 
         status=$(curl -s -o /dev/null -w "%{http_code}" $url)
 
@@ -49,9 +61,9 @@ wait_for_url () {
     done
 
     if (( tries_left <= 0 )); then
-        echo "AMBASSADOR: giving up on $name and hoping for the best..."
+        log "AMBASSADOR: giving up on $name and hoping for the best..."
     else
-        echo "AMBASSADOR: $name running"
+        log "AMBASSADOR: $name running"
     fi
 }
 
@@ -76,10 +88,8 @@ export APPDIR="${APPDIR:-$ambassador_root}"
 export PYTHON_EGG_CACHE="${PYTHON_EGG_CACHE:-$AMBASSADOR_CONFIG_BASE_DIR}/.cache"
 export PYTHONUNBUFFERED=true
 
-ENTRYPOINT_DEBUG=
-
 if [[ "$1" == "--dev-magic" ]]; then
-    echo "AMBASSADOR: running with dev magic"
+    log "AMBASSADOR: running with dev magic"
     diagd --dev-magic
     exit $?
 fi
@@ -91,7 +101,7 @@ diagd_flags=('--notices' "${AMBASSADOR_CONFIG_BASE_DIR}/notices.json")
 # Make sure that base dir exists.
 if [[ ! -d "$AMBASSADOR_CONFIG_BASE_DIR" ]]; then
     if ! mkdir -p "$AMBASSADOR_CONFIG_BASE_DIR"; then
-        echo "Could not create $AMBASSADOR_CONFIG_BASE_DIR" >&2
+        log "Could not create $AMBASSADOR_CONFIG_BASE_DIR" >&2
         exit 1
     fi
 fi
@@ -110,11 +120,11 @@ if in_array 'envoy' "${ambassador_debug[@]}"; then envoy_flags+=('-l' 'debug'); 
 if in_array 'entrypoint'; then
     ENTRYPOINT_DEBUG=true
 
-    echo "ENTRYPOINT_DEBUG enabled"
+    debug "ENTRYPOINT_DEBUG enabled"
 fi
 
 if in_array 'entrypoint_trace'; then
-    echo "ENTRYPOINT_TRACE enabled"
+    log "ENTRYPOINT_TRACE enabled"
 
     echo 2>&1
     set -x
@@ -135,12 +145,12 @@ fi
 
 # Do we have config on the filesystem?
 if [[ $(find "${config_dir}" -type f 2>/dev/null | wc -l) -gt 0 ]]; then
-    echo "AMBASSADOR: using ${config_dir@Q} for configuration"
+    log "AMBASSADOR: using ${config_dir@Q} for configuration"
     diagd_flags+=('--config-path' "${config_dir}")
 
     # Don't watch for Kubernetes changes.
     if [[ -z "${AMBASSADOR_FORCE_KUBEWATCH}" ]]; then
-        echo "AMBASSADOR: not watching for Kubernetes config"
+        log "AMBASSADOR: not watching for Kubernetes config"
         export AMBASSADOR_NO_KUBEWATCH=no_kubewatch
     fi
 fi
@@ -153,16 +163,16 @@ fi
 # will DTRT if Kubernetes is not available.
 
 if ! AMBASSADOR_CLUSTER_ID=$(/usr/bin/python3 "$APPDIR/kubewatch.py" --debug); then
-    echo "AMBASSADOR: could not determine cluster-id; exiting"
+    log "AMBASSADOR: could not determine cluster-id; exiting"
     exit 1
 fi
 
 export AMBASSADOR_CLUSTER_ID
 
-echo "AMBASSADOR: starting with environment:"
-echo "===="
+log "AMBASSADOR: starting with environment:"
+log "===="
 env | grep AMBASSADOR | sort
-echo "===="
+log "===="
 
 mkdir -p "${snapshot_dir}"
 mkdir -p "${ENVOY_DIR}"
@@ -175,14 +185,14 @@ ambassador_exit() {
     RC=${1:-1}
 
     if [ -n "$AMBASSADOR_EXIT_DELAY" ]; then
-        echo "AMBASSADOR: sleeping before shutdown ($RC)"
+        log "AMBASSADOR: sleeping before shutdown ($RC)"
         sleep $AMBASSADOR_EXIT_DELAY
     fi
 
-    echo "AMBASSADOR: killing extant processes"
+    log "AMBASSADOR: killing extant processes"
     jobs -p | xargs -r kill --
 
-    echo "AMBASSADOR: shutting down ($RC)"
+    log "AMBASSADOR: shutting down ($RC)"
     exit $RC
 }
 
@@ -191,9 +201,9 @@ diediedie() {
     STATUS=$2
 
     if [ $STATUS -eq 0 ]; then
-        echo "AMBASSADOR: $NAME claimed success, but exited \?\?\?\?"
+        log "AMBASSADOR: $NAME claimed success, but exited \?\?\?\?"
     else
-        echo "AMBASSADOR: $NAME exited with status $STATUS"
+        log "AMBASSADOR: $NAME exited with status $STATUS"
     fi
 
     ambassador_exit 1
@@ -208,13 +218,13 @@ diediedie() {
 # to explicitly trap SIGCHLD and make sure that the thing that exited isn't one
 # of our _important_ processes.
 
-pids=()         # array of pid:human-readable-name
+declare -A pids # associative array of cmd:pid
 
 launch() {
     cmd="$1"    # this is a human-readable name used only for logging.
     shift
 
-    echo "AMBASSADOR: launching worker process '${cmd}': ${*@Q}"
+    log "AMBASSADOR: launching worker process '${cmd}': ${*@Q}"
 
     # We do this 'eval' instead of just
     #     "$@" &
@@ -223,36 +233,35 @@ launch() {
     eval "${@@Q} &"
 
     pid=$!
+    pids[$cmd]=$pid
 
-    pids+=("${pid}:${cmd}")
+    log "AMBASSADOR: ${cmd} is PID ${pid}"
 
-    return $pid
+    if [ -n "$ENTRYPOINT_DEBUG" ]; then
+        for K in "${!pids[@]}"; do
+            debug "AMBASSADOR pids $K --- ${pids[$K]}"
+        done
+    fi
 }
 
 handle_chld () {
     trap - CHLD
-    local tmp=()
 
-    for entry in "${pids[@]}"; do
-        local pid="${entry%:*}"
-        local name="${entry#*:}"
+    for cmd in "${!pids[@]}"; do
+        local pid=${pids[$cmd]}
 
         if [ ! -d "/proc/${pid}" ]; then
             wait "${pid}"
             STATUS=$?
 
-            diediedie "${name}" "$STATUS"
+            pids[$cmd]=
+            diediedie "${cmd}" "$STATUS"
         else
             if [ -n "$ENTRYPOINT_DEBUG" ]; then
-                echo "AMBASSADOR: $name still running"
+                debug "AMBASSADOR: $cmd still running"
             fi
-
-            tmp+=("${entry}")
         fi
     done
-
-    # Reset $pids...
-    pids=(${tmp[@]})
 
     trap "handle_chld" CHLD
 }
@@ -261,7 +270,7 @@ set -m # We need this in order to trap on SIGCHLD
 
 trap 'handle_chld' CHLD # Notify when a job status changes
 
-trap 'echo "Received SIGINT (Control-C?); shutting down"; ambassador_exit 1' INT
+trap 'log "Received SIGINT (Control-C?); shutting down"; ambassador_exit 1' INT
 
 ################################################################################
 # WORKER: DEMO                                                                 #
@@ -276,7 +285,6 @@ fi
 ################################################################################
 if [[ -z "${DIAGD_ONLY}" ]]; then
     launch "ambex" ambex -ads 8003 "${ENVOY_DIR}"
-    ambex_pid=$?
 
     diagd_flags+=('--kick' "kill -HUP $$")
 else
@@ -285,41 +293,38 @@ fi
 
 # Once Ambex is running, we can set up ADS management
 
-envoy_pid=
 demo_chimed=
 
 kick_ads() {
     if [ -n "$DIAGD_ONLY" ]; then
-        echo "kick_ads: ignoring kick since in diagd-only mode."
+        debug "kick_ads: ignoring kick since in diagd-only mode."
     else
-        if [ -n "${envoy_pid}" ]; then
-            if ! kill -0 "${envoy_pid}"; then
-                envoy_pid=
+        if [ -n "${pids[envoy]}" ]; then
+            if ! kill -0 "${pids[envoy]}"; then
+                pids[envoy]=
             fi
         fi
 
-        if [ -z "${envoy_pid}" ]; then
+        if [ -z "${pids[envoy]}" ]; then
             # Envoy isn't running. Start it.
             launch "envoy" envoy "${envoy_flags[@]}"
 
-            envoy_pid=$?
-
-            echo "KICK: started Envoy as PID $envoy_pid"
+            log "KICK: started Envoy as PID ${pids[envoy]}"
         fi
 
         # Once envoy is running, poke Ambex.
 
         if [ -n "$ENTRYPOINT_DEBUG" ]; then
-            echo "KICK: kicking ambex"
+            log "KICK: kicking ambex"
         fi
 
-        kill -HUP "$ambex_pid"
+        kill -HUP "${pids[ambex]}"
 
         if [ -n "$AMBASSADOR_DEMO_MODE" -a -z "$demo_chimed" ]; then
             # Wait for Envoy...
             wait_for_url "envoy" "http://localhost:8001/ready"
 
-            echo "AMBASSADOR DEMO RUNNING"
+            log "AMBASSADOR DEMO RUNNING"
             demo_chimed=yes
         fi
     fi
@@ -384,12 +389,12 @@ fi
 # Wait for one worker to quit, then kill the others                            #
 ################################################################################
 
-echo "AMBASSADOR: waiting"
-echo "PIDS: $pids"
+debug "AMBASSADOR: waiting"
+debug "PIDS: $pids"
 
 while true; do
     wait
-    echo "-ping-"
+    debug "-ping-"
 done
 
 ambassador_exit 2
