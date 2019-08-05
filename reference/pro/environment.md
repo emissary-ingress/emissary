@@ -1,28 +1,28 @@
 # Environment variables for the Ambassador Pro container
 
-| Variable                        | Default                                           | Value type                                                                    | Purpose                        |
-|---------------------------------|---------------------------------------------------|-------------------------------------------------------------------------------|--------------------------------|
-| `AMBASSADOR_ID`                 | `default`                                         | plain string                                                                  | Ambassador                     |
-| `AMBASSADOR_NAMESPACE`          | `default`[^1]                                     | Kubernetes namespace                                                          | Ambassador                     |
-| `AMBASSADOR_SINGLE_NAMESPACE`   | empty                                             | Boolean; non-empty=true, empty=false                                          | Ambasador                      |
-| <hr/>                           | <hr/>                                             | <hr/>                                                                         | <hr/>                          |
-| `APRO_AUTH_PORT`                | `8500`                                            | TCP port number or name                                                       | Filtering AuthService (gRPC)   |
-| `GRPC_PORT`                     | `8501`                                            | TCP port number or name                                                       | RateLimitService (gRPC)        |
-| `DEBUG_PORT`                    | `8502`                                            | TCP port number or name                                                       | RateLimitService debug (HTTP)  |
-| `PORT`                          | `8503`                                            | TCP port number or name                                                       | RateLimitService health (HTTP) |
-| <hr/>                           | <hr/>                                             | <hr/>                                                                         | <hr/>                          |
-| `APP_LOG_LEVEL`                 | `info`                                            | log level                                                                     | Filter                         |
-| `LOG_LEVEL`                     | `WARN`                                            | log level                                                                     | RateLimit                      |
-| <hr/>                           | <hr/>                                             | <hr/>                                                                         | <hr/>                          |
-| `APRO_KEYPAIR_SECRET_NAME`      | `ambassador-pro-keypair`                          | Kubernetes name                                                               | Filter                         |
-| `APRO_KEYPAIR_SECRET_NAMESPACE` | use the value of `AMBASSADOR_NAMESPACE`           | Kubernetes namespace                                                          | Filter                         |
-| `REDIS_POOL_SIZE`               | `10`                                              | integer                                                                       | Filter, RateLimit              |
-| `REDIS_SOCKET_TYPE`             | none, must be set manually                        | Go network such as `tcp` or `unix`; see [Go `net.Dial`][]                     | Filter, RateLimit              |
-| `REDIS_URL`                     | none, must be set manually                        | Go network address; for TCP this is a `host:port` pair; see [Go `net.Dial`][] | Filter, RateLimit              |
-| `REDIS_PERSECOND`               | `false`                                           | Boolean; [Go `strconv.ParseBool`][]                                           | RateLimit                      |
-| `REDIS_PERSECOND_SOCKET_TYPE`   | none, must be set manually (if `REDIS_PERSECOND`) | Go network such as `tcp` or `unix`; see [Go `net.Dial`][]                     | RateLimit                      |
-| `REDIS_PERSECOND_POOL_SIZE`     | none, must be set manually (if `REDIS_PERSECOND`) | Go network address; for TCP this is a `host:port` pair; see [Go `net.Dial`][] | RateLimit                      |
-| `EXPIRATION_JITTER_MAX_SECONDS` | `300`                                             | integer                                                                       | RateLimit                      |
+| Variable                        | Default                                           | Value type                                                                    | Purpose                                              |
+|---------------------------------|---------------------------------------------------|-------------------------------------------------------------------------------|------------------------------------------------------|
+| `AMBASSADOR_ID`                 | `default`                                         | plain string                                                                  | Ambassador                                           |
+| `AMBASSADOR_NAMESPACE`          | `default`[^1]                                     | Kubernetes namespace                                                          | Ambassador                                           |
+| `AMBASSADOR_SINGLE_NAMESPACE`   | empty                                             | Boolean; non-empty=true, empty=false                                          | Ambasador                                            |
+| <hr/>                           | <hr/>                                             | <hr/>                                                                         | <hr/>                                                |
+| `APRO_AUTH_PORT`                | `8500`                                            | TCP port number or name                                                       | Filtering AuthService (gRPC)                         |
+| `GRPC_PORT`                     | `8501`                                            | TCP port number or name                                                       | RateLimitService (gRPC)                              |
+| `DEBUG_PORT`                    | `8502`                                            | TCP port number or name                                                       | RateLimitService debug (HTTP)                        |
+| `PORT`                          | `8503`                                            | TCP port number or name                                                       | RateLimitService health (HTTP)                       |
+| <hr/>                           | <hr/>                                             | <hr/>                                                                         | <hr/>                                                |
+| `APP_LOG_LEVEL`                 | `info`                                            | log level                                                                     | Filter                                               |
+| `LOG_LEVEL`                     | `WARN`                                            | log level                                                                     | RateLimit                                            |
+| <hr/>                           | <hr/>                                             | <hr/>                                                                         | <hr/>                                                |
+| `APRO_KEYPAIR_SECRET_NAME`      | `ambassador-pro-keypair`                          | Kubernetes name                                                               | Filter                                               |
+| `APRO_KEYPAIR_SECRET_NAMESPACE` | use the value of `AMBASSADOR_NAMESPACE`           | Kubernetes namespace                                                          | Filter                                               |
+| `REDIS_POOL_SIZE`               | `10`                                              | integer                                                                       | Filter, RateLimit                                    |
+| `REDIS_SOCKET_TYPE`             | none, must be set manually                        | Go network such as `tcp` or `unix`; see [Go `net.Dial`][]                     | Filter, RateLimit                                    |
+| `REDIS_URL`                     | none, must be set manually                        | Go network address; for TCP this is a `host:port` pair; see [Go `net.Dial`][] | Filter, RateLimit                                    |
+| `REDIS_PERSECOND`               | `false`                                           | Boolean; [Go `strconv.ParseBool`][]                                           | RateLimit                                            |
+| `REDIS_PERSECOND_SOCKET_TYPE`   | none, must be set manually (if `REDIS_PERSECOND`) | Go network such as `tcp` or `unix`; see [Go `net.Dial`][]                     | RateLimit                                            |
+| `REDIS_PERSECOND_POOL_SIZE`     | none, must be set manually (if `REDIS_PERSECOND`) | Go network address; for TCP this is a `host:port` pair; see [Go `net.Dial`][] | RateLimit                                            |
+| `EXPIRATION_JITTER_MAX_SECONDS` | `300`                                             | integer                                                                       | RateLimit                                            |
 
 <!--
 
