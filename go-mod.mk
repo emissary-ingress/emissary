@@ -128,7 +128,7 @@ bin_%/.$1.stamp: go-get $$(go.lock) FORCE
 bin_%/$1: bin_%/.$1.stamp $$(COPY_IFCHANGED)
 	$$(COPY_IFCHANGED) $$< $$@
 
-bin_%/$1.opensource.tar.gz: vendor $$(_go.mkopensource) $$(dir $$(_go-mod.mk))go$$(go.goversion).src.tar.gz $$(WRITE_IFCHANGED) $$(go.lock)
+bin_%/$1.opensource.tar.gz: bin_%/$1 vendor $$(_go.mkopensource) $$(dir $$(_go-mod.mk))go$$(go.goversion).src.tar.gz $$(WRITE_IFCHANGED) $$(go.lock)
 	$$(go.lock)$$(_go.mkopensource) --output-name=$1.opensource --package=$2 --gotar=$$(dir $$(_go-mod.mk))go$$(go.goversion).src.tar.gz | $$(WRITE_IFCHANGED) $$@
 endef
 
