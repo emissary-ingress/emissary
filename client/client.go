@@ -371,11 +371,20 @@ func (q Query) AddResponse(resp *http.Response) {
 
 	headers := result["headers"].(http.Header)
 
-	// Copy in the client's start date.
-	headers.Add("Client-Start-Date", q["client-start-date"].(string))
+	if headers != nil {
+		// Copy in the client's start date.
+		cstart := q["client-start-date"]
 
-	// Add the client's end date.
-	headers.Add("Client-End-Date", time.Now().Format(time.RFC3339Nano))
+		// We'll only have a client-start-date if we're doing plain old HTTP, at
+		// present -- so not for WebSockets or gRPC or the like. Don't try to 
+		// save the start and end dates if we have no start date.
+		if cstart != nil {
+			headers.Add("Client-Start-Date", q["client-start-date"].(string))
+
+			// Add the client's end date.
+			headers.Add("Client-End-Date", time.Now().Format(time.RFC3339Nano))
+		}
+	}
 
 	if resp.TLS != nil {
 		result["tls_version"] = resp.TLS.Version
@@ -689,7 +698,6 @@ func ExecuteQuery(query Query, secureTransport *http.Transport) {
 		return
 	}
 	req.Header = query.Headers()
-	log.Printf("headers %v", req.Header)
 	for _, cookie := range query.Cookies() {
 		req.AddCookie(&cookie)
 	}
