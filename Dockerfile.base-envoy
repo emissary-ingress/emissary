@@ -17,7 +17,7 @@
 # in the Makefile, then run "make docker-update-base" to build and
 # push the new image.
 
-FROM frolvlad/alpine-glibc
+FROM frolvlad/alpine-glibc:alpine-3.9
 
 ARG ENVOY_FILE
 ADD $ENVOY_FILE /usr/local/bin/envoy
