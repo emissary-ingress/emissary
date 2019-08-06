@@ -17,12 +17,18 @@
 ENTRYPOINT_DEBUG=
 
 log () {
-    echo "${@}" >&2
+    local now
+
+    now=$(date +"%Y-%m-%d %H:%M:%S")
+    echo "${now} AMBASSADOR INFO ${@}" >&2
 }
 
 debug () {
+    local now
+
     if [ -n "$ENTRYPOINT_DEBUG" ]; then
-        echo "${@}" >&2
+        now=$(date +"%Y-%m-%d %H:%M:%S")
+        echo "${now} AMBASSADOR DEBUG ${@}" >&2
     fi
 }
 
@@ -39,6 +45,8 @@ in_array() {
 }
 
 wait_for_url () {
+    local name url tries_left delay status
+
     name="$1"
     url="$2"
 
@@ -46,7 +54,7 @@ wait_for_url () {
     delay=1
 
     while (( tries_left > 0 )); do
-        debug "AMBASSADOR: pinging $name ($tries_left)..."
+        debug "pinging $name ($tries_left)..."
 
         status=$(curl -s -o /dev/null -w "%{http_code}" $url)
 
@@ -61,9 +69,9 @@ wait_for_url () {
     done
 
     if (( tries_left <= 0 )); then
-        log "AMBASSADOR: giving up on $name and hoping for the best..."
+        log "giving up on $name and hoping for the best..."
     else
-        log "AMBASSADOR: $name running"
+        log "$name running"
     fi
 }
 
@@ -89,7 +97,7 @@ export PYTHON_EGG_CACHE="${PYTHON_EGG_CACHE:-$AMBASSADOR_CONFIG_BASE_DIR}/.cache
 export PYTHONUNBUFFERED=true
 
 if [[ "$1" == "--dev-magic" ]]; then
-    log "AMBASSADOR: running with dev magic"
+    log "running with dev magic"
     diagd --dev-magic
     exit $?
 fi
@@ -145,12 +153,12 @@ fi
 
 # Do we have config on the filesystem?
 if [[ $(find "${config_dir}" -type f 2>/dev/null | wc -l) -gt 0 ]]; then
-    log "AMBASSADOR: using ${config_dir@Q} for configuration"
+    log "using ${config_dir@Q} for configuration"
     diagd_flags+=('--config-path' "${config_dir}")
 
     # Don't watch for Kubernetes changes.
     if [[ -z "${AMBASSADOR_FORCE_KUBEWATCH}" ]]; then
-        log "AMBASSADOR: not watching for Kubernetes config"
+        log "not watching for Kubernetes config"
         export AMBASSADOR_NO_KUBEWATCH=no_kubewatch
     fi
 fi
@@ -163,13 +171,13 @@ fi
 # will DTRT if Kubernetes is not available.
 
 if ! AMBASSADOR_CLUSTER_ID=$(/usr/bin/python3 "$APPDIR/kubewatch.py" --debug); then
-    log "AMBASSADOR: could not determine cluster-id; exiting"
+    log "could not determine cluster-id; exiting"
     exit 1
 fi
 
 export AMBASSADOR_CLUSTER_ID
 
-log "AMBASSADOR: starting with environment:"
+log "starting with environment:"
 log "===="
 env | grep AMBASSADOR | sort
 log "===="
@@ -185,14 +193,14 @@ ambassador_exit() {
     RC=${1:-1}
 
     if [ -n "$AMBASSADOR_EXIT_DELAY" ]; then
-        log "AMBASSADOR: sleeping before shutdown ($RC)"
+        log "sleeping before shutdown ($RC)"
         sleep $AMBASSADOR_EXIT_DELAY
     fi
 
-    log "AMBASSADOR: killing extant processes"
+    log "killing extant processes"
     jobs -p | xargs -r kill --
 
-    log "AMBASSADOR: shutting down ($RC)"
+    log "shutting down ($RC)"
     exit $RC
 }
 
@@ -201,9 +209,9 @@ diediedie() {
     STATUS=$2
 
     if [ $STATUS -eq 0 ]; then
-        log "AMBASSADOR: $NAME claimed success, but exited \?\?\?\?"
+        log "$NAME claimed success, but exited \?\?\?\?"
     else
-        log "AMBASSADOR: $NAME exited with status $STATUS"
+        log "$NAME exited with status $STATUS"
     fi
 
     ambassador_exit 1
@@ -221,25 +229,29 @@ diediedie() {
 declare -A pids # associative array of cmd:pid
 
 launch() {
+    local cmd args pid
+
     cmd="$1"    # this is a human-readable name used only for logging.
     shift
+    args="${@@Q}"
 
-    log "AMBASSADOR: launching worker process '${cmd}': ${*@Q}"
+    log "launching worker process '${cmd}': ${args}"
 
     # We do this 'eval' instead of just
     #     "$@" &
     # so that the pretty name for the job is the actual command line,
     # instead of the literal 4 characters "$@".
-    eval "${@@Q} &"
+    eval "${args} &"
 
     pid=$!
+
     pids[$cmd]=$pid
 
-    log "AMBASSADOR: ${cmd} is PID ${pid}"
+    log "${cmd} is PID ${pid}"
 
     if [ -n "$ENTRYPOINT_DEBUG" ]; then
         for K in "${!pids[@]}"; do
-            debug "AMBASSADOR pids $K --- ${pids[$K]}"
+            echo "AMBASSADOR pids $K --- ${pids[$K]}"
         done
     fi
 }
@@ -247,18 +259,20 @@ launch() {
 handle_chld () {
     trap - CHLD
 
+    local cmd pid status
+
     for cmd in "${!pids[@]}"; do
-        local pid=${pids[$cmd]}
+        pid=${pids[$cmd]}
 
         if [ ! -d "/proc/${pid}" ]; then
             wait "${pid}"
-            STATUS=$?
+            status=$?
 
             pids[$cmd]=
-            diediedie "${cmd}" "$STATUS"
+            diediedie "${cmd}" "$status"
         else
             if [ -n "$ENTRYPOINT_DEBUG" ]; then
-                debug "AMBASSADOR: $cmd still running"
+                debug "$cmd still running"
             fi
         fi
     done
@@ -389,7 +403,7 @@ fi
 # Wait for one worker to quit, then kill the others                            #
 ################################################################################
 
-debug "AMBASSADOR: waiting"
+debug "waiting"
 debug "PIDS: $pids"
 
 while true; do
