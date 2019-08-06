@@ -30,11 +30,15 @@ If you're still reading, you must be at Datawire. Congrats, you picked a fine pl
 7. Now for the time-critical bit.
    - Tag `master` with a GA tag like `0.33.0` and let CI do its thing.
    - CI will retag the latest RC image as the GA image.
+
+8. _After the CI run finishes_:
    - `make push-docs` _after the retag_ to push new docs out to the website.
+   - Go to https://github.com/datawire/ambassador/releases and create a new release.
+      - `make release-prep` should've output the text to paste into the release description.
 
    **Note** that there must be at least one RC build before a GA, since the GA tag **does not** rebuild the docker images -- it retags the ones built by the RC build. This is intentional, to allow for testing to happen on the actual artifacts that will be released.
 
-8. Submit a PR into the `helm/charts` repo to update things in `stable/ambassador`:
+9. Submit a PR into the `helm/charts` repo to update things in `stable/ambassador`:
    - in `Chart.yaml`, update `appVersion` with the new Ambassador version, and bump `version`.
    - in `README.md`, update the default value of `image.tag`.
    - in `values.yaml`, update `tag`.
@@ -51,6 +55,6 @@ If you're still reading, you must be at Datawire. Congrats, you picked a fine pl
       - open a PR
     - Once your PR is merged, _delete the feature branch without merging it back to origin/master_.
 
-9. Additional updates:
+10. Additional updates:
    - Submit a PR to https://github.com/datawire/pro-ref-arch that updates the `env.sh.example` versions.
    - Submit a PR to the Ambassador website repository to update the version on the homepage.

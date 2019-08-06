@@ -29,7 +29,7 @@ metadata:
 spec:
   containers:
   - name: backend
-    image: quay.io/datawire/kat-backend:15
+    image: quay.io/datawire/kat-backend:v1.5.0
     imagePullPolicy: Always
     ports:
     - containerPort: 8080
@@ -56,7 +56,7 @@ spec:
     spec:
       containers:
       - name: backend
-        image: quay.io/datawire/kat-backend:15
+        image: quay.io/datawire/kat-backend:v1.5.0
         imagePullPolicy: Always
         # ports:
         # {ports}
@@ -94,7 +94,7 @@ metadata:
 spec:
   containers:
   - name: backend
-    image: quay.io/datawire/kat-backend:15
+    image: quay.io/datawire/kat-backend:v1.5.0
     imagePullPolicy: Always
     ports:
     - containerPort: 8080
@@ -133,7 +133,7 @@ metadata:
 spec:
   containers:
   - name: backend
-    image: quay.io/datawire/kat-backend:15
+    image: quay.io/datawire/kat-backend:v1.5.0
     imagePullPolicy: Always
     ports:
     - containerPort: 8080
@@ -172,7 +172,7 @@ metadata:
 spec:
   containers:
   - name: backend
-    image: quay.io/datawire/kat-backend:15
+    image: quay.io/datawire/kat-backend:v1.5.0
     imagePullPolicy: Always
     ports:
     - containerPort: 8080
@@ -800,7 +800,7 @@ spec:
   - JSONPath: .status.serviceName
     name: Service Name
     type: string
-  - JSONPath: .metadata.labels['serving\.knative\.dev/configurationGeneration']
+  - JSONPath: .metadata.labels['serving\\.knative\\.dev/configurationGeneration']
     name: Generation
     type: string
   - JSONPath: .status.conditions[?(@.type=='Ready')].status
