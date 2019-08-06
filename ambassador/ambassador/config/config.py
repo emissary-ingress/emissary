@@ -210,8 +210,6 @@ class Config:
     def ambassador_id_required(self, resource_kind: str) -> bool:
         if resource_kind in self.KnativeResources:
             return False
-        elif resource_kind in ['ingress', 'ingresses']:
-            return False
 
         return True
 
@@ -406,7 +404,7 @@ class Config:
             is_ambassador = True
             apiVersion = apiVersion.split('/')[1]
         elif apiVersion.startswith('networking.internal.knative.dev'):
-            # This is not an Ambassador resource, we're trying to parse
+            # This is not an Ambassador resource, we're trying to parse Knative
             # here
             pass
         else:
