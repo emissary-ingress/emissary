@@ -7,14 +7,14 @@ import requests
 DockerImage = os.environ["AMBASSADOR_DOCKER_IMAGE"]
 child = None    # see docker_start()
 
-def docker_start() -> bool:
+def docker_start(logfile) -> bool:
     # Use a global here so that the child process doesn't get killed
     global child
 
     cmd = f'docker run --rm --name ambassador -p8888:8080 {os.environ["AMBASSADOR_DOCKER_IMAGE"]} --demo'
 
     child = pexpect.spawn(cmd, encoding='utf-8')
-    child.logfile = sys.stdout
+    child.logfile = logfile
 
     i = child.expect([ pexpect.EOF, pexpect.TIMEOUT, 'AMBASSADOR DEMO RUNNING' ])
 
@@ -27,11 +27,11 @@ def docker_start() -> bool:
     else:
         return True
 
-def docker_kill():
+def docker_kill(logfile):
     cmd = f'docker kill ambassador'
 
     child = pexpect.spawn(cmd, encoding='utf-8')
-    child.logfile = sys.stdout
+    child.logfile = logfile
 
     child.expect([ pexpect.EOF, pexpect.TIMEOUT ])
 
@@ -51,20 +51,27 @@ def check_http() -> bool:
         return False
 
 def test_docker():
-    test_status = True
+    test_status = False
 
-    if not DockerImage:
-        assert False, f'You must set $AMBASSADOR_DOCKER_IMAGE'
-    else:
-        assert docker_start(), 'ambassador could not start'
+    with open('/tmp/test_docker_output', 'w') as logfile:
+        if not DockerImage:
+            logfile.write('No $AMBASSADOR_DOCKER_IMAGE??\n')
+        else:
+            if docker_start(logfile):
+                if check_http():
+                    test_status = True
 
-        if not check_http():
-            test_status = False
+                docker_kill(logfile)
 
-        docker_kill()
+    with open('/tmp/test_docker_output', 'r') as logfile:
+        for line in logfile:
+            print(line.strip())
 
-        assert test_status, 'test failed'
+    assert test_status, 'test failed'
 
 if __name__ == '__main__':
     test_docker()
+
+
+
 
