@@ -31,13 +31,10 @@ env:
     - GIT_BRANCH=$(if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then printf "$TRAVIS_BRANCH"; else printf "$TRAVIS_PULL_REQUEST_BRANCH"; fi)
 
     # Set from the repository settings:
-    #- DOCKER_USERNAME=[secure]
-    #- DOCKER_PASSWORD=[secure]
-    #- encrypted_95ce0d75e6f7_key=[secure] # XXX: remove me
-    #- encrypted_95ce0d75e6f7_iv=[secure]  # XXX: remove me
-    #- GH_TOKEN=[secure]                   # XXX: remove me
-    #- encrypted_21b00a486c76_key=[secure] # XXX: remove me
-    #- encrypted_21b00a486c76_iv=[secure]  # XXX: remove me
+    #- DOCKER_BUILD_USERNAME=[secure] (optional)
+    #- DOCKER_BUILD_PASSWORD=[secure] (optional)
+    #- DOCKER_RELEASE_USERNAME=[secure]
+    #- DOCKER_RELEASE_PASSWORD=[secure]
 
     # Encrypted here:
     # - PACKAGECLOUD_TOKEN # XXX: remove me

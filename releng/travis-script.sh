@@ -58,6 +58,12 @@ case "$COMMIT_TYPE" in
         : # We just re-tag the RC image as GA; nothing to build
         ;;
     *)
+        # CI might have set DOCKER_BUILD_USERNAME and DOCKER_BUILD_PASSWORD
+        # (in case BASE_DOCKER_REPO is private)
+        if [[ -n "${DOCKER_BUILD_USERNAME:-}" ]]; then
+            docker login -u="$DOCKER_BUILD_USERNAME" --password-stdin "${BASE_DOCKER_REPO%%/*}" <<<"$DOCKER_BUILD_PASSWORD"
+        fi
+
         make setup-develop cluster.yaml docker-registry
         make docker-push DOCKER_PUSH_AS="$AMBASSADOR_DOCKER_IMAGE" # to the in-cluster registry
         # make KAT_REQ_LIMIT=1200 test
@@ -69,17 +75,23 @@ printf "========\nPublishing artifacts...\n"
 
 case "$COMMIT_TYPE" in
     GA)
-        make docker-login
+        if [[ -n "${DOCKER_RELEASE_USERNAME:-}" ]]; then
+            docker login -u="$DOCKER_RELEASE_USERNAME" --password-stdin "${AMBASSADOR_EXTERNAL_DOCKER_REPO%%/*}" <<<"$DOCKER_RELEASE_PASSWORD"
+        fi
         make release
         ;;
     RC)
-        make docker-login
+        if [[ -n "${DOCKER_RELEASE_USERNAME:-}" ]]; then
+            docker login -u="$DOCKER_RELEASE_USERNAME" --password-stdin "${AMBASSADOR_EXTERNAL_DOCKER_REPO%%/*}" <<<"$DOCKER_RELEASE_PASSWORD"
+        fi
         make docker-push DOCKER_PUSH_AS="${AMBASSADOR_EXTERNAL_DOCKER_REPO}:${GIT_TAG_SANITIZED}" # public X.Y.Z-rcA
         make docker-push DOCKER_PUSH_AS="${AMBASSADOR_EXTERNAL_DOCKER_REPO}:${LATEST_RC}"         # public X.Y.Z-rc-latest
         make VERSION="$VERSION" SCOUT_APP_KEY=testapp.json STABLE_TXT_KEY=teststable.txt update-aws
         ;;
     EA)
-        make docker-login
+        if [[ -n "${DOCKER_RELEASE_USERNAME:-}" ]]; then
+            docker login -u="$DOCKER_RELEASE_USERNAME" --password-stdin "${AMBASSADOR_EXTERNAL_DOCKER_REPO%%/*}" <<<"$DOCKER_RELEASE_PASSWORD"
+        fi
         make docker-push DOCKER_PUSH_AS="${AMBASSADOR_EXTERNAL_DOCKER_REPO}:${GIT_TAG_SANITIZED}" # public X.Y.Z-eaA
         make VERSION="$VERSION" SCOUT_APP_KEY=earlyapp.json STABLE_TXT_KEY=earlystable.txt update-aws
         ;;

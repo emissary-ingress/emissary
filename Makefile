@@ -22,7 +22,7 @@ SHELL = bash
 
 .PHONY: \
     clean version setup-develop print-vars \
-    docker-login docker-push docker-images \
+    docker-push docker-images \
     teleproxy-restart teleproxy-stop
 .SECONDARY:
 
@@ -188,6 +188,7 @@ print-vars:
 	@echo "DOCKER_EXTERNAL_REGISTRY         = $(DOCKER_EXTERNAL_REGISTRY)"
 	@echo "DOCKER_OPTS                      = $(DOCKER_OPTS)"
 	@echo "DOCKER_REGISTRY                  = $(DOCKER_REGISTRY)"
+	@echo "BASE_DOCKER_REPO                 = $(BASE_DOCKER_REPO)"
 	@echo "GIT_BRANCH                       = $(GIT_BRANCH)"
 	@echo "GIT_BRANCH_SANITIZED             = $(GIT_BRANCH_SANITIZED)"
 	@echo "GIT_COMMIT                       = $(GIT_COMMIT)"
@@ -213,6 +214,7 @@ export-vars:
 	@echo "export DOCKER_EXTERNAL_REGISTRY='$(DOCKER_EXTERNAL_REGISTRY)'"
 	@echo "export DOCKER_OPTS='$(DOCKER_OPTS)'"
 	@echo "export DOCKER_REGISTRY='$(DOCKER_REGISTRY)'"
+	@echo "export BASE_DOCKER_REPO='$(BASE_DOCKER_REPO)'"
 	@echo "export GIT_BRANCH='$(GIT_BRANCH)'"
 	@echo "export GIT_BRANCH_SANITIZED='$(GIT_BRANCH_SANITIZED)'"
 	@echo "export GIT_COMMIT='$(GIT_COMMIT)'"
@@ -360,24 +362,6 @@ ambassador-docker-image: ambassador.docker
 ambassador.docker: Dockerfile base-go.docker base-py.docker $(WATT) $(WRITE_IFCHANGED) ambassador/ambassador/VERSION.py FORCE
 	docker build --build-arg BASE_GO_IMAGE=$(BASE_GO_IMAGE) --build-arg BASE_PY_IMAGE=$(BASE_PY_IMAGE) $(DOCKER_OPTS) -t $(AMBASSADOR_DOCKER_IMAGE) .
 	@docker image inspect $(AMBASSADOR_DOCKER_IMAGE) --format='{{.Id}}' | $(WRITE_IFCHANGED) $@
-
-docker-login:
-ifeq ($(DOCKER_LOGIN_FAKE), true)
-	@echo Faking Docker login...
-else
-ifeq ($(TRAVIS), true)
-ifneq ($(DOCKER_EXTERNAL_REGISTRY),-)
-	@if [ -z $(DOCKER_USERNAME) ]; then echo 'DOCKER_USERNAME not defined'; exit 1; fi
-	@if [ -z $(DOCKER_PASSWORD) ]; then echo 'DOCKER_PASSWORD not defined'; exit 1; fi
-
-	@printf "$(DOCKER_PASSWORD)" | docker login -u="$(DOCKER_USERNAME)" --password-stdin $(DOCKER_EXTERNAL_REGISTRY)
-else
-	@echo "Using local registry, no need for docker login."
-endif
-else
-	@echo "Not in CI, assuming you're already logged into Docker"
-endif
-endif
 
 docker-images: ambassador-docker-image
 
@@ -542,6 +526,10 @@ test-list: setup-develop
 	cd ambassador && PATH="$(shell pwd)/venv/bin":$(PATH) pytest --collect-only -q
 
 update-aws:
+ifeq ($(ASW_ACCESS_KEY_ID),)
+	@echo 'AWS credentials not configured; not updating https://s3.amazonaws.com/datawire-static-files/ambassador/$(STABLE_TXT_KEY)'
+	@echo 'AWS credentials not configured; not updating latest version in Scout'
+else
 	@if [ -n "$(STABLE_TXT_KEY)" ]; then \
         printf "$(VERSION)" > stable.txt; \
 		echo "updating $(STABLE_TXT_KEY) with $$(cat stable.txt)"; \
@@ -558,6 +546,7 @@ update-aws:
             --key ambassador/$(SCOUT_APP_KEY) \
             --body app.json; \
 	fi
+endif
 
 release-prep:
 	bash releng/release-prep.sh
@@ -567,7 +556,6 @@ release:
 		printf "'make release' can only be run for a GA commit when VERSION is not the same as GIT_COMMIT!\n"; \
 		exit 1; \
 	fi
-	$(MAKE) docker-login
 	docker pull $(AMBASSADOR_DOCKER_REPO):$(LATEST_RC)
 	docker tag $(AMBASSADOR_DOCKER_REPO):$(LATEST_RC) $(AMBASSADOR_DOCKER_REPO):$(VERSION)
 	docker push $(AMBASSADOR_DOCKER_REPO):$(VERSION)
