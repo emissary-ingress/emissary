@@ -800,7 +800,7 @@ spec:
   - JSONPath: .status.serviceName
     name: Service Name
     type: string
-  - JSONPath: .metadata.labels['serving\.knative\.dev/configurationGeneration']
+  - JSONPath: .metadata.labels['serving\\.knative\\.dev/configurationGeneration']
     name: Generation
     type: string
   - JSONPath: .status.conditions[?(@.type=='Ready')].status
