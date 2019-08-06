@@ -24,7 +24,6 @@ require (
 	github.com/hashicorp/serf v0.8.3 // indirect
 	github.com/influxdata/tdigest v0.0.0-20181121200506-bf2b5ad3c0a9
 	github.com/jcuga/golongpoll v0.0.0-20180711123949-939e3befd837
-	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
 	github.com/lyft/goruntime v0.1.8
 	github.com/lyft/gostats v0.2.6
 	github.com/lyft/ratelimit v1.3.0
@@ -42,12 +41,10 @@ require (
 	github.com/tsenart/vegeta v12.2.1+incompatible
 	github.com/zeromq/goczmq v4.1.0+incompatible // indirect
 	github.com/zeromq/gomq v0.0.0-20181008000130-95dc37dee5c4 // indirect
-	golang.org/x/crypto v0.0.0-20190320223903-b7391e95e576
 	golang.org/x/net v0.0.0-20190322120337-addf6b3196f6
 	golang.org/x/sync v0.0.0-20190227155943-e225da77a7e6
 	golang.org/x/tools v0.0.0-20190226205152-f727befe758c // indirect
 	google.golang.org/grpc v1.19.1
-	gopkg.in/natefinch/lumberjack.v2 v2.0.0
 	gopkg.in/yaml.v2 v2.2.2
 	k8s.io/api v0.0.0-20190111032252-67edc246be36
 	k8s.io/apimachinery v0.0.0-20190119020841-d41becfba9ee
