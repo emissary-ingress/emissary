@@ -39,6 +39,8 @@ in_array() {
 }
 
 wait_for_url () {
+    local name url tries_left delay status
+
     name="$1"
     url="$2"
 
@@ -221,8 +223,11 @@ diediedie() {
 declare -A pids # associative array of cmd:pid
 
 launch() {
+    local cmd args pid
+
     cmd="$1"    # this is a human-readable name used only for logging.
     shift
+    args="${@@Q}"
 
     log "AMBASSADOR: launching worker process '${cmd}': ${*@Q}"
 
@@ -230,9 +235,10 @@ launch() {
     #     "$@" &
     # so that the pretty name for the job is the actual command line,
     # instead of the literal 4 characters "$@".
-    eval "${@@Q} &"
+    eval "${args} &"
 
     pid=$!
+
     pids[$cmd]=$pid
 
     log "AMBASSADOR: ${cmd} is PID ${pid}"
@@ -247,15 +253,17 @@ launch() {
 handle_chld () {
     trap - CHLD
 
+    local cmd pid status
+
     for cmd in "${!pids[@]}"; do
-        local pid=${pids[$cmd]}
+        pid=${pids[$cmd]}
 
         if [ ! -d "/proc/${pid}" ]; then
             wait "${pid}"
-            STATUS=$?
+            status=$?
 
             pids[$cmd]=
-            diediedie "${cmd}" "$STATUS"
+            diediedie "${cmd}" "$status"
         else
             if [ -n "$ENTRYPOINT_DEBUG" ]; then
                 debug "AMBASSADOR: $cmd still running"
