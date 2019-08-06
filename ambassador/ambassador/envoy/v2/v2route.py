@@ -16,6 +16,7 @@ from typing import List, TYPE_CHECKING
 
 from ..common import EnvoyRoute
 from ...ir.irhttpmappinggroup import IRHTTPMappingGroup
+from ...ir.irbasemapping import IRBaseMapping
 
 from .v2ratelimitaction import V2RateLimitAction
 
@@ -24,14 +25,31 @@ if TYPE_CHECKING:
 
 
 class V2Route(dict):
-    def __init__(self, config: 'V2Config', group: IRHTTPMappingGroup) -> None:
+    def __init__(self, config: 'V2Config', group: IRHTTPMappingGroup, mapping: IRBaseMapping) -> None:
         super().__init__()
 
         envoy_route = EnvoyRoute(group).envoy_route
 
+        mapping_prefix = mapping.get('prefix', None)
+        route_prefix = mapping_prefix if mapping_prefix is not None else group.get('prefix')
+
+        mapping_case_sensitive = mapping.get('case_sensitive', None)
+        case_sensitive = mapping_case_sensitive if mapping_case_sensitive is not None else group.get('case_sensitive', True)
+
+        runtime_fraction = {
+            'default_value': {
+                'numerator': mapping.get('weight', 100),
+                'denominator': 'HUNDRED'
+            }
+        }
+
+        if len(mapping) > 0:
+            runtime_fraction['runtime_key'] = f'routing.traffic_shift.{mapping.cluster.name}'
+
         match = {
-            envoy_route: group.get('prefix'),
-            'case_sensitive': group.get('case_sensitive', True),
+            envoy_route: route_prefix,
+            'case_sensitive': case_sensitive,
+            'runtime_fraction': runtime_fraction
         }
 
         headers = self.generate_headers(group)
@@ -44,7 +62,7 @@ class V2Route(dict):
         # `per_filter_config` is used for customization of an Envoy filter
         per_filter_config = {}
 
-        if group.get('bypass_auth', False):
+        if mapping.get('bypass_auth', False):
             per_filter_config['envoy.ext_authz'] = {'disabled': True}
 
         if per_filter_config:
@@ -66,9 +84,7 @@ class V2Route(dict):
         if response_headers_to_remove:
             self['response_headers_to_remove'] = response_headers_to_remove
 
-        # If a host_redirect is set, we won't do a 'route' entry.
-        host_redirect = group.get('host_redirect', None)
-
+        host_redirect = group.get('host_redirect', False)
         if host_redirect:
             # We have a host_redirect. Deal with it.
             self['redirect'] = {
@@ -79,101 +95,95 @@ class V2Route(dict):
 
             if path_redirect:
                 self['redirect']['path_redirect'] = path_redirect
-        else:
-            # No host_redirect. Do route stuff.
-            clusters = [ {
-                'name': mapping.cluster.name,
-                'weight': mapping.weight
-            } for mapping in group.mappings ]
 
-            route = {
-                'priority': group.get('priority'),
-                'timeout': "%0.3fs" % (group.get('timeout_ms', 3000) / 1000.0),
-                'weighted_clusters': {
-                    'clusters': clusters
+            return
+
+        route = {
+            'priority': group.get('priority'),
+            'timeout': "%0.3fs" % (mapping.get('timeout_ms', 3000) / 1000.0),
+            'cluster': mapping.cluster.name
+        }
+
+        idle_timeout_ms = mapping.get('idle_timeout_ms', None)
+
+        if idle_timeout_ms is not None:
+            route['idle_timeout'] = "%0.3fs" % (idle_timeout_ms / 1000.0)
+
+        if mapping.get('rewrite', None):
+            route['prefix_rewrite'] = mapping['rewrite']
+
+        if 'host_rewrite' in mapping:
+            route['host_rewrite'] = mapping['host_rewrite']
+
+        if 'auto_host_rewrite' in mapping:
+            route['auto_host_rewrite'] = mapping['auto_host_rewrite']
+
+        hash_policy = self.generate_hash_policy(group)
+        if len(hash_policy) > 0:
+            route['hash_policy'] = [ hash_policy ]
+
+        cors = None
+
+        if "cors" in group:
+            cors = group.cors.as_dict()
+        elif "cors" in config.ir.ambassador_module:
+            cors = config.ir.ambassador_module.cors.as_dict()
+
+        if cors:
+            route['cors'] = cors
+
+        retry_policy = None
+
+        if "retry_policy" in group:
+            retry_policy = group.retry_policy.as_dict()
+        elif "retry_policy" in config.ir.ambassador_module:
+            retry_policy = config.ir.ambassador_module.retry_policy.as_dict()
+
+        if retry_policy:
+            route['retry_policy'] = retry_policy
+
+        # Is shadowing enabled?
+        shadow = group.get("shadows", None)
+
+        if shadow:
+            shadow = shadow[0]
+
+            weight = shadow.get('weight', 100)
+
+            route['request_mirror_policy'] = {
+                'cluster': shadow.cluster.name,
+                'runtime_fraction': {
+                    'default_value': {
+                        'numerator': weight,
+                        'denominator': 'HUNDRED'
+                    }
                 }
             }
 
-            idle_timeout_ms = group.get('idle_timeout_ms', None)
+        # Is RateLimit a thing?
+        rlsvc = config.ir.ratelimit
 
-            if idle_timeout_ms is not None:
-                route['idle_timeout'] = "%0.3fs" % (idle_timeout_ms / 1000.0)
+        if rlsvc:
+            # Yup. Build our labels into a set of RateLimitActions (remember that default
+            # labels have already been handled, as has translating from v0 'rate_limits' to
+            # v1 'labels').
 
-            if group.get('rewrite', None):
-                route['prefix_rewrite'] = group['rewrite']
+            if "labels" in group:
+                # The Envoy RateLimit filter only supports one domain, so grab the configured domain
+                # from the RateLimitService and use that to look up the labels we should use.
 
-            if 'host_rewrite' in group:
-                route['host_rewrite'] = group['host_rewrite']
+                rate_limits = []
 
-            if 'auto_host_rewrite' in group:
-                route['auto_host_rewrite'] = group['auto_host_rewrite']
+                for rl in group.labels.get(rlsvc.domain, []):
+                    action = V2RateLimitAction(config, rl)
 
-            hash_policy = self.generate_hash_policy(group)
-            if len(hash_policy) > 0:
-                route['hash_policy'] = [ hash_policy ]
+                    if action.valid:
+                        rate_limits.append(action.to_dict())
 
-            cors = None
+                if rate_limits:
+                    route["rate_limits"] = rate_limits
 
-            if "cors" in group:
-                cors = group.cors.as_dict()
-            elif "cors" in config.ir.ambassador_module:
-                cors = config.ir.ambassador_module.cors.as_dict()
-
-            if cors:
-                route['cors'] = cors
-
-            retry_policy = None
-
-            if "retry_policy" in group:
-                retry_policy = group.retry_policy.as_dict()
-            elif "retry_policy" in config.ir.ambassador_module:
-                retry_policy = config.ir.ambassador_module.retry_policy.as_dict()
-
-            if retry_policy:
-                route['retry_policy'] = retry_policy
-
-            # Is shadowing enabled?
-            shadow = group.get("shadows", None)
-
-            if shadow:
-                shadow = shadow[0]
-
-                weight = shadow.get('weight', 100)
-
-                route['request_mirror_policy'] = {
-                    'cluster': shadow.cluster.name,
-                    'runtime_fraction': {
-                        'default_value': {
-                            'numerator': weight,
-                            'denominator': 'HUNDRED'
-                        }
-                    }
-                }
-
-            # Is RateLimit a thing?
-            rlsvc = config.ir.ratelimit
-
-            if rlsvc:
-                # Yup. Build our labels into a set of RateLimitActions (remember that default
-                # labels have already been handled, as has translating from v0 'rate_limits' to
-                # v1 'labels').
-
-                if "labels" in group:
-                    # The Envoy RateLimit filter only supports one domain, so grab the configured domain
-                    # from the RateLimitService and use that to look up the labels we should use.
-
-                    rate_limits = []
-
-                    for rl in group.labels.get(rlsvc.domain, []):
-                        action = V2RateLimitAction(config, rl)
-
-                        if action.valid:
-                            rate_limits.append(action.to_dict())
-
-                    if rate_limits:
-                        route["rate_limits"] = rate_limits
-
-            self['route'] = route
+        self['route'] = route
 
     @classmethod
     def generate(cls, config: 'V2Config') -> None:
@@ -184,17 +194,21 @@ class V2Route(dict):
                 # We only want HTTP mapping groups here.
                 continue
 
-            # It's an HTTP group. Great.
-            route = config.save_element('route', irgroup, V2Route(config, irgroup))
-
-            if irgroup.get('sni'):
-                info = {
-                    'hosts': irgroup['tls_context']['hosts'],
-                    'secret_info': irgroup['tls_context']['secret_info']
-                }
-                config.sni_routes.append({'route': route, 'info': info})
-            else:
+            if irgroup.get('host_redirect') is not None and len(irgroup.get('mappings', [])) == 0:
+                route = config.save_element('route', irgroup, V2Route(config, irgroup, {}))
                 config.routes.append(route)
+
+            for mapping in irgroup.mappings:
+                route = config.save_element('route', irgroup, V2Route(config, irgroup, mapping))
+
+                if irgroup.get('sni'):
+                    info = {
+                        'hosts': irgroup['tls_context']['hosts'],
+                        'secret_info': irgroup['tls_context']['secret_info']
+                    }
+                    config.sni_routes.append({'route': route, 'info': info})
+                else:
+                    config.routes.append(route)
 
     @staticmethod
     def generate_headers(mapping_group: IRHTTPMappingGroup) -> List[dict]:
