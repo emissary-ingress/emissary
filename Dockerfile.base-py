@@ -19,10 +19,9 @@
 # to more effectively dodge network issues with APK repos or the Cheese
 # Shop.
 #
-# If you have to change this - including changing Ambassador's dependency
-# graph, including multi! - you _must_ update BASE_PY_IMAGE
-# in the Makefile, then run "make docker-update-base" to build and push the
-# new image.
+# If you have to change this file or any of the files that it COPYs
+# in, you _must_ update BASE_PY_RELVER in the Makefile, then run "make
+# docker-update-base" to build and push the new image.
 
 ARG BASE_ENVOY_IMAGE
 FROM $BASE_ENVOY_IMAGE
