@@ -94,6 +94,14 @@ Format:
 --->
 
 <!--- CueAddReleaseNotes --->
+## [0.74.1] August 06, 2019
+[0.74.1]: https://github.com/datawire/ambassador/compare/0.74.0...0.74.1
+
+- (bugfix) Make sure that updates properly trigger reconfigures ([#1727])
+- (misc) Arrange for startup logging to have timestamps
+
+[#1727]: https://github.com/datawire/ambassador/issues/1727
+
 ## [0.74.0] July 30, 2019
 [0.74.0]: https://github.com/datawire/ambassador/compare/0.73.0...0.74.0
 
