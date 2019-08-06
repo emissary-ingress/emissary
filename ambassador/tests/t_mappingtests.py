@@ -107,6 +107,7 @@ kind: Ingress
 metadata:
   annotations:
     kubernetes.io/ingress.class: ambassador
+    getambassador.io/ambassador-id: plain
   name: {self.name.lower()}
 spec:
   rules:
@@ -145,6 +146,7 @@ kind: Ingress
 metadata:
   annotations:
     kubernetes.io/ingress.class: ambassador
+    getambassador.io/ambassador-id: plain
   name: {self.name.lower()}
 spec:
   rules:
