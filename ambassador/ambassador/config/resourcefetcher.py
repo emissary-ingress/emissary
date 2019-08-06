@@ -476,16 +476,6 @@ class ResourceFetcher:
                 self.logger.info(f"Generated mapping from Ingress {ingress_name}: {path_mapping}")
                 self.handle_k8s_crd(path_mapping)
 
-        # resource_identifier = f'{resource_name}.{resource_namespace}'
-        # ingress = {
-        #     'kind': 'Ingress',
-        #     'name': resource_name,
-        #     'namespace': resource_namespace,
-        #     'spec': spec
-        # }
-
-        # return resource_identifier, [ingress]
-
     def handle_k8s_endpoints(self, k8s_object: AnyDict) -> HandlerResult:
         # Don't include Endpoints unless endpoint routing is enabled.
         if not Config.enable_endpoints:
