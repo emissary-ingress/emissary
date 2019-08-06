@@ -61,14 +61,6 @@ endif
 # 0.36.0-436-g8b8c5d3
 GIT_DESCRIPTION := $(shell git describe $(GIT_COMMIT))
 
-# TODO: need to remove the dependency on Travis env var which means this likely needs to be arg passed to make rather
-IS_PULL_REQUEST = false
-ifdef TRAVIS_PULL_REQUEST
-ifneq ($(TRAVIS_PULL_REQUEST),false)
-IS_PULL_REQUEST = true
-endif
-endif
-
 # Note that for everything except RC builds, VERSION will be set to the version
 # we'd use for a GA build. This is by design.
 ifneq ($(GIT_TAG_SANITIZED),)
@@ -79,19 +71,6 @@ endif
 
 # We need this for tagging in some situations.
 LATEST_RC=$(VERSION)-rc-latest
-
-# Is this a random commit, an RC, or a GA?
-ifeq ($(shell [[ "$(GIT_BRANCH)" =~ ^[0-9]+\.[0-9]+\.[0-9]+$$ ]] && echo "GA"), GA)
-COMMIT_TYPE=GA
-else ifeq ($(shell [[ "$(GIT_BRANCH)" =~ -rc[0-9]+$$ ]] && echo "RC"), RC)
-COMMIT_TYPE=RC
-else ifeq ($(shell [[ "$(GIT_BRANCH)" =~ -ea[0-9]+$$ ]] && echo "EA"), EA)
-COMMIT_TYPE=EA
-else ifeq ($(IS_PULL_REQUEST), true)
-COMMIT_TYPE=PR
-else
-COMMIT_TYPE=random
-endif
 
 ifndef DOCKER_REGISTRY
 $(error DOCKER_REGISTRY must be set. Use make DOCKER_REGISTRY=- for a purely local build.)
@@ -205,7 +184,6 @@ print-vars:
 	@echo "AMBASSADOR_EXTERNAL_DOCKER_IMAGE = $(AMBASSADOR_EXTERNAL_DOCKER_IMAGE)"
 	@echo "AMBASSADOR_EXTERNAL_DOCKER_REPO  = $(AMBASSADOR_EXTERNAL_DOCKER_REPO)"
 	@echo "CI_DEBUG_KAT_BRANCH              = $(CI_DEBUG_KAT_BRANCH)"
-	@echo "COMMIT_TYPE                      = $(COMMIT_TYPE)"
 	@echo "DOCKER_EPHEMERAL_REGISTRY        = $(DOCKER_EPHEMERAL_REGISTRY)"
 	@echo "DOCKER_EXTERNAL_REGISTRY         = $(DOCKER_EXTERNAL_REGISTRY)"
 	@echo "DOCKER_OPTS                      = $(DOCKER_OPTS)"
@@ -218,7 +196,6 @@ print-vars:
 	@echo "GIT_TAG                          = $(GIT_TAG)"
 	@echo "GIT_TAG_SANITIZED                = $(GIT_TAG_SANITIZED)"
 	@echo "GIT_VERSION                      = $(GIT_VERSION)"
-	@echo "IS_PULL_REQUEST                  = $(IS_PULL_REQUEST)"
 	@echo "KAT_BACKEND_RELEASE              = $(KAT_BACKEND_RELEASE)"
 	@echo "KUBECONFIG                       = $(KUBECONFIG)"
 	@echo "LATEST_RC                        = $(LATEST_RC)"
@@ -232,7 +209,6 @@ export-vars:
 	@echo "export AMBASSADOR_EXTERNAL_DOCKER_IMAGE='$(AMBASSADOR_EXTERNAL_DOCKER_IMAGE)'"
 	@echo "export AMBASSADOR_EXTERNAL_DOCKER_REPO='$(AMBASSADOR_EXTERNAL_DOCKER_REPO)'"
 	@echo "export CI_DEBUG_KAT_BRANCH='$(CI_DEBUG_KAT_BRANCH)'"
-	@echo "export COMMIT_TYPE='$(COMMIT_TYPE)'"
 	@echo "export DOCKER_EPHEMERAL_REGISTRY='$(DOCKER_EPHEMERAL_REGISTRY)'"
 	@echo "export DOCKER_EXTERNAL_REGISTRY='$(DOCKER_EXTERNAL_REGISTRY)'"
 	@echo "export DOCKER_OPTS='$(DOCKER_OPTS)'"
@@ -245,7 +221,6 @@ export-vars:
 	@echo "export GIT_TAG='$(GIT_TAG)'"
 	@echo "export GIT_TAG_SANITIZED='$(GIT_TAG_SANITIZED)'"
 	@echo "export GIT_VERSION='$(GIT_VERSION)'"
-	@echo "export IS_PULL_REQUEST='$(IS_PULL_REQUEST)'"
 	@echo "export KAT_BACKEND_RELEASE='$(KAT_BACKEND_RELEASE)'"
 	@echo "export KUBECONFIG='$(KUBECONFIG)'"
 	@echo "export LATEST_RC='$(LATEST_RC)'"
@@ -407,29 +382,18 @@ endif
 docker-images: ambassador-docker-image
 
 docker-push: docker-images
-ifeq ($(DOCKER_REGISTRY),-)
-	@echo "No DOCKER_REGISTRY set"
+ifeq ($(DOCKER_PUSH_AS),)
+	@echo "No DOCKER_PUSH_AS set"
 else
 	@if [ "$(GIT_DIRTY)" = "dirty" ]; then \
 		printf "Git tree is dirty and therefore 'docker push' is not allowed!\n"; \
 		exit 1; \
 	fi
-	@if true; then \
-		echo "PUSH $(AMBASSADOR_DOCKER_IMAGE), COMMIT_TYPE $(COMMIT_TYPE)"; \
-		docker push $(AMBASSADOR_DOCKER_IMAGE) | python releng/linify.py push.log; \
-	fi
-	@if [ "$(COMMIT_TYPE)" = "RC" ] || [ "$(COMMIT_TYPE)" = "EA" ]; then \
-		$(MAKE) docker-login || exit 1; \
-		\
-		echo "PUSH $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(GIT_TAG_SANITIZED)"; \
-		docker tag $(AMBASSADOR_DOCKER_IMAGE) $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(GIT_TAG_SANITIZED); \
-		docker push $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(GIT_TAG_SANITIZED) | python releng/linify.py push.log; \
-	fi
-	@if [ "$(COMMIT_TYPE)" = "RC" ]; then \
-		echo "PUSH $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(LATEST_RC)"; \
-		docker tag $(AMBASSADOR_DOCKER_IMAGE) $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(LATEST_RC); \
-		docker push $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(LATEST_RC) | python releng/linify.py push.log; \
-	fi
+	@echo 'PUSH $(AMBASSADOR_DOCKER_IMAGE) as $(DOCKER_PUSH_AS)'
+ifneq ($(DOCKER_PUSH_AS),$(AMBASSADOR_DOCKER_IMAGE))
+	@docker tag $(AMBASSADOR_DOCKER_IMAGE) $(DOCKER_PUSH_AS)
+endif
+	@docker push $(DOCKER_PUSH_AS) | python releng/linify.py push.log
 endif
 
 # TODO: validate version is conformant to some set of rules might be a good idea to add here
@@ -599,7 +563,7 @@ release-prep:
 	bash releng/release-prep.sh
 
 release:
-	@if [ "$(COMMIT_TYPE)" != "GA" ] || [ "$(VERSION)" = "$(GIT_VERSION)" ]; then \
+	@if [ "$(VERSION)" = "$(GIT_VERSION)" ]; then \
 		printf "'make release' can only be run for a GA commit when VERSION is not the same as GIT_COMMIT!\n"; \
 		exit 1; \
 	fi

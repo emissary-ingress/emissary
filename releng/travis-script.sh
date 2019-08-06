@@ -19,8 +19,17 @@ set -o nounset
 
 printf "== Begin: travis-script.sh ==\n"
 
-# We start by figuring out the COMMIT_TYPE. Yes, this is kind of a hack.
-eval $(make export-vars | grep COMMIT_TYPE)
+if [[ "$GIT_BRANCH" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+    COMMIT_TYPE=GA
+elif [[ "$GIT_BRANCH" =~ -rc[0-9]+$ ]]; then
+    COMMIT_TYPE=RC
+elif [[ "$GIT_BRANCH" =~ -ea[0-9]+$ ]]; then
+    COMMIT_TYPE=EA
+elif [[ "$TRAVIS_PULL_REQUEST" != false ]]; then
+    COMMIT_TYPE=PR
+else
+    COMMIT_TYPE=random
+fi
 
 printf "========\nCOMMIT_TYPE $COMMIT_TYPE; git status:\n"
 
@@ -53,7 +62,18 @@ if [ "${COMMIT_TYPE}" != "GA" ]; then
     printf "========\nStarting build...\n"
 
     make setup-develop cluster.yaml docker-registry
-    make docker-push
+    make docker-push DOCKER_PUSH_AS="$AMBASSADOR_DOCKER_IMAGE" # to the in-cluster registry
+    case "$COMMIT_TYPE" in
+        RC)
+            make docker-login
+            make docker-push DOCKER_PUSH_AS="${AMBASSADOR_EXTERNAL_DOCKER_REPO}:${GIT_TAG_SANITIZED}" # public X.Y.Z-rcA
+            make docker-push DOCKER_PUSH_AS="${AMBASSADOR_EXTERNAL_DOCKER_REPO}:${LATEST_RC}"         # public X.Y.Z-rc-latest
+            ;;
+        EA)
+            make docker-login
+            make docker-push DOCKER_PUSH_AS="${AMBASSADOR_EXTERNAL_DOCKER_REPO}:${GIT_TAG_SANITIZED}" # public X.Y.Z-eaA
+            ;;
+    esac
 
     printf "========\nkubectl version...\n"
     kubectl version
