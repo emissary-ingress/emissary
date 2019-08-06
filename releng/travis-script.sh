@@ -16,7 +16,6 @@
 
 set -o errexit
 set -o nounset
-set -o xtrace
 
 printf "== Begin: travis-script.sh ==\n"
 
@@ -36,7 +35,6 @@ printf "========\n"
 #     exit 0
 # fi
 
-# Basically everything for a GA commit happens from the deploy target.
 if [ "${COMMIT_TYPE}" != "GA" ]; then
     # Set up the environment correctly, including the madness around
     # the ephemeral Docker registry.
@@ -47,6 +45,7 @@ if [ "${COMMIT_TYPE}" != "GA" ]; then
                 DOCKER_EXTERNAL_REGISTRY=$DOCKER_REGISTRY \
                 DOCKER_REGISTRY=localhost:31000 \
                 export-vars)
+    set -o xtrace
 
     # Makes it much easier to actually debug when you see what the Makefile sees
     make print-vars
@@ -70,10 +69,13 @@ if [ "${COMMIT_TYPE}" != "GA" ]; then
         make VERSION="$VERSION" SCOUT_APP_KEY=earlyapp.json STABLE_TXT_KEY=earlystable.txt update-aws
     fi
 else
-    echo "GA commit, will retag in deployment"
-fi
+    eval $(make DOCKER_EXTERNAL_REGISTRY=$DOCKER_REGISTRY export-vars)
+    set -o xtrace
+    make print-vars
 
-# All the artifact handling for GA builds happens in the deploy block
-# in travis.yml, so we're done here.
+    # retag
+    make docker-login
+    make release
+fi
 
 printf "== End:   travis-script.sh ==\n"

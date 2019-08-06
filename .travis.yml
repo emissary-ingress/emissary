@@ -55,11 +55,3 @@ script:
 after_script:
   # release the kubernaut claim
   - ./releng/travis-cleanup.sh
-
-deploy:
-  - provider: script
-    script: ./releng/travis-release.sh
-    skip_cleanup: true
-    on:
-      all_branches: true
-      condition: $GIT_BRANCH =~ ^[0-9]+\.[0-9]+\.[0-9]+$
