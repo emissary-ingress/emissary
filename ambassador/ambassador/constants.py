@@ -3,3 +3,4 @@ class Constants:
     SERVICE_PORT_HTTPS = 8443
     ADMIN_PORT = 8001
     DIAG_PORT = 8877
+    HEADER_SIZE = 60

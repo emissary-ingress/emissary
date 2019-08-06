@@ -584,6 +584,9 @@ class V2Listener(dict):
         if self.upgrade_configs:
             base_http_config['upgrade_configs'] = self.upgrade_configs
 
+        if 'max_request_headers_kb' in config.ir.ambassador_module:
+            base_http_config["max_request_headers_kb"] = config.ir.ambassador_module.max_request_headers_kb
+
         if 'use_remote_address' in config.ir.ambassador_module:
             base_http_config["use_remote_address"] = config.ir.ambassador_module.use_remote_address
 
