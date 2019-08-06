@@ -35,18 +35,18 @@ def docker_kill(logfile):
 
     child.expect([ pexpect.EOF, pexpect.TIMEOUT ])
 
-def check_http() -> bool:
+def check_http(logfile) -> bool:
     try:
         response = requests.get('http://localhost:8888/qotm/?json=true', headers={ 'Host': 'localhost' })
         text = response.text
 
         if response.status_code != 200:
-            print(f'QotM: wanted 200 but got {response.status_code} {text}')
+            logfile.write(f'QotM: wanted 200 but got {response.status_code} {text}\n')
             return False
 
         return True
     except Exception as e:
-        print(f'Could not do HTTP: {e}')
+        logfile.write(f'Could not do HTTP: {e}\n')
 
         return False
 
@@ -58,20 +58,17 @@ def test_docker():
             logfile.write('No $AMBASSADOR_DOCKER_IMAGE??\n')
         else:
             if docker_start(logfile):
-                if check_http():
+                if check_http(logfile):
                     test_status = True
 
                 docker_kill(logfile)
 
-    with open('/tmp/test_docker_output', 'r') as logfile:
-        for line in logfile:
-            print(line.strip())
+    if not test_status:
+        with open('/tmp/test_docker_output', 'r') as logfile:
+            for line in logfile:
+                print(line.rstrip())
 
     assert test_status, 'test failed'
 
 if __name__ == '__main__':
     test_docker()
-
-
-
-
