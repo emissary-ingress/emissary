@@ -62,6 +62,7 @@ class SecretRecorder(SecretHandler):
     # Record what was requested, and always return True.
     def load_secret(self, context: 'IRTLSContext',
                     secret_name: str, namespace: str) -> Optional[SecretInfo]:
+        self.logger.info(f"SecretRecorder: Trying to load secret {secret_name} in namespace {namespace} from TLSContext {context}")
         secret_key = ( secret_name, namespace )
 
         if secret_key not in self.needed:

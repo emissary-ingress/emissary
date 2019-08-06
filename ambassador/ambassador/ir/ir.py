@@ -25,6 +25,7 @@ from ..constants import Constants
 
 from ..utils import RichStatus, SavedSecret, SecretHandler, SecretInfo
 from ..config import Config
+from ..config import ACResource
 
 from .irresource import IRResource
 from .irambassador import IRAmbassador
@@ -142,11 +143,12 @@ class IR:
         # So. First, create the module.
         self.ambassador_module = typecast(IRAmbassador, self.save_resource(IRAmbassador(self, aconf)))
 
+        # # Let's convert all ingress resources to Ambassador Mappings, TLSContexts and Secrets before we start reading
+        # # them
+        # self.ingresses_to_ambassador_resources()
+
         # Next, grab whatever information our aconf has about secrets...
         self.save_secret_info(aconf)
-
-        # Let's convert all ingress resources to Ambassador Mappings and TLSContexts before we start reading them
-        self.ingresses_to_ambassador_resources()
 
         # ...and then it's on to default TLS stuff, both from the TLS module and from
         # any TLS contexts.
@@ -262,6 +264,7 @@ class IR:
     # Save secrets from our aconf.
     def save_secret_info(self, aconf):
         aconf_secrets = aconf.get_config("secrets") or {}
+        self.logger.debug(f"IR: aconf has secrets: {aconf_secrets.keys()}")
 
         for secret_key, aconf_secret in aconf_secrets.items():
             # Ignore anything that doesn't at least have a public half.
@@ -339,6 +342,7 @@ class IR:
             return ss
 
         # OK, do we have a secret_info for it??
+        self.logger.debug(f"trying to get key {ss_key} from secret_info {self.secret_info}")
         secret_info = self.secret_info.get(ss_key, None)
 
         if secret_info:
@@ -459,96 +463,103 @@ class IR:
 
         self.aconf.config['tls_contexts'][identifier] = tls_context
 
-    def ingresses_to_ambassador_resources(self):
-        ingresses = self.aconf.get_config('ingresses')
-        if ingresses is None:
-            return
-
-        for ingress_name, ingress in ingresses.items():
-            self.logger.debug(f"Parsing Ingress {ingress_name}")
-
-            ingress_namespace = ingress.get('namespace', 'default')
-            ingress_spec = ingress.get('spec', {})
-
-            # Generate TLS Contexts first off
-            ingress_tls = ingress_spec.get('tls', [])
-            for tls_count, tls in enumerate(ingress_tls):
-                tls_unique_identifier = f"{ingress_name}-{tls_count}"
-
-                tls_secret = tls.get('secretName', None)
-
-                if tls_secret is not None:
-                    ingress_tls_context = {
-                        'rkey': tls_unique_identifier,
-                        'apiVersion': 'ambassador/v1',
-                        'kind': 'TLSContext',
-                        'name': tls_unique_identifier,
-                        'secret': tls_secret
-                    }
-
-                    tls_hosts = tls.get('hosts', None)
-                    if tls_hosts is not None:
-                        ingress_tls_context['hosts'] = tls_hosts
-
-                    self.logger.debug(f"Generated TLS Context from ingress {ingress_name}: {ingress_tls_context}")
-                    self.add_tls_context_to_config(identifier=tls_unique_identifier, tls_context=ingress_tls_context)
-
-            # parse ingress.spec.backend
-            default_backend = ingress_spec.get('backend', {})
-            db_service_name = default_backend.get('serviceName', None)
-            db_service_port = default_backend.get('servicePort', None)
-            if db_service_name is not None and db_service_port is not None:
-                db_mapping_identifier = f"{ingress_name}-default-backend"
-
-                default_backend_mapping = {
-                    'rkey': db_mapping_identifier,
-                    'location': db_mapping_identifier,
-                    'apiVersion': 'ambassador/v1',
-                    'kind': 'Mapping',
-                    'name': db_mapping_identifier,
-                    'prefix': '/',
-                    'service': f'{db_service_name}.{ingress_namespace}:{db_service_port}'
-                }
-
-                self.logger.debug(f"Generate mapping from Ingress {ingress_name}: {default_backend_mapping}")
-                self.add_mapping_to_config(mapping_identifier=db_mapping_identifier, mapping=default_backend_mapping)
-
-            # parse ingress.spec.rules
-            ingress_rules = ingress_spec.get('rules', [])
-            for rule_count, rule in enumerate(ingress_rules):
-                rule_http = rule.get('http', {})
-
-                rule_host = rule.get('host', None)
-
-                http_paths = rule_http.get('paths', [])
-                for path_count, path in enumerate(http_paths):
-                    path_backend = path.get('backend', {})
-
-                    service_name = path_backend.get('serviceName', None)
-                    service_port = path_backend.get('servicePort', None)
-                    service_path = path.get('path', None)
-
-                    if not service_name or not service_port or not service_path:
-                        continue
-
-                    unique_suffix = f"{rule_count}-{path_count}"
-                    mapping_identifier = f"{ingress_name}-{unique_suffix}"
-
-                    path_mapping = {
-                        'rkey': mapping_identifier,
-                        'location': mapping_identifier,
-                        'apiVersion': 'ambassador/v1',
-                        'kind': 'Mapping',
-                        'name': mapping_identifier,
-                        'prefix': service_path,
-                        'service': f'{service_name}.{ingress_namespace}:{service_port}'
-                    }
-
-                    if rule_host is not None:
-                        path_mapping['host'] = rule_host
-
-                    self.logger.debug(f"Generate mapping from Ingress {ingress_name}: {path_mapping}")
-                    self.add_mapping_to_config(mapping_identifier=mapping_identifier, mapping=path_mapping)
+    # def ingresses_to_ambassador_resources(self):
+    #     ingresses = self.aconf.get_config('ingresses')
+    #     if ingresses is None:
+    #         return
+    #
+    #     for ingress_name, ingress in ingresses.items():
+    #         self.logger.debug(f"Parsing Ingress {ingress_name}")
+    #
+    #         ingress_namespace = ingress.get('namespace', 'default')
+    #         ingress_spec = ingress.get('spec', {})
+    #
+    #         # Generate TLS Contexts first off
+    #         ingress_tls = ingress_spec.get('tls', [])
+    #         for tls_count, tls in enumerate(ingress_tls):
+    #             tls_unique_identifier = f"{ingress_name}-{tls_count}"
+    #
+    #             tls_secret = tls.get('secretName', None)
+    #
+    #             if tls_secret is not None:
+    #                 ingress_tls_context = {
+    #                     'rkey': tls_unique_identifier,
+    #                     'apiVersion': 'ambassador/v1',
+    #                     'kind': 'TLSContext',
+    #                     'name': tls_unique_identifier,
+    #                     'secret': tls_secret
+    #                 }
+    #
+    #                 tls_hosts = tls.get('hosts', None)
+    #                 if tls_hosts is not None:
+    #                     ingress_tls_context['hosts'] = tls_hosts
+    #
+    #                 self.logger.debug(f"Generated TLS Context from ingress {ingress_name}: {ingress_tls_context}")
+    #                 iacr = ACResource(rkey=tls_unique_identifier,
+    #                                   location=tls_unique_identifier,
+    #                                   kind='TLSContext',
+    #                                   name=tls_unique_identifier,
+    #                                   apiVersion='ambassador/v1',
+    #                                   secret=tls_secret,
+    #                                   hosts=tls_hosts)
+    #                 self.add_tls_context_to_config(identifier=tls_unique_identifier, tls_context=iacr)
+    #
+    #         # parse ingress.spec.backend
+    #         default_backend = ingress_spec.get('backend', {})
+    #         db_service_name = default_backend.get('serviceName', None)
+    #         db_service_port = default_backend.get('servicePort', None)
+    #         if db_service_name is not None and db_service_port is not None:
+    #             db_mapping_identifier = f"{ingress_name}-default-backend"
+    #
+    #             default_backend_mapping = {
+    #                 'rkey': db_mapping_identifier,
+    #                 'location': db_mapping_identifier,
+    #                 'apiVersion': 'ambassador/v1',
+    #                 'kind': 'Mapping',
+    #                 'name': db_mapping_identifier,
+    #                 'prefix': '/',
+    #                 'service': f'{db_service_name}.{ingress_namespace}:{db_service_port}'
+    #             }
+    #
+    #             self.logger.debug(f"Generate mapping from Ingress {ingress_name}: {default_backend_mapping}")
+    #             self.add_mapping_to_config(mapping_identifier=db_mapping_identifier, mapping=default_backend_mapping)
+    #
+    #         # parse ingress.spec.rules
+    #         ingress_rules = ingress_spec.get('rules', [])
+    #         for rule_count, rule in enumerate(ingress_rules):
+    #             rule_http = rule.get('http', {})
+    #
+    #             rule_host = rule.get('host', None)
+    #
+    #             http_paths = rule_http.get('paths', [])
+    #             for path_count, path in enumerate(http_paths):
+    #                 path_backend = path.get('backend', {})
+    #
+    #                 service_name = path_backend.get('serviceName', None)
+    #                 service_port = path_backend.get('servicePort', None)
+    #                 service_path = path.get('path', None)
+    #
+    #                 if not service_name or not service_port or not service_path:
+    #                     continue
+    #
+    #                 unique_suffix = f"{rule_count}-{path_count}"
+    #                 mapping_identifier = f"{ingress_name}-{unique_suffix}"
+    #
+    #                 path_mapping = {
+    #                     'rkey': mapping_identifier,
+    #                     'location': mapping_identifier,
+    #                     'apiVersion': 'ambassador/v1',
+    #                     'kind': 'Mapping',
+    #                     'name': mapping_identifier,
+    #                     'prefix': service_path,
+    #                     'service': f'{service_name}.{ingress_namespace}:{service_port}'
+    #                 }
+    #
+    #                 if rule_host is not None:
+    #                     path_mapping['host'] = rule_host
+    #
+    #                 self.logger.debug(f"Generate mapping from Ingress {ingress_name}: {path_mapping}")
+    #                 self.add_mapping_to_config(mapping_identifier=mapping_identifier, mapping=path_mapping)
 
     def cluster_ingresses_to_mappings(self, aconf):
         cluster_ingresses = aconf.get_config("ClusterIngress")

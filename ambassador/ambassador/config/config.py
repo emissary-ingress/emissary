@@ -406,7 +406,8 @@ class Config:
             is_ambassador = True
             apiVersion = apiVersion.split('/')[1]
         elif apiVersion.startswith('networking.internal.knative.dev'):
-            # This is not an Ambassador resource, we're trying to parse Knative here
+            # This is not an Ambassador resource, we're trying to parse
+            # here
             pass
         else:
             return RichStatus.fromError("apiVersion %s unsupported" % apiVersion)
@@ -547,6 +548,8 @@ class Config:
         Handles a Secret resource. We need a handler for this because the key needs to be
         the rkey, not the name.
         """
+
+        self.logger.debug(f"Handling secret resource {resource.as_dict()}")
 
         storage = self.config.setdefault('secrets', {})
         key = resource.rkey
