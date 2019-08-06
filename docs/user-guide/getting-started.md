@@ -226,7 +226,14 @@ kubectl port-forward ambassador-3655608000-43x86 8877
 
 will then let us view the diagnostics at http://localhost:8877/ambassador/v0/diag/.
 
-## 6. Next
+## 6. Enable HTTPS
+
+Ambassador's versatile HTTPS configuration lets it support various HTTPS use cases whether simple or complex. 
+
+Follow our [enabling HTTPS guide](/user-guide/tls-termination) to quickly enable HTTPS support for your applications.
+
+
+## Next Steps
 
 We've just done a quick tour of some of the core features of Ambassador: diagnostics, routing, configuration, and authentication.
 
