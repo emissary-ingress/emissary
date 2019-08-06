@@ -70,7 +70,7 @@
     - title: Security
       link: /user-guide/security
       items:
-      - title: Enabling Transport Level Security (TLS)
+      - title: Enabling HTTPS
         link: /user-guide/tls-termination
       - title: cert-manager with Ambassador
         link: /user-guide/cert-manager
@@ -192,6 +192,8 @@
               link: /reference/idp-support/keycloak
             - title: Okta
               link: /reference/idp-support/okta
+            - title: Salesforce
+              link: /reference/idp-support/salesforce
             - title: User Account and Authentication (UAA)
               link: /reference/idp-support/uaa
         - title: Pro
