@@ -407,29 +407,29 @@ endif
 docker-images: ambassador-docker-image
 
 docker-push: docker-images
-ifneq ($(DOCKER_REGISTRY), -)
-	@if [ "$(GIT_DIRTY)" != "dirty" ]; then \
-		echo "PUSH $(AMBASSADOR_DOCKER_IMAGE), COMMIT_TYPE $(COMMIT_TYPE)"; \
-		docker push $(AMBASSADOR_DOCKER_IMAGE) | python releng/linify.py push.log; \
-		if [ \( "$(COMMIT_TYPE)" = "RC" \) -o \( "$(COMMIT_TYPE)" = "EA" \) ]; then \
-			$(MAKE) docker-login || exit 1; \
-			\
-			echo "PUSH $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(GIT_TAG_SANITIZED)"; \
-			docker tag $(AMBASSADOR_DOCKER_IMAGE) $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(GIT_TAG_SANITIZED); \
-			docker push $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(GIT_TAG_SANITIZED) | python releng/linify.py push.log; \
-			\
-			if [ "$(COMMIT_TYPE)" = "RC" ]; then \
-				echo "PUSH $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(LATEST_RC)"; \
-				docker tag $(AMBASSADOR_DOCKER_IMAGE) $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(LATEST_RC); \
-				docker push $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(LATEST_RC) | python releng/linify.py push.log; \
-			fi; \
-		fi; \
-	else \
+ifeq ($(DOCKER_REGISTRY),-)
+	@echo "No DOCKER_REGISTRY set"
+else
+	@if [ "$(GIT_DIRTY)" = "dirty" ]; then \
 		printf "Git tree is dirty and therefore 'docker push' is not allowed!\n"; \
 		exit 1; \
 	fi
-else
-	@echo "No DOCKER_REGISTRY set"
+	@if true; then \
+		echo "PUSH $(AMBASSADOR_DOCKER_IMAGE), COMMIT_TYPE $(COMMIT_TYPE)"; \
+		docker push $(AMBASSADOR_DOCKER_IMAGE) | python releng/linify.py push.log; \
+	fi
+	@if [ "$(COMMIT_TYPE)" = "RC" ] || [ "$(COMMIT_TYPE)" = "EA" ]; then \
+		$(MAKE) docker-login || exit 1; \
+		\
+		echo "PUSH $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(GIT_TAG_SANITIZED)"; \
+		docker tag $(AMBASSADOR_DOCKER_IMAGE) $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(GIT_TAG_SANITIZED); \
+		docker push $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(GIT_TAG_SANITIZED) | python releng/linify.py push.log; \
+	fi
+	@if [ "$(COMMIT_TYPE)" = "RC" ]; then \
+		echo "PUSH $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(LATEST_RC)"; \
+		docker tag $(AMBASSADOR_DOCKER_IMAGE) $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(LATEST_RC); \
+		docker push $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(LATEST_RC) | python releng/linify.py push.log; \
+	fi
 endif
 
 # TODO: validate version is conformant to some set of rules might be a good idea to add here
@@ -599,19 +599,15 @@ release-prep:
 	bash releng/release-prep.sh
 
 release:
-	@if [ "$(COMMIT_TYPE)" = "GA" -a "$(VERSION)" != "$(GIT_VERSION)" ]; then \
-		set -ex; \
-		$(MAKE) print-vars; \
-		$(MAKE) docker-login || exit 1; \
-		docker pull $(AMBASSADOR_DOCKER_REPO):$(LATEST_RC); \
-		docker tag $(AMBASSADOR_DOCKER_REPO):$(LATEST_RC) $(AMBASSADOR_DOCKER_REPO):$(VERSION); \
-		docker push $(AMBASSADOR_DOCKER_REPO):$(VERSION); \
-		make SCOUT_APP_KEY=app.json STABLE_TXT_KEY=stable.txt update-aws; \
-		set +x; \
-	else \
+	@if [ "$(COMMIT_TYPE)" != "GA" ] || [ "$(VERSION)" = "$(GIT_VERSION)" ]; then \
 		printf "'make release' can only be run for a GA commit when VERSION is not the same as GIT_COMMIT!\n"; \
 		exit 1; \
 	fi
+	$(MAKE) docker-login
+	docker pull $(AMBASSADOR_DOCKER_REPO):$(LATEST_RC)
+	docker tag $(AMBASSADOR_DOCKER_REPO):$(LATEST_RC) $(AMBASSADOR_DOCKER_REPO):$(VERSION)
+	docker push $(AMBASSADOR_DOCKER_REPO):$(VERSION)
+	$(MAKE) SCOUT_APP_KEY=app.json STABLE_TXT_KEY=stable.txt update-aws
 
 # ------------------------------------------------------------------------------
 # Go gRPC bindings
