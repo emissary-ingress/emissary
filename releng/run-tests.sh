@@ -15,9 +15,12 @@ ROOT=$(cd .. ; pwd)
 set -e
 set -o pipefail
 
-if ! docker pull $AMBASSADOR_DOCKER_IMAGE; then
-    echo "could not pull $AMBASSADOR_DOCKER_IMAGE" >&2
-    exit 1
+# We only want to pull images if they are not present locally. This impacts local test runs.
+if [[ "$(docker images -q $AMBASSADOR_DOCKER_IMAGE 2> /dev/null)" == "" ]]; then
+    if ! docker pull $AMBASSADOR_DOCKER_IMAGE; then
+        echo "could not pull $AMBASSADOR_DOCKER_IMAGE" >&2
+        exit 1
+    fi
 fi
 
 if [[ "$USE_KUBERNAUT" != "true" ]]; then
