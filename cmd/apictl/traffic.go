@@ -98,6 +98,10 @@ spec:
 `))
 
 func doInitialize(cmd *cobra.Command, args []string) error {
+	if err := licenseClaims.RequireFeature("traffic"); err != nil {
+		return err
+	}
+
 	info, err := k8s.NewKubeInfo("", "", "")
 	if err != nil {
 		return err
@@ -157,6 +161,10 @@ var service string
 var port int
 
 func doInject(cmd *cobra.Command, args []string) error {
+	if err := licenseClaims.RequireFeature("traffic"); err != nil {
+		return err
+	}
+
 	for _, arg := range args {
 		resources, err := k8s.LoadResources(arg)
 		if err != nil {
@@ -309,6 +317,10 @@ var match string
 var target string
 
 func doIntercept(cmd *cobra.Command, args []string) error {
+	if err := licenseClaims.RequireFeature("traffic"); err != nil {
+		return err
+	}
+
 	var err error
 	apiPort, err = GetFreePort()
 	if err != nil {

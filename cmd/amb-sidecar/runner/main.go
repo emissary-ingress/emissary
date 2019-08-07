@@ -53,6 +53,8 @@ import (
 	"github.com/datawire/apro/lib/filterapi"
 )
 
+var licenseClaims *licensekeys.LicenseClaimsLatest
+
 func Main(version string) {
 	argparser := &cobra.Command{
 		Use:     os.Args[0],
@@ -67,7 +69,8 @@ func Main(version string) {
 		cmd.SilenceUsage = true
 
 		// License key validation
-		err := keycheck(cmd.PersistentFlags())
+		var err error
+		licenseClaims, err = keycheck(cmd.PersistentFlags())
 		if err == nil {
 			return
 		}
@@ -126,17 +129,22 @@ func runE(cmd *cobra.Command, args []string) error {
 	// Launch all of the worker goroutines...
 
 	// RateLimit controller
-	group.Go("ratelimit_controller", func(hardCtx, softCtx context.Context, cfg types.Config, l types.Logger) error {
-		return rlscontroller.DoWatch(softCtx, cfg, l)
-	})
+	if licenseClaims.RequireFeature("ratelimit") == nil {
+		group.Go("ratelimit_controller", func(hardCtx, softCtx context.Context, cfg types.Config, l types.Logger) error {
+			return rlscontroller.DoWatch(softCtx, cfg, l)
+		})
+	}
 
 	// Filter+FilterPolicy controller
+
 	ct := &controller.Controller{}
-	group.Go("auth_controller", func(hardCtx, softCtx context.Context, cfg types.Config, l types.Logger) error {
-		ct.Config = cfg
-		ct.Logger = l
-		return ct.Watch(softCtx, kubeinfo)
-	})
+	if licenseClaims.RequireFeature("filter") == nil {
+		group.Go("auth_controller", func(hardCtx, softCtx context.Context, cfg types.Config, l types.Logger) error {
+			ct.Config = cfg
+			ct.Logger = l
+			return ct.Watch(softCtx, kubeinfo)
+		})
+	}
 
 	// HTTP server
 	group.Go("http", func(hardCtx, softCtx context.Context, cfg types.Config, l types.Logger) error {

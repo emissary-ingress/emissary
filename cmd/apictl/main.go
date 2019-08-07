@@ -17,11 +17,14 @@ var apictl = &cobra.Command{
 // Version is inserted at build using --ldflags -X
 var Version = "(unknown version)"
 
+var licenseClaims *licensekeys.LicenseClaimsLatest
+
 func init() {
 	keycheck := licensekeys.InitializeCommandFlags(apictl.PersistentFlags(), "apictl", Version)
 	apictl.PersistentPreRun = func(cmd *cobra.Command, args []string) {
 		cmd.SilenceUsage = true // https://github.com/spf13/cobra/issues/340
-		err := keycheck(cmd.PersistentFlags())
+		var err error
+		licenseClaims, err = keycheck(cmd.PersistentFlags())
 		if err == nil {
 			return
 		}

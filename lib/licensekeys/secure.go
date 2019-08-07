@@ -31,18 +31,33 @@ func (v0 *LicenseClaimsV0) ToLatest() *LicenseClaimsLatest {
 	return &LicenseClaimsLatest{
 		LicenseKeyVersion: "v0",
 		CustomerID:        fmt.Sprintf("%v", v0.ID),
-		StandardClaims:    v0.StandardClaims,
+		EnabledFeatures: []string{
+			"filter",
+			"ratelimit",
+			"traffic",
+		},
+		StandardClaims: v0.StandardClaims,
 	}
 }
 
 type LicenseClaimsV1 struct {
-	LicenseKeyVersion string `json:"license_key_version"`
-	CustomerID        string `json:"customer_id"`
+	LicenseKeyVersion string   `json:"license_key_version"`
+	CustomerID        string   `json:"customer_id"`
+	EnabledFeatures   []string `json:"enabled_features"`
 	jwt.StandardClaims
 }
 
 func (cl *LicenseClaimsLatest) ToLatest() *LicenseClaimsLatest {
 	return cl
+}
+
+func (cl *LicenseClaimsLatest) RequireFeature(feature string) error {
+	for _, straw := range cl.EnabledFeatures {
+		if straw == feature {
+			return nil
+		}
+	}
+	return errors.Errorf("license key does not grant the %q feature", feature)
 }
 
 func newBigIntFromBytes(bs []byte) *big.Int {

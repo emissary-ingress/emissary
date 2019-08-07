@@ -43,6 +43,11 @@ func doValidate(cmd *cobra.Command, args []string) {
 	var local_resources []k8s.Resource
 	var remote_resources []k8s.Resource
 
+	if err := licenseClaims.RequireFeature("ratelimit"); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(2)
+	}
+
 	for _, arg := range args {
 		local_resources = append(local_resources, load(arg)...)
 	}
