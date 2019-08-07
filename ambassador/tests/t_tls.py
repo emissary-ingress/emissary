@@ -394,27 +394,24 @@ service: {self.target.path.fqdn}
     def check(self):
         errors = self.results[0].backend.response
 
-        assert(len(errors) == 5)
-
-        # I'm a little concerned about relying on specific text but hmm.
-        found = 0
-
-        wanted = {
+        expected = set({
             "TLSContext server found no certificate in secret test-certs-secret-invalid in namespace default, ignoring...",
             "TLSContext bad-path-info found no cert_chain_file '/nonesuch'",
             "TLSContext bad-path-info found no private_key_file '/nonesuch'",
             "TLSContext validation-without-termination found no certificate in secret test-certs-secret-invalid in namespace default, ignoring...",
             "TLSContext missing-secret-key: 'cert_chain_file' requires 'private_key_file' as well",
-        }
+        })
 
+        current = set({})
         for errsvc, errtext in errors:
-            if errtext in wanted:
-                found += 1
+            current.add(errtext)
 
-        assert found == len(errors), "unexpected errors in list"
+        diff = expected - current
+
+        assert len(diff) == 0, f'expected {len(expected)} errors, got {len(errors)}: Missing {diff}'
 
 
-class TLSContext(AmbassadorTest):
+class TLSContextTest(AmbassadorTest):
     # debug = True
 
     def init(self):
@@ -513,7 +510,6 @@ config:
     enabled: True
     secret: test-tlscontext-secret-0 
 """)
-
         yield self, self.format("""
 ---
 apiVersion: ambassador/v1
@@ -521,6 +517,24 @@ kind:  Mapping
 name:  {self.name}-other-mapping
 prefix: /{self.name}/
 service: https://{self.target.path.fqdn}
+""")
+        # Ambassador should not return an error when hostname is not present.
+        yield self, self.format("""
+---
+apiVersion: ambassador/v1
+kind: TLSContext
+name: {self.name}-no-secret
+min_tls_version: v1.0
+max_tls_version: v1.3
+""")
+        # Ambassador should return and error for this configuration.
+        yield self, self.format("""
+---
+apiVersion: ambassador/v1
+kind: TLSContext
+name: {self.name}-same-context-error
+hosts:
+- tls-context-host-1
 """)
 
     def scheme(self) -> str:
@@ -599,8 +613,14 @@ service: https://{self.target.path.fqdn}
         # XXX Ew. If self.results[0].json is empty, the harness won't convert it to a response.
         errors = self.results[0].json
         num_errors = len(errors)
-        assert num_errors == 0, "expected 0 errors, got {} -\n{}".format(num_errors, errors)
+        assert num_errors == 2, "expected 2 errors, got {} -\n{}".format(num_errors, errors)
+        
+        cert_err = errors[0]
+        pkey_err = errors[1]
 
+        assert cert_err[1] == 'TLSContext TLSContextTest-same-context-error is missing cert_chain_file'
+        assert pkey_err[1] == 'TLSContext TLSContextTest-same-context-error is missing private_key_file'
+        
         idx = 0
 
         for result in self.results:
