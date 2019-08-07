@@ -35,67 +35,57 @@ printf "========\nCOMMIT_TYPE $COMMIT_TYPE; git status:\n"
 
 git status
 
-printf "========\n"
+printf "========\nSetting up environment...\n"
+case "$COMMIT_TYPE" in
+    GA)
+        eval $(make DOCKER_EXTERNAL_REGISTRY=$DOCKER_REGISTRY export-vars)
+        ;;
+    *)
+        eval $(make USE_KUBERNAUT=true \
+                    DOCKER_EPHEMERAL_REGISTRY=true \
+                    DOCKER_EXTERNAL_REGISTRY=$DOCKER_REGISTRY \
+                    DOCKER_REGISTRY=localhost:31000 \
+                    export-vars)
+        ;;
+esac
+set -o xtrace
+make print-vars
 
-# Travis itself prevents launch on a nobuild branch _unless_ it's a PR from a
-# nobuild branch.
-# if [[ ${GIT_BRANCH} =~ ^nobuild.* ]]; then
-#     printf "!! Branch is 'nobuild', therefore, no work will be performed.\n"
-#     exit 0
-# fi
+printf "========\nStarting build...\n"
 
-if [ "${COMMIT_TYPE}" != "GA" ]; then
-    # Set up the environment correctly, including the madness around
-    # the ephemeral Docker registry.
-    printf "========\nSetting up environment...\n"
+case "$COMMIT_TYPE" in
+    GA)
+        : # We just re-tag the RC image as GA; nothing to build
+        ;;
+    *)
+        make setup-develop cluster.yaml docker-registry
+        make docker-push DOCKER_PUSH_AS="$AMBASSADOR_DOCKER_IMAGE" # to the in-cluster registry
+        # make KAT_REQ_LIMIT=1200 test
+        make test
+        ;;
+esac
 
-    eval $(make USE_KUBERNAUT=true \
-                DOCKER_EPHEMERAL_REGISTRY=true \
-                DOCKER_EXTERNAL_REGISTRY=$DOCKER_REGISTRY \
-                DOCKER_REGISTRY=localhost:31000 \
-                export-vars)
-    set -o xtrace
+printf "========\nPublishing artifacts...\n"
 
-    # Makes it much easier to actually debug when you see what the Makefile sees
-    make print-vars
-
-    printf "========\nStarting build...\n"
-
-    make setup-develop cluster.yaml docker-registry
-    make docker-push DOCKER_PUSH_AS="$AMBASSADOR_DOCKER_IMAGE" # to the in-cluster registry
-    case "$COMMIT_TYPE" in
-        RC)
-            make docker-login
-            make docker-push DOCKER_PUSH_AS="${AMBASSADOR_EXTERNAL_DOCKER_REPO}:${GIT_TAG_SANITIZED}" # public X.Y.Z-rcA
-            make docker-push DOCKER_PUSH_AS="${AMBASSADOR_EXTERNAL_DOCKER_REPO}:${LATEST_RC}"         # public X.Y.Z-rc-latest
-            ;;
-        EA)
-            make docker-login
-            make docker-push DOCKER_PUSH_AS="${AMBASSADOR_EXTERNAL_DOCKER_REPO}:${GIT_TAG_SANITIZED}" # public X.Y.Z-eaA
-            ;;
-    esac
-
-    printf "========\nkubectl version...\n"
-    kubectl version
-
-    # make KAT_REQ_LIMIT=1200 test
-    make test
-
-    if [[ ${COMMIT_TYPE} == "RC" ]]; then
-        # For RC builds, update AWS test keys.
+case "$COMMIT_TYPE" in
+    GA)
+        make docker-login
+        make release
+        ;;
+    RC)
+        make docker-login
+        make docker-push DOCKER_PUSH_AS="${AMBASSADOR_EXTERNAL_DOCKER_REPO}:${GIT_TAG_SANITIZED}" # public X.Y.Z-rcA
+        make docker-push DOCKER_PUSH_AS="${AMBASSADOR_EXTERNAL_DOCKER_REPO}:${LATEST_RC}"         # public X.Y.Z-rc-latest
         make VERSION="$VERSION" SCOUT_APP_KEY=testapp.json STABLE_TXT_KEY=teststable.txt update-aws
-    elif [[ ${COMMIT_TYPE} == "EA" ]]; then
-        # For RC builds, update AWS EA keys.
+        ;;
+    EA)
+        make docker-login
+        make docker-push DOCKER_PUSH_AS="${AMBASSADOR_EXTERNAL_DOCKER_REPO}:${GIT_TAG_SANITIZED}" # public X.Y.Z-eaA
         make VERSION="$VERSION" SCOUT_APP_KEY=earlyapp.json STABLE_TXT_KEY=earlystable.txt update-aws
-    fi
-else
-    eval $(make DOCKER_EXTERNAL_REGISTRY=$DOCKER_REGISTRY export-vars)
-    set -o xtrace
-    make print-vars
-
-    # retag
-    make docker-login
-    make release
-fi
+        ;;
+    *)
+        : # Nothing to do
+        ;;
+esac
 
 printf "== End:   travis-script.sh ==\n"
