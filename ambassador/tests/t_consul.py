@@ -110,9 +110,9 @@ secret: {self.path.k8s}-client-cert-secret
                     body={
                         "Datacenter": "dc1",
                         "Node": self.format("{self.path.k8s}-consul-service"),
-                        "Address": "asdf.org",
+                        "Address": self.k8s_target.path.k8s,
                         "Service": {"Service": self.format("{self.path.k8s}-consul-service"),
-                                    "Address": "asdf.org",
+                                    "Address": self.k8s_target.path.k8s,
                                     "Port": 80}},
                     phase=2)
 
