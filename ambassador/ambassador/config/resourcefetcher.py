@@ -165,7 +165,7 @@ class ResourceFetcher:
                          'KubernetesEndpointResolver', 'KubernetesServiceResolver',
                          'Mapping', 'Module', 'RateLimitService',
                          'TCPMapping', 'TLSContext', 'TracingService',
-                         'ClusterIngress']:
+                         'ClusterIngress', 'ingresses.networking.internal.knative.dev']:
                 for obj in watt_k8s.get(key) or []:
                     self.handle_k8s_crd(obj)
 
@@ -224,6 +224,11 @@ class ResourceFetcher:
         name = metadata.get('name')
         namespace = metadata.get('namespace') or 'default'
         spec = obj.get('spec') or {}
+
+        # We do not want to confuse Knative's Ingress with Kubernetes' Ingress
+        if apiVersion.startswith('networking.internal.knative.dev') and kind.lower() == 'ingress':
+            self.logger.debug(f"Renaming kind {kind} to KnativeIngress")
+            kind = 'KnativeIngress'
 
         if not name:
             self.logger.debug(f'{self.location}: ignoring K8s {kind} CRD, no name')

@@ -443,10 +443,15 @@ class IR:
 
     def cluster_ingresses_to_mappings(self, aconf):
         cluster_ingresses = aconf.get_config("ClusterIngress")
-        if cluster_ingresses is None:
-            return
+        knative_ingresses = aconf.get_config("KnativeIngress")
 
-        for ci_name, ci in cluster_ingresses.items():
+        final_knative_ingresses = {}
+        if cluster_ingresses is not None:
+            final_knative_ingresses.update(cluster_ingresses)
+        if knative_ingresses is not None:
+            final_knative_ingresses.update(knative_ingresses)
+
+        for ci_name, ci in final_knative_ingresses.items():
             self.logger.debug(f"Parsing ClusterIngress {ci_name}")
 
             ci_rules = ci.get('rules', [])
