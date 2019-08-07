@@ -1,5 +1,11 @@
 ## Ambassador Pro CHANGELOG
 
+## 0.6.1 (TBD)
+
+Configuration:
+
+ * `amb-sidecar`: The default value of `USE_STATSD` has changed from `true` to `false`.
+
 ## 0.6.0 (2019-08-05)
 
 Configuration:
@@ -8,6 +14,7 @@ Configuration:
  * Everything is now on one port: `APRO_HTTP_PORT`, which defaults to `8500`.
  * `LOG_LEVEL` no longer exists; everything obeys `APP_LOG_LEVEL`.
  * The meaning of `REDIS_POOL_SIZE` has changed slightly; there are no longer separate connection pools for ratelimit and filtering; the maxiumum number of connections is now `REDIS_POOL_SIZE` instead of 2×`REDIS_POOL_SIZE`.
+ * The `amb-sidecar` RateLimitService can now report to statsd, and attempts to do so by default (`USE_STATSD`, `STATSD_HOST`, `STATSD_PORT`, `GOSTATS_FLUSH_INTERVAL_SECONDS`).
 
 Behavior:
 
