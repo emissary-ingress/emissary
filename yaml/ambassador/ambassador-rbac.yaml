@@ -29,7 +29,7 @@ rules:
   resources: [ "customresourcedefinitions" ]
   verbs: ["get", "list", "watch"]
 - apiGroups: [ "networking.internal.knative.dev" ]
-  resources: [ "clusteringresses" ]
+  resources: [ "clusteringresses", "ingresses" ]
   verbs: ["get", "list", "watch"]
 ---
 apiVersion: v1
