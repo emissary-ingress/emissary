@@ -74,23 +74,29 @@ func init() {
 	create.MarkFlagRequired("expiration")
 
 	create.Run = func(cmd *cobra.Command, args []string) {
-		expiresAt := time.Now().Add(time.Duration(argLifetimeDays) * 24 * time.Hour)
-		tokenstring := createTokenString(argCustomerID, expiresAt)
+		now := time.Now()
+		expiresAt := now.Add(time.Duration(argLifetimeDays) * 24 * time.Hour)
+		tokenstring := createTokenString(argCustomerID, now, expiresAt)
 		fmt.Println(tokenstring)
 	}
 
 	argparser.AddCommand(create)
 }
 
-type License struct {
-	Id string `json:"id"`
+// Keep this in-sync with "lib/licensekeys/secure.go"
+type LicenseClaimsV1 struct {
+	LicenseKeyVersion string `json:"license_key_version"`
+	CustomerID        string `json:"customer_id"`
 	jwt.StandardClaims
 }
 
-func createTokenString(customerID string, expiresAt time.Time) string {
-	token := jwt.NewWithClaims(jwt.GetSigningMethod("PS512"), &License{
-		Id: customerID,
+func createTokenString(customerID string, now, expiresAt time.Time) string {
+	token := jwt.NewWithClaims(jwt.GetSigningMethod("PS512"), &LicenseClaimsV1{
+		LicenseKeyVersion: "v1",
+		CustomerID:        customerID,
 		StandardClaims: jwt.StandardClaims{
+			IssuedAt:  now.Unix(),
+			NotBefore: now.Unix(),
 			ExpiresAt: expiresAt.Unix(),
 		},
 	})
