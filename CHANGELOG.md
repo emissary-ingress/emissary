@@ -1,5 +1,14 @@
 ## Ambassador Pro CHANGELOG
 
+## 0.6.1 (TBD)
+
+Configuration:
+
+ * Bump license key schema v0 → v1.  The developer portal requires a
+   v1 license with the "devportal" feature enabled.  Some future
+   version of the other functionality will drop support for v0 license
+   keys.
+
 ## 0.6.0 (2019-08-05)
 
 Configuration:
