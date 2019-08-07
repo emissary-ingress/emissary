@@ -78,7 +78,7 @@ Ambassador can watch for changes in Knative configuration in your Kubernetes clu
     kubectl apply -f helloworld-go.yaml
     ```
    
-   Knative automatically creates a `ClusterIngress` resource from this `Knative Service`. Ambassador can then use that to register a route to the `helloworld-go` application.
+   Knative automatically creates an `Ingress`/`ClusterIngress` resource from this `Knative Service`. Ambassador can then use that to register a route to the `helloworld-go` application.
    
 5. Send a request 
 
