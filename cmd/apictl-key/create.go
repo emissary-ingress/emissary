@@ -9,11 +9,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var create = &cobra.Command{
-	Use:   "create",
-	Short: "Create a jwt token",
-	Run:   doCreate,
-}
 
 var (
 	ID         string
@@ -21,11 +16,22 @@ var (
 )
 
 func init() {
-	apictl_key.AddCommand(create)
+	create := &cobra.Command{
+		Use:   "create",
+		Short: "Create a jwt token",
+		Run: func(cmd *cobra.Command, args []string) {
+			// for example, server receive token string in request header.
+			tokenstring := createTokenString()
+			// This is that token string.
+			fmt.Println(tokenstring)
+		},
+	}
 	create.Flags().StringVarP(&ID, "id", "i", "", "id for key")
 	create.Flags().IntVarP(&EXPIRATION, "expiration", "e", 14, "expiration from now in days (can be negative for testing)")
 	create.MarkFlagRequired("id")
 	create.MarkFlagRequired("expiration")
+
+	argparser.AddCommand(create)
 }
 
 type License struct {
@@ -45,11 +51,4 @@ func createTokenString() string {
 		log.Fatalln(err)
 	}
 	return tokenstring
-}
-
-func doCreate(cmd *cobra.Command, args []string) {
-	// for example, server receive token string in request header.
-	tokenstring := createTokenString()
-	// This is that token string.
-	fmt.Println(tokenstring)
 }
