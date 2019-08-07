@@ -9,27 +9,25 @@ import (
 	"github.com/spf13/cobra"
 )
 
-
-var (
-	ID         string
-	EXPIRATION int
-)
-
 func init() {
+	var (
+		argCustomerID   string
+		argLifetimeDays int
+	)
 	create := &cobra.Command{
 		Use:   "create",
 		Short: "Create a jwt token",
-		Run: func(cmd *cobra.Command, args []string) {
-			// for example, server receive token string in request header.
-			tokenstring := createTokenString()
-			// This is that token string.
-			fmt.Println(tokenstring)
-		},
 	}
-	create.Flags().StringVarP(&ID, "id", "i", "", "id for key")
-	create.Flags().IntVarP(&EXPIRATION, "expiration", "e", 14, "expiration from now in days (can be negative for testing)")
+	create.Flags().StringVarP(&argCustomerID, "id", "i", "", "id for key")
+	create.Flags().IntVarP(&argLifetimeDays, "expiration", "e", 14, "expiration from now in days (can be negative for testing)")
 	create.MarkFlagRequired("id")
 	create.MarkFlagRequired("expiration")
+
+	create.Run = func(cmd *cobra.Command, args []string) {
+		expiresAt := time.Now().Add(time.Duration(argLifetimeDays) * 24 * time.Hour)
+		tokenstring := createTokenString(argCustomerID, expiresAt)
+		fmt.Println(tokenstring)
+	}
 
 	argparser.AddCommand(create)
 }
@@ -39,11 +37,11 @@ type License struct {
 	jwt.StandardClaims
 }
 
-func createTokenString() string {
+func createTokenString(customerID string, expiresAt time.Time) string {
 	token := jwt.NewWithClaims(jwt.GetSigningMethod("HS256"), &License{
-		Id: ID,
+		Id: customerID,
 		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(time.Duration(EXPIRATION) * 24 * 60 * 60 * time.Second).Unix(),
+			ExpiresAt: expiresAt.Unix(),
 		},
 	})
 	tokenstring, err := token.SignedString([]byte("1234"))
