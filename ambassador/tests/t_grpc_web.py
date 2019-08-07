@@ -5,7 +5,6 @@ from kat.harness import Query
 from abstract_tests import AmbassadorTest, ServiceType, EGRPC
 
 class AcceptanceGrpcWebTest(AmbassadorTest):
-    debug = True
 
     target: ServiceType
 

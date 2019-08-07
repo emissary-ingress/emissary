@@ -44,8 +44,10 @@ FULL_RESULT=0
 
 ( cd "$ROOT" ; make cluster-and-teleproxy )
 
+echo "==== [$(date)] ==== STARTING TESTS"
+
 for el in "${seq[@]}"; do
-    echo "==== running $el"
+    echo "==== [$(date)] ==== running $el"
 
 #    kubectl delete namespaces -l scope=AmbassadorTest
 #    kubectl delete all -l scope=AmbassadorTest
@@ -76,5 +78,7 @@ for el in "${seq[@]}"; do
         mv /tmp/k8s-AmbassadorTest.yaml /tmp/k8s-$el-AmbassadorTest.yaml
     fi
 done
+
+echo "==== [$(date)] ==== FINISHED TESTS ($FULL_RESULT)"
 
 exit $FULL_RESULT

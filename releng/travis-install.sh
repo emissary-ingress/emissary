@@ -28,7 +28,7 @@ mv kubectl ~/bin/kubectl
 
 pip install -q -r dev-requirements.txt
 pip install -q -r ambassador/requirements.txt
-npm install gitbook-cli netlify-cli
+#npm install gitbook-cli netlify-cli
 
 if [[ `which helm` == "" ]]; then
   curl https://storage.googleapis.com/kubernetes-helm/helm-v2.9.1-linux-amd64.tar.gz | tar xz
