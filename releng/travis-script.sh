@@ -62,29 +62,12 @@ if [ "${COMMIT_TYPE}" != "GA" ]; then
     # make KAT_REQ_LIMIT=1200 test
     make test
 
-    if [[ ${GIT_BRANCH} = ${MAIN_BRANCH} ]]; then
-        # By fiat, _any commit_ on the main branch pushes production docs.
-        # This is to allow simple doc fixes. So. Grab the most recent proper
-        # version...
-        VERSION=$(git describe --tags --abbrev=0 --exclude='*-*')
-
-        if [ -z "$VERSION" ]; then
-            # Uh WTF.
-            echo "No tagged version found at $GIT_COMMIT" >&2
-            exit 1
-        fi
-
-        if [[ $VERSION =~ '^v' ]]; then
-            VERSION=$(echo "$VERSION" | cut -c2-)
-        fi
-    fi
-
     if [[ ${COMMIT_TYPE} == "RC" ]]; then
         # For RC builds, update AWS test keys.
-		make VERSION="$VERSION" SCOUT_APP_KEY=testapp.json STABLE_TXT_KEY=teststable.txt update-aws
+        make VERSION="$VERSION" SCOUT_APP_KEY=testapp.json STABLE_TXT_KEY=teststable.txt update-aws
     elif [[ ${COMMIT_TYPE} == "EA" ]]; then
         # For RC builds, update AWS EA keys.
-		make VERSION="$VERSION" SCOUT_APP_KEY=earlyapp.json STABLE_TXT_KEY=earlystable.txt update-aws
+        make VERSION="$VERSION" SCOUT_APP_KEY=earlyapp.json STABLE_TXT_KEY=earlystable.txt update-aws
     fi
 else
     echo "GA commit, will retag in deployment"

@@ -20,20 +20,11 @@ SHELL = bash
 
 # Welcome to the Ambassador Makefile...
 
-.FORCE:
 .PHONY: \
-    .FORCE clean version setup-develop print-vars \
+    clean version setup-develop print-vars \
     docker-login docker-push docker-images \
     teleproxy-restart teleproxy-stop
 .SECONDARY:
-
-# MAIN_BRANCH
-# -----------
-#
-# The name of the main branch (e.g. "stable"). This is set as an variable because it makes it easy to develop and test
-# new automation code on a branch that is simulating the purpose of the main branch.
-#
-MAIN_BRANCH ?= stable
 
 # GIT_BRANCH on TravisCI needs to be set through some external custom logic. Default to a Git native mechanism or
 # use what is defined.
@@ -41,9 +32,7 @@ MAIN_BRANCH ?= stable
 # read: https://graysonkoonce.com/getting-the-current-branch-name-during-a-pull-request-in-travis-ci/
 GIT_DIRTY ?= $(shell test -z "$(shell git status --porcelain)" || printf "dirty")
 
-ifndef $(GIT_BRANCH)
 GIT_BRANCH ?= $(shell git rev-parse --abbrev-ref HEAD)
-endif
 
 GIT_COMMIT ?= $(shell git rev-parse --short HEAD)
 
@@ -233,7 +222,6 @@ print-vars:
 	@echo "KAT_BACKEND_RELEASE              = $(KAT_BACKEND_RELEASE)"
 	@echo "KUBECONFIG                       = $(KUBECONFIG)"
 	@echo "LATEST_RC                        = $(LATEST_RC)"
-	@echo "MAIN_BRANCH                      = $(MAIN_BRANCH)"
 	@echo "USE_KUBERNAUT                    = $(USE_KUBERNAUT)"
 	@echo "VERSION                          = $(VERSION)"
 
@@ -261,7 +249,6 @@ export-vars:
 	@echo "export KAT_BACKEND_RELEASE='$(KAT_BACKEND_RELEASE)'"
 	@echo "export KUBECONFIG='$(KUBECONFIG)'"
 	@echo "export LATEST_RC='$(LATEST_RC)'"
-	@echo "export MAIN_BRANCH='$(MAIN_BRANCH)'"
 	@echo "export USE_KUBERNAUT='$(USE_KUBERNAUT)'"
 	@echo "export VERSION='$(VERSION)'"
 
@@ -297,7 +284,7 @@ kill-docker-registry:
 		echo "Docker registry should not be running" ;\
 	fi
 
-envoy-src: .FORCE
+envoy-src: FORCE
 	@echo "Getting Envoy sources..."
 	@if test -d envoy && ! test -d envoy-src; then PS4=; set -x; mv envoy envoy-src; fi
 	@PS4=; set -x; \
@@ -311,7 +298,7 @@ envoy-src: .FORCE
 	git fetch --tags origin && \
 	$(if $(filter-out -,$(ENVOY_COMMIT)),git checkout $(ENVOY_COMMIT),if ! git rev-parse HEAD >/dev/null 2>&1; then git checkout origin/master; fi)
 
-envoy-build-image.txt: .FORCE envoy-src
+envoy-build-image.txt: FORCE envoy-src
 	@echo "Making $@..."
 	set -e; \
 	cd envoy-src; . ci/envoy_build_sha.sh; cd ..; \
@@ -328,7 +315,7 @@ envoy-build-image.txt: .FORCE envoy-src
 ENVOY_SYNC_HOST_TO_DOCKER = docker run --rm --volume=$(CURDIR)/envoy-src:/xfer:ro --volume=envoy-build:/root:rw $$(cat envoy-build-image.txt) rsync -Pav --delete /xfer/ /root/envoy
 ENVOY_SYNC_DOCKER_TO_HOST = docker run --rm --volume=$(CURDIR)/envoy-src:/xfer:rw --volume=envoy-build:/root:ro $$(cat envoy-build-image.txt) rsync -Pav --delete /root/envoy/ /xfer
 
-envoy-bin/envoy-static: .FORCE envoy-build-image.txt
+envoy-bin/envoy-static: FORCE envoy-build-image.txt
 	$(ENVOY_SYNC_HOST_TO_DOCKER)
 	@PS4=; set -ex; trap '$(ENVOY_SYNC_DOCKER_TO_HOST)' EXIT; { \
 	    docker run --rm --volume=envoy-build:/root:rw --workdir=/root/envoy $$(cat envoy-build-image.txt) bazel build --verbose_failures -c $(ENVOY_COMPILATION_MODE) //source/exe:envoy-static; \
@@ -421,7 +408,7 @@ docker-images: ambassador-docker-image
 
 docker-push: docker-images
 ifneq ($(DOCKER_REGISTRY), -)
-	@if [ \( "$(GIT_DIRTY)" != "dirty" \) -o \( "$(GIT_BRANCH)" != "$(MAIN_BRANCH)" \) ]; then \
+	@if [ "$(GIT_DIRTY)" != "dirty" ]; then \
 		echo "PUSH $(AMBASSADOR_DOCKER_IMAGE), COMMIT_TYPE $(COMMIT_TYPE)"; \
 		docker push $(AMBASSADOR_DOCKER_IMAGE) | python releng/linify.py push.log; \
 		if [ \( "$(COMMIT_TYPE)" = "RC" \) -o \( "$(COMMIT_TYPE)" = "EA" \) ]; then \
@@ -438,7 +425,7 @@ ifneq ($(DOCKER_REGISTRY), -)
 			fi; \
 		fi; \
 	else \
-		printf "Git tree on MAIN_BRANCH '$(MAIN_BRANCH)' is dirty and therefore 'docker push' is not allowed!\n"; \
+		printf "Git tree is dirty and therefore 'docker push' is not allowed!\n"; \
 		exit 1; \
 	fi
 else
@@ -750,12 +737,6 @@ push-docs:
 		git push $(if $(GH_TOKEN),https://d6e-automaton:${GH_TOKEN}@github.com/,git@github.com:)datawire/ambassador-docs.git "$${docs_new}:refs/heads/$(or $(PUSH_BRANCH),master)"; \
 	}
 .PHONY: pull-docs push-docs
-
-# ------------------------------------------------------------------------------
-# CI Targets
-# ------------------------------------------------------------------------------
-
-ci-docker: docker-push
 
 # ------------------------------------------------------------------------------
 # Function Definitions
