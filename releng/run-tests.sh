@@ -52,11 +52,7 @@ for el in "${seq[@]}"; do
 #    kubectl delete namespaces -l scope=AmbassadorTest
 #    kubectl delete all -l scope=AmbassadorTest
 
-    pytest ${TEST_ARGS} -k "$el"
-    true
-    RESULT=$?
-
-    if [ $RESULT -ne 0 ]; then
+    if ! pytest ${TEST_ARGS} -k "$el"; then
         FULL_RESULT=1
 
         kubectl get pods --all-namespaces
