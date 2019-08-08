@@ -57,8 +57,8 @@ func (s *Server) getServiceDelete() DeleteServiceFunc {
 	}
 }
 
-func (s *Server) ServeHTTP() {
-	log.Fatal(http.ListenAndServe("0.0.0.0:8680", s.router))
+func (s *Server) Router() http.Handler {
+	return s.router
 }
 
 type openAPIListing struct {

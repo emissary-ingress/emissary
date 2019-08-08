@@ -24,7 +24,21 @@ type ContentVars interface {
 	CurrentPage() (page string)
 }
 
-func NewContent(contentURL *url.URL) (content *Content, err error) {
+func sanitizedURL(str string) string {
+	parsed, err := url.Parse(str)
+	if err != nil {
+		return str
+	}
+	if parsed.User != nil {
+		parsed.User = url.User("*redacted*")
+	}
+	return parsed.String()
+}
+func NewContent(contentLocation string) (content *Content, err error) {
+	logger := log.WithFields(log.Fields{
+		"subsystem":  "content",
+		"contentURL": sanitizedURL(contentLocation),
+	})
 	funcMap := template.FuncMap{
 		// The name "inc" is what the function will be called in the template text.
 		"isEven": func(i int) bool {
@@ -38,13 +52,20 @@ func NewContent(contentURL *url.URL) (content *Content, err error) {
 
 	renderer := &BlackfridayRenderer{}
 
+	contentURL, err := url.Parse(contentLocation)
+	if err != nil {
+		return
+	}
+
 	if contentURL.Scheme == "" || contentURL.Scheme == "file" {
+		logger.Info("Loading content from local path")
 		content = &Content{
 			store:   NewLocalDir(contentURL.Path),
 			funcMap: funcMap,
 			md:      renderer,
 		}
 	} else {
+		logger.Info("Loading content from git repo")
 		opts := CheckoutOptions{
 			RepoURL: contentURL,
 		}

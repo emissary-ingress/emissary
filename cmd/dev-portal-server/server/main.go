@@ -1,30 +1,68 @@
 package server
 
 import (
-	"net/url"
+	"context"
+	"net/http"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/datawire/apro/cmd/dev-portal-server/content"
 )
 
+type ServerConfig struct {
+	DiagdURL         string
+	AmbassadorURL    string
+	PublicURL        string
+	PollFrequency    time.Duration
+	SharedSecretPath string
+	ContentURL       string
+}
+
+func MakeServer(ctx context.Context, config ServerConfig) (s *Server, err error) {
+
+	content, err := content.NewContent(config.ContentURL)
+	if err != nil {
+		return
+	}
+
+	s = NewServer(content)
+
+	knownServices := s.knownServices()
+	// TODO push context into fetcher
+	fetcher := NewFetcher(
+		s.getServiceAdd(), s.getServiceDelete(), httpGet, knownServices,
+		config.DiagdURL, config.AmbassadorURL,
+		config.PollFrequency, config.PublicURL,
+		config.SharedSecretPath)
+	go func() {
+		fetcher.retrieve()
+		defer fetcher.Stop()
+		<-ctx.Done()
+	}()
+	return
+}
+
 func Main(
 	version string, diagdURL string, ambassadorURL string, publicURL string,
 	pollFrequency time.Duration, sharedSecretPath string, contentURL string) {
-	url, err := url.Parse(contentURL)
-	if err != nil {
-		panic(err)
-	}
-	content, err := content.NewContent(url)
-	if err != nil {
-		panic(err)
-	}
-	s := NewServer(content)
 
-	knownServices := s.knownServices()
-	fetcher := NewFetcher(
-		s.getServiceAdd(), s.getServiceDelete(), httpGet, knownServices,
-		diagdURL, ambassadorURL, pollFrequency, publicURL, sharedSecretPath)
-	go fetcher.retrieve()
-	defer fetcher.Stop()
-	s.ServeHTTP()
+	config := ServerConfig{
+		DiagdURL:         diagdURL,
+		AmbassadorURL:    ambassadorURL,
+		PublicURL:        publicURL,
+		PollFrequency:    pollFrequency,
+		SharedSecretPath: sharedSecretPath,
+		ContentURL:       contentURL,
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	s, err := MakeServer(ctx, config)
+	if err != nil {
+		panic(err)
+	}
+
+	log.Fatal(http.ListenAndServe("0.0.0.0:8680", s.Router()))
 }
