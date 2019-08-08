@@ -31,6 +31,17 @@ else
     COMMIT_TYPE=random
 fi
 
+# If downstream, don't re-run release machinery for tags that are an
+# existing upstream release.
+if [[ "$TRAVIS_REPO_SLUG" != datawire/ambassador ]] &&
+   [[ -n "${TRAVIS_TAG:-}" ]] &&
+   git fetch https://github.com/datawire/ambassador.git "refs/tags/${TRAVIS_TAG}:refs/upstream-tag" &&
+   [[ "$(git rev-parse refs/upstream-tag)" == "$(git rev-parse "refs/tags/${TRAVIS_TAG}")" ]]
+then
+    COMMIT_TYPE=random
+fi
+git update-ref -d refs/upstream-tag
+
 printf "========\nCOMMIT_TYPE $COMMIT_TYPE; git status:\n"
 
 git status
