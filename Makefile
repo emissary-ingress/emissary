@@ -369,10 +369,6 @@ docker-push: docker-images
 ifeq ($(DOCKER_PUSH_AS),)
 	@echo "No DOCKER_PUSH_AS set"
 else
-	@if [ "$(GIT_DIRTY)" = "dirty" ]; then \
-		printf "Git tree is dirty and therefore 'docker push' is not allowed!\n"; \
-		exit 1; \
-	fi
 	@echo 'PUSH $(AMBASSADOR_DOCKER_IMAGE) as $(DOCKER_PUSH_AS)'
 ifneq ($(DOCKER_PUSH_AS),$(AMBASSADOR_DOCKER_IMAGE))
 	@docker tag $(AMBASSADOR_DOCKER_IMAGE) $(DOCKER_PUSH_AS)
