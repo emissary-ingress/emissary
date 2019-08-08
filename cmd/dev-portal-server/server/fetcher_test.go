@@ -74,7 +74,7 @@ func fakeHTTPGet(url string, internalSecret string, logger *log.Entry) ([]byte, 
 // Big picture test of retrieving info from diagd and OpenAPI endpoint.
 func TestFetcherRetrieve(t *testing.T) {
 	g := NewGomegaWithT(t)
-	s := NewServer()
+	s := NewServer(nil)
 
 	// Start out knowing about one service, but it's going to go away:
 	oldSvc := Service{Name: "old"}

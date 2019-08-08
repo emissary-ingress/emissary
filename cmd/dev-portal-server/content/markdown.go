@@ -1,10 +1,11 @@
 package content
 
 import (
-	"github.com/oxtoacart/bpool"
 	"html"
 	"io"
 	"strings"
+
+	"github.com/oxtoacart/bpool"
 
 	"gitlab.com/golang-commonmark/markdown"
 	blackfriday "gopkg.in/russross/blackfriday.v2"
@@ -60,7 +61,7 @@ func (r *QuoteNonMungingHTMLRenderer) RenderNode(w io.Writer, node *blackfriday.
 		temp := r.b.Get()
 		defer r.b.Put(temp)
 		ret := r.r.RenderNode(temp, node, entering)
-		_, _ = w.Write([]byte(htmlTextEscaper.Replace(html.UnescapeString(string(temp.Bytes())))))
+		_, _ = w.Write([]byte(htmlTextEscaper.Replace(html.UnescapeString(temp.String()))))
 		return ret
 	default:
 		return r.r.RenderNode(w, node, entering)

@@ -34,7 +34,8 @@ func sanitizedURL(str string) string {
 	}
 	return parsed.String()
 }
-func NewContent(contentLocation string) (content *Content, err error) {
+
+func NewContent(contentLocation string) (*Content, error) {
 	logger := log.WithFields(log.Fields{
 		"subsystem":  "content",
 		"contentURL": sanitizedURL(contentLocation),
@@ -54,9 +55,10 @@ func NewContent(contentLocation string) (content *Content, err error) {
 
 	contentURL, err := url.Parse(contentLocation)
 	if err != nil {
-		return
+		return nil, err
 	}
 
+	var content *Content
 	if contentURL.Scheme == "" || contentURL.Scheme == "file" {
 		logger.Info("Loading content from local path")
 		content = &Content{
@@ -72,7 +74,7 @@ func NewContent(contentLocation string) (content *Content, err error) {
 		var checkout *Checkout
 		checkout, err = NewRepoCheckout(opts)
 		if err != nil {
-			return
+			return nil, err
 		}
 		content = &Content{
 			store:   checkout,
@@ -80,33 +82,33 @@ func NewContent(contentLocation string) (content *Content, err error) {
 			md:      renderer,
 		}
 	}
-	return
+	return content, nil
 }
 
-func (c *Content) Get(vars ContentVars) (tmpl *template.Template, err error) {
+func (c *Content) Get(vars ContentVars) (*template.Template, error) {
 	logger := log.WithFields(log.Fields{
 		"subsystem": "content",
 	})
 	logger.Info("Getting content")
-	tmpl = template.New("root").Funcs(c.funcMap)
-	err = c.loadTemplateHTML(tmpl, "///layout", "layout.gohtml")
+	tmpl := template.New("root").Funcs(c.funcMap)
+	err := c.loadTemplateHTML(tmpl, "///layout", "layout.gohtml")
 	if err != nil {
-		return
+		return nil, err
 	}
 
 	err = c.loadTemplateMD(tmpl, "///landing", "landing.gomd")
 	if err != nil {
-		return
+		return nil, err
 	}
 	pagePrefix := "page/"
 	pages, err := c.loadDirMD(tmpl, "pages", pagePrefix)
 	if err != nil {
-		return
+		return nil, err
 	}
 	vars.SetPages(pages)
 	_, err = c.loadDirHTML(tmpl, "fragments")
 	if err != nil {
-		return
+		return nil, err
 	}
 	// templates do not allow dynamic redirects so generate a dynamic template
 	page := vars.CurrentPage()
@@ -116,7 +118,7 @@ func (c *Content) Get(vars ContentVars) (tmpl *template.Template, err error) {
 	}
 	c.parseTemplate(tmpl, "///page-magic", "*code*", magic)
 	logger.Info("Ready")
-	return
+	return tmpl, nil
 }
 
 type templateList []string
@@ -186,7 +188,7 @@ func (c *Content) loadTemplateHTML(tmpl *template.Template, name, fn string) (er
 	return c.parseTemplate(tmpl, name, fn, data)
 }
 
-func (c *Content) loadTemplateMD(tmpl *template.Template, name, fn string) (err error) {
+func (c *Content) loadTemplateMD(tmpl *template.Template, name, fn string) error {
 	logger := log.WithFields(log.Fields{
 		"subsystem":     "content",
 		"template-name": name,
@@ -195,7 +197,7 @@ func (c *Content) loadTemplateMD(tmpl *template.Template, name, fn string) (err 
 	src, err := c.store.Fs().ReadFileBytes(fn)
 	if err != nil {
 		logger.Errorln("reading file", err)
-		return
+		return err
 	}
 
 	data := c.md.Render(src)
@@ -218,7 +220,7 @@ func (c *Content) loadTemplateMD(tmpl *template.Template, name, fn string) (err 
 				Info("Trouble parsing ", err)
 		}
 	}
-	return
+	return err
 }
 
 func (c *Content) parseTemplate(tmpl *template.Template, name, fn, data string) (err error) {

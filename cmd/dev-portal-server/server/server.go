@@ -168,17 +168,17 @@ func (vars *contentVars) SetPages(pages []string) {
 }
 
 func (vars *contentVars) CurrentPage() (page string) {
-	page, _ = vars.Rq["page"]
+	page = vars.Rq["page"]
 	return
 }
 
 func (vars *contentVars) CurrentNamespace() (page string) {
-	page, _ = vars.Rq["namespace"]
+	page = vars.Rq["namespace"]
 	return
 }
 
 func (vars *contentVars) CurrentService() (page string) {
-	page, _ = vars.Rq["service"]
+	page = vars.Rq["service"]
 	return
 }
 
