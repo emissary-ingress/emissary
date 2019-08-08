@@ -31,13 +31,10 @@ env:
     - GIT_BRANCH=$(if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then printf "$TRAVIS_BRANCH"; else printf "$TRAVIS_PULL_REQUEST_BRANCH"; fi)
 
     # Set from the repository settings:
-    #- DOCKER_USERNAME=[secure]
-    #- DOCKER_PASSWORD=[secure]
-    #- encrypted_95ce0d75e6f7_key=[secure] # XXX: remove me
-    #- encrypted_95ce0d75e6f7_iv=[secure]  # XXX: remove me
-    #- GH_TOKEN=[secure]                   # XXX: remove me
-    #- encrypted_21b00a486c76_key=[secure] # XXX: remove me
-    #- encrypted_21b00a486c76_iv=[secure]  # XXX: remove me
+    #- DOCKER_BUILD_USERNAME=[secure] (optional)
+    #- DOCKER_BUILD_PASSWORD=[secure] (optional)
+    #- DOCKER_RELEASE_USERNAME=[secure]
+    #- DOCKER_RELEASE_PASSWORD=[secure]
 
     # Encrypted here:
     # - PACKAGECLOUD_TOKEN # XXX: remove me
@@ -45,10 +42,6 @@ env:
     # - AWS_ACCESS_KEY_ID
     # - AWS_SECRET_ACCESS_KEY
     - secure: "F9oY34UDI8aXuZ9nb6z3/ltlqrNs4RUQHDZHa2YSFoq0r2Rn272Yg7oHfPh3deYNKxtUOBwwcpiC/7G9MqhkuLQEYhqY/KowidG6gOxCZdTDEVS10C4GDEMGj64URlUCS722tQYMIpniiB6LW2kEOOcEuzC6JsVxS7BowUEVk7Ly8BTzrgNuGFN2bSphRyrJyrS3Reo5a1YI3joUMzI29t7fegefTIHHONKhZpIE86wFRk11nwvJdt54Eu9dVFwiEiGW9L9SnG2ph4UiqN6z3iQFCQ8HNvnf+BvNasdMBR3f85DPnG/syqOcQrrE1e5T88UXRxyUwR2ty1ad+ZvQPggwsoFs1FmdJH04pGn0Tgpo/AHNe5c67tvDbw2W4jlFJgVI/keoFvQigSM2DUuL1i0v48TkZw8lgcfasRjtJi7iDTC4qqjyMLkY6y2TRTVDG/86qxK3No7vvJZajzntU3c6MUttiSDubaHL5RuklQ+7MjN5Dp1cD09L3Qqnm9KcjWzbNoyqriBO84VU4aJFF72jJ18qADX/UUj7cxi0ShY19BHX2Vrp3pPSNiePfO7okUrg5Wc4eD7u4eC+aUVHboEX35NhBnfj7/ASrsltIANYFmNarv3tvd67JIsm/Wz3pge6YOSV1pBr2IsGk5UVIXdJ/mm6GVWFlJ9PiELDBGc="
-
-before_install:
-  - mkdir -p ~/bin
-  # - make docker-login
 
 install:
   - ./releng/travis-install.sh
@@ -59,11 +52,3 @@ script:
 after_script:
   # release the kubernaut claim
   - ./releng/travis-cleanup.sh
-
-deploy:
-  - provider: script
-    script: ./releng/travis-release.sh
-    skip_cleanup: true
-    on:
-      all_branches: true
-      condition: $GIT_BRANCH =~ ^[0-9]+\.[0-9]+\.[0-9]+$

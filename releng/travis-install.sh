@@ -14,28 +14,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
+KUBECTL_VERSION=1.10.2
+HELM_VERSION=2.9.1
+
 set -o errexit
 set -o nounset
+set -o xtrace
+
+printf "== Begin: travis-install.sh ==\n"
+
+mkdir -p ~/bin
 
 # Set up for Kubernaut.
 base64 -d < kconf.b64 | ( cd ~ ; tar xzf - )
 
-KUBECTL_VERSION=1.10.2
+curl -L -o ~/bin/kubectl https://storage.googleapis.com/kubernetes-release/release/v${KUBECTL_VERSION}/bin/linux/amd64/kubectl
+chmod +x ~/bin/kubectl
 
-curl -LO https://storage.googleapis.com/kubernetes-release/release/v${KUBECTL_VERSION}/bin/linux/amd64/kubectl
-chmod +x kubectl
-mv kubectl ~/bin/kubectl
+curl -L https://storage.googleapis.com/kubernetes-helm/helm-v${HELM_VERSION}-linux-amd64.tar.gz | tar -x -z -O linux-amd64/helm > ~/bin/helm
+chmod +x ~/bin/helm
+helm init --client-only # Initialize helm for indexing use
 
 pip install -q -r dev-requirements.txt
 pip install -q -r ambassador/requirements.txt
-#npm install gitbook-cli netlify-cli
 
-if [[ `which helm` == "" ]]; then
-  curl https://storage.googleapis.com/kubernetes-helm/helm-v2.9.1-linux-amd64.tar.gz | tar xz
-  chmod +x linux-amd64/helm
-  sudo mv linux-amd64/helm /usr/local/bin/
-  rm -rf linux-amd64
-fi
-
-# Initialize helm for indexing use.
-helm init --client-only
+printf "== End:   travis-install.sh ==\n"
