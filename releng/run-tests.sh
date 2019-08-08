@@ -14,6 +14,7 @@ ROOT=$(cd .. ; pwd)
 
 set -e
 set -o pipefail
+set -x
 
 # We only want to pull images if they are not present locally. This impacts local test runs.
 if [[ "$(docker images -q $AMBASSADOR_DOCKER_IMAGE 2> /dev/null)" == "" ]]; then
@@ -44,11 +45,11 @@ if [[ -n "${TEST_NAME}" ]]; then
     esac
 fi
 
-FULL_RESULT=0
-
 ( cd "$ROOT" ; make cluster-and-teleproxy )
 
 echo "==== [$(date)] ==== STARTING TESTS"
+
+failed=()
 
 for el in "${seq[@]}"; do
     echo "==== [$(date)] ==== running $el"
@@ -57,7 +58,7 @@ for el in "${seq[@]}"; do
 #    kubectl delete all -l scope=AmbassadorTest
 
     if ! pytest ${TEST_ARGS} -k "$el"; then
-        FULL_RESULT=1
+        failed+=("$el")
 
         kubectl get pods --all-namespaces
         kubectl get svc --all-namespaces
@@ -79,6 +80,11 @@ for el in "${seq[@]}"; do
     fi
 done
 
-echo "==== [$(date)] ==== FINISHED TESTS ($FULL_RESULT)"
+if (( ${#failed[@]} == 0 )); then
+    echo "==== [$(date)] ==== FINISHED TESTS (passed)"
+    exit 0
+else
+    echo "==== [$(date)] ==== FINISHED TESTS (failed: ${failed[*]})"
+    exit 1
+fi
 
-exit $FULL_RESULT
