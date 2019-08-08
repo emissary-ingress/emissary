@@ -33,6 +33,7 @@ import (
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/controller"
 	rlscontroller "github.com/datawire/apro/cmd/amb-sidecar/rls"
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
+	portal "github.com/datawire/apro/cmd/dev-portal-server/server"
 	"github.com/datawire/apro/lib/licensekeys"
 	"github.com/datawire/apro/lib/util"
 
@@ -235,6 +236,14 @@ func runE(cmd *cobra.Command, args []string) error {
 			func(writer http.ResponseWriter, request *http.Request) {
 				io.WriteString(writer, rateLimitService.GetCurrentConfig().Dump())
 			})
+
+		// DevPortal
+
+		portalServer, err := portal.MakeServer(softCtx, cfg.PortalConfig)
+		if err != nil {
+			return err
+		}
+		httpHandler.AddEndpoint("/docs", "Documentation portal", portalServer.Router().ServeHTTP)
 
 		// Launch the server
 		server := &http.Server{

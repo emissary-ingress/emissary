@@ -3,9 +3,12 @@ package types
 import (
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+
+	portal "github.com/datawire/apro/cmd/dev-portal-server/server"
 )
 
 type Config struct {
@@ -39,6 +42,9 @@ type Config struct {
 	StatsdHost     string
 	StatsdPort     int
 	FlushIntervalS int
+
+	// DevPortal
+	PortalConfig portal.ServerConfig
 }
 
 func getenvDefault(varname, def string) string {
@@ -49,7 +55,25 @@ func getenvDefault(varname, def string) string {
 	return ret
 }
 
+func PortalConfigFromEnv() (cfg portal.ServerConfig, warn []error, fatal []error) {
+	cfg = portal.ServerConfig{
+		DiagdURL:         "TODO",
+		AmbassadorURL:    "TODO",
+		PublicURL:        "TODO",
+		PollFrequency:    time.Second * 3,
+		SharedSecretPath: "TODO",
+		ContentURL: getenvDefault("APRO_DEVPORTAL_CONTENT_URL",
+			"https://github.com/datawire/devportal-content"),
+	}
+	return
+}
+
 func ConfigFromEnv() (cfg Config, warn []error, fatal []error) {
+	// DevPortal
+	portalConfig, pwarn, pfatal := PortalConfigFromEnv()
+	warn = append(warn, pwarn...)
+	fatal = append(fatal, pfatal...)
+
 	// Set the things that don't require too much parsing
 	cfg = Config{
 		// Ambassador
@@ -83,6 +107,9 @@ func ConfigFromEnv() (cfg Config, warn []error, fatal []error) {
 		StatsdHost:     getenvDefault("STATSD_HOST", "localhost"),
 		StatsdPort:     0, // set below
 		FlushIntervalS: 0, // set below
+
+		// DevPortal
+		PortalConfig: portalConfig, // parsed above
 	}
 
 	// Set the things marked "set below" (things that do require some parsing)
