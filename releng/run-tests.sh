@@ -29,7 +29,11 @@ fi
 
 TEST_ARGS="--tb=short -s"
 
-seq=('Plain' 'not Plain and (A or C)' 'not Plain and not (A or C)')
+seq=(
+    'Plain'
+    'not Plain and (A or C)'
+    'not Plain and not (A or C)'
+)
 
 if [[ -n "${TEST_NAME}" ]]; then
     case "${TEST_NAME}" in
