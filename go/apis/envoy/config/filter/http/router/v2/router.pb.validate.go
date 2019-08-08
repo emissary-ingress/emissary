@@ -79,6 +79,18 @@ func (m *Router) Validate() error {
 
 	// no validation rules for SuppressEnvoyHeaders
 
+	for idx, item := range m.GetStrictCheckHeaders() {
+		_, _ = idx, item
+
+		if _, ok := _Router_StrictCheckHeaders_InLookup[item]; !ok {
+			return RouterValidationError{
+				field:  fmt.Sprintf("StrictCheckHeaders[%v]", idx),
+				reason: "value must be in list [x-envoy-upstream-rq-timeout-ms x-envoy-upstream-rq-per-try-timeout-ms x-envoy-max-retries x-envoy-retry-grpc-on x-envoy-retry-on]",
+			}
+		}
+
+	}
+
 	return nil
 }
 
@@ -135,3 +147,11 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = RouterValidationError{}
+
+var _Router_StrictCheckHeaders_InLookup = map[string]struct{}{
+	"x-envoy-upstream-rq-timeout-ms":         {},
+	"x-envoy-upstream-rq-per-try-timeout-ms": {},
+	"x-envoy-max-retries":                    {},
+	"x-envoy-retry-grpc-on":                  {},
+	"x-envoy-retry-on":                       {},
+}
