@@ -20,7 +20,7 @@ if [ -f $content_url_file ]; then
 else
     echo "You need to setup $content_url_file in $PWD"
     echo ""
-    echo '  # echo export CODE_CONTENT_URL="https://c0031fb19fe1f2e66cb174cc9ff437a0f5d529c3@github.com/datawire/apro-code-content.git"'" > $content_url_file"
+    echo '  # echo export CODE_CONTENT_URL="https://github.com/datawire/devportal-content.git"'" > $content_url_file"
     echo ""
     false
 fi
