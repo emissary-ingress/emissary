@@ -148,6 +148,9 @@ class DiagApp (Flask):
         self.snapshot_path = snapshot_path
 
         self.ir = None
+        self.econf = None
+        self.diag = None
+
         self.stats_updater = None
         self.scout_checker = None
 
@@ -397,7 +400,7 @@ def check_alive():
 
 @app.route('/ambassador/v0/check_ready', methods=[ 'GET' ])
 def check_ready():
-    if not app.ir:
+    if not (app.ir and app.diag):
         return "ambassador waiting for config\n", 503
 
     status = envoy_status(app.estats)
