@@ -897,6 +897,25 @@ class AmbassadorEventWatcher(threading.Thread):
             self.logger.info("notifying PID %d ambex" % app.ambex_pid)
             os.kill(app.ambex_pid, signal.SIGHUP)
 
+        if app.ir.k8s_status_updates:
+            for name in app.ir.k8s_status_updates.keys():
+                kind, update = app.ir.k8s_status_updates[name]
+
+                self.logger.info(f"doing K8s status update for {kind} {name}...")
+
+                text = json.dumps(update)
+
+                with open(f'/tmp/kstat-{kind}-{name}', 'w') as out:
+                    out.write(text)
+
+                cmd = [ '/ambassador/kubestatus', kind, '-f', f'metadata.name={name}', '-u', '/dev/fd/0' ]
+
+                try:
+                    rc = subprocess.run(cmd, input=text.encode('utf-8'), timeout=5)
+                    self.logger.info(f'...update finished, rc {rc.returncode}')
+                except subprocess.TimeoutExpired as e:
+                    self.logger.error(f'...update timed out, {e}')
+
         self.logger.info("configuration updated from snapshot %s" % snapshot)
         self._respond(rqueue, 200, 'configuration updated from snapshot %s' % snapshot)
 

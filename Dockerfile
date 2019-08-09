@@ -90,5 +90,7 @@ RUN chmod 755 entrypoint.sh grab-snapshots.py kick_ads.sh kubewatch.py post_upda
 # XXX Move to base image
 COPY watt .
 RUN chmod 755 watt
+COPY kubestatus .
+RUN chmod 755 kubestatus
 
 ENTRYPOINT [ "./entrypoint.sh" ]

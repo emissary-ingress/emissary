@@ -72,6 +72,7 @@ class IR:
     secret_handler: SecretHandler
     file_checker: Callable[[str], bool]
     resolvers: Dict[str, IRServiceResolver]
+    k8s_status_updates: Dict[str, Dict]
 
     def __init__(self, aconf: Config, secret_handler=None, file_checker=None) -> None:
         self.ambassador_id = Config.ambassador_id
@@ -126,6 +127,7 @@ class IR:
         self.listeners = []
         self.groups = {}
         self.resolvers = {}
+        self.k8s_status_updates = {}
 
         # OK, time to get this show on the road. First things first: set up the
         # Ambassador module.
@@ -452,7 +454,14 @@ class IR:
             final_knative_ingresses.update(knative_ingresses)
 
         for ci_name, ci in final_knative_ingresses.items():
-            self.logger.debug(f"Parsing ClusterIngress {ci_name}")
+            kind = ci['kind']
+
+            if kind == 'KnativeIngress':
+                kind = 'ingress.networking.internal.knative.dev'
+            else:
+                kind = kind.lower() + ".networking.internal.knative.dev"
+
+            self.logger.debug(f"Parsing {kind} {ci_name}")
 
             ci_rules = ci.get('rules', [])
             for rule_count, ci_rule in enumerate(ci_rules):
@@ -509,6 +518,28 @@ class IR:
                                 aconf.config['mappings'] = {}
                             aconf.config['mappings'][mapping_identifier] = ci_mapping
 
+                            # Remember that we need to update status on this resource.
+                            utcnow = datetime.datetime.utcnow().strftime("%y-%m-%dT%H:%M:%SZ")
+                            self.k8s_status_updates[ci_name] = (kind, {
+                                "conditions": [
+                                    {
+                                        "lastTransitionTime": utcnow,
+                                        "status": "True",
+                                        "type": "LoadBalancerReady"
+                                    },
+                                    {
+                                        "lastTransitionTime": utcnow,
+                                        "status": "True",
+                                        "type": "NetworkConfigured"
+                                    },
+                                    {
+                                        "lastTransitionTime": utcnow,
+                                        "status": "True",
+                                        "type": "Ready"
+                                    }
+                                ]
+                            })
+
     def ordered_groups(self) -> Iterable[IRBaseMappingGroup]:
         return reversed(sorted(self.groups.values(), key=lambda x: x['group_weight']))
 
@@ -561,7 +592,8 @@ class IR:
             'filters': [ filt.as_dict() for filt in self.filters ],
             'groups': [ group.as_dict() for group in self.ordered_groups() ],
             'tls_contexts': [ context.as_dict() for context in self.tls_contexts.values() ],
-            'services': self.services
+            'services': self.services,
+            'k8s_status_updates': self.k8s_status_updates
         }
 
         if self.tracing:
@@ -725,8 +757,10 @@ class IR:
         od['endpoint_routing_envoy_maglev_count'] = endpoint_routing_envoy_maglev_count
 
         cluster_ingresses = self.aconf.get_config("ClusterIngress")
-
         od['cluster_ingress_count'] = len(cluster_ingresses.keys()) if cluster_ingresses else 0
+
+        knative_ingresses = self.aconf.get_config("KnativeIngress")
+        od['knative_ingress_count'] = len(cluster_ingresses.keys()) if knative_ingresses else 0
 
         extauth = False
         extauth_proto: Optional[str] = None

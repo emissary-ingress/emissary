@@ -113,6 +113,7 @@ class FakeIR(IR):
         self.ratelimit = None
         self.saved_secrets = {}
         self.secret_info = {}
+        self.k8s_status_updates = {}
 
         self.ambassador_module = IRAmbassador(self, aconf)
 
