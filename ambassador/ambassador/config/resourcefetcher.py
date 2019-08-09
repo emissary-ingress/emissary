@@ -165,7 +165,8 @@ class ResourceFetcher:
                          'KubernetesEndpointResolver', 'KubernetesServiceResolver',
                          'Mapping', 'Module', 'RateLimitService',
                          'TCPMapping', 'TLSContext', 'TracingService',
-                         'ClusterIngress', 'ingresses.networking.internal.knative.dev']:
+                         'clusteringresses.networking.internal.knative.dev',
+                         'ingresses.networking.internal.knative.dev']:
                 for obj in watt_k8s.get(key) or []:
                     self.handle_k8s_crd(obj)
 

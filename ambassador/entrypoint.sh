@@ -382,11 +382,7 @@ if [[ -z "${AMBASSADOR_NO_KUBEWATCH}" ]]; then
 
     AMBASSADOR_LABEL_SELECTOR_ARG=""
     if [ -n "$AMBASSADOR_LABEL_SELECTOR" ] ; then
-	    AMBASSADOR_LABEL_SELECTOR_ARG="--labels $AMBASSADOR_LABEL_SELECTOR --labels serving.knative.dev/route"
-    fi
-
-    if [ "${AMBASSADOR_KNATIVE_SUPPORT}" = true ]; then
-        KUBEWATCH_SYNC_KINDS="$KUBEWATCH_SYNC_KINDS -s ClusterIngress -s ingresses.networking.internal.knative.dev"
+	    AMBASSADOR_LABEL_SELECTOR_ARG="--labels $AMBASSADOR_LABEL_SELECTOR"
     fi
 
     launch "watt" /ambassador/watt \

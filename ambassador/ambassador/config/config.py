@@ -63,7 +63,7 @@ class Config:
         'tracingservice': "tracing_configs",
     }
 
-    KnativeResources = {'ClusterIngress'}
+    KnativeResources = { 'ClusterIngress', 'KnativeIngress' }
 
     SupportedVersions: ClassVar[Dict[str, str]] = {
         "v0": "is deprecated, consider upgrading",

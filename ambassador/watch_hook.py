@@ -31,10 +31,14 @@ logging.basicConfig(
 )
 
 alogger = logging.getLogger('ambassador')
-alogger.setLevel(loglevel)
+alogger.setLevel(logging.INFO)
 
 logger = logging.getLogger('watch_hook')
 logger.setLevel(loglevel)
+
+ambassador_knative_requested = (os.environ.get("AMBASSADOR_KNATIVE_SUPPORT", "-unset-").lower() == 'true')
+
+logger.debug(f'AMBASSADOR_KNATIVE_REQUESTED {ambassador_knative_requested}')
 
 from ambassador import Config, IR
 from ambassador.config.resourcefetcher import ResourceFetcher
@@ -230,6 +234,34 @@ for secret_key, secret_info in fake.secret_handler.needed.items():
 #         "field-selector": "metadata.namespace!=kube-system,type!=kubernetes.io/service-account-token"
 #     }
 # )
+
+if ambassador_knative_requested:
+    logger.debug('Looking for Knative support...')
+
+    ambassador_basedir = os.environ.get('AMBASSADOR_CONFIG_BASE_DIR', '/ambassador')
+
+    if os.path.exists(os.path.join(ambassador_basedir, '.knative_clusteringress_ok')):
+        # Watch for clusteringresses.networking.internal.knative.dev in any namespace and with any labels.
+
+        logger.debug('watching for clusteringresses.networking.internal.knative.dev')
+        kube_watches.append(
+            {
+                'kind': 'clusteringresses.networking.internal.knative.dev',
+                'namespace': ''
+            }
+        )
+
+    if os.path.exists(os.path.join(ambassador_basedir, '.knative_ingress_ok')):
+        # Watch for ingresses.networking.internal.knative.dev in any namespace and
+        # with any labels.
+
+        logger.debug('watching for ingresses.networking.internal.knative.dev')
+        kube_watches.append(
+            {
+                'kind': 'ingresses.networking.internal.knative.dev',
+                'namespace': ''
+            }
+        )
 
 watchset = {
     "kubernetes-watches": kube_watches,
