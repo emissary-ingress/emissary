@@ -1259,6 +1259,9 @@ func (m *RouteAction) Validate() error {
 			}
 		}
 
+	case *RouteAction_AutoHostRewriteHeader:
+		// no validation rules for AutoHostRewriteHeader
+
 	}
 
 	return nil

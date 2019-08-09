@@ -77,6 +77,26 @@ func (m *CsrfPolicy) Validate() error {
 		}
 	}
 
+	for idx, item := range m.GetAdditionalOrigins() {
+		_, _ = idx, item
+
+		{
+			tmp := item
+
+			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+				if err := v.Validate(); err != nil {
+					return CsrfPolicyValidationError{
+						field:  fmt.Sprintf("AdditionalOrigins[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					}
+				}
+			}
+		}
+
+	}
+
 	return nil
 }
 

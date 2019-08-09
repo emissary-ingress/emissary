@@ -591,6 +591,8 @@ func (m *ResponseFlags) Validate() error {
 
 	// no validation rules for StreamIdleTimeout
 
+	// no validation rules for InvalidEnvoyRequestHeaders
+
 	return nil
 }
 

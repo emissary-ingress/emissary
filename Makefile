@@ -102,13 +102,13 @@ AMBASSADOR_EXTERNAL_DOCKER_IMAGE ?= $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(AMBASSA
 
 # IF YOU MESS WITH ANY OF THESE VALUES, YOU MUST RUN `make docker-update-base`.
   ENVOY_REPO ?= git://github.com/datawire/envoy.git
-  ENVOY_COMMIT ?= 8f57f7d765939552a999721e8dac9b5a9a5cbb8b
+  ENVOY_COMMIT ?= b1dae7dce0478c00e4f5fc3c0c5db8663f4d76ee
   ENVOY_COMPILATION_MODE ?= dbg
 
   ENVOY_FILE ?= envoy-bin/envoy-static-stripped
 
   # Increment BASE_ENVOY_RELVER on changes to `Dockerfile.base-envoy`, ENVOY_FILE, or Envoy recipes
-  BASE_ENVOY_RELVER ?= 3
+  BASE_ENVOY_RELVER ?= 1
   # Increment BASE_GO_RELVER on changes to `Dockerfile.base-go`
   BASE_GO_RELVER    ?= 1
   # Increment BASE_PY_RELVER on changes to `Dockerfile.base-py`, `releng/*`, `multi/requirements.txt`, `ambassador/requirements.txt`
@@ -369,10 +369,6 @@ docker-push: docker-images
 ifeq ($(DOCKER_PUSH_AS),)
 	@echo "No DOCKER_PUSH_AS set"
 else
-	@if [ "$(GIT_DIRTY)" = "dirty" ]; then \
-		printf "Git tree is dirty and therefore 'docker push' is not allowed!\n"; \
-		exit 1; \
-	fi
 	@echo 'PUSH $(AMBASSADOR_DOCKER_IMAGE) as $(DOCKER_PUSH_AS)'
 ifneq ($(DOCKER_PUSH_AS),$(AMBASSADOR_DOCKER_IMAGE))
 	@docker tag $(AMBASSADOR_DOCKER_IMAGE) $(DOCKER_PUSH_AS)
@@ -441,7 +437,7 @@ KAT_CLIENT=venv/bin/kat_client
 
 venv/kat-backend-$(KAT_BACKEND_RELEASE).tar.gz: | venv/bin/activate
 	curl -L -o $@ https://github.com/datawire/kat-backend/archive/v$(KAT_BACKEND_RELEASE).tar.gz
-$(KAT_CLIENT): venv/kat-backend-$(KAT_BACKEND_RELEASE).tar.gz
+$(KAT_CLIENT): venv/kat-backend-$(KAT_BACKEND_RELEASE).tar.gz $(var.)KAT_BACKEND_RELEASE
 	cd venv && tar -xzf $(<F) kat-backend-$(KAT_BACKEND_RELEASE)/client/bin/client_$(GOOS)_$(GOARCH)
 	install -m0755 venv/kat-backend-$(KAT_BACKEND_RELEASE)/client/bin/client_$(GOOS)_$(GOARCH) $(CURDIR)/$(KAT_CLIENT)
 
