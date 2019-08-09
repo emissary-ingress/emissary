@@ -65,7 +65,7 @@ case "$COMMIT_TYPE" in
         fi
 
         make setup-develop cluster.yaml docker-registry
-        make docker-push DOCKER_PUSH_AS="$AMBASSADOR_DOCKER_IMAGE" # to the in-cluster registry
+        make docker-push # to the in-cluster registry (DOCKER_REGISTRY)
         # make KAT_REQ_LIMIT=1200 test
         make test
         ;;
@@ -84,15 +84,27 @@ case "$COMMIT_TYPE" in
         if [[ -n "${DOCKER_RELEASE_USERNAME:-}" ]]; then
             docker login -u="$DOCKER_RELEASE_USERNAME" --password-stdin "${AMBASSADOR_EXTERNAL_DOCKER_REPO%%/*}" <<<"$DOCKER_RELEASE_PASSWORD"
         fi
-        make docker-push DOCKER_PUSH_AS="${AMBASSADOR_EXTERNAL_DOCKER_REPO}:${GIT_TAG_SANITIZED}" # public X.Y.Z-rcA
-        make docker-push DOCKER_PUSH_AS="${AMBASSADOR_EXTERNAL_DOCKER_REPO}:${LATEST_RC}"         # public X.Y.Z-rc-latest
+        tags=(
+            "${AMBASSADOR_EXTERNAL_DOCKER_REPO}:${GIT_TAG_SANITIZED}" # public X.Y.Z-rcA
+            "${AMBASSADOR_EXTERNAL_DOCKER_REPO}:${LATEST_RC}"         # public X.Y.Z-rc-latest
+        )
+        for tag in "${tags[@]}"; do
+            docker tag "$AMBASSADOR_DOCKER_IMAGE" "$tag"
+            docker push "$tag"
+        done
         make VERSION="$VERSION" SCOUT_APP_KEY=testapp.json STABLE_TXT_KEY=teststable.txt update-aws
         ;;
     EA)
         if [[ -n "${DOCKER_RELEASE_USERNAME:-}" ]]; then
             docker login -u="$DOCKER_RELEASE_USERNAME" --password-stdin "${AMBASSADOR_EXTERNAL_DOCKER_REPO%%/*}" <<<"$DOCKER_RELEASE_PASSWORD"
         fi
-        make docker-push DOCKER_PUSH_AS="${AMBASSADOR_EXTERNAL_DOCKER_REPO}:${GIT_TAG_SANITIZED}" # public X.Y.Z-eaA
+        tags=(
+            "${AMBASSADOR_EXTERNAL_DOCKER_REPO}:${GIT_TAG_SANITIZED}" # public X.Y.Z-eaA
+        )
+        for tag in "${tags[@]}"; do
+            docker tag "$AMBASSADOR_DOCKER_IMAGE" "$tag"
+            docker push "$tag"
+        done
         make VERSION="$VERSION" SCOUT_APP_KEY=earlyapp.json STABLE_TXT_KEY=earlystable.txt update-aws
         ;;
     *)
