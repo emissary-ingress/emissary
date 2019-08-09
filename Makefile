@@ -366,14 +366,11 @@ ambassador.docker: Dockerfile base-go.docker base-py.docker $(WATT) $(WRITE_IFCH
 docker-images: ambassador-docker-image
 
 docker-push: docker-images
-ifeq ($(DOCKER_PUSH_AS),)
-	@echo "No DOCKER_PUSH_AS set"
+ifeq ($(DOCKER_REGISTRY),-)
+	@echo "No DOCKER_REGISTRY set"
 else
-	@echo 'PUSH $(AMBASSADOR_DOCKER_IMAGE) as $(DOCKER_PUSH_AS)'
-ifneq ($(DOCKER_PUSH_AS),$(AMBASSADOR_DOCKER_IMAGE))
-	@docker tag $(AMBASSADOR_DOCKER_IMAGE) $(DOCKER_PUSH_AS)
-endif
-	@docker push $(DOCKER_PUSH_AS) | python releng/linify.py push.log
+	@echo 'PUSH $(AMBASSADOR_DOCKER_IMAGE)'
+	@docker push $(AMBASSADOR_DOCKER_IMAGE) | python releng/linify.py push.log
 endif
 
 # TODO: validate version is conformant to some set of rules might be a good idea to add here
