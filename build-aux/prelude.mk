@@ -14,7 +14,7 @@
 #
 #  - Variable: build-aux.dir
 #  - Variable: build-aux.bindir
-#  - Variable: build-aux.go-build
+#  - Function: build-aux.bin-go.rule
 #
 #  - Variable: export GOHOSTOS
 #  - Variable: export GOHOSTARCH
@@ -82,13 +82,18 @@ $(build-aux.bindir)/%: $(build-aux.dir)/bin-sh/%.sh | $(build-aux.bindir)
 _prelude.go.GOPATH = $(call lazyonce,$(shell go env GOPATH))
 _prelude.go.goversion = $(call lazyonce,_prelude.go.goversion,$(patsubst go%,%,$(filter go1%,$(shell go version))))
 _prelude.go.lock = $(if $(filter 1.11 1.11.%,$(_prelude.go.goversion)),$(FLOCK)$(if $@, $(_prelude.go.GOPATH)/pkg/mod ))
-$(build-aux.bindir)/.flock.stamp: $(build-aux.bindir)/.%.stamp: $(build-aux.dir)/bin-go/%/ $(shell find $(build-aux.dir)/bin-go/ -mindepth 1) $(build-aux.dir)/go.mod | $(build-aux.bindir)
-	cd $(build-aux.dir) && GO111MODULE=on go build -o $@ ./bin-go/$*
-$(build-aux.bindir)/.%.stamp: $(build-aux.dir)/bin-go/%/ $(shell find $(build-aux.dir)/bin-go/ -mindepth 1) $(build-aux.dir)/go.mod $(_prelude.go.lock) | $(build-aux.bindir)
-	cd $(build-aux.dir) && GO111MODULE=on $(_prelude.go.lock)go build -o $@ ./bin-go/$*
+
+# Usage: $(eval $(call build-aux.bin-go.rule,BINARY_NAME,GO_PACKAGE))
+define build-aux.bin-go.rule
+$$(build-aux.bindir)/.$(strip $1).stamp: $$(build-aux.bindir)/.%.stamp: $$(build-aux.dir)/bin-go/%/go.mod $$(_prelude.go.lock) FORCE | $$(build-aux.bindir)
+	cd $$(<D) && GO111MODULE=on $$(_prelude.go.lock)go build -o $$(abspath $$@) $2
+endef
 $(build-aux.bindir)/%: $(build-aux.bindir)/.%.stamp $(COPY_IFCHANGED)
 	$(COPY_IFCHANGED) $< $@
-build-aux.go-build = cd $(build-aux.dir) && GO111MODULE=on $(_prelude.go.lock)go build
+
+# bin/.flock.stamp doesn't use build-aux.bin-go.rule, because bootstrapping
+$(build-aux.bindir)/.flock.stamp: $(build-aux.bindir)/.%.stamp: $(build-aux.dir)/bin-go/%/go.mod $(shell find $(build-aux.dir)/bin-go/flock) | $(build-aux.bindir)
+	cd $(<D) && GO111MODULE=on go build -o $(abspath $@) github.com/datawire/build-aux/bin-go/flock
 
 #
 # Functions
