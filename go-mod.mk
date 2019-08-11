@@ -74,8 +74,13 @@ CI ?=
 #
 # Set output variables and functions
 
-GOTEST2TAP    ?= $(build-aux.bindir)/gotest2tap
-GOLANGCI_LINT ?= $(build-aux.bindir)/golangci-lint
+GOTEST2TAP       ?= $(build-aux.bindir)/gotest2tap
+GOLANGCI_LINT    ?= $(build-aux.bindir)/golangci-lint
+_go.mkopensource  = $(build-aux.bindir)/go-mkopensource
+
+$(eval $(call build-aux.bin-go.rule, gotest2tap     , github.com/datawire/build-aux/bin-go/gotest2tap      ))
+$(eval $(call build-aux.bin-go.rule, golangci-lint  , github.com/golangci/golangci-lint/cmd/golangci-lint  ))
+$(eval $(call build-aux.bin-go.rule, go-mkopensource, github.com/datawire/build-aux/bin-go/go-mkopensource ))
 
 NAME ?= $(notdir $(go.module))
 
@@ -119,8 +124,6 @@ vendor: $(go.lock)
 $(dir $(_go-mod.mk))go1%.src.tar.gz:
 	curl -o $@ --fail https://dl.google.com/go/$(@F)
 
-_go.mkopensource = $(build-aux.bindir)/go-mkopensource
-
 # Usage: $(eval $(call go.bin.rule,BINNAME,GOPACKAGE))
 define go.bin.rule
 bin_%/.$1.stamp: go-get $$(go.lock) FORCE
@@ -140,9 +143,6 @@ build:    $(foreach _go.PLATFORM,$(go.PLATFORMS),$(foreach _go.bin,$(go.bins), b
 
 go-build: ## (Go) Build the code with `go build`
 .PHONY: go-build
-
-$(build-aux.bindir)/golangci-lint: $(build-aux.dir)/go.mod $(_prelude.go.lock) | $(build-aux.bindir)
-	$(build-aux.go-build) -o $@ github.com/golangci/golangci-lint/cmd/golangci-lint
 
 go-lint: ## (Go) Check the code with `golangci-lint`
 go-lint: $(GOLANGCI_LINT) go-get $(go.lock)

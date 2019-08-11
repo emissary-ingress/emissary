@@ -1,6 +1,9 @@
 <!-- -*- fill-column: 100 -*- -->
 # Datawire build-aux CHANGELOG
 
+ - 2019-08-13: BREAKING CHANGE: `prelude.mk`: The `build-aux.go-build` macro has been removed in
+               favor of the `build-aux.bin-go.rule` macro.
+
  - 2019-08-13: Fix race condition in `make clobber` where it attempted to use compiled programs used
                for cleanup, after the programs themselves had already been deleted.
 
