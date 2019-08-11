@@ -62,6 +62,7 @@ endef
 
 FLOCK           ?= $(call lazyonce,FLOCK,$(or $(shell which flock 2>/dev/null),$(build-aux.bindir)/flock))
 COPY_IFCHANGED  ?= $(build-aux.bindir)/copy-ifchanged
+MOVE_IFCHANGED  ?= $(build-aux.bindir)/move-ifchanged
 WRITE_IFCHANGED ?= $(build-aux.bindir)/write-ifchanged
 TAP_DRIVER      ?= $(build-aux.bindir)/tap-driver
 

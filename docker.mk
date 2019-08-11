@@ -1,119 +1,158 @@
 # Copyright 2019 Datawire. All rights reserved.
 #
-# Makefile snippet for building Docker images.
+# Makefile snippet for building, tagging, and pushing Docker images.
 #
 ## Eager inputs ##
 #  (none)
 ## Lazy inputs ##
-#  - Variable: VERSION (optional)
-#  - Variable: DOCKER_IMAGE ?= $(DOCKER_REGISTRY)/$(notdir $*):$(or $(VERSION),latest)
+#  (none)
 ## Outputs ##
+#
+#  - Executable    : WRITE_DOCKERTAGFILE ?= $(CURDIR)/build-aux/bin/write-dockertagfile
+#
 #  - Variable      : HAVE_DOCKER             # non-empty if true, empty if false
-#  - Target        : %.docker: %/Dockerfile  # tags image as localhost:31000/$(notdir $*):$(VERSION)
-#  - .PHONY Target : %.docker.clean
-#  - .PHONY Target : %.docker.push           # pushes to $(DOCKER_REGISTRY)
+#  - Variable      : docker.LOCALHOST        # "host.docker.internal" on Docker for Desktop, "localhost" on Docker CE
+#
+#  - Target        : %.docker: %/Dockerfile               # builds image (untagged)
+#  - .PHONY Target : %.docker.clean                       # remove image and tags
+#  - Function: $(eval $(call docker.tag.rule,GROUP,EXPR)) # adds targets:
+#                # : %.docker.tag.GROUP                   # tags image as EXPR
+#                # : %.docker.push.GROUP                  # pushes tag EXPR
+#
 ## common.mk targets ##
 #  (none)
 #
 # ## Local docker build ##
 #
-#    `Dockerfile`s must be in sub-directories; it doesn't support
-#    having a `Dockerfile` in the root.
+#    To use this Makefile snippet naively, `Dockerfile`s must be in
+#    sub-directories; it doesn't support out-of-the-box having a
+#    `Dockerfile` in the root.  If you would like to have
+#    `Dockerfile`s out of the root (or with other names, like
+#    `Dockerfile.base-envoy`), then you must supply your own
+#    `%.docker` target that
+#      1. Calls `docker build --iidfile=TEMPFILE ...`
+#      2. Calls `$(MOVE_IFCHANGED) TEMPFILE $@`
 #
-#    You can build `somedir/Dockefile` by depending on
-#    `somedir.docker`.  The TL;DR of naming is that the image will be
-#    named `localhost:31000/$(notdir $*):latest`, where `$*=somedir`,
-#    but you should use `$$(sed -n 2p somedir.docker)` to robustly
-#    refer to it in your Makefile rules.  The nuance is:
-#     - It will be `host.docker.internal:31000` instead of
-#       `localhost:31000` on macOS.  You can use $(docker.LOCALHOST)
-#       to portably refer `host.docker.internal` on macOS, and
-#       `localhost` on everything else.
-#     - It actually gets tagged as 2 or 3 different things:
-#        * `$(docker.LOCALHOST):31000/$(notdir $*):latest`
-#        * `$(docker.LOCALHOST):31000/$(notdir $*):$(VERSION)` (if `$(VERSION)` is set))
-#        * `$(docker.LOCALHOST):31000/$(notdir $*):id-sha256-...`
-#     - Inside of your local Makefile rules, you should refer to by
-#       its ID hash using `$$(sed -n 2p somedir.docker)`.
+#    You can build a Docker image by depending on `SOMEPATH.docker`.
+#    If you provide a custom `%.docker` rule, then of course exactly
+#    what that builds will be different, but with the default built-in
+#    rule: depending on `SOMEPATH.docker` will build
+#    `SOMEPATH/Dockefile`.  This will build the image, but NOT tag it
+#    (see below for tagging).
 #
-#    If you need something to be done before the `docker build`, make
-#    it a dependency of `somedir.docker`.
+#    You can untag and remove an image by having your `clean` target
+#    depend on `SOMEPATH.docker.clean`.
 #
-#    You can untag an image by having your `clean` target depend on
-#    `dir.docker.clean`
+#    With the default built-in rule:
 #
-# ## Pushing to a private Kubernaut registry ##
+#     - If you need something to be done before the `docker build`,
+#       make it a dependency of `SOMEPATH.docker`.
 #
-#    Use docker-cluster.mk
+#     - If you need something (`FILE`) to be included in the build
+#       context, copy it to `SOMEPATH/` by having
+#       `SOMEPATH.docker` depend on `SOMEPATH/FILE`.
 #
-# ## Pushing to a public registry ##
+# ## Working with those untagged images ##
 #
-#    You can push to the public `$(DOCKER_REGISTRY)` by depending on
-#    `somedir.docker.push`.  By default, it will have the same name as
-#    the local tag (sans the `localhost:31000` prefix).
+#     - Tagging: You can tag an image after being built by depending
+#       on `SOMEPATH.docker.tag.GROUP`, where you've set up GROUP by
+#       writing
 #
-#    You can customize the public name by adjusting the `DOCKER_IMAGE`
-#    variable, which defines a mapping to publicly the pushed image
-#    name/tag, it is evaluated in the context of "%.docker.push".
+#           $(eval $(call docker.tag.rule,GROUP,EXPR))
 #
-#    Example:
-#        In order to to push the Ambassador Pro sidecar as
-#        `ambassador_pro:amb-sidecar-$(VERSION)` instead the the
-#        default `amb-sidecar:$(VERSION)`, the apro Makefile sets
+#       where GROUP is the suffix of the target that you'd like to
+#       depend on in your Makefile, and EXPR is a Makefile expression
+#       that evaluates to 1 or more tag names; it is evaluated in the
+#       context of `SOMEPATH.docker.tag.GROUP`; specifically:
+#        * `$*` is set to SOMEPATH
+#        * `$<` is set to a file containing the image ID
 #
-#            DOCKER_IMAGE = $(DOCKER_REGISTRY)/ambassador_pro:$(notdir $*)-$(VERSION)
+#     - Pushing a tag: You can push tags that have been created with
+#       `SOMEPATH.docker.tag.GROUP` (see above) by depending on
+#       `SOMEPATH.docker.push.GROUP`.
+#
+#          > For example:
+#          >   The Ambassador Pro images:
+#          >    - get built from: `docker/$(NAME)/Dockerfile`
+#          >    - get pushed as : `quay.io/datawire/ambassador_pro:$(NAME)-$(VERSION)`
+#          >
+#          >   We accomplish this by saying:
+#          >
+#          >      $(eval $(call docker.tag.rule,quay,quay.io/datawire/ambassador_pro:$(notdir $*)-$(VERSION)))
+#          >
+#          >   and having our `build`   target depend on `NAME.docker.tag.quay` (for each NAME)
+#          >   and having our `release` target depend on `NAME.docker.push.quay` (for each NAME)
+#
+#     - Clean up: You can untag (if there are any tags) and remove an
+#       image by having your `clean` target depend on
+#       `SOMEPATH.docker.clean`.  Because docker.mk does not have a
+#       listing of all the images you may ask it to build, these are
+#       NOT automatically added to the common.mk 'clean' target, and
+#       you MUST do that yourself.
 #
 ifeq ($(words $(filter $(abspath $(lastword $(MAKEFILE_LIST))),$(abspath $(MAKEFILE_LIST)))),1)
 _docker.mk := $(lastword $(MAKEFILE_LIST))
 include $(dir $(_docker.mk))prelude.mk
 
-ifeq ($(GOHOSTOS),darwin)
-docker.LOCALHOST = host.docker.internal
-else
-docker.LOCALHOST = localhost
-endif
+#
+# Executables
 
-DOCKER_IMAGE ?= $(DOCKER_REGISTRY)/$(notdir $*):$(or $(VERSION),latest)
+WRITE_DOCKERTAGFILE ?= $(build-aux.bindir)/write-dockertagfile
 
-HAVE_DOCKER = $(call lazyonce,HAVE_DOCKER,$(shell which docker 2>/dev/null))
+#
+# Variables
 
-# %.docker file contents:
-#
-#  line 1: local tag name (version-based)
-#  line 2: image hash
-#  line 3: local tag name (hash-based)
-#  line 4: local tag name (latest, optional)
-#
-# Note: We test for changes for CI early, but test for changes for
-# cleanup late.  If we did the cleanup test early because of :latest,
-# it would leave dangling untagged images.  If we did the CI test
-# late, it would remove the evidence for debugging.
-%.docker: %/Dockerfile
-	printf '%s\n' '$(docker.LOCALHOST):31000/$(notdir $*):$(or $(VERSION),latest)' > $(@D)/.tmp.$(@F).tmp
-	docker build -t "$$(sed -n 1p $(@D)/.tmp.$(@F).tmp)" $*
-	docker image inspect "$$(sed -n 1p $(@D)/.tmp.$(@F).tmp)" --format='{{.Id}}' >> $(@D)/.tmp.$(@F).tmp
-	printf '%s\n' '$(docker.LOCALHOST):31000/$(notdir $*)':"id-$$(sed -n '2{ s/:/-/g; p; }' $(@D)/.tmp.$(@F).tmp)" $(if $(VERSION),'$(docker.LOCALHOST):31000/$(notdir $*):latest') >> $(@D)/.tmp.$(@F).tmp
-	@{ \
-		PS4=''; set -x; \
-		if cmp -s $(@D)/.tmp.$(@F).tmp $@; then \
-			rm -f $(@D)/.tmp.$(@F).tmp || true; \
-		else \
-			$(if $(CI),if test -e $@; then false This should not happen in CI: $@ should not change; fi &&) \
-			                docker tag "$$(sed -n 2p $(@D)/.tmp.$(@F).tmp)" "$$(sed -n 3p $(@D)/.tmp.$(@F).tmp)" && \
-			$(if $(VERSION),docker tag "$$(sed -n 2p $(@D)/.tmp.$(@F).tmp)" "$$(sed -n 4p $(@D)/.tmp.$(@F).tmp)" &&) \
-			if test -e $@; then docker image rm $$(grep -vFx -f $(@D)/.tmp.$(@F).tmp $@) || true; fi && \
-			mv -f $(@D)/.tmp.$(@F).tmp $@; \
-		fi; \
-	}
+HAVE_DOCKER      = $(call lazyonce,HAVE_DOCKER,$(shell which docker 2>/dev/null))
+docker.LOCALHOST = $(if $(filter darwin,$(GOHOSTOS)),host.docker.internal,localhost)
+
+#
+# Targets
+
+# file contents:
+#   line 1: image ID
+%.docker: %/Dockerfile $(MOVE_IFCHANGED) FORCE
+	docker build --iidfile=$(@D)/.tmp.$(@F).tmp $*
+	$(MOVE_IFCHANGED) $(@D)/.tmp.$(@F).tmp $@
 
 %.docker.clean:
-	if [ -e $*.docker ]; then docker image rm $$(cat $*.docker) || true; fi
+	if [ -e $*.docker ]; then docker image rm "$$(cat $*.docker)" || true; fi
 	rm -f $*.docker
 .PHONY: %.docker.clean
 
-%.docker.push: %.docker
-	docker tag "$$(sed -n 2p $<)" '$(DOCKER_IMAGE)'
-	docker push '$(DOCKER_IMAGE)'
-.PHONY: %.docker.push
+#
+# Functions
+
+# Usage: $(eval $(call docker.tag.rule,TAG_GROUPNAME,TAG_EXPRESSION))
+#
+# Add a set of %.docker.tag.TAG_GROUPNAME and
+# %.docker.push.TAG_GROUPNAME targets that tag and push the docker image.
+#
+# TAG_EXPRESSION is evaluated in the context of
+# %.docker.tag.TAG_GROUPNAME.
+define docker.tag.rule
+  # file contents:
+  #   line 1: image ID
+  #   line 2: tag 1
+  #   line 3: tag 2
+  #   ...
+  %.docker.tag.$(strip $1): %.docker $$(WRITE_DOCKERTAGFILE) FORCE
+  # The 'foreach' is to handle newlines as normal whitespace
+	printf '%s\n' $$$$(cat $$<) $(foreach v,$(value $2),$v) | $$(WRITE_DOCKERTAGFILE) $$@
+
+  # file contents:
+  #   line 1: image ID
+  #   line 2: tag 1
+  #   line 3: tag 2
+  #   ...
+  %.docker.push.$(strip $1): %.docker.tag.$(strip $1)
+	sed 1d $$< | xargs -n1 docker push
+	cat $$< > $$@
+
+  %.docker.clean: %.docker.clean.$(strip $1)
+  %.docker.clean.$(strip $1):
+	if [ -e $$*.docker.tag.$(strip $1) ]; then docker image rm $$$$(cat $$*.docker.tag.$(strip $1)) || true; fi
+	rm -f $$*.docker.tag.$(strip $1) $$*.docker.push.$(strip $1)
+  .PHONY: %.docker.clean.$(strip $1)
+endef
 
 endif
