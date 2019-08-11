@@ -1,8 +1,4 @@
 NAME            = ambassador-pro
-# For docker.mk
-# If you change DOCKER_IMAGE, you'll also need to change the image
-# names in `cmd/apictl/traffic.go`.
-DOCKER_IMAGE    = quay.io/datawire/ambassador_pro:$(notdir $*)-$(VERSION)
 # For Makefile
 image.all       = $(sort $(patsubst %/Dockerfile,%,$(wildcard docker/*/Dockerfile)) docker/amb-sidecar-plugins)
 image.norelease = docker/amb-sidecar-plugins docker/example-service docker/max-load $(filter docker/model-cluster-%,$(image.all))
@@ -35,6 +31,11 @@ include build-aux/k8s.mk
 include build-aux/teleproxy.mk
 include build-aux/pidfile.mk
 include build-aux/help.mk
+
+# Set up the tag names for docker.mk.  If you change this, you'll also
+# need to change the image names in `cmd/apictl/traffic.go`.
+$(eval $(call docker.tag.rule, release,\
+  quay.io/datawire/ambassador_pro:$(notdir $*)-$(VERSION)))
 
 .DEFAULT_GOAL = help
 
@@ -381,10 +382,11 @@ clean: $(addsuffix .clean,$(wildcard docker/*.docker)) loadtest-clean
 	rm -f k8s-*/??-ambassador-certs.yaml k8s-*/*.pem
 	rm -f k8s-*/??-auth0-secret.yaml
 	rm -f tests/cluster/oauth-e2e/idp_*.png
-	rm -f docker/*.knaut-push
 # Files made by older versions.  Remove the tail of this list when the
 # commit making the change gets far enough in to the past.
 #
+# 2019-08-14
+	rm -f docker/*.knaut-push
 # 2019-02-07
 	rm -rf tests/oauth-e2e/node_modules
 	rmdir tests/oauth-e2e || true
@@ -434,11 +436,11 @@ release: ## Cut a release; upload binaries to S3 and Docker images to Quay
 release: build
 release: $(foreach platform,$(go.PLATFORMS),$(foreach bin,$(release.bins),release/bin_$(platform)/$(bin)))
 release: release/apro-abi.txt
-release: $(addsuffix .docker.push$(if $(RELEASE_DRYRUN),.dryrun),$(release.images))
+release: $(addsuffix .docker.push.$(if $(RELEASE_DRYRUN),dryrun,release),$(release.images))
 .PHONY: release
 
-%.docker.push.dryrun: %.docker
-	@echo 'DRYRUN docker push (( $< ))'
+%.docker.push.dryrun: %.docker.tag.release
+	@echo DRYRUN docker push $$(sed 1d $<)
 .PHONY: %.docker.push.dryrun
 
 _release_os   = $(word 2,$(subst _, ,$(@D)))
