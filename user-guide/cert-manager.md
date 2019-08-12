@@ -55,8 +55,13 @@ The HTTP-01 challenge verifies ownership of the domain by sending a request for 
     kind: Certificate
     metadata:
       name: ambassador-certs
+      # cert-manager will put the resulting Secret in the same Kubernetes namespace
+      # as the Certificate. Therefore you should put this Certificate in the same namespace as Ambassador.
+      # eg. if you deploy ambassador to ambassador namespace, you need to change to namespace: ambassador
       namespace: default
     spec:
+      # naming the secret name certificate ambassador-certs is important because
+      # ambassador just look for this particular name
       secretName: ambassador-certs
       issuerRef:
         name: letsencrypt-prod
