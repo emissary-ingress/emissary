@@ -380,6 +380,7 @@ clean: $(addsuffix .clean,$(wildcard docker/*.docker)) loadtest-clean
 	rm -f docker/*/*.opensource.tar.gz
 	rm -f k8s-*/??-ambassador-certs.yaml k8s-*/*.pem
 	rm -f k8s-*/??-auth0-secret.yaml
+	rm -f tests/cluster/oauth-e2e/idp_*.png
 	rm -f docker/*.knaut-push
 # Files made by older versions.  Remove the tail of this list when the
 # commit making the change gets far enough in to the past.
