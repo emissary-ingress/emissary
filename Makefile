@@ -103,7 +103,7 @@ AMBASSADOR_EXTERNAL_DOCKER_IMAGE ?= $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(AMBASSA
 
 # IF YOU MESS WITH ANY OF THESE VALUES, YOU MUST RUN `make docker-update-base`.
   ENVOY_REPO ?= $(if $(IS_PRIVATE),git@github.com:datawire/envoy-private.git,git://github.com/datawire/envoy.git)
-  ENVOY_COMMIT ?= 71ff17c8e457d6f5be8d8d3b528ec2e6a892ca95
+  ENVOY_COMMIT ?= 4616a0939972438ea47f0ac6657296fb836d1187
   ENVOY_COMPILATION_MODE ?= dbg
 
   ENVOY_FILE ?= envoy-bin/envoy-static-stripped
