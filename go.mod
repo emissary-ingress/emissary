@@ -3,7 +3,6 @@ module github.com/datawire/apro
 go 1.12
 
 require (
-	github.com/0xAX/notificator v0.0.0-20181105090803-d81462e38c21
 	github.com/Jeffail/gabs v1.2.0
 	github.com/aclements/go-moremath v0.0.0-20180329182055-b1aff36309c7
 	github.com/asaskevich/EventBus v0.0.0-20180315140547-d46933a94f05 // indirect
@@ -20,13 +19,11 @@ require (
 	github.com/golang/protobuf v1.2.1-0.20190205222052-c823c79ea157 // indirect
 	github.com/google/uuid v1.1.0
 	github.com/gorilla/mux v1.6.1
-	github.com/gorilla/rpc v1.2.0
 	github.com/gregjones/httpcache v0.0.0-20181110185634-c63ab54fda8f
 	github.com/hashicorp/consul v1.4.4
 	github.com/hashicorp/serf v0.8.3 // indirect
 	github.com/influxdata/tdigest v0.0.0-20181121200506-bf2b5ad3c0a9
 	github.com/jcuga/golongpoll v0.0.0-20180711123949-939e3befd837
-	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
 	github.com/lyft/goruntime v0.1.8
 	github.com/lyft/gostats v0.2.6
 	github.com/lyft/ratelimit v1.3.0
@@ -42,15 +39,12 @@ require (
 	github.com/spf13/pflag v1.0.3
 	github.com/streadway/quantile v0.0.0-20150917103942-b0c588724d25 // indirect
 	github.com/tsenart/vegeta v12.2.1+incompatible
-	github.com/ybbus/jsonrpc v2.1.2+incompatible
 	github.com/zeromq/goczmq v4.1.0+incompatible // indirect
 	github.com/zeromq/gomq v0.0.0-20181008000130-95dc37dee5c4 // indirect
-	golang.org/x/crypto v0.0.0-20190320223903-b7391e95e576
 	golang.org/x/net v0.0.0-20190322120337-addf6b3196f6
 	golang.org/x/sync v0.0.0-20190227155943-e225da77a7e6
 	golang.org/x/tools v0.0.0-20190226205152-f727befe758c // indirect
 	google.golang.org/grpc v1.19.1
-	gopkg.in/natefinch/lumberjack.v2 v2.0.0
 	gopkg.in/yaml.v2 v2.2.2
 	k8s.io/api v0.0.0-20190111032252-67edc246be36
 	k8s.io/apimachinery v0.0.0-20190119020841-d41becfba9ee

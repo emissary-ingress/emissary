@@ -33,6 +33,12 @@ type Config struct {
 	RedisPerSecondSocketType   string
 	RedisPerSecondURL          string
 	ExpirationJitterMaxSeconds int64
+
+	// gostats - This mimics vendor/github.com/lyft/gostats/settings.go
+	UseStatsd      bool
+	StatsdHost     string
+	StatsdPort     int
+	FlushIntervalS int
 }
 
 func getenvDefault(varname, def string) string {
@@ -70,6 +76,13 @@ func ConfigFromEnv() (cfg Config, warn []error, fatal []error) {
 		RedisPerSecondSocketType:   os.Getenv("REDIS_PERSECOND_SOCKET_TYPE"), // validated below
 		RedisPerSecondURL:          os.Getenv("REDIS_PERSECOND_URL"),         // validated below
 		ExpirationJitterMaxSeconds: 0,                                        // set below
+
+		// gostats - This mimics vendor/github.com/lyft/gostats/settings.go,
+		// but the defaults aren't nescessarily the same.
+		UseStatsd:      false, // set below
+		StatsdHost:     getenvDefault("STATSD_HOST", "localhost"),
+		StatsdPort:     0, // set below
+		FlushIntervalS: 0, // set below
 	}
 
 	// Set the things marked "set below" (things that do require some parsing)
@@ -91,6 +104,18 @@ func ConfigFromEnv() (cfg Config, warn []error, fatal []error) {
 	if cfg.ExpirationJitterMaxSeconds, err = strconv.ParseInt(getenvDefault("EXPIRATION_JITTER_MAX_SECONDS", "300"), 10, 0); err != nil {
 		warn = append(warn, errors.Wrap(err, "invalid EXPIRATION_JITTER_MAX_SECONDS (falling back to default 300)"))
 		cfg.ExpirationJitterMaxSeconds = 300
+	}
+	if cfg.UseStatsd, err = strconv.ParseBool(getenvDefault("USE_STATSD", "false")); err != nil { // NB: default here differs
+		warn = append(warn, errors.Wrap(err, "invalid USE_STATSD (falling back to default false)"))
+		cfg.UseStatsd = false
+	}
+	if cfg.StatsdPort, err = strconv.Atoi(getenvDefault("STATSD_PORT", "8125")); err != nil {
+		warn = append(warn, errors.Wrap(err, "invalid STATSD_PORT (falling back to default 8125)"))
+		cfg.StatsdPort = 8125
+	}
+	if cfg.FlushIntervalS, err = strconv.Atoi(getenvDefault("GOSTATS_FLUSH_INTERVAL_SECONDS", "5")); err != nil {
+		warn = append(warn, errors.Wrap(err, "invalid GOSTATS_FLUSH_INTERVAL_SECONDS (falling back to default 5)"))
+		cfg.FlushIntervalS = 5
 	}
 
 	// Validate things marked "validated below" (things that we can validate here)
@@ -114,6 +139,14 @@ func ConfigFromEnv() (cfg Config, warn []error, fatal []error) {
 			cfg.RedisPerSecond = false
 		}
 	}
+
+	// Export the settings so that
+	// github.com/lyft/stats.GetSettings() sees them, since we may
+	// have different defaults.
+	os.Setenv("USE_STATSD", strconv.FormatBool(cfg.UseStatsd))
+	os.Setenv("STATSD_HOST", cfg.StatsdHost)
+	os.Setenv("STATSD_PORT", strconv.Itoa(cfg.StatsdPort))
+	os.Setenv("GOSTATS_FLUSH_INTERVAL_SECONDS", strconv.Itoa(cfg.FlushIntervalS))
 
 	return cfg, warn, fatal
 }

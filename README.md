@@ -169,25 +169,34 @@ information on what this does, and on the format of the tag names.
    updates it for the new version.  This may be as simple as updating
    the version numbers in the several YAML files that mention it.
 
-7. (CI for step 3 must finish before performing this step) Create a PR
+7. (this step may be performed before CI for step 3 had finished) Create
+   a PR against <https://github.com/helm/charts/tree/master/stable/ambassador>
+   that updates Pro for the new version.
+
+8. (CI for step 3 must finish before performing this step) Create a PR
    against <https://github.com/datawire/apro-example-plugin> that
    bumps `Makefile:APRO_VERSION` to the new version.  Run `make` to
    verify whether any `go.mod` changes are necessary when updating a
    plugin to the new version.  If `go.mod` changes are necessary, make
    them and include them in the PR.
 
-8. Put the release through manual acceptance testing. We'll do this by
+9. Put the release through manual acceptance testing. We'll do this by
    upgrading `tour.k736.net` to the latest version of Pro, and making
    sure that `tour.k736.net` still functions.
 
-9. From apro.git, with the tag version tag checked out, run `make
+10. From apro.git, with the tag version tag checked out, run `make
    push-docs`:
 
         $ git checkout v0.1.2
         $ make push-docs
 
-10. Merge the `ambassador-docs` PR created in step 4.
+11. Ping Noah on Slack to ask him to upgrade our demo cluster to the
+    latest version.
 
-11. Merge the `pro-ref-arch` PR created in step 5.
+12. Merge the `ambassador-docs` PR created in step 4.
 
-12. Merge the `apro-example-plugin` PR created in step 6.
+13. Merge the `pro-ref-arch` PR created in step 5.
+
+14. Merge the `apro-example-plugin` PR created in step 6.
+
+15. Merge the `helm` PR created in step 7.
