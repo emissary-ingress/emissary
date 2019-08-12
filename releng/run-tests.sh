@@ -81,6 +81,15 @@ for el in "${seq[@]}"; do
     if [ -f /tmp/k8s-AmbassadorTest ]; then
         mv /tmp/k8s-AmbassadorTest.yaml /tmp/k8s-$el-AmbassadorTest.yaml
     fi
+
+    for file in /tmp/kat-logs-*; do
+        if [ "$file" = '/tmp/kat-logs-*' ]; then
+            break
+        else
+            echo "==== $file"
+            cat $file && rm $file
+        fi
+    done
 done
 
 if (( ${#failed[@]} == 0 )); then
