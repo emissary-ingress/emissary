@@ -504,7 +504,10 @@ class Result:
                 if self.query.expected != self.status:
                     if not getattr(self.parent, 'already_logged', False):
                         self.parent.already_logged = True
-                        os.system(f'echo "==== LOGS FOR {self.parent.path.k8s}"; kubectl logs {self.parent.path.k8s}')
+
+                        log_path = f'/tmp/kat-logs-{self.parent.path.k8s}'
+
+                        os.system(f'kubectl logs {self.parent.path.k8s} >{log_path} 2>&1')
 
                 assert self.query.expected == self.status, \
                        "%s: expected status code %s, got %s instead with error %s" % (
