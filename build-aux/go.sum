@@ -34,6 +34,7 @@ github.com/census-instrumentation/opencensus-proto v0.1.0 h1:VwZ9smxzX8u14/125wH
 github.com/census-instrumentation/opencensus-proto v0.1.0/go.mod h1:f6KPmirojxKA12rnyqOA5BBL4O983OfeGPqjHWSTneU=
 github.com/client9/misspell v0.3.4/go.mod h1:qj6jICC3Q7zFZvVWo7KLAzC3yx5G7kyvSDkc90ppPyw=
 github.com/coreos/go-systemd v0.0.0-20181012123002-c6f51f82210d/go.mod h1:F5haX7vjVVG0kc13fIWeqUViNPyEJxv/OmvnBo0Yme4=
+github.com/datawire/pf v0.0.0-20180510150411-31a823f9495a h1:VHPuM0sSTEHfjtSX86XQqZKJNUWTWVu2BuV6X8SdGUk=
 github.com/datawire/pf v0.0.0-20180510150411-31a823f9495a/go.mod h1:H8uUmE8qqo7z9u30MYB9riLyRckPHOPBk9ZdCuH+dQQ=
 github.com/datawire/teleproxy v0.3.16 h1:H9bXuDlyBQs0UR9RjOlKMFUYHTnswS4yyegVKn3LxkA=
 github.com/datawire/teleproxy v0.3.16/go.mod h1:EbUA710RQ3uxRViAj9F6TC6O1wKhX4oLYamKifKbdzM=

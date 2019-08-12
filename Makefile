@@ -105,20 +105,19 @@ build: apro-abi.txt
 
 plugins = $(patsubst plugins/%/go.mod,%,$(wildcard plugins/*/go.mod))
 
+go-get-%: plugins/%/go.mod
+	cd $(<D) && go mod download
+.PHONY: go-get-%
+
 # We use $(shell find ...) instead of FORCE here because not even the
 # .cache trick will enable linker caching for -buildmode=plugin on
 # macOS (verified with go 1.11.4 and 1.11.5).
 define plugin.rule
-bin_%/.cache.$(plugin.name).so: plugins/$(plugin.name)/go.mod $$(shell find plugins/$(plugin.name))
-	cd $$(<D) && $$(go.GOBUILD) -buildmode=plugin -o $(abspath $$@) .
-bin_%/$(plugin.name).so: bin_%/.cache.$(plugin.name).so
-	@{ \
-		PS4=''; set -x; \
-		if ! cmp -s $$< $$@; then \
-			$(if $(CI),if test -e $$@; then false This should not happen in CI: $$@ should not change; fi &&) \
-			cp -f $$< $$@; \
-		fi; \
-	}
+go-get: go-get-$(plugin.name)
+bin_%/.$(plugin.name).so.stamp: plugins/$(plugin.name)/go.mod $$(shell find plugins/$(plugin.name))
+	cd $$(<D) && $$(go.GOBUILD) -buildmode=plugin -o $$(abspath $$@) .
+bin_%/$(plugin.name).so: bin_%/.$(plugin.name).so.stamp $$(COPY_IFCHANGED)
+	$$(COPY_IFCHANGED) $$< $$@
 endef
 $(foreach plugin.name,$(plugins),$(eval $(plugin.rule)))
 
@@ -137,7 +136,7 @@ $(foreach plugin.name,$(plugins),$(eval $(plugin.rule)))
 # always do plugins on native-builds
 go-build: $(foreach p,$(plugins),bin_$(GOHOSTOS)_$(GOHOSTARCH)/$p.so)
 _cgo_files = amb-sidecar apro-plugin-runner $(addsuffix .so,$(plugins))
-$(addprefix bin_$(GOHOSTOS)_$(GOHOSTARCH)/,$(_cgo_files)): CGO_ENABLED=1
+$(addprefix bin_$(GOHOSTOS)_$(GOHOSTARCH)/,$(_cgo_files)): CGO_ENABLED = 1
 
 # but cross-builds are the complex story
 ifneq ($(GOHOSTOS)_$(GOHOSTARCH),linux_amd64)
@@ -150,9 +149,6 @@ $(addprefix bin_linux_amd64/,$(_cgo_files)): CGO_ENABLED = 1
 $(addprefix bin_linux_amd64/,$(_cgo_files)): go.GOBUILD = $(_cgo_GOBUILD)
 _cgo_GOBUILD  = docker run --rm
 _cgo_GOBUILD += --env GOOS
-_cgo_GOBUILD += $(shell pinata-ssh-mount)
-_cgo_GOBUILD += -v $(CURDIR)/.gitconfig.docker:/root/.gitconfig
-_cgo_GOBUILD += -v ~/.ssh/known_hosts:/root/.ssh/known_hosts
 _cgo_GOBUILD += --env GOARCH
 _cgo_GOBUILD += --env GO111MODULE
 _cgo_GOBUILD += --env CGO_ENABLED
@@ -165,6 +161,11 @@ _cgo_GOBUILD += --volume $(CURDIR):$(CURDIR):rw,delegated
 _cgo_GOBUILD += --volume apro-gocache:/mnt/gocache:rw
 _cgo_GOBUILD += --env GOPATH=/mnt/gocache/go-workspace
 _cgo_GOBUILD += --env GOCACHE=/mnt/gocache/go-build
+# Bypass the module fetcher, and have everything pre-downloaded.  This
+# way we don't need to worry about getting git credentials in to
+# Docker.
+$(foreach f,$(_cgo_files),bin_linux_amd64/.$f.stamp): vendor
+_cgo_GOBUILD += --env GOFLAGS=-mod=vendor
 # We use $$PWD here instead of $(CURDIR) so that the shell (not Make)
 # expands it, so that it behaves correctly if the command `cd`s to a
 # subdirectory first.
@@ -174,11 +175,6 @@ _cgo_GOBUILD += --workdir $$PWD
 # than hard-coding a version.
 _cgo_GOBUILD += docker.io/library/golang:$(patsubst go%,%,$(filter go1%,$(shell go version)))
 _cgo_GOBUILD += go build
-
-$(addprefix bin_linux_amd64/,$(_cgo_files)): _docker_ssh_agent_forward
-_docker_ssh_agent_forward:
-	pinata-ssh-forward || { echo ""; echo "Check README.md"; echo ""; exit 1; }
-.PHONY: _docker_ssh_agent_forward
 
 endif
 endif
