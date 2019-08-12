@@ -84,7 +84,7 @@ for el in "${seq[@]}"; do
             break
         else
             echo "==== $file"
-            cat $file
+            cat $file && rm $file
         fi
     done
 done
