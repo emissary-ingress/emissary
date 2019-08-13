@@ -20,7 +20,7 @@
 # Dockerfile; each of $(addsuffix /Dockerfile,$(K8S_IMAGES)) should
 # exist.
 ifeq ($(words $(filter $(abspath $(lastword $(MAKEFILE_LIST))),$(abspath $(MAKEFILE_LIST)))),1)
-include $(dir $(lastword $(MAKEFILE_LIST)))docker.mk
+include $(dir $(lastword $(MAKEFILE_LIST)))docker-cluster.mk
 
 K8S_IMAGES ?=
 K8S_ENVS ?=
