@@ -30,14 +30,11 @@ fi
 
 TEST_ARGS="--tb=short -s"
 
-seq=(
-    'Plain'
-    'not Plain and (A or C)'
-    'not Plain and not (A or C)'
-)
+seq=("")
 
 if [[ -n "${TEST_NAME}" ]]; then
     case "${TEST_NAME}" in
+    group0) seq=('Plain' 'not Plain and (A or C)' 'not Plain and not (A or C)') ;;
     group1) seq=('Plain') ;;
     group2) seq=('not Plain and (A or C)') ;;
     group3) seq=('not Plain and not (A or C)') ;;
@@ -57,7 +54,13 @@ for el in "${seq[@]}"; do
 #    kubectl delete namespaces -l scope=AmbassadorTest
 #    kubectl delete all -l scope=AmbassadorTest
 
-    if ! pytest ${TEST_ARGS} -k "$el"; then
+    k_args=""
+
+    if [ -n "$el" ]; then
+        k_args="-k $el"
+    fi
+
+    if ! pytest ${TEST_ARGS} $k_args; then
         failed+=("$el")
 
         kubectl get pods --all-namespaces
