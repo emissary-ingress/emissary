@@ -520,7 +520,7 @@ test-list: setup-develop
 	cd ambassador && PATH="$(shell pwd)/venv/bin":$(PATH) pytest --collect-only -q
 
 update-aws:
-ifeq ($(ASW_ACCESS_KEY_ID),)
+ifeq ($(AWS_ACCESS_KEY_ID),)
 	@echo 'AWS credentials not configured; not updating https://s3.amazonaws.com/datawire-static-files/ambassador/$(STABLE_TXT_KEY)'
 	@echo 'AWS credentials not configured; not updating latest version in Scout'
 else
