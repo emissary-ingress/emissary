@@ -1,6 +1,9 @@
 <!-- -*- fill-column: 100 -*- -->
 # Datawire build-aux CHANGELOG
 
+ - 2019-08-13: BREAKING CHANGE: `docker.mk`: The in-cluster private registry bits have moved to
+ - 2019-08-13: BREAKING CHANGE: `docker.mk`: The in-cluster private registry stuff has moved to
+               `docker-cluster.mk`.
  - 2019-08-13: BREAKING CHANGE: `prelude.mk`: The `build-aux.go-build` macro has been removed in
                favor of the `build-aux.bin-go.rule` macro.
 

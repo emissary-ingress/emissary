@@ -1,25 +1,19 @@
 # Copyright 2019 Datawire. All rights reserved.
 #
-# Makefile snippet for building Docker images, and for pushing them to
-# kubernaut.io clusters.
+# Makefile snippet for building Docker images.
 #
 ## Eager inputs ##
-#  - Variable: KUBECONFIG (optional)
+#  (none)
 ## Lazy inputs ##
 #  - Variable: VERSION (optional)
 #  - Variable: DOCKER_IMAGE ?= $(DOCKER_REGISTRY)/$(notdir $*):$(or $(VERSION),latest)
-#  - Variable: DOCKER_K8S_ENABLE_PVC ?=
 ## Outputs ##
 #  - Variable      : HAVE_DOCKER             # non-empty if true, empty if false
 #  - Target        : %.docker: %/Dockerfile  # tags image as localhost:31000/$(notdir $*):$(VERSION)
 #  - .PHONY Target : %.docker.clean
-#  - Target        : %.docker.knaut-push     # pushes to private in-kubernaut-cluster registry
 #  - .PHONY Target : %.docker.push           # pushes to $(DOCKER_REGISTRY)
 ## common.mk targets ##
-#  - clean
-#
-# Note: `docker.mk` depends on `kubernaut-ui.mk`.  See the
-# documentation there for more info.
+#  (none)
 #
 # ## Local docker build ##
 #
@@ -50,26 +44,7 @@
 #
 # ## Pushing to a private Kubernaut registry ##
 #
-#     > NOTE: On macOS, you will need to add
-#     > host.docker.internal:31000` to Docker's list of "Insecure
-#     > registries" in order to push to kubernaut.io clusters.  Ask
-#     > Abhay how to do that.
-#
-#    You can push to kubernaut by depending on
-#    `somedir.docker.knaut-push`.  It will be known in-cluster as
-#    `$$(cat somedir.docker.knaut-push)`.  You will need to substitute
-#    that value in your YAML (kubeapply can help with this).
-#
-#    The private in-kubernaut-cluster registry is known as
-#    "localhost:31000" to the cluster Nodes.
-#
-#    As a preliminary measure for supporting this functionality on
-#    non-Kubernaut clusters, if DOCKER_K8S_ENABLE_PVC is 'true', then
-#    the in-cluster registry will use a PersistentVolumeClaim (instead
-#    of a hostPath) for storage.  Kubernaut does not support
-#    PersistentVolumeClaims, but since Kubernaut clusters only have a
-#    single Node, a hostPath is an acceptable hack there; it isn't on
-#    other clusters.
+#    Use docker-cluster.mk
 #
 # ## Pushing to a public registry ##
 #
@@ -91,7 +66,6 @@
 ifeq ($(words $(filter $(abspath $(lastword $(MAKEFILE_LIST))),$(abspath $(MAKEFILE_LIST)))),1)
 _docker.mk := $(lastword $(MAKEFILE_LIST))
 include $(dir $(_docker.mk))prelude.mk
-include $(dir $(_docker.mk))kubeapply.mk
 
 ifeq ($(GOHOSTOS),darwin)
 docker.LOCALHOST = host.docker.internal
@@ -100,11 +74,8 @@ docker.LOCALHOST = localhost
 endif
 
 DOCKER_IMAGE ?= $(DOCKER_REGISTRY)/$(notdir $*):$(or $(VERSION),latest)
-DOCKER_K8S_ENABLE_PVC ?=
 
 HAVE_DOCKER = $(call lazyonce,HAVE_DOCKER,$(shell which docker 2>/dev/null))
-
-_docker.port-forward = $(dir $(_docker.mk))docker-port-forward
 
 # %.docker file contents:
 #
@@ -140,32 +111,9 @@ _docker.port-forward = $(dir $(_docker.mk))docker-port-forward
 	rm -f $*.docker
 .PHONY: %.docker.clean
 
-# %.docker.knaut-push file contents:
-#
-#  line 1: in-cluster tag name (hash-based)
-%.docker.knaut-push: %.docker $(KUBEAPPLY) $(FLOCK) $(KUBECONFIG)
-# the FLOCK for KUBEAPPLY is to work around https://github.com/datawire/teleproxy/issues/77
-	DOCKER_K8S_ENABLE_PVC=$(DOCKER_K8S_ENABLE_PVC) $(FLOCK) $(_docker.port-forward).lock $(KUBEAPPLY) -f $(dir $(_docker.mk))docker-registry.yaml
-	{ \
-	    trap "kill $$($(FLOCK) $(_docker.port-forward).lock sh -c 'kubectl port-forward --namespace=docker-registry $(if $(filter true,$(DOCKER_K8S_ENABLE_PVC)),statefulset,deployment)/registry 31000:5000 >$(_docker.port-forward).log 2>&1 & echo $$!')" EXIT; \
-	    while ! curl -i http://localhost:31000/ 2>/dev/null; do sleep 1; done; \
-	    docker push "$$(sed -n 3p $<)"; \
-	}
-	sed -n '3{ s/^[^:]*:/127.0.0.1:/; p; }' $< > $@
-
 %.docker.push: %.docker
 	docker tag "$$(sed -n 2p $<)" '$(DOCKER_IMAGE)'
 	docker push '$(DOCKER_IMAGE)'
 .PHONY: %.docker.push
-
-# This `go run` bit is gross, compared to just depending on and using
-# $(FLOCK).  But if the user runs `make clobber`, the prelude.mk
-# cleanup might delete $(FLOCK) before we get to run it.
-_clean-docker:
-	cd $(dir $(_docker.mk))bin-go/flock && GO111MODULE=on go run . $(abspath $(_docker.port-forward).lock) rm $(abspath $(_docker.port-forward).lock)
-	rm -f $(_docker.port-forward).log
-	rm -f $(dir $(_docker.mk))docker-registry.yaml.o
-clean: _clean-docker
-.PHONY: _clean-docker
 
 endif
