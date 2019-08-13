@@ -94,6 +94,17 @@ Format:
 --->
 
 <!--- CueAddReleaseNotes --->
+## [0.75.0] August 13, 2019
+[0.75.0]: https://github.com/datawire/ambassador/compare/0.74.1...0.75.0
+
+- (Feature) Update to Envoy 1.11.1, including security fixes
+- (Feature) You can use a `TLSContext` without a `secret` to set origination options ([#1708])
+- (Feature) Canary deployments can now use multiple `host_rewrite` values ([#1159])
+- (Bugfix) Make sure that Ambassador won't mistakenly complain about the number of RateLimit and Tracing services (thanks, [Christian Claus](https://github.com/cclauss)!)
+
+[#1159]: https://github.com/datawire/ambassador/issues/1159
+[#1708]: https://github.com/datawire/ambassador/issues/1708
+
 ## [0.74.1] August 06, 2019
 [0.74.1]: https://github.com/datawire/ambassador/compare/0.74.0...0.74.1
 
