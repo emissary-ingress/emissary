@@ -60,36 +60,58 @@ for el in "${seq[@]}"; do
         k_args="-k $el"
     fi
 
-    if ! pytest ${TEST_ARGS} $k_args; then
+    hr_el="${el:-ALL}"
+    outdirbase="kat-log-${hr_el}"
+    outdir="/tmp/${outdirbase}"
+    tmpdir="/tmp/kat-tmplog-${hr_el}"
+
+    rm -rf "$tmpdir"; mkdir "$tmpdir"
+
+    if ! pytest ${TEST_ARGS} $k_args | tee /tmp/pytest.log; then
         failed+=("$el")
 
-        kubectl get pods --all-namespaces
-        kubectl get svc --all-namespaces
+        mv /tmp/pytest.log "$tmpdir"
+
+        kubectl get pods --all-namespaces > "$tmpdir/pods.txt" 2>&1
+        kubectl get svc --all-namespaces > "$tmpdir/svc.txt" 2>&1
 
         if [ -n "${AMBASSADOR_DEV}" ]; then
-            docker ps -a
+            docker ps -a > "$tmpdir/docker.txt" 2>&1
         fi
 
         for pod in $(kubectl get pods -o jsonpath='{range .items[?(@.status.phase != "Running")]}{.metadata.name}:{.status.phase}{"\n"}{end}'); do
             # WTFO.
-            echo "==== logs for $pod"
             podname=$(echo $pod | cut -d: -f1)
-            kubectl logs $podname
+            kubectl logs $podname > "$tmpdir/pod-$podname.log" 2>&1
         done
     fi
 
     if [ -f /tmp/k8s-AmbassadorTest ]; then
-        mv /tmp/k8s-AmbassadorTest.yaml /tmp/k8s-$el-AmbassadorTest.yaml
+        mv /tmp/k8s-AmbassadorTest.yaml "$tmpdir"
     fi
 
     for file in /tmp/kat-logs-*; do
         if [ "$file" = '/tmp/kat-logs-*' ]; then
             break
         else
-            echo "==== $file"
-            cat $file && rm $file
+            mv $file "$tmpdir"
         fi
     done
+
+    mv /tmp/kat-client* "$tmpdir"
+    mv "$tmpdir" "$outdir"
+
+    ( cd /tmp; tar czf "$outdir.tgz" "$outdirbase" )
+
+    now=$(date +"%y-%m-%dT%H:%M:%S")
+    branch=${GIT_BRANCH_SANITIZED:-localdev}
+    aws_key="kat-${branch}-${now}-${hr_el}-logs.tgz"
+    echo "Uploading log tarball as $aws_key"
+
+    aws s3api put-object \
+        --bucket datawire-static-files \
+        --key kat/${aws_key} \
+        --body "${outdir}.tgz"
 done
 
 if (( ${#failed[@]} == 0 )); then
