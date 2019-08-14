@@ -506,8 +506,15 @@ class Result:
                         self.parent.already_logged = True
 
                         log_path = f'/tmp/kat-logs-{self.parent.path.k8s}'
+                        os.system(f'kubectl logs -n {self.parent.namespace} {self.parent.path.k8s} >{log_path} 2>&1')
 
-                        os.system(f'kubectl logs {self.parent.path.k8s} >{log_path} 2>&1')
+                        event_path = f'/tmp/kat-events-{self.parent.path.k8s}'
+
+                        fs1 = f'involvedObject.name={self.parent.path.k8s}'
+                        fs2 = f'involvedObject.namespace={self.parent.namespace}'
+
+                        cmd = f'kubectl get events -o json --field-selector "{fs1}" --field-selector "{fs2}"'
+                        os.system(f'{cmd} >{event_path} 2>&1')
 
                 assert self.query.expected == self.status, \
                        "%s: expected status code %s, got %s instead with error %s" % (
