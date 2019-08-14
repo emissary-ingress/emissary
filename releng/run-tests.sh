@@ -46,6 +46,10 @@ fi
 
 ( cd "$ROOT" ; make cluster-and-teleproxy )
 
+echo "==== [$(date)] ==== Starting Kubernetes event watcher"
+
+kubectl get events -o json --watch > /tmp/k8s-event.log &
+
 echo "==== [$(date)] ==== STARTING TESTS"
 
 failed=()
@@ -117,6 +121,8 @@ else
     mv /tmp/kat-client* "$tmpdir"
 
     cp /tmp/teleproxy.log "$tmpdir"
+    cp /etc/resolv.conf "$tmpdir"
+    cp /tmp/k8s-event.log "$tmpdir"
 
     mv "$tmpdir" "$outdir"
 
