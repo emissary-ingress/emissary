@@ -42,6 +42,9 @@ node_modules/
 # far enough in to the past.
 
 # 2019-08-14
+/docker/amb-sidecar-plugins/Dockerfile
+/docker/amb-sidecar-plugins/*.so
+# 2019-08-14
 /docker/max-load/kubeapply
 /docker/max-load/kubectl
 /docker/max-load/max-load

@@ -1,7 +1,7 @@
 NAME            = ambassador-pro
 # For Makefile
-image.all       = $(sort $(patsubst %/Dockerfile,%,$(wildcard docker/*/Dockerfile)) docker/amb-sidecar-plugins)
-image.norelease = docker/amb-sidecar-plugins docker/example-service $(filter docker/model-cluster-% loadtest-%,$(image.all))
+image.all       = $(sort $(patsubst %/Dockerfile,%,$(wildcard docker/*/Dockerfile)) docker/model-cluster-amb-sidecar-plugins)
+image.norelease = docker/example-service $(filter docker/model-cluster-% loadtest-%,$(image.all))
 image.nocluster = docker/apro-plugin-runner
 # For k8s.mk
 K8S_IMAGES      = $(filter-out $(image.nocluster),$(image.all))
@@ -210,10 +210,10 @@ docker/app-sidecar/ambex:
 	curl -o $@ --fail 'https://s3.amazonaws.com/datawire-static-files/ambex/0.1.0/ambex'
 	chmod 755 $@
 
-docker/amb-sidecar-plugins/Dockerfile: docker/amb-sidecar-plugins/Dockerfile.gen docker/amb-sidecar.docker
+docker/model-cluster-amb-sidecar-plugins/Dockerfile: docker/model-cluster-amb-sidecar-plugins/Dockerfile.gen docker/amb-sidecar.docker
 	$^ > $@
-docker/amb-sidecar-plugins.docker: docker/amb-sidecar.docker # ".SECONDARY:" (in common.mk) coming back to bite us
-docker/amb-sidecar-plugins.docker: $(foreach p,$(plugins),docker/amb-sidecar-plugins/$p.so)
+docker/model-cluster-amb-sidecar-plugins.docker: docker/amb-sidecar.docker # ".SECONDARY:" (in common.mk) coming back to bite us
+docker/model-cluster-amb-sidecar-plugins.docker: $(foreach p,$(plugins),docker/model-cluster-amb-sidecar-plugins/$p.so)
 
 docker/consul_connect_integration.docker: docker/consul_connect_integration/kubectl
 
@@ -384,7 +384,7 @@ loadtest-apply loadtest-deploy loadtest-shell loadtest-proxy: loadtest-%: infra/
 clean: $(addsuffix .clean,$(wildcard docker/*.docker)) loadtest-clean
 	rm -f apro-abi.txt
 	rm -f tests/*.log tests/*.tap tests/*/*.log tests/*/*.tap
-	rm -f docker/amb-sidecar-plugins/Dockerfile docker/amb-sidecar-plugins/*.so
+	rm -f docker/model-cluster-amb-sidecar-plugins/Dockerfile docker/model-cluster-amb-sidecar-plugins/*.so
 	rm -f docker/*/*.opensource.tar.gz
 	rm -f k8s-*/??-ambassador-certs.yaml k8s-*/*.pem
 	rm -f k8s-*/??-auth0-secret.yaml
@@ -392,6 +392,8 @@ clean: $(addsuffix .clean,$(wildcard docker/*.docker)) loadtest-clean
 # Files made by older versions.  Remove the tail of this list when the
 # commit making the change gets far enough in to the past.
 #
+# 2019-08-14
+	rm -f docker/amb-sidecar-plugins/Dockerfile docker/amb-sidecar-plugins/*.so
 # 2019-08-14
 	rm -f docker/max-load/kubeapply
 	rm -f docker/max-load/kubectl
