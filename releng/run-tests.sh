@@ -141,7 +141,7 @@ else
             --body "${outdir}.tgz"
 
         echo "==== [$(date)] ==== Recover log tarball with"
-        echo "aws s3api put-object --bucket datawire-static-files --key kat/${aws_key} ${outdirbase}.tgz"
+        echo "aws s3api get-object --bucket datawire-static-files --key kat/${aws_key} ${outdirbase}.tgz"
     else
         echo "==== [$(date)] ==== Upload to S3 not configured; leaving $outdir.tgz in place"
     fi
