@@ -1,7 +1,7 @@
 NAME            = ambassador-pro
 # For Makefile
 image.all       = $(sort $(patsubst %/Dockerfile,%,$(wildcard docker/*/Dockerfile)) docker/amb-sidecar-plugins)
-image.norelease = docker/amb-sidecar-plugins docker/example-service docker/max-load $(filter docker/model-cluster-%,$(image.all))
+image.norelease = docker/amb-sidecar-plugins docker/example-service $(filter docker/model-cluster-% loadtest-%,$(image.all))
 image.nocluster = docker/apro-plugin-runner
 # For k8s.mk
 K8S_IMAGES      = $(filter-out $(image.nocluster),$(image.all))
@@ -217,11 +217,11 @@ docker/amb-sidecar-plugins.docker: $(foreach p,$(plugins),docker/amb-sidecar-plu
 
 docker/consul_connect_integration.docker: docker/consul_connect_integration/kubectl
 
-docker/max-load.docker: docker/max-load/03-ambassador.yaml
-docker/max-load.docker: docker/max-load/kubeapply
-docker/max-load.docker: docker/max-load/kubectl
-docker/max-load.docker: docker/max-load/test.sh
-docker/max-load/kubeapply:
+docker/loadtest-generator.docker: docker/loadtest-generator/03-ambassador.yaml
+docker/loadtest-generator.docker: docker/loadtest-generator/kubeapply
+docker/loadtest-generator.docker: docker/loadtest-generator/kubectl
+docker/loadtest-generator.docker: docker/loadtest-generator/test.sh
+docker/loadtest-generator/kubeapply:
 	curl -o $@ --fail https://s3.amazonaws.com/datawire-static-files/kubeapply/0.3.11/linux/amd64/kubeapply
 	chmod 755 $@
 
@@ -392,6 +392,10 @@ clean: $(addsuffix .clean,$(wildcard docker/*.docker)) loadtest-clean
 # Files made by older versions.  Remove the tail of this list when the
 # commit making the change gets far enough in to the past.
 #
+# 2019-08-14
+	rm -f docker/max-load/kubeapply
+	rm -f docker/max-load/kubectl
+	rm -f docker/max-load/max-load
 # 2019-08-14
 	rm -f docker/*.knaut-push
 # 2019-02-07

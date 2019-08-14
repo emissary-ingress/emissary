@@ -79,8 +79,8 @@ spec:
                     values: ["generators"]
       serviceAccountName: ambassador-operator
       containers:
-      - name: max-load
-        image: {{env "MAX_LOAD_IMAGE"}}
+      - name: loadtest-generator
+        image: {{env "LOADTEST_GENERATOR_IMAGE"}}
         env:
         - name: AMBASSADOR_LICENSE_KEY
           value: {{env "AMBASSADOR_LICENSE_KEY"}}
@@ -96,7 +96,7 @@ spec:
         - name: http
           containerPort: 8000
         volumeMounts:
-        - mountPath: /var/lib/max-load
+        - mountPath: /var/lib/loadtest-generator
           name: load-generator-data
       volumes:
       - name: load-generator-data

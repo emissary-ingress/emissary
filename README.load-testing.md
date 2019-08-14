@@ -1,22 +1,30 @@
 # Load Testing APro
 
-The `./bin_linux_amd64/max-load` program is the basis of my
-load-testing efforts.  It is built on top of the library form of
-[vegeta][].  It will attempt to determine latency as a function of
-RPS, and determine the maximum RPS that the service can support.  The
-`./bin_linux_amd64/max-load --help` text should be helpful.
+## Measuring how latency varies with RPS load
+
+ > See https://github.com/datawire/apro-load-results/blob/master/README.md
+ >
+ > `max-load` has since been renamed to `loadtest-generator`.
+
+The `./bin_linux_amd64/loadtest-generator` (nee `max-load`) program is
+the basis of LukeShu's load-testing efforts.  It is built on top of
+the library form of [vegeta][].  It attempts to determine latency as a
+function of RPS, and determine the maximum RPS that the service can
+support.  The `./bin_linux_amd64/max-load --help` text should be
+helpful.
 
 [vegeta]: https://github.com/tsenart/vegeta
 
-The `./loadtest.sh` script calls `max-load` with a variety of parameters
-to test a buncha situations.
+The `./docker/loadtest-generator/test.sh` script calls
+`loadtest-generator` from inside the cluster, with a variety of
+parameters to test a buncha situations.
 
 ## Locust
 
-The `./bin_xxx_amd64/locust-slave` program is a [Locust][] slave that
-runs gRPC queries against the Lyft RLS and the no-op gRPC ExtAuth in
-`cmd/model-cluster-load-grpc-auth`. This tool has not been added to the
-`loadtest.sh` script (yet?).
+The `./bin_xxx_amd64/loadtest-locust-slave` program is a [Locust][]
+slave that runs gRPC queries against the Lyft RLS and the no-op gRPC
+ExtAuth in `cmd/model-cluster-load-grpc-auth`. This tool has not been
+added to the `loadtest.sh` script (yet?).
 
 [Locust]: https://docs.locust.io/en/stable/index.html
 
@@ -45,7 +53,7 @@ you are starting in the `apro` directory.
 4 $ mkdir -p /tmp/config/config
 4 $ env REDIS_URL=localhost:6379 REDIS_SOCKET_TYPE=tcp USE_STATSD=false RUNTIME_ROOT=/tmp/config RUNTIME_SUBDIRECTORY=config PORT=7000 bin_darwin_amd64/amb-sidecar ratelimit
 
-5 $ bin_darwin_amd64/locust-slave
+5 $ bin_darwin_amd64/loadtest-locust-slave
 ```
 
 Finally, access [Locust's Web UI](http://localhost:8089/). From there you

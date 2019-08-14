@@ -42,6 +42,10 @@ node_modules/
 # far enough in to the past.
 
 # 2019-08-14
+/docker/max-load/kubeapply
+/docker/max-load/kubectl
+/docker/max-load/max-load
+# 2019-08-14
 *.docker.knaut-push
 # 2019-01-23
 /docker/traffic-proxy/proxy

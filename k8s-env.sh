@@ -20,7 +20,7 @@ MODEL_CLUSTER_UAA_IMAGE=$(           sed -n 2p docker/model-cluster-uaa.docker.p
 OPENAPI_SERVER_IMAGE=$(              sed -n 2p docker/example-service.docker.push.cluster)
 
 # Loadtest images
-MAX_LOAD_IMAGE=$(                    sed -n 2p docker/max-load.docker.push.cluster)
+LOADTEST_GENERATOR_IMAGE=$(          sed -n 2p docker/loadtest-generator.docker.push.cluster)
 
 # 03-ambassador-pro-*.yaml
 # Created with `./bin/apictl-key create --id=dev --expiration=$((100*365)) --features=filter,ratelimit,traffic,devportal`
