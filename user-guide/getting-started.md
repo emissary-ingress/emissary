@@ -209,7 +209,22 @@ http://localhost/
 
 ## 5. The Diagnostics Service in Kubernetes
 
-Ambassador includes an integrated diagnostics service to help with troubleshooting. By default, this is not exposed to the Internet. To view it, we'll need to get the name of one of the Ambassador pods:
+Ambassador includes an integrated diagnostics service to help with troubleshooting. 
+
+By default, this is exposed to the internet at the URL `http://{{AMBASSADOR_HOST}}/ambassador/v0/diag/`. Go to that URL from a web browser to view the diagnostic UI.
+
+You can change the default so it is not exposed externally by default by setting `diagnostics.enabled: false` in the [ambassador `Module`](/reference/core/ambassador). 
+
+```yaml
+apiVersion: ambassador/v1
+kind: Module
+name: ambassador
+config:
+  diagnostics:
+    enabled: false
+```
+
+After applying this `Module`, to view the diagnostics UI, we'll need to get the name of one of the Ambassador pods:
 
 ```
 $ kubectl get pods
