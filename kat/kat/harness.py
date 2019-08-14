@@ -715,7 +715,7 @@ def label(yaml, scope):
 
 CLIENT_GO = "kat_client"
 
-def run_queries(queries: Sequence[Query]) -> Sequence[Result]:
+def run_queries(name: str, queries: Sequence[Query]) -> Sequence[Result]:
     jsonified = []
     byid = {}
 
@@ -723,12 +723,16 @@ def run_queries(queries: Sequence[Query]) -> Sequence[Result]:
         jsonified.append(q.as_json())
         byid[id(q)] = q
 
-    with open("/tmp/urls.json", "w") as f:
+    path_urls = f'/tmp/kat-client-{name}-urls.json'
+    path_results = f'/tmp/kat-client-{name}-results.json'
+    path_log = f'/tmp/kat-client-{name}.log'
+
+    with open(path_urls, 'w') as f:
         json.dump(jsonified, f)
 
-    run("%s -input /tmp/urls.json -output /tmp/results.json 2> /tmp/client.log" % CLIENT_GO)
+    run(f"{CLIENT_GO} -input {path_urls} -output {path_results} 2> {path_log}")
 
-    with open("/tmp/results.json") as f:
+    with open(path_results, 'r') as f:
         json_results = json.load(f)
 
     results = []
@@ -1187,7 +1191,7 @@ class Runner:
         # print("URL Reqs:")
         # print("\n".join([ f'{q.parent.name}: {q.url}' for q in queries ]))
 
-        result = run_queries(queries)
+        result = run_queries("reqcheck", queries)
 
         not_ready = [r for r in result if r.status != r.query.expected]
 
@@ -1250,7 +1254,7 @@ class Runner:
             print("Querying %s urls in phase %s..." % (len(phase_queries), phase), end="")
             sys.stdout.flush()
 
-            results = run_queries(phase_queries)
+            results = run_queries(f'phase{phase}', phase_queries)
 
             print(" done.")
 

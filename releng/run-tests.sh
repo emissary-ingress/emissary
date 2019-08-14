@@ -14,9 +14,11 @@ ROOT=$(cd .. ; pwd)
 
 set -e
 set -o pipefail
-set -x
+#set -x
 
 # We only want to pull images if they are not present locally. This impacts local test runs.
+echo "==== [$(date)] ==== Verifying $AMBASSADOR_DOCKER_IMAGE..."
+
 if [[ "$(docker images -q $AMBASSADOR_DOCKER_IMAGE 2> /dev/null)" == "" ]]; then
     if ! docker pull $AMBASSADOR_DOCKER_IMAGE; then
         echo "could not pull $AMBASSADOR_DOCKER_IMAGE" >&2
@@ -49,7 +51,9 @@ echo "==== [$(date)] ==== STARTING TESTS"
 failed=()
 
 for el in "${seq[@]}"; do
-    echo "==== [$(date)] ==== running $el"
+    hr_el="${el:-ALL}"
+
+    echo "==== [$(date)] $hr_el ==== running"
 
 #    kubectl delete namespaces -l scope=AmbassadorTest
 #    kubectl delete all -l scope=AmbassadorTest
@@ -60,36 +64,41 @@ for el in "${seq[@]}"; do
         k_args="-k $el"
     fi
 
-    if ! pytest ${TEST_ARGS} $k_args; then
+    set +e
+    set -x
+
+    outdirbase="kat-log-${hr_el}"
+    outdir="/tmp/${outdirbase}"
+    tmpdir="/tmp/kat-tmplog-${hr_el}"
+
+    rm -rf "$tmpdir"; mkdir "$tmpdir"
+
+    if ! pytest ${TEST_ARGS} $k_args | tee /tmp/pytest.log; then
+        echo "==== [$(date)] $hr_el ==== FAILED"
+
         failed+=("$el")
 
-        kubectl get pods --all-namespaces
-        kubectl get svc --all-namespaces
+        mv /tmp/pytest.log "$tmpdir"
+
+        kubectl get pods --all-namespaces > "$tmpdir/pods.txt" 2>&1
+        kubectl get svc --all-namespaces > "$tmpdir/svc.txt" 2>&1
+        kubectl logs -n kube-system -l k8s-app=kube-proxy > "$tmpdir/kube-proxy.txt" 2>&1
 
         if [ -n "${AMBASSADOR_DEV}" ]; then
-            docker ps -a
+            docker ps -a > "$tmpdir/docker.txt" 2>&1
         fi
 
         for pod in $(kubectl get pods -o jsonpath='{range .items[?(@.status.phase != "Running")]}{.metadata.name}:{.status.phase}{"\n"}{end}'); do
             # WTFO.
-            echo "==== logs for $pod"
             podname=$(echo $pod | cut -d: -f1)
-            kubectl logs $podname
+            kubectl logs $podname > "$tmpdir/pod-$podname.log" 2>&1
         done
+    else
+        echo "==== [$(date)] $hr_el ==== SUCCEEDED"
     fi
 
-    if [ -f /tmp/k8s-AmbassadorTest ]; then
-        mv /tmp/k8s-AmbassadorTest.yaml /tmp/k8s-$el-AmbassadorTest.yaml
-    fi
-
-    for file in /tmp/kat-logs-*; do
-        if [ "$file" = '/tmp/kat-logs-*' ]; then
-            break
-        else
-            echo "==== $file"
-            cat $file && rm $file
-        fi
-    done
+    set -e
+    set +x
 done
 
 if (( ${#failed[@]} == 0 )); then
@@ -97,6 +106,52 @@ if (( ${#failed[@]} == 0 )); then
     exit 0
 else
     echo "==== [$(date)] ==== FINISHED TESTS (failed: ${failed[*]})"
+
+    echo "==== [$(date)] ==== Collecting log tarball"
+
+    if [ -f /tmp/k8s-AmbassadorTest ]; then
+        mv /tmp/k8s-AmbassadorTest.yaml "$tmpdir"
+    fi
+
+    copy_if_present () {
+        pattern="$1"
+        dest="$2"
+        expanded="$(echo $pattern)"
+
+        if [ "$expanded" != "$pattern" ]; then
+            cp $pattern $dest
+        fi
+    }
+
+    copy_if_present '/tmp/kat-logs-*' "$tmpdir"
+    copy_if_present '/tmp/kat-events-*' "$tmpdir"
+    copy_if_present '/tmp/kat-client*' "$tmpdir"
+
+    cp /tmp/teleproxy.log "$tmpdir"
+    cp /etc/resolv.conf "$tmpdir"
+
+    mv "$tmpdir" "$outdir"
+
+    ( cd /tmp; tar czf "$outdir.tgz" "$outdirbase" )
+
+    if [ -n "$AWS_ACCESS_KEY_ID" -a -n "$GIT_BRANCH_SANITIZED" ]; then
+        now=$(date +"%y-%m-%dT%H:%M:%S")
+        branch=${GIT_BRANCH_SANITIZED:-localdev}
+        aws_key="kat-${branch}-${now}-${hr_el}-logs.tgz"
+
+        echo "==== [$(date)] ==== Uploading log tarball as $aws_key"
+
+        aws s3api put-object \
+            --bucket datawire-static-files \
+            --key kat/${aws_key} \
+            --body "${outdir}.tgz"
+
+        echo "==== [$(date)] ==== Recover log tarball with"
+        echo "aws s3api get-object --bucket datawire-static-files --key kat/${aws_key} ${outdirbase}.tgz"
+    else
+        echo "==== [$(date)] ==== Upload to S3 not configured; leaving $outdir.tgz in place"
+    fi
+
     exit 1
 fi
 
