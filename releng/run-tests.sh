@@ -99,19 +99,30 @@ for el in "${seq[@]}"; do
     done
 
     mv /tmp/kat-client* "$tmpdir"
+
+    cp /tmp/teleproxy.log "$tmpdir"
+
     mv "$tmpdir" "$outdir"
 
     ( cd /tmp; tar czf "$outdir.tgz" "$outdirbase" )
 
-    now=$(date +"%y-%m-%dT%H:%M:%S")
-    branch=${GIT_BRANCH_SANITIZED:-localdev}
-    aws_key="kat-${branch}-${now}-${hr_el}-logs.tgz"
-    echo "Uploading log tarball as $aws_key"
+    if [ -n "$AWS_ACCESS_KEY_ID" -a -n "$GIT_BRANCH_SANITIZED" ]; then
+        now=$(date +"%y-%m-%dT%H:%M:%S")
+        branch=${GIT_BRANCH_SANITIZED:-localdev}
+        aws_key="kat-${branch}-${now}-${hr_el}-logs.tgz"
+        echo "Uploading log tarball as $aws_key"
 
-    aws s3api put-object \
-        --bucket datawire-static-files \
-        --key kat/${aws_key} \
-        --body "${outdir}.tgz"
+        aws s3api put-object \
+            --bucket datawire-static-files \
+            --key kat/${aws_key} \
+            --body "${outdir}.tgz"
+
+        echo "Recover log tarball with"
+        echo "aws s3api put-object --bucket datawire-static-files --key kat/${aws_key} ${outdirbase}.tgz"
+
+    else
+        echo "Leaving $outdir.tgz in place; upload to S3 not configured."
+    fi
 done
 
 if (( ${#failed[@]} == 0 )); then
