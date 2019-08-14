@@ -99,12 +99,26 @@ endif
 # Makefile-parse-time; what if we're running `make clean`?
 #
 # So instead, we must deal with this abomination.
-_go.submods := $(patsubst %/go.mod,%,$(shell git ls-files '*/go.mod'))
-go.list = $(call path.addprefix,$(go.module),\
-                                $(filter-out $(foreach d,$(_go.submods),$d $d/%),\
-                                             $(call path.trimprefix,_$(CURDIR),\
-                                                                    $(shell GOPATH=/bogus GO111MODULE=off go list $1))))
-go.bins := $(call go.list,-f='{{if eq .Name "main"}}{{.ImportPath}}{{end}}' ./...)
+  # "General" functions
+    # Usage: $(call _go.file2dirs,FILE)
+    # Example: $(call _go.file2dirs,foo/bar/baz) => foo foo/bar foo/bar/baz
+    _go.file2dirs = $(if $(findstring /,$1),$(call _go.file2dirs,$(patsubst %/,%,$(dir $1)))) $1
+    # Usage: $(call _go.files2dirs,FILE_LIST)
+    # Example: $(call _go.file2dirs,foo/bar/baz foo/baz/qux) => foo foo/bar foo/bar/baz foo/baz foo/baz/qux
+    _go.files2dirs = $(sort $(foreach f,$1,$(call _go.file2dirs,$f)))
+  # Without pruning sub-module packages (relative to ".", without "./" prefix")
+    # Usage: $(call _go.raw.list,ARGS)
+    _go.raw.list = $(call path.trimprefix,_$(CURDIR),$(shell GOPATH=/bogus GO111MODULE=off go list $1))
+    _go.raw.pkgs := $(call _go.raw.list,./... 2>/dev/null)
+    _go.raw.submods := $(patsubst %/go.mod,%,$(wildcard $(addsuffix /go.mod,$(call _go.files2dirs,$(_go.raw.pkgs)))))
+  # With pruning sub-module packages (relative to ".", without "./" prefix")
+    _go.pkgs = $(filter-out $(foreach m,$(_go.raw.submods),$m $m/%),$(_go.raw.pkgs))
+    # Usage: $(call _go.list,ARGS)
+    _go.list = $(filter-out $(foreach m,$(_go.raw.submods),$m $m/%),$(_go.raw.list))
+  # With pruning sub-module packages (qualified)
+    # Usage: $(call go.list,ARGS)
+    go.list = $(call path.addprefix,$(go.module),$(_go.list))
+    go.bins := $(call go.list,-f='{{if eq .Name "main"}}{{.ImportPath}}{{end}}' $(addprefix ./,$(_go.pkgs)))
 
 go.pkgs ?= ./...
 
