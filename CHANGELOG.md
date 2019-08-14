@@ -1,6 +1,7 @@
 <!-- -*- fill-column: 100 -*- -->
 # Datawire build-aux CHANGELOG
 
+ - 2019-08-14: `docker.mk`: Allow overriding the tag expression on a per-image basis.
  - 2019-08-14: BREAKING CHANGE: `docker.mk`, `docker-cluster.mk`: Overhaul how tagging an pushing
                works, to be more flexible:
                 * Have to call the `docker.tag.rule` macro, instead of setting the `DOCKER_IMAGE`

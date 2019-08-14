@@ -67,6 +67,12 @@
 #        * `$*` is set to SOMEPATH
 #        * `$<` is set to a file containing the image ID
 #
+#       Additionally, you can override the EXPR on a per-image basis
+#       by overriding the `docker.tag.name.GROUP` variable on a
+#       per-target basis:
+#
+#           SOMEPATH.docker.tag.GROUP: docker.tag.name.GROUP = EXPR
+#
 #     - Pushing a tag: You can push tags that have been created with
 #       `SOMEPATH.docker.tag.GROUP` (see above) by depending on
 #       `SOMEPATH.docker.push.GROUP`.
@@ -130,6 +136,9 @@ docker.LOCALHOST = $(if $(filter darwin,$(GOHOSTOS)),host.docker.internal,localh
 # TAG_EXPRESSION is evaluated in the context of
 # %.docker.tag.TAG_GROUPNAME.
 define docker.tag.rule
+  # The 'foreach' is to handle newlines as normal whitespace
+  docker.tag.name.$(strip $1) = $(foreach v,$(value $2),$v)
+
   # file contents:
   #   line 1: image ID
   #   line 2: tag 1
@@ -137,7 +146,7 @@ define docker.tag.rule
   #   ...
   %.docker.tag.$(strip $1): %.docker $$(WRITE_DOCKERTAGFILE) FORCE
   # The 'foreach' is to handle newlines as normal whitespace
-	printf '%s\n' $$$$(cat $$<) $(foreach v,$(value $2),$v) | $$(WRITE_DOCKERTAGFILE) $$@
+	printf '%s\n' $$$$(cat $$<) $$(foreach v,$$(docker.tag.name.$(strip $1)),$$v) | $$(WRITE_DOCKERTAGFILE) $$@
 
   # file contents:
   #   line 1: image ID
