@@ -4,6 +4,7 @@
  - 2019-08-14: `go-mod.mk`: `go.bins`, `go.list`: Correctly prune nested Go modules in git
                submodules.
 
+ - 2019-08-14: `docker.mk`: Try to run `docker build` with `--pull` by default.
  - 2019-08-14: `docker.mk`: Allow overriding the tag expression on a per-image basis.
  - 2019-08-14: BREAKING CHANGE: `docker.mk`, `docker-cluster.mk`: Overhaul how tagging an pushing
                works, to be more flexible:
