@@ -117,7 +117,8 @@ docker.LOCALHOST = $(if $(filter darwin,$(GOHOSTOS)),host.docker.internal,localh
 # file contents:
 #   line 1: image ID
 %.docker: %/Dockerfile $(MOVE_IFCHANGED) FORCE
-	docker build --iidfile=$(@D)/.tmp.$(@F).tmp $*
+# Try with --pull, fall back to without --pull
+	docker build --iidfile=$(@D)/.tmp.$(@F).tmp --pull $* || docker build --iidfile=$(@D)/.tmp.$(@F).tmp $*
 	$(MOVE_IFCHANGED) $(@D)/.tmp.$(@F).tmp $@
 
 %.docker.clean:
