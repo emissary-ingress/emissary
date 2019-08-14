@@ -17,7 +17,7 @@ MODEL_CLUSTER_HTTP_AUTH_IMAGE=$(     sed -n 2p docker/model-cluster-http-auth.do
 MODEL_CLUSTER_LOAD_GRPC_AUTH_IMAGE=$(sed -n 2p docker/model-cluster-load-grpc-auth.docker.push.cluster)
 MODEL_CLUSTER_LOAD_HTTP_AUTH_IMAGE=$(sed -n 2p docker/model-cluster-load-http-auth.docker.push.cluster)
 MODEL_CLUSTER_UAA_IMAGE=$(           sed -n 2p docker/model-cluster-uaa.docker.push.cluster)
-OPENAPI_SERVER_IMAGE=$(              sed -n 2p docker/example-service.docker.push.cluster)
+MODEL_CLUSTER_OPENAPI_SERVICE=$(     sed -n 2p docker/model-cluster-openapi-service.docker.push.cluster)
 
 # Loadtest images
 LOADTEST_GENERATOR_IMAGE=$(          sed -n 2p docker/loadtest-generator.docker.push.cluster)

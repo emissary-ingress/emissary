@@ -45,7 +45,7 @@ spec:
     spec:
       containers:
         - name: openapi
-          image: {{env "OPENAPI_SERVER_IMAGE"}}
+          image: {{env "MODEL_CLUSTER_OPENAPI_SERVICE"}}
           imagePullPolicy: IfNotPresent
           ports:
             - name: http-api

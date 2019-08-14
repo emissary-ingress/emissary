@@ -1,7 +1,7 @@
 NAME            = ambassador-pro
 # For Makefile
 image.all       = $(sort $(patsubst %/Dockerfile,%,$(wildcard docker/*/Dockerfile)) docker/model-cluster-amb-sidecar-plugins)
-image.norelease = docker/example-service $(filter docker/model-cluster-% loadtest-%,$(image.all))
+image.norelease = $(filter docker/model-cluster-% loadtest-%,$(image.all))
 image.nocluster = docker/apro-plugin-runner
 # For k8s.mk
 K8S_IMAGES      = $(filter-out $(image.nocluster),$(image.all))
