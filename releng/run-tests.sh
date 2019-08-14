@@ -14,9 +14,11 @@ ROOT=$(cd .. ; pwd)
 
 set -e
 set -o pipefail
-set -x
+#set -x
 
 # We only want to pull images if they are not present locally. This impacts local test runs.
+echo "==== [$(date)] ==== Verifying $AMBASSADOR_DOCKER_IMAGE..."
+
 if [[ "$(docker images -q $AMBASSADOR_DOCKER_IMAGE 2> /dev/null)" == "" ]]; then
     if ! docker pull $AMBASSADOR_DOCKER_IMAGE; then
         echo "could not pull $AMBASSADOR_DOCKER_IMAGE" >&2
@@ -49,7 +51,9 @@ echo "==== [$(date)] ==== STARTING TESTS"
 failed=()
 
 for el in "${seq[@]}"; do
-    echo "==== [$(date)] ==== running $el"
+    hr_el="${el:-ALL}"
+
+    echo "==== [$(date)] $hr_el ==== running"
 
 #    kubectl delete namespaces -l scope=AmbassadorTest
 #    kubectl delete all -l scope=AmbassadorTest
@@ -60,7 +64,6 @@ for el in "${seq[@]}"; do
         k_args="-k $el"
     fi
 
-    hr_el="${el:-ALL}"
     outdirbase="kat-log-${hr_el}"
     outdir="/tmp/${outdirbase}"
     tmpdir="/tmp/kat-tmplog-${hr_el}"
@@ -68,6 +71,8 @@ for el in "${seq[@]}"; do
     rm -rf "$tmpdir"; mkdir "$tmpdir"
 
     if ! pytest ${TEST_ARGS} $k_args | tee /tmp/pytest.log; then
+        echo "==== [$(date)] $hr_el ==== FAILED"
+
         failed+=("$el")
 
         mv /tmp/pytest.log "$tmpdir"
@@ -84,7 +89,18 @@ for el in "${seq[@]}"; do
             podname=$(echo $pod | cut -d: -f1)
             kubectl logs $podname > "$tmpdir/pod-$podname.log" 2>&1
         done
+    else
+        echo "==== [$(date)] $hr_el ==== SUCCEEDED"
     fi
+done
+
+if (( ${#failed[@]} == 0 )); then
+    echo "==== [$(date)] ==== FINISHED TESTS (passed)"
+    exit 0
+else
+    echo "==== [$(date)] ==== FINISHED TESTS (failed: ${failed[*]})"
+
+    echo "==== [$(date)] ==== Collecting log tarball"
 
     if [ -f /tmp/k8s-AmbassadorTest ]; then
         mv /tmp/k8s-AmbassadorTest.yaml "$tmpdir"
@@ -110,26 +126,20 @@ for el in "${seq[@]}"; do
         now=$(date +"%y-%m-%dT%H:%M:%S")
         branch=${GIT_BRANCH_SANITIZED:-localdev}
         aws_key="kat-${branch}-${now}-${hr_el}-logs.tgz"
-        echo "Uploading log tarball as $aws_key"
+
+        echo "==== [$(date)] ==== Uploading log tarball as $aws_key"
 
         aws s3api put-object \
             --bucket datawire-static-files \
             --key kat/${aws_key} \
             --body "${outdir}.tgz"
 
-        echo "Recover log tarball with"
+        echo "==== [$(date)] ==== Recover log tarball with"
         echo "aws s3api put-object --bucket datawire-static-files --key kat/${aws_key} ${outdirbase}.tgz"
-
     else
-        echo "Leaving $outdir.tgz in place; upload to S3 not configured."
+        echo "==== [$(date)] ==== Upload to S3 not configured; leaving $outdir.tgz in place"
     fi
-done
 
-if (( ${#failed[@]} == 0 )); then
-    echo "==== [$(date)] ==== FINISHED TESTS (passed)"
-    exit 0
-else
-    echo "==== [$(date)] ==== FINISHED TESTS (failed: ${failed[*]})"
     exit 1
 fi
 
