@@ -2,20 +2,25 @@
 
 AMBASSADOR_IMAGE=quay.io/datawire/ambassador:0.72.0
 
-AMB_SIDECAR_IMAGE=$(sed -n 2p docker/amb-sidecar-plugins.docker.push.cluster)
-PROXY_IMAGE=$(sed -n 2p docker/traffic-proxy.docker.push.cluster)
-SIDECAR_IMAGE=$(sed -n 2p docker/app-sidecar.docker.push.cluster)
-CONSUL_CONNECT_INTEGRATION_IMAGE=$(sed -n 2p docker/consul_connect_integration.docker.push.cluster)
-MODEL_CLUSTER_APP_IMAGE=$(sed -n 2p docker/model-cluster-app.docker.push.cluster)
-MODEL_CLUSTER_GRPC_AUTH_IMAGE=$(sed -n 2p docker/model-cluster-grpc-auth.docker.push.cluster)
-MODEL_CLUSTER_HTTP_AUTH_IMAGE=$(sed -n 2p docker/model-cluster-http-auth.docker.push.cluster)
+# "Releasable" images
+AMB_SIDECAR_IMAGE=$(                 sed -n 2p docker/amb-sidecar-plugins.docker.push.cluster) # XXX: not releasable because "-plugins"
+CONSUL_CONNECT_INTEGRATION_IMAGE=$(  sed -n 2p docker/consul_connect_integration.docker.push.cluster)
+DEV_PORTAL_IMAGE=$(                  sed -n 2p docker/dev-portal-server.docker.push.cluster)
+INTERNAL_ACCESS_IMAGE=$(             sed -n 2p docker/apro-internal-access.docker.push.cluster)
+PROXY_IMAGE=$(                       sed -n 2p docker/traffic-proxy.docker.push.cluster)
+SIDECAR_IMAGE=$(                     sed -n 2p docker/app-sidecar.docker.push.cluster)
+
+# Model cluster / example images
+MODEL_CLUSTER_APP_IMAGE=$(           sed -n 2p docker/model-cluster-app.docker.push.cluster)
+MODEL_CLUSTER_GRPC_AUTH_IMAGE=$(     sed -n 2p docker/model-cluster-grpc-auth.docker.push.cluster)
+MODEL_CLUSTER_HTTP_AUTH_IMAGE=$(     sed -n 2p docker/model-cluster-http-auth.docker.push.cluster)
 MODEL_CLUSTER_LOAD_GRPC_AUTH_IMAGE=$(sed -n 2p docker/model-cluster-load-grpc-auth.docker.push.cluster)
 MODEL_CLUSTER_LOAD_HTTP_AUTH_IMAGE=$(sed -n 2p docker/model-cluster-load-http-auth.docker.push.cluster)
-MODEL_CLUSTER_UAA_IMAGE=$(sed -n 2p docker/model-cluster-uaa.docker.push.cluster)
-MAX_LOAD_IMAGE=$(sed -n 2p docker/max-load.docker.push.cluster)
-DEV_PORTAL_IMAGE=$(sed -n 2p docker/dev-portal-server.docker.push.cluster)
-INTERNAL_ACCESS_IMAGE=$(sed -n 2p docker/apro-internal-access.docker.push.cluster)
-OPENAPI_SERVER_IMAGE=$(sed -n 2p docker/example-service.docker.push.cluster)
+MODEL_CLUSTER_UAA_IMAGE=$(           sed -n 2p docker/model-cluster-uaa.docker.push.cluster)
+OPENAPI_SERVER_IMAGE=$(              sed -n 2p docker/example-service.docker.push.cluster)
+
+# Loadtest images
+MAX_LOAD_IMAGE=$(                    sed -n 2p docker/max-load.docker.push.cluster)
 
 # 03-ambassador-pro-*.yaml
 # Created with `./bin/apictl-key create --id=dev --expiration=$((100*365)) --features=filter,ratelimit,traffic,devportal`
