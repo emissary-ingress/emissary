@@ -13,6 +13,7 @@ import (
 	"github.com/datawire/teleproxy/pkg/k8s"
 
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta2"
+	"github.com/datawire/apro/lib/licensekeys"
 	"github.com/datawire/apro/lib/mapstructure"
 )
 
@@ -43,7 +44,7 @@ func doValidate(cmd *cobra.Command, args []string) {
 	var local_resources []k8s.Resource
 	var remote_resources []k8s.Resource
 
-	if err := licenseClaims.RequireFeature("ratelimit"); err != nil {
+	if err := licenseClaims.RequireFeature(licensekeys.FeatureRateLimit); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(2)
 	}

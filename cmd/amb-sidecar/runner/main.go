@@ -129,7 +129,7 @@ func runE(cmd *cobra.Command, args []string) error {
 	// Launch all of the worker goroutines...
 
 	// RateLimit controller
-	if licenseClaims.RequireFeature("ratelimit") == nil {
+	if licenseClaims.RequireFeature(licensekeys.FeatureRateLimit) == nil {
 		group.Go("ratelimit_controller", func(hardCtx, softCtx context.Context, cfg types.Config, l types.Logger) error {
 			return rlscontroller.DoWatch(softCtx, cfg, l)
 		})
@@ -138,7 +138,7 @@ func runE(cmd *cobra.Command, args []string) error {
 	// Filter+FilterPolicy controller
 
 	ct := &controller.Controller{}
-	if licenseClaims.RequireFeature("filter") == nil {
+	if licenseClaims.RequireFeature(licensekeys.FeatureFilter) == nil {
 		group.Go("auth_controller", func(hardCtx, softCtx context.Context, cfg types.Config, l types.Logger) error {
 			ct.Config = cfg
 			ct.Logger = l

@@ -6,10 +6,14 @@ import (
 	"encoding/pem"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+
+	"github.com/datawire/apro/lib/licensekeys"
 )
 
 var privKey, pubKey = func() (*rsa.PrivateKey, *rsa.PublicKey) {
@@ -70,31 +74,38 @@ func init() {
 		Short: "Create a jwt token",
 	}
 	create.Flags().StringVarP(&argCustomerID, "id", "i", "", "id for key")
-	create.Flags().IntVarP(&argLifetimeDays, "expiration", "e", 14, "expiration from now in days (can be negative for testing)")
-	create.Flags().StringSliceVar(&argFeatures, "features", []string{"filter", "ratelimit", "traffic"}, "comma-separated list of features to enable")
+	create.Flags().IntVarP(&argLifetimeDays, "expiration", "e", 0, "expiration from now in days (can be negative for testing)")
+	create.Flags().StringSliceVar(&argFeatures, "features", []string{"filter", "ratelimit", "traffic"},
+		fmt.Sprintf("comma-separated list of features to enable (known features: %v)",
+			strings.Join(licensekeys.ListKnownFeatures(), ",")))
 	create.MarkFlagRequired("id")
 	create.MarkFlagRequired("expiration")
 
-	create.Run = func(cmd *cobra.Command, args []string) {
+	create.RunE = func(cmd *cobra.Command, args []string) error {
 		now := time.Now()
 		expiresAt := now.Add(time.Duration(argLifetimeDays) * 24 * time.Hour)
-		tokenstring := createTokenString(argCustomerID, argFeatures, now, expiresAt)
-		fmt.Println(tokenstring)
+		features := make([]licensekeys.Feature, 0, len(argFeatures))
+		var unknownFeatures []string
+		for _, featureStr := range argFeatures {
+			if feature, ok := licensekeys.ParseFeature(featureStr); !ok {
+				unknownFeatures = append(unknownFeatures, featureStr)
+			} else {
+				features = append(features, feature)
+			}
+		}
+		if len(unknownFeatures) > 0 {
+			return errors.Errorf("unrecognized --features: %v", unknownFeatures)
+		}
+		tokenstring := createTokenString(argCustomerID, features, now, expiresAt)
+		_, err := fmt.Println(tokenstring)
+		return err
 	}
 
 	argparser.AddCommand(create)
 }
 
-// Keep this in-sync with "lib/licensekeys/secure.go"
-type LicenseClaimsV1 struct {
-	LicenseKeyVersion string   `json:"license_key_version"`
-	CustomerID        string   `json:"customer_id"`
-	EnabledFeatures   []string `json:"enabled_features"`
-	jwt.StandardClaims
-}
-
-func createTokenString(customerID string, features []string, now, expiresAt time.Time) string {
-	token := jwt.NewWithClaims(jwt.GetSigningMethod("PS512"), &LicenseClaimsV1{
+func createTokenString(customerID string, features []licensekeys.Feature, now, expiresAt time.Time) string {
+	token := jwt.NewWithClaims(jwt.GetSigningMethod("PS512"), &licensekeys.LicenseClaimsV1{
 		LicenseKeyVersion: "v1",
 		CustomerID:        customerID,
 		EnabledFeatures:   features,

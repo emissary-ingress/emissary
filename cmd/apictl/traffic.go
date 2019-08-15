@@ -22,6 +22,8 @@ import (
 
 	"github.com/datawire/teleproxy/pkg/k8s"
 	"github.com/datawire/teleproxy/pkg/tpu"
+
+	"github.com/datawire/apro/lib/licensekeys"
 )
 
 var traffic = &cobra.Command{
@@ -98,7 +100,7 @@ spec:
 `))
 
 func doInitialize(cmd *cobra.Command, args []string) error {
-	if err := licenseClaims.RequireFeature("traffic"); err != nil {
+	if err := licenseClaims.RequireFeature(licensekeys.FeatureTraffic); err != nil {
 		return err
 	}
 
@@ -161,7 +163,7 @@ var service string
 var port int
 
 func doInject(cmd *cobra.Command, args []string) error {
-	if err := licenseClaims.RequireFeature("traffic"); err != nil {
+	if err := licenseClaims.RequireFeature(licensekeys.FeatureTraffic); err != nil {
 		return err
 	}
 
@@ -317,7 +319,7 @@ var match string
 var target string
 
 func doIntercept(cmd *cobra.Command, args []string) error {
-	if err := licenseClaims.RequireFeature("traffic"); err != nil {
+	if err := licenseClaims.RequireFeature(licensekeys.FeatureTraffic); err != nil {
 		return err
 	}
 

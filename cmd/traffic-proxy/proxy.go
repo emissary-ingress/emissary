@@ -335,7 +335,7 @@ func main() {
 	argparser.PersistentPreRun = func(cmd *cobra.Command, args []string) {
 		licenseClaims, err := keycheck(cmd.PersistentFlags())
 		if err == nil {
-			err = licenseClaims.RequireFeature("traffic")
+			err = licenseClaims.RequireFeature(licensekeys.FeatureTraffic)
 		}
 		if err == nil {
 			return
