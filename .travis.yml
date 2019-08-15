@@ -47,7 +47,11 @@ install:
   - ./releng/travis-install.sh
 
 script:
-  - ./releng/travis-script.sh
+  - ./releng/travis-script.sh update-git
+  - ./releng/travis-script.sh setup
+  - ./releng/travis-script.sh push
+  - ./releng/travis-script.sh test
+  - ./releng/travis-script.sh publish
 
 after_script:
   # release the kubernaut claim

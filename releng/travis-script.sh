@@ -17,7 +17,9 @@
 set -o errexit
 set -o nounset
 
-printf "== Begin: travis-script.sh ==\n"
+CMD="$1"
+
+printf "== Begin: travis-script.sh $CMD ==\n"
 
 if [[ "$GIT_BRANCH" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
     COMMIT_TYPE=GA
@@ -31,16 +33,18 @@ else
     COMMIT_TYPE=random
 fi
 
-# If downstream, don't re-run release machinery for tags that are an
-# existing upstream release.
-if [[ "$TRAVIS_REPO_SLUG" != datawire/ambassador ]] &&
-   [[ -n "${TRAVIS_TAG:-}" ]] &&
-   git fetch https://github.com/datawire/ambassador.git "refs/tags/${TRAVIS_TAG}:refs/upstream-tag" &&
-   [[ "$(git rev-parse refs/upstream-tag)" == "$(git rev-parse "refs/tags/${TRAVIS_TAG}")" ]]
-then
-    COMMIT_TYPE=random
+if [ "$CMD" = "update-git" ]; then
+    # If downstream, don't re-run release machinery for tags that are an
+    # existing upstream release.
+    if [[ "$TRAVIS_REPO_SLUG" != datawire/ambassador ]] &&
+       [[ -n "${TRAVIS_TAG:-}" ]] &&
+       git fetch https://github.com/datawire/ambassador.git "refs/tags/${TRAVIS_TAG}:refs/upstream-tag" &&
+       [[ "$(git rev-parse refs/upstream-tag)" == "$(git rev-parse "refs/tags/${TRAVIS_TAG}")" ]]
+    then
+        COMMIT_TYPE=random
+    fi
+    git update-ref -d refs/upstream-tag
 fi
-git update-ref -d refs/upstream-tag
 
 printf "========\nCOMMIT_TYPE $COMMIT_TYPE; git status:\n"
 
@@ -75,52 +79,58 @@ case "$COMMIT_TYPE" in
             docker login -u="$DOCKER_BUILD_USERNAME" --password-stdin "${BASE_DOCKER_REPO%%/*}" <<<"$DOCKER_BUILD_PASSWORD"
         fi
 
-        make setup-develop cluster.yaml docker-registry
-        make docker-push # to the in-cluster registry (DOCKER_REGISTRY)
-        # make KAT_REQ_LIMIT=1200 test
-        make test
+        if [ "$CMD" = "setup" ]; then
+            make setup-develop cluster.yaml docker-registry
+        elif [ "$CMD" = "push" ]; then
+            make docker-push # to the in-cluster registry (DOCKER_REGISTRY)
+        elif [ "$CMD"  "test" ]; then
+            # make KAT_REQ_LIMIT=1200 test
+            make test
+        fi
         ;;
 esac
 
-printf "========\nPublishing artifacts...\n"
+if [ "$CMD" = "publish" ]; then
+    printf "========\nPublishing artifacts...\n"
 
-case "$COMMIT_TYPE" in
-    GA)
-        if [[ -n "${DOCKER_RELEASE_USERNAME:-}" ]]; then
-            docker login -u="$DOCKER_RELEASE_USERNAME" --password-stdin "${AMBASSADOR_EXTERNAL_DOCKER_REPO%%/*}" <<<"$DOCKER_RELEASE_PASSWORD"
-        fi
-        make release
-        ;;
-    RC)
-        if [[ -n "${DOCKER_RELEASE_USERNAME:-}" ]]; then
-            docker login -u="$DOCKER_RELEASE_USERNAME" --password-stdin "${AMBASSADOR_EXTERNAL_DOCKER_REPO%%/*}" <<<"$DOCKER_RELEASE_PASSWORD"
-        fi
-        tags=(
-            "${AMBASSADOR_EXTERNAL_DOCKER_REPO}:${GIT_TAG_SANITIZED}" # public X.Y.Z-rcA
-            "${AMBASSADOR_EXTERNAL_DOCKER_REPO}:${LATEST_RC}"         # public X.Y.Z-rc-latest
-        )
-        for tag in "${tags[@]}"; do
-            docker tag "$AMBASSADOR_DOCKER_IMAGE" "$tag"
-            docker push "$tag"
-        done
-        make VERSION="$VERSION" SCOUT_APP_KEY=testapp.json STABLE_TXT_KEY=teststable.txt update-aws
-        ;;
-    EA)
-        if [[ -n "${DOCKER_RELEASE_USERNAME:-}" ]]; then
-            docker login -u="$DOCKER_RELEASE_USERNAME" --password-stdin "${AMBASSADOR_EXTERNAL_DOCKER_REPO%%/*}" <<<"$DOCKER_RELEASE_PASSWORD"
-        fi
-        tags=(
-            "${AMBASSADOR_EXTERNAL_DOCKER_REPO}:${GIT_TAG_SANITIZED}" # public X.Y.Z-eaA
-        )
-        for tag in "${tags[@]}"; do
-            docker tag "$AMBASSADOR_DOCKER_IMAGE" "$tag"
-            docker push "$tag"
-        done
-        make VERSION="$VERSION" SCOUT_APP_KEY=earlyapp.json STABLE_TXT_KEY=earlystable.txt update-aws
-        ;;
-    *)
-        : # Nothing to do
-        ;;
-esac
+    case "$COMMIT_TYPE" in
+        GA)
+            if [[ -n "${DOCKER_RELEASE_USERNAME:-}" ]]; then
+                docker login -u="$DOCKER_RELEASE_USERNAME" --password-stdin "${AMBASSADOR_EXTERNAL_DOCKER_REPO%%/*}" <<<"$DOCKER_RELEASE_PASSWORD"
+            fi
+            make release
+            ;;
+        RC)
+            if [[ -n "${DOCKER_RELEASE_USERNAME:-}" ]]; then
+                docker login -u="$DOCKER_RELEASE_USERNAME" --password-stdin "${AMBASSADOR_EXTERNAL_DOCKER_REPO%%/*}" <<<"$DOCKER_RELEASE_PASSWORD"
+            fi
+            tags=(
+                "${AMBASSADOR_EXTERNAL_DOCKER_REPO}:${GIT_TAG_SANITIZED}" # public X.Y.Z-rcA
+                "${AMBASSADOR_EXTERNAL_DOCKER_REPO}:${LATEST_RC}"         # public X.Y.Z-rc-latest
+            )
+            for tag in "${tags[@]}"; do
+                docker tag "$AMBASSADOR_DOCKER_IMAGE" "$tag"
+                docker push "$tag"
+            done
+            make VERSION="$VERSION" SCOUT_APP_KEY=testapp.json STABLE_TXT_KEY=teststable.txt update-aws
+            ;;
+        EA)
+            if [[ -n "${DOCKER_RELEASE_USERNAME:-}" ]]; then
+                docker login -u="$DOCKER_RELEASE_USERNAME" --password-stdin "${AMBASSADOR_EXTERNAL_DOCKER_REPO%%/*}" <<<"$DOCKER_RELEASE_PASSWORD"
+            fi
+            tags=(
+                "${AMBASSADOR_EXTERNAL_DOCKER_REPO}:${GIT_TAG_SANITIZED}" # public X.Y.Z-eaA
+            )
+            for tag in "${tags[@]}"; do
+                docker tag "$AMBASSADOR_DOCKER_IMAGE" "$tag"
+                docker push "$tag"
+            done
+            make VERSION="$VERSION" SCOUT_APP_KEY=earlyapp.json STABLE_TXT_KEY=earlystable.txt update-aws
+            ;;
+        *)
+            : # Nothing to do
+            ;;
+    esac
+fi
 
 printf "== End:   travis-script.sh ==\n"
