@@ -245,7 +245,7 @@ ifneq ($(DOCKER_EPHEMERAL_REGISTRY),)
 		echo "Starting local Docker registry in Kubernetes" ;\
 		kubectl apply -f releng/docker-registry.yaml ;\
 		while [ -z "$$(kubectl get pods -n docker-registry -ojsonpath='{.items[0].status.containerStatuses[0].state.running}')" ]; do echo pod wait...; sleep 1; done ;\
-		sh -c 'kubectl port-forward --namespace=docker-registry deployment/registry 31000:5000 & echo $$! > .docker_port_forward' ;\
+		sh -c 'kubectl port-forward --namespace=docker-registry deployment/registry 31000:5000 > /tmp/port-forward-log & echo $$! > .docker_port_forward' ;\
 	else \
 		echo "Local Docker registry should be already running" ;\
 	fi
