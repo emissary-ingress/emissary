@@ -208,14 +208,22 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
         # ...and return it. Done.
         return stored
 
-    def finalize(self, ir: 'IR', aconf: Config) -> List[IRCluster]:
+
+    def finalize(self, ir: 'IR', aconf: Config) -> bool:
+        if len(self.mappings) == 0:
+            errstr = "rejecting mapping group with no non-shadow mappings"
+            err = RichStatus.fromError(errstr)
+            aconf.post_error(err, self)
+            self.ir.logger.debug(errstr)
+            return False
+
         """
         Finalize a MappingGroup based on the attributes of its Mappings. Core elements get lifted into
         the Group so we can more easily build Envoy routes; host-redirect and shadow get handled, etc.
 
         :param ir: the IR we're working from
         :param aconf: the Config we're working from
-        :return: a list of the IRClusters this Group uses
+        :return: whether this MappingGroup is valid. if not, it should be omitted from the final Envoy route config.
         """
 
         add_request_headers: Dict[str, Any] = {}
@@ -324,12 +332,11 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
             self.logger.debug(f"Normalizing weights in mappings now...")
             if not self.normalize_weights_in_mappings():
                 self.post_error(f"Could not normalize mapping weights, ignoring...")
-                return []
+                return False
 
-            return list([ mapping.cluster for mapping in self.mappings ])
+            return True
         else:
             # Flatten the case_sensitive field for host_redirect if it exists
             if 'case_sensitive' in redir:
                 self['case_sensitive'] = redir['case_sensitive']
-
-            return []
+            return True

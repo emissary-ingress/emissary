@@ -36,5 +36,12 @@ class MappingFactory:
         # OK. We've created whatever IRMappings we need. Time to create the clusters
         # they need.
 
+        to_delete = []
         for group in ir.groups.values():
-            group.finalize(ir, aconf)
+            group_id = group.group_id
+            if not group.finalize(ir, aconf):
+                to_delete.append(group_id)
+
+        # delete any invalid mapping groups
+        for group_id in to_delete:
+            del ir.groups[group_id]
