@@ -99,6 +99,7 @@ class IRHTTPMapping (IRBaseMapping):
         "use_websocket": True,
         "weight": True,
         "bypass_auth": True,
+        "auth_context_extensions": True,
 
         # Include the serialization, too.
         "serialization": True,

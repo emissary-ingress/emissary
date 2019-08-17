@@ -62,6 +62,10 @@ class V2Route(dict):
         # `per_filter_config` is used for customization of an Envoy filter
         per_filter_config = {}
 
+        auth_context_extensions = mapping.get('auth_context_extensions', False)
+        if auth_context_extensions:
+            per_filter_config['envoy.ext_authz'] = {'check_settings': {'context_extensions': auth_context_extensions}}
+
         if mapping.get('bypass_auth', False):
             per_filter_config['envoy.ext_authz'] = {'disabled': True}
 

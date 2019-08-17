@@ -118,6 +118,7 @@
         "use_websocket": { "type": "boolean" },
         "weight": { "type": "integer" },
         "bypass_auth": { "type": "boolean" },
+        "auth_context_extensions": { "$ref": "#/definitions/mapStrStr" },
 
         "modules": {
             "type": "array",
