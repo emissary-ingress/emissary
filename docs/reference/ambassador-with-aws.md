@@ -250,14 +250,13 @@ metadata:
     service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "443"
     service.beta.kubernetes.io/aws-load-balancer-backend-protocol: "http"
     service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: "true"
-    service.beta.kubernetes.io/aws-load-balancer-proxy-protocol: "*"
     getambassador.io/config: |
       ---
       apiVersion: ambassador/v1
       kind:  Module
       name:  ambassador
       config:
-        use_proxy_proto: true
+        use_proxy_proto: false
         use_remote_address: false
         x_forwarded_proto_redirect: true
 spec:
