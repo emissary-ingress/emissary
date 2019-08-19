@@ -86,16 +86,11 @@ func Main(version string) {
 	logrusLogger.SetFormatter(logrusFormatter)
 	logrus.SetFormatter(logrusFormatter) // FIXME(lukeshu): Some Lyft code still uses the global logger
 
-	argparser.PersistentPreRun = func(cmd *cobra.Command, args []string) {
+	argparser.PersistentPreRunE = func(cmd *cobra.Command, args []string) error {
 		// License key validation
 		var err error
 		licenseClaims, err = keycheck(cmd.PersistentFlags())
-		if err == nil {
-			return
-		}
-		logrusLogger.Errorln(err)
-		time.Sleep(5 * 60 * time.Second)
-		os.Exit(1)
+		return err
 	}
 
 	err := argparser.Execute()

@@ -108,12 +108,12 @@ func (ctx *cmdContext) KeyCheck(flags *flag.FlagSet) (*LicenseClaimsLatest, erro
 			return nil, errors.Wrap(err, "error reading license key")
 		}
 		ctx.key = strings.TrimSpace(string(key))
-		keysource = "key from file " + ctx.keyfile
+		keysource = "file " + ctx.keyfile
 	} else {
 		if flags.Changed("license-key") {
-			keysource = "key from command line"
+			keysource = "command line"
 		} else {
-			keysource = "key from environment"
+			keysource = "environment"
 		}
 	}
 
@@ -127,7 +127,7 @@ func (ctx *cmdContext) KeyCheck(flags *flag.FlagSet) (*LicenseClaimsLatest, erro
 	}()
 
 	if err != nil {
-		return nil, errors.Wrapf(err, "error validating %s", keysource)
+		return nil, errors.Wrapf(err, "error validating license key from %s", keysource)
 	}
 
 	return claims, nil

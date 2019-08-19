@@ -341,6 +341,13 @@ tests/cluster.tap: $(TAP_DRIVER)
 
 tests/cluster/external.tap: $(GOTEST2TAP)
 
+tests/cluster/licensekeys.tap: $(GOTEST2TAP) $(KUBECONFIG)
+tests/cluster/licensekeys.tap: bin_$(GOHOSTOS)_$(GOHOSTARCH)/apictl
+tests/cluster/licensekeys.tap: bin_$(GOHOSTOS)_$(GOHOSTARCH)/apictl-key
+tests/cluster/licensekeys.tap: bin_$(GOHOSTOS)_$(GOHOSTARCH)/amb-sidecar
+tests/cluster/licensekeys.tap: bin_$(GOHOSTOS)_$(GOHOSTARCH)/traffic-proxy
+tests/cluster/licensekeys.tap: bin_$(GOHOSTOS)_$(GOHOSTARCH)/app-sidecar
+
 tests/cluster/oauth-e2e/node_modules: tests/cluster/oauth-e2e/package.json $(wildcard tests/cluster/oauth-e2e/package-lock.json)
 	cd $(@D) && npm install
 	@test -d $@

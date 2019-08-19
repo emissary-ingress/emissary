@@ -23,6 +23,9 @@ func init() {
 	keycheck := licensekeys.InitializeCommandFlags(apictl.PersistentFlags(), "apictl", Version)
 	apictl.PersistentPreRun = func(cmd *cobra.Command, args []string) {
 		cmd.SilenceUsage = true // https://github.com/spf13/cobra/issues/340
+		if cmd.Name() == "help" {
+			return
+		}
 		var err error
 		licenseClaims, err = keycheck(cmd.PersistentFlags())
 		if err == nil {

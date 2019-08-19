@@ -110,7 +110,6 @@ func main() {
 			return
 		}
 		fmt.Fprintln(os.Stderr, err)
-		time.Sleep(5 * 60 * time.Second)
 		os.Exit(1)
 	}
 	err := argparser.Execute()

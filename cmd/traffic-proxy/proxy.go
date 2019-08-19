@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"sort"
@@ -341,7 +342,6 @@ func main() {
 			return
 		}
 		fmt.Fprintln(os.Stderr, err)
-		time.Sleep(5 * 60 * time.Second)
 		os.Exit(1)
 	}
 	err := argparser.Execute()
@@ -390,5 +390,9 @@ func Main(flags *cobra.Command, args []string) {
 	})
 
 	fmt.Println("Starting server...")
-	http.ListenAndServe("0.0.0.0:8081", nil)
+	httpPort := os.Getenv("APRO_HTTP_PORT")
+	if httpPort == "" {
+		httpPort = "8081"
+	}
+	http.ListenAndServe(net.JoinHostPort("0.0.0.0", httpPort), nil)
 }
