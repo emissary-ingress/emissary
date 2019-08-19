@@ -2,17 +2,4 @@
 
 # -count=1 to disable caching
 go test -json -tags=test -count=1 ./tests/cluster/external_test.go |
-	./build-aux/bin/gotest2tap |
-	# Do this in Bash instead of 'sed' so that it doesn't buffer stdout.
-	while IFS= read -r line; do
-		case "$line" in
-			'not ok'*)
-				if type docker &>/dev/null; then
-					printf '%s\n' "$line"
-				else
-					sed -E 's/\s*#.*/ # SKIP docker is not installed/' <<<"$line"
-				fi
-				;;
-			*) printf '%s\n' "$line";;
-		esac
-	done
+	./build-aux/bin/gotest2tap
