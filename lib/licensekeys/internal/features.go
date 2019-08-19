@@ -38,7 +38,7 @@ func (f *Feature) UnmarshalJSON(data []byte) error {
 	}
 
 	for _, feature := range features {
-		if feature.value == string(data) {
+		if feature.value == str {
 			*f = feature
 			return nil
 		}
@@ -47,7 +47,7 @@ func (f *Feature) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (f *Feature) MarshalJSON() ([]byte, error) {
+func (f Feature) MarshalJSON() ([]byte, error) {
 	return json.Marshal(f.value)
 }
 
