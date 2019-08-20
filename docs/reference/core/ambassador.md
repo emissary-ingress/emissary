@@ -7,13 +7,15 @@ Ambassador supports a variety of global configuration options in the `ambassador
 If present, the `ambassador` module defines system-wide configuration. This module can be applied on any Kubernetes service (the `ambassador` service itself is a common choice). **You may very well not need this module.** The defaults in the `ambassador` module are:
 
 ```yaml
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v1
 kind:  Module
-name:  ambassador
+metadata:
+  name:  ambassador
 # Put the id if you are using multiple ambassadors in the same cluster.
 # For more information: https://www.getambassador.io/reference/running/#ambassador_id.
 # ambassador_id: "<ambassador_id>"
-config:
+spec:
+  config:
 # admin_port is the port where Ambassador's Envoy will listen for
 # low-level admin requests. You should almost never need to change
 # this.
