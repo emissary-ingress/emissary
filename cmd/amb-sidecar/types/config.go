@@ -57,11 +57,15 @@ func getenvDefault(varname, def string) string {
 
 func PortalConfigFromEnv() (cfg portal.ServerConfig, warn []error, fatal []error) {
 	cfg = portal.ServerConfig{
-		DiagdURL:         "TODO",
-		AmbassadorURL:    "TODO",
-		PublicURL:        "TODO",
-		PollFrequency:    time.Second * 3,
-		SharedSecretPath: "TODO",
+		DiagdURL: getenvDefault("DIAGD_URL",
+			"http://localhost:8877"),
+		AmbassadorURL: getenvDefault("AMBASSADOR_URL",
+			"http://localhost:8080"),
+		PublicURL: getenvDefault("PUBLIC_API_URL",
+			"https://api.example.com"),
+		PollFrequency: time.Second * 3,
+		SharedSecretPath: getenvDefault("SHARED_SECRET_PATH",
+			"/etc/apro-internal-access/shared-secret"),
 		ContentURL: getenvDefault("APRO_DEVPORTAL_CONTENT_URL",
 			"https://github.com/datawire/devportal-content"),
 	}
