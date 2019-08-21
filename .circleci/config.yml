@@ -76,21 +76,44 @@ commands:
       - run: |
           GOPROXY=file://$HOME/goproxy make go-get || true
 
+  save-go-build-cache:
+    steps:
+      - run:
+          command: |
+            mkdir -p "$(go env GOCACHE)"
+            rsync -av --delete "$(go env GOCACHE)/" ~/gobuild
+          when: always
+      - save_cache:
+          key: go-build-cache-{{ arch }}-{{ .BuildNum }}
+          paths: "~/gobuild"
+          when: always
+  restore-go-build-cache:
+    steps:
+      - restore_cache:
+          keys:
+            - go-build-cache-{{ arch }}-{{ .BuildNum }}
+            - go-build-cache-{{ arch }}-
+      - run: |
+          mkdir -p "$(go env GOCACHE)"
+          rsync -av --delete ~/gobuild/ "$(go env GOCACHE)"
+
   main:
     steps:
       - checkout
       - restore-go-mod-cache
+      - restore-go-build-cache
       - run: make build
       - save-go-mod-cache
       - run: |
           trap 'make unclaim' EXIT
           set -x
           make check
+      - save-go-build-cache
       - run:
           name: "gather logs"
           when: always
           command: |
-            rsync -ma --include='*/' --include='*.tap' --include='*.log' --exclude='*' . /tmp/test-logs
+            rsync -ma --include='*/' --include='*.tap' --include='*.log' --include='idp_*.png' --exclude='*' . /tmp/test-logs
       - store_artifacts:
           path: /tmp/test-logs
           destination: test-logs
@@ -123,6 +146,8 @@ jobs:
 
   machine-build:
     machine:
+      # If you bump this, be sure to bump the pyenv key in
+      # "restore_cache" and "save_cache" below.
       image: "ubuntu-1604:201903-01"
     working_directory: ~/repo
     steps:
@@ -132,7 +157,7 @@ jobs:
       - kubectl-install
       - node-install
       - restore_cache:
-          key: "pyenv-201711-01-3.6.3"
+          key: "pyenv-201903-01-3.6.3"
       - run:
           name: "Install Python 3.6"
           command: |
@@ -141,7 +166,7 @@ jobs:
             pyenv global 2.7.12 3.6.3
             pyenv versions
       - save_cache:
-          key: "pyenv-201711-01-3.6.3"
+          key: "pyenv-201903-01-3.6.3"
           paths:
             - "/opt/circleci/.pyenv"
       - main

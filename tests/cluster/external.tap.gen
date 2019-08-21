@@ -2,7 +2,7 @@
 
 # -count=1 to disable caching
 go test -json -tags=test -count=1 ./tests/cluster/external_test.go |
-	GO111MODULE=off go run ./build-aux/gotest2tap.go |
+	./build-aux/bin/gotest2tap |
 	# Do this in Bash instead of 'sed' so that it doesn't buffer stdout.
 	while IFS= read -r line; do
 		case "$line" in

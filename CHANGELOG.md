@@ -1,12 +1,31 @@
 ## Ambassador Pro CHANGELOG
 
-## 0.5.1 (TBD)
+## 0.6.1 (TBD)
 
- * Fix CRD `ambassador_id` parsing bug.
- * Now also handles requests for `envoy.service.auth.v2`, not just `envoy.service.auth.v2alpha`.
+Configuration:
+
+ * `amb-sidecar`: The default value of `USE_STATSD` has changed from `true` to `false`.
+
+Behavior:
+
+ * Fixed a resource leak in dev-portal-server
+
+## 0.6.0 (2019-08-05)
+
+Configuration:
+
+ * The CRD field `ambassador_id` may now be a single string instead of a list of strings (this should have always been the case, but there was a bug in the parser).
  * Everything is now on one port: `APRO_HTTP_PORT`, which defaults to `8500`.
  * `LOG_LEVEL` no longer exists; everything obeys `APP_LOG_LEVEL`.
- * Fixed a resource leak in dev-portal-server
+ * The meaning of `REDIS_POOL_SIZE` has changed slightly; there are no longer separate connection pools for ratelimit and filtering; the maxiumum number of connections is now `REDIS_POOL_SIZE` instead of 2×`REDIS_POOL_SIZE`.
+ * The `amb-sidecar` RateLimitService can now report to statsd, and attempts to do so by default (`USE_STATSD`, `STATSD_HOST`, `STATSD_PORT`, `GOSTATS_FLUSH_INTERVAL_SECONDS`).
+
+Behavior:
+
+ * Now also handles gRPC requests for `envoy.service.auth.v2`, in addition to `envoy.service.auth.v2alpha`.
+ * Log a stacktrace at log-level "debug" whenever the HTTP client encounters an error.
+ * Fix bug where the wrong key was selected from a JWKS.
+ * Everything in amb-sidecar now runs as a single process.
 
 ## 0.5.0 (2019-06-21)
 
@@ -39,7 +58,6 @@ Behavior:
 Other:
 
  * Open Source dependency licence compliance is now automated as part of the release machinery.  Source releases for the Docker images are now present in the images themselves at `/*.opensource.tar.gz`.
-=======
 
 ## 0.4.3 (2019-05-15)
 

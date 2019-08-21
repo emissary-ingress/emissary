@@ -1,6 +1,7 @@
 package testutil
 
 import (
+	"math/big"
 	"net/http"
 	"net/http/httputil"
 	"testing"
@@ -19,41 +20,64 @@ func (a *Assert) Bool(b bool) {
 }
 
 // StrEQ asserts that two strings are equivalent.
-func (a *Assert) StrEQ(e string, c string) {
+func (a *Assert) StrEQ(expected string, received string) {
 	a.T.Helper()
-	if e != c {
-		a.T.Fatalf("Expected '%s' got '%s'", e, c)
+	if expected != received {
+		a.T.Fatalf(`Assertion failed:
+Expected: %q
+Received: %q`,
+			expected, received)
 	}
 }
 
 // StrEQ asserts that two strings are not equivalent.
-func (a *Assert) StrNotEQ(e string, c string) {
+func (a *Assert) StrNotEQ(expected string, received string) {
 	a.T.Helper()
-	if e == c {
-		a.T.Fatalf("Expected '%s' got '%s'", e, c)
+	if expected == received {
+		a.T.Fatalf(`Assertion failed:
+Expected: anything but %q
+Received:              %q`,
+			expected, received)
 	}
 }
 
 // IntEQ assert that two integers are the same.
-func (a *Assert) IntEQ(e int, c int) {
+func (a *Assert) IntEQ(expected int, received int) {
 	a.T.Helper()
-	if e != c {
-		a.T.Fatalf("Expected '%v' got '%v'", e, c)
+	if expected != received {
+		a.T.Fatalf(`Assertion failed:
+Expected: %d
+Received: %d`,
+			expected, received)
+	}
+}
+
+// IntEQ assert that two integers are the same.
+func (a *Assert) BigIntEQ(expected *big.Int, received *big.Int) {
+	a.T.Helper()
+	if expected.Cmp(received) != 0 {
+		a.T.Fatalf(`Assertion failed:
+Expected: %v
+Received: %v`,
+			expected, received)
 	}
 }
 
 // StrNotEmpty asserts that string is not empty.
-func (a *Assert) StrNotEmpty(e string) {
+func (a *Assert) StrNotEmpty(expected string) {
 	a.T.Helper()
-	if len(e) == 0 {
-		a.T.Fatalf("Expected not empty string got empty")
+	if len(expected) == 0 {
+		a.T.Fatalf(`Assertion failed:
+Expected: any non-empty string
+Received: %q`,
+			expected)
 	}
 }
 
 func (a *Assert) NotError(err error) {
 	a.T.Helper()
 	if err != nil {
-		a.T.Fatalf("Unexpected error %v", err)
+		a.T.Fatalf("Unexpected error: %v", err)
 	}
 }
 

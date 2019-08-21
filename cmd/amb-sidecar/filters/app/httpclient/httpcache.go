@@ -12,6 +12,7 @@ import (
 
 	"github.com/die-net/lrucache"
 	"github.com/gregjones/httpcache"
+	"github.com/pkg/errors"
 
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
 )
@@ -39,7 +40,7 @@ func (fn roundTripperFunc) RoundTrip(req *http.Request) (*http.Response, error) 
 }
 
 // NewHTTPClient returns an *http.Client with several useful
-// properties
+// properties:
 //
 //  - It caches responses in a global in-memory cache, which has the
 //    following properties:
@@ -104,9 +105,11 @@ func NewHTTPClient(logger types.Logger, maxStale time.Duration, insecure bool) *
 					res, err := transport.RoundTrip(req)
 					dur := time.Since(start)
 					if err != nil {
-						logger.Infof("HTTP CLIENT: NET: %s %s => ERR %v (%v)", req.Method, req.URL, err, dur)
+						err = errors.WithStack(err)
+						logger.Infof("HTTP CLIENT: NET: %q %q => ERR %v (%v)", req.Method, req.URL, err, dur)
+						logger.Debugf("HTTP CLIENT: stack trace: %+v", err)
 					} else {
-						logger.Infof("HTTP CLIENT: NET: %s %s => HTTP %d (%v)", req.Method, req.URL, res.StatusCode, dur)
+						logger.Infof("HTTP CLIENT: NET: %q %q => HTTP %d (%v)", req.Method, req.URL, res.StatusCode, dur)
 					}
 					if res != nil && maxStale > 0 {
 						cc := parseCacheControl(res.Header.Get("Cache-Control"))
@@ -121,7 +124,7 @@ func NewHTTPClient(logger types.Logger, maxStale time.Duration, insecure bool) *
 			res, err := cacheTransport.RoundTrip(req)
 			httpCacheLock.RUnlock()
 			if cached {
-				logger.Infof("HTTP CLIENT: CACHE: %s %s", req.Method, req.URL)
+				logger.Infof("HTTP CLIENT: CACHE: %q %q", req.Method, req.URL)
 			}
 			return res, err
 		}),

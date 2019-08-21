@@ -21,8 +21,8 @@ import (
 )
 
 // RegisterFilterService registers a Filter to the handle the
-// "envoy.service.auth.v2alpha.Authorization" service for the gRPC
-// server.
+// "envoy.service.auth.v2alpha.Authorization" and
+// "envoy.service.auth.v2.Authorization" services for the gRPC server.
 func RegisterFilterService(grpcServer *grpc.Server, filterService Filter) {
 	envoyAuthV2alpha.RegisterAuthorizationServer(grpcServer, authorizationService{Filter: filterService})
 	envoyAuthV2.RegisterAuthorizationServer(grpcServer, authorizationService{Filter: filterService})

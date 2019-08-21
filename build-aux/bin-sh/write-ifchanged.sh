@@ -22,8 +22,8 @@ cat > "$tmpfile" || exit $?
 if cmp -s "$tmpfile" "$outfile"; then
         rm -f "$tmpfile" || :
 else
-	if [[ -n "$CI" && -e "$2" ]]; then
-		echo "error: This should not happen in CI: $2 should not change" >&2
+	if [[ -n "$CI" && -e "$outfile" ]]; then
+		echo "error: This should not happen in CI: ${outfile} should not change" >&2
 		exit 1
 	fi
         mv -f "$tmpfile" "$outfile"

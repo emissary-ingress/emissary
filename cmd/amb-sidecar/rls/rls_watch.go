@@ -36,7 +36,7 @@ func DoWatch(ctx context.Context, cfg types.Config, _rlslog types.Logger) error 
 
 	count := 0
 
-	matches, err := filepath.Glob(fmt.Sprintf("%s-*", cfg.Output))
+	matches, err := filepath.Glob(fmt.Sprintf("%s-*", cfg.RLSRuntimeDir))
 	if err != nil {
 		rlslog.Printf("warning: %v", err)
 	} else {
@@ -74,7 +74,7 @@ func DoWatch(ctx context.Context, cfg types.Config, _rlslog types.Logger) error 
 		}
 
 		count += 1
-		realout := fmt.Sprintf("%s-%d/config", cfg.Output, count)
+		realout := fmt.Sprintf("%s-%d/%s", cfg.RLSRuntimeDir, count, cfg.RLSRuntimeSubdir)
 		err = os.MkdirAll(realout, 0775)
 		if err != nil {
 			fatal <- err
@@ -95,11 +95,11 @@ func DoWatch(ctx context.Context, cfg types.Config, _rlslog types.Logger) error 
 			}
 		}
 
-		err = os.Remove(cfg.Output)
+		err = os.Remove(cfg.RLSRuntimeDir)
 		if err != nil {
 			rlslog.Println(err)
 		}
-		err = os.Symlink(filepath.Dir(realout), cfg.Output)
+		err = os.Symlink(filepath.Dir(realout), cfg.RLSRuntimeDir)
 		if err != nil {
 			fatal <- err
 			return

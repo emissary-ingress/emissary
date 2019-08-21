@@ -41,6 +41,10 @@ run_test() {
 	name=$1
 	url=$2
 	shift 2
+	iname="$((i++))-${name}"
+	if test -e "${iname}.csv"; then
+		return 0
+	fi
 	# Make sure that Ambassador is ready
 	while ! curl --fail -Lk -is --oauth2-bearer eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ. "$url"; do
 		sleep 1
@@ -48,10 +52,11 @@ run_test() {
 	# Make it easy to tell apart clusters in the graphs
 	sleep 30
 	# Run the test
-	max-load --load-max-rps=3000 --csv-file="$((i++))-${name}.csv" "$@" "$url"
+	max-load --load-max-rps=10000 --csv-file="${iname}.csv.tmp" "$@" "$url" > "${iname}.log"
+	mv "${iname}.csv.tmp" "${iname}.csv"
 }
 
-cd /tmp
+cd /var/lib/max-load
 trap 'python3 -m http.server' EXIT
 set -ex
 

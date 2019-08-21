@@ -8,6 +8,8 @@ import (
 
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/google/uuid"
+
+	"github.com/datawire/apro/lib/jwtsupport"
 )
 
 func ParseKey(licenseKey string) (jwt.MapClaims, error) {
@@ -16,9 +18,9 @@ func ParseKey(licenseKey string) (jwt.MapClaims, error) {
 	privateKey := []byte("1234")
 
 	var claims jwt.MapClaims
-	_, err := jwtParser.ParseWithClaims(licenseKey, &claims, func(token *jwt.Token) (interface{}, error) {
+	_, err := jwtsupport.SanitizeParse(jwtParser.ParseWithClaims(licenseKey, &claims, func(token *jwt.Token) (interface{}, error) {
 		return privateKey, nil
-	})
+	}))
 	return claims, err
 }
 

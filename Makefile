@@ -83,8 +83,8 @@ go-build: $(foreach _go.PLATFORM,$(go.PLATFORMS),$(foreach lyft.bin,$(lyft.bins)
 
 # https://github.com/golangci/golangci-lint/issues/587
 go-lint: _go-lint-lyft
-_go-lint-lyft: build-aux/golangci-lint go-get
-	cd vendor-ratelimit && ../build-aux/golangci-lint run -c ../.golangci.yml ./...
+_go-lint-lyft: $(GOLANGCI_LINT) go-get $(go.lock)
+	cd vendor-ratelimit && $(go.lock)$(GOLANGCI_LINT) run -c ../.golangci.yml ./...
 .PHONY: _go-lint-lyft
 
 #
@@ -105,20 +105,19 @@ build: apro-abi.txt
 
 plugins = $(patsubst plugins/%/go.mod,%,$(wildcard plugins/*/go.mod))
 
+go-get-%: plugins/%/go.mod
+	cd $(<D) && go mod download
+.PHONY: go-get-%
+
 # We use $(shell find ...) instead of FORCE here because not even the
 # .cache trick will enable linker caching for -buildmode=plugin on
 # macOS (verified with go 1.11.4 and 1.11.5).
 define plugin.rule
-bin_%/.cache.$(plugin.name).so: plugins/$(plugin.name)/go.mod $$(shell find plugins/$(plugin.name))
-	cd $$(<D) && $$(go.GOBUILD) -buildmode=plugin -o $(abspath $$@) .
-bin_%/$(plugin.name).so: bin_%/.cache.$(plugin.name).so
-	@{ \
-		PS4=''; set -x; \
-		if ! cmp -s $$< $$@; then \
-			$(if $(CI),if test -e $$@; then false This should not happen in CI: $$@ should not change; fi &&) \
-			cp -f $$< $$@; \
-		fi; \
-	}
+go-get: go-get-$(plugin.name)
+bin_%/.$(plugin.name).so.stamp: plugins/$(plugin.name)/go.mod $$(shell find plugins/$(plugin.name))
+	cd $$(<D) && $$(go.GOBUILD) -buildmode=plugin -o $$(abspath $$@) .
+bin_%/$(plugin.name).so: bin_%/.$(plugin.name).so.stamp $$(COPY_IFCHANGED)
+	$$(COPY_IFCHANGED) $$< $$@
 endef
 $(foreach plugin.name,$(plugins),$(eval $(plugin.rule)))
 
@@ -137,7 +136,7 @@ $(foreach plugin.name,$(plugins),$(eval $(plugin.rule)))
 # always do plugins on native-builds
 go-build: $(foreach p,$(plugins),bin_$(GOHOSTOS)_$(GOHOSTARCH)/$p.so)
 _cgo_files = amb-sidecar apro-plugin-runner $(addsuffix .so,$(plugins))
-$(addprefix bin_$(GOHOSTOS)_$(GOHOSTARCH)/,$(_cgo_files)): CGO_ENABLED=1
+$(addprefix bin_$(GOHOSTOS)_$(GOHOSTARCH)/,$(_cgo_files)): CGO_ENABLED = 1
 
 # but cross-builds are the complex story
 ifneq ($(GOHOSTOS)_$(GOHOSTARCH),linux_amd64)
@@ -150,9 +149,6 @@ $(addprefix bin_linux_amd64/,$(_cgo_files)): CGO_ENABLED = 1
 $(addprefix bin_linux_amd64/,$(_cgo_files)): go.GOBUILD = $(_cgo_GOBUILD)
 _cgo_GOBUILD  = docker run --rm
 _cgo_GOBUILD += --env GOOS
-_cgo_GOBUILD += $(shell pinata-ssh-mount)
-_cgo_GOBUILD += -v $(CURDIR)/.gitconfig.docker:/root/.gitconfig
-_cgo_GOBUILD += -v ~/.ssh/known_hosts:/root/.ssh/known_hosts
 _cgo_GOBUILD += --env GOARCH
 _cgo_GOBUILD += --env GO111MODULE
 _cgo_GOBUILD += --env CGO_ENABLED
@@ -165,6 +161,11 @@ _cgo_GOBUILD += --volume $(CURDIR):$(CURDIR):rw,delegated
 _cgo_GOBUILD += --volume apro-gocache:/mnt/gocache:rw
 _cgo_GOBUILD += --env GOPATH=/mnt/gocache/go-workspace
 _cgo_GOBUILD += --env GOCACHE=/mnt/gocache/go-build
+# Bypass the module fetcher, and have everything pre-downloaded.  This
+# way we don't need to worry about getting git credentials in to
+# Docker.
+$(foreach f,$(_cgo_files),bin_linux_amd64/.$f.stamp): vendor
+_cgo_GOBUILD += --env GOFLAGS=-mod=vendor
 # We use $$PWD here instead of $(CURDIR) so that the shell (not Make)
 # expands it, so that it behaves correctly if the command `cd`s to a
 # subdirectory first.
@@ -174,11 +175,6 @@ _cgo_GOBUILD += --workdir $$PWD
 # than hard-coding a version.
 _cgo_GOBUILD += docker.io/library/golang:$(patsubst go%,%,$(filter go1%,$(shell go version)))
 _cgo_GOBUILD += go build
-
-go-build-setup-env: _docker_ssh_agent_forward
-_docker_ssh_agent_forward:
-	pinata-ssh-forward || { echo ""; echo "Check README.md"; echo ""; exit 1; }
-.PHONY: _docker_ssh_agent_forward
 
 endif
 endif
@@ -225,7 +221,7 @@ docker/max-load.docker: docker/max-load/kubeapply
 docker/max-load.docker: docker/max-load/kubectl
 docker/max-load.docker: docker/max-load/test.sh
 docker/max-load/kubeapply:
-	curl -o $@ --fail https://s3.amazonaws.com/datawire-static-files/kubeapply/$(KUBEAPPLY_VERSION)/linux/amd64/kubeapply
+	curl -o $@ --fail https://s3.amazonaws.com/datawire-static-files/kubeapply/0.3.11/linux/amd64/kubeapply
 	chmod 755 $@
 
 docker/%/kubectl:
@@ -327,17 +323,19 @@ check-local: ## Check: Run only tests that do not talk to the cluster
 check-local: lint go-build
 	$(MAKE) tests/local-all.tap.summary
 .PHONY: check-local
-tests/local-all.tap: build-aux/go-test.tap tests/local.tap
-	@./build-aux/tap-driver cat $^ > $@
+tests/local-all.tap: build-aux/go-test.tap tests/local.tap $(TAP_DRIVER)
+	@$(TAP_DRIVER) cat $(sort $(filter %.tap,$^)) > $@
 tests/local.tap: $(patsubst %.test,%.tap,$(wildcard tests/local/*.test))
 tests/local.tap: $(patsubst %.tap.gen,%.tap,$(wildcard tests/local/*.tap.gen))
-tests/local.tap:
-	@./build-aux/tap-driver cat $^ > $@
+tests/local.tap: $(TAP_DRIVER)
+	@$(TAP_DRIVER) cat $(sort $(filter %.tap,$^)) > $@
 
 tests/cluster.tap: $(patsubst %.test,%.tap,$(wildcard tests/cluster/*.test))
 tests/cluster.tap: $(patsubst %.tap.gen,%.tap,$(wildcard tests/cluster/*.tap.gen))
-tests/cluster.tap:
-	@./build-aux/tap-driver cat $^ > $@
+tests/cluster.tap: $(TAP_DRIVER)
+	@$(TAP_DRIVER) cat $(sort $(filter %.tap,$^)) > $@
+
+tests/cluster/external.tap: $(GOTEST2TAP)
 
 tests/cluster/oauth-e2e/node_modules: tests/cluster/oauth-e2e/package.json $(wildcard tests/cluster/oauth-e2e/package-lock.json)
 	cd $(@D) && npm install
@@ -428,7 +426,7 @@ clobber:
 # Release
 
 RELEASE_DRYRUN ?=
-release.bins = apictl apictl-key apro-plugin-runner playpen
+release.bins = apictl apictl-key apro-plugin-runner
 release.images = $(filter-out $(image.norelease),$(image.all))
 
 release: ## Cut a release; upload binaries to S3 and Docker images to Quay
