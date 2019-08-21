@@ -120,10 +120,10 @@ func main() {
 		}
 	}
 
-	claims, err := licensekeys.ParseKey(os.Getenv("AMBASSADOR_LICENSE_KEY"))
+	licenseClaims, err := licensekeys.ParseKey(os.Getenv("AMBASSADOR_LICENSE_KEY"))
 
 	go func() {
-		if err := licensekeys.PhoneHome(claims, "certified-envoy", Version); err != nil {
+		if err := licensekeys.PhoneHome(licenseClaims, "certified-envoy", Version); err != nil {
 			fmt.Fprintf(os.Stderr, "%s: metriton error: %v\n", os.Args[0], err)
 		}
 	}()
@@ -134,6 +134,11 @@ func main() {
 		} else {
 			fmt.Fprintf(os.Stderr, "%s: license key error: %v", os.Args[0], err)
 		}
+		os.Exit(1)
+	}
+
+	if err := licenseClaims.RequireFeature(licensekeys.FeatureCertifiedEnvoy); err != nil {
+		fmt.Fprintf(os.Stderr, "%s: %v", os.Args[0], err)
 		os.Exit(1)
 	}
 

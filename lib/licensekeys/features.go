@@ -18,11 +18,12 @@ type Feature = internal.Feature
 
 // This is the exhaustive list of values that a Feature may take.
 var (
-	FeatureUnrecognized = internal.FeatureUnrecognized
-	FeatureTraffic      = internal.AddFeature("traffic")
-	FeatureRateLimit    = internal.AddFeature("ratelimit")
-	FeatureFilter       = internal.AddFeature("filter")
-	FeatureDevPortal    = internal.AddFeature("devportal")
+	FeatureUnrecognized   = internal.FeatureUnrecognized
+	FeatureTraffic        = internal.AddFeature("traffic")
+	FeatureRateLimit      = internal.AddFeature("ratelimit")
+	FeatureFilter         = internal.AddFeature("filter")
+	FeatureDevPortal      = internal.AddFeature("devportal")
+	FeatureCertifiedEnvoy = internal.AddFeature("certified-envoy")
 )
 
 // ParseFeature turns a feature string in to one of the recognized
