@@ -274,9 +274,9 @@ func mungeService(res k8s.Resource) error {
 }
 
 var intercept = &cobra.Command{
-	Use:   "intercept",
+	Use:   "intercept [flags] <name>",
 	Short: "Intercept the traffic for a given deployment",
-	Args:  cobra.MinimumNArgs(1),
+	Args:  cobra.ExactArgs(1),
 	RunE:  doIntercept,
 }
 

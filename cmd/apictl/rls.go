@@ -27,7 +27,7 @@ func init() {
 }
 
 var validate = &cobra.Command{
-	Use:   "Validate [files]",
+	Use:   "Validate [flags] <files...>",
 	Short: "Validate RateLimit CRD files",
 	Run:   doValidate,
 }
