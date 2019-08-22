@@ -47,7 +47,7 @@ spec:
 class CircuitBreakingTest(AmbassadorTest):
     target: ServiceType
 
-    TARGET_CLUSTER='cluster_circuitbreakingtest_http'
+    TARGET_CLUSTER='cluster_circuitbreakingtest_http_cbdc1p1'
 
     def init(self):
         self.target = HTTP()
@@ -148,9 +148,7 @@ apiVersion: ambassador/v1
 kind:  Mapping
 name:  {self.target.path.k8s}-pr
 prefix: /{self.name}-pr/
-service: http://httpstat.us
-host_rewrite: httpstat.us
-#service: {self.target.path.fqdn}
+service: {self.target.path.fqdn}
 circuit_breakers:
 - priority: default
   max_pending_requests: 1024
@@ -160,9 +158,7 @@ apiVersion: ambassador/v1
 kind:  Mapping
 name:  {self.target.path.k8s}-normal
 prefix: /{self.name}-normal/
-service: http://httpstat.us
-host_rewrite: httpstat.us
-#service: {self.target.path.fqdn}
+service: {self.target.path.fqdn}
 ---
 apiVersion: ambassador/v1
 kind:  Module
@@ -176,13 +172,11 @@ config:
 
     def queries(self):
         for i in range(500):
-            yield Query(self.url(self.name) + '-pr/200?sleep=1000', ignore_result=True, phase=2)
-            # yield Query(self.url(self.name) + '-pr/', headers={ "Requested-Backend-Delay": "1000" },
-            #             ignore_result=True, phase=1)
+            yield Query(self.url(self.name) + '-pr/', headers={ "Requested-Backend-Delay": "1000" },
+                        ignore_result=True, phase=1)
         for i in range(500):
-            yield Query(self.url(self.name) + '-normal/200?sleep=1000', ignore_result=True, phase=2)
-            # yield Query(self.url(self.name) + '-normal/', headers={ "Requested-Backend-Delay": "1000" },
-            #             ignore_result=True, phase=1)
+            yield Query(self.url(self.name) + '-normal/', headers={ "Requested-Backend-Delay": "1000" },
+                        ignore_result=True, phase=1)
 
     def check(self):
 
