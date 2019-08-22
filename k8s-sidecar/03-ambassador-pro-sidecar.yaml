@@ -513,7 +513,7 @@ spec:
               fieldPath: metadata.namespace
         - name: AMBASSADOR_SINGLE_NAMESPACE
           value: "true"
-        - name: AMBASSADOR_LICENSE_KEY # For everything
+        - name: AMBASSADOR_LICENSE_KEY
           value: {{env "AMBASSADOR_LICENSE_KEY"}}
       restartPolicy: Always
 
