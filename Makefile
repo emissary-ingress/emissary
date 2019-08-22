@@ -71,7 +71,7 @@ push-docs: ## Publish ./docs to https://github.com/datawire/ambassador-docs
 #
 # Envoy
 
-AMBASSADOR_COMMIT = 0.75.0
+AMBASSADOR_COMMIT = dddddb0d8951b51a9deba96d69013a3d1c662380
 
 # Git clone
 # Ensure that GIT_DIR and GIT_WORK_TREE are unset so that `git bisect` and friends work properly.
