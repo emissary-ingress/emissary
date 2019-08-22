@@ -2,20 +2,20 @@
 
 AMBASSADOR_IMAGE=quay.io/datawire/ambassador:0.72.0
 
-AMB_SIDECAR_IMAGE=$(cat docker/amb-sidecar-plugins.docker.knaut-push)
-PROXY_IMAGE=$(cat docker/traffic-proxy.docker.knaut-push)
-SIDECAR_IMAGE=$(cat docker/app-sidecar.docker.knaut-push)
-CONSUL_CONNECT_INTEGRATION_IMAGE=$(cat docker/consul_connect_integration.docker.knaut-push)
-MODEL_CLUSTER_APP_IMAGE=$(cat docker/model-cluster-app.docker.knaut-push)
-MODEL_CLUSTER_GRPC_AUTH_IMAGE=$(cat docker/model-cluster-grpc-auth.docker.knaut-push)
-MODEL_CLUSTER_HTTP_AUTH_IMAGE=$(cat docker/model-cluster-http-auth.docker.knaut-push)
-MODEL_CLUSTER_LOAD_GRPC_AUTH_IMAGE=$(cat docker/model-cluster-load-grpc-auth.docker.knaut-push)
-MODEL_CLUSTER_LOAD_HTTP_AUTH_IMAGE=$(cat docker/model-cluster-load-http-auth.docker.knaut-push)
-MODEL_CLUSTER_UAA_IMAGE=$(cat docker/model-cluster-uaa.docker.knaut-push)
-MAX_LOAD_IMAGE=$(cat docker/max-load.docker.knaut-push)
-DEV_PORTAL_IMAGE=$(cat docker/dev-portal-server.docker.knaut-push)
-INTERNAL_ACCESS_IMAGE=$(cat docker/apro-internal-access.docker.knaut-push)
-OPENAPI_SERVER_IMAGE=$(cat docker/example-service.docker.knaut-push)
+AMB_SIDECAR_IMAGE=$(sed -n 2p docker/amb-sidecar-plugins.docker.push.cluster)
+PROXY_IMAGE=$(sed -n 2p docker/traffic-proxy.docker.push.cluster)
+SIDECAR_IMAGE=$(sed -n 2p docker/app-sidecar.docker.push.cluster)
+CONSUL_CONNECT_INTEGRATION_IMAGE=$(sed -n 2p docker/consul_connect_integration.docker.push.cluster)
+MODEL_CLUSTER_APP_IMAGE=$(sed -n 2p docker/model-cluster-app.docker.push.cluster)
+MODEL_CLUSTER_GRPC_AUTH_IMAGE=$(sed -n 2p docker/model-cluster-grpc-auth.docker.push.cluster)
+MODEL_CLUSTER_HTTP_AUTH_IMAGE=$(sed -n 2p docker/model-cluster-http-auth.docker.push.cluster)
+MODEL_CLUSTER_LOAD_GRPC_AUTH_IMAGE=$(sed -n 2p docker/model-cluster-load-grpc-auth.docker.push.cluster)
+MODEL_CLUSTER_LOAD_HTTP_AUTH_IMAGE=$(sed -n 2p docker/model-cluster-load-http-auth.docker.push.cluster)
+MODEL_CLUSTER_UAA_IMAGE=$(sed -n 2p docker/model-cluster-uaa.docker.push.cluster)
+MAX_LOAD_IMAGE=$(sed -n 2p docker/max-load.docker.push.cluster)
+DEV_PORTAL_IMAGE=$(sed -n 2p docker/dev-portal-server.docker.push.cluster)
+INTERNAL_ACCESS_IMAGE=$(sed -n 2p docker/apro-internal-access.docker.push.cluster)
+OPENAPI_SERVER_IMAGE=$(sed -n 2p docker/example-service.docker.push.cluster)
 
 # 03-ambassador-pro-*.yaml
 AMBASSADOR_LICENSE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImRldiIsImV4cCI6NDcwMDgyNjEzM30.wCxi5ICR6C5iEz6WkKpurNItK3zER12VNhM8F1zGkA8

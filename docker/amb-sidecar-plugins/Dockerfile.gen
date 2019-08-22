@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 cat <<EOF
-FROM $(sed -n 3p $1)
+FROM $(cat $1)
 
 COPY ./*.so /etc/ambassador-plugins/
 EOF

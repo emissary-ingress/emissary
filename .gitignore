@@ -11,7 +11,8 @@ venv
 /vendor.hash
 
 *.docker
-*.docker.knaut-push
+*.docker.tag.*
+*.docker.push.*
 *.knaut
 *.knaut.claim
 *.tar.gz
@@ -40,6 +41,8 @@ node_modules/
 # Remove the tail of this list when the commit making the change gets
 # far enough in to the past.
 
+# 2019-08-14
+*.docker.knaut-push
 # 2019-01-23
 /docker/traffic-proxy/proxy
 # 2019-01-23
