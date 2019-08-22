@@ -3,7 +3,6 @@ package server
 import (
 	"crypto/tls"
 	"fmt"
-	"io/ioutil"
 	"net"
 	"net/http"
 	"strings"
@@ -14,6 +13,7 @@ import (
 
 	"github.com/datawire/apro/cmd/apro-internal-access/secret"
 	"github.com/datawire/apro/cmd/dev-portal-server/kubernetes"
+	"github.com/datawire/apro/lib/util"
 )
 
 // Add a new/updated service.
@@ -63,13 +63,14 @@ func (d *diffCalculator) Add(s kubernetes.Service) {
 }
 
 type fetcher struct {
-	add     AddServiceFunc
-	delete  DeleteServiceFunc
-	httpGet HTTPGetFunc
-	done    chan bool
-	ticker  *time.Ticker
-	diff    *diffCalculator
-	logger  *log.Entry
+	add       AddServiceFunc
+	delete    DeleteServiceFunc
+	httpGet   HTTPGetFunc
+	done      chan bool
+	ticker    *time.Ticker
+	retriever chan chan bool
+	diff      *diffCalculator
+	logger    *log.Entry
 	// diagd's URL
 	diagURL string
 	// ambassador's URL
@@ -91,6 +92,7 @@ func NewFetcher(
 		httpGet:        httpGet,
 		done:           make(chan bool),
 		ticker:         time.NewTicker(duration),
+		retriever:      make(chan chan bool),
 		diff:           NewDiffCalculator(known),
 		logger:         log.WithFields(log.Fields{"subsystem": "fetcher"}),
 		diagURL:        strings.TrimRight(diagURL, "/"),
@@ -102,10 +104,15 @@ func NewFetcher(
 		for {
 			select {
 			case <-f.done:
+				f.ticker.Stop()
 				return
 			case <-f.ticker.C:
-				// Retrieve all services:
-				f.retrieve()
+				f._retrieve("timer")
+				break
+			case ack := <-f.retriever:
+				f._retrieve("request")
+				ack <- true
+				break
 			}
 		}
 	}()
@@ -121,7 +128,7 @@ var dialer = &net.Dialer{
 	Timeout: time.Second * 2,
 }
 
-var client = &http.Client{
+var client = util.SimpleClient{Client: &http.Client{
 	Timeout: time.Second * 2,
 
 	// TODO: We should make this an explicit opt-in
@@ -130,7 +137,7 @@ var client = &http.Client{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 		Dial:            dialer.Dial,
 	},
-}
+}}
 
 func httpGet(url string, internalSecret string, logger *log.Entry) ([]byte, error) {
 	logger = logger.WithFields(log.Fields{"url": url})
@@ -141,20 +148,17 @@ func httpGet(url string, internalSecret string, logger *log.Entry) ([]byte, erro
 		return nil, err
 	}
 	req.Header.Set("X-Ambassador-Internal-Auth", internalSecret)
+	req.Close = true
 
-	response, err := client.Do(req)
-	if err != nil {
-		logger.Error(err)
-		return nil, err
-	}
-	defer response.Body.Close()
-	if response.StatusCode != 200 {
-		logger.WithFields(
-			log.Fields{"status_code": response.StatusCode}).Error(
-			"Bad HTTP response")
-		return nil, fmt.Errorf("HTTP error %d from %s", response.StatusCode, url)
-	}
-	buf, err := ioutil.ReadAll(response.Body)
+	buf, err := client.DoBodyBytes(req, func(response *http.Response, body []byte) (err error) {
+		if response.StatusCode != 200 {
+			logger.WithFields(
+				log.Fields{"status_code": response.StatusCode}).Error(
+				"Bad HTTP response")
+			err = fmt.Errorf("HTTP error %d from %s", response.StatusCode, url)
+		}
+		return
+	})
 	if err != nil {
 		logger.Error(err)
 		return nil, err
@@ -164,7 +168,13 @@ func httpGet(url string, internalSecret string, logger *log.Entry) ([]byte, erro
 }
 
 func (f *fetcher) retrieve() {
-	f.logger.Info("Iteration started")
+	waiter := make(chan bool)
+	f.retriever <- waiter
+	<-waiter
+}
+
+func (f *fetcher) _retrieve(reason string) {
+	f.logger.Info("Iteration started ", reason, " ")
 	buf, err := f.httpGet(f.diagURL+"/ambassador/v0/diag/?json=true", "", f.logger)
 	if err != nil {
 		log.Print(err)

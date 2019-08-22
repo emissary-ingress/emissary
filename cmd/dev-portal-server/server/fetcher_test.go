@@ -89,6 +89,7 @@ func TestFetcherRetrieve(t *testing.T) {
 		"http://localhost:8877", "http://ambassador", 1,
 		"https://publicapi.com", file.Name())
 
+	f.logger.Info("retrieving")
 	// When we retrieve we will be told about a bunch of new services. Only
 	// one of them will have OpenAPI docs, though.
 	f.retrieve()
@@ -100,9 +101,11 @@ func TestFetcherRetrieve(t *testing.T) {
 
 	// old service went away, we detected new ones:
 	knownServices := s.knownServices()
+	f.logger.Info("known services", knownServices)
 	sort.Slice(knownServices, func(i, j int) bool {
 		return knownServices[i].Name < knownServices[j].Name
 	})
+	f.logger.Info("known services (sorted)", knownServices)
 	g.Expect(knownServices).To(Equal([]Service{devportal, httpbin, openapi, qotm}))
 
 	// openapi has OpenAPI doc, others don't:

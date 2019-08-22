@@ -1,8 +1,6 @@
 package oauth2handler
 
 import (
-	"encoding/json"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 
@@ -11,6 +9,7 @@ import (
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta2"
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
 	"github.com/datawire/apro/lib/jwks"
+	"github.com/datawire/apro/lib/util"
 )
 
 type OpenIDConfig struct {
@@ -80,25 +79,12 @@ func Discover(client *http.Client, mw crd.FilterOAuth2, logger types.Logger) (*D
 func fetchOpenIDConfig(client *http.Client, documentURL string) (OpenIDConfig, error) {
 	config := OpenIDConfig{}
 
-	res, err := client.Get(documentURL) // #nosec G107
+	sclient := &util.SimpleClient{Client: client}
+
+	err := sclient.GetBodyJSON(documentURL, &config) // -#-n-o-s-ec G107
 	if err != nil {
+		// XXX: why return config here
 		return config, errors.Wrap(err, "failed to fetch remote openid-configuration")
 	}
-	defer res.Body.Close()
-
-	if res.StatusCode != http.StatusOK {
-		return config, errors.New("failed to fetch remote openid-configuration (status != 200)")
-	}
-
-	buf, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		return config, errors.Wrap(err, "failed to read openid-configuration HTTP response body")
-	}
-
-	err = json.Unmarshal(buf, &config)
-	if err != nil {
-		return config, err
-	}
-
 	return config, nil
 }

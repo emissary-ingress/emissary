@@ -6,6 +6,10 @@ Configuration:
 
  * `amb-sidecar`: The default value of `USE_STATSD` has changed from `true` to `false`.
 
+Behavior:
+
+ * Fixed a resource leak in dev-portal-server
+
 ## 0.6.0 (2019-08-05)
 
 Configuration:
