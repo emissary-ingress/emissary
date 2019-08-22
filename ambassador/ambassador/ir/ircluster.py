@@ -59,9 +59,6 @@ class IRCluster (IRResource):
                  load_balancer: Optional[dict] = None,
                  circuit_breakers: Optional[list] = None,
 
-                 cb_name: Optional[str]=None,
-                 od_name: Optional[str]=None,
-
                  rkey: str="-override-",
                  kind: str="IRCluster",
                  apiVersion: str="ambassador/v0",   # Not a typo! See below.
