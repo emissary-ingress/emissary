@@ -23,6 +23,8 @@ import (
 
 	"github.com/datawire/teleproxy/pkg/k8s"
 	"github.com/datawire/teleproxy/pkg/tpu"
+
+	"github.com/datawire/apro/lib/licensekeys"
 )
 
 var traffic = &cobra.Command{
@@ -99,6 +101,10 @@ spec:
 `))
 
 func doInitialize(cmd *cobra.Command, args []string) error {
+	if err := licenseClaims.RequireFeature(licensekeys.FeatureTraffic); err != nil {
+		return err
+	}
+
 	info, err := k8s.NewKubeInfo("", "", "")
 	if err != nil {
 		return err
@@ -158,6 +164,10 @@ var service string
 var port int
 
 func doInject(cmd *cobra.Command, args []string) error {
+	if err := licenseClaims.RequireFeature(licensekeys.FeatureTraffic); err != nil {
+		return err
+	}
+
 	for _, arg := range args {
 		resources, err := k8s.LoadResources(arg)
 		if err != nil {
@@ -265,9 +275,9 @@ func mungeService(res k8s.Resource) error {
 }
 
 var intercept = &cobra.Command{
-	Use:   "intercept",
+	Use:   "intercept [flags] <name>",
 	Short: "Intercept the traffic for a given deployment",
-	Args:  cobra.MinimumNArgs(1),
+	Args:  cobra.ExactArgs(1),
 	RunE:  doIntercept,
 }
 
@@ -310,6 +320,10 @@ var match string
 var target string
 
 func doIntercept(cmd *cobra.Command, args []string) error {
+	if err := licenseClaims.RequireFeature(licensekeys.FeatureTraffic); err != nil {
+		return err
+	}
+
 	var err error
 	apiPort, err = GetFreePort()
 	if err != nil {

@@ -13,6 +13,7 @@ import (
 	"github.com/datawire/teleproxy/pkg/k8s"
 
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta2"
+	"github.com/datawire/apro/lib/licensekeys"
 	"github.com/datawire/apro/lib/mapstructure"
 )
 
@@ -26,7 +27,7 @@ func init() {
 }
 
 var validate = &cobra.Command{
-	Use:   "Validate [files]",
+	Use:   "Validate [flags] <files...>",
 	Short: "Validate RateLimit CRD files",
 	Run:   doValidate,
 }
@@ -42,6 +43,11 @@ func doValidate(cmd *cobra.Command, args []string) {
 	var err error
 	var local_resources []k8s.Resource
 	var remote_resources []k8s.Resource
+
+	if err := licenseClaims.RequireFeature(licensekeys.FeatureRateLimit); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(2)
+	}
 
 	for _, arg := range args {
 		local_resources = append(local_resources, load(arg)...)

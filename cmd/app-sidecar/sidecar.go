@@ -102,12 +102,14 @@ func main() {
 	}
 	keycheck := licensekeys.InitializeCommandFlags(argparser.PersistentFlags(), "application-sidecar", Version)
 	argparser.PersistentPreRun = func(cmd *cobra.Command, args []string) {
-		err := keycheck(cmd.PersistentFlags())
+		licenseClaims, err := keycheck(cmd.PersistentFlags())
+		if err == nil {
+			err = licenseClaims.RequireFeature(licensekeys.FeatureTraffic)
+		}
 		if err == nil {
 			return
 		}
 		fmt.Fprintln(os.Stderr, err)
-		time.Sleep(5 * 60 * time.Second)
 		os.Exit(1)
 	}
 	err := argparser.Execute()

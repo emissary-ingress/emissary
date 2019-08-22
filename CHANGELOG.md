@@ -5,6 +5,10 @@
 Configuration:
 
  * `amb-sidecar`: The default value of `USE_STATSD` has changed from `true` to `false`.
+ * Bump license key schema v0 → v1.  The developer portal requires a
+   v1 license with the "devportal" feature enabled.  Some future
+   version of the other functionality will drop support for v0 license
+   keys.
 
 Behavior:
 

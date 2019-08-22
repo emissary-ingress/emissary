@@ -22,7 +22,10 @@ func licenseEnforce() {
 	}
 	keycheck := licensekeys.InitializeCommandFlags(devportal.PersistentFlags(), "dev-portal-server", Version)
 	devportal.SilenceUsage = true // https://github.com/spf13/cobra/issues/340
-	err := keycheck(devportal.PersistentFlags())
+	licenseClaims, err := keycheck(devportal.PersistentFlags())
+	if err == nil {
+		err = licenseClaims.RequireFeature(licensekeys.FeatureDevPortal)
+	}
 	if err == nil {
 		log.Printf("License validated")
 		return
