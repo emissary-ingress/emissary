@@ -9,7 +9,7 @@
 #  - Variable: DOCKER_K8S_ENABLE_PVC ?=
 ## Outputs ##
 #  - Target        : %.docker.tag.cluster   # tags as $(docker.LOCALHOST):31000/$(notdir $*):IMAGE-ID
-#  - Target        : %.docker.push.cluster  # pushes tat tag to a private in-cluster registry
+#  - Target        : %.docker.push.cluster  # pushes that tag to a private in-cluster registry
 ## common.mk targets ##
 #  - clean
 #
@@ -18,7 +18,14 @@
 #     > NOTE: On macOS, you will need to add
 #     > `host.docker.internal:31000` to Docker's list of "Insecure
 #     > registries" in order to push to private in-cluster registries.
-#     > Ask Abhay how to do that.
+#     >
+#     >   Screenshot: ./docs/docker-cluster-macos-insecure-registries.png
+#     >   Docs:       https://docs.docker.com/registry/insecure/#deploy-a-plain-http-registry
+#     >
+#     > The docs say you need to do it through the GUI, but I've heard
+#     > rumors that `~/.docker/daemon.json` can be used for this.
+#     > Maybe it's sensitive to your version of Docker for Desktop, or
+#     > your version of macOS?
 #
 #    You can push to a private in-cluster registry by depending on
 #    `SOMEDIR.docker.push.cluster`.  It will be known in-cluster as

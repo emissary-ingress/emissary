@@ -104,7 +104,7 @@ endif
     # Example: $(call _go.file2dirs,foo/bar/baz) => foo foo/bar foo/bar/baz
     _go.file2dirs = $(if $(findstring /,$1),$(call _go.file2dirs,$(patsubst %/,%,$(dir $1)))) $1
     # Usage: $(call _go.files2dirs,FILE_LIST)
-    # Example: $(call _go.file2dirs,foo/bar/baz foo/baz/qux) => foo foo/bar foo/bar/baz foo/baz foo/baz/qux
+    # Example: $(call _go.files2dirs,foo/bar/baz foo/baz/qux) => foo foo/bar foo/bar/baz foo/baz foo/baz/qux
     _go.files2dirs = $(sort $(foreach f,$1,$(call _go.file2dirs,$f)))
   # Without pruning sub-module packages (relative to ".", without "./" prefix")
     # Usage: $(call _go.raw.list,ARGS)
