@@ -298,6 +298,10 @@ ENVOY_SYNC_HOST_TO_DOCKER = docker run --rm --volume=$(CURDIR)/envoy-src:/xfer:r
 ENVOY_SYNC_DOCKER_TO_HOST = docker run --rm --volume=$(CURDIR)/envoy-src:/xfer:rw --volume=envoy-build:/root:ro $$(cat envoy-build-image.txt) rsync -Pav --delete /root/envoy/ /xfer
 
 envoy-bin/envoy-static: FORCE envoy-build-image.txt
+ifneq ($(CI),)
+	@echo 'error: This should not happen in CI: should not try to compile Envoy'
+	@false
+endif
 	$(ENVOY_SYNC_HOST_TO_DOCKER)
 	@PS4=; set -ex; trap '$(ENVOY_SYNC_DOCKER_TO_HOST)' EXIT; { \
 	    docker run --rm --volume=envoy-build:/root:rw --workdir=/root/envoy $$(cat envoy-build-image.txt) bazel build --verbose_failures -c $(ENVOY_COMPILATION_MODE) //source/exe:envoy-static; \
