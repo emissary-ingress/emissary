@@ -3,6 +3,10 @@ NAME            = ambassador-pro
 image.all       = $(sort $(patsubst %/Dockerfile,%,$(wildcard docker/*/Dockerfile)) docker/model-cluster-amb-sidecar-plugins)
 image.norelease = $(filter docker/model-cluster-% loadtest-%,$(image.all))
 image.nocluster = docker/apro-plugin-runner
+# For docker.mk
+# If you change docker.tag.release, you'll also need to change the
+# image names in `cmd/apictl/traffic.go`.
+docker.tag.release = quay.io/datawire/ambassador_pro:$(notdir $*)-$(VERSION)
 # For k8s.mk
 K8S_IMAGES      = $(filter-out $(image.nocluster),$(image.all))
 K8S_DIRS        = k8s-sidecar k8s-standalone k8s-localdev
@@ -31,11 +35,6 @@ include build-aux/k8s.mk
 include build-aux/teleproxy.mk
 include build-aux/pidfile.mk
 include build-aux/help.mk
-
-# Set up the tag names for docker.mk.  If you change this, you'll also
-# need to change the image names in `cmd/apictl/traffic.go`.
-$(eval $(call docker.tag.rule, release,\
-  quay.io/datawire/ambassador_pro:$(notdir $*)-$(VERSION)))
 
 .DEFAULT_GOAL = help
 

@@ -3,7 +3,7 @@
 # Makefile snippet for building, tagging, and pushing Docker images.
 #
 ## Eager inputs ##
-#  (none)
+#  - Variables     : docker.tag.$(GROUP)     # define %.docker.tag.$(GROUP) and %.docker.push.$(GROUP) targets
 ## Lazy inputs ##
 #  (none)
 ## Outputs ##
@@ -13,11 +13,10 @@
 #  - Variable      : HAVE_DOCKER             # non-empty if true, empty if false
 #  - Variable      : docker.LOCALHOST        # "host.docker.internal" on Docker for Desktop, "localhost" on Docker CE
 #
-#  - Target        : %.docker: %/Dockerfile               # builds image (untagged)
+#  - Target        : %.docker: %/Dockerfile               # build image (untagged)
+#  - Target        : %.docker.tag.$(GROUP)                # tag image as $(docker.tag.$(GROUP))
+#  - Target        : %.docker.push.$(GROUP)               # push tag(s) $(docker.tag.$(GROUP))
 #  - .PHONY Target : %.docker.clean                       # remove image and tags
-#  - Function: $(eval $(call docker.tag.rule,GROUP,EXPR)) # adds targets:
-#                # : %.docker.tag.GROUP                   # tags image as EXPR
-#                # : %.docker.push.GROUP                  # pushes tag EXPR
 #
 ## common.mk targets ##
 #  (none)
@@ -58,20 +57,38 @@
 #       on `SOMEPATH.docker.tag.GROUP`, where you've set up GROUP by
 #       writing
 #
-#           $(eval $(call docker.tag.rule,GROUP,EXPR))
+#           docker.tag.GROUP = EXPR
 #
-#       where GROUP is the suffix of the target that you'd like to
-#       depend on in your Makefile, and EXPR is a Makefile expression
-#       that evaluates to 1 or more tag names; it is evaluated in the
-#       context of `SOMEPATH.docker.tag.GROUP`; specifically:
+#       _before_ including docker.mk, where GROUP is the suffix of the
+#       target that you'd like to depend on in your Makefile, and EXPR
+#       is a Makefile expression that evaluates to 1 or more tag
+#       names; it is evaluated in the context of
+#       `SOMEPATH.docker.tag.GROUP`; specifically:
 #        * `$*` is set to SOMEPATH
 #        * `$<` is set to a file containing the image ID
 #
 #       Additionally, you can override the EXPR on a per-image basis
-#       by overriding the `docker.tag.name.GROUP` variable on a
-#       per-target basis:
+#       by overriding the `docker.tag.GROUP` variable on a per-target
+#       basis:
 #
-#           SOMEPATH.docker.tag.GROUP: docker.tag.name.GROUP = EXPR
+#           SOMEPATH.docker.tag.GROUP: docker.tag.GROUP = EXPR
+#
+#        > For example:
+#        >
+#        >     docker.tag.release    = quay.io/datawire/ambassador_pro:$(notdir $*)-$(VERSION)
+#        >     docker.tag.buildcache = quay.io/datawire/ambassador_pro-buildcache:$(notdir $*)-$(VERSION)
+#        >     include build-aux/docker.mk
+#        >     # The above will cause docker.mk to define targets:
+#        >     #  - %.docker.tag.release
+#        >     #  - %.docker.push.release
+#        >     #  - %.docker.tag.buildcache
+#        >     #  - %.docker.push.buildcache
+#        >
+#        >     # Override the release name a specific image.
+#        >     # Release ambassador-withlicense/ambassador.docker
+#        >     #  - based on the above    : quay.io/datawire/ambassador_pro:ambassador-$(VERSION)
+#        >     #  - after being overridden: quay.io/datawire/ambassador_pro:amb-core-$(VERSION)
+#        >     ambassador-withlicense/ambassador.docker.tag.release: docker.tag.release = quay.io/datawire/ambassador_pro:amb-core-$(VERSION)
 #
 #     - Pushing a tag: You can push tags that have been created with
 #       `SOMEPATH.docker.tag.GROUP` (see above) by depending on
@@ -84,10 +101,10 @@
 #          >
 #          >   We accomplish this by saying:
 #          >
-#          >      $(eval $(call docker.tag.rule,quay,quay.io/datawire/ambassador_pro:$(notdir $*)-$(VERSION)))
+#          >      docker.tag.release = quay.io/datawire/ambassador_pro:$(notdir $*)-$(VERSION)
 #          >
-#          >   and having our `build`   target depend on `NAME.docker.tag.quay` (for each NAME)
-#          >   and having our `release` target depend on `NAME.docker.push.quay` (for each NAME)
+#          >   and having our `build`   target depend on `NAME.docker.tag.release` (for each NAME)
+#          >   and having our `release` target depend on `NAME.docker.push.release` (for each NAME)
 #
 #     - Clean up: You can untag (if there are any tags) and remove an
 #       image by having your `clean` target depend on
@@ -100,7 +117,12 @@ ifeq ($(words $(filter $(abspath $(lastword $(MAKEFILE_LIST))),$(abspath $(MAKEF
 _docker.mk := $(lastword $(MAKEFILE_LIST))
 include $(dir $(_docker.mk))prelude.mk
 
-_docker.tag-groups =
+#
+# Inputs
+
+_docker.tag.groups = $(patsubst docker.tag.%,%,$(filter docker.tag.%,$(.VARIABLES)))
+# clean.groups is separate from tag.groups as a special-case for docker-cluster.mk
+_docker.clean.groups += $(_docker.tag.groups)
 
 #
 # Executables
@@ -108,13 +130,13 @@ _docker.tag-groups =
 WRITE_DOCKERTAGFILE ?= $(build-aux.bindir)/write-dockertagfile
 
 #
-# Variables
+# Output variables
 
 HAVE_DOCKER      = $(call lazyonce,HAVE_DOCKER,$(shell which docker 2>/dev/null))
 docker.LOCALHOST = $(if $(filter darwin,$(GOHOSTOS)),host.docker.internal,localhost)
 
 #
-# Targets
+# Output targets
 
 # file contents:
 #   line 1: image ID
@@ -123,49 +145,40 @@ docker.LOCALHOST = $(if $(filter darwin,$(GOHOSTOS)),host.docker.internal,localh
 	docker build --iidfile=$(@D)/.tmp.$(@F).tmp --pull $* || docker build --iidfile=$(@D)/.tmp.$(@F).tmp $*
 	$(MOVE_IFCHANGED) $(@D)/.tmp.$(@F).tmp $@
 
-%.docker.clean:
-	$(if $(_docker.tag-groups),$(MAKE) $(addprefix $@.,$(_docker.tag-groups)))
+%.docker.clean: $(addprefix %.docker.clean.,$(_docker.clean.groups))
 	if [ -e $*.docker ]; then docker image rm "$$(cat $*.docker)" || true; fi
 	rm -f $*.docker
 .PHONY: %.docker.clean
 
-#
-# Functions
-
-# Usage: $(eval $(call docker.tag.rule,TAG_GROUPNAME,TAG_EXPRESSION))
+# Evaluate _docker.tag.rule with _docker.tag.group=TAG_GROUPNAME for
+# each docker.tag.TAG_GROUPNAME variable.
 #
 # Add a set of %.docker.tag.TAG_GROUPNAME and
 # %.docker.push.TAG_GROUPNAME targets that tag and push the docker image.
-#
-# TAG_EXPRESSION is evaluated in the context of
-# %.docker.tag.TAG_GROUPNAME.
-define docker.tag.rule
+define _docker.tag.rule
+  # file contents:
+  #   line 1: image ID
+  #   line 2: tag 1
+  #   line 3: tag 2
+  #   ...
+  %.docker.tag.$(_docker.tag.group): %.docker $$(WRITE_DOCKERTAGFILE) FORCE
   # The 'foreach' is to handle newlines as normal whitespace
-  docker.tag.name.$(strip $1) = $(foreach v,$(value $2),$v)
-  _docker.tag-groups += $(strip $1)
+	printf '%s\n' $$$$(cat $$<) $$(foreach v,$$(docker.tag.$(_docker.tag.group)),$$v) | $$(WRITE_DOCKERTAGFILE) $$@
 
   # file contents:
   #   line 1: image ID
   #   line 2: tag 1
   #   line 3: tag 2
   #   ...
-  %.docker.tag.$(strip $1): %.docker $$(WRITE_DOCKERTAGFILE) FORCE
-  # The 'foreach' is to handle newlines as normal whitespace
-	printf '%s\n' $$$$(cat $$<) $$(foreach v,$$(docker.tag.name.$(strip $1)),$$v) | $$(WRITE_DOCKERTAGFILE) $$@
-
-  # file contents:
-  #   line 1: image ID
-  #   line 2: tag 1
-  #   line 3: tag 2
-  #   ...
-  %.docker.push.$(strip $1): %.docker.tag.$(strip $1)
+  %.docker.push.$(_docker.tag.group): %.docker.tag.$(_docker.tag.group)
 	sed 1d $$< | xargs -n1 docker push
 	cat $$< > $$@
 
-  %.docker.clean.$(strip $1):
-	if [ -e $$*.docker.tag.$(strip $1) ]; then docker image rm $$$$(cat $$*.docker.tag.$(strip $1)) || true; fi
-	rm -f $$*.docker.tag.$(strip $1) $$*.docker.push.$(strip $1)
-  .PHONY: %.docker.clean.$(strip $1)
+  %.docker.clean.$(_docker.tag.group):
+	if [ -e $$*.docker.tag.$(_docker.tag.group) ]; then docker image rm $$$$(cat $$*.docker.tag.$(_docker.tag.group)) || true; fi
+	rm -f $$*.docker.tag.$(_docker.tag.group) $$*.docker.push.$(_docker.tag.group)
+  .PHONY: %.docker.clean.$(_docker.tag.group)
 endef
+$(foreach _docker.tag.group,$(_docker.tag.groups),$(eval $(_docker.tag.rule)))
 
 endif
