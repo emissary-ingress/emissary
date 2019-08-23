@@ -130,6 +130,15 @@ commands:
           else
               make release RELEASE_DRYRUN=y
           fi
+  clobber:
+    steps:
+      # Run "make clobber", and verify that it cleans everything.  Do
+      # this last, and only if everything so far has passed; don't
+      # wipe out artifacts that are useful for debugging.
+      - run: |
+          make clobber
+      - run: |
+          test -z "$(git clean -ndx)"
 
 jobs:
 
@@ -171,6 +180,7 @@ jobs:
             - "/opt/circleci/.pyenv"
       - main
       - release
+      - clobber
 
 
 workflows:

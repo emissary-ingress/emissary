@@ -198,7 +198,7 @@ $(image)/clean:
 .PHONY: $(image)/clean
 clean: $(image)/clean
 endef
-$(foreach image,$(image.all),$(eval $(docker.bins_rule)))
+$(foreach image,$(filter-out $(image.nobinsrule),$(image.all)),$(eval $(docker.bins_rule)))
 
 _gocache_volume_clobber:
 	if docker volume ls | grep -q apro-gocache; then docker volume rm apro-gocache; fi
@@ -383,12 +383,13 @@ loadtest-apply loadtest-deploy loadtest-shell loadtest-proxy: loadtest-%: infra/
 
 clean: $(addsuffix .clean,$(wildcard docker/*.docker)) loadtest-clean
 	rm -f apro-abi.txt
-	rm -f tests/*.log tests/*.tap tests/*/*.log tests/*/*.tap
-	rm -f docker/model-cluster-amb-sidecar-plugins/Dockerfile docker/model-cluster-amb-sidecar-plugins/*.so
 	rm -f docker/*/*.opensource.tar.gz
+	rm -f docker/model-cluster-amb-sidecar-plugins/Dockerfile docker/model-cluster-amb-sidecar-plugins/*.so
 	rm -f k8s-*/??-ambassador-certs.yaml k8s-*/*.pem
 	rm -f k8s-*/??-auth0-secret.yaml
+	rm -f tests/*.log tests/*.tap tests/*/*.log tests/*/*.tap
 	rm -f tests/cluster/oauth-e2e/idp_*.png
+	rm -f tests/cluster/consul/new_root.crt tests/cluster/consul/new_root.key
 # Files made by older versions.  Remove the tail of this list when the
 # commit making the change gets far enough in to the past.
 #
@@ -437,6 +438,7 @@ clobber:
 	rm -f docker/*/kubeapply
 	rm -f docker/*/kubectl
 	rm -rf tests/cluster/oauth-e2e/node_modules
+	rm -rf venv
 
 #
 # Release

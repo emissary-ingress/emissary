@@ -68,6 +68,8 @@ DOCKER_K8S_ENABLE_PVC ?=
 
 _docker.port-forward = $(dir $(_docker-cluster.mk))docker-port-forward
 
+_docker.tag-groups += cluster
+
 # file contents:
 #   line 1: image ID
 #   line 2: local tag name (hash-based)
@@ -87,7 +89,6 @@ _docker.port-forward = $(dir $(_docker-cluster.mk))docker-port-forward
 	}
 	sed '2{ s/^[^:]*:/127.0.0.1:/; }' $< > $@
 
-%.docker.clean: %.docker.clean.cluster
 %.docker.clean.cluster:
 	if [ -e $*.docker.tag.cluster ]; then docker image rm $$(cat $*.docker.tag.cluster) || true; fi
 	rm -f $*.docker.tag.cluster $*.docker.push.cluster
