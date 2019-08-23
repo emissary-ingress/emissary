@@ -1,6 +1,7 @@
 package types
 
 import (
+	"fmt"
 	"os"
 	"strconv"
 	"time"
@@ -55,28 +56,46 @@ func getenvDefault(varname, def string) string {
 	return ret
 }
 
-func PortalConfigFromEnv() (cfg portal.ServerConfig, warn []error, fatal []error) {
-	cfg = portal.ServerConfig{
+func getenvDefaultSeconds(varname, def string, warn []error, fatal []error) (time.Duration, []error, []error) {
+	valueStr := getenvDefault(varname, def)
+	value, err := strconv.Atoi(valueStr)
+	if err != nil {
+		value, err2 := strconv.Atoi(def)
+		if err2 != nil {
+			fatal = append(fatal,
+				fmt.Errorf("%s: Unparseable default duration '%s': %s",
+					varname, def, err2))
+		} else {
+			warn = append(warn,
+				fmt.Errorf("%s: Using default %ds. %s",
+					varname, value, err))
+		}
+	}
+	return time.Second * time.Duration(value), warn, fatal
+}
+
+func PortalConfigFromEnv(warn []error, fatal []error) (portal.ServerConfig, []error, []error) {
+	pollFrequency, warn, fatal := getenvDefaultSeconds("POLL_EVERY_SECS", "60", warn, fatal)
+
+	cfg := portal.ServerConfig{
 		DiagdURL: getenvDefault("DIAGD_URL",
 			"http://localhost:8877"),
 		AmbassadorURL: getenvDefault("AMBASSADOR_URL",
 			"http://localhost:8080"),
 		PublicURL: getenvDefault("PUBLIC_API_URL",
 			"https://api.example.com"),
-		PollFrequency: time.Second * 3,
+		PollFrequency: pollFrequency,
 		SharedSecretPath: getenvDefault("SHARED_SECRET_PATH",
 			"/etc/apro-internal-access/shared-secret"),
 		ContentURL: getenvDefault("APRO_DEVPORTAL_CONTENT_URL",
 			"https://github.com/datawire/devportal-content"),
 	}
-	return
+	return cfg, warn, fatal
 }
 
 func ConfigFromEnv() (cfg Config, warn []error, fatal []error) {
 	// DevPortal
-	portalConfig, pwarn, pfatal := PortalConfigFromEnv()
-	warn = append(warn, pwarn...)
-	fatal = append(fatal, pfatal...)
+	portalConfig, warn, fatal := PortalConfigFromEnv(warn, fatal)
 
 	// Set the things that don't require too much parsing
 	cfg = Config{
