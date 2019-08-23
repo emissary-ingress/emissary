@@ -436,7 +436,7 @@ add_response_headers:
     def check(self):
         for r in self.results:
             if r.headers:
-                print(r.headers)
+                # print(r.headers)
                 assert r.headers['Koo'] == ['KooK']
                 assert r.headers['Zoo'] == ['Zoo', 'ZooZ']
                 assert r.headers['Test'] == ['Test', 'boo']
@@ -474,7 +474,7 @@ remove_request_headers:
 
     def check(self):
         for r in self.results:
-            print(r.json)
+            # print(r.json)
             if 'headers' in r.json:
                 assert r.json['headers']['Foo'] == 'FooF'
                 assert 'Zoo' not in r.json['headers']

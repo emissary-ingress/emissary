@@ -59,9 +59,6 @@ class IRCluster (IRResource):
                  load_balancer: Optional[dict] = None,
                  circuit_breakers: Optional[list] = None,
 
-                 cb_name: Optional[str]=None,
-                 od_name: Optional[str]=None,
-
                  rkey: str="-override-",
                  kind: str="IRCluster",
                  apiVersion: str="ambassador/v0",   # Not a typo! See below.
@@ -88,6 +85,7 @@ class IRCluster (IRResource):
         name_fields: List[str] = [ 'cluster' ]
         ctx: Optional[IRTLSContext] = None
         errors: List[str] = []
+        unknown_breakers = 0
 
         # Do we have a marker?
         if marker:
@@ -188,6 +186,19 @@ class IRCluster (IRResource):
         # (Yes, really, TCP. Envoy uses the TLS context to determine whether to originate
         # TLS. Kind of odd, but there we go.)
         url = "tcp://%s:%d" % (hostname, port)
+
+        # Is there a circuit breaker involved here?
+        if circuit_breakers:
+            for breaker in circuit_breakers:
+                name = breaker.get('_name', None)
+
+                if name:
+                    name_fields.append(name)
+                else:
+                    # This is "impossible", but... let it go I guess?
+                    errors.append(f"{service}: unvalidated circuit breaker {breaker}!")
+                    name_fields.append(f'cbu{unknown_breakers}')
+                    unknown_breakers += 1
 
         # The Ambassador module will always have a load_balancer (which may be None).
         global_load_balancer = ir.ambassador_module.load_balancer

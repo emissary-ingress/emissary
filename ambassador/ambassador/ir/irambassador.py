@@ -235,7 +235,7 @@ class IRAmbassador (IRResource):
                 return False
 
         if self.get('circuit_breakers', None) is not None:
-            if not IRHTTPMapping.validate_circuit_breakers(self['circuit_breakers']):
+            if not IRHTTPMapping.validate_circuit_breakers(self.ir, self['circuit_breakers']):
                 self.post_error("Invalid circuit_breakers specified: {}".format(self['circuit_breakers']))
                 return False
 

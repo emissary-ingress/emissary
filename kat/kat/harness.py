@@ -339,6 +339,33 @@ class Node(ABC):
     def requirements(self):
         yield from ()
 
+    # log_kube_artifacts writes various logs about our underlying Kubernetes objects to
+    # a place where the artifact publisher can find them. See run-tests.sh.
+    def log_kube_artifacts(self):
+        if not getattr(self, 'already_logged', False):
+            self.already_logged = True
+
+            print(f'logging kube artifacts for {self.path.k8s}')
+            sys.stdout.flush()
+
+            DEV = os.environ.get("AMBASSADOR_DEV", "0").lower() in ("1", "yes", "true")
+
+            log_path = f'/tmp/kat-logs-{self.path.k8s}'
+
+            if DEV:
+                os.system(f'docker logs {self.path.k8s} >{log_path} 2>&1')
+            else:
+                os.system(f'kubectl logs -n {self.namespace} {self.path.k8s} >{log_path} 2>&1')
+
+                event_path = f'/tmp/kat-events-{self.path.k8s}'
+
+                fs1 = f'involvedObject.name={self.path.k8s}'
+                fs2 = f'involvedObject.namespace={self.namespace}'
+
+                cmd = f'kubectl get events -o json --field-selector "{fs1}" --field-selector "{fs2}"'
+                os.system(f'echo ==== "{cmd}" >{event_path}')
+                os.system(f'{cmd} >>{event_path} 2>&1')
+
 
 class Test(Node):
 
@@ -501,6 +528,9 @@ class Result:
                     ("'%s'" % self.error) if self.error else "no error"
                 )
             else:
+                if self.query.expected != self.status:
+                    self.parent.log_kube_artifacts()
+
                 assert self.query.expected == self.status, \
                        "%s: expected status code %s, got %s instead with error %s" % (
                            self.query.url, self.query.expected, self.status, self.error)
@@ -685,7 +715,7 @@ def label(yaml, scope):
 
 CLIENT_GO = "kat_client"
 
-def run_queries(queries: Sequence[Query]) -> Sequence[Result]:
+def run_queries(name: str, queries: Sequence[Query]) -> Sequence[Result]:
     jsonified = []
     byid = {}
 
@@ -693,12 +723,16 @@ def run_queries(queries: Sequence[Query]) -> Sequence[Result]:
         jsonified.append(q.as_json())
         byid[id(q)] = q
 
-    with open("/tmp/urls.json", "w") as f:
+    path_urls = f'/tmp/kat-client-{name}-urls.json'
+    path_results = f'/tmp/kat-client-{name}-results.json'
+    path_log = f'/tmp/kat-client-{name}.log'
+
+    with open(path_urls, 'w') as f:
         json.dump(jsonified, f)
 
-    run("%s -input /tmp/urls.json -output /tmp/results.json 2> /tmp/client.log" % CLIENT_GO)
+    run(f"{CLIENT_GO} -input {path_urls} -output {path_results} 2> {path_log}")
 
-    with open("/tmp/results.json") as f:
+    with open(path_results, 'r') as f:
         json_results = json.load(f)
 
     results = []
@@ -1118,19 +1152,11 @@ class Runner:
             _holdouts = holdouts.get(kind, [])
 
             if _holdouts:
-                DEV = os.environ.get("AMBASSADOR_DEV", "0").lower() in ("1", "yes", "true")
-
                 print(f'  {kind}:')
 
                 for node, text in _holdouts:
-                    print(f'\n================================ LOGS FOR {node.path.k8s} ({text})')
-
-                    if DEV:
-                        os.system(f'docker logs {node.path.k8s}')
-                    else:
-                        os.system(f'kubectl logs -n {node.namespace} {node.path.k8s}')
-
-                    print(f'================================ END LOGS FOR {node.path.k8s} ({text})\n')
+                    print(f'    {node.path.k8s} ({text})')
+                    node.log_kube_artifacts()
 
         assert False, "requirements not satisfied in %s seconds" % limit
 
@@ -1165,7 +1191,7 @@ class Runner:
         # print("URL Reqs:")
         # print("\n".join([ f'{q.parent.name}: {q.url}' for q in queries ]))
 
-        result = run_queries(queries)
+        result = run_queries("reqcheck", queries)
 
         not_ready = [r for r in result if r.status != r.query.expected]
 
@@ -1228,7 +1254,7 @@ class Runner:
             print("Querying %s urls in phase %s..." % (len(phase_queries), phase), end="")
             sys.stdout.flush()
 
-            results = run_queries(phase_queries)
+            results = run_queries(f'phase{phase}', phase_queries)
 
             print(" done.")
 
