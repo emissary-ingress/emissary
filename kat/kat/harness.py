@@ -1097,6 +1097,9 @@ class Runner:
 
         self._wait(selected)
 
+        print("Waiting 5s after requirements, just because...")
+        time.sleep(5)
+
     def _wait(self, selected):
         requirements = [ (node, kind, name) for node in self.nodes for kind, name in node.requirements()
                          if node in selected ]
