@@ -112,6 +112,14 @@ test` doesn't support TAP output, but `go test -json` output is
 parsable, so we pipe that to [gotest2tap][gotest2tap], which
 translates it to TAP.
 
+If you set `SHELL = sh -o pipefail` in your `Makefile` (the pros and
+cons of which I won't comment on here), you should be sure that if
+your test-runner indicates success or failure with an exit code, that
+you ignore that exit code:
+
+	%.tap: %.bats $(TAP_DRIVER) FORCE
+		@{ bats --tap $< || true; } | tee $@ | $(TAP_DRIVER) stream -n $<
+
 ## Adding dependencies of tests
 
 It is reasonassumed that *all* tests depend on `make build`.  To add a
