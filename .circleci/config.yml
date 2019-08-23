@@ -102,6 +102,8 @@ commands:
       - checkout
       - restore-go-mod-cache
       - restore-go-build-cache
+      - run: |
+          docker login -u="${DOCKER_BUILD_USERNAME}" -p="${DOCKER_BUILD_PASSWORD}" quay.io
       - run: make build
       - save-go-mod-cache
       - run: |
@@ -125,7 +127,7 @@ commands:
           if [[ "$CIRCLE_TAG" =~ ^v[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+(-.*)?$ ]]; then
               export AWS_ACCESS_KEY_ID=$DEPLOY_KEY_ID
               export AWS_SECRET_ACCESS_KEY=$DEPLOY_KEY
-              docker login -u="datawire+releasebot" -p="${DOCKER_TOKEN}" quay.io
+              docker login -u="${DOCKER_RELEASE_USERNAME}" -p="${DOCKER_RELEASE_PASSWORD}" quay.io
               make release
           else
               make release RELEASE_DRYRUN=y
