@@ -143,6 +143,10 @@ KAT_BACKEND_RELEASE = 1.5.0
 WATT ?= watt
 WATT_VERSION ?= 0.6.0
 
+# Allow overriding which kubestatus we use.
+KUBESTATUS ?= kubestatus
+KUBESTATUS_VERSION ?= 0.7.2
+
 # "make" by itself doesn't make the website. It takes too long and it doesn't
 # belong in the inner dev loop.
 all:
@@ -170,7 +174,7 @@ clean: clean-test
 	rm -f envoy-build-image.txt
 
 clobber: clean
-	-rm -rf watt
+	-rm -rf $(WATT) $(KUBESTATUS)
 	-$(if $(filter-out -,$(ENVOY_COMMIT)),rm -rf envoy envoy-src)
 	-rm -rf docs/node_modules
 	-rm -rf venv && echo && echo "Deleted venv, run 'deactivate' command if your virtualenv is activated" || true
@@ -360,7 +364,7 @@ docker-update-base:
 	$(MAKE) docker-push-base-images
 
 ambassador-docker-image: ambassador.docker
-ambassador.docker: Dockerfile base-go.docker base-py.docker $(WATT) $(WRITE_IFCHANGED) ambassador/ambassador/VERSION.py FORCE
+ambassador.docker: Dockerfile base-go.docker base-py.docker $(WATT) $(KUBESTATUS) $(WRITE_IFCHANGED) ambassador/ambassador/VERSION.py FORCE
 	docker build --build-arg BASE_GO_IMAGE=$(BASE_GO_IMAGE) --build-arg BASE_PY_IMAGE=$(BASE_PY_IMAGE) $(DOCKER_OPTS) -t $(AMBASSADOR_DOCKER_IMAGE) .
 	@docker image inspect $(AMBASSADOR_DOCKER_IMAGE) --format='{{.Id}}' | $(WRITE_IFCHANGED) $@
 
@@ -412,6 +416,11 @@ $(WATT): $(var.)WATT_VERSION
 	curl -o $(WATT) https://s3.amazonaws.com/datawire-static-files/watt/$(WATT_VERSION)/linux/amd64/watt
 	chmod go-w,a+x $(WATT)
 
+# This is for the docker image, so we don't use the current arch, we hardcode to linux/amd64
+$(KUBESTATUS): $(var.)KUBESTATUS_VERSION
+	curl -o $(KUBESTATUS) https://s3.amazonaws.com/datawire-static-files/kubestatus/$(KUBESTATUS_VERSION)/linux/amd64/kubestatus
+	chmod go-w,a+x $(KUBESTATUS)
+
 CLAIM_FILE=kubernaut-claim.txt
 CLAIM_NAME=$(shell cat $(CLAIM_FILE))
 
@@ -439,7 +448,7 @@ $(KAT_CLIENT): venv/kat-backend-$(KAT_BACKEND_RELEASE).tar.gz $(var.)KAT_BACKEND
 	cd venv && tar -xzf $(<F) kat-backend-$(KAT_BACKEND_RELEASE)/client/bin/client_$(GOOS)_$(GOARCH)
 	install -m0755 venv/kat-backend-$(KAT_BACKEND_RELEASE)/client/bin/client_$(GOOS)_$(GOARCH) $(CURDIR)/$(KAT_CLIENT)
 
-setup-develop: venv $(KAT_CLIENT) $(TELEPROXY) $(KUBERNAUT) $(WATT) version
+setup-develop: venv $(KAT_CLIENT) $(TELEPROXY) $(KUBERNAUT) $(WATT) $(KUBESTATUS) version
 
 cluster.yaml: $(CLAIM_FILE)
 ifeq ($(USE_KUBERNAUT), true)

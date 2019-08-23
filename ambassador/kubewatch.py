@@ -28,6 +28,7 @@ __version__ = Version
 ambassador_id = os.getenv("AMBASSADOR_ID", "default")
 ambassador_namespace = os.environ.get('AMBASSADOR_NAMESPACE', 'default')
 ambassador_single_namespace = bool("AMBASSADOR_SINGLE_NAMESPACE" in os.environ)
+ambassador_basedir = os.environ.get('AMBASSADOR_CONFIG_BASE_DIR', '/ambassador')
 
 logging.basicConfig(
     level=logging.INFO,  # if appDebug else logging.INFO,
@@ -97,6 +98,26 @@ def conditions(self):
 @conditions.setter
 def conditions(self, conditions):
     self._conditions = conditions
+
+
+def check_crd_type(crd):
+    status = False
+
+    try:
+        client.apis.ApiextensionsV1beta1Api().read_custom_resource_definition(crd)
+        status = True
+    except client.rest.ApiException as e:
+        if e.status == 404:
+            logger.debug(f'CRD type definition not found for {crd}')
+        else:
+            logger.debug(f'CRD type definition unreadable for {crd}: {e.reason}')
+
+    return status
+
+
+def touch_file(touchfile):
+    touchpath = Path(ambassador_basedir, touchfile)
+    touchpath.touch()
 
 
 @click.command()
@@ -179,28 +200,30 @@ def main(debug):
         client.models.V1beta1CustomResourceDefinitionStatus.stored_versions = stored_versions
 
         for touchfile, description, required in required_crds:
-            crd_errors = False
-
             for crd in required:
-                try:
-                    client.apis.ApiextensionsV1beta1Api().read_custom_resource_definition(crd)
-                except client.rest.ApiException as e:
-                    crd_errors = True
-
-                    if e.status == 404:
-                        logger.debug(f'CRD type definition not found for {crd}')
-                    else:
-                        logger.debug(f'CRD type definition unreadable for {crd}: {e.reason}')
-
-                if crd_errors:
-                    basedir = os.environ.get('AMBASSADOR_CONFIG_BASE_DIR', '/ambassador')
-                    touchpath = Path(basedir, touchfile)
-                    touchpath.touch()
+                if not check_crd_type(crd):
+                    touch_file(touchfile)
 
                     logger.debug(f'{description} are not available.' +
                                  ' To enable CRD support, configure the Ambassador CRD type definitions and RBAC,' +
                                  ' then restart the Ambassador pod.')
                     # logger.debug(f'touched {touchpath}')
+
+        # Have we been asked to do Knative support?
+        if os.environ.get('AMBASSADOR_KNATIVE_SUPPORT', '').lower() == 'true':
+            # Yes. Check for their CRD types.
+
+            if check_crd_type('clusteringresses.networking.internal.knative.dev'):
+                touch_file('.knative_clusteringress_ok')
+                logger.debug('Knative clusteringresses available')
+            else:
+                logger.debug('Knative clusteringresses not available')
+
+            if check_crd_type('ingresses.networking.internal.knative.dev'):
+                touch_file('.knative_ingress_ok')
+                logger.debug('Knative ingresses available')
+            else:
+                logger.debug('Knative ingresses not available')
     else:
         # If we couldn't talk to Kube, log that, but broadly we'll expect our caller
         # to DTRT around CRDs.
@@ -211,6 +234,7 @@ def main(debug):
     logger.debug("cluster ID is %s (from %s)" % (cluster_id, found))
 
     print(cluster_id)
+
 
 if __name__ == "__main__":
     main()

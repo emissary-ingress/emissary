@@ -385,10 +385,6 @@ if [[ -z "${AMBASSADOR_NO_KUBEWATCH}" ]]; then
 	    AMBASSADOR_LABEL_SELECTOR_ARG="--labels $AMBASSADOR_LABEL_SELECTOR"
     fi
 
-    if [ "${AMBASSADOR_KNATIVE_SUPPORT}" = true ]; then
-        KUBEWATCH_SYNC_KINDS="$KUBEWATCH_SYNC_KINDS -s ClusterIngress"
-    fi
-
     launch "watt" /ambassador/watt \
            --port 8002 \
            ${AMBASSADOR_SINGLE_NAMESPACE:+ --namespace "${AMBASSADOR_NAMESPACE}" } \
