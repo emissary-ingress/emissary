@@ -195,13 +195,13 @@ config:
 
         # '-normal' mapping tests: global configuration should be in effect
         normal_overloaded = 0
-        printed = False
+        # printed = False
 
         for result in normal_mapping_results:
-            if not printed:
-                import json
-                print(json.dumps(result.as_dict(), sort_keys=True, indent=2))
-                printed = True
+            # if not printed:
+            #     import json
+            #     print(json.dumps(result.as_dict(), sort_keys=True, indent=2))
+            #     printed = True
 
             if 'X-Envoy-Overloaded' in result.headers:
                 normal_overloaded += 1
