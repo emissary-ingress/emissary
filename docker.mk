@@ -100,6 +100,8 @@ ifeq ($(words $(filter $(abspath $(lastword $(MAKEFILE_LIST))),$(abspath $(MAKEF
 _docker.mk := $(lastword $(MAKEFILE_LIST))
 include $(dir $(_docker.mk))prelude.mk
 
+_docker.tag-groups =
+
 #
 # Executables
 
@@ -122,6 +124,7 @@ docker.LOCALHOST = $(if $(filter darwin,$(GOHOSTOS)),host.docker.internal,localh
 	$(MOVE_IFCHANGED) $(@D)/.tmp.$(@F).tmp $@
 
 %.docker.clean:
+	$(if $(_docker.tag-groups),$(MAKE) $(addprefix $@.,$(_docker.tag-groups)))
 	if [ -e $*.docker ]; then docker image rm "$$(cat $*.docker)" || true; fi
 	rm -f $*.docker
 .PHONY: %.docker.clean
@@ -139,6 +142,7 @@ docker.LOCALHOST = $(if $(filter darwin,$(GOHOSTOS)),host.docker.internal,localh
 define docker.tag.rule
   # The 'foreach' is to handle newlines as normal whitespace
   docker.tag.name.$(strip $1) = $(foreach v,$(value $2),$v)
+  _docker.tag-groups += $(strip $1)
 
   # file contents:
   #   line 1: image ID
@@ -158,7 +162,6 @@ define docker.tag.rule
 	sed 1d $$< | xargs -n1 docker push
 	cat $$< > $$@
 
-  %.docker.clean: %.docker.clean.$(strip $1)
   %.docker.clean.$(strip $1):
 	if [ -e $$*.docker.tag.$(strip $1) ]; then docker image rm $$$$(cat $$*.docker.tag.$(strip $1)) || true; fi
 	rm -f $$*.docker.tag.$(strip $1) $$*.docker.push.$(strip $1)
