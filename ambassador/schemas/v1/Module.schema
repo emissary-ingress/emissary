@@ -5,6 +5,7 @@
     "type": "object",
     "properties": {
         "apiVersion": { "enum": ["ambassador/v1"] },
+        "generation": { "type": "integer" },
         "kind": { "type": "string" },
         "name": { "type": "string" },
         "ambassador_id": {
