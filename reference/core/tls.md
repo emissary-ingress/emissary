@@ -28,6 +28,11 @@ spec:
   #
   # hosts: []
 
+  # 'sni' defines the SNI string to use on originated connections.
+  # type: string
+  #
+  # sni: None
+
   # 'secret' defines a Kubernetes Secret that contains the TLS certificate we
   # use for origination or termination. If not specified, Ambassador will look
   # at the value of cert_chain_file and private_key_file.

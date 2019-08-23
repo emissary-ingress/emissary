@@ -19,7 +19,7 @@ spec:
 
 ## Advanced Configuration Using a `TLSContext`
 
-If your upstream services require more than basic HTTPS support (e.g. minimum TLS version support) you can create a `TLSContext` for Ambassador Edge Stack to use when originating TLS.
+If your upstream services require more than basic HTTPS support (e.g. minimum TLS version support or SNI support) you can create a `TLSContext` for Ambassador Edge Stack to use when originating TLS.
 
 ```yaml
 ---
@@ -30,6 +30,7 @@ metadata:
 spec:
   secret: self-signed-cert
   min_tls_version: v1.3
+  sni: some-sni-hostname
 ```
 
 Configure Ambassador Edge Stack to use this `TLSContext` for connections to upstream services by setting the `tls` attribute of a `Mapping`
