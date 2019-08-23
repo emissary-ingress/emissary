@@ -34,6 +34,7 @@ class IRTLSContext(IRResource):
         "min_tls_version",
         "redirect_cleartext_from",
         "secret_namespacing",
+        "sni",
     }
 
     name: str
@@ -47,6 +48,7 @@ class IRTLSContext(IRResource):
     redirect_cleartext_from: Optional[int]
     secret_namespacing: Optional[bool]
     secret_info: dict
+    sni: Optional[str]
 
     is_fallback: bool
 
