@@ -108,8 +108,9 @@ would write:
 
 If your test framework of choice doesn't support TAP output, you can
 pipe it to a helper program that can translate it.  For example, `go
-test` doesn't support TAP output, but `go test -v` output is parsable,
-so we pipe that to [patter][patter], which translates it to TAP.
+test` doesn't support TAP output, but `go test -json` output is
+parsable, so we pipe that to [gotest2tap][gotest2tap], which
+translates it to TAP.
 
 ## Adding dependencies of tests
 
@@ -148,4 +149,4 @@ through `test-suite.tap`:
 
 [TAP]: https://testanything.org
 [BATS]: https://github.com/sstephenson/bats
-[patter]: https://github.com/apg/patter
+[gotest2tap]: ../bin-go/gotest2tap/
