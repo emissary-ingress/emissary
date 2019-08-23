@@ -145,7 +145,7 @@ WATT_VERSION ?= 0.6.0
 
 # Allow overriding which kubestatus we use.
 KUBESTATUS ?= kubestatus
-KUBESTATUS_VERSION ?= 0.7.0-preview
+KUBESTATUS_VERSION ?= 0.7.2
 
 # "make" by itself doesn't make the website. It takes too long and it doesn't
 # belong in the inner dev loop.

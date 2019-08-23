@@ -361,8 +361,8 @@ class Config:
             handler = getattr(self, handler_name, None)
 
             if not handler:
-                handler = self.save_object
                 self.logger.warning("%s: no handler for %s, just saving" % (resource, resource.kind))
+                handler = self.save_object
             # else:
             #     self.logger.debug("%s: handling %s..." % (resource, resource.kind))
 

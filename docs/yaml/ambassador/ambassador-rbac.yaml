@@ -31,6 +31,9 @@ rules:
 - apiGroups: [ "networking.internal.knative.dev" ]
   resources: [ "clusteringresses", "ingresses" ]
   verbs: ["get", "list", "watch"]
+- apiGroups: [ "networking.internal.knative.dev" ]
+  resources: [ "ingresses/status", "clusteringresses/status" ]
+  verbs: ["update"]
 ---
 apiVersion: v1
 kind: ServiceAccount
