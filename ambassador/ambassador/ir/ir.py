@@ -14,6 +14,7 @@
 from typing import Any, Callable, Dict, Iterable, List, Optional, Type, Union, ValuesView
 from typing import cast as typecast
 
+import datetime
 import json
 import logging
 import os
@@ -455,6 +456,7 @@ class IR:
 
         for ci_name, ci in final_knative_ingresses.items():
             kind = ci['kind']
+            current_generation = ci['generation']
 
             if kind == 'KnativeIngress':
                 kind = 'ingress.networking.internal.knative.dev'
@@ -478,7 +480,7 @@ class IR:
                 if ci_http is not None:
                     ci_paths = ci_http.get('paths', [])
                     for path_count, ci_path in enumerate(ci_paths):
-                        ci_headers = ci_path.get('appendHeaders', [])
+                        ci_headers = ci_path.get('appendHeaders', {})
 
                         ci_splits = ci_path.get('splits', [])
                         for split_count, ci_split in enumerate(ci_splits):
@@ -497,8 +499,11 @@ class IR:
                                 ci_mapping['host'] = f"^({mapping_host})$"
                                 ci_mapping['host_regex'] = True
 
-                            if len(ci_headers) > 0:
-                                ci_mapping['add_request_headers'] = ci_headers
+                            split_headers = ci_split.get('appendHeaders', {})
+                            final_headers = {**ci_headers, **split_headers}
+
+                            if len(final_headers) > 0:
+                                ci_mapping['add_request_headers'] = final_headers
 
                             ci_percent = ci_split.get('percent', None)
                             if ci_percent is not None:
@@ -519,8 +524,9 @@ class IR:
                             aconf.config['mappings'][mapping_identifier] = ci_mapping
 
                             # Remember that we need to update status on this resource.
-                            utcnow = datetime.datetime.utcnow().strftime("%y-%m-%dT%H:%M:%SZ")
-                            self.k8s_status_updates[ci_name] = (kind, {
+                            utcnow = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+                            status_update = (kind, {
+                                "observedGeneration": current_generation,
                                 "conditions": [
                                     {
                                         "lastTransitionTime": utcnow,
@@ -539,6 +545,9 @@ class IR:
                                     }
                                 ]
                             })
+
+                            self.logger.debug(f"Updating {ci_name}'s status to: {status_update}")
+                            self.k8s_status_updates[ci_name] = status_update
 
     def ordered_groups(self) -> Iterable[IRBaseMappingGroup]:
         return reversed(sorted(self.groups.values(), key=lambda x: x['group_weight']))

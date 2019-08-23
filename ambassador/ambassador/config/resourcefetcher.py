@@ -224,6 +224,7 @@ class ResourceFetcher:
         metadata = obj.get('metadata') or {}
         name = metadata.get('name')
         namespace = metadata.get('namespace') or 'default'
+        generation = metadata.get('generation', 1)
         spec = obj.get('spec') or {}
 
         # We do not want to confuse Knative's Ingress with Kubernetes' Ingress
@@ -253,6 +254,7 @@ class ResourceFetcher:
         amb_object['apiVersion'] = apiVersion
         amb_object['name'] = name
         amb_object['kind'] = kind
+        amb_object['generation'] = generation
 
         # Done. Parse it.
         self.parse_object([ amb_object ], k8s=False, filename=self.filename, rkey=resource_identifier)

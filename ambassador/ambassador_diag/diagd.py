@@ -909,6 +909,7 @@ class AmbassadorEventWatcher(threading.Thread):
                     out.write(text)
 
                 cmd = [ '/ambassador/kubestatus', kind, '-f', f'metadata.name={name}', '-u', '/dev/fd/0' ]
+                self.logger.info(f"Running command: {cmd}")
 
                 try:
                     rc = subprocess.run(cmd, input=text.encode('utf-8'), timeout=5)
