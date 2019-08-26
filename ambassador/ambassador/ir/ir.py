@@ -453,9 +453,9 @@ class IR:
 
         self.aconf.config['mappings'][mapping_identifier] = mapping
 
-    def cluster_ingresses_to_mappings(self, aconf):
-        cluster_ingresses = aconf.get_config("ClusterIngress")
-        knative_ingresses = aconf.get_config("KnativeIngress")
+    def cluster_ingresses_to_mappings(self):
+        cluster_ingresses = self.aconf.get_config("ClusterIngress")
+        knative_ingresses = self.aconf.get_config("KnativeIngress")
 
         final_knative_ingresses = {}
         if cluster_ingresses is not None:
