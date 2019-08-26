@@ -94,6 +94,15 @@ Format:
 --->
 
 <!--- CueAddReleaseNotes --->
+## [0.76.0] August 26, 2019
+[0.76.0]: https://github.com/datawire/ambassador/compare/0.75.0...0.76.0
+
+- circuit breakers now properly handle overriding a global circuit breaker within a Mapping ([#1767])
+- support for Knative 0.8.0 ([#1732])
+
+[#1767]: https://github.com/datawire/ambassador/issues/1767
+[#1732]: https://github.com/datawire/ambassador/issues/1732
+
 ## [0.75.0] August 13, 2019
 [0.75.0]: https://github.com/datawire/ambassador/compare/0.74.1...0.75.0
 
