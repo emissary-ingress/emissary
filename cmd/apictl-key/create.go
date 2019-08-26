@@ -80,6 +80,7 @@ func init() {
 			licensekeys.FeatureFilter.String(),
 			licensekeys.FeatureRateLimit.String(),
 			licensekeys.FeatureTraffic.String(),
+			licensekeys.FeatureCertifiedEnvoy.String(),
 		},
 		fmt.Sprintf("comma-separated list of features to enable (known features: %v)",
 			strings.Join(licensekeys.ListKnownFeatures(), ",")))
