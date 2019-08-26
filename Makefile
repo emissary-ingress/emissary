@@ -111,14 +111,14 @@ AMBASSADOR_EXTERNAL_DOCKER_IMAGE ?= $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(AMBASSA
   # Increment BASE_ENVOY_RELVER on changes to `Dockerfile.base-envoy`, ENVOY_FILE, or Envoy recipes
   BASE_ENVOY_RELVER ?= 1
   # Increment BASE_GO_RELVER on changes to `Dockerfile.base-go`
-  BASE_GO_RELVER    ?= 1
+  BASE_GO_RELVER    ?= 15
   # Increment BASE_PY_RELVER on changes to `Dockerfile.base-py`, `releng/*`, `multi/requirements.txt`, `ambassador/requirements.txt`
-  BASE_PY_RELVER    ?= 1
+  BASE_PY_RELVER    ?= 15
 
   BASE_DOCKER_REPO ?= quay.io/datawire/ambassador-base$(if $(IS_PRIVATE),-private)
   BASE_ENVOY_IMAGE ?= $(BASE_DOCKER_REPO):envoy-$(BASE_ENVOY_RELVER).$(ENVOY_COMMIT).$(ENVOY_COMPILATION_MODE)
-  BASE_GO_IMAGE    ?= $(BASE_DOCKER_REPO):go-$(BASE_ENVOY_RELVER).$(ENVOY_COMMIT).$(ENVOY_COMPILATION_MODE).$(BASE_GO_RELVER)
-  BASE_PY_IMAGE    ?= $(BASE_DOCKER_REPO):py-$(BASE_ENVOY_RELVER).$(ENVOY_COMMIT).$(ENVOY_COMPILATION_MODE).$(BASE_PY_RELVER)
+  BASE_GO_IMAGE    ?= $(BASE_DOCKER_REPO):go-$(BASE_GO_RELVER)
+  BASE_PY_IMAGE    ?= $(BASE_DOCKER_REPO):py-$(BASE_PY_RELVER)
 # END LIST OF VARIABLES REQUIRING `make docker-update-base`.
 
 # Default to _NOT_ using Kubernaut. At Datawire, we can set this to true,
@@ -331,19 +331,19 @@ base-envoy.docker: Dockerfile.base-envoy $(var.)BASE_ENVOY_IMAGE $(WRITE_IFCHANG
 	fi
 	@docker image inspect $(BASE_ENVOY_IMAGE) --format='{{.Id}}' | $(WRITE_IFCHANGED) $@
 
-base-py.docker: Dockerfile.base-py base-envoy.docker $(var.)BASE_PY_IMAGE $(WRITE_IFCHANGED)
+base-py.docker: Dockerfile.base-py $(var.)BASE_PY_IMAGE $(WRITE_IFCHANGED)
 	@if [ -n "$(AMBASSADOR_DEV)" ]; then echo "Do not run this from a dev shell" >&2; exit 1; fi
 	@if ! docker run --rm --entrypoint=true $(BASE_PY_IMAGE); then \
 		echo "Building $(BASE_PY_IMAGE)" && \
-		docker build --build-arg BASE_ENVOY_IMAGE=$(BASE_ENVOY_IMAGE) $(DOCKER_OPTS) -t $(BASE_PY_IMAGE) -f $< .; \
+		docker build $(DOCKER_OPTS) -t $(BASE_PY_IMAGE) -f $< .; \
 	fi
 	@docker image inspect $(BASE_PY_IMAGE) --format='{{.Id}}' | $(WRITE_IFCHANGED) $@
 
-base-go.docker: Dockerfile.base-go base-envoy.docker $(var.)BASE_GO_IMAGE $(WRITE_IFCHANGED)
+base-go.docker: Dockerfile.base-go $(var.)BASE_GO_IMAGE $(WRITE_IFCHANGED)
 	@if [ -n "$(AMBASSADOR_DEV)" ]; then echo "Do not run this from a dev shell" >&2; exit 1; fi
 	@if ! docker run --rm --entrypoint=true $(BASE_GO_IMAGE); then \
 		echo "Building $(BASE_GO_IMAGE)" && \
-		docker build --build-arg BASE_ENVOY_IMAGE=$(BASE_ENVOY_IMAGE) $(DOCKER_OPTS) -t $(BASE_GO_IMAGE) -f $< .; \
+		docker build $(DOCKER_OPTS) -t $(BASE_GO_IMAGE) -f $< .; \
 	fi
 	@docker image inspect $(BASE_GO_IMAGE) --format='{{.Id}}' | $(WRITE_IFCHANGED) $@
 
@@ -365,7 +365,7 @@ docker-update-base:
 
 ambassador-docker-image: ambassador.docker
 ambassador.docker: Dockerfile base-go.docker base-py.docker $(WATT) $(WRITE_IFCHANGED) ambassador/ambassador/VERSION.py FORCE
-	docker build --build-arg BASE_GO_IMAGE=$(BASE_GO_IMAGE) --build-arg BASE_PY_IMAGE=$(BASE_PY_IMAGE) $(DOCKER_OPTS) -t $(AMBASSADOR_DOCKER_IMAGE) .
+	docker build --build-arg BASE_ENVOY_IMAGE=$(BASE_ENVOY_IMAGE) --build-arg BASE_GO_IMAGE=$(BASE_GO_IMAGE) --build-arg BASE_PY_IMAGE=$(BASE_PY_IMAGE) $(DOCKER_OPTS) -t $(AMBASSADOR_DOCKER_IMAGE) .
 	@docker image inspect $(AMBASSADOR_DOCKER_IMAGE) --format='{{.Id}}' | $(WRITE_IFCHANGED) $@
 
 docker-images: ambassador-docker-image

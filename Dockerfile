@@ -26,8 +26,14 @@
 # By default, Ambassador's config and other application-specific stuff gets written to /ambassador. You can
 # configure a different location for the runtime configuration elements via environment variables.
 
+ARG BASE_ENVOY_IMAGE
 ARG BASE_PY_IMAGE
 ARG BASE_GO_IMAGE
+
+################################################################
+# STAGE ZERO
+
+FROM $BASE_ENVOY_IMAGE as base-envoy
 
 ################################################################
 # STAGE ONE: use the BASE_PY_IMAGE's toolchains to
@@ -50,6 +56,8 @@ FROM $BASE_GO_IMAGE
 
 ENV AMBASSADOR_ROOT=/ambassador
 WORKDIR ${AMBASSADOR_ROOT}
+
+COPY --from=base-envoy /usr/local/bin/envoy /usr/local/bin/envoy
 
 # One could argue that this is perhaps a bit of a hack. However, it's also the way to
 # get all the stuff that pip installed without needing the whole of the Python dev
