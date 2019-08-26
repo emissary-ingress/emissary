@@ -38,7 +38,7 @@ If you're still reading, you must be at Datawire. Congrats, you picked a fine pl
 
    **Note** that there must be at least one RC build before a GA, since the GA tag **does not** rebuild the docker images -- it retags the ones built by the RC build. This is intentional, to allow for testing to happen on the actual artifacts that will be released.
 
-9. Submit a PR into the `helm/charts` repo to update things in `stable/ambassador`:
+9. Submit a PR into the `helm/charts` repo to update things in `stable/ambassador`. You may be able to ask Support to do this, but if not:
    - in `Chart.yaml`, update `appVersion` with the new Ambassador version, and bump `version`.
    - in `README.md`, update the default value of `image.tag`.
    - in `values.yaml`, update `tag`.
@@ -55,6 +55,6 @@ If you're still reading, you must be at Datawire. Congrats, you picked a fine pl
       - open a PR
     - Once your PR is merged, _delete the feature branch without merging it back to origin/master_.
 
-10. Additional updates:
+10. Additional updates, which you may be able to ask Marketing to do:
    - Submit a PR to https://github.com/datawire/pro-ref-arch that updates the `env.sh.example` versions.
    - Submit a PR to the Ambassador website repository to update the version on the homepage.
