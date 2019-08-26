@@ -293,18 +293,24 @@ envoy-build-image.txt: FORCE envoy-src
 ENVOY_SYNC_HOST_TO_DOCKER = docker run --rm --volume=$(CURDIR)/envoy-src:/xfer:ro --volume=envoy-build:/root:rw $$(cat envoy-build-image.txt) rsync -Pav --delete /xfer/ /root/envoy
 ENVOY_SYNC_DOCKER_TO_HOST = docker run --rm --volume=$(CURDIR)/envoy-src:/xfer:rw --volume=envoy-build:/root:ro $$(cat envoy-build-image.txt) rsync -Pav --delete /root/envoy/ /xfer
 
-envoy-bin/envoy-static: FORCE envoy-build-image.txt
-ifneq ($(CI),)
-	@echo 'error: This should not happen in CI: should not try to compile Envoy'
-	@false
-endif
-	$(ENVOY_SYNC_HOST_TO_DOCKER)
-	@PS4=; set -ex; trap '$(ENVOY_SYNC_DOCKER_TO_HOST)' EXIT; { \
-	    docker run --rm --volume=envoy-build:/root:rw --workdir=/root/envoy $$(cat envoy-build-image.txt) bazel build --verbose_failures -c $(ENVOY_COMPILATION_MODE) //source/exe:envoy-static; \
-	    docker run --rm --volume=envoy-build:/root:rw $$(cat envoy-build-image.txt) chmod 755 /root /root/.cache; \
-	}
-	mkdir -p envoy-bin
-	docker run --rm --volume=envoy-build:/root:ro --volume=$(CURDIR)/envoy-bin:/xfer:rw --user=$$(id -u):$$(id -g) $$(cat envoy-build-image.txt) rsync -Pav --delete /root/envoy/bazel-bin/source/exe/envoy-static /xfer/envoy-static
+envoy-bin:
+	mkdir -p $@
+envoy-bin/envoy-static: envoy-build-image.txt FORCE | envoy-bin
+	@PS4=; set -ex; if docker run --rm --entrypoint=true $(BASE_ENVOY_IMAGE); then \
+	    docker run --rm --volume=$(CURDIR)/$(@D):/xfer:rw --user=$$(id -u):$$(id -g) $(BASE_ENVOY_IMAGE) cp -a /usr/local/bin/envoy /xfer/$(@F); \
+	else \
+	    if [ -n '$(CI)' ]; then \
+	        echo 'error: This should not happen in CI: should not try to compile Envoy'; \
+	        exit 1; \
+	    fi; \
+	    $(ENVOY_SYNC_HOST_TO_DOCKER); \
+	    ( \
+	        trap '$(ENVOY_SYNC_DOCKER_TO_HOST)' EXIT; \
+	        docker run --rm --volume=envoy-build:/root:rw --workdir=/root/envoy $$(cat envoy-build-image.txt) bazel build --verbose_failures -c $(ENVOY_COMPILATION_MODE) //source/exe:envoy-static; \
+	        docker run --rm --volume=envoy-build:/root:rw $$(cat envoy-build-image.txt) chmod 755 /root /root/.cache; \
+	    ); \
+	    docker run --rm --volume=envoy-build:/root:ro --volume=$(CURDIR)/envoy-bin:/xfer:rw --user=$$(id -u):$$(id -g) $$(cat envoy-build-image.txt) rsync -Pav --delete /root/envoy/bazel-bin/source/exe/envoy-static /xfer/envoy-static; \
+	fi
 %-stripped: % envoy-build-image.txt
 	docker run --rm --volume=$(abspath $(@D)):/xfer:rw $$(cat envoy-build-image.txt) strip /xfer/$(<F) -o /xfer/$(@F)
 
@@ -321,14 +327,9 @@ envoy-shell: envoy-build-image.txt
 	$(ENVOY_SYNC_DOCKER_TO_HOST)
 .PHONY: envoy-shell
 
-base-envoy.docker: Dockerfile.base-envoy $(var.)BASE_ENVOY_IMAGE $(WRITE_IFCHANGED)
+base-envoy.docker: Dockerfile.base-envoy $(ENVOY_FILE) $(var.)BASE_ENVOY_IMAGE $(WRITE_IFCHANGED)
 	@if [ -n "$(AMBASSADOR_DEV)" ]; then echo "Do not run this from a dev shell" >&2; exit 1; fi
-	@if ! docker run --rm --entrypoint=true $(BASE_ENVOY_IMAGE); then \
-		echo "Building Envoy binary..." && \
-		$(MAKE) $(ENVOY_FILE) && \
-		echo "Building Envoy Docker image..." && \
-		docker build --build-arg ENVOY_FILE=$(ENVOY_FILE) $(DOCKER_OPTS) -t $(BASE_ENVOY_IMAGE) -f $< .; \
-	fi
+	docker build --build-arg ENVOY_FILE=$(ENVOY_FILE) $(DOCKER_OPTS) -t $(BASE_ENVOY_IMAGE) -f $< .
 	@docker image inspect $(BASE_ENVOY_IMAGE) --format='{{.Id}}' | $(WRITE_IFCHANGED) $@
 
 base-py.docker: Dockerfile.base-py $(var.)BASE_PY_IMAGE $(WRITE_IFCHANGED)
