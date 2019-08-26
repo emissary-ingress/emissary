@@ -1,5 +1,7 @@
 from typing import Any, TYPE_CHECKING
 
+import copy
+
 from ..config import Config
 from ..utils import RichStatus
 
@@ -49,8 +51,22 @@ class IRCORS (IRResource):
             if value:
                 self[to_key] = self._cors_normalize(value)
 
-        self.enabled = True
+        # This IRCORS has not been finalized with an ID, so leave with an 'unset' ID so far.
+        self.set_id('unset')
+
         return True
+
+    def set_id(self, group_id: str):
+        self['filter_enabled'] = {
+            "default_value": {
+                "denominator": "HUNDRED",
+                "numerator": 100
+            },
+            "runtime_key": f"routing.cors_enabled.{group_id}"
+        }
+
+    def dup(self) -> 'IRCORS':
+        return copy.copy(self)
 
     @staticmethod
     def _cors_normalize(value: Any) -> Any:

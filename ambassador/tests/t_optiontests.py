@@ -90,6 +90,8 @@ class CORS(OptionTest):
     # isolated = True
     # debug = True
 
+    # Note that there's also a GlobalCORSTest in t_cors.py.
+
     parent: MappingTest
 
     def config(self):
