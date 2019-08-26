@@ -33,7 +33,7 @@ ARG BASE_GO_IMAGE
 # STAGE ONE: use the BASE_PY_IMAGE's toolchains to
 # build and install the Ambassador app itself.
 
-FROM $BASE_PY_IMAGE as cached
+FROM $BASE_PY_IMAGE as base-py
 
 # Install the application itself
 COPY multi/ multi
@@ -54,12 +54,12 @@ WORKDIR ${AMBASSADOR_ROOT}
 # One could argue that this is perhaps a bit of a hack. However, it's also the way to
 # get all the stuff that pip installed without needing the whole of the Python dev
 # chain.
-COPY --from=cached /usr/lib/python3.6 /usr/lib/python3.6/
-COPY --from=cached /usr/lib/libyaml* /usr/lib/
-COPY --from=cached /usr/lib/pkgconfig /usr/lib/
+COPY --from=base-py /usr/lib/python3.6 /usr/lib/python3.6/
+COPY --from=base-py /usr/lib/libyaml* /usr/lib/
+COPY --from=base-py /usr/lib/pkgconfig /usr/lib/
 
 # Copy Ambassador binaries (built in stage one).
-COPY --from=cached /usr/bin/ambassador /usr/bin/diagd /usr/bin/
+COPY --from=base-py /usr/bin/ambassador /usr/bin/diagd /usr/bin/
 
 # MKDIR an empty /ambassador/ambassador-config, so that you can drop a configmap over it
 # if you really really need to (not recommended).
