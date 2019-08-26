@@ -75,7 +75,12 @@ func init() {
 	}
 	create.Flags().StringVarP(&argCustomerID, "id", "i", "", "id for key")
 	create.Flags().IntVarP(&argLifetimeDays, "expiration", "e", 0, "expiration from now in days (can be negative for testing)")
-	create.Flags().StringSliceVar(&argFeatures, "features", []string{"filter", "ratelimit", "traffic"},
+	create.Flags().StringSliceVar(&argFeatures, "features",
+		[]string{
+			licensekeys.FeatureFilter.String(),
+			licensekeys.FeatureRateLimit.String(),
+			licensekeys.FeatureTraffic.String(),
+		},
 		fmt.Sprintf("comma-separated list of features to enable (known features: %v)",
 			strings.Join(licensekeys.ListKnownFeatures(), ",")))
 	create.MarkFlagRequired("id")
