@@ -26,14 +26,20 @@
 # By default, Ambassador's config and other application-specific stuff gets written to /ambassador. You can
 # configure a different location for the runtime configuration elements via environment variables.
 
-ARG BASE_ENVOY_IMAGE
 ARG BASE_PY_IMAGE
 ARG BASE_GO_IMAGE
 
 ################################################################
-# STAGE ZERO
+# STAGE ZERO: Copy in the Envoy binary (which was previously
+# extracted from BASE_ENVOY_IMAGE the Makefile).
 
-FROM $BASE_ENVOY_IMAGE as base-envoy
+FROM frolvlad/alpine-glibc:alpine-3.9 as base-envoy
+
+# ADD/COPY the file in, then reset its timestamp to the unix epoch, so
+# the timestamp doesn't break Docker layer caching.
+ARG ENVOY_FILE
+ADD $ENVOY_FILE /usr/local/bin/envoy
+RUN touch -t 197001010000 /usr/local/bin/envoy
 
 ################################################################
 # STAGE ONE: use the BASE_PY_IMAGE's toolchains to

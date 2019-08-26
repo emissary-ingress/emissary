@@ -101,15 +101,16 @@ AMBASSADOR_DOCKER_TAG ?= $(GIT_VERSION)
 AMBASSADOR_DOCKER_IMAGE ?= $(AMBASSADOR_DOCKER_REPO):$(AMBASSADOR_DOCKER_TAG)
 AMBASSADOR_EXTERNAL_DOCKER_IMAGE ?= $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(AMBASSADOR_DOCKER_TAG)
 
+ENVOY_FILE ?= envoy-bin/envoy-static-stripped
+
 # IF YOU MESS WITH ANY OF THESE VALUES, YOU MUST RUN `make docker-update-base`.
   ENVOY_REPO ?= $(if $(IS_PRIVATE),git@github.com:datawire/envoy-private.git,git://github.com/datawire/envoy.git)
   ENVOY_COMMIT ?= 4616a0939972438ea47f0ac6657296fb836d1187
   ENVOY_COMPILATION_MODE ?= dbg
 
-  ENVOY_FILE ?= envoy-bin/envoy-static-stripped
 
-  # Increment BASE_ENVOY_RELVER on changes to `Dockerfile.base-envoy`, ENVOY_FILE, or Envoy recipes
-  BASE_ENVOY_RELVER ?= 1
+  # Increment BASE_ENVOY_RELVER on changes to `Dockerfile.base-envoy`, or Envoy recipes
+  BASE_ENVOY_RELVER ?= 2
   # Increment BASE_GO_RELVER on changes to `Dockerfile.base-go`
   BASE_GO_RELVER    ?= 15
   # Increment BASE_PY_RELVER on changes to `Dockerfile.base-py`, `releng/*`, `multi/requirements.txt`, `ambassador/requirements.txt`
@@ -327,9 +328,9 @@ envoy-shell: envoy-build-image.txt
 	$(ENVOY_SYNC_DOCKER_TO_HOST)
 .PHONY: envoy-shell
 
-base-envoy.docker: Dockerfile.base-envoy $(ENVOY_FILE) $(var.)BASE_ENVOY_IMAGE $(WRITE_IFCHANGED)
+base-envoy.docker: Dockerfile.base-envoy envoy-bin/envoy-static $(var.)BASE_ENVOY_IMAGE $(WRITE_IFCHANGED)
 	@if [ -n "$(AMBASSADOR_DEV)" ]; then echo "Do not run this from a dev shell" >&2; exit 1; fi
-	docker build --build-arg ENVOY_FILE=$(ENVOY_FILE) $(DOCKER_OPTS) -t $(BASE_ENVOY_IMAGE) -f $< .
+	docker build $(DOCKER_OPTS) -t $(BASE_ENVOY_IMAGE) -f $< .
 	@docker image inspect $(BASE_ENVOY_IMAGE) --format='{{.Id}}' | $(WRITE_IFCHANGED) $@
 
 base-py.docker: Dockerfile.base-py $(var.)BASE_PY_IMAGE $(WRITE_IFCHANGED)
@@ -365,8 +366,8 @@ docker-update-base:
 	$(MAKE) docker-push-base-images
 
 ambassador-docker-image: ambassador.docker
-ambassador.docker: Dockerfile base-go.docker base-py.docker $(WATT) $(WRITE_IFCHANGED) ambassador/ambassador/VERSION.py FORCE
-	docker build --build-arg BASE_ENVOY_IMAGE=$(BASE_ENVOY_IMAGE) --build-arg BASE_GO_IMAGE=$(BASE_GO_IMAGE) --build-arg BASE_PY_IMAGE=$(BASE_PY_IMAGE) $(DOCKER_OPTS) -t $(AMBASSADOR_DOCKER_IMAGE) .
+ambassador.docker: Dockerfile base-go.docker base-py.docker $(ENVOY_FILE) $(WATT) $(WRITE_IFCHANGED) ambassador/ambassador/VERSION.py FORCE
+	docker build --build-arg ENVOY_FILE=$(ENVOY_FILE) --build-arg BASE_GO_IMAGE=$(BASE_GO_IMAGE) --build-arg BASE_PY_IMAGE=$(BASE_PY_IMAGE) $(DOCKER_OPTS) -t $(AMBASSADOR_DOCKER_IMAGE) .
 	@docker image inspect $(AMBASSADOR_DOCKER_IMAGE) --format='{{.Id}}' | $(WRITE_IFCHANGED) $@
 
 docker-images: ambassador-docker-image
