@@ -1,6 +1,8 @@
 package licensekeys
 
 import (
+	"sort"
+
 	"github.com/pkg/errors"
 
 	"github.com/datawire/apro/lib/licensekeys/internal"
@@ -50,5 +52,7 @@ func (cl *LicenseClaimsLatest) RequireFeature(feature Feature) error {
 // it only exists so that "apictl-key create --help" can print a list
 // of known features.
 func ListKnownFeatures() []string {
-	return internal.ListKnownFeatures()
+	ret := internal.ListKnownFeatures()
+	sort.Strings(ret)
+	return ret
 }
