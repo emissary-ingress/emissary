@@ -4,7 +4,7 @@ SHELL           = bash -o pipefail
 # For Makefile
 image.all       = $(sort $(patsubst %/Dockerfile,%,$(wildcard docker/*/Dockerfile)) docker/model-cluster-amb-sidecar-plugins ambassador-withlicense/ambassador)
 image.nobinsrule= ambassador-withlicense/ambassador
-image.norelease = $(filter docker/model-cluster-% loadtest-%,$(image.all))
+image.norelease = $(filter docker/model-cluster-% docker/loadtest-%,$(image.all))
 image.nocluster = docker/apro-plugin-runner
 # For docker.mk
 # If you change docker.tag.release, you'll also need to change the
