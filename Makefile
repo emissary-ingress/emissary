@@ -95,8 +95,6 @@ DOCKER_OPTS =
 # Override if you need to.
 PULL_BRANCH ?= master
 
-NETLIFY_SITE=datawire-ambassador
-
 AMBASSADOR_DOCKER_TAG ?= $(GIT_VERSION)
 AMBASSADOR_DOCKER_IMAGE ?= $(AMBASSADOR_DOCKER_REPO):$(AMBASSADOR_DOCKER_TAG)
 AMBASSADOR_EXTERNAL_DOCKER_IMAGE ?= $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(AMBASSADOR_DOCKER_TAG)
@@ -127,6 +125,11 @@ ENVOY_FILE ?= envoy-bin/envoy-static-stripped
 # and not try to override it.
 USE_KUBERNAUT ?= false
 
+KUBERNAUT=venv/bin/kubernaut
+KUBERNAUT_VERSION=2018.10.24-d46c1f1
+KUBERNAUT_CLAIM=$(KUBERNAUT) claims create --name $(CLAIM_NAME) --cluster-group main
+KUBERNAUT_DISCARD=$(KUBERNAUT) claims delete $(CLAIM_NAME)
+
 # Only override KUBECONFIG if we're using Kubernaut
 ifeq ($(USE_KUBERNAUT), true)
 KUBECONFIG ?= $(shell pwd)/cluster.yaml
@@ -139,6 +142,7 @@ SCOUT_APP_KEY=
 #
 # Note that this must not start with the 'v'. Sigh.
 KAT_BACKEND_RELEASE = 1.5.0
+KAT_CLIENT ?= venv/bin/kat_client
 
 # Allow overriding which watt we use.
 WATT ?= watt
@@ -147,6 +151,17 @@ WATT_VERSION ?= 0.6.0
 # Allow overriding which kubestatus we use.
 KUBESTATUS ?= kubestatus
 KUBESTATUS_VERSION ?= 0.7.2
+
+TELEPROXY ?= venv/bin/teleproxy
+TELEPROXY_VERSION ?= 0.4.11
+
+# This should maybe be replaced with a lighterweight dependency if we
+# don't currently depend on go
+GOOS=$(shell go env GOOS)
+GOARCH=$(shell go env GOARCH)
+
+CLAIM_FILE=kubernaut-claim.txt
+CLAIM_NAME=$(shell cat $(CLAIM_FILE))
 
 # "make" by itself doesn't make the website. It takes too long and it doesn't
 # belong in the inner dev loop.
@@ -401,14 +416,6 @@ ambassador/ambassador/VERSION.py: FORCE $(WRITE_IFCHANGED)
 
 version: ambassador/ambassador/VERSION.py
 
-TELEPROXY=venv/bin/teleproxy
-TELEPROXY_VERSION=0.4.11
-
-# This should maybe be replaced with a lighterweight dependency if we
-# don't currently depend on go
-GOOS=$(shell go env GOOS)
-GOARCH=$(shell go env GOARCH)
-
 $(TELEPROXY): $(var.)TELEPROXY_VERSION $(var.)GOOS $(var.)GOARCH | venv/bin/activate
 	curl -o $(TELEPROXY) https://s3.amazonaws.com/datawire-static-files/teleproxy/$(TELEPROXY_VERSION)/$(GOOS)/$(GOARCH)/teleproxy
 	sudo chown 0:0 $(TELEPROXY)			# setting group 0 is very important for SUID on MacOS!	
@@ -427,14 +434,6 @@ $(KUBESTATUS): $(var.)KUBESTATUS_VERSION
 	curl -o $(KUBESTATUS) https://s3.amazonaws.com/datawire-static-files/kubestatus/$(KUBESTATUS_VERSION)/linux/amd64/kubestatus
 	chmod go-w,a+x $(KUBESTATUS)
 
-CLAIM_FILE=kubernaut-claim.txt
-CLAIM_NAME=$(shell cat $(CLAIM_FILE))
-
-KUBERNAUT=venv/bin/kubernaut
-KUBERNAUT_VERSION=2018.10.24-d46c1f1
-KUBERNAUT_CLAIM=$(KUBERNAUT) claims create --name $(CLAIM_NAME) --cluster-group main
-KUBERNAUT_DISCARD=$(KUBERNAUT) claims delete $(CLAIM_NAME)
-
 $(CLAIM_FILE):
 	@if [ -z $${CI+x} ]; then \
 		echo kat-$${USER} > $@; \
@@ -445,8 +444,6 @@ $(CLAIM_FILE):
 $(KUBERNAUT): $(var.)KUBERNAUT_VERSION $(var.)GOOS $(var.)GOARCH | venv/bin/activate
 	curl -o $(KUBERNAUT) http://releases.datawire.io/kubernaut/$(KUBERNAUT_VERSION)/$(GOOS)/$(GOARCH)/kubernaut
 	chmod +x $(KUBERNAUT)
-
-KAT_CLIENT=venv/bin/kat_client
 
 venv/kat-backend-$(KAT_BACKEND_RELEASE).tar.gz: | venv/bin/activate
 	curl -L -o $@ https://github.com/datawire/kat-backend/archive/v$(KAT_BACKEND_RELEASE).tar.gz
