@@ -83,7 +83,7 @@ ambassador-nolicense ambassador-withlicense: ambassador-%: $(var.)AMBASSADOR_COM
 # Build optimized Envoy
 ambassador-nolicense/base-envoy.docker: ambassador-nolicense
 	DOCKER_REGISTRY=- BASE_DOCKER_REPO=$(BUILDCACHE_DOCKER_REPO) ENVOY_COMPILATION_MODE=opt $(MAKE) -C $(@D) $(@F)
-ambassador-nolicense/base-envoy.docker.tag.buildcache: docker.tag.name.buildcache = $$(DOCKER_REGISTRY=- BASE_DOCKER_REPO=$(BUILDCACHE_DOCKER_REPO) ENVOY_COMPILATION_MODE=opt $(MAKE) -C $(@D) -j1 --no-print-directory print-BASE_ENVOY_IMAGE)
+ambassador-nolicense/base-envoy.docker.tag.buildcache: docker.tag.buildcache = $$(DOCKER_REGISTRY=- BASE_DOCKER_REPO=$(BUILDCACHE_DOCKER_REPO) ENVOY_COMPILATION_MODE=opt $(MAKE) -C $(@D) -j1 --no-print-directory print-BASE_ENVOY_IMAGE)
 
 # Add a license check to optimized Envoy
 cmd/certified-envoy/envoy.bin: ambassador-nolicense/base-envoy.docker
@@ -98,7 +98,7 @@ ambassador-withlicense/envoy-bin/certified-envoy: bin_linux_amd64/certified-envo
 	cp $< $@
 ambassador-withlicense/ambassador.docker: ambassador-withlicense ambassador-withlicense/envoy-bin/certified-envoy
 	DOCKER_REGISTRY=- BASE_DOCKER_REPO=$(BUILDCACHE_DOCKER_REPO) ENVOY_COMPILATION_MODE=certified ENVOY_FILE=envoy-bin/certified-envoy $(MAKE) -C $(@D) $(@F)
-ambassador-withlicense/ambassador.docker.tag.release: docker.tag.name.release = quay.io/datawire/ambassador_pro:amb-core-$(VERSION)
+ambassador-withlicense/ambassador.docker.tag.release: docker.tag.release = quay.io/datawire/ambassador_pro:amb-core-$(VERSION)
 ambassador-withlicense/docker-push-base-images: ambassador-withlicense/ambassador.docker
 	DOCKER_REGISTRY=- BASE_DOCKER_REPO=$(BUILDCACHE_DOCKER_REPO) ENVOY_COMPILATION_MODE=certified ENVOY_FILE=envoy-bin/certified-envoy $(MAKE) -C $(@D) docker-push-base-images
 .PHONY: ambassador-withlicense/docker-push-base-images
