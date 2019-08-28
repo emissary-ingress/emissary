@@ -99,6 +99,7 @@ secret: {self.path.k8s}-client-cert-secret
 """)
 
     def requirements(self):
+        yield from super().requirements()
         yield("url", Query(self.format("http://{self.path.k8s}-consul:8500/ui/")))
 
     def queries(self):

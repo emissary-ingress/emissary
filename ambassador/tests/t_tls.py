@@ -643,6 +643,7 @@ hosts:
             idx += 1
 
     def requirements(self):
+        # We're replacing super()'s requirements deliberately here. Without a Host header they can't work.
         yield ("url", Query(self.url("ambassador/v0/check_ready"), headers={"Host": "tls-context-host-1"}, insecure=True, sni=True))
         yield ("url", Query(self.url("ambassador/v0/check_alive"), headers={"Host": "tls-context-host-1"}, insecure=True, sni=True))
         yield ("url", Query(self.url("ambassador/v0/check_ready"), headers={"Host": "tls-context-host-2"}, insecure=True, sni=True))
@@ -743,6 +744,7 @@ max_tls_version: v1.3
             idx += 1
 
     def requirements(self):
+        # We're replacing super()'s requirements deliberately here. Without a Host header they can't work.
         yield ("url", Query(self.url("ambassador/v0/check_ready"), headers={"Host": "tls-context-host-1"}, insecure=True, sni=True, minTLSv="v1.2"))
         yield ("url", Query(self.url("ambassador/v0/check_alive"), headers={"Host": "tls-context-host-1"}, insecure=True, sni=True, minTLSv="v1.2"))
 
@@ -823,5 +825,6 @@ max_tls_version: v1.2
       self.results[0].backend.request.tls.negotiated_protocol_version == "v1.2"
 
     def requirements(self):
+        # We're replacing super()'s requirements deliberately here. Without a Host header they can't work.
         yield ("url", Query(self.url("ambassador/v0/check_ready"), headers={"Host": "tls-context-host-1"}, insecure=True, sni=True))
         yield ("url", Query(self.url("ambassador/v0/check_alive"), headers={"Host": "tls-context-host-1"}, insecure=True, sni=True))

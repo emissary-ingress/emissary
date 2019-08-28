@@ -256,6 +256,7 @@ service: {self.target.path.fqdn}
         assert(len(errors) == 0)
 
     def requirements(self):
+        # We're replacing super()'s requirements deliberately here: we need the XFP header or they can't work.
         yield ("url", Query(self.url("ambassador/v0/check_ready"), headers={"X-Forwarded-Proto": "https"}))
         yield ("url", Query(self.url("ambassador/v0/check_alive"), headers={"X-Forwarded-Proto": "https"}))
 
