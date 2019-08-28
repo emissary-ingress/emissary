@@ -95,36 +95,40 @@ DOCKER_OPTS =
 # Override if you need to.
 PULL_BRANCH ?= master
 
-NETLIFY_SITE=datawire-ambassador
-
 AMBASSADOR_DOCKER_TAG ?= $(GIT_VERSION)
 AMBASSADOR_DOCKER_IMAGE ?= $(AMBASSADOR_DOCKER_REPO):$(AMBASSADOR_DOCKER_TAG)
 AMBASSADOR_EXTERNAL_DOCKER_IMAGE ?= $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(AMBASSADOR_DOCKER_TAG)
+
+ENVOY_FILE ?= envoy-bin/envoy-static-stripped
 
 # IF YOU MESS WITH ANY OF THESE VALUES, YOU MUST RUN `make docker-update-base`.
   ENVOY_REPO ?= $(if $(IS_PRIVATE),git@github.com:datawire/envoy-private.git,git://github.com/datawire/envoy.git)
   ENVOY_COMMIT ?= 4616a0939972438ea47f0ac6657296fb836d1187
   ENVOY_COMPILATION_MODE ?= dbg
 
-  ENVOY_FILE ?= envoy-bin/envoy-static-stripped
 
-  # Increment BASE_ENVOY_RELVER on changes to `Dockerfile.base-envoy`, ENVOY_FILE, or Envoy recipes
-  BASE_ENVOY_RELVER ?= 1
+  # Increment BASE_ENVOY_RELVER on changes to `Dockerfile.base-envoy`, or Envoy recipes
+  BASE_ENVOY_RELVER ?= 2
   # Increment BASE_GO_RELVER on changes to `Dockerfile.base-go`
-  BASE_GO_RELVER    ?= 1
+  BASE_GO_RELVER    ?= 15
   # Increment BASE_PY_RELVER on changes to `Dockerfile.base-py`, `releng/*`, `multi/requirements.txt`, `ambassador/requirements.txt`
-  BASE_PY_RELVER    ?= 1
+  BASE_PY_RELVER    ?= 15
 
   BASE_DOCKER_REPO ?= quay.io/datawire/ambassador-base$(if $(IS_PRIVATE),-private)
   BASE_ENVOY_IMAGE ?= $(BASE_DOCKER_REPO):envoy-$(BASE_ENVOY_RELVER).$(ENVOY_COMMIT).$(ENVOY_COMPILATION_MODE)
-  BASE_GO_IMAGE    ?= $(BASE_DOCKER_REPO):go-$(BASE_ENVOY_RELVER).$(ENVOY_COMMIT).$(ENVOY_COMPILATION_MODE).$(BASE_GO_RELVER)
-  BASE_PY_IMAGE    ?= $(BASE_DOCKER_REPO):py-$(BASE_ENVOY_RELVER).$(ENVOY_COMMIT).$(ENVOY_COMPILATION_MODE).$(BASE_PY_RELVER)
+  BASE_GO_IMAGE    ?= $(BASE_DOCKER_REPO):go-$(BASE_GO_RELVER)
+  BASE_PY_IMAGE    ?= $(BASE_DOCKER_REPO):py-$(BASE_PY_RELVER)
 # END LIST OF VARIABLES REQUIRING `make docker-update-base`.
 
 # Default to _NOT_ using Kubernaut. At Datawire, we can set this to true,
 # but outside, it works much better to assume that user has set up something
 # and not try to override it.
 USE_KUBERNAUT ?= false
+
+KUBERNAUT=venv/bin/kubernaut
+KUBERNAUT_VERSION=2018.10.24-d46c1f1
+KUBERNAUT_CLAIM=$(KUBERNAUT) claims create --name $(CLAIM_NAME) --cluster-group main
+KUBERNAUT_DISCARD=$(KUBERNAUT) claims delete $(CLAIM_NAME)
 
 # Only override KUBECONFIG if we're using Kubernaut
 ifeq ($(USE_KUBERNAUT), true)
@@ -138,6 +142,12 @@ SCOUT_APP_KEY=
 #
 # Note that this must not start with the 'v'. Sigh.
 KAT_BACKEND_RELEASE = 1.5.0
+KAT_CLIENT ?= venv/bin/kat_client
+
+KAT_CLIENT_DOCKER_TAG ?= $(KAT_BACKEND_RELEASE)
+KAT_CLIENT_DOCKER_REPO ?= $(if $(filter-out -,$(DOCKER_REGISTRY)),$(DOCKER_REGISTRY)/)kat-client$(if $(IS_PRIVATE),-private)
+KAT_CLIENT_DOCKER_IMAGE ?= $(KAT_CLIENT_DOCKER_REPO):$(KAT_CLIENT_DOCKER_TAG)
+KAT_CLIENT_DOCKER_DIR ?= kat-client-docker-image
 
 # Allow overriding which watt we use.
 WATT ?= watt
@@ -146,6 +156,18 @@ WATT_VERSION ?= 0.6.0
 # Allow overriding which kubestatus we use.
 KUBESTATUS ?= kubestatus
 KUBESTATUS_VERSION ?= 0.7.2
+
+TELEPROXY ?= venv/bin/teleproxy
+TELEPROXY_VERSION ?= 0.4.11
+
+# This should maybe be replaced with a lighterweight dependency if we
+# don't currently depend on go
+GOOS=$(shell go env GOOS)
+GOARCH=$(shell go env GOARCH)
+
+CLAIM_FILE=kubernaut-claim.txt
+CLAIM_NAME=$(shell cat $(CLAIM_FILE))
+
 
 # "make" by itself doesn't make the website. It takes too long and it doesn't
 # belong in the inner dev loop.
@@ -203,6 +225,8 @@ print-vars:
 	@echo "GIT_TAG_SANITIZED                = $(GIT_TAG_SANITIZED)"
 	@echo "GIT_VERSION                      = $(GIT_VERSION)"
 	@echo "KAT_BACKEND_RELEASE              = $(KAT_BACKEND_RELEASE)"
+	@echo "KAT_CLIENT_DOCKER_REPO           = $(KAT_CLIENT_DOCKER_REPO)"
+	@echo "KAT_CLIENT_DOCKER_IMAGE          = $(KAT_CLIENT_DOCKER_IMAGE)"
 	@echo "KUBECONFIG                       = $(KUBECONFIG)"
 	@echo "LATEST_RC                        = $(LATEST_RC)"
 	@echo "USE_KUBERNAUT                    = $(USE_KUBERNAUT)"
@@ -229,6 +253,8 @@ export-vars:
 	@echo "export GIT_TAG_SANITIZED='$(GIT_TAG_SANITIZED)'"
 	@echo "export GIT_VERSION='$(GIT_VERSION)'"
 	@echo "export KAT_BACKEND_RELEASE='$(KAT_BACKEND_RELEASE)'"
+	@echo "export KAT_CLIENT_DOCKER_REPO='$(KAT_CLIENT_DOCKER_REPO)'"
+	@echo "export KAT_CLIENT_DOCKER_IMAGE='$(KAT_CLIENT_DOCKER_IMAGE)'"
 	@echo "export KUBECONFIG='$(KUBECONFIG)'"
 	@echo "export LATEST_RC='$(LATEST_RC)'"
 	@echo "export USE_KUBERNAUT='$(USE_KUBERNAUT)'"
@@ -297,18 +323,24 @@ envoy-build-image.txt: FORCE envoy-src
 ENVOY_SYNC_HOST_TO_DOCKER = docker run --rm --volume=$(CURDIR)/envoy-src:/xfer:ro --volume=envoy-build:/root:rw $$(cat envoy-build-image.txt) rsync -Pav --delete /xfer/ /root/envoy
 ENVOY_SYNC_DOCKER_TO_HOST = docker run --rm --volume=$(CURDIR)/envoy-src:/xfer:rw --volume=envoy-build:/root:ro $$(cat envoy-build-image.txt) rsync -Pav --delete /root/envoy/ /xfer
 
-envoy-bin/envoy-static: FORCE envoy-build-image.txt
-ifneq ($(CI),)
-	@echo 'error: This should not happen in CI: should not try to compile Envoy'
-	@false
-endif
-	$(ENVOY_SYNC_HOST_TO_DOCKER)
-	@PS4=; set -ex; trap '$(ENVOY_SYNC_DOCKER_TO_HOST)' EXIT; { \
-	    docker run --rm --volume=envoy-build:/root:rw --workdir=/root/envoy $$(cat envoy-build-image.txt) bazel build --verbose_failures -c $(ENVOY_COMPILATION_MODE) //source/exe:envoy-static; \
-	    docker run --rm --volume=envoy-build:/root:rw $$(cat envoy-build-image.txt) chmod 755 /root /root/.cache; \
-	}
-	mkdir -p envoy-bin
-	docker run --rm --volume=envoy-build:/root:ro --volume=$(CURDIR)/envoy-bin:/xfer:rw --user=$$(id -u):$$(id -g) $$(cat envoy-build-image.txt) rsync -Pav --delete /root/envoy/bazel-bin/source/exe/envoy-static /xfer/envoy-static
+envoy-bin:
+	mkdir -p $@
+envoy-bin/envoy-static: envoy-build-image.txt FORCE | envoy-bin
+	@PS4=; set -ex; if docker run --rm --entrypoint=true $(BASE_ENVOY_IMAGE); then \
+	    docker run --rm --volume=$(CURDIR)/$(@D):/xfer:rw --user=$$(id -u):$$(id -g) $(BASE_ENVOY_IMAGE) cp -a /usr/local/bin/envoy /xfer/$(@F); \
+	else \
+	    if [ -n '$(CI)' ]; then \
+	        echo 'error: This should not happen in CI: should not try to compile Envoy'; \
+	        exit 1; \
+	    fi; \
+	    $(ENVOY_SYNC_HOST_TO_DOCKER); \
+	    ( \
+	        trap '$(ENVOY_SYNC_DOCKER_TO_HOST)' EXIT; \
+	        docker run --rm --volume=envoy-build:/root:rw --workdir=/root/envoy $$(cat envoy-build-image.txt) bazel build --verbose_failures -c $(ENVOY_COMPILATION_MODE) //source/exe:envoy-static; \
+	        docker run --rm --volume=envoy-build:/root:rw $$(cat envoy-build-image.txt) chmod 755 /root /root/.cache; \
+	    ); \
+	    docker run --rm --volume=envoy-build:/root:ro --volume=$(CURDIR)/envoy-bin:/xfer:rw --user=$$(id -u):$$(id -g) $$(cat envoy-build-image.txt) rsync -Pav --delete /root/envoy/bazel-bin/source/exe/envoy-static /xfer/envoy-static; \
+	fi
 %-stripped: % envoy-build-image.txt
 	docker run --rm --volume=$(abspath $(@D)):/xfer:rw $$(cat envoy-build-image.txt) strip /xfer/$(<F) -o /xfer/$(@F)
 
@@ -325,29 +357,24 @@ envoy-shell: envoy-build-image.txt
 	$(ENVOY_SYNC_DOCKER_TO_HOST)
 .PHONY: envoy-shell
 
-base-envoy.docker: Dockerfile.base-envoy $(var.)BASE_ENVOY_IMAGE $(WRITE_IFCHANGED)
+base-envoy.docker: Dockerfile.base-envoy envoy-bin/envoy-static $(var.)BASE_ENVOY_IMAGE $(WRITE_IFCHANGED)
 	@if [ -n "$(AMBASSADOR_DEV)" ]; then echo "Do not run this from a dev shell" >&2; exit 1; fi
-	@if ! docker run --rm --entrypoint=true $(BASE_ENVOY_IMAGE); then \
-		echo "Building Envoy binary..." && \
-		$(MAKE) $(ENVOY_FILE) && \
-		echo "Building Envoy Docker image..." && \
-		docker build --build-arg ENVOY_FILE=$(ENVOY_FILE) $(DOCKER_OPTS) -t $(BASE_ENVOY_IMAGE) -f $< .; \
-	fi
+	docker build $(DOCKER_OPTS) -t $(BASE_ENVOY_IMAGE) -f $< .
 	@docker image inspect $(BASE_ENVOY_IMAGE) --format='{{.Id}}' | $(WRITE_IFCHANGED) $@
 
-base-py.docker: Dockerfile.base-py base-envoy.docker $(var.)BASE_PY_IMAGE $(WRITE_IFCHANGED)
+base-py.docker: Dockerfile.base-py $(var.)BASE_PY_IMAGE $(WRITE_IFCHANGED)
 	@if [ -n "$(AMBASSADOR_DEV)" ]; then echo "Do not run this from a dev shell" >&2; exit 1; fi
 	@if ! docker run --rm --entrypoint=true $(BASE_PY_IMAGE); then \
 		echo "Building $(BASE_PY_IMAGE)" && \
-		docker build --build-arg BASE_ENVOY_IMAGE=$(BASE_ENVOY_IMAGE) $(DOCKER_OPTS) -t $(BASE_PY_IMAGE) -f $< .; \
+		docker build $(DOCKER_OPTS) -t $(BASE_PY_IMAGE) -f $< .; \
 	fi
 	@docker image inspect $(BASE_PY_IMAGE) --format='{{.Id}}' | $(WRITE_IFCHANGED) $@
 
-base-go.docker: Dockerfile.base-go base-envoy.docker $(var.)BASE_GO_IMAGE $(WRITE_IFCHANGED)
+base-go.docker: Dockerfile.base-go $(var.)BASE_GO_IMAGE $(WRITE_IFCHANGED)
 	@if [ -n "$(AMBASSADOR_DEV)" ]; then echo "Do not run this from a dev shell" >&2; exit 1; fi
 	@if ! docker run --rm --entrypoint=true $(BASE_GO_IMAGE); then \
 		echo "Building $(BASE_GO_IMAGE)" && \
-		docker build --build-arg BASE_ENVOY_IMAGE=$(BASE_ENVOY_IMAGE) $(DOCKER_OPTS) -t $(BASE_GO_IMAGE) -f $< .; \
+		docker build $(DOCKER_OPTS) -t $(BASE_GO_IMAGE) -f $< .; \
 	fi
 	@docker image inspect $(BASE_GO_IMAGE) --format='{{.Id}}' | $(WRITE_IFCHANGED) $@
 
@@ -368,9 +395,23 @@ docker-update-base:
 	$(MAKE) docker-push-base-images
 
 ambassador-docker-image: ambassador.docker
-ambassador.docker: Dockerfile base-go.docker base-py.docker $(WATT) $(KUBESTATUS) $(WRITE_IFCHANGED) ambassador/ambassador/VERSION.py FORCE
-	docker build --build-arg BASE_GO_IMAGE=$(BASE_GO_IMAGE) --build-arg BASE_PY_IMAGE=$(BASE_PY_IMAGE) $(DOCKER_OPTS) -t $(AMBASSADOR_DOCKER_IMAGE) .
+ambassador.docker: Dockerfile base-go.docker base-py.docker $(ENVOY_FILE) $(WATT) $(KUBESTATUS) $(WRITE_IFCHANGED) ambassador/ambassador/VERSION.py FORCE
+	docker build --build-arg ENVOY_FILE=$(ENVOY_FILE) --build-arg BASE_GO_IMAGE=$(BASE_GO_IMAGE) --build-arg BASE_PY_IMAGE=$(BASE_PY_IMAGE) $(DOCKER_OPTS) -t $(AMBASSADOR_DOCKER_IMAGE) .
 	@docker image inspect $(AMBASSADOR_DOCKER_IMAGE) --format='{{.Id}}' | $(WRITE_IFCHANGED) $@
+
+kat-client-docker-image: kat-client.docker
+kat-client.docker: $(KAT_CLIENT_DOCKER_DIR)/Dockerfile base-py.docker $(KAT_CLIENT_DOCKER_DIR)/teleproxy $(KAT_CLIENT_DOCKER_DIR)/kat_client $(WRITE_IFCHANGED)
+	docker build --build-arg BASE_PY_IMAGE=$(BASE_PY_IMAGE) $(DOCKER_OPTS) -t $(KAT_CLIENT_DOCKER_IMAGE) $(KAT_CLIENT_DOCKER_DIR)
+	@docker image inspect $(KAT_CLIENT_DOCKER_IMAGE) --format='{{.Id}}' | $(WRITE_IFCHANGED) $@
+
+# $(KAT_CLIENT_DOCKER_DIR)/teleproxy always uses the linux/amd64 architecture
+$(KAT_CLIENT_DOCKER_DIR)/teleproxy: $(var.)TELEPROXY_VERSION
+	curl -o $(KAT_CLIENT_DOCKER_DIR)/teleproxy https://s3.amazonaws.com/datawire-static-files/teleproxy/$(TELEPROXY_VERSION)/linux/amd64/teleproxy
+
+# $(KAT_CLIENT_DOCKER_DIR)/kat_client always uses the linux/amd64 architecture
+$(KAT_CLIENT_DOCKER_DIR)/kat_client: venv/kat-backend-$(KAT_BACKEND_RELEASE).tar.gz $(var.)KAT_BACKEND_RELEASE
+	cd venv && tar -xzf $(<F) kat-backend-$(KAT_BACKEND_RELEASE)/client/bin/client_linux_amd64
+	install -m0755 venv/kat-backend-$(KAT_BACKEND_RELEASE)/client/bin/client_linux_amd64 $(KAT_CLIENT_DOCKER_DIR)/kat_client
 
 docker-images: ambassador-docker-image
 
@@ -381,6 +422,10 @@ else
 	@echo 'PUSH $(AMBASSADOR_DOCKER_IMAGE)'
 	@docker push $(AMBASSADOR_DOCKER_IMAGE) | python releng/linify.py push.log
 endif
+
+docker-push-kat-client: kat-client-docker-image
+	@echo 'PUSH $(KAT_CLIENT_DOCKER_IMAGE)'
+	@docker push $(KAT_CLIENT_DOCKER_IMAGE) | python releng/linify.py push.log	
 
 # TODO: validate version is conformant to some set of rules might be a good idea to add here
 ambassador/ambassador/VERSION.py: FORCE $(WRITE_IFCHANGED)
@@ -398,14 +443,6 @@ ambassador/ambassador/VERSION.py: FORCE $(WRITE_IFCHANGED)
 		< VERSION-template.py | $(WRITE_IFCHANGED) $@
 
 version: ambassador/ambassador/VERSION.py
-
-TELEPROXY=venv/bin/teleproxy
-TELEPROXY_VERSION=0.4.11
-
-# This should maybe be replaced with a lighterweight dependency if we
-# don't currently depend on go
-GOOS=$(shell go env GOOS)
-GOARCH=$(shell go env GOARCH)
 
 $(TELEPROXY): $(var.)TELEPROXY_VERSION $(var.)GOOS $(var.)GOARCH | venv/bin/activate
 	curl -o $(TELEPROXY) https://s3.amazonaws.com/datawire-static-files/teleproxy/$(TELEPROXY_VERSION)/$(GOOS)/$(GOARCH)/teleproxy
@@ -425,14 +462,6 @@ $(KUBESTATUS): $(var.)KUBESTATUS_VERSION
 	curl -o $(KUBESTATUS) https://s3.amazonaws.com/datawire-static-files/kubestatus/$(KUBESTATUS_VERSION)/linux/amd64/kubestatus
 	chmod go-w,a+x $(KUBESTATUS)
 
-CLAIM_FILE=kubernaut-claim.txt
-CLAIM_NAME=$(shell cat $(CLAIM_FILE))
-
-KUBERNAUT=venv/bin/kubernaut
-KUBERNAUT_VERSION=2018.10.24-d46c1f1
-KUBERNAUT_CLAIM=$(KUBERNAUT) claims create --name $(CLAIM_NAME) --cluster-group main
-KUBERNAUT_DISCARD=$(KUBERNAUT) claims delete $(CLAIM_NAME)
-
 $(CLAIM_FILE):
 	@if [ -z $${CI+x} ]; then \
 		echo kat-$${USER} > $@; \
@@ -443,8 +472,6 @@ $(CLAIM_FILE):
 $(KUBERNAUT): $(var.)KUBERNAUT_VERSION $(var.)GOOS $(var.)GOARCH | venv/bin/activate
 	curl -o $(KUBERNAUT) http://releases.datawire.io/kubernaut/$(KUBERNAUT_VERSION)/$(GOOS)/$(GOARCH)/kubernaut
 	chmod +x $(KUBERNAUT)
-
-KAT_CLIENT=venv/bin/kat_client
 
 venv/kat-backend-$(KAT_BACKEND_RELEASE).tar.gz: | venv/bin/activate
 	curl -L -o $@ https://github.com/datawire/kat-backend/archive/v$(KAT_BACKEND_RELEASE).tar.gz
@@ -471,10 +498,10 @@ endif
 setup-test: cluster-and-teleproxy
 
 cluster-and-teleproxy: cluster.yaml $(TELEPROXY)
-	rm -rf /tmp/k8s-*.yaml
-	$(MAKE) teleproxy-restart
-	@echo "Sleeping for Teleproxy cluster"
-	sleep 10
+	rm -rf /tmp/k8s-*.yaml /tmp/kat-*.yaml
+# 	$(MAKE) teleproxy-restart
+# 	@echo "Sleeping for Teleproxy cluster"
+# 	sleep 10
 
 teleproxy-restart: $(TELEPROXY)
 	@echo "Killing teleproxy"
@@ -505,13 +532,19 @@ teleproxy-stop:
 #
 # If USE_KUBERNAUT is true, we'll set up for Kubernaut, otherwise we'll assume 
 # that the current KUBECONFIG is good.
+#
+# XXX KLF HACK: The dev shell used to include setting
+# 	AMBASSADOR_DEV=1 \
+# but I've ripped that out, since moving the KAT client into the cluster makes it
+# much complex for the AMBASSADOR_DEV stuff to work correctly. I'll open an
+# issue to finish sorting this out, but right now I want to get our CI builds 
+# into better shape without waiting for that.
 
 shell: setup-develop
 	AMBASSADOR_DOCKER_IMAGE="$(AMBASSADOR_DOCKER_IMAGE)" \
 	BASE_PY_IMAGE="$(BASE_PY_IMAGE)" \
 	BASE_GO_IMAGE="$(BASE_GO_IMAGE)" \
 	MAKE_KUBECONFIG="$(KUBECONFIG)" \
-	AMBASSADOR_DEV=1 \
 	bash --init-file releng/init.sh -i
 
 clean-test:

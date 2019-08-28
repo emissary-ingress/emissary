@@ -19,5 +19,4 @@
 
 FROM frolvlad/alpine-glibc:alpine-3.9
 
-ARG ENVOY_FILE
-ADD $ENVOY_FILE /usr/local/bin/envoy
+ADD envoy-bin/envoy-static /usr/local/bin/envoy

@@ -130,6 +130,7 @@ service: http://127.0.0.1:8877
 """)
 
     def requirements(self):
+        yield from super().requirements()
         yield ("url", Query(self.url("RESET/")))
 
     def queries(self):
@@ -198,6 +199,7 @@ service: dogstatsd-sink
 """)
 
     def requirements(self):
+        yield from super().requirements()
         yield ("url", Query(self.url("RESET/")))
 
     def queries(self):
