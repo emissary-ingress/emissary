@@ -2,6 +2,7 @@ package v1
 
 import (
 	"net/url"
+	"text/template"
 
 	"github.com/pkg/errors"
 )
@@ -48,7 +49,15 @@ type FilterJWT struct {
 	RequireExpiresAt bool `json:"requireExpiresAt"`
 	RequireNotBefore bool `json:"requireNotBefore"`
 
+	InjectRequestHeaders []HeaderField `json:"injectRequestHeaders"`
+
 	InsecureTLS bool `json:"insecureTLS"`
+}
+
+type HeaderField struct {
+	Name     string             `json:"name"`
+	Value    string             `json:"value"`
+	Template *template.Template `json:"-"`
 }
 
 func (m *FilterJWT) Validate() error {
@@ -67,5 +76,21 @@ func (m *FilterJWT) Validate() error {
 		m.JSONWebKeySetURI = u
 	}
 
+	for i := range m.InjectRequestHeaders {
+		hf := &(m.InjectRequestHeaders[i])
+		if err := hf.Validate(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (hf *HeaderField) Validate() error {
+	tmpl, err := template.New(hf.Name).Parse(hf.Value)
+	if err != nil {
+		return errors.Wrapf(err, "parsing template for injected header %q", hf.Name)
+	}
+	hf.Template = tmpl
 	return nil
 }

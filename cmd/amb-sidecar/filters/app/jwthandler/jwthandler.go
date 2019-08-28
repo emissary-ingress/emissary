@@ -34,20 +34,34 @@ func (h *JWTFilter) Filter(ctx context.Context, r *filterapi.FilterRequest) (fil
 	logger := middleware.GetLogger(ctx)
 	httpClient := httpclient.NewHTTPClient(logger, 0, h.Spec.InsecureTLS)
 
-	token := strings.TrimPrefix(r.GetRequest().GetHttp().GetHeaders()["Authorization"], "Bearer ")
+	tokenString := strings.TrimPrefix(r.GetRequest().GetHttp().GetHeaders()["Authorization"], "Bearer ")
 
-	if err := validateToken(token, h.Spec, httpClient); err != nil {
+	token, err := validateToken(tokenString, h.Spec, httpClient)
+	if err != nil {
 		return middleware.NewErrorResponse(ctx, http.StatusUnauthorized, err, nil), nil
-	} else {
-		return &filterapi.HTTPRequestModification{}, nil
 	}
+
+	ret := &filterapi.HTTPRequestModification{}
+	for _, hf := range h.Spec.InjectRequestHeaders {
+		value := new(strings.Builder)
+		if err := hf.Template.Execute(value, map[string]interface{}{"token": token}); err != nil {
+			return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
+				errors.Wrapf(err, "computing header field %q", hf.Name), nil), nil
+		}
+		ret.Header = append(ret.Header, &filterapi.HTTPHeaderReplaceValue{
+			Key:   hf.Name,
+			Value: value.String(),
+		})
+	}
+
+	return ret, nil
 }
 
-func validateToken(token string, filter crd.FilterJWT, httpClient *http.Client) error {
+func validateToken(signedString string, filter crd.FilterJWT, httpClient *http.Client) (*jwt.Token, error) {
 	jwtParser := jwt.Parser{ValidMethods: filter.ValidAlgorithms}
 
 	var claims jwt.MapClaims
-	_, err := jwtsupport.SanitizeParse(jwtParser.ParseWithClaims(token, &claims, func(t *jwt.Token) (interface{}, error) {
+	token, err := jwtsupport.SanitizeParse(jwtParser.ParseWithClaims(signedString, &claims, func(t *jwt.Token) (interface{}, error) {
 		if t.Method == jwt.SigningMethodNone && inArray("none", filter.ValidAlgorithms) {
 			return jwt.UnsafeAllowNoneSignatureType, nil
 		}
@@ -69,34 +83,34 @@ func validateToken(token string, filter crd.FilterJWT, httpClient *http.Client) 
 		return keys.GetKey(kid)
 	}))
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	now := time.Now().Unix()
 
 	if filter.RequireAudience || filter.Audience != "" {
 		if !claims.VerifyAudience(filter.Audience, filter.RequireAudience) {
-			return errors.Errorf("Token has wrong audience: token=%#v expected=%q", claims["aud"], filter.Audience)
+			return nil, errors.Errorf("Token has wrong audience: token=%#v expected=%q", claims["aud"], filter.Audience)
 		}
 	}
 
 	if filter.RequireIssuer || filter.Issuer != "" {
 		if !claims.VerifyIssuer(filter.Issuer, filter.RequireIssuer) {
-			return errors.Errorf("Token has wrong issuer: token=%#v expected=%q", claims["iss"], filter.Issuer)
+			return nil, errors.Errorf("Token has wrong issuer: token=%#v expected=%q", claims["iss"], filter.Issuer)
 		}
 	}
 
 	if !claims.VerifyExpiresAt(now, filter.RequireExpiresAt) {
-		return errors.New("Token is expired")
+		return nil, errors.New("Token is expired")
 	}
 
 	if !claims.VerifyIssuedAt(now, filter.RequireIssuedAt) {
-		return errors.New("Token used before issued")
+		return nil, errors.New("Token used before issued")
 	}
 
 	if !claims.VerifyNotBefore(now, filter.RequireNotBefore) {
-		return errors.New("Token is not valid yet")
+		return nil, errors.New("Token is not valid yet")
 	}
 
-	return nil
+	return token, nil
 }
