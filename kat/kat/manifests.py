@@ -3630,13 +3630,13 @@ metadata:
   name: revisions.serving.knative.dev
 spec:
   additionalPrinterColumns:
-  - JSONPath: .metadata.labels['serving\.knative\.dev/configuration']
+  - JSONPath: .metadata.labels['serving\\.knative\\.dev/configuration']
     name: Config Name
     type: string
   - JSONPath: .status.serviceName
     name: K8s Service Name
     type: string
-  - JSONPath: .metadata.labels['serving\.knative\.dev/configurationGeneration']
+  - JSONPath: .metadata.labels['serving\\.knative\\.dev/configurationGeneration']
     name: Generation
     type: string
   - JSONPath: .status.conditions[?(@.type=='Ready')].status
