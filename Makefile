@@ -95,8 +95,6 @@ DOCKER_OPTS =
 # Override if you need to.
 PULL_BRANCH ?= master
 
-NETLIFY_SITE=datawire-ambassador
-
 AMBASSADOR_DOCKER_TAG ?= $(GIT_VERSION)
 AMBASSADOR_DOCKER_IMAGE ?= $(AMBASSADOR_DOCKER_REPO):$(AMBASSADOR_DOCKER_TAG)
 AMBASSADOR_EXTERNAL_DOCKER_IMAGE ?= $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(AMBASSADOR_DOCKER_TAG)
@@ -127,6 +125,11 @@ ENVOY_FILE ?= envoy-bin/envoy-static-stripped
 # and not try to override it.
 USE_KUBERNAUT ?= false
 
+KUBERNAUT=venv/bin/kubernaut
+KUBERNAUT_VERSION=2018.10.24-d46c1f1
+KUBERNAUT_CLAIM=$(KUBERNAUT) claims create --name $(CLAIM_NAME) --cluster-group main
+KUBERNAUT_DISCARD=$(KUBERNAUT) claims delete $(CLAIM_NAME)
+
 # Only override KUBECONFIG if we're using Kubernaut
 ifeq ($(USE_KUBERNAUT), true)
 KUBECONFIG ?= $(shell pwd)/cluster.yaml
@@ -139,6 +142,12 @@ SCOUT_APP_KEY=
 #
 # Note that this must not start with the 'v'. Sigh.
 KAT_BACKEND_RELEASE = 1.5.0
+KAT_CLIENT ?= venv/bin/kat_client
+
+KAT_CLIENT_DOCKER_TAG ?= $(KAT_BACKEND_RELEASE)
+KAT_CLIENT_DOCKER_REPO ?= $(if $(filter-out -,$(DOCKER_REGISTRY)),$(DOCKER_REGISTRY)/)kat-client$(if $(IS_PRIVATE),-private)
+KAT_CLIENT_DOCKER_IMAGE ?= $(KAT_CLIENT_DOCKER_REPO):$(KAT_CLIENT_DOCKER_TAG)
+KAT_CLIENT_DOCKER_DIR ?= kat-client-docker-image
 
 # Allow overriding which watt we use.
 WATT ?= watt
@@ -147,6 +156,18 @@ WATT_VERSION ?= 0.6.0
 # Allow overriding which kubestatus we use.
 KUBESTATUS ?= kubestatus
 KUBESTATUS_VERSION ?= 0.7.2
+
+TELEPROXY ?= venv/bin/teleproxy
+TELEPROXY_VERSION ?= 0.4.11
+
+# This should maybe be replaced with a lighterweight dependency if we
+# don't currently depend on go
+GOOS=$(shell go env GOOS)
+GOARCH=$(shell go env GOARCH)
+
+CLAIM_FILE=kubernaut-claim.txt
+CLAIM_NAME=$(shell cat $(CLAIM_FILE))
+
 
 # "make" by itself doesn't make the website. It takes too long and it doesn't
 # belong in the inner dev loop.
@@ -204,6 +225,8 @@ print-vars:
 	@echo "GIT_TAG_SANITIZED                = $(GIT_TAG_SANITIZED)"
 	@echo "GIT_VERSION                      = $(GIT_VERSION)"
 	@echo "KAT_BACKEND_RELEASE              = $(KAT_BACKEND_RELEASE)"
+	@echo "KAT_CLIENT_DOCKER_REPO           = $(KAT_CLIENT_DOCKER_REPO)"
+	@echo "KAT_CLIENT_DOCKER_IMAGE          = $(KAT_CLIENT_DOCKER_IMAGE)"
 	@echo "KUBECONFIG                       = $(KUBECONFIG)"
 	@echo "LATEST_RC                        = $(LATEST_RC)"
 	@echo "USE_KUBERNAUT                    = $(USE_KUBERNAUT)"
@@ -230,6 +253,8 @@ export-vars:
 	@echo "export GIT_TAG_SANITIZED='$(GIT_TAG_SANITIZED)'"
 	@echo "export GIT_VERSION='$(GIT_VERSION)'"
 	@echo "export KAT_BACKEND_RELEASE='$(KAT_BACKEND_RELEASE)'"
+	@echo "export KAT_CLIENT_DOCKER_REPO='$(KAT_CLIENT_DOCKER_REPO)'"
+	@echo "export KAT_CLIENT_DOCKER_IMAGE='$(KAT_CLIENT_DOCKER_IMAGE)'"
 	@echo "export KUBECONFIG='$(KUBECONFIG)'"
 	@echo "export LATEST_RC='$(LATEST_RC)'"
 	@echo "export USE_KUBERNAUT='$(USE_KUBERNAUT)'"
@@ -374,6 +399,20 @@ ambassador.docker: Dockerfile base-go.docker base-py.docker $(ENVOY_FILE) $(WATT
 	docker build --build-arg ENVOY_FILE=$(ENVOY_FILE) --build-arg BASE_GO_IMAGE=$(BASE_GO_IMAGE) --build-arg BASE_PY_IMAGE=$(BASE_PY_IMAGE) $(DOCKER_OPTS) -t $(AMBASSADOR_DOCKER_IMAGE) .
 	@docker image inspect $(AMBASSADOR_DOCKER_IMAGE) --format='{{.Id}}' | $(WRITE_IFCHANGED) $@
 
+kat-client-docker-image: kat-client.docker
+kat-client.docker: $(KAT_CLIENT_DOCKER_DIR)/Dockerfile base-py.docker $(KAT_CLIENT_DOCKER_DIR)/teleproxy $(KAT_CLIENT_DOCKER_DIR)/kat_client $(WRITE_IFCHANGED)
+	docker build --build-arg BASE_PY_IMAGE=$(BASE_PY_IMAGE) $(DOCKER_OPTS) -t $(KAT_CLIENT_DOCKER_IMAGE) $(KAT_CLIENT_DOCKER_DIR)
+	@docker image inspect $(KAT_CLIENT_DOCKER_IMAGE) --format='{{.Id}}' | $(WRITE_IFCHANGED) $@
+
+# $(KAT_CLIENT_DOCKER_DIR)/teleproxy always uses the linux/amd64 architecture
+$(KAT_CLIENT_DOCKER_DIR)/teleproxy: $(var.)TELEPROXY_VERSION
+	curl -o $(KAT_CLIENT_DOCKER_DIR)/teleproxy https://s3.amazonaws.com/datawire-static-files/teleproxy/$(TELEPROXY_VERSION)/linux/amd64/teleproxy
+
+# $(KAT_CLIENT_DOCKER_DIR)/kat_client always uses the linux/amd64 architecture
+$(KAT_CLIENT_DOCKER_DIR)/kat_client: venv/kat-backend-$(KAT_BACKEND_RELEASE).tar.gz $(var.)KAT_BACKEND_RELEASE
+	cd venv && tar -xzf $(<F) kat-backend-$(KAT_BACKEND_RELEASE)/client/bin/client_linux_amd64
+	install -m0755 venv/kat-backend-$(KAT_BACKEND_RELEASE)/client/bin/client_linux_amd64 $(KAT_CLIENT_DOCKER_DIR)/kat_client
+
 docker-images: ambassador-docker-image
 
 docker-push: docker-images
@@ -383,6 +422,10 @@ else
 	@echo 'PUSH $(AMBASSADOR_DOCKER_IMAGE)'
 	@docker push $(AMBASSADOR_DOCKER_IMAGE) | python releng/linify.py push.log
 endif
+
+docker-push-kat-client: kat-client-docker-image
+	@echo 'PUSH $(KAT_CLIENT_DOCKER_IMAGE)'
+	@docker push $(KAT_CLIENT_DOCKER_IMAGE) | python releng/linify.py push.log	
 
 # TODO: validate version is conformant to some set of rules might be a good idea to add here
 ambassador/ambassador/VERSION.py: FORCE $(WRITE_IFCHANGED)
@@ -400,14 +443,6 @@ ambassador/ambassador/VERSION.py: FORCE $(WRITE_IFCHANGED)
 		< VERSION-template.py | $(WRITE_IFCHANGED) $@
 
 version: ambassador/ambassador/VERSION.py
-
-TELEPROXY=venv/bin/teleproxy
-TELEPROXY_VERSION=0.4.11
-
-# This should maybe be replaced with a lighterweight dependency if we
-# don't currently depend on go
-GOOS=$(shell go env GOOS)
-GOARCH=$(shell go env GOARCH)
 
 $(TELEPROXY): $(var.)TELEPROXY_VERSION $(var.)GOOS $(var.)GOARCH | venv/bin/activate
 	curl -o $(TELEPROXY) https://s3.amazonaws.com/datawire-static-files/teleproxy/$(TELEPROXY_VERSION)/$(GOOS)/$(GOARCH)/teleproxy
@@ -427,14 +462,6 @@ $(KUBESTATUS): $(var.)KUBESTATUS_VERSION
 	curl -o $(KUBESTATUS) https://s3.amazonaws.com/datawire-static-files/kubestatus/$(KUBESTATUS_VERSION)/linux/amd64/kubestatus
 	chmod go-w,a+x $(KUBESTATUS)
 
-CLAIM_FILE=kubernaut-claim.txt
-CLAIM_NAME=$(shell cat $(CLAIM_FILE))
-
-KUBERNAUT=venv/bin/kubernaut
-KUBERNAUT_VERSION=2018.10.24-d46c1f1
-KUBERNAUT_CLAIM=$(KUBERNAUT) claims create --name $(CLAIM_NAME) --cluster-group main
-KUBERNAUT_DISCARD=$(KUBERNAUT) claims delete $(CLAIM_NAME)
-
 $(CLAIM_FILE):
 	@if [ -z $${CI+x} ]; then \
 		echo kat-$${USER} > $@; \
@@ -445,8 +472,6 @@ $(CLAIM_FILE):
 $(KUBERNAUT): $(var.)KUBERNAUT_VERSION $(var.)GOOS $(var.)GOARCH | venv/bin/activate
 	curl -o $(KUBERNAUT) http://releases.datawire.io/kubernaut/$(KUBERNAUT_VERSION)/$(GOOS)/$(GOARCH)/kubernaut
 	chmod +x $(KUBERNAUT)
-
-KAT_CLIENT=venv/bin/kat_client
 
 venv/kat-backend-$(KAT_BACKEND_RELEASE).tar.gz: | venv/bin/activate
 	curl -L -o $@ https://github.com/datawire/kat-backend/archive/v$(KAT_BACKEND_RELEASE).tar.gz
@@ -473,10 +498,10 @@ endif
 setup-test: cluster-and-teleproxy
 
 cluster-and-teleproxy: cluster.yaml $(TELEPROXY)
-	rm -rf /tmp/k8s-*.yaml
-	$(MAKE) teleproxy-restart
-	@echo "Sleeping for Teleproxy cluster"
-	sleep 10
+	rm -rf /tmp/k8s-*.yaml /tmp/kat-*.yaml
+# 	$(MAKE) teleproxy-restart
+# 	@echo "Sleeping for Teleproxy cluster"
+# 	sleep 10
 
 teleproxy-restart: $(TELEPROXY)
 	@echo "Killing teleproxy"
@@ -507,13 +532,19 @@ teleproxy-stop:
 #
 # If USE_KUBERNAUT is true, we'll set up for Kubernaut, otherwise we'll assume 
 # that the current KUBECONFIG is good.
+#
+# XXX KLF HACK: The dev shell used to include setting
+# 	AMBASSADOR_DEV=1 \
+# but I've ripped that out, since moving the KAT client into the cluster makes it
+# much complex for the AMBASSADOR_DEV stuff to work correctly. I'll open an
+# issue to finish sorting this out, but right now I want to get our CI builds 
+# into better shape without waiting for that.
 
 shell: setup-develop
 	AMBASSADOR_DOCKER_IMAGE="$(AMBASSADOR_DOCKER_IMAGE)" \
 	BASE_PY_IMAGE="$(BASE_PY_IMAGE)" \
 	BASE_GO_IMAGE="$(BASE_GO_IMAGE)" \
 	MAKE_KUBECONFIG="$(KUBECONFIG)" \
-	AMBASSADOR_DEV=1 \
 	bash --init-file releng/init.sh -i
 
 clean-test:
