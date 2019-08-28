@@ -133,7 +133,7 @@ service: {self.target.path.fqdn}
         #  This is because net/http does not yet support adding proxy proto to HTTP requests, and hence it's difficult
         #  to test with kat. We will need to open a raw TCP connection (e.g. telnet/nc) and send the entire HTTP Request
         #  in plaintext to test this behavior (or use curl with --haproxy-protocol).
-        yield Query(self.url("tls-target/"), error="EOF")
+        yield Query(self.url("tls-target/"), error=[ "EOF", "connection reset by peer" ])
 
     # We can't do the error check until we have the PROXY client mentioned above.
     #     # [1] -- PHASE 2

@@ -52,7 +52,7 @@ service: {self.target.path.fqdn}
         return "https"
 
     def queries(self):
-        yield Query(self.url(self.name + "/"), error=['connection reset by peer', 'EOF', 'request canceled'])
+        yield Query(self.url(self.name + "/"), error=['connection refused', 'connection reset by peer', 'EOF', 'request canceled'])
 
     def requirements(self):
         yield from (r for r in super().requirements() if r[0] == "url" and r[1].url.startswith("http://"))
