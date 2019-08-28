@@ -144,6 +144,10 @@ SCOUT_APP_KEY=
 KAT_BACKEND_RELEASE = 1.5.0
 KAT_CLIENT ?= venv/bin/kat_client
 
+KAT_CLIENT_DOCKER_TAG ?= $(KAT_BACKEND_RELEASE)
+KAT_CLIENT_DOCKER_REPO ?= $(if $(filter-out -,$(DOCKER_REGISTRY)),$(DOCKER_REGISTRY)/)kat-client$(if $(IS_PRIVATE),-private)
+KAT_CLIENT_DOCKER_IMAGE ?= $(KAT_CLIENT_DOCKER_REPO):$(KAT_CLIENT_DOCKER_TAG)
+
 # Allow overriding which watt we use.
 WATT ?= watt
 WATT_VERSION ?= 0.6.0
@@ -162,6 +166,8 @@ GOARCH=$(shell go env GOARCH)
 
 CLAIM_FILE=kubernaut-claim.txt
 CLAIM_NAME=$(shell cat $(CLAIM_FILE))
+
+TZONE ?= tzone-files
 
 # "make" by itself doesn't make the website. It takes too long and it doesn't
 # belong in the inner dev loop.
@@ -219,6 +225,8 @@ print-vars:
 	@echo "GIT_TAG_SANITIZED                = $(GIT_TAG_SANITIZED)"
 	@echo "GIT_VERSION                      = $(GIT_VERSION)"
 	@echo "KAT_BACKEND_RELEASE              = $(KAT_BACKEND_RELEASE)"
+	@echo "KAT_CLIENT_DOCKER_REPO           = $(KAT_CLIENT_DOCKER_REPO)"
+	@echo "KAT_CLIENT_DOCKER_IMAGE          = $(KAT_CLIENT_DOCKER_IMAGE)"
 	@echo "KUBECONFIG                       = $(KUBECONFIG)"
 	@echo "LATEST_RC                        = $(LATEST_RC)"
 	@echo "USE_KUBERNAUT                    = $(USE_KUBERNAUT)"
@@ -245,6 +253,8 @@ export-vars:
 	@echo "export GIT_TAG_SANITIZED='$(GIT_TAG_SANITIZED)'"
 	@echo "export GIT_VERSION='$(GIT_VERSION)'"
 	@echo "export KAT_BACKEND_RELEASE='$(KAT_BACKEND_RELEASE)'"
+	@echo "export KAT_CLIENT_DOCKER_REPO='$(KAT_CLIENT_DOCKER_REPO)'"
+	@echo "export KAT_CLIENT_DOCKER_IMAGE='$(KAT_CLIENT_DOCKER_IMAGE)'"
 	@echo "export KUBECONFIG='$(KUBECONFIG)'"
 	@echo "export LATEST_RC='$(LATEST_RC)'"
 	@echo "export USE_KUBERNAUT='$(USE_KUBERNAUT)'"
@@ -389,7 +399,21 @@ ambassador.docker: Dockerfile base-go.docker base-py.docker $(ENVOY_FILE) $(WATT
 	docker build --build-arg ENVOY_FILE=$(ENVOY_FILE) --build-arg BASE_GO_IMAGE=$(BASE_GO_IMAGE) --build-arg BASE_PY_IMAGE=$(BASE_PY_IMAGE) $(DOCKER_OPTS) -t $(AMBASSADOR_DOCKER_IMAGE) .
 	@docker image inspect $(AMBASSADOR_DOCKER_IMAGE) --format='{{.Id}}' | $(WRITE_IFCHANGED) $@
 
-docker-images: ambassador-docker-image
+kat-client-docker-image: kat-client.docker
+kat-client.docker: $(TZONE)/Dockerfile base-py.docker $(TZONE)/teleproxy $(TZONE)/kat_client $(WRITE_IFCHANGED)
+	docker build --build-arg BASE_PY_IMAGE=$(BASE_PY_IMAGE) $(DOCKER_OPTS) -t $(KAT_CLIENT_DOCKER_IMAGE) $(TZONE)
+	@docker image inspect $(KAT_CLIENT_DOCKER_IMAGE) --format='{{.Id}}' | $(WRITE_IFCHANGED) $@
+
+# $(TZONE)/teleproxy always uses the linux/amd64 architecture
+$(TZONE)/teleproxy: $(var.)TELEPROXY_VERSION
+	curl -o $(TZONE)/teleproxy https://s3.amazonaws.com/datawire-static-files/teleproxy/$(TELEPROXY_VERSION)/linux/amd64/teleproxy
+
+# $(TZONE)/kat_client always uses the linux/amd64 architecture
+$(TZONE)/kat_client: venv/kat-backend-$(KAT_BACKEND_RELEASE).tar.gz $(var.)KAT_BACKEND_RELEASE
+	cd venv && tar -xzf $(<F) kat-backend-$(KAT_BACKEND_RELEASE)/client/bin/client_linux_amd64
+	install -m0755 venv/kat-backend-$(KAT_BACKEND_RELEASE)/client/bin/client_linux_amd64 $(TZONE)/kat_client
+
+docker-images: ambassador-docker-image kat-client-docker-image
 
 docker-push: docker-images
 ifeq ($(DOCKER_REGISTRY),-)
@@ -397,6 +421,8 @@ ifeq ($(DOCKER_REGISTRY),-)
 else
 	@echo 'PUSH $(AMBASSADOR_DOCKER_IMAGE)'
 	@docker push $(AMBASSADOR_DOCKER_IMAGE) | python releng/linify.py push.log
+	@echo 'PUSH $(KAT_CLIENT_DOCKER_IMAGE)'
+	@docker push $(KAT_CLIENT_DOCKER_IMAGE) | python releng/linify.py push.log
 endif
 
 # TODO: validate version is conformant to some set of rules might be a good idea to add here
@@ -470,10 +496,10 @@ endif
 setup-test: cluster-and-teleproxy
 
 cluster-and-teleproxy: cluster.yaml $(TELEPROXY)
-	rm -rf /tmp/k8s-*.yaml
-	$(MAKE) teleproxy-restart
-	@echo "Sleeping for Teleproxy cluster"
-	sleep 10
+	rm -rf /tmp/k8s-*.yaml /tmp/kat-*.yaml
+# 	$(MAKE) teleproxy-restart
+# 	@echo "Sleeping for Teleproxy cluster"
+# 	sleep 10
 
 teleproxy-restart: $(TELEPROXY)
 	@echo "Killing teleproxy"

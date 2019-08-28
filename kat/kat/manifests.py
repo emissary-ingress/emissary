@@ -1,3 +1,18 @@
+KAT_CLIENT_POD = """
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: kat
+  labels:
+    backend: kat
+spec:
+  containers:
+  - name: backend
+    image: dwflynn/kat-client:1.5.0
+    imagePullPolicy: Always
+"""
+
 BACKEND_SERVICE = """
 ---
 kind: Service
