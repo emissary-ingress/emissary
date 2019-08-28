@@ -18,7 +18,7 @@ import time
 import threading
 import traceback
 
-from .manifests import BACKEND_SERVICE, SUPERPOD_POD, CRDS, KNATIVE_SERVING_CRDS
+from .manifests import KAT_CLIENT_POD, BACKEND_SERVICE, SUPERPOD_POD, CRDS, KNATIVE_SERVING_CRDS
 
 from yaml.scanner import ScannerError as YAMLScanError
 
@@ -730,7 +730,8 @@ def run_queries(name: str, queries: Sequence[Query]) -> Sequence[Result]:
     with open(path_urls, 'w') as f:
         json.dump(jsonified, f)
 
-    run(f"{CLIENT_GO} -input {path_urls} -output {path_results} 2> {path_log}")
+    # run(f"{CLIENT_GO} -input {path_urls} -output {path_results} 2> {path_log}")
+    run(f"kubectl exec -i kat /work/kat_client < '{path_urls}' > '{path_results}' 2> '{path_log}'")
 
     with open(path_results, 'r') as f:
         json_results = json.load(f)
@@ -1006,6 +1007,32 @@ class Runner:
         else:
             print(f'CRDS unchanged {reason}, skipping apply.')
 
+        # Next up: the KAT pod.
+        changed, reason = has_changed(KAT_CLIENT_POD, "/tmp/k8s-kat-pod.yaml")
+
+        if changed:
+            print(f'KAT pod definition changed ({reason}), applying')
+            run('kubectl apply -f /tmp/k8s-kat-pod.yaml')
+
+            tries_left = 10
+
+            while True:
+                pods = self._pods(None)
+
+                if pods.get('kat', False):
+                    print("KAT pod ready")
+                    break
+
+                tries_left -= 1
+
+                if tries_left <= 0:
+                    raise RuntimeError("KAT pod never became available")
+
+                print("sleeping for KAT pod... (%d)" % tries_left)
+                time.sleep(5)
+        else:
+            print(f'KAT pod definition unchanged {reason}, skipping apply.')
+
         manifests = self.get_manifests(selected)
 
         configs = OrderedDict()
@@ -1061,6 +1088,7 @@ class Runner:
                     assert False, "no service found for target: %s" % target.path
 
         yaml = ""
+
         for v in manifests.values():
             yaml += dump(label(v, self.scope)) + "\n"
 
@@ -1169,7 +1197,7 @@ class Runner:
 
     @_ready.when("pod")
     def _ready(self, _, requirements):
-        pods = self._pods()
+        pods = self._pods(self.scope)
         not_ready = []
 
         for node, name in requirements:
@@ -1205,9 +1233,12 @@ class Runner:
         else:
             return (True, None)
 
-    def _pods(self):
-        fname = "/tmp/pods-%s.json" % self.scope
-        run("kubectl get pod -l scope=%s -o json > %s" % (self.scope, fname))
+    def _pods(self, scope=None):
+        scope_for_path = scope if scope else 'global'
+        label_for_scope = f'-l scope={scope}' if scope else ''
+
+        fname = f'/tmp/pods-{scope_for_path}.json'
+        run(f'kubectl get pod {label_for_scope} -o json > {fname}')
 
         with open(fname) as f:
             raw_pods = json.load(f)
@@ -1216,17 +1247,19 @@ class Runner:
 
         for p in raw_pods["items"]:
             name = p["metadata"]["name"]
-            statuses = tuple(cs["ready"] for cs in p["status"].get("containerStatuses", ()))
 
-            if not statuses:
-                ready = False
-            else:
-                ready = True
+            cstats = p["status"].get("containerStatuses", [])
 
-                for status in statuses:
-                    ready = ready and status
+            all_ready = True
 
-            pods[name] = ready
+            for status in cstats:
+                ready = status.get('ready', False)
+
+                if not ready:
+                    all_ready = False
+                    # print(f'pod {name} is not ready: {status.get("state", "unknown state")}')
+
+            pods[name] = all_ready
 
         return pods
 

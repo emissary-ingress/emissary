@@ -1,3 +1,18 @@
+KAT_CLIENT_POD = """
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: kat
+  labels:
+    backend: kat
+spec:
+  containers:
+  - name: backend
+    image: dwflynn/kat-client:1.5.0
+    imagePullPolicy: Always
+"""
+
 BACKEND_SERVICE = """
 ---
 kind: Service
@@ -3615,13 +3630,13 @@ metadata:
   name: revisions.serving.knative.dev
 spec:
   additionalPrinterColumns:
-  - JSONPath: .metadata.labels['serving\.knative\.dev/configuration']
+  - JSONPath: .metadata.labels['serving\\.knative\\.dev/configuration']
     name: Config Name
     type: string
   - JSONPath: .status.serviceName
     name: K8s Service Name
     type: string
-  - JSONPath: .metadata.labels['serving\.knative\.dev/configurationGeneration']
+  - JSONPath: .metadata.labels['serving\\.knative\\.dev/configurationGeneration']
     name: Generation
     type: string
   - JSONPath: .status.conditions[?(@.type=='Ready')].status
