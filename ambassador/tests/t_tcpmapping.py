@@ -167,7 +167,7 @@ tls: true
 
         # 5: should error since port 8765 is bound only to localhost
         yield Query(self.url(self.name + "/wtfo/", port=8765),
-                    error=['connection reset by peer', 'EOF'],
+                    error=[ 'connection reset by peer', 'EOF', 'connection refused' ],
                     insecure=True)
 
     # Once in check(), self.results is an ordered list of results from your
