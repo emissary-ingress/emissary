@@ -413,7 +413,7 @@ $(TZONE)/kat_client: venv/kat-backend-$(KAT_BACKEND_RELEASE).tar.gz $(var.)KAT_B
 	cd venv && tar -xzf $(<F) kat-backend-$(KAT_BACKEND_RELEASE)/client/bin/client_linux_amd64
 	install -m0755 venv/kat-backend-$(KAT_BACKEND_RELEASE)/client/bin/client_linux_amd64 $(TZONE)/kat_client
 
-docker-images: ambassador-docker-image kat-client-docker-image
+docker-images: ambassador-docker-image
 
 docker-push: docker-images
 ifeq ($(DOCKER_REGISTRY),-)
@@ -421,9 +421,11 @@ ifeq ($(DOCKER_REGISTRY),-)
 else
 	@echo 'PUSH $(AMBASSADOR_DOCKER_IMAGE)'
 	@docker push $(AMBASSADOR_DOCKER_IMAGE) | python releng/linify.py push.log
-	@echo 'PUSH $(KAT_CLIENT_DOCKER_IMAGE)'
-	@docker push $(KAT_CLIENT_DOCKER_IMAGE) | python releng/linify.py push.log
 endif
+
+docker-push-kat-client: kat-client-docker-image
+	@echo 'PUSH $(KAT_CLIENT_DOCKER_IMAGE)'
+	@docker push $(KAT_CLIENT_DOCKER_IMAGE) | python releng/linify.py push.log	
 
 # TODO: validate version is conformant to some set of rules might be a good idea to add here
 ambassador/ambassador/VERSION.py: FORCE $(WRITE_IFCHANGED)
