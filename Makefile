@@ -532,13 +532,19 @@ teleproxy-stop:
 #
 # If USE_KUBERNAUT is true, we'll set up for Kubernaut, otherwise we'll assume 
 # that the current KUBECONFIG is good.
+#
+# XXX KLF HACK: The dev shell used to include setting
+# 	AMBASSADOR_DEV=1 \
+# but I've ripped that out, since moving the KAT client into the cluster makes it
+# much complex for the AMBASSADOR_DEV stuff to work correctly. I'll open an
+# issue to finish sorting this out, but right now I want to get our CI builds 
+# into better shape without waiting for that.
 
 shell: setup-develop
 	AMBASSADOR_DOCKER_IMAGE="$(AMBASSADOR_DOCKER_IMAGE)" \
 	BASE_PY_IMAGE="$(BASE_PY_IMAGE)" \
 	BASE_GO_IMAGE="$(BASE_GO_IMAGE)" \
 	MAKE_KUBECONFIG="$(KUBECONFIG)" \
-	AMBASSADOR_DEV=1 \
 	bash --init-file releng/init.sh -i
 
 clean-test:
