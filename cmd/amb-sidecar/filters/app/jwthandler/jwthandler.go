@@ -43,8 +43,22 @@ func (h *JWTFilter) Filter(ctx context.Context, r *filterapi.FilterRequest) (fil
 
 	ret := &filterapi.HTTPRequestModification{}
 	for _, hf := range h.Spec.InjectRequestHeaders {
+		data := map[string]interface{}{
+			// "token" is intentionally similar to a
+			// *jwt.Token, but unwrapped a bit, since I
+			// don't want the jwt-go implementation to be
+			// part of our user-facing interface.
+			//
+			//"token": token,
+			"token": map[string]interface{}{
+				"Raw":       token.Raw,
+				"Header":    token.Header,
+				"Claims":    (map[string]interface{})(*(token.Claims.(*jwt.MapClaims))),
+				"Signature": token.Signature,
+			},
+		}
 		value := new(strings.Builder)
-		if err := hf.Template.Execute(value, map[string]interface{}{"token": token}); err != nil {
+		if err := hf.Template.Execute(value, data); err != nil {
 			return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
 				errors.Wrapf(err, "computing header field %q", hf.Name), nil), nil
 		}
