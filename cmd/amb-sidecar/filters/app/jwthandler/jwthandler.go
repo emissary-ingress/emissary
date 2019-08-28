@@ -1,6 +1,7 @@
 package jwthandler
 
 import (
+	"context"
 	"net/http"
 	"strings"
 	"time"
@@ -11,9 +12,9 @@ import (
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta2"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/app/httpclient"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/app/middleware"
+	"github.com/datawire/apro/lib/filterapi"
 	"github.com/datawire/apro/lib/jwks"
 	"github.com/datawire/apro/lib/jwtsupport"
-	"github.com/datawire/apro/lib/util"
 )
 
 func inArray(needle string, haystack []string) bool {
@@ -25,21 +26,20 @@ func inArray(needle string, haystack []string) bool {
 	return false
 }
 
-type JWTHandler struct {
-	Filter crd.FilterJWT
+type JWTFilter struct {
+	Spec crd.FilterJWT
 }
 
-func (h *JWTHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	logger := middleware.GetLogger(r.Context())
-	httpClient := httpclient.NewHTTPClient(logger, 0, h.Filter.InsecureTLS)
+func (h *JWTFilter) Filter(ctx context.Context, r *filterapi.FilterRequest) (filterapi.FilterResponse, error) {
+	logger := middleware.GetLogger(ctx)
+	httpClient := httpclient.NewHTTPClient(logger, 0, h.Spec.InsecureTLS)
 
-	token := strings.TrimPrefix(r.Header.Get("Authorization"), "Bearer ")
+	token := strings.TrimPrefix(r.GetRequest().GetHttp().GetHeaders()["Authorization"], "Bearer ")
 
-	if err := validateToken(token, h.Filter, httpClient); err != nil {
-		logger.Infoln(err)
-		util.ToJSONResponse(w, http.StatusUnauthorized, &util.Error{Message: err.Error()})
+	if err := validateToken(token, h.Spec, httpClient); err != nil {
+		return middleware.NewErrorResponse(ctx, http.StatusUnauthorized, err, nil), nil
 	} else {
-		w.WriteHeader(http.StatusOK)
+		return &filterapi.HTTPRequestModification{}, nil
 	}
 }
 

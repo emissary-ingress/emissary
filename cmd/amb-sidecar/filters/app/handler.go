@@ -146,9 +146,9 @@ func (c *FilterMux) filter(ctx context.Context, request *filterapi.FilterRequest
 		case crd.FilterPlugin:
 			filterImpl = filterutil.HandlerToFilter(filterCRD.Handler)
 		case crd.FilterJWT:
-			filterImpl = filterutil.HandlerToFilter(&jwthandler.JWTHandler{
-				Filter: filterCRD,
-			})
+			filterImpl = &jwthandler.JWTFilter{
+				Spec: filterCRD,
+			}
 		case crd.FilterExternal:
 			filterImpl = &externalhandler.ExternalFilter{
 				Spec: filterCRD,
