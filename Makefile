@@ -147,6 +147,7 @@ KAT_CLIENT ?= venv/bin/kat_client
 KAT_CLIENT_DOCKER_TAG ?= $(KAT_BACKEND_RELEASE)
 KAT_CLIENT_DOCKER_REPO ?= $(if $(filter-out -,$(DOCKER_REGISTRY)),$(DOCKER_REGISTRY)/)kat-client$(if $(IS_PRIVATE),-private)
 KAT_CLIENT_DOCKER_IMAGE ?= $(KAT_CLIENT_DOCKER_REPO):$(KAT_CLIENT_DOCKER_TAG)
+KAT_CLIENT_DOCKER_DIR ?= kat-client-docker-image
 
 # Allow overriding which watt we use.
 WATT ?= watt
@@ -167,7 +168,6 @@ GOARCH=$(shell go env GOARCH)
 CLAIM_FILE=kubernaut-claim.txt
 CLAIM_NAME=$(shell cat $(CLAIM_FILE))
 
-TZONE ?= tzone-files
 
 # "make" by itself doesn't make the website. It takes too long and it doesn't
 # belong in the inner dev loop.
@@ -400,18 +400,18 @@ ambassador.docker: Dockerfile base-go.docker base-py.docker $(ENVOY_FILE) $(WATT
 	@docker image inspect $(AMBASSADOR_DOCKER_IMAGE) --format='{{.Id}}' | $(WRITE_IFCHANGED) $@
 
 kat-client-docker-image: kat-client.docker
-kat-client.docker: $(TZONE)/Dockerfile base-py.docker $(TZONE)/teleproxy $(TZONE)/kat_client $(WRITE_IFCHANGED)
-	docker build --build-arg BASE_PY_IMAGE=$(BASE_PY_IMAGE) $(DOCKER_OPTS) -t $(KAT_CLIENT_DOCKER_IMAGE) $(TZONE)
+kat-client.docker: $(KAT_CLIENT_DOCKER_DIR)/Dockerfile base-py.docker $(KAT_CLIENT_DOCKER_DIR)/teleproxy $(KAT_CLIENT_DOCKER_DIR)/kat_client $(WRITE_IFCHANGED)
+	docker build --build-arg BASE_PY_IMAGE=$(BASE_PY_IMAGE) $(DOCKER_OPTS) -t $(KAT_CLIENT_DOCKER_IMAGE) $(KAT_CLIENT_DOCKER_DIR)
 	@docker image inspect $(KAT_CLIENT_DOCKER_IMAGE) --format='{{.Id}}' | $(WRITE_IFCHANGED) $@
 
-# $(TZONE)/teleproxy always uses the linux/amd64 architecture
-$(TZONE)/teleproxy: $(var.)TELEPROXY_VERSION
-	curl -o $(TZONE)/teleproxy https://s3.amazonaws.com/datawire-static-files/teleproxy/$(TELEPROXY_VERSION)/linux/amd64/teleproxy
+# $(KAT_CLIENT_DOCKER_DIR)/teleproxy always uses the linux/amd64 architecture
+$(KAT_CLIENT_DOCKER_DIR)/teleproxy: $(var.)TELEPROXY_VERSION
+	curl -o $(KAT_CLIENT_DOCKER_DIR)/teleproxy https://s3.amazonaws.com/datawire-static-files/teleproxy/$(TELEPROXY_VERSION)/linux/amd64/teleproxy
 
-# $(TZONE)/kat_client always uses the linux/amd64 architecture
-$(TZONE)/kat_client: venv/kat-backend-$(KAT_BACKEND_RELEASE).tar.gz $(var.)KAT_BACKEND_RELEASE
+# $(KAT_CLIENT_DOCKER_DIR)/kat_client always uses the linux/amd64 architecture
+$(KAT_CLIENT_DOCKER_DIR)/kat_client: venv/kat-backend-$(KAT_BACKEND_RELEASE).tar.gz $(var.)KAT_BACKEND_RELEASE
 	cd venv && tar -xzf $(<F) kat-backend-$(KAT_BACKEND_RELEASE)/client/bin/client_linux_amd64
-	install -m0755 venv/kat-backend-$(KAT_BACKEND_RELEASE)/client/bin/client_linux_amd64 $(TZONE)/kat_client
+	install -m0755 venv/kat-backend-$(KAT_BACKEND_RELEASE)/client/bin/client_linux_amd64 $(KAT_CLIENT_DOCKER_DIR)/kat_client
 
 docker-images: ambassador-docker-image
 
