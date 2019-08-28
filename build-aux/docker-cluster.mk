@@ -44,12 +44,12 @@
 #    single Node, a hostPath is an acceptable hack there; it isn't on
 #    other clusters.
 #
-# ## Wait, how is including this different than calling docker.mk's docker.tag.rule? ##
+# ## Wait, how is including this different than setting docker.mk's `docker.tag.cluster`? ##
 #
-#    docker.mk provides a $(eval $(call docker.tag.rule,GROUP,EXPR))
-#    function that adds %.docker.push.GROUP target.  This snippet
-#    "essentially" calls $(eval $(call docker.tag.rule,cluster,...)),
-#    but with some magic:
+#    docker.mk allows you to set `docker.tag.GROUP = EXPR` variables
+#    that add %.docker.push.GROUP targets.  This docker-cluster.mk
+#    snippet "essentially" sets `docker.tag.cluster = ...`, but with
+#    some magic:
 #
 #     - The in-cluster tag-name is different than the local tag-name (if
 #       $(docker.LOCALHOST) != "localhost"), so some special logic is
@@ -61,8 +61,10 @@
 #
 ifeq ($(words $(filter $(abspath $(lastword $(MAKEFILE_LIST))),$(abspath $(MAKEFILE_LIST)))),1)
 _docker-cluster.mk := $(lastword $(MAKEFILE_LIST))
-include $(dir $(_docker-cluster.mk))docker.mk
 include $(dir $(_docker-cluster.mk))kubeapply.mk
+
+_docker.clean.groups += cluster
+include $(dir $(_docker-cluster.mk))docker.mk
 
 DOCKER_K8S_ENABLE_PVC ?=
 
@@ -87,7 +89,6 @@ _docker.port-forward = $(dir $(_docker-cluster.mk))docker-port-forward
 	}
 	sed '2{ s/^[^:]*:/127.0.0.1:/; }' $< > $@
 
-%.docker.clean: %.docker.clean.cluster
 %.docker.clean.cluster:
 	if [ -e $*.docker.tag.cluster ]; then docker image rm $$(cat $*.docker.tag.cluster) || true; fi
 	rm -f $*.docker.tag.cluster $*.docker.push.cluster

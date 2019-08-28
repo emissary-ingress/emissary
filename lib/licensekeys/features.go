@@ -1,6 +1,8 @@
 package licensekeys
 
 import (
+	"sort"
+
 	"github.com/pkg/errors"
 
 	"github.com/datawire/apro/lib/licensekeys/internal"
@@ -18,11 +20,12 @@ type Feature = internal.Feature
 
 // This is the exhaustive list of values that a Feature may take.
 var (
-	FeatureUnrecognized = internal.FeatureUnrecognized
-	FeatureTraffic      = internal.AddFeature("traffic")
-	FeatureRateLimit    = internal.AddFeature("ratelimit")
-	FeatureFilter       = internal.AddFeature("filter")
-	FeatureDevPortal    = internal.AddFeature("devportal")
+	FeatureUnrecognized   = internal.FeatureUnrecognized
+	FeatureTraffic        = internal.AddFeature("traffic")
+	FeatureRateLimit      = internal.AddFeature("ratelimit")
+	FeatureFilter         = internal.AddFeature("filter")
+	FeatureDevPortal      = internal.AddFeature("devportal")
+	FeatureCertifiedEnvoy = internal.AddFeature("certified-envoy")
 )
 
 // ParseFeature turns a feature string in to one of the recognized
@@ -49,5 +52,7 @@ func (cl *LicenseClaimsLatest) RequireFeature(feature Feature) error {
 // it only exists so that "apictl-key create --help" can print a list
 // of known features.
 func ListKnownFeatures() []string {
-	return internal.ListKnownFeatures()
+	ret := internal.ListKnownFeatures()
+	sort.Strings(ret)
+	return ret
 }

@@ -14,7 +14,7 @@ import (
 
 	vegeta "github.com/tsenart/vegeta/lib"
 
-	"github.com/datawire/apro/cmd/max-load/metrics"
+	"github.com/datawire/apro/cmd/loadtest-generator/metrics"
 )
 
 func maxFiles() int {

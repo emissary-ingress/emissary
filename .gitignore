@@ -10,6 +10,9 @@ venv
 /vendor/
 /vendor.hash
 
+/ambassador-nolicense/
+/ambassador-withlicense/
+
 *.docker
 *.docker.tag.*
 *.docker.push.*
@@ -41,6 +44,13 @@ node_modules/
 # Remove the tail of this list when the commit making the change gets
 # far enough in to the past.
 
+# 2019-08-14
+/docker/amb-sidecar-plugins/Dockerfile
+/docker/amb-sidecar-plugins/*.so
+# 2019-08-14
+/docker/max-load/kubeapply
+/docker/max-load/kubectl
+/docker/max-load/max-load
 # 2019-08-14
 *.docker.knaut-push
 # 2019-01-23

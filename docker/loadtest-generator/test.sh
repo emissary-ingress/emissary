@@ -52,11 +52,11 @@ run_test() {
 	# Make it easy to tell apart clusters in the graphs
 	sleep 30
 	# Run the test
-	max-load --load-max-rps=10000 --csv-file="${iname}.csv.tmp" "$@" "$url" > "${iname}.log"
+	loadtest-generator --load-max-rps=10000 --csv-file="${iname}.csv.tmp" "$@" "$url" > "${iname}.log"
 	mv "${iname}.csv.tmp" "${iname}.csv"
 }
 
-cd /var/lib/max-load
+cd /var/lib/loadtest-generator
 trap 'python3 -m http.server' EXIT
 set -ex
 

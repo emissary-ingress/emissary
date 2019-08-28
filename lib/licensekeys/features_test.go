@@ -14,6 +14,7 @@ var allFeatures = []licensekeys.Feature{
 	licensekeys.FeatureRateLimit,
 	licensekeys.FeatureFilter,
 	licensekeys.FeatureDevPortal,
+	licensekeys.FeatureCertifiedEnvoy,
 }
 
 func featureInArray(needle licensekeys.Feature, haystack []licensekeys.Feature) bool {
@@ -47,9 +48,10 @@ func TestRequireFeature(t *testing.T) {
 		"v0": {
 			Key: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImRldiIsImV4cCI6NDcwMDgyNjEzM30.wCxi5ICR6C5iEz6WkKpurNItK3zER12VNhM8F1zGkA8",
 			Features: []licensekeys.Feature{
-				licensekeys.FeatureTraffic,
-				licensekeys.FeatureRateLimit,
+				licensekeys.FeatureCertifiedEnvoy,
 				licensekeys.FeatureFilter,
+				licensekeys.FeatureRateLimit,
+				licensekeys.FeatureTraffic,
 			},
 		},
 		"v0 expired": {

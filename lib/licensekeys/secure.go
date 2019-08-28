@@ -32,6 +32,7 @@ func (v0 *LicenseClaimsV0) ToLatest() *LicenseClaimsLatest {
 		LicenseKeyVersion: "v0",
 		CustomerID:        fmt.Sprintf("%v", v0.ID),
 		EnabledFeatures: []Feature{
+			FeatureCertifiedEnvoy,
 			FeatureFilter,
 			FeatureRateLimit,
 			FeatureTraffic,

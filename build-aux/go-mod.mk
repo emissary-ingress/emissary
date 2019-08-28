@@ -175,7 +175,7 @@ ifeq ($(go.DISABLE_GO_TEST),)
 endif
 
 $(dir $(_go-mod.mk))go-test.tap: $(GOTEST2TAP) $(TAP_DRIVER) $(go.lock) FORCE
-	@$(go.lock)go test -json $(go.pkgs) 2>&1 | $(GOTEST2TAP) | tee $@ | $(TAP_DRIVER) stream -n go-test
+	@{ $(go.lock)go test -json $(go.pkgs) || true; } 2>&1 | $(GOTEST2TAP) | tee $@ | $(TAP_DRIVER) stream -n go-test
 
 #
 # go-doc

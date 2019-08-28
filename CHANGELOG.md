@@ -14,6 +14,10 @@ Behavior:
 
  * Fixed a resource leak in dev-portal-server
 
+Other:
+
+ * There is now a build of Ambassador with Certified Envoy named "amb-core".
+
 ## 0.6.0 (2019-08-05)
 
 Configuration:
