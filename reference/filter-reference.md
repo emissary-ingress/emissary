@@ -110,12 +110,106 @@ spec:
     requireIssuedAt:  bool          # optional; default is false
     requireExpiresAt: bool          # optional; default is false
     requireNotBefore: bool          # optional; default is false
+
+    injectRequestHeaders:           # optional; default is []
+     - name:   "header-name-string" # required
+       value:  "go-template-string" # required
 ```
 
  - `insecureTLS` disables TLS verification for the cases when
    `jwksURI` begins with `https://`.  This is discouraged in favor of
    either using plain `http://` or [installing a self-signed
    certificate](#installing-self-signed-certificates).
+ - `injectRequestHeaders` injects HTTP header fields in to the request
+   before sending it to the upstream service; where the header value
+   can be set based on the JWT value.  The value is specified as a [Go
+   `text/template`][] string, with the following data made available
+   to it:
+
+    * `.token.Raw` → `string` the raw JWT
+    * `.token.Header` → `map[string]interface{}` the JWT header, as parsed JSON
+    * `.token.Claims` → `map[string]interface{}` the JWT claims, as parsed JSON
+    * `.token.Signature` → `string` the token signature
+
+   Any headers listed will override (not append to) the original
+   request header with that name.
+
+   **Note**: If you are using a templating system for your YAML that
+   also makes use of Go templating (for instance, Helm), then you will
+   need to escape the template strings meant to be interpretted by
+   Ambassador Pro.
+
+[Go `text/template`]: https://golang.org/pkg/text/template/
+
+#### Example `JWT` `Filter`
+
+```yaml
+# Example results are for the JWT:
+#
+#    eyJhbGciOiJub25lIiwidHlwIjoiSldUIiwiZXh0cmEiOiJzbyBtdWNoIn0.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.
+#
+# To save you some time decoding that JWT:
+#
+#   header = {
+#     "alg": "none",
+#     "typ": "JWT",
+#     "extra": "so much"
+#   }
+#   claims = {
+#     "sub": "1234567890",
+#     "name": "John Doe",
+#     "iat": 1516239022
+#   }
+---
+apiVersion: getambassador.io/v1beta2
+kind: Filter
+metadata:
+  name: example-jwt-filter
+  namespace: example-namespace
+spec:
+  JWT:
+    jwksURI: "https://getambassador-demo.auth0.com/.well-known/jwks.json"
+    validAlgorithms:
+      - "none"
+    audience: "myapp"
+    requireAudience: false
+    injectRequestHeaders:
+      - name: "X-Fixed-String"
+        value: "Fixed String",
+        # result will be "Fixed String"
+      - name: "X-Token-String"
+        value: "{{.token.Raw}}",
+        # result will be "eyJhbGciOiJub25lIiwidHlwIjoiSldUIiwiZXh0cmEiOiJzbyBtdWNoIn0.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ."
+      - name: "X-Token-H-Alg"
+        value: "{{.token.Header.alg}}",
+        # result will be "none"
+      - name: "X-Token-H-Typ"
+        value: "{{.token.Header.typ}}",
+        # result will be "JWT"
+      - name: "X-Token-H-Extra"
+        value: "{{.token.Header.extra}}",
+        # result will be "so much"
+      - name: "X-Token-C-Sub"
+        value: "{{.token.Claims.sub}}",
+        # result will be "1234567890"
+      - name: "X-Token-C-Name"
+        value: "{{.token.Claims.name}}",
+        # result will be "John Doe"
+      - name: "X-Token-C-Iat"
+        value: "{{.token.Claims.iat}}",
+        # result will be "1.516239022e+09" (don't expect JSON numbers
+        # to always be formatted the same as input; if you care about
+        # that, specify the formatting; see the next example)
+      - name: "X-Token-C-Iat-Decimal"
+        value: "{{printf \"%.0f\" .token.Claims.iat}}",
+        # result will be "1516239022"
+      - name: "X-Token-S"
+        value: "{{.token.Signature}}",
+        # result will be "" (since "alg: none" was used in this example JWT)
+      - name: "X-Authorization"
+        value: : "Authenticated {{.token.Header.typ}}; sub={{.token.Claims.sub}}; name={{printf \"%q\" .token.Claims.name}}"
+        # result will be: "Authenticated JWT; sub=1234567890; name="John Doe""
+```
 
 ### Filter Type: `OAuth2`
 
