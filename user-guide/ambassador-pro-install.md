@@ -154,17 +154,13 @@ Ambassador Pro's Consul Connect integration is deployed as a separate Kubernetes
 
 # Upgrading Ambassador Pro
 
-Ambassador Pro is a sidecar process to Ambassador.
+Follow the steps below to upgrade Ambassador Pro.
 
-Ambassador Pro 0.7.0 introduced the certified Ambassador build that improves upon the stability and performance of open source Ambassador. A license key is now required to run the certified version of Ambassador and Ambassador Pro. 
-
-For simplicity, we recommend storing this license key in a Kubernetes secret that can be referenced by both the certified Ambassador and Ambassador Pro containers. You can do this with the following command.
+**Note**: For simplicity, we recommend storing this license key in a Kubernetes secret that can be referenced by both the certified Ambassador and Ambassador Pro containers. You can do this with the following command.
 
 ```
 kubectl create secret generic ambassador-pro-license-key --from-literal=key={{AMBASSADOR_PRO_LICENSE_KEY}}
 ```
-
-Follow the steps below to upgrade Ambassador Pro to use the certified Ambassador build.
 
 1. Create the `ambassador-pro-license-key` secret using the command above.
 
@@ -175,7 +171,7 @@ Follow the steps below to upgrade Ambassador Pro to use the certified Ambassador
             image: quay.io/datawire/ambassador_pro:amb-sidecar-%aproVersion%
     ```
 
-3. Change the image of the Ambassador container to use the certified version of Ambassador
+3. Change the image of the Ambassador container to use the certified version of Ambassador.
 
     ```diff
           containers:
@@ -184,7 +180,7 @@ Follow the steps below to upgrade Ambassador Pro to use the certified Ambassador
     +       image: quay.io/datawire/ambassador_pro:amb-core-%aproVersion%
     ```
 
-4. Add the `AMBASSADOR_PRO_LICENSE_KEY` environment variable to the Ambassador container and have it get it's value from the secret created in step 1.
+4. Add the `AMBASSADOR_PRO_LICENSE_KEY` environment variable to the Ambassador container and have it get its value from the secret created in step 1.
 
     ```yaml
             env:
@@ -199,7 +195,7 @@ Follow the steps below to upgrade Ambassador Pro to use the certified Ambassador
                   key: key
     ```
   
-5. Ensure the `AMBASSADOR_LICENSE_KEY` in the Ambassador Pro container is also referencing the `ambassador-pro-license-key` secret
+5. Ensure the `AMBASSADOR_LICENSE_KEY` in the Ambassador Pro container is also referencing the `ambassador-pro-license-key` secret.
 
     ```yaml
             env:
