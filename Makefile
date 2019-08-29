@@ -327,7 +327,7 @@ envoy-bin:
 	mkdir -p $@
 envoy-bin/envoy-static: envoy-build-image.txt FORCE | envoy-bin
 	@PS4=; set -ex; if docker run --rm --entrypoint=true $(BASE_ENVOY_IMAGE); then \
-	    docker run --rm --volume=$(CURDIR)/$(@D):/xfer:rw --user=$$(id -u):$$(id -g) $(BASE_ENVOY_IMAGE) cp -a /usr/local/bin/envoy /xfer/$(@F); \
+	    docker run --rm --volume=$(CURDIR)/$(@D):/xfer:rw $(BASE_ENVOY_IMAGE) cp -a /usr/local/bin/envoy /xfer/$(@F); \
 	else \
 	    if [ -n '$(CI)' ]; then \
 	        echo 'error: This should not happen in CI: should not try to compile Envoy'; \
