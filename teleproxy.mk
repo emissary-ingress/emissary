@@ -2,33 +2,31 @@
 #
 # Makefile snippet for calling `teleproxy`
 #
-## Inputs ##
-#  - Variable: TELEPROXY     ?= ./build-aux/teleproxy
-#  - Variable: TELEPROXY_LOG ?= ./build-aux/teleproxy.log
+## Eager inputs ##
 #  - Variable: KUBECONFIG
+#  - Variable: TELEPROXY_LOG ?= ./build-aux/teleproxy.log
+## Lazy inputs ##
 #  - Variable: KUBE_URL
 ## Outputs ##
-#  - Target       : $(TELERPOXY)
+#  - Executable: TELEPROXY ?= $(CURDIR)/build-aux/bin/teleproxy
+#  - Variable: TELEPROXY_LOG ?= ./build-aux/teleproxy.log
 #  - .PHONY Target: proxy
 #  - .PHONY Target: unproxy
+#  - .PHONY Target: status-proxy
 ## common.mk targets ##
 #  - clean
-#  - clobber
 ## kubernaut-ui.mk targets ##
-#  - unclaim
 #  - $(KUBECONFIG).clean
 ifeq ($(words $(filter $(abspath $(lastword $(MAKEFILE_LIST))),$(abspath $(MAKEFILE_LIST)))),1)
 _teleproxy.mk := $(lastword $(MAKEFILE_LIST))
-include $(dir $(lastword $(MAKEFILE_LIST)))kubernaut-ui.mk
+include $(dir $(_teleproxy.mk))prelude.mk
 
-TELEPROXY ?= $(dir $(_teleproxy.mk))teleproxy
 TELEPROXY_LOG ?= $(dir $(_teleproxy.mk))teleproxy.log
-TELEPROXY_VERSION = 0.3.11
 KUBE_URL = https://kubernetes/api/
 
-$(TELEPROXY): $(_teleproxy.mk)
-	sudo rm -f $@
-	curl -o $@ https://s3.amazonaws.com/datawire-static-files/teleproxy/$(TELEPROXY_VERSION)/$(GOOS)/$(GOARCH)/teleproxy
+TELEPROXY ?= $(build-aux.bindir)/teleproxy
+$(build-aux.bindir)/teleproxy: $(build-aux.dir)/go.mod $(_prelude.go.lock) | $(build-aux.bindir)
+	$(build-aux.go-build) -o $@ github.com/datawire/teleproxy/cmd/teleproxy
 	sudo chown root $@
 	sudo chmod go-w,a+sx $@
 
@@ -52,16 +50,31 @@ unproxy: ## (Kubernaut) Shut down 'proxy'
 	@sleep 1
 .PHONY: unproxy
 
+status-proxy: ## (Kubernaut) Fail if cluster connectivity is broken or Teleproxy is not running
+status-proxy: status-cluster
+	@if curl -o /dev/null -s --connect-timeout 1 127.254.254.254; then \
+		if curl -o /dev/null -sk $(KUBE_URL); then \
+			echo "Proxy okay!"; \
+		else \
+			echo "Proxy up but connectivity check failed."; \
+			exit 1; \
+		fi; \
+	else \
+		echo "Proxy not running."; \
+		exit 1; \
+	fi
+.PHONY: status-proxy
+
 $(KUBECONFIG).clean: unproxy
 
 clean: _clean-teleproxy
 _clean-teleproxy: $(if $(wildcard $(TELEPROXY_LOG)),unproxy)
 	rm -f $(TELEPROXY_LOG)
+# Files made by older versions.  Remove the tail of this list when the
+# commit making the change gets far enough in to the past.
+#
+# 2018-07-01
+	rm -f $(dir $(_teleproxy.mk))teleproxy
 .PHONY: _clean-teleproxy
-
-clobber: _clobber-teleproxy
-_clobber-teleproxy:
-	rm -f $(TELEPROXY)
-.PHONY: _clobber-teleproxy
 
 endif

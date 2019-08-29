@@ -2,22 +2,21 @@
 #
 # Makefile snippet for managing kubernaut.io clusters.
 #
-## Inputs ##
-#   - Variable: GUBERNAUT ?= gubernaut
+## Eager inputs ##
+#  (none)
+## Lazy inputs ##
+#  (none)
 ## Outputs ##
-#   - Target       : `%.knaut`
-#   - .PHONY Target: `%.knaut.clean`
+#  - Target       : `%.knaut`
+#  - .PHONY Target: `%.knaut.clean`
 ## common.mk targets ##
-#   - clobber
+#  - clean
 #
 # Creating the NAME.knaut creates the Kubernaut claim.  The file may
 # be used as a KUBECONFIG file.
 #
 # Calling the NAME.knaut.clean file releases the claim, and removes
 # the NAME.knaut file.
-#
-# The GUBERNAUT variable may be used to adjust the gubernaut command
-# called; by default it looks up 'gubernaut' in $PATH.
 #
 ## Quickstart ##
 #
@@ -47,21 +46,24 @@
 #
 ifeq ($(words $(filter $(abspath $(lastword $(MAKEFILE_LIST))),$(abspath $(MAKEFILE_LIST)))),1)
 _kubernaut.mk := $(lastword $(MAKEFILE_LIST))
-include $(dir $(lastword $(MAKEFILE_LIST)))common.mk
+include $(dir $(_kubernaut.mk))prelude.mk
 
-GUBERNAUT = GO111MODULE=off go run $(dir $(_kubernaut.mk))gubernaut.go
+GUBERNAUT ?= $(build-aux.bindir)/gubernaut
 
 %.knaut.claim:
 	echo $(*F)-$${USER}-$$(uuidgen) > $@
-%.knaut: %.knaut.claim
+%.knaut: %.knaut.claim $(GUBERNAUT)
 	$(GUBERNAUT) -release $$(cat $<)
 	$(GUBERNAUT) -claim $$(cat $<) -output $@
 
+# This `go run` bit is gross, compared to just depending on and using
+# $(GUBERNAUT).  But if the user runs `make clobber`, the prelude.mk
+# cleanup might delete $(GUBERNAUT) before we get to run it.
 %.knaut.clean:
-	if [ -e $*.knaut.claim ]; then $(GUBERNAUT) -release $$(cat $*.knaut.claim); fi
+	if [ -e $*.knaut.claim ]; then cd $(dir $(_kubernaut.mk))bin-go/gubernaut && GO111MODULE=on go run . -release $$(cat $(abspath $*.knaut.claim)); fi
 	rm -f $*.knaut $*.knaut.claim
 .PHONY: %.knaut.clean
 
-clobber: $(addsuffix .clean,$(wildcard *.knaut))
+clean: $(addsuffix .clean,$(wildcard *.knaut) $(wildcard $(build-aux.dir)/*.knaut))
 
 endif
