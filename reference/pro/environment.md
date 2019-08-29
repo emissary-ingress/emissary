@@ -20,7 +20,7 @@
 | `REDIS_PERSECOND_POOL_SIZE`      | none, must be set manually (if `REDIS_PERSECOND`) | Go network address; for TCP this is a `host:port` pair; see [Go `net.Dial`][] | RateLimit                                            |
 | `EXPIRATION_JITTER_MAX_SECONDS`  | `300`                                             | integer                                                                       | RateLimit                                            |
 | <hr/>                            | <hr/>                                             | <hr/>                                                                         | <hr/>                                                |
-| `USE_STATSD`                     | `true`[^2]                                        | Boolean; [Go `strconv.ParseBool`][]                                           | RateLimit                                            |
+| `USE_STATSD`                     | `false`                                           | Boolean; [Go `strconv.ParseBool`][]                                           | RateLimit                                            |
 | `STATSD_HOST`                    | `localhost`                                       | hostname                                                                      | RateLimit                                            |
 | `STATSD_PORT`                    | `8125`                                            | integer                                                                       | RateLimit                                            |
 | `GOSTATS_FLUSH_INTERVAL_SECONDS` | `5`                                               | integer                                                                       | RateLimit                                            |
@@ -60,8 +60,6 @@ and public keys respectively.
 [^1]: This may change in a future release to reflect the Pods's
     namespace if deployed to a namespace other than `default`.
     https://github.com/datawire/ambassador/issues/1583
-
-[^2]: This will very likely change to `false` in the next release.
 
 [Go `net.Dial`]: https://golang.org/pkg/net/#Dial
 [Go `strconv.ParseBool`]: https://golang.org/pkg/strconv/#ParseBool
