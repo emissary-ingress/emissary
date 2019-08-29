@@ -1,4 +1,4 @@
-# Upgrading to Ambassador Pro
+# Upgrading to Ambassador Pro from Open Source Ambassador
 
 If you are already using Ambassador open source, upgrading to using Ambassador Pro is straight-forward. In this demo we will walk-through integrating Ambassador Pro into your currently running Ambassador instance and show how quickly you can secure your APIs with JWT authentication.
 
