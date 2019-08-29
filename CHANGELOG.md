@@ -9,6 +9,7 @@ Configuration:
    v1 license with the "devportal" feature enabled.  Some future
    version of the other functionality will drop support for v0 license
    keys.
+ * The `JWT` Filter can now inject HTTP request headers; configured with the `injectRequestHeaders` field.
 
 Behavior:
 
