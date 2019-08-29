@@ -10,8 +10,7 @@ venv
 /vendor/
 /vendor.hash
 
-/ambassador-nolicense/
-/ambassador-withlicense/
+/ambassador/
 
 *.docker
 *.docker.tag.*
@@ -44,6 +43,9 @@ node_modules/
 # Remove the tail of this list when the commit making the change gets
 # far enough in to the past.
 
+# 2019-08-29
+/ambassador-nolicense/
+/ambassador-withlicense/
 # 2019-08-14
 /docker/amb-sidecar-plugins/Dockerfile
 /docker/amb-sidecar-plugins/*.so
