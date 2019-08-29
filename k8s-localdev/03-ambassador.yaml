@@ -329,7 +329,17 @@ spec:
         - name: SCOUT_DISABLE
           value: "1"
         - name: AMBASSADOR_LICENSE_KEY
-          value: {{env "AMBASSADOR_LICENSE_KEY"}}
+          # Unlike all the rest of the YAML, this uses a v0 license
+          # key, to make sure that they continue to work for newer
+          # releases.  If that breaks, `make deploy` will time out,
+          # because this pod will never pass its readiness checks.
+          # The `tests/cluster/licensekeys/` e2e tests mostly do this,
+          # but they run directly on compiled binaries, not the Docker
+          # images supposedly containing those binaries.  We had an
+          # issue where the Envoy binary was too aggressively cached,
+          # and even though we compiled a new Envoy binary, the
+          # amb-core image contained the old cached binary.
+          value: {{env "AMBASSADOR_LICENSE_KEY_V0"}}
         ports:
           - name: http
             containerPort: 8080
