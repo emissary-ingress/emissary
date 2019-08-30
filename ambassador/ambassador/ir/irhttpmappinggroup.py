@@ -126,7 +126,9 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
                 mismatches.append((k, mapping[k], self.get(k, '-unset-')))
 
         if mismatches:
-            self.post_error("cannot accept new mapping %s with mismatched %s" % (
+            self.post_error("cannot accept new mapping %s with mismatched %s."
+                            "Please verify field is set with the same value in all related mappings."
+                            "Example: When canary is configured, related mappings should have same fields and values" % (
                                 mapping.name,
                                 ", ".join([ "%s: %s != %s" % (x, y, z) for x, y, z in mismatches ])
                             ))
