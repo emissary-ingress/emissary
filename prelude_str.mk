@@ -9,6 +9,7 @@ define NL
 
 
 endef
+export NL
 
 # NOTE: this is not a typo, this is actually how you spell space in Make
 define SPACE

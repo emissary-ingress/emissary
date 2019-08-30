@@ -9,8 +9,8 @@
 ## Outputs ##
 #
 #  String support:
-#  - Variable: NL
-#  - Variable: SPACE
+#  - Variable: export NL
+#  - Variable:        SPACE
 #
 #  Path support:
 #  - Function: path.trimprefix
@@ -70,7 +70,7 @@ joinlist=$(if $(word 2,$2),$(firstword $2)$1$(call joinlist,$1,$(wordlist 2,$(wo
 # Based on
 # https://git.lukeshu.com/autothing/tree/build-aux/Makefile.once.head/00-quote.mk?id=9384e763b00774603208b3d44977ed0e6762a09a
 # but modified to make newlines work with shells other than Bash.
-quote.shell = "$$(printf '%s\n' $(subst $(NL),' ','$(subst ','\'',$1)'))"
+quote.shell = $(subst $(NL),'"$${NL}"','$(subst ','\'',$1)')
 
 # Usage: VAR = $(call lazyonce,VAR,EXPR)
 #
