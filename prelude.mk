@@ -8,6 +8,11 @@
 #  (none)
 ## Outputs ##
 #
+#  Boolean support:
+#  - Variable: TRUE  = T
+#  - Variable: FALSE =
+#  - Function: not
+#
 #  String support:
 #  - Variable: export NL
 #  - Variable:        SPACE
@@ -53,6 +58,7 @@ _prelude.mk := $(lastword $(MAKEFILE_LIST))
 # [GMSL](https://gmsl.sourceforge.io/).  Absolutely nothing in any of
 # the `prelude_*.mk` files is allowed to be eager, so ordering doesn't
 # matter.  Anything eager must go in this main `prelude.mk` file.
+include $(dir $(_prelude.mk))prelude_bool.mk
 include $(dir $(_prelude.mk))prelude_str.mk
 include $(dir $(_prelude.mk))prelude_path.mk
 include $(dir $(_prelude.mk))prelude_go.mk
