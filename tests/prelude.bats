@@ -81,12 +81,15 @@ load common
 }
 
 @test "prelude.mk: FLOCK" {
-	if ! type flock &>/dev/null && ! type go &>/dev/null; then
+	if ! type flock &>/dev/null && ! type go &>/dev/null && [[ -z "$build_aux_expected_FLOCK" ]]; then
 		skip
 	fi
 	check_executable prelude.mk FLOCK
 	if which flock &>/dev/null; then
 		[[ "$FLOCK" == "$(which flock)" ]]
+	fi
+	if [[ -n "$build_aux_expected_FLOCK" ]]; then
+		[[ "$FLOCK" == "$build_aux_expected_FLOCK" ]]
 	fi
 
 	# TODO: Check that $FLOCK behaves correctly

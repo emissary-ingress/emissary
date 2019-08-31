@@ -1,0 +1,52 @@
+version: 2.1
+
+jobs:
+
+  "Ubuntu 16-04 VM":
+    machine:
+      image: "ubuntu-1604:201903-01"
+    steps:
+      - run:
+          name: "Set environment"
+          command: |
+            {
+              echo export build_aux_expected_GOHOSTOS=linux
+              echo export build_aux_expected_GOHOSTARCH=amd64
+              echo export build_aux_expected_FLOCK=/usr/bin/flock
+            } >> "$BASH_ENV"
+      - run: sudo apt update && sudo apt install bats
+
+      - checkout
+      - run: bats tests/
+
+  "macOS 10-13-6 VM":
+    macos:
+      xcode: "10.1.0"
+    steps:
+      - run:
+          name: "Set environment"
+          command: |
+            {
+              echo export build_aux_expected_GOHOSTOS=darwin
+              echo export build_aux_expected_GOHOSTARCH=amd64
+              echo export build_aux_expected_FLOCK=
+            } >> "$BASH_ENV"
+      - restore_cache:
+          name: "Restore brew cache"
+          keys:
+            - brew-{{ arch }}
+      - run: brew install bats
+      - save_cache:
+          name: "Save brew cache"
+          key: brew-{{ arch }}
+          paths:
+            - "/usr/local/Homebrew"
+
+      - checkout
+      - run: bats tests/
+
+workflows:
+  "build-aux Test Suite":
+    jobs:
+      - "Ubuntu 16-04 VM"
+      - "macOS 10-13-6 VM"
