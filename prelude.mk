@@ -37,9 +37,13 @@
 ## common.mk targets ##
 #  - clobber
 #
-# This file on its own does not introduce a dependency on `go`, but
-# calling the `build-aux.bin-go.rule` function introduces a hard
-# dependency Go 1.11.4+.
+# `include`ing this file on its own does not introduce a dependency on
+# `go`, but:
+#   - Calling the `build-aux.bin-go.rule` function introduces a hard
+#     dependency Go 1.11.4+.
+#   - Using the $(FLOCK) executable introduces a hard dependency on Go
+#     1.11+ on systems that don't have a native `flock(1)` program
+#     (macOS).
 ifeq ($(words $(filter $(abspath $(lastword $(MAKEFILE_LIST))),$(abspath $(MAKEFILE_LIST)))),1)
 _prelude.mk := $(lastword $(MAKEFILE_LIST))
 
