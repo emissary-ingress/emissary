@@ -49,6 +49,10 @@
 #  - Function: lazyonce
 #  - .PHONY Target: FORCE
 #
+#  Internal use:
+#  - Variable: _prelude.go.VERSION      (exposed as go-mod.mk:go.goversion)
+#  - Variable: _prelude.go.lock         (exposed as go-mod.mk:go.lock)
+#
 ## common.mk targets ##
 #  - clobber
 #

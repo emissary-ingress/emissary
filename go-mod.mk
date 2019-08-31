@@ -56,7 +56,7 @@ include $(dir $(_go-mod.mk))common.mk
 #
 # Configure the `go` command
 
-go.goversion = $(_prelude.go.goversion)
+go.goversion = $(_prelude.go.VERSION)
 go.lock = $(_prelude.go.lock)
 
 export GO111MODULE = on
