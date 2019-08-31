@@ -16,6 +16,7 @@
 #  String support:
 #  - Variable: export NL
 #  - Variable:        SPACE
+#  - Function: str.eq
 #
 #  Path support:
 #  - Function: path.trimprefix
