@@ -18,6 +18,15 @@
 #  - Variable:        SPACE
 #  - Function: str.eq
 #
+#  Unsigned integer support:
+#  - Function: uint.max
+#  - Function: uint.min
+#  - Function: uint.eq
+#  - Function: uint.ge
+#  - Function: uint.le
+#  - Function: uint.gt
+#  - Function: uint.lt
+#
 #  Path support:
 #  - Function: path.trimprefix
 #  - Function: path.addprefix
@@ -61,6 +70,7 @@ _prelude.mk := $(lastword $(MAKEFILE_LIST))
 # matter.  Anything eager must go in this main `prelude.mk` file.
 include $(dir $(_prelude.mk))prelude_bool.mk
 include $(dir $(_prelude.mk))prelude_str.mk
+include $(dir $(_prelude.mk))prelude_uint.mk
 include $(dir $(_prelude.mk))prelude_path.mk
 include $(dir $(_prelude.mk))prelude_go.mk
 
