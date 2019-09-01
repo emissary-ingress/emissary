@@ -54,9 +54,6 @@ require (
 	gopkg.in/src-d/go-billy.v4 v4.2.1
 	gopkg.in/src-d/go-git.v4 v4.8.1
 	gopkg.in/yaml.v2 v2.2.2
-	k8s.io/api v0.0.0-20190111032252-67edc246be36
-	k8s.io/apimachinery v0.0.0-20190119020841-d41becfba9ee
-	k8s.io/client-go v10.0.0+incompatible
 )
 
 replace github.com/lyft/ratelimit v1.3.0 => ./vendor-ratelimit
@@ -64,25 +61,6 @@ replace github.com/lyft/ratelimit v1.3.0 => ./vendor-ratelimit
 replace github.com/datawire/ambassador => ./ambassador
 
 replace github.com/tsenart/vegeta => github.com/datawire/vegeta v12.2.2-0.20190408190644-d94b721fc676+incompatible
-
-// Lock the k8s.io dependencies together to the same version.
-//
-// The "v0.0.0-2019…" versions are the tag "kubernetes-1.13.4", but
-// `go build` (in its infinite wisdom) wants to edit the file to not
-// be useful to humans.  <https://github.com/golang/go/issues/27271>
-// <https://github.com/golang/go/issues/25898>
-//
-// client-go v10 is the version corresponding to Kubernetes 1.13.
-// These 4 packages should all be upgraded together (for example,
-// client-go v10 won't build with the other packages using
-// v1.14.0-alpha versions
-// <https://github.com/kubernetes/client-go/issues/551>)
-replace (
-	k8s.io/api => k8s.io/api v0.0.0-20190222213804-5cb15d344471
-	k8s.io/apimachinery => k8s.io/apimachinery v0.0.0-20190221213512-86fb29eff628
-	k8s.io/cli-runtime => k8s.io/cli-runtime v0.0.0-20190228180923-a9e421a79326
-	k8s.io/client-go => k8s.io/client-go v10.0.0+incompatible
-)
 
 // Stupid hack for dependencies that both (1) erroneously include
 // golint in their go.sum, and (2) erroneously refer to it as
