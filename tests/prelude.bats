@@ -32,6 +32,9 @@ load common
 }
 
 @test "prelude.mk: lazyonce" {
+	if [[ "$(make --version | head -n1)" == 'GNU Make 3.81' ]]; then
+		skip
+	fi
 	cat >>Makefile <<-'__EOT__'
 		include build-aux/prelude.mk
 		var = $(call lazyonce,var,$(info eval-time)value)

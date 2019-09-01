@@ -76,7 +76,21 @@ quote.shell = $(subst $(NL),'"$${NL}"','$(subst ','\'',$1)')
 #
 # Caches the value of EXPR (in case it's expensive/slow) once it is
 # evaluated, but doesn't eager-evaluate it either.
-lazyonce = $(eval $(strip $1) := $2)$($(strip $1))
+lazyonce = $(eval $(strip $1) := $2)$2
+_lazyonce.disabled = $(FALSE)
+
+ifeq ($(MAKE_VERSION),3.81)
+  define _lazyonce.print_warning
+    $(warning The 'lazyonce' function is known to trigger a memory corruption bug in GNU Make 3.81)
+    $(warning Disabling the 'lazyonce' function; upgrade your copy of GNU Make for faster builds)
+    $(eval _lazyonce.need_warning = $(FALSE))
+  endef
+  _lazyonce.need_warning = $(TRUE)
+  # The second $(if) is just so that the evaluated result output of
+  # _lazyonce.print_warning isn't part of the returned value.
+  lazyonce = $(if $(_lazyonce.need_warning),$(if $(_lazyonce.print_warning),))$2
+  _lazyonce.disabled = $(TRUE)
+endif
 
 #
 # Variable constants
