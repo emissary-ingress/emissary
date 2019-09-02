@@ -1,5 +1,49 @@
 # @TEMPLATE@
 
+######################################################################
+# Create a ClusterRole+ClusterRoleBinding+ServiceAccount for
+# ambassador-pro that has access to the CRDs that we will create for
+# it below
+#
+# NB: ClusterRoles and ClusterRoleBindings are not namespaced
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRole
+metadata:
+  name: ambassador-pro-standalone
+rules:
+- apiGroups: ["getambassador.io"]
+  resources:
+  - filters
+  - filterpolicies
+  - ratelimits
+  verbs: ["get", "list", "watch"]
+- apiGroups: [""]
+  resources:
+  - secrets
+  verbs: ["get", "list", "watch", "create"]
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: ambassador-pro
+  namespace: standalone
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: ambassador-pro-standalone
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: ambassador-pro-standalone
+subjects:
+- kind: ServiceAccount
+  name: ambassador-pro
+  namespace: standalone
+
+
+
 ---
 apiVersion: getambassador.io/v1beta2
 kind: FilterPolicy
