@@ -18,11 +18,11 @@ type AccessTokenType struct {
 	SpecificationDocuments            []string
 
 	// Implementation
-	NeedsBody                       bool // Whether AuthorizationForResourceRequest needs the resource request body
+	NeedsBody                       bool // Whether AuthorizationForResourceRequest needs the resource-request body
 	AuthorizationForResourceRequest func(token string, body io.Reader) (http.Header, error)
 }
 
-// RegisterAccessTokenType registers an Access Token Type with the Client such that the Client can
+// registerAccessTokenType registers an Access Token Type with the Client such that the Client can
 // make use of tokens of that type.
 //
 // It is a runtime error (panic) to register the same type name multiple times.

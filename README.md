@@ -13,9 +13,40 @@ Additionally, the APIs are designed to cleanly distinguish between
 which things are meant to be used by the Authorization Server, the
 Client, or the Resource Server.
 
-# Package listing
 
-## Primary specifications
+### Client overview
+
+Set up:
+
+ 1. Create a new Client object with `client := rfc6749.New{FLOW}Client()` where
+    `{FLOW}` is the appropriate client type for your application.  (See RFC 6749
+    for a discussion of client types).
+ 2. Add desired protocol extensions from other packages to the client with
+    `client.RegisterProtocolExtensions(...)`.
+
+Use:
+
+ 1. Obtain a Session object by complete the authorization flow for the specific
+    Client type; see the docs for the
+    `github.com/datawire/liboauth2/client/rfc6749` package.
+ 2. Inject the headers from `client.AuthorizationForResourceRequest(session)` in
+    to any requests you make to the resource server.
+
+### Resource Server overview
+
+The OAuth 2.0 specification itself (RFC 6749) provides very little useful
+information for resource servers, which is a shame.
+
+Resource servers will likely want to extract RFC 6750 Bearer tokens from the
+HTTP header (`rfc6750.GetFromHeader()`) and validate that token as a JWT.
+
+### Authorization Server overview
+
+Authorization server functionality is not implemented at this time.
+
+## Package listing
+
+### Primary specifications
 
 | Specification | Name                    | Client package                                  | Resource Server package                                | Authorization Server package |
 |---------------|-------------------------|-------------------------------------------------|--------------------------------------------------------|------------------------------|
@@ -23,12 +54,12 @@ Client, or the Resource Server.
 | RFC 6750      | OAuth 2.0 Bearer tokens | `github.com/datawire/liboauth2/client/rfc6750`  | `github.com/datawire/liboauth2/resourceserver/rfc6750` | N/A                          |
 | OIDC Core     | OIDC Core               | `github.com/datawire/liboauth2/client/oidccore` | not implemented                                        | not implemented              |
 
-## Dependency specifications
+### Dependency specifications
 
 This should include all normative references of the primary
 specifications.
 
-### RFC 6749
+#### RFC 6749
 | Specification                                                    | Name                                          | Package                              | Referenced by                                                       |
 |------------------------------------------------------------------|-----------------------------------------------|--------------------------------------|---------------------------------------------------------------------|
 | RFC 2119                                                         | Key words for RFCs                            | N/A                                  | RFC 6749                                                            |
@@ -59,7 +90,7 @@ specifications.
 | [W3C.REC-html52-20171214][] (application/x-www-form-urlencoded)  | HTML 5.2 (application/x-www-form-urlencoded)  | defers to WHATWG.URL                 | RFC 6749 (via W3C.REC-html401-19991224)                             |
 | [WHATWG.URL][]                                                   | URL                                           | `net/url`                            | RFC 6749 (via W3C.REC-html52-20171214 via W3C.REC-html401-19991224) |
 
-### RFC 6750
+#### RFC 6750
 | Specification                                                    | Name                                          | Package                              | Referenced by                                                       |
 |------------------------------------------------------------------|-----------------------------------------------|--------------------------------------|---------------------------------------------------------------------|
 | RFC 2119                                                         | Key words for RFCs                            | N/A                                  | RFC 6750                                                            |
