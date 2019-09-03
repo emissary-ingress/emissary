@@ -1,13 +1,14 @@
 from typing import Any, Dict, List, Optional
 
-import sys
 import os
 import time
+
+import pytest
 
 import pexpect
 import requests
 
-DockerImage = os.environ["AMBASSADOR_DOCKER_IMAGE"]
+DockerImage = os.environ.get("AMBASSADOR_DOCKER_IMAGE", None)
 child = None    # see docker_start()
 
 SEQUENCES = [
@@ -197,6 +198,9 @@ def check_chimes(logfile) -> bool:
     return result
 
 def test_scout():
+    if not DockerImage:
+        pytest.fail('no DockerImage')
+
     test_status = False
 
     with open('/tmp/test_scout_output', 'w') as logfile:

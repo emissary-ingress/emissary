@@ -1,10 +1,12 @@
-import sys
 import os
+
+import pytest
 
 import pexpect
 import requests
 
-DockerImage = os.environ["AMBASSADOR_DOCKER_IMAGE"]
+DockerImage = os.environ.get("AMBASSADOR_DOCKER_IMAGE", None)
+
 child = None    # see docker_start()
 
 def docker_start(logfile) -> bool:
@@ -51,6 +53,9 @@ def check_http(logfile) -> bool:
         return False
 
 def test_docker():
+    if not DockerImage:
+        pytest.fail('no DockerImage')
+
     test_status = False
 
     with open('/tmp/test_docker_output', 'w') as logfile:
