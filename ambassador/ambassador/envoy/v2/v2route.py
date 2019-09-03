@@ -125,12 +125,16 @@ class V2Route(dict):
         cors = None
 
         if "cors" in group:
-            cors = group.cors.as_dict()
+            cors = group.cors
         elif "cors" in config.ir.ambassador_module:
-            cors = config.ir.ambassador_module.cors.as_dict()
+            cors = config.ir.ambassador_module.cors
 
         if cors:
-            route['cors'] = cors
+            # Duplicate this IRCORS, then set its group ID correctly.
+            cors = cors.dup()
+            cors.set_id(group.group_id)
+
+            route['cors'] = cors.as_dict()
 
         retry_policy = None
 
