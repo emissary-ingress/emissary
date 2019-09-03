@@ -91,7 +91,10 @@ class Resource (dict):
         return self._referenced_by.get(other_location, None)
 
     def __getattr__(self, key: str) -> Any:
-        return self[key]
+        try:
+            return self[key]
+        except KeyError:
+            raise AttributeError(key)
 
     def __setattr__(self, key: str, value: Any) -> None:
         self[key] = value
