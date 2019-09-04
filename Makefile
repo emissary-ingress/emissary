@@ -471,6 +471,8 @@ clean: $(addsuffix .clean,$(wildcard docker/*.docker)) loadtest-clean
 # Files made by older versions.  Remove the tail of this list when the
 # commit making the change gets far enough in to the past.
 #
+# 2019-09-04
+	rm -rf docker/apro-internal-access/apro-internal-access
 # 2019-08-29
 	rm -rf ambassador-nolicense ambassador-withlicense
 # 2019-08-14
