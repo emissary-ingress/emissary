@@ -11,7 +11,7 @@ import (
 	"github.com/Jeffail/gabs"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/datawire/apro/cmd/apro-internal-access/secret"
+	"github.com/datawire/apro/cmd/amb-sidecar/internal-access/secret"
 	"github.com/datawire/apro/cmd/dev-portal-server/kubernetes"
 	"github.com/datawire/apro/lib/util"
 )

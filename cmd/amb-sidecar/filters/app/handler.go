@@ -14,6 +14,7 @@ import (
 
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta2"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/app/externalhandler"
+	"github.com/datawire/apro/cmd/amb-sidecar/filters/app/internalhandler"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/app/jwthandler"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/app/middleware"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/app/oauth2handler"
@@ -152,6 +153,10 @@ func (c *FilterMux) filter(ctx context.Context, request *filterapi.FilterRequest
 		case crd.FilterExternal:
 			filterImpl = &externalhandler.ExternalFilter{
 				Spec: filterCRD,
+			}
+		case crd.FilterInternal:
+			filterImpl = &internalhandler.InternalFilter{
+				Secret: "TODO",
 			}
 		default:
 			panic(errors.Errorf("unexpected filter type %T", filterCRD))

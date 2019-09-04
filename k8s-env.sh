@@ -5,7 +5,6 @@ AMBASSADOR_IMAGE=$(                  sed -n 2p ambassador-withlicense/ambassador
 AMB_SIDECAR_IMAGE=$(                 sed -n 2p docker/model-cluster-amb-sidecar-plugins.docker.push.cluster) # XXX: not releasable because plugins
 CONSUL_CONNECT_INTEGRATION_IMAGE=$(  sed -n 2p docker/consul_connect_integration.docker.push.cluster)
 DEV_PORTAL_IMAGE=$(                  sed -n 2p docker/dev-portal-server.docker.push.cluster)
-INTERNAL_ACCESS_IMAGE=$(             sed -n 2p docker/apro-internal-access.docker.push.cluster)
 PROXY_IMAGE=$(                       sed -n 2p docker/traffic-proxy.docker.push.cluster)
 SIDECAR_IMAGE=$(                     sed -n 2p docker/app-sidecar.docker.push.cluster)
 

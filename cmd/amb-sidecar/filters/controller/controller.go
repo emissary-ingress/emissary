@@ -67,12 +67,13 @@ func (c *Controller) Watch(ctx context.Context, kubeinfo *k8s.KubeInfo) error {
 				continue
 			}
 
-			if countTrue(spec.OAuth2 != nil, spec.Plugin != nil, spec.JWT != nil, spec.External != nil) != 1 {
+			if countTrue(spec.OAuth2 != nil, spec.Plugin != nil, spec.JWT != nil, spec.External != nil, spec.Internal != nil) != 1 {
 				c.Logger.Errorf("filter resource: must specify exactly 1 of: %v", []string{
 					"OAuth2",
 					"Plugin",
 					"JWT",
 					"External",
+					"Internal",
 				})
 				continue
 			}
@@ -109,7 +110,9 @@ func (c *Controller) Watch(ctx context.Context, kubeinfo *k8s.KubeInfo) error {
 				}
 
 				c.Logger.Infoln("loading filter external=%s", spec.External.AuthService)
-				filters[mw.QName()] = *spec.External
+			case spec.Internal != nil:
+				c.Logger.Infoln("loading filter internal")
+				filters[mw.QName()] = *spec.Internal
 			default:
 				panic("should not happen")
 			}

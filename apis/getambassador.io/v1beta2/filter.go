@@ -6,4 +6,5 @@ type FilterSpec struct {
 	Plugin       *FilterPlugin   `json:",omitempty"`
 	JWT          *FilterJWT      `json:",omitempty"`
 	External     *FilterExternal `json:",omitempty"`
+	Internal     *FilterInternal `json:",omitempty"`
 }

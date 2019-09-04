@@ -92,6 +92,26 @@ spec:
     port: 80
     targetPort: http
 ---
+apiVersion: getambassador.io/v1beta2
+kind: FilterPolicy
+metadata:
+  name: apro-internal-access-control
+  namespace: standalone
+spec:
+  rules:
+    - host: "*"
+      path: "*/.ambassador-internal/*"
+      filters:
+        - name: apro-internal-access-control
+---
+apiVersion: getambassador.io/v1beta2
+kind: Filter
+metadata:
+  name: apro-internal-access-control
+  namespace: standalone
+spec:
+  Internal: {}
+---
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
