@@ -33,16 +33,6 @@ This will build a kat-backend container. TAG needs to be manually updated. For p
 $ make backend
 ```
 
-## XDS
-
-It has the Envoy api proto definitions used for implementing the gRPC-auth service. For build the `.pb` files:
-
-```
-$ make xds
-```
-
-It will build and place all the Envoy api generated files into `xds/envoy` folder.
-
 ## Sandbox
 It has all simple docker-compose files that allows building and serve Envoy proxy and the gRPC-Web, gRPC-Auth as well as the HTTP backend services. This let the developer try different configuration and client/server implementations without the need of spinning up a cluster, Ambassador and Kat tests. How does it work:
 

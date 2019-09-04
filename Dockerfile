@@ -14,7 +14,6 @@ COPY go.sum go.sum
 COPY server.go server.go
 COPY echo/ echo/
 COPY services/ services/
-COPY xds/ xds/
 
 RUN go build -o bin/kat-server
 

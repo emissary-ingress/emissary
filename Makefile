@@ -1,6 +1,6 @@
-TAG=v1.5.0
+TAG=v1.5.1
 
-all: xds echo backend client
+all: echo backend client
 
 .PHONY: backend 
 
@@ -13,20 +13,6 @@ backend.build:
 backend.push:
 	@echo " ---> pushing kat-backend image"
 	@docker push quay.io/datawire/kat-backend:${TAG}
-
-
-.PHONY: xds 
-
-xds: xds.clean xds.generate 
-
-xds.clean:
-	@echo " ---> deleting generated XDS code"
-	rm -rf xds/envoy && mkdir xds/envoy
-
-xds.generate:	
-	@echo " ---> generating Envoy XDS code"
-	@docker build -f ${PWD}/xds/Dockerfile -t envoy-api-build .
-	@docker run -it -v ${PWD}/xds/envoy:/envoy envoy-api-build:latest
 
 
 .PHONY: echo 
