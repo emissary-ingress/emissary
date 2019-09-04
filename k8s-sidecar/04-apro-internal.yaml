@@ -5,7 +5,7 @@ apiVersion: getambassador.io/v1beta2
 kind: FilterPolicy
 metadata:
   name: internal-access-control
-  namespace: standalone
+  namespace: default
 spec:
   rules:
     - host: "*"
@@ -18,7 +18,7 @@ apiVersion: getambassador.io/v1beta2
 kind: Filter
 metadata:
   name: internal-access-control
-  namespace: standalone
+  namespace: default
 spec:
   External:
     auth_service: "internal-access-control:5000"
@@ -33,7 +33,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: internal-access-control
-  namespace: standalone
+  namespace: default
 spec:
   type: ClusterIP
   selector:
@@ -48,7 +48,7 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: internal-access-control
-  namespace: standalone
+  namespace: default
   annotations:
     kubernetes.io/service-account.name: ambassador-pro
 type: kubernetes.io/service-account-token
@@ -58,7 +58,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: internal-access-control
-  namespace: standalone
+  namespace: default
 spec:
   replicas: 1
   selector:
