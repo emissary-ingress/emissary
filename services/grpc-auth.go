@@ -13,9 +13,10 @@ import (
 	"strconv"
 	"strings"
 
-	core "github.com/datawire/kat-backend/xds/envoy/api/v2/core"
-	pb "github.com/datawire/kat-backend/xds/envoy/service/auth/v2alpha"
-	envoy_type "github.com/datawire/kat-backend/xds/envoy/type"
+	core "github.com/datawire/ambassador/go/apis/envoy/api/v2/core"
+	pb_legacy "github.com/datawire/ambassador/go/apis/envoy/service/auth/v2alpha"
+	pb "github.com/datawire/ambassador/go/apis/envoy/service/auth/v2"
+	envoy_type "github.com/datawire/ambassador/go/apis/envoy/type"
 
 	"github.com/gogo/googleapis/google/rpc"
 	gogo_type "github.com/gogo/protobuf/types"
@@ -48,7 +49,7 @@ func (g *GRPCAUTH) Start() <-chan bool {
 		}
 
 		s := grpc.NewServer()
-		pb.RegisterAuthorizationServer(s, g)
+		pb_legacy.RegisterAuthorizationServer(s, g)
 		s.Serve(ln)
 
 		defer ln.Close()
@@ -71,7 +72,7 @@ func (g *GRPCAUTH) Start() <-chan bool {
 		}
 
 		s := grpc.NewServer()
-		pb.RegisterAuthorizationServer(s, g)
+		pb_legacy.RegisterAuthorizationServer(s, g)
 		s.Serve(ln)
 
 		defer ln.Close()
@@ -87,7 +88,7 @@ func (g *GRPCAUTH) Check(ctx context.Context, r *pb.CheckRequest) (*pb.CheckResp
 	rs := &Response{}
 
 	rheader := r.GetAttributes().GetRequest().GetHttp().GetHeaders()
-	rbody := r.GetAttributes().GetRequest().GetHttp().GetBody().String()
+	rbody := r.GetAttributes().GetRequest().GetHttp().GetBody()
 	if len(rbody) > 0 {
 		rheader["body"] = rbody
 	}
