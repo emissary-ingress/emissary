@@ -3,6 +3,7 @@ package rfc6749
 import (
 	"io"
 	"net/http"
+	"net/url"
 	"time"
 )
 
@@ -46,8 +47,40 @@ func authorizationForResourceRequest(
 		return nil, &UnsupportedTokenTypeError{session.currentAccessToken().TokenType}
 	}
 	var body io.Reader
-	if typeDriver.NeedsBody {
+	if typeDriver.AuthorizationNeedsBody {
 		body = getBody()
 	}
 	return typeDriver.AuthorizationForResourceRequest(session.currentAccessToken().AccessToken, body)
+}
+
+// errorFromResourceResponse inspects a Resource Access Response from a Resource Server, and checks
+// for a Token-Type-specific error response format, per §7.2.
+//
+// The authorization flow must have been completed in order to know what Token Type to look for; if
+// the authorization flow has not been completed, then ErrNoAccessToken is returned.  If the Access
+// Token Type is unsupported (i.e. it has not been registered with the Client through
+// .RegisterProtocolExtensions()), then an error of type *UnsupportedTokenTypeError is returned.
+// Other error indicate that there was an error inspecting the response.
+func errorFromResourceResponse(
+	registry *extensionRegistry,
+	session clientSessionData,
+	response *http.Response,
+) (ResourceAccessErrorResponse, error) {
+	if session.currentAccessToken() == nil {
+		return nil, ErrNoAccessToken
+	}
+	typeDriver, typeDriverOK := registry.getAccessTokenType(session.currentAccessToken().TokenType)
+	if !typeDriverOK {
+		return nil, &UnsupportedTokenTypeError{session.currentAccessToken().TokenType}
+	}
+	return typeDriver.ErrorFromResourceResponse(response)
+}
+
+// ResourceAccessErrorResponse is an interface that is implemented by Token-Type-specific error
+// responses; per §7.2.
+type ResourceAccessErrorResponse interface {
+	error
+	ErrorCode() string        // SHOULD
+	ErrorDescription() string // MAY
+	ErrorURI() *url.URL       // MAY
 }

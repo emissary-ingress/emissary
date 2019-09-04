@@ -34,7 +34,7 @@ var OAuthProtocolExtension = rfc6749.ProtocolExtension{
 			ChangeController:                  "IETF",
 			SpecificationDocuments:            []string{"RFC 6750"},
 
-			NeedsBody: false,
+			AuthorizationNeedsBody: false,
 			AuthorizationForResourceRequest: func(token string, _ io.Reader) (http.Header, error) {
 				ret := make(http.Header)
 				AddToHeader(token, ret)

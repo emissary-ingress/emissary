@@ -17,7 +17,8 @@
 // method to initiate the authorization flow, which will return a struct containing session data.
 // Once the authorization flow has been completed (which may be a multi-step process, depending on
 // the client-type), individual requests to the Resource Server can be authorized by calling
-// `.AuthorizationForResourceRequest()`:
+// `.AuthorizationForResourceRequest()`, and responses from the Resource Server can be checked for
+// authorization errors with `.ErrorFromResourceResponse()`:
 //
 //   Note: These are pseudo-code examples, to illustrate the high-level flow for
 //   each client type.  The full function signatures are not reflected in what
@@ -31,7 +32,9 @@
 //         authcode := client.ParseAuthorizationResponse(session, response)
 //         client.AccessToken(session, authcode)
 //         // authorization flow is now completed
-//         client.AuthorizationForResourceRequest(session)
+//         authorization := client.AuthorizationForResourceRequest(session)
+//         response := do(resourceRequest(authorization))
+//         err := client.ErrorFromResourceResponse(response)
 //
 //     client := NewImplicitClient()
 //         client.RegisterProtocolExtensions(ext1, ext2)
@@ -40,19 +43,25 @@
 //         response := do(request)
 //         client.ParseAccessTokenResponse(session, response)
 //         // authorization flow is now completed
-//         client.AuthorizationForResourceRequest(session)
+//         authorization := client.AuthorizationForResourceRequest(session)
+//         response := do(resourceRequest(authorization))
+//         err := client.ErrorFromResourceResponse(response)
 //
 //     client := NewResourceOwnerPAsswordCredentialsClient()
 //         client.RegisterProtocolExtensions(ext1, ext2)
 //         // client is now initialized
 //         session := client.AuthorizationRequest()
 //         // authorization flow is now completed
-//         client.AuthorizationForResourceRequest(session)
+//         authorization := client.AuthorizationForResourceRequest(session)
+//         response := do(resourceRequest(authorization))
+//         err := client.ErrorFromResourceResponse(response)
 //
 //     client := NewClientCredentialsClient()
 //         client.RegisterProtocolExtensions(ext1, ext2)
 //         // client is now initialized
 //         session := client.AuthorizationRequest()
 //         // authorization flow is now completed
-//         client.AuthorizationForResourceRequest(session)
+//         authorization := client.AuthorizationForResourceRequest(session)
+//         response := do(resourceRequest(authorization))
+//         err := client.ErrorFromResourceResponse(response)
 package rfc6749

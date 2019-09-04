@@ -24,3 +24,18 @@ func (client *AuthorizationCodeClient) AuthorizationForResourceRequest(
 ) (http.Header, error) {
 	return authorizationForResourceRequest(&client.extensionRegistry, &client.explicitClient, session, getBody)
 }
+
+// ErrorFromResourceResponse inspects a Resource Access Response from a Resource Server, and checks
+// for a Token-Type-specific error response format, per §7.2.
+//
+// The authorization flow must have been completed in order to know what Token Type to look for; if
+// the authorization flow has not been completed, then ErrNoAccessToken is returned.  If the Access
+// Token Type is unsupported (i.e. it has not been registered with the Client through
+// .RegisterProtocolExtensions()), then an error of type *UnsupportedTokenTypeError is returned.
+// Other error indicate that there was an error inspecting the response.
+func (client *AuthorizationCodeClient) ErrorFromResourceResponse(
+	session *AuthorizationCodeClientSessionData,
+	response *http.Response,
+) (ResourceAccessErrorResponse, error) {
+	return errorFromResourceResponse(&client.extensionRegistry, session, response)
+}
