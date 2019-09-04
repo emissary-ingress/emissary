@@ -3,8 +3,6 @@ from typing import Any, Dict, List, Optional
 import os
 import time
 
-import pytest
-
 import pexpect
 import requests
 

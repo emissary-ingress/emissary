@@ -1,7 +1,5 @@
 import os
 
-import pytest
-
 import pexpect
 import requests
 
