@@ -100,7 +100,7 @@ spec:
             - name: devportal-ui
               containerPort: 8680
           volumeMounts:
-            - name: ambassador-auth-secret
+            - name: ambassador-auth-secret-standalone-05
               mountPath: /etc/apro-internal-access
               readOnly: true
           livenessProbe:
@@ -117,7 +117,7 @@ spec:
             periodSeconds: 3
       restartPolicy: Always
       volumes:
-        - name: ambassador-auth-secret
+        - name: ambassador-auth-secret-standalone-05
           secret:
             secretName: internal-access-control
             items:

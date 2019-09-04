@@ -533,12 +533,12 @@ spec:
         - name: DIAGD_URL
           value: "http://ambassador-admin.standalone:8877"
         volumeMounts:
-          - name: ambassador-auth-secret
+          - name: ambassador-auth-secret-sidecar-03
             mountPath: /etc/apro-internal-access
             readOnly: true
       restartPolicy: Always
       volumes:
-        - name: ambassador-auth-secret
+        - name: ambassador-auth-secret-sidecar-03
           secret:
             secretName: internal-access-control
             items:

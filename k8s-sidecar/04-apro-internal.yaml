@@ -80,14 +80,14 @@ spec:
             - name: http-api
               containerPort: 5000
           volumeMounts:
-            - name: ambassador-auth-secret
+            - name: ambassador-auth-secret-sidecar-04
               mountPath: /etc/apro-internal-access
               readOnly: true
           resources:
             limits:
               memory: 100Mi
       volumes:
-        - name: ambassador-auth-secret
+        - name: ambassador-auth-secret-sidecar-04
           secret:
             secretName: internal-access-control
             items:
