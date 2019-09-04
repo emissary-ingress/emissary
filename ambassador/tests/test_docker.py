@@ -53,9 +53,6 @@ def check_http(logfile) -> bool:
         return False
 
 def test_docker():
-    if not DockerImage:
-        pytest.fail('no DockerImage')
-
     test_status = False
 
     with open('/tmp/test_docker_output', 'w') as logfile:

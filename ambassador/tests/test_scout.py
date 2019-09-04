@@ -198,9 +198,6 @@ def check_chimes(logfile) -> bool:
     return result
 
 def test_scout():
-    if not DockerImage:
-        pytest.fail('no DockerImage')
-
     test_status = False
 
     with open('/tmp/test_scout_output', 'w') as logfile:
