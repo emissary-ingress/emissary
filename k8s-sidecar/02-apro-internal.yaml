@@ -50,7 +50,7 @@ metadata:
   name: internal-access-control-sidecar
   namespace: default
   annotations:
-    kubernetes.io/service-account.name: ambassador-pro
+    kubernetes.io/service-account.name: ambassador
 type: kubernetes.io/service-account-token
 
 ---
