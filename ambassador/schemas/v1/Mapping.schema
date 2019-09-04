@@ -140,7 +140,7 @@
             "properties": {
                 "policy":  {
                     "type": "string",
-                    "enum": ["round_robin", "ring_hash", "maglev"]
+                    "enum": ["round_robin", "ring_hash", "maglev", "least_request"]
                 },
                 "cookie":  {
                     "type": "object",

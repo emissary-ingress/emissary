@@ -153,7 +153,7 @@ class IRCluster (IRResource):
 
             service = service[idx + 3:]
 
-        # XXX Should this be checking originate_tls? Why does it do that? 
+        # XXX Should this be checking originate_tls? Why does it do that?
         if originate_tls and host_rewrite:
             name_fields.append("hr-%s" % host_rewrite)
 
@@ -325,7 +325,7 @@ class IRCluster (IRResource):
         if load_balancer:
             lb_policy = load_balancer.get('policy')
 
-            if lb_policy in ['round_robin', 'ring_hash', 'maglev']:
+            if lb_policy in ['round_robin', 'least_request', 'ring_hash', 'maglev']:
                 self.logger.debug("Endpoints are required for load balancing policy {}".format(lb_policy))
                 required = True
 
