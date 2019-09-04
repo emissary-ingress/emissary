@@ -1,10 +1,10 @@
-import sys
 import os
 
 import pexpect
 import requests
 
-DockerImage = os.environ["AMBASSADOR_DOCKER_IMAGE"]
+DockerImage = os.environ.get("AMBASSADOR_DOCKER_IMAGE", None)
+
 child = None    # see docker_start()
 
 def docker_start(logfile) -> bool:

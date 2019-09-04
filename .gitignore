@@ -14,6 +14,9 @@ VERSION.py
 .mypy_cache
 cluster.yaml
 watt
+kubestatus
+kat_client
+teleproxy
 kat/kat/client
 
 *.docker

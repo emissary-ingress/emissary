@@ -127,8 +127,8 @@ else
     copy_if_present '/tmp/kat-events-*' "$tmpdir"
     copy_if_present '/tmp/kat-client*' "$tmpdir"
 
-    cp /tmp/teleproxy.log "$tmpdir"
-    cp /etc/resolv.conf "$tmpdir"
+    copy_if_present '/tmp/teleproxy.log' "$tmpdir"
+    copy_if_present '/etc/resolv.conf' "$tmpdir"
 
     mv "$tmpdir" "$outdir"
 

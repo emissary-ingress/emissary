@@ -1,13 +1,12 @@
 from typing import Any, Dict, List, Optional
 
-import sys
 import os
 import time
 
 import pexpect
 import requests
 
-DockerImage = os.environ["AMBASSADOR_DOCKER_IMAGE"]
+DockerImage = os.environ.get("AMBASSADOR_DOCKER_IMAGE", None)
 child = None    # see docker_start()
 
 SEQUENCES = [

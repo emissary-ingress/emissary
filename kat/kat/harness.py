@@ -38,33 +38,60 @@ def kube_version_json():
     return json.loads(stdout)
 
 
-def kube_server_version():
-    version_json = kube_version_json()
-    server_json = version_json['serverVersion']
-    return f"{server_json['major']}.{server_json['minor']}"
+def kube_server_version(version_json=None):
+    if not version_json:
+        version_json = kube_version_json()
+
+    server_json = version_json.get('serverVersion', {})
+
+    if server_json:
+        server_major = server_json.get('major', None)
+        server_minor = server_json.get('minor', None)
+
+        return f"{server_major}.{server_minor}"
+    else:
+        return None
 
 
-def kube_client_version():
-    version_json = kube_version_json()
-    client_json = version_json['clientVersion']
-    return f"{client_json['major']}.{client_json['minor']}"
+def kube_client_version(version_json=None):
+    if not version_json:
+        version_json = kube_version_json()
+
+    client_json = version_json.get('clientVersion', {})
+
+    if client_json:
+        client_major = client_json.get('major', None)
+        client_minor = client_json.get('minor', None)
+
+        return f"{client_major}.{client_minor}"
+    else:
+        return None
 
 
 def is_knative():
     is_cluster_compatible = True
-    server_version = kube_server_version()
-    client_version = kube_client_version()
-    if version.parse(server_version) < version.parse('1.11'):
-        print(f"server version {server_version} is incompatible with Knative")
-        is_cluster_compatible = False
-    else:
-        print(f"server version {server_version} is compatible with Knative")
+    kube_json = kube_version_json()
 
-    if version.parse(client_version) < version.parse('1.10'):
-        print(f"client version {client_version} is incompatible with Knative")
-        is_cluster_compatible = False
+    server_version = kube_server_version(kube_json)
+    client_version = kube_client_version(kube_json)
+
+    if server_version:
+        if version.parse(server_version) < version.parse('1.11'):
+            print(f"server version {server_version} is incompatible with Knative")
+            is_cluster_compatible = False
+        else:
+            print(f"server version {server_version} is compatible with Knative")
     else:
-        print(f"client version {client_version} is compatible with Knative")
+        print("could not determine Kubernetes server version?")
+
+    if client_version:
+        if version.parse(client_version) < version.parse('1.10'):
+            print(f"client version {client_version} is incompatible with Knative")
+            is_cluster_compatible = False
+        else:
+            print(f"client version {client_version} is compatible with Knative")
+    else:
+        print("could not determine Kubernetes client version?")
 
     return is_cluster_compatible
 
