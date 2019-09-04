@@ -21,7 +21,10 @@ func (c Challenge) String() string {
 }
 
 // ParseChallenge parses a string containing a Challenge, as defined by §2.1.
-func ParseChallenge(str string) (*Challenge, error) {
+//
+// If an auth-scheme is parsed, then the returned Challenge will have AuthScheme set, even if there
+// is an error parsing the remainder and an error is returned.
+func ParseChallenge(str string) (Challenge, error) {
 	// ABNF:
 	//     challenge      = auth-scheme [ 1*SP ( token68 / [ ( "," / auth-param ) *( OWS "," [ OWS auth-param ] ) ] ) ]
 	//     token68        = 1*( ALPHA / DIGIT / "-" / "." / "_" / "~" / "+" / "/" ) *"="
@@ -37,10 +40,10 @@ func ParseChallenge(str string) (*Challenge, error) {
 	bodyStr := strings.TrimLeft(str[sp:], " ")
 
 	if !rfc7230.IsValidToken(authScheme) {
-		return nil, errors.Errorf("invalid challenge: invalid auth-scheme: %q", authScheme)
+		return Challenge{}, errors.Errorf("invalid challenge: invalid auth-scheme: %q", authScheme)
 	}
 
-	ret := &Challenge{
+	ret := Challenge{
 		AuthScheme: authScheme,
 	}
 
@@ -62,7 +65,7 @@ func ParseChallenge(str string) (*Challenge, error) {
 			} else {
 				param, bodyStr, err = ScanAuthParam(bodyStr)
 				if err != nil {
-					return nil, errors.Wrap(err, "invalid challenge")
+					return ret, errors.Wrap(err, "invalid challenge")
 				}
 				bodyList = append(bodyList, param)
 			}
@@ -71,16 +74,16 @@ func ParseChallenge(str string) (*Challenge, error) {
 				// ABNF: OWS ","
 				bodyStr = strings.TrimLeft(bodyStr, " \t")
 				if len(bodyStr) == 0 {
-					return nil, errors.New("invalid challenge: expected a ',' bug got EOF")
+					return ret, errors.New("invalid challenge: expected a ',' bug got EOF")
 				} else if bodyStr[0] != ',' {
-					return nil, errors.Errorf("invalid challenge: expected a ',' bug got %#v", bodyStr[0])
+					return ret, errors.Errorf("invalid challenge: expected a ',' bug got %#v", bodyStr[0])
 				}
 				bodyStr = bodyStr[1:]
 				// ABNF: [ OWS auth-param ]
 				if len(strings.TrimLeft(bodyStr, " \t")) > 0 {
 					param, bodyStr, err = ScanAuthParam(strings.TrimLeft(bodyStr, " \t"))
 					if err != nil {
-						return nil, errors.Wrap(err, "invalid challenge")
+						return ret, errors.Wrap(err, "invalid challenge")
 					}
 					bodyList = append(bodyList, param)
 				}
