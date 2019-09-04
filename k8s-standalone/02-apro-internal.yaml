@@ -91,7 +91,7 @@ spec:
 apiVersion: v1
 kind: Secret
 metadata:
-  name: internal-access-control
+  name: internal-access-control-standalone
   namespace: standalone
   annotations:
     kubernetes.io/service-account.name: ambassador-pro
@@ -133,7 +133,7 @@ spec:
       volumes:
         - name: ambassador-auth-secret-standalone-02
           secret:
-            secretName: internal-access-control
+            secretName: internal-access-control-standalone
             items:
               - key: token
                 path: shared-secret

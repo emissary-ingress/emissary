@@ -47,7 +47,7 @@ spec:
 apiVersion: v1
 kind: Secret
 metadata:
-  name: internal-access-control
+  name: internal-access-control-sidecar
   namespace: default
   annotations:
     kubernetes.io/service-account.name: ambassador-pro
@@ -89,7 +89,7 @@ spec:
       volumes:
         - name: ambassador-auth-secret-sidecar-04
           secret:
-            secretName: internal-access-control
+            secretName: internal-access-control-sidecar
             items:
               - key: token
                 path: shared-secret

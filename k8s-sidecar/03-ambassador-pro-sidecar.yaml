@@ -241,7 +241,7 @@ spec:
       volumes:
         - name: ambassador-auth-secret-sidecar-03
           secret:
-            secretName: internal-access-control
+            secretName: internal-access-control-sidecar
             items:
               - key: token
                 path: shared-secret

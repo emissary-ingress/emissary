@@ -159,7 +159,7 @@ spec:
       volumes:
         - name: ambassador-auth-secret-standalone-03
           secret:
-            secretName: internal-access-control
+            secretName: internal-access-control-standalone
             items:
               - key: token
                 path: shared-secret
