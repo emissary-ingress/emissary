@@ -34,3 +34,4 @@ run:
   build-tags:
     - test
     - integration
+    - lint

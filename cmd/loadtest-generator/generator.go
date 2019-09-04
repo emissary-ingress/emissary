@@ -14,8 +14,8 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
 
-	"github.com/datawire/apro/cmd/max-load/attack"
-	"github.com/datawire/apro/cmd/max-load/metrics"
+	"github.com/datawire/apro/cmd/loadtest-generator/attack"
+	"github.com/datawire/apro/cmd/loadtest-generator/metrics"
 )
 
 var Args = struct {

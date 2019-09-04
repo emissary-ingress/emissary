@@ -1,10 +1,23 @@
 ## Ambassador Pro CHANGELOG
 
-## 0.6.1 (TBD)
+## 0.7.0 (2019-08-29)
 
 Configuration:
 
  * `amb-sidecar`: The default value of `USE_STATSD` has changed from `true` to `false`.
+ * Bump license key schema v0 → v1.  The developer portal requires a
+   v1 license with the "devportal" feature enabled.  Some future
+   version of the other functionality will drop support for v0 license
+   keys.
+ * The `JWT` Filter can now inject HTTP request headers; configured with the `injectRequestHeaders` field.
+
+Behavior:
+
+ * Fixed a resource leak in dev-portal-server
+
+Other:
+
+ * There is now a build of Ambassador with Certified Envoy named "amb-core".
 
 ## 0.6.0 (2019-08-05)
 

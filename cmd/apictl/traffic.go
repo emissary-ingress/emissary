@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
@@ -20,8 +19,12 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
+	"github.com/datawire/apro/lib/util"
+
 	"github.com/datawire/teleproxy/pkg/k8s"
 	"github.com/datawire/teleproxy/pkg/tpu"
+
+	"github.com/datawire/apro/lib/licensekeys"
 )
 
 var traffic = &cobra.Command{
@@ -98,6 +101,10 @@ spec:
 `))
 
 func doInitialize(cmd *cobra.Command, args []string) error {
+	if err := licenseClaims.RequireFeature(licensekeys.FeatureTraffic); err != nil {
+		return err
+	}
+
 	info, err := k8s.NewKubeInfo("", "", "")
 	if err != nil {
 		return err
@@ -157,6 +164,10 @@ var service string
 var port int
 
 func doInject(cmd *cobra.Command, args []string) error {
+	if err := licenseClaims.RequireFeature(licensekeys.FeatureTraffic); err != nil {
+		return err
+	}
+
 	for _, arg := range args {
 		resources, err := k8s.LoadResources(arg)
 		if err != nil {
@@ -264,9 +275,9 @@ func mungeService(res k8s.Resource) error {
 }
 
 var intercept = &cobra.Command{
-	Use:   "intercept",
+	Use:   "intercept [flags] <name>",
 	Short: "Intercept the traffic for a given deployment",
-	Args:  cobra.MinimumNArgs(1),
+	Args:  cobra.ExactArgs(1),
 	RunE:  doIntercept,
 }
 
@@ -309,6 +320,10 @@ var match string
 var target string
 
 func doIntercept(cmd *cobra.Command, args []string) error {
+	if err := licenseClaims.RequireFeature(licensekeys.FeatureTraffic); err != nil {
+		return err
+	}
+
 	var err error
 	apiPort, err = GetFreePort()
 	if err != nil {
@@ -421,29 +436,23 @@ func (e *FatalError) Error() string {
 	return e.s
 }
 
+var client = &util.SimpleClient{Client: &http.Client{}}
+
 func request(name string, method string, data []byte) (result string, err error) {
 	url := fmt.Sprintf("http://127.0.0.1:%d/intercept/%s", apiPort, name)
 	req, err := http.NewRequest(method, url, bytes.NewBuffer(data))
 	if err != nil {
 		return
 	}
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode == 404 {
-		return "", &FatalError{fmt.Sprintf("no such deployment: %s", name)}
-	}
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return
-	}
-	if !(resp.StatusCode >= 200 && resp.StatusCode <= 299) {
-		err = fmt.Errorf("%s: %s", http.StatusText(resp.StatusCode), string(body))
-		return
-	}
+	body, err := client.DoBodyBytes(req, func(resp *http.Response, body []byte) (err error) {
+		if resp.StatusCode == 404 {
+			return &FatalError{fmt.Sprintf("no such deployment: %s", name)}
+		}
+		if !(resp.StatusCode >= 200 && resp.StatusCode <= 299) {
+			return fmt.Errorf("%s: %s", http.StatusText(resp.StatusCode), string(body))
+		}
+		return nil
+	})
 	result = string(body)
 	return
 }

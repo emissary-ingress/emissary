@@ -1,24 +1,29 @@
 #!/hint/sh
 
-AMBASSADOR_IMAGE=quay.io/datawire/ambassador:0.72.0
+# "Releasable" images
+AMBASSADOR_IMAGE=$(                  sed -n 2p ambassador-withlicense/ambassador.docker.push.cluster)
+AMB_SIDECAR_IMAGE=$(                 sed -n 2p docker/model-cluster-amb-sidecar-plugins.docker.push.cluster) # XXX: not releasable because plugins
+CONSUL_CONNECT_INTEGRATION_IMAGE=$(  sed -n 2p docker/consul_connect_integration.docker.push.cluster)
+DEV_PORTAL_IMAGE=$(                  sed -n 2p docker/dev-portal-server.docker.push.cluster)
+INTERNAL_ACCESS_IMAGE=$(             sed -n 2p docker/apro-internal-access.docker.push.cluster)
+PROXY_IMAGE=$(                       sed -n 2p docker/traffic-proxy.docker.push.cluster)
+SIDECAR_IMAGE=$(                     sed -n 2p docker/app-sidecar.docker.push.cluster)
 
-AMB_SIDECAR_IMAGE=$(cat docker/amb-sidecar-plugins.docker.knaut-push)
-PROXY_IMAGE=$(cat docker/traffic-proxy.docker.knaut-push)
-SIDECAR_IMAGE=$(cat docker/app-sidecar.docker.knaut-push)
-CONSUL_CONNECT_INTEGRATION_IMAGE=$(cat docker/consul_connect_integration.docker.knaut-push)
-MODEL_CLUSTER_APP_IMAGE=$(cat docker/model-cluster-app.docker.knaut-push)
-MODEL_CLUSTER_GRPC_AUTH_IMAGE=$(cat docker/model-cluster-grpc-auth.docker.knaut-push)
-MODEL_CLUSTER_HTTP_AUTH_IMAGE=$(cat docker/model-cluster-http-auth.docker.knaut-push)
-MODEL_CLUSTER_LOAD_GRPC_AUTH_IMAGE=$(cat docker/model-cluster-load-grpc-auth.docker.knaut-push)
-MODEL_CLUSTER_LOAD_HTTP_AUTH_IMAGE=$(cat docker/model-cluster-load-http-auth.docker.knaut-push)
-MODEL_CLUSTER_UAA_IMAGE=$(cat docker/model-cluster-uaa.docker.knaut-push)
-MAX_LOAD_IMAGE=$(cat docker/max-load.docker.knaut-push)
-DEV_PORTAL_IMAGE=$(cat docker/dev-portal-server.docker.knaut-push)
-INTERNAL_ACCESS_IMAGE=$(cat docker/apro-internal-access.docker.knaut-push)
-OPENAPI_SERVER_IMAGE=$(cat docker/example-service.docker.knaut-push)
+# Model cluster / example images
+MODEL_CLUSTER_APP_IMAGE=$(           sed -n 2p docker/model-cluster-app.docker.push.cluster)
+MODEL_CLUSTER_GRPC_AUTH_IMAGE=$(     sed -n 2p docker/model-cluster-grpc-auth.docker.push.cluster)
+MODEL_CLUSTER_HTTP_AUTH_IMAGE=$(     sed -n 2p docker/model-cluster-http-auth.docker.push.cluster)
+MODEL_CLUSTER_LOAD_GRPC_AUTH_IMAGE=$(sed -n 2p docker/model-cluster-load-grpc-auth.docker.push.cluster)
+MODEL_CLUSTER_LOAD_HTTP_AUTH_IMAGE=$(sed -n 2p docker/model-cluster-load-http-auth.docker.push.cluster)
+MODEL_CLUSTER_UAA_IMAGE=$(           sed -n 2p docker/model-cluster-uaa.docker.push.cluster)
+MODEL_CLUSTER_OPENAPI_SERVICE=$(     sed -n 2p docker/model-cluster-openapi-service.docker.push.cluster)
+
+# Loadtest images
+LOADTEST_GENERATOR_IMAGE=$(          sed -n 2p docker/loadtest-generator.docker.push.cluster)
 
 # 03-ambassador-pro-*.yaml
-AMBASSADOR_LICENSE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImRldiIsImV4cCI6NDcwMDgyNjEzM30.wCxi5ICR6C5iEz6WkKpurNItK3zER12VNhM8F1zGkA8
+# Created with `./bin/apictl-key create --id=dev --expiration=$((100*365)) --features=filter,ratelimit,traffic,devportal,certified-envoy`
+AMBASSADOR_LICENSE_KEY=eyJhbGciOiJQUzUxMiIsInR5cCI6IkpXVCJ9.eyJsaWNlbnNlX2tleV92ZXJzaW9uIjoidjEiLCJjdXN0b21lcl9pZCI6ImRldiIsImVuYWJsZWRfZmVhdHVyZXMiOlsiZmlsdGVyIiwicmF0ZWxpbWl0IiwidHJhZmZpYyIsImRldnBvcnRhbCIsImNlcnRpZmllZC1lbnZveSJdLCJleHAiOjQ3MjAxMTM4NTksImlhdCI6MTU2NjUxMzg1OSwibmJmIjoxNTY2NTEzODU5fQ.ZPj034sI-yYlQemj9U9u6OzPKx4vrBf0Xv_NlvPSWhvzIlvTkJ-eDUxeWcMEgIjxZe6R2D-B6uRAtJLqFEFu2hA6DATzKFhk_4OTitpAwgVYWkHPy3Cd2rOhTx_vqcT3kYQei3OkBIIPkNvU-nbvAfL3CVICC083yW5sdckcmclsFY_fTOvaGi95bEeQAVh7e90b64yYz9P8zLbqwQ9l-rMvkSoh5euLsdRRT2g98ff7rPZIOdeiO4JQ9IbwukO21Z2Nzo7EOdgUesI6DBfvw7i2KisRSIaO-lVwnDYsrqPhfjFmzG3tPlHfy3qn16JPZ1RDxziRyJ8ZgSrtmEBpBA
 
 # 04-filter-oauth2-*.yaml
 AUTH_TENANT_URL=https://ambassador.standalone.svc.cluster.local

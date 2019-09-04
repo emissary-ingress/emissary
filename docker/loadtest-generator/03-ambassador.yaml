@@ -192,6 +192,8 @@ spec:
 {{end}}
         - name: SCOUT_DISABLE
           value: "1"
+        - name: AMBASSADOR_LICENSE_KEY
+          value: {{env "AMBASSADOR_LICENSE_KEY"}}
         ports:
         - name: http
           containerPort: 8080
@@ -220,9 +222,9 @@ spec:
         env:
         - name: APP_LOG_LEVEL
           value: warn
-        - name: REDIS_SOCKET_TYPE # For ratelimit
+        - name: REDIS_SOCKET_TYPE
           value: tcp
-        - name: REDIS_URL # For ratelimit
+        - name: REDIS_URL
           value: ambassador-pro-redis:6379
         - name: AMBASSADOR_NAMESPACE
           valueFrom:
@@ -230,7 +232,7 @@ spec:
               fieldPath: metadata.namespace
         - name: AMBASSADOR_SINGLE_NAMESPACE
           value: "true"
-        - name: AMBASSADOR_LICENSE_KEY # For everything
+        - name: AMBASSADOR_LICENSE_KEY
           value: {{env "AMBASSADOR_LICENSE_KEY"}}
 {{end}}
 {{if ne $useNoopAuth ""}}

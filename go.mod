@@ -16,7 +16,6 @@ require (
 	github.com/gobwas/glob v0.2.3
 	github.com/gogo/googleapis v1.1.0
 	github.com/gogo/protobuf v1.2.1
-	github.com/golang/protobuf v1.2.1-0.20190205222052-c823c79ea157 // indirect
 	github.com/google/uuid v1.1.0
 	github.com/gorilla/mux v1.6.1
 	github.com/gregjones/httpcache v0.0.0-20181110185634-c63ab54fda8f
@@ -67,6 +66,8 @@ require (
 )
 
 replace github.com/lyft/ratelimit v1.3.0 => ./vendor-ratelimit
+
+replace github.com/datawire/ambassador => ./ambassador-nolicense
 
 replace github.com/tsenart/vegeta => github.com/datawire/vegeta v12.2.2-0.20190408190644-d94b721fc676+incompatible
 

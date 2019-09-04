@@ -1,12 +1,16 @@
 NAME            = ambassador-pro
-# For docker.mk
-# If you change DOCKER_IMAGE, you'll also need to change the image
-# names in `cmd/apictl/traffic.go`.
-DOCKER_IMAGE    = quay.io/datawire/ambassador_pro:$(notdir $*)-$(VERSION)
+# For Make itself
+SHELL           = bash -o pipefail
 # For Makefile
-image.all       = $(sort $(patsubst %/Dockerfile,%,$(wildcard docker/*/Dockerfile)) docker/amb-sidecar-plugins)
-image.norelease = docker/amb-sidecar-plugins docker/example-service docker/max-load $(filter docker/model-cluster-%,$(image.all))
+image.all       = $(sort $(patsubst %/Dockerfile,%,$(wildcard docker/*/Dockerfile)) docker/model-cluster-amb-sidecar-plugins ambassador-withlicense/ambassador)
+image.nobinsrule= ambassador-withlicense/ambassador
+image.norelease = $(filter docker/model-cluster-% docker/loadtest-%,$(image.all))
 image.nocluster = docker/apro-plugin-runner
+# For docker.mk
+# If you change docker.tag.release, you'll also need to change the
+# image names in `cmd/apictl/traffic.go`.
+docker.tag.release    = quay.io/datawire/ambassador_pro:$(notdir $*)-$(VERSION)
+docker.tag.buildcache = $(BUILDCACHE_DOCKER_REPO):$(notdir $*)-$(VERSION)
 # For k8s.mk
 K8S_IMAGES      = $(filter-out $(image.nocluster),$(image.all))
 K8S_DIRS        = k8s-sidecar k8s-standalone k8s-localdev
@@ -34,7 +38,13 @@ include build-aux/go-version.mk
 include build-aux/k8s.mk
 include build-aux/teleproxy.mk
 include build-aux/pidfile.mk
+include build-aux/var.mk
 include build-aux/help.mk
+
+BUILDCACHE_DOCKER_REPO = quay.io/datawire/ambassador_pro-buildcache
+
+push-docker-buildcache: ## Push a build cache to https://quay.io/repository/datawire/ambassador_pro-buildcache
+.PHONY: push-docker-buildcache
 
 .DEFAULT_GOAL = help
 
@@ -59,7 +69,47 @@ push-docs: ## Publish ./docs to https://github.com/datawire/ambassador-docs
 .PHONY: pull-docs push-docs
 
 #
-# Lyft
+# Envoy
+
+AMBASSADOR_COMMIT = d05175b963f02d3954db45fb0ac5c2fd8cad5ca2
+
+# Git clone
+# Ensure that GIT_DIR and GIT_WORK_TREE are unset so that `git bisect` and friends work properly.
+ambassador-nolicense ambassador-withlicense: ambassador-%: $(var.)AMBASSADOR_COMMIT
+	@PS4=; set -x; unset GIT_DIR GIT_WORK_TREE && if [ -d $@ ]; then cd $@ && git fetch || true; else git clone https://github.com/datawire/ambassador $@; fi
+	unset GIT_DIR GIT_WORK_TREE && cd $@ && git checkout $(AMBASSADOR_COMMIT)
+	touch $@
+
+# Build optimized Envoy
+ambassador-nolicense/base-envoy.docker: ambassador-nolicense
+	DOCKER_REGISTRY=- BASE_DOCKER_REPO=$(BUILDCACHE_DOCKER_REPO) ENVOY_COMPILATION_MODE=opt $(MAKE) -C $(@D) $(@F)
+ambassador-nolicense/base-envoy.docker.tag.buildcache: docker.tag.buildcache = $$(DOCKER_REGISTRY=- BASE_DOCKER_REPO=$(BUILDCACHE_DOCKER_REPO) ENVOY_COMPILATION_MODE=opt $(MAKE) -C $(@D) -j1 --no-print-directory print-BASE_ENVOY_IMAGE)
+
+# Add a license check to optimized Envoy
+cmd/certified-envoy/envoy.bin: ambassador-nolicense/base-envoy.docker
+	docker run --rm --volume=$(CURDIR)/$(@D):/xfer:rw $$(cat $<) cp /usr/local/bin/envoy /xfer/$(@F)
+cmd/certified-envoy/envoy.go: cmd/certified-envoy/envoy.bin cmd/certified-envoy/envoy-gen.go
+	go run cmd/certified-envoy/envoy-gen.go $< | $(WRITE_IFCHANGED) $@
+bin_%/certified-envoy: cmd/certified-envoy/envoy.go
+
+# Build Ambassador with license-checked Envoy
+ambassador-withlicense/envoy-bin/certified-envoy: bin_linux_amd64/certified-envoy | ambassador-withlicense
+	test -d $(@D) || mkdir $(@D)
+	cp $< $@
+ambassador-withlicense/ambassador.docker: ambassador-withlicense ambassador-withlicense/envoy-bin/certified-envoy
+	DOCKER_REGISTRY=- BASE_DOCKER_REPO=$(BUILDCACHE_DOCKER_REPO) ENVOY_COMPILATION_MODE=certified ENVOY_FILE=envoy-bin/certified-envoy $(MAKE) -C $(@D) $(@F)
+ambassador-withlicense/ambassador.docker.tag.release: docker.tag.release = quay.io/datawire/ambassador_pro:amb-core-$(VERSION)
+ambassador-withlicense/docker-push-base-images: ambassador-withlicense/ambassador.docker
+	DOCKER_REGISTRY=- BASE_DOCKER_REPO=$(BUILDCACHE_DOCKER_REPO) ENVOY_COMPILATION_MODE=certified ENVOY_FILE=envoy-bin/certified-envoy $(MAKE) -C $(@D) docker-push-base-images
+.PHONY: ambassador-withlicense/docker-push-base-images
+
+push-docker-buildcache: ambassador-nolicense/base-envoy.docker.push.buildcache
+push-docker-buildcache: ambassador-withlicense/docker-push-base-images
+
+go-get: ambassador-nolicense cmd/certified-envoy/envoy.go
+
+#
+# Lyft ratelimit
 
 RATELIMIT_VERSION=v1.3.0
 lyft-pull: # Update vendor-ratelimit from github.com/lyft/ratelimit.git
@@ -197,7 +247,7 @@ $(image)/clean:
 .PHONY: $(image)/clean
 clean: $(image)/clean
 endef
-$(foreach image,$(image.all),$(eval $(docker.bins_rule)))
+$(foreach image,$(filter-out $(image.nobinsrule),$(image.all)),$(eval $(docker.bins_rule)))
 
 _gocache_volume_clobber:
 	if docker volume ls | grep -q apro-gocache; then docker volume rm apro-gocache; fi
@@ -209,18 +259,18 @@ docker/app-sidecar/ambex:
 	curl -o $@ --fail 'https://s3.amazonaws.com/datawire-static-files/ambex/0.1.0/ambex'
 	chmod 755 $@
 
-docker/amb-sidecar-plugins/Dockerfile: docker/amb-sidecar-plugins/Dockerfile.gen docker/amb-sidecar.docker
+docker/model-cluster-amb-sidecar-plugins/Dockerfile: docker/model-cluster-amb-sidecar-plugins/Dockerfile.gen docker/amb-sidecar.docker
 	$^ > $@
-docker/amb-sidecar-plugins.docker: docker/amb-sidecar.docker # ".SECONDARY:" (in common.mk) coming back to bite us
-docker/amb-sidecar-plugins.docker: $(foreach p,$(plugins),docker/amb-sidecar-plugins/$p.so)
+docker/model-cluster-amb-sidecar-plugins.docker: docker/amb-sidecar.docker # ".SECONDARY:" (in common.mk) coming back to bite us
+docker/model-cluster-amb-sidecar-plugins.docker: $(foreach p,$(plugins),docker/model-cluster-amb-sidecar-plugins/$p.so)
 
 docker/consul_connect_integration.docker: docker/consul_connect_integration/kubectl
 
-docker/max-load.docker: docker/max-load/03-ambassador.yaml
-docker/max-load.docker: docker/max-load/kubeapply
-docker/max-load.docker: docker/max-load/kubectl
-docker/max-load.docker: docker/max-load/test.sh
-docker/max-load/kubeapply:
+docker/loadtest-generator.docker: docker/loadtest-generator/03-ambassador.yaml
+docker/loadtest-generator.docker: docker/loadtest-generator/kubeapply
+docker/loadtest-generator.docker: docker/loadtest-generator/kubectl
+docker/loadtest-generator.docker: docker/loadtest-generator/test.sh
+docker/loadtest-generator/kubeapply:
 	curl -o $@ --fail https://s3.amazonaws.com/datawire-static-files/kubeapply/0.3.11/linux/amd64/kubeapply
 	chmod 755 $@
 
@@ -341,6 +391,13 @@ tests/cluster.tap: $(TAP_DRIVER)
 
 tests/cluster/external.tap: $(GOTEST2TAP)
 
+tests/cluster/licensekeys.tap: $(GOTEST2TAP) $(KUBECONFIG)
+tests/cluster/licensekeys.tap: bin_$(GOHOSTOS)_$(GOHOSTARCH)/apictl
+tests/cluster/licensekeys.tap: bin_$(GOHOSTOS)_$(GOHOSTARCH)/apictl-key
+tests/cluster/licensekeys.tap: bin_$(GOHOSTOS)_$(GOHOSTARCH)/amb-sidecar
+tests/cluster/licensekeys.tap: bin_$(GOHOSTOS)_$(GOHOSTARCH)/traffic-proxy
+tests/cluster/licensekeys.tap: bin_$(GOHOSTOS)_$(GOHOSTARCH)/app-sidecar
+
 tests/cluster/oauth-e2e/node_modules: tests/cluster/oauth-e2e/package.json $(wildcard tests/cluster/oauth-e2e/package-lock.json)
 	cd $(@D) && npm install
 	@test -d $@
@@ -379,15 +436,25 @@ loadtest-apply loadtest-deploy loadtest-shell loadtest-proxy: loadtest-%: infra/
 
 clean: $(addsuffix .clean,$(wildcard docker/*.docker)) loadtest-clean
 	rm -f apro-abi.txt
-	rm -f tests/*.log tests/*.tap tests/*/*.log tests/*/*.tap
-	rm -f docker/amb-sidecar-plugins/Dockerfile docker/amb-sidecar-plugins/*.so
+	rm -f cmd/certified-envoy/envoy.bin cmd/certified-envoy/envoy.go
 	rm -f docker/*/*.opensource.tar.gz
+	rm -f docker/model-cluster-amb-sidecar-plugins/Dockerfile docker/model-cluster-amb-sidecar-plugins/*.so
 	rm -f k8s-*/??-ambassador-certs.yaml k8s-*/*.pem
 	rm -f k8s-*/??-auth0-secret.yaml
-	rm -f docker/*.knaut-push
+	rm -f tests/*.log tests/*.tap tests/*/*.log tests/*/*.tap
+	rm -f tests/cluster/oauth-e2e/idp_*.png
+	rm -f tests/cluster/consul/new_root.crt tests/cluster/consul/new_root.key
 # Files made by older versions.  Remove the tail of this list when the
 # commit making the change gets far enough in to the past.
 #
+# 2019-08-14
+	rm -f docker/amb-sidecar-plugins/Dockerfile docker/amb-sidecar-plugins/*.so
+# 2019-08-14
+	rm -f docker/max-load/kubeapply
+	rm -f docker/max-load/kubectl
+	rm -f docker/max-load/max-load
+# 2019-08-14
+	rm -f docker/*.knaut-push
 # 2019-02-07
 	rm -rf tests/oauth-e2e/node_modules
 	rmdir tests/oauth-e2e || true
@@ -426,6 +493,8 @@ clobber:
 	rm -f docker/*/kubectl
 	rm -rf tests/cluster/oauth-e2e/node_modules
 	rm -rf dev-hacks/.venv/
+	rm -rf venv
+	rm -rf ambassador-nolicense ambassador-withlicense
 
 #
 # Release
@@ -438,11 +507,11 @@ release: ## Cut a release; upload binaries to S3 and Docker images to Quay
 release: build
 release: $(foreach platform,$(go.PLATFORMS),$(foreach bin,$(release.bins),release/bin_$(platform)/$(bin)))
 release: release/apro-abi.txt
-release: $(addsuffix .docker.push$(if $(RELEASE_DRYRUN),.dryrun),$(release.images))
+release: $(addsuffix .docker.push.$(if $(RELEASE_DRYRUN),dryrun,release),$(release.images))
 .PHONY: release
 
-%.docker.push.dryrun: %.docker
-	@echo 'DRYRUN docker push (( $< ))'
+%.docker.push.dryrun: %.docker.tag.release
+	@echo DRYRUN docker push $$(sed 1d $<)
 .PHONY: %.docker.push.dryrun
 
 _release_os   = $(word 2,$(subst _, ,$(@D)))

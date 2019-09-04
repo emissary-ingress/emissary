@@ -84,7 +84,7 @@ On macOS, you will first need to add `host.docker.internal:31000` to
 Docker's list of "Insecure registries":
 
 <p align="center">
-  <img src="README-macos-insecure-registries.png" alt="Docker for Mac &quot;Preferences…&quot; dialog to set the list of &quot;Insecure registries&quot;"/>
+  <img src="./build-aux/docs/docker-cluster-macos-insecure-registries.png" alt="Docker for Mac &quot;Preferences…&quot; dialog to set the list of &quot;Insecure registries&quot;"/>
 </p>
 
 #### Troubleshooting the development environment
@@ -130,9 +130,11 @@ information on what this does, and on the format of the tag names.
 
 ## Cutting a GA release
 
-1. Ensure that any Ambassador documentation changes have been merged:
+1. ~~Ensure that any Ambassador documentation changes have been merged:~~
 
-        $ make pull-docs
+        $ make pull-docs           # DON'T DO THIS
+
+   `git subtree` is broken, don't do this for now.
 
 2. Determine the version number. We currently use the `0.x.y` versioning
    scheme. If there is new functionality, we should increment `x`. If
@@ -153,7 +155,8 @@ information on what this does, and on the format of the tag names.
 
 5. (this step may be performed before CI for step 3 had finished) Create
    a PR against <https://github.com/datawire/ambassador-docs> that
-   updates the `version.yml` with the new version number.
+   updates the `version.yml` with the new version number, and makes
+   any other nescessary doc changes.
 
 6. (this step may be performed before CI for step 3 had finished)
    Create a PR against <https://github.com/datawire/pro-ref-arch> that
@@ -175,11 +178,13 @@ information on what this does, and on the format of the tag names.
    upgrading `tour.k736.net` to the latest version of Pro, and making
    sure that `tour.k736.net` still functions.
 
-10. From apro.git, with the tag version tag checked out, run `make
-   push-docs`:
+10. ~~From apro.git, with the tag version tag checked out, run `make
+    push-docs`:~~
 
         $ git checkout v0.1.2
-        $ make push-docs
+        $ make push-docs           # DON'T DO THIS
+
+    `git subtree` is broken, don't do this for now.
 
 11. Ping Noah on Slack to ask him to upgrade our demo cluster to the
     latest version.

@@ -172,6 +172,8 @@ spec:
           value: "true"
         - name: SCOUT_DISABLE
           value: "1"
+        - name: AMBASSADOR_LICENSE_KEY
+          value: {{env "AMBASSADOR_LICENSE_KEY"}}
         ports:
           - name: http
             containerPort: 8080
@@ -221,7 +223,7 @@ spec:
               fieldPath: metadata.namespace
         - name: AMBASSADOR_SINGLE_NAMESPACE
           value: "true"
-        - name: AMBASSADOR_LICENSE_KEY # For everything
+        - name: AMBASSADOR_LICENSE_KEY
           value: {{env "AMBASSADOR_LICENSE_KEY"}}
         # DevPortal settings
         - name: PUBLIC_API_URL

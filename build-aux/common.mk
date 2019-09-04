@@ -93,7 +93,7 @@ test-suite.tap: $(TAP_DRIVER)
 	@$(TAP_DRIVER) summarize $<
 
 %.tap: %.tap.gen $(TAP_DRIVER) FORCE
-	@$(abspath $<) 2>&1 | tee $@ | $(TAP_DRIVER) stream -n $<
+	@{ $(abspath $<) || true; } 2>&1 | tee $@ | $(TAP_DRIVER) stream -n $<
 %.log: %.test FORCE
 	@$(abspath $<) >$@ 2>&1; echo :exit-status: $$? >>$@
 %.tap: %.log %.test $(TAP_DRIVER)

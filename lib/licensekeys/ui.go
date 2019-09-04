@@ -93,27 +93,27 @@ type cmdContext struct {
 	version     string
 }
 
-func (ctx *cmdContext) KeyCheck(flags *flag.FlagSet) error {
+func (ctx *cmdContext) KeyCheck(flags *flag.FlagSet) (*LicenseClaimsLatest, error) {
 	var keysource string
 
 	if ctx.key == "" {
 		if !flags.Changed("license-file") && ctx.defaultKeyfileErr != nil {
-			return errors.Wrap(ctx.defaultKeyfileErr, "error determining license key file")
+			return nil, errors.Wrap(ctx.defaultKeyfileErr, "error determining license key file")
 		}
 		if ctx.keyfile == "" {
-			return errors.New("no license key or license key file specified")
+			return nil, errors.New("no license key or license key file specified")
 		}
 		key, err := ioutil.ReadFile(ctx.keyfile)
 		if err != nil {
-			return errors.Wrap(err, "error reading license key")
+			return nil, errors.Wrap(err, "error reading license key")
 		}
 		ctx.key = strings.TrimSpace(string(key))
-		keysource = "key from file " + ctx.keyfile
+		keysource = "file " + ctx.keyfile
 	} else {
 		if flags.Changed("license-key") {
-			keysource = "key from command line"
+			keysource = "command line"
 		} else {
-			keysource = "key from environment"
+			keysource = "environment"
 		}
 	}
 
@@ -127,13 +127,13 @@ func (ctx *cmdContext) KeyCheck(flags *flag.FlagSet) error {
 	}()
 
 	if err != nil {
-		return errors.Wrapf(err, "error validating %s", keysource)
+		return nil, errors.Wrapf(err, "error validating license key from %s", keysource)
 	}
 
-	return nil
+	return claims, nil
 }
 
-func InitializeCommandFlags(flags *flag.FlagSet, application, version string) func(*flag.FlagSet) error {
+func InitializeCommandFlags(flags *flag.FlagSet, application, version string) func(*flag.FlagSet) (*LicenseClaimsLatest, error) {
 	ctx := &cmdContext{
 		application: application,
 		version:     version,

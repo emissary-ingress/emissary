@@ -54,51 +54,61 @@ import (
 	"github.com/datawire/apro/lib/filterapi"
 )
 
+var licenseClaims *licensekeys.LicenseClaimsLatest
+var logrusLogger *logrus.Logger
+
 func Main(version string) {
 	argparser := &cobra.Command{
-		Use:     os.Args[0],
-		Version: version,
-		RunE:    runE,
+		Use:           os.Args[0],
+		Version:       version,
+		RunE:          runE,
+		SilenceErrors: true, // we'll handle it after .Execute() returns
+		SilenceUsage:  true, // our FlagErrorFunc wil handle it
 	}
 
 	keycheck := licensekeys.InitializeCommandFlags(argparser.PersistentFlags(), "ambassador-sidecar", version)
 
-	argparser.PersistentPreRun = func(cmd *cobra.Command, args []string) {
-		// https://github.com/spf13/cobra/issues/340
-		cmd.SilenceUsage = true
-
-		// License key validation
-		err := keycheck(cmd.PersistentFlags())
+	argparser.SetFlagErrorFunc(func(cmd *cobra.Command, err error) error {
 		if err == nil {
-			return
+			return nil
 		}
-		fmt.Fprintln(os.Stderr, err)
-		time.Sleep(5 * 60 * time.Second)
-		os.Exit(1)
+		fmt.Fprintf(os.Stderr, "%s\nSee '%s --help'.\n", err, cmd.CommandPath())
+		os.Exit(2)
+		return nil
+	})
+
+	// Initialize the root logger.  We'll use this for top-level
+	// things that don't involve any specific worker process.
+	logrusLogger = logrus.New()
+	logrusFormatter := &logrus.TextFormatter{
+		TimestampFormat: "2006-01-02 15:04:05",
+		FullTimestamp:   true,
+	}
+	logrusLogger.SetFormatter(logrusFormatter)
+	logrus.SetFormatter(logrusFormatter) // FIXME(lukeshu): Some Lyft code still uses the global logger
+
+	argparser.PersistentPreRunE = func(cmd *cobra.Command, args []string) error {
+		// License key validation
+		var err error
+		licenseClaims, err = keycheck(cmd.PersistentFlags())
+		return err
 	}
 
 	err := argparser.Execute()
 	if err != nil {
+		logrusLogger.Errorln(err)
 		os.Exit(1)
 	}
 }
 
 func runE(cmd *cobra.Command, args []string) error {
-	// Initialize the root logger.  We'll use this for top-level
-	// things that don't involve any specific worker process.
-	l := logrus.New()
-	l.SetFormatter(&logrus.TextFormatter{
-		TimestampFormat: "2006-01-02 15:04:05",
-		FullTimestamp:   true,
-	})
-
 	// Load the configuration
 	cfg, warn, fatal := types.ConfigFromEnv()
 	for _, err := range warn {
-		l.Warnln("config error:", err)
+		logrusLogger.Warnln("config error:", err)
 	}
 	for _, err := range fatal {
-		l.Errorln("config error:", err)
+		logrusLogger.Errorln("config error:", err)
 	}
 	if len(fatal) > 0 {
 		return fatal[len(fatal)-1]
@@ -111,7 +121,7 @@ func runE(cmd *cobra.Command, args []string) error {
 	// cfg.LogLevel has already been validated in
 	// ConfigFromEnv(), no need to error-check.
 	level, _ := logrus.ParseLevel(cfg.LogLevel)
-	l.SetLevel(level)
+	logrusLogger.SetLevel(level)
 	logrus.SetLevel(level) // FIXME(lukeshu): Some Lyft code still uses the global logger
 
 	kubeinfo, err := k8s.NewKubeInfo("", "", "") // Empty file/ctx/ns for defaults
@@ -121,23 +131,28 @@ func runE(cmd *cobra.Command, args []string) error {
 
 	// Initialize the errgroup we'll use to orchestrate the goroutines.
 	group := NewGroup(context.Background(), cfg, func(name string) types.Logger {
-		return types.WrapLogrus(l).WithField("MAIN", name)
+		return types.WrapLogrus(logrusLogger).WithField("MAIN", name)
 	})
 
 	// Launch all of the worker goroutines...
 
 	// RateLimit controller
-	group.Go("ratelimit_controller", func(hardCtx, softCtx context.Context, cfg types.Config, l types.Logger) error {
-		return rlscontroller.DoWatch(softCtx, cfg, l)
-	})
+	if licenseClaims.RequireFeature(licensekeys.FeatureRateLimit) == nil {
+		group.Go("ratelimit_controller", func(hardCtx, softCtx context.Context, cfg types.Config, l types.Logger) error {
+			return rlscontroller.DoWatch(softCtx, cfg, l)
+		})
+	}
 
 	// Filter+FilterPolicy controller
+
 	ct := &controller.Controller{}
-	group.Go("auth_controller", func(hardCtx, softCtx context.Context, cfg types.Config, l types.Logger) error {
-		ct.Config = cfg
-		ct.Logger = l
-		return ct.Watch(softCtx, kubeinfo)
-	})
+	if licenseClaims.RequireFeature(licensekeys.FeatureFilter) == nil {
+		group.Go("auth_controller", func(hardCtx, softCtx context.Context, cfg types.Config, l types.Logger) error {
+			ct.Config = cfg
+			ct.Logger = l
+			return ct.Watch(softCtx, kubeinfo)
+		})
+	}
 
 	// HTTP server
 	group.Go("http", func(hardCtx, softCtx context.Context, cfg types.Config, l types.Logger) error {
