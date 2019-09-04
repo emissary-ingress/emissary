@@ -376,7 +376,7 @@ load_balancer:
 """)
 
     def queries(self):
-        for policy in ['ring_hash', 'maglev', 'least_request']:
+        for policy in ['ring_hash', 'maglev']:
             # generic header queries
             for i in range(50):
                 yield Query(self.url(self.name) + '-header-{}/'.format(policy))
