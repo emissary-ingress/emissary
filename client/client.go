@@ -169,6 +169,100 @@ func (q Query) MaxTLSVersion() uint16 {
 	}
 }
 
+// CipherSuites returns the list of configured Cipher Suites
+func (q Query) CipherSuites() []uint16 {
+	val, ok := q["cipherSuites"]
+	if !ok {
+		return []uint16{}
+	}
+	cs := []uint16{}
+	for _, s := range val.([]interface{}) {
+		switch s.(string) {
+		// TLS 1.0 - 1.2 cipher suites.
+		case "TLS_RSA_WITH_RC4_128_SHA":
+			cs = append(cs, tls.TLS_RSA_WITH_RC4_128_SHA)
+		case "TLS_RSA_WITH_3DES_EDE_CBC_SHA":
+			cs = append(cs, tls.TLS_RSA_WITH_3DES_EDE_CBC_SHA)
+		case "TLS_RSA_WITH_AES_128_CBC_SHA":
+			cs = append(cs, tls.TLS_RSA_WITH_AES_128_CBC_SHA)
+		case "TLS_RSA_WITH_AES_256_CBC_SHA":
+			cs = append(cs, tls.TLS_RSA_WITH_AES_256_CBC_SHA)
+		case "TLS_RSA_WITH_AES_128_CBC_SHA256":
+			cs = append(cs, tls.TLS_RSA_WITH_AES_128_CBC_SHA256)
+		case "TLS_RSA_WITH_AES_128_GCM_SHA256":
+			cs = append(cs, tls.TLS_RSA_WITH_AES_128_GCM_SHA256)
+		case "TLS_RSA_WITH_AES_256_GCM_SHA384":
+			cs = append(cs, tls.TLS_RSA_WITH_AES_256_GCM_SHA384)
+		case "TLS_ECDHE_ECDSA_WITH_RC4_128_SHA":
+			cs = append(cs, tls.TLS_ECDHE_ECDSA_WITH_RC4_128_SHA)
+		case "TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA":
+			cs = append(cs, tls.TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA)
+		case "TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA":
+			cs = append(cs, tls.TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA)
+		case "TLS_ECDHE_RSA_WITH_RC4_128_SHA":
+			cs = append(cs, tls.TLS_ECDHE_RSA_WITH_RC4_128_SHA)
+		case "TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA":
+			cs = append(cs, tls.TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA)
+		case "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA":
+			cs = append(cs, tls.TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA)
+		case "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA":
+			cs = append(cs, tls.TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA)
+		case "TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256":
+			cs = append(cs, tls.TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256)
+		case "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256":
+			cs = append(cs, tls.TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256)
+		case "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256":
+			cs = append(cs, tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256)
+		case "TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256":
+			cs = append(cs, tls.TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256)
+		case "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384":
+			cs = append(cs, tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384)
+		case "TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384":
+			cs = append(cs, tls.TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384)
+		case "TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305":
+			cs = append(cs, tls.TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305)
+		case "TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305":
+			cs = append(cs, tls.TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305)
+
+		// TLS 1.3 cipher suites are not tunable
+		// TLS_RSA_WITH_RC4_128_SHA
+		// TLS_ECDHE_RSA_WITH_RC4_128_SHA
+		// TLS_ECDHE_ECDSA_WITH_RC4_128_SHA
+
+		// TLS_FALLBACK_SCSV isn't a standard cipher suite but an indicator
+		// that the client is doing version fallback. See RFC 7507.
+		case "TLS_FALLBACK_SCSV":
+			cs = append(cs, tls.TLS_FALLBACK_SCSV)
+		default:
+		}
+	}
+	return cs
+}
+
+// ECDHCurves returns the list of configured ECDH CurveIDs
+func (q Query) ECDHCurves() []tls.CurveID {
+	val, ok := q["ecdhCurves"]
+	if !ok {
+		return []tls.CurveID{}
+	}
+	cs := []tls.CurveID{}
+	for _, s := range val.([]interface{}) {
+		switch s.(string) {
+		// TLS 1.0 - 1.2 cipher suites.
+		case "CurveP256":
+			cs = append(cs, tls.CurveP256)
+		case "CurveP384":
+			cs = append(cs, tls.CurveP384)
+		case "CurveP521":
+			cs = append(cs, tls.CurveP521)
+		case "X25519":
+			cs = append(cs, tls.X25519)
+		default:
+		}
+	}
+	return cs
+}
+
 // Method returns the query's method or "GET" if unspecified.
 func (q Query) Method() string {
 	val, ok := q["method"]
@@ -389,6 +483,7 @@ func (q Query) AddResponse(resp *http.Response) {
 	if resp.TLS != nil {
 		result["tls_version"] = resp.TLS.Version
 		result["tls"] = resp.TLS.PeerCertificates
+		result["cipher_suite"] = resp.TLS.CipherSuite
 	}
 	body, err := ioutil.ReadAll(resp.Body)
 	if !q.CheckErr(err) {
@@ -725,6 +820,14 @@ func ExecuteQuery(query Query, secureTransport *http.Transport) {
 
 			if query.MaxTLSVersion() != 0 {
 				transport.TLSClientConfig.MaxVersion = query.MaxTLSVersion()
+			}
+
+			if len(query.CipherSuites()) > 0 {
+				transport.TLSClientConfig.CipherSuites = query.CipherSuites()
+			}
+
+			if len(query.ECDHCurves()) > 0 {
+				transport.TLSClientConfig.CurvePreferences = query.ECDHCurves()
 			}
 		}
 		req.Host = host
