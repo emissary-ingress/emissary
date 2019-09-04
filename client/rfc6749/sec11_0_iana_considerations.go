@@ -1,7 +1,14 @@
 package rfc6749
 
 type extensionRegistry struct {
-	accessTokenTypes map[string]AccessTokenType // See sec11_1_access_token_types.go
+	// See sec11_1_access_token_types.go
+	accessTokenTypes map[string]AccessTokenType
+
+	// See sec11_4_extensions_error.go
+	authorizationCodeGrantErrors map[string]ExtensionError
+	implicitGrantErrors          map[string]ExtensionError
+	tokenErrors                  map[string]ExtensionError
+	resourceAccessErrors         map[string]ExtensionError
 }
 
 // ProtocolExtension stores information about an OAuth protocol extension such that the extension
@@ -9,11 +16,24 @@ type extensionRegistry struct {
 // `.RegisterProtocolExtension()` method.
 type ProtocolExtension struct {
 	AccessTokenTypes []AccessTokenType
+	ExtensionErrors  []ExtensionError
 }
 
 func (registry *extensionRegistry) ensureInitialized() {
 	if registry.accessTokenTypes == nil {
 		registry.accessTokenTypes = make(map[string]AccessTokenType)
+	}
+	if registry.authorizationCodeGrantErrors == nil {
+		registry.authorizationCodeGrantErrors = newBuiltInAuthorizationCodeGrantErrors()
+	}
+	if registry.implicitGrantErrors == nil {
+		registry.implicitGrantErrors = newBuiltInImplicitGrantErrors()
+	}
+	if registry.tokenErrors == nil {
+		registry.tokenErrors = newBuiltInTokenErrors()
+	}
+	if registry.resourceAccessErrors == nil {
+		registry.resourceAccessErrors = make(map[string]ExtensionError)
 	}
 }
 
@@ -26,6 +46,9 @@ func (registry *extensionRegistry) RegisterProtocolExtensions(exts ...ProtocolEx
 	for _, ext := range exts {
 		for _, tokenType := range ext.AccessTokenTypes {
 			registry.registerAccessTokenType(tokenType)
+		}
+		for _, err := range ext.ExtensionErrors {
+			registry.registerError(err)
 		}
 	}
 }

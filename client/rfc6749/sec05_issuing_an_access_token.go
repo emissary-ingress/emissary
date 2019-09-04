@@ -10,8 +10,6 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-
-	"github.com/datawire/liboauth2/common/rfc6749"
 )
 
 // parseTokenResponse parses a response from a Token Endpoint, per §5.
@@ -164,26 +162,33 @@ func (r TokenErrorResponse) MarshalJSON() ([]byte, error) {
 	return json.Marshal(rawResponse)
 }
 
-func newTokenError(name, meaning string) {
-	rfc6749.ExtensionError{
-		Name:    name,
-		Meaning: meaning,
-		UsageLocations: []rfc6749.ErrorUsageLocation{
-			rfc6749.TokenErrorResponse,
-		},
-	}.Register()
-}
-
 // These are the error codes that may be present in a TokenErrorResponse, as enumerated in §5.2.
-func init() {
-	newTokenError("invalid_request", ""+
+// This set may be extended by the extensions error registry.
+func newBuiltInTokenErrors() map[string]ExtensionError {
+	ret := make(map[string]ExtensionError)
+	add := func(name, meaning string) {
+		if _, set := ret[name]; set {
+			panic(errors.Errorf("token error=%q already registered", name))
+		}
+		ret[name] = ExtensionError{
+			Name:                   name,
+			UsageLocations:         []ErrorUsageLocation{LocationTokenErrorResponse},
+			RelatedExtension:       "(built-in)",
+			ChangeController:       "IETF",
+			SpecificationDocuments: []string{"RFC 6749"},
+
+			Meaning: meaning,
+		}
+	}
+
+	add("invalid_request", ""+
 		"The request is missing a required parameter, includes an "+
 		"unsupported parameter value (other than grant type), "+
 		"repeats a parameter, includes multiple credentials, "+
 		"utilizes more than one mechanism for authenticating the "+
 		"client, or is otherwise malformed.")
 
-	newTokenError("invalid_client", ""+
+	add("invalid_client", ""+
 		"Client authentication failed (e.g., unknown client, no "+
 		"client authentication included, or unsupported "+
 		"authentication method).  The authorization server MAY "+
@@ -195,22 +200,24 @@ func init() {
 		"include the \"WWW-Authenticate\" response header field "+
 		"matching the authentication scheme used by the client. ")
 
-	newTokenError("invalid_grant", ""+
+	add("invalid_grant", ""+
 		"The provided authorization grant (e.g., authorization "+
 		"code, resource owner credentials) or refresh token is "+
 		"invalid, expired, revoked, does not match the redirection "+
 		"URI used in the authorization request, or was issued to "+
 		"another client.")
 
-	newTokenError("unauthorized_client", ""+
+	add("unauthorized_client", ""+
 		"The authenticated client is not authorized to use this "+
 		"authorization grant type.")
 
-	newTokenError("unsupported_grant_type", ""+
+	add("unsupported_grant_type", ""+
 		"The authorization grant type is not supported by the "+
 		"authorization server.")
 
-	newTokenError("invalid_scope", ""+
+	add("invalid_scope", ""+
 		"The requested scope is invalid, unknown, malformed, or "+
 		"exceeds the scope granted by the resource owner.")
+
+	return ret
 }

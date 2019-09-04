@@ -6,8 +6,6 @@ import (
 	"net/url"
 
 	"github.com/pkg/errors"
-
-	"github.com/datawire/liboauth2/common/rfc6749"
 )
 
 // An AuthorizationCodeClient is a Client that utilizes the "Authorization Code" Grant-type, as
@@ -219,53 +217,61 @@ func (r AuthorizationCodeGrantErrorResponse) Error() string {
 	return ret
 }
 
-func newAuthorizationCodeError(name, meaning string) {
-	rfc6749.ExtensionError{
-		Name:    name,
-		Meaning: meaning,
-		UsageLocations: []rfc6749.ErrorUsageLocation{
-			rfc6749.AuthorizationCodeGrantErrorResponse,
-		},
-	}.Register()
-}
-
 // These are the built-in error codes that may be present in an
 // AuthorizationCodeAuthorizationErrorResponse, as enumerated in §4.1.2.1.  This set may be extended
-// by extension error registry.
-func init() {
-	newAuthorizationCodeError("invalid_request", ""+
+// by extensions error registry.
+func newBuiltInAuthorizationCodeGrantErrors() map[string]ExtensionError {
+	ret := make(map[string]ExtensionError)
+	add := func(name, meaning string) {
+		if _, set := ret[name]; set {
+			panic(errors.Errorf("authorization code grant error=%q already registered", name))
+		}
+		ret[name] = ExtensionError{
+			Name:                   name,
+			UsageLocations:         []ErrorUsageLocation{LocationAuthorizationCodeGrantErrorResponse},
+			RelatedExtension:       "(built-in)",
+			ChangeController:       "IETF",
+			SpecificationDocuments: []string{"RFC 6749"},
+
+			Meaning: meaning,
+		}
+	}
+
+	add("invalid_request", ""+
 		"The request is missing a required parameter, includes an "+
 		"invalid parameter value, includes a parameter more than "+
 		"once, or is otherwise malformed.")
 
-	newAuthorizationCodeError("unauthorized_client", ""+
+	add("unauthorized_client", ""+
 		"The client is not authorized to request an authorization "+
 		"code using this method.")
 
-	newAuthorizationCodeError("access_denied", ""+
+	add("access_denied", ""+
 		"The resource owner or authorization server denied the "+
 		"request.")
 
-	newAuthorizationCodeError("unsupported_response_type", ""+
+	add("unsupported_response_type", ""+
 		"The authorization server does not support obtaining an "+
 		"authorization code using this method.")
 
-	newAuthorizationCodeError("invalid_scope", ""+
+	add("invalid_scope", ""+
 		"The requested scope is invalid, unknown, or malformed.")
 
-	newAuthorizationCodeError("server_error", ""+
+	add("server_error", ""+
 		"The authorization server encountered an unexpected "+
 		"condition that prevented it from fulfilling the request.  "+
 		"(This error code is needed because a 500 Internal Server "+
 		"Error HTTP status code cannot be returned to the client "+
 		"via an HTTP redirect.)")
 
-	newAuthorizationCodeError("temporarily_unavailable", ""+
+	add("temporarily_unavailable", ""+
 		"The authorization server is currently unable to handle "+
 		"the request due to a temporary overloading or maintenance "+
 		"of the server.  (This error code is needed because a 503 "+
 		"Service Unavailable HTTP status code cannot be returned "+
 		"to the client via an HTTP redirect.)")
+
+	return ret
 }
 
 // AccessToken talks to the Authorization Server to exchange an Authorization Code (obtained from

@@ -8,8 +8,8 @@ import (
 	"github.com/pkg/errors"
 )
 
-// AccessTokenType stores the registration information for a Access Token Type specified in §11.1.1,
-// as well as a Client implementation of the type.
+// AccessTokenType stores the registration information for an Access Token Type specified in
+// §11.1.1, as well as a Client implementation of the type.
 type AccessTokenType struct {
 	// Registration metadata
 	Name                              string

@@ -7,8 +7,6 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-
-	"github.com/datawire/liboauth2/common/rfc6749"
 )
 
 // An ImplicitClient is a Client that utilizes the "Implicit" Grant-type, as defined by §4.2.
@@ -200,50 +198,58 @@ func (r ImplicitGrantErrorResponse) Error() string {
 	return ret
 }
 
-func newImplicitAccessTokenError(name, meaning string) {
-	rfc6749.ExtensionError{
-		Name:    name,
-		Meaning: meaning,
-		UsageLocations: []rfc6749.ErrorUsageLocation{
-			rfc6749.ImplicitGrantErrorResponse,
-		},
-	}.Register()
-}
-
 // These are the error codes that may be present in an ImplicitAccessTokenErrorResponse, as
-// enumerated in §4.2.2.1.
-func init() {
-	newImplicitAccessTokenError("invalid_request", ""+
+// enumerated in §4.2.2.1.  This set may be extended by the extensions error registry.
+func newBuiltInImplicitGrantErrors() map[string]ExtensionError {
+	ret := make(map[string]ExtensionError)
+	add := func(name, meaning string) {
+		if _, set := ret[name]; set {
+			panic(errors.Errorf("implicit grant error=%q already registered", name))
+		}
+		ret[name] = ExtensionError{
+			Name:                   name,
+			UsageLocations:         []ErrorUsageLocation{LocationImplicitGrantErrorResponse},
+			RelatedExtension:       "(built-in)",
+			ChangeController:       "IETF",
+			SpecificationDocuments: []string{"RFC 6749"},
+
+			Meaning: meaning,
+		}
+	}
+
+	add("invalid_request", ""+
 		"The request is missing a required parameter, includes an "+
 		"invalid parameter value, includes a parameter more than "+
 		"once, or is otherwise malformed.")
 
-	newImplicitAccessTokenError("unauthorized_client", ""+
+	add("unauthorized_client", ""+
 		"The client is not authorized to request an access token "+
 		"using this method.")
 
-	newImplicitAccessTokenError("access_denied", ""+
+	add("access_denied", ""+
 		"The resource owner or authorization server denied the "+
 		"request.")
 
-	newImplicitAccessTokenError("unsupported_response_type", ""+
+	add("unsupported_response_type", ""+
 		"The authorization server does not support obtaining an "+
 		"access token using this method.")
 
-	newImplicitAccessTokenError("invalid_scope", ""+
+	add("invalid_scope", ""+
 		"The requested scope is invalid, unknown, or malformed.")
 
-	newImplicitAccessTokenError("server_error", ""+
+	add("server_error", ""+
 		"The authorization server encountered an unexpected "+
 		"condition that prevented it from fulfilling the request.  "+
 		"(This error code is needed because a 500 Internal Server "+
 		"Error HTTP status code cannot be returned to the client "+
 		"via an HTTP redirect.)")
 
-	newImplicitAccessTokenError("temporarily_unavailable", ""+
+	add("temporarily_unavailable", ""+
 		"The authorization server is currently unable to handle "+
 		"the request due to a temporary overloading or maintenance "+
 		"of the server.  (This error code is needed because a 503 "+
 		"Service Unavailable HTTP status code cannot be returned "+
 		"to the client via an HTTP redirect.)")
+
+	return ret
 }
