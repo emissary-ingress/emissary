@@ -381,12 +381,12 @@ if [[ -z "${AMBASSADOR_NO_KUBEWATCH}" ]]; then
 
     AMBASSADOR_FIELD_SELECTOR_ARG=""
     if [ -n "$AMBASSADOR_FIELD_SELECTOR" ] ; then
-	    AMBASSADOR_FIELD_SELECTOR_ARG="--fields $AMBASSADOR_FIELD_SELECTOR"
+        AMBASSADOR_FIELD_SELECTOR_ARG="--fields $AMBASSADOR_FIELD_SELECTOR"
     fi
 
     AMBASSADOR_LABEL_SELECTOR_ARG=""
     if [ -n "$AMBASSADOR_LABEL_SELECTOR" ] ; then
-	    AMBASSADOR_LABEL_SELECTOR_ARG="--labels $AMBASSADOR_LABEL_SELECTOR"
+        AMBASSADOR_LABEL_SELECTOR_ARG="--labels $AMBASSADOR_LABEL_SELECTOR"
     fi
 
     launch "watt" /ambassador/watt \
@@ -396,6 +396,7 @@ if [[ -z "${AMBASSADOR_NO_KUBEWATCH}" ]]; then
            ${KUBEWATCH_SYNC_KINDS} \
            ${AMBASSADOR_FIELD_SELECTOR_ARG} \
            ${AMBASSADOR_LABEL_SELECTOR_ARG} \
+           --interval ${AMBASSADOR_WATCH_INTERVAL_MS:-250}ms \
            --watch /ambassador/watch_hook.py
 fi
 
