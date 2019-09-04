@@ -18,7 +18,8 @@ type ExtensionError struct {
 	Meaning string
 }
 
-// ErrorUsageLocation TODO §11.4.1
+// ErrorUsageLocation is an enum of the locations that an error code may appear in, as enumerated in
+// §11.4.1.
 type ErrorUsageLocation interface {
 	isErrorUsageLocation()
 }
