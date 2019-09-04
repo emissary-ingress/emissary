@@ -12,7 +12,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/datawire/liboauth2/client/rfc6749"
-	"github.com/datawire/liboauth2/syntax/rfc7235"
+	"github.com/datawire/liboauth2/common/rfc7235"
 )
 
 // AddToHeader adds a Bearer Token to an HTTP request header through the (RFC 7235, formerly RFC

@@ -6,8 +6,8 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/datawire/liboauth2/syntax/rfc5234"
-	"github.com/datawire/liboauth2/syntax/rfc7230"
+	"github.com/datawire/liboauth2/common/rfc7235/internal/rfc5234"
+	"github.com/datawire/liboauth2/common/rfc7235/internal/rfc7230"
 )
 
 // A Challenge is an authentication challenge, as defined by §2.1
