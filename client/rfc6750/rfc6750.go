@@ -13,9 +13,6 @@ import (
 
 	"github.com/datawire/liboauth2/client/rfc6749"
 	"github.com/datawire/liboauth2/syntax/rfc7235"
-
-	// Register error codes shared between client and resourceserver.
-	_ "github.com/datawire/liboauth2/common/rfc6750"
 )
 
 // AddToHeader adds a Bearer Token to an HTTP request header through the (RFC 7235, formerly RFC
@@ -109,6 +106,30 @@ func ErrorFromErrorResponse(resp *http.Response) (*AuthorizationError, error) {
 	return nil, nil
 }
 
+// §3.1.
+var errorMeanings = map[string]string{
+	"invalid_request": "" +
+		"The request is missing a required parameter, includes an " +
+		"unsupported parameter or parameter value, repeats the same " +
+		"parameter, uses more than one method for including an access " +
+		"token, or is otherwise malformed.  The resource server SHOULD " +
+		"respond with the HTTP 400 (Bad Request) status code.",
+
+	"invalid_token": "" +
+		"The access token provided is expired, revoked, malformed, or " +
+		"invalid for other reasons.  The resource SHOULD respond with " +
+		"the HTTP 401 (Unauthorized) status code.  The client MAY " +
+		"request a new access token and retry the protected resource " +
+		"request.",
+
+	"insufficient_scope": "" +
+		"The request requires higher privileges than provided by the " +
+		"access token.  The resource server SHOULD respond with the HTTP " +
+		"403 (Forbidden) status code and MAY include the \"scope\" " +
+		"attribute with the scope necessary to access the protected " +
+		"resource.",
+}
+
 // OAuthProtocolExtension contains the information to register Bearer token support with an OAuth
 // 2.0 Client, per §6.
 //
@@ -132,6 +153,37 @@ var OAuthProtocolExtension = rfc6749.ProtocolExtension{
 				// interface rfc6749.ResourceAccessErrorResponse.
 				return ErrorFromErrorResponse(resp)
 			},
+		},
+	},
+	ExtensionErrors: []rfc6749.ExtensionError{
+		{
+			Name:                   "invalid_request",
+			UsageLocations:         []rfc6749.ErrorUsageLocation{rfc6749.LocationResourceAccessErrorResponse},
+			RelatedExtension:       "Bearer access token type",
+			ChangeController:       "IETF",
+			SpecificationDocuments: []string{"RFC 6750"},
+
+			Meaning: errorMeanings["invalid_request"],
+		},
+
+		{
+			Name:                   "invalid_token",
+			UsageLocations:         []rfc6749.ErrorUsageLocation{rfc6749.LocationResourceAccessErrorResponse},
+			RelatedExtension:       "Bearer access token type",
+			ChangeController:       "IETF",
+			SpecificationDocuments: []string{"RFC 6750"},
+
+			Meaning: errorMeanings["invalid_token"],
+		},
+
+		{
+			Name:                   "insufficient_scope",
+			UsageLocations:         []rfc6749.ErrorUsageLocation{rfc6749.LocationResourceAccessErrorResponse},
+			RelatedExtension:       "Bearer access token type",
+			ChangeController:       "IETF",
+			SpecificationDocuments: []string{"RFC 6750"},
+
+			Meaning: errorMeanings["insufficient_scope"],
 		},
 	},
 }
