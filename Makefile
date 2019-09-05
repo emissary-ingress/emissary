@@ -69,9 +69,9 @@ IS_PRIVATE ?= $(findstring private,$(_git_remote_urls))
 # Note that for everything except RC builds, VERSION will be set to the version
 # we'd use for a GA build. This is by design.
 ifneq ($(GIT_TAG_SANITIZED),)
-VERSION = $(shell printf "$(GIT_TAG_SANITIZED)" | sed -e 's/-.*//g')
+VERSION = $(shell printf "$(GIT_TAG_SANITIZED)" | sed -e 's/-.*//g' | sed -e 's/^[vV]//')
 else
-VERSION = $(GIT_VERSION)
+VERSION = $(shell printf "$(GIT_VERSION)" | sed -e 's/^[vV]//') 
 endif
 
 # We need this for tagging in some situations.
