@@ -1,7 +1,7 @@
 #!/hint/sh
 
 # "Releasable" images
-AMBASSADOR_IMAGE=$(                  sed -n 2p ambassador-withlicense/ambassador.docker.push.cluster)
+AMBASSADOR_IMAGE=$(                  sed -n 2p ambassador/ambassador.docker.push.cluster)
 AMB_SIDECAR_IMAGE=$(                 sed -n 2p docker/model-cluster-amb-sidecar-plugins.docker.push.cluster) # XXX: not releasable because plugins
 CONSUL_CONNECT_INTEGRATION_IMAGE=$(  sed -n 2p docker/consul_connect_integration.docker.push.cluster)
 DEV_PORTAL_IMAGE=$(                  sed -n 2p docker/dev-portal-server.docker.push.cluster)
@@ -22,8 +22,10 @@ MODEL_CLUSTER_OPENAPI_SERVICE=$(     sed -n 2p docker/model-cluster-openapi-serv
 LOADTEST_GENERATOR_IMAGE=$(          sed -n 2p docker/loadtest-generator.docker.push.cluster)
 
 # 03-ambassador-pro-*.yaml
+AMBASSADOR_LICENSE_KEY_V0=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImRldiIsImV4cCI6NDcwMDgyNjEzM30.wCxi5ICR6C5iEz6WkKpurNItK3zER12VNhM8F1zGkA8
 # Created with `./bin/apictl-key create --id=dev --expiration=$((100*365)) --features=filter,ratelimit,traffic,devportal,certified-envoy`
-AMBASSADOR_LICENSE_KEY=eyJhbGciOiJQUzUxMiIsInR5cCI6IkpXVCJ9.eyJsaWNlbnNlX2tleV92ZXJzaW9uIjoidjEiLCJjdXN0b21lcl9pZCI6ImRldiIsImVuYWJsZWRfZmVhdHVyZXMiOlsiZmlsdGVyIiwicmF0ZWxpbWl0IiwidHJhZmZpYyIsImRldnBvcnRhbCIsImNlcnRpZmllZC1lbnZveSJdLCJleHAiOjQ3MjAxMTM4NTksImlhdCI6MTU2NjUxMzg1OSwibmJmIjoxNTY2NTEzODU5fQ.ZPj034sI-yYlQemj9U9u6OzPKx4vrBf0Xv_NlvPSWhvzIlvTkJ-eDUxeWcMEgIjxZe6R2D-B6uRAtJLqFEFu2hA6DATzKFhk_4OTitpAwgVYWkHPy3Cd2rOhTx_vqcT3kYQei3OkBIIPkNvU-nbvAfL3CVICC083yW5sdckcmclsFY_fTOvaGi95bEeQAVh7e90b64yYz9P8zLbqwQ9l-rMvkSoh5euLsdRRT2g98ff7rPZIOdeiO4JQ9IbwukO21Z2Nzo7EOdgUesI6DBfvw7i2KisRSIaO-lVwnDYsrqPhfjFmzG3tPlHfy3qn16JPZ1RDxziRyJ8ZgSrtmEBpBA
+AMBASSADOR_LICENSE_KEY_V1=eyJhbGciOiJQUzUxMiIsInR5cCI6IkpXVCJ9.eyJsaWNlbnNlX2tleV92ZXJzaW9uIjoidjEiLCJjdXN0b21lcl9pZCI6ImRldiIsImVuYWJsZWRfZmVhdHVyZXMiOlsiZmlsdGVyIiwicmF0ZWxpbWl0IiwidHJhZmZpYyIsImRldnBvcnRhbCIsImNlcnRpZmllZC1lbnZveSJdLCJleHAiOjQ3MjAxMTM4NTksImlhdCI6MTU2NjUxMzg1OSwibmJmIjoxNTY2NTEzODU5fQ.ZPj034sI-yYlQemj9U9u6OzPKx4vrBf0Xv_NlvPSWhvzIlvTkJ-eDUxeWcMEgIjxZe6R2D-B6uRAtJLqFEFu2hA6DATzKFhk_4OTitpAwgVYWkHPy3Cd2rOhTx_vqcT3kYQei3OkBIIPkNvU-nbvAfL3CVICC083yW5sdckcmclsFY_fTOvaGi95bEeQAVh7e90b64yYz9P8zLbqwQ9l-rMvkSoh5euLsdRRT2g98ff7rPZIOdeiO4JQ9IbwukO21Z2Nzo7EOdgUesI6DBfvw7i2KisRSIaO-lVwnDYsrqPhfjFmzG3tPlHfy3qn16JPZ1RDxziRyJ8ZgSrtmEBpBA
+AMBASSADOR_LICENSE_KEY=$AMBASSADOR_LICENSE_KEY_V1
 
 # 04-filter-oauth2-*.yaml
 AUTH_TENANT_URL=https://ambassador.standalone.svc.cluster.local

@@ -52,7 +52,7 @@ require (
 
 replace github.com/lyft/ratelimit v1.3.0 => ./vendor-ratelimit
 
-replace github.com/datawire/ambassador => ./ambassador-nolicense
+replace github.com/datawire/ambassador => ./ambassador
 
 replace github.com/tsenart/vegeta => github.com/datawire/vegeta v12.2.2-0.20190408190644-d94b721fc676+incompatible
 
