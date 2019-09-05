@@ -102,7 +102,7 @@ class StatsdTest(AmbassadorTest):
 """
 
         return self.format(RBAC_CLUSTER_SCOPE + AMBASSADOR, image=os.environ["AMBASSADOR_DOCKER_IMAGE"],
-                           envs=envs, extra_ports="") + GRAPHITE_CONFIG.format('statsd-sink')
+                           envs=envs, extra_ports="", capabilities_block="") + GRAPHITE_CONFIG.format('statsd-sink')
 
     def config(self):
         yield self.target, self.format("""
@@ -177,7 +177,7 @@ class DogstatsdTest(AmbassadorTest):
 """
 
         return self.format(RBAC_CLUSTER_SCOPE + AMBASSADOR, image=os.environ["AMBASSADOR_DOCKER_IMAGE"],
-                           envs=envs, extra_ports="") + DOGSTATSD_CONFIG.format('dogstatsd-sink')
+                           envs=envs, extra_ports="", capabilities_block="") + DOGSTATSD_CONFIG.format('dogstatsd-sink')
 
     def config(self):
         yield self.target, self.format("""

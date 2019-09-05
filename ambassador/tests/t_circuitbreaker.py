@@ -55,7 +55,7 @@ class CircuitBreakingTestCANFLAKE(AmbassadorTest):
 """
 
         return self.format(RBAC_CLUSTER_SCOPE + AMBASSADOR, image=os.environ["AMBASSADOR_DOCKER_IMAGE"],
-                           envs=envs, extra_ports="") + GRAPHITE_CONFIG.format('cbstatsd-sink')
+                           envs=envs, extra_ports="", capabilities_block="") + GRAPHITE_CONFIG.format('cbstatsd-sink')
 
     def config(self):
         yield self, self.format("""
