@@ -110,8 +110,8 @@ In this quick start, we're going to preview a change we make to the backend serv
             - name: APPPORT
               value: "8080"
             - name: AMBASSADOR_LICENSE_KEY
-              value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Im5rcmF1c2UiLCJleHAiOjE1Nzg0MTg4ODZ9.S_6-zdPyy4z1N4Jmo5e4A7WME4CbQVLqnIn_13i5ikw
-            image: quay.io/datawire/ambassador_pro:app-sidecar-0.4.3
+              value: eJcbGciOiaIUzI1NiIsInR5cCkpXVCJ9.eCI6Im5rcmF1c2UiLCJleHAiOjE1Nzg0MTg4ODZ9.S_6-zdPyy4z1N4Jmo5e4A7fME4CbQVL_13ikw
+            image: quay.io/datawire/ambassador_pro:app-sidecar-%aproVersion%
             name: traffic-sidecar
             ports:
             - containerPort: 9900

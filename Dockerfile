@@ -30,10 +30,22 @@ ARG BASE_PY_IMAGE
 ARG BASE_GO_IMAGE
 
 ################################################################
+# STAGE ZERO: Copy in the Envoy binary (which was previously
+# extracted from BASE_ENVOY_IMAGE the Makefile).
+
+FROM frolvlad/alpine-glibc:alpine-3.9 as base-envoy
+
+# ADD/COPY the file in, then reset its timestamp to the unix epoch, so
+# the timestamp doesn't break Docker layer caching.
+ARG ENVOY_FILE
+ADD $ENVOY_FILE /usr/local/bin/envoy
+RUN touch -t 197001010000 /usr/local/bin/envoy
+
+################################################################
 # STAGE ONE: use the BASE_PY_IMAGE's toolchains to
 # build and install the Ambassador app itself.
 
-FROM $BASE_PY_IMAGE as cached
+FROM $BASE_PY_IMAGE as base-py
 
 # Install the application itself
 COPY multi/ multi
@@ -51,15 +63,17 @@ FROM $BASE_GO_IMAGE
 ENV AMBASSADOR_ROOT=/ambassador
 WORKDIR ${AMBASSADOR_ROOT}
 
+COPY --from=base-envoy /usr/local/bin/envoy /usr/local/bin/envoy
+
 # One could argue that this is perhaps a bit of a hack. However, it's also the way to
 # get all the stuff that pip installed without needing the whole of the Python dev
 # chain.
-COPY --from=cached /usr/lib/python3.6 /usr/lib/python3.6/
-COPY --from=cached /usr/lib/libyaml* /usr/lib/
-COPY --from=cached /usr/lib/pkgconfig /usr/lib/
+COPY --from=base-py /usr/lib/python3.6 /usr/lib/python3.6/
+COPY --from=base-py /usr/lib/libyaml* /usr/lib/
+COPY --from=base-py /usr/lib/pkgconfig /usr/lib/
 
 # Copy Ambassador binaries (built in stage one).
-COPY --from=cached /usr/bin/ambassador /usr/bin/diagd /usr/bin/
+COPY --from=base-py /usr/bin/ambassador /usr/bin/diagd /usr/bin/
 
 # MKDIR an empty /ambassador/ambassador-config, so that you can drop a configmap over it
 # if you really really need to (not recommended).
@@ -90,6 +104,8 @@ RUN chmod 755 entrypoint.sh grab-snapshots.py kick_ads.sh kubewatch.py post_upda
 # XXX Move to base image
 COPY watt .
 RUN chmod 755 watt
+COPY kubestatus .
+RUN chmod 755 kubestatus
 
 RUN apk --no-cache add libcap && setcap 'cap_net_bind_service=+ep' /usr/local/bin/envoy
 ENTRYPOINT [ "./entrypoint.sh" ]

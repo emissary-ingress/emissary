@@ -94,6 +94,34 @@ Format:
 --->
 
 <!--- CueAddReleaseNotes --->
+## [0.76.0] August 26, 2019
+[0.76.0]: https://github.com/datawire/ambassador/compare/0.75.0...0.76.0
+
+- circuit breakers now properly handle overriding a global circuit breaker within a Mapping ([#1767])
+- support for Knative 0.8.0 ([#1732])
+
+[#1767]: https://github.com/datawire/ambassador/issues/1767
+[#1732]: https://github.com/datawire/ambassador/issues/1732
+
+## [0.75.0] August 13, 2019
+[0.75.0]: https://github.com/datawire/ambassador/compare/0.74.1...0.75.0
+
+- (Feature) Update to Envoy 1.11.1, including security fixes
+- (Feature) You can use a `TLSContext` without a `secret` to set origination options ([#1708])
+- (Feature) Canary deployments can now use multiple `host_rewrite` values ([#1159])
+- (Bugfix) Make sure that Ambassador won't mistakenly complain about the number of RateLimit and Tracing services (thanks, [Christian Claus](https://github.com/cclauss)!)
+
+[#1159]: https://github.com/datawire/ambassador/issues/1159
+[#1708]: https://github.com/datawire/ambassador/issues/1708
+
+## [0.74.1] August 06, 2019
+[0.74.1]: https://github.com/datawire/ambassador/compare/0.74.0...0.74.1
+
+- (bugfix) Make sure that updates properly trigger reconfigures ([#1727])
+- (misc) Arrange for startup logging to have timestamps
+
+[#1727]: https://github.com/datawire/ambassador/issues/1727
+
 ## [0.74.0] July 30, 2019
 [0.74.0]: https://github.com/datawire/ambassador/compare/0.73.0...0.74.0
 

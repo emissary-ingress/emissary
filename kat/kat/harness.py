@@ -18,7 +18,7 @@ import time
 import threading
 import traceback
 
-from .manifests import BACKEND_SERVICE, SUPERPOD_POD, CRDS, KNATIVE_SERVING_CRDS
+from .manifests import KAT_CLIENT_POD, BACKEND_SERVICE, SUPERPOD_POD, CRDS, KNATIVE_SERVING_CRDS
 
 from yaml.scanner import ScannerError as YAMLScanError
 
@@ -38,33 +38,60 @@ def kube_version_json():
     return json.loads(stdout)
 
 
-def kube_server_version():
-    version_json = kube_version_json()
-    server_json = version_json['serverVersion']
-    return f"{server_json['major']}.{server_json['minor']}"
+def kube_server_version(version_json=None):
+    if not version_json:
+        version_json = kube_version_json()
+
+    server_json = version_json.get('serverVersion', {})
+
+    if server_json:
+        server_major = server_json.get('major', None)
+        server_minor = server_json.get('minor', None)
+
+        return f"{server_major}.{server_minor}"
+    else:
+        return None
 
 
-def kube_client_version():
-    version_json = kube_version_json()
-    client_json = version_json['clientVersion']
-    return f"{client_json['major']}.{client_json['minor']}"
+def kube_client_version(version_json=None):
+    if not version_json:
+        version_json = kube_version_json()
+
+    client_json = version_json.get('clientVersion', {})
+
+    if client_json:
+        client_major = client_json.get('major', None)
+        client_minor = client_json.get('minor', None)
+
+        return f"{client_major}.{client_minor}"
+    else:
+        return None
 
 
 def is_knative():
     is_cluster_compatible = True
-    server_version = kube_server_version()
-    client_version = kube_client_version()
-    if version.parse(server_version) < version.parse('1.11'):
-        print(f"server version {server_version} is incompatible with Knative")
-        is_cluster_compatible = False
-    else:
-        print(f"server version {server_version} is compatible with Knative")
+    kube_json = kube_version_json()
 
-    if version.parse(client_version) < version.parse('1.10'):
-        print(f"client version {client_version} is incompatible with Knative")
-        is_cluster_compatible = False
+    server_version = kube_server_version(kube_json)
+    client_version = kube_client_version(kube_json)
+
+    if server_version:
+        if version.parse(server_version) < version.parse('1.11'):
+            print(f"server version {server_version} is incompatible with Knative")
+            is_cluster_compatible = False
+        else:
+            print(f"server version {server_version} is compatible with Knative")
     else:
-        print(f"client version {client_version} is compatible with Knative")
+        print("could not determine Kubernetes server version?")
+
+    if client_version:
+        if version.parse(client_version) < version.parse('1.10'):
+            print(f"client version {client_version} is incompatible with Knative")
+            is_cluster_compatible = False
+        else:
+            print(f"client version {client_version} is compatible with Knative")
+    else:
+        print("could not determine Kubernetes client version?")
 
     return is_cluster_compatible
 
@@ -339,6 +366,33 @@ class Node(ABC):
     def requirements(self):
         yield from ()
 
+    # log_kube_artifacts writes various logs about our underlying Kubernetes objects to
+    # a place where the artifact publisher can find them. See run-tests.sh.
+    def log_kube_artifacts(self):
+        if not getattr(self, 'already_logged', False):
+            self.already_logged = True
+
+            print(f'logging kube artifacts for {self.path.k8s}')
+            sys.stdout.flush()
+
+            DEV = os.environ.get("AMBASSADOR_DEV", "0").lower() in ("1", "yes", "true")
+
+            log_path = f'/tmp/kat-logs-{self.path.k8s}'
+
+            if DEV:
+                os.system(f'docker logs {self.path.k8s} >{log_path} 2>&1')
+            else:
+                os.system(f'kubectl logs -n {self.namespace} {self.path.k8s} >{log_path} 2>&1')
+
+                event_path = f'/tmp/kat-events-{self.path.k8s}'
+
+                fs1 = f'involvedObject.name={self.path.k8s}'
+                fs2 = f'involvedObject.namespace={self.namespace}'
+
+                cmd = f'kubectl get events -o json --field-selector "{fs1}" --field-selector "{fs2}"'
+                os.system(f'echo ==== "{cmd}" >{event_path}')
+                os.system(f'{cmd} >>{event_path} 2>&1')
+
 
 class Test(Node):
 
@@ -501,6 +555,9 @@ class Result:
                     ("'%s'" % self.error) if self.error else "no error"
                 )
             else:
+                if self.query.expected != self.status:
+                    self.parent.log_kube_artifacts()
+
                 assert self.query.expected == self.status, \
                        "%s: expected status code %s, got %s instead with error %s" % (
                            self.query.url, self.query.expected, self.status, self.error)
@@ -685,7 +742,7 @@ def label(yaml, scope):
 
 CLIENT_GO = "kat_client"
 
-def run_queries(queries: Sequence[Query]) -> Sequence[Result]:
+def run_queries(name: str, queries: Sequence[Query]) -> Sequence[Result]:
     jsonified = []
     byid = {}
 
@@ -693,12 +750,17 @@ def run_queries(queries: Sequence[Query]) -> Sequence[Result]:
         jsonified.append(q.as_json())
         byid[id(q)] = q
 
-    with open("/tmp/urls.json", "w") as f:
+    path_urls = f'/tmp/kat-client-{name}-urls.json'
+    path_results = f'/tmp/kat-client-{name}-results.json'
+    path_log = f'/tmp/kat-client-{name}.log'
+
+    with open(path_urls, 'w') as f:
         json.dump(jsonified, f)
 
-    run("%s -input /tmp/urls.json -output /tmp/results.json 2> /tmp/client.log" % CLIENT_GO)
+    # run(f"{CLIENT_GO} -input {path_urls} -output {path_results} 2> {path_log}")
+    run(f"kubectl exec -i kat /work/kat_client < '{path_urls}' > '{path_results}' 2> '{path_log}'")
 
-    with open("/tmp/results.json") as f:
+    with open(path_results, 'r') as f:
         json_results = json.load(f)
 
     results = []
@@ -972,6 +1034,32 @@ class Runner:
         else:
             print(f'CRDS unchanged {reason}, skipping apply.')
 
+        # Next up: the KAT pod.
+        changed, reason = has_changed(KAT_CLIENT_POD, "/tmp/k8s-kat-pod.yaml")
+
+        if changed:
+            print(f'KAT pod definition changed ({reason}), applying')
+            run('kubectl apply -f /tmp/k8s-kat-pod.yaml')
+
+            tries_left = 10
+
+            while True:
+                pods = self._pods(None)
+
+                if pods.get('kat', False):
+                    print("KAT pod ready")
+                    break
+
+                tries_left -= 1
+
+                if tries_left <= 0:
+                    raise RuntimeError("KAT pod never became available")
+
+                print("sleeping for KAT pod... (%d)" % tries_left)
+                time.sleep(5)
+        else:
+            print(f'KAT pod definition unchanged {reason}, skipping apply.')
+
         manifests = self.get_manifests(selected)
 
         configs = OrderedDict()
@@ -1027,6 +1115,7 @@ class Runner:
                     assert False, "no service found for target: %s" % target.path
 
         yaml = ""
+
         for v in manifests.values():
             yaml += dump(label(v, self.scope)) + "\n"
 
@@ -1062,6 +1151,9 @@ class Runner:
                     action()
 
         self._wait(selected)
+
+        print("Waiting 5s after requirements, just because...")
+        time.sleep(5)
 
     def _wait(self, selected):
         requirements = [ (node, kind, name) for node in self.nodes for kind, name in node.requirements()
@@ -1118,19 +1210,11 @@ class Runner:
             _holdouts = holdouts.get(kind, [])
 
             if _holdouts:
-                DEV = os.environ.get("AMBASSADOR_DEV", "0").lower() in ("1", "yes", "true")
-
                 print(f'  {kind}:')
 
                 for node, text in _holdouts:
-                    print(f'\n================================ LOGS FOR {node.path.k8s} ({text})')
-
-                    if DEV:
-                        os.system(f'docker logs {node.path.k8s}')
-                    else:
-                        os.system(f'kubectl logs -n {node.namespace} {node.path.k8s}')
-
-                    print(f'================================ END LOGS FOR {node.path.k8s} ({text})\n')
+                    print(f'    {node.path.k8s} ({text})')
+                    node.log_kube_artifacts()
 
         assert False, "requirements not satisfied in %s seconds" % limit
 
@@ -1140,7 +1224,7 @@ class Runner:
 
     @_ready.when("pod")
     def _ready(self, _, requirements):
-        pods = self._pods()
+        pods = self._pods(self.scope)
         not_ready = []
 
         for node, name in requirements:
@@ -1165,7 +1249,7 @@ class Runner:
         # print("URL Reqs:")
         # print("\n".join([ f'{q.parent.name}: {q.url}' for q in queries ]))
 
-        result = run_queries(queries)
+        result = run_queries("reqcheck", queries)
 
         not_ready = [r for r in result if r.status != r.query.expected]
 
@@ -1176,9 +1260,12 @@ class Runner:
         else:
             return (True, None)
 
-    def _pods(self):
-        fname = "/tmp/pods-%s.json" % self.scope
-        run("kubectl get pod -l scope=%s -o json > %s" % (self.scope, fname))
+    def _pods(self, scope=None):
+        scope_for_path = scope if scope else 'global'
+        label_for_scope = f'-l scope={scope}' if scope else ''
+
+        fname = f'/tmp/pods-{scope_for_path}.json'
+        run(f'kubectl get pod {label_for_scope} -o json > {fname}')
 
         with open(fname) as f:
             raw_pods = json.load(f)
@@ -1187,17 +1274,19 @@ class Runner:
 
         for p in raw_pods["items"]:
             name = p["metadata"]["name"]
-            statuses = tuple(cs["ready"] for cs in p["status"].get("containerStatuses", ()))
 
-            if not statuses:
-                ready = False
-            else:
-                ready = True
+            cstats = p["status"].get("containerStatuses", [])
 
-                for status in statuses:
-                    ready = ready and status
+            all_ready = True
 
-            pods[name] = ready
+            for status in cstats:
+                ready = status.get('ready', False)
+
+                if not ready:
+                    all_ready = False
+                    # print(f'pod {name} is not ready: {status.get("state", "unknown state")}')
+
+            pods[name] = all_ready
 
         return pods
 
@@ -1228,7 +1317,7 @@ class Runner:
             print("Querying %s urls in phase %s..." % (len(phase_queries), phase), end="")
             sys.stdout.flush()
 
-            results = run_queries(phase_queries)
+            results = run_queries(f'phase{phase}', phase_queries)
 
             print(" done.")
 

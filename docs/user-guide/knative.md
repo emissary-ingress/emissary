@@ -23,7 +23,7 @@ Ambassador can watch for changes in Knative configuration in your Kubernetes clu
 
 1. Install Knative:
 
-   Knative is installed from remote YAML manifests. Check the [Knative install documentation](https://knative.dev/umentation/install/knative-with-ambassador/) to install the most recent version of Knative.
+   Knative is installed from remote YAML manifests. Check the [Knative install documentation](https://knative.dev/docs/install/knative-with-ambassador/) to install the most recent version of Knative.
 
    **Note:** You can safely ignore the `no matches for kind "Gateway" in version "networking.istio.io/v1alpha3"` warnings during the installation since we will be using Ambassador instead of the Istio gateway.
    
@@ -78,7 +78,7 @@ Ambassador can watch for changes in Knative configuration in your Kubernetes clu
     kubectl apply -f helloworld-go.yaml
     ```
    
-   Knative automatically creates a `ClusterIngress` resource from this `Knative Service`. Ambassador can then use that to register a route to the `helloworld-go` application.
+   Knative automatically creates an `Ingress`/`ClusterIngress` resource from this `Knative Service`. Ambassador can then use that to register a route to the `helloworld-go` application.
    
 5. Send a request 
 

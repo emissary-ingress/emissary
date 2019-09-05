@@ -1,13 +1,12 @@
 from typing import Any, Dict, List, Optional
 
-import sys
 import os
 import time
 
 import pexpect
 import requests
 
-DockerImage = os.environ["AMBASSADOR_DOCKER_IMAGE"]
+DockerImage = os.environ.get("AMBASSADOR_DOCKER_IMAGE", None)
 child = None    # see docker_start()
 
 SEQUENCES = [
@@ -37,14 +36,14 @@ SEQUENCES = [
     ),
 ]
 
-def docker_start() -> bool:
+def docker_start(logfile) -> bool:
     # Use a global here so that the child process doesn't get killed
     global child
 
     cmd = f'docker run --rm --name diagd -p9998:9998 {os.environ["AMBASSADOR_DOCKER_IMAGE"]} --dev-magic'
 
     child = pexpect.spawn(cmd, encoding='utf-8')
-    child.logfile = sys.stdout
+    child.logfile = logfile
 
     i = child.expect([ pexpect.EOF, pexpect.TIMEOUT, 'LocalScout: mode boot, action boot1' ])
 
@@ -57,69 +56,70 @@ def docker_start() -> bool:
     else:
         return True
 
-def docker_kill():
+def docker_kill(logfile):
     cmd = f'docker kill diagd'
 
     child = pexpect.spawn(cmd, encoding='utf-8')
-    child.logfile = sys.stdout
+    child.logfile = logfile
 
     child.expect([ pexpect.EOF, pexpect.TIMEOUT ])
 
-def wait_for_diagd() -> bool:
+def wait_for_diagd(logfile) -> bool:
     status = False
     tries_left = 5
 
     while tries_left >= 0:
-        print(f'...checking diagd ({tries_left})')
+        logfile.write(f'...checking diagd ({tries_left})\n')
 
         try:
             response = requests.get('http://localhost:9998/_internal/v0/ping')
 
             if response.status_code == 200:
+                logfile.write('   got it\n')
                 status = True
                 break
             else:
-                print(f'   failed {response.status_code}')
+                logfile.write(f'   failed {response.status_code}\n')
         except requests.exceptions.RequestException as e:
-            print(f'   failed {e}')
+            logfile.write(f'   failed {e}\n')
 
         tries_left -= 1
         time.sleep(2)
 
     return status
 
-def check_http(cmd: str) -> bool:
+def check_http(logfile, cmd: str) -> bool:
     try:
         response = requests.post('http://localhost:9998/_internal/v0/fs', params={ 'path': f'cmd:{cmd}' })
         text = response.text
 
         if response.status_code != 200:
-            print(f'{cmd}: wanted 200 but got {response.status_code} {text}')
+            logfile.write(f'{cmd}: wanted 200 but got {response.status_code} {text}\n')
             return False
 
         return True
     except Exception as e:
-        print(f'Could not do HTTP: {e}')
+        logfile.write(f'Could not do HTTP: {e}\n')
 
         return False
 
-def fetch_events() -> Any:
+def fetch_events(logfile) -> Any:
     try:
         response = requests.get('http://localhost:9998/_internal/v0/events')
 
         if response.status_code != 200:
-            print(f'events: wanted 200 but got {response.status_code} {response.text}')
-            return False
+            logfile.write(f'events: wanted 200 but got {response.status_code} {response.text}\n')
+            return None
 
         data = response.json()
 
         return data
     except Exception as e:
-        print(f'events: could not do HTTP: {e}')
+        logfile.write(f'events: could not do HTTP: {e}\n')
 
         return None
 
-def check_chimes() -> bool:
+def check_chimes(logfile) -> bool:
     result = True
 
     i = 0
@@ -137,19 +137,19 @@ def check_chimes() -> bool:
 
 
     for cmds, wanted_verdict in SEQUENCES:
-        print(f'RESETTING for sequence {i}')
+        logfile.write(f'RESETTING for sequence {i}\n')
 
-        if not check_http('chime_reset'):
-            print(f'could not reset for sequence {i}')
+        if not check_http(logfile, 'chime_reset'):
+            logfile.write(f'could not reset for sequence {i}\n')
             result = False
             continue
 
         j = 0
         for cmd in cmds:
-            print(f'   sending {cmd} for sequence {i}.{j}')
+            logfile.write(f'   sending {cmd} for sequence {i}.{j}\n')
 
-            if not check_http(cmd):
-                print(f'could not do {cmd} for sequence {i}.{j}')
+            if not check_http(logfile, cmd):
+                logfile.write(f'could not do {cmd} for sequence {i}.{j}\n')
                 result = False
                 break
 
@@ -158,15 +158,15 @@ def check_chimes() -> bool:
         if not result:
             continue
 
-        events = fetch_events()
+        events = fetch_events(logfile)
 
         if not events:
             result = False
             continue
 
-        # print(json.dumps(events, sort_keys=True, indent=4))
+        # logfile.write(json.dumps(events, sort_keys=True, indent=4))
 
-        print('   ----')
+        logfile.write('   ----\n')
         verdict = []
 
         for timestamp, mode, action, data in events:
@@ -177,40 +177,43 @@ def check_chimes() -> bool:
             if action_key:
                 covered[action_key] = True
 
-            print(f'     {action} - {action_key}')
+            logfile.write(f'     {action} - {action_key}\n')
 
-        # print(json.dumps(verdict, sort_keys=True, indent=4))
+        # logfile.write(json.dumps(verdict, sort_keys=True, indent=4\n))
 
         if verdict != wanted_verdict:
-            print(f'verdict mismatch for sequence {i}:')
-            print(f'  wanted {" ".join(wanted_verdict)}')
-            print(f'  got    {" ".join(verdict)}')
+            logfile.write(f'verdict mismatch for sequence {i}:\n')
+            logfile.write(f'  wanted {" ".join(wanted_verdict)}\n')
+            logfile.write(f'  got    {" ".join(verdict)}\n')
 
         i += 1
 
     for key in sorted(covered.keys()):
         if not covered[key]:
-            print(f'missing coverage for {key}')
+            logfile.write(f'missing coverage for {key}\n')
             result = False
 
     return result
 
 def test_scout():
-    test_status = True
+    test_status = False
 
-    if not DockerImage:
-        assert False, f'You must set $AMBASSADOR_DOCKER_IMAGE'
-    else:
-        assert docker_start(), 'diagd could not start'
+    with open('/tmp/test_scout_output', 'w') as logfile:
+        if not DockerImage:
+            logfile.write('No $AMBASSADOR_DOCKER_IMAGE??\n')
+        else:
+            if docker_start(logfile):
+                if wait_for_diagd(logfile) and check_chimes(logfile):
+                    test_status = True
 
-        if not wait_for_diagd():
-            test_status = False
-        elif not check_chimes():
-            test_status = False
+                docker_kill(logfile)
 
-        docker_kill()
+    if not test_status:
+        with open('/tmp/test_scout_output', 'r') as logfile:
+            for line in logfile:
+                print(line.rstrip())
 
-        assert test_status, 'test failed'
+    assert test_status, 'test failed'
 
 if __name__ == '__main__':
     test_scout()

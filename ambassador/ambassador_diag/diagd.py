@@ -148,6 +148,9 @@ class DiagApp (Flask):
         self.snapshot_path = snapshot_path
 
         self.ir = None
+        self.econf = None
+        self.diag = None
+
         self.stats_updater = None
         self.scout_checker = None
 
@@ -397,7 +400,7 @@ def check_alive():
 
 @app.route('/ambassador/v0/check_ready', methods=[ 'GET' ])
 def check_ready():
-    if not app.ir:
+    if not (app.ir and app.diag):
         return "ambassador waiting for config\n", 503
 
     status = envoy_status(app.estats)
@@ -896,6 +899,26 @@ class AmbassadorEventWatcher(threading.Thread):
         elif app.ambex_pid != 0:
             self.logger.info("notifying PID %d ambex" % app.ambex_pid)
             os.kill(app.ambex_pid, signal.SIGHUP)
+
+        if app.ir.k8s_status_updates:
+            for name in app.ir.k8s_status_updates.keys():
+                kind, update = app.ir.k8s_status_updates[name]
+
+                self.logger.info(f"doing K8s status update for {kind} {name}...")
+
+                text = json.dumps(update)
+
+                with open(f'/tmp/kstat-{kind}-{name}', 'w') as out:
+                    out.write(text)
+
+                cmd = [ '/ambassador/kubestatus', kind, '-f', f'metadata.name={name}', '-u', '/dev/fd/0' ]
+                self.logger.info(f"Running command: {cmd}")
+
+                try:
+                    rc = subprocess.run(cmd, input=text.encode('utf-8'), timeout=5)
+                    self.logger.info(f'...update finished, rc {rc.returncode}')
+                except subprocess.TimeoutExpired as e:
+                    self.logger.error(f'...update timed out, {e}')
 
         self.logger.info("configuration updated from snapshot %s" % snapshot)
         self._respond(rqueue, 200, 'configuration updated from snapshot %s' % snapshot)

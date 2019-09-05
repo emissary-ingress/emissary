@@ -334,6 +334,73 @@ weight: {self.weight}
             assert abs(self.weight - canary) < 25, f'weight {self.weight} routed {canary}% to canary'
             assert abs(100 - (canary + main)) < 2, f'weight {self.weight} routed only {canary + main}% at all?'
 
+
+class CanaryDiffMapping(MappingTest):
+
+    parent: AmbassadorTest
+    target: ServiceType
+    canary: ServiceType
+    weight: int
+
+    @classmethod
+    def variants(cls):
+        for v in variants(ServiceType):
+            for w in (0, 10, 50, 100):
+                yield cls(v, v.clone("canary"), w, name="{self.target.name}-{self.weight}")
+
+    def init(self, target: ServiceType, canary: ServiceType, weight):
+        MappingTest.init(self, target)
+        self.canary = canary
+        self.weight = weight
+
+    def config(self):
+        yield self.target, self.format("""
+---
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  {self.name}
+prefix: /{self.name}/
+service: http://{self.target.path.fqdn}
+host_rewrite: canary.1.example.com
+""")
+        yield self.canary, self.format("""
+---
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  {self.name}-canary
+prefix: /{self.name}/
+service: http://{self.canary.path.fqdn}
+host_rewrite: canary.2.example.com
+weight: {self.weight}
+""")
+
+    def queries(self):
+        for i in range(100):
+            yield Query(self.parent.url(self.name + "/"))
+
+    def check(self):
+        request_hosts = ['canary.1.example.com', 'canary.2.example.com']
+
+        hist = {}
+
+        for r in self.results:
+            hist[r.backend.name] = hist.get(r.backend.name, 0) + 1
+            assert r.backend.request.host in request_hosts, f'Expected host {request_hosts}, got {r.backend.request.host}'
+
+        if self.weight == 0:
+            assert hist.get(self.canary.path.k8s, 0) == 0
+            assert hist.get(self.target.path.k8s, 0) == 100
+        elif self.weight == 100:
+            assert hist.get(self.canary.path.k8s, 0) == 100
+            assert hist.get(self.target.path.k8s, 0) == 0
+        else:
+            canary = 100 * hist.get(self.canary.path.k8s, 0) / len(self.results)
+            main = 100 * hist.get(self.target.path.k8s, 0) / len(self.results)
+
+            assert abs(self.weight - canary) < 25, f'weight {self.weight} routed {canary}% to canary'
+            assert abs(100 - (canary + main)) < 2, f'weight {self.weight} routed only {canary + main}% at all?'
+
+
 class AddRespHeadersMapping(MappingTest):
     parent: AmbassadorTest
     target: ServiceType
@@ -369,7 +436,7 @@ add_response_headers:
     def check(self):
         for r in self.results:
             if r.headers:
-                print(r.headers)
+                # print(r.headers)
                 assert r.headers['Koo'] == ['KooK']
                 assert r.headers['Zoo'] == ['Zoo', 'ZooZ']
                 assert r.headers['Test'] == ['Test', 'boo']
@@ -407,7 +474,7 @@ remove_request_headers:
 
     def check(self):
         for r in self.results:
-            print(r.json)
+            # print(r.json)
             if 'headers' in r.json:
                 assert r.json['headers']['Foo'] == 'FooF'
                 assert 'Zoo' not in r.json['headers']

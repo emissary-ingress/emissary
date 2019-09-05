@@ -54,7 +54,7 @@ spec:
         ports:
         - name: http
           containerPort: 5000
-      - name: quote
+      - name: backend
         image: quay.io/datawire/tour:backend-%tourVersion%
         ports:
         - name: http

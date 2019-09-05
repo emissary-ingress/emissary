@@ -14,6 +14,7 @@
 from typing import Any, Callable, Dict, Iterable, List, Optional, Type, Union, ValuesView
 from typing import cast as typecast
 
+import datetime
 import json
 import logging
 import os
@@ -72,6 +73,7 @@ class IR:
     secret_handler: SecretHandler
     file_checker: Callable[[str], bool]
     resolvers: Dict[str, IRServiceResolver]
+    k8s_status_updates: Dict[str, Dict]
 
     def __init__(self, aconf: Config, secret_handler=None, file_checker=None) -> None:
         self.ambassador_id = Config.ambassador_id
@@ -126,6 +128,7 @@ class IR:
         self.listeners = []
         self.groups = {}
         self.resolvers = {}
+        self.k8s_status_updates = {}
 
         # OK, time to get this show on the road. First things first: set up the
         # Ambassador module.
@@ -443,11 +446,24 @@ class IR:
 
     def cluster_ingresses_to_mappings(self, aconf):
         cluster_ingresses = aconf.get_config("ClusterIngress")
-        if cluster_ingresses is None:
-            return
+        knative_ingresses = aconf.get_config("KnativeIngress")
 
-        for ci_name, ci in cluster_ingresses.items():
-            self.logger.debug(f"Parsing ClusterIngress {ci_name}")
+        final_knative_ingresses = {}
+        if cluster_ingresses is not None:
+            final_knative_ingresses.update(cluster_ingresses)
+        if knative_ingresses is not None:
+            final_knative_ingresses.update(knative_ingresses)
+
+        for ci_name, ci in final_knative_ingresses.items():
+            kind = ci['kind']
+            current_generation = ci['generation']
+
+            if kind == 'KnativeIngress':
+                kind = 'ingress.networking.internal.knative.dev'
+            else:
+                kind = kind.lower() + ".networking.internal.knative.dev"
+
+            self.logger.debug(f"Parsing {kind} {ci_name}")
 
             ci_rules = ci.get('rules', [])
             for rule_count, ci_rule in enumerate(ci_rules):
@@ -464,7 +480,7 @@ class IR:
                 if ci_http is not None:
                     ci_paths = ci_http.get('paths', [])
                     for path_count, ci_path in enumerate(ci_paths):
-                        ci_headers = ci_path.get('appendHeaders', [])
+                        ci_headers = ci_path.get('appendHeaders', {})
 
                         ci_splits = ci_path.get('splits', [])
                         for split_count, ci_split in enumerate(ci_splits):
@@ -483,8 +499,11 @@ class IR:
                                 ci_mapping['host'] = f"^({mapping_host})$"
                                 ci_mapping['host_regex'] = True
 
-                            if len(ci_headers) > 0:
-                                ci_mapping['add_request_headers'] = ci_headers
+                            split_headers = ci_split.get('appendHeaders', {})
+                            final_headers = {**ci_headers, **split_headers}
+
+                            if len(final_headers) > 0:
+                                ci_mapping['add_request_headers'] = final_headers
 
                             ci_percent = ci_split.get('percent', None)
                             if ci_percent is not None:
@@ -503,6 +522,32 @@ class IR:
                             if 'mappings' not in aconf.config:
                                 aconf.config['mappings'] = {}
                             aconf.config['mappings'][mapping_identifier] = ci_mapping
+
+                            # Remember that we need to update status on this resource.
+                            utcnow = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+                            status_update = (kind, {
+                                "observedGeneration": current_generation,
+                                "conditions": [
+                                    {
+                                        "lastTransitionTime": utcnow,
+                                        "status": "True",
+                                        "type": "LoadBalancerReady"
+                                    },
+                                    {
+                                        "lastTransitionTime": utcnow,
+                                        "status": "True",
+                                        "type": "NetworkConfigured"
+                                    },
+                                    {
+                                        "lastTransitionTime": utcnow,
+                                        "status": "True",
+                                        "type": "Ready"
+                                    }
+                                ]
+                            })
+
+                            self.logger.debug(f"Updating {ci_name}'s status to: {status_update}")
+                            self.k8s_status_updates[ci_name] = status_update
 
     def ordered_groups(self) -> Iterable[IRBaseMappingGroup]:
         return reversed(sorted(self.groups.values(), key=lambda x: x['group_weight']))
@@ -556,7 +601,8 @@ class IR:
             'filters': [ filt.as_dict() for filt in self.filters ],
             'groups': [ group.as_dict() for group in self.ordered_groups() ],
             'tls_contexts': [ context.as_dict() for context in self.tls_contexts.values() ],
-            'services': self.services
+            'services': self.services,
+            'k8s_status_updates': self.k8s_status_updates
         }
 
         if self.tracing:
@@ -631,6 +677,7 @@ class IR:
         cluster_routing_envoy_rr_count = 0      # clusters routing using envoy round robin
         cluster_routing_envoy_rh_count = 0      # clusters routing using envoy ring hash
         cluster_routing_envoy_maglev_count = 0  # clusters routing using envoy maglev
+        cluster_routing_envoy_lr_count = 0      # clusters routing using envoy least request
 
         endpoint_grpc_count = 0     # endpoints using GRPC upstream
         endpoint_http_count = 0     # endpoints using HTTP/HTTPS upstream
@@ -640,6 +687,7 @@ class IR:
         endpoint_routing_envoy_rr_count = 0     # endpoints Envoy round robin is routing to
         endpoint_routing_envoy_rh_count = 0     # endpoints Envoy ring hash is routing to
         endpoint_routing_envoy_maglev_count = 0  # endpoints Envoy maglev is routing to
+        endpoint_routing_envoy_lr_count = 0     # endpoints Envoy least request is routing to
 
         for cluster in self.clusters.values():
             cluster_count += 1
@@ -658,6 +706,8 @@ class IR:
                 cluster_routing_envoy_rh_count += 1
             elif lb_type == 'maglev':
                 cluster_routing_envoy_maglev_count += 1
+            elif lb_type == 'least_request':
+                cluster_routing_envoy_lr_count += 1
             else:
                 cluster_routing_envoy_rr_count += 1
 
@@ -697,6 +747,8 @@ class IR:
                 endpoint_routing_envoy_rh_count += num_endpoints
             elif lb_type == 'maglev':
                 endpoint_routing_envoy_maglev_count += num_endpoints
+            elif lb_type == 'least_request':
+                endpoint_routing_envoy_lr_count += num_endpoints
             else:
                 endpoint_routing_envoy_rr_count += num_endpoints
 
@@ -708,6 +760,7 @@ class IR:
         od['cluster_routing_envoy_rr_count'] = cluster_routing_envoy_rr_count
         od['cluster_routing_envoy_rh_count'] = cluster_routing_envoy_rh_count
         od['cluster_routing_envoy_maglev_count'] = cluster_routing_envoy_maglev_count
+        od['cluster_routing_envoy_lr_count'] = cluster_routing_envoy_lr_count
 
         od['endpoint_routing'] = Config.enable_endpoints
 
@@ -718,10 +771,13 @@ class IR:
         od['endpoint_routing_envoy_rr_count'] = endpoint_routing_envoy_rr_count
         od['endpoint_routing_envoy_rh_count'] = endpoint_routing_envoy_rh_count
         od['endpoint_routing_envoy_maglev_count'] = endpoint_routing_envoy_maglev_count
+        od['endpoint_routing_envoy_lr_count'] = endpoint_routing_envoy_lr_count
 
         cluster_ingresses = self.aconf.get_config("ClusterIngress")
-
         od['cluster_ingress_count'] = len(cluster_ingresses.keys()) if cluster_ingresses else 0
+
+        knative_ingresses = self.aconf.get_config("KnativeIngress")
+        od['knative_ingress_count'] = len(cluster_ingresses.keys()) if knative_ingresses else 0
 
         extauth = False
         extauth_proto: Optional[str] = None

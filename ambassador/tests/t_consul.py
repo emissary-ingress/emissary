@@ -98,6 +98,10 @@ name:  {self.path.k8s}-client-context
 secret: {self.path.k8s}-client-cert-secret
 """)
 
+    def requirements(self):
+        yield from super().requirements()
+        yield("url", Query(self.format("http://{self.path.k8s}-consul:8500/ui/")))
+
     def queries(self):
         # The K8s service should be OK. The Consul service should 503 because it has no upstreams
         # in phase 1.
@@ -110,9 +114,9 @@ secret: {self.path.k8s}-client-cert-secret
                     body={
                         "Datacenter": "dc1",
                         "Node": self.format("{self.path.k8s}-consul-service"),
-                        "Address": "asdf.org",
+                        "Address": self.k8s_target.path.k8s,
                         "Service": {"Service": self.format("{self.path.k8s}-consul-service"),
-                                    "Address": "asdf.org",
+                                    "Address": self.k8s_target.path.k8s,
                                     "Port": 80}},
                     phase=2)
 

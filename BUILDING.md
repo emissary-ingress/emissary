@@ -16,7 +16,7 @@ git checkout -b username/feature/my-branch-here
 make DOCKER_REGISTRY=<YOUR DOCKER REGISTRY> docker-images
 ```
 
-This will build a Docker image of Ambassador containing your code changes for yoiur given registry. After `make` is completed, run `docker push` to push the image to a registry and deploy the new image onto your cluster.
+This will build a Docker image of Ambassador containing your code changes for your given registry. After `make` is completed, run `docker push` to push the image to a registry and deploy the new image onto your cluster.
 
 **It is important to use `make` rather than trying to just do a `docker build`.** Actually assembling a Docker image for Ambassador involves quite a few steps before the image can be built.
 
@@ -37,7 +37,7 @@ If you want to make a doc change, see the `Making Documentation-Only Changes` se
 
 ### Structure and Branches
 
-The current shipping release of Ambassador lives here on the `master` branch. It is tagged with its version (e.g. `0.52.0`). 
+The current shipping release of Ambassador lives here on the `master` branch. It is tagged with its version (e.g. `0.52.0`).
 
 Changes on `master` after the last tag have not been released yet, but will be included in the next release of Ambassador.
 
@@ -45,7 +45,7 @@ The documentation in the `docs` directory is actually a Git subtree from the `am
 
 ### Making Code Changes
 
-1. **All development must be on branches cut from `master`**. 
+1. **All development must be on branches cut from `master`**.
    - The name of the branch isn't all that relevant, except:
    - A branch whose name starts with `nobuild.` will skip CI activities. This is intended for e.g. minor doc changes.
 
@@ -56,7 +56,7 @@ The documentation in the `docs` directory is actually a Git subtree from the `am
    the `docs` directory as necessary, and commit them to your branch so that they
    can be incorporated when the feature is merged into `master`.
 
-4. **Code changes must include tests.** See `tests/README.md` for more here.
+4. **Code changes must include tests.** See `ambassador/tests/README.md` for more here.
    Your test **must** actually test the change you're making, and it **must**
    pass in order for your change to be accepted.
 
@@ -128,15 +128,15 @@ make mypy
 after you've done `make shell`. This will start the [mypy daemon](https://mypy.readthedocs.io/en/latest/mypy_daemon.html)
 and then do a check of all the Ambassador code. There _should_ be no errors and no warnings
 reported: that will probably become a requirement for all GA releases later.
- 
+
 **Note well** that at present, `make mypy` will ignore missing imports. We're still sorting
 out how to best wrangle the various third-party libraries we use, so this seems to make sense
-for right now -- suggestions welcome on this front!   
+for right now -- suggestions welcome on this front!
 
 Tests
 -----
 
-CI runs Ambassador's test suite on every build. **You will be asked to add tests when you add features, and you should never ever commit code with failing unit tests.** 
+CI runs Ambassador's test suite on every build. **You will be asked to add tests when you add features, and you should never ever commit code with failing unit tests.**
 
 For more information on the test suite, see [its README](ambassador/tests/README.md).
 
@@ -156,7 +156,7 @@ The `ambassador dump` function (run from a `make shell`) will export the full En
 
 `ambassador dump --ir --v2 $configdir > test.json` 
 
-which will export the Ambassador IR and v2 Envoy configuration into `test.json`. If your configuration directory contains annotated Kubernetes resources, you should also pass a `--k8s` flag to `dump`. 
+which will export the Ambassador IR and v2 Envoy configuration into `test.json`. If your configuration directory contains annotated Kubernetes resources, you should also pass a `--k8s` flag to `dump`.
 
 Updating Ambassador's Envoy
 ---------------------------
@@ -198,9 +198,7 @@ Ambassador currently relies on a custom Envoy build. This build lives in `https:
 
  6. Edit `ENVOY_COMMIT ?=` in the Makefile to point to your new Envoy commit.  Follow the instructions in the Makefile when doing so:
 
-    a. Also update the number in the `BASE_ENVOY_IMAGE`, `BASE_PY_IMAGE`, and `BASE_GO_IMAGE` variables.
-
-    b. Then run `make docker-update-base` to compile Envoy, and build+push new docker base images incorporating that Envoy binary.  This will also update the `go/apis/envoy/` directory if any of Envoy's protobuf definitions have changed; make sure to commit those changes when you commit the change to `ENVOY_COMMIT`.
+    a. Then run `make docker-update-base` to compile Envoy, and build+push new docker base images incorporating that Envoy binary.  This will also update the `go/apis/envoy/` directory if any of Envoy's protobuf definitions have changed; make sure to commit those changes when you commit the change to `ENVOY_COMMIT`.
 
 Version Numbering
 -----------------

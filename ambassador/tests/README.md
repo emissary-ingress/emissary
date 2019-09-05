@@ -89,13 +89,13 @@ An `AmbassadorTest` is the place that new Ambassadors actually get created. If y
 
 - The `config` method will likely need to `yield` tuples: `yield self, configstr` to set configuration on the Ambassador itself, or `yield self.target, configstr` to set configuration on a service you've saved as `self.target`.
 
-- If you need to change `manifests`, you will almost certainly need to include a call to `super().manifests()` too. The common pattern here is 
+- If you need to change `manifests`, you will almost certainly need to include a call to `super().manifests()` too. The common pattern here is
 
     def manifests(self):
         return manifeststr + super().manifests()
 
   so that you can be that the manifest in `manifeststr` takes effect before the Ambassador is created.
 
-- A fairly common pattern for a single-purpose `AmbassadorTest` is to create a target as `self.target` in the `init` method (not `__init__` -- leave that alone!). 
+- A fairly common pattern for a single-purpose `AmbassadorTest` is to create a target as `self.target` in the `init` method (not `__init__` -- leave that alone!).
 
 ### More coming soon!

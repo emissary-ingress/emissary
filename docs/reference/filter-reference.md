@@ -118,8 +118,10 @@ spec:
     clientURL:             "url-string"      # required
     stateTTL:              "duration-string" # optional; default is "5m"
     insecureTLS:           bool              # optional; default is false
-    clientID:              "string"
-    secret:                "string"
+    clientID:              "string"			     
+    secret:                "string"					 
+		secretName:						 "string"					 # optional; default is ""
+		secretNamespace:			 "string"					 # optional; default is "metadata.namespace"
     maxStale:              "duration-string" # optional; default is "0"
     accessTokenValidation: "enum-string"     # optional; default is "auto"
 ```
@@ -141,6 +143,15 @@ spec:
    <!-- - `audience`: The OIDC audience. -->
  - `clientID`: The Client ID you get from your identity provider.
  - `secret`: The client secret you get from your identity provider.
+ - `secretName`: The client secret from your identity provider can be
+   stored in a `generic` secret with key `oauth2-client-secret`. Setting
+	 this field will tell Ambassador Pro to read the client secret from this
+	 Kubernetes secret instead of from `secret`.
+ - `secretNamespace`: The namespace Ambassador Pro will find the `secretName`.
+   Defaults to the same namespace as the `Filter`.
+
+    **Note**: `secret` cannot be set if `secretName` or `secretNamespace` are
+	  configured
  - `maxStale`: How long to keep stale cached OIDC replies for.  This
    sets the `max-stale` Cache-Control directive on requests, and also
    ignores the `no-store` and `no-cache` Cache-Control directives on

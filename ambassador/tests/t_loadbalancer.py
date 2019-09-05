@@ -114,6 +114,26 @@ service: {self.target.path.fqdn}
 resolver: endpoint
 load_balancer:
   policy: rr
+---
+apiVersion: ambassador/v1
+kind:  Mapping
+name:  {self.name}-8
+prefix: /{self.name}-8/
+service: {self.target.path.fqdn}
+resolver: endpoint
+load_balancer:
+  policy: least_request
+---
+apiVersion: ambassador/v1
+kind:  Mapping
+name:  {self.name}-9
+prefix: /{self.name}-9/
+service: {self.target.path.fqdn}
+resolver: endpoint
+load_balancer:
+  policy: least_request
+  cookie:
+    name: test-cookie
 """)
 
     def queries(self):
@@ -125,6 +145,8 @@ load_balancer:
         yield Query(self.url(self.name + "-5/"), expected=404)
         yield Query(self.url(self.name + "-6/"), expected=404)
         yield Query(self.url(self.name + "-7/"), expected=404)
+        yield Query(self.url(self.name + "-8/"))
+        yield Query(self.url(self.name + "-9/"), expected=404)
 
 
 class GlobalLoadBalancing(AmbassadorTest):

@@ -5,6 +5,7 @@
     "type": "object",
     "properties": {
         "apiVersion": { "enum": ["ambassador/v1"] },
+        "generation": { "type": "integer" },
         "kind": { "type": "string" },
         "name": { "type": "string" },
         "ambassador_id": {
@@ -139,7 +140,7 @@
             "properties": {
                 "policy":  {
                     "type": "string",
-                    "enum": ["round_robin", "ring_hash", "maglev"]
+                    "enum": ["round_robin", "ring_hash", "maglev", "least_request"]
                 },
                 "cookie":  {
                     "type": "object",

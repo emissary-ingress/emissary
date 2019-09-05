@@ -25,13 +25,13 @@ class TCPMappingTest(AmbassadorTest):
 
     def init(self):
         self.target1 = HTTP(name="target1")
-        print("TCP target1 %s" % self.target1.namespace)
+        # print("TCP target1 %s" % self.target1.namespace)
 
         self.target2 = HTTP(name="target2", namespace="other-namespace")
-        print("TCP target2 %s" % self.target2.namespace)
+        # print("TCP target2 %s" % self.target2.namespace)
 
         self.target3 = HTTP(name="target3")
-        print("TCP target3 %s" % self.target3.namespace)
+        # print("TCP target3 %s" % self.target3.namespace)
 
     # manifests returns a string of Kubernetes YAML that will be applied to the
     # Kubernetes cluster before running any tests.
@@ -167,7 +167,7 @@ tls: true
 
         # 5: should error since port 8765 is bound only to localhost
         yield Query(self.url(self.name + "/wtfo/", port=8765),
-                    error=['connection reset by peer', 'EOF'],
+                    error=[ 'connection reset by peer', 'EOF', 'connection refused' ],
                     insecure=True)
 
     # Once in check(), self.results is an ordered list of results from your

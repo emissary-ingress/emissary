@@ -133,7 +133,7 @@ service: {self.target.path.fqdn}
         #  This is because net/http does not yet support adding proxy proto to HTTP requests, and hence it's difficult
         #  to test with kat. We will need to open a raw TCP connection (e.g. telnet/nc) and send the entire HTTP Request
         #  in plaintext to test this behavior (or use curl with --haproxy-protocol).
-        yield Query(self.url("tls-target/"), error="EOF")
+        yield Query(self.url("tls-target/"), error=[ "EOF", "connection reset by peer" ])
 
     # We can't do the error check until we have the PROXY client mentioned above.
     #     # [1] -- PHASE 2
@@ -256,6 +256,7 @@ service: {self.target.path.fqdn}
         assert(len(errors) == 0)
 
     def requirements(self):
+        # We're replacing super()'s requirements deliberately here: we need the XFP header or they can't work.
         yield ("url", Query(self.url("ambassador/v0/check_ready"), headers={"X-Forwarded-Proto": "https"}))
         yield ("url", Query(self.url("ambassador/v0/check_alive"), headers={"X-Forwarded-Proto": "https"}))
 

@@ -209,7 +209,22 @@ http://localhost/
 
 ## 5. The Diagnostics Service in Kubernetes
 
-Ambassador includes an integrated diagnostics service to help with troubleshooting. By default, this is not exposed to the Internet. To view it, we'll need to get the name of one of the Ambassador pods:
+Ambassador includes an integrated diagnostics service to help with troubleshooting. 
+
+By default, this is exposed to the internet at the URL `http://{{AMBASSADOR_HOST}}/ambassador/v0/diag/`. Go to that URL from a web browser to view the diagnostic UI.
+
+You can change the default so it is not exposed externally by default by setting `diagnostics.enabled: false` in the [ambassador `Module`](/reference/core/ambassador). 
+
+```yaml
+apiVersion: ambassador/v1
+kind: Module
+name: ambassador
+config:
+  diagnostics:
+    enabled: false
+```
+
+After applying this `Module`, to view the diagnostics UI, we'll need to get the name of one of the Ambassador pods:
 
 ```
 $ kubectl get pods
@@ -226,7 +241,14 @@ kubectl port-forward ambassador-3655608000-43x86 8877
 
 will then let us view the diagnostics at http://localhost:8877/ambassador/v0/diag/.
 
-## 6. Next
+## 6. Enable HTTPS
+
+Ambassador's versatile HTTPS configuration lets it support various HTTPS use cases whether simple or complex. 
+
+Follow our [enabling HTTPS guide](/user-guide/tls-termination) to quickly enable HTTPS support for your applications.
+
+
+## Next Steps
 
 We've just done a quick tour of some of the core features of Ambassador: diagnostics, routing, configuration, and authentication.
 

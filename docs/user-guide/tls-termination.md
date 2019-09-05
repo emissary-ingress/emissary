@@ -1,4 +1,4 @@
-# Enabling TLS Termination in Ambassador
+# Enabling HTTPS in Ambassador
 
 TLS encryption is one of the basic requirements of having a secure system. Ambassador makes enabling TLS encryption easy, centralizing TLS termination for all of your services in Kubernetes.
 

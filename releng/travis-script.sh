@@ -16,81 +16,111 @@
 
 set -o errexit
 set -o nounset
-set -o xtrace
 
 printf "== Begin: travis-script.sh ==\n"
 
-# We start by figuring out the COMMIT_TYPE. Yes, this is kind of a hack.
-eval $(make export-vars | grep COMMIT_TYPE)
+if [[ "$GIT_BRANCH" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+    COMMIT_TYPE=GA
+elif [[ "$GIT_BRANCH" =~ -rc[0-9]+$ ]]; then
+    COMMIT_TYPE=RC
+elif [[ "$GIT_BRANCH" =~ -ea[0-9]+$ ]]; then
+    COMMIT_TYPE=EA
+elif [[ "$TRAVIS_PULL_REQUEST" != false ]]; then
+    COMMIT_TYPE=PR
+else
+    COMMIT_TYPE=random
+fi
+
+# If downstream, don't re-run release machinery for tags that are an
+# existing upstream release.
+if [[ "$TRAVIS_REPO_SLUG" != datawire/ambassador ]] &&
+   [[ -n "${TRAVIS_TAG:-}" ]] &&
+   git fetch https://github.com/datawire/ambassador.git "refs/tags/${TRAVIS_TAG}:refs/upstream-tag" &&
+   [[ "$(git rev-parse refs/upstream-tag)" == "$(git rev-parse "refs/tags/${TRAVIS_TAG}")" ]]
+then
+    COMMIT_TYPE=random
+fi
+git update-ref -d refs/upstream-tag
 
 printf "========\nCOMMIT_TYPE $COMMIT_TYPE; git status:\n"
 
 git status
 
-printf "========\n"
+printf "========\nSetting up environment...\n"
+case "$COMMIT_TYPE" in
+    GA)
+        eval $(make DOCKER_EXTERNAL_REGISTRY=$DOCKER_REGISTRY export-vars)
+        ;;
+    *)
+        eval $(make USE_KUBERNAUT=true \
+                    DOCKER_EPHEMERAL_REGISTRY=true \
+                    DOCKER_EXTERNAL_REGISTRY=$DOCKER_REGISTRY \
+                    DOCKER_REGISTRY=localhost:31000 \
+                    export-vars)
+        ;;
+esac
+set -o xtrace
+make print-vars
 
-# Travis itself prevents launch on a nobuild branch _unless_ it's a PR from a
-# nobuild branch.
-# if [[ ${GIT_BRANCH} =~ ^nobuild.* ]]; then
-#     printf "!! Branch is 'nobuild', therefore, no work will be performed.\n"
-#     exit 0
-# fi
+printf "========\nStarting build...\n"
 
-# Basically everything for a GA commit happens from the deploy target.
-if [ "${COMMIT_TYPE}" != "GA" ]; then
-    # Set up the environment correctly, including the madness around
-    # the ephemeral Docker registry.
-    printf "========\nSetting up environment...\n"
-
-    eval $(make USE_KUBERNAUT=true \
-                DOCKER_EPHEMERAL_REGISTRY=true \
-                DOCKER_EXTERNAL_REGISTRY=$DOCKER_REGISTRY \
-                DOCKER_REGISTRY=localhost:31000 \
-                export-vars)
-
-    # Makes it much easier to actually debug when you see what the Makefile sees
-    make print-vars
-
-    printf "========\nStarting build...\n"
-
-    make setup-develop cluster.yaml docker-registry
-    make docker-push
-
-    printf "========\nkubectl version...\n"
-    kubectl version
-
-    # make KAT_REQ_LIMIT=1200 test
-    make test
-
-    if [[ ${GIT_BRANCH} = ${MAIN_BRANCH} ]]; then
-        # By fiat, _any commit_ on the main branch pushes production docs.
-        # This is to allow simple doc fixes. So. Grab the most recent proper
-        # version...
-        VERSION=$(git describe --tags --abbrev=0 --exclude='*-*')
-
-        if [ -z "$VERSION" ]; then
-            # Uh WTF.
-            echo "No tagged version found at $GIT_COMMIT" >&2
-            exit 1
+case "$COMMIT_TYPE" in
+    GA)
+        : # We just re-tag the RC image as GA; nothing to build
+        ;;
+    *)
+        # CI might have set DOCKER_BUILD_USERNAME and DOCKER_BUILD_PASSWORD
+        # (in case BASE_DOCKER_REPO is private)
+        if [[ -n "${DOCKER_BUILD_USERNAME:-}" ]]; then
+            docker login -u="$DOCKER_BUILD_USERNAME" --password-stdin "${BASE_DOCKER_REPO%%/*}" <<<"$DOCKER_BUILD_PASSWORD"
         fi
 
-        if [[ $VERSION =~ '^v' ]]; then
-            VERSION=$(echo "$VERSION" | cut -c2-)
+        make setup-develop cluster.yaml docker-registry
+        make docker-push # to the in-cluster registry (DOCKER_REGISTRY)
+        # make KAT_REQ_LIMIT=1200 test
+        make test
+        ;;
+esac
+
+printf "========\nPublishing artifacts...\n"
+
+case "$COMMIT_TYPE" in
+    GA)
+        if [[ -n "${DOCKER_RELEASE_USERNAME:-}" ]]; then
+            docker login -u="$DOCKER_RELEASE_USERNAME" --password-stdin "${AMBASSADOR_EXTERNAL_DOCKER_REPO%%/*}" <<<"$DOCKER_RELEASE_PASSWORD"
         fi
-    fi
-
-    if [[ ${COMMIT_TYPE} == "RC" ]]; then
-        # For RC builds, update AWS test keys.
-		make VERSION="$VERSION" SCOUT_APP_KEY=testapp.json STABLE_TXT_KEY=teststable.txt update-aws
-    elif [[ ${COMMIT_TYPE} == "EA" ]]; then
-        # For RC builds, update AWS EA keys.
-		make VERSION="$VERSION" SCOUT_APP_KEY=earlyapp.json STABLE_TXT_KEY=earlystable.txt update-aws
-    fi
-else
-    echo "GA commit, will retag in deployment"
-fi
-
-# All the artifact handling for GA builds happens in the deploy block
-# in travis.yml, so we're done here.
+        make release
+        ;;
+    RC)
+        if [[ -n "${DOCKER_RELEASE_USERNAME:-}" ]]; then
+            docker login -u="$DOCKER_RELEASE_USERNAME" --password-stdin "${AMBASSADOR_EXTERNAL_DOCKER_REPO%%/*}" <<<"$DOCKER_RELEASE_PASSWORD"
+        fi
+        tags=(
+            "${AMBASSADOR_EXTERNAL_DOCKER_REPO}:${GIT_TAG_SANITIZED}" # public X.Y.Z-rcA
+            "${AMBASSADOR_EXTERNAL_DOCKER_REPO}:${LATEST_RC}"         # public X.Y.Z-rc-latest
+        )
+        for tag in "${tags[@]}"; do
+            docker tag "$AMBASSADOR_DOCKER_IMAGE" "$tag"
+            docker push "$tag"
+        done
+        make VERSION="$VERSION" SCOUT_APP_KEY=testapp.json STABLE_TXT_KEY=teststable.txt update-aws
+        ;;
+    EA)
+        if [[ -n "${DOCKER_RELEASE_USERNAME:-}" ]]; then
+            docker login -u="$DOCKER_RELEASE_USERNAME" --password-stdin "${AMBASSADOR_EXTERNAL_DOCKER_REPO%%/*}" <<<"$DOCKER_RELEASE_PASSWORD"
+        fi
+        tags=(
+            "${AMBASSADOR_EXTERNAL_DOCKER_REPO}:${GIT_TAG_SANITIZED}" # public X.Y.Z-eaA
+        )
+        for tag in "${tags[@]}"; do
+            docker tag "$AMBASSADOR_DOCKER_IMAGE" "$tag"
+            docker push "$tag"
+        done
+        make VERSION="$VERSION" SCOUT_APP_KEY=earlyapp.json STABLE_TXT_KEY=earlystable.txt update-aws
+        ;;
+    *)
+        : # Nothing to do
+        ;;
+esac
 
 printf "== End:   travis-script.sh ==\n"
