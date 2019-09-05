@@ -22,7 +22,8 @@ spec depends on the filter type:
 apiVersion: getambassador.io/v1beta2
 kind: Filter
 metadata:
-  name: "string"
+  name:      "string"      # required; this is how to refer to the Filter in a FilterPolicy
+  namespace: "string"      # optional; default is the usual `kubectl apply` default namespace
 spec:
   ambassador_id:           # optional; default is ["default"]
   - "string"
@@ -39,32 +40,45 @@ The `External` filter type exposes the Ambassador `AuthService` interface to ext
 
 The `External` filter looks very similar to an `AuthService` annotation:
 
-```
+```yaml
 ---
 apiVersion: getambassador.io/v1beta2
 kind: Filter
 metadata:
-  name: http-auth-filter
-  namespace: standalone
+  name: "example-external-filter"
+  namespace: "example-namespace"
 spec:
   External:
-    auth_service: "http-auth:4000"
-    path_prefix: "/frobnitz"
-    proto: http
-    allowed_request_headers:
+    auth_service:                  "url-ish-string" # required
+    tls:                           bool             # optional; default is true if `auth_service` starts with "https://" (case-insensitive), false otherwise
+    proto:                         "enum-string"    # optional; default is "http"
+    timeout:                       integer          # optional; default is 5000
+    allow_request_body:            bool             # optional; default is false
+
+    # the following are used only if `proto: http`; they are ignored if `proto: grpc`
+
+    path_prefix:                   "/path"          # optional; default is "/"
+    allowed_request_headers:                        # optional; default is []
     - "x-allowed-input-header"
-    allowed_authorization_headers:
+    allowed_authorization_headers:                  # optional; default is []
     - "x-input-headers"
     - "x-allowed-output-header"
-    allow_request_body: false
 ```
 
-The spec is mostly identical to an `AuthService`, with the following exceptions:
+ - `auth_service` is of the format `[scheme://]host[:port]`.  The
+   scheme-part may be `http://` or `https://`, which influences the
+   default value of `tls`, and of the port-part.  If no scheme-part is
+   given, it behaves as if `http://` was given.
+ - `timeout` is the total timeout for the request to the upstream
+   external filter, in milleseconds.
+ - `proto` is either `"http"` or `"grpc"`.
 
-* It does not contain the apiVersion field
-* It does not contain the kind field
-* It does not contain the name field
-* In an AuthService, the tls field may either be a Boolean, or a string referring to a TLS context. In an `External`, it may only be a Boolean; referring to a TLS context is not supported.
+This `spec.External` is mostly identical to an [`AuthService`](./auth-service), with the following exceptions:
+
+* It does not contain the `apiVersion` field
+* It does not contain the `kind` field
+* It does not contain the `name` field
+* In an `AuthService`, the `tls` field may either be a Boolean, or a string referring to a TLS context. In an `External`, it may only be a Boolean; referring to a TLS context is not supported.
 
 ### Filter Type: `JWT`
 
@@ -75,29 +89,127 @@ The `JWT` filter type performs JWT validation. The list of acceptable signing ke
 apiVersion: getambassador.io/v1beta2
 kind: Filter
 metadata:
-  name: my-jwt-filter
+  name: "example-jwt-filter"
+  namespace: "example-namespace"
 spec:
   JWT:
-    jwksURI: "https://ambassador-oauth-e2e.auth0.com/.well-known/jwks.json" # required, unless the only validAlgorithm is "none"
-    insecureTLS: true # optional, default is false
-    validAlgorithms: # omitting this means "all supported algos except for 'none'"
+    jwksURI:          "url-string"  # required, unless the only validAlgorithm is "none"
+    insecureTLS:      bool          # optional; default is false
+    validAlgorithms:                # optional; default is "all supported algos except for 'none'"
       - "RS256"
       - "RS384"
       - "RS512"
       - "none"
-    audience: "myapp" # optional unless requireAudience: true
-    requireAudience: true # optional, default is false
-    issuer: "https://ambassador-oauth-e2e.auth0.com/" # optional unless requireIssuer: true
-    requireIssuer: true # optional, default is false
-    requireIssuedAt: true # optional, default is false
-    requireExpiresAt: true # optional, default is false
-    requireNotBefore: true # optional, default is false
+
+    audience:         "string"      # optional, unless `requireAudience: true`
+    requireAudience:  bool          # optional; default is false
+
+    issuer:           "url-string"  # optional, unless `requireIssuer: true`
+    requireIssuer:    bool          # optional; default is false
+
+    requireIssuedAt:  bool          # optional; default is false
+    requireExpiresAt: bool          # optional; default is false
+    requireNotBefore: bool          # optional; default is false
+
+    injectRequestHeaders:           # optional; default is []
+     - name:   "header-name-string" # required
+       value:  "go-template-string" # required
 ```
 
  - `insecureTLS` disables TLS verification for the cases when
    `jwksURI` begins with `https://`.  This is discouraged in favor of
    either using plain `http://` or [installing a self-signed
    certificate](#installing-self-signed-certificates).
+ - `injectRequestHeaders` injects HTTP header fields in to the request
+   before sending it to the upstream service; where the header value
+   can be set based on the JWT value.  The value is specified as a [Go
+   `text/template`][] string, with the following data made available
+   to it:
+
+    * `.token.Raw` → `string` the raw JWT
+    * `.token.Header` → `map[string]interface{}` the JWT header, as parsed JSON
+    * `.token.Claims` → `map[string]interface{}` the JWT claims, as parsed JSON
+    * `.token.Signature` → `string` the token signature
+
+   Any headers listed will override (not append to) the original
+   request header with that name.
+
+   **Note**: If you are using a templating system for your YAML that
+   also makes use of Go templating (for instance, Helm), then you will
+   need to escape the template strings meant to be interpretted by
+   Ambassador Pro.
+
+[Go `text/template`]: https://golang.org/pkg/text/template/
+
+#### Example `JWT` `Filter`
+
+```yaml
+# Example results are for the JWT:
+#
+#    eyJhbGciOiJub25lIiwidHlwIjoiSldUIiwiZXh0cmEiOiJzbyBtdWNoIn0.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.
+#
+# To save you some time decoding that JWT:
+#
+#   header = {
+#     "alg": "none",
+#     "typ": "JWT",
+#     "extra": "so much"
+#   }
+#   claims = {
+#     "sub": "1234567890",
+#     "name": "John Doe",
+#     "iat": 1516239022
+#   }
+---
+apiVersion: getambassador.io/v1beta2
+kind: Filter
+metadata:
+  name: example-jwt-filter
+  namespace: example-namespace
+spec:
+  JWT:
+    jwksURI: "https://getambassador-demo.auth0.com/.well-known/jwks.json"
+    validAlgorithms:
+      - "none"
+    audience: "myapp"
+    requireAudience: false
+    injectRequestHeaders:
+      - name: "X-Fixed-String"
+        value: "Fixed String",
+        # result will be "Fixed String"
+      - name: "X-Token-String"
+        value: "{{.token.Raw}}",
+        # result will be "eyJhbGciOiJub25lIiwidHlwIjoiSldUIiwiZXh0cmEiOiJzbyBtdWNoIn0.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ."
+      - name: "X-Token-H-Alg"
+        value: "{{.token.Header.alg}}",
+        # result will be "none"
+      - name: "X-Token-H-Typ"
+        value: "{{.token.Header.typ}}",
+        # result will be "JWT"
+      - name: "X-Token-H-Extra"
+        value: "{{.token.Header.extra}}",
+        # result will be "so much"
+      - name: "X-Token-C-Sub"
+        value: "{{.token.Claims.sub}}",
+        # result will be "1234567890"
+      - name: "X-Token-C-Name"
+        value: "{{.token.Claims.name}}",
+        # result will be "John Doe"
+      - name: "X-Token-C-Iat"
+        value: "{{.token.Claims.iat}}",
+        # result will be "1.516239022e+09" (don't expect JSON numbers
+        # to always be formatted the same as input; if you care about
+        # that, specify the formatting; see the next example)
+      - name: "X-Token-C-Iat-Decimal"
+        value: "{{printf \"%.0f\" .token.Claims.iat}}",
+        # result will be "1516239022"
+      - name: "X-Token-S"
+        value: "{{.token.Signature}}",
+        # result will be "" (since "alg: none" was used in this example JWT)
+      - name: "X-Authorization"
+        value: : "Authenticated {{.token.Header.typ}}; sub={{.token.Claims.sub}}; name={{printf \"%q\" .token.Claims.name}}"
+        # result will be: "Authenticated JWT; sub=1234567890; name="John Doe""
+```
 
 ### Filter Type: `OAuth2`
 
@@ -111,52 +223,65 @@ identity provider implementing [OIDC Discovery](https://openid.net/specs/openid-
 apiVersion: getambassador.io/v1beta2
 kind: Filter
 metadata:
-  name: "example-filter"
+  name: "example-oauth2-filter"
+  namespace: "example-namespace"
 spec:
   OAuth2:
     authorizationURL:      "url-string"      # required
-    clientURL:             "url-string"      # required
-    stateTTL:              "duration-string" # optional; default is "5m"
     insecureTLS:           bool              # optional; default is false
-    clientID:              "string"			     
-    secret:                "string"					 
-		secretName:						 "string"					 # optional; default is ""
-		secretNamespace:			 "string"					 # optional; default is "metadata.namespace"
-    maxStale:              "duration-string" # optional; default is "0"
+    clientID:              "string"          # required
+    # A client secret must be specified.
+    # This can be done by including the raw secret as a string in "secret",
+    # or by referencing Kubernetes secret with "secretName" (and "secretNamespace").
+    # It is invalid to specify both "secret" and "secretName".
+    secret:                "string"          # required (unless secretName is set)
+    secretName:            "string"          # required (unless secret is set)
+    secretNamespace:       "string"          # optional; default is the same namespace as the Filter
+
+    # The above is all information that you get directly from you identity provider.
+
+    clientURL:             "url-string"      # required
+
+    # The below is all information that you decide for yourself.
+
     accessTokenValidation: "enum-string"     # optional; default is "auto"
+    maxStale:              "duration-string" # optional; default is "0"
+    stateTTL:              "duration-string" # optional; default is "5m"
 ```
+
+<!-- There is an `adience` field that is currently ignored -->
+
+Information about your identity provider:
 
  - `authorizationURL`: Identifies where to look for the
    `/.well-known/openid-configuration` descriptor to figure out how to
    talk to the OAuth2 provider.
+ - `insecureTLS` disables TLS verification when speaking to an
+   identity provider with an `https://` `authorizationURL`.  This is
+   discouraged in favor of either using plain `http://` or [installing
+   a self-signed certificate](#installing-self-signed-certificates).
+ - `clientID`: The Client ID you get from your identity provider.
+ - The client secret you get from your identity provider can be
+   specified 2 different ways:
+   * As a string, in the `secret` field.
+   * As a Kubernetes `generic` Secret, named by
+     `secretName`/`secretNamespace`.  The Kubernetes secret must of
+     the `generic` type, with the value stored under the key
+     `oauth2-client-secret`.  If `secretNamespace` is not given, it
+     defaults to the namespace of the Filter resource.
+   * **Note**: It is invalid to set both `secret` and `secretName`.
+
+Information you must decide, and give to your identity provider:
+
  - `clientURL`: Identifies a hostname that can appropriately set
    cookies for the application.  Only the scheme (`https://`) and
    authority (`example.com:1234`) parts are used; the path part of the
-   URL is ignored.
- - `stateTTL`: How long Ambassador will wait for the user to submit
-   credentials to the identity provider and receive a response to that
-   effect from the identity provider
- - `insecureTLS` disables TLS verification when speaking to an
-   `https://` identity provider.  This is discouraged in favor of
-   either using plain `http://` or [installing a self-signed
-   certificate](#installing-self-signed-certificates).
-   <!-- - `audience`: The OIDC audience. -->
- - `clientID`: The Client ID you get from your identity provider.
- - `secret`: The client secret you get from your identity provider.
- - `secretName`: The client secret from your identity provider can be
-   stored in a `generic` secret with key `oauth2-client-secret`. Setting
-	 this field will tell Ambassador Pro to read the client secret from this
-	 Kubernetes secret instead of from `secret`.
- - `secretNamespace`: The namespace Ambassador Pro will find the `secretName`.
-   Defaults to the same namespace as the `Filter`.
+   URL is ignored.  You will also likely need to register
+   `${clientURL}/callback` as an authorizaed callback endpoint with
+   your identity provider.
 
-    **Note**: `secret` cannot be set if `secretName` or `secretNamespace` are
-	  configured
- - `maxStale`: How long to keep stale cached OIDC replies for.  This
-   sets the `max-stale` Cache-Control directive on requests, and also
-   ignores the `no-store` and `no-cache` Cache-Control directives on
-   responses.  This is useful for working with identity providers with
-   mis-configured Cache-Control.
+Information that you decide for yourself:
+
  - `accessTokenValidation`: How to verify the liveness and scope of
    Access Tokens issued by the identity provider.  Valid values are
    either `"auto"`, `"jwt"`, or `"userinfo"`.  Empty or unset is
@@ -177,6 +302,14 @@ spec:
    * `"auto"` attempts has it do `"jwt"` validation if the Access
      Token parses as a JWT and the signature is valid, and otherwise
      falls back to `"userinfo"` validation.
+ - `maxStale`: How long to keep stale cached OIDC replies for.  This
+   sets the `max-stale` Cache-Control directive on requests, and also
+   ignores the `no-store` and `no-cache` Cache-Control directives on
+   responses.  This is useful for maintaining good performance when
+   working with identity providers with mis-configured Cache-Control.
+ - `stateTTL`: How long Ambassador will wait for the user to submit
+   credentials to the identity provider and receive a response to that
+   effect from the identity provider
 
 `"duration-string"` strings are parsed as a sequence of decimal
 numbers, each with optional fraction and a unit suffix, such as
@@ -186,18 +319,19 @@ numbers, each with optional fraction and a unit suffix, such as
 
 #### `OAuth2` Path-Specific Arguments
 
-```
+```yaml
 ---
 apiVersion: getambassador.io/v1beta2
 kind: FilterPolicy
 metadata:
   name: "example-filter-policy"
+  namespace: "example-namespace"
 spec:
   rules:
   - host: "*"
     path: "*"
     filters:
-    - name: "example-filter"
+    - name: "example-oauth2-filter"
       arguments:
         scopes:
         - "scope1"
@@ -228,15 +362,13 @@ Ambassador Pro container at `/etc/ambassador-plugins/${NAME}.so`.
 
 #### The Plugin Interface
 
-This code is written in Golang, and must be compiled with the exact
-compiler settings as Ambassador Pro.  As of Ambassador Pro v0.2.0-rc1,
-that is:
+This code is written in the Go programming language (golang), and must
+be compiled with the exact same compiler settings as Ambassador Pro;
+and any overlapping libraries used must have their versions match
+exactly.  This information is dockumented in an [apro-abi.txt][] file
+for each Ambassador Pro release.
 
- - `go` compiler `1.11.4`
- - `GOOS=linux`
- - `GOARCH=amd64`
- - `GO111MODULE=on`
- - `CGO_ENABLED=1`
+[apro-abi.txt]: https://s3.amazonaws.com/datawire-static-files/apro-abi/apro-abi@%aproVersion%.txt
 
 Plugins are compiled with `go build -buildmode=plugin`, and must have
 a `main.PluginMain` function with the signature `PluginMain(w
@@ -271,10 +403,11 @@ error page.
 apiVersion: getambassador.io/v1beta2
 kind: Filter
 metadata:
-  name: "example-filter" # This is how to refer to the Filter in a FilterPolicy
+  name: "example-plugin-filter"
+  namespace: "example-namespace"
 spec:
   Plugin:
-    name: "string" # This tells it where to look for the compiled plugin file; "/etc/ambassador-plugins/${NAME}.so"
+    name: "string" # required; this tells it where to look for the compiled plugin file; "/etc/ambassador-plugins/${NAME}.so"
 ```
 
 #### `Plugin` Path-Specific Arguments
@@ -293,12 +426,13 @@ apiVersion: getambassador.io/v1beta2
 kind: FilterPolicy
 metadata:
   name: "example-filter-policy"
+  namespace: "example-namespace"
 spec:
   rules:
   - host: "glob-string"
     path: "glob-string"
     filters:                 # optional; omit or set to `null` to apply no filters to this request
-    - name: "exampe-filter"  # required
+    - name:      "string"    # required
       namespace: "string"    # optional; default is the same namespace as the FilterPolicy
       arguments: DEPENDS     # optional
 ```
@@ -319,7 +453,7 @@ When multiple `Filter`s are specified in a rule:
  * Filter processing is aborted by the first filter to return a
    non-200 status.
 
-### Example
+### `FilterPolicy` Example
 
 In the example below, the `param-filter` Filter Plugin is loaded, and
 configured to run on requests to `/httpbin/`.
@@ -361,15 +495,16 @@ spec:
 
 ## Installing self-signed certificates
 
-The JWT and OAuth2 filters speak to other servers over HTTP or HTTPS.
-If those servers are configured to speak HTTPS using a self-signed
-certificate, attempting to talk to them will result in a error
-mentioning `ERR x509: certificate signed by unknown authority`.  You
-can fix this by installing that self-signed certificate in to the Pro
-container following the standard procedure for Alpine Linux 3.8: Copy
-the certificate to `/usr/local/share/ca-certificates/` and then run
-`update-ca-certificates`.  Note that the amb-sidecar image set `USER
-1000`, but `update-ca-certificates` needs to be run as root.
+The `JWT` and `OAuth2` filters speak to other servers over HTTP or
+HTTPS.  If those servers are configured to speak HTTPS using a
+self-signed certificate, attempting to talk to them will result in a
+error mentioning `ERR x509: certificate signed by unknown authority`.
+You can fix this by installing that self-signed certificate in to the
+Pro container following the standard procedure for Alpine Linux 3.8:
+Copy the certificate to `/usr/local/share/ca-certificates/` and then
+run `update-ca-certificates`.  Note that the `amb-sidecar` image sets
+`USER 1000`, but that `update-ca-certificates` needs to be run as
+root.
 
 ```Dockerfile
 FROM quay.io/datawire/ambassador_pro:amb-sidecar-%aproVersion%
@@ -379,5 +514,6 @@ RUN update-ca-certificates
 USER 1000
 ```
 
-When deploying Ambassador Pro, refer to that Docker image, rather than
-to `quay.io/datawire/ambassador_pro:amb-sidecar-%aproVersion%`.
+When deploying Ambassador Pro, refer to that custom Docker image,
+rather than to
+`quay.io/datawire/ambassador_pro:amb-sidecar-%aproVersion%`.

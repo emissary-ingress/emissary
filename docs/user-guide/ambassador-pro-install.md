@@ -18,6 +18,8 @@ git clone https://github.com/datawire/pro-ref-arch
 
 Copy `env.sh.example` to `env.sh`, and add your specific license key to the `env.sh` file.
 
+This license key will be loaded into a Kubernetes secret that will be referenced by Ambassador.
+
 **Note:** Ambassador Pro will not start without a valid license key.
 
 ## 3. Deploy Ambassador Pro
@@ -148,3 +150,66 @@ Service Preview requires a command-line client, `apictl`. For instructions on co
 ### Enabling Consul Connect integration
 
 Ambassador Pro's Consul Connect integration is deployed as a separate Kubernetes service. For instructions on deploying Consul Connect, see the [Consul Connect integration guide](/user-guide/consul-connect-ambassador).
+
+
+# Upgrading Ambassador Pro
+
+Follow the steps below to upgrade Ambassador Pro.
+
+**Note**: For simplicity, we recommend storing this license key in a Kubernetes secret that can be referenced by both the certified Ambassador and Ambassador Pro containers. You can do this with the following command.
+
+```
+kubectl create secret generic ambassador-pro-license-key --from-literal=key={{AMBASSADOR_PRO_LICENSE_KEY}}
+```
+
+1. Create the `ambassador-pro-license-key` secret using the command above.
+
+2. Upgrade to the latest image of Ambassador Pro
+
+    ```yaml
+          - name: ambassador-pro
+            image: quay.io/datawire/ambassador_pro:amb-sidecar-%aproVersion%
+    ```
+
+3. Change the image of the Ambassador container to use the certified version of Ambassador.
+
+    ```diff
+          containers:
+          - name: ambassador
+    -       image: quay.io/datawire/ambassador:%version%
+    +       image: quay.io/datawire/ambassador_pro:amb-core-%aproVersion%
+    ```
+
+4. Add the `AMBASSADOR_PRO_LICENSE_KEY` environment variable to the Ambassador container and have it get its value from the secret created in step 1.
+
+    ```yaml
+            env:
+            - name: AMBASSADOR_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: AMBASSADOR_LICENSE_KEY 
+              valueFrom:
+                secretKeyRef:
+                  name: ambassador-pro-license-key
+                  key: key
+    ```
+  
+5. Ensure the `AMBASSADOR_LICENSE_KEY` in the Ambassador Pro container is also referencing the `ambassador-pro-license-key` secret.
+
+    ```yaml
+            env:
+            - name: REDIS_SOCKET_TYPE 
+              value: tcp
+            - name: APP_LOG_LEVEL
+              value: "info"
+            - name: REDIS_URL 
+              value: ambassador-pro-redis:6379
+            - name: AMBASSADOR_LICENSE_KEY 
+              valueFrom:
+                secretKeyRef:
+                  name: ambassador-pro-license-key
+                  key: key
+    ```
+
+After making these changes, redeploy Ambassador to receive the performance and stability improvements that certified Ambassador brings. 
