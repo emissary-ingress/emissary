@@ -112,6 +112,11 @@ ifeq ($(MAKE_VERSION),3.81)
   # _lazyonce.print_warning isn't part of the returned value.
   lazyonce = $(if $(_lazyonce.need_warning),$(if $(_lazyonce.print_warning),))$2
   _lazyonce.disabled = $(TRUE)
+
+  # These are use a lot, so go ahead and eager-evaluate them to speed
+  # things up.
+  _prelude.go.HAVE := $(_prelude.go.HAVE)
+  _prelude.go.VERSION := $(_prelude.go.VERSION)
 endif
 
 #
