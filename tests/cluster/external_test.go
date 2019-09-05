@@ -178,6 +178,28 @@ func TestHTTPExternalIntercept(t *testing.T) {
 	assert.StrEQ(*body.Msg, "intercepted")
 }
 
+func TestHTTPExternalInterceptWithRedirect(t *testing.T) {
+	if _, err := exec.LookPath("docker"); err != nil {
+		t.Skip("docker not installed")
+	}
+	assert := &testutil.Assert{T: t}
+	res, body := doRequest(t, "https://ambassador.standalone.svc.cluster.local/external-http/redirect") //nolint:bodyclose
+	// HTTP/1.1 302 Found
+	// location: https://example.com/
+	// date: Fri, 06 Sep 2019 13:37:02 GMT
+	// content-length: 21
+	// content-type: application/json
+	// server: envoy
+	//
+	// {"msg": "redirected"}
+
+	assert.Bool(body.Msg != nil)
+	assert.Bool(body.Headers == nil)
+
+	assert.HTTPResponseStatusEQ(res, http.StatusFound)
+	assertHTTPHeaderEq(t, res.Header, "location", []string{"https://example.com/"})
+}
+
 func TestGRPCExternalModify(t *testing.T) {
 	if _, err := exec.LookPath("docker"); err != nil {
 		t.Skip("docker not installed")

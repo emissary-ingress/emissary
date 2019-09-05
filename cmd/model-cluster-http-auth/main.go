@@ -41,9 +41,14 @@ func (s *AuthService) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 		res.Header().Set("X-Allowed-Output-Header", "baz")
 		res.Header().Set("X-Disallowed-Output-Header", "qux")
 		res.WriteHeader(http.StatusOK)
+	case "/external-http/redirect":
+		log.Print("=> DENY")
+		res.Header().Set("Location", "https://example.com/")
+		res.Header().Set("Content-Type", "application/json")
+		res.WriteHeader(http.StatusFound)
+		io.WriteString(res, `{"msg": "redirected"}`)
 	default:
 		log.Print("=> DENY")
-		log.Print("=> ALLOW")
 		res.Header().Set("X-Allowed-Output-Header", "baz")
 		res.Header().Set("X-Disallowed-Output-Header", "qux")
 		res.Header().Set("Content-Type", "application/json")
