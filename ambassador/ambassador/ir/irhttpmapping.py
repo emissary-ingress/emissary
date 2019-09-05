@@ -143,7 +143,7 @@ class IRHTTPMapping (IRBaseMapping):
             svc = Service(ir.logger, kwargs['service'])
 
             if 'add_linkerd_headers' in kwargs:
-                if kwargs['add_linkerd_headers'] is True: 
+                if kwargs['add_linkerd_headers'] is True:
                     add_request_hdrs['l5d-dst-override'] = svc.hostname_port
             else:
                 if 'add_linkerd_headers' in ir.ambassador_module and ir.ambassador_module.add_linkerd_headers is True:
@@ -157,7 +157,7 @@ class IRHTTPMapping (IRBaseMapping):
         super().__init__(
             ir=ir, aconf=aconf, rkey=rkey, location=location,
             kind=kind, name=name, apiVersion=apiVersion,
-            headers=hdrs, add_request_headers=add_request_hdrs, 
+            headers=hdrs, add_request_headers=add_request_hdrs,
             precedence=precedence, rewrite=rewrite,
             **new_args
         )
@@ -305,7 +305,7 @@ class IRHTTPMapping (IRBaseMapping):
         lb_policy = load_balancer.get('policy', None)
 
         is_valid = False
-        if lb_policy == 'round_robin':
+        if lb_policy in ['round_robin', 'least_request']:
             if len(load_balancer) == 1:
                 is_valid = True
         elif lb_policy in ['ring_hash', 'maglev']:
