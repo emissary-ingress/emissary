@@ -107,10 +107,12 @@ endif
     # Example: $(call _go.files2dirs,foo/bar/baz foo/baz/qux) => foo foo/bar foo/bar/baz foo/baz foo/baz/qux
     _go.files2dirs = $(sort $(foreach f,$1,$(call _go.file2dirs,$f)))
   # Without pruning sub-module packages (relative to ".", without "./" prefix")
+    # Use pwd(1) instead of $(CURDIR) because $(CURDIR) behaves differently than `go` in the presence of symlinks.
+    _go.raw.cwd := $(shell pwd)
     # Usage: $(call _go.raw.list,ARGS)
-    _go.raw.list = $(call path.trimprefix,_$(CURDIR),$(shell GOPATH=/bogus GO111MODULE=off go list $1))
+    _go.raw.list = $(call path.trimprefix,_$(_go.raw.cwd),$(shell GOPATH=/bogus GO111MODULE=off go list $1))
     _go.raw.pkgs := $(call _go.raw.list,./... 2>/dev/null)
-    _go.raw.submods := $(patsubst %/go.mod,%,$(wildcard $(addsuffix /go.mod,$(call _go.files2dirs,$(_go.raw.pkgs)))))
+    _go.raw.submods := $(filter-out .,$(patsubst %/go.mod,%,$(wildcard $(addsuffix /go.mod,$(call _go.files2dirs,$(_go.raw.pkgs))))))
   # With pruning sub-module packages (relative to ".", without "./" prefix")
     _go.pkgs = $(filter-out $(foreach m,$(_go.raw.submods),$m $m/%),$(_go.raw.pkgs))
     # Usage: $(call _go.list,ARGS)
@@ -133,7 +135,7 @@ go-get: $(go.lock)
 vendor: go-get FORCE
 vendor: $(go.lock)
 	$(go.lock)go mod vendor
-	@test -d $@
+	@test -d $@ || test "$$(go mod edit -json|jq '.Require|length')" -eq 0
 
 $(dir $(_go-mod.mk))go1%.src.tar.gz:
 	curl -o $@ --fail https://dl.google.com/go/$(@F)
