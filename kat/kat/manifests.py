@@ -522,6 +522,7 @@ spec:
     securityContext:
       allowPrivilegeEscalation: false
       readOnlyRootFilesystem: true  
+      {capabilities_block}
     livenessProbe:
       httpGet:
         path: /ambassador/v0/check_alive

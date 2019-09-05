@@ -61,8 +61,9 @@ class CircuitBreakingTest(AmbassadorTest):
 """
 
         return self.format(RBAC_CLUSTER_SCOPE + AMBASSADOR, image=os.environ["AMBASSADOR_DOCKER_IMAGE"],
-                           envs=envs, extra_ports="") + STATSD_MANIFEST.format(name='cbstatsd-sink',
-                                                                               target=self.__class__.TARGET_CLUSTER)
+                           envs=envs, extra_ports="", capabilities_block="") + STATSD_MANIFEST.format(name='cbstatsd-sink',
+                                                                                                      target=self.__class__.TARGET_CLUSTER)
+
 
     def config(self):
         yield self, self.format("""

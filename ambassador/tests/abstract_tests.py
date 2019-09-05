@@ -112,7 +112,7 @@ class AmbassadorTest(Test):
             return self.format(rbac + AMBASSADOR_LOCAL, extra_ports=eports)
         else:
             return self.format(rbac + manifests.AMBASSADOR,
-                               image=os.environ["AMBASSADOR_DOCKER_IMAGE"], envs=self.manifest_envs, extra_ports=eports)
+                               image=os.environ["AMBASSADOR_DOCKER_IMAGE"], envs=self.manifest_envs, extra_ports=eports, capabilities_block = "")
 
     # Will tear this out of the harness shortly
     @property
