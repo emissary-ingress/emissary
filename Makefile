@@ -420,12 +420,14 @@ ifeq ($(DOCKER_REGISTRY),-)
 	@echo "No DOCKER_REGISTRY set"
 else
 	@echo 'PUSH $(AMBASSADOR_DOCKER_IMAGE)'
-	@docker push $(AMBASSADOR_DOCKER_IMAGE) | python releng/linify.py push.log
+	@set -o pipefail; \
+		docker push $(AMBASSADOR_DOCKER_IMAGE) | python releng/linify.py push.log
 endif
 
 docker-push-kat-client: kat-client-docker-image
 	@echo 'PUSH $(KAT_CLIENT_DOCKER_IMAGE)'
-	@docker push $(KAT_CLIENT_DOCKER_IMAGE) | python releng/linify.py push.log	
+	@set -o pipefail; \
+		docker push $(KAT_CLIENT_DOCKER_IMAGE) | python releng/linify.py push.log
 
 # TODO: validate version is conformant to some set of rules might be a good idea to add here
 ambassador/ambassador/VERSION.py: FORCE $(WRITE_IFCHANGED)
