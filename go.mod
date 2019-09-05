@@ -99,5 +99,5 @@ replace github.com/golang/lint => golang.org/x/lint v0.0.0-20190227174305-5b3e6a
 // https://github.com/russross/blackfriday/issues/500
 replace gopkg.in/russross/blackfriday.v2 => github.com/russross/blackfriday/v2 v2.0.1
 
-// circleci has isses accessing git.apache.org
-replace git.apache.org/thrift.git v0.0.0 => gihub.com/apache/thrift.git v0.0.0
+// git.apache.org has been down all week
+replace git.apache.org/thrift.git => github.com/apache/thrift v0.0.0-20181218151757-9b75e4fe745a
