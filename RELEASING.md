@@ -15,7 +15,7 @@ If you're still reading, you must be at Datawire. Congrats, you picked a fine pl
 
 3. The RC tag will trigger CI to run a new build and new tests. It had better pass: if not, figure out why.
 
-4. The RC build will be available as e.g. `quay.io/datawire/ambassador:v0.77.0-rc1` and also as e.g. `quay.io/datawire/ambassador:v0.77.0-rc-latest`. Any other testing you want to do against this image, rock on.
+4. The RC build will be available as e.g. `quay.io/datawire/ambassador:0.77.0-rc1` and also as e.g. `quay.io/datawire/ambassador:0.77.0-rc-latest`. Any other testing you want to do against this image, rock on.
 
 5. When you're happy with everything, sync up the docs!
    - `make pull-docs` to pull updates from the docs repo
