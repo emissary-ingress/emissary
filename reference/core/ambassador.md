@@ -111,7 +111,7 @@ config:
 # mapping. Defaults to round robin with Kubernetes.
 # More information at the [load balancer reference](/reference/core/load-balancer)
 # load_balancer:
-#   policy: round_robin/ring_hash/maglev
+#   policy: round_robin/least_request/ring_hash/maglev
 #   ...
 
 # circuit_breakers sets the global circuit breaking configuration that

@@ -11,6 +11,7 @@ load_balancer:
 
 Supported load balancer policies:
 - `round_robin`
+- `least_request`
 - `ring_hash`
 - `maglev`
 
@@ -44,6 +45,33 @@ load_balancer:
 ```
 
 Note that load balancing may not appear to be "even" due to Envoy's threading model. For more details, see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest/faq/concurrency_lb).
+
+## Least Request
+When policy is set to `least_request`, Ambassador discovers healthy endpoints for the given mapping, and load balances the incoming L7 requests to the endpoint with the fewest active requests. For example:
+
+```yaml
+apiVersion: ambassador/v1
+kind:  Module
+name:  ambassador
+config:
+  resolver: my-resolver
+  load_balancer:
+    policy: least_request
+```
+
+or, per mapping:
+
+```yaml
+---
+apiVersion: ambassador/v1
+kind:  Mapping
+name:  tour-ui_mapping
+prefix: /
+service: tour
+resolver: my-resolver
+load_balancer:
+  policy: least_request
+```
 
 ## Sticky Sessions / Session Affinity
 Configuring sticky sessions makes Ambassador route requests to the same backend service in a given session. In other words, requests in a session are served by the same Kubernetes pod. Ambassador lets you configure session affinity based on the following parameters in an incoming request:
