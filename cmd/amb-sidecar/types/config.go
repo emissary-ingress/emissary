@@ -79,12 +79,13 @@ func PortalConfigFromEnv(warn []error, fatal []error) (portal.ServerConfig, []er
 
 	cfg := portal.ServerConfig{
 		DiagdURL: getenvDefault("DIAGD_URL",
-			"http://localhost:8877"),
+			"http://127.0.0.1:8877/"),
 		AmbassadorURL: getenvDefault("AMBASSADOR_URL",
-			"http://localhost:8080"),
+			"https://127.0.0.1:8443/"),
 		PublicURL: getenvDefault("PUBLIC_API_URL",
 			"https://api.example.com"),
 		PollFrequency: pollFrequency,
+
 		ContentURL: getenvDefault("APRO_DEVPORTAL_CONTENT_URL",
 			"https://github.com/datawire/devportal-content"),
 	}
