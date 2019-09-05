@@ -252,21 +252,10 @@ spec:
         - name: POLL_EVERY_SECS
           value: "60"
         - name: AMBASSADOR_URL
-          value: "https://ambassador.standalone.svc.cluster.local:443"
+          value: "https://127.0.0.1:443"
         - name: DIAGD_URL
-          value: "http://ambassador-admin.standalone:8877"
-        volumeMounts:
-          - name: ambassador-auth-secret-sidecar-03
-            mountPath: /etc/apro-internal-access
-            readOnly: true
+          value: "http://127.0.0.1:8877"
       restartPolicy: Always
-      volumes:
-        - name: ambassador-auth-secret-sidecar-03
-          secret:
-            secretName: internal-access-control-sidecar
-            items:
-              - key: token
-                path: shared-secret
 
 
 ######################################################################
