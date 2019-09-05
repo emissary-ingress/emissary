@@ -155,9 +155,7 @@ func (c *FilterMux) filter(ctx context.Context, request *filterapi.FilterRequest
 				Spec: filterCRD,
 			}
 		case crd.FilterInternal:
-			filterImpl = &internalhandler.InternalFilter{
-				Secret: "TODO",
-			}
+			filterImpl = internalhandler.MakeInternalFilter()
 		default:
 			panic(errors.Errorf("unexpected filter type %T", filterCRD))
 		}

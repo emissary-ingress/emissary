@@ -85,8 +85,6 @@ func PortalConfigFromEnv(warn []error, fatal []error) (portal.ServerConfig, []er
 		PublicURL: getenvDefault("PUBLIC_API_URL",
 			"https://api.example.com"),
 		PollFrequency: pollFrequency,
-		SharedSecretPath: getenvDefault("SHARED_SECRET_PATH",
-			"/etc/apro-internal-access/shared-secret"),
 		ContentURL: getenvDefault("APRO_DEVPORTAL_CONTENT_URL",
 			"https://github.com/datawire/devportal-content"),
 	}

@@ -1,26 +1,44 @@
 package secret
 
 import (
+	"crypto/rand"
 	"crypto/sha256"
+	"crypto/subtle"
 	"fmt"
-	"io"
-	"os"
 
 	log "github.com/sirupsen/logrus"
 )
 
+type InternalSecret struct {
+	secret string
+}
+
+var secret InternalSecret
+
+func GetInternalSecret() (s *InternalSecret) {
+	return &secret
+}
+
+func (s *InternalSecret) Get() string {
+	return s.secret
+}
+
+func (s *InternalSecret) Compare(secret string) int {
+	return subtle.ConstantTimeCompare([]byte(s.secret), []byte(secret))
+}
+
+func init() {
+	secret.secret = MakeSecret()
+}
+
 // Load a file and hash it with SHA256 in order to create a shared secret.
-func LoadSecret(sharedSecretPath string) string {
-	f, err := os.Open(sharedSecretPath)
+func MakeSecret() string {
+	b := make([]byte, 32)
+	_, err := rand.Read(b)
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer f.Close()
-
 	h := sha256.New()
-	if _, err := io.Copy(h, f); err != nil {
-		log.Fatal(err)
-	}
-
+	_, _ = h.Write(b)
 	return fmt.Sprintf("%x", h.Sum(nil))
 }

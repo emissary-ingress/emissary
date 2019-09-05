@@ -11,12 +11,11 @@ import (
 )
 
 type ServerConfig struct {
-	DiagdURL         string
-	AmbassadorURL    string
-	PublicURL        string
-	PollFrequency    time.Duration
-	SharedSecretPath string
-	ContentURL       string
+	DiagdURL      string
+	AmbassadorURL string
+	PublicURL     string
+	PollFrequency time.Duration
+	ContentURL    string
 }
 
 func MakeServer(ctx context.Context, config ServerConfig) (s *Server, err error) {
@@ -33,8 +32,7 @@ func MakeServer(ctx context.Context, config ServerConfig) (s *Server, err error)
 	fetcher := NewFetcher(
 		s.getServiceAdd(), s.getServiceDelete(), httpGet, knownServices,
 		config.DiagdURL, config.AmbassadorURL,
-		config.PollFrequency, config.PublicURL,
-		config.SharedSecretPath)
+		config.PollFrequency, config.PublicURL)
 	go func() {
 		fetcher.retrieve()
 		defer fetcher.Stop()
@@ -45,15 +43,14 @@ func MakeServer(ctx context.Context, config ServerConfig) (s *Server, err error)
 
 func Main(
 	version string, diagdURL string, ambassadorURL string, publicURL string,
-	pollFrequency time.Duration, sharedSecretPath string, contentURL string) {
+	pollFrequency time.Duration, contentURL string) {
 
 	config := ServerConfig{
-		DiagdURL:         diagdURL,
-		AmbassadorURL:    ambassadorURL,
-		PublicURL:        publicURL,
-		PollFrequency:    pollFrequency,
-		SharedSecretPath: sharedSecretPath,
-		ContentURL:       contentURL,
+		DiagdURL:      diagdURL,
+		AmbassadorURL: ambassadorURL,
+		PublicURL:     publicURL,
+		PollFrequency: pollFrequency,
+		ContentURL:    contentURL,
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())

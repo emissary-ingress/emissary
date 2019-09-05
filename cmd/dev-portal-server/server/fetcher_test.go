@@ -81,13 +81,11 @@ func TestFetcherRetrieve(t *testing.T) {
 	s.getServiceAdd()(oldSvc, "http://whatev", "/foo", nil)
 	g.Expect(s.knownServices()).To(Equal([]Service{oldSvc}))
 
-	file, _ := ioutil.TempFile("", "prefix")
-	file.WriteString("abc")
 	f := NewFetcher(
 		s.getServiceAdd(), s.getServiceDelete(), fakeHTTPGet,
 		s.knownServices(),
 		"http://localhost:8877", "http://ambassador", 1,
-		"https://publicapi.com", file.Name())
+		"https://publicapi.com")
 
 	f.logger.Info("retrieving")
 	// When we retrieve we will be told about a bunch of new services. Only
@@ -117,7 +115,7 @@ func TestFetcherRetrieve(t *testing.T) {
 		Prefix:  "/qotm",
 		BaseURL: "https://qotm.example.com", HasDoc: false, Doc: nil}))
 	// This one has an OpenAPI doc:
-	json, _ := fakeHTTPGet("http://ambassador/openapi/.ambassador-internal/openapi-docs", f.internalSecret, nil)
+	json, _ := fakeHTTPGet("http://ambassador/openapi/.ambassador-internal/openapi-docs", f.internalSecret.Get(), nil)
 	g.Expect(s.K8sStore.Get(openapi, true)).To(Equal(&ServiceMetadata{
 		Prefix:  "/openapi",
 		BaseURL: "https://publicapi.com", HasDoc: true,

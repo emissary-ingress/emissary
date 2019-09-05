@@ -78,14 +78,14 @@ type fetcher struct {
 	// The public default base URL for the APIs, e.g. https://api.example.com
 	publicBaseURL string
 	// Shared secret to send so that we can access .ambassador-internal
-	internalSecret string
+	internalSecret *secret.InternalSecret
 }
 
 // Object that retrieves service info and OpenAPI docs (if available) and
 // adds/deletes changes from last run.
 func NewFetcher(
 	add AddServiceFunc, delete DeleteServiceFunc, httpGet HTTPGetFunc,
-	known []kubernetes.Service, diagURL string, ambassadorURL string, duration time.Duration, publicBaseURL string, sharedSecretPath string) *fetcher {
+	known []kubernetes.Service, diagURL string, ambassadorURL string, duration time.Duration, publicBaseURL string) *fetcher {
 	f := &fetcher{
 		add:            add,
 		delete:         delete,
@@ -98,7 +98,7 @@ func NewFetcher(
 		diagURL:        strings.TrimRight(diagURL, "/"),
 		ambassadorURL:  strings.TrimRight(ambassadorURL, "/"),
 		publicBaseURL:  strings.TrimRight(publicBaseURL, "/"),
-		internalSecret: secret.LoadSecret(sharedSecretPath),
+		internalSecret: secret.GetInternalSecret(),
 	}
 	go func() {
 		for {
@@ -234,7 +234,7 @@ func (f *fetcher) _retrieve(reason string) {
 			var doc []byte
 			docBuf, err := f.httpGet(
 				f.ambassadorURL+prefix+"/.ambassador-internal/openapi-docs",
-				f.internalSecret,
+				f.internalSecret.Get(),
 				f.logger)
 			if err == nil {
 				doc = docBuf

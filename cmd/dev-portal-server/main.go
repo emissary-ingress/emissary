@@ -37,7 +37,7 @@ func licenseEnforce() {
 
 func main() {
 	licenseEnforce()
-	var diagdURL, ambassadorURL, publicURL, pollEverySecsStr, sharedSeecretPath, contentURL string
+	var diagdURL, ambassadorURL, publicURL, pollEverySecsStr, contentURL string
 	var pollEverySecs time.Duration = 60 * time.Second
 	var set bool
 	diagdURL, set = os.LookupEnv("DIAGD_URL")
@@ -58,11 +58,6 @@ func main() {
 		// placeholder.
 		publicURL = "https://api.example.com"
 	}
-	sharedSeecretPath, set = os.LookupEnv("SHARED_SECRET_PATH")
-	if !set {
-		// Customizable only to support running outside of Kubernetes.
-		sharedSeecretPath = "/etc/apro-internal-access/shared-secret"
-	}
 	pollEverySecsStr, set = os.LookupEnv("POLL_EVERY_SECS")
 	if set {
 		p, err := strconv.Atoi(pollEverySecsStr)
@@ -80,5 +75,5 @@ func main() {
 		publicURL = "dev-server-content-root"
 	}
 	server.Main(Version, diagdURL, ambassadorURL, publicURL, pollEverySecs,
-		sharedSeecretPath, contentURL)
+		contentURL)
 }
