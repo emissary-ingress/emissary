@@ -110,7 +110,7 @@ case "$COMMIT_TYPE" in
             docker login -u="$DOCKER_RELEASE_USERNAME" --password-stdin "${AMBASSADOR_EXTERNAL_DOCKER_REPO%%/*}" <<<"$DOCKER_RELEASE_PASSWORD"
         fi
         tags=(
-            "${AMBASSADOR_EXTERNAL_DOCKER_REPO}:${GIT_TAG_SANITIZED}" # public X.Y.Z-rcA
+            "${AMBASSADOR_EXTERNAL_DOCKER_REPO}:${VERSION}" # public X.Y.Z-rcA
             "${AMBASSADOR_EXTERNAL_DOCKER_REPO}:${LATEST_RC}"         # public X.Y.Z-rc-latest
         )
         for tag in "${tags[@]}"; do
@@ -124,7 +124,7 @@ case "$COMMIT_TYPE" in
             docker login -u="$DOCKER_RELEASE_USERNAME" --password-stdin "${AMBASSADOR_EXTERNAL_DOCKER_REPO%%/*}" <<<"$DOCKER_RELEASE_PASSWORD"
         fi
         tags=(
-            "${AMBASSADOR_EXTERNAL_DOCKER_REPO}:${GIT_TAG_SANITIZED}" # public X.Y.Z-eaA
+            "${AMBASSADOR_EXTERNAL_DOCKER_REPO}:${VERSION}" # public X.Y.Z-eaA
         )
         for tag in "${tags[@]}"; do
             docker tag "$AMBASSADOR_DOCKER_IMAGE" "$tag"
