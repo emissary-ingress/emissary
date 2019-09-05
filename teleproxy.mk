@@ -26,6 +26,7 @@ KUBE_URL = https://kubernetes/api/
 
 TELEPROXY ?= $(build-aux.bindir)/teleproxy
 $(eval $(call build-aux.bin-go.rule,teleproxy,github.com/datawire/teleproxy/cmd/teleproxy))
+$(build-aux.bindir)/.teleproxy.stamp: CGO_ENABLED = 1
 # override the rule for .teleproxy.stamp -> teleproxy
 $(build-aux.bindir)/teleproxy: $(build-aux.bindir)/%: $(build-aux.bindir)/.%.stamp $(COPY_IFCHANGED)
 	sudo $(COPY_IFCHANGED) $< $@
