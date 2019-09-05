@@ -12,39 +12,32 @@ This guide will focus on deploying Prometheus and Grafana alongside Ambassador i
 
 Ambassador makes it easy to output Envoy-generated statistics to Prometheus. For the remainder of this guide, it is assumed that you have installed and configured Ambassador into your Kubernetes cluster, and that it is possible for you to modify the global configuration of the Ambassador deployment.
 
-Starting with Ambassador `0.71.0`, Prometheus can scrape stats/metrics directly from Envoy's `/metrics` endpoint, removing the need to configure Ambassador to output stats to StatsD as done above. Stats scraped from the `/metrics` endpoint are not the same as the ones scraped from StatsD.
+Starting with Ambassador `0.71.0`, Prometheus can scrape stats/metrics directly from Envoy's `/metrics` endpoint, removing the need to [configure Ambassador to output stats to StatsD](/user-guide/monitoring#statsd-exporter). 
 
-If running a pre-`0.71.0` version of Ambassador, you will need to configure Envoy to output stats to a separate collector before being scraped by Prometheus. You will use the [Prometheus StatsD Exporter](https://github.com/prometheus/statsd_exporter) to do this.
+The `/metrics` endpoint can be accessed internally via the Ambassador admin port (default 8877):
 
-1. Deploy the StatsD Exporter in the `default` namespace
+```
+http(s)://ambassador:8877/metrics
+```
 
-    ```
-    kubectl apply -f https://getambassador.io/yaml/monitoring/statsd-sink.yaml
-    ```
+or externally by creating a `Mapping` similar to below:
 
-2. Configure Ambassador to output statistics to statsd
+```yaml
+apiVersion: ambassador/v1
+kind: Mapping
+name: metrics
+prefix: /metrics
+rewrite: ""
+service: localhost:8877
+```
 
-    In the Ambassador deployment, add the `STATSD_ENABLED` and `STATSD_HOST` environment variables to tell Ambassador where to output stats.
-
-    ```yaml
-    ...
-            env:
-            - name: AMBASSADOR_NAMESPACE
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.namespace  
-            - name: STATSD_ENABLED
-              value: "true"
-            - name: STATSD_HOST
-              value: "statsd-sink.default.svc.cluster.local"
-    ...  
-    ``` 
-
-Ambassador is now configured to output statistics to the Prometheus StatsD exporter.
+**Note**: Since `/metrics` in an endpoint on Ambassador itself, the `service` field can just reference the admin port on localhost.
 
 ### Prometheus Operator
 
 The [Prometheus Operator](https://github.com/coreos/prometheus-operator) for Kubernetes provides an easy way to manage your Prometheus deployment using Kubernetes-style resources with custom resource definitions (CRDs).
+
+In this section, we will deploy the Prometheus Operator using the standard YAML files. You can also install it with [helm](/user-guide/monitoring#intall-with-helm) if you prefer. 
 
 1. Deploy the Prometheus Operator
 
@@ -128,91 +121,7 @@ The [Prometheus Operator](https://github.com/coreos/prometheus-operator) for Kub
       - port: ambassador-admin
     ```
 
-    If you are scraping metrics from a `statsd-sink` deployment:
-
-    ```yaml
-    ---
-    apiVersion: monitoring.coreos.com/v1
-    kind: ServiceMonitor
-    metadata:
-      name: statsd-monitor
-      namespace: monitoring
-      labels:
-        app: ambassador
-    spec:
-      namespaceSelector:
-        matchNames:
-        - default
-      selector:
-        matchLabels:
-          service: statsd-sink
-      endpoints:
-      - port: prometheus-metrics
-    ```
-
 Prometheus is now configured to gather metrics from Ambassador.
-
-#### Using Helm to Install Prometheus
-
-You can also use Helm to install Prometheus via the Prometheus Operator. The default [Helm Chart](https://github.com/helm/charts/tree/master/stable/prometheus-operator) will install Prometheus and configure it to monitor your Kubernetes cluster.
-
-This section will focus on setting up Prometheus to scrape stats from Ambassador. Configuration of the Helm Chart and analysis of stats from other cluster components is outside of the scope of this documentation. 
-
-1. Install the Prometheus Operator from the helm chart
-
-    ```
-    helm install -n prometheus stable/prometheus-operator
-    ```
-
-2. Create a `ServiceMonitor` 
-
-    The Prometheus Operator Helm chart creates a Prometheus instance that is looking for `ServiceMonitor`s with `label: release=prometheus`.
-
-    If you are running an Ambassador version higher than 0.71.0 and want to scrape metrics directly from the `/metrics` endpoint of Ambassador running in the `default` namespace:
-
-    ```yaml
-    ---
-    apiVersion: monitoring.coreos.com/v1
-    kind: ServiceMonitor
-    metadata:
-      name: ambassador-monitor
-      namespace: monitoring
-      labels:
-        release: prometheus
-    spec:
-      namespaceSelector:
-        matchNames:
-        - default
-      selector:
-        matchLabels:
-          service: ambassador-admin
-      endpoints:
-      - port: ambassador-admin
-    ```
-
-    If you are scraping metrics from a `statsd-sink` deployment:
-
-    ```yaml
-    ---
-    apiVersion: monitoring.coreos.com/v1
-    kind: ServiceMonitor
-    metadata:
-      name: statsd-monitor
-      namespace: monitoring
-      labels:
-        release: prometheus
-    spec:
-      namespaceSelector:
-        matchNames:
-        - default
-      selector:
-        matchLabels:
-          service: statsd-sink
-      endpoints:
-      - port: prometheus-metrics
-    ```
-
-Prometheus is now configured to gather metrics from Ambassador. 
 
 #### Notes on the Prometheus Operator
 
@@ -330,3 +239,127 @@ and going to http://localhost:9090/ from a web browser
 In the UI, click the dropdown and see all of the stats Prometheus is able to scrape from Ambassador! 
 
 The Prometheus data model is, at it's core, time-series based. Therefore, it makes it easy to represent rates, averages, peaks, minimums, and histograms. Review the [Prometheus documentation](https://prometheus.io/docs/concepts/data_model/) for a full reference on how to work with this data model.
+
+
+---
+
+## Additional Install Options
+
+### Statsd Exporter
+
+#### Ambassador
+
+If running a pre-`0.71.0` version of Ambassador, you will need to configure Envoy to output stats to a separate collector before being scraped by Prometheus. You will use the [Prometheus StatsD Exporter](https://github.com/prometheus/statsd_exporter) to do this.
+
+1. Deploy the StatsD Exporter in the `default` namespace
+
+    ```
+    kubectl apply -f https://getambassador.io/yaml/monitoring/statsd-sink.yaml
+    ```
+
+2. Configure Ambassador to output statistics to statsd
+
+    In the Ambassador deployment, add the `STATSD_ENABLED` and `STATSD_HOST` environment variables to tell Ambassador where to output stats.
+
+    ```yaml
+    ...
+            env:
+            - name: AMBASSADOR_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace  
+            - name: STATSD_ENABLED
+              value: "true"
+            - name: STATSD_HOST
+              value: "statsd-sink.default.svc.cluster.local"
+    ...  
+    ``` 
+
+Ambassador is now configured to output statistics to the Prometheus StatsD exporter.
+
+#### ServiceMonitor
+
+If you are scraping metrics from a `statsd-sink` deployment, you will configure the `ServiceMonitor` to scrape from that deployment.
+
+```yaml
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: statsd-monitor
+  namespace: monitoring
+  labels:
+    app: ambassador
+spec:
+  namespaceSelector:
+    matchNames:
+    - default
+  selector:
+    matchLabels:
+      service: statsd-sink
+  endpoints:
+  - port: prometheus-metrics -->
+```
+
+### Prometheus Operator
+#### Install with Helm
+
+You can also use Helm to install Prometheus via the Prometheus Operator. The default [Helm Chart](https://github.com/helm/charts/tree/master/stable/prometheus-operator) will install Prometheus and configure it to monitor your Kubernetes cluster.
+
+This section will focus on setting up Prometheus to scrape stats from Ambassador. Configuration of the Helm Chart and analysis of stats from other cluster components is outside of the scope of this documentation. 
+
+1. Install the Prometheus Operator from the helm chart
+
+    ```
+    helm install -n prometheus stable/prometheus-operator
+    ```
+
+2. Create a `ServiceMonitor` 
+
+    The Prometheus Operator Helm chart creates a Prometheus instance that is looking for `ServiceMonitor`s with `label: release=prometheus`.
+
+    If you are running an Ambassador version higher than 0.71.0 and want to scrape metrics directly from the `/metrics` endpoint of Ambassador running in the `default` namespace:
+
+    ```yaml
+    ---
+    apiVersion: monitoring.coreos.com/v1
+    kind: ServiceMonitor
+    metadata:
+      name: ambassador-monitor
+      namespace: monitoring
+      labels:
+        release: prometheus
+    spec:
+      namespaceSelector:
+        matchNames:
+        - default
+      selector:
+        matchLabels:
+          service: ambassador-admin
+      endpoints:
+      - port: ambassador-admin
+    ```
+
+    If you are scraping metrics from a `statsd-sink` deployment:
+
+    ```yaml
+    ---
+    apiVersion: monitoring.coreos.com/v1
+    kind: ServiceMonitor
+    metadata:
+      name: statsd-monitor
+      namespace: monitoring
+      labels:
+        release: prometheus
+    spec:
+      namespaceSelector:
+        matchNames:
+        - default
+      selector:
+        matchLabels:
+          service: statsd-sink
+      endpoints:
+      - port: prometheus-metrics
+    ```
+
+Prometheus is now configured to gather metrics from Ambassador. 
