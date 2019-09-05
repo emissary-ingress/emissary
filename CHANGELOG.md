@@ -58,7 +58,7 @@
  - 2019-05-01: `prelude.mk`: Add `$(call lazyonce,…)`.
  - 2019-05-01: `prelude.mk`: Introduce, steal code from `common.mk`.
 
- - 2019-02-15: `kubernaut-ui.mk`: Avoid warnings from `make` inside of `makeh shell`.
+ - 2019-02-15: `kubernaut-ui.mk`: Avoid warnings from `make` inside of `make shell`.
 
  - 2019-02-13: `_go-common.mk`: Bump golangci-lint version 1.13.1→1.15.0.
 
