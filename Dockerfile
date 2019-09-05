@@ -107,4 +107,5 @@ RUN chmod 755 watt
 COPY kubestatus .
 RUN chmod 755 kubestatus
 
+RUN apk --no-cache add libcap && setcap 'cap_net_bind_service=+ep' /usr/local/bin/envoy
 ENTRYPOINT [ "./entrypoint.sh" ]
