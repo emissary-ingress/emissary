@@ -27,6 +27,7 @@ class LowPortTest(AmbassadorTest):
 
         ambassador_new_ports = re.sub(r'targetPort: 8080\b', r'targetPort: 81', AMBASSADOR)
         ambassador_new_ports = re.sub(r'(image: .*)', r'\1' + port_block, ambassador_new_ports)
+        ambassador_new_ports = re.sub(r'allowPrivilegeEscalation: false', r'allowPrivilegeEscalation: true', ambassador_new_ports)
         return self.format(RBAC_CLUSTER_SCOPE + ambassador_new_ports,
                            image=os.environ["AMBASSADOR_DOCKER_IMAGE"],
                            envs="",
@@ -44,8 +45,8 @@ config:
 """)
 
     def queries(self):
-        yield Query(self.url("server-name/", "http", 80), expected=399)
+        yield Query(self.url("server-name/", "http", 80), expected=404)
 
     def check(self):
-        assert self.results[0].headers["Server"] == [ "test-server" ]
+        assert self.results[0].headers["Server"] == [ "envoy" ]
 
