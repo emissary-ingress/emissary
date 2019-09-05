@@ -69,6 +69,8 @@ jobs:
 
   "VM Ubuntu 16-04":
     executor: vm-ubuntu-16-04
+    environment:
+      build_aux_unsupported_go: true
     steps:
       - apt-install:
           packages: bats

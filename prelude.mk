@@ -52,6 +52,7 @@
 #  Internal use:
 #  - Variable: _prelude.go.VERSION      (exposed as go-mod.mk:go.goversion)
 #  - Variable: _prelude.go.lock         (exposed as go-mod.mk:go.lock)
+#  - Variable: _prelude.go.ensure       (used by go-mod.mk)
 #
 ## common.mk targets ##
 #  - clobber
@@ -125,7 +126,7 @@ build-aux.bindir = $(abspath $(build-aux.dir)/bin)
 # Have this section toward the end, so that it can eagerly use stuff
 # defined above.
 
-FLOCK           ?= $(call lazyonce,FLOCK,$(or $(shell which flock 2>/dev/null),$(build-aux.bindir)/flock))
+FLOCK           ?= $(call lazyonce,FLOCK,$(or $(shell which flock 2>/dev/null),$(_prelude.go.ensure)$(build-aux.bindir)/flock))
 COPY_IFCHANGED  ?= $(build-aux.bindir)/copy-ifchanged
 MOVE_IFCHANGED  ?= $(build-aux.bindir)/move-ifchanged
 WRITE_IFCHANGED ?= $(build-aux.bindir)/write-ifchanged

@@ -22,6 +22,18 @@ common_teardown() {
 }
 teardown() { common_teardown; }
 
+# Usage: make_expecting_go_error
+#
+# Run 'make', and expect an error message like:
+#
+#     build-aux/kubeapply.mk:16: *** This Makefile requires Go '1.11.4' or newer; you have '1.10.3'.  Stop.
+make_expecting_go_error() {
+	not make >& output
+	cat output
+	[[ "$(wc -l <output)" -eq 1 ]]
+	[[ "$(cat output)" == *": *** This Makefile requires Go '1.11.4' or newer; you "*".  Stop." ]]
+}
+
 # Usage: check_executable SNIPPET.mk VARNAME
 check_executable() {
 	[[ $# = 2 ]]
@@ -34,15 +46,25 @@ check_executable() {
 		all: \$(${varname}) \$(var.)${varname}
 	__EOT__
 
-	make
+	if [[ "$_check_go_executable" == true ]] && ([[ "$build_aux_unsupported_go" == true ]] || ! type go &>/dev/null); then
+		make_expecting_go_error
+		eval "${varname}=unsupported"
+	else
+		make
 
-	local varvalue
-	varvalue="$(cat "build-aux/.var.${varname}")"
+		local varvalue
+		varvalue="$(cat "build-aux/.var.${varname}")"
 
-	[[ "$varvalue" == /* ]]
-	[[ -f "$varvalue" && -x "$varvalue" ]]
+		[[ "$varvalue" == /* ]]
+		[[ -f "$varvalue" && -x "$varvalue" ]]
 
-	eval "${varname}=\$varvalue"
+		eval "${varname}=\$varvalue"
+	fi
+}
+
+# Usage: check_go_executable SNIPPET.mk VARNAME
+check_go_executable() {
+	_check_go_executable=true check_executable "$@"
 }
 
 check_expr_eq() {

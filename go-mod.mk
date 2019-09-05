@@ -84,7 +84,7 @@ $(eval $(call build-aux.bin-go.rule, go-mkopensource, github.com/datawire/build-
 
 NAME ?= $(notdir $(go.module))
 
-go.module := $(shell GO111MODULE=on go mod edit -json | jq -r .Module.Path)
+go.module := $(_prelude.go.ensure)$(shell GO111MODULE=on go mod edit -json | jq -r .Module.Path)
 ifneq ($(words $(go.module)),1)
   $(error Could not extract $$(go.module) from ./go.mod)
 endif
