@@ -94,6 +94,12 @@ Format:
 --->
 
 <!--- CueAddReleaseNotes --->
+## [0.77.0] September 05, 2019
+[0.77.0]: https://github.com/datawire/ambassador/compare/0.76.0...0.77.0
+
+- (Feature) Support the `least_request` load balancer policy (thanks, [Steve Flanders](https://github.com/flands)!)
+- (Misc) Many test and release-engineering improvements under the hood
+
 ## [0.76.0] August 26, 2019
 [0.76.0]: https://github.com/datawire/ambassador/compare/0.75.0...0.76.0
 
