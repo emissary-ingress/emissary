@@ -21,6 +21,7 @@ go.pkgs         = ./... github.com/lyft/ratelimit/...
 
 export CGO_ENABLED = 0
 export SCOUT_DISABLE = 1
+export GOPRIVATE = github.com/datawire/liboauth2
 
 # In order to work with Alpine's musl libc6-compat, things must be
 # compiled for compatibility with LSB 3. Setting _FORTIFY_SOURCE=2

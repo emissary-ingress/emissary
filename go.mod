@@ -1,6 +1,6 @@
 module github.com/datawire/apro
 
-go 1.12
+go 1.13
 
 require (
 	github.com/Jeffail/gabs v1.2.0
@@ -42,7 +42,6 @@ require (
 	github.com/zeromq/gomq v0.0.0-20181008000130-95dc37dee5c4 // indirect
 	golang.org/x/net v0.0.0-20190322120337-addf6b3196f6
 	golang.org/x/sync v0.0.0-20190227155943-e225da77a7e6
-	golang.org/x/tools v0.0.0-20190226205152-f727befe758c // indirect
 	google.golang.org/grpc v1.19.1
 	gopkg.in/yaml.v2 v2.2.2
 	k8s.io/api v0.0.0-20190111032252-67edc246be36
@@ -79,3 +78,6 @@ replace (
 // golint in their go.sum, and (2) erroneously refer to it as
 // github.com/golang/lint instead of golang.org/x/lint
 replace github.com/golang/lint => golang.org/x/lint v0.0.0-20190227174305-5b3e6a55c961
+
+// Fix invalid pseudo-version that Go 1.13 complains about.
+replace github.com/census-instrumentation/opencensus-proto v0.1.0-0.20181214143942-ba49f56771b8 => github.com/census-instrumentation/opencensus-proto v0.0.3-0.20181214143942-ba49f56771b8
