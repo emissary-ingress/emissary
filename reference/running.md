@@ -63,7 +63,7 @@ existing file into a directory will fail.)
 
 ## Running as daemonset
 
-Ambassador can be deployed as daemonset to have one pod per node in Kubernetes cluster. This setup up is especially helpful when you have Kubernetes cluster running on bare metal or private cloud. 
+Ambassador can be deployed as daemonset to have one pod per node in Kubernetes cluster. This setup is especially helpful when you have Kubernetes cluster running on bare metal or private cloud. 
 
 * Ideal scenario could be when you are running containers on Kubernetes along side with your non containerized applications running exposed via VIP using BIG-IP or similar products. In such cases, east-west traffic is routed based on iRules to certain set of application pools consisting of application or web servers. In this setup, along side of traditonal application servers, two or more Ambassador pods can also be part of the application pools. In case of failure there is atleast one Ambassdor pod available to BIG-IP and can take care of routing traffic to kubernetes cluster.
 
