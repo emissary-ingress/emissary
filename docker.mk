@@ -85,10 +85,10 @@
 #        >     #  - %.docker.push.buildcache
 #        >
 #        >     # Override the release name a specific image.
-#        >     # Release ambassador-withlicense/ambassador.docker
+#        >     # Release ambassador/ambassador.docker
 #        >     #  - based on the above    : quay.io/datawire/ambassador_pro:ambassador-$(VERSION)
 #        >     #  - after being overridden: quay.io/datawire/ambassador_pro:amb-core-$(VERSION)
-#        >     ambassador-withlicense/ambassador.docker.tag.release: docker.tag.release = quay.io/datawire/ambassador_pro:amb-core-$(VERSION)
+#        >     ambassador/ambassador.docker.tag.release: docker.tag.release = quay.io/datawire/ambassador_pro:amb-core-$(VERSION)
 #
 #     - Pushing a tag: You can push tags that have been created with
 #       `SOMEPATH.docker.tag.GROUP` (see above) by depending on
