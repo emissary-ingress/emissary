@@ -163,14 +163,14 @@ spec:
         - name: AMBASSADOR_LICENSE_KEY
           value: {{env "AMBASSADOR_LICENSE_KEY"}}
         # DevPortal settings
-        - name: PUBLIC_API_URL
+        - name: AMBASSADOR_URL
           value: "https://ambassador.standalone.svc.cluster.local"
         # Change this if you want different poll rate for getting OpenAPI docs:
         - name: POLL_EVERY_SECS
           value: "60"
-        - name: AMBASSADOR_URL
+        - name: AMBASSADOR_INTERNAL_URL
           value: "https://ambassador.standalone.svc.cluster.local:443"
-        - name: DIAGD_URL
+        - name: AMBASSADOR_ADMIN_URL
           value: "http://ambassador-admin.standalone:8877"
 
 

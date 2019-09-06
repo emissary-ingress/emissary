@@ -78,11 +78,11 @@ func PortalConfigFromEnv(warn []error, fatal []error) (portal.ServerConfig, []er
 	pollFrequency, warn, fatal := getenvDefaultSeconds("POLL_EVERY_SECS", "60", warn, fatal)
 
 	cfg := portal.ServerConfig{
-		DiagdURL: getenvDefault("DIAGD_URL",
+		DiagdURL: getenvDefault("AMBASSADOR_ADMIN_URL",
 			"http://127.0.0.1:8877/"),
-		AmbassadorURL: getenvDefault("AMBASSADOR_URL",
+		AmbassadorURL: getenvDefault("AMBASSADOR_INTERNAL_URL",
 			"https://127.0.0.1:8443/"),
-		PublicURL: getenvDefault("PUBLIC_API_URL",
+		PublicURL: getenvDefault("AMBASSADOR_URL",
 			"https://api.example.com"),
 		PollFrequency: pollFrequency,
 

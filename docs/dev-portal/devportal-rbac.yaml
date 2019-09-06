@@ -72,7 +72,7 @@ spec:
         env:
           # Change this to the main public address for your API (i.e. the
           # default address exposed by Ambassador):
-          - name: PUBLIC_API_URL
+          - name: AMBASSADOR_URL
             value: "https://api.example.com"
           # Change this if you want different poll rate for getting OpenAPI docs:
           - name: POLL_EVERY_SECS

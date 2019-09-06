@@ -40,18 +40,18 @@ func main() {
 	var diagdURL, ambassadorURL, publicURL, pollEverySecsStr, contentURL string
 	var pollEverySecs time.Duration = 60 * time.Second
 	var set bool
-	diagdURL, set = os.LookupEnv("DIAGD_URL")
+	diagdURL, set = os.LookupEnv("AMBASSADOR_ADMIN_URL")
 	if !set {
 		// Typically will be run in same Pod; customizable only in order
 		// to support running outside of Kubernetes.
 		diagdURL = "http://localhost:8877"
 	}
-	ambassadorURL, set = os.LookupEnv("AMBASSADOR_URL")
+	ambassadorURL, set = os.LookupEnv("AMBASSADOR_INTERNAL_URL")
 	if !set {
 		// Ambassador's Envoy running in the same Pod:
 		ambassadorURL = "http://localhost:8080"
 	}
-	publicURL, set = os.LookupEnv("PUBLIC_API_URL")
+	publicURL, set = os.LookupEnv("AMBASSADOR_URL")
 	if !set {
 		// We need whoever is installing the Dev Portal to supply this,
 		// but since it ends up in documentation only it's OK to have a

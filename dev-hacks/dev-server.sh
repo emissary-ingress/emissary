@@ -11,7 +11,7 @@ export AMBASSADOR_LICENSE_FILE="$AMBASSADOR_KEYLOC/.license-key"
 echo "$AMBASSADOR_LICENSE_KEY" > "$AMBASSADOR_LICENSE_FILE"
 export SHARED_SECRET_PATH="$AMBASSADOR_KEYLOC/.shared-secret"
 echo tbd > "$SHARED_SECRET_PATH"
-export AMBASSADOR_URL=http://localhost:8877
+export AMBASSADOR_INTERNAL_URL=http://localhost:8877
 export POLL_EVERY_SECS=200
 
 content_url_file=.content-url-file
@@ -25,7 +25,7 @@ else
     false
 fi
 
-.venv/bin/python fake-ambassador.py & trap 'curl "$AMBASSADOR_URL/_shutdown"; kill %1' EXIT
+.venv/bin/python fake-ambassador.py & trap 'curl "$AMBASSADOR_INTERNAL_URL/_shutdown"; kill %1' EXIT
 
 echo "======="
 pwd
