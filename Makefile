@@ -266,16 +266,24 @@ kill-docker-registry:
 envoy-src: FORCE
 	@echo "Getting Envoy sources..."
 	@if test -d envoy && ! test -d envoy-src; then PS4=; set -x; mv envoy envoy-src; fi
-	@PS4=; set -x; \
-	git init $@
-	cd $@ && \
-	if git remote get-url origin &>/dev/null; then \
-		git remote set-url origin $(ENVOY_REPO); \
-	else \
-		git remote add origin $(ENVOY_REPO); \
-	fi && \
-	git fetch --tags origin && \
-	$(if $(filter-out -,$(ENVOY_COMMIT)),git checkout $(ENVOY_COMMIT),if ! git rev-parse HEAD >/dev/null 2>&1; then git checkout origin/master; fi)
+# Ensure that GIT_DIR and GIT_WORK_TREE are unset so that `git bisect`
+# and friends work properly.
+	@PS4=; set -ex; { \
+	    unset GIT_DIR GIT_WORK_TREE; \
+	    git init $@; \
+	    cd $@; \
+	    if git remote get-url origin &>/dev/null; then \
+	        git remote set-url origin $(ENVOY_REPO); \
+	    else \
+	        git remote add origin $(ENVOY_REPO); \
+	    fi; \
+	    git fetch --tags origin; \
+	    if [ $(ENVOY_COMMIT) != '-' ]; then \
+	        git checkout $(ENVOY_COMMIT); \
+	    elif ! git rev-parse HEAD >/dev/null 2>&1; then \
+	        git checkout origin/master; \
+	    fi; \
+	}
 
 envoy-build-image.txt: FORCE envoy-src
 	@echo "Making $@..."
