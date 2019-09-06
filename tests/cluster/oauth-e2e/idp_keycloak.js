@@ -9,7 +9,5 @@ module.exports.testcases = {
 module.exports.authenticate = async function(browsertab, username, password) {
 	await browsertab.type('input#username', username);
 	await browsertab.type('input#password', password);
-	const done = browsertab.waitForNavigation();
 	await browsertab.click('input#kc-login');
-	await done;
 };

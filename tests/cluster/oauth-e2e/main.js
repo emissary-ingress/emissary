@@ -36,7 +36,10 @@ for (let idpFile of glob.sync("./idp_*.js")) {
 					expect(response.request().redirectChain()).to.not.be.empty;
 					expect((new URL(browsertab.url())).hostname).to.not.contain((new URL(testcase.resource)).hostname);
 					// authenticate to the IDP
+					let done = browsertab.waitForResponse(testcase.resource)
+					    .then(() => browsertab.waitForFunction(() => {return document.readyState == "complete";}));
 					await idp.authenticate(browsertab, testcase.username, testcase.password, () => {this.skip();});
+					await done;
 					// verify that we got redirected properly
 					expect(browsertab.url()).to.equal(testcase.resource);
 					// verify that backend service received the authorization
@@ -58,7 +61,10 @@ for (let idpFile of glob.sync("./idp_*.js")) {
 					expect(response.request().redirectChain()).to.not.be.empty;
 					expect((new URL(browsertab.url())).hostname).to.not.contain((new URL(testcase.resource)).hostname);
 					// authenticate to the IDP
+					let done = browsertab.waitForResponse(testcase.resource)
+					    .then(() => browsertab.waitForFunction(() => {return document.readyState == "complete";}));
 					await idp.authenticate(browsertab, testcase.username, testcase.password, () => {this.skip();});
+					await done
 					// verify that we got redirected properly
 					expect(browsertab.url()).to.equal(testcase.resource);
 					// verify that backend service received the authorization

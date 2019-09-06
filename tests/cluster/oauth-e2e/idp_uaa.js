@@ -15,8 +15,6 @@ module.exports.authenticate = async function(browsertab, username, password) {
 	await done;
 	// page 2: authorize (which it only sometimes shows)
 	if ((new URL(browsertab.url())).hostname == "uaa.standalone.svc.cluster.local") {
-		const done2 = browsertab.waitForNavigation();
 		await browsertab.click('button#authorize');
-		await done2;
 	}
 };
