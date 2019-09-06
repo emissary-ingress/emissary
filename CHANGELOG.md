@@ -1,5 +1,11 @@
 ## Ambassador Pro CHANGELOG
 
+## 0.7.1 (TBD)
+
+Behavior:
+
+ * The `External` Filter no longer erronously follows redirects.
+
 ## 0.7.0 (2019-08-29)
 
 Configuration:
