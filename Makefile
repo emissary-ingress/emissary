@@ -72,15 +72,23 @@ push-docs: ## Publish ./docs to https://github.com/datawire/ambassador-docs
 #
 # Envoy
 
-AMBASSADOR_COMMIT = b14f8d1a4d9b8f21470f2d20ceea7d26f11c81e6
+AMBASSADOR_COMMIT = a552b71badc8f297f363be59d418d2543f67ea3d
 
 # Git clone
+ambassador: $(var.)AMBASSADOR_COMMIT
 # Ensure that GIT_DIR and GIT_WORK_TREE are unset so that `git bisect`
 # and friends work properly.
-ambassador: $(var.)AMBASSADOR_COMMIT
-	@PS4=; set -x; unset GIT_DIR GIT_WORK_TREE && if [ -d $@ ]; then cd $@ && git fetch || true; else git clone https://github.com/datawire/ambassador $@; fi
-	unset GIT_DIR GIT_WORK_TREE && cd $@ && git checkout $(AMBASSADOR_COMMIT)
-	touch $@
+	@PS4=; set -x; { \
+	    unset GIT_DIR GIT_WORK_TREE; \
+	    git init $@; \
+	    cd $@; \
+	    if ! git remote get-url origin &>/dev/null; then \
+	        git remote add origin https://github.com/datawire/ambassador; \
+	    fi; \
+	    git fetch || true; \
+	    git checkout $(AMBASSADOR_COMMIT); \
+	    touch .; \
+	}
 
 # Defer to `ambassador/Makefile` for several targets:
 AMBASSADOR_TARGETS += envoy-bin/envoy-static-stripped
