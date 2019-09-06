@@ -1,6 +1,6 @@
 module github.com/datawire/apro
 
-go 1.12
+go 1.13
 
 require (
 	github.com/Jeffail/gabs v1.2.0
@@ -38,7 +38,6 @@ require (
 	github.com/sirupsen/logrus v1.4.0
 	github.com/spf13/cobra v0.0.3
 	github.com/spf13/pflag v1.0.3
-	github.com/src-d/go-billy v4.2.0+incompatible // indirect
 	github.com/streadway/quantile v0.0.0-20150917103942-b0c588724d25 // indirect
 	github.com/tsenart/vegeta v12.2.1+incompatible
 	github.com/zeromq/goczmq v4.1.0+incompatible // indirect
@@ -48,15 +47,10 @@ require (
 	gitlab.com/golang-commonmark/markdown v0.0.0-20181102083822-772775880e1f
 	gitlab.com/golang-commonmark/mdurl v0.0.0-20180912090424-e5bce34c34f2 // indirect
 	gitlab.com/golang-commonmark/puny v0.0.0-20180912090636-2cd490539afe // indirect
-	gitlab.com/opennota/wd v0.0.0-20180912061657-c5d65f63c638 // indirect
-	golang.org/x/crypto v0.0.0-20190701094942-4def268fd1a4 // indirect
-	golang.org/x/net v0.0.0-20190724013045-ca1201d0de80
-	golang.org/x/sync v0.0.0-20190423024810-112230192c58
-	golang.org/x/sys v0.0.0-20190804053845-51ab0e2deafa // indirect
-	golang.org/x/text v0.3.2 // indirect
-	golang.org/x/tools v0.0.0-20190808195139-e713427fea3f // indirect
+	golang.org/x/net v0.0.0-20190322120337-addf6b3196f6
+	golang.org/x/sync v0.0.0-20190227155943-e225da77a7e6
+	golang.org/x/tools v0.0.0-20190226205152-f727befe758c // indirect
 	google.golang.org/grpc v1.19.1
-	gopkg.in/natefinch/lumberjack.v2 v2.0.0 // indirect
 	gopkg.in/russross/blackfriday.v2 v2.0.0-00010101000000-000000000000
 	gopkg.in/src-d/go-billy.v4 v4.2.1
 	gopkg.in/src-d/go-git.v4 v4.8.1
@@ -68,7 +62,7 @@ require (
 
 replace github.com/lyft/ratelimit v1.3.0 => ./vendor-ratelimit
 
-replace github.com/datawire/ambassador => ./ambassador-nolicense
+replace github.com/datawire/ambassador => ./ambassador
 
 replace github.com/tsenart/vegeta => github.com/datawire/vegeta v12.2.2-0.20190408190644-d94b721fc676+incompatible
 
@@ -99,5 +93,5 @@ replace github.com/golang/lint => golang.org/x/lint v0.0.0-20190227174305-5b3e6a
 // https://github.com/russross/blackfriday/issues/500
 replace gopkg.in/russross/blackfriday.v2 => github.com/russross/blackfriday/v2 v2.0.1
 
-// git.apache.org has been down all week
-replace git.apache.org/thrift.git => github.com/apache/thrift v0.0.0-20181218151757-9b75e4fe745a
+// Fix invalid pseudo-version that Go 1.13 complains about.
+replace github.com/census-instrumentation/opencensus-proto v0.1.0-0.20181214143942-ba49f56771b8 => github.com/census-instrumentation/opencensus-proto v0.0.3-0.20181214143942-ba49f56771b8

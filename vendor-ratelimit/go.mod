@@ -1,5 +1,7 @@
 module github.com/lyft/ratelimit
 
+go 1.13
+
 require (
 	github.com/datawire/ambassador v0.72.0
 	github.com/davecgh/go-spew v1.1.1 // indirect

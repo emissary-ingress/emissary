@@ -2,8 +2,8 @@ NAME            = ambassador-pro
 # For Make itself
 SHELL           = bash -o pipefail
 # For Makefile
-image.all       = $(sort $(patsubst %/Dockerfile,%,$(wildcard docker/*/Dockerfile)) docker/model-cluster-amb-sidecar-plugins ambassador-withlicense/ambassador)
-image.nobinsrule= ambassador-withlicense/ambassador
+image.all       = $(sort $(patsubst %/Dockerfile,%,$(wildcard docker/*/Dockerfile)) docker/model-cluster-amb-sidecar-plugins ambassador/ambassador)
+image.nobinsrule= ambassador/ambassador
 image.norelease = $(filter docker/model-cluster-% docker/loadtest-%,$(image.all))
 image.nocluster = docker/apro-plugin-runner
 # For docker.mk
@@ -21,6 +21,7 @@ go.pkgs         = ./... github.com/lyft/ratelimit/...
 
 export CGO_ENABLED = 0
 export SCOUT_DISABLE = 1
+export GOPRIVATE = github.com/datawire/liboauth2
 
 # In order to work with Alpine's musl libc6-compat, things must be
 # compiled for compatibility with LSB 3. Setting _FORTIFY_SOURCE=2
@@ -71,42 +72,52 @@ push-docs: ## Publish ./docs to https://github.com/datawire/ambassador-docs
 #
 # Envoy
 
-AMBASSADOR_COMMIT = d05175b963f02d3954db45fb0ac5c2fd8cad5ca2
+AMBASSADOR_COMMIT = b14f8d1a4d9b8f21470f2d20ceea7d26f11c81e6
 
 # Git clone
-# Ensure that GIT_DIR and GIT_WORK_TREE are unset so that `git bisect` and friends work properly.
-ambassador-nolicense ambassador-withlicense: ambassador-%: $(var.)AMBASSADOR_COMMIT
+# Ensure that GIT_DIR and GIT_WORK_TREE are unset so that `git bisect`
+# and friends work properly.
+ambassador: $(var.)AMBASSADOR_COMMIT
 	@PS4=; set -x; unset GIT_DIR GIT_WORK_TREE && if [ -d $@ ]; then cd $@ && git fetch || true; else git clone https://github.com/datawire/ambassador $@; fi
 	unset GIT_DIR GIT_WORK_TREE && cd $@ && git checkout $(AMBASSADOR_COMMIT)
 	touch $@
 
-# Build optimized Envoy
-ambassador-nolicense/base-envoy.docker: ambassador-nolicense
-	DOCKER_REGISTRY=- BASE_DOCKER_REPO=$(BUILDCACHE_DOCKER_REPO) ENVOY_COMPILATION_MODE=opt $(MAKE) -C $(@D) $(@F)
-ambassador-nolicense/base-envoy.docker.tag.buildcache: docker.tag.buildcache = $$(DOCKER_REGISTRY=- BASE_DOCKER_REPO=$(BUILDCACHE_DOCKER_REPO) ENVOY_COMPILATION_MODE=opt $(MAKE) -C $(@D) -j1 --no-print-directory print-BASE_ENVOY_IMAGE)
+# Defer to `ambassador/Makefile` for several targets:
+AMBASSADOR_TARGETS += envoy-bin/envoy-static-stripped
+AMBASSADOR_TARGETS += ambassador.docker # We'll inject dependencies to this one
+AMBASSADOR_TARGETS += docker-base-images # We'll mark this one as .PHONY
+AMBASSADOR_TARGETS += docker-push-base-images # We'll mark this one as .PHONY, and inject a dependency
+$(addprefix ambassador/,$(AMBASSADOR_TARGETS)): ambassador/%: ambassador
+	DOCKER_REGISTRY=- BASE_DOCKER_REPO=$(BUILDCACHE_DOCKER_REPO) ENVOY_COMPILATION_MODE=opt ENVOY_FILE=envoy-bin/certified-envoy $(MAKE) -C ambassador $*
 
-# Add a license check to optimized Envoy
-cmd/certified-envoy/envoy.bin: ambassador-nolicense/base-envoy.docker
-	docker run --rm --volume=$(CURDIR)/$(@D):/xfer:rw $$(cat $<) cp /usr/local/bin/envoy /xfer/$(@F)
-cmd/certified-envoy/envoy.go: cmd/certified-envoy/envoy.bin cmd/certified-envoy/envoy-gen.go
-	go run cmd/certified-envoy/envoy-gen.go $< | $(WRITE_IFCHANGED) $@
-bin_%/certified-envoy: cmd/certified-envoy/envoy.go
-
-# Build Ambassador with license-checked Envoy
-ambassador-withlicense/envoy-bin/certified-envoy: bin_linux_amd64/certified-envoy | ambassador-withlicense
+# OK, working backwards from our final target of
+# `ambassador/ambassador.docker`:
+#
+# 1. We set ENVOY_FILE=envoy-bin/certified-envoy, so inject a
+#    dependency for that:
+ambassador/ambassador.docker: ambassador/envoy-bin/certified-envoy
+# 2. `ambassador/Makefile` doesn't know how to build
+#    `envoy-bin/certified-envoy`, so write a rule for it here (still
+#    working backwards):
+ambassador/envoy-bin/certified-envoy: bin_linux_amd64/certified-envoy | ambassador
 	test -d $(@D) || mkdir $(@D)
 	cp $< $@
-ambassador-withlicense/ambassador.docker: ambassador-withlicense ambassador-withlicense/envoy-bin/certified-envoy
-	DOCKER_REGISTRY=- BASE_DOCKER_REPO=$(BUILDCACHE_DOCKER_REPO) ENVOY_COMPILATION_MODE=certified ENVOY_FILE=envoy-bin/certified-envoy $(MAKE) -C $(@D) $(@F)
-ambassador-withlicense/ambassador.docker.tag.release: docker.tag.release = quay.io/datawire/ambassador_pro:amb-core-$(VERSION)
-ambassador-withlicense/docker-push-base-images: ambassador-withlicense/ambassador.docker
-	DOCKER_REGISTRY=- BASE_DOCKER_REPO=$(BUILDCACHE_DOCKER_REPO) ENVOY_COMPILATION_MODE=certified ENVOY_FILE=envoy-bin/certified-envoy $(MAKE) -C $(@D) docker-push-base-images
-.PHONY: ambassador-withlicense/docker-push-base-images
+bin_linux_amd64/certified-envoy: cmd/certified-envoy/envoy.go
+cmd/certified-envoy/envoy.go: cmd/certified-envoy/envoy.bin cmd/certified-envoy/envoy-gen.go
+	go run cmd/certified-envoy/envoy-gen.go $< | $(WRITE_IFCHANGED) $@
+cmd/certified-envoy/envoy.bin: ambassador/envoy-bin/envoy-static-stripped
+	cp $< $@
 
-push-docker-buildcache: ambassador-nolicense/base-envoy.docker.push.buildcache
-push-docker-buildcache: ambassador-withlicense/docker-push-base-images
+ambassador/docker-push-base-images: ambassador/docker-base-images
+.PHONY: ambassador/docker-base-images
+.PHONY: ambassador/docker-push-base-images
 
-go-get: ambassador-nolicense cmd/certified-envoy/envoy.go
+# Override the release name of `ambassador/ambassador.docker` from
+# `ambassador` to `amb-core`.
+ambassador/ambassador.docker.tag.release: docker.tag.release = quay.io/datawire/ambassador_pro:amb-core-$(VERSION)
+
+push-docker-buildcache: ambassador/docker-push-base-images
+go-get: ambassador cmd/certified-envoy/envoy.go
 
 #
 # Lyft ratelimit
@@ -447,6 +458,8 @@ clean: $(addsuffix .clean,$(wildcard docker/*.docker)) loadtest-clean
 # Files made by older versions.  Remove the tail of this list when the
 # commit making the change gets far enough in to the past.
 #
+# 2019-08-29
+	rm -rf ambassador-nolicense ambassador-withlicense
 # 2019-08-14
 	rm -f docker/amb-sidecar-plugins/Dockerfile docker/amb-sidecar-plugins/*.so
 # 2019-08-14
@@ -494,7 +507,7 @@ clobber:
 	rm -rf tests/cluster/oauth-e2e/node_modules
 	rm -rf dev-hacks/.venv/
 	rm -rf venv
-	rm -rf ambassador-nolicense ambassador-withlicense
+	rm -rf ambassador
 
 #
 # Release
