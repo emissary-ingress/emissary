@@ -49,7 +49,6 @@ require (
 	gitlab.com/golang-commonmark/puny v0.0.0-20180912090636-2cd490539afe // indirect
 	golang.org/x/net v0.0.0-20190322120337-addf6b3196f6
 	golang.org/x/sync v0.0.0-20190227155943-e225da77a7e6
-	golang.org/x/tools v0.0.0-20190226205152-f727befe758c // indirect
 	google.golang.org/grpc v1.19.1
 	gopkg.in/russross/blackfriday.v2 v2.0.0-00010101000000-000000000000
 	gopkg.in/src-d/go-billy.v4 v4.2.1
