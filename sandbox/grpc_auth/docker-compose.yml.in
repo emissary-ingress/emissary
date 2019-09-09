@@ -1,10 +1,7 @@
 version: '2'
 services:
 
-  # opne http://127.0.0.1:9411/zipkin/ 
-
-  # curl -v -H "requested-cookie: foo, bar, baz" -H "requested-status:200"  http://localhost:61880/get
-  # curl -v -H "requested-cookie: foo, bar, baz" -H "requested-status:307"  http://localhost:61892/get
+  # curl -v -H "requested-cookie: foo, bar, baz" -H "requested-status:307"  http://localhost:61880/echo-service/get 
   ambassador:
     image: quay.io/datawire/ambassador:0.73.0
     ports:
@@ -12,16 +9,18 @@ services:
     volumes:
     - ./config:/ambassador/ambassador-config
     environment:
-    - AMBASSADOR_NO_KUBEWATCH=true
+    - AMBASSADOR_NO_KUBEWATCH=no_kubewatch
     networks:
     - ambassador
-  
-  # curl -v -H "requested-cookie: foo, bar, baz" -H "requested-status:307"  http://localhost:61898/get
+
+  # curl -v -H "requested-cookie: foo, bar, baz" -H "requested-status:307"  http://localhost:61594/echo-service/get
+  # curl -v -H "requested-status:200" -H "x-grpc-auth-append: foo=bar; baz=bar" -H "foo: foo" http://localhost:61592/headers
   auth-service:
-    image: quay.io/datawire/kat-backend:14
+    image: quay.io/datawire/kat-backend:@TAG@
     environment:
     - DEBUG=1
     - BACKEND=true
+    - KAT_BACKEND_TYPE=grpc_auth
     networks:
       ambassador:
         aliases:
@@ -29,10 +28,10 @@ services:
     expose:
       - "8080"
     ports:
-      - "61898:8080"
+      - "61594:8080"
 
   echo-service:
-    image: quay.io/datawire/kat-backend:14
+    image: quay.io/datawire/kat-backend:@TAG@
     environment:
     - DEBUG=1
     - BACKEND=true
@@ -44,7 +43,7 @@ services:
       - "80"
     ports:
       - "61595:80"
-
+  
   zipkin:
     image: openzipkin/zipkin:latest
     networks:
