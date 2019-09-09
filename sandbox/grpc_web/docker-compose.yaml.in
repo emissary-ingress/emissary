@@ -16,7 +16,7 @@ services:
     - ambassador
 
   grpc_echo:
-    image: quay.io/datawire/kat-backend:13
+    image: quay.io/datawire/kat-backend:@TAG@
     environment:
     - DEBUG=1
     - KAT_BACKEND_TYPE=grpc_echo

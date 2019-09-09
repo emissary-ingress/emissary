@@ -1,71 +1,112 @@
 TAG=v1.5.1
 
-all: echo backend client
+# Target          ## ## Description
+################# ## ## #########################
+help              :  ## Display this help text
+	@grep '[#][#]' $(MAKEFILE_LIST)
+.PHONY: help
 
-.PHONY: backend 
+################# ## ## #########################
+build             :  ## Build everything
+push              :  ## Push docker images
+clean             :: ## Remove everything
+.PHONY: build push clean
 
-backend: backend.build backend.push
+%.docker.clean::
+	if [ -e $*.docker ]; then docker image rm $$(cat $*.docker) || true; fi
+.PHONY: %.docker.clean
 
-backend.build:
-	@echo " ---> building kat-backend image"
-	@docker build . -t quay.io/datawire/kat-backend:${TAG}
+.PHONY: FORCE
 
-backend.push:
-	@echo " ---> pushing kat-backend image"
-	@docker push quay.io/datawire/kat-backend:${TAG}
+#
+# Echo service definition
 
+# What are we going to do?
+build:
+push:
+clean:: echo/echo.docker.clean
+	rm -f echo/echo.pb.go echo/echo_grpc_web_pb.js echo/echo_pb.js
 
-.PHONY: echo 
+# How are we going to do it?
+#
+# TODO: We install `protoc` and the required protoc plugins in a
+# docker image, instead of installing them in ./bin/ or something.
+# Fix that.
+echo/echo.docker: echo/Dockerfile FORCE
+	docker build --iidfile=$@ --file=$< .
+%.pb.go %_grpc_web_pb.js %_pb.js: %.docker %.proto
+	docker run --rm --volume=$(CURDIR)/echo:/echo $$(cat $<)
 
-echo: echo.clean echo.generate 
+#
+# Backend Docker image
 
-echo.clean:
-	@echo " ---> deleting generated service code"
-	@rm -rf $(PWD)/echo/echo.pb.go
+# What are we going to do?
+build: backend.docker
+push: backend.docker.push
+clean:: backend.docker.clean
 
-echo.generate:	
-	@echo " ---> generating echo service code"
-	@docker build -f $(PWD)/echo/Dockerfile -t echo-api-build .
-	@docker run -it -v $(PWD)/echo/:/echo echo-api-build:latest
+# How are we going to do it?
+backend.docker: Dockerfile echo/echo.pb.go echo/echo_grpc_web_pb.js echo/echo_pb.js FORCE
+	docker build --iidfile=$@ --tag=quay.io/datawire/kat-backend:${TAG} .
+backend.docker.push: %.docker.push: %.docker
+	docker push quay.io/datawire/kat-backend:${TAG}
+.PHONY: backend.docker.push
 
+
+# Client binary executables
 
-.PHONY: client 
+# What are we going to do?
+build: client/bin/client_darwin_amd64 client/bin/client_linux_amd64
+push:
+clean:: client/client.docker.clean
+	rm -rf client/bin
 
-client: client.clean client.build-docker client.build 
+# How are we going to do it?
+client/bin:
+	mkdir $@
+client/bin/client_%_amd64: echo/echo.pb.go FORCE | client/bin
+	GO111MODULE=on CGO_ENABLED=0 GOOS=$* GOARCH=amd64 go build -o $(abspath $@) ./client
 
-client.clean:
-	@echo " ---> deleting binaries"
-	@rm -rf bin && mkdir bin
+
+# docker-compose sandbox
 
-client.build-docker:
-	@docker build -f $(PWD)/client/Dockerfile -t kat-client-build .	
+build: sandbox/grpc_web/echo_grpc_web_pb.js sandbox/grpc_web/echo_pb.js
+buld: sandbox/http_auth/docker-compose.yml sandbox/grpc_auth/docker-compose.yml sandbox/grpc_web/docker-compose.yaml
+push:
+clean::
+	rm -f sandbox/grpc_web/echo_grpc_web_pb.js sandbox/grpc_web/echo_pb.js
+	rm -f sandbox/http_auth/docker-compose.yml sandbox/grpc_auth/docker-compose.yml sandbox/grpc_web/docker-compose.yaml
 
-client.build:	
-	@echo " ---> building code"
-	@docker run -it --rm -v $(PWD)/client/bin/:/usr/local/tmp/ kat-client-build:latest
-
-
-
-.PHONY: sandbox
+sandbox/http_auth/docker-compose.yml sandbox/grpc_auth/docker-compose.yml sandbox/grpc_web/docker-compose.yaml: %: %.in backend.docker
+	sed 's/@TAG@/$(TAG)/g' < $< > $@
+sandbox/grpc_web/echo%: echo/echo%
+	cp $< $@
 
 # For calling the services with kat-client: $ client/bin/client_{OS}_amd64 --input urls.json
 
-sandbox.http-auth:
+################# ## ## #########################
+sandbox.http-auth :  ## In docker-compose: run Ambassador, an HTTP AuthService, an HTTP backend service, and a TracingService
+sandbox.http-auth: sandbox/http_auth/docker-compose.yml
 	@echo " ---> cleaning HTTP auth sandbox"
 	@cd sandbox/http_auth && docker-compose stop && docker-compose rm -f
 	@echo " ---> starting HTTP auth sandbox"
 	@cd sandbox/http_auth && docker-compose up --force-recreate --abort-on-container-exit --build
+.PHONY: sandbox.http-auth
 
-sandbox.grpc-auth:
+sandbox.grpc-auth :  ## In docker-compose: run Ambassador, a gRPC AuthService, an HTTP backend service, and a TracingService
+sandbox.grpc-auth: sandbox/grpc_auth/docker-compose.yml
 	@echo " ---> cleaning gRPC auth sandbox"
 	@cd sandbox/grpc_auth && docker-compose stop && docker-compose rm -f
 	@echo " ---> starting gRPC auth sandbox"
 	@cd sandbox/grpc_auth && docker-compose up --force-recreate --abort-on-container-exit --build
+.PHONY: sandbox.grpc-auth
 
-sandbox.web:
+sandbox.web       :  ## In docker-compose: run Ambassador with gRPC-web enabled, and a gRPC backend service
+sandbox.web: sandbox/grpc_web/docker-compose.yaml
+sandbox.web: sandbox/grpc_web/echo_grpc_web_pb.js sandbox/grpc_web/echo_pb.js
 	@echo " ---> cleaning gRPC web sandbox"
-	@cp -R echo/*.js sandbox/grpc_web/
 	@cd sandbox/grpc_web && npm install && npx webpack
 	@cd sandbox/grpc_web && docker-compose stop && docker-compose rm -f
 	@echo " ---> starting gRPC web sandbox"
 	@cd sandbox/grpc_web && docker-compose up --force-recreate --abort-on-container-exit --build
+.PHONY: sandbox.web
