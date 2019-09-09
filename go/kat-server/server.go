@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 
-	srv "github.com/datawire/kat-backend/services"
+	srv "github.com/datawire/ambassador/go/kat-server/services"
 )
 
 const (

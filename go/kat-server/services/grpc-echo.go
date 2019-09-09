@@ -14,7 +14,7 @@ import (
 	"strconv"
 	"strings"
 
-	pb "github.com/datawire/kat-backend/echo"
+	pb "github.com/datawire/ambassador/go/apis/kat"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	metadata "google.golang.org/grpc/metadata"

@@ -2,6 +2,10 @@
 language: python
 python:
   - "3.6"
+addons:
+  apt:
+    packages:
+      - bsdtar
 
 cache:
   directories:
@@ -20,7 +24,6 @@ services:
 
 env:
   global:
-    - PATH=~/bin:$PATH
     - DOCKER_REGISTRY=quay.io/datawire
     
     # Set the branch in a predictable way. Travis behavior is that when you are
@@ -45,6 +48,8 @@ env:
 
 install:
   - ./releng/travis-install.sh
+  - PATH=~/bin:$PATH
+  - source ~/.gimme/envs/latest.env
 
 script:
   - ./releng/travis-script.sh
