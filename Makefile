@@ -91,6 +91,11 @@ ambassador: $(var.)AMBASSADOR_COMMIT
 	}
 
 # Defer to `ambassador/Makefile` for several targets:
+#
+# The "list: pattern: dependencies" syntax is new to some people: it
+# is mostly just a pattern rule "ambassador/%: ambassador", but it
+# only applies to the files listed in AMBASSADOR_TARGETS, instead of
+# all files starting with "ambassador/".
 AMBASSADOR_TARGETS += envoy-bin/envoy-static-stripped
 AMBASSADOR_TARGETS += ambassador.docker # We'll inject dependencies to this one
 AMBASSADOR_TARGETS += docker-base-images # We'll mark this one as .PHONY
