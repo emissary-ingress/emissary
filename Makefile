@@ -144,12 +144,12 @@ SCOUT_APP_KEY=
 #
 # Note that this must not start with the 'v'. Sigh.
 KAT_BACKEND_RELEASE = 1.6.0
-KAT_CLIENT ?= venv/bin/kat_client
 
 KAT_CLIENT_DOCKER_TAG ?= $(KAT_BACKEND_RELEASE)
 KAT_CLIENT_DOCKER_REPO ?= $(if $(filter-out -,$(DOCKER_REGISTRY)),$(DOCKER_REGISTRY)/)kat-client$(if $(IS_PRIVATE),-private)
 KAT_CLIENT_DOCKER_IMAGE ?= $(KAT_CLIENT_DOCKER_REPO):$(KAT_CLIENT_DOCKER_TAG)
-KAT_CLIENT_DOCKER_DIR ?= kat-client-docker-image
+
+KAT_CLIENT ?= venv/bin/kat_client
 
 # Allow overriding which watt we use.
 WATT ?= watt
@@ -226,8 +226,6 @@ print-vars:
 	@echo "GIT_TAG                          = $(GIT_TAG)"
 	@echo "GIT_TAG_SANITIZED                = $(GIT_TAG_SANITIZED)"
 	@echo "GIT_VERSION                      = $(GIT_VERSION)"
-	@echo "KAT_BACKEND_RELEASE              = $(KAT_BACKEND_RELEASE)"
-	@echo "KAT_CLIENT_DOCKER_REPO           = $(KAT_CLIENT_DOCKER_REPO)"
 	@echo "KAT_CLIENT_DOCKER_IMAGE          = $(KAT_CLIENT_DOCKER_IMAGE)"
 	@echo "KUBECONFIG                       = $(KUBECONFIG)"
 	@echo "LATEST_RC                        = $(LATEST_RC)"
@@ -254,8 +252,6 @@ export-vars:
 	@echo "export GIT_TAG='$(GIT_TAG)'"
 	@echo "export GIT_TAG_SANITIZED='$(GIT_TAG_SANITIZED)'"
 	@echo "export GIT_VERSION='$(GIT_VERSION)'"
-	@echo "export KAT_BACKEND_RELEASE='$(KAT_BACKEND_RELEASE)'"
-	@echo "export KAT_CLIENT_DOCKER_REPO='$(KAT_CLIENT_DOCKER_REPO)'"
 	@echo "export KAT_CLIENT_DOCKER_IMAGE='$(KAT_CLIENT_DOCKER_IMAGE)'"
 	@echo "export KUBECONFIG='$(KUBECONFIG)'"
 	@echo "export LATEST_RC='$(LATEST_RC)'"
@@ -410,18 +406,19 @@ ambassador.docker: Dockerfile base-go.docker base-py.docker $(ENVOY_FILE) $(WATT
 	@docker image inspect $(AMBASSADOR_DOCKER_IMAGE) --format='{{.Id}}' | $(WRITE_IFCHANGED) $@
 
 kat-client-docker-image: kat-client.docker
-kat-client.docker: $(KAT_CLIENT_DOCKER_DIR)/Dockerfile base-py.docker $(KAT_CLIENT_DOCKER_DIR)/teleproxy $(KAT_CLIENT_DOCKER_DIR)/kat_client $(WRITE_IFCHANGED)
-	docker build --build-arg BASE_PY_IMAGE=$(BASE_PY_IMAGE) $(DOCKER_OPTS) -t $(KAT_CLIENT_DOCKER_IMAGE) $(KAT_CLIENT_DOCKER_DIR)
+.PHONY: kat-client-docker-image
+kat-client.docker: kat-client-docker-image/Dockerfile base-py.docker kat-client-docker-image/teleproxy kat-client-docker-image/kat_client $(WRITE_IFCHANGED) $(var.)KAT_CLIENT_DOCKER_IMAGE
+	docker build --build-arg BASE_PY_IMAGE=$(BASE_PY_IMAGE) $(DOCKER_OPTS) -t $(KAT_CLIENT_DOCKER_IMAGE) kat-client-docker-image
 	@docker image inspect $(KAT_CLIENT_DOCKER_IMAGE) --format='{{.Id}}' | $(WRITE_IFCHANGED) $@
 
-# $(KAT_CLIENT_DOCKER_DIR)/teleproxy always uses the linux/amd64 architecture
-$(KAT_CLIENT_DOCKER_DIR)/teleproxy: $(var.)TELEPROXY_VERSION
-	curl -o $(KAT_CLIENT_DOCKER_DIR)/teleproxy https://s3.amazonaws.com/datawire-static-files/teleproxy/$(TELEPROXY_VERSION)/linux/amd64/teleproxy
+# kat-client-docker-image/teleproxy always uses the linux/amd64 architecture
+kat-client-docker-image/teleproxy: $(var.)TELEPROXY_VERSION
+	curl --fail -o $@ https://s3.amazonaws.com/datawire-static-files/teleproxy/$(TELEPROXY_VERSION)/linux/amd64/teleproxy
 
-# $(KAT_CLIENT_DOCKER_DIR)/kat_client always uses the linux/amd64 architecture
-$(KAT_CLIENT_DOCKER_DIR)/kat_client: venv/kat-backend-$(KAT_BACKEND_RELEASE).tar.gz $(var.)KAT_BACKEND_RELEASE
+# kat-client-docker-image/kat_client always uses the linux/amd64 architecture
+kat-client-docker-image/kat_client: venv/kat-backend-$(KAT_BACKEND_RELEASE).tar.gz $(var.)KAT_BACKEND_RELEASE
 	cd venv && tar -xzf $(<F) kat-backend-$(KAT_BACKEND_RELEASE)/client/bin/client_linux_amd64
-	install -m0755 venv/kat-backend-$(KAT_BACKEND_RELEASE)/client/bin/client_linux_amd64 $(KAT_CLIENT_DOCKER_DIR)/kat_client
+	install -m0755 venv/kat-backend-$(KAT_BACKEND_RELEASE)/client/bin/client_linux_amd64 $@
 
 docker-images: ambassador-docker-image
 
