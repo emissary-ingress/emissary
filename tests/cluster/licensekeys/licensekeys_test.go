@@ -31,6 +31,15 @@ var wd = func() string {
 
 type Result func(*exec.Cmd) error
 
+type Event struct {
+	Name string
+	Time time.Duration
+}
+
+func (e Event) String() string {
+	return fmt.Sprintf("%v:%q", e.Time, e.Name)
+}
+
 var (
 	ResultExitZero Result = func(cmd *exec.Cmd) error {
 		return cmd.Run()
@@ -57,30 +66,43 @@ var (
 		}
 		// wait
 		output := new(strings.Builder)
-		events := make(chan string)
+		var wg sync.WaitGroup
+		var eventsLock sync.Mutex
+		var events []Event
+		wg.Add(3)
+		start := time.Now()
 		go func() {
 			_, err := io.Copy(output, stdout)
-			events <- fmt.Sprintf("i/o complete: %v", err)
+
+			t := time.Since(start)
+			eventsLock.Lock()
+			events = append(events, Event{fmt.Sprintf("i/o complete: %v", err), t})
+			eventsLock.Unlock()
+			wg.Done()
 		}()
 		go func() {
 			time.Sleep(20 * time.Second)
+
+			t := time.Since(start)
+			eventsLock.Lock()
 			cmd.Process.Kill()
-			events <- "timeout complete"
+			events = append(events, Event{"timeout complete", t})
+			eventsLock.Unlock()
+			wg.Done()
 		}()
 		go func() {
 			cmd.Wait()
-			events <- "process complete"
+
+			t := time.Since(start)
+			eventsLock.Lock()
+			events = append(events, Event{"process complete", t})
+			eventsLock.Unlock()
+			wg.Done()
 		}()
-		start := time.Now()
-		a := <-events
-		aTime := time.Since(start)
-		b := <-events
-		bTime := time.Since(start)
-		c := <-events
-		cTime := time.Since(start)
+		wg.Wait()
 		// inspect
-		if a != "timeout complete" {
-			return errors.Errorf("process died early; events: [ %v:%q | %v:%q | %v:%q ]; output: %q", aTime, a, bTime, b, cTime, c, output)
+		if events[0].Name != "timeout complete" {
+			return errors.Errorf("process died early; events: [ %s | %s | %s ]; output: %q", events[0], events[1], events[2], output)
 		}
 		if regexp.MustCompile("[Ll]icense.?[Kk]ey").MatchString(output.String()) {
 			return errors.Errorf("output mentioned a license key: %q", output)

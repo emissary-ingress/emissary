@@ -130,9 +130,6 @@ load common
 		# things are clean.
 		skip
 	fi
-	# Let's not work with a symlink for this test
-	rm "$test_tmpdir/build-aux"
-	cp -a "$BATS_TEST_DIRNAME/.." "$test_tmpdir/build-aux"
 	(cd build-aux && git clean -fdx)
 
 	cat >>Makefile <<-'__EOT__'
