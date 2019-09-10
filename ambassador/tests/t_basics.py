@@ -1,6 +1,7 @@
 from typing import Tuple, Union
 
 from kat.harness import Query
+from kat.utils import ShellCommand
 
 from abstract_tests import AmbassadorTest, assert_default_errors, HTTP, Node, ServiceType
 
@@ -100,3 +101,9 @@ service: {self.target.path.fqdn}
 
     def check(self):
         assert self.results[0].headers["Server"] == [ "test-server" ]
+
+
+class CliTest(AmbassadorTest):
+    def check(self):
+        cmd = ShellCommand('kubectl', 'exec', self.path.k8s, '--', 'ambassador', '--help')
+        assert cmd.check("ambassador cli")
