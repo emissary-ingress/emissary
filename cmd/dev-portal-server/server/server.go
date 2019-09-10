@@ -205,9 +205,9 @@ func (s *Server) handleHTML(context string, prefix string) http.HandlerFunc {
 	}
 }
 
-func (s *Server) handleStatic() http.HandlerFunc {
+func (s *Server) handleStatic(docroot string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		content, err := s.content.GetStatic(r.URL.Path)
+		content, err := s.content.GetStatic(r.URL.Path[len(docroot):])
 		if err != nil {
 			log.Warn(err)
 			w.WriteHeader(http.StatusNotFound)
@@ -223,7 +223,7 @@ func (s *Server) handleStatic() http.HandlerFunc {
 // TODO The URL scheme exposes Service names and K8s namespace names, which is
 // perhaps a security risk, and more broadly might be embarrassing for some
 // organizations. So might want some better URL scheme.
-func NewServer(content *content.Content) *Server {
+func NewServer(docroot string, content *content.Content) *Server {
 	router := mux.NewRouter()
 	router.Use(logging.LoggingMiddleware)
 
@@ -237,11 +237,12 @@ func NewServer(content *content.Content) *Server {
 	// TODO in a later design iteration, we would serve static HTML, and
 	// have Javascript UI that queries the API endpoints. for this
 	// iteration, just doing it server-side.
-	router.HandleFunc("/", s.handleHTML("landing", ""))
-	router.PathPrefix("/assets/").HandlerFunc(s.handleStatic())
-	router.PathPrefix("/styles/").HandlerFunc(s.handleStatic())
-	router.HandleFunc("/page/{page}", s.handleHTML("page", "../"))
-	router.HandleFunc("/doc/{namespace}/{service}", s.handleHTML("doc", "../../"))
+	root := docroot + "/"
+	router.HandleFunc(docroot+"/", s.handleHTML("landing", root))
+	router.PathPrefix(docroot + "/assets/").HandlerFunc(s.handleStatic(docroot))
+	router.PathPrefix(docroot + "/styles/").HandlerFunc(s.handleStatic(docroot))
+	router.HandleFunc(docroot+"/page/{page}", s.handleHTML("page", root))
+	router.HandleFunc(docroot+"/doc/{namespace}/{service}", s.handleHTML("doc", root))
 
 	// *** Read-only API, requires less access control and may be exposed ***
 	// publicly:

@@ -76,7 +76,23 @@ metadata:
       apiVersion: ambassador/v1
       kind: Mapping
       name: devportal_mapping
-      prefix: /docs
+      prefix: /docs/
+      rewrite: ""
+      add_response_headers:
+        x-test-proto: "%PROTOCOL%"
+        x-test-ip: "%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%"
+        x-test-static: This is apro sidecar mapping
+      service: "127.0.0.1:8500"
+      ---
+      apiVersion: ambassador/v1
+      kind: Mapping
+      name: devportal_mapping
+      prefix: /openapi/
+      rewrite: ""
+      add_response_headers:
+        x-test-proto: "%PROTOCOL%"
+        x-test-ip: "%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%"
+        x-test-static: This is apro sidecar api mapping
       service: "127.0.0.1:8500"
       ---
       # This mapping needs to exist, but is never actually followed.

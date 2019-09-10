@@ -18,14 +18,14 @@ type ServerConfig struct {
 	ContentURL    string
 }
 
-func MakeServer(ctx context.Context, config ServerConfig) (s *Server, err error) {
+func MakeServer(docroot string, ctx context.Context, config ServerConfig) (s *Server, err error) {
 
 	content, err := content.NewContent(config.ContentURL)
 	if err != nil {
 		return
 	}
 
-	s = NewServer(content)
+	s = NewServer(docroot, content)
 
 	knownServices := s.knownServices()
 	// TODO push context into fetcher
@@ -56,7 +56,7 @@ func Main(
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	s, err := MakeServer(ctx, config)
+	s, err := MakeServer("", ctx, config)
 	if err != nil {
 		panic(err)
 	}

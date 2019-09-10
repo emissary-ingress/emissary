@@ -113,6 +113,7 @@ func runE(cmd *cobra.Command, args []string) error {
 	if len(fatal) > 0 {
 		return fatal[len(fatal)-1]
 	}
+	logrusLogger.Info("Ambassador Pro configuation loaded")
 
 	if err := os.MkdirAll(filepath.Dir(cfg.RLSRuntimeDir), 0777); err != nil {
 		return err
@@ -254,11 +255,20 @@ func runE(cmd *cobra.Command, args []string) error {
 
 		// DevPortal
 
-		portalServer, err := portal.MakeServer(softCtx, cfg.PortalConfig)
+		portalServer, err := portal.MakeServer("/docs", softCtx, cfg.PortalConfig)
 		if err != nil {
 			return err
 		}
-		httpHandler.AddEndpoint("/docs", "Documentation portal", portalServer.Router().ServeHTTP)
+		logrusLogger.Info("Mounting dev portal to /docs/")
+		httpHandler.AddEndpoint("/docs/", "Documentation portal", func(w http.ResponseWriter, rq *http.Request) {
+			//	logrusLogger.Infof("Forwarding request %s to portal server", rq.RequestURI)
+			portalServer.Router().ServeHTTP(w, rq)
+		})
+		logrusLogger.Info("Mounting dev portal API to /openapi/")
+		httpHandler.AddEndpoint("/openapi/", "Documentation portal API", func(w http.ResponseWriter, rq *http.Request) {
+			//	logrusLogger.Infof("Forwarding request %s to portal server API", rq.RequestURI)
+			portalServer.Router().ServeHTTP(w, rq)
+		})
 
 		// Launch the server
 		server := &http.Server{
