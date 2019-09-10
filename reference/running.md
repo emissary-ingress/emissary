@@ -180,7 +180,7 @@ Also note that the YAML files in the configuration directory must contain Ambass
 
 ## Log levels and debugging
 
-Ambassador and Ambassador Pro support more verbose debugging levels. If using Ambassador, the [diagnostics](diagnostics) service has a button to enable debug logging. Be aware that if you're running Ambassador on multiple pods, the debug log levels are not enabled for all pods -- they are configured on a per-pod basis.
+Ambassador and Ambassador Pro support more verbose debugging levels. If using Ambassador, the [diagnostics](/reference/diagnostics/) service has a button to enable debug logging. Be aware that if you're running Ambassador on multiple pods, the debug log levels are not enabled for all pods -- they are configured on a per-pod basis.
 
 If using Ambassador Pro, you can adjust the log level by setting the `APP_LOG_LEVEL` environment variable; from least verbose to most verbose, the valid values are `error`, `warn`/`warning`, `info`, `debug`, and `trace`; the default is `info`.
 
