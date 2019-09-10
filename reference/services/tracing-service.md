@@ -38,6 +38,9 @@ Please note that you must use the HTTP/2 preudo-header names. For example:
 - `trace_id_128bit` whether a 128bit trace id will be used when creating a new trace instance. Defaults to `true`. Setting to `false` will result in a 64 bit trace id being used.
 - `shared_span_context` whether client and server spans will shared the same span id. The default value is `true`.
 
+### `datadog` driver configurations:
+- `service_name` the name of the service which is attached to the traces. The default value is `ambassador`.
+
 You may only use a single `TracingService` manifest.
 
 ## Example

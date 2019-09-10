@@ -268,7 +268,7 @@ Unless disabled, Ambassador will also report the following anonymized informatio
 | `tls_using_contexts` | bool | is the old TLS module in use? |
 | `tls_using_module` | bool | are new TLSContext resources in use? |
 | `tracing` | bool | is tracing in use? |
-| `tracing_driver` | str | tracing driver in use ('zipkin', 'lightstep', or `null` if not active) |
+| `tracing_driver` | str | tracing driver in use ('zipkin', 'lightstep', 'datadog', or `null` if not active) |
 | `use_proxy_proto` | bool | is the `PROXY` protocol in use? |
 | `use_remote_address` | bool | is Ambassador honoring remote addresses? |
 | `x_forwarded_proto_redirect` | bool | is Ambassador redirecting based on `X-Forwarded-Proto`? |
