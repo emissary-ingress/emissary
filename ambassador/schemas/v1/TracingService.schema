@@ -15,7 +15,7 @@
             ]
         },
         
-        "driver": { "enum": ["lightstep", "zipkin"] },
+        "driver": { "enum": ["lightstep", "zipkin", "datadog"] },
         "service": { "type": "string" },
         "config": {
             "type": "object",
@@ -24,7 +24,8 @@
                 "collector_cluster": { "type": "string" },
                 "collector_endpoint": { "type": "string" },
                 "trace_id_128bit": { "type": "boolean" },
-                "shared_span_context": { "type": "boolean" }
+                "shared_span_context": { "type": "boolean" },
+                "service_name": { "type": "string" }
             },
             "additionalProperties": false
         },

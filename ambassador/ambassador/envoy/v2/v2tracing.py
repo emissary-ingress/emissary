@@ -45,6 +45,10 @@ class V2Tracing(dict):
             if not 'trace_id_128bit' in driver_config:
                 driver_config['trace_id_128bit'] = True
 
+        if name.lower() == 'envoy.tracers.datadog':
+            if not driver_config.get('service_name'):
+                driver_config['service_name'] = 'ambassador'
+
         self['http'] = {
             "name": name,
             "config": driver_config
