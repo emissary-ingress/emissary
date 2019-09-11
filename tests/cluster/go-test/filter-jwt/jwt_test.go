@@ -68,11 +68,11 @@ func TestJWTInjectHeaders(t *testing.T) {
 	})
 	assert.NotError(err)
 	assert.Bool(resp != nil)
+	defer resp.Body.Close()
 
 	// inspect the result //////////////////////////////////////////////////
 
 	assert.HTTPResponseStatusEQ(resp, http.StatusOK)
-	defer resp.Body.Close()
 	bodyBytes, err := ioutil.ReadAll(resp.Body)
 	assert.NotError(err)
 	t.Logf("Body: %s", bodyBytes)
