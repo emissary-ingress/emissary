@@ -28,6 +28,8 @@ class IRTLSContext(IRResource):
     cert_required: Optional[bool]
     min_tls_version: Optional[str]
     max_tls_version: Optional[str]
+    cipher_suites: Optional[str]
+    ecdh_curves: Optional[str]
     redirect_cleartext_from: Optional[int]
     secret_namespacing: Optional[bool]
     secret_info: dict
@@ -60,6 +62,8 @@ class IRTLSContext(IRResource):
         self.cert_required = config.get('cert_required')
         self.min_tls_version = config.get('min_tls_version')
         self.max_tls_version = config.get('max_tls_version')
+        self.cipher_suites = config.get('cipher_suites')
+        self.ecdh_curves = config.get('ecdh_curves')
         self.secret_namespacing = config.get('secret_namespacing', None)
 
         rcf = config.get('redirect_cleartext_from')
