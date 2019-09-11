@@ -22,7 +22,5 @@ module.exports.authenticate = async function(browsertab, username, password) {
 	await browsertab.waitForSelector('input[type="password"]', { visible: true });
 	await browsertab.type('input[type="password"]', password);
 	await browsertab.waitForSelector('.auth0-lock-submit', { visible: true });
-	const done = browsertab.waitForNavigation();
 	await browsertab.click('.auth0-lock-submit');
-	await done;
 };
