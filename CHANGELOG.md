@@ -104,6 +104,7 @@ Format:
 
 ### Minor changes:
 - Testing: Add test that ambassador cli does not crash when called with --help - #1806 (Thanks @rokostik)
+
 ## [0.77.0] September 05, 2019
 [0.77.0]: https://github.com/datawire/ambassador/compare/0.76.0...0.77.0
 
