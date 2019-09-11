@@ -143,7 +143,7 @@ SCOUT_APP_KEY=
 # For details https://github.com/datawire/kat-backend
 #
 # Note that this must not start with the 'v'. Sigh.
-KAT_BACKEND_RELEASE = 1.5.0
+KAT_BACKEND_RELEASE = 1.6.0
 KAT_CLIENT ?= venv/bin/kat_client
 
 KAT_CLIENT_DOCKER_TAG ?= $(KAT_BACKEND_RELEASE)
