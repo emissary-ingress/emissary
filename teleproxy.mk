@@ -26,12 +26,22 @@ KUBE_URL = https://kubernetes/api/
 
 TELEPROXY ?= $(build-aux.bindir)/teleproxy
 $(eval $(call build-aux.bin-go.rule,teleproxy,github.com/datawire/teleproxy/cmd/teleproxy))
+ifeq ($(GOHOSTOS),darwin)
 $(build-aux.bindir)/.teleproxy.stamp: CGO_ENABLED = 1
+endif
 # override the rule for .teleproxy.stamp -> teleproxy
-$(build-aux.bindir)/teleproxy: $(build-aux.bindir)/%: $(build-aux.bindir)/.%.stamp $(COPY_IFCHANGED)
-	sudo $(COPY_IFCHANGED) $< $@
-	sudo chown 0:0 $@
-	sudo chmod go-w,a+sx $@
+$(build-aux.bindir)/teleproxy: $(build-aux.bindir)/%: $(build-aux.bindir)/.%.stamp
+	@PS4=; set -ex; { \
+		if ! cmp -s $< $@; then \
+			if [ -n "$${CI}" -a -e $@ ]; then \
+				echo 'error: This should not happen in CI: $@ should not change' >&2; \
+				exit 1; \
+			fi; \
+			sudo cp -f $< $@; \
+			sudo chown 0:0 $@; \
+			sudo chmod go-w,a+sx $@; \
+		fi \
+	}
 
 proxy: ## (Kubernaut) Launch teleproxy in the background
 proxy: $(KUBECONFIG) $(TELEPROXY)

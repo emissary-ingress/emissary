@@ -2,7 +2,7 @@
 
 common_setup() {
 	test_tmpdir="$(mktemp -d)"
-	ln -s "$BATS_TEST_DIRNAME/.." "$test_tmpdir/build-aux"
+	cp -a "$BATS_TEST_DIRNAME/.." "$test_tmpdir/build-aux"
 	cd "$test_tmpdir"
 	cat >Makefile <<-'__EOT__'
 		.DEFAULT_GOAL = all
