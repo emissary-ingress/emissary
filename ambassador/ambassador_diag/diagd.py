@@ -310,6 +310,12 @@ def system_info(app):
     return {
         "version": __version__,
         "hostname": SystemInfo.MyHostName,
+        "ambassador_id": Config.ambassador_id,
+        "ambassador_namespace": Config.ambassador_namespace,
+        "single_namespace": Config.single_namespace,
+        "knative_enabled": bool(os.environ.get('AMBASSADOR_KNATIVE_SUPPORT', None)),
+        "statsd_enabled": bool(os.environ.get('STATSD_ENABLED', None)),
+        "endpoints_enabled": Config.enable_endpoints,
         "cluster_id": os.environ.get('AMBASSADOR_CLUSTER_ID',
                                      os.environ.get('AMBASSADOR_SCOUT_ID', "00000000-0000-0000-0000-000000000000")),
         "boot_time": boot_time,

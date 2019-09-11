@@ -15,6 +15,15 @@
     {% else %}
     Envoy not running!!
     {% endif %}
+    <br/>
+    <br/>
+    Ambassador ID <samp>{{ system.ambassador_id }}</samp>
+    <br/>
+    Ambassador namespace <samp>{{ system.ambassador_namespace }}</samp>{%- if system.single_namespace %} (single namespace only){%- endif -%}
+    <br/>
+    {%- if system.knative_enabled -%}KNative support enabled<br/>{%- endif %}
+    {%- if system.statsd_enabled -%}Statsd support enabled<br/>{%- endif %}
+    {%- if not system.endpoints_enabled -%}Endpoint routing disabled<br/>{%- endif %}
   </div>
   <div class="col-5">
     {% if loginfo %}
