@@ -9,7 +9,7 @@ metadata:
 spec:
   containers:
   - name: backend
-    image: dwflynn/kat-client:1.5.0
+    image: dwflynn/kat-client:1.6.0
     imagePullPolicy: Always
 """
 

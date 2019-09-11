@@ -76,6 +76,11 @@ class V2TLSContext(Dict):
         if value == "v1.3":
             common['tls_params'][key] = "TLSv1_3"
 
+    def update_tls_cipher(self, key: str, value: list) -> None:
+        common = self.get_common()
+        common.setdefault('tls_params', {})
+        common['tls_params'][key] = value
+
     def update_validation(self, key: str, value: str) -> None:
         empty_context: EnvoyValidationContext = {}
         validation = typecast(EnvoyValidationContext, self.get_common().setdefault('validation_context', empty_context))
@@ -99,6 +104,8 @@ class V2TLSContext(Dict):
             ( 'cert_required', self.__setitem__, 'require_client_certificate' ),
             ( 'min_tls_version', self.update_tls_version, 'tls_minimum_protocol_version' ),
             ( 'max_tls_version', self.update_tls_version, 'tls_maximum_protocol_version' ),
+            ( 'cipher_suites', self.update_tls_cipher, 'cipher_suites' ),
+            ( 'ecdh_curves', self.update_tls_cipher, 'ecdh_curves' ),
         ]:
             value = ctx.get(ctxkey, None)
 
