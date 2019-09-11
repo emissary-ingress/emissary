@@ -97,11 +97,15 @@ Without setting setting alpn_protocols as shown above, HTTP2 will not be availab
 
 If you leave off http/1.1, only HTTP2 connections will be supported.
 
-### `min_tls_version` and `max_tls_version`
+### TLS Parameters
 
 The `min_tls_version` setting configures the minimum TLS protocol version that Ambassador will use to establish a secure connection. When a client using a lower version attempts to connect to the server, the handshake will result in the following error: `tls: protocol version not supported`.
 
 The `max_tls_version` setting configures the maximum TLS protocol version that Ambassador will use to establish a secure connection. When a client using a higher version attempts to connect to the server, the handshake will result in the following error: `tls: server selected unsupported protocol version`.
+
+The `cipher_suites` setting configures the supported [cipher list](https://commondatastorage.googleapis.com/chromium-boringssl-docs/ssl.h.html#Cipher-suite-configuration) when negotiating a TLS 1.0-1.2 connection. This setting has no effect when negotiating a TLS 1.3 connection.  When a client does not support a matching cipher a handshake error will result.
+
+The `ecdh_curves` setting configures the supported ECDH curves when negotiating a TLS connection.  When a client does not support a matching ECDH a handshake error will result.
 
 ```yaml
 ---
@@ -112,6 +116,12 @@ hosts: ["*"]
 secret: ambassador-certs
 min_tls_version: v1.0
 max_tls_version: v1.3
+cipher_suites:
+- "[ECDHE-ECDSA-AES128-GCM-SHA256|ECDHE-ECDSA-CHACHA20-POLY1305]"
+- "[ECDHE-RSA-AES128-GCM-SHA256|ECDHE-RSA-CHACHA20-POLY1305]"
+ecdh_curves:
+- X25519
+- P-256
 ```
 
 ## TLS `Module`
