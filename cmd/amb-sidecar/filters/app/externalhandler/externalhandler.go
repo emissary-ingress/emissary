@@ -164,7 +164,12 @@ func (f *ExternalFilter) Filter(ctx context.Context, r *filterapi.FilterRequest)
 			return nil, err
 		}
 
-		httpResponse, err := httpclient.NewHTTPClient(logger, 0, false).Do(httpRequest)
+		client := httpclient.NewHTTPClient(logger, 0, false)
+		client.CheckRedirect = func(_ *http.Request, _ []*http.Request) error {
+			return http.ErrUseLastResponse
+		}
+
+		httpResponse, err := client.Do(httpRequest)
 		if err != nil {
 			return nil, err
 		}

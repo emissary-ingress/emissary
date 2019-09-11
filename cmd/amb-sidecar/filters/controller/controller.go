@@ -110,6 +110,7 @@ func (c *Controller) Watch(ctx context.Context, kubeinfo *k8s.KubeInfo) error {
 				}
 
 				c.Logger.Infoln("loading filter external=%s", spec.External.AuthService)
+				filters[mw.QName()] = *spec.External
 			case spec.Internal != nil:
 				c.Logger.Infoln("loading filter internal")
 				filters[mw.QName()] = *spec.Internal

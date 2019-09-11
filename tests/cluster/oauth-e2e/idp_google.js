@@ -24,14 +24,7 @@ const authenticate = async function(browsertab, username, password) {
 	await browsertab.waitForSelector('input[type="password"]', { visible: true });
 	await browsertab.waitForSelector('[role="button"]#passwordNext', { visible: true });
 	await browsertab.type('input[type="password"]', password);
-	const done = browsertab.waitForFunction(() => {
-		// Google does several JS-based redirects, so
-		// waitForNavigation and friends don't wait long
-		// enough.
-		return window.location.hostname == "ambassador.standalone.svc.cluster.local";
-	});
 	await browsertab.click('[role="button"]#passwordNext');
-	await done;
 };
 
 const waitUntilRender = function(browsertab) {

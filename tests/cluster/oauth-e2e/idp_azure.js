@@ -19,7 +19,5 @@ module.exports.authenticate = async function(browsertab, username, password) {
 	await browsertab.click('input[type="submit"][value="Sign in"]');
 	// page 3: "Stay signed in?"
 	await browsertab.waitForSelector('input[type="submit"][value="Yes"]', { visible: true });
-	const done = browsertab.waitForNavigation();
 	await browsertab.click('input[type="submit"][value="Yes"]');
-	await done;
 };
