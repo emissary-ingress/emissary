@@ -30,7 +30,12 @@ if [[ "$USE_KUBERNAUT" != "true" ]]; then
     ( cd "$ROOT"; bash "$HERE/test-warn.sh" )
 fi
 
-TEST_ARGS="--tb=short -s"
+TEST_ARGS_GENERIC=(--tb=short -s)
+TEST_ARGS_WITHOUT_KNATIVE=("${TEST_ARGS_GENERIC[@]}" -k 'not Knative')
+TEST_ARGS_WITH_KNATIVE=("${TEST_ARGS_GENERIC[@]}" -k 'Knative')
+
+# We serialize Knative tests because they are resource intensive - so we don't want any interference with the other tests.
+SERIALIZE_KNATIVE_TESTS=true
 
 seq=("")
 
@@ -40,43 +45,47 @@ if [[ -n "${TEST_NAME}" ]]; then
     group1) seq=('Plain') ;;
     group2) seq=('not Plain and (A or C)') ;;
     group3) seq=('not Plain and not (A or C)') ;;
-    *) seq=("$TEST_NAME") ;;
+    *) seq=("$TEST_NAME"); SERIALIZE_KNATIVE_TESTS=false;;
     esac
 fi
 
-( cd "$ROOT" ; make cluster-and-teleproxy )
+if [[ "$SERIALIZE_KNATIVE_TESTS" = true ]] ; then
+        TEST_ARGS=("${TEST_ARGS_WITHOUT_KNATIVE[@]}")
+    else
+        TEST_ARGS=("${TEST_ARGS_GENERIC[@]}")
+fi
 
-echo "==== [$(date)] ==== STARTING TESTS"
+# run_test() runs a given test. Takes 2 arguments -
+# $1 is the test name. If blank, runs all tests.
+# $2 is the test args you need to pass to the tests.
+run_test() {
+    test_name=$1
+    shift
+    test_arg=("$@")
 
-failed=()
+    pretty_test_name="${test_name:-ALL}"
 
-for el in "${seq[@]}"; do
-    hr_el="${el:-ALL}"
-
-    echo "==== [$(date)] $hr_el ==== running"
-
-#    kubectl delete namespaces -l scope=AmbassadorTest
-#    kubectl delete all -l scope=AmbassadorTest
+    echo "==== [$(date)] $pretty_test_name ==== running"
 
     k_args=""
 
-    if [ -n "$el" ]; then
-        k_args="-k $el"
+    if [[ -n "$test_name" ]]; then
+        k_args="-k $test_name"
     fi
 
     set +e
     set -x
 
-    outdirbase="kat-log-${hr_el}"
+    outdirbase="kat-log-${pretty_test_name}"
     outdir="/tmp/${outdirbase}"
-    tmpdir="/tmp/kat-tmplog-${hr_el}"
+    tmpdir="/tmp/kat-tmplog-${pretty_test_name}"
 
     rm -rf "$tmpdir"; mkdir "$tmpdir"
 
-    if ! pytest ${TEST_ARGS} $k_args | tee /tmp/pytest.log; then
-        echo "==== [$(date)] $hr_el ==== FAILED"
+    if ! pytest "${test_arg[@]}" "${k_args}" | tee /tmp/pytest.log; then
+        echo "==== [$(date)] $pretty_test_name ==== FAILED"
 
-        failed+=("$el")
+        failed+=("$test_name")
 
         mv /tmp/pytest.log "$tmpdir"
 
@@ -94,12 +103,29 @@ for el in "${seq[@]}"; do
             kubectl logs $podname > "$tmpdir/pod-$podname.log" 2>&1
         done
     else
-        echo "==== [$(date)] $hr_el ==== SUCCEEDED"
+        echo "==== [$(date)] $pretty_test_name ==== SUCCEEDED"
     fi
 
     set -e
     set +x
+}
+
+
+( cd "$ROOT" ; make cluster-and-teleproxy )
+
+echo "==== [$(date)] ==== STARTING TESTS"
+
+failed=()
+
+for t_name in "${seq[@]}"; do
+    run_test "${t_name}" "${TEST_ARGS_WITHOUT_KNATIVE[@]}"
 done
+
+if [[ "$SERIALIZE_KNATIVE_TESTS" = true ]] ; then
+    echo "==== Running Knative tests ===="
+    all_tests=("")
+    run_test "${all_tests}" "${TEST_ARGS_WITH_KNATIVE[@]}"
+fi
 
 if (( ${#failed[@]} == 0 )); then
     echo "==== [$(date)] ==== FINISHED TESTS (passed)"
