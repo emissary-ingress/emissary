@@ -94,6 +94,16 @@ Format:
 --->
 
 <!--- CueAddReleaseNotes --->
+## [0.78.0] September 11, 2019
+[0.78.0]: https://github.com/datawire/ambassador/compare/v0.77.0...0.78.0
+
+### Major changes:
+- Feature: Support setting cipher_suites and ecdh_curves in TLSContext - #1782 (Thanks @teejaded)
+- Feature: Make 128-bits traceids the default - #1794 (Thanks @Pluies)
+- Feature: Set cap_net_bind_service to allow binding to low ports - #1720 (Thanks @swalberg)
+
+### Minor changes:
+- Testing: Add test that ambassador cli does not crash when called with --help - #1806 (Thanks @rokostik)
 ## [0.77.0] September 05, 2019
 [0.77.0]: https://github.com/datawire/ambassador/compare/0.76.0...0.77.0
 
