@@ -30,7 +30,7 @@ if [[ "$USE_KUBERNAUT" != "true" ]]; then
     ( cd "$ROOT"; bash "$HERE/test-warn.sh" )
 fi
 
-TEST_ARGS_GENERIC=(--tb=short -s)
+TEST_ARGS_GENERIC=(--tb=short -s --suppress-no-test-exit-code)
 TEST_ARGS_WITHOUT_KNATIVE=("${TEST_ARGS_GENERIC[@]}" -k 'not Knative')
 TEST_ARGS_WITH_KNATIVE=("${TEST_ARGS_GENERIC[@]}" -k 'Knative')
 
