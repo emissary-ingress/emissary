@@ -651,6 +651,12 @@ hosts:
 
 
 class TLSContextProtocolMaxVersion(AmbassadorTest):
+    # Here we're testing that the client can't exceed the maximum TLS version
+    # configured.
+    #
+    # XXX 2019-09-11: vet that the test client's support for TLS v1.3 is up-to-date.
+    # It appears not to be.
+
     # debug = True
 
     def init(self):
@@ -687,8 +693,6 @@ name:  {self.name}-same-prefix-1
 prefix: /tls-context-same/
 service: http://{self.target.path.fqdn}
 host: tls-context-host-1
-""")
-        yield self, self.format("""
 ---
 apiVersion: ambassador/v1
 kind: TLSContext
@@ -696,8 +700,8 @@ name: {self.name}-same-context-1
 hosts:
 - tls-context-host-1
 secret: secret.max-version
-min_tls_version: v1.2
-max_tls_version: v1.3
+min_tls_version: v1.1
+max_tls_version: v1.2
 """)
 
     def scheme(self) -> str:
@@ -712,36 +716,42 @@ max_tls_version: v1.3
         return "Get {}: EOF".format(url)
 
     def queries(self):
+        # This should give us TLS v1.2
         yield Query(self.url("tls-context-same/"),
                     headers={"Host": "tls-context-host-1"},
                     expected=200,
                     insecure=True,
                     sni=True,
                     minTLSv="v1.2",
-                    maxTLSv="v1.3")
-        
+                    maxTLSv="v1.2")
+
+        # This should give us TLS v1.1
         yield Query(self.url("tls-context-same/"),
                     headers={"Host": "tls-context-host-1"},
                     expected=200,
                     insecure=True,
                     sni=True,
-                    minTLSv="v1.1",
-                    maxTLSv="v1.1",
-                    error="tls: protocol version not supported")
+                    minTLSv="v1.0",
+                    maxTLSv="v1.1")
+
+        # This should be an error.
+        yield Query(self.url("tls-context-same/"),
+                    headers={"Host": "tls-context-host-1"},
+                    expected=200,
+                    insecure=True,
+                    sni=True,
+                    minTLSv="v1.3",
+                    maxTLSv="v1.3",
+                    error=[ "tls: server selected unsupported protocol version 303",
+                            "tls: no supported versions satisfy MinVersion and MaxVersion",
+                            "tls: protocol version not supported" ])
 
     def check(self):
-        idx = 0
-        for result in self.results:
-            if result.status == 200 and result.query.headers:
-                host_header = result.query.headers['Host']
-                tls_common_name = result.tls[0]['Issuer']['CommonName']
+        tls_0_version = self.results[0].backend.request.tls.negotiated_protocol_version
+        tls_1_version = self.results[1].backend.request.tls.negotiated_protocol_version
 
-                if host_header == 'tls-context-host-3':
-                    host_header = 'localhost'
-
-                assert host_header == tls_common_name, "test %d wanted CN %s, but got %s" % (idx, host_header, tls_common_name)
-
-            idx += 1
+        assert tls_0_version == "v1.2", f"requesting TLS v1.2 got TLS {tls_0_version}"
+        assert tls_1_version == "v1.1", f"requesting TLS v1.0-v1.1 got TLS {tls_1_version}"
 
     def requirements(self):
         # We're replacing super()'s requirements deliberately here. Without a Host header they can't work.
@@ -749,6 +759,12 @@ max_tls_version: v1.3
         yield ("url", Query(self.url("ambassador/v0/check_alive"), headers={"Host": "tls-context-host-1"}, insecure=True, sni=True, minTLSv="v1.2"))
 
 class TLSContextProtocolMinVersion(AmbassadorTest):
+    # Here we're testing that the client can't drop below the minimum TLS version
+    # configured.
+    #
+    # XXX 2019-09-11: vet that the test client's support for TLS v1.3 is up-to-date.
+    # It appears not to be.
+
     # debug = True
 
     def init(self):
@@ -778,8 +794,6 @@ name:  {self.name}-same-prefix-1
 prefix: /tls-context-same/
 service: https://{self.target.path.fqdn}
 host: tls-context-host-1
-""")
-        yield self, self.format("""
 ---
 apiVersion: ambassador/v1
 kind: TLSContext
@@ -788,8 +802,8 @@ hosts:
 - tls-context-host-1
 secret: secret.min-version
 secret_namespacing: False
-min_tls_version: v1.0
-max_tls_version: v1.2
+min_tls_version: v1.2
+max_tls_version: v1.3
 """)
 
     def scheme(self) -> str:
@@ -804,25 +818,44 @@ max_tls_version: v1.2
         return "Get {}: EOF".format(url)
 
     def queries(self):
+        # This should give v1.3
         yield Query(self.url("tls-context-same/"),
                     headers={"Host": "tls-context-host-1"},
                     expected=200,
                     insecure=True,
                     sni=True,
                     minTLSv="v1.2",
-                    maxTLSv="v1.2")
+                    maxTLSv="v1.3")
         
+        # This should give v1.2
         yield Query(self.url("tls-context-same/"),
                     headers={"Host": "tls-context-host-1"},
                     expected=200,
                     insecure=True,
                     sni=True,
-                    minTLSv="v1.3",
-                    maxTLSv="v1.3",
-                    error="tls: server selected unsupported protocol version 303")
+                    minTLSv="v1.1",
+                    maxTLSv="v1.2")
+
+        # This should be an error.
+        yield Query(self.url("tls-context-same/"),
+                    headers={"Host": "tls-context-host-1"},
+                    expected=200,
+                    insecure=True,
+                    sni=True,
+                    minTLSv="v1.0",
+                    maxTLSv="v1.0",
+                    error=[ "tls: server selected unsupported protocol version 303",
+                            "tls: no supported versions satisfy MinVersion and MaxVersion",
+                            "tls: protocol version not supported" ])
     
     def check(self):
-      self.results[0].backend.request.tls.negotiated_protocol_version == "v1.2"
+        tls_0_version = self.results[0].backend.request.tls.negotiated_protocol_version
+        tls_1_version = self.results[1].backend.request.tls.negotiated_protocol_version
+
+        # Hmmm. Why does Envoy prefer 1.2 to 1.3 here?? This may be a client thing -- have to
+        # rebuild with Go 1.13.
+        assert tls_0_version == "v1.2", f"requesting TLS v1.2-v1.3 got TLS {tls_0_version}"
+        assert tls_1_version == "v1.2", f"requesting TLS v1.1-v1.2 got TLS {tls_1_version}"
 
     def requirements(self):
         # We're replacing super()'s requirements deliberately here. Without a Host header they can't work.
@@ -916,7 +949,9 @@ ecdh_curves:
                     error="tls: handshake failure",)
 
     def check(self):
-      self.results[0].backend.request.tls.negotiated_protocol_version == "v1.2"
+        tls_0_version = self.results[0].backend.request.tls.negotiated_protocol_version
+
+        assert tls_0_version == "v1.2", f"requesting TLS v1.2 got TLS {tls_0_version}"
 
     def requirements(self):
         yield ("url", Query(self.url("ambassador/v0/check_ready"), headers={"Host": "tls-context-host-1"}, insecure=True, sni=True))
