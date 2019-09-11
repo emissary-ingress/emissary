@@ -94,6 +94,7 @@ driver: zipkin
         # is particularly helpful.
         yield Query("http://zipkin:9411/api/v2/services", phase=2)
         yield Query("http://zipkin:9411/api/v2/spans?serviceName=tracingtest-default", phase=2)
+        yield Query("http://zipkin:9411/api/v2/traces?serviceName=tracingtest-default", phase=2)
 
     def check(self):
         for i in range(100):
@@ -112,6 +113,94 @@ driver: zipkin
         # Look for the host that we actually queried, since that's what appears in the spans.
         assert self.results[0].backend.request.host in tracelist
 
+        # Ensure we generate 128-bit traceids by default
+        trace = self.results[102].json[0][0]
+        traceId = trace['traceId']
+        assert len(traceId) == 32
+
+class TracingTestShortTraceId(AmbassadorTest):
+    def init(self):
+        self.target = HTTP()
+
+    def manifests(self) -> str:
+        return super().manifests() + """
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: zipkin-64
+spec:
+  selector:
+    app: zipkin-64
+  ports:
+  - port: 9411
+    name: http
+    targetPort: http
+  type: NodePort
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: zipkin-64
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: zipkin-64
+    spec:
+      containers:
+      - name: zipkin
+        image: openzipkin/zipkin
+        imagePullPolicy: Always
+        ports:
+        - name: http
+          containerPort: 9411
+"""
+
+    def config(self):
+        # Use self.target here, because we want this mapping to be annotated
+        # on the service, not the Ambassador.
+        # ambassador_id: [ {self.with_tracing.ambassador_id}, {self.no_tracing.ambassador_id} ]
+        yield self.target, self.format("""
+---
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  tracing_target_mapping_64
+prefix: /target-64/
+service: {self.target.path.fqdn}
+""")
+
+        # For self.with_tracing, we want to configure the TracingService.
+        yield self, self.format("""
+---
+apiVersion: ambassador/v0
+kind: TracingService
+name: tracing-64
+service: zipkin-64:9411
+driver: zipkin
+config:
+  trace_id_128bit: false
+""")
+
+    def requirements(self):
+        yield from super().requirements()
+        yield ("url", Query("http://zipkin-64:9411/api/v2/services"))
+
+    def queries(self):
+        # Speak through each Ambassador to the traced service...
+        yield Query(self.url("target-64/"), phase=1)
+        # ...then ask the Zipkin for services and spans. Including debug=True in these queries
+        # is particularly helpful.
+        yield Query("http://zipkin-64:9411/api/v2/traces", phase=2)
+
+    def check(self):
+        # Ensure we generated 64-bit traceids
+        trace = self.results[1].json[0][0]
+        traceId = trace['traceId']
+        assert len(traceId) == 16
 
 # This test asserts that the external authorization server receives the proper tracing
 # headers when Ambassador is configured with an HTTP AuthService.
