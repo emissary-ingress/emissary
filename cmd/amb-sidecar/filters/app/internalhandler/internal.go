@@ -6,6 +6,7 @@ import (
 
 	"github.com/datawire/apro/cmd/amb-sidecar/internal-access/secret"
 	"github.com/datawire/apro/lib/filterapi"
+	"github.com/datawire/apro/lib/filterapi/filterutil"
 )
 
 type InternalFilter struct {
@@ -19,7 +20,7 @@ func MakeInternalFilter() *InternalFilter {
 }
 
 func (f *InternalFilter) Filter(ctx context.Context, r *filterapi.FilterRequest) (filterapi.FilterResponse, error) {
-	secret := r.GetRequest().GetHttp().GetHeaders()["X-Ambassador-Internal-Auth"]
+	secret := filterutil.GetHeader(r).Get("X-Ambassador-Internal-Auth")
 	if f.secret.Compare(secret) != 1 {
 		// hide the internal URL from the outside world
 		return &filterapi.HTTPResponse{
