@@ -777,7 +777,7 @@ class IR:
         od['cluster_ingress_count'] = len(cluster_ingresses.keys()) if cluster_ingresses else 0
 
         knative_ingresses = self.aconf.get_config("KnativeIngress")
-        od['knative_ingress_count'] = len(cluster_ingresses.keys()) if knative_ingresses else 0
+        od['knative_ingress_count'] = len(knative_ingresses.keys()) if knative_ingresses else 0
 
         extauth = False
         extauth_proto: Optional[str] = None

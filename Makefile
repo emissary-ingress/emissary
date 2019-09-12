@@ -423,7 +423,7 @@ $(KAT_CLIENT_DOCKER_DIR)/kat_client: venv/kat-backend-$(KAT_BACKEND_RELEASE).tar
 	cd venv && tar -xzf $(<F) kat-backend-$(KAT_BACKEND_RELEASE)/client/bin/client_linux_amd64
 	install -m0755 venv/kat-backend-$(KAT_BACKEND_RELEASE)/client/bin/client_linux_amd64 $(KAT_CLIENT_DOCKER_DIR)/kat_client
 
-docker-images: ambassador-docker-image
+docker-images: mypy ambassador-docker-image
 
 docker-push: docker-images
 ifeq ($(DOCKER_REGISTRY),-)

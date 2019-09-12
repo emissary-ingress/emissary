@@ -110,7 +110,7 @@ def v2filter_buffer(buffer: IRBuffer, v2config: 'V2Config'):
     }
 
 @v2filter.when("IRGzip")
-def v2filter_buffer(gzip: IRGzip, v2config: 'V2Config'):
+def v2filter_gzip(gzip: IRGzip, v2config: 'V2Config'):
     del v2config  # silence unused-variable warning
 
     return {

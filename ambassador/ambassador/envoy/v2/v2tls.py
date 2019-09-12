@@ -12,12 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-from typing import Callable, Dict, List, Optional, Union
+from typing import Callable, Dict, List, Optional, Union, TYPE_CHECKING
 from typing import cast as typecast
 
 from ...ir.irtlscontext import IRTLSContext
 
 # This stuff isn't really accurate, but it'll do for now.
+#
+# XXX It's also a sure sign that this crap needs to be a proper class
+# structure instead of nested dicts of dicts of unions of dicts of .... :P
+
 EnvoyCoreSource = Dict[str, str]
 
 EnvoyTLSCert = Dict[str, EnvoyCoreSource]
@@ -26,13 +30,25 @@ ListOfCerts = List[EnvoyTLSCert]
 EnvoyValidationElements = Union[EnvoyCoreSource, bool]
 EnvoyValidationContext = Dict[str, EnvoyValidationElements]
 
-EnvoyCommonTLSElements = Union[List[str], ListOfCerts, EnvoyValidationContext]
+EnvoyTLSParams = Dict[str, Union[str, List[str]]]
+
+EnvoyCommonTLSElements = Union[List[str], ListOfCerts, EnvoyValidationContext, EnvoyTLSParams]
 EnvoyCommonTLSContext = Dict[str, EnvoyCommonTLSElements]
 
 ElementHandler = Callable[[str, str], None]
 
+
 class V2TLSContext(Dict):
+    TLSVersionMap = {
+        "v1.0": "TLSv1_0",
+        "v1.1": "TLSv1_1",
+        "v1.2": "TLSv1_2",
+        "v1.3": "TLSv1_3",
+    }
+
     def __init__(self, ctx: Optional[IRTLSContext]=None, host_rewrite: Optional[str]=None) -> None:
+        del host_rewrite    # quiesce warning
+
         super().__init__()
 
         if ctx:
@@ -40,6 +56,15 @@ class V2TLSContext(Dict):
 
     def get_common(self) -> EnvoyCommonTLSContext:
         return self.setdefault('common_tls_context', {})
+
+    def get_params(self) -> EnvoyTLSParams:
+        common = self.get_common()
+
+        # This boils down to "params = common.setdefault('tls_params', {})" with typing.
+        empty_params = typecast(EnvoyTLSParams, {})
+        params = typecast(EnvoyTLSParams, common.setdefault('tls_params', empty_params))
+
+        return params
 
     def get_certs(self) -> ListOfCerts:
         common = self.get_common()
@@ -65,21 +90,15 @@ class V2TLSContext(Dict):
         common[key] = [ value ]
 
     def update_tls_version(self, key: str, value: str) -> None:
-        common = self.get_common()
-        common.setdefault('tls_params', {})
-        if value == "v1.0":
-            common['tls_params'][key] = "TLSv1_0"
-        if value == "v1.1":
-            common['tls_params'][key] = "TLSv1_1"
-        if value == "v1.2":
-            common['tls_params'][key] = "TLSv1_2"
-        if value == "v1.3":
-            common['tls_params'][key] = "TLSv1_3"
+        params = self.get_params()
 
-    def update_tls_cipher(self, key: str, value: list) -> None:
-        common = self.get_common()
-        common.setdefault('tls_params', {})
-        common['tls_params'][key] = value
+        if value in V2TLSContext.TLSVersionMap:
+            params[key] = V2TLSContext.TLSVersionMap[value]
+
+    def update_tls_cipher(self, key: str, value: List[str]) -> None:
+        params = self.get_params()
+
+        params[key] = value
 
     def update_validation(self, key: str, value: str) -> None:
         empty_context: EnvoyValidationContext = {}
@@ -89,7 +108,9 @@ class V2TLSContext(Dict):
         validation[key] = src
 
     def add_context(self, ctx: IRTLSContext) -> None:
-        handler: ElementHandler = self.__setitem__
+        if TYPE_CHECKING:
+            # This is needed because otherwise self.__setitem__ confuses things.
+            handler: Callable[[str, str], None]
 
         for secretinfokey, handler, hkey in [
             ( 'cert_chain_file', self.update_cert_zero, 'certificate_chain' ),
@@ -104,10 +125,21 @@ class V2TLSContext(Dict):
             ( 'cert_required', self.__setitem__, 'require_client_certificate' ),
             ( 'min_tls_version', self.update_tls_version, 'tls_minimum_protocol_version' ),
             ( 'max_tls_version', self.update_tls_version, 'tls_maximum_protocol_version' ),
+        ]:
+            value = ctx.get(ctxkey, None)
+
+            if value is not None:
+                handler(hkey, value)
+
+        # This is a separate loop because self.update_tls_cipher is not the same type
+        # as the other updaters: it takes a list of strings for the value, not a single
+        # string. Getting mypy to be happy with that is _annoying_.
+
+        for ctxkey, list_handler, hkey in [
             ( 'cipher_suites', self.update_tls_cipher, 'cipher_suites' ),
             ( 'ecdh_curves', self.update_tls_cipher, 'ecdh_curves' ),
         ]:
             value = ctx.get(ctxkey, None)
 
             if value is not None:
-                handler(hkey, value)
+                list_handler(hkey, value)

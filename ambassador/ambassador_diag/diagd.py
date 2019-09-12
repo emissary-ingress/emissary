@@ -100,8 +100,8 @@ class DiagApp (Flask):
     logger: logging.Logger
     aconf: Config
     ir: Optional[IR]
-    econf: EnvoyConfig
-    diag: Diagnostics
+    econf: Optional[EnvoyConfig]
+    diag: Optional[Diagnostics]
     notices: 'Notices'
     scout: Scout
     watcher: 'AmbassadorEventWatcher'
@@ -602,7 +602,7 @@ class AmbassadorEventWatcher(threading.Thread):
         self.chimed = False         # Have we ever sent a chime about the environment?
         self.last_chime = False     # What was the status of our last chime? (starts as False)
         self.env_good = False       # Is our environment currently believed to be OK?
-        self.failure_list = [ 'unhealthy at boot' ]     # What's making our environment not OK?
+        self.failure_list: List[str] = [ 'unhealthy at boot' ]     # What's making our environment not OK?
 
     def post(self, cmd: str, arg: Union[str, Tuple[str, Optional[IR]]]) -> Tuple[int, str]:
         rqueue: queue.Queue = queue.Queue()
@@ -704,7 +704,7 @@ class AmbassadorEventWatcher(threading.Thread):
                     self._respond(rqueue, 200, 'CMD: Reset Scout cache time')
                 elif cmd.upper() == 'ENV_OK':
                     self.env_good = True
-                    self.failure_list = None
+                    self.failure_list = []
 
                     self.logger.info('CMD: Marked environment good')
                     self._respond(rqueue, 200, 'CMD: Marked environment good')
@@ -971,49 +971,57 @@ class AmbassadorEventWatcher(threading.Thread):
         env_good = True
         failures = {}
 
-        for err_key, err_list in ir.aconf.errors.items():
-            if err_key == "-global-":
-                err_key = ""
-
-            for err in err_list:
-                err_text = err['error']
-
-                self.app.logger.info(f'error {err_key} {err_text}')
-
-                if err_text.find('CRD') >= 0:
-                    if err_text.find('core') >= 0:
-                        failures['core CRDs'] = True
-                    else:
-                        failures['other CRDs'] = True
-
-                    env_good = False
-                elif err_text.find('TLS') >= 0:
-                    failures['TLS errors'] = True
-                    env_good = False
-
-        some_tls = False
-
-        for context in ir.tls_contexts:
-            if context:
-                some_tls = True
-                break
-
-        if not some_tls:
-            failures['no TLS contexts'] = True
+        if not ir:
+            failures['no config loaded'] = True
             env_good = False
+        else:
+            if not ir.aconf:
+                failures['completely empty config'] = True
+                env_good = False
+            else:
+                for err_key, err_list in ir.aconf.errors.items():
+                    if err_key == "-global-":
+                        err_key = ""
 
-        some_mappings = False
+                    for err in err_list:
+                        err_text = err['error']
 
-        for group in ir.groups.values():
-            if group and (group.location != '--internal--'):
-                some_mappings = True
-                break
+                        self.app.logger.info(f'error {err_key} {err_text}')
 
-        if not some_mappings:
-            failures['no Mappings'] = True
-            env_good = False
+                        if err_text.find('CRD') >= 0:
+                            if err_text.find('core') >= 0:
+                                failures['core CRDs'] = True
+                            else:
+                                failures['other CRDs'] = True
 
-        failure_list = None
+                            env_good = False
+                        elif err_text.find('TLS') >= 0:
+                            failures['TLS errors'] = True
+                            env_good = False
+
+            some_tls = False
+
+            for context in ir.tls_contexts:
+                if context:
+                    some_tls = True
+                    break
+
+            if not some_tls:
+                failures['no TLS contexts'] = True
+                env_good = False
+
+            some_mappings = False
+
+            for group in ir.groups.values():
+                if group and (group.location != '--internal--'):
+                    some_mappings = True
+                    break
+
+            if not some_mappings:
+                failures['no Mappings'] = True
+                env_good = False
+
+        failure_list: List[str] = []
 
         if not env_good:
             failure_list = list(sorted(failures.keys()))

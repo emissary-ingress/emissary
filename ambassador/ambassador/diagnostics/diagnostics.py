@@ -20,6 +20,7 @@ import logging
 import re
 
 from ..ir import IR
+from ..ir.irbasemappinggroup import IRBaseMappingGroup
 from ..ir.irhttpmappinggroup import IRHTTPMappingGroup
 from ..envoy import EnvoyConfig
 from .envoy_stats import EnvoyStats
@@ -496,7 +497,7 @@ class Diagnostics:
             self.add_ambassador_service(self.ir.tracing, 'TracingService (%s)' % self.ir.tracing.driver)
 
         self.ambassador_resolvers = []
-        used_resolvers = {}
+        used_resolvers: Dict[str, List[IRBaseMappingGroup]] = {}
 
         for group in self.groups.values():
             for mapping in group.mappings:

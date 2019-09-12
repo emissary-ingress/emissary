@@ -19,7 +19,7 @@ import uuid
 
 from pathlib import Path
 
-from kubernetes import client, config, watch
+from kubernetes import client, config
 from kubernetes.client.rest import ApiException
 
 from ambassador.VERSION import Version
@@ -53,7 +53,7 @@ def kube_v1():
         config.load_incluster_config()
         if "AMBASSADOR_VERIFY_SSL_FALSE" in os.environ:
             configuration = client.Configuration()
-            configuration.verify_ssl=False
+            configuration.verify_ssl = False
             client.Configuration.set_default(configuration)
         k8s_api = client.CoreV1Api()
     else:
@@ -70,33 +70,27 @@ def kube_v1():
     return k8s_api
 
 
-@property
-def stored_versions(self):
+def hack_stored_versions(self):
     return self._stored_versions
 
 
-@stored_versions.setter
-def stored_versions(self, stored_versions):
+def hack_stored_versions_setter(self, stored_versions):
     self._stored_versions = stored_versions
 
 
-@property
-def accepted_names(self):
+def hack_accepted_names(self):
     return self._accepted_names
 
 
-@accepted_names.setter
-def accepted_names(self, accepted_names):
+def hack_accepted_names_setter(self, accepted_names):
     self._accepted_names = accepted_names
 
 
-@property
-def conditions(self):
+def hack_conditions(self):
     return self._conditions
 
 
-@conditions.setter
-def conditions(self, conditions):
+def hack_conditions_setter(self, conditions):
     self._conditions = conditions
 
 
@@ -195,9 +189,14 @@ def main(debug):
 
         # Flynn would say "Ew.", but we need to patch this till https://github.com/kubernetes-client/python/issues/376
         # and https://github.com/kubernetes-client/gen/issues/52 are fixed \_(0.0)_/
-        client.models.V1beta1CustomResourceDefinitionStatus.accepted_names = accepted_names
-        client.models.V1beta1CustomResourceDefinitionStatus.conditions = conditions
-        client.models.V1beta1CustomResourceDefinitionStatus.stored_versions = stored_versions
+        client.models.V1beta1CustomResourceDefinitionStatus.accepted_names = \
+            property(hack_accepted_names, hack_accepted_names_setter)
+
+        client.models.V1beta1CustomResourceDefinitionStatus.conditions = \
+            property(hack_conditions, hack_conditions_setter)
+
+        client.models.V1beta1CustomResourceDefinitionStatus.stored_versions = \
+            property(hack_stored_versions, hack_stored_versions_setter)
 
         for touchfile, description, required in required_crds:
             for crd in required:

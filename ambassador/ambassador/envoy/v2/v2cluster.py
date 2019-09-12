@@ -13,7 +13,7 @@
 # limitations under the License
 
 import urllib
-from typing import List, TYPE_CHECKING
+from typing import Dict, List, Union, TYPE_CHECKING
 
 from ...ir.ircluster import IRCluster
 
@@ -113,9 +113,10 @@ class V2Cluster(dict):
         if cluster_circuit_breakers is None:
             return None
 
-        circuit_breakers = {
+        circuit_breakers: Dict[str, List[Dict[str, Union[str, int]]]] = {
             'thresholds': []
         }
+
         for circuit_breaker in cluster_circuit_breakers:
             threshold = {}
             if 'priority' in circuit_breaker:
