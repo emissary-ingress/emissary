@@ -51,6 +51,7 @@ class IRAmbassador (IRResource):
 
     service_port: int
     diag_port: int
+    default_label_domain: str
 
     # Set up the default probes and such.
     default_liveness_probe: ClassVar[Dict[str, str]] = {
