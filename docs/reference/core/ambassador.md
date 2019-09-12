@@ -89,6 +89,11 @@ config:
 # envoy_log_path defines the path of log envoy will use. By default this is standard output
 # envoy_log_path: /dev/fd/1
 
+# envoy_log_filter defines filters to apply to the Envoy access logs using the
+# [AccessLogFilter](https://www.envoyproxy.io/docs/envoy/latest/api-v2/config/filter/accesslog/v2/accesslog.proto#envoy-api-msg-config-filter-accesslog-v2-accesslogfilter)
+# specification
+# envoy_log_filter: {}
+
 # use_remote_address controls whether Envoy will trust the remote
 # address of incoming connections or rely exclusively on the
 # X-Forwarded_For header.
