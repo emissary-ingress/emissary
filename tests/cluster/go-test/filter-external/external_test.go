@@ -1,6 +1,6 @@
 // +build test
 
-package main
+package external_test
 
 import (
 	"crypto/tls"

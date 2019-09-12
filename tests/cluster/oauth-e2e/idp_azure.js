@@ -2,7 +2,7 @@ module.exports.testcases = {
 	"Azure AD": {
 		resource: "https://ambassador.standalone.svc.cluster.local/azure/httpbin/headers",
 		username: "testuser@aprotesting.onmicrosoft.com",
-		password: "VEcctB+mP9D8Me/kZyFQ",
+		password: "XntXkbhJ/1ux3ZYIyjGt",
 	},
 };
 

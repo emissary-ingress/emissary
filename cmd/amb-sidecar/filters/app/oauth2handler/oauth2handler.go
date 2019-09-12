@@ -222,7 +222,7 @@ func (c *OAuth2Filter) filterClient(ctx context.Context, logger types.Logger, ht
 	default:
 		// Use X-Forwarded-Proto instead of .GetScheme() to build the URL.
 		// https://github.com/datawire/ambassador/issues/1581
-		originalURL, err := url.ParseRequestURI(request.GetRequest().GetHttp().GetHeaders()["x-forwarded-proto"] + "://" + request.GetRequest().GetHttp().GetHost() + request.GetRequest().GetHttp().GetPath())
+		originalURL, err := url.ParseRequestURI(filterutil.GetHeader(request).Get("X-Forwarded-Proto") + "://" + request.GetRequest().GetHttp().GetHost() + request.GetRequest().GetHttp().GetPath())
 		if err != nil {
 			return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
 				errors.Wrap(err, "failed to construct URL"), nil)
@@ -303,11 +303,7 @@ func (c *OAuth2Filter) filterClient(ctx context.Context, logger types.Logger, ht
 
 // filterResourceServer implements the OAuth Resource Server part of the Filter.
 func (c *OAuth2Filter) filterResourceServer(ctx context.Context, logger types.Logger, httpClient *http.Client, discovered *Discovered, request *filterapi.FilterRequest) filterapi.FilterResponse {
-	header := make(http.Header)
-	for k, v := range request.GetRequest().GetHttp().GetHeaders() {
-		header.Set(k, v)
-	}
-	token := rfc6750resourceserver.GetFromHeader(header)
+	token := rfc6750resourceserver.GetFromHeader(filterutil.GetHeader(request))
 	if err := c.validateAccessToken(token, discovered, httpClient, logger); err != nil {
 		return middleware.NewErrorResponse(ctx, http.StatusBadRequest, err, nil)
 	}
@@ -466,10 +462,7 @@ func randomString(bits int) (string, error) {
 func (c *OAuth2Filter) loadSession(redisClient *redis.Client, request *filterapi.FilterRequest) (sessionID string, sessionData *rfc6749client.AuthorizationCodeClientSessionData, err error) {
 	// BS to leverage net/http's cookie-parsing
 	r := &http.Request{
-		Header: make(http.Header),
-	}
-	for k, v := range request.GetRequest().GetHttp().GetHeaders() {
-		r.Header.Set(k, v)
+		Header: filterutil.GetHeader(request),
 	}
 
 	// get the sessionID from the cookie

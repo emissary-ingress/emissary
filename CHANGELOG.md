@@ -5,6 +5,7 @@
 Behavior:
 
  * The `External` Filter no longer erronously follows redirects.
+ * Fixed a case-folding bug in the `JWT` Filter
 
 ## 0.7.0 (2019-08-29)
 

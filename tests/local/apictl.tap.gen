@@ -3,7 +3,7 @@ set -o pipefail
 
 check_version() {
 	local out
-	out=$(./bin_${GOOS}_${GOARCH}/apictl version 2>&1)
+	out=$(./bin_${GOHOSTOS}_${GOHOSTARCH}/apictl version 2>&1)
 	[[ $out == 0.* ]]
 }
 

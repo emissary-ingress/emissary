@@ -1,7 +1,0 @@
-#!/usr/bin/env bash
-
-PATH="$PWD/bin_${GOHOSTOS}_${GOHOSTARCH}:$PATH"
-# -count=1 to disable caching
-# -parallel=64 because there are a bunch of tests that time.Sleep()
-go test -json -tags=test -count=1 --parallel=64 ./tests/cluster/licensekeys |
-	./build-aux/bin/gotest2tap
