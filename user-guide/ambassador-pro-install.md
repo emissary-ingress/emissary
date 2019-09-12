@@ -148,16 +148,15 @@ For more information on configuring rate limiting, consult the [Advanced Rate Li
 
 ### Enabling Single Sign-On
 
- For more information on configuring the OAuth filter, see the [Single Sign-On with OAuth and OIDC](/user-guide/oauth-oidc-auth) documentation.
+For more information on configuring the OAuth filter, see the [Single Sign-On with OAuth and OIDC](/user-guide/oauth-oidc-auth) documentation.
 
 ### Enabling Service Preview
 
 Service Preview requires a command-line client, `apictl`. For instructions on configuring Service Preview, see the [Service Preview tutorial](/docs/dev-guide/service-preview).
 
-### Enabling Consul Connect integration
+### Developer Portal reference
 
-Ambassador Pro's Consul Connect integration is deployed as a separate Kubernetes service. For instructions on deploying Consul Connect, see the [Consul Connect integration guide](/user-guide/consul-connect-ambassador).
-
+The Dev Portal can be customized for both content and look-and-feel. For details on using the Dev Portal, see the [Dev Portal Reference](/reference/dev-portal).
 
 # Upgrading Ambassador Pro
 
