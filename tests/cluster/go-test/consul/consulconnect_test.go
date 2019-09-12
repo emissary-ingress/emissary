@@ -5,7 +5,6 @@ package consul_test
 import (
 	"encoding/base64"
 	"fmt"
-	"os"
 	"os/exec"
 	"testing"
 	"time"
@@ -35,7 +34,7 @@ Loop:
 	for {
 		select {
 		case <-timeout:
-			t.FailNow()
+			t.Fatal("timeout")
 		case <-tick:
 			data, err := kubectlGetSecret("default", "ambassador-consul-connect")
 			if err != nil {
@@ -92,7 +91,7 @@ func TestConsulConnectTLSCertificateChainIsUpdatedWhenConnectRootCAChanges(t *te
 
 	assert := testutil.Assert{T: t}
 
-	timeout := time.After(10 * time.Second)
+	timeout := time.After(20 * time.Second)
 	tick := time.Tick(1 * time.Second)
 
 	config := api.DefaultConfig()
@@ -110,7 +109,7 @@ Loop1:
 	for {
 		select {
 		case <-timeout:
-			t.FailNow()
+			t.Fatal("timeout")
 		case <-tick:
 			initialSecret, err = kubectlGetSecret("default", "ambassador-consul-connect")
 			if err != nil {
@@ -125,7 +124,6 @@ Loop1:
 		}
 	}
 
-	t.Log(os.Getenv("PATH"))
 	if err := consulKubeRotate("default"); err != nil {
 		t.Fatal(err)
 	}
@@ -136,7 +134,7 @@ Loop2:
 	for {
 		select {
 		case <-timeout:
-			t.FailNow()
+			t.Fatal("timeout")
 		case <-tick:
 			updatedSecret, err = kubectlGetSecret("default", "ambassador-consul-connect")
 			if err != nil {
