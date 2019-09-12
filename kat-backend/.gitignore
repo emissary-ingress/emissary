@@ -1,0 +1,32 @@
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Hidden files.
+.DS_Store
+
+# Test binary, build with `go test -c`
+*.test
+
+# Output of the go coverage tool, specifically when used with LiteIDE
+*.out
+
+# Exclude js files.
+node_modules/
+
+# Created by the Makefile
+*.docker
+
+/echo/echo.pb.go
+/echo/echo_grpc_web_pb.js
+/echo/echo_pb.js
+
+/sandbox/grpc_web/echo_grpc_web_pb.js
+/sandbox/grpc_web/echo_pb.js
+
+/sandbox/grpc_auth/docker-compose.yml
+/sandbox/grpc_web/docker-compose.yaml
+/sandbox/http_auth/docker-compose.yml

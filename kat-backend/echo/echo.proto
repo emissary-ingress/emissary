@@ -1,0 +1,45 @@
+syntax = "proto3";
+
+package echo;
+
+service EchoService {
+    rpc Echo(EchoRequest) returns (EchoResponse) {}
+}
+ 
+message EchoRequest {
+    string data = 1;
+}
+
+message EchoResponse {
+    string backend = 1;
+
+    Request request = 2;
+    
+    Response response = 3;  
+}
+
+message Response {
+    map<string, string> headers = 1;
+}
+
+message Request {
+    map<string, string> headers = 1;
+
+    TLS tls = 2;
+}
+
+message TLS {
+    bool enabled = 1;
+    
+    //  TODO(gsagula): may need these fields in the future.
+    //
+    //  version
+    // 	negotiated-protocol
+    // 	server-name
+}
+
+
+
+
+
+
