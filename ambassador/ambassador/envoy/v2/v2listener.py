@@ -576,10 +576,12 @@ class V2Listener(dict):
         # OK. Build our base HTTP config...
         base_http_config: Dict[str, Any] = {
             'stat_prefix': 'ingress_http',
-            'access_log': self.access_log,
             'http_filters': self.http_filters,
             'normalize_path': True
         }
+
+        if 'envoy_log_enabled' in config.ir.ambassador_module:
+            base_http_config['access_log'] = self.access_log
 
         if self.upgrade_configs:
             base_http_config['upgrade_configs'] = self.upgrade_configs

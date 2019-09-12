@@ -83,6 +83,9 @@ config:
 # protocol on incoming requests.
 # use_proxy_proto: false
 
+# envoy_log_enabled controls whether Envoy output access logs
+# envoy_log_enabled: true
+
 # envoy_log_type defines the type of log envoy will use , currently only support json or text
 # envoy_log_type: text
 
