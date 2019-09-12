@@ -9,7 +9,7 @@ metadata:
 spec:
   containers:
   - name: backend
-    image: dwflynn/kat-client:1.6.0
+    image: {environ[KAT_CLIENT_DOCKER_IMAGE]}
     imagePullPolicy: Always
 """
 
@@ -44,7 +44,7 @@ metadata:
 spec:
   containers:
   - name: backend
-    image: quay.io/datawire/kat-backend:v1.5.0
+    image: {environ[KAT_SERVER_DOCKER_IMAGE]}
     imagePullPolicy: Always
     ports:
     - containerPort: 8080
@@ -71,14 +71,14 @@ spec:
     spec:
       containers:
       - name: backend
-        image: quay.io/datawire/kat-backend:v1.5.0
+        image: {environ[KAT_SERVER_DOCKER_IMAGE]}
         imagePullPolicy: Always
         # ports:
-        # {ports}
+        # (ports)
         env:
         - name: INCLUDE_EXTAUTH_HEADER
           value: "yes"
-        # {envs} 
+        # (envs)
 """
 
 AUTH_BACKEND = """
@@ -109,7 +109,7 @@ metadata:
 spec:
   containers:
   - name: backend
-    image: quay.io/datawire/kat-backend:v1.5.0
+    image: {environ[KAT_SERVER_DOCKER_IMAGE]}
     imagePullPolicy: Always
     ports:
     - containerPort: 8080
@@ -148,7 +148,7 @@ metadata:
 spec:
   containers:
   - name: backend
-    image: quay.io/datawire/kat-backend:v1.5.0
+    image: {environ[KAT_SERVER_DOCKER_IMAGE]}
     imagePullPolicy: Always
     ports:
     - containerPort: 8080
@@ -187,7 +187,7 @@ metadata:
 spec:
   containers:
   - name: backend
-    image: quay.io/datawire/kat-backend:v1.5.0
+    image: {environ[KAT_SERVER_DOCKER_IMAGE]}
     imagePullPolicy: Always
     ports:
     - containerPort: 8080

@@ -145,9 +145,13 @@ SCOUT_APP_KEY=
 # Note that this must not start with the 'v'. Sigh.
 KAT_BACKEND_RELEASE = 1.6.0
 
-KAT_CLIENT_DOCKER_TAG ?= $(KAT_BACKEND_RELEASE)
-KAT_CLIENT_DOCKER_REPO ?= $(if $(filter-out -,$(DOCKER_REGISTRY)),$(DOCKER_REGISTRY)/)kat-client$(if $(IS_PRIVATE),-private)
-KAT_CLIENT_DOCKER_IMAGE ?= $(KAT_CLIENT_DOCKER_REPO):$(KAT_CLIENT_DOCKER_TAG)
+#KAT_CLIENT_DOCKER_REPO ?= $(if $(filter-out -,$(DOCKER_REGISTRY)),$(DOCKER_REGISTRY)/)kat-client$(if $(IS_PRIVATE),-private)
+KAT_CLIENT_DOCKER_REPO ?= dwflynn/kat-client
+#KAT_SERVER_DOCKER_REPO ?= $(if $(filter-out -,$(DOCKER_REGISTRY)),$(DOCKER_REGISTRY)/)kat-backend$(if $(IS_PRIVATE),-private)
+KAT_SERVER_DOCKER_REPO ?= quay.io/datawire/kat-backend
+
+KAT_CLIENT_DOCKER_IMAGE ?= $(KAT_CLIENT_DOCKER_REPO):$(KAT_BACKEND_RELEASE)
+KAT_SERVER_DOCKER_IMAGE ?= $(KAT_SERVER_DOCKER_REPO):v$(KAT_BACKEND_RELEASE)
 
 KAT_CLIENT ?= venv/bin/kat_client
 
@@ -229,6 +233,7 @@ print-vars:
 	@echo "GIT_TAG_SANITIZED                = $(GIT_TAG_SANITIZED)"
 	@echo "GIT_VERSION                      = $(GIT_VERSION)"
 	@echo "KAT_CLIENT_DOCKER_IMAGE          = $(KAT_CLIENT_DOCKER_IMAGE)"
+	@echo "KAT_SERVER_DOCKER_IMAGE          = $(KAT_SERVER_DOCKER_IMAGE)"
 	@echo "KUBECONFIG                       = $(KUBECONFIG)"
 	@echo "LATEST_RC                        = $(LATEST_RC)"
 	@echo "USE_KUBERNAUT                    = $(USE_KUBERNAUT)"
@@ -255,6 +260,7 @@ export-vars:
 	@echo "export GIT_TAG_SANITIZED='$(GIT_TAG_SANITIZED)'"
 	@echo "export GIT_VERSION='$(GIT_VERSION)'"
 	@echo "export KAT_CLIENT_DOCKER_IMAGE='$(KAT_CLIENT_DOCKER_IMAGE)'"
+	@echo "export KAT_SERVER_DOCKER_IMAGE='$(KAT_SERVER_DOCKER_IMAGE)'"
 	@echo "export KUBECONFIG='$(KUBECONFIG)'"
 	@echo "export LATEST_RC='$(LATEST_RC)'"
 	@echo "export USE_KUBERNAUT='$(USE_KUBERNAUT)'"

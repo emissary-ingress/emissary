@@ -346,7 +346,7 @@ class Node(ABC):
             return self.parent.depth + 1
 
     def format(self, st, **kwargs):
-        return st.format(self=self, **kwargs)
+        return st.format(self=self, environ=os.environ, **kwargs)
 
     def get_fqdn(self, name: str) -> str:
         if self.namespace and (self.namespace != 'default'):
@@ -802,7 +802,7 @@ class Superpod:
         return ports
 
     def get_manifest_list(self) -> List[Dict[str, Any]]:
-        manifest = load('superpod', SUPERPOD_POD, Tag.MAPPING)
+        manifest = load('superpod', SUPERPOD_POD.format(environ=os.environ), Tag.MAPPING)
 
         assert len(manifest) == 1, "SUPERPOD manifest must have exactly one object"
 
@@ -1041,7 +1041,7 @@ class Runner:
             print(f'CRDS unchanged {reason}, skipping apply.')
 
         # Next up: the KAT pod.
-        changed, reason = has_changed(KAT_CLIENT_POD, "/tmp/k8s-kat-pod.yaml")
+        changed, reason = has_changed(KAT_CLIENT_POD.format(environ=os.environ), "/tmp/k8s-kat-pod.yaml")
 
         if changed:
             print(f'KAT pod definition changed ({reason}), applying')

@@ -423,7 +423,7 @@ Just to eliminate even more boilerplate, the harness comes with a
   spec:
     containers:
     - name: backend
-      image: quay.io/datawire/kat-backend:5
+      image: {environ[KAT_SERVER_DOCKER_IMAGE]}
       ports:
       - containerPort: 8080
       env:
