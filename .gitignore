@@ -14,10 +14,11 @@ VERSION.py
 .mypy_cache
 cluster.yaml
 watt
-kubestatus
+/kubestatus
 kat_client
 teleproxy
 kat/kat/client
+/.docker_port_forward
 
 *.docker
 *.docker.tag.*

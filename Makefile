@@ -194,10 +194,12 @@ clean: clean-test
 	find ambassador/tests \
 		\( -name '*.out' -o -name 'envoy.json' -o -name 'intermediate.json' \) -print0 \
 		| xargs -0 rm -f
+	rm -f kat-client-docker-image/kat_client
 	rm -rf envoy-bin
 	rm -f envoy-build-image.txt
 
-clobber: clean
+clobber: clean kill-docker-registry
+	-rm -f kat-client-docker-image/teleproxy
 	-rm -rf $(WATT) $(KUBESTATUS)
 	-$(if $(filter-out -,$(ENVOY_COMMIT)),rm -rf envoy envoy-src)
 	-rm -rf docs/node_modules
