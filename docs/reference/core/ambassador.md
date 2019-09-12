@@ -86,6 +86,9 @@ config:
 # envoy_log_type defines the type of log envoy will use , currently only support json or text
 # envoy_log_type: text
 
+# envoy_log_path defines the path of log envoy will use. By default this is standard output
+# envoy_log_path: /dev/fd/1
+
 # use_remote_address controls whether Envoy will trust the remote
 # address of incoming connections or rely exclusively on the
 # X-Forwarded_For header.
