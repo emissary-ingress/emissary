@@ -93,7 +93,8 @@ class FakeIR(IR):
         self.aconf = aconf
 
         # If we're asked about a secret, record interest in that secret.
-        self.secret_handler = SecretRecorder(self.logger)
+        self.secret_recorder = SecretRecorder(self.logger)
+        self.secret_handler = self.secret_recorder
 
         # If we're asked about a file, it's good.
         self.file_checker = lambda path: True
@@ -216,7 +217,7 @@ for mname, mapping in mappings.items():
                     }
                 )
 
-for secret_key, secret_info in fake.secret_handler.needed.items():
+for secret_key, secret_info in fake.secret_recorder.needed.items():
     logger.debug(f'need secret {secret_info.name}.{secret_info.namespace}')
 
     kube_watches.append(

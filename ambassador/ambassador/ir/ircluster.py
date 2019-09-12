@@ -217,23 +217,28 @@ class IRCluster (IRResource):
                 load_balancer = global_load_balancer
             else:
                 enable_endpoints = True
-                lb_type = load_balancer.get('policy')
 
-                key_fields = ['er', lb_type.lower()]
+                if load_balancer:
+                    # This is used only for cluster naming; it doesn't need to be a real
+                    # load balancer policy.
 
-                # XXX Should we really include these things?
-                if 'header' in load_balancer:
-                    key_fields.append('hdr')
-                    key_fields.append(load_balancer['header'])
+                    lb_type = load_balancer.get('policy', 'default')
 
-                if 'cookie' in load_balancer:
-                    key_fields.append('cookie')
-                    key_fields.append(load_balancer['cookie']['name'])
+                    key_fields = ['er', lb_type.lower()]
 
-                if 'source_ip' in load_balancer:
-                    key_fields.append('srcip')
+                    # XXX Should we really include these things?
+                    if 'header' in load_balancer:
+                        key_fields.append('hdr')
+                        key_fields.append(load_balancer['header'])
 
-                name_fields.append("-".join(key_fields))
+                    if 'cookie' in load_balancer:
+                        key_fields.append('cookie')
+                        key_fields.append(load_balancer['cookie']['name'])
+
+                    if 'source_ip' in load_balancer:
+                        key_fields.append('srcip')
+
+                    name_fields.append("-".join(key_fields))
 
         # Finally we can construct the cluster name.
         name = "_".join(name_fields)

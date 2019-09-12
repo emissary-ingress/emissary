@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-from typing import List, TYPE_CHECKING
+from typing import Dict, List, Union, TYPE_CHECKING
+from typing import cast as typecast
 
 from ..common import EnvoyRoute
 from ...ir.irhttpmappinggroup import IRHTTPMappingGroup
@@ -36,7 +37,7 @@ class V2Route(dict):
         mapping_case_sensitive = mapping.get('case_sensitive', None)
         case_sensitive = mapping_case_sensitive if mapping_case_sensitive is not None else group.get('case_sensitive', True)
 
-        runtime_fraction = {
+        runtime_fraction: Dict[str, Union[dict, str]] = {
             'default_value': {
                 'numerator': mapping.get('weight', 100),
                 'denominator': 'HUNDRED'
@@ -84,7 +85,8 @@ class V2Route(dict):
         if response_headers_to_remove:
             self['response_headers_to_remove'] = response_headers_to_remove
 
-        host_redirect = group.get('host_redirect', False)
+        host_redirect = group.get('host_redirect', None)
+
         if host_redirect:
             # We have a host_redirect. Deal with it.
             self['redirect'] = {
@@ -199,7 +201,13 @@ class V2Route(dict):
                 continue
 
             if irgroup.get('host_redirect') is not None and len(irgroup.get('mappings', [])) == 0:
-                route = config.save_element('route', irgroup, V2Route(config, irgroup, {}))
+                # Casting an empty dict to an IRBaseMapping may look weird, but in fact IRBaseMapping
+                # is (ultimately) a subclass of dict, so it's the cleanest way to pass in a completely
+                # empty IRBaseMapping to V2Route().
+                #
+                # (We could also have written V2Route to allow the mapping to be Optional, but that
+                # makes a lot of its constructor much uglier.)
+                route = config.save_element('route', irgroup, V2Route(config, irgroup, typecast(IRBaseMapping, {})))
                 config.routes.append(route)
 
             for mapping in irgroup.mappings:

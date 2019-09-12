@@ -220,12 +220,17 @@ class ResourceFetcher:
             self.logger.debug("%s: ignoring K8s CRD, no kind" % self.location)
             return
 
-        apiVersion = obj.get('apiVersion')
+        apiVersion = obj.get('apiVersion', '')
         metadata = obj.get('metadata') or {}
         name = metadata.get('name')
         namespace = metadata.get('namespace') or 'default'
         generation = metadata.get('generation', 1)
         spec = obj.get('spec') or {}
+
+        if not apiVersion:
+            # I think this is impossible.
+            self.logger.debug(f'{self.location}: ignoring K8s {kind} CRD, no apiVersion')
+            return
 
         # We do not want to confuse Knative's Ingress with Kubernetes' Ingress
         if apiVersion.startswith('networking.internal.knative.dev') and kind.lower() == 'ingress':

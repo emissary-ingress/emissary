@@ -1,4 +1,4 @@
-from typing import ClassVar, Dict, List, Optional, Tuple, Union
+from typing import Any, ClassVar, Dict, List, Optional, Tuple, Union
 from typing import cast as typecast
 
 import datetime
@@ -24,7 +24,7 @@ class LocalScout:
         self.version = version
         self.install_id = install_id
 
-        self.events = []
+        self.events: List[Dict[str, Any]] = []
 
         self.logger.info(f'LocalScout: initialized for {app} {version}: ID {install_id}')
 
@@ -65,7 +65,7 @@ class AmbScout:
     version: str
     semver: Optional[semantic_version.Version]
 
-    _scout: Optional[Scout]
+    _scout: Optional[Union[Scout, LocalScout]]
     _scout_error: Optional[str]
 
     _notices: Optional[List[ScoutNotice]]
@@ -114,7 +114,8 @@ class AmbScout:
 
     def reset_events(self) -> None:
         if self._local_only:
-            self._scout.reset_events()
+            assert(self._scout)
+            typecast(LocalScout, self._scout).reset_events()
 
     def __str__(self) -> str:
         return ("%s: %s" % ("OK" if self._scout else "??", 
