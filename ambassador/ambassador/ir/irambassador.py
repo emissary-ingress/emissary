@@ -41,7 +41,7 @@ class IRAmbassador (IRResource):
         'load_balancer',
         'readiness_probe',
         'resolver',
-        'run_mode',
+        'debug_mode',
         'server_name',
         'service_port',
         'statsd',
@@ -99,7 +99,7 @@ class IRAmbassador (IRResource):
             circuit_breakers=None,
             xff_num_trusted_hops=0,
             server_name="envoy",
-            run_mode="debug",
+            debug_mode=False,
             **kwargs
         )
 
