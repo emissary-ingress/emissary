@@ -35,10 +35,10 @@ limitations under the License
     <div class="container">
 
       <div class="row">
-        <div class="{%- if system.run_mode == 'debug' -%}col-7{%- else -%}col-12{%- endif -%}">
+        <div class="{%- if system.debug_mode -%}col-7{%- else -%}col-12{%- endif -%}">
           <h1>Ambassador Diagnostic Overview</h1>
         </div>
-        {% if system.run_mode == 'debug' %}
+        {% if system.debug_mode %}
         <div class="col-5">
           <h1 style="color: red; text-align: right">DEBUG MODE</h1>
         </div>

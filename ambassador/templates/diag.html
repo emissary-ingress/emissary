@@ -34,7 +34,7 @@ limitations under the License
   <body>
     <div class="container">
       <div class="row">
-        <div class="{%- if system.run_mode == 'debug' -%}col-7{%- else -%}col-12{%- endif -%}">
+        <div class="{%- if system.debug_mode -%}col-7{%- else -%}col-12{%- endif -%}">
           <h1><a href="/ambassador/v0/diag/">Ambassador Diagnostics
             {% if method or resource %} for <code>
               {% if method %}{{ method }}{% endif %}
@@ -43,7 +43,7 @@ limitations under the License
             {% endif %}
           </a></h1>
         </div>
-        {% if system.run_mode == 'debug' %}
+        {% if system.debug_mode %}
         <div class="col-5">
           <h1 style="color: red; text-align: right">DEBUG MODE</h1>
         </div>

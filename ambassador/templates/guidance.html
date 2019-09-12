@@ -1,4 +1,4 @@
-{% if (system.run_mode == 'debug') or not system.env_good %}
+{% if system.debug_mode or not system.env_good %}
 <div class="row">
   <div class="col-12" {%- if not system.env_good -%}style="border: 2px solid red"{%- endif -%}>
     <p>
