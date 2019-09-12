@@ -236,27 +236,34 @@ The next `make test` run will claim a new Kubernaut cluster.
 Type Hinting
 ------------
 
-Ambassador uses Python 3 type hinting to help find bugs before runtime. We will not
-accept changes that aren't hinted -- if you haven't worked with hinting before, a good
-place to start is [the `mypy` cheat sheet](https://mypy.readthedocs.io/en/latest/cheat_sheet_py3.html).
+Ambassador uses Python 3 type hinting and the `mypy` static type checker to
+help find bugs before runtime. If you haven't worked with hinting before, a
+good place to start is
+[the `mypy` cheat sheet](https://mypy.readthedocs.io/en/latest/cheat_sheet_py3.html).
 
-We **strongly** recommend that you use an editor that supports realtime type checking:
-we at Datawire tend to use PyCharm and VSCode a lot, but many many editors can do this 
-now. We also **strongly** recommend that you run `mypy` itself over your code before 
-opening a PR. The easy way to do that is simply
+New code must be hinted, and the build process will verify that the type
+check passes when you `make docker-images`. Fair warning: this means that
+PRs will not pass CI if the type checker fails.
 
-```
-make mypy
-```
+We strongly recommend using an editor that can do realtime type checking
+(at Datawire we tend to use PyCharm and VSCode a lot, but many many editors
+can do this now) and also running the type checker by hand before submitting
+anything: 
 
-after you've done `make setup-develop` or `make shell`. This will start the
-[mypy daemon](https://mypy.readthedocs.io/en/latest/mypy_daemon.html) and then do a check of all
-the Ambassador code. There _should_ be no errors and no warnings reported: that will become
-a requirement for all GA releases later, but we're some distance from that for now. Sigh.
+- make sure you've done `make setup-develop` or `make shell` to get
+everything set up, then
+- `make mypy` will start the [mypy daemon](https://mypy.readthedocs.io/en/latest/mypy_daemon.html) and check all the Ambassador code.
 
-**Note well** that at present, `make mypy` will ignore missing imports. We're still sorting
-out how to best wrangle the various third-party libraries we use, so this seems to make sense
-for right now -- suggestions welcome on this front!
+Since `make mypy` uses the daemon for caching, it should be very fast after
+the first run. Ambassador code should produce _no_ warnings and _no_ errors.
+
+If you're concerned that the cache is somehow wrong (or if you just want the
+daemon to not be there any more), `make mypy-server-stop` will stop the daemon
+and clear the cache.
+
+**Note well** that at present, `make mypy` will ignore missing imports. We're
+still sorting out how to best wrangle the various third-party libraries we use,
+so this seems to make sense for right now -- suggestions welcome on this front!
 
 Tests
 -----
