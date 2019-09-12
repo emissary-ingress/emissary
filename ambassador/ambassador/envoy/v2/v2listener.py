@@ -533,7 +533,7 @@ class V2Listener(dict):
                 self.access_log = [ {
                     'name': 'envoy.file_access_log',
                     'config': {
-                        'path': '/dev/fd/1',
+                        'path': config.ir.ambassador_module.envoy_log_path,
                         'json_format': json_format
                     }
                 } ]
@@ -542,7 +542,7 @@ class V2Listener(dict):
                 self.access_log = [ {
                     'name': 'envoy.file_access_log',
                     'config': {
-                        'path': '/dev/fd/1',
+                        'path': config.ir.ambassador_module.envoy_log_path,
                         'format': 'ACCESS [%START_TIME%] \"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\" %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% \"%REQ(X-FORWARDED-FOR)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\" \"%UPSTREAM_HOST%\"\n'
                     }
                 } ]
