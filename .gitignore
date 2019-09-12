@@ -30,6 +30,7 @@ dist
 *.out
 *.log
 *.tmp
+log.txt
 
 docs/_book
 docs/_site
