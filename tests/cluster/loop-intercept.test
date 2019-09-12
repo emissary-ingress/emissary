@@ -23,7 +23,7 @@ if ! curl -s "localhost:$local_port" | grep "Request served by" | tee /dev/stder
     exit 1
 fi
 
-APICTL=./bin_$(go env GOOS)_$(go env GOARCH)/apictl
+APICTL=./bin_$(go env GOHOSTOS)_$(go env GOHOSTARCH)/apictl
 REMOTE_SVC=echo
 NUM_LOOPS=2
 

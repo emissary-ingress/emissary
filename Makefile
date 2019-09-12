@@ -387,11 +387,18 @@ run-auth: bin_$(GOHOSTOS)_$(GOHOSTARCH)/amb-sidecar
 	env $$(cat pro-env.sh) APP_LOG_LEVEL=debug bin_$(GOHOSTOS)_$(GOHOSTARCH)/amb-sidecar main
 .PHONY: run-auth
 
+venv/bin/activate: %/bin/activate:
+	mkdir -p $*
+	echo module venv > $*/go.mod
+	virtualenv --python=python3 $*
+
 #
 # Check
 
 check: $(if $(HAVE_DOCKER),deploy proxy)
 test-suite.tap: tests/local.tap tests/cluster.tap
+
+# local ########################################################################
 
 check-local: ## Check: Run only tests that do not talk to the cluster
 check-local: lint go-build
@@ -404,25 +411,39 @@ tests/local.tap: $(patsubst %.tap.gen,%.tap,$(wildcard tests/local/*.tap.gen))
 tests/local.tap: $(TAP_DRIVER)
 	@$(TAP_DRIVER) cat $(sort $(filter %.tap,$^)) > $@
 
+check check-local tests/local/apictl.tap: bin_$(GOHOSTOS)_$(GOHOSTARCH)/apictl
+
+# cluster ######################################################################
+
 tests/cluster.tap: $(patsubst %.test,%.tap,$(wildcard tests/cluster/*.test))
 tests/cluster.tap: $(patsubst %.tap.gen,%.tap,$(wildcard tests/cluster/*.tap.gen))
 tests/cluster.tap: $(TAP_DRIVER)
 	@$(TAP_DRIVER) cat $(sort $(filter %.tap,$^)) > $@
 
-tests/cluster/external.tap: $(GOTEST2TAP)
+venv/bin/consul-kube: %/bin/consul-kube: | %/bin/activate
+	$*/bin/pip install git+https://github.com/tradel/consul-kube
+check check-cluster tests/cluster/go-test.tap: $(KUBECONFIG)
+check check-cluster tests/cluster/go-test.tap: $(GOTEST2TAP)
+# for consulconnect_test.go
+check check-cluster tests/cluster/go-test.tap: venv/bin/consul-kube
+# for licensekeys_test.go
+check check-cluster tests/cluster/go-test.tap: bin_$(GOHOSTOS)_$(GOHOSTARCH)/apictl
+check check-cluster tests/cluster/go-test.tap: bin_$(GOHOSTOS)_$(GOHOSTARCH)/apictl-key
+check check-cluster tests/cluster/go-test.tap: bin_$(GOHOSTOS)_$(GOHOSTARCH)/amb-sidecar
+check check-cluster tests/cluster/go-test.tap: bin_$(GOHOSTOS)_$(GOHOSTARCH)/traffic-proxy
+check check-cluster tests/cluster/go-test.tap: bin_$(GOHOSTOS)_$(GOHOSTARCH)/app-sidecar
 
-tests/cluster/licensekeys.tap: $(GOTEST2TAP) $(KUBECONFIG)
-tests/cluster/licensekeys.tap: bin_$(GOHOSTOS)_$(GOHOSTARCH)/apictl
-tests/cluster/licensekeys.tap: bin_$(GOHOSTOS)_$(GOHOSTARCH)/apictl-key
-tests/cluster/licensekeys.tap: bin_$(GOHOSTOS)_$(GOHOSTARCH)/amb-sidecar
-tests/cluster/licensekeys.tap: bin_$(GOHOSTOS)_$(GOHOSTARCH)/traffic-proxy
-tests/cluster/licensekeys.tap: bin_$(GOHOSTOS)_$(GOHOSTARCH)/app-sidecar
+check check-cluster test/cluster/loop-intercept.log: $(KUBECONFIG)
+check check-cluster test/cluster/loop-intercept.log: bin_$(GOHOSTOS)_$(GOHOSTARCH)/apictl
 
 tests/cluster/oauth-e2e/node_modules: tests/cluster/oauth-e2e/package.json $(wildcard tests/cluster/oauth-e2e/package-lock.json)
 	cd $(@D) && npm install
 	@test -d $@
 	@touch $@
-check tests/cluster/oauth-e2e.tap: tests/cluster/oauth-e2e/node_modules
+check check-cluster tests/cluster/oauth-e2e.tap: $(KUBECONFIG)
+check check-cluster tests/cluster/oauth-e2e.tap: tests/cluster/oauth-e2e/node_modules
+
+check check-cluster tests/cluster/tls-smoketest.tap: $(KUBECONFIG)
 
 #
 # Load-testing
@@ -463,10 +484,12 @@ clean: $(addsuffix .clean,$(wildcard docker/*.docker)) loadtest-clean
 	rm -f k8s-*/??-auth0-secret.yaml
 	rm -f tests/*.log tests/*.tap tests/*/*.log tests/*/*.tap
 	rm -f tests/cluster/oauth-e2e/idp_*.png
-	rm -f tests/cluster/consul/new_root.crt tests/cluster/consul/new_root.key
+	rm -f tests/cluster/go-test/consul/new_root.*
 # Files made by older versions.  Remove the tail of this list when the
 # commit making the change gets far enough in to the past.
 #
+# 2019-09-12
+	rm -f tests/cluster/consul/new_root.crt tests/cluster/consul/new_root.key
 # 2019-08-29
 	rm -rf ambassador-nolicense ambassador-withlicense
 # 2019-08-14

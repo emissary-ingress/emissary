@@ -1,6 +1,6 @@
 // +build test
 
-package main
+package consul_test
 
 import (
 	"encoding/base64"
