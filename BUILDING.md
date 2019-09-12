@@ -249,9 +249,10 @@ opening a PR. The easy way to do that is simply
 make mypy
 ```
 
-after you've done `make shell`. This will start the [mypy daemon](https://mypy.readthedocs.io/en/latest/mypy_daemon.html)
-and then do a check of all the Ambassador code. There _should_ be no errors and no warnings
-reported: that will probably become a requirement for all GA releases later.
+after you've done `make setup-develop` or `make shell`. This will start the
+[mypy daemon](https://mypy.readthedocs.io/en/latest/mypy_daemon.html) and then do a check of all
+the Ambassador code. There _should_ be no errors and no warnings reported: that will become
+a requirement for all GA releases later, but we're some distance from that for now. Sigh.
 
 **Note well** that at present, `make mypy` will ignore missing imports. We're still sorting
 out how to best wrangle the various third-party libraries we use, so this seems to make sense
