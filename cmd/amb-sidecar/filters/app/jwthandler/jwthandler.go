@@ -13,6 +13,7 @@ import (
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/app/httpclient"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/app/middleware"
 	"github.com/datawire/apro/lib/filterapi"
+	"github.com/datawire/apro/lib/filterapi/filterutil"
 	"github.com/datawire/apro/lib/jwks"
 	"github.com/datawire/apro/lib/jwtsupport"
 )
@@ -34,7 +35,7 @@ func (h *JWTFilter) Filter(ctx context.Context, r *filterapi.FilterRequest) (fil
 	logger := middleware.GetLogger(ctx)
 	httpClient := httpclient.NewHTTPClient(logger, 0, h.Spec.InsecureTLS)
 
-	tokenString := strings.TrimPrefix(r.GetRequest().GetHttp().GetHeaders()["Authorization"], "Bearer ")
+	tokenString := strings.TrimPrefix(filterutil.GetHeader(r).Get("Authorization"), "Bearer ")
 
 	token, err := validateToken(tokenString, h.Spec, httpClient)
 	if err != nil {
