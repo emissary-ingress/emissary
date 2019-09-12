@@ -1,3 +1,5 @@
+import os
+
 from kat.harness import Query
 
 from abstract_tests import AmbassadorTest, HTTP
@@ -16,7 +18,7 @@ metadata:
 spec:
   containers:
   - name: backend
-    image: quay.io/datawire/kat-backend:11
+    image: {environ[KAT_SERVER_DOCKER_IMAGE]}
     ports:
     - containerPort: 8080
     env:
@@ -159,9 +161,9 @@ class GlobalLoadBalancing(AmbassadorTest):
     def manifests(self) -> str:
         backend = self.name.lower() + '-backend'
         return super().manifests() + \
-               LOADBALANCER_POD.format(name='{}-1'.format(self.path.k8s), backend=backend, backend_env='{}-1'.format(self.path.k8s)) + \
-               LOADBALANCER_POD.format(name='{}-2'.format(self.path.k8s), backend=backend, backend_env='{}-2'.format(self.path.k8s)) + \
-               LOADBALANCER_POD.format(name='{}-3'.format(self.path.k8s), backend=backend, backend_env='{}-3'.format(self.path.k8s)) + """
+               LOADBALANCER_POD.format(name='{}-1'.format(self.path.k8s), backend=backend, backend_env='{}-1'.format(self.path.k8s), environ=os.environ) + \
+               LOADBALANCER_POD.format(name='{}-2'.format(self.path.k8s), backend=backend, backend_env='{}-2'.format(self.path.k8s), environ=os.environ) + \
+               LOADBALANCER_POD.format(name='{}-3'.format(self.path.k8s), backend=backend, backend_env='{}-3'.format(self.path.k8s), environ=os.environ) + """
 ---
 apiVersion: v1
 kind: Service
@@ -306,9 +308,9 @@ class PerMappingLoadBalancing(AmbassadorTest):
     def manifests(self) -> str:
         backend = self.name.lower() + '-backend'
         return super().manifests() + \
-               LOADBALANCER_POD.format(name='{}-1'.format(self.path.k8s), backend=backend, backend_env='{}-1'.format(self.path.k8s)) + \
-               LOADBALANCER_POD.format(name='{}-2'.format(self.path.k8s), backend=backend, backend_env='{}-2'.format(self.path.k8s)) + \
-               LOADBALANCER_POD.format(name='{}-3'.format(self.path.k8s), backend=backend, backend_env='{}-3'.format(self.path.k8s)) + """
+               LOADBALANCER_POD.format(name='{}-1'.format(self.path.k8s), backend=backend, backend_env='{}-1'.format(self.path.k8s), environ=os.environ) + \
+               LOADBALANCER_POD.format(name='{}-2'.format(self.path.k8s), backend=backend, backend_env='{}-2'.format(self.path.k8s), environ=os.environ) + \
+               LOADBALANCER_POD.format(name='{}-3'.format(self.path.k8s), backend=backend, backend_env='{}-3'.format(self.path.k8s), environ=os.environ) + """
 ---
 apiVersion: v1
 kind: Service
