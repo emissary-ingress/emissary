@@ -91,7 +91,7 @@ func TestConsulConnectTLSCertificateChainIsUpdatedWhenConnectRootCAChanges(t *te
 
 	assert := testutil.Assert{T: t}
 
-	timeout := time.After(10 * time.Second)
+	timeout := time.After(20 * time.Second)
 	tick := time.Tick(1 * time.Second)
 
 	config := api.DefaultConfig()
