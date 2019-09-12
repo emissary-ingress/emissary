@@ -19,16 +19,17 @@ if TYPE_CHECKING:
 
 
 class IRAmbassador (IRResource):
+
+    # All the AModTransparentKeys are copied from the incoming Ambassador resource
+    # into the IRAmbassador object partway through IRAmbassador.finalize().
     AModTransparentKeys: ClassVar = [
         'add_linkerd_headers',
         'admin_port',
         'auth_enabled',
         'circuit_breakers',
         'default_label_domain',
-
-
         'default_labels',
-        # Do not inculde defaults, that's handled manually in setup.
+        # Do not include defaults, that's handled manually in setup.
         'diag_port',
         'diagnostics',
         'enable_http10',
@@ -40,6 +41,7 @@ class IRAmbassador (IRResource):
         'load_balancer',
         'readiness_probe',
         'resolver',
+        'run_mode',
         'server_name',
         'service_port',
         'statsd',
@@ -97,6 +99,7 @@ class IRAmbassador (IRResource):
             circuit_breakers=None,
             xff_num_trusted_hops=0,
             server_name="envoy",
+            run_mode="debug",
             **kwargs
         )
 
@@ -139,8 +142,11 @@ class IRAmbassador (IRResource):
         for ctx_name in to_delete:
             del(ir.tls_contexts[ctx_name])
 
-        # After that, check for port definitions, probes, etc., and copy them in
-        # as we find them.
+        # After that, walk the AModTransparentKeys and copy all those things from the
+        # input into our IRAmbassador.
+        #
+        # Some of these will get overridden later, and some things not in AModTransparentKeys
+        # get handled manually below.
         amod = aconf.get_module("ambassador")
 
         for key in IRAmbassador.AModTransparentKeys:

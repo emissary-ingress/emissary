@@ -289,7 +289,24 @@ def interval_format(seconds, normal_format, now_message):
         return now_message
 
 
-def system_info():
+def system_info(app):
+    ir = app.ir
+    run_mode = 'debug'
+    
+    if ir:
+        amod = ir.ambassador_module
+        run_mode = amod.get('run_mode', 'debug')
+
+        app.logger.info(f'RUN_MODE {run_mode}')
+
+    status_dict = {'config failure': [False, 'no configuration loaded']}
+
+    env_status = getattr(app.watcher, 'env_status', None)
+
+    if env_status:
+        status_dict = env_status.to_dict()
+        print(f"status_dict {status_dict}")
+
     return {
         "version": __version__,
         "hostname": SystemInfo.MyHostName,
@@ -297,7 +314,11 @@ def system_info():
                                      os.environ.get('AMBASSADOR_SCOUT_ID', "00000000-0000-0000-0000-000000000000")),
         "boot_time": boot_time,
         "hr_uptime": td_format(datetime.datetime.now() - boot_time),
-        "latest_snapshot": app.latest_snapshot
+        "latest_snapshot": app.latest_snapshot,
+        "env_good": getattr(app.watcher, 'env_good', False),
+        "env_failures": getattr(app.watcher, 'failure_list', [ 'no IR loaded' ]),
+        "env_status": status_dict,
+        "run_mode": run_mode
     }
 
 
@@ -433,7 +454,7 @@ def show_overview(reqid=None):
 
     ddict = collect_errors_and_notices(request, reqid, "overview", diag)
 
-    tvars = dict(system=system_info(),
+    tvars = dict(system=system_info(app),
                  envoy_status=envoy_status(app.estats),
                  loginfo=app.estats.loginfo,
                  notices=app.notices.notices,
@@ -515,7 +536,7 @@ def show_intermediate(source=None, reqid=None):
 
     ddict = collect_errors_and_notices(request, reqid, "detail %s" % source, diag)
 
-    tvars = dict(system=system_info(),
+    tvars = dict(system=system_info(app),
                  envoy_status=envoy_status(app.estats),
                  loginfo=app.estats.loginfo,
                  notices=app.notices.notices,
@@ -576,6 +597,44 @@ def get_prometheus_metrics(*args, **kwargs):
 
 def bool_fmt(b: bool) -> str:
     return 'T' if b else 'F'
+
+
+class StatusInfo:
+    def __init__(self) -> None:
+        self.status = True
+        self.specifics: List[Tuple[bool, str]] = []
+
+    def failure(self, message: str) -> None:
+        self.status = False
+        self.specifics.append((False, message))
+
+    def OK(self, message: str) -> None:
+        self.specifics.append((True, message))
+
+    def to_dict(self) -> Dict[str, Union[bool, List[Tuple[bool, str]]]]:
+        return {
+            'status': self.status,
+            'specifics': self.specifics
+        }
+
+class SystemStatus:
+    def __init__(self) -> None:
+        self.status: Dict[str, StatusInfo] = {}
+
+    def failure(self, key: str, message: str) -> None:
+        self.info_for_key(key).failure(message)
+
+    def OK(self, key: str, message: str) -> None:
+        self.info_for_key(key).OK(message)
+
+    def info_for_key(self, key) -> StatusInfo:
+        if key not in self.status:
+            self.status[key] = StatusInfo()
+
+        return self.status[key]
+
+    def to_dict(self) -> Dict[str, Dict[str, Union[bool, List[Tuple[bool, str]]]]]:
+        return { key: info.to_dict() for key, info in self.status.items() }
 
 
 class AmbassadorEventWatcher(threading.Thread):
@@ -965,18 +1024,23 @@ class AmbassadorEventWatcher(threading.Thread):
         self.last_chime = self.env_good
 
     def check_environment(self, ir: Optional[IR]=None) -> None:
+        env_good = True
+        chime_failures = {}
+        env_status = SystemStatus()
+
+        error_count = 0
+        tls_count = 0
+        mapping_count = 0
+
         if not ir:
             ir = app.ir
 
-        env_good = True
-        failures = {}
-
         if not ir:
-            failures['no config loaded'] = True
+            chime_failures['no config loaded'] = True
             env_good = False
         else:
             if not ir.aconf:
-                failures['completely empty config'] = True
+                chime_failures['completely empty config'] = True
                 env_good = False
             else:
                 for err_key, err_list in ir.aconf.errors.items():
@@ -984,49 +1048,68 @@ class AmbassadorEventWatcher(threading.Thread):
                         err_key = ""
 
                     for err in err_list:
+                        error_count += 1
                         err_text = err['error']
 
                         self.app.logger.info(f'error {err_key} {err_text}')
 
                         if err_text.find('CRD') >= 0:
                             if err_text.find('core') >= 0:
-                                failures['core CRDs'] = True
+                                chime_failures['core CRDs'] = True
+                                env_status.failure("CRDs", "Core CRD type definitions are missing")
                             else:
-                                failures['other CRDs'] = True
+                                chime_failures['other CRDs'] = True
+                                env_status.failure("CRDs", "Resolver CRD type definitions are missing")
 
                             env_good = False
                         elif err_text.find('TLS') >= 0:
-                            failures['TLS errors'] = True
-                            env_good = False
+                            chime_failures['TLS errors'] = True
+                            env_status.failure('TLS', err_text)
 
-            some_tls = False
+                            env_good = False
 
             for context in ir.tls_contexts:
                 if context:
-                    some_tls = True
+                    tls_count += 1
                     break
-
-            if not some_tls:
-                failures['no TLS contexts'] = True
-                env_good = False
-
-            some_mappings = False
 
             for group in ir.groups.values():
-                if group and (group.location != '--internal--'):
-                    some_mappings = True
-                    break
+                for mapping in group.mappings:
+                    pfx = mapping.get('prefix', None)
+                    name = mapping.get('name', None)
 
-            if not some_mappings:
-                failures['no Mappings'] = True
-                env_good = False
+                    if pfx:
+                        if not pfx.startswith('/ambassador/v0') or not name.startswith('internal_'):
+                            mapping_count += 1
+
+        if error_count:
+            env_status.failure('Error check', f'{error_count} total error{"" if (error_count == 1) else "s"} logged')
+            env_good = False
+        else:
+            env_status.OK('Error check', "No errors logged")
+
+        if tls_count:
+            env_status.OK('TLS', f'{tls_count} TLSContext{" is" if (tls_count == 1) else "s are"} active')
+        else:
+            chime_failures['no TLS contexts'] = True
+            env_status.failure('TLS', "No TLSContexts are active")
+
+            env_good = False
+
+        if mapping_count:
+            env_status.OK('Mappings', f'{mapping_count} Mapping{" is" if (mapping_count == 1) else "s are"} active')
+        else:
+            chime_failures['no Mappings'] = True
+            env_status.failure('Mappings', "No Mappings are active")
+            env_good = False
 
         failure_list: List[str] = []
 
         if not env_good:
-            failure_list = list(sorted(failures.keys()))
+            failure_list = list(sorted(chime_failures.keys()))
 
         self.env_good = env_good
+        self.env_status = env_status
         self.failure_list = failure_list
 
     def check_scout(self, what: str, no_cache: Optional[bool]=False,
