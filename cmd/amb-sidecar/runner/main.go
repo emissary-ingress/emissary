@@ -145,7 +145,6 @@ func runE(cmd *cobra.Command, args []string) error {
 	}
 
 	// Filter+FilterPolicy controller
-
 	ct := &controller.Controller{}
 	if licenseClaims.RequireFeature(licensekeys.FeatureFilter) == nil {
 		group.Go("auth_controller", func(hardCtx, softCtx context.Context, cfg types.Config, l types.Logger) error {
@@ -213,62 +212,67 @@ func runE(cmd *cobra.Command, args []string) error {
 			lyftserver.NewHealthChecker(healthService).ServeHTTP)
 
 		// AuthService
-		restconfig, err := kubeinfo.GetRestConfig()
-		if err != nil {
-			return err
+		if licenseClaims.RequireFeature(licensekeys.FeatureFilter) == nil {
+			restconfig, err := kubeinfo.GetRestConfig()
+			if err != nil {
+				return err
+			}
+			coreClient, err := k8sClientCoreV1.NewForConfig(restconfig)
+			if err != nil {
+				return err
+			}
+			authService, err := app.NewFilterMux(cfg, l.WithField("SUB", "http-handler"), ct, coreClient, redisPool)
+			if err != nil {
+				return err
+			}
+			filterapi.RegisterFilterService(grpcHandler, authService)
 		}
-		coreClient, err := k8sClientCoreV1.NewForConfig(restconfig)
-		if err != nil {
-			return err
-		}
-		authService, err := app.NewFilterMux(cfg, l.WithField("SUB", "http-handler"), ct, coreClient, redisPool)
-		if err != nil {
-			return err
-		}
-		filterapi.RegisterFilterService(grpcHandler, authService)
 
 		// RateLimitService
-		rateLimitScope := statsStore.Scope("ratelimit")
-		rateLimitService := lyftservice.NewService(
-			loader.New(
-				cfg.RLSRuntimeDir,               // runtime path
-				cfg.RLSRuntimeSubdir,            // runtime subdirectory
-				rateLimitScope.Scope("runtime"), // stats scope
-				&loader.SymlinkRefresher{RuntimePath: cfg.RLSRuntimeDir}, // refresher
-			),
-			lyftredis.NewRateLimitCacheImpl(
-				lyftredis.NewPool(rateLimitScope.Scope("redis_pool"), redisPool),
-				lyftredis.NewPool(rateLimitScope.Scope("redis_per_second_pool"), redisPerSecondPool),
-				lyftredis.NewTimeSourceImpl(),
-				rand.New(lyftredis.NewLockedSource(time.Now().Unix())),
-				cfg.ExpirationJitterMaxSeconds),
-			lyftconfig.NewRateLimitConfigLoaderImpl(),
-			rateLimitScope.Scope("service"))
-		rlsV1api.RegisterRateLimitServiceServer(grpcHandler, rateLimitService.GetLegacyService())
-		rlsV2api.RegisterRateLimitServiceServer(grpcHandler, rateLimitService)
-		httpHandler.AddEndpoint(
-			"/rlconfig",
-			"print out the currently loaded configuration for debugging",
-			func(writer http.ResponseWriter, request *http.Request) {
-				io.WriteString(writer, rateLimitService.GetCurrentConfig().Dump())
-			})
+		if licenseClaims.RequireFeature(licensekeys.FeatureRateLimit) == nil {
+			rateLimitScope := statsStore.Scope("ratelimit")
+			rateLimitService := lyftservice.NewService(
+				loader.New(
+					cfg.RLSRuntimeDir,               // runtime path
+					cfg.RLSRuntimeSubdir,            // runtime subdirectory
+					rateLimitScope.Scope("runtime"), // stats scope
+					&loader.SymlinkRefresher{RuntimePath: cfg.RLSRuntimeDir}, // refresher
+				),
+				lyftredis.NewRateLimitCacheImpl(
+					lyftredis.NewPool(rateLimitScope.Scope("redis_pool"), redisPool),
+					lyftredis.NewPool(rateLimitScope.Scope("redis_per_second_pool"), redisPerSecondPool),
+					lyftredis.NewTimeSourceImpl(),
+					rand.New(lyftredis.NewLockedSource(time.Now().Unix())),
+					cfg.ExpirationJitterMaxSeconds),
+				lyftconfig.NewRateLimitConfigLoaderImpl(),
+				rateLimitScope.Scope("service"))
+			rlsV1api.RegisterRateLimitServiceServer(grpcHandler, rateLimitService.GetLegacyService())
+			rlsV2api.RegisterRateLimitServiceServer(grpcHandler, rateLimitService)
+			httpHandler.AddEndpoint(
+				"/rlconfig",
+				"print out the currently loaded configuration for debugging",
+				func(writer http.ResponseWriter, request *http.Request) {
+					io.WriteString(writer, rateLimitService.GetCurrentConfig().Dump())
+				})
+		}
 
 		// DevPortal
-
-		portalServer, err := portal.MakeServer("/docs", softCtx, cfg.PortalConfig)
-		if err != nil {
-			return err
+		if licenseClaims.RequireFeature(licensekeys.FeatureDevPortal) == nil {
+			portalServer, err := portal.MakeServer("/docs", softCtx, cfg.PortalConfig)
+			if err != nil {
+				return err
+			}
+			logrusLogger.Info("Mounting dev portal to /docs/")
+			httpHandler.AddEndpoint("/docs/", "Documentation portal", func(w http.ResponseWriter, rq *http.Request) {
+				//	logrusLogger.Infof("Forwarding request %s to portal server", rq.RequestURI)
+				portalServer.Router().ServeHTTP(w, rq)
+			})
+			logrusLogger.Info("Mounting dev portal API to /openapi/")
+			httpHandler.AddEndpoint("/openapi/", "Documentation portal API", func(w http.ResponseWriter, rq *http.Request) {
+				//	logrusLogger.Infof("Forwarding request %s to portal server API", rq.RequestURI)
+				portalServer.Router().ServeHTTP(w, rq)
+			})
 		}
-		logrusLogger.Info("Mounting dev portal to /docs/")
-		httpHandler.AddEndpoint("/docs/", "Documentation portal", func(w http.ResponseWriter, rq *http.Request) {
-			//	logrusLogger.Infof("Forwarding request %s to portal server", rq.RequestURI)
-			portalServer.Router().ServeHTTP(w, rq)
-		})
-		logrusLogger.Info("Mounting dev portal API to /openapi/")
-		httpHandler.AddEndpoint("/openapi/", "Documentation portal API", func(w http.ResponseWriter, rq *http.Request) {
-			//	logrusLogger.Infof("Forwarding request %s to portal server API", rq.RequestURI)
-			portalServer.Router().ServeHTTP(w, rq)
-		})
 
 		// Launch the server
 		server := &http.Server{
