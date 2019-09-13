@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+	"net/url"
 	"os"
 	"strconv"
 	"time"
@@ -88,6 +89,16 @@ func PortalConfigFromEnv(warn []error, fatal []error) (portal.ServerConfig, []er
 
 		ContentURL: getenvDefault("APRO_DEVPORTAL_CONTENT_URL",
 			"https://github.com/datawire/devportal-content"),
+	}
+	return validatePortalConfig(cfg, warn, fatal)
+}
+
+func validatePortalConfig(cfg portal.ServerConfig, warn []error, fatal []error) (portal.ServerConfig, []error, []error) {
+	u, err := url.Parse(cfg.PublicURL)
+	if err != nil {
+		fatal = append(fatal, errors.Wrap(err, "Cannot parse AMBASSADOR_URL"))
+	} else if !u.IsAbs() || u.Host == "" {
+		fatal = append(fatal, fmt.Errorf("AMBASSADOR_URL must be an absolute url (got %q)", cfg.PublicURL))
 	}
 	return cfg, warn, fatal
 }
