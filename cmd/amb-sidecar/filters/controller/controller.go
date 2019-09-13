@@ -16,6 +16,7 @@ import (
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta2"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/app/httpclient"
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
+	"github.com/datawire/apro/lib/licensekeys"
 	"github.com/datawire/apro/lib/mapstructure"
 )
 
@@ -92,7 +93,7 @@ func (e *NotThisAmbassadorError) Error() string {
 	return e.Message
 }
 
-func processFilterSpec(filter k8s.Resource, cfg types.Config, coreClient *k8sClientCoreV1.CoreV1Client) FilterInfo {
+func processFilterSpec(filter k8s.Resource, cfg types.Config, coreClient *k8sClientCoreV1.CoreV1Client, licenseClaims *licensekeys.LicenseClaimsLatest) FilterInfo {
 	if cfg.AmbassadorSingleNamespace && filter.Namespace() != cfg.AmbassadorNamespace {
 		return FilterInfo{Err: &NotThisAmbassadorError{
 			Message: fmt.Sprintf("AMBASSADOR_SINGLE_NAMESPACE: .metadata.namespace=%q != AMBASSADOR_NAMESPACE=%q", filter.Namespace(), cfg.AmbassadorNamespace),
@@ -154,11 +155,28 @@ func processFilterSpec(filter k8s.Resource, cfg types.Config, coreClient *k8sCli
 	default:
 		panic("should not happen")
 	}
+
+	// Do the license key check consolidated here at the end,
+	// instead of in the above switch, so that it's hard to forget
+	// to put it in one of the 'case's.
+	var licenseErr error
+	if spec.Internal == nil {
+		// Everything except for the Internal Filter requires FeatureFilter.
+		licenseErr = licenseClaims.RequireFeature(licensekeys.FeatureFilter)
+	} else {
+		// As an exception, the Internal Filter requires
+		// FeatureDevPortal.
+		licenseErr = licenseClaims.RequireFeature(licensekeys.FeatureDevPortal)
+	}
+	if licenseErr != nil {
+		ret.Err = licenseErr
+	}
+
 	return ret
 }
 
 // Watch monitor changes in k8s cluster and updates rules
-func (c *Controller) Watch(ctx context.Context, kubeinfo *k8s.KubeInfo) error {
+func (c *Controller) Watch(ctx context.Context, kubeinfo *k8s.KubeInfo, licenseClaims *licensekeys.LicenseClaimsLatest) error {
 	c.storeRules([]crd.Rule{})
 	c.storeFilters(map[string]FilterInfo{})
 
@@ -176,7 +194,7 @@ func (c *Controller) Watch(ctx context.Context, kubeinfo *k8s.KubeInfo) error {
 	w.Watch("filters", func(w *k8s.Watcher) {
 		filters := map[string]FilterInfo{}
 		for _, mw := range w.List("filters") {
-			filterInfo := processFilterSpec(mw, c.Config, coreClient)
+			filterInfo := processFilterSpec(mw, c.Config, coreClient, licenseClaims)
 			if filterInfo.Err != nil {
 				if _, notThisAmbassador := filterInfo.Err.(*NotThisAmbassadorError); notThisAmbassador {
 					c.Logger.Debugf("ignoring filter resource %q: %v", mw.QName(), filterInfo.Err)

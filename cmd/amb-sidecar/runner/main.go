@@ -146,11 +146,11 @@ func runE(cmd *cobra.Command, args []string) error {
 
 	// Filter+FilterPolicy controller
 	ct := &controller.Controller{}
-	if licenseClaims.RequireFeature(licensekeys.FeatureFilter) == nil {
+	if licenseClaims.RequireFeature(licensekeys.FeatureFilter) == nil || licenseClaims.RequireFeature(licensekeys.FeatureDevPortal) == nil {
 		group.Go("auth_controller", func(hardCtx, softCtx context.Context, cfg types.Config, l types.Logger) error {
 			ct.Config = cfg
 			ct.Logger = l
-			return ct.Watch(softCtx, kubeinfo)
+			return ct.Watch(softCtx, kubeinfo, licenseClaims)
 		})
 	}
 
@@ -212,7 +212,7 @@ func runE(cmd *cobra.Command, args []string) error {
 			lyftserver.NewHealthChecker(healthService).ServeHTTP)
 
 		// AuthService
-		if licenseClaims.RequireFeature(licensekeys.FeatureFilter) == nil {
+		if licenseClaims.RequireFeature(licensekeys.FeatureFilter) == nil || licenseClaims.RequireFeature(licensekeys.FeatureDevPortal) == nil {
 			restconfig, err := kubeinfo.GetRestConfig()
 			if err != nil {
 				return err
