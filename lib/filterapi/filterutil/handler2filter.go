@@ -83,7 +83,7 @@ func grpcRequestToHTTPServerRequest(g *filterapi.FilterRequest, ctx context.Cont
 		Proto:            httpVer,
 		ProtoMajor:       httpVerMajor,
 		ProtoMinor:       httpVerMinor,
-		Header:           http.Header{}, // see below
+		Header:           GetHeader(g),
 		Body:             ioutil.NopCloser(strings.NewReader(body)),
 		GetBody:          nil, // ignored for server requests
 		ContentLength:    int64(len(body)),
@@ -117,9 +117,6 @@ func grpcRequestToHTTPServerRequest(g *filterapi.FilterRequest, ctx context.Cont
 			err = _err
 		}
 	}
-	for k, v := range g.GetRequest().GetHttp().GetHeaders() {
-		h.Header.Set(k, v)
-	}
 	switch scheme := g.GetRequest().GetHttp().GetScheme(); scheme {
 	case "http":
 		h.TLS = nil
@@ -131,6 +128,17 @@ func grpcRequestToHTTPServerRequest(g *filterapi.FilterRequest, ctx context.Cont
 		}
 	}
 	return h.WithContext(ctx), err
+}
+
+// GetHeader returns an http.Header for a FilterRequest.  You should
+// use this instead of g.GetRequest().GetHttp().GetHeaders() so that
+// you get proper case-folding of the header field names.
+func GetHeader(g *filterapi.FilterRequest) http.Header {
+	ret := make(http.Header)
+	for k, v := range g.GetRequest().GetHttp().GetHeaders() {
+		ret.Set(k, v)
+	}
+	return ret
 }
 
 type httpFilter struct {

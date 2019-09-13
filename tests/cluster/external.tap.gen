@@ -1,5 +1,0 @@
-#!/usr/bin/env bash
-
-# -count=1 to disable caching
-go test -json -tags=test -count=1 ./tests/cluster/external_test.go |
-	./build-aux/bin/gotest2tap

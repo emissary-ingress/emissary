@@ -1,8 +1,6 @@
 pro-env.sh
 /apro-abi.txt
 
-tests/cluster/consul/new_root.crt
-tests/cluster/consul/new_root.key
 venv
 
 /bin
@@ -43,6 +41,9 @@ node_modules/
 # Remove the tail of this list when the commit making the change gets
 # far enough in to the past.
 
+# 2019-09-12
+/tests/cluster/consul/new_root.crt
+/tests/cluster/consul/new_root.key
 # 2019-08-29
 /ambassador-nolicense/
 /ambassador-withlicense/

@@ -13,6 +13,7 @@ import (
 	"regexp"
 	"strings"
 	"sync"
+	"syscall"
 	"testing"
 	"time"
 
@@ -20,6 +21,29 @@ import (
 
 	"github.com/datawire/apro/lib/licensekeys"
 )
+
+func TestMain(m *testing.M) {
+	// Saying "-test.parallel=64" is important because there are a
+	// bunch of tests that time.Sleep().
+	hasParallel := false
+	for _, arg := range os.Args {
+		if strings.Contains(arg, "-test.parallel") {
+			hasParallel = true
+		}
+	}
+	if !hasParallel {
+		exe, err := os.Executable()
+		if err != nil {
+			panic(err)
+		}
+		err = syscall.Exec(exe, append(os.Args, "-test.parallel=64"), os.Environ())
+		if err != nil {
+			panic(err)
+		}
+		panic("not reached")
+	}
+	os.Exit(m.Run())
+}
 
 var wd = func() string {
 	wd, err := os.Getwd()
