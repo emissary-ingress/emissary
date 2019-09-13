@@ -16,7 +16,7 @@
 
 KUBECTL_VERSION=1.10.2
 HELM_VERSION=2.9.1
-GO_VERSION=1.12.9
+GO_VERSION=1.13
 
 set -o errexit
 set -o nounset
