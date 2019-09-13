@@ -16,6 +16,7 @@
 
 KUBECTL_VERSION=1.10.2
 HELM_VERSION=2.9.1
+GO_VERSION=1.12.9
 
 set -o errexit
 set -o nounset
@@ -34,6 +35,8 @@ chmod +x ~/bin/kubectl
 curl -L https://storage.googleapis.com/kubernetes-helm/helm-v${HELM_VERSION}-linux-amd64.tar.gz | tar -x -z -O linux-amd64/helm > ~/bin/helm
 chmod +x ~/bin/helm
 helm init --client-only # Initialize helm for indexing use
+
+gimme ${GO_VERSION}
 
 pip install -q -r dev-requirements.txt
 pip install -q -r ambassador/requirements.txt
