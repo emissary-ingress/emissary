@@ -584,6 +584,8 @@ test: setup-develop
 	BASE_PY_IMAGE="$(BASE_PY_IMAGE)" \
 	BASE_GO_IMAGE="$(BASE_GO_IMAGE)" \
 	KUBECONFIG="$(KUBECONFIG)" \
+	KAT_CLIENT_DOCKER_IMAGE="$(KAT_CLIENT_DOCKER_IMAGE)" \
+	KAT_SERVER_DOCKER_IMAGE="$(KAT_SERVER_DOCKER_IMAGE)" \
 	PATH="$(shell pwd)/venv/bin:$(PATH)" \
 	bash ../releng/run-tests.sh
 
