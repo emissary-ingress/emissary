@@ -141,7 +141,7 @@ var client = util.SimpleClient{Client: &http.Client{
 
 func httpGet(url string, internalSecret string, logger *log.Entry) ([]byte, error) {
 	logger = logger.WithFields(log.Fields{"url": url})
-	logger.Info("HTTP GET")
+	logger.Debug("HTTP GET")
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		logger.Error(err)
@@ -163,7 +163,7 @@ func httpGet(url string, internalSecret string, logger *log.Entry) ([]byte, erro
 		logger.Error(err)
 		return nil, err
 	}
-	logger.Info("GET succeeded")
+	logger.Debug("GET succeeded")
 	return buf, nil
 }
 

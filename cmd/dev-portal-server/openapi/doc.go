@@ -15,7 +15,7 @@ type OpenAPIDoc struct {
 // TODO maybe need to support Swagger 2.0.
 func NewOpenAPI(jsonDoc []byte, base_url string, prefix string) *OpenAPIDoc {
 	logger := log.WithFields(log.Fields{"subsytem": "openapi"})
-	logger.WithFields(log.Fields{"base_url": base_url, "prefix": prefix}).Info(
+	logger.WithFields(log.Fields{"base_url": base_url, "prefix": prefix}).Debug(
 		"Trying to create new OpenAPI doc")
 	// TODO need to support YAML.
 	result, err := gabs.ParseJSON(jsonDoc)
@@ -29,7 +29,7 @@ func NewOpenAPI(jsonDoc []byte, base_url string, prefix string) *OpenAPIDoc {
 	// prefix.
 	existingPrefix := ""
 	currentServer := result.S("servers").Index(0).S("url").Data()
-	log.WithFields(log.Fields{"url": currentServer}).Info(
+	log.WithFields(log.Fields{"url": currentServer}).Debug(
 		"Checking first server's URL (if any)")
 	if currentServer != nil {
 		existingUrl, err := url.Parse(currentServer.(string))
@@ -46,7 +46,7 @@ func NewOpenAPI(jsonDoc []byte, base_url string, prefix string) *OpenAPIDoc {
 	result.ArrayAppend(0, "servers")
 	server, _ := result.S("servers").ObjectI(0)
 	serverURL := base_url + existingPrefix + prefix
-	logger.WithFields(log.Fields{"url": serverURL}).Info("Creating OpenAPI doc with public URL")
+	logger.WithFields(log.Fields{"url": serverURL}).Debug("Creating OpenAPI doc with public URL")
 	server.Set(serverURL, "url")
 	return &OpenAPIDoc{JSON: result}
 }
