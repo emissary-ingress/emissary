@@ -8,7 +8,7 @@ For users who need additional functionality, Datawire provides two add-on produc
 
 Both of these products use a certified version of Ambassador that undergoes additional testing and validation.
 
-Information about the open source code used in Ambassador Pro and Dev Portal can be found in `/*.opensource.tar.gz` files in each Docker image.
+Information about the open source code used in Ambassador Pro and Dev Portal can be found in `/*.opensource.tar.gz` files in each Docker image. Both of these products are included in a single consolidated Docker image.
 
 ## 1. Clone the Reference Architecture
 The Ambassador add-on products are typically deployed on the same pod as Ambassador. In addition, Redis is used for the rate limit service. In this installation, we'll start with the standard configuration, which is available here:
@@ -158,9 +158,9 @@ Service Preview requires a command-line client, `apictl`. For instructions on co
 
 The Dev Portal can be customized for both content and look-and-feel. For details on using the Dev Portal, see the [Dev Portal Reference](/reference/dev-portal).
 
-# Upgrading Ambassador Pro
+# Upgrading Ambassador Pro and Dev Portal
 
-Follow the steps below to upgrade Ambassador Pro.
+If you have an existing Ambassador installation, you can also upgrade directly to Ambassador Pro and Dev Portal.
 
 **Note**: For simplicity, we recommend storing this license key in a Kubernetes secret that can be referenced by both the certified Ambassador and Ambassador Pro containers. You can do this with the following command.
 
@@ -170,7 +170,7 @@ kubectl create secret generic ambassador-pro-license-key --from-literal=key={{AM
 
 1. Create the `ambassador-pro-license-key` secret using the command above.
 
-2. Upgrade to the latest image of Ambassador Pro
+2. Upgrade to the latest image of Ambassador Pro and Dev Portal:
 
     ```yaml
           - name: ambassador-pro
@@ -186,7 +186,7 @@ kubectl create secret generic ambassador-pro-license-key --from-literal=key={{AM
     +       image: quay.io/datawire/ambassador_pro:amb-core-%aproVersion%
     ```
 
-4. Add the `AMBASSADOR_PRO_LICENSE_KEY` environment variable to the Ambassador container and have it get its value from the secret created in step 1.
+4. Add the `AMBASSADOR_LICENSE_KEY` environment variable to the Ambassador container and have it get its value from the secret created in step 1.
 
     ```yaml
             env:
@@ -201,7 +201,7 @@ kubectl create secret generic ambassador-pro-license-key --from-literal=key={{AM
                   key: key
     ```
   
-5. Ensure the `AMBASSADOR_LICENSE_KEY` in the Ambassador Pro container is also referencing the `ambassador-pro-license-key` secret.
+5. Ensure the `AMBASSADOR_LICENSE_KEY` in the Ambassador Pro/Portal container is also referencing the `ambassador-pro-license-key` secret.
 
     ```yaml
             env:
@@ -216,6 +216,16 @@ kubectl create secret generic ambassador-pro-license-key --from-literal=key={{AM
                 secretKeyRef:
                   name: ambassador-pro-license-key
                   key: key
+    ```
+
+6. If using the Dev Portal, add the `AMBASSADOR_URL` and `APRO_DEVPORTAL_CONTENT_URL` environment variables to your container:
+
+    ```yaml
+            env:
+            - name: AMBASSADOR_URL
+              value: "https://example.com"
+            - name: APRO_DEVPORTAL_CONTENT_URL
+              value: "https://github.com/datawire/devportal-content"
     ```
 
 After making these changes, redeploy Ambassador to receive the performance and stability improvements that certified Ambassador brings. 
