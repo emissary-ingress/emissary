@@ -30,7 +30,7 @@ import (
 )
 
 // Should we output GRPCWeb debugging?
-var debug_grpc_web bool 	// We set this value in main()   XXX This is a hack
+var debug_grpc_web bool // We set this value in main()   XXX This is a hack
 
 // Limit concurrency
 
@@ -357,8 +357,8 @@ func (q Query) CheckErr(err error) bool {
 // returns the decoded proto and trailers.
 func DecodeGrpcWebTextBody(body []byte) ([]byte, http.Header, error) {
 	// First, decode all the base64 stuff coming in. An annoyance here
-	// is that while the data coming over the wire are encoded in 
-	// multiple chunks, we can't rely on seeing that framing when 
+	// is that while the data coming over the wire are encoded in
+	// multiple chunks, we can't rely on seeing that framing when
 	// decoding: a chunk that's the right length to not need any base-64
 	// padding will just run into the next chunk.
 	//
@@ -403,8 +403,8 @@ func DecodeGrpcWebTextBody(body []byte) ([]byte, http.Header, error) {
 	// For our use case here, a type of 0 is the protobuf frame, and a type
 	// of 0x80 is the trailers.
 
-	trailers := make(http.Header)	// the trailers will get saved here
-	var proto []byte 				// this is what we hand off to protobuf decode
+	trailers := make(http.Header) // the trailers will get saved here
+	var proto []byte              // this is what we hand off to protobuf decode
 
 	var frame_start, frame_len uint32
 	var frame_type byte
@@ -418,9 +418,9 @@ func DecodeGrpcWebTextBody(body []byte) ([]byte, http.Header, error) {
 
 	for (frame_start + 5) < uint32(len(raw)) {
 		frame_type = raw[frame_start]
-		frame_len = binary.BigEndian.Uint32(raw[frame_start + 1:frame_start + 5])
+		frame_len = binary.BigEndian.Uint32(raw[frame_start+1 : frame_start+5])
 
-		frame = raw[frame_start + 5:frame_start + 5 + frame_len]
+		frame = raw[frame_start+5 : frame_start+5+frame_len]
 
 		if (frame_type & 128) > 0 {
 			// Trailers frame
@@ -456,7 +456,7 @@ func DecodeGrpcWebTextBody(body []byte) ([]byte, http.Header, error) {
 // AddResponse populates a query's result with data from the query's HTTP
 // response object.
 //
-// This is not called for websockets or real GRPC. It _is_ called for 
+// This is not called for websockets or real GRPC. It _is_ called for
 // GRPC-bridge, GRPC-web, and (of course) HTTP(s).
 func (q Query) AddResponse(resp *http.Response) {
 	result := q.Result()
@@ -470,7 +470,7 @@ func (q Query) AddResponse(resp *http.Response) {
 		cstart := q["client-start-date"]
 
 		// We'll only have a client-start-date if we're doing plain old HTTP, at
-		// present -- so not for WebSockets or gRPC or the like. Don't try to 
+		// present -- so not for WebSockets or gRPC or the like. Don't try to
 		// save the start and end dates if we have no start date.
 		if cstart != nil {
 			headers.Add("Client-Start-Date", q["client-start-date"].(string))
@@ -491,7 +491,7 @@ func (q Query) AddResponse(resp *http.Response) {
 		result["body"] = body
 		if q.GrpcType() != "" && len(body) > 5 {
 			if q.GrpcType() == "web" {
-				// This is the GRPC-web case. Go forth and decode the base64'd 
+				// This is the GRPC-web case. Go forth and decode the base64'd
 				// GRPC-web body madness.
 				decodedBody, trailers, err := DecodeGrpcWebTextBody(body)
 				if q.CheckErr(err) {
@@ -843,7 +843,7 @@ func ExecuteQuery(query Query, secureTransport *http.Transport) {
 
 func main() {
 	debug_grpc_web = false
-	
+
 	rlimit()
 
 	var input, output string
