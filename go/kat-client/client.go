@@ -722,7 +722,7 @@ func CallRealGRPC(query Query) {
 
 // ExecuteQuery constructs the appropriate request, executes it, and records the
 // response and related information in query.result.
-func ExecuteQuery(query Query, secureTransport *http.Transport) {
+func ExecuteQuery(query Query) {
 	// Websocket stuff is handled elsewhere
 	if query.IsWebsocket() {
 		ExecuteWebsocketQuery(query)
@@ -735,8 +735,8 @@ func ExecuteQuery(query Query, secureTransport *http.Transport) {
 		return
 	}
 
-	// Prepare an insecure transport if necessary; otherwise use the normal
-	// transport that was passed in.
+	// Prepare an insecure transport if necessary; otherwise
+	// create a normal secure transport.
 	var transport *http.Transport
 	if query.Insecure() {
 		transport = &http.Transport{
@@ -757,7 +757,10 @@ func ExecuteQuery(query Query, secureTransport *http.Transport) {
 			transport.TLSClientConfig.Certificates = []tls.Certificate{clientCert}
 		}
 	} else {
-		transport = secureTransport
+		transport = &http.Transport{
+			MaxIdleConns:    10,
+			IdleConnTimeout: 30 * time.Second,
+		}
 	}
 	client := &http.Client{
 		Transport: transport,
@@ -805,9 +808,6 @@ func ExecuteQuery(query Query, secureTransport *http.Transport) {
 	if host != "" {
 		if query.SNI() {
 			// Modify the TLS config of the transport.
-			// FIXME I'm not sure why it's okay to do this for the global shared
-			// transport, but apparently it works. The docs say that mutating an
-			// existing tls.Config would be bad too.
 			if transport.TLSClientConfig == nil {
 				transport.TLSClientConfig = &tls.Config{}
 			}
@@ -879,12 +879,6 @@ func main() {
 	}
 	sem := NewSemaphore(limit)
 
-	// Prep global HTTP transport for connection caching/pooling
-	transport := &http.Transport{
-		MaxIdleConns:    10,
-		IdleConnTimeout: 30 * time.Second,
-	}
-
 	// Launch queries concurrently
 	count := len(specs)
 	queries := make(chan bool)
@@ -895,7 +889,7 @@ func main() {
 				queries <- true
 				sem.Release()
 			}()
-			ExecuteQuery(specs[idx], transport)
+			ExecuteQuery(specs[idx])
 		}(i)
 	}
 
