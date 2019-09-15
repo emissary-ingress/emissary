@@ -735,32 +735,24 @@ func ExecuteQuery(query Query) {
 		return
 	}
 
-	// Prepare an insecure transport if necessary; otherwise
-	// create a normal secure transport.
-	var transport *http.Transport
+	// Prepare an http.Transport with customized TLS settings.
+	transport := &http.Transport{
+		MaxIdleConns:    10,
+		IdleConnTimeout: 30 * time.Second,
+		TLSClientConfig: &tls.Config{},
+	}
 	if query.Insecure() {
-		transport = &http.Transport{
-			MaxIdleConns:    10,
-			IdleConnTimeout: 30 * time.Second,
-			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		transport.TLSClientConfig.InsecureSkipVerify = true
+	}
+	if caCert := query.CACert(); len(caCert) > 0 {
+		caCertPool := x509.NewCertPool()
+		caCertPool.AppendCertsFromPEM([]byte(caCert))
+		clientCert, err := tls.X509KeyPair([]byte(query.ClientCert()), []byte(query.ClientKey()))
+		if err != nil {
+			log.Fatal(err)
 		}
-
-		caCert := query.CACert()
-		if len(caCert) > 0 {
-			caCertPool := x509.NewCertPool()
-			caCertPool.AppendCertsFromPEM([]byte(caCert))
-			clientCert, err := tls.X509KeyPair([]byte(query.ClientCert()), []byte(query.ClientKey()))
-			if err != nil {
-				log.Fatal(err)
-			}
-			transport.TLSClientConfig.RootCAs = caCertPool
-			transport.TLSClientConfig.Certificates = []tls.Certificate{clientCert}
-		}
-	} else {
-		transport = &http.Transport{
-			MaxIdleConns:    10,
-			IdleConnTimeout: 30 * time.Second,
-		}
+		transport.TLSClientConfig.RootCAs = caCertPool
+		transport.TLSClientConfig.Certificates = []tls.Certificate{clientCert}
 	}
 	client := &http.Client{
 		Transport: transport,
@@ -807,30 +799,25 @@ func ExecuteQuery(query Query) {
 	host := req.Header.Get("Host")
 	if host != "" {
 		if query.SNI() {
-			// Modify the TLS config of the transport.
-			if transport.TLSClientConfig == nil {
-				transport.TLSClientConfig = &tls.Config{}
-			}
-
 			transport.TLSClientConfig.ServerName = host
-
-			if query.MinTLSVersion() != 0 {
-				transport.TLSClientConfig.MinVersion = query.MinTLSVersion()
-			}
-
-			if query.MaxTLSVersion() != 0 {
-				transport.TLSClientConfig.MaxVersion = query.MaxTLSVersion()
-			}
-
-			if len(query.CipherSuites()) > 0 {
-				transport.TLSClientConfig.CipherSuites = query.CipherSuites()
-			}
-
-			if len(query.ECDHCurves()) > 0 {
-				transport.TLSClientConfig.CurvePreferences = query.ECDHCurves()
-			}
 		}
 		req.Host = host
+	}
+
+	if query.MinTLSVersion() != 0 {
+		transport.TLSClientConfig.MinVersion = query.MinTLSVersion()
+	}
+
+	if query.MaxTLSVersion() != 0 {
+		transport.TLSClientConfig.MaxVersion = query.MaxTLSVersion()
+	}
+
+	if len(query.CipherSuites()) > 0 {
+		transport.TLSClientConfig.CipherSuites = query.CipherSuites()
+	}
+
+	if len(query.ECDHCurves()) > 0 {
+		transport.TLSClientConfig.CurvePreferences = query.ECDHCurves()
 	}
 
 	// Perform the request and save the results.
