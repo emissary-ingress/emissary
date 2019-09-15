@@ -754,12 +754,17 @@ func ExecuteQuery(query Query) {
 		transport.TLSClientConfig.RootCAs = caCertPool
 		transport.TLSClientConfig.Certificates = []tls.Certificate{clientCert}
 	}
-	client := &http.Client{
-		Transport: transport,
-		Timeout:   time.Duration(10 * time.Second),
-		CheckRedirect: func(req *http.Request, via []*http.Request) error {
-			return http.ErrUseLastResponse
-		},
+	if query.MinTLSVersion() != 0 {
+		transport.TLSClientConfig.MinVersion = query.MinTLSVersion()
+	}
+	if query.MaxTLSVersion() != 0 {
+		transport.TLSClientConfig.MaxVersion = query.MaxTLSVersion()
+	}
+	if len(query.CipherSuites()) > 0 {
+		transport.TLSClientConfig.CipherSuites = query.CipherSuites()
+	}
+	if len(query.ECDHCurves()) > 0 {
+		transport.TLSClientConfig.CurvePreferences = query.ECDHCurves()
 	}
 
 	// Prepare the HTTP request
@@ -804,23 +809,14 @@ func ExecuteQuery(query Query) {
 		req.Host = host
 	}
 
-	if query.MinTLSVersion() != 0 {
-		transport.TLSClientConfig.MinVersion = query.MinTLSVersion()
-	}
-
-	if query.MaxTLSVersion() != 0 {
-		transport.TLSClientConfig.MaxVersion = query.MaxTLSVersion()
-	}
-
-	if len(query.CipherSuites()) > 0 {
-		transport.TLSClientConfig.CipherSuites = query.CipherSuites()
-	}
-
-	if len(query.ECDHCurves()) > 0 {
-		transport.TLSClientConfig.CurvePreferences = query.ECDHCurves()
-	}
-
 	// Perform the request and save the results.
+	client := &http.Client{
+		Transport: transport,
+		Timeout:   time.Duration(10 * time.Second),
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		},
+	}
 	resp, err := client.Do(req)
 	if query.CheckErr(err) {
 		return
