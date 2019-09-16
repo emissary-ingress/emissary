@@ -2,8 +2,7 @@ from kat.harness import Query
 
 from abstract_tests import AmbassadorTest, HTTP, ServiceType
 
-
-class RateLimitTest(AmbassadorTest):
+class RateLimitV0Test(AmbassadorTest):
     # debug = True
     target: ServiceType
 
@@ -117,4 +116,92 @@ timeout_ms: 500
             'x-ambassador-test-allow': 'over my dead body'
         })
 
-# main = Runner(AmbassadorTest)
+class RateLimitV1Test(AmbassadorTest):
+    # debug = True
+    target: ServiceType
+
+    def init(self):
+        self.target = HTTP()
+
+    def manifests(self) -> str:
+        return super().manifests() + """
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rate-limit
+spec:
+  selector:
+    app: rate-limit
+  ports:
+  - port: 5000
+    name: grpc
+    targetPort: grpc
+  type: ClusterIP
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: rate-limit
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: rate-limit
+    spec:
+      containers:
+      - name: rate-limit
+        image: dwflynn/ratelimit-service:0.0.1
+        imagePullPolicy: Always
+        ports:
+        - name: grpc
+          containerPort: 5000
+        resources:
+          limits:
+            cpu: "0.1"
+            memory: 100Mi
+"""
+
+    def config(self):
+        # Use self.target here, because we want this mapping to be annotated
+        # on the service, not the Ambassador.
+        yield self.target, self.format("""
+---
+apiVersion: ambassador/v1
+kind:  Mapping
+name:  ratelimit_target_mapping
+prefix: /target/
+service: {self.target.path.fqdn}
+labels:
+  ambassador:
+    - request_label_group:
+      - x-ambassador-test-allow:
+          header: "x-ambassador-test-allow"
+          omit_if_not_present: true
+""")
+
+        yield self, self.format("""
+---
+apiVersion: ambassador/v1
+kind: RateLimitService
+name: ratelimit
+service: rate-limit:5000
+timeout_ms: 500
+""")
+
+    def queries(self):
+        # No matching headers, won't even go through ratelimit-service filter
+        yield Query(self.url("target/"))
+
+        # Header instructing dummy ratelimit-service to allow request
+        yield Query(self.url("target/"), expected=200, headers={
+            'x-ambassador-test-allow': 'true'
+        })
+
+        # Header instructing dummy ratelimit-service to reject request
+        yield Query(self.url("target/"), expected=429, headers={
+            'x-ambassador-test-allow': 'over my dead body'
+        })

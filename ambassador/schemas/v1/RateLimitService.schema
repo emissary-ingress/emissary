@@ -14,10 +14,11 @@
                 { "type": "array", "items": { "type": "string" } }
             ]
         },
-        
+
         "service": { "type": "string" },
         "timeout_ms": { "type": "integer" },
-        "domain": { "type": "string" }
+        "domain": { "type": "string" },
+        "tls": { "type": [ "string", "boolean" ] }
     },
     "required": [ "apiVersion", "kind", "name", "service" ],
     "additionalProperties": false

@@ -79,6 +79,12 @@ service: "example-rate-limit:5000"
 
 You may only use a single `RateLimitService` manifest.
 
+## Rate Limit Service and TLS
+
+You can tell Ambassador to use TLS to talk to your service by using a `RateLimitService` with an `https://` prefix. However, you may also provide a `tls` attribute: if `tls` is present and `true`, Ambassador will originate TLS even if the `service` does not have the `https://` prefix.
+
+If `tls` is present with a value that is not `true`, the value is assumed to be the name of a defined TLS context, which will determine the certificate presented to the upstream service.
+
 ## Example
 
 The [Ambassador Rate Limiting Tutorial](/user-guide/rate-limiting-tutorial) has a simple rate limiting example. For a more advanced example, read the [advanced rate limiting tutorial](/user-guide/advanced-rate-limiting) with Ambassador Pro tutorial.
@@ -89,5 +95,3 @@ The [Ambassador Rate Limiting Tutorial](/user-guide/rate-limiting-tutorial) has 
 * [Rate limiting for API Gateways](https://blog.getambassador.io/rate-limiting-for-api-gateways-892310a2da02)
 * [Implementing a Java Rate Limiting Service for Ambassador](https://blog.getambassador.io/implementing-a-java-rate-limiting-service-for-the-ambassador-api-gateway-e09d542455da)
 * [Designing a Rate Limit Service for Ambassador](https://blog.getambassador.io/designing-a-rate-limiting-service-for-ambassador-f460e9fabedb)
-
-

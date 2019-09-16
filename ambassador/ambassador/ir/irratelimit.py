@@ -50,6 +50,7 @@ class IRRateLimit (IRFilter):
         # OK, we have a valid config.
 
         self.service = service
+        self.ctx_name = config.get('tls', None)
         self.name = "rate_limit"    # Force this, just in case.
         self.domain = config.get('domain', ir.ambassador_module.default_label_domain)
 
@@ -80,7 +81,8 @@ class IRRateLimit (IRFilter):
                 location=self.location,
                 service=self.service,
                 grpc=True,
-                host_rewrite=self.get('host_rewrite', None)
+                host_rewrite=self.get('host_rewrite', None),
+                ctx_name=self.get('ctx_name', None)
             )
         )
 
