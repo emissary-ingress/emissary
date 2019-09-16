@@ -124,20 +124,25 @@ func (c *FilterMux) filter(ctx context.Context, request *filterapi.FilterRequest
 		filterQName := filterRef.Name + "." + filterRef.Namespace
 		logger.Debugf("applying filter=%q", filterQName)
 
-		filterCRD := findFilter(c.Controller, filterQName)
-		if filterCRD == nil {
-			return middleware.NewErrorResponse(ctx, http.StatusInternalServerError, errors.Errorf("could not find not filter: %q", filterQName), nil), nil
+		filterInfo := findFilter(c.Controller, filterQName)
+		if filterInfo == nil {
+			return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
+				errors.Errorf("could not find not filter: %q", filterQName), nil), nil
+		}
+		if filterInfo.Err != nil {
+			return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
+				errors.Wrapf(filterInfo.Err, "error in filter %q configuration", filterQName), nil), nil
 		}
 
 		var filterImpl filterapi.Filter
-		switch filterCRD := filterCRD.(type) {
+		switch filterSpec := filterInfo.Spec.(type) {
 		case crd.FilterOAuth2:
 			_filterImpl := &oauth2handler.OAuth2Filter{
 				PrivateKey: c.PrivateKey,
 				PublicKey:  c.PublicKey,
 				RedisPool:  c.RedisPool,
 				QName:      filterQName,
-				Spec:       filterCRD,
+				Spec:       filterSpec,
 			}
 			if err := mapstructure.Convert(filterRef.Arguments, &_filterImpl.Arguments); err != nil {
 				return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
@@ -145,19 +150,19 @@ func (c *FilterMux) filter(ctx context.Context, request *filterapi.FilterRequest
 			}
 			filterImpl = _filterImpl
 		case crd.FilterPlugin:
-			filterImpl = filterutil.HandlerToFilter(filterCRD.Handler)
+			filterImpl = filterutil.HandlerToFilter(filterSpec.Handler)
 		case crd.FilterJWT:
 			filterImpl = &jwthandler.JWTFilter{
-				Spec: filterCRD,
+				Spec: filterSpec,
 			}
 		case crd.FilterExternal:
 			filterImpl = &externalhandler.ExternalFilter{
-				Spec: filterCRD,
+				Spec: filterSpec,
 			}
 		case crd.FilterInternal:
 			filterImpl = internalhandler.MakeInternalFilter()
 		default:
-			panic(errors.Errorf("unexpected filter type %T", filterCRD))
+			panic(errors.Errorf("unexpected filter type %T", filterSpec))
 		}
 
 		response, err := filterImpl.Filter(middleware.WithLogger(ctx, logger.WithField("FILTER", filterQName)), request)
@@ -193,28 +198,27 @@ func ruleForURL(c *controller.Controller, u *url.URL) *crd.Rule {
 	return findRule(c, u.Host, u.Path)
 }
 
-func findFilter(c *controller.Controller, qname string) interface{} {
-	mws := c.Filters.Load()
-	if mws != nil {
-		filters := mws.(map[string]interface{})
-		filter, ok := filters[qname]
-		if ok {
-			return filter
-		}
+func findFilter(c *controller.Controller, qname string) *controller.FilterInfo {
+	filters := c.LoadFilters()
+	if filters == nil {
+		return nil
 	}
-
-	return nil
+	filter, filterOK := filters[qname]
+	if !filterOK {
+		return nil
+	}
+	return &filter
 }
 
 func findRule(c *controller.Controller, host, path string) *crd.Rule {
-	rules := c.Rules.Load()
-	if rules != nil {
-		for _, rule := range rules.([]crd.Rule) {
-			if rule.MatchHTTPHeaders(host, path) {
-				return &rule
-			}
+	rules := c.LoadRules()
+	if rules == nil {
+		return nil
+	}
+	for _, rule := range rules {
+		if rule.MatchHTTPHeaders(host, path) {
+			return &rule
 		}
 	}
-
 	return nil
 }
