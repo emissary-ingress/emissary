@@ -16,6 +16,7 @@ import logging
 import time
 
 import requests
+from flask import Response
 
 def percentage(x, y):
     if y == 0:
@@ -194,7 +195,7 @@ class EnvoyStats (object):
             logging.warning("EnvoyStats.get_prometheus_state failed: %s" % r.text)
             return
         else:
-            return r.text
+            return Response(r.text, status=201, mimetype='text/plain')
         
     def update_envoy_stats(self, last_attempt):
         # logging.info("updating stats")
