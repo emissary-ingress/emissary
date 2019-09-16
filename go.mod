@@ -1,6 +1,6 @@
 module github.com/datawire/apro-example-plugin
 
-go 1.12
+go 1.13
 
 require (
 	github.com/google/btree v1.0.0 // indirect
@@ -9,6 +9,7 @@ require (
 	github.com/hashicorp/go-rootcerts v1.0.0 // indirect
 	github.com/hashicorp/golang-lru v0.5.1 // indirect
 	github.com/hashicorp/serf v0.8.2 // indirect
+	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/mitchellh/go-testing-interface v1.0.0 // indirect
 	github.com/mitchellh/mapstructure v1.1.2 // indirect
 	github.com/pkg/errors v0.8.1 // indirect
