@@ -492,6 +492,8 @@ clean: $(addsuffix .clean,$(wildcard docker/*.docker)) loadtest-clean
 # Files made by older versions.  Remove the tail of this list when the
 # commit making the change gets far enough in to the past.
 #
+# 2019-09-16
+	rm -f docker/dev-portal-server/dev-portal-server
 # 2019-09-12
 	rm -f tests/cluster/consul/new_root.crt tests/cluster/consul/new_root.key
 # 2019-09-04
