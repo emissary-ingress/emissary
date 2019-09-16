@@ -13,7 +13,7 @@ import (
 type ServerConfig struct {
 	AmbassadorAdminURL    string
 	AmbassadorInternalURL string
-	PublicURL             string
+	AmbassadorExternalURL string
 	PollFrequency         time.Duration
 	ContentURL            string
 }
@@ -32,7 +32,7 @@ func MakeServer(docroot string, ctx context.Context, config ServerConfig) (s *Se
 	fetcher := NewFetcher(
 		s.getServiceAdd(), s.getServiceDelete(), httpGet, knownServices,
 		config.AmbassadorAdminURL, config.AmbassadorInternalURL,
-		config.PollFrequency, config.PublicURL)
+		config.PollFrequency, config.AmbassadorExternalURL)
 	go func() {
 		fetcher.retrieve()
 		defer fetcher.Stop()
@@ -42,13 +42,13 @@ func MakeServer(docroot string, ctx context.Context, config ServerConfig) (s *Se
 }
 
 func Main(
-	version string, ambassadorAdminURL string, ambassadorInternalURL string, publicURL string,
+	version string, ambassadorAdminURL string, ambassadorInternalURL string, ambassadorExternalURL string,
 	pollFrequency time.Duration, contentURL string) {
 
 	config := ServerConfig{
 		AmbassadorAdminURL:    ambassadorAdminURL,
 		AmbassadorInternalURL: ambassadorInternalURL,
-		PublicURL:             publicURL,
+		AmbassadorExternalURL: ambassadorExternalURL,
 		PollFrequency:         pollFrequency,
 		ContentURL:            contentURL,
 	}

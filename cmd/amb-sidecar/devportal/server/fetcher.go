@@ -76,7 +76,7 @@ type fetcher struct {
 	// ambassador's URL
 	ambassadorInternalURL string
 	// The public default base URL for the APIs, e.g. https://api.example.com
-	publicBaseURL string
+	ambassadorExternalURL string
 	// Shared secret to send so that we can access .ambassador-internal
 	internalSecret *internalaccess.InternalSecret
 }
@@ -86,7 +86,7 @@ type fetcher struct {
 func NewFetcher(
 	add AddServiceFunc, delete DeleteServiceFunc, httpGet HTTPGetFunc,
 	known []kubernetes.Service,
-	ambassadorAdminURL string, ambassadorInternalURL string, duration time.Duration, publicBaseURL string,
+	ambassadorAdminURL string, ambassadorInternalURL string, duration time.Duration, ambassadorExternalURL string,
 ) *fetcher {
 	f := &fetcher{
 		add:                   add,
@@ -99,7 +99,7 @@ func NewFetcher(
 		logger:                log.WithFields(log.Fields{"subsystem": "fetcher"}),
 		ambassadorAdminURL:    strings.TrimRight(ambassadorAdminURL, "/"),
 		ambassadorInternalURL: strings.TrimRight(ambassadorInternalURL, "/"),
-		publicBaseURL:         strings.TrimRight(publicBaseURL, "/"),
+		ambassadorExternalURL: strings.TrimRight(ambassadorExternalURL, "/"),
 		internalSecret:        internalaccess.GetInternalSecret(),
 	}
 	go func() {
@@ -224,7 +224,7 @@ func (f *fetcher) _retrieve(reason string) {
 				// TODO what if it's http? (arguably it should never be)
 				baseURL = "https://" + getString(mapping, "host")
 			} else {
-				baseURL = f.publicBaseURL
+				baseURL = f.ambassadorExternalURL
 			}
 			f.logger.WithFields(log.Fields{
 				"name":      name,

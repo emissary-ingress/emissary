@@ -37,7 +37,7 @@ func licenseEnforce() {
 
 func main() {
 	licenseEnforce()
-	var ambassadorAdminURL, ambassadorInternalURL, publicURL, pollEverySecsStr, contentURL string
+	var ambassadorAdminURL, ambassadorInternalURL, ambassadorExternalURL, pollEverySecsStr, contentURL string
 	var pollEverySecs time.Duration = 60 * time.Second
 	var set bool
 	ambassadorAdminURL, set = os.LookupEnv("AMBASSADOR_ADMIN_URL")
@@ -51,12 +51,12 @@ func main() {
 		// Ambassador's Envoy running in the same Pod:
 		ambassadorInternalURL = "http://localhost:8080"
 	}
-	publicURL, set = os.LookupEnv("AMBASSADOR_URL")
+	ambassadorExternalURL, set = os.LookupEnv("AMBASSADOR_URL")
 	if !set {
 		// We need whoever is installing the Dev Portal to supply this,
 		// but since it ends up in documentation only it's OK to have a
 		// placeholder.
-		publicURL = "https://api.example.com"
+		ambassadorExternalURL = "https://api.example.com"
 	}
 	pollEverySecsStr, set = os.LookupEnv("POLL_EVERY_SECS")
 	if set {
@@ -72,8 +72,8 @@ func main() {
 		// We need whoever is installing the Dev Portal to supply this,
 		// but since it ends up in documentation only it's OK to have a
 		// placeholder.
-		publicURL = "dev-server-content-root"
+		ambassadorExternalURL = "dev-server-content-root"
 	}
-	server.Main(Version, ambassadorAdminURL, ambassadorInternalURL, publicURL, pollEverySecs,
+	server.Main(Version, ambassadorAdminURL, ambassadorInternalURL, ambassadorExternalURL, pollEverySecs,
 		contentURL)
 }

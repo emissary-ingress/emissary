@@ -13,7 +13,7 @@ func publicUrlCheck(u string) publicUrlChecker {
 }
 
 func (c publicUrlChecker) make() portal.ServerConfig {
-	return portal.ServerConfig{PublicURL: string(c)}
+	return portal.ServerConfig{AmbassadorExternalURL: string(c)}
 }
 
 func (c publicUrlChecker) isOk(t *testing.T) {

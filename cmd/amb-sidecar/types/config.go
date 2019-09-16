@@ -83,7 +83,7 @@ func PortalConfigFromEnv(warn []error, fatal []error) (portal.ServerConfig, []er
 			"http://127.0.0.1:8877/"),
 		AmbassadorInternalURL: getenvDefault("AMBASSADOR_INTERNAL_URL",
 			"https://127.0.0.1:8443/"),
-		PublicURL: getenvDefault("AMBASSADOR_URL",
+		AmbassadorExternalURL: getenvDefault("AMBASSADOR_URL",
 			"https://api.example.com"),
 		PollFrequency: pollFrequency,
 
@@ -94,11 +94,11 @@ func PortalConfigFromEnv(warn []error, fatal []error) (portal.ServerConfig, []er
 }
 
 func validatePortalConfig(cfg portal.ServerConfig, warn []error, fatal []error) (portal.ServerConfig, []error, []error) {
-	u, err := url.Parse(cfg.PublicURL)
+	u, err := url.Parse(cfg.AmbassadorExternalURL)
 	if err != nil {
 		fatal = append(fatal, errors.Wrap(err, "Cannot parse AMBASSADOR_URL"))
 	} else if !u.IsAbs() || u.Host == "" {
-		fatal = append(fatal, fmt.Errorf("AMBASSADOR_URL must be an absolute url (got %q)", cfg.PublicURL))
+		fatal = append(fatal, fmt.Errorf("AMBASSADOR_URL must be an absolute url (got %q)", cfg.AmbassadorExternalURL))
 	}
 	return cfg, warn, fatal
 }
