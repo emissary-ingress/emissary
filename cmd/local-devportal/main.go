@@ -18,9 +18,9 @@ var Version = "(unknown version)"
 
 func licenseEnforce() {
 	devportal := &cobra.Command{
-		Use: "dev-portal-server [command]",
+		Use: "local-devportal [command]",
 	}
-	keycheck := licensekeys.InitializeCommandFlags(devportal.PersistentFlags(), "dev-portal-server", Version)
+	keycheck := licensekeys.InitializeCommandFlags(devportal.PersistentFlags(), "local-devportal", Version)
 	devportal.SilenceUsage = true // https://github.com/spf13/cobra/issues/340
 	licenseClaims, err := keycheck(devportal.PersistentFlags())
 	if err == nil {

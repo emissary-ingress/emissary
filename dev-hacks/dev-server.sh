@@ -30,4 +30,4 @@ fi
 echo "======="
 pwd
 echo "======="
-$BIN/dev-portal-server
+$BIN/local-devportal
