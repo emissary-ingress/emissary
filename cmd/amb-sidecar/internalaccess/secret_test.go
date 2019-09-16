@@ -1,4 +1,4 @@
-package secret
+package internalaccess
 
 import (
 	"testing"

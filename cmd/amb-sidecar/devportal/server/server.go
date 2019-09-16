@@ -10,9 +10,9 @@ import (
 	"github.com/oxtoacart/bpool"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/datawire/apro/cmd/dev-portal-server/content"
-	"github.com/datawire/apro/cmd/dev-portal-server/kubernetes"
-	"github.com/datawire/apro/cmd/dev-portal-server/openapi"
+	"github.com/datawire/apro/cmd/amb-sidecar/devportal/content"
+	"github.com/datawire/apro/cmd/amb-sidecar/devportal/kubernetes"
+	"github.com/datawire/apro/cmd/amb-sidecar/devportal/openapi"
 	"github.com/datawire/apro/lib/logging"
 )
 

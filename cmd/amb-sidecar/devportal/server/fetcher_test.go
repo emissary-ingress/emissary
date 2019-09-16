@@ -10,8 +10,8 @@ import (
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 
-	. "github.com/datawire/apro/cmd/dev-portal-server/kubernetes"
-	. "github.com/datawire/apro/cmd/dev-portal-server/openapi"
+	. "github.com/datawire/apro/cmd/amb-sidecar/devportal/kubernetes"
+	. "github.com/datawire/apro/cmd/amb-sidecar/devportal/openapi"
 )
 
 var testdataAmbassadorDiagJSON, _ = ioutil.ReadFile("testdata/ambassador-diag.json")

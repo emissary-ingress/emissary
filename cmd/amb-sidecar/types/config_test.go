@@ -3,7 +3,7 @@ package types
 import (
 	"testing"
 
-	portal "github.com/datawire/apro/cmd/dev-portal-server/server"
+	portal "github.com/datawire/apro/cmd/amb-sidecar/devportal/server"
 )
 
 type publicUrlChecker string

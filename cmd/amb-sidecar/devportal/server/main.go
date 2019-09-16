@@ -7,7 +7,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/datawire/apro/cmd/dev-portal-server/content"
+	"github.com/datawire/apro/cmd/amb-sidecar/devportal/content"
 )
 
 type ServerConfig struct {

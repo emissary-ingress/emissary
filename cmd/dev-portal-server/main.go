@@ -9,7 +9,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
-	"github.com/datawire/apro/cmd/dev-portal-server/server"
+	"github.com/datawire/apro/cmd/amb-sidecar/devportal/server"
 	"github.com/datawire/apro/lib/licensekeys"
 )
 

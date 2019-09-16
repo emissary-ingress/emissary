@@ -28,12 +28,12 @@ import (
 	stats "github.com/lyft/gostats"
 
 	// internal libraries: github.com/datawire/apro
-	"github.com/datawire/apro/cmd/amb-sidecar/filters/app"
-	"github.com/datawire/apro/cmd/amb-sidecar/filters/app/health"
+	portal "github.com/datawire/apro/cmd/amb-sidecar/devportal/server"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/controller"
-	rlscontroller "github.com/datawire/apro/cmd/amb-sidecar/rls"
+	filterhandler "github.com/datawire/apro/cmd/amb-sidecar/filters/handler"
+	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/health"
+	rlscontroller "github.com/datawire/apro/cmd/amb-sidecar/ratelimits"
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
-	portal "github.com/datawire/apro/cmd/dev-portal-server/server"
 	"github.com/datawire/apro/lib/licensekeys"
 	"github.com/datawire/apro/lib/util"
 
@@ -221,7 +221,7 @@ func runE(cmd *cobra.Command, args []string) error {
 			if err != nil {
 				return err
 			}
-			authService, err := app.NewFilterMux(cfg, l.WithField("SUB", "http-handler"), ct, coreClient, redisPool)
+			authService, err := filterhandler.NewFilterMux(cfg, l.WithField("SUB", "http-handler"), ct, coreClient, redisPool)
 			if err != nil {
 				return err
 			}

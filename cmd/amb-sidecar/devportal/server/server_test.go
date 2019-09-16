@@ -8,8 +8,8 @@ import (
 	"github.com/Jeffail/gabs"
 	. "github.com/onsi/gomega"
 
-	. "github.com/datawire/apro/cmd/dev-portal-server/kubernetes"
-	. "github.com/datawire/apro/cmd/dev-portal-server/openapi"
+	. "github.com/datawire/apro/cmd/amb-sidecar/devportal/kubernetes"
+	. "github.com/datawire/apro/cmd/amb-sidecar/devportal/openapi"
 )
 
 // We can add a service to the internal memory representation, and it gets

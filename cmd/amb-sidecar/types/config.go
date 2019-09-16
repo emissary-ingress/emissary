@@ -10,7 +10,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
-	portal "github.com/datawire/apro/cmd/dev-portal-server/server"
+	portal "github.com/datawire/apro/cmd/amb-sidecar/devportal/server"
 )
 
 type Config struct {

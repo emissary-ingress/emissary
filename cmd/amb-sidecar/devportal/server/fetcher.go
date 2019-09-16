@@ -11,8 +11,8 @@ import (
 	"github.com/Jeffail/gabs"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/datawire/apro/cmd/amb-sidecar/internal-access/secret"
-	"github.com/datawire/apro/cmd/dev-portal-server/kubernetes"
+	"github.com/datawire/apro/cmd/amb-sidecar/devportal/kubernetes"
+	"github.com/datawire/apro/cmd/amb-sidecar/internalaccess"
 	"github.com/datawire/apro/lib/util"
 )
 
@@ -78,7 +78,7 @@ type fetcher struct {
 	// The public default base URL for the APIs, e.g. https://api.example.com
 	publicBaseURL string
 	// Shared secret to send so that we can access .ambassador-internal
-	internalSecret *secret.InternalSecret
+	internalSecret *internalaccess.InternalSecret
 }
 
 // Object that retrieves service info and OpenAPI docs (if available) and
@@ -98,7 +98,7 @@ func NewFetcher(
 		diagURL:        strings.TrimRight(diagURL, "/"),
 		ambassadorURL:  strings.TrimRight(ambassadorURL, "/"),
 		publicBaseURL:  strings.TrimRight(publicBaseURL, "/"),
-		internalSecret: secret.GetInternalSecret(),
+		internalSecret: internalaccess.GetInternalSecret(),
 	}
 	go func() {
 		for {

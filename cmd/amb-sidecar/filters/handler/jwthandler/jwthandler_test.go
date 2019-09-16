@@ -9,8 +9,8 @@ import (
 	jwt "github.com/dgrijalva/jwt-go"
 
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta2"
-	"github.com/datawire/apro/cmd/amb-sidecar/filters/app/jwthandler"
-	"github.com/datawire/apro/cmd/amb-sidecar/filters/app/middleware"
+	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/jwthandler"
+	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/middleware"
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
 	"github.com/datawire/apro/lib/filterapi"
 	"github.com/datawire/apro/lib/filterapi/filterutil"
