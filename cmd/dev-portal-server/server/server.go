@@ -2,24 +2,29 @@ package server
 
 import (
 	"encoding/json"
-	"html/template"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/oxtoacart/bpool"
 	log "github.com/sirupsen/logrus"
 
+	"github.com/datawire/apro/cmd/dev-portal-server/content"
 	"github.com/datawire/apro/cmd/dev-portal-server/kubernetes"
 	"github.com/datawire/apro/cmd/dev-portal-server/openapi"
 	"github.com/datawire/apro/lib/logging"
 )
 
-type server struct {
+type Server struct {
 	router   *mux.Router
+	content  *content.Content
 	K8sStore kubernetes.ServiceStore
+
+	pool *bpool.BufferPool
 }
 
-func (s *server) knownServices() []kubernetes.Service {
+func (s *Server) knownServices() []kubernetes.Service {
 	serviceMap := s.K8sStore.List()
 	knownServices := make([]kubernetes.Service, len(serviceMap))
 	i := 0
@@ -30,7 +35,7 @@ func (s *server) knownServices() []kubernetes.Service {
 	return knownServices
 }
 
-func (s *server) getServiceAdd() AddServiceFunc {
+func (s *Server) getServiceAdd() AddServiceFunc {
 	return func(
 		service kubernetes.Service, baseURL string, prefix string,
 		openAPIDoc []byte) {
@@ -46,14 +51,14 @@ func (s *server) getServiceAdd() AddServiceFunc {
 	}
 }
 
-func (s *server) getServiceDelete() DeleteServiceFunc {
+func (s *Server) getServiceDelete() DeleteServiceFunc {
 	return func(service kubernetes.Service) {
 		s.K8sStore.Delete(service)
 	}
 }
 
-func (s *server) ServeHTTP() {
-	log.Fatal(http.ListenAndServe("0.0.0.0:8680", s.router))
+func (s *Server) Router() http.Handler {
+	return s.router
 }
 
 type openAPIListing struct {
@@ -64,7 +69,7 @@ type openAPIListing struct {
 	HasDoc           bool   `json:"has_doc"`
 }
 
-func (s *server) handleOpenAPIListing() http.HandlerFunc {
+func (s *Server) handleOpenAPIListing() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		result := make([]openAPIListing, 0)
 		for service, metadata := range s.K8sStore.List() {
@@ -87,11 +92,11 @@ func (s *server) handleOpenAPIListing() http.HandlerFunc {
 	}
 }
 
-func (s *server) handleOpenAPIGet() http.HandlerFunc {
+func (s *Server) handleOpenAPIGet() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		metadata := s.K8sStore.Get(kubernetes.Service{
-			Name: vars["name"], Namespace: vars["namespace"]},
+			Name: vars["service"], Namespace: vars["namespace"]},
 			true)
 		if metadata == nil {
 			w.WriteHeader(http.StatusNotFound)
@@ -111,7 +116,7 @@ type openAPIUpdate struct {
 	Doc              interface{} `json:"openapi_doc"`
 }
 
-func (s *server) handleOpenAPIUpdate() http.HandlerFunc {
+func (s *Server) handleOpenAPIUpdate() http.HandlerFunc {
 	addService := s.getServiceAdd()
 
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -124,7 +129,7 @@ func (s *server) handleOpenAPIUpdate() http.HandlerFunc {
 		var msg openAPIUpdate
 		err = json.Unmarshal(b, &msg)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 		hasdoc := (msg.Doc != nil)
@@ -141,117 +146,75 @@ func (s *server) handleOpenAPIUpdate() http.HandlerFunc {
 	}
 }
 
-func (s *server) handleIndexHTML() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		funcMap := template.FuncMap{
-			// The name "inc" is what the function will be called in the template text.
-			"isEven": func(i int) bool {
-				return i%2 == 0
-			},
+type contentVars struct {
+	S      *Server
+	Ctx    string
+	Prefix string
+	Pages  []string
+	Rq     map[string]string
+}
 
-			"isOdd": func(i int) bool {
-				return i%2 != 0
-			},
-		}
-
-		tmpl, err := template.New("index").Funcs(funcMap).Parse(`
-<html lang="utf-8">
-<head>
-	<title>Developer Portal</title>
-
-	<!-- Bootstrap core CSS -->
-	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" integrity="sha384-WskhaSGFgHYWDcbwN70/dfYBj47jz9qbsMId/iRN3ewGhXQFZCSftd1LZCfmhktB" crossorigin="anonymous">
-
-	<!-- Custom styles for this template -->
-	<link href="https://getbootstrap.com/docs/4.0/examples/grid/grid.css" rel="stylesheet">
-</head>
-<body>
-<div class="container">
-	<h1>Developer Portal</h1>
-	<div class="row">
-		<div class="col-12">
-			Available Services
-			<div class="row">
-				<div class="col-12">
-					<table cellpadding="2em" width="100%">
-						<thead>
-							<tr>
-								<td><b>Service Name</b></td>
-								<td><b>Swagger URL</b></td>
-							</tr>
-						</thead>
-						<tbody>
-							{{range $i, $element := .K8sStore.Slice }}
-							{{if isEven $i }}
-							<tr style="background: rgba(86,61,124,.05);">
-							{{else}}
-							<tr>
-							{{end}}
-								<td>
-									<samp>{{$element.Service.Namespace}}.{{$element.Service.Name}}</samp>
-								</td>
-								<td>
-									{{if $element.Metadata.HasDoc}}
-    								<a href="doc/{{$element.Service.Namespace}}/{{$element.Service.Name}}"><code>API Documentation</code></a>
-									{{else}}
-									<code><span style="color:red">No API Documentation</span></code>
-    								{{end}}
-								</td>
-							</tr>
-							{{end}}
-						</tbody>
-					</table>
-				</div>
-			</div>
-		</div>
-	</div>
-</div>
-</body>
-</html>
-`)
-
-		if err != nil {
-			log.Fatal(err)
-		}
-		w.Header().Set("Content-Type", "text/html")
-		err = tmpl.Execute(w, s)
-		if err != nil {
-			log.Fatal(err)
-		}
+func (s *Server) vars(r *http.Request, context, prefix string) content.ContentVars {
+	return &contentVars{
+		S:      s,
+		Ctx:    context,
+		Prefix: prefix,
+		Rq:     mux.Vars(r),
 	}
 }
 
-func (s *server) handleDocHTML() http.HandlerFunc {
+func (vars *contentVars) SetPages(pages []string) {
+	vars.Pages = pages
+}
+
+func (vars *contentVars) CurrentPage() (page string) {
+	page = vars.Rq["page"]
+	return
+}
+
+func (vars *contentVars) CurrentNamespace() (page string) {
+	page = vars.Rq["namespace"]
+	return
+}
+
+func (vars *contentVars) CurrentService() (page string) {
+	page = vars.Rq["service"]
+	return
+}
+
+func (s *Server) handleHTML(context string, prefix string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		tmpl, err := template.New("doc").Parse(`
-<head>
-<script src="https://unpkg.com/swagger-ui-dist@3/swagger-ui-bundle.js"></script>
-<script src="https://unpkg.com/swagger-ui-dist@3/swagger-standalone-preset.js"></script>
-<link rel="stylesheet" type="text/css" href="https://unpkg.com/swagger-ui-dist@3/swagger-ui.css" >
-</head>
-<body>
-<span id="swagger-ui"></span>
-<script>
-const ui = SwaggerUIBundle({
-    url: "../../openapi/services/{{.namespace}}/{{.name}}/openapi.json",
-    dom_id: '#swagger-ui',
-    presets: [
-      SwaggerUIBundle.presets.apis,
-      SwaggerUIBundle.SwaggerUIStandalonePreset
-    ],
-  })
-</script>
-</body>
-`)
+		vars := s.vars(r, context, prefix)
+		tmpl, err := s.content.Get(vars)
 		if err != nil {
 			log.Fatal(err)
 		}
-		vars := mux.Vars(r)
+		buffer := s.pool.Get()
+		defer s.pool.Put(buffer)
+		err = tmpl.Lookup("///layout").Execute(buffer, vars)
+		if err != nil {
+			log.Warn(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(err.Error()))
+			return
+		}
 		w.Header().Set("Content-Type", "text/html")
-		err = tmpl.Execute(w, vars)
+		w.Header().Set("Content-Length",
+			fmt.Sprintf("%d", buffer.Len()))
+		buffer.WriteTo(w)
+	}
+}
+
+func (s *Server) handleStatic(docroot string) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		content, err := s.content.GetStatic(r.URL.Path[len(docroot):])
 		if err != nil {
-			log.Fatal(err)
+			log.Warn(err)
+			w.WriteHeader(http.StatusNotFound)
+			return
 		}
+		http.ServeContent(w, r, content.Name, content.Modtime, content.Data)
+		content.Close()
 	}
 }
 
@@ -260,17 +223,26 @@ const ui = SwaggerUIBundle({
 // TODO The URL scheme exposes Service names and K8s namespace names, which is
 // perhaps a security risk, and more broadly might be embarrassing for some
 // organizations. So might want some better URL scheme.
-func NewServer() *server {
+func NewServer(docroot string, content *content.Content) *Server {
 	router := mux.NewRouter()
 	router.Use(logging.LoggingMiddleware)
 
-	s := &server{router: router, K8sStore: kubernetes.NewInMemoryStore()}
+	s := &Server{
+		router:   router,
+		content:  content,
+		K8sStore: kubernetes.NewInMemoryStore(),
+		pool:     bpool.NewBufferPool(64),
+	}
 
 	// TODO in a later design iteration, we would serve static HTML, and
 	// have Javascript UI that queries the API endpoints. for this
 	// iteration, just doing it server-side.
-	router.HandleFunc("/", s.handleIndexHTML())
-	router.HandleFunc("/doc/{namespace}/{name}", s.handleDocHTML())
+	root := docroot + "/"
+	router.HandleFunc(docroot+"/", s.handleHTML("landing", root))
+	router.PathPrefix(docroot + "/assets/").HandlerFunc(s.handleStatic(docroot))
+	router.PathPrefix(docroot + "/styles/").HandlerFunc(s.handleStatic(docroot))
+	router.HandleFunc(docroot+"/page/{page}", s.handleHTML("page", root))
+	router.HandleFunc(docroot+"/doc/{namespace}/{service}", s.handleHTML("doc", root))
 
 	// *** Read-only API, requires less access control and may be exposed ***
 	// publicly:
@@ -281,7 +253,7 @@ func NewServer() *server {
 	// Return the OpenAPI JSON:
 	router.
 		HandleFunc(
-			"/openapi/services/{namespace}/{name}/openapi.json",
+			"/openapi/services/{namespace}/{service}/openapi.json",
 			s.handleOpenAPIGet()).
 		Methods("GET")
 

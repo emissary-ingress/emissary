@@ -11,7 +11,7 @@ import (
 	"github.com/Jeffail/gabs"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/datawire/apro/cmd/apro-internal-access/secret"
+	"github.com/datawire/apro/cmd/amb-sidecar/internal-access/secret"
 	"github.com/datawire/apro/cmd/dev-portal-server/kubernetes"
 	"github.com/datawire/apro/lib/util"
 )
@@ -78,14 +78,14 @@ type fetcher struct {
 	// The public default base URL for the APIs, e.g. https://api.example.com
 	publicBaseURL string
 	// Shared secret to send so that we can access .ambassador-internal
-	internalSecret string
+	internalSecret *secret.InternalSecret
 }
 
 // Object that retrieves service info and OpenAPI docs (if available) and
 // adds/deletes changes from last run.
 func NewFetcher(
 	add AddServiceFunc, delete DeleteServiceFunc, httpGet HTTPGetFunc,
-	known []kubernetes.Service, diagURL string, ambassadorURL string, duration time.Duration, publicBaseURL string, sharedSecretPath string) *fetcher {
+	known []kubernetes.Service, diagURL string, ambassadorURL string, duration time.Duration, publicBaseURL string) *fetcher {
 	f := &fetcher{
 		add:            add,
 		delete:         delete,
@@ -98,7 +98,7 @@ func NewFetcher(
 		diagURL:        strings.TrimRight(diagURL, "/"),
 		ambassadorURL:  strings.TrimRight(ambassadorURL, "/"),
 		publicBaseURL:  strings.TrimRight(publicBaseURL, "/"),
-		internalSecret: secret.LoadSecret(sharedSecretPath),
+		internalSecret: secret.GetInternalSecret(),
 	}
 	go func() {
 		for {
@@ -141,7 +141,7 @@ var client = util.SimpleClient{Client: &http.Client{
 
 func httpGet(url string, internalSecret string, logger *log.Entry) ([]byte, error) {
 	logger = logger.WithFields(log.Fields{"url": url})
-	logger.Info("HTTP GET")
+	logger.Debug("HTTP GET")
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		logger.Error(err)
@@ -163,7 +163,7 @@ func httpGet(url string, internalSecret string, logger *log.Entry) ([]byte, erro
 		logger.Error(err)
 		return nil, err
 	}
-	logger.Info("GET succeeded")
+	logger.Debug("GET succeeded")
 	return buf, nil
 }
 
@@ -234,11 +234,15 @@ func (f *fetcher) _retrieve(reason string) {
 			var doc []byte
 			docBuf, err := f.httpGet(
 				f.ambassadorURL+prefix+"/.ambassador-internal/openapi-docs",
-				f.internalSecret,
+				f.internalSecret.Get(),
 				f.logger)
 			if err == nil {
 				doc = docBuf
 			} else {
+				doc = nil
+			}
+			_, err = gabs.ParseJSON(doc)
+			if err != nil {
 				doc = nil
 			}
 			service := kubernetes.Service{Namespace: namespace, Name: name}

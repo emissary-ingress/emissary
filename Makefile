@@ -386,6 +386,10 @@ run-auth: ## (LocalDev) Build and launch the auth service locally
 run-auth: bin_$(GOHOSTOS)_$(GOHOSTARCH)/amb-sidecar
 	env $$(cat pro-env.sh) APP_LOG_LEVEL=debug bin_$(GOHOSTOS)_$(GOHOSTARCH)/amb-sidecar main
 .PHONY: run-auth
+run-dev-portal: ## (LocalDev) Build and launch the dev server locally
+run-dev-portal: bin_$(GOHOSTOS)_$(GOHOSTARCH)/dev-portal-server
+	sh -x dev-hacks/dev-server.sh
+.PHONY: run-dev-portal
 
 venv/bin/activate: %/bin/activate:
 	mkdir -p $*
@@ -490,6 +494,8 @@ clean: $(addsuffix .clean,$(wildcard docker/*.docker)) loadtest-clean
 #
 # 2019-09-12
 	rm -f tests/cluster/consul/new_root.crt tests/cluster/consul/new_root.key
+# 2019-09-04
+	rm -rf docker/apro-internal-access/apro-internal-access
 # 2019-08-29
 	rm -rf ambassador-nolicense ambassador-withlicense
 # 2019-08-14
@@ -537,6 +543,7 @@ clobber:
 	rm -f docker/*/kubeapply
 	rm -f docker/*/kubectl
 	rm -rf tests/cluster/oauth-e2e/node_modules
+	rm -rf dev-hacks/.venv/
 	rm -rf venv
 	rm -rf ambassador
 

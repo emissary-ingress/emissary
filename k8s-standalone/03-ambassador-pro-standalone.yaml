@@ -8,109 +8,7 @@
 #  - in the "standalone" namespace
 #  - with the "telepresence-proxy" Service+Deployment added
 
-######################################################################
-# Create a ClusterRole+ClusterRoleBinding+ServiceAccount for
-# ambassador-pro that has access to the CRDs that we will create for
-# it below
-#
-# NB: ClusterRoles and ClusterRoleBindings are not namespaced
----
-apiVersion: rbac.authorization.k8s.io/v1beta1
-kind: ClusterRole
-metadata:
-  name: ambassador-pro-standalone
-rules:
-- apiGroups: ["getambassador.io"]
-  resources:
-  - filters
-  - filterpolicies
-  - ratelimits
-  verbs: ["get", "list", "watch"]
-- apiGroups: [""]
-  resources:
-  - secrets
-  verbs: ["get", "list", "watch", "create"]
----
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: ambassador-pro
-  namespace: standalone
----
-apiVersion: rbac.authorization.k8s.io/v1beta1
-kind: ClusterRoleBinding
-metadata:
-  name: ambassador-pro-standalone
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: ambassador-pro-standalone
-subjects:
-- kind: ServiceAccount
-  name: ambassador-pro
-  namespace: standalone
-
-
-######################################################################
-# Create the CRDs used to configure ambassador-pro
----
-apiVersion: apiextensions.k8s.io/v1beta1
-kind: CustomResourceDefinition
-metadata:
-  name: filterpolicies.getambassador.io
-spec:
-  group: getambassador.io
-  version: v1beta2
-  versions:
-  - name: v1beta2
-    served: true
-    storage: true
-  scope: Namespaced
-  names:
-    plural: filterpolicies
-    singular: filterpolicy
-    kind: FilterPolicy
-    shortNames:
-    - fp
----
-apiVersion: apiextensions.k8s.io/v1beta1
-kind: CustomResourceDefinition
-metadata:
-  name: filters.getambassador.io
-spec:
-  group: getambassador.io
-  version: v1beta2
-  versions:
-  - name: v1beta2
-    served: true
-    storage: true
-  scope: Namespaced
-  names:
-    plural: filters
-    singular: filter
-    kind: Filter
-    shortNames:
-    - fil
----
-apiVersion: apiextensions.k8s.io/v1beta1
-kind: CustomResourceDefinition
-metadata:
-  name: ratelimits.getambassador.io
-spec:
-  group: getambassador.io
-  version: v1beta2
-  versions:
-    - name: v1beta2
-      served: true
-      storage: true
-  scope: Namespaced
-  names:
-    plural: ratelimits
-    singular: ratelimit
-    kind: RateLimit
-    shortNames:
-    - rl
-
+### RBAC and CRDs moved to 02-ambassador-pro-rbac-and-crds.yaml
 
 ######################################################################
 # Redis for Ambassador Pro
@@ -172,6 +70,29 @@ metadata:
       auth_service: "ambassador-pro:80"
       allow_request_body: false # setting this to 'true' allows Plugin and External filters to access the body, but has performance overhead
       ---
+      # Dev Portal
+      apiVersion: ambassador/v1
+      kind: Mapping
+      name: devportal_mapping
+      prefix: /docs/
+      rewrite: ""
+      add_response_headers:
+        x-test-proto: "%PROTOCOL%"
+        x-test-ip: "%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%"
+        x-test-static: This is apro standalone mapping
+      service: "ambassador-pro:80"
+      ---
+      apiVersion: ambassador/v1
+      kind: Mapping
+      name: devportal_api_mapping
+      prefix: /openapi/
+      rewrite: ""
+      add_response_headers:
+        x-test-proto: "%PROTOCOL%"
+        x-test-ip: "%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%"
+        x-test-static: This is apro standalone api mapping
+      service: "ambassador-pro:80"
+      ---
       # This mapping needs to exist, but is never actually followed.
       apiVersion: ambassador/v1
       kind: Mapping
@@ -186,6 +107,26 @@ spec:
   - name: http
     port: 80
     targetPort: http
+---
+apiVersion: getambassador.io/v1beta2
+kind: FilterPolicy
+metadata:
+  name: apro-internal-access-control
+  namespace: standalone
+spec:
+  rules:
+    - host: "*"
+      path: "*/.ambassador-internal/*"
+      filters:
+        - name: apro-internal-access-control
+---
+apiVersion: getambassador.io/v1beta2
+kind: Filter
+metadata:
+  name: apro-internal-access-control
+  namespace: standalone
+spec:
+  Internal: {}
 ---
 apiVersion: extensions/v1beta1
 kind: Deployment
@@ -237,6 +178,16 @@ spec:
           value: "true"
         - name: AMBASSADOR_LICENSE_KEY
           value: {{env "AMBASSADOR_LICENSE_KEY"}}
+        # DevPortal settings
+        - name: AMBASSADOR_URL
+          value: "https://ambassador.standalone.svc.cluster.local"
+        # Change this if you want different poll rate for getting OpenAPI docs:
+        - name: POLL_EVERY_SECS
+          value: "60"
+        - name: AMBASSADOR_INTERNAL_URL
+          value: "https://ambassador.standalone.svc.cluster.local:443"
+        - name: AMBASSADOR_ADMIN_URL
+          value: "http://ambassador-admin.standalone:8877"
 
 
 ######################################################################

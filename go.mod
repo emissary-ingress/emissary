@@ -31,6 +31,8 @@ require (
 	github.com/myzhan/boomer v0.0.0-20190321085146-9f3c9f575895
 	github.com/nu7hatch/gouuid v0.0.0-20131221200532-179d4d0c4d8d // indirect
 	github.com/onsi/gomega v1.4.3
+	github.com/oxtoacart/bpool v0.0.0-20190530202638-03653db5a59c
+	github.com/pelletier/go-buffruneio v0.2.1-0.20190103235659-25c428535bd3 // indirect
 	github.com/pkg/errors v0.8.1
 	github.com/satori/go.uuid v1.2.0
 	github.com/sirupsen/logrus v1.4.0
@@ -40,9 +42,17 @@ require (
 	github.com/tsenart/vegeta v12.2.1+incompatible
 	github.com/zeromq/goczmq v4.1.0+incompatible // indirect
 	github.com/zeromq/gomq v0.0.0-20181008000130-95dc37dee5c4 // indirect
+	gitlab.com/golang-commonmark/html v0.0.0-20180917080848-cfaf75183c4a // indirect
+	gitlab.com/golang-commonmark/linkify v0.0.0-20180917065525-c22b7bdb1179 // indirect
+	gitlab.com/golang-commonmark/markdown v0.0.0-20181102083822-772775880e1f
+	gitlab.com/golang-commonmark/mdurl v0.0.0-20180912090424-e5bce34c34f2 // indirect
+	gitlab.com/golang-commonmark/puny v0.0.0-20180912090636-2cd490539afe // indirect
 	golang.org/x/net v0.0.0-20190322120337-addf6b3196f6
 	golang.org/x/sync v0.0.0-20190227155943-e225da77a7e6
 	google.golang.org/grpc v1.19.1
+	gopkg.in/russross/blackfriday.v2 v2.0.0-00010101000000-000000000000
+	gopkg.in/src-d/go-billy.v4 v4.2.1
+	gopkg.in/src-d/go-git.v4 v4.8.1
 	gopkg.in/yaml.v2 v2.2.2
 	k8s.io/api v0.0.0-20190111032252-67edc246be36
 	k8s.io/apimachinery v0.0.0-20190119020841-d41becfba9ee
@@ -78,6 +88,9 @@ replace (
 // golint in their go.sum, and (2) erroneously refer to it as
 // github.com/golang/lint instead of golang.org/x/lint
 replace github.com/golang/lint => golang.org/x/lint v0.0.0-20190227174305-5b3e6a55c961
+
+// https://github.com/russross/blackfriday/issues/500
+replace gopkg.in/russross/blackfriday.v2 => github.com/russross/blackfriday/v2 v2.0.1
 
 // Fix invalid pseudo-version that Go 1.13 complains about.
 replace github.com/census-instrumentation/opencensus-proto v0.1.0-0.20181214143942-ba49f56771b8 => github.com/census-instrumentation/opencensus-proto v0.0.3-0.20181214143942-ba49f56771b8

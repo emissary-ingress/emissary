@@ -68,26 +68,30 @@ func fakeHTTPGet(url string, internalSecret string, logger *log.Entry) ([]byte, 
 		}
 		return testdataOpenAPIDocsJSON, nil
 	}
+	if url == "http://ambassador/qotm/.ambassador-internal/openapi-docs" {
+		if internalSecret == "" {
+			return nil, errors.New(".ambassador-internal URLs should get secret")
+		}
+		return []byte("<html><body>not a json</body></html>"), nil
+	}
 	return nil, fmt.Errorf("Unknown URL")
 }
 
 // Big picture test of retrieving info from diagd and OpenAPI endpoint.
 func TestFetcherRetrieve(t *testing.T) {
 	g := NewGomegaWithT(t)
-	s := NewServer()
+	s := NewServer("", nil)
 
 	// Start out knowing about one service, but it's going to go away:
 	oldSvc := Service{Name: "old"}
 	s.getServiceAdd()(oldSvc, "http://whatev", "/foo", nil)
 	g.Expect(s.knownServices()).To(Equal([]Service{oldSvc}))
 
-	file, _ := ioutil.TempFile("", "prefix")
-	file.WriteString("abc")
 	f := NewFetcher(
 		s.getServiceAdd(), s.getServiceDelete(), fakeHTTPGet,
 		s.knownServices(),
 		"http://localhost:8877", "http://ambassador", 1,
-		"https://publicapi.com", file.Name())
+		"https://publicapi.com")
 
 	f.logger.Info("retrieving")
 	// When we retrieve we will be told about a bunch of new services. Only
@@ -117,7 +121,7 @@ func TestFetcherRetrieve(t *testing.T) {
 		Prefix:  "/qotm",
 		BaseURL: "https://qotm.example.com", HasDoc: false, Doc: nil}))
 	// This one has an OpenAPI doc:
-	json, _ := fakeHTTPGet("http://ambassador/openapi/.ambassador-internal/openapi-docs", f.internalSecret, nil)
+	json, _ := fakeHTTPGet("http://ambassador/openapi/.ambassador-internal/openapi-docs", f.internalSecret.Get(), nil)
 	g.Expect(s.K8sStore.Get(openapi, true)).To(Equal(&ServiceMetadata{
 		Prefix:  "/openapi",
 		BaseURL: "https://publicapi.com", HasDoc: true,

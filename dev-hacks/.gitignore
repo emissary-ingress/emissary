@@ -1,0 +1,4 @@
+/.venv/
+/.license-key
+/.shared-secret
+/.content-url-file*

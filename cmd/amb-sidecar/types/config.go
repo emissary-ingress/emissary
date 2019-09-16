@@ -1,11 +1,16 @@
 package types
 
 import (
+	"fmt"
+	"net/url"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+
+	portal "github.com/datawire/apro/cmd/dev-portal-server/server"
 )
 
 type Config struct {
@@ -39,6 +44,9 @@ type Config struct {
 	StatsdHost     string
 	StatsdPort     int
 	FlushIntervalS int
+
+	// DevPortal
+	PortalConfig portal.ServerConfig
 }
 
 func getenvDefault(varname, def string) string {
@@ -49,7 +57,56 @@ func getenvDefault(varname, def string) string {
 	return ret
 }
 
+func getenvDefaultSeconds(varname, def string, warn []error, fatal []error) (time.Duration, []error, []error) {
+	valueStr := getenvDefault(varname, def)
+	value, err := strconv.Atoi(valueStr)
+	if err != nil {
+		value, err2 := strconv.Atoi(def)
+		if err2 != nil {
+			fatal = append(fatal,
+				fmt.Errorf("%s: Unparseable default duration '%s': %s",
+					varname, def, err2))
+		} else {
+			warn = append(warn,
+				fmt.Errorf("%s: Using default %ds. %s",
+					varname, value, err))
+		}
+	}
+	return time.Second * time.Duration(value), warn, fatal
+}
+
+func PortalConfigFromEnv(warn []error, fatal []error) (portal.ServerConfig, []error, []error) {
+	pollFrequency, warn, fatal := getenvDefaultSeconds("POLL_EVERY_SECS", "60", warn, fatal)
+
+	cfg := portal.ServerConfig{
+		DiagdURL: getenvDefault("AMBASSADOR_ADMIN_URL",
+			"http://127.0.0.1:8877/"),
+		AmbassadorURL: getenvDefault("AMBASSADOR_INTERNAL_URL",
+			"https://127.0.0.1:8443/"),
+		PublicURL: getenvDefault("AMBASSADOR_URL",
+			"https://api.example.com"),
+		PollFrequency: pollFrequency,
+
+		ContentURL: getenvDefault("APRO_DEVPORTAL_CONTENT_URL",
+			"https://github.com/datawire/devportal-content"),
+	}
+	return validatePortalConfig(cfg, warn, fatal)
+}
+
+func validatePortalConfig(cfg portal.ServerConfig, warn []error, fatal []error) (portal.ServerConfig, []error, []error) {
+	u, err := url.Parse(cfg.PublicURL)
+	if err != nil {
+		fatal = append(fatal, errors.Wrap(err, "Cannot parse AMBASSADOR_URL"))
+	} else if !u.IsAbs() || u.Host == "" {
+		fatal = append(fatal, fmt.Errorf("AMBASSADOR_URL must be an absolute url (got %q)", cfg.PublicURL))
+	}
+	return cfg, warn, fatal
+}
+
 func ConfigFromEnv() (cfg Config, warn []error, fatal []error) {
+	// DevPortal
+	portalConfig, warn, fatal := PortalConfigFromEnv(warn, fatal)
+
 	// Set the things that don't require too much parsing
 	cfg = Config{
 		// Ambassador
@@ -83,6 +140,9 @@ func ConfigFromEnv() (cfg Config, warn []error, fatal []error) {
 		StatsdHost:     getenvDefault("STATSD_HOST", "localhost"),
 		StatsdPort:     0, // set below
 		FlushIntervalS: 0, // set below
+
+		// DevPortal
+		PortalConfig: portalConfig, // parsed above
 	}
 
 	// Set the things marked "set below" (things that do require some parsing)

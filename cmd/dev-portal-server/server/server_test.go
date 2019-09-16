@@ -53,7 +53,7 @@ func TestAddThenGetViaHTTP(t *testing.T) {
 `)
 
 	g := NewGomegaWithT(t)
-	s := NewServer()
+	s := NewServer("", nil)
 	baseURL := "https://example.com"
 	prefix := "/foo"
 	svc := Service{Name: "mysvc", Namespace: "myns"}
@@ -78,7 +78,7 @@ func TestAddThenGetViaHTTP(t *testing.T) {
 // An unknown OpenAPI doc results in a 404.
 func TestOpenAPIDocNotFound(t *testing.T) {
 	g := NewGomegaWithT(t)
-	s := NewServer()
+	s := NewServer("", nil)
 	req, _ := http.NewRequest(
 		"GET", "/openapi/services/myns/mysvc/openapi.json", nil)
 	rr := httptest.NewRecorder()
