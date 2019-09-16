@@ -1,7 +1,9 @@
 package main
 
 import (
+	"context"
 	"fmt"
+	"net/http"
 	"os"
 	"strconv"
 	"time"
@@ -33,6 +35,29 @@ func licenseEnforce() {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
+}
+
+func Main(
+	version string, ambassadorAdminURL string, ambassadorInternalURL string, ambassadorExternalURL string,
+	pollFrequency time.Duration, contentURL string) {
+
+	config := server.ServerConfig{
+		AmbassadorAdminURL:    ambassadorAdminURL,
+		AmbassadorInternalURL: ambassadorInternalURL,
+		AmbassadorExternalURL: ambassadorExternalURL,
+		PollFrequency:         pollFrequency,
+		ContentURL:            contentURL,
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	s, err := server.MakeServer("", ctx, config)
+	if err != nil {
+		panic(err)
+	}
+
+	log.Fatal(http.ListenAndServe("0.0.0.0:8680", s.Router()))
 }
 
 func main() {
@@ -74,6 +99,6 @@ func main() {
 		// placeholder.
 		ambassadorExternalURL = "dev-server-content-root"
 	}
-	server.Main(Version, ambassadorAdminURL, ambassadorInternalURL, ambassadorExternalURL, pollEverySecs,
+	Main(Version, ambassadorAdminURL, ambassadorInternalURL, ambassadorExternalURL, pollEverySecs,
 		contentURL)
 }
