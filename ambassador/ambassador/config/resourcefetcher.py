@@ -117,6 +117,9 @@ class ResourceFetcher:
         #                   (self.location, len(serialization), "" if (len(serialization) == 1) else "s",
         #                    serialization))
 
+        # Expand environment variables allowing interpolation in manifests.
+        serialization = os.path.expandvars(serialization)
+
         try:
             objects = parse_yaml(serialization)
             self.parse_object(objects=objects, k8s=k8s, rkey=rkey, filename=filename)
@@ -131,6 +134,9 @@ class ResourceFetcher:
         # self.logger.debug("%s: parsing %d byte%s of YAML:\n%s" %
         #                   (self.location, len(serialization), "" if (len(serialization) == 1) else "s",
         #                    serialization))
+
+        # Expand environment variables allowing interpolation in manifests.
+        serialization = os.path.expandvars(serialization)
 
         try:
             objects = json.loads(serialization)
@@ -152,6 +158,9 @@ class ResourceFetcher:
 
         if os.path.isfile(os.path.join(basedir, '.ambassador_ignore_ingress')):
             self.aconf.post_error("Ambassador is not permitted to read Ingress resources. Please visit https://www.getambassador.io/user-guide/ingress-controller/ for more information. You can continue using Ambassador, but Ingress resources will be ignored...")
+        
+        # Expand environment variables allowing interpolation in manifests.
+        serialization = os.path.expandvars(serialization)
 
         try:
             watt_dict = json.loads(serialization)
