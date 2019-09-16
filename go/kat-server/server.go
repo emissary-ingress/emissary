@@ -19,10 +19,6 @@ const (
 	SSLPort int16 = 8443
 )
 
-func init() {
-	os.Setenv("GODEBUG", os.Getenv("GODEBUG")+",tls13=1")
-}
-
 func main() {
 	listeners := make([]srv.Service, 0)
 	var s srv.Service

@@ -198,7 +198,21 @@ service: {self.target.path.fqdn}
     def queries(self):
         yield Query(self.url(self.name + "/"), insecure=True, client_crt=self.presto_crt, client_key=self.presto_key, client_cert_required=True, ca_cert=self.ca_cert)
 
-        yield Query(self.url(self.name + "/"), insecure=True, error="handshake failure")
+        # In TLS < 1.3, there's not a dedicated alert code for "the client forgot to include a certificate",
+        # so we get a generic alert=40 ("handshake_failure").
+        yield Query(self.url(self.name + "/"), insecure=True, maxTLSv="v1.2", error="tls: handshake failure")
+
+        # TLS 1.3 added a dedicated alert=116 ("certificate_required") for that scenario.
+        #
+        # Now, even though Go 1.13 supports TLS 1.3, Go 1.13's crypto/tls/alert.go doesn't have all of the TLS
+        # 1.3 alert codes, so we expect the user-unfriendly error message "alert(116)".  I expect this to be
+        # fixed in some future Go 1.13.x, and that kat-client will eventually be built with that Go.
+        #
+        # Since RFC 8446 §6 calls alert=116 "certificate_required", I'm assuming that this (s/_/ /) is the
+        # error message that the Go authors will use, so I'm going ahead and including "certificate required"
+        # in the list of allowed error messages below.  If that assumption ends up being wrong: Yes, future
+        # person, it's OK to replace the string "certificate required" with the correct one for alert=116.
+        yield Query(self.url(self.name + "/"), insecure=True, minTLSv="v1.3", error=["tls: alert(116)", "tls: certificate required"])
 
     def requirements(self):
         for r in super().requirements():
