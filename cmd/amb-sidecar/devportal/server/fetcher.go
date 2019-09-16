@@ -72,7 +72,7 @@ type fetcher struct {
 	diff      *diffCalculator
 	logger    *log.Entry
 	// diagd's URL
-	diagURL string
+	ambassadorAdminURL string
 	// ambassador's URL
 	ambassadorURL string
 	// The public default base URL for the APIs, e.g. https://api.example.com
@@ -85,20 +85,22 @@ type fetcher struct {
 // adds/deletes changes from last run.
 func NewFetcher(
 	add AddServiceFunc, delete DeleteServiceFunc, httpGet HTTPGetFunc,
-	known []kubernetes.Service, diagURL string, ambassadorURL string, duration time.Duration, publicBaseURL string) *fetcher {
+	known []kubernetes.Service,
+	ambassadorAdminURL string, ambassadorURL string, duration time.Duration, publicBaseURL string,
+) *fetcher {
 	f := &fetcher{
-		add:            add,
-		delete:         delete,
-		httpGet:        httpGet,
-		done:           make(chan bool),
-		ticker:         time.NewTicker(duration),
-		retriever:      make(chan chan bool),
-		diff:           NewDiffCalculator(known),
-		logger:         log.WithFields(log.Fields{"subsystem": "fetcher"}),
-		diagURL:        strings.TrimRight(diagURL, "/"),
-		ambassadorURL:  strings.TrimRight(ambassadorURL, "/"),
-		publicBaseURL:  strings.TrimRight(publicBaseURL, "/"),
-		internalSecret: internalaccess.GetInternalSecret(),
+		add:                add,
+		delete:             delete,
+		httpGet:            httpGet,
+		done:               make(chan bool),
+		ticker:             time.NewTicker(duration),
+		retriever:          make(chan chan bool),
+		diff:               NewDiffCalculator(known),
+		logger:             log.WithFields(log.Fields{"subsystem": "fetcher"}),
+		ambassadorAdminURL: strings.TrimRight(ambassadorAdminURL, "/"),
+		ambassadorURL:      strings.TrimRight(ambassadorURL, "/"),
+		publicBaseURL:      strings.TrimRight(publicBaseURL, "/"),
+		internalSecret:     internalaccess.GetInternalSecret(),
 	}
 	go func() {
 		for {
@@ -175,7 +177,7 @@ func (f *fetcher) retrieve() {
 
 func (f *fetcher) _retrieve(reason string) {
 	f.logger.Info("Iteration started ", reason, " ")
-	buf, err := f.httpGet(f.diagURL+"/ambassador/v0/diag/?json=true", "", f.logger)
+	buf, err := f.httpGet(f.ambassadorAdminURL+"/ambassador/v0/diag/?json=true", "", f.logger)
 	if err != nil {
 		log.Print(err)
 		return

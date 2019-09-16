@@ -37,14 +37,14 @@ func licenseEnforce() {
 
 func main() {
 	licenseEnforce()
-	var diagdURL, ambassadorURL, publicURL, pollEverySecsStr, contentURL string
+	var ambassadorAdminURL, ambassadorURL, publicURL, pollEverySecsStr, contentURL string
 	var pollEverySecs time.Duration = 60 * time.Second
 	var set bool
-	diagdURL, set = os.LookupEnv("AMBASSADOR_ADMIN_URL")
+	ambassadorAdminURL, set = os.LookupEnv("AMBASSADOR_ADMIN_URL")
 	if !set {
 		// Typically will be run in same Pod; customizable only in order
 		// to support running outside of Kubernetes.
-		diagdURL = "http://localhost:8877"
+		ambassadorAdminURL = "http://localhost:8877"
 	}
 	ambassadorURL, set = os.LookupEnv("AMBASSADOR_INTERNAL_URL")
 	if !set {
@@ -74,6 +74,6 @@ func main() {
 		// placeholder.
 		publicURL = "dev-server-content-root"
 	}
-	server.Main(Version, diagdURL, ambassadorURL, publicURL, pollEverySecs,
+	server.Main(Version, ambassadorAdminURL, ambassadorURL, publicURL, pollEverySecs,
 		contentURL)
 }
