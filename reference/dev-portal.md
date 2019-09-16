@@ -4,6 +4,10 @@
 
 The Dev Portal will automatically discover all services known by Ambassador (i.e., have a valid `Mapping`). For each `prefix` in a `Mapping`, the Dev Portal will attempt to fetch a Swagger or OpenAPI specification from `$PREFIX/.ambassador-internal/openapi-docs/`. You will need to update your microservice to return a Swagger or OAPI document at this URL.
 
+### `/docs/`
+
+Rendered API documentation is published at the `/docs/` URL by default. In a subsequent release, support will be added for publish at alternative URLs.
+
 ### `.ambassador-internal`
 
 By default, `.ambassador-internal` is not publicly exposed by Ambassador. This is controlled by a special `FilterPolicy` called `apro-internal-access-control`.
