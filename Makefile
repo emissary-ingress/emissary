@@ -320,7 +320,7 @@ envoy-src: FORCE
 envoy-build-image.txt: FORCE envoy-src
 	@echo "Making $@..."
 	set -e; \
-	cd envoy-src; . ci/envoy_build_sha.sh; cd ..; \
+	cd envoy-src/ci; . envoy_build_sha.sh; cd ../..; \
 	echo docker.io/envoyproxy/envoy-build-ubuntu:$$ENVOY_BUILD_SHA > .tmp.$@.tmp; \
 	if cmp -s .tmp.$@.tmp $@; then \
 		rm -f .tmp.$@.tmp; \
