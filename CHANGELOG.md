@@ -1,21 +1,20 @@
 ## Ambassador Pro CHANGELOG
 
-## 0.7.1 (TBD)
+## 0.8.0 (2019-09-16)
 
 Behavior:
 
- * The `External` Filter no longer erronously follows redirects.
- * Fixed a case-folding bug in the `JWT` Filter
+ * Feature: The developer portal is now in "beta", and incorproated into amb-sidecar.
+ * Bugfix: The `External` Filter no longer erronously follows redirects.
+ * Bugfix: Fixed a case-folding bug causing the `JWT` Filter to be inoperable.
+ * Enhancement: Errors in `Filter` resource definitions are now recorded and included in error messages.
 
 ## 0.7.0 (2019-08-29)
 
 Configuration:
 
  * `amb-sidecar`: The default value of `USE_STATSD` has changed from `true` to `false`.
- * Bump license key schema v0 → v1.  The developer portal requires a
-   v1 license with the "devportal" feature enabled.  Some future
-   version of the other functionality will drop support for v0 license
-   keys.
+ * Bump license key schema v0 → v1.  The developer portal requires a v1 license with the "devportal" feature enabled.  Some future version of the other functionality will drop support for v0 license keys.
  * The `JWT` Filter can now inject HTTP request headers; configured with the `injectRequestHeaders` field.
 
 Behavior:
