@@ -241,6 +241,10 @@ func (f *fetcher) _retrieve(reason string) {
 			} else {
 				doc = nil
 			}
+			_, err = gabs.ParseJSON(doc)
+			if err != nil {
+				doc = nil
+			}
 			service := kubernetes.Service{Namespace: namespace, Name: name}
 			f.add(service, baseURL, prefix, doc)
 			f.diff.Add(service)

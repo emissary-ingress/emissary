@@ -68,6 +68,12 @@ func fakeHTTPGet(url string, internalSecret string, logger *log.Entry) ([]byte, 
 		}
 		return testdataOpenAPIDocsJSON, nil
 	}
+	if url == "http://ambassador/qotm/.ambassador-internal/openapi-docs" {
+		if internalSecret == "" {
+			return nil, errors.New(".ambassador-internal URLs should get secret")
+		}
+		return []byte("<html><body>not a json</body></html>"), nil
+	}
 	return nil, fmt.Errorf("Unknown URL")
 }
 
