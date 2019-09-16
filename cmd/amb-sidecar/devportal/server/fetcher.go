@@ -74,7 +74,7 @@ type fetcher struct {
 	diff      *diffCalculator
 
 	logger *log.Entry
-	cfg    types.PortalConfig
+	cfg    types.Config
 
 	// Shared secret to send so that we can access .ambassador-internal
 	internalSecret *internalaccess.InternalSecret
@@ -85,14 +85,14 @@ type fetcher struct {
 func NewFetcher(
 	add AddServiceFunc, delete DeleteServiceFunc, httpGet HTTPGetFunc,
 	known []kubernetes.Service,
-	cfg types.PortalConfig,
+	cfg types.Config,
 ) *fetcher {
 	f := &fetcher{
 		add:            add,
 		delete:         delete,
 		httpGet:        httpGet,
 		done:           make(chan bool),
-		ticker:         time.NewTicker(cfg.PollFrequency),
+		ticker:         time.NewTicker(cfg.DevPortalPollInterval),
 		retriever:      make(chan chan bool),
 		diff:           NewDiffCalculator(known),
 		logger:         log.WithFields(log.Fields{"subsystem": "fetcher"}),

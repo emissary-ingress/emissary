@@ -90,12 +90,12 @@ func main() {
 		log.Fatal(err)
 	}
 
-	config := types.PortalConfig{
+	config := types.Config{
 		AmbassadorAdminURL:    ambassadorAdminURL,
 		AmbassadorInternalURL: ambassadorInternalURL,
 		AmbassadorExternalURL: ambassadorExternalURL,
-		PollFrequency:         pollInterval,
-		ContentURL:            contentURL,
+		DevPortalPollInterval: pollInterval,
+		DevPortalContentURL:   contentURL,
 	}
 
 	s, err := server.MakeServer("", context.Background(), config)

@@ -258,7 +258,7 @@ func runE(cmd *cobra.Command, args []string) error {
 
 		// DevPortal
 		if licenseClaims.RequireFeature(licensekeys.FeatureDevPortal) == nil {
-			portalServer, err := portal.MakeServer("/docs", softCtx, cfg.PortalConfig)
+			portalServer, err := portal.MakeServer("/docs", softCtx, cfg)
 			if err != nil {
 				return err
 			}

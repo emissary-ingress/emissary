@@ -44,14 +44,18 @@ type Config struct {
 	RedisPerSecondURL          string
 	ExpirationJitterMaxSeconds int64
 
+	// Developer Portal
+	AmbassadorAdminURL    *url.URL
+	AmbassadorInternalURL *url.URL
+	AmbassadorExternalURL *url.URL
+	DevPortalPollInterval time.Duration
+	DevPortalContentURL   *url.URL
+
 	// gostats - This mimics vendor/github.com/lyft/gostats/settings.go
 	UseStatsd      bool
 	StatsdHost     string
 	StatsdPort     int
 	FlushIntervalS int
-
-	// DevPortal
-	PortalConfig PortalConfig
 }
 
 func getenvDefault(varname, def string) string {
@@ -62,60 +66,18 @@ func getenvDefault(varname, def string) string {
 	return ret
 }
 
-func getenvDefaultSeconds(varname, def string, warn []error, fatal []error) (time.Duration, []error, []error) {
-	valueStr := getenvDefault(varname, def)
-	value, err := strconv.Atoi(valueStr)
+func parseAbsoluteURL(str string) (*url.URL, error) {
+	u, err := url.Parse(str)
 	if err != nil {
-		value, err2 := strconv.Atoi(def)
-		if err2 != nil {
-			fatal = append(fatal,
-				errors.Errorf("%s: Unparseable default duration '%s': %s",
-					varname, def, err2))
-		} else {
-			warn = append(warn,
-				errors.Errorf("%s: Using default %ds. %s",
-					varname, value, err))
-		}
+		return nil, err
 	}
-	return time.Second * time.Duration(value), warn, fatal
-}
-
-func getenvDefaultURL(varname, def string, warn []error, fatal []error) (*url.URL, []error, []error) {
-	u, err := url.Parse(getenvDefault(varname, def))
-	if err == nil {
-		if !u.IsAbs() || u.Host == "" {
-			err = errors.New("URL is not absolute")
-		}
+	if !u.IsAbs() || u.Host == "" {
+		return nil, errors.New("URL is not absolute")
 	}
-	if err != nil {
-		warn = append(warn, errors.Wrapf(err, "invalid %s (falling back to default %s)", varname, def))
-		u, err = url.Parse(def)
-		if err != nil {
-			// Since the default should be a hard-coded
-			// good value, this should _never_ happen, and
-			// is a panic.
-			panic(err)
-		}
-	}
-	return u, warn, fatal
-}
-
-func PortalConfigFromEnv(warn []error, fatal []error) (PortalConfig, []error, []error) {
-	cfg := PortalConfig{}
-
-	cfg.AmbassadorAdminURL, warn, fatal = getenvDefaultURL("AMBASSADOR_ADMIN_URL", "http://127.0.0.1:8877/", warn, fatal)
-	cfg.AmbassadorInternalURL, warn, fatal = getenvDefaultURL("AMBASSADOR_INTERNAL_URL", "https://127.0.0.1:8443/", warn, fatal)
-	cfg.AmbassadorExternalURL, warn, fatal = getenvDefaultURL("AMBASSADOR_URL", "https://api.example.com", warn, fatal)
-	cfg.PollFrequency, warn, fatal = getenvDefaultSeconds("POLL_EVERY_SECS", "60", warn, fatal)
-	cfg.ContentURL, warn, fatal = getenvDefaultURL("APRO_DEVPORTAL_CONTENT_URL", "https://github.com/datawire/devportal-content", warn, fatal)
-
-	return cfg, warn, fatal
+	return u, nil
 }
 
 func ConfigFromEnv() (cfg Config, warn []error, fatal []error) {
-	// DevPortal
-	portalConfig, warn, fatal := PortalConfigFromEnv(warn, fatal)
-
 	// Set the things that don't require too much parsing
 	cfg = Config{
 		// Ambassador
@@ -143,15 +105,19 @@ func ConfigFromEnv() (cfg Config, warn []error, fatal []error) {
 		RedisPerSecondURL:          os.Getenv("REDIS_PERSECOND_URL"),         // validated below
 		ExpirationJitterMaxSeconds: 0,                                        // set below
 
+		// Developer Portal
+		AmbassadorAdminURL:    nil, // set below
+		AmbassadorInternalURL: nil, // set below
+		AmbassadorExternalURL: nil, // set below
+		DevPortalPollInterval: 0,   // set below
+		DevPortalContentURL:   nil, // set below
+
 		// gostats - This mimics vendor/github.com/lyft/gostats/settings.go,
 		// but the defaults aren't nescessarily the same.
 		UseStatsd:      false, // set below
 		StatsdHost:     getenvDefault("STATSD_HOST", "localhost"),
 		StatsdPort:     0, // set below
 		FlushIntervalS: 0, // set below
-
-		// DevPortal
-		PortalConfig: portalConfig, // parsed above
 	}
 
 	// Set the things marked "set below" (things that do require some parsing)
@@ -173,6 +139,28 @@ func ConfigFromEnv() (cfg Config, warn []error, fatal []error) {
 	if cfg.ExpirationJitterMaxSeconds, err = strconv.ParseInt(getenvDefault("EXPIRATION_JITTER_MAX_SECONDS", "300"), 10, 0); err != nil {
 		warn = append(warn, errors.Wrap(err, "invalid EXPIRATION_JITTER_MAX_SECONDS (falling back to default 300)"))
 		cfg.ExpirationJitterMaxSeconds = 300
+	}
+	if cfg.AmbassadorAdminURL, err = parseAbsoluteURL(getenvDefault("AMBASSADOR_ADMIN_URL", "http://127.0.0.1:8877/")); err != nil {
+		warn = append(warn, errors.Wrap(err, "invalid AMBASSADOR_ADMIN_URL (falling back to default http://127.0.0.1:8877/)"))
+		cfg.AmbassadorAdminURL, _ = parseAbsoluteURL("http://127.0.0.1:8877/")
+	}
+	if cfg.AmbassadorInternalURL, err = parseAbsoluteURL(getenvDefault("AMBASSADOR_INTERNAL_URL", "https://127.0.0.1:8443/")); err != nil {
+		warn = append(warn, errors.Wrap(err, "invalid AMBASSADOR_INTERNAL_URL (falling back to default https://127.0.0.1:8443/)"))
+		cfg.AmbassadorInternalURL, _ = parseAbsoluteURL("https://127.0.0.1:8443/")
+	}
+	if cfg.AmbassadorExternalURL, err = parseAbsoluteURL(getenvDefault("AMBASSADOR_URL", "https://api.example.com/")); err != nil {
+		warn = append(warn, errors.Wrap(err, "invalid AMBASSADOR_URL (falling back to default https://api.example.com/)"))
+		cfg.AmbassadorExternalURL, _ = parseAbsoluteURL("https://api.example.com/")
+	}
+	if seconds, err := strconv.Atoi(getenvDefault("POLL_EVERY_SECS", "60")); err == nil {
+		cfg.DevPortalPollInterval = time.Duration(seconds) * time.Second
+	} else {
+		warn = append(warn, errors.Wrap(err, "invalid POLL_EVERY_SECS (falling back to default 60)"))
+		cfg.DevPortalPollInterval = 60 * time.Second
+	}
+	if cfg.DevPortalContentURL, err = parseAbsoluteURL(getenvDefault("APRO_DEVPORTAL_CONTENT_URL", "https://github.com/datawire/devportal-content.git")); err != nil {
+		warn = append(warn, errors.Wrap(err, "invalid APRO_DEVPORTAL_CONTENT_URL (falling back to default https://github.com/datawire/devportal-content.git)"))
+		cfg.DevPortalContentURL, _ = parseAbsoluteURL("https://github.com/datawire/devportal-content.git")
 	}
 	if cfg.UseStatsd, err = strconv.ParseBool(getenvDefault("USE_STATSD", "false")); err != nil { // NB: default here differs
 		warn = append(warn, errors.Wrap(err, "invalid USE_STATSD (falling back to default false)"))

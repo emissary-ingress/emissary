@@ -99,10 +99,10 @@ func TestFetcherRetrieve(t *testing.T) {
 	f := NewFetcher(
 		s.getServiceAdd(), s.getServiceDelete(), fakeHTTPGet,
 		s.knownServices(),
-		types.PortalConfig{
+		types.Config{
 			AmbassadorAdminURL:    urlMust(url.Parse("http://localhost:8877")),
 			AmbassadorInternalURL: urlMust(url.Parse("http://ambassador")),
-			PollFrequency:         1,
+			DevPortalPollInterval: 1,
 			AmbassadorExternalURL: urlMust(url.Parse("https://publicapi.com")),
 		})
 

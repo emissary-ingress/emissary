@@ -7,9 +7,9 @@ import (
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
 )
 
-func MakeServer(docroot string, ctx context.Context, config types.PortalConfig) (s *Server, err error) {
+func MakeServer(docroot string, ctx context.Context, config types.Config) (s *Server, err error) {
 
-	content, err := content.NewContent(config.ContentURL)
+	content, err := content.NewContent(config.DevPortalContentURL)
 	if err != nil {
 		return
 	}
