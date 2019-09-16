@@ -81,7 +81,7 @@ func PortalConfigFromEnv(warn []error, fatal []error) (portal.ServerConfig, []er
 	cfg := portal.ServerConfig{
 		AmbassadorAdminURL: getenvDefault("AMBASSADOR_ADMIN_URL",
 			"http://127.0.0.1:8877/"),
-		AmbassadorURL: getenvDefault("AMBASSADOR_INTERNAL_URL",
+		AmbassadorInternalURL: getenvDefault("AMBASSADOR_INTERNAL_URL",
 			"https://127.0.0.1:8443/"),
 		PublicURL: getenvDefault("AMBASSADOR_URL",
 			"https://api.example.com"),

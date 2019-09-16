@@ -74,7 +74,7 @@ type fetcher struct {
 	// diagd's URL
 	ambassadorAdminURL string
 	// ambassador's URL
-	ambassadorURL string
+	ambassadorInternalURL string
 	// The public default base URL for the APIs, e.g. https://api.example.com
 	publicBaseURL string
 	// Shared secret to send so that we can access .ambassador-internal
@@ -86,21 +86,21 @@ type fetcher struct {
 func NewFetcher(
 	add AddServiceFunc, delete DeleteServiceFunc, httpGet HTTPGetFunc,
 	known []kubernetes.Service,
-	ambassadorAdminURL string, ambassadorURL string, duration time.Duration, publicBaseURL string,
+	ambassadorAdminURL string, ambassadorInternalURL string, duration time.Duration, publicBaseURL string,
 ) *fetcher {
 	f := &fetcher{
-		add:                add,
-		delete:             delete,
-		httpGet:            httpGet,
-		done:               make(chan bool),
-		ticker:             time.NewTicker(duration),
-		retriever:          make(chan chan bool),
-		diff:               NewDiffCalculator(known),
-		logger:             log.WithFields(log.Fields{"subsystem": "fetcher"}),
-		ambassadorAdminURL: strings.TrimRight(ambassadorAdminURL, "/"),
-		ambassadorURL:      strings.TrimRight(ambassadorURL, "/"),
-		publicBaseURL:      strings.TrimRight(publicBaseURL, "/"),
-		internalSecret:     internalaccess.GetInternalSecret(),
+		add:                   add,
+		delete:                delete,
+		httpGet:               httpGet,
+		done:                  make(chan bool),
+		ticker:                time.NewTicker(duration),
+		retriever:             make(chan chan bool),
+		diff:                  NewDiffCalculator(known),
+		logger:                log.WithFields(log.Fields{"subsystem": "fetcher"}),
+		ambassadorAdminURL:    strings.TrimRight(ambassadorAdminURL, "/"),
+		ambassadorInternalURL: strings.TrimRight(ambassadorInternalURL, "/"),
+		publicBaseURL:         strings.TrimRight(publicBaseURL, "/"),
+		internalSecret:        internalaccess.GetInternalSecret(),
 	}
 	go func() {
 		for {
@@ -235,7 +235,7 @@ func (f *fetcher) _retrieve(reason string) {
 			// Get the OpenAPI documentation:
 			var doc []byte
 			docBuf, err := f.httpGet(
-				f.ambassadorURL+prefix+"/.ambassador-internal/openapi-docs",
+				f.ambassadorInternalURL+prefix+"/.ambassador-internal/openapi-docs",
 				f.internalSecret.Get(),
 				f.logger)
 			if err == nil {
