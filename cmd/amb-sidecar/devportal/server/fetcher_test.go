@@ -11,8 +11,8 @@ import (
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 
-	. "github.com/datawire/apro/cmd/amb-sidecar/devportal/kubernetes"
-	. "github.com/datawire/apro/cmd/amb-sidecar/devportal/openapi"
+	"github.com/datawire/apro/cmd/amb-sidecar/devportal/kubernetes"
+	"github.com/datawire/apro/cmd/amb-sidecar/devportal/openapi"
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
 )
 
@@ -21,39 +21,39 @@ var testdataOpenAPIDocsJSON, _ = ioutil.ReadFile("testdata/openapi-docs.json")
 
 func TestDiffCalculator(t *testing.T) {
 	g := NewGomegaWithT(t)
-	A, B := Service{Name: "a"}, Service{Name: "b"}
-	C, D := Service{Name: "c"}, Service{Name: "d"}
+	A, B := kubernetes.Service{Name: "a"}, kubernetes.Service{Name: "b"}
+	C, D := kubernetes.Service{Name: "c"}, kubernetes.Service{Name: "d"}
 
 	// Starting point: we know about A and B
-	calc := NewDiffCalculator([]Service{A, B})
+	calc := NewDiffCalculator([]kubernetes.Service{A, B})
 
 	// Round 1: we detect A and C. That means B should be marked as deleted.
 	calc.Add(A)
 	calc.Add(C)
-	g.Expect(calc.NewRound()).To(Equal([]Service{B}))
+	g.Expect(calc.NewRound()).To(Equal([]kubernetes.Service{B}))
 
 	// Round 2: we detect A and C. That means no deletes.
 	calc.Add(A)
 	calc.Add(C)
-	g.Expect(calc.NewRound()).To(Equal([]Service{}))
+	g.Expect(calc.NewRound()).To(Equal([]kubernetes.Service{}))
 
 	// Round 3: we detect A and C and D. That means no deletes.
 	calc.Add(A)
 	calc.Add(C)
 	calc.Add(D)
-	g.Expect(calc.NewRound()).To(Equal([]Service{}))
+	g.Expect(calc.NewRound()).To(Equal([]kubernetes.Service{}))
 
 	// Round 4: we detect B and C. That means A and D are deleted.
 	calc.Add(B)
 	calc.Add(C)
 	result := calc.NewRound()
 	sort.Slice(result, func(i, j int) bool { return result[i].Name < result[j].Name })
-	g.Expect(result).To(Equal([]Service{A, D}))
+	g.Expect(result).To(Equal([]kubernetes.Service{A, D}))
 
 	// Round 5: we detect nothing. That means B and C are deleted.
 	result = calc.NewRound()
 	sort.Slice(result, func(i, j int) bool { return result[i].Name < result[j].Name })
-	g.Expect(result).To(Equal([]Service{B, C}))
+	g.Expect(result).To(Equal([]kubernetes.Service{B, C}))
 }
 
 // Hard-code diagd output, as well as OpenAPI docs for one service:
@@ -92,9 +92,9 @@ func TestFetcherRetrieve(t *testing.T) {
 	s := NewServer("", nil)
 
 	// Start out knowing about one service, but it's going to go away:
-	oldSvc := Service{Name: "old"}
+	oldSvc := kubernetes.Service{Name: "old"}
 	s.getServiceAdd()(oldSvc, "http://whatev", "/foo", nil)
-	g.Expect(s.knownServices()).To(Equal([]Service{oldSvc}))
+	g.Expect(s.knownServices()).To(Equal([]kubernetes.Service{oldSvc}))
 
 	f := NewFetcher(
 		s.getServiceAdd(), s.getServiceDelete(), fakeHTTPGet,
@@ -111,10 +111,10 @@ func TestFetcherRetrieve(t *testing.T) {
 	// one of them will have OpenAPI docs, though.
 	f.retrieve()
 
-	httpbin := Service{Name: "httpbin", Namespace: "default"}
-	devportal := Service{Name: "devportal", Namespace: "default"}
-	openapi := Service{Name: "openapi", Namespace: "default"}
-	qotm := Service{Name: "qotm", Namespace: "default"}
+	httpbin := kubernetes.Service{Name: "httpbin", Namespace: "default"}
+	devportal := kubernetes.Service{Name: "devportal", Namespace: "default"}
+	_openapi := kubernetes.Service{Name: "openapi", Namespace: "default"}
+	qotm := kubernetes.Service{Name: "qotm", Namespace: "default"}
 
 	// old service went away, we detected new ones:
 	knownServices := s.knownServices()
@@ -123,20 +123,20 @@ func TestFetcherRetrieve(t *testing.T) {
 		return knownServices[i].Name < knownServices[j].Name
 	})
 	f.logger.Info("known services (sorted)", knownServices)
-	g.Expect(knownServices).To(Equal([]Service{devportal, httpbin, openapi, qotm}))
+	g.Expect(knownServices).To(Equal([]kubernetes.Service{devportal, httpbin, _openapi, qotm}))
 
 	// openapi has OpenAPI doc, others don't:
-	g.Expect(s.K8sStore.Get(httpbin, false)).To(Equal(&ServiceMetadata{
+	g.Expect(s.K8sStore.Get(httpbin, false)).To(Equal(&kubernetes.ServiceMetadata{
 		Prefix:  "/httpbin",
 		BaseURL: "https://publicapi.com", HasDoc: false, Doc: nil}))
 	// This one has custom Host route in the annotation:
-	g.Expect(s.K8sStore.Get(qotm, false)).To(Equal(&ServiceMetadata{
+	g.Expect(s.K8sStore.Get(qotm, false)).To(Equal(&kubernetes.ServiceMetadata{
 		Prefix:  "/qotm",
 		BaseURL: "https://qotm.example.com", HasDoc: false, Doc: nil}))
 	// This one has an OpenAPI doc:
 	json, _ := fakeHTTPGet(urlMust(url.Parse("http://ambassador/openapi/.ambassador-internal/openapi-docs")), f.internalSecret.Get(), nil)
-	g.Expect(s.K8sStore.Get(openapi, true)).To(Equal(&ServiceMetadata{
+	g.Expect(s.K8sStore.Get(_openapi, true)).To(Equal(&kubernetes.ServiceMetadata{
 		Prefix:  "/openapi",
 		BaseURL: "https://publicapi.com", HasDoc: true,
-		Doc: NewOpenAPI(json, "https://publicapi.com", "/openapi")}))
+		Doc: openapi.NewOpenAPI(json, "https://publicapi.com", "/openapi")}))
 }
