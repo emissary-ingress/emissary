@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 
@@ -26,7 +27,7 @@ type AddServiceFunc func(
 type DeleteServiceFunc func(service kubernetes.Service)
 
 // Retrieve a URL.
-type HTTPGetFunc func(url string, internalSecret string, logger *log.Entry) ([]byte, error)
+type HTTPGetFunc func(requestURL *url.URL, internalSecret string, logger *log.Entry) ([]byte, error)
 
 type serviceMap map[kubernetes.Service]bool
 
@@ -137,10 +138,10 @@ var client = util.SimpleClient{Client: &http.Client{
 	},
 }}
 
-func httpGet(url string, internalSecret string, logger *log.Entry) ([]byte, error) {
-	logger = logger.WithFields(log.Fields{"url": url})
+func httpGet(requestURL *url.URL, internalSecret string, logger *log.Entry) ([]byte, error) {
+	logger = logger.WithFields(log.Fields{"url": requestURL})
 	logger.Debug("HTTP GET")
-	req, err := http.NewRequest("GET", url, nil)
+	req, err := http.NewRequest("GET", requestURL.String(), nil)
 	if err != nil {
 		logger.Error(err)
 		return nil, err
@@ -153,7 +154,7 @@ func httpGet(url string, internalSecret string, logger *log.Entry) ([]byte, erro
 			logger.WithFields(
 				log.Fields{"status_code": response.StatusCode}).Error(
 				"Bad HTTP response")
-			err = fmt.Errorf("HTTP error %d from %s", response.StatusCode, url)
+			err = fmt.Errorf("HTTP error %d from %s", response.StatusCode, requestURL)
 		}
 		return
 	})
@@ -173,7 +174,13 @@ func (f *fetcher) retrieve() {
 
 func (f *fetcher) _retrieve(reason string) {
 	f.logger.Info("Iteration started ", reason, " ")
-	buf, err := f.httpGet(f.cfg.AmbassadorAdminURL+"/ambassador/v0/diag/?json=true", "", f.logger)
+	requestURL, err := f.cfg.AmbassadorAdminURL.Parse("/ambassador/v0/diag/?json=true")
+	if err != nil {
+		// This should _never_ happen; cfg has alread been
+		// validated, and the string is fixex.
+		panic(err)
+	}
+	buf, err := f.httpGet(requestURL, "", f.logger)
 	if err != nil {
 		log.Print(err)
 		return
@@ -220,7 +227,7 @@ func (f *fetcher) _retrieve(reason string) {
 				// TODO what if it's http? (arguably it should never be)
 				baseURL = "https://" + getString(mapping, "host")
 			} else {
-				baseURL = f.cfg.AmbassadorExternalURL
+				baseURL = f.cfg.AmbassadorExternalURL.String()
 			}
 			f.logger.WithFields(log.Fields{
 				"name":      name,
@@ -230,14 +237,15 @@ func (f *fetcher) _retrieve(reason string) {
 			}).Info("Found mapping")
 			// Get the OpenAPI documentation:
 			var doc []byte
-			docBuf, err := f.httpGet(
-				f.cfg.AmbassadorInternalURL+prefix+"/.ambassador-internal/openapi-docs",
-				f.internalSecret.Get(),
-				f.logger)
+			requestURL, err := f.cfg.AmbassadorInternalURL.Parse(prefix + "/.ambassador-internal/openapi-docs")
 			if err == nil {
-				doc = docBuf
-			} else {
-				doc = nil
+				docBuf, err := f.httpGet(
+					requestURL,
+					f.internalSecret.Get(),
+					f.logger)
+				if err == nil {
+					doc = docBuf
+				}
 			}
 			_, err = gabs.ParseJSON(doc)
 			if err != nil {

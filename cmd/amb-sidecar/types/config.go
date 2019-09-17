@@ -11,11 +11,11 @@ import (
 )
 
 type PortalConfig struct {
-	AmbassadorAdminURL    string
-	AmbassadorInternalURL string
-	AmbassadorExternalURL string
+	AmbassadorAdminURL    *url.URL
+	AmbassadorInternalURL *url.URL
+	AmbassadorExternalURL *url.URL
 	PollFrequency         time.Duration
-	ContentURL            string
+	ContentURL            *url.URL
 }
 
 type Config struct {
@@ -80,31 +80,35 @@ func getenvDefaultSeconds(varname, def string, warn []error, fatal []error) (tim
 	return time.Second * time.Duration(value), warn, fatal
 }
 
-func PortalConfigFromEnv(warn []error, fatal []error) (PortalConfig, []error, []error) {
-	pollFrequency, warn, fatal := getenvDefaultSeconds("POLL_EVERY_SECS", "60", warn, fatal)
-
-	cfg := PortalConfig{
-		AmbassadorAdminURL: getenvDefault("AMBASSADOR_ADMIN_URL",
-			"http://127.0.0.1:8877/"),
-		AmbassadorInternalURL: getenvDefault("AMBASSADOR_INTERNAL_URL",
-			"https://127.0.0.1:8443/"),
-		AmbassadorExternalURL: getenvDefault("AMBASSADOR_URL",
-			"https://api.example.com"),
-		PollFrequency: pollFrequency,
-
-		ContentURL: getenvDefault("APRO_DEVPORTAL_CONTENT_URL",
-			"https://github.com/datawire/devportal-content"),
+func getenvDefaultURL(varname, def string, warn []error, fatal []error) (*url.URL, []error, []error) {
+	u, err := url.Parse(getenvDefault(varname, def))
+	if err == nil {
+		if !u.IsAbs() || u.Host == "" {
+			err = errors.New("URL is not absolute")
+		}
 	}
-	return ValidatePortalConfig(cfg, warn, fatal)
+	if err != nil {
+		warn = append(warn, errors.Wrapf(err, "invalid %s (falling back to default %s)", varname, def))
+		u, err = url.Parse(def)
+		if err != nil {
+			// Since the default should be a hard-coded
+			// good value, this should _never_ happen, and
+			// is a panic.
+			panic(err)
+		}
+	}
+	return u, warn, fatal
 }
 
-func ValidatePortalConfig(cfg PortalConfig, warn []error, fatal []error) (PortalConfig, []error, []error) {
-	u, err := url.Parse(cfg.AmbassadorExternalURL)
-	if err != nil {
-		fatal = append(fatal, errors.Wrap(err, "Cannot parse AMBASSADOR_URL"))
-	} else if !u.IsAbs() || u.Host == "" {
-		fatal = append(fatal, errors.Errorf("AMBASSADOR_URL must be an absolute url (got %q)", cfg.AmbassadorExternalURL))
-	}
+func PortalConfigFromEnv(warn []error, fatal []error) (PortalConfig, []error, []error) {
+	cfg := PortalConfig{}
+
+	cfg.AmbassadorAdminURL, warn, fatal = getenvDefaultURL("AMBASSADOR_ADMIN_URL", "http://127.0.0.1:8877/", warn, fatal)
+	cfg.AmbassadorInternalURL, warn, fatal = getenvDefaultURL("AMBASSADOR_INTERNAL_URL", "https://127.0.0.1:8443/", warn, fatal)
+	cfg.AmbassadorExternalURL, warn, fatal = getenvDefaultURL("AMBASSADOR_URL", "https://api.example.com", warn, fatal)
+	cfg.PollFrequency, warn, fatal = getenvDefaultSeconds("POLL_EVERY_SECS", "60", warn, fatal)
+	cfg.ContentURL, warn, fatal = getenvDefaultURL("APRO_DEVPORTAL_CONTENT_URL", "https://github.com/datawire/devportal-content", warn, fatal)
+
 	return cfg, warn, fatal
 }
 

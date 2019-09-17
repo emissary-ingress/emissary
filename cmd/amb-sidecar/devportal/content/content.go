@@ -24,21 +24,18 @@ type ContentVars interface {
 	CurrentPage() (page string)
 }
 
-func sanitizedURL(str string) string {
-	parsed, err := url.Parse(str)
-	if err != nil {
-		return str
+func sanitizedURL(u *url.URL) *url.URL {
+	u, _ = u.Parse("") // make a copy
+	if u.User != nil {
+		u.User = url.User("*redacted*")
 	}
-	if parsed.User != nil {
-		parsed.User = url.User("*redacted*")
-	}
-	return parsed.String()
+	return u
 }
 
-func NewContent(contentLocation string) (*Content, error) {
+func NewContent(contentURL *url.URL) (*Content, error) {
 	logger := log.WithFields(log.Fields{
 		"subsystem":  "content",
-		"contentURL": sanitizedURL(contentLocation),
+		"contentURL": sanitizedURL(contentURL).String(),
 	})
 	funcMap := template.FuncMap{
 		// The name "inc" is what the function will be called in the template text.
@@ -53,10 +50,7 @@ func NewContent(contentLocation string) (*Content, error) {
 
 	renderer := &BlackfridayRenderer{}
 
-	contentURL, err := url.Parse(contentLocation)
-	if err != nil {
-		return nil, err
-	}
+	var err error
 
 	var content *Content
 	if contentURL.Scheme == "" || contentURL.Scheme == "file" {

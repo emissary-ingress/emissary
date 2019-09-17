@@ -3,6 +3,7 @@ package server
 import (
 	"fmt"
 	"io/ioutil"
+	"net/url"
 	"sort"
 	"testing"
 
@@ -56,26 +57,33 @@ func TestDiffCalculator(t *testing.T) {
 }
 
 // Hard-code diagd output, as well as OpenAPI docs for one service:
-func fakeHTTPGet(url string, internalSecret string, logger *log.Entry) ([]byte, error) {
-	if url == "http://localhost:8877/ambassador/v0/diag/?json=true" {
+func fakeHTTPGet(requestURL *url.URL, internalSecret string, logger *log.Entry) ([]byte, error) {
+	switch requestURL.String() {
+	case "http://localhost:8877/ambassador/v0/diag/?json=true":
 		if internalSecret != "" {
 			return nil, errors.New("Only .ambassador-internal URLs should get secret")
 		}
 		return testdataAmbassadorDiagJSON, nil
-	}
-	if url == "http://ambassador/openapi/.ambassador-internal/openapi-docs" {
+	case "http://ambassador/openapi/.ambassador-internal/openapi-docs":
 		if internalSecret == "" {
 			return nil, errors.New(".ambassador-internal URLs should get secret")
 		}
 		return testdataOpenAPIDocsJSON, nil
-	}
-	if url == "http://ambassador/qotm/.ambassador-internal/openapi-docs" {
+	case "http://ambassador/qotm/.ambassador-internal/openapi-docs":
 		if internalSecret == "" {
 			return nil, errors.New(".ambassador-internal URLs should get secret")
 		}
 		return []byte("<html><body>not a json</body></html>"), nil
+	default:
+		return nil, fmt.Errorf("Unknown URL")
 	}
-	return nil, fmt.Errorf("Unknown URL")
+}
+
+func urlMust(u *url.URL, err error) *url.URL {
+	if err != nil {
+		panic(err)
+	}
+	return u
 }
 
 // Big picture test of retrieving info from diagd and OpenAPI endpoint.
@@ -92,10 +100,10 @@ func TestFetcherRetrieve(t *testing.T) {
 		s.getServiceAdd(), s.getServiceDelete(), fakeHTTPGet,
 		s.knownServices(),
 		types.PortalConfig{
-			AmbassadorAdminURL:    "http://localhost:8877",
-			AmbassadorInternalURL: "http://ambassador",
+			AmbassadorAdminURL:    urlMust(url.Parse("http://localhost:8877")),
+			AmbassadorInternalURL: urlMust(url.Parse("http://ambassador")),
 			PollFrequency:         1,
-			AmbassadorExternalURL: "https://publicapi.com",
+			AmbassadorExternalURL: urlMust(url.Parse("https://publicapi.com")),
 		})
 
 	f.logger.Info("retrieving")
@@ -126,7 +134,7 @@ func TestFetcherRetrieve(t *testing.T) {
 		Prefix:  "/qotm",
 		BaseURL: "https://qotm.example.com", HasDoc: false, Doc: nil}))
 	// This one has an OpenAPI doc:
-	json, _ := fakeHTTPGet("http://ambassador/openapi/.ambassador-internal/openapi-docs", f.internalSecret.Get(), nil)
+	json, _ := fakeHTTPGet(urlMust(url.Parse("http://ambassador/openapi/.ambassador-internal/openapi-docs")), f.internalSecret.Get(), nil)
 	g.Expect(s.K8sStore.Get(openapi, true)).To(Equal(&ServiceMetadata{
 		Prefix:  "/openapi",
 		BaseURL: "https://publicapi.com", HasDoc: true,
