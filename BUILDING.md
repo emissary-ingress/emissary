@@ -290,9 +290,32 @@ That's it! Now simply run `make clean docker-push test` for the first time. In t
 Updating Ambassador's Envoy
 ---------------------------
 
-Ambassador currently relies on a custom Envoy build. This build lives in `https://github.com/datawire/envoy`, which is a fork of `https://github.com/envoyproxy/envoy`, and it'll need to be updated at least as often as Envoy releases happen. To do that:
+Ambassador currently relies on a custom Envoy build. This build lives in
+`https://github.com/datawire/envoy`, which is a fork of
+`https://github.com/envoyproxy/envoy`, and it'll need to be updated at
+least as often as Envoy releases happen. 
 
- 1. Run `make envoy-src` to instruct Make to clone `$ENVOY_REPO` to `./envoy/`.  It will check out `$ENVOY_COMMMIT` (instead of `master`).
+Ambassador's current release engineering works by using `git clone`ing the
+`datawire/envoy` tree into the `envoy-src` subdirectory of Ambassador's
+source tree. **Pay attention** to your working directory as you work through
+the update procedure! There are two separate repos involved, even though one
+appears as a subdirectory of the other.
+
+ 0. In Ambassador's `Makefile`:
+
+    - `$ENVOY_REPO` is the URL of the Envoy source repo. Typically this is
+      the `datawire/envoy` repo, shown above; and
+
+    - `$ENVOY_COMMIT` is the commit within `$ENVOY_REPO` from which
+      Ambassador will build Envoy. Typically this is the tip of the
+      `rebase/master` branch in the `datawire/envoy` repo.
+
+    You **must** edit `$ENVOY_COMMIT` as part of the updating procedure. 
+    Think hard before changing `$ENVOY_REPO`!
+
+ 1. Within your `datawire/ambassador` clone, use `make envoy-src` to clone
+    `$ENVOY_REPO` to `./envoy-src`.  It will check out `$ENVOY_COMMMIT`
+    (instead of `master`):
 
     ```
     $ make envoy-src
@@ -301,23 +324,75 @@ Ambassador currently relies on a custom Envoy build. This build lives in `https:
     HEAD is now at a484da25f updated legacy RLS name
     ```
 
- 2. Rebase that commit on to the latest upstream commit that you would like to incorporate.  Usually, `$ENVOY_COMMIT` points to the tip of `rebase/master`, so that's a good branch to work on.
+ 2. You'll need to manipulate branches in `$ENVOY_REPO`, so
+
+    ```
+    $ cd envoy-src
+    ```
+
+    to be in the correct place.
+
+ 2. You'll need to have the latest commits from the `envoyproxy/envoy` repo
+    available so that you can pull the latest changes:
+
+    ```
+    $ git remote add upstream git://github.com/envoyproxy/envoy.git
+    $ git fetch upstream master
+    ```
+
+ 3. Since `$ENVOY_COMMIT` typically points at the tip of the `rebase/master`
+    branch, that's usually a good branch to work on:
 
     ```
     $ git checkout rebase/master
     Branch 'rebase/master' set up to track remote branch 'rebase/master' from 'origin'.
     Switched to a new branch 'rebase/master'
-    $ git rebase v1.10.0
+    ```
+
+ 4. Once on the correct branch, `git rebase` the commit you want for the new
+    `$ENVOY_COMMIT`:
+
+    ```
+    $ git rebase $NEW_ENVOY_COMMIT
     …
     ```
 
- 3. Run `ENVOY_COMMIT=- make envoy-bin/envoy-static` to make sure that your new Envoy commit compiles correctly.  If there are problems with the build, you can run `ENVOY_COMMIT=- make envoy-shell` to get a shell in to the Docker image where Envoy is compiled.  Any changes you make in the Docker image WILL be copied back to the host, potentially OVERWRITING changes you made  in the host's `./envoy-src/` directory.
+ 5. Deal with any merge conflicts. Sigh.
 
- 4. Run `ENVOY_COMMIT=- make check-envoy` to make sure that your new Envoy commit passes Envoy's own test-suite.
-
- 5. Push the Envoy commit:
+ 6. Switch back to your enclosing Ambassador repo:
 
     ```
+    $ cd ..
+    ```
+
+ 7. Try compiling your new Envoy from the sources you've rebased locally:
+
+    ```
+    $ ENVOY_COMMIT=- make envoy-bin/envoy-static
+    ```
+
+    If there are problems with the build, you can run 
+
+    ```
+    $ ENVOY_COMMIT=- make envoy-shell
+    ```
+
+    to get a shell in to the Docker image where Envoy is compiled.  Any changes
+    you make in the Docker image WILL be copied back to the host, potentially
+    OVERWRITING changes you made  in the host's `./envoy-src/` directory.
+
+ 8. Once you have a clean compile, run
+
+    ```
+    $ ENVOY_COMMIT=- make check-envoy
+    ```
+
+    to make sure that your new Envoy commit passes Envoy's own test-suite.
+
+ 9. Finally, push your new Envoy commit _from the `envoy-src` directory_:
+
+    ```
+    $ cd envoy-src
     $ git tag "datawire-$(git describe --tags)"
     $ git push --tags
     …
@@ -325,7 +400,7 @@ Ambassador currently relies on a custom Envoy build. This build lives in `https:
     …
     ```
 
- 6. Edit `ENVOY_COMMIT ?=` in the Makefile to point to your new Envoy commit.  Follow the instructions in the Makefile when doing so:
+ 10. Edit `ENVOY_COMMIT ?=` in the Makefile to point to your new Envoy commit.  Follow the instructions in the Makefile when doing so:
 
     a. Then run `make docker-update-base` to compile Envoy, and build+push new docker base images incorporating that Envoy binary.  This will also update the `go/apis/envoy/` directory if any of Envoy's protobuf definitions have changed; make sure to commit those changes when you commit the change to `ENVOY_COMMIT`.
 

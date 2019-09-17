@@ -105,7 +105,7 @@ ENVOY_FILE ?= envoy-bin/envoy-static-stripped
 
 # IF YOU MESS WITH ANY OF THESE VALUES, YOU MUST RUN `make docker-update-base`.
   ENVOY_REPO ?= $(if $(IS_PRIVATE),git@github.com:datawire/envoy-private.git,git://github.com/datawire/envoy.git)
-  ENVOY_COMMIT ?= 4616a0939972438ea47f0ac6657296fb836d1187
+  ENVOY_COMMIT ?= 18b1f5acc8d75e992f81d540bbb0d05f8abfe244
   ENVOY_COMPILATION_MODE ?= dbg
 
 
@@ -320,7 +320,7 @@ envoy-src: FORCE
 envoy-build-image.txt: FORCE envoy-src
 	@echo "Making $@..."
 	set -e; \
-	cd envoy-src; . ci/envoy_build_sha.sh; cd ..; \
+	cd envoy-src/ci; . envoy_build_sha.sh; cd ../..; \
 	echo docker.io/envoyproxy/envoy-build-ubuntu:$$ENVOY_BUILD_SHA > .tmp.$@.tmp; \
 	if cmp -s .tmp.$@.tmp $@; then \
 		rm -f .tmp.$@.tmp; \
