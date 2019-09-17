@@ -14,8 +14,8 @@ import (
 	"strings"
 
 	core "github.com/datawire/ambassador/go/apis/envoy/api/v2/core"
-	pb_legacy "github.com/datawire/ambassador/go/apis/envoy/service/auth/v2alpha"
 	pb "github.com/datawire/ambassador/go/apis/envoy/service/auth/v2"
+	pb_legacy "github.com/datawire/ambassador/go/apis/envoy/service/auth/v2alpha"
 	envoy_type "github.com/datawire/ambassador/go/apis/envoy/type"
 
 	"github.com/gogo/googleapis/google/rpc"
