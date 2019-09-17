@@ -141,10 +141,6 @@ class IRAuth (IRFilter):
         failure_mode_allow = module.get('failure_mode_allow', None)
         if failure_mode_allow:
             self['failure_mode_allow'] = failure_mode_allow
-        
-        retry_policy = module.get('retry_policy', None)
-        if retry_policy:
-            self["retry_policy"] = IRRetryPolicy(ir=self.ir, aconf=self.ir.aconf, **retry_policy)
 
         # Required fields check.
         if self["api_version"] == None:
