@@ -24,7 +24,7 @@ type Server struct {
 	pool *bpool.BufferPool
 }
 
-func (s *Server) knownServices() []kubernetes.Service {
+func (s *Server) KnownServices() []kubernetes.Service {
 	serviceMap := s.K8sStore.List()
 	knownServices := make([]kubernetes.Service, len(serviceMap))
 	i := 0

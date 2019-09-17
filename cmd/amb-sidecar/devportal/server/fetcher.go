@@ -134,7 +134,7 @@ var client = util.SimpleClient{Client: &http.Client{
 	},
 }}
 
-func httpGet(requestURL *url.URL, internalSecret string, logger *log.Entry) ([]byte, error) {
+func HTTPGet(requestURL *url.URL, internalSecret string, logger *log.Entry) ([]byte, error) {
 	logger = logger.WithFields(log.Fields{"url": requestURL})
 	logger.Debug("HTTP GET")
 	req, err := http.NewRequest("GET", requestURL.String(), nil)
@@ -162,7 +162,7 @@ func httpGet(requestURL *url.URL, internalSecret string, logger *log.Entry) ([]b
 	return buf, nil
 }
 
-func (f *fetcher) retrieve() {
+func (f *fetcher) Retrieve() {
 	waiter := make(chan bool)
 	f.retriever <- waiter
 	<-waiter

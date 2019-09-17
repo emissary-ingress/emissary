@@ -11,8 +11,10 @@ import (
 
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"golang.org/x/sync/errgroup"
 
-	"github.com/datawire/apro/cmd/amb-sidecar/devportal/server"
+	devportalcontent "github.com/datawire/apro/cmd/amb-sidecar/devportal/content"
+	devportalserver "github.com/datawire/apro/cmd/amb-sidecar/devportal/server"
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
 	"github.com/datawire/apro/lib/licensekeys"
 )
@@ -98,10 +100,26 @@ func main() {
 		DevPortalContentURL:   contentURL,
 	}
 
-	s, err := server.MakeServer("", context.Background(), config)
+	content, err := devportalcontent.NewContent(config.DevPortalContentURL)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	log.Fatal(http.ListenAndServe("0.0.0.0:8680", s.Router()))
+	server := devportalserver.NewServer("", content)
+
+	group, ctx := errgroup.WithContext(context.Background())
+
+	group.Go(func() error {
+		fetcher := devportalserver.NewFetcher(server, devportalserver.HTTPGet, server.KnownServices(), config)
+		fetcher.Retrieve()
+		defer fetcher.Stop()
+		<-ctx.Done()
+		return nil
+	})
+
+	group.Go(func() error {
+		return http.ListenAndServe("0.0.0.0:8680", server.Router())
+	})
+
+	log.Fatal(group.Wait())
 }

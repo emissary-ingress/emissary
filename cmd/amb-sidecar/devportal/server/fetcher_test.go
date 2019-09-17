@@ -94,9 +94,9 @@ func TestFetcherRetrieve(t *testing.T) {
 	// Start out knowing about one service, but it's going to go away:
 	oldSvc := kubernetes.Service{Name: "old"}
 	s.AddService(oldSvc, "http://whatev", "/foo", nil)
-	g.Expect(s.knownServices()).To(Equal([]kubernetes.Service{oldSvc}))
+	g.Expect(s.KnownServices()).To(Equal([]kubernetes.Service{oldSvc}))
 
-	f := NewFetcher(s, fakeHTTPGet, s.knownServices(), types.Config{
+	f := NewFetcher(s, fakeHTTPGet, s.KnownServices(), types.Config{
 		AmbassadorAdminURL:    urlMust(url.Parse("http://localhost:8877")),
 		AmbassadorInternalURL: urlMust(url.Parse("http://ambassador")),
 		DevPortalPollInterval: 1,
@@ -106,7 +106,7 @@ func TestFetcherRetrieve(t *testing.T) {
 	f.logger.Info("retrieving")
 	// When we retrieve we will be told about a bunch of new services. Only
 	// one of them will have OpenAPI docs, though.
-	f.retrieve()
+	f.Retrieve()
 
 	httpbin := kubernetes.Service{Name: "httpbin", Namespace: "default"}
 	devportal := kubernetes.Service{Name: "devportal", Namespace: "default"}
@@ -114,7 +114,7 @@ func TestFetcherRetrieve(t *testing.T) {
 	qotm := kubernetes.Service{Name: "qotm", Namespace: "default"}
 
 	// old service went away, we detected new ones:
-	knownServices := s.knownServices()
+	knownServices := s.KnownServices()
 	f.logger.Info("known services", knownServices)
 	sort.Slice(knownServices, func(i, j int) bool {
 		return knownServices[i].Name < knownServices[j].Name
