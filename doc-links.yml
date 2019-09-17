@@ -206,6 +206,8 @@
           link: /reference/core/crds
         - title: Filters
           link: /reference/filter-reference
+    - title: Developer Portal
+      link: /reference/dev-portal
     - title: Running Ambassador
       link: /reference/running
       items:
