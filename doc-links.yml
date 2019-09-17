@@ -23,7 +23,7 @@
         link: /user-guide/docker-compose
       - title: Bare Metal
         link: /user-guide/bare-metal
-      - title: Ambassador Pro
+      - title: Ambassador Pro and Dev Portal
         link: /user-guide/ambassador-pro-install
       - title: Upgrade Ambassador Open Source to Ambassador Pro
         link: /user-guide/upgrade-to-pro
