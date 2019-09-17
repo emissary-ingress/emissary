@@ -1,7 +1,7 @@
 DOCKER_REGISTRY ?= localhost:31000
 DOCKER_IMAGE = $(DOCKER_REGISTRY)/amb-sidecar-plugin:$(shell git describe --tags --always --dirty)
 
-APRO_VERSION = 0.7.0
+APRO_VERSION = 0.8.0
 
 apro-abi@%.txt:
 	curl --fail -o $@ https://s3.amazonaws.com/datawire-static-files/apro-abi/apro-abi@$(APRO_VERSION).txt
