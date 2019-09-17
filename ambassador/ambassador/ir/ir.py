@@ -447,7 +447,7 @@ class IR:
         else:
             return None
 
-    def add_mapping_to_config(self, mapping: dict, mapping_identifier: str):
+    def add_mapping_to_config(self, mapping: ACResource, mapping_identifier: str):
         if 'mappings' not in self.aconf.config:
             self.aconf.config['mappings'] = {}
 

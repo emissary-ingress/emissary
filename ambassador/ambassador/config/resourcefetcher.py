@@ -391,7 +391,7 @@ class ResourceFetcher:
             tls_secret = tls.get('secretName', None)
 
             if tls_secret is not None:
-                ingress_tls_context = {
+                ingress_tls_context: Dict[str, Any] = {
                     'apiVersion': 'ambassador/v1',
                     'kind': 'TLSContext',
                     'metadata': {
@@ -456,7 +456,7 @@ class ResourceFetcher:
                 unique_suffix = f"{rule_count}-{path_count}"
                 mapping_identifier = f"{ingress_name}-{unique_suffix}"
 
-                path_mapping = {
+                path_mapping: Dict[str, Any] = {
                     'apiVersion': 'ambassador/v1',
                     'kind': 'Mapping',
                     'metadata': {
@@ -475,6 +475,8 @@ class ResourceFetcher:
 
                 self.logger.info(f"Generated mapping from Ingress {ingress_name}: {path_mapping}")
                 self.handle_k8s_crd(path_mapping)
+
+        return None
 
     def handle_k8s_endpoints(self, k8s_object: AnyDict) -> HandlerResult:
         # Don't include Endpoints unless endpoint routing is enabled.
