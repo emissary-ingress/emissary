@@ -12,6 +12,7 @@ import (
 
 	. "github.com/datawire/apro/cmd/amb-sidecar/devportal/kubernetes"
 	. "github.com/datawire/apro/cmd/amb-sidecar/devportal/openapi"
+	"github.com/datawire/apro/cmd/amb-sidecar/types"
 )
 
 var testdataAmbassadorDiagJSON, _ = ioutil.ReadFile("testdata/ambassador-diag.json")
@@ -90,7 +91,7 @@ func TestFetcherRetrieve(t *testing.T) {
 	f := NewFetcher(
 		s.getServiceAdd(), s.getServiceDelete(), fakeHTTPGet,
 		s.knownServices(),
-		ServerConfig{
+		types.PortalConfig{
 			AmbassadorAdminURL:    "http://localhost:8877",
 			AmbassadorInternalURL: "http://ambassador",
 			PollFrequency:         1,

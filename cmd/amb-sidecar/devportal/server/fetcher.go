@@ -13,6 +13,7 @@ import (
 
 	"github.com/datawire/apro/cmd/amb-sidecar/devportal/kubernetes"
 	"github.com/datawire/apro/cmd/amb-sidecar/internalaccess"
+	"github.com/datawire/apro/cmd/amb-sidecar/types"
 	"github.com/datawire/apro/lib/util"
 )
 
@@ -72,7 +73,7 @@ type fetcher struct {
 	diff      *diffCalculator
 
 	logger *log.Entry
-	cfg    ServerConfig
+	cfg    types.PortalConfig
 
 	// Shared secret to send so that we can access .ambassador-internal
 	internalSecret *internalaccess.InternalSecret
@@ -83,7 +84,7 @@ type fetcher struct {
 func NewFetcher(
 	add AddServiceFunc, delete DeleteServiceFunc, httpGet HTTPGetFunc,
 	known []kubernetes.Service,
-	cfg ServerConfig,
+	cfg types.PortalConfig,
 ) *fetcher {
 	f := &fetcher{
 		add:            add,

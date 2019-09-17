@@ -1,7 +1,6 @@
 package types
 
 import (
-	"fmt"
 	"net/url"
 	"os"
 	"strconv"
@@ -9,9 +8,15 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-
-	portal "github.com/datawire/apro/cmd/amb-sidecar/devportal/server"
 )
+
+type PortalConfig struct {
+	AmbassadorAdminURL    string
+	AmbassadorInternalURL string
+	AmbassadorExternalURL string
+	PollFrequency         time.Duration
+	ContentURL            string
+}
 
 type Config struct {
 	// Ambassador
@@ -46,7 +51,7 @@ type Config struct {
 	FlushIntervalS int
 
 	// DevPortal
-	PortalConfig portal.ServerConfig
+	PortalConfig PortalConfig
 }
 
 func getenvDefault(varname, def string) string {
@@ -64,21 +69,21 @@ func getenvDefaultSeconds(varname, def string, warn []error, fatal []error) (tim
 		value, err2 := strconv.Atoi(def)
 		if err2 != nil {
 			fatal = append(fatal,
-				fmt.Errorf("%s: Unparseable default duration '%s': %s",
+				errors.Errorf("%s: Unparseable default duration '%s': %s",
 					varname, def, err2))
 		} else {
 			warn = append(warn,
-				fmt.Errorf("%s: Using default %ds. %s",
+				errors.Errorf("%s: Using default %ds. %s",
 					varname, value, err))
 		}
 	}
 	return time.Second * time.Duration(value), warn, fatal
 }
 
-func PortalConfigFromEnv(warn []error, fatal []error) (portal.ServerConfig, []error, []error) {
+func PortalConfigFromEnv(warn []error, fatal []error) (PortalConfig, []error, []error) {
 	pollFrequency, warn, fatal := getenvDefaultSeconds("POLL_EVERY_SECS", "60", warn, fatal)
 
-	cfg := portal.ServerConfig{
+	cfg := PortalConfig{
 		AmbassadorAdminURL: getenvDefault("AMBASSADOR_ADMIN_URL",
 			"http://127.0.0.1:8877/"),
 		AmbassadorInternalURL: getenvDefault("AMBASSADOR_INTERNAL_URL",
@@ -90,15 +95,15 @@ func PortalConfigFromEnv(warn []error, fatal []error) (portal.ServerConfig, []er
 		ContentURL: getenvDefault("APRO_DEVPORTAL_CONTENT_URL",
 			"https://github.com/datawire/devportal-content"),
 	}
-	return validatePortalConfig(cfg, warn, fatal)
+	return ValidatePortalConfig(cfg, warn, fatal)
 }
 
-func validatePortalConfig(cfg portal.ServerConfig, warn []error, fatal []error) (portal.ServerConfig, []error, []error) {
+func ValidatePortalConfig(cfg PortalConfig, warn []error, fatal []error) (PortalConfig, []error, []error) {
 	u, err := url.Parse(cfg.AmbassadorExternalURL)
 	if err != nil {
 		fatal = append(fatal, errors.Wrap(err, "Cannot parse AMBASSADOR_URL"))
 	} else if !u.IsAbs() || u.Host == "" {
-		fatal = append(fatal, fmt.Errorf("AMBASSADOR_URL must be an absolute url (got %q)", cfg.AmbassadorExternalURL))
+		fatal = append(fatal, errors.Errorf("AMBASSADOR_URL must be an absolute url (got %q)", cfg.AmbassadorExternalURL))
 	}
 	return cfg, warn, fatal
 }

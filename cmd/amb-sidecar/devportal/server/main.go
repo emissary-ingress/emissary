@@ -2,20 +2,12 @@ package server
 
 import (
 	"context"
-	"time"
 
 	"github.com/datawire/apro/cmd/amb-sidecar/devportal/content"
+	"github.com/datawire/apro/cmd/amb-sidecar/types"
 )
 
-type ServerConfig struct {
-	AmbassadorAdminURL    string
-	AmbassadorInternalURL string
-	AmbassadorExternalURL string
-	PollFrequency         time.Duration
-	ContentURL            string
-}
-
-func MakeServer(docroot string, ctx context.Context, config ServerConfig) (s *Server, err error) {
+func MakeServer(docroot string, ctx context.Context, config types.PortalConfig) (s *Server, err error) {
 
 	content, err := content.NewContent(config.ContentURL)
 	if err != nil {

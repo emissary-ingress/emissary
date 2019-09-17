@@ -12,6 +12,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/datawire/apro/cmd/amb-sidecar/devportal/server"
+	"github.com/datawire/apro/cmd/amb-sidecar/types"
 	"github.com/datawire/apro/lib/licensekeys"
 )
 
@@ -41,7 +42,7 @@ func Main(
 	version string, ambassadorAdminURL string, ambassadorInternalURL string, ambassadorExternalURL string,
 	pollFrequency time.Duration, contentURL string) {
 
-	config := server.ServerConfig{
+	config := types.PortalConfig{
 		AmbassadorAdminURL:    ambassadorAdminURL,
 		AmbassadorInternalURL: ambassadorInternalURL,
 		AmbassadorExternalURL: ambassadorExternalURL,
