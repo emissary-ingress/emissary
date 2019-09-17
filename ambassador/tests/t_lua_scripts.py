@@ -7,6 +7,7 @@ class LuaTest(AmbassadorTest):
 
     def init(self):
         self.target = HTTP()
+        self.env = ["LUA_SCRIPTS_ENABLED=Processed"]
 
     def manifests(self) -> str:
         return super().manifests() + self.format('''
@@ -20,7 +21,7 @@ spec:
   config:
     lua_scripts: |
       function envoy_on_response(response_handle)
-        response_handle: headers():add("Lua-Scripts-Enabled", "Processed")
+        response_handle: headers():add("Lua-Scripts-Enabled", "${LUA_SCRIPTS_ENABLED}")
       end
 ---
 apiVersion: getambassador.io/v1
