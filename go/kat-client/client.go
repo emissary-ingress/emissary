@@ -30,7 +30,7 @@ import (
 )
 
 // Should we output GRPCWeb debugging?
-var debug_grpc_web bool 	// We set this value in main()   XXX This is a hack
+var debug_grpc_web bool // We set this value in main()   XXX This is a hack
 
 // Limit concurrency
 
@@ -147,7 +147,7 @@ func (q Query) MinTLSVersion() uint16 {
 	case "v1.2":
 		return tls.VersionTLS12
 	case "v1.3":
-		return 0x0304
+		return tls.VersionTLS13
 	default:
 		return 0
 	}
@@ -163,7 +163,7 @@ func (q Query) MaxTLSVersion() uint16 {
 	case "v1.2":
 		return tls.VersionTLS12
 	case "v1.3":
-		return 0x0304
+		return tls.VersionTLS13
 	default:
 		return 0
 	}
@@ -357,8 +357,8 @@ func (q Query) CheckErr(err error) bool {
 // returns the decoded proto and trailers.
 func DecodeGrpcWebTextBody(body []byte) ([]byte, http.Header, error) {
 	// First, decode all the base64 stuff coming in. An annoyance here
-	// is that while the data coming over the wire are encoded in 
-	// multiple chunks, we can't rely on seeing that framing when 
+	// is that while the data coming over the wire are encoded in
+	// multiple chunks, we can't rely on seeing that framing when
 	// decoding: a chunk that's the right length to not need any base-64
 	// padding will just run into the next chunk.
 	//
@@ -403,8 +403,8 @@ func DecodeGrpcWebTextBody(body []byte) ([]byte, http.Header, error) {
 	// For our use case here, a type of 0 is the protobuf frame, and a type
 	// of 0x80 is the trailers.
 
-	trailers := make(http.Header)	// the trailers will get saved here
-	var proto []byte 				// this is what we hand off to protobuf decode
+	trailers := make(http.Header) // the trailers will get saved here
+	var proto []byte              // this is what we hand off to protobuf decode
 
 	var frame_start, frame_len uint32
 	var frame_type byte
@@ -418,9 +418,9 @@ func DecodeGrpcWebTextBody(body []byte) ([]byte, http.Header, error) {
 
 	for (frame_start + 5) < uint32(len(raw)) {
 		frame_type = raw[frame_start]
-		frame_len = binary.BigEndian.Uint32(raw[frame_start + 1:frame_start + 5])
+		frame_len = binary.BigEndian.Uint32(raw[frame_start+1 : frame_start+5])
 
-		frame = raw[frame_start + 5:frame_start + 5 + frame_len]
+		frame = raw[frame_start+5 : frame_start+5+frame_len]
 
 		if (frame_type & 128) > 0 {
 			// Trailers frame
@@ -456,7 +456,7 @@ func DecodeGrpcWebTextBody(body []byte) ([]byte, http.Header, error) {
 // AddResponse populates a query's result with data from the query's HTTP
 // response object.
 //
-// This is not called for websockets or real GRPC. It _is_ called for 
+// This is not called for websockets or real GRPC. It _is_ called for
 // GRPC-bridge, GRPC-web, and (of course) HTTP(s).
 func (q Query) AddResponse(resp *http.Response) {
 	result := q.Result()
@@ -470,7 +470,7 @@ func (q Query) AddResponse(resp *http.Response) {
 		cstart := q["client-start-date"]
 
 		// We'll only have a client-start-date if we're doing plain old HTTP, at
-		// present -- so not for WebSockets or gRPC or the like. Don't try to 
+		// present -- so not for WebSockets or gRPC or the like. Don't try to
 		// save the start and end dates if we have no start date.
 		if cstart != nil {
 			headers.Add("Client-Start-Date", q["client-start-date"].(string))
@@ -491,7 +491,7 @@ func (q Query) AddResponse(resp *http.Response) {
 		result["body"] = body
 		if q.GrpcType() != "" && len(body) > 5 {
 			if q.GrpcType() == "web" {
-				// This is the GRPC-web case. Go forth and decode the base64'd 
+				// This is the GRPC-web case. Go forth and decode the base64'd
 				// GRPC-web body madness.
 				decodedBody, trailers, err := DecodeGrpcWebTextBody(body)
 				if q.CheckErr(err) {
@@ -722,7 +722,7 @@ func CallRealGRPC(query Query) {
 
 // ExecuteQuery constructs the appropriate request, executes it, and records the
 // response and related information in query.result.
-func ExecuteQuery(query Query, secureTransport *http.Transport) {
+func ExecuteQuery(query Query) {
 	// Websocket stuff is handled elsewhere
 	if query.IsWebsocket() {
 		ExecuteWebsocketQuery(query)
@@ -735,36 +735,36 @@ func ExecuteQuery(query Query, secureTransport *http.Transport) {
 		return
 	}
 
-	// Prepare an insecure transport if necessary; otherwise use the normal
-	// transport that was passed in.
-	var transport *http.Transport
-	if query.Insecure() {
-		transport = &http.Transport{
-			MaxIdleConns:    10,
-			IdleConnTimeout: 30 * time.Second,
-			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-		}
-
-		caCert := query.CACert()
-		if len(caCert) > 0 {
-			caCertPool := x509.NewCertPool()
-			caCertPool.AppendCertsFromPEM([]byte(caCert))
-			clientCert, err := tls.X509KeyPair([]byte(query.ClientCert()), []byte(query.ClientKey()))
-			if err != nil {
-				log.Fatal(err)
-			}
-			transport.TLSClientConfig.RootCAs = caCertPool
-			transport.TLSClientConfig.Certificates = []tls.Certificate{clientCert}
-		}
-	} else {
-		transport = secureTransport
+	// Prepare an http.Transport with customized TLS settings.
+	transport := &http.Transport{
+		MaxIdleConns:    10,
+		IdleConnTimeout: 30 * time.Second,
+		TLSClientConfig: &tls.Config{},
 	}
-	client := &http.Client{
-		Transport: transport,
-		Timeout:   time.Duration(10 * time.Second),
-		CheckRedirect: func(req *http.Request, via []*http.Request) error {
-			return http.ErrUseLastResponse
-		},
+	if query.Insecure() {
+		transport.TLSClientConfig.InsecureSkipVerify = true
+	}
+	if caCert := query.CACert(); len(caCert) > 0 {
+		caCertPool := x509.NewCertPool()
+		caCertPool.AppendCertsFromPEM([]byte(caCert))
+		clientCert, err := tls.X509KeyPair([]byte(query.ClientCert()), []byte(query.ClientKey()))
+		if err != nil {
+			log.Fatal(err)
+		}
+		transport.TLSClientConfig.RootCAs = caCertPool
+		transport.TLSClientConfig.Certificates = []tls.Certificate{clientCert}
+	}
+	if query.MinTLSVersion() != 0 {
+		transport.TLSClientConfig.MinVersion = query.MinTLSVersion()
+	}
+	if query.MaxTLSVersion() != 0 {
+		transport.TLSClientConfig.MaxVersion = query.MaxTLSVersion()
+	}
+	if len(query.CipherSuites()) > 0 {
+		transport.TLSClientConfig.CipherSuites = query.CipherSuites()
+	}
+	if len(query.ECDHCurves()) > 0 {
+		transport.TLSClientConfig.CurvePreferences = query.ECDHCurves()
 	}
 
 	// Prepare the HTTP request
@@ -804,36 +804,19 @@ func ExecuteQuery(query Query, secureTransport *http.Transport) {
 	host := req.Header.Get("Host")
 	if host != "" {
 		if query.SNI() {
-			// Modify the TLS config of the transport.
-			// FIXME I'm not sure why it's okay to do this for the global shared
-			// transport, but apparently it works. The docs say that mutating an
-			// existing tls.Config would be bad too.
-			if transport.TLSClientConfig == nil {
-				transport.TLSClientConfig = &tls.Config{}
-			}
-
 			transport.TLSClientConfig.ServerName = host
-
-			if query.MinTLSVersion() != 0 {
-				transport.TLSClientConfig.MinVersion = query.MinTLSVersion()
-			}
-
-			if query.MaxTLSVersion() != 0 {
-				transport.TLSClientConfig.MaxVersion = query.MaxTLSVersion()
-			}
-
-			if len(query.CipherSuites()) > 0 {
-				transport.TLSClientConfig.CipherSuites = query.CipherSuites()
-			}
-
-			if len(query.ECDHCurves()) > 0 {
-				transport.TLSClientConfig.CurvePreferences = query.ECDHCurves()
-			}
 		}
 		req.Host = host
 	}
 
 	// Perform the request and save the results.
+	client := &http.Client{
+		Transport: transport,
+		Timeout:   time.Duration(10 * time.Second),
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		},
+	}
 	resp, err := client.Do(req)
 	if query.CheckErr(err) {
 		return
@@ -843,7 +826,7 @@ func ExecuteQuery(query Query, secureTransport *http.Transport) {
 
 func main() {
 	debug_grpc_web = false
-	
+
 	rlimit()
 
 	var input, output string
@@ -879,12 +862,6 @@ func main() {
 	}
 	sem := NewSemaphore(limit)
 
-	// Prep global HTTP transport for connection caching/pooling
-	transport := &http.Transport{
-		MaxIdleConns:    10,
-		IdleConnTimeout: 30 * time.Second,
-	}
-
 	// Launch queries concurrently
 	count := len(specs)
 	queries := make(chan bool)
@@ -895,7 +872,7 @@ func main() {
 				queries <- true
 				sem.Release()
 			}()
-			ExecuteQuery(specs[idx], transport)
+			ExecuteQuery(specs[idx])
 		}(i)
 	}
 

@@ -1,6 +1,6 @@
 module github.com/datawire/ambassador
 
-go 1.12
+go 1.13
 
 require (
 	github.com/envoyproxy/protoc-gen-validate v0.0.15-0.20190405222122-d6164de49109

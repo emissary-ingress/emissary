@@ -264,7 +264,7 @@ export-vars:
 	@echo "export VERSION='$(VERSION)'"
 
 # All of this will likely fail horribly outside of CI, for the record.
-docker-registry:
+docker-registry: $(KUBECONFIG)
 ifneq ($(DOCKER_EPHEMERAL_REGISTRY),)
 	@if [ "$(TRAVIS)" != "true" ]; then \
 		echo "make docker-registry is only for CI" >&2 ;\
@@ -506,7 +506,7 @@ $(KAT_CLIENT): $(wildcard go/kat-client/*) go/apis/kat/echo.pb.go
 
 setup-develop: venv $(KAT_CLIENT) $(TELEPROXY) $(KUBERNAUT) $(WATT) $(KUBESTATUS) version
 
-cluster.yaml: $(CLAIM_FILE)
+cluster.yaml: $(CLAIM_FILE) $(KUBERNAUT)
 ifeq ($(USE_KUBERNAUT), true)
 	$(KUBERNAUT_DISCARD)
 	$(KUBERNAUT_CLAIM)
@@ -519,6 +519,9 @@ ifneq ($(USE_KUBERNAUT),false)
 endif
 endif
 endif
+# Make is too dumb to understand equivalence between absolute and
+# relative paths.
+$(CURDIR)/cluster.yaml: cluster.yaml
 
 setup-test: cluster-and-teleproxy
 
