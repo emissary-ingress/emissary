@@ -207,12 +207,18 @@ class Config:
     def as_json(self):
         return json.dumps(self.as_dict(), sort_keys=True, indent=4)
 
+    def ambassador_id_required(self, resource_kind: str) -> bool:
+        if resource_kind in self.KnativeResources:
+            return False
+
+        return True
+
     # Often good_ambassador_id will be passed an ACResource, but sometimes
     # just a plain old dict.
     def good_ambassador_id(self, resource: dict):
-        resource_kind = resource.get('kind')
-        if resource_kind in self.KnativeResources:
-            self.logger.debug(f"Knative resource: {resource_kind} does not require an Ambassador ID")
+        resource_kind = resource.get('kind', '').lower()
+        if not self.ambassador_id_required(resource_kind):
+            self.logger.debug(f"Resource: {resource_kind} does not require an Ambassador ID")
             return True
 
         # Is an ambassador_id present in this object?
@@ -398,7 +404,8 @@ class Config:
             is_ambassador = True
             apiVersion = apiVersion.split('/')[1]
         elif apiVersion.startswith('networking.internal.knative.dev'):
-            # This is not an Ambassador resource, we're trying to parse Knative here
+            # This is not an Ambassador resource, we're trying to parse Knative
+            # here
             pass
         else:
             return RichStatus.fromError("apiVersion %s unsupported" % apiVersion)
@@ -540,7 +547,20 @@ class Config:
         the rkey, not the name.
         """
 
+        self.logger.debug(f"Handling secret resource {resource.as_dict()}")
+
         storage = self.config.setdefault('secrets', {})
+        key = resource.rkey
+
+        if key in storage:
+            self.post_error("%s defines %s %s, which is already defined by %s" %
+                            (resource, resource.kind, key, storage[key].location),
+                            resource=resource)
+
+        storage[key] = resource
+
+    def handle_ingress(self, resource: ACResource) -> None:
+        storage = self.config.setdefault('ingresses', {})
         key = resource.rkey
 
         if key in storage:
