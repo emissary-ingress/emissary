@@ -70,6 +70,30 @@ set, you will also need to set them in the Pro container.
 
 ## 4. Developer Portal
 
+To access the developer portal, you need to provide the IP address or hostname (and port if you are using a `NodePort` service) of the Ambassador service you just deployed. 
+
+You can do this with `kubectl`:
+
+```
+kubectl get svc ambassador
+
+NAME               TYPE           CLUSTER-IP      EXTERNAL-IP     PORT(S)                      AGE
+ambassador-admin   ClusterIP      10.59.251.37    <none>          8877/TCP                     33m
+ambassador         LoadBalancer   10.59.255.38    34.70.5.231     80:30529/TCP,443:30403/TCP   33m
+```
+
+Now provide this information to Ambassador by editing the value of `AMBASSADOR_URL` in your `env.sh` file and running the `make` command again.
+
+`env.sh`:
+
+```
+AMBASSADOR_URL=https://34.70.5.231
+```
+
+```
+make apply-ambassador
+```
+
 In your browser, go to $AMBASSADOR_IP/docs/. This will bring up the Dev Portal. The Dev Portal shows a list of all APIs in your cluster, along with the API documentation (if available). The Dev Portal supports rendering both Swagger and OpenAPI specifications. The look-and-feel of the Dev Portal is fully customizable.
 
 ## 5. Pro and JWT
