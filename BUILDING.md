@@ -181,7 +181,10 @@ you don't `make clean` or `make clobber` in between.
 
 #### `ambassador dump`
 
-The `ambassador dump` function (run from a `make shell`) will export the full Envoy v2 configuration. It works from an input which can be either a single file or a directory full of files in the following formats:
+After running `make setup-develop` or `make shell`, you'll be able to use the
+`ambassador` CLI. The most useful thing it can do is `ambassador dump`, which
+can export the most import data structures that Ambassador works with as JSON.
+It works from an input which can be either a single file or a directory full of files in the following formats:
 
 - raw Ambassador resources like you'll find in the `demo/config` directory; or
 - an annotated Kubernetes resources like you'll find in `/tmp/k8s-AmbassadorTest.yaml` after running `make test`; or
@@ -195,7 +198,8 @@ Given an input source, running
 venv/bin/ambassador dump --ir --v2 [$input_flags] $input > test.json
 ```
 
-will dump the Ambassador IR and v2 Envoy configuration into `test.json`. Here `$input_flags` will be
+will dump the Ambassador IR and v2 Envoy configuration into `test.json`. Here
+`$input_flags` will be
 
 - nothing for raw Ambassador resources;
 - `--k8s` for Kubernetes resources; or
@@ -207,7 +211,8 @@ You can get more information with
 venv/bin/ambassador dump --help
 ```
 
-(Note that if you're in a dev shell, you can just run `ambassador` instead of `venv/bin/ambassador`.)
+(Note that if you're in a dev shell, you can just run `ambassador` instead of
+`venv/bin/ambassador`.)
 
 #### The Test Suite and Your Cluster
 
