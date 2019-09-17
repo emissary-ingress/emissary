@@ -27,9 +27,9 @@ func MakeServer(docroot string, ctx context.Context, config ServerConfig) (s *Se
 	knownServices := s.knownServices()
 	// TODO push context into fetcher
 	fetcher := NewFetcher(
-		s.getServiceAdd(), s.getServiceDelete(), httpGet, knownServices,
-		config.AmbassadorAdminURL, config.AmbassadorInternalURL,
-		config.PollFrequency, config.AmbassadorExternalURL)
+		s.getServiceAdd(), s.getServiceDelete(), httpGet,
+		knownServices,
+		config)
 	go func() {
 		fetcher.retrieve()
 		defer fetcher.Stop()

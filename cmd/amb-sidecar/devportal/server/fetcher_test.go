@@ -90,8 +90,12 @@ func TestFetcherRetrieve(t *testing.T) {
 	f := NewFetcher(
 		s.getServiceAdd(), s.getServiceDelete(), fakeHTTPGet,
 		s.knownServices(),
-		"http://localhost:8877", "http://ambassador", 1,
-		"https://publicapi.com")
+		ServerConfig{
+			AmbassadorAdminURL:    "http://localhost:8877",
+			AmbassadorInternalURL: "http://ambassador",
+			PollFrequency:         1,
+			AmbassadorExternalURL: "https://publicapi.com",
+		})
 
 	f.logger.Info("retrieving")
 	// When we retrieve we will be told about a bunch of new services. Only

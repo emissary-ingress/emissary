@@ -70,13 +70,10 @@ type fetcher struct {
 	ticker    *time.Ticker
 	retriever chan chan bool
 	diff      *diffCalculator
-	logger    *log.Entry
-	// diagd's URL
-	ambassadorAdminURL string
-	// ambassador's URL
-	ambassadorInternalURL string
-	// The public default base URL for the APIs, e.g. https://api.example.com
-	ambassadorExternalURL string
+
+	logger *log.Entry
+	cfg    ServerConfig
+
 	// Shared secret to send so that we can access .ambassador-internal
 	internalSecret *internalaccess.InternalSecret
 }
@@ -86,21 +83,19 @@ type fetcher struct {
 func NewFetcher(
 	add AddServiceFunc, delete DeleteServiceFunc, httpGet HTTPGetFunc,
 	known []kubernetes.Service,
-	ambassadorAdminURL string, ambassadorInternalURL string, duration time.Duration, ambassadorExternalURL string,
+	cfg ServerConfig,
 ) *fetcher {
 	f := &fetcher{
-		add:                   add,
-		delete:                delete,
-		httpGet:               httpGet,
-		done:                  make(chan bool),
-		ticker:                time.NewTicker(duration),
-		retriever:             make(chan chan bool),
-		diff:                  NewDiffCalculator(known),
-		logger:                log.WithFields(log.Fields{"subsystem": "fetcher"}),
-		ambassadorAdminURL:    strings.TrimRight(ambassadorAdminURL, "/"),
-		ambassadorInternalURL: strings.TrimRight(ambassadorInternalURL, "/"),
-		ambassadorExternalURL: strings.TrimRight(ambassadorExternalURL, "/"),
-		internalSecret:        internalaccess.GetInternalSecret(),
+		add:            add,
+		delete:         delete,
+		httpGet:        httpGet,
+		done:           make(chan bool),
+		ticker:         time.NewTicker(cfg.PollFrequency),
+		retriever:      make(chan chan bool),
+		diff:           NewDiffCalculator(known),
+		logger:         log.WithFields(log.Fields{"subsystem": "fetcher"}),
+		cfg:            cfg,
+		internalSecret: internalaccess.GetInternalSecret(),
 	}
 	go func() {
 		for {
@@ -177,7 +172,7 @@ func (f *fetcher) retrieve() {
 
 func (f *fetcher) _retrieve(reason string) {
 	f.logger.Info("Iteration started ", reason, " ")
-	buf, err := f.httpGet(f.ambassadorAdminURL+"/ambassador/v0/diag/?json=true", "", f.logger)
+	buf, err := f.httpGet(f.cfg.AmbassadorAdminURL+"/ambassador/v0/diag/?json=true", "", f.logger)
 	if err != nil {
 		log.Print(err)
 		return
@@ -224,7 +219,7 @@ func (f *fetcher) _retrieve(reason string) {
 				// TODO what if it's http? (arguably it should never be)
 				baseURL = "https://" + getString(mapping, "host")
 			} else {
-				baseURL = f.ambassadorExternalURL
+				baseURL = f.cfg.AmbassadorExternalURL
 			}
 			f.logger.WithFields(log.Fields{
 				"name":      name,
@@ -235,7 +230,7 @@ func (f *fetcher) _retrieve(reason string) {
 			// Get the OpenAPI documentation:
 			var doc []byte
 			docBuf, err := f.httpGet(
-				f.ambassadorInternalURL+prefix+"/.ambassador-internal/openapi-docs",
+				f.cfg.AmbassadorInternalURL+prefix+"/.ambassador-internal/openapi-docs",
 				f.internalSecret.Get(),
 				f.logger)
 			if err == nil {
