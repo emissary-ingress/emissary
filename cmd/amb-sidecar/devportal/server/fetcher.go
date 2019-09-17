@@ -18,14 +18,6 @@ import (
 	"github.com/datawire/apro/lib/util"
 )
 
-// Add a new/updated service.
-type AddServiceFunc func(
-	service kubernetes.Service, baseURL string, prefix string,
-	openAPIDoc []byte)
-
-// Delete a service.
-type DeleteServiceFunc func(service kubernetes.Service)
-
 // Retrieve a URL.
 type HTTPGetFunc func(requestURL *url.URL, internalSecret string, logger *log.Entry) ([]byte, error)
 
@@ -65,8 +57,7 @@ func (d *diffCalculator) Add(s kubernetes.Service) {
 }
 
 type fetcher struct {
-	add       AddServiceFunc
-	delete    DeleteServiceFunc
+	store     ServiceStore
 	httpGet   HTTPGetFunc
 	done      chan bool
 	ticker    *time.Ticker
@@ -80,16 +71,21 @@ type fetcher struct {
 	internalSecret *internalaccess.InternalSecret
 }
 
+type ServiceStore interface {
+	AddService(service kubernetes.Service, baseURL string, prefix string, openAPIDoc []byte)
+	DeleteService(service kubernetes.Service)
+}
+
 // Object that retrieves service info and OpenAPI docs (if available) and
 // adds/deletes changes from last run.
 func NewFetcher(
-	add AddServiceFunc, delete DeleteServiceFunc, httpGet HTTPGetFunc,
+	store ServiceStore,
+	httpGet HTTPGetFunc,
 	known []kubernetes.Service,
 	cfg types.Config,
 ) *fetcher {
 	f := &fetcher{
-		add:            add,
-		delete:         delete,
+		store:          store,
 		httpGet:        httpGet,
 		done:           make(chan bool),
 		ticker:         time.NewTicker(cfg.DevPortalPollInterval),
@@ -252,7 +248,7 @@ func (f *fetcher) _retrieve(reason string) {
 				doc = nil
 			}
 			service := kubernetes.Service{Namespace: namespace, Name: name}
-			f.add(service, baseURL, prefix, doc)
+			f.store.AddService(service, baseURL, prefix, doc)
 			f.diff.Add(service)
 		}
 	}
@@ -262,7 +258,7 @@ func (f *fetcher) _retrieve(reason string) {
 		f.logger.WithFields(log.Fields{
 			"name": service.Name, "namespace": service.Namespace,
 		}).Info("Deleting old service we didn't find in this iteration")
-		f.delete(service)
+		f.store.DeleteService(service)
 	}
 	f.logger.Info("Iteration done")
 }

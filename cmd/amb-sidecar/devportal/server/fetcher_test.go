@@ -93,18 +93,15 @@ func TestFetcherRetrieve(t *testing.T) {
 
 	// Start out knowing about one service, but it's going to go away:
 	oldSvc := kubernetes.Service{Name: "old"}
-	s.getServiceAdd()(oldSvc, "http://whatev", "/foo", nil)
+	s.AddService(oldSvc, "http://whatev", "/foo", nil)
 	g.Expect(s.knownServices()).To(Equal([]kubernetes.Service{oldSvc}))
 
-	f := NewFetcher(
-		s.getServiceAdd(), s.getServiceDelete(), fakeHTTPGet,
-		s.knownServices(),
-		types.Config{
-			AmbassadorAdminURL:    urlMust(url.Parse("http://localhost:8877")),
-			AmbassadorInternalURL: urlMust(url.Parse("http://ambassador")),
-			DevPortalPollInterval: 1,
-			AmbassadorExternalURL: urlMust(url.Parse("https://publicapi.com")),
-		})
+	f := NewFetcher(s, fakeHTTPGet, s.knownServices(), types.Config{
+		AmbassadorAdminURL:    urlMust(url.Parse("http://localhost:8877")),
+		AmbassadorInternalURL: urlMust(url.Parse("http://ambassador")),
+		DevPortalPollInterval: 1,
+		AmbassadorExternalURL: urlMust(url.Parse("https://publicapi.com")),
+	})
 
 	f.logger.Info("retrieving")
 	// When we retrieve we will be told about a bunch of new services. Only

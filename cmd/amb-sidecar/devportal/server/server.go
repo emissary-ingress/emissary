@@ -35,26 +35,22 @@ func (s *Server) knownServices() []kubernetes.Service {
 	return knownServices
 }
 
-func (s *Server) getServiceAdd() AddServiceFunc {
-	return func(
-		service kubernetes.Service, baseURL string, prefix string,
-		openAPIDoc []byte) {
-		hasDoc := (openAPIDoc != nil)
-		var doc *openapi.OpenAPIDoc = nil
-		if hasDoc {
-			doc = openapi.NewOpenAPI(openAPIDoc, baseURL, prefix)
-		}
-		s.K8sStore.Set(
-			service, kubernetes.ServiceMetadata{
-				Prefix: prefix, BaseURL: baseURL,
-				HasDoc: hasDoc, Doc: doc})
+// AddService implements ServiceStore.
+func (s *Server) AddService(service kubernetes.Service, baseURL string, prefix string, openAPIDoc []byte) {
+	hasDoc := (openAPIDoc != nil)
+	var doc *openapi.OpenAPIDoc = nil
+	if hasDoc {
+		doc = openapi.NewOpenAPI(openAPIDoc, baseURL, prefix)
 	}
+	s.K8sStore.Set(
+		service, kubernetes.ServiceMetadata{
+			Prefix: prefix, BaseURL: baseURL,
+			HasDoc: hasDoc, Doc: doc})
 }
 
-func (s *Server) getServiceDelete() DeleteServiceFunc {
-	return func(service kubernetes.Service) {
-		s.K8sStore.Delete(service)
-	}
+// DeleteService implements ServiceStore.
+func (s *Server) DeleteService(service kubernetes.Service) {
+	s.K8sStore.Delete(service)
 }
 
 func (s *Server) Router() http.Handler {
@@ -117,8 +113,6 @@ type openAPIUpdate struct {
 }
 
 func (s *Server) handleOpenAPIUpdate() http.HandlerFunc {
-	addService := s.getServiceAdd()
-
 	return func(w http.ResponseWriter, r *http.Request) {
 		b, err := ioutil.ReadAll(r.Body)
 		defer r.Body.Close()
@@ -139,7 +133,7 @@ func (s *Server) handleOpenAPIUpdate() http.HandlerFunc {
 		} else {
 			buf = nil
 		}
-		addService(
+		s.AddService(
 			kubernetes.Service{
 				Name: msg.ServiceName, Namespace: msg.ServiceNamespace},
 			msg.BaseURL, msg.Prefix, buf)

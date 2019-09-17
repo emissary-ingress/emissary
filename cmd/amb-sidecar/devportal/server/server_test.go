@@ -59,7 +59,7 @@ func TestAddThenGetViaHTTP(t *testing.T) {
 	svc := kubernetes.Service{Name: "mysvc", Namespace: "myns"}
 
 	// We add a service:
-	s.getServiceAdd()(svc, baseURL, prefix, openapiJSON)
+	s.AddService(svc, baseURL, prefix, openapiJSON)
 
 	// We can retrieve the updated OpenAPI via HTTP:
 	req, err := http.NewRequest(
