@@ -9,7 +9,7 @@ require (
 	github.com/bmizerany/perks v0.0.0-20141205001514-d9a9656a3a4b // indirect
 	github.com/datawire/ambassador v0.72.0
 	github.com/datawire/liboauth2 v0.0.0-20190619201518-4d7cc6073e44
-	github.com/datawire/teleproxy v0.5.1
+	github.com/datawire/teleproxy 2f688be1248ec9cfb3fe22daab6ef2b30285b401
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/dgryski/go-gk v0.0.0-20140819190930-201884a44051 // indirect
 	github.com/die-net/lrucache v0.0.0-20181227122439-19a39ef22a11
@@ -19,7 +19,9 @@ require (
 	github.com/google/uuid v1.1.0
 	github.com/gorilla/mux v1.6.1
 	github.com/gregjones/httpcache v0.0.0-20181110185634-c63ab54fda8f
-	github.com/hashicorp/consul v1.4.4
+	github.com/hashicorp/consul v1.5.0
+	github.com/hashicorp/consul/api v1.1.0
+	github.com/hashicorp/consul/sdk v0.1.1
 	github.com/hashicorp/serf v0.8.3 // indirect
 	github.com/influxdata/tdigest v0.0.0-20181121200506-bf2b5ad3c0a9
 	github.com/jcuga/golongpoll v0.0.0-20180711123949-939e3befd837
