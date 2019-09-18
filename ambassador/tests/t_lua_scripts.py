@@ -7,7 +7,11 @@ class LuaTest(AmbassadorTest):
 
     def init(self):
         self.target = HTTP()
-        self.env = ["LUA_SCRIPTS_ENABLED=Processed"]
+
+        self.manifest_envs = """
+    - name: LUA_SCRIPTS_ENABLED
+      value: Processed
+"""
 
     def manifests(self) -> str:
         return super().manifests() + self.format('''
