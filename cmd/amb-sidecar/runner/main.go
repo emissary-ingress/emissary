@@ -165,9 +165,7 @@ func runE(cmd *cobra.Command, args []string) error {
 		devPortalServer = devportalserver.NewServer("/docs", content)
 		group.Go("devportal_fetcher", func(hardCtx, softCtx context.Context, cfg types.Config, l types.Logger) error {
 			fetcher := devportalserver.NewFetcher(devPortalServer, devportalserver.HTTPGet, devPortalServer.KnownServices(), cfg)
-			fetcher.Retrieve()
-			defer fetcher.Stop()
-			<-softCtx.Done()
+			fetcher.Run(softCtx)
 			return nil
 		})
 	}

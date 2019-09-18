@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"net/url"
@@ -106,7 +107,10 @@ func TestFetcherRetrieve(t *testing.T) {
 	f.logger.Info("retrieving")
 	// When we retrieve we will be told about a bunch of new services. Only
 	// one of them will have OpenAPI docs, though.
+	ctx, ctxCancel := context.WithCancel(context.Background())
+	go f.Run(ctx)
 	f.Retrieve()
+	ctxCancel()
 
 	httpbin := kubernetes.Service{Name: "httpbin", Namespace: "default"}
 	devportal := kubernetes.Service{Name: "devportal", Namespace: "default"}

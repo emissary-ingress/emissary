@@ -111,9 +111,7 @@ func main() {
 
 	group.Go(func() error {
 		fetcher := devportalserver.NewFetcher(server, devportalserver.HTTPGet, server.KnownServices(), config)
-		fetcher.Retrieve()
-		defer fetcher.Stop()
-		<-ctx.Done()
+		fetcher.Run(ctx)
 		return nil
 	})
 

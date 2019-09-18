@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"crypto/tls"
 	"fmt"
 	"net"
@@ -59,8 +60,6 @@ func (d *diffCalculator) Add(s kubernetes.Service) {
 type fetcher struct {
 	store     ServiceStore
 	httpGet   HTTPGetFunc
-	done      chan bool
-	ticker    *time.Ticker
 	retriever chan chan bool
 	diff      *diffCalculator
 
@@ -84,34 +83,32 @@ func NewFetcher(
 	known []kubernetes.Service,
 	cfg types.Config,
 ) *fetcher {
-	f := &fetcher{
+	return &fetcher{
 		store:          store,
 		httpGet:        httpGet,
-		done:           make(chan bool),
-		ticker:         time.NewTicker(cfg.DevPortalPollInterval),
 		retriever:      make(chan chan bool),
 		diff:           NewDiffCalculator(known),
 		logger:         log.WithFields(log.Fields{"subsystem": "fetcher"}),
 		cfg:            cfg,
 		internalSecret: internalaccess.GetInternalSecret(),
 	}
-	go func() {
-		for {
-			select {
-			case <-f.done:
-				f.ticker.Stop()
-				return
-			case <-f.ticker.C:
-				f._retrieve("timer")
-				break
-			case ack := <-f.retriever:
-				f._retrieve("request")
-				ack <- true
-				break
-			}
+}
+
+func (f *fetcher) Run(ctx context.Context) {
+	f._retrieve("request")
+	ticker := time.NewTicker(f.cfg.DevPortalPollInterval)
+	for {
+		select {
+		case <-ctx.Done():
+			ticker.Stop()
+			return
+		case <-ticker.C:
+			f._retrieve("timer")
+		case ack := <-f.retriever:
+			f._retrieve("request")
+			ack <- true
 		}
-	}()
-	return f
+	}
 }
 
 // Get a string attribute of a JSON object:
@@ -261,9 +258,4 @@ func (f *fetcher) _retrieve(reason string) {
 		f.store.DeleteService(service)
 	}
 	f.logger.Info("Iteration done")
-}
-
-func (f *fetcher) Stop() {
-	f.ticker.Stop()
-	close(f.done)
 }
