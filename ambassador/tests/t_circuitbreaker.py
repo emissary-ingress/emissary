@@ -97,6 +97,7 @@ service: cbstatsd-sink
 
     def requirements(self):
         yield from super().requirements()
+        yield ("url", Query(self.url(self.name) + '-pr/'))
         yield ("url", Query(self.url("RESET/")))
 
     def queries(self):
