@@ -130,6 +130,56 @@ spec:
                 assert r.backend.request.headers['x-envoy-original-path'][0] == f'/{self.name}/'
 
 
+class SimpleIngressWithAnnotations(MappingTest):
+
+    parent: AmbassadorTest
+    target: ServiceType
+
+    @classmethod
+    def variants(cls):
+        for st in variants(ServiceType):
+            yield cls(st, name="{self.target.name}")
+
+    def manifests(self) -> str:
+        return f"""
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    kubernetes.io/ingress.class: ambassador
+    getambassador.io/ambassador-id: plain
+    getambassador.io/config: |
+      ---
+      apiVersion: ambassador/v1
+      kind:  Mapping
+      name:  {self.name}-nested
+      prefix: /{self.name}-nested/
+      service: http://{self.target.path.fqdn}
+      ambassador_id: plain
+  name: {self.name.lower()}
+spec:
+  rules:
+  - http:
+      paths:
+      - backend:
+          serviceName: {self.target.path.k8s}
+          servicePort: 80
+        path: /{self.name}/
+"""
+
+    def queries(self):
+        yield Query(self.parent.url(self.name + "/"))
+        yield Query(self.parent.url(f'need-normalization/../{self.name}/'))
+        yield Query(self.parent.url(self.name + "-nested/"))
+        yield Query(self.parent.url(self.name + "-non-existent/"), expected=404)
+
+    def check(self):
+        for r in self.results:
+            if r.backend:
+                assert r.backend.name == self.target.path.k8s, (r.backend.name, self.target.path.k8s)
+                assert r.backend.request.headers['x-envoy-original-path'][0] in (f'/{self.name}/', f'/{self.name}-nested/')
+
+
 class HostHeaderMappingIngress(MappingTest):
 
     parent: AmbassadorTest

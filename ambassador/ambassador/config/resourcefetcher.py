@@ -355,6 +355,8 @@ class ResourceFetcher:
         ingress_name = metadata.get('name') if metadata else None
         ingress_namespace = metadata.get('namespace', 'default') if metadata else None
 
+        resource_identifier = f'{ingress_name}.{ingress_namespace}'
+
         ingress_spec = k8s_object.get('spec', None)
 
         skip = False
@@ -379,6 +381,20 @@ class ResourceFetcher:
 
         if skip:
             return None
+
+        # Let's see if our Ingress resource has Ambassdaor annotations on it
+        annotations = metadata.get('annotations', {})
+        ambassador_annotations = annotations.get('getambassador.io/config', None)
+
+        parsed_ambassador_annotations = None
+        if ambassador_annotations is not None:
+            if (self.filename is not None) and (not self.filename.endswith(":annotation")):
+                self.filename += ":annotation"
+
+            try:
+                parsed_ambassador_annotations = parse_yaml(ambassador_annotations)
+            except yaml.error.YAMLError as e:
+                self.logger.debug("could not parse YAML: %s" % e)
 
         ambassador_id = annotations.get('getambassador.io/ambassador-id', 'default')
 
@@ -475,6 +491,9 @@ class ResourceFetcher:
 
                 self.logger.info(f"Generated mapping from Ingress {ingress_name}: {path_mapping}")
                 self.handle_k8s_crd(path_mapping)
+
+        if parsed_ambassador_annotations is not None:
+            return resource_identifier, parsed_ambassador_annotations
 
         return None
 
