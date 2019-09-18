@@ -10,7 +10,7 @@ spec:
   containers:
   - name: backend
     image: {environ[KAT_CLIENT_DOCKER_IMAGE]}
-    imagePullPolicy: Always
+    imagePullPolicy: IfNotPresent
 """
 
 BACKEND_SERVICE = """
@@ -45,7 +45,7 @@ spec:
   containers:
   - name: backend
     image: {environ[KAT_SERVER_DOCKER_IMAGE]}
-    imagePullPolicy: Always
+    imagePullPolicy: IfNotPresent
     ports:
     - containerPort: 8080
     env:
@@ -72,7 +72,7 @@ spec:
       containers:
       - name: backend
         image: {environ[KAT_SERVER_DOCKER_IMAGE]}
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         # ports:
         # (ports)
         env:
@@ -110,7 +110,7 @@ spec:
   containers:
   - name: backend
     image: {environ[KAT_SERVER_DOCKER_IMAGE]}
-    imagePullPolicy: Always
+    imagePullPolicy: IfNotPresent
     ports:
     - containerPort: 8080
     env:
@@ -149,7 +149,7 @@ spec:
   containers:
   - name: backend
     image: {environ[KAT_SERVER_DOCKER_IMAGE]}
-    imagePullPolicy: Always
+    imagePullPolicy: IfNotPresent
     ports:
     - containerPort: 8080
     env:
@@ -188,7 +188,7 @@ spec:
   containers:
   - name: backend
     image: {environ[KAT_SERVER_DOCKER_IMAGE]}
-    imagePullPolicy: Always
+    imagePullPolicy: IfNotPresent
     ports:
     - containerPort: 8080
     env:

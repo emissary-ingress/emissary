@@ -531,14 +531,22 @@ else
 endif
 
 docker-push-kat-client: kat-client-docker-image
+ifeq ($(DOCKER_REGISTRY),-)
+	@echo "No DOCKER_REGISTRY set"
+else
 	@echo 'PUSH $(KAT_CLIENT_DOCKER_IMAGE)'
 	@set -o pipefail; \
 		docker push $(KAT_CLIENT_DOCKER_IMAGE) | python releng/linify.py push.log
+endif
 
 docker-push-kat-server: kat-server-docker-image
+ifeq ($(DOCKER_REGISTRY),-)
+	@echo "No DOCKER_REGISTRY set"
+else
 	@echo 'PUSH $(KAT_SERVER_DOCKER_IMAGE)'
 	@set -o pipefail; \
 		docker push $(KAT_SERVER_DOCKER_IMAGE) | python releng/linify.py push.log
+endif
 
 # TODO: validate version is conformant to some set of rules might be a good idea to add here
 ambassador/ambassador/VERSION.py: FORCE $(WRITE_IFCHANGED)
@@ -666,7 +674,7 @@ clean-test:
 	rm -f $(CLAIM_FILE)
 	$(call kill_teleproxy)
 
-test: setup-develop
+test: setup-develop docker-push-kat-client docker-push-kat-server
 	cd ambassador && \
 	AMBASSADOR_DOCKER_IMAGE="$(AMBASSADOR_DOCKER_IMAGE)" \
 	BASE_PY_IMAGE="$(BASE_PY_IMAGE)" \
