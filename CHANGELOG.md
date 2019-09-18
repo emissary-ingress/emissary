@@ -1,6 +1,18 @@
 ## Ambassador Pro CHANGELOG
 
+## 0.8.1 (TBD)
+
+Behavior:
+
+ * Bugfix: Properly return a 404 for unknown paths in the amb-sidecar; instead of the instead of serving the index page; this could happen if the devportal Mapping is misconfigured.
+ * Bugfix: Fix the "loaded filter" log info message.
+ * Bugfix: Don't publish the "dev-portal-server" Docker image; it was obviated by "amb-sidecar" in 0.8.0.
+
 ## 0.8.0 (2019-09-16)
+
+Configuration:
+
+ * `amb-sidecar` now takes additional configuration related to the developer portal.
 
 Behavior:
 
