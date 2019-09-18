@@ -40,7 +40,6 @@ func init() {
 var offline bool
 
 func doValidate(cmd *cobra.Command, args []string) {
-	var err error
 	var local_resources []k8s.Resource
 	var remote_resources []k8s.Resource
 
@@ -56,7 +55,8 @@ func doValidate(cmd *cobra.Command, args []string) {
 	fmt.Printf("Found %d local resources.\n", len(local_resources))
 
 	if !offline {
-		c := k8s.NewClient(nil)
+		c, err := k8s.NewClient(nil)
+		die(err)
 		remote_resources, err = c.List("ratelimits")
 		die(err)
 

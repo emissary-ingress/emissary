@@ -189,7 +189,11 @@ func (c *Controller) Watch(ctx context.Context, kubeinfo *k8s.KubeInfo, licenseC
 		return err
 	}
 
-	w := k8s.NewClient(kubeinfo).Watcher()
+	client, err := k8s.NewClient(kubeinfo)
+	if err != nil {
+		return err
+	}
+	w := client.Watcher()
 
 	w.Watch("filters", func(w *k8s.Watcher) {
 		filters := map[string]FilterInfo{}
