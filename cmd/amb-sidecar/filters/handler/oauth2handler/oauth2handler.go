@@ -165,7 +165,7 @@ func (c *OAuth2Filter) filterClient(ctx context.Context, logger types.Logger, ht
 			}
 			return ret
 		} else if err == rfc6749client.ErrNoAccessToken {
-			// This indicates a programming error; we've check that there is an access token.
+			// This indicates a programming error; we've already checked that there is an access token.
 			panic(err)
 		} else if err == rfc6749client.ErrExpiredAccessToken {
 			logger.Debugln("access token expired; continuing as if non-authenticated session")
@@ -284,6 +284,27 @@ func (c *OAuth2Filter) filterClient(ctx context.Context, logger types.Logger, ht
 		if err != nil {
 			return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
 				err, nil)
+		}
+
+		if c.Spec.InsteadOfRedirect != nil {
+			noRedirect := true
+			if c.Spec.InsteadOfRedirect.IfRequestHeader != nil {
+				if c.Spec.InsteadOfRedirect.IfRequestHeader.Value != nil {
+					noRedirect = filterutil.GetHeader(request).Get(c.Spec.InsteadOfRedirect.IfRequestHeader.Name) == *c.Spec.InsteadOfRedirect.IfRequestHeader.Value
+				} else {
+					noRedirect = filterutil.GetHeader(request).Get(c.Spec.InsteadOfRedirect.IfRequestHeader.Name) != ""
+				}
+			}
+			if noRedirect {
+				return &filterapi.HTTPResponse{
+					StatusCode: c.Spec.InsteadOfRedirect.HTTPStatusCode,
+					Header: http.Header{
+						"Set-Cookie":   {cookie.String()},
+						"Content-Type": {"text/plain; charset=utf-8"},
+					},
+					Body: "session cookie is either missing, or refers to an expired or non-authenticated session",
+				}
+			}
 		}
 
 		return &filterapi.HTTPResponse{

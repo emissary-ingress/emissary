@@ -2,6 +2,10 @@
 
 ## 0.8.1 (TBD)
 
+Configuration
+
+ * The `OAuth2` filter now has an `insteadOfRedirect` setting that can specify a different action to perform than redirecting to the IDP.
+
 Behavior:
 
  * Bugfix: Properly return a 404 for unknown paths in the amb-sidecar; instead of serving the index page; this could happen if the devportal Mapping is misconfigured.
