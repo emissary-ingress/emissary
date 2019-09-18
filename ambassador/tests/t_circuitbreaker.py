@@ -172,6 +172,11 @@ config:
     max_connections: 1
 """)
 
+    def requirements(self):
+        yield from super().requirements()
+        yield ("url", Query(self.url(self.name) + '-pr/'))
+        yield ("url", Query(self.url(self.name) + '-normal/'))
+
     def queries(self):
         for i in range(500):
             yield Query(self.url(self.name) + '-pr/', headers={ "Requested-Backend-Delay": "1000" },
