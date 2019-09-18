@@ -12,8 +12,8 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/datawire/apro/cmd/app-sidecar/longpoll"
 	"github.com/datawire/apro/lib/licensekeys"
-	"github.com/datawire/apro/lib/longpoll"
 )
 
 var log = _log.New(os.Stderr, "", _log.LstdFlags)
