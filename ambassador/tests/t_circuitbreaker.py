@@ -97,6 +97,7 @@ service: cbstatsd-sink
 
     def requirements(self):
         yield from super().requirements()
+        yield ("url", Query(self.url(self.name) + '-pr/'))
         yield ("url", Query(self.url("RESET/")))
 
     def queries(self):
@@ -133,7 +134,7 @@ service: cbstatsd-sink
         rq_completed = cluster_stats.get('upstream_rq_completed', -1)
         rq_pending_overflow = cluster_stats.get('upstream_rq_pending_overflow', -1)
 
-        assert rq_completed == 500, f'Expected 500 completed requests to {self.__class__.TARGET_CLUSTER}, got {rq_completed}'
+        assert rq_completed == 501, f'Expected 501 completed requests to {self.__class__.TARGET_CLUSTER}, got {rq_completed}'
         assert abs(pending_overloaded - rq_pending_overflow) < 2, f'Expected {pending_overloaded} rq_pending_overflow, got {rq_pending_overflow}'
 
 
@@ -171,6 +172,11 @@ config:
     max_pending_requests: 1
     max_connections: 1
 """)
+
+    def requirements(self):
+        yield from super().requirements()
+        yield ("url", Query(self.url(self.name) + '-pr/'))
+        yield ("url", Query(self.url(self.name) + '-normal/'))
 
     def queries(self):
         for i in range(500):
