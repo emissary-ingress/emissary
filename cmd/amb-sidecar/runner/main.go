@@ -28,12 +28,13 @@ import (
 	stats "github.com/lyft/gostats"
 
 	// internal libraries: github.com/datawire/apro
-	"github.com/datawire/apro/cmd/amb-sidecar/filters/app"
-	"github.com/datawire/apro/cmd/amb-sidecar/filters/app/health"
+	devportalcontent "github.com/datawire/apro/cmd/amb-sidecar/devportal/content"
+	devportalserver "github.com/datawire/apro/cmd/amb-sidecar/devportal/server"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/controller"
-	rlscontroller "github.com/datawire/apro/cmd/amb-sidecar/rls"
+	filterhandler "github.com/datawire/apro/cmd/amb-sidecar/filters/handler"
+	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/health"
+	rlscontroller "github.com/datawire/apro/cmd/amb-sidecar/ratelimits"
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
-	portal "github.com/datawire/apro/cmd/dev-portal-server/server"
 	"github.com/datawire/apro/lib/licensekeys"
 	"github.com/datawire/apro/lib/util"
 
@@ -154,6 +155,21 @@ func runE(cmd *cobra.Command, args []string) error {
 		})
 	}
 
+	// DevPortal
+	var devPortalServer *devportalserver.Server
+	if licenseClaims.RequireFeature(licensekeys.FeatureDevPortal) == nil {
+		content, err := devportalcontent.NewContent(cfg.DevPortalContentURL)
+		if err != nil {
+			return err
+		}
+		devPortalServer = devportalserver.NewServer("/docs", content)
+		group.Go("devportal_fetcher", func(hardCtx, softCtx context.Context, cfg types.Config, l types.Logger) error {
+			fetcher := devportalserver.NewFetcher(devPortalServer, devportalserver.HTTPGet, devPortalServer.KnownServices(), cfg)
+			fetcher.Run(softCtx)
+			return nil
+		})
+	}
+
 	// HTTP server
 	group.Go("http", func(hardCtx, softCtx context.Context, cfg types.Config, l types.Logger) error {
 		// A good chunk of this code mimics github.com/lyft/ratelimit/src/service_cmd/runner.Run()
@@ -221,7 +237,7 @@ func runE(cmd *cobra.Command, args []string) error {
 			if err != nil {
 				return err
 			}
-			authService, err := app.NewFilterMux(cfg, l.WithField("SUB", "http-handler"), ct, coreClient, redisPool)
+			authService, err := filterhandler.NewFilterMux(cfg, l.WithField("SUB", "http-handler"), ct, coreClient, redisPool)
 			if err != nil {
 				return err
 			}
@@ -258,20 +274,8 @@ func runE(cmd *cobra.Command, args []string) error {
 
 		// DevPortal
 		if licenseClaims.RequireFeature(licensekeys.FeatureDevPortal) == nil {
-			portalServer, err := portal.MakeServer("/docs", softCtx, cfg.PortalConfig)
-			if err != nil {
-				return err
-			}
-			logrusLogger.Info("Mounting dev portal to /docs/")
-			httpHandler.AddEndpoint("/docs/", "Documentation portal", func(w http.ResponseWriter, rq *http.Request) {
-				//	logrusLogger.Infof("Forwarding request %s to portal server", rq.RequestURI)
-				portalServer.Router().ServeHTTP(w, rq)
-			})
-			logrusLogger.Info("Mounting dev portal API to /openapi/")
-			httpHandler.AddEndpoint("/openapi/", "Documentation portal API", func(w http.ResponseWriter, rq *http.Request) {
-				//	logrusLogger.Infof("Forwarding request %s to portal server API", rq.RequestURI)
-				portalServer.Router().ServeHTTP(w, rq)
-			})
+			httpHandler.AddEndpoint("/docs/", "Documentation portal", devPortalServer.Router().ServeHTTP)
+			httpHandler.AddEndpoint("/openapi/", "Documentation portal API", devPortalServer.Router().ServeHTTP)
 		}
 
 		// Launch the server

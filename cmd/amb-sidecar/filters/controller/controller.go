@@ -14,7 +14,7 @@ import (
 	"github.com/datawire/teleproxy/pkg/k8s"
 
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta2"
-	"github.com/datawire/apro/cmd/amb-sidecar/filters/app/httpclient"
+	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/httpclient"
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
 	"github.com/datawire/apro/lib/licensekeys"
 	"github.com/datawire/apro/lib/mapstructure"
@@ -128,25 +128,25 @@ func processFilterSpec(filter k8s.Resource, cfg types.Config, coreClient *k8sCli
 	case spec.OAuth2 != nil:
 		ret.Err = spec.OAuth2.Validate(filter.Namespace(), coreClient)
 		ret.Spec = *spec.OAuth2
-		if ret.Err != nil {
+		if ret.Err == nil {
 			ret.Desc = fmt.Sprintf("oauth2_domain=%s, oauth2_client_id=%s", spec.OAuth2.Domain(), spec.OAuth2.ClientID)
 		}
 	case spec.Plugin != nil:
 		ret.Err = spec.Plugin.Validate()
 		ret.Spec = *spec.Plugin
-		if ret.Err != nil {
+		if ret.Err == nil {
 			ret.Desc = fmt.Sprintf("plugin=%s", spec.Plugin.Name)
 		}
 	case spec.JWT != nil:
 		ret.Err = spec.JWT.Validate()
 		ret.Spec = *spec.JWT
-		if ret.Err != nil {
+		if ret.Err == nil {
 			ret.Desc = "jwt"
 		}
 	case spec.External != nil:
 		ret.Err = spec.External.Validate()
 		ret.Spec = *spec.External
-		if ret.Err != nil {
+		if ret.Err == nil {
 			ret.Desc = fmt.Sprintf("external=%s", spec.External.AuthService)
 		}
 	case spec.Internal != nil:
@@ -202,7 +202,7 @@ func (c *Controller) Watch(ctx context.Context, kubeinfo *k8s.KubeInfo, licenseC
 					c.Logger.Errorf("error in filter resource %q: %v", mw.QName(), filterInfo.Err)
 				}
 			} else {
-				c.Logger.Infoln("loaded filter %v", filterInfo.Desc)
+				c.Logger.Infof("loaded filter resource %q: %v", mw.QName(), filterInfo.Desc)
 			}
 			filters[mw.QName()] = filterInfo
 		}

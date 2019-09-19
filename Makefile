@@ -387,7 +387,7 @@ run-auth: bin_$(GOHOSTOS)_$(GOHOSTARCH)/amb-sidecar
 	env $$(cat pro-env.sh) APP_LOG_LEVEL=debug bin_$(GOHOSTOS)_$(GOHOSTARCH)/amb-sidecar main
 .PHONY: run-auth
 run-dev-portal: ## (LocalDev) Build and launch the dev server locally
-run-dev-portal: bin_$(GOHOSTOS)_$(GOHOSTARCH)/dev-portal-server
+run-dev-portal: bin_$(GOHOSTOS)_$(GOHOSTARCH)/local-devportal
 	sh -x dev-hacks/dev-server.sh
 .PHONY: run-dev-portal
 
@@ -492,6 +492,8 @@ clean: $(addsuffix .clean,$(wildcard docker/*.docker)) loadtest-clean
 # Files made by older versions.  Remove the tail of this list when the
 # commit making the change gets far enough in to the past.
 #
+# 2019-09-16
+	rm -f docker/dev-portal-server/dev-portal-server
 # 2019-09-12
 	rm -f tests/cluster/consul/new_root.crt tests/cluster/consul/new_root.key
 # 2019-09-04

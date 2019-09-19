@@ -8,8 +8,8 @@ import (
 	"github.com/Jeffail/gabs"
 	. "github.com/onsi/gomega"
 
-	. "github.com/datawire/apro/cmd/dev-portal-server/kubernetes"
-	. "github.com/datawire/apro/cmd/dev-portal-server/openapi"
+	"github.com/datawire/apro/cmd/amb-sidecar/devportal/kubernetes"
+	"github.com/datawire/apro/cmd/amb-sidecar/devportal/openapi"
 )
 
 // We can add a service to the internal memory representation, and it gets
@@ -56,10 +56,10 @@ func TestAddThenGetViaHTTP(t *testing.T) {
 	s := NewServer("", nil)
 	baseURL := "https://example.com"
 	prefix := "/foo"
-	svc := Service{Name: "mysvc", Namespace: "myns"}
+	svc := kubernetes.Service{Name: "mysvc", Namespace: "myns"}
 
 	// We add a service:
-	s.getServiceAdd()(svc, baseURL, prefix, openapiJSON)
+	s.AddService(svc, baseURL, prefix, openapiJSON)
 
 	// We can retrieve the updated OpenAPI via HTTP:
 	req, err := http.NewRequest(
@@ -68,7 +68,7 @@ func TestAddThenGetViaHTTP(t *testing.T) {
 		t.Fatal(err)
 	}
 	rr := httptest.NewRecorder()
-	expectedDoc := NewOpenAPI(openapiJSON, baseURL, prefix).JSON
+	expectedDoc := openapi.NewOpenAPI(openapiJSON, baseURL, prefix).JSON
 	s.router.ServeHTTP(rr, req)
 	g.Expect(rr.Code).To(Equal(http.StatusOK))
 	resultJson, _ := gabs.ParseJSON(rr.Body.Bytes())

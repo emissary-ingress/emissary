@@ -6,7 +6,7 @@ import (
 	"github.com/Jeffail/gabs"
 	. "github.com/onsi/gomega"
 
-	"github.com/datawire/apro/cmd/dev-portal-server/openapi"
+	"github.com/datawire/apro/cmd/amb-sidecar/devportal/openapi"
 )
 
 func testStoreInterface(s ServiceStore, t *testing.T) {

@@ -10,8 +10,8 @@ import (
 	"github.com/pkg/errors"
 
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta2"
-	"github.com/datawire/apro/cmd/amb-sidecar/filters/app/httpclient"
-	"github.com/datawire/apro/cmd/amb-sidecar/filters/app/middleware"
+	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/httpclient"
+	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/middleware"
 	"github.com/datawire/apro/lib/filterapi"
 	"github.com/datawire/apro/lib/filterapi/filterutil"
 	"github.com/datawire/apro/lib/jwks"

@@ -4,18 +4,18 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/datawire/apro/cmd/amb-sidecar/internal-access/secret"
+	"github.com/datawire/apro/cmd/amb-sidecar/internalaccess"
 	"github.com/datawire/apro/lib/filterapi"
 	"github.com/datawire/apro/lib/filterapi/filterutil"
 )
 
 type InternalFilter struct {
-	secret *secret.InternalSecret
+	secret *internalaccess.InternalSecret
 }
 
 func MakeInternalFilter() *InternalFilter {
 	return &InternalFilter{
-		secret: secret.GetInternalSecret(),
+		secret: internalaccess.GetInternalSecret(),
 	}
 }
 

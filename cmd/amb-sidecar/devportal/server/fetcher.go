@@ -1,31 +1,26 @@
 package server
 
 import (
+	"context"
 	"crypto/tls"
 	"fmt"
 	"net"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 
 	"github.com/Jeffail/gabs"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/datawire/apro/cmd/amb-sidecar/internal-access/secret"
-	"github.com/datawire/apro/cmd/dev-portal-server/kubernetes"
+	"github.com/datawire/apro/cmd/amb-sidecar/devportal/kubernetes"
+	"github.com/datawire/apro/cmd/amb-sidecar/internalaccess"
+	"github.com/datawire/apro/cmd/amb-sidecar/types"
 	"github.com/datawire/apro/lib/util"
 )
 
-// Add a new/updated service.
-type AddServiceFunc func(
-	service kubernetes.Service, baseURL string, prefix string,
-	openAPIDoc []byte)
-
-// Delete a service.
-type DeleteServiceFunc func(service kubernetes.Service)
-
 // Retrieve a URL.
-type HTTPGetFunc func(url string, internalSecret string, logger *log.Entry) ([]byte, error)
+type HTTPGetFunc func(requestURL *url.URL, internalSecret string, logger *log.Entry) ([]byte, error)
 
 type serviceMap map[kubernetes.Service]bool
 
@@ -63,60 +58,57 @@ func (d *diffCalculator) Add(s kubernetes.Service) {
 }
 
 type fetcher struct {
-	add       AddServiceFunc
-	delete    DeleteServiceFunc
+	store     ServiceStore
 	httpGet   HTTPGetFunc
-	done      chan bool
-	ticker    *time.Ticker
 	retriever chan chan bool
 	diff      *diffCalculator
-	logger    *log.Entry
-	// diagd's URL
-	diagURL string
-	// ambassador's URL
-	ambassadorURL string
-	// The public default base URL for the APIs, e.g. https://api.example.com
-	publicBaseURL string
+
+	logger *log.Entry
+	cfg    types.Config
+
 	// Shared secret to send so that we can access .ambassador-internal
-	internalSecret *secret.InternalSecret
+	internalSecret *internalaccess.InternalSecret
+}
+
+type ServiceStore interface {
+	AddService(service kubernetes.Service, baseURL string, prefix string, openAPIDoc []byte)
+	DeleteService(service kubernetes.Service)
 }
 
 // Object that retrieves service info and OpenAPI docs (if available) and
 // adds/deletes changes from last run.
 func NewFetcher(
-	add AddServiceFunc, delete DeleteServiceFunc, httpGet HTTPGetFunc,
-	known []kubernetes.Service, diagURL string, ambassadorURL string, duration time.Duration, publicBaseURL string) *fetcher {
-	f := &fetcher{
-		add:            add,
-		delete:         delete,
+	store ServiceStore,
+	httpGet HTTPGetFunc,
+	known []kubernetes.Service,
+	cfg types.Config,
+) *fetcher {
+	return &fetcher{
+		store:          store,
 		httpGet:        httpGet,
-		done:           make(chan bool),
-		ticker:         time.NewTicker(duration),
 		retriever:      make(chan chan bool),
 		diff:           NewDiffCalculator(known),
 		logger:         log.WithFields(log.Fields{"subsystem": "fetcher"}),
-		diagURL:        strings.TrimRight(diagURL, "/"),
-		ambassadorURL:  strings.TrimRight(ambassadorURL, "/"),
-		publicBaseURL:  strings.TrimRight(publicBaseURL, "/"),
-		internalSecret: secret.GetInternalSecret(),
+		cfg:            cfg,
+		internalSecret: internalaccess.GetInternalSecret(),
 	}
-	go func() {
-		for {
-			select {
-			case <-f.done:
-				f.ticker.Stop()
-				return
-			case <-f.ticker.C:
-				f._retrieve("timer")
-				break
-			case ack := <-f.retriever:
-				f._retrieve("request")
-				ack <- true
-				break
-			}
+}
+
+func (f *fetcher) Run(ctx context.Context) {
+	f._retrieve("request")
+	ticker := time.NewTicker(f.cfg.DevPortalPollInterval)
+	for {
+		select {
+		case <-ctx.Done():
+			ticker.Stop()
+			return
+		case <-ticker.C:
+			f._retrieve("timer")
+		case ack := <-f.retriever:
+			f._retrieve("request")
+			ack <- true
 		}
-	}()
-	return f
+	}
 }
 
 // Get a string attribute of a JSON object:
@@ -139,10 +131,10 @@ var client = util.SimpleClient{Client: &http.Client{
 	},
 }}
 
-func httpGet(url string, internalSecret string, logger *log.Entry) ([]byte, error) {
-	logger = logger.WithFields(log.Fields{"url": url})
+func HTTPGet(requestURL *url.URL, internalSecret string, logger *log.Entry) ([]byte, error) {
+	logger = logger.WithFields(log.Fields{"url": requestURL})
 	logger.Debug("HTTP GET")
-	req, err := http.NewRequest("GET", url, nil)
+	req, err := http.NewRequest("GET", requestURL.String(), nil)
 	if err != nil {
 		logger.Error(err)
 		return nil, err
@@ -155,7 +147,7 @@ func httpGet(url string, internalSecret string, logger *log.Entry) ([]byte, erro
 			logger.WithFields(
 				log.Fields{"status_code": response.StatusCode}).Error(
 				"Bad HTTP response")
-			err = fmt.Errorf("HTTP error %d from %s", response.StatusCode, url)
+			err = fmt.Errorf("HTTP error %d from %s", response.StatusCode, requestURL)
 		}
 		return
 	})
@@ -167,7 +159,7 @@ func httpGet(url string, internalSecret string, logger *log.Entry) ([]byte, erro
 	return buf, nil
 }
 
-func (f *fetcher) retrieve() {
+func (f *fetcher) Retrieve() {
 	waiter := make(chan bool)
 	f.retriever <- waiter
 	<-waiter
@@ -175,7 +167,13 @@ func (f *fetcher) retrieve() {
 
 func (f *fetcher) _retrieve(reason string) {
 	f.logger.Info("Iteration started ", reason, " ")
-	buf, err := f.httpGet(f.diagURL+"/ambassador/v0/diag/?json=true", "", f.logger)
+	requestURL, err := f.cfg.AmbassadorAdminURL.Parse("/ambassador/v0/diag/?json=true")
+	if err != nil {
+		// This should _never_ happen; cfg has alread been
+		// validated, and the string is fixex.
+		panic(err)
+	}
+	buf, err := f.httpGet(requestURL, "", f.logger)
 	if err != nil {
 		log.Print(err)
 		return
@@ -222,7 +220,7 @@ func (f *fetcher) _retrieve(reason string) {
 				// TODO what if it's http? (arguably it should never be)
 				baseURL = "https://" + getString(mapping, "host")
 			} else {
-				baseURL = f.publicBaseURL
+				baseURL = f.cfg.AmbassadorExternalURL.String()
 			}
 			f.logger.WithFields(log.Fields{
 				"name":      name,
@@ -232,21 +230,22 @@ func (f *fetcher) _retrieve(reason string) {
 			}).Info("Found mapping")
 			// Get the OpenAPI documentation:
 			var doc []byte
-			docBuf, err := f.httpGet(
-				f.ambassadorURL+prefix+"/.ambassador-internal/openapi-docs",
-				f.internalSecret.Get(),
-				f.logger)
+			requestURL, err := f.cfg.AmbassadorInternalURL.Parse(prefix + "/.ambassador-internal/openapi-docs")
 			if err == nil {
-				doc = docBuf
-			} else {
-				doc = nil
+				docBuf, err := f.httpGet(
+					requestURL,
+					f.internalSecret.Get(),
+					f.logger)
+				if err == nil {
+					doc = docBuf
+				}
 			}
 			_, err = gabs.ParseJSON(doc)
 			if err != nil {
 				doc = nil
 			}
 			service := kubernetes.Service{Namespace: namespace, Name: name}
-			f.add(service, baseURL, prefix, doc)
+			f.store.AddService(service, baseURL, prefix, doc)
 			f.diff.Add(service)
 		}
 	}
@@ -256,12 +255,7 @@ func (f *fetcher) _retrieve(reason string) {
 		f.logger.WithFields(log.Fields{
 			"name": service.Name, "namespace": service.Namespace,
 		}).Info("Deleting old service we didn't find in this iteration")
-		f.delete(service)
+		f.store.DeleteService(service)
 	}
 	f.logger.Info("Iteration done")
-}
-
-func (f *fetcher) Stop() {
-	f.ticker.Stop()
-	close(f.done)
 }

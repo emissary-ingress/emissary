@@ -1,4 +1,4 @@
-package app
+package handler
 
 import (
 	// 3rd-party libraries
@@ -6,8 +6,8 @@ import (
 	"github.com/pkg/errors"
 
 	// internal libraries
-	secret "github.com/datawire/apro/cmd/amb-sidecar/filters/app/secret"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/controller"
+	secret "github.com/datawire/apro/cmd/amb-sidecar/filters/handler/secret"
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
 
 	// k8s clients
