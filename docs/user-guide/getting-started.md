@@ -45,7 +45,8 @@ For production configurations, we recommend you download these YAML files as you
 ## 2. Defining the Ambassador Service
 
 Ambassador is deployed as a Kubernetes Service that references the ambassador
-Deployment you deployed previously. Create the following YAML and put it in a file called `ambassador-service.yaml`.
+Deployment you deployed previously. Create the following YAML and put it in a file called
+`ambassador-service.yaml`.
 
 ```yaml
 ---
@@ -83,24 +84,6 @@ apiVersion: v1
 kind: Service
 metadata:
   name: tour
-  annotations:
-    getambassador.io/config: |
-      ---
-      apiVersion: ambassador/v1
-      kind: Mapping
-      name: tour-ui_mapping
-      prefix: /
-      service: tour:5000
-      ---
-      apiVersion: ambassador/v1
-      kind: Mapping
-      name: tour-backend_mapping
-      prefix: /backend/
-      service: tour:8080
-      labels:
-        ambassador:
-          - request_label:
-            - backend
 spec:
   ports:
   - name: ui
@@ -143,7 +126,26 @@ spec:
           limits:
             cpu: "0.1"
             memory: 100Mi
-
+---
+apiVersion: getambassador.io/v1
+kind: Mapping
+metadata:
+  name: tour-ui_mapping
+spec:
+  prefix: /
+  service: tour:5000
+---
+apiVersion: getambassador.io/v1
+kind: Mapping
+metadata:
+  name: tour-backend_mapping
+spec:
+  prefix: /backend/
+  service: tour:8080
+  labels:
+    ambassador:
+      - request_label:
+        - backend
 ```
 
 Then, apply it to the Kubernetes with `kubectl`:
@@ -158,9 +160,12 @@ This YAML has also been published so you can deploy it remotely:
 kubectl apply -f https://getambassador.io/yaml/tour/tour.yaml
 ```
 
-When the service is deployed, Ambassador will notice the `getambassador.io/config` annotation on the service, and use the `Mapping` contained in it to configure the route.  (There's no restriction on what kinds of Ambassador configuration can go into the annotation, but it's important to note that Ambassador only looks at annotations on Kubernetes `Service`s.)
+When the `Mapping` CRDs are applied, Ambassador will use them to configure routing:
 
-In this case, the mapping creates two routes. One that will route traffic from the `/` endpoint to the `tour-ui` React application and one that will route traffic from the `/backend/` endpoint to the `tour-backend` service. Note the port assignments in the `service` field of the `Mapping`. This allows us to use a single service to route to both the containers running on the `tour` pod.
+- The first `Mapping` causes traffic from the `/` endpoint to be routed to the `tour-ui` React application.
+- The second `Mapping` causes traffic from the `/backend/` endpoint to be routed to the `tour-backend` service.
+
+Note also the port numbers in the `service` field of the `Mapping`. This allows us to use a single service to route to both the containers running on the `tour` pod.
 
 ## 4. Testing the Mapping
 
@@ -216,12 +221,14 @@ By default, this is exposed to the internet at the URL `http://{{AMBASSADOR_HOST
 You can change the default so it is not exposed externally by default by setting `diagnostics.enabled: false` in the [ambassador `Module`](/reference/core/ambassador). 
 
 ```yaml
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v1
 kind: Module
-name: ambassador
-config:
-  diagnostics:
-    enabled: false
+metadata:
+  name: ambassador
+spec:
+  config:
+    diagnostics:
+      enabled: false
 ```
 
 After applying this `Module`, to view the diagnostics UI, we'll need to get the name of one of the Ambassador pods:
