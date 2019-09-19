@@ -10,14 +10,6 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type PortalConfig struct {
-	AmbassadorAdminURL    *url.URL
-	AmbassadorInternalURL *url.URL
-	AmbassadorExternalURL *url.URL
-	PollFrequency         time.Duration
-	ContentURL            *url.URL
-}
-
 type Config struct {
 	// Ambassador
 	AmbassadorID              string
