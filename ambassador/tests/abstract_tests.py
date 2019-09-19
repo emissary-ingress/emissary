@@ -35,15 +35,20 @@ type: kubernetes.io/service-account-token
 """
 
 
-def assert_default_errors(errors):
+def assert_default_errors(errors, include_ingress_errors=True):
     default_errors = [
         ["",
          "Ambassador could not find core CRD definitions. Please visit https://www.getambassador.io/reference/core/crds/ for more information. You can continue using Ambassador via Kubernetes annotations, any configuration via CRDs will be ignored..."],
         ["",
-         "Ambassador could not find Resolver type CRD definitions. Please visit https://www.getambassador.io/reference/core/crds/ for more information. You can continue using Ambassador via Kubernetes annotations, any configuration via CRDs will be ignored..."],
-        ["",
-         "Ambassador is not permitted to read Ingress resources. Please visit https://www.getambassador.io/user-guide/ingress-controller/ for more information. You can continue using Ambassador, but Ingress resources will be ignored..."]
+         "Ambassador could not find Resolver type CRD definitions. Please visit https://www.getambassador.io/reference/core/crds/ for more information. You can continue using Ambassador via Kubernetes annotations, any configuration via CRDs will be ignored..."]
     ]
+
+    if include_ingress_errors:
+        default_errors.append(
+            ["",
+             "Ambassador is not permitted to read Ingress resources. Please visit https://www.getambassador.io/user-guide/ingress-controller/ for more information. You can continue using Ambassador, but Ingress resources will be ignored..."
+            ]
+        )
 
     number_of_default_errors = len(default_errors)
     assert errors[:number_of_default_errors] == default_errors

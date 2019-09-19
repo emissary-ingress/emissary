@@ -116,7 +116,10 @@ def check_ingresses():
 
     if k8s_v1b1:
         try:
-            k8s_v1b1.list_ingress_for_all_namespaces()
+            if ambassador_single_namespace:
+                k8s_v1b1.list_namespaced_ingress(ambassador_namespace)
+            else:
+                k8s_v1b1.list_ingress_for_all_namespaces()
             status = True
         except ApiException as e:
             logger.debug(f'Ingress check got {e.status}')

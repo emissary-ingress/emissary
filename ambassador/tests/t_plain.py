@@ -74,4 +74,6 @@ config: {}
     def check(self):
         # XXX Ew. If self.results[0].json is empty, the harness won't convert it to a response.
         errors = self.results[0].json
-        assert_default_errors(errors)
+
+        # We should _not_ be seeing Ingress errors here.
+        assert_default_errors(errors, include_ingress_errors=False)
