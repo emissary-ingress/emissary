@@ -5,7 +5,7 @@ Starting with version 0.80.0, Ambassador can act as a Kubernetes
 reading configuration data from Kubernetes 
 [`Ingress`](https://kubernetes.io/docs/concepts/services-networking/ingress/) resources.
 This makes it easier to work with other `Ingress`-oriented tools within the Kubernetes
-ecosystem (e.g. external DNS), and it makes it easier for users migrating from other
+ecosystem, and it makes it easier for users migrating from other
 ingress controllers to try Ambassador.
 
 ## When and How to Use the `Ingress` Resource
@@ -45,10 +45,6 @@ who feel that it more closely matches their workflows -- however, it is importan
 recognize that the `Ingress` resource is rather more limited than the Ambassador `Mapping`
 is (for example, the `Ingress` spec has no support for rewriting or for TLS origination).
 **When in doubt, use CRDs.**
-
-In the future, we expect to recommend an expanded role for the `Ingress` resource, with
-CRDs configuring advanced Ambassador functionality not covered by the `Ingress`
-specification.
 
 ### Can 0.80.0 support using an `Ingress` and CRDs in concert?
 
