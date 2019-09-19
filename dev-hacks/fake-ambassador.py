@@ -17,13 +17,13 @@ FILTER_HEADERS = [
 
 
 root=Bottle()
-proxy=HostProxy("http://localhost:8680/")
-root.mount("/portal/", proxy)
+proxy=HostProxy("http://localhost:8680/docs/")
+root.mount("/docs/", proxy)
 
 # Handle http requests to the root address
 @root.route('/')
 def index():
-  redirect("/portal/")
+  redirect("/docs/")
 
 # Handle http requests to the root address
 @root.route('/_shutdown')
@@ -45,6 +45,7 @@ def diag():
   )
 
 @root.route('/yuhu/.ambassador-internal/openapi-docs')
+@root.route('/openapi/services/p2/p1/openapi.json')
 def swagger():
   return dict(
 swagger="2.0",
