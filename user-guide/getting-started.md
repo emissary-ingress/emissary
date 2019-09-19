@@ -130,7 +130,7 @@ spec:
 apiVersion: getambassador.io/v1
 kind: Mapping
 metadata:
-  name: tour-ui_mapping
+  name: tour-ui
 spec:
   prefix: /
   service: tour:5000
@@ -138,7 +138,7 @@ spec:
 apiVersion: getambassador.io/v1
 kind: Mapping
 metadata:
-  name: tour-backend_mapping
+  name: tour-backend
 spec:
   prefix: /backend/
   service: tour:8080
