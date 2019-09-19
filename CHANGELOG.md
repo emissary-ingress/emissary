@@ -4,7 +4,7 @@
 
 Behavior:
 
- * Bugfix: Properly return a 404 for unknown paths in the amb-sidecar; instead of the instead of serving the index page; this could happen if the devportal Mapping is misconfigured.
+ * Bugfix: Properly return a 404 for unknown paths in the amb-sidecar; instead of serving the index page; this could happen if the devportal Mapping is misconfigured.
  * Bugfix: Fix the "loaded filter" log info message.
  * Bugfix: Don't publish the "dev-portal-server" Docker image; it was obviated by "amb-sidecar" in 0.8.0.
 
@@ -16,8 +16,8 @@ Configuration:
 
 Behavior:
 
- * Feature: The developer portal is now in "beta", and incorproated into amb-sidecar.
- * Bugfix: The `External` Filter no longer erronously follows redirects.
+ * Feature: The developer portal is now in "beta", and incorporated into amb-sidecar.
+ * Bugfix: The `External` Filter no longer erroneously follows redirects.
  * Bugfix: Fixed a case-folding bug causing the `JWT` Filter to be inoperable.
  * Enhancement: Errors in `Filter` resource definitions are now recorded and included in error messages.
 
@@ -44,7 +44,7 @@ Configuration:
  * The CRD field `ambassador_id` may now be a single string instead of a list of strings (this should have always been the case, but there was a bug in the parser).
  * Everything is now on one port: `APRO_HTTP_PORT`, which defaults to `8500`.
  * `LOG_LEVEL` no longer exists; everything obeys `APP_LOG_LEVEL`.
- * The meaning of `REDIS_POOL_SIZE` has changed slightly; there are no longer separate connection pools for ratelimit and filtering; the maxiumum number of connections is now `REDIS_POOL_SIZE` instead of 2×`REDIS_POOL_SIZE`.
+ * The meaning of `REDIS_POOL_SIZE` has changed slightly; there are no longer separate connection pools for ratelimit and filtering; the maximum number of connections is now `REDIS_POOL_SIZE` instead of 2×`REDIS_POOL_SIZE`.
  * The `amb-sidecar` RateLimitService can now report to statsd, and attempts to do so by default (`USE_STATSD`, `STATSD_HOST`, `STATSD_PORT`, `GOSTATS_FLUSH_INTERVAL_SECONDS`).
 
 Behavior:
@@ -84,7 +84,7 @@ Behavior:
 
 Other:
 
- * Open Source dependency licence compliance is now automated as part of the release machinery.  Source releases for the Docker images are now present in the images themselves at `/*.opensource.tar.gz`.
+ * Open Source dependency license compliance is now automated as part of the release machinery.  Source releases for the Docker images are now present in the images themselves at `/*.opensource.tar.gz`.
 
 ## 0.4.3 (2019-05-15)
 
@@ -123,7 +123,7 @@ Other:
  * Request IDs in the Pro logs are the same as the Request IDs in the Ambassador logs
  * `OAuth2` Filter type supports `secretName` and `secretNamespace`
  * Switch to using Ambassador OSS gRPC API
- * No longer nescessary to set `allowed_request_headers` or `allowed_authorization_headers` for `Plugin` Filters
+ * No longer necessary to set `allowed_request_headers` or `allowed_authorization_headers` for `Plugin` Filters
  * RLS logs requests as `info` instead of `warn`
  * Officially support Okta as an IDP
 
