@@ -105,7 +105,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	server := devportalserver.NewServer("", content)
+	server := devportalserver.NewServer("/docs", content)
 
 	group, ctx := errgroup.WithContext(context.Background())
 
