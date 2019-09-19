@@ -25,7 +25,7 @@ spec:
   config:
     lua_scripts: |
       function envoy_on_response(response_handle)
-        response_handle: headers():add("Lua-Scripts-Enabled", "${LUA_SCRIPTS_ENABLED}")
+        response_handle: headers():add("Lua-Scripts-Enabled", "$LUA_SCRIPTS_ENABLED")
       end
 ---
 apiVersion: getambassador.io/v1
