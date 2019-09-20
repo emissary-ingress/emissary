@@ -320,16 +320,13 @@ envoy-src: FORCE
 	    fi; \
 	}
 
-envoy-build-image.txt: FORCE envoy-src
-	@echo "Making $@..."
-	set -e; \
-	cd envoy-src/ci; . envoy_build_sha.sh; cd ../..; \
-	echo docker.io/envoyproxy/envoy-build-ubuntu:$$ENVOY_BUILD_SHA > .tmp.$@.tmp; \
-	if cmp -s .tmp.$@.tmp $@; then \
-		rm -f .tmp.$@.tmp; \
-	else \
-		mv .tmp.$@.tmp $@; \
-	fi
+envoy-build-image.txt: FORCE envoy-src $(WRITE_IFCHANGED)
+	@PS4=; set -ex -o pipefail; { \
+	    pushd envoy-src/ci; \
+	    . envoy_build_sha.sh; \
+	    popd; \
+	    echo docker.io/envoyproxy/envoy-build-ubuntu:$$ENVOY_BUILD_SHA | $(WRITE_IFCHANGED) $@; \
+	}
 
 # We rsync to a persistent named-volume (instead of building directly
 # on the bind-mount volume) because Docker for Mac's osxfs is very
@@ -340,21 +337,23 @@ ENVOY_SYNC_DOCKER_TO_HOST = docker run --rm --volume=$(CURDIR)/envoy-src:/xfer:r
 envoy-bin:
 	mkdir -p $@
 envoy-bin/envoy-static: envoy-build-image.txt FORCE | envoy-bin
-	@PS4=; set -ex; if docker run --rm --entrypoint=true $(BASE_ENVOY_IMAGE); then \
-	    docker run --rm --volume=$(CURDIR)/$(@D):/xfer:rw --user=$$(id -u):$$(id -g) $(BASE_ENVOY_IMAGE) cp -a /usr/local/bin/envoy /xfer/$(@F); \
-	else \
-	    if [ -n '$(CI)' ]; then \
-	        echo 'error: This should not happen in CI: should not try to compile Envoy'; \
-	        exit 1; \
+	@PS4=; set -ex; { \
+	    if docker run --rm --entrypoint=true $(BASE_ENVOY_IMAGE); then \
+	        docker run --rm --volume=$(CURDIR)/$(@D):/xfer:rw --user=$$(id -u):$$(id -g) $(BASE_ENVOY_IMAGE) cp -a /usr/local/bin/envoy /xfer/$(@F); \
+	    else \
+	        if [ -n '$(CI)' ]; then \
+	            echo 'error: This should not happen in CI: should not try to compile Envoy'; \
+	            exit 1; \
+	        fi; \
+	        $(ENVOY_SYNC_HOST_TO_DOCKER); \
+	        ( \
+	            trap '$(ENVOY_SYNC_DOCKER_TO_HOST)' EXIT; \
+	            docker run --rm --volume=envoy-build:/root:rw --workdir=/root/envoy $$(cat envoy-build-image.txt) bazel build --verbose_failures -c $(ENVOY_COMPILATION_MODE) //source/exe:envoy-static; \
+	            docker run --rm --volume=envoy-build:/root:rw $$(cat envoy-build-image.txt) chmod 755 /root /root/.cache; \
+	        ); \
+	        docker run --rm --volume=envoy-build:/root:ro --volume=$(CURDIR)/envoy-bin:/xfer:rw --user=$$(id -u):$$(id -g) $$(cat envoy-build-image.txt) rsync -Pav --delete /root/envoy/bazel-bin/source/exe/envoy-static /xfer/envoy-static; \
 	    fi; \
-	    $(ENVOY_SYNC_HOST_TO_DOCKER); \
-	    ( \
-	        trap '$(ENVOY_SYNC_DOCKER_TO_HOST)' EXIT; \
-	        docker run --rm --volume=envoy-build:/root:rw --workdir=/root/envoy $$(cat envoy-build-image.txt) bazel build --verbose_failures -c $(ENVOY_COMPILATION_MODE) //source/exe:envoy-static; \
-	        docker run --rm --volume=envoy-build:/root:rw $$(cat envoy-build-image.txt) chmod 755 /root /root/.cache; \
-	    ); \
-	    docker run --rm --volume=envoy-build:/root:ro --volume=$(CURDIR)/envoy-bin:/xfer:rw --user=$$(id -u):$$(id -g) $$(cat envoy-build-image.txt) rsync -Pav --delete /root/envoy/bazel-bin/source/exe/envoy-static /xfer/envoy-static; \
-	fi
+	}
 %-stripped: % envoy-build-image.txt
 	docker run --rm --volume=$(abspath $(@D)):/xfer:rw $$(cat envoy-build-image.txt) strip /xfer/$(<F) -o /xfer/$(@F)
 
