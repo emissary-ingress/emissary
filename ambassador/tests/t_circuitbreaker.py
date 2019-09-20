@@ -101,18 +101,23 @@ service: cbstatsd-sink
         yield ("url", Query(self.url("RESET/")))
 
     def queries(self):
+        # Reset the statsd setup in phase 1...
+        yield Query(self.url("RESET/"), phase=1)
+
+        # Run 500 queries in phase 2, after the reset...
         for i in range(500):
             yield Query(self.url(self.name) + '-pr/', headers={ "Requested-Backend-Delay": "1000" },
-                        ignore_result=True, phase=1)
+                        ignore_result=True, phase=2)
 
-        yield Query(self.url("DUMP/"), phase=2)
+        # Dump the results in phase 3, after the queries.
+        yield Query(self.url("DUMP/"), phase=3)
 
     def check(self):
         result_count = len(self.results)
-        assert result_count == 501, f'wanted 501 results, got {result_count}'
+        assert result_count == 502, f'wanted 502 results, got {result_count}'
 
-        pending_results = self.results[0:500]
-        stats = self.results[500].json or {}
+        pending_results = self.results[1:500]
+        stats = self.results[501].json or {}
 
         # pending requests tests
         pending_overloaded = 0
@@ -134,7 +139,7 @@ service: cbstatsd-sink
         rq_completed = cluster_stats.get('upstream_rq_completed', -1)
         rq_pending_overflow = cluster_stats.get('upstream_rq_pending_overflow', -1)
 
-        assert rq_completed == 501, f'Expected 501 completed requests to {self.__class__.TARGET_CLUSTER}, got {rq_completed}'
+        assert rq_completed == 500, f'Expected 500 completed requests to {self.__class__.TARGET_CLUSTER}, got {rq_completed}'
         assert abs(pending_overloaded - rq_pending_overflow) < 2, f'Expected {pending_overloaded} rq_pending_overflow, got {rq_pending_overflow}'
 
 
