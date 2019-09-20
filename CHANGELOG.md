@@ -95,7 +95,7 @@ Format:
 
 <!--- CueAddReleaseNotes --->
 ## [0.80.0] September 20, 2019
-[0.80.0]: https://github.com/datawire/ambassador/compare/v0.78.0...0.80.0
+[0.80.0]: https://github.com/datawire/ambassador/compare/v0.78.0...v0.80.0
 
 ### Major changes:
 - Feature: Basic support for the Kubernetes Ingress resource
@@ -108,7 +108,7 @@ Format:
 - KAT client and server have been pulled back into the Ambassador repo
 
 ## [0.78.0] September 11, 2019
-[0.78.0]: https://github.com/datawire/ambassador/compare/v0.77.0...0.78.0
+[0.78.0]: https://github.com/datawire/ambassador/compare/v0.77.0...v0.78.0
 
 ### Major changes:
 - Feature: Support setting cipher_suites and ecdh_curves in TLSContext - #1782 (Thanks @teejaded)
@@ -119,13 +119,13 @@ Format:
 - Testing: Add test that ambassador cli does not crash when called with --help - #1806 (Thanks @rokostik)
 
 ## [0.77.0] September 05, 2019
-[0.77.0]: https://github.com/datawire/ambassador/compare/0.76.0...0.77.0
+[0.77.0]: https://github.com/datawire/ambassador/compare/v0.76.0...v0.77.0
 
 - (Feature) Support the `least_request` load balancer policy (thanks, [Steve Flanders](https://github.com/flands)!)
 - (Misc) Many test and release-engineering improvements under the hood
 
 ## [0.76.0] August 26, 2019
-[0.76.0]: https://github.com/datawire/ambassador/compare/0.75.0...0.76.0
+[0.76.0]: https://github.com/datawire/ambassador/compare/v0.75.0...v0.76.0
 
 - circuit breakers now properly handle overriding a global circuit breaker within a Mapping ([#1767])
 - support for Knative 0.8.0 ([#1732])
