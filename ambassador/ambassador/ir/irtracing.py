@@ -1,4 +1,3 @@
-import os
 from typing import Optional, TYPE_CHECKING
 
 from ..config import Config
@@ -67,7 +66,6 @@ class IRTracing (IRResource):
 
         if driver == "datadog":
             driver = "envoy.tracers.datadog"
-            service = os.path.expandvars(service)
 
         # OK, we have a valid config.
         self.sourced_by(config)
