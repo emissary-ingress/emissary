@@ -66,7 +66,7 @@ service: tour
 
 ## Circuit breakers and automatic retries
 
-Circuit breakers are best used in conjunction with [automatic retries](reference/retries). Here are some examples:
+Circuit breakers are best used in conjunction with [automatic retries](/reference/retries). Here are some examples:
 
 * You've configured automatic retries for failed requests to a service. Your service is under heavy load, and starting to timeout on servicing requests. In this case, automatic retries can exacerbate your problem, increasing the total request volume by 2x or more. By aggressively circuit breaking, you can mitigate failure in this scenario.
 * To circuit break when services are slow, you can combine circuit breakers with retries. Reduce the timeout for retries, and then set a circuit breaker that detects many retries. In this setup, if your service doesn't respond quickly, a flood of retries will occur, which can then trip the circuit breaker.
