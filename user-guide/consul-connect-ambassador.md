@@ -84,7 +84,7 @@ To test that the Ambassador Consul Connector is working, you will need to have a
 
 ```yaml
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: qotm
@@ -92,6 +92,9 @@ spec:
   replicas: 1
   strategy:
     type: RollingUpdate
+  selector:
+    matchLabels:
+      app: qotm
   template:
     metadata:
       labels:
