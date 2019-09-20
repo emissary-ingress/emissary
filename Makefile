@@ -177,7 +177,7 @@ all:
 include build-aux/prelude.mk
 include build-aux/var.mk
 
-clean: clean-test
+clean: clean-test envoy-build-container.txt.clean
 	rm -rf docs/_book docs/_site docs/package-lock.json
 	rm -rf helm/*.tgz
 	rm -rf app.json
@@ -328,14 +328,36 @@ envoy-build-image.txt: FORCE envoy-src $(WRITE_IFCHANGED)
 	    echo docker.io/envoyproxy/envoy-build-ubuntu:$$ENVOY_BUILD_SHA | $(WRITE_IFCHANGED) $@; \
 	}
 
-# We rsync to a persistent named-volume (instead of building directly
-# on the bind-mount volume) because Docker for Mac's osxfs is very
-# slow.
-ENVOY_SYNC_HOST_TO_DOCKER = docker run --rm --volume=$(CURDIR)/envoy-src:/xfer:ro --volume=envoy-build:/root:rw $$(cat envoy-build-image.txt) rsync -Pav --delete /xfer/ /root/envoy
-ENVOY_SYNC_DOCKER_TO_HOST = docker run --rm --volume=$(CURDIR)/envoy-src:/xfer:rw --volume=envoy-build:/root:ro $$(cat envoy-build-image.txt) rsync -Pav --delete /root/envoy/ /xfer
+envoy-build-container.txt: envoy-build-image.txt FORCE
+	@PS4=; set -ex; { \
+	    if [ $@ -nt $< ] && docker exec $$(cat $@) true; then \
+	        exit 0; \
+	    fi; \
+	    if [ -e $@ ]; then \
+	        docker kill $$(cat $@) || true; \
+	    fi; \
+	    docker run --detach --name=envoy-build --rm --privileged --volume=envoy-build:/root:rw $$(cat $<) tail -f /dev/null > $@; \
+	}
+
+envoy-build-container.txt.clean: %.clean:
+	@PS4=; set -ex; { \
+	    if [ -e $* ]; then \
+	        docker kill $$(cat $*) || true; \
+	    fi; \
+	}
+.PHONY: envoy-build-container.txt.clean
+
+# We do everything with rsync and a persistent build-container
+# (instead of using a volume), because
+#  1. Docker for Mac's osxfs is very slow, so volumes are bad for
+#     macOS users.
+#  2. Volumes mounts just straight-up don't work for people who use
+#     Minikube's dockerd.
+ENVOY_SYNC_HOST_TO_DOCKER = rsync -Pav --delete --blocking-io -e "docker exec -i" envoy-src/ $$(cat envoy-build-container.txt):/root/envoy
+ENVOY_SYNC_DOCKER_TO_HOST = rsync -Pav --delete --blocking-io -e "docker exec -i" $$(cat envoy-build-container.txt):/root/envoy/ envoy-src/
 
 ENVOY_BASH.cmd = bash -c 'PS4=; set -ex; $(ENVOY_SYNC_HOST_TO_DOCKER); trap '\''$(ENVOY_SYNC_DOCKER_TO_HOST)'\'' EXIT; '$(call quote.shell,$1)
-ENVOY_BASH.deps = envoy-build-image.txt
+ENVOY_BASH.deps = envoy-build-container.txt
 
 envoy-bin:
 	mkdir -p $@
@@ -349,24 +371,27 @@ envoy-bin/envoy-static: $(ENVOY_BASH.deps) FORCE | envoy-bin
 	            exit 1; \
 	        fi; \
 	        $(call ENVOY_BASH.cmd, \
-	            docker run --rm --volume=envoy-build:/root:rw --workdir=/root/envoy $$(cat envoy-build-image.txt) bazel build --verbose_failures -c $(ENVOY_COMPILATION_MODE) //source/exe:envoy-static; \
-	            docker run --rm --volume=envoy-build:/root:rw $$(cat envoy-build-image.txt) chmod 755 /root /root/.cache; \
-	            docker run --rm --volume=envoy-build:/root:ro --volume=$(CURDIR)/envoy-bin:/xfer:rw --user=$$(id -u):$$(id -g) $$(cat envoy-build-image.txt) rsync -Pav --delete /root/envoy/bazel-bin/source/exe/envoy-static /xfer/envoy-static; \
+	            docker exec --workdir=/root/envoy $$(cat envoy-build-container.txt) bazel build --verbose_failures -c $(ENVOY_COMPILATION_MODE) //source/exe:envoy-static; \
+	            rsync -Pav --blocking-io -e 'docker exec -i' $$(cat envoy-build-container.txt):/root/envoy/bazel-bin/source/exe/envoy-static $@; \
 	        ); \
 	    fi; \
 	}
-%-stripped: % envoy-build-image.txt
-	docker run --rm --volume=$(abspath $(@D)):/xfer:rw $$(cat envoy-build-image.txt) strip /xfer/$(<F) -o /xfer/$(@F)
+%-stripped: % envoy-build-container.txt
+	@PS4=; set -ex; { \
+	    rsync -Pav --blocking-io -e 'docker exec -i' $< $$(cat envoy-build-container.txt):/tmp/$(<F); \
+	    docker exec $$(cat envoy-build-container.txt) strip /tmp/$(<F) -o /tmp/$(@F); \
+	    rsync -Pav --blocking-io -e 'docker exec -i' $$(cat envoy-build-container.txt):/tmp/$(@F) $@; \
+	}
 
 check-envoy: $(ENVOY_BASH.deps)
 	$(call ENVOY_BASH.cmd, \
-	    docker run --rm --privileged --volume=envoy-build:/root:rw --workdir=/root/envoy $$(cat envoy-build-image.txt) bazel test --verbose_failures -c dbg --test_env=ENVOY_IP_TEST_VERSIONS=v4only //test/...; \
+	    docker exec --workdir=/root/envoy $$(cat envoy-build-container.txt) bazel test --verbose_failures -c dbg --test_env=ENVOY_IP_TEST_VERSIONS=v4only //test/...; \
 	)
 .PHONY: check-envoy
 
 envoy-shell: $(ENVOY_BASH.deps)
 	$(call ENVOY_BASH.cmd, \
-	    docker run --rm --privileged --volume=envoy-build:/root:rw --workdir=/root/envoy -it $$(cat envoy-build-image.txt) || true; \
+	    docker exec -it $$(cat envoy-build-container.txt) || true; \
 	)
 .PHONY: envoy-shell
 
