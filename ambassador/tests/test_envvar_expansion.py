@@ -23,7 +23,7 @@ apiVersion: getambassador.io/v1
 kind: Mapping
 name: test_mapping
 prefix: /test/
-service: $TEST_SERVICE:9999
+service: ${TEST_SERVICE}:9999
 '''
 
 
