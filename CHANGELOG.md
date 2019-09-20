@@ -12,7 +12,7 @@ communicate with `AuthService`s and `RatelimitService`s:
 | `AuthService` | `envoy.service.auth.v2alpha` | `envoy.service.auth.v2` |
 | `RateLimitService` | `pb.lyft.ratelimit.RateLimitService` | `envoy.service.ratelimit.v2.RateLimitService` |
 
-These changes will not take effect until at least Ambassador 0.80.0. We expect to support both protocol versions during a transition period.
+These changes will not take effect until at least Ambassador 0.85.0. We expect to support both protocol versions during a transition period.
 
 ### DEFAULT PORTS CHANGED IN AMBASSADOR 0.60
 
@@ -94,6 +94,19 @@ Format:
 --->
 
 <!--- CueAddReleaseNotes --->
+## [0.80.0] September 20, 2019
+[0.80.0]: https://github.com/datawire/ambassador/compare/v0.78.0...0.80.0
+
+### Major changes:
+- Feature: Basic support for the Kubernetes Ingress resource
+- Feature: Basic reporting for some common configuration errors (lack of Mappings, lack of TLS contexts)
+- Bugfix: Update Envoy to prevent crashing when updating AuthService under load
+
+### Developer notes
+- Golang components now use Go 1.13
+- Ambassador build now _requires_ clean type hinting
+- KAT client and server have been pulled back into the Ambassador repo
+
 ## [0.78.0] September 11, 2019
 [0.78.0]: https://github.com/datawire/ambassador/compare/v0.77.0...0.78.0
 
