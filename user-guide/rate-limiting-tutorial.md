@@ -41,7 +41,7 @@ spec:
     name: http-example-rate-limit
     targetPort: http-api
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: example-rate-limit
@@ -49,6 +49,9 @@ spec:
   replicas: 1
   strategy:
     type: RollingUpdate
+  selector:
+    matchLabels:
+      app: example-rate-limit
   template:
     metadata:
       labels:
