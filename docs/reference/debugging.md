@@ -306,7 +306,7 @@ If the generated Envoy configuration is not looking as expected, you can manuall
 
 ```shell
 $ kubectl scale deployment ambassador --replicas=1
-deployment.apps "ambassador" scaled
+deployment.apps/ambassador scaled
  tmp $ kubectl get pods
 NAME                         READY     STATUS        RESTARTS   AGE
 ambassador-85c4cf67b-4pfj2   1/1       Running       0          30m
