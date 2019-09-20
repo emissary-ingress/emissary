@@ -54,7 +54,7 @@ func TestJWTInjectHeaders(t *testing.T) {
 		ValidAlgorithms: []string{"none"},
 	}
 	for thName, th := range testHeaders {
-		spec.InjectRequestHeaders = append(spec.InjectRequestHeaders, crd.HeaderField{
+		spec.InjectRequestHeaders = append(spec.InjectRequestHeaders, crd.JWTHeaderField{
 			Name:  thName,
 			Value: th.Template,
 		})
