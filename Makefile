@@ -397,7 +397,7 @@ envoy-shell: $(ENVOY_BASH.deps)
 
 base-envoy.docker: Dockerfile.base-envoy envoy-bin/envoy-static $(var.)BASE_ENVOY_IMAGE $(WRITE_IFCHANGED)
 	@if [ -n "$(AMBASSADOR_DEV)" ]; then echo "Do not run this from a dev shell" >&2; exit 1; fi
-	docker build $(DOCKER_OPTS) -t $(BASE_ENVOY_IMAGE) -f $< .
+	docker build $(DOCKER_OPTS) -t $(BASE_ENVOY_IMAGE) -f $< envoy-bin
 	@docker image inspect $(BASE_ENVOY_IMAGE) --format='{{.Id}}' | $(WRITE_IFCHANGED) $@
 
 base-py.docker: Dockerfile.base-py $(var.)BASE_PY_IMAGE $(WRITE_IFCHANGED)
