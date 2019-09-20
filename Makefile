@@ -110,7 +110,7 @@ ENVOY_FILE ?= envoy-bin/envoy-static-stripped
 
 
   # Increment BASE_ENVOY_RELVER on changes to `Dockerfile.base-envoy`, or Envoy recipes
-  BASE_ENVOY_RELVER ?= 2
+  BASE_ENVOY_RELVER ?= 3
   # Increment BASE_GO_RELVER on changes to `Dockerfile.base-go`
   BASE_GO_RELVER    ?= 15
   # Increment BASE_PY_RELVER on changes to `Dockerfile.base-py`, `releng/*`, `multi/requirements.txt`, `ambassador/requirements.txt`
@@ -342,7 +342,7 @@ envoy-bin:
 envoy-bin/envoy-static: $(ENVOY_BASH.deps) FORCE | envoy-bin
 	@PS4=; set -ex; { \
 	    if docker run --rm --entrypoint=true $(BASE_ENVOY_IMAGE); then \
-	        docker run --rm --volume=$(CURDIR)/$(@D):/xfer:rw --user=$$(id -u):$$(id -g) $(BASE_ENVOY_IMAGE) cp -a /usr/local/bin/envoy /xfer/$(@F); \
+	        rsync -Pav --blocking-io -e 'docker run --rm -i' $$(docker image inspect $(BASE_ENVOY_IMAGE) --format='{{.Id}}' | sed 's/^sha256://'):/usr/local/bin/envoy $@; \
 	    else \
 	        if [ -n '$(CI)' ]; then \
 	            echo 'error: This should not happen in CI: should not try to compile Envoy'; \
