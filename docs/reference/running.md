@@ -18,12 +18,15 @@ Starting with Ambassador 0.35, we support running Ambassador as non-root. This i
 
 ```yaml
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: ambassador
 spec:
   replicas: 1
+  selector:
+    matchLabels:
+      service: ambassador
   template:
     metadata:
       labels:
