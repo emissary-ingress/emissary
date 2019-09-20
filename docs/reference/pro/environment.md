@@ -24,6 +24,12 @@
 | `STATSD_HOST`                    | `localhost`                                       | hostname                                                                      | RateLimit                                            |
 | `STATSD_PORT`                    | `8125`                                            | integer                                                                       | RateLimit                                            |
 | `GOSTATS_FLUSH_INTERVAL_SECONDS` | `5`                                               | integer                                                                       | RateLimit                                            |
+| <hr/>                            | <hr/>                                             | <hr/>                                                                         | <hr/>                                                |
+| `AMBASSADOR_ADMIN_URL`           | `http://127.0.0.1:8877`                           | URL                                                                           | Developer Portal                                     |
+| `AMBASSADOR_INTERNAL_URL`        | `https://127.0.0.1:8443`                          | URL                                                                           | Developer Portal                                     |
+| `AMBASSADOR_URL`                 | `https://api.example.com`                         | URL                                                                           | Developer Portal                                     |
+| `APRO_DEVPORTAL_CONTENT_URL`     | `https://github.com/datawire/devportal-content`   | git-remote URL                                                                | Developer Portal                                     |
+| `POLL_EVERY_SECS`                | `60`                                              | integer                                                                       | Developer Portal                                     |
 
 <!--
 

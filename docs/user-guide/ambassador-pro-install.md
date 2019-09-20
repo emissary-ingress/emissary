@@ -1,14 +1,17 @@
-# Installing Ambassador Pro
+# Installing Ambassador Pro and Ambassador Dev Portal
 ---
 
-Ambassador Pro is a commercial version of Ambassador that includes integrated Single Sign-On, powerful rate limiting, custom filters, and more. Ambassador Pro also uses a certified version of Ambassador OSS that undergoes additional testing and validation. In this tutorial, we'll walk through the process of installing Ambassador Pro in Kubernetes and show the JWT filter in action.
+For users who need additional functionality, Datawire provides two add-on products to Ambassador:
 
-Information about open source code used in Ambassador Pro can be found in `/*.opensource.tar.gz` files in each Docker image.
+* Pro, which adds additional security capabilities such as Single Sign-On, rate limiting, and JWT validation.
+* Dev Portal, which provides a customizable developer portal that publishes your Swagger/OAPI API documentation.
 
-## 1. Clone the Ambassador Pro configuration repository
-Ambassador Pro consists of a series of modules that communicate with Ambassador. The core Pro module is typically deployed as a sidecar to Ambassador. This means it is an additional process that runs on the same pod as Ambassador. Ambassador communicates with the Pro sidecar locally. Pro thus scales in parallel with Ambassador. Ambassador Pro also relies on a Redis instance for its rate limit service and several Custom Resource Definitions (CRDs) for configuration.
+Both of these products use a certified version of Ambassador that undergoes additional testing and validation.
 
-For this installation, we'll start with a standard set of Ambassador Pro configuration files.
+Information about the open source code used in Ambassador Pro and Dev Portal can be found in `/*.opensource.tar.gz` files in each Docker image. Both of these products are included in a single consolidated Docker image.
+
+## 1. Clone the Reference Architecture
+The Ambassador add-on products are typically deployed on the same pod as Ambassador. In addition, Redis is used for the rate limit service. In this installation, we'll start with the standard configuration, which is available here:
 
 ```
 git clone https://github.com/datawire/pro-ref-arch
@@ -30,15 +33,15 @@ If you're on GKE, first, create the following `ClusterRoleBinding`:
 kubectl create clusterrolebinding my-cluster-admin-binding --clusterrole=cluster-admin --user=$(gcloud info --format="value(config.account)")
 ```
 
-Then, deploy Ambassador Pro:
+Then, deploy Ambassador Pro and Dev Portal:
 
 ```
 make apply-ambassador
 ```
 
-This `make` command will use `kubectl` to deploy Ambassador Pro and a basic test configuration to the cluster.
+This `make` command will use `kubectl` to deploy Ambassador Pro and Dev Portal and a basic test configuration to the cluster.
 
-Verify that Ambassador Pro is running:
+Verify that Ambassador is running:
 
 ```
 kubectl get pods | grep ambassador
@@ -65,9 +68,37 @@ If you have deployed Ambassador with
 [`AMBASSADOR_ID`](/reference/running/#ambassador_id)
 set, you will also need to set them in the Pro container.
 
-## 4. Configure JWT authentication
+## 4. Developer Portal
 
-Now that you have Ambassador Pro running, we'll show a few features of Ambassador Pro. We'll start by configuring Ambassador Pro's JWT authentication filter.
+To access the developer portal, you need to provide the IP address or hostname (and port if you are using a `NodePort` service) of the Ambassador service you just deployed. 
+
+You can do this with `kubectl`:
+
+```
+kubectl get svc ambassador
+
+NAME               TYPE           CLUSTER-IP      EXTERNAL-IP     PORT(S)                      AGE
+ambassador-admin   ClusterIP      10.59.251.37    <none>          8877/TCP                     33m
+ambassador         LoadBalancer   10.59.255.38    34.70.5.231     80:30529/TCP,443:30403/TCP   33m
+```
+
+Now provide this information to Ambassador by editing the value of `AMBASSADOR_URL` in your `env.sh` file and running the `make` command again.
+
+`env.sh`:
+
+```
+AMBASSADOR_URL=https://34.70.5.231
+```
+
+```
+make apply-ambassador
+```
+
+In your browser, go to $AMBASSADOR_IP/docs/. This will bring up the Dev Portal. The Dev Portal shows a list of all APIs in your cluster, along with the API documentation (if available). The Dev Portal supports rendering both Swagger and OpenAPI specifications. The look-and-feel of the Dev Portal is fully customizable.
+
+## 5. Pro and JWT
+
+We'll now walk through a few features of Pro. We'll start by configuring Ambassador Pro's JWT authentication filter.
 
 ```
 make apply-jwt
@@ -131,7 +162,7 @@ $ curl -k --header "Authorization: Bearer eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.ey
 }
 ```
 
-## 5. Configure additional Ambassador Pro services
+## 6. Configure additional Ambassador Pro services
 
 Ambassador Pro has many more features such as rate limiting, OAuth integration, and more.
 
@@ -141,20 +172,19 @@ For more information on configuring rate limiting, consult the [Advanced Rate Li
 
 ### Enabling Single Sign-On
 
- For more information on configuring the OAuth filter, see the [Single Sign-On with OAuth and OIDC](/user-guide/oauth-oidc-auth) documentation.
+For more information on configuring the OAuth filter, see the [Single Sign-On with OAuth and OIDC](/user-guide/oauth-oidc-auth) documentation.
 
 ### Enabling Service Preview
 
 Service Preview requires a command-line client, `apictl`. For instructions on configuring Service Preview, see the [Service Preview tutorial](/docs/dev-guide/service-preview).
 
-### Enabling Consul Connect integration
+### Developer Portal reference
 
-Ambassador Pro's Consul Connect integration is deployed as a separate Kubernetes service. For instructions on deploying Consul Connect, see the [Consul Connect integration guide](/user-guide/consul-connect-ambassador).
+The Dev Portal can be customized for both content and look-and-feel. For details on using the Dev Portal, see the [Dev Portal Reference](/reference/dev-portal).
 
+# Upgrading Ambassador Pro and Dev Portal
 
-# Upgrading Ambassador Pro
-
-Follow the steps below to upgrade Ambassador Pro.
+If you have an existing Ambassador installation, you can also upgrade directly to Ambassador Pro and Dev Portal.
 
 **Note**: For simplicity, we recommend storing this license key in a Kubernetes secret that can be referenced by both the certified Ambassador and Ambassador Pro containers. You can do this with the following command.
 
@@ -164,7 +194,7 @@ kubectl create secret generic ambassador-pro-license-key --from-literal=key={{AM
 
 1. Create the `ambassador-pro-license-key` secret using the command above.
 
-2. Upgrade to the latest image of Ambassador Pro
+2. Upgrade to the latest image of Ambassador Pro and Dev Portal:
 
     ```yaml
           - name: ambassador-pro
@@ -180,7 +210,7 @@ kubectl create secret generic ambassador-pro-license-key --from-literal=key={{AM
     +       image: quay.io/datawire/ambassador_pro:amb-core-%aproVersion%
     ```
 
-4. Add the `AMBASSADOR_PRO_LICENSE_KEY` environment variable to the Ambassador container and have it get its value from the secret created in step 1.
+4. Add the `AMBASSADOR_LICENSE_KEY` environment variable to the Ambassador container and have it get its value from the secret created in step 1.
 
     ```yaml
             env:
@@ -195,7 +225,7 @@ kubectl create secret generic ambassador-pro-license-key --from-literal=key={{AM
                   key: key
     ```
   
-5. Ensure the `AMBASSADOR_LICENSE_KEY` in the Ambassador Pro container is also referencing the `ambassador-pro-license-key` secret.
+5. Ensure the `AMBASSADOR_LICENSE_KEY` in the Ambassador Pro/Portal container is also referencing the `ambassador-pro-license-key` secret.
 
     ```yaml
             env:
@@ -210,6 +240,16 @@ kubectl create secret generic ambassador-pro-license-key --from-literal=key={{AM
                 secretKeyRef:
                   name: ambassador-pro-license-key
                   key: key
+    ```
+
+6. If using the Dev Portal, add the `AMBASSADOR_URL` and `APRO_DEVPORTAL_CONTENT_URL` environment variables to your container:
+
+    ```yaml
+            env:
+            - name: AMBASSADOR_URL
+              value: "https://example.com"
+            - name: APRO_DEVPORTAL_CONTENT_URL
+              value: "https://github.com/datawire/devportal-content"
     ```
 
 After making these changes, redeploy Ambassador to receive the performance and stability improvements that certified Ambassador brings. 
