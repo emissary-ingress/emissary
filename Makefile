@@ -147,14 +147,6 @@ go-get-lyft:
 	cd vendor-ratelimit && go mod download
 .PHONY: go-get-lyft
 
-lyft.bins  = ratelimit_client:github.com/lyft/ratelimit/src/client_cmd
-lyft.bins += ratelimit_check:github.com/lyft/ratelimit/src/config_check_cmd
-
-lyft.bin.name = $(word 1,$(subst :, ,$(lyft.bin)))
-lyft.bin.pkg  = $(word 2,$(subst :, ,$(lyft.bin)))
-$(foreach lyft.bin,$(lyft.bins),$(eval $(call go.bin.rule,$(lyft.bin.name),$(lyft.bin.pkg))))
-go-build: $(foreach _go.PLATFORM,$(go.PLATFORMS),$(foreach lyft.bin,$(lyft.bins), bin_$(_go.PLATFORM)/$(lyft.bin.name) ))
-
 # https://github.com/golangci/golangci-lint/issues/587
 go-lint: _go-lint-lyft
 _go-lint-lyft: $(GOLANGCI_LINT) go-get $(go.lock)
