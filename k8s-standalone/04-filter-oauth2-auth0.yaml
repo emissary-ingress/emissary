@@ -13,9 +13,6 @@ spec:
     clientID: {{env "IDP_AUTH0_CLIENT_ID"}}
     secret: {{env "IDP_AUTH0_CLIENT_SECRET"}}
     maxStale: 12h
-    insteadOfRedirect:         # optional, default is to do a redirect
-      ifRequestHeader:         # optional, default is to return httpStatusCode for all requests that would redirect-to-IDP
-        name: X-Requested-With # required
 ---
 apiVersion: getambassador.io/v1beta2
 kind: Filter
@@ -30,11 +27,6 @@ spec:
     clientID: {{env "IDP_AUTH0_CLIENT_ID"}}
     secretName: auth0-secret
     maxStale: 12h
-    insteadOfRedirect:         # optional, default is to do a redirect
-      httpStatusCode: 401      # optional, default is 403
-      ifRequestHeader:         # optional, default is to return httpStatusCode for all requests that would redirect-to-IDP
-        name: X-Requested-With # required
-        value: XMLHttpRequest  # optional, default is any non-empty string
 ---
 apiVersion: getambassador.io/v1beta2
 kind: Filter
@@ -103,8 +95,18 @@ spec:
       path: /auth0/httpbin/**
       filters:
         - name: auth0
+          arguments:
+            insteadOfRedirect:         # optional, default is to do a redirect
+              ifRequestHeader:         # optional, default is to return httpStatusCode for all requests that would redirect-to-IDP
+                name: X-Requested-With # required
     # /auth0-k8s/httpbin/
     - host: "*"
       path: /auth0-k8s/httpbin/**
       filters:
         - name: auth0-k8s
+          arguments:
+            insteadOfRedirect:         # optional, default is to do a redirect
+              httpStatusCode: 401      # optional, default is 403
+              ifRequestHeader:         # optional, default is to return httpStatusCode for all requests that would redirect-to-IDP
+                name: X-Requested-With # required
+                value: XMLHttpRequest  # optional, default is any non-empty string

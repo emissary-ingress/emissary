@@ -4,7 +4,7 @@
 
 Configuration
 
- * The `OAuth2` filter now has an `insteadOfRedirect` setting that can specify a different action to perform than redirecting to the IDP.
+ * The `OAuth2` filter now has a FilterPolicy argument `insteadOfRedirect` that can specify a different action to perform than redirecting to the IDP.
 
 Behavior:
 

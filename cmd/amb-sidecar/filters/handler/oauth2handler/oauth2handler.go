@@ -286,18 +286,18 @@ func (c *OAuth2Filter) filterClient(ctx context.Context, logger types.Logger, ht
 				err, nil)
 		}
 
-		if c.Spec.InsteadOfRedirect != nil {
+		if c.Arguments.InsteadOfRedirect != nil {
 			noRedirect := true
-			if c.Spec.InsteadOfRedirect.IfRequestHeader != nil {
-				if c.Spec.InsteadOfRedirect.IfRequestHeader.Value != nil {
-					noRedirect = filterutil.GetHeader(request).Get(c.Spec.InsteadOfRedirect.IfRequestHeader.Name) == *c.Spec.InsteadOfRedirect.IfRequestHeader.Value
+			if c.Arguments.InsteadOfRedirect.IfRequestHeader != nil {
+				if c.Arguments.InsteadOfRedirect.IfRequestHeader.Value != nil {
+					noRedirect = filterutil.GetHeader(request).Get(c.Arguments.InsteadOfRedirect.IfRequestHeader.Name) == *c.Arguments.InsteadOfRedirect.IfRequestHeader.Value
 				} else {
-					noRedirect = filterutil.GetHeader(request).Get(c.Spec.InsteadOfRedirect.IfRequestHeader.Name) != ""
+					noRedirect = filterutil.GetHeader(request).Get(c.Arguments.InsteadOfRedirect.IfRequestHeader.Name) != ""
 				}
 			}
 			if noRedirect {
 				return &filterapi.HTTPResponse{
-					StatusCode: c.Spec.InsteadOfRedirect.HTTPStatusCode,
+					StatusCode: c.Arguments.InsteadOfRedirect.HTTPStatusCode,
 					Header: http.Header{
 						"Set-Cookie":   {cookie.String()},
 						"Content-Type": {"text/plain; charset=utf-8"},
