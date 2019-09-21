@@ -143,7 +143,7 @@ $(dir $(_go-mod.mk))go1%.src.tar.gz:
 ifneq ($(call go.goversion.HAVE, 1.13beta1),$(FALSE))
   $(foreach p,$(go.PLATFORMS),bin_$p/.go-build):
 	mkdir -p $@
-  $(addprefix bin_%/.go-build/,$(notdir $(go.bins))): FORCE | bin_%/.go-build
+  $(addprefix bin_%/.go-build/,$(notdir $(go.bins))): go-get FORCE | bin_%/.go-build
 	$(go.GOBUILD) $(if $(go.LDFLAGS),--ldflags $(call quote.shell,$(go.LDFLAGS))) -o $(@D) $(go.bins)
 
   # Usage: $(eval $(call _go.bin.rule,BINNAME,GOPACKAGE))
