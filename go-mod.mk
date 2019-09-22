@@ -28,7 +28,6 @@
 #  - Variable: go.pkgs ?= ./...
 #
 #  - Function: go.list = like $(shell go list $1), but ignores nested Go modules and doesn't download things
-#  - Function: go.bin.rule = Only use this if you know what you are doing
 #
 #  - Targets: bin_$(OS)_$(ARCH)/$(CMD)
 #  - Targets: bin_$(OS)_$(ARCH)/$(CMD).opensource.tar.gz
@@ -141,39 +140,34 @@ vendor: $(go.lock)
 $(dir $(_go-mod.mk))go1%.src.tar.gz:
 	curl -o $@ --fail https://dl.google.com/go/$(@F)
 
-ifneq ($(call go.goversion.HAVE, 1.13beta1),$(FALSE))
-  $(foreach p,$(go.PLATFORMS),bin_$p/.go-build):
+bin_%/.go-build:
 	mkdir -p $@
-  $(addprefix bin_%/.go-build/,$(notdir $(go.bins))): FORCE | bin_%/.go-build
+ifneq ($(call go.goversion.HAVE, 1.13beta1),$(FALSE))
+  $(addprefix bin_%/.go-build/,$(notdir $(go.bins))): go-get FORCE | bin_%/.go-build
 	$(go.GOBUILD) $(if $(go.LDFLAGS),--ldflags $(call quote.shell,$(go.LDFLAGS))) -o $(@D) $(go.bins)
 
-  # Usage: $(eval $(call go.bin.rule,BINNAME,GOPACKAGE))
-  define go.bin.rule
+  # Usage: $(eval $(call _go.bin.rule,BINNAME,GOPACKAGE))
+  define _go.bin.rule
+  bin_%/$1: bin_%/.go-build/$1 $$(COPY_IFCHANGED)
+	$$(COPY_IFCHANGED) $$< $$@
+  bin_%/$1.opensource.tar.gz: bin_%/$1 vendor $$(_go.mkopensource) $$(dir $$(_go-mod.mk))go$$(go.goversion).src.tar.gz $$(WRITE_IFCHANGED)
+	$$(_go.mkopensource) --output-name=$1.opensource --package=$2 --gotar=$$(dir $$(_go-mod.mk))go$$(go.goversion).src.tar.gz | $$(WRITE_IFCHANGED) $$@
+  endef
+else
+  # Usage: $(eval $(call _go.bin.rule,BINNAME,GOPACKAGE))
+  define _go.bin.rule
+  bin_%/.go-build/$1: go-get $$(go.lock) FORCE | bin_%/.go-build
+	$$(go.lock)$$(go.GOBUILD) $$(if $$(go.LDFLAGS),--ldflags $$(call quote.shell,$$(go.LDFLAGS))) -o $$@ $2
   bin_%/$1: bin_%/.go-build/$1 $$(COPY_IFCHANGED)
 	$$(COPY_IFCHANGED) $$< $$@
   bin_%/$1.opensource.tar.gz: bin_%/$1 vendor $$(_go.mkopensource) $$(dir $$(_go-mod.mk))go$$(go.goversion).src.tar.gz $$(WRITE_IFCHANGED) $$(go.lock)
 	$$(go.lock)$$(_go.mkopensource) --output-name=$1.opensource --package=$2 --gotar=$$(dir $$(_go-mod.mk))go$$(go.goversion).src.tar.gz | $$(WRITE_IFCHANGED) $$@
   endef
-
-  _go.bin.name = $(notdir $(_go.bin))
-  _go.bin.pkg = $(_go.bin)
-  $(foreach _go.bin,$(go.bins),$(eval $(call go.bin.rule,$(_go.bin.name),$(_go.bin.pkg))))
-else
-  # Usage: $(eval $(call go.bin.rule,BINNAME,GOPACKAGE))
-  define go.bin.rule
-  bin_%/.$1.stamp: go-get $$(go.lock) FORCE
-	$$(go.lock)$$(go.GOBUILD) $$(if $$(go.LDFLAGS),--ldflags $$(call quote.shell,$$(go.LDFLAGS))) -o $$@ $2
-  bin_%/$1: bin_%/.$1.stamp $$(COPY_IFCHANGED)
-	$$(COPY_IFCHANGED) $$< $$@
-
-  bin_%/$1.opensource.tar.gz: bin_%/$1 vendor $$(_go.mkopensource) $$(dir $$(_go-mod.mk))go$$(go.goversion).src.tar.gz $$(WRITE_IFCHANGED) $$(go.lock)
-	$$(go.lock)$$(_go.mkopensource) --output-name=$1.opensource --package=$2 --gotar=$$(dir $$(_go-mod.mk))go$$(go.goversion).src.tar.gz | $$(WRITE_IFCHANGED) $$@
-  endef
-
-  _go.bin.name = $(notdir $(_go.bin))
-  _go.bin.pkg = $(_go.bin)
-  $(foreach _go.bin,$(go.bins),$(eval $(call go.bin.rule,$(_go.bin.name),$(_go.bin.pkg))))
 endif
+
+_go.bin.name = $(notdir $(_go.bin))
+_go.bin.pkg = $(_go.bin)
+$(foreach _go.bin,$(go.bins),$(eval $(call _go.bin.rule,$(_go.bin.name),$(_go.bin.pkg))))
 
 go-build: $(foreach _go.PLATFORM,$(go.PLATFORMS),$(foreach _go.bin,$(go.bins), bin_$(_go.PLATFORM)/$(_go.bin.name)                   ))
 build:    $(foreach _go.PLATFORM,$(go.PLATFORMS),$(foreach _go.bin,$(go.bins), bin_$(_go.PLATFORM)/$(_go.bin.name).opensource.tar.gz ))
