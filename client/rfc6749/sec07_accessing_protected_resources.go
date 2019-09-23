@@ -1,6 +1,7 @@
 package rfc6749
 
 import (
+	"encoding/json"
 	"io"
 	"net/http"
 	"net/url"
@@ -65,7 +66,7 @@ func errorFromResourceResponse(
 	registry *extensionRegistry,
 	session clientSessionData,
 	response *http.Response,
-) (ResourceAccessErrorResponse, error) {
+) (*ReifiedResourceAccessErrorResponse, error) {
 	if session.currentAccessToken() == nil {
 		return nil, ErrNoAccessToken
 	}
@@ -73,7 +74,15 @@ func errorFromResourceResponse(
 	if !typeDriverOK {
 		return nil, &UnsupportedTokenTypeError{session.currentAccessToken().TokenType}
 	}
-	return typeDriver.ErrorFromResourceResponse(response)
+	resp, err := typeDriver.ErrorFromResourceResponse(response)
+	var reifiedResp *ReifiedResourceAccessErrorResponse
+	if resp != nil {
+		reifiedResp = &ReifiedResourceAccessErrorResponse{
+			registry:                    registry,
+			ResourceAccessErrorResponse: resp,
+		}
+	}
+	return reifiedResp, err
 }
 
 // ResourceAccessErrorResponse is an interface that is implemented by Token-Type-specific error
@@ -83,4 +92,34 @@ type ResourceAccessErrorResponse interface {
 	ErrorCode() string        // SHOULD
 	ErrorDescription() string // MAY
 	ErrorURI() *url.URL       // MAY
+}
+
+// ReifiedResourceAccessErrorResponse wraps a §7.2 ResourceAccessErrorResponse, to provide metadata
+// around the ErrorCode, and a useful JSON serialization.
+type ReifiedResourceAccessErrorResponse struct {
+	registry *extensionRegistry
+	ResourceAccessErrorResponse
+}
+
+// ErrorCode wraps ResourceAccessErrorResponse.ErrorCode(), returning not just the error code name,
+// but also the metadata in the §11 registry for that error code.
+func (e *ReifiedResourceAccessErrorResponse) ErrorCode() ExtensionError {
+	name := e.ResourceAccessErrorResponse.ErrorCode()
+
+	e.registry.ensureInitialized()
+	if ee, eeOK := e.registry.resourceAccessErrors[name]; eeOK {
+		return ee
+	}
+
+	return ExtensionError{Name: name}
+}
+
+// MarshalJSON implements encoding/json.Marshaler.
+func (e *ReifiedResourceAccessErrorResponse) MarshalJSON() ([]byte, error) {
+	return json.Marshal(map[string]interface{}{
+		"message":           e.Error(),
+		"error":             e.ErrorCode(),
+		"error_description": e.ErrorDescription(),
+		"error_uri":         e.ErrorURI(),
+	})
 }

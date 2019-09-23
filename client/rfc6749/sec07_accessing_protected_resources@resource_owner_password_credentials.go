@@ -36,6 +36,6 @@ func (client *ResourceOwnerPasswordCredentialsClient) AuthorizationForResourceRe
 func (client *ResourceOwnerPasswordCredentialsClient) ErrorFromResourceResponse(
 	session *ResourceOwnerPasswordCredentialsClientSessionData,
 	response *http.Response,
-) (ResourceAccessErrorResponse, error) {
+) (*ReifiedResourceAccessErrorResponse, error) {
 	return errorFromResourceResponse(&client.extensionRegistry, session, response)
 }

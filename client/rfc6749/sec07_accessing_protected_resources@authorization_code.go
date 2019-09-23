@@ -36,6 +36,6 @@ func (client *AuthorizationCodeClient) AuthorizationForResourceRequest(
 func (client *AuthorizationCodeClient) ErrorFromResourceResponse(
 	session *AuthorizationCodeClientSessionData,
 	response *http.Response,
-) (ResourceAccessErrorResponse, error) {
+) (*ReifiedResourceAccessErrorResponse, error) {
 	return errorFromResourceResponse(&client.extensionRegistry, session, response)
 }
