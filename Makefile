@@ -8,10 +8,7 @@ test: test.cov
 test.cov: build
 	go test -coverprofile=test.cov ./...
 lint: test
-	@{ r=0; PS4=; set -x; \
-	golangci-lint run ./... || r=$$?; \
-	unused -exported ./... || r=$$?; \
-	}; exit $$r
+	golangci-lint run ./...
 .PHONY: build test lint
 
 %.cov.html: %.cov

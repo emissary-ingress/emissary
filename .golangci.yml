@@ -8,8 +8,6 @@ linters:
     - lll
     - gochecknoglobals
     - gochecknoinits
-    # Integration with unused is buggy; run it separately/manually
-    - unused
 linters-settings:
   unused:
     # treat code as a program (not a library) and report unused
