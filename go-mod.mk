@@ -28,7 +28,6 @@
 #  - Variable: go.pkgs ?= ./...
 #
 #  - Function: go.list = like $(shell go list $1), but ignores nested Go modules and doesn't download things
-#  - Function: go.bin.rule = Only use this if you know what you are doing
 #
 #  - Targets: bin_$(OS)_$(ARCH)/$(CMD)
 #  - Targets: bin_$(OS)_$(ARCH)/$(CMD).opensource.tar.gz
@@ -56,7 +55,8 @@ include $(dir $(_go-mod.mk))common.mk
 #
 # Configure the `go` command
 
-go.goversion = $(_prelude.go.goversion)
+go.goversion = $(_prelude.go.VERSION)
+go.goversion.HAVE= $(_prelude.go.VERSION.HAVE)
 go.lock = $(_prelude.go.lock)
 
 export GO111MODULE = on
@@ -64,7 +64,7 @@ export GO111MODULE = on
 #
 # Set default values for input variables
 
-go.GOBUILD ?= go build
+go.GOBUILD ?= go build$(if $(call go.goversion.HAVE, 1.13beta1), -trimpath)
 go.DISABLE_GO_TEST ?=
 go.LDFLAGS ?=
 go.PLATFORMS ?= $(GOOS)_$(GOARCH)
@@ -74,12 +74,17 @@ CI ?=
 #
 # Set output variables and functions
 
-GOTEST2TAP    ?= $(build-aux.bindir)/gotest2tap
-GOLANGCI_LINT ?= $(build-aux.bindir)/golangci-lint
+GOTEST2TAP       ?= $(build-aux.bindir)/gotest2tap
+GOLANGCI_LINT    ?= $(build-aux.bindir)/golangci-lint
+_go.mkopensource  = $(build-aux.bindir)/go-mkopensource
+
+$(eval $(call build-aux.bin-go.rule, gotest2tap     , github.com/datawire/build-aux/bin-go/gotest2tap      ))
+$(eval $(call build-aux.bin-go.rule, golangci-lint  , github.com/golangci/golangci-lint/cmd/golangci-lint  ))
+$(eval $(call build-aux.bin-go.rule, go-mkopensource, github.com/datawire/build-aux/bin-go/go-mkopensource ))
 
 NAME ?= $(notdir $(go.module))
 
-go.module := $(shell GO111MODULE=on go mod edit -json | jq -r .Module.Path)
+go.module := $(_prelude.go.ensure)$(shell GO111MODULE=on go mod edit -json | jq -r .Module.Path)
 ifneq ($(words $(go.module)),1)
   $(error Could not extract $$(go.module) from ./go.mod)
 endif
@@ -94,12 +99,28 @@ endif
 # Makefile-parse-time; what if we're running `make clean`?
 #
 # So instead, we must deal with this abomination.
-_go.submods := $(patsubst %/go.mod,%,$(shell git ls-files '*/go.mod'))
-go.list = $(call path.addprefix,$(go.module),\
-                                $(filter-out $(foreach d,$(_go.submods),$d $d/%),\
-                                             $(call path.trimprefix,_$(CURDIR),\
-                                                                    $(shell GOPATH=/bogus GO111MODULE=off go list $1))))
-go.bins := $(call go.list,-f='{{if eq .Name "main"}}{{.ImportPath}}{{end}}' ./...)
+  # "General" functions
+    # Usage: $(call _go.file2dirs,FILE)
+    # Example: $(call _go.file2dirs,foo/bar/baz) => foo foo/bar foo/bar/baz
+    _go.file2dirs = $(if $(findstring /,$1),$(call _go.file2dirs,$(patsubst %/,%,$(dir $1)))) $1
+    # Usage: $(call _go.files2dirs,FILE_LIST)
+    # Example: $(call _go.files2dirs,foo/bar/baz foo/baz/qux) => foo foo/bar foo/bar/baz foo/baz foo/baz/qux
+    _go.files2dirs = $(sort $(foreach f,$1,$(call _go.file2dirs,$f)))
+  # Without pruning sub-module packages (relative to ".", without "./" prefix")
+    # Use pwd(1) instead of $(CURDIR) because $(CURDIR) behaves differently than `go` in the presence of symlinks.
+    _go.raw.cwd := $(shell pwd)
+    # Usage: $(call _go.raw.list,ARGS)
+    _go.raw.list = $(call path.trimprefix,_$(_go.raw.cwd),$(shell GOPATH=/bogus GO111MODULE=off go list $1))
+    _go.raw.pkgs := $(call _go.raw.list,./... 2>/dev/null)
+    _go.raw.submods := $(filter-out .,$(patsubst %/go.mod,%,$(wildcard $(addsuffix /go.mod,$(call _go.files2dirs,$(_go.raw.pkgs))))))
+  # With pruning sub-module packages (relative to ".", without "./" prefix")
+    _go.pkgs = $(filter-out $(foreach m,$(_go.raw.submods),$m $m/%),$(_go.raw.pkgs))
+    # Usage: $(call _go.list,ARGS)
+    _go.list = $(filter-out $(foreach m,$(_go.raw.submods),$m $m/%),$(_go.raw.list))
+  # With pruning sub-module packages (qualified)
+    # Usage: $(call go.list,ARGS)
+    go.list = $(call path.addprefix,$(go.module),$(_go.list))
+    go.bins := $(call go.list,-f='{{if eq .Name "main"}}{{.ImportPath}}{{end}}' $(addprefix ./,$(_go.pkgs)))
 
 go.pkgs ?= ./...
 
@@ -114,35 +135,45 @@ go-get: $(go.lock)
 vendor: go-get FORCE
 vendor: $(go.lock)
 	$(go.lock)go mod vendor
-	@test -d $@
+	@test -d $@ || test "$$(go mod edit -json|jq '.Require|length')" -eq 0
 
 $(dir $(_go-mod.mk))go1%.src.tar.gz:
 	curl -o $@ --fail https://dl.google.com/go/$(@F)
 
-_go.mkopensource = $(build-aux.bindir)/go-mkopensource
+bin_%/.go-build:
+	mkdir -p $@
+ifneq ($(call go.goversion.HAVE, 1.13beta1),$(FALSE))
+  $(addprefix bin_%/.go-build/,$(notdir $(go.bins))): go-get FORCE | bin_%/.go-build
+	$(go.GOBUILD) $(if $(go.LDFLAGS),--ldflags $(call quote.shell,$(go.LDFLAGS))) -o $(@D) $(go.bins)
 
-# Usage: $(eval $(call go.bin.rule,BINNAME,GOPACKAGE))
-define go.bin.rule
-bin_%/.$1.stamp: go-get $$(go.lock) FORCE
-	$$(go.lock)$$(go.GOBUILD) $$(if $$(go.LDFLAGS),--ldflags $$(call quote.shell,$$(go.LDFLAGS))) -o $$@ $2
-bin_%/$1: bin_%/.$1.stamp $$(COPY_IFCHANGED)
+  # Usage: $(eval $(call _go.bin.rule,BINNAME,GOPACKAGE))
+  define _go.bin.rule
+  bin_%/$1: bin_%/.go-build/$1 $$(COPY_IFCHANGED)
 	$$(COPY_IFCHANGED) $$< $$@
-
-bin_%/$1.opensource.tar.gz: vendor $$(_go.mkopensource) $$(dir $$(_go-mod.mk))go$$(go.goversion).src.tar.gz $$(WRITE_IFCHANGED) $$(go.lock)
+  bin_%/$1.opensource.tar.gz: bin_%/$1 vendor $$(_go.mkopensource) $$(dir $$(_go-mod.mk))go$$(go.goversion).src.tar.gz $$(WRITE_IFCHANGED)
+	$$(_go.mkopensource) --output-name=$1.opensource --package=$2 --gotar=$$(dir $$(_go-mod.mk))go$$(go.goversion).src.tar.gz | $$(WRITE_IFCHANGED) $$@
+  endef
+else
+  # Usage: $(eval $(call _go.bin.rule,BINNAME,GOPACKAGE))
+  define _go.bin.rule
+  bin_%/.go-build/$1: go-get $$(go.lock) FORCE | bin_%/.go-build
+	$$(go.lock)$$(go.GOBUILD) $$(if $$(go.LDFLAGS),--ldflags $$(call quote.shell,$$(go.LDFLAGS))) -o $$@ $2
+  bin_%/$1: bin_%/.go-build/$1 $$(COPY_IFCHANGED)
+	$$(COPY_IFCHANGED) $$< $$@
+  bin_%/$1.opensource.tar.gz: bin_%/$1 vendor $$(_go.mkopensource) $$(dir $$(_go-mod.mk))go$$(go.goversion).src.tar.gz $$(WRITE_IFCHANGED) $$(go.lock)
 	$$(go.lock)$$(_go.mkopensource) --output-name=$1.opensource --package=$2 --gotar=$$(dir $$(_go-mod.mk))go$$(go.goversion).src.tar.gz | $$(WRITE_IFCHANGED) $$@
-endef
+  endef
+endif
 
 _go.bin.name = $(notdir $(_go.bin))
 _go.bin.pkg = $(_go.bin)
-$(foreach _go.bin,$(go.bins),$(eval $(call go.bin.rule,$(_go.bin.name),$(_go.bin.pkg))))
+$(foreach _go.bin,$(go.bins),$(eval $(call _go.bin.rule,$(_go.bin.name),$(_go.bin.pkg))))
+
 go-build: $(foreach _go.PLATFORM,$(go.PLATFORMS),$(foreach _go.bin,$(go.bins), bin_$(_go.PLATFORM)/$(_go.bin.name)                   ))
 build:    $(foreach _go.PLATFORM,$(go.PLATFORMS),$(foreach _go.bin,$(go.bins), bin_$(_go.PLATFORM)/$(_go.bin.name).opensource.tar.gz ))
 
 go-build: ## (Go) Build the code with `go build`
 .PHONY: go-build
-
-$(build-aux.bindir)/golangci-lint: $(build-aux.dir)/go.mod $(_prelude.go.lock) | $(build-aux.bindir)
-	$(build-aux.go-build) -o $@ github.com/golangci/golangci-lint/cmd/golangci-lint
 
 go-lint: ## (Go) Check the code with `golangci-lint`
 go-lint: $(GOLANGCI_LINT) go-get $(go.lock)
@@ -161,7 +192,7 @@ ifeq ($(go.DISABLE_GO_TEST),)
 endif
 
 $(dir $(_go-mod.mk))go-test.tap: $(GOTEST2TAP) $(TAP_DRIVER) $(go.lock) FORCE
-	@$(go.lock)go test -json $(go.pkgs) 2>&1 | $(GOTEST2TAP) | tee $@ | $(TAP_DRIVER) stream -n go-test
+	@{ $(go.lock)go test -json $(go.pkgs) || true; } 2>&1 | $(GOTEST2TAP) | tee $@ | $(TAP_DRIVER) stream -n go-test
 
 #
 # go-doc
