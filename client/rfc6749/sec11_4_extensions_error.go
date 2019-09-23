@@ -4,7 +4,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-// ExtensionError store sthe registration information for an Extension Error specified in §11.4.1,
+// ExtensionError stores the registration information for an Extension Error specified in §11.4.1,
 // as well as implementation-data on the error meaning.
 type ExtensionError struct {
 	// Registration metadata

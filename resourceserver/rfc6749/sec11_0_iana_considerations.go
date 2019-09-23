@@ -2,6 +2,7 @@ package rfc6749
 
 type extensionRegistry struct {
 	accessTokenTypes map[string]AccessTokenType // See sec11_1_access_token_types.go
+	// TODO(lukeshu): Actually track the extension errors
 }
 
 // ProtocolExtension stores information about an OAuth protocol extension such that the extension
@@ -9,6 +10,7 @@ type extensionRegistry struct {
 // using the ResourceServer's `.RegisterProtocolExtension()` method.
 type ProtocolExtension struct {
 	AccessTokenTypes []AccessTokenType
+	ExtensionErrors  []ExtensionError
 }
 
 func (registry *extensionRegistry) ensureInitialized() {
