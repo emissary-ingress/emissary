@@ -114,11 +114,9 @@ ambassador/ambassador.docker: ambassador/envoy-bin/certified-envoy
 ambassador/envoy-bin/certified-envoy: bin_linux_amd64/certified-envoy | ambassador
 	test -d $(@D) || mkdir $(@D)
 	cp $< $@
-bin_linux_amd64/certified-envoy: cmd/certified-envoy/envoy.go
-cmd/certified-envoy/envoy.go: cmd/certified-envoy/envoy.bin cmd/certified-envoy/envoy-gen.go
-	go run cmd/certified-envoy/envoy-gen.go $< | $(WRITE_IFCHANGED) $@
-cmd/certified-envoy/envoy.bin: ambassador/envoy-bin/envoy-static-stripped
-	cp $< $@
+bin_linux_amd64/.go-build/certified-envoy: cmd/certified-envoy/envoy.go
+cmd/certified-envoy/envoy.go: cmd/certified-envoy/envoy-gen.go ambassador/envoy-bin/envoy-static-stripped
+	go run cmd/certified-envoy/envoy-gen.go ambassador/envoy-bin/envoy-static-stripped > $@
 
 ambassador/docker-push-base-images: ambassador/docker-base-images
 .PHONY: ambassador/docker-base-images
@@ -479,7 +477,7 @@ loadtest-apply loadtest-deploy loadtest-shell loadtest-proxy: loadtest-%: infra/
 
 clean: $(addsuffix .clean,$(wildcard docker/*.docker)) loadtest-clean
 	rm -f apro-abi.txt
-	rm -f cmd/certified-envoy/envoy.bin cmd/certified-envoy/envoy.go
+	rm -f cmd/certified-envoy/envoy.go
 	rm -f docker/*/*.opensource.tar.gz
 	rm -f docker/model-cluster-amb-sidecar-plugins/Dockerfile docker/model-cluster-amb-sidecar-plugins/*.so
 	rm -f k8s-*/??-ambassador-certs.yaml k8s-*/*.pem
@@ -490,6 +488,8 @@ clean: $(addsuffix .clean,$(wildcard docker/*.docker)) loadtest-clean
 # Files made by older versions.  Remove the tail of this list when the
 # commit making the change gets far enough in to the past.
 #
+# 2019-09-23
+	rm -f cmd/certified-envoy/envoy.bin
 # 2019-09-16
 	rm -f docker/dev-portal-server/dev-portal-server
 # 2019-09-12
