@@ -19,7 +19,6 @@ K8S_ENVS        = k8s-env.sh
 go.PLATFORMS    = linux_amd64 darwin_amd64
 go.pkgs         = ./... github.com/lyft/ratelimit/...
 
-export CGO_ENABLED = 0
 export SCOUT_DISABLE = 1
 export GOPRIVATE = github.com/datawire/liboauth2
 
