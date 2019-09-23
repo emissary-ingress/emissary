@@ -1,6 +1,31 @@
 <!-- -*- fill-column: 100 -*- -->
 # Datawire build-aux CHANGELOG
 
+ - 2019-08-14: `go-mod.mk`: `go.bins`, `go.list`: Correctly prune nested Go modules in git
+               submodules.
+
+ - 2019-08-14: `docker.mk`: Try to run `docker build` with `--pull` by default.
+ - 2019-08-14: `docker.mk`: Allow overriding the tag expression on a per-image basis.
+ - 2019-08-14: BREAKING CHANGE: `docker.mk`, `docker-cluster.mk`: Overhaul how tagging an pushing
+               works, to be more flexible:
+                * Have to call the `docker.tag.rule` macro, instead of setting the `DOCKER_IMAGE`
+                  variable.
+                * Images are not tagged by default; you must now depend on `NAME.docker.tag.GROUP`
+                  (for a GROUP set up with `docker.tag.rule`).
+                * To push to an in-cluster repo is now `NAME.docker.push.cluster`, instead of
+                  `NAME.docker.knaut-push`.
+                * To push to a public repo is now `NAME.docker.push.GROUP` (for a GROUP set up with
+                  `docker.tag.rule`), instead of `NAME.docker.push`.
+ - 2019-08-13: BREAKING CHANGE: `docker.mk`: The in-cluster private registry stuff has moved to
+               `docker-cluster.mk`.
+ - 2019-08-13: BREAKING CHANGE: `prelude.mk`: The `build-aux.go-build` macro has been removed in
+               favor of the `build-aux.bin-go.rule` macro.
+
+ - 2019-08-13: Fix race condition in `make clobber` where it attempted to use compiled programs used
+               for cleanup, after the programs themselves had already been deleted.
+
+ - 2019-07-10: `var.mk`: Introduce
+
  - 2019-07-05: `build-aux-push`: Work around problem with `git subtree`; avoid accidentally pushing
                proprietary code to build-aux.git.
 
@@ -19,7 +44,7 @@
  - 2019-06-20: `go-mod.mk`: For each binary, generate a `BIN.opensource.tar.gz` file.
  - 2019-06-20: `go-workspace.mk`: Remove.
 
- - 2019-05-31: `go-modmk`: Add `go doc` target to run `godoc -http`.
+ - 2019-05-31: `go-mod.mk`: Add `go doc` target to run `godoc -http`.
 
  - 2019-05-01: BREAKING CHANGE: `docker.mk`: Don't include `kuberanut-ui.mk`.
  - 2019-05-01: BREAKING CHANGE: `teleproxy.mk`: Don't include `kuberanut-ui.mk`.
@@ -33,7 +58,7 @@
  - 2019-05-01: `prelude.mk`: Add `$(call lazyonce,…)`.
  - 2019-05-01: `prelude.mk`: Introduce, steal code from `common.mk`.
 
- - 2019-02-15: `kubernaut-ui.mk`: Avoid warnings from `make` inside of `makeh shell`.
+ - 2019-02-15: `kubernaut-ui.mk`: Avoid warnings from `make` inside of `make shell`.
 
  - 2019-02-13: `_go-common.mk`: Bump golangci-lint version 1.13.1→1.15.0.
 

@@ -16,6 +16,7 @@
 #  - .PHONY Target: format
 #  - .PHONY Target: clean
 #  - .PHONY Target: clobber
+#  - Alias: bin/% -> bin_$(GOHOSTOS)_$(GOHOSTARCH)/%
 ## common.mk targets ##
 #  (N/A)
 #
@@ -28,15 +29,16 @@ include $(dir $(_common.mk))prelude.mk
 #
 # Variables
 
-# If $@ is bin_GOOS_GOARCH/BINNAME, set GOOS and GOARCH accodingly,
-# otherwise inherit from the environment.
+# If $@ is bin_GOOS_GOARCH/BINNAME, or bin_GOOS_GOARCH/DIR/BINNAME,
+# set GOOS and GOARCH accordingly, otherwise inherit from the
+# environment.
 #
 # Possible values of GOOS/GOARCH:
 # https://golang.org/doc/install/source#environment
 _GOOS   = $(call lazyonce,_GOOS,$(shell go env GOOS))
 _GOARCH = $(call lazyonce,_GOARCH,$(shell go env GOARCH))
-export GOOS   = $(if $(filter bin_%,$(@D)),$(word 2,$(subst _, ,$(@D))),$(_GOOS))
-export GOARCH = $(if $(filter bin_%,$(@D)),$(word 3,$(subst _, ,$(@D))),$(_GOARCH))
+export GOOS   = $(if $(filter bin_%,$(@D)),$(word 2,$(subst _, ,$(firstword $(subst /, ,$(@D))))),$(_GOOS))
+export GOARCH = $(if $(filter bin_%,$(@D)),$(word 3,$(subst _, ,$(firstword $(subst /, ,$(@D))))),$(_GOARCH))
 
 #
 # User-facing targets
@@ -74,8 +76,14 @@ clobber: clean
 clean: _common_clean
 _common_clean:
 	rm -rf -- bin_*
-	rm -f test-suite.tap
+	rm -f bin test-suite.tap
 .PHONY: _common_clean
+
+bin/%: bin_$(GOHOSTOS)_$(GOHOSTARCH)/% | bin
+	@test -e $@ && test -f $@ && test -x $@
+bin:
+	@rm -f $@
+	ln -s bin_$(GOHOSTOS)_$(GOHOSTARCH)/ $@
 
 check: lint build
 	$(MAKE) test-suite.tap.summary
@@ -86,7 +94,7 @@ test-suite.tap: $(TAP_DRIVER)
 	@$(TAP_DRIVER) summarize $<
 
 %.tap: %.tap.gen $(TAP_DRIVER) FORCE
-	@$(abspath $<) 2>&1 | tee $@ | $(TAP_DRIVER) stream -n $<
+	@{ $(abspath $<) || true; } 2>&1 | tee $@ | $(TAP_DRIVER) stream -n $<
 %.log: %.test FORCE
 	@$(abspath $<) >$@ 2>&1; echo :exit-status: $$? >>$@
 %.tap: %.log %.test $(TAP_DRIVER)
