@@ -1,3 +1,9 @@
+# Sanitize the environment a bit.
+undefine ENV      # bad configuration mechansim
+undefine BASH_ENV # bad configuration mechansim, but CircleCI insists on it
+undefine CDPATH   # should not be exported, but some people do
+undefine IFS      # should not be exported, but some people do
+
 NAME            = ambassador-pro
 # For Make itself
 SHELL           = bash -o pipefail

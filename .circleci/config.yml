@@ -171,7 +171,9 @@ commands:
                  - run: "make build # no-op build"
                  - run: "make push-docker-buildcache || true"
                  - run: "make deploy"
-                 - run: "trap 'make unproxy' EXIT; set -x; make check"
+                 # FIXME: Figure out what's not parallel-safe about
+                 # the tests
+                 - run: "trap 'make unproxy' EXIT; set -x; make -j1 check"
                  - run:
                      command: "make unclaim"
                      when: always
@@ -204,6 +206,8 @@ jobs:
     macos:
       xcode: "10.1.0"
     steps:
+      - run: |
+          echo 'export MAKEFLAGS="-j$(sysctl -n hw.ncpu)"' >> "${BASH_ENV}"
       - pip-install:
           packages: awscli
       - install-go
@@ -217,6 +221,8 @@ jobs:
       # below.
       image: "ubuntu-1604:201903-01"
     steps:
+      - run: |
+          echo 'export MAKEFLAGS="-j$(nproc)"' >> "${BASH_ENV}"
       - pip-install:
           packages: awscli
       - install-go
