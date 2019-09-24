@@ -49,6 +49,7 @@ _kubernaut.mk := $(lastword $(MAKEFILE_LIST))
 include $(dir $(_kubernaut.mk))prelude.mk
 
 GUBERNAUT ?= $(build-aux.bindir)/gubernaut
+$(eval $(call build-aux.bin-go.rule, gubernaut, github.com/datawire/build-aux/bin-go/gubernaut))
 
 %.knaut.claim:
 	echo $(*F)-$${USER}-$$(uuidgen) > $@
@@ -56,8 +57,11 @@ GUBERNAUT ?= $(build-aux.bindir)/gubernaut
 	$(GUBERNAUT) -release $$(cat $<)
 	$(GUBERNAUT) -claim $$(cat $<) -output $@
 
-%.knaut.clean: $(GUBERNAUT)
-	if [ -e $*.knaut.claim ]; then $(GUBERNAUT) -release $$(cat $*.knaut.claim); fi
+# This `go run` bit is gross, compared to just depending on and using
+# $(GUBERNAUT).  But if the user runs `make clobber`, the prelude.mk
+# cleanup might delete $(GUBERNAUT) before we get to run it.
+%.knaut.clean:
+	if [ -e $*.knaut.claim ]; then cd $(dir $(_kubernaut.mk))bin-go/gubernaut && GO111MODULE=on go run . -release $$(cat $(abspath $*.knaut.claim)); fi
 	rm -f $*.knaut $*.knaut.claim
 .PHONY: %.knaut.clean
 

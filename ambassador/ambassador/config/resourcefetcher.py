@@ -117,6 +117,9 @@ class ResourceFetcher:
         #                   (self.location, len(serialization), "" if (len(serialization) == 1) else "s",
         #                    serialization))
 
+        # Expand environment variables allowing interpolation in manifests.
+        serialization = os.path.expandvars(serialization)
+
         try:
             objects = parse_yaml(serialization)
             self.parse_object(objects=objects, k8s=k8s, rkey=rkey, filename=filename)
@@ -131,6 +134,9 @@ class ResourceFetcher:
         # self.logger.debug("%s: parsing %d byte%s of YAML:\n%s" %
         #                   (self.location, len(serialization), "" if (len(serialization) == 1) else "s",
         #                    serialization))
+
+        # Expand environment variables allowing interpolation in manifests.
+        serialization = os.path.expandvars(serialization)
 
         try:
             objects = json.loads(serialization)
@@ -150,14 +156,21 @@ class ResourceFetcher:
         if os.path.isfile(os.path.join(basedir, '.ambassador_ignore_crds_2')):
             self.aconf.post_error("Ambassador could not find Resolver type CRD definitions. Please visit https://www.getambassador.io/reference/core/crds/ for more information. You can continue using Ambassador via Kubernetes annotations, any configuration via CRDs will be ignored...")
 
+        if os.path.isfile(os.path.join(basedir, '.ambassador_ignore_ingress')):
+            self.aconf.post_error("Ambassador is not permitted to read Ingress resources. Please visit https://www.getambassador.io/user-guide/ingress-controller/ for more information. You can continue using Ambassador, but Ingress resources will be ignored...")
+        
+        # Expand environment variables allowing interpolation in manifests.
+        serialization = os.path.expandvars(serialization)
+
         try:
             watt_dict = json.loads(serialization)
 
             watt_k8s = watt_dict.get('Kubernetes', {})
 
             # Handle normal Kube objects...
-            for key in [ 'service', 'endpoints', 'secret' ]:
+            for key in [ 'service', 'endpoints', 'secret', 'ingresses' ]:
                 for obj in watt_k8s.get(key) or []:
+                    self.logger.debug(f"Handling Kubernetes {key}...")
                     self.handle_k8s(obj)
 
             # ...then handle Ambassador CRDs.
@@ -168,6 +181,7 @@ class ResourceFetcher:
                          'clusteringresses.networking.internal.knative.dev',
                          'ingresses.networking.internal.knative.dev']:
                 for obj in watt_k8s.get(key) or []:
+                    self.logger.debug(f"Handling CRD {key}...")
                     self.handle_k8s_crd(obj)
 
             watt_consul = watt_dict.get('Consul', {})
@@ -197,6 +211,7 @@ class ResourceFetcher:
             return
 
         handler_name = f'handle_k8s_{kind.lower()}'
+        self.logger.debug(f"looking for handler {handler_name}")
         handler = getattr(self, handler_name, None)
 
         if not handler:
@@ -213,6 +228,8 @@ class ResourceFetcher:
 
     def handle_k8s_crd(self, obj: dict) -> None:
         # CRDs are _not_ allowed to have embedded objects in annotations, because ew.
+
+        self.logger.debug(f"Handling K8s CRD: {obj}")
 
         kind = obj.get('kind')
 
@@ -344,6 +361,153 @@ class ResourceFetcher:
 
     def sorted(self, key=lambda x: x.rkey):  # returns an iterator, probably
         return sorted(self.elements, key=key)
+
+    def handle_k8s_ingress(self, k8s_object: AnyDict) -> HandlerResult:
+        metadata = k8s_object.get('metadata', None)
+        ingress_name = metadata.get('name') if metadata else None
+        ingress_namespace = metadata.get('namespace', 'default') if metadata else None
+
+        resource_identifier = f'{ingress_name}.{ingress_namespace}'
+
+        ingress_spec = k8s_object.get('spec', None)
+
+        skip = False
+
+        if not metadata:
+            self.logger.debug("ignoring K8s Ingress with no metadata")
+            skip = True
+
+        if not ingress_name:
+            self.logger.debug("ignoring K8s Ingress with no name")
+            skip = True
+
+        if not ingress_spec:
+            self.logger.debug("ignoring K8s Ingress with no spec")
+            skip = True
+
+        # we don't need an ingress without ingress class set to ambassador
+        annotations = metadata.get('annotations', {})
+        if annotations.get('kubernetes.io/ingress.class', '').lower() != 'ambassador':
+            self.logger.info(f'ignoring Ingress {ingress_name} without annotation - kubernetes.io/ingress.class: "ambassador"')
+            skip = True
+
+        if skip:
+            return None
+
+        # Let's see if our Ingress resource has Ambassdaor annotations on it
+        annotations = metadata.get('annotations', {})
+        ambassador_annotations = annotations.get('getambassador.io/config', None)
+
+        parsed_ambassador_annotations = None
+        if ambassador_annotations is not None:
+            if (self.filename is not None) and (not self.filename.endswith(":annotation")):
+                self.filename += ":annotation"
+
+            try:
+                parsed_ambassador_annotations = parse_yaml(ambassador_annotations)
+            except yaml.error.YAMLError as e:
+                self.logger.debug("could not parse YAML: %s" % e)
+
+        ambassador_id = annotations.get('getambassador.io/ambassador-id', 'default')
+
+        self.logger.info(f"Handling Ingress {ingress_name}...")
+
+        ingress_tls = ingress_spec.get('tls', [])
+        for tls_count, tls in enumerate(ingress_tls):
+            tls_unique_identifier = f"{ingress_name}-{tls_count}"
+
+            tls_secret = tls.get('secretName', None)
+
+            if tls_secret is not None:
+                ingress_tls_context: Dict[str, Any] = {
+                    'apiVersion': 'ambassador/v1',
+                    'kind': 'TLSContext',
+                    'metadata': {
+                        'name': tls_unique_identifier,
+                        'namespace': ingress_namespace
+                    },
+                    'spec': {
+                        'secret': tls_secret,
+                        'ambassador_id': ambassador_id
+                    }
+                }
+
+                tls_hosts = tls.get('hosts', None)
+                if tls_hosts is not None:
+                    ingress_tls_context['spec']['hosts'] = tls_hosts
+
+                self.logger.info(f"Generated TLS Context from ingress {ingress_name}: {ingress_tls_context}")
+                self.handle_k8s_crd(ingress_tls_context)
+
+        # parse ingress.spec.backend
+        default_backend = ingress_spec.get('backend', {})
+        db_service_name = default_backend.get('serviceName', None)
+        db_service_port = default_backend.get('servicePort', None)
+        if db_service_name is not None and db_service_port is not None:
+            db_mapping_identifier = f"{ingress_name}-default-backend"
+
+            default_backend_mapping = {
+                'apiVersion': 'ambassador/v1',
+                'kind': 'Mapping',
+                'metadata': {
+                    'name': db_mapping_identifier,
+                    'namespace': ingress_namespace
+                },
+                'spec': {
+                    'ambassador_id': ambassador_id,
+                    'prefix': '/',
+                    'service': f'{db_service_name}.{ingress_namespace}:{db_service_port}'
+                }
+            }
+
+            self.logger.info(f"Generated mapping from Ingress {ingress_name}: {default_backend_mapping}")
+            self.handle_k8s_crd(default_backend_mapping)
+
+        # parse ingress.spec.rules
+        ingress_rules = ingress_spec.get('rules', [])
+        for rule_count, rule in enumerate(ingress_rules):
+            rule_http = rule.get('http', {})
+
+            rule_host = rule.get('host', None)
+
+            http_paths = rule_http.get('paths', [])
+            for path_count, path in enumerate(http_paths):
+                path_backend = path.get('backend', {})
+
+                service_name = path_backend.get('serviceName', None)
+                service_port = path_backend.get('servicePort', None)
+                service_path = path.get('path', None)
+
+                if not service_name or not service_port or not service_path:
+                    continue
+
+                unique_suffix = f"{rule_count}-{path_count}"
+                mapping_identifier = f"{ingress_name}-{unique_suffix}"
+
+                path_mapping: Dict[str, Any] = {
+                    'apiVersion': 'ambassador/v1',
+                    'kind': 'Mapping',
+                    'metadata': {
+                        'name': mapping_identifier,
+                        'namespace': ingress_namespace
+                    },
+                    'spec': {
+                        'ambassador_id': ambassador_id,
+                        'prefix': service_path,
+                        'service': f'{service_name}.{ingress_namespace}:{service_port}'
+                    }
+                }
+
+                if rule_host is not None:
+                    path_mapping['spec']['host'] = rule_host
+
+                self.logger.info(f"Generated mapping from Ingress {ingress_name}: {path_mapping}")
+                self.handle_k8s_crd(path_mapping)
+
+        if parsed_ambassador_annotations is not None:
+            return resource_identifier, parsed_ambassador_annotations
+
+        return None
 
     def handle_k8s_endpoints(self, k8s_object: AnyDict) -> HandlerResult:
         # Don't include Endpoints unless endpoint routing is enabled.

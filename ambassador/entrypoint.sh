@@ -367,6 +367,10 @@ wait_for_url "diagd" "http://localhost:8877/_internal/v0/ping"
 if [[ -z "${AMBASSADOR_NO_KUBEWATCH}" ]]; then
     KUBEWATCH_SYNC_KINDS="-s service"
 
+    if [ ! -f "${AMBASSADOR_CONFIG_BASE_DIR}/.ambassador_ignore_ingress" ]; then
+        KUBEWATCH_SYNC_KINDS="$KUBEWATCH_SYNC_KINDS -s ingresses"
+    fi
+
     if [ ! -f "${AMBASSADOR_CONFIG_BASE_DIR}/.ambassador_ignore_crds" ]; then
         KUBEWATCH_SYNC_KINDS="$KUBEWATCH_SYNC_KINDS -s AuthService -s Mapping -s Module -s RateLimitService -s TCPMapping -s TLSContext -s TracingService"
     fi
@@ -388,7 +392,7 @@ if [[ -z "${AMBASSADOR_NO_KUBEWATCH}" ]]; then
     launch "watt" /ambassador/watt \
            --port 8002 \
            ${AMBASSADOR_SINGLE_NAMESPACE:+ --namespace "${AMBASSADOR_NAMESPACE}" } \
-           --notify 'sh /ambassador/post_watt.sh' \
+           --notify 'python /ambassador/post_update.py --watt ' \
            ${KUBEWATCH_SYNC_KINDS} \
            ${AMBASSADOR_FIELD_SELECTOR_ARG} \
            ${AMBASSADOR_LABEL_SELECTOR_ARG} \

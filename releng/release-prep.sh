@@ -89,10 +89,24 @@ fi
 RELEASE_NOTES=$(<${temp_file})
 trap 'rm -f ${temp_file}' EXIT
 
-CHANGELOG="## [${DESIRED_VERSION}] $(date "+%B %d, %Y")
-[${DESIRED_VERSION}]: https://github.com/datawire/ambassador/compare/${CURRENT_VERSION}...${DESIRED_VERSION}
+current_v=$CURRENT_VERSION
 
-${RELEASE_NOTES}"
+if [[ "$current_v" != v* ]]; then
+	current_v="v${CURRENT_VERSION}"
+fi
+
+desired_v=$DESIRED_VERSION
+
+if [[ "$desired_v" != v* ]]; then
+	desired_v="v${DESIRED_VERSION}"
+fi
+
+CHANGELOG="## [${DESIRED_VERSION}] $(date "+%B %d, %Y")
+[${DESIRED_VERSION}]: https://github.com/datawire/ambassador/compare/${current_v}...${desired_v}
+
+${RELEASE_NOTES}
+"
+
 echo ""
 echo "====================================="
 echo "Generated changelog -"

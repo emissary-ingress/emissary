@@ -105,12 +105,12 @@ ENVOY_FILE ?= envoy-bin/envoy-static-stripped
 
 # IF YOU MESS WITH ANY OF THESE VALUES, YOU MUST RUN `make docker-update-base`.
   ENVOY_REPO ?= $(if $(IS_PRIVATE),git@github.com:datawire/envoy-private.git,git://github.com/datawire/envoy.git)
-  ENVOY_COMMIT ?= 4616a0939972438ea47f0ac6657296fb836d1187
+  ENVOY_COMMIT ?= 18b1f5acc8d75e992f81d540bbb0d05f8abfe244
   ENVOY_COMPILATION_MODE ?= dbg
 
 
   # Increment BASE_ENVOY_RELVER on changes to `Dockerfile.base-envoy`, or Envoy recipes
-  BASE_ENVOY_RELVER ?= 2
+  BASE_ENVOY_RELVER ?= 3
   # Increment BASE_GO_RELVER on changes to `Dockerfile.base-go`
   BASE_GO_RELVER    ?= 15
   # Increment BASE_PY_RELVER on changes to `Dockerfile.base-py`, `releng/*`, `multi/requirements.txt`, `ambassador/requirements.txt`
@@ -177,7 +177,7 @@ all:
 include build-aux/prelude.mk
 include build-aux/var.mk
 
-clean: clean-test
+clean: clean-test envoy-build-container.txt.clean
 	rm -rf docs/_book docs/_site docs/package-lock.json
 	rm -rf helm/*.tgz
 	rm -rf app.json
@@ -264,7 +264,7 @@ export-vars:
 	@echo "export VERSION='$(VERSION)'"
 
 # All of this will likely fail horribly outside of CI, for the record.
-docker-registry:
+docker-registry: $(KUBECONFIG)
 ifneq ($(DOCKER_EPHEMERAL_REGISTRY),)
 	@if [ "$(TRAVIS)" != "true" ]; then \
 		echo "make docker-registry is only for CI" >&2 ;\
@@ -309,6 +309,9 @@ envoy-src: FORCE
 	    else \
 	        git remote add origin $(ENVOY_REPO); \
 	    fi; \
+	    if [[ $(ENVOY_REPO) != ssh://* && $(ENVOY_REPO) != *@*:* ]]; then \
+	        git remote set-url --push origin git@github.com:datawire/envoy.git; \
+	    fi; \
 	    git fetch --tags origin; \
 	    if [ $(ENVOY_COMMIT) != '-' ]; then \
 	        git checkout $(ENVOY_COMMIT); \
@@ -317,60 +320,84 @@ envoy-src: FORCE
 	    fi; \
 	}
 
-envoy-build-image.txt: FORCE envoy-src
-	@echo "Making $@..."
-	set -e; \
-	cd envoy-src; . ci/envoy_build_sha.sh; cd ..; \
-	echo docker.io/envoyproxy/envoy-build-ubuntu:$$ENVOY_BUILD_SHA > .tmp.$@.tmp; \
-	if cmp -s .tmp.$@.tmp $@; then \
-		rm -f .tmp.$@.tmp; \
-	else \
-		mv .tmp.$@.tmp $@; \
-	fi
+envoy-build-image.txt: FORCE envoy-src $(WRITE_IFCHANGED)
+	@PS4=; set -ex -o pipefail; { \
+	    pushd envoy-src/ci; \
+	    . envoy_build_sha.sh; \
+	    popd; \
+	    echo docker.io/envoyproxy/envoy-build-ubuntu:$$ENVOY_BUILD_SHA | $(WRITE_IFCHANGED) $@; \
+	}
 
-# We rsync to a persistent named-volume (instead of building directly
-# on the bind-mount volume) because Docker for Mac's osxfs is very
-# slow.
-ENVOY_SYNC_HOST_TO_DOCKER = docker run --rm --volume=$(CURDIR)/envoy-src:/xfer:ro --volume=envoy-build:/root:rw $$(cat envoy-build-image.txt) rsync -Pav --delete /xfer/ /root/envoy
-ENVOY_SYNC_DOCKER_TO_HOST = docker run --rm --volume=$(CURDIR)/envoy-src:/xfer:rw --volume=envoy-build:/root:ro $$(cat envoy-build-image.txt) rsync -Pav --delete /root/envoy/ /xfer
+envoy-build-container.txt: envoy-build-image.txt FORCE
+	@PS4=; set -ex; { \
+	    if [ $@ -nt $< ] && docker exec $$(cat $@) true; then \
+	        exit 0; \
+	    fi; \
+	    if [ -e $@ ]; then \
+	        docker kill $$(cat $@) || true; \
+	    fi; \
+	    docker run --detach --name=envoy-build --rm --privileged --volume=envoy-build:/root:rw $$(cat $<) tail -f /dev/null > $@; \
+	}
+
+envoy-build-container.txt.clean: %.clean:
+	@PS4=; set -ex; { \
+	    if [ -e $* ]; then \
+	        docker kill $$(cat $*) || true; \
+	    fi; \
+	}
+.PHONY: envoy-build-container.txt.clean
+
+# We do everything with rsync and a persistent build-container
+# (instead of using a volume), because
+#  1. Docker for Mac's osxfs is very slow, so volumes are bad for
+#     macOS users.
+#  2. Volumes mounts just straight-up don't work for people who use
+#     Minikube's dockerd.
+ENVOY_SYNC_HOST_TO_DOCKER = rsync -Pav --delete --blocking-io -e "docker exec -i" envoy-src/ $$(cat envoy-build-container.txt):/root/envoy
+ENVOY_SYNC_DOCKER_TO_HOST = rsync -Pav --delete --blocking-io -e "docker exec -i" $$(cat envoy-build-container.txt):/root/envoy/ envoy-src/
+
+ENVOY_BASH.cmd = bash -c 'PS4=; set -ex; $(ENVOY_SYNC_HOST_TO_DOCKER); trap '\''$(ENVOY_SYNC_DOCKER_TO_HOST)'\'' EXIT; '$(call quote.shell,$1)
+ENVOY_BASH.deps = envoy-build-container.txt
 
 envoy-bin:
 	mkdir -p $@
-envoy-bin/envoy-static: envoy-build-image.txt FORCE | envoy-bin
-	@PS4=; set -ex; if docker run --rm --entrypoint=true $(BASE_ENVOY_IMAGE); then \
-	    docker run --rm --volume=$(CURDIR)/$(@D):/xfer:rw --user=$$(id -u):$$(id -g) $(BASE_ENVOY_IMAGE) cp -a /usr/local/bin/envoy /xfer/$(@F); \
-	else \
-	    if [ -n '$(CI)' ]; then \
-	        echo 'error: This should not happen in CI: should not try to compile Envoy'; \
-	        exit 1; \
+envoy-bin/envoy-static: $(ENVOY_BASH.deps) FORCE | envoy-bin
+	@PS4=; set -ex; { \
+	    if docker run --rm --entrypoint=true $(BASE_ENVOY_IMAGE); then \
+	        rsync -Pav --blocking-io -e 'docker run --rm -i' $$(docker image inspect $(BASE_ENVOY_IMAGE) --format='{{.Id}}' | sed 's/^sha256://'):/usr/local/bin/envoy $@; \
+	    else \
+	        if [ -n '$(CI)' ]; then \
+	            echo 'error: This should not happen in CI: should not try to compile Envoy'; \
+	            exit 1; \
+	        fi; \
+	        $(call ENVOY_BASH.cmd, \
+	            docker exec --workdir=/root/envoy $$(cat envoy-build-container.txt) bazel build --verbose_failures -c $(ENVOY_COMPILATION_MODE) //source/exe:envoy-static; \
+	            rsync -Pav --blocking-io -e 'docker exec -i' $$(cat envoy-build-container.txt):/root/envoy/bazel-bin/source/exe/envoy-static $@; \
+	        ); \
 	    fi; \
-	    $(ENVOY_SYNC_HOST_TO_DOCKER); \
-	    ( \
-	        trap '$(ENVOY_SYNC_DOCKER_TO_HOST)' EXIT; \
-	        docker run --rm --volume=envoy-build:/root:rw --workdir=/root/envoy $$(cat envoy-build-image.txt) bazel build --verbose_failures -c $(ENVOY_COMPILATION_MODE) //source/exe:envoy-static; \
-	        docker run --rm --volume=envoy-build:/root:rw $$(cat envoy-build-image.txt) chmod 755 /root /root/.cache; \
-	    ); \
-	    docker run --rm --volume=envoy-build:/root:ro --volume=$(CURDIR)/envoy-bin:/xfer:rw --user=$$(id -u):$$(id -g) $$(cat envoy-build-image.txt) rsync -Pav --delete /root/envoy/bazel-bin/source/exe/envoy-static /xfer/envoy-static; \
-	fi
-%-stripped: % envoy-build-image.txt
-	docker run --rm --volume=$(abspath $(@D)):/xfer:rw $$(cat envoy-build-image.txt) strip /xfer/$(<F) -o /xfer/$(@F)
-
-check-envoy: envoy-bin/envoy-static envoy-build-image.txt
-	$(ENVOY_SYNC_HOST_TO_DOCKER)
-	@PS4=; set -ex; trap '$(ENVOY_SYNC_DOCKER_TO_HOST)' EXIT; { \
-	    docker run --rm --privileged --volume=envoy-build:/root:rw --workdir=/root/envoy $$(cat envoy-build-image.txt) bazel test --verbose_failures -c dbg --test_env=ENVOY_IP_TEST_VERSIONS=v4only //test/...; \
 	}
+%-stripped: % envoy-build-container.txt
+	@PS4=; set -ex; { \
+	    rsync -Pav --blocking-io -e 'docker exec -i' $< $$(cat envoy-build-container.txt):/tmp/$(<F); \
+	    docker exec $$(cat envoy-build-container.txt) strip /tmp/$(<F) -o /tmp/$(@F); \
+	    rsync -Pav --blocking-io -e 'docker exec -i' $$(cat envoy-build-container.txt):/tmp/$(@F) $@; \
+	}
+
+check-envoy: $(ENVOY_BASH.deps)
+	$(call ENVOY_BASH.cmd, \
+	    docker exec --workdir=/root/envoy $$(cat envoy-build-container.txt) bazel test --verbose_failures -c dbg --test_env=ENVOY_IP_TEST_VERSIONS=v4only //test/...; \
+	)
 .PHONY: check-envoy
 
-envoy-shell: envoy-build-image.txt
-	$(ENVOY_SYNC_HOST_TO_DOCKER)
-	docker run --rm --privileged --volume=envoy-build:/root:rw --workdir=/root/envoy -it $$(cat envoy-build-image.txt) || true
-	$(ENVOY_SYNC_DOCKER_TO_HOST)
+envoy-shell: $(ENVOY_BASH.deps)
+	$(call ENVOY_BASH.cmd, \
+	    docker exec -it $$(cat envoy-build-container.txt) || true; \
+	)
 .PHONY: envoy-shell
 
 base-envoy.docker: Dockerfile.base-envoy envoy-bin/envoy-static $(var.)BASE_ENVOY_IMAGE $(WRITE_IFCHANGED)
 	@if [ -n "$(AMBASSADOR_DEV)" ]; then echo "Do not run this from a dev shell" >&2; exit 1; fi
-	docker build $(DOCKER_OPTS) -t $(BASE_ENVOY_IMAGE) -f $< .
+	docker build $(DOCKER_OPTS) -t $(BASE_ENVOY_IMAGE) -f $< envoy-bin
 	@docker image inspect $(BASE_ENVOY_IMAGE) --format='{{.Id}}' | $(WRITE_IFCHANGED) $@
 
 base-py.docker: Dockerfile.base-py $(var.)BASE_PY_IMAGE $(WRITE_IFCHANGED)
@@ -506,7 +533,7 @@ $(KAT_CLIENT): $(wildcard go/kat-client/*) go/apis/kat/echo.pb.go
 
 setup-develop: venv $(KAT_CLIENT) $(TELEPROXY) $(KUBERNAUT) $(WATT) $(KUBESTATUS) version
 
-cluster.yaml: $(CLAIM_FILE)
+cluster.yaml: $(CLAIM_FILE) $(KUBERNAUT)
 ifeq ($(USE_KUBERNAUT), true)
 	$(KUBERNAUT_DISCARD)
 	$(KUBERNAUT_CLAIM)
@@ -519,6 +546,9 @@ ifneq ($(USE_KUBERNAUT),false)
 endif
 endif
 endif
+# Make is too dumb to understand equivalence between absolute and
+# relative paths.
+$(CURDIR)/cluster.yaml: cluster.yaml
 
 setup-test: cluster-and-teleproxy
 

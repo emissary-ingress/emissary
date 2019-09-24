@@ -33,69 +33,25 @@ limitations under the License
 
   <body>
     <div class="container">
-
-      <h1><a href="/ambassador/v0/diag/">Ambassador Diagnostics
-        {% if method or resource %} for <code>
-          {% if method %}{{ method }}{% endif %}
-          {% if resource %}{{ resource }}{% endif %}
-          </code>
-        {% endif %}
-      </a></h1>
-
       <div class="row">
-        <div class="col-7">
-          Ambassador version <samp>{{ system.version }}</samp>
-          <br/>
-          Hostname <samp>{{ system.hostname }}</samp>
-          <br/>
-          Cluster ID <samp>{{ system.cluster_id }}</samp>
-          <br/>
-          Configuration from {{ system.boot_time }} &mdash; {{ system.hr_uptime }} ago
-          <br/>
-          {% if envoy_status.ready %}
-          Envoy ready, last status report {{ envoy_status.since_update }}
-          {% elif envoy_status.alive %}
-          Envoy alive but not yet ready, running {{ envoy_status.uptime }}
-          {% else %}
-          Envoy not running!!
-          {% endif %}
-        </div>
-        <div class="col-5">
-          {% if loginfo %}
-            {% if loginfo.all %}
-              Current log level: {{ loginfo.all }}
-            {% else %}
-              Current log levels:
-              <ul>
-                {% for level, elements in loginfo.items() | sort %}
-                <li>{{ level }}: {{ ", ".join(elements) }}</li>
-                {% endfor %}
-              </ul>
+        <div class="{%- if system.debug_mode -%}col-7{%- else -%}col-12{%- endif -%}">
+          <h1><a href="/ambassador/v0/diag/">Ambassador Diagnostics
+            {% if method or resource %} for <code>
+              {% if method %}{{ method }}{% endif %}
+              {% if resource %}{{ resource }}{% endif %}
+              </code>
             {% endif %}
-          {% else %}
-            Current log levels: unknown
-          {% endif %}
-
-          <div class="row">
-            <table border="0" width="100%">
-              <tbody>
-                <tr>
-                  <td width="50%" align="center">
-                    <a href="/ambassador/v0/diag/?loglevel=debug">
-                      <button type="button" class="btn btn-warning">Set Debug On</button>
-                    </a>
-                  </td>
-                  <td width="50%" align="center">
-                    <a href="/ambassador/v0/diag/?loglevel=info">
-                      <button type="button" class="btn btn-warning">Set Debug Off</button>
-                    </a>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+          </a></h1>
         </div>
+        {% if system.debug_mode %}
+        <div class="col-5">
+          <h1 style="color: red; text-align: right">DEBUG MODE</h1>
+        </div>
+        {% endif %}
       </div>
+
+      {%- include "system-info.html" -%}
+      {%- include "guidance.html" -%}
 
       {% if notices %}
         <div class="row">

@@ -25,6 +25,7 @@ from ..constants import Constants
 
 from ..utils import RichStatus, SavedSecret, SecretHandler, SecretInfo
 from ..config import Config
+from ..config import ACResource
 
 from .irresource import IRResource
 from .irambassador import IRAmbassador
@@ -166,7 +167,7 @@ class IR:
         self.outliers = aconf.get_config("OutlierDetection") or {}
         self.services = aconf.get_config("service") or {}
 
-        self.cluster_ingresses_to_mappings(aconf)
+        self.cluster_ingresses_to_mappings()
 
         # Next up, initialize our IRServiceResolvers.
         IRServiceResolverFactory.load_all(self, aconf)
@@ -259,6 +260,7 @@ class IR:
     # Save secrets from our aconf.
     def save_secret_info(self, aconf):
         aconf_secrets = aconf.get_config("secrets") or {}
+        self.logger.debug(f"IR: aconf has secrets: {aconf_secrets.keys()}")
 
         for secret_key, aconf_secret in aconf_secrets.items():
             # Ignore anything that doesn't at least have a public half.
@@ -336,6 +338,7 @@ class IR:
             return ss
 
         # OK, do we have a secret_info for it??
+        self.logger.debug(f"trying to get key {ss_key} from secret_info {self.secret_info}")
         secret_info = self.secret_info.get(ss_key, None)
 
         if secret_info:
@@ -444,9 +447,15 @@ class IR:
         else:
             return None
 
-    def cluster_ingresses_to_mappings(self, aconf):
-        cluster_ingresses = aconf.get_config("ClusterIngress")
-        knative_ingresses = aconf.get_config("KnativeIngress")
+    def add_mapping_to_config(self, mapping: ACResource, mapping_identifier: str):
+        if 'mappings' not in self.aconf.config:
+            self.aconf.config['mappings'] = {}
+
+        self.aconf.config['mappings'][mapping_identifier] = mapping
+
+    def cluster_ingresses_to_mappings(self):
+        cluster_ingresses = self.aconf.get_config("ClusterIngress")
+        knative_ingresses = self.aconf.get_config("KnativeIngress")
 
         final_knative_ingresses = {}
         if cluster_ingresses is not None:
@@ -519,9 +528,7 @@ class IR:
                             ci_mapping['service'] = f"{ci_service}.{ci_namespace}:{ci_port}"
 
                             self.logger.debug(f"Generated mapping from ClusterIngress: {ci_mapping}")
-                            if 'mappings' not in aconf.config:
-                                aconf.config['mappings'] = {}
-                            aconf.config['mappings'][mapping_identifier] = ci_mapping
+                            self.add_mapping_to_config(mapping=ci_mapping, mapping_identifier=mapping_identifier)
 
                             # Remember that we need to update status on this resource.
                             utcnow = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")

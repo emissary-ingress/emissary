@@ -97,21 +97,27 @@ service: cbstatsd-sink
 
     def requirements(self):
         yield from super().requirements()
+        yield ("url", Query(self.url(self.name) + '-pr/'))
         yield ("url", Query(self.url("RESET/")))
 
     def queries(self):
+        # Reset the statsd setup in phase 1...
+        yield Query(self.url("RESET/"), phase=1)
+
+        # Run 500 queries in phase 2, after the reset...
         for i in range(500):
             yield Query(self.url(self.name) + '-pr/', headers={ "Requested-Backend-Delay": "1000" },
-                        ignore_result=True, phase=1)
+                        ignore_result=True, phase=2)
 
-        yield Query(self.url("DUMP/"), phase=2)
+        # Dump the results in phase 3, after the queries.
+        yield Query(self.url("DUMP/"), phase=3)
 
     def check(self):
         result_count = len(self.results)
-        assert result_count == 501, f'wanted 501 results, got {result_count}'
+        assert result_count == 502, f'wanted 502 results, got {result_count}'
 
-        pending_results = self.results[0:500]
-        stats = self.results[500].json or {}
+        pending_results = self.results[1:500]
+        stats = self.results[501].json or {}
 
         # pending requests tests
         pending_overloaded = 0
@@ -171,6 +177,11 @@ config:
     max_pending_requests: 1
     max_connections: 1
 """)
+
+    def requirements(self):
+        yield from super().requirements()
+        yield ("url", Query(self.url(self.name) + '-pr/'))
+        yield ("url", Query(self.url(self.name) + '-normal/'))
 
     def queries(self):
         for i in range(500):

@@ -369,6 +369,8 @@ class SecretHandler:
         #
         # All this one does is return None, meaning that it couldn't find the requested
         # secret (because, well, it doesn't really look).
+        self.logger.debug(
+            f"SecretHandler: Trying to load secret {secret_name} in namespace {namespace} from TLSContext {context}")
         return None
 
     def cache_secret(self, context: 'IRTLSContext', secret_info: SecretInfo) -> SavedSecret:
@@ -418,6 +420,8 @@ class SecretHandler:
                              secret_name: str, namespace: str, source: str,
                              serialization: Optional[str]) -> Optional[SecretInfo]:
         objects: Optional[List[Any]] = None
+
+        self.logger.debug(f"getting secret info for secret {secret_name} from k8s")
 
         # If serialization is None or empty, we'll just return None.
 
@@ -492,12 +496,13 @@ class NullSecretHandler(SecretHandler):
     def load_secret(self, context: 'IRTLSContext', secret_name: str, namespace: str) -> Optional[SecretInfo]:
         # In the Real World, the secret loader should, y'know, load secrets..
         # Here we're just gonna fake it.
-
+        self.logger.debug(f"NullSecretHandler: Trying to load secret {secret_name} in namespace {namespace} from TLSContext {context}")
         return SecretInfo(secret_name, namespace, "fake-tls-crt", "fake-tls-key")
 
 
 class FSSecretHandler(SecretHandler):
     def load_secret(self, context: 'IRTLSContext', secret_name: str, namespace: str) -> Optional[SecretInfo]:
+        self.logger.debug(f"FSSecretHandler: Trying to load secret {secret_name} in namespace {namespace} from TLSContext {context}")
         source = os.path.join(self.source_root, namespace, "secrets", "%s.yaml" % secret_name)
 
         serialization = None
@@ -542,6 +547,7 @@ class FSSecretHandler(SecretHandler):
 
 class KubewatchSecretHandler(SecretHandler):
     def load_secret(self, context: 'IRTLSContext', secret_name: str, namespace: str) -> Optional[SecretInfo]:
+        self.logger.debug(f"KubewatchSecretHandler: Trying to load secret {secret_name} in namespace {namespace} from TLSContext {context}")
         source = "%s/secrets/%s/%s" % (self.source_root, namespace, secret_name)
         serialization = load_url_contents(self.logger, source)
 

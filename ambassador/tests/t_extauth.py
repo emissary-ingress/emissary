@@ -423,10 +423,6 @@ allowed_authorization_headers:
 status_on_error:
   code: 503
 
-retry_policy:
-  retry_on: "5xx"
-  num_retries: 2
-
 ---
 apiVersion: ambassador/v1
 kind: AuthService
@@ -450,10 +446,6 @@ allowed_authorization_headers:
 
 status_on_error:
   code: 503
-
-retry_policy:
-  retry_on: "5xx"
-  num_retries: 2
 
 """)
         yield self, self.format("""

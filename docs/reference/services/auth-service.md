@@ -28,9 +28,6 @@ include_body:
 status_on_error: 
   code: 503
 failure_mode_allow: false
-retry_policy:
-  retry_on: "5xx"
-  num_retries: 2
 add_linkerd_headers: true
 cluster_idle_timeout_ms: 30000
 ```

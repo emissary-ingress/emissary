@@ -109,6 +109,24 @@ def check_crd_type(crd):
     return status
 
 
+def check_ingresses():
+    status = False
+
+    k8s_v1b1 = client.ExtensionsV1beta1Api(client.ApiClient(client.Configuration()))
+
+    if k8s_v1b1:
+        try:
+            if ambassador_single_namespace:
+                k8s_v1b1.list_namespaced_ingress(ambassador_namespace)
+            else:
+                k8s_v1b1.list_ingress_for_all_namespaces()
+            status = True
+        except ApiException as e:
+            logger.debug(f'Ingress check got {e.status}')
+
+    return status
+
+
 def touch_file(touchfile):
     touchpath = Path(ambassador_basedir, touchfile)
     touchpath.touch()
@@ -207,6 +225,13 @@ def main(debug):
                                  ' To enable CRD support, configure the Ambassador CRD type definitions and RBAC,' +
                                  ' then restart the Ambassador pod.')
                     # logger.debug(f'touched {touchpath}')
+
+        if not check_ingresses():
+            touch_file('.ambassador_ignore_ingress')
+
+            logger.debug(f'Ambassador does not have permission to read Ingress resources.' +
+                         ' To enable Ingress support, configure RBAC to allow Ambassador to read Ingress resources,' +
+                         ' then restart the Ambassador pod.')
 
         # Have we been asked to do Knative support?
         if os.environ.get('AMBASSADOR_KNATIVE_SUPPORT', '').lower() == 'true':

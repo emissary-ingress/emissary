@@ -5,13 +5,38 @@ import urllib
 
 import requests
 
-base_url = os.environ.get('AMBASSADOR_EVENT_URL', 'http://localhost:8877/_internal/v0/update')
-
-if len(sys.argv) < 2:
-    sys.stderr.write("Usage: %s update-url\n" % os.path.basename(sys.argv[0]))
+def usage(program):
+    sys.stderr.write(f'Usage: {program} [--watt|--k8s|--fs] update-url\n')
     sys.exit(1)
 
-r = requests.post(base_url, params={ 'url': sys.argv[1] })
+
+base_host = os.environ.get('AMBASSADOR_EVENT_HOST', 'http://localhost:8877')
+base_path = os.environ.get('AMBASSADOR_EVENT_PATH', '_internal/v0')
+
+url_type = 'update'
+arg_key = 'url'
+
+program = os.path.basename(sys.argv[0])
+args = sys.argv[1:]
+
+while args and args[0].startswith('--'):
+    arg = args.pop(0)
+
+    if arg == '--k8s':
+        # Already set up.
+        pass
+    elif arg == '--watt':
+        url_type = 'watt'
+    elif arg == '--fs':
+        url_type = 'fs'
+        arg_key = 'path'
+    else:
+        usage(program)
+
+if len(args) != 1:
+    usage(program)
+
+r = requests.post(f'{base_host}/{base_path}/{url_type}', params={ arg_key: args[0] })
 
 if r.status_code != 200:
     sys.stderr.write("update to %s failed:\nstatus %d: %s" % (r.url, r.status_code, r.text))
