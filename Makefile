@@ -3,7 +3,6 @@ NAME            = ambassador-pro
 SHELL           = bash -o pipefail
 # For Makefile
 image.all       = $(sort $(patsubst %/Dockerfile,%,$(wildcard docker/*/Dockerfile)) docker/model-cluster-amb-sidecar-plugins ambassador/ambassador)
-image.nobinsrule= ambassador/ambassador
 image.norelease = $(filter docker/model-cluster-% docker/loadtest-%,$(image.all))
 image.nocluster = docker/apro-plugin-runner
 # For docker.mk
@@ -252,32 +251,38 @@ endif
 
 build: $(if $(HAVE_DOCKER),$(addsuffix .docker,$(image.all)))
 
-%.docker.stamp: %/Dockerfile FORCE
+%.docker.stamp: %/Dockerfile
 # Try with --pull, fall back to without --pull
 	docker build --iidfile=$@ --pull $* || docker build --iidfile=$@ $*
 %.docker: %.docker.stamp $(COPY_IFCHANGED)
 	$(COPY_IFCHANGED) $< $@
 
-# This assumes that if there's a Go binary with the same name as the
-# Docker image, then the image wants that binary.  That's a safe
-# assumption so far, and forces us to name things in a consistent
-# manner.
-define docker.bins_rule
-$(if $(filter $(notdir $(image)),$(notdir $(go.bins))),$(image).docker.stamp: $(image)/$(notdir $(image)) $(image)/$(notdir $(image)).opensource.tar.gz)
-$(image)/%: bin_linux_amd64/%
+define docker.rule
+  # Trigger a rebuild whenever one of the files in the same directory as
+  # the Dockerfile changes.
+  $(image).docker.stamp: $(shell find $(image)/)
+
+  # Assume that if there's a Go binary with the same name as the Docker
+  # image, then the image wants that binary.  That's a safe assumption
+  # so far, and forces us to name things in a consistent manner.
+  ifneq ($(filter $(notdir $(image)),$(notdir $(go.bins))),)
+    $(image).docker.stamp: $(image)/$(notdir $(image))
+    $(image).docker.stamp: $(image)/$(notdir $(image)).opensource.tar.gz
+  endif
+  $(image)/%: bin_linux_amd64/%
 	cp $$< $$@
-$(image)/clean:
+  $(image)/clean:
 	rm -f $(image)/$(notdir $(image))
-.PHONY: $(image)/clean
-clean: $(image)/clean
+  .PHONY: $(image)/clean
+  clean: $(image)/clean
 endef
-$(foreach image,$(filter-out $(image.nobinsrule),$(image.all)),$(eval $(docker.bins_rule)))
+$(foreach image,$(filter docker/%,$(image.all)),$(eval $(docker.rule)))
 
 # Cache the model-cluster-uaa build
 push-docker-buildcache: docker/model-cluster-uaa.docker.push.buildcache
 uaa_cache_tag = $(BUILDCACHE_DOCKER_REPO):$(notdir $*)-$(firstword $(shell sha1sum $*/Dockerfile))
 docker/model-cluster-uaa.docker.tag.buildcache: docker.tag.buildcache = $(uaa_cache_tag)
-docker/model-cluster-uaa.docker.stamp: %.docker.stamp: %/Dockerfile FORCE
+docker/model-cluster-uaa.docker.stamp: %.docker.stamp: %/Dockerfile
 	@PS4=; set -ex; { \
 	    if docker run --rm --entrypoint=true $(uaa_cache_tag); then \
 		docker image inspect $(uaa_cache_tag) --format='{{.Id}}' > $@; \
