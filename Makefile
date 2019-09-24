@@ -73,20 +73,24 @@ push-docs: ## Publish ./docs to https://github.com/datawire/ambassador-docs
 AMBASSADOR_COMMIT = a552b71badc8f297f363be59d418d2543f67ea3d
 
 # Git clone
-ambassador: $(var.)AMBASSADOR_COMMIT
+ambassador.stamp: %.stamp: $(var.)AMBASSADOR_COMMIT $(if $(call str.eq,$(AMBASSADOR_COMMIT),-),FORCE)
 # Ensure that GIT_DIR and GIT_WORK_TREE are unset so that `git bisect`
 # and friends work properly.
 	@PS4=; set -x; { \
 	    unset GIT_DIR GIT_WORK_TREE; \
-	    git init $@; \
-	    cd $@; \
+	    git init $*; \
+	    cd $*; \
 	    if ! git remote get-url origin &>/dev/null; then \
 	        git remote add origin https://github.com/datawire/ambassador; \
 	    fi; \
 	    git fetch || true; \
-	    git checkout $(AMBASSADOR_COMMIT); \
-	    touch .; \
+	    if [ $(AMBASSADOR_COMMIT) != '-' ]; then \
+	        git checkout $(AMBASSADOR_COMMIT); \
+	    elif ! git rev-parse HEAD >/dev/null 2>&1; then \
+	        git checkout origin/master; \
+	    fi; \
 	}
+	touch $@
 
 # Defer to `ambassador/Makefile` for several targets:
 #
@@ -98,7 +102,7 @@ AMBASSADOR_TARGETS += envoy-bin/envoy-static-stripped
 AMBASSADOR_TARGETS += ambassador.docker # We'll inject dependencies to this one
 AMBASSADOR_TARGETS += docker-base-images # We'll mark this one as .PHONY
 AMBASSADOR_TARGETS += docker-push-base-images # We'll mark this one as .PHONY, and inject a dependency
-$(addprefix ambassador/,$(AMBASSADOR_TARGETS)): ambassador/%: ambassador
+$(addprefix ambassador/,$(AMBASSADOR_TARGETS)): ambassador/%: ambassador.stamp
 	DOCKER_REGISTRY=- BASE_DOCKER_REPO=$(BUILDCACHE_DOCKER_REPO) ENVOY_COMPILATION_MODE=opt ENVOY_FILE=envoy-bin/certified-envoy $(MAKE) -C ambassador $*
 
 # OK, working backwards from our final target of
@@ -110,7 +114,7 @@ ambassador/ambassador.docker: ambassador/envoy-bin/certified-envoy
 # 2. `ambassador/Makefile` doesn't know how to build
 #    `envoy-bin/certified-envoy`, so write a rule for it here (still
 #    working backwards):
-ambassador/envoy-bin/certified-envoy: bin_linux_amd64/certified-envoy | ambassador
+ambassador/envoy-bin/certified-envoy: bin_linux_amd64/certified-envoy | ambassador.stamp
 	test -d $(@D) || mkdir $(@D)
 	cp $< $@
 bin_linux_amd64/.go-build/certified-envoy: cmd/certified-envoy/envoy.go
@@ -126,7 +130,7 @@ ambassador/docker-push-base-images: ambassador/docker-base-images
 ambassador/ambassador.docker.tag.release: docker.tag.release = quay.io/datawire/ambassador_pro:amb-core-$(VERSION)
 
 push-docker-buildcache: ambassador/docker-push-base-images
-go-get: ambassador cmd/certified-envoy/envoy.go
+go-get: ambassador.stamp cmd/certified-envoy/envoy.go
 
 #
 # Lyft ratelimit
@@ -493,6 +497,7 @@ loadtest-apply loadtest-deploy loadtest-shell loadtest-proxy: loadtest-%: infra/
 # Clean
 
 clean: $(addsuffix .clean,$(wildcard docker/*.docker)) loadtest-clean
+	rm -f ambassador.stamp
 	rm -f apro-abi.txt
 	rm -f cmd/certified-envoy/envoy.go
 	rm -f docker/*.docker.stamp

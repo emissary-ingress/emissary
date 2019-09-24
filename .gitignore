@@ -9,6 +9,7 @@ venv
 /vendor.hash
 
 /ambassador/
+/ambassador.stamp
 
 *.docker
 *.docker.stamp
