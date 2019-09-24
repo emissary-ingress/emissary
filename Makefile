@@ -273,6 +273,19 @@ clean: $(image)/clean
 endef
 $(foreach image,$(filter-out $(image.nobinsrule),$(image.all)),$(eval $(docker.bins_rule)))
 
+# Cache the model-cluster-uaa build
+push-docker-buildcache: docker/model-cluster-uaa.docker.push.buildcache
+uaa_cache_tag = $(BUILDCACHE_DOCKER_REPO):$(notdir $*)-$(firstword $(shell sha1sum $*/Dockerfile))
+docker/model-cluster-uaa.docker.tag.buildcache: docker.tag.buildcache = $(uaa_cache_tag)
+docker/model-cluster-uaa.docker.stamp: %.docker.stamp: %/Dockerfile FORCE
+	@PS4=; set -ex; { \
+	    if docker run --rm --entrypoint=true $(uaa_cache_tag); then \
+		docker image inspect $(uaa_cache_tag) --format='{{.Id}}' > $@; \
+	    else \
+	        docker build --iidfile=$@ $*; \
+	    fi; \
+	}
+
 docker/app-sidecar.docker.stamp: docker/app-sidecar/ambex
 docker/app-sidecar/ambex:
 	curl -o $@ --fail 'https://s3.amazonaws.com/datawire-static-files/ambex/0.1.0/ambex'
