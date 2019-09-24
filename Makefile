@@ -252,19 +252,18 @@ endif
 
 build: $(if $(HAVE_DOCKER),$(addsuffix .docker,$(image.all)))
 
-# file contents:
-#   line 1: image ID
-%.docker: %/Dockerfile $(MOVE_IFCHANGED) FORCE
+%.docker.stamp: %/Dockerfile FORCE
 # Try with --pull, fall back to without --pull
-	docker build --iidfile=$(@D)/.tmp.$(@F).tmp --pull $* || docker build --iidfile=$(@D)/.tmp.$(@F).tmp $*
-	$(MOVE_IFCHANGED) $(@D)/.tmp.$(@F).tmp $@
+	docker build --iidfile=$@ --pull $* || docker build --iidfile=$@ $*
+%.docker: %.docker.stamp $(COPY_IFCHANGED)
+	$(COPY_IFCHANGED) $< $@
 
 # This assumes that if there's a Go binary with the same name as the
 # Docker image, then the image wants that binary.  That's a safe
 # assumption so far, and forces us to name things in a consistent
 # manner.
 define docker.bins_rule
-$(if $(filter $(notdir $(image)),$(notdir $(go.bins))),$(image).docker: $(image)/$(notdir $(image)) $(image)/$(notdir $(image)).opensource.tar.gz)
+$(if $(filter $(notdir $(image)),$(notdir $(go.bins))),$(image).docker.stamp: $(image)/$(notdir $(image)) $(image)/$(notdir $(image)).opensource.tar.gz)
 $(image)/%: bin_linux_amd64/%
 	cp $$< $$@
 $(image)/clean:
@@ -274,22 +273,22 @@ clean: $(image)/clean
 endef
 $(foreach image,$(filter-out $(image.nobinsrule),$(image.all)),$(eval $(docker.bins_rule)))
 
-docker/app-sidecar.docker: docker/app-sidecar/ambex
+docker/app-sidecar.docker.stamp: docker/app-sidecar/ambex
 docker/app-sidecar/ambex:
 	curl -o $@ --fail 'https://s3.amazonaws.com/datawire-static-files/ambex/0.1.0/ambex'
 	chmod 755 $@
 
 docker/model-cluster-amb-sidecar-plugins/Dockerfile: docker/model-cluster-amb-sidecar-plugins/Dockerfile.gen docker/amb-sidecar.docker
 	$^ > $@
-docker/model-cluster-amb-sidecar-plugins.docker: docker/amb-sidecar.docker # ".SECONDARY:" (in common.mk) coming back to bite us
-docker/model-cluster-amb-sidecar-plugins.docker: $(foreach p,$(plugins),docker/model-cluster-amb-sidecar-plugins/$p.so)
+docker/model-cluster-amb-sidecar-plugins.docker.stamp: docker/amb-sidecar.docker # ".SECONDARY:" (in common.mk) coming back to bite us
+docker/model-cluster-amb-sidecar-plugins.docker.stamp: $(foreach p,$(plugins),docker/model-cluster-amb-sidecar-plugins/$p.so)
 
-docker/consul_connect_integration.docker: docker/consul_connect_integration/kubectl
+docker/consul_connect_integration.docker.stamp: docker/consul_connect_integration/kubectl
 
-docker/loadtest-generator.docker: docker/loadtest-generator/03-ambassador.yaml
-docker/loadtest-generator.docker: docker/loadtest-generator/kubeapply
-docker/loadtest-generator.docker: docker/loadtest-generator/kubectl
-docker/loadtest-generator.docker: docker/loadtest-generator/test.sh
+docker/loadtest-generator.docker.stamp: docker/loadtest-generator/03-ambassador.yaml
+docker/loadtest-generator.docker.stamp: docker/loadtest-generator/kubeapply
+docker/loadtest-generator.docker.stamp: docker/loadtest-generator/kubectl
+docker/loadtest-generator.docker.stamp: docker/loadtest-generator/test.sh
 docker/loadtest-generator/kubeapply:
 	curl -o $@ --fail https://s3.amazonaws.com/datawire-static-files/kubeapply/0.3.11/linux/amd64/kubeapply
 	chmod 755 $@
@@ -478,6 +477,7 @@ loadtest-apply loadtest-deploy loadtest-shell loadtest-proxy: loadtest-%: infra/
 clean: $(addsuffix .clean,$(wildcard docker/*.docker)) loadtest-clean
 	rm -f apro-abi.txt
 	rm -f cmd/certified-envoy/envoy.go
+	rm -f docker/*.docker.stamp
 	rm -f docker/*/*.opensource.tar.gz
 	rm -f docker/model-cluster-amb-sidecar-plugins/Dockerfile docker/model-cluster-amb-sidecar-plugins/*.so
 	rm -f k8s-*/??-ambassador-certs.yaml k8s-*/*.pem

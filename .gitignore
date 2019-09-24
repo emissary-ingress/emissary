@@ -11,6 +11,7 @@ venv
 /ambassador/
 
 *.docker
+*.docker.stamp
 *.docker.tag.*
 *.docker.push.*
 *.knaut
