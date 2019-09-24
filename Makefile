@@ -258,6 +258,13 @@ endif
 
 build: $(if $(HAVE_DOCKER),$(addsuffix .docker,$(image.all)))
 
+# file contents:
+#   line 1: image ID
+%.docker: %/Dockerfile $(MOVE_IFCHANGED) FORCE
+# Try with --pull, fall back to without --pull
+	docker build --iidfile=$(@D)/.tmp.$(@F).tmp --pull $* || docker build --iidfile=$(@D)/.tmp.$(@F).tmp $*
+	$(MOVE_IFCHANGED) $(@D)/.tmp.$(@F).tmp $@
+
 # This assumes that if there's a Go binary with the same name as the
 # Docker image, then the image wants that binary.  That's a safe
 # assumption so far, and forces us to name things in a consistent
