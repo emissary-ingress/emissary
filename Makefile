@@ -239,6 +239,11 @@ _cgo_GOBUILD += --workdir $$PWD
 _cgo_GOBUILD += docker.io/library/golang:$(patsubst go%,%,$(filter go1%,$(shell go version)))
 _cgo_GOBUILD += go build
 
+_gocache_volume_clobber:
+	if docker volume ls | grep -q apro-gocache; then docker volume rm apro-gocache; fi
+.PHONY: _gocache_volume_clobber
+clobber: _gocache_volume_clobber
+
 endif
 endif
 
@@ -268,11 +273,6 @@ $(image)/clean:
 clean: $(image)/clean
 endef
 $(foreach image,$(filter-out $(image.nobinsrule),$(image.all)),$(eval $(docker.bins_rule)))
-
-_gocache_volume_clobber:
-	if docker volume ls | grep -q apro-gocache; then docker volume rm apro-gocache; fi
-.PHONY: _gocache_volume_clobber
-clobber: _gocache_volume_clobber
 
 docker/app-sidecar.docker: docker/app-sidecar/ambex
 docker/app-sidecar/ambex:
