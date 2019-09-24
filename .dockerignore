@@ -6,3 +6,4 @@
 !watt
 !kubestatus
 !envoy-bin/
+envoy-bin/*-static

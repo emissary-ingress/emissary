@@ -19,4 +19,6 @@
 
 FROM frolvlad/alpine-glibc:alpine-3.9
 
-ADD envoy-bin/envoy-static /usr/local/bin/envoy
+RUN apk --no-cache add rsync
+
+ADD ./envoy-static /usr/local/bin/envoy
