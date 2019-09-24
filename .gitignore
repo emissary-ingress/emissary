@@ -51,6 +51,7 @@ unused-e2e
 /envoy-src/
 /envoy-bin/
 /envoy-build-image.txt
+/envoy-build-container.txt
 
 .forge
 forge.yaml
