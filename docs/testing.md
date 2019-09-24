@@ -122,7 +122,7 @@ you ignore that exit code:
 
 ## Adding dependencies of tests
 
-It is reasonassumed that *all* tests depend on `make build`.  To add a
+It is assumed that *all* tests depend on `make build`.  To add a
 dependency shared by all tests, to declare a dependency that all tests
 should depend on, declare it as a dependency of `check` itself.  For
 example, `common.mk` says:
