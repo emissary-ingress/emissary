@@ -76,8 +76,8 @@ setup() {
 		return 0
 	fi
 
-	mainexe="bin_$(go env GOHOSTOS)_$(go env GOHOSTARCH)/testlocal"
-	subexe="bin_$(go env GOHOSTOS)_$(go env GOHOSTARCH)/sub"
+	local mainexe="bin_$(go env GOHOSTOS)_$(go env GOHOSTARCH)/testlocal"
+	local subexe="bin_$(go env GOHOSTOS)_$(go env GOHOSTARCH)/sub"
 
 	make
 
@@ -107,4 +107,30 @@ setup() {
 
 	[[ -f "$mainexe" && -x "$mainexe" ]]
 	[[ ! "$mainexe" -nt mainexe.bak ]]
+}
+
+@test "go-mod.mk: build triggers go-get" {
+	cat >>Makefile <<-'__EOT__'
+		include build-aux/go-mod.mk
+		all: build
+		go-get: fn.go
+		fn.go: ; printf '%s\n' 'package main' '' 'func fn() {}' > $@
+	__EOT__
+
+	cat >main.go <<-'__EOT__'
+		package main
+
+		func main() { fn() }
+	__EOT__
+
+	if [[ "$build_aux_unsupported_go" == true ]] || ! type go &>/dev/null; then
+		make_expecting_go_error
+		return 0
+	fi
+
+	local mainexe="bin_$(go env GOHOSTOS)_$(go env GOHOSTARCH)/testlocal"
+
+	make "$mainexe"
+
+	[[ -f "$mainexe" && -x "$mainexe" ]]
 }
