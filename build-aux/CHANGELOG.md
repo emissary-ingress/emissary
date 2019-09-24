@@ -1,6 +1,8 @@
 <!-- -*- fill-column: 100 -*- -->
 # Datawire build-aux CHANGELOG
 
+ - 2019-09-12: `docker.mk`: Drop the built-in build rule; is now strictly bring-your-own-build-rule.
+
  - 2019-08-14: `go-mod.mk`: `go.bins`, `go.list`: Correctly prune nested Go modules in git
                submodules.
 
