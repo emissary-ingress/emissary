@@ -3,188 +3,85 @@ package types
 import (
 	"net/url"
 	"os"
+	"reflect"
 	"strconv"
 	"time"
 
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
+
+	"github.com/datawire/apro/cmd/amb-sidecar/types/internal/envconfig"
 )
 
+// Config stores all of the global amb-sidecar settings, which are configured from environment variables.  We should
+// keep these to a minimum, and configure as much as we can in CRDs.
+//
+// This uses a custom `envconfig` annotation processor, in a similar spirit to github.com/kelseyhightower/envconfig
+// (which has much less flexibility around falling back to default values and error handling).
+//
+//  - Add new field types by editing ./internal/envconfig/envconfig_types.go (should be straight-forward)
+//  - Add new parser= values by editing ./internal/envconfig/envconfig_types.go (should be straight-forward)
+//  - Add new key=value options by editing ./internal/envconfig/envconfig.go (involves "reflect" wizardry)
 type Config struct {
 	// Ambassador
-	AmbassadorID              string
-	AmbassadorNamespace       string
-	AmbassadorSingleNamespace bool
+	AmbassadorID              string `env:"AMBASSADOR_ID,parser=nonempty-string,default=default"`
+	AmbassadorNamespace       string `env:"AMBASSADOR_NAMESPACE,parser=nonempty-string,default=default"`
+	AmbassadorSingleNamespace bool   `env:"AMBASSADOR_SINGLE_NAMESPACE,parser=empty/nonempty"`
 
 	// General
-	HTTPPort        string
-	LogLevel        string // log level ("error" < "warn"/"warning" < "info" < "debug" < "trace")
-	RedisPoolSize   int
-	RedisSocketType string
-	RedisURL        string
+	HTTPPort        string `env:"APRO_HTTP_PORT,parser=nonempty-string,default=8500"`
+	LogLevel        string `env:"APP_LOG_LEVEL,default=info,parser=logrus.ParseLevel"` // log level ("error" < "warn"/"warning" < "info" < "debug" < "trace")
+	RedisPoolSize   int    `env:"REDIS_POOL_SIZE,default=10"`
+	RedisSocketType string `env:"REDIS_SOCKET_TYPE,parser=nonempty-string"`
+	RedisURL        string `env:"REDIS_URL,parser=nonempty-string"`
 
 	// Auth (filters)
-	KeyPairSecretName      string
-	KeyPairSecretNamespace string
+	KeyPairSecretName      string `env:"APRO_KEYPAIR_SECRET_NAME,parser=nonempty-string,default=ambassador-pro-keypair"`
+	KeyPairSecretNamespace string `env:"APRO_KEYPAIR_SECRET_NAMESPACE,parser=nonempty-string,defaultFrom=AmbassadorNamespace"`
 
 	// Rate Limit
-	RLSRuntimeDir              string // e.g.: "/tmp/amb-sidecar.XYZ/rls-snapshot"; same as the RUNTIME_ROOT for Lyft ratelimit.  Must point to a _symlink_ to a directory, not a real directory.  The symlink need not already exist at launch.  Unlike Lyft ratelimit, the parent doesn't need to exist at launch either.
-	RLSRuntimeSubdir           string // directory inside of RLSRuntimeDir; same as the RUNTIME_SUBDIRECTORY for Lyft ratelimit
-	RedisPerSecond             bool
-	RedisPerSecondPoolSize     int
-	RedisPerSecondSocketType   string
-	RedisPerSecondURL          string
-	ExpirationJitterMaxSeconds int64
+	RLSRuntimeDir              string `env:"RLS_RUNTIME_DIR,parser=nonempty-string,default=/tmp/amb/config"` // e.g.: "/tmp/amb-sidecar.XYZ/rls-snapshot"; same as the RUNTIME_ROOT for Lyft ratelimit.  Must point to a _symlink_ to a directory, not a real directory.  The symlink need not already exist at launch.  Unlike Lyft ratelimit, the parent doesn't need to exist at launch either.
+	RLSRuntimeSubdir           string `env:",const=true,parser=nonempty-string,default=config"`              // directory inside of RLSRuntimeDir; same as the RUNTIME_SUBDIRECTORY for Lyft ratelimit
+	RedisPerSecond             bool   `env:"REDIS_PERSECOND,parser=strconv.ParseBool,default=false"`
+	RedisPerSecondPoolSize     int    `env:"REDIS_PERSECOND_POOL_SIZE,default=10"`
+	RedisPerSecondSocketType   string `env:"REDIS_PERSECOND_SOCKET_TYPE,parser=possibly-empty-string"` // validated manually
+	RedisPerSecondURL          string `env:"REDIS_PERSECOND_URL,parser=possibly-empty-string"`         // validated manually
+	ExpirationJitterMaxSeconds int64  `env:"EXPIRATION_JITTER_MAX_SECONDS,default=300"`
 
 	// Developer Portal
-	AmbassadorAdminURL    *url.URL
-	AmbassadorInternalURL *url.URL
-	AmbassadorExternalURL *url.URL
-	DevPortalPollInterval time.Duration
-	DevPortalContentURL   *url.URL
+	AmbassadorAdminURL    *url.URL      `env:"AMBASSADOR_ADMIN_URL,default=http://127.0.0.1:8877/"`
+	AmbassadorInternalURL *url.URL      `env:"AMBASSADOR_INTERNAL_URL,default=https://127.0.0.1:8443/"`
+	AmbassadorExternalURL *url.URL      `env:"AMBASSADOR_URL,default=https://api.example.com/"`
+	DevPortalPollInterval time.Duration `env:"POLL_EVERY_SECS,parser=integer-seconds,default=60"`
+	DevPortalContentURL   *url.URL      `env:"APRO_DEVPORTAL_CONTENT_URL,default=https://github.com/datawire/devportal-content.git"`
 
-	// gostats - This mimics vendor/github.com/lyft/gostats/settings.go
-	UseStatsd      bool
-	StatsdHost     string
-	StatsdPort     int
-	FlushIntervalS int
+	// gostats - This mimics vendor/github.com/lyft/gostats/settings.go,
+	// but the defaults aren't nescessarily the same.
+	UseStatsd     bool          `env:"USE_STATSD,parser=strconv.ParseBool,default=false"`
+	StatsdHost    string        `env:"STATSD_HOST,parser=nonempty-string,default=localhost"`
+	StatsdPort    int           `env:"STATSD_PORT,default=8125"`
+	FlushInterval time.Duration `env:"GOSTATS_FLUSH_INTERVAL_SECONDS,parser=integer-seconds,default=5"`
 }
 
-func getenvDefault(varname, def string) string {
-	ret := os.Getenv(varname)
-	if ret == "" {
-		ret = def
+var configParser = func() envconfig.StructParser {
+	ret, err := envconfig.GenerateParser(reflect.TypeOf(Config{}))
+	if err != nil {
+		// panic, because it means that the definition of
+		// 'Config' is invalid.
+		panic(err)
 	}
 	return ret
-}
-
-func parseAbsoluteURL(str string) (*url.URL, error) {
-	u, err := url.Parse(str)
-	if err != nil {
-		return nil, err
-	}
-	if !u.IsAbs() || u.Host == "" {
-		return nil, errors.New("URL is not absolute")
-	}
-	return u, nil
-}
+}()
 
 func ConfigFromEnv() (cfg Config, warn []error, fatal []error) {
-	// Set the things that don't require too much parsing
-	cfg = Config{
-		// Ambassador
-		AmbassadorID:              getenvDefault("AMBASSADOR_ID", "default"),
-		AmbassadorNamespace:       getenvDefault("AMBASSADOR_NAMESPACE", "default"),
-		AmbassadorSingleNamespace: os.Getenv("AMBASSADOR_SINGLE_NAMESPACE") != "",
+	warn, fatal = configParser.ParseFromEnv(&cfg)
 
-		// General
-		HTTPPort:        getenvDefault("APRO_HTTP_PORT", "8500"),
-		LogLevel:        getenvDefault("APP_LOG_LEVEL", "info"), // validated below
-		RedisPoolSize:   0,                                      // set below
-		RedisSocketType: os.Getenv("REDIS_SOCKET_TYPE"),         // validated below
-		RedisURL:        os.Getenv("REDIS_URL"),                 // validated below
-
-		// Auth (filters)
-		KeyPairSecretName:      getenvDefault("APRO_KEYPAIR_SECRET_NAME", "ambassador-pro-keypair"),
-		KeyPairSecretNamespace: getenvDefault("APRO_KEYPAIR_SECRET_NAMESPACE", getenvDefault("AMBASSADOR_NAMESPACE", "default")),
-
-		// Rate Limit
-		RLSRuntimeDir:              getenvDefault("RLS_RUNTIME_DIR", "/tmp/amb/config"),
-		RLSRuntimeSubdir:           "config",
-		RedisPerSecond:             false,                                    // set below
-		RedisPerSecondPoolSize:     0,                                        // set below
-		RedisPerSecondSocketType:   os.Getenv("REDIS_PERSECOND_SOCKET_TYPE"), // validated below
-		RedisPerSecondURL:          os.Getenv("REDIS_PERSECOND_URL"),         // validated below
-		ExpirationJitterMaxSeconds: 0,                                        // set below
-
-		// Developer Portal
-		AmbassadorAdminURL:    nil, // set below
-		AmbassadorInternalURL: nil, // set below
-		AmbassadorExternalURL: nil, // set below
-		DevPortalPollInterval: 0,   // set below
-		DevPortalContentURL:   nil, // set below
-
-		// gostats - This mimics vendor/github.com/lyft/gostats/settings.go,
-		// but the defaults aren't nescessarily the same.
-		UseStatsd:      false, // set below
-		StatsdHost:     getenvDefault("STATSD_HOST", "localhost"),
-		StatsdPort:     0, // set below
-		FlushIntervalS: 0, // set below
-	}
-
-	// Set the things marked "set below" (things that do require some parsing)
-	var err error
-	if cfg.RedisPoolSize, err = strconv.Atoi(getenvDefault("REDIS_POOL_SIZE", "10")); err != nil {
-		warn = append(warn, errors.Wrap(err, "invalid REDIS_POOL_SIZE (falling back to default 10)"))
-		cfg.RedisPoolSize = 10
-	}
-	if cfg.RedisPerSecond, err = strconv.ParseBool(getenvDefault("REDIS_PERSECOND", "false")); err != nil {
-		warn = append(warn, errors.Wrap(err, "invalid REDIS_PERSECOND (falling back to default false)"))
-		cfg.RedisPerSecond = false
-	}
-	if cfg.RedisPerSecond { // don't bother with REDIS_PER_SECOND_POOL_SIZE if !cfg.RedisPerSecond
-		if cfg.RedisPerSecondPoolSize, err = strconv.Atoi(getenvDefault("REDIS_PERSECOND_POOL_SIZE", "10")); err != nil {
-			warn = append(warn, errors.Wrap(err, "invalid REDIS_PERSECOND_POOL_SIZE (falling back to default 10)"))
-			cfg.RedisPerSecondPoolSize = 10
-		}
-	}
-	if cfg.ExpirationJitterMaxSeconds, err = strconv.ParseInt(getenvDefault("EXPIRATION_JITTER_MAX_SECONDS", "300"), 10, 0); err != nil {
-		warn = append(warn, errors.Wrap(err, "invalid EXPIRATION_JITTER_MAX_SECONDS (falling back to default 300)"))
-		cfg.ExpirationJitterMaxSeconds = 300
-	}
-	if cfg.AmbassadorAdminURL, err = parseAbsoluteURL(getenvDefault("AMBASSADOR_ADMIN_URL", "http://127.0.0.1:8877/")); err != nil {
-		warn = append(warn, errors.Wrap(err, "invalid AMBASSADOR_ADMIN_URL (falling back to default http://127.0.0.1:8877/)"))
-		cfg.AmbassadorAdminURL, _ = parseAbsoluteURL("http://127.0.0.1:8877/")
-	}
-	if cfg.AmbassadorInternalURL, err = parseAbsoluteURL(getenvDefault("AMBASSADOR_INTERNAL_URL", "https://127.0.0.1:8443/")); err != nil {
-		warn = append(warn, errors.Wrap(err, "invalid AMBASSADOR_INTERNAL_URL (falling back to default https://127.0.0.1:8443/)"))
-		cfg.AmbassadorInternalURL, _ = parseAbsoluteURL("https://127.0.0.1:8443/")
-	}
-	if cfg.AmbassadorExternalURL, err = parseAbsoluteURL(getenvDefault("AMBASSADOR_URL", "https://api.example.com/")); err != nil {
-		warn = append(warn, errors.Wrap(err, "invalid AMBASSADOR_URL (falling back to default https://api.example.com/)"))
-		cfg.AmbassadorExternalURL, _ = parseAbsoluteURL("https://api.example.com/")
-	}
-	if seconds, err := strconv.Atoi(getenvDefault("POLL_EVERY_SECS", "60")); err == nil {
-		cfg.DevPortalPollInterval = time.Duration(seconds) * time.Second
-	} else {
-		warn = append(warn, errors.Wrap(err, "invalid POLL_EVERY_SECS (falling back to default 60)"))
-		cfg.DevPortalPollInterval = 60 * time.Second
-	}
-	if cfg.DevPortalContentURL, err = parseAbsoluteURL(getenvDefault("APRO_DEVPORTAL_CONTENT_URL", "https://github.com/datawire/devportal-content.git")); err != nil {
-		warn = append(warn, errors.Wrap(err, "invalid APRO_DEVPORTAL_CONTENT_URL (falling back to default https://github.com/datawire/devportal-content.git)"))
-		cfg.DevPortalContentURL, _ = parseAbsoluteURL("https://github.com/datawire/devportal-content.git")
-	}
-	if cfg.UseStatsd, err = strconv.ParseBool(getenvDefault("USE_STATSD", "false")); err != nil { // NB: default here differs
-		warn = append(warn, errors.Wrap(err, "invalid USE_STATSD (falling back to default false)"))
-		cfg.UseStatsd = false
-	}
-	if cfg.StatsdPort, err = strconv.Atoi(getenvDefault("STATSD_PORT", "8125")); err != nil {
-		warn = append(warn, errors.Wrap(err, "invalid STATSD_PORT (falling back to default 8125)"))
-		cfg.StatsdPort = 8125
-	}
-	if cfg.FlushIntervalS, err = strconv.Atoi(getenvDefault("GOSTATS_FLUSH_INTERVAL_SECONDS", "5")); err != nil {
-		warn = append(warn, errors.Wrap(err, "invalid GOSTATS_FLUSH_INTERVAL_SECONDS (falling back to default 5)"))
-		cfg.FlushIntervalS = 5
-	}
-
-	// Validate things marked "validated below" (things that we can validate here)
-	if _, err := logrus.ParseLevel(cfg.LogLevel); err != nil {
-		warn = append(warn, errors.Wrap(err, "invalid APP_LOG_LEVEL (falling back to default \"info\")"))
-		cfg.LogLevel = "info"
-	}
-	if cfg.RedisSocketType == "" {
-		fatal = append(fatal, errors.New("must set REDIS_SOCKET_TYPE (aborting)"))
-	}
-	if cfg.RedisURL == "" {
-		fatal = append(fatal, errors.New("must set REDIS_URL (aborting)"))
-	}
 	if cfg.RedisPerSecond {
 		if cfg.RedisPerSecondSocketType == "" {
-			warn = append(warn, errors.Errorf("empty REDIS_PERSECOND_SOCKET_TYPE (disabling REDIS_PERSECOND)"))
+			warn = append(warn, errors.Wrap(envconfig.ErrorNotSet, "invalid REDIS_PERSECOND_SOCKET_TYPE (disabling REDIS_PERSECOND)"))
 			cfg.RedisPerSecond = false
 		}
 		if cfg.RedisPerSecondURL == "" {
-			warn = append(warn, errors.Errorf("empty REDIS_PERSECOND_URL (disabling REDIS_PERSECOND)"))
+			warn = append(warn, errors.Wrap(envconfig.ErrorNotSet, "invalid REDIS_PERSECOND_URL (disabling REDIS_PERSECOND)"))
 			cfg.RedisPerSecond = false
 		}
 	}
@@ -195,7 +92,7 @@ func ConfigFromEnv() (cfg Config, warn []error, fatal []error) {
 	os.Setenv("USE_STATSD", strconv.FormatBool(cfg.UseStatsd))
 	os.Setenv("STATSD_HOST", cfg.StatsdHost)
 	os.Setenv("STATSD_PORT", strconv.Itoa(cfg.StatsdPort))
-	os.Setenv("GOSTATS_FLUSH_INTERVAL_SECONDS", strconv.Itoa(cfg.FlushIntervalS))
+	os.Setenv("GOSTATS_FLUSH_INTERVAL_SECONDS", strconv.Itoa(int(cfg.FlushInterval.Seconds())))
 
 	return cfg, warn, fatal
 }
