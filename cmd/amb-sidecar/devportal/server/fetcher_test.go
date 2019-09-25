@@ -104,6 +104,12 @@ func TestFetcherRetrieve(t *testing.T) {
 		AmbassadorExternalURL: urlMust(url.Parse("https://publicapi.com")),
 	})
 
+	pprefix := &struct{ prefix string }{prefix: "--none--"}
+	f.SubscribeMappingObserver("devportal_mapping", func(prefix, rewrite string) bool {
+		pprefix.prefix = prefix
+		return false
+	})
+
 	f.logger.Info("retrieving")
 	// When we retrieve we will be told about a bunch of new services. Only
 	// one of them will have OpenAPI docs, though.
@@ -111,6 +117,8 @@ func TestFetcherRetrieve(t *testing.T) {
 	go f.Run(ctx)
 	f.Retrieve()
 	ctxCancel()
+
+	g.Expect(pprefix.prefix).To(Equal("/docs"))
 
 	httpbin := kubernetes.Service{Name: "httpbin", Namespace: "default"}
 	devportal := kubernetes.Service{Name: "devportal", Namespace: "default"}

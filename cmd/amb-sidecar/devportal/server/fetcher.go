@@ -57,6 +57,14 @@ func (d *diffCalculator) Add(s kubernetes.Service) {
 	d.current[s] = true
 }
 
+type MappingObserverFunc func(prefix, rewrite string) bool
+
+type observer struct {
+	observer   MappingObserverFunc
+	lastPrefix string
+	ret        bool
+}
+
 type fetcher struct {
 	store     ServiceStore
 	httpGet   HTTPGetFunc
@@ -68,9 +76,16 @@ type fetcher struct {
 
 	// Shared secret to send so that we can access .ambassador-internal
 	internalSecret *internalaccess.InternalSecret
+
+	observers map[string]*observer
+}
+
+type MappingSubscriptions interface {
+	SubscribeMappingObserver(mappingName string, observe MappingObserverFunc)
 }
 
 type ServiceStore interface {
+	Init(fetcher MappingSubscriptions)
 	AddService(service kubernetes.Service, baseURL string, prefix string, openAPIDoc []byte)
 	DeleteService(service kubernetes.Service)
 }
@@ -83,7 +98,7 @@ func NewFetcher(
 	known []kubernetes.Service,
 	cfg types.Config,
 ) *fetcher {
-	return &fetcher{
+	f := &fetcher{
 		store:          store,
 		httpGet:        httpGet,
 		retriever:      make(chan chan bool),
@@ -91,7 +106,10 @@ func NewFetcher(
 		logger:         log.WithFields(log.Fields{"subsystem": "fetcher"}),
 		cfg:            cfg,
 		internalSecret: internalaccess.GetInternalSecret(),
+		observers:      make(map[string]*observer),
 	}
+	store.Init(f)
+	return f
 }
 
 func (f *fetcher) Run(ctx context.Context) {
@@ -212,6 +230,7 @@ func (f *fetcher) _retrieve(reason string) {
 			}
 			location_parts := strings.Split(location, ".")
 			prefix := getString(mapping, "prefix")
+			rewrite := getString(mapping, "rewrite")
 			prefix = strings.TrimRight(prefix, "/")
 			name := location_parts[0]
 			namespace := location_parts[1]
@@ -221,6 +240,18 @@ func (f *fetcher) _retrieve(reason string) {
 				baseURL = "https://" + getString(mapping, "host")
 			} else {
 				baseURL = f.cfg.AmbassadorExternalURL.String()
+			}
+			mappingName := getString(mapping, "name")
+			if f.observeInternalMapping(mappingName, prefix, rewrite) {
+				f.logger.WithFields(log.Fields{
+					"mappingName": mappingName,
+					"name":        name,
+					"namespace":   namespace,
+					"baseURL":     baseURL,
+					"prefix":      prefix,
+					"rewrite":     rewrite,
+				}).Info("Found internal mapping, skipping")
+				continue
 			}
 			f.logger.WithFields(log.Fields{
 				"name":      name,
@@ -258,4 +289,26 @@ func (f *fetcher) _retrieve(reason string) {
 		f.store.DeleteService(service)
 	}
 	f.logger.Info("Iteration done")
+}
+
+func (f *fetcher) observeInternalMapping(mappingName, prefix, rewrite string) bool {
+	observer, ok := f.observers[mappingName]
+	if !ok {
+		return false
+	}
+	return observer.observe(prefix, rewrite)
+}
+
+func (f *fetcher) SubscribeMappingObserver(mappingName string, observe MappingObserverFunc) {
+	f.observers[mappingName] = &observer{
+		observer: observe,
+	}
+}
+
+func (o *observer) observe(prefix, rewrite string) bool {
+	if o.lastPrefix != prefix {
+		o.ret = o.observer(prefix, rewrite)
+		o.lastPrefix = prefix
+	}
+	return o.ret
 }
