@@ -237,18 +237,18 @@ clean: clean-test envoy-build-container.txt.clean $(addsuffix .clean,$(clean_doc
 	find ambassador/tests \
 		\( -name '*.out' -o -name 'envoy.json' -o -name 'intermediate.json' \) -print0 \
 		| xargs -0 rm -f
-	rm -f kat-client-docker-image/kat_client
-	rm -f kat-server-docker-image/kat-server
-	rm -f kat-sandbox/http_auth/docker-compose.yml
-	rm -f kat-sandbox/grpc_auth/docker-compose.yml
-	rm -f kat-sandbox/grpc_web/docker-compose.yaml kat-sandbox/grpc_web/*_pb.js
+	rm -f kat/docker/client/kat_client
+	rm -f kat/docker/server/kat-server
+	rm -f kat/sandbox/http_auth/docker-compose.yml
+	rm -f kat/sandbox/grpc_auth/docker-compose.yml
+	rm -f kat/sandbox/grpc_web/docker-compose.yaml kat/sandbox/grpc_web/*_pb.js
 	rm -rf go/apis.envoy.tmp/
 	rm -rf envoy-bin
 	rm -f envoy-build-image.txt
 	rm -f ambex
 
 clobber: clean kill-docker-registry
-	-rm -f kat-client-docker-image/teleproxy
+	-rm -f kat/docker/client/teleproxy
 	-rm -rf $(WATT) $(KUBESTATUS)
 	-$(if $(filter-out -,$(ENVOY_COMMIT)),rm -rf envoy envoy-src)
 	-rm -rf docs/node_modules
@@ -539,27 +539,27 @@ ambassador.docker: Dockerfile base-go.docker base-py.docker $(ENVOY_FILE) ambex 
 
 kat-client-docker-image: kat-client.docker
 .PHONY: kat-client-docker-image
-kat-client.docker: kat-client-docker-image/Dockerfile base-py.docker kat-client-docker-image/teleproxy kat-client-docker-image/kat_client $(WRITE_IFCHANGED) $(var.)KAT_CLIENT_DOCKER_IMAGE
-	docker build --build-arg BASE_PY_IMAGE=$(BASE_PY_IMAGE) $(DOCKER_OPTS) -t $(KAT_CLIENT_DOCKER_IMAGE) kat-client-docker-image
+kat-client.docker: kat/docker/client/Dockerfile base-py.docker kat/docker/client/teleproxy kat/docker/client/kat_client $(WRITE_IFCHANGED) $(var.)KAT_CLIENT_DOCKER_IMAGE
+	docker build --build-arg BASE_PY_IMAGE=$(BASE_PY_IMAGE) $(DOCKER_OPTS) -t $(KAT_CLIENT_DOCKER_IMAGE) kat/docker/client
 	@docker image inspect $(KAT_CLIENT_DOCKER_IMAGE) --format='{{.Id}}' | $(WRITE_IFCHANGED) $@
 
-# kat-client-docker-image/teleproxy always uses the linux/amd64 architecture
-kat-client-docker-image/teleproxy: $(var.)TELEPROXY_VERSION
+# kat/docker/client/teleproxy always uses the linux/amd64 architecture
+kat/docker/client/teleproxy: $(var.)TELEPROXY_VERSION
 	curl --fail -o $@ https://s3.amazonaws.com/datawire-static-files/teleproxy/$(TELEPROXY_VERSION)/linux/amd64/teleproxy
 
-# kat-client-docker-image/kat_client always uses the linux/amd64 architecture
-kat-client-docker-image/kat_client: $(wildcard go/kat-client/*) go/apis/kat/echo.pb.go
-	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o $@ ./go/kat-client
+# kat/docker/client/kat_client always uses the linux/amd64 architecture
+kat/docker/client/kat_client: $(wildcard ./cmd/kat-client/*) pkg/apis/kat/echo.pb.go
+	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o $@ ./cmd/kat-client
 
 kat-server-docker-image: kat-server.docker
-.PHONY: kat-server-docker-image
-kat-server.docker: $(wildcard kat-server-docker-image/*) kat-server-docker-image/kat-server $(var.)KAT_SERVER_DOCKER_IMAGE
+.PHONY:  kat-server-docker-image
+kat-server.docker: $(wildcard kat/docker/server/*) kat/docker/server/kat-server $(var.)KAT_SERVER_DOCKER_IMAGE
 	docker build $(DOCKER_OPTS) -t $(KAT_SERVER_DOCKER_IMAGE) kat-server-docker-image
 	@docker image inspect $(KAT_SERVER_DOCKER_IMAGE) --format='{{.Id}}' | $(WRITE_IFCHANGED) $@
 
-# kat-server-docker-image/kat-server always uses the linux/amd64 architecture
-kat-server-docker-image/kat-server: $(wildcard go/kat-server/* go/kat-server/*/*) go/apis/kat/echo.pb.go
-	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o $@ ./go/kat-server
+# kat/docker/server/kat-server always uses the linux/amd64 architecture
+kat/docker/server/kat-server: $(wildcard cmd/kat-server/* cmd/kat-server/*/*) pkg/apis/kat/echo.pb.go
+	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o $@ ./cmd/kat-server
 
 docker-images: mypy ambassador-docker-image
 
@@ -573,22 +573,14 @@ else
 endif
 
 docker-push-kat-client: kat-client-docker-image
-ifeq ($(DOCKER_REGISTRY),-)
-	@echo "No DOCKER_REGISTRY set"
-else
 	@echo 'PUSH $(KAT_CLIENT_DOCKER_IMAGE)'
 	@set -o pipefail; \
 		docker push $(KAT_CLIENT_DOCKER_IMAGE) | python releng/linify.py push.log
-endif
 
 docker-push-kat-server: kat-server-docker-image
-ifeq ($(DOCKER_REGISTRY),-)
-	@echo "No DOCKER_REGISTRY set"
-else
 	@echo 'PUSH $(KAT_SERVER_DOCKER_IMAGE)'
 	@set -o pipefail; \
 		docker push $(KAT_SERVER_DOCKER_IMAGE) | python releng/linify.py push.log
-endif
 
 docker-push-kat: docker-push-kat-client docker-push-kat-server
 
@@ -642,8 +634,8 @@ $(KUBERNAUT): $(var.)KUBERNAUT_VERSION $(var.)GOOS $(var.)GOARCH | venv/bin/acti
 	curl -o $(KUBERNAUT) http://releases.datawire.io/kubernaut/$(KUBERNAUT_VERSION)/$(GOOS)/$(GOARCH)/kubernaut
 	chmod +x $(KUBERNAUT)
 
-$(KAT_CLIENT): $(wildcard go/kat-client/*) go/apis/kat/echo.pb.go
-	go build -o $@ ./go/kat-client
+$(KAT_CLIENT): $(wildcard cmd/kat-client/*) pkg/apis/kat/echo.pb.go
+	go build -o $@ ./cmd/kat-client
 
 setup-develop: venv $(KAT_CLIENT) $(TELEPROXY) $(KUBERNAUT) $(WATT) $(KUBESTATUS) version
 
@@ -885,21 +877,21 @@ venv/bin/protoc-gen-grpc-web: $(var.)GRPC_WEB_VERSION $(var.)GRPC_WEB_PLATFORM |
 	curl -o $@ -L --fail https://github.com/grpc/grpc-web/releases/download/$(GRPC_WEB_VERSION)/protoc-gen-grpc-web-$(GRPC_WEB_VERSION)-$(GRPC_WEB_PLATFORM)
 	chmod 755 $@
 
-go/apis/kat/echo.pb.go: kat-apis/echo.proto venv/bin/protoc venv/bin/protoc-gen-gogofast
+pkg/apis/kat/echo.pb.go: kat/api/echo.proto venv/bin/protoc venv/bin/protoc-gen-gogofast
 	./venv/bin/protoc \
-		--proto_path=$(CURDIR)/kat-apis \
+		--proto_path=$(CURDIR)/kat/api \
 		--plugin=$(CURDIR)/venv/bin/protoc-gen-gogofast --gogofast_out=plugins=grpc:$(@D) \
 		$(CURDIR)/$<
 
-kat-sandbox/grpc_web/echo_grpc_web_pb.js: kat-apis/echo.proto venv/bin/protoc venv/bin/protoc-gen-grpc-web
+kat/sandbox/grpc_web/echo_grpc_web_pb.js: kat/api/echo.proto venv/bin/protoc venv/bin/protoc-gen-grpc-web
 	./venv/bin/protoc \
-		--proto_path=$(CURDIR)/kat-apis \
+		--proto_path=$(CURDIR)/kat/api \
 		--plugin=$(CURDIR)/venv/bin/protoc-gen-grpc-web --grpc-web_out=import_style=commonjs,mode=grpcwebtext:$(@D) \
 		$(CURDIR)/$<
 
-kat-sandbox/grpc_web/echo_pb.js: kat-apis/echo.proto venv/bin/protoc
+kat/sandbox/grpc_web/echo_pb.js: kat/api/echo.proto venv/bin/protoc
 	./venv/bin/protoc \
-		--proto_path=$(CURDIR)/kat-apis \
+		--proto_path=$(CURDIR)/kat/api \
 		--js_out=import_style=commonjs:$(@D) \
 		$(CURDIR)/$<
 
@@ -907,34 +899,34 @@ kat-sandbox/grpc_web/echo_pb.js: kat-apis/echo.proto venv/bin/protoc
 # KAT docker-compose sandbox
 # ------------------------------------------------------------------------------
 
-kat-sandbox/http_auth/docker-compose.yml kat-sandbox/grpc_auth/docker-compose.yml kat-sandbox/grpc_web/docker-compose.yaml: %: %.in kat-server.docker $(var.)KAT_SERVER_DOCKER_IMAGE
+kat/sandbox/http_auth/docker-compose.yml kat/sandbox/grpc_auth/docker-compose.yml kat/sandbox/grpc_web/docker-compose.yaml: %: %.in kat-server.docker $(var.)KAT_SERVER_DOCKER_IMAGE
 	sed 's,@KAT_SERVER_DOCKER_IMAGE@,$(KAT_SERVER_DOCKER_IMAGE),g' < $< > $@
 
-kat-sandbox.http-auth: ## In docker-compose: run Ambassador, an HTTP AuthService, an HTTP backend service, and a TracingService
-kat-sandbox.http-auth: kat-sandbox/http_auth/docker-compose.yml
-	@echo " ---> cleaning HTTP auth kat-sandbox"
-	@cd kat-sandbox/http_auth && docker-compose stop && docker-compose rm -f
-	@echo " ---> starting HTTP auth kat-sandbox"
-	@cd kat-sandbox/http_auth && docker-compose up --force-recreate --abort-on-container-exit --build
-.PHONY: kat-sandbox.http-auth
+kat/sandbox.http-auth: ## In docker-compose: run Ambassador, an HTTP AuthService, an HTTP backend service, and a TracingService
+kat/sandbox.http-auth: kat/sandbox/http_auth/docker-compose.yml
+	@echo " ---> cleaning HTTP auth kat/sandbox"
+	@cd kat/sandbox/http_auth && docker-compose stop && docker-compose rm -f
+	@echo " ---> starting HTTP auth kat/sandbox"
+	@cd kat/sandbox/http_auth && docker-compose up --force-recreate --abort-on-container-exit --build
+.PHONY: kat/sandbox.http-auth
 
-kat-sandbox.grpc-auth: ## In docker-compose: run Ambassador, a gRPC AuthService, an HTTP backend service, and a TracingService
-kat-sandbox.grpc-auth: kat-sandbox/grpc_auth/docker-compose.yml
-	@echo " ---> cleaning gRPC auth kat-sandbox"
-	@cd kat-sandbox/grpc_auth && docker-compose stop && docker-compose rm -f
-	@echo " ---> starting gRPC auth kat-sandbox"
-	@cd kat-sandbox/grpc_auth && docker-compose up --force-recreate --abort-on-container-exit --build
-.PHONY: kat-sandbox.grpc-auth
+kat/sandbox.grpc-auth: ## In docker-compose: run Ambassador, a gRPC AuthService, an HTTP backend service, and a TracingService
+kat/sandbox.grpc-auth: kat/sandbox/grpc_auth/docker-compose.yml
+	@echo " ---> cleaning gRPC auth kat/sandbox"
+	@cd kat/sandbox/grpc_auth && docker-compose stop && docker-compose rm -f
+	@echo " ---> starting gRPC auth kat/sandbox"
+	@cd kat/sandbox/grpc_auth && docker-compose up --force-recreate --abort-on-container-exit --build
+.PHONY: kat/sandbox.grpc-auth
 
-kat-sandbox.web: ## In docker-compose: run Ambassador with gRPC-web enabled, and a gRPC backend service
-kat-sandbox.web: kat-sandbox/grpc_web/docker-compose.yaml
-kat-sandbox.web: kat-sandbox/grpc_web/echo_grpc_web_pb.js kat-sandbox/grpc_web/echo_pb.js
-	@echo " ---> cleaning gRPC web kat-sandbox"
-	@cd kat-sandbox/grpc_web && npm install && npx webpack
-	@cd kat-sandbox/grpc_web && docker-compose stop && docker-compose rm -f
-	@echo " ---> starting gRPC web kat-sandbox"
-	@cd kat-sandbox/grpc_web && docker-compose up --force-recreate --abort-on-container-exit --build
-.PHONY: kat-sandbox.web
+kat/sandbox.web: ## In docker-compose: run Ambassador with gRPC-web enabled, and a gRPC backend service
+kat/sandbox.web: kat/sandbox/grpc_web/docker-compose.yaml
+kat/sandbox.web: kat/sandbox/grpc_web/echo_grpc_web_pb.js kat/sandbox/grpc_web/echo_pb.js
+	@echo " ---> cleaning gRPC web kat/sandbox"
+	@cd kat/sandbox/grpc_web && npm install && npx webpack
+	@cd kat/sandbox/grpc_web && docker-compose stop && docker-compose rm -f
+	@echo " ---> starting gRPC web kat/sandbox"
+	@cd kat/sandbox/grpc_web && docker-compose up --force-recreate --abort-on-container-exit --build
+.PHONY: kat/sandbox.web
 
 # ------------------------------------------------------------------------------
 # Virtualenv

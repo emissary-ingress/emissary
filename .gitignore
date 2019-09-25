@@ -20,11 +20,11 @@ teleproxy
 kat/kat/client
 /.docker_port_forward
 
-/kat-server-docker-image/kat-server
-/kat-sandbox/grpc_auth/docker-compose.yml
-/kat-sandbox/grpc_web/docker-compose.yaml
-/kat-sandbox/grpc_web/*_pb.js
-/kat-sandbox/http_auth/docker-compose.yml
+/kat/docker/server/kat-server
+/kat/sandbox/grpc_auth/docker-compose.yml
+/kat/sandbox/grpc_web/docker-compose.yaml
+/kat/sandbox/grpc_web/*_pb.js
+/kat/sandbox/http_auth/docker-compose.yml
 
 *.docker
 *.docker.tag.*

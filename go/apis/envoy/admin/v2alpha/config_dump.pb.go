@@ -5,14 +5,15 @@ package envoy_admin_v2alpha
 
 import (
 	fmt "fmt"
+	io "io"
+	math "math"
+	math_bits "math/bits"
+
 	v21 "github.com/datawire/ambassador/go/apis/envoy/api/v2"
 	auth "github.com/datawire/ambassador/go/apis/envoy/api/v2/auth"
 	v2 "github.com/datawire/ambassador/go/apis/envoy/config/bootstrap/v2"
 	proto "github.com/gogo/protobuf/proto"
 	types "github.com/gogo/protobuf/types"
-	io "io"
-	math "math"
-	math_bits "math/bits"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.
