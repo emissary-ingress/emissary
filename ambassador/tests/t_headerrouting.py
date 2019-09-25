@@ -81,7 +81,7 @@ metadata:
 spec:
   containers:
   - name: backend
-    image: dwflynn/auth:0.0.3
+    image: {self.test_image[auth]}
     ports:
     - containerPort: 80
     env:

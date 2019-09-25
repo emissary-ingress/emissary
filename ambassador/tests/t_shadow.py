@@ -52,7 +52,7 @@ spec:
     spec:
       containers:
       - name: shadow
-        image: dwflynn/shadow:0.0.2
+        image: {self.test_image[shadow]}
         imagePullPolicy: Always
         ports:
         - name: http
