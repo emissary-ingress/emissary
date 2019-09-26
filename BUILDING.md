@@ -422,10 +422,10 @@ which will build the test services, then push them to `$(DOCKER_REGISTRY)`.
 **Using locally-built tests:**
 
 To use a single test service that you've built locally, set the environment variable
-`TEST_SVC_$svc` to point to the image you've just built and pushed, e.g.
+`TEST_SERVICE_$svc` to point to the image you've just built and pushed, e.g.
 
 ```
-export TEST_SVC_AUTH=dwflynn/test_services:test-auth-v0.80.0-28-g3ed96316
+export TEST_SERVICE_AUTH=dwflynn/test_services:test-auth-v0.80.0-28-g3ed96316
 ```
 
 before running `make test`. The different `$svc` possibilities are `auth`, `auth-tls`,
@@ -434,15 +434,15 @@ before running `make test`. The different `$svc` possibilities are `auth`, `auth
 To use your copy of _all_ the test services:
 
 ```
-export TEST_SVC_REGISTRY=$registry
-export TEST_SVC_VERSION=$version
+export TEST_SERVICE_REGISTRY=$registry
+export TEST_SERVICE_VERSION=$version
 ```
 
 before running `make test`, e.g.
 
 ```
-export TEST_SVC_REGISTRY=dwflynn/test_services
-export TEST_SVC_VERSION=v0.80.0-28-g3ed96316
+export TEST_SERVICE_REGISTRY=dwflynn/test_services
+export TEST_SERVICE_VERSION=v0.80.0-28-g3ed96316
 ```
 
 to match the example above.
