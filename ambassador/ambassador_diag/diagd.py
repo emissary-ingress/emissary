@@ -192,12 +192,12 @@ def standard_handler(f):
 
         try:
             result = f(*args, reqid=reqid, **kwds)
-            if isinstance(result, Response):
-                result = (result, 200)
-            else:
-                result = (result, 404)
+            # if isinstance(result, Response):
+                # result = (result, 200)
+            # else:
+                # result = (result, 404)
 
-            status_to_log = result[1]
+            status_to_log = 200
 
             if (status_to_log // 100) == 2:
                 result_log_level = logging.INFO
