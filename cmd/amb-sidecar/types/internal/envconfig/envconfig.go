@@ -85,6 +85,14 @@ type fieldTypeHandler struct {
 	Setter  func(reflect.Value, interface{})
 }
 
+func (h fieldTypeHandler) parserNames() []string {
+	ret := make([]string, 0, len(h.Parsers))
+	for name := range h.Parsers {
+		ret = append(ret, name)
+	}
+	return ret
+}
+
 type StructParser struct {
 	structType    reflect.Type
 	fieldHandlers []func(structValue reflect.Value) (warn, fatal error)
@@ -154,7 +162,7 @@ func GenerateParser(structInfo reflect.Type) (StructParser, error) {
 				}(),
 				Validator: func(name string) error {
 					if _, ok := typeHandler.Parsers[name]; !ok {
-						return errors.Errorf("value %q is not one of the parser names in envconfig_types.go", name)
+						return errors.Errorf("value %q is not one of %v", name, typeHandler.parserNames())
 					}
 					return nil
 				},
@@ -174,7 +182,7 @@ func GenerateParser(structInfo reflect.Type) (StructParser, error) {
 		// validate "parser" (existence)
 		parserName, parserNameOK := tag.Options["parser"]
 		if !parserNameOK {
-			return StructParser{}, errors.Errorf("struct field %q: type %s requires a \"parser\" setting", fieldInfo.Name, fieldInfo.Type)
+			return StructParser{}, errors.Errorf("struct field %q: type %s requires a \"parser\" setting (valid parsers are %v)", fieldInfo.Name, fieldInfo.Type, typeHandler.parserNames())
 		}
 		parserFn := typeHandler.Parsers[parserName]
 
