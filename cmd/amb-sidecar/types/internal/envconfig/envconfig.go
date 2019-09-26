@@ -150,15 +150,8 @@ func GenerateParser(structInfo reflect.Type) (StructParser, error) {
 				},
 			},
 			{
-				Name: "parser",
-				Default: func() *string {
-					if len(typeHandler.Parsers) == 1 {
-						for name := range typeHandler.Parsers {
-							return &name
-						}
-					}
-					return nil
-				}(),
+				Name:    "parser",
+				Default: nil,
 				Validator: func(name string) error {
 					if _, ok := typeHandler.Parsers[name]; !ok {
 						return errors.Errorf("value %q is not one of %v", name, typeHandler.parserNames())
@@ -179,11 +172,9 @@ func GenerateParser(structInfo reflect.Type) (StructParser, error) {
 		}
 
 		// validate "parser" (existence)
-		parserName, parserNameOK := tag.Options["parser"]
-		if !parserNameOK {
+		if _, parserNameOK := tag.Options["parser"]; !parserNameOK {
 			return StructParser{}, errors.Errorf("struct field %q: type %s requires a \"parser\" setting (valid parsers are %v)", fieldInfo.Name, fieldInfo.Type, typeHandler.parserNames())
 		}
-		parserFn := typeHandler.Parsers[parserName]
 
 		_, haveDef := tag.Options["default"]
 		_, haveDefFrom := tag.Options["defaultFrom"]
@@ -193,6 +184,7 @@ func GenerateParser(structInfo reflect.Type) (StructParser, error) {
 		}
 		// validate "default" vs "parser"
 		if haveDef {
+			parserFn := typeHandler.Parsers[tag.Options["parser"]]
 			if _, err := parserFn(tag.Options["default"]); err != nil {
 				return StructParser{}, errors.Wrapf(err, "struct field %q: invalid default", fieldInfo.Name)
 			}
