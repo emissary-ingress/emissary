@@ -1,6 +1,6 @@
 {
   "name": "ratelimit-service",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "description": "Dummy rate limiter implementation for Ambassador API Gateway end-to-end tests",
   "main": "server.js",
   "engines": {
