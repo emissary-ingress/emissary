@@ -14,13 +14,16 @@ spec:
   selector:
     service: gruesvc
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   creationTimestamp: null
   name: gruesvc
 spec:
   replicas: 1
+  selector:
+    matchLabels:
+      service: gruesvc
   strategy: {}
   template:
     metadata:
