@@ -212,7 +212,6 @@ $(addprefix bin_$(GOHOSTOS)_$(GOHOSTARCH)/,$(_cgo_files)): CGO_ENABLED = 1
 
 # but cross-builds are the complex story
 ifneq ($(GOHOSTOS)_$(GOHOSTARCH),linux_amd64)
-ifneq ($(HAVE_DOCKER),)
 
 go-build: $(foreach p,$(plugins),bin_linux_amd64/$p.so)
 
@@ -254,12 +253,11 @@ _gocache_volume_clobber:
 clobber: _gocache_volume_clobber
 
 endif
-endif
 
 #
 # Docker images
 
-build: $(if $(HAVE_DOCKER),$(addsuffix .docker,$(image.all)))
+build: $(addsuffix .docker,$(image.all))
 
 %.docker.stamp: %/Dockerfile
 # Try with --pull, fall back to without --pull
@@ -439,7 +437,7 @@ venv/bin/activate: %/bin/activate:
 #
 # Check
 
-check: $(if $(HAVE_DOCKER),deploy proxy)
+check: deploy proxy
 test-suite.tap: tests/local.tap tests/cluster.tap
 
 # local ########################################################################

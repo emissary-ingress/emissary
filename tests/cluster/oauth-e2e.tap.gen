@@ -6,13 +6,6 @@ cd "${BASH_SOURCE[0]%.tap.gen}" &&
 	while IFS= read -r line; do
 		case "$line" in
 			' '*) printf '#%s\n' "$line";; # mocha outputs invalid lines
-			'not ok'*)
-				if type docker &>/dev/null; then
-					printf '%s\n' "$line"
-				else
-					sed -E 's/\s*#.*/ # SKIP docker is not installed/' <<<"$line"
-				fi
-				;;
 			*) printf '%s\n' "$line";;
 		esac
 	done
