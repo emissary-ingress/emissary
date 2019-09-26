@@ -51,7 +51,7 @@ commands:
     parameters:
       "version":
         type: string
-        default: "1.12.2"
+        default: "1.14.0"
     steps:
       - run:
           name: "Install kubectl << parameters.version >>"

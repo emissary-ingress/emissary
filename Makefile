@@ -337,6 +337,23 @@ docker/%/kubectl:
 %/03-auth0-secret.yaml: %/namespace.txt $(K8S_ENVS)
 	$(if $(K8S_ENVS),set -a && $(foreach k8s_env,$(abspath $(K8S_ENVS)), . $(k8s_env) && ))kubectl --namespace="$$(cat $*/namespace.txt)" create secret generic --dry-run --output=yaml auth0-secret --from-literal=oauth2-client-secret="$$IDP_AUTH0_CLIENT_SECRET" > $@
 
+PRELOAD_IMAGES = $(sort $(shell awk '($$1 == "FROM") && ($$2 !~ /^(sha256:|\$$)/) { print $$2}' docker/*/Dockerfile ambassador/Dockerfile*))
+$(addsuffix .docker.push.cluster,$(image.all)): build-aux/docker-registry.preload
+build-aux/docker-registry.preload: build-aux/docker-registry.deploy
+build-aux/docker-registry.preload: preload.yaml $(KUBEAPPLY) $(KUBECONFIG)
+build-aux/docker-registry.preload: $(var.)PRELOAD_IMAGES
+	kubectl --namespace=docker-registry delete jobs/preload || true
+	PRELOAD_IMAGES='$(PRELOAD_IMAGES)' $(KUBEAPPLY) -f preload.yaml
+	{ \
+	    ( \
+	        kubectl --namespace=docker-registry wait --selector=job-name=preload --for=condition=ready pod; \
+	        kubectl --namespace=docker-registry logs --selector=job-name=preload --follow; \
+	    ) & \
+	    kubectl --namespace=docker-registry wait --timeout=2m --for=condition=complete jobs/preload; \
+	}
+	kubectl delete --namespace=docker-registry jobs/preload
+	touch $@
+
 deploy: $(addsuffix /04-ambassador-certs.yaml,$(K8S_DIRS)) k8s-standalone/03-auth0-secret.yaml
 apply: $(addsuffix /04-ambassador-certs.yaml,$(K8S_DIRS)) k8s-standalone/03-auth0-secret.yaml
 
@@ -505,6 +522,7 @@ loadtest-apply loadtest-deploy loadtest-shell loadtest-proxy: loadtest-%: infra/
 clean: $(addsuffix .clean,$(wildcard docker/*.docker)) loadtest-clean
 	rm -f ambassador.stamp
 	rm -f apro-abi.txt
+	rm -f build-aux/docker-registry.preload
 	rm -f cmd/certified-envoy/envoy.go
 	rm -f docker/*.docker.stamp
 	rm -f docker/*/*.opensource.tar.gz
