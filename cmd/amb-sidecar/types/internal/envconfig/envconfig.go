@@ -8,7 +8,6 @@ package envconfig
 //
 // That said, it is less externally-pluggable: All extensions happen in <envconfig_types.go>.
 
-//import "fmt"
 import (
 	"os"
 	"reflect"
