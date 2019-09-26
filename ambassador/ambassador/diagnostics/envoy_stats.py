@@ -195,7 +195,7 @@ class EnvoyStats (object):
             logging.warning("EnvoyStats.get_prometheus_state failed: %s" % r.text)
             return
         else:
-            return Response(r.text, status=201, mimetype='text/plain')
+            return Response(r.text, r.status_code, r.headers)
         
     def update_envoy_stats(self, last_attempt):
         # logging.info("updating stats")
