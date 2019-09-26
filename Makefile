@@ -122,6 +122,41 @@ ENVOY_FILE ?= envoy-bin/envoy-static-stripped
   BASE_PY_IMAGE    ?= $(BASE_DOCKER_REPO):py-$(BASE_PY_RELVER)
 # END LIST OF VARIABLES REQUIRING `make docker-update-base`.
 
+#### Test service Dockerfile stuff.
+# The test services live in subdirectories of test-services. TEST_SERVICE_ROOTS
+# is the list of these directories.
+
+TEST_SERVICE_ROOTS = $(notdir $(wildcard test-services/*))
+
+# TEST_SERVICE_IMAGES maps each TEST_SERVICE_ROOT to test-$root.docker, since
+# those are the names of the individual targets. We also add the auth-tls
+# target here, by hand -- it has a special rule since it's also built from the
+# test-services/auth directory.
+TEST_SERVICE_IMAGES = $(patsubst %,test-%.docker,$(TEST_SERVICE_ROOTS) auth-tls)
+
+# Set default tag values...
+docker.tag.release = $(AMBASSADOR_DOCKER_TAG)
+docker.tag.local = $(AMBASSADOR_DOCKER_TAG)
+
+TEST_SERVICE_VERSION = 0.0.3
+
+# ...then set overrides for the test services.
+test-%.docker.tag.release: docker.tag.release = quay.io/datawire/test_services:$(notdir $*)-$(TEST_SERVICE_VERSION)
+
+LOCAL_REPO = $(if $(filter-out -,$(DOCKER_REGISTRY)),$(DOCKER_REGISTRY)/test_services,test_services)
+test-%.docker.tag.local: docker.tag.local = $(LOCAL_REPO):$(notdir $*)-$(GIT_DESCRIPTION)
+
+# ...and define some TEST_SERVICE_*_TAGS.
+TEST_SERVICE_LOCAL_TAGS = $(addsuffix .tag.local,$(TEST_SERVICE_IMAGES))
+TEST_SERVICE_RELEASE_TAGS = $(addsuffix .tag.release,$(TEST_SERVICE_IMAGES))
+
+ifneq ($(DOCKER_REGISTRY), -)
+TEST_SERVICE_LOCAL_PUSHES = $(addsuffix .push.local,$(TEST_SERVICE_IMAGES))
+TEST_SERVICE_RELEASE_PUSHES = $(addsuffix .push.release,$(TEST_SERVICE_IMAGES))
+endif
+
+#### end test service stuff
+
 # Default to _NOT_ using Kubernaut. At Datawire, we can set this to true,
 # but outside, it works much better to assume that user has set up something
 # and not try to override it.
@@ -176,6 +211,7 @@ all:
 
 include build-aux/prelude.mk
 include build-aux/var.mk
+include build-aux/docker.mk
 
 clean: clean-test envoy-build-container.txt.clean
 	rm -rf docs/_book docs/_site docs/package-lock.json
@@ -415,6 +451,26 @@ base-go.docker: Dockerfile.base-go $(var.)BASE_GO_IMAGE $(WRITE_IFCHANGED)
 		docker build $(DOCKER_OPTS) -t $(BASE_GO_IMAGE) -f $< .; \
 	fi
 	@docker image inspect $(BASE_GO_IMAGE) --format='{{.Id}}' | $(WRITE_IFCHANGED) $@
+
+test-%.docker: test-services/%/Dockerfile $(MOVE_IFCHANGED) FORCE
+	docker build --quiet --iidfile=$@.tmp test-services/$*
+	$(MOVE_IFCHANGED) $@.tmp $@
+
+test-auth-tls.docker: test-services/auth/Dockerfile $(MOVE_IFCHANGED) FORCE
+	docker build --quiet --build-arg TLS=--tls --iidfile=$@.tmp test-services/auth
+	$(MOVE_IFCHANGED) $@.tmp $@
+
+test-services: $(TEST_SERVICE_IMAGES) $(TEST_SERVICE_LOCAL_TAGS) $(TEST_SERVICE_LOCAL_PUSHES)
+test-services-release: $(TEST_SERVICE_IMAGES) $(TEST_SERVICE_RELEASE_TAGS) $(TEST_SERVICE_RELEASE_PUSHES)
+.PHONY: test-services test-services-release
+
+# XXX: Why doesn't just test-%.docker.push: test-%.docker.push.local work??
+#
+# This three-element form of $(addsuffix ...) is kind of an implicit foreach. 
+# We're generating a rule for each word in $(TEST_SERVICE_IMAGES).
+TEST_SERVICE_PUSH_TARGETS = $(addsuffix .push,$(TEST_SERVICE_IMAGES))
+$(TEST_SERVICE_PUSH_TARGETS): %.push: %.push.local
+.PHONY: $(TEST_SERVICE_PUSH_TARGETS)
 
 docker-base-images:
 	@if [ -n "$(AMBASSADOR_DEV)" ]; then echo "Do not run this from a dev shell" >&2; exit 1; fi

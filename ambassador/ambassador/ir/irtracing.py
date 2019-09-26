@@ -64,6 +64,9 @@ class IRTracing (IRResource):
         if driver == "lightstep":
             grpc = True
 
+        if driver == "datadog":
+            driver = "envoy.tracers.datadog"
+
         # OK, we have a valid config.
         self.sourced_by(config)
 
