@@ -39,7 +39,7 @@ spec:
     name: http-example-auth
     targetPort: http-api
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: example-auth
@@ -47,6 +47,9 @@ spec:
   replicas: 1
   strategy:
     type: RollingUpdate
+  selector:
+    matchLabels:
+      app: example-auth
   template:
     metadata:
       labels:

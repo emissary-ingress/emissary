@@ -94,6 +94,18 @@ Format:
 --->
 
 <!--- CueAddReleaseNotes --->
+## [0.81.0] September 26, 2019
+[0.81.0]: https://github.com/datawire/ambassador/compare/v0.80.0...v0.81.0
+
+### Major changes:
+- Feature: ${} environment variable interpolation is supported in all Ambassador configuration resources (thanks, [Stefan Sedich](https://github.com/stefansedich)!)
+- Feature: DataDog APM tracing is now supported (thanks again, [Stefan Sedich](https://github.com/stefansedich)!)
+- Bugfix: Fix an error in the TLSContext schema (thanks, [@georgekaz](https://github.com/georgekaz)!)
+
+### Developer notes:
+- Test services can now be built, deployed, and tested more easily (see BUILDING.md)
+- `mypy` is temporarily pinned to version 0.720.
+
 ## [0.80.0] September 20, 2019
 [0.80.0]: https://github.com/datawire/ambassador/compare/v0.78.0...v0.80.0
 

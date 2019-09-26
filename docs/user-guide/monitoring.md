@@ -148,13 +148,17 @@ To deploy Grafana behind Ambassador: replace `{{AMBASSADOR_IP}}` with the IP add
 
 ```yaml
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: grafana
   namespace: default
 spec:
   replicas: 1
+  selector:
+    matchLabels:
+      app: grafana
+      componenet: core
   template:
     metadata:
       labels:

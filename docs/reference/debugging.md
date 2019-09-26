@@ -114,7 +114,7 @@ Namespace:              default
 CreationTimestamp:      Mon, 15 Oct 2018 13:26:40 +0100
 Labels:                 service=ambassador
 Annotations:            deployment.kubernetes.io/revision=1
-                       kubectl.kubernetes.io/last-applied-configuration={"apiVersion":"extensions/v1beta1","kind":"Deployment","metadata":{"annotations":{},"name":"ambassador","namespace":"default"},"spec":{"replicas":3,"te...
+                       kubectl.kubernetes.io/last-applied-configuration={"apiVersion":"apps/v1","kind":"Deployment","metadata":{"annotations":{},"name":"ambassador","namespace":"default"},"spec":{"replicas":3,"te...
 Selector:               service=ambassador
 Replicas:               3 desired | 3 updated | 3 total | 3 available | 0 unavailable
 StrategyType:           RollingUpdate
@@ -306,7 +306,7 @@ If the generated Envoy configuration is not looking as expected, you can manuall
 
 ```shell
 $ kubectl scale deployment ambassador --replicas=1
-deployment.extensions "ambassador" scaled
+deployment.apps/ambassador scaled
  tmp $ kubectl get pods
 NAME                         READY     STATUS        RESTARTS   AGE
 ambassador-85c4cf67b-4pfj2   1/1       Running       0          30m

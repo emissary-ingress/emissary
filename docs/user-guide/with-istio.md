@@ -175,12 +175,15 @@ In case of RBAC:
 
 ``` yaml
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: ambassador
 spec:
   replicas: 3
+  selector:
+    matchLabels:
+      service: ambassador
   template:
     metadata:
       annotations:

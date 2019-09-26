@@ -116,12 +116,15 @@ spec:
   selector:
     service: grpc-example
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: grpc-example
 spec:
   replicas: 1
+  selector:
+    matchLabels:
+      service: grpc-example
   template:
     metadata:
       labels:

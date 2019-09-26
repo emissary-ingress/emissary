@@ -35,7 +35,7 @@ Ambassador can watch for changes in Knative configuration in your Kubernetes clu
 
     ```yaml
     ---
-    apiVersion: extensions/v1beta1
+    apiVersion: apps/v1
     kind: Deployment
     metadata:
       name: ambassador
