@@ -41,7 +41,7 @@ spec:
     spec:
       containers:
       - name: rate-limit
-        image: dwflynn/ratelimit-service:0.0.1
+        image: {self.test_image[ratelimit]}
         imagePullPolicy: Always
         ports:
         - name: grpc

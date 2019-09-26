@@ -26,6 +26,26 @@ from multi import multi
 from .parser import dump, load, Tag
 
 
+class TestImage:
+    def __init__(self, *args, **kwargs) -> None:
+        self.images: Dict[str, str] = {}
+
+        default_registry = os.environ.get('TEST_SVC_REGISTRY', 'quay.io/datawire/test_services')
+        default_version = os.environ.get('TEST_SVC_VERSION', '0.0.2')
+
+        for svc in ['auth', 'auth-tls', 'ratelimit', 'shadow', 'stats']:
+            key = svc.replace('-', '_').upper()
+
+            image = os.environ.get(f'TEST_SVC_{key}', f'{default_registry}:test-{svc}-{default_version}')
+
+            self.images[svc] = image
+
+    def __getitem__(self, key: str) -> str:
+        return self.images[key]
+
+
+GLOBAL_TEST_IMAGE = TestImage()
+
 def run(cmd):
     status = os.system(cmd)
     if status != 0:
@@ -252,6 +272,8 @@ class Node(ABC):
     def __init__(self, *args, **kwargs) -> None:
         # If self.skip is set to true, this node is skipped
         self.skip_node = False
+
+        self.test_image = GLOBAL_TEST_IMAGE
 
         name = kwargs.pop("name", None)
 
@@ -985,7 +1007,13 @@ class Runner:
                 yaml = n.manifests()
 
                 if yaml is not None:
-                    manifest = load(n.path, yaml, Tag.MAPPING)
+                    yaml = n.format(yaml)
+
+                    try:
+                        manifest = load(n.path, yaml, Tag.MAPPING)
+                    except Exception as e:
+                        print(f'parse failure! {e}')
+                        print(yaml)
 
             if manifest:
                 # print(manifest)

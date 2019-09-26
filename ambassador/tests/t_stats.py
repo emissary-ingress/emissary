@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
       - name: {0}
-        image: dwflynn/stats-test:0.1.0
+        image: {1}
         env:
         - name: STATSD_TEST_CLUSTER
           value: cluster_http___statsdtest_http
@@ -63,7 +63,7 @@ spec:
     spec:
       containers:
       - name: {0}
-        image: dwflynn/stats-test:0.1.0
+        image: {1}
         env:
         - name: STATSD_TEST_CLUSTER
           value: cluster_http___dogstatsdtest_http
@@ -102,7 +102,8 @@ class StatsdTest(AmbassadorTest):
 """
 
         return self.format(RBAC_CLUSTER_SCOPE + AMBASSADOR, image=os.environ["AMBASSADOR_DOCKER_IMAGE"],
-                           envs=envs, extra_ports="", capabilities_block="") + GRAPHITE_CONFIG.format('statsd-sink')
+                           envs=envs, extra_ports="", capabilities_block="") + \
+               GRAPHITE_CONFIG.format('statsd-sink', self.test_image['stats'])
 
     def config(self):
         yield self.target, self.format("""
@@ -178,7 +179,8 @@ class DogstatsdTest(AmbassadorTest):
 """
 
         return self.format(RBAC_CLUSTER_SCOPE + AMBASSADOR, image=os.environ["AMBASSADOR_DOCKER_IMAGE"],
-                           envs=envs, extra_ports="", capabilities_block="") + DOGSTATSD_CONFIG.format('dogstatsd-sink')
+                           envs=envs, extra_ports="", capabilities_block="") + \
+               DOGSTATSD_CONFIG.format('dogstatsd-sink', self.test_image['stats'])
 
     def config(self):
         yield self.target, self.format("""

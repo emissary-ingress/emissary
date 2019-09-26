@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
       - name: {name}
-        image: dwflynn/stats-test:0.1.0
+        image: {image}
         env:
         - name: STATSD_TEST_CLUSTER
           value: {target}
@@ -61,8 +61,9 @@ class CircuitBreakingTest(AmbassadorTest):
 """
 
         return self.format(RBAC_CLUSTER_SCOPE + AMBASSADOR, image=os.environ["AMBASSADOR_DOCKER_IMAGE"],
-                           envs=envs, extra_ports="", capabilities_block="") + STATSD_MANIFEST.format(name='cbstatsd-sink',
-                                                                                                      target=self.__class__.TARGET_CLUSTER)
+                           envs=envs, extra_ports="", capabilities_block="") + \
+               STATSD_MANIFEST.format(name='cbstatsd-sink', image=self.test_image['stats'],
+                                      target=self.__class__.TARGET_CLUSTER)
 
 
     def config(self):
