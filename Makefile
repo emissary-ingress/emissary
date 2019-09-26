@@ -460,14 +460,17 @@ test-auth-tls.docker: test-services/auth/Dockerfile $(MOVE_IFCHANGED) FORCE
 	docker build --quiet --build-arg TLS=--tls --iidfile=$@.tmp test-services/auth
 	$(MOVE_IFCHANGED) $@.tmp $@
 
-test-services: $(TEST_SERVICE_IMAGES) $(TEST_SERVICE_LOCAL_TAGS) $(TEST_SERVICE_LOCAL_PUSHES) FORCE
-test-services-release: $(TEST_SERVICE_IMAGES) $(TEST_SERVICE_RELEASE_TAGS) $(TEST_SERVICE_RELEASE_PUSHES) FORCE
+test-services: $(TEST_SERVICE_IMAGES) $(TEST_SERVICE_LOCAL_TAGS) $(TEST_SERVICE_LOCAL_PUSHES)
+test-services-release: $(TEST_SERVICE_IMAGES) $(TEST_SERVICE_RELEASE_TAGS) $(TEST_SERVICE_RELEASE_PUSHES)
+.PHONY: test-services test-services-release
 
 # XXX: Why doesn't just test-%.docker.push: test-%.docker.push.local work??
 #
 # This three-element form of $(addsuffix ...) is kind of an implicit foreach. 
 # We're generating a rule for each word in $(TEST_SERVICE_IMAGES).
-$(addsuffix .push,$(TEST_SERVICE_IMAGES)): %.push: %.push.local
+TEST_SERVICE_PUSH_TARGETS = $(addsuffix .push,$(TEST_SERVICE_IMAGES))
+$(TEST_SERVICE_PUSH_TARGETS): %.push: %.push.local
+.PHONY: $(TEST_SERVICE_PUSH_TARGETS)
 
 docker-base-images:
 	@if [ -n "$(AMBASSADOR_DEV)" ]; then echo "Do not run this from a dev shell" >&2; exit 1; fi
