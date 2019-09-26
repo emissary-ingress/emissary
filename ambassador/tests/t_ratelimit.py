@@ -219,10 +219,10 @@ class RateLimitV1WithTLSTest(AmbassadorTest):
 apiVersion: v1
 kind: Service
 metadata:
-  name: rate-limit
+  name: rate-limit-tls
 spec:
   selector:
-    app: rate-limit
+    app: rate-limit-tls
   ports:
   - port: 5000
     name: grpc
@@ -232,7 +232,7 @@ spec:
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: rate-limit
+  name: rate-limit-tls
 spec:
   replicas: 1
   strategy:
@@ -240,7 +240,7 @@ spec:
   template:
     metadata:
       labels:
-        app: rate-limit
+        app: rate-limit-tls
     spec:
       containers:
       - name: rate-limit
@@ -295,8 +295,8 @@ labels:
 ---
 apiVersion: ambassador/v1
 kind: RateLimitService
-name: ratelimit
-service: rate-limit:5000
+name: ratelimit-tls
+service: rate-limit-tls:5000
 timeout_ms: 500
 tls: ratelimit-tls-context
 """)
@@ -312,5 +312,5 @@ tls: ratelimit-tls-context
 
         # Header instructing dummy ratelimit-service to reject request
         yield Query(self.url("target/"), expected=429, headers={
-            'x-ambassador-test-allow': 'over my dead body'
+            'x-ambassador-test-allow': 'nope'
         })
