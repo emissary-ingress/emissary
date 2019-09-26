@@ -61,7 +61,7 @@ You'll now register a demo application with Consul, and show how Ambassador can 
 
     ```yaml
     ---
-    apiVersion: extensions/v1beta1
+    apiVersion: apps/v1
     kind: Deployment
     metadata:
       name: qotm
@@ -69,6 +69,9 @@ You'll now register a demo application with Consul, and show how Ambassador can 
       replicas: 1
       strategy:
         type: RollingUpdate
+      selector:
+        matchLabels:
+          app: qotm
       template:
         metadata:
           labels:
@@ -170,7 +173,7 @@ This will install into your cluster:
 
     ```yaml
     ---
-    apiVersion: extensions/v1beta1
+    apiVersion: apps/v1
     kind: Deployment
     metadata:
       name: qotm-mtls
@@ -178,6 +181,9 @@ This will install into your cluster:
       replicas: 1
       strategy:
         type: RollingUpdate
+      selector:
+        matchLabels:
+          app: qotm
       template:
         metadata:
           labels:
