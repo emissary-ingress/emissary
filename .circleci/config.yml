@@ -170,7 +170,8 @@ commands:
                  - run: "make build # main build"
                  - run: "make build # no-op build"
                  - run: "make push-docker-buildcache || true"
-                 - run: "make deploy"
+                 - run: "make deploy # main deploy"
+                 - run: "make deploy # no-op deploy"
                  # FIXME: Figure out what's not parallel-safe about
                  # the tests
                  - run: "trap 'make unproxy' EXIT; set -x; make -j1 check"
