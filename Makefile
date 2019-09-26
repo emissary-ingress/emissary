@@ -138,7 +138,7 @@ TEST_SERVICE_IMAGES = $(patsubst %,test-%.docker,$(TEST_SERVICE_ROOTS) auth-tls)
 docker.tag.release = $(AMBASSADOR_DOCKER_TAG)
 docker.tag.local = $(AMBASSADOR_DOCKER_TAG)
 
-TEST_SERVICE_VERSION = 0.0.2
+TEST_SERVICE_VERSION = 0.0.3
 
 # ...then set overrides for the test services.
 test-%.docker.tag.release: docker.tag.release = quay.io/datawire/test_services:$(notdir $*)-$(TEST_SERVICE_VERSION)
