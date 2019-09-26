@@ -3,7 +3,6 @@ NAME            = ambassador-pro
 SHELL           = bash -o pipefail
 # For Makefile
 image.all       = $(sort $(patsubst %/Dockerfile,%,$(wildcard docker/*/Dockerfile)) docker/model-cluster-amb-sidecar-plugins ambassador/ambassador)
-image.nobinsrule= ambassador/ambassador
 image.norelease = $(filter docker/model-cluster-% docker/loadtest-%,$(image.all))
 image.nocluster = docker/apro-plugin-runner
 # For docker.mk
@@ -74,20 +73,24 @@ push-docs: ## Publish ./docs to https://github.com/datawire/ambassador-docs
 AMBASSADOR_COMMIT = a552b71badc8f297f363be59d418d2543f67ea3d
 
 # Git clone
-ambassador: $(var.)AMBASSADOR_COMMIT
+ambassador.stamp: %.stamp: $(var.)AMBASSADOR_COMMIT $(if $(call str.eq,$(AMBASSADOR_COMMIT),-),FORCE)
 # Ensure that GIT_DIR and GIT_WORK_TREE are unset so that `git bisect`
 # and friends work properly.
 	@PS4=; set -x; { \
 	    unset GIT_DIR GIT_WORK_TREE; \
-	    git init $@; \
-	    cd $@; \
+	    git init $*; \
+	    cd $*; \
 	    if ! git remote get-url origin &>/dev/null; then \
 	        git remote add origin https://github.com/datawire/ambassador; \
 	    fi; \
 	    git fetch || true; \
-	    git checkout $(AMBASSADOR_COMMIT); \
-	    touch .; \
+	    if [ $(AMBASSADOR_COMMIT) != '-' ]; then \
+	        git checkout $(AMBASSADOR_COMMIT); \
+	    elif ! git rev-parse HEAD >/dev/null 2>&1; then \
+	        git checkout origin/master; \
+	    fi; \
 	}
+	touch $@
 
 # Defer to `ambassador/Makefile` for several targets:
 #
@@ -99,7 +102,7 @@ AMBASSADOR_TARGETS += envoy-bin/envoy-static-stripped
 AMBASSADOR_TARGETS += ambassador.docker # We'll inject dependencies to this one
 AMBASSADOR_TARGETS += docker-base-images # We'll mark this one as .PHONY
 AMBASSADOR_TARGETS += docker-push-base-images # We'll mark this one as .PHONY, and inject a dependency
-$(addprefix ambassador/,$(AMBASSADOR_TARGETS)): ambassador/%: ambassador
+$(addprefix ambassador/,$(AMBASSADOR_TARGETS)): ambassador/%: ambassador.stamp
 	DOCKER_REGISTRY=- BASE_DOCKER_REPO=$(BUILDCACHE_DOCKER_REPO) ENVOY_COMPILATION_MODE=opt ENVOY_FILE=envoy-bin/certified-envoy $(MAKE) -C ambassador $*
 
 # OK, working backwards from our final target of
@@ -111,14 +114,12 @@ ambassador/ambassador.docker: ambassador/envoy-bin/certified-envoy
 # 2. `ambassador/Makefile` doesn't know how to build
 #    `envoy-bin/certified-envoy`, so write a rule for it here (still
 #    working backwards):
-ambassador/envoy-bin/certified-envoy: bin_linux_amd64/certified-envoy | ambassador
+ambassador/envoy-bin/certified-envoy: bin_linux_amd64/certified-envoy | ambassador.stamp
 	test -d $(@D) || mkdir $(@D)
 	cp $< $@
-bin_linux_amd64/certified-envoy: cmd/certified-envoy/envoy.go
-cmd/certified-envoy/envoy.go: cmd/certified-envoy/envoy.bin cmd/certified-envoy/envoy-gen.go
-	go run cmd/certified-envoy/envoy-gen.go $< | $(WRITE_IFCHANGED) $@
-cmd/certified-envoy/envoy.bin: ambassador/envoy-bin/envoy-static-stripped
-	cp $< $@
+bin_linux_amd64/.go-build/certified-envoy: cmd/certified-envoy/envoy.go
+cmd/certified-envoy/envoy.go: cmd/certified-envoy/envoy-gen.go ambassador/envoy-bin/envoy-static-stripped
+	go run cmd/certified-envoy/envoy-gen.go ambassador/envoy-bin/envoy-static-stripped > $@
 
 ambassador/docker-push-base-images: ambassador/docker-base-images
 .PHONY: ambassador/docker-base-images
@@ -129,7 +130,7 @@ ambassador/docker-push-base-images: ambassador/docker-base-images
 ambassador/ambassador.docker.tag.release: docker.tag.release = quay.io/datawire/ambassador_pro:amb-core-$(VERSION)
 
 push-docker-buildcache: ambassador/docker-push-base-images
-go-get: ambassador cmd/certified-envoy/envoy.go
+go-get: ambassador.stamp cmd/certified-envoy/envoy.go
 
 #
 # Lyft ratelimit
@@ -241,6 +242,11 @@ _cgo_GOBUILD += --workdir $$PWD
 _cgo_GOBUILD += docker.io/library/golang:$(patsubst go%,%,$(filter go1%,$(shell go version)))
 _cgo_GOBUILD += go build
 
+_gocache_volume_clobber:
+	if docker volume ls | grep -q apro-gocache; then docker volume rm apro-gocache; fi
+.PHONY: _gocache_volume_clobber
+clobber: _gocache_volume_clobber
+
 endif
 endif
 
@@ -249,49 +255,62 @@ endif
 
 build: $(if $(HAVE_DOCKER),$(addsuffix .docker,$(image.all)))
 
-# file contents:
-#   line 1: image ID
-%.docker: %/Dockerfile $(MOVE_IFCHANGED) FORCE
+%.docker.stamp: %/Dockerfile
 # Try with --pull, fall back to without --pull
-	docker build --iidfile=$(@D)/.tmp.$(@F).tmp --pull $* || docker build --iidfile=$(@D)/.tmp.$(@F).tmp $*
-	$(MOVE_IFCHANGED) $(@D)/.tmp.$(@F).tmp $@
+	docker build --iidfile=$@ --pull $* || docker build --iidfile=$@ $*
+%.docker: %.docker.stamp $(COPY_IFCHANGED)
+	$(COPY_IFCHANGED) $< $@
 
-# This assumes that if there's a Go binary with the same name as the
-# Docker image, then the image wants that binary.  That's a safe
-# assumption so far, and forces us to name things in a consistent
-# manner.
-define docker.bins_rule
-$(if $(filter $(notdir $(image)),$(notdir $(go.bins))),$(image).docker: $(image)/$(notdir $(image)) $(image)/$(notdir $(image)).opensource.tar.gz)
-$(image)/%: bin_linux_amd64/%
+define docker.rule
+  # Trigger a rebuild whenever one of the files in the same directory as
+  # the Dockerfile changes.
+  $(image).docker.stamp: $(shell find $(image)/)
+
+  # Assume that if there's a Go binary with the same name as the Docker
+  # image, then the image wants that binary.  That's a safe assumption
+  # so far, and forces us to name things in a consistent manner.
+  ifneq ($(filter $(notdir $(image)),$(notdir $(go.bins))),)
+    $(image).docker.stamp: $(image)/$(notdir $(image))
+    $(image).docker.stamp: $(image)/$(notdir $(image)).opensource.tar.gz
+  endif
+  $(image)/%: bin_linux_amd64/%
 	cp $$< $$@
-$(image)/clean:
+  $(image)/clean:
 	rm -f $(image)/$(notdir $(image))
-.PHONY: $(image)/clean
-clean: $(image)/clean
+  .PHONY: $(image)/clean
+  clean: $(image)/clean
 endef
-$(foreach image,$(filter-out $(image.nobinsrule),$(image.all)),$(eval $(docker.bins_rule)))
+$(foreach image,$(filter docker/%,$(image.all)),$(eval $(docker.rule)))
 
-_gocache_volume_clobber:
-	if docker volume ls | grep -q apro-gocache; then docker volume rm apro-gocache; fi
-.PHONY: _gocache_volume_clobber
-clobber: _gocache_volume_clobber
+# Cache the model-cluster-uaa build
+push-docker-buildcache: docker/model-cluster-uaa.docker.push.buildcache
+uaa_cache_tag = $(BUILDCACHE_DOCKER_REPO):$(notdir $*)-$(firstword $(shell sha1sum $*/Dockerfile))
+docker/model-cluster-uaa.docker.tag.buildcache: docker.tag.buildcache = $(uaa_cache_tag)
+docker/model-cluster-uaa.docker.stamp: %.docker.stamp: %/Dockerfile
+	@PS4=; set -ex; { \
+	    if docker run --rm --entrypoint=true $(uaa_cache_tag); then \
+		docker image inspect $(uaa_cache_tag) --format='{{.Id}}' > $@; \
+	    else \
+	        docker build --iidfile=$@ $*; \
+	    fi; \
+	}
 
-docker/app-sidecar.docker: docker/app-sidecar/ambex
+docker/app-sidecar.docker.stamp: docker/app-sidecar/ambex
 docker/app-sidecar/ambex:
 	curl -o $@ --fail 'https://s3.amazonaws.com/datawire-static-files/ambex/0.1.0/ambex'
 	chmod 755 $@
 
 docker/model-cluster-amb-sidecar-plugins/Dockerfile: docker/model-cluster-amb-sidecar-plugins/Dockerfile.gen docker/amb-sidecar.docker
 	$^ > $@
-docker/model-cluster-amb-sidecar-plugins.docker: docker/amb-sidecar.docker # ".SECONDARY:" (in common.mk) coming back to bite us
-docker/model-cluster-amb-sidecar-plugins.docker: $(foreach p,$(plugins),docker/model-cluster-amb-sidecar-plugins/$p.so)
+docker/model-cluster-amb-sidecar-plugins.docker.stamp: docker/amb-sidecar.docker # ".SECONDARY:" (in common.mk) coming back to bite us
+docker/model-cluster-amb-sidecar-plugins.docker.stamp: $(foreach p,$(plugins),docker/model-cluster-amb-sidecar-plugins/$p.so)
 
-docker/consul_connect_integration.docker: docker/consul_connect_integration/kubectl
+docker/consul_connect_integration.docker.stamp: docker/consul_connect_integration/kubectl
 
-docker/loadtest-generator.docker: docker/loadtest-generator/03-ambassador.yaml
-docker/loadtest-generator.docker: docker/loadtest-generator/kubeapply
-docker/loadtest-generator.docker: docker/loadtest-generator/kubectl
-docker/loadtest-generator.docker: docker/loadtest-generator/test.sh
+docker/loadtest-generator.docker.stamp: docker/loadtest-generator/03-ambassador.yaml
+docker/loadtest-generator.docker.stamp: docker/loadtest-generator/kubeapply
+docker/loadtest-generator.docker.stamp: docker/loadtest-generator/kubectl
+docker/loadtest-generator.docker.stamp: docker/loadtest-generator/test.sh
 docker/loadtest-generator/kubeapply:
 	curl -o $@ --fail https://s3.amazonaws.com/datawire-static-files/kubeapply/0.3.11/linux/amd64/kubeapply
 	chmod 755 $@
@@ -478,8 +497,10 @@ loadtest-apply loadtest-deploy loadtest-shell loadtest-proxy: loadtest-%: infra/
 # Clean
 
 clean: $(addsuffix .clean,$(wildcard docker/*.docker)) loadtest-clean
+	rm -f ambassador.stamp
 	rm -f apro-abi.txt
-	rm -f cmd/certified-envoy/envoy.bin cmd/certified-envoy/envoy.go
+	rm -f cmd/certified-envoy/envoy.go
+	rm -f docker/*.docker.stamp
 	rm -f docker/*/*.opensource.tar.gz
 	rm -f docker/model-cluster-amb-sidecar-plugins/Dockerfile docker/model-cluster-amb-sidecar-plugins/*.so
 	rm -f k8s-*/??-ambassador-certs.yaml k8s-*/*.pem
@@ -490,6 +511,8 @@ clean: $(addsuffix .clean,$(wildcard docker/*.docker)) loadtest-clean
 # Files made by older versions.  Remove the tail of this list when the
 # commit making the change gets far enough in to the past.
 #
+# 2019-09-23
+	rm -f cmd/certified-envoy/envoy.bin
 # 2019-09-16
 	rm -f docker/dev-portal-server/dev-portal-server
 # 2019-09-12
