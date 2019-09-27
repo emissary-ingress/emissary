@@ -41,7 +41,7 @@
 //         // client is now initialized
 //         session, request := client.AuthorizationRequest()
 //         response := do(request)
-//         client.ParseAccessTokenResponse(session, response)
+//         client.ParseAuthorizationResponse(session, response)
 //         // authorization flow is now completed
 //         authorization := client.AuthorizationForResourceRequest(session)
 //         response := do(resourceRequest(authorization))
@@ -64,4 +64,49 @@
 //         authorization := client.AuthorizationForResourceRequest(session)
 //         response := do(resourceRequest(authorization))
 //         err := client.ErrorFromResourceResponse(response)
+//
+//
+// type TokenErrorResponse struct{ ... }
+// type TokenResponse struct{ ... }
+//
+// type ClientAuthenticationMethod func(header http.Header, body url.Values) // used as an argument to all client constructors except NewImplicitClient
+// type Scope map[string]struct{}                                            // used all over the place
+// type UnsupportedTokenTypeError struct{ ... }                              // used all over the place
+//
+// type AuthorizationCodeClient struct{ ... }
+//
+//     func (client *AuthorizationCodeClient) AuthorizationRequest(*url.URL, Scope, string) =>                   type AuthorizationCodeClientSessionData struct{ ... }
+//     func (client *AuthorizationCodeClient) ParseAuthorizationResponse(...)               => error might be of type AuthorizationCodeGrantErrorResponse struct{ ... }
+//     func (client *AuthorizationCodeClient) AccessToken(...)                              => error might be of type TokenErrorResponse
+//     func (client *AuthorizationCodeClient) ErrorFromResourceResponse()                   =>                   type ReifiedResourceAccessErrorResponse struct{ ... }
+//
+//     func (client *AuthorizationCodeClient) Refresh(...)                                  => error might be of type TokenErrorResponse
+//
+// type ClientCredentialsClient struct{ ... }
+//
+//     func (client *ClientCredentialsClient) AuthorizationRequest(*url.URL, Scope, string) =>                   type ClientCredentialsClientSessionData struct{ ... }
+//                                                                                          => error might be of type TokenErrorResponse
+//     func (client *ClientCredentialsClient) ParseAuthorizationResponse(...)               => error might be of type ImplicitGrantErrorResponse struct{ ... }
+//     func (client *ClientCredentialsClient) ErrorFromResourceResponse()                   =>                   type ReifiedResourceAccessErrorResponse struct{ ... }
+//
+//     func (client *ClientCredentialsClient) Refresh(...)                                  => error might be of type TokenErrorResponse
+//
+// type ImplicitClient struct{ ... }
+//
+//     func (client *ImplicitClient) AuthorizationRequest()                                 =>                   type ImplicitClientSessionData struct{ ... }
+//     func (client *ImplicitClient) ErrorFromResourceResponse()                            =>                   type ReifiedResourceAccessErrorResponse struct{ ... }
+//
+// type ResourceOwnerPasswordCredentialsClient struct{ ... }
+//
+//     func (client *ResourceOwnerPasswordCredentialsClient) AuthorizationRequest()         =>                   type ResourceOwnerPasswordCredentialsClientSessionData struct{ ... }
+//                                                                                          => error might be of type TokenErrorResponse
+//     func (client *ResourceOwnerPasswordCredentialsClient) ErrorFromResourceResponse()    =>                   type ReifiedResourceAccessErrorResponse struct{ ... }
+//
+//     func (client *ResourceOwnerPasswordCredentialsClient) Refresh(...)                   => error might be of type TokenErrorResponse
+//
+// type ProtocolExtension struct{ ... }
+//     type AccessTokenType struct{ ... }
+//         type ResourceAccessErrorResponse interface{ ... }
+//     type ExtensionError struct{ ... }
+//         type ErrorUsageLocation interface{ ... }
 package rfc6749

@@ -1,4 +1,4 @@
- - There are a lot of "TODO" doc comments in `rfc6749registry`.
  - Actually use the Parameter Registry.
- - Move the registry to be per-instance, not global.
  - Maybe re-think rfc6749client creation.
+ - https://openid.net/certification/rp_testing/ (ex user:
+   https://github.com/panva/openid-client-conformance-tests )
