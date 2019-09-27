@@ -22,6 +22,8 @@ type Server struct {
 	K8sStore kubernetes.ServiceStore
 
 	pool *bpool.BufferPool
+
+	prefix string
 }
 
 func (s *Server) KnownServices() []kubernetes.Service {
@@ -148,11 +150,11 @@ type contentVars struct {
 	Rq     map[string]string
 }
 
-func (s *Server) vars(r *http.Request, context, prefix string) content.ContentVars {
+func (s *Server) vars(r *http.Request, context string) content.ContentVars {
 	return &contentVars{
 		S:      s,
 		Ctx:    context,
-		Prefix: prefix,
+		Prefix: s.prefix,
 		Rq:     mux.Vars(r),
 	}
 }
@@ -176,9 +178,9 @@ func (vars *contentVars) CurrentService() (page string) {
 	return
 }
 
-func (s *Server) handleHTML(context string, prefix string) http.HandlerFunc {
+func (s *Server) handleHTML(context string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		vars := s.vars(r, context, prefix)
+		vars := s.vars(r, context)
 		tmpl, err := s.content.Get(vars)
 		if err != nil {
 			log.Fatal(err)
@@ -212,6 +214,28 @@ func (s *Server) handleStatic(docroot string) http.HandlerFunc {
 	}
 }
 
+func (s *Server) Init(fetcher MappingSubscriptions) {
+	fetcher.SubscribeMappingObserver("devportal_mapping", func(prefix, rewrite string) bool {
+		prefix += "/"
+		log.WithFields(log.Fields{
+			"oldPrefix": s.prefix,
+			"prefix":    prefix,
+			"rewrite":   rewrite,
+		}).Info("Prefix detected from devportal_mapping")
+		s.prefix = prefix
+		return true
+	})
+	fetcher.SubscribeMappingObserver("devportal_api_mapping", func(prefix, rewrite string) bool {
+		prefix += "/"
+		log.WithFields(log.Fields{
+			"oldPrefix": s.prefix,
+			"prefix":    prefix,
+			"rewrite":   rewrite,
+		}).Info("API prefix detected from devportal_api_mapping (TODO)")
+		return true
+	})
+}
+
 // Create a new HTTP server instance.
 //
 // TODO The URL scheme exposes Service names and K8s namespace names, which is
@@ -221,22 +245,23 @@ func NewServer(docroot string, content *content.Content) *Server {
 	router := mux.NewRouter()
 	router.Use(logging.LoggingMiddleware)
 
+	root := docroot + "/"
 	s := &Server{
 		router:   router,
 		content:  content,
 		K8sStore: kubernetes.NewInMemoryStore(),
 		pool:     bpool.NewBufferPool(64),
+		prefix:   root,
 	}
 
 	// TODO in a later design iteration, we would serve static HTML, and
 	// have Javascript UI that queries the API endpoints. for this
 	// iteration, just doing it server-side.
-	root := docroot + "/"
-	router.HandleFunc(docroot+"/", s.handleHTML("landing", root))
+	router.HandleFunc(docroot+"/", s.handleHTML("landing"))
 	router.PathPrefix(docroot + "/assets/").HandlerFunc(s.handleStatic(docroot))
 	router.PathPrefix(docroot + "/styles/").HandlerFunc(s.handleStatic(docroot))
-	router.HandleFunc(docroot+"/page/{page}", s.handleHTML("page", root))
-	router.HandleFunc(docroot+"/doc/{namespace}/{service}", s.handleHTML("doc", root))
+	router.HandleFunc(docroot+"/page/{page}", s.handleHTML("page"))
+	router.HandleFunc(docroot+"/doc/{namespace}/{service}", s.handleHTML("doc"))
 
 	// *** Read-only API, requires less access control and may be exposed ***
 	// publicly:

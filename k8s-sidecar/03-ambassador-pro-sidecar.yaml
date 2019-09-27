@@ -76,8 +76,8 @@ metadata:
       apiVersion: ambassador/v1
       kind: Mapping
       name: devportal_mapping
-      prefix: /docs/
-      rewrite: ""
+      prefix: /documentation/
+      rewrite: "/docs/"
       add_response_headers:
         x-test-proto: "%PROTOCOL%"
         x-test-ip: "%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%"
