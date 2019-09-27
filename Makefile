@@ -220,6 +220,7 @@ clean: clean-test envoy-build-container.txt.clean
 	rm -rf venv/bin/ambassador
 	rm -rf ambassador/ambassador/VERSION.py*
 	rm -f *.docker
+	rm -f *.docker.*
 	rm -rf ambassador/build ambassador/dist ambassador/ambassador.egg-info ambassador/__pycache__
 	find . \( -name .coverage -o -name .cache -o -name __pycache__ \) -print0 | xargs -0 rm -rf
 	find . \( -name *.log \) -print0 | xargs -0 rm -rf
