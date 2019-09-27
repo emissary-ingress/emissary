@@ -34,7 +34,7 @@ from pkg_resources import Requirement, resource_filename
 
 import clize
 from clize import Parameter
-from flask import Flask, render_template, send_from_directory, request, jsonify, Response
+from flask import Flask, render_template, send_from_directory, request, jsonify
 import gunicorn.app.base
 from gunicorn.six import iteritems
 
@@ -192,12 +192,10 @@ def standard_handler(f):
 
         try:
             result = f(*args, reqid=reqid, **kwds)
-            # if isinstance(result, Response):
-                # result = (result, 200)
-            # else:
-                # result = (result, 404)
+            if not isinstance(result, tuple):
+                result = (result, 200)
 
-            status_to_log = 200
+            status_to_log = result[1]
 
             if (status_to_log // 100) == 2:
                 result_log_level = logging.INFO
