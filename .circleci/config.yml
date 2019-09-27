@@ -198,7 +198,7 @@ commands:
      # this last, and only if everything so far has passed; don't
      # wipe out artifacts that are useful for debugging.
      - run: make clobber
-     - run: "test -z \"$(git clean -ndx)\""
+     - run: "git clean -ndx; test -z \"$(git clean -ndx)\""
 
 jobs:
 
