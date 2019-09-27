@@ -15,10 +15,10 @@ class RateLimitV0Test(AmbassadorTest):
 apiVersion: v1
 kind: Service
 metadata:
-  name: rate-limit
+  name: rate-limit-v0
 spec:
   selector:
-    app: rate-limit
+    app: rate-limit-v0
   ports:
   - port: 5000
     name: grpc
@@ -28,7 +28,7 @@ spec:
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: rate-limit
+  name: rate-limit-v0
 spec:
   replicas: 1
   strategy:
@@ -36,7 +36,7 @@ spec:
   template:
     metadata:
       labels:
-        app: rate-limit
+        app: rate-limit-v0
     spec:
       containers:
       - name: rate-limit
@@ -93,8 +93,8 @@ labels:
 ---
 apiVersion: ambassador/v0
 kind: RateLimitService
-name: ratelimit
-service: rate-limit:5000
+name: ratelimit-v0
+service: rate-limit-v0:5000
 timeout_ms: 500
 """)
 
@@ -129,10 +129,10 @@ class RateLimitV1Test(AmbassadorTest):
 apiVersion: v1
 kind: Service
 metadata:
-  name: rate-limit
+  name: rate-limit-v1
 spec:
   selector:
-    app: rate-limit
+    app: rate-limit-v1
   ports:
   - port: 5000
     name: grpc
@@ -142,7 +142,7 @@ spec:
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: rate-limit
+  name: rate-limit-v1
 spec:
   replicas: 1
   strategy:
@@ -150,7 +150,7 @@ spec:
   template:
     metadata:
       labels:
-        app: rate-limit
+        app: rate-limit-v1
     spec:
       containers:
       - name: rate-limit
@@ -187,8 +187,8 @@ labels:
 ---
 apiVersion: ambassador/v1
 kind: RateLimitService
-name: ratelimit
-service: rate-limit:5000
+name: ratelimit-v1
+service: rate-limit-v1:5000
 timeout_ms: 500
 """)
 
