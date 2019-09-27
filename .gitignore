@@ -26,6 +26,7 @@ venv
 /k8s-*/*.o
 /k8s-*/??-ambassador-certs.yaml
 /k8s-*/??-auth0-secret.yaml
+/build-aux/docker-registry.preload
 node_modules/
 
 *.log

@@ -1,3 +1,9 @@
+# Sanitize the environment a bit.
+undefine ENV      # bad configuration mechansim
+undefine BASH_ENV # bad configuration mechansim, but CircleCI insists on it
+undefine CDPATH   # should not be exported, but some people do
+undefine IFS      # should not be exported, but some people do
+
 NAME            = ambassador-pro
 # For Make itself
 SHELL           = bash -o pipefail
@@ -206,7 +212,6 @@ $(addprefix bin_$(GOHOSTOS)_$(GOHOSTARCH)/,$(_cgo_files)): CGO_ENABLED = 1
 
 # but cross-builds are the complex story
 ifneq ($(GOHOSTOS)_$(GOHOSTARCH),linux_amd64)
-ifneq ($(HAVE_DOCKER),)
 
 go-build: $(foreach p,$(plugins),bin_linux_amd64/$p.so)
 
@@ -248,12 +253,11 @@ _gocache_volume_clobber:
 clobber: _gocache_volume_clobber
 
 endif
-endif
 
 #
 # Docker images
 
-build: $(if $(HAVE_DOCKER),$(addsuffix .docker,$(image.all)))
+build: $(addsuffix .docker,$(image.all))
 
 %.docker.stamp: %/Dockerfile
 # Try with --pull, fall back to without --pull
@@ -330,6 +334,23 @@ docker/%/kubectl:
 
 %/03-auth0-secret.yaml: %/namespace.txt $(K8S_ENVS)
 	$(if $(K8S_ENVS),set -a && $(foreach k8s_env,$(abspath $(K8S_ENVS)), . $(k8s_env) && ))kubectl --namespace="$$(cat $*/namespace.txt)" create secret generic --dry-run --output=yaml auth0-secret --from-literal=oauth2-client-secret="$$IDP_AUTH0_CLIENT_SECRET" > $@
+
+PRELOAD_IMAGES = $(sort $(shell awk '($$1 == "FROM") && ($$2 !~ /^(sha256:|\$$)/) { print $$2}' docker/*/Dockerfile ambassador/Dockerfile*))
+$(addsuffix .docker.push.cluster,$(image.all)): build-aux/docker-registry.preload
+build-aux/docker-registry.preload: build-aux/docker-registry.deploy
+build-aux/docker-registry.preload: preload.yaml $(KUBEAPPLY) $(KUBECONFIG)
+build-aux/docker-registry.preload: $(var.)PRELOAD_IMAGES
+	kubectl --namespace=docker-registry delete jobs/preload || true
+	PRELOAD_IMAGES='$(PRELOAD_IMAGES)' $(KUBEAPPLY) -f preload.yaml
+	{ \
+	    ( \
+	        kubectl --namespace=docker-registry wait --selector=job-name=preload --for=condition=ready pod; \
+	        kubectl --namespace=docker-registry logs --selector=job-name=preload --follow; \
+	    ) & \
+	    kubectl --namespace=docker-registry wait --timeout=2m --for=condition=complete jobs/preload; \
+	}
+	kubectl delete --namespace=docker-registry jobs/preload
+	touch $@
 
 deploy: $(addsuffix /04-ambassador-certs.yaml,$(K8S_DIRS)) k8s-standalone/03-auth0-secret.yaml
 apply: $(addsuffix /04-ambassador-certs.yaml,$(K8S_DIRS)) k8s-standalone/03-auth0-secret.yaml
@@ -416,7 +437,7 @@ venv/bin/activate: %/bin/activate:
 #
 # Check
 
-check: $(if $(HAVE_DOCKER),deploy proxy)
+check: deploy proxy
 test-suite.tap: tests/local.tap tests/cluster.tap
 
 # local ########################################################################
@@ -499,6 +520,7 @@ loadtest-apply loadtest-deploy loadtest-shell loadtest-proxy: loadtest-%: infra/
 clean: $(addsuffix .clean,$(wildcard docker/*.docker)) loadtest-clean
 	rm -f ambassador.stamp
 	rm -f apro-abi.txt
+	rm -f build-aux/docker-registry.preload
 	rm -f cmd/certified-envoy/envoy.go
 	rm -f docker/*.docker.stamp
 	rm -f docker/*/*.opensource.tar.gz
