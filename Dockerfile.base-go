@@ -24,7 +24,7 @@
 # Makefile, then run "make docker-update-base" to build and push the
 # new image.
 
-FROM frolvlad/alpine-glibc:alpine-3.9
+FROM frolvlad/alpine-glibc:alpine-3.10
 
 ENV AMBASSADOR_ROOT=/ambassador
 WORKDIR ${AMBASSADOR_ROOT}

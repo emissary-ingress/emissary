@@ -33,7 +33,7 @@ ARG BASE_GO_IMAGE
 # STAGE ZERO: Copy in the Envoy binary (which was previously
 # extracted from BASE_ENVOY_IMAGE the Makefile).
 
-FROM frolvlad/alpine-glibc:alpine-3.9 as base-envoy
+FROM frolvlad/alpine-glibc:alpine-3.10 as base-envoy
 
 # ADD/COPY the file in, then reset its timestamp to the unix epoch, so
 # the timestamp doesn't break Docker layer caching.
@@ -68,7 +68,7 @@ COPY --from=base-envoy /usr/local/bin/envoy /usr/local/bin/envoy
 # One could argue that this is perhaps a bit of a hack. However, it's also the way to
 # get all the stuff that pip installed without needing the whole of the Python dev
 # chain.
-COPY --from=base-py /usr/lib/python3.6 /usr/lib/python3.6/
+COPY --from=base-py /usr/lib/python3.7 /usr/lib/python3.7/
 COPY --from=base-py /usr/lib/libyaml* /usr/lib/
 COPY --from=base-py /usr/lib/pkgconfig /usr/lib/
 
