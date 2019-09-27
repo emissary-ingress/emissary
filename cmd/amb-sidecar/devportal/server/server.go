@@ -216,7 +216,7 @@ func (s *Server) handleStatic(docroot string) http.HandlerFunc {
 
 func (s *Server) Init(fetcher MappingSubscriptions) {
 	fetcher.SubscribeMappingObserver("devportal_mapping", func(prefix, rewrite string) bool {
-		prefix = prefix + "/"
+		prefix += "/"
 		log.WithFields(log.Fields{
 			"oldPrefix": s.prefix,
 			"prefix":    prefix,
@@ -226,7 +226,7 @@ func (s *Server) Init(fetcher MappingSubscriptions) {
 		return true
 	})
 	fetcher.SubscribeMappingObserver("devportal_api_mapping", func(prefix, rewrite string) bool {
-		prefix = prefix + "/"
+		prefix += "/"
 		log.WithFields(log.Fields{
 			"oldPrefix": s.prefix,
 			"prefix":    prefix,
