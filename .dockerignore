@@ -1,7 +1,6 @@
 *
 !cmd/
 !pkg/
-!multi/
 !ambassador/
 !demo/
 !releng/

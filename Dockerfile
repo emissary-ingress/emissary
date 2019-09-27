@@ -48,10 +48,10 @@ RUN touch -t 197001010000 /usr/local/bin/envoy
 FROM $BASE_PY_IMAGE as base-py
 
 # Install the application itself
-COPY multi/ multi
 COPY ambassador/ ambassador
+RUN rm -rf ./multi
 RUN releng/install-py.sh prd install */requirements.txt
-RUN rm -rf ./multi ./ambassador
+RUN rm -rf ./ambassador
 
 ################################################################
 # STAGE TWO: switch to the BASE_GO_IMAGE as the base of
