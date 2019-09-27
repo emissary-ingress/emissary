@@ -203,7 +203,7 @@ def sanitize(obj):
 
 
 def abstract_test(cls: type):
-    cls.abstract_test = True
+    cls.abstract_test = True  # type: ignore
     return cls
 
 
@@ -217,7 +217,7 @@ def get_nodes(node_type: type):
 
 
 def variants(cls, *args, **kwargs) -> Tuple[Any]:
-    return tuple(a for n in get_nodes(cls) for a in n.variants(*args, **kwargs))
+    return tuple(a for n in get_nodes(cls) for a in n.variants(*args, **kwargs))  # type: ignore
 
 
 class Name(str):
@@ -267,7 +267,7 @@ class Node(ABC):
     children: List['Node']
     name: Name
     ambassador_id: str
-    namespace: str = None
+    namespace: str = None  # type: ignore
 
     def __init__(self, *args, **kwargs) -> None:
         # If self.skip is set to true, this node is skipped
@@ -283,14 +283,14 @@ class Node(ABC):
         _clone: Node = kwargs.pop("_clone", None)
 
         if _clone:
-            args = _clone._args
-            kwargs = _clone._kwargs
+            args = _clone._args  # type: ignore
+            kwargs = _clone._kwargs  # type: ignore
             if name:
                 name = Name("-".join((_clone.name, name)))
             else:
                 name = _clone.name
-            self._args = _clone._args
-            self._kwargs = _clone._kwargs
+            self._args = _clone._args  # type: ignore
+            self._kwargs = _clone._kwargs  # type: ignore
         else:
             self._args = args
             self._kwargs = kwargs
@@ -322,7 +322,7 @@ class Node(ABC):
 
         self.name = Name(self.format(name or self.__class__.__name__))
 
-        names = {}
+        names = {}  # type: ignore
         for c in self.children:
             assert c.name not in names, ("test %s of type %s has duplicate children: %s of type %s, %s" %
                                          (self.name, self.__class__.__name__, c.name, c.__class__.__name__,
@@ -446,15 +446,15 @@ class Test(Node):
 def encode_body(obj):
     yield type(obj)
 
-@encode_body.when(bytes)
+@encode_body.when(bytes)  # type: ignore
 def encode_body(b):
     return base64.encodebytes(b).decode("utf-8")
 
-@encode_body.when(str)
+@encode_body.when(str)  # type: ignore
 def encode_body(s):
     return encode_body(s.encode("utf-8"))
 
-@encode_body.default
+@encode_body.default   # type: ignore
 def encode_body(obj):
     return encode_body(json.dumps(obj))
 
@@ -942,7 +942,7 @@ class Runner:
                 self.done = True
 
     def get_manifests(self, selected) -> OrderedDict:
-        manifests = OrderedDict()
+        manifests = OrderedDict()  # type: ignore
         superpods: Dict[str, Superpod] = {}
 
         for n in (n for n in self.nodes if n in selected):
@@ -973,12 +973,12 @@ class Runner:
             # OK. Does this node want to use a superpod?
             if getattr(n, 'use_superpod', False):
                 # Yup. OK. Do we already have a superpod for this namespace?
-                superpod = superpods.get(nsp, None)
+                superpod = superpods.get(nsp, None)  # type: ignore
 
                 if not superpod:
                     # We don't have one, so we need to create one.
-                    superpod = Superpod(nsp)
-                    superpods[nsp] = superpod
+                    superpod = Superpod(nsp)  # type: ignore
+                    superpods[nsp] = superpod  # type: ignore
 
                 # print(f'superpodifying {n.name}')
 
@@ -1256,7 +1256,7 @@ class Runner:
     def _ready(self, kind, _):
         return kind
 
-    @_ready.when("pod")
+    @_ready.when("pod")  # type: ignore
     def _ready(self, _, requirements):
         pods = self._pods(self.scope)
         not_ready = []
@@ -1271,7 +1271,7 @@ class Runner:
 
         return (True, None)
 
-    @_ready.when("url")
+    @_ready.when("url")  # type: ignore
     def _ready(self, _, requirements):
         queries = []
 
