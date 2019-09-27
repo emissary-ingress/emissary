@@ -4,6 +4,7 @@
 
 Behavior:
 
+ * Feature: Developer portal URL can be changed by the user. Adjust the `devportal_mapping` `Mapping` CRD (or annotation) by changing the `prefix` to desired prefix and changing the `rewrite` to `/docs/`. The `devportal_api_mapping` can not be adjusted yet. 
  * Bugfix: Properly return a 404 for unknown paths in the amb-sidecar; instead of serving the index page; this could happen if the devportal Mapping is misconfigured.
  * Bugfix: Fix the "loaded filter" log info message.
  * Bugfix: Don't publish the "dev-portal-server" Docker image; it was obviated by "amb-sidecar" in 0.8.0.
