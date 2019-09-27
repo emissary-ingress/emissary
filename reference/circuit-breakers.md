@@ -88,4 +88,4 @@ circuit_breakers:
   max_retries: 3
 ```
 
-Circuit breaker metrics are exposed in statsd. For more information about the specific statistics, see the [Envoy documentation](https://www.envoyproxy.io/learn/circuit-breaking).
+Circuit breaker metrics are exposed in statsd. For more information about the specific statistics, see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest/intro/arch_overview/upstream/circuit_breaking.html).
