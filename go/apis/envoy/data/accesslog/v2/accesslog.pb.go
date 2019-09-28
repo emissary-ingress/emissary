@@ -8,21 +8,17 @@ import (
 	fmt "fmt"
 	core "github.com/datawire/ambassador/go/apis/envoy/api/v2/core"
 	_ "github.com/envoyproxy/protoc-gen-validate/validate"
-	_ "github.com/gogo/protobuf/gogoproto"
 	proto "github.com/gogo/protobuf/proto"
-	github_com_gogo_protobuf_sortkeys "github.com/gogo/protobuf/sortkeys"
-	github_com_gogo_protobuf_types "github.com/gogo/protobuf/types"
 	types "github.com/gogo/protobuf/types"
 	io "io"
 	math "math"
-	time "time"
+	math_bits "math/bits"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
 var _ = fmt.Errorf
 var _ = math.Inf
-var _ = time.Kitchen
 
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the proto package it is being compiled against.
@@ -86,7 +82,7 @@ func (x ResponseFlags_Unauthorized_Reason) String() string {
 }
 
 func (ResponseFlags_Unauthorized_Reason) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_ca1a3c8f3c17c754, []int{3, 0, 0}
+	return fileDescriptor_ca1a3c8f3c17c754, []int{4, 0, 0}
 }
 
 type TLSProperties_TLSVersion int32
@@ -120,16 +116,17 @@ func (x TLSProperties_TLSVersion) String() string {
 }
 
 func (TLSProperties_TLSVersion) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_ca1a3c8f3c17c754, []int{4, 0}
+	return fileDescriptor_ca1a3c8f3c17c754, []int{5, 0}
 }
 
-// [#not-implemented-hide:]
 type TCPAccessLogEntry struct {
 	// Common properties shared by all Envoy access logs.
-	CommonProperties     *AccessLogCommon `protobuf:"bytes,1,opt,name=common_properties,json=commonProperties,proto3" json:"common_properties,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}         `json:"-"`
-	XXX_unrecognized     []byte           `json:"-"`
-	XXX_sizecache        int32            `json:"-"`
+	CommonProperties *AccessLogCommon `protobuf:"bytes,1,opt,name=common_properties,json=commonProperties,proto3" json:"common_properties,omitempty"`
+	// Properties of the TCP connection.
+	ConnectionProperties *ConnectionProperties `protobuf:"bytes,2,opt,name=connection_properties,json=connectionProperties,proto3" json:"connection_properties,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}              `json:"-"`
+	XXX_unrecognized     []byte                `json:"-"`
+	XXX_sizecache        int32                 `json:"-"`
 }
 
 func (m *TCPAccessLogEntry) Reset()         { *m = TCPAccessLogEntry{} }
@@ -142,12 +139,16 @@ func (m *TCPAccessLogEntry) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
 func (m *TCPAccessLogEntry) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	b = b[:cap(b)]
-	n, err := m.MarshalTo(b)
-	if err != nil {
-		return nil, err
+	if deterministic {
+		return xxx_messageInfo_TCPAccessLogEntry.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
 	}
-	return b[:n], nil
 }
 func (m *TCPAccessLogEntry) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_TCPAccessLogEntry.Merge(m, src)
@@ -164,6 +165,13 @@ var xxx_messageInfo_TCPAccessLogEntry proto.InternalMessageInfo
 func (m *TCPAccessLogEntry) GetCommonProperties() *AccessLogCommon {
 	if m != nil {
 		return m.CommonProperties
+	}
+	return nil
+}
+
+func (m *TCPAccessLogEntry) GetConnectionProperties() *ConnectionProperties {
+	if m != nil {
+		return m.ConnectionProperties
 	}
 	return nil
 }
@@ -191,12 +199,16 @@ func (m *HTTPAccessLogEntry) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
 func (m *HTTPAccessLogEntry) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	b = b[:cap(b)]
-	n, err := m.MarshalTo(b)
-	if err != nil {
-		return nil, err
+	if deterministic {
+		return xxx_messageInfo_HTTPAccessLogEntry.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
 	}
-	return b[:n], nil
 }
 func (m *HTTPAccessLogEntry) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_HTTPAccessLogEntry.Merge(m, src)
@@ -238,6 +250,64 @@ func (m *HTTPAccessLogEntry) GetResponse() *HTTPResponseProperties {
 	return nil
 }
 
+// Defines fields for a connection
+type ConnectionProperties struct {
+	// Number of bytes received from downstream.
+	ReceivedBytes uint64 `protobuf:"varint,1,opt,name=received_bytes,json=receivedBytes,proto3" json:"received_bytes,omitempty"`
+	// Number of bytes sent to downstream.
+	SentBytes            uint64   `protobuf:"varint,2,opt,name=sent_bytes,json=sentBytes,proto3" json:"sent_bytes,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *ConnectionProperties) Reset()         { *m = ConnectionProperties{} }
+func (m *ConnectionProperties) String() string { return proto.CompactTextString(m) }
+func (*ConnectionProperties) ProtoMessage()    {}
+func (*ConnectionProperties) Descriptor() ([]byte, []int) {
+	return fileDescriptor_ca1a3c8f3c17c754, []int{2}
+}
+func (m *ConnectionProperties) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *ConnectionProperties) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_ConnectionProperties.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *ConnectionProperties) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ConnectionProperties.Merge(m, src)
+}
+func (m *ConnectionProperties) XXX_Size() int {
+	return m.Size()
+}
+func (m *ConnectionProperties) XXX_DiscardUnknown() {
+	xxx_messageInfo_ConnectionProperties.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ConnectionProperties proto.InternalMessageInfo
+
+func (m *ConnectionProperties) GetReceivedBytes() uint64 {
+	if m != nil {
+		return m.ReceivedBytes
+	}
+	return 0
+}
+
+func (m *ConnectionProperties) GetSentBytes() uint64 {
+	if m != nil {
+		return m.SentBytes
+	}
+	return 0
+}
+
 // Defines fields that are shared by all Envoy access logs.
 type AccessLogCommon struct {
 	// [#not-implemented-hide:]
@@ -254,38 +324,38 @@ type AccessLogCommon struct {
 	TlsProperties *TLSProperties `protobuf:"bytes,4,opt,name=tls_properties,json=tlsProperties,proto3" json:"tls_properties,omitempty"`
 	// The time that Envoy started servicing this request. This is effectively the time that the first
 	// downstream byte is received.
-	StartTime *time.Time `protobuf:"bytes,5,opt,name=start_time,json=startTime,proto3,stdtime" json:"start_time,omitempty"`
+	StartTime *types.Timestamp `protobuf:"bytes,5,opt,name=start_time,json=startTime,proto3" json:"start_time,omitempty"`
 	// Interval between the first downstream byte received and the last
 	// downstream byte received (i.e. time it takes to receive a request).
-	TimeToLastRxByte *time.Duration `protobuf:"bytes,6,opt,name=time_to_last_rx_byte,json=timeToLastRxByte,proto3,stdduration" json:"time_to_last_rx_byte,omitempty"`
+	TimeToLastRxByte *types.Duration `protobuf:"bytes,6,opt,name=time_to_last_rx_byte,json=timeToLastRxByte,proto3" json:"time_to_last_rx_byte,omitempty"`
 	// Interval between the first downstream byte received and the first upstream byte sent. There may
 	// by considerable delta between *time_to_last_rx_byte* and this value due to filters.
 	// Additionally, the same caveats apply as documented in *time_to_last_downstream_tx_byte* about
 	// not accounting for kernel socket buffer time, etc.
-	TimeToFirstUpstreamTxByte *time.Duration `protobuf:"bytes,7,opt,name=time_to_first_upstream_tx_byte,json=timeToFirstUpstreamTxByte,proto3,stdduration" json:"time_to_first_upstream_tx_byte,omitempty"`
+	TimeToFirstUpstreamTxByte *types.Duration `protobuf:"bytes,7,opt,name=time_to_first_upstream_tx_byte,json=timeToFirstUpstreamTxByte,proto3" json:"time_to_first_upstream_tx_byte,omitempty"`
 	// Interval between the first downstream byte received and the last upstream byte sent. There may
 	// by considerable delta between *time_to_last_rx_byte* and this value due to filters.
 	// Additionally, the same caveats apply as documented in *time_to_last_downstream_tx_byte* about
 	// not accounting for kernel socket buffer time, etc.
-	TimeToLastUpstreamTxByte *time.Duration `protobuf:"bytes,8,opt,name=time_to_last_upstream_tx_byte,json=timeToLastUpstreamTxByte,proto3,stdduration" json:"time_to_last_upstream_tx_byte,omitempty"`
+	TimeToLastUpstreamTxByte *types.Duration `protobuf:"bytes,8,opt,name=time_to_last_upstream_tx_byte,json=timeToLastUpstreamTxByte,proto3" json:"time_to_last_upstream_tx_byte,omitempty"`
 	// Interval between the first downstream byte received and the first upstream
 	// byte received (i.e. time it takes to start receiving a response).
-	TimeToFirstUpstreamRxByte *time.Duration `protobuf:"bytes,9,opt,name=time_to_first_upstream_rx_byte,json=timeToFirstUpstreamRxByte,proto3,stdduration" json:"time_to_first_upstream_rx_byte,omitempty"`
+	TimeToFirstUpstreamRxByte *types.Duration `protobuf:"bytes,9,opt,name=time_to_first_upstream_rx_byte,json=timeToFirstUpstreamRxByte,proto3" json:"time_to_first_upstream_rx_byte,omitempty"`
 	// Interval between the first downstream byte received and the last upstream
 	// byte received (i.e. time it takes to receive a complete response).
-	TimeToLastUpstreamRxByte *time.Duration `protobuf:"bytes,10,opt,name=time_to_last_upstream_rx_byte,json=timeToLastUpstreamRxByte,proto3,stdduration" json:"time_to_last_upstream_rx_byte,omitempty"`
+	TimeToLastUpstreamRxByte *types.Duration `protobuf:"bytes,10,opt,name=time_to_last_upstream_rx_byte,json=timeToLastUpstreamRxByte,proto3" json:"time_to_last_upstream_rx_byte,omitempty"`
 	// Interval between the first downstream byte received and the first downstream byte sent.
 	// There may be a considerable delta between the *time_to_first_upstream_rx_byte* and this field
 	// due to filters. Additionally, the same caveats apply as documented in
 	// *time_to_last_downstream_tx_byte* about not accounting for kernel socket buffer time, etc.
-	TimeToFirstDownstreamTxByte *time.Duration `protobuf:"bytes,11,opt,name=time_to_first_downstream_tx_byte,json=timeToFirstDownstreamTxByte,proto3,stdduration" json:"time_to_first_downstream_tx_byte,omitempty"`
+	TimeToFirstDownstreamTxByte *types.Duration `protobuf:"bytes,11,opt,name=time_to_first_downstream_tx_byte,json=timeToFirstDownstreamTxByte,proto3" json:"time_to_first_downstream_tx_byte,omitempty"`
 	// Interval between the first downstream byte received and the last downstream byte sent.
 	// Depending on protocol, buffering, windowing, filters, etc. there may be a considerable delta
 	// between *time_to_last_upstream_rx_byte* and this field. Note also that this is an approximate
 	// time. In the current implementation it does not include kernel socket buffer time. In the
 	// current implementation it also does not include send window buffering inside the HTTP/2 codec.
 	// In the future it is likely that work will be done to make this duration more accurate.
-	TimeToLastDownstreamTxByte *time.Duration `protobuf:"bytes,12,opt,name=time_to_last_downstream_tx_byte,json=timeToLastDownstreamTxByte,proto3,stdduration" json:"time_to_last_downstream_tx_byte,omitempty"`
+	TimeToLastDownstreamTxByte *types.Duration `protobuf:"bytes,12,opt,name=time_to_last_downstream_tx_byte,json=timeToLastDownstreamTxByte,proto3" json:"time_to_last_downstream_tx_byte,omitempty"`
 	// The upstream remote/destination address that handles this exchange. This does not include
 	// retries.
 	UpstreamRemoteAddress *core.Address `protobuf:"bytes,13,opt,name=upstream_remote_address,json=upstreamRemoteAddress,proto3" json:"upstream_remote_address,omitempty"`
@@ -320,18 +390,22 @@ func (m *AccessLogCommon) Reset()         { *m = AccessLogCommon{} }
 func (m *AccessLogCommon) String() string { return proto.CompactTextString(m) }
 func (*AccessLogCommon) ProtoMessage()    {}
 func (*AccessLogCommon) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ca1a3c8f3c17c754, []int{2}
+	return fileDescriptor_ca1a3c8f3c17c754, []int{3}
 }
 func (m *AccessLogCommon) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
 func (m *AccessLogCommon) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	b = b[:cap(b)]
-	n, err := m.MarshalTo(b)
-	if err != nil {
-		return nil, err
+	if deterministic {
+		return xxx_messageInfo_AccessLogCommon.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
 	}
-	return b[:n], nil
 }
 func (m *AccessLogCommon) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_AccessLogCommon.Merge(m, src)
@@ -373,56 +447,56 @@ func (m *AccessLogCommon) GetTlsProperties() *TLSProperties {
 	return nil
 }
 
-func (m *AccessLogCommon) GetStartTime() *time.Time {
+func (m *AccessLogCommon) GetStartTime() *types.Timestamp {
 	if m != nil {
 		return m.StartTime
 	}
 	return nil
 }
 
-func (m *AccessLogCommon) GetTimeToLastRxByte() *time.Duration {
+func (m *AccessLogCommon) GetTimeToLastRxByte() *types.Duration {
 	if m != nil {
 		return m.TimeToLastRxByte
 	}
 	return nil
 }
 
-func (m *AccessLogCommon) GetTimeToFirstUpstreamTxByte() *time.Duration {
+func (m *AccessLogCommon) GetTimeToFirstUpstreamTxByte() *types.Duration {
 	if m != nil {
 		return m.TimeToFirstUpstreamTxByte
 	}
 	return nil
 }
 
-func (m *AccessLogCommon) GetTimeToLastUpstreamTxByte() *time.Duration {
+func (m *AccessLogCommon) GetTimeToLastUpstreamTxByte() *types.Duration {
 	if m != nil {
 		return m.TimeToLastUpstreamTxByte
 	}
 	return nil
 }
 
-func (m *AccessLogCommon) GetTimeToFirstUpstreamRxByte() *time.Duration {
+func (m *AccessLogCommon) GetTimeToFirstUpstreamRxByte() *types.Duration {
 	if m != nil {
 		return m.TimeToFirstUpstreamRxByte
 	}
 	return nil
 }
 
-func (m *AccessLogCommon) GetTimeToLastUpstreamRxByte() *time.Duration {
+func (m *AccessLogCommon) GetTimeToLastUpstreamRxByte() *types.Duration {
 	if m != nil {
 		return m.TimeToLastUpstreamRxByte
 	}
 	return nil
 }
 
-func (m *AccessLogCommon) GetTimeToFirstDownstreamTxByte() *time.Duration {
+func (m *AccessLogCommon) GetTimeToFirstDownstreamTxByte() *types.Duration {
 	if m != nil {
 		return m.TimeToFirstDownstreamTxByte
 	}
 	return nil
 }
 
-func (m *AccessLogCommon) GetTimeToLastDownstreamTxByte() *time.Duration {
+func (m *AccessLogCommon) GetTimeToLastDownstreamTxByte() *types.Duration {
 	if m != nil {
 		return m.TimeToLastDownstreamTxByte
 	}
@@ -526,18 +600,22 @@ func (m *ResponseFlags) Reset()         { *m = ResponseFlags{} }
 func (m *ResponseFlags) String() string { return proto.CompactTextString(m) }
 func (*ResponseFlags) ProtoMessage()    {}
 func (*ResponseFlags) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ca1a3c8f3c17c754, []int{3}
+	return fileDescriptor_ca1a3c8f3c17c754, []int{4}
 }
 func (m *ResponseFlags) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
 func (m *ResponseFlags) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	b = b[:cap(b)]
-	n, err := m.MarshalTo(b)
-	if err != nil {
-		return nil, err
+	if deterministic {
+		return xxx_messageInfo_ResponseFlags.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
 	}
-	return b[:n], nil
 }
 func (m *ResponseFlags) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_ResponseFlags.Merge(m, src)
@@ -688,18 +766,22 @@ func (m *ResponseFlags_Unauthorized) Reset()         { *m = ResponseFlags_Unauth
 func (m *ResponseFlags_Unauthorized) String() string { return proto.CompactTextString(m) }
 func (*ResponseFlags_Unauthorized) ProtoMessage()    {}
 func (*ResponseFlags_Unauthorized) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ca1a3c8f3c17c754, []int{3, 0}
+	return fileDescriptor_ca1a3c8f3c17c754, []int{4, 0}
 }
 func (m *ResponseFlags_Unauthorized) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
 func (m *ResponseFlags_Unauthorized) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	b = b[:cap(b)]
-	n, err := m.MarshalTo(b)
-	if err != nil {
-		return nil, err
+	if deterministic {
+		return xxx_messageInfo_ResponseFlags_Unauthorized.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
 	}
-	return b[:n], nil
 }
 func (m *ResponseFlags_Unauthorized) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_ResponseFlags_Unauthorized.Merge(m, src)
@@ -747,18 +829,22 @@ func (m *TLSProperties) Reset()         { *m = TLSProperties{} }
 func (m *TLSProperties) String() string { return proto.CompactTextString(m) }
 func (*TLSProperties) ProtoMessage()    {}
 func (*TLSProperties) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ca1a3c8f3c17c754, []int{4}
+	return fileDescriptor_ca1a3c8f3c17c754, []int{5}
 }
 func (m *TLSProperties) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
 func (m *TLSProperties) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	b = b[:cap(b)]
-	n, err := m.MarshalTo(b)
-	if err != nil {
-		return nil, err
+	if deterministic {
+		return xxx_messageInfo_TLSProperties.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
 	}
-	return b[:n], nil
 }
 func (m *TLSProperties) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_TLSProperties.Merge(m, src)
@@ -828,18 +914,22 @@ func (m *TLSProperties_CertificateProperties) Reset()         { *m = TLSProperti
 func (m *TLSProperties_CertificateProperties) String() string { return proto.CompactTextString(m) }
 func (*TLSProperties_CertificateProperties) ProtoMessage()    {}
 func (*TLSProperties_CertificateProperties) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ca1a3c8f3c17c754, []int{4, 0}
+	return fileDescriptor_ca1a3c8f3c17c754, []int{5, 0}
 }
 func (m *TLSProperties_CertificateProperties) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
 func (m *TLSProperties_CertificateProperties) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	b = b[:cap(b)]
-	n, err := m.MarshalTo(b)
-	if err != nil {
-		return nil, err
+	if deterministic {
+		return xxx_messageInfo_TLSProperties_CertificateProperties.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
 	}
-	return b[:n], nil
 }
 func (m *TLSProperties_CertificateProperties) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_TLSProperties_CertificateProperties.Merge(m, src)
@@ -885,18 +975,22 @@ func (m *TLSProperties_CertificateProperties_SubjectAltName) String() string {
 }
 func (*TLSProperties_CertificateProperties_SubjectAltName) ProtoMessage() {}
 func (*TLSProperties_CertificateProperties_SubjectAltName) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ca1a3c8f3c17c754, []int{4, 0, 0}
+	return fileDescriptor_ca1a3c8f3c17c754, []int{5, 0, 0}
 }
 func (m *TLSProperties_CertificateProperties_SubjectAltName) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
 func (m *TLSProperties_CertificateProperties_SubjectAltName) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	b = b[:cap(b)]
-	n, err := m.MarshalTo(b)
-	if err != nil {
-		return nil, err
+	if deterministic {
+		return xxx_messageInfo_TLSProperties_CertificateProperties_SubjectAltName.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
 	}
-	return b[:n], nil
 }
 func (m *TLSProperties_CertificateProperties_SubjectAltName) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_TLSProperties_CertificateProperties_SubjectAltName.Merge(m, src)
@@ -1064,18 +1158,22 @@ func (m *HTTPRequestProperties) Reset()         { *m = HTTPRequestProperties{} }
 func (m *HTTPRequestProperties) String() string { return proto.CompactTextString(m) }
 func (*HTTPRequestProperties) ProtoMessage()    {}
 func (*HTTPRequestProperties) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ca1a3c8f3c17c754, []int{5}
+	return fileDescriptor_ca1a3c8f3c17c754, []int{6}
 }
 func (m *HTTPRequestProperties) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
 func (m *HTTPRequestProperties) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	b = b[:cap(b)]
-	n, err := m.MarshalTo(b)
-	if err != nil {
-		return nil, err
+	if deterministic {
+		return xxx_messageInfo_HTTPRequestProperties.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
 	}
-	return b[:n], nil
 }
 func (m *HTTPRequestProperties) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_HTTPRequestProperties.Merge(m, src)
@@ -1093,7 +1191,7 @@ func (m *HTTPRequestProperties) GetRequestMethod() core.RequestMethod {
 	if m != nil {
 		return m.RequestMethod
 	}
-	return core.METHOD_UNSPECIFIED
+	return core.RequestMethod_METHOD_UNSPECIFIED
 }
 
 func (m *HTTPRequestProperties) GetScheme() string {
@@ -1208,18 +1306,22 @@ func (m *HTTPResponseProperties) Reset()         { *m = HTTPResponseProperties{}
 func (m *HTTPResponseProperties) String() string { return proto.CompactTextString(m) }
 func (*HTTPResponseProperties) ProtoMessage()    {}
 func (*HTTPResponseProperties) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ca1a3c8f3c17c754, []int{6}
+	return fileDescriptor_ca1a3c8f3c17c754, []int{7}
 }
 func (m *HTTPResponseProperties) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
 func (m *HTTPResponseProperties) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	b = b[:cap(b)]
-	n, err := m.MarshalTo(b)
-	if err != nil {
-		return nil, err
+	if deterministic {
+		return xxx_messageInfo_HTTPResponseProperties.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
 	}
-	return b[:n], nil
 }
 func (m *HTTPResponseProperties) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_HTTPResponseProperties.Merge(m, src)
@@ -1281,6 +1383,7 @@ func init() {
 	proto.RegisterEnum("envoy.data.accesslog.v2.TLSProperties_TLSVersion", TLSProperties_TLSVersion_name, TLSProperties_TLSVersion_value)
 	proto.RegisterType((*TCPAccessLogEntry)(nil), "envoy.data.accesslog.v2.TCPAccessLogEntry")
 	proto.RegisterType((*HTTPAccessLogEntry)(nil), "envoy.data.accesslog.v2.HTTPAccessLogEntry")
+	proto.RegisterType((*ConnectionProperties)(nil), "envoy.data.accesslog.v2.ConnectionProperties")
 	proto.RegisterType((*AccessLogCommon)(nil), "envoy.data.accesslog.v2.AccessLogCommon")
 	proto.RegisterType((*ResponseFlags)(nil), "envoy.data.accesslog.v2.ResponseFlags")
 	proto.RegisterType((*ResponseFlags_Unauthorized)(nil), "envoy.data.accesslog.v2.ResponseFlags.Unauthorized")
@@ -1299,142 +1402,143 @@ func init() {
 }
 
 var fileDescriptor_ca1a3c8f3c17c754 = []byte{
-	// 2052 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xbc, 0x58, 0xcd, 0x73, 0x5b, 0x49,
-	0x11, 0x8f, 0x22, 0xdb, 0x91, 0x5a, 0xb2, 0x2d, 0x8f, 0xbf, 0x64, 0x25, 0xfe, 0x88, 0xd8, 0x05,
-	0x53, 0x50, 0xf2, 0x46, 0xa1, 0xc8, 0xd6, 0x16, 0x45, 0x4a, 0x92, 0x65, 0xac, 0x5d, 0x27, 0x76,
-	0x8d, 0x64, 0xc3, 0xed, 0x31, 0xd6, 0x1b, 0x59, 0x6f, 0xf3, 0xf4, 0x46, 0xcc, 0x8c, 0x9c, 0x88,
-	0xa2, 0x28, 0xfe, 0x84, 0x3d, 0x70, 0xa0, 0xf8, 0x33, 0x38, 0x72, 0xa0, 0x38, 0x72, 0xe4, 0xc8,
-	0x0d, 0x2a, 0x9c, 0x72, 0xe3, 0x4f, 0xa0, 0xe6, 0xe3, 0x7d, 0xc8, 0x96, 0x63, 0x27, 0x50, 0xeb,
-	0xd3, 0x9b, 0x9e, 0x5f, 0xff, 0xba, 0xa7, 0xa7, 0xbb, 0xa7, 0x2d, 0xf8, 0x1e, 0x0d, 0x2e, 0xd9,
-	0x78, 0xcf, 0x25, 0x92, 0xec, 0x91, 0x6e, 0x97, 0x0a, 0xe1, 0xb3, 0x8b, 0xbd, 0xcb, 0x6a, 0xbc,
-	0xa8, 0x0c, 0x39, 0x93, 0x0c, 0xad, 0x6b, 0x60, 0x45, 0x01, 0x2b, 0xf1, 0xde, 0x65, 0xb5, 0xb4,
-	0x6d, 0x18, 0xc8, 0xd0, 0x53, 0x6a, 0x5d, 0xc6, 0xe9, 0x1e, 0x71, 0x5d, 0x4e, 0x85, 0x30, 0x9a,
-	0xa5, 0x47, 0xd7, 0x01, 0xe7, 0x44, 0x50, 0xbb, 0xbb, 0x75, 0xc1, 0xd8, 0x85, 0x4f, 0xf7, 0xf4,
-	0xea, 0x7c, 0xd4, 0xdb, 0x73, 0x47, 0x9c, 0x48, 0x8f, 0x05, 0x76, 0x7f, 0xfb, 0xea, 0xbe, 0xf4,
-	0x06, 0x54, 0x48, 0x32, 0x18, 0xde, 0x44, 0xf0, 0x9a, 0x93, 0xe1, 0x90, 0xf2, 0xd0, 0xfc, 0xca,
-	0x05, 0xbb, 0x60, 0xfa, 0x73, 0x4f, 0x7d, 0x59, 0xe9, 0xfa, 0x25, 0xf1, 0x3d, 0x97, 0x48, 0xba,
-	0x17, 0x7e, 0x98, 0x8d, 0xf2, 0xd7, 0xb0, 0xd4, 0x69, 0x9c, 0xd4, 0xf4, 0x09, 0x8f, 0xd8, 0x45,
-	0x33, 0x90, 0x7c, 0x8c, 0x4e, 0x61, 0xa9, 0xcb, 0x06, 0x03, 0x16, 0x38, 0x43, 0xce, 0x86, 0x94,
-	0x4b, 0x8f, 0x8a, 0x62, 0x6a, 0x27, 0xb5, 0x9b, 0xab, 0xee, 0x56, 0x6e, 0x08, 0x4c, 0x25, 0xe2,
-	0x68, 0x68, 0x55, 0x5c, 0x30, 0x14, 0x27, 0x11, 0x43, 0xf9, 0x4f, 0x69, 0x40, 0x87, 0x9d, 0xce,
-	0xb7, 0x63, 0x0d, 0x9d, 0x43, 0x41, 0x1f, 0xb1, 0xcb, 0x7c, 0xe7, 0x92, 0x72, 0xe1, 0xb1, 0xa0,
-	0x78, 0x7f, 0x27, 0xb5, 0xbb, 0x50, 0x7d, 0x76, 0x23, 0xeb, 0x75, 0xef, 0xb4, 0xe8, 0xcc, 0xa8,
-	0xe3, 0xc5, 0x90, 0xd0, 0x0a, 0xd0, 0x21, 0x3c, 0xe0, 0xf4, 0x57, 0x23, 0x2a, 0x64, 0x31, 0xad,
-	0x1d, 0xae, 0xbc, 0x97, 0x1a, 0x1b, 0x6c, 0xec, 0x24, 0x0e, 0xd5, 0xd1, 0x57, 0x90, 0xe1, 0x54,
-	0x0c, 0x59, 0x20, 0x68, 0x71, 0x46, 0x53, 0xed, 0xdd, 0x42, 0x65, 0xc0, 0x09, 0xae, 0x88, 0xa0,
-	0xfc, 0x25, 0xe4, 0x12, 0x6e, 0xa3, 0x22, 0xac, 0x9c, 0xe0, 0xe3, 0xce, 0x71, 0xe3, 0xf8, 0xc8,
-	0x39, 0x7d, 0xd9, 0x3e, 0x69, 0x36, 0x5a, 0x07, 0xad, 0xe6, 0x7e, 0xe1, 0x1e, 0x02, 0x98, 0x53,
-	0xc0, 0x27, 0x9f, 0x15, 0x52, 0xd1, 0xf7, 0x93, 0xc2, 0x7d, 0x94, 0x85, 0x59, 0xf5, 0x5d, 0x2d,
-	0xa4, 0xcb, 0xbf, 0xcb, 0xc3, 0xe2, 0x95, 0x60, 0xa3, 0x1a, 0xe4, 0x04, 0x19, 0x0c, 0x7d, 0xea,
-	0x70, 0x22, 0xa9, 0xbe, 0xab, 0x54, 0x7d, 0xe7, 0xcf, 0xef, 0xfe, 0x9a, 0xce, 0xa1, 0xec, 0xe3,
-	0x7b, 0xf6, 0xcf, 0xae, 0x37, 0xcc, 0xea, 0x3f, 0xcf, 0x31, 0x18, 0x25, 0x4c, 0x24, 0x45, 0x67,
-	0xb0, 0xe1, 0xb2, 0xd7, 0x81, 0x90, 0x9c, 0x92, 0x81, 0xc3, 0xe9, 0x80, 0x49, 0xea, 0xd8, 0x42,
-	0xd2, 0xd7, 0x94, 0xab, 0x96, 0x6c, 0x00, 0xc8, 0xd0, 0x53, 0xa7, 0x56, 0x95, 0x54, 0xa9, 0x19,
-	0x04, 0x5e, 0x8f, 0x95, 0xb1, 0xd6, 0xb5, 0x1b, 0xa8, 0x03, 0xc5, 0x04, 0xaf, 0xcf, 0xba, 0xc4,
-	0x8f, 0x68, 0xd3, 0xb7, 0xd2, 0xae, 0xc5, 0xba, 0x47, 0x4a, 0x35, 0x64, 0x7d, 0x01, 0x0b, 0xd2,
-	0x17, 0xc9, 0xfc, 0x34, 0x77, 0xf4, 0xdd, 0x1b, 0xef, 0xa8, 0x73, 0xd4, 0x4e, 0x5c, 0xcd, 0xbc,
-	0xf4, 0x45, 0x22, 0x35, 0x9f, 0x03, 0x08, 0x49, 0xb8, 0x74, 0x54, 0x71, 0x17, 0x67, 0xad, 0x5b,
-	0xa6, 0xb0, 0x2b, 0x61, 0x61, 0x57, 0x3a, 0x61, 0xe5, 0xd7, 0x67, 0xbe, 0xf9, 0xe7, 0x76, 0x0a,
-	0x67, 0xb5, 0x8e, 0x92, 0xa2, 0x63, 0x58, 0x51, 0xaa, 0x8e, 0x64, 0x8e, 0x4f, 0x84, 0x74, 0xf8,
-	0x1b, 0xe7, 0x7c, 0x2c, 0x69, 0x71, 0x4e, 0x53, 0x6d, 0x5c, 0xa3, 0xda, 0xb7, 0x4d, 0xa6, 0x3e,
-	0xf3, 0x07, 0xc5, 0x54, 0x50, 0xca, 0x1d, 0x76, 0x44, 0x84, 0xc4, 0x6f, 0xea, 0x63, 0x49, 0xd1,
-	0x39, 0x6c, 0x85, 0x84, 0x3d, 0x8f, 0x0b, 0xe9, 0x8c, 0x86, 0x36, 0x84, 0xd2, 0x52, 0x3f, 0xb8,
-	0x1b, 0xf5, 0x86, 0xa1, 0x3e, 0x50, 0x24, 0xa7, 0x96, 0xa3, 0x63, 0x6c, 0xfc, 0x12, 0x36, 0x27,
-	0x9c, 0xbe, 0x66, 0x22, 0x73, 0x37, 0x13, 0xc5, 0xd8, 0xfb, 0x2b, 0x16, 0x6e, 0x3e, 0x45, 0x18,
-	0xa0, 0xec, 0xc7, 0x9f, 0x02, 0xdf, 0x72, 0x8a, 0xd0, 0x04, 0x7c, 0xf4, 0x29, 0xac, 0x85, 0x1e,
-	0xec, 0x4c, 0x9e, 0x22, 0x91, 0xd0, 0x61, 0xa8, 0x72, 0x77, 0x33, 0xf2, 0x30, 0x71, 0x8e, 0xfd,
-	0x88, 0xc5, 0x46, 0xcb, 0x85, 0xed, 0x89, 0x93, 0x4c, 0x31, 0x93, 0xbf, 0x9b, 0x99, 0x52, 0x7c,
-	0x96, 0x6b, 0x56, 0x30, 0xac, 0xc7, 0x21, 0x9a, 0x2c, 0xf3, 0xf9, 0x5b, 0xeb, 0x71, 0x35, 0x54,
-	0x9d, 0x2c, 0xf2, 0x13, 0x58, 0x8b, 0x38, 0x27, 0x4b, 0x7c, 0xe1, 0x56, 0xca, 0x95, 0x50, 0x73,
-	0xa2, 0xc0, 0xbf, 0x0f, 0x85, 0x88, 0xb1, 0xeb, 0x8f, 0x84, 0xa4, 0xbc, 0xb8, 0xb8, 0x93, 0xda,
-	0xcd, 0xe2, 0xc5, 0x50, 0xde, 0x30, 0x62, 0xd5, 0x0b, 0xc2, 0x46, 0xeb, 0xf4, 0x7c, 0x72, 0x21,
-	0x8a, 0x85, 0x5b, 0x7a, 0x41, 0xd8, 0xab, 0x0f, 0x14, 0x1a, 0xcf, 0xf3, 0xe4, 0x12, 0x3d, 0x83,
-	0xcc, 0x80, 0x4a, 0xa2, 0xb4, 0x8a, 0x4b, 0x9a, 0xe8, 0xe1, 0x14, 0xef, 0x5f, 0x58, 0x08, 0x8e,
-	0xc0, 0xa8, 0x05, 0x8f, 0xe3, 0x0a, 0xe2, 0x24, 0x10, 0x43, 0xc6, 0xa5, 0xd3, 0x23, 0x9e, 0x3f,
-	0xe2, 0xd4, 0xe1, 0x94, 0x08, 0x16, 0x14, 0x91, 0x3e, 0xc3, 0x56, 0x08, 0xec, 0x84, 0xb8, 0x03,
-	0x03, 0xc3, 0x1a, 0x85, 0x36, 0x01, 0x38, 0x1b, 0x49, 0xea, 0x04, 0x64, 0x40, 0x8b, 0xcb, 0x5a,
-	0x27, 0xab, 0x25, 0x2f, 0xc9, 0x80, 0x96, 0x7f, 0x9f, 0x85, 0xf9, 0x89, 0x33, 0xa0, 0xcf, 0xa1,
-	0xa8, 0x0c, 0x51, 0xd7, 0x86, 0xbf, 0x4f, 0x89, 0x2f, 0xfb, 0xdd, 0x3e, 0xed, 0xbe, 0xd2, 0xaf,
-	0x41, 0x06, 0xaf, 0x99, 0x7d, 0x1d, 0xe4, 0xc3, 0x78, 0x17, 0x55, 0x60, 0x39, 0x60, 0x16, 0x3f,
-	0x8e, 0x8a, 0x47, 0x77, 0xfc, 0x0c, 0x5e, 0x0a, 0x98, 0xc1, 0x8e, 0xc3, 0x92, 0x50, 0x96, 0x12,
-	0xe9, 0xa3, 0xdf, 0x4a, 0xdd, 0x35, 0xd9, 0xc8, 0x3c, 0xb9, 0x19, 0xbc, 0x16, 0xe7, 0x88, 0xde,
-	0xee, 0x98, 0x5d, 0xb4, 0x0d, 0x39, 0xe3, 0x1c, 0xa7, 0x82, 0x4a, 0xdd, 0xb0, 0x33, 0x18, 0xb4,
-	0x08, 0x2b, 0x09, 0xaa, 0xc2, 0xea, 0xd5, 0xcc, 0x34, 0xd0, 0x59, 0x0d, 0x5d, 0x9e, 0xcc, 0x3d,
-	0xa3, 0xf3, 0x53, 0x78, 0x18, 0xe7, 0x09, 0x0b, 0x02, 0xda, 0x55, 0x65, 0x10, 0x46, 0x5d, 0xf7,
-	0xdf, 0x0c, 0xde, 0x88, 0x52, 0x26, 0x42, 0xd8, 0x78, 0xa3, 0x03, 0xd8, 0x9e, 0xa6, 0x2f, 0x29,
-	0x1f, 0x78, 0x81, 0x2e, 0x29, 0xdd, 0x68, 0x33, 0x78, 0xf3, 0x3a, 0x47, 0x27, 0x06, 0xa1, 0x1f,
-	0xc0, 0x52, 0xc4, 0xc3, 0x2e, 0x29, 0xef, 0xf9, 0xec, 0xb5, 0xee, 0x9f, 0x19, 0x1c, 0x25, 0xf2,
-	0xb1, 0x95, 0xa3, 0x4f, 0x60, 0x21, 0x60, 0x8e, 0xb9, 0xe1, 0x1e, 0x1b, 0x05, 0xae, 0x6e, 0x83,
-	0x19, 0x9c, 0x0f, 0x18, 0x56, 0xc2, 0x03, 0x25, 0x43, 0x9f, 0xc2, 0x82, 0x4b, 0x7d, 0x32, 0x76,
-	0xbc, 0xe0, 0x6b, 0xda, 0x95, 0xd4, 0xd5, 0x9d, 0x2c, 0x83, 0xe7, 0xb5, 0xb4, 0x65, 0x85, 0x0a,
-	0xd6, 0x23, 0x23, 0x5f, 0xc6, 0xb0, 0x9c, 0x81, 0x69, 0x69, 0x04, 0x7b, 0x0c, 0x79, 0x35, 0x1b,
-	0x38, 0xbe, 0x37, 0xf0, 0x14, 0x28, 0xaf, 0x41, 0x39, 0x25, 0x3b, 0x32, 0x22, 0xd4, 0x83, 0x95,
-	0x51, 0x40, 0x46, 0xb2, 0xcf, 0xb8, 0xf7, 0x6b, 0xea, 0x3a, 0x2e, 0x95, 0xc4, 0xf3, 0xc3, 0xb6,
-	0xf0, 0xf4, 0x6e, 0xe5, 0x54, 0x39, 0x4d, 0x50, 0xe0, 0xe5, 0x24, 0xe1, 0xbe, 0xe1, 0x43, 0xcf,
-	0xa0, 0x18, 0xbb, 0xe2, 0x08, 0xca, 0x2f, 0xbd, 0x2e, 0x75, 0x28, 0xe7, 0x8c, 0xeb, 0x7e, 0x91,
-	0xc1, 0xab, 0x91, 0x5b, 0x6d, 0xb3, 0xdb, 0x54, 0x9b, 0xe8, 0x4b, 0x78, 0x9c, 0xe8, 0x89, 0x37,
-	0x5c, 0xd7, 0xa2, 0x66, 0xd8, 0x8e, 0x81, 0xd3, 0x2f, 0xac, 0x06, 0x9b, 0x89, 0x64, 0x93, 0x7c,
-	0x6c, 0xdd, 0xa1, 0x6f, 0xba, 0x94, 0xba, 0xd4, 0xd5, 0x4d, 0x24, 0x83, 0x4b, 0x71, 0xd2, 0x49,
-	0x3e, 0xd6, 0x2e, 0x35, 0x2d, 0x42, 0x95, 0x8e, 0x25, 0xf0, 0x5c, 0x9f, 0x46, 0x55, 0xb0, 0x64,
-	0x4a, 0xc7, 0x6c, 0xb5, 0x5c, 0x9f, 0x86, 0x05, 0x50, 0x83, 0x4d, 0x2f, 0xd0, 0xe3, 0xbe, 0xa3,
-	0x43, 0x19, 0xd5, 0x4f, 0x9f, 0x12, 0x97, 0x72, 0xa1, 0x9b, 0x43, 0x06, 0x97, 0x2c, 0xa8, 0xa9,
-	0x30, 0xb6, 0x86, 0x0e, 0x0d, 0xa2, 0xf4, 0xc7, 0x14, 0xe4, 0x93, 0x01, 0x46, 0x18, 0xe6, 0x6c,
-	0x67, 0x49, 0xe9, 0x51, 0xfa, 0x8b, 0x8f, 0xb8, 0xa5, 0x8a, 0xe9, 0x3a, 0xd8, 0x32, 0x95, 0x7f,
-	0x0c, 0x73, 0xb6, 0x0f, 0xad, 0x01, 0xc2, 0xcd, 0x5a, 0xfb, 0xf8, 0xe5, 0x95, 0x31, 0x75, 0x05,
-	0x0a, 0xcd, 0x5f, 0x74, 0x9a, 0xf8, 0x65, 0xed, 0xc8, 0x69, 0x37, 0xf1, 0x59, 0xab, 0xd1, 0x2c,
-	0xa4, 0xca, 0x7f, 0x99, 0x83, 0xf9, 0x89, 0x31, 0x0b, 0x61, 0xc8, 0xa9, 0x31, 0x2d, 0x9c, 0xf6,
-	0x8d, 0x8b, 0x4f, 0xee, 0x36, 0xa3, 0xa9, 0x55, 0x38, 0xe7, 0x83, 0xf4, 0x45, 0x38, 0x3c, 0x1f,
-	0x40, 0x41, 0x71, 0x76, 0xbd, 0x61, 0x9f, 0x72, 0x47, 0x8c, 0x3c, 0x49, 0xed, 0x7c, 0xfa, 0xe8,
-	0xda, 0xb3, 0x78, 0xda, 0x0a, 0xe4, 0xd3, 0xea, 0x19, 0xf1, 0x47, 0x14, 0xab, 0x81, 0xb1, 0xa1,
-	0x95, 0xda, 0x4a, 0x07, 0xed, 0x1a, 0x1e, 0x11, 0x78, 0x4e, 0x9f, 0x09, 0xa9, 0x3b, 0x6d, 0x5a,
-	0x77, 0x5a, 0x85, 0x6c, 0x07, 0xde, 0xa1, 0x95, 0xa2, 0xdf, 0xc2, 0x23, 0xd3, 0xb8, 0xba, 0xca,
-	0xb3, 0x9e, 0xd7, 0x55, 0xc9, 0x7b, 0x6d, 0xf4, 0xfc, 0xc9, 0x1d, 0x8f, 0xd5, 0x88, 0x49, 0x12,
-	0x03, 0x69, 0x49, 0x5b, 0x98, 0xba, 0x87, 0x7e, 0x03, 0x0f, 0x87, 0x94, 0xf2, 0x9b, 0xcc, 0xcf,
-	0xfe, 0x1f, 0xcc, 0x6f, 0x28, 0x03, 0xd3, 0xad, 0x7f, 0x62, 0x46, 0x6d, 0x41, 0x85, 0x0a, 0xbf,
-	0xe3, 0xb9, 0xba, 0xa9, 0x66, 0x71, 0x5e, 0x45, 0xc9, 0x08, 0x5b, 0x6e, 0xe9, 0x5d, 0x0a, 0x56,
-	0xa7, 0xeb, 0x8f, 0xa0, 0x20, 0x46, 0xe7, 0xaa, 0x0b, 0x39, 0xc4, 0x97, 0xe6, 0x45, 0x4b, 0xed,
-	0xa4, 0x77, 0x73, 0xd5, 0xaf, 0xfe, 0x17, 0x97, 0x2b, 0x6d, 0x43, 0x5a, 0xf3, 0xa5, 0x7a, 0x13,
-	0xf1, 0x82, 0x98, 0x58, 0xa3, 0x22, 0x3c, 0xb0, 0x12, 0x9d, 0x1d, 0x59, 0x1c, 0x2e, 0x4b, 0xcf,
-	0x61, 0x61, 0x52, 0x17, 0x21, 0x48, 0x8f, 0xb8, 0xa7, 0xd3, 0x33, 0x7b, 0x78, 0x0f, 0xab, 0x85,
-	0x92, 0xb9, 0x81, 0xf9, 0xcf, 0x47, 0xcb, 0xdc, 0x40, 0xd4, 0x67, 0x21, 0x2d, 0x48, 0x50, 0xfe,
-	0x39, 0x40, 0x9c, 0x9b, 0x68, 0x1d, 0x96, 0xcf, 0x9a, 0xb8, 0xdd, 0xba, 0x56, 0x24, 0x59, 0x98,
-	0xed, 0x1c, 0xb5, 0x2f, 0x9f, 0x14, 0x52, 0x28, 0x07, 0x0f, 0xf4, 0xa7, 0xa3, 0xfe, 0x97, 0x8b,
-	0x16, 0xd5, 0x42, 0x3a, 0x5e, 0x3c, 0x2d, 0xcc, 0x94, 0xbf, 0x99, 0x85, 0xd5, 0xa9, 0xff, 0x96,
-	0xa2, 0x9f, 0xa9, 0x19, 0xc7, 0x34, 0x8b, 0x01, 0x95, 0x7d, 0xe6, 0xda, 0x5a, 0xda, 0x99, 0x32,
-	0x9a, 0x58, 0xed, 0x17, 0x1a, 0xa7, 0xa6, 0x9b, 0xc4, 0x12, 0xad, 0xc1, 0x9c, 0xe8, 0xf6, 0xe9,
-	0x80, 0xda, 0xa8, 0xd8, 0x15, 0x7a, 0x04, 0x59, 0xdb, 0x10, 0xe4, 0xd8, 0x96, 0x41, 0x2c, 0x40,
-	0x9f, 0xc1, 0x8c, 0x1a, 0x52, 0x6c, 0xa6, 0xbf, 0xbf, 0xce, 0x34, 0x12, 0x21, 0x98, 0x19, 0x12,
-	0xd9, 0xd7, 0xc9, 0x99, 0xc5, 0xfa, 0x5b, 0x4d, 0x35, 0x23, 0x41, 0xb9, 0x43, 0x2e, 0x68, 0x20,
-	0x6d, 0x16, 0x65, 0x95, 0xa4, 0xa6, 0x04, 0xea, 0xc6, 0x38, 0xed, 0x51, 0x4e, 0xb9, 0x7e, 0x72,
-	0xb3, 0x38, 0x5c, 0xa2, 0xef, 0xc0, 0x7c, 0x8f, 0xf1, 0xd7, 0x84, 0xbb, 0xd4, 0x75, 0x7a, 0x8c,
-	0xeb, 0x87, 0x35, 0x8b, 0xf3, 0x91, 0xf0, 0x80, 0x71, 0x3d, 0x33, 0xd9, 0x10, 0x79, 0xe6, 0x41,
-	0x55, 0x33, 0x93, 0x91, 0xb4, 0x5c, 0xc5, 0xc1, 0xb8, 0x77, 0xe1, 0x05, 0xc4, 0x77, 0xb4, 0x67,
-	0x60, 0x38, 0x42, 0xe1, 0x89, 0xf2, 0xb0, 0x0a, 0xab, 0x57, 0x7a, 0xb2, 0x1e, 0xbb, 0x85, 0x7e,
-	0x52, 0x67, 0xf0, 0x32, 0x9f, 0xe8, 0xc6, 0x6a, 0x9c, 0x16, 0xe8, 0x87, 0x80, 0x42, 0x9d, 0x73,
-	0xe6, 0x8e, 0xad, 0x42, 0x5e, 0x2b, 0x14, 0xec, 0x4e, 0x9d, 0xb9, 0x63, 0x83, 0x7e, 0x05, 0x8b,
-	0x57, 0xbb, 0xfe, 0xbc, 0x2e, 0x86, 0xfa, 0x87, 0xfd, 0x50, 0x51, 0x99, 0x7c, 0x18, 0xf4, 0x4f,
-	0x23, 0x78, 0x61, 0xd2, 0xbf, 0x52, 0x0d, 0x96, 0xa7, 0xc0, 0x50, 0x01, 0xd2, 0xaf, 0xe8, 0xd8,
-	0xa4, 0x3b, 0x56, 0x9f, 0x68, 0x05, 0x66, 0x2f, 0xd5, 0xe5, 0xd9, 0xa4, 0x30, 0x8b, 0x2f, 0xee,
-	0x7f, 0x9e, 0x2a, 0xff, 0x7b, 0x06, 0xd6, 0xa6, 0xff, 0xbc, 0x81, 0x6a, 0x10, 0x4d, 0xce, 0x4e,
-	0x97, 0xb9, 0xd4, 0xfe, 0x44, 0xf4, 0xfe, 0xec, 0xc8, 0x87, 0x2a, 0x0d, 0xe6, 0x52, 0xf4, 0x23,
-	0x58, 0x8b, 0x28, 0x26, 0x03, 0x7e, 0x5f, 0xc7, 0x6f, 0x25, 0xdc, 0x9d, 0x88, 0x78, 0x05, 0x96,
-	0x23, 0xad, 0x44, 0xc8, 0xd3, 0x5a, 0x65, 0x29, 0xdc, 0x8a, 0x63, 0xce, 0xa0, 0x70, 0xd5, 0x4a,
-	0x71, 0x46, 0x07, 0x7d, 0xff, 0x03, 0x7f, 0xd2, 0x89, 0x1e, 0xd1, 0x89, 0xb0, 0x2f, 0x5e, 0xf1,
-	0x12, 0x71, 0x88, 0xbc, 0x50, 0xff, 0x09, 0x78, 0xbe, 0xb2, 0x38, 0xab, 0x2d, 0x36, 0x3f, 0xd6,
-	0x62, 0xc7, 0xf2, 0x18, 0x93, 0xd1, 0x81, 0x42, 0xb1, 0x49, 0xdd, 0xc4, 0x6d, 0x44, 0xd3, 0x9b,
-	0xa9, 0xb3, 0xe5, 0x64, 0xdc, 0xed, 0x20, 0x56, 0xaa, 0xc3, 0xca, 0xb4, 0x03, 0x7d, 0x48, 0x82,
-	0x94, 0x1a, 0xb0, 0x3a, 0xd5, 0xc5, 0x0f, 0x21, 0xa9, 0xb7, 0xfe, 0xf6, 0x76, 0x2b, 0xf5, 0xf7,
-	0xb7, 0x5b, 0xa9, 0x7f, 0xbc, 0xdd, 0x4a, 0xfd, 0xeb, 0xed, 0x56, 0x0a, 0x3e, 0xf5, 0x98, 0x89,
-	0xd4, 0x90, 0xb3, 0x37, 0xe3, 0x9b, 0x82, 0x56, 0x5f, 0xa8, 0x85, 0xab, 0x13, 0x95, 0x6d, 0x27,
-	0xa9, 0xf3, 0x39, 0x9d, 0x76, 0x4f, 0xff, 0x1b, 0x00, 0x00, 0xff, 0xff, 0x13, 0x36, 0x49, 0x94,
-	0x59, 0x16, 0x00, 0x00,
+	// 2080 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xbc, 0x58, 0xcd, 0x72, 0x5b, 0x49,
+	0xf5, 0x8f, 0x22, 0xdb, 0x91, 0x8e, 0xfc, 0x21, 0xb7, 0x65, 0x47, 0x56, 0x12, 0xdb, 0xd1, 0x7f,
+	0xe6, 0x4f, 0x28, 0x40, 0x9e, 0x28, 0x14, 0x19, 0xa6, 0x28, 0xa6, 0x64, 0x45, 0xc6, 0x9a, 0x71,
+	0x62, 0x57, 0x4b, 0x36, 0x14, 0x35, 0xc5, 0xa5, 0x7d, 0x6f, 0xcb, 0xba, 0xe4, 0xea, 0xb6, 0xe8,
+	0x6e, 0x29, 0x11, 0x45, 0xf1, 0x0c, 0x2c, 0x58, 0xf1, 0x18, 0x2c, 0x59, 0x50, 0x2c, 0x59, 0x51,
+	0xf3, 0x08, 0x54, 0x58, 0xcd, 0x8e, 0x47, 0xa0, 0xfa, 0xe3, 0x7e, 0xc8, 0x96, 0xa3, 0x24, 0x50,
+	0x68, 0xa5, 0x3e, 0xfd, 0x3b, 0xbf, 0x3e, 0x7d, 0xfa, 0x9c, 0xd3, 0xa7, 0x2f, 0x7c, 0x8b, 0x86,
+	0x63, 0x36, 0xd9, 0xf7, 0x88, 0x24, 0xfb, 0xc4, 0x75, 0xa9, 0x10, 0x01, 0xbb, 0xdc, 0x1f, 0xd7,
+	0x93, 0x41, 0x6d, 0xc8, 0x99, 0x64, 0xe8, 0xae, 0x06, 0xd6, 0x14, 0xb0, 0x96, 0xcc, 0x8d, 0xeb,
+	0x95, 0x5d, 0xc3, 0x40, 0x86, 0xbe, 0x52, 0x73, 0x19, 0xa7, 0xfb, 0xc4, 0xf3, 0x38, 0x15, 0xc2,
+	0x68, 0x56, 0xee, 0x5f, 0x07, 0x5c, 0x10, 0x41, 0xed, 0xec, 0xce, 0x25, 0x63, 0x97, 0x01, 0xdd,
+	0xd7, 0xa3, 0x8b, 0x51, 0x6f, 0xdf, 0x1b, 0x71, 0x22, 0x7d, 0x16, 0xda, 0xf9, 0xdd, 0xab, 0xf3,
+	0xd2, 0x1f, 0x50, 0x21, 0xc9, 0x60, 0x78, 0x13, 0xc1, 0x2b, 0x4e, 0x86, 0x43, 0xca, 0xa3, 0xe5,
+	0xef, 0x8e, 0x49, 0xe0, 0x7b, 0x44, 0xd2, 0xfd, 0xe8, 0x8f, 0x99, 0xa8, 0xfe, 0x3d, 0x03, 0xeb,
+	0xdd, 0xe6, 0x69, 0x43, 0x6f, 0xe6, 0x98, 0x5d, 0xb6, 0x42, 0xc9, 0x27, 0xe8, 0x0c, 0xd6, 0x5d,
+	0x36, 0x18, 0xb0, 0xd0, 0x19, 0x72, 0x36, 0xa4, 0x5c, 0xfa, 0x54, 0x94, 0x33, 0x7b, 0x99, 0x47,
+	0x85, 0xfa, 0xa3, 0xda, 0x0d, 0x3e, 0xa8, 0xc5, 0x1c, 0x4d, 0xad, 0x8a, 0x8b, 0x86, 0xe2, 0x34,
+	0x66, 0x40, 0x17, 0xb0, 0xe9, 0xb2, 0x30, 0xa4, 0xae, 0xda, 0x5a, 0x9a, 0xfa, 0xb6, 0xa6, 0xfe,
+	0xde, 0x8d, 0xd4, 0xcd, 0x58, 0x2b, 0x61, 0xc3, 0x25, 0x77, 0x86, 0xb4, 0xfa, 0xa7, 0x2c, 0xa0,
+	0xa3, 0x6e, 0xf7, 0x7f, 0xb6, 0xa3, 0xa2, 0xf6, 0xa3, 0xcb, 0x02, 0x67, 0x4c, 0xb9, 0xf0, 0x59,
+	0xa8, 0x37, 0xb3, 0x5a, 0x7f, 0x7a, 0x23, 0xeb, 0x75, 0xeb, 0xb4, 0xe8, 0xdc, 0xa8, 0xe3, 0xb5,
+	0x88, 0xd0, 0x0a, 0xd0, 0x11, 0xdc, 0xe1, 0xf4, 0xd7, 0x23, 0x2a, 0x64, 0x39, 0xab, 0x0d, 0xae,
+	0xbd, 0x95, 0x1a, 0x1b, 0x6c, 0xca, 0x51, 0x91, 0x3a, 0xfa, 0x12, 0x72, 0x9c, 0x8a, 0x21, 0x0b,
+	0x05, 0x2d, 0x2f, 0x68, 0xaa, 0xfd, 0x39, 0x54, 0x06, 0x9c, 0xe2, 0x8a, 0x09, 0xaa, 0x5f, 0x40,
+	0x21, 0x65, 0x36, 0x2a, 0x43, 0xe9, 0x14, 0x9f, 0x74, 0x4f, 0x9a, 0x27, 0xc7, 0xce, 0xd9, 0x8b,
+	0xce, 0x69, 0xab, 0xd9, 0x3e, 0x6c, 0xb7, 0x9e, 0x15, 0x6f, 0x21, 0x80, 0x25, 0x05, 0x7c, 0xfc,
+	0x49, 0x31, 0x13, 0xff, 0x7f, 0x5c, 0xbc, 0x8d, 0xf2, 0xb0, 0xa8, 0xfe, 0xd7, 0x8b, 0xd9, 0xea,
+	0x57, 0x50, 0x9a, 0x75, 0xc4, 0xe8, 0x63, 0x58, 0xe5, 0xd4, 0xa5, 0xfe, 0x98, 0x7a, 0xce, 0xc5,
+	0x44, 0xda, 0x23, 0x5b, 0xc0, 0x2b, 0x91, 0xf4, 0x40, 0x09, 0xd1, 0x03, 0x00, 0x41, 0x43, 0x69,
+	0x21, 0xb7, 0x35, 0x24, 0xaf, 0x24, 0x7a, 0xba, 0xfa, 0x75, 0x01, 0xd6, 0xae, 0x1c, 0x25, 0x6a,
+	0x40, 0x41, 0x90, 0xc1, 0x30, 0xa0, 0x0e, 0x27, 0x92, 0x6a, 0xda, 0xcc, 0xc1, 0xde, 0x9f, 0xbf,
+	0xf9, 0x6b, 0xb6, 0x80, 0xf2, 0x0f, 0x6f, 0xd9, 0x9f, 0x1d, 0x6f, 0x9b, 0xd1, 0xbf, 0x3e, 0xc7,
+	0x60, 0x94, 0x30, 0x91, 0x14, 0x9d, 0xc3, 0xb6, 0xc7, 0x5e, 0x85, 0x42, 0x72, 0x4a, 0x06, 0x0e,
+	0xa7, 0x03, 0x26, 0xa9, 0x63, 0xb3, 0xde, 0x46, 0x74, 0xc5, 0xba, 0x97, 0x0c, 0x7d, 0xe5, 0x53,
+	0x95, 0xf6, 0xb5, 0x86, 0x41, 0xe0, 0xbb, 0x89, 0x32, 0xd6, 0xba, 0x76, 0x02, 0x75, 0xa1, 0x9c,
+	0xe2, 0x0d, 0x98, 0x4b, 0x82, 0x98, 0x36, 0x3b, 0x97, 0x76, 0x2b, 0xd1, 0x3d, 0x56, 0xaa, 0x11,
+	0xeb, 0x73, 0x58, 0x95, 0x81, 0x48, 0x47, 0xbf, 0x89, 0x80, 0xff, 0xbf, 0x31, 0x02, 0xba, 0xc7,
+	0x9d, 0xd4, 0xc1, 0xaf, 0xc8, 0x40, 0xa4, 0x4e, 0xe6, 0x87, 0x00, 0x42, 0x12, 0x2e, 0x1d, 0x55,
+	0x89, 0xca, 0x8b, 0xd6, 0x2c, 0x53, 0x85, 0x6a, 0x51, 0x15, 0xaa, 0x75, 0xa3, 0x32, 0x85, 0xf3,
+	0x1a, 0xad, 0xc6, 0xa8, 0x0d, 0x25, 0xa5, 0xe4, 0x48, 0xe6, 0x04, 0x44, 0x48, 0x87, 0xbf, 0xd6,
+	0x07, 0x57, 0x5e, 0xd2, 0x24, 0xdb, 0xd7, 0x48, 0x9e, 0xd9, 0x5a, 0x88, 0x8b, 0x4a, 0xad, 0xcb,
+	0x8e, 0x89, 0x90, 0xf8, 0xb5, 0x3a, 0x5a, 0xf4, 0x15, 0xec, 0x44, 0x54, 0x3d, 0x9f, 0x0b, 0xe9,
+	0x8c, 0x86, 0xd6, 0x6d, 0xd2, 0x92, 0xde, 0x99, 0x47, 0xba, 0x6d, 0x48, 0x0f, 0x95, 0xfa, 0x99,
+	0xd5, 0xee, 0x1a, 0xf6, 0x9f, 0xc3, 0x83, 0x29, 0x43, 0xaf, 0x91, 0xe7, 0xe6, 0x91, 0x97, 0x13,
+	0x8b, 0xaf, 0x70, 0xdf, 0x6c, 0x79, 0xe4, 0x8e, 0xfc, 0x87, 0x58, 0x8e, 0xe7, 0x58, 0x1e, 0x91,
+	0xc3, 0x07, 0x58, 0x6e, 0xb9, 0x7f, 0x09, 0x7b, 0xd3, 0x96, 0xa7, 0x82, 0x35, 0x72, 0x4c, 0x61,
+	0x1e, 0xfd, 0xbd, 0x94, 0xed, 0xcf, 0x62, 0x7d, 0xeb, 0x9b, 0x5f, 0xc0, 0xee, 0x94, 0xf5, 0x33,
+	0x16, 0x58, 0x9e, 0xb7, 0x40, 0x25, 0xb1, 0xff, 0x1a, 0x3f, 0x86, 0xbb, 0x89, 0x43, 0xa6, 0xd3,
+	0x76, 0x65, 0x6e, 0x7e, 0x6d, 0x46, 0xaa, 0xd3, 0x49, 0x7b, 0x0a, 0x5b, 0x31, 0xe7, 0x74, 0xca,
+	0xae, 0xce, 0xa5, 0x2c, 0x45, 0x9a, 0x53, 0x09, 0xfb, 0x6d, 0x28, 0xc6, 0x8c, 0x6e, 0x30, 0x12,
+	0x92, 0xf2, 0xf2, 0xda, 0x5e, 0xe6, 0x51, 0x1e, 0xaf, 0x45, 0xf2, 0xa6, 0x11, 0xab, 0xdc, 0x8e,
+	0xca, 0xb2, 0xd3, 0x0b, 0xc8, 0xa5, 0x28, 0x17, 0xe7, 0xe4, 0x76, 0x54, 0xd9, 0x0f, 0x15, 0x5a,
+	0x95, 0xd3, 0xd4, 0x10, 0x3d, 0x85, 0xdc, 0x80, 0x4a, 0xa2, 0xb4, 0xca, 0xeb, 0x9a, 0xe8, 0xde,
+	0x0c, 0xeb, 0x9f, 0x5b, 0x08, 0x8e, 0xc1, 0xa8, 0x0d, 0x0f, 0x93, 0x1c, 0xe1, 0x24, 0x14, 0x43,
+	0xc6, 0xa5, 0xd3, 0x23, 0x7e, 0x30, 0xe2, 0xd4, 0xe1, 0x94, 0x08, 0x16, 0x96, 0x91, 0xde, 0xc3,
+	0x4e, 0x04, 0xec, 0x46, 0xb8, 0x43, 0x03, 0xc3, 0x1a, 0xa5, 0x4a, 0x3a, 0x67, 0x23, 0x49, 0x9d,
+	0x90, 0x0c, 0x68, 0x79, 0x43, 0xeb, 0xe4, 0xb5, 0xe4, 0x05, 0x19, 0xd0, 0xea, 0x1f, 0xf2, 0xb0,
+	0x32, 0xb5, 0x07, 0xf4, 0x29, 0x94, 0xd5, 0x42, 0xd4, 0xb3, 0xee, 0xef, 0x53, 0x12, 0xc8, 0xbe,
+	0xdb, 0xa7, 0xee, 0x4b, 0x5d, 0xdd, 0x73, 0x78, 0xcb, 0xcc, 0x6b, 0x27, 0x1f, 0x25, 0xb3, 0xa8,
+	0x06, 0x1b, 0x21, 0xb3, 0xf8, 0x49, 0x9c, 0x2a, 0xba, 0x82, 0xe7, 0xf0, 0x7a, 0xc8, 0x0c, 0x76,
+	0x12, 0xa5, 0x81, 0x5a, 0x29, 0x15, 0x3e, 0xfa, 0x66, 0xd5, 0x55, 0x90, 0x8d, 0xcc, 0x05, 0x9d,
+	0xc3, 0x5b, 0x49, 0x8c, 0xe8, 0xe9, 0xae, 0x99, 0x45, 0xbb, 0x50, 0x30, 0xc6, 0x71, 0x2a, 0xa8,
+	0xd4, 0x05, 0x38, 0x87, 0x41, 0x8b, 0xb0, 0x92, 0xa0, 0x3a, 0x6c, 0x5e, 0x8d, 0x4c, 0x03, 0x5d,
+	0xd4, 0xd0, 0x8d, 0xe9, 0xd8, 0x33, 0x3a, 0x3f, 0x86, 0x7b, 0x49, 0x9c, 0x24, 0xdd, 0x95, 0xf5,
+	0xba, 0xae, 0xaa, 0x39, 0xbc, 0x1d, 0x87, 0x4c, 0x8c, 0xb0, 0xfe, 0x46, 0x87, 0xb0, 0x3b, 0x4b,
+	0x5f, 0x52, 0x3e, 0xf0, 0x43, 0x9d, 0x4c, 0xba, 0x88, 0xe6, 0xf0, 0x83, 0xeb, 0x1c, 0xdd, 0x04,
+	0x84, 0xbe, 0x03, 0xeb, 0x31, 0x0f, 0x1b, 0x53, 0xde, 0x0b, 0xd8, 0x2b, 0x5d, 0x21, 0x73, 0x38,
+	0x0e, 0xe4, 0x13, 0x2b, 0x47, 0x1f, 0xc1, 0x6a, 0xc8, 0x1c, 0x73, 0xc2, 0x3d, 0x36, 0x0a, 0x3d,
+	0x5d, 0xee, 0x72, 0x78, 0x39, 0x64, 0x58, 0x09, 0x0f, 0x95, 0x4c, 0x5d, 0xff, 0x1e, 0x0d, 0xc8,
+	0xc4, 0xf1, 0xc3, 0x5f, 0x51, 0x57, 0x52, 0x4f, 0xd7, 0xad, 0x1c, 0x5e, 0xd1, 0xd2, 0xb6, 0x15,
+	0x2a, 0x58, 0x8f, 0x8c, 0x02, 0x99, 0xc0, 0x0a, 0x06, 0xa6, 0xa5, 0x31, 0xec, 0x21, 0x2c, 0xab,
+	0xbb, 0xde, 0x09, 0xfc, 0x81, 0xaf, 0x40, 0xcb, 0x1a, 0x54, 0x50, 0xb2, 0x63, 0x23, 0x42, 0x3d,
+	0x28, 0x8d, 0x42, 0x32, 0x92, 0x7d, 0xc6, 0xfd, 0xdf, 0x50, 0xcf, 0xf1, 0xa8, 0x24, 0x7e, 0x10,
+	0x95, 0x85, 0x27, 0xef, 0x96, 0x4e, 0xb5, 0xb3, 0x14, 0x05, 0xde, 0x48, 0x13, 0x3e, 0x33, 0x7c,
+	0xe8, 0x29, 0x94, 0x13, 0x53, 0x1c, 0x41, 0xf9, 0xd8, 0x77, 0xa9, 0x43, 0x39, 0x67, 0x5c, 0xd7,
+	0x8b, 0x1c, 0xde, 0x8c, 0xcd, 0xea, 0x98, 0xd9, 0x96, 0x9a, 0x44, 0x5f, 0xc0, 0xc3, 0x54, 0x35,
+	0xbc, 0xe1, 0xb8, 0xd6, 0x34, 0xc3, 0x6e, 0x02, 0x9c, 0x7d, 0x60, 0x0d, 0x78, 0x90, 0x0a, 0x36,
+	0xc9, 0x27, 0xd6, 0x1c, 0xfa, 0xda, 0xa5, 0xd4, 0xa3, 0x9e, 0x2e, 0x22, 0x39, 0x5c, 0x49, 0x82,
+	0x4e, 0xf2, 0x89, 0x36, 0xa9, 0x65, 0x11, 0x2a, 0x75, 0x2c, 0x81, 0xef, 0x05, 0x34, 0xce, 0x82,
+	0x75, 0x93, 0x3a, 0x66, 0xaa, 0xed, 0x05, 0x34, 0x4a, 0x80, 0x06, 0x3c, 0xf0, 0x43, 0xfd, 0x02,
+	0x71, 0xb4, 0x2b, 0xe3, 0xfc, 0xe9, 0x53, 0xe2, 0x51, 0x2e, 0x74, 0x71, 0xc8, 0xe1, 0x8a, 0x05,
+	0xb5, 0x14, 0xc6, 0xe6, 0xd0, 0x91, 0x41, 0x54, 0xfe, 0x98, 0x81, 0xe5, 0xb4, 0x83, 0x11, 0x86,
+	0x25, 0x5b, 0x59, 0x32, 0xba, 0xf1, 0xfe, 0xec, 0x03, 0x4e, 0xa9, 0x66, 0xaa, 0x0e, 0xb6, 0x4c,
+	0xd5, 0x1f, 0xc0, 0x92, 0xad, 0x43, 0x5b, 0x80, 0x70, 0xab, 0xd1, 0x39, 0x79, 0x71, 0xa5, 0xa9,
+	0x2d, 0x41, 0xb1, 0xf5, 0xb3, 0x6e, 0x0b, 0xbf, 0x68, 0x1c, 0x3b, 0x9d, 0x16, 0x3e, 0x6f, 0x37,
+	0x5b, 0xc5, 0x4c, 0xf5, 0x2f, 0x4b, 0xb0, 0x32, 0xd5, 0x36, 0x21, 0x0c, 0x05, 0xd5, 0x76, 0x45,
+	0x6f, 0x03, 0x63, 0xe2, 0xe3, 0x77, 0xeb, 0xb9, 0xd4, 0x28, 0x7a, 0x15, 0x80, 0x0c, 0x44, 0xd4,
+	0x6a, 0x1f, 0x42, 0x51, 0x71, 0xba, 0xfe, 0xb0, 0x4f, 0xb9, 0x23, 0x46, 0xbe, 0xa4, 0xb6, 0xdf,
+	0xbc, 0x7f, 0xed, 0x42, 0x3c, 0x6b, 0x87, 0xf2, 0x49, 0xfd, 0x9c, 0x04, 0x23, 0x8a, 0x55, 0x03,
+	0xd8, 0xd4, 0x4a, 0x1d, 0xa5, 0x83, 0x1e, 0x19, 0x1e, 0x11, 0xfa, 0x4e, 0x9f, 0x09, 0xa9, 0x2b,
+	0x6d, 0x56, 0x57, 0x5a, 0x85, 0xec, 0x84, 0xfe, 0x91, 0x95, 0xa2, 0xdf, 0xc1, 0x7d, 0x53, 0xb8,
+	0x5c, 0x65, 0x59, 0xcf, 0x77, 0x55, 0xf0, 0x5e, 0x6b, 0x25, 0x7f, 0xf4, 0x8e, 0xdb, 0x6a, 0x26,
+	0x24, 0xa9, 0x06, 0xb3, 0xa2, 0x57, 0x98, 0x39, 0x87, 0x7e, 0x0b, 0xf7, 0x86, 0x94, 0xf2, 0x9b,
+	0x96, 0x5f, 0xfc, 0x2f, 0x2c, 0xbf, 0xad, 0x16, 0x98, 0xbd, 0xfa, 0x47, 0xa6, 0x75, 0x16, 0x54,
+	0x28, 0xf7, 0x3b, 0xbe, 0xa7, 0x8b, 0x6a, 0x1e, 0x2f, 0x2b, 0x2f, 0x19, 0x61, 0xdb, 0xab, 0x7c,
+	0x93, 0x81, 0xcd, 0xd9, 0xfa, 0x23, 0x28, 0x8a, 0xd1, 0x85, 0xaa, 0x42, 0x0e, 0x09, 0xa4, 0xb9,
+	0xd1, 0x32, 0x7b, 0xd9, 0x47, 0x85, 0xfa, 0x97, 0xff, 0x89, 0xc9, 0xb5, 0x8e, 0x21, 0x6d, 0x04,
+	0x52, 0xdd, 0x89, 0x78, 0x55, 0x4c, 0x8d, 0x51, 0x19, 0xee, 0x58, 0x89, 0x8e, 0x8e, 0x3c, 0x8e,
+	0x86, 0x95, 0xcf, 0x61, 0x75, 0x5a, 0x17, 0x21, 0xc8, 0x8e, 0xb8, 0xaf, 0xc3, 0x33, 0x7f, 0x74,
+	0x0b, 0xab, 0x81, 0x92, 0x79, 0xa1, 0x79, 0xc9, 0x68, 0x99, 0x17, 0x8a, 0x83, 0x45, 0xc8, 0x0a,
+	0x12, 0x56, 0x7f, 0x0a, 0x90, 0xc4, 0x26, 0xba, 0x0b, 0x1b, 0xe7, 0x2d, 0xdc, 0x69, 0x5f, 0x4b,
+	0x92, 0x3c, 0x2c, 0x76, 0x8f, 0x3b, 0xe3, 0xc7, 0xc5, 0x0c, 0x2a, 0xc0, 0x1d, 0xfd, 0xd7, 0x51,
+	0x2f, 0xbf, 0x78, 0x50, 0x2f, 0x66, 0x93, 0xc1, 0x93, 0xe2, 0x42, 0xf5, 0xf7, 0x8b, 0xb0, 0x39,
+	0xf3, 0x11, 0x8b, 0x7e, 0xa2, 0x7a, 0x1c, 0x53, 0x2c, 0x06, 0x54, 0xf6, 0x99, 0x67, 0x73, 0x69,
+	0x6f, 0x46, 0x6b, 0x62, 0xb5, 0x9f, 0x6b, 0x9c, 0xea, 0x6e, 0x52, 0x43, 0xb4, 0x05, 0x4b, 0xc2,
+	0xed, 0xd3, 0x01, 0xb5, 0x5e, 0xb1, 0x23, 0x74, 0x1f, 0xf2, 0xb6, 0x20, 0xc8, 0x89, 0x4d, 0x83,
+	0x44, 0x80, 0x3e, 0x81, 0x05, 0xd5, 0xa4, 0xd8, 0x48, 0x7f, 0x7b, 0x9e, 0x69, 0x24, 0x42, 0xb0,
+	0x30, 0x24, 0xb2, 0xaf, 0x83, 0x33, 0x8f, 0xf5, 0x7f, 0xd5, 0xd5, 0x8c, 0x04, 0xe5, 0x0e, 0xb9,
+	0xa4, 0xa1, 0xb4, 0x51, 0x94, 0x57, 0x92, 0x86, 0x12, 0xa8, 0x13, 0xe3, 0xb4, 0x47, 0x39, 0xe5,
+	0xfa, 0xca, 0xcd, 0xe3, 0x68, 0x88, 0xfe, 0x0f, 0x56, 0x7a, 0x8c, 0xbf, 0x22, 0xdc, 0xa3, 0x9e,
+	0xd3, 0x63, 0x5c, 0x5f, 0xac, 0x79, 0xbc, 0x1c, 0x0b, 0x0f, 0x19, 0xd7, 0x3d, 0x93, 0x75, 0x91,
+	0x6f, 0x2e, 0x54, 0xd5, 0x33, 0x19, 0x49, 0xdb, 0x53, 0x1c, 0x8c, 0xfb, 0x97, 0x7e, 0x48, 0x02,
+	0x47, 0x5b, 0x06, 0x86, 0x23, 0x12, 0x9e, 0x2a, 0x0b, 0xeb, 0xb0, 0x79, 0xa5, 0x26, 0xdb, 0x57,
+	0x75, 0x41, 0xbf, 0xaa, 0x37, 0xf8, 0x54, 0x35, 0x36, 0xcf, 0xef, 0xef, 0x02, 0x8a, 0x74, 0x2e,
+	0x98, 0x37, 0xb1, 0x0a, 0xcb, 0x5a, 0xa1, 0x68, 0x67, 0x0e, 0x98, 0x37, 0x31, 0xe8, 0x97, 0xb0,
+	0x76, 0xb5, 0xea, 0xaf, 0xe8, 0x64, 0x38, 0x78, 0xbf, 0xcf, 0x1a, 0xb5, 0xe9, 0x8b, 0x41, 0x7f,
+	0x48, 0xc1, 0xab, 0xd3, 0xf6, 0x55, 0x1a, 0xb0, 0x31, 0x03, 0x86, 0x8a, 0x90, 0x7d, 0x49, 0x27,
+	0x26, 0xdc, 0xb1, 0xfa, 0x8b, 0x4a, 0xb0, 0x38, 0x56, 0x87, 0x67, 0x83, 0xc2, 0x0c, 0x3e, 0xbb,
+	0xfd, 0x69, 0xa6, 0xfa, 0xcf, 0x05, 0xd8, 0x9a, 0xfd, 0x31, 0x04, 0x35, 0x20, 0xee, 0x9c, 0x1d,
+	0x97, 0x79, 0xd4, 0x7e, 0x50, 0x7a, 0x7b, 0x74, 0x2c, 0x47, 0x2a, 0x4d, 0xe6, 0x51, 0xf4, 0x7d,
+	0xd8, 0x8a, 0x29, 0xa6, 0x1d, 0x6e, 0x3e, 0x63, 0x94, 0xa2, 0xd9, 0x29, 0x8f, 0xd7, 0x60, 0x23,
+	0xd6, 0x4a, 0xb9, 0x3c, 0xab, 0x55, 0xd6, 0xa3, 0xa9, 0xc4, 0xe7, 0x0c, 0x8a, 0x57, 0x57, 0x29,
+	0x2f, 0x68, 0xa7, 0x3f, 0x7b, 0xcf, 0x0f, 0x40, 0xf1, 0x25, 0x3a, 0xe5, 0xf6, 0xb5, 0x2b, 0x56,
+	0x22, 0x0e, 0xb1, 0x15, 0xea, 0x25, 0xe0, 0x07, 0x6a, 0xc5, 0x45, 0xbd, 0x62, 0xeb, 0x43, 0x57,
+	0xec, 0x5a, 0x1e, 0xb3, 0x64, 0xbc, 0xa1, 0x48, 0x6c, 0x42, 0x37, 0x75, 0x1a, 0x71, 0xf7, 0x66,
+	0xf2, 0x6c, 0x23, 0xed, 0x77, 0xdb, 0x88, 0x55, 0x0e, 0xa0, 0x34, 0x6b, 0x43, 0xef, 0x13, 0x20,
+	0x95, 0x26, 0x6c, 0xce, 0x34, 0xf1, 0x7d, 0x48, 0x0e, 0x5a, 0x7f, 0x7b, 0xb3, 0x93, 0xf9, 0xfa,
+	0xcd, 0x4e, 0xe6, 0x1f, 0x6f, 0x76, 0x32, 0xf0, 0xb1, 0xcf, 0x8c, 0x97, 0x86, 0x9c, 0xbd, 0x9e,
+	0xdc, 0xe4, 0xb0, 0x83, 0xd5, 0x46, 0x34, 0x3a, 0x55, 0x91, 0x76, 0x9a, 0xb9, 0x58, 0xd2, 0x21,
+	0xf7, 0xe4, 0xdf, 0x01, 0x00, 0x00, 0xff, 0xff, 0xe8, 0xf2, 0x9a, 0x89, 0xd2, 0x16, 0x00, 0x00,
 }
 
 func (m *TCPAccessLogEntry) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
-	n, err := m.MarshalTo(dAtA)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
 	if err != nil {
 		return nil, err
 	}
@@ -1442,30 +1546,50 @@ func (m *TCPAccessLogEntry) Marshal() (dAtA []byte, err error) {
 }
 
 func (m *TCPAccessLogEntry) MarshalTo(dAtA []byte) (int, error) {
-	var i int
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *TCPAccessLogEntry) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
-	if m.CommonProperties != nil {
-		dAtA[i] = 0xa
-		i++
-		i = encodeVarintAccesslog(dAtA, i, uint64(m.CommonProperties.Size()))
-		n1, err := m.CommonProperties.MarshalTo(dAtA[i:])
-		if err != nil {
-			return 0, err
-		}
-		i += n1
-	}
 	if m.XXX_unrecognized != nil {
-		i += copy(dAtA[i:], m.XXX_unrecognized)
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
 	}
-	return i, nil
+	if m.ConnectionProperties != nil {
+		{
+			size, err := m.ConnectionProperties.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintAccesslog(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.CommonProperties != nil {
+		{
+			size, err := m.CommonProperties.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintAccesslog(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
 }
 
 func (m *HTTPAccessLogEntry) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
-	n, err := m.MarshalTo(dAtA)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
 	if err != nil {
 		return nil, err
 	}
@@ -1473,55 +1597,104 @@ func (m *HTTPAccessLogEntry) Marshal() (dAtA []byte, err error) {
 }
 
 func (m *HTTPAccessLogEntry) MarshalTo(dAtA []byte) (int, error) {
-	var i int
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *HTTPAccessLogEntry) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
-	if m.CommonProperties != nil {
-		dAtA[i] = 0xa
-		i++
-		i = encodeVarintAccesslog(dAtA, i, uint64(m.CommonProperties.Size()))
-		n2, err := m.CommonProperties.MarshalTo(dAtA[i:])
-		if err != nil {
-			return 0, err
-		}
-		i += n2
-	}
-	if m.ProtocolVersion != 0 {
-		dAtA[i] = 0x10
-		i++
-		i = encodeVarintAccesslog(dAtA, i, uint64(m.ProtocolVersion))
-	}
-	if m.Request != nil {
-		dAtA[i] = 0x1a
-		i++
-		i = encodeVarintAccesslog(dAtA, i, uint64(m.Request.Size()))
-		n3, err := m.Request.MarshalTo(dAtA[i:])
-		if err != nil {
-			return 0, err
-		}
-		i += n3
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
 	}
 	if m.Response != nil {
-		dAtA[i] = 0x22
-		i++
-		i = encodeVarintAccesslog(dAtA, i, uint64(m.Response.Size()))
-		n4, err := m.Response.MarshalTo(dAtA[i:])
-		if err != nil {
-			return 0, err
+		{
+			size, err := m.Response.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintAccesslog(dAtA, i, uint64(size))
 		}
-		i += n4
+		i--
+		dAtA[i] = 0x22
 	}
+	if m.Request != nil {
+		{
+			size, err := m.Request.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintAccesslog(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x1a
+	}
+	if m.ProtocolVersion != 0 {
+		i = encodeVarintAccesslog(dAtA, i, uint64(m.ProtocolVersion))
+		i--
+		dAtA[i] = 0x10
+	}
+	if m.CommonProperties != nil {
+		{
+			size, err := m.CommonProperties.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintAccesslog(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *ConnectionProperties) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *ConnectionProperties) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *ConnectionProperties) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
 	if m.XXX_unrecognized != nil {
-		i += copy(dAtA[i:], m.XXX_unrecognized)
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
 	}
-	return i, nil
+	if m.SentBytes != 0 {
+		i = encodeVarintAccesslog(dAtA, i, uint64(m.SentBytes))
+		i--
+		dAtA[i] = 0x10
+	}
+	if m.ReceivedBytes != 0 {
+		i = encodeVarintAccesslog(dAtA, i, uint64(m.ReceivedBytes))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
 }
 
 func (m *AccessLogCommon) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
-	n, err := m.MarshalTo(dAtA)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
 	if err != nil {
 		return nil, err
 	}
@@ -1529,202 +1702,241 @@ func (m *AccessLogCommon) Marshal() (dAtA []byte, err error) {
 }
 
 func (m *AccessLogCommon) MarshalTo(dAtA []byte) (int, error) {
-	var i int
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *AccessLogCommon) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
-	if m.SampleRate != 0 {
-		dAtA[i] = 0x9
-		i++
-		encoding_binary.LittleEndian.PutUint64(dAtA[i:], uint64(math.Float64bits(float64(m.SampleRate))))
-		i += 8
-	}
-	if m.DownstreamRemoteAddress != nil {
-		dAtA[i] = 0x12
-		i++
-		i = encodeVarintAccesslog(dAtA, i, uint64(m.DownstreamRemoteAddress.Size()))
-		n5, err := m.DownstreamRemoteAddress.MarshalTo(dAtA[i:])
-		if err != nil {
-			return 0, err
-		}
-		i += n5
-	}
-	if m.DownstreamLocalAddress != nil {
-		dAtA[i] = 0x1a
-		i++
-		i = encodeVarintAccesslog(dAtA, i, uint64(m.DownstreamLocalAddress.Size()))
-		n6, err := m.DownstreamLocalAddress.MarshalTo(dAtA[i:])
-		if err != nil {
-			return 0, err
-		}
-		i += n6
-	}
-	if m.TlsProperties != nil {
-		dAtA[i] = 0x22
-		i++
-		i = encodeVarintAccesslog(dAtA, i, uint64(m.TlsProperties.Size()))
-		n7, err := m.TlsProperties.MarshalTo(dAtA[i:])
-		if err != nil {
-			return 0, err
-		}
-		i += n7
-	}
-	if m.StartTime != nil {
-		dAtA[i] = 0x2a
-		i++
-		i = encodeVarintAccesslog(dAtA, i, uint64(github_com_gogo_protobuf_types.SizeOfStdTime(*m.StartTime)))
-		n8, err := github_com_gogo_protobuf_types.StdTimeMarshalTo(*m.StartTime, dAtA[i:])
-		if err != nil {
-			return 0, err
-		}
-		i += n8
-	}
-	if m.TimeToLastRxByte != nil {
-		dAtA[i] = 0x32
-		i++
-		i = encodeVarintAccesslog(dAtA, i, uint64(github_com_gogo_protobuf_types.SizeOfStdDuration(*m.TimeToLastRxByte)))
-		n9, err := github_com_gogo_protobuf_types.StdDurationMarshalTo(*m.TimeToLastRxByte, dAtA[i:])
-		if err != nil {
-			return 0, err
-		}
-		i += n9
-	}
-	if m.TimeToFirstUpstreamTxByte != nil {
-		dAtA[i] = 0x3a
-		i++
-		i = encodeVarintAccesslog(dAtA, i, uint64(github_com_gogo_protobuf_types.SizeOfStdDuration(*m.TimeToFirstUpstreamTxByte)))
-		n10, err := github_com_gogo_protobuf_types.StdDurationMarshalTo(*m.TimeToFirstUpstreamTxByte, dAtA[i:])
-		if err != nil {
-			return 0, err
-		}
-		i += n10
-	}
-	if m.TimeToLastUpstreamTxByte != nil {
-		dAtA[i] = 0x42
-		i++
-		i = encodeVarintAccesslog(dAtA, i, uint64(github_com_gogo_protobuf_types.SizeOfStdDuration(*m.TimeToLastUpstreamTxByte)))
-		n11, err := github_com_gogo_protobuf_types.StdDurationMarshalTo(*m.TimeToLastUpstreamTxByte, dAtA[i:])
-		if err != nil {
-			return 0, err
-		}
-		i += n11
-	}
-	if m.TimeToFirstUpstreamRxByte != nil {
-		dAtA[i] = 0x4a
-		i++
-		i = encodeVarintAccesslog(dAtA, i, uint64(github_com_gogo_protobuf_types.SizeOfStdDuration(*m.TimeToFirstUpstreamRxByte)))
-		n12, err := github_com_gogo_protobuf_types.StdDurationMarshalTo(*m.TimeToFirstUpstreamRxByte, dAtA[i:])
-		if err != nil {
-			return 0, err
-		}
-		i += n12
-	}
-	if m.TimeToLastUpstreamRxByte != nil {
-		dAtA[i] = 0x52
-		i++
-		i = encodeVarintAccesslog(dAtA, i, uint64(github_com_gogo_protobuf_types.SizeOfStdDuration(*m.TimeToLastUpstreamRxByte)))
-		n13, err := github_com_gogo_protobuf_types.StdDurationMarshalTo(*m.TimeToLastUpstreamRxByte, dAtA[i:])
-		if err != nil {
-			return 0, err
-		}
-		i += n13
-	}
-	if m.TimeToFirstDownstreamTxByte != nil {
-		dAtA[i] = 0x5a
-		i++
-		i = encodeVarintAccesslog(dAtA, i, uint64(github_com_gogo_protobuf_types.SizeOfStdDuration(*m.TimeToFirstDownstreamTxByte)))
-		n14, err := github_com_gogo_protobuf_types.StdDurationMarshalTo(*m.TimeToFirstDownstreamTxByte, dAtA[i:])
-		if err != nil {
-			return 0, err
-		}
-		i += n14
-	}
-	if m.TimeToLastDownstreamTxByte != nil {
-		dAtA[i] = 0x62
-		i++
-		i = encodeVarintAccesslog(dAtA, i, uint64(github_com_gogo_protobuf_types.SizeOfStdDuration(*m.TimeToLastDownstreamTxByte)))
-		n15, err := github_com_gogo_protobuf_types.StdDurationMarshalTo(*m.TimeToLastDownstreamTxByte, dAtA[i:])
-		if err != nil {
-			return 0, err
-		}
-		i += n15
-	}
-	if m.UpstreamRemoteAddress != nil {
-		dAtA[i] = 0x6a
-		i++
-		i = encodeVarintAccesslog(dAtA, i, uint64(m.UpstreamRemoteAddress.Size()))
-		n16, err := m.UpstreamRemoteAddress.MarshalTo(dAtA[i:])
-		if err != nil {
-			return 0, err
-		}
-		i += n16
-	}
-	if m.UpstreamLocalAddress != nil {
-		dAtA[i] = 0x72
-		i++
-		i = encodeVarintAccesslog(dAtA, i, uint64(m.UpstreamLocalAddress.Size()))
-		n17, err := m.UpstreamLocalAddress.MarshalTo(dAtA[i:])
-		if err != nil {
-			return 0, err
-		}
-		i += n17
-	}
-	if len(m.UpstreamCluster) > 0 {
-		dAtA[i] = 0x7a
-		i++
-		i = encodeVarintAccesslog(dAtA, i, uint64(len(m.UpstreamCluster)))
-		i += copy(dAtA[i:], m.UpstreamCluster)
-	}
-	if m.ResponseFlags != nil {
-		dAtA[i] = 0x82
-		i++
-		dAtA[i] = 0x1
-		i++
-		i = encodeVarintAccesslog(dAtA, i, uint64(m.ResponseFlags.Size()))
-		n18, err := m.ResponseFlags.MarshalTo(dAtA[i:])
-		if err != nil {
-			return 0, err
-		}
-		i += n18
-	}
-	if m.Metadata != nil {
-		dAtA[i] = 0x8a
-		i++
-		dAtA[i] = 0x1
-		i++
-		i = encodeVarintAccesslog(dAtA, i, uint64(m.Metadata.Size()))
-		n19, err := m.Metadata.MarshalTo(dAtA[i:])
-		if err != nil {
-			return 0, err
-		}
-		i += n19
-	}
-	if len(m.UpstreamTransportFailureReason) > 0 {
-		dAtA[i] = 0x92
-		i++
-		dAtA[i] = 0x1
-		i++
-		i = encodeVarintAccesslog(dAtA, i, uint64(len(m.UpstreamTransportFailureReason)))
-		i += copy(dAtA[i:], m.UpstreamTransportFailureReason)
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
 	}
 	if len(m.RouteName) > 0 {
-		dAtA[i] = 0x9a
-		i++
-		dAtA[i] = 0x1
-		i++
+		i -= len(m.RouteName)
+		copy(dAtA[i:], m.RouteName)
 		i = encodeVarintAccesslog(dAtA, i, uint64(len(m.RouteName)))
-		i += copy(dAtA[i:], m.RouteName)
+		i--
+		dAtA[i] = 0x1
+		i--
+		dAtA[i] = 0x9a
 	}
-	if m.XXX_unrecognized != nil {
-		i += copy(dAtA[i:], m.XXX_unrecognized)
+	if len(m.UpstreamTransportFailureReason) > 0 {
+		i -= len(m.UpstreamTransportFailureReason)
+		copy(dAtA[i:], m.UpstreamTransportFailureReason)
+		i = encodeVarintAccesslog(dAtA, i, uint64(len(m.UpstreamTransportFailureReason)))
+		i--
+		dAtA[i] = 0x1
+		i--
+		dAtA[i] = 0x92
 	}
-	return i, nil
+	if m.Metadata != nil {
+		{
+			size, err := m.Metadata.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintAccesslog(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x1
+		i--
+		dAtA[i] = 0x8a
+	}
+	if m.ResponseFlags != nil {
+		{
+			size, err := m.ResponseFlags.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintAccesslog(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x1
+		i--
+		dAtA[i] = 0x82
+	}
+	if len(m.UpstreamCluster) > 0 {
+		i -= len(m.UpstreamCluster)
+		copy(dAtA[i:], m.UpstreamCluster)
+		i = encodeVarintAccesslog(dAtA, i, uint64(len(m.UpstreamCluster)))
+		i--
+		dAtA[i] = 0x7a
+	}
+	if m.UpstreamLocalAddress != nil {
+		{
+			size, err := m.UpstreamLocalAddress.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintAccesslog(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x72
+	}
+	if m.UpstreamRemoteAddress != nil {
+		{
+			size, err := m.UpstreamRemoteAddress.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintAccesslog(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x6a
+	}
+	if m.TimeToLastDownstreamTxByte != nil {
+		{
+			size, err := m.TimeToLastDownstreamTxByte.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintAccesslog(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x62
+	}
+	if m.TimeToFirstDownstreamTxByte != nil {
+		{
+			size, err := m.TimeToFirstDownstreamTxByte.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintAccesslog(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x5a
+	}
+	if m.TimeToLastUpstreamRxByte != nil {
+		{
+			size, err := m.TimeToLastUpstreamRxByte.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintAccesslog(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x52
+	}
+	if m.TimeToFirstUpstreamRxByte != nil {
+		{
+			size, err := m.TimeToFirstUpstreamRxByte.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintAccesslog(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x4a
+	}
+	if m.TimeToLastUpstreamTxByte != nil {
+		{
+			size, err := m.TimeToLastUpstreamTxByte.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintAccesslog(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x42
+	}
+	if m.TimeToFirstUpstreamTxByte != nil {
+		{
+			size, err := m.TimeToFirstUpstreamTxByte.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintAccesslog(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x3a
+	}
+	if m.TimeToLastRxByte != nil {
+		{
+			size, err := m.TimeToLastRxByte.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintAccesslog(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x32
+	}
+	if m.StartTime != nil {
+		{
+			size, err := m.StartTime.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintAccesslog(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x2a
+	}
+	if m.TlsProperties != nil {
+		{
+			size, err := m.TlsProperties.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintAccesslog(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x22
+	}
+	if m.DownstreamLocalAddress != nil {
+		{
+			size, err := m.DownstreamLocalAddress.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintAccesslog(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x1a
+	}
+	if m.DownstreamRemoteAddress != nil {
+		{
+			size, err := m.DownstreamRemoteAddress.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintAccesslog(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.SampleRate != 0 {
+		i -= 8
+		encoding_binary.LittleEndian.PutUint64(dAtA[i:], uint64(math.Float64bits(float64(m.SampleRate))))
+		i--
+		dAtA[i] = 0x9
+	}
+	return len(dAtA) - i, nil
 }
 
 func (m *ResponseFlags) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
-	n, err := m.MarshalTo(dAtA)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
 	if err != nil {
 		return nil, err
 	}
@@ -1732,206 +1944,214 @@ func (m *ResponseFlags) Marshal() (dAtA []byte, err error) {
 }
 
 func (m *ResponseFlags) MarshalTo(dAtA []byte) (int, error) {
-	var i int
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *ResponseFlags) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
-	if m.FailedLocalHealthcheck {
-		dAtA[i] = 0x8
-		i++
-		if m.FailedLocalHealthcheck {
-			dAtA[i] = 1
-		} else {
-			dAtA[i] = 0
-		}
-		i++
-	}
-	if m.NoHealthyUpstream {
-		dAtA[i] = 0x10
-		i++
-		if m.NoHealthyUpstream {
-			dAtA[i] = 1
-		} else {
-			dAtA[i] = 0
-		}
-		i++
-	}
-	if m.UpstreamRequestTimeout {
-		dAtA[i] = 0x18
-		i++
-		if m.UpstreamRequestTimeout {
-			dAtA[i] = 1
-		} else {
-			dAtA[i] = 0
-		}
-		i++
-	}
-	if m.LocalReset {
-		dAtA[i] = 0x20
-		i++
-		if m.LocalReset {
-			dAtA[i] = 1
-		} else {
-			dAtA[i] = 0
-		}
-		i++
-	}
-	if m.UpstreamRemoteReset {
-		dAtA[i] = 0x28
-		i++
-		if m.UpstreamRemoteReset {
-			dAtA[i] = 1
-		} else {
-			dAtA[i] = 0
-		}
-		i++
-	}
-	if m.UpstreamConnectionFailure {
-		dAtA[i] = 0x30
-		i++
-		if m.UpstreamConnectionFailure {
-			dAtA[i] = 1
-		} else {
-			dAtA[i] = 0
-		}
-		i++
-	}
-	if m.UpstreamConnectionTermination {
-		dAtA[i] = 0x38
-		i++
-		if m.UpstreamConnectionTermination {
-			dAtA[i] = 1
-		} else {
-			dAtA[i] = 0
-		}
-		i++
-	}
-	if m.UpstreamOverflow {
-		dAtA[i] = 0x40
-		i++
-		if m.UpstreamOverflow {
-			dAtA[i] = 1
-		} else {
-			dAtA[i] = 0
-		}
-		i++
-	}
-	if m.NoRouteFound {
-		dAtA[i] = 0x48
-		i++
-		if m.NoRouteFound {
-			dAtA[i] = 1
-		} else {
-			dAtA[i] = 0
-		}
-		i++
-	}
-	if m.DelayInjected {
-		dAtA[i] = 0x50
-		i++
-		if m.DelayInjected {
-			dAtA[i] = 1
-		} else {
-			dAtA[i] = 0
-		}
-		i++
-	}
-	if m.FaultInjected {
-		dAtA[i] = 0x58
-		i++
-		if m.FaultInjected {
-			dAtA[i] = 1
-		} else {
-			dAtA[i] = 0
-		}
-		i++
-	}
-	if m.RateLimited {
-		dAtA[i] = 0x60
-		i++
-		if m.RateLimited {
-			dAtA[i] = 1
-		} else {
-			dAtA[i] = 0
-		}
-		i++
-	}
-	if m.UnauthorizedDetails != nil {
-		dAtA[i] = 0x6a
-		i++
-		i = encodeVarintAccesslog(dAtA, i, uint64(m.UnauthorizedDetails.Size()))
-		n20, err := m.UnauthorizedDetails.MarshalTo(dAtA[i:])
-		if err != nil {
-			return 0, err
-		}
-		i += n20
-	}
-	if m.RateLimitServiceError {
-		dAtA[i] = 0x70
-		i++
-		if m.RateLimitServiceError {
-			dAtA[i] = 1
-		} else {
-			dAtA[i] = 0
-		}
-		i++
-	}
-	if m.DownstreamConnectionTermination {
-		dAtA[i] = 0x78
-		i++
-		if m.DownstreamConnectionTermination {
-			dAtA[i] = 1
-		} else {
-			dAtA[i] = 0
-		}
-		i++
-	}
-	if m.UpstreamRetryLimitExceeded {
-		dAtA[i] = 0x80
-		i++
-		dAtA[i] = 0x1
-		i++
-		if m.UpstreamRetryLimitExceeded {
-			dAtA[i] = 1
-		} else {
-			dAtA[i] = 0
-		}
-		i++
-	}
-	if m.StreamIdleTimeout {
-		dAtA[i] = 0x88
-		i++
-		dAtA[i] = 0x1
-		i++
-		if m.StreamIdleTimeout {
-			dAtA[i] = 1
-		} else {
-			dAtA[i] = 0
-		}
-		i++
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
 	}
 	if m.InvalidEnvoyRequestHeaders {
-		dAtA[i] = 0x90
-		i++
-		dAtA[i] = 0x1
-		i++
+		i--
 		if m.InvalidEnvoyRequestHeaders {
 			dAtA[i] = 1
 		} else {
 			dAtA[i] = 0
 		}
-		i++
+		i--
+		dAtA[i] = 0x1
+		i--
+		dAtA[i] = 0x90
 	}
-	if m.XXX_unrecognized != nil {
-		i += copy(dAtA[i:], m.XXX_unrecognized)
+	if m.StreamIdleTimeout {
+		i--
+		if m.StreamIdleTimeout {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i--
+		dAtA[i] = 0x1
+		i--
+		dAtA[i] = 0x88
 	}
-	return i, nil
+	if m.UpstreamRetryLimitExceeded {
+		i--
+		if m.UpstreamRetryLimitExceeded {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i--
+		dAtA[i] = 0x1
+		i--
+		dAtA[i] = 0x80
+	}
+	if m.DownstreamConnectionTermination {
+		i--
+		if m.DownstreamConnectionTermination {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i--
+		dAtA[i] = 0x78
+	}
+	if m.RateLimitServiceError {
+		i--
+		if m.RateLimitServiceError {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i--
+		dAtA[i] = 0x70
+	}
+	if m.UnauthorizedDetails != nil {
+		{
+			size, err := m.UnauthorizedDetails.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintAccesslog(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x6a
+	}
+	if m.RateLimited {
+		i--
+		if m.RateLimited {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i--
+		dAtA[i] = 0x60
+	}
+	if m.FaultInjected {
+		i--
+		if m.FaultInjected {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i--
+		dAtA[i] = 0x58
+	}
+	if m.DelayInjected {
+		i--
+		if m.DelayInjected {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i--
+		dAtA[i] = 0x50
+	}
+	if m.NoRouteFound {
+		i--
+		if m.NoRouteFound {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i--
+		dAtA[i] = 0x48
+	}
+	if m.UpstreamOverflow {
+		i--
+		if m.UpstreamOverflow {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i--
+		dAtA[i] = 0x40
+	}
+	if m.UpstreamConnectionTermination {
+		i--
+		if m.UpstreamConnectionTermination {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i--
+		dAtA[i] = 0x38
+	}
+	if m.UpstreamConnectionFailure {
+		i--
+		if m.UpstreamConnectionFailure {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i--
+		dAtA[i] = 0x30
+	}
+	if m.UpstreamRemoteReset {
+		i--
+		if m.UpstreamRemoteReset {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i--
+		dAtA[i] = 0x28
+	}
+	if m.LocalReset {
+		i--
+		if m.LocalReset {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i--
+		dAtA[i] = 0x20
+	}
+	if m.UpstreamRequestTimeout {
+		i--
+		if m.UpstreamRequestTimeout {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i--
+		dAtA[i] = 0x18
+	}
+	if m.NoHealthyUpstream {
+		i--
+		if m.NoHealthyUpstream {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i--
+		dAtA[i] = 0x10
+	}
+	if m.FailedLocalHealthcheck {
+		i--
+		if m.FailedLocalHealthcheck {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
 }
 
 func (m *ResponseFlags_Unauthorized) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
-	n, err := m.MarshalTo(dAtA)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
 	if err != nil {
 		return nil, err
 	}
@@ -1939,25 +2159,31 @@ func (m *ResponseFlags_Unauthorized) Marshal() (dAtA []byte, err error) {
 }
 
 func (m *ResponseFlags_Unauthorized) MarshalTo(dAtA []byte) (int, error) {
-	var i int
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *ResponseFlags_Unauthorized) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
-	if m.Reason != 0 {
-		dAtA[i] = 0x8
-		i++
-		i = encodeVarintAccesslog(dAtA, i, uint64(m.Reason))
-	}
 	if m.XXX_unrecognized != nil {
-		i += copy(dAtA[i:], m.XXX_unrecognized)
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
 	}
-	return i, nil
+	if m.Reason != 0 {
+		i = encodeVarintAccesslog(dAtA, i, uint64(m.Reason))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
 }
 
 func (m *TLSProperties) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
-	n, err := m.MarshalTo(dAtA)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
 	if err != nil {
 		return nil, err
 	}
@@ -1965,67 +2191,81 @@ func (m *TLSProperties) Marshal() (dAtA []byte, err error) {
 }
 
 func (m *TLSProperties) MarshalTo(dAtA []byte) (int, error) {
-	var i int
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *TLSProperties) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
-	if m.TlsVersion != 0 {
-		dAtA[i] = 0x8
-		i++
-		i = encodeVarintAccesslog(dAtA, i, uint64(m.TlsVersion))
-	}
-	if m.TlsCipherSuite != nil {
-		dAtA[i] = 0x12
-		i++
-		i = encodeVarintAccesslog(dAtA, i, uint64(m.TlsCipherSuite.Size()))
-		n21, err := m.TlsCipherSuite.MarshalTo(dAtA[i:])
-		if err != nil {
-			return 0, err
-		}
-		i += n21
-	}
-	if len(m.TlsSniHostname) > 0 {
-		dAtA[i] = 0x1a
-		i++
-		i = encodeVarintAccesslog(dAtA, i, uint64(len(m.TlsSniHostname)))
-		i += copy(dAtA[i:], m.TlsSniHostname)
-	}
-	if m.LocalCertificateProperties != nil {
-		dAtA[i] = 0x22
-		i++
-		i = encodeVarintAccesslog(dAtA, i, uint64(m.LocalCertificateProperties.Size()))
-		n22, err := m.LocalCertificateProperties.MarshalTo(dAtA[i:])
-		if err != nil {
-			return 0, err
-		}
-		i += n22
-	}
-	if m.PeerCertificateProperties != nil {
-		dAtA[i] = 0x2a
-		i++
-		i = encodeVarintAccesslog(dAtA, i, uint64(m.PeerCertificateProperties.Size()))
-		n23, err := m.PeerCertificateProperties.MarshalTo(dAtA[i:])
-		if err != nil {
-			return 0, err
-		}
-		i += n23
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
 	}
 	if len(m.TlsSessionId) > 0 {
-		dAtA[i] = 0x32
-		i++
+		i -= len(m.TlsSessionId)
+		copy(dAtA[i:], m.TlsSessionId)
 		i = encodeVarintAccesslog(dAtA, i, uint64(len(m.TlsSessionId)))
-		i += copy(dAtA[i:], m.TlsSessionId)
+		i--
+		dAtA[i] = 0x32
 	}
-	if m.XXX_unrecognized != nil {
-		i += copy(dAtA[i:], m.XXX_unrecognized)
+	if m.PeerCertificateProperties != nil {
+		{
+			size, err := m.PeerCertificateProperties.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintAccesslog(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x2a
 	}
-	return i, nil
+	if m.LocalCertificateProperties != nil {
+		{
+			size, err := m.LocalCertificateProperties.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintAccesslog(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x22
+	}
+	if len(m.TlsSniHostname) > 0 {
+		i -= len(m.TlsSniHostname)
+		copy(dAtA[i:], m.TlsSniHostname)
+		i = encodeVarintAccesslog(dAtA, i, uint64(len(m.TlsSniHostname)))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if m.TlsCipherSuite != nil {
+		{
+			size, err := m.TlsCipherSuite.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintAccesslog(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.TlsVersion != 0 {
+		i = encodeVarintAccesslog(dAtA, i, uint64(m.TlsVersion))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
 }
 
 func (m *TLSProperties_CertificateProperties) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
-	n, err := m.MarshalTo(dAtA)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
 	if err != nil {
 		return nil, err
 	}
@@ -2033,38 +2273,47 @@ func (m *TLSProperties_CertificateProperties) Marshal() (dAtA []byte, err error)
 }
 
 func (m *TLSProperties_CertificateProperties) MarshalTo(dAtA []byte) (int, error) {
-	var i int
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *TLSProperties_CertificateProperties) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
-	if len(m.SubjectAltName) > 0 {
-		for _, msg := range m.SubjectAltName {
-			dAtA[i] = 0xa
-			i++
-			i = encodeVarintAccesslog(dAtA, i, uint64(msg.Size()))
-			n, err := msg.MarshalTo(dAtA[i:])
-			if err != nil {
-				return 0, err
-			}
-			i += n
-		}
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
 	}
 	if len(m.Subject) > 0 {
-		dAtA[i] = 0x12
-		i++
+		i -= len(m.Subject)
+		copy(dAtA[i:], m.Subject)
 		i = encodeVarintAccesslog(dAtA, i, uint64(len(m.Subject)))
-		i += copy(dAtA[i:], m.Subject)
+		i--
+		dAtA[i] = 0x12
 	}
-	if m.XXX_unrecognized != nil {
-		i += copy(dAtA[i:], m.XXX_unrecognized)
+	if len(m.SubjectAltName) > 0 {
+		for iNdEx := len(m.SubjectAltName) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.SubjectAltName[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintAccesslog(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0xa
+		}
 	}
-	return i, nil
+	return len(dAtA) - i, nil
 }
 
 func (m *TLSProperties_CertificateProperties_SubjectAltName) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
-	n, err := m.MarshalTo(dAtA)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
 	if err != nil {
 		return nil, err
 	}
@@ -2072,43 +2321,61 @@ func (m *TLSProperties_CertificateProperties_SubjectAltName) Marshal() (dAtA []b
 }
 
 func (m *TLSProperties_CertificateProperties_SubjectAltName) MarshalTo(dAtA []byte) (int, error) {
-	var i int
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *TLSProperties_CertificateProperties_SubjectAltName) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
-	if m.San != nil {
-		nn24, err := m.San.MarshalTo(dAtA[i:])
-		if err != nil {
-			return 0, err
-		}
-		i += nn24
-	}
 	if m.XXX_unrecognized != nil {
-		i += copy(dAtA[i:], m.XXX_unrecognized)
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
 	}
-	return i, nil
+	if m.San != nil {
+		{
+			size := m.San.Size()
+			i -= size
+			if _, err := m.San.MarshalTo(dAtA[i:]); err != nil {
+				return 0, err
+			}
+		}
+	}
+	return len(dAtA) - i, nil
 }
 
 func (m *TLSProperties_CertificateProperties_SubjectAltName_Uri) MarshalTo(dAtA []byte) (int, error) {
-	i := 0
-	dAtA[i] = 0xa
-	i++
+	return m.MarshalToSizedBuffer(dAtA[:m.Size()])
+}
+
+func (m *TLSProperties_CertificateProperties_SubjectAltName_Uri) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	i -= len(m.Uri)
+	copy(dAtA[i:], m.Uri)
 	i = encodeVarintAccesslog(dAtA, i, uint64(len(m.Uri)))
-	i += copy(dAtA[i:], m.Uri)
-	return i, nil
+	i--
+	dAtA[i] = 0xa
+	return len(dAtA) - i, nil
 }
 func (m *TLSProperties_CertificateProperties_SubjectAltName_Dns) MarshalTo(dAtA []byte) (int, error) {
-	i := 0
-	dAtA[i] = 0x12
-	i++
+	return m.MarshalToSizedBuffer(dAtA[:m.Size()])
+}
+
+func (m *TLSProperties_CertificateProperties_SubjectAltName_Dns) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	i -= len(m.Dns)
+	copy(dAtA[i:], m.Dns)
 	i = encodeVarintAccesslog(dAtA, i, uint64(len(m.Dns)))
-	i += copy(dAtA[i:], m.Dns)
-	return i, nil
+	i--
+	dAtA[i] = 0x12
+	return len(dAtA) - i, nil
 }
 func (m *HTTPRequestProperties) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
-	n, err := m.MarshalTo(dAtA)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
 	if err != nil {
 		return nil, err
 	}
@@ -2116,115 +2383,128 @@ func (m *HTTPRequestProperties) Marshal() (dAtA []byte, err error) {
 }
 
 func (m *HTTPRequestProperties) MarshalTo(dAtA []byte) (int, error) {
-	var i int
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *HTTPRequestProperties) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
-	if m.RequestMethod != 0 {
-		dAtA[i] = 0x8
-		i++
-		i = encodeVarintAccesslog(dAtA, i, uint64(m.RequestMethod))
-	}
-	if len(m.Scheme) > 0 {
-		dAtA[i] = 0x12
-		i++
-		i = encodeVarintAccesslog(dAtA, i, uint64(len(m.Scheme)))
-		i += copy(dAtA[i:], m.Scheme)
-	}
-	if len(m.Authority) > 0 {
-		dAtA[i] = 0x1a
-		i++
-		i = encodeVarintAccesslog(dAtA, i, uint64(len(m.Authority)))
-		i += copy(dAtA[i:], m.Authority)
-	}
-	if m.Port != nil {
-		dAtA[i] = 0x22
-		i++
-		i = encodeVarintAccesslog(dAtA, i, uint64(m.Port.Size()))
-		n25, err := m.Port.MarshalTo(dAtA[i:])
-		if err != nil {
-			return 0, err
-		}
-		i += n25
-	}
-	if len(m.Path) > 0 {
-		dAtA[i] = 0x2a
-		i++
-		i = encodeVarintAccesslog(dAtA, i, uint64(len(m.Path)))
-		i += copy(dAtA[i:], m.Path)
-	}
-	if len(m.UserAgent) > 0 {
-		dAtA[i] = 0x32
-		i++
-		i = encodeVarintAccesslog(dAtA, i, uint64(len(m.UserAgent)))
-		i += copy(dAtA[i:], m.UserAgent)
-	}
-	if len(m.Referer) > 0 {
-		dAtA[i] = 0x3a
-		i++
-		i = encodeVarintAccesslog(dAtA, i, uint64(len(m.Referer)))
-		i += copy(dAtA[i:], m.Referer)
-	}
-	if len(m.ForwardedFor) > 0 {
-		dAtA[i] = 0x42
-		i++
-		i = encodeVarintAccesslog(dAtA, i, uint64(len(m.ForwardedFor)))
-		i += copy(dAtA[i:], m.ForwardedFor)
-	}
-	if len(m.RequestId) > 0 {
-		dAtA[i] = 0x4a
-		i++
-		i = encodeVarintAccesslog(dAtA, i, uint64(len(m.RequestId)))
-		i += copy(dAtA[i:], m.RequestId)
-	}
-	if len(m.OriginalPath) > 0 {
-		dAtA[i] = 0x52
-		i++
-		i = encodeVarintAccesslog(dAtA, i, uint64(len(m.OriginalPath)))
-		i += copy(dAtA[i:], m.OriginalPath)
-	}
-	if m.RequestHeadersBytes != 0 {
-		dAtA[i] = 0x58
-		i++
-		i = encodeVarintAccesslog(dAtA, i, uint64(m.RequestHeadersBytes))
-	}
-	if m.RequestBodyBytes != 0 {
-		dAtA[i] = 0x60
-		i++
-		i = encodeVarintAccesslog(dAtA, i, uint64(m.RequestBodyBytes))
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
 	}
 	if len(m.RequestHeaders) > 0 {
-		keysForRequestHeaders := make([]string, 0, len(m.RequestHeaders))
-		for k, _ := range m.RequestHeaders {
-			keysForRequestHeaders = append(keysForRequestHeaders, string(k))
-		}
-		github_com_gogo_protobuf_sortkeys.Strings(keysForRequestHeaders)
-		for _, k := range keysForRequestHeaders {
-			dAtA[i] = 0x6a
-			i++
-			v := m.RequestHeaders[string(k)]
-			mapSize := 1 + len(k) + sovAccesslog(uint64(len(k))) + 1 + len(v) + sovAccesslog(uint64(len(v)))
-			i = encodeVarintAccesslog(dAtA, i, uint64(mapSize))
-			dAtA[i] = 0xa
-			i++
-			i = encodeVarintAccesslog(dAtA, i, uint64(len(k)))
-			i += copy(dAtA[i:], k)
-			dAtA[i] = 0x12
-			i++
+		for k := range m.RequestHeaders {
+			v := m.RequestHeaders[k]
+			baseI := i
+			i -= len(v)
+			copy(dAtA[i:], v)
 			i = encodeVarintAccesslog(dAtA, i, uint64(len(v)))
-			i += copy(dAtA[i:], v)
+			i--
+			dAtA[i] = 0x12
+			i -= len(k)
+			copy(dAtA[i:], k)
+			i = encodeVarintAccesslog(dAtA, i, uint64(len(k)))
+			i--
+			dAtA[i] = 0xa
+			i = encodeVarintAccesslog(dAtA, i, uint64(baseI-i))
+			i--
+			dAtA[i] = 0x6a
 		}
 	}
-	if m.XXX_unrecognized != nil {
-		i += copy(dAtA[i:], m.XXX_unrecognized)
+	if m.RequestBodyBytes != 0 {
+		i = encodeVarintAccesslog(dAtA, i, uint64(m.RequestBodyBytes))
+		i--
+		dAtA[i] = 0x60
 	}
-	return i, nil
+	if m.RequestHeadersBytes != 0 {
+		i = encodeVarintAccesslog(dAtA, i, uint64(m.RequestHeadersBytes))
+		i--
+		dAtA[i] = 0x58
+	}
+	if len(m.OriginalPath) > 0 {
+		i -= len(m.OriginalPath)
+		copy(dAtA[i:], m.OriginalPath)
+		i = encodeVarintAccesslog(dAtA, i, uint64(len(m.OriginalPath)))
+		i--
+		dAtA[i] = 0x52
+	}
+	if len(m.RequestId) > 0 {
+		i -= len(m.RequestId)
+		copy(dAtA[i:], m.RequestId)
+		i = encodeVarintAccesslog(dAtA, i, uint64(len(m.RequestId)))
+		i--
+		dAtA[i] = 0x4a
+	}
+	if len(m.ForwardedFor) > 0 {
+		i -= len(m.ForwardedFor)
+		copy(dAtA[i:], m.ForwardedFor)
+		i = encodeVarintAccesslog(dAtA, i, uint64(len(m.ForwardedFor)))
+		i--
+		dAtA[i] = 0x42
+	}
+	if len(m.Referer) > 0 {
+		i -= len(m.Referer)
+		copy(dAtA[i:], m.Referer)
+		i = encodeVarintAccesslog(dAtA, i, uint64(len(m.Referer)))
+		i--
+		dAtA[i] = 0x3a
+	}
+	if len(m.UserAgent) > 0 {
+		i -= len(m.UserAgent)
+		copy(dAtA[i:], m.UserAgent)
+		i = encodeVarintAccesslog(dAtA, i, uint64(len(m.UserAgent)))
+		i--
+		dAtA[i] = 0x32
+	}
+	if len(m.Path) > 0 {
+		i -= len(m.Path)
+		copy(dAtA[i:], m.Path)
+		i = encodeVarintAccesslog(dAtA, i, uint64(len(m.Path)))
+		i--
+		dAtA[i] = 0x2a
+	}
+	if m.Port != nil {
+		{
+			size, err := m.Port.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintAccesslog(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x22
+	}
+	if len(m.Authority) > 0 {
+		i -= len(m.Authority)
+		copy(dAtA[i:], m.Authority)
+		i = encodeVarintAccesslog(dAtA, i, uint64(len(m.Authority)))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.Scheme) > 0 {
+		i -= len(m.Scheme)
+		copy(dAtA[i:], m.Scheme)
+		i = encodeVarintAccesslog(dAtA, i, uint64(len(m.Scheme)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.RequestMethod != 0 {
+		i = encodeVarintAccesslog(dAtA, i, uint64(m.RequestMethod))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
 }
 
 func (m *HTTPResponseProperties) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
-	n, err := m.MarshalTo(dAtA)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
 	if err != nil {
 		return nil, err
 	}
@@ -2232,94 +2512,99 @@ func (m *HTTPResponseProperties) Marshal() (dAtA []byte, err error) {
 }
 
 func (m *HTTPResponseProperties) MarshalTo(dAtA []byte) (int, error) {
-	var i int
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *HTTPResponseProperties) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
-	if m.ResponseCode != nil {
-		dAtA[i] = 0xa
-		i++
-		i = encodeVarintAccesslog(dAtA, i, uint64(m.ResponseCode.Size()))
-		n26, err := m.ResponseCode.MarshalTo(dAtA[i:])
-		if err != nil {
-			return 0, err
-		}
-		i += n26
-	}
-	if m.ResponseHeadersBytes != 0 {
-		dAtA[i] = 0x10
-		i++
-		i = encodeVarintAccesslog(dAtA, i, uint64(m.ResponseHeadersBytes))
-	}
-	if m.ResponseBodyBytes != 0 {
-		dAtA[i] = 0x18
-		i++
-		i = encodeVarintAccesslog(dAtA, i, uint64(m.ResponseBodyBytes))
-	}
-	if len(m.ResponseHeaders) > 0 {
-		keysForResponseHeaders := make([]string, 0, len(m.ResponseHeaders))
-		for k, _ := range m.ResponseHeaders {
-			keysForResponseHeaders = append(keysForResponseHeaders, string(k))
-		}
-		github_com_gogo_protobuf_sortkeys.Strings(keysForResponseHeaders)
-		for _, k := range keysForResponseHeaders {
-			dAtA[i] = 0x22
-			i++
-			v := m.ResponseHeaders[string(k)]
-			mapSize := 1 + len(k) + sovAccesslog(uint64(len(k))) + 1 + len(v) + sovAccesslog(uint64(len(v)))
-			i = encodeVarintAccesslog(dAtA, i, uint64(mapSize))
-			dAtA[i] = 0xa
-			i++
-			i = encodeVarintAccesslog(dAtA, i, uint64(len(k)))
-			i += copy(dAtA[i:], k)
-			dAtA[i] = 0x12
-			i++
-			i = encodeVarintAccesslog(dAtA, i, uint64(len(v)))
-			i += copy(dAtA[i:], v)
-		}
-	}
-	if len(m.ResponseTrailers) > 0 {
-		keysForResponseTrailers := make([]string, 0, len(m.ResponseTrailers))
-		for k, _ := range m.ResponseTrailers {
-			keysForResponseTrailers = append(keysForResponseTrailers, string(k))
-		}
-		github_com_gogo_protobuf_sortkeys.Strings(keysForResponseTrailers)
-		for _, k := range keysForResponseTrailers {
-			dAtA[i] = 0x2a
-			i++
-			v := m.ResponseTrailers[string(k)]
-			mapSize := 1 + len(k) + sovAccesslog(uint64(len(k))) + 1 + len(v) + sovAccesslog(uint64(len(v)))
-			i = encodeVarintAccesslog(dAtA, i, uint64(mapSize))
-			dAtA[i] = 0xa
-			i++
-			i = encodeVarintAccesslog(dAtA, i, uint64(len(k)))
-			i += copy(dAtA[i:], k)
-			dAtA[i] = 0x12
-			i++
-			i = encodeVarintAccesslog(dAtA, i, uint64(len(v)))
-			i += copy(dAtA[i:], v)
-		}
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
 	}
 	if len(m.ResponseCodeDetails) > 0 {
-		dAtA[i] = 0x32
-		i++
+		i -= len(m.ResponseCodeDetails)
+		copy(dAtA[i:], m.ResponseCodeDetails)
 		i = encodeVarintAccesslog(dAtA, i, uint64(len(m.ResponseCodeDetails)))
-		i += copy(dAtA[i:], m.ResponseCodeDetails)
+		i--
+		dAtA[i] = 0x32
 	}
-	if m.XXX_unrecognized != nil {
-		i += copy(dAtA[i:], m.XXX_unrecognized)
+	if len(m.ResponseTrailers) > 0 {
+		for k := range m.ResponseTrailers {
+			v := m.ResponseTrailers[k]
+			baseI := i
+			i -= len(v)
+			copy(dAtA[i:], v)
+			i = encodeVarintAccesslog(dAtA, i, uint64(len(v)))
+			i--
+			dAtA[i] = 0x12
+			i -= len(k)
+			copy(dAtA[i:], k)
+			i = encodeVarintAccesslog(dAtA, i, uint64(len(k)))
+			i--
+			dAtA[i] = 0xa
+			i = encodeVarintAccesslog(dAtA, i, uint64(baseI-i))
+			i--
+			dAtA[i] = 0x2a
+		}
 	}
-	return i, nil
+	if len(m.ResponseHeaders) > 0 {
+		for k := range m.ResponseHeaders {
+			v := m.ResponseHeaders[k]
+			baseI := i
+			i -= len(v)
+			copy(dAtA[i:], v)
+			i = encodeVarintAccesslog(dAtA, i, uint64(len(v)))
+			i--
+			dAtA[i] = 0x12
+			i -= len(k)
+			copy(dAtA[i:], k)
+			i = encodeVarintAccesslog(dAtA, i, uint64(len(k)))
+			i--
+			dAtA[i] = 0xa
+			i = encodeVarintAccesslog(dAtA, i, uint64(baseI-i))
+			i--
+			dAtA[i] = 0x22
+		}
+	}
+	if m.ResponseBodyBytes != 0 {
+		i = encodeVarintAccesslog(dAtA, i, uint64(m.ResponseBodyBytes))
+		i--
+		dAtA[i] = 0x18
+	}
+	if m.ResponseHeadersBytes != 0 {
+		i = encodeVarintAccesslog(dAtA, i, uint64(m.ResponseHeadersBytes))
+		i--
+		dAtA[i] = 0x10
+	}
+	if m.ResponseCode != nil {
+		{
+			size, err := m.ResponseCode.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintAccesslog(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
 }
 
 func encodeVarintAccesslog(dAtA []byte, offset int, v uint64) int {
+	offset -= sovAccesslog(v)
+	base := offset
 	for v >= 1<<7 {
 		dAtA[offset] = uint8(v&0x7f | 0x80)
 		v >>= 7
 		offset++
 	}
 	dAtA[offset] = uint8(v)
-	return offset + 1
+	return base
 }
 func (m *TCPAccessLogEntry) Size() (n int) {
 	if m == nil {
@@ -2329,6 +2614,10 @@ func (m *TCPAccessLogEntry) Size() (n int) {
 	_ = l
 	if m.CommonProperties != nil {
 		l = m.CommonProperties.Size()
+		n += 1 + l + sovAccesslog(uint64(l))
+	}
+	if m.ConnectionProperties != nil {
+		l = m.ConnectionProperties.Size()
 		n += 1 + l + sovAccesslog(uint64(l))
 	}
 	if m.XXX_unrecognized != nil {
@@ -2364,6 +2653,24 @@ func (m *HTTPAccessLogEntry) Size() (n int) {
 	return n
 }
 
+func (m *ConnectionProperties) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.ReceivedBytes != 0 {
+		n += 1 + sovAccesslog(uint64(m.ReceivedBytes))
+	}
+	if m.SentBytes != 0 {
+		n += 1 + sovAccesslog(uint64(m.SentBytes))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
 func (m *AccessLogCommon) Size() (n int) {
 	if m == nil {
 		return 0
@@ -2386,35 +2693,35 @@ func (m *AccessLogCommon) Size() (n int) {
 		n += 1 + l + sovAccesslog(uint64(l))
 	}
 	if m.StartTime != nil {
-		l = github_com_gogo_protobuf_types.SizeOfStdTime(*m.StartTime)
+		l = m.StartTime.Size()
 		n += 1 + l + sovAccesslog(uint64(l))
 	}
 	if m.TimeToLastRxByte != nil {
-		l = github_com_gogo_protobuf_types.SizeOfStdDuration(*m.TimeToLastRxByte)
+		l = m.TimeToLastRxByte.Size()
 		n += 1 + l + sovAccesslog(uint64(l))
 	}
 	if m.TimeToFirstUpstreamTxByte != nil {
-		l = github_com_gogo_protobuf_types.SizeOfStdDuration(*m.TimeToFirstUpstreamTxByte)
+		l = m.TimeToFirstUpstreamTxByte.Size()
 		n += 1 + l + sovAccesslog(uint64(l))
 	}
 	if m.TimeToLastUpstreamTxByte != nil {
-		l = github_com_gogo_protobuf_types.SizeOfStdDuration(*m.TimeToLastUpstreamTxByte)
+		l = m.TimeToLastUpstreamTxByte.Size()
 		n += 1 + l + sovAccesslog(uint64(l))
 	}
 	if m.TimeToFirstUpstreamRxByte != nil {
-		l = github_com_gogo_protobuf_types.SizeOfStdDuration(*m.TimeToFirstUpstreamRxByte)
+		l = m.TimeToFirstUpstreamRxByte.Size()
 		n += 1 + l + sovAccesslog(uint64(l))
 	}
 	if m.TimeToLastUpstreamRxByte != nil {
-		l = github_com_gogo_protobuf_types.SizeOfStdDuration(*m.TimeToLastUpstreamRxByte)
+		l = m.TimeToLastUpstreamRxByte.Size()
 		n += 1 + l + sovAccesslog(uint64(l))
 	}
 	if m.TimeToFirstDownstreamTxByte != nil {
-		l = github_com_gogo_protobuf_types.SizeOfStdDuration(*m.TimeToFirstDownstreamTxByte)
+		l = m.TimeToFirstDownstreamTxByte.Size()
 		n += 1 + l + sovAccesslog(uint64(l))
 	}
 	if m.TimeToLastDownstreamTxByte != nil {
-		l = github_com_gogo_protobuf_types.SizeOfStdDuration(*m.TimeToLastDownstreamTxByte)
+		l = m.TimeToLastDownstreamTxByte.Size()
 		n += 1 + l + sovAccesslog(uint64(l))
 	}
 	if m.UpstreamRemoteAddress != nil {
@@ -2733,14 +3040,7 @@ func (m *HTTPResponseProperties) Size() (n int) {
 }
 
 func sovAccesslog(x uint64) (n int) {
-	for {
-		n++
-		x >>= 7
-		if x == 0 {
-			break
-		}
-	}
-	return n
+	return (math_bits.Len64(x|1) + 6) / 7
 }
 func sozAccesslog(x uint64) (n int) {
 	return sovAccesslog(uint64((x << 1) ^ uint64((int64(x) >> 63))))
@@ -2807,6 +3107,42 @@ func (m *TCPAccessLogEntry) Unmarshal(dAtA []byte) error {
 				m.CommonProperties = &AccessLogCommon{}
 			}
 			if err := m.CommonProperties.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ConnectionProperties", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowAccesslog
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthAccesslog
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthAccesslog
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.ConnectionProperties == nil {
+				m.ConnectionProperties = &ConnectionProperties{}
+			}
+			if err := m.ConnectionProperties.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -3016,6 +3352,98 @@ func (m *HTTPAccessLogEntry) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+func (m *ConnectionProperties) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowAccesslog
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: ConnectionProperties: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: ConnectionProperties: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ReceivedBytes", wireType)
+			}
+			m.ReceivedBytes = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowAccesslog
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.ReceivedBytes |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field SentBytes", wireType)
+			}
+			m.SentBytes = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowAccesslog
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.SentBytes |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipAccesslog(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthAccesslog
+			}
+			if (iNdEx + skippy) < 0 {
+				return ErrInvalidLengthAccesslog
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
 func (m *AccessLogCommon) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -3194,9 +3622,9 @@ func (m *AccessLogCommon) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.StartTime == nil {
-				m.StartTime = new(time.Time)
+				m.StartTime = &types.Timestamp{}
 			}
-			if err := github_com_gogo_protobuf_types.StdTimeUnmarshal(m.StartTime, dAtA[iNdEx:postIndex]); err != nil {
+			if err := m.StartTime.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -3230,9 +3658,9 @@ func (m *AccessLogCommon) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.TimeToLastRxByte == nil {
-				m.TimeToLastRxByte = new(time.Duration)
+				m.TimeToLastRxByte = &types.Duration{}
 			}
-			if err := github_com_gogo_protobuf_types.StdDurationUnmarshal(m.TimeToLastRxByte, dAtA[iNdEx:postIndex]); err != nil {
+			if err := m.TimeToLastRxByte.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -3266,9 +3694,9 @@ func (m *AccessLogCommon) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.TimeToFirstUpstreamTxByte == nil {
-				m.TimeToFirstUpstreamTxByte = new(time.Duration)
+				m.TimeToFirstUpstreamTxByte = &types.Duration{}
 			}
-			if err := github_com_gogo_protobuf_types.StdDurationUnmarshal(m.TimeToFirstUpstreamTxByte, dAtA[iNdEx:postIndex]); err != nil {
+			if err := m.TimeToFirstUpstreamTxByte.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -3302,9 +3730,9 @@ func (m *AccessLogCommon) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.TimeToLastUpstreamTxByte == nil {
-				m.TimeToLastUpstreamTxByte = new(time.Duration)
+				m.TimeToLastUpstreamTxByte = &types.Duration{}
 			}
-			if err := github_com_gogo_protobuf_types.StdDurationUnmarshal(m.TimeToLastUpstreamTxByte, dAtA[iNdEx:postIndex]); err != nil {
+			if err := m.TimeToLastUpstreamTxByte.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -3338,9 +3766,9 @@ func (m *AccessLogCommon) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.TimeToFirstUpstreamRxByte == nil {
-				m.TimeToFirstUpstreamRxByte = new(time.Duration)
+				m.TimeToFirstUpstreamRxByte = &types.Duration{}
 			}
-			if err := github_com_gogo_protobuf_types.StdDurationUnmarshal(m.TimeToFirstUpstreamRxByte, dAtA[iNdEx:postIndex]); err != nil {
+			if err := m.TimeToFirstUpstreamRxByte.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -3374,9 +3802,9 @@ func (m *AccessLogCommon) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.TimeToLastUpstreamRxByte == nil {
-				m.TimeToLastUpstreamRxByte = new(time.Duration)
+				m.TimeToLastUpstreamRxByte = &types.Duration{}
 			}
-			if err := github_com_gogo_protobuf_types.StdDurationUnmarshal(m.TimeToLastUpstreamRxByte, dAtA[iNdEx:postIndex]); err != nil {
+			if err := m.TimeToLastUpstreamRxByte.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -3410,9 +3838,9 @@ func (m *AccessLogCommon) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.TimeToFirstDownstreamTxByte == nil {
-				m.TimeToFirstDownstreamTxByte = new(time.Duration)
+				m.TimeToFirstDownstreamTxByte = &types.Duration{}
 			}
-			if err := github_com_gogo_protobuf_types.StdDurationUnmarshal(m.TimeToFirstDownstreamTxByte, dAtA[iNdEx:postIndex]); err != nil {
+			if err := m.TimeToFirstDownstreamTxByte.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -3446,9 +3874,9 @@ func (m *AccessLogCommon) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.TimeToLastDownstreamTxByte == nil {
-				m.TimeToLastDownstreamTxByte = new(time.Duration)
+				m.TimeToLastDownstreamTxByte = &types.Duration{}
 			}
-			if err := github_com_gogo_protobuf_types.StdDurationUnmarshal(m.TimeToLastDownstreamTxByte, dAtA[iNdEx:postIndex]); err != nil {
+			if err := m.TimeToLastDownstreamTxByte.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex

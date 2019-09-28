@@ -4,13 +4,12 @@
 package envoy_type
 
 import (
-	bytes "bytes"
 	encoding_binary "encoding/binary"
 	fmt "fmt"
-	_ "github.com/gogo/protobuf/gogoproto"
 	proto "github.com/gogo/protobuf/proto"
 	io "io"
 	math "math"
+	math_bits "math/bits"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -50,7 +49,7 @@ func (m *Int64Range) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 		return xxx_messageInfo_Int64Range.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
-		n, err := m.MarshalTo(b)
+		n, err := m.MarshalToSizedBuffer(b)
 		if err != nil {
 			return nil, err
 		}
@@ -109,7 +108,7 @@ func (m *DoubleRange) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) 
 		return xxx_messageInfo_DoubleRange.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
-		n, err := m.MarshalTo(b)
+		n, err := m.MarshalToSizedBuffer(b)
 		if err != nil {
 			return nil, err
 		}
@@ -150,85 +149,23 @@ func init() {
 func init() { proto.RegisterFile("envoy/type/range.proto", fileDescriptor_6d5354588716e6e7) }
 
 var fileDescriptor_6d5354588716e6e7 = []byte{
-	// 184 bytes of a gzipped FileDescriptorProto
+	// 160 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x12, 0x4b, 0xcd, 0x2b, 0xcb,
 	0xaf, 0xd4, 0x2f, 0xa9, 0x2c, 0x48, 0xd5, 0x2f, 0x4a, 0xcc, 0x4b, 0x4f, 0xd5, 0x2b, 0x28, 0xca,
-	0x2f, 0xc9, 0x17, 0xe2, 0x02, 0x8b, 0xeb, 0x81, 0xc4, 0xa5, 0x44, 0xd2, 0xf3, 0xd3, 0xf3, 0xc1,
-	0xc2, 0xfa, 0x20, 0x16, 0x44, 0x85, 0x92, 0x09, 0x17, 0x97, 0x67, 0x5e, 0x89, 0x99, 0x49, 0x10,
-	0x48, 0x97, 0x90, 0x08, 0x17, 0x6b, 0x71, 0x49, 0x62, 0x51, 0x89, 0x04, 0xa3, 0x02, 0xa3, 0x06,
-	0x73, 0x10, 0x84, 0x23, 0x24, 0xc0, 0xc5, 0x9c, 0x9a, 0x97, 0x22, 0xc1, 0x04, 0x16, 0x03, 0x31,
-	0x95, 0x4c, 0xb9, 0xb8, 0x5d, 0xf2, 0x4b, 0x93, 0x72, 0x52, 0xb1, 0x68, 0x63, 0xc4, 0xa2, 0x8d,
-	0x11, 0xac, 0xcd, 0xc9, 0x65, 0xc5, 0x23, 0x39, 0xc6, 0x13, 0x8f, 0xe4, 0x18, 0x2f, 0x3c, 0x92,
-	0x63, 0x7c, 0xf0, 0x48, 0x8e, 0x91, 0x4b, 0x22, 0x33, 0x5f, 0x0f, 0xec, 0xc6, 0x82, 0xa2, 0xfc,
-	0x8a, 0x4a, 0x3d, 0x84, 0x73, 0x9d, 0xb8, 0xc0, 0x46, 0x07, 0x80, 0x1c, 0x19, 0xc0, 0x18, 0x05,
-	0xf1, 0x48, 0x3c, 0x48, 0x26, 0x89, 0x0d, 0xec, 0x72, 0x63, 0x40, 0x00, 0x00, 0x00, 0xff, 0xff,
-	0xf5, 0x05, 0x36, 0xce, 0xf5, 0x00, 0x00, 0x00,
+	0x2f, 0xc9, 0x17, 0xe2, 0x02, 0x8b, 0xeb, 0x81, 0xc4, 0x95, 0x4c, 0xb8, 0xb8, 0x3c, 0xf3, 0x4a,
+	0xcc, 0x4c, 0x82, 0x40, 0xf2, 0x42, 0x22, 0x5c, 0xac, 0xc5, 0x25, 0x89, 0x45, 0x25, 0x12, 0x8c,
+	0x0a, 0x8c, 0x1a, 0xcc, 0x41, 0x10, 0x8e, 0x90, 0x00, 0x17, 0x73, 0x6a, 0x5e, 0x8a, 0x04, 0x13,
+	0x58, 0x0c, 0xc4, 0x54, 0x32, 0xe5, 0xe2, 0x76, 0xc9, 0x2f, 0x4d, 0xca, 0x49, 0xc5, 0xa2, 0x8d,
+	0x11, 0x8b, 0x36, 0x46, 0xb0, 0x36, 0x27, 0x93, 0x13, 0x8f, 0xe4, 0x18, 0x2f, 0x3c, 0x92, 0x63,
+	0x7c, 0xf0, 0x48, 0x8e, 0x91, 0x4b, 0x22, 0x33, 0x5f, 0x0f, 0xec, 0x92, 0x82, 0xa2, 0xfc, 0x8a,
+	0x4a, 0x3d, 0x84, 0xa3, 0x9c, 0xb8, 0xc0, 0xc6, 0x06, 0x80, 0x1c, 0x1b, 0xc0, 0x98, 0xc4, 0x06,
+	0x76, 0xb5, 0x31, 0x20, 0x00, 0x00, 0xff, 0xff, 0x0c, 0x9c, 0xcb, 0x12, 0xcf, 0x00, 0x00, 0x00,
 }
 
-func (this *Int64Range) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	that1, ok := that.(*Int64Range)
-	if !ok {
-		that2, ok := that.(Int64Range)
-		if ok {
-			that1 = &that2
-		} else {
-			return false
-		}
-	}
-	if that1 == nil {
-		return this == nil
-	} else if this == nil {
-		return false
-	}
-	if this.Start != that1.Start {
-		return false
-	}
-	if this.End != that1.End {
-		return false
-	}
-	if !bytes.Equal(this.XXX_unrecognized, that1.XXX_unrecognized) {
-		return false
-	}
-	return true
-}
-func (this *DoubleRange) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	that1, ok := that.(*DoubleRange)
-	if !ok {
-		that2, ok := that.(DoubleRange)
-		if ok {
-			that1 = &that2
-		} else {
-			return false
-		}
-	}
-	if that1 == nil {
-		return this == nil
-	} else if this == nil {
-		return false
-	}
-	if this.Start != that1.Start {
-		return false
-	}
-	if this.End != that1.End {
-		return false
-	}
-	if !bytes.Equal(this.XXX_unrecognized, that1.XXX_unrecognized) {
-		return false
-	}
-	return true
-}
 func (m *Int64Range) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
-	n, err := m.MarshalTo(dAtA)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
 	if err != nil {
 		return nil, err
 	}
@@ -236,30 +173,36 @@ func (m *Int64Range) Marshal() (dAtA []byte, err error) {
 }
 
 func (m *Int64Range) MarshalTo(dAtA []byte) (int, error) {
-	var i int
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *Int64Range) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
-	if m.Start != 0 {
-		dAtA[i] = 0x8
-		i++
-		i = encodeVarintRange(dAtA, i, uint64(m.Start))
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
 	}
 	if m.End != 0 {
-		dAtA[i] = 0x10
-		i++
 		i = encodeVarintRange(dAtA, i, uint64(m.End))
+		i--
+		dAtA[i] = 0x10
 	}
-	if m.XXX_unrecognized != nil {
-		i += copy(dAtA[i:], m.XXX_unrecognized)
+	if m.Start != 0 {
+		i = encodeVarintRange(dAtA, i, uint64(m.Start))
+		i--
+		dAtA[i] = 0x8
 	}
-	return i, nil
+	return len(dAtA) - i, nil
 }
 
 func (m *DoubleRange) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
-	n, err := m.MarshalTo(dAtA)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
 	if err != nil {
 		return nil, err
 	}
@@ -267,36 +210,44 @@ func (m *DoubleRange) Marshal() (dAtA []byte, err error) {
 }
 
 func (m *DoubleRange) MarshalTo(dAtA []byte) (int, error) {
-	var i int
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *DoubleRange) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
-	if m.Start != 0 {
-		dAtA[i] = 0x9
-		i++
-		encoding_binary.LittleEndian.PutUint64(dAtA[i:], uint64(math.Float64bits(float64(m.Start))))
-		i += 8
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
 	}
 	if m.End != 0 {
-		dAtA[i] = 0x11
-		i++
+		i -= 8
 		encoding_binary.LittleEndian.PutUint64(dAtA[i:], uint64(math.Float64bits(float64(m.End))))
-		i += 8
+		i--
+		dAtA[i] = 0x11
 	}
-	if m.XXX_unrecognized != nil {
-		i += copy(dAtA[i:], m.XXX_unrecognized)
+	if m.Start != 0 {
+		i -= 8
+		encoding_binary.LittleEndian.PutUint64(dAtA[i:], uint64(math.Float64bits(float64(m.Start))))
+		i--
+		dAtA[i] = 0x9
 	}
-	return i, nil
+	return len(dAtA) - i, nil
 }
 
 func encodeVarintRange(dAtA []byte, offset int, v uint64) int {
+	offset -= sovRange(v)
+	base := offset
 	for v >= 1<<7 {
 		dAtA[offset] = uint8(v&0x7f | 0x80)
 		v >>= 7
 		offset++
 	}
 	dAtA[offset] = uint8(v)
-	return offset + 1
+	return base
 }
 func (m *Int64Range) Size() (n int) {
 	if m == nil {
@@ -335,14 +286,7 @@ func (m *DoubleRange) Size() (n int) {
 }
 
 func sovRange(x uint64) (n int) {
-	for {
-		n++
-		x >>= 7
-		if x == 0 {
-			break
-		}
-	}
-	return n
+	return (math_bits.Len64(x|1) + 6) / 7
 }
 func sozRange(x uint64) (n int) {
 	return sovRange(uint64((x << 1) ^ uint64((int64(x) >> 63))))

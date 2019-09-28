@@ -11,8 +11,11 @@ import (
 	_ "github.com/envoyproxy/protoc-gen-validate/validate"
 	proto "github.com/gogo/protobuf/proto"
 	grpc "google.golang.org/grpc"
+	codes "google.golang.org/grpc/codes"
+	status "google.golang.org/grpc/status"
 	io "io"
 	math "math"
+	math_bits "math/bits"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -56,7 +59,7 @@ func (m *StreamTapsRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, e
 		return xxx_messageInfo_StreamTapsRequest.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
-		n, err := m.MarshalTo(b)
+		n, err := m.MarshalToSizedBuffer(b)
 		if err != nil {
 			return nil, err
 		}
@@ -121,7 +124,7 @@ func (m *StreamTapsRequest_Identifier) XXX_Marshal(b []byte, deterministic bool)
 		return xxx_messageInfo_StreamTapsRequest_Identifier.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
-		n, err := m.MarshalTo(b)
+		n, err := m.MarshalToSizedBuffer(b)
 		if err != nil {
 			return nil, err
 		}
@@ -175,7 +178,7 @@ func (m *StreamTapsResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, 
 		return xxx_messageInfo_StreamTapsResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
-		n, err := m.MarshalTo(b)
+		n, err := m.MarshalToSizedBuffer(b)
 		if err != nil {
 			return nil, err
 		}
@@ -300,6 +303,14 @@ type TapSinkServiceServer interface {
 	StreamTaps(TapSinkService_StreamTapsServer) error
 }
 
+// UnimplementedTapSinkServiceServer can be embedded to have forward compatible implementations.
+type UnimplementedTapSinkServiceServer struct {
+}
+
+func (*UnimplementedTapSinkServiceServer) StreamTaps(srv TapSinkService_StreamTapsServer) error {
+	return status.Errorf(codes.Unimplemented, "method StreamTaps not implemented")
+}
+
 func RegisterTapSinkServiceServer(s *grpc.Server, srv TapSinkServiceServer) {
 	s.RegisterService(&_TapSinkService_serviceDesc, srv)
 }
@@ -347,7 +358,7 @@ var _TapSinkService_serviceDesc = grpc.ServiceDesc{
 func (m *StreamTapsRequest) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
-	n, err := m.MarshalTo(dAtA)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
 	if err != nil {
 		return nil, err
 	}
@@ -355,45 +366,55 @@ func (m *StreamTapsRequest) Marshal() (dAtA []byte, err error) {
 }
 
 func (m *StreamTapsRequest) MarshalTo(dAtA []byte) (int, error) {
-	var i int
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *StreamTapsRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
-	if m.Identifier != nil {
-		dAtA[i] = 0xa
-		i++
-		i = encodeVarintTap(dAtA, i, uint64(m.Identifier.Size()))
-		n1, err := m.Identifier.MarshalTo(dAtA[i:])
-		if err != nil {
-			return 0, err
-		}
-		i += n1
-	}
-	if m.TraceId != 0 {
-		dAtA[i] = 0x10
-		i++
-		i = encodeVarintTap(dAtA, i, uint64(m.TraceId))
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
 	}
 	if m.Trace != nil {
-		dAtA[i] = 0x1a
-		i++
-		i = encodeVarintTap(dAtA, i, uint64(m.Trace.Size()))
-		n2, err := m.Trace.MarshalTo(dAtA[i:])
-		if err != nil {
-			return 0, err
+		{
+			size, err := m.Trace.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintTap(dAtA, i, uint64(size))
 		}
-		i += n2
+		i--
+		dAtA[i] = 0x1a
 	}
-	if m.XXX_unrecognized != nil {
-		i += copy(dAtA[i:], m.XXX_unrecognized)
+	if m.TraceId != 0 {
+		i = encodeVarintTap(dAtA, i, uint64(m.TraceId))
+		i--
+		dAtA[i] = 0x10
 	}
-	return i, nil
+	if m.Identifier != nil {
+		{
+			size, err := m.Identifier.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintTap(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
 }
 
 func (m *StreamTapsRequest_Identifier) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
-	n, err := m.MarshalTo(dAtA)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
 	if err != nil {
 		return nil, err
 	}
@@ -401,36 +422,45 @@ func (m *StreamTapsRequest_Identifier) Marshal() (dAtA []byte, err error) {
 }
 
 func (m *StreamTapsRequest_Identifier) MarshalTo(dAtA []byte) (int, error) {
-	var i int
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *StreamTapsRequest_Identifier) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
-	if m.Node != nil {
-		dAtA[i] = 0xa
-		i++
-		i = encodeVarintTap(dAtA, i, uint64(m.Node.Size()))
-		n3, err := m.Node.MarshalTo(dAtA[i:])
-		if err != nil {
-			return 0, err
-		}
-		i += n3
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
 	}
 	if len(m.TapId) > 0 {
-		dAtA[i] = 0x12
-		i++
+		i -= len(m.TapId)
+		copy(dAtA[i:], m.TapId)
 		i = encodeVarintTap(dAtA, i, uint64(len(m.TapId)))
-		i += copy(dAtA[i:], m.TapId)
+		i--
+		dAtA[i] = 0x12
 	}
-	if m.XXX_unrecognized != nil {
-		i += copy(dAtA[i:], m.XXX_unrecognized)
+	if m.Node != nil {
+		{
+			size, err := m.Node.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintTap(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0xa
 	}
-	return i, nil
+	return len(dAtA) - i, nil
 }
 
 func (m *StreamTapsResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
-	n, err := m.MarshalTo(dAtA)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
 	if err != nil {
 		return nil, err
 	}
@@ -438,24 +468,32 @@ func (m *StreamTapsResponse) Marshal() (dAtA []byte, err error) {
 }
 
 func (m *StreamTapsResponse) MarshalTo(dAtA []byte) (int, error) {
-	var i int
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *StreamTapsResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
 	if m.XXX_unrecognized != nil {
-		i += copy(dAtA[i:], m.XXX_unrecognized)
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
 	}
-	return i, nil
+	return len(dAtA) - i, nil
 }
 
 func encodeVarintTap(dAtA []byte, offset int, v uint64) int {
+	offset -= sovTap(v)
+	base := offset
 	for v >= 1<<7 {
 		dAtA[offset] = uint8(v&0x7f | 0x80)
 		v >>= 7
 		offset++
 	}
 	dAtA[offset] = uint8(v)
-	return offset + 1
+	return base
 }
 func (m *StreamTapsRequest) Size() (n int) {
 	if m == nil {
@@ -513,14 +551,7 @@ func (m *StreamTapsResponse) Size() (n int) {
 }
 
 func sovTap(x uint64) (n int) {
-	for {
-		n++
-		x >>= 7
-		if x == 0 {
-			break
-		}
-	}
-	return n
+	return (math_bits.Len64(x|1) + 6) / 7
 }
 func sozTap(x uint64) (n int) {
 	return sovTap(uint64((x << 1) ^ uint64((int64(x) >> 63))))

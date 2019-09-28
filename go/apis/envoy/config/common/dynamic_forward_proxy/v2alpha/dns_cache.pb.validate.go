@@ -17,7 +17,7 @@ import (
 
 	"github.com/gogo/protobuf/types"
 
-	v2 "github.com/datawire/ambassador/go/apis/envoy/api/v2"
+	envoy_api_v2 "github.com/datawire/ambassador/go/apis/envoy/api/v2"
 )
 
 // ensure the imports are used
@@ -34,7 +34,7 @@ var (
 	_ = (*mail.Address)(nil)
 	_ = types.DynamicAny{}
 
-	_ = v2.Cluster_DnsLookupFamily(0)
+	_ = envoy_api_v2.Cluster_DnsLookupFamily(0)
 )
 
 // Validate checks the field values on DnsCacheConfig with the rules defined in
@@ -52,7 +52,7 @@ func (m *DnsCacheConfig) Validate() error {
 		}
 	}
 
-	if _, ok := v2.Cluster_DnsLookupFamily_name[int32(m.GetDnsLookupFamily())]; !ok {
+	if _, ok := envoy_api_v2.Cluster_DnsLookupFamily_name[int32(m.GetDnsLookupFamily())]; !ok {
 		return DnsCacheConfigValidationError{
 			field:  "DnsLookupFamily",
 			reason: "value must be one of the defined enum values",

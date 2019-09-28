@@ -4,24 +4,20 @@
 package envoy_data_core_v2alpha
 
 import (
-	bytes "bytes"
 	fmt "fmt"
 	core "github.com/datawire/ambassador/go/apis/envoy/api/v2/core"
 	_ "github.com/envoyproxy/protoc-gen-validate/validate"
-	_ "github.com/gogo/protobuf/gogoproto"
 	proto "github.com/gogo/protobuf/proto"
-	_ "github.com/gogo/protobuf/types"
-	github_com_gogo_protobuf_types "github.com/gogo/protobuf/types"
+	types "github.com/gogo/protobuf/types"
 	io "io"
 	math "math"
-	time "time"
+	math_bits "math/bits"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
 var _ = fmt.Errorf
 var _ = math.Inf
-var _ = time.Kitchen
 
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the proto package it is being compiled against.
@@ -100,10 +96,10 @@ type HealthCheckEvent struct {
 	//	*HealthCheckEvent_NoLongerDegradedHost
 	Event isHealthCheckEvent_Event `protobuf_oneof:"event"`
 	// Timestamp for event.
-	Timestamp            *time.Time `protobuf:"bytes,6,opt,name=timestamp,proto3,stdtime" json:"timestamp,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}   `json:"-"`
-	XXX_unrecognized     []byte     `json:"-"`
-	XXX_sizecache        int32      `json:"-"`
+	Timestamp            *types.Timestamp `protobuf:"bytes,6,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}         `json:"-"`
+	XXX_unrecognized     []byte           `json:"-"`
+	XXX_sizecache        int32            `json:"-"`
 }
 
 func (m *HealthCheckEvent) Reset()         { *m = HealthCheckEvent{} }
@@ -120,7 +116,7 @@ func (m *HealthCheckEvent) XXX_Marshal(b []byte, deterministic bool) ([]byte, er
 		return xxx_messageInfo_HealthCheckEvent.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
-		n, err := m.MarshalTo(b)
+		n, err := m.MarshalToSizedBuffer(b)
 		if err != nil {
 			return nil, err
 		}
@@ -141,7 +137,6 @@ var xxx_messageInfo_HealthCheckEvent proto.InternalMessageInfo
 
 type isHealthCheckEvent_Event interface {
 	isHealthCheckEvent_Event()
-	Equal(interface{}) bool
 	MarshalTo([]byte) (int, error)
 	Size() int
 }
@@ -231,7 +226,7 @@ func (m *HealthCheckEvent) GetNoLongerDegradedHost() *NoLongerDegradedHost {
 	return nil
 }
 
-func (m *HealthCheckEvent) GetTimestamp() *time.Time {
+func (m *HealthCheckEvent) GetTimestamp() *types.Timestamp {
 	if m != nil {
 		return m.Timestamp
 	}
@@ -391,7 +386,7 @@ func (m *HealthCheckEjectUnhealthy) XXX_Marshal(b []byte, deterministic bool) ([
 		return xxx_messageInfo_HealthCheckEjectUnhealthy.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
-		n, err := m.MarshalTo(b)
+		n, err := m.MarshalToSizedBuffer(b)
 		if err != nil {
 			return nil, err
 		}
@@ -441,7 +436,7 @@ func (m *HealthCheckAddHealthy) XXX_Marshal(b []byte, deterministic bool) ([]byt
 		return xxx_messageInfo_HealthCheckAddHealthy.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
-		n, err := m.MarshalTo(b)
+		n, err := m.MarshalToSizedBuffer(b)
 		if err != nil {
 			return nil, err
 		}
@@ -491,7 +486,7 @@ func (m *HealthCheckFailure) XXX_Marshal(b []byte, deterministic bool) ([]byte, 
 		return xxx_messageInfo_HealthCheckFailure.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
-		n, err := m.MarshalTo(b)
+		n, err := m.MarshalToSizedBuffer(b)
 		if err != nil {
 			return nil, err
 		}
@@ -544,7 +539,7 @@ func (m *DegradedHealthyHost) XXX_Marshal(b []byte, deterministic bool) ([]byte,
 		return xxx_messageInfo_DegradedHealthyHost.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
-		n, err := m.MarshalTo(b)
+		n, err := m.MarshalToSizedBuffer(b)
 		if err != nil {
 			return nil, err
 		}
@@ -583,7 +578,7 @@ func (m *NoLongerDegradedHost) XXX_Marshal(b []byte, deterministic bool) ([]byte
 		return xxx_messageInfo_NoLongerDegradedHost.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
-		n, err := m.MarshalTo(b)
+		n, err := m.MarshalToSizedBuffer(b)
 		if err != nil {
 			return nil, err
 		}
@@ -618,358 +613,55 @@ func init() {
 }
 
 var fileDescriptor_e866c90440508830 = []byte{
-	// 691 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x94, 0x4d, 0x6f, 0x12, 0x41,
-	0x18, 0xc7, 0x19, 0xde, 0x5a, 0x1e, 0x9a, 0xba, 0x9d, 0x96, 0x82, 0x1c, 0x80, 0x90, 0x98, 0x34,
-	0xb5, 0xee, 0x1a, 0xbc, 0x98, 0x98, 0x34, 0x01, 0x8a, 0xd2, 0x68, 0x2a, 0xd9, 0xae, 0x7a, 0x31,
-	0x6e, 0xa6, 0xec, 0xc0, 0x6e, 0x5d, 0x76, 0x36, 0xbb, 0x0b, 0x91, 0x78, 0xf3, 0x13, 0x78, 0xf1,
-	0x3b, 0xf4, 0x23, 0x18, 0x4f, 0x3d, 0x7a, 0xf4, 0x1b, 0x68, 0xb8, 0xf5, 0x5b, 0x98, 0x9d, 0x59,
-	0xa0, 0x2d, 0x90, 0xd4, 0x83, 0xb7, 0x99, 0x67, 0xe6, 0xff, 0xfc, 0x9e, 0x79, 0x5e, 0x06, 0x1e,
-	0x53, 0x67, 0xc4, 0xc6, 0x8a, 0x41, 0x02, 0xa2, 0x74, 0x99, 0x47, 0x95, 0x51, 0x8d, 0xd8, 0xae,
-	0x49, 0x14, 0x93, 0x12, 0x3b, 0x30, 0xf5, 0xae, 0x49, 0xbb, 0x1f, 0x75, 0x3a, 0xa2, 0x4e, 0x20,
-	0xbb, 0x1e, 0x0b, 0x18, 0xce, 0x73, 0x85, 0x1c, 0x2a, 0xe4, 0x50, 0x21, 0x47, 0x8a, 0x62, 0x59,
-	0xb8, 0x22, 0xae, 0xa5, 0x8c, 0x6a, 0xc2, 0x19, 0x31, 0x0c, 0x8f, 0xfa, 0xbe, 0x50, 0x16, 0xcb,
-	0x7d, 0xc6, 0xfa, 0x36, 0x55, 0xf8, 0xee, 0x6c, 0xd8, 0x53, 0x02, 0x6b, 0x40, 0xfd, 0x80, 0x0c,
-	0xdc, 0xe8, 0x42, 0x7e, 0x44, 0x6c, 0xcb, 0x20, 0x01, 0x55, 0xa6, 0x8b, 0xe8, 0x60, 0xa7, 0xcf,
-	0xfa, 0x8c, 0x2f, 0x95, 0x70, 0x25, 0xac, 0xd5, 0x8b, 0x34, 0x48, 0x6d, 0x1e, 0x66, 0x33, 0x8c,
-	0xb2, 0x15, 0x06, 0x89, 0x7b, 0xb0, 0x7d, 0x3d, 0x74, 0xea, 0xe9, 0xc1, 0xd8, 0xa5, 0x05, 0x54,
-	0x41, 0x7b, 0x9b, 0xb5, 0x7d, 0x79, 0x45, 0xf0, 0xf2, 0x35, 0x3f, 0xd4, 0xd3, 0xc6, 0x2e, 0x6d,
-	0xc0, 0x8f, 0xab, 0xcb, 0x44, 0xea, 0x0b, 0x8a, 0x4b, 0x48, 0xdd, 0x32, 0x6f, 0x1f, 0x63, 0x19,
-	0x92, 0x26, 0xf3, 0x83, 0x42, 0xbc, 0x82, 0xf6, 0xb2, 0xb5, 0x62, 0xe4, 0x98, 0xb8, 0x96, 0x3c,
-	0xaa, 0x09, 0xd7, 0x75, 0xf1, 0x78, 0x95, 0xdf, 0xc3, 0x07, 0xb0, 0xd1, 0xb5, 0x87, 0x7e, 0x40,
-	0x3d, 0xdd, 0x21, 0x03, 0x5a, 0x48, 0x54, 0xd0, 0x5e, 0xa6, 0x91, 0x09, 0x21, 0x49, 0x2f, 0x5e,
-	0x41, 0x6a, 0x36, 0x3a, 0x3e, 0x21, 0x03, 0x8a, 0x4d, 0xc8, 0xd1, 0x73, 0xda, 0x0d, 0xf4, 0xa1,
-	0x23, 0xd0, 0x63, 0x51, 0x83, 0x42, 0x92, 0xe3, 0x6a, 0x77, 0x79, 0x47, 0x2b, 0x74, 0xf0, 0x66,
-	0xaa, 0x6f, 0xc7, 0xd4, 0x6d, 0x7a, 0xc3, 0x22, 0xf2, 0xf5, 0x1e, 0xb6, 0x88, 0x61, 0xe8, 0x37,
-	0x29, 0x29, 0x4e, 0x91, 0xef, 0x42, 0xa9, 0x1b, 0x46, 0x7b, 0x46, 0xb8, 0x47, 0x66, 0x3b, 0xe1,
-	0xfd, 0x1c, 0x8a, 0x37, 0x1a, 0xa9, 0x47, 0x2c, 0x7b, 0xe8, 0xd1, 0x08, 0xb3, 0xc6, 0x31, 0x0f,
-	0xef, 0x82, 0x79, 0x2e, 0x84, 0xed, 0x98, 0x9a, 0x37, 0x17, 0xac, 0x82, 0x75, 0x06, 0x39, 0x83,
-	0xf6, 0x3d, 0x62, 0xd0, 0xf9, 0x73, 0x78, 0x89, 0xd6, 0x39, 0xe6, 0x60, 0x25, 0xe6, 0x28, 0x52,
-	0x4d, 0xdf, 0xc1, 0xfc, 0x20, 0xcc, 0x96, 0xb1, 0x68, 0xc6, 0x3d, 0xc8, 0x3b, 0x4c, 0xb7, 0x99,
-	0xd3, 0xa7, 0x9e, 0x3e, 0xa7, 0x85, 0x94, 0x0c, 0xa7, 0x3c, 0x5a, 0x49, 0x39, 0x61, 0xaf, 0xb8,
-	0x6c, 0x46, 0x13, 0x98, 0x1d, 0x67, 0x89, 0x1d, 0x1f, 0x42, 0x66, 0x36, 0x1c, 0x85, 0x74, 0xd4,
-	0x62, 0x62, 0x7c, 0xe4, 0xe9, 0xf8, 0xc8, 0xda, 0xf4, 0x46, 0x23, 0xf9, 0xf5, 0x77, 0x19, 0xa9,
-	0x73, 0x49, 0x63, 0x13, 0x52, 0x3c, 0xc5, 0x38, 0xf5, 0xfd, 0xea, 0x32, 0x81, 0xaa, 0x9f, 0xe1,
-	0xfe, 0xca, 0xce, 0xc0, 0x1f, 0x60, 0x63, 0x5a, 0x97, 0x6b, 0xb3, 0xa2, 0xfc, 0x43, 0x59, 0x16,
-	0x06, 0x26, 0xdb, 0x9b, 0x1f, 0x54, 0x9f, 0x42, 0x6e, 0x69, 0xc3, 0xe0, 0x32, 0x64, 0x7b, 0x96,
-	0xe7, 0x07, 0xa2, 0x39, 0x38, 0x77, 0x5d, 0x05, 0x6e, 0xe2, 0x57, 0xab, 0xdf, 0x10, 0xe0, 0x45,
-	0xda, 0xff, 0x0e, 0xf8, 0x76, 0x5c, 0xf1, 0x85, 0xb8, 0x72, 0xb0, 0xbd, 0xa4, 0x69, 0xaa, 0xbb,
-	0xb0, 0xb3, 0xac, 0xca, 0xfb, 0x87, 0xb0, 0xbb, 0x3c, 0x04, 0x0c, 0x90, 0xae, 0x37, 0xb5, 0xe3,
-	0xb7, 0x2d, 0x29, 0x86, 0xb3, 0xb0, 0xd6, 0xa9, 0x9f, 0x9e, 0x86, 0x1b, 0x14, 0x6e, 0x4e, 0x5a,
-	0xda, 0xbb, 0xd7, 0xea, 0x4b, 0x29, 0xbe, 0xff, 0x0c, 0xb6, 0x16, 0xfe, 0x27, 0xbc, 0x0e, 0xc9,
-	0xb6, 0xa6, 0x75, 0xa4, 0x18, 0x5e, 0x83, 0x84, 0xd6, 0xec, 0x48, 0x28, 0x34, 0xbd, 0x50, 0x3b,
-	0x4d, 0x29, 0x8e, 0x33, 0x90, 0x52, 0x5b, 0x47, 0xc7, 0xa7, 0x52, 0xa2, 0xd1, 0xb9, 0x98, 0x94,
-	0xd0, 0xcf, 0x49, 0x09, 0xfd, 0x9a, 0x94, 0xd0, 0x9f, 0x49, 0x09, 0xc1, 0x03, 0x8b, 0x89, 0x54,
-	0xb9, 0x1e, 0xfb, 0x34, 0x5e, 0x95, 0xb5, 0x46, 0xee, 0xf6, 0xdf, 0xda, 0x09, 0x1b, 0xaf, 0x83,
-	0xce, 0xd2, 0xbc, 0x03, 0x9f, 0xfc, 0x0d, 0x00, 0x00, 0xff, 0xff, 0xd3, 0xfa, 0xf7, 0x8d, 0x3c,
-	0x06, 0x00, 0x00,
+	// 672 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x94, 0xcf, 0x6e, 0xd3, 0x40,
+	0x10, 0xc6, 0xb3, 0xf9, 0xd7, 0x66, 0x52, 0x15, 0x77, 0xdb, 0x34, 0x21, 0x87, 0x36, 0x8a, 0x84,
+	0x54, 0x95, 0x62, 0xa3, 0x70, 0xa9, 0x84, 0x84, 0x94, 0xa4, 0x81, 0x54, 0x54, 0x25, 0x72, 0x0d,
+	0x5c, 0x10, 0xd6, 0x36, 0xde, 0xc4, 0x2e, 0x8e, 0xd7, 0xb2, 0x37, 0x11, 0x11, 0x37, 0xde, 0x81,
+	0x17, 0xe0, 0x29, 0x10, 0xa7, 0x1e, 0x39, 0xf2, 0x08, 0xa8, 0xb7, 0xbe, 0x05, 0xf2, 0xae, 0x93,
+	0xb4, 0x4d, 0x22, 0x95, 0x03, 0x37, 0xef, 0xec, 0x7e, 0xf3, 0xfb, 0x76, 0x76, 0xc6, 0xf0, 0x94,
+	0x7a, 0x23, 0x36, 0xd6, 0x2c, 0xc2, 0x89, 0xd6, 0x65, 0x01, 0xd5, 0x46, 0x35, 0xe2, 0xfa, 0x36,
+	0xd1, 0x6c, 0x4a, 0x5c, 0x6e, 0x9b, 0x5d, 0x9b, 0x76, 0x3f, 0x99, 0x74, 0x44, 0x3d, 0xae, 0xfa,
+	0x01, 0xe3, 0x0c, 0x17, 0x85, 0x42, 0x8d, 0x14, 0x6a, 0xa4, 0x50, 0x63, 0x45, 0x79, 0x57, 0xa6,
+	0x22, 0xbe, 0xa3, 0x8d, 0x6a, 0x32, 0x19, 0xb1, 0xac, 0x80, 0x86, 0xa1, 0x54, 0x96, 0x77, 0xfb,
+	0x8c, 0xf5, 0x5d, 0xaa, 0x89, 0xd5, 0xf9, 0xb0, 0xa7, 0x71, 0x67, 0x40, 0x43, 0x4e, 0x06, 0x7e,
+	0x7c, 0xa0, 0x38, 0x22, 0xae, 0x63, 0x11, 0x4e, 0xb5, 0xc9, 0x87, 0xdc, 0xa8, 0x7e, 0xcf, 0x82,
+	0xd2, 0x16, 0x86, 0x9a, 0x91, 0x9f, 0x56, 0x64, 0x07, 0xf7, 0x60, 0xf3, 0xa6, 0x49, 0x1a, 0x98,
+	0x7c, 0xec, 0xd3, 0x12, 0xaa, 0xa0, 0xbd, 0xf5, 0xda, 0xbe, 0xba, 0xc4, 0xa6, 0x7a, 0x23, 0x0f,
+	0x0d, 0x8c, 0xb1, 0x4f, 0x1b, 0xf0, 0xf3, 0xfa, 0x32, 0x95, 0xf9, 0x8a, 0x92, 0x0a, 0xd2, 0x37,
+	0xec, 0xbb, 0xdb, 0x58, 0x85, 0xb4, 0xcd, 0x42, 0x5e, 0x4a, 0x56, 0xd0, 0x5e, 0xbe, 0x56, 0x8e,
+	0x13, 0x13, 0xdf, 0x51, 0x47, 0x35, 0x99, 0xba, 0x2e, 0xaf, 0xa9, 0x8b, 0x73, 0xf8, 0x00, 0xd6,
+	0xba, 0xee, 0x30, 0xe4, 0x34, 0x30, 0x3d, 0x32, 0xa0, 0xa5, 0x54, 0x05, 0xed, 0xe5, 0x1a, 0xb9,
+	0x08, 0x92, 0x0e, 0x92, 0x15, 0xa4, 0xe7, 0xe3, 0xed, 0x53, 0x32, 0xa0, 0xd8, 0x86, 0x02, 0xbd,
+	0xa0, 0x5d, 0x6e, 0x0e, 0x3d, 0x89, 0x1e, 0xcb, 0x6a, 0x97, 0xd2, 0x02, 0x57, 0xbb, 0xcf, 0x3d,
+	0x5a, 0x51, 0x82, 0xb7, 0x13, 0x7d, 0x3b, 0xa1, 0x6f, 0xd2, 0x5b, 0x11, 0x59, 0xaf, 0x0f, 0xb0,
+	0x41, 0x2c, 0xcb, 0xbc, 0x4d, 0xc9, 0x08, 0x8a, 0x7a, 0x1f, 0x4a, 0xdd, 0xb2, 0xda, 0x53, 0xc2,
+	0x03, 0x32, 0x5d, 0xc9, 0xec, 0x17, 0x50, 0xbe, 0xd5, 0x32, 0x3d, 0xe2, 0xb8, 0xc3, 0x80, 0xc6,
+	0x98, 0x15, 0x81, 0x79, 0x7c, 0x1f, 0xcc, 0x4b, 0x29, 0x6c, 0x27, 0xf4, 0xa2, 0x3d, 0x17, 0x95,
+	0xac, 0x73, 0x28, 0x58, 0xb4, 0x1f, 0x10, 0x8b, 0xce, 0xae, 0x23, 0x9e, 0x68, 0x55, 0x60, 0x0e,
+	0x96, 0x62, 0x8e, 0x62, 0xd5, 0xe4, 0x1e, 0x2c, 0xe4, 0x51, 0xb5, 0xac, 0xf9, 0x30, 0xee, 0x41,
+	0xd1, 0x63, 0xa6, 0xcb, 0xbc, 0x3e, 0x0d, 0xcc, 0x19, 0x2d, 0xa2, 0xe4, 0x04, 0xe5, 0xc9, 0x52,
+	0xca, 0x29, 0x3b, 0x11, 0xb2, 0x29, 0x4d, 0x62, 0xb6, 0xbc, 0x05, 0x71, 0x7c, 0x08, 0xb9, 0xe9,
+	0x18, 0x94, 0xb2, 0x71, 0x8b, 0xc9, 0x41, 0x51, 0x27, 0x83, 0xa2, 0x1a, 0x93, 0x13, 0xfa, 0xec,
+	0x70, 0x63, 0x1d, 0x32, 0xa2, 0xb8, 0x38, 0xf3, 0xe3, 0xfa, 0x32, 0x85, 0xaa, 0x5f, 0xe0, 0xe1,
+	0xd2, 0x9e, 0xc0, 0x1f, 0x61, 0x6d, 0xf2, 0x22, 0x37, 0xa6, 0x44, 0xfb, 0x87, 0x07, 0x99, 0x1b,
+	0x95, 0x7c, 0x6f, 0xb6, 0x51, 0x3d, 0x84, 0xc2, 0xc2, 0x56, 0xc1, 0xbb, 0x90, 0xef, 0x39, 0x41,
+	0xc8, 0x65, 0x5b, 0x08, 0xee, 0xaa, 0x0e, 0x22, 0x24, 0x8e, 0x56, 0xbf, 0x21, 0xc0, 0xf3, 0xb4,
+	0xff, 0x6d, 0xf8, 0xae, 0xaf, 0xe4, 0x9c, 0xaf, 0x02, 0x6c, 0x2e, 0x68, 0x97, 0xea, 0x36, 0x6c,
+	0x2d, 0x7a, 0xdf, 0xfd, 0x17, 0xb0, 0xbd, 0xd8, 0x02, 0x06, 0xc8, 0xd6, 0x9b, 0xc6, 0xf1, 0xbb,
+	0x96, 0x92, 0xc0, 0x79, 0x58, 0xe9, 0xd4, 0xcf, 0xce, 0xa2, 0x05, 0x8a, 0x16, 0xa7, 0x2d, 0xe3,
+	0xfd, 0x1b, 0xfd, 0xb5, 0x92, 0xdc, 0x7f, 0x0e, 0x1b, 0x73, 0x7f, 0x26, 0xbc, 0x0a, 0xe9, 0xb6,
+	0x61, 0x74, 0x94, 0x04, 0x5e, 0x81, 0x94, 0xd1, 0xec, 0x28, 0x28, 0x0a, 0xbd, 0xd2, 0x3b, 0x4d,
+	0x25, 0x89, 0x73, 0x90, 0xd1, 0x5b, 0x47, 0xc7, 0x67, 0x4a, 0xaa, 0x71, 0xf2, 0xeb, 0x6a, 0x07,
+	0xfd, 0xbe, 0xda, 0x41, 0x7f, 0xae, 0x76, 0x10, 0x3c, 0x72, 0x98, 0x2c, 0x93, 0x1f, 0xb0, 0xcf,
+	0xe3, 0x65, 0x15, 0x6b, 0x14, 0xee, 0xfe, 0x51, 0x3b, 0x51, 0xbb, 0x75, 0xd0, 0x79, 0x56, 0xf4,
+	0xdd, 0xb3, 0xbf, 0x01, 0x00, 0x00, 0xff, 0xff, 0xfb, 0xf0, 0x54, 0x21, 0x1c, 0x06, 0x00, 0x00,
 }
 
-func (this *HealthCheckEvent) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	that1, ok := that.(*HealthCheckEvent)
-	if !ok {
-		that2, ok := that.(HealthCheckEvent)
-		if ok {
-			that1 = &that2
-		} else {
-			return false
-		}
-	}
-	if that1 == nil {
-		return this == nil
-	} else if this == nil {
-		return false
-	}
-	if this.HealthCheckerType != that1.HealthCheckerType {
-		return false
-	}
-	if !this.Host.Equal(that1.Host) {
-		return false
-	}
-	if this.ClusterName != that1.ClusterName {
-		return false
-	}
-	if that1.Event == nil {
-		if this.Event != nil {
-			return false
-		}
-	} else if this.Event == nil {
-		return false
-	} else if !this.Event.Equal(that1.Event) {
-		return false
-	}
-	if that1.Timestamp == nil {
-		if this.Timestamp != nil {
-			return false
-		}
-	} else if !this.Timestamp.Equal(*that1.Timestamp) {
-		return false
-	}
-	if !bytes.Equal(this.XXX_unrecognized, that1.XXX_unrecognized) {
-		return false
-	}
-	return true
-}
-func (this *HealthCheckEvent_EjectUnhealthyEvent) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	that1, ok := that.(*HealthCheckEvent_EjectUnhealthyEvent)
-	if !ok {
-		that2, ok := that.(HealthCheckEvent_EjectUnhealthyEvent)
-		if ok {
-			that1 = &that2
-		} else {
-			return false
-		}
-	}
-	if that1 == nil {
-		return this == nil
-	} else if this == nil {
-		return false
-	}
-	if !this.EjectUnhealthyEvent.Equal(that1.EjectUnhealthyEvent) {
-		return false
-	}
-	return true
-}
-func (this *HealthCheckEvent_AddHealthyEvent) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	that1, ok := that.(*HealthCheckEvent_AddHealthyEvent)
-	if !ok {
-		that2, ok := that.(HealthCheckEvent_AddHealthyEvent)
-		if ok {
-			that1 = &that2
-		} else {
-			return false
-		}
-	}
-	if that1 == nil {
-		return this == nil
-	} else if this == nil {
-		return false
-	}
-	if !this.AddHealthyEvent.Equal(that1.AddHealthyEvent) {
-		return false
-	}
-	return true
-}
-func (this *HealthCheckEvent_HealthCheckFailureEvent) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	that1, ok := that.(*HealthCheckEvent_HealthCheckFailureEvent)
-	if !ok {
-		that2, ok := that.(HealthCheckEvent_HealthCheckFailureEvent)
-		if ok {
-			that1 = &that2
-		} else {
-			return false
-		}
-	}
-	if that1 == nil {
-		return this == nil
-	} else if this == nil {
-		return false
-	}
-	if !this.HealthCheckFailureEvent.Equal(that1.HealthCheckFailureEvent) {
-		return false
-	}
-	return true
-}
-func (this *HealthCheckEvent_DegradedHealthyHost) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	that1, ok := that.(*HealthCheckEvent_DegradedHealthyHost)
-	if !ok {
-		that2, ok := that.(HealthCheckEvent_DegradedHealthyHost)
-		if ok {
-			that1 = &that2
-		} else {
-			return false
-		}
-	}
-	if that1 == nil {
-		return this == nil
-	} else if this == nil {
-		return false
-	}
-	if !this.DegradedHealthyHost.Equal(that1.DegradedHealthyHost) {
-		return false
-	}
-	return true
-}
-func (this *HealthCheckEvent_NoLongerDegradedHost) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	that1, ok := that.(*HealthCheckEvent_NoLongerDegradedHost)
-	if !ok {
-		that2, ok := that.(HealthCheckEvent_NoLongerDegradedHost)
-		if ok {
-			that1 = &that2
-		} else {
-			return false
-		}
-	}
-	if that1 == nil {
-		return this == nil
-	} else if this == nil {
-		return false
-	}
-	if !this.NoLongerDegradedHost.Equal(that1.NoLongerDegradedHost) {
-		return false
-	}
-	return true
-}
-func (this *HealthCheckEjectUnhealthy) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	that1, ok := that.(*HealthCheckEjectUnhealthy)
-	if !ok {
-		that2, ok := that.(HealthCheckEjectUnhealthy)
-		if ok {
-			that1 = &that2
-		} else {
-			return false
-		}
-	}
-	if that1 == nil {
-		return this == nil
-	} else if this == nil {
-		return false
-	}
-	if this.FailureType != that1.FailureType {
-		return false
-	}
-	if !bytes.Equal(this.XXX_unrecognized, that1.XXX_unrecognized) {
-		return false
-	}
-	return true
-}
-func (this *HealthCheckAddHealthy) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	that1, ok := that.(*HealthCheckAddHealthy)
-	if !ok {
-		that2, ok := that.(HealthCheckAddHealthy)
-		if ok {
-			that1 = &that2
-		} else {
-			return false
-		}
-	}
-	if that1 == nil {
-		return this == nil
-	} else if this == nil {
-		return false
-	}
-	if this.FirstCheck != that1.FirstCheck {
-		return false
-	}
-	if !bytes.Equal(this.XXX_unrecognized, that1.XXX_unrecognized) {
-		return false
-	}
-	return true
-}
-func (this *HealthCheckFailure) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	that1, ok := that.(*HealthCheckFailure)
-	if !ok {
-		that2, ok := that.(HealthCheckFailure)
-		if ok {
-			that1 = &that2
-		} else {
-			return false
-		}
-	}
-	if that1 == nil {
-		return this == nil
-	} else if this == nil {
-		return false
-	}
-	if this.FailureType != that1.FailureType {
-		return false
-	}
-	if this.FirstCheck != that1.FirstCheck {
-		return false
-	}
-	if !bytes.Equal(this.XXX_unrecognized, that1.XXX_unrecognized) {
-		return false
-	}
-	return true
-}
-func (this *DegradedHealthyHost) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	that1, ok := that.(*DegradedHealthyHost)
-	if !ok {
-		that2, ok := that.(DegradedHealthyHost)
-		if ok {
-			that1 = &that2
-		} else {
-			return false
-		}
-	}
-	if that1 == nil {
-		return this == nil
-	} else if this == nil {
-		return false
-	}
-	if !bytes.Equal(this.XXX_unrecognized, that1.XXX_unrecognized) {
-		return false
-	}
-	return true
-}
-func (this *NoLongerDegradedHost) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	that1, ok := that.(*NoLongerDegradedHost)
-	if !ok {
-		that2, ok := that.(NoLongerDegradedHost)
-		if ok {
-			that1 = &that2
-		} else {
-			return false
-		}
-	}
-	if that1 == nil {
-		return this == nil
-	} else if this == nil {
-		return false
-	}
-	if !bytes.Equal(this.XXX_unrecognized, that1.XXX_unrecognized) {
-		return false
-	}
-	return true
-}
 func (m *HealthCheckEvent) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
-	n, err := m.MarshalTo(dAtA)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
 	if err != nil {
 		return nil, err
 	}
@@ -977,128 +669,171 @@ func (m *HealthCheckEvent) Marshal() (dAtA []byte, err error) {
 }
 
 func (m *HealthCheckEvent) MarshalTo(dAtA []byte) (int, error) {
-	var i int
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *HealthCheckEvent) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
-	if m.HealthCheckerType != 0 {
-		dAtA[i] = 0x8
-		i++
-		i = encodeVarintHealthCheckEvent(dAtA, i, uint64(m.HealthCheckerType))
-	}
-	if m.Host != nil {
-		dAtA[i] = 0x12
-		i++
-		i = encodeVarintHealthCheckEvent(dAtA, i, uint64(m.Host.Size()))
-		n1, err := m.Host.MarshalTo(dAtA[i:])
-		if err != nil {
-			return 0, err
-		}
-		i += n1
-	}
-	if len(m.ClusterName) > 0 {
-		dAtA[i] = 0x1a
-		i++
-		i = encodeVarintHealthCheckEvent(dAtA, i, uint64(len(m.ClusterName)))
-		i += copy(dAtA[i:], m.ClusterName)
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
 	}
 	if m.Event != nil {
-		nn2, err := m.Event.MarshalTo(dAtA[i:])
-		if err != nil {
-			return 0, err
+		{
+			size := m.Event.Size()
+			i -= size
+			if _, err := m.Event.MarshalTo(dAtA[i:]); err != nil {
+				return 0, err
+			}
 		}
-		i += nn2
 	}
 	if m.Timestamp != nil {
-		dAtA[i] = 0x32
-		i++
-		i = encodeVarintHealthCheckEvent(dAtA, i, uint64(github_com_gogo_protobuf_types.SizeOfStdTime(*m.Timestamp)))
-		n3, err := github_com_gogo_protobuf_types.StdTimeMarshalTo(*m.Timestamp, dAtA[i:])
-		if err != nil {
-			return 0, err
+		{
+			size, err := m.Timestamp.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintHealthCheckEvent(dAtA, i, uint64(size))
 		}
-		i += n3
+		i--
+		dAtA[i] = 0x32
 	}
-	if m.XXX_unrecognized != nil {
-		i += copy(dAtA[i:], m.XXX_unrecognized)
+	if len(m.ClusterName) > 0 {
+		i -= len(m.ClusterName)
+		copy(dAtA[i:], m.ClusterName)
+		i = encodeVarintHealthCheckEvent(dAtA, i, uint64(len(m.ClusterName)))
+		i--
+		dAtA[i] = 0x1a
 	}
-	return i, nil
+	if m.Host != nil {
+		{
+			size, err := m.Host.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintHealthCheckEvent(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.HealthCheckerType != 0 {
+		i = encodeVarintHealthCheckEvent(dAtA, i, uint64(m.HealthCheckerType))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
 }
 
 func (m *HealthCheckEvent_EjectUnhealthyEvent) MarshalTo(dAtA []byte) (int, error) {
-	i := 0
+	return m.MarshalToSizedBuffer(dAtA[:m.Size()])
+}
+
+func (m *HealthCheckEvent_EjectUnhealthyEvent) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
 	if m.EjectUnhealthyEvent != nil {
-		dAtA[i] = 0x22
-		i++
-		i = encodeVarintHealthCheckEvent(dAtA, i, uint64(m.EjectUnhealthyEvent.Size()))
-		n4, err := m.EjectUnhealthyEvent.MarshalTo(dAtA[i:])
-		if err != nil {
-			return 0, err
+		{
+			size, err := m.EjectUnhealthyEvent.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintHealthCheckEvent(dAtA, i, uint64(size))
 		}
-		i += n4
+		i--
+		dAtA[i] = 0x22
 	}
-	return i, nil
+	return len(dAtA) - i, nil
 }
 func (m *HealthCheckEvent_AddHealthyEvent) MarshalTo(dAtA []byte) (int, error) {
-	i := 0
+	return m.MarshalToSizedBuffer(dAtA[:m.Size()])
+}
+
+func (m *HealthCheckEvent_AddHealthyEvent) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
 	if m.AddHealthyEvent != nil {
-		dAtA[i] = 0x2a
-		i++
-		i = encodeVarintHealthCheckEvent(dAtA, i, uint64(m.AddHealthyEvent.Size()))
-		n5, err := m.AddHealthyEvent.MarshalTo(dAtA[i:])
-		if err != nil {
-			return 0, err
+		{
+			size, err := m.AddHealthyEvent.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintHealthCheckEvent(dAtA, i, uint64(size))
 		}
-		i += n5
+		i--
+		dAtA[i] = 0x2a
 	}
-	return i, nil
+	return len(dAtA) - i, nil
 }
 func (m *HealthCheckEvent_HealthCheckFailureEvent) MarshalTo(dAtA []byte) (int, error) {
-	i := 0
+	return m.MarshalToSizedBuffer(dAtA[:m.Size()])
+}
+
+func (m *HealthCheckEvent_HealthCheckFailureEvent) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
 	if m.HealthCheckFailureEvent != nil {
-		dAtA[i] = 0x3a
-		i++
-		i = encodeVarintHealthCheckEvent(dAtA, i, uint64(m.HealthCheckFailureEvent.Size()))
-		n6, err := m.HealthCheckFailureEvent.MarshalTo(dAtA[i:])
-		if err != nil {
-			return 0, err
+		{
+			size, err := m.HealthCheckFailureEvent.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintHealthCheckEvent(dAtA, i, uint64(size))
 		}
-		i += n6
+		i--
+		dAtA[i] = 0x3a
 	}
-	return i, nil
+	return len(dAtA) - i, nil
 }
 func (m *HealthCheckEvent_DegradedHealthyHost) MarshalTo(dAtA []byte) (int, error) {
-	i := 0
+	return m.MarshalToSizedBuffer(dAtA[:m.Size()])
+}
+
+func (m *HealthCheckEvent_DegradedHealthyHost) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
 	if m.DegradedHealthyHost != nil {
-		dAtA[i] = 0x42
-		i++
-		i = encodeVarintHealthCheckEvent(dAtA, i, uint64(m.DegradedHealthyHost.Size()))
-		n7, err := m.DegradedHealthyHost.MarshalTo(dAtA[i:])
-		if err != nil {
-			return 0, err
+		{
+			size, err := m.DegradedHealthyHost.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintHealthCheckEvent(dAtA, i, uint64(size))
 		}
-		i += n7
+		i--
+		dAtA[i] = 0x42
 	}
-	return i, nil
+	return len(dAtA) - i, nil
 }
 func (m *HealthCheckEvent_NoLongerDegradedHost) MarshalTo(dAtA []byte) (int, error) {
-	i := 0
+	return m.MarshalToSizedBuffer(dAtA[:m.Size()])
+}
+
+func (m *HealthCheckEvent_NoLongerDegradedHost) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
 	if m.NoLongerDegradedHost != nil {
-		dAtA[i] = 0x4a
-		i++
-		i = encodeVarintHealthCheckEvent(dAtA, i, uint64(m.NoLongerDegradedHost.Size()))
-		n8, err := m.NoLongerDegradedHost.MarshalTo(dAtA[i:])
-		if err != nil {
-			return 0, err
+		{
+			size, err := m.NoLongerDegradedHost.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintHealthCheckEvent(dAtA, i, uint64(size))
 		}
-		i += n8
+		i--
+		dAtA[i] = 0x4a
 	}
-	return i, nil
+	return len(dAtA) - i, nil
 }
 func (m *HealthCheckEjectUnhealthy) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
-	n, err := m.MarshalTo(dAtA)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
 	if err != nil {
 		return nil, err
 	}
@@ -1106,25 +841,31 @@ func (m *HealthCheckEjectUnhealthy) Marshal() (dAtA []byte, err error) {
 }
 
 func (m *HealthCheckEjectUnhealthy) MarshalTo(dAtA []byte) (int, error) {
-	var i int
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *HealthCheckEjectUnhealthy) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
-	if m.FailureType != 0 {
-		dAtA[i] = 0x8
-		i++
-		i = encodeVarintHealthCheckEvent(dAtA, i, uint64(m.FailureType))
-	}
 	if m.XXX_unrecognized != nil {
-		i += copy(dAtA[i:], m.XXX_unrecognized)
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
 	}
-	return i, nil
+	if m.FailureType != 0 {
+		i = encodeVarintHealthCheckEvent(dAtA, i, uint64(m.FailureType))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
 }
 
 func (m *HealthCheckAddHealthy) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
-	n, err := m.MarshalTo(dAtA)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
 	if err != nil {
 		return nil, err
 	}
@@ -1132,30 +873,36 @@ func (m *HealthCheckAddHealthy) Marshal() (dAtA []byte, err error) {
 }
 
 func (m *HealthCheckAddHealthy) MarshalTo(dAtA []byte) (int, error) {
-	var i int
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *HealthCheckAddHealthy) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
 	if m.FirstCheck {
-		dAtA[i] = 0x8
-		i++
+		i--
 		if m.FirstCheck {
 			dAtA[i] = 1
 		} else {
 			dAtA[i] = 0
 		}
-		i++
+		i--
+		dAtA[i] = 0x8
 	}
-	if m.XXX_unrecognized != nil {
-		i += copy(dAtA[i:], m.XXX_unrecognized)
-	}
-	return i, nil
+	return len(dAtA) - i, nil
 }
 
 func (m *HealthCheckFailure) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
-	n, err := m.MarshalTo(dAtA)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
 	if err != nil {
 		return nil, err
 	}
@@ -1163,35 +910,41 @@ func (m *HealthCheckFailure) Marshal() (dAtA []byte, err error) {
 }
 
 func (m *HealthCheckFailure) MarshalTo(dAtA []byte) (int, error) {
-	var i int
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *HealthCheckFailure) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
-	if m.FailureType != 0 {
-		dAtA[i] = 0x8
-		i++
-		i = encodeVarintHealthCheckEvent(dAtA, i, uint64(m.FailureType))
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
 	}
 	if m.FirstCheck {
-		dAtA[i] = 0x10
-		i++
+		i--
 		if m.FirstCheck {
 			dAtA[i] = 1
 		} else {
 			dAtA[i] = 0
 		}
-		i++
+		i--
+		dAtA[i] = 0x10
 	}
-	if m.XXX_unrecognized != nil {
-		i += copy(dAtA[i:], m.XXX_unrecognized)
+	if m.FailureType != 0 {
+		i = encodeVarintHealthCheckEvent(dAtA, i, uint64(m.FailureType))
+		i--
+		dAtA[i] = 0x8
 	}
-	return i, nil
+	return len(dAtA) - i, nil
 }
 
 func (m *DegradedHealthyHost) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
-	n, err := m.MarshalTo(dAtA)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
 	if err != nil {
 		return nil, err
 	}
@@ -1199,20 +952,26 @@ func (m *DegradedHealthyHost) Marshal() (dAtA []byte, err error) {
 }
 
 func (m *DegradedHealthyHost) MarshalTo(dAtA []byte) (int, error) {
-	var i int
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *DegradedHealthyHost) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
 	if m.XXX_unrecognized != nil {
-		i += copy(dAtA[i:], m.XXX_unrecognized)
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
 	}
-	return i, nil
+	return len(dAtA) - i, nil
 }
 
 func (m *NoLongerDegradedHost) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
-	n, err := m.MarshalTo(dAtA)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
 	if err != nil {
 		return nil, err
 	}
@@ -1220,24 +979,32 @@ func (m *NoLongerDegradedHost) Marshal() (dAtA []byte, err error) {
 }
 
 func (m *NoLongerDegradedHost) MarshalTo(dAtA []byte) (int, error) {
-	var i int
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *NoLongerDegradedHost) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
 	if m.XXX_unrecognized != nil {
-		i += copy(dAtA[i:], m.XXX_unrecognized)
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
 	}
-	return i, nil
+	return len(dAtA) - i, nil
 }
 
 func encodeVarintHealthCheckEvent(dAtA []byte, offset int, v uint64) int {
+	offset -= sovHealthCheckEvent(v)
+	base := offset
 	for v >= 1<<7 {
 		dAtA[offset] = uint8(v&0x7f | 0x80)
 		v >>= 7
 		offset++
 	}
 	dAtA[offset] = uint8(v)
-	return offset + 1
+	return base
 }
 func (m *HealthCheckEvent) Size() (n int) {
 	if m == nil {
@@ -1260,7 +1027,7 @@ func (m *HealthCheckEvent) Size() (n int) {
 		n += m.Event.Size()
 	}
 	if m.Timestamp != nil {
-		l = github_com_gogo_protobuf_types.SizeOfStdTime(*m.Timestamp)
+		l = m.Timestamp.Size()
 		n += 1 + l + sovHealthCheckEvent(uint64(l))
 	}
 	if m.XXX_unrecognized != nil {
@@ -1402,14 +1169,7 @@ func (m *NoLongerDegradedHost) Size() (n int) {
 }
 
 func sovHealthCheckEvent(x uint64) (n int) {
-	for {
-		n++
-		x >>= 7
-		if x == 0 {
-			break
-		}
-	}
-	return n
+	return (math_bits.Len64(x|1) + 6) / 7
 }
 func sozHealthCheckEvent(x uint64) (n int) {
 	return sovHealthCheckEvent(uint64((x << 1) ^ uint64((int64(x) >> 63))))
@@ -1630,9 +1390,9 @@ func (m *HealthCheckEvent) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Timestamp == nil {
-				m.Timestamp = new(time.Time)
+				m.Timestamp = &types.Timestamp{}
 			}
-			if err := github_com_gogo_protobuf_types.StdTimeUnmarshal(m.Timestamp, dAtA[iNdEx:postIndex]); err != nil {
+			if err := m.Timestamp.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex

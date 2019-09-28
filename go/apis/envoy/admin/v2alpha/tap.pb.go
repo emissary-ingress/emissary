@@ -10,6 +10,7 @@ import (
 	proto "github.com/gogo/protobuf/proto"
 	io "io"
 	math "math"
+	math_bits "math/bits"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -49,7 +50,7 @@ func (m *TapRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 		return xxx_messageInfo_TapRequest.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
-		n, err := m.MarshalTo(b)
+		n, err := m.MarshalToSizedBuffer(b)
 		if err != nil {
 			return nil, err
 		}
@@ -111,7 +112,7 @@ var fileDescriptor_69ef50f493e7b8aa = []byte{
 func (m *TapRequest) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
-	n, err := m.MarshalTo(dAtA)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
 	if err != nil {
 		return nil, err
 	}
@@ -119,40 +120,51 @@ func (m *TapRequest) Marshal() (dAtA []byte, err error) {
 }
 
 func (m *TapRequest) MarshalTo(dAtA []byte) (int, error) {
-	var i int
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *TapRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
-	if len(m.ConfigId) > 0 {
-		dAtA[i] = 0xa
-		i++
-		i = encodeVarintTap(dAtA, i, uint64(len(m.ConfigId)))
-		i += copy(dAtA[i:], m.ConfigId)
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
 	}
 	if m.TapConfig != nil {
-		dAtA[i] = 0x12
-		i++
-		i = encodeVarintTap(dAtA, i, uint64(m.TapConfig.Size()))
-		n1, err := m.TapConfig.MarshalTo(dAtA[i:])
-		if err != nil {
-			return 0, err
+		{
+			size, err := m.TapConfig.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintTap(dAtA, i, uint64(size))
 		}
-		i += n1
+		i--
+		dAtA[i] = 0x12
 	}
-	if m.XXX_unrecognized != nil {
-		i += copy(dAtA[i:], m.XXX_unrecognized)
+	if len(m.ConfigId) > 0 {
+		i -= len(m.ConfigId)
+		copy(dAtA[i:], m.ConfigId)
+		i = encodeVarintTap(dAtA, i, uint64(len(m.ConfigId)))
+		i--
+		dAtA[i] = 0xa
 	}
-	return i, nil
+	return len(dAtA) - i, nil
 }
 
 func encodeVarintTap(dAtA []byte, offset int, v uint64) int {
+	offset -= sovTap(v)
+	base := offset
 	for v >= 1<<7 {
 		dAtA[offset] = uint8(v&0x7f | 0x80)
 		v >>= 7
 		offset++
 	}
 	dAtA[offset] = uint8(v)
-	return offset + 1
+	return base
 }
 func (m *TapRequest) Size() (n int) {
 	if m == nil {
@@ -175,14 +187,7 @@ func (m *TapRequest) Size() (n int) {
 }
 
 func sovTap(x uint64) (n int) {
-	for {
-		n++
-		x >>= 7
-		if x == 0 {
-			break
-		}
-	}
-	return n
+	return (math_bits.Len64(x|1) + 6) / 7
 }
 func sozTap(x uint64) (n int) {
 	return sovTap(uint64((x << 1) ^ uint64((int64(x) >> 63))))

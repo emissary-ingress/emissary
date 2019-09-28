@@ -9,6 +9,8 @@ import (
 	v2 "github.com/datawire/ambassador/go/apis/envoy/service/ratelimit/v2"
 	proto "github.com/gogo/protobuf/proto"
 	grpc "google.golang.org/grpc"
+	codes "google.golang.org/grpc/codes"
+	status "google.golang.org/grpc/status"
 	math "math"
 )
 
@@ -77,6 +79,14 @@ func (c *rateLimitServiceClient) ShouldRateLimit(ctx context.Context, in *v2.Rat
 // RateLimitServiceServer is the server API for RateLimitService service.
 type RateLimitServiceServer interface {
 	ShouldRateLimit(context.Context, *v2.RateLimitRequest) (*v2.RateLimitResponse, error)
+}
+
+// UnimplementedRateLimitServiceServer can be embedded to have forward compatible implementations.
+type UnimplementedRateLimitServiceServer struct {
+}
+
+func (*UnimplementedRateLimitServiceServer) ShouldRateLimit(ctx context.Context, req *v2.RateLimitRequest) (*v2.RateLimitResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ShouldRateLimit not implemented")
 }
 
 func RegisterRateLimitServiceServer(s *grpc.Server, srv RateLimitServiceServer) {

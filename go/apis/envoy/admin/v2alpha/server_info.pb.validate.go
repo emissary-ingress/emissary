@@ -74,6 +74,8 @@ func (m *ServerInfo) Validate() error {
 		}
 	}
 
+	// no validation rules for HotRestartVersion
+
 	{
 		tmp := m.GetCommandLineOptions()
 
@@ -162,7 +164,9 @@ func (m *CommandLineOptions) Validate() error {
 
 	// no validation rules for ConfigYaml
 
-	// no validation rules for AllowUnknownFields
+	// no validation rules for AllowUnknownStaticFields
+
+	// no validation rules for RejectUnknownDynamicFields
 
 	// no validation rules for AdminAddressPath
 
@@ -175,8 +179,6 @@ func (m *CommandLineOptions) Validate() error {
 	// no validation rules for LogFormat
 
 	// no validation rules for LogPath
-
-	// no validation rules for HotRestartVersion
 
 	// no validation rules for ServiceCluster
 
