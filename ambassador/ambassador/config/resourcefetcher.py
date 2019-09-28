@@ -49,6 +49,7 @@ class ResourceFetcher:
         self.k8s_endpoints: Dict[str, AnyDict] = {}
         self.k8s_services: Dict[str, AnyDict] = {}
         self.services: Dict[str, AnyDict] = {}
+        self.ambassador_service_raw: AnyDict = {}
 
         # Ugh. Should we worry about multiple Helm charts for a single Ambassador?
         self.helm_chart: Optional[str] = None
@@ -507,6 +508,12 @@ class ResourceFetcher:
         if parsed_ambassador_annotations is not None:
             return resource_identifier, parsed_ambassador_annotations
 
+        # let's make arrangements to update Ingress' status now
+        ingress_status = self.ambassador_service_raw.get('status', {})
+        ingress_status_update = (k8s_object.get('kind'), ingress_status)
+        self.logger.info(f"Updating Ingress {ingress_name} status to {ingress_status_update}")
+        self.aconf.k8s_status_updates[ingress_name] = ingress_status_update
+
         return None
 
     def handle_k8s_endpoints(self, k8s_object: AnyDict) -> HandlerResult:
@@ -687,6 +694,15 @@ class ResourceFetcher:
                 'namespace': resource_namespace,
                 'ports': ports
             }
+
+            selector = spec.get('selector', {})
+            for key, value in selector.items():
+                if key == 'service' and value == 'ambassador' and resource_name == 'ambassador':
+                    self.logger.debug(f"Found Ambassador's service: {k8s_object}")
+                    self.ambassador_service_raw = k8s_object
+                else:
+                    self.aconf.post_error("Could not find an Ambassador service, make sure a service exists with label"
+                                          "'service: ambassador' and name 'ambassador'")
         else:
             self.logger.debug(f"not saving K8s Service {resource_name}.{resource_namespace} with no ports")
 

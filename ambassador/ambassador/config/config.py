@@ -129,7 +129,7 @@ class Config:
         self.schema_dir_path = schema_dir_path
 
         self.logger.debug("SCHEMA DIR    %s" % os.path.abspath(self.schema_dir_path))
-
+        self.k8s_status_updates = {}
         self._reset()
 
     def _reset(self) -> None:

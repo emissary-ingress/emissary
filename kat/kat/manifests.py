@@ -396,6 +396,9 @@ rules:
 - apiGroups: [ "extensions" ]
   resources: [ "ingresses" ]
   verbs: ["get", "list", "watch"]
+- apiGroups: [ "extensions" ]
+  resources: [ "ingresses/status" ]
+  verbs: ["update"]
 ---
 apiVersion: v1
 kind: ServiceAccount
