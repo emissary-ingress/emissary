@@ -83,7 +83,7 @@ push-docs: ## Publish ./docs to https://github.com/datawire/ambassador-docs
 #
 # Envoy
 
-AMBASSADOR_COMMIT = a552b71badc8f297f363be59d418d2543f67ea3d
+AMBASSADOR_COMMIT = 253671ccf0dac3104068d6cc5137b2a67f79d151
 
 # Git clone
 ambassador.stamp: %.stamp: $(var.)AMBASSADOR_COMMIT $(if $(call str.eq,$(AMBASSADOR_COMMIT),-),FORCE)
