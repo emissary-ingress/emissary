@@ -23,7 +23,7 @@
 # in, you _must_ update BASE_PY_RELVER in the Makefile, then run "make
 # docker-update-base" to build and push the new image.
 
-FROM frolvlad/alpine-glibc:alpine-3.9
+FROM frolvlad/alpine-glibc:alpine-3.10
 
 MAINTAINER Datawire <flynn@datawire.io>
 
