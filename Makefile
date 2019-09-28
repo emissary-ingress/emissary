@@ -1,8 +1,15 @@
 # Sanitize the environment a bit.
-undefine ENV      # bad configuration mechansim
-undefine BASH_ENV # bad configuration mechansim, but CircleCI insists on it
-undefine CDPATH   # should not be exported, but some people do
-undefine IFS      # should not be exported, but some people do
+undefines += ENV      # bad configuration mechansim
+undefines += BASH_ENV # bad configuration mechansim, but CircleCI insists on it
+undefines += CDPATH   # should not be exported, but some people do
+undefines += IFS      # should not be exported, but some people do
+ifeq ($(filter undefine,$(.FEATURES)),)
+  # Make 3.81 didn't have an 'undefine' directive
+  $(foreach v,$(undefines),$(if $(filter $v,$(.VARIABLES)),$(eval $v =)))
+else
+  # Make 3.82 added undefine
+  undefine $(undefines)
+endif
 
 NAME            = ambassador-pro
 # For Make itself
