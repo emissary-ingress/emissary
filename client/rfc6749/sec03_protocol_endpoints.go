@@ -2,9 +2,10 @@ package rfc6749
 
 import (
 	"net/url"
-	"strings"
 
 	"github.com/pkg/errors"
+
+	rfc6749common "github.com/datawire/liboauth2/common/rfc6749"
 )
 
 // validateAuthorizationEndpointURI validates the requirements in §3.1.
@@ -51,26 +52,10 @@ func validateTokenEndpointURI(endpoint *url.URL) error {
 	return nil
 }
 
-// Scope represents an unordered list of scopes as defined by §3.3.
-type Scope map[string]struct{}
+// Scope represents an unordered list of scope-values as defined by §3.3.
+type Scope = rfc6749common.Scope
 
-// String serializes the set of scopes for use as a parameter, per §3.3.
-func (scope Scope) String() string {
-	strs := make([]string, 0, len(scope))
-	for k := range scope {
-		strs = append(strs, k)
-	}
-	return strings.Join(strs, " ")
-}
-
-// ParseScope de-serializes the set of scopes from use as a parameter, per §3.3.
+// ParseScope de-serializes the set of scope-values from use as a parameter, per §3.3.
 func ParseScope(str string) Scope {
-	strs := strings.Split(str, " ")
-	ret := make(Scope, len(strs))
-	for _, s := range strs {
-		if s != "" {
-			ret[s] = struct{}{}
-		}
-	}
-	return ret
+	return rfc6749common.ParseScope(str)
 }
