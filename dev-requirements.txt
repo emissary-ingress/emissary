@@ -5,5 +5,5 @@ awscli
 pytest
 pytest-cov
 dpath
-mypy==0.720
+mypy
 pexpect

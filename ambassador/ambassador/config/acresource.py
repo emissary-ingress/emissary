@@ -87,6 +87,10 @@ class ACResource (Resource):
         new_name = name or other.name
         new_apiVersion = apiVersion or other.apiVersion
 
+        # Not sure why mypy needs this, since Type[R] is necessarily a Resource type...
+        # but mypy 0.730 does, since it tries to be "more strict" about super().
+        assert isinstance(cls, Resource)
+
         return super().from_resource(other, rkey=rkey, location=location, kind=kind,
                                      name=new_name, apiVersion=new_apiVersion,
                                      serialization=serialization, **kwargs)
