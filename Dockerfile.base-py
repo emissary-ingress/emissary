@@ -55,7 +55,7 @@ RUN tar xzf PyYAML-3.13.tar.gz
 RUN cd PyYAML-3.13 && python3 setup.py --with-libyaml install
 
 COPY releng releng
-COPY ambassador/requirements.txt ambassador/
+COPY python/requirements.txt ambassador/
 
 # Install application dependencies
 RUN releng/install-py.sh prd requirements */requirements.txt

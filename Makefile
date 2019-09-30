@@ -229,12 +229,13 @@ clean: clean-test envoy-build-container.txt.clean $(addsuffix .clean,$(clean_doc
 	rm -rf helm/*.tgz
 	rm -rf app.json
 	rm -rf venv/bin/ambassador
-	rm -rf ambassador/ambassador/VERSION.py*
-	rm -rf ambassador/build ambassador/dist ambassador/ambassador.egg-info ambassador/__pycache__
+	rm -rf python/ambassador/VERSION.py*
+	rm -f *.docker
+	rm -rf python/build python/dist python/ambassador.egg-info python/__pycache__
 	find . \( -name .coverage -o -name .cache -o -name __pycache__ \) -print0 | xargs -0 rm -rf
 	find . \( -name *.log \) -print0 | xargs -0 rm -rf
 	rm -rf log.txt
-	find ambassador/tests \
+	find python/tests \
 		\( -name '*.out' -o -name 'envoy.json' -o -name 'intermediate.json' \) -print0 \
 		| xargs -0 rm -f
 	rm -f build/kat/client/kat_client
@@ -532,7 +533,7 @@ docker-update-base:
 	$(MAKE) docker-push-base-images
 
 ambassador-docker-image: ambassador.docker
-ambassador.docker: Dockerfile base-go.docker base-py.docker $(ENVOY_FILE) ambex $(WATT) $(KUBESTATUS) $(WRITE_IFCHANGED) ambassador/ambassador/VERSION.py FORCE
+ambassador.docker: Dockerfile base-go.docker base-py.docker $(ENVOY_FILE) ambex $(WATT) $(KUBESTATUS) $(WRITE_IFCHANGED) python/ambassador/VERSION.py FORCE
 	docker build --build-arg ENVOY_FILE=$(ENVOY_FILE) --build-arg BASE_GO_IMAGE=$(BASE_GO_IMAGE) --build-arg BASE_PY_IMAGE=$(BASE_PY_IMAGE) $(DOCKER_OPTS) -t $(AMBASSADOR_DOCKER_IMAGE) .
 	@docker image inspect $(AMBASSADOR_DOCKER_IMAGE) --format='{{.Id}}' | $(WRITE_IFCHANGED) $@
 
@@ -584,7 +585,7 @@ docker-push-kat-server: kat-server-docker-image
 docker-push-kat: docker-push-kat-client docker-push-kat-server
 
 # TODO: validate version is conformant to some set of rules might be a good idea to add here
-ambassador/ambassador/VERSION.py: FORCE $(WRITE_IFCHANGED)
+python/ambassador/VERSION.py: FORCE $(WRITE_IFCHANGED)
 	$(call check_defined, VERSION, VERSION is not set)
 	$(call check_defined, GIT_BRANCH, GIT_BRANCH is not set)
 	$(call check_defined, GIT_COMMIT, GIT_COMMIT is not set)
@@ -598,7 +599,7 @@ ambassador/ambassador/VERSION.py: FORCE $(WRITE_IFCHANGED)
 		-e 's!{{GITDESCRIPTION}}!$(GIT_DESCRIPTION)!g' \
 		< VERSION-template.py | $(WRITE_IFCHANGED) $@
 
-version: ambassador/ambassador/VERSION.py
+version: python/ambassador/VERSION.py
 
 $(TELEPROXY): $(var.)TELEPROXY_VERSION $(var.)GOOS $(var.)GOARCH | venv/bin/activate
 	curl -o $(TELEPROXY) https://s3.amazonaws.com/datawire-static-files/teleproxy/$(TELEPROXY_VERSION)/$(GOOS)/$(GOARCH)/teleproxy
@@ -714,7 +715,7 @@ clean-test:
 	$(call kill_teleproxy)
 
 test: setup-develop
-	cd ambassador && \
+	cd python && \
 	AMBASSADOR_DOCKER_IMAGE="$(AMBASSADOR_DOCKER_IMAGE)" \
 	BASE_PY_IMAGE="$(BASE_PY_IMAGE)" \
 	BASE_GO_IMAGE="$(BASE_GO_IMAGE)" \
@@ -726,7 +727,7 @@ test: setup-develop
 	bash ../releng/run-tests.sh
 
 test-list: setup-develop
-	cd ambassador && PATH="$(shell pwd)/venv/bin":$(PATH) pytest --collect-only -q
+	cd python && PATH="$(shell pwd)/venv/bin":$(PATH) pytest --collect-only -q
 
 update-aws:
 ifeq ($(AWS_ACCESS_KEY_ID),)
@@ -876,21 +877,21 @@ venv/bin/protoc-gen-grpc-web: $(var.)GRPC_WEB_VERSION $(var.)GRPC_WEB_PLATFORM |
 	curl -o $@ -L --fail https://github.com/grpc/grpc-web/releases/download/$(GRPC_WEB_VERSION)/protoc-gen-grpc-web-$(GRPC_WEB_VERSION)-$(GRPC_WEB_PLATFORM)
 	chmod 755 $@
 
-pkg/apis/kat/echo.pb.go: ambassador/api/kat/echo.proto venv/bin/protoc venv/bin/protoc-gen-gogofast
+pkg/apis/kat/echo.pb.go: python/api/kat/echo.proto venv/bin/protoc venv/bin/protoc-gen-gogofast
 	./venv/bin/protoc \
-		--proto_path=$(CURDIR)/ambassador/api/kat \
+		--proto_path=$(CURDIR)/python/api/kat \
 		--plugin=$(CURDIR)/venv/bin/protoc-gen-gogofast --gogofast_out=plugins=grpc:$(@D) \
 		$(CURDIR)/$<
 
-tools/sandbox/grpc_web/echo_grpc_web_pb.js: ambassador/api/kat/echo.proto venv/bin/protoc venv/bin/protoc-gen-grpc-web
+tools/sandbox/grpc_web/echo_grpc_web_pb.js: python/api/kat/echo.proto venv/bin/protoc venv/bin/protoc-gen-grpc-web
 	./venv/bin/protoc \
-		--proto_path=$(CURDIR)/ambassador/api/kat \
+		--proto_path=$(CURDIR)/python/api/kat \
 		--plugin=$(CURDIR)/venv/bin/protoc-gen-grpc-web --grpc-web_out=import_style=commonjs,mode=grpcwebtext:$(@D) \
 		$(CURDIR)/$<
 
-tools/sandbox/grpc_web/echo_pb.js: ambassador/api/kat/echo.proto venv/bin/protoc
+tools/sandbox/grpc_web/echo_pb.js: python/api/kat/echo.proto venv/bin/protoc
 	./venv/bin/protoc \
-		--proto_path=$(CURDIR)/ambassador/api/kat \
+		--proto_path=$(CURDIR)/python/api/kat \
 		--js_out=import_style=commonjs:$(@D) \
 		$(CURDIR)/$<
 
@@ -933,9 +934,9 @@ tools/sandbox.web: tools/sandbox/grpc_web/echo_grpc_web_pb.js tools/sandbox/grpc
 
 venv: version venv/bin/ambassador
 
-venv/bin/ambassador: venv/bin/activate ambassador/requirements.txt
-	@releng/install-py.sh dev requirements ambassador/requirements.txt
-	@releng/install-py.sh dev install ambassador/requirements.txt
+venv/bin/ambassador: venv/bin/activate python/requirements.txt
+	@releng/install-py.sh dev requirements python/requirements.txt
+	@releng/install-py.sh dev install python/requirements.txt
 	@releng/fix_kube_client
 
 venv/bin/activate: dev-requirements.txt
@@ -955,7 +956,7 @@ mypy-server: venv
 	fi
 
 mypy: mypy-server
-	time venv/bin/dmypy check ambassador
+	time venv/bin/dmypy check python
 
 # ------------------------------------------------------------------------------
 # Website

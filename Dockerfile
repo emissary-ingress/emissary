@@ -48,7 +48,7 @@ RUN touch -t 197001010000 /usr/local/bin/envoy
 FROM $BASE_PY_IMAGE as base-py
 
 # Install the application itself
-COPY ambassador/ ambassador
+COPY python/ ambassador
 RUN rm -rf ./multi
 RUN releng/install-py.sh prd install */requirements.txt
 RUN rm -rf ./ambassador
@@ -92,12 +92,12 @@ RUN chgrp -R 0 ${AMBASSADOR_ROOT} && \
     chmod -R g=u ${AMBASSADOR_ROOT} /etc/passwd
 
 # COPY the entrypoint and Python-kubewatch and make them runnable.
-COPY ambassador/entrypoint.sh .
-COPY ambassador/grab-snapshots.py .
-COPY ambassador/kick_ads.sh .
-COPY ambassador/kubewatch.py .
-COPY ambassador/post_update.py .
-COPY ambassador/watch_hook.py .
+COPY python/entrypoint.sh .
+COPY python/grab-snapshots.py .
+COPY python/kick_ads.sh .
+COPY python/kubewatch.py .
+COPY python/post_update.py .
+COPY python/watch_hook.py .
 RUN chmod 755 entrypoint.sh grab-snapshots.py kick_ads.sh kubewatch.py post_update.py watch_hook.py
 
 COPY ambex /usr/bin/

@@ -22,14 +22,14 @@ def test_schemas():
     schemadir = rootdir
 
     while schemadir != '/':
-        if os.path.isdir(os.path.join(schemadir, 'ambassador', 'schemas')):
+        if os.path.isdir(os.path.join(schemadir, 'python', 'schemas')):
             break
         schemadir = os.path.abspath(os.path.join(schemadir, '..'))
 
-    schemadir = os.path.join(schemadir, 'ambassador', 'schemas')
+    schemadir = os.path.join(schemadir, 'python', 'schemas')
 
     if not os.path.isdir(schemadir):
-        assert False, f"could not find ambassador/schemas directory starting at {rootdir}"
+        assert False, f"could not find python/schemas directory starting at {rootdir}"
         return
 
     # We have a schemadir.

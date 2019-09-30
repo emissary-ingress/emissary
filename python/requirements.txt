@@ -9,6 +9,4 @@ scout.py==0.5.0
 semantic-version==2.6.0
 kubernetes==8.0.0
 click==7.0
-pytest
-pyyaml
 
