@@ -9,6 +9,7 @@ import (
 	types "github.com/gogo/protobuf/types"
 	io "io"
 	math "math"
+	math_bits "math/bits"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -47,7 +48,7 @@ func (m *Certificates) XXX_Marshal(b []byte, deterministic bool) ([]byte, error)
 		return xxx_messageInfo_Certificates.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
-		n, err := m.MarshalTo(b)
+		n, err := m.MarshalToSizedBuffer(b)
 		if err != nil {
 			return nil, err
 		}
@@ -97,7 +98,7 @@ func (m *Certificate) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) 
 		return xxx_messageInfo_Certificate.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
-		n, err := m.MarshalTo(b)
+		n, err := m.MarshalToSizedBuffer(b)
 		if err != nil {
 			return nil, err
 		}
@@ -162,7 +163,7 @@ func (m *CertificateDetails) XXX_Marshal(b []byte, deterministic bool) ([]byte, 
 		return xxx_messageInfo_CertificateDetails.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
-		n, err := m.MarshalTo(b)
+		n, err := m.MarshalToSizedBuffer(b)
 		if err != nil {
 			return nil, err
 		}
@@ -249,7 +250,7 @@ func (m *SubjectAlternateName) XXX_Marshal(b []byte, deterministic bool) ([]byte
 		return xxx_messageInfo_SubjectAlternateName.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
-		n, err := m.MarshalTo(b)
+		n, err := m.MarshalToSizedBuffer(b)
 		if err != nil {
 			return nil, err
 		}
@@ -415,7 +416,7 @@ var fileDescriptor_c7cd1796e05ff7fa = []byte{
 func (m *Certificates) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
-	n, err := m.MarshalTo(dAtA)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
 	if err != nil {
 		return nil, err
 	}
@@ -423,32 +424,40 @@ func (m *Certificates) Marshal() (dAtA []byte, err error) {
 }
 
 func (m *Certificates) MarshalTo(dAtA []byte) (int, error) {
-	var i int
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *Certificates) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
 	if len(m.Certificates) > 0 {
-		for _, msg := range m.Certificates {
-			dAtA[i] = 0xa
-			i++
-			i = encodeVarintCerts(dAtA, i, uint64(msg.Size()))
-			n, err := msg.MarshalTo(dAtA[i:])
-			if err != nil {
-				return 0, err
+		for iNdEx := len(m.Certificates) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.Certificates[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintCerts(dAtA, i, uint64(size))
 			}
-			i += n
+			i--
+			dAtA[i] = 0xa
 		}
 	}
-	if m.XXX_unrecognized != nil {
-		i += copy(dAtA[i:], m.XXX_unrecognized)
-	}
-	return i, nil
+	return len(dAtA) - i, nil
 }
 
 func (m *Certificate) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
-	n, err := m.MarshalTo(dAtA)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
 	if err != nil {
 		return nil, err
 	}
@@ -456,44 +465,54 @@ func (m *Certificate) Marshal() (dAtA []byte, err error) {
 }
 
 func (m *Certificate) MarshalTo(dAtA []byte) (int, error) {
-	var i int
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *Certificate) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
-	if len(m.CaCert) > 0 {
-		for _, msg := range m.CaCert {
-			dAtA[i] = 0xa
-			i++
-			i = encodeVarintCerts(dAtA, i, uint64(msg.Size()))
-			n, err := msg.MarshalTo(dAtA[i:])
-			if err != nil {
-				return 0, err
-			}
-			i += n
-		}
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
 	}
 	if len(m.CertChain) > 0 {
-		for _, msg := range m.CertChain {
-			dAtA[i] = 0x12
-			i++
-			i = encodeVarintCerts(dAtA, i, uint64(msg.Size()))
-			n, err := msg.MarshalTo(dAtA[i:])
-			if err != nil {
-				return 0, err
+		for iNdEx := len(m.CertChain) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.CertChain[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintCerts(dAtA, i, uint64(size))
 			}
-			i += n
+			i--
+			dAtA[i] = 0x12
 		}
 	}
-	if m.XXX_unrecognized != nil {
-		i += copy(dAtA[i:], m.XXX_unrecognized)
+	if len(m.CaCert) > 0 {
+		for iNdEx := len(m.CaCert) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.CaCert[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintCerts(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0xa
+		}
 	}
-	return i, nil
+	return len(dAtA) - i, nil
 }
 
 func (m *CertificateDetails) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
-	n, err := m.MarshalTo(dAtA)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
 	if err != nil {
 		return nil, err
 	}
@@ -501,69 +520,83 @@ func (m *CertificateDetails) Marshal() (dAtA []byte, err error) {
 }
 
 func (m *CertificateDetails) MarshalTo(dAtA []byte) (int, error) {
-	var i int
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *CertificateDetails) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
-	if len(m.Path) > 0 {
-		dAtA[i] = 0xa
-		i++
-		i = encodeVarintCerts(dAtA, i, uint64(len(m.Path)))
-		i += copy(dAtA[i:], m.Path)
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
 	}
-	if len(m.SerialNumber) > 0 {
-		dAtA[i] = 0x12
-		i++
-		i = encodeVarintCerts(dAtA, i, uint64(len(m.SerialNumber)))
-		i += copy(dAtA[i:], m.SerialNumber)
-	}
-	if len(m.SubjectAltNames) > 0 {
-		for _, msg := range m.SubjectAltNames {
-			dAtA[i] = 0x1a
-			i++
-			i = encodeVarintCerts(dAtA, i, uint64(msg.Size()))
-			n, err := msg.MarshalTo(dAtA[i:])
+	if m.ExpirationTime != nil {
+		{
+			size, err := m.ExpirationTime.MarshalToSizedBuffer(dAtA[:i])
 			if err != nil {
 				return 0, err
 			}
-			i += n
+			i -= size
+			i = encodeVarintCerts(dAtA, i, uint64(size))
 		}
-	}
-	if m.DaysUntilExpiration != 0 {
-		dAtA[i] = 0x20
-		i++
-		i = encodeVarintCerts(dAtA, i, uint64(m.DaysUntilExpiration))
+		i--
+		dAtA[i] = 0x32
 	}
 	if m.ValidFrom != nil {
+		{
+			size, err := m.ValidFrom.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintCerts(dAtA, i, uint64(size))
+		}
+		i--
 		dAtA[i] = 0x2a
-		i++
-		i = encodeVarintCerts(dAtA, i, uint64(m.ValidFrom.Size()))
-		n1, err := m.ValidFrom.MarshalTo(dAtA[i:])
-		if err != nil {
-			return 0, err
+	}
+	if m.DaysUntilExpiration != 0 {
+		i = encodeVarintCerts(dAtA, i, uint64(m.DaysUntilExpiration))
+		i--
+		dAtA[i] = 0x20
+	}
+	if len(m.SubjectAltNames) > 0 {
+		for iNdEx := len(m.SubjectAltNames) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.SubjectAltNames[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintCerts(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0x1a
 		}
-		i += n1
 	}
-	if m.ExpirationTime != nil {
-		dAtA[i] = 0x32
-		i++
-		i = encodeVarintCerts(dAtA, i, uint64(m.ExpirationTime.Size()))
-		n2, err := m.ExpirationTime.MarshalTo(dAtA[i:])
-		if err != nil {
-			return 0, err
-		}
-		i += n2
+	if len(m.SerialNumber) > 0 {
+		i -= len(m.SerialNumber)
+		copy(dAtA[i:], m.SerialNumber)
+		i = encodeVarintCerts(dAtA, i, uint64(len(m.SerialNumber)))
+		i--
+		dAtA[i] = 0x12
 	}
-	if m.XXX_unrecognized != nil {
-		i += copy(dAtA[i:], m.XXX_unrecognized)
+	if len(m.Path) > 0 {
+		i -= len(m.Path)
+		copy(dAtA[i:], m.Path)
+		i = encodeVarintCerts(dAtA, i, uint64(len(m.Path)))
+		i--
+		dAtA[i] = 0xa
 	}
-	return i, nil
+	return len(dAtA) - i, nil
 }
 
 func (m *SubjectAlternateName) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
-	n, err := m.MarshalTo(dAtA)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
 	if err != nil {
 		return nil, err
 	}
@@ -571,47 +604,67 @@ func (m *SubjectAlternateName) Marshal() (dAtA []byte, err error) {
 }
 
 func (m *SubjectAlternateName) MarshalTo(dAtA []byte) (int, error) {
-	var i int
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *SubjectAlternateName) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
-	if m.Name != nil {
-		nn3, err := m.Name.MarshalTo(dAtA[i:])
-		if err != nil {
-			return 0, err
-		}
-		i += nn3
-	}
 	if m.XXX_unrecognized != nil {
-		i += copy(dAtA[i:], m.XXX_unrecognized)
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
 	}
-	return i, nil
+	if m.Name != nil {
+		{
+			size := m.Name.Size()
+			i -= size
+			if _, err := m.Name.MarshalTo(dAtA[i:]); err != nil {
+				return 0, err
+			}
+		}
+	}
+	return len(dAtA) - i, nil
 }
 
 func (m *SubjectAlternateName_Dns) MarshalTo(dAtA []byte) (int, error) {
-	i := 0
-	dAtA[i] = 0xa
-	i++
+	return m.MarshalToSizedBuffer(dAtA[:m.Size()])
+}
+
+func (m *SubjectAlternateName_Dns) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	i -= len(m.Dns)
+	copy(dAtA[i:], m.Dns)
 	i = encodeVarintCerts(dAtA, i, uint64(len(m.Dns)))
-	i += copy(dAtA[i:], m.Dns)
-	return i, nil
+	i--
+	dAtA[i] = 0xa
+	return len(dAtA) - i, nil
 }
 func (m *SubjectAlternateName_Uri) MarshalTo(dAtA []byte) (int, error) {
-	i := 0
-	dAtA[i] = 0x12
-	i++
+	return m.MarshalToSizedBuffer(dAtA[:m.Size()])
+}
+
+func (m *SubjectAlternateName_Uri) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	i -= len(m.Uri)
+	copy(dAtA[i:], m.Uri)
 	i = encodeVarintCerts(dAtA, i, uint64(len(m.Uri)))
-	i += copy(dAtA[i:], m.Uri)
-	return i, nil
+	i--
+	dAtA[i] = 0x12
+	return len(dAtA) - i, nil
 }
 func encodeVarintCerts(dAtA []byte, offset int, v uint64) int {
+	offset -= sovCerts(v)
+	base := offset
 	for v >= 1<<7 {
 		dAtA[offset] = uint8(v&0x7f | 0x80)
 		v >>= 7
 		offset++
 	}
 	dAtA[offset] = uint8(v)
-	return offset + 1
+	return base
 }
 func (m *Certificates) Size() (n int) {
 	if m == nil {
@@ -729,14 +782,7 @@ func (m *SubjectAlternateName_Uri) Size() (n int) {
 }
 
 func sovCerts(x uint64) (n int) {
-	for {
-		n++
-		x >>= 7
-		if x == 0 {
-			break
-		}
-	}
-	return n
+	return (math_bits.Len64(x|1) + 6) / 7
 }
 func sozCerts(x uint64) (n int) {
 	return sovCerts(uint64((x << 1) ^ uint64((int64(x) >> 63))))

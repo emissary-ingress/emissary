@@ -18,7 +18,7 @@ import (
 	pb_legacy "github.com/datawire/ambassador/go/apis/envoy/service/auth/v2alpha"
 	envoy_type "github.com/datawire/ambassador/go/apis/envoy/type"
 
-	"github.com/gogo/googleapis/google/rpc"
+	rpc "istio.io/gogo-genproto/googleapis/google/rpc"
 	gogo_type "github.com/gogo/protobuf/types"
 	"google.golang.org/grpc"
 )

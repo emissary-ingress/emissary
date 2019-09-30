@@ -17,7 +17,7 @@ import (
 
 	"github.com/gogo/protobuf/types"
 
-	core "github.com/datawire/ambassador/go/apis/envoy/api/v2/core"
+	envoy_api_v2_core "github.com/datawire/ambassador/go/apis/envoy/api/v2/core"
 )
 
 // ensure the imports are used
@@ -34,7 +34,7 @@ var (
 	_ = (*mail.Address)(nil)
 	_ = types.DynamicAny{}
 
-	_ = core.RequestMethod(0)
+	_ = envoy_api_v2_core.RequestMethod(0)
 )
 
 // Validate checks the field values on TCPAccessLogEntry with the rules defined
@@ -53,6 +53,21 @@ func (m *TCPAccessLogEntry) Validate() error {
 			if err := v.Validate(); err != nil {
 				return TCPAccessLogEntryValidationError{
 					field:  "CommonProperties",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+	}
+
+	{
+		tmp := m.GetConnectionProperties()
+
+		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+			if err := v.Validate(); err != nil {
+				return TCPAccessLogEntryValidationError{
+					field:  "ConnectionProperties",
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
@@ -232,6 +247,77 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = HTTPAccessLogEntryValidationError{}
+
+// Validate checks the field values on ConnectionProperties with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, an error is returned.
+func (m *ConnectionProperties) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	// no validation rules for ReceivedBytes
+
+	// no validation rules for SentBytes
+
+	return nil
+}
+
+// ConnectionPropertiesValidationError is the validation error returned by
+// ConnectionProperties.Validate if the designated constraints aren't met.
+type ConnectionPropertiesValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ConnectionPropertiesValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ConnectionPropertiesValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ConnectionPropertiesValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ConnectionPropertiesValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ConnectionPropertiesValidationError) ErrorName() string {
+	return "ConnectionPropertiesValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ConnectionPropertiesValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sConnectionProperties.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ConnectionPropertiesValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ConnectionPropertiesValidationError{}
 
 // Validate checks the field values on AccessLogCommon with the rules defined
 // in the proto definition for this message. If any rules are violated, an

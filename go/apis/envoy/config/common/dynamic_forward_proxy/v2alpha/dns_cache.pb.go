@@ -11,6 +11,7 @@ import (
 	types "github.com/gogo/protobuf/types"
 	io "io"
 	math "math"
+	math_bits "math/bits"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -89,7 +90,7 @@ func (m *DnsCacheConfig) XXX_Marshal(b []byte, deterministic bool) ([]byte, erro
 		return xxx_messageInfo_DnsCacheConfig.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
-		n, err := m.MarshalTo(b)
+		n, err := m.MarshalToSizedBuffer(b)
 		if err != nil {
 			return nil, err
 		}
@@ -185,7 +186,7 @@ var fileDescriptor_d2d9297e0c94cb56 = []byte{
 func (m *DnsCacheConfig) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
-	n, err := m.MarshalTo(dAtA)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
 	if err != nil {
 		return nil, err
 	}
@@ -193,65 +194,80 @@ func (m *DnsCacheConfig) Marshal() (dAtA []byte, err error) {
 }
 
 func (m *DnsCacheConfig) MarshalTo(dAtA []byte) (int, error) {
-	var i int
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *DnsCacheConfig) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
-	if len(m.Name) > 0 {
-		dAtA[i] = 0xa
-		i++
-		i = encodeVarintDnsCache(dAtA, i, uint64(len(m.Name)))
-		i += copy(dAtA[i:], m.Name)
-	}
-	if m.DnsLookupFamily != 0 {
-		dAtA[i] = 0x10
-		i++
-		i = encodeVarintDnsCache(dAtA, i, uint64(m.DnsLookupFamily))
-	}
-	if m.DnsRefreshRate != nil {
-		dAtA[i] = 0x1a
-		i++
-		i = encodeVarintDnsCache(dAtA, i, uint64(m.DnsRefreshRate.Size()))
-		n1, err := m.DnsRefreshRate.MarshalTo(dAtA[i:])
-		if err != nil {
-			return 0, err
-		}
-		i += n1
-	}
-	if m.HostTtl != nil {
-		dAtA[i] = 0x22
-		i++
-		i = encodeVarintDnsCache(dAtA, i, uint64(m.HostTtl.Size()))
-		n2, err := m.HostTtl.MarshalTo(dAtA[i:])
-		if err != nil {
-			return 0, err
-		}
-		i += n2
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
 	}
 	if m.MaxHosts != nil {
-		dAtA[i] = 0x2a
-		i++
-		i = encodeVarintDnsCache(dAtA, i, uint64(m.MaxHosts.Size()))
-		n3, err := m.MaxHosts.MarshalTo(dAtA[i:])
-		if err != nil {
-			return 0, err
+		{
+			size, err := m.MaxHosts.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintDnsCache(dAtA, i, uint64(size))
 		}
-		i += n3
+		i--
+		dAtA[i] = 0x2a
 	}
-	if m.XXX_unrecognized != nil {
-		i += copy(dAtA[i:], m.XXX_unrecognized)
+	if m.HostTtl != nil {
+		{
+			size, err := m.HostTtl.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintDnsCache(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x22
 	}
-	return i, nil
+	if m.DnsRefreshRate != nil {
+		{
+			size, err := m.DnsRefreshRate.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintDnsCache(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x1a
+	}
+	if m.DnsLookupFamily != 0 {
+		i = encodeVarintDnsCache(dAtA, i, uint64(m.DnsLookupFamily))
+		i--
+		dAtA[i] = 0x10
+	}
+	if len(m.Name) > 0 {
+		i -= len(m.Name)
+		copy(dAtA[i:], m.Name)
+		i = encodeVarintDnsCache(dAtA, i, uint64(len(m.Name)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
 }
 
 func encodeVarintDnsCache(dAtA []byte, offset int, v uint64) int {
+	offset -= sovDnsCache(v)
+	base := offset
 	for v >= 1<<7 {
 		dAtA[offset] = uint8(v&0x7f | 0x80)
 		v >>= 7
 		offset++
 	}
 	dAtA[offset] = uint8(v)
-	return offset + 1
+	return base
 }
 func (m *DnsCacheConfig) Size() (n int) {
 	if m == nil {
@@ -285,14 +301,7 @@ func (m *DnsCacheConfig) Size() (n int) {
 }
 
 func sovDnsCache(x uint64) (n int) {
-	for {
-		n++
-		x >>= 7
-		if x == 0 {
-			break
-		}
-	}
-	return n
+	return (math_bits.Len64(x|1) + 6) / 7
 }
 func sozDnsCache(x uint64) (n int) {
 	return sovDnsCache(uint64((x << 1) ^ uint64((int64(x) >> 63))))

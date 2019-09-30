@@ -10,6 +10,7 @@ import (
 	proto "github.com/gogo/protobuf/proto"
 	io "io"
 	math "math"
+	math_bits "math/bits"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -47,7 +48,7 @@ func (m *Clusters) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 		return xxx_messageInfo_Clusters.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
-		n, err := m.MarshalTo(b)
+		n, err := m.MarshalToSizedBuffer(b)
 		if err != nil {
 			return nil, err
 		}
@@ -134,7 +135,7 @@ func (m *ClusterStatus) XXX_Marshal(b []byte, deterministic bool) ([]byte, error
 		return xxx_messageInfo_ClusterStatus.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
-		n, err := m.MarshalTo(b)
+		n, err := m.MarshalToSizedBuffer(b)
 		if err != nil {
 			return nil, err
 		}
@@ -248,7 +249,7 @@ func (m *HostStatus) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 		return xxx_messageInfo_HostStatus.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
-		n, err := m.MarshalTo(b)
+		n, err := m.MarshalToSizedBuffer(b)
 		if err != nil {
 			return nil, err
 		}
@@ -359,7 +360,7 @@ func (m *HostHealthStatus) XXX_Marshal(b []byte, deterministic bool) ([]byte, er
 		return xxx_messageInfo_HostHealthStatus.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
-		n, err := m.MarshalTo(b)
+		n, err := m.MarshalToSizedBuffer(b)
 		if err != nil {
 			return nil, err
 		}
@@ -479,7 +480,7 @@ var fileDescriptor_c6251a3a957f478b = []byte{
 func (m *Clusters) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
-	n, err := m.MarshalTo(dAtA)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
 	if err != nil {
 		return nil, err
 	}
@@ -487,32 +488,40 @@ func (m *Clusters) Marshal() (dAtA []byte, err error) {
 }
 
 func (m *Clusters) MarshalTo(dAtA []byte) (int, error) {
-	var i int
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *Clusters) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
 	if len(m.ClusterStatuses) > 0 {
-		for _, msg := range m.ClusterStatuses {
-			dAtA[i] = 0xa
-			i++
-			i = encodeVarintClusters(dAtA, i, uint64(msg.Size()))
-			n, err := msg.MarshalTo(dAtA[i:])
-			if err != nil {
-				return 0, err
+		for iNdEx := len(m.ClusterStatuses) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.ClusterStatuses[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintClusters(dAtA, i, uint64(size))
 			}
-			i += n
+			i--
+			dAtA[i] = 0xa
 		}
 	}
-	if m.XXX_unrecognized != nil {
-		i += copy(dAtA[i:], m.XXX_unrecognized)
-	}
-	return i, nil
+	return len(dAtA) - i, nil
 }
 
 func (m *ClusterStatus) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
-	n, err := m.MarshalTo(dAtA)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
 	if err != nil {
 		return nil, err
 	}
@@ -520,68 +529,81 @@ func (m *ClusterStatus) Marshal() (dAtA []byte, err error) {
 }
 
 func (m *ClusterStatus) MarshalTo(dAtA []byte) (int, error) {
-	var i int
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *ClusterStatus) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
-	if len(m.Name) > 0 {
-		dAtA[i] = 0xa
-		i++
-		i = encodeVarintClusters(dAtA, i, uint64(len(m.Name)))
-		i += copy(dAtA[i:], m.Name)
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if m.LocalOriginSuccessRateEjectionThreshold != nil {
+		{
+			size, err := m.LocalOriginSuccessRateEjectionThreshold.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintClusters(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x2a
+	}
+	if len(m.HostStatuses) > 0 {
+		for iNdEx := len(m.HostStatuses) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.HostStatuses[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintClusters(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0x22
+		}
+	}
+	if m.SuccessRateEjectionThreshold != nil {
+		{
+			size, err := m.SuccessRateEjectionThreshold.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintClusters(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x1a
 	}
 	if m.AddedViaApi {
-		dAtA[i] = 0x10
-		i++
+		i--
 		if m.AddedViaApi {
 			dAtA[i] = 1
 		} else {
 			dAtA[i] = 0
 		}
-		i++
+		i--
+		dAtA[i] = 0x10
 	}
-	if m.SuccessRateEjectionThreshold != nil {
-		dAtA[i] = 0x1a
-		i++
-		i = encodeVarintClusters(dAtA, i, uint64(m.SuccessRateEjectionThreshold.Size()))
-		n1, err := m.SuccessRateEjectionThreshold.MarshalTo(dAtA[i:])
-		if err != nil {
-			return 0, err
-		}
-		i += n1
+	if len(m.Name) > 0 {
+		i -= len(m.Name)
+		copy(dAtA[i:], m.Name)
+		i = encodeVarintClusters(dAtA, i, uint64(len(m.Name)))
+		i--
+		dAtA[i] = 0xa
 	}
-	if len(m.HostStatuses) > 0 {
-		for _, msg := range m.HostStatuses {
-			dAtA[i] = 0x22
-			i++
-			i = encodeVarintClusters(dAtA, i, uint64(msg.Size()))
-			n, err := msg.MarshalTo(dAtA[i:])
-			if err != nil {
-				return 0, err
-			}
-			i += n
-		}
-	}
-	if m.LocalOriginSuccessRateEjectionThreshold != nil {
-		dAtA[i] = 0x2a
-		i++
-		i = encodeVarintClusters(dAtA, i, uint64(m.LocalOriginSuccessRateEjectionThreshold.Size()))
-		n2, err := m.LocalOriginSuccessRateEjectionThreshold.MarshalTo(dAtA[i:])
-		if err != nil {
-			return 0, err
-		}
-		i += n2
-	}
-	if m.XXX_unrecognized != nil {
-		i += copy(dAtA[i:], m.XXX_unrecognized)
-	}
-	return i, nil
+	return len(dAtA) - i, nil
 }
 
 func (m *HostStatus) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
-	n, err := m.MarshalTo(dAtA)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
 	if err != nil {
 		return nil, err
 	}
@@ -589,88 +611,105 @@ func (m *HostStatus) Marshal() (dAtA []byte, err error) {
 }
 
 func (m *HostStatus) MarshalTo(dAtA []byte) (int, error) {
-	var i int
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *HostStatus) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
-	if m.Address != nil {
-		dAtA[i] = 0xa
-		i++
-		i = encodeVarintClusters(dAtA, i, uint64(m.Address.Size()))
-		n3, err := m.Address.MarshalTo(dAtA[i:])
-		if err != nil {
-			return 0, err
-		}
-		i += n3
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
 	}
-	if len(m.Stats) > 0 {
-		for _, msg := range m.Stats {
-			dAtA[i] = 0x12
-			i++
-			i = encodeVarintClusters(dAtA, i, uint64(msg.Size()))
-			n, err := msg.MarshalTo(dAtA[i:])
+	if m.LocalOriginSuccessRate != nil {
+		{
+			size, err := m.LocalOriginSuccessRate.MarshalToSizedBuffer(dAtA[:i])
 			if err != nil {
 				return 0, err
 			}
-			i += n
+			i -= size
+			i = encodeVarintClusters(dAtA, i, uint64(size))
 		}
-	}
-	if m.HealthStatus != nil {
-		dAtA[i] = 0x1a
-		i++
-		i = encodeVarintClusters(dAtA, i, uint64(m.HealthStatus.Size()))
-		n4, err := m.HealthStatus.MarshalTo(dAtA[i:])
-		if err != nil {
-			return 0, err
-		}
-		i += n4
-	}
-	if m.SuccessRate != nil {
-		dAtA[i] = 0x22
-		i++
-		i = encodeVarintClusters(dAtA, i, uint64(m.SuccessRate.Size()))
-		n5, err := m.SuccessRate.MarshalTo(dAtA[i:])
-		if err != nil {
-			return 0, err
-		}
-		i += n5
-	}
-	if m.Weight != 0 {
-		dAtA[i] = 0x28
-		i++
-		i = encodeVarintClusters(dAtA, i, uint64(m.Weight))
-	}
-	if len(m.Hostname) > 0 {
-		dAtA[i] = 0x32
-		i++
-		i = encodeVarintClusters(dAtA, i, uint64(len(m.Hostname)))
-		i += copy(dAtA[i:], m.Hostname)
+		i--
+		dAtA[i] = 0x42
 	}
 	if m.Priority != 0 {
-		dAtA[i] = 0x38
-		i++
 		i = encodeVarintClusters(dAtA, i, uint64(m.Priority))
+		i--
+		dAtA[i] = 0x38
 	}
-	if m.LocalOriginSuccessRate != nil {
-		dAtA[i] = 0x42
-		i++
-		i = encodeVarintClusters(dAtA, i, uint64(m.LocalOriginSuccessRate.Size()))
-		n6, err := m.LocalOriginSuccessRate.MarshalTo(dAtA[i:])
-		if err != nil {
-			return 0, err
+	if len(m.Hostname) > 0 {
+		i -= len(m.Hostname)
+		copy(dAtA[i:], m.Hostname)
+		i = encodeVarintClusters(dAtA, i, uint64(len(m.Hostname)))
+		i--
+		dAtA[i] = 0x32
+	}
+	if m.Weight != 0 {
+		i = encodeVarintClusters(dAtA, i, uint64(m.Weight))
+		i--
+		dAtA[i] = 0x28
+	}
+	if m.SuccessRate != nil {
+		{
+			size, err := m.SuccessRate.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintClusters(dAtA, i, uint64(size))
 		}
-		i += n6
+		i--
+		dAtA[i] = 0x22
 	}
-	if m.XXX_unrecognized != nil {
-		i += copy(dAtA[i:], m.XXX_unrecognized)
+	if m.HealthStatus != nil {
+		{
+			size, err := m.HealthStatus.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintClusters(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x1a
 	}
-	return i, nil
+	if len(m.Stats) > 0 {
+		for iNdEx := len(m.Stats) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.Stats[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintClusters(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0x12
+		}
+	}
+	if m.Address != nil {
+		{
+			size, err := m.Address.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintClusters(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
 }
 
 func (m *HostHealthStatus) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
-	n, err := m.MarshalTo(dAtA)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
 	if err != nil {
 		return nil, err
 	}
@@ -678,79 +717,87 @@ func (m *HostHealthStatus) Marshal() (dAtA []byte, err error) {
 }
 
 func (m *HostHealthStatus) MarshalTo(dAtA []byte) (int, error) {
-	var i int
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *HostHealthStatus) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
-	if m.FailedActiveHealthCheck {
-		dAtA[i] = 0x8
-		i++
-		if m.FailedActiveHealthCheck {
-			dAtA[i] = 1
-		} else {
-			dAtA[i] = 0
-		}
-		i++
-	}
-	if m.FailedOutlierCheck {
-		dAtA[i] = 0x10
-		i++
-		if m.FailedOutlierCheck {
-			dAtA[i] = 1
-		} else {
-			dAtA[i] = 0
-		}
-		i++
-	}
-	if m.EdsHealthStatus != 0 {
-		dAtA[i] = 0x18
-		i++
-		i = encodeVarintClusters(dAtA, i, uint64(m.EdsHealthStatus))
-	}
-	if m.FailedActiveDegradedCheck {
-		dAtA[i] = 0x20
-		i++
-		if m.FailedActiveDegradedCheck {
-			dAtA[i] = 1
-		} else {
-			dAtA[i] = 0
-		}
-		i++
-	}
-	if m.PendingDynamicRemoval {
-		dAtA[i] = 0x28
-		i++
-		if m.PendingDynamicRemoval {
-			dAtA[i] = 1
-		} else {
-			dAtA[i] = 0
-		}
-		i++
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
 	}
 	if m.PendingActiveHc {
-		dAtA[i] = 0x30
-		i++
+		i--
 		if m.PendingActiveHc {
 			dAtA[i] = 1
 		} else {
 			dAtA[i] = 0
 		}
-		i++
+		i--
+		dAtA[i] = 0x30
 	}
-	if m.XXX_unrecognized != nil {
-		i += copy(dAtA[i:], m.XXX_unrecognized)
+	if m.PendingDynamicRemoval {
+		i--
+		if m.PendingDynamicRemoval {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i--
+		dAtA[i] = 0x28
 	}
-	return i, nil
+	if m.FailedActiveDegradedCheck {
+		i--
+		if m.FailedActiveDegradedCheck {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i--
+		dAtA[i] = 0x20
+	}
+	if m.EdsHealthStatus != 0 {
+		i = encodeVarintClusters(dAtA, i, uint64(m.EdsHealthStatus))
+		i--
+		dAtA[i] = 0x18
+	}
+	if m.FailedOutlierCheck {
+		i--
+		if m.FailedOutlierCheck {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i--
+		dAtA[i] = 0x10
+	}
+	if m.FailedActiveHealthCheck {
+		i--
+		if m.FailedActiveHealthCheck {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
 }
 
 func encodeVarintClusters(dAtA []byte, offset int, v uint64) int {
+	offset -= sovClusters(v)
+	base := offset
 	for v >= 1<<7 {
 		dAtA[offset] = uint8(v&0x7f | 0x80)
 		v >>= 7
 		offset++
 	}
 	dAtA[offset] = uint8(v)
-	return offset + 1
+	return base
 }
 func (m *Clusters) Size() (n int) {
 	if m == nil {
@@ -878,14 +925,7 @@ func (m *HostHealthStatus) Size() (n int) {
 }
 
 func sovClusters(x uint64) (n int) {
-	for {
-		n++
-		x >>= 7
-		if x == 0 {
-			break
-		}
-	}
-	return n
+	return (math_bits.Len64(x|1) + 6) / 7
 }
 func sozClusters(x uint64) (n int) {
 	return sovClusters(uint64((x << 1) ^ uint64((int64(x) >> 63))))

@@ -241,10 +241,17 @@ func (m *CommonExtensionConfig_TapDSConfig) Validate() error {
 		return nil
 	}
 
+	if m.GetConfigSource() == nil {
+		return CommonExtensionConfig_TapDSConfigValidationError{
+			field:  "ConfigSource",
+			reason: "value is required",
+		}
+	}
+
 	{
 		tmp := m.GetConfigSource()
 
-		if v, ok := interface{}(&tmp).(interface{ Validate() error }); ok {
+		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
 
 			if err := v.Validate(); err != nil {
 				return CommonExtensionConfig_TapDSConfigValidationError{

@@ -46,7 +46,7 @@ func (m *ConfigDump) Validate() error {
 		{
 			tmp := item
 
-			if v, ok := interface{}(&tmp).(interface{ Validate() error }); ok {
+			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
 
 				if err := v.Validate(); err != nil {
 					return ConfigDumpValidationError{
@@ -128,7 +128,7 @@ func (m *BootstrapConfigDump) Validate() error {
 	{
 		tmp := m.GetBootstrap()
 
-		if v, ok := interface{}(&tmp).(interface{ Validate() error }); ok {
+		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
 
 			if err := v.Validate(); err != nil {
 				return BootstrapConfigDumpValidationError{
@@ -230,7 +230,7 @@ func (m *ListenersConfigDump) Validate() error {
 		{
 			tmp := item
 
-			if v, ok := interface{}(&tmp).(interface{ Validate() error }); ok {
+			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
 
 				if err := v.Validate(); err != nil {
 					return ListenersConfigDumpValidationError{
@@ -250,7 +250,7 @@ func (m *ListenersConfigDump) Validate() error {
 		{
 			tmp := item
 
-			if v, ok := interface{}(&tmp).(interface{ Validate() error }); ok {
+			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
 
 				if err := v.Validate(); err != nil {
 					return ListenersConfigDumpValidationError{
@@ -270,7 +270,7 @@ func (m *ListenersConfigDump) Validate() error {
 		{
 			tmp := item
 
-			if v, ok := interface{}(&tmp).(interface{ Validate() error }); ok {
+			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
 
 				if err := v.Validate(); err != nil {
 					return ListenersConfigDumpValidationError{
@@ -290,7 +290,7 @@ func (m *ListenersConfigDump) Validate() error {
 		{
 			tmp := item
 
-			if v, ok := interface{}(&tmp).(interface{ Validate() error }); ok {
+			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
 
 				if err := v.Validate(); err != nil {
 					return ListenersConfigDumpValidationError{
@@ -379,7 +379,7 @@ func (m *ClustersConfigDump) Validate() error {
 		{
 			tmp := item
 
-			if v, ok := interface{}(&tmp).(interface{ Validate() error }); ok {
+			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
 
 				if err := v.Validate(); err != nil {
 					return ClustersConfigDumpValidationError{
@@ -399,7 +399,7 @@ func (m *ClustersConfigDump) Validate() error {
 		{
 			tmp := item
 
-			if v, ok := interface{}(&tmp).(interface{ Validate() error }); ok {
+			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
 
 				if err := v.Validate(); err != nil {
 					return ClustersConfigDumpValidationError{
@@ -419,7 +419,7 @@ func (m *ClustersConfigDump) Validate() error {
 		{
 			tmp := item
 
-			if v, ok := interface{}(&tmp).(interface{ Validate() error }); ok {
+			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
 
 				if err := v.Validate(); err != nil {
 					return ClustersConfigDumpValidationError{
@@ -506,7 +506,7 @@ func (m *RoutesConfigDump) Validate() error {
 		{
 			tmp := item
 
-			if v, ok := interface{}(&tmp).(interface{ Validate() error }); ok {
+			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
 
 				if err := v.Validate(); err != nil {
 					return RoutesConfigDumpValidationError{
@@ -526,7 +526,7 @@ func (m *RoutesConfigDump) Validate() error {
 		{
 			tmp := item
 
-			if v, ok := interface{}(&tmp).(interface{ Validate() error }); ok {
+			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
 
 				if err := v.Validate(); err != nil {
 					return RoutesConfigDumpValidationError{
@@ -611,7 +611,7 @@ func (m *ScopedRoutesConfigDump) Validate() error {
 		{
 			tmp := item
 
-			if v, ok := interface{}(&tmp).(interface{ Validate() error }); ok {
+			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
 
 				if err := v.Validate(); err != nil {
 					return ScopedRoutesConfigDumpValidationError{
@@ -631,7 +631,7 @@ func (m *ScopedRoutesConfigDump) Validate() error {
 		{
 			tmp := item
 
-			if v, ok := interface{}(&tmp).(interface{ Validate() error }); ok {
+			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
 
 				if err := v.Validate(); err != nil {
 					return ScopedRoutesConfigDumpValidationError{
@@ -703,6 +703,133 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = ScopedRoutesConfigDumpValidationError{}
+
+// Validate checks the field values on SecretsConfigDump with the rules defined
+// in the proto definition for this message. If any rules are violated, an
+// error is returned.
+func (m *SecretsConfigDump) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	for idx, item := range m.GetStaticSecrets() {
+		_, _ = idx, item
+
+		{
+			tmp := item
+
+			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+				if err := v.Validate(); err != nil {
+					return SecretsConfigDumpValidationError{
+						field:  fmt.Sprintf("StaticSecrets[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					}
+				}
+			}
+		}
+
+	}
+
+	for idx, item := range m.GetDynamicActiveSecrets() {
+		_, _ = idx, item
+
+		{
+			tmp := item
+
+			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+				if err := v.Validate(); err != nil {
+					return SecretsConfigDumpValidationError{
+						field:  fmt.Sprintf("DynamicActiveSecrets[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					}
+				}
+			}
+		}
+
+	}
+
+	for idx, item := range m.GetDynamicWarmingSecrets() {
+		_, _ = idx, item
+
+		{
+			tmp := item
+
+			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+				if err := v.Validate(); err != nil {
+					return SecretsConfigDumpValidationError{
+						field:  fmt.Sprintf("DynamicWarmingSecrets[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					}
+				}
+			}
+		}
+
+	}
+
+	return nil
+}
+
+// SecretsConfigDumpValidationError is the validation error returned by
+// SecretsConfigDump.Validate if the designated constraints aren't met.
+type SecretsConfigDumpValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e SecretsConfigDumpValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e SecretsConfigDumpValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e SecretsConfigDumpValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e SecretsConfigDumpValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e SecretsConfigDumpValidationError) ErrorName() string {
+	return "SecretsConfigDumpValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e SecretsConfigDumpValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sSecretsConfigDump.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = SecretsConfigDumpValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = SecretsConfigDumpValidationError{}
 
 // Validate checks the field values on ListenersConfigDump_StaticListener with
 // the rules defined in the proto definition for this message. If any rules
@@ -1519,3 +1646,205 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = ScopedRoutesConfigDump_DynamicScopedRouteConfigsValidationError{}
+
+// Validate checks the field values on SecretsConfigDump_DynamicSecret with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, an error is returned.
+func (m *SecretsConfigDump_DynamicSecret) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	// no validation rules for Name
+
+	// no validation rules for VersionInfo
+
+	{
+		tmp := m.GetLastUpdated()
+
+		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+			if err := v.Validate(); err != nil {
+				return SecretsConfigDump_DynamicSecretValidationError{
+					field:  "LastUpdated",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+	}
+
+	{
+		tmp := m.GetSecret()
+
+		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+			if err := v.Validate(); err != nil {
+				return SecretsConfigDump_DynamicSecretValidationError{
+					field:  "Secret",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+	}
+
+	return nil
+}
+
+// SecretsConfigDump_DynamicSecretValidationError is the validation error
+// returned by SecretsConfigDump_DynamicSecret.Validate if the designated
+// constraints aren't met.
+type SecretsConfigDump_DynamicSecretValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e SecretsConfigDump_DynamicSecretValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e SecretsConfigDump_DynamicSecretValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e SecretsConfigDump_DynamicSecretValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e SecretsConfigDump_DynamicSecretValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e SecretsConfigDump_DynamicSecretValidationError) ErrorName() string {
+	return "SecretsConfigDump_DynamicSecretValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e SecretsConfigDump_DynamicSecretValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sSecretsConfigDump_DynamicSecret.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = SecretsConfigDump_DynamicSecretValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = SecretsConfigDump_DynamicSecretValidationError{}
+
+// Validate checks the field values on SecretsConfigDump_StaticSecret with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, an error is returned.
+func (m *SecretsConfigDump_StaticSecret) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	// no validation rules for Name
+
+	{
+		tmp := m.GetLastUpdated()
+
+		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+			if err := v.Validate(); err != nil {
+				return SecretsConfigDump_StaticSecretValidationError{
+					field:  "LastUpdated",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+	}
+
+	{
+		tmp := m.GetSecret()
+
+		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+			if err := v.Validate(); err != nil {
+				return SecretsConfigDump_StaticSecretValidationError{
+					field:  "Secret",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+	}
+
+	return nil
+}
+
+// SecretsConfigDump_StaticSecretValidationError is the validation error
+// returned by SecretsConfigDump_StaticSecret.Validate if the designated
+// constraints aren't met.
+type SecretsConfigDump_StaticSecretValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e SecretsConfigDump_StaticSecretValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e SecretsConfigDump_StaticSecretValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e SecretsConfigDump_StaticSecretValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e SecretsConfigDump_StaticSecretValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e SecretsConfigDump_StaticSecretValidationError) ErrorName() string {
+	return "SecretsConfigDump_StaticSecretValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e SecretsConfigDump_StaticSecretValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sSecretsConfigDump_StaticSecret.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = SecretsConfigDump_StaticSecretValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = SecretsConfigDump_StaticSecretValidationError{}

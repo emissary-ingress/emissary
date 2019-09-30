@@ -233,6 +233,7 @@ clean: clean-test envoy-build-container.txt.clean
 	rm -f kat-sandbox/http_auth/docker-compose.yml
 	rm -f kat-sandbox/grpc_auth/docker-compose.yml
 	rm -f kat-sandbox/grpc_web/docker-compose.yaml kat-sandbox/grpc_web/*_pb.js
+	rm -rf go/apis.envoy.tmp/
 	rm -rf envoy-bin
 	rm -f envoy-build-image.txt
 
@@ -722,7 +723,11 @@ release:
 # The version numbers of `protoc` (in this Makefile),
 # `protoc-gen-gogofast` (in go.mod), and `protoc-gen-validate` (in
 # go.mod) are based on
-# https://github.com/envoyproxy/go-control-plane/blob/master/Dockerfile.ci
+# https://github.com/envoyproxy/go-control-plane/blob/0e75602d5e36e96eafbe053999c0569edec9fe07/Dockerfile.ci
+# (since that commit most closely corresponds to our ENVOY_COMMIT).
+# Additionally, the package names of those programs are mentioned in
+# ./go/pin.go, so that `go mod tidy` won't make the go.mod file forget
+# about them.
 
 PROTOC_VERSION = 3.5.1
 PROTOC_PLATFORM = $(patsubst darwin,osx,$(GOOS))-$(patsubst amd64,x86_64,$(patsubst 386,x86_32,$(GOARCH)))
@@ -740,28 +745,50 @@ venv/bin/protoc-gen-validate: go.mod $(FLOCK) | venv/bin/activate
 
 # Search path for .proto files
 gomoddir = $(shell $(FLOCK) go.mod go list $1/... >/dev/null 2>/dev/null; $(FLOCK) go.mod go list -m -f='{{.Dir}}' $1)
-# This list is based 'imports=()' in https://github.com/envoyproxy/go-control-plane/blob/master/build/generate_protos.sh
+# This list is based on 'imports=()' in https://github.com/envoyproxy/go-control-plane/blob/0e75602d5e36e96eafbe053999c0569edec9fe07/build/generate_protos.sh
+# (since that commit most closely corresponds to our ENVOY_COMMIT).
+#
+# However, we make the following edits:
+#  - "github.com/gogo/protobuf/protobuf" instead of "github.com/gogo/protobuf" (we add an
+#    extra "/protobuf" at the end).  I have no idea why.  I have no idea how the
+#    go-control-plane version works without the extra "/protobuf" at the end; it looks to
+#    me like they would need it too.  It makes no sense.
+#  - Mess with the paths under "istio.io/gogo-genproto", since in 929161c and ee07f27 they
+#    moved the .proto files all around.  The reason this affects us and not
+#    go-control-plane is that our newer Envoy needs googleapis'
+#    "google/api/expr/v1alpha1/", which was added in 32e3935 (.pb.go files) and ee07f27
+#    (.proto files).
 imports += $(CURDIR)/envoy-src/api
 imports += $(call gomoddir,github.com/envoyproxy/protoc-gen-validate)
-imports += $(call gomoddir,github.com/gogo/googleapis)
 imports += $(call gomoddir,github.com/gogo/protobuf)/protobuf
-imports += $(call gomoddir,istio.io/gogo-genproto)
-imports += $(call gomoddir,istio.io/gogo-genproto)/prometheus
+imports += $(call gomoddir,istio.io/gogo-genproto)/common-protos
+imports += $(call gomoddir,istio.io/gogo-genproto)/common-protos/github.com/prometheus/client_model
+imports += $(call gomoddir,istio.io/gogo-genproto)/common-protos/github.com/census-instrumentation/opencensus-proto/src
 
 # Map from .proto files to Go package names
-# This list is based 'mappings=()' in https://github.com/envoyproxy/go-control-plane/blob/master/build/generate_protos.sh
+# This list is based on 'mappings=()' in https://github.com/envoyproxy/go-control-plane/blob/0e75602d5e36e96eafbe053999c0569edec9fe07/build/generate_protos.sh
+# (since that commit most closely corresponds to our ENVOY_COMMIT).
+#
+# However, we make the following edits:
+#  - Add an entry for "google/api/expr/v1alpha1/syntax.proto", which didn't exist yet in
+#    the version that go-control-plane uses (see the comment around "imports" above).
 mappings += gogoproto/gogo.proto=github.com/gogo/protobuf/gogoproto
-mappings += google/api/annotations.proto=github.com/gogo/googleapis/google/api
+mappings += google/api/annotations.proto=istio.io/gogo-genproto/googleapis/google/api
+mappings += google/api/expr/v1alpha1/syntax.proto=istio.io/gogo-genproto/googleapis/google/api/expr/v1alpha1
+mappings += google/api/http.proto=istio.io/gogo-genproto/googleapis/google/api
 mappings += google/protobuf/any.proto=github.com/gogo/protobuf/types
 mappings += google/protobuf/duration.proto=github.com/gogo/protobuf/types
 mappings += google/protobuf/empty.proto=github.com/gogo/protobuf/types
 mappings += google/protobuf/struct.proto=github.com/gogo/protobuf/types
 mappings += google/protobuf/timestamp.proto=github.com/gogo/protobuf/types
 mappings += google/protobuf/wrappers.proto=github.com/gogo/protobuf/types
-mappings += google/rpc/status.proto=github.com/gogo/googleapis/google/rpc
+mappings += google/rpc/code.proto=istio.io/gogo-genproto/googleapis/google/rpc
+mappings += google/rpc/error_details.proto=istio.io/gogo-genproto/googleapis/google/rpc
+mappings += google/rpc/status.proto=istio.io/gogo-genproto/googleapis/google/rpc
 mappings += metrics.proto=istio.io/gogo-genproto/prometheus
 mappings += opencensus/proto/trace/v1/trace.proto=istio.io/gogo-genproto/opencensus/proto/trace/v1
 mappings += opencensus/proto/trace/v1/trace_config.proto=istio.io/gogo-genproto/opencensus/proto/trace/v1
+mappings += validate/validate.proto=github.com/envoyproxy/protoc-gen-validate/validate
 mappings += $(shell find $(CURDIR)/envoy-src/api/envoy -type f -name '*.proto' | sed -E 's,^$(CURDIR)/envoy-src/api/((.*)/[^/]*),\1=github.com/datawire/ambassador/go/apis/\2,')
 
 joinlist=$(if $(word 2,$2),$(firstword $2)$1$(call joinlist,$1,$(wordlist 2,$(words $2),$2)),$2)

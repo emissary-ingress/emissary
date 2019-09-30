@@ -8,6 +8,7 @@ import (
 	proto "github.com/gogo/protobuf/proto"
 	io "io"
 	math "math"
+	math_bits "math/bits"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -61,7 +62,7 @@ func (m *Memory) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 		return xxx_messageInfo_Memory.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
-		n, err := m.MarshalTo(b)
+		n, err := m.MarshalToSizedBuffer(b)
 		if err != nil {
 			return nil, err
 		}
@@ -144,7 +145,7 @@ var fileDescriptor_51b7ba9ad7a02b7f = []byte{
 func (m *Memory) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
-	n, err := m.MarshalTo(dAtA)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
 	if err != nil {
 		return nil, err
 	}
@@ -152,49 +153,57 @@ func (m *Memory) Marshal() (dAtA []byte, err error) {
 }
 
 func (m *Memory) MarshalTo(dAtA []byte) (int, error) {
-	var i int
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *Memory) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
-	if m.Allocated != 0 {
-		dAtA[i] = 0x8
-		i++
-		i = encodeVarintMemory(dAtA, i, uint64(m.Allocated))
-	}
-	if m.HeapSize != 0 {
-		dAtA[i] = 0x10
-		i++
-		i = encodeVarintMemory(dAtA, i, uint64(m.HeapSize))
-	}
-	if m.PageheapUnmapped != 0 {
-		dAtA[i] = 0x18
-		i++
-		i = encodeVarintMemory(dAtA, i, uint64(m.PageheapUnmapped))
-	}
-	if m.PageheapFree != 0 {
-		dAtA[i] = 0x20
-		i++
-		i = encodeVarintMemory(dAtA, i, uint64(m.PageheapFree))
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
 	}
 	if m.TotalThreadCache != 0 {
-		dAtA[i] = 0x28
-		i++
 		i = encodeVarintMemory(dAtA, i, uint64(m.TotalThreadCache))
+		i--
+		dAtA[i] = 0x28
 	}
-	if m.XXX_unrecognized != nil {
-		i += copy(dAtA[i:], m.XXX_unrecognized)
+	if m.PageheapFree != 0 {
+		i = encodeVarintMemory(dAtA, i, uint64(m.PageheapFree))
+		i--
+		dAtA[i] = 0x20
 	}
-	return i, nil
+	if m.PageheapUnmapped != 0 {
+		i = encodeVarintMemory(dAtA, i, uint64(m.PageheapUnmapped))
+		i--
+		dAtA[i] = 0x18
+	}
+	if m.HeapSize != 0 {
+		i = encodeVarintMemory(dAtA, i, uint64(m.HeapSize))
+		i--
+		dAtA[i] = 0x10
+	}
+	if m.Allocated != 0 {
+		i = encodeVarintMemory(dAtA, i, uint64(m.Allocated))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
 }
 
 func encodeVarintMemory(dAtA []byte, offset int, v uint64) int {
+	offset -= sovMemory(v)
+	base := offset
 	for v >= 1<<7 {
 		dAtA[offset] = uint8(v&0x7f | 0x80)
 		v >>= 7
 		offset++
 	}
 	dAtA[offset] = uint8(v)
-	return offset + 1
+	return base
 }
 func (m *Memory) Size() (n int) {
 	if m == nil {
@@ -224,14 +233,7 @@ func (m *Memory) Size() (n int) {
 }
 
 func sovMemory(x uint64) (n int) {
-	for {
-		n++
-		x >>= 7
-		if x == 0 {
-			break
-		}
-	}
-	return n
+	return (math_bits.Len64(x|1) + 6) / 7
 }
 func sozMemory(x uint64) (n int) {
 	return sovMemory(uint64((x << 1) ^ uint64((int64(x) >> 63))))
