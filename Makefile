@@ -213,14 +213,18 @@ include build-aux/prelude.mk
 include build-aux/var.mk
 include build-aux/docker.mk
 
-clean: clean-test envoy-build-container.txt.clean
+# clean_docker_images could just be a fixed list of the images that we
+# generate, but writing that fixed list would require a human to
+# figure out what that complete list is.
+clean_docker_images  = $(wildcard *.docker)
+clean_docker_images += $(patsubst %.tag.release,%,$(wildcard *.docker.tag.release))
+clean_docker_images += $(patsubst %.tag.local,%,$(wildcard *.docker.tag.local))
+clean: clean-test envoy-build-container.txt.clean $(addsuffix .clean,$(clean_docker_images))
 	rm -rf docs/_book docs/_site docs/package-lock.json
 	rm -rf helm/*.tgz
 	rm -rf app.json
 	rm -rf venv/bin/ambassador
 	rm -rf ambassador/ambassador/VERSION.py*
-	rm -f *.docker
-	rm -f *.docker.*
 	rm -rf ambassador/build ambassador/dist ambassador/ambassador.egg-info ambassador/__pycache__
 	find . \( -name .coverage -o -name .cache -o -name __pycache__ \) -print0 | xargs -0 rm -rf
 	find . \( -name *.log \) -print0 | xargs -0 rm -rf
