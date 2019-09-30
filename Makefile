@@ -425,7 +425,7 @@ envoy-bin/envoy-static: $(ENVOY_BASH.deps) FORCE | envoy-bin
 	            exit 1; \
 	        fi; \
 	        $(call ENVOY_BASH.cmd, \
-	            docker exec -w /root/envoy $$(cat envoy-build-container.txt) bazel build --verbose_failures -c $(ENVOY_COMPILATION_MODE) //source/exe:envoy-static; \
+	            docker exec $$(cat envoy-build-container.txt) /bin/sh -c 'cd /root/envoy && bazel build --verbose_failures -c $(ENVOY_COMPILATION_MODE) //source/exe:envoy-static'; \
 	            rsync -Pav --blocking-io -e 'docker exec -i' $$(cat envoy-build-container.txt):/root/envoy/bazel-bin/source/exe/envoy-static $@; \
 	        ); \
 	    fi; \
@@ -439,7 +439,7 @@ envoy-bin/envoy-static: $(ENVOY_BASH.deps) FORCE | envoy-bin
 
 check-envoy: $(ENVOY_BASH.deps)
 	$(call ENVOY_BASH.cmd, \
-	    docker exec -w /root/envoy $$(cat envoy-build-container.txt) bazel test --verbose_failures -c dbg --test_env=ENVOY_IP_TEST_VERSIONS=v4only //test/...; \
+	    docker exec $$(cat envoy-build-container.txt) /bin/sh -c 'cd /root/envoy && bazel test --verbose_failures -c dbg --test_env=ENVOY_IP_TEST_VERSIONS=v4only //test/...'; \
 	)
 .PHONY: check-envoy
 
