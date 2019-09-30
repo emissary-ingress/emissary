@@ -20,7 +20,7 @@ annotations.
 
 - Ambassador will need RBAC permissions to get, list, and watch `Ingress` resources. 
 
-  You can see this in the `https://getambassador.io/yaml/ambassador-rbac.yaml`
+  You can see this in the `https://getambassador.io/yaml/ambassador/ambassador-rbac.yaml`
   file, but this is the critical rule to add to Ambassador's `Role` or `ClusterRole`:
 
       - apiGroups: [ "extensions" ]
