@@ -180,6 +180,8 @@ KAT_SERVER_DOCKER_REPO ?= $(if $(filter-out -,$(DOCKER_REGISTRY)),$(DOCKER_REGIS
 KAT_CLIENT_DOCKER_IMAGE ?= $(KAT_CLIENT_DOCKER_REPO):$(AMBASSADOR_DOCKER_TAG)
 KAT_SERVER_DOCKER_IMAGE ?= $(KAT_SERVER_DOCKER_REPO):$(AMBASSADOR_DOCKER_TAG)
 
+KAT_IMAGE_PULL_POLICY ?= Always
+
 KAT_CLIENT ?= venv/bin/kat_client
 
 # Allow overriding which watt we use.
@@ -548,6 +550,8 @@ else
 		docker push $(KAT_SERVER_DOCKER_IMAGE) | python releng/linify.py push.log
 endif
 
+docker-push-kat: docker-push-kat-client docker-push-kat-server
+
 # TODO: validate version is conformant to some set of rules might be a good idea to add here
 ambassador/ambassador/VERSION.py: FORCE $(WRITE_IFCHANGED)
 	$(call check_defined, VERSION, VERSION is not set)
@@ -674,7 +678,7 @@ clean-test:
 	rm -f $(CLAIM_FILE)
 	$(call kill_teleproxy)
 
-test: setup-develop docker-push-kat-client docker-push-kat-server
+test: setup-develop
 	cd ambassador && \
 	AMBASSADOR_DOCKER_IMAGE="$(AMBASSADOR_DOCKER_IMAGE)" \
 	BASE_PY_IMAGE="$(BASE_PY_IMAGE)" \
@@ -682,6 +686,7 @@ test: setup-develop docker-push-kat-client docker-push-kat-server
 	KUBECONFIG="$(KUBECONFIG)" \
 	KAT_CLIENT_DOCKER_IMAGE="$(KAT_CLIENT_DOCKER_IMAGE)" \
 	KAT_SERVER_DOCKER_IMAGE="$(KAT_SERVER_DOCKER_IMAGE)" \
+	KAT_IMAGE_PULL_POLICY="$(KAT_IMAGE_PULL_POLICY)" \
 	PATH="$(shell pwd)/venv/bin:$(PATH)" \
 	bash ../releng/run-tests.sh
 
