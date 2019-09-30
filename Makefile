@@ -495,6 +495,7 @@ base-go.docker: Dockerfile.base-go $(var.)BASE_GO_IMAGE $(WRITE_IFCHANGED)
 	@docker image inspect $(BASE_GO_IMAGE) --format='{{.Id}}' | $(WRITE_IFCHANGED) $@
 
 envoy-tests-image:
+	docker rm -f envoy-build || true
 	docker build $(DOCKER_OPTS) -t $(ENVOY_TESTS_IMAGE) -f Dockerfile.envoy-tests .
 
 envoy-tests: envoy-tests-image
