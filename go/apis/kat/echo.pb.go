@@ -8,8 +8,11 @@ import (
 	fmt "fmt"
 	proto "github.com/gogo/protobuf/proto"
 	grpc "google.golang.org/grpc"
+	codes "google.golang.org/grpc/codes"
+	status "google.golang.org/grpc/status"
 	io "io"
 	math "math"
+	math_bits "math/bits"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -44,7 +47,7 @@ func (m *EchoRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) 
 		return xxx_messageInfo_EchoRequest.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
-		n, err := m.MarshalTo(b)
+		n, err := m.MarshalToSizedBuffer(b)
 		if err != nil {
 			return nil, err
 		}
@@ -93,7 +96,7 @@ func (m *EchoResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error)
 		return xxx_messageInfo_EchoResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
-		n, err := m.MarshalTo(b)
+		n, err := m.MarshalToSizedBuffer(b)
 		if err != nil {
 			return nil, err
 		}
@@ -154,7 +157,7 @@ func (m *Response) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 		return xxx_messageInfo_Response.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
-		n, err := m.MarshalTo(b)
+		n, err := m.MarshalToSizedBuffer(b)
 		if err != nil {
 			return nil, err
 		}
@@ -202,7 +205,7 @@ func (m *Request) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 		return xxx_messageInfo_Request.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
-		n, err := m.MarshalTo(b)
+		n, err := m.MarshalToSizedBuffer(b)
 		if err != nil {
 			return nil, err
 		}
@@ -256,7 +259,7 @@ func (m *TLS) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 		return xxx_messageInfo_TLS.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
-		n, err := m.MarshalTo(b)
+		n, err := m.MarshalToSizedBuffer(b)
 		if err != nil {
 			return nil, err
 		}
@@ -356,6 +359,14 @@ type EchoServiceServer interface {
 	Echo(context.Context, *EchoRequest) (*EchoResponse, error)
 }
 
+// UnimplementedEchoServiceServer can be embedded to have forward compatible implementations.
+type UnimplementedEchoServiceServer struct {
+}
+
+func (*UnimplementedEchoServiceServer) Echo(ctx context.Context, req *EchoRequest) (*EchoResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Echo not implemented")
+}
+
 func RegisterEchoServiceServer(s *grpc.Server, srv EchoServiceServer) {
 	s.RegisterService(&_EchoService_serviceDesc, srv)
 }
@@ -394,7 +405,7 @@ var _EchoService_serviceDesc = grpc.ServiceDesc{
 func (m *EchoRequest) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
-	n, err := m.MarshalTo(dAtA)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
 	if err != nil {
 		return nil, err
 	}
@@ -402,26 +413,33 @@ func (m *EchoRequest) Marshal() (dAtA []byte, err error) {
 }
 
 func (m *EchoRequest) MarshalTo(dAtA []byte) (int, error) {
-	var i int
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *EchoRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
-	if len(m.Data) > 0 {
-		dAtA[i] = 0xa
-		i++
-		i = encodeVarintEcho(dAtA, i, uint64(len(m.Data)))
-		i += copy(dAtA[i:], m.Data)
-	}
 	if m.XXX_unrecognized != nil {
-		i += copy(dAtA[i:], m.XXX_unrecognized)
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
 	}
-	return i, nil
+	if len(m.Data) > 0 {
+		i -= len(m.Data)
+		copy(dAtA[i:], m.Data)
+		i = encodeVarintEcho(dAtA, i, uint64(len(m.Data)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
 }
 
 func (m *EchoResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
-	n, err := m.MarshalTo(dAtA)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
 	if err != nil {
 		return nil, err
 	}
@@ -429,46 +447,57 @@ func (m *EchoResponse) Marshal() (dAtA []byte, err error) {
 }
 
 func (m *EchoResponse) MarshalTo(dAtA []byte) (int, error) {
-	var i int
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *EchoResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
-	if len(m.Backend) > 0 {
-		dAtA[i] = 0xa
-		i++
-		i = encodeVarintEcho(dAtA, i, uint64(len(m.Backend)))
-		i += copy(dAtA[i:], m.Backend)
-	}
-	if m.Request != nil {
-		dAtA[i] = 0x12
-		i++
-		i = encodeVarintEcho(dAtA, i, uint64(m.Request.Size()))
-		n1, err := m.Request.MarshalTo(dAtA[i:])
-		if err != nil {
-			return 0, err
-		}
-		i += n1
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
 	}
 	if m.Response != nil {
-		dAtA[i] = 0x1a
-		i++
-		i = encodeVarintEcho(dAtA, i, uint64(m.Response.Size()))
-		n2, err := m.Response.MarshalTo(dAtA[i:])
-		if err != nil {
-			return 0, err
+		{
+			size, err := m.Response.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintEcho(dAtA, i, uint64(size))
 		}
-		i += n2
+		i--
+		dAtA[i] = 0x1a
 	}
-	if m.XXX_unrecognized != nil {
-		i += copy(dAtA[i:], m.XXX_unrecognized)
+	if m.Request != nil {
+		{
+			size, err := m.Request.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintEcho(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x12
 	}
-	return i, nil
+	if len(m.Backend) > 0 {
+		i -= len(m.Backend)
+		copy(dAtA[i:], m.Backend)
+		i = encodeVarintEcho(dAtA, i, uint64(len(m.Backend)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
 }
 
 func (m *Response) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
-	n, err := m.MarshalTo(dAtA)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
 	if err != nil {
 		return nil, err
 	}
@@ -476,37 +505,45 @@ func (m *Response) Marshal() (dAtA []byte, err error) {
 }
 
 func (m *Response) MarshalTo(dAtA []byte) (int, error) {
-	var i int
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *Response) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
 	if len(m.Headers) > 0 {
-		for k, _ := range m.Headers {
-			dAtA[i] = 0xa
-			i++
+		for k := range m.Headers {
 			v := m.Headers[k]
-			mapSize := 1 + len(k) + sovEcho(uint64(len(k))) + 1 + len(v) + sovEcho(uint64(len(v)))
-			i = encodeVarintEcho(dAtA, i, uint64(mapSize))
-			dAtA[i] = 0xa
-			i++
-			i = encodeVarintEcho(dAtA, i, uint64(len(k)))
-			i += copy(dAtA[i:], k)
-			dAtA[i] = 0x12
-			i++
+			baseI := i
+			i -= len(v)
+			copy(dAtA[i:], v)
 			i = encodeVarintEcho(dAtA, i, uint64(len(v)))
-			i += copy(dAtA[i:], v)
+			i--
+			dAtA[i] = 0x12
+			i -= len(k)
+			copy(dAtA[i:], k)
+			i = encodeVarintEcho(dAtA, i, uint64(len(k)))
+			i--
+			dAtA[i] = 0xa
+			i = encodeVarintEcho(dAtA, i, uint64(baseI-i))
+			i--
+			dAtA[i] = 0xa
 		}
 	}
-	if m.XXX_unrecognized != nil {
-		i += copy(dAtA[i:], m.XXX_unrecognized)
-	}
-	return i, nil
+	return len(dAtA) - i, nil
 }
 
 func (m *Request) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
-	n, err := m.MarshalTo(dAtA)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
 	if err != nil {
 		return nil, err
 	}
@@ -514,47 +551,57 @@ func (m *Request) Marshal() (dAtA []byte, err error) {
 }
 
 func (m *Request) MarshalTo(dAtA []byte) (int, error) {
-	var i int
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *Request) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
-	if len(m.Headers) > 0 {
-		for k, _ := range m.Headers {
-			dAtA[i] = 0xa
-			i++
-			v := m.Headers[k]
-			mapSize := 1 + len(k) + sovEcho(uint64(len(k))) + 1 + len(v) + sovEcho(uint64(len(v)))
-			i = encodeVarintEcho(dAtA, i, uint64(mapSize))
-			dAtA[i] = 0xa
-			i++
-			i = encodeVarintEcho(dAtA, i, uint64(len(k)))
-			i += copy(dAtA[i:], k)
-			dAtA[i] = 0x12
-			i++
-			i = encodeVarintEcho(dAtA, i, uint64(len(v)))
-			i += copy(dAtA[i:], v)
-		}
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
 	}
 	if m.Tls != nil {
-		dAtA[i] = 0x12
-		i++
-		i = encodeVarintEcho(dAtA, i, uint64(m.Tls.Size()))
-		n3, err := m.Tls.MarshalTo(dAtA[i:])
-		if err != nil {
-			return 0, err
+		{
+			size, err := m.Tls.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintEcho(dAtA, i, uint64(size))
 		}
-		i += n3
+		i--
+		dAtA[i] = 0x12
 	}
-	if m.XXX_unrecognized != nil {
-		i += copy(dAtA[i:], m.XXX_unrecognized)
+	if len(m.Headers) > 0 {
+		for k := range m.Headers {
+			v := m.Headers[k]
+			baseI := i
+			i -= len(v)
+			copy(dAtA[i:], v)
+			i = encodeVarintEcho(dAtA, i, uint64(len(v)))
+			i--
+			dAtA[i] = 0x12
+			i -= len(k)
+			copy(dAtA[i:], k)
+			i = encodeVarintEcho(dAtA, i, uint64(len(k)))
+			i--
+			dAtA[i] = 0xa
+			i = encodeVarintEcho(dAtA, i, uint64(baseI-i))
+			i--
+			dAtA[i] = 0xa
+		}
 	}
-	return i, nil
+	return len(dAtA) - i, nil
 }
 
 func (m *TLS) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
-	n, err := m.MarshalTo(dAtA)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
 	if err != nil {
 		return nil, err
 	}
@@ -562,34 +609,42 @@ func (m *TLS) Marshal() (dAtA []byte, err error) {
 }
 
 func (m *TLS) MarshalTo(dAtA []byte) (int, error) {
-	var i int
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *TLS) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
 	if m.Enabled {
-		dAtA[i] = 0x8
-		i++
+		i--
 		if m.Enabled {
 			dAtA[i] = 1
 		} else {
 			dAtA[i] = 0
 		}
-		i++
+		i--
+		dAtA[i] = 0x8
 	}
-	if m.XXX_unrecognized != nil {
-		i += copy(dAtA[i:], m.XXX_unrecognized)
-	}
-	return i, nil
+	return len(dAtA) - i, nil
 }
 
 func encodeVarintEcho(dAtA []byte, offset int, v uint64) int {
+	offset -= sovEcho(v)
+	base := offset
 	for v >= 1<<7 {
 		dAtA[offset] = uint8(v&0x7f | 0x80)
 		v >>= 7
 		offset++
 	}
 	dAtA[offset] = uint8(v)
-	return offset + 1
+	return base
 }
 func (m *EchoRequest) Size() (n int) {
 	if m == nil {
@@ -691,14 +746,7 @@ func (m *TLS) Size() (n int) {
 }
 
 func sovEcho(x uint64) (n int) {
-	for {
-		n++
-		x >>= 7
-		if x == 0 {
-			break
-		}
-	}
-	return n
+	return (math_bits.Len64(x|1) + 6) / 7
 }
 func sozEcho(x uint64) (n int) {
 	return sovEcho(uint64((x << 1) ^ uint64((int64(x) >> 63))))
