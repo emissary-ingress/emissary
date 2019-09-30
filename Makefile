@@ -114,6 +114,8 @@ ENVOY_FILE ?= envoy-bin/envoy-static-stripped
   BASE_PY_IMAGE    ?= $(BASE_DOCKER_REPO):py-$(BASE_PY_RELVER)
 # END LIST OF VARIABLES REQUIRING `make docker-update-base`.
 
+  ENVOY_TESTS_IMAGE ?= quay.io/datawire/ambassador-envoy-tests:latest
+
 #### Test service Dockerfile stuff.
 # The test services live in subdirectories of test-services. TEST_SERVICE_ROOTS
 # is the list of these directories.
@@ -492,6 +494,12 @@ base-go.docker: Dockerfile.base-go $(var.)BASE_GO_IMAGE $(WRITE_IFCHANGED)
 	fi
 	@docker image inspect $(BASE_GO_IMAGE) --format='{{.Id}}' | $(WRITE_IFCHANGED) $@
 
+envoy-tests-image:
+	docker build $(DOCKER_OPTS) -t $(ENVOY_TESTS_IMAGE) -f Dockerfile.envoy-tests .
+
+envoy-tests: envoy-tests-image
+	docker run --rm -v /var/run/docker.sock:/var/run/docker.sock $(ENVOY_TESTS_IMAGE)
+
 test-%.docker: test-services/%/Dockerfile $(MOVE_IFCHANGED) FORCE
 	docker build --quiet --iidfile=$@.tmp test-services/$*
 	$(MOVE_IFCHANGED) $@.tmp $@
@@ -670,7 +678,7 @@ clean-test:
 	test -x $(KUBERNAUT) && $(KUBERNAUT_DISCARD) || true
 	rm -f $(CLAIM_FILE)
 
-test: setup-develop
+test: setup-develop envoy-tests
 	cd python && \
 	AMBASSADOR_DOCKER_IMAGE="$(AMBASSADOR_DOCKER_IMAGE)" \
 	BASE_PY_IMAGE="$(BASE_PY_IMAGE)" \

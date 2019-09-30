@@ -1,0 +1,13 @@
+FROM fedora:30
+
+MAINTAINER Datawire <shubham@datawire.io>
+
+ENV DOCKER_REGISTRY=-
+
+RUN dnf install -y make git docker which golang findutils rsync && \
+    git clone https://github.com/datawire/ambassador
+
+CMD cd ambassador && \
+    make envoy-src && \
+    make envoy-bin/envoy-static && \
+    make check-envoy
