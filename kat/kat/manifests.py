@@ -1784,13 +1784,13 @@ data:
 
     # Common configuration for all Knative codebase
     zap-logger-config: |
-      {
+      {{
         "level": "info",
         "development": false,
         "outputPaths": ["stdout"],
         "errorOutputPaths": ["stderr"],
         "encoding": "json",
-        "encoderConfig": {
+        "encoderConfig": {{
           "timeKey": "ts",
           "levelKey": "level",
           "nameKey": "logger",
@@ -1802,8 +1802,8 @@ data:
           "timeEncoder": "iso8601",
           "durationEncoder": "",
           "callerEncoder": ""
-        }
-      }
+        }}
+      }}
 
     # Log level overrides
     # For all components except the autoscaler and queue proxy,
@@ -1842,7 +1842,7 @@ data:
     # {{.Annotations}} can be used for any customization in the go template if needed.
     # We strongly recommend keeping namespace part of the template to avoid domain name clashes
     # Example '{{.Name}}-{{.Namespace}}.{{ index .Annotations "sub"}}.{{.Domain}}'
-    # and you have an annotation {"sub":"foo"}, then the generated template would be {Name}-{Namespace}.foo.{Domain}
+    # and you have an annotation {{"sub":"foo"}}, then the generated template would be {{Name}}-{{Namespace}}.foo.{{Domain}}
     domainTemplate: "{{.Name}}.{{.Namespace}}.{{.Domain}}"
 
     # tagTemplate specifies the golang text template string to use
@@ -1900,7 +1900,7 @@ data:
     # This value is what you might use the the Knative monitoring bundle, and provides
     # access to Kibana after setting up kubectl proxy.
     logging.revision-url-template: |
-      http://localhost:8001/api/v1/namespaces/knative-monitoring/services/kibana-logging/proxy/app/kibana#/discover?_a=(query:(match:(kubernetes.labels.knative-dev%2FrevisionUID:(query:'${REVISION_UID}',type:phrase))))
+      http://localhost:8001/api/v1/namespaces/knative-monitoring/services/kibana-logging/proxy/app/kibana#/discover?_a=(query:(match:(kubernetes.labels.knative-dev%2FrevisionUID:(query:'${{REVISION_UID}}',type:phrase))))
 
     # If non-empty, this enables queue proxy writing request logs to stdout.
     # The value determines the shape of the request logs and it must be a valid go text/template.
@@ -1913,23 +1913,23 @@ data:
     # representing an HTTP request received by the server.
     #
     # Response:
-    # struct {
+    # struct {{
     #   Code    int       // HTTP status code (see https://www.iana.org/assignments/http-status-codes/http-status-codes.xhtml)
     #   Size    int       // An int representing the size of the response.
     #   Latency float64   // A float64 representing the latency of the response in seconds.
-    # }
+    # }}
     #
     # Revision:
-    # struct {
+    # struct {{
     #   Name          string  // Knative revision name
     #   Namespace     string  // Knative revision namespace
     #   Service       string  // Knative service name
     #   Configuration string  // Knative configuration name
     #   PodName       string  // Name of the pod hosting the revision
     #   PodIP         string  // IP of the pod hosting the revision
-    # }
+    # }}
     #
-    logging.request-log-template: '{"httpRequest": {"requestMethod": "{{.Request.Method}}", "requestUrl": "{{js .Request.RequestURI}}", "requestSize": "{{.Request.ContentLength}}", "status": {{.Response.Code}}, "responseSize": "{{.Response.Size}}", "userAgent": "{{js .Request.UserAgent}}", "remoteIp": "{{js .Request.RemoteAddr}}", "serverIp": "{{.Revision.PodIP}}", "referer": "{{js .Request.Referer}}", "latency": "{{.Response.Latency}}s", "protocol": "{{.Request.Proto}}"}, "traceId": "{{index .Request.Header "X-B3-Traceid"}}"}'
+    logging.request-log-template: '{{"httpRequest": {{"requestMethod": "{{{{.Request.Method}}}}", "requestUrl": "{{{{js .Request.RequestURI}}}}", "requestSize": "{{{{.Request.ContentLength}}}}", "status": {{{{.Response.Code}}}}, "responseSize": "{{{{.Response.Size}}}}", "userAgent": "{{{{js .Request.UserAgent}}}}", "remoteIp": "{{{{js .Request.RemoteAddr}}}}", "serverIp": "{{{{.Revision.PodIP}}}}", "referer": "{{{{js .Request.Referer}}}}", "latency": "{{{{.Response.Latency}}}}s", "protocol": "{{{{.Request.Proto}}}}"}}, "traceId": "{{{{index .Request.Header "X-B3-Traceid"}}}}"}}'
 
     # metrics.backend-destination field specifies the system metrics destination.
     # It supports either prometheus (the default) or stackdriver.
@@ -2449,7 +2449,7 @@ spec:
     singular: certificate
   scope: Namespaced
   subresources:
-    status: {}
+    status: {{}}
   version: v1alpha1
 
 ---
@@ -2478,7 +2478,7 @@ spec:
     singular: clusteringress
   scope: Cluster
   subresources:
-    status: {}
+    status: {{}}
   versions:
   - name: v1alpha1
     served: true
@@ -2504,7 +2504,7 @@ spec:
     singular: image
   scope: Namespaced
   subresources:
-    status: {}
+    status: {{}}
   version: v1alpha1
 
 ---
@@ -2535,7 +2535,7 @@ spec:
     singular: ingress
   scope: Namespaced
   subresources:
-    status: {}
+    status: {{}}
   versions:
   - name: v1alpha1
     served: true
@@ -2567,7 +2567,7 @@ spec:
     singular: metric
   scope: Namespaced
   subresources:
-    status: {}
+    status: {{}}
   version: v1alpha1
 
 ---
@@ -2599,7 +2599,7 @@ spec:
     singular: podautoscaler
   scope: Namespaced
   subresources:
-    status: {}
+    status: {{}}
   versions:
   - name: v1alpha1
     served: true
@@ -2642,7 +2642,7 @@ spec:
     singular: serverlessservice
   scope: Namespaced
   subresources:
-    status: {}
+    status: {{}}
   versions:
   - name: v1alpha1
     served: true
@@ -3253,13 +3253,13 @@ data:
 
     # Common configuration for all Knative codebase
     zap-logger-config: |
-      {
+      {{
         "level": "info",
         "development": false,
         "outputPaths": ["stdout"],
         "errorOutputPaths": ["stderr"],
         "encoding": "json",
-        "encoderConfig": {
+        "encoderConfig": {{
           "timeKey": "ts",
           "levelKey": "level",
           "nameKey": "logger",
@@ -3271,8 +3271,8 @@ data:
           "timeEncoder": "iso8601",
           "durationEncoder": "",
           "callerEncoder": ""
-        }
-      }
+        }}
+      }}
 
     # Log level overrides
     # For all components except the autoscaler and queue proxy,
@@ -3314,7 +3314,7 @@ data:
     # {{.Annotations}} can be used for any customization in the go template if needed.
     # We strongly recommend keeping namespace part of the template to avoid domain name clashes
     # Example '{{.Name}}-{{.Namespace}}.{{ index .Annotations "sub"}}.{{.Domain}}'
-    # and you have an annotation {"sub":"foo"}, then the generated template would be {Name}-{Namespace}.foo.{Domain}
+    # and you have an annotation {{"sub":"foo"}}, then the generated template would be {{Name}}-{{Namespace}}.foo.{{Domain}}
     domainTemplate: "{{.Name}}.{{.Namespace}}.{{.Domain}}"
 
     # tagTemplate specifies the golang text template string to use
@@ -3372,7 +3372,7 @@ data:
     # This value is what you might use the the Knative monitoring bundle, and provides
     # access to Kibana after setting up kubectl proxy.
     logging.revision-url-template: |
-      http://localhost:8001/api/v1/namespaces/knative-monitoring/services/kibana-logging/proxy/app/kibana#/discover?_a=(query:(match:(kubernetes.labels.serving-knative-dev%2FrevisionUID:(query:'${REVISION_UID}',type:phrase))))
+      http://localhost:8001/api/v1/namespaces/knative-monitoring/services/kibana-logging/proxy/app/kibana#/discover?_a=(query:(match:(kubernetes.labels.serving-knative-dev%2FrevisionUID:(query:'${{REVISION_UID}}',type:phrase))))
 
     # If non-empty, this enables queue proxy writing request logs to stdout.
     # The value determines the shape of the request logs and it must be a valid go text/template.
@@ -3385,23 +3385,23 @@ data:
     # representing an HTTP request received by the server.
     #
     # Response:
-    # struct {
+    # struct {{
     #   Code    int       // HTTP status code (see https://www.iana.org/assignments/http-status-codes/http-status-codes.xhtml)
     #   Size    int       // An int representing the size of the response.
     #   Latency float64   // A float64 representing the latency of the response in seconds.
-    # }
+    # }}
     #
     # Revision:
-    # struct {
+    # struct {{
     #   Name          string  // Knative revision name
     #   Namespace     string  // Knative revision namespace
     #   Service       string  // Knative service name
     #   Configuration string  // Knative configuration name
     #   PodName       string  // Name of the pod hosting the revision
     #   PodIP         string  // IP of the pod hosting the revision
-    # }
+    # }}
     #
-    logging.request-log-template: '{"httpRequest": {"requestMethod": "{{.Request.Method}}", "requestUrl": "{{js .Request.RequestURI}}", "requestSize": "{{.Request.ContentLength}}", "status": {{.Response.Code}}, "responseSize": "{{.Response.Size}}", "userAgent": "{{js .Request.UserAgent}}", "remoteIp": "{{js .Request.RemoteAddr}}", "serverIp": "{{.Revision.PodIP}}", "referer": "{{js .Request.Referer}}", "latency": "{{.Response.Latency}}s", "protocol": "{{.Request.Proto}}"}, "traceId": "{{index .Request.Header "X-B3-Traceid"}}"}'
+    logging.request-log-template: '{{"httpRequest": {{"requestMethod": "{{{{.Request.Method}}}}", "requestUrl": "{{{{js .Request.RequestURI}}}}", "requestSize": "{{{{.Request.ContentLength}}}}", "status": {{{{.Response.Code}}}}, "responseSize": "{{{{.Response.Size}}}}", "userAgent": "{{{{js .Request.UserAgent}}}}", "remoteIp": "{{{{js .Request.RemoteAddr}}}}", "serverIp": "{{{{.Revision.PodIP}}}}", "referer": "{{{{js .Request.Referer}}}}", "latency": "{{{{.Response.Latency}}}}s", "protocol": "{{{{.Request.Proto}}}}"}}, "traceId": "{{{{index .Request.Header "X-B3-Traceid"}}}}"}}'
 
     # metrics.backend-destination field specifies the system metrics destination.
     # It supports either prometheus (the default) or stackdriver.
@@ -3621,7 +3621,7 @@ spec:
     singular: configuration
   scope: Namespaced
   subresources:
-    status: {}
+    status: {{}}
   versions:
   - name: v1alpha1
     served: true
@@ -3665,7 +3665,7 @@ spec:
     singular: revision
   scope: Namespaced
   subresources:
-    status: {}
+    status: {{}}
   versions:
   - name: v1alpha1
     served: true
@@ -3703,7 +3703,7 @@ spec:
     singular: route
   scope: Namespaced
   subresources:
-    status: {}
+    status: {{}}
   versions:
   - name: v1alpha1
     served: true
@@ -3748,7 +3748,7 @@ spec:
     singular: service
   scope: Namespaced
   subresources:
-    status: {}
+    status: {{}}
   versions:
   - name: v1alpha1
     served: true
