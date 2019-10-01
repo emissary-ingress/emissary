@@ -499,7 +499,7 @@ envoy-tests-image:
 	docker build $(DOCKER_OPTS) -t $(ENVOY_TESTS_IMAGE) -f Dockerfile.envoy-tests .
 
 envoy-tests: envoy-tests-image
-	docker run --rm -v /var/run/docker.sock:/var/run/docker.sock $(ENVOY_TESTS_IMAGE)
+	docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v `pwd`:/ambassador/ $(ENVOY_TESTS_IMAGE)
 
 test-%.docker: test-services/%/Dockerfile $(MOVE_IFCHANGED) FORCE
 	docker build --quiet --iidfile=$@.tmp test-services/$*

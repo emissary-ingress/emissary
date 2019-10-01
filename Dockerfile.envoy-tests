@@ -4,8 +4,7 @@ MAINTAINER Datawire <shubham@datawire.io>
 
 ENV DOCKER_REGISTRY=-
 
-RUN dnf install -y make git docker which golang findutils rsync && \
-    git clone https://github.com/datawire/ambassador
+RUN dnf install -y make git docker which golang findutils rsync
 
 CMD cd ambassador && \
     make envoy-src && \
