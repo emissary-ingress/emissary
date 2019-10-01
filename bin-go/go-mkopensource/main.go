@@ -17,6 +17,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
 
+	"github.com/datawire/build-aux/bin-go/go-mkopensource/internal/detectlicense"
 	"github.com/datawire/build-aux/bin-go/go-mkopensource/internal/golist"
 )
 
@@ -127,138 +128,136 @@ func loadGoTar(goTarFilename string) (version string, license []byte, err error)
 	return version, license, nil
 }
 
-func dirForModule(tarfiles map[string][]byte, modname string) error {
-	fileinfos, err := ioutil.ReadDir("vendor/" + modname)
-	if err != nil {
-		return err
+func licenseIsProprietary(licenses map[detectlicense.License]struct{}) (bool, error) {
+	_, proprietary := licenses[detectlicense.Proprietary]
+	if proprietary && len(licenses) != 1 {
+		return false, errors.New("mixed proprietary and open-source licenses")
 	}
-	licensePrefixes := []string{
-		"LICENSE",
-		"license",
-		"COPYING",
-		"copying",
-	}
-	var license []string
-	for _, fileinfo := range fileinfos {
-		for _, prefix := range licensePrefixes {
-			if strings.HasPrefix(fileinfo.Name(), prefix) {
-				license = append(license, fileinfo.Name())
-			}
+	return proprietary, nil
+}
+
+func licenseIsWeakCopyleft(licenses map[detectlicense.License]struct{}) bool {
+	for license := range licenses {
+		if license.WeakCopyleft {
+			return true
 		}
 	}
-	switch len(license) {
-	case 0:
-		return errors.Errorf("%q has no LICENSE file", modname)
-	case 1:
-		// do nothing
-	default:
-		fmt.Fprintf(os.Stderr, "WARNING: %q: found %d LICENSE files, heuristics more likely to be wrong\n", modname, len(license))
-	}
-	licenseBody, err := ioutil.ReadFile("vendor/" + modname + "/" + license[0])
-	if err != nil {
-		return err
-	}
-	if strings.HasPrefix(string(licenseBody), "Mozilla Public License, version 2.0") {
-		// Copyleft
-		err := filepath.Walk("vendor/"+modname, func(path string, info os.FileInfo, err error) error {
-			if err != nil {
-				return err
-			}
-			if info.IsDir() {
-				return nil
-			}
-			body, err := ioutil.ReadFile(path)
-			if err != nil {
-				return err
-			}
-			tarfiles[strings.TrimPrefix(path, "vendor/")] = body
-			return nil
-		})
-		if err != nil {
-			return err
-		}
-	} else {
-		// Permissive
-		extraPrefixes := []string{
-			"NOTICE", // required for Apache 2.0 compliance
-			"PATENT", // for BSD and MIT, which do not include a patent grant
-		}
-		var extrafiles []string
-		for _, fileinfo := range fileinfos {
-			for _, prefix := range extraPrefixes {
-				if strings.HasPrefix(fileinfo.Name(), prefix) {
-					extrafiles = append(extrafiles, fileinfo.Name())
-				}
-			}
-		}
-		for _, filename := range append(license, extrafiles...) {
-			body, err := ioutil.ReadFile("vendor/" + modname + "/" + filename)
-			if err != nil {
-				return err
-			}
-			tarfiles[modname+"/"+filename] = body
-		}
-	}
-	return nil
+	return false
 }
 
 func Main(args *CLIArgs) error {
-	// go list (& post-processing)
+	// Let's do the expensive stuff (stuff that isn't entirely
+	// in-memory) up-front.
+
+	// `go list`
 	listPkgs, err := golist.GoList(args.Package, "-deps")
 	if err != nil {
 		return err
 	}
-	var gopkg, gomod string
-	for _, pkg := range listPkgs {
-		if !pkg.DepOnly {
-			gopkg = pkg.ImportPath
-			gomod = pkg.Module.Path
-		}
-	}
-	if gopkg == "" || gomod == "" {
-		return errors.New("go list didn't give us the requested package")
-	}
-	listMods := make(map[string]*golist.Module)
-	for _, pkg := range listPkgs {
-		key := "<nil>"
-		if pkg.Module != nil {
-			key = pkg.Module.Path
-			if pkg.Module.Path == gomod || pkg.Module.Path == "github.com/datawire/liboauth2" || pkg.Module.Path == "github.com/datawire/teleproxy" {
-				continue
-			}
-		}
-		if _, done := listMods[key]; done {
-			continue
-		}
-		listMods[key] = pkg.Module
-	}
 
-	// tar xf go{version}.src.tar.gz
+	// `tar xf go{version}.src.tar.gz`
 	goVersion, goLicense, err := loadGoTar(args.GoTarFilename)
 	if err != nil {
 		return err
 	}
 
-	// gather files...
-	files := make(map[string][]byte)
-	readme := new(bytes.Buffer)
-	readme.WriteString(wordwrap(75, fmt.Sprintf("The program %q incorporates the following Free and Open Source software:", path.Base(gopkg))))
-	readme.WriteString("\n")
-	table := tabwriter.NewWriter(readme, 0, 8, 2, ' ', 0)
-	io.WriteString(table, "  \tName\tVersion\n")
-	io.WriteString(table, "\t----\t-------\n")
-	modNames := make([]string, 0, len(listMods))
-	for k := range listMods {
-		modNames = append(modNames, k)
+	// `go mod vendor`
+	mainMods := make(map[string]struct{})
+	for _, pkg := range listPkgs {
+		if !pkg.DepOnly && pkg.Module != nil {
+			mainMods[pkg.Module.Path] = struct{}{}
+		}
+	}
+	pkgFiles := make(map[string]map[string][]byte)
+	for _, pkg := range listPkgs {
+		vendor := make(map[string][]byte)
+		if pkg.Module == nil {
+			// standard library
+			vendor["std/LICENSE"] = goLicense
+		} else {
+			// module
+			if _, isMainMod := mainMods[pkg.Module.Path]; isMainMod {
+				continue
+			}
+			if err := collectPkg(vendor, pkg); err != nil {
+				return err
+			}
+		}
+		pkgFiles[pkg.ImportPath] = vendor
+	}
+
+	// From this point on, everything should be entirely in-memory
+	// (besides writing the output file, I guess).
+
+	// Figure out the license(s) that apply to each package.  We
+	// sort the packages first so that if there's an error, which
+	// error the user sees is deterministic.
+	pkgNames := make([]string, 0, len(pkgFiles))
+	for pkgName := range pkgFiles {
+		pkgNames = append(pkgNames, pkgName)
+	}
+	sort.Strings(pkgNames)
+	pkgLicenses := make(map[string]map[detectlicense.License]struct{})
+	for _, pkgName := range pkgNames {
+		pkgLicenses[pkgName], err = detectlicense.DetectLicenses(pkgFiles[pkgName])
+		if err != nil {
+			return errors.Errorf(`%v
+    This probably means that you added or upgraded a dependency, and the
+    automated opensource-license-checker can't confidently detect what
+    the license is.  (This is a good thing, because it is reminding you
+    to check the license of libraries before using them.)
+
+    You need to update the "./build-aux/bin-go/go-mkopensource/**/licenses.go"
+    file to correctly detect the license.`,
+				errors.Wrapf(err, "package %q", pkgName))
+		}
+	}
+
+	// Group packages by module & collect module info
+	modPkgs := make(map[string][]string)
+	modInfos := make(map[string]*golist.Module)
+	modLicenses := make(map[string]map[detectlicense.License]struct{})
+	modNames := make([]string, 0, len(modPkgs))
+	for _, pkg := range listPkgs {
+		key := "<nil>"
+		if pkg.Module != nil {
+			key = pkg.Module.Path
+		}
+		if _, isMainMod := mainMods[key]; isMainMod {
+			continue
+		}
+		modPkgs[key] = append(modPkgs[key], pkg.ImportPath)
+		if _, done := modInfos[key]; !done {
+			modInfos[key] = pkg.Module
+			modLicenses[key] = make(map[detectlicense.License]struct{})
+			modNames = append(modNames, key)
+		}
+		for license := range pkgLicenses[pkg.ImportPath] {
+			modLicenses[key][license] = struct{}{}
+		}
 	}
 	sort.Strings(modNames)
+
+	// Generate the readme file.
+	readme := new(bytes.Buffer)
+	readme.WriteString(wordwrap(75, fmt.Sprintf("The program %q incorporates the following Free and Open Source software:", path.Base(args.Package))))
+	readme.WriteString("\n")
+	table := tabwriter.NewWriter(readme, 0, 8, 2, ' ', 0)
+	io.WriteString(table, "  \tName\tVersion\tLicense(s)\n")
+	io.WriteString(table, "  \t----\t-------\t----------\n")
 	for _, modKey := range modNames {
-		modVal := listMods[modKey]
-		var depName, depVersion string
+		proprietary, err := licenseIsProprietary(modLicenses[modKey])
+		if err != nil {
+			return errors.Wrapf(err, "module %q", modKey)
+		}
+		if proprietary {
+			continue
+		}
+		modVal := modInfos[modKey]
+		var depName, depVersion, depLicenses string
 		if modVal == nil {
 			depName = "the Go language standard library (\"std\")"
 			depVersion = goVersion
-			files["std/LICENSE"] = goLicense
 		} else {
 			depName = modVal.Path
 			depVersion = modVal.Version
@@ -272,19 +271,48 @@ func Main(args *CLIArgs) error {
 					depVersion = modVal.Replace.Version
 				}
 			}
-			if err := dirForModule(files, modVal.Path); err != nil {
-				return err
-			}
 		}
-		// TODO: license+files
-		fmt.Fprintf(table, "\t%s\t%s\n", depName, depVersion)
+
+		licenseList := make([]string, 0, len(modLicenses[modKey]))
+		for license := range modLicenses[modKey] {
+			licenseList = append(licenseList, license.Name)
+		}
+		sort.Strings(licenseList)
+		depLicenses = strings.Join(licenseList, ", ")
+
+		fmt.Fprintf(table, "\t%s\t%s\t%s\n", depName, depVersion, depLicenses)
 	}
 	table.Flush()
 	readme.WriteString("\n")
 	readme.WriteString(wordwrap(75, "The appropriate license notices and source code are in correspondingly named directories."))
-	files["OPENSOURCE.md"] = readme.Bytes()
 
-	// write output
+	// Build a listing of all files to go in to the tarball
+	tarfiles := make(map[string][]byte)
+	tarfiles["OPENSOURCE.md"] = readme.Bytes()
+	for pkgName := range pkgFiles {
+		proprietary, err := licenseIsProprietary(pkgLicenses[pkgName])
+		if err != nil {
+			return errors.Wrapf(err, "package %q", pkgName)
+		}
+		switch {
+		case proprietary:
+			// don't include anything
+		case licenseIsWeakCopyleft(pkgLicenses[pkgName]):
+			// include everything
+			for filename, filebody := range pkgFiles[pkgName] {
+				tarfiles[filename] = filebody
+			}
+		default:
+			// just include metadata
+			for filename, filebody := range pkgFiles[pkgName] {
+				if matchMetadata(filename) {
+					tarfiles[filename] = filebody
+				}
+			}
+		}
+	}
+
+	// Write output
 	var outputFile *os.File
 	if args.OutputFilename == "" {
 		outputFile = os.Stdout
@@ -300,13 +328,13 @@ func Main(args *CLIArgs) error {
 	outputTar := tar.NewWriter(outputCompressed)
 	defer outputTar.Close()
 
-	filenames := make([]string, 0, len(files))
-	for filename := range files {
+	filenames := make([]string, 0, len(tarfiles))
+	for filename := range tarfiles {
 		filenames = append(filenames, filename)
 	}
 	sort.Strings(filenames)
 	for _, filename := range filenames {
-		body := files[filename]
+		body := tarfiles[filename]
 		err := outputTar.WriteHeader(&tar.Header{
 			Typeflag: tar.TypeReg,
 			Name:     args.OutputName + "/" + filename,
