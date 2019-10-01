@@ -76,6 +76,9 @@ case "$TRAVIS_EVENT_TYPE" in
     cron)
         printf "========\nRunning Envoy tests...\n"
 
+        # Delete VM if it already exists
+        gcloud beta compute instances delete envoy-tests-ambassador --zone us-east1-b --quiet || true
+
         gcloud beta auth activate-service-account --key-file datawireio-d9aadf7d8d9f.json
         gcloud beta compute --project=datawireio instances create envoy-tests-ambassador --zone=us-east1-b --machine-type=n1-highcpu-64 --image=ubuntu-1904-disco-v20190918 --image-project=ubuntu-os-cloud --boot-disk-size=200GB --boot-disk-type=pd-ssd --boot-disk-device-name=envoy-tests-ambassador
 
@@ -83,9 +86,8 @@ case "$TRAVIS_EVENT_TYPE" in
 EOF
 
         gcloud beta compute --project "datawireio" ssh --zone "us-east1-b" "envoy-tests-ambassador" << EOF
-
-        sudo apt-get update
-        sudo apt-get install -y docker.io git make golang
+        sudo apt update
+        sudo apt update && sudo apt install -y docker.io git make golang
 
         git clone https://github.com/datawire/ambassador
         cd ambassador
