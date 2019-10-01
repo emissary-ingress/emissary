@@ -44,6 +44,10 @@ fi
 
 if [ -n "$teardown" ]; then
 	make clean-test
+
+	if [[ "$TRAVIS_EVENT_TYPE" = "cron" ]]; then
+	    gcloud beta compute instances delete envoy-tests-ambassador --zone us-east1-b --quiet || true
+	fi
 fi
 
 

@@ -71,7 +71,6 @@ esac
 set -o xtrace
 make print-vars
 
-TRAVIS_EVENT_TYPE="cron"
 case "$TRAVIS_EVENT_TYPE" in
     cron)
         printf "========\nRunning Envoy tests...\n"
