@@ -1,5 +1,5 @@
 # from typing import List
-from typing import Optional, Type, TypeVar
+from typing import Optional, Type, TypeVar, TYPE_CHECKING
 from typing import cast as typecast
 
 from ..resource import Resource
@@ -86,6 +86,17 @@ class ACResource (Resource):
                       **kwargs) -> R:
         new_name = name or other.name
         new_apiVersion = apiVersion or other.apiVersion
+
+        # mypy 0.730 is Just Flat Wrong here. It tries to be "more strict" about
+        # super(), which is fine, but it also flags this particular super() call
+        # as an error, even though Type[R] is necessarily a Resource type.
+        #
+        # Since it's complaining about "argument 2 for super is not an instance
+        # of argument 1", we need to assert() isinstance here -- but of course,
+        # cls is _not_ an instance at all, it's a class, so isinstance() will
+        # fail at runtime. So we only do the assertion if TYPE_CHECKING. Grrrr.
+        if TYPE_CHECKING:
+            assert(isinstance(cls, Resource))
 
         return super().from_resource(other, rkey=rkey, location=location, kind=kind,
                                      name=new_name, apiVersion=new_apiVersion,
