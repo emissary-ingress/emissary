@@ -48,7 +48,7 @@
                 "code": { "type": "integer" }
             }
         },
-        "failure_mode_allow": { "type": "boolean" },
+        "failure_mode_allow": { "type": "boolean" }
     },
     "required": [ "apiVersion", "kind", "name", "auth_service" ],
     "additionalProperties": false
