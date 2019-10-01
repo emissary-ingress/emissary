@@ -87,13 +87,9 @@ EOF
         gcloud beta compute --project "datawireio" ssh --zone "us-east1-b" "envoy-tests-ambassador" << EOF
         sudo apt update
         sudo apt update && sudo apt install -y docker.io git make golang
+        sudo usermod -aG docker $USER
 
         git clone https://github.com/datawire/ambassador
-        cd ambassador
-        git fetch origin pull/1878/head:1878
-        git checkout 1878
-
-        sudo usermod -aG docker $USER
 EOF
 
         gcloud beta compute --project "datawireio" ssh --zone "us-east1-b" "envoy-tests-ambassador" << EOF
