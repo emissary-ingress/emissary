@@ -61,4 +61,4 @@ after_script:
   - ./releng/travis-cleanup.sh
 
 before_install:
-  - openssl aes-256-cbc -K $encrypted_29dfbda8eb61_key -iv $encrypted_29dfbda8eb61_iv -in datawireio-878629452cb7.json.enc -out datawireio-878629452cb7.json -d
+  - openssl aes-256-cbc -K $encrypted_29dfbda8eb61_key -iv $encrypted_29dfbda8eb61_iv -in datawireio-d9aadf7d8d9f.json.enc -out datawireio-d9aadf7d8d9f.json -d
