@@ -77,7 +77,7 @@ case "$TRAVIS_EVENT_TYPE" in
         printf "========\nRunning Envoy tests...\n"
 
         gcloud beta auth activate-service-account --key-file datawireio-d9aadf7d8d9f.json
-        gcloud beta compute --project=datawireio instances create envoy-tests-ambassador --zone=us-east1-b --machine-type=n1-highcpu-32 --image=ubuntu-1904-disco-v20190918 --image-project=ubuntu-os-cloud --boot-disk-size=200GB --boot-disk-type=pd-ssd --boot-disk-device-name=envoy-tests-ambassador
+        gcloud beta compute --project=datawireio instances create envoy-tests-ambassador --zone=us-east1-b --machine-type=n1-highcpu-64 --image=ubuntu-1904-disco-v20190918 --image-project=ubuntu-os-cloud --boot-disk-size=200GB --boot-disk-type=pd-ssd --boot-disk-device-name=envoy-tests-ambassador
 
         gcloud beta compute --project "datawireio" ssh --zone "us-east1-b" "envoy-tests-ambassador" << EOF
 EOF
