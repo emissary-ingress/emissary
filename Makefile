@@ -180,6 +180,8 @@ KAT_SERVER_DOCKER_REPO ?= $(if $(filter-out -,$(DOCKER_REGISTRY)),$(DOCKER_REGIS
 KAT_CLIENT_DOCKER_IMAGE ?= $(KAT_CLIENT_DOCKER_REPO):$(AMBASSADOR_DOCKER_TAG)
 KAT_SERVER_DOCKER_IMAGE ?= $(KAT_SERVER_DOCKER_REPO):$(AMBASSADOR_DOCKER_TAG)
 
+KAT_IMAGE_PULL_POLICY ?= Always
+
 KAT_CLIENT ?= venv/bin/kat_client
 
 # Allow overriding which watt we use.
@@ -535,14 +537,24 @@ else
 endif
 
 docker-push-kat-client: kat-client-docker-image
+ifeq ($(DOCKER_REGISTRY),-)
+	@echo "No DOCKER_REGISTRY set"
+else
 	@echo 'PUSH $(KAT_CLIENT_DOCKER_IMAGE)'
 	@set -o pipefail; \
 		docker push $(KAT_CLIENT_DOCKER_IMAGE) | python releng/linify.py push.log
+endif
 
 docker-push-kat-server: kat-server-docker-image
+ifeq ($(DOCKER_REGISTRY),-)
+	@echo "No DOCKER_REGISTRY set"
+else
 	@echo 'PUSH $(KAT_SERVER_DOCKER_IMAGE)'
 	@set -o pipefail; \
 		docker push $(KAT_SERVER_DOCKER_IMAGE) | python releng/linify.py push.log
+endif
+
+docker-push-kat: docker-push-kat-client docker-push-kat-server
 
 # TODO: validate version is conformant to some set of rules might be a good idea to add here
 ambassador/ambassador/VERSION.py: FORCE $(WRITE_IFCHANGED)
@@ -678,6 +690,7 @@ test: setup-develop
 	KUBECONFIG="$(KUBECONFIG)" \
 	KAT_CLIENT_DOCKER_IMAGE="$(KAT_CLIENT_DOCKER_IMAGE)" \
 	KAT_SERVER_DOCKER_IMAGE="$(KAT_SERVER_DOCKER_IMAGE)" \
+	KAT_IMAGE_PULL_POLICY="$(KAT_IMAGE_PULL_POLICY)" \
 	PATH="$(shell pwd)/venv/bin:$(PATH)" \
 	bash ../releng/run-tests.sh
 
