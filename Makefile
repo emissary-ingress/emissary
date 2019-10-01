@@ -679,7 +679,7 @@ clean-test:
 	test -x $(KUBERNAUT) && $(KUBERNAUT_DISCARD) || true
 	rm -f $(CLAIM_FILE)
 
-test: setup-develop envoy-tests
+test: setup-develop
 	cd python && \
 	AMBASSADOR_DOCKER_IMAGE="$(AMBASSADOR_DOCKER_IMAGE)" \
 	BASE_PY_IMAGE="$(BASE_PY_IMAGE)" \
