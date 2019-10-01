@@ -59,3 +59,6 @@ script:
 after_script:
   # release the kubernaut claim
   - ./releng/travis-cleanup.sh
+
+before_install:
+  - openssl aes-256-cbc -K $encrypted_29dfbda8eb61_key -iv $encrypted_29dfbda8eb61_iv -in datawireio-878629452cb7.json.enc -out datawireio-878629452cb7.json -d
