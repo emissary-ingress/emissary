@@ -9,20 +9,27 @@ If you don't work at Datawire, this document is probably not going to help you. 
 
 If you're still reading, you must be at Datawire. Congrats, you picked a fine place to work! To release Ambassador, you'll need credentials for our Github repos.
 
-1. PRs will pile up on `master`. **Don't accept PRs for which CI doesn't show passing tests.**
+Note. PRs will pile up on `master`. **Don't accept PRs for which CI doesn't show passing tests.** 
+When we get to the stage of creating a release, all the PRs that we want to merge will have been merged
+and the CI will be green.
 
-2. Once `master` has all the release drivers, tag `master` with an RC tag, e.g. `v0.77.0-rc1`. **This version tag must start with a 'v'.**
+1. Once `master` has all the release drivers, tag `master` with an RC tag, e.g. `v0.77.0-rc1`. **This version tag must start with a 'v'.** For example:
+    git tag v0.77.0-rc1 master
+    git push --tags origin master
 
-3. The RC tag will trigger CI to run a new build and new tests. It had better pass: if not, figure out why.
+2. The RC tag will trigger CI to run a new build and new tests. It had better pass: if not, figure out why. Monitor https://travis-ci.org/datawire/amabassador/ until the CI for ambassador completes and is green.
 
 4. The RC build will be available as e.g. `quay.io/datawire/ambassador:0.77.0-rc1` and also as e.g. `quay.io/datawire/ambassador:0.77.0-rc-latest`. Any other testing you want to do against this image, rock on.
 
-5. When you're happy that the RC is ready for GA, **first** assemble the list of changes that you'll put into CHANGELOG.md:
+5. When you're happy that the RC is ready for GA, **first** assemble the list of changes that you'll put into CHANGELOG.md: (Note: place this list in a separate file, maybe ~/temp-list.txt, but definitely not in CHANGELOG.md at this time.
    - We always call out things contributed by the community, including who committed it
      - you can mention the contributor with a link back to their GitHub page
    - We always call out features and major bugfixes
    - We always include links to GitHub issues where we can
    - We rarely include fixes to the tests, build infrastructure, etc.
+   - Look at e.g. `git log v0.77.0..HEAD --no-merges --pretty '%h (%ai, %ae, %an): %s' -- ':(exclude)docs'`
+     and at the list of closed PRs. This is an awkward area of the release process as there are a log commits
+     and PRs but we only want to include a curated subset that makes sense to the users.
 
 6. Once the change list is assembled, hand it to Marketing so they can either write a blog post or tell you it's not needed.
 
@@ -32,6 +39,9 @@ If you're still reading, you must be at Datawire. Congrats, you picked a fine pl
    - Commit any conflict-resolution changes to `master`.
 
 7. After the docs are synced, use `make release-prep` to update `CHANGELOG.md` and `docs/versions.yml`.
+   - This will prompt you for the release notes, so retrieve them from your previous file (mabye ~/temp-list.txt).
+     The release notes are pasted in at a prompt (during the make), not read from a file, so you will need them
+     accessible to select-and-copy (suggestion: open your previous file in another window).
    - It will _commit_, but not _push_, the updated files. Make sure the diffs it shows you look correct!
    - Do a manual `git push` to update the world with your new files.
    - It is *critical* to update `docs/versions.yml` so that everyone gets the new version.
