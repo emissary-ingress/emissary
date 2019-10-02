@@ -79,13 +79,14 @@ class AmbassadorTest(Test):
     extra_ports: Optional[List[int]] = None
     debug_diagd: bool = False
     manifest_envs = ""
-    
+
     env = []
 
     def manifests(self) -> str:
         rbac = manifests.RBAC_CLUSTER_SCOPE
 
-        self.manifest_envs += """
+        if self.debug_diagd:
+            self.manifest_envs += """
     - name: AMBASSADOR_DEBUG
       value: "diagd"
 """
