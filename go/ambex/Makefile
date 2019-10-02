@@ -1,10 +1,10 @@
 go.PLATFORMS    = linux_amd64 darwin_amd64
 export CGO_ENABLED = 0
 
-include build-aux/go-mod.mk
-include build-aux/go-version.mk
-include build-aux/docker.mk
-include build-aux/help.mk
+include ../../build-aux/go-mod.mk
+include ../../build-aux/go-version.mk
+include ../../build-aux/docker.mk
+include ../../build-aux/help.mk
 
 .DEFAULT_GOAL = help
 

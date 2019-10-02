@@ -55,6 +55,9 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
+	// TODO(lukeshu): switch this over to use
+	// github.com/datawire/ambassador/go/apis/envoy instead of
+	// github.com/envoyproxy/go-control-plane/envoy
 	"github.com/envoyproxy/go-control-plane/envoy/api/v2"
 	"github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
 	"github.com/envoyproxy/go-control-plane/pkg/cache"
