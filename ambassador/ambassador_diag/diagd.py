@@ -34,7 +34,7 @@ from pkg_resources import Requirement, resource_filename
 
 import clize
 from clize import Parameter
-from flask import Flask, render_template, send_from_directory, request, jsonify
+from flask import Flask, render_template, send_from_directory, request, jsonify, Response
 import gunicorn.app.base
 from gunicorn.six import iteritems
 
@@ -188,14 +188,14 @@ def standard_handler(f):
         result_to_log = "server error"
         status_to_log = 500
         result_log_level = logging.ERROR
-        result = (result_to_log, status_to_log)
+        result = Response(result_to_log, status_to_log)
 
         try:
             result = f(*args, reqid=reqid, **kwds)
-            if not isinstance(result, tuple):
-                result = (result, 200)
+            if not isinstance(result, Response):
+                result = Response(f"Invalid handler result {result}", status_to_log)
 
-            status_to_log = result[1]
+            status_to_log = result.status_code
 
             if (status_to_log // 100) == 2:
                 result_log_level = logging.INFO
@@ -474,7 +474,7 @@ def show_overview(reqid=None):
         else:
             return jsonify(tvars)
     else:
-        return render_template("overview.html", **tvars)
+        return Response(render_template("overview.html", **tvars))
 
 
 def collect_errors_and_notices(request, reqid, what: str, diag: Diagnostics) -> Dict:
@@ -557,7 +557,7 @@ def show_intermediate(source=None, reqid=None):
         else:
             return jsonify(tvars)
     else:
-        return render_template("diag.html", **tvars)
+        return Response(render_template("diag.html", **tvars))
 
 
 @app.template_filter('sort_by_key')
