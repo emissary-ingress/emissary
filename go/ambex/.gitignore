@@ -1,0 +1,15 @@
+/bin_*/
+/vendor/
+/bootstrap_image/ambex
+
+*.docker
+*.docker.knaut-push
+ambex.pid
+
+# --- Files ignored by older versions ---
+# Remove the tail of this list when the commit making the change gets
+# far enough in to the past.
+
+# 2019-01-23
+ambex
+ambex_for_image
