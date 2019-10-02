@@ -54,11 +54,10 @@ __version__ = Version
 
 boot_time = datetime.datetime.now()
 
-log_level_name = os.environ.get('AMBASSADOR_LOG_LEVEL', 'INFO').upper()
+log_level_name = os.environ.get('AMBASSADOR_LOG_LEVEL', 'INFO')
+log_level = logging.getLevelName(log_level_name)
 
-try:
-    log_level = getattr(logging, log_level_name)
-except AttributeError:
+if not isinstance(log_level, int):
     print(f'Ignoring invalid log level value "{log_level_name}"')
     log_level = logging.INFO
 
