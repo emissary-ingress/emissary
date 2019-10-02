@@ -37,10 +37,6 @@ RUN apk --no-cache add bash curl python3 jq
 RUN curl -o /usr/bin/kubewatch -q https://s3.amazonaws.com/datawire-static-files/kubewatch/0.3.17/linux/amd64/kubewatch
 RUN chmod +x /usr/bin/kubewatch
 
-# Grab ambex
-RUN curl -o /usr/bin/ambex https://s3.amazonaws.com/datawire-static-files/ambex/0.1.1/ambex
-RUN chmod 755 /usr/bin/ambex
-
 # Grab kubectl
 RUN curl -o /usr/bin/kubectl -L https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
 RUN chmod 755 /usr/bin/kubectl
