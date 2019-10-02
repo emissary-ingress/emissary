@@ -12,6 +12,7 @@ import (
 
 type License struct {
 	Name           string
+	NoticeFile     bool // are NOTICE files "a thing" for this license?
 	WeakCopyleft   bool // requires that library to be open-source
 	StrongCopyleft bool // requires the resulting program to be open-source
 }
@@ -19,13 +20,13 @@ type License struct {
 var (
 	Proprietary = License{Name: "proprietary"}
 
-	Apache2 = License{Name: "Apache License 2.0"}
+	Apache2 = License{Name: "Apache License 2.0", NoticeFile: true}
 	BSD1    = License{Name: "1-clause BSD license"}
 	BSD2    = License{Name: "2-clause BSD license"}
 	BSD3    = License{Name: "3-clause BSD license"}
 	ISC     = License{Name: "ISC license"}
 	MIT     = License{Name: "MIT license"}
-	MPL2    = License{Name: "Mozilla Public License 2.0", WeakCopyleft: true}
+	MPL2    = License{Name: "Mozilla Public License 2.0", NoticeFile: true, WeakCopyleft: true}
 )
 
 // https://spdx.org/licenses/
@@ -43,6 +44,15 @@ var (
 		"MPL-2.0":      MPL2,
 	}
 )
+
+func expectsNotice(licenses map[License]struct{}) bool {
+	for license := range licenses {
+		if license.NoticeFile == true {
+			return true
+		}
+	}
+	return false
+}
 
 func DetectLicenses(files map[string][]byte) (map[License]struct{}, error) {
 	licenses := make(map[License]struct{})
@@ -102,11 +112,11 @@ func DetectLicenses(files map[string][]byte) (map[License]struct{}, error) {
 		}
 	}
 
-	_, hasApache := licenses[Apache2]
-	if !hasApache && hasNotice {
-		return nil, errors.New("the NOTICE file is really only for the Apache license; something hokey is going on")
+	if !expectsNotice(licenses) && hasNotice {
+		return nil, errors.New("the NOTICE file is really only for the Apache 2.0 and MPL 2.0 licenses; something hokey is going on")
 	}
-	if hasApache && hasPatents {
+	if _, hasApache := licenses[Apache2]; hasApache && hasPatents {
+		// TODO: Check if the MPL has a patent grant.  A quick skimming says "seems to explicitly say no", but I'm too tired to actually read the thing.
 		return nil, errors.New("the Apache license contains a patent-grant, but there's a separate PATENTS file; something hokey is going on")
 	}
 	if !hasLicenseFile && hasNonSPDXSource {
