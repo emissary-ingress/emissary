@@ -94,6 +94,20 @@ Format:
 --->
 
 <!--- CueAddReleaseNotes --->
+## [0.82.0] October 02, 2019
+[0.82.0]: https://github.com/datawire/ambassador/compare/v0.81.0...v0.82.0
+
+### Major changes:
+- Feature: Arrange for the Prometheus metrics endpoint to also return associated headers (thanks, [Jennifer Wu](https://github.com/jhsiaomei)!)
+- Feature: Support setting a TLS origination context when doing TLS to a RateLimitService (thanks, [Phil Peble](https://github.com/ppeble)!)
+- Feature: Allow configuring Envoy's access log path (thanks, [Jonathan Suever](https://github.com/suever)!)
+- Update: Switch to Python 3.7 and Alpine 3.10
+
+### Developer notes:
+- Switch back to the latest mypy (currently 0.730)
+- Environment variable KAT_IMAGE_PULL_POLICY can override the imagePullPolicy when running KAT tests
+- Updated Generated Envoy Golang APIs
+
 ## [0.81.0] September 26, 2019
 [0.81.0]: https://github.com/datawire/ambassador/compare/v0.80.0...v0.81.0
 
