@@ -215,23 +215,23 @@ func (s *Server) handleStatic(docroot string) http.HandlerFunc {
 }
 
 func (s *Server) Init(fetcher MappingSubscriptions) {
-	fetcher.SubscribeMappingObserver("devportal_mapping", func(prefix, rewrite string) bool {
+	fetcher.SubscribeMappingObserver("ambassador-pro-devportal", func(prefix, rewrite string) bool {
 		prefix += "/"
 		log.WithFields(log.Fields{
 			"oldPrefix": s.prefix,
 			"prefix":    prefix,
 			"rewrite":   rewrite,
-		}).Info("Prefix detected from devportal_mapping")
+		}).Info("Prefix detected from ambassador-pro-devportal")
 		s.prefix = prefix
 		return true
 	})
-	fetcher.SubscribeMappingObserver("devportal_api_mapping", func(prefix, rewrite string) bool {
+	fetcher.SubscribeMappingObserver("ambassador-pro-devportal-api", func(prefix, rewrite string) bool {
 		prefix += "/"
 		log.WithFields(log.Fields{
 			"oldPrefix": s.prefix,
 			"prefix":    prefix,
 			"rewrite":   rewrite,
-		}).Info("API prefix detected from devportal_api_mapping (TODO)")
+		}).Info("API prefix detected from ambassador-pro-devportal-api (TODO)")
 		return true
 	})
 }
