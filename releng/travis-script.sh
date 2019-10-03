@@ -121,7 +121,14 @@ case "$COMMIT_TYPE" in
         make setup-develop cluster.yaml docker-registry
         make docker-push docker-push-kat-client docker-push-kat-server # to the in-cluster registry (DOCKER_REGISTRY)
         # make KAT_REQ_LIMIT=1200 test
-        make test
+        if make test
+        then
+            printf "========\nEnvoy tests passed...\n"
+            exit 0
+        else
+            printf "========\nEnvoy tests failed...\n"
+            exit 1
+        fi
         ;;
 esac
 

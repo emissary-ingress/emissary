@@ -494,11 +494,11 @@ base-go.docker: Dockerfile.base-go $(var.)BASE_GO_IMAGE $(WRITE_IFCHANGED)
 	fi
 	@docker image inspect $(BASE_GO_IMAGE) --format='{{.Id}}' | $(WRITE_IFCHANGED) $@
 
-envoy-tests-image:
-	docker rm -f envoy-build || true
-	docker build $(DOCKER_OPTS) -t $(ENVOY_TESTS_IMAGE) -f Dockerfile.envoy-tests .
+envoy-tests.docker: Dockerfile.envoy-tests
+	docker build $(DOCKER_OPTS) -t $(ENVOY_TESTS_IMAGE) -f $< .
 
-envoy-tests: envoy-tests-image
+envoy-tests: envoy-tests.docker
+	docker rm -f envoy-build || true
 	docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v `pwd`:/ambassador/ $(ENVOY_TESTS_IMAGE)
 
 test-%.docker: test-services/%/Dockerfile $(MOVE_IFCHANGED) FORCE
