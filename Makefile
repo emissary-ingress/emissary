@@ -353,8 +353,8 @@ envoy-src: FORCE
 	    else \
 	        git remote add origin $(ENVOY_REPO); \
 	    fi; \
-	    if [[ $(ENVOY_REPO) != ssh://* && $(ENVOY_REPO) != *@*:* ]]; then \
-	        git remote set-url --push origin git@github.com:datawire/envoy.git; \
+	    if [[ $(ENVOY_REPO) == http://github.com/* || $(ENVOY_REPO) == https://github.com/* || $(ENVOY_REPO) == git://github.com/* ]]; then \
+	        git remote set-url --push origin git@github.com:$(word 3,$(subst /, ,$(ENVOY_REPO)))/$(patsubst %.git,%,$(word 4,$(subst /, ,$(ENVOY_REPO)))).git; \
 	    fi; \
 	    git fetch --tags origin; \
 	    if [ $(ENVOY_COMMIT) != '-' ]; then \
