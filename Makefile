@@ -101,6 +101,8 @@ AMBASSADOR_DOCKER_TAG ?= $(GIT_VERSION)
 AMBASSADOR_DOCKER_IMAGE ?= $(AMBASSADOR_DOCKER_REPO):$(AMBASSADOR_DOCKER_TAG)
 AMBASSADOR_EXTERNAL_DOCKER_IMAGE ?= $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(AMBASSADOR_DOCKER_TAG)
 
+YES_I_AM_OK_WITH_COMPILING_ENVOY ?=
+
 ENVOY_FILE ?= envoy-bin/envoy-static-stripped
 
 # IF YOU MESS WITH ANY OF THESE VALUES, YOU MUST RUN `make docker-update-base`.
@@ -410,8 +412,8 @@ envoy-bin/envoy-static: $(ENVOY_BASH.deps) FORCE | envoy-bin
 	    if docker run --rm --entrypoint=true $(BASE_ENVOY_IMAGE); then \
 	        rsync -Pav --blocking-io -e 'docker run --rm -i' $$(docker image inspect $(BASE_ENVOY_IMAGE) --format='{{.Id}}' | sed 's/^sha256://'):/usr/local/bin/envoy $@; \
 	    else \
-	        if [ -n '$(CI)' ]; then \
-	            echo 'error: This should not happen in CI: should not try to compile Envoy'; \
+	        if [ -z '$(YES_I_AM_OK_WITH_COMPILING_ENVOY)' ]; then \
+	            echo 'error: Envoy compilation triggered, but $$YES_I_AM_OK_WITH_COMPILING_ENVOY is not set'; \
 	            exit 1; \
 	        fi; \
 	        $(call ENVOY_BASH.cmd, \
