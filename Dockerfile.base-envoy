@@ -17,8 +17,7 @@
 # in the Makefile, then run "make docker-update-base" to build and
 # push the new image.
 
-FROM frolvlad/alpine-glibc:alpine-3.9
-
-RUN apk --no-cache add rsync
+ARG ENVOY_BUILD_IMAGE
+FROM $ENVOY_BUILD_IMAGE
 
 ADD ./envoy-static /usr/local/bin/envoy
