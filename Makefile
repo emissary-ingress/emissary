@@ -443,7 +443,10 @@ envoy-shell: $(ENVOY_BASH.deps)
 
 base-envoy.docker: Dockerfile.base-envoy envoy-build-image.txt envoy-bin/envoy-static $(var.)BASE_ENVOY_IMAGE $(WRITE_IFCHANGED)
 	@if [ -n "$(AMBASSADOR_DEV)" ]; then echo "Do not run this from a dev shell" >&2; exit 1; fi
-	docker build $(DOCKER_OPTS) --build-arg=ENVOY_BUILD_IMAGE=$$(cat envoy-build-image.txt) -t $(BASE_ENVOY_IMAGE) -f $< envoy-bin
+	@if ! docker run --rm --entrypoint=true $(BASE_ENVOY_IMAGE); then \
+		echo "Building $(BASE_ENVOY_IMAGE)" && \
+		docker build $(DOCKER_OPTS) --build-arg=ENVOY_BUILD_IMAGE=$$(cat envoy-build-image.txt) -t $(BASE_ENVOY_IMAGE) -f $< envoy-bin
+	fi
 	@docker image inspect $(BASE_ENVOY_IMAGE) --format='{{.Id}}' | $(WRITE_IFCHANGED) $@
 
 base-py.docker: Dockerfile.base-py $(var.)BASE_PY_IMAGE $(WRITE_IFCHANGED)
