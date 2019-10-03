@@ -77,7 +77,7 @@ class AmbassadorTest(Test):
     name: Name
     path: Name
     extra_ports: Optional[List[int]] = None
-    debug_diagd: bool = False
+    debug_diagd: bool = True
     manifest_envs = ""
 
     env = []
