@@ -101,6 +101,7 @@ AMBASSADOR_DOCKER_TAG ?= $(GIT_VERSION)
 AMBASSADOR_DOCKER_IMAGE ?= $(AMBASSADOR_DOCKER_REPO):$(AMBASSADOR_DOCKER_TAG)
 AMBASSADOR_EXTERNAL_DOCKER_IMAGE ?= $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(AMBASSADOR_DOCKER_TAG)
 
+YES_I_AM_UPDATING_THE_BASE_IMAGES ?=
 YES_I_AM_OK_WITH_COMPILING_ENVOY ?=
 
 ENVOY_FILE ?= envoy-bin/envoy-static-stripped
@@ -412,7 +413,15 @@ envoy-bin/envoy-static: $(ENVOY_BASH.deps) FORCE | envoy-bin
 	    if docker run --rm --entrypoint=true $(BASE_ENVOY_IMAGE); then \
 	        rsync -Pav --blocking-io -e 'docker run --rm -i' $$(docker image inspect $(BASE_ENVOY_IMAGE) --format='{{.Id}}' | sed 's/^sha256://'):/usr/local/bin/envoy $@; \
 	    else \
+	        if [ -z '$(YES_I_AM_UPDATING_THE_BASE_IMAGES)' ]; then \
+	            { set +x; } &>/dev/null; \
+	            echo 'error: failed to pull $(BASE_ENVOY_IMAGE), but $$YES_I_AM_UPDATING_THE_BASE_IMAGES is not set'; \
+	            echo '       If you are trying to update the base images, then set that variable to a non-empty value.'; \
+	            echo '       If you are not trying to update the base images, then check your network connection and Docker credentials.'; \
+	            exit 1; \
+	        fi; \
 	        if [ -z '$(YES_I_AM_OK_WITH_COMPILING_ENVOY)' ]; then \
+	            { set +x; } &>/dev/null; \
 	            echo 'error: Envoy compilation triggered, but $$YES_I_AM_OK_WITH_COMPILING_ENVOY is not set'; \
 	            exit 1; \
 	        fi; \
@@ -444,6 +453,13 @@ envoy-shell: $(ENVOY_BASH.deps)
 base-envoy.docker: Dockerfile.base-envoy envoy-build-image.txt envoy-bin/envoy-static $(var.)BASE_ENVOY_IMAGE $(WRITE_IFCHANGED)
 	@if [ -n "$(AMBASSADOR_DEV)" ]; then echo "Do not run this from a dev shell" >&2; exit 1; fi
 	@if ! docker run --rm --entrypoint=true $(BASE_ENVOY_IMAGE); then \
+	        if [ -z '$(YES_I_AM_UPDATING_THE_BASE_IMAGES)' ]; then \
+	            { set +x; } &>/dev/null; \
+	            echo 'error: failed to pull $(BASE_ENVOY_IMAGE), but $$YES_I_AM_UPDATING_THE_BASE_IMAGES is not set'; \
+	            echo '       If you are trying to update the base images, then set that variable to a non-empty value.'; \
+	            echo '       If you are not trying to update the base images, then check your network connection and Docker credentials.'; \
+	            exit 1; \
+	        fi; \
 		echo "Building $(BASE_ENVOY_IMAGE)" && \
 		docker build $(DOCKER_OPTS) --build-arg=ENVOY_BUILD_IMAGE=$$(cat envoy-build-image.txt) -t $(BASE_ENVOY_IMAGE) -f $< envoy-bin
 	fi
@@ -452,6 +468,13 @@ base-envoy.docker: Dockerfile.base-envoy envoy-build-image.txt envoy-bin/envoy-s
 base-py.docker: Dockerfile.base-py $(var.)BASE_PY_IMAGE $(WRITE_IFCHANGED)
 	@if [ -n "$(AMBASSADOR_DEV)" ]; then echo "Do not run this from a dev shell" >&2; exit 1; fi
 	@if ! docker run --rm --entrypoint=true $(BASE_PY_IMAGE); then \
+	        if [ -z '$(YES_I_AM_UPDATING_THE_BASE_IMAGES)' ]; then \
+	            { set +x; } &>/dev/null; \
+	            echo 'error: failed to pull $(BASE_PY_IMAGE), but $$YES_I_AM_UPDATING_THE_BASE_IMAGES is not set'; \
+	            echo '       If you are trying to update the base images, then set that variable to a non-empty value.'; \
+	            echo '       If you are not trying to update the base images, then check your network connection and Docker credentials.'; \
+	            exit 1; \
+	        fi; \
 		echo "Building $(BASE_PY_IMAGE)" && \
 		docker build $(DOCKER_OPTS) -t $(BASE_PY_IMAGE) -f $< .; \
 	fi
@@ -460,6 +483,13 @@ base-py.docker: Dockerfile.base-py $(var.)BASE_PY_IMAGE $(WRITE_IFCHANGED)
 base-go.docker: Dockerfile.base-go $(var.)BASE_GO_IMAGE $(WRITE_IFCHANGED)
 	@if [ -n "$(AMBASSADOR_DEV)" ]; then echo "Do not run this from a dev shell" >&2; exit 1; fi
 	@if ! docker run --rm --entrypoint=true $(BASE_GO_IMAGE); then \
+	        if [ -z '$(YES_I_AM_UPDATING_THE_BASE_IMAGES)' ]; then \
+	            { set +x; } &>/dev/null; \
+	            echo 'error: failed to pull $(BASE_GO_IMAGE), but $$YES_I_AM_UPDATING_THE_BASE_IMAGES is not set'; \
+	            echo '       If you are trying to update the base images, then set that variable to a non-empty value.'; \
+	            echo '       If you are not trying to update the base images, then check your network connection and Docker credentials.'; \
+	            exit 1; \
+	        fi; \
 		echo "Building $(BASE_GO_IMAGE)" && \
 		docker build $(DOCKER_OPTS) -t $(BASE_GO_IMAGE) -f $< .; \
 	fi
