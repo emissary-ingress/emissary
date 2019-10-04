@@ -21,7 +21,7 @@ import (
 	"syscall"
 	"time"
 
-	grpc_echo_pb "github.com/datawire/ambassador/pkg/apis/kat"
+	grpc_echo_pb "github.com/datawire/ambassador/pkg/api/kat"
 	"github.com/gogo/protobuf/proto"
 	"github.com/gorilla/websocket"
 	"google.golang.org/grpc"

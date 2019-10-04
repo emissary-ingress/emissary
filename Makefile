@@ -548,7 +548,7 @@ build/kat/client/teleproxy: $(var.)TELEPROXY_VERSION
 	curl --fail -o $@ https://s3.amazonaws.com/datawire-static-files/teleproxy/$(TELEPROXY_VERSION)/linux/amd64/teleproxy
 
 # build/kat/client/kat_client always uses the linux/amd64 architecture
-build/kat/client/kat_client: $(wildcard ./cmd/kat-client/*) pkg/apis/kat/echo.pb.go
+build/kat/client/kat_client: $(wildcard ./cmd/kat-client/*) pkg/api/kat/echo.pb.go
 	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o $@ ./cmd/kat-client
 
 kat-server-docker-image: kat-server.docker
@@ -558,7 +558,7 @@ kat-server.docker: $(wildcard build/kat/server/*) build/kat/server/kat-server $(
 	@docker image inspect $(KAT_SERVER_DOCKER_IMAGE) --format='{{.Id}}' | $(WRITE_IFCHANGED) $@
 
 # build/kat/server/kat-server always uses the linux/amd64 architecture
-build/kat/server/kat-server: $(wildcard cmd/kat-server/* cmd/kat-server/*/*) pkg/apis/kat/echo.pb.go
+build/kat/server/kat-server: $(wildcard cmd/kat-server/* cmd/kat-server/*/*) pkg/api/kat/echo.pb.go
 	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o $@ ./cmd/kat-server
 
 docker-images: mypy ambassador-docker-image
@@ -634,7 +634,7 @@ $(KUBERNAUT): $(var.)KUBERNAUT_VERSION $(var.)GOOS $(var.)GOARCH | venv/bin/acti
 	curl -o $(KUBERNAUT) http://releases.datawire.io/kubernaut/$(KUBERNAUT_VERSION)/$(GOOS)/$(GOARCH)/kubernaut
 	chmod +x $(KUBERNAUT)
 
-$(KAT_CLIENT): $(wildcard cmd/kat-client/*) pkg/apis/kat/echo.pb.go
+$(KAT_CLIENT): $(wildcard cmd/kat-client/*) pkg/api/kat/echo.pb.go
 	go build -o $@ ./cmd/kat-client
 
 setup-develop: venv $(KAT_CLIENT) $(TELEPROXY) $(KUBERNAUT) $(WATT) $(KUBESTATUS) version
@@ -877,21 +877,21 @@ venv/bin/protoc-gen-grpc-web: $(var.)GRPC_WEB_VERSION $(var.)GRPC_WEB_PLATFORM |
 	curl -o $@ -L --fail https://github.com/grpc/grpc-web/releases/download/$(GRPC_WEB_VERSION)/protoc-gen-grpc-web-$(GRPC_WEB_VERSION)-$(GRPC_WEB_PLATFORM)
 	chmod 755 $@
 
-pkg/apis/kat/echo.pb.go: python/api/kat/echo.proto venv/bin/protoc venv/bin/protoc-gen-gogofast
+pkg/api/kat/echo.pb.go: api/kat/echo.proto venv/bin/protoc venv/bin/protoc-gen-gogofast
 	./venv/bin/protoc \
-		--proto_path=$(CURDIR)/python/api/kat \
+		--proto_path=$(CURDIR)/api/kat \
 		--plugin=$(CURDIR)/venv/bin/protoc-gen-gogofast --gogofast_out=plugins=grpc:$(@D) \
 		$(CURDIR)/$<
 
-tools/sandbox/grpc_web/echo_grpc_web_pb.js: python/api/kat/echo.proto venv/bin/protoc venv/bin/protoc-gen-grpc-web
+tools/sandbox/grpc_web/echo_grpc_web_pb.js: api/kat/echo.proto venv/bin/protoc venv/bin/protoc-gen-grpc-web
 	./venv/bin/protoc \
-		--proto_path=$(CURDIR)/python/api/kat \
+		--proto_path=$(CURDIR)/api/kat \
 		--plugin=$(CURDIR)/venv/bin/protoc-gen-grpc-web --grpc-web_out=import_style=commonjs,mode=grpcwebtext:$(@D) \
 		$(CURDIR)/$<
 
-tools/sandbox/grpc_web/echo_pb.js: python/api/kat/echo.proto venv/bin/protoc
+tools/sandbox/grpc_web/echo_pb.js: api/kat/echo.proto venv/bin/protoc
 	./venv/bin/protoc \
-		--proto_path=$(CURDIR)/python/api/kat \
+		--proto_path=$(CURDIR)/api/kat \
 		--js_out=import_style=commonjs:$(@D) \
 		$(CURDIR)/$<
 
