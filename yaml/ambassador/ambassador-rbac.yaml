@@ -304,6 +304,16 @@ spec:
             port: 8877
           initialDelaySeconds: 30
           periodSeconds: 3
+        volumeMounts:
+        - name: ambassador-pod-info
+          mountPath: /tmp/ambassador-pod-info
+      volumes:
+      - name: ambassador-pod-info
+        downwardAPI:
+          items:
+          - path: "labels"
+            fieldRef:
+              fieldPath: metadata.labels
       restartPolicy: Always
       securityContext:
         runAsUser: 8888
