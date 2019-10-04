@@ -18,6 +18,10 @@ import (
 )
 
 // filterResourceServer implements the OAuth Resource Server part of the Filter.
+//
+// As a "special" case, a FilterResponse of "nil" means to send the
+// same request to the upstream service (the other half of the
+// Resource Server).
 func (c *OAuth2Filter) filterResourceServer(ctx context.Context, logger types.Logger, httpClient *http.Client, discovered *Discovered, request *filterapi.FilterRequest) filterapi.FilterResponse {
 	token := rfc6750resourceserver.GetFromHeader(filterutil.GetHeader(request))
 	if err := c.validateAccessToken(token, discovered, httpClient, logger); err != nil {

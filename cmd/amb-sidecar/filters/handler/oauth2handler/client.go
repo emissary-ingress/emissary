@@ -91,16 +91,38 @@ func (c *OAuth2Filter) filterClient(ctx context.Context, logger types.Logger, ht
 			}
 			// OK, the scope check passed, inject the Authorization header, and continue
 			// to the Resource Server half.
-			ret := &filterapi.HTTPRequestModification{}
+			addAuthorization := &filterapi.HTTPRequestModification{}
 			for k, vs := range authorization {
 				for _, v := range vs {
-					ret.Header = append(ret.Header, &filterapi.HTTPHeaderReplaceValue{
+					addAuthorization.Header = append(addAuthorization.Header, &filterapi.HTTPHeaderReplaceValue{
 						Key:   k,
 						Value: v,
 					})
 				}
 			}
-			return ret
+			filterutil.ApplyRequestModification(request, addAuthorization)
+
+			resourceResponse := c.filterResourceServer(ctx, logger, httpClient, discovered, request)
+			if resourceResponse == nil {
+				// nil means to send the same request+authorization to the upstream service, so tell
+				// Envoy to add the authorization to the request.
+				return addAuthorization
+			} else if resourceResponse, typeOK := resourceResponse.(*filterapi.HTTPResponse); typeOK && resourceResponse.StatusCode == http.StatusUnauthorized {
+				// The upstream Resource Server returns 401 Unauthorized to the Client--the Client does NOT pass
+				// 401 along to the User Agent; the User Agent is NOT using an RFC 7235-compatible
+				// authentication scheme to talk to the Client; 401 would be inappropriate.
+				//
+				// Instead, wrap the 401 response in a 403 Forbidden response.
+				return middleware.NewErrorResponse(ctx, http.StatusForbidden,
+					errors.New("authorization rejected"),
+					map[string]interface{}{
+						"synthesized_upstream_response": resourceResponse,
+					},
+				)
+			} else {
+				// Otherwise, just return the upstream resource server's response
+				return resourceResponse
+			}
 		} else if err == rfc6749client.ErrNoAccessToken {
 			// This indicates a programming error; we've check that there is an access token.
 			panic(err)
