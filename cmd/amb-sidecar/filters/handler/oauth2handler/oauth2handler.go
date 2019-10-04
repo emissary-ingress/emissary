@@ -11,6 +11,9 @@ import (
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta2"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/httpclient"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/middleware"
+	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/oauth2handler/client"
+	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/oauth2handler/discovery"
+	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/oauth2handler/resourceserver"
 	"github.com/datawire/apro/lib/filterapi"
 )
 
@@ -31,7 +34,7 @@ func (f *OAuth2Filter) Filter(ctx context.Context, request *filterapi.FilterRequ
 	logger := middleware.GetLogger(ctx)
 	httpClient := httpclient.NewHTTPClient(logger, f.Spec.MaxStale, f.Spec.InsecureTLS)
 
-	discovered, err := Discover(httpClient, f.Spec, logger)
+	discovered, err := discovery.Discover(httpClient, f.Spec, logger)
 	if err != nil {
 		return middleware.NewErrorResponse(ctx, http.StatusBadGateway,
 			errors.Wrap(err, "OIDC-discovery"), nil), nil
@@ -44,5 +47,19 @@ func (f *OAuth2Filter) Filter(ctx context.Context, request *filterapi.FilterRequ
 	}
 	defer f.RedisPool.Put(redisClient)
 
-	return f.filterClient(ctx, logger, httpClient, discovered, redisClient, request), nil
+	oauth2client := &client.OAuth2Client{
+		QName:     f.QName,
+		Spec:      f.Spec,
+		Arguments: f.Arguments,
+
+		ResourceServer: &resourceserver.OAuth2ResourceServer{
+			Spec:      f.Spec,
+			Arguments: f.Arguments,
+		},
+
+		PrivateKey: f.PrivateKey,
+		PublicKey:  f.PublicKey,
+	}
+
+	return oauth2client.Filter(ctx, logger, httpClient, discovered, redisClient, request), nil
 }

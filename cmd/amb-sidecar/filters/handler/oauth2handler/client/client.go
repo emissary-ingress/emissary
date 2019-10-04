@@ -1,4 +1,4 @@
-package oauth2handler
+package client
 
 import (
 	"context"
@@ -20,7 +20,10 @@ import (
 	rfc6749client "github.com/datawire/liboauth2/client/rfc6749"
 	rfc6750client "github.com/datawire/liboauth2/client/rfc6750"
 
+	crd "github.com/datawire/apro/apis/getambassador.io/v1beta2"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/middleware"
+	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/oauth2handler/discovery"
+	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/oauth2handler/resourceserver"
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
 	"github.com/datawire/apro/lib/filterapi"
 	"github.com/datawire/apro/lib/filterapi/filterutil"
@@ -32,12 +35,23 @@ const (
 	sessionExpiry = 365 * 24 * time.Hour
 )
 
-func (c *OAuth2Filter) sessionCookieName() string {
+// OAuth2Client implements the OAuth Client part of the Filter.
+type OAuth2Client struct {
+	QName     string
+	Spec      crd.FilterOAuth2
+	Arguments crd.FilterOAuth2Arguments
+
+	ResourceServer *resourceserver.OAuth2ResourceServer
+
+	PrivateKey *rsa.PrivateKey
+	PublicKey  *rsa.PublicKey
+}
+
+func (c *OAuth2Client) sessionCookieName() string {
 	return "ambassador_session." + c.QName
 }
 
-// filterClient implements the OAuth Client part of the Filter.
-func (c *OAuth2Filter) filterClient(ctx context.Context, logger types.Logger, httpClient *http.Client, discovered *Discovered, redisClient *redis.Client, request *filterapi.FilterRequest) filterapi.FilterResponse {
+func (c *OAuth2Client) Filter(ctx context.Context, logger types.Logger, httpClient *http.Client, discovered *discovery.Discovered, redisClient *redis.Client, request *filterapi.FilterRequest) filterapi.FilterResponse {
 	oauthClient, err := rfc6749client.NewAuthorizationCodeClient(
 		c.Spec.ClientID,
 		discovered.AuthorizationEndpoint,
@@ -85,7 +99,7 @@ func (c *OAuth2Filter) filterClient(ctx context.Context, logger types.Logger, ht
 			}
 			filterutil.ApplyRequestModification(request, addAuthorization)
 
-			resourceResponse := c.filterResourceServer(ctx, logger, httpClient, discovered, request, sessionData.CurrentAccessToken.Scope)
+			resourceResponse := c.ResourceServer.Filter(ctx, logger, httpClient, discovered, request, sessionData.CurrentAccessToken.Scope)
 			if resourceResponse == nil {
 				// nil means to send the same request+authorization to the upstream service, so tell
 				// Envoy to add the authorization to the request.
@@ -252,7 +266,7 @@ func randomString(bits int) (string, error) {
 	return hex.EncodeToString(buf), nil
 }
 
-func (c *OAuth2Filter) loadSession(redisClient *redis.Client, request *filterapi.FilterRequest) (sessionID string, sessionData *rfc6749client.AuthorizationCodeClientSessionData, err error) {
+func (c *OAuth2Client) loadSession(redisClient *redis.Client, request *filterapi.FilterRequest) (sessionID string, sessionData *rfc6749client.AuthorizationCodeClientSessionData, err error) {
 	// BS to leverage net/http's cookie-parsing
 	r := &http.Request{
 		Header: filterutil.GetHeader(request),
@@ -278,7 +292,7 @@ func (c *OAuth2Filter) loadSession(redisClient *redis.Client, request *filterapi
 	return sessionID, sessionData, nil
 }
 
-func (c *OAuth2Filter) saveSession(redisClient *redis.Client, sessionID string, sessionData *rfc6749client.AuthorizationCodeClientSessionData) error {
+func (c *OAuth2Client) saveSession(redisClient *redis.Client, sessionID string, sessionData *rfc6749client.AuthorizationCodeClientSessionData) error {
 	if sessionData.IsDirty() {
 		sessionDataBytes, err := json.Marshal(sessionData)
 		if err != nil {
@@ -294,7 +308,7 @@ func (c *OAuth2Filter) saveSession(redisClient *redis.Client, sessionID string, 
 	return nil
 }
 
-func (c *OAuth2Filter) signState(originalURL *url.URL, logger types.Logger) string {
+func (c *OAuth2Client) signState(originalURL *url.URL, logger types.Logger) string {
 	t := jwt.New(jwt.SigningMethodRS256)
 	t.Claims = jwt.MapClaims{
 		"exp":          time.Now().Add(c.Spec.StateTTL).Unix(), // time when the token will expire (10 minutes from now)

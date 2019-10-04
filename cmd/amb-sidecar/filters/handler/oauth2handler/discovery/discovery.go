@@ -1,4 +1,4 @@
-package oauth2handler
+package discovery
 
 import (
 	"net/http"

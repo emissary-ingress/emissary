@@ -1,4 +1,4 @@
-package oauth2handler
+package resourceserver
 
 import (
 	"net/http"
@@ -7,10 +7,11 @@ import (
 
 	rfc6750client "github.com/datawire/liboauth2/client/rfc6750"
 
+	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/oauth2handler/discovery"
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
 )
 
-func (rs *OAuth2Filter) validateAccessTokenUserinfo(token string, discovered *Discovered, httpClient *http.Client, logger types.Logger) error {
+func (rs *OAuth2ResourceServer) validateAccessTokenUserinfo(token string, discovered *discovery.Discovered, httpClient *http.Client, logger types.Logger) error {
 	// This method is a little funny, since it has the Resource
 	// Server acting like a Client to a different Resource server.
 
