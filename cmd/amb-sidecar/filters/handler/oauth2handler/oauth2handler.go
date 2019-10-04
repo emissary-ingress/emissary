@@ -27,22 +27,22 @@ type OAuth2Filter struct {
 	Arguments  crd.FilterOAuth2Arguments
 }
 
-func (c *OAuth2Filter) Filter(ctx context.Context, request *filterapi.FilterRequest) (filterapi.FilterResponse, error) {
+func (f *OAuth2Filter) Filter(ctx context.Context, request *filterapi.FilterRequest) (filterapi.FilterResponse, error) {
 	logger := middleware.GetLogger(ctx)
-	httpClient := httpclient.NewHTTPClient(logger, c.Spec.MaxStale, c.Spec.InsecureTLS)
+	httpClient := httpclient.NewHTTPClient(logger, f.Spec.MaxStale, f.Spec.InsecureTLS)
 
-	discovered, err := Discover(httpClient, c.Spec, logger)
+	discovered, err := Discover(httpClient, f.Spec, logger)
 	if err != nil {
 		return middleware.NewErrorResponse(ctx, http.StatusBadGateway,
 			errors.Wrap(err, "OIDC-discovery"), nil), nil
 	}
 
-	redisClient, err := c.RedisPool.Get()
+	redisClient, err := f.RedisPool.Get()
 	if err != nil {
 		return middleware.NewErrorResponse(ctx, http.StatusBadGateway,
 			errors.Wrap(err, "Redis"), nil), nil
 	}
-	defer c.RedisPool.Put(redisClient)
+	defer f.RedisPool.Put(redisClient)
 
-	return c.filterClient(ctx, logger, httpClient, discovered, redisClient, request), nil
+	return f.filterClient(ctx, logger, httpClient, discovered, redisClient, request), nil
 }

@@ -22,36 +22,36 @@ import (
 // As a "special" case, a FilterResponse of "nil" means to send the
 // same request to the upstream service (the other half of the
 // Resource Server).
-func (c *OAuth2Filter) filterResourceServer(ctx context.Context, logger types.Logger, httpClient *http.Client, discovered *Discovered, request *filterapi.FilterRequest) filterapi.FilterResponse {
+func (rs *OAuth2Filter) filterResourceServer(ctx context.Context, logger types.Logger, httpClient *http.Client, discovered *Discovered, request *filterapi.FilterRequest) filterapi.FilterResponse {
 	token := rfc6750resourceserver.GetFromHeader(filterutil.GetHeader(request))
-	if err := c.validateAccessToken(token, discovered, httpClient, logger); err != nil {
+	if err := rs.validateAccessToken(token, discovered, httpClient, logger); err != nil {
 		return middleware.NewErrorResponse(ctx, http.StatusBadRequest, err, nil)
 	}
 	return nil
 }
 
-func (j *OAuth2Filter) validateAccessToken(token string, discovered *Discovered, httpClient *http.Client, logger types.Logger) error {
-	switch j.Spec.AccessTokenValidation {
+func (rs *OAuth2Filter) validateAccessToken(token string, discovered *Discovered, httpClient *http.Client, logger types.Logger) error {
+	switch rs.Spec.AccessTokenValidation {
 	case "auto":
-		claims, err := j.parseJWT(token, discovered)
+		claims, err := rs.parseJWT(token, discovered)
 		if err == nil {
-			return j.validateJWT(claims, discovered, logger)
+			return rs.validateJWT(claims, discovered, logger)
 		}
 		logger.Debugln("rejecting JWT validation; falling back to UserInfo Endpoint validation:", err)
 		fallthrough
 	case "userinfo":
-		return j.validateAccessTokenUserinfo(token, discovered, httpClient, logger)
+		return rs.validateAccessTokenUserinfo(token, discovered, httpClient, logger)
 	case "jwt":
-		claims, err := j.parseJWT(token, discovered)
+		claims, err := rs.parseJWT(token, discovered)
 		if err != nil {
 			return err
 		}
-		return j.validateJWT(claims, discovered, logger)
+		return rs.validateJWT(claims, discovered, logger)
 	}
 	panic("not reached")
 }
 
-func (j *OAuth2Filter) parseJWT(token string, discovered *Discovered) (jwt.MapClaims, error) {
+func (rs *OAuth2Filter) parseJWT(token string, discovered *Discovered) (jwt.MapClaims, error) {
 	jwtParser := jwt.Parser{
 		ValidMethods: []string{
 			// Any of the RSA algs supported by jwt-go
@@ -83,9 +83,9 @@ func (j *OAuth2Filter) parseJWT(token string, discovered *Discovered) (jwt.MapCl
 	return claims, nil
 }
 
-func (j *OAuth2Filter) validateScope(actual rfc6749client.Scope) error {
-	desired := make(rfc6749client.Scope, len(j.Arguments.Scopes))
-	for _, s := range j.Arguments.Scopes {
+func (rs *OAuth2Filter) validateScope(actual rfc6749client.Scope) error {
+	desired := make(rfc6749client.Scope, len(rs.Arguments.Scopes))
+	for _, s := range rs.Arguments.Scopes {
 		desired[s] = struct{}{}
 	}
 	var missing []string
@@ -107,15 +107,15 @@ func (j *OAuth2Filter) validateScope(actual rfc6749client.Scope) error {
 	}
 }
 
-func (j *OAuth2Filter) validateJWT(claims jwt.MapClaims, discovered *Discovered, logger types.Logger) error {
+func (rs *OAuth2Filter) validateJWT(claims jwt.MapClaims, discovered *Discovered, logger types.Logger) error {
 	// Validate 'exp', 'iat', and 'nbf' claims.
 	if err := claims.Valid(); err != nil {
 		return err
 	}
 
 	// Validate 'aud' claim.
-	//if !claims.VerifyAudience(j.Spec.Audience, false) {
-	//	return errors.Errorf("token has wrong audience: token=%#v expected=%q", claims["aud"], j.Spec.Audience)
+	//if !claims.VerifyAudience(rs.Spec.Audience, false) {
+	//	return errors.Errorf("token has wrong audience: token=%#v expected=%q", claims["aud"], rs.Spec.Audience)
 	//}
 
 	// Validate 'iss' claim.
@@ -130,7 +130,7 @@ func (j *OAuth2Filter) validateJWT(claims jwt.MapClaims, discovered *Discovered,
 	case nil:
 		logger.Debugf("No scope to verify")
 	case string: // proposed standard; most Authorization Servers do this
-		if err := j.validateScope(rfc6749client.ParseScope(scopeClaim)); err != nil {
+		if err := rs.validateScope(rfc6749client.ParseScope(scopeClaim)); err != nil {
 			return errors.Wrap(err, "token has wrong scope")
 		}
 	case []interface{}: // UAA does this
@@ -143,7 +143,7 @@ func (j *OAuth2Filter) validateJWT(claims jwt.MapClaims, discovered *Discovered,
 				logger.Warningf("Unexpected scope[n] type: %T", scopeValue)
 			}
 		}
-		if err := j.validateScope(actual); err != nil {
+		if err := rs.validateScope(actual); err != nil {
 			return errors.Wrap(err, "token has wrong scope")
 		}
 	default:

@@ -10,7 +10,7 @@ import (
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
 )
 
-func (j *OAuth2Filter) validateAccessTokenUserinfo(token string, discovered *Discovered, httpClient *http.Client, logger types.Logger) error {
+func (rs *OAuth2Filter) validateAccessTokenUserinfo(token string, discovered *Discovered, httpClient *http.Client, logger types.Logger) error {
 	// This method is a little funny, since it has the Resource
 	// Server acting like a Client to a different Resource server.
 

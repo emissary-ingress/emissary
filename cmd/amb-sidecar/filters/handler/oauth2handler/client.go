@@ -304,17 +304,17 @@ func (c *OAuth2Filter) saveSession(redisClient *redis.Client, sessionID string, 
 	return nil
 }
 
-func (h *OAuth2Filter) signState(originalURL *url.URL, logger types.Logger) string {
+func (c *OAuth2Filter) signState(originalURL *url.URL, logger types.Logger) string {
 	t := jwt.New(jwt.SigningMethodRS256)
 	t.Claims = jwt.MapClaims{
-		"exp":          time.Now().Add(h.Spec.StateTTL).Unix(), // time when the token will expire (10 minutes from now)
+		"exp":          time.Now().Add(c.Spec.StateTTL).Unix(), // time when the token will expire (10 minutes from now)
 		"jti":          uuid.Must(uuid.NewV4(), nil).String(),  // a unique identifier for the token
 		"iat":          time.Now().Unix(),                      // when the token was issued/created (now)
 		"nbf":          0,                                      // time before which the token is not yet valid (2 minutes ago)
 		"redirect_url": originalURL.String(),                   // original request url
 	}
 
-	k, err := t.SignedString(h.PrivateKey)
+	k, err := t.SignedString(c.PrivateKey)
 	if err != nil {
 		logger.Errorf("failed to sign state: %v", err)
 	}
