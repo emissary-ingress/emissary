@@ -37,5 +37,12 @@ func (c *OAuth2Filter) Filter(ctx context.Context, request *filterapi.FilterRequ
 			errors.Wrap(err, "OIDC-discovery"), nil), nil
 	}
 
-	return c.filterClient(ctx, logger, httpClient, discovered, request), nil
+	redisClient, err := c.RedisPool.Get()
+	if err != nil {
+		return middleware.NewErrorResponse(ctx, http.StatusBadGateway,
+			errors.Wrap(err, "Redis"), nil), nil
+	}
+	defer c.RedisPool.Put(redisClient)
+
+	return c.filterClient(ctx, logger, httpClient, discovered, redisClient, request), nil
 }

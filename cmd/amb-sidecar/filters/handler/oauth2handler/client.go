@@ -37,13 +37,7 @@ func (c *OAuth2Filter) sessionCookieName() string {
 }
 
 // filterClient implements the OAuth Client part of the Filter.
-func (c *OAuth2Filter) filterClient(ctx context.Context, logger types.Logger, httpClient *http.Client, discovered *Discovered, request *filterapi.FilterRequest) filterapi.FilterResponse {
-	redisClient, err := c.RedisPool.Get()
-	if err != nil {
-		return middleware.NewErrorResponse(ctx, http.StatusBadGateway,
-			errors.Wrap(err, "Redis"), nil)
-	}
-
+func (c *OAuth2Filter) filterClient(ctx context.Context, logger types.Logger, httpClient *http.Client, discovered *Discovered, redisClient *redis.Client, request *filterapi.FilterRequest) filterapi.FilterResponse {
 	oauthClient, err := rfc6749client.NewAuthorizationCodeClient(
 		c.Spec.ClientID,
 		discovered.AuthorizationEndpoint,
@@ -67,7 +61,6 @@ func (c *OAuth2Filter) filterClient(ctx context.Context, logger types.Logger, ht
 				panic(err)
 			}
 		}
-		c.RedisPool.Put(redisClient)
 	}()
 	logger.Debugf("session data: %#v", sessionData)
 	switch {
