@@ -411,6 +411,11 @@ class ResourceFetcher:
 
         ambassador_id = annotations.get('getambassador.io/ambassador-id', 'default')
 
+        # We don't want to deal with non-matching Ambassador IDs
+        if ambassador_id != Config.ambassador_id:
+            self.logger.info(f"Ingress {ingress_name} does not have Ambassador ID {Config.ambassador_id}, ignoring...")
+            return None
+
         self.logger.info(f"Handling Ingress {ingress_name}...")
 
         ingress_tls = ingress_spec.get('tls', [])
@@ -509,12 +514,40 @@ class ResourceFetcher:
             return resource_identifier, parsed_ambassador_annotations
 
         # let's make arrangements to update Ingress' status now
-        ingress_status = self.ambassador_service_raw.get('status', {})
-        ingress_status_update = (k8s_object.get('kind'), ingress_status)
-        self.logger.info(f"Updating Ingress {ingress_name} status to {ingress_status_update}")
-        self.aconf.k8s_status_updates[ingress_name] = ingress_status_update
+        if not self.ambassador_service_raw:
+            self.logger.error(f"Unable to update Ingress {ingress_name}'s status, could not find Ambassador service")
+        else:
+            ingress_status = self.ambassador_service_raw.get('status', {})
+            ingress_status_update = (k8s_object.get('kind'), ingress_status)
+            self.logger.info(f"Updating Ingress {ingress_name} status to {ingress_status_update}")
+            self.aconf.k8s_status_updates[ingress_name] = ingress_status_update
 
         return None
+
+    def is_ambassador_service(self, service_labels, service_selector):
+
+        # Every Ambassador service must have the label 'app.kubernetes.io/component: ambassador-service'
+        if service_labels is None:
+            return False
+
+        if service_labels.get('app.kubernetes.io/component', "").lower() != 'ambassador-service':
+            return False
+
+        # Now that we have the Ambassador label, let's verify that this Ambassador service routes to this very
+        # Ambassador pod.
+        # We do this by checking that the pod's labels match the selector in the service.
+        pod_labels_path = '/tmp/ambassador-pod-info/labels'
+        if not os.path.isfile(pod_labels_path):
+            self.aconf.post_error(f"pod labels are not mounted in Ambassador container, please check pod configuration")
+
+        with open(pod_labels_path) as pod_labels_file:
+            pod_labels = pod_labels_file.readlines()
+
+        self.logger.info(f"Found pod labels: {pod_labels}")
+        for pod_label in pod_labels:
+            for key, value in service_selector.items():
+                if pod_label.rstrip() == f'{key}="{value}"':
+                    return True
 
     def handle_k8s_endpoints(self, k8s_object: AnyDict) -> HandlerResult:
         # Don't include Endpoints unless endpoint routing is enabled.
@@ -696,13 +729,11 @@ class ResourceFetcher:
             }
 
             selector = spec.get('selector', {})
-            for key, value in selector.items():
-                if key == 'service' and value == 'ambassador' and resource_name == 'ambassador':
-                    self.logger.debug(f"Found Ambassador's service: {k8s_object}")
-                    self.ambassador_service_raw = k8s_object
-                else:
-                    self.aconf.post_error("Could not find an Ambassador service, make sure a service exists with label"
-                                          "'service: ambassador' and name 'ambassador'")
+
+            if self.is_ambassador_service(labels, selector):
+                self.logger.info(f"Found Ambassador service: {resource_name}")
+                self.ambassador_service_raw = k8s_object
+
         else:
             self.logger.debug(f"not saving K8s Service {resource_name}.{resource_namespace} with no ports")
 

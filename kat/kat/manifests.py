@@ -465,6 +465,8 @@ apiVersion: v1
 kind: Service
 metadata:
   name: {self.path.k8s}
+  labels:
+    app.kubernetes.io/component: ambassador-service
 spec:
   type: NodePort
   ports:
@@ -549,6 +551,16 @@ spec:
     volumeMounts:
       - mountPath: /tmp/
         name: scratchpad
+      - name: ambassador-pod-info
+        mountPath: /tmp/ambassador-pod-info
+  volumes:
+  - name: ambassador-pod-info
+    downwardAPI:
+      items:
+      - path: "labels"
+        fieldRef:
+          fieldPath: metadata.labels
+
 """
 
 HTTPBIN = """
