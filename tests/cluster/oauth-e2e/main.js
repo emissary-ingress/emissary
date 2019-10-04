@@ -46,7 +46,10 @@ for (let idpFile of glob.sync("./idp_*.js")) {
 					const echoedRequest = JSON.parse(await browsertab.evaluate(() => {return document.body.textContent}));
 					expect(echoedRequest.headers.Authorization).to.match(/^Bearer /);
 				} finally {
-					await browsertab.screenshot({path: idpFile.replace(/\.js$/, ".png")});
+					console.log("url is:"+browsertab.url());
+					let filepath = idpFile.replace(/\.js$/, ".png");
+					console.log("saving screenshot: "+filepath);
+					await browsertab.screenshot({path: filepath});
 					if (testcase.after) {
 						testcase.after();
 					}
@@ -74,7 +77,10 @@ for (let idpFile of glob.sync("./idp_*.js")) {
 						// this is the extra bit at the end
 						expect(echoedRequest.headers['X-Wikipedia']).to.not.be.undefined
 					} finally {
-						await browsertab.screenshot({path: idpFile.replace(/\.js$/, "_chained.png")});
+						console.log("url is:"+browsertab.url());
+						let filepath = idpFile.replace(/\.js$/, "_chained.png");
+						console.log("saving screenshot: "+filepath);
+						await browsertab.screenshot({path: filepath});
 					}
 				});});
 				it('can be turned off for specific paths', function() { return withBrowserTab(async (browsertab) => {
@@ -86,7 +92,10 @@ for (let idpFile of glob.sync("./idp_*.js")) {
 						const responseBody = JSON.parse(await browsertab.evaluate(() => {return document.body.textContent}));
 						expect(responseBody.origin).to.be.a('string');
 					} finally {
-						await browsertab.screenshot({path: idpFile.replace(/\.js$/, "_disabled.png")});
+						console.log("url is:"+browsertab.url());
+						let filepath = idpFile.replace(/\.js$/, "_disabled.png");
+						console.log("saving screenshot: "+filepath);
+						await browsertab.screenshot({path: filepath});
 					}
 				});});
 			}
