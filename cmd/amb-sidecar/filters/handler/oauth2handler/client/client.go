@@ -231,7 +231,7 @@ func (sessionInfo *SessionInfo) handleUnauthenticatedProxyRequest(ctx context.Co
 		Path: "/",
 
 		// Strictly match {{originalURL.Hostname}}.  Explicitly setting it to originalURL.Hostname()
-		// would instead also "*.{{originalURL.Hostname}}".
+		// would instead also match "*.{{originalURL.Hostname}}".
 		Domain: "",
 
 		// How long should the User-Agent retain the cookie?  If unset, it will expire at the end of the
