@@ -13,10 +13,10 @@ import (
 	"strconv"
 	"strings"
 
-	core "github.com/datawire/ambassador/go/apis/envoy/api/v2/core"
-	pb "github.com/datawire/ambassador/go/apis/envoy/service/auth/v2"
-	pb_legacy "github.com/datawire/ambassador/go/apis/envoy/service/auth/v2alpha"
-	envoy_type "github.com/datawire/ambassador/go/apis/envoy/type"
+	core "github.com/datawire/ambassador/pkg/api/envoy/api/v2/core"
+	pb "github.com/datawire/ambassador/pkg/api/envoy/service/auth/v2"
+	pb_legacy "github.com/datawire/ambassador/pkg/api/envoy/service/auth/v2alpha"
+	envoy_type "github.com/datawire/ambassador/pkg/api/envoy/type"
 
 	rpc "istio.io/gogo-genproto/googleapis/google/rpc"
 	gogo_type "github.com/gogo/protobuf/types"

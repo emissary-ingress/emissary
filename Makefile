@@ -243,7 +243,7 @@ clean: clean-test envoy-build-container.txt.clean $(addsuffix .clean,$(clean_doc
 	rm -f tools/sandbox/http_auth/docker-compose.yml
 	rm -f tools/sandbox/grpc_auth/docker-compose.yml
 	rm -f tools/sandbox/grpc_web/docker-compose.yaml tools/sandbox/grpc_web/*_pb.js
-	rm -rf go/apis.envoy.tmp/
+	rm -rf pkg/api.envoy.tmp/
 	rm -rf envoy-bin
 	rm -f envoy-build-image.txt
 	rm -f ambex
@@ -529,7 +529,7 @@ docker-push-base-images:
 	@echo "RESTART ANY DEV SHELLS to make sure they use your new images."
 
 docker-update-base:
-	$(MAKE) docker-base-images go/apis/envoy
+	$(MAKE) docker-base-images pkg/api/envoy
 	$(MAKE) docker-push-base-images
 
 ambassador-docker-image: ambassador.docker
@@ -838,14 +838,14 @@ mappings += metrics.proto=istio.io/gogo-genproto/prometheus
 mappings += opencensus/proto/trace/v1/trace.proto=istio.io/gogo-genproto/opencensus/proto/trace/v1
 mappings += opencensus/proto/trace/v1/trace_config.proto=istio.io/gogo-genproto/opencensus/proto/trace/v1
 mappings += validate/validate.proto=github.com/envoyproxy/protoc-gen-validate/validate
-mappings += $(shell find $(CURDIR)/envoy-src/api/envoy -type f -name '*.proto' | sed -E 's,^$(CURDIR)/envoy-src/api/((.*)/[^/]*),\1=github.com/datawire/ambassador/go/apis/\2,')
+mappings += $(shell find $(CURDIR)/envoy-src/api/envoy -type f -name '*.proto' | sed -E 's,^$(CURDIR)/envoy-src/api/((.*)/[^/]*),\1=github.com/datawire/ambassador/pkg/api/\2,')
 
 joinlist=$(if $(word 2,$2),$(firstword $2)$1$(call joinlist,$1,$(wordlist 2,$(words $2),$2)),$2)
 comma = ,
 
 _imports = $(call lazyonce,_imports,$(imports))
 _mappings = $(call lazyonce,_mappings,$(mappings))
-go/apis/envoy: envoy-src $(FLOCK) venv/bin/protoc venv/bin/protoc-gen-gogofast venv/bin/protoc-gen-validate $(var.)_imports $(var.)_mappings
+pkg/api/envoy: envoy-src $(FLOCK) venv/bin/protoc venv/bin/protoc-gen-gogofast venv/bin/protoc-gen-validate $(var.)_imports $(var.)_mappings
 	rm -rf $@ $(@D).envoy.tmp
 	mkdir -p $(@D).envoy.tmp
 # go-control-plane `make generate`
@@ -859,7 +859,7 @@ go/apis/envoy: envoy-src $(FLOCK) venv/bin/protoc venv/bin/protoc-gen-gogofast v
 	done
 # go-control-plane `make generate-patch`
 # https://github.com/envoyproxy/go-control-plane/issues/173
-	find $(@D).envoy.tmp -name '*.validate.go' -exec sed -E -i.bak 's,"(envoy/.*)"$$,"github.com/datawire/ambassador/go/apis/\1",' {} +
+	find $(@D).envoy.tmp -name '*.validate.go' -exec sed -E -i.bak 's,"(envoy/.*)"$$,"github.com/datawire/ambassador/pkg/api/\1",' {} +
 	find $(@D).envoy.tmp -name '*.bak' -delete
 # move things in to place
 	mkdir -p $(@D)
