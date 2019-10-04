@@ -112,7 +112,7 @@ ENVOY_FILE ?= envoy-bin/envoy-static-stripped
   # Increment BASE_ENVOY_RELVER on changes to `Dockerfile.base-envoy`, or Envoy recipes
   BASE_ENVOY_RELVER ?= 3
   # Increment BASE_GO_RELVER on changes to `Dockerfile.base-go`
-  BASE_GO_RELVER    ?= 16
+  BASE_GO_RELVER    ?= 17
   # Increment BASE_PY_RELVER on changes to `Dockerfile.base-py`, `releng/*`, `multi/requirements.txt`, `ambassador/requirements.txt`
   BASE_PY_RELVER    ?= 16
 
@@ -242,6 +242,7 @@ clean: clean-test envoy-build-container.txt.clean $(addsuffix .clean,$(clean_doc
 	rm -rf go/apis.envoy.tmp/
 	rm -rf envoy-bin
 	rm -f envoy-build-image.txt
+	rm -f ambex
 
 clobber: clean kill-docker-registry
 	-rm -f kat-client-docker-image/teleproxy
@@ -497,7 +498,7 @@ docker-update-base:
 	$(MAKE) docker-push-base-images
 
 ambassador-docker-image: ambassador.docker
-ambassador.docker: Dockerfile base-go.docker base-py.docker $(ENVOY_FILE) $(WATT) $(KUBESTATUS) $(WRITE_IFCHANGED) ambassador/ambassador/VERSION.py FORCE
+ambassador.docker: Dockerfile base-go.docker base-py.docker $(ENVOY_FILE) ambex $(WATT) $(KUBESTATUS) $(WRITE_IFCHANGED) ambassador/ambassador/VERSION.py FORCE
 	docker build --build-arg ENVOY_FILE=$(ENVOY_FILE) --build-arg BASE_GO_IMAGE=$(BASE_GO_IMAGE) --build-arg BASE_PY_IMAGE=$(BASE_PY_IMAGE) $(DOCKER_OPTS) -t $(AMBASSADOR_DOCKER_IMAGE) .
 	@docker image inspect $(AMBASSADOR_DOCKER_IMAGE) --format='{{.Id}}' | $(WRITE_IFCHANGED) $@
 
@@ -585,6 +586,10 @@ run_teleproxy = $(TELEPROXY)
 $(WATT): $(var.)WATT_VERSION
 	curl -o $(WATT) https://s3.amazonaws.com/datawire-static-files/watt/$(WATT_VERSION)/linux/amd64/watt
 	chmod go-w,a+x $(WATT)
+
+# This is for the docker image, so we don't use the current arch, we hardcode to linux/amd64
+ambex: $(wildcard go/ambex/*.go) go.mod
+	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o $@ ./go/ambex
 
 # This is for the docker image, so we don't use the current arch, we hardcode to linux/amd64
 $(KUBESTATUS): $(var.)KUBESTATUS_VERSION

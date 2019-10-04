@@ -3,6 +3,7 @@
 !ambassador/
 !demo/
 !releng/
+!ambex
 !watt
 !kubestatus
 !envoy-bin/
