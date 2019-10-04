@@ -5,7 +5,7 @@
 For running the loadtest, we will provision a GKE cluster by running
 `make loadtest-deploy`.
 
-Make sure you have `gcloud` and `terraform` installed:
+Make sure you have `gcloud` and `terraform` 1.11 installed:
 ```console
 $ gcloud version
 Google Cloud SDK 265.0.0
@@ -16,6 +16,11 @@ gsutil 4.43
 $ terraform version
 Terraform v0.11.14
 ```
+
+Download the latest `gcloud` SDK from https://cloud.google.com/sdk/docs/quickstarts 
+
+Download `terrafrom` 1.11.x from https://releases.hashicorp.com/terraform/
+Versions 1.12+ of Terraform are not supported.
 
 You will also need GCloud credentials for the `datawireio` GCP Project.
 Please follow instructions in your terminal to complete the setup.
