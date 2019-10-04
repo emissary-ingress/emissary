@@ -74,16 +74,6 @@ func (c *OAuth2Filter) filterClient(ctx context.Context, logger types.Logger, ht
 			return strings.NewReader(request.GetRequest().GetHttp().GetBody())
 		})
 		if err == nil {
-			// Validate the scope values we were granted.  This really belongs in
-			// .filterResourceServer(), but our content-agnostic half-Resource-Server
-			// doesn't have a good way of verifying that it was granted arbitrary scope
-			// values.
-			if err := c.validateScope(sessionData.CurrentAccessToken.Scope); err != nil {
-				return middleware.NewErrorResponse(ctx, http.StatusForbidden,
-					errors.Wrap(err, "insufficient privilege scope"), nil)
-			}
-			// OK, the scope check passed, inject the Authorization header, and continue
-			// to the Resource Server half.
 			addAuthorization := &filterapi.HTTPRequestModification{}
 			for k, vs := range authorization {
 				for _, v := range vs {
@@ -95,7 +85,7 @@ func (c *OAuth2Filter) filterClient(ctx context.Context, logger types.Logger, ht
 			}
 			filterutil.ApplyRequestModification(request, addAuthorization)
 
-			resourceResponse := c.filterResourceServer(ctx, logger, httpClient, discovered, request)
+			resourceResponse := c.filterResourceServer(ctx, logger, httpClient, discovered, request, sessionData.CurrentAccessToken.Scope)
 			if resourceResponse == nil {
 				// nil means to send the same request+authorization to the upstream service, so tell
 				// Envoy to add the authorization to the request.

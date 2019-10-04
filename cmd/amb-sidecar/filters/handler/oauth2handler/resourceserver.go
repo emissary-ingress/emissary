@@ -22,11 +22,21 @@ import (
 // As a "special" case, a FilterResponse of "nil" means to send the
 // same request to the upstream service (the other half of the
 // Resource Server).
-func (rs *OAuth2Filter) filterResourceServer(ctx context.Context, logger types.Logger, httpClient *http.Client, discovered *Discovered, request *filterapi.FilterRequest) filterapi.FilterResponse {
+func (rs *OAuth2Filter) filterResourceServer(ctx context.Context, logger types.Logger, httpClient *http.Client, discovered *Discovered, request *filterapi.FilterRequest, scope rfc6749client.Scope) filterapi.FilterResponse {
+	// Validate the scope values we were granted.  We take the scope as an
+	// argument, instead of extracting it from the authorization, because there
+	// isn't actually a good portable way to extract it from the authorization.
+	if err := rs.validateScope(scope); err != nil {
+		return middleware.NewErrorResponse(ctx, http.StatusForbidden,
+			errors.Wrap(err, "insufficient privilege scope"), nil)
+	}
+	// Validate the authorization.
 	token := rfc6750resourceserver.GetFromHeader(filterutil.GetHeader(request))
 	if err := rs.validateAccessToken(token, discovered, httpClient, logger); err != nil {
 		return middleware.NewErrorResponse(ctx, http.StatusBadRequest, err, nil)
 	}
+	// If everything has passed, go ahead and have Envoy proxy to the other half
+	// of the Resource Server.
 	return nil
 }
 
