@@ -7,7 +7,7 @@ import (
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/pkg/errors"
 
-	rfc6749client "github.com/datawire/liboauth2/client/rfc6749"
+	rfc6749common "github.com/datawire/liboauth2/common/rfc6749"
 	rfc6750resourceserver "github.com/datawire/liboauth2/resourceserver/rfc6750"
 
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/middleware"
@@ -22,7 +22,7 @@ import (
 // As a "special" case, a FilterResponse of "nil" means to send the
 // same request to the upstream service (the other half of the
 // Resource Server).
-func (rs *OAuth2Filter) filterResourceServer(ctx context.Context, logger types.Logger, httpClient *http.Client, discovered *Discovered, request *filterapi.FilterRequest, scope rfc6749client.Scope) filterapi.FilterResponse {
+func (rs *OAuth2Filter) filterResourceServer(ctx context.Context, logger types.Logger, httpClient *http.Client, discovered *Discovered, request *filterapi.FilterRequest, scope rfc6749common.Scope) filterapi.FilterResponse {
 	// Validate the scope values we were granted.  We take the scope as an
 	// argument, instead of extracting it from the authorization, because there
 	// isn't actually a good portable way to extract it from the authorization.
@@ -93,8 +93,8 @@ func (rs *OAuth2Filter) parseJWT(token string, discovered *Discovered) (jwt.MapC
 	return claims, nil
 }
 
-func (rs *OAuth2Filter) validateScope(actual rfc6749client.Scope) error {
-	desired := make(rfc6749client.Scope, len(rs.Arguments.Scopes))
+func (rs *OAuth2Filter) validateScope(actual rfc6749common.Scope) error {
+	desired := make(rfc6749common.Scope, len(rs.Arguments.Scopes))
 	for _, s := range rs.Arguments.Scopes {
 		desired[s] = struct{}{}
 	}
@@ -140,11 +140,11 @@ func (rs *OAuth2Filter) validateJWT(claims jwt.MapClaims, discovered *Discovered
 	case nil:
 		logger.Debugf("No scope to verify")
 	case string: // proposed standard; most Authorization Servers do this
-		if err := rs.validateScope(rfc6749client.ParseScope(scopeClaim)); err != nil {
+		if err := rs.validateScope(rfc6749common.ParseScope(scopeClaim)); err != nil {
 			return errors.Wrap(err, "token has wrong scope")
 		}
 	case []interface{}: // UAA does this
-		actual := make(rfc6749client.Scope, len(scopeClaim))
+		actual := make(rfc6749common.Scope, len(scopeClaim))
 		for _, scopeValue := range scopeClaim {
 			switch scopeValue := scopeValue.(type) {
 			case string:
