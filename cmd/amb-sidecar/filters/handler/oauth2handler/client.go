@@ -117,7 +117,7 @@ func (c *OAuth2Filter) filterClient(ctx context.Context, logger types.Logger, ht
 				return resourceResponse
 			}
 		} else if err == rfc6749client.ErrNoAccessToken {
-			// This indicates a programming error; we've check that there is an access token.
+			// This indicates a programming error; we've already checked that there is an access token.
 			panic(err)
 		} else if err == rfc6749client.ErrExpiredAccessToken {
 			logger.Debugln("access token expired; continuing as if non-authenticated session")

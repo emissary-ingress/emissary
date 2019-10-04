@@ -11,6 +11,9 @@ import (
 )
 
 func (j *OAuth2Filter) validateAccessTokenUserinfo(token string, discovered *Discovered, httpClient *http.Client, logger types.Logger) error {
+	// This method is a little funny, since it has the Resource
+	// Server acting like a Client to a different Resource server.
+
 	req, err := http.NewRequest("GET", discovered.UserInfoEndpoint.String(), nil)
 	if err != nil {
 		return err
