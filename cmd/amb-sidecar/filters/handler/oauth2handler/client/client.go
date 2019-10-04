@@ -79,6 +79,7 @@ func (c *OAuth2Client) Filter(ctx context.Context, logger types.Logger, httpClie
 		}
 	}()
 	logger.Debugf("session data: %#v", sessionInfo.sessionData)
+	var authorization http.Header
 	switch {
 	case sessionErr != nil:
 		logger.Debugln("session status:", errors.Wrap(sessionErr, "no session"))
@@ -86,17 +87,17 @@ func (c *OAuth2Client) Filter(ctx context.Context, logger types.Logger, httpClie
 		logger.Debugln("session status:", "non-authenticated session")
 	default:
 		logger.Debugln("session status:", "authenticated session")
-		authorization, err := oauthClient.AuthorizationForResourceRequest(sessionInfo.sessionData, func() io.Reader {
+		authorization, err = oauthClient.AuthorizationForResourceRequest(sessionInfo.sessionData, func() io.Reader {
 			return strings.NewReader(request.GetRequest().GetHttp().GetBody())
 		})
 		if err == nil {
-			return sessionInfo.handleAuthenticatedProxyRequest(ctx, logger, httpClient, discovered, request, authorization)
+			// continue with (authrorization != nil)
 		} else if err == rfc6749client.ErrNoAccessToken {
 			// This indicates a programming error; we've already checked that there is an access token.
 			panic(err)
 		} else if err == rfc6749client.ErrExpiredAccessToken {
 			logger.Debugln("access token expired; continuing as if non-authenticated session")
-			// continue as if this `.CurrentAccessToken == nil`
+			// continue with (authrorization == nil); as if this `.CurrentAccessToken == nil`
 		} else if _, ok := err.(*rfc6749client.UnsupportedTokenTypeError); ok {
 			return middleware.NewErrorResponse(ctx, http.StatusBadGateway,
 				err, nil)
@@ -117,26 +118,46 @@ func (c *OAuth2Client) Filter(ctx context.Context, logger types.Logger, httpClie
 			return middleware.NewErrorResponse(ctx, http.StatusForbidden,
 				errors.Errorf("no %q cookie", c.sessionCookieName()), nil)
 		}
-		authorizationCode, err := oauthClient.ParseAuthorizationResponse(sessionInfo.sessionData, u)
-		if err != nil {
-			return middleware.NewErrorResponse(ctx, http.StatusBadRequest,
-				err, nil)
-		}
-		originalURL, err := checkState(sessionInfo.sessionData.Request.State, c.PublicKey)
-		if err != nil {
-			// This should never happen--the state matched
-			// what we stored in Redis.  For this to
-			// happen, either (1) our Redis server was
-			// cracked, or (2) we generated an invalid
-			// state when we submitted the authorization
-			// request.  Assuming that (2) is more likely,
-			// that's an internal server issue.
-			return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
-				errors.Wrapf(err, "invalid state"), nil)
-		}
-		if err := oauthClient.AccessToken(sessionInfo.sessionData, authorizationCode); err != nil {
-			return middleware.NewErrorResponse(ctx, http.StatusBadGateway,
-				err, nil)
+		var originalURL string
+		if authorization != nil {
+			logger.Debugln("already logged in; redirecting to original log-in-time URL")
+			originalURL, err = checkState(sessionInfo.sessionData.Request.State, c.PublicKey)
+			if err != nil {
+				// This should never happen--we read the state directly from what we
+				// stored into Redis.
+				return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
+					errors.Wrapf(err, "invalid state"), nil)
+			}
+			u, _ := url.Parse(originalURL)
+			if u.Path == "/callback" {
+				// Avoid a redirect loop.  This "shouldn't" happen; we "shouldn't"
+				// have generated (in .handleUnauthenticatedProxyRequest) a
+				// sessionData.Request.State with this URL with this path.  However,
+				// APro 0.8.0 and older could be tricked in to generating such a
+				// .State.  So turn it in to an error page.
+				return middleware.NewErrorResponse(ctx, http.StatusNotAcceptable,
+					errors.New("no representation of /callback resource"), nil)
+			}
+		} else {
+			authorizationCode, err := oauthClient.ParseAuthorizationResponse(sessionInfo.sessionData, u)
+			if err != nil {
+				return middleware.NewErrorResponse(ctx, http.StatusBadRequest,
+					err, nil)
+			}
+			originalURL, err = checkState(sessionInfo.sessionData.Request.State, c.PublicKey)
+			if err != nil {
+				// This should never happen--the state matched what we stored in Redis
+				// (validated in .ParseAuthorizationResonse()).  For this to happen, either
+				// (1) our Redis server was cracked, or (2) we generated an invalid state
+				// when we submitted the authorization request.  Assuming that (2) is more
+				// likely, that's an internal server issue.
+				return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
+					errors.Wrapf(err, "invalid state"), nil)
+			}
+			if err := oauthClient.AccessToken(sessionInfo.sessionData, authorizationCode); err != nil {
+				return middleware.NewErrorResponse(ctx, http.StatusBadGateway,
+					err, nil)
+			}
 		}
 		logger.Debugf("redirecting user-agent to: %s", originalURL)
 		return &filterapi.HTTPResponse{
@@ -147,7 +168,11 @@ func (c *OAuth2Client) Filter(ctx context.Context, logger types.Logger, httpClie
 			Body: "",
 		}
 	default:
-		return sessionInfo.handleUnauthenticatedProxyRequest(ctx, logger, httpClient, oauthClient, discovered, request)
+		if authorization != nil {
+			return sessionInfo.handleAuthenticatedProxyRequest(ctx, logger, httpClient, discovered, request, authorization)
+		} else {
+			return sessionInfo.handleUnauthenticatedProxyRequest(ctx, logger, httpClient, oauthClient, discovered, request)
+		}
 	}
 }
 
