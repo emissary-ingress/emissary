@@ -1,5 +1,25 @@
 # Load Testing APro
 
+## Dependencies
+
+For running the loadtest, we will provision a GKE cluster by running
+`make loadtest-deploy`.
+
+Make sure you have `gcloud` and `terraform` installed:
+```console
+$ gcloud version
+Google Cloud SDK 265.0.0
+bq 2.0.48
+core 2019.09.27
+gsutil 4.43
+
+$ terraform version
+Terraform v0.11.14
+```
+
+You will also need GCloud credentials for the `datawireio` GCP Project.
+Please follow instructions in your terminal to complete the setup.
+
 ## Measuring how latency varies with RPS load
 
  > See https://github.com/datawire/apro-load-results/blob/master/README.md
