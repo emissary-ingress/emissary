@@ -4,6 +4,7 @@ docopt
 awscli
 pytest
 pytest-cov
+pytest-custom_exit_code
 dpath
 mypy
 pexpect
