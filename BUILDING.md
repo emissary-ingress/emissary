@@ -102,6 +102,31 @@ shipped.)
 Developer Quickstart/Inner Loop
 -------------------------------
 
+### Dependencies:
+
+Make sure you have Python 3 with `pip` and `virtualenv` installed on your developer workstation.
+
+```
+$ python --version
+Python 3.7.4
+
+$ pip --version
+pip 19.1.1 from /usr/local/lib/python3.7/site-packages/pip (python 3.7)
+
+$ pip install --user pipenv
+$ pip install --user virtualenv
+
+$ virtualenv --version
+16.7.5
+```
+
+Go 1.13 is also required.
+
+```
+$ go version
+go version go1.13.1 darwin/amd64
+```
+
 ### Quickstart:
 
 1. `git clone https://github.com/datawire/ambassador`

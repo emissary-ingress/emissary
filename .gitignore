@@ -54,6 +54,8 @@ unused-e2e
 /envoy-build-container.txt
 /vendor/
 
+/ambex
+
 .forge
 forge.yaml
 
