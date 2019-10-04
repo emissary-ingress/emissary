@@ -73,7 +73,7 @@ metadata:
       # Dev Portal
       apiVersion: ambassador/v1
       kind: Mapping
-      name: devportal_mapping
+      name: ambassador-pro-devportal
       prefix: /docs/
       rewrite: ""
       add_response_headers:
@@ -84,7 +84,7 @@ metadata:
       ---
       apiVersion: ambassador/v1
       kind: Mapping
-      name: devportal_api_mapping
+      name: ambassador-pro-devportal-api
       prefix: /openapi/
       rewrite: ""
       add_response_headers:
