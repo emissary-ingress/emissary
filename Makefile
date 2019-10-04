@@ -1,8 +1,15 @@
 # Sanitize the environment a bit.
-undefine ENV      # bad configuration mechansim
-undefine BASH_ENV # bad configuration mechansim, but CircleCI insists on it
-undefine CDPATH   # should not be exported, but some people do
-undefine IFS      # should not be exported, but some people do
+undefines += ENV      # bad configuration mechansim
+undefines += BASH_ENV # bad configuration mechansim, but CircleCI insists on it
+undefines += CDPATH   # should not be exported, but some people do
+undefines += IFS      # should not be exported, but some people do
+ifeq ($(filter undefine,$(.FEATURES)),)
+  # Make 3.81 didn't have an 'undefine' directive
+  $(foreach v,$(undefines),$(if $(filter $v,$(.VARIABLES)),$(eval $v =)))
+else
+  # Make 3.82 added undefine
+  undefine $(undefines)
+endif
 
 NAME            = ambassador-pro
 # For Make itself
@@ -76,7 +83,7 @@ push-docs: ## Publish ./docs to https://github.com/datawire/ambassador-docs
 #
 # Envoy
 
-AMBASSADOR_COMMIT = a552b71badc8f297f363be59d418d2543f67ea3d
+AMBASSADOR_COMMIT = 253671ccf0dac3104068d6cc5137b2a67f79d151
 
 # Git clone
 ambassador.stamp: %.stamp: $(var.)AMBASSADOR_COMMIT $(if $(call str.eq,$(AMBASSADOR_COMMIT),-),FORCE)
