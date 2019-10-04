@@ -7,6 +7,7 @@ github.com/envoyproxy/go-control-plane v0.5.0 h1:sXNEwucP7EkLn00DBvEJRXrRs5sQyZW
 github.com/envoyproxy/go-control-plane v0.5.0/go.mod h1:SBwIajubJHhxtWwsL9s8ss4safvEdbitLhGGK48rN6g=
 github.com/envoyproxy/protoc-gen-validate v0.0.15-0.20190405222122-d6164de49109 h1:U1RyeEwqO++6RvIA7bY98AcYIFPQMwrOeWNmw+dvq9w=
 github.com/envoyproxy/protoc-gen-validate v0.0.15-0.20190405222122-d6164de49109/go.mod h1:iSmxcyjqTsJpI2R4NaDN7+kN2VEUnK/pcBlmesArF7c=
+github.com/envoyproxy/protoc-gen-validate v0.1.0 h1:EQciDnbrYxy13PgWoY8AqoxGiPrpgBZ1R8UNe3ddc+A=
 github.com/fsnotify/fsnotify v1.4.7 h1:IXs+QLmnXW2CcXuY+8Mzv/fWEsPGWxqefPtCP5CnV9I=
 github.com/fsnotify/fsnotify v1.4.7/go.mod h1:jwhsz4b93w/PPRr/qN1Yymfu8t87LnFCMoQvtojpjFo=
 github.com/gogo/googleapis v1.1.0 h1:kFkMAZBNAn4j7K0GiZr8cRYzejq68VbheufiV3YuyFI=

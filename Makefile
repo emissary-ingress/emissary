@@ -101,6 +101,9 @@ AMBASSADOR_DOCKER_TAG ?= $(GIT_VERSION)
 AMBASSADOR_DOCKER_IMAGE ?= $(AMBASSADOR_DOCKER_REPO):$(AMBASSADOR_DOCKER_TAG)
 AMBASSADOR_EXTERNAL_DOCKER_IMAGE ?= $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(AMBASSADOR_DOCKER_TAG)
 
+YES_I_AM_UPDATING_THE_BASE_IMAGES ?=
+YES_I_AM_OK_WITH_COMPILING_ENVOY ?=
+
 ENVOY_FILE ?= envoy-bin/envoy-static-stripped
 
 # IF YOU MESS WITH ANY OF THESE VALUES, YOU MUST RUN `make docker-update-base`.
@@ -110,7 +113,7 @@ ENVOY_FILE ?= envoy-bin/envoy-static-stripped
 
 
   # Increment BASE_ENVOY_RELVER on changes to `Dockerfile.base-envoy`, or Envoy recipes
-  BASE_ENVOY_RELVER ?= 3
+  BASE_ENVOY_RELVER ?= 4
   # Increment BASE_GO_RELVER on changes to `Dockerfile.base-go`
   BASE_GO_RELVER    ?= 17
   # Increment BASE_PY_RELVER on changes to `Dockerfile.base-py`, `releng/*`, `multi/requirements.txt`, `ambassador/requirements.txt`
@@ -354,8 +357,8 @@ envoy-src: FORCE
 	    else \
 	        git remote add origin $(ENVOY_REPO); \
 	    fi; \
-	    if [[ $(ENVOY_REPO) != ssh://* && $(ENVOY_REPO) != *@*:* ]]; then \
-	        git remote set-url --push origin git@github.com:datawire/envoy.git; \
+	    if [[ $(ENVOY_REPO) == http://github.com/* || $(ENVOY_REPO) == https://github.com/* || $(ENVOY_REPO) == git://github.com/* ]]; then \
+	        git remote set-url --push origin git@github.com:$(word 3,$(subst /, ,$(ENVOY_REPO)))/$(patsubst %.git,%,$(word 4,$(subst /, ,$(ENVOY_REPO)))).git; \
 	    fi; \
 	    git fetch --tags origin; \
 	    if [ $(ENVOY_COMMIT) != '-' ]; then \
@@ -411,8 +414,16 @@ envoy-bin/envoy-static: $(ENVOY_BASH.deps) FORCE | envoy-bin
 	    if docker run --rm --entrypoint=true $(BASE_ENVOY_IMAGE); then \
 	        rsync -Pav --blocking-io -e 'docker run --rm -i' $$(docker image inspect $(BASE_ENVOY_IMAGE) --format='{{.Id}}' | sed 's/^sha256://'):/usr/local/bin/envoy $@; \
 	    else \
-	        if [ -n '$(CI)' ]; then \
-	            echo 'error: This should not happen in CI: should not try to compile Envoy'; \
+	        if [ -z '$(YES_I_AM_UPDATING_THE_BASE_IMAGES)' ]; then \
+	            { set +x; } &>/dev/null; \
+	            echo 'error: failed to pull $(BASE_ENVOY_IMAGE), but $$YES_I_AM_UPDATING_THE_BASE_IMAGES is not set'; \
+	            echo '       If you are trying to update the base images, then set that variable to a non-empty value.'; \
+	            echo '       If you are not trying to update the base images, then check your network connection and Docker credentials.'; \
+	            exit 1; \
+	        fi; \
+	        if [ -z '$(YES_I_AM_OK_WITH_COMPILING_ENVOY)' ]; then \
+	            { set +x; } &>/dev/null; \
+	            echo 'error: Envoy compilation triggered, but $$YES_I_AM_OK_WITH_COMPILING_ENVOY is not set'; \
 	            exit 1; \
 	        fi; \
 	        $(call ENVOY_BASH.cmd, \
@@ -440,14 +451,31 @@ envoy-shell: $(ENVOY_BASH.deps)
 	)
 .PHONY: envoy-shell
 
-base-envoy.docker: Dockerfile.base-envoy envoy-bin/envoy-static $(var.)BASE_ENVOY_IMAGE $(WRITE_IFCHANGED)
+base-envoy.docker: Dockerfile.base-envoy envoy-build-image.txt envoy-bin/envoy-static $(var.)BASE_ENVOY_IMAGE $(WRITE_IFCHANGED)
 	@if [ -n "$(AMBASSADOR_DEV)" ]; then echo "Do not run this from a dev shell" >&2; exit 1; fi
-	docker build $(DOCKER_OPTS) -t $(BASE_ENVOY_IMAGE) -f $< envoy-bin
+	@if ! docker run --rm --entrypoint=true $(BASE_ENVOY_IMAGE); then \
+	        if [ -z '$(YES_I_AM_UPDATING_THE_BASE_IMAGES)' ]; then \
+	            { set +x; } &>/dev/null; \
+	            echo 'error: failed to pull $(BASE_ENVOY_IMAGE), but $$YES_I_AM_UPDATING_THE_BASE_IMAGES is not set'; \
+	            echo '       If you are trying to update the base images, then set that variable to a non-empty value.'; \
+	            echo '       If you are not trying to update the base images, then check your network connection and Docker credentials.'; \
+	            exit 1; \
+	        fi; \
+		echo "Building $(BASE_ENVOY_IMAGE)" && \
+		docker build $(DOCKER_OPTS) --build-arg=ENVOY_BUILD_IMAGE=$$(cat envoy-build-image.txt) -t $(BASE_ENVOY_IMAGE) -f $< envoy-bin
+	fi
 	@docker image inspect $(BASE_ENVOY_IMAGE) --format='{{.Id}}' | $(WRITE_IFCHANGED) $@
 
 base-py.docker: Dockerfile.base-py $(var.)BASE_PY_IMAGE $(WRITE_IFCHANGED)
 	@if [ -n "$(AMBASSADOR_DEV)" ]; then echo "Do not run this from a dev shell" >&2; exit 1; fi
 	@if ! docker run --rm --entrypoint=true $(BASE_PY_IMAGE); then \
+	        if [ -z '$(YES_I_AM_UPDATING_THE_BASE_IMAGES)' ]; then \
+	            { set +x; } &>/dev/null; \
+	            echo 'error: failed to pull $(BASE_PY_IMAGE), but $$YES_I_AM_UPDATING_THE_BASE_IMAGES is not set'; \
+	            echo '       If you are trying to update the base images, then set that variable to a non-empty value.'; \
+	            echo '       If you are not trying to update the base images, then check your network connection and Docker credentials.'; \
+	            exit 1; \
+	        fi; \
 		echo "Building $(BASE_PY_IMAGE)" && \
 		docker build $(DOCKER_OPTS) -t $(BASE_PY_IMAGE) -f $< .; \
 	fi
@@ -456,6 +484,13 @@ base-py.docker: Dockerfile.base-py $(var.)BASE_PY_IMAGE $(WRITE_IFCHANGED)
 base-go.docker: Dockerfile.base-go $(var.)BASE_GO_IMAGE $(WRITE_IFCHANGED)
 	@if [ -n "$(AMBASSADOR_DEV)" ]; then echo "Do not run this from a dev shell" >&2; exit 1; fi
 	@if ! docker run --rm --entrypoint=true $(BASE_GO_IMAGE); then \
+	        if [ -z '$(YES_I_AM_UPDATING_THE_BASE_IMAGES)' ]; then \
+	            { set +x; } &>/dev/null; \
+	            echo 'error: failed to pull $(BASE_GO_IMAGE), but $$YES_I_AM_UPDATING_THE_BASE_IMAGES is not set'; \
+	            echo '       If you are trying to update the base images, then set that variable to a non-empty value.'; \
+	            echo '       If you are not trying to update the base images, then check your network connection and Docker credentials.'; \
+	            exit 1; \
+	        fi; \
 		echo "Building $(BASE_GO_IMAGE)" && \
 		docker build $(DOCKER_OPTS) -t $(BASE_GO_IMAGE) -f $< .; \
 	fi
@@ -936,18 +971,18 @@ mypy: mypy-server
 # ------------------------------------------------------------------------------
 
 pull-docs:
-	{ \
-		git fetch https://github.com/datawire/ambassador-docs $(PULL_BRANCH) && \
-		docs_head=$$(git rev-parse FETCH_HEAD) && \
-		git subtree merge --prefix=docs "$${docs_head}" && \
-		git subtree split --prefix=docs --rejoin --onto="$${docs_head}"; \
+	@PS4=; set -ex; { \
+	    git fetch https://github.com/datawire/ambassador-docs $(PULL_BRANCH); \
+	    docs_head=$$(git rev-parse FETCH_HEAD); \
+	    git subtree merge --prefix=docs "$${docs_head}"; \
+	    git subtree split --prefix=docs --rejoin --onto="$${docs_head}"; \
 	}
 push-docs:
-	{ \
-		git fetch https://github.com/datawire/ambassador-docs master && \
-		docs_old=$$(git rev-parse FETCH_HEAD) && \
-		docs_new=$$(git subtree split --prefix=docs --rejoin --onto="$${docs_old}") && \
-		git push $(if $(GH_TOKEN),https://d6e-automaton:${GH_TOKEN}@github.com/,git@github.com:)datawire/ambassador-docs.git "$${docs_new}:refs/heads/$(or $(PUSH_BRANCH),master)"; \
+	@PS4=; set -ex; { \
+	    git fetch https://github.com/datawire/ambassador-docs master; \
+	    docs_old=$$(git rev-parse FETCH_HEAD); \
+	    docs_new=$$(git subtree split --prefix=docs --rejoin --onto="$${docs_old}"); \
+	    git push $(if $(GH_TOKEN),https://d6e-automaton:${GH_TOKEN}@github.com/,git@github.com:)datawire/ambassador-docs.git "$${docs_new}:refs/heads/$(or $(PUSH_BRANCH),master)"; \
 	}
 .PHONY: pull-docs push-docs
 
