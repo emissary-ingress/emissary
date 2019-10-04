@@ -246,7 +246,7 @@ clean: clean-test envoy-build-container.txt.clean $(addsuffix .clean,$(clean_doc
 	rm -rf pkg/api.envoy.tmp/
 	rm -rf envoy-bin
 	rm -f envoy-build-image.txt
-	rm -f ambex
+	rm -f cmd/ambex/ambex
 
 clobber: clean kill-docker-registry
 	-rm -f build/kat/client/teleproxy
@@ -533,7 +533,7 @@ docker-update-base:
 	$(MAKE) docker-push-base-images
 
 ambassador-docker-image: ambassador.docker
-ambassador.docker: Dockerfile base-go.docker base-py.docker $(ENVOY_FILE) ambex $(WATT) $(KUBESTATUS) $(WRITE_IFCHANGED) python/ambassador/VERSION.py FORCE
+ambassador.docker: Dockerfile base-go.docker base-py.docker $(ENVOY_FILE) cmd/ambex/ambex $(WATT) $(KUBESTATUS) $(WRITE_IFCHANGED) python/ambassador/VERSION.py FORCE
 	docker build --build-arg ENVOY_FILE=$(ENVOY_FILE) --build-arg BASE_GO_IMAGE=$(BASE_GO_IMAGE) --build-arg BASE_PY_IMAGE=$(BASE_PY_IMAGE) $(DOCKER_OPTS) -t $(AMBASSADOR_DOCKER_IMAGE) .
 	@docker image inspect $(AMBASSADOR_DOCKER_IMAGE) --format='{{.Id}}' | $(WRITE_IFCHANGED) $@
 
@@ -615,8 +615,8 @@ $(WATT): $(var.)WATT_VERSION
 	chmod go-w,a+x $(WATT)
 
 # This is for the docker image, so we don't use the current arch, we hardcode to linux/amd64
-ambex: $(wildcard go/ambex/*.go) go.mod
-	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o $@ ./go/ambex
+cmd/ambex/ambex: $(wildcard cmd/ambex/*.go) go.mod
+	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o $@ ./cmd/ambex
 
 # This is for the docker image, so we don't use the current arch, we hardcode to linux/amd64
 $(KUBESTATUS): $(var.)KUBESTATUS_VERSION

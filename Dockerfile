@@ -100,7 +100,7 @@ COPY python/post_update.py .
 COPY python/watch_hook.py .
 RUN chmod 755 entrypoint.sh grab-snapshots.py kick_ads.sh kubewatch.py post_update.py watch_hook.py
 
-COPY ambex /usr/bin/
+COPY cmd/ambex/ambex /usr/bin/
 RUN chmod 755 /usr/bin/ambex
 # XXX Move to base image
 COPY watt .
