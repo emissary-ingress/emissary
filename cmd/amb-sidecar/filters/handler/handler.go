@@ -176,7 +176,7 @@ func (c *FilterMux) filter(ctx context.Context, request *filterapi.FilterRequest
 			filterutil.ApplyRequestModification(request, response)
 			sumResponse.Header = append(sumResponse.Header, response.Header...)
 		default:
-			panic(errors.Errorf("unexpexted filter response type %T", response))
+			panic(errors.Errorf("unexpected filter response type %T", response))
 		}
 	}
 	return sumResponse, nil
