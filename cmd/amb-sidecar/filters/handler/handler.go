@@ -85,6 +85,43 @@ func (c *FilterMux) Filter(ctx context.Context, request *filterapi.FilterRequest
 	return
 }
 
+func (c *FilterMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	switch r.URL.Path {
+	case "/.ambassador/oauth2/logout":
+		filterQName := r.FormValue("realm")
+		filterInfo := findFilter(c.Controller, filterQName)
+		if filterInfo == nil {
+			middleware.ServeErrorResponse(w, ctx, http.StatusBadRequest,
+				errors.Errorf("invalid realm: %q", filterQName), nil)
+			return
+		}
+		filterSpec, filterSpecOK := filterInfo.Spec.(crd.FilterOAuth2)
+		if !filterSpecOK {
+			middleware.ServeErrorResponse(w, ctx, http.StatusBadRequest,
+				errors.Errorf("invalid realm: %q", filterQName), nil)
+			return
+		}
+		if filterInfo.Err != nil {
+			middleware.ServeErrorResponse(w, ctx, http.StatusInternalServerError,
+				errors.Wrapf(filterInfo.Err, "error in filter %q configuration", filterQName), nil)
+			return
+		}
+
+		filterImpl := &oauth2handler.OAuth2Filter{
+			PrivateKey: c.PrivateKey,
+			PublicKey:  c.PublicKey,
+			RedisPool:  c.RedisPool,
+			QName:      filterQName,
+			Spec:       filterSpec,
+		}
+		filterImpl.ServeHTTP(w, r)
+	default:
+		http.NotFound(w, r)
+	}
+}
+
 func requestURL(request *filterapi.FilterRequest) (*url.URL, error) {
 	var u *url.URL
 	var err error

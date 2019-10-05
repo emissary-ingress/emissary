@@ -63,3 +63,35 @@ func (f *OAuth2Filter) Filter(ctx context.Context, request *filterapi.FilterRequ
 
 	return oauth2client.Filter(ctx, logger, httpClient, discovered, redisClient, request), nil
 }
+
+func (f *OAuth2Filter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	logger := middleware.GetLogger(ctx)
+	httpClient := httpclient.NewHTTPClient(logger, f.Spec.MaxStale, f.Spec.InsecureTLS)
+
+	discovered, err := discovery.Discover(httpClient, f.Spec, logger)
+	if err != nil {
+		middleware.ServeErrorResponse(w, ctx, http.StatusBadGateway,
+			errors.Wrap(err, "OIDC-discovery"), nil)
+		return
+	}
+
+	redisClient, err := f.RedisPool.Get()
+	if err != nil {
+		middleware.ServeErrorResponse(w, ctx, http.StatusBadGateway,
+			errors.Wrap(err, "Redis"), nil)
+		return
+	}
+	defer f.RedisPool.Put(redisClient)
+
+	oauth2client := &client.OAuth2Client{
+		QName:     f.QName,
+		Spec:      f.Spec,
+		Arguments: f.Arguments,
+
+		PrivateKey: f.PrivateKey,
+		PublicKey:  f.PublicKey,
+	}
+
+	oauth2client.ServeHTTP(w, r, ctx, discovered, redisClient)
+}

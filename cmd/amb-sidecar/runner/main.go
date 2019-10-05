@@ -242,6 +242,7 @@ func runE(cmd *cobra.Command, args []string) error {
 				return err
 			}
 			filterapi.RegisterFilterService(grpcHandler, authService)
+			httpHandler.AddEndpoint("/.ambassador/oauth2", "OAuth2 Filter", authService.ServeHTTP)
 		}
 
 		// RateLimitService

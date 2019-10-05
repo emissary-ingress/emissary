@@ -67,7 +67,7 @@ func (c *OAuth2Client) Filter(ctx context.Context, logger types.Logger, httpClie
 
 	sessionInfo := &SessionInfo{c: c}
 	var sessionErr error
-	sessionInfo.sessionID, sessionInfo.sessionData, sessionErr = c.loadSession(redisClient, request)
+	sessionInfo.sessionID, sessionInfo.sessionData, sessionErr = c.loadSession(redisClient, filterutil.GetHeader(request))
 	defer func() {
 		if sessionInfo.sessionData != nil {
 			err := c.saveSession(redisClient, sessionInfo.sessionID, sessionInfo.sessionData)
@@ -173,6 +173,46 @@ func (c *OAuth2Client) Filter(ctx context.Context, logger types.Logger, httpClie
 		} else {
 			return sessionInfo.handleUnauthenticatedProxyRequest(ctx, logger, httpClient, oauthClient, discovered, request)
 		}
+	}
+}
+
+func (c *OAuth2Client) ServeHTTP(w http.ResponseWriter, r *http.Request, ctx context.Context, discovered *discovery.Discovered, redisClient *redis.Client) {
+	switch r.URL.Path {
+	case "/.ambassador/oauth2/logout":
+		sessionID, _, err := c.loadSession(redisClient, r.Header)
+		if err != nil {
+			middleware.ServeErrorResponse(w, ctx, http.StatusForbidden, // XXX: error code?
+				errors.Wrap(err, "no session"), nil)
+			return
+		}
+
+		if r.PostFormValue("_xsrf") != sessionID {
+			middleware.ServeErrorResponse(w, ctx, http.StatusForbidden,
+				errors.New("XSRF protection"), nil)
+			return
+		}
+
+		if discovered.EndSessionEndpoint == nil {
+			middleware.ServeErrorResponse(w, ctx, http.StatusNotImplemented,
+				errors.Errorf("identify provider %q does not support OIDC-session section 5 logout", c.Spec.AuthorizationURL), nil)
+			return
+		}
+
+		//query := discovered.EndSessionEndpoint.Query()
+		//query.Set("id_token_hint", "TODO") // TODO: only RECOMMENDED; would require us to track ID Tokens better
+		//query.Set("post_logout_redirect_uri", "TODO") // TODO: only OPTIONAL; having a good UX around this probably requires us to support OIDC-registration
+		//query.Set("state", "TODO") // TODO: only OPTIONAL; only does something if "post_logout_redirect_uri"
+
+		// TODO: Don't do the delete until the post_logout_redirect_uri is hit?
+		if err := redisClient.Cmd("DEL", "session:"+sessionID).Err; err != nil {
+			middleware.ServeErrorResponse(w, ctx, http.StatusInternalServerError,
+				err, nil)
+			return
+		}
+
+		http.Redirect(w, r, discovered.EndSessionEndpoint.String(), http.StatusSeeOther)
+	default:
+		http.NotFound(w, r)
 	}
 }
 
@@ -307,10 +347,10 @@ func randomString(bits int) (string, error) {
 	return hex.EncodeToString(buf), nil
 }
 
-func (c *OAuth2Client) loadSession(redisClient *redis.Client, request *filterapi.FilterRequest) (sessionID string, sessionData *rfc6749client.AuthorizationCodeClientSessionData, err error) {
+func (c *OAuth2Client) loadSession(redisClient *redis.Client, requestHeader http.Header) (sessionID string, sessionData *rfc6749client.AuthorizationCodeClientSessionData, err error) {
 	// BS to leverage net/http's cookie-parsing
 	r := &http.Request{
-		Header: filterutil.GetHeader(request),
+		Header: requestHeader,
 	}
 
 	// get the sessionID from the cookie

@@ -15,9 +15,6 @@ import (
 
 	// k8s types
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta2"
-
-	// gRPC service APIs
-	"github.com/datawire/apro/lib/filterapi"
 )
 
 // Handler returns an app handler that should be consumed by an HTTP server.
@@ -27,7 +24,7 @@ func NewFilterMux(
 	controller *controller.Controller,
 	secretsGetter k8sClientCoreV1.SecretsGetter,
 	redisPool *pool.Pool,
-) (filterapi.Filter, error) {
+) (*FilterMux, error) {
 	privKey, pubKey, err := secret.GetKeyPair(config, secretsGetter)
 	if err != nil {
 		return nil, errors.Wrap(err, "secret")

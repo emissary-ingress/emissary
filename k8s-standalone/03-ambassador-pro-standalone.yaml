@@ -72,6 +72,13 @@ metadata:
       auth_service: "ambassador-pro:80"
       allow_request_body: false # setting this to 'true' allows Plugin and External filters to access the body, but has performance overhead
       ---
+      apiVersion: ambassador/v1
+      kind: Mapping
+      name: ambassador-pro
+      prefix: /.ambassador/
+      rewrite: ""
+      service: "ambassador-pro:80"
+      ---
       # Dev Portal
       apiVersion: ambassador/v1
       kind: Mapping

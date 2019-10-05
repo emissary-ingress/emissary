@@ -26,6 +26,8 @@ type OpenIDConfig struct {
 	// validate opaque access tokens).
 	UserInfoEndpoint string `json:"userinfo_endpoint"`
 
+	EndSessionEndpoint string `json:"end_session_endpoint"`
+
 	// A set of public RSA keys used to sign the tokens
 	JSONWebKeySetURI string `json:"jwks_uri"`
 }
@@ -37,6 +39,7 @@ type Discovered struct {
 	AuthorizationEndpoint *url.URL
 	TokenEndpoint         *url.URL
 	UserInfoEndpoint      *url.URL
+	EndSessionEndpoint    *url.URL
 	JSONWebKeySet         jwks.JWKS
 }
 
@@ -66,6 +69,13 @@ func Discover(client *http.Client, mw crd.FilterOAuth2, logger types.Logger) (*D
 	ret.UserInfoEndpoint, err = url.Parse(config.UserInfoEndpoint)
 	if err != nil {
 		return nil, errors.Wrap(err, "discovery userinfo_endpoint")
+	}
+
+	if config.EndSessionEndpoint != "" {
+		ret.EndSessionEndpoint, err = url.Parse(config.EndSessionEndpoint)
+		if err != nil {
+			return nil, errors.Wrap(err, "discovery end_session_endpoint")
+		}
 	}
 
 	ret.JSONWebKeySet, err = jwks.FetchJWKS(client, config.JSONWebKeySetURI)
