@@ -8,6 +8,18 @@ class TestSkipError extends Error {
 	}
 }
 
+const writeFile = (file, data) => {
+    return new Promise((resolve, reject) => {
+        fs.writeFile(file, data, error => {
+		if (error) {
+			reject(error);
+		} else {
+			resolve();
+		}
+        });
+    });
+};
+
 const withBrowserTab = async function(fn) {
 	const browser = await puppeteer.launch({
 		//headless: false,
@@ -22,6 +34,7 @@ const withBrowserTab = async function(fn) {
 		try {
 			await fn(browsertab);
 		} finally {
+			//await writeFile("/tmp/f.html", await browsertab.content());
 			console.log("final url is: "+browsertab.url());
 		}
 	} finally {
