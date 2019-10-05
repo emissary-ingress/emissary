@@ -39,15 +39,23 @@ type FilterMux struct {
 func logResponse(logger types.Logger, ret filterapi.FilterResponse, took time.Duration) {
 	switch _ret := ret.(type) {
 	case *filterapi.HTTPResponse:
-		if loc := _ret.Header.Get("Location"); loc != "" {
-			logger.Infof("[gRPC] %T : %d -> %q (%v)", _ret, _ret.StatusCode, loc, took)
+		if _ret == nil {
+			logger.Errorf("[gRPC] %T : unexpected nil (%v)", _ret, took)
 		} else {
-			logger.Infof("[gRPC] %T : %d (%v)", _ret, _ret.StatusCode, took)
+			if loc := _ret.Header.Get("Location"); loc != "" {
+				logger.Infof("[gRPC] %T : %d -> %q (%v)", _ret, _ret.StatusCode, loc, took)
+			} else {
+				logger.Infof("[gRPC] %T : %d (%v)", _ret, _ret.StatusCode, took)
+			}
 		}
 	case *filterapi.HTTPRequestModification:
-		logger.Infof("[gRPC] %T : %d headers (%v)", _ret, len(_ret.Header), took)
+		if _ret == nil {
+			logger.Errorf("[gRPC] %T : unexpected nil (%v)", _ret, took)
+		} else {
+			logger.Infof("[gRPC] %T : %d headers (%v)", _ret, len(_ret.Header), took)
+		}
 	default:
-		logger.Infof("[gRPC] %T : unexpected response type (%v)", _ret, took)
+		logger.Errorf("[gRPC] %T : unexpected response type (%v)", _ret, took)
 	}
 }
 
