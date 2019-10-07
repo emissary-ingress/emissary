@@ -42,18 +42,10 @@ GIT_BRANCH ?= $(or $(TRAVIS_PULL_REQUEST_BRANCH),$(TRAVIS_BRANCH),$(shell git re
 
 GIT_COMMIT ?= $(shell git rev-parse --short HEAD)
 
-# This commands prints the tag of this commit or "undefined". Later we use GIT_TAG_SANITIZED and set it to "" if this
-# string is "undefined" or blank.
+# This commands prints the tag of this commit or "undefined".
 GIT_TAG ?= $(shell git name-rev --tags --name-only $(GIT_COMMIT))
 
 GIT_BRANCH_SANITIZED := $(shell printf $(GIT_BRANCH) | tr '[:upper:]' '[:lower:]' | sed -e 's/[^a-zA-Z0-9]/-/g' -e 's/-\{2,\}/-/g')
-GIT_TAG_SANITIZED := $(shell \
-	if [ "$(GIT_TAG)" = "undefined" -o -z "$(GIT_TAG)" ]; then \
-		printf ""; \
-	else \
-		printf "$(GIT_TAG)" | sed -e 's/\^.*//g'; \
-	fi \
-)
 
 # This gives the _previous_ tag, plus a git delta, like
 # 0.36.0-436-g8b8c5d3
@@ -275,7 +267,6 @@ print-vars:
 	@echo "GIT_DESCRIPTION                  = $(GIT_DESCRIPTION)"
 	@echo "GIT_DIRTY                        = $(GIT_DIRTY)"
 	@echo "GIT_TAG                          = $(GIT_TAG)"
-	@echo "GIT_TAG_SANITIZED                = $(GIT_TAG_SANITIZED)"
 	@echo "KAT_CLIENT_DOCKER_IMAGE          = $(KAT_CLIENT_DOCKER_IMAGE)"
 	@echo "KAT_SERVER_DOCKER_IMAGE          = $(KAT_SERVER_DOCKER_IMAGE)"
 	@echo "KUBECONFIG                       = $(KUBECONFIG)"
@@ -301,7 +292,6 @@ export-vars:
 	@echo "export GIT_DESCRIPTION='$(GIT_DESCRIPTION)'"
 	@echo "export GIT_DIRTY='$(GIT_DIRTY)'"
 	@echo "export GIT_TAG='$(GIT_TAG)'"
-	@echo "export GIT_TAG_SANITIZED='$(GIT_TAG_SANITIZED)'"
 	@echo "export KAT_CLIENT_DOCKER_IMAGE='$(KAT_CLIENT_DOCKER_IMAGE)'"
 	@echo "export KAT_SERVER_DOCKER_IMAGE='$(KAT_SERVER_DOCKER_IMAGE)'"
 	@echo "export KUBECONFIG='$(KUBECONFIG)'"
