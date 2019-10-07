@@ -30,7 +30,7 @@ SHELL = bash
 # use what is defined.
 #
 # read: https://graysonkoonce.com/getting-the-current-branch-name-during-a-pull-request-in-travis-ci/
-GIT_DIRTY ?= $(shell test -z "$(shell git status --porcelain)" || printf "dirty")
+GIT_DIRTY ?= $(if $(shell git status --porcelain),dirty)
 
 GIT_BRANCH ?= $(shell git rev-parse --abbrev-ref HEAD)
 
