@@ -26,13 +26,19 @@ SHELL = bash
     teleproxy-restart teleproxy-stop
 .SECONDARY:
 
-# GIT_BRANCH on TravisCI needs to be set through some external custom logic. Default to a Git native mechanism or
-# use what is defined.
-#
-# read: https://graysonkoonce.com/getting-the-current-branch-name-during-a-pull-request-in-travis-ci/
 GIT_DIRTY ?= $(if $(shell git status --porcelain),dirty)
 
-GIT_BRANCH ?= $(shell git rev-parse --abbrev-ref HEAD)
+# This is only "kinda" the git branch name:
+#
+#  - if checked out is the synthetic merge-commit for a PR, then use
+#    the PR's branch name (even though the merge commit we have
+#    checked out isn't part of the branch")
+#  - if this is a CI run for a tag (not a branch or PR), then use the
+#    tag name
+#  - if none of the above, then use the actual git branch name
+#
+# read: https://graysonkoonce.com/getting-the-current-branch-name-during-a-pull-request-in-travis-ci/
+GIT_BRANCH ?= $(or $(TRAVIS_PULL_REQUEST_BRANCH),$(TRAVIS_BRANCH),$(shell git rev-parse --abbrev-ref HEAD))
 
 GIT_COMMIT ?= $(shell git rev-parse --short HEAD)
 
