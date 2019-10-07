@@ -30,7 +30,7 @@ func licenseEnforce() {
 	devportal.SilenceUsage = true // https://github.com/spf13/cobra/issues/340
 	licenseClaims, err := keycheck(devportal.PersistentFlags())
 	if err == nil {
-		err = licenseClaims.RequireFeature(licensekeys.FeatureDevPortal)
+		err = licenseClaims.RequireFeature(licensekeys.FeatureLocalDevPortal)
 	}
 	if err == nil {
 		log.Printf("License validated")
