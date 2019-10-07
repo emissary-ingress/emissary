@@ -55,10 +55,6 @@ GIT_TAG_SANITIZED := $(shell \
 	fi \
 )
 
-# Trees get dirty sometimes by choice and sometimes accidently. If we are in a dirty tree then append "-dirty" to the
-# GIT_COMMIT.
-GIT_VERSION := $(GIT_BRANCH_SANITIZED)-$(GIT_COMMIT)$(if $(GIT_DIRTY),-dirty)
-
 # This gives the _previous_ tag, plus a git delta, like
 # 0.36.0-436-g8b8c5d3
 GIT_DESCRIPTION := $(shell git describe --tags $(GIT_COMMIT))
@@ -68,14 +64,18 @@ GIT_DESCRIPTION := $(shell git describe --tags $(GIT_COMMIT))
 _git_remote_urls := $(shell git remote | xargs -n1 git remote get-url --all)
 IS_PRIVATE ?= $(findstring private,$(_git_remote_urls))
 
-# Note that for everything except RC builds, VERSION will be set to the version
-# we'd use for a GA build. This is by design.
+# RELEASE_VERSION is an X.Y.Z[-prerelease] (semver) string that we
+# will upload/release the image as.  It does NOT include a leading 'v'
+# (trimming the 'v' from the git tag is what the 'patsubst' is for).
+# If this is an RC or EA, then it includes the '-rcN' or '-eaN'
+# suffix.
 #
-# Also note that we strip off the leading 'v' here -- that's just for the git tag.
-VERSION = $(patsubst v%,%,$(firstword $(subst -, ,$(or $(GIT_TAG_SANITIZED),$(GIT_VERSION)))))
-
-# We need this for tagging in some situations.
-LATEST_RC=$(VERSION)-rc-latest
+# BUILD_VERSION is of the same format, but is the version number that
+# we build into the image.  Because an image built as a "release
+# candidate" will ideally get promoted to be the GA image, we trim off
+# the '-rcN' suffix.
+RELEASE_VERSION = $(patsubst v%,%,$(or $(TRAVIS_TAG),$(shell git describe --tags --always)))$(if $(GIT_DIRTY),-dirty)
+BUILD_VERSION = $(shell echo '$(RELEASE_VERSION)' | sed 's/-rc[0-9]*$$//')
 
 ifndef DOCKER_REGISTRY
 $(error DOCKER_REGISTRY must be set. Use make DOCKER_REGISTRY=- for a purely local build.)
@@ -95,7 +95,7 @@ DOCKER_OPTS =
 # Override if you need to.
 PULL_BRANCH ?= master
 
-AMBASSADOR_DOCKER_TAG ?= $(GIT_VERSION)
+AMBASSADOR_DOCKER_TAG ?= $(RELEASE_VERSION)
 AMBASSADOR_DOCKER_IMAGE ?= $(AMBASSADOR_DOCKER_REPO):$(AMBASSADOR_DOCKER_TAG)
 AMBASSADOR_EXTERNAL_DOCKER_IMAGE ?= $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(AMBASSADOR_DOCKER_TAG)
 
@@ -137,8 +137,8 @@ TEST_SERVICE_IMAGES = $(patsubst %,test-%.docker,$(TEST_SERVICE_ROOTS) auth-tls)
 
 # Set default tag values...
 docker.tag.release    = $(AMBASSADOR_DOCKER_TAG)
-docker.tag.release-rc = $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(VERSION) $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(LATEST_RC)
-docker.tag.release-ea = $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(VERSION)
+docker.tag.release-rc = $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(RELEASE_VERSION) $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(BUILD_VERSION)-latest-rc
+docker.tag.release-ea = $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(RELEASE_VERSION)
 docker.tag.local      = $(AMBASSADOR_DOCKER_TAG)
 
 TEST_SERVICE_VERSION ?= 0.0.3
@@ -276,13 +276,12 @@ print-vars:
 	@echo "GIT_DIRTY                        = $(GIT_DIRTY)"
 	@echo "GIT_TAG                          = $(GIT_TAG)"
 	@echo "GIT_TAG_SANITIZED                = $(GIT_TAG_SANITIZED)"
-	@echo "GIT_VERSION                      = $(GIT_VERSION)"
 	@echo "KAT_CLIENT_DOCKER_IMAGE          = $(KAT_CLIENT_DOCKER_IMAGE)"
 	@echo "KAT_SERVER_DOCKER_IMAGE          = $(KAT_SERVER_DOCKER_IMAGE)"
 	@echo "KUBECONFIG                       = $(KUBECONFIG)"
-	@echo "LATEST_RC                        = $(LATEST_RC)"
 	@echo "USE_KUBERNAUT                    = $(USE_KUBERNAUT)"
-	@echo "VERSION                          = $(VERSION)"
+	@echo "BUILD_VERSION                    = $(BUILD_VERSION)"
+	@echo "RELEASE_VERSION                  = $(RELEASE_VERSION)"
 
 export-vars:
 	@echo "export AMBASSADOR_DOCKER_IMAGE='$(AMBASSADOR_DOCKER_IMAGE)'"
@@ -303,13 +302,12 @@ export-vars:
 	@echo "export GIT_DIRTY='$(GIT_DIRTY)'"
 	@echo "export GIT_TAG='$(GIT_TAG)'"
 	@echo "export GIT_TAG_SANITIZED='$(GIT_TAG_SANITIZED)'"
-	@echo "export GIT_VERSION='$(GIT_VERSION)'"
 	@echo "export KAT_CLIENT_DOCKER_IMAGE='$(KAT_CLIENT_DOCKER_IMAGE)'"
 	@echo "export KAT_SERVER_DOCKER_IMAGE='$(KAT_SERVER_DOCKER_IMAGE)'"
 	@echo "export KUBECONFIG='$(KUBECONFIG)'"
-	@echo "export LATEST_RC='$(LATEST_RC)'"
 	@echo "export USE_KUBERNAUT='$(USE_KUBERNAUT)'"
-	@echo "export VERSION='$(VERSION)'"
+	@echo "export BUILD_VERSION='$(BUILD_VERSION)'"
+	@echo "export RELEASE_VERSION='$(RELEASE_VERSION)'"
 
 # All of this will likely fail horribly outside of CI, for the record.
 docker-registry: $(KUBECONFIG)
@@ -594,13 +592,13 @@ docker-push-kat: docker-push-kat-client docker-push-kat-server
 
 # TODO: validate version is conformant to some set of rules might be a good idea to add here
 ambassador/ambassador/VERSION.py: FORCE $(WRITE_IFCHANGED)
-	$(call check_defined, VERSION, VERSION is not set)
+	$(call check_defined, BUILD_VERSION, BUILD_VERSION is not set)
 	$(call check_defined, GIT_BRANCH, GIT_BRANCH is not set)
 	$(call check_defined, GIT_COMMIT, GIT_COMMIT is not set)
 	$(call check_defined, GIT_DESCRIPTION, GIT_DESCRIPTION is not set)
-	@echo "Generating and templating version information -> $(VERSION)"
+	@echo "Generating and templating version information -> $(BUILD_VERSION)"
 	sed \
-		-e 's!{{VERSION}}!$(VERSION)!g' \
+		-e 's!{{VERSION}}!$(BUILD_VERSION)!g' \
 		-e 's!{{GITBRANCH}}!$(GIT_BRANCH)!g' \
 		-e 's!{{GITDIRTY}}!$(GIT_DIRTY)!g' \
 		-e 's!{{GITCOMMIT}}!$(GIT_COMMIT)!g' \
@@ -743,7 +741,7 @@ ifeq ($(AWS_ACCESS_KEY_ID),)
 	@echo 'AWS credentials not configured; not updating latest version in Scout'
 else
 	@if [ -n "$(STABLE_TXT_KEY)" ]; then \
-        printf "$(VERSION)" > stable.txt; \
+        printf "$(RELEASE_VERSION)" > stable.txt; \
 		echo "updating $(STABLE_TXT_KEY) with $$(cat stable.txt)"; \
         aws s3api put-object \
             --bucket datawire-static-files \
@@ -751,7 +749,7 @@ else
             --body stable.txt; \
 	fi
 	@if [ -n "$(SCOUT_APP_KEY)" ]; then \
-		printf '{"application":"ambassador","latest_version":"$(VERSION)","notices":[]}' > app.json; \
+		printf '{"application":"ambassador","latest_version":"$(RELEASE_VERSION)","notices":[]}' > app.json; \
 		echo "updating $(SCOUT_APP_KEY) with $$(cat app.json)"; \
         aws s3api put-object \
             --bucket scout-datawire-io \
@@ -764,13 +762,13 @@ release-prep:
 	bash releng/release-prep.sh
 
 release:
-	@if [ "$(VERSION)" = "$(GIT_VERSION)" ]; then \
-		printf "'make release' can only be run for a GA commit when VERSION is not the same as GIT_COMMIT!\n"; \
+	@if ! [[ '$(RELEASE_VERSION)' =~ ^[0-9]+\.[0-9]+\.[0-9]+$$ ]]; then \
+		printf "'make release' can only be run for commit tagged with 'vX.Y.Z'!\n"; \
 		exit 1; \
 	fi
-	docker pull $(AMBASSADOR_DOCKER_REPO):$(LATEST_RC)
-	docker tag $(AMBASSADOR_DOCKER_REPO):$(LATEST_RC) $(AMBASSADOR_DOCKER_REPO):$(VERSION)
-	docker push $(AMBASSADOR_DOCKER_REPO):$(VERSION)
+	docker pull $(AMBASSADOR_DOCKER_REPO):$(RELEASE_VERSION)-rc-latest
+	docker tag $(AMBASSADOR_DOCKER_REPO):$(RELEASE_VERSION)-rc-latest $(AMBASSADOR_DOCKER_REPO):$(RELEASE_VERSION)
+	docker push $(AMBASSADOR_DOCKER_REPO):$(RELEASE_VERSION)
 	$(MAKE) SCOUT_APP_KEY=app.json STABLE_TXT_KEY=stable.txt update-aws
 
 release-rc: ambassador.docker.push.release-rc
