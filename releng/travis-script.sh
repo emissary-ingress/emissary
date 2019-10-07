@@ -104,28 +104,13 @@ case "$COMMIT_TYPE" in
         if [[ -n "${DOCKER_RELEASE_USERNAME:-}" ]]; then
             docker login -u="$DOCKER_RELEASE_USERNAME" --password-stdin "${AMBASSADOR_EXTERNAL_DOCKER_REPO%%/*}" <<<"$DOCKER_RELEASE_PASSWORD"
         fi
-        tags=(
-            "${AMBASSADOR_EXTERNAL_DOCKER_REPO}:${VERSION}" # public X.Y.Z-rcA
-            "${AMBASSADOR_EXTERNAL_DOCKER_REPO}:${LATEST_RC}"         # public X.Y.Z-rc-latest
-        )
-        for tag in "${tags[@]}"; do
-            docker tag "$AMBASSADOR_DOCKER_IMAGE" "$tag"
-            docker push "$tag"
-        done
-        make VERSION="$VERSION" SCOUT_APP_KEY=testapp.json STABLE_TXT_KEY=teststable.txt update-aws
+        make release-rc
         ;;
     EA)
         if [[ -n "${DOCKER_RELEASE_USERNAME:-}" ]]; then
             docker login -u="$DOCKER_RELEASE_USERNAME" --password-stdin "${AMBASSADOR_EXTERNAL_DOCKER_REPO%%/*}" <<<"$DOCKER_RELEASE_PASSWORD"
         fi
-        tags=(
-            "${AMBASSADOR_EXTERNAL_DOCKER_REPO}:${VERSION}" # public X.Y.Z-eaA
-        )
-        for tag in "${tags[@]}"; do
-            docker tag "$AMBASSADOR_DOCKER_IMAGE" "$tag"
-            docker push "$tag"
-        done
-        make VERSION="$VERSION" SCOUT_APP_KEY=earlyapp.json STABLE_TXT_KEY=earlystable.txt update-aws
+        make release-ea
         ;;
     *)
         : # Nothing to do

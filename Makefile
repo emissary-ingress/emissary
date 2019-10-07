@@ -136,8 +136,10 @@ TEST_SERVICE_ROOTS = $(notdir $(wildcard test-services/*))
 TEST_SERVICE_IMAGES = $(patsubst %,test-%.docker,$(TEST_SERVICE_ROOTS) auth-tls)
 
 # Set default tag values...
-docker.tag.release = $(AMBASSADOR_DOCKER_TAG)
-docker.tag.local = $(AMBASSADOR_DOCKER_TAG)
+docker.tag.release    = $(AMBASSADOR_DOCKER_TAG)
+docker.tag.release-rc = $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(VERSION) $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(LATEST_RC)
+docker.tag.release-ea = $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(VERSION)
+docker.tag.local      = $(AMBASSADOR_DOCKER_TAG)
 
 TEST_SERVICE_VERSION ?= 0.0.3
 
@@ -770,6 +772,16 @@ release:
 	docker tag $(AMBASSADOR_DOCKER_REPO):$(LATEST_RC) $(AMBASSADOR_DOCKER_REPO):$(VERSION)
 	docker push $(AMBASSADOR_DOCKER_REPO):$(VERSION)
 	$(MAKE) SCOUT_APP_KEY=app.json STABLE_TXT_KEY=stable.txt update-aws
+
+release-rc: ambassador.docker.push.release-rc
+release-rc: SCOUT_APP_KEY = testapp.json
+release-rc: STABLE_TXT_KEY = teststable.txt
+release-rc: update-aws
+
+release-ea: ambassador.docker.push.release-ea
+release-ea: SCOUT_APP_KEY = earlyapp.json
+release-ea: STABLE_TXT_KEY = earlystable.txt
+release-ea: update-aws
 
 # ------------------------------------------------------------------------------
 # Go gRPC bindings (Envoy)
