@@ -277,7 +277,7 @@ Information you must decide, and give to your identity provider:
    cookies for the application.  Only the scheme (`https://`) and
    authority (`example.com:1234`) parts are used; the path part of the
    URL is ignored.  You will also likely need to register
-   `${clientURL}/callback` as an authorizaed callback endpoint with
+   `${clientURL}/callback` as an authorized callback endpoint with
    your identity provider.
 
 Information that you decide for yourself:
