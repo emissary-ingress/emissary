@@ -129,25 +129,33 @@ func doInitialize(cmd *cobra.Command, args []string) error {
 	apply.Start()
 	apply.Wait()
 
-	client, err := k8s.NewClient(info)
-	if err != nil {
-		return err
-	}
-	w, err := kubeapply.NewWaiter(client.Watcher())
-	if err != nil {
-		return err
-	}
-	err = w.Add(fmt.Sprintf("service/telepresence-proxy.%s", info.Namespace))
-	if err != nil {
-		return err
-	}
-	err = w.Add(fmt.Sprintf("deployment/telepresence-proxy.%s", info.Namespace))
-	if err != nil {
-		return err
-	}
-	if !w.Wait(time.Now().Add(30 * time.Second)) {
-		return errors.New("Telepresence-proxy did not come up. Investigate: kubectl get all -l app=telepresence-proxy")
-	}
+	/*
+		// Commenting this out because Watcher no longer works this way and
+		// KubeApply seems to require having files on the filesystem.
+
+		client, err := k8s.NewClient(info)
+		if err != nil {
+			return err
+		}
+		w, err := kubeapply.NewWaiter(client.Watcher())
+		if err != nil {
+			return err
+		}
+		err = w.Add(fmt.Sprintf("service/telepresence-proxy.%s", info.Namespace))
+		if err != nil {
+			return err
+		}
+		err = w.Add(fmt.Sprintf("deployment/telepresence-proxy.%s", info.Namespace))
+		if err != nil {
+			return err
+		}
+		if !w.Wait(time.Now().Add(30 * time.Second)) {
+			return errors.New("Telepresence-proxy did not come up. Investigate: kubectl get all -l app=telepresence-proxy")
+		}
+	*/
+
+	fmt.Println("Traffic management subsystem initialized. Examine using:")
+	fmt.Println("  kubectl get all -l app=telepresence-proxy")
 	return nil
 }
 
