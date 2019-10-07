@@ -462,7 +462,7 @@ base-envoy.docker: Dockerfile.base-envoy envoy-build-image.txt envoy-bin/envoy-s
 	            exit 1; \
 	        fi; \
 		echo "Building $(BASE_ENVOY_IMAGE)" && \
-		docker build $(DOCKER_OPTS) --build-arg=ENVOY_BUILD_IMAGE=$$(cat envoy-build-image.txt) -t $(BASE_ENVOY_IMAGE) -f $< envoy-bin
+		docker build $(DOCKER_OPTS) --build-arg=ENVOY_BUILD_IMAGE=$$(cat envoy-build-image.txt) -t $(BASE_ENVOY_IMAGE) -f $< envoy-bin; \
 	fi
 	@docker image inspect $(BASE_ENVOY_IMAGE) --format='{{.Id}}' | $(WRITE_IFCHANGED) $@
 
