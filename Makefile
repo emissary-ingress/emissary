@@ -57,11 +57,7 @@ GIT_TAG_SANITIZED := $(shell \
 
 # Trees get dirty sometimes by choice and sometimes accidently. If we are in a dirty tree then append "-dirty" to the
 # GIT_COMMIT.
-ifeq ($(GIT_DIRTY),dirty)
-GIT_VERSION := $(GIT_BRANCH_SANITIZED)-$(GIT_COMMIT)-dirty
-else
-GIT_VERSION := $(GIT_BRANCH_SANITIZED)-$(GIT_COMMIT)
-endif
+GIT_VERSION := $(GIT_BRANCH_SANITIZED)-$(GIT_COMMIT)$(if $(GIT_DIRTY),-dirty)
 
 # This gives the _previous_ tag, plus a git delta, like
 # 0.36.0-436-g8b8c5d3
@@ -76,11 +72,7 @@ IS_PRIVATE ?= $(findstring private,$(_git_remote_urls))
 # we'd use for a GA build. This is by design.
 #
 # Also note that we strip off the leading 'v' here -- that's just for the git tag.
-ifneq ($(GIT_TAG_SANITIZED),)
-VERSION = $(patsubst v%,%,$(firstword $(subst -, ,$(GIT_TAG_SANITIZED))))
-else
-VERSION = $(patsubst v%,%,$(firstword $(subst -, ,$(GIT_VERSION))))
-endif
+VERSION = $(patsubst v%,%,$(firstword $(subst -, ,$(or $(GIT_TAG_SANITIZED),$(GIT_VERSION)))))
 
 # We need this for tagging in some situations.
 LATEST_RC=$(VERSION)-rc-latest
