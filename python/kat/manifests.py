@@ -396,6 +396,9 @@ rules:
 - apiGroups: [ "extensions" ]
   resources: [ "ingresses" ]
   verbs: ["get", "list", "watch"]
+- apiGroups: [ "extensions" ]
+  resources: [ "ingresses/status" ]
+  verbs: ["update"]
 ---
 apiVersion: v1
 kind: ServiceAccount
@@ -462,6 +465,8 @@ apiVersion: v1
 kind: Service
 metadata:
   name: {self.path.k8s}
+  labels:
+    app.kubernetes.io/component: ambassador-service
 spec:
   type: NodePort
   ports:
@@ -510,6 +515,12 @@ spec:
       emptyDir:
         medium: Memory
         sizeLimit: "45Mi"
+    - name: ambassador-pod-info
+      downwardAPI:
+        items:
+        - path: "labels"
+          fieldRef:
+            fieldPath: metadata.labels
   containers:
   - name: ambassador
     image: {image}
@@ -546,6 +557,8 @@ spec:
     volumeMounts:
       - mountPath: /tmp/
         name: scratchpad
+      - name: ambassador-pod-info
+        mountPath: /tmp/ambassador-pod-info
 """
 
 HTTPBIN = """
