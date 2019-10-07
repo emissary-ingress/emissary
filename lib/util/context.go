@@ -2,6 +2,7 @@ package util
 
 import (
 	"context"
+	"net"
 	"net/http"
 )
 
@@ -15,6 +16,7 @@ import (
 // requests and return, instead of waiting for them to be completed
 // gracefully.
 func ListenAndServeHTTPWithContext(hardCtx, softCtx context.Context, server *http.Server) error {
+	server.BaseContext = func(_ net.Listener) context.Context { return hardCtx }
 	serverCh := make(chan error)
 	go func() {
 		serverCh <- server.ListenAndServe()

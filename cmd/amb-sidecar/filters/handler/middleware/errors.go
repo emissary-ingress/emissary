@@ -8,7 +8,7 @@ import (
 	"github.com/datawire/apro/lib/filterapi"
 )
 
-func NewErrorResponse(ctx context.Context, httpStatus int, err error, extra map[string]interface{}) *filterapi.HTTPResponse {
+func errorResponse(ctx context.Context, httpStatus int, err error, extra map[string]interface{}) []byte {
 	body := map[string]interface{}{
 		"status_code": httpStatus,
 		"message":     err.Error(),
@@ -27,6 +27,12 @@ func NewErrorResponse(ctx context.Context, httpStatus int, err error, extra map[
 	} else {
 		GetLogger(ctx).Infof("HTTP %v %+v", httpStatus, err)
 	}
+	return bodyBytes
+}
+
+func NewErrorResponse(ctx context.Context, httpStatus int, err error, extra map[string]interface{}) *filterapi.HTTPResponse {
+	bodyBytes := errorResponse(ctx, httpStatus, err, extra)
+
 	return &filterapi.HTTPResponse{
 		StatusCode: httpStatus,
 		Header: http.Header{
@@ -34,4 +40,12 @@ func NewErrorResponse(ctx context.Context, httpStatus int, err error, extra map[
 		},
 		Body: string(bodyBytes),
 	}
+}
+
+func ServeErrorResponse(w http.ResponseWriter, ctx context.Context, httpStatus int, err error, extra map[string]interface{}) {
+	bodyBytes := errorResponse(ctx, httpStatus, err, extra)
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(httpStatus)
+	w.Write(bodyBytes)
 }
