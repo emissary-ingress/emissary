@@ -19,30 +19,25 @@ set -o nounset
 
 printf "== Begin: travis-script.sh ==\n"
 
-NEEDS_V=
-
-if [[ "$GIT_BRANCH" =~ ^v?[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-    COMMIT_TYPE=GA
-    NEEDS_V=yes
-elif [[ "$GIT_BRANCH" =~ -rc[0-9]+$ ]]; then
-    COMMIT_TYPE=RC
-    NEEDS_V=yes
-elif [[ "$GIT_BRANCH" =~ -ea[0-9]+$ ]]; then
-    COMMIT_TYPE=EA
-    NEEDS_V=yes
+if [[ -n "$TRAVIS_TAG" ]]; then
+    if [[ "$TRAVIS_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        COMMIT_TYPE=GA
+    elif [[ "$TRAVIS_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-rc[0-9]+$ ]]; then
+        COMMIT_TYPE=RC
+    elif [[ "$TRAVIS_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-ea[0-9]+$ ]]; then
+        COMMIT_TYPE=EA
+    else
+        echo "TRAVIS_TAG '$TRAVIS_TAG' is not in one of the recognized tag formats:" >&2
+        echo " - 'vSEMVER'" >&2
+        echo " - 'vSEMVER-rcN'" >&2
+        echo " - 'vSEMVER-eaN'" >&2
+        echo "Note that the tag name must start with a lowercase 'v'" >&2
+        exit 1
+    fi
 elif [[ "$TRAVIS_PULL_REQUEST" != false ]]; then
     COMMIT_TYPE=PR
 else
     COMMIT_TYPE=random
-fi
-
-if [ -n "$NEEDS_V" ]; then
-    # GIT_BRANCH must start with a 'v' for consistency here. The Makefile yanks off
-    # the 'v' in the version number.
-    if ! [[ "$GIT_BRANCH" =~ ^[vV] ]]; then
-        echo "GIT_BRANCH '$GIT_BRANCH' does not start with a 'v'" >&2
-        exit 1
-    fi
 fi
 
 # If downstream, don't re-run release machinery for tags that are an
