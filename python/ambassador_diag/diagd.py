@@ -68,7 +68,7 @@ logging.basicConfig(
 )
 
 # Shut up Werkzeug's standard request logs -- they're just too noisy.
-logging.getLogger("werkzeug").setLevel(max(log_level, logging.CRITICAL))
+logging.getLogger("werkzeug").setLevel(logging.CRITICAL)
 
 # Likewise make requests a bit quieter.
 logging.getLogger("urllib3").setLevel(max(log_level, logging.WARNING))
