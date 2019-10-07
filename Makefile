@@ -59,7 +59,7 @@ endif
 
 # This gives the _previous_ tag, plus a git delta, like
 # 0.36.0-436-g8b8c5d3
-GIT_DESCRIPTION := $(shell git describe $(GIT_COMMIT))
+GIT_DESCRIPTION := $(shell git describe --tags $(GIT_COMMIT))
 
 # IS_PRIVATE: empty=false, nonempty=true
 # Default is true if any of the git remotes have the string "private" in any of their URLs.
