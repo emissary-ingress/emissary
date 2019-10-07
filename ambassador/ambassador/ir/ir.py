@@ -26,6 +26,7 @@ from ..constants import Constants
 from ..utils import RichStatus, SavedSecret, SecretHandler, SecretInfo
 from ..config import Config
 from ..config import ACResource
+from ..config import ResourceFetcher
 
 from .irresource import IRResource
 from .irambassador import IRAmbassador
@@ -74,7 +75,6 @@ class IR:
     secret_handler: SecretHandler
     file_checker: Callable[[str], bool]
     resolvers: Dict[str, IRServiceResolver]
-    k8s_status_updates: Dict[str, Dict]
 
     def __init__(self, aconf: Config, secret_handler=None, file_checker=None) -> None:
         self.ambassador_id = Config.ambassador_id
@@ -105,6 +105,7 @@ class IR:
 
         # First up: save the Config object. Its source map may be necessary later.
         self.aconf = aconf
+        self.k8s_status_updates = aconf.k8s_status_updates
 
         # Next, we'll want a way to keep track of resources we end up working
         # with. It starts out empty.
@@ -129,7 +130,6 @@ class IR:
         self.listeners = []
         self.groups = {}
         self.resolvers = {}
-        self.k8s_status_updates = {}
 
         # OK, time to get this show on the road. First things first: set up the
         # Ambassador module.
