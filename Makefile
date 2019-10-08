@@ -186,15 +186,9 @@ KAT_IMAGE_PULL_POLICY ?= Always
 
 KAT_CLIENT ?= venv/bin/kat_client
 
-# Allow overriding which watt we use.
+# Where to place binaries when we compile them
 WATT ?= watt
-WATT_VERSION ?= 0.6.0
-
-# Allow overriding which kubestatus we use.
 KUBESTATUS ?= kubestatus
-KUBESTATUS_VERSION ?= 0.7.2
-
-TELEPROXY_VERSION ?= 0.4.11
 
 # This should maybe be replaced with a lighterweight dependency if we
 # don't currently depend on go
@@ -558,11 +552,11 @@ kat-client.docker: build/kat/client/Dockerfile base-py.docker build/kat/client/t
 	@docker image inspect $(KAT_CLIENT_DOCKER_IMAGE) --format='{{.Id}}' | $(WRITE_IFCHANGED) $@
 
 # build/kat/client/teleproxy always uses the linux/amd64 architecture
-build/kat/client/teleproxy: $(var.)TELEPROXY_VERSION
-	curl --fail -o $@ https://s3.amazonaws.com/datawire-static-files/teleproxy/$(TELEPROXY_VERSION)/linux/amd64/teleproxy
+build/kat/client/teleproxy: go.mod
+	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o $@ github.com/datawire/teleproxy/cmd/teleproxy
 
 # build/kat/client/kat_client always uses the linux/amd64 architecture
-build/kat/client/kat_client: $(wildcard ./cmd/kat-client/*) pkg/api/kat/echo.pb.go
+build/kat/client/kat_client: go.mod $(wildcard ./cmd/kat-client/*) pkg/api/kat/echo.pb.go
 	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o $@ ./cmd/kat-client
 
 kat-server-docker-image: kat-server.docker
@@ -572,7 +566,7 @@ kat-server.docker: $(wildcard build/kat/server/*) build/kat/server/kat-server $(
 	@docker image inspect $(KAT_SERVER_DOCKER_IMAGE) --format='{{.Id}}' | $(WRITE_IFCHANGED) $@
 
 # build/kat/server/kat-server always uses the linux/amd64 architecture
-build/kat/server/kat-server: $(wildcard cmd/kat-server/* cmd/kat-server/*/*) pkg/api/kat/echo.pb.go
+build/kat/server/kat-server: go.mod $(wildcard cmd/kat-server/* cmd/kat-server/*/*) pkg/api/kat/echo.pb.go
 	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o $@ ./cmd/kat-server
 
 docker-images: mypy ambassador-docker-image
@@ -616,18 +610,16 @@ python/ambassador/VERSION.py: FORCE $(WRITE_IFCHANGED)
 version: python/ambassador/VERSION.py
 
 # This is for the docker image, so we don't use the current arch, we hardcode to linux/amd64
-$(WATT): $(var.)WATT_VERSION
-	curl -o $(WATT) https://s3.amazonaws.com/datawire-static-files/watt/$(WATT_VERSION)/linux/amd64/watt
-	chmod go-w,a+x $(WATT)
+$(WATT): go.mod
+	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o $@ github.com/datawire/teleproxy/cmd/watt
 
 # This is for the docker image, so we don't use the current arch, we hardcode to linux/amd64
 cmd/ambex/ambex: $(wildcard cmd/ambex/*.go) go.mod
 	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o $@ ./cmd/ambex
 
 # This is for the docker image, so we don't use the current arch, we hardcode to linux/amd64
-$(KUBESTATUS): $(var.)KUBESTATUS_VERSION
-	curl -o $(KUBESTATUS) https://s3.amazonaws.com/datawire-static-files/kubestatus/$(KUBESTATUS_VERSION)/linux/amd64/kubestatus
-	chmod go-w,a+x $(KUBESTATUS)
+$(KUBESTATUS): go.mod
+	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o $@ github.com/datawire/teleproxy/cmd/kubestatus
 
 $(CLAIM_FILE):
 	@if [ -z $${CI+x} ]; then \
@@ -640,7 +632,7 @@ $(KUBERNAUT): $(var.)KUBERNAUT_VERSION $(var.)GOOS $(var.)GOARCH | venv/bin/acti
 	curl -o $(KUBERNAUT) http://releases.datawire.io/kubernaut/$(KUBERNAUT_VERSION)/$(GOOS)/$(GOARCH)/kubernaut
 	chmod +x $(KUBERNAUT)
 
-$(KAT_CLIENT): $(wildcard cmd/kat-client/*) pkg/api/kat/echo.pb.go
+$(KAT_CLIENT): go.mod $(wildcard cmd/kat-client/*) pkg/api/kat/echo.pb.go
 	go build -o $@ ./cmd/kat-client
 
 setup-develop: venv $(KAT_CLIENT) $(KUBERNAUT) $(WATT) $(KUBESTATUS) version
