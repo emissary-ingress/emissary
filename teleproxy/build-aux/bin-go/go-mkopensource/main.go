@@ -223,7 +223,7 @@ func Main(args *CLIArgs) error {
 		key := "<nil>"
 		if pkg.Module != nil {
 			key = pkg.Module.Path
-			if pkg.Module.Path == gomod || pkg.Module.Path == "github.com/datawire/liboauth2" || pkg.Module.Path == "github.com/datawire/teleproxy" {
+			if pkg.Module.Path == gomod || pkg.Module.Path == "github.com/datawire/liboauth2" || pkg.Module.Path == "github.com/datawire/ambassador" {
 				continue
 			}
 		}
