@@ -76,7 +76,7 @@ endif
 AMBASSADOR_DOCKER_REPO ?= $(if $(filter-out -,$(DOCKER_REGISTRY)),$(DOCKER_REGISTRY)/)ambassador$(if $(IS_PRIVATE),-private)
 
 ifneq ($(DOCKER_EXTERNAL_REGISTRY),)
-AMBASSADOR_EXTERNAL_DOCKER_REPO ?= $(DOCKER_EXTERNAL_REGISTRY)/ambassador
+AMBASSADOR_EXTERNAL_DOCKER_REPO ?= $(DOCKER_EXTERNAL_REGISTRY)/ambassador$(if $(IS_PRIVATE),-private)
 else
 AMBASSADOR_EXTERNAL_DOCKER_REPO ?= $(AMBASSADOR_DOCKER_REPO)
 endif
@@ -98,7 +98,7 @@ ENVOY_FILE ?= envoy-bin/envoy-static-stripped
 
 # IF YOU MESS WITH ANY OF THESE VALUES, YOU MUST RUN `make docker-update-base`.
   ENVOY_REPO ?= $(if $(IS_PRIVATE),git@github.com:datawire/envoy-private.git,git://github.com/datawire/envoy.git)
-  ENVOY_COMMIT ?= 18b1f5acc8d75e992f81d540bbb0d05f8abfe244
+  ENVOY_COMMIT ?= 6e6ae35f214b040f76666d86b30a6ad3ceb67046
   ENVOY_COMPILATION_MODE ?= dbg
 
 
