@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-from typing import Dict, List, Union, TYPE_CHECKING
+from typing import Any, Dict, List, Union, TYPE_CHECKING
 from typing import cast as typecast
 
 from ..common import EnvoyRoute
@@ -23,6 +23,33 @@ from .v2ratelimitaction import V2RateLimitAction
 
 if TYPE_CHECKING:
     from . import V2Config
+
+
+def regex_matcher(config: 'V2Config', regex: str, key="regex", safe_key=None) -> Dict[str, Any]:
+        re_type = config.ir.ambassador_module.get('regex_type', 'safe').lower()
+
+        config.ir.logger.info(f"re_type {re_type}")
+
+        # 'safe' is the default. You must explicitly say "unsafe" to get the unsafe
+        # regex matcher.
+        if re_type != 'unsafe':
+            max_size = int(config.ir.ambassador_module.get('regex_max_size', 100))
+
+            if not safe_key:
+                safe_key = "safe_" + key
+
+            return {
+                safe_key: {
+                    "google_re2": {
+                        "max_program_size": max_size
+                    },
+                    "regex": regex
+                }
+            }
+        else:
+            return {
+                key: regex
+            }
 
 
 class V2Route(dict):
@@ -48,12 +75,16 @@ class V2Route(dict):
             runtime_fraction['runtime_key'] = f'routing.traffic_shift.{mapping.cluster.name}'
 
         match = {
-            envoy_route: route_prefix,
             'case_sensitive': case_sensitive,
             'runtime_fraction': runtime_fraction
         }
 
-        headers = self.generate_headers(group)
+        if envoy_route == 'prefix':
+            match['prefix'] = route_prefix
+        else:
+            match.update(regex_matcher(config, route_prefix))
+
+        headers = self.generate_headers(config, group)
 
         if len(headers) > 0:
             match['headers'] = headers
@@ -223,7 +254,7 @@ class V2Route(dict):
                     config.routes.append(route)
 
     @staticmethod
-    def generate_headers(mapping_group: IRHTTPMappingGroup) -> List[dict]:
+    def generate_headers(config: 'V2Config', mapping_group: IRHTTPMappingGroup) -> List[dict]:
         headers = []
 
         group_headers = mapping_group.get('headers', [])
@@ -232,7 +263,7 @@ class V2Route(dict):
             header = { 'name': group_header.get('name') }
 
             if group_header.get('regex'):
-                header['regex_match'] = group_header.get('value')
+                header.update(regex_matcher(config, group_header.get('value'), key='regex_match'))
             else:
                 header['exact_match'] = group_header.get('value')
 

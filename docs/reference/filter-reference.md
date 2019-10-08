@@ -277,7 +277,7 @@ Information you must decide, and give to your identity provider:
    cookies for the application.  Only the scheme (`https://`) and
    authority (`example.com:1234`) parts are used; the path part of the
    URL is ignored.  You will also likely need to register
-   `${clientURL}/callback` as an authorizaed callback endpoint with
+   `${clientURL}/callback` as an authorized callback endpoint with
    your identity provider.
 
 Information that you decide for yourself:
@@ -476,22 +476,25 @@ metadata:
   name: httpbin-policy
 spec:
   rules:
-  # Default to authorizing all requests with auth0
+  # Don't apply any filters to requests for /httpbin/ip
   - host: "*"
-    path: "*"
-    filters:
-    - name: auth0
-  # And also apply the param-filter to requests for /httpbin/
+    path: /httpbin/ip
+    filters: null
+  # Apply param-filter and auth0 to requests for /httpbin/
   - host: "*"
     path: /httpbin/*
     filters:
     - name: param-filter
     - name: auth0
-  # But don't apply any filters to requests for /httpbin/ip
+  # Default to authorizing all requests with auth0
   - host: "*"
-    path: /httpbin/ip
-    filters: null
+    path: "*"
+    filters:
+    - name: auth0
 ```
+
+**Note:** Ambassador will choose the first `FilterPolicy` rule that matches the incoming request. 
+As in the above example, you must list your rules in the order of least to most generic.
 
 ## Installing self-signed certificates
 

@@ -30,6 +30,7 @@ import t_circuitbreaker
 import t_knative
 import t_capabilities
 import t_envoy_logs
+import t_ingress
 
 # pytest will find this because Runner is a toplevel callable object in a file
 # that pytest is willing to look inside.
