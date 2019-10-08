@@ -92,13 +92,20 @@ EOF
         git clone https://github.com/datawire/ambassador
 EOF
 
-        gcloud beta compute --project "datawireio" ssh --zone "us-east1-b" "envoy-tests-ambassador" << EOF
+        if gcloud beta compute --project "datawireio" ssh --zone "us-east1-b" "envoy-tests-ambassador" << EOF
         export DOCKER_REGISTRY=-
         cd ambassador
         make envoy-tests
 EOF
-
-        gcloud beta compute instances delete envoy-tests-ambassador --zone us-east1-b --quiet
+        then
+            gcloud beta compute instances delete envoy-tests-ambassador --zone us-east1-b --quiet
+            printf "========\nEnvoy tests passed...\n"
+            exit 0
+        else
+            gcloud beta compute instances delete envoy-tests-ambassador --zone us-east1-b --quiet
+            printf "========\nEnvoy tests failed...\n"
+            exit 1
+        fi
     ;;
     *)
         printf "========\nSkipping Envoy tests, not a nightly build...\n"
@@ -121,14 +128,7 @@ case "$COMMIT_TYPE" in
         make setup-develop cluster.yaml docker-registry
         make docker-push docker-push-kat-client docker-push-kat-server # to the in-cluster registry (DOCKER_REGISTRY)
         # make KAT_REQ_LIMIT=1200 test
-        if make test
-        then
-            printf "========\nEnvoy tests passed...\n"
-            exit 0
-        else
-            printf "========\nEnvoy tests failed...\n"
-            exit 1
-        fi
+        make test
         ;;
 esac
 
