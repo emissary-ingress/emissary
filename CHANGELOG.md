@@ -94,6 +94,14 @@ Format:
 --->
 
 <!--- CueAddReleaseNotes --->
+## [0.83.0] October 08, 2019
+[0.83.0]: https://github.com/datawire/ambassador/compare/v0.82.0...v0.83.0
+
+### Major changes:
+- Update Ambassador to address CVE-2019-15225 and CVE-2019-15226.
+
+NOTE: this switches the default regex engine! See the documentation for the `ambassador` `Module` for more.
+
 ## [0.82.0] October 02, 2019
 [0.82.0]: https://github.com/datawire/ambassador/compare/v0.81.0...v0.82.0
 
