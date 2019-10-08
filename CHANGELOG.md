@@ -1,6 +1,6 @@
 ## Ambassador Pro CHANGELOG
 
-## 0.8.1 (TBD)
+## 0.9.0 (2019-10-08)
 
 Configuration
 
