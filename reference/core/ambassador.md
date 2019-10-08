@@ -141,6 +141,9 @@ config:
 # Set the default upstream-connection idle timeout. If not set (the default), upstream
 # connections will never be closed due to idling.
 # cluster_idle_timeout_ms: 30000
+
+# Set which regular expression engine to use. See the "Regular Expressions" section below.
+# regex_type: safe 
 ```
 
 ### Overriding Default Ports
@@ -157,6 +160,17 @@ config:
 ```
 
 This will configure Ambassador to listen for traffic on port 4567 instead of 8080.
+
+### Regular Expressions (`regex_type`)
+
+If `regex_type` is unset (the default), or is set to any value other than `unsafe`, Ambassador will use the
+[RE2](https://github.com/google/re2/wiki/Syntax) regular expression engine. This engine is designed to support
+most regular expressions, but keep bounds on execution time. **RE2 is the recommended regular expression engine.**
+
+If `regex_type` is set to `unsafe`, Ambassador will use the [modified ECMAScript](https://en.cppreference.com/w/cpp/regex/ecmascript)
+regular expression engine. **This is not recommended** since the modified ECMAScript engine can consume unbounded 
+CPU in some cases (mostly relating to backreferences and lookahead); it is provided for backward compatibility if
+necessary.
 
 ### Lua Scripts (`lua_scripts`)
 
