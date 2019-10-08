@@ -86,5 +86,11 @@ kubernaut-claim.txt
 # Remove the tail of this list when the commit making the change gets
 # far enough in to the past.
 
+# 2019-10-07
+/kat-server-docker-image/kat-server
+/kat-sandbox/grpc_auth/docker-compose.yml
+/kat-sandbox/grpc_web/docker-compose.yaml
+/kat-sandbox/grpc_web/*_pb.js
+/kat-sandbox/http_auth/docker-compose.yml
 # 2019-06-14
 /envoy/

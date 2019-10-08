@@ -22,8 +22,7 @@ SHELL = bash
 
 .PHONY: \
     clean version setup-develop print-vars \
-    docker-push docker-images \
-    teleproxy-restart teleproxy-stop
+    docker-push docker-images
 .SECONDARY:
 
 # GIT_BRANCH on TravisCI needs to be set through some external custom logic. Default to a Git native mechanism or
@@ -115,7 +114,7 @@ ENVOY_FILE ?= envoy-bin/envoy-static-stripped
   # Increment BASE_ENVOY_RELVER on changes to `Dockerfile.base-envoy`, or Envoy recipes
   BASE_ENVOY_RELVER ?= 4
   # Increment BASE_GO_RELVER on changes to `Dockerfile.base-go`
-  BASE_GO_RELVER    ?= 17
+  BASE_GO_RELVER    ?= 18
   # Increment BASE_PY_RELVER on changes to `Dockerfile.base-py`, `releng/*`, `python/requirements.txt`
   BASE_PY_RELVER    ?= 17
 
@@ -195,7 +194,6 @@ WATT_VERSION ?= 0.6.0
 KUBESTATUS ?= kubestatus
 KUBESTATUS_VERSION ?= 0.7.2
 
-TELEPROXY ?= venv/bin/teleproxy
 TELEPROXY_VERSION ?= 0.4.11
 
 # This should maybe be replaced with a lighterweight dependency if we
@@ -247,12 +245,28 @@ clean: clean-test envoy-build-container.txt.clean $(addsuffix .clean,$(clean_doc
 	rm -rf envoy-bin
 	rm -f envoy-build-image.txt
 	rm -f cmd/ambex/ambex
+# Files made by older versions.  Remove the tail of this list when the
+# commit making the change gets far enough in to the past.
+#
+# 2019-09-23
+	rm -f kat-server-docker-image/kat-server
+	rm -f kat-sandbox/grpc_auth/docker-compose.yml
+	rm -f kat-sandbox/grpc_web/docker-compose.yaml
+	rm -f kat-sandbox/grpc_web/*_pb.js
+	rm -f kat-sandbox/http_auth/docker-compose.yml
 
 clobber: clean kill-docker-registry
 	-rm -f build/kat/client/teleproxy
 	-$(if $(filter-out -,$(ENVOY_COMMIT)),rm -rf envoy envoy-src)
 	-rm -rf docs/node_modules
 	-rm -rf venv && echo && echo "Deleted venv, run 'deactivate' command if your virtualenv is activated" || true
+
+generate: pkg/api/kat/echo.pb.go
+generate: pkg/api/envoy
+generate: api/envoy
+generate-clean: clobber
+	rm -rf api/envoy pkg/api
+.PHONY: generate generate-clean
 
 print-%:
 	@printf "$($*)"
@@ -601,14 +615,6 @@ python/ambassador/VERSION.py: FORCE $(WRITE_IFCHANGED)
 
 version: python/ambassador/VERSION.py
 
-$(TELEPROXY): $(var.)TELEPROXY_VERSION $(var.)GOOS $(var.)GOARCH | venv/bin/activate
-	curl -o $(TELEPROXY) https://s3.amazonaws.com/datawire-static-files/teleproxy/$(TELEPROXY_VERSION)/$(GOOS)/$(GOARCH)/teleproxy
-	sudo chown 0:0 $(TELEPROXY)			# setting group 0 is very important for SUID on MacOS!	
-	sudo chmod go-w,a+sx $(TELEPROXY)
-
-kill_teleproxy = curl -s --connect-timeout 5 127.254.254.254/api/shutdown || true
-run_teleproxy = $(TELEPROXY)
-
 # This is for the docker image, so we don't use the current arch, we hardcode to linux/amd64
 $(WATT): $(var.)WATT_VERSION
 	curl -o $(WATT) https://s3.amazonaws.com/datawire-static-files/watt/$(WATT_VERSION)/linux/amd64/watt
@@ -637,7 +643,7 @@ $(KUBERNAUT): $(var.)KUBERNAUT_VERSION $(var.)GOOS $(var.)GOARCH | venv/bin/acti
 $(KAT_CLIENT): $(wildcard cmd/kat-client/*) pkg/api/kat/echo.pb.go
 	go build -o $@ ./cmd/kat-client
 
-setup-develop: venv $(KAT_CLIENT) $(TELEPROXY) $(KUBERNAUT) $(WATT) $(KUBESTATUS) version
+setup-develop: venv $(KAT_CLIENT) $(KUBERNAUT) $(WATT) $(KUBESTATUS) version
 
 cluster.yaml: $(CLAIM_FILE) $(KUBERNAUT)
 ifeq ($(USE_KUBERNAUT), true)
@@ -656,37 +662,8 @@ endif
 # relative paths.
 $(CURDIR)/cluster.yaml: cluster.yaml
 
-setup-test: cluster-and-teleproxy
-
-cluster-and-teleproxy: cluster.yaml $(TELEPROXY)
+setup-test: cluster.yaml
 	rm -rf /tmp/k8s-*.yaml /tmp/kat-*.yaml
-# 	$(MAKE) teleproxy-restart
-# 	@echo "Sleeping for Teleproxy cluster"
-# 	sleep 10
-
-teleproxy-restart: $(TELEPROXY)
-	@echo "Killing teleproxy"
-	$(kill_teleproxy)
-	sleep 0.25 # wait for exit...
-	$(run_teleproxy) -kubeconfig $(KUBECONFIG) 2> /tmp/teleproxy.log &
-	sleep 0.5 # wait for start
-	@if [ $$(ps -ef | grep venv/bin/teleproxy | grep -v grep | wc -l) -le 0 ]; then \
-		echo "teleproxy did not start"; \
-		cat /tmp/teleproxy.log; \
-		exit 1; \
-	fi
-	@echo "Done"
-
-teleproxy-stop:
-	$(kill_teleproxy)
-	sleep 0.25 # wait for exit...
-	@if [ $$(ps -ef | grep venv/bin/teleproxy | grep -v grep | wc -l) -gt 0 ]; then \
-		echo "teleproxy still running" >&2; \
-		ps -ef | grep venv/bin/teleproxy | grep -v grep >&2; \
-		false; \
-	else \
-		echo "teleproxy stopped" >&2; \
-	fi
 
 # "make shell" drops you into a dev shell, and tries to set variables, etc., as
 # needed:
@@ -712,7 +689,6 @@ clean-test:
 	rm -f cluster.yaml
 	test -x $(KUBERNAUT) && $(KUBERNAUT_DISCARD) || true
 	rm -f $(CLAIM_FILE)
-	$(call kill_teleproxy)
 
 test: setup-develop
 	cd python && \
@@ -792,6 +768,9 @@ venv/bin/protoc-gen-gogofast: go.mod $(FLOCK) | venv/bin/activate
 venv/bin/protoc-gen-validate: go.mod $(FLOCK) | venv/bin/activate
 	$(FLOCK) go.mod go build -o $@ github.com/envoyproxy/protoc-gen-validate
 
+api/envoy: envoy-src
+	rsync --recursive --delete --delete-excluded --prune-empty-dirs --include='*/' --include='*.proto' --exclude='*' $</api/envoy/ $@
+
 # Search path for .proto files
 gomoddir = $(shell $(FLOCK) go.mod go list $1/... >/dev/null 2>/dev/null; $(FLOCK) go.mod go list -m -f='{{.Dir}}' $1)
 # This list is based on 'imports=()' in https://github.com/envoyproxy/go-control-plane/blob/0e75602d5e36e96eafbe053999c0569edec9fe07/build/generate_protos.sh
@@ -807,7 +786,7 @@ gomoddir = $(shell $(FLOCK) go.mod go list $1/... >/dev/null 2>/dev/null; $(FLOC
 #    go-control-plane is that our newer Envoy needs googleapis'
 #    "google/api/expr/v1alpha1/", which was added in 32e3935 (.pb.go files) and ee07f27
 #    (.proto files).
-imports += $(CURDIR)/envoy-src/api
+imports += $(CURDIR)/api
 imports += $(call gomoddir,github.com/envoyproxy/protoc-gen-validate)
 imports += $(call gomoddir,github.com/gogo/protobuf)/protobuf
 imports += $(call gomoddir,istio.io/gogo-genproto)/common-protos
@@ -838,18 +817,18 @@ mappings += metrics.proto=istio.io/gogo-genproto/prometheus
 mappings += opencensus/proto/trace/v1/trace.proto=istio.io/gogo-genproto/opencensus/proto/trace/v1
 mappings += opencensus/proto/trace/v1/trace_config.proto=istio.io/gogo-genproto/opencensus/proto/trace/v1
 mappings += validate/validate.proto=github.com/envoyproxy/protoc-gen-validate/validate
-mappings += $(shell find $(CURDIR)/envoy-src/api/envoy -type f -name '*.proto' | sed -E 's,^$(CURDIR)/envoy-src/api/((.*)/[^/]*),\1=github.com/datawire/ambassador/pkg/api/\2,')
+mappings += $(shell find $(CURDIR)/api/envoy -type f -name '*.proto' | sed -E 's,^$(CURDIR)/api/((.*)/[^/]*),\1=github.com/datawire/ambassador/pkg/api/\2,')
 
 joinlist=$(if $(word 2,$2),$(firstword $2)$1$(call joinlist,$1,$(wordlist 2,$(words $2),$2)),$2)
 comma = ,
 
 _imports = $(call lazyonce,_imports,$(imports))
 _mappings = $(call lazyonce,_mappings,$(mappings))
-pkg/api/envoy: envoy-src $(FLOCK) venv/bin/protoc venv/bin/protoc-gen-gogofast venv/bin/protoc-gen-validate $(var.)_imports $(var.)_mappings
+pkg/api/envoy: api/envoy $(FLOCK) venv/bin/protoc venv/bin/protoc-gen-gogofast venv/bin/protoc-gen-validate $(var.)_imports $(var.)_mappings
 	rm -rf $@ $(@D).envoy.tmp
 	mkdir -p $(@D).envoy.tmp
 # go-control-plane `make generate`
-	@set -e; find $(CURDIR)/envoy-src/api/envoy -type f -name '*.proto' | sed 's,/[^/]*$$,,' | uniq | while read -r dir; do \
+	@set -e; find $(CURDIR)/api/envoy -type f -name '*.proto' | sed 's,/[^/]*$$,,' | uniq | while read -r dir; do \
 		echo "Generating $$dir"; \
 		./venv/bin/protoc \
 			$(addprefix --proto_path=,$(_imports))  \
@@ -878,6 +857,7 @@ venv/bin/protoc-gen-grpc-web: $(var.)GRPC_WEB_VERSION $(var.)GRPC_WEB_PLATFORM |
 	chmod 755 $@
 
 pkg/api/kat/echo.pb.go: api/kat/echo.proto venv/bin/protoc venv/bin/protoc-gen-gogofast
+	mkdir -p $(@D)
 	./venv/bin/protoc \
 		--proto_path=$(CURDIR)/api/kat \
 		--plugin=$(CURDIR)/venv/bin/protoc-gen-gogofast --gogofast_out=plugins=grpc:$(@D) \
