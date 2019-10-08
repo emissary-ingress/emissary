@@ -310,8 +310,9 @@ func warn(err error) bool {
 }
 
 // OnStreamOpen is called once an xDS stream is open with a stream ID and the type URL (or "" for ADS).
-func (l logger) OnStreamOpen(sid int64, stype string) {
+func (l logger) OnStreamOpen(_ context.Context, sid int64, stype string) error {
 	l.Infof("Stream open[%v]: %v", sid, stype)
+	return nil
 }
 
 // OnStreamClosed is called immediately prior to closing an xDS stream with a stream ID.
@@ -320,8 +321,9 @@ func (l logger) OnStreamClosed(sid int64) {
 }
 
 // OnStreamRequest is called once a request is received on a stream.
-func (l logger) OnStreamRequest(sid int64, req *v2.DiscoveryRequest) {
+func (l logger) OnStreamRequest(sid int64, req *v2.DiscoveryRequest) error {
 	l.Infof("Stream request[%v]: %v", sid, req)
+	return nil
 }
 
 // OnStreamResponse is called immediately prior to sending a response on a stream.
@@ -330,8 +332,9 @@ func (l logger) OnStreamResponse(sid int64, req *v2.DiscoveryRequest, res *v2.Di
 }
 
 // OnFetchRequest is called for each Fetch request
-func (l logger) OnFetchRequest(r *v2.DiscoveryRequest) {
+func (l logger) OnFetchRequest(_ context.Context, r *v2.DiscoveryRequest) error {
 	l.Infof("Fetch request: %v", r)
+	return nil
 }
 
 // OnFetchResponse is called immediately prior to sending a response.
