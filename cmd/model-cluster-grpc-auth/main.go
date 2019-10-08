@@ -7,9 +7,9 @@ import (
 	"net/http"
 	"net/url"
 
-	rpc "istio.io/gogo-genproto/googleapis/google/rpc"
 	"github.com/gogo/protobuf/types"
 	"google.golang.org/grpc"
+	rpc "istio.io/gogo-genproto/googleapis/google/rpc"
 
 	envoyCoreV2 "github.com/datawire/ambassador/go/apis/envoy/api/v2/core"
 	envoyAuthV2 "github.com/datawire/ambassador/go/apis/envoy/service/auth/v2"
