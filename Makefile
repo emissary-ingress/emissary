@@ -247,6 +247,15 @@ clean: clean-test envoy-build-container.txt.clean $(addsuffix .clean,$(clean_doc
 	rm -rf envoy-bin
 	rm -f envoy-build-image.txt
 	rm -f cmd/ambex/ambex
+# Files made by older versions.  Remove the tail of this list when the
+# commit making the change gets far enough in to the past.
+#
+# 2019-09-23
+	rm -f kat-server-docker-image/kat-server
+	rm -f kat-sandbox/grpc_auth/docker-compose.yml
+	rm -f kat-sandbox/grpc_web/docker-compose.yaml
+	rm -f kat-sandbox/grpc_web/*_pb.js
+	rm -f kat-sandbox/http_auth/docker-compose.yml
 
 clobber: clean kill-docker-registry
 	-rm -f build/kat/client/teleproxy
