@@ -22,8 +22,7 @@ SHELL = bash
 
 .PHONY: \
     clean version setup-develop print-vars \
-    docker-push docker-images \
-    teleproxy-restart teleproxy-stop
+    docker-push docker-images
 .SECONDARY:
 
 # GIT_BRANCH on TravisCI needs to be set through some external custom logic. Default to a Git native mechanism or
@@ -195,7 +194,6 @@ WATT_VERSION ?= 0.6.0
 KUBESTATUS ?= kubestatus
 KUBESTATUS_VERSION ?= 0.7.2
 
-TELEPROXY ?= venv/bin/teleproxy
 TELEPROXY_VERSION ?= 0.4.11
 
 # This should maybe be replaced with a lighterweight dependency if we
@@ -617,14 +615,6 @@ python/ambassador/VERSION.py: FORCE $(WRITE_IFCHANGED)
 
 version: python/ambassador/VERSION.py
 
-$(TELEPROXY): $(var.)TELEPROXY_VERSION $(var.)GOOS $(var.)GOARCH | venv/bin/activate
-	curl -o $(TELEPROXY) https://s3.amazonaws.com/datawire-static-files/teleproxy/$(TELEPROXY_VERSION)/$(GOOS)/$(GOARCH)/teleproxy
-	sudo chown 0:0 $(TELEPROXY)			# setting group 0 is very important for SUID on MacOS!	
-	sudo chmod go-w,a+sx $(TELEPROXY)
-
-kill_teleproxy = curl -s --connect-timeout 5 127.254.254.254/api/shutdown || true
-run_teleproxy = $(TELEPROXY)
-
 # This is for the docker image, so we don't use the current arch, we hardcode to linux/amd64
 $(WATT): $(var.)WATT_VERSION
 	curl -o $(WATT) https://s3.amazonaws.com/datawire-static-files/watt/$(WATT_VERSION)/linux/amd64/watt
@@ -653,7 +643,7 @@ $(KUBERNAUT): $(var.)KUBERNAUT_VERSION $(var.)GOOS $(var.)GOARCH | venv/bin/acti
 $(KAT_CLIENT): $(wildcard cmd/kat-client/*) pkg/api/kat/echo.pb.go
 	go build -o $@ ./cmd/kat-client
 
-setup-develop: venv $(KAT_CLIENT) $(TELEPROXY) $(KUBERNAUT) $(WATT) $(KUBESTATUS) version
+setup-develop: venv $(KAT_CLIENT) $(KUBERNAUT) $(WATT) $(KUBESTATUS) version
 
 cluster.yaml: $(CLAIM_FILE) $(KUBERNAUT)
 ifeq ($(USE_KUBERNAUT), true)
@@ -672,37 +662,8 @@ endif
 # relative paths.
 $(CURDIR)/cluster.yaml: cluster.yaml
 
-setup-test: cluster-and-teleproxy
-
-cluster-and-teleproxy: cluster.yaml $(TELEPROXY)
+setup-test: cluster.yaml
 	rm -rf /tmp/k8s-*.yaml /tmp/kat-*.yaml
-# 	$(MAKE) teleproxy-restart
-# 	@echo "Sleeping for Teleproxy cluster"
-# 	sleep 10
-
-teleproxy-restart: $(TELEPROXY)
-	@echo "Killing teleproxy"
-	$(kill_teleproxy)
-	sleep 0.25 # wait for exit...
-	$(run_teleproxy) -kubeconfig $(KUBECONFIG) 2> /tmp/teleproxy.log &
-	sleep 0.5 # wait for start
-	@if [ $$(ps -ef | grep venv/bin/teleproxy | grep -v grep | wc -l) -le 0 ]; then \
-		echo "teleproxy did not start"; \
-		cat /tmp/teleproxy.log; \
-		exit 1; \
-	fi
-	@echo "Done"
-
-teleproxy-stop:
-	$(kill_teleproxy)
-	sleep 0.25 # wait for exit...
-	@if [ $$(ps -ef | grep venv/bin/teleproxy | grep -v grep | wc -l) -gt 0 ]; then \
-		echo "teleproxy still running" >&2; \
-		ps -ef | grep venv/bin/teleproxy | grep -v grep >&2; \
-		false; \
-	else \
-		echo "teleproxy stopped" >&2; \
-	fi
 
 # "make shell" drops you into a dev shell, and tries to set variables, etc., as
 # needed:
@@ -728,7 +689,6 @@ clean-test:
 	rm -f cluster.yaml
 	test -x $(KUBERNAUT) && $(KUBERNAUT_DISCARD) || true
 	rm -f $(CLAIM_FILE)
-	$(call kill_teleproxy)
 
 test: setup-develop
 	cd python && \
