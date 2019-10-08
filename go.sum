@@ -157,6 +157,8 @@ github.com/datawire/ambassador v0.72.0/go.mod h1:lt4z9AKNGzdrb3Slf6RZzy60TngPmbX
 github.com/datawire/kat-backend v1.4.3/go.mod h1:pQGCrjQX4mG8cBaDldM99UH4/N9qAHiuviulA2YiCEQ=
 github.com/datawire/liboauth2 v0.0.0-20190619201518-4d7cc6073e44 h1:axTiW80UxO1KxgE2uqHYqVJtlB4XpS8S3CQgPMfuzGA=
 github.com/datawire/liboauth2 v0.0.0-20190619201518-4d7cc6073e44/go.mod h1:vI7KpNOeaANjxLPc3HLAyaY3GI0NCKUfetudypJ0640=
+github.com/datawire/liboauth2 v0.0.0-20190930180758-8a034a1de052 h1:ZHpQA5FLh7g9PLGVw9hZtfmG171cM3Vin62pbryum54=
+github.com/datawire/liboauth2 v0.0.0-20190930180758-8a034a1de052/go.mod h1:vI7KpNOeaANjxLPc3HLAyaY3GI0NCKUfetudypJ0640=
 github.com/datawire/pf v0.0.0-20180510150411-31a823f9495a/go.mod h1:H8uUmE8qqo7z9u30MYB9riLyRckPHOPBk9ZdCuH+dQQ=
 github.com/datawire/teleproxy v0.5.1 h1:VY6N1JXE1twYrBrWBn8StHP7aTMrMx8MaSbDueafwME=
 github.com/datawire/teleproxy v0.5.1/go.mod h1:vyLyCV9Q2/if1sw8e1fcVLfwNlQvBxQJsgEV68wEUjg=

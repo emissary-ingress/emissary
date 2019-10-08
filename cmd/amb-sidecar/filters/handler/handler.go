@@ -39,15 +39,23 @@ type FilterMux struct {
 func logResponse(logger types.Logger, ret filterapi.FilterResponse, took time.Duration) {
 	switch _ret := ret.(type) {
 	case *filterapi.HTTPResponse:
-		if loc := _ret.Header.Get("Location"); loc != "" {
-			logger.Infof("[gRPC] %T : %d -> %q (%v)", _ret, _ret.StatusCode, loc, took)
+		if _ret == nil {
+			logger.Errorf("[gRPC] %T : unexpected nil (%v)", _ret, took)
 		} else {
-			logger.Infof("[gRPC] %T : %d (%v)", _ret, _ret.StatusCode, took)
+			if loc := _ret.Header.Get("Location"); loc != "" {
+				logger.Infof("[gRPC] %T : %d -> %q (%v)", _ret, _ret.StatusCode, loc, took)
+			} else {
+				logger.Infof("[gRPC] %T : %d (%v)", _ret, _ret.StatusCode, took)
+			}
 		}
 	case *filterapi.HTTPRequestModification:
-		logger.Infof("[gRPC] %T : %d headers (%v)", _ret, len(_ret.Header), took)
+		if _ret == nil {
+			logger.Errorf("[gRPC] %T : unexpected nil (%v)", _ret, took)
+		} else {
+			logger.Infof("[gRPC] %T : %d headers (%v)", _ret, len(_ret.Header), took)
+		}
 	default:
-		logger.Infof("[gRPC] %T : unexpected response type (%v)", _ret, took)
+		logger.Errorf("[gRPC] %T : unexpected response type (%v)", _ret, took)
 	}
 }
 
@@ -75,6 +83,43 @@ func (c *FilterMux) Filter(ctx context.Context, request *filterapi.FilterRequest
 	}()
 	ret, err = c.filter(_ctx, request, requestID)
 	return
+}
+
+func (c *FilterMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	switch r.URL.Path {
+	case "/.ambassador/oauth2/logout":
+		filterQName := r.FormValue("realm")
+		filterInfo := findFilter(c.Controller, filterQName)
+		if filterInfo == nil {
+			middleware.ServeErrorResponse(w, ctx, http.StatusBadRequest,
+				errors.Errorf("invalid realm: %q", filterQName), nil)
+			return
+		}
+		filterSpec, filterSpecOK := filterInfo.Spec.(crd.FilterOAuth2)
+		if !filterSpecOK {
+			middleware.ServeErrorResponse(w, ctx, http.StatusBadRequest,
+				errors.Errorf("invalid realm: %q", filterQName), nil)
+			return
+		}
+		if filterInfo.Err != nil {
+			middleware.ServeErrorResponse(w, ctx, http.StatusInternalServerError,
+				errors.Wrapf(filterInfo.Err, "error in filter %q configuration", filterQName), nil)
+			return
+		}
+
+		filterImpl := &oauth2handler.OAuth2Filter{
+			PrivateKey: c.PrivateKey,
+			PublicKey:  c.PublicKey,
+			RedisPool:  c.RedisPool,
+			QName:      filterQName,
+			Spec:       filterSpec,
+		}
+		filterImpl.ServeHTTP(w, r)
+	default:
+		http.NotFound(w, r)
+	}
 }
 
 func requestURL(request *filterapi.FilterRequest) (*url.URL, error) {
@@ -180,7 +225,7 @@ func (c *FilterMux) filter(ctx context.Context, request *filterapi.FilterRequest
 			filterutil.ApplyRequestModification(request, response)
 			sumResponse.Header = append(sumResponse.Header, response.Header...)
 		default:
-			panic(errors.Errorf("unexpexted filter response type %T", response))
+			panic(errors.Errorf("unexpected filter response type %T", response))
 		}
 	}
 	return sumResponse, nil

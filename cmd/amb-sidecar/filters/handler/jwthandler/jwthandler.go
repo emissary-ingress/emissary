@@ -9,6 +9,8 @@ import (
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/pkg/errors"
 
+	"github.com/datawire/liboauth2/resourceserver/rfc6750"
+
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta2"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/httpclient"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/middleware"
@@ -35,7 +37,7 @@ func (h *JWTFilter) Filter(ctx context.Context, r *filterapi.FilterRequest) (fil
 	logger := middleware.GetLogger(ctx)
 	httpClient := httpclient.NewHTTPClient(logger, 0, h.Spec.InsecureTLS)
 
-	tokenString := strings.TrimPrefix(filterutil.GetHeader(r).Get("Authorization"), "Bearer ")
+	tokenString := rfc6750.GetFromHeader(filterutil.GetHeader(r))
 
 	token, err := validateToken(tokenString, h.Spec, httpClient)
 	if err != nil {

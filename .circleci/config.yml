@@ -7,50 +7,99 @@ version: 2.1
 # - KUBERNAUT_TOKEN (Kubernaut)
 
 commands:
-  aws-install:
-    steps:
-      - run: |
-          sudo pip install awscli
 
-  node-install:
-    steps:
-      - run: |
-          echo 'export NVM_DIR=/opt/circleci/.nvm' >> ${BASH_ENV}
-          echo 'source $NVM_DIR/nvm.sh' >> ${BASH_ENV}
-      - run: |
-          nvm alias default 10
-
-  golang-install:
+  "pip-install":
     parameters:
-      os:
+      "packages":
         type: string
     steps:
-      # Golang install
+      - run: sudo pip install << parameters.packages >>
 
-      # For some reason it is faster to curl into a file than to just
-      # pipe the curl straight to tar.
-      - run: |
-          sudo rm -rf /usr/local/go
-          curl https://dl.google.com/go/go1.13.<<parameters.os>>-amd64.tar.gz -o /tmp/go.tgz
-          sudo tar -C /usr/local -xzf /tmp/go.tgz
-
-      # Golang paths
-      - run: |
-          echo 'export PATH=${HOME}/go/bin:${PATH}:/usr/local/go/bin' >> ${BASH_ENV}
-          echo 'export GOPATH=${HOME}/go' >> ${BASH_ENV}
-          echo 'export GOBIN=${HOME}/go/bin' >> ${BASH_ENV}
-
-      - run: mkdir -p ${GOPATH} ${GOBIN}
-
-  kubectl-install:
-    steps:
-      - run: curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.12.2/bin/$(go env GOOS)/$(go env GOARCH)/kubectl
-      - run: chmod a+x ./kubectl
-      - run: sudo mv kubectl /usr/local/bin
-
-  save-go-mod-cache:
+  "install-node":
+    parameters:
+      "version":
+        type: string
+        default: "10"
     steps:
       - run:
+          name: "Install Node << parameters.version >>"
+          command: |
+            echo 'export NVM_DIR=/opt/circleci/.nvm' >> ${BASH_ENV}
+            echo 'source $NVM_DIR/nvm.sh' >> ${BASH_ENV}
+
+            export NVM_DIR=/opt/circleci/.nvm
+            source $NVM_DIR/nvm.sh
+            nvm alias default << parameters.version >>
+
+  "install-go":
+    parameters:
+      "version":
+        type: string
+        default: "1.13"
+    steps:
+      - run:
+          name: "Install Go << parameters.version >>"
+          command: |
+            curl https://dl.google.com/go/go<< parameters.version >>.$(uname -s | tr A-Z a-z)-amd64.tar.gz -o /tmp/go.tar.gz
+            tar -C /tmp -xzf /tmp/go.tar.gz
+            echo 'export PATH=/tmp/go/bin:$PATH' >> "$BASH_ENV"
+            if [ -z "$(/tmp/go/bin/go env GOPROXY)" ]; then
+              echo 'export GOPROXY=https://proxy.golang.org' >> "$BASH_ENV"
+            fi
+
+  "install-kubectl":
+    parameters:
+      "version":
+        type: string
+        default: "1.14.0"
+    steps:
+      - run:
+          name: "Install kubectl << parameters.version >>"
+          command: |
+            curl -L --fail -o /tmp/kubectl https://storage.googleapis.com/kubernetes-release/release/v<< parameters.version >>/bin/$(uname -s | tr A-Z a-z)/amd64/kubectl
+            sudo install /tmp/kubectl /usr/local/bin/kubectl
+
+  "install-python":
+    parameters:
+      "version":
+        type: string
+        default: "3.6.3"
+      "executor-key":
+        type: string
+    steps:
+      - restore_cache:
+          name: "Restore Python install cache"
+          key: "pyenv-<< parameters.executor-key >>-<< parameters.version >>"
+      - run:
+          name: "Install Python << parameters.version >>"
+          command: |
+            pyenv versions
+            pyenv install --skip-existing << parameters.version >>
+            pyenv global 2.7.12 << parameters.version >>
+            pyenv versions
+      - save_cache:
+          name: "Save Python install cache"
+          key: "pyenv-<< parameters.executor-key >>-<< parameters.version >>"
+          paths:
+            - "/opt/circleci/.pyenv"
+
+  "with-go-mod-cache":
+    parameters:
+      "steps":
+        type: steps
+    steps:
+      - restore_cache:
+          name: "Restore Go module cache"
+          keys:
+            - go-mod-cache-{{ arch }}-{{ checksum "go.mod" }}-
+            - go-mod-cache-{{ arch }}-
+      - run: |
+          echo 'export GOPROXY=file://$HOME/goproxy,$(go env GOPROXY)' >> "${BASH_ENV}"
+
+      - steps: << parameters.steps >>
+
+      - run:
+          name: "Prepare to save Go module cache"
           command: |
             mkdir -p "$(go env GOPATH)/pkg/mod/cache/download/"
             rsync -av --delete "$(go env GOPATH)/pkg/mod/cache/download/" ~/goproxy
@@ -64,139 +113,136 @@ commands:
           # able to share the cache?  Because /tmp is a symlink to
           # /private/tmp on macOS, and CircleCI is broken on macOS
           # whenever symlinks are involved.
+          name: "Save Go module cache"
           key: go-mod-cache-{{ arch }}-{{ checksum "go.mod" }}-{{ .BuildNum }}
           paths: "~/goproxy"
           when: always
-  restore-go-mod-cache:
+
+  "with-go-build-cache":
+    parameters:
+      "steps":
+        type: steps
     steps:
       - restore_cache:
+          name: "Restore Go build cache"
           keys:
-            - go-mod-cache-{{ arch }}-{{ checksum "go.mod" }}-
-            - go-mod-cache-{{ arch }}-
-      - run: |
-          echo 'export GOPROXY=file://$HOME/goproxy,$(go env GOPROXY)' >> "${BASH_ENV}"
-
-  save-go-build-cache:
-    steps:
+            - go-build-cache-{{ arch }}-{{ .BuildNum }}
+            - go-build-cache-{{ arch }}-
       - run:
+          name: "Unfreeze Go build cache"
+          command: |
+            mkdir -p ~/gobuild "$(go env GOCACHE)"
+            rsync -av --delete ~/gobuild/ "$(go env GOCACHE)"
+
+      - steps: << parameters.steps >>
+
+      - run:
+          name: "Prepare to save Go build cache"
           command: |
             mkdir -p "$(go env GOCACHE)"
             rsync -av --delete "$(go env GOCACHE)/" ~/gobuild
           when: always
       - save_cache:
+          name: "Save Go build cache"
           key: go-build-cache-{{ arch }}-{{ .BuildNum }}
           paths: "~/gobuild"
           when: always
-  restore-go-build-cache:
-    steps:
-      - restore_cache:
-          keys:
-            - go-build-cache-{{ arch }}-{{ .BuildNum }}
-            - go-build-cache-{{ arch }}-
-      - run: |
-          mkdir -p "$(go env GOCACHE)"
-          rsync -av --delete ~/gobuild/ "$(go env GOCACHE)"
 
-  main:
+  "save-logs":
     steps:
-      - checkout
-      - restore-go-mod-cache
-      - restore-go-build-cache
-      - run: |
-          docker login -u="${DOCKER_BUILD_USERNAME}" -p="${DOCKER_BUILD_PASSWORD}" quay.io
-      - run: make build
-      - save-go-mod-cache
-      - run: |
-          make push-docker-buildcache || true
-      - run: |
-          trap 'make unclaim' EXIT
-          set -x
-          make check
-      - save-go-build-cache
       - run:
-          name: "gather logs"
+          name: "Gather logs"
           when: always
           command: |
             rsync -ma --include='*/' --include='*.tap' --include='*.log' --include='idp_*.png' --exclude='*' . /tmp/test-logs
       - store_artifacts:
+          name: "Store logs"
           path: /tmp/test-logs
           destination: test-logs
-      # Verify that the build is still not dirty
-      - run: make help
-  release:
+  "main":
     steps:
-      - run: |
-          if [[ "$CIRCLE_TAG" =~ ^v[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+(-.*)?$ ]]; then
-              export AWS_ACCESS_KEY_ID=$DEPLOY_KEY_ID
-              export AWS_SECRET_ACCESS_KEY=$DEPLOY_KEY
-              docker login -u="${DOCKER_RELEASE_USERNAME}" -p="${DOCKER_RELEASE_PASSWORD}" quay.io
-              make release
-          else
-              make release RELEASE_DRYRUN=y
-          fi
-  clobber:
+      - checkout
+      - with-go-mod-cache:
+          steps:
+            - with-go-build-cache:
+                steps:
+                 - run: "docker login -u=\"${DOCKER_BUILD_USERNAME}\" -p=\"${DOCKER_BUILD_PASSWORD}\" quay.io"
+                 - run: "make build # main build"
+                 - run: "make build # no-op build"
+                 - run: "make push-docker-buildcache || true"
+                 - run: "make deploy # main deploy"
+                 - run: "make deploy # no-op deploy"
+                 # FIXME: Figure out what's not parallel-safe about
+                 # the tests
+                 - run: "trap 'make unproxy' EXIT; set -x; make -j1 check"
+                 - run:
+                     command: "make unclaim"
+                     when: always
+                 - save-logs
+                 - run: "make help # verify that the build is not dirty"
+  "release":
     steps:
-      # Run "make clobber", and verify that it cleans everything.  Do
-      # this last, and only if everything so far has passed; don't
-      # wipe out artifacts that are useful for debugging.
-      - run: |
-          make clobber
-      - run: |
-          test -z "$(git clean -ndx)"
+      - run:
+          name: "Release"
+          command: |
+            if [[ "$CIRCLE_TAG" =~ ^v[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+(-.*)?$ ]]; then
+                export AWS_ACCESS_KEY_ID=$DEPLOY_KEY_ID
+                export AWS_SECRET_ACCESS_KEY=$DEPLOY_KEY
+                docker login -u="${DOCKER_RELEASE_USERNAME}" -p="${DOCKER_RELEASE_PASSWORD}" quay.io
+                make release
+            else
+                make release RELEASE_DRYRUN=y
+            fi
+  "clobber":
+    steps:
+     # Run "make clobber", and verify that it cleans everything.  Do
+     # this last, and only if everything so far has passed; don't
+     # wipe out artifacts that are useful for debugging.
+     - run: make clobber
+     - run: "git clean -ndx; test -z \"$(git clean -ndx)\""
 
 jobs:
 
-  macos-build:
+  "macOS":
     macos:
       xcode: "10.1.0"
-    working_directory: ~/repo
     steps:
-      - aws-install
-      - golang-install:
-          os: darwin
-      - kubectl-install
+      - run: |
+          echo 'export MAKEFLAGS="-j$(sysctl -n hw.ncpu)"' >> "${BASH_ENV}"
+      - pip-install:
+          packages: awscli
+      - install-go
+      - install-kubectl
       - main
+      - clobber
 
-  machine-build:
+  "Ubuntu":
     machine:
-      # If you bump this, be sure to bump the pyenv key in
-      # "restore_cache" and "save_cache" below.
+      # If you bump this, be sure to bump install-python.executor-key
+      # below.
       image: "ubuntu-1604:201903-01"
-    working_directory: ~/repo
     steps:
-      - aws-install
-      - golang-install:
-          os: linux
-      - kubectl-install
-      - node-install
-      - restore_cache:
-          key: "pyenv-201903-01-3.6.3"
-      - run:
-          name: "Install Python 3.6"
-          command: |
-            pyenv versions
-            pyenv install --skip-existing 3.6.3
-            pyenv global 2.7.12 3.6.3
-            pyenv versions
-      - save_cache:
-          key: "pyenv-201903-01-3.6.3"
-          paths:
-            - "/opt/circleci/.pyenv"
+      - run: |
+          echo 'export MAKEFLAGS="-j$(nproc)"' >> "${BASH_ENV}"
+      - pip-install:
+          packages: awscli
+      - install-go
+      - install-kubectl
+      - install-node
+      - install-python:
+          executor-key: "201903-01"
       - main
       - release
       - clobber
 
-
 workflows:
-  version: 2.1
-
-  multibuild:
+  "APro CI":
     jobs:
-      - machine-build:
+      - "Ubuntu":
           filters:
             tags:
               only: /.*/
-      - macos-build:
+      - "macOS":
           filters:
             branches:
               only: master

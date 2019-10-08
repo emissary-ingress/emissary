@@ -29,15 +29,16 @@ include $(dir $(_common.mk))prelude.mk
 #
 # Variables
 
-# If $@ is bin_GOOS_GOARCH/BINNAME, set GOOS and GOARCH accodingly,
-# otherwise inherit from the environment.
+# If $@ is bin_GOOS_GOARCH/BINNAME, or bin_GOOS_GOARCH/DIR/BINNAME,
+# set GOOS and GOARCH accordingly, otherwise inherit from the
+# environment.
 #
 # Possible values of GOOS/GOARCH:
 # https://golang.org/doc/install/source#environment
 _GOOS   = $(call lazyonce,_GOOS,$(shell go env GOOS))
 _GOARCH = $(call lazyonce,_GOARCH,$(shell go env GOARCH))
-export GOOS   = $(if $(filter bin_%,$(@D)),$(word 2,$(subst _, ,$(@D))),$(_GOOS))
-export GOARCH = $(if $(filter bin_%,$(@D)),$(word 3,$(subst _, ,$(@D))),$(_GOARCH))
+export GOOS   = $(if $(filter bin_%,$(@D)),$(word 2,$(subst _, ,$(firstword $(subst /, ,$(@D))))),$(_GOOS))
+export GOARCH = $(if $(filter bin_%,$(@D)),$(word 3,$(subst _, ,$(firstword $(subst /, ,$(@D))))),$(_GOARCH))
 
 #
 # User-facing targets

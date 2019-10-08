@@ -8,9 +8,13 @@ Configuration
 
 Behavior:
 
+ * Feature: Developer portal URL can be changed by the user. Adjust the `ambassador-pro-devportal` `Mapping` CRD (or annotation) by changing the `prefix` to desired prefix and changing the `rewrite` to `/docs/`. The `ambassador-pro-devportal-api` can not be adjusted yet. 
+ * Feature: The `OAuth2` filter can now perform OIDC-session RP-initiated logout when used with an identity provider that supports it.
  * Bugfix: Properly return a 404 for unknown paths in the amb-sidecar; instead of serving the index page; this could happen if the devportal Mapping is misconfigured.
  * Bugfix: Fix the "loaded filter" log info message.
  * Bugfix: Don't publish the "dev-portal-server" Docker image; it was obviated by "amb-sidecar" in 0.8.0.
+ * Bugfix: The `JWT` Filter is no longer case-sensitive with the auth-scheme (`Bearer` vs `bearer`)
+ * Bugfix: The `JWT` Filter no longer accepts authorizations that are missing an auth-scheme
 
 ## 0.8.0 (2019-09-16)
 

@@ -33,6 +33,7 @@ import (
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/controller"
 	filterhandler "github.com/datawire/apro/cmd/amb-sidecar/filters/handler"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/health"
+	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/middleware"
 	rlscontroller "github.com/datawire/apro/cmd/amb-sidecar/ratelimits"
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
 	"github.com/datawire/apro/lib/licensekeys"
@@ -242,6 +243,7 @@ func runE(cmd *cobra.Command, args []string) error {
 				return err
 			}
 			filterapi.RegisterFilterService(grpcHandler, authService)
+			httpHandler.AddEndpoint("/.ambassador/", "OAuth2 Filter", authService.ServeHTTP)
 		}
 
 		// RateLimitService
@@ -287,6 +289,11 @@ func runE(cmd *cobra.Command, args []string) error {
 			// HTTP/1 on the same unencrypted port, we need h2c.
 			// Fortunately, x/net has an h2c implementation we can use.
 			Handler: h2c.NewHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				ctx := r.Context()
+				ctx = middleware.WithLogger(ctx, l.WithField("SUB", "http-server/handler"))
+				ctx = middleware.WithRequestID(ctx, "unknown")
+				r = r.WithContext(ctx)
+
 				if r.ProtoMajor == 2 && strings.HasPrefix(r.Header.Get("Content-Type"), "application/grpc") {
 					grpcHandler.ServeHTTP(w, r)
 				} else {

@@ -9,8 +9,10 @@ venv
 /vendor.hash
 
 /ambassador/
+/ambassador.stamp
 
 *.docker
+*.docker.stamp
 *.docker.tag.*
 *.docker.push.*
 *.knaut
@@ -24,6 +26,7 @@ venv
 /k8s-*/*.o
 /k8s-*/??-ambassador-certs.yaml
 /k8s-*/??-auth0-secret.yaml
+/build-aux/docker-registry.preload
 node_modules/
 
 *.log
@@ -41,6 +44,8 @@ node_modules/
 # Remove the tail of this list when the commit making the change gets
 # far enough in to the past.
 
+# 2019-09-23
+/cmd/certified-envoy/envoy.bin
 # 2019-09-16
 /docker/dev-portal-server/dev-portal-server
 # 2019-09-12
