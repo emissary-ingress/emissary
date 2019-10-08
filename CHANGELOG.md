@@ -12,6 +12,11 @@ Behavior:
  * Bugfix: The `JWT` Filter is no longer case-sensitive with the auth-scheme (`Bearer` vs `bearer`)
  * Bugfix: The `JWT` Filter no longer accepts authorizations that are missing an auth-scheme
 
+Other:
+
+ * Update Ambassador Core from Ambassador 0.75.0 to 0.83.0
+ * Incorporate the Envoy 1.11.2 security patches in Ambassador Core
+
 ## 0.8.0 (2019-09-16)
 
 Configuration:
