@@ -101,7 +101,7 @@ Other:
 
 ## 0.4.3 (2019-05-15)
 
- * Add the Developer Portal
+ * Add the Developer Portal (experimental; no documentation available yet)
  * `apictl traffic initialize`: Correctly handle non-`default` namespaces
  * `app-sidecar`: Respect the `APP_LOG_LEVEL` environment variable, same as `amb-sidecar`
 
