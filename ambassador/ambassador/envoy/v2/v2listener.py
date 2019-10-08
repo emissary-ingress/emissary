@@ -120,6 +120,7 @@ def v2filter_gzip(gzip: IRGzip, v2config: 'V2Config'):
             'content_length': gzip.content_length,
             'compression_level': gzip.compression_level,
             'compression_strategy': gzip.compression_strategy,
+            'window_bits': gzip.window_bits,
             'content_type': gzip.content_type,
             'disable_on_etag_header': gzip.disable_on_etag_header,
             'remove_accept_encoding_header': gzip.remove_accept_encoding_header,
