@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/gogo/googleapis/google/rpc"
+	rpc "istio.io/gogo-genproto/googleapis/google/rpc"
 	"github.com/gogo/protobuf/types"
 	"google.golang.org/grpc"
 
