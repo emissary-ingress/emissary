@@ -111,7 +111,7 @@ run_test() {
 }
 
 
-( cd "$ROOT" ; make cluster-and-teleproxy )
+( cd "$ROOT" ; make setup-test )
 
 echo "==== [$(date)] ==== STARTING TESTS"
 
