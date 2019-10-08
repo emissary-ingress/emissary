@@ -27,6 +27,7 @@ class IRGzip (IRFilter):
         self["content_length"] = self.pop('min_content_length', None)
         self["compression_level"] = self.pop('compression_level', None)
         self["compression_strategy"] = self.pop('compression_strategy', None)
+        self["window_bits"] = self.pop('window_bits', None)
         self["content_type"] = self.pop('content_type', [])
         self["disable_on_etag_header"] = self.pop('disable_on_etag_header', None)
         self["remove_accept_encoding_header"] = self.pop('remove_accept_encoding_header', None)

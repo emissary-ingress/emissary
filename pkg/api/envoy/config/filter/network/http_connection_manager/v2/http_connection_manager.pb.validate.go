@@ -106,6 +106,21 @@ func (m *HttpConnectionManager) Validate() error {
 	}
 
 	{
+		tmp := m.GetCommonHttpProtocolOptions()
+
+		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+			if err := v.Validate(); err != nil {
+				return HttpConnectionManagerValidationError{
+					field:  "CommonHttpProtocolOptions",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+	}
+
+	{
 		tmp := m.GetHttpProtocolOptions()
 
 		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {

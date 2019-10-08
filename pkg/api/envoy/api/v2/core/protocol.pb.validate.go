@@ -123,6 +123,17 @@ func (m *HttpProtocolOptions) Validate() error {
 		}
 	}
 
+	if wrapper := m.GetMaxHeadersCount(); wrapper != nil {
+
+		if wrapper.GetValue() < 1 {
+			return HttpProtocolOptionsValidationError{
+				field:  "MaxHeadersCount",
+				reason: "value must be greater than or equal to 1",
+			}
+		}
+
+	}
+
 	return nil
 }
 
