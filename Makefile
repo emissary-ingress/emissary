@@ -1,7 +1,7 @@
 DOCKER_REGISTRY ?= localhost:31000
 DOCKER_IMAGE = $(DOCKER_REGISTRY)/amb-sidecar-plugin:$(shell git describe --tags --always --dirty)
 
-APRO_VERSION = 0.8.0
+APRO_VERSION = 0.9.0
 
 apro-abi@%.txt:
 	curl --fail -o $@ https://s3.amazonaws.com/datawire-static-files/apro-abi/apro-abi@$(APRO_VERSION).txt
@@ -26,9 +26,9 @@ go.GOBUILD += --volume=$$(go env GOPATH)/pkg/mod/cache/download:/mnt/goproxy:ro 
 # UID probably doesn't have access to the container's default
 # GOCACHE=/.cache/go-build.
 go.GOBUILD += --volume $(CURDIR):$(CURDIR):rw --workdir=$(CURDIR) --user=$$(id -u) --env=GOCACHE=/tmp/go-cache
-go.GOBUILD += --tmpfs=$(APRO_GOPATH):uid=$$(id -u),gid=$$(id -g),mode=0755,rw
+go.GOBUILD += $(foreach _gopath,$(subst :, ,$(APRO_GOPATH)), --tmpfs=$(_gopath):uid=$$(id -u),gid=$$(id -g),mode=0755,rw )
 # Run `go build` mimicking the APro build
-go.GOBUILD += $(addprefix --env=,$(APRO_GOENV)) $(go.DOCKER_IMAGE) go build
+go.GOBUILD += $(addprefix --env=,$(APRO_GOENV)) $(go.DOCKER_IMAGE) go build -trimpath
 
 all: .docker.stamp
 .PHONY: all
