@@ -25,6 +25,7 @@ var (
 	FeatureRateLimit      = internal.AddFeature("ratelimit")
 	FeatureFilter         = internal.AddFeature("filter")
 	FeatureDevPortal      = internal.AddFeature("devportal")
+	FeatureLocalDevPortal = internal.AddFeature("local-devportal")
 	FeatureCertifiedEnvoy = internal.AddFeature("certified-envoy")
 )
 
