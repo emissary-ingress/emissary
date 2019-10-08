@@ -193,6 +193,10 @@ func (c *FilterMux) filter(ctx context.Context, request *filterapi.FilterRequest
 				return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
 					errors.Wrap(err, "invalid filter.argument"), nil), nil
 			}
+			if err := _filterImpl.Arguments.Validate(); err != nil {
+				return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
+					errors.Wrap(err, "invalid filter.argument"), nil), nil
+			}
 			filterImpl = _filterImpl
 		case crd.FilterPlugin:
 			filterImpl = filterutil.HandlerToFilter(filterSpec.Handler)

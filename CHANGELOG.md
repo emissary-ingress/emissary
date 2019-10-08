@@ -2,6 +2,10 @@
 
 ## 0.8.1 (TBD)
 
+Configuration
+
+ * The `OAuth2` filter now has a FilterPolicy argument `insteadOfRedirect` that can specify a different action to perform than redirecting to the IDP.
+
 Behavior:
 
  * Feature: Developer portal URL can be changed by the user. Adjust the `ambassador-pro-devportal` `Mapping` CRD (or annotation) by changing the `prefix` to desired prefix and changing the `rewrite` to `/docs/`. The `ambassador-pro-devportal-api` can not be adjusted yet. 

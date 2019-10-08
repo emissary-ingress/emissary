@@ -97,7 +97,7 @@ func (c *OAuth2Client) Filter(ctx context.Context, logger types.Logger, httpClie
 			panic(err)
 		} else if err == rfc6749client.ErrExpiredAccessToken {
 			logger.Debugln("access token expired; continuing as if non-authenticated session")
-			// continue with (authrorization == nil); as if this `.CurrentAccessToken == nil`
+			// continue with (authorization == nil); as if this `.CurrentAccessToken == nil`
 		} else if _, ok := err.(*rfc6749client.UnsupportedTokenTypeError); ok {
 			return middleware.NewErrorResponse(ctx, http.StatusBadGateway,
 				err, nil)
@@ -147,7 +147,7 @@ func (c *OAuth2Client) Filter(ctx context.Context, logger types.Logger, httpClie
 			originalURL, err = checkState(sessionInfo.sessionData.Request.State, c.PublicKey)
 			if err != nil {
 				// This should never happen--the state matched what we stored in Redis
-				// (validated in .ParseAuthorizationResonse()).  For this to happen, either
+				// (validated in .ParseAuthorizationResponse()).  For this to happen, either
 				// (1) our Redis server was cracked, or (2) we generated an invalid state
 				// when we submitted the authorization request.  Assuming that (2) is more
 				// likely, that's an internal server issue.
@@ -322,6 +322,27 @@ func (sessionInfo *SessionInfo) handleUnauthenticatedProxyRequest(ctx context.Co
 	if err != nil {
 		return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
 			err, nil)
+	}
+
+	if sessionInfo.c.Arguments.InsteadOfRedirect != nil {
+		noRedirect := true
+		if sessionInfo.c.Arguments.InsteadOfRedirect.IfRequestHeader != nil {
+			if sessionInfo.c.Arguments.InsteadOfRedirect.IfRequestHeader.Value != nil {
+				noRedirect = filterutil.GetHeader(request).Get(sessionInfo.c.Arguments.InsteadOfRedirect.IfRequestHeader.Name) == *sessionInfo.c.Arguments.InsteadOfRedirect.IfRequestHeader.Value
+			} else {
+				noRedirect = filterutil.GetHeader(request).Get(sessionInfo.c.Arguments.InsteadOfRedirect.IfRequestHeader.Name) != ""
+			}
+		}
+		if noRedirect {
+			return &filterapi.HTTPResponse{
+				StatusCode: sessionInfo.c.Arguments.InsteadOfRedirect.HTTPStatusCode,
+				Header: http.Header{
+					"Set-Cookie":   {cookie.String()},
+					"Content-Type": {"text/plain; charset=utf-8"},
+				},
+				Body: "session cookie is either missing, or refers to an expired or non-authenticated session",
+			}
+		}
 	}
 
 	return &filterapi.HTTPResponse{
