@@ -33,3 +33,9 @@ The default Dev Portal styles are hosted in GitHub: https://github.com/datawire/
 ```
 https://9cb034008ddfs819da268d9z13b7ecd26@github.com/datawire/private-devportal-repo
 ```
+
+## Customizing the Dev Portal URL prefix
+
+Default Dev Portal prefix is `/docs/`. To change the prefix, edit the ambassador Mapping CRD  named `ambassador-pro-devportal`. Change the `prefix` to your desired prefix (for example `/documentation/`) and change the `rewrite` to `/docs/`
+
+Note: Dev portal uses another mapping named `ambassador-pro-devportal-api` which, for now should not be changed. This restriction will be removed in a future release.
