@@ -115,7 +115,7 @@ ENVOY_FILE ?= envoy-bin/envoy-static-stripped
   # Increment BASE_ENVOY_RELVER on changes to `Dockerfile.base-envoy`, or Envoy recipes
   BASE_ENVOY_RELVER ?= 4
   # Increment BASE_GO_RELVER on changes to `Dockerfile.base-go`
-  BASE_GO_RELVER    ?= 17
+  BASE_GO_RELVER    ?= 18
   # Increment BASE_PY_RELVER on changes to `Dockerfile.base-py`, `releng/*`, `python/requirements.txt`
   BASE_PY_RELVER    ?= 17
 
