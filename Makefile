@@ -263,6 +263,13 @@ clobber: clean kill-docker-registry
 	-rm -rf docs/node_modules
 	-rm -rf venv && echo && echo "Deleted venv, run 'deactivate' command if your virtualenv is activated" || true
 
+generate: pkg/api/kat/echo.pb.go
+generate: pkg/api/envoy
+generate: api/envoy
+generate-clean: clobber
+	rm -rf api/envoy pkg/api
+.PHONY: generate generate-clean
+
 print-%:
 	@printf "$($*)"
 
@@ -801,6 +808,9 @@ venv/bin/protoc-gen-gogofast: go.mod $(FLOCK) | venv/bin/activate
 venv/bin/protoc-gen-validate: go.mod $(FLOCK) | venv/bin/activate
 	$(FLOCK) go.mod go build -o $@ github.com/envoyproxy/protoc-gen-validate
 
+api/envoy: envoy-src
+	rsync --recursive --delete --delete-excluded --prune-empty-dirs --include='*/' --include='*.proto' --exclude='*' $</api/envoy/ $@
+
 # Search path for .proto files
 gomoddir = $(shell $(FLOCK) go.mod go list $1/... >/dev/null 2>/dev/null; $(FLOCK) go.mod go list -m -f='{{.Dir}}' $1)
 # This list is based on 'imports=()' in https://github.com/envoyproxy/go-control-plane/blob/0e75602d5e36e96eafbe053999c0569edec9fe07/build/generate_protos.sh
@@ -816,7 +826,7 @@ gomoddir = $(shell $(FLOCK) go.mod go list $1/... >/dev/null 2>/dev/null; $(FLOC
 #    go-control-plane is that our newer Envoy needs googleapis'
 #    "google/api/expr/v1alpha1/", which was added in 32e3935 (.pb.go files) and ee07f27
 #    (.proto files).
-imports += $(CURDIR)/envoy-src/api
+imports += $(CURDIR)/api
 imports += $(call gomoddir,github.com/envoyproxy/protoc-gen-validate)
 imports += $(call gomoddir,github.com/gogo/protobuf)/protobuf
 imports += $(call gomoddir,istio.io/gogo-genproto)/common-protos
@@ -847,18 +857,18 @@ mappings += metrics.proto=istio.io/gogo-genproto/prometheus
 mappings += opencensus/proto/trace/v1/trace.proto=istio.io/gogo-genproto/opencensus/proto/trace/v1
 mappings += opencensus/proto/trace/v1/trace_config.proto=istio.io/gogo-genproto/opencensus/proto/trace/v1
 mappings += validate/validate.proto=github.com/envoyproxy/protoc-gen-validate/validate
-mappings += $(shell find $(CURDIR)/envoy-src/api/envoy -type f -name '*.proto' | sed -E 's,^$(CURDIR)/envoy-src/api/((.*)/[^/]*),\1=github.com/datawire/ambassador/pkg/api/\2,')
+mappings += $(shell find $(CURDIR)/api/envoy -type f -name '*.proto' | sed -E 's,^$(CURDIR)/api/((.*)/[^/]*),\1=github.com/datawire/ambassador/pkg/api/\2,')
 
 joinlist=$(if $(word 2,$2),$(firstword $2)$1$(call joinlist,$1,$(wordlist 2,$(words $2),$2)),$2)
 comma = ,
 
 _imports = $(call lazyonce,_imports,$(imports))
 _mappings = $(call lazyonce,_mappings,$(mappings))
-pkg/api/envoy: envoy-src $(FLOCK) venv/bin/protoc venv/bin/protoc-gen-gogofast venv/bin/protoc-gen-validate $(var.)_imports $(var.)_mappings
+pkg/api/envoy: api/envoy $(FLOCK) venv/bin/protoc venv/bin/protoc-gen-gogofast venv/bin/protoc-gen-validate $(var.)_imports $(var.)_mappings
 	rm -rf $@ $(@D).envoy.tmp
 	mkdir -p $(@D).envoy.tmp
 # go-control-plane `make generate`
-	@set -e; find $(CURDIR)/envoy-src/api/envoy -type f -name '*.proto' | sed 's,/[^/]*$$,,' | uniq | while read -r dir; do \
+	@set -e; find $(CURDIR)/api/envoy -type f -name '*.proto' | sed 's,/[^/]*$$,,' | uniq | while read -r dir; do \
 		echo "Generating $$dir"; \
 		./venv/bin/protoc \
 			$(addprefix --proto_path=,$(_imports))  \
@@ -887,6 +897,7 @@ venv/bin/protoc-gen-grpc-web: $(var.)GRPC_WEB_VERSION $(var.)GRPC_WEB_PLATFORM |
 	chmod 755 $@
 
 pkg/api/kat/echo.pb.go: api/kat/echo.proto venv/bin/protoc venv/bin/protoc-gen-gogofast
+	mkdir -p $(@D)
 	./venv/bin/protoc \
 		--proto_path=$(CURDIR)/api/kat \
 		--plugin=$(CURDIR)/venv/bin/protoc-gen-gogofast --gogofast_out=plugins=grpc:$(@D) \
