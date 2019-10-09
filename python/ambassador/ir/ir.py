@@ -532,7 +532,7 @@ class IR:
 
                             # Remember that we need to update status on this resource.
                             utcnow = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
-                            status_update = (kind, {
+                            status_update = (kind, ci_namespace, {
                                 "observedGeneration": current_generation,
                                 "conditions": [
                                     {

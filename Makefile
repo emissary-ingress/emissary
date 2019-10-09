@@ -15,48 +15,41 @@ compile: python/ambassador/VERSION.py
 
 ## Stuff below here is from the old Makefile
 
-# GIT_BRANCH on TravisCI needs to be set through some external custom logic. Default to a Git native mechanism or
-# use what is defined.
+GIT_DIRTY ?= $(if $(shell git status --porcelain),dirty)
+
+# This is only "kinda" the git branch name:
+#
+#  - if checked out is the synthetic merge-commit for a PR, then use
+#    the PR's branch name (even though the merge commit we have
+#    checked out isn't part of the branch")
+#  - if this is a CI run for a tag (not a branch or PR), then use the
+#    tag name
+#  - if none of the above, then use the actual git branch name
 #
 # read: https://graysonkoonce.com/getting-the-current-branch-name-during-a-pull-request-in-travis-ci/
-GIT_DIRTY ?= $(shell test -z "$(shell git status --porcelain)" || printf "dirty")
-
-GIT_BRANCH ?= $(shell git rev-parse --abbrev-ref HEAD)
+GIT_BRANCH ?= $(or $(TRAVIS_PULL_REQUEST_BRANCH),$(TRAVIS_BRANCH),$(shell git rev-parse --abbrev-ref HEAD))
 
 GIT_COMMIT ?= $(shell git rev-parse --short HEAD)
 
-# This commands prints the tag of this commit or "undefined". Later we use GIT_TAG_SANITIZED and set it to "" if this
-# string is "undefined" or blank.
+# This commands prints the tag of this commit or "undefined".
 GIT_TAG ?= $(shell git name-rev --tags --name-only $(GIT_COMMIT))
 
 GIT_BRANCH_SANITIZED := $(shell printf $(GIT_BRANCH) | tr '[:upper:]' '[:lower:]' | sed -e 's/[^a-zA-Z0-9]/-/g' -e 's/-\{2,\}/-/g')
-GIT_TAG_SANITIZED := $(shell \
-	if [ "$(GIT_TAG)" = "undefined" -o -z "$(GIT_TAG)" ]; then \
-		printf ""; \
-	else \
-		printf "$(GIT_TAG)" | sed -e 's/\^.*//g'; \
-	fi \
-)
-
-# Trees get dirty sometimes by choice and sometimes accidently. If we are in a dirty tree then append "-dirty" to the
-# GIT_COMMIT.
-ifeq ($(GIT_DIRTY),dirty)
-GIT_VERSION := $(GIT_BRANCH_SANITIZED)-$(GIT_COMMIT)-dirty
-else
-GIT_VERSION := $(GIT_BRANCH_SANITIZED)-$(GIT_COMMIT)
-endif
 
 # This gives the _previous_ tag, plus a git delta, like
 # 0.36.0-436-g8b8c5d3
-GIT_DESCRIPTION := $(shell git describe $(GIT_COMMIT))
+GIT_DESCRIPTION := $(shell git describe --tags $(GIT_COMMIT))
 
 # IS_PRIVATE: empty=false, nonempty=true
 # Default is true if any of the git remotes have the string "private" in any of their URLs.
 _git_remote_urls := $(shell git remote | xargs -n1 git remote get-url --all)
 IS_PRIVATE ?= $(findstring private,$(_git_remote_urls))
 
-# Note that for everything except RC builds, VERSION will be set to the version
-# we'd use for a GA build. This is by design.
+# RELEASE_VERSION is an X.Y.Z[-prerelease] (semver) string that we
+# will upload/release the image as.  It does NOT include a leading 'v'
+# (trimming the 'v' from the git tag is what the 'patsubst' is for).
+# If this is an RC or EA, then it includes the '-rcN' or '-eaN'
+# suffix.
 #
 # Also note that we strip off the leading 'v' here -- that's just for the git tag.
 ifneq ($(GIT_TAG_SANITIZED),)
@@ -66,13 +59,13 @@ VERSION = $(patsubst v%,%,$(firstword $(subst -, ,$(GIT_VERSION))))
 endif
 
 python/ambassador/VERSION.py: FORCE $(WRITE_IFCHANGED)
-	$(call check_defined, VERSION, VERSION is not set)
+	$(call check_defined, BUILD_VERSION, BUILD_VERSION is not set)
 	$(call check_defined, GIT_BRANCH, GIT_BRANCH is not set)
 	$(call check_defined, GIT_COMMIT, GIT_COMMIT is not set)
 	$(call check_defined, GIT_DESCRIPTION, GIT_DESCRIPTION is not set)
-	@echo "Generating and templating version information -> $(VERSION)"
+	@echo "Generating and templating version information -> $(BUILD_VERSION)"
 	sed \
-		-e 's!{{VERSION}}!$(VERSION)!g' \
+		-e 's!{{VERSION}}!$(BUILD_VERSION)!g' \
 		-e 's!{{GITBRANCH}}!$(GIT_BRANCH)!g' \
 		-e 's!{{GITDIRTY}}!$(GIT_DIRTY)!g' \
 		-e 's!{{GITCOMMIT}}!$(GIT_COMMIT)!g' \

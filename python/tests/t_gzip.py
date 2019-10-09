@@ -52,6 +52,7 @@ name:  ambassador
 config:
   gzip:
     min_content_length: 32
+    window_bits: 15
     content_type:
     - text/plain
 """)
@@ -103,4 +104,3 @@ service: {self.target.path.fqdn}
         
     def check(self):
         assert "Content-Encoding" not in self.results[0].headers
-    
