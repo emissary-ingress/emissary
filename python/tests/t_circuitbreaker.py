@@ -108,23 +108,32 @@ service: cbstatsd-sink
         # Reset the statsd setup in phase 1...
         yield Query(self.url("RESET/"), phase=1)
 
-        # Run 500 queries in phase 2, after the reset...
-        for i in range(500):
+        # Run 200 queries in phase 2, after the reset...
+        for i in range(200):
             yield Query(self.url(self.name) + '-pr/', headers={ "Requested-Backend-Delay": "1000" },
                         ignore_result=True, phase=2)
 
-        # Dump the results in phase 3, after the queries.
-        yield Query(self.url("DUMP/"), phase=3)
+        # ...then 200 more queries in phase 3. Why the split? Because we get flakes if we
+        # try to ram 500 through at once (in the middle of the run, we get some connections
+        # that time out).
+
+        for i in range(200):
+            yield Query(self.url(self.name) + '-pr/', headers={ "Requested-Backend-Delay": "1000" },
+                        ignore_result=True, phase=3)
+
+        # Dump the results in phase 4, after the queries.
+        yield Query(self.url("DUMP/"), phase=4)
 
     def check(self):
         result_count = len(self.results)
-        assert result_count == 502, f'wanted 502 results, got {result_count}'
+        assert result_count == 402, f'wanted 402 results, got {result_count}'
 
-        pending_results = self.results[1:500]
-        stats = self.results[501].json or {}
+        pending_results = self.results[1:400]
+        stats = self.results[401].json or {}
 
         # pending requests tests
         pending_overloaded = 0
+        error = 0
 
         # printed = False
 
@@ -134,16 +143,19 @@ service: cbstatsd-sink
             #     print(json.dumps(result.as_dict(), sort_keys=True, indent=2))
             #     printed = True
 
-            if 'X-Envoy-Overloaded' in result.headers:
+            if result.error:
+                error += 1
+            elif 'X-Envoy-Overloaded' in result.headers:
                 pending_overloaded += 1
 
-        assert 450 < pending_overloaded < 500, f'Expected between 450 and 500 overloaded, got {pending_overloaded}'
+        assert 300 < pending_overloaded < 400, f'Expected between 300 and 400 overloaded, got {pending_overloaded}'
 
         cluster_stats = stats.get(self.__class__.TARGET_CLUSTER, {})
         rq_completed = cluster_stats.get('upstream_rq_completed', -1)
         rq_pending_overflow = cluster_stats.get('upstream_rq_pending_overflow', -1)
 
-        assert rq_completed == 500, f'Expected 500 completed requests to {self.__class__.TARGET_CLUSTER}, got {rq_completed}'
+        assert error == 0, f"Expected no errors but got {error}"
+        assert rq_completed == 400, f'Expected 400 completed requests to {self.__class__.TARGET_CLUSTER}, got {rq_completed}'
         assert abs(pending_overloaded - rq_pending_overflow) < 2, f'Expected {pending_overloaded} rq_pending_overflow, got {rq_pending_overflow}'
 
 
@@ -188,18 +200,18 @@ config:
         yield ("url", Query(self.url(self.name) + '-normal/'))
 
     def queries(self):
-        for i in range(500):
+        for i in range(200):
             yield Query(self.url(self.name) + '-pr/', headers={ "Requested-Backend-Delay": "1000" },
                         ignore_result=True, phase=1)
-        for i in range(500):
+        for i in range(200):
             yield Query(self.url(self.name) + '-normal/', headers={ "Requested-Backend-Delay": "1000" },
                         ignore_result=True, phase=1)
 
     def check(self):
 
-        assert len(self.results) == 1000
-        cb_mapping_results = self.results[0:500]
-        normal_mapping_results = self.results[500:1000]
+        assert len(self.results) == 400
+        cb_mapping_results = self.results[0:200]
+        normal_mapping_results = self.results[200:400]
 
         # '-pr' mapping tests: this is a priority class of connection
         pr_mapping_overloaded = 0
@@ -223,4 +235,4 @@ config:
             if 'X-Envoy-Overloaded' in result.headers:
                 normal_overloaded += 1
 
-        assert 450 < normal_overloaded < 500, f'[GCF] expected 450-500 normal_overloaded, got {normal_overloaded}'
+        assert 100 < normal_overloaded < 200, f'[GCF] expected 100-200 normal_overloaded, got {normal_overloaded}'
