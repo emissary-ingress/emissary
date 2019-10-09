@@ -193,7 +193,7 @@ spec:
         while not qotm_ready:
             assert loop_limit > 0, "QOTM is not ready yet, aborting..."
             try:
-                connection = request.urlopen(qotm_url)
+                connection = request.urlopen(qotm_url, timeout=5)
                 qotm_http_code = connection.getcode()
                 assert qotm_http_code == 200, f"Expected 200 OK, got {qotm_http_code}"
                 connection.close()
