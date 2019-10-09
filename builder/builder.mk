@@ -105,7 +105,7 @@ gotest: test-ready
 	@echo -e "$(WHT)==$(GRN)Running $(BLU)go$(GRN) tests$(WHT)==$(END)"
 	$(foreach MODULE,$(MODULES),docker exec -w /buildroot/$(MODULE) -e DTEST_REGISTRY=$(DEV_REGISTRY) -e DTEST_KUBECONFIG=/buildroot/kubeconfig.yaml $(shell $(BUILDER)) go test $(GOTEST_ARGS) | fgrep -v '?'$(NL))
 
-test: pytest gotest
+test: gotest pytest
 
 shell:
 	@$(BUILDER) shell
