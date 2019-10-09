@@ -11,10 +11,7 @@ END=\033[0m
 
 MODULES :=
 
-define module =
-$(eval MODULES += $(1))
-$(eval SOURCE_$(1)=$(abspath $(2)))
-endef
+module = $(eval MODULES += $(1))$(eval SOURCE_$(1)=$(abspath $(2)))
 
 BUILDER_HOME := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
