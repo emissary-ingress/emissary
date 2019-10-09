@@ -79,8 +79,7 @@ test-ready: push
 	@kubectl --kubeconfig $(DEV_KUBECONFIG) -n default get service kubernetes > /dev/null || (echo -e "$${KUBECTL_ERR}"; exit 1)
 	@docker cp $(DEV_KUBECONFIG) $(shell $(BUILDER)):/buildroot/kubeconfig.yaml
 	@if [ -e ~/.docker/config.json ]; then \
-		docker exec -i $(shell $(BUILDER)) sh -c "mkdir -p /home/dw/.docker" ; \
-		docker cp ~/.docker/config.json $(shell $(BUILDER)):/home/dw/.docker/config.json ; \
+		cat ~/.docker/config.json | docker exec -i $(shell $(BUILDER)) sh -c "mkdir -p /home/dw/.docker && cat > /home/dw/.docker/config.json" ; \
 	fi
 # XXX noop target for teleproxy tests
 	@docker exec -w /buildroot/ambassador -i $(shell $(BUILDER)) sh -c "echo bin_linux_amd64/edgectl: > Makefile"
