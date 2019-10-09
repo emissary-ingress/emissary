@@ -91,7 +91,7 @@ spec:
      unit: minute
 ```
 
-Note for this to work, you need to make sure you've properly configured Ambassador to [propagate your original client IP address](https://www.getambassador.io/reference/modules/#use_remote_address).
+Note for this to work, you need to make sure you've properly configured Ambassador to [propagate your original client IP address](https://www.getambassador.io/reference/core/ambassador/#use_remote_address).
 
 ## Example 3: Load shedding GET requests
 
