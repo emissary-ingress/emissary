@@ -78,10 +78,14 @@ test-ready: push
 	@test -n "$(DEV_KUBECONFIG)" || (echo -e "$${KUBECONFIG_ERR}"; exit 1)
 	@kubectl --kubeconfig $(DEV_KUBECONFIG) -n default get service kubernetes > /dev/null || (echo -e "$${KUBECTL_ERR}"; exit 1)
 	@docker cp $(DEV_KUBECONFIG) $(shell $(BUILDER)):/buildroot/kubeconfig.yaml
+	@if [ -e ~/.docker/config.json ]; then \
+		docker exec -i $(shell $(BUILDER)) sh -c "mkdir -p /home/dw/.docker" ; \
+		docker cp ~/.docker/config.json $(shell $(BUILDER)):/home/dw/.docker/config.json ; \
+	fi
 # XXX noop target for teleproxy tests
-	@docker exec -w /buildroot/ambassador -d $(shell $(BUILDER)) sh -c "echo bin_linux_amd64/edgectl: > Makefile"
-	@docker exec -w /buildroot/ambassador -d $(shell $(BUILDER)) sh -c "mkdir bin_linux_amd64"
-	@docker exec -w /buildroot/ambassador -d $(shell $(BUILDER)) ln -s /buildroot/bin/edgectl /buildroot/ambassador/bin_linux_amd64/edgectl
+	@docker exec -w /buildroot/ambassador -i $(shell $(BUILDER)) sh -c "echo bin_linux_amd64/edgectl: > Makefile"
+	@docker exec -w /buildroot/ambassador -i $(shell $(BUILDER)) sh -c "mkdir bin_linux_amd64"
+	@docker exec -w /buildroot/ambassador -i $(shell $(BUILDER)) ln -s /buildroot/bin/edgectl /buildroot/ambassador/bin_linux_amd64/edgectl
 
 PYTEST_ARGS ?=
 
