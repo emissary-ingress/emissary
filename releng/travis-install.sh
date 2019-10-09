@@ -36,9 +36,9 @@ curl -L https://storage.googleapis.com/kubernetes-helm/helm-v${HELM_VERSION}-lin
 chmod +x ~/bin/helm
 helm init --client-only # Initialize helm for indexing use
 
-gimme ${GO_VERSION}
+#gimme ${GO_VERSION}
 
-pip install -q -r dev-requirements.txt
-pip install -q -r python/requirements.txt
+#pip install -q -r dev-requirements.txt
+#pip install -q -r python/requirements.txt
 
 printf "== End:   travis-install.sh ==\n"
