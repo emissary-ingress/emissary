@@ -73,6 +73,3 @@ replace github.com/golang/lint => golang.org/x/lint v0.0.0-20190227174305-5b3e6a
 
 // https://github.com/russross/blackfriday/issues/500
 replace gopkg.in/russross/blackfriday.v2 => github.com/russross/blackfriday/v2 v2.0.1
-
-// Fix invalid pseudo-version that Go 1.13 complains about.
-replace github.com/census-instrumentation/opencensus-proto v0.1.0-0.20181214143942-ba49f56771b8 => github.com/census-instrumentation/opencensus-proto v0.0.3-0.20181214143942-ba49f56771b8
