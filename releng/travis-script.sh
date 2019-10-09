@@ -61,18 +61,19 @@ printf "========\nCOMMIT_TYPE $COMMIT_TYPE; git status:\n"
 git status
 
 printf "========\nSetting up environment...\n"
-case "$COMMIT_TYPE" in
-    GA)
-        eval $(make DOCKER_EXTERNAL_REGISTRY=$DOCKER_REGISTRY export-vars)
-        ;;
-    *)
-        eval $(make USE_KUBERNAUT=true \
-                    DOCKER_EPHEMERAL_REGISTRY=true \
-                    DOCKER_EXTERNAL_REGISTRY=$DOCKER_REGISTRY \
-                    DOCKER_REGISTRY=localhost:31000 \
-                    export-vars)
-        ;;
-esac
+make --version
+# case "$COMMIT_TYPE" in
+#     GA)
+#         eval $(make DOCKER_EXTERNAL_REGISTRY=$DOCKER_REGISTRY export-vars)
+#         ;;
+#     *)
+#         eval $(make USE_KUBERNAUT=true \
+#                     DOCKER_EPHEMERAL_REGISTRY=true \
+#                     DOCKER_EXTERNAL_REGISTRY=$DOCKER_REGISTRY \
+#                     DOCKER_REGISTRY=localhost:31000 \
+#                     export-vars)
+#         ;;
+# esac
 set -o xtrace
 #make print-vars
 
