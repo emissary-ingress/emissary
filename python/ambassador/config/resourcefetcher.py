@@ -518,7 +518,7 @@ class ResourceFetcher:
             self.logger.error(f"Unable to update Ingress {ingress_name}'s status, could not find Ambassador service")
         else:
             ingress_status = self.ambassador_service_raw.get('status', {})
-            ingress_status_update = (k8s_object.get('kind'), ingress_status)
+            ingress_status_update = (k8s_object.get('kind'), ingress_namespace, ingress_status)
             self.logger.info(f"Updating Ingress {ingress_name} status to {ingress_status_update}")
             self.aconf.k8s_status_updates[ingress_name] = ingress_status_update
 
