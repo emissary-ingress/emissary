@@ -1,6 +1,7 @@
 *
-!multi/
-!ambassador/
+!cmd/
+!pkg/
+!python/
 !demo/
 !releng/
 !ambex

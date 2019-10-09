@@ -22,8 +22,7 @@ SHELL = bash
 
 .PHONY: \
     clean version setup-develop print-vars \
-    docker-push docker-images \
-    teleproxy-restart teleproxy-stop
+    docker-push docker-images
 .SECONDARY:
 
 GIT_DIRTY ?= $(if $(shell git status --porcelain),dirty)
@@ -105,9 +104,9 @@ ENVOY_FILE ?= envoy-bin/envoy-static-stripped
   # Increment BASE_ENVOY_RELVER on changes to `Dockerfile.base-envoy`, or Envoy recipes
   BASE_ENVOY_RELVER ?= 4
   # Increment BASE_GO_RELVER on changes to `Dockerfile.base-go`
-  BASE_GO_RELVER    ?= 17
-  # Increment BASE_PY_RELVER on changes to `Dockerfile.base-py`, `releng/*`, `multi/requirements.txt`, `ambassador/requirements.txt`
-  BASE_PY_RELVER    ?= 16
+  BASE_GO_RELVER    ?= 18
+  # Increment BASE_PY_RELVER on changes to `Dockerfile.base-py`, `releng/*`, `python/requirements.txt`
+  BASE_PY_RELVER    ?= 17
 
   BASE_DOCKER_REPO ?= quay.io/datawire/ambassador-base$(if $(IS_PRIVATE),-private)
   BASE_ENVOY_IMAGE ?= $(BASE_DOCKER_REPO):envoy-$(BASE_ENVOY_RELVER).$(ENVOY_COMMIT).$(ENVOY_COMPILATION_MODE)
@@ -179,16 +178,9 @@ KAT_IMAGE_PULL_POLICY ?= Always
 
 KAT_CLIENT ?= venv/bin/kat_client
 
-# Allow overriding which watt we use.
+# Where to place binaries when we compile them
 WATT ?= watt
-WATT_VERSION ?= 0.6.0
-
-# Allow overriding which kubestatus we use.
 KUBESTATUS ?= kubestatus
-KUBESTATUS_VERSION ?= 0.7.2
-
-TELEPROXY ?= venv/bin/teleproxy
-TELEPROXY_VERSION ?= 0.4.11
 
 # This should maybe be replaced with a lighterweight dependency if we
 # don't currently depend on go
@@ -221,30 +213,46 @@ clean: clean-test envoy-build-container.txt.clean $(addsuffix .clean,$(clean_doc
 	rm -rf helm/*.tgz
 	rm -rf app.json
 	rm -rf venv/bin/ambassador
-	rm -rf ambassador/ambassador/VERSION.py*
-	rm -rf ambassador/build ambassador/dist ambassador/ambassador.egg-info ambassador/__pycache__
+	rm -rf python/ambassador/VERSION.py*
+	rm -f *.docker
+	rm -rf python/build python/dist python/ambassador.egg-info python/__pycache__
 	find . \( -name .coverage -o -name .cache -o -name __pycache__ \) -print0 | xargs -0 rm -rf
 	find . \( -name *.log \) -print0 | xargs -0 rm -rf
 	rm -rf log.txt
-	find ambassador/tests \
+	find python/tests \
 		\( -name '*.out' -o -name 'envoy.json' -o -name 'intermediate.json' \) -print0 \
 		| xargs -0 rm -f
-	rm -f kat-client-docker-image/kat_client
-	rm -f kat-server-docker-image/kat-server
-	rm -f kat-sandbox/http_auth/docker-compose.yml
-	rm -f kat-sandbox/grpc_auth/docker-compose.yml
-	rm -f kat-sandbox/grpc_web/docker-compose.yaml kat-sandbox/grpc_web/*_pb.js
-	rm -rf go/apis.envoy.tmp/
+	rm -f build/kat/client/kat_client
+	rm -f build/kat/server/kat-server
+	rm -f tools/sandbox/http_auth/docker-compose.yml
+	rm -f tools/sandbox/grpc_auth/docker-compose.yml
+	rm -f tools/sandbox/grpc_web/docker-compose.yaml tools/sandbox/grpc_web/*_pb.js
+	rm -rf pkg/api.envoy.tmp/
 	rm -rf envoy-bin
 	rm -f envoy-build-image.txt
-	rm -f ambex
+	rm -f cmd/ambex/ambex
+# Files made by older versions.  Remove the tail of this list when the
+# commit making the change gets far enough in to the past.
+#
+# 2019-09-23
+	rm -f kat-server-docker-image/kat-server
+	rm -f kat-sandbox/grpc_auth/docker-compose.yml
+	rm -f kat-sandbox/grpc_web/docker-compose.yaml
+	rm -f kat-sandbox/grpc_web/*_pb.js
+	rm -f kat-sandbox/http_auth/docker-compose.yml
 
 clobber: clean kill-docker-registry
-	-rm -f kat-client-docker-image/teleproxy
-	-rm -rf $(WATT) $(KUBESTATUS)
+	-rm -f build/kat/client/teleproxy
 	-$(if $(filter-out -,$(ENVOY_COMMIT)),rm -rf envoy envoy-src)
 	-rm -rf docs/node_modules
 	-rm -rf venv && echo && echo "Deleted venv, run 'deactivate' command if your virtualenv is activated" || true
+
+generate: pkg/api/kat/echo.pb.go
+generate: pkg/api/envoy
+generate: api/envoy
+generate-clean: clobber
+	rm -rf api/envoy pkg/api
+.PHONY: generate generate-clean
 
 print-%:
 	@printf "$($*)"
@@ -517,37 +525,37 @@ docker-push-base-images:
 	@echo "RESTART ANY DEV SHELLS to make sure they use your new images."
 
 docker-update-base:
-	$(MAKE) docker-base-images go/apis/envoy
+	$(MAKE) docker-base-images pkg/api/envoy
 	$(MAKE) docker-push-base-images
 
 ambassador-docker-image: ambassador.docker
-ambassador.docker: Dockerfile base-go.docker base-py.docker $(ENVOY_FILE) ambex $(WATT) $(KUBESTATUS) $(WRITE_IFCHANGED) ambassador/ambassador/VERSION.py FORCE
+ambassador.docker: Dockerfile base-go.docker base-py.docker $(ENVOY_FILE) cmd/ambex/ambex $(WATT) $(KUBESTATUS) $(WRITE_IFCHANGED) python/ambassador/VERSION.py FORCE
 	docker build --build-arg ENVOY_FILE=$(ENVOY_FILE) --build-arg BASE_GO_IMAGE=$(BASE_GO_IMAGE) --build-arg BASE_PY_IMAGE=$(BASE_PY_IMAGE) $(DOCKER_OPTS) -t $(AMBASSADOR_DOCKER_IMAGE) .
 	@docker image inspect $(AMBASSADOR_DOCKER_IMAGE) --format='{{.Id}}' | $(WRITE_IFCHANGED) $@
 
 kat-client-docker-image: kat-client.docker
 .PHONY: kat-client-docker-image
-kat-client.docker: kat-client-docker-image/Dockerfile base-py.docker kat-client-docker-image/teleproxy kat-client-docker-image/kat_client $(WRITE_IFCHANGED) $(var.)KAT_CLIENT_DOCKER_IMAGE
-	docker build --build-arg BASE_PY_IMAGE=$(BASE_PY_IMAGE) $(DOCKER_OPTS) -t $(KAT_CLIENT_DOCKER_IMAGE) kat-client-docker-image
+kat-client.docker: build/kat/client/Dockerfile base-py.docker build/kat/client/teleproxy build/kat/client/kat_client $(WRITE_IFCHANGED) $(var.)KAT_CLIENT_DOCKER_IMAGE
+	docker build --build-arg BASE_PY_IMAGE=$(BASE_PY_IMAGE) $(DOCKER_OPTS) -t $(KAT_CLIENT_DOCKER_IMAGE) build/kat/client
 	@docker image inspect $(KAT_CLIENT_DOCKER_IMAGE) --format='{{.Id}}' | $(WRITE_IFCHANGED) $@
 
-# kat-client-docker-image/teleproxy always uses the linux/amd64 architecture
-kat-client-docker-image/teleproxy: $(var.)TELEPROXY_VERSION
-	curl --fail -o $@ https://s3.amazonaws.com/datawire-static-files/teleproxy/$(TELEPROXY_VERSION)/linux/amd64/teleproxy
+# build/kat/client/teleproxy always uses the linux/amd64 architecture
+build/kat/client/teleproxy: go.mod
+	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o $@ github.com/datawire/teleproxy/cmd/teleproxy
 
-# kat-client-docker-image/kat_client always uses the linux/amd64 architecture
-kat-client-docker-image/kat_client: $(wildcard go/kat-client/*) go/apis/kat/echo.pb.go
-	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o $@ ./go/kat-client
+# build/kat/client/kat_client always uses the linux/amd64 architecture
+build/kat/client/kat_client: go.mod $(wildcard ./cmd/kat-client/*) pkg/api/kat/echo.pb.go
+	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o $@ ./cmd/kat-client
 
 kat-server-docker-image: kat-server.docker
-.PHONY: kat-server-docker-image
-kat-server.docker: $(wildcard kat-server-docker-image/*) kat-server-docker-image/kat-server $(var.)KAT_SERVER_DOCKER_IMAGE
-	docker build $(DOCKER_OPTS) -t $(KAT_SERVER_DOCKER_IMAGE) kat-server-docker-image
+.PHONY:  kat-server-docker-image
+kat-server.docker: $(wildcard build/kat/server/*) build/kat/server/kat-server $(var.)KAT_SERVER_DOCKER_IMAGE
+	docker build $(DOCKER_OPTS) -t $(KAT_SERVER_DOCKER_IMAGE) build/kat/server
 	@docker image inspect $(KAT_SERVER_DOCKER_IMAGE) --format='{{.Id}}' | $(WRITE_IFCHANGED) $@
 
-# kat-server-docker-image/kat-server always uses the linux/amd64 architecture
-kat-server-docker-image/kat-server: $(wildcard go/kat-server/* go/kat-server/*/*) go/apis/kat/echo.pb.go
-	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o $@ ./go/kat-server
+# build/kat/server/kat-server always uses the linux/amd64 architecture
+build/kat/server/kat-server: go.mod $(wildcard cmd/kat-server/* cmd/kat-server/*/*) pkg/api/kat/echo.pb.go
+	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o $@ ./cmd/kat-server
 
 docker-images: mypy ambassador-docker-image
 
@@ -561,27 +569,19 @@ else
 endif
 
 docker-push-kat-client: kat-client-docker-image
-ifeq ($(DOCKER_REGISTRY),-)
-	@echo "No DOCKER_REGISTRY set"
-else
 	@echo 'PUSH $(KAT_CLIENT_DOCKER_IMAGE)'
 	@set -o pipefail; \
 		docker push $(KAT_CLIENT_DOCKER_IMAGE) | python releng/linify.py push.log
-endif
 
 docker-push-kat-server: kat-server-docker-image
-ifeq ($(DOCKER_REGISTRY),-)
-	@echo "No DOCKER_REGISTRY set"
-else
 	@echo 'PUSH $(KAT_SERVER_DOCKER_IMAGE)'
 	@set -o pipefail; \
 		docker push $(KAT_SERVER_DOCKER_IMAGE) | python releng/linify.py push.log
-endif
 
 docker-push-kat: docker-push-kat-client docker-push-kat-server
 
 # TODO: validate version is conformant to some set of rules might be a good idea to add here
-ambassador/ambassador/VERSION.py: FORCE $(WRITE_IFCHANGED)
+python/ambassador/VERSION.py: FORCE $(WRITE_IFCHANGED)
 	$(call check_defined, BUILD_VERSION, BUILD_VERSION is not set)
 	$(call check_defined, GIT_BRANCH, GIT_BRANCH is not set)
 	$(call check_defined, GIT_COMMIT, GIT_COMMIT is not set)
@@ -595,29 +595,19 @@ ambassador/ambassador/VERSION.py: FORCE $(WRITE_IFCHANGED)
 		-e 's!{{GITDESCRIPTION}}!$(GIT_DESCRIPTION)!g' \
 		< VERSION-template.py | $(WRITE_IFCHANGED) $@
 
-version: ambassador/ambassador/VERSION.py
-
-$(TELEPROXY): $(var.)TELEPROXY_VERSION $(var.)GOOS $(var.)GOARCH | venv/bin/activate
-	curl -o $(TELEPROXY) https://s3.amazonaws.com/datawire-static-files/teleproxy/$(TELEPROXY_VERSION)/$(GOOS)/$(GOARCH)/teleproxy
-	sudo chown 0:0 $(TELEPROXY)			# setting group 0 is very important for SUID on MacOS!	
-	sudo chmod go-w,a+sx $(TELEPROXY)
-
-kill_teleproxy = curl -s --connect-timeout 5 127.254.254.254/api/shutdown || true
-run_teleproxy = $(TELEPROXY)
+version: python/ambassador/VERSION.py
 
 # This is for the docker image, so we don't use the current arch, we hardcode to linux/amd64
-$(WATT): $(var.)WATT_VERSION
-	curl -o $(WATT) https://s3.amazonaws.com/datawire-static-files/watt/$(WATT_VERSION)/linux/amd64/watt
-	chmod go-w,a+x $(WATT)
+$(WATT): go.mod
+	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o $@ github.com/datawire/teleproxy/cmd/watt
 
 # This is for the docker image, so we don't use the current arch, we hardcode to linux/amd64
-ambex: $(wildcard go/ambex/*.go) go.mod
-	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o $@ ./go/ambex
+cmd/ambex/ambex: $(wildcard cmd/ambex/*.go) go.mod
+	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o $@ ./cmd/ambex
 
 # This is for the docker image, so we don't use the current arch, we hardcode to linux/amd64
-$(KUBESTATUS): $(var.)KUBESTATUS_VERSION
-	curl -o $(KUBESTATUS) https://s3.amazonaws.com/datawire-static-files/kubestatus/$(KUBESTATUS_VERSION)/linux/amd64/kubestatus
-	chmod go-w,a+x $(KUBESTATUS)
+$(KUBESTATUS): go.mod
+	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o $@ github.com/datawire/teleproxy/cmd/kubestatus
 
 $(CLAIM_FILE):
 	@if [ -z $${CI+x} ]; then \
@@ -630,10 +620,10 @@ $(KUBERNAUT): $(var.)KUBERNAUT_VERSION $(var.)GOOS $(var.)GOARCH | venv/bin/acti
 	curl -o $(KUBERNAUT) http://releases.datawire.io/kubernaut/$(KUBERNAUT_VERSION)/$(GOOS)/$(GOARCH)/kubernaut
 	chmod +x $(KUBERNAUT)
 
-$(KAT_CLIENT): $(wildcard go/kat-client/*) go/apis/kat/echo.pb.go
-	go build -o $@ ./go/kat-client
+$(KAT_CLIENT): go.mod $(wildcard cmd/kat-client/*) pkg/api/kat/echo.pb.go
+	go build -o $@ ./cmd/kat-client
 
-setup-develop: venv $(KAT_CLIENT) $(TELEPROXY) $(KUBERNAUT) $(WATT) $(KUBESTATUS) version
+setup-develop: venv $(KAT_CLIENT) $(KUBERNAUT) $(WATT) $(KUBESTATUS) version
 
 cluster.yaml: $(CLAIM_FILE) $(KUBERNAUT)
 ifeq ($(USE_KUBERNAUT), true)
@@ -652,37 +642,8 @@ endif
 # relative paths.
 $(CURDIR)/cluster.yaml: cluster.yaml
 
-setup-test: cluster-and-teleproxy
-
-cluster-and-teleproxy: cluster.yaml $(TELEPROXY)
+setup-test: cluster.yaml
 	rm -rf /tmp/k8s-*.yaml /tmp/kat-*.yaml
-# 	$(MAKE) teleproxy-restart
-# 	@echo "Sleeping for Teleproxy cluster"
-# 	sleep 10
-
-teleproxy-restart: $(TELEPROXY)
-	@echo "Killing teleproxy"
-	$(kill_teleproxy)
-	sleep 0.25 # wait for exit...
-	$(run_teleproxy) -kubeconfig $(KUBECONFIG) 2> /tmp/teleproxy.log &
-	sleep 0.5 # wait for start
-	@if [ $$(ps -ef | grep venv/bin/teleproxy | grep -v grep | wc -l) -le 0 ]; then \
-		echo "teleproxy did not start"; \
-		cat /tmp/teleproxy.log; \
-		exit 1; \
-	fi
-	@echo "Done"
-
-teleproxy-stop:
-	$(kill_teleproxy)
-	sleep 0.25 # wait for exit...
-	@if [ $$(ps -ef | grep venv/bin/teleproxy | grep -v grep | wc -l) -gt 0 ]; then \
-		echo "teleproxy still running" >&2; \
-		ps -ef | grep venv/bin/teleproxy | grep -v grep >&2; \
-		false; \
-	else \
-		echo "teleproxy stopped" >&2; \
-	fi
 
 # "make shell" drops you into a dev shell, and tries to set variables, etc., as
 # needed:
@@ -708,10 +669,9 @@ clean-test:
 	rm -f cluster.yaml
 	test -x $(KUBERNAUT) && $(KUBERNAUT_DISCARD) || true
 	rm -f $(CLAIM_FILE)
-	$(call kill_teleproxy)
 
 test: setup-develop
-	cd ambassador && \
+	cd python && \
 	AMBASSADOR_DOCKER_IMAGE="$(AMBASSADOR_DOCKER_IMAGE)" \
 	BASE_PY_IMAGE="$(BASE_PY_IMAGE)" \
 	BASE_GO_IMAGE="$(BASE_GO_IMAGE)" \
@@ -723,7 +683,7 @@ test: setup-develop
 	bash ../releng/run-tests.sh
 
 test-list: setup-develop
-	cd ambassador && PATH="$(shell pwd)/venv/bin":$(PATH) pytest --collect-only -q
+	cd python && PATH="$(shell pwd)/venv/bin":$(PATH) pytest --collect-only -q
 
 update-aws:
 ifeq ($(AWS_ACCESS_KEY_ID),)
@@ -798,6 +758,9 @@ venv/bin/protoc-gen-gogofast: go.mod $(FLOCK) | venv/bin/activate
 venv/bin/protoc-gen-validate: go.mod $(FLOCK) | venv/bin/activate
 	$(FLOCK) go.mod go build -o $@ github.com/envoyproxy/protoc-gen-validate
 
+api/envoy: envoy-src
+	rsync --recursive --delete --delete-excluded --prune-empty-dirs --include='*/' --include='*.proto' --exclude='*' $</api/envoy/ $@
+
 # Search path for .proto files
 gomoddir = $(shell $(FLOCK) go.mod go list $1/... >/dev/null 2>/dev/null; $(FLOCK) go.mod go list -m -f='{{.Dir}}' $1)
 # This list is based on 'imports=()' in https://github.com/envoyproxy/go-control-plane/blob/0e75602d5e36e96eafbe053999c0569edec9fe07/build/generate_protos.sh
@@ -813,7 +776,7 @@ gomoddir = $(shell $(FLOCK) go.mod go list $1/... >/dev/null 2>/dev/null; $(FLOC
 #    go-control-plane is that our newer Envoy needs googleapis'
 #    "google/api/expr/v1alpha1/", which was added in 32e3935 (.pb.go files) and ee07f27
 #    (.proto files).
-imports += $(CURDIR)/envoy-src/api
+imports += $(CURDIR)/api
 imports += $(call gomoddir,github.com/envoyproxy/protoc-gen-validate)
 imports += $(call gomoddir,github.com/gogo/protobuf)/protobuf
 imports += $(call gomoddir,istio.io/gogo-genproto)/common-protos
@@ -844,18 +807,18 @@ mappings += metrics.proto=istio.io/gogo-genproto/prometheus
 mappings += opencensus/proto/trace/v1/trace.proto=istio.io/gogo-genproto/opencensus/proto/trace/v1
 mappings += opencensus/proto/trace/v1/trace_config.proto=istio.io/gogo-genproto/opencensus/proto/trace/v1
 mappings += validate/validate.proto=github.com/envoyproxy/protoc-gen-validate/validate
-mappings += $(shell find $(CURDIR)/envoy-src/api/envoy -type f -name '*.proto' | sed -E 's,^$(CURDIR)/envoy-src/api/((.*)/[^/]*),\1=github.com/datawire/ambassador/go/apis/\2,')
+mappings += $(shell find $(CURDIR)/api/envoy -type f -name '*.proto' | sed -E 's,^$(CURDIR)/api/((.*)/[^/]*),\1=github.com/datawire/ambassador/pkg/api/\2,')
 
 joinlist=$(if $(word 2,$2),$(firstword $2)$1$(call joinlist,$1,$(wordlist 2,$(words $2),$2)),$2)
 comma = ,
 
 _imports = $(call lazyonce,_imports,$(imports))
 _mappings = $(call lazyonce,_mappings,$(mappings))
-go/apis/envoy: envoy-src $(FLOCK) venv/bin/protoc venv/bin/protoc-gen-gogofast venv/bin/protoc-gen-validate $(var.)_imports $(var.)_mappings
+pkg/api/envoy: api/envoy $(FLOCK) venv/bin/protoc venv/bin/protoc-gen-gogofast venv/bin/protoc-gen-validate $(var.)_imports $(var.)_mappings
 	rm -rf $@ $(@D).envoy.tmp
 	mkdir -p $(@D).envoy.tmp
 # go-control-plane `make generate`
-	@set -e; find $(CURDIR)/envoy-src/api/envoy -type f -name '*.proto' | sed 's,/[^/]*$$,,' | uniq | while read -r dir; do \
+	@set -e; find $(CURDIR)/api/envoy -type f -name '*.proto' | sed 's,/[^/]*$$,,' | uniq | while read -r dir; do \
 		echo "Generating $$dir"; \
 		./venv/bin/protoc \
 			$(addprefix --proto_path=,$(_imports))  \
@@ -865,7 +828,7 @@ go/apis/envoy: envoy-src $(FLOCK) venv/bin/protoc venv/bin/protoc-gen-gogofast v
 	done
 # go-control-plane `make generate-patch`
 # https://github.com/envoyproxy/go-control-plane/issues/173
-	find $(@D).envoy.tmp -name '*.validate.go' -exec sed -E -i.bak 's,"(envoy/.*)"$$,"github.com/datawire/ambassador/go/apis/\1",' {} +
+	find $(@D).envoy.tmp -name '*.validate.go' -exec sed -E -i.bak 's,"(envoy/.*)"$$,"github.com/datawire/ambassador/pkg/api/\1",' {} +
 	find $(@D).envoy.tmp -name '*.bak' -delete
 # move things in to place
 	mkdir -p $(@D)
@@ -883,21 +846,22 @@ venv/bin/protoc-gen-grpc-web: $(var.)GRPC_WEB_VERSION $(var.)GRPC_WEB_PLATFORM |
 	curl -o $@ -L --fail https://github.com/grpc/grpc-web/releases/download/$(GRPC_WEB_VERSION)/protoc-gen-grpc-web-$(GRPC_WEB_VERSION)-$(GRPC_WEB_PLATFORM)
 	chmod 755 $@
 
-go/apis/kat/echo.pb.go: kat-apis/echo.proto venv/bin/protoc venv/bin/protoc-gen-gogofast
+pkg/api/kat/echo.pb.go: api/kat/echo.proto venv/bin/protoc venv/bin/protoc-gen-gogofast
+	mkdir -p $(@D)
 	./venv/bin/protoc \
-		--proto_path=$(CURDIR)/kat-apis \
+		--proto_path=$(CURDIR)/api/kat \
 		--plugin=$(CURDIR)/venv/bin/protoc-gen-gogofast --gogofast_out=plugins=grpc:$(@D) \
 		$(CURDIR)/$<
 
-kat-sandbox/grpc_web/echo_grpc_web_pb.js: kat-apis/echo.proto venv/bin/protoc venv/bin/protoc-gen-grpc-web
+tools/sandbox/grpc_web/echo_grpc_web_pb.js: api/kat/echo.proto venv/bin/protoc venv/bin/protoc-gen-grpc-web
 	./venv/bin/protoc \
-		--proto_path=$(CURDIR)/kat-apis \
+		--proto_path=$(CURDIR)/api/kat \
 		--plugin=$(CURDIR)/venv/bin/protoc-gen-grpc-web --grpc-web_out=import_style=commonjs,mode=grpcwebtext:$(@D) \
 		$(CURDIR)/$<
 
-kat-sandbox/grpc_web/echo_pb.js: kat-apis/echo.proto venv/bin/protoc
+tools/sandbox/grpc_web/echo_pb.js: api/kat/echo.proto venv/bin/protoc
 	./venv/bin/protoc \
-		--proto_path=$(CURDIR)/kat-apis \
+		--proto_path=$(CURDIR)/api/kat \
 		--js_out=import_style=commonjs:$(@D) \
 		$(CURDIR)/$<
 
@@ -905,34 +869,34 @@ kat-sandbox/grpc_web/echo_pb.js: kat-apis/echo.proto venv/bin/protoc
 # KAT docker-compose sandbox
 # ------------------------------------------------------------------------------
 
-kat-sandbox/http_auth/docker-compose.yml kat-sandbox/grpc_auth/docker-compose.yml kat-sandbox/grpc_web/docker-compose.yaml: %: %.in kat-server.docker $(var.)KAT_SERVER_DOCKER_IMAGE
+tools/sandbox/http_auth/docker-compose.yml tools/sandbox/grpc_auth/docker-compose.yml tools/sandbox/grpc_web/docker-compose.yaml: %: %.in kat-server.docker $(var.)KAT_SERVER_DOCKER_IMAGE
 	sed 's,@KAT_SERVER_DOCKER_IMAGE@,$(KAT_SERVER_DOCKER_IMAGE),g' < $< > $@
 
-kat-sandbox.http-auth: ## In docker-compose: run Ambassador, an HTTP AuthService, an HTTP backend service, and a TracingService
-kat-sandbox.http-auth: kat-sandbox/http_auth/docker-compose.yml
-	@echo " ---> cleaning HTTP auth kat-sandbox"
-	@cd kat-sandbox/http_auth && docker-compose stop && docker-compose rm -f
-	@echo " ---> starting HTTP auth kat-sandbox"
-	@cd kat-sandbox/http_auth && docker-compose up --force-recreate --abort-on-container-exit --build
-.PHONY: kat-sandbox.http-auth
+tools/sandbox.http-auth: ## In docker-compose: run Ambassador, an HTTP AuthService, an HTTP backend service, and a TracingService
+tools/sandbox.http-auth: tools/sandbox/http_auth/docker-compose.yml
+	@echo " ---> cleaning HTTP auth tools/sandbox"
+	@cd tools/sandbox/http_auth && docker-compose stop && docker-compose rm -f
+	@echo " ---> starting HTTP auth tools/sandbox"
+	@cd tools/sandbox/http_auth && docker-compose up --force-recreate --abort-on-container-exit --build
+.PHONY: tools/sandbox.http-auth
 
-kat-sandbox.grpc-auth: ## In docker-compose: run Ambassador, a gRPC AuthService, an HTTP backend service, and a TracingService
-kat-sandbox.grpc-auth: kat-sandbox/grpc_auth/docker-compose.yml
-	@echo " ---> cleaning gRPC auth kat-sandbox"
-	@cd kat-sandbox/grpc_auth && docker-compose stop && docker-compose rm -f
-	@echo " ---> starting gRPC auth kat-sandbox"
-	@cd kat-sandbox/grpc_auth && docker-compose up --force-recreate --abort-on-container-exit --build
-.PHONY: kat-sandbox.grpc-auth
+tools/sandbox.grpc-auth: ## In docker-compose: run Ambassador, a gRPC AuthService, an HTTP backend service, and a TracingService
+tools/sandbox.grpc-auth: tools/sandbox/grpc_auth/docker-compose.yml
+	@echo " ---> cleaning gRPC auth tools/sandbox"
+	@cd tools/sandbox/grpc_auth && docker-compose stop && docker-compose rm -f
+	@echo " ---> starting gRPC auth tools/sandbox"
+	@cd tools/sandbox/grpc_auth && docker-compose up --force-recreate --abort-on-container-exit --build
+.PHONY: tools/sandbox.grpc-auth
 
-kat-sandbox.web: ## In docker-compose: run Ambassador with gRPC-web enabled, and a gRPC backend service
-kat-sandbox.web: kat-sandbox/grpc_web/docker-compose.yaml
-kat-sandbox.web: kat-sandbox/grpc_web/echo_grpc_web_pb.js kat-sandbox/grpc_web/echo_pb.js
-	@echo " ---> cleaning gRPC web kat-sandbox"
-	@cd kat-sandbox/grpc_web && npm install && npx webpack
-	@cd kat-sandbox/grpc_web && docker-compose stop && docker-compose rm -f
-	@echo " ---> starting gRPC web kat-sandbox"
-	@cd kat-sandbox/grpc_web && docker-compose up --force-recreate --abort-on-container-exit --build
-.PHONY: kat-sandbox.web
+tools/sandbox.web: ## In docker-compose: run Ambassador with gRPC-web enabled, and a gRPC backend service
+tools/sandbox.web: tools/sandbox/grpc_web/docker-compose.yaml
+tools/sandbox.web: tools/sandbox/grpc_web/echo_grpc_web_pb.js tools/sandbox/grpc_web/echo_pb.js
+	@echo " ---> cleaning gRPC web tools/sandbox"
+	@cd tools/sandbox/grpc_web && npm install && npx webpack
+	@cd tools/sandbox/grpc_web && docker-compose stop && docker-compose rm -f
+	@echo " ---> starting gRPC web tools/sandbox"
+	@cd tools/sandbox/grpc_web && docker-compose up --force-recreate --abort-on-container-exit --build
+.PHONY: tools/sandbox.web
 
 # ------------------------------------------------------------------------------
 # Virtualenv
@@ -940,12 +904,12 @@ kat-sandbox.web: kat-sandbox/grpc_web/echo_grpc_web_pb.js kat-sandbox/grpc_web/e
 
 venv: version venv/bin/ambassador
 
-venv/bin/ambassador: venv/bin/activate ambassador/requirements.txt
-	@releng/install-py.sh dev requirements ambassador/requirements.txt
-	@releng/install-py.sh dev install ambassador/requirements.txt
+venv/bin/ambassador: venv/bin/activate python/requirements.txt
+	@releng/install-py.sh dev requirements python/requirements.txt
+	@releng/install-py.sh dev install python/requirements.txt
 	@releng/fix_kube_client
 
-venv/bin/activate: dev-requirements.txt multi/requirements.txt kat/requirements.txt
+venv/bin/activate: dev-requirements.txt
 	test -d venv || virtualenv venv --python python3
 	@releng/install-py.sh dev requirements $^
 	@releng/install-py.sh dev install $^
@@ -962,7 +926,7 @@ mypy-server: venv
 	fi
 
 mypy: mypy-server
-	time venv/bin/dmypy check ambassador
+	time venv/bin/dmypy check python
 
 # ------------------------------------------------------------------------------
 # Website
