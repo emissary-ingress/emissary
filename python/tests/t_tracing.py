@@ -32,11 +32,14 @@ spec:
     targetPort: http
   type: NodePort
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: zipkin
 spec:
+  selector:
+    matchLabels:
+      app: zipkin
   replicas: 1
   strategy:
     type: RollingUpdate
@@ -138,11 +141,14 @@ spec:
     targetPort: http
   type: NodePort
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: zipkin-64
 spec:
+  selector:
+    matchLabels:
+      app: zipkin-64
   replicas: 1
   strategy:
     type: RollingUpdate
@@ -226,11 +232,14 @@ spec:
     targetPort: http
   type: NodePort
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: zipkin-auth
 spec:
+  selector:
+    matchLabels:
+      app: zipkin-auth
   replicas: 1
   strategy:
     type: RollingUpdate
