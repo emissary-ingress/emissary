@@ -76,7 +76,7 @@ The documentation in the `docs` directory is actually a Git subtree from the `am
      branch so that they can be incorporated when the feature is merged into `master`.
 
 4. **Code changes must include passing tests.**
-   - See `ambassador/tests/README.md` for more here.
+   - See `python/tests/README.md` for more here.
    - Your tests **must** actually test the change you're making.
    - Your tests **must** pass in order for your change to be accepted.
 
@@ -303,7 +303,7 @@ Tests
 
 CI runs Ambassador's test suite on every build. **You will be asked to add tests when you add features, and you should never ever commit code with failing unit tests.**
 
-For more information on the test suite, see [its README](ambassador/tests/README.md).
+For more information on the test suite, see [its README](python/tests/README.md).
 
 #### Running tests locally (in minikube)
 Tests consume quite a lot of resources, so make sure you allocate them accordingly to your minikube instance. (Honestly, if you're on a Mac, running the full test suite in minikube is likely to be a lost cause. Running a smaller subset can work great though.)

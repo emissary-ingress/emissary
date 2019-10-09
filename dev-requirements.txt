@@ -8,3 +8,4 @@ pytest-custom_exit_code
 dpath
 mypy
 pexpect
+pyyaml
