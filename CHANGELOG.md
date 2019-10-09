@@ -20,6 +20,7 @@ Other:
 
  * Update Ambassador Core from Ambassador 0.75.0 to 0.83.0
  * Incorporate the Envoy 1.11.2 security patches in Ambassador Core
+ * Fast iteration on Developer Portal styling and content using a docker image inside a local checkout of Developer Portal content repo (see reference doc for usage guide)
 
 ## 0.8.0 (2019-09-16)
 
