@@ -9,11 +9,14 @@ from abstract_tests import DEV, AmbassadorTest, HTTP
 
 GRAPHITE_CONFIG = """
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {0}
 spec:
+  selector:
+    matchLabels:
+      service: {0}
   replicas: 1
   template:
     metadata:
@@ -50,11 +53,14 @@ spec:
 
 DOGSTATSD_CONFIG = """
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {0}
 spec:
+  selector:
+    matchLabels:
+      service: {0}
   replicas: 1
   template:
     metadata:

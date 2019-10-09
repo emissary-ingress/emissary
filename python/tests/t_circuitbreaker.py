@@ -6,11 +6,14 @@ from kat.manifests import AMBASSADOR, RBAC_CLUSTER_SCOPE
 
 STATSD_MANIFEST = """
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {name}
 spec:
+  selector:
+    matchLabels:
+      service: {name}
   replicas: 1
   template:
     metadata:

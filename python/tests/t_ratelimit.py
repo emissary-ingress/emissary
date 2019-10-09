@@ -25,11 +25,14 @@ spec:
     targetPort: grpc
   type: ClusterIP
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: rate-limit-v0
 spec:
+  selector:
+    matchLabels:
+      app: rate-limit-v0
   replicas: 1
   strategy:
     type: RollingUpdate
@@ -139,11 +142,14 @@ spec:
     targetPort: grpc
   type: ClusterIP
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: rate-limit-v1
 spec:
+  selector:
+    matchLabels:
+      app: rate-limit-v1
   replicas: 1
   strategy:
     type: RollingUpdate
@@ -229,11 +235,14 @@ spec:
     targetPort: grpc
   type: ClusterIP
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: rate-limit-tls
 spec:
+  selector:
+    matchLabels:
+      app: rate-limit-tls
   replicas: 1
   strategy:
     type: RollingUpdate
