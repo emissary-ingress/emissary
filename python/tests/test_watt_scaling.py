@@ -19,11 +19,14 @@ spec:
     - port: 80
       targetPort: http-api
 ---
-apiVersion: apps/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: qotm
 spec:
+  selector:
+    matchLabels:
+      service: qotm
   replicas: 3
   strategy:
     type: RollingUpdate
@@ -186,7 +189,9 @@ spec:
         # Assert 200 OK at /qotm/ endpoint
         qotm_ready = False
 
+        loop_limit = 20
         while not qotm_ready:
+            assert loop_limit > 0, "QOTM is not ready yet, aborting..."
             try:
                 connection = request.urlopen(qotm_url)
                 qotm_http_code = connection.getcode()
@@ -196,8 +201,9 @@ spec:
 
             except Exception as e:
                 print(f"Error: {e}")
-                print(f"{qotm_url} not yet ready, trying again...")
+                print(f"{qotm_url} not ready yet, trying again...")
                 time.sleep(1)
+                loop_limit -= 1
 
         # Try to mess up Ambassador by applying and deleting QOTM mapping over and over
         self.delete_qotm_mapping(namespace=namespace)
