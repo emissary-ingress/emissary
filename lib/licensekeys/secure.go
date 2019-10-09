@@ -15,7 +15,7 @@ import (
 	"github.com/datawire/apro/lib/jwtsupport"
 )
 
-type LicenseClaimsLatest = LicenseClaimsV1
+type LicenseClaimsLatest = LicenseClaimsV2
 
 type LicenseClaims interface {
 	ToLatest() *LicenseClaimsLatest
@@ -28,7 +28,7 @@ type LicenseClaimsV0 struct {
 }
 
 func (v0 *LicenseClaimsV0) ToLatest() *LicenseClaimsLatest {
-	return &LicenseClaimsLatest{
+	v1 := &LicenseClaimsV1{
 		LicenseKeyVersion: "v0",
 		CustomerID:        fmt.Sprintf("%v", v0.ID),
 		EnabledFeatures: []Feature{
@@ -39,6 +39,7 @@ func (v0 *LicenseClaimsV0) ToLatest() *LicenseClaimsLatest {
 		},
 		StandardClaims: v0.StandardClaims,
 	}
+	return v1.ToLatest()
 }
 
 type LicenseClaimsV1 struct {
@@ -48,8 +49,31 @@ type LicenseClaimsV1 struct {
 	jwt.StandardClaims
 }
 
-func (cl *LicenseClaimsLatest) ToLatest() *LicenseClaimsLatest {
-	return cl
+func (v1 *LicenseClaimsV1) ToLatest() *LicenseClaimsLatest {
+	v2 := &LicenseClaimsV2{
+		LicenseKeyVersion: v1.LicenseKeyVersion,
+		CustomerID:        v1.CustomerID,
+		EnabledFeatures:   v1.EnabledFeatures,
+		StandardClaims:    v1.StandardClaims,
+	}
+	return v2.ToLatest()
+}
+
+type LicenseClaimsV2 struct {
+	LicenseKeyVersion string       `json:"license_key_version"`
+	CustomerID        string       `json:"customer_id"`
+	EnabledFeatures   []Feature    `json:"enabled_features"`
+	EnforcedLimits    []LimitValue `json:"enforced_limits"`
+	jwt.StandardClaims
+}
+
+type LimitValue struct {
+	Name  Limit `json:"l"`
+	Value int   `json:"v"`
+}
+
+func (v2 *LicenseClaimsV2) ToLatest() *LicenseClaimsLatest {
+	return v2
 }
 
 func newBigIntFromBytes(bs []byte) *big.Int {
@@ -77,6 +101,8 @@ func ParseKey(licenseKey string) (*LicenseClaimsLatest, error) {
 		switch version {
 		case "v1":
 			licenseClaims = &LicenseClaimsV1{}
+		case "v2":
+			licenseClaims = &LicenseClaimsV2{}
 		default:
 			return nil, errors.Errorf("invalid license key: unrecognized license key version %q", version)
 		}
