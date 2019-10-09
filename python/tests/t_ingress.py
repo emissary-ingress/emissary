@@ -1,4 +1,7 @@
+import sys
+
 import json
+import pytest
 import subprocess
 
 from kat.harness import Query
@@ -38,15 +41,19 @@ spec:
 """
 
     def queries(self):
-        text = json.dumps(self.status_update)
+        if sys.platform != 'darwin':
+            text = json.dumps(self.status_update)
 
-        update_cmd = ['kubestatus', 'Service', '-f', f'metadata.name={self.name.k8s}', '-u', '/dev/fd/0']
-        subprocess.run(update_cmd, input=text.encode('utf-8'), timeout=5)
+            update_cmd = ['../kubestatus', 'Service', '-f', f'metadata.name={self.name.k8s}', '-u', '/dev/fd/0']
+            subprocess.run(update_cmd, input=text.encode('utf-8'), timeout=5)
 
-        yield Query(self.url(self.name + "/"))
-        yield Query(self.url(f'need-normalization/../{self.name}/'))
+            yield Query(self.url(self.name + "/"))
+            yield Query(self.url(f'need-normalization/../{self.name}/'))
 
     def check(self):
+        if sys.platform == 'darwin':
+            pytest.xfail('not supported on Darwin')
+
         for r in self.results:
             if r.backend:
                 assert r.backend.name == self.target.path.k8s, (r.backend.name, self.target.path.k8s)
@@ -93,15 +100,19 @@ spec:
 """
 
     def queries(self):
-        text = json.dumps(self.status_update)
+        if sys.platform != 'darwin':
+            text = json.dumps(self.status_update)
 
-        update_cmd = ['kubestatus', 'Service', '-f', f'metadata.name={self.name.k8s}', '-u', '/dev/fd/0']
-        subprocess.run(update_cmd, input=text.encode('utf-8'), timeout=5)
+            update_cmd = ['../kubestatus', 'Service', '-f', f'metadata.name={self.name.k8s}', '-u', '/dev/fd/0']
+            subprocess.run(update_cmd, input=text.encode('utf-8'), timeout=5)
 
-        yield Query(self.url(self.name + "/"))
-        yield Query(self.url(f'need-normalization/../{self.name}/'))
+            yield Query(self.url(self.name + "/"))
+            yield Query(self.url(f'need-normalization/../{self.name}/'))
 
     def check(self):
+        if sys.platform == 'darwin':
+            pytest.xfail('not supported on Darwin')
+
         for r in self.results:
             if r.backend:
                 assert r.backend.name == self.target.path.k8s, (r.backend.name, self.target.path.k8s)
@@ -153,15 +164,19 @@ spec:
 """
 
     def queries(self):
-        text = json.dumps(self.status_update)
+        if sys.platform != 'darwin':
+            text = json.dumps(self.status_update)
 
-        update_cmd = ['kubestatus', 'Service', '-f', f'metadata.name={self.name.k8s}', '-u', '/dev/fd/0']
-        subprocess.run(update_cmd, input=text.encode('utf-8'), timeout=5)
+            update_cmd = ['../kubestatus', 'Service', '-f', f'metadata.name={self.name.k8s}', '-u', '/dev/fd/0']
+            subprocess.run(update_cmd, input=text.encode('utf-8'), timeout=5)
 
-        yield Query(self.url(self.name + "/"))
-        yield Query(self.url(f'need-normalization/../{self.name}/'))
+            yield Query(self.url(self.name + "/"))
+            yield Query(self.url(f'need-normalization/../{self.name}/'))
 
     def check(self):
+        if sys.platform == 'darwin':
+            pytest.xfail('not supported on Darwin')
+
         for r in self.results:
             if r.backend:
                 assert r.backend.name == self.target.path.k8s, (r.backend.name, self.target.path.k8s)
