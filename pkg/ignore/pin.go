@@ -19,13 +19,4 @@ import (
 
 	// protoc-gen-gogofast
 	_ "github.com/gogo/protobuf/protoc-gen-gogofast"
-
-	// watt
-	_ "github.com/datawire/ambassador/cmd/watt"
-
-	// kubestatus
-	_ "github.com/datawire/ambassador/cmd/kubestatus"
-
-	// teleproxy
-	_ "github.com/datawire/ambassador/cmd/teleproxy"
 )
