@@ -37,11 +37,14 @@ spec:
     targetPort: http
   type: NodePort
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: shadow
 spec:
+  selector:
+    matchLabels:
+      app: shadow
   replicas: 1
   strategy:
     type: RollingUpdate
