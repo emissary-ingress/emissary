@@ -124,7 +124,7 @@ class IngressStatusTestAcrossNamespaces(AmbassadorTest):
     }
 
     def init(self):
-        self.target = HTTP()
+        self.target = HTTP(namespace="alt-namespace")
 
     def manifests(self) -> str:
         return super().manifests() + """
