@@ -8,7 +8,7 @@ metadata:
       ---
       apiVersion: ambassador/v1
       kind:  Mapping
-      name:  devportal_mapping
+      name:  ambassador-pro-devportal
       prefix: /docs/
       service: devportal
 spec:

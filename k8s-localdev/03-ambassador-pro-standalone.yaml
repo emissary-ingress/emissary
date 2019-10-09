@@ -169,6 +169,8 @@ metadata:
       kind: AuthService
       name: authentication
       proto: grpc
+      status_on_error:
+        code: 504
       auth_service: "ambassador-pro:80"
       allow_request_body: false # setting this to 'true' allows Plugin and External filters to access the body, but has performance overhead
       ---

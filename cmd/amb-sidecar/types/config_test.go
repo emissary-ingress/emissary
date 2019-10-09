@@ -1,44 +1,73 @@
-package types
+package types_test
 
 import (
+	"os"
 	"testing"
 
-	portal "github.com/datawire/apro/cmd/dev-portal-server/server"
+	"github.com/datawire/apro/cmd/amb-sidecar/types"
 )
 
-type publicUrlChecker string
-
-func publicUrlCheck(u string) publicUrlChecker {
-	return publicUrlChecker(u)
+type assertGen struct {
+	t *testing.T
 }
 
-func (c publicUrlChecker) make() portal.ServerConfig {
-	return portal.ServerConfig{PublicURL: string(c)}
-}
-
-func (c publicUrlChecker) isOk(t *testing.T) {
-	_, _, fatal := validatePortalConfig(c.make(), nil, nil)
-	if len(fatal) != 0 {
-		t.Errorf("Unexpected errors with %q: %v", c, fatal)
+func Assert(t *testing.T) assertGen {
+	return assertGen{
+		t: t,
 	}
 }
 
-func (c publicUrlChecker) isBad(t *testing.T) {
-	_, _, fatal := validatePortalConfig(c.make(), nil, nil)
-	if len(fatal) == 0 {
-		t.Errorf("Unexpected success with %q", c)
-	}
-	t.Logf("%q is bad because %v", c, fatal)
+type assertConfig struct {
+	t     *testing.T
+	value types.Config
+	warn  []error
+	fatal []error
 }
 
-func TestValidatePortalConfigPublicUrl(t *testing.T) {
-	publicUrlCheck("http://ambassador").isOk(t)
-	publicUrlCheck("https://ambassador").isOk(t)
-	publicUrlCheck("https://ambassador/").isOk(t)
-	publicUrlCheck("https://ambassador:80").isOk(t)
-	publicUrlCheck("https://ambassador:80/").isOk(t)
+func (g assertGen) Config(value types.Config, warn []error, fatal []error) assertConfig {
+	return assertConfig{
+		t:     g.t,
+		value: value,
+		warn:  warn,
+		fatal: fatal,
+	}
+}
 
-	publicUrlCheck("ambassador").isBad(t)
-	publicUrlCheck("ambassador:80").isBad(t)
-	publicUrlCheck("ambassador:80/").isBad(t)
+func (a assertConfig) HasNWarnings(n int) assertConfig {
+	a.t.Helper()
+	if len(a.warn) != n {
+		a.t.Errorf("asserted %d warnings; got %d", n, len(a.warn))
+		a.t.Logf("warnings: %v", a.warn)
+	}
+	return a
+}
+
+func (a assertConfig) HasNFatals(n int) assertConfig {
+	a.t.Helper()
+	if len(a.fatal) != n {
+		a.t.Errorf("asserted %d fatals; got %d", n, len(a.fatal))
+		a.t.Logf("fatals: %v", a.fatal)
+	}
+	return a
+}
+
+func TestAmbassadorExternalURLValidation(t *testing.T) {
+	check := func(u string) (value types.Config, warn []error, fatal []error) {
+		os.Clearenv()
+		os.Setenv("REDIS_SOCKET_TYPE", "unix")
+		os.Setenv("REDIS_URL", "/run/redis.sock")
+		os.Setenv("AMBASSADOR_URL", u)
+		return types.ConfigFromEnv()
+	}
+
+	Assert(t).Config(check("http://ambassador")).HasNWarnings(0).HasNFatals(0)
+	Assert(t).Config(check("https://ambassador")).HasNWarnings(0).HasNFatals(0)
+	Assert(t).Config(check("https://ambassador/")).HasNWarnings(0).HasNFatals(0)
+	Assert(t).Config(check("https://ambassador:80")).HasNWarnings(0).HasNFatals(0)
+	Assert(t).Config(check("https://ambassador:80/")).HasNWarnings(0).HasNFatals(0)
+
+	// these should fall back to the default value; have a warning but not a fatal
+	Assert(t).Config(check("ambassador")).HasNWarnings(1).HasNFatals(0)
+	Assert(t).Config(check("ambassador:80")).HasNWarnings(1).HasNFatals(0)
+	Assert(t).Config(check("ambassador:80/")).HasNWarnings(1).HasNFatals(0)
 }

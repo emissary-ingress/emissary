@@ -1,21 +1,46 @@
 ## Ambassador Pro CHANGELOG
 
-## 0.7.1 (TBD)
+## 0.9.0 (2019-10-08)
+
+Configuration
+
+ * The `OAuth2` filter now has a FilterPolicy argument `insteadOfRedirect` that can specify a different action to perform than redirecting to the IDP.
 
 Behavior:
 
- * The `External` Filter no longer erronously follows redirects.
- * Fixed a case-folding bug in the `JWT` Filter
+ * Feature: Developer portal URL can be changed by the user. Adjust the `ambassador-pro-devportal` `Mapping` CRD (or annotation) by changing the `prefix` to desired prefix and changing the `rewrite` to `/docs/`. The `ambassador-pro-devportal-api` can not be adjusted yet. 
+ * Feature: The `OAuth2` filter can now perform OIDC-session RP-initiated logout when used with an identity provider that supports it.
+ * Bugfix: Properly return a 404 for unknown paths in the amb-sidecar; instead of serving the index page; this could happen if the devportal Mapping is misconfigured.
+ * Bugfix: Fix the "loaded filter" log info message.
+ * Bugfix: Don't publish the "dev-portal-server" Docker image; it was obviated by "amb-sidecar" in 0.8.0.
+ * Bugfix: The `JWT` Filter is no longer case-sensitive with the auth-scheme (`Bearer` vs `bearer`)
+ * Bugfix: The `JWT` Filter no longer accepts authorizations that are missing an auth-scheme
+
+Other:
+
+ * Update Ambassador Core from Ambassador 0.75.0 to 0.83.0
+ * Incorporate the Envoy 1.11.2 security patches in Ambassador Core
+ * Fast iteration on Developer Portal styling and content using a docker image inside a local checkout of Developer Portal content repo (see reference doc for usage guide)
+
+## 0.8.0 (2019-09-16)
+
+Configuration:
+
+ * `amb-sidecar` now takes additional configuration related to the developer portal.
+
+Behavior:
+
+ * Feature: The developer portal is now in "beta", and incorporated into amb-sidecar.
+ * Bugfix: The `External` Filter no longer erroneously follows redirects.
+ * Bugfix: Fixed a case-folding bug causing the `JWT` Filter to be inoperable.
+ * Enhancement: Errors in `Filter` resource definitions are now recorded and included in error messages.
 
 ## 0.7.0 (2019-08-29)
 
 Configuration:
 
  * `amb-sidecar`: The default value of `USE_STATSD` has changed from `true` to `false`.
- * Bump license key schema v0 → v1.  The developer portal requires a
-   v1 license with the "devportal" feature enabled.  Some future
-   version of the other functionality will drop support for v0 license
-   keys.
+ * Bump license key schema v0 → v1.  The developer portal requires a v1 license with the "devportal" feature enabled.  Some future version of the other functionality will drop support for v0 license keys.
  * The `JWT` Filter can now inject HTTP request headers; configured with the `injectRequestHeaders` field.
 
 Behavior:
@@ -33,7 +58,7 @@ Configuration:
  * The CRD field `ambassador_id` may now be a single string instead of a list of strings (this should have always been the case, but there was a bug in the parser).
  * Everything is now on one port: `APRO_HTTP_PORT`, which defaults to `8500`.
  * `LOG_LEVEL` no longer exists; everything obeys `APP_LOG_LEVEL`.
- * The meaning of `REDIS_POOL_SIZE` has changed slightly; there are no longer separate connection pools for ratelimit and filtering; the maxiumum number of connections is now `REDIS_POOL_SIZE` instead of 2×`REDIS_POOL_SIZE`.
+ * The meaning of `REDIS_POOL_SIZE` has changed slightly; there are no longer separate connection pools for ratelimit and filtering; the maximum number of connections is now `REDIS_POOL_SIZE` instead of 2×`REDIS_POOL_SIZE`.
  * The `amb-sidecar` RateLimitService can now report to statsd, and attempts to do so by default (`USE_STATSD`, `STATSD_HOST`, `STATSD_PORT`, `GOSTATS_FLUSH_INTERVAL_SECONDS`).
 
 Behavior:
@@ -73,11 +98,11 @@ Behavior:
 
 Other:
 
- * Open Source dependency licence compliance is now automated as part of the release machinery.  Source releases for the Docker images are now present in the images themselves at `/*.opensource.tar.gz`.
+ * Open Source dependency license compliance is now automated as part of the release machinery.  Source releases for the Docker images are now present in the images themselves at `/*.opensource.tar.gz`.
 
 ## 0.4.3 (2019-05-15)
 
- * Add the Developer Portal
+ * Add the Developer Portal (experimental; no documentation available yet)
  * `apictl traffic initialize`: Correctly handle non-`default` namespaces
  * `app-sidecar`: Respect the `APP_LOG_LEVEL` environment variable, same as `amb-sidecar`
 
@@ -112,7 +137,7 @@ Other:
  * Request IDs in the Pro logs are the same as the Request IDs in the Ambassador logs
  * `OAuth2` Filter type supports `secretName` and `secretNamespace`
  * Switch to using Ambassador OSS gRPC API
- * No longer nescessary to set `allowed_request_headers` or `allowed_authorization_headers` for `Plugin` Filters
+ * No longer necessary to set `allowed_request_headers` or `allowed_authorization_headers` for `Plugin` Filters
  * RLS logs requests as `info` instead of `warn`
  * Officially support Okta as an IDP
 

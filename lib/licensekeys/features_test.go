@@ -14,6 +14,7 @@ var allFeatures = []licensekeys.Feature{
 	licensekeys.FeatureRateLimit,
 	licensekeys.FeatureFilter,
 	licensekeys.FeatureDevPortal,
+	licensekeys.FeatureLocalDevPortal,
 	licensekeys.FeatureCertifiedEnvoy,
 }
 
