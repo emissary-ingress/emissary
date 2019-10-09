@@ -593,7 +593,7 @@ python/ambassador/VERSION.py: FORCE $(WRITE_IFCHANGED)
 		-e 's!{{GITDIRTY}}!$(GIT_DIRTY)!g' \
 		-e 's!{{GITCOMMIT}}!$(GIT_COMMIT)!g' \
 		-e 's!{{GITDESCRIPTION}}!$(GIT_DESCRIPTION)!g' \
-		< VERSION-template.py | $(WRITE_IFCHANGED) $@
+		< python/VERSION-template.py | $(WRITE_IFCHANGED) $@
 
 version: python/ambassador/VERSION.py
 
