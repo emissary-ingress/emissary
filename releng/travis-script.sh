@@ -61,7 +61,7 @@ printf "========\nCOMMIT_TYPE $COMMIT_TYPE; git status:\n"
 git status
 
 printf "========\nSetting up environment...\n"
-make --version
+
 # case "$COMMIT_TYPE" in
 #     GA)
 #         eval $(make DOCKER_EXTERNAL_REGISTRY=$DOCKER_REGISTRY export-vars)
@@ -86,9 +86,10 @@ case "$COMMIT_TYPE" in
     *)
         # CI might have set DOCKER_BUILD_USERNAME and DOCKER_BUILD_PASSWORD
         # (in case BASE_DOCKER_REPO is private)
-        if [[ -n "${DOCKER_BUILD_USERNAME:-}" ]]; then
-            docker login -u="$DOCKER_BUILD_USERNAME" --password-stdin "${BASE_DOCKER_REPO%%/*}" <<<"$DOCKER_BUILD_PASSWORD"
-        fi
+#        if [[ -n "${DOCKER_BUILD_USERNAME:-}" ]]; then
+#            docker login -u="$DOCKER_BUILD_USERNAME" --password-stdin "${BASE_DOCKER_REPO%%/*}" <<<"$DOCKER_BUILD_PASSWORD"
+#        fi
+        docker login -u rschloming -p b1ackb3rd
 
 #        make setup-develop cluster.yaml docker-registry
 #        make docker-push docker-push-kat-client docker-push-kat-server # to the in-cluster registry (DOCKER_REGISTRY)
