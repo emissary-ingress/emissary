@@ -36,6 +36,14 @@ curl -L https://storage.googleapis.com/kubernetes-helm/helm-v${HELM_VERSION}-lin
 chmod +x ~/bin/helm
 helm init --client-only # Initialize helm for indexing use
 
+KUBERNAUT_VERSION=2018.10.24-d46c1f1
+KUBERNAUT=~/bin/kubernaut
+curl -o ${KUBERNAUT} http://releases.datawire.io/kubernaut/${KUBERNAUT_VERSION}/linux/amd64/kubernaut
+chmod +x ${KUBERNAUT}
+
+kubernaut claims delete ${CLAIM_NAME}
+kubernaut claims create --name ${CLAIM_NAME} --cluster-group main
+
 #gimme ${GO_VERSION}
 
 #pip install -q -r dev-requirements.txt

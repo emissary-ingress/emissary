@@ -27,6 +27,9 @@ services:
 env:
   global:
     - DOCKER_REGISTRY=quay.io/datawire
+    - CLAIM_NAME=kat-${USER}
+    - DEV_REGISTRY=quay.io/datawire
+    - DEV_KUBECONFIG=~/.kube/${CLAIM_NAME}.yaml
     
     # Set the branch in a predictable way. Travis behavior is that when you are
     # executing due to a PR then the value of $TRAVIS_BRANCH is actually the
