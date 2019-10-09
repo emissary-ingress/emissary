@@ -83,8 +83,8 @@ test-ready: push
 	fi
 # XXX noop target for teleproxy tests
 	@docker exec -w /buildroot/ambassador -i $(shell $(BUILDER)) sh -c "echo bin_linux_amd64/edgectl: > Makefile"
-	@docker exec -w /buildroot/ambassador -i $(shell $(BUILDER)) sh -c "mkdir bin_linux_amd64"
-	@docker exec -w /buildroot/ambassador -i $(shell $(BUILDER)) ln -s /buildroot/bin/edgectl /buildroot/ambassador/bin_linux_amd64/edgectl
+	@docker exec -w /buildroot/ambassador -i $(shell $(BUILDER)) sh -c "mkdir -p bin_linux_amd64"
+	@docker exec -w /buildroot/ambassador -d $(shell $(BUILDER)) ln -s /buildroot/bin/edgectl /buildroot/ambassador/bin_linux_amd64/edgectl
 
 PYTEST_ARGS ?=
 
@@ -103,7 +103,7 @@ GOTEST_ARGS ?= ./...
 
 gotest: test-ready
 	@echo -e "$(WHT)==$(GRN)Running $(BLU)go$(GRN) tests$(WHT)==$(END)"
-	$(foreach MODULE,$(MODULES),docker exec -w /buildroot/$(MODULE) -e DTEST_REGISTRY=$(DEV_REGISTRY) -e DTEST_KUBECONFIG=/buildroot/kubeconfig.yaml $(shell $(BUILDER)) go test $(GOTEST_ARGS)$(NL))
+	$(foreach MODULE,$(MODULES),docker exec -w /buildroot/$(MODULE) -e DTEST_REGISTRY=$(DEV_REGISTRY) -e DTEST_KUBECONFIG=/buildroot/kubeconfig.yaml $(shell $(BUILDER)) go test $(GOTEST_ARGS) | fgrep -v '?'$(NL))
 
 test: pytest gotest
 
