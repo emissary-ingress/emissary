@@ -30,6 +30,9 @@ linters-settings:
       - golang.org/x/net/context # use "context"
       - github.com/datawire/kat-backend/xds/ # use "github.com/datawire/ambassador/go/"
       - github.com/lyft/ratelimit/proto/ # use "github.com/datawire/ambassador/go/"
+      - github.com/russross/blackfriday # use github.com/russross/blackfriday/v2
+      - gopkg.in/russross/blackfriday.v2 # use github.com/russross/blackfriday/v2
+
 run:
   build-tags:
     - test

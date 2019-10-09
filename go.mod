@@ -32,7 +32,8 @@ require (
 	github.com/oxtoacart/bpool v0.0.0-20190530202638-03653db5a59c
 	github.com/pascaldekloe/goe v0.1.0 // indirect
 	github.com/pkg/errors v0.8.1
-	github.com/russross/blackfriday v2.0.0+incompatible // indirect
+	github.com/russross/blackfriday v1.5.2 // indirect
+	github.com/russross/blackfriday/v2 v2.0.1
 	github.com/satori/go.uuid v1.2.0
 	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect
 	github.com/sirupsen/logrus v1.4.0
@@ -50,7 +51,7 @@ require (
 	golang.org/x/sync v0.0.0-20190423024810-112230192c58
 	google.golang.org/genproto v0.0.0-20190123001331-8819c946db44 // indirect
 	google.golang.org/grpc v1.23.0
-	gopkg.in/russross/blackfriday.v2 v2.0.0-00010101000000-000000000000
+	gopkg.in/russross/blackfriday.v2 v2.0.0-00010101000000-000000000000 // indirect
 	gopkg.in/src-d/go-billy.v4 v4.2.1
 	gopkg.in/src-d/go-git.v4 v4.8.1
 	gopkg.in/yaml.v2 v2.2.2
@@ -71,5 +72,8 @@ replace github.com/tsenart/vegeta => github.com/datawire/vegeta v12.2.2-0.201904
 // github.com/golang/lint instead of golang.org/x/lint
 replace github.com/golang/lint => golang.org/x/lint v0.0.0-20190227174305-5b3e6a55c961
 
-// https://github.com/russross/blackfriday/issues/500
-replace gopkg.in/russross/blackfriday.v2 => github.com/russross/blackfriday/v2 v2.0.1
+// Allow pre-Go-modules blackfriday import paths to keep working
+//   v1.y.z: github.com/russross/blackfriday (pre-modules) (used by gitlab.com/golang-commonmark/markdown.test)
+//   v2.0.0: gopkg.in/russross/blackfriday.v2 (pre-modules) (also used by gitlab.com/golang-commonmark/markdown.test)
+//   v2.0.1: github.com/russross/blackfriday/v2 (post-modules) (used by everything else)
+replace gopkg.in/russross/blackfriday.v2 => github.com/russross/blackfriday v2.0.0+incompatible
