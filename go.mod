@@ -3,10 +3,8 @@ module github.com/datawire/apro
 go 1.13
 
 require (
-	cloud.google.com/go v0.34.0 // indirect
 	github.com/Jeffail/gabs v1.2.0
 	github.com/aclements/go-moremath v0.0.0-20180329182055-b1aff36309c7
-	github.com/asaskevich/EventBus v0.0.0-20180315140547-d46933a94f05 // indirect
 	github.com/bmizerany/perks v0.0.0-20141205001514-d9a9656a3a4b // indirect
 	github.com/datawire/ambassador v0.72.0
 	github.com/datawire/liboauth2 v0.0.0-20190930180758-8a034a1de052
@@ -29,7 +27,6 @@ require (
 	github.com/lyft/ratelimit v1.3.0
 	github.com/mediocregopher/radix.v2 v0.0.0-20180603022615-94360be26253
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
-	github.com/myzhan/boomer v0.0.0-20190321085146-9f3c9f575895
 	github.com/nu7hatch/gouuid v0.0.0-20131221200532-179d4d0c4d8d // indirect
 	github.com/onsi/gomega v1.7.0
 	github.com/oxtoacart/bpool v0.0.0-20190530202638-03653db5a59c
@@ -43,9 +40,6 @@ require (
 	github.com/spf13/pflag v1.0.3
 	github.com/streadway/quantile v0.0.0-20150917103942-b0c588724d25 // indirect
 	github.com/tsenart/vegeta v12.2.1+incompatible
-	github.com/ugorji/go/codec v1.1.7 // indirect
-	github.com/zeromq/goczmq v4.1.0+incompatible // indirect
-	github.com/zeromq/gomq v0.0.0-20181008000130-95dc37dee5c4 // indirect
 	gitlab.com/golang-commonmark/html v0.0.0-20180917080848-cfaf75183c4a // indirect
 	gitlab.com/golang-commonmark/linkify v0.0.0-20180917065525-c22b7bdb1179 // indirect
 	gitlab.com/golang-commonmark/markdown v0.0.0-20181102083822-772775880e1f
@@ -53,7 +47,6 @@ require (
 	gitlab.com/golang-commonmark/puny v0.0.0-20180912090636-2cd490539afe // indirect
 	gitlab.com/opennota/wd v0.0.0-20180912061657-c5d65f63c638 // indirect
 	golang.org/x/net v0.0.0-20190812203447-cdfb69ac37fc
-	golang.org/x/oauth2 v0.0.0-20181203162652-d668ce993890 // indirect
 	golang.org/x/sync v0.0.0-20190423024810-112230192c58
 	google.golang.org/genproto v0.0.0-20190123001331-8819c946db44 // indirect
 	google.golang.org/grpc v1.23.0
