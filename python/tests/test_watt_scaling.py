@@ -225,12 +225,12 @@ spec:
                 loop_limit -= 1
 
         # Try to mess up Ambassador by applying and deleting QOTM mapping over and over
-        for i in range(20):
+        for i in range(10):
             self.delete_qotm_mapping(namespace=namespace)
             self.create_qotm_mapping(namespace=namespace)
 
         # Let's give Ambassador some time to register the changes
-        time.sleep(5)
+        time.sleep(15)
 
         # Assert 200 OK at /qotm/ endpoint
         connection = request.urlopen(qotm_url, timeout=5)
