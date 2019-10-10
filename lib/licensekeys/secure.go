@@ -76,6 +76,10 @@ func (v2 *LicenseClaimsV2) ToLatest() *LicenseClaimsLatest {
 	return v2
 }
 
+func (limit LimitValue) String() string {
+	return fmt.Sprintf("%v=%v", limit.Name, limit.Value)
+}
+
 func newBigIntFromBytes(bs []byte) *big.Int {
 	ret := big.NewInt(0)
 	ret.SetBytes(bs)

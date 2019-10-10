@@ -127,6 +127,30 @@ func TestParseLimit(t *testing.T) {
 	}
 }
 
+func TestParseLimitValue(t *testing.T) {
+	t.Parallel()
+	for i, limit := range allLimits {
+		expected := licensekeys.LimitValue{Name: limit, Value: 1234500 + i}
+		str := expected.String()
+		parsed, err := licensekeys.ParseLimitValue(str)
+		if err != nil {
+			t.Errorf("could not parse %q: %v", str, err)
+		} else if parsed != expected {
+			t.Errorf("round-trip licensekeys.ParseLimitValue(%#v.String()) failed; got back %#v",
+				expected, parsed)
+		}
+	}
+	foo := func(value string) string {
+		return licensekeys.LimitDevPortalServices.String() + "=" + value
+	}
+	for _, str := range []string{"very unlikely limit name", foo(""), foo("NotAnInt")} {
+		_, err := licensekeys.ParseLimitValue(str)
+		if err == nil {
+			t.Errorf("Should not parse %q", str)
+		}
+	}
+}
+
 func TestListLimits(t *testing.T) {
 	t.Parallel()
 	for _, limitStr := range licensekeys.ListKnownLimits() {

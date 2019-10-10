@@ -1,7 +1,10 @@
 package licensekeys
 
 import (
+	"fmt"
 	"sort"
+	"strconv"
+	"strings"
 
 	"github.com/datawire/apro/lib/licensekeys/internal"
 )
@@ -36,6 +39,25 @@ func addLimit(name string, defautlValue int) Limit {
 // (LimitUnrecognized, false).
 func ParseLimit(str string) (limit Limit, ok bool) {
 	return internal.ParseLimit(str)
+}
+
+// ParseLimitValue turns a limit=value string in to one of the recognized Limit
+// enum values. If is a recognized limit string, it returns (LimitThatLimit,
+// true); or else it returns (LimitUnrecognized, false).
+func ParseLimitValue(str string) (limit LimitValue, err error) {
+	parts := strings.SplitN(str, "=", 2)
+	if len(parts) < 2 {
+		return limit, fmt.Errorf("Missing '=' in %q", str)
+	}
+	name, ok := internal.ParseLimit(parts[0])
+	if !ok {
+		return limit, fmt.Errorf("Unknown limit %q", parts[0])
+	}
+	value, err := strconv.Atoi(parts[1])
+	if err != nil {
+		return limit, err
+	}
+	return LimitValue{Name: name, Value: value}, nil
 }
 
 // GetLimitValue returns the limit defaultValue if this license key does not specify
