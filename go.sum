@@ -26,8 +26,11 @@ github.com/client9/misspell v0.3.4/go.mod h1:qj6jICC3Q7zFZvVWo7KLAzC3yx5G7kyvSDk
 github.com/datawire/libk8s v0.0.0-20190923150809-3b461b0ee981 h1:2NKTcGOUo1OMwHrEMcehGmlLlUUxalfsCCkMnpGIvp0=
 github.com/datawire/libk8s v0.0.0-20190923150809-3b461b0ee981/go.mod h1:GBLaVOglMDiCZZaxcsMaYJvcZuxtAVsUkmtn+zxTSUA=
 github.com/datawire/pf v0.0.0-20180510150411-31a823f9495a/go.mod h1:H8uUmE8qqo7z9u30MYB9riLyRckPHOPBk9ZdCuH+dQQ=
+github.com/datawire/teleproxy v0.7.2 h1:wXJVJMQXU7rhG8gaFQJD0CV9gXZyXyFLttqbhcRXehc=
 github.com/datawire/teleproxy v0.7.3-0.20190923151525-f9c9898fc956 h1:cfZn+l8Yf+G2I8iR22IHfOfXMQ2u1boa7TEvXYF/vhY=
 github.com/datawire/teleproxy v0.7.3-0.20190923151525-f9c9898fc956/go.mod h1:zJcszWNe8hm+YamkdU2mfS+DUcCFMJBkG3ec4oDFNN0=
+github.com/datawire/teleproxy v0.7.3-0.20191008172333-62878af1fb91 h1:HYiYYgfRvvAkN2YJL+1d+NDoojei4n+tgfcXqeN6Ha0=
+github.com/datawire/teleproxy v0.7.3-0.20191008172333-62878af1fb91/go.mod h1:zJcszWNe8hm+YamkdU2mfS+DUcCFMJBkG3ec4oDFNN0=
 github.com/davecgh/go-spew v1.1.0 h1:ZDRjVQ15GmhC3fiQ8ni8+OwkZQO4DARzQgrnXU1Liz8=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=

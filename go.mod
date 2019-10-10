@@ -6,7 +6,7 @@ require (
 	git.lukeshu.com/go/libsystemd v0.5.3
 	github.com/Masterminds/sprig v2.17.1+incompatible
 	github.com/datawire/libk8s v0.0.0-20190923150809-3b461b0ee981
-	github.com/datawire/teleproxy v0.7.3-0.20190923151525-f9c9898fc956
+	github.com/datawire/teleproxy v0.7.3-0.20191008172333-62878af1fb91
 	github.com/envoyproxy/go-control-plane v0.6.9
 	github.com/envoyproxy/protoc-gen-validate v0.0.15-0.20190405222122-d6164de49109
 	github.com/fsnotify/fsnotify v1.4.7
