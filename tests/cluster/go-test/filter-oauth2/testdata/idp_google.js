@@ -1,3 +1,5 @@
+const run = require('./run.js');
+
 var server = require('http').createServer((request, response) => {
 	response.writeHead(307, {"Location": "https://ambassador.standalone.svc.cluster.local"+request.url});
 	response.end();
@@ -53,16 +55,16 @@ const confirmRecoveryEmail = async function(browsertab) {
 	await browsertab.click('[role="button"]');
 }
 
-module.exports.authenticate = function(browsertab, username, password, skipfn) {
+module.exports.authenticate = function(browsertab, username, password) {
 	return Promise.race([
 		// If at any point it decides to show us a Captcha, just skip the test :-/
 		browsertab.waitForSelector('img#captchaimg', { visible: true })
 			.then(() => {return waitUntilRender(browsertab);})
-			.then(() => {skipfn();}),
+			.then(() => {return Promise.reject(run.TestSkip);}),
 		// If Google decides to reject the signin, just skip the test :(
 		browsertab.waitForFunction(() => {return window.location.href.startsWith("https://accounts.google.com/signin/oauth/deniedsigninrejected?");})
 			.then(() => {return waitUntilRender(browsertab);})
-			.then(() => {skipfn();}),
+			.then(() => {return Promise.reject(run.TestSkip);}),
 		// otherwise, authenticate as normal.
 		authenticate(browsertab, username, password),
 	]);
