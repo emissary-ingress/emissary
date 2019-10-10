@@ -1,6 +1,8 @@
+import os
 import subprocess
 import tempfile
 import time
+import yaml
 from urllib import request
 
 class WattTesting:
@@ -75,14 +77,28 @@ metadata:
             return stdout.decode("utf-8") if stdout is not None else None
         return None
 
-    def install_latest_ambassador(self, namespace):
+    def install_ambassador(self, namespace):
         if namespace is None:
             namespace = 'default'
 
         self.create_namespace(namespace)
 
-        install_ambassador_cmd = ['kubectl', 'apply', '-n', namespace, '-f', 'https://getambassador.io/yaml/ambassador/ambassador-rbac.yaml']
-        self.run_and_assert(install_ambassador_cmd)
+        final_yaml = []
+        ambassador_yaml_path = "../docs/yaml/ambassador/ambassador-rbac.yaml"
+        with open(ambassador_yaml_path, 'r') as f:
+            ambassador_yaml = list(yaml.safe_load_all(f))
+
+            for manifest in ambassador_yaml:
+                if manifest.get('kind', '') == 'Deployment' and manifest.get('metadata', {}).get('name', '') == 'ambassador':
+                    # we want only one replica of Ambassador to run
+                    manifest['spec']['replicas'] = 1
+
+                    # let's fix the image
+                    manifest['spec']['template']['spec']['containers'][0]['image'] = os.environ['AMBASSADOR_DOCKER_IMAGE']
+
+                final_yaml.append(manifest)
+
+        self.apply_kube_artifacts(namespace=namespace, artifacts=yaml.safe_dump_all(final_yaml))
 
         namespace_crb = f"""
 ---
@@ -100,11 +116,10 @@ subjects:
   namespace: {namespace}
 """
 
-        self.run_and_assert(['kubectl', 'scale', 'deployment', 'ambassador', '--replicas', '1', '-n', namespace])
-
         self.apply_kube_artifacts(namespace=namespace, artifacts=namespace_crb)
 
-        install_ambassador_service_cmd = ['kubectl', 'apply', '-n', namespace, '-f', 'https://getambassador.io/yaml/ambassador/ambassador-service.yaml']
+        ambassador_service_path = "../docs/yaml/ambassador/ambassador-service.yaml"
+        install_ambassador_service_cmd = ['kubectl', 'apply', '-n', namespace, '-f', ambassador_service_path]
         self.run_and_assert(install_ambassador_service_cmd)
 
     def meta_action_kube_artifacts(self, namespace, artifacts, action):
@@ -172,13 +187,17 @@ spec:
         namespace = 'watt-rapid'
 
         # Install Ambassador
-        self.install_latest_ambassador(namespace=namespace)
+        self.install_ambassador(namespace=namespace)
 
         # Install QOTM
         self.apply_kube_artifacts(namespace=namespace, artifacts=self.qotm_manifests)
 
         # Install QOTM Ambassador manifests
         self.apply_qotm_endpoint_manifests(namespace=namespace)
+
+        # Now let's wait for ambassador and QOTM pods to become ready
+        self.run_and_assert(['kubectl', 'wait', '--for=condition=Ready', 'pod', '-l', 'service=ambassador', '-n', namespace])
+        self.run_and_assert(['kubectl', 'wait', '--for=condition=Ready', 'pod', '-l', 'service=qotm', '-n', namespace])
 
         # Let's port-forward ambassador service to talk to QOTM
         port_forward_port = 6000
@@ -206,30 +225,15 @@ spec:
                 loop_limit -= 1
 
         # Try to mess up Ambassador by applying and deleting QOTM mapping over and over
-        self.delete_qotm_mapping(namespace=namespace)
-        self.create_qotm_mapping(namespace=namespace)
-        self.delete_qotm_mapping(namespace=namespace)
-        self.create_qotm_mapping(namespace=namespace)
-        self.delete_qotm_mapping(namespace=namespace)
-        self.create_qotm_mapping(namespace=namespace)
-        self.delete_qotm_mapping(namespace=namespace)
-        self.create_qotm_mapping(namespace=namespace)
-        self.delete_qotm_mapping(namespace=namespace)
-        self.create_qotm_mapping(namespace=namespace)
-        self.delete_qotm_mapping(namespace=namespace)
-        self.create_qotm_mapping(namespace=namespace)
-        self.delete_qotm_mapping(namespace=namespace)
-        self.create_qotm_mapping(namespace=namespace)
-        self.delete_qotm_mapping(namespace=namespace)
-        self.create_qotm_mapping(namespace=namespace)
-        self.delete_qotm_mapping(namespace=namespace)
-        self.create_qotm_mapping(namespace=namespace)
+        for i in range(20):
+            self.delete_qotm_mapping(namespace=namespace)
+            self.create_qotm_mapping(namespace=namespace)
 
         # Let's give Ambassador some time to register the changes
         time.sleep(5)
 
         # Assert 200 OK at /qotm/ endpoint
-        connection = request.urlopen(qotm_url)
+        connection = request.urlopen(qotm_url, timeout=5)
         qotm_http_code = connection.getcode()
         assert qotm_http_code == 200, f"Expected 200 OK, got {qotm_http_code}"
         connection.close()
