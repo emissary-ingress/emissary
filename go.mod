@@ -31,6 +31,7 @@ require (
 	github.com/onsi/gomega v1.7.0
 	github.com/oxtoacart/bpool v0.0.0-20190530202638-03653db5a59c
 	github.com/pascaldekloe/goe v0.1.0 // indirect
+	github.com/pelletier/go-buffruneio v0.2.1-0.20180827162605-de1592c34d9c // indirect
 	github.com/pkg/errors v0.8.1
 	github.com/russross/blackfriday v1.5.2 // indirect
 	github.com/russross/blackfriday/v2 v2.0.1
