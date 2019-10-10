@@ -1,6 +1,5 @@
 import subprocess
 import tempfile
-import json
 import time
 from urllib import request
 
@@ -65,14 +64,16 @@ metadata:
         pass
 
     @staticmethod
-    def run_and_assert(command):
+    def run_and_assert(command, communicate=True):
         print(f"Running command {command}")
         output = subprocess.Popen(command, stdout=subprocess.PIPE)
-        stdout, stderr = output.communicate()
-        print('STDOUT', stdout.decode("utf-8") if stdout is not None else None)
-        print('STDERR', stderr.decode("utf-8") if stderr is not None else None)
-        assert output.returncode == 0
-        return stdout.decode("utf-8") if stdout is not None else None
+        if communicate:
+            stdout, stderr = output.communicate()
+            print('STDOUT', stdout.decode("utf-8") if stdout is not None else None)
+            print('STDERR', stderr.decode("utf-8") if stderr is not None else None)
+            assert output.returncode == 0
+            return stdout.decode("utf-8") if stdout is not None else None
+        return None
 
     def install_latest_ambassador(self, namespace):
         if namespace is None:
@@ -179,12 +180,11 @@ spec:
         # Install QOTM Ambassador manifests
         self.apply_qotm_endpoint_manifests(namespace=namespace)
 
-        # Get ambassador service's ClusterIP
-        ambassador_service_json_cmd = ['kubectl', 'get', 'service', '-n', namespace, 'ambassador', '-o', 'json']
-        ambassador_service_json = self.run_and_assert(ambassador_service_json_cmd)
-        ambassador_service = json.loads(ambassador_service_json)
-        cluster_ip = ambassador_service['spec']['clusterIP']
-        qotm_url = f'http://{cluster_ip}/qotm/'
+        # Let's port-forward ambassador service to talk to QOTM
+        port_forward_port = 6000
+        port_forward_command = ['kubectl', 'port-forward', '--namespace', namespace, 'service/ambassador', f'{port_forward_port}:80']
+        self.run_and_assert(port_forward_command, communicate=False)
+        qotm_url = f'http://localhost:{port_forward_port}/qotm/'
 
         # Assert 200 OK at /qotm/ endpoint
         qotm_ready = False
