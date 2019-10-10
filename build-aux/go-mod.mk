@@ -148,7 +148,7 @@ bin_%/$1: bin_%/.$1.stamp $$(COPY_IFCHANGED)
 	$$(COPY_IFCHANGED) $$< $$@
 
 bin_%/$1.opensource.tar.gz: bin_%/$1 $$(_go.mkopensource) $$(dir $$(_go-mod.mk))go$$(go.goversion).src.tar.gz $$(WRITE_IFCHANGED) $$(go.lock)
-	$$(go.lock)$$(_go.mkopensource) --output-name=$1.opensource --package=$2 --gotar=$$(dir $$(_go-mod.mk))go$$(go.goversion).src.tar.gz | $$(WRITE_IFCHANGED) $$@
+	$$(go.lock)$$(_go.mkopensource) --output-format=tar --output-name=$1.opensource --package=$2 --gotar=$$(dir $$(_go-mod.mk))go$$(go.goversion).src.tar.gz | $$(WRITE_IFCHANGED) $$@
 endef
 
 _go.bin.name = $(notdir $(_go.bin))
@@ -156,6 +156,10 @@ _go.bin.pkg = $(_go.bin)
 $(foreach _go.bin,$(go.bins),$(eval $(call go.bin.rule,$(_go.bin.name),$(_go.bin.pkg))))
 go-build: $(foreach _go.PLATFORM,$(go.PLATFORMS),$(foreach _go.bin,$(go.bins), bin_$(_go.PLATFORM)/$(_go.bin.name)                   ))
 build:    $(foreach _go.PLATFORM,$(go.PLATFORMS),$(foreach _go.bin,$(go.bins), bin_$(_go.PLATFORM)/$(_go.bin.name).opensource.tar.gz ))
+
+build: OPENSOURCE.md
+OPENSOURCE.md: go-get $(go.lock) $(_go.mkopensource) $(dir $(_go-mod.mk))go$(go.goversion).src.tar.gz $(WRITE_IFCHANGED) FORCE
+	$(go.lock)$(_go.mkopensource) --output-format=txt --package=$(go.module)/... --gotar=$(dir $(_go-mod.mk))go$(go.goversion).src.tar.gz | $(WRITE_IFCHANGED) $@
 
 go-build: ## (Go) Build the code with `go build`
 .PHONY: go-build

@@ -22,10 +22,11 @@ import (
 )
 
 type CLIArgs struct {
-	OutputName     string
-	OutputFilename string
-	GoTarFilename  string
-	Package        string
+	OutputFormat string
+	OutputName   string
+
+	GoTarFilename string
+	Package       string
 }
 
 func parseArgs() (*CLIArgs, error) {
@@ -33,10 +34,10 @@ func parseArgs() (*CLIArgs, error) {
 	argparser := pflag.NewFlagSet(os.Args[0], pflag.ContinueOnError)
 	help := false
 	argparser.BoolVarP(&help, "help", "h", false, "Show this message")
-	argparser.StringVar(&args.OutputFilename, "output", "", "")
-	argparser.StringVar(&args.OutputName, "output-name", "", "")
-	argparser.StringVar(&args.GoTarFilename, "gotar", "", "")
-	argparser.StringVar(&args.Package, "package", "", "")
+	argparser.StringVar(&args.OutputFormat, "output-format", "", "Output format ('tar' or 'txt')")
+	argparser.StringVar(&args.OutputName, "output-name", "", "Name of the root directory in the --output-format=tar tarball")
+	argparser.StringVar(&args.GoTarFilename, "gotar", "", "Tarball of the Go stdlib source code")
+	argparser.StringVar(&args.Package, "package", "", "The package(s) to report library usage for")
 	if err := argparser.Parse(os.Args[1:]); err != nil {
 		return nil, err
 	}
@@ -51,14 +52,17 @@ func parseArgs() (*CLIArgs, error) {
 	if argparser.NArg() != 0 {
 		return nil, errors.Errorf("expected 0 arguments, got %d: %q", argparser.NArg(), argparser.Args())
 	}
-	if args.OutputName == "" && args.OutputFilename == "" {
-		return nil, errors.Errorf("at least one of --output= or --output-name= must be specified")
-	}
-	if args.OutputFilename != "" && !strings.HasSuffix(args.OutputFilename, ".tar.gz") {
-		return nil, errors.Errorf("--output (%q) must have .tar.gz suffix", args.OutputFilename)
-	}
-	if args.OutputName == "" {
-		args.OutputName = strings.TrimSuffix(filepath.Base(args.OutputFilename), ".tar.gz")
+	switch args.OutputFormat {
+	case "txt":
+		if args.OutputName != "" {
+			return nil, errors.Errorf("--output-name is only valid for --output-mode=tar")
+		}
+	case "tar":
+		if args.OutputName == "" {
+			return nil, errors.Errorf("--output-name is required for --output-mode=tar")
+		}
+	default:
+		return nil, errors.Errorf("--output-mode must be one of 'tar' or 'txt'")
 	}
 	if !strings.HasPrefix(filepath.Base(args.GoTarFilename), "go1.") || !strings.HasSuffix(args.GoTarFilename, ".tar.gz") {
 		return nil, errors.Errorf("--gotar (%q) doesn't look like a go1.*.tar.gz file", args.GoTarFilename)
@@ -238,9 +242,44 @@ func Main(args *CLIArgs) error {
 	}
 	sort.Strings(modNames)
 
+	// Figure out how to pronounce "X" in "X incorporates Free and
+	// Open Source software".
+	var mainCmdPkgs []string
+	var mainLibPkgs []string
+	for _, pkg := range listPkgs {
+		if pkg.Module == nil {
+			continue
+		}
+		if _, isMainMod := mainMods[pkg.Module.Path]; !isMainMod {
+			continue
+		}
+		if pkg.DepOnly {
+			continue
+		}
+		if pkg.Name == "main" {
+			mainCmdPkgs = append(mainCmdPkgs, pkg.ImportPath)
+		} else {
+			mainLibPkgs = append(mainLibPkgs, pkg.ImportPath)
+		}
+	}
+	sort.Strings(mainCmdPkgs)
+	sort.Strings(mainLibPkgs)
+
 	// Generate the readme file.
 	readme := new(bytes.Buffer)
-	readme.WriteString(wordwrap(75, fmt.Sprintf("The program %q incorporates the following Free and Open Source software:", path.Base(args.Package))))
+	if len(mainLibPkgs) == 0 {
+		if len(mainCmdPkgs) == 1 {
+			readme.WriteString(wordwrap(75, fmt.Sprintf("The program %q incorporates the following Free and Open Source software:", path.Base(mainCmdPkgs[0]))))
+		} else {
+			readme.WriteString(wordwrap(75, fmt.Sprintf("The programs %q incorporate the following Free and Open Source software:", args.Package)))
+		}
+	} else {
+		if len(mainLibPkgs) == 1 {
+			readme.WriteString(wordwrap(75, fmt.Sprintf("The package %q incorporates the following Free and Open Source software:", mainLibPkgs[1])))
+		} else {
+			readme.WriteString(wordwrap(75, fmt.Sprintf("The packages %q incorporate the following Free and Open Source software:", args.Package)))
+		}
+	}
 	readme.WriteString("\n")
 	table := tabwriter.NewWriter(readme, 0, 8, 2, ' ', 0)
 	io.WriteString(table, "  \tName\tVersion\tLicense(s)\n")
@@ -283,70 +322,73 @@ func Main(args *CLIArgs) error {
 		fmt.Fprintf(table, "\t%s\t%s\t%s\n", depName, depVersion, depLicenses)
 	}
 	table.Flush()
-	readme.WriteString("\n")
-	readme.WriteString(wordwrap(75, "The appropriate license notices and source code are in correspondingly named directories."))
+	if args.OutputFormat == "tar" {
+		readme.WriteString("\n")
+		readme.WriteString(wordwrap(75, "The appropriate license notices and source code are in correspondingly named directories."))
+	}
 
-	// Build a listing of all files to go in to the tarball
-	tarfiles := make(map[string][]byte)
-	tarfiles["OPENSOURCE.md"] = readme.Bytes()
-	for pkgName := range pkgFiles {
-		proprietary, err := licenseIsProprietary(pkgLicenses[pkgName])
-		if err != nil {
-			return errors.Wrapf(err, "package %q", pkgName)
+	switch args.OutputFormat {
+	case "txt":
+		if _, err := readme.WriteTo(os.Stdout); err != nil {
+			return err
 		}
-		switch {
-		case proprietary:
-			// don't include anything
-		case licenseIsWeakCopyleft(pkgLicenses[pkgName]):
-			// include everything
-			for filename, filebody := range pkgFiles[pkgName] {
-				tarfiles[filename] = filebody
+	case "tar":
+		// Build a listing of all files to go in to the tarball
+		tarfiles := make(map[string][]byte)
+		tarfiles["OPENSOURCE.md"] = readme.Bytes()
+		for pkgName := range pkgFiles {
+			proprietary, err := licenseIsProprietary(pkgLicenses[pkgName])
+			if err != nil {
+				return errors.Wrapf(err, "package %q", pkgName)
 			}
-		default:
-			// just include metadata
-			for filename, filebody := range pkgFiles[pkgName] {
-				if matchMetadata(filename) {
+			switch {
+			case proprietary:
+				// don't include anything
+			case licenseIsWeakCopyleft(pkgLicenses[pkgName]):
+				// include everything
+				for filename, filebody := range pkgFiles[pkgName] {
 					tarfiles[filename] = filebody
+				}
+			default:
+				// just include metadata
+				for filename, filebody := range pkgFiles[pkgName] {
+					if matchMetadata(filename) {
+						tarfiles[filename] = filebody
+					}
 				}
 			}
 		}
-	}
 
-	// Write output
-	var outputFile *os.File
-	if args.OutputFilename == "" {
+		// Write output
+		var outputFile *os.File = os.Stdout
 		outputFile = os.Stdout
-	} else {
-		outputFile, err = os.OpenFile(args.OutputFilename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0666)
-		if err != nil {
-			return err
-		}
-	}
-	defer outputFile.Close()
-	outputCompressed := gzip.NewWriter(outputFile)
-	defer outputCompressed.Close()
-	outputTar := tar.NewWriter(outputCompressed)
-	defer outputTar.Close()
+		defer outputFile.Close()
+		outputCompressed := gzip.NewWriter(outputFile)
+		defer outputCompressed.Close()
+		outputTar := tar.NewWriter(outputCompressed)
+		defer outputTar.Close()
 
-	filenames := make([]string, 0, len(tarfiles))
-	for filename := range tarfiles {
-		filenames = append(filenames, filename)
-	}
-	sort.Strings(filenames)
-	for _, filename := range filenames {
-		body := tarfiles[filename]
-		err := outputTar.WriteHeader(&tar.Header{
-			Typeflag: tar.TypeReg,
-			Name:     args.OutputName + "/" + filename,
-			Size:     int64(len(body)),
-			Mode:     0644,
-		})
-		if err != nil {
-			return err
+		filenames := make([]string, 0, len(tarfiles))
+		for filename := range tarfiles {
+			filenames = append(filenames, filename)
 		}
-		if _, err := outputTar.Write(body); err != nil {
-			return err
+		sort.Strings(filenames)
+		for _, filename := range filenames {
+			body := tarfiles[filename]
+			err := outputTar.WriteHeader(&tar.Header{
+				Typeflag: tar.TypeReg,
+				Name:     args.OutputName + "/" + filename,
+				Size:     int64(len(body)),
+				Mode:     0644,
+			})
+			if err != nil {
+				return err
+			}
+			if _, err := outputTar.Write(body); err != nil {
+				return err
+			}
 		}
 	}
+
 	return nil
 }
