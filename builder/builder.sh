@@ -158,6 +158,23 @@ case "${cmd}" in
             fi
         done
         ;;
+    test-internal)
+        # This runs inside the builder image
+        fail=""
+        for SRCDIR in $(find /buildroot -type f -name go.mod -mindepth 2 -maxdepth 2); do
+            module=$(basename $(dirname ${SRCDIR}))
+            wd=$(dirname ${SRCDIR})
+            pkgs=$(cd ${wd} && go list -f='{{ if or (gt (len .TestGoFiles) 0) (gt (len .XTestGoFiles) 0) }}{{ .ImportPath }}{{ end }}' ${GOTEST_PKGS})
+            if [ -n "${pkgs}" ]; then
+                if ! (cd ${wd} && go test ${pkgs} ${GOTEST_ARGS}) then
+                   fail="yes"
+                fi
+            fi
+        done
+        if [ "${fail}" == yes ]; then
+            exit 1
+        fi
+        ;;
     commit)
         shift
         name=$1

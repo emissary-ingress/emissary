@@ -99,11 +99,12 @@ pytest: test-ready
 		-it $(shell $(BUILDER)) pytest $(PYTEST_ARGS)
 
 
-GOTEST_ARGS ?= ./...
+GOTEST_PKGS ?= ./...
+GOTEST_ARGS ?=
 
 gotest: test-ready
 	@echo -e "$(WHT)==$(GRN)Running $(BLU)go$(GRN) tests$(WHT)==$(END)"
-	$(foreach MODULE,$(MODULES),docker exec -w /buildroot/$(MODULE) -e DTEST_REGISTRY=$(DEV_REGISTRY) -e DTEST_KUBECONFIG=/buildroot/kubeconfig.yaml $(shell $(BUILDER)) go test $(GOTEST_ARGS) | fgrep -v '?'$(NL))
+	docker exec -w /buildroot/$(MODULE) -e DTEST_REGISTRY=$(DEV_REGISTRY) -e DTEST_KUBECONFIG=/buildroot/kubeconfig.yaml -e GOTEST_PKGS=$(GOTEST_PKGS) -e GOTEST_ARGS=$(GOTEST_ARGS) $(shell $(BUILDER)) /buildroot/builder.sh test-internal
 
 test: gotest pytest
 
@@ -167,7 +168,8 @@ $(WHT)Targets:$(END)
 
   $(WHT)make $(BLU)gotest$(END)    -- runs go tests inside the build container.
 
-    Use $(YEL)GOTEST_ARGS$(END) to pass args to gotest. ($(GOTEST_ARGS))
+    Use $(YEL)GOTEST_PKGS$(END) to control which packages are passed to gotest. ($(GOTEST_PKGS))
+    Use $(YEL)GOTEST_ARGS$(END) to supply additional non-package arguments. ($(GOTEST_ARGS))
 
   $(WHT)make $(BLU)pytest$(END)    -- runs python tests inside the build container.
 
