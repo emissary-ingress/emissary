@@ -27,6 +27,9 @@ services:
 env:
   global:
     - DOCKER_REGISTRY=quay.io/datawire
+    - CLAIM_NAME=kat-${USER}
+    - DEV_REGISTRY=rschloming
+    - DEV_KUBECONFIG=~/.kube/${CLAIM_NAME}.yaml
 
     # Set from the repository settings:
     #- DOCKER_BUILD_USERNAME=[secure] (optional)

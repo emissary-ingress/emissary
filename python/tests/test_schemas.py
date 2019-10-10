@@ -17,7 +17,7 @@ logger = logging.getLogger("ambassador")
 
 
 def test_schemas():
-    rootdir = os.path.dirname(os.path.abspath(sys.argv[0]))
+    rootdir = os.path.join(os.path.dirname(__file__), "..")
 
     schemadir = rootdir
 

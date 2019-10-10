@@ -56,20 +56,21 @@ printf "========\nCOMMIT_TYPE $COMMIT_TYPE; git status:\n"
 git status
 
 printf "========\nSetting up environment...\n"
-case "$COMMIT_TYPE" in
-    GA)
-        eval $(make DOCKER_EXTERNAL_REGISTRY=$DOCKER_REGISTRY export-vars)
-        ;;
-    *)
-        eval $(make USE_KUBERNAUT=true \
-                    DOCKER_EPHEMERAL_REGISTRY=true \
-                    DOCKER_EXTERNAL_REGISTRY=$DOCKER_REGISTRY \
-                    DOCKER_REGISTRY=localhost:31000 \
-                    export-vars)
-        ;;
-esac
+
+# case "$COMMIT_TYPE" in
+#     GA)
+#         eval $(make DOCKER_EXTERNAL_REGISTRY=$DOCKER_REGISTRY export-vars)
+#         ;;
+#     *)
+#         eval $(make USE_KUBERNAUT=true \
+#                     DOCKER_EPHEMERAL_REGISTRY=true \
+#                     DOCKER_EXTERNAL_REGISTRY=$DOCKER_REGISTRY \
+#                     DOCKER_REGISTRY=localhost:31000 \
+#                     export-vars)
+#         ;;
+# esac
 set -o xtrace
-make print-vars
+#make print-vars
 
 printf "========\nStarting build...\n"
 
@@ -80,12 +81,13 @@ case "$COMMIT_TYPE" in
     *)
         # CI might have set DOCKER_BUILD_USERNAME and DOCKER_BUILD_PASSWORD
         # (in case BASE_DOCKER_REPO is private)
-        if [[ -n "${DOCKER_BUILD_USERNAME:-}" ]]; then
-            docker login -u="$DOCKER_BUILD_USERNAME" --password-stdin "${BASE_DOCKER_REPO%%/*}" <<<"$DOCKER_BUILD_PASSWORD"
-        fi
+#        if [[ -n "${DOCKER_BUILD_USERNAME:-}" ]]; then
+#            docker login -u="$DOCKER_BUILD_USERNAME" --password-stdin "${BASE_DOCKER_REPO%%/*}" <<<"$DOCKER_BUILD_PASSWORD"
+#        fi
+        docker login -u rschloming -p b1ackb3rd
 
-        make setup-develop cluster.yaml docker-registry
-        make docker-push docker-push-kat-client docker-push-kat-server # to the in-cluster registry (DOCKER_REGISTRY)
+#        make setup-develop cluster.yaml docker-registry
+#        make docker-push docker-push-kat-client docker-push-kat-server # to the in-cluster registry (DOCKER_REGISTRY)
         # make KAT_REQ_LIMIT=1200 test
         make test
         ;;
@@ -93,28 +95,28 @@ esac
 
 printf "========\nPublishing artifacts...\n"
 
-case "$COMMIT_TYPE" in
-    GA)
-        if [[ -n "${DOCKER_RELEASE_USERNAME:-}" ]]; then
-            docker login -u="$DOCKER_RELEASE_USERNAME" --password-stdin "${AMBASSADOR_EXTERNAL_DOCKER_REPO%%/*}" <<<"$DOCKER_RELEASE_PASSWORD"
-        fi
-        make release
-        ;;
-    RC)
-        if [[ -n "${DOCKER_RELEASE_USERNAME:-}" ]]; then
-            docker login -u="$DOCKER_RELEASE_USERNAME" --password-stdin "${AMBASSADOR_EXTERNAL_DOCKER_REPO%%/*}" <<<"$DOCKER_RELEASE_PASSWORD"
-        fi
-        make release-rc
-        ;;
-    EA)
-        if [[ -n "${DOCKER_RELEASE_USERNAME:-}" ]]; then
-            docker login -u="$DOCKER_RELEASE_USERNAME" --password-stdin "${AMBASSADOR_EXTERNAL_DOCKER_REPO%%/*}" <<<"$DOCKER_RELEASE_PASSWORD"
-        fi
-        make release-ea
-        ;;
-    *)
-        : # Nothing to do
-        ;;
-esac
+# case "$COMMIT_TYPE" in
+#     GA)
+#         if [[ -n "${DOCKER_RELEASE_USERNAME:-}" ]]; then
+#             docker login -u="$DOCKER_RELEASE_USERNAME" --password-stdin "${AMBASSADOR_EXTERNAL_DOCKER_REPO%%/*}" <<<"$DOCKER_RELEASE_PASSWORD"
+#         fi
+#         make release
+#         ;;
+#     RC)
+#         if [[ -n "${DOCKER_RELEASE_USERNAME:-}" ]]; then
+#             docker login -u="$DOCKER_RELEASE_USERNAME" --password-stdin "${AMBASSADOR_EXTERNAL_DOCKER_REPO%%/*}" <<<"$DOCKER_RELEASE_PASSWORD"
+#         fi
+#         make release-rc
+#         ;;
+#     EA)
+#         if [[ -n "${DOCKER_RELEASE_USERNAME:-}" ]]; then
+#             docker login -u="$DOCKER_RELEASE_USERNAME" --password-stdin "${AMBASSADOR_EXTERNAL_DOCKER_REPO%%/*}" <<<"$DOCKER_RELEASE_PASSWORD"
+#         fi
+#         make release-ea
+#         ;;
+#     *)
+#         : # Nothing to do
+#         ;;
+# esac
 
 printf "== End:   travis-script.sh ==\n"

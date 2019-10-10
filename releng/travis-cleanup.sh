@@ -19,7 +19,7 @@ set -o nounset
 
 printf "== Begin: travis-cleanup.sh ==\n"
 
-eval $(make export-vars)
+#eval $(make export-vars)
 
 echo "GIT_BRANCH ${GIT_BRANCH}"
 echo "CI_DEBUG_KAT_BRANCH ${CI_DEBUG_KAT_BRANCH}"
@@ -31,8 +31,8 @@ if [ \( -n "$CI_DEBUG_KAT_BRANCH" \) ]; then
 		echo "Leaving Kat cluster intact for debugging:"
 		echo "===="
 		kubectl cluster-info
-        echo "==== CLUSTER.YAML ===="
-	    gzip -9 < cluster.yaml | base64
+        echo "==== DEV_KUBECONFIG ===="
+	    gzip -9 < ${DEV_KUBECONFIG} | base64
 		
 		teardown=
 	else
@@ -43,7 +43,7 @@ else
 fi
 
 if [ -n "$teardown" ]; then
-	make clean-test
+    kubernaut claims delete ${CLAIM_NAME}
 fi
 
 

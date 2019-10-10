@@ -1,0 +1,9 @@
+.git
+*.egg-info
+__pycache__
+go.sum
+/Makefile
+/builder/
+/bin_linux_amd64/
+/envoy-src/
+/envoy-bin/
