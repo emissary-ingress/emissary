@@ -5,6 +5,7 @@ var (
 		`(?:[^\n]{0,15}\n)?` +
 		`(?:\(?(?:The )?MIT License(?: \(MIT\))?\)?\s*)?` +
 		`(?:Copyright [^\n]*(?:\s+All rights reserved\.)? *\n)*\s*` +
+		`(?:\(?(?:The )?MIT License(?: \(MIT\))?\)?\s*)?` +
 		reWrap(``+
 			`Permission is hereby granted, free of charge, to any person obtaining`+"\n"+
 			`a copy of this software and associated documentation files \(the`+"\n"+
