@@ -510,9 +510,6 @@ class ResourceFetcher:
                 self.logger.info(f"Generated mapping from Ingress {ingress_name}: {path_mapping}")
                 self.handle_k8s_crd(path_mapping)
 
-        if parsed_ambassador_annotations is not None:
-            return resource_identifier, parsed_ambassador_annotations
-
         # let's make arrangements to update Ingress' status now
         if not self.ambassador_service_raw:
             self.logger.error(f"Unable to update Ingress {ingress_name}'s status, could not find Ambassador service")
@@ -521,6 +518,9 @@ class ResourceFetcher:
             ingress_status_update = (k8s_object.get('kind'), ingress_namespace, ingress_status)
             self.logger.info(f"Updating Ingress {ingress_name} status to {ingress_status_update}")
             self.aconf.k8s_status_updates[ingress_name] = ingress_status_update
+
+        if parsed_ambassador_annotations is not None:
+            return resource_identifier, parsed_ambassador_annotations
 
         return None
 
