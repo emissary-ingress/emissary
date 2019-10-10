@@ -37,7 +37,11 @@ bootstrap() {
     if [ -z "$(builder)" ] ; then
         echo -e "${WHT}==${GRN}Bootstrapping build image${WHT}==${END}"
         ${DBUILD} --target builder ${DIR} -t builder
-        DOCKER_GID=$(getent group docker | cut -d: -f3)
+        if [ "$(uname -s)" == Darwin ]; then
+            DOCKER_GID=$(stat -f "%g" /var/run/docker.sock)
+        else
+            DOCKER_GID=$(stat -c "%g" /var/run/docker.sock)
+        fi
         if [ -z "${DOCKER_GID}" ]; then
             echo "Unable to determine docker group-id"
             exit 1
@@ -93,12 +97,12 @@ summarize-sync() {
 }
 
 clean() {
-        cid=$(builder)
-	if [ -n "${cid}" ] ; then
-            echo -e "${GRN}Killing build container ${BLU}${cid}${END}"
-            docker kill ${cid} > /dev/null 2>&1
-            docker wait ${cid} > /dev/null 2>&1 || true
-        fi
+    cid=$(builder)
+    if [ -n "${cid}" ] ; then
+        echo -e "${GRN}Killing build container ${BLU}${cid}${END}"
+        docker kill ${cid} > /dev/null 2>&1
+        docker wait ${cid} > /dev/null 2>&1 || true
+    fi
 }
 
 cmd="$1"

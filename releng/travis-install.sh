@@ -45,9 +45,4 @@ kubernaut claims delete ${CLAIM_NAME}
 kubernaut claims create --name ${CLAIM_NAME} --cluster-group main
 kubectl --kubeconfig ${DEV_KUBECONFIG} -n default get service kubernetes
 
-#gimme ${GO_VERSION}
-
-#pip install -q -r dev-requirements.txt
-#pip install -q -r python/requirements.txt
-
 printf "== End:   travis-install.sh ==\n"
