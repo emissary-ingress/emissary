@@ -150,8 +150,8 @@ ifneq ($(call go.goversion.HAVE, 1.13beta1),$(FALSE))
   define _go.bin.rule
   bin_%/$1: bin_%/.go-build/$1 $$(COPY_IFCHANGED)
 	$$(COPY_IFCHANGED) $$< $$@
-  bin_%/$1.opensource.tar.gz: bin_%/$1 vendor $$(_go.mkopensource) $$(dir $$(_go-mod.mk))go$$(go.goversion).src.tar.gz $$(WRITE_IFCHANGED)
-	$$(_go.mkopensource) --output-name=$1.opensource --package=$2 --gotar=$$(dir $$(_go-mod.mk))go$$(go.goversion).src.tar.gz | $$(WRITE_IFCHANGED) $$@
+  bin_%/$1.opensource.tar.gz: bin_%/$1 $$(_go.mkopensource) $$(dir $$(_go-mod.mk))go$$(go.goversion).src.tar.gz $$(WRITE_IFCHANGED)
+	$$(_go.mkopensource) --output-format=tar --output-name=$1.opensource --package=$2 --gotar=$$(dir $$(_go-mod.mk))go$$(go.goversion).src.tar.gz | $$(WRITE_IFCHANGED) $$@
   endef
 else
   # Usage: $(eval $(call _go.bin.rule,BINNAME,GOPACKAGE))
@@ -160,8 +160,8 @@ else
 	$$(go.lock)$$(go.GOBUILD) $$(if $$(go.LDFLAGS),--ldflags $$(call quote.shell,$$(go.LDFLAGS))) -o $$@ $2
   bin_%/$1: bin_%/.go-build/$1 $$(COPY_IFCHANGED)
 	$$(COPY_IFCHANGED) $$< $$@
-  bin_%/$1.opensource.tar.gz: bin_%/$1 vendor $$(_go.mkopensource) $$(dir $$(_go-mod.mk))go$$(go.goversion).src.tar.gz $$(WRITE_IFCHANGED) $$(go.lock)
-	$$(go.lock)$$(_go.mkopensource) --output-name=$1.opensource --package=$2 --gotar=$$(dir $$(_go-mod.mk))go$$(go.goversion).src.tar.gz | $$(WRITE_IFCHANGED) $$@
+  bin_%/$1.opensource.tar.gz: bin_%/$1 $$(_go.mkopensource) $$(dir $$(_go-mod.mk))go$$(go.goversion).src.tar.gz $$(WRITE_IFCHANGED) $$(go.lock)
+	$$(go.lock)$$(_go.mkopensource) --output-format=tar --output-name=$1.opensource --package=$2 --gotar=$$(dir $$(_go-mod.mk))go$$(go.goversion).src.tar.gz | $$(WRITE_IFCHANGED) $$@
   endef
 endif
 
@@ -171,6 +171,10 @@ $(foreach _go.bin,$(go.bins),$(eval $(call _go.bin.rule,$(_go.bin.name),$(_go.bi
 
 go-build: $(foreach _go.PLATFORM,$(go.PLATFORMS),$(foreach _go.bin,$(go.bins), bin_$(_go.PLATFORM)/$(_go.bin.name)                   ))
 build:    $(foreach _go.PLATFORM,$(go.PLATFORMS),$(foreach _go.bin,$(go.bins), bin_$(_go.PLATFORM)/$(_go.bin.name).opensource.tar.gz ))
+
+build: OPENSOURCE.md
+OPENSOURCE.md: go-get $(go.lock) $(_go.mkopensource) $(dir $(_go-mod.mk))go$(go.goversion).src.tar.gz $(WRITE_IFCHANGED) FORCE
+	$(go.lock)$(_go.mkopensource) --output-format=txt --package=$(go.module)/... --gotar=$(dir $(_go-mod.mk))go$(go.goversion).src.tar.gz | $(WRITE_IFCHANGED) $@
 
 go-build: ## (Go) Build the code with `go build`
 .PHONY: go-build
