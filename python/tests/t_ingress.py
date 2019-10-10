@@ -44,7 +44,7 @@ spec:
         if sys.platform != 'darwin':
             text = json.dumps(self.status_update)
 
-            update_cmd = ['../kubestatus', 'Service', '-f', f'metadata.name={self.name.k8s}', '-u', '/dev/fd/0']
+            update_cmd = ['kubestatus', 'Service', '-f', f'metadata.name={self.name.k8s}', '-u', '/dev/fd/0']
             subprocess.run(update_cmd, input=text.encode('utf-8'), timeout=5)
 
             yield Query(self.url(self.name + "/"))
@@ -103,7 +103,7 @@ spec:
         if sys.platform != 'darwin':
             text = json.dumps(self.status_update)
 
-            update_cmd = ['../kubestatus', 'Service', '-f', f'metadata.name={self.name.k8s}', '-u', '/dev/fd/0']
+            update_cmd = ['kubestatus', 'Service', '-f', f'metadata.name={self.name.k8s}', '-u', '/dev/fd/0']
             subprocess.run(update_cmd, input=text.encode('utf-8'), timeout=5)
 
             yield Query(self.url(self.name + "/"))
@@ -167,7 +167,7 @@ spec:
         if sys.platform != 'darwin':
             text = json.dumps(self.status_update)
 
-            update_cmd = ['../kubestatus', 'Service', '-f', f'metadata.name={self.name.k8s}', '-u', '/dev/fd/0']
+            update_cmd = ['kubestatus', 'Service', '-f', f'metadata.name={self.name.k8s}', '-u', '/dev/fd/0']
             subprocess.run(update_cmd, input=text.encode('utf-8'), timeout=5)
 
             yield Query(self.url(self.name + "/"))
