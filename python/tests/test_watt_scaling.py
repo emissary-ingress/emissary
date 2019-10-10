@@ -26,7 +26,7 @@ spec:
   selector:
     matchLabels:
       service: qotm
-  replicas: 3
+  replicas: 1
   strategy:
     type: RollingUpdate
   template:
@@ -189,7 +189,7 @@ spec:
         # Assert 200 OK at /qotm/ endpoint
         qotm_ready = False
 
-        loop_limit = 20
+        loop_limit = 60
         while not qotm_ready:
             assert loop_limit > 0, "QOTM is not ready yet, aborting..."
             try:
