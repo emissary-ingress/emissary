@@ -25,6 +25,11 @@ const authenticate = async function(browsertab, username, password) {
 	await browsertab.waitForSelector('[role="button"]#passwordNext', { visible: true });
 	await browsertab.type('input[type="password"]', password);
 	await browsertab.click('[role="button"]#passwordNext');
+
+	await Promise.race([
+		confirmRecoveryEmail(browsertab),
+		browsertab.waitForResponse((resp) => {return resp.url().startsWith("http://localhost:31001/callback?");}),
+	]);
 };
 
 const waitUntilRender = function(browsertab) {
@@ -33,6 +38,20 @@ const waitUntilRender = function(browsertab) {
 		return (view === null) || (view.getAttribute("aria-busy") !== "true");
 	});
 };
+
+const confirmRecoveryEmail = async function(browsertab) {
+	await browsertab.waitForFunction(() => {return window.location.href.startsWith("https://accounts.google.com/signin/v2/challenge/selection?");});
+	await waitUntilRender(browsertab);
+
+	await browsertab.waitForSelector('[role="link"][data-challengetype="12"]', { visible: true });
+	await browsertab.click('[role="link"][data-challengetype="12"]');
+	await browsertab.click('[role="link"][data-challengetype="12"]'); // IDK why, try clicking it twice
+
+	await browsertab.waitForSelector('input[type="email"]', { visible: true });
+	await browsertab.waitForSelector('[role="button"]', { visible: true });
+	await browsertab.type('input[type="email"]', "dev+apro-gmail@datawire.io");
+	await browsertab.click('[role="button"]');
+}
 
 module.exports.authenticate = function(browsertab, username, password, skipfn) {
 	return Promise.race([

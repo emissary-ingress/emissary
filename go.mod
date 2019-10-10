@@ -8,14 +8,13 @@ require (
 	github.com/asaskevich/EventBus v0.0.0-20180315140547-d46933a94f05 // indirect
 	github.com/bmizerany/perks v0.0.0-20141205001514-d9a9656a3a4b // indirect
 	github.com/datawire/ambassador v0.72.0
-	github.com/datawire/liboauth2 v0.0.0-20190619201518-4d7cc6073e44
+	github.com/datawire/liboauth2 v0.0.0-20190930180758-8a034a1de052
 	github.com/datawire/teleproxy v0.5.1
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/dgryski/go-gk v0.0.0-20140819190930-201884a44051 // indirect
 	github.com/die-net/lrucache v0.0.0-20181227122439-19a39ef22a11
 	github.com/gobwas/glob v0.2.3
-	github.com/gogo/googleapis v1.1.0
-	github.com/gogo/protobuf v1.2.1
+	github.com/gogo/protobuf v1.2.2-0.20190730201129-28a6bbf47e48
 	github.com/google/uuid v1.1.0
 	github.com/gorilla/mux v1.6.1
 	github.com/gregjones/httpcache v0.0.0-20181110185634-c63ab54fda8f
@@ -47,13 +46,14 @@ require (
 	gitlab.com/golang-commonmark/markdown v0.0.0-20181102083822-772775880e1f
 	gitlab.com/golang-commonmark/mdurl v0.0.0-20180912090424-e5bce34c34f2 // indirect
 	gitlab.com/golang-commonmark/puny v0.0.0-20180912090636-2cd490539afe // indirect
-	golang.org/x/net v0.0.0-20190322120337-addf6b3196f6
-	golang.org/x/sync v0.0.0-20190227155943-e225da77a7e6
-	google.golang.org/grpc v1.19.1
+	golang.org/x/net v0.0.0-20190503192946-f4e77d36d62c
+	golang.org/x/sync v0.0.0-20190423024810-112230192c58
+	google.golang.org/grpc v1.23.0
 	gopkg.in/russross/blackfriday.v2 v2.0.0-00010101000000-000000000000
 	gopkg.in/src-d/go-billy.v4 v4.2.1
 	gopkg.in/src-d/go-git.v4 v4.8.1
 	gopkg.in/yaml.v2 v2.2.2
+	istio.io/gogo-genproto v0.0.0-20190904133402-ee07f2785480
 	k8s.io/api v0.0.0-20190111032252-67edc246be36
 	k8s.io/apimachinery v0.0.0-20190119020841-d41becfba9ee
 	k8s.io/client-go v10.0.0+incompatible

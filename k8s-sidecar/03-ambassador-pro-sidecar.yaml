@@ -69,15 +69,17 @@ metadata:
       kind: AuthService
       name: authentication
       proto: grpc
+      status_on_error:
+        code: 504
       auth_service: "127.0.0.1:8500"
       allow_request_body: false # setting this to 'true' allows Plugin and External filters to access the body, but has performance overhead
       ---
       # Dev Portal
       apiVersion: ambassador/v1
       kind: Mapping
-      name: devportal_mapping
-      prefix: /docs/
-      rewrite: ""
+      name: ambassador-pro-devportal
+      prefix: /documentation/
+      rewrite: "/docs/"
       add_response_headers:
         x-test-proto: "%PROTOCOL%"
         x-test-ip: "%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%"
@@ -86,7 +88,7 @@ metadata:
       ---
       apiVersion: ambassador/v1
       kind: Mapping
-      name: devportal_api_mapping
+      name: ambassador-pro-devportal-api
       prefix: /openapi/
       rewrite: ""
       add_response_headers:

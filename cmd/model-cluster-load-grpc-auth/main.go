@@ -5,8 +5,8 @@ import (
 	"log"
 	"net"
 
-	"github.com/gogo/googleapis/google/rpc"
 	"google.golang.org/grpc"
+	rpc "istio.io/gogo-genproto/googleapis/google/rpc"
 
 	envoyCoreV2 "github.com/datawire/ambassador/go/apis/envoy/api/v2/core"
 	envoyAuthV2 "github.com/datawire/ambassador/go/apis/envoy/service/auth/v2"

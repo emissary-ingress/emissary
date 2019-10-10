@@ -100,6 +100,10 @@ func NewDebugHTTPHandler() DebugHTTPHandler {
 	ret.debugMux.HandleFunc(
 		"/",
 		func(writer http.ResponseWriter, request *http.Request) {
+			if request.URL.Path != "/" {
+				http.NotFound(writer, request)
+				return
+			}
 			sortedKeys := []string{}
 			for key := range ret.endpoints {
 				sortedKeys = append(sortedKeys, key)

@@ -49,12 +49,12 @@ type FilterJWT struct {
 	RequireExpiresAt bool `json:"requireExpiresAt"`
 	RequireNotBefore bool `json:"requireNotBefore"`
 
-	InjectRequestHeaders []HeaderField `json:"injectRequestHeaders"`
+	InjectRequestHeaders []JWTHeaderField `json:"injectRequestHeaders"`
 
 	InsecureTLS bool `json:"insecureTLS"`
 }
 
-type HeaderField struct {
+type JWTHeaderField struct {
 	Name     string             `json:"name"`
 	Value    string             `json:"value"`
 	Template *template.Template `json:"-"`
@@ -86,7 +86,7 @@ func (m *FilterJWT) Validate() error {
 	return nil
 }
 
-func (hf *HeaderField) Validate() error {
+func (hf *JWTHeaderField) Validate() error {
 	tmpl, err := template.New(hf.Name).Parse(hf.Value)
 	if err != nil {
 		return errors.Wrapf(err, "parsing template for injected header %q", hf.Name)

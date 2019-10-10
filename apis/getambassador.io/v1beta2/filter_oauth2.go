@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"net/http"
 	"net/url"
 	"time"
 
@@ -116,5 +117,28 @@ func (m FilterOAuth2) TLS() bool {
 //////////////////////////////////////////////////////////////////////
 
 type FilterOAuth2Arguments struct {
-	Scopes []string `json:"scopes"`
+	Scopes            []string        `json:"scopes"`
+	InsteadOfRedirect *OAuth2Redirect `json:"insteadOfRedirect"`
+}
+
+type OAuth2Redirect struct {
+	HTTPStatusCode  int           `json:"httpStatusCode"`
+	IfRequestHeader *OAuth2Header `json:"ifRequestHeader"`
+}
+
+type OAuth2Header struct {
+	Name  string  `json:"name"`
+	Value *string `json:"value"`
+}
+
+func (m *FilterOAuth2Arguments) Validate() error {
+	if m.InsteadOfRedirect != nil && m.InsteadOfRedirect.HTTPStatusCode == 0 {
+		// The default is 403 Forbidden, and definitely not
+		// 401 Unauthorized, because the User Agent is not
+		// using an RFC 7235-compatible authentication scheme
+		// to talk with us; 401 would be inappropriate.
+		m.InsteadOfRedirect.HTTPStatusCode = http.StatusForbidden
+	}
+
+	return nil
 }

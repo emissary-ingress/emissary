@@ -23,8 +23,7 @@ and Open Source software:
     github.com/envoyproxy/protoc-gen-validate                                            v0.0.15-0.20190405222122-d6164de49109               Apache License 2.0
     github.com/fsnotify/fsnotify                                                         v1.4.7                                              3-clause BSD license
     github.com/gobwas/glob                                                               v0.2.3                                              MIT license
-    github.com/gogo/googleapis                                                           v1.1.0                                              Apache License 2.0
-    github.com/gogo/protobuf                                                             v1.2.1                                              3-clause BSD license
+    github.com/gogo/protobuf                                                             v1.2.2-0.20190730201129-28a6bbf47e48                3-clause BSD license
     github.com/golang/protobuf                                                           v1.2.1-0.20190205222052-c823c79ea157                3-clause BSD license
     github.com/google/btree                                                              v1.0.0                                              Apache License 2.0
     github.com/google/gofuzz                                                             v0.0.0-20170612174753-24818f796faf                  Apache License 2.0
@@ -82,21 +81,22 @@ and Open Source software:
     gitlab.com/golang-commonmark/puny                                                    v0.0.0-20180912090636-2cd490539afe                  2-clause BSD license
     go.opencensus.io                                                                     v0.19.0                                             Apache License 2.0
     golang.org/x/crypto                                                                  v0.0.0-20190320223903-b7391e95e576                  3-clause BSD license
-    golang.org/x/net                                                                     v0.0.0-20190322120337-addf6b3196f6                  3-clause BSD license
+    golang.org/x/net                                                                     v0.0.0-20190503192946-f4e77d36d62c                  3-clause BSD license
     golang.org/x/oauth2                                                                  v0.0.0-20190115181402-5dab4167f31c                  3-clause BSD license
-    golang.org/x/sync                                                                    v0.0.0-20190227155943-e225da77a7e6                  3-clause BSD license
-    golang.org/x/sys                                                                     v0.0.0-20190322080309-f49334f85ddc                  3-clause BSD license
-    golang.org/x/text                                                                    v0.3.1-0.20180807135948-17ff2d5776d2                3-clause BSD license
+    golang.org/x/sync                                                                    v0.0.0-20190423024810-112230192c58                  3-clause BSD license
+    golang.org/x/sys                                                                     v0.0.0-20190508220229-2d0786266e9c                  3-clause BSD license
+    golang.org/x/text                                                                    v0.3.2                                              3-clause BSD license
     golang.org/x/time                                                                    v0.0.0-20181108054448-85acf8d2951c                  3-clause BSD license
     google.golang.org/api                                                                v0.1.0                                              3-clause BSD license
     google.golang.org/genproto                                                           v0.0.0-20190123001331-8819c946db44                  Apache License 2.0
-    google.golang.org/grpc                                                               v1.19.1                                             Apache License 2.0
+    google.golang.org/grpc                                                               v1.23.0                                             Apache License 2.0
     gopkg.in/inf.v0                                                                      v0.9.1                                              3-clause BSD license
     github.com/russross/blackfriday/v2 (modified from gopkg.in/russross/blackfriday.v2)  v2.0.1                                              2-clause BSD license
     gopkg.in/src-d/go-billy.v4                                                           v4.2.1                                              Apache License 2.0
     gopkg.in/src-d/go-git.v4                                                             v4.8.1                                              Apache License 2.0
     gopkg.in/warnings.v0                                                                 v0.1.2                                              2-clause BSD license
     gopkg.in/yaml.v2                                                                     v2.2.2                                              Apache License 2.0, MIT license
+    istio.io/gogo-genproto                                                               v0.0.0-20190904133402-ee07f2785480                  Apache License 2.0
     k8s.io/api                                                                           v0.0.0-20190222213804-5cb15d344471                  Apache License 2.0
     k8s.io/apimachinery                                                                  v0.0.0-20190221213512-86fb29eff628                  Apache License 2.0
     k8s.io/client-go                                                                     v10.0.0+incompatible                                Apache License 2.0

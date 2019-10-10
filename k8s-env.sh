@@ -4,7 +4,6 @@
 AMBASSADOR_IMAGE=$(                  sed -n 2p ambassador/ambassador.docker.push.cluster)
 AMB_SIDECAR_IMAGE=$(                 sed -n 2p docker/model-cluster-amb-sidecar-plugins.docker.push.cluster) # XXX: not releasable because plugins
 CONSUL_CONNECT_INTEGRATION_IMAGE=$(  sed -n 2p docker/consul_connect_integration.docker.push.cluster)
-DEV_PORTAL_IMAGE=$(                  sed -n 2p docker/dev-portal-server.docker.push.cluster)
 PROXY_IMAGE=$(                       sed -n 2p docker/traffic-proxy.docker.push.cluster)
 SIDECAR_IMAGE=$(                     sed -n 2p docker/app-sidecar.docker.push.cluster)
 
@@ -14,8 +13,9 @@ MODEL_CLUSTER_GRPC_AUTH_IMAGE=$(     sed -n 2p docker/model-cluster-grpc-auth.do
 MODEL_CLUSTER_HTTP_AUTH_IMAGE=$(     sed -n 2p docker/model-cluster-http-auth.docker.push.cluster)
 MODEL_CLUSTER_LOAD_GRPC_AUTH_IMAGE=$(sed -n 2p docker/model-cluster-load-grpc-auth.docker.push.cluster)
 MODEL_CLUSTER_LOAD_HTTP_AUTH_IMAGE=$(sed -n 2p docker/model-cluster-load-http-auth.docker.push.cluster)
-MODEL_CLUSTER_UAA_IMAGE=$(           sed -n 2p docker/model-cluster-uaa.docker.push.cluster)
+MODEL_CLUSTER_LOGOUT_IMAGE=$(        sed -n 2p docker/model-cluster-logout.docker.push.cluster)
 MODEL_CLUSTER_OPENAPI_SERVICE=$(     sed -n 2p docker/model-cluster-openapi-service.docker.push.cluster)
+MODEL_CLUSTER_UAA_IMAGE=$(           sed -n 2p docker/model-cluster-uaa.docker.push.cluster)
 
 # Loadtest images
 LOADTEST_GENERATOR_IMAGE=$(          sed -n 2p docker/loadtest-generator.docker.push.cluster)

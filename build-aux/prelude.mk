@@ -51,6 +51,7 @@
 #
 #  Internal use:
 #  - Variable: _prelude.go.VERSION      (exposed as go-mod.mk:go.goversion)
+#  - Function: _prelude.go.VERSION.HAVE (exposed as go-mod.mk:go.goversion.HAVE)
 #  - Variable: _prelude.go.lock         (exposed as go-mod.mk:go.lock)
 #  - Variable: _prelude.go.ensure       (used by go-mod.mk)
 #
