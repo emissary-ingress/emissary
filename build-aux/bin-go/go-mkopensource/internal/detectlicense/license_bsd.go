@@ -1,23 +1,24 @@
 package detectlicense
 
 var (
-	bsdHeader = `(?:Copyright [^\n]*(?:\s+All rights reserved\.)? *\n)+\s*`
+	bsdHeader = `(?:BSD [123]-Clause License\n)?\s*` +
+		`(?:Copyright [^\n]*(?:\s+All rights reserved\.)? *\n)+\s*`
 	bsdPrefix = `` +
 		`Redistribution and use in source and binary forms, with or without` + "\n" +
 		`modification, are permitted provided that the following conditions are` + "\n" +
 		`met:` + "\n"
 	bsdClause1 = `` +
-		` 1?[*.-] Redistributions of source code must retain the above copyright` + "\n" +
+		` (?:1?[*.-] )?Redistributions of source code must retain the above copyright` + "\n" +
 		`      notice, this list of conditions and the following disclaimer\.` + "\n"
 	bsdClause2 = `` +
-		` 2?[*.-] Redistributions in binary form must reproduce the above` + "\n" +
-		`      copyright notice, this list of conditions and the following disclaimer` + "\n" +
+		` (?:2?[*.-] )?Redistributions in binary form must reproduce the above` + "\n" +
+		`      copyright notice,? this list of conditions and the following disclaimer` + "\n" +
 		`      in the documentation and/or other materials provided with the` + "\n" +
 		`      distribution\.` + "\n"
 	bsdClause3 = `` +
-		` 3?[*.-] Neither the name of .+ nor the names of its` + "\n" +
-		`      contributors may be used to endorse or promote products derived from` + "\n" +
-		`      this software without specific prior written permission\.` + "\n"
+		` (?:3?[*.-] )?(?:Neither the name of .+ nor the names of its contributors may|The names of its contributors may not)` + "\n" +
+		`      be used to endorse or promote products derived from this software` + "\n" +
+		`      without specific prior written permission\.` + "\n"
 	bsdSuffix = `` +
 		`THIS SOFTWARE IS PROVIDED BY .+ AND CONTRIBUTORS` + "\n" +
 		`"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT` + "\n" +

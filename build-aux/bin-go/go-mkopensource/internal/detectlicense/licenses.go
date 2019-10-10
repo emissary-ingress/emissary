@@ -71,6 +71,17 @@ func DetectLicenses(files map[string][]byte) (map[License]struct{}, error) {
 			licenses[Proprietary] = struct{}{}
 			continue
 		}
+		if filename == "github.com/docker/spdystream/LICENSE.docs" {
+			// This file describes the license of the
+			// docs, which are licensed separately from
+			// the code.  We don't care about the docs.
+			continue
+		}
+		if filename == "github.com/miekg/dns/COPYRIGHT" {
+			// This file identifies copyright holders, but
+			// the license info is in the LICENSE file.
+			continue
+		}
 
 		name := filepath.Base(filename)
 		// See ./vendor.go:metaPrefixes
@@ -150,19 +161,21 @@ func IdentifySPDXLicenses(body []byte) (map[License]struct{}, error) {
 	return licenses, nil
 }
 
+var (
+	bsd3funnyAttributionLines = []string{
+		`(?:Copyright [^\n]*(?:\s+All rights reserved\.)? *\n)`,
+		reQuote(`As this is fork of the official Go code the same license applies:`),
+		reQuote(`Extensions of the original work are copyright (c) 2011 Miek Gieben`),
+		reQuote(`Go support for Protocol Buffers - Google's data interchange format`),
+		reQuote(`Protocol Buffers for Go with Gadgets`),
+		reQuote(`http://github.com/gogo/protobuf`),
+		reQuote(`https://github.com/golang/protobuf`),
+		reQuote(`Copyright (c) 2012 Péter Surányi. Portions Copyright (c) 2009 The Go
+Authors. All rights reserved.`),
+	}
+)
+
 const (
-	gogoProtobufHeader = `Copyright (c) 2013, The GoGo Authors. All rights reserved.
-
-Protocol Buffers for Go with Gadgets
-
-Go support for Protocol Buffers - Google's data interchange format
-
-Copyright 2010 The Go Authors.  All rights reserved.
-https://github.com/golang/protobuf`
-
-	gcfgHeader = `Copyright (c) 2012 Péter Surányi. Portions Copyright (c) 2009 The Go
-Authors. All rights reserved.`
-
 	rackspaceHeader = `Copyright 2012-2013 Rackspace, Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
@@ -220,7 +233,7 @@ func IdentifyLicenses(body []byte) map[License]struct{} {
 		licenses[BSD2] = struct{}{}
 		licenses[ISC] = struct{}{}
 	case reMatch(reCompile(
-		`(?:`+reQuote(gogoProtobufHeader)+`|`+reQuote(gcfgHeader)+`)\s*`+reWrap(``+
+		`(?:`+strings.Join(bsd3funnyAttributionLines, `\s*|`)+`\s*)+`+reWrap(``+
 			bsdPrefix+
 			bsdClause1+
 			bsdClause2+
