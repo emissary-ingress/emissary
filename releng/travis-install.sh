@@ -43,6 +43,7 @@ chmod +x ${KUBERNAUT}
 
 kubernaut claims delete ${CLAIM_NAME}
 kubernaut claims create --name ${CLAIM_NAME} --cluster-group main
+kubectl --kubeconfig ${DEV_KUBECONFIG} -n default get service kubernetes
 
 #gimme ${GO_VERSION}
 
