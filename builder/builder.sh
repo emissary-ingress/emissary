@@ -31,11 +31,11 @@ builder_volume() { docker volume ls -q -f label=builder; }
 bootstrap() {
     if [ -z "$(builder_volume)" ] ; then
         docker volume create --label builder
-        echo -e "${GRN}Created docker volume ${BLU}$(builder_volume)${GRN} for caching${END}"
+        printf "${GRN}Created docker volume ${BLU}$(builder_volume)${GRN} for caching${END}"
     fi
 
     if [ -z "$(builder)" ] ; then
-        echo -e "${WHT}==${GRN}Bootstrapping build image${WHT}==${END}"
+        printf "${WHT}==${GRN}Bootstrapping build image${WHT}==${END}"
         ${DBUILD} --target builder ${DIR} -t builder
         if [ "$(uname -s)" == Darwin ]; then
             DOCKER_GID=$(stat -f "%g" /var/run/docker.sock)
@@ -47,7 +47,7 @@ bootstrap() {
             exit 1
         fi
         docker run --group-add ${DOCKER_GID} -d --rm -v /var/run/docker.sock:/var/run/docker.sock -v $(builder_volume):/home/dw --net=host --cap-add NET_ADMIN -lbuilder --entrypoint tail builder -f /dev/null > /dev/null
-        echo -e "${GRN}Started build container ${BLU}$(builder)${END}"
+        printf "${GRN}Started build container ${BLU}$(builder)${END}"
     fi
 
     rsync -q -a -e 'docker exec -i' ${DIR}/builder.sh $(builder):/buildroot
@@ -82,11 +82,11 @@ summarize-sync() {
     if [ "$#" != 0 ]; then
         docker exec -i ${container} touch /buildroot/${name}.dirty
     fi
-    echo -e "${GRN}Synced $# ${BLU}${name}${GRN} source files${END}"
+    printf "${GRN}Synced $# ${BLU}${name}${GRN} source files${END}"
     prevdel=""
     for var in "$@"; do
         if [ -n "$prevdel" ]; then
-            echo -e "  ${YEL}deleted${END} $var"
+            printf "  ${YEL}deleted${END} $var"
         fi
         if [ "${var}" == "deleting" ]; then
             prevdel="x"
@@ -99,7 +99,7 @@ summarize-sync() {
 clean() {
     cid=$(builder)
     if [ -n "${cid}" ] ; then
-        echo -e "${GRN}Killing build container ${BLU}${cid}${END}"
+        printf "${GRN}Killing build container ${BLU}${cid}${END}"
         docker kill ${cid} > /dev/null 2>&1
         docker wait ${cid} > /dev/null 2>&1 || true
     fi
@@ -115,7 +115,7 @@ case "${cmd}" in
         clean
         vid=$(builder_volume)
         if [ -n "${vid}" ] ; then
-            echo -e "${GRN}Killing cache volume ${BLU}${vid}${END}"
+            printf "${GRN}Killing cache volume ${BLU}${vid}${END}"
             docker volume rm ${vid} > /dev/null 2>&1
         fi
         ;;
@@ -143,7 +143,7 @@ case "${cmd}" in
             if [ -e ${module}.dirty ]; then
                 case ${SRCDIR} in
                     */go.mod)
-                        echo -e "${WHT}==${GRN}Building ${BLU}${module}${GRN} go code${WHT}==${END}"
+                        printf "${WHT}==${GRN}Building ${BLU}${module}${GRN} go code${WHT}==${END}"
                         wd=$(dirname ${SRCDIR})
                         echo_on
                         (cd ${wd} && GOBIN=/buildroot/bin go install ./cmd/...) || exit 1
@@ -151,7 +151,7 @@ case "${cmd}" in
                         ;;
                     */python)
                         if ! [ -e ${SRCDIR}/*.egg-info ]; then
-                            echo -e "${WHT}==${GRN}Setting up ${BLU}${module}${GRN} python code${WHT}==${END}"
+                            printf "${WHT}==${GRN}Setting up ${BLU}${module}${GRN} python code${WHT}==${END}"
                             echo_on
                             sudo pip install --no-deps -e ${SRCDIR} || exit 1
                             echo_off
@@ -188,7 +188,7 @@ case "${cmd}" in
         fi
         cid=$(builder)
         if dirty ${cid}; then
-	    echo -e "${WHT}==${GRN}Snapshotting ${BLU}builder${GRN} image${WHT}==${END}"
+	    printf "${WHT}==${GRN}Snapshotting ${BLU}builder${GRN} image${WHT}==${END}"
 	    docker rmi -f "${name}" > /dev/null
             docker commit -c 'ENTRYPOINT [ "/bin/bash" ]' ${cid} "${name}"
         fi
