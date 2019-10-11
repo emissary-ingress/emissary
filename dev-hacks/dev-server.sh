@@ -25,7 +25,7 @@ else
     false
 fi
 
-.venv/bin/python fake-ambassador.py & trap 'curl "$AMBASSADOR_INTERNAL_URL/_shutdown"; kill %1' EXIT
+.venv/bin/python ../docker/local-devportal/fake-ambassador.py & trap 'curl "$AMBASSADOR_INTERNAL_URL/_shutdown"; kill %1' EXIT
 
 if [ "$(type -p socat)" != "" ]; then
     echo | socat - TCP:localhost:8877,retry=5,interval=1 >/dev/null 2>&1

@@ -160,7 +160,8 @@ func runE(cmd *cobra.Command, args []string) error {
 		if err != nil {
 			return err
 		}
-		devPortalServer = devportalserver.NewServer("/docs", content)
+		devPortalServer = devportalserver.NewServer("/docs", content,
+			licenseClaims.GetLimitValue(licensekeys.LimitDevPortalServices))
 		group.Go("devportal_fetcher", func(hardCtx, softCtx context.Context, cfg types.Config, l types.Logger) error {
 			fetcher := devportalserver.NewFetcher(devPortalServer, devportalserver.HTTPGet, devPortalServer.KnownServices(), cfg)
 			fetcher.Run(softCtx)
