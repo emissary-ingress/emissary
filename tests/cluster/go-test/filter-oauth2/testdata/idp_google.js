@@ -60,11 +60,11 @@ module.exports.authenticate = function(browsertab, username, password) {
 		// If at any point it decides to show us a Captcha, just skip the test :-/
 		browsertab.waitForSelector('img#captchaimg', { visible: true })
 			.then(() => {return waitUntilRender(browsertab);})
-			.then(() => {return Promise.reject(run.TestSkip);}),
+			.then(() => {return Promise.reject(new run.TestSkipError("captcha"));}),
 		// If Google decides to reject the signin, just skip the test :(
 		browsertab.waitForFunction(() => {return window.location.href.startsWith("https://accounts.google.com/signin/oauth/deniedsigninrejected?");})
 			.then(() => {return waitUntilRender(browsertab);})
-			.then(() => {return Promise.reject(run.TestSkip);}),
+			.then(() => {return Promise.reject(new run.TestSkipError("denied"));}),
 		// otherwise, authenticate as normal.
 		authenticate(browsertab, username, password),
 	]);

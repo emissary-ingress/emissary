@@ -1,7 +1,11 @@
 const fs = require('fs');
 const puppeteer = require('puppeteer');
 
-const TestSkip = new Error("Test Skipped");
+function TestSkipError(message) {
+	this.name = "TestSkipError";
+	this.message = "Test Skipped: " + message;
+}
+TestSkipError.prototype = Error.prototype;
 
 const withBrowserTab = async function(fn) {
 	const browser = await puppeteer.launch({
@@ -40,19 +44,19 @@ const resolveTestPromise = function(promise) {
 		(value) => { process.exit(0); },
 		(error) => {
 			console.log(error);
-			if (error === TestSkip) {
+			if (error instanceof TestSkipError) {
 				process.exit(77);
 			} else {
 				process.exit(1);
 			}
 		});
-}
+};
 
 const sleep = function(ms) {
 	return new Promise((resolve, reject) => {
 		setTimeout(() => { resolve(); }, ms);
 	});
-}
+};
 
 // This function is closely coupled with browser_test.go:browserTest().
 const browserTest = function(timeout_ms, fn) {
@@ -63,7 +67,7 @@ const browserTest = function(timeout_ms, fn) {
 
 		return withTimeout(timeout_ms, fn(browsertab)).finally(() => { return sleep(1000); });
 	}));
-}
+};
 
-module.exports.TestSkip = TestSkip;
+module.exports.TestSkipError = TestSkipError;
 module.exports.browserTest = browserTest;
