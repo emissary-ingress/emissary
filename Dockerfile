@@ -103,14 +103,7 @@ COPY python/post_update.py .
 COPY python/watch_hook.py .
 RUN chmod 755 entrypoint.sh grab-snapshots.py kick_ads.sh kubewatch.py post_update.py watch_hook.py
 
-COPY cmd/ambex/ambex /usr/bin/
-RUN chmod 755 /usr/bin/ambex
-COPY bin_linux_amd64/kubectl /usr/bin/
-# XXX Move to base image
-COPY watt .
-RUN chmod 755 watt
-COPY kubestatus .
-RUN chmod 755 kubestatus
+COPY bin_linux_amd64/ambex bin_linux_amd64/kubestatus bin_linux_amd64/watt bin_linux_amd64/kubectl /usr/local/bin/
 
 RUN setcap 'cap_net_bind_service=+ep' /usr/local/bin/envoy
 ENTRYPOINT [ "./entrypoint.sh" ]

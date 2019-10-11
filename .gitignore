@@ -13,17 +13,13 @@ VERSION.py
 .pytest_cache
 .mypy_cache
 cluster.yaml
-watt
-/kubestatus
-kat_client
-teleproxy
-kat/kat/client
 /.docker_port_forward
 
 # binaries
-/cmd/ambex/ambex
 /bin_*/
 
+/build/kat/client/kat_client
+/build/kat/client/teleproxy
 /build/kat/server/kat-server
 /tools/sandbox/grpc_auth/docker-compose.yml
 /tools/sandbox/grpc_web/docker-compose.yaml
@@ -54,8 +50,6 @@ unused-e2e
 
 /vendor/
 
-/ambex
-
 .forge
 forge.yaml
 
@@ -83,6 +77,11 @@ kubernaut-claim.txt
 # Remove the tail of this list when the commit making the change gets
 # far enough in to the past.
 
+# 2019-10-13
+/ambex
+/kubestatus
+/watt
+/cmd/ambex/ambex
 # 2019-10-11
 /envoy-src/
 /envoy-bin/
@@ -101,3 +100,5 @@ kubernaut-claim.txt
 /unused-e2e/*/k8s/ambassador-deployment*.yaml
 # 2019-06-14
 /envoy/
+# 2019-04-05 0388efe75c16540c71223320596accbbe3fe6ac2
+/kat/kat/client

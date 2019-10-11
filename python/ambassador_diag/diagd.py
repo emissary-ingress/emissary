@@ -976,7 +976,7 @@ class AmbassadorEventWatcher(threading.Thread):
                 with open(f'/tmp/kstat-{kind}-{name}', 'w') as out:
                     out.write(text)
 
-                cmd = [ '/ambassador/kubestatus', kind, '-f', f'metadata.name={name}', '-n', namespace, '-u', '/dev/fd/0' ]
+                cmd = [ 'kubestatus', kind, '-f', f'metadata.name={name}', '-n', namespace, '-u', '/dev/fd/0' ]
                 self.logger.info(f"Running command: {cmd}")
 
                 try:

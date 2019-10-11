@@ -1,9 +1,11 @@
 import json
+import os
 import subprocess
 
 from kat.harness import Query
 from abstract_tests import AmbassadorTest, HTTP, ServiceType
 
+kubestatus = f"../bin_{os.environ['GOHOSTOS']}_{os.environ['GOHOSTARCH']}/kubestatus"
 
 class IngressStatusTest1(AmbassadorTest):
     status_update = {
@@ -40,7 +42,7 @@ spec:
     def queries(self):
         text = json.dumps(self.status_update)
 
-        update_cmd = ['../kubestatus', 'Service', '-f', f'metadata.name={self.name.k8s}', '-u', '/dev/fd/0']
+        update_cmd = [kubestatus, 'Service', '-f', f'metadata.name={self.name.k8s}', '-u', '/dev/fd/0']
         subprocess.run(update_cmd, input=text.encode('utf-8'), timeout=5)
 
         yield Query(self.url(self.name + "/"))
@@ -95,7 +97,7 @@ spec:
     def queries(self):
         text = json.dumps(self.status_update)
 
-        update_cmd = ['../kubestatus', 'Service', '-f', f'metadata.name={self.name.k8s}', '-u', '/dev/fd/0']
+        update_cmd = [kubestatus, 'Service', '-f', f'metadata.name={self.name.k8s}', '-u', '/dev/fd/0']
         subprocess.run(update_cmd, input=text.encode('utf-8'), timeout=5)
 
         yield Query(self.url(self.name + "/"))
@@ -155,7 +157,7 @@ spec:
     def queries(self):
         text = json.dumps(self.status_update)
 
-        update_cmd = ['../kubestatus', 'Service', '-f', f'metadata.name={self.name.k8s}', '-u', '/dev/fd/0']
+        update_cmd = [kubestatus, 'Service', '-f', f'metadata.name={self.name.k8s}', '-u', '/dev/fd/0']
         subprocess.run(update_cmd, input=text.encode('utf-8'), timeout=5)
 
         yield Query(self.url(self.name + "/"))
