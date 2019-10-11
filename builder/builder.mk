@@ -125,7 +125,7 @@ define NL
 
 endef
 
-define HELP=
+define HELP
 
 This Makefile builds ambassador source code in a standard build environment
 inside a docker container. It then creates the ambassdaor, kat-server, and
