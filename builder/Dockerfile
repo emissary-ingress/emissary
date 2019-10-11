@@ -47,6 +47,8 @@ RUN apk --no-cache add bash curl jq rsync python3 python3-dev build-base libffi-
     chmod a+x /usr/bin/kubectl && \
     ln -s /usr/bin/python3 /usr/bin/python
 
+RUN chmod u+s $(which docker)
+
 COPY --from=envoy /usr/local/bin/envoy /usr/local/bin/envoy
 RUN setcap 'cap_net_bind_service=+ep' /usr/local/bin/envoy
 
