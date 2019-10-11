@@ -12,7 +12,6 @@ __pycache__
 VERSION.py
 .pytest_cache
 .mypy_cache
-/.docker_port_forward
 
 # binaries
 /bin_*/
@@ -75,6 +74,8 @@ ambassador-secrets-deployment.yaml
 # Remove the tail of this list when the commit making the change gets
 # far enough in to the past.
 
+# 2019-10-13
+/.docker_port_forward
 # 2019-10-13
 /cluster.yaml
 /kubernaut-claim.txt
