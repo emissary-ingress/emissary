@@ -26,7 +26,7 @@ var _ = math.Inf
 // is compatible with the proto package it is being compiled against.
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
-const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
+const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 type HttpConnectionManager_CodecType int32
 
@@ -693,97 +693,13 @@ func (m *HttpConnectionManager) GetMergeSlashes() bool {
 	return false
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*HttpConnectionManager) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _HttpConnectionManager_OneofMarshaler, _HttpConnectionManager_OneofUnmarshaler, _HttpConnectionManager_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*HttpConnectionManager) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*HttpConnectionManager_Rds)(nil),
 		(*HttpConnectionManager_RouteConfig)(nil),
 		(*HttpConnectionManager_ScopedRoutes)(nil),
 	}
-}
-
-func _HttpConnectionManager_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*HttpConnectionManager)
-	// route_specifier
-	switch x := m.RouteSpecifier.(type) {
-	case *HttpConnectionManager_Rds:
-		_ = b.EncodeVarint(3<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.Rds); err != nil {
-			return err
-		}
-	case *HttpConnectionManager_RouteConfig:
-		_ = b.EncodeVarint(4<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.RouteConfig); err != nil {
-			return err
-		}
-	case *HttpConnectionManager_ScopedRoutes:
-		_ = b.EncodeVarint(31<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.ScopedRoutes); err != nil {
-			return err
-		}
-	case nil:
-	default:
-		return fmt.Errorf("HttpConnectionManager.RouteSpecifier has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _HttpConnectionManager_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*HttpConnectionManager)
-	switch tag {
-	case 3: // route_specifier.rds
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(Rds)
-		err := b.DecodeMessage(msg)
-		m.RouteSpecifier = &HttpConnectionManager_Rds{msg}
-		return true, err
-	case 4: // route_specifier.route_config
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(v2.RouteConfiguration)
-		err := b.DecodeMessage(msg)
-		m.RouteSpecifier = &HttpConnectionManager_RouteConfig{msg}
-		return true, err
-	case 31: // route_specifier.scoped_routes
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(ScopedRoutes)
-		err := b.DecodeMessage(msg)
-		m.RouteSpecifier = &HttpConnectionManager_ScopedRoutes{msg}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _HttpConnectionManager_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*HttpConnectionManager)
-	// route_specifier
-	switch x := m.RouteSpecifier.(type) {
-	case *HttpConnectionManager_Rds:
-		s := proto.Size(x.Rds)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *HttpConnectionManager_RouteConfig:
-		s := proto.Size(x.RouteConfig)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *HttpConnectionManager_ScopedRoutes:
-		s := proto.Size(x.ScopedRoutes)
-		n += 2 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 type HttpConnectionManager_Tracing struct {
@@ -1366,78 +1282,12 @@ func (m *ScopedRoutes) GetScopedRds() *ScopedRds {
 	return nil
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*ScopedRoutes) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _ScopedRoutes_OneofMarshaler, _ScopedRoutes_OneofUnmarshaler, _ScopedRoutes_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*ScopedRoutes) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*ScopedRoutes_ScopedRouteConfigurationsList)(nil),
 		(*ScopedRoutes_ScopedRds)(nil),
 	}
-}
-
-func _ScopedRoutes_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*ScopedRoutes)
-	// config_specifier
-	switch x := m.ConfigSpecifier.(type) {
-	case *ScopedRoutes_ScopedRouteConfigurationsList:
-		_ = b.EncodeVarint(4<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.ScopedRouteConfigurationsList); err != nil {
-			return err
-		}
-	case *ScopedRoutes_ScopedRds:
-		_ = b.EncodeVarint(5<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.ScopedRds); err != nil {
-			return err
-		}
-	case nil:
-	default:
-		return fmt.Errorf("ScopedRoutes.ConfigSpecifier has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _ScopedRoutes_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*ScopedRoutes)
-	switch tag {
-	case 4: // config_specifier.scoped_route_configurations_list
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(ScopedRouteConfigurationsList)
-		err := b.DecodeMessage(msg)
-		m.ConfigSpecifier = &ScopedRoutes_ScopedRouteConfigurationsList{msg}
-		return true, err
-	case 5: // config_specifier.scoped_rds
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(ScopedRds)
-		err := b.DecodeMessage(msg)
-		m.ConfigSpecifier = &ScopedRoutes_ScopedRds{msg}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _ScopedRoutes_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*ScopedRoutes)
-	// config_specifier
-	switch x := m.ConfigSpecifier.(type) {
-	case *ScopedRoutes_ScopedRouteConfigurationsList:
-		s := proto.Size(x.ScopedRouteConfigurationsList)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *ScopedRoutes_ScopedRds:
-		s := proto.Size(x.ScopedRds)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 // Specifies the mechanism for constructing "scope keys" based on HTTP request attributes. These
@@ -1571,59 +1421,11 @@ func (m *ScopedRoutes_ScopeKeyBuilder_FragmentBuilder) GetHeaderValueExtractor()
 	return nil
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*ScopedRoutes_ScopeKeyBuilder_FragmentBuilder) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _ScopedRoutes_ScopeKeyBuilder_FragmentBuilder_OneofMarshaler, _ScopedRoutes_ScopeKeyBuilder_FragmentBuilder_OneofUnmarshaler, _ScopedRoutes_ScopeKeyBuilder_FragmentBuilder_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*ScopedRoutes_ScopeKeyBuilder_FragmentBuilder) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*ScopedRoutes_ScopeKeyBuilder_FragmentBuilder_HeaderValueExtractor_)(nil),
 	}
-}
-
-func _ScopedRoutes_ScopeKeyBuilder_FragmentBuilder_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*ScopedRoutes_ScopeKeyBuilder_FragmentBuilder)
-	// type
-	switch x := m.Type.(type) {
-	case *ScopedRoutes_ScopeKeyBuilder_FragmentBuilder_HeaderValueExtractor_:
-		_ = b.EncodeVarint(1<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.HeaderValueExtractor); err != nil {
-			return err
-		}
-	case nil:
-	default:
-		return fmt.Errorf("ScopedRoutes_ScopeKeyBuilder_FragmentBuilder.Type has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _ScopedRoutes_ScopeKeyBuilder_FragmentBuilder_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*ScopedRoutes_ScopeKeyBuilder_FragmentBuilder)
-	switch tag {
-	case 1: // type.header_value_extractor
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(ScopedRoutes_ScopeKeyBuilder_FragmentBuilder_HeaderValueExtractor)
-		err := b.DecodeMessage(msg)
-		m.Type = &ScopedRoutes_ScopeKeyBuilder_FragmentBuilder_HeaderValueExtractor_{msg}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _ScopedRoutes_ScopeKeyBuilder_FragmentBuilder_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*ScopedRoutes_ScopeKeyBuilder_FragmentBuilder)
-	// type
-	switch x := m.Type.(type) {
-	case *ScopedRoutes_ScopeKeyBuilder_FragmentBuilder_HeaderValueExtractor_:
-		s := proto.Size(x.HeaderValueExtractor)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 // Specifies how the value of a header should be extracted.
@@ -1750,73 +1552,12 @@ func (m *ScopedRoutes_ScopeKeyBuilder_FragmentBuilder_HeaderValueExtractor) GetE
 	return nil
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*ScopedRoutes_ScopeKeyBuilder_FragmentBuilder_HeaderValueExtractor) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _ScopedRoutes_ScopeKeyBuilder_FragmentBuilder_HeaderValueExtractor_OneofMarshaler, _ScopedRoutes_ScopeKeyBuilder_FragmentBuilder_HeaderValueExtractor_OneofUnmarshaler, _ScopedRoutes_ScopeKeyBuilder_FragmentBuilder_HeaderValueExtractor_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*ScopedRoutes_ScopeKeyBuilder_FragmentBuilder_HeaderValueExtractor) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*ScopedRoutes_ScopeKeyBuilder_FragmentBuilder_HeaderValueExtractor_Index)(nil),
 		(*ScopedRoutes_ScopeKeyBuilder_FragmentBuilder_HeaderValueExtractor_Element)(nil),
 	}
-}
-
-func _ScopedRoutes_ScopeKeyBuilder_FragmentBuilder_HeaderValueExtractor_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*ScopedRoutes_ScopeKeyBuilder_FragmentBuilder_HeaderValueExtractor)
-	// extract_type
-	switch x := m.ExtractType.(type) {
-	case *ScopedRoutes_ScopeKeyBuilder_FragmentBuilder_HeaderValueExtractor_Index:
-		_ = b.EncodeVarint(3<<3 | proto.WireVarint)
-		_ = b.EncodeVarint(uint64(x.Index))
-	case *ScopedRoutes_ScopeKeyBuilder_FragmentBuilder_HeaderValueExtractor_Element:
-		_ = b.EncodeVarint(4<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.Element); err != nil {
-			return err
-		}
-	case nil:
-	default:
-		return fmt.Errorf("ScopedRoutes_ScopeKeyBuilder_FragmentBuilder_HeaderValueExtractor.ExtractType has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _ScopedRoutes_ScopeKeyBuilder_FragmentBuilder_HeaderValueExtractor_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*ScopedRoutes_ScopeKeyBuilder_FragmentBuilder_HeaderValueExtractor)
-	switch tag {
-	case 3: // extract_type.index
-		if wire != proto.WireVarint {
-			return true, proto.ErrInternalBadWireType
-		}
-		x, err := b.DecodeVarint()
-		m.ExtractType = &ScopedRoutes_ScopeKeyBuilder_FragmentBuilder_HeaderValueExtractor_Index{uint32(x)}
-		return true, err
-	case 4: // extract_type.element
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(ScopedRoutes_ScopeKeyBuilder_FragmentBuilder_HeaderValueExtractor_KvElement)
-		err := b.DecodeMessage(msg)
-		m.ExtractType = &ScopedRoutes_ScopeKeyBuilder_FragmentBuilder_HeaderValueExtractor_Element{msg}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _ScopedRoutes_ScopeKeyBuilder_FragmentBuilder_HeaderValueExtractor_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*ScopedRoutes_ScopeKeyBuilder_FragmentBuilder_HeaderValueExtractor)
-	// extract_type
-	switch x := m.ExtractType.(type) {
-	case *ScopedRoutes_ScopeKeyBuilder_FragmentBuilder_HeaderValueExtractor_Index:
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(x.Index))
-	case *ScopedRoutes_ScopeKeyBuilder_FragmentBuilder_HeaderValueExtractor_Element:
-		s := proto.Size(x.Element)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 // Specifies a header field's key value pair to match on.
@@ -2026,78 +1767,12 @@ func (m *HttpFilter) GetTypedConfig() *types.Any {
 	return nil
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*HttpFilter) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _HttpFilter_OneofMarshaler, _HttpFilter_OneofUnmarshaler, _HttpFilter_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*HttpFilter) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*HttpFilter_Config)(nil),
 		(*HttpFilter_TypedConfig)(nil),
 	}
-}
-
-func _HttpFilter_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*HttpFilter)
-	// config_type
-	switch x := m.ConfigType.(type) {
-	case *HttpFilter_Config:
-		_ = b.EncodeVarint(2<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.Config); err != nil {
-			return err
-		}
-	case *HttpFilter_TypedConfig:
-		_ = b.EncodeVarint(4<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.TypedConfig); err != nil {
-			return err
-		}
-	case nil:
-	default:
-		return fmt.Errorf("HttpFilter.ConfigType has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _HttpFilter_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*HttpFilter)
-	switch tag {
-	case 2: // config_type.config
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(types.Struct)
-		err := b.DecodeMessage(msg)
-		m.ConfigType = &HttpFilter_Config{msg}
-		return true, err
-	case 4: // config_type.typed_config
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(types.Any)
-		err := b.DecodeMessage(msg)
-		m.ConfigType = &HttpFilter_TypedConfig{msg}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _HttpFilter_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*HttpFilter)
-	// config_type
-	switch x := m.ConfigType.(type) {
-	case *HttpFilter_Config:
-		s := proto.Size(x.Config)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *HttpFilter_TypedConfig:
-		s := proto.Size(x.TypedConfig)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 func init() {

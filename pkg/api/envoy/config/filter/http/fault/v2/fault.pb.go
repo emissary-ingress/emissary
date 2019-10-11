@@ -25,7 +25,7 @@ var _ = math.Inf
 // is compatible with the proto package it is being compiled against.
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
-const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
+const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 type FaultAbort struct {
 	// Types that are valid to be assigned to ErrorType:
@@ -105,54 +105,11 @@ func (m *FaultAbort) GetPercentage() *_type.FractionalPercent {
 	return nil
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*FaultAbort) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _FaultAbort_OneofMarshaler, _FaultAbort_OneofUnmarshaler, _FaultAbort_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*FaultAbort) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*FaultAbort_HttpStatus)(nil),
 	}
-}
-
-func _FaultAbort_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*FaultAbort)
-	// error_type
-	switch x := m.ErrorType.(type) {
-	case *FaultAbort_HttpStatus:
-		_ = b.EncodeVarint(2<<3 | proto.WireVarint)
-		_ = b.EncodeVarint(uint64(x.HttpStatus))
-	case nil:
-	default:
-		return fmt.Errorf("FaultAbort.ErrorType has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _FaultAbort_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*FaultAbort)
-	switch tag {
-	case 2: // error_type.http_status
-		if wire != proto.WireVarint {
-			return true, proto.ErrInternalBadWireType
-		}
-		x, err := b.DecodeVarint()
-		m.ErrorType = &FaultAbort_HttpStatus{uint32(x)}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _FaultAbort_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*FaultAbort)
-	// error_type
-	switch x := m.ErrorType.(type) {
-	case *FaultAbort_HttpStatus:
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(x.HttpStatus))
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 type HTTPFault struct {

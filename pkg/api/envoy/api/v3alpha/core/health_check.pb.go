@@ -23,7 +23,7 @@ var _ = math.Inf
 // is compatible with the proto package it is being compiled against.
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
-const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
+const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // Endpoint health status.
 type HealthStatus int32
@@ -349,116 +349,14 @@ func (m *HealthCheck) GetAlwaysLogHealthCheckFailures() bool {
 	return false
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*HealthCheck) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _HealthCheck_OneofMarshaler, _HealthCheck_OneofUnmarshaler, _HealthCheck_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*HealthCheck) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*HealthCheck_HttpHealthCheck_)(nil),
 		(*HealthCheck_TcpHealthCheck_)(nil),
 		(*HealthCheck_GrpcHealthCheck_)(nil),
 		(*HealthCheck_CustomHealthCheck_)(nil),
 	}
-}
-
-func _HealthCheck_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*HealthCheck)
-	// health_checker
-	switch x := m.HealthChecker.(type) {
-	case *HealthCheck_HttpHealthCheck_:
-		_ = b.EncodeVarint(8<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.HttpHealthCheck); err != nil {
-			return err
-		}
-	case *HealthCheck_TcpHealthCheck_:
-		_ = b.EncodeVarint(9<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.TcpHealthCheck); err != nil {
-			return err
-		}
-	case *HealthCheck_GrpcHealthCheck_:
-		_ = b.EncodeVarint(11<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.GrpcHealthCheck); err != nil {
-			return err
-		}
-	case *HealthCheck_CustomHealthCheck_:
-		_ = b.EncodeVarint(13<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.CustomHealthCheck); err != nil {
-			return err
-		}
-	case nil:
-	default:
-		return fmt.Errorf("HealthCheck.HealthChecker has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _HealthCheck_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*HealthCheck)
-	switch tag {
-	case 8: // health_checker.http_health_check
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(HealthCheck_HttpHealthCheck)
-		err := b.DecodeMessage(msg)
-		m.HealthChecker = &HealthCheck_HttpHealthCheck_{msg}
-		return true, err
-	case 9: // health_checker.tcp_health_check
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(HealthCheck_TcpHealthCheck)
-		err := b.DecodeMessage(msg)
-		m.HealthChecker = &HealthCheck_TcpHealthCheck_{msg}
-		return true, err
-	case 11: // health_checker.grpc_health_check
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(HealthCheck_GrpcHealthCheck)
-		err := b.DecodeMessage(msg)
-		m.HealthChecker = &HealthCheck_GrpcHealthCheck_{msg}
-		return true, err
-	case 13: // health_checker.custom_health_check
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(HealthCheck_CustomHealthCheck)
-		err := b.DecodeMessage(msg)
-		m.HealthChecker = &HealthCheck_CustomHealthCheck_{msg}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _HealthCheck_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*HealthCheck)
-	// health_checker
-	switch x := m.HealthChecker.(type) {
-	case *HealthCheck_HttpHealthCheck_:
-		s := proto.Size(x.HttpHealthCheck)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *HealthCheck_TcpHealthCheck_:
-		s := proto.Size(x.TcpHealthCheck)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *HealthCheck_GrpcHealthCheck_:
-		s := proto.Size(x.GrpcHealthCheck)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *HealthCheck_CustomHealthCheck_:
-		s := proto.Size(x.CustomHealthCheck)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 // Describes the encoding of the payload bytes in the payload.
@@ -542,70 +440,12 @@ func (m *HealthCheck_Payload) GetBinary() []byte {
 	return nil
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*HealthCheck_Payload) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _HealthCheck_Payload_OneofMarshaler, _HealthCheck_Payload_OneofUnmarshaler, _HealthCheck_Payload_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*HealthCheck_Payload) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*HealthCheck_Payload_Text)(nil),
 		(*HealthCheck_Payload_Binary)(nil),
 	}
-}
-
-func _HealthCheck_Payload_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*HealthCheck_Payload)
-	// payload
-	switch x := m.Payload.(type) {
-	case *HealthCheck_Payload_Text:
-		_ = b.EncodeVarint(1<<3 | proto.WireBytes)
-		_ = b.EncodeStringBytes(x.Text)
-	case *HealthCheck_Payload_Binary:
-		_ = b.EncodeVarint(2<<3 | proto.WireBytes)
-		_ = b.EncodeRawBytes(x.Binary)
-	case nil:
-	default:
-		return fmt.Errorf("HealthCheck_Payload.Payload has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _HealthCheck_Payload_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*HealthCheck_Payload)
-	switch tag {
-	case 1: // payload.text
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		x, err := b.DecodeStringBytes()
-		m.Payload = &HealthCheck_Payload_Text{x}
-		return true, err
-	case 2: // payload.binary
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		x, err := b.DecodeRawBytes(true)
-		m.Payload = &HealthCheck_Payload_Binary{x}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _HealthCheck_Payload_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*HealthCheck_Payload)
-	// payload
-	switch x := m.Payload.(type) {
-	case *HealthCheck_Payload_Text:
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(len(x.Text)))
-		n += len(x.Text)
-	case *HealthCheck_Payload_Binary:
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(len(x.Binary)))
-		n += len(x.Binary)
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 // [#comment:next free field: 10]
@@ -1010,78 +850,12 @@ func (m *HealthCheck_CustomHealthCheck) GetTypedConfig() *types.Any {
 	return nil
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*HealthCheck_CustomHealthCheck) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _HealthCheck_CustomHealthCheck_OneofMarshaler, _HealthCheck_CustomHealthCheck_OneofUnmarshaler, _HealthCheck_CustomHealthCheck_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*HealthCheck_CustomHealthCheck) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*HealthCheck_CustomHealthCheck_Config)(nil),
 		(*HealthCheck_CustomHealthCheck_TypedConfig)(nil),
 	}
-}
-
-func _HealthCheck_CustomHealthCheck_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*HealthCheck_CustomHealthCheck)
-	// config_type
-	switch x := m.ConfigType.(type) {
-	case *HealthCheck_CustomHealthCheck_Config:
-		_ = b.EncodeVarint(2<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.Config); err != nil {
-			return err
-		}
-	case *HealthCheck_CustomHealthCheck_TypedConfig:
-		_ = b.EncodeVarint(3<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.TypedConfig); err != nil {
-			return err
-		}
-	case nil:
-	default:
-		return fmt.Errorf("HealthCheck_CustomHealthCheck.ConfigType has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _HealthCheck_CustomHealthCheck_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*HealthCheck_CustomHealthCheck)
-	switch tag {
-	case 2: // config_type.config
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(types.Struct)
-		err := b.DecodeMessage(msg)
-		m.ConfigType = &HealthCheck_CustomHealthCheck_Config{msg}
-		return true, err
-	case 3: // config_type.typed_config
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(types.Any)
-		err := b.DecodeMessage(msg)
-		m.ConfigType = &HealthCheck_CustomHealthCheck_TypedConfig{msg}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _HealthCheck_CustomHealthCheck_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*HealthCheck_CustomHealthCheck)
-	// config_type
-	switch x := m.ConfigType.(type) {
-	case *HealthCheck_CustomHealthCheck_Config:
-		s := proto.Size(x.Config)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *HealthCheck_CustomHealthCheck_TypedConfig:
-		s := proto.Size(x.TypedConfig)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 func init() {

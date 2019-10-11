@@ -24,7 +24,7 @@ var _ = math.Inf
 // is compatible with the proto package it is being compiled against.
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
-const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
+const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 type TcpProxy struct {
 	// The prefix to use when emitting :ref:`statistics
@@ -192,74 +192,12 @@ func (m *TcpProxy) GetMaxConnectAttempts() *types.UInt32Value {
 	return nil
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*TcpProxy) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _TcpProxy_OneofMarshaler, _TcpProxy_OneofUnmarshaler, _TcpProxy_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*TcpProxy) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*TcpProxy_Cluster)(nil),
 		(*TcpProxy_WeightedClusters)(nil),
 	}
-}
-
-func _TcpProxy_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*TcpProxy)
-	// cluster_specifier
-	switch x := m.ClusterSpecifier.(type) {
-	case *TcpProxy_Cluster:
-		_ = b.EncodeVarint(2<<3 | proto.WireBytes)
-		_ = b.EncodeStringBytes(x.Cluster)
-	case *TcpProxy_WeightedClusters:
-		_ = b.EncodeVarint(10<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.WeightedClusters); err != nil {
-			return err
-		}
-	case nil:
-	default:
-		return fmt.Errorf("TcpProxy.ClusterSpecifier has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _TcpProxy_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*TcpProxy)
-	switch tag {
-	case 2: // cluster_specifier.cluster
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		x, err := b.DecodeStringBytes()
-		m.ClusterSpecifier = &TcpProxy_Cluster{x}
-		return true, err
-	case 10: // cluster_specifier.weighted_clusters
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(TcpProxy_WeightedCluster)
-		err := b.DecodeMessage(msg)
-		m.ClusterSpecifier = &TcpProxy_WeightedClusters{msg}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _TcpProxy_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*TcpProxy)
-	// cluster_specifier
-	switch x := m.ClusterSpecifier.(type) {
-	case *TcpProxy_Cluster:
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(len(x.Cluster)))
-		n += len(x.Cluster)
-	case *TcpProxy_WeightedClusters:
-		s := proto.Size(x.WeightedClusters)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 // [#not-implemented-hide:] Deprecated.

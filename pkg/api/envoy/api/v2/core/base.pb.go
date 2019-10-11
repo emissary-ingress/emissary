@@ -23,7 +23,7 @@ var _ = math.Inf
 // is compatible with the proto package it is being compiled against.
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
-const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
+const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // Envoy supports :ref:`upstream priority routing
 // <arch_overview_http_routing_priority>` both at the route and the virtual
@@ -741,85 +741,13 @@ func (m *DataSource) GetInlineString() string {
 	return ""
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*DataSource) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _DataSource_OneofMarshaler, _DataSource_OneofUnmarshaler, _DataSource_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*DataSource) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*DataSource_Filename)(nil),
 		(*DataSource_InlineBytes)(nil),
 		(*DataSource_InlineString)(nil),
 	}
-}
-
-func _DataSource_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*DataSource)
-	// specifier
-	switch x := m.Specifier.(type) {
-	case *DataSource_Filename:
-		_ = b.EncodeVarint(1<<3 | proto.WireBytes)
-		_ = b.EncodeStringBytes(x.Filename)
-	case *DataSource_InlineBytes:
-		_ = b.EncodeVarint(2<<3 | proto.WireBytes)
-		_ = b.EncodeRawBytes(x.InlineBytes)
-	case *DataSource_InlineString:
-		_ = b.EncodeVarint(3<<3 | proto.WireBytes)
-		_ = b.EncodeStringBytes(x.InlineString)
-	case nil:
-	default:
-		return fmt.Errorf("DataSource.Specifier has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _DataSource_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*DataSource)
-	switch tag {
-	case 1: // specifier.filename
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		x, err := b.DecodeStringBytes()
-		m.Specifier = &DataSource_Filename{x}
-		return true, err
-	case 2: // specifier.inline_bytes
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		x, err := b.DecodeRawBytes(true)
-		m.Specifier = &DataSource_InlineBytes{x}
-		return true, err
-	case 3: // specifier.inline_string
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		x, err := b.DecodeStringBytes()
-		m.Specifier = &DataSource_InlineString{x}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _DataSource_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*DataSource)
-	// specifier
-	switch x := m.Specifier.(type) {
-	case *DataSource_Filename:
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(len(x.Filename)))
-		n += len(x.Filename)
-	case *DataSource_InlineBytes:
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(len(x.InlineBytes)))
-		n += len(x.InlineBytes)
-	case *DataSource_InlineString:
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(len(x.InlineString)))
-		n += len(x.InlineString)
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 // The message specifies how to fetch data from remote and how to verify it.
@@ -961,78 +889,12 @@ func (m *AsyncDataSource) GetRemote() *RemoteDataSource {
 	return nil
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*AsyncDataSource) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _AsyncDataSource_OneofMarshaler, _AsyncDataSource_OneofUnmarshaler, _AsyncDataSource_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*AsyncDataSource) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*AsyncDataSource_Local)(nil),
 		(*AsyncDataSource_Remote)(nil),
 	}
-}
-
-func _AsyncDataSource_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*AsyncDataSource)
-	// specifier
-	switch x := m.Specifier.(type) {
-	case *AsyncDataSource_Local:
-		_ = b.EncodeVarint(1<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.Local); err != nil {
-			return err
-		}
-	case *AsyncDataSource_Remote:
-		_ = b.EncodeVarint(2<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.Remote); err != nil {
-			return err
-		}
-	case nil:
-	default:
-		return fmt.Errorf("AsyncDataSource.Specifier has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _AsyncDataSource_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*AsyncDataSource)
-	switch tag {
-	case 1: // specifier.local
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(DataSource)
-		err := b.DecodeMessage(msg)
-		m.Specifier = &AsyncDataSource_Local{msg}
-		return true, err
-	case 2: // specifier.remote
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(RemoteDataSource)
-		err := b.DecodeMessage(msg)
-		m.Specifier = &AsyncDataSource_Remote{msg}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _AsyncDataSource_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*AsyncDataSource)
-	// specifier
-	switch x := m.Specifier.(type) {
-	case *AsyncDataSource_Local:
-		s := proto.Size(x.Local)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *AsyncDataSource_Remote:
-		s := proto.Size(x.Remote)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 // Configuration for transport socket in :ref:`listeners <config_listeners>` and
@@ -1132,78 +994,12 @@ func (m *TransportSocket) GetTypedConfig() *types.Any {
 	return nil
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*TransportSocket) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _TransportSocket_OneofMarshaler, _TransportSocket_OneofUnmarshaler, _TransportSocket_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*TransportSocket) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*TransportSocket_Config)(nil),
 		(*TransportSocket_TypedConfig)(nil),
 	}
-}
-
-func _TransportSocket_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*TransportSocket)
-	// config_type
-	switch x := m.ConfigType.(type) {
-	case *TransportSocket_Config:
-		_ = b.EncodeVarint(2<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.Config); err != nil {
-			return err
-		}
-	case *TransportSocket_TypedConfig:
-		_ = b.EncodeVarint(3<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.TypedConfig); err != nil {
-			return err
-		}
-	case nil:
-	default:
-		return fmt.Errorf("TransportSocket.ConfigType has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _TransportSocket_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*TransportSocket)
-	switch tag {
-	case 2: // config_type.config
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(types.Struct)
-		err := b.DecodeMessage(msg)
-		m.ConfigType = &TransportSocket_Config{msg}
-		return true, err
-	case 3: // config_type.typed_config
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(types.Any)
-		err := b.DecodeMessage(msg)
-		m.ConfigType = &TransportSocket_TypedConfig{msg}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _TransportSocket_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*TransportSocket)
-	// config_type
-	switch x := m.ConfigType.(type) {
-	case *TransportSocket_Config:
-		s := proto.Size(x.Config)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *TransportSocket_TypedConfig:
-		s := proto.Size(x.TypedConfig)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 // Generic socket option message. This would be used to set socket options that
@@ -1326,69 +1122,12 @@ func (m *SocketOption) GetState() SocketOption_SocketState {
 	return SocketOption_STATE_PREBIND
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*SocketOption) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _SocketOption_OneofMarshaler, _SocketOption_OneofUnmarshaler, _SocketOption_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*SocketOption) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*SocketOption_IntValue)(nil),
 		(*SocketOption_BufValue)(nil),
 	}
-}
-
-func _SocketOption_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*SocketOption)
-	// value
-	switch x := m.Value.(type) {
-	case *SocketOption_IntValue:
-		_ = b.EncodeVarint(4<<3 | proto.WireVarint)
-		_ = b.EncodeVarint(uint64(x.IntValue))
-	case *SocketOption_BufValue:
-		_ = b.EncodeVarint(5<<3 | proto.WireBytes)
-		_ = b.EncodeRawBytes(x.BufValue)
-	case nil:
-	default:
-		return fmt.Errorf("SocketOption.Value has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _SocketOption_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*SocketOption)
-	switch tag {
-	case 4: // value.int_value
-		if wire != proto.WireVarint {
-			return true, proto.ErrInternalBadWireType
-		}
-		x, err := b.DecodeVarint()
-		m.Value = &SocketOption_IntValue{int64(x)}
-		return true, err
-	case 5: // value.buf_value
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		x, err := b.DecodeRawBytes(true)
-		m.Value = &SocketOption_BufValue{x}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _SocketOption_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*SocketOption)
-	// value
-	switch x := m.Value.(type) {
-	case *SocketOption_IntValue:
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(x.IntValue))
-	case *SocketOption_BufValue:
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(len(x.BufValue)))
-		n += len(x.BufValue)
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 // Runtime derived FractionalPercent with defaults for when the numerator or denominator is not

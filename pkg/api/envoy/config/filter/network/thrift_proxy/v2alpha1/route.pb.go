@@ -24,7 +24,7 @@ var _ = math.Inf
 // is compatible with the proto package it is being compiled against.
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
-const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
+const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // [#comment:next free field: 3]
 type RouteConfiguration struct {
@@ -257,70 +257,12 @@ func (m *RouteMatch) GetHeaders() []*route.HeaderMatcher {
 	return nil
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*RouteMatch) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _RouteMatch_OneofMarshaler, _RouteMatch_OneofUnmarshaler, _RouteMatch_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*RouteMatch) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*RouteMatch_MethodName)(nil),
 		(*RouteMatch_ServiceName)(nil),
 	}
-}
-
-func _RouteMatch_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*RouteMatch)
-	// match_specifier
-	switch x := m.MatchSpecifier.(type) {
-	case *RouteMatch_MethodName:
-		_ = b.EncodeVarint(1<<3 | proto.WireBytes)
-		_ = b.EncodeStringBytes(x.MethodName)
-	case *RouteMatch_ServiceName:
-		_ = b.EncodeVarint(2<<3 | proto.WireBytes)
-		_ = b.EncodeStringBytes(x.ServiceName)
-	case nil:
-	default:
-		return fmt.Errorf("RouteMatch.MatchSpecifier has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _RouteMatch_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*RouteMatch)
-	switch tag {
-	case 1: // match_specifier.method_name
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		x, err := b.DecodeStringBytes()
-		m.MatchSpecifier = &RouteMatch_MethodName{x}
-		return true, err
-	case 2: // match_specifier.service_name
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		x, err := b.DecodeStringBytes()
-		m.MatchSpecifier = &RouteMatch_ServiceName{x}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _RouteMatch_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*RouteMatch)
-	// match_specifier
-	switch x := m.MatchSpecifier.(type) {
-	case *RouteMatch_MethodName:
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(len(x.MethodName)))
-		n += len(x.MethodName)
-	case *RouteMatch_ServiceName:
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(len(x.ServiceName)))
-		n += len(x.ServiceName)
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 // [#comment:next free field: 5]
@@ -429,74 +371,12 @@ func (m *RouteAction) GetRateLimits() []*route.RateLimit {
 	return nil
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*RouteAction) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _RouteAction_OneofMarshaler, _RouteAction_OneofUnmarshaler, _RouteAction_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*RouteAction) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*RouteAction_Cluster)(nil),
 		(*RouteAction_WeightedClusters)(nil),
 	}
-}
-
-func _RouteAction_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*RouteAction)
-	// cluster_specifier
-	switch x := m.ClusterSpecifier.(type) {
-	case *RouteAction_Cluster:
-		_ = b.EncodeVarint(1<<3 | proto.WireBytes)
-		_ = b.EncodeStringBytes(x.Cluster)
-	case *RouteAction_WeightedClusters:
-		_ = b.EncodeVarint(2<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.WeightedClusters); err != nil {
-			return err
-		}
-	case nil:
-	default:
-		return fmt.Errorf("RouteAction.ClusterSpecifier has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _RouteAction_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*RouteAction)
-	switch tag {
-	case 1: // cluster_specifier.cluster
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		x, err := b.DecodeStringBytes()
-		m.ClusterSpecifier = &RouteAction_Cluster{x}
-		return true, err
-	case 2: // cluster_specifier.weighted_clusters
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(WeightedCluster)
-		err := b.DecodeMessage(msg)
-		m.ClusterSpecifier = &RouteAction_WeightedClusters{msg}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _RouteAction_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*RouteAction)
-	// cluster_specifier
-	switch x := m.ClusterSpecifier.(type) {
-	case *RouteAction_Cluster:
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(len(x.Cluster)))
-		n += len(x.Cluster)
-	case *RouteAction_WeightedClusters:
-		s := proto.Size(x.WeightedClusters)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 // Allows for specification of multiple upstream clusters along with weights that indicate the

@@ -22,7 +22,7 @@ var _ = math.Inf
 // is compatible with the proto package it is being compiled against.
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
-const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
+const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // gRPC service configuration. This is used by :ref:`ApiConfigSource
 // <envoy_api_msg_core.ApiConfigSource>` and filter configurations.
@@ -127,78 +127,12 @@ func (m *GrpcService) GetInitialMetadata() []*HeaderValue {
 	return nil
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*GrpcService) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _GrpcService_OneofMarshaler, _GrpcService_OneofUnmarshaler, _GrpcService_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*GrpcService) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*GrpcService_EnvoyGrpc_)(nil),
 		(*GrpcService_GoogleGrpc_)(nil),
 	}
-}
-
-func _GrpcService_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*GrpcService)
-	// target_specifier
-	switch x := m.TargetSpecifier.(type) {
-	case *GrpcService_EnvoyGrpc_:
-		_ = b.EncodeVarint(1<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.EnvoyGrpc); err != nil {
-			return err
-		}
-	case *GrpcService_GoogleGrpc_:
-		_ = b.EncodeVarint(2<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.GoogleGrpc); err != nil {
-			return err
-		}
-	case nil:
-	default:
-		return fmt.Errorf("GrpcService.TargetSpecifier has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _GrpcService_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*GrpcService)
-	switch tag {
-	case 1: // target_specifier.envoy_grpc
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(GrpcService_EnvoyGrpc)
-		err := b.DecodeMessage(msg)
-		m.TargetSpecifier = &GrpcService_EnvoyGrpc_{msg}
-		return true, err
-	case 2: // target_specifier.google_grpc
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(GrpcService_GoogleGrpc)
-		err := b.DecodeMessage(msg)
-		m.TargetSpecifier = &GrpcService_GoogleGrpc_{msg}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _GrpcService_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*GrpcService)
-	// target_specifier
-	switch x := m.TargetSpecifier.(type) {
-	case *GrpcService_EnvoyGrpc_:
-		s := proto.Size(x.EnvoyGrpc)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *GrpcService_GoogleGrpc_:
-		s := proto.Size(x.GoogleGrpc)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 type GrpcService_EnvoyGrpc struct {
@@ -569,97 +503,13 @@ func (m *GrpcService_GoogleGrpc_ChannelCredentials) GetLocalCredentials() *GrpcS
 	return nil
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*GrpcService_GoogleGrpc_ChannelCredentials) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _GrpcService_GoogleGrpc_ChannelCredentials_OneofMarshaler, _GrpcService_GoogleGrpc_ChannelCredentials_OneofUnmarshaler, _GrpcService_GoogleGrpc_ChannelCredentials_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*GrpcService_GoogleGrpc_ChannelCredentials) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*GrpcService_GoogleGrpc_ChannelCredentials_SslCredentials)(nil),
 		(*GrpcService_GoogleGrpc_ChannelCredentials_GoogleDefault)(nil),
 		(*GrpcService_GoogleGrpc_ChannelCredentials_LocalCredentials)(nil),
 	}
-}
-
-func _GrpcService_GoogleGrpc_ChannelCredentials_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*GrpcService_GoogleGrpc_ChannelCredentials)
-	// credential_specifier
-	switch x := m.CredentialSpecifier.(type) {
-	case *GrpcService_GoogleGrpc_ChannelCredentials_SslCredentials:
-		_ = b.EncodeVarint(1<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.SslCredentials); err != nil {
-			return err
-		}
-	case *GrpcService_GoogleGrpc_ChannelCredentials_GoogleDefault:
-		_ = b.EncodeVarint(2<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.GoogleDefault); err != nil {
-			return err
-		}
-	case *GrpcService_GoogleGrpc_ChannelCredentials_LocalCredentials:
-		_ = b.EncodeVarint(3<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.LocalCredentials); err != nil {
-			return err
-		}
-	case nil:
-	default:
-		return fmt.Errorf("GrpcService_GoogleGrpc_ChannelCredentials.CredentialSpecifier has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _GrpcService_GoogleGrpc_ChannelCredentials_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*GrpcService_GoogleGrpc_ChannelCredentials)
-	switch tag {
-	case 1: // credential_specifier.ssl_credentials
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(GrpcService_GoogleGrpc_SslCredentials)
-		err := b.DecodeMessage(msg)
-		m.CredentialSpecifier = &GrpcService_GoogleGrpc_ChannelCredentials_SslCredentials{msg}
-		return true, err
-	case 2: // credential_specifier.google_default
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(types.Empty)
-		err := b.DecodeMessage(msg)
-		m.CredentialSpecifier = &GrpcService_GoogleGrpc_ChannelCredentials_GoogleDefault{msg}
-		return true, err
-	case 3: // credential_specifier.local_credentials
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(GrpcService_GoogleGrpc_GoogleLocalCredentials)
-		err := b.DecodeMessage(msg)
-		m.CredentialSpecifier = &GrpcService_GoogleGrpc_ChannelCredentials_LocalCredentials{msg}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _GrpcService_GoogleGrpc_ChannelCredentials_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*GrpcService_GoogleGrpc_ChannelCredentials)
-	// credential_specifier
-	switch x := m.CredentialSpecifier.(type) {
-	case *GrpcService_GoogleGrpc_ChannelCredentials_SslCredentials:
-		s := proto.Size(x.SslCredentials)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *GrpcService_GoogleGrpc_ChannelCredentials_GoogleDefault:
-		s := proto.Size(x.GoogleDefault)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *GrpcService_GoogleGrpc_ChannelCredentials_LocalCredentials:
-		s := proto.Size(x.LocalCredentials)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 type GrpcService_GoogleGrpc_CallCredentials struct {
@@ -798,9 +648,9 @@ func (m *GrpcService_GoogleGrpc_CallCredentials) GetFromPlugin() *GrpcService_Go
 	return nil
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*GrpcService_GoogleGrpc_CallCredentials) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _GrpcService_GoogleGrpc_CallCredentials_OneofMarshaler, _GrpcService_GoogleGrpc_CallCredentials_OneofUnmarshaler, _GrpcService_GoogleGrpc_CallCredentials_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*GrpcService_GoogleGrpc_CallCredentials) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*GrpcService_GoogleGrpc_CallCredentials_AccessToken)(nil),
 		(*GrpcService_GoogleGrpc_CallCredentials_GoogleComputeEngine)(nil),
 		(*GrpcService_GoogleGrpc_CallCredentials_GoogleRefreshToken)(nil),
@@ -808,136 +658,6 @@ func (*GrpcService_GoogleGrpc_CallCredentials) XXX_OneofFuncs() (func(msg proto.
 		(*GrpcService_GoogleGrpc_CallCredentials_GoogleIam)(nil),
 		(*GrpcService_GoogleGrpc_CallCredentials_FromPlugin)(nil),
 	}
-}
-
-func _GrpcService_GoogleGrpc_CallCredentials_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*GrpcService_GoogleGrpc_CallCredentials)
-	// credential_specifier
-	switch x := m.CredentialSpecifier.(type) {
-	case *GrpcService_GoogleGrpc_CallCredentials_AccessToken:
-		_ = b.EncodeVarint(1<<3 | proto.WireBytes)
-		_ = b.EncodeStringBytes(x.AccessToken)
-	case *GrpcService_GoogleGrpc_CallCredentials_GoogleComputeEngine:
-		_ = b.EncodeVarint(2<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.GoogleComputeEngine); err != nil {
-			return err
-		}
-	case *GrpcService_GoogleGrpc_CallCredentials_GoogleRefreshToken:
-		_ = b.EncodeVarint(3<<3 | proto.WireBytes)
-		_ = b.EncodeStringBytes(x.GoogleRefreshToken)
-	case *GrpcService_GoogleGrpc_CallCredentials_ServiceAccountJwtAccess:
-		_ = b.EncodeVarint(4<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.ServiceAccountJwtAccess); err != nil {
-			return err
-		}
-	case *GrpcService_GoogleGrpc_CallCredentials_GoogleIam:
-		_ = b.EncodeVarint(5<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.GoogleIam); err != nil {
-			return err
-		}
-	case *GrpcService_GoogleGrpc_CallCredentials_FromPlugin:
-		_ = b.EncodeVarint(6<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.FromPlugin); err != nil {
-			return err
-		}
-	case nil:
-	default:
-		return fmt.Errorf("GrpcService_GoogleGrpc_CallCredentials.CredentialSpecifier has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _GrpcService_GoogleGrpc_CallCredentials_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*GrpcService_GoogleGrpc_CallCredentials)
-	switch tag {
-	case 1: // credential_specifier.access_token
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		x, err := b.DecodeStringBytes()
-		m.CredentialSpecifier = &GrpcService_GoogleGrpc_CallCredentials_AccessToken{x}
-		return true, err
-	case 2: // credential_specifier.google_compute_engine
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(types.Empty)
-		err := b.DecodeMessage(msg)
-		m.CredentialSpecifier = &GrpcService_GoogleGrpc_CallCredentials_GoogleComputeEngine{msg}
-		return true, err
-	case 3: // credential_specifier.google_refresh_token
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		x, err := b.DecodeStringBytes()
-		m.CredentialSpecifier = &GrpcService_GoogleGrpc_CallCredentials_GoogleRefreshToken{x}
-		return true, err
-	case 4: // credential_specifier.service_account_jwt_access
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(GrpcService_GoogleGrpc_CallCredentials_ServiceAccountJWTAccessCredentials)
-		err := b.DecodeMessage(msg)
-		m.CredentialSpecifier = &GrpcService_GoogleGrpc_CallCredentials_ServiceAccountJwtAccess{msg}
-		return true, err
-	case 5: // credential_specifier.google_iam
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(GrpcService_GoogleGrpc_CallCredentials_GoogleIAMCredentials)
-		err := b.DecodeMessage(msg)
-		m.CredentialSpecifier = &GrpcService_GoogleGrpc_CallCredentials_GoogleIam{msg}
-		return true, err
-	case 6: // credential_specifier.from_plugin
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(GrpcService_GoogleGrpc_CallCredentials_MetadataCredentialsFromPlugin)
-		err := b.DecodeMessage(msg)
-		m.CredentialSpecifier = &GrpcService_GoogleGrpc_CallCredentials_FromPlugin{msg}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _GrpcService_GoogleGrpc_CallCredentials_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*GrpcService_GoogleGrpc_CallCredentials)
-	// credential_specifier
-	switch x := m.CredentialSpecifier.(type) {
-	case *GrpcService_GoogleGrpc_CallCredentials_AccessToken:
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(len(x.AccessToken)))
-		n += len(x.AccessToken)
-	case *GrpcService_GoogleGrpc_CallCredentials_GoogleComputeEngine:
-		s := proto.Size(x.GoogleComputeEngine)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *GrpcService_GoogleGrpc_CallCredentials_GoogleRefreshToken:
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(len(x.GoogleRefreshToken)))
-		n += len(x.GoogleRefreshToken)
-	case *GrpcService_GoogleGrpc_CallCredentials_ServiceAccountJwtAccess:
-		s := proto.Size(x.ServiceAccountJwtAccess)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *GrpcService_GoogleGrpc_CallCredentials_GoogleIam:
-		s := proto.Size(x.GoogleIam)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *GrpcService_GoogleGrpc_CallCredentials_FromPlugin:
-		s := proto.Size(x.FromPlugin)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 type GrpcService_GoogleGrpc_CallCredentials_ServiceAccountJWTAccessCredentials struct {
@@ -1152,78 +872,12 @@ func (m *GrpcService_GoogleGrpc_CallCredentials_MetadataCredentialsFromPlugin) G
 	return nil
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*GrpcService_GoogleGrpc_CallCredentials_MetadataCredentialsFromPlugin) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _GrpcService_GoogleGrpc_CallCredentials_MetadataCredentialsFromPlugin_OneofMarshaler, _GrpcService_GoogleGrpc_CallCredentials_MetadataCredentialsFromPlugin_OneofUnmarshaler, _GrpcService_GoogleGrpc_CallCredentials_MetadataCredentialsFromPlugin_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*GrpcService_GoogleGrpc_CallCredentials_MetadataCredentialsFromPlugin) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*GrpcService_GoogleGrpc_CallCredentials_MetadataCredentialsFromPlugin_Config)(nil),
 		(*GrpcService_GoogleGrpc_CallCredentials_MetadataCredentialsFromPlugin_TypedConfig)(nil),
 	}
-}
-
-func _GrpcService_GoogleGrpc_CallCredentials_MetadataCredentialsFromPlugin_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*GrpcService_GoogleGrpc_CallCredentials_MetadataCredentialsFromPlugin)
-	// config_type
-	switch x := m.ConfigType.(type) {
-	case *GrpcService_GoogleGrpc_CallCredentials_MetadataCredentialsFromPlugin_Config:
-		_ = b.EncodeVarint(2<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.Config); err != nil {
-			return err
-		}
-	case *GrpcService_GoogleGrpc_CallCredentials_MetadataCredentialsFromPlugin_TypedConfig:
-		_ = b.EncodeVarint(3<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.TypedConfig); err != nil {
-			return err
-		}
-	case nil:
-	default:
-		return fmt.Errorf("GrpcService_GoogleGrpc_CallCredentials_MetadataCredentialsFromPlugin.ConfigType has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _GrpcService_GoogleGrpc_CallCredentials_MetadataCredentialsFromPlugin_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*GrpcService_GoogleGrpc_CallCredentials_MetadataCredentialsFromPlugin)
-	switch tag {
-	case 2: // config_type.config
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(types.Struct)
-		err := b.DecodeMessage(msg)
-		m.ConfigType = &GrpcService_GoogleGrpc_CallCredentials_MetadataCredentialsFromPlugin_Config{msg}
-		return true, err
-	case 3: // config_type.typed_config
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(types.Any)
-		err := b.DecodeMessage(msg)
-		m.ConfigType = &GrpcService_GoogleGrpc_CallCredentials_MetadataCredentialsFromPlugin_TypedConfig{msg}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _GrpcService_GoogleGrpc_CallCredentials_MetadataCredentialsFromPlugin_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*GrpcService_GoogleGrpc_CallCredentials_MetadataCredentialsFromPlugin)
-	// config_type
-	switch x := m.ConfigType.(type) {
-	case *GrpcService_GoogleGrpc_CallCredentials_MetadataCredentialsFromPlugin_Config:
-		s := proto.Size(x.Config)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *GrpcService_GoogleGrpc_CallCredentials_MetadataCredentialsFromPlugin_TypedConfig:
-		s := proto.Size(x.TypedConfig)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 func init() {

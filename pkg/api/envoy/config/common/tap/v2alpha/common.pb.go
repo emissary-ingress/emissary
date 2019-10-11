@@ -23,7 +23,7 @@ var _ = math.Inf
 // is compatible with the proto package it is being compiled against.
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
-const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
+const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // Common configuration for all tap extensions.
 type CommonExtensionConfig struct {
@@ -118,97 +118,13 @@ func (m *CommonExtensionConfig) GetTapdsConfig() *CommonExtensionConfig_TapDSCon
 	return nil
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*CommonExtensionConfig) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _CommonExtensionConfig_OneofMarshaler, _CommonExtensionConfig_OneofUnmarshaler, _CommonExtensionConfig_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*CommonExtensionConfig) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*CommonExtensionConfig_AdminConfig)(nil),
 		(*CommonExtensionConfig_StaticConfig)(nil),
 		(*CommonExtensionConfig_TapdsConfig)(nil),
 	}
-}
-
-func _CommonExtensionConfig_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*CommonExtensionConfig)
-	// config_type
-	switch x := m.ConfigType.(type) {
-	case *CommonExtensionConfig_AdminConfig:
-		_ = b.EncodeVarint(1<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.AdminConfig); err != nil {
-			return err
-		}
-	case *CommonExtensionConfig_StaticConfig:
-		_ = b.EncodeVarint(2<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.StaticConfig); err != nil {
-			return err
-		}
-	case *CommonExtensionConfig_TapdsConfig:
-		_ = b.EncodeVarint(3<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.TapdsConfig); err != nil {
-			return err
-		}
-	case nil:
-	default:
-		return fmt.Errorf("CommonExtensionConfig.ConfigType has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _CommonExtensionConfig_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*CommonExtensionConfig)
-	switch tag {
-	case 1: // config_type.admin_config
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(AdminConfig)
-		err := b.DecodeMessage(msg)
-		m.ConfigType = &CommonExtensionConfig_AdminConfig{msg}
-		return true, err
-	case 2: // config_type.static_config
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(v2alpha.TapConfig)
-		err := b.DecodeMessage(msg)
-		m.ConfigType = &CommonExtensionConfig_StaticConfig{msg}
-		return true, err
-	case 3: // config_type.tapds_config
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(CommonExtensionConfig_TapDSConfig)
-		err := b.DecodeMessage(msg)
-		m.ConfigType = &CommonExtensionConfig_TapdsConfig{msg}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _CommonExtensionConfig_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*CommonExtensionConfig)
-	// config_type
-	switch x := m.ConfigType.(type) {
-	case *CommonExtensionConfig_AdminConfig:
-		s := proto.Size(x.AdminConfig)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *CommonExtensionConfig_StaticConfig:
-		s := proto.Size(x.StaticConfig)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *CommonExtensionConfig_TapdsConfig:
-		s := proto.Size(x.TapdsConfig)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 // [#not-implemented-hide:]

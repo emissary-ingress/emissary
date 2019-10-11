@@ -23,7 +23,7 @@ var _ = math.Inf
 // is compatible with the proto package it is being compiled against.
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
-const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
+const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 type HealthCheckFailureType int32
 
@@ -233,135 +233,15 @@ func (m *HealthCheckEvent) GetTimestamp() *types.Timestamp {
 	return nil
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*HealthCheckEvent) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _HealthCheckEvent_OneofMarshaler, _HealthCheckEvent_OneofUnmarshaler, _HealthCheckEvent_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*HealthCheckEvent) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*HealthCheckEvent_EjectUnhealthyEvent)(nil),
 		(*HealthCheckEvent_AddHealthyEvent)(nil),
 		(*HealthCheckEvent_HealthCheckFailureEvent)(nil),
 		(*HealthCheckEvent_DegradedHealthyHost)(nil),
 		(*HealthCheckEvent_NoLongerDegradedHost)(nil),
 	}
-}
-
-func _HealthCheckEvent_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*HealthCheckEvent)
-	// event
-	switch x := m.Event.(type) {
-	case *HealthCheckEvent_EjectUnhealthyEvent:
-		_ = b.EncodeVarint(4<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.EjectUnhealthyEvent); err != nil {
-			return err
-		}
-	case *HealthCheckEvent_AddHealthyEvent:
-		_ = b.EncodeVarint(5<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.AddHealthyEvent); err != nil {
-			return err
-		}
-	case *HealthCheckEvent_HealthCheckFailureEvent:
-		_ = b.EncodeVarint(7<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.HealthCheckFailureEvent); err != nil {
-			return err
-		}
-	case *HealthCheckEvent_DegradedHealthyHost:
-		_ = b.EncodeVarint(8<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.DegradedHealthyHost); err != nil {
-			return err
-		}
-	case *HealthCheckEvent_NoLongerDegradedHost:
-		_ = b.EncodeVarint(9<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.NoLongerDegradedHost); err != nil {
-			return err
-		}
-	case nil:
-	default:
-		return fmt.Errorf("HealthCheckEvent.Event has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _HealthCheckEvent_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*HealthCheckEvent)
-	switch tag {
-	case 4: // event.eject_unhealthy_event
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(HealthCheckEjectUnhealthy)
-		err := b.DecodeMessage(msg)
-		m.Event = &HealthCheckEvent_EjectUnhealthyEvent{msg}
-		return true, err
-	case 5: // event.add_healthy_event
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(HealthCheckAddHealthy)
-		err := b.DecodeMessage(msg)
-		m.Event = &HealthCheckEvent_AddHealthyEvent{msg}
-		return true, err
-	case 7: // event.health_check_failure_event
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(HealthCheckFailure)
-		err := b.DecodeMessage(msg)
-		m.Event = &HealthCheckEvent_HealthCheckFailureEvent{msg}
-		return true, err
-	case 8: // event.degraded_healthy_host
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(DegradedHealthyHost)
-		err := b.DecodeMessage(msg)
-		m.Event = &HealthCheckEvent_DegradedHealthyHost{msg}
-		return true, err
-	case 9: // event.no_longer_degraded_host
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(NoLongerDegradedHost)
-		err := b.DecodeMessage(msg)
-		m.Event = &HealthCheckEvent_NoLongerDegradedHost{msg}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _HealthCheckEvent_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*HealthCheckEvent)
-	// event
-	switch x := m.Event.(type) {
-	case *HealthCheckEvent_EjectUnhealthyEvent:
-		s := proto.Size(x.EjectUnhealthyEvent)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *HealthCheckEvent_AddHealthyEvent:
-		s := proto.Size(x.AddHealthyEvent)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *HealthCheckEvent_HealthCheckFailureEvent:
-		s := proto.Size(x.HealthCheckFailureEvent)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *HealthCheckEvent_DegradedHealthyHost:
-		s := proto.Size(x.DegradedHealthyHost)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *HealthCheckEvent_NoLongerDegradedHost:
-		s := proto.Size(x.NoLongerDegradedHost)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 type HealthCheckEjectUnhealthy struct {

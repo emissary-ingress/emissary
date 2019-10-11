@@ -16,6 +16,8 @@ define SPACE
  
 endef
 
+COMMA = ,
+
 # Usage: $(call str.eq,STR1,STR2)
 # Evaluates to either $(TRUE) or $(FALSE)
 str.eq = $(if $(subst x$1,,x$2)$(subst x$2,,x$1),$(FALSE),$(TRUE))

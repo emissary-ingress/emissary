@@ -24,7 +24,7 @@ var _ = math.Inf
 // is compatible with the proto package it is being compiled against.
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
-const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
+const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // Output format. All output is in the form of one or more :ref:`TraceWrapper
 // <envoy_api_msg_data.tap.v2alpha.TraceWrapper>` messages. This enumeration indicates
@@ -316,9 +316,9 @@ func (m *MatchPredicate) GetHttpResponseTrailersMatch() *HttpHeadersMatch {
 	return nil
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*MatchPredicate) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _MatchPredicate_OneofMarshaler, _MatchPredicate_OneofUnmarshaler, _MatchPredicate_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*MatchPredicate) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*MatchPredicate_OrMatch)(nil),
 		(*MatchPredicate_AndMatch)(nil),
 		(*MatchPredicate_NotMatch)(nil),
@@ -328,179 +328,6 @@ func (*MatchPredicate) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer
 		(*MatchPredicate_HttpResponseHeadersMatch)(nil),
 		(*MatchPredicate_HttpResponseTrailersMatch)(nil),
 	}
-}
-
-func _MatchPredicate_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*MatchPredicate)
-	// rule
-	switch x := m.Rule.(type) {
-	case *MatchPredicate_OrMatch:
-		_ = b.EncodeVarint(1<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.OrMatch); err != nil {
-			return err
-		}
-	case *MatchPredicate_AndMatch:
-		_ = b.EncodeVarint(2<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.AndMatch); err != nil {
-			return err
-		}
-	case *MatchPredicate_NotMatch:
-		_ = b.EncodeVarint(3<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.NotMatch); err != nil {
-			return err
-		}
-	case *MatchPredicate_AnyMatch:
-		t := uint64(0)
-		if x.AnyMatch {
-			t = 1
-		}
-		_ = b.EncodeVarint(4<<3 | proto.WireVarint)
-		_ = b.EncodeVarint(t)
-	case *MatchPredicate_HttpRequestHeadersMatch:
-		_ = b.EncodeVarint(5<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.HttpRequestHeadersMatch); err != nil {
-			return err
-		}
-	case *MatchPredicate_HttpRequestTrailersMatch:
-		_ = b.EncodeVarint(6<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.HttpRequestTrailersMatch); err != nil {
-			return err
-		}
-	case *MatchPredicate_HttpResponseHeadersMatch:
-		_ = b.EncodeVarint(7<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.HttpResponseHeadersMatch); err != nil {
-			return err
-		}
-	case *MatchPredicate_HttpResponseTrailersMatch:
-		_ = b.EncodeVarint(8<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.HttpResponseTrailersMatch); err != nil {
-			return err
-		}
-	case nil:
-	default:
-		return fmt.Errorf("MatchPredicate.Rule has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _MatchPredicate_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*MatchPredicate)
-	switch tag {
-	case 1: // rule.or_match
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(MatchPredicate_MatchSet)
-		err := b.DecodeMessage(msg)
-		m.Rule = &MatchPredicate_OrMatch{msg}
-		return true, err
-	case 2: // rule.and_match
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(MatchPredicate_MatchSet)
-		err := b.DecodeMessage(msg)
-		m.Rule = &MatchPredicate_AndMatch{msg}
-		return true, err
-	case 3: // rule.not_match
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(MatchPredicate)
-		err := b.DecodeMessage(msg)
-		m.Rule = &MatchPredicate_NotMatch{msg}
-		return true, err
-	case 4: // rule.any_match
-		if wire != proto.WireVarint {
-			return true, proto.ErrInternalBadWireType
-		}
-		x, err := b.DecodeVarint()
-		m.Rule = &MatchPredicate_AnyMatch{x != 0}
-		return true, err
-	case 5: // rule.http_request_headers_match
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(HttpHeadersMatch)
-		err := b.DecodeMessage(msg)
-		m.Rule = &MatchPredicate_HttpRequestHeadersMatch{msg}
-		return true, err
-	case 6: // rule.http_request_trailers_match
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(HttpHeadersMatch)
-		err := b.DecodeMessage(msg)
-		m.Rule = &MatchPredicate_HttpRequestTrailersMatch{msg}
-		return true, err
-	case 7: // rule.http_response_headers_match
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(HttpHeadersMatch)
-		err := b.DecodeMessage(msg)
-		m.Rule = &MatchPredicate_HttpResponseHeadersMatch{msg}
-		return true, err
-	case 8: // rule.http_response_trailers_match
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(HttpHeadersMatch)
-		err := b.DecodeMessage(msg)
-		m.Rule = &MatchPredicate_HttpResponseTrailersMatch{msg}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _MatchPredicate_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*MatchPredicate)
-	// rule
-	switch x := m.Rule.(type) {
-	case *MatchPredicate_OrMatch:
-		s := proto.Size(x.OrMatch)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *MatchPredicate_AndMatch:
-		s := proto.Size(x.AndMatch)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *MatchPredicate_NotMatch:
-		s := proto.Size(x.NotMatch)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *MatchPredicate_AnyMatch:
-		n += 1 // tag and wire
-		n += 1
-	case *MatchPredicate_HttpRequestHeadersMatch:
-		s := proto.Size(x.HttpRequestHeadersMatch)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *MatchPredicate_HttpRequestTrailersMatch:
-		s := proto.Size(x.HttpRequestTrailersMatch)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *MatchPredicate_HttpResponseHeadersMatch:
-		s := proto.Size(x.HttpResponseHeadersMatch)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *MatchPredicate_HttpResponseTrailersMatch:
-		s := proto.Size(x.HttpResponseTrailersMatch)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 // A set of match configurations used for logical operations.
@@ -791,97 +618,13 @@ func (m *OutputSink) GetStreamingGrpc() *StreamingGrpcSink {
 	return nil
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*OutputSink) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _OutputSink_OneofMarshaler, _OutputSink_OneofUnmarshaler, _OutputSink_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*OutputSink) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*OutputSink_StreamingAdmin)(nil),
 		(*OutputSink_FilePerTap)(nil),
 		(*OutputSink_StreamingGrpc)(nil),
 	}
-}
-
-func _OutputSink_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*OutputSink)
-	// output_sink_type
-	switch x := m.OutputSinkType.(type) {
-	case *OutputSink_StreamingAdmin:
-		_ = b.EncodeVarint(2<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.StreamingAdmin); err != nil {
-			return err
-		}
-	case *OutputSink_FilePerTap:
-		_ = b.EncodeVarint(3<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.FilePerTap); err != nil {
-			return err
-		}
-	case *OutputSink_StreamingGrpc:
-		_ = b.EncodeVarint(4<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.StreamingGrpc); err != nil {
-			return err
-		}
-	case nil:
-	default:
-		return fmt.Errorf("OutputSink.OutputSinkType has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _OutputSink_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*OutputSink)
-	switch tag {
-	case 2: // output_sink_type.streaming_admin
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(StreamingAdminSink)
-		err := b.DecodeMessage(msg)
-		m.OutputSinkType = &OutputSink_StreamingAdmin{msg}
-		return true, err
-	case 3: // output_sink_type.file_per_tap
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(FilePerTapSink)
-		err := b.DecodeMessage(msg)
-		m.OutputSinkType = &OutputSink_FilePerTap{msg}
-		return true, err
-	case 4: // output_sink_type.streaming_grpc
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(StreamingGrpcSink)
-		err := b.DecodeMessage(msg)
-		m.OutputSinkType = &OutputSink_StreamingGrpc{msg}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _OutputSink_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*OutputSink)
-	// output_sink_type
-	switch x := m.OutputSinkType.(type) {
-	case *OutputSink_StreamingAdmin:
-		s := proto.Size(x.StreamingAdmin)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *OutputSink_FilePerTap:
-		s := proto.Size(x.FilePerTap)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *OutputSink_StreamingGrpc:
-		s := proto.Size(x.StreamingGrpc)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 // Streaming admin sink configuration.

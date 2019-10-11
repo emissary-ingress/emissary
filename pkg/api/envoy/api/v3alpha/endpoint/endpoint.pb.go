@@ -23,7 +23,7 @@ var _ = math.Inf
 // is compatible with the proto package it is being compiled against.
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
-const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
+const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // Upstream host identifier.
 type Endpoint struct {
@@ -274,74 +274,12 @@ func (m *LbEndpoint) GetLoadBalancingWeight() *types.UInt32Value {
 	return nil
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*LbEndpoint) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _LbEndpoint_OneofMarshaler, _LbEndpoint_OneofUnmarshaler, _LbEndpoint_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*LbEndpoint) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*LbEndpoint_Endpoint)(nil),
 		(*LbEndpoint_EndpointName)(nil),
 	}
-}
-
-func _LbEndpoint_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*LbEndpoint)
-	// host_identifier
-	switch x := m.HostIdentifier.(type) {
-	case *LbEndpoint_Endpoint:
-		_ = b.EncodeVarint(1<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.Endpoint); err != nil {
-			return err
-		}
-	case *LbEndpoint_EndpointName:
-		_ = b.EncodeVarint(5<<3 | proto.WireBytes)
-		_ = b.EncodeStringBytes(x.EndpointName)
-	case nil:
-	default:
-		return fmt.Errorf("LbEndpoint.HostIdentifier has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _LbEndpoint_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*LbEndpoint)
-	switch tag {
-	case 1: // host_identifier.endpoint
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(Endpoint)
-		err := b.DecodeMessage(msg)
-		m.HostIdentifier = &LbEndpoint_Endpoint{msg}
-		return true, err
-	case 5: // host_identifier.endpoint_name
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		x, err := b.DecodeStringBytes()
-		m.HostIdentifier = &LbEndpoint_EndpointName{x}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _LbEndpoint_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*LbEndpoint)
-	// host_identifier
-	switch x := m.HostIdentifier.(type) {
-	case *LbEndpoint_Endpoint:
-		s := proto.Size(x.Endpoint)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *LbEndpoint_EndpointName:
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(len(x.EndpointName)))
-		n += len(x.EndpointName)
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 // A group of endpoints belonging to a Locality.

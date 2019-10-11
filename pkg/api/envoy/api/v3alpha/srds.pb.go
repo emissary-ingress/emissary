@@ -26,7 +26,7 @@ var _ = math.Inf
 // is compatible with the proto package it is being compiled against.
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
-const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
+const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // Specifies a routing scope, which associates a
 // :ref:`Key<envoy_api_msg_ScopedRouteConfiguration.Key>` to a
@@ -281,55 +281,11 @@ func (m *ScopedRouteConfiguration_Key_Fragment) GetStringKey() string {
 	return ""
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*ScopedRouteConfiguration_Key_Fragment) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _ScopedRouteConfiguration_Key_Fragment_OneofMarshaler, _ScopedRouteConfiguration_Key_Fragment_OneofUnmarshaler, _ScopedRouteConfiguration_Key_Fragment_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*ScopedRouteConfiguration_Key_Fragment) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*ScopedRouteConfiguration_Key_Fragment_StringKey)(nil),
 	}
-}
-
-func _ScopedRouteConfiguration_Key_Fragment_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*ScopedRouteConfiguration_Key_Fragment)
-	// type
-	switch x := m.Type.(type) {
-	case *ScopedRouteConfiguration_Key_Fragment_StringKey:
-		_ = b.EncodeVarint(1<<3 | proto.WireBytes)
-		_ = b.EncodeStringBytes(x.StringKey)
-	case nil:
-	default:
-		return fmt.Errorf("ScopedRouteConfiguration_Key_Fragment.Type has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _ScopedRouteConfiguration_Key_Fragment_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*ScopedRouteConfiguration_Key_Fragment)
-	switch tag {
-	case 1: // type.string_key
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		x, err := b.DecodeStringBytes()
-		m.Type = &ScopedRouteConfiguration_Key_Fragment_StringKey{x}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _ScopedRouteConfiguration_Key_Fragment_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*ScopedRouteConfiguration_Key_Fragment)
-	// type
-	switch x := m.Type.(type) {
-	case *ScopedRouteConfiguration_Key_Fragment_StringKey:
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(len(x.StringKey)))
-		n += len(x.StringKey)
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 func init() {

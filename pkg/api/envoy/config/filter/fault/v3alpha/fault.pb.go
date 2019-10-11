@@ -23,7 +23,7 @@ var _ = math.Inf
 // is compatible with the proto package it is being compiled against.
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
-const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
+const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 type FaultDelay_FaultDelayType int32
 
@@ -149,78 +149,12 @@ func (m *FaultDelay) GetPercentage() *_type.FractionalPercent {
 	return nil
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*FaultDelay) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _FaultDelay_OneofMarshaler, _FaultDelay_OneofUnmarshaler, _FaultDelay_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*FaultDelay) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*FaultDelay_FixedDelay)(nil),
 		(*FaultDelay_HeaderDelay_)(nil),
 	}
-}
-
-func _FaultDelay_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*FaultDelay)
-	// fault_delay_secifier
-	switch x := m.FaultDelaySecifier.(type) {
-	case *FaultDelay_FixedDelay:
-		_ = b.EncodeVarint(3<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.FixedDelay); err != nil {
-			return err
-		}
-	case *FaultDelay_HeaderDelay_:
-		_ = b.EncodeVarint(5<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.HeaderDelay); err != nil {
-			return err
-		}
-	case nil:
-	default:
-		return fmt.Errorf("FaultDelay.FaultDelaySecifier has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _FaultDelay_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*FaultDelay)
-	switch tag {
-	case 3: // fault_delay_secifier.fixed_delay
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(types.Duration)
-		err := b.DecodeMessage(msg)
-		m.FaultDelaySecifier = &FaultDelay_FixedDelay{msg}
-		return true, err
-	case 5: // fault_delay_secifier.header_delay
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(FaultDelay_HeaderDelay)
-		err := b.DecodeMessage(msg)
-		m.FaultDelaySecifier = &FaultDelay_HeaderDelay_{msg}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _FaultDelay_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*FaultDelay)
-	// fault_delay_secifier
-	switch x := m.FaultDelaySecifier.(type) {
-	case *FaultDelay_FixedDelay:
-		s := proto.Size(x.FixedDelay)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *FaultDelay_HeaderDelay_:
-		s := proto.Size(x.HeaderDelay)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 // Fault delays are controlled via an HTTP header (if applicable). See the
@@ -355,78 +289,12 @@ func (m *FaultRateLimit) GetPercentage() *_type.FractionalPercent {
 	return nil
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*FaultRateLimit) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _FaultRateLimit_OneofMarshaler, _FaultRateLimit_OneofUnmarshaler, _FaultRateLimit_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*FaultRateLimit) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*FaultRateLimit_FixedLimit_)(nil),
 		(*FaultRateLimit_HeaderLimit_)(nil),
 	}
-}
-
-func _FaultRateLimit_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*FaultRateLimit)
-	// limit_type
-	switch x := m.LimitType.(type) {
-	case *FaultRateLimit_FixedLimit_:
-		_ = b.EncodeVarint(1<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.FixedLimit); err != nil {
-			return err
-		}
-	case *FaultRateLimit_HeaderLimit_:
-		_ = b.EncodeVarint(3<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.HeaderLimit); err != nil {
-			return err
-		}
-	case nil:
-	default:
-		return fmt.Errorf("FaultRateLimit.LimitType has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _FaultRateLimit_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*FaultRateLimit)
-	switch tag {
-	case 1: // limit_type.fixed_limit
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(FaultRateLimit_FixedLimit)
-		err := b.DecodeMessage(msg)
-		m.LimitType = &FaultRateLimit_FixedLimit_{msg}
-		return true, err
-	case 3: // limit_type.header_limit
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(FaultRateLimit_HeaderLimit)
-		err := b.DecodeMessage(msg)
-		m.LimitType = &FaultRateLimit_HeaderLimit_{msg}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _FaultRateLimit_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*FaultRateLimit)
-	// limit_type
-	switch x := m.LimitType.(type) {
-	case *FaultRateLimit_FixedLimit_:
-		s := proto.Size(x.FixedLimit)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *FaultRateLimit_HeaderLimit_:
-		s := proto.Size(x.HeaderLimit)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 // Describes a fixed/constant rate limit.

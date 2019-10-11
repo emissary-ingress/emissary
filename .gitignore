@@ -52,10 +52,6 @@ package-lock.json
 node_modules
 unused-e2e
 
-/envoy-src/
-/envoy-bin/
-/envoy-build-image.txt
-/envoy-build-container.txt
 /vendor/
 
 /ambex
@@ -87,6 +83,11 @@ kubernaut-claim.txt
 # Remove the tail of this list when the commit making the change gets
 # far enough in to the past.
 
+# 2019-10-11
+/envoy-src/
+/envoy-bin/
+/envoy-build-image.txt
+/envoy-build-container.txt
 # 2019-10-08
 /kat-sandbox/grpc_auth/docker-compose.yml
 /kat-sandbox/grpc_web/*_pb.js

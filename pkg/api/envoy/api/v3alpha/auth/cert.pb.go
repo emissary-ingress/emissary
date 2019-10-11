@@ -23,7 +23,7 @@ var _ = math.Inf
 // is compatible with the proto package it is being compiled against.
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
-const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
+const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 type TlsParameters_TlsProtocol int32
 
@@ -286,78 +286,12 @@ func (m *PrivateKeyProvider) GetTypedConfig() *types.Any {
 	return nil
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*PrivateKeyProvider) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _PrivateKeyProvider_OneofMarshaler, _PrivateKeyProvider_OneofUnmarshaler, _PrivateKeyProvider_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*PrivateKeyProvider) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*PrivateKeyProvider_Config)(nil),
 		(*PrivateKeyProvider_TypedConfig)(nil),
 	}
-}
-
-func _PrivateKeyProvider_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*PrivateKeyProvider)
-	// config_type
-	switch x := m.ConfigType.(type) {
-	case *PrivateKeyProvider_Config:
-		_ = b.EncodeVarint(2<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.Config); err != nil {
-			return err
-		}
-	case *PrivateKeyProvider_TypedConfig:
-		_ = b.EncodeVarint(3<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.TypedConfig); err != nil {
-			return err
-		}
-	case nil:
-	default:
-		return fmt.Errorf("PrivateKeyProvider.ConfigType has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _PrivateKeyProvider_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*PrivateKeyProvider)
-	switch tag {
-	case 2: // config_type.config
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(types.Struct)
-		err := b.DecodeMessage(msg)
-		m.ConfigType = &PrivateKeyProvider_Config{msg}
-		return true, err
-	case 3: // config_type.typed_config
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(types.Any)
-		err := b.DecodeMessage(msg)
-		m.ConfigType = &PrivateKeyProvider_TypedConfig{msg}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _PrivateKeyProvider_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*PrivateKeyProvider)
-	// config_type
-	switch x := m.ConfigType.(type) {
-	case *PrivateKeyProvider_Config:
-		s := proto.Size(x.Config)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *PrivateKeyProvider_TypedConfig:
-		s := proto.Size(x.TypedConfig)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 type TlsCertificate struct {
@@ -867,97 +801,13 @@ func (m *CommonTlsContext) GetAlpnProtocols() []string {
 	return nil
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*CommonTlsContext) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _CommonTlsContext_OneofMarshaler, _CommonTlsContext_OneofUnmarshaler, _CommonTlsContext_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*CommonTlsContext) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*CommonTlsContext_ValidationContext)(nil),
 		(*CommonTlsContext_ValidationContextSdsSecretConfig)(nil),
 		(*CommonTlsContext_CombinedValidationContext)(nil),
 	}
-}
-
-func _CommonTlsContext_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*CommonTlsContext)
-	// validation_context_type
-	switch x := m.ValidationContextType.(type) {
-	case *CommonTlsContext_ValidationContext:
-		_ = b.EncodeVarint(3<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.ValidationContext); err != nil {
-			return err
-		}
-	case *CommonTlsContext_ValidationContextSdsSecretConfig:
-		_ = b.EncodeVarint(7<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.ValidationContextSdsSecretConfig); err != nil {
-			return err
-		}
-	case *CommonTlsContext_CombinedValidationContext:
-		_ = b.EncodeVarint(8<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.CombinedValidationContext); err != nil {
-			return err
-		}
-	case nil:
-	default:
-		return fmt.Errorf("CommonTlsContext.ValidationContextType has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _CommonTlsContext_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*CommonTlsContext)
-	switch tag {
-	case 3: // validation_context_type.validation_context
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(CertificateValidationContext)
-		err := b.DecodeMessage(msg)
-		m.ValidationContextType = &CommonTlsContext_ValidationContext{msg}
-		return true, err
-	case 7: // validation_context_type.validation_context_sds_secret_config
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(SdsSecretConfig)
-		err := b.DecodeMessage(msg)
-		m.ValidationContextType = &CommonTlsContext_ValidationContextSdsSecretConfig{msg}
-		return true, err
-	case 8: // validation_context_type.combined_validation_context
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(CommonTlsContext_CombinedCertificateValidationContext)
-		err := b.DecodeMessage(msg)
-		m.ValidationContextType = &CommonTlsContext_CombinedValidationContext{msg}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _CommonTlsContext_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*CommonTlsContext)
-	// validation_context_type
-	switch x := m.ValidationContextType.(type) {
-	case *CommonTlsContext_ValidationContext:
-		s := proto.Size(x.ValidationContext)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *CommonTlsContext_ValidationContextSdsSecretConfig:
-		s := proto.Size(x.ValidationContextSdsSecretConfig)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *CommonTlsContext_CombinedValidationContext:
-		s := proto.Size(x.CombinedValidationContext)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 type CommonTlsContext_CombinedCertificateValidationContext struct {
@@ -1213,78 +1063,12 @@ func (m *DownstreamTlsContext) GetSessionTicketKeysSdsSecretConfig() *SdsSecretC
 	return nil
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*DownstreamTlsContext) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _DownstreamTlsContext_OneofMarshaler, _DownstreamTlsContext_OneofUnmarshaler, _DownstreamTlsContext_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*DownstreamTlsContext) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*DownstreamTlsContext_SessionTicketKeys)(nil),
 		(*DownstreamTlsContext_SessionTicketKeysSdsSecretConfig)(nil),
 	}
-}
-
-func _DownstreamTlsContext_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*DownstreamTlsContext)
-	// session_ticket_keys_type
-	switch x := m.SessionTicketKeysType.(type) {
-	case *DownstreamTlsContext_SessionTicketKeys:
-		_ = b.EncodeVarint(4<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.SessionTicketKeys); err != nil {
-			return err
-		}
-	case *DownstreamTlsContext_SessionTicketKeysSdsSecretConfig:
-		_ = b.EncodeVarint(5<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.SessionTicketKeysSdsSecretConfig); err != nil {
-			return err
-		}
-	case nil:
-	default:
-		return fmt.Errorf("DownstreamTlsContext.SessionTicketKeysType has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _DownstreamTlsContext_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*DownstreamTlsContext)
-	switch tag {
-	case 4: // session_ticket_keys_type.session_ticket_keys
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(TlsSessionTicketKeys)
-		err := b.DecodeMessage(msg)
-		m.SessionTicketKeysType = &DownstreamTlsContext_SessionTicketKeys{msg}
-		return true, err
-	case 5: // session_ticket_keys_type.session_ticket_keys_sds_secret_config
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(SdsSecretConfig)
-		err := b.DecodeMessage(msg)
-		m.SessionTicketKeysType = &DownstreamTlsContext_SessionTicketKeysSdsSecretConfig{msg}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _DownstreamTlsContext_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*DownstreamTlsContext)
-	// session_ticket_keys_type
-	switch x := m.SessionTicketKeysType.(type) {
-	case *DownstreamTlsContext_SessionTicketKeys:
-		s := proto.Size(x.SessionTicketKeys)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *DownstreamTlsContext_SessionTicketKeysSdsSecretConfig:
-		s := proto.Size(x.SessionTicketKeysSdsSecretConfig)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 // [#proto-status: experimental]
@@ -1448,97 +1232,13 @@ func (m *Secret) GetValidationContext() *CertificateValidationContext {
 	return nil
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*Secret) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _Secret_OneofMarshaler, _Secret_OneofUnmarshaler, _Secret_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*Secret) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*Secret_TlsCertificate)(nil),
 		(*Secret_SessionTicketKeys)(nil),
 		(*Secret_ValidationContext)(nil),
 	}
-}
-
-func _Secret_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*Secret)
-	// type
-	switch x := m.Type.(type) {
-	case *Secret_TlsCertificate:
-		_ = b.EncodeVarint(2<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.TlsCertificate); err != nil {
-			return err
-		}
-	case *Secret_SessionTicketKeys:
-		_ = b.EncodeVarint(3<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.SessionTicketKeys); err != nil {
-			return err
-		}
-	case *Secret_ValidationContext:
-		_ = b.EncodeVarint(4<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.ValidationContext); err != nil {
-			return err
-		}
-	case nil:
-	default:
-		return fmt.Errorf("Secret.Type has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _Secret_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*Secret)
-	switch tag {
-	case 2: // type.tls_certificate
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(TlsCertificate)
-		err := b.DecodeMessage(msg)
-		m.Type = &Secret_TlsCertificate{msg}
-		return true, err
-	case 3: // type.session_ticket_keys
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(TlsSessionTicketKeys)
-		err := b.DecodeMessage(msg)
-		m.Type = &Secret_SessionTicketKeys{msg}
-		return true, err
-	case 4: // type.validation_context
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(CertificateValidationContext)
-		err := b.DecodeMessage(msg)
-		m.Type = &Secret_ValidationContext{msg}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _Secret_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*Secret)
-	// type
-	switch x := m.Type.(type) {
-	case *Secret_TlsCertificate:
-		s := proto.Size(x.TlsCertificate)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *Secret_SessionTicketKeys:
-		s := proto.Size(x.SessionTicketKeys)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *Secret_ValidationContext:
-		s := proto.Size(x.ValidationContext)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 func init() {
