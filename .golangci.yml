@@ -30,6 +30,8 @@ linters-settings:
       - golang.org/x/net/context # use "context"
       - github.com/datawire/kat-backend/xds/ # use "github.com/datawire/ambassador/go/"
       - github.com/lyft/ratelimit/proto/ # use "github.com/datawire/ambassador/go/"
+  goconst:
+    min-len: 12
 run:
   build-tags:
     - test

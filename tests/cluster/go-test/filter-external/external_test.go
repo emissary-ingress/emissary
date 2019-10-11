@@ -104,6 +104,7 @@ func inArray(needle string, haystack []string) bool {
 }
 
 func TestHTTPExternalModify(t *testing.T) {
+	t.Parallel()
 	assert := &testutil.Assert{T: t}
 	res, body := doRequest(t, "https://ambassador.standalone.svc.cluster.local/external-http/headers") //nolint:bodyclose
 	// HTTP/1.1 200 OK
@@ -150,6 +151,7 @@ func TestHTTPExternalModify(t *testing.T) {
 }
 
 func TestHTTPExternalIntercept(t *testing.T) {
+	t.Parallel()
 	assert := &testutil.Assert{T: t}
 	res, body := doRequest(t, "https://ambassador.standalone.svc.cluster.local/external-http/ip") //nolint:bodyclose
 	// HTTP/1.1 404 Not Found
@@ -172,6 +174,7 @@ func TestHTTPExternalIntercept(t *testing.T) {
 }
 
 func TestHTTPExternalInterceptWithRedirect(t *testing.T) {
+	t.Parallel()
 	assert := &testutil.Assert{T: t}
 	res, body := doRequest(t, "https://ambassador.standalone.svc.cluster.local/external-http/redirect") //nolint:bodyclose
 	// HTTP/1.1 302 Found
@@ -191,6 +194,7 @@ func TestHTTPExternalInterceptWithRedirect(t *testing.T) {
 }
 
 func TestGRPCExternalModify(t *testing.T) {
+	t.Parallel()
 	assert := &testutil.Assert{T: t}
 	res, body := doRequest(t, "https://ambassador.standalone.svc.cluster.local/external-grpc/headers") //nolint:bodyclose
 	// HTTP/1.1 200 OK
@@ -234,6 +238,7 @@ func TestGRPCExternalModify(t *testing.T) {
 }
 
 func TestGRPCExternalIntercept(t *testing.T) {
+	t.Parallel()
 	assert := &testutil.Assert{T: t}
 	res, body := doRequest(t, "https://ambassador.standalone.svc.cluster.local/external-grpc/ip") //nolint:bodyclose
 	// HTTP/1.1 200 OK
