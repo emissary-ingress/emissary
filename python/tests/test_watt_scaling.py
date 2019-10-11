@@ -84,7 +84,7 @@ metadata:
         self.create_namespace(namespace)
 
         final_yaml = []
-        ambassador_yaml_path = "../docs/yaml/ambassador/ambassador-rbac.yaml"
+        ambassador_yaml_path = "./docs/yaml/ambassador/ambassador-rbac.yaml"
         with open(ambassador_yaml_path, 'r') as f:
             ambassador_yaml = list(yaml.safe_load_all(f))
 
@@ -118,7 +118,7 @@ subjects:
 
         self.apply_kube_artifacts(namespace=namespace, artifacts=namespace_crb)
 
-        ambassador_service_path = "../docs/yaml/ambassador/ambassador-service.yaml"
+        ambassador_service_path = "./docs/yaml/ambassador/ambassador-service.yaml"
         install_ambassador_service_cmd = ['kubectl', 'apply', '-n', namespace, '-f', ambassador_service_path]
         self.run_and_assert(install_ambassador_service_cmd)
 
