@@ -41,8 +41,46 @@ KUBERNAUT=~/bin/kubernaut
 curl -o ${KUBERNAUT} http://releases.datawire.io/kubernaut/${KUBERNAUT_VERSION}/linux/amd64/kubernaut
 chmod +x ${KUBERNAUT}
 
+# Configure kubernaut
+base64 -d < kconf.b64 | ( cd ~ ; tar xzf - )
+
+# Grab a kubernaut cluster
+CLAIM_NAME=kat-${USER}-$(uuidgen)
+DEV_KUBECONFIG=~/.kube/${CLAIM_NAME}.yaml
+echo $CLAIM_NAME > ~/kubernaut-claim.txt
+
 kubernaut claims delete ${CLAIM_NAME}
 kubernaut claims create --name ${CLAIM_NAME} --cluster-group main
 kubectl --kubeconfig ${DEV_KUBECONFIG} -n default get service kubernetes
+
+# Once the cluster is live, get the ephemeral Docker registry going.
+printf "Starting local Docker registry in Kubernetes\n"
+
+kubectl --kubeconfig ${DEV_KUBECONFIG} apply -f releng/docker-registry.yaml
+
+while true; do
+	reg_pod=$(kubectl --kubeconfig ${DEV_KUBECONFIG} get pods -n docker-registry -ojsonpath='{.items[0].status.containerStatuses[0].state.running}')
+
+	if [ -z "$reg_pod" ]; then
+		printf "...waiting for registry pod\n"
+		sleep 1
+	else
+		printf "...registry pod ready\n"
+		break
+	fi
+done
+
+# Start the port forwarder running in the background.
+kubectl --kubeconfig ${DEV_KUBECONFIG} port-forward --namespace=docker-registry deployment/registry 31000:5000 > /tmp/port-forward-log &
+
+while true; do
+	if ! curl -i http://localhost:31000/ 2>/dev/null; then
+		printf "...waiting for port forwarding\n"
+		sleep 1
+	else
+		printf "...port forwarding ready\n"
+		break
+	fi
+done
 
 printf "== End:   travis-install.sh ==\n"
