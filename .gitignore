@@ -22,6 +22,7 @@ kat/kat/client
 
 # binaries
 /cmd/ambex/ambex
+/bin_*/
 
 /build/kat/server/kat-server
 /tools/sandbox/grpc_auth/docker-compose.yml

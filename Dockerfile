@@ -26,54 +26,57 @@
 # By default, Ambassador's config and other application-specific stuff gets written to /ambassador. You can
 # configure a different location for the runtime configuration elements via environment variables.
 
+# Arguments ####################################################################
+ARG BASE_RUNTIME_IMAGE
 ARG BASE_PY_IMAGE
-ARG BASE_GO_IMAGE
+FROM $BASE_RUNTIME_IMAGE as base-runtime
+FROM $BASE_PY_IMAGE as base-py
 
-################################################################
-# STAGE ZERO: Copy in the Envoy binary (which was previously
-# extracted from BASE_ENVOY_IMAGE the Makefile).
-
-FROM frolvlad/alpine-glibc:alpine-3.10 as base-envoy
-
+# Image: staging-envoy #########################################################
+FROM base-runtime as staging-envoy
 # ADD/COPY the file in, then reset its timestamp to the unix epoch, so
 # the timestamp doesn't break Docker layer caching.
 ARG ENVOY_FILE
 ADD $ENVOY_FILE /usr/local/bin/envoy
 RUN touch -t 197001010000 /usr/local/bin/envoy
 
-################################################################
+# Image: stage1 ################################################################
 # STAGE ONE: use the BASE_PY_IMAGE's toolchains to
 # build and install the Ambassador app itself.
-
-FROM $BASE_PY_IMAGE as base-py
-
+FROM base-py as stage1
 # Install the application itself
 COPY python/ ambassador
 RUN rm -rf ./multi
-RUN releng/install-py.sh prd install */requirements.txt
+RUN cd ambassador && python3 setup.py --quiet install
 RUN rm -rf ./ambassador
 
-################################################################
+# Image: (final) ###############################################################
 # STAGE TWO: switch to the BASE_GO_IMAGE as the base of
 # our actual runtime image, and copy the built artifacts from
 # stage one to here.
+FROM base-runtime
 
-FROM $BASE_GO_IMAGE
+MAINTAINER Datawire <flynn@datawire.io>
+LABEL PROJECT_REPO_URL         = "git@github.com:datawire/ambassador.git" \
+      PROJECT_REPO_BROWSER_URL = "https://github.com/datawire/ambassador" \
+      DESCRIPTION              = "Ambassador" \
+      VENDOR                   = "Datawire" \
+      VENDOR_URL               = "https://datawire.io/"
 
 ENV AMBASSADOR_ROOT=/ambassador
 WORKDIR ${AMBASSADOR_ROOT}
 
-COPY --from=base-envoy /usr/local/bin/envoy /usr/local/bin/envoy
+COPY --from=staging-envoy /usr/local/bin/envoy /usr/local/bin/envoy
 
 # One could argue that this is perhaps a bit of a hack. However, it's also the way to
 # get all the stuff that pip installed without needing the whole of the Python dev
 # chain.
-COPY --from=base-py /usr/lib/python3.7 /usr/lib/python3.7/
-COPY --from=base-py /usr/lib/libyaml* /usr/lib/
-COPY --from=base-py /usr/lib/pkgconfig /usr/lib/
+COPY --from=stage1 /usr/lib/python3.7 /usr/lib/python3.7/
+COPY --from=stage1 /usr/lib/libyaml* /usr/lib/
+COPY --from=stage1 /usr/lib/pkgconfig /usr/lib/
 
 # Copy Ambassador binaries (built in stage one).
-COPY --from=base-py /usr/bin/ambassador /usr/bin/diagd /usr/bin/
+COPY --from=stage1 /usr/bin/ambassador /usr/bin/diagd /usr/bin/
 
 # MKDIR an empty /ambassador/ambassador-config, so that you can drop a configmap over it
 # if you really really need to (not recommended).
@@ -102,11 +105,12 @@ RUN chmod 755 entrypoint.sh grab-snapshots.py kick_ads.sh kubewatch.py post_upda
 
 COPY cmd/ambex/ambex /usr/bin/
 RUN chmod 755 /usr/bin/ambex
+COPY bin_linux_amd64/kubectl /usr/bin/
 # XXX Move to base image
 COPY watt .
 RUN chmod 755 watt
 COPY kubestatus .
 RUN chmod 755 kubestatus
 
-RUN apk --no-cache add libcap && setcap 'cap_net_bind_service=+ep' /usr/local/bin/envoy
+RUN setcap 'cap_net_bind_service=+ep' /usr/local/bin/envoy
 ENTRYPOINT [ "./entrypoint.sh" ]
