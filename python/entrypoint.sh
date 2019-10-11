@@ -389,7 +389,7 @@ if [[ -z "${AMBASSADOR_NO_KUBEWATCH}" ]]; then
 	    AMBASSADOR_LABEL_SELECTOR_ARG="--labels $AMBASSADOR_LABEL_SELECTOR"
     fi
 
-    launch "watt" /ambassador/watt \
+    launch "watt" watt \
            --port 8002 \
            ${AMBASSADOR_SINGLE_NAMESPACE:+ --namespace "${AMBASSADOR_NAMESPACE}" } \
            --notify 'python /ambassador/post_update.py --watt ' \
