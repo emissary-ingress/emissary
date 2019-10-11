@@ -20,16 +20,18 @@ DBUILD = $(abspath $(BUILDER_HOME)/dbuild.sh)
 
 all: help
 
+.NOTPARALLEL:
+
 export RSYNC_ERR=$(RED)ERROR: please update to a version of rsync with the --info option$(END)
 export DOCKER_ERR=$(RED)ERROR: cannot find docker, please make sure docker is installed$(END)
 
 preflight:
 ifeq ($(strip $(shell $(BUILDER))),)
-	@echo -e "$(WHT)==$(GRN)Preflight checks$(WHT)==$(END)"
+	@printf "$(WHT)==$(GRN)Preflight checks$(WHT)==$(END)\n"
 	# Checking for rsync --info
-	test -n "$$(rsync --help | fgrep -- --info)" || (echo -e "$${RSYNC_ERR}"; exit 1)
+	test -n "$$(rsync --help | fgrep -- --info)" || (printf "$${RSYNC_ERR}\n"; exit 1)
 	# Checking for docker
-	which docker > /dev/null || (echo -e "$${DOCKER_ERR}"; exit 1)
+	which docker > /dev/null || (printf "$${DOCKER_ERR}\n"; exit 1)
 endif
 .PHONY: preflight
 
@@ -46,11 +48,11 @@ commit:
 images:
 	@$(MAKE) --no-print-directory compile
 	@$(MAKE) --no-print-directory commit
-	@echo -e "$(WHT)==$(GRN)Building $(BLU)ambassador$(GRN) image$(WHT)==$(END)"
+	@printf "$(WHT)==$(GRN)Building $(BLU)ambassador$(GRN) image$(WHT)==$(END)\n"
 	@$(DBUILD) $(BUILDER_HOME) --build-arg artifacts=snapshot --target ambassador -t ambassador
-	@echo -e "$(WHT)==$(GRN)Building $(BLU)kat-client$(GRN) image$(WHT)==$(END)"
+	@printf "$(WHT)==$(GRN)Building $(BLU)kat-client$(GRN) image$(WHT)==$(END)\n"
 	@$(DBUILD) $(BUILDER_HOME) --build-arg artifacts=snapshot --target kat-client -t kat-client
-	@echo -e "$(WHT)==$(GRN)Building $(BLU)kat-server$(GRN) image$(WHT)==$(END)"
+	@printf "$(WHT)==$(GRN)Building $(BLU)kat-server$(GRN) image$(WHT)==$(END)\n"
 	@$(DBUILD) $(BUILDER_HOME) --build-arg artifacts=snapshot --target kat-server -t kat-server
 
 AMB_IMAGE=$(DEV_REGISTRY)/ambassador:$(shell docker images -q ambassador:latest)
@@ -60,14 +62,14 @@ KAT_SRV_IMAGE=$(DEV_REGISTRY)/kat-server:$(shell docker images -q kat-server:lat
 export REGISTRY_ERR=$(RED)ERROR: please set the DEV_REGISTRY make/env variable to the docker registry\n       you would like to use for development$(END)
 
 push: images
-	@test -n "$(DEV_REGISTRY)" || (echo -e "$${REGISTRY_ERR}"; exit 1)
-	@echo -e "$(WHT)==$(GRN)Pushing $(BLU)ambassador$(GRN) image$(WHT)==$(END)"
+	@test -n "$(DEV_REGISTRY)" || (printf "$${REGISTRY_ERR}\n"; exit 1)
+	@printf "$(WHT)==$(GRN)Pushing $(BLU)ambassador$(GRN) image$(WHT)==$(END)\n"
 	docker tag ambassador $(AMB_IMAGE)
 	docker push $(AMB_IMAGE)
-	@echo -e "$(WHT)==$(GRN)Pushing $(BLU)kat-client$(GRN) image$(WHT)==$(END)"
+	@printf "$(WHT)==$(GRN)Pushing $(BLU)kat-client$(GRN) image$(WHT)==$(END)\n"
 	docker tag kat-client $(KAT_CLI_IMAGE)
 	docker push $(KAT_CLI_IMAGE)
-	@echo -e "$(WHT)==$(GRN)Pushing $(BLU)kat-server$(GRN) image$(WHT)==$(END)"
+	@printf "$(WHT)==$(GRN)Pushing $(BLU)kat-server$(GRN) image$(WHT)==$(END)\n"
 	docker tag kat-server $(KAT_SRV_IMAGE)
 	docker push $(KAT_SRV_IMAGE)
 
@@ -75,8 +77,8 @@ export KUBECONFIG_ERR=$(RED)ERROR: please set the $(YEL)DEV_KUBECONFIG$(RED) mak
 export KUBECTL_ERR=$(RED)ERROR: preflight kubectl check failed$(END)
 
 test-ready: push
-	@test -n "$(DEV_KUBECONFIG)" || (echo -e "$${KUBECONFIG_ERR}"; exit 1)
-	@kubectl --kubeconfig $(DEV_KUBECONFIG) -n default get service kubernetes > /dev/null || (echo -e "$${KUBECTL_ERR}"; exit 1)
+	@test -n "$(DEV_KUBECONFIG)" || (printf "$${KUBECONFIG_ERR}\n"; exit 1)
+	@kubectl --kubeconfig $(DEV_KUBECONFIG) -n default get service kubernetes > /dev/null || (printf "$${KUBECTL_ERR}\n"; exit 1)
 	@docker cp $(DEV_KUBECONFIG) $(shell $(BUILDER)):/buildroot/kubeconfig.yaml
 	@if [ -e ~/.docker/config.json ]; then \
 		cat ~/.docker/config.json | docker exec -i $(shell $(BUILDER)) sh -c "mkdir -p /home/dw/.docker && cat > /home/dw/.docker/config.json" ; \
@@ -89,7 +91,7 @@ test-ready: push
 PYTEST_ARGS ?=
 
 pytest: test-ready
-	@echo -e "$(WHT)==$(GRN)Running $(BLU)py$(GRN) tests$(WHT)==$(END)"
+	@printf "$(WHT)==$(GRN)Running $(BLU)py$(GRN) tests$(WHT)==$(END)\n"
 	docker exec \
 		-e AMBASSADOR_DOCKER_IMAGE=$(AMB_IMAGE) \
 		-e KAT_CLIENT_DOCKER_IMAGE=$(KAT_CLI_IMAGE) \
@@ -103,7 +105,7 @@ GOTEST_PKGS ?= ./...
 GOTEST_ARGS ?=
 
 gotest: test-ready
-	@echo -e "$(WHT)==$(GRN)Running $(BLU)go$(GRN) tests$(WHT)==$(END)"
+	@printf "$(WHT)==$(GRN)Running $(BLU)go$(GRN) tests$(WHT)==$(END)\n"
 	docker exec -w /buildroot/$(MODULE) -e DTEST_REGISTRY=$(DEV_REGISTRY) -e DTEST_KUBECONFIG=/buildroot/kubeconfig.yaml -e GOTEST_PKGS=$(GOTEST_PKGS) -e GOTEST_ARGS=$(GOTEST_ARGS) $(shell $(BUILDER)) /buildroot/builder.sh test-internal
 
 test: gotest pytest
@@ -118,14 +120,14 @@ clobber:
 	@$(BUILDER) clobber
 
 help:
-	@echo -e "$(subst $(NL),\n,$(HELP))"
+	@printf "$(subst $(NL),\n,$(HELP))\n"
 
 define NL
 
 
 endef
 
-define HELP=
+define HELP
 
 This Makefile builds ambassador source code in a standard build environment
 inside a docker container. It then creates the ambassdaor, kat-server, and
