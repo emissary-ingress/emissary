@@ -28,7 +28,8 @@ env:
   global:
     - DOCKER_REGISTRY=quay.io/datawire
     - CLAIM_NAME=kat-${USER}
-    - DEV_REGISTRY=rschloming
+    # We create, and use, an ephemeral Docker registry in CI
+    - DEV_REGISTRY=localhost:31000 
     - DEV_KUBECONFIG=~/.kube/${CLAIM_NAME}.yaml
 
     # Set from the repository settings:
