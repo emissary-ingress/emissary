@@ -22,7 +22,7 @@ var _ = math.Inf
 // is compatible with the proto package it is being compiled against.
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
-const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
+const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // Connection properties.
 type Connection struct {
@@ -186,97 +186,13 @@ func (m *SocketEvent) GetClosed() *SocketEvent_Closed {
 	return nil
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*SocketEvent) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _SocketEvent_OneofMarshaler, _SocketEvent_OneofUnmarshaler, _SocketEvent_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*SocketEvent) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*SocketEvent_Read_)(nil),
 		(*SocketEvent_Write_)(nil),
 		(*SocketEvent_Closed_)(nil),
 	}
-}
-
-func _SocketEvent_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*SocketEvent)
-	// event_selector
-	switch x := m.EventSelector.(type) {
-	case *SocketEvent_Read_:
-		_ = b.EncodeVarint(2<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.Read); err != nil {
-			return err
-		}
-	case *SocketEvent_Write_:
-		_ = b.EncodeVarint(3<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.Write); err != nil {
-			return err
-		}
-	case *SocketEvent_Closed_:
-		_ = b.EncodeVarint(4<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.Closed); err != nil {
-			return err
-		}
-	case nil:
-	default:
-		return fmt.Errorf("SocketEvent.EventSelector has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _SocketEvent_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*SocketEvent)
-	switch tag {
-	case 2: // event_selector.read
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(SocketEvent_Read)
-		err := b.DecodeMessage(msg)
-		m.EventSelector = &SocketEvent_Read_{msg}
-		return true, err
-	case 3: // event_selector.write
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(SocketEvent_Write)
-		err := b.DecodeMessage(msg)
-		m.EventSelector = &SocketEvent_Write_{msg}
-		return true, err
-	case 4: // event_selector.closed
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(SocketEvent_Closed)
-		err := b.DecodeMessage(msg)
-		m.EventSelector = &SocketEvent_Closed_{msg}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _SocketEvent_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*SocketEvent)
-	// event_selector
-	switch x := m.EventSelector.(type) {
-	case *SocketEvent_Read_:
-		s := proto.Size(x.Read)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *SocketEvent_Write_:
-		s := proto.Size(x.Write)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *SocketEvent_Closed_:
-		s := proto.Size(x.Closed)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 // Data read by Envoy from the transport socket.
@@ -605,78 +521,12 @@ func (m *SocketStreamedTraceSegment) GetEvent() *SocketEvent {
 	return nil
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*SocketStreamedTraceSegment) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _SocketStreamedTraceSegment_OneofMarshaler, _SocketStreamedTraceSegment_OneofUnmarshaler, _SocketStreamedTraceSegment_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*SocketStreamedTraceSegment) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*SocketStreamedTraceSegment_Connection)(nil),
 		(*SocketStreamedTraceSegment_Event)(nil),
 	}
-}
-
-func _SocketStreamedTraceSegment_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*SocketStreamedTraceSegment)
-	// message_piece
-	switch x := m.MessagePiece.(type) {
-	case *SocketStreamedTraceSegment_Connection:
-		_ = b.EncodeVarint(2<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.Connection); err != nil {
-			return err
-		}
-	case *SocketStreamedTraceSegment_Event:
-		_ = b.EncodeVarint(3<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.Event); err != nil {
-			return err
-		}
-	case nil:
-	default:
-		return fmt.Errorf("SocketStreamedTraceSegment.MessagePiece has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _SocketStreamedTraceSegment_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*SocketStreamedTraceSegment)
-	switch tag {
-	case 2: // message_piece.connection
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(Connection)
-		err := b.DecodeMessage(msg)
-		m.MessagePiece = &SocketStreamedTraceSegment_Connection{msg}
-		return true, err
-	case 3: // message_piece.event
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(SocketEvent)
-		err := b.DecodeMessage(msg)
-		m.MessagePiece = &SocketStreamedTraceSegment_Event{msg}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _SocketStreamedTraceSegment_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*SocketStreamedTraceSegment)
-	// message_piece
-	switch x := m.MessagePiece.(type) {
-	case *SocketStreamedTraceSegment_Connection:
-		s := proto.Size(x.Connection)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *SocketStreamedTraceSegment_Event:
-		s := proto.Size(x.Event)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 func init() {

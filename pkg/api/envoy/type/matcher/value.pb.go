@@ -21,7 +21,7 @@ var _ = math.Inf
 // is compatible with the proto package it is being compiled against.
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
-const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
+const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // Specifies the way to match a ProtobufWkt::Value. Primitive values and ListValue are supported.
 // StructValue is not supported and is always not matched.
@@ -155,9 +155,9 @@ func (m *ValueMatcher) GetListMatch() *ListMatcher {
 	return nil
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*ValueMatcher) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _ValueMatcher_OneofMarshaler, _ValueMatcher_OneofUnmarshaler, _ValueMatcher_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*ValueMatcher) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*ValueMatcher_NullMatch_)(nil),
 		(*ValueMatcher_DoubleMatch)(nil),
 		(*ValueMatcher_StringMatch)(nil),
@@ -165,142 +165,6 @@ func (*ValueMatcher) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) 
 		(*ValueMatcher_PresentMatch)(nil),
 		(*ValueMatcher_ListMatch)(nil),
 	}
-}
-
-func _ValueMatcher_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*ValueMatcher)
-	// match_pattern
-	switch x := m.MatchPattern.(type) {
-	case *ValueMatcher_NullMatch_:
-		_ = b.EncodeVarint(1<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.NullMatch); err != nil {
-			return err
-		}
-	case *ValueMatcher_DoubleMatch:
-		_ = b.EncodeVarint(2<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.DoubleMatch); err != nil {
-			return err
-		}
-	case *ValueMatcher_StringMatch:
-		_ = b.EncodeVarint(3<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.StringMatch); err != nil {
-			return err
-		}
-	case *ValueMatcher_BoolMatch:
-		t := uint64(0)
-		if x.BoolMatch {
-			t = 1
-		}
-		_ = b.EncodeVarint(4<<3 | proto.WireVarint)
-		_ = b.EncodeVarint(t)
-	case *ValueMatcher_PresentMatch:
-		t := uint64(0)
-		if x.PresentMatch {
-			t = 1
-		}
-		_ = b.EncodeVarint(5<<3 | proto.WireVarint)
-		_ = b.EncodeVarint(t)
-	case *ValueMatcher_ListMatch:
-		_ = b.EncodeVarint(6<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.ListMatch); err != nil {
-			return err
-		}
-	case nil:
-	default:
-		return fmt.Errorf("ValueMatcher.MatchPattern has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _ValueMatcher_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*ValueMatcher)
-	switch tag {
-	case 1: // match_pattern.null_match
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(ValueMatcher_NullMatch)
-		err := b.DecodeMessage(msg)
-		m.MatchPattern = &ValueMatcher_NullMatch_{msg}
-		return true, err
-	case 2: // match_pattern.double_match
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(DoubleMatcher)
-		err := b.DecodeMessage(msg)
-		m.MatchPattern = &ValueMatcher_DoubleMatch{msg}
-		return true, err
-	case 3: // match_pattern.string_match
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(StringMatcher)
-		err := b.DecodeMessage(msg)
-		m.MatchPattern = &ValueMatcher_StringMatch{msg}
-		return true, err
-	case 4: // match_pattern.bool_match
-		if wire != proto.WireVarint {
-			return true, proto.ErrInternalBadWireType
-		}
-		x, err := b.DecodeVarint()
-		m.MatchPattern = &ValueMatcher_BoolMatch{x != 0}
-		return true, err
-	case 5: // match_pattern.present_match
-		if wire != proto.WireVarint {
-			return true, proto.ErrInternalBadWireType
-		}
-		x, err := b.DecodeVarint()
-		m.MatchPattern = &ValueMatcher_PresentMatch{x != 0}
-		return true, err
-	case 6: // match_pattern.list_match
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(ListMatcher)
-		err := b.DecodeMessage(msg)
-		m.MatchPattern = &ValueMatcher_ListMatch{msg}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _ValueMatcher_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*ValueMatcher)
-	// match_pattern
-	switch x := m.MatchPattern.(type) {
-	case *ValueMatcher_NullMatch_:
-		s := proto.Size(x.NullMatch)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *ValueMatcher_DoubleMatch:
-		s := proto.Size(x.DoubleMatch)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *ValueMatcher_StringMatch:
-		s := proto.Size(x.StringMatch)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *ValueMatcher_BoolMatch:
-		n += 1 // tag and wire
-		n += 1
-	case *ValueMatcher_PresentMatch:
-		n += 1 // tag and wire
-		n += 1
-	case *ValueMatcher_ListMatch:
-		s := proto.Size(x.ListMatch)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 // NullMatch is an empty message to specify a null value.
@@ -412,59 +276,11 @@ func (m *ListMatcher) GetOneOf() *ValueMatcher {
 	return nil
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*ListMatcher) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _ListMatcher_OneofMarshaler, _ListMatcher_OneofUnmarshaler, _ListMatcher_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*ListMatcher) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*ListMatcher_OneOf)(nil),
 	}
-}
-
-func _ListMatcher_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*ListMatcher)
-	// match_pattern
-	switch x := m.MatchPattern.(type) {
-	case *ListMatcher_OneOf:
-		_ = b.EncodeVarint(1<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.OneOf); err != nil {
-			return err
-		}
-	case nil:
-	default:
-		return fmt.Errorf("ListMatcher.MatchPattern has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _ListMatcher_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*ListMatcher)
-	switch tag {
-	case 1: // match_pattern.one_of
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(ValueMatcher)
-		err := b.DecodeMessage(msg)
-		m.MatchPattern = &ListMatcher_OneOf{msg}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _ListMatcher_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*ListMatcher)
-	// match_pattern
-	switch x := m.MatchPattern.(type) {
-	case *ListMatcher_OneOf:
-		s := proto.Size(x.OneOf)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 func init() {

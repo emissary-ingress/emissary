@@ -22,7 +22,7 @@ var _ = math.Inf
 // is compatible with the proto package it is being compiled against.
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
-const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
+const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 type SocketAddress_Protocol int32
 
@@ -233,69 +233,12 @@ func (m *SocketAddress) GetIpv4Compat() bool {
 	return false
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*SocketAddress) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _SocketAddress_OneofMarshaler, _SocketAddress_OneofUnmarshaler, _SocketAddress_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*SocketAddress) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*SocketAddress_PortValue)(nil),
 		(*SocketAddress_NamedPort)(nil),
 	}
-}
-
-func _SocketAddress_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*SocketAddress)
-	// port_specifier
-	switch x := m.PortSpecifier.(type) {
-	case *SocketAddress_PortValue:
-		_ = b.EncodeVarint(3<<3 | proto.WireVarint)
-		_ = b.EncodeVarint(uint64(x.PortValue))
-	case *SocketAddress_NamedPort:
-		_ = b.EncodeVarint(4<<3 | proto.WireBytes)
-		_ = b.EncodeStringBytes(x.NamedPort)
-	case nil:
-	default:
-		return fmt.Errorf("SocketAddress.PortSpecifier has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _SocketAddress_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*SocketAddress)
-	switch tag {
-	case 3: // port_specifier.port_value
-		if wire != proto.WireVarint {
-			return true, proto.ErrInternalBadWireType
-		}
-		x, err := b.DecodeVarint()
-		m.PortSpecifier = &SocketAddress_PortValue{uint32(x)}
-		return true, err
-	case 4: // port_specifier.named_port
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		x, err := b.DecodeStringBytes()
-		m.PortSpecifier = &SocketAddress_NamedPort{x}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _SocketAddress_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*SocketAddress)
-	// port_specifier
-	switch x := m.PortSpecifier.(type) {
-	case *SocketAddress_PortValue:
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(x.PortValue))
-	case *SocketAddress_NamedPort:
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(len(x.NamedPort)))
-		n += len(x.NamedPort)
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 type TcpKeepalive struct {
@@ -525,78 +468,12 @@ func (m *Address) GetPipe() *Pipe {
 	return nil
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*Address) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _Address_OneofMarshaler, _Address_OneofUnmarshaler, _Address_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*Address) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*Address_SocketAddress)(nil),
 		(*Address_Pipe)(nil),
 	}
-}
-
-func _Address_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*Address)
-	// address
-	switch x := m.Address.(type) {
-	case *Address_SocketAddress:
-		_ = b.EncodeVarint(1<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.SocketAddress); err != nil {
-			return err
-		}
-	case *Address_Pipe:
-		_ = b.EncodeVarint(2<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.Pipe); err != nil {
-			return err
-		}
-	case nil:
-	default:
-		return fmt.Errorf("Address.Address has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _Address_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*Address)
-	switch tag {
-	case 1: // address.socket_address
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(SocketAddress)
-		err := b.DecodeMessage(msg)
-		m.Address = &Address_SocketAddress{msg}
-		return true, err
-	case 2: // address.pipe
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(Pipe)
-		err := b.DecodeMessage(msg)
-		m.Address = &Address_Pipe{msg}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _Address_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*Address)
-	// address
-	switch x := m.Address.(type) {
-	case *Address_SocketAddress:
-		s := proto.Size(x.SocketAddress)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *Address_Pipe:
-		s := proto.Size(x.Pipe)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 // CidrRange specifies an IP Address and a prefix length to construct

@@ -28,7 +28,7 @@ var _ = math.Inf
 // is compatible with the proto package it is being compiled against.
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
-const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
+const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // Bootstrap :ref:`configuration overview <config_overview_v2_bootstrap>`.
 type Bootstrap struct {
@@ -903,116 +903,14 @@ func (m *RuntimeLayer) GetRtdsLayer() *RuntimeLayer_RtdsLayer {
 	return nil
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*RuntimeLayer) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _RuntimeLayer_OneofMarshaler, _RuntimeLayer_OneofUnmarshaler, _RuntimeLayer_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*RuntimeLayer) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*RuntimeLayer_StaticLayer)(nil),
 		(*RuntimeLayer_DiskLayer_)(nil),
 		(*RuntimeLayer_AdminLayer_)(nil),
 		(*RuntimeLayer_RtdsLayer_)(nil),
 	}
-}
-
-func _RuntimeLayer_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*RuntimeLayer)
-	// layer_specifier
-	switch x := m.LayerSpecifier.(type) {
-	case *RuntimeLayer_StaticLayer:
-		_ = b.EncodeVarint(2<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.StaticLayer); err != nil {
-			return err
-		}
-	case *RuntimeLayer_DiskLayer_:
-		_ = b.EncodeVarint(3<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.DiskLayer); err != nil {
-			return err
-		}
-	case *RuntimeLayer_AdminLayer_:
-		_ = b.EncodeVarint(4<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.AdminLayer); err != nil {
-			return err
-		}
-	case *RuntimeLayer_RtdsLayer_:
-		_ = b.EncodeVarint(5<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.RtdsLayer); err != nil {
-			return err
-		}
-	case nil:
-	default:
-		return fmt.Errorf("RuntimeLayer.LayerSpecifier has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _RuntimeLayer_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*RuntimeLayer)
-	switch tag {
-	case 2: // layer_specifier.static_layer
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(types.Struct)
-		err := b.DecodeMessage(msg)
-		m.LayerSpecifier = &RuntimeLayer_StaticLayer{msg}
-		return true, err
-	case 3: // layer_specifier.disk_layer
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(RuntimeLayer_DiskLayer)
-		err := b.DecodeMessage(msg)
-		m.LayerSpecifier = &RuntimeLayer_DiskLayer_{msg}
-		return true, err
-	case 4: // layer_specifier.admin_layer
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(RuntimeLayer_AdminLayer)
-		err := b.DecodeMessage(msg)
-		m.LayerSpecifier = &RuntimeLayer_AdminLayer_{msg}
-		return true, err
-	case 5: // layer_specifier.rtds_layer
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(RuntimeLayer_RtdsLayer)
-		err := b.DecodeMessage(msg)
-		m.LayerSpecifier = &RuntimeLayer_RtdsLayer_{msg}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _RuntimeLayer_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*RuntimeLayer)
-	// layer_specifier
-	switch x := m.LayerSpecifier.(type) {
-	case *RuntimeLayer_StaticLayer:
-		s := proto.Size(x.StaticLayer)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *RuntimeLayer_DiskLayer_:
-		s := proto.Size(x.DiskLayer)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *RuntimeLayer_AdminLayer_:
-		s := proto.Size(x.AdminLayer)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *RuntimeLayer_RtdsLayer_:
-		s := proto.Size(x.RtdsLayer)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 // :ref:`Disk runtime <config_runtime_local_disk>` layer.

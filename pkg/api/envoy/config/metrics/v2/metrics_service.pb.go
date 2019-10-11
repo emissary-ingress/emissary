@@ -22,7 +22,7 @@ var _ = math.Inf
 // is compatible with the proto package it is being compiled against.
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
-const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
+const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // Metrics Service is configured as a built-in *envoy.metrics_service* :ref:`StatsSink
 // <envoy_api_msg_config.metrics.v2.StatsSink>`. This opaque configuration will be used to create

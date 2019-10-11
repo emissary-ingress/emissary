@@ -27,7 +27,7 @@ var _ = math.Inf
 // is compatible with the proto package it is being compiled against.
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
-const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
+const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // Empty response for the StreamAccessLogs API. Will never be sent. See below.
 type StreamAccessLogsResponse struct {
@@ -164,78 +164,12 @@ func (m *StreamAccessLogsMessage) GetTcpLogs() *StreamAccessLogsMessage_TCPAcces
 	return nil
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*StreamAccessLogsMessage) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _StreamAccessLogsMessage_OneofMarshaler, _StreamAccessLogsMessage_OneofUnmarshaler, _StreamAccessLogsMessage_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*StreamAccessLogsMessage) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*StreamAccessLogsMessage_HttpLogs)(nil),
 		(*StreamAccessLogsMessage_TcpLogs)(nil),
 	}
-}
-
-func _StreamAccessLogsMessage_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*StreamAccessLogsMessage)
-	// log_entries
-	switch x := m.LogEntries.(type) {
-	case *StreamAccessLogsMessage_HttpLogs:
-		_ = b.EncodeVarint(2<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.HttpLogs); err != nil {
-			return err
-		}
-	case *StreamAccessLogsMessage_TcpLogs:
-		_ = b.EncodeVarint(3<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.TcpLogs); err != nil {
-			return err
-		}
-	case nil:
-	default:
-		return fmt.Errorf("StreamAccessLogsMessage.LogEntries has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _StreamAccessLogsMessage_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*StreamAccessLogsMessage)
-	switch tag {
-	case 2: // log_entries.http_logs
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(StreamAccessLogsMessage_HTTPAccessLogEntries)
-		err := b.DecodeMessage(msg)
-		m.LogEntries = &StreamAccessLogsMessage_HttpLogs{msg}
-		return true, err
-	case 3: // log_entries.tcp_logs
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(StreamAccessLogsMessage_TCPAccessLogEntries)
-		err := b.DecodeMessage(msg)
-		m.LogEntries = &StreamAccessLogsMessage_TcpLogs{msg}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _StreamAccessLogsMessage_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*StreamAccessLogsMessage)
-	// log_entries
-	switch x := m.LogEntries.(type) {
-	case *StreamAccessLogsMessage_HttpLogs:
-		s := proto.Size(x.HttpLogs)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *StreamAccessLogsMessage_TcpLogs:
-		s := proto.Size(x.TcpLogs)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 type StreamAccessLogsMessage_Identifier struct {

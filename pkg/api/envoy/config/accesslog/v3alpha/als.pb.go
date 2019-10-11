@@ -23,7 +23,7 @@ var _ = math.Inf
 // is compatible with the proto package it is being compiled against.
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
-const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
+const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // Configuration for the built-in *envoy.http_grpc_access_log*
 // :ref:`AccessLog <envoy_api_msg_config.filter.accesslog.v3alpha.AccessLog>`. This configuration

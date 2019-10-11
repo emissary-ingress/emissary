@@ -22,7 +22,7 @@ var _ = math.Inf
 // is compatible with the proto package it is being compiled against.
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
-const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
+const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // Thrift transport types supported by Envoy.
 type TransportType int32
@@ -294,78 +294,12 @@ func (m *ThriftFilter) GetTypedConfig() *types.Any {
 	return nil
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*ThriftFilter) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _ThriftFilter_OneofMarshaler, _ThriftFilter_OneofUnmarshaler, _ThriftFilter_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*ThriftFilter) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*ThriftFilter_Config)(nil),
 		(*ThriftFilter_TypedConfig)(nil),
 	}
-}
-
-func _ThriftFilter_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*ThriftFilter)
-	// config_type
-	switch x := m.ConfigType.(type) {
-	case *ThriftFilter_Config:
-		_ = b.EncodeVarint(2<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.Config); err != nil {
-			return err
-		}
-	case *ThriftFilter_TypedConfig:
-		_ = b.EncodeVarint(3<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.TypedConfig); err != nil {
-			return err
-		}
-	case nil:
-	default:
-		return fmt.Errorf("ThriftFilter.ConfigType has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _ThriftFilter_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*ThriftFilter)
-	switch tag {
-	case 2: // config_type.config
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(types.Struct)
-		err := b.DecodeMessage(msg)
-		m.ConfigType = &ThriftFilter_Config{msg}
-		return true, err
-	case 3: // config_type.typed_config
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(types.Any)
-		err := b.DecodeMessage(msg)
-		m.ConfigType = &ThriftFilter_TypedConfig{msg}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _ThriftFilter_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*ThriftFilter)
-	// config_type
-	switch x := m.ConfigType.(type) {
-	case *ThriftFilter_Config:
-		s := proto.Size(x.Config)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *ThriftFilter_TypedConfig:
-		s := proto.Size(x.TypedConfig)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 // ThriftProtocolOptions specifies Thrift upstream protocol options. This object is used in

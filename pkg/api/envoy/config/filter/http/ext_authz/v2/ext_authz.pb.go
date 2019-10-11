@@ -24,7 +24,7 @@ var _ = math.Inf
 // is compatible with the proto package it is being compiled against.
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
-const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
+const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 type ExtAuthz struct {
 	// External authorization service configuration.
@@ -199,78 +199,12 @@ func (m *ExtAuthz) GetMetadataContextNamespaces() []string {
 	return nil
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*ExtAuthz) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _ExtAuthz_OneofMarshaler, _ExtAuthz_OneofUnmarshaler, _ExtAuthz_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*ExtAuthz) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*ExtAuthz_GrpcService)(nil),
 		(*ExtAuthz_HttpService)(nil),
 	}
-}
-
-func _ExtAuthz_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*ExtAuthz)
-	// services
-	switch x := m.Services.(type) {
-	case *ExtAuthz_GrpcService:
-		_ = b.EncodeVarint(1<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.GrpcService); err != nil {
-			return err
-		}
-	case *ExtAuthz_HttpService:
-		_ = b.EncodeVarint(3<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.HttpService); err != nil {
-			return err
-		}
-	case nil:
-	default:
-		return fmt.Errorf("ExtAuthz.Services has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _ExtAuthz_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*ExtAuthz)
-	switch tag {
-	case 1: // services.grpc_service
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(core.GrpcService)
-		err := b.DecodeMessage(msg)
-		m.Services = &ExtAuthz_GrpcService{msg}
-		return true, err
-	case 3: // services.http_service
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(HttpService)
-		err := b.DecodeMessage(msg)
-		m.Services = &ExtAuthz_HttpService{msg}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _ExtAuthz_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*ExtAuthz)
-	// services
-	switch x := m.Services.(type) {
-	case *ExtAuthz_GrpcService:
-		s := proto.Size(x.GrpcService)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *ExtAuthz_HttpService:
-		s := proto.Size(x.HttpService)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 // Configuration for buffering the request data.
@@ -645,77 +579,12 @@ func (m *ExtAuthzPerRoute) GetCheckSettings() *CheckSettings {
 	return nil
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*ExtAuthzPerRoute) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _ExtAuthzPerRoute_OneofMarshaler, _ExtAuthzPerRoute_OneofUnmarshaler, _ExtAuthzPerRoute_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*ExtAuthzPerRoute) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*ExtAuthzPerRoute_Disabled)(nil),
 		(*ExtAuthzPerRoute_CheckSettings)(nil),
 	}
-}
-
-func _ExtAuthzPerRoute_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*ExtAuthzPerRoute)
-	// override
-	switch x := m.Override.(type) {
-	case *ExtAuthzPerRoute_Disabled:
-		t := uint64(0)
-		if x.Disabled {
-			t = 1
-		}
-		_ = b.EncodeVarint(1<<3 | proto.WireVarint)
-		_ = b.EncodeVarint(t)
-	case *ExtAuthzPerRoute_CheckSettings:
-		_ = b.EncodeVarint(2<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.CheckSettings); err != nil {
-			return err
-		}
-	case nil:
-	default:
-		return fmt.Errorf("ExtAuthzPerRoute.Override has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _ExtAuthzPerRoute_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*ExtAuthzPerRoute)
-	switch tag {
-	case 1: // override.disabled
-		if wire != proto.WireVarint {
-			return true, proto.ErrInternalBadWireType
-		}
-		x, err := b.DecodeVarint()
-		m.Override = &ExtAuthzPerRoute_Disabled{x != 0}
-		return true, err
-	case 2: // override.check_settings
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(CheckSettings)
-		err := b.DecodeMessage(msg)
-		m.Override = &ExtAuthzPerRoute_CheckSettings{msg}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _ExtAuthzPerRoute_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*ExtAuthzPerRoute)
-	// override
-	switch x := m.Override.(type) {
-	case *ExtAuthzPerRoute_Disabled:
-		n += 1 // tag and wire
-		n += 1
-	case *ExtAuthzPerRoute_CheckSettings:
-		s := proto.Size(x.CheckSettings)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 // Extra settings for the check request. You can use this to provide extra context for the

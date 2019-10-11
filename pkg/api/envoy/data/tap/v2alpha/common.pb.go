@@ -20,7 +20,7 @@ var _ = math.Inf
 // is compatible with the proto package it is being compiled against.
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
-const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
+const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // Wrapper for tapped body data. This includes HTTP request/response body, transport socket received
 // and transmitted data, etc.
@@ -117,70 +117,12 @@ func (m *Body) GetTruncated() bool {
 	return false
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*Body) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _Body_OneofMarshaler, _Body_OneofUnmarshaler, _Body_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*Body) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*Body_AsBytes)(nil),
 		(*Body_AsString)(nil),
 	}
-}
-
-func _Body_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*Body)
-	// body_type
-	switch x := m.BodyType.(type) {
-	case *Body_AsBytes:
-		_ = b.EncodeVarint(1<<3 | proto.WireBytes)
-		_ = b.EncodeRawBytes(x.AsBytes)
-	case *Body_AsString:
-		_ = b.EncodeVarint(2<<3 | proto.WireBytes)
-		_ = b.EncodeStringBytes(x.AsString)
-	case nil:
-	default:
-		return fmt.Errorf("Body.BodyType has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _Body_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*Body)
-	switch tag {
-	case 1: // body_type.as_bytes
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		x, err := b.DecodeRawBytes(true)
-		m.BodyType = &Body_AsBytes{x}
-		return true, err
-	case 2: // body_type.as_string
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		x, err := b.DecodeStringBytes()
-		m.BodyType = &Body_AsString{x}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _Body_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*Body)
-	// body_type
-	switch x := m.BodyType.(type) {
-	case *Body_AsBytes:
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(len(x.AsBytes)))
-		n += len(x.AsBytes)
-	case *Body_AsString:
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(len(x.AsString)))
-		n += len(x.AsString)
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 func init() {

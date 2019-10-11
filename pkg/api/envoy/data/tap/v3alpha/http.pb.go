@@ -21,7 +21,7 @@ var _ = math.Inf
 // is compatible with the proto package it is being compiled against.
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
-const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
+const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // A fully buffered HTTP trace message.
 type HttpBufferedTrace struct {
@@ -287,9 +287,9 @@ func (m *HttpStreamedTraceSegment) GetResponseTrailers() *core.HeaderMap {
 	return nil
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*HttpStreamedTraceSegment) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _HttpStreamedTraceSegment_OneofMarshaler, _HttpStreamedTraceSegment_OneofUnmarshaler, _HttpStreamedTraceSegment_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*HttpStreamedTraceSegment) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*HttpStreamedTraceSegment_RequestHeaders)(nil),
 		(*HttpStreamedTraceSegment_RequestBodyChunk)(nil),
 		(*HttpStreamedTraceSegment_RequestTrailers)(nil),
@@ -297,144 +297,6 @@ func (*HttpStreamedTraceSegment) XXX_OneofFuncs() (func(msg proto.Message, b *pr
 		(*HttpStreamedTraceSegment_ResponseBodyChunk)(nil),
 		(*HttpStreamedTraceSegment_ResponseTrailers)(nil),
 	}
-}
-
-func _HttpStreamedTraceSegment_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*HttpStreamedTraceSegment)
-	// message_piece
-	switch x := m.MessagePiece.(type) {
-	case *HttpStreamedTraceSegment_RequestHeaders:
-		_ = b.EncodeVarint(2<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.RequestHeaders); err != nil {
-			return err
-		}
-	case *HttpStreamedTraceSegment_RequestBodyChunk:
-		_ = b.EncodeVarint(3<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.RequestBodyChunk); err != nil {
-			return err
-		}
-	case *HttpStreamedTraceSegment_RequestTrailers:
-		_ = b.EncodeVarint(4<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.RequestTrailers); err != nil {
-			return err
-		}
-	case *HttpStreamedTraceSegment_ResponseHeaders:
-		_ = b.EncodeVarint(5<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.ResponseHeaders); err != nil {
-			return err
-		}
-	case *HttpStreamedTraceSegment_ResponseBodyChunk:
-		_ = b.EncodeVarint(6<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.ResponseBodyChunk); err != nil {
-			return err
-		}
-	case *HttpStreamedTraceSegment_ResponseTrailers:
-		_ = b.EncodeVarint(7<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.ResponseTrailers); err != nil {
-			return err
-		}
-	case nil:
-	default:
-		return fmt.Errorf("HttpStreamedTraceSegment.MessagePiece has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _HttpStreamedTraceSegment_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*HttpStreamedTraceSegment)
-	switch tag {
-	case 2: // message_piece.request_headers
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(core.HeaderMap)
-		err := b.DecodeMessage(msg)
-		m.MessagePiece = &HttpStreamedTraceSegment_RequestHeaders{msg}
-		return true, err
-	case 3: // message_piece.request_body_chunk
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(Body)
-		err := b.DecodeMessage(msg)
-		m.MessagePiece = &HttpStreamedTraceSegment_RequestBodyChunk{msg}
-		return true, err
-	case 4: // message_piece.request_trailers
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(core.HeaderMap)
-		err := b.DecodeMessage(msg)
-		m.MessagePiece = &HttpStreamedTraceSegment_RequestTrailers{msg}
-		return true, err
-	case 5: // message_piece.response_headers
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(core.HeaderMap)
-		err := b.DecodeMessage(msg)
-		m.MessagePiece = &HttpStreamedTraceSegment_ResponseHeaders{msg}
-		return true, err
-	case 6: // message_piece.response_body_chunk
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(Body)
-		err := b.DecodeMessage(msg)
-		m.MessagePiece = &HttpStreamedTraceSegment_ResponseBodyChunk{msg}
-		return true, err
-	case 7: // message_piece.response_trailers
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(core.HeaderMap)
-		err := b.DecodeMessage(msg)
-		m.MessagePiece = &HttpStreamedTraceSegment_ResponseTrailers{msg}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _HttpStreamedTraceSegment_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*HttpStreamedTraceSegment)
-	// message_piece
-	switch x := m.MessagePiece.(type) {
-	case *HttpStreamedTraceSegment_RequestHeaders:
-		s := proto.Size(x.RequestHeaders)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *HttpStreamedTraceSegment_RequestBodyChunk:
-		s := proto.Size(x.RequestBodyChunk)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *HttpStreamedTraceSegment_RequestTrailers:
-		s := proto.Size(x.RequestTrailers)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *HttpStreamedTraceSegment_ResponseHeaders:
-		s := proto.Size(x.ResponseHeaders)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *HttpStreamedTraceSegment_ResponseBodyChunk:
-		s := proto.Size(x.ResponseBodyChunk)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *HttpStreamedTraceSegment_ResponseTrailers:
-		s := proto.Size(x.ResponseTrailers)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 func init() {

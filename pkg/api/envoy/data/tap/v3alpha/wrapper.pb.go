@@ -21,7 +21,7 @@ var _ = math.Inf
 // is compatible with the proto package it is being compiled against.
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
-const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
+const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // Wrapper for all fully buffered and streamed tap traces that Envoy emits. This is required for
 // sending traces over gRPC APIs or more easily persisting binary messages to files.
@@ -129,116 +129,14 @@ func (m *TraceWrapper) GetSocketStreamedTraceSegment() *SocketStreamedTraceSegme
 	return nil
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*TraceWrapper) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _TraceWrapper_OneofMarshaler, _TraceWrapper_OneofUnmarshaler, _TraceWrapper_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*TraceWrapper) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*TraceWrapper_HttpBufferedTrace)(nil),
 		(*TraceWrapper_HttpStreamedTraceSegment)(nil),
 		(*TraceWrapper_SocketBufferedTrace)(nil),
 		(*TraceWrapper_SocketStreamedTraceSegment)(nil),
 	}
-}
-
-func _TraceWrapper_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*TraceWrapper)
-	// trace
-	switch x := m.Trace.(type) {
-	case *TraceWrapper_HttpBufferedTrace:
-		_ = b.EncodeVarint(1<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.HttpBufferedTrace); err != nil {
-			return err
-		}
-	case *TraceWrapper_HttpStreamedTraceSegment:
-		_ = b.EncodeVarint(2<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.HttpStreamedTraceSegment); err != nil {
-			return err
-		}
-	case *TraceWrapper_SocketBufferedTrace:
-		_ = b.EncodeVarint(3<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.SocketBufferedTrace); err != nil {
-			return err
-		}
-	case *TraceWrapper_SocketStreamedTraceSegment:
-		_ = b.EncodeVarint(4<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.SocketStreamedTraceSegment); err != nil {
-			return err
-		}
-	case nil:
-	default:
-		return fmt.Errorf("TraceWrapper.Trace has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _TraceWrapper_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*TraceWrapper)
-	switch tag {
-	case 1: // trace.http_buffered_trace
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(HttpBufferedTrace)
-		err := b.DecodeMessage(msg)
-		m.Trace = &TraceWrapper_HttpBufferedTrace{msg}
-		return true, err
-	case 2: // trace.http_streamed_trace_segment
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(HttpStreamedTraceSegment)
-		err := b.DecodeMessage(msg)
-		m.Trace = &TraceWrapper_HttpStreamedTraceSegment{msg}
-		return true, err
-	case 3: // trace.socket_buffered_trace
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(SocketBufferedTrace)
-		err := b.DecodeMessage(msg)
-		m.Trace = &TraceWrapper_SocketBufferedTrace{msg}
-		return true, err
-	case 4: // trace.socket_streamed_trace_segment
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(SocketStreamedTraceSegment)
-		err := b.DecodeMessage(msg)
-		m.Trace = &TraceWrapper_SocketStreamedTraceSegment{msg}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _TraceWrapper_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*TraceWrapper)
-	// trace
-	switch x := m.Trace.(type) {
-	case *TraceWrapper_HttpBufferedTrace:
-		s := proto.Size(x.HttpBufferedTrace)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *TraceWrapper_HttpStreamedTraceSegment:
-		s := proto.Size(x.HttpStreamedTraceSegment)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *TraceWrapper_SocketBufferedTrace:
-		s := proto.Size(x.SocketBufferedTrace)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *TraceWrapper_SocketStreamedTraceSegment:
-		s := proto.Size(x.SocketStreamedTraceSegment)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 func init() {

@@ -25,7 +25,7 @@ var _ = math.Inf
 // is compatible with the proto package it is being compiled against.
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
-const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
+const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 type ComparisonFilter_Op int32
 
@@ -241,78 +241,12 @@ func (m *AccessLog) GetTypedConfig() *types.Any {
 	return nil
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*AccessLog) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _AccessLog_OneofMarshaler, _AccessLog_OneofUnmarshaler, _AccessLog_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*AccessLog) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*AccessLog_Config)(nil),
 		(*AccessLog_TypedConfig)(nil),
 	}
-}
-
-func _AccessLog_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*AccessLog)
-	// config_type
-	switch x := m.ConfigType.(type) {
-	case *AccessLog_Config:
-		_ = b.EncodeVarint(3<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.Config); err != nil {
-			return err
-		}
-	case *AccessLog_TypedConfig:
-		_ = b.EncodeVarint(4<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.TypedConfig); err != nil {
-			return err
-		}
-	case nil:
-	default:
-		return fmt.Errorf("AccessLog.ConfigType has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _AccessLog_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*AccessLog)
-	switch tag {
-	case 3: // config_type.config
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(types.Struct)
-		err := b.DecodeMessage(msg)
-		m.ConfigType = &AccessLog_Config{msg}
-		return true, err
-	case 4: // config_type.typed_config
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(types.Any)
-		err := b.DecodeMessage(msg)
-		m.ConfigType = &AccessLog_TypedConfig{msg}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _AccessLog_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*AccessLog)
-	// config_type
-	switch x := m.ConfigType.(type) {
-	case *AccessLog_Config:
-		s := proto.Size(x.Config)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *AccessLog_TypedConfig:
-		s := proto.Size(x.TypedConfig)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 type AccessLogFilter struct {
@@ -503,9 +437,9 @@ func (m *AccessLogFilter) GetExtensionFilter() *ExtensionFilter {
 	return nil
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*AccessLogFilter) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _AccessLogFilter_OneofMarshaler, _AccessLogFilter_OneofUnmarshaler, _AccessLogFilter_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*AccessLogFilter) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*AccessLogFilter_StatusCodeFilter)(nil),
 		(*AccessLogFilter_DurationFilter)(nil),
 		(*AccessLogFilter_NotHealthCheckFilter)(nil),
@@ -518,234 +452,6 @@ func (*AccessLogFilter) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffe
 		(*AccessLogFilter_GrpcStatusFilter)(nil),
 		(*AccessLogFilter_ExtensionFilter)(nil),
 	}
-}
-
-func _AccessLogFilter_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*AccessLogFilter)
-	// filter_specifier
-	switch x := m.FilterSpecifier.(type) {
-	case *AccessLogFilter_StatusCodeFilter:
-		_ = b.EncodeVarint(1<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.StatusCodeFilter); err != nil {
-			return err
-		}
-	case *AccessLogFilter_DurationFilter:
-		_ = b.EncodeVarint(2<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.DurationFilter); err != nil {
-			return err
-		}
-	case *AccessLogFilter_NotHealthCheckFilter:
-		_ = b.EncodeVarint(3<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.NotHealthCheckFilter); err != nil {
-			return err
-		}
-	case *AccessLogFilter_TraceableFilter:
-		_ = b.EncodeVarint(4<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.TraceableFilter); err != nil {
-			return err
-		}
-	case *AccessLogFilter_RuntimeFilter:
-		_ = b.EncodeVarint(5<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.RuntimeFilter); err != nil {
-			return err
-		}
-	case *AccessLogFilter_AndFilter:
-		_ = b.EncodeVarint(6<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.AndFilter); err != nil {
-			return err
-		}
-	case *AccessLogFilter_OrFilter:
-		_ = b.EncodeVarint(7<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.OrFilter); err != nil {
-			return err
-		}
-	case *AccessLogFilter_HeaderFilter:
-		_ = b.EncodeVarint(8<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.HeaderFilter); err != nil {
-			return err
-		}
-	case *AccessLogFilter_ResponseFlagFilter:
-		_ = b.EncodeVarint(9<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.ResponseFlagFilter); err != nil {
-			return err
-		}
-	case *AccessLogFilter_GrpcStatusFilter:
-		_ = b.EncodeVarint(10<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.GrpcStatusFilter); err != nil {
-			return err
-		}
-	case *AccessLogFilter_ExtensionFilter:
-		_ = b.EncodeVarint(11<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.ExtensionFilter); err != nil {
-			return err
-		}
-	case nil:
-	default:
-		return fmt.Errorf("AccessLogFilter.FilterSpecifier has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _AccessLogFilter_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*AccessLogFilter)
-	switch tag {
-	case 1: // filter_specifier.status_code_filter
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(StatusCodeFilter)
-		err := b.DecodeMessage(msg)
-		m.FilterSpecifier = &AccessLogFilter_StatusCodeFilter{msg}
-		return true, err
-	case 2: // filter_specifier.duration_filter
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(DurationFilter)
-		err := b.DecodeMessage(msg)
-		m.FilterSpecifier = &AccessLogFilter_DurationFilter{msg}
-		return true, err
-	case 3: // filter_specifier.not_health_check_filter
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(NotHealthCheckFilter)
-		err := b.DecodeMessage(msg)
-		m.FilterSpecifier = &AccessLogFilter_NotHealthCheckFilter{msg}
-		return true, err
-	case 4: // filter_specifier.traceable_filter
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(TraceableFilter)
-		err := b.DecodeMessage(msg)
-		m.FilterSpecifier = &AccessLogFilter_TraceableFilter{msg}
-		return true, err
-	case 5: // filter_specifier.runtime_filter
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(RuntimeFilter)
-		err := b.DecodeMessage(msg)
-		m.FilterSpecifier = &AccessLogFilter_RuntimeFilter{msg}
-		return true, err
-	case 6: // filter_specifier.and_filter
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(AndFilter)
-		err := b.DecodeMessage(msg)
-		m.FilterSpecifier = &AccessLogFilter_AndFilter{msg}
-		return true, err
-	case 7: // filter_specifier.or_filter
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(OrFilter)
-		err := b.DecodeMessage(msg)
-		m.FilterSpecifier = &AccessLogFilter_OrFilter{msg}
-		return true, err
-	case 8: // filter_specifier.header_filter
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(HeaderFilter)
-		err := b.DecodeMessage(msg)
-		m.FilterSpecifier = &AccessLogFilter_HeaderFilter{msg}
-		return true, err
-	case 9: // filter_specifier.response_flag_filter
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(ResponseFlagFilter)
-		err := b.DecodeMessage(msg)
-		m.FilterSpecifier = &AccessLogFilter_ResponseFlagFilter{msg}
-		return true, err
-	case 10: // filter_specifier.grpc_status_filter
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(GrpcStatusFilter)
-		err := b.DecodeMessage(msg)
-		m.FilterSpecifier = &AccessLogFilter_GrpcStatusFilter{msg}
-		return true, err
-	case 11: // filter_specifier.extension_filter
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(ExtensionFilter)
-		err := b.DecodeMessage(msg)
-		m.FilterSpecifier = &AccessLogFilter_ExtensionFilter{msg}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _AccessLogFilter_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*AccessLogFilter)
-	// filter_specifier
-	switch x := m.FilterSpecifier.(type) {
-	case *AccessLogFilter_StatusCodeFilter:
-		s := proto.Size(x.StatusCodeFilter)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *AccessLogFilter_DurationFilter:
-		s := proto.Size(x.DurationFilter)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *AccessLogFilter_NotHealthCheckFilter:
-		s := proto.Size(x.NotHealthCheckFilter)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *AccessLogFilter_TraceableFilter:
-		s := proto.Size(x.TraceableFilter)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *AccessLogFilter_RuntimeFilter:
-		s := proto.Size(x.RuntimeFilter)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *AccessLogFilter_AndFilter:
-		s := proto.Size(x.AndFilter)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *AccessLogFilter_OrFilter:
-		s := proto.Size(x.OrFilter)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *AccessLogFilter_HeaderFilter:
-		s := proto.Size(x.HeaderFilter)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *AccessLogFilter_ResponseFlagFilter:
-		s := proto.Size(x.ResponseFlagFilter)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *AccessLogFilter_GrpcStatusFilter:
-		s := proto.Size(x.GrpcStatusFilter)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *AccessLogFilter_ExtensionFilter:
-		s := proto.Size(x.ExtensionFilter)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 // Filter on an integer comparison.
@@ -1421,78 +1127,12 @@ func (m *ExtensionFilter) GetTypedConfig() *types.Any {
 	return nil
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*ExtensionFilter) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _ExtensionFilter_OneofMarshaler, _ExtensionFilter_OneofUnmarshaler, _ExtensionFilter_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*ExtensionFilter) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*ExtensionFilter_Config)(nil),
 		(*ExtensionFilter_TypedConfig)(nil),
 	}
-}
-
-func _ExtensionFilter_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*ExtensionFilter)
-	// config_type
-	switch x := m.ConfigType.(type) {
-	case *ExtensionFilter_Config:
-		_ = b.EncodeVarint(2<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.Config); err != nil {
-			return err
-		}
-	case *ExtensionFilter_TypedConfig:
-		_ = b.EncodeVarint(3<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.TypedConfig); err != nil {
-			return err
-		}
-	case nil:
-	default:
-		return fmt.Errorf("ExtensionFilter.ConfigType has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _ExtensionFilter_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*ExtensionFilter)
-	switch tag {
-	case 2: // config_type.config
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(types.Struct)
-		err := b.DecodeMessage(msg)
-		m.ConfigType = &ExtensionFilter_Config{msg}
-		return true, err
-	case 3: // config_type.typed_config
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(types.Any)
-		err := b.DecodeMessage(msg)
-		m.ConfigType = &ExtensionFilter_TypedConfig{msg}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _ExtensionFilter_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*ExtensionFilter)
-	// config_type
-	switch x := m.ConfigType.(type) {
-	case *ExtensionFilter_Config:
-		s := proto.Size(x.Config)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *ExtensionFilter_TypedConfig:
-		s := proto.Size(x.TypedConfig)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 func init() {

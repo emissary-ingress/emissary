@@ -21,7 +21,7 @@ var _ = math.Inf
 // is compatible with the proto package it is being compiled against.
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
-const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
+const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // Specifies the way to match a string.
 type StringMatcher struct {
@@ -141,119 +141,15 @@ func (m *StringMatcher) GetSafeRegex() *RegexMatcher {
 	return nil
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*StringMatcher) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _StringMatcher_OneofMarshaler, _StringMatcher_OneofUnmarshaler, _StringMatcher_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*StringMatcher) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*StringMatcher_Exact)(nil),
 		(*StringMatcher_Prefix)(nil),
 		(*StringMatcher_Suffix)(nil),
 		(*StringMatcher_Regex)(nil),
 		(*StringMatcher_SafeRegex)(nil),
 	}
-}
-
-func _StringMatcher_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*StringMatcher)
-	// match_pattern
-	switch x := m.MatchPattern.(type) {
-	case *StringMatcher_Exact:
-		_ = b.EncodeVarint(1<<3 | proto.WireBytes)
-		_ = b.EncodeStringBytes(x.Exact)
-	case *StringMatcher_Prefix:
-		_ = b.EncodeVarint(2<<3 | proto.WireBytes)
-		_ = b.EncodeStringBytes(x.Prefix)
-	case *StringMatcher_Suffix:
-		_ = b.EncodeVarint(3<<3 | proto.WireBytes)
-		_ = b.EncodeStringBytes(x.Suffix)
-	case *StringMatcher_Regex:
-		_ = b.EncodeVarint(4<<3 | proto.WireBytes)
-		_ = b.EncodeStringBytes(x.Regex)
-	case *StringMatcher_SafeRegex:
-		_ = b.EncodeVarint(5<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.SafeRegex); err != nil {
-			return err
-		}
-	case nil:
-	default:
-		return fmt.Errorf("StringMatcher.MatchPattern has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _StringMatcher_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*StringMatcher)
-	switch tag {
-	case 1: // match_pattern.exact
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		x, err := b.DecodeStringBytes()
-		m.MatchPattern = &StringMatcher_Exact{x}
-		return true, err
-	case 2: // match_pattern.prefix
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		x, err := b.DecodeStringBytes()
-		m.MatchPattern = &StringMatcher_Prefix{x}
-		return true, err
-	case 3: // match_pattern.suffix
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		x, err := b.DecodeStringBytes()
-		m.MatchPattern = &StringMatcher_Suffix{x}
-		return true, err
-	case 4: // match_pattern.regex
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		x, err := b.DecodeStringBytes()
-		m.MatchPattern = &StringMatcher_Regex{x}
-		return true, err
-	case 5: // match_pattern.safe_regex
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(RegexMatcher)
-		err := b.DecodeMessage(msg)
-		m.MatchPattern = &StringMatcher_SafeRegex{msg}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _StringMatcher_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*StringMatcher)
-	// match_pattern
-	switch x := m.MatchPattern.(type) {
-	case *StringMatcher_Exact:
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(len(x.Exact)))
-		n += len(x.Exact)
-	case *StringMatcher_Prefix:
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(len(x.Prefix)))
-		n += len(x.Prefix)
-	case *StringMatcher_Suffix:
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(len(x.Suffix)))
-		n += len(x.Suffix)
-	case *StringMatcher_Regex:
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(len(x.Regex)))
-		n += len(x.Regex)
-	case *StringMatcher_SafeRegex:
-		s := proto.Size(x.SafeRegex)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 // Specifies a list of ways to match a string.

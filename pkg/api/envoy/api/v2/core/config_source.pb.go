@@ -22,7 +22,7 @@ var _ = math.Inf
 // is compatible with the proto package it is being compiled against.
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
-const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
+const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // APIs may be fetched via either REST or gRPC.
 type ApiConfigSource_ApiType int32
@@ -395,93 +395,13 @@ func (m *ConfigSource) GetInitialFetchTimeout() *types.Duration {
 	return nil
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*ConfigSource) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _ConfigSource_OneofMarshaler, _ConfigSource_OneofUnmarshaler, _ConfigSource_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*ConfigSource) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*ConfigSource_Path)(nil),
 		(*ConfigSource_ApiConfigSource)(nil),
 		(*ConfigSource_Ads)(nil),
 	}
-}
-
-func _ConfigSource_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*ConfigSource)
-	// config_source_specifier
-	switch x := m.ConfigSourceSpecifier.(type) {
-	case *ConfigSource_Path:
-		_ = b.EncodeVarint(1<<3 | proto.WireBytes)
-		_ = b.EncodeStringBytes(x.Path)
-	case *ConfigSource_ApiConfigSource:
-		_ = b.EncodeVarint(2<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.ApiConfigSource); err != nil {
-			return err
-		}
-	case *ConfigSource_Ads:
-		_ = b.EncodeVarint(3<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.Ads); err != nil {
-			return err
-		}
-	case nil:
-	default:
-		return fmt.Errorf("ConfigSource.ConfigSourceSpecifier has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _ConfigSource_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*ConfigSource)
-	switch tag {
-	case 1: // config_source_specifier.path
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		x, err := b.DecodeStringBytes()
-		m.ConfigSourceSpecifier = &ConfigSource_Path{x}
-		return true, err
-	case 2: // config_source_specifier.api_config_source
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(ApiConfigSource)
-		err := b.DecodeMessage(msg)
-		m.ConfigSourceSpecifier = &ConfigSource_ApiConfigSource{msg}
-		return true, err
-	case 3: // config_source_specifier.ads
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(AggregatedConfigSource)
-		err := b.DecodeMessage(msg)
-		m.ConfigSourceSpecifier = &ConfigSource_Ads{msg}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _ConfigSource_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*ConfigSource)
-	// config_source_specifier
-	switch x := m.ConfigSourceSpecifier.(type) {
-	case *ConfigSource_Path:
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(len(x.Path)))
-		n += len(x.Path)
-	case *ConfigSource_ApiConfigSource:
-		s := proto.Size(x.ApiConfigSource)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *ConfigSource_Ads:
-		s := proto.Size(x.Ads)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 func init() {

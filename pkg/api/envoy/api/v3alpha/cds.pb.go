@@ -31,7 +31,7 @@ var _ = math.Inf
 // is compatible with the proto package it is being compiled against.
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
-const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
+const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // Refer to :ref:`service discovery type <arch_overview_service_discovery_types>`
 // for an explanation on each type.
@@ -870,142 +870,15 @@ func (m *Cluster) GetFilters() []*cluster.Filter {
 	return nil
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*Cluster) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _Cluster_OneofMarshaler, _Cluster_OneofUnmarshaler, _Cluster_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*Cluster) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*Cluster_Type)(nil),
 		(*Cluster_ClusterType)(nil),
 		(*Cluster_RingHashLbConfig_)(nil),
 		(*Cluster_OriginalDstLbConfig_)(nil),
 		(*Cluster_LeastRequestLbConfig_)(nil),
 	}
-}
-
-func _Cluster_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*Cluster)
-	// cluster_discovery_type
-	switch x := m.ClusterDiscoveryType.(type) {
-	case *Cluster_Type:
-		_ = b.EncodeVarint(2<<3 | proto.WireVarint)
-		_ = b.EncodeVarint(uint64(x.Type))
-	case *Cluster_ClusterType:
-		_ = b.EncodeVarint(38<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.ClusterType); err != nil {
-			return err
-		}
-	case nil:
-	default:
-		return fmt.Errorf("Cluster.ClusterDiscoveryType has unexpected type %T", x)
-	}
-	// lb_config
-	switch x := m.LbConfig.(type) {
-	case *Cluster_RingHashLbConfig_:
-		_ = b.EncodeVarint(23<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.RingHashLbConfig); err != nil {
-			return err
-		}
-	case *Cluster_OriginalDstLbConfig_:
-		_ = b.EncodeVarint(34<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.OriginalDstLbConfig); err != nil {
-			return err
-		}
-	case *Cluster_LeastRequestLbConfig_:
-		_ = b.EncodeVarint(37<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.LeastRequestLbConfig); err != nil {
-			return err
-		}
-	case nil:
-	default:
-		return fmt.Errorf("Cluster.LbConfig has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _Cluster_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*Cluster)
-	switch tag {
-	case 2: // cluster_discovery_type.type
-		if wire != proto.WireVarint {
-			return true, proto.ErrInternalBadWireType
-		}
-		x, err := b.DecodeVarint()
-		m.ClusterDiscoveryType = &Cluster_Type{Cluster_DiscoveryType(x)}
-		return true, err
-	case 38: // cluster_discovery_type.cluster_type
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(Cluster_CustomClusterType)
-		err := b.DecodeMessage(msg)
-		m.ClusterDiscoveryType = &Cluster_ClusterType{msg}
-		return true, err
-	case 23: // lb_config.ring_hash_lb_config
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(Cluster_RingHashLbConfig)
-		err := b.DecodeMessage(msg)
-		m.LbConfig = &Cluster_RingHashLbConfig_{msg}
-		return true, err
-	case 34: // lb_config.original_dst_lb_config
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(Cluster_OriginalDstLbConfig)
-		err := b.DecodeMessage(msg)
-		m.LbConfig = &Cluster_OriginalDstLbConfig_{msg}
-		return true, err
-	case 37: // lb_config.least_request_lb_config
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(Cluster_LeastRequestLbConfig)
-		err := b.DecodeMessage(msg)
-		m.LbConfig = &Cluster_LeastRequestLbConfig_{msg}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _Cluster_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*Cluster)
-	// cluster_discovery_type
-	switch x := m.ClusterDiscoveryType.(type) {
-	case *Cluster_Type:
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(x.Type))
-	case *Cluster_ClusterType:
-		s := proto.Size(x.ClusterType)
-		n += 2 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	// lb_config
-	switch x := m.LbConfig.(type) {
-	case *Cluster_RingHashLbConfig_:
-		s := proto.Size(x.RingHashLbConfig)
-		n += 2 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *Cluster_OriginalDstLbConfig_:
-		s := proto.Size(x.OriginalDstLbConfig)
-		n += 2 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *Cluster_LeastRequestLbConfig_:
-		s := proto.Size(x.LeastRequestLbConfig)
-		n += 2 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 // Extended cluster type.
@@ -1671,78 +1544,12 @@ func (m *Cluster_CommonLbConfig) GetCloseConnectionsOnHostSetChange() bool {
 	return false
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*Cluster_CommonLbConfig) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _Cluster_CommonLbConfig_OneofMarshaler, _Cluster_CommonLbConfig_OneofUnmarshaler, _Cluster_CommonLbConfig_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*Cluster_CommonLbConfig) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*Cluster_CommonLbConfig_ZoneAwareLbConfig_)(nil),
 		(*Cluster_CommonLbConfig_LocalityWeightedLbConfig_)(nil),
 	}
-}
-
-func _Cluster_CommonLbConfig_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*Cluster_CommonLbConfig)
-	// locality_config_specifier
-	switch x := m.LocalityConfigSpecifier.(type) {
-	case *Cluster_CommonLbConfig_ZoneAwareLbConfig_:
-		_ = b.EncodeVarint(2<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.ZoneAwareLbConfig); err != nil {
-			return err
-		}
-	case *Cluster_CommonLbConfig_LocalityWeightedLbConfig_:
-		_ = b.EncodeVarint(3<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.LocalityWeightedLbConfig); err != nil {
-			return err
-		}
-	case nil:
-	default:
-		return fmt.Errorf("Cluster_CommonLbConfig.LocalityConfigSpecifier has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _Cluster_CommonLbConfig_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*Cluster_CommonLbConfig)
-	switch tag {
-	case 2: // locality_config_specifier.zone_aware_lb_config
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(Cluster_CommonLbConfig_ZoneAwareLbConfig)
-		err := b.DecodeMessage(msg)
-		m.LocalityConfigSpecifier = &Cluster_CommonLbConfig_ZoneAwareLbConfig_{msg}
-		return true, err
-	case 3: // locality_config_specifier.locality_weighted_lb_config
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(Cluster_CommonLbConfig_LocalityWeightedLbConfig)
-		err := b.DecodeMessage(msg)
-		m.LocalityConfigSpecifier = &Cluster_CommonLbConfig_LocalityWeightedLbConfig_{msg}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _Cluster_CommonLbConfig_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*Cluster_CommonLbConfig)
-	// locality_config_specifier
-	switch x := m.LocalityConfigSpecifier.(type) {
-	case *Cluster_CommonLbConfig_ZoneAwareLbConfig_:
-		s := proto.Size(x.ZoneAwareLbConfig)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *Cluster_CommonLbConfig_LocalityWeightedLbConfig_:
-		s := proto.Size(x.LocalityWeightedLbConfig)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 // Configuration for :ref:`zone aware routing
