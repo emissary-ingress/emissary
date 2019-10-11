@@ -14,6 +14,7 @@ import (
 )
 
 func TestInvalid(t *testing.T) {
+	t.Parallel()
 	assert := &testutil.Assert{T: t}
 
 	u, err := url.Parse("https://ambassador.standalone.svc.cluster.local/invalid/headers")
