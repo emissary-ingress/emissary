@@ -196,8 +196,8 @@ spec:
         self.apply_qotm_endpoint_manifests(namespace=namespace)
 
         # Now let's wait for ambassador and QOTM pods to become ready
-        self.run_and_assert(['kubectl', 'wait', '--for=condition=Ready', 'pod', '-l', 'service=ambassador', '-n', namespace])
-        self.run_and_assert(['kubectl', 'wait', '--for=condition=Ready', 'pod', '-l', 'service=qotm', '-n', namespace])
+        self.run_and_assert(['kubectl', 'wait', '--timeout=90s', '--for=condition=Ready', 'pod', '-l', 'service=ambassador', '-n', namespace])
+        self.run_and_assert(['kubectl', 'wait', '--timeout=90s', '--for=condition=Ready', 'pod', '-l', 'service=qotm', '-n', namespace])
 
         # Let's port-forward ambassador service to talk to QOTM
         port_forward_port = 6000
