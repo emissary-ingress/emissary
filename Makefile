@@ -21,9 +21,8 @@ SHELL = bash
 # Welcome to the Ambassador Makefile...
 
 .PHONY: \
-    clean version setup-develop print-vars \
+    version setup-develop print-vars \
     docker-push docker-images
-.SECONDARY:
 
 GIT_DIRTY ?= $(if $(shell git status --porcelain),dirty)
 
@@ -148,11 +147,6 @@ KAT_CLIENT_DOCKER_IMAGE ?= $(KAT_CLIENT_DOCKER_REPO):$(AMBASSADOR_DOCKER_TAG)
 KAT_SERVER_DOCKER_IMAGE ?= $(KAT_SERVER_DOCKER_REPO):$(AMBASSADOR_DOCKER_TAG)
 
 KAT_IMAGE_PULL_POLICY ?= Always
-
-# This should maybe be replaced with a lighterweight dependency if we
-# don't currently depend on go
-GOOS=$(shell go env GOOS)
-GOARCH=$(shell go env GOARCH)
 
 # "make" by itself doesn't make the website. It takes too long and it doesn't
 # belong in the inner dev loop.
