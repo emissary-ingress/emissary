@@ -79,7 +79,7 @@ export KUBECTL_ERR=$(RED)ERROR: preflight kubectl check failed$(END)
 test-ready: push
 	@test -n "$(DEV_KUBECONFIG)" || (printf "$${KUBECONFIG_ERR}\n"; exit 1)
 	@kubectl --kubeconfig $(DEV_KUBECONFIG) -n default get service kubernetes > /dev/null || (printf "$${KUBECTL_ERR}\n"; exit 1)
-	@docker cp $(DEV_KUBECONFIG) $(shell $(BUILDER)):/buildroot/kubeconfig.yaml
+	@cat $(DEV_KUBECONFIG) | docker exec -i $(shell $(BUILDER)) sh -c "cat > /buildroot/kubeconfig.yaml"
 	@if [ -e ~/.docker/config.json ]; then \
 		cat ~/.docker/config.json | docker exec -i $(shell $(BUILDER)) sh -c "mkdir -p /home/dw/.docker && cat > /home/dw/.docker/config.json" ; \
 	fi
