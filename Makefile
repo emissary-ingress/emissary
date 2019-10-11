@@ -88,9 +88,9 @@ AMBASSADOR_EXTERNAL_DOCKER_IMAGE ?= $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(AMBASSA
 YES_I_AM_UPDATING_THE_BASE_IMAGES ?=
 
 # IF YOU MESS WITH ANY OF THESE VALUES, YOU MUST RUN `make docker-update-base`.
-  # Increment BASE_RUNTIME_RELVER on changes to `Dockerfile.base-runtime`
+  # Increment BASE_RUNTIME_RELVER on changes to `docker/base-runtime/Dockerfile`
   BASE_RUNTIME_RELVER ?= 1
-  # Increment BASE_PY_RELVER on changes to `Dockerfile.base-py` or `python/requirements.txt`
+  # Increment BASE_PY_RELVER on changes to `docker/base-py/Dockerfile` or `python/requirements.txt`
   BASE_PY_RELVER      ?= 1
 
   BASE_DOCKER_REPO   ?= quay.io/datawire/ambassador-base$(if $(IS_PRIVATE),-private)
@@ -99,15 +99,15 @@ YES_I_AM_UPDATING_THE_BASE_IMAGES ?=
 # END LIST OF VARIABLES REQUIRING `make docker-update-base`.
 
 #### Test service Dockerfile stuff.
-# The test services live in subdirectories of test-services. TEST_SERVICE_ROOTS
-# is the list of these directories.
+# The test services live in the subdirectories ./docker/test-*/.
+# TEST_SERVICE_ROOTS is the list of values of '*'.
 
-TEST_SERVICE_ROOTS = $(notdir $(wildcard test-services/*))
+TEST_SERVICE_ROOTS = $(patsubst docker/test-%/Dockerfile,%,$(wildcard docker/test-*/Dockerfile))
 
 # TEST_SERVICE_IMAGES maps each TEST_SERVICE_ROOT to test-$root.docker, since
 # those are the names of the individual targets. We also add the auth-tls
 # target here, by hand -- it has a special rule since it's also built from the
-# test-services/auth directory.
+# docker/test-auth/ directory.
 TEST_SERVICE_IMAGES = $(patsubst %,test-%.docker,$(TEST_SERVICE_ROOTS) auth-tls)
 
 # Set default tag values...
@@ -117,6 +117,12 @@ docker.tag.release-ea = $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(RELEASE_VERSION)
 docker.tag.local      = $(AMBASSADOR_DOCKER_TAG)
 docker.tag.base       = $(BASE_IMAGE.$(patsubst base-%.docker,%,$<))
 
+images.all = $(patsubst docker/%/Dockerfile,%,$(wildcard docker/*/Dockerfile)) test-auth-tls ambassador
+# Images made by older versions.  Remove the tail of this list when the
+# commit making the change gets far enough in to the past.
+#
+# 2019-10-13
+images.old += base-go
 TEST_SERVICE_VERSION ?= 0.0.3
 
 # ...then set overrides for the test services.
@@ -169,13 +175,7 @@ include cxx/envoy.mk
 include build-aux-local/kat.mk
 include build-aux-local/docs.mk
 
-# clean_docker_images could just be a fixed list of the images that we
-# generate, but writing that fixed list would require a human to
-# figure out what that complete list is.
-clean_docker_images  = $(wildcard *.docker)
-clean_docker_images += $(patsubst %.tag.release,%,$(wildcard *.docker.tag.release))
-clean_docker_images += $(patsubst %.tag.local,%,$(wildcard *.docker.tag.local))
-clean: $(addsuffix .clean,$(clean_docker_images))
+clean: $(addsuffix .docker.clean,$(images.all) $(images.old))
 	rm -rf docs/_book docs/_site docs/package-lock.json
 	rm -rf helm/*.tgz
 	rm -rf app.json
@@ -189,14 +189,19 @@ clean: $(addsuffix .clean,$(clean_docker_images))
 	find python/tests \
 		\( -name '*.out' -o -name 'envoy.json' -o -name 'intermediate.json' \) -print0 \
 		| xargs -0 rm -f
-	rm -f build/kat/client/kat_client
-	rm -f build/kat/server/kat-server
+	rm -f docker/kat-client/kat_client
+	rm -f docker/kat-client/teleproxy
+	rm -f docker/kat-server/kat-server
 	rm -f tools/sandbox/http_auth/docker-compose.yml
 	rm -f tools/sandbox/grpc_auth/docker-compose.yml
 	rm -f tools/sandbox/grpc_web/docker-compose.yaml tools/sandbox/grpc_web/*_pb.js
 # Files made by older versions.  Remove the tail of this list when the
 # commit making the change gets far enough in to the past.
 #
+# 2019-10-13
+	rm -f build/kat/client/kat_client
+	rm -f build/kat/client/teleproxy
+	rm -f build/kat/server/kat-server
 # 2019-10-13
 	if [ -r .docker_port_forward ]; then kill $$(cat .docker_port_forward) || true; fi
 	rm -f .docker_port_forward
@@ -216,7 +221,6 @@ clean: $(addsuffix .clean,$(clean_docker_images))
 	rm -f kat/kat/client
 
 clobber: clean kill-docker-registry
-	-rm -f build/kat/client/teleproxy
 	-rm -rf docs/node_modules
 	-rm -rf venv && echo && echo "Deleted venv, run 'deactivate' command if your virtualenv is activated" || true
 
@@ -272,7 +276,7 @@ export-vars:
 	@echo "export BUILD_VERSION='$(BUILD_VERSION)'"
 	@echo "export RELEASE_VERSION='$(RELEASE_VERSION)'"
 
-base-%.docker: Dockerfile.base-% $(var.)BASE_IMAGE.% $(WRITE_IFCHANGED)
+base-%.docker: docker/base-%/Dockerfile $(var.)BASE_IMAGE.% $(WRITE_IFCHANGED)
 	@if [ -n "$(AMBASSADOR_DEV)" ]; then echo "Do not run this from a dev shell" >&2; exit 1; fi
 	@PS4=; set -ex; { \
 	    if ! docker run --rm --entrypoint=true $(BASE_IMAGE.$*); then \
@@ -293,12 +297,12 @@ base-runtime.docker.DOCKER_OPTS =
 base-py.docker: base-runtime.docker
 base-py.docker.DOCKER_OPTS = --build-arg=BASE_RUNTIME_IMAGE=$$(cat base-runtime.docker)
 
-test-%.docker: test-services/%/Dockerfile $(MOVE_IFCHANGED) FORCE
-	docker build --quiet --iidfile=$@.tmp test-services/$*
+test-%.docker: docker/test-%/Dockerfile $(MOVE_IFCHANGED) FORCE
+	docker build --quiet --iidfile=$@.tmp $(<D)
 	$(MOVE_IFCHANGED) $@.tmp $@
 
-test-auth-tls.docker: test-services/auth/Dockerfile $(MOVE_IFCHANGED) FORCE
-	docker build --quiet --build-arg TLS=--tls --iidfile=$@.tmp test-services/auth
+test-auth-tls.docker: docker/test-auth/Dockerfile $(MOVE_IFCHANGED) FORCE
+	docker build --quiet --build-arg TLS=--tls --iidfile=$@.tmp $(<D)
 	$(MOVE_IFCHANGED) $@.tmp $@
 
 test-services: $(TEST_SERVICE_IMAGES) $(TEST_SERVICE_LOCAL_TAGS) $(TEST_SERVICE_LOCAL_PUSHES)
@@ -333,26 +337,20 @@ ambassador.docker.DOCKER_OPTS += --build-arg=ENVOY_FILE=$(ENVOY_FILE)
 
 kat-client-docker-image: kat-client.docker
 .PHONY: kat-client-docker-image
-kat-client.docker: build/kat/client/Dockerfile base-py.docker build/kat/client/teleproxy build/kat/client/kat_client $(WRITE_IFCHANGED) $(var.)KAT_CLIENT_DOCKER_IMAGE
-	docker build --build-arg BASE_PY_IMAGE=$$(cat base-py.docker) $(DOCKER_OPTS) -t $(KAT_CLIENT_DOCKER_IMAGE) build/kat/client
+kat-client.docker: docker/kat-client/Dockerfile base-py.docker docker/kat-client/teleproxy docker/kat-client/kat_client $(WRITE_IFCHANGED) $(var.)KAT_CLIENT_DOCKER_IMAGE
+	docker build --build-arg BASE_PY_IMAGE=$$(cat base-py.docker) $(DOCKER_OPTS) -t $(KAT_CLIENT_DOCKER_IMAGE) $(<D)
 	@docker image inspect $(KAT_CLIENT_DOCKER_IMAGE) --format='{{.Id}}' | $(WRITE_IFCHANGED) $@
-
-# build/kat/client/teleproxy always uses the linux/amd64 architecture
-build/kat/client/teleproxy: bin_linux_amd64/teleproxy
+docker/kat-client/teleproxy: docker/kat-client/%: bin_linux_amd64/%
 	cp $< $@
-
-# build/kat/client/kat_client always uses the linux/amd64 architecture
-build/kat/client/kat_client: bin_linux_amd64/kat-client
+docker/kat-client/kat_client: bin_linux_amd64/kat-client
 	cp $< $@
 
 kat-server-docker-image: kat-server.docker
 .PHONY:  kat-server-docker-image
-kat-server.docker: $(wildcard build/kat/server/*) build/kat/server/kat-server $(var.)KAT_SERVER_DOCKER_IMAGE
-	docker build $(DOCKER_OPTS) -t $(KAT_SERVER_DOCKER_IMAGE) build/kat/server
+kat-server.docker: $(wildcard docker/kat-server/*) docker/kat-server/kat-server $(WRITE_IFCHANGED) $(var.)KAT_SERVER_DOCKER_IMAGE
+	docker build $(DOCKER_OPTS) -t $(KAT_SERVER_DOCKER_IMAGE) $(<D)
 	@docker image inspect $(KAT_SERVER_DOCKER_IMAGE) --format='{{.Id}}' | $(WRITE_IFCHANGED) $@
-
-# build/kat/server/kat-server always uses the linux/amd64 architecture
-build/kat/server/kat-server: bin_linux_amd64/kat-server
+docker/kat-server/kat-server: docker/kat-server/%: bin_linux_amd64/%
 	cp $< $@
 
 docker-images: mypy ambassador-docker-image

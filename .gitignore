@@ -16,9 +16,6 @@ VERSION.py
 # binaries
 /bin_*/
 
-/build/kat/client/kat_client
-/build/kat/client/teleproxy
-/build/kat/server/kat-server
 /tools/sandbox/grpc_auth/docker-compose.yml
 /tools/sandbox/grpc_web/docker-compose.yaml
 /tools/sandbox/grpc_web/*_pb.js
@@ -74,6 +71,10 @@ ambassador-secrets-deployment.yaml
 # Remove the tail of this list when the commit making the change gets
 # far enough in to the past.
 
+# 2019-10-13
+/build/kat/client/kat_client
+/build/kat/client/teleproxy
+/build/kat/server/kat-server
 # 2019-10-13
 /.docker_port_forward
 # 2019-10-13
