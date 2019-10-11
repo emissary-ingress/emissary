@@ -102,16 +102,16 @@ ENVOY_FILE ?= envoy-bin/envoy-static-stripped
 
 
   # Increment BASE_ENVOY_RELVER on changes to `Dockerfile.base-envoy`, or Envoy recipes
-  BASE_ENVOY_RELVER ?= 4
-  # Increment BASE_GO_RELVER on changes to `Dockerfile.base-go`
-  BASE_GO_RELVER    ?= 18
-  # Increment BASE_PY_RELVER on changes to `Dockerfile.base-py`, `releng/*`, `python/requirements.txt`
-  BASE_PY_RELVER    ?= 17
+  BASE_ENVOY_RELVER   ?= 5
+  # Increment BASE_RUNTIME_RELVER on changes to `Dockerfile.base-runtime`
+  BASE_RUNTIME_RELVER ?= 1
+  # Increment BASE_PY_RELVER on changes to `Dockerfile.base-py` or `python/requirements.txt`
+  BASE_PY_RELVER      ?= 1
 
-  BASE_DOCKER_REPO ?= quay.io/datawire/ambassador-base$(if $(IS_PRIVATE),-private)
-  BASE_ENVOY_IMAGE ?= $(BASE_DOCKER_REPO):envoy-$(BASE_ENVOY_RELVER).$(ENVOY_COMMIT).$(ENVOY_COMPILATION_MODE)
-  BASE_GO_IMAGE    ?= $(BASE_DOCKER_REPO):go-$(BASE_GO_RELVER)
-  BASE_PY_IMAGE    ?= $(BASE_DOCKER_REPO):py-$(BASE_PY_RELVER)
+  BASE_DOCKER_REPO   ?= quay.io/datawire/ambassador-base$(if $(IS_PRIVATE),-private)
+  BASE_IMAGE.envoy   ?= $(BASE_DOCKER_REPO):envoy-$(BASE_ENVOY_RELVER).$(ENVOY_COMMIT).$(ENVOY_COMPILATION_MODE)
+  BASE_IMAGE.runtime ?= $(BASE_DOCKER_REPO):runtime-$(BASE_RUNTIME_RELVER)
+  BASE_IMAGE.py      ?= $(BASE_DOCKER_REPO):py-$(BASE_RUNTIME_RELVER).$(BASE_PY_RELVER)
 # END LIST OF VARIABLES REQUIRING `make docker-update-base`.
 
 #### Test service Dockerfile stuff.
@@ -131,6 +131,7 @@ docker.tag.release    = $(AMBASSADOR_DOCKER_TAG)
 docker.tag.release-rc = $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(RELEASE_VERSION) $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(BUILD_VERSION)-latest-rc
 docker.tag.release-ea = $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(RELEASE_VERSION)
 docker.tag.local      = $(AMBASSADOR_DOCKER_TAG)
+docker.tag.base       = $(BASE_IMAGE.$(patsubst base-%.docker,%,$<))
 
 TEST_SERVICE_VERSION ?= 0.0.3
 
@@ -160,6 +161,8 @@ KUBERNAUT=venv/bin/kubernaut
 KUBERNAUT_VERSION=2018.10.24-d46c1f1
 KUBERNAUT_CLAIM=$(KUBERNAUT) claims create --name $(CLAIM_NAME) --cluster-group main
 KUBERNAUT_DISCARD=$(KUBERNAUT) claims delete $(CLAIM_NAME)
+
+KUBECTL_VERSION = 1.16.1
 
 # Only override KUBECONFIG if we're using Kubernaut
 ifeq ($(USE_KUBERNAUT), true)
@@ -407,12 +410,12 @@ envoy-bin:
 	mkdir -p $@
 envoy-bin/envoy-static: $(ENVOY_BASH.deps) FORCE | envoy-bin
 	@PS4=; set -ex; { \
-	    if docker run --rm --entrypoint=true $(BASE_ENVOY_IMAGE); then \
-	        rsync -Pav --blocking-io -e 'docker run --rm -i' $$(docker image inspect $(BASE_ENVOY_IMAGE) --format='{{.Id}}' | sed 's/^sha256://'):/usr/local/bin/envoy $@; \
+	    if docker run --rm --entrypoint=true $(BASE_IMAGE.envoy); then \
+	        rsync -Pav --blocking-io -e 'docker run --rm -i' $$(docker image inspect $(BASE_IMAGE.envoy) --format='{{.Id}}' | sed 's/^sha256://'):/usr/local/bin/envoy $@; \
 	    else \
 	        if [ -z '$(YES_I_AM_UPDATING_THE_BASE_IMAGES)' ]; then \
 	            { set +x; } &>/dev/null; \
-	            echo 'error: failed to pull $(BASE_ENVOY_IMAGE), but $$YES_I_AM_UPDATING_THE_BASE_IMAGES is not set'; \
+	            echo 'error: failed to pull $(BASE_IMAGE.envoy), but $$YES_I_AM_UPDATING_THE_BASE_IMAGES is not set'; \
 	            echo '       If you are trying to update the base images, then set that variable to a non-empty value.'; \
 	            echo '       If you are not trying to update the base images, then check your network connection and Docker credentials.'; \
 	            exit 1; \
@@ -447,50 +450,30 @@ envoy-shell: $(ENVOY_BASH.deps)
 	)
 .PHONY: envoy-shell
 
-base-envoy.docker: Dockerfile.base-envoy envoy-build-image.txt envoy-bin/envoy-static $(var.)BASE_ENVOY_IMAGE $(WRITE_IFCHANGED)
+base-%.docker: Dockerfile.base-% $(var.)BASE_IMAGE.% $(WRITE_IFCHANGED)
 	@if [ -n "$(AMBASSADOR_DEV)" ]; then echo "Do not run this from a dev shell" >&2; exit 1; fi
-	@if ! docker run --rm --entrypoint=true $(BASE_ENVOY_IMAGE); then \
+	@PS4=; set -ex; { \
+	    if ! docker run --rm --entrypoint=true $(BASE_IMAGE.$*); then \
 	        if [ -z '$(YES_I_AM_UPDATING_THE_BASE_IMAGES)' ]; then \
 	            { set +x; } &>/dev/null; \
-	            echo 'error: failed to pull $(BASE_ENVOY_IMAGE), but $$YES_I_AM_UPDATING_THE_BASE_IMAGES is not set'; \
+	            echo 'error: failed to pull $(BASE_IMAGE.$*), but $$YES_I_AM_UPDATING_THE_BASE_IMAGES is not set'; \
 	            echo '       If you are trying to update the base images, then set that variable to a non-empty value.'; \
 	            echo '       If you are not trying to update the base images, then check your network connection and Docker credentials.'; \
 	            exit 1; \
 	        fi; \
-		echo "Building $(BASE_ENVOY_IMAGE)" && \
-		docker build $(DOCKER_OPTS) --build-arg=ENVOY_BUILD_IMAGE=$$(cat envoy-build-image.txt) -t $(BASE_ENVOY_IMAGE) -f $< envoy-bin; \
-	fi
-	@docker image inspect $(BASE_ENVOY_IMAGE) --format='{{.Id}}' | $(WRITE_IFCHANGED) $@
+	        docker build $(DOCKER_OPTS) $($@.DOCKER_OPTS) -t $(BASE_IMAGE.$*) -f $< $(or $($@.DOCKER_DIR),.); \
+	    fi; \
+	}
+	docker image inspect $(BASE_IMAGE.$*) --format='{{.Id}}' | $(WRITE_IFCHANGED) $@
 
-base-py.docker: Dockerfile.base-py $(var.)BASE_PY_IMAGE $(WRITE_IFCHANGED)
-	@if [ -n "$(AMBASSADOR_DEV)" ]; then echo "Do not run this from a dev shell" >&2; exit 1; fi
-	@if ! docker run --rm --entrypoint=true $(BASE_PY_IMAGE); then \
-	        if [ -z '$(YES_I_AM_UPDATING_THE_BASE_IMAGES)' ]; then \
-	            { set +x; } &>/dev/null; \
-	            echo 'error: failed to pull $(BASE_PY_IMAGE), but $$YES_I_AM_UPDATING_THE_BASE_IMAGES is not set'; \
-	            echo '       If you are trying to update the base images, then set that variable to a non-empty value.'; \
-	            echo '       If you are not trying to update the base images, then check your network connection and Docker credentials.'; \
-	            exit 1; \
-	        fi; \
-		echo "Building $(BASE_PY_IMAGE)" && \
-		docker build $(DOCKER_OPTS) -t $(BASE_PY_IMAGE) -f $< .; \
-	fi
-	@docker image inspect $(BASE_PY_IMAGE) --format='{{.Id}}' | $(WRITE_IFCHANGED) $@
+base-envoy.docker: envoy-build-image.txt envoy-bin/envoy-static
+base-envoy.docker.DOCKER_OPTS = --build-arg=ENVOY_BUILD_IMAGE=$$(cat envoy-build-image.txt)
+base-envoy.docker.DOCKER_DIR = envoy-bin
 
-base-go.docker: Dockerfile.base-go $(var.)BASE_GO_IMAGE $(WRITE_IFCHANGED)
-	@if [ -n "$(AMBASSADOR_DEV)" ]; then echo "Do not run this from a dev shell" >&2; exit 1; fi
-	@if ! docker run --rm --entrypoint=true $(BASE_GO_IMAGE); then \
-	        if [ -z '$(YES_I_AM_UPDATING_THE_BASE_IMAGES)' ]; then \
-	            { set +x; } &>/dev/null; \
-	            echo 'error: failed to pull $(BASE_GO_IMAGE), but $$YES_I_AM_UPDATING_THE_BASE_IMAGES is not set'; \
-	            echo '       If you are trying to update the base images, then set that variable to a non-empty value.'; \
-	            echo '       If you are not trying to update the base images, then check your network connection and Docker credentials.'; \
-	            exit 1; \
-	        fi; \
-		echo "Building $(BASE_GO_IMAGE)" && \
-		docker build $(DOCKER_OPTS) -t $(BASE_GO_IMAGE) -f $< .; \
-	fi
-	@docker image inspect $(BASE_GO_IMAGE) --format='{{.Id}}' | $(WRITE_IFCHANGED) $@
+base-runtime.docker.DOCKER_OPTS =
+
+base-py.docker: base-runtime.docker
+base-py.docker.DOCKER_OPTS = --build-arg=BASE_RUNTIME_IMAGE=$$(cat base-runtime.docker)
 
 test-%.docker: test-services/%/Dockerfile $(MOVE_IFCHANGED) FORCE
 	docker build --quiet --iidfile=$@.tmp test-services/$*
@@ -512,31 +495,28 @@ TEST_SERVICE_PUSH_TARGETS = $(addsuffix .push,$(TEST_SERVICE_IMAGES))
 $(TEST_SERVICE_PUSH_TARGETS): %.push: %.push.local
 .PHONY: $(TEST_SERVICE_PUSH_TARGETS)
 
-docker-base-images:
-	@if [ -n "$(AMBASSADOR_DEV)" ]; then echo "Do not run this from a dev shell" >&2; exit 1; fi
-	$(MAKE) base-envoy.docker base-go.docker base-py.docker
-	@echo "RESTART ANY DEV SHELLS to make sure they use your new images."
+docker-base-images: $(addsuffix .docker.tag.base,base-envoy base-runtime base-py)
 
-docker-push-base-images:
-	@if [ -n "$(AMBASSADOR_DEV)" ]; then echo "Do not run this from a dev shell" >&2; exit 1; fi
-	docker push $(BASE_ENVOY_IMAGE)
-	docker push $(BASE_PY_IMAGE)
-	docker push $(BASE_GO_IMAGE)
-	@echo "RESTART ANY DEV SHELLS to make sure they use your new images."
+docker-push-base-images: $(addsuffix .docker.push.base,base-envoy base-runtime base-py)
 
 docker-update-base:
 	$(MAKE) docker-base-images pkg/api/envoy
 	$(MAKE) docker-push-base-images
 
 ambassador-docker-image: ambassador.docker
-ambassador.docker: Dockerfile base-go.docker base-py.docker $(ENVOY_FILE) cmd/ambex/ambex $(WATT) $(KUBESTATUS) $(WRITE_IFCHANGED) python/ambassador/VERSION.py FORCE
-	docker build --build-arg ENVOY_FILE=$(ENVOY_FILE) --build-arg BASE_GO_IMAGE=$(BASE_GO_IMAGE) --build-arg BASE_PY_IMAGE=$(BASE_PY_IMAGE) $(DOCKER_OPTS) -t $(AMBASSADOR_DOCKER_IMAGE) .
+ambassador.docker: Dockerfile cmd/ambex/ambex $(WATT) $(KUBESTATUS) bin_linux_amd64/kubectl $(WRITE_IFCHANGED) python/ambassador/VERSION.py FORCE
+	set -x; docker build $(DOCKER_OPTS) $($@.DOCKER_OPTS) -t $(AMBASSADOR_DOCKER_IMAGE) .
 	@docker image inspect $(AMBASSADOR_DOCKER_IMAGE) --format='{{.Id}}' | $(WRITE_IFCHANGED) $@
+ambassador.docker: base-runtime.docker base-py.docker
+ambassador.docker.DOCKER_OPTS += --build-arg=BASE_RUNTIME_IMAGE=$$(cat base-runtime.docker)
+ambassador.docker.DOCKER_OPTS += --build-arg=BASE_PY_IMAGE=$$(cat base-py.docker)
+ambassador.docker: $(ENVOY_FILE) $(var.)ENVOY_FILE
+ambassador.docker.DOCKER_OPTS += --build-arg=ENVOY_FILE=$(ENVOY_FILE)
 
 kat-client-docker-image: kat-client.docker
 .PHONY: kat-client-docker-image
 kat-client.docker: build/kat/client/Dockerfile base-py.docker build/kat/client/teleproxy build/kat/client/kat_client $(WRITE_IFCHANGED) $(var.)KAT_CLIENT_DOCKER_IMAGE
-	docker build --build-arg BASE_PY_IMAGE=$(BASE_PY_IMAGE) $(DOCKER_OPTS) -t $(KAT_CLIENT_DOCKER_IMAGE) build/kat/client
+	docker build --build-arg BASE_PY_IMAGE=$$(cat base-py.docker) $(DOCKER_OPTS) -t $(KAT_CLIENT_DOCKER_IMAGE) build/kat/client
 	@docker image inspect $(KAT_CLIENT_DOCKER_IMAGE) --format='{{.Id}}' | $(WRITE_IFCHANGED) $@
 
 # build/kat/client/teleproxy always uses the linux/amd64 architecture
@@ -620,6 +600,11 @@ $(KUBERNAUT): $(var.)KUBERNAUT_VERSION $(var.)GOOS $(var.)GOARCH | venv/bin/acti
 	curl -o $(KUBERNAUT) http://releases.datawire.io/kubernaut/$(KUBERNAUT_VERSION)/$(GOOS)/$(GOARCH)/kubernaut
 	chmod +x $(KUBERNAUT)
 
+bin_%/kubectl: $(var.)KUBECTL_VERSION
+	mkdir -p $(@D)
+	curl --fail -o $@ -L https://storage.googleapis.com/kubernetes-release/release/v$(KUBECTL_VERSION)/bin/$(GOOS)/$(GOARCH)/kubectl
+	chmod 755 $@
+
 $(KAT_CLIENT): go.mod $(wildcard cmd/kat-client/*) pkg/api/kat/echo.pb.go
 	go build -o $@ ./cmd/kat-client
 
@@ -659,9 +644,11 @@ setup-test: cluster.yaml
 # into better shape without waiting for that.
 
 shell: setup-develop
+	env \
 	AMBASSADOR_DOCKER_IMAGE="$(AMBASSADOR_DOCKER_IMAGE)" \
-	BASE_PY_IMAGE="$(BASE_PY_IMAGE)" \
-	BASE_GO_IMAGE="$(BASE_GO_IMAGE)" \
+	BASE_IMAGE.envoy="$(BASE_IMAGE.envoy)" \
+	BASE_IMAGE.runtime="$(BASE_IMAGE.runtime)" \
+	BASE_IMAGE.py="$(BASE_IMAGE.py)" \
 	MAKE_KUBECONFIG="$(KUBECONFIG)" \
 	bash --init-file releng/init.sh -i
 
@@ -671,10 +658,11 @@ clean-test:
 	rm -f $(CLAIM_FILE)
 
 test: setup-develop
-	cd python && \
+	cd python && env \
 	AMBASSADOR_DOCKER_IMAGE="$(AMBASSADOR_DOCKER_IMAGE)" \
-	BASE_PY_IMAGE="$(BASE_PY_IMAGE)" \
-	BASE_GO_IMAGE="$(BASE_GO_IMAGE)" \
+	BASE_IMAGE.envoy="$(BASE_IMAGE.envoy)" \
+	BASE_IMAGE.runtime="$(BASE_IMAGE.runtime)" \
+	BASE_IMAGE.py="$(BASE_IMAGE.py)" \
 	KUBECONFIG="$(KUBECONFIG)" \
 	KAT_CLIENT_DOCKER_IMAGE="$(KAT_CLIENT_DOCKER_IMAGE)" \
 	KAT_SERVER_DOCKER_IMAGE="$(KAT_SERVER_DOCKER_IMAGE)" \

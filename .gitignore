@@ -22,6 +22,7 @@ kat/kat/client
 
 # binaries
 /cmd/ambex/ambex
+/bin_*/
 
 /build/kat/server/kat-server
 /tools/sandbox/grpc_auth/docker-compose.yml
@@ -86,11 +87,16 @@ kubernaut-claim.txt
 # Remove the tail of this list when the commit making the change gets
 # far enough in to the past.
 
-# 2019-10-07
-/kat-server-docker-image/kat-server
+# 2019-10-08
 /kat-sandbox/grpc_auth/docker-compose.yml
-/kat-sandbox/grpc_web/docker-compose.yaml
 /kat-sandbox/grpc_web/*_pb.js
+/kat-sandbox/grpc_web/docker-compose.yaml
 /kat-sandbox/http_auth/docker-compose.yml
+/kat-server-docker-image/kat-server
+/kat/docs/**/_build
+/unused-e2e/**/ambassador-deployment-mounts.yaml
+/unused-e2e/**/ambassador-deployment.yaml
+/unused-e2e/**/kubernaut
+/unused-e2e/*/k8s/ambassador-deployment*.yaml
 # 2019-06-14
 /envoy/
