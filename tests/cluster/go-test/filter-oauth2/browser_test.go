@@ -21,7 +21,7 @@ import (
 var npmLock sync.Mutex
 var npmInstalled bool = false
 
-func ensureBrowserInstalled(t *testing.T) {
+func ensureNPMInstalled(t *testing.T) {
 	npmLock.Lock()
 	defer npmLock.Unlock()
 	if npmInstalled {
@@ -39,8 +39,6 @@ func ensureBrowserInstalled(t *testing.T) {
 
 // This function is closely coupled with run.js:browserTest().
 func browserTest(t *testing.T, timeout time.Duration, expr string) {
-	ensureBrowserInstalled(t)
-
 	videoFileName := url.PathEscape(t.Name()) + ".webm"
 
 	os.Remove(filepath.Join("testdata", videoFileName))
@@ -83,6 +81,7 @@ run.browserTest(%d, async (browsertab) => {
 	jsCmd.Stderr = os.Stderr
 	jsCmd.ExtraFiles = []*os.File{imageStreamW}
 
+	t.Log("starting...")
 	if err := ffmpegCmd.Start(); err != nil {
 		imageStreamR.Close()
 		imageStreamW.Close()
@@ -111,6 +110,7 @@ run.browserTest(%d, async (browsertab) => {
 
 func TestCanAuthorizeRequests(t *testing.T) {
 	t.Parallel()
+	ensureNPMInstalled(t)
 
 	fileInfos, err := ioutil.ReadDir("testdata")
 	if err != nil {
@@ -123,7 +123,6 @@ func TestCanAuthorizeRequests(t *testing.T) {
 			t.Run(fileInfo.Name(), func(t *testing.T) {
 				t.Parallel()
 
-				ensureBrowserInstalled(t)
 				cmd := exec.Command("node", "--print", fmt.Sprintf("JSON.stringify(require(%q).testcases)", "./"+fileInfo.Name()))
 				cmd.Dir = "./testdata/"
 				cmd.Stderr = os.Stderr
@@ -150,10 +149,20 @@ func TestCanAuthorizeRequests(t *testing.T) {
 
 func TestCanBeChainedWithOtherFilters(t *testing.T) {
 	t.Parallel()
-	browserTest(t, 20*time.Second, `tests.chainTest(browsertab, require("./idp_auth0.js"), "Auth0 (/httpbin)")`)
+	ensureNPMInstalled(t)
+
+	t.Run("run", func(t *testing.T) {
+		t.Parallel()
+		browserTest(t, 20*time.Second, `tests.chainTest(browsertab, require("./idp_auth0.js"), "Auth0 (/httpbin)")`)
+	})
 }
 
 func TestCanBeTurnedOffForSpecificPaths(t *testing.T) {
 	t.Parallel()
-	browserTest(t, 20*time.Second, `tests.disableTest(browsertab, require("./idp_auth0.js"), "Auth0 (/httpbin)")`)
+	ensureNPMInstalled(t)
+
+	t.Run("run", func(t *testing.T) {
+		t.Parallel()
+		browserTest(t, 20*time.Second, `tests.disableTest(browsertab, require("./idp_auth0.js"), "Auth0 (/httpbin)")`)
+	})
 }
