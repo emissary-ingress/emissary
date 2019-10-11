@@ -20,6 +20,8 @@ DBUILD = $(abspath $(BUILDER_HOME)/dbuild.sh)
 
 all: help
 
+.NOTPARALLEL:
+
 export RSYNC_ERR=$(RED)ERROR: please update to a version of rsync with the --info option$(END)
 export DOCKER_ERR=$(RED)ERROR: cannot find docker, please make sure docker is installed$(END)
 
