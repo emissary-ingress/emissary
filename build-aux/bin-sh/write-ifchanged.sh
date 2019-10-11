@@ -20,11 +20,11 @@ tmpfile="$(dirname "$outfile")/.tmp.${outfile##*/}.tmp"
 
 cat > "$tmpfile" || exit $?
 if cmp -s "$tmpfile" "$outfile"; then
-        rm -f "$tmpfile" || :
+	rm -f "$tmpfile" || :
 else
 	if [[ -n "$CI" && -e "$outfile" ]]; then
 		echo "error: This should not happen in CI: ${outfile} should not change" >&2
 		exit 1
 	fi
-        mv -f "$tmpfile" "$outfile"
+	mv -f "$tmpfile" "$outfile"
 fi
