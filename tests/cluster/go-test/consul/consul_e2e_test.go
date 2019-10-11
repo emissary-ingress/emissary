@@ -9,6 +9,8 @@ import (
 )
 
 func TestTLSSecretExists(t *testing.T) {
+	t.Parallel()
+
 	timeout := time.After(60 * time.Second)
 	tick := time.Tick(1 * time.Second)
 

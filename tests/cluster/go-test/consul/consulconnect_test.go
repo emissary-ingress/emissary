@@ -18,6 +18,7 @@ import (
 
 func TestConsulConnectTLSCertificateChainIsPresentAsKubernetesSecret(t *testing.T) {
 	t.SkipNow() // FIXME(lukeshu): test disabled because it's flakey
+	t.Parallel()
 
 	assert := testutil.Assert{T: t}
 
@@ -89,6 +90,8 @@ Loop:
 }
 
 func TestConsulConnectTLSCertificateChainIsUpdatedWhenConnectRootCAChanges(t *testing.T) {
+	t.Parallel()
+
 	var err error
 
 	assert := testutil.Assert{T: t}
