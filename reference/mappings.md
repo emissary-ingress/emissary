@@ -20,12 +20,22 @@ Each mapping can also specify, among other things:
 
 Ambassador supports a number of attributes to configure and customize mappings.
 
+### Required attributes for mappings:
+
+| Required attribute        | Description               |
+| :------------------------ | :------------------------ |
+| `name`                    | is a string identifying the `Mapping` (e.g. in diagnostics) |
+| [`prefix`](#resources)    | is the URL prefix identifying your [resource](#resources) |
+| [`service`](#services)    | is the name of the [service](#services) handling the resource; must include the namespace (e.g. `myservice.othernamespace`) if the service is in a different namespace than Ambassador |
+
+### Additional attributes:
+
 | Attribute                 | Description               |
 | :------------------------ | :------------------------ |
 | `add_linkerd_headers` | if true, automatically adds `l5d-dst-override` headers for Linkerd interoperability (the default is set by the [Ambassador module](/reference/modules)) |
 | [`add_request_headers`](/reference/add_request_headers) | specifies a dictionary of other HTTP headers that should be added to each request when talking to the service |
 | [`add_response_headers`](/reference/add_response_headers) | specifies a dictionary of other HTTP headers that should be added to each response when returning response to client |
-| [`cluster_idle_timeout_ms`] | the timeout, in milliseconds, before an idle connection upstream is closed (may be set on a `Mapping`, `AuthService`, or in the `ambassador` `Module`) | 
+| `cluster_idle_timeout_ms` | the timeout, in milliseconds, before an idle connection upstream is closed (may be set on a `Mapping`, `AuthService`, or in the `ambassador` `Module`) | 
 | [`cors`](/reference/cors)           | enables Cross-Origin Resource Sharing (CORS) setting on a mapping |
 | [`circuit_breakers`](/reference/circuit-breakers) | configures circuit breaking on a mapping
 | `enable_ipv4` | if true, enables IPv4 DNS lookups for this mapping's service (the default is set by the [Ambassador module](/reference/modules)) |
@@ -43,7 +53,7 @@ Ambassador supports a number of attributes to configure and customize mappings.
 | [`remove_request_headers`](/reference/remove_request_headers) | specifies a list of HTTP headers that are dropped from the request before sending to upstream |
 | [`remove_response_headers`](/reference/remove_response_headers) | specifies a list of HTTP headers that are dropped from the response before sending to client |
 | [`regex_headers`](/reference/headers)           | specifies a list of HTTP headers and [regular expressions](http://en.cppreference.com/w/cpp/regex/ecmascript) which _must_ match for this mapping to be used to route the request |
-| [`rewrite`](/reference/rewrites)      | replaces the URL prefix with when talking to the service |
+| [`rewrite`](/reference/rewrites)      | replaces the URL prefix with when talking to the service. Defaults to `""`, meaning the prefix is stripped. |
 | [`retry_policy`](/reference/retries) | performs automatic retries upon request failures |
 | [`timeout_ms`](/reference/timeouts)            | the timeout, in milliseconds, for requests through this `Mapping`. Defaults to 3000. |
 | [`connect_timeout_ms`](/reference/timeouts)      | the timeout, in milliseconds, for requests coming through the `Cluster` for this `Mapping`. Defaults to 3000. |
@@ -147,12 +157,6 @@ prefix: /cqrs/
 method: PUT
 service: putcqrs
 ```
-
-Required attributes for mappings:
-
-- `name` is a string identifying the `Mapping` (e.g. in diagnostics)
-- `prefix` is the URL prefix identifying your [resource](#resources)
-- `service` is the name of the [service](#services) handling the resource; must include the namespace (e.g. `myservice.othernamespace`) if the service is in a different namespace than Ambassador
 
 ## Resources
 
