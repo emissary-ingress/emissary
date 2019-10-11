@@ -8,6 +8,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	"github.com/datawire/ambassador/pkg/consulwatch"
 	"github.com/datawire/ambassador/pkg/k8s"
 	"github.com/datawire/ambassador/pkg/supervisor"
 )
@@ -74,8 +75,8 @@ func expect(t *testing.T, ch interface{}, values ...interface{}) {
 				if !exp(val) {
 					panic(fmt.Sprintf("predicate %d failed value %v", idx, value))
 				}
-			case func([]ConsulWatchSpec) bool:
-				val, ok := value.Interface().([]ConsulWatchSpec)
+			case func([]consulwatch.ConsulWatchSpec) bool:
+				val, ok := value.Interface().([]consulwatch.ConsulWatchSpec)
 				if !ok {
 					panic(fmt.Sprintf("expected a []ConsulWatchSpec, got %v", value.Type()))
 				}
@@ -116,7 +117,7 @@ func (m *MockWatchMaker) MakeKubernetesWatch(spec KubernetesWatchSpec) (*supervi
 		fmt.Sprintf("%s|%s|%s|%s", spec.Namespace, spec.Kind, spec.FieldSelector, spec.LabelSelector)), nil
 }
 
-func (m *MockWatchMaker) MakeConsulWatch(spec ConsulWatchSpec) (*supervisor.Worker, error) {
+func (m *MockWatchMaker) MakeConsulWatch(spec consulwatch.ConsulWatchSpec) (*supervisor.Worker, error) {
 	if m.errorBeforeCreate {
 		return nil, fmt.Errorf("failed to create watch (errorBeforeCreate: %t)", m.errorBeforeCreate)
 	}

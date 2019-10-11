@@ -1,17 +1,12 @@
 #!/usr/bin/python
 
-from ambassador.utils import ParsedService as Service
-
-from typing import Dict, List, Optional, Tuple, TYPE_CHECKING
-from typing import cast as typecast
-
-import sys
-
 import json
 import logging
 import os
+import sys
+from typing import Dict, Optional, Tuple, TYPE_CHECKING
 
-from urllib.parse import urlparse
+from ambassador.utils import ParsedService as Service
 
 loglevel = logging.INFO
 
@@ -43,7 +38,7 @@ logger.debug(f'AMBASSADOR_KNATIVE_REQUESTED {ambassador_knative_requested}')
 from ambassador import Config, IR
 from ambassador.config.resourcefetcher import ResourceFetcher
 from ambassador.ir.irserviceresolver import IRServiceResolverFactory
-from ambassador.ir.irtls import TLSModuleFactory, IRAmbassadorTLS
+from ambassador.ir.irtls import TLSModuleFactory
 from ambassador.ir.irambassador import IRAmbassador
 from ambassador.utils import SecretInfo, SavedSecret, SecretHandler
 

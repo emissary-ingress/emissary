@@ -8,18 +8,16 @@ import (
 	"time"
 
 	"github.com/datawire/ambassador/pkg/consulwatch"
-
-	"github.com/datawire/ambassador/pkg/watt"
-
 	"github.com/datawire/ambassador/pkg/k8s"
 	"github.com/datawire/ambassador/pkg/limiter"
 	"github.com/datawire/ambassador/pkg/supervisor"
+	"github.com/datawire/ambassador/pkg/watt"
 )
 
 type aggIsolator struct {
 	snapshots     chan string
 	k8sWatches    chan []KubernetesWatchSpec
-	consulWatches chan []ConsulWatchSpec
+	consulWatches chan []consulwatch.ConsulWatchSpec
 	aggregator    *aggregator
 	sup           *supervisor.Supervisor
 	done          chan struct{}
@@ -36,7 +34,7 @@ func newAggIsolator(t *testing.T, requiredKinds []string, watchHook WatchHook) *
 		// because nothing is asynchronously reading them in
 		// the test
 		k8sWatches:    make(chan []KubernetesWatchSpec, 100),
-		consulWatches: make(chan []ConsulWatchSpec, 100),
+		consulWatches: make(chan []consulwatch.ConsulWatchSpec, 100),
 		snapshots:     make(chan string, 100),
 		// for signaling when the isolator is done
 		done: make(chan struct{}),
@@ -120,7 +118,7 @@ func TestAggregatorShutdown(t *testing.T) {
 	defer iso.Stop()
 }
 
-var WATCH = ConsulWatchSpec{
+var WATCH = consulwatch.ConsulWatchSpec{
 	ConsulAddress: "127.0.0.1:8500",
 	Datacenter:    "dc1",
 	ServiceName:   "bar",
@@ -137,7 +135,7 @@ func TestAggregatorBootstrap(t *testing.T) {
 	watchHook := func(p *supervisor.Process, snapshot string) WatchSet {
 		if strings.Contains(snapshot, "configmap") {
 			return WatchSet{
-				ConsulWatches: []ConsulWatchSpec{WATCH},
+				ConsulWatches: []consulwatch.ConsulWatchSpec{WATCH},
 			}
 		} else {
 			return WatchSet{}
@@ -158,7 +156,7 @@ func TestAggregatorBootstrap(t *testing.T) {
 	// get a snapshot yet, but we should get watches
 	iso.aggregator.KubernetesEvents <- k8sEvent{"", "configmap", RESOLVER}
 	expect(t, iso.snapshots, Timeout(100*time.Millisecond))
-	expect(t, iso.consulWatches, func(watches []ConsulWatchSpec) bool {
+	expect(t, iso.consulWatches, func(watches []consulwatch.ConsulWatchSpec) bool {
 		if len(watches) != 1 {
 			t.Logf("expected 1 watch, got %d watches", len(watches))
 			return false

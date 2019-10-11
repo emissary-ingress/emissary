@@ -10,6 +10,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/datawire/ambassador/pkg/consulwatch"
 	"github.com/datawire/ambassador/pkg/k8s"
 	"github.com/datawire/ambassador/pkg/limiter"
 	"github.com/datawire/ambassador/pkg/supervisor"
@@ -80,7 +81,7 @@ func _runWatt(cmd *cobra.Command, args []string) int {
 
 	// The aggregator sends the current consul resolver set to the
 	// consul watch manager.
-	aggregatorToConsulwatchmanCh := make(chan []ConsulWatchSpec, 100)
+	aggregatorToConsulwatchmanCh := make(chan []consulwatch.ConsulWatchSpec, 100)
 
 	// The aggregator sends the current k8s watch set to the
 	// kubernetes watch manager.

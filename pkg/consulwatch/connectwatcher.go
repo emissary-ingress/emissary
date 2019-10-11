@@ -1,46 +1,21 @@
 package consulwatch
 
 import (
-	"encoding/base64"
 	"errors"
 	"fmt"
 	"log"
 	"os"
-	"os/exec"
 	"strings"
 
 	"github.com/hashicorp/consul/api"
 	"github.com/hashicorp/consul/api/watch"
 
-	"github.com/datawire/ambassador/pkg/k8s"
 	"github.com/datawire/ambassador/pkg/supervisor"
 )
 
 const (
-	// envAmbassadorID creates a secret for a specific instance of an Ambassador API Gateway. The TLS secret name will
-	// be formatted as "$AMBASSADOR_ID-consul-connect."
-	envAmbassadorID = "_AMBASSADOR_ID"
-
-	// envSecretName is the full name of the Kubernetes Secret that contains the TLS certificate provided
-	// by Consul. If this value is set then the value of AMBASSADOR_ID is ignored when the name of the TLS secret is
-	// computed.
-	envSecretName = "_AMBASSADOR_TLS_SECRET_NAME"
-
-	// envSecretNamespace sets the namespace where the TLS secret is created.
-	envSecretNamespace = "_AMBASSADOR_TLS_SECRET_NAMESPACE"
-)
-
-const (
-	secretTemplate = `---
-kind: Secret
-apiVersion: v1
-metadata:
-    name: "%s"
-type: "kubernetes.io/tls"
-data:
-    tls.crt: "%s"
-    tls.key: "%s"
-`
+	// defConsulServiceName is the default Consul service name
+	defConsulServiceName = "ambassador"
 )
 
 var logger *log.Logger
@@ -49,19 +24,32 @@ func init() {
 	logger = log.New(os.Stdout, "", log.LstdFlags)
 }
 
-type ConnectLeafWatcher struct {
+
+type ConsulWatchSpec struct {
+	Id            string `json:"id"`
+	ConsulAddress string `json:"consul-address"`
+	Datacenter    string `json:"datacenter"`
+	ServiceName   string `json:"service-name"`
+	Secret        string `json:"secret"`
+}
+
+func (c ConsulWatchSpec) WatchId() string {
+	return fmt.Sprintf("%s|%s|%s", c.ConsulAddress, c.Datacenter, c.ServiceName)
+}
+
+type connectLeafWatcher struct {
 	consul *api.Client
 	plan   *watch.Plan
 	logger *log.Logger
 }
 
-func NewConnectLeafWatcher(consul *api.Client, logger *log.Logger, service string) (*ConnectLeafWatcher, error) {
+func newConnectLeafWatcher(consul *api.Client, logger *log.Logger, service string) (*connectLeafWatcher, error) {
 	if service == "" {
 		err := errors.New("service name is empty")
 		return nil, err
 	}
 
-	watcher := &ConnectLeafWatcher{consul: consul}
+	watcher := &connectLeafWatcher{consul: consul}
 
 	plan, err := watch.Parse(map[string]interface{}{"type": "connect_leaf", "service": service})
 	if err != nil {
@@ -79,7 +67,7 @@ func NewConnectLeafWatcher(consul *api.Client, logger *log.Logger, service strin
 	return watcher, nil
 }
 
-func (w *ConnectLeafWatcher) Watch(handler func(*Certificate, error)) {
+func (w *connectLeafWatcher) Watch(handler func(*Certificate, error)) {
 	w.plan.HybridHandler = func(val watch.BlockingParamVal, raw interface{}) {
 		if raw == nil {
 			handler(nil, fmt.Errorf("unexpected empty/nil response from consul"))
@@ -106,24 +94,24 @@ func (w *ConnectLeafWatcher) Watch(handler func(*Certificate, error)) {
 	}
 }
 
-func (w *ConnectLeafWatcher) Start() error {
+func (w *connectLeafWatcher) Start() error {
 	return w.plan.RunWithClientAndLogger(w.consul, w.logger)
 }
 
-func (w *ConnectLeafWatcher) Stop() {
+func (w *connectLeafWatcher) Stop() {
 	w.plan.Stop()
 }
 
-// ConnectCARootsWatcher watches the Consul Connect CA roots endpoint for changes and invokes a a handler function
+// connectCARootsWatcher watches the Consul Connect CA roots endpoint for changes and invokes a a handler function
 // whenever it changes.
-type ConnectCARootsWatcher struct {
+type connectCARootsWatcher struct {
 	consul *api.Client
 	plan   *watch.Plan
 	logger *log.Logger
 }
 
-func NewConnectCARootsWatcher(consul *api.Client, logger *log.Logger) (*ConnectCARootsWatcher, error) {
-	watcher := &ConnectCARootsWatcher{consul: consul}
+func newConnectCARootsWatcher(consul *api.Client, logger *log.Logger) (*connectCARootsWatcher, error) {
+	watcher := &connectCARootsWatcher{consul: consul}
 
 	plan, err := watch.Parse(map[string]interface{}{"type": "connect_roots"})
 	if err != nil {
@@ -141,7 +129,7 @@ func NewConnectCARootsWatcher(consul *api.Client, logger *log.Logger) (*ConnectC
 	return watcher, nil
 }
 
-func (w *ConnectCARootsWatcher) Watch(handler func(*CARoots, error)) {
+func (w *connectCARootsWatcher) Watch(handler func(*CARoots, error)) {
 	w.plan.HybridHandler = func(val watch.BlockingParamVal, raw interface{}) {
 		if raw == nil {
 			handler(nil, fmt.Errorf("unexpected empty/nil response from consul"))
@@ -174,125 +162,33 @@ func (w *ConnectCARootsWatcher) Watch(handler func(*CARoots, error)) {
 	}
 }
 
-func (w *ConnectCARootsWatcher) Start() error {
+func (w *connectCARootsWatcher) Start() error {
 	return w.plan.RunWithClientAndLogger(w.consul, w.logger)
 }
 
-func (w *ConnectCARootsWatcher) Stop() {
+func (w *connectCARootsWatcher) Stop() {
 	w.plan.Stop()
 }
 
-type agent struct {
-	// AmbassadorID is the ID of the Ambassador instance.
-	AmbassadorID string
-
-	// The Agent registers a Consul Service when it starts and then fetches the leaf TLS certificate from the Consul
-	// HTTP API with this name.
-	ConsulServiceName string
-
-	// SecretNamespace is the Namespace where the TLS secret is managed.
-	SecretNamespace string
-
-	// SecretName is the Name of the TLS secret managed by this agent.
-	SecretName string
-
-	// consulAPI is the client used to communicate with the Consul HTTP API server.
-	consul *api.Client
-}
-
-func newAgent(ambassadorID string, secretNamespace string, secretName string, consul *api.Client) *agent {
-	consulServiceName := "ambassador"
-	if ambassadorID != "" {
-		consulServiceName += "-" + ambassadorID
-	}
-
-	if secretName == "" {
-		secretName = consulServiceName + "-consul-connect"
-	}
-
-	return &agent{
-		AmbassadorID:      consulServiceName,
-		SecretNamespace:   secretNamespace,
-		SecretName:        secretName,
-		ConsulServiceName: consulServiceName,
-		consul:            consul,
-	}
-}
-
-// certChain is a certificates chain that will be translated to a k8s certificate
-type certChain struct {
-	process *supervisor.Process
-	CA      *CARoots
-	Leaf    *Certificate
-}
-
-func newCertChain(process *supervisor.Process) certChain {
-	return certChain{
-		process: process,
-	}
-}
-
-func (c *certChain) WriteTo(secretNamespace, secretName string) error {
-	if c.CA == nil || c.Leaf == nil {
-		return nil // we need both CA & Leaf for creating/updating the secret
-	}
-
-	temp := c.CA.Roots[c.CA.ActiveRootID]
-	caRoot := &temp
-
-	// create the certificate chain
-	chain := c.Leaf.PEM + caRoot.PEM
-
-	// format the kubernetes secret
-	chain64 := base64.StdEncoding.EncodeToString([]byte(chain))
-	key64 := base64.StdEncoding.EncodeToString([]byte(c.Leaf.PrivateKeyPEM))
-	secret := fmt.Sprintf(secretTemplate, secretName, chain64, key64)
-
-	logger.Printf("Creating/updating TLS certificate secret: namespace=%s, secret=%s", secretNamespace, secretName)
-	kubeinfo := k8s.NewKubeInfo("", "", secretNamespace)
-	args, err := kubeinfo.GetKubectlArray("apply", "-f", "-")
-	if err != nil {
-		return err
-	}
-	kubectl, err := exec.LookPath("kubectl")
-	if err != nil {
-		return err
-	}
-	apply := c.process.Command(kubectl, args...)
-	apply.Stdin = strings.NewReader(secret)
-	err = apply.Start()
-	if err != nil {
-		return err
-	}
-	err = c.process.DoClean(apply.Wait, apply.Process.Kill)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-// ConnectWatcher is a watcher for Consul Connect certificates
+// ConnectWatcher is a watcher for Consul certificates
 type ConnectWatcher struct {
 	process *supervisor.Process
-	agent   *agent
+	agent   *Agent
 	consul  *api.Client
 
-	consulWorker *supervisor.Worker
+	mainWorker *supervisor.Worker
 
 	caRootWorker       *supervisor.Worker
 	caRootCertificates chan *CARoots
-	caRootWatcher      *ConnectCARootsWatcher
+	caRootWatcher      *connectCARootsWatcher
 
 	leafCertificates chan *Certificate
-	leafWatcher      *ConnectLeafWatcher
+	leafWatcher      *connectLeafWatcher
 	leafWorker       *supervisor.Worker
 }
 
 // NewConnectWatcher creates a new watcher for Consul Connect certificates
-func NewConnectWatcher(p *supervisor.Process, consul *api.Client) *ConnectWatcher {
-	// TODO(alvaro): this shold be obtained from some custom resource
-	agent := newAgent(os.Getenv(envAmbassadorID), os.Getenv(envSecretNamespace), os.Getenv(envSecretName), consul)
-
+func NewConnectWatcher(p *supervisor.Process, consul *api.Client, agent *Agent) *ConnectWatcher {
 	return &ConnectWatcher{
 		process:            p,
 		consul:             consul,
@@ -302,13 +198,14 @@ func NewConnectWatcher(p *supervisor.Process, consul *api.Client) *ConnectWatche
 	}
 }
 
-// Watch retrieves the TLS certificate issued by the Consul CA and stores it as a Kubernetes
+// Watch watches the TLS certificate issued by the Consul CA and stores it as a Kubernetes
 // secret that Ambassador will use to authenticate with upstream services.
+// This methods does not block while waiting for updates from Consul.
 func (w *ConnectWatcher) Watch() error {
 	var err error
 
 	log.Printf("Watching Root CA for %s\n", w.agent.ConsulServiceName)
-	w.caRootWatcher, err = NewConnectCARootsWatcher(w.consul, logger)
+	w.caRootWatcher, err = newConnectCARootsWatcher(w.consul, logger)
 	if err != nil {
 		return err
 	}
@@ -321,7 +218,7 @@ func (w *ConnectWatcher) Watch() error {
 	})
 
 	log.Printf("Watching CA leaf for %s\n", w.agent.ConsulServiceName)
-	w.leafWatcher, err = NewConnectLeafWatcher(w.consul, logger, w.agent.ConsulServiceName)
+	w.leafWatcher, err = newConnectLeafWatcher(w.consul, logger, w.agent.ConsulServiceName)
 	if err != nil {
 		return err
 	}
@@ -332,7 +229,7 @@ func (w *ConnectWatcher) Watch() error {
 		w.leafCertificates <- certificate
 	})
 
-	w.consulWorker = w.process.Go(func(p *supervisor.Process) error {
+	w.mainWorker = w.process.Go(func(p *supervisor.Process) error {
 		p.Log("Starting Consul certificates watcher...")
 		chain := newCertChain(p)
 
@@ -399,5 +296,21 @@ func (w *ConnectWatcher) Close() {
 	w.leafWatcher.Stop()
 	close(w.leafCertificates)
 
-	w.consulWorker.Wait()
+	w.mainWorker.Wait()
 }
+
+// getNamespaceAndName gets the namespace and the name of a resource
+// For example, "default/my-secret" -> ("default", "my-secret")
+//              "my-secret"         -> ("", "my-secret")
+func getNamespaceAndName(s string) (string, string) {
+	r := strings.SplitN(s, "/", 2)
+	switch len(r) {
+	case 0:
+		return "", ""
+	case 1:
+		return "", r[0]
+	default:
+		return r[0], r[1]
+	}
+}
+

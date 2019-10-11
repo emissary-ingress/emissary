@@ -14,8 +14,8 @@ import (
 )
 
 const (
-	// distLockKey is the key for the distributed lock
-	distLockKey = "AMB_CONSUL_CONNECT_LEADER"
+	// distLockKeyPrefix is the key for the distributed lock
+	distLockKeyPrefix = "amb_consul_connect_leader"
 
 	// distLockTTL is the time-to-live for the lock session
 	distLockTTL = 15 * time.Second
@@ -34,7 +34,7 @@ type consulEvent struct {
 
 type consulwatchman struct {
 	WatchMaker IConsulWatchMaker
-	watchesCh  <-chan []ConsulWatchSpec
+	watchesCh  <-chan []consulwatch.ConsulWatchSpec
 	watched    map[string]*supervisor.Worker
 }
 
@@ -43,7 +43,7 @@ type ConsulWatchMaker struct {
 }
 
 // MakeConsulWatch watches Consul and sends events to the aggregator channel
-func (m *ConsulWatchMaker) MakeConsulWatch(spec ConsulWatchSpec) (*supervisor.Worker, error) {
+func (m *ConsulWatchMaker) MakeConsulWatch(spec consulwatch.ConsulWatchSpec) (*supervisor.Worker, error) {
 	consulConfig := consulapi.DefaultConfig()
 	consulConfig.Address = spec.ConsulAddress
 	consulConfig.Datacenter = spec.Datacenter
@@ -65,69 +65,78 @@ func (m *ConsulWatchMaker) MakeConsulWatch(spec ConsulWatchSpec) (*supervisor.Wo
 				p.Logf("failed to setup new consul watch %v", err)
 				return err
 			}
-			defer func() {
-				eventsWatcher.Stop()
-			}()
-
 			eventsWatcher.Watch(func(endpoints consulwatch.Endpoints, e error) {
 				endpoints.Id = spec.Id
 				m.aggregatorCh <- consulEvent{spec.WatchId(), endpoints}
 			})
-			_ = p.Go(func(p *supervisor.Process) error {
+			eventsWatcherWorker := p.Go(func(p *supervisor.Process) error {
 				if err := eventsWatcher.Start(); err != nil {
 					p.Logf("failed to start service watcher %v", err)
 					return err
 				}
 				return nil
 			})
+			defer eventsWatcherWorker.Shutdown()
+			defer eventsWatcher.Stop() // Stop() the watcher, so the worker's Shutdown() can proceed
 
-			p.Logf("Creating distributed lock for Consul watchers.")
-			distLock, err := watt.NewDistLock(consul, distLockKey, distLockTTL)
+			// worker for watching for Consul Connect certificates
+			agent := consulwatch.NewAgent(spec)
+			watchId := spec.WatchId()
+			lockKey := fmt.Sprintf("%s_%s", distLockKeyPrefix, agent.ConsulServiceName)
+
+			values := map[string]string{
+				"id": watchId,
+			}
+
+			p.Logf("Creating distributed lock for %q in Consul.", watchId)
+			distLock, err := watt.NewDistLock(consul, &watt.DistLockConfig{KeyName: lockKey, SessionTTL: distLockTTL})
 			if err != nil {
-				p.Logf("failed to setup distributed lock for Consul %v", err)
+				p.Logf("failed to setup distributed lock for %q in Consul %v", watchId, err)
 				return err
 			}
-			defer func() {
-				p.Log("Releasing distributed lock...")
-				if err = distLock.DestroySession(); err != nil {
-					p.Logf("failed to release lock %v", err)
-				}
-			}()
+			defer distLock.ReleaseLock()
 
 			var cc *consulwatch.ConnectWatcher
-			acquireCh := make(chan bool)
-			releaseCh := make(chan bool)
-			for {
-				// loop is to re-attempt for lock acquisition when
-				// the lock was initially acquired but auto released after some time
-				go distLock.RetryLockAcquire(acquireCh, releaseCh)
-
-				p.Logf("Waiting to acquire Consul lock...")
-				select {
-				case <-acquireCh:
-					p.Logf("Acquired Consul lock: we are the leaders watching Consul certificates")
-					cc = consulwatch.NewConnectWatcher(p, consul)
-					if err := cc.Watch(); err != nil {
-						return err
-					}
-
-				case <-p.Shutdown():
-					p.Logf("Supervisor is shutting down...")
-					if cc != nil {
-						cc.Close()
-						cc = nil
-					}
-					return nil // we are done in the Worker: get out...
-				}
-
-				<-releaseCh
-				p.Logf("Lost Consul lock: releasing watches and resources")
+			freeConnectWatcher := func() {
 				if cc != nil {
 					cc.Close()
 					cc = nil
 				}
+			}
+			acquireCh := make(chan bool)
+			releaseCh := make(chan bool)
+			errCh := make (chan error)
+
+			for {
+				// loop is to re-attempt for lock acquisition when
+				// the lock was initially acquired but auto released after some time
+				go distLock.RetryLockAcquire(values, acquireCh, releaseCh, errCh)
+
+				p.Logf("Waiting to acquire lock for %q in Consul...", watchId)
+				select {
+				case <-acquireCh:
+					p.Log("Acquired Consul lock: we are the leaders watching Consul certificates")
+					cc = consulwatch.NewConnectWatcher(p, consul, agent)
+					if err := cc.Watch(); err != nil {
+						return err
+					}
+
+				case err := <-errCh:
+					p.Logf("Error in lock for %q in Consul: %v", watchId, err)
+					return err
+
+				case <-p.Shutdown():
+					p.Logf("while watching Consul Connect, the supervisor seems to be shutting down...")
+					freeConnectWatcher()
+					return nil // we are done in the Worker: get out...
+				}
+
+				<-releaseCh
+				p.Logf("Lost lock for %q in Consul: releasing watches and resources", watchId)
+				freeConnectWatcher()
 				// we will iterate and try to acquire the lock again...
 			}
+			return nil
 		},
 		Retry: true,
 	}
@@ -137,6 +146,7 @@ func (m *ConsulWatchMaker) MakeConsulWatch(spec ConsulWatchSpec) (*supervisor.Wo
 
 func (w *consulwatchman) Work(p *supervisor.Process) error {
 	p.Ready()
+	defer p.Log("quitting consulwatchman worker")
 	for {
 		select {
 		case watches := <-w.watchesCh:

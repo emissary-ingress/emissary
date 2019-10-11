@@ -54,7 +54,7 @@ func (w *ServiceWatcher) Watch(handler func(endpoints Endpoints, err error)) {
 
 		v, ok := raw.([]*consulapi.ServiceEntry)
 		if !ok {
-			handler(endpoints, fmt.Errorf("unexpected raw type expected=%T, actual=%T", []*consulapi.ServiceEntry{}, raw))
+			handler(endpoints, fmt.Errorf("unexpected raw type expected=%T, template=%T", []*consulapi.ServiceEntry{}, raw))
 			return
 		}
 

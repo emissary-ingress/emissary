@@ -7,6 +7,7 @@ require (
 	github.com/Masterminds/semver v1.4.2 // indirect
 	github.com/Masterminds/sprig v2.17.1+incompatible
 	github.com/aokoli/goutils v1.1.0 // indirect
+	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869
 	github.com/datawire/libk8s v0.0.0-20190923150809-3b461b0ee981
 	github.com/datawire/pf v0.0.0-20180510150411-31a823f9495a
 	github.com/ecodia/golang-awaitility v0.0.0-20180710094957-fb55e59708c7
@@ -19,7 +20,7 @@ require (
 	github.com/google/shlex v0.0.0-20181106134648-c34317bd91bf
 	github.com/google/uuid v1.1.1 // indirect
 	github.com/gorilla/websocket v1.4.0
-	github.com/hashicorp/consul/api v1.1.0
+	github.com/hashicorp/consul/api v1.2.0
 	github.com/huandu/xstrings v1.2.0 // indirect
 	github.com/iancoleman/strcase v0.0.0-20180726023541-3605ed457bf7
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
@@ -46,3 +47,6 @@ require (
 	k8s.io/client-go v11.0.1-0.20190816222228-6d55c1b1f1ca+incompatible
 	sigs.k8s.io/yaml v1.1.0
 )
+
+// Fix invalid pseudo-version that Go 1.13 complains about.
+replace github.com/go-critic/go-critic v0.0.0-20181204210945-1df300866540 => github.com/go-critic/go-critic v0.3.4

@@ -8,11 +8,10 @@ import (
 	"time"
 
 	"github.com/datawire/ambassador/pkg/consulwatch"
-	"github.com/datawire/ambassador/pkg/limiter"
-	"github.com/datawire/ambassador/pkg/watt"
-
 	"github.com/datawire/ambassador/pkg/k8s"
+	"github.com/datawire/ambassador/pkg/limiter"
 	"github.com/datawire/ambassador/pkg/supervisor"
+	"github.com/datawire/ambassador/pkg/watt"
 )
 
 type WatchHook func(p *supervisor.Process, snapshot string) WatchSet
@@ -25,7 +24,7 @@ type aggregator struct {
 	// Output channel used to communicate with the k8s watch manager.
 	k8sWatches chan<- []KubernetesWatchSpec
 	// Output channel used to communicate with the consul watch manager.
-	consulWatches chan<- []ConsulWatchSpec
+	consulWatches chan<- []consulwatch.ConsulWatchSpec
 	// Output channel used to communicate with the invoker.
 	snapshots chan<- string
 	// We won't consider ourselves "bootstrapped" until we hear
@@ -40,7 +39,7 @@ type aggregator struct {
 	notifyMux           sync.Mutex
 }
 
-func NewAggregator(snapshots chan<- string, k8sWatches chan<- []KubernetesWatchSpec, consulWatches chan<- []ConsulWatchSpec,
+func NewAggregator(snapshots chan<- string, k8sWatches chan<- []KubernetesWatchSpec, consulWatches chan<- []consulwatch.ConsulWatchSpec,
 	requiredKinds []string, watchHook WatchHook, limiter limiter.Limiter) *aggregator {
 	return &aggregator{
 		KubernetesEvents:    make(chan k8sEvent),
