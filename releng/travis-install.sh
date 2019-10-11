@@ -41,6 +41,14 @@ KUBERNAUT=~/bin/kubernaut
 curl -o ${KUBERNAUT} http://releases.datawire.io/kubernaut/${KUBERNAUT_VERSION}/linux/amd64/kubernaut
 chmod +x ${KUBERNAUT}
 
+# Configure kubernaut
+base64 -d < kconf.b64 | ( cd ~ ; tar xzf - )
+
+# Grab a kubernaut cluster
+CLAIM_NAME=kat-${USER}-$(uuidgen)
+DEV_KUBECONFIG=~/.kube/${CLAIM_NAME}.yaml
+echo $CLAIM_NAME > ~/kubernaut-claim.txt
+
 kubernaut claims delete ${CLAIM_NAME}
 kubernaut claims create --name ${CLAIM_NAME} --cluster-group main
 kubectl --kubeconfig ${DEV_KUBECONFIG} -n default get service kubernetes
@@ -74,7 +82,5 @@ while true; do
 		break
 	fi
 done
-
-
 
 printf "== End:   travis-install.sh ==\n"
