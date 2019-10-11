@@ -7,7 +7,6 @@
 !ambex
 !watt
 !kubestatus
-!envoy-bin/
-envoy-bin/*-static
 !bin_linux_amd64/
 bin_linux_amd64/.go-build/
+bin_linux_amd64/*-static
