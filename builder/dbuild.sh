@@ -55,7 +55,13 @@ sleep 3 &
 sleep_pid=$!
 
 # wait till one of them wins
-wait -n
+if ((BASH_VERSINFO[0] < 4)); then
+    until ! kill -s 0 $build_pid > /dev/null 2>&1 || ! kill -s 0 $sleep_pid > /dev/null 2>&1 ; do
+        sleep 0.1
+    done
+else
+    wait -n
+fi
 
 # if the build is still running lets tail the output
 if kill -s 0 $build_pid > /dev/null 2>&1; then
