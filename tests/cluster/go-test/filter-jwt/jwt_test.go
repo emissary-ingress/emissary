@@ -22,6 +22,7 @@ type TestHeader struct {
 }
 
 func TestJWTInjectHeaders(t *testing.T) {
+	t.Parallel()
 	assert := &testutil.Assert{T: t}
 
 	// build the test-case /////////////////////////////////////////////////

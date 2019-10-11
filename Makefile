@@ -485,13 +485,6 @@ check check-cluster tests/cluster/go-test.tap: bin_$(GOHOSTOS)_$(GOHOSTARCH)/app
 check check-cluster test/cluster/loop-intercept.log: $(KUBECONFIG)
 check check-cluster test/cluster/loop-intercept.log: bin_$(GOHOSTOS)_$(GOHOSTARCH)/apictl
 
-tests/cluster/oauth-e2e/node_modules: tests/cluster/oauth-e2e/package.json $(wildcard tests/cluster/oauth-e2e/package-lock.json)
-	cd $(@D) && npm install
-	@test -d $@
-	@touch $@
-check check-cluster tests/cluster/oauth-e2e.tap: $(KUBECONFIG)
-check check-cluster tests/cluster/oauth-e2e.tap: tests/cluster/oauth-e2e/node_modules
-
 check check-cluster tests/cluster/tls-smoketest.tap: $(KUBECONFIG)
 
 #
@@ -535,11 +528,14 @@ clean: $(addsuffix .clean,$(wildcard docker/*.docker)) loadtest-clean
 	rm -f k8s-*/??-ambassador-certs.yaml k8s-*/*.pem
 	rm -f k8s-*/??-auth0-secret.yaml
 	rm -f tests/*.log tests/*.tap tests/*/*.log tests/*/*.tap
-	rm -f tests/cluster/oauth-e2e/idp_*.png
 	rm -f tests/cluster/go-test/consul/new_root.*
+	rm -f tests/cluster/go-test/filter-oauth2/testdata/*.webm
 # Files made by older versions.  Remove the tail of this list when the
 # commit making the change gets far enough in to the past.
 #
+# 2019-10-10
+	rm -f tests/cluster/oauth-e2e/idp_*.png
+	rm -rf tests/cluster/oauth-e2e/node_modules
 # 2019-09-23
 	rm -f cmd/certified-envoy/envoy.bin
 # 2019-09-16
@@ -594,7 +590,7 @@ clobber:
 	rm -f docker/*/ambex
 	rm -f docker/*/kubeapply
 	rm -f docker/*/kubectl
-	rm -rf tests/cluster/oauth-e2e/node_modules
+	rm -rf tests/cluster/go-test/filter-oauth2/testdata/node_modules
 	rm -rf dev-hacks/.venv/
 	rm -rf venv
 	rm -rf ambassador

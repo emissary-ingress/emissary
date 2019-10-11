@@ -32,7 +32,8 @@ linters-settings:
       - github.com/lyft/ratelimit/proto # use "github.com/datawire/ambassador/go"
       #- github.com/russross/blackfriday # use github.com/russross/blackfriday/v2 # can't turn off prefix-matching
       - gopkg.in/russross/blackfriday.v2 # use github.com/russross/blackfriday/v2
-
+  goconst:
+    min-len: 12
 run:
   build-tags:
     - test

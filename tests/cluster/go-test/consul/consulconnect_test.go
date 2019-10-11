@@ -17,6 +17,8 @@ import (
 )
 
 func TestConsulConnectTLSCertificateChainIsPresentAsKubernetesSecret(t *testing.T) {
+	t.Parallel()
+
 	assert := testutil.Assert{T: t}
 
 	timeout := time.After(30 * time.Second)
@@ -87,6 +89,8 @@ Loop:
 }
 
 func TestConsulConnectTLSCertificateChainIsUpdatedWhenConnectRootCAChanges(t *testing.T) {
+	t.Parallel()
+
 	var err error
 
 	assert := testutil.Assert{T: t}
