@@ -81,9 +81,9 @@ case "$COMMIT_TYPE" in
     *)
         # CI might have set DOCKER_BUILD_USERNAME and DOCKER_BUILD_PASSWORD
         # (in case BASE_DOCKER_REPO is private)
-        if [[ -n "${DOCKER_BUILD_USERNAME:-}" ]]; then
-            docker login -u="$DOCKER_BUILD_USERNAME" --password-stdin "${BASE_DOCKER_REPO%%/*}" <<<"$DOCKER_BUILD_PASSWORD"
-        fi
+       if [[ -n "${DOCKER_BUILD_USERNAME:-}" ]]; then
+           docker login -u="$DOCKER_BUILD_USERNAME" --password-stdin "${BASE_DOCKER_REPO%%/*}" <<<"$DOCKER_BUILD_PASSWORD"
+       fi
 
         make test
         ;;
