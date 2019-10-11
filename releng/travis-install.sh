@@ -14,9 +14,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-KUBECTL_VERSION=1.10.2
-HELM_VERSION=2.9.1
 GO_VERSION=1.13
+HELM_VERSION=2.9.1
+KUBECTL_VERSION=1.10.2
+KUBERNAUT_VERSION=2018.10.24-d46c1f1
 
 set -o errexit
 set -o nounset
@@ -25,24 +26,35 @@ set -o xtrace
 printf "== Begin: travis-install.sh ==\n"
 
 mkdir -p ~/bin
+PATH=~/bin:$PATH
 
-# Set up for Kubernaut.
-base64 -d < kconf.b64 | ( cd ~ ; tar xzf - )
-
+# Install kubectl
 curl -L -o ~/bin/kubectl https://storage.googleapis.com/kubernetes-release/release/v${KUBECTL_VERSION}/bin/linux/amd64/kubectl
 chmod +x ~/bin/kubectl
 
+# Install helm
 curl -L https://storage.googleapis.com/kubernetes-helm/helm-v${HELM_VERSION}-linux-amd64.tar.gz | tar -x -z -O linux-amd64/helm > ~/bin/helm
 chmod +x ~/bin/helm
 helm init --client-only # Initialize helm for indexing use
 
-KUBERNAUT_VERSION=2018.10.24-d46c1f1
-KUBERNAUT=~/bin/kubernaut
-curl -o ${KUBERNAUT} http://releases.datawire.io/kubernaut/${KUBERNAUT_VERSION}/linux/amd64/kubernaut
-chmod +x ${KUBERNAUT}
+# Install kubernaut
+curl -L -o ~/bin/kubernaut http://releases.datawire.io/kubernaut/${KUBERNAUT_VERSION}/linux/amd64/kubernaut
+chmod +x ~/bin/kubernaut
 
+# Install Go
+gimme ${GO_VERSION}
+source ~/.gimme/envs/latest.env
+
+# Configure kubernaut
+base64 -d < kconf.b64 | ( cd ~ ; tar xzf - )
+# Grab a kubernaut cluster
+CLAIM_NAME=kat-${USER}-$(uuidgen)
+DEV_KUBECONFIG=~/.kube/${CLAIM_NAME}.yaml
+echo $CLAIM_NAME > ~/kubernaut-claim.txt
 kubernaut claims delete ${CLAIM_NAME}
 kubernaut claims create --name ${CLAIM_NAME} --cluster-group main
 kubectl --kubeconfig ${DEV_KUBECONFIG} -n default get service kubernetes
+# Set up a registry in that cluster
+KUBECONFIG=${DEV_KUBECONFIG} go run ./cmd/k8sregistryctl up --storage=hostPath
 
 printf "== End:   travis-install.sh ==\n"
