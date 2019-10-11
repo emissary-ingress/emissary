@@ -206,6 +206,9 @@ clean: $(addsuffix .clean,$(clean_docker_images))
 # commit making the change gets far enough in to the past.
 #
 # 2019-10-13
+	if [ -r .docker_port_forward ]; then kill $$(cat .docker_port_forward) || true; fi
+	rm -f .docker_port_forward
+# 2019-10-13
 	rm -f cluster.yaml kubernaut-claim.txt
 # 2019-10-13
 	rm -f ambex kubestatus watt
@@ -240,7 +243,6 @@ print-vars:
 	@echo "AMBASSADOR_EXTERNAL_DOCKER_IMAGE = $(AMBASSADOR_EXTERNAL_DOCKER_IMAGE)"
 	@echo "AMBASSADOR_EXTERNAL_DOCKER_REPO  = $(AMBASSADOR_EXTERNAL_DOCKER_REPO)"
 	@echo "CI_DEBUG_KAT_BRANCH              = $(CI_DEBUG_KAT_BRANCH)"
-	@echo "DOCKER_EPHEMERAL_REGISTRY        = $(DOCKER_EPHEMERAL_REGISTRY)"
 	@echo "DOCKER_EXTERNAL_REGISTRY         = $(DOCKER_EXTERNAL_REGISTRY)"
 	@echo "DOCKER_OPTS                      = $(DOCKER_OPTS)"
 	@echo "DOCKER_REGISTRY                  = $(DOCKER_REGISTRY)"
@@ -263,7 +265,6 @@ export-vars:
 	@echo "export AMBASSADOR_EXTERNAL_DOCKER_IMAGE='$(AMBASSADOR_EXTERNAL_DOCKER_IMAGE)'"
 	@echo "export AMBASSADOR_EXTERNAL_DOCKER_REPO='$(AMBASSADOR_EXTERNAL_DOCKER_REPO)'"
 	@echo "export CI_DEBUG_KAT_BRANCH='$(CI_DEBUG_KAT_BRANCH)'"
-	@echo "export DOCKER_EPHEMERAL_REGISTRY='$(DOCKER_EPHEMERAL_REGISTRY)'"
 	@echo "export DOCKER_EXTERNAL_REGISTRY='$(DOCKER_EXTERNAL_REGISTRY)'"
 	@echo "export DOCKER_OPTS='$(DOCKER_OPTS)'"
 	@echo "export DOCKER_REGISTRY='$(DOCKER_REGISTRY)'"
@@ -278,34 +279,6 @@ export-vars:
 	@echo "export KAT_SERVER_DOCKER_IMAGE='$(KAT_SERVER_DOCKER_IMAGE)'"
 	@echo "export BUILD_VERSION='$(BUILD_VERSION)'"
 	@echo "export RELEASE_VERSION='$(RELEASE_VERSION)'"
-
-# All of this will likely fail horribly outside of CI, for the record.
-docker-registry:
-ifneq ($(DOCKER_EPHEMERAL_REGISTRY),)
-	@if [ "$(TRAVIS)" != "true" ]; then \
-		echo "make docker-registry is only for CI" >&2 ;\
-		exit 1 ;\
-	fi
-	@if [ ! -r .docker_port_forward ]; then \
-		echo "Starting local Docker registry in Kubernetes" ;\
-		kubectl apply -f releng/docker-registry.yaml ;\
-		while [ -z "$$(kubectl get pods -n docker-registry -ojsonpath='{.items[0].status.containerStatuses[0].state.running}')" ]; do echo pod wait...; sleep 1; done ;\
-		sh -c 'kubectl port-forward --namespace=docker-registry deployment/registry 31000:5000 > /tmp/port-forward-log & echo $$! > .docker_port_forward' ;\
-	else \
-		echo "Local Docker registry should be already running" ;\
-	fi
-	while ! curl -i http://localhost:31000/ 2>/dev/null; do echo curl wait...; sleep 1; done
-endif
-
-kill-docker-registry:
-	@if [ -r .docker_port_forward ]; then \
-		echo "Stopping local Docker registry" ;\
-		kill $$(cat .docker_port_forward) ;\
-		kubectl delete -f releng/docker-registry.yaml ;\
-		rm -f .docker_port_forward ;\
-	else \
-		echo "Docker registry should not be running" ;\
-	fi
 
 base-%.docker: Dockerfile.base-% $(var.)BASE_IMAGE.% $(WRITE_IFCHANGED)
 	@if [ -n "$(AMBASSADOR_DEV)" ]; then echo "Do not run this from a dev shell" >&2; exit 1; fi
