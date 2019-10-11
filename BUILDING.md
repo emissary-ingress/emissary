@@ -422,7 +422,7 @@ appears as a subdirectory of the other.
     ```console
     ambassador$ cd cxx/envoy
     ambassador/cxx/envoy$ git tag "datawire-$(git describe --tags)"
-    ambassador/cxx/envoy$$git push --tags
+    ambassador/cxx/envoy$ git push --tags
     …
     ambassador/cxx/envoy$ git push -f origin rebase/master
     …
