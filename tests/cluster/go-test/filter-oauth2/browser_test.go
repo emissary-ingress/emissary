@@ -34,6 +34,7 @@ func ensureBrowserInstalled(t *testing.T) {
 	if err := cmd.Run(); err != nil {
 		t.Fatal(err)
 	}
+	npmInstalled = true
 }
 
 // This function is closely coupled with run.js:browserTest().
@@ -49,16 +50,18 @@ func browserTest(t *testing.T, timeout time.Duration, expr string) {
 		t.Fatal(errors.Wrap(err, "pipe"))
 	}
 
+	// The Puppeteer docs say that on macOS, creating a frame can
+	// take as long as 1/6s (~0.16s / 6fps).  On my Parabola
+	// laptop (with X11), I'm seeing ~0.11s (~9fps).  So let's
+	// play it safe and ask for 5fps.
+
 	ffmpegCmd := exec.Command("ffmpeg",
-		// input
-		"-f", "image2pipe",
-		// The Puppeteer docs say that on macOS, creating a
-		// frame can take as long as 1/6s (~0.16s / 6fps).  On
-		// my Parabola laptop (with X11), I'm seeing ~0.11s
-		// (~9fps).  So let's play it safe and ask for 5fps.
-		"-r", "5", // FPS
-		"-i", "-",
-		// output
+		// input options
+		"-f", "image2pipe", // input format
+		"-r", "5", // fps
+		"-i", "-", // input file
+
+		// output options
 		videoFileName,
 	)
 	ffmpegCmd.Dir = "./testdata/"
