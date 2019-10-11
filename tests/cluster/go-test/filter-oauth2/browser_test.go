@@ -123,6 +123,7 @@ func TestCanAuthorizeRequests(t *testing.T) {
 			t.Run(fileInfo.Name(), func(t *testing.T) {
 				t.Parallel()
 
+				ensureBrowserInstalled(t)
 				cmd := exec.Command("node", "--print", fmt.Sprintf("JSON.stringify(require(%q).testcases)", "./"+fileInfo.Name()))
 				cmd.Dir = "./testdata/"
 				cmd.Stderr = os.Stderr
