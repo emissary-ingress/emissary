@@ -26,9 +26,7 @@ if [[ "$(docker images -q $AMBASSADOR_DOCKER_IMAGE 2> /dev/null)" == "" ]]; then
     fi
 fi
 
-if [[ "$USE_KUBERNAUT" != "true" ]]; then
-    ( cd "$ROOT"; bash "$HERE/test-warn.sh" )
-fi
+( cd "$ROOT"; bash "$HERE/test-warn.sh" )
 
 TEST_ARGS_GENERIC=(--tb=short -s --suppress-no-test-exit-code)
 TEST_ARGS_WITHOUT_KNATIVE=("${TEST_ARGS_GENERIC[@]}" -k 'not Knative')
