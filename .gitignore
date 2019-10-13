@@ -12,7 +12,6 @@ __pycache__
 VERSION.py
 .pytest_cache
 .mypy_cache
-cluster.yaml
 /.docker_port_forward
 
 # binaries
@@ -70,13 +69,15 @@ stats.json
 ambassador-deployment-*.yaml
 ambassador-secrets-deployment.yaml
 *failures.txt
-kubernaut-claim.txt
 *.swp
 
 # --- Files ignored by older versions ---
 # Remove the tail of this list when the commit making the change gets
 # far enough in to the past.
 
+# 2019-10-13
+/cluster.yaml
+/kubernaut-claim.txt
 # 2019-10-13
 /ambex
 /kubestatus

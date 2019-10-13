@@ -43,8 +43,10 @@ env:
 
 install:
   - ./releng/travis-install.sh
+  # Adjust the environment per travis-install.sh
   - PATH=~/bin:$PATH
   - source ~/.gimme/envs/latest.env
+  - export KUBECONFIG=~/.kube/$(cat ~/kubernaut-claim.txt).yaml
 
 script:
   - ./releng/travis-script.sh

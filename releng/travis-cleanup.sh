@@ -43,7 +43,7 @@ else
 fi
 
 if [ -n "$teardown" ]; then
-	make clean-test
+	kubernaut claims delete $(cat ~/kubernaut-claim.txt)
 fi
 
 

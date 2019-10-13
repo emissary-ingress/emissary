@@ -141,22 +141,7 @@ endif
 
 #### end test service stuff
 
-# Default to _NOT_ using Kubernaut. At Datawire, we can set this to true,
-# but outside, it works much better to assume that user has set up something
-# and not try to override it.
-USE_KUBERNAUT ?= false
-
-KUBERNAUT=venv/bin/kubernaut
-KUBERNAUT_VERSION=2018.10.24-d46c1f1
-KUBERNAUT_CLAIM=$(KUBERNAUT) claims create --name $(CLAIM_NAME) --cluster-group main
-KUBERNAUT_DISCARD=$(KUBERNAUT) claims delete $(CLAIM_NAME)
-
 KUBECTL_VERSION = 1.16.1
-
-# Only override KUBECONFIG if we're using Kubernaut
-ifeq ($(USE_KUBERNAUT), true)
-KUBECONFIG ?= $(shell pwd)/cluster.yaml
-endif
 
 SCOUT_APP_KEY=
 
@@ -172,10 +157,6 @@ KAT_IMAGE_PULL_POLICY ?= Always
 # don't currently depend on go
 GOOS=$(shell go env GOOS)
 GOARCH=$(shell go env GOARCH)
-
-CLAIM_FILE=kubernaut-claim.txt
-CLAIM_NAME=$(shell cat $(CLAIM_FILE))
-
 
 # "make" by itself doesn't make the website. It takes too long and it doesn't
 # belong in the inner dev loop.
@@ -202,7 +183,7 @@ include cxx/envoy.mk
 clean_docker_images  = $(wildcard *.docker)
 clean_docker_images += $(patsubst %.tag.release,%,$(wildcard *.docker.tag.release))
 clean_docker_images += $(patsubst %.tag.local,%,$(wildcard *.docker.tag.local))
-clean: clean-test $(addsuffix .clean,$(clean_docker_images))
+clean: $(addsuffix .clean,$(clean_docker_images))
 	rm -rf docs/_book docs/_site docs/package-lock.json
 	rm -rf helm/*.tgz
 	rm -rf app.json
@@ -224,6 +205,8 @@ clean: clean-test $(addsuffix .clean,$(clean_docker_images))
 # Files made by older versions.  Remove the tail of this list when the
 # commit making the change gets far enough in to the past.
 #
+# 2019-10-13
+	rm -f cluster.yaml kubernaut-claim.txt
 # 2019-10-13
 	rm -f ambex kubestatus watt
 	rm -f cmd/ambex/ambex
@@ -270,8 +253,6 @@ print-vars:
 	@echo "GIT_TAG                          = $(GIT_TAG)"
 	@echo "KAT_CLIENT_DOCKER_IMAGE          = $(KAT_CLIENT_DOCKER_IMAGE)"
 	@echo "KAT_SERVER_DOCKER_IMAGE          = $(KAT_SERVER_DOCKER_IMAGE)"
-	@echo "KUBECONFIG                       = $(KUBECONFIG)"
-	@echo "USE_KUBERNAUT                    = $(USE_KUBERNAUT)"
 	@echo "BUILD_VERSION                    = $(BUILD_VERSION)"
 	@echo "RELEASE_VERSION                  = $(RELEASE_VERSION)"
 
@@ -295,20 +276,14 @@ export-vars:
 	@echo "export GIT_TAG='$(GIT_TAG)'"
 	@echo "export KAT_CLIENT_DOCKER_IMAGE='$(KAT_CLIENT_DOCKER_IMAGE)'"
 	@echo "export KAT_SERVER_DOCKER_IMAGE='$(KAT_SERVER_DOCKER_IMAGE)'"
-	@echo "export KUBECONFIG='$(KUBECONFIG)'"
-	@echo "export USE_KUBERNAUT='$(USE_KUBERNAUT)'"
 	@echo "export BUILD_VERSION='$(BUILD_VERSION)'"
 	@echo "export RELEASE_VERSION='$(RELEASE_VERSION)'"
 
 # All of this will likely fail horribly outside of CI, for the record.
-docker-registry: $(KUBECONFIG)
+docker-registry:
 ifneq ($(DOCKER_EPHEMERAL_REGISTRY),)
 	@if [ "$(TRAVIS)" != "true" ]; then \
 		echo "make docker-registry is only for CI" >&2 ;\
-		exit 1 ;\
-	fi
-	@if [ -z "$(KUBECONFIG)" ]; then \
-		echo "No KUBECONFIG" >&2 ;\
 		exit 1 ;\
 	fi
 	@if [ ! -r .docker_port_forward ]; then \
@@ -455,49 +430,18 @@ python/ambassador/VERSION.py: FORCE $(WRITE_IFCHANGED)
 
 version: python/ambassador/VERSION.py
 
-$(CLAIM_FILE):
-	@if [ -z $${CI+x} ]; then \
-		echo kat-$${USER} > $@; \
-	else \
-		echo kat-$${USER}-$(shell uuidgen) > $@; \
-	fi
-
-$(KUBERNAUT): $(var.)KUBERNAUT_VERSION $(var.)GOOS $(var.)GOARCH | venv/bin/activate
-	curl -o $(KUBERNAUT) http://releases.datawire.io/kubernaut/$(KUBERNAUT_VERSION)/$(GOOS)/$(GOARCH)/kubernaut
-	chmod +x $(KUBERNAUT)
-
 bin_%/kubectl: $(var.)KUBECTL_VERSION
 	mkdir -p $(@D)
 	curl --fail -o $@ -L https://storage.googleapis.com/kubernetes-release/release/v$(KUBECTL_VERSION)/bin/$(GOOS)/$(GOARCH)/kubectl
 	chmod 755 $@
 
-setup-develop: venv $(KUBERNAUT) bin_$(GOHOSTOS)_$(GOHOSTARCH)/kubestatus version
+setup-develop: venv bin_$(GOHOSTOS)_$(GOHOSTARCH)/kubestatus version
 
-cluster.yaml: $(CLAIM_FILE) $(KUBERNAUT)
-ifeq ($(USE_KUBERNAUT), true)
-	$(KUBERNAUT_DISCARD)
-	$(KUBERNAUT_CLAIM)
-	cp ~/.kube/$(CLAIM_NAME).yaml cluster.yaml
-else
-ifneq ($(USE_KUBERNAUT),)
-ifneq ($(USE_KUBERNAUT),false)
-	@echo "USE_KUBERNAUT must be true, false, or unset" >&2
-	false
-endif
-endif
-endif
-# Make is too dumb to understand equivalence between absolute and
-# relative paths.
-$(CURDIR)/cluster.yaml: cluster.yaml
-
-setup-test: cluster.yaml
+setup-test:
 	rm -rf /tmp/k8s-*.yaml /tmp/kat-*.yaml
 
 # "make shell" drops you into a dev shell, and tries to set variables, etc., as
 # needed:
-#
-# If USE_KUBERNAUT is true, we'll set up for Kubernaut, otherwise we'll assume 
-# that the current KUBECONFIG is good.
 #
 # XXX KLF HACK: The dev shell used to include setting
 # 	AMBASSADOR_DEV=1 \
@@ -512,13 +456,7 @@ shell: setup-develop
 	BASE_IMAGE.envoy="$(BASE_IMAGE.envoy)" \
 	BASE_IMAGE.runtime="$(BASE_IMAGE.runtime)" \
 	BASE_IMAGE.py="$(BASE_IMAGE.py)" \
-	MAKE_KUBECONFIG="$(KUBECONFIG)" \
 	bash --init-file releng/init.sh -i
-
-clean-test:
-	rm -f cluster.yaml
-	test -x $(KUBERNAUT) && $(KUBERNAUT_DISCARD) || true
-	rm -f $(CLAIM_FILE)
 
 test: setup-develop
 	cd python && env \
@@ -526,7 +464,6 @@ test: setup-develop
 	BASE_IMAGE.envoy="$(BASE_IMAGE.envoy)" \
 	BASE_IMAGE.runtime="$(BASE_IMAGE.runtime)" \
 	BASE_IMAGE.py="$(BASE_IMAGE.py)" \
-	KUBECONFIG="$(KUBECONFIG)" \
 	KAT_CLIENT_DOCKER_IMAGE="$(KAT_CLIENT_DOCKER_IMAGE)" \
 	KAT_SERVER_DOCKER_IMAGE="$(KAT_SERVER_DOCKER_IMAGE)" \
 	KAT_IMAGE_PULL_POLICY="$(KAT_IMAGE_PULL_POLICY)" \

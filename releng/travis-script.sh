@@ -61,8 +61,7 @@ case "$COMMIT_TYPE" in
         eval $(make DOCKER_EXTERNAL_REGISTRY=$DOCKER_REGISTRY export-vars)
         ;;
     *)
-        eval $(make USE_KUBERNAUT=true \
-                    DOCKER_EPHEMERAL_REGISTRY=true \
+        eval $(make DOCKER_EPHEMERAL_REGISTRY=true \
                     DOCKER_EXTERNAL_REGISTRY=$DOCKER_REGISTRY \
                     DOCKER_REGISTRY=localhost:31000 \
                     export-vars)
@@ -84,9 +83,8 @@ case "$COMMIT_TYPE" in
             docker login -u="$DOCKER_BUILD_USERNAME" --password-stdin "${BASE_DOCKER_REPO%%/*}" <<<"$DOCKER_BUILD_PASSWORD"
         fi
 
-        make setup-develop cluster.yaml docker-registry
+        make setup-develop docker-registry
         make docker-push docker-push-kat-client docker-push-kat-server # to the in-cluster registry (DOCKER_REGISTRY)
-        # make KAT_REQ_LIMIT=1200 test
         make test
         ;;
 esac

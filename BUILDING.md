@@ -262,10 +262,6 @@ The first time you run the tests, applying everything takes awhile. Be
 patient: the test suite tries hard not to do work it doesn't need to, so
 it will be much faster the second time.
 
-If you're using Kubernaut, you can release the Kubernaut cluster with
-`make clean-test`. This will happen automatically when you run `make clean`.
-The next `make test` run will claim a new Kubernaut cluster.
-
 Type Hinting
 ------------
 
@@ -311,7 +307,6 @@ Tests consume quite a lot of resources, so make sure you allocate them according
 1. Start minikube
 2. To build images directly into your minikube instance, set `DOCKER_REGISTRY=-` and point your docker client to docker daemon running inside minikube by running the command `eval $(minikube docker-env)`
 3. Point `KUBECONFIG` to minikube, generally using `export KUBECONFIG=~/.kube/config`
-4. Since everything is being run locally, you don't need a Kubernetes cluser using kubernaut. Set `USE_KUBERNAUT=false`.
 
 That's it! Now simply run `make clean docker-push test` for the first time. In the following iterations, you can drop `clean` or `docker-push` depending on the nature of test run.
 
