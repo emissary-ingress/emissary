@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/url"
 	"os"
 	"os/exec"
@@ -39,35 +40,51 @@ func ensureNPMInstalled(t *testing.T) {
 
 // This function is closely coupled with run.js:browserTest().
 func browserTest(t *testing.T, timeout time.Duration, expr string) {
-	videoFileName := url.PathEscape(t.Name()) + ".webm"
+	// NB: Use log.Println instead of t.Log because timestamps
+	log.Println("starting...")
 
+	videoFileName := url.PathEscape(t.Name()) + ".webm"
 	os.Remove(filepath.Join("testdata", videoFileName))
 
 	imageStreamR, imageStreamW, err := os.Pipe()
 	if err != nil {
 		t.Fatal(errors.Wrap(err, "pipe"))
 	}
+	wgStarted := new(sync.WaitGroup)
+	wgStarted.Add(2)
+	wgFinished := new(sync.WaitGroup)
+	wgFinished.Add(2)
+	var ffmpegErr, nodeErr error
+	go func() {
+		// The Puppeteer docs say that on macOS, creating a
+		// frame can take as long as 1/6s (~0.16s / 6fps).  On
+		// my Parabola laptop (with X11), I'm seeing ~0.11s
+		// (~9fps).  So let's play it safe and ask for 5fps.
+		cmd := exec.Command("ffmpeg",
+			// input options
+			"-f", "image2pipe", // input format
+			"-r", "5", // fps
+			"-i", "-", // input file
 
-	// The Puppeteer docs say that on macOS, creating a frame can
-	// take as long as 1/6s (~0.16s / 6fps).  On my Parabola
-	// laptop (with X11), I'm seeing ~0.11s (~9fps).  So let's
-	// play it safe and ask for 5fps.
+			// output options
+			videoFileName,
+		)
+		cmd.Dir = "./testdata/"
+		cmd.Stdin = imageStreamR
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
 
-	ffmpegCmd := exec.Command("ffmpeg",
-		// input options
-		"-f", "image2pipe", // input format
-		"-r", "5", // fps
-		"-i", "-", // input file
-
-		// output options
-		videoFileName,
-	)
-	ffmpegCmd.Dir = "./testdata/"
-	ffmpegCmd.Stdin = imageStreamR
-	ffmpegCmd.Stdout = os.Stdout
-	ffmpegCmd.Stderr = os.Stderr
-
-	jsCmd := exec.Command("node", "--eval", fmt.Sprintf(`
+		ffmpegErr = cmd.Start()
+		log.Println("...ffmpeg started")
+		wgStarted.Done()
+		if ffmpegErr != nil {
+			ffmpegErr = cmd.Wait()
+		}
+		log.Println("...ffmpeg finished")
+		wgFinished.Done()
+	}()
+	go func() {
+		cmd := exec.Command("node", "--eval", fmt.Sprintf(`
 const run = require("./run.js");
 const tests = require("./tests.js");
 
@@ -76,37 +93,40 @@ run.browserTest(%d, async (browsertab) => {
 });
 `, timeout.Milliseconds(), expr))
 
-	jsCmd.Dir = "./testdata/"
-	jsCmd.Stdout = os.Stdout
-	jsCmd.Stderr = os.Stderr
-	jsCmd.ExtraFiles = []*os.File{imageStreamW}
+		cmd.Dir = "./testdata/"
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		cmd.ExtraFiles = []*os.File{imageStreamW}
 
-	fmt.Fprintln(os.Stderr, "starting...")
-	if err := ffmpegCmd.Start(); err != nil {
-		imageStreamR.Close()
-		imageStreamW.Close()
-		t.Fatal(errors.Wrap(err, "ffmpeg"))
-	}
-	if err := jsCmd.Start(); err != nil {
-		imageStreamR.Close()
-		imageStreamW.Close()
-		t.Fatal(errors.Wrap(err, "node"))
-	}
+		nodeErr = cmd.Start()
+		log.Println("...node started")
+		wgStarted.Done()
+		if nodeErr == nil {
+			nodeErr = cmd.Wait()
+		}
+		log.Println("...node finished")
+		wgFinished.Done()
+	}()
+	wgStarted.Wait()
 	imageStreamR.Close()
 	imageStreamW.Close()
-	jsErr := jsCmd.Wait()
-	ffmpegErr := ffmpegCmd.Wait()
-	if jsErr != nil {
-		if ee, ok := jsErr.(*exec.ExitError); ok && ee.ProcessState.ExitCode() == 77 {
+	log.Println("... started")
+
+	wgFinished.Wait()
+	log.Println("... finished")
+
+	log.Println("ffmpegErr", ffmpegErr)
+	log.Println("nodeErr", nodeErr)
+
+	if nodeErr != nil {
+		if ee, ok := nodeErr.(*exec.ExitError); ok && ee.ProcessState.ExitCode() == 77 {
 			t.Skip()
 		} else {
-			fmt.Fprintln(os.Stderr, errors.Wrap(jsErr, "node"))
-			t.Fail()
+			t.Error("nodeErr", nodeErr)
 		}
 	}
 	if ffmpegErr != nil {
-		fmt.Fprintln(os.Stderr, errors.Wrap(ffmpegErr, "ffmpeg"))
-		t.Fail()
+		t.Error("ffmpegErr", ffmpegErr)
 	}
 }
 
