@@ -81,7 +81,7 @@ run.browserTest(%d, async (browsertab) => {
 	jsCmd.Stderr = os.Stderr
 	jsCmd.ExtraFiles = []*os.File{imageStreamW}
 
-	t.Log("starting...")
+	fmt.Fprintln(os.Stderr, "starting...")
 	if err := ffmpegCmd.Start(); err != nil {
 		imageStreamR.Close()
 		imageStreamW.Close()
@@ -100,11 +100,13 @@ run.browserTest(%d, async (browsertab) => {
 		if ee, ok := jsErr.(*exec.ExitError); ok && ee.ProcessState.ExitCode() == 77 {
 			t.Skip()
 		} else {
-			t.Error(jsErr)
+			fmt.Fprintln(os.Stderr, errors.Wrap(jsErr, "node"))
+			t.Fail()
 		}
 	}
 	if ffmpegErr != nil {
-		t.Error(errors.Wrap(ffmpegErr, "ffmpeg"))
+		fmt.Fprintln(os.Stderr, errors.Wrap(ffmpegErr, "ffmpeg"))
+		t.Fail()
 	}
 }
 
