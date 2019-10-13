@@ -111,7 +111,7 @@ func browserTest(t *testing.T, timeout time.Duration, expr string) {
 		ffmpegErr = cmd.Start()
 		t.Log(time.Now(), "...ffmpeg started")
 		wgStarted.Done()
-		if ffmpegErr != nil {
+		if ffmpegErr == nil {
 			ffmpegErr = cmd.Wait()
 		}
 		lw.Close()
@@ -147,10 +147,10 @@ run.browserTest(%d, async (browsertab) => {
 	wgStarted.Wait()
 	imageStreamR.Close()
 	imageStreamW.Close()
-	t.Log(time.Now(), "... started")
+	t.Log(time.Now(), "...started")
 
 	wgFinished.Wait()
-	t.Log(time.Now(), "... finished")
+	t.Log(time.Now(), "...finished")
 
 	t.Log(time.Now(), "ffmpegErr", ffmpegErr)
 	t.Log(time.Now(), "nodeErr", nodeErr)
