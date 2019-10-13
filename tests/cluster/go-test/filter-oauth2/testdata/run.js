@@ -47,7 +47,7 @@ const resolveTestPromise = function(promise) {
 			if (error instanceof TestSkipError) {
 				process.exit(77);
 			} else {
-				process.exit(1);
+				process.exit(99);
 			}
 		});
 };
