@@ -168,12 +168,6 @@ KAT_SERVER_DOCKER_IMAGE ?= $(KAT_SERVER_DOCKER_REPO):$(AMBASSADOR_DOCKER_TAG)
 
 KAT_IMAGE_PULL_POLICY ?= Always
 
-KAT_CLIENT ?= venv/bin/kat_client
-
-# Where to place binaries when we compile them
-WATT ?= watt
-KUBESTATUS ?= kubestatus
-
 # This should maybe be replaced with a lighterweight dependency if we
 # don't currently depend on go
 GOOS=$(shell go env GOOS)
@@ -190,10 +184,16 @@ all:
 	$(MAKE) docker-push
 	$(MAKE) test
 
+go.bins.extra += github.com/datawire/teleproxy/cmd/kubestatus
+go.bins.extra += github.com/datawire/teleproxy/cmd/teleproxy
+go.bins.extra += github.com/datawire/teleproxy/cmd/watt
+export CGO_ENABLED = 0
+
 include build-aux/prelude.mk
 include build-aux/var.mk
 include build-aux/docker.mk
 include build-aux/common.mk
+include build-aux/go-mod.mk
 include cxx/envoy.mk
 
 # clean_docker_images could just be a fixed list of the images that we
@@ -221,16 +221,21 @@ clean: clean-test $(addsuffix .clean,$(clean_docker_images))
 	rm -f tools/sandbox/http_auth/docker-compose.yml
 	rm -f tools/sandbox/grpc_auth/docker-compose.yml
 	rm -f tools/sandbox/grpc_web/docker-compose.yaml tools/sandbox/grpc_web/*_pb.js
-	rm -f cmd/ambex/ambex
 # Files made by older versions.  Remove the tail of this list when the
 # commit making the change gets far enough in to the past.
 #
+# 2019-10-13
+	rm -f ambex kubestatus watt
+	rm -f cmd/ambex/ambex
+	rm -f venv/bin/kat_client venv/bin/teleproxy
 # 2019-09-23
 	rm -f kat-server-docker-image/kat-server
 	rm -f kat-sandbox/grpc_auth/docker-compose.yml
 	rm -f kat-sandbox/grpc_web/docker-compose.yaml
 	rm -f kat-sandbox/grpc_web/*_pb.js
 	rm -f kat-sandbox/http_auth/docker-compose.yml
+# 2019-04-05 0388efe75c16540c71223320596accbbe3fe6ac2
+	rm -f kat/kat/client
 
 clobber: clean kill-docker-registry
 	-rm -f build/kat/client/teleproxy
@@ -377,7 +382,7 @@ docker-update-base:
 	$(MAKE) docker-push-base-images
 
 ambassador-docker-image: ambassador.docker
-ambassador.docker: Dockerfile cmd/ambex/ambex $(WATT) $(KUBESTATUS) bin_linux_amd64/kubectl $(WRITE_IFCHANGED) python/ambassador/VERSION.py FORCE
+ambassador.docker: Dockerfile bin_linux_amd64/ambex bin_linux_amd64/watt bin_linux_amd64/kubestatus bin_linux_amd64/kubectl $(WRITE_IFCHANGED) python/ambassador/VERSION.py FORCE
 	set -x; docker build $(DOCKER_OPTS) $($@.DOCKER_OPTS) -t $(AMBASSADOR_DOCKER_IMAGE) .
 	@docker image inspect $(AMBASSADOR_DOCKER_IMAGE) --format='{{.Id}}' | $(WRITE_IFCHANGED) $@
 ambassador.docker: base-runtime.docker base-py.docker
@@ -393,12 +398,12 @@ kat-client.docker: build/kat/client/Dockerfile base-py.docker build/kat/client/t
 	@docker image inspect $(KAT_CLIENT_DOCKER_IMAGE) --format='{{.Id}}' | $(WRITE_IFCHANGED) $@
 
 # build/kat/client/teleproxy always uses the linux/amd64 architecture
-build/kat/client/teleproxy: go.mod
-	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o $@ github.com/datawire/teleproxy/cmd/teleproxy
+build/kat/client/teleproxy: bin_linux_amd64/teleproxy
+	cp $< $@
 
 # build/kat/client/kat_client always uses the linux/amd64 architecture
-build/kat/client/kat_client: go.mod $(wildcard ./cmd/kat-client/*) pkg/api/kat/echo.pb.go
-	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o $@ ./cmd/kat-client
+build/kat/client/kat_client: bin_linux_amd64/kat-client
+	cp $< $@
 
 kat-server-docker-image: kat-server.docker
 .PHONY:  kat-server-docker-image
@@ -407,8 +412,8 @@ kat-server.docker: $(wildcard build/kat/server/*) build/kat/server/kat-server $(
 	@docker image inspect $(KAT_SERVER_DOCKER_IMAGE) --format='{{.Id}}' | $(WRITE_IFCHANGED) $@
 
 # build/kat/server/kat-server always uses the linux/amd64 architecture
-build/kat/server/kat-server: go.mod $(wildcard cmd/kat-server/* cmd/kat-server/*/*) pkg/api/kat/echo.pb.go
-	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o $@ ./cmd/kat-server
+build/kat/server/kat-server: bin_linux_amd64/kat-server
+	cp $< $@
 
 docker-images: mypy ambassador-docker-image
 
@@ -450,18 +455,6 @@ python/ambassador/VERSION.py: FORCE $(WRITE_IFCHANGED)
 
 version: python/ambassador/VERSION.py
 
-# This is for the docker image, so we don't use the current arch, we hardcode to linux/amd64
-$(WATT): go.mod
-	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o $@ github.com/datawire/teleproxy/cmd/watt
-
-# This is for the docker image, so we don't use the current arch, we hardcode to linux/amd64
-cmd/ambex/ambex: $(wildcard cmd/ambex/*.go) go.mod
-	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o $@ ./cmd/ambex
-
-# This is for the docker image, so we don't use the current arch, we hardcode to linux/amd64
-$(KUBESTATUS): go.mod
-	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o $@ github.com/datawire/teleproxy/cmd/kubestatus
-
 $(CLAIM_FILE):
 	@if [ -z $${CI+x} ]; then \
 		echo kat-$${USER} > $@; \
@@ -478,10 +471,7 @@ bin_%/kubectl: $(var.)KUBECTL_VERSION
 	curl --fail -o $@ -L https://storage.googleapis.com/kubernetes-release/release/v$(KUBECTL_VERSION)/bin/$(GOOS)/$(GOARCH)/kubectl
 	chmod 755 $@
 
-$(KAT_CLIENT): go.mod $(wildcard cmd/kat-client/*) pkg/api/kat/echo.pb.go
-	go build -o $@ ./cmd/kat-client
-
-setup-develop: venv $(KAT_CLIENT) $(KUBERNAUT) $(WATT) $(KUBESTATUS) version
+setup-develop: venv $(KUBERNAUT) bin_$(GOHOSTOS)_$(GOHOSTARCH)/kubestatus version
 
 cluster.yaml: $(CLAIM_FILE) $(KUBERNAUT)
 ifeq ($(USE_KUBERNAUT), true)
