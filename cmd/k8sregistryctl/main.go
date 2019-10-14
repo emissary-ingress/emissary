@@ -174,7 +174,7 @@ func main() {
 						break
 					} else {
 						fmt.Fprintln(os.Stderr, "waiting for port-forward to become ready...")
-						time.Sleep(1)
+						time.Sleep(time.Second)
 					}
 				}
 				return nil
