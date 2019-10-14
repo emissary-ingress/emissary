@@ -28,7 +28,6 @@ import t_retrypolicy
 import t_consul
 import t_circuitbreaker
 import t_knative
-import t_capabilities
 import t_envoy_logs
 import t_ingress
 

@@ -50,7 +50,6 @@ RUN apk --no-cache add bash curl jq rsync python3 python3-dev build-base libffi-
 RUN chmod u+s $(which docker)
 
 COPY --from=envoy /usr/local/bin/envoy /usr/local/bin/envoy
-RUN setcap 'cap_net_bind_service=+ep' /usr/local/bin/envoy
 
 ENV KUBECONFIG=/buildroot/kubeconfig.yaml
 
@@ -86,7 +85,6 @@ RUN apk --no-cache add bash curl python3 libcap
 RUN ln -s /usr/bin/python3 /usr/bin/python
 
 COPY --from=envoy /usr/local/bin/envoy /usr/local/bin/envoy
-RUN setcap 'cap_net_bind_service=+ep' /usr/local/bin/envoy
 COPY --from=builder /usr/lib/python3.6/site-packages /usr/lib/python3.6/site-packages
 
 COPY --from=artifacts /buildroot/bin/ambex /usr/bin/ambex
