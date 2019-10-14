@@ -12,12 +12,12 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sort"
+	"strconv"
 	"strings"
 	"sync"
 	"testing"
 	"time"
-
-	"github.com/pkg/errors"
 )
 
 type logWriter struct {
@@ -36,7 +36,7 @@ func (w *logWriter) Write(p []byte) (int, error) {
 		}
 		line := w.buf[:nl]
 		w.buf = w.buf[nl+1:]
-		w.t.Logf("[%v][%s] %s", now, w.name, line)
+		w.t.Logf("%v [%s] %q", now, w.name, line)
 	}
 	return len(p), nil
 }
@@ -74,98 +74,89 @@ func ensureNPMInstalled(t *testing.T) {
 
 // This function is closely coupled with run.js:browserTest().
 func browserTest(t *testing.T, timeout time.Duration, expr string) {
-	t.Log(time.Now(), "starting...")
-
 	videoFileName := url.PathEscape(t.Name()) + ".webm"
 	os.Remove(filepath.Join("testdata", videoFileName))
 
-	imageStreamR, imageStreamW, err := os.Pipe()
+	shotdir, err := ioutil.TempDir("", "browserTest.")
 	if err != nil {
-		t.Fatal(errors.Wrap(err, "pipe"))
+		t.Fatal(time.Now(), "Bail out!", err)
 	}
-	wgStarted := new(sync.WaitGroup)
-	wgStarted.Add(2)
-	wgFinished := new(sync.WaitGroup)
-	wgFinished.Add(2)
-	var ffmpegErr, nodeErr error
-	go func() {
-		// The Puppeteer docs say that on macOS, creating a
-		// frame can take as long as 1/6s (~0.16s / 6fps).  On
-		// my Parabola laptop (with X11), I'm seeing ~0.11s
-		// (~9fps).  So let's play it safe and ask for 5fps.
-		cmd := exec.Command("ffmpeg",
-			// input options
-			"-f", "image2pipe", // input format
-			"-r", "5", // fps
-			"-i", "-", // input file
+	defer os.RemoveAll(shotdir)
 
-			// output options
-			videoFileName,
-		)
-		cmd.Dir = "./testdata/"
-		cmd.Stdin = imageStreamR
-		lw := &logWriter{t: t, name: "ffmpeg"}
-		cmd.Stdout = lw
-		cmd.Stderr = lw
-
-		ffmpegErr = cmd.Start()
-		t.Log(time.Now(), "...ffmpeg started")
-		wgStarted.Done()
-		if ffmpegErr == nil {
-			ffmpegErr = cmd.Wait()
-		}
-		lw.Close()
-		t.Log(time.Now(), "...ffmpeg finished")
-		wgFinished.Done()
-	}()
-	go func() {
-		cmd := exec.Command("node", "--eval", fmt.Sprintf(`
+	// The main "node" invocation //////////////////////////////////////////
+	cmd := exec.Command("node", "--eval", fmt.Sprintf(`
 const run = require("./run.js");
 const tests = require("./tests.js");
 
-run.browserTest(%d, async (browsertab) => {
+run.browserTest(%d, %q, async (browsertab) => {
 	console.log("[inner] started");
 	await %s;
 	console.log("[inner] ran to completion");
 });
-`, timeout.Milliseconds(), expr))
-
-		cmd.Dir = "./testdata/"
-		lw := &logWriter{t: t, name: "node"}
-		cmd.Stdout = lw
-		cmd.Stderr = lw
-		cmd.ExtraFiles = []*os.File{imageStreamW}
-
-		nodeErr = cmd.Start()
-		t.Log(time.Now(), "...node started")
-		wgStarted.Done()
-		if nodeErr == nil {
-			nodeErr = cmd.Wait()
-		}
-		lw.Close()
-		t.Log(time.Now(), "...node finished")
-		wgFinished.Done()
-	}()
-	wgStarted.Wait()
-	imageStreamR.Close()
-	imageStreamW.Close()
-	t.Log(time.Now(), "...started")
-
-	wgFinished.Wait()
+`, timeout.Milliseconds(), shotdir, expr))
+	cmd.Dir = "./testdata/"
+	lw := &logWriter{t: t, name: "node"}
+	cmd.Stdout = lw
+	cmd.Stderr = lw
+	t.Log(time.Now(), "starting...")
+	nodeErr := cmd.Run()
 	t.Log(time.Now(), "...finished")
 
-	t.Log(time.Now(), "ffmpegErr", ffmpegErr)
-	t.Log(time.Now(), "nodeErr", nodeErr)
-
-	if nodeErr != nil {
-		if ee, ok := nodeErr.(*exec.ExitError); ok && ee.ProcessState.ExitCode() == 77 {
-			t.Skip()
-		} else {
-			t.Error("nodeErr", nodeErr)
-		}
+	// Turn the timestamped screenshots in to a video //////////////////////
+	//
+	// https://stackoverflow.com/questions/25073292/how-do-i-render-a-video-from-a-list-of-time-stamped-images
+	fileinfos, err := ioutil.ReadDir(shotdir)
+	if err != nil {
+		t.Fatal(time.Now(), "Bail out!", err)
 	}
-	if ffmpegErr != nil {
-		t.Error("ffmpegErr", ffmpegErr)
+	var timestamps []int
+	for _, fileinfo := range fileinfos {
+		if !strings.HasSuffix(fileinfo.Name(), ".png") {
+			continue
+		}
+		timestamp, err := strconv.ParseInt(strings.TrimSuffix(fileinfo.Name(), ".png"), 10, 0)
+		if err != nil {
+			continue
+		}
+		timestamps = append(timestamps, int(timestamp))
+	}
+	sort.Ints(timestamps)
+	inputTxt, err := os.OpenFile(filepath.Join(shotdir, "input.txt"), os.O_CREATE|os.O_WRONLY, 0600)
+	if err != nil {
+		t.Fatal(time.Now(), "Bail out!", err)
+	}
+	for i, timestamp := range timestamps {
+		if i > 0 {
+			duration := timestamp - timestamps[i-1]
+			fmt.Fprintf(inputTxt, "duration %d.%03d\n", duration/1000, duration%1000)
+		}
+		fmt.Fprintf(inputTxt, "file '%d.png'\n", timestamp)
+	}
+	inputTxt.Close()
+	cmd = exec.Command("ffmpeg",
+		// input options
+		"-f", "concat", // input format
+		"-i", filepath.Join(shotdir, "input.txt"), // input file
+
+		// output options
+		videoFileName,
+	)
+	cmd.Dir = "./testdata/"
+	lw = &logWriter{t: t, name: "ffmpeg"}
+	cmd.Stdout = lw
+	cmd.Stderr = lw
+	if err := cmd.Run(); err != nil {
+		t.Fatal(time.Now(), "Bail out!", err)
+	}
+
+	// Report the result ///////////////////////////////////////////////////
+	if nodeErr == nil {
+		t.Log("result: pass")
+	} else if ee, ok := nodeErr.(*exec.ExitError); ok && ee.ProcessState.ExitCode() == 77 {
+		t.Log("result: skip")
+		t.Skip()
+	} else {
+		t.Error("result: fail:", nodeErr)
 	}
 }
 

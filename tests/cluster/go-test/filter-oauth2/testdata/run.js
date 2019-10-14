@@ -21,7 +21,7 @@ const withBrowserTab = async function(fn) {
 		try {
 			await fn(browsertab);
 		} finally {
-			console.log("url is: "+browsertab.url());
+			console.log("final url is: "+browsertab.url());
 		}
 	} finally {
 		browser.close();
@@ -58,28 +58,32 @@ const sleep = function(ms) {
 	});
 };
 
+const queueFrame = function(browsertab, shotdir) {
+	let ts = Date.now();
+	console.log("before frame", ts);
+	return browsertab.screenshot({path: shotdir+"/"+ts+".png"})
+		.then((screenshot) => {
+			console.log("after frame", ts);
+			return queueFrame(browsertab, shotdir);
+		})
+		.catch((err) => {
+			console.log("screenshot error at "+ts+":", err);
+		});
+}
+
 // This function is closely coupled with browser_test.go:browserTest().
-const browserTest = function(timeout_ms, fn) {
+const browserTest = function(timeout_ms, shotdir, fn) {
 	resolveTestPromise(withBrowserTab(async (browsertab) => {
-		let imageStream = fs.createWriteStream("", {fd: 3});
-		let i = 0;
-		let interval = setInterval(() => {
-			let n = i;
-			console.log("before frame", n);
-			browsertab.screenshot().then((screenshot) => {
-				imageStream.write(screenshot, () => {
-					console.log("after frame", n);
-				});
-			});
-			i++;
-		}, 1000/5);
+		browsertab.on('framenavigated', () => {
+			console.log("framenavigated: "+browsertab.url());
+		});
+
+		queueFrame(browsertab, shotdir);
 
 		try {
 			await withTimeout(timeout_ms, fn(browsertab));
 		} finally {
 			await sleep(1000);
-			clearInterval(interval);
-			imageStream.end();
 		}
 	}));
 };
