@@ -1,6 +1,3 @@
-## Lazy inputs ##
-#  - Variable: KAT_SERVER_DOCKER_IMAGE
-
 # ------------------------------------------------------------------------------
 # gRPC bindings for KAT
 # ------------------------------------------------------------------------------
@@ -35,8 +32,8 @@ tools/sandbox/grpc_web/echo_pb.js: api/kat/echo.proto venv/bin/protoc
 # KAT docker-compose sandbox
 # ------------------------------------------------------------------------------
 
-tools/sandbox/http_auth/docker-compose.yml tools/sandbox/grpc_auth/docker-compose.yml tools/sandbox/grpc_web/docker-compose.yaml: %: %.in kat-server.docker $(var.)KAT_SERVER_DOCKER_IMAGE
-	sed 's,@KAT_SERVER_DOCKER_IMAGE@,$(KAT_SERVER_DOCKER_IMAGE),g' < $< > $@
+tools/sandbox/http_auth/docker-compose.yml tools/sandbox/grpc_auth/docker-compose.yml tools/sandbox/grpc_web/docker-compose.yaml: %: %.in kat-server.docker.push.dev
+	sed "s,@KAT_SERVER_DOCKER_IMAGE@,$$(cat kat-server.docker.push.dev),g" < $< > $@
 
 tools/sandbox.http-auth: ## In docker-compose: run Ambassador, an HTTP AuthService, an HTTP backend service, and a TracingService
 tools/sandbox.http-auth: tools/sandbox/http_auth/docker-compose.yml

@@ -82,8 +82,6 @@ case "$COMMIT_TYPE" in
             docker login -u="$DOCKER_BUILD_USERNAME" --password-stdin "${BASE_DOCKER_REPO%%/*}" <<<"$DOCKER_BUILD_PASSWORD"
         fi
 
-        make setup-develop
-        make docker-push docker-push-kat-client docker-push-kat-server # to the in-cluster registry (DOCKER_REGISTRY)
         make test
         ;;
 esac

@@ -27,6 +27,7 @@ services:
 env:
   global:
     - DOCKER_REGISTRY=quay.io/datawire
+    - DEV_DOCKER_REPO=localhost:31000/dev
 
     # Set from the repository settings:
     #- DOCKER_BUILD_USERNAME=[secure] (optional)
