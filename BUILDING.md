@@ -1,6 +1,66 @@
 Building Ambassador
 ===================
 
+**HEADS UP!!** We have dramatically changed the world, and are now
+working on dramatically updating our documentation. 
+
+In the meantime: 
+
+- If you just want to **use** Ambassador, check out https://www.getambassador.io/! You don't need to build anything, and in fact you shouldn't.
+
+- If you want to make a doc change, see the `Making Documentation-Only Changes` section below.
+
+- If you want to make a code change, read on for the very very bare-bones notes.
+
+## Quick Build
+
+0. Use `make help` to get more information about what sorts of things
+you can do. There are a lot of options!
+
+1. Have a Kubernetes cluster that you can test with. We'll call the `KUBECONFIG` setting for this `your-kubeconfig`. 
+
+2. Have a Docker registry to which you can push, and from which your test cluster can pull. We'll call this `your-registry`.
+
+3. Have working `docker` and `git` commands, then:
+
+```
+git clone https://github.com/datawire/ambassador
+cd ambassador
+git checkout -b username/feature/my-branch-here master
+export DEV_KUBECONFIG=your-kubeconfig
+export DEV_REGISTRY=your-docker-registry
+make test
+```
+
+So, for example, I might set up a Kubernetes cluster and write its configuration into `$HOME/.kube/flynn-test.yaml`, and use my `dwflynn` repositry on DockerHub. Then I could do:
+
+```
+git clone https://github.com/datawire/ambassador
+cd ambassador
+git checkout -b flynn/feature/new-cool-thing master
+export DEV_KUBECONFIG=$HOME/.kube/flynn-test.yaml
+export DEV_REGISTRY=dwflynn
+make test
+```
+
+## Making Documentation-Only Changes
+
+If you want to make a change that **only** affects documentation, and is not 
+tied to a future feature, you'll need to make your change directly in the
+`datawire/ambassador-docs` repository. Clone that repository and check out
+its `README.md`. 
+
+(It is technically possible to make these changes from the `ambassador` repo.
+Please don't, unless you're fixing docs for an upcoming feature that hasn't
+yet shipped.)
+
+----------------------------------
+
+OLD NOTES HERE
+===================
+
+**Don't read below here. Check out our [Slack channel](https://d6e.co/slack) instead (you want the `#ambassador-dev` channel).**
+
 If you just want to **use** Ambassador, check out https://www.getambassador.io/! You don't need to build anything, and in fact you shouldn't.
 
 If you want to make a doc change, see the `Making Documentation-Only Changes` section below.
