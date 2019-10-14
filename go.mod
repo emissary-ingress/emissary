@@ -14,8 +14,10 @@ require (
 	github.com/iancoleman/strcase v0.0.0-20180726023541-3605ed457bf7
 	github.com/lyft/protoc-gen-star v0.4.4
 	github.com/lyft/protoc-gen-validate v0.1.0 // indirect
+	github.com/pkg/errors v0.8.1
 	github.com/sirupsen/logrus v1.4.0
 	github.com/spf13/afero v1.2.2 // indirect
+	github.com/spf13/cobra v0.0.3
 	github.com/stretchr/testify v1.4.0 // indirect
 	golang.org/x/net v0.0.0-20190812203447-cdfb69ac37fc
 	google.golang.org/genproto v0.0.0-20180831171423-11092d34479b // indirect

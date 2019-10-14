@@ -109,7 +109,7 @@ run_test() {
 }
 
 
-( cd "$ROOT" ; make setup-test )
+( cd "$ROOT" ; ${MAKE:-make} setup-test )
 
 echo "==== [$(date)] ==== STARTING TESTS"
 

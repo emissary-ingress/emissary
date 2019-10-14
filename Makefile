@@ -21,9 +21,8 @@ SHELL = bash
 # Welcome to the Ambassador Makefile...
 
 .PHONY: \
-    clean version setup-develop print-vars \
+    version setup-develop print-vars \
     docker-push docker-images
-.SECONDARY:
 
 GIT_DIRTY ?= $(if $(shell git status --porcelain),dirty)
 
@@ -81,10 +80,6 @@ AMBASSADOR_EXTERNAL_DOCKER_REPO ?= $(AMBASSADOR_DOCKER_REPO)
 endif
 
 DOCKER_OPTS =
-
-# This is the branch from ambassador-docs to pull for "make pull-docs".
-# Override if you need to.
-PULL_BRANCH ?= master
 
 AMBASSADOR_DOCKER_TAG ?= $(RELEASE_VERSION)
 AMBASSADOR_DOCKER_IMAGE ?= $(AMBASSADOR_DOCKER_REPO):$(AMBASSADOR_DOCKER_TAG)
@@ -153,11 +148,6 @@ KAT_SERVER_DOCKER_IMAGE ?= $(KAT_SERVER_DOCKER_REPO):$(AMBASSADOR_DOCKER_TAG)
 
 KAT_IMAGE_PULL_POLICY ?= Always
 
-# This should maybe be replaced with a lighterweight dependency if we
-# don't currently depend on go
-GOOS=$(shell go env GOOS)
-GOARCH=$(shell go env GOARCH)
-
 # "make" by itself doesn't make the website. It takes too long and it doesn't
 # belong in the inner dev loop.
 all:
@@ -176,6 +166,8 @@ include build-aux/docker.mk
 include build-aux/common.mk
 include build-aux/go-mod.mk
 include cxx/envoy.mk
+include build-aux-local/kat.mk
+include build-aux-local/docs.mk
 
 # clean_docker_images could just be a fixed list of the images that we
 # generate, but writing that fixed list would require a human to
@@ -493,69 +485,6 @@ release-ea: STABLE_TXT_KEY = earlystable.txt
 release-ea: update-aws
 
 # ------------------------------------------------------------------------------
-# gRPC bindings for KAT
-# ------------------------------------------------------------------------------
-
-GRPC_WEB_VERSION = 1.0.3
-GRPC_WEB_PLATFORM = $(GOOS)-x86_64
-
-venv/bin/protoc-gen-grpc-web: $(var.)GRPC_WEB_VERSION $(var.)GRPC_WEB_PLATFORM | venv/bin/activate
-	curl -o $@ -L --fail https://github.com/grpc/grpc-web/releases/download/$(GRPC_WEB_VERSION)/protoc-gen-grpc-web-$(GRPC_WEB_VERSION)-$(GRPC_WEB_PLATFORM)
-	chmod 755 $@
-
-pkg/api/kat/echo.pb.go: api/kat/echo.proto venv/bin/protoc venv/bin/protoc-gen-gogofast
-	mkdir -p $(@D)
-	./venv/bin/protoc \
-		--proto_path=$(CURDIR)/api/kat \
-		--plugin=$(CURDIR)/venv/bin/protoc-gen-gogofast --gogofast_out=plugins=grpc:$(@D) \
-		$(CURDIR)/$<
-
-tools/sandbox/grpc_web/echo_grpc_web_pb.js: api/kat/echo.proto venv/bin/protoc venv/bin/protoc-gen-grpc-web
-	./venv/bin/protoc \
-		--proto_path=$(CURDIR)/api/kat \
-		--plugin=$(CURDIR)/venv/bin/protoc-gen-grpc-web --grpc-web_out=import_style=commonjs,mode=grpcwebtext:$(@D) \
-		$(CURDIR)/$<
-
-tools/sandbox/grpc_web/echo_pb.js: api/kat/echo.proto venv/bin/protoc
-	./venv/bin/protoc \
-		--proto_path=$(CURDIR)/api/kat \
-		--js_out=import_style=commonjs:$(@D) \
-		$(CURDIR)/$<
-
-# ------------------------------------------------------------------------------
-# KAT docker-compose sandbox
-# ------------------------------------------------------------------------------
-
-tools/sandbox/http_auth/docker-compose.yml tools/sandbox/grpc_auth/docker-compose.yml tools/sandbox/grpc_web/docker-compose.yaml: %: %.in kat-server.docker $(var.)KAT_SERVER_DOCKER_IMAGE
-	sed 's,@KAT_SERVER_DOCKER_IMAGE@,$(KAT_SERVER_DOCKER_IMAGE),g' < $< > $@
-
-tools/sandbox.http-auth: ## In docker-compose: run Ambassador, an HTTP AuthService, an HTTP backend service, and a TracingService
-tools/sandbox.http-auth: tools/sandbox/http_auth/docker-compose.yml
-	@echo " ---> cleaning HTTP auth tools/sandbox"
-	@cd tools/sandbox/http_auth && docker-compose stop && docker-compose rm -f
-	@echo " ---> starting HTTP auth tools/sandbox"
-	@cd tools/sandbox/http_auth && docker-compose up --force-recreate --abort-on-container-exit --build
-.PHONY: tools/sandbox.http-auth
-
-tools/sandbox.grpc-auth: ## In docker-compose: run Ambassador, a gRPC AuthService, an HTTP backend service, and a TracingService
-tools/sandbox.grpc-auth: tools/sandbox/grpc_auth/docker-compose.yml
-	@echo " ---> cleaning gRPC auth tools/sandbox"
-	@cd tools/sandbox/grpc_auth && docker-compose stop && docker-compose rm -f
-	@echo " ---> starting gRPC auth tools/sandbox"
-	@cd tools/sandbox/grpc_auth && docker-compose up --force-recreate --abort-on-container-exit --build
-.PHONY: tools/sandbox.grpc-auth
-
-tools/sandbox.web: ## In docker-compose: run Ambassador with gRPC-web enabled, and a gRPC backend service
-tools/sandbox.web: tools/sandbox/grpc_web/docker-compose.yaml
-tools/sandbox.web: tools/sandbox/grpc_web/echo_grpc_web_pb.js tools/sandbox/grpc_web/echo_pb.js
-	@echo " ---> cleaning gRPC web tools/sandbox"
-	@cd tools/sandbox/grpc_web && npm install && npx webpack
-	@cd tools/sandbox/grpc_web && docker-compose stop && docker-compose rm -f
-	@echo " ---> starting gRPC web tools/sandbox"
-	@cd tools/sandbox/grpc_web && docker-compose up --force-recreate --abort-on-container-exit --build
-.PHONY: tools/sandbox.web
-
-# ------------------------------------------------------------------------------
 # Virtualenv
 # ------------------------------------------------------------------------------
 
@@ -584,26 +513,6 @@ mypy-server: venv
 
 mypy: mypy-server
 	time venv/bin/dmypy check python
-
-# ------------------------------------------------------------------------------
-# Website
-# ------------------------------------------------------------------------------
-
-pull-docs:
-	@PS4=; set -ex; { \
-	    git fetch https://github.com/datawire/ambassador-docs $(PULL_BRANCH); \
-	    docs_head=$$(git rev-parse FETCH_HEAD); \
-	    git subtree merge --prefix=docs "$${docs_head}"; \
-	    git subtree split --prefix=docs --rejoin --onto="$${docs_head}"; \
-	}
-push-docs:
-	@PS4=; set -ex; { \
-	    git fetch https://github.com/datawire/ambassador-docs master; \
-	    docs_old=$$(git rev-parse FETCH_HEAD); \
-	    docs_new=$$(git subtree split --prefix=docs --rejoin --onto="$${docs_old}"); \
-	    git push $(if $(GH_TOKEN),https://d6e-automaton:${GH_TOKEN}@github.com/,git@github.com:)datawire/ambassador-docs.git "$${docs_new}:refs/heads/$(or $(PUSH_BRANCH),master)"; \
-	}
-.PHONY: pull-docs push-docs
 
 # ------------------------------------------------------------------------------
 # Function Definitions
