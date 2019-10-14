@@ -14,8 +14,8 @@
 
 ################################################################
 # If you have to change this file, you _must_ update BASE_ENVOY_RELVER
-# in the Makefile, then run "make docker-update-base" to build and
-# push the new image.
+# in the Makefile, then run "make update-base" to build and push the
+# new image.
 
 ARG ENVOY_BUILD_IMAGE
 FROM $ENVOY_BUILD_IMAGE

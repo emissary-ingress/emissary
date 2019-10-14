@@ -20,10 +20,6 @@ SHELL = bash
 
 # Welcome to the Ambassador Makefile...
 
-.PHONY: \
-    version setup-develop print-vars \
-    docker-push docker-images
-
 GIT_DIRTY ?= $(if $(shell git status --porcelain),dirty)
 
 # This is only "kinda" the git branch name:
@@ -83,7 +79,7 @@ DOCKER_OPTS =
 
 YES_I_AM_UPDATING_THE_BASE_IMAGES ?=
 
-# IF YOU MESS WITH ANY OF THESE VALUES, YOU MUST RUN `make docker-update-base`.
+# IF YOU MESS WITH ANY OF THESE VALUES, YOU MUST RUN `make update-base`.
   # Increment BASE_RUNTIME_RELVER on changes to `docker/base-runtime/Dockerfile`
   BASE_RUNTIME_RELVER ?= 1
   # Increment BASE_PY_RELVER on changes to `docker/base-py/Dockerfile` or `python/requirements.txt`
@@ -92,7 +88,7 @@ YES_I_AM_UPDATING_THE_BASE_IMAGES ?=
   BASE_DOCKER_REPO   ?= quay.io/datawire/ambassador-base$(if $(IS_PRIVATE),-private)
   BASE_IMAGE.runtime ?= $(BASE_DOCKER_REPO):runtime-$(BASE_RUNTIME_RELVER)
   BASE_IMAGE.py      ?= $(BASE_DOCKER_REPO):py-$(BASE_RUNTIME_RELVER).$(BASE_PY_RELVER)
-# END LIST OF VARIABLES REQUIRING `make docker-update-base`.
+# END LIST OF VARIABLES REQUIRING `make update-base`.
 
 DEV_DOCKER_REPO ?= $(DOCKER_REGISTRY)/dev
 
@@ -125,13 +121,6 @@ KUBECTL_VERSION = 1.16.1
 
 SCOUT_APP_KEY=
 
-# "make" by itself doesn't make the website. It takes too long and it doesn't
-# belong in the inner dev loop.
-all:
-	$(MAKE) setup-develop
-	$(MAKE) docker-push
-	$(MAKE) test
-
 go.bins.extra += github.com/datawire/teleproxy/cmd/kubestatus
 go.bins.extra += github.com/datawire/teleproxy/cmd/teleproxy
 go.bins.extra += github.com/datawire/teleproxy/cmd/watt
@@ -142,9 +131,11 @@ include build-aux/var.mk
 include build-aux/docker.mk
 include build-aux/common.mk
 include build-aux/go-mod.mk
+include build-aux/help.mk
 include cxx/envoy.mk
 include build-aux-local/kat.mk
 include build-aux-local/docs.mk
+.DEFAULT_GOAL = help
 
 clean: $(addsuffix .docker.clean,$(images.all) $(images.old))
 	rm -rf docs/_book docs/_site docs/package-lock.json
@@ -195,15 +186,18 @@ clobber: clean kill-docker-registry
 	-rm -rf docs/node_modules
 	-rm -rf venv && echo && echo "Deleted venv, run 'deactivate' command if your virtualenv is activated" || true
 
+generate: ## Update generated sources that get committed to git
 generate: pkg/api/kat/echo.pb.go
+generate-clean: ## Delete generated sources that get committed to git (implies `make clobber`)
 generate-clean: clobber
 	rm -rf pkg/api
 .PHONY: generate generate-clean
 
-print-%:
+print-%: ## Print the arbitrary Make expression '%'
 	@printf "$($*)"
+.PHONY: print-%
 
-print-vars:
+print-vars: ## Print variables of interest (in a human-friendly format)
 	@echo "AMBASSADOR_DOCKER_REPO           = $(AMBASSADOR_DOCKER_REPO)"
 	@echo "AMBASSADOR_EXTERNAL_DOCKER_REPO  = $(AMBASSADOR_EXTERNAL_DOCKER_REPO)"
 	@echo "CI_DEBUG_KAT_BRANCH              = $(CI_DEBUG_KAT_BRANCH)"
@@ -219,8 +213,9 @@ print-vars:
 	@echo "GIT_TAG                          = $(GIT_TAG)"
 	@echo "BUILD_VERSION                    = $(BUILD_VERSION)"
 	@echo "RELEASE_VERSION                  = $(RELEASE_VERSION)"
+.PHONY: print-vars
 
-export-vars:
+export-vars: ## Print variables of interest (in a Bourne-shell format)
 	@echo "export AMBASSADOR_DOCKER_REPO='$(AMBASSADOR_DOCKER_REPO)'"
 	@echo "export AMBASSADOR_EXTERNAL_DOCKER_REPO='$(AMBASSADOR_EXTERNAL_DOCKER_REPO)'"
 	@echo "export CI_DEBUG_KAT_BRANCH='$(CI_DEBUG_KAT_BRANCH)'"
@@ -236,6 +231,7 @@ export-vars:
 	@echo "export GIT_TAG='$(GIT_TAG)'"
 	@echo "export BUILD_VERSION='$(BUILD_VERSION)'"
 	@echo "export RELEASE_VERSION='$(RELEASE_VERSION)'"
+.PHONY: export-vars
 
 base-%.docker: docker/base-%/Dockerfile $(var.)BASE_IMAGE.% $(WRITE_IFCHANGED)
 	@if [ -n "$(AMBASSADOR_DEV)" ]; then echo "Do not run this from a dev shell" >&2; exit 1; fi
@@ -266,20 +262,12 @@ test-auth-tls.docker: docker/test-auth/Dockerfile $(MOVE_IFCHANGED) FORCE
 	docker build --quiet --build-arg TLS=--tls --iidfile=$@.tmp $(<D)
 	$(MOVE_IFCHANGED) $@.tmp $@
 
-test-services: $(addsuffix .docker.tag.dev,$(filter test-%,$(images.all)))
-test-services-release: $(addsuffix .docker.push.dev,$(filter test-%,$(images.all)))
-.PHONY: test-services test-services-release
+update-base: ## Run this whenever the base images (ex Envoy, ./docker/base-*/*) change
+	$(MAKE) $(addsuffix .docker.tag.base,$(images.base))
+	$(MAKE) generate
+	$(MAKE) $(addsuffix .docker.push.base,$(images.base))
+.PHONY: update-base
 
-
-docker-base-images: $(addsuffix .docker.tag.base,base-envoy base-runtime base-py)
-
-docker-push-base-images: $(addsuffix .docker.push.base,base-envoy base-runtime base-py)
-
-docker-update-base:
-	$(MAKE) docker-base-images generate
-	$(MAKE) docker-push-base-images
-
-ambassador-docker-image: ambassador.docker.tag.dev
 ambassador.docker: Dockerfile bin_linux_amd64/ambex bin_linux_amd64/watt bin_linux_amd64/kubestatus bin_linux_amd64/kubectl $(MOVE_IFCHANGED) python/ambassador/VERSION.py FORCE
 	set -x; docker build $(DOCKER_OPTS) $($@.DOCKER_OPTS) --iidfile=$@.tmp .
 	$(MOVE_IFCHANGED) $@.tmp $@
@@ -289,8 +277,6 @@ ambassador.docker.DOCKER_OPTS += --build-arg=BASE_PY_IMAGE=$$(cat base-py.docker
 ambassador.docker: $(ENVOY_FILE) $(var.)ENVOY_FILE
 ambassador.docker.DOCKER_OPTS += --build-arg=ENVOY_FILE=$(ENVOY_FILE)
 
-kat-client-docker-image: kat-client.docker.tag.dev
-.PHONY: kat-client-docker-image
 kat-client.docker: docker/kat-client/Dockerfile base-py.docker docker/kat-client/teleproxy docker/kat-client/kat_client $(MOVE_IFCHANGED)
 	docker build --build-arg BASE_PY_IMAGE=$$(cat base-py.docker) $(DOCKER_OPTS) --iidfile=$@.tmp $(<D)
 	$(MOVE_IFCHANGED) $@.tmp $@
@@ -299,20 +285,17 @@ docker/kat-client/teleproxy: docker/kat-client/%: bin_linux_amd64/%
 docker/kat-client/kat_client: bin_linux_amd64/kat-client
 	cp $< $@
 
-kat-server-docker-image: kat-server.docker.tag.dev
-.PHONY:  kat-server-docker-image
 kat-server.docker: $(wildcard docker/kat-server/*) docker/kat-server/kat-server $(MOVE_IFCHANGED)
 	docker build $(DOCKER_OPTS) --iidfile=$@.tmp $(<D)
 	$(MOVE_IFCHANGED) $@.tmp $@
 docker/kat-server/kat-server: docker/kat-server/%: bin_linux_amd64/%
 	cp $< $@
 
-docker-images: mypy ambassador-docker-image
-
+docker-push: ## Build and push the main Ambassador image to DEV_DOCKER_REPO
 docker-push: ambassador.docker.push.dev
-docker-push-kat-client: kat-client.docker.push.dev
-docker-push-kat-server: kat-client.docker.push.dev
-docker-push-kat: docker-push-kat-client docker-push-kat-server
+.PHONY: docker-push
+
+lint: mypy
 
 # TODO: validate version is conformant to some set of rules might be a good idea to add here
 python/ambassador/VERSION.py: FORCE $(WRITE_IFCHANGED)
@@ -329,17 +312,19 @@ python/ambassador/VERSION.py: FORCE $(WRITE_IFCHANGED)
 		-e 's!{{GITDESCRIPTION}}!$(GIT_DESCRIPTION)!g' \
 		< VERSION-template.py | $(WRITE_IFCHANGED) $@
 
-version: python/ambassador/VERSION.py
-
 bin_%/kubectl: $(var.)KUBECTL_VERSION
 	mkdir -p $(@D)
 	curl --fail -o $@ -L https://storage.googleapis.com/kubernetes-release/release/v$(KUBECTL_VERSION)/bin/$(GOOS)/$(GOARCH)/kubectl
 	chmod 755 $@
 
-setup-develop: venv bin_$(GOHOSTOS)_$(GOHOSTARCH)/kubestatus version
+setup-develop: ## TODO: document me
+setup-develop: venv bin_$(GOHOSTOS)_$(GOHOSTARCH)/kubestatus python/ambassador/VERSION.py
+.PHONY: setup-develop
 
+setup-test: ## Perform setup for `make test`
 setup-test: setup-develop $(addsuffix .docker.push.dev,$(images.cluster))
 	rm -rf /tmp/k8s-*.yaml /tmp/kat-*.yaml
+.PHONY: setup-test
 
 # "make shell" drops you into a dev shell, and tries to set variables, etc., as
 # needed:
@@ -351,18 +336,24 @@ setup-test: setup-develop $(addsuffix .docker.push.dev,$(images.cluster))
 # issue to finish sorting this out, but right now I want to get our CI builds 
 # into better shape without waiting for that.
 
+shell: ## Run a shell with the the virtualenv and such activated
 shell: setup-develop
 	env \
 	BASE_IMAGE.envoy="$(BASE_IMAGE.envoy)" \
 	BASE_IMAGE.runtime="$(BASE_IMAGE.runtime)" \
 	BASE_IMAGE.py="$(BASE_IMAGE.py)" \
 	bash --init-file releng/init.sh -i
+.PHONY: shell
 
-test: setup-test
+test: ## Run the test-suite
+test: setup-test mypy
 	cd python && env PATH="$(shell pwd)/venv/bin:$(PATH)" ../releng/run-tests.sh
+.PHONY: test
 
+test-list: ## List the tests in the test-suite
 test-list: setup-develop
 	cd python && PATH="$(shell pwd)/venv/bin":$(PATH) pytest --collect-only -q
+.PHONY: test
 
 update-aws:
 ifeq ($(AWS_ACCESS_KEY_ID),)
@@ -429,7 +420,7 @@ release-ea: update-aws
 # Virtualenv
 # ------------------------------------------------------------------------------
 
-venv: version venv/bin/ambassador
+venv: python/ambassador/VERSION.py venv/bin/ambassador
 
 venv/bin/ambassador: venv/bin/activate python/requirements.txt
 	@releng/install-py.sh dev requirements python/requirements.txt
@@ -445,15 +436,18 @@ venv/bin/activate: dev-requirements.txt
 
 mypy-server-stop: venv
 	venv/bin/dmypy stop
+.PHONY: mypy-server-stop
 
 mypy-server: venv
 	@if ! venv/bin/dmypy status >/dev/null; then \
 		venv/bin/dmypy start -- --use-fine-grained-cache --follow-imports=skip --ignore-missing-imports ;\
 		echo "Started mypy server" ;\
 	fi
+.PHONY: mypy-server
 
 mypy: mypy-server
 	time venv/bin/dmypy check python
+.PHONY: mypy
 
 # ------------------------------------------------------------------------------
 # Function Definitions

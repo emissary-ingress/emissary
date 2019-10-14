@@ -6,14 +6,14 @@ PULL_BRANCH ?= master
 # Website
 # ------------------------------------------------------------------------------
 
-pull-docs:
+pull-docs: ## Pull the docs from ambassador-docs.git
 	@PS4=; set -ex; { \
 	    git fetch https://github.com/datawire/ambassador-docs $(PULL_BRANCH); \
 	    docs_head=$$(git rev-parse FETCH_HEAD); \
 	    git subtree merge --prefix=docs "$${docs_head}"; \
 	    git subtree split --prefix=docs --rejoin --onto="$${docs_head}"; \
 	}
-push-docs:
+push-docs: ## Push the docs to ambassador-docs.git
 	@PS4=; set -ex; { \
 	    git fetch https://github.com/datawire/ambassador-docs master; \
 	    docs_old=$$(git rev-parse FETCH_HEAD); \

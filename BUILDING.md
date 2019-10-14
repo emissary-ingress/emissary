@@ -176,11 +176,11 @@ run the tests with `make test`, or to e.g. run the Ambassador CLI
 
 #### Docker Image Names
 
-Running `make docker-images` or `make docker-push` in development
-builds a Docker image that includes the short Git hash of your current
-commit in its name (because if the name doesn't change when you commit
-new code, it can be very hard to get some Kubernetes environments to
-actually pull the new image!).
+Running `make ambassador.docker.tag.dev` or `make docker-push` in
+development builds a Docker image that includes its own image hag in
+its name (because if the name doesn't change when you commit new code,
+it can be very hard to get some Kubernetes environments to actually
+pull the new image!).
 
 **Whenever you commit new code, you must rerun `make docker-push` 
 before doing things that try to use the image.** Yes, this is annoying,
@@ -271,7 +271,7 @@ good place to start is
 [the `mypy` cheat sheet](https://mypy.readthedocs.io/en/latest/cheat_sheet_py3.html).
 
 New code must be hinted, and the build process will verify that the type
-check passes when you `make docker-images`. Fair warning: this means that
+check passes when you `make test`. Fair warning: this means that
 PRs will not pass CI if the type checker fails.
 
 We strongly recommend using an editor that can do realtime type checking
@@ -425,7 +425,13 @@ appears as a subdirectory of the other.
 
  10. Edit `ENVOY_COMMIT ?=` in the Makefile to point to your new Envoy commit.  Follow the instructions in the Makefile when doing so:
 
-    a. Then run `make docker-update-base` to compile Envoy, and build+push new docker base images incorporating that Envoy binary.  This will also update the `pkg/api/envoy/` directory if any of Envoy's protobuf definitions have changed; make sure to commit those changes when you commit the change to `ENVOY_COMMIT`.
+    a. Then run `make update-base` to compile Envoy, update the
+       generated protobuf bindings to use with that Envoy, and
+       build+push new Docker base images incorporating that Envoy
+       binary.  This will update the `api/` and `pkg/api/envoy/`
+       directories if any of Envoy's protobuf definitions have
+       changed; make sure to commit those changes when you commit the
+       change to `ENVOY_COMMIT`.
 
 Version Numbering
 -----------------
