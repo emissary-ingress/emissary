@@ -111,11 +111,16 @@ TEST_SERVICE_ROOTS = $(patsubst docker/test-%/Dockerfile,%,$(wildcard docker/tes
 TEST_SERVICE_IMAGES = $(patsubst %,test-%.docker,$(TEST_SERVICE_ROOTS) auth-tls)
 
 # Set default tag values...
+docker.tag.build-sys  = $(error docker.tag.build-sys needs to be overridden for each target)
 docker.tag.release    = $(AMBASSADOR_DOCKER_TAG)
 docker.tag.release-rc = $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(RELEASE_VERSION) $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(BUILD_VERSION)-latest-rc
 docker.tag.release-ea = $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(RELEASE_VERSION)
 docker.tag.local      = $(AMBASSADOR_DOCKER_TAG)
 docker.tag.base       = $(BASE_IMAGE.$(patsubst base-%.docker,%,$<))
+
+ambassador.docker.tag.build-sys: docker.tag.build-sys = $(AMBASSADOR_DOCKER_IMAGE)
+kat-client.docker.tag.build-sys: docker.tag.build-sys = $(KAT_CLIENT_DOCKER_IMAGE)
+kat-server.docker.tag.build-sys: docker.tag.build-sys = $(KAT_SERVER_DOCKER_IMAGE)
 
 images.all = $(patsubst docker/%/Dockerfile,%,$(wildcard docker/*/Dockerfile)) test-auth-tls ambassador
 # Images made by older versions.  Remove the tail of this list when the
@@ -325,55 +330,39 @@ docker-update-base:
 	$(MAKE) docker-base-images generate
 	$(MAKE) docker-push-base-images
 
-ambassador-docker-image: ambassador.docker
-ambassador.docker: Dockerfile bin_linux_amd64/ambex bin_linux_amd64/watt bin_linux_amd64/kubestatus bin_linux_amd64/kubectl $(WRITE_IFCHANGED) python/ambassador/VERSION.py FORCE
-	set -x; docker build $(DOCKER_OPTS) $($@.DOCKER_OPTS) -t $(AMBASSADOR_DOCKER_IMAGE) .
-	@docker image inspect $(AMBASSADOR_DOCKER_IMAGE) --format='{{.Id}}' | $(WRITE_IFCHANGED) $@
+ambassador-docker-image: ambassador.docker.tag.build-sys
+ambassador.docker: Dockerfile bin_linux_amd64/ambex bin_linux_amd64/watt bin_linux_amd64/kubestatus bin_linux_amd64/kubectl $(MOVE_IFCHANGED) python/ambassador/VERSION.py FORCE
+	set -x; docker build $(DOCKER_OPTS) $($@.DOCKER_OPTS) --iidfile=$@.tmp .
+	$(MOVE_IFCHANGED) $@.tmp $@
 ambassador.docker: base-runtime.docker base-py.docker
 ambassador.docker.DOCKER_OPTS += --build-arg=BASE_RUNTIME_IMAGE=$$(cat base-runtime.docker)
 ambassador.docker.DOCKER_OPTS += --build-arg=BASE_PY_IMAGE=$$(cat base-py.docker)
 ambassador.docker: $(ENVOY_FILE) $(var.)ENVOY_FILE
 ambassador.docker.DOCKER_OPTS += --build-arg=ENVOY_FILE=$(ENVOY_FILE)
 
-kat-client-docker-image: kat-client.docker
+kat-client-docker-image: kat-client.docker.tag.build-sys
 .PHONY: kat-client-docker-image
-kat-client.docker: docker/kat-client/Dockerfile base-py.docker docker/kat-client/teleproxy docker/kat-client/kat_client $(WRITE_IFCHANGED) $(var.)KAT_CLIENT_DOCKER_IMAGE
-	docker build --build-arg BASE_PY_IMAGE=$$(cat base-py.docker) $(DOCKER_OPTS) -t $(KAT_CLIENT_DOCKER_IMAGE) $(<D)
-	@docker image inspect $(KAT_CLIENT_DOCKER_IMAGE) --format='{{.Id}}' | $(WRITE_IFCHANGED) $@
+kat-client.docker: docker/kat-client/Dockerfile base-py.docker docker/kat-client/teleproxy docker/kat-client/kat_client $(MOVE_IFCHANGED)
+	docker build --build-arg BASE_PY_IMAGE=$$(cat base-py.docker) $(DOCKER_OPTS) --iidfile=$@.tmp $(<D)
+	$(MOVE_IFCHANGED) $@.tmp $@
 docker/kat-client/teleproxy: docker/kat-client/%: bin_linux_amd64/%
 	cp $< $@
 docker/kat-client/kat_client: bin_linux_amd64/kat-client
 	cp $< $@
 
-kat-server-docker-image: kat-server.docker
+kat-server-docker-image: kat-server.docker.tag.build-sys
 .PHONY:  kat-server-docker-image
-kat-server.docker: $(wildcard docker/kat-server/*) docker/kat-server/kat-server $(WRITE_IFCHANGED) $(var.)KAT_SERVER_DOCKER_IMAGE
-	docker build $(DOCKER_OPTS) -t $(KAT_SERVER_DOCKER_IMAGE) $(<D)
-	@docker image inspect $(KAT_SERVER_DOCKER_IMAGE) --format='{{.Id}}' | $(WRITE_IFCHANGED) $@
+kat-server.docker: $(wildcard docker/kat-server/*) docker/kat-server/kat-server $(MOVE_IFCHANGED)
+	docker build $(DOCKER_OPTS) --iidfile=$@.tmp $(<D)
+	$(MOVE_IFCHANGED) $@.tmp $@
 docker/kat-server/kat-server: docker/kat-server/%: bin_linux_amd64/%
 	cp $< $@
 
 docker-images: mypy ambassador-docker-image
 
-docker-push: docker-images
-ifeq ($(DOCKER_REGISTRY),-)
-	@echo "No DOCKER_REGISTRY set"
-else
-	@echo 'PUSH $(AMBASSADOR_DOCKER_IMAGE)'
-	@set -o pipefail; \
-		docker push $(AMBASSADOR_DOCKER_IMAGE) | python releng/linify.py push.log
-endif
-
-docker-push-kat-client: kat-client-docker-image
-	@echo 'PUSH $(KAT_CLIENT_DOCKER_IMAGE)'
-	@set -o pipefail; \
-		docker push $(KAT_CLIENT_DOCKER_IMAGE) | python releng/linify.py push.log
-
-docker-push-kat-server: kat-server-docker-image
-	@echo 'PUSH $(KAT_SERVER_DOCKER_IMAGE)'
-	@set -o pipefail; \
-		docker push $(KAT_SERVER_DOCKER_IMAGE) | python releng/linify.py push.log
-
+docker-push: ambassador.docker.push.build-sys
+docker-push-kat-client: kat-client.docker.push.build-sys
+docker-push-kat-server: kat-client.docker.push.build-sys
 docker-push-kat: docker-push-kat-client docker-push-kat-server
 
 # TODO: validate version is conformant to some set of rules might be a good idea to add here
