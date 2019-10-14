@@ -58,7 +58,7 @@ sync() {
     sourcedir=$2
     container=$3
 
-    real=$(realpath ${sourcedir})
+    real=$(cd ${sourcedir}; pwd)
 
     docker exec -i ${container} mkdir -p /buildroot/${name}
     summarize-sync $name $container $(rsync --exclude-from=${DIR}/sync-excludes.txt --info=name -a --delete -e 'docker exec -i' ${real}/ ${container}:/buildroot/${name})
