@@ -403,11 +403,23 @@ release: SCOUT_APP_KEY=app.json
 release: STABLE_TXT_KEY=stable.txt
 release: update-aws
 
+release-preflight-rc:
+	@if ! [[ '$(RELEASE_VERSION)' =~ ^[0-9]+\.[0-9]+\.[0-9]+-rc[0-9]+$$ ]]; then \
+		printf "'make release-rc' can only be run for commit tagged with 'vX.Y.Z-rcN'!\n"; \
+		exit 1; \
+	fi
+release-rc: release-preflight-rc
 release-rc: ambassador.docker.push.release-rc
 release-rc: SCOUT_APP_KEY = testapp.json
 release-rc: STABLE_TXT_KEY = teststable.txt
 release-rc: update-aws
 
+release-preflight-ea:
+	@if ! [[ '$(RELEASE_VERSION)' =~ ^[0-9]+\.[0-9]+\.[0-9]+-ea[0-9]+$$ ]]; then \
+		printf "'make release-ea' can only be run for commit tagged with 'vX.Y.Z-eaN'!\n"; \
+		exit 1; \
+	fi
+release-rc: release-preflight-ea
 release-ea: ambassador.docker.push.release-ea
 release-ea: SCOUT_APP_KEY = earlyapp.json
 release-ea: STABLE_TXT_KEY = earlystable.txt
