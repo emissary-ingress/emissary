@@ -462,15 +462,18 @@ endif
 release-prep:
 	bash releng/release-prep.sh
 
-release:
+release-preflight:
 	@if ! [[ '$(RELEASE_VERSION)' =~ ^[0-9]+\.[0-9]+\.[0-9]+$$ ]]; then \
 		printf "'make release' can only be run for commit tagged with 'vX.Y.Z'!\n"; \
 		exit 1; \
 	fi
+ambassador-release.docker: release-preflight $(WRITE_IFCHANGED)
 	docker pull $(AMBASSADOR_DOCKER_REPO):$(RELEASE_VERSION)-rc-latest
-	docker tag $(AMBASSADOR_DOCKER_REPO):$(RELEASE_VERSION)-rc-latest $(AMBASSADOR_DOCKER_REPO):$(RELEASE_VERSION)
-	docker push $(AMBASSADOR_DOCKER_REPO):$(RELEASE_VERSION)
-	$(MAKE) SCOUT_APP_KEY=app.json STABLE_TXT_KEY=stable.txt update-aws
+	docker image inspect $(AMBASSADOR_DOCKER_REPO):$(RELEASE_VERSION)-rc-latest --format='{{.Id}}' | $(WRITE_IFCHANGED) $@
+release: ambassador-release.docker.push.release
+release: SCOUT_APP_KEY=app.json
+release: STABLE_TXT_KEY=stable.txt
+release: update-aws
 
 release-rc: ambassador.docker.push.release-rc
 release-rc: SCOUT_APP_KEY = testapp.json
