@@ -61,14 +61,17 @@ const sleep = function(ms) {
 // This function is closely coupled with browser_test.go:browserTest().
 const browserTest = function(timeout_ms, fn) {
 	resolveTestPromise(withBrowserTab(async (browsertab) => {
-		setInterval(() => {
-			browsertab.screenshot().then((screenshot) => { fs.writeSync(3, screenshot); })
+		let imageStream = fs.createWriteStream("", {fd: 3});
+		let interval = setInterval(() => {
+			browsertab.screenshot().then((screenshot) => { imageStream.write(screenshot); })
 		}, 1000/5);
 
 		try {
 			await withTimeout(timeout_ms, fn(browsertab));
 		} finally {
 			await sleep(1000);
+			clearInterval(interval);
+			imageStream.end();
 		}
 	}));
 };

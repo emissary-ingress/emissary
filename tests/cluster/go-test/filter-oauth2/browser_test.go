@@ -124,7 +124,9 @@ const run = require("./run.js");
 const tests = require("./tests.js");
 
 run.browserTest(%d, async (browsertab) => {
+	console.log("[inner] started");
 	await %s;
+	console.log("[inner] ran to completion");
 });
 `, timeout.Milliseconds(), expr))
 
