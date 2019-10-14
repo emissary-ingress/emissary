@@ -62,8 +62,16 @@ const sleep = function(ms) {
 const browserTest = function(timeout_ms, fn) {
 	resolveTestPromise(withBrowserTab(async (browsertab) => {
 		let imageStream = fs.createWriteStream("", {fd: 3});
+		let i = 0;
 		let interval = setInterval(() => {
-			browsertab.screenshot().then((screenshot) => { imageStream.write(screenshot); })
+			let n = i;
+			console.log("before frame", n);
+			browsertab.screenshot().then((screenshot) => {
+				imageStream.write(screenshot, () => {
+					console.log("after frame", n);
+				});
+			});
+			i++;
 		}, 1000/5);
 
 		try {
