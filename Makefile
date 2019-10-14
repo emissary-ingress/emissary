@@ -14,13 +14,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-CI_DEBUG_KAT_BRANCH=
-
-SHELL = bash
-
 # Welcome to the Ambassador Makefile...
 
-GIT_DIRTY ?= $(if $(shell git status --porcelain),dirty)
+SHELL = bash
 
 # This is only "kinda" the git branch name:
 #
@@ -32,18 +28,13 @@ GIT_DIRTY ?= $(if $(shell git status --porcelain),dirty)
 #  - if none of the above, then use the actual git branch name
 #
 # read: https://graysonkoonce.com/getting-the-current-branch-name-during-a-pull-request-in-travis-ci/
-GIT_BRANCH ?= $(or $(TRAVIS_PULL_REQUEST_BRANCH),$(TRAVIS_BRANCH),$(shell git rev-parse --abbrev-ref HEAD))
-
-GIT_COMMIT ?= $(shell git rev-parse --short HEAD)
-
-# This commands prints the tag of this commit or "undefined".
-GIT_TAG ?= $(shell git name-rev --tags --name-only $(GIT_COMMIT))
-
-GIT_BRANCH_SANITIZED := $(shell printf $(GIT_BRANCH) | tr '[:upper:]' '[:lower:]' | sed -e 's/[^a-zA-Z0-9]/-/g' -e 's/-\{2,\}/-/g')
-
-# This gives the _previous_ tag, plus a git delta, like
-# 0.36.0-436-g8b8c5d3
-GIT_DESCRIPTION := $(shell git describe --tags $(GIT_COMMIT))
+GIT_BRANCH := $(or $(TRAVIS_PULL_REQUEST_BRANCH),$(TRAVIS_BRANCH),$(shell git rev-parse --abbrev-ref HEAD))
+# The short git commit hash
+GIT_COMMIT := $(shell git rev-parse --short HEAD)
+# Whether `git add . && git commit` would commit anything (empty=false, nonempty=true)
+GIT_DIRTY := $(if $(shell git status --porcelain),dirty)
+# The _previous_ tag, plus a git delta, like 0.36.0-436-g8b8c5d3
+GIT_DESCRIPTION := $(shell git describe --tags)
 
 # IS_PRIVATE: empty=false, nonempty=true
 # Default is true if any of the git remotes have the string "private" in any of their URLs.
@@ -63,41 +54,44 @@ IS_PRIVATE ?= $(findstring private,$(_git_remote_urls))
 RELEASE_VERSION = $(patsubst v%,%,$(or $(TRAVIS_TAG),$(shell git describe --tags --always)))$(if $(GIT_DIRTY),-dirty)
 BUILD_VERSION = $(shell echo '$(RELEASE_VERSION)' | sed 's/-rc[0-9]*$$//')
 
-ifndef DOCKER_REGISTRY
-$(error DOCKER_REGISTRY must be set. Use make DOCKER_REGISTRY=- for a purely local build.)
+RELEASE_DOCKER_REPO ?= quay.io/datawire/ambassador$(if $(IS_PRIVATE),-private)
+BASE_DOCKER_REPO    ?= quay.io/datawire/ambassador-base$(if $(IS_PRIVATE),-private)
+DEV_DOCKER_REPO     ?=
+
+ifeq ($(DEV_DOCKER_REPO),)
+  $(error DEV_DOCKER_REPO must be set.  Use a nonsense value for a purely local build.)
 endif
 
-AMBASSADOR_DOCKER_REPO ?= $(if $(filter-out -,$(DOCKER_REGISTRY)),$(DOCKER_REGISTRY)/)ambassador$(if $(IS_PRIVATE),-private)
-
-ifneq ($(DOCKER_EXTERNAL_REGISTRY),)
-AMBASSADOR_EXTERNAL_DOCKER_REPO ?= $(DOCKER_EXTERNAL_REGISTRY)/ambassador$(if $(IS_PRIVATE),-private)
-else
-AMBASSADOR_EXTERNAL_DOCKER_REPO ?= $(AMBASSADOR_DOCKER_REPO)
-endif
-
-DOCKER_OPTS =
+DOCKER_OPTS ?=
 
 YES_I_AM_UPDATING_THE_BASE_IMAGES ?=
 
 # IF YOU MESS WITH ANY OF THESE VALUES, YOU MUST RUN `make update-base`.
-  # Increment BASE_RUNTIME_RELVER on changes to `docker/base-runtime/Dockerfile`
+  # Increment BASE_RUNTIME_RELVER on changes to
+  # `docker/base-runtime/Dockerfile`
   BASE_RUNTIME_RELVER ?= 1
-  # Increment BASE_PY_RELVER on changes to `docker/base-py/Dockerfile` or `python/requirements.txt`
+  # Increment BASE_PY_RELVER on changes to `docker/base-py/Dockerfile`
+  # or `python/requirements.txt`.  You may reset it to '1' whenever
+  # you edit BASE_RUNTIME_RELVER.
   BASE_PY_RELVER      ?= 1
 
-  BASE_DOCKER_REPO   ?= quay.io/datawire/ambassador-base$(if $(IS_PRIVATE),-private)
-  BASE_IMAGE.runtime ?= $(BASE_DOCKER_REPO):runtime-$(BASE_RUNTIME_RELVER)
-  BASE_IMAGE.py      ?= $(BASE_DOCKER_REPO):py-$(BASE_RUNTIME_RELVER).$(BASE_PY_RELVER)
+  BASE_VERSION.runtime ?= $(BASE_RUNTIME_RELVER)
+  BASE_VERSION.py      ?= $(BASE_RUNTIME_RELVER).$(BASE_PY_RELVER)
 # END LIST OF VARIABLES REQUIRING `make update-base`.
 
-DEV_DOCKER_REPO ?= $(DOCKER_REGISTRY)/dev
+#
+#
 
 # Set default tag values...
-docker.tag.release    = $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(RELEASE_VERSION)
-docker.tag.release-rc = $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(RELEASE_VERSION) $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(BUILD_VERSION)-latest-rc
-docker.tag.release-ea = $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(RELEASE_VERSION)
-docker.tag.base       = $(BASE_IMAGE.$(patsubst base-%.docker,%,$<))
+docker.tag.release    = $(RELEASE_DOCKER_REPO):$(RELEASE_VERSION)
+docker.tag.release-rc = $(RELEASE_DOCKER_REPO):$(RELEASE_VERSION) $(RELEASE_REPO):$(BUILD_VERSION)-latest-rc
+docker.tag.release-ea = $(RELEASE_DOCKER_REPO):$(RELEASE_VERSION)
 docker.tag.dev        = $(DEV_DOCKER_REPO):$(notdir $*)-$(shell tr : - < $<)
+BASE_IMAGE._          = $(BASE_DOCKER_REPO):$1-$(BASE_VERSION.$1)
+BASE_IMAGE.envoy      = $(call BASE_IMAGE._,envoy)
+BASE_IMAGE.runtime    = $(call BASE_IMAGE._,runtime)
+BASE_IMAGE.py         = $(call BASE_IMAGE._,py)
+docker.tag.base       = $(BASE_IMAGE.$(patsubst base-%.docker,%,$<))
 # Tag groups used by older versions.  Remove the tail of this list
 # when the commit making the change gets far enough in to the past.
 #
@@ -109,6 +103,8 @@ docker.tag.local      = $(error The '.local' Docker tag-goup is no longer used)
 images.all = $(patsubst docker/%/Dockerfile,%,$(wildcard docker/*/Dockerfile)) test-auth-tls ambassador
 # Images that will end up inside of a cluster during `make test`
 images.cluster = $(filter-out base-%,$(images.all))
+# Base images that we cache more aggressively
+images.base = $(filter base-%,$(images.all))
 # Images made by older versions.  Remove the tail of this list when the
 # commit making the change gets far enough in to the past.
 #
@@ -193,45 +189,50 @@ generate-clean: clobber
 	rm -rf pkg/api
 .PHONY: generate generate-clean
 
+#
+# Informational
+
 print-%: ## Print the arbitrary Make expression '%'
 	@printf "$($*)"
 .PHONY: print-%
 
 print-vars: ## Print variables of interest (in a human-friendly format)
-	@echo "AMBASSADOR_DOCKER_REPO           = $(AMBASSADOR_DOCKER_REPO)"
-	@echo "AMBASSADOR_EXTERNAL_DOCKER_REPO  = $(AMBASSADOR_EXTERNAL_DOCKER_REPO)"
-	@echo "CI_DEBUG_KAT_BRANCH              = $(CI_DEBUG_KAT_BRANCH)"
-	@echo "DOCKER_EXTERNAL_REGISTRY         = $(DOCKER_EXTERNAL_REGISTRY)"
 	@echo "DOCKER_OPTS                      = $(DOCKER_OPTS)"
-	@echo "DOCKER_REGISTRY                  = $(DOCKER_REGISTRY)"
-	@echo "BASE_DOCKER_REPO                 = $(BASE_DOCKER_REPO)"
+	@echo
 	@echo "GIT_BRANCH                       = $(GIT_BRANCH)"
-	@echo "GIT_BRANCH_SANITIZED             = $(GIT_BRANCH_SANITIZED)"
 	@echo "GIT_COMMIT                       = $(GIT_COMMIT)"
-	@echo "GIT_DESCRIPTION                  = $(GIT_DESCRIPTION)"
 	@echo "GIT_DIRTY                        = $(GIT_DIRTY)"
-	@echo "GIT_TAG                          = $(GIT_TAG)"
+	@echo "GIT_DESCRIPTION                  = $(GIT_DESCRIPTION)"
+	@echo
+	@echo "RELEASE_DOCKER_REPO              = $(RELEASE_DOCKER_REPO)"
+	@echo "BASE_DOCKER_REPO                 = $(BASE_DOCKER_REPO)"
+	@echo "DEV_DOCKER_REPO                  = $(DEV_DOCKER_REPO)"
+	@echo
 	@echo "BUILD_VERSION                    = $(BUILD_VERSION)"
 	@echo "RELEASE_VERSION                  = $(RELEASE_VERSION)"
+	@echo "BASE_VERSION.envoy               = $(BASE_VERSION.envoy)"
+	@echo "BASE_VERSION.runtime             = $(BASE_VERSION.runtime)"
+	@echo "BASE_VERSION.py                  = $(BASE_VERSION.py)"
 .PHONY: print-vars
 
 export-vars: ## Print variables of interest (in a Bourne-shell format)
-	@echo "export AMBASSADOR_DOCKER_REPO='$(AMBASSADOR_DOCKER_REPO)'"
-	@echo "export AMBASSADOR_EXTERNAL_DOCKER_REPO='$(AMBASSADOR_EXTERNAL_DOCKER_REPO)'"
-	@echo "export CI_DEBUG_KAT_BRANCH='$(CI_DEBUG_KAT_BRANCH)'"
-	@echo "export DOCKER_EXTERNAL_REGISTRY='$(DOCKER_EXTERNAL_REGISTRY)'"
 	@echo "export DOCKER_OPTS='$(DOCKER_OPTS)'"
-	@echo "export DOCKER_REGISTRY='$(DOCKER_REGISTRY)'"
-	@echo "export BASE_DOCKER_REPO='$(BASE_DOCKER_REPO)'"
+	@echo
 	@echo "export GIT_BRANCH='$(GIT_BRANCH)'"
-	@echo "export GIT_BRANCH_SANITIZED='$(GIT_BRANCH_SANITIZED)'"
 	@echo "export GIT_COMMIT='$(GIT_COMMIT)'"
-	@echo "export GIT_DESCRIPTION='$(GIT_DESCRIPTION)'"
 	@echo "export GIT_DIRTY='$(GIT_DIRTY)'"
-	@echo "export GIT_TAG='$(GIT_TAG)'"
+	@echo "export GIT_DESCRIPTION='$(GIT_DESCRIPTION)'"
+	@echo
+	@echo "export RELEASE_DOCKER_REPO='$(RELEASE_DOCKER_REPO)'"
+	@echo "export BASE_DOCKER_REPO='$(BASE_DOCKER_REPO)'"
+	@echo "export DEV_DOCKER_REPO='$(DEV_DOCKER_REPO)'"
+	@echo
 	@echo "export BUILD_VERSION='$(BUILD_VERSION)'"
 	@echo "export RELEASE_VERSION='$(RELEASE_VERSION)'"
 .PHONY: export-vars
+
+#
+# Docker build
 
 base-%.docker: docker/base-%/Dockerfile $(var.)BASE_IMAGE.% $(WRITE_IFCHANGED)
 	@if [ -n "$(AMBASSADOR_DEV)" ]; then echo "Do not run this from a dev shell" >&2; exit 1; fi
@@ -262,12 +263,6 @@ test-auth-tls.docker: docker/test-auth/Dockerfile $(MOVE_IFCHANGED) FORCE
 	docker build --quiet --build-arg TLS=--tls --iidfile=$@.tmp $(<D)
 	$(MOVE_IFCHANGED) $@.tmp $@
 
-update-base: ## Run this whenever the base images (ex Envoy, ./docker/base-*/*) change
-	$(MAKE) $(addsuffix .docker.tag.base,$(images.base))
-	$(MAKE) generate
-	$(MAKE) $(addsuffix .docker.push.base,$(images.base))
-.PHONY: update-base
-
 ambassador.docker: Dockerfile bin_linux_amd64/ambex bin_linux_amd64/watt bin_linux_amd64/kubestatus bin_linux_amd64/kubectl $(MOVE_IFCHANGED) python/ambassador/VERSION.py FORCE
 	set -x; docker build $(DOCKER_OPTS) $($@.DOCKER_OPTS) --iidfile=$@.tmp .
 	$(MOVE_IFCHANGED) $@.tmp $@
@@ -290,6 +285,15 @@ kat-server.docker: $(wildcard docker/kat-server/*) docker/kat-server/kat-server 
 	$(MOVE_IFCHANGED) $@.tmp $@
 docker/kat-server/kat-server: docker/kat-server/%: bin_linux_amd64/%
 	cp $< $@
+
+#
+# Stuff
+
+update-base: ## Run this whenever the base images (ex Envoy, ./docker/base-*/*) change
+	$(MAKE) $(addsuffix .docker.tag.base,$(images.base))
+	$(MAKE) generate
+	$(MAKE) $(addsuffix .docker.push.base,$(images.base))
+.PHONY: update-base
 
 docker-push: ## Build and push the main Ambassador image to DEV_DOCKER_REPO
 docker-push: ambassador.docker.push.dev
@@ -338,10 +342,6 @@ setup-test: setup-develop $(addsuffix .docker.push.dev,$(images.cluster))
 
 shell: ## Run a shell with the the virtualenv and such activated
 shell: setup-develop
-	env \
-	BASE_IMAGE.envoy="$(BASE_IMAGE.envoy)" \
-	BASE_IMAGE.runtime="$(BASE_IMAGE.runtime)" \
-	BASE_IMAGE.py="$(BASE_IMAGE.py)" \
 	bash --init-file releng/init.sh -i
 .PHONY: shell
 
@@ -354,6 +354,9 @@ test-list: ## List the tests in the test-suite
 test-list: setup-develop
 	cd python && PATH="$(shell pwd)/venv/bin":$(PATH) pytest --collect-only -q
 .PHONY: test
+
+#
+# Release
 
 update-aws:
 ifeq ($(AWS_ACCESS_KEY_ID),)
@@ -387,8 +390,8 @@ release-preflight:
 		exit 1; \
 	fi
 ambassador-release.docker: release-preflight $(WRITE_IFCHANGED)
-	docker pull $(AMBASSADOR_DOCKER_REPO):$(RELEASE_VERSION)-rc-latest
-	docker image inspect $(AMBASSADOR_DOCKER_REPO):$(RELEASE_VERSION)-rc-latest --format='{{.Id}}' | $(WRITE_IFCHANGED) $@
+	docker pull $(RELEASE_DOCKER_REPO):$(RELEASE_VERSION)-rc-latest
+	docker image inspect $(RELEASE_DOCKER_REPO):$(RELEASE_VERSION)-rc-latest --format='{{.Id}}' | $(WRITE_IFCHANGED) $@
 release: ambassador-release.docker.push.release
 release: SCOUT_APP_KEY=app.json
 release: STABLE_TXT_KEY=stable.txt
@@ -415,6 +418,9 @@ release-ea: ambassador.docker.push.release-ea
 release-ea: SCOUT_APP_KEY = earlyapp.json
 release-ea: STABLE_TXT_KEY = earlystable.txt
 release-ea: update-aws
+
+#
+# Stuff
 
 # ------------------------------------------------------------------------------
 # Virtualenv
