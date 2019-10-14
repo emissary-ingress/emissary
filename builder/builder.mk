@@ -7,6 +7,7 @@ GRN=\033[1;32m
 YEL=\033[1;33m
 BLU=\033[1;34m
 WHT=\033[1;37m
+BLD=\033[1m
 END=\033[0m
 
 MODULES :=
@@ -129,61 +130,63 @@ endef
 
 define HELP
 
-This Makefile builds ambassador source code in a standard build environment
-inside a docker container. It then creates the ambassdaor, kat-server, and
-kat-client images from this container.
+This Makefile builds Ambassador using a standard build environment inside
+a Docker container. The $(BLD)ambassador$(END), $(BLD)kat-server$(END), and $(BLD)kat-client$(END) images are
+created from this container after the build stage is finished.
 
 The build works by maintaining a running build container in the background.
-It gets source code into that container via rsync. The $(WHT)/root$(END) directory in
-this container is a docker volume. This allows files to be cached across
-builds, e.g. go build caching and pip downloads.
+It gets source code into that container via $(BLD)rsync$(END). The $(BLD)/root$(END) directory in
+this container is a Docker volume, which allows files (e.g. the Go build
+cache and $(BLD)pip$(END) downloads) to be cached across builds.
 
-This arrangement also permits building multiple codebases. This is
-useful for producing builds with extended functionality. Each external
-codebases is synced into the container at the $(WHT)/buildroot/<name>$(END) path.
+This arrangement also permits building multiple codebases. This is useful
+for producing builds with extended functionality. Each external codebase
+is synced into the container at the $(BLD)/buildroot/<name>$(END) path.
 
-The build system doesn't try to magically handle all dependencies. In general
-if you change something that is not pure source code, you will likely need to
-do a $(WHT)make clean$(END) in order to see the effect. For example, python code only
-gets setup once, so if you change requirements.txt or setup.py, then do a clean
-build. This shouldn't take $(WHT)that$(END) long because (assuming you didn't $(WHT)make clobber$(END))
-the docker volume will cache all the downloaded golang and/or python packages.
+The build system doesn't try to magically handle all dependencies. In
+general, if you change something that is not pure source code, you will
+likely need to do a $(BLD)make clean$(END) in order to see the effect. For example,
+Python code only gets set up once, so if you change $(BLD)requirements.txt$(END) or
+$(BLD)setup.py$(END), then you will need to do a clean build to see the effects.
+Assuming you didn't $(BLD)make clobber$(END), this shouldn't take long due to the
+cache in the Docker volume.
 
-$(WHT)Targets:$(END)
+$(BLD)Targets:$(END)
 
-  $(WHT)make $(BLU)help$(END)      -- displays this message.
+  $(BLD)make $(BLU)help$(END)      -- displays this message.
 
-  $(WHT)make $(BLU)preflight$(END) -- checks dependencies of this makefile.
+  $(BLD)make $(BLU)preflight$(END) -- checks dependencies of this makefile.
 
-  $(WHT)make $(BLU)sync$(END)      -- syncs source code into the build container.
+  $(BLD)make $(BLU)sync$(END)      -- syncs source code into the build container.
 
-  $(WHT)make $(BLU)compile$(END)   -- syncs and compiles the source code in the build container.
+  $(BLD)make $(BLU)compile$(END)   -- syncs and compiles the source code in the build container.
 
-  $(WHT)make $(BLU)images$(END)    -- creates images from the build container.
+  $(BLD)make $(BLU)images$(END)    -- creates images from the build container.
 
-  $(WHT)make $(BLU)push$(END)      -- pushes images to DEV_REGISTRY. ($(DEV_REGISTRY))
+  $(BLD)make $(BLU)push$(END)      -- pushes images to $(BLD)\$$DEV_REGISTRY$(END). ($(DEV_REGISTRY))
 
-  $(WHT)make $(BLU)test$(END)      -- runs go and python tests inside the build container.
+  $(BLD)make $(BLU)test$(END)      -- runs Go and Python tests inside the build container.
 
-    The tests require a kubernetes cluster and a docker registry in order to function. These
-    must be supplied via the make/env variables DEV_KUBECONFIG and DEV_REGISTRY.
+    The tests require a Kubernetes cluster and a Docker registry in order to
+    function. These must be supplied via the $(BLD)make$(END)/$(BLD)env$(END) variables $(BLD)\$$DEV_KUBECONFIG$(END)
+    and $(BLD)\$$DEV_REGISTRY$(END).
 
-  $(WHT)make $(BLU)gotest$(END)    -- runs go tests inside the build container.
+  $(BLD)make $(BLU)gotest$(END)    -- runs just the Go tests inside the build container.
 
-    Use $(YEL)GOTEST_PKGS$(END) to control which packages are passed to gotest. ($(GOTEST_PKGS))
-    Use $(YEL)GOTEST_ARGS$(END) to supply additional non-package arguments. ($(GOTEST_ARGS))
+    Use $(BLD)\$$GOTEST_PKGS$(END) to control which packages are passed to $(BLD)gotest$(END). ($(GOTEST_PKGS))
+    Use $(BLD)\$$GOTEST_ARGS$(END) to supply additional non-package arguments. ($(GOTEST_ARGS))
 
-  $(WHT)make $(BLU)pytest$(END)    -- runs python tests inside the build container.
+  $(BLD)make $(BLU)pytest$(END)    -- runs just the Python tests inside the build container.
 
-    Use $(YEL)PYTEST_ARGS$(END) to pass args to pytest. ($(PYTEST_ARGS))
+    Use $(BLD)\$$PYTEST_ARGS$(END) to pass args to pytest. ($(PYTEST_ARGS))
 
-  $(WHT)make $(BLU)shell$(END)     -- starts a shell in the build container.
+  $(BLD)make $(BLU)shell$(END)     -- starts a shell in the build container.
 
-  $(WHT)make $(BLU)clean$(END)     -- kills the build container.
+  $(BLD)make $(BLU)clean$(END)     -- kills the build container.
 
-  $(WHT)make $(BLU)clobber$(END)   -- kills the build container and the cache volume.
+  $(BLD)make $(BLU)clobber$(END)   -- kills the build container and the cache volume.
 
-$(WHT)Codebases:$(END)
-  $(foreach MODULE,$(MODULES),\n  $(WHT)$(SOURCE_$(MODULE)) ==> $(BLU)$(MODULE)$(END))
+$(BLD)Codebases:$(END)
+  $(foreach MODULE,$(MODULES),\n  $(BLD)$(SOURCE_$(MODULE)) ==> $(BLU)$(MODULE)$(END))
 
 endef
