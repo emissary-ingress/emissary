@@ -2,6 +2,7 @@ package dtest
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"syscall"
 	"time"
@@ -64,6 +65,6 @@ func WithNamedMachineLock(name string, body func()) {
 		file.Close()
 	}()
 
-	fmt.Printf("Acquiring machine lock %q took %.2f seconds\n", name, time.Since(lockAcquireStart).Seconds())
+	log.Printf("Acquiring machine lock %q took %.2f seconds\n", name, time.Since(lockAcquireStart).Seconds())
 	body()
 }
