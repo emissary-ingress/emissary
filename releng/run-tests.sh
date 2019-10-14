@@ -1,4 +1,4 @@
-#!bash
+#!/usr/bin/env bash
 
 # Coverage checks are totally broken right now. I suspect that it's
 # probably the result of all the Ambassador stuff actually happen in

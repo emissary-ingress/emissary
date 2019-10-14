@@ -431,7 +431,7 @@ test: setup-develop
 	KAT_SERVER_DOCKER_IMAGE="$(KAT_SERVER_DOCKER_IMAGE)" \
 	KAT_IMAGE_PULL_POLICY="$(KAT_IMAGE_PULL_POLICY)" \
 	PATH="$(shell pwd)/venv/bin:$(PATH)" \
-	bash ../releng/run-tests.sh
+	../releng/run-tests.sh
 
 test-list: setup-develop
 	cd python && PATH="$(shell pwd)/venv/bin":$(PATH) pytest --collect-only -q
