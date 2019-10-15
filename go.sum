@@ -26,6 +26,7 @@ github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869/go.mod h1:Ekp36dR
 github.com/client9/misspell v0.3.4/go.mod h1:qj6jICC3Q7zFZvVWo7KLAzC3yx5G7kyvSDkc90ppPyw=
 github.com/datawire/libk8s v0.0.0-20190923150809-3b461b0ee981 h1:2NKTcGOUo1OMwHrEMcehGmlLlUUxalfsCCkMnpGIvp0=
 github.com/datawire/libk8s v0.0.0-20190923150809-3b461b0ee981/go.mod h1:GBLaVOglMDiCZZaxcsMaYJvcZuxtAVsUkmtn+zxTSUA=
+github.com/datawire/pf v0.0.0-20180510150411-31a823f9495a h1:VHPuM0sSTEHfjtSX86XQqZKJNUWTWVu2BuV6X8SdGUk=
 github.com/datawire/pf v0.0.0-20180510150411-31a823f9495a/go.mod h1:H8uUmE8qqo7z9u30MYB9riLyRckPHOPBk9ZdCuH+dQQ=
 github.com/datawire/teleproxy v0.7.3-0.20190923151525-f9c9898fc956 h1:cfZn+l8Yf+G2I8iR22IHfOfXMQ2u1boa7TEvXYF/vhY=
 github.com/datawire/teleproxy v0.7.3-0.20190923151525-f9c9898fc956/go.mod h1:zJcszWNe8hm+YamkdU2mfS+DUcCFMJBkG3ec4oDFNN0=

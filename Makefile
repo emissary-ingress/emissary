@@ -81,16 +81,12 @@ endif
 
 DOCKER_OPTS =
 
-AMBASSADOR_DOCKER_TAG ?= $(RELEASE_VERSION)
-AMBASSADOR_DOCKER_IMAGE ?= $(AMBASSADOR_DOCKER_REPO):$(AMBASSADOR_DOCKER_TAG)
-AMBASSADOR_EXTERNAL_DOCKER_IMAGE ?= $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(AMBASSADOR_DOCKER_TAG)
-
 YES_I_AM_UPDATING_THE_BASE_IMAGES ?=
 
 # IF YOU MESS WITH ANY OF THESE VALUES, YOU MUST RUN `make docker-update-base`.
-  # Increment BASE_RUNTIME_RELVER on changes to `Dockerfile.base-runtime`
+  # Increment BASE_RUNTIME_RELVER on changes to `docker/base-runtime/Dockerfile`
   BASE_RUNTIME_RELVER ?= 1
-  # Increment BASE_PY_RELVER on changes to `Dockerfile.base-py` or `python/requirements.txt`
+  # Increment BASE_PY_RELVER on changes to `docker/base-py/Dockerfile` or `python/requirements.txt`
   BASE_PY_RELVER      ?= 1
 
   BASE_DOCKER_REPO   ?= quay.io/datawire/ambassador-base$(if $(IS_PRIVATE),-private)
@@ -98,55 +94,36 @@ YES_I_AM_UPDATING_THE_BASE_IMAGES ?=
   BASE_IMAGE.py      ?= $(BASE_DOCKER_REPO):py-$(BASE_RUNTIME_RELVER).$(BASE_PY_RELVER)
 # END LIST OF VARIABLES REQUIRING `make docker-update-base`.
 
-#### Test service Dockerfile stuff.
-# The test services live in subdirectories of test-services. TEST_SERVICE_ROOTS
-# is the list of these directories.
-
-TEST_SERVICE_ROOTS = $(notdir $(wildcard test-services/*))
-
-# TEST_SERVICE_IMAGES maps each TEST_SERVICE_ROOT to test-$root.docker, since
-# those are the names of the individual targets. We also add the auth-tls
-# target here, by hand -- it has a special rule since it's also built from the
-# test-services/auth directory.
-TEST_SERVICE_IMAGES = $(patsubst %,test-%.docker,$(TEST_SERVICE_ROOTS) auth-tls)
+DEV_DOCKER_REPO ?= $(DOCKER_REGISTRY)/dev
 
 # Set default tag values...
-docker.tag.release    = $(AMBASSADOR_DOCKER_TAG)
+docker.tag.release    = $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(RELEASE_VERSION)
 docker.tag.release-rc = $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(RELEASE_VERSION) $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(BUILD_VERSION)-latest-rc
 docker.tag.release-ea = $(AMBASSADOR_EXTERNAL_DOCKER_REPO):$(RELEASE_VERSION)
-docker.tag.local      = $(AMBASSADOR_DOCKER_TAG)
 docker.tag.base       = $(BASE_IMAGE.$(patsubst base-%.docker,%,$<))
+docker.tag.dev        = $(DEV_DOCKER_REPO):$(notdir $*)-$(shell tr : - < $<)
+# Tag groups used by older versions.  Remove the tail of this list
+# when the commit making the change gets far enough in to the past.
+#
+# 2019-10-14
+docker.tag.build-sys  = $(error The '.build-sys' Docker tag-goup is no longer used)
+docker.tag.local      = $(error The '.local' Docker tag-goup is no longer used)
 
-TEST_SERVICE_VERSION ?= 0.0.3
-
-# ...then set overrides for the test services.
-test-%.docker.tag.release: docker.tag.release = quay.io/datawire/test_services:$(notdir $*)-$(TEST_SERVICE_VERSION)
-
-LOCAL_REPO = $(if $(filter-out -,$(DOCKER_REGISTRY)),$(DOCKER_REGISTRY)/test_services,test_services)
-test-%.docker.tag.local: docker.tag.local = $(LOCAL_REPO):$(notdir $*)-$(GIT_DESCRIPTION)
-
-# ...and define some TEST_SERVICE_*_TAGS.
-TEST_SERVICE_LOCAL_TAGS = $(addsuffix .tag.local,$(TEST_SERVICE_IMAGES))
-TEST_SERVICE_RELEASE_TAGS = $(addsuffix .tag.release,$(TEST_SERVICE_IMAGES))
-
-ifneq ($(DOCKER_REGISTRY), -)
-TEST_SERVICE_LOCAL_PUSHES = $(addsuffix .push.local,$(TEST_SERVICE_IMAGES))
-TEST_SERVICE_RELEASE_PUSHES = $(addsuffix .push.release,$(TEST_SERVICE_IMAGES))
-endif
+# All images we know how to build
+images.all = $(patsubst docker/%/Dockerfile,%,$(wildcard docker/*/Dockerfile)) test-auth-tls ambassador
+# Images that will end up inside of a cluster during `make test`
+images.cluster = $(filter-out base-%,$(images.all))
+# Images made by older versions.  Remove the tail of this list when the
+# commit making the change gets far enough in to the past.
+#
+# 2019-10-13
+images.old += base-go
 
 #### end test service stuff
 
 KUBECTL_VERSION = 1.16.1
 
 SCOUT_APP_KEY=
-
-KAT_CLIENT_DOCKER_REPO ?= $(if $(filter-out -,$(DOCKER_REGISTRY)),$(DOCKER_REGISTRY)/)kat-client$(if $(IS_PRIVATE),-private)
-KAT_SERVER_DOCKER_REPO ?= $(if $(filter-out -,$(DOCKER_REGISTRY)),$(DOCKER_REGISTRY)/)kat-backend$(if $(IS_PRIVATE),-private)
-
-KAT_CLIENT_DOCKER_IMAGE ?= $(KAT_CLIENT_DOCKER_REPO):$(AMBASSADOR_DOCKER_TAG)
-KAT_SERVER_DOCKER_IMAGE ?= $(KAT_SERVER_DOCKER_REPO):$(AMBASSADOR_DOCKER_TAG)
-
-KAT_IMAGE_PULL_POLICY ?= Always
 
 # "make" by itself doesn't make the website. It takes too long and it doesn't
 # belong in the inner dev loop.
@@ -169,13 +146,7 @@ include cxx/envoy.mk
 include build-aux-local/kat.mk
 include build-aux-local/docs.mk
 
-# clean_docker_images could just be a fixed list of the images that we
-# generate, but writing that fixed list would require a human to
-# figure out what that complete list is.
-clean_docker_images  = $(wildcard *.docker)
-clean_docker_images += $(patsubst %.tag.release,%,$(wildcard *.docker.tag.release))
-clean_docker_images += $(patsubst %.tag.local,%,$(wildcard *.docker.tag.local))
-clean: $(addsuffix .clean,$(clean_docker_images))
+clean: $(addsuffix .docker.clean,$(images.all) $(images.old))
 	rm -rf docs/_book docs/_site docs/package-lock.json
 	rm -rf helm/*.tgz
 	rm -rf app.json
@@ -189,14 +160,19 @@ clean: $(addsuffix .clean,$(clean_docker_images))
 	find python/tests \
 		\( -name '*.out' -o -name 'envoy.json' -o -name 'intermediate.json' \) -print0 \
 		| xargs -0 rm -f
-	rm -f build/kat/client/kat_client
-	rm -f build/kat/server/kat-server
+	rm -f docker/kat-client/kat_client
+	rm -f docker/kat-client/teleproxy
+	rm -f docker/kat-server/kat-server
 	rm -f tools/sandbox/http_auth/docker-compose.yml
 	rm -f tools/sandbox/grpc_auth/docker-compose.yml
 	rm -f tools/sandbox/grpc_web/docker-compose.yaml tools/sandbox/grpc_web/*_pb.js
 # Files made by older versions.  Remove the tail of this list when the
 # commit making the change gets far enough in to the past.
 #
+# 2019-10-13
+	rm -f build/kat/client/kat_client
+	rm -f build/kat/client/teleproxy
+	rm -f build/kat/server/kat-server
 # 2019-10-13
 	if [ -r .docker_port_forward ]; then kill $$(cat .docker_port_forward) || true; fi
 	rm -f .docker_port_forward
@@ -216,7 +192,6 @@ clean: $(addsuffix .clean,$(clean_docker_images))
 	rm -f kat/kat/client
 
 clobber: clean kill-docker-registry
-	-rm -f build/kat/client/teleproxy
 	-rm -rf docs/node_modules
 	-rm -rf venv && echo && echo "Deleted venv, run 'deactivate' command if your virtualenv is activated" || true
 
@@ -229,10 +204,7 @@ print-%:
 	@printf "$($*)"
 
 print-vars:
-	@echo "AMBASSADOR_DOCKER_IMAGE          = $(AMBASSADOR_DOCKER_IMAGE)"
 	@echo "AMBASSADOR_DOCKER_REPO           = $(AMBASSADOR_DOCKER_REPO)"
-	@echo "AMBASSADOR_DOCKER_TAG            = $(AMBASSADOR_DOCKER_TAG)"
-	@echo "AMBASSADOR_EXTERNAL_DOCKER_IMAGE = $(AMBASSADOR_EXTERNAL_DOCKER_IMAGE)"
 	@echo "AMBASSADOR_EXTERNAL_DOCKER_REPO  = $(AMBASSADOR_EXTERNAL_DOCKER_REPO)"
 	@echo "CI_DEBUG_KAT_BRANCH              = $(CI_DEBUG_KAT_BRANCH)"
 	@echo "DOCKER_EXTERNAL_REGISTRY         = $(DOCKER_EXTERNAL_REGISTRY)"
@@ -245,16 +217,11 @@ print-vars:
 	@echo "GIT_DESCRIPTION                  = $(GIT_DESCRIPTION)"
 	@echo "GIT_DIRTY                        = $(GIT_DIRTY)"
 	@echo "GIT_TAG                          = $(GIT_TAG)"
-	@echo "KAT_CLIENT_DOCKER_IMAGE          = $(KAT_CLIENT_DOCKER_IMAGE)"
-	@echo "KAT_SERVER_DOCKER_IMAGE          = $(KAT_SERVER_DOCKER_IMAGE)"
 	@echo "BUILD_VERSION                    = $(BUILD_VERSION)"
 	@echo "RELEASE_VERSION                  = $(RELEASE_VERSION)"
 
 export-vars:
-	@echo "export AMBASSADOR_DOCKER_IMAGE='$(AMBASSADOR_DOCKER_IMAGE)'"
 	@echo "export AMBASSADOR_DOCKER_REPO='$(AMBASSADOR_DOCKER_REPO)'"
-	@echo "export AMBASSADOR_DOCKER_TAG='$(AMBASSADOR_DOCKER_TAG)'"
-	@echo "export AMBASSADOR_EXTERNAL_DOCKER_IMAGE='$(AMBASSADOR_EXTERNAL_DOCKER_IMAGE)'"
 	@echo "export AMBASSADOR_EXTERNAL_DOCKER_REPO='$(AMBASSADOR_EXTERNAL_DOCKER_REPO)'"
 	@echo "export CI_DEBUG_KAT_BRANCH='$(CI_DEBUG_KAT_BRANCH)'"
 	@echo "export DOCKER_EXTERNAL_REGISTRY='$(DOCKER_EXTERNAL_REGISTRY)'"
@@ -267,12 +234,10 @@ export-vars:
 	@echo "export GIT_DESCRIPTION='$(GIT_DESCRIPTION)'"
 	@echo "export GIT_DIRTY='$(GIT_DIRTY)'"
 	@echo "export GIT_TAG='$(GIT_TAG)'"
-	@echo "export KAT_CLIENT_DOCKER_IMAGE='$(KAT_CLIENT_DOCKER_IMAGE)'"
-	@echo "export KAT_SERVER_DOCKER_IMAGE='$(KAT_SERVER_DOCKER_IMAGE)'"
 	@echo "export BUILD_VERSION='$(BUILD_VERSION)'"
 	@echo "export RELEASE_VERSION='$(RELEASE_VERSION)'"
 
-base-%.docker: Dockerfile.base-% $(var.)BASE_IMAGE.% $(WRITE_IFCHANGED)
+base-%.docker: docker/base-%/Dockerfile $(var.)BASE_IMAGE.% $(WRITE_IFCHANGED)
 	@if [ -n "$(AMBASSADOR_DEV)" ]; then echo "Do not run this from a dev shell" >&2; exit 1; fi
 	@PS4=; set -ex; { \
 	    if ! docker run --rm --entrypoint=true $(BASE_IMAGE.$*); then \
@@ -293,25 +258,18 @@ base-runtime.docker.DOCKER_OPTS =
 base-py.docker: base-runtime.docker
 base-py.docker.DOCKER_OPTS = --build-arg=BASE_RUNTIME_IMAGE=$$(cat base-runtime.docker)
 
-test-%.docker: test-services/%/Dockerfile $(MOVE_IFCHANGED) FORCE
-	docker build --quiet --iidfile=$@.tmp test-services/$*
+test-%.docker: docker/test-%/Dockerfile $(MOVE_IFCHANGED) FORCE
+	docker build --quiet --iidfile=$@.tmp $(<D)
 	$(MOVE_IFCHANGED) $@.tmp $@
 
-test-auth-tls.docker: test-services/auth/Dockerfile $(MOVE_IFCHANGED) FORCE
-	docker build --quiet --build-arg TLS=--tls --iidfile=$@.tmp test-services/auth
+test-auth-tls.docker: docker/test-auth/Dockerfile $(MOVE_IFCHANGED) FORCE
+	docker build --quiet --build-arg TLS=--tls --iidfile=$@.tmp $(<D)
 	$(MOVE_IFCHANGED) $@.tmp $@
 
-test-services: $(TEST_SERVICE_IMAGES) $(TEST_SERVICE_LOCAL_TAGS) $(TEST_SERVICE_LOCAL_PUSHES)
-test-services-release: $(TEST_SERVICE_IMAGES) $(TEST_SERVICE_RELEASE_TAGS) $(TEST_SERVICE_RELEASE_PUSHES)
+test-services: $(addsuffix .docker.tag.dev,$(filter test-%,$(images.all)))
+test-services-release: $(addsuffix .docker.push.dev,$(filter test-%,$(images.all)))
 .PHONY: test-services test-services-release
 
-# XXX: Why doesn't just test-%.docker.push: test-%.docker.push.local work??
-#
-# This three-element form of $(addsuffix ...) is kind of an implicit foreach. 
-# We're generating a rule for each word in $(TEST_SERVICE_IMAGES).
-TEST_SERVICE_PUSH_TARGETS = $(addsuffix .push,$(TEST_SERVICE_IMAGES))
-$(TEST_SERVICE_PUSH_TARGETS): %.push: %.push.local
-.PHONY: $(TEST_SERVICE_PUSH_TARGETS)
 
 docker-base-images: $(addsuffix .docker.tag.base,base-envoy base-runtime base-py)
 
@@ -321,61 +279,39 @@ docker-update-base:
 	$(MAKE) docker-base-images generate
 	$(MAKE) docker-push-base-images
 
-ambassador-docker-image: ambassador.docker
-ambassador.docker: Dockerfile bin_linux_amd64/ambex bin_linux_amd64/watt bin_linux_amd64/kubestatus bin_linux_amd64/kubectl $(WRITE_IFCHANGED) python/ambassador/VERSION.py FORCE
-	set -x; docker build $(DOCKER_OPTS) $($@.DOCKER_OPTS) -t $(AMBASSADOR_DOCKER_IMAGE) .
-	@docker image inspect $(AMBASSADOR_DOCKER_IMAGE) --format='{{.Id}}' | $(WRITE_IFCHANGED) $@
+ambassador-docker-image: ambassador.docker.tag.dev
+ambassador.docker: Dockerfile bin_linux_amd64/ambex bin_linux_amd64/watt bin_linux_amd64/kubestatus bin_linux_amd64/kubectl $(MOVE_IFCHANGED) python/ambassador/VERSION.py FORCE
+	set -x; docker build $(DOCKER_OPTS) $($@.DOCKER_OPTS) --iidfile=$@.tmp .
+	$(MOVE_IFCHANGED) $@.tmp $@
 ambassador.docker: base-runtime.docker base-py.docker
 ambassador.docker.DOCKER_OPTS += --build-arg=BASE_RUNTIME_IMAGE=$$(cat base-runtime.docker)
 ambassador.docker.DOCKER_OPTS += --build-arg=BASE_PY_IMAGE=$$(cat base-py.docker)
 ambassador.docker: $(ENVOY_FILE) $(var.)ENVOY_FILE
 ambassador.docker.DOCKER_OPTS += --build-arg=ENVOY_FILE=$(ENVOY_FILE)
 
-kat-client-docker-image: kat-client.docker
+kat-client-docker-image: kat-client.docker.tag.dev
 .PHONY: kat-client-docker-image
-kat-client.docker: build/kat/client/Dockerfile base-py.docker build/kat/client/teleproxy build/kat/client/kat_client $(WRITE_IFCHANGED) $(var.)KAT_CLIENT_DOCKER_IMAGE
-	docker build --build-arg BASE_PY_IMAGE=$$(cat base-py.docker) $(DOCKER_OPTS) -t $(KAT_CLIENT_DOCKER_IMAGE) build/kat/client
-	@docker image inspect $(KAT_CLIENT_DOCKER_IMAGE) --format='{{.Id}}' | $(WRITE_IFCHANGED) $@
-
-# build/kat/client/teleproxy always uses the linux/amd64 architecture
-build/kat/client/teleproxy: bin_linux_amd64/teleproxy
+kat-client.docker: docker/kat-client/Dockerfile base-py.docker docker/kat-client/teleproxy docker/kat-client/kat_client $(MOVE_IFCHANGED)
+	docker build --build-arg BASE_PY_IMAGE=$$(cat base-py.docker) $(DOCKER_OPTS) --iidfile=$@.tmp $(<D)
+	$(MOVE_IFCHANGED) $@.tmp $@
+docker/kat-client/teleproxy: docker/kat-client/%: bin_linux_amd64/%
+	cp $< $@
+docker/kat-client/kat_client: bin_linux_amd64/kat-client
 	cp $< $@
 
-# build/kat/client/kat_client always uses the linux/amd64 architecture
-build/kat/client/kat_client: bin_linux_amd64/kat-client
-	cp $< $@
-
-kat-server-docker-image: kat-server.docker
+kat-server-docker-image: kat-server.docker.tag.dev
 .PHONY:  kat-server-docker-image
-kat-server.docker: $(wildcard build/kat/server/*) build/kat/server/kat-server $(var.)KAT_SERVER_DOCKER_IMAGE
-	docker build $(DOCKER_OPTS) -t $(KAT_SERVER_DOCKER_IMAGE) build/kat/server
-	@docker image inspect $(KAT_SERVER_DOCKER_IMAGE) --format='{{.Id}}' | $(WRITE_IFCHANGED) $@
-
-# build/kat/server/kat-server always uses the linux/amd64 architecture
-build/kat/server/kat-server: bin_linux_amd64/kat-server
+kat-server.docker: $(wildcard docker/kat-server/*) docker/kat-server/kat-server $(MOVE_IFCHANGED)
+	docker build $(DOCKER_OPTS) --iidfile=$@.tmp $(<D)
+	$(MOVE_IFCHANGED) $@.tmp $@
+docker/kat-server/kat-server: docker/kat-server/%: bin_linux_amd64/%
 	cp $< $@
 
 docker-images: mypy ambassador-docker-image
 
-docker-push: docker-images
-ifeq ($(DOCKER_REGISTRY),-)
-	@echo "No DOCKER_REGISTRY set"
-else
-	@echo 'PUSH $(AMBASSADOR_DOCKER_IMAGE)'
-	@set -o pipefail; \
-		docker push $(AMBASSADOR_DOCKER_IMAGE) | python releng/linify.py push.log
-endif
-
-docker-push-kat-client: kat-client-docker-image
-	@echo 'PUSH $(KAT_CLIENT_DOCKER_IMAGE)'
-	@set -o pipefail; \
-		docker push $(KAT_CLIENT_DOCKER_IMAGE) | python releng/linify.py push.log
-
-docker-push-kat-server: kat-server-docker-image
-	@echo 'PUSH $(KAT_SERVER_DOCKER_IMAGE)'
-	@set -o pipefail; \
-		docker push $(KAT_SERVER_DOCKER_IMAGE) | python releng/linify.py push.log
-
+docker-push: ambassador.docker.push.dev
+docker-push-kat-client: kat-client.docker.push.dev
+docker-push-kat-server: kat-client.docker.push.dev
 docker-push-kat: docker-push-kat-client docker-push-kat-server
 
 # TODO: validate version is conformant to some set of rules might be a good idea to add here
@@ -402,7 +338,7 @@ bin_%/kubectl: $(var.)KUBECTL_VERSION
 
 setup-develop: venv bin_$(GOHOSTOS)_$(GOHOSTARCH)/kubestatus version
 
-setup-test:
+setup-test: setup-develop $(addsuffix .docker.push.dev,$(images.cluster))
 	rm -rf /tmp/k8s-*.yaml /tmp/kat-*.yaml
 
 # "make shell" drops you into a dev shell, and tries to set variables, etc., as
@@ -417,23 +353,13 @@ setup-test:
 
 shell: setup-develop
 	env \
-	AMBASSADOR_DOCKER_IMAGE="$(AMBASSADOR_DOCKER_IMAGE)" \
 	BASE_IMAGE.envoy="$(BASE_IMAGE.envoy)" \
 	BASE_IMAGE.runtime="$(BASE_IMAGE.runtime)" \
 	BASE_IMAGE.py="$(BASE_IMAGE.py)" \
 	bash --init-file releng/init.sh -i
 
-test: setup-develop
-	cd python && env \
-	AMBASSADOR_DOCKER_IMAGE="$(AMBASSADOR_DOCKER_IMAGE)" \
-	BASE_IMAGE.envoy="$(BASE_IMAGE.envoy)" \
-	BASE_IMAGE.runtime="$(BASE_IMAGE.runtime)" \
-	BASE_IMAGE.py="$(BASE_IMAGE.py)" \
-	KAT_CLIENT_DOCKER_IMAGE="$(KAT_CLIENT_DOCKER_IMAGE)" \
-	KAT_SERVER_DOCKER_IMAGE="$(KAT_SERVER_DOCKER_IMAGE)" \
-	KAT_IMAGE_PULL_POLICY="$(KAT_IMAGE_PULL_POLICY)" \
-	PATH="$(shell pwd)/venv/bin:$(PATH)" \
-	bash ../releng/run-tests.sh
+test: setup-test
+	cd python && env PATH="$(shell pwd)/venv/bin:$(PATH)" ../releng/run-tests.sh
 
 test-list: setup-develop
 	cd python && PATH="$(shell pwd)/venv/bin":$(PATH) pytest --collect-only -q
@@ -464,15 +390,18 @@ endif
 release-prep:
 	bash releng/release-prep.sh
 
-release:
+release-preflight:
 	@if ! [[ '$(RELEASE_VERSION)' =~ ^[0-9]+\.[0-9]+\.[0-9]+$$ ]]; then \
 		printf "'make release' can only be run for commit tagged with 'vX.Y.Z'!\n"; \
 		exit 1; \
 	fi
+ambassador-release.docker: release-preflight $(WRITE_IFCHANGED)
 	docker pull $(AMBASSADOR_DOCKER_REPO):$(RELEASE_VERSION)-rc-latest
-	docker tag $(AMBASSADOR_DOCKER_REPO):$(RELEASE_VERSION)-rc-latest $(AMBASSADOR_DOCKER_REPO):$(RELEASE_VERSION)
-	docker push $(AMBASSADOR_DOCKER_REPO):$(RELEASE_VERSION)
-	$(MAKE) SCOUT_APP_KEY=app.json STABLE_TXT_KEY=stable.txt update-aws
+	docker image inspect $(AMBASSADOR_DOCKER_REPO):$(RELEASE_VERSION)-rc-latest --format='{{.Id}}' | $(WRITE_IFCHANGED) $@
+release: ambassador-release.docker.push.release
+release: SCOUT_APP_KEY=app.json
+release: STABLE_TXT_KEY=stable.txt
+release: update-aws
 
 release-rc: ambassador.docker.push.release-rc
 release-rc: SCOUT_APP_KEY = testapp.json
