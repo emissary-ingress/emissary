@@ -43,10 +43,5 @@ else
 fi
 
 if [ -n "$teardown" ]; then
-    kubernaut claims delete ${CLAIM_NAME}
+    kubernaut claims delete $(cat ~/kubernaut-claim.txt)
 fi
-
-
-
-
-

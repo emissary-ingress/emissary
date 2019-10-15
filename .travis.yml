@@ -45,8 +45,7 @@ install:
   - ./releng/travis-install.sh
   # Adjust the environment per travis-install.sh
   - PATH=~/bin:$PATH
-  - CLAIM_NAME=$(cat ~/kubernaut-claim.txt)
-  - export DEV_KUBECONFIG=~/.kube/${CLAIM_NAME}.yaml
+  - export DEV_KUBECONFIG=~/.kube/$(cat ~/kubernaut-claim.txt).yaml
   - export DEV_REGISTRY=localhost:31000
   - source ~/.gimme/envs/latest.env
 
