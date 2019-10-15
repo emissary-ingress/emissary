@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-# If you have to change this file, you _must_ update BASE_RUNTIME_RELVER in
-# the Makefile, then run "make docker-update-base" to build and push
-# the new image.
+# If you have to change this file, you _must_ update
+# BASE_RUNTIME_RELVER in the Makefile, then run "make update-base" to
+# build and push the new image.
 
 # Image: (final) ###############################################################
 # This image is the base _runtime_ for Ambassador.  No compilers or

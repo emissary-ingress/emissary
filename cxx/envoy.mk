@@ -4,7 +4,7 @@ topsrcdir := $(patsubst %/,%,$(dir $(firstword $(MAKEFILE_LIST))))
 YES_I_AM_OK_WITH_COMPILING_ENVOY ?=
 ENVOY_FILE ?= $(topsrcdir)/bin_linux_amd64/envoy-static-stripped
 
-# IF YOU MESS WITH ANY OF THESE VALUES, YOU MUST RUN `make docker-update-base`.
+# IF YOU MESS WITH ANY OF THESE VALUES, YOU MUST RUN `make update-base`.
   ENVOY_REPO ?= $(if $(IS_PRIVATE),git@github.com:datawire/envoy-private.git,git://github.com/datawire/envoy.git)
   ENVOY_COMMIT ?= 6e6ae35f214b040f76666d86b30a6ad3ceb67046
   ENVOY_COMPILATION_MODE ?= dbg
@@ -12,8 +12,8 @@ ENVOY_FILE ?= $(topsrcdir)/bin_linux_amd64/envoy-static-stripped
   # Increment BASE_ENVOY_RELVER on changes to `docker/base-envoy/Dockerfile`, or Envoy recipes
   BASE_ENVOY_RELVER ?= 6
 
-  BASE_IMAGE.envoy ?= $(BASE_DOCKER_REPO):envoy-$(BASE_ENVOY_RELVER).$(ENVOY_COMMIT).$(ENVOY_COMPILATION_MODE)
-# END LIST OF VARIABLES REQUIRING `make docker-update-base`.
+  BASE_VERSION.envoy ?= $(BASE_ENVOY_RELVER).$(ENVOY_COMMIT).$(ENVOY_COMPILATION_MODE)
+# END LIST OF VARIABLES REQUIRING `make update-base`.
 
 #
 # Envoy build

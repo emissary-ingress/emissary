@@ -14,7 +14,7 @@
 
 # If you have to change this file or any of the files that it COPYs
 # in, you _must_ update BASE_PY_RELVER in the Makefile, then run "make
-# docker-update-base" to build and push the new image.
+# update-base" to build and push the new image.
 
 # Arguments ####################################################################
 ARG BASE_RUNTIME_IMAGE

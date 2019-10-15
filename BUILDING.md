@@ -10,12 +10,11 @@ Quick Build
 
 Building Ambassador is straightforward:
 
-```
-git clone https://github.com/datawire/ambassador
-cd ambassador
-git checkout master
-git checkout -b username/feature/my-branch-here
-make DOCKER_REGISTRY=<YOUR DOCKER REGISTRY> docker-push
+```console
+$ git clone https://github.com/datawire/ambassador
+$ cd ambassador
+ambassador$ git checkout -b username/feature/my-branch-here origin/master
+ambassador$ DEV_DOCKER_REPO=<YOUR_DOCKER_REPO> make docker-push
 ```
 
 This will build a Docker image of Ambassador containing your code changes and push it to your given registry. Once it's pushed, you can deploy the new image onto your cluster.
@@ -29,8 +28,8 @@ Ambassador is infrastructure software, so robust testing is a must. To build
 Ambassador and run all of the regression tests, run `make` with the following 
 arguments:
 
-```
-make DOCKER_REGISTRY=<YOUR DOCKER REGISTRY> KUBECONFIG=<YOUR KUBE CONFIG>
+```console
+ambassador$ DEV_DOCKER_REPO=<YOUR_DOCKER_REPO> KUBECONFIG=<YOUR_KUBE_CONFIG> make test
 ```
 
 The regression tests need a Kubernetes cluster to run, **and they assume that they have 
@@ -131,7 +130,7 @@ go version go1.13.1 darwin/amd64
 
 1. `git clone https://github.com/datawire/ambassador`
 2. `cd ambassador`
-3. `export DOCKER_REGISTRY=$registry`
+3. `export DEV_DOCKER_REPO=$repository`
 4. `git checkout -b username/feature/my-branch-here`
 5. `make setup-develop`
 6. `make test`, or
@@ -147,15 +146,17 @@ go version go1.13.1 darwin/amd64
 You can just follow the script above, but it may well be helpful to know some
 of the details around the build environment and workflow:
 
-#### `export DOCKER_REGISTRY=$registry`
+#### `export DEV_DOCKER_REPO=$repository`
 
 **This is mandatory.** It sets the registry to which you'll push Docker images, e.g.:
 
 - "dwflynn" will push to Dockerhub with user `dwflynn`
 - "gcr.io/flynn" will push to GCR with user `flynn`
 
+<!--
 If you're using minikube and don't want to push at all, set `DOCKER_REGISTRY` to "-".
 (If you're not using minikube, this is probably a _terrible_ idea.)
+-->
 
 You can separately tweak the registry from which images will be _pulled_ using
 `AMBASSADOR_REGISTRY`. See the files in `templates` for more here.
@@ -176,11 +177,11 @@ run the tests with `make test`, or to e.g. run the Ambassador CLI
 
 #### Docker Image Names
 
-Running `make docker-images` or `make docker-push` in development
-builds a Docker image that includes the short Git hash of your current
-commit in its name (because if the name doesn't change when you commit
-new code, it can be very hard to get some Kubernetes environments to
-actually pull the new image!).
+Running `make ambassador.docker.tag.dev` or `make docker-push` in
+development builds a Docker image that includes its own image hag in
+its name (because if the name doesn't change when you commit new code,
+it can be very hard to get some Kubernetes environments to actually
+pull the new image!).
 
 **Whenever you commit new code, you must rerun `make docker-push` 
 before doing things that try to use the image.** Yes, this is annoying,
@@ -271,7 +272,7 @@ good place to start is
 [the `mypy` cheat sheet](https://mypy.readthedocs.io/en/latest/cheat_sheet_py3.html).
 
 New code must be hinted, and the build process will verify that the type
-check passes when you `make docker-images`. Fair warning: this means that
+check passes when you `make test`. Fair warning: this means that
 PRs will not pass CI if the type checker fails.
 
 We strongly recommend using an editor that can do realtime type checking
@@ -301,6 +302,7 @@ CI runs Ambassador's test suite on every build. **You will be asked to add tests
 
 For more information on the test suite, see [its README](python/tests/README.md).
 
+<!--
 #### Running tests locally (in minikube)
 Tests consume quite a lot of resources, so make sure you allocate them accordingly to your minikube instance. (Honestly, if you're on a Mac, running the full test suite in minikube is likely to be a lost cause. Running a smaller subset can work great though.)
 
@@ -309,6 +311,7 @@ Tests consume quite a lot of resources, so make sure you allocate them according
 3. Point `KUBECONFIG` to minikube, generally using `export KUBECONFIG=~/.kube/config`
 
 That's it! Now simply run `make clean docker-push test` for the first time. In the following iterations, you can drop `clean` or `docker-push` depending on the nature of test run.
+-->
 
 Updating Ambassador's Envoy
 ---------------------------
@@ -425,7 +428,13 @@ appears as a subdirectory of the other.
 
  10. Edit `ENVOY_COMMIT ?=` in the Makefile to point to your new Envoy commit.  Follow the instructions in the Makefile when doing so:
 
-    a. Then run `make docker-update-base` to compile Envoy, and build+push new docker base images incorporating that Envoy binary.  This will also update the `pkg/api/envoy/` directory if any of Envoy's protobuf definitions have changed; make sure to commit those changes when you commit the change to `ENVOY_COMMIT`.
+    a. Then run `make update-base` to compile Envoy, update the
+       generated protobuf bindings to use with that Envoy, and
+       build+push new Docker base images incorporating that Envoy
+       binary.  This will update the `api/` and `pkg/api/envoy/`
+       directories if any of Envoy's protobuf definitions have
+       changed; make sure to commit those changes when you commit the
+       change to `ENVOY_COMMIT`.
 
 Version Numbering
 -----------------

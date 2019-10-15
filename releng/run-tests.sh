@@ -189,9 +189,9 @@ else
 
     ( cd /tmp; tar czf "$outdir.tgz" "$outdirbase" )
 
-    if [ -n "$AWS_ACCESS_KEY_ID" -a -n "$GIT_BRANCH_SANITIZED" ]; then
+    if [ -n "$AWS_ACCESS_KEY_ID" -a "$TRAVIS" = true ]; then
         now=$(date +"%y-%m-%dT%H:%M:%S")
-        branch=${GIT_BRANCH_SANITIZED:-localdev}
+        branch="$(printf ${GIT_BRANCH} | tr '[:upper:]' '[:lower:]' | sed -e 's/[^a-zA-Z0-9]/-/g' -e 's/-\{2,\}/-/g')"
         aws_key="kat-${branch}-${now}-${hr_el}-logs.tgz"
 
         echo "==== [$(date)] ==== Uploading log tarball as $aws_key"

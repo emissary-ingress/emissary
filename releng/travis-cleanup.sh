@@ -19,7 +19,7 @@ set -o nounset
 
 printf "== Begin: travis-cleanup.sh ==\n"
 
-eval $(make export-vars)
+eval "$(make export-vars)"
 
 echo "GIT_BRANCH ${GIT_BRANCH}"
 echo "CI_DEBUG_KAT_BRANCH ${CI_DEBUG_KAT_BRANCH}"
@@ -45,8 +45,3 @@ fi
 if [ -n "$teardown" ]; then
 	kubernaut claims delete $(cat ~/kubernaut-claim.txt)
 fi
-
-
-
-
-
