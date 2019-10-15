@@ -80,7 +80,7 @@ t0lP/mVGNAeiXsILV8gRHnP6aV5XywK8c+828BQDRfizJ+uKYvnAJmqpn4aOOJh9
 csjrK52+RNebMT0VxZF4JYGd0k00au9CaciWpPk69C+A/7K/xtV4ZFtddVP9SldF
 ahmIu2g3fI5G+/2Oz8J+qX2B+QqT21/pOPKnMQU54BQ6bmI3fBM9B+2zm92FfgYH
 9wgA5+Y=
------END CERTIFICATE-----        
+-----END CERTIFICATE-----
 """
 
     presto_key = """
@@ -110,7 +110,7 @@ ENuq0aV4AToZ6gLTp1tm8oVgCLZzI/zI/r+fukBJispyj5n0LP+0D0YSqkMhC06+
 fPcCgYB85vDLHorvbb8CYcIOvJxogMjXVasOfSLqtCkzICg4i6qCmLkXbs0qmDIz
 bIpIFzUdXu3tu+gPV6ab9dPmpj1M77yu7+QLL7zRy/1/EJaY/tFjWzcuF5tP7jKT
 UZCMWuBXFwTbeSQHESs5IWpSDxBGJbSNFmCeyo52Dw/fSYxUEg==
------END RSA PRIVATE KEY-----        
+-----END RSA PRIVATE KEY-----
 """
 
     ca_cert = """
@@ -382,9 +382,9 @@ config:
   missing-secret-key:
     cert_chain_file: /nonesuch
   bad-path-info:
-    cert_chain_file: /nonesuch 
+    cert_chain_file: /nonesuch
     private_key_file: /nonesuch
-  validation-without-termination:  
+  validation-without-termination:
     enabled: True
     secret: test-certs-secret-invalid
     ca_secret: ambassador-certs
@@ -494,6 +494,7 @@ hosts:
 secret: test-tlscontext-secret-1.secret-namespace
 min_tls_version: v1.0
 max_tls_version: v1.3
+redirect_cleartext_from: 8080
 """)
         yield self, self.format("""
 ---
@@ -513,6 +514,7 @@ hosts:
 - tls-context-host-2
 secret: test-tlscontext-secret-2
 alpn_protocols: h2,http/1.1
+redirect_cleartext_from: 8080
 """)
         yield self, self.format("""
 ---
@@ -522,7 +524,7 @@ name: tls
 config:
   server:
     enabled: True
-    secret: test-tlscontext-secret-0 
+    secret: test-tlscontext-secret-0
 """)
         yield self, self.format("""
 ---
@@ -540,6 +542,7 @@ kind: TLSContext
 name: {self.name}-no-secret
 min_tls_version: v1.0
 max_tls_version: v1.3
+redirect_cleartext_from: 8080
 """)
         # Ambassador should return and error for this configuration.
         yield self, self.format("""
@@ -549,6 +552,7 @@ kind: TLSContext
 name: {self.name}-same-context-error
 hosts:
 - tls-context-host-1
+redirect_cleartext_from: 8080
 """)
 
     def scheme(self) -> str:
@@ -623,18 +627,25 @@ hosts:
                     insecure=True,
                     sni=True)
 
+        # 8 - Redirect cleartext from actually redirects.
+        yield Query(self.url("tls-context-same/", scheme="http"),
+                    headers={"Host": "tls-context-host-1"},
+                    expected=301,
+                    insecure=True,
+                    sni=True)
+
     def check(self):
         # XXX Ew. If self.results[0].json is empty, the harness won't convert it to a response.
         errors = self.results[0].json
         num_errors = len(errors)
         assert num_errors == 2, "expected 2 errors, got {} -\n{}".format(num_errors, errors)
-        
+
         cert_err = errors[0]
         pkey_err = errors[1]
 
         assert cert_err[1] == 'TLSContext TLSContextTest-same-context-error is missing cert_chain_file'
         assert pkey_err[1] == 'TLSContext TLSContextTest-same-context-error is missing private_key_file'
-        
+
         idx = 0
 
         for result in self.results:
@@ -1071,7 +1082,7 @@ max_tls_version: v1.3
                     sni=True,
                     minTLSv="v1.2",
                     maxTLSv="v1.3")
-        
+
         # This should give v1.2
         yield Query(self.url("tls-context-same/"),
                     headers={"Host": "tls-context-host-1"},
@@ -1092,7 +1103,7 @@ max_tls_version: v1.3
                     error=[ "tls: server selected unsupported protocol version 303",
                             "tls: no supported versions satisfy MinVersion and MaxVersion",
                             "tls: protocol version not supported" ])
-    
+
     def check(self):
         tls_0_version = self.results[0].backend.request.tls.negotiated_protocol_version
         tls_1_version = self.results[1].backend.request.tls.negotiated_protocol_version
