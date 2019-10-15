@@ -88,6 +88,8 @@
         link: /user-guide/consul
       - title: Istio and Ambassador
         link: /user-guide/with-istio
+      - title: Linkerd and Ambassador
+        link: /user-guide/linkerd2
     - title: Best Practices
       items:
       - title: Integration Testing with Service Preview
