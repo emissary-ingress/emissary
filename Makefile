@@ -44,7 +44,7 @@ BASE_IMAGE.envoy = $(BASE_DOCKER_REPO):envoy-$(BASE_VERSION.envoy)
 envoy-base.docker.tag.base:               docker.tag.base       = $(BASE_IMAGE.envoy)
 
 # We'll set REGISTRY_ERR in builder.mk
-docker.tag.dev = $(if $(DEV_REGISTRY),$(DEV_REGISTRY)/$*:$(patsubst sha256:%,%,$(shell cat $<)),$(REGISTRY_ERR))
+docker.tag.dev = $(if $(DEV_DOCKER_REPO),$(DEV_DOCKER_REPO):$(notdir $*)-$(shell tr : - < $<),$(REGISTRY_ERR))
 
 # All Docker images that we know how to build
 images.all =

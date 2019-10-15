@@ -127,13 +127,12 @@ func image(dir, dockerfile string) (string, error) {
 			return err
 		}
 		iid := strings.Split(strings.TrimSpace(string(content)), ":")[1]
-		short := iid[:12]
 
-		registry := strings.TrimSpace(os.Getenv("DOCKER_REGISTRY"))
-		if registry == "" {
-			return errors.Errorf("please set the DOCKER_REGISTRY environment variable")
+		repo := strings.TrimSpace(os.Getenv("DOCKER_REPO"))
+		if repo == "" {
+			return errors.Errorf("please set the DOCKER_REPO environment variable")
 		}
-		tag := fmt.Sprintf("%s/%s", registry, short)
+		tag := fmt.Sprintf("%s/kubeapply-", repo, iid)
 
 		cmd = p.Command("docker", "tag", iid, tag)
 		err = cmd.Run()

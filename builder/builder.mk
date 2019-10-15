@@ -1,5 +1,5 @@
 
-#DEV_REGISTRY=localhost:5000
+#DEV_DOCKER_REPO=localhost:5000/dev
 #DEV_KUBECONFIG=/tmp/k3s.yaml
 
 RED=\033[1;31m
@@ -76,14 +76,14 @@ ambassador.docker: %.docker: %.docker.stamp $(COPY_IFCHANGED)
 	@CI= $(COPY_IFCHANGED) $< $@
 
 define REGISTRY_ERR
-$(shell printf '$(RED)ERROR: please set the DEV_REGISTRY make/env variable to the docker registry\n       you would like to use for development$(END)\n' >&2)
+$(shell printf '$(RED)ERROR: please set the DEV_DOCKER_REPO make/env variable to the docker repository\n       you would like to use for development$(END)\n' >&2)
 $(error error)
 endef
 
 push: $(addsuffix .docker.push.dev,$(images.cluster))
 .PHONY: push
 
-export KUBECONFIG_ERR=$(RED)ERROR: please set the $(YEL)DEV_KUBECONFIG$(RED) make/env variable to the docker registry\n       you would like to use for development. Note this cluster must have access\n       to $(YEL)DEV_REGISTRY$(RED) ($(WHT)$(DEV_REGISTRY)$(RED))$(END)
+export KUBECONFIG_ERR=$(RED)ERROR: please set the $(YEL)DEV_KUBECONFIG$(RED) make/env variable to the docker registry\n       you would like to use for development. Note this cluster must have access\n       to $(YEL)DEV_DOCKER_REPO$(RED) ($(WHT)$(DEV_DOCKER_REPO)$(RED))$(END)
 export KUBECTL_ERR=$(RED)ERROR: preflight kubectl check failed$(END)
 
 test-ready: push
@@ -185,13 +185,13 @@ $(BLD)Targets:$(END)
 
   $(BLD)make $(BLU)images$(END)    -- creates images from the build container.
 
-  $(BLD)make $(BLU)push$(END)      -- pushes images to $(BLD)\$$DEV_REGISTRY$(END). ($(DEV_REGISTRY))
+  $(BLD)make $(BLU)push$(END)      -- pushes images to $(BLD)\$$DEV_DOCKER_REPO$(END). ($(DEV_DOCKER_REPO))
 
   $(BLD)make $(BLU)test$(END)      -- runs Go and Python tests inside the build container.
 
     The tests require a Kubernetes cluster and a Docker registry in order to
     function. These must be supplied via the $(BLD)make$(END)/$(BLD)env$(END) variables $(BLD)\$$DEV_KUBECONFIG$(END)
-    and $(BLD)\$$DEV_REGISTRY$(END).
+    and $(BLD)\$$DEV_DOCKER_REPO$(END).
 
   $(BLD)make $(BLU)gotest$(END)    -- runs just the Go tests inside the build container.
 

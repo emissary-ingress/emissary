@@ -227,7 +227,7 @@ func getKubeconfigPath() string {
 	return kubeconfig
 }
 
-const dtestRegistry = "DTEST_REGISTRY"
+const dtestDockerRepo = "DTEST_DOCKER_REPO"
 const registryPort = "5000"
 
 // RegistryUp will launch if necessary and return the docker id of a
@@ -244,20 +244,20 @@ func dockerIP() string {
 	return "localhost"
 }
 
-// DockerRegistry returns a docker registry suitable for use in tests.
-func DockerRegistry() string {
-	registry := os.Getenv(dtestRegistry)
-	if registry != "" {
-		return registry
+// DockerRepo returns a Docker repository suitable for use in tests.
+func DockerRepo() string {
+	repo := os.Getenv(dtestDockerRepo)
+	if repo != "" {
+		return repo
 	}
 
 	RegistryUp()
 
-	return fmt.Sprintf("%s:%s", dockerIP(), registryPort)
+	return fmt.Sprintf("%s:%s/%s", dockerIP(), registryPort, "dtest")
 }
 
 const dtestKubeconfig = "DTEST_KUBECONFIG"
-const k3sPort = "6443"
+const k3sPort = "6443"pkg/dtest/k8sapply.go
 const k3sImage = "rancher/k3s:v0.6.1"
 
 const k3sMsg = `

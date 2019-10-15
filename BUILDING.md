@@ -28,7 +28,7 @@ git clone https://github.com/datawire/ambassador
 cd ambassador
 git checkout -b username/feature/my-branch-here master
 export DEV_KUBECONFIG=your-kubeconfig
-export DEV_REGISTRY=your-docker-registry
+export DEV_DOCKER_REPO=domain.tld/registry/repository
 make test
 ```
 
@@ -39,7 +39,7 @@ git clone https://github.com/datawire/ambassador
 cd ambassador
 git checkout -b flynn/feature/new-cool-thing master
 export DEV_KUBECONFIG=$HOME/.kube/flynn-test.yaml
-export DEV_REGISTRY=dwflynn
+export DEV_DOCKER_REPO=dwflynn/ambassador-dev
 make test
 ```
 

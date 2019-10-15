@@ -45,7 +45,7 @@ install:
   - PATH=~/bin:$PATH
   - source ~/.gimme/envs/latest.env
   - export DEV_KUBECONFIG=~/.kube/$(cat ~/kubernaut-claim.txt).yaml
-  - export DEV_REGISTRY=localhost:31000
+  - export DEV_DOCKER_REPO=localhost:31000/dev
 
 script:
   - ./releng/travis-script.sh
