@@ -2,7 +2,7 @@
 
 Ambassador is a production tested, open source API Gateway that exposes the power of [Envoy Proxy](https://www.envoyproxy.io) in Kubernetes.
 
-* [Install Ambassador](/user-guide/install). Quick start instructions for deploying Ambassador for both development environments (Docker, Docker Compose) and Kubernetes (via Kubernetes YAML or Helm).
+* [Install Ambassador Edge Stack](/user-guide/install-edge-stack). Quick start instructions for deploying Ambassador for both development environments (Docker, Docker Compose) and Kubernetes (via Kubernetes YAML or Helm).
 
 * [Concepts](/concepts/overview). Core concepts that cover Ambassador's architecture and how it should be used.
 
