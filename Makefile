@@ -82,9 +82,6 @@ images.old += base-go
 
 KUBECTL_VERSION = 1.16.1
 
-go.bins.extra += github.com/datawire/teleproxy/cmd/kubestatus
-go.bins.extra += github.com/datawire/teleproxy/cmd/teleproxy
-go.bins.extra += github.com/datawire/teleproxy/cmd/watt
 export CGO_ENABLED = 0
 
 include build-aux/prelude.mk
