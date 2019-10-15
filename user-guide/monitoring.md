@@ -23,12 +23,15 @@ http(s)://ambassador:8877/metrics
 or externally by creating a `Mapping` similar to below:
 
 ```yaml
-apiVersion: ambassador/v1
-kind: Mapping
-name: metrics
-prefix: /metrics
-rewrite: ""
-service: localhost:8877
+---
+apiVersion: getambassador.io/v1
+kind: Mapping
+metadata: 
+  name: metrics
+spec:     
+  prefix: /metrics
+  rewrite: ""
+  service: localhost:8877
 ```
 
 **Note**: Since `/metrics` in an endpoint on Ambassador itself, the `service` field can just reference the admin port on localhost.
@@ -199,19 +202,20 @@ Now, create a service and `Mapping` to expose Grafana behind Ambassador:
 
 ```yaml
 ---
+apiVersion: getambassador.io/v1
+kind: Mapping
+metadata: 
+  name: grafana
+  namespace: monitoring
+spec:     
+  prefix: /grafana/
+  service: grafana.monitoring
+---
 apiVersion: v1
 kind: Service
 metadata:
   name: grafana
   namespace: monitoring
-  annotations:
-    getambassador.io/config: |
-      ---
-      apiVersion: ambassador/v1
-      kind: Mapping
-      name: grafana-mapping
-      prefix: /grafana/
-      service: grafana.monitoring
 spec:
   ports:
     - port: 80

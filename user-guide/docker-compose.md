@@ -89,13 +89,15 @@ Edit the contents of the `config/ambassador.yaml` to this yaml configuration:
 
 ```yaml
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v1
 kind: Module
-name: ambassador
-config:
-  diagnostics:
-    # Stop the diagnostics endpoint from being publicly available
-    enabled: false
+metadata:
+  name: ambassador
+spec:
+  config:
+    diagnostics:
+      # Stop the diagnostics endpoint from being publicly available
+      enabled: false
 ```
 
 Now restart ambassador and test the diagnostics endpoint to ensure our configuration is in use:
@@ -124,12 +126,14 @@ Create a new file `config/mapping-httpbin.yaml` with these contents:
 
 ```yaml
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v1
 kind:  Mapping
-name:  httpbin_mapping
-prefix: /httpbin/
-service: httpbin.org
-host_rewrite: httpbin.org   
+metadata:
+  name:  httpbin
+spec:
+  prefix: /httpbin/
+  service: httpbin.org
+  host_rewrite: httpbin.org   
 ```
 
 Once again, restart ambassador and test the new mapping:
@@ -185,20 +189,24 @@ Edit the `config/mapping-tour.yaml` file and modify the `service` and `rewrite` 
 
 ```yaml
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v1
 kind: Mapping
-name: tour-ui_mapping
-prefix: /
-service: tour-ui:5000
+metadata:
+  name: tour-ui
+spec:
+  prefix: /
+  service: tour-ui:5000
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v1
 kind:  Mapping
-name:  tour-backend_mapping
-prefix: /backend/
-# remove the backend prefix when talking to the backend service
-rewrite: /
-# change the `service` parameter to the name of our service with the port
-service: tour-backend:8080
+metadata:
+  name:  tour-backend
+spec:
+  prefix: /backend/
+  # remove the backend prefix when talking to the backend service
+  rewrite: /
+  # change the `service` parameter to the name of our service with the port
+  service: tour-backend:8080
 ```
 
 ### Restart Ambassador and test
@@ -259,15 +267,17 @@ Make a new file called `config/auth.yaml` with an auth definition inside:
 
 ```yaml
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v1
 kind:  AuthService
-name:  authentication
-auth_service: "auth:3000"
-path_prefix: "/extauth"
-allowed_request_headers:
-- "x-qotm-session"
-allowed_authorization_headers:
-- "x-qotm-session"
+metadata:
+  name:  authentication
+spec:
+  auth_service: "auth:3000"
+  path_prefix: "/extauth"
+  allowed_request_headers:
+  - "x-qotm-session"
+  allowed_authorization_headers:
+  - "x-qotm-session"
 ```
 
 This configuration will use the `AuthService` object to ensure that all requests made to ambassador are first sent to the `auth` docker container on port `3000` before being routed to the service that is mapped to the desired route. See the Authentication documentation for more details.
@@ -383,11 +393,13 @@ Add a new configuration file `config/tracing.yaml` with these contents:
 
 ```yaml
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v1
 kind: TracingService
-name: tracing
-service: tracing:9411
-driver: zipkin
+metadata:
+  name: tracing
+spec:
+  service: tracing:9411
+  driver: zipkin
 ```
 
 This will forward all of Ambassador's traces to the `tracing` service.
