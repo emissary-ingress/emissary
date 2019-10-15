@@ -193,7 +193,7 @@ func TestCanAuthorizeRequests(t *testing.T) {
 					casename := casename // capture loop variable
 					t.Run(casename, func(t *testing.T) {
 						t.Parallel()
-						browserTest(t, 20*time.Second, fmt.Sprintf(`tests.standardTest(browsertab, require("./%s"), "%s")`, fileInfo.Name(), casename))
+						browserTest(t, 60*time.Second, fmt.Sprintf(`tests.standardTest(browsertab, require("./%s"), "%s")`, fileInfo.Name(), casename))
 					})
 				}
 			})
@@ -207,7 +207,7 @@ func TestCanBeChainedWithOtherFilters(t *testing.T) {
 
 	t.Run("run", func(t *testing.T) {
 		t.Parallel()
-		browserTest(t, 20*time.Second, `tests.chainTest(browsertab, require("./idp_auth0.js"), "Auth0 (/httpbin)")`)
+		browserTest(t, 60*time.Second, `tests.chainTest(browsertab, require("./idp_auth0.js"), "Auth0 (/httpbin)")`)
 	})
 }
 
@@ -217,6 +217,6 @@ func TestCanBeTurnedOffForSpecificPaths(t *testing.T) {
 
 	t.Run("run", func(t *testing.T) {
 		t.Parallel()
-		browserTest(t, 20*time.Second, `tests.disableTest(browsertab, require("./idp_auth0.js"), "Auth0 (/httpbin)")`)
+		browserTest(t, 60*time.Second, `tests.disableTest(browsertab, require("./idp_auth0.js"), "Auth0 (/httpbin)")`)
 	})
 }
