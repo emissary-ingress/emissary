@@ -22,6 +22,7 @@ import (
 	"github.com/datawire/apro/lib/util"
 
 	"github.com/datawire/teleproxy/pkg/k8s"
+	"github.com/datawire/teleproxy/pkg/kubeapply"
 	"github.com/datawire/teleproxy/pkg/tpu"
 
 	"github.com/datawire/apro/lib/licensekeys"
@@ -105,15 +106,12 @@ func doInitialize(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	info, err := k8s.NewKubeInfo("", "", "")
-	if err != nil {
-		return err
-	}
+	info := k8s.NewKubeInfo("", "", "")
 
 	license_key, _ := cmd.Flags().GetString("license-key")
 
 	input := &strings.Builder{}
-	err = TRAFFIC_MANAGER.Execute(input, map[string]string{
+	err := TRAFFIC_MANAGER.Execute(input, map[string]string{
 		"PROXY_IMAGE":            getenvDefault("PROXY_IMAGE", "quay.io/datawire/ambassador_pro:traffic-proxy-"+Version),
 		"AMBASSADOR_LICENSE_KEY": license_key,
 	})
@@ -121,24 +119,43 @@ func doInitialize(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	apply := tpu.NewKeeper("KAP", "kubectl "+info.GetKubectl("apply -f -"))
+	kubectl, err := info.GetKubectl("apply -f -")
+	if err != nil {
+		return err
+	}
+	apply := tpu.NewKeeper("KAP", "kubectl "+kubectl)
 	apply.Input = input.String()
 	apply.Limit = 1
 	apply.Start()
 	apply.Wait()
 
-	w := k8s.NewWaiter(k8s.NewClient(info).Watcher())
-	err = w.Add(fmt.Sprintf("service/telepresence-proxy.%s", info.Namespace))
-	if err != nil {
-		return err
-	}
-	err = w.Add(fmt.Sprintf("deployment/telepresence-proxy.%s", info.Namespace))
-	if err != nil {
-		return err
-	}
-	if !w.Wait(30) {
-		return errors.New("Telepresence-proxy did not come up. Investigate: kubectl get all -l app=telepresence-proxy")
-	}
+	/*
+		// Commenting this out because Watcher no longer works this way and
+		// KubeApply seems to require having files on the filesystem.
+
+		client, err := k8s.NewClient(info)
+		if err != nil {
+			return err
+		}
+		w, err := kubeapply.NewWaiter(client.Watcher())
+		if err != nil {
+			return err
+		}
+		err = w.Add(fmt.Sprintf("service/telepresence-proxy.%s", info.Namespace))
+		if err != nil {
+			return err
+		}
+		err = w.Add(fmt.Sprintf("deployment/telepresence-proxy.%s", info.Namespace))
+		if err != nil {
+			return err
+		}
+		if !w.Wait(time.Now().Add(30 * time.Second)) {
+			return errors.New("Telepresence-proxy did not come up. Investigate: kubectl get all -l app=telepresence-proxy")
+		}
+	*/
+
+	fmt.Println("Traffic management subsystem initialized. Examine using:")
+	fmt.Println("  kubectl get all -l app=telepresence-proxy")
 	return nil
 }
 
@@ -169,7 +186,7 @@ func doInject(cmd *cobra.Command, args []string) error {
 	}
 
 	for _, arg := range args {
-		resources, err := k8s.LoadResources(arg)
+		resources, err := kubeapply.LoadResources(arg)
 		if err != nil {
 			return err
 		}
@@ -187,7 +204,7 @@ func doInject(cmd *cobra.Command, args []string) error {
 				}
 			}
 		}
-		bytes, err := k8s.MarshalResources(resources)
+		bytes, err := kubeapply.MarshalResources(resources)
 		if err != nil {
 			return err
 		}
@@ -333,13 +350,18 @@ func doIntercept(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return errors.Wrap(err, "get free port for inbound")
 	}
-	info, err := k8s.NewKubeInfo("", "", "")
-	if err != nil {
-		return errors.Wrap(err, "load kubeconfig")
-	}
+	info := k8s.NewKubeInfo("", "", "")
 	kargs := fmt.Sprintf("port-forward service/telepresence-proxy %d:8022 %d:8081", inboundPort, apiPort)
-	pf := tpu.NewKeeper("KPF", "kubectl "+info.GetKubectl(kargs))
-	pf.Inspect = "kubectl " + info.GetKubectl("describe service/telepresence-proxy deployment/telepresence-proxy")
+	kubectl, err := info.GetKubectl(kargs)
+	if err != nil {
+		return err
+	}
+	pf := tpu.NewKeeper("KPF", "kubectl "+kubectl)
+	kubectl, err = info.GetKubectl("describe service/telepresence-proxy deployment/telepresence-proxy")
+	if err != nil {
+		return err
+	}
+	pf.Inspect = "kubectl " + kubectl
 	pf.Start()
 	defer pf.Stop()
 

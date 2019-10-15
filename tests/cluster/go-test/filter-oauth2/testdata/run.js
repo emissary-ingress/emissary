@@ -21,7 +21,7 @@ const withBrowserTab = async function(fn) {
 		try {
 			await fn(browsertab);
 		} finally {
-			console.log("url is: "+browsertab.url());
+			console.log("final url is: "+browsertab.url());
 		}
 	} finally {
 		browser.close();
@@ -47,7 +47,7 @@ const resolveTestPromise = function(promise) {
 			if (error instanceof TestSkipError) {
 				process.exit(77);
 			} else {
-				process.exit(1);
+				process.exit(99);
 			}
 		});
 };
@@ -58,14 +58,33 @@ const sleep = function(ms) {
 	});
 };
 
-// This function is closely coupled with browser_test.go:browserTest().
-const browserTest = function(timeout_ms, fn) {
-	resolveTestPromise(withBrowserTab((browsertab) => {
-		setInterval(() => {
-			browsertab.screenshot().then((screenshot) => { fs.writeSync(3, screenshot); })
-		}, 1000/5);
+const queueFrame = function(browsertab, shotdir) {
+	let ts = Date.now();
+	console.log("before frame", ts);
+	return browsertab.screenshot({path: shotdir+"/"+ts+".png"})
+		.then((screenshot) => {
+			console.log("after frame", ts);
+			return queueFrame(browsertab, shotdir);
+		})
+		.catch((err) => {
+			console.log("screenshot error at "+ts+":", err);
+		});
+}
 
-		return withTimeout(timeout_ms, fn(browsertab)).finally(() => { return sleep(1000); });
+// This function is closely coupled with browser_test.go:browserTest().
+const browserTest = function(timeout_ms, shotdir, fn) {
+	resolveTestPromise(withBrowserTab(async (browsertab) => {
+		browsertab.on('framenavigated', () => {
+			console.log("framenavigated: "+browsertab.url());
+		});
+
+		queueFrame(browsertab, shotdir);
+
+		try {
+			await withTimeout(timeout_ms, fn(browsertab));
+		} finally {
+			await sleep(1000);
+		}
 	}));
 };
 

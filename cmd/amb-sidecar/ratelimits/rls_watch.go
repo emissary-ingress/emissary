@@ -32,7 +32,11 @@ func max(a, b int) int {
 func DoWatch(ctx context.Context, cfg types.Config, _rlslog types.Logger) error {
 	rlslog = _rlslog
 
-	w := k8s.NewClient(nil).Watcher()
+	client, err := k8s.NewClient(nil)
+	if err != nil {
+		return err
+	}
+	w := client.Watcher()
 
 	count := 0
 

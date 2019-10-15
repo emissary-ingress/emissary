@@ -7,8 +7,8 @@ import (
 
 	"github.com/oxtoacart/bpool"
 
+	blackfriday "github.com/russross/blackfriday/v2"
 	"gitlab.com/golang-commonmark/markdown"
-	blackfriday "gopkg.in/russross/blackfriday.v2"
 )
 
 type MarkdownRenderer interface {

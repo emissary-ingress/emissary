@@ -127,10 +127,7 @@ func runE(cmd *cobra.Command, args []string) error {
 	logrusLogger.SetLevel(level)
 	logrus.SetLevel(level) // FIXME(lukeshu): Some Lyft code still uses the global logger
 
-	kubeinfo, err := k8s.NewKubeInfo("", "", "") // Empty file/ctx/ns for defaults
-	if err != nil {
-		return err
-	}
+	kubeinfo := k8s.NewKubeInfo("", "", "") // Empty file/ctx/ns for defaults
 
 	// Initialize the errgroup we'll use to orchestrate the goroutines.
 	group := NewGroup(context.Background(), cfg, func(name string) types.Logger {

@@ -1,5 +1,11 @@
 ## Ambassador Pro CHANGELOG
 
+## 0.9.1 (TBD)
+
+Behavior:
+
+ * `apictl traffic initialize` no longer waits for the traffic-proxy to become ready before exiting.
+
 ## 0.9.0 (2019-10-08)
 
 Configuration
