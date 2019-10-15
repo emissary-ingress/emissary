@@ -96,6 +96,12 @@ metadata:
                     # let's fix the image
                     manifest['spec']['template']['spec']['containers'][0]['image'] = os.environ['AMBASSADOR_DOCKER_IMAGE']
 
+                    # we don't want to do everything in /ambassador/
+                    manifest['spec']['template']['spec']['containers'][0]['env'].append({
+                        'name': 'AMBASSADOR_CONFIG_BASE_DIR',
+                        'value': '/tmp/ambassador'
+                    })
+
                 final_yaml.append(manifest)
 
         self.apply_kube_artifacts(namespace=namespace, artifacts=yaml.safe_dump_all(final_yaml))
