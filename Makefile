@@ -18,41 +18,10 @@
 
 SHELL = bash
 
-# This is only "kinda" the git branch name:
-#
-#  - if checked out is the synthetic merge-commit for a PR, then use
-#    the PR's branch name (even though the merge commit we have
-#    checked out isn't part of the branch")
-#  - if this is a CI run for a tag (not a branch or PR), then use the
-#    tag name
-#  - if none of the above, then use the actual git branch name
-#
-# read: https://graysonkoonce.com/getting-the-current-branch-name-during-a-pull-request-in-travis-ci/
-GIT_BRANCH := $(or $(TRAVIS_PULL_REQUEST_BRANCH),$(TRAVIS_BRANCH),$(shell git rev-parse --abbrev-ref HEAD))
-# The short git commit hash
-GIT_COMMIT := $(shell git rev-parse --short HEAD)
-# Whether `git add . && git commit` would commit anything (empty=false, nonempty=true)
-GIT_DIRTY := $(if $(shell git status --porcelain),dirty)
-# The _previous_ tag, plus a git delta, like 0.36.0-436-g8b8c5d3
-GIT_DESCRIPTION := $(shell git describe --tags)
-
 # IS_PRIVATE: empty=false, nonempty=true
 # Default is true if any of the git remotes have the string "private" in any of their URLs.
 _git_remote_urls := $(shell git remote | xargs -n1 git remote get-url --all)
 IS_PRIVATE ?= $(findstring private,$(_git_remote_urls))
-
-# RELEASE_VERSION is an X.Y.Z[-prerelease] (semver) string that we
-# will upload/release the image as.  It does NOT include a leading 'v'
-# (trimming the 'v' from the git tag is what the 'patsubst' is for).
-# If this is an RC or EA, then it includes the '-rcN' or '-eaN'
-# suffix.
-#
-# BUILD_VERSION is of the same format, but is the version number that
-# we build into the image.  Because an image built as a "release
-# candidate" will ideally get promoted to be the GA image, we trim off
-# the '-rcN' suffix.
-RELEASE_VERSION = $(patsubst v%,%,$(or $(TRAVIS_TAG),$(shell git describe --tags --always)))$(if $(GIT_DIRTY),-dirty)
-BUILD_VERSION = $(shell echo '$(RELEASE_VERSION)' | sed 's/-rc[0-9]*$$//')
 
 RELEASE_DOCKER_REPO ?= quay.io/datawire/ambassador$(if $(IS_PRIVATE),-private)
 BASE_DOCKER_REPO    ?= quay.io/datawire/ambassador-base$(if $(IS_PRIVATE),-private)
@@ -111,11 +80,7 @@ images.base = $(filter base-%,$(images.all))
 # 2019-10-13
 images.old += base-go
 
-#### end test service stuff
-
 KUBECTL_VERSION = 1.16.1
-
-SCOUT_APP_KEY=
 
 go.bins.extra += github.com/datawire/teleproxy/cmd/kubestatus
 go.bins.extra += github.com/datawire/teleproxy/cmd/teleproxy
@@ -131,6 +96,8 @@ include build-aux/help.mk
 include cxx/envoy.mk
 include build-aux-local/kat.mk
 include build-aux-local/docs.mk
+include build-aux-local/release.mk
+include build-aux-local/version.mk
 .DEFAULT_GOAL = help
 
 clean: $(addsuffix .docker.clean,$(images.all) $(images.old))
@@ -287,7 +254,7 @@ docker/kat-server/kat-server: docker/kat-server/%: bin_linux_amd64/%
 	cp $< $@
 
 #
-# Stuff
+# Workflow
 
 update-base: ## Run this whenever the base images (ex Envoy, ./docker/base-*/*) change
 	$(MAKE) $(addsuffix .docker.tag.base,$(images.base))
@@ -300,21 +267,6 @@ docker-push: ambassador.docker.push.dev
 .PHONY: docker-push
 
 lint: mypy
-
-# TODO: validate version is conformant to some set of rules might be a good idea to add here
-python/ambassador/VERSION.py: FORCE $(WRITE_IFCHANGED)
-	$(call check_defined, BUILD_VERSION, BUILD_VERSION is not set)
-	$(call check_defined, GIT_BRANCH, GIT_BRANCH is not set)
-	$(call check_defined, GIT_COMMIT, GIT_COMMIT is not set)
-	$(call check_defined, GIT_DESCRIPTION, GIT_DESCRIPTION is not set)
-	@echo "Generating and templating version information -> $(BUILD_VERSION)"
-	sed \
-		-e 's!{{VERSION}}!$(BUILD_VERSION)!g' \
-		-e 's!{{GITBRANCH}}!$(GIT_BRANCH)!g' \
-		-e 's!{{GITDIRTY}}!$(GIT_DIRTY)!g' \
-		-e 's!{{GITCOMMIT}}!$(GIT_COMMIT)!g' \
-		-e 's!{{GITDESCRIPTION}}!$(GIT_DESCRIPTION)!g' \
-		< VERSION-template.py | $(WRITE_IFCHANGED) $@
 
 bin_%/kubectl: $(var.)KUBECTL_VERSION
 	mkdir -p $(@D)
@@ -355,73 +307,6 @@ test-list: setup-develop
 	cd python && PATH="$(shell pwd)/venv/bin":$(PATH) pytest --collect-only -q
 .PHONY: test
 
-#
-# Release
-
-update-aws:
-ifeq ($(AWS_ACCESS_KEY_ID),)
-	@echo 'AWS credentials not configured; not updating https://s3.amazonaws.com/datawire-static-files/ambassador/$(STABLE_TXT_KEY)'
-	@echo 'AWS credentials not configured; not updating latest version in Scout'
-else
-	@if [ -n "$(STABLE_TXT_KEY)" ]; then \
-        printf "$(RELEASE_VERSION)" > stable.txt; \
-		echo "updating $(STABLE_TXT_KEY) with $$(cat stable.txt)"; \
-        aws s3api put-object \
-            --bucket datawire-static-files \
-            --key ambassador/$(STABLE_TXT_KEY) \
-            --body stable.txt; \
-	fi
-	@if [ -n "$(SCOUT_APP_KEY)" ]; then \
-		printf '{"application":"ambassador","latest_version":"$(RELEASE_VERSION)","notices":[]}' > app.json; \
-		echo "updating $(SCOUT_APP_KEY) with $$(cat app.json)"; \
-        aws s3api put-object \
-            --bucket scout-datawire-io \
-            --key ambassador/$(SCOUT_APP_KEY) \
-            --body app.json; \
-	fi
-endif
-
-release-prep:
-	bash releng/release-prep.sh
-
-release-preflight:
-	@if ! [[ '$(RELEASE_VERSION)' =~ ^[0-9]+\.[0-9]+\.[0-9]+$$ ]]; then \
-		printf "'make release' can only be run for commit tagged with 'vX.Y.Z'!\n"; \
-		exit 1; \
-	fi
-ambassador-release.docker: release-preflight $(WRITE_IFCHANGED)
-	docker pull $(RELEASE_DOCKER_REPO):$(RELEASE_VERSION)-rc-latest
-	docker image inspect $(RELEASE_DOCKER_REPO):$(RELEASE_VERSION)-rc-latest --format='{{.Id}}' | $(WRITE_IFCHANGED) $@
-release: ambassador-release.docker.push.release
-release: SCOUT_APP_KEY=app.json
-release: STABLE_TXT_KEY=stable.txt
-release: update-aws
-
-release-preflight-rc:
-	@if ! [[ '$(RELEASE_VERSION)' =~ ^[0-9]+\.[0-9]+\.[0-9]+-rc[0-9]+$$ ]]; then \
-		printf "'make release-rc' can only be run for commit tagged with 'vX.Y.Z-rcN'!\n"; \
-		exit 1; \
-	fi
-release-rc: release-preflight-rc
-release-rc: ambassador.docker.push.release-rc
-release-rc: SCOUT_APP_KEY = testapp.json
-release-rc: STABLE_TXT_KEY = teststable.txt
-release-rc: update-aws
-
-release-preflight-ea:
-	@if ! [[ '$(RELEASE_VERSION)' =~ ^[0-9]+\.[0-9]+\.[0-9]+-ea[0-9]+$$ ]]; then \
-		printf "'make release-ea' can only be run for commit tagged with 'vX.Y.Z-eaN'!\n"; \
-		exit 1; \
-	fi
-release-rc: release-preflight-ea
-release-ea: ambassador.docker.push.release-ea
-release-ea: SCOUT_APP_KEY = earlyapp.json
-release-ea: STABLE_TXT_KEY = earlystable.txt
-release-ea: update-aws
-
-#
-# Stuff
-
 # ------------------------------------------------------------------------------
 # Virtualenv
 # ------------------------------------------------------------------------------
@@ -454,16 +339,3 @@ mypy-server: venv
 mypy: mypy-server
 	time venv/bin/dmypy check python
 .PHONY: mypy
-
-# ------------------------------------------------------------------------------
-# Function Definitions
-# ------------------------------------------------------------------------------
-
-# Check that given variables are set and all have non-empty values,
-# die with an error otherwise.
-#
-# Params:
-#   1. Variable name(s) to test.
-#   2. (optional) Error message to print.
-check_defined = $(strip $(foreach 1,$1, $(call __check_defined,$1,$(strip $(value 2)))))
-__check_defined = $(if $(value $1),, $(error Undefined $1$(if $2, ($2))))
