@@ -10,8 +10,8 @@
       link: /concepts/using-ambassador-in-org
     - title: Ambassador vs. Other Software
       link: /about/alternatives
-    - title: Installing Ambassador
-      link: /user-guide/install
+    - title: Installing Ambassador Edge Stack
+      link: /user-guide/install-edge-stack
       items:
       - title: Kubernetes (YAML)
         link: /user-guide/getting-started
