@@ -41,8 +41,7 @@ sync: preflight
 	@$(foreach MODULE,$(MODULES),$(BUILDER) sync $(MODULE) $(SOURCE_$(MODULE)) &&) true
 .PHONY: sync
 
-compile:
-	@$(MAKE) --no-print-directory sync
+compile: sync
 	@$(BUILDER) compile $(SOURCES)
 .PHONY: compile
 
@@ -53,8 +52,7 @@ commit:
 external-images = $(shell sed -n '/\#external/{N;s/.* as  *//p;}' < $(BUILDER_HOME)/Dockerfile)
 images: $(addsuffix .docker.tag.dev,$(external-images))
 .PHONY: images
-snapshot.docker.stamp:
-	@$(MAKE) --no-print-directory compile
+snapshot.docker.stamp: compile
 	@$(MAKE) --no-print-directory commit
 	@docker image inspect snapshot --format='{{.Id}}' > $@
 $(addsuffix .docker.stamp,$(external-images)): %.docker.stamp: snapshot.docker
