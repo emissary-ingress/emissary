@@ -10,6 +10,6 @@ include $(OSS_HOME)/build-aux-local/version.mk
 
 $(call module,ambassador,$(OSS_HOME))
 
-compile: python/ambassador/VERSION.py
+sync: python/ambassador/VERSION.py
 
 .SECONDARY:
