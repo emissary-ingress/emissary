@@ -1,9 +1,11 @@
 package middleware
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"net/http"
+	"text/template"
 
 	"github.com/datawire/apro/lib/filterapi"
 )
@@ -28,6 +30,29 @@ func errorResponse(ctx context.Context, httpStatus int, err error, extra map[str
 		GetLogger(ctx).Infof("HTTP %v %+v", httpStatus, err)
 	}
 	return bodyBytes
+}
+
+func TemplatedErrorResponse(ctx context.Context, httpStatus int, err error, errorTemplate template.Template, contentType string) *filterapi.HTTPResponse {
+	rawError := map[string]interface{}{
+		"httpStatus": httpStatus,
+		"error":      err,
+		"requestId":  GetRequestID(ctx),
+	}
+
+	bodyBuffer := &bytes.Buffer{}
+	templateErr := errorTemplate.Execute(bodyBuffer, rawError)
+	if templateErr != nil {
+		GetLogger(ctx).Errorf("Failed to render response from template %s", templateErr)
+	}
+
+	GetLogger(ctx).Infof("HTTP %v %+v", httpStatus, err)
+	return &filterapi.HTTPResponse{
+		StatusCode: httpStatus,
+		Header: http.Header{
+			"Content-Type": {contentType},
+		},
+		Body: bodyBuffer.String(),
+	}
 }
 
 func NewErrorResponse(ctx context.Context, httpStatus int, err error, extra map[string]interface{}) *filterapi.HTTPResponse {
