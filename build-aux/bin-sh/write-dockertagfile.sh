@@ -43,7 +43,8 @@ else
 		done
 	} < "$tmpfile"
 	if [[ -e "$outfile" ]]; then
-		docker image rm -- $(grep -vFx -f "$tmpfile" -- "$outfile") || :
+		args="$(grep -vFx -f "$tmpfile" -- "$outfile")"
+		[[ -z "$args" ]] || docker image rm -- $args || :
 	fi
         mv -f "$tmpfile" "$outfile"
 fi
