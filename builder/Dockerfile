@@ -90,6 +90,7 @@ COPY --from=builder /usr/lib/python3.7/site-packages /usr/lib/python3.7/site-pac
 COPY --from=artifacts /buildroot/bin/ambex /usr/bin/ambex
 COPY --from=artifacts /buildroot/bin/watt /usr/bin/watt
 COPY --from=artifacts /buildroot/bin/kubestatus /usr/bin/kubestatus
+COPY --from=artifacts /usr/bin/kubectl /usr/bin/kubectl
 COPY --from=artifacts /buildroot/ambassador/python /buildroot/ambassador/python
 RUN cd /buildroot/ambassador/python && python setup.py install
 
