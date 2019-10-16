@@ -18,7 +18,7 @@
 
 # This argument controlls the base image is used for both our build
 # container and for the release containers.
-ARG base="frolvlad/alpine-glibc:alpine-3.9"
+ARG base="frolvlad/alpine-glibc:alpine-3.10"
 
 # This argument controls where the release images get their artifacts
 # from. We override it for incremental builds, but default it to the
@@ -26,7 +26,7 @@ ARG base="frolvlad/alpine-glibc:alpine-3.9"
 ARG artifacts="builder"
 
 # This controls where we copy envoy from.
-ARG envoy="quay.io/datawire/ambassador:0.80.0"
+ARG envoy="quay.io/datawire/ambassador:0.83.0"
 
 ########################################
 # The builder image
@@ -85,7 +85,7 @@ RUN apk --no-cache add bash curl python3 libcap
 RUN ln -s /usr/bin/python3 /usr/bin/python
 
 COPY --from=envoy /usr/local/bin/envoy /usr/local/bin/envoy
-COPY --from=builder /usr/lib/python3.6/site-packages /usr/lib/python3.6/site-packages
+COPY --from=builder /usr/lib/python3.7/site-packages /usr/lib/python3.7/site-packages
 
 COPY --from=artifacts /buildroot/bin/ambex /usr/bin/ambex
 COPY --from=artifacts /buildroot/bin/watt /usr/bin/watt
