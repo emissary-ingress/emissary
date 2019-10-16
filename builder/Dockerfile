@@ -53,6 +53,18 @@ COPY --from=envoy /usr/local/bin/envoy /usr/local/bin/envoy
 
 ENV KUBECONFIG=/buildroot/kubeconfig.yaml
 
+# The YAML parser is... special. First, we need to install libyaml and Cython. No,
+# I don't know why it's called yaml-dev.
+RUN apk --no-cache add yaml-dev cython
+
+# After that, we can download !*@&#!*@&# PyYAML...
+RUN curl -O -L http://pyyaml.org/download/pyyaml/PyYAML-5.1.tar.gz
+RUN tar xzf PyYAML-5.1.tar.gz
+
+# ...and then install it.
+RUN cd PyYAML-5.1 && python3 setup.py --with-libyaml install
+
+# Then we can do the rest of the Python stuff.
 COPY requirements.txt .
 RUN pip install -r requirements.txt
 
@@ -86,6 +98,7 @@ RUN ln -s /usr/bin/python3 /usr/bin/python
 
 COPY --from=envoy /usr/local/bin/envoy /usr/local/bin/envoy
 COPY --from=builder /usr/lib/python3.7/site-packages /usr/lib/python3.7/site-packages
+COPY --from=builder /usr/lib/libyaml* /usr/lib/
 
 COPY --from=artifacts /buildroot/bin/ambex /usr/bin/ambex
 COPY --from=artifacts /buildroot/bin/watt /usr/bin/watt
