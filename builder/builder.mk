@@ -49,13 +49,18 @@ commit:
 	@$(BUILDER) commit snapshot
 .PHONY: commit
 
-external-images = $(shell sed -n '/\#external/{N;s/.* as  *//p;}' < $(BUILDER_HOME)/Dockerfile)
-images: $(addsuffix .docker.tag.dev,$(external-images))
+# Docker images that are built from the unified ./builder/Dockerfile
+images.builder = $(shell sed -n '/\#external/{N;s/.* as  *//p;}' < $(BUILDER_HOME)/Dockerfile)
+
+images.all += $(images.builder)
+images.cluster += $(images.builder)
+
+images: $(addsuffix .docker.tag.dev,$(images.all))
 .PHONY: images
 snapshot.docker.stamp: compile
 	@$(MAKE) --no-print-directory commit
 	@docker image inspect snapshot --format='{{.Id}}' > $@
-$(addsuffix .docker.stamp,$(external-images)): %.docker.stamp: snapshot.docker
+$(addsuffix .docker.stamp,$(images.builder)): %.docker.stamp: snapshot.docker
 	@printf "$(WHT)==$(GRN)Building $(BLU)$*$(GRN) image$(WHT)==$(END)\n"
 	@$(DBUILD) $(BUILDER_HOME) --iidfile $@ --build-arg artifacts=$$(cat snapshot.docker) --target $*
 %.docker: %.docker.stamp $(COPY_IFCHANGED)
@@ -66,7 +71,7 @@ $(shell printf '$(RED)ERROR: please set the DEV_REGISTRY make/env variable to th
 $(error error)
 endef
 
-push: $(addsuffix .docker.push.dev,$(external-images))
+push: $(addsuffix .docker.push.dev,$(images.cluster))
 .PHONY: push
 
 export KUBECONFIG_ERR=$(RED)ERROR: please set the $(YEL)DEV_KUBECONFIG$(RED) make/env variable to the docker registry\n       you would like to use for development. Note this cluster must have access\n       to $(YEL)DEV_REGISTRY$(RED) ($(WHT)$(DEV_REGISTRY)$(RED))$(END)
@@ -93,6 +98,11 @@ pytest: test-ready
 		-e AMBASSADOR_DOCKER_IMAGE=$$(sed -n 2p ambassador.docker.push.dev) \
 		-e KAT_CLIENT_DOCKER_IMAGE=$$(sed -n 2p kat-client.docker.push.dev) \
 		-e KAT_SERVER_DOCKER_IMAGE=$$(sed -n 2p kat-server.docker.push.dev) \
+		-e TEST_SERVICE_AUTH=$$(sed -n 2p test-auth.docker.push.dev) \
+		-e TEST_SERVICE_AUTH_TLS=$$(sed -n 2p test-auth-tls.docker.push.dev) \
+		-e TEST_SERVICE_RATELIMIT=$$(sed -n 2p test-ratelimit.docker.push.dev) \
+		-e TEST_SERVICE_SHADOW=$$(sed -n 2p test-shadow.docker.push.dev) \
+		-e TEST_SERVICE_STATS=$$(sed -n 2p test-stats.docker.push.dev) \
 		-e KAT_IMAGE_PULL_POLICY=Always \
 		-e KAT_REQ_LIMIT \
 		-it $(shell $(BUILDER)) pytest $(PYTEST_ARGS)
@@ -114,7 +124,7 @@ shell:
 	@$(BUILDER) shell
 .PHONY: shell
 
-clean: $(addsuffix .docker.clean,$(external-images) snapshot)
+clean: $(addsuffix .docker.clean,$(images.all) snapshot)
 	@$(BUILDER) clean
 .PHONY: clean
 
