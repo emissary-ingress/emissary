@@ -189,7 +189,7 @@ case "${cmd}" in
         cid=$(builder)
         if dirty ${cid}; then
 	    printf "${WHT}==${GRN}Snapshotting ${BLU}builder${GRN} image${WHT}==${END}\n"
-	    docker rmi -f "${name}" > /dev/null
+	    docker rmi -f "${name}" &> /dev/null
             docker commit -c 'ENTRYPOINT [ "/bin/bash" ]' ${cid} "${name}"
         fi
         clear-dirty ${cid}
