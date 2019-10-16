@@ -97,4 +97,4 @@ Create a separate `FilterPolicy` that specifies which specific filters are appli
 
 ## Further reading
 
-The [filter reference](/reference/filter-reference) covers the specifics of filters and filter policies in much more detail.
+The [filter reference](/docs/reference/filter-reference.md) covers the specifics of filters and filter policies in much more detail.
