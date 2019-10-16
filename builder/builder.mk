@@ -20,6 +20,7 @@ BUILDER = $(abspath $(BUILDER_HOME)/builder.sh)
 DBUILD = $(abspath $(BUILDER_HOME)/dbuild.sh)
 
 all: help
+.PHONY: all
 
 .NOTPARALLEL:
 
@@ -38,13 +39,16 @@ endif
 
 sync: preflight
 	@$(foreach MODULE,$(MODULES),$(BUILDER) sync $(MODULE) $(SOURCE_$(MODULE)) &&) true
+.PHONY: sync
 
 compile:
 	@$(MAKE) --no-print-directory sync
 	@$(BUILDER) compile $(SOURCES)
+.PHONY: compile
 
 commit:
 	@$(BUILDER) commit snapshot
+.PHONY: commit
 
 images:
 	@$(MAKE) --no-print-directory compile
@@ -55,6 +59,7 @@ images:
 	@$(DBUILD) $(BUILDER_HOME) --build-arg artifacts=snapshot --target kat-client -t kat-client
 	@printf "$(WHT)==$(GRN)Building $(BLU)kat-server$(GRN) image$(WHT)==$(END)\n"
 	@$(DBUILD) $(BUILDER_HOME) --build-arg artifacts=snapshot --target kat-server -t kat-server
+.PHONY: images
 
 AMB_IMAGE=$(DEV_REGISTRY)/ambassador:$(shell docker images -q ambassador:latest)
 KAT_CLI_IMAGE=$(DEV_REGISTRY)/kat-client:$(shell docker images -q kat-client:latest)
@@ -73,6 +78,7 @@ push: images
 	@printf "$(WHT)==$(GRN)Pushing $(BLU)kat-server$(GRN) image$(WHT)==$(END)\n"
 	docker tag kat-server $(KAT_SRV_IMAGE)
 	docker push $(KAT_SRV_IMAGE)
+.PHONY: push
 
 export KUBECONFIG_ERR=$(RED)ERROR: please set the $(YEL)DEV_KUBECONFIG$(RED) make/env variable to the docker registry\n       you would like to use for development. Note this cluster must have access\n       to $(YEL)DEV_REGISTRY$(RED) ($(WHT)$(DEV_REGISTRY)$(RED))$(END)
 export KUBECTL_ERR=$(RED)ERROR: preflight kubectl check failed$(END)
@@ -88,6 +94,7 @@ test-ready: push
 	@docker exec -w /buildroot/ambassador -i $(shell $(BUILDER)) sh -c "echo bin_linux_amd64/edgectl: > Makefile"
 	@docker exec -w /buildroot/ambassador -i $(shell $(BUILDER)) sh -c "mkdir -p bin_linux_amd64"
 	@docker exec -w /buildroot/ambassador -d $(shell $(BUILDER)) ln -s /buildroot/bin/edgectl /buildroot/ambassador/bin_linux_amd64/edgectl
+.PHONY: test-ready
 
 PYTEST_ARGS ?=
 
@@ -100,6 +107,7 @@ pytest: test-ready
 		-e KAT_IMAGE_PULL_POLICY=Always \
 		-e KAT_REQ_LIMIT \
 		-it $(shell $(BUILDER)) pytest $(PYTEST_ARGS)
+.PHONY: pytest
 
 
 GOTEST_PKGS ?= ./...
@@ -108,20 +116,26 @@ GOTEST_ARGS ?=
 gotest: test-ready
 	@printf "$(WHT)==$(GRN)Running $(BLU)go$(GRN) tests$(WHT)==$(END)\n"
 	docker exec -w /buildroot/$(MODULE) -e DTEST_REGISTRY=$(DEV_REGISTRY) -e DTEST_KUBECONFIG=/buildroot/kubeconfig.yaml -e GOTEST_PKGS=$(GOTEST_PKGS) -e GOTEST_ARGS=$(GOTEST_ARGS) $(shell $(BUILDER)) /buildroot/builder.sh test-internal
+.PHONY: gotest
 
 test: gotest pytest
+.PHONY: test
 
 shell:
 	@$(BUILDER) shell
+.PHONY: shell
 
 clean:
 	@$(BUILDER) clean
+.PHONY: clean
 
 clobber:
 	@$(BUILDER) clobber
+.PHONY: clobber
 
 help:
 	@printf "$(subst $(NL),\n,$(HELP))\n"
+.PHONY: help
 
 define NL
 
