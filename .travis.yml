@@ -13,17 +13,6 @@ cache:
   directories:
     - $HOME/.cache/pip
     - $HOME/.npm
-    - $HOME/docker
-
-before_cache:
-  # Save tagged docker images
-  - >
-    mkdir -p $HOME/docker && docker images -a --filter='dangling=false' --format '{{.Repository}}:{{.Tag}} {{.ID}}'
-    | xargs -n 2 -t sh -c 'test -e $HOME/docker/$1.tar.gz || docker save $0 | gzip -2 > $HOME/docker/$1.tar.gz'
-
-before_install:
-  # Load cached docker images
-  - if [[ -d $HOME/docker ]]; then ls $HOME/docker/*.tar.gz | xargs -I {file} sh -c "zcat {file} | docker load"; fi
 
 # Do not run in Travis CI when the branch name starts with "nobuild". Primarily
 # intended for documentation updates but may be used as an escape hatch for
@@ -38,6 +27,7 @@ services:
 env:
   global:
     - DOCKER_REGISTRY=quay.io/datawire
+    - BUILDER_CACHE_FROM=${DOCKER_REGISTRY}/builder:latest
 
     # Set from the repository settings:
     #- DOCKER_BUILD_USERNAME=[secure] (optional)
@@ -60,9 +50,13 @@ install:
   - export DEV_REGISTRY=localhost:31000
   - source ~/.gimme/envs/latest.env
 
+before_script:
+  - docker pull ${BUILDER_CACHE_FROM} || true
+
 script:
   - ./releng/travis-script.sh
 
 after_script:
+  - if [ -n "$(docker images -q -a builder:latest)" ]; then docker tag builder:latest ${BUILDER_CACHE_FROM} && docker push ${BUILDER_CACHE_FROM}; fi
   # release the kubernaut claim
   - ./releng/travis-cleanup.sh

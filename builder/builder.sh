@@ -36,7 +36,10 @@ bootstrap() {
 
     if [ -z "$(builder)" ] ; then
         printf "${WHT}==${GRN}Bootstrapping build image${WHT}==${END}\n"
-        ${DBUILD} --target builder ${DIR} -t builder
+        if [ -n "${BUILDER_CACHE_FROM}" ]; then
+            extra_args="--cache-from ${BUILDER_CACHE_FROM}"
+        fi
+        ${DBUILD} ${extra_args} --target builder ${DIR} -t builder
         if [ "$(uname -s)" == Darwin ]; then
             DOCKER_GID=$(stat -f "%g" /var/run/docker.sock)
         else
