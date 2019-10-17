@@ -39,8 +39,11 @@ WORKDIR /buildroot
 
 ENV PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/go/bin:/buildroot/bin
 
+# The YAML parser is... special. To get the C version, we need to install Cython and libyaml, then
+# build it locally -- just using pip won't work.
+
 RUN apk --no-cache add bash curl jq rsync python3 python3-dev build-base libffi-dev openssl-dev sudo \
-        iptables docker openssh-client libcap && \
+                       iptables docker openssh-client libcap yaml-dev cython && \
     pip3 install -U pip && \
     curl --fail https://dl.google.com/go/go1.13.linux-amd64.tar.gz | tar -C /usr/local -xzf - && \
     curl --fail -L https://storage.googleapis.com/kubernetes-release/release/v1.16.0/bin/linux/amd64/kubectl -o /usr/bin/kubectl && \
@@ -52,10 +55,6 @@ RUN chmod u+s $(which docker)
 COPY --from=envoy /usr/local/bin/envoy /usr/local/bin/envoy
 
 ENV KUBECONFIG=/buildroot/kubeconfig.yaml
-
-# The YAML parser is... special. First, we need to install libyaml and Cython. No,
-# I don't know why it's called yaml-dev.
-RUN apk --no-cache add yaml-dev cython
 
 # After that, we can download !*@&#!*@&# PyYAML...
 RUN curl -O -L http://pyyaml.org/download/pyyaml/PyYAML-5.1.tar.gz
