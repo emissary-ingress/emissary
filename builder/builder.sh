@@ -36,7 +36,7 @@ bootstrap() {
 
     if [ -z "$(builder)" ] ; then
         printf "${WHT}==${GRN}Bootstrapping build image${WHT}==${END}\n"
-        ${DBUILD} --target builder ${DIR} -t builder
+        ${DBUILD} --build-arg envoy=$(cat ${DIR}/../base-envoy.docker) --target builder ${DIR} -t builder
         if [ "$(uname -s)" == Darwin ]; then
             DOCKER_GID=$(stat -f "%g" /var/run/docker.sock)
         else
