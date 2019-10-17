@@ -19,7 +19,7 @@
 
 # This argument controlls the base image is used for both our build
 # container and for the release containers.
-ARG base="frolvlad/alpine-glibc:alpine-3.9"
+ARG base="frolvlad/alpine-glibc:alpine-3.10"
 
 # This argument controls where the release images get their artifacts
 # from. We override it for incremental builds, but default it to the
@@ -27,7 +27,7 @@ ARG base="frolvlad/alpine-glibc:alpine-3.9"
 ARG artifacts="builder"
 
 # This controls where we copy envoy from.
-ARG envoy="quay.io/datawire/ambassador:0.80.0"
+ARG envoy="quay.io/datawire/ambassador:0.83.0"
 
 ########################################
 # The builder image
@@ -40,8 +40,11 @@ WORKDIR /buildroot
 
 ENV PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/go/bin:/buildroot/bin
 
+# The YAML parser is... special. To get the C version, we need to install Cython and libyaml, then
+# build it locally -- just using pip won't work.
+
 RUN apk --no-cache add bash curl jq rsync python3 python3-dev build-base libffi-dev openssl-dev sudo \
-        iptables docker openssh-client libcap && \
+                       iptables docker openssh-client libcap yaml-dev cython && \
     pip3 install -U pip && \
     curl --fail https://dl.google.com/go/go1.13.linux-amd64.tar.gz | tar -C /usr/local -xzf - && \
     curl --fail -L https://storage.googleapis.com/kubernetes-release/release/v1.16.0/bin/linux/amd64/kubectl -o /usr/bin/kubectl && \
@@ -54,6 +57,15 @@ COPY --from=envoy /usr/local/bin/envoy /usr/local/bin/envoy
 
 ENV KUBECONFIG=/buildroot/kubeconfig.yaml
 
+# Download, build, and install PyYAML.
+RUN mkdir /tmp/pyyaml && \
+    cd /tmp/pyyaml && \
+    curl -O -L http://pyyaml.org/download/pyyaml/PyYAML-5.1.tar.gz && \
+    tar xzf PyYAML-5.1.tar.gz && \
+    cd PyYAML-5.1 && \
+    python3 setup.py --with-libyaml install
+
+# Then we can do the rest of the Python stuff.
 COPY requirements.txt .
 RUN pip install -r requirements.txt
 
@@ -87,11 +99,13 @@ RUN apk --no-cache add bash curl python3 libcap
 RUN ln -s /usr/bin/python3 /usr/bin/python
 
 COPY --from=envoy /usr/local/bin/envoy /usr/local/bin/envoy
-COPY --from=builder /usr/lib/python3.6/site-packages /usr/lib/python3.6/site-packages
+COPY --from=builder /usr/lib/python3.7/site-packages /usr/lib/python3.7/site-packages
+COPY --from=builder /usr/lib/libyaml* /usr/lib/
 
 COPY --from=artifacts /buildroot/bin/ambex /usr/bin/ambex
 COPY --from=artifacts /buildroot/bin/watt /usr/bin/watt
 COPY --from=artifacts /buildroot/bin/kubestatus /usr/bin/kubestatus
+COPY --from=artifacts /usr/bin/kubectl /usr/bin/kubectl
 COPY --from=artifacts /buildroot/ambassador/python /buildroot/ambassador/python
 RUN cd /buildroot/ambassador/python && python setup.py install
 
