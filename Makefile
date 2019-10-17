@@ -32,14 +32,18 @@ DOCKER_OPTS ?=
 
 YES_I_AM_UPDATING_THE_BASE_IMAGES ?=
 
-# Set default tag values...
-docker.tag.release    = $(RELEASE_DOCKER_REPO):$(RELEASE_VERSION)
-docker.tag.release-rc = $(RELEASE_DOCKER_REPO):$(RELEASE_VERSION) $(RELEASE_REPO):$(BUILD_VERSION)-latest-rc
-docker.tag.release-ea = $(RELEASE_DOCKER_REPO):$(RELEASE_VERSION)
 docker.tag.dev        = $(DEV_DOCKER_REPO):$(notdir $*)-$(shell tr : - < $<)
-BASE_IMAGE._          = $(BASE_DOCKER_REPO):$1-$(BASE_VERSION.$1)
-BASE_IMAGE.envoy      = $(call BASE_IMAGE._,envoy)
-docker.tag.base       = $(BASE_IMAGE.$(patsubst base-%.docker,%,$<))
+# By default, don't allow .release, .release-rc, .release-ea, or .base tags...
+docker.tag.release    = $(error The 'release' tag is only valid for the 'ambassador' image)
+docker.tag.release-rc = $(error The 'release-rc' tag is only valid for the 'ambassador' image)
+docker.tag.release-ea = $(error The 'release-ea' tag is only valid for the 'ambassador' image)
+docker.tag.base       = $(error The 'base' tag is only valid for the 'base-envoy' image)
+# ... except for on specific images
+ambassador.docker.tag.release: docker.tag.release    = $(RELEASE_DOCKER_REPO):$(RELEASE_VERSION)
+ambassador.docker.tag.release: docker.tag.release-rc = $(RELEASE_DOCKER_REPO):$(RELEASE_VERSION) $(RELEASE_REPO):$(BUILD_VERSION)-latest-rc
+ambassador.docker.tag.release: docker.tag.release-ea = $(RELEASE_DOCKER_REPO):$(RELEASE_VERSION)
+BASE_IMAGE.envoy = $(BASE_DOCKER_REPO):envoy-$(BASE_VERSION.envoy)
+envoy-base.docker.tag.base:    docker.tag.base       = $(BASE_IMAGE.envoy)
 
 # We'll set REGISTRY_ERR in builder.mk
 docker.tag.dev = $(if $(DEV_REGISTRY),$(DEV_REGISTRY)/$*:$(patsubst sha256:%,%,$(shell cat $<)),$(REGISTRY_ERR))
