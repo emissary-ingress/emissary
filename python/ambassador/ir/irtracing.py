@@ -17,6 +17,7 @@ class IRTracing (IRResource):
     driver_config: dict
     tag_headers: list
     host_rewrite: Optional[str]
+    sampling_percent: float
 
     def __init__(self, ir: 'IR', aconf: Config,
                  rkey: str="ir.tracing",
@@ -79,6 +80,8 @@ class IRTracing (IRResource):
 
         # XXX host_rewrite actually isn't in the schema right now.
         self.host_rewrite = config.get('host_rewrite', None)
+
+        self.sampling_percent = config.get('sampling_percent', 100)
 
         # Remember that the config references us.
         self.referenced_by(config)

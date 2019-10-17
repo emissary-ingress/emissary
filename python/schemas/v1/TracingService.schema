@@ -32,7 +32,8 @@
         "tag_headers": {
             "type": "array",
             "items": { "type": "string" }
-        }
+        },
+        "sampling_percent": { "type": "number", "minimum": 0, "maximum": 100 }
     },
     "required": [ "apiVersion", "kind", "name", "driver", "service" ],
     "additionalProperties": false

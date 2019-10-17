@@ -121,6 +121,91 @@ driver: zipkin
         traceId = trace['traceId']
         assert len(traceId) == 32
 
+class TracingSamplingTest(AmbassadorTest):
+    def init(self):
+        self.target = HTTP()
+
+    def manifests(self) -> str:
+        return super().manifests() + """
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: zipkin-sampling
+spec:
+  selector:
+    app: zipkin-sampling
+  ports:
+  - port: 9411
+    name: http
+    targetPort: http
+  type: NodePort
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: zipkin-sampling
+spec:
+  selector:
+    matchLabels:
+      app: zipkin-sampling
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: zipkin-sampling
+    spec:
+      containers:
+      - name: zipkin
+        image: openzipkin/zipkin:2.17
+        imagePullPolicy: Always
+        ports:
+        - name: http
+          containerPort: 9411
+"""
+
+    def config(self):
+        # Use self.target here, because we want this mapping to be annotated
+        # on the service, not the Ambassador.
+        # ambassador_id: [ {self.with_tracing.ambassador_id}, {self.no_tracing.ambassador_id} ]
+        yield self.target, self.format("""
+---
+apiVersion: ambassador/v0
+kind:  Mapping
+name:  tracing_sampling_target_mapping
+prefix: /target-sampling/
+service: {self.target.path.fqdn}
+""")
+
+        # For self.with_tracing, we want to configure the TracingService.
+        yield self, self.format("""
+---
+apiVersion: ambassador/v1
+kind: TracingService
+name: tracing-sampling
+service: zipkin-sampling:9411
+driver: zipkin
+sampling_percent: 0
+""")
+
+    def requirements(self):
+        yield from super().requirements()
+        yield ("url", Query("http://zipkin-sampling:9411/api/v2/services"))
+
+    def queries(self):
+        for i in range(100):
+              yield Query(self.url("target-sampling/"), phase=1)
+
+        yield Query("http://zipkin-sampling:9411/api/v2/traces", phase=2)
+
+    def check(self):
+        assert self.results[0].status == 200
+        assert self.results[0].headers["Server"] == ["envoy"]
+
+        assert len(self.results[100].json) == 0
+
 class TracingTestShortTraceId(AmbassadorTest):
     def init(self):
         self.target = HTTP()

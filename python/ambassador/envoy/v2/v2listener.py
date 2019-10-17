@@ -605,7 +605,10 @@ class V2Listener(dict):
             base_http_config["generate_request_id"] = True
 
             base_http_config["tracing"] = {
-                "operation_name": "egress"
+                "operation_name": "egress",
+                "random_sampling": {
+                    "value": config.ir.tracing.sampling_percent
+                }
             }
 
             req_hdrs = config.ir.tracing.get('tag_headers', [])
