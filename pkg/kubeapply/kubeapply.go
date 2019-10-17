@@ -198,7 +198,7 @@ func kubectlApply(info *k8s.KubeInfo, dryRun bool, filenames []string) error {
 		args = append(args, "--dry-run")
 	}
 	for _, filename := range filenames {
-		// https://github.com/datawire/teleproxy/issues/77
+		// https://github.com/datawire/ambassador/issues/77
 		filehandle, err := os.Open(filename)
 		if err != nil {
 			return err

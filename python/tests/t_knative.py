@@ -1,3 +1,5 @@
+import pytest
+
 from kat.harness import Query, is_knative
 from kat.manifests import KNATIVE_SERVING_071, KNATIVE_SERVING_080
 
@@ -27,43 +29,60 @@ class Knative071Test(AmbassadorTest):
     target: ServiceType
 
     def init(self) -> None:
-        if not is_knative():
-            self.skip_node = True
-
         self.target = HTTP()
 
     def manifests(self) -> str:
-        self.manifest_envs = """
+        if is_knative():
+            self.manifest_envs = """
     - name: AMBASSADOR_KNATIVE_SUPPORT
       value: "true"
 """
 
-        return super().manifests() + KNATIVE_SERVING_071 + KNATIVE_EXAMPLE
+            return super().manifests() + KNATIVE_SERVING_071 + KNATIVE_EXAMPLE
+        else:
+            return super().manifests()
 
     def queries(self):
-        yield Query(self.url(""), expected=404)
-        yield Query(self.url(""), headers={'Host': 'random.host.whatever'}, expected=404)
-        yield Query(self.url(""), headers={'Host': 'helloworld-go.default.example.com'}, expected=200)
+        if is_knative():
+            yield Query(self.url(""), expected=404)
+            yield Query(self.url(""), headers={'Host': 'random.host.whatever'}, expected=404)
+            yield Query(self.url(""), headers={'Host': 'helloworld-go.default.example.com'}, expected=200)
+        else:
+            yield from ()
 
+    def check(self):
+        if not is_knative():
+            pytest.xfail("Knative is not supported")
+
+        return super().check()
 
 class Knative080Test(AmbassadorTest):
     target: ServiceType
 
     def init(self) -> None:
-        if not is_knative():
-            self.skip_node = True
-
         self.target = HTTP()
 
     def manifests(self) -> str:
-        self.manifest_envs = """
+        if is_knative():
+            self.manifest_envs = """
     - name: AMBASSADOR_KNATIVE_SUPPORT
       value: "true"
 """
 
-        return super().manifests() + KNATIVE_SERVING_080 + KNATIVE_EXAMPLE
+            return super().manifests() + KNATIVE_SERVING_080 + KNATIVE_EXAMPLE
+        else:
+            return super().manifests()
 
     def queries(self):
-        yield Query(self.url(""), expected=404)
-        yield Query(self.url(""), headers={'Host': 'random.host.whatever'}, expected=404)
-        yield Query(self.url(""), headers={'Host': 'helloworld-go.default.example.com'}, expected=200)
+        if is_knative():
+            yield Query(self.url(""), expected=404)
+            yield Query(self.url(""), headers={'Host': 'random.host.whatever'}, expected=404)
+            yield Query(self.url(""), headers={'Host': 'helloworld-go.default.example.com'}, expected=200)
+        else:
+            yield from ()
+
+    def check(self):
+        if not is_knative():
+            pytest.xfail("Knative is not supported")
+
+        return super().check()

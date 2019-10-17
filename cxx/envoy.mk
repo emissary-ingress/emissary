@@ -139,9 +139,9 @@ envoy-shell: $(ENVOY_BASH.deps)
 	)
 .PHONY: envoy-shell
 
-base-envoy.docker: $(srcdir)/envoy-build-image.txt $(topsrcdir)/bin_linux_amd64/envoy-static
-base-envoy.docker.DOCKER_OPTS = --build-arg=ENVOY_BUILD_IMAGE=$$(cat $(srcdir)/envoy-build-image.txt)
-base-envoy.docker.DOCKER_DIR = $(topsrcdir)/bin_linux_amd64
+base-envoy.docker.stamp: $(srcdir)/envoy-build-image.txt $(topsrcdir)/bin_linux_amd64/envoy-static
+base-envoy.docker.stamp.DOCKER_OPTS = --build-arg=ENVOY_BUILD_IMAGE=$$(cat $(srcdir)/envoy-build-image.txt)
+base-envoy.docker.stamp.DOCKER_DIR = $(topsrcdir)/bin_linux_amd64
 
 #
 # Envoy generate
@@ -159,17 +159,19 @@ generate: api/envoy
 # about them.
 
 PROTOC_VERSION = 3.5.1
-PROTOC_PLATFORM = $(patsubst darwin,osx,$(GOOS))-$(patsubst amd64,x86_64,$(patsubst 386,x86_32,$(GOARCH)))
+PROTOC_PLATFORM = $(patsubst darwin,osx,$(GOHOSTOS))-$(patsubst amd64,x86_64,$(patsubst 386,x86_32,$(GOHOSTARCH)))
 
-venv/protoc-$(PROTOC_VERSION)-$(PROTOC_PLATFORM).zip: $(var.)PROTOC_VERSION | venv/bin/activate
-	curl -o $@ --fail -L https://github.com/protocolbuffers/protobuf/releases/download/v$(PROTOC_VERSION)/$(@F)
-venv/bin/protoc: venv/protoc-$(PROTOC_VERSION)-$(PROTOC_PLATFORM).zip
-	bsdtar -xf $< -C venv bin/protoc
+$(topsrcdir)/bin_$(GOHOSTOS)_$(GOHOSTARCH)/protoc: $(var.)PROTOC_VERSION $(var.)PROTOC_PLATFORM
+	mkdir -p $(@D)
+	set -o pipefail; curl --fail -L https://github.com/protocolbuffers/protobuf/releases/download/v$(PROTOC_VERSION)/protoc-$(PROTOC_VERSION)-$(PROTOC_PLATFORM).zip | bsdtar -x -f - -O bin/protoc > $@
+	chmod 755 $@
 
-venv/bin/protoc-gen-gogofast: go.mod $(FLOCK) | venv/bin/activate
+$(topsrcdir)/bin_$(GOHOSTOS)_$(GOHOSTARCH)/protoc-gen-gogofast: go.mod $(FLOCK)
+	mkdir -p $(@D)
 	$(FLOCK) go.mod go build -o $@ github.com/gogo/protobuf/protoc-gen-gogofast
 
-venv/bin/protoc-gen-validate: go.mod $(FLOCK) | venv/bin/activate
+$(topsrcdir)/bin_$(GOHOSTOS)_$(GOHOSTARCH)/protoc-gen-validate: go.mod $(FLOCK)
+	mkdir -p $(@D)
 	$(FLOCK) go.mod go build -o $@ github.com/envoyproxy/protoc-gen-validate
 
 api/envoy: $(srcdir)/envoy
@@ -225,16 +227,16 @@ mappings += $(shell find $(CURDIR)/api/envoy -type f -name '*.proto' | sed -E 's
 
 _imports = $(call lazyonce,_imports,$(imports))
 _mappings = $(call lazyonce,_mappings,$(mappings))
-pkg/api/envoy: api/envoy $(FLOCK) venv/bin/protoc venv/bin/protoc-gen-gogofast venv/bin/protoc-gen-validate $(var.)_imports $(var.)_mappings
+pkg/api/envoy: api/envoy $(FLOCK) $(topsrcdir)/bin_$(GOHOSTOS)_$(GOHOSTARCH)/protoc $(topsrcdir)/bin_$(GOHOSTOS)_$(GOHOSTARCH)/protoc-gen-gogofast $(topsrcdir)/bin_$(GOHOSTOS)_$(GOHOSTARCH)/protoc-gen-validate $(var.)_imports $(var.)_mappings
 	rm -rf $@ $(@D).envoy.tmp
 	mkdir -p $(@D).envoy.tmp
 # go-control-plane `make generate`
 	@set -e; find $(CURDIR)/api/envoy -type f -name '*.proto' | sed 's,/[^/]*$$,,' | uniq | while read -r dir; do \
 		echo "Generating $$dir"; \
-		./venv/bin/protoc \
+		./$(topsrcdir)/bin_$(GOHOSTOS)_$(GOHOSTARCH)/protoc \
 			$(addprefix --proto_path=,$(_imports))  \
-			--plugin=$(CURDIR)/venv/bin/protoc-gen-gogofast --gogofast_out='$(call joinlist,$(COMMA),plugins=grpc $(addprefix M,$(_mappings))):$(@D).envoy.tmp' \
-			--plugin=$(CURDIR)/venv/bin/protoc-gen-validate --validate_out='lang=gogo:$(@D).envoy.tmp' \
+			--plugin=$(CURDIR)/bin_$(GOHOSTOS)_$(GOHOSTARCH)/protoc-gen-gogofast --gogofast_out='$(call joinlist,$(COMMA),plugins=grpc $(addprefix M,$(_mappings))):$(@D).envoy.tmp' \
+			--plugin=$(CURDIR)/bin_$(GOHOSTOS)_$(GOHOSTARCH)/protoc-gen-validate --validate_out='lang=gogo:$(@D).envoy.tmp' \
 			"$$dir"/*.proto; \
 	done
 # go-control-plane `make generate-patch`
@@ -251,6 +253,7 @@ pkg/api/envoy: api/envoy $(FLOCK) venv/bin/protoc venv/bin/protoc-gen-gogofast v
 
 clean: _clean-envoy
 clobber: _clobber-envoy
+generate-clean: _generate-clean-envoy
 
 _clean-envoy: _clean-envoy-old
 _clean-envoy: $(srcdir)/envoy-build-container.txt.clean

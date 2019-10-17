@@ -17,7 +17,7 @@ type WatchSet struct {
 // struct.
 //
 // FIXES:
-// 	- https://github.com/datawire/teleproxy/issues/110
+// 	- https://github.com/datawire/ambassador/issues/110
 //	- https://github.com/datawire/ambassador/issues/1508
 func (w *WatchSet) interpolate() WatchSet {
 	result := WatchSet{KubernetesWatches: w.KubernetesWatches}

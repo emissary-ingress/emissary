@@ -45,10 +45,6 @@ chmod +x ~/bin/kubernaut
 gimme ${GO_VERSION}
 source ~/.gimme/envs/latest.env
 
-# Install Python dependencies
-pip install -q -r dev-requirements.txt
-pip install -q -r python/requirements.txt
-
 # Configure kubernaut
 base64 -d < kconf.b64 | ( cd ~ ; tar xzf - )
 # Grab a kubernaut cluster

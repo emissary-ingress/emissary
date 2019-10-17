@@ -27,7 +27,8 @@
         "max_tls_version": { "enum": [ "v1.0", "v1.1", "v1.2", "v1.3" ] },
         "cipher_suites": { "type": "array", "items": { "type": "string" }  },
         "ecdh_curves": { "type": "array", "items": { "type": "string" }  },
-        "secret_namespacing": { "type": "boolean" }
+        "secret_namespacing": { "type": "boolean" },
+        "redirect_cleartext_from": { "type": "integer" }
     },
     "required": [ "apiVersion", "kind", "name" ],
     "additionalProperties": false

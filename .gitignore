@@ -22,6 +22,7 @@ VERSION.py
 /tools/sandbox/http_auth/docker-compose.yml
 
 *.docker
+*.docker.stamp
 *.docker.tag.*
 *.docker.push.*
 
