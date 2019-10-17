@@ -28,7 +28,8 @@ type FilterOAuth2 struct {
 	RawMaxStale string        `json:"maxStale"`
 	MaxStale    time.Duration `json:"-"` // calculated from RawMaxStale
 
-	InsecureTLS bool `json:"insecureTLS"`
+	InsecureTLS    bool `json:"insecureTLS"`
+	RenegotiateTLS bool `json:"renegotiateTLS"`
 
 	AccessTokenValidation string `json:"accessTokenValidation"`
 }

@@ -35,7 +35,7 @@ type JWTFilter struct {
 
 func (h *JWTFilter) Filter(ctx context.Context, r *filterapi.FilterRequest) (filterapi.FilterResponse, error) {
 	logger := middleware.GetLogger(ctx)
-	httpClient := httpclient.NewHTTPClient(logger, 0, h.Spec.InsecureTLS)
+	httpClient := httpclient.NewHTTPClient(logger, 0, h.Spec.InsecureTLS, h.Spec.RenegotiateTLS)
 
 	tokenString := rfc6750.GetFromHeader(filterutil.GetHeader(r))
 

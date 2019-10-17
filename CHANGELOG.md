@@ -1,5 +1,11 @@
 ## Ambassador Pro CHANGELOG
 
+## 0.9.1 (TBD)
+
+Configuration
+
+ * `JWT` and `OAuth2` Filter types support `renegotiateTLS`
+
 ## 0.9.0 (2019-10-08)
 
 Configuration
