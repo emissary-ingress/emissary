@@ -119,7 +119,7 @@
           items:
             - title: Custom Resource Definitions
               link: /reference/core/crds
-            - title: Service Annoations
+            - title: Service Annotations
               link: /reference/core/annotations
             - title: Kubernetes Ingress Resource
               link: /reference/core/ingress-controller
