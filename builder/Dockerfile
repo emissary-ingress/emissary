@@ -10,11 +10,12 @@
 # container. (The "builder" stage below.) We then produce optimized
 # release images by copying the specific binaries and entrypoints out
 # of the build container. The build container must always contain all
-# the binaries and entrypoints for any container we produce, and
+# the binaries and entrypoints for any image that we produce, and
 # therefore (with the appropriate entrypoint) can function in place of
-# any release container. The release containers are trivial stages
-# that simply copy the relevant artifacts out of the builder
-# container.
+# any release image. The release images are trivial stages that simply
+# copy the relevant artifacts out of a snapshot of the builder
+# container; these release images are marked with the magic comment
+# "#external".
 
 # This argument controlls the base image is used for both our build
 # container and for the release containers.
@@ -78,6 +79,7 @@ ENTRYPOINT [ "/bin/bash" ]
 
 FROM ${artifacts} as artifacts
 
+#external
 FROM ${base} as ambassador
 
 RUN apk --no-cache add bash curl python3 libcap
@@ -110,6 +112,7 @@ ENTRYPOINT [ "bash", "/buildroot/ambassador/python/entrypoint.sh" ]
 
 ########################################
 
+#external
 FROM ${base} as kat-client
 
 COPY --from=artifacts /buildroot/bin/kat-client /usr/bin/kat-client
@@ -118,6 +121,7 @@ CMD [ "sleep", "3600" ]
 
 ########################################
 
+#external
 FROM ${base} as kat-server
 
 COPY --from=artifacts /buildroot/bin/kat-server /usr/bin/kat-server
