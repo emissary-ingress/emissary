@@ -33,7 +33,7 @@ def regex_matcher(config: 'V2Config', regex: str, key="regex", safe_key=None) ->
         # 'safe' is the default. You must explicitly say "unsafe" to get the unsafe
         # regex matcher.
         if re_type != 'unsafe':
-            max_size = int(config.ir.ambassador_module.get('regex_max_size', 100))
+            max_size = int(config.ir.ambassador_module.get('regex_max_size', 200))
 
             if not safe_key:
                 safe_key = "safe_" + key
