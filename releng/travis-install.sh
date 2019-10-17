@@ -45,6 +45,9 @@ chmod +x ~/bin/kubernaut
 gimme ${GO_VERSION}
 source ~/.gimme/envs/latest.env
 
+# Install awscli
+sudo pip install awscli
+
 # Configure kubernaut
 base64 -d < kconf.b64 | ( cd ~ ; tar xzf - )
 # Grab a kubernaut cluster

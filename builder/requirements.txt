@@ -15,7 +15,6 @@ click==7.0
 # Dev requirements
 gitpython
 docopt
-awscli
 pytest
 pytest-cov
 dpath
