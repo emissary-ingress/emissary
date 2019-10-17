@@ -51,7 +51,8 @@ type FilterJWT struct {
 
 	InjectRequestHeaders []JWTHeaderField `json:"injectRequestHeaders"`
 
-	InsecureTLS bool `json:"insecureTLS"`
+	InsecureTLS    bool `json:"insecureTLS"`
+	RenegotiateTLS bool `json:"renegotiateTLS"`
 }
 
 type JWTHeaderField struct {

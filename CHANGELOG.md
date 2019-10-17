@@ -2,6 +2,10 @@
 
 ## 0.9.1 (TBD)
 
+Configuration
+
+ * `JWT` and `OAuth2` Filter types support `renegotiateTLS`
+
 Behavior:
 
  * `apictl traffic initialize` no longer waits for the traffic-proxy to become ready before exiting.
