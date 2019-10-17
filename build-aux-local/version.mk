@@ -30,7 +30,7 @@ RELEASE_VERSION = $(patsubst v%,%,$(or $(TRAVIS_TAG),$(shell git describe --tags
 BUILD_VERSION = $(shell echo '$(RELEASE_VERSION)' | sed 's/-rc[0-9]*$$//')
 
 # TODO: validate version is conformant to some set of rules might be a good idea to add here
-python/ambassador/VERSION.py: FORCE $(WRITE_IFCHANGED)
+python/ambassador/VERSION.py: python/VERSION-template.py $(var.)BUILD_VERSION $(var.)GIT_BRANCH $(var.)GIT_DIRTY $(var.)GIT_COMMIT $(var.GIT_DESCRIPTION)
 	$(call check_defined, BUILD_VERSION, BUILD_VERSION is not set)
 	$(call check_defined, GIT_BRANCH, GIT_BRANCH is not set)
 	$(call check_defined, GIT_COMMIT, GIT_COMMIT is not set)
@@ -42,7 +42,7 @@ python/ambassador/VERSION.py: FORCE $(WRITE_IFCHANGED)
 		-e 's!{{GITDIRTY}}!$(GIT_DIRTY)!g' \
 		-e 's!{{GITCOMMIT}}!$(GIT_COMMIT)!g' \
 		-e 's!{{GITDESCRIPTION}}!$(GIT_DESCRIPTION)!g' \
-		< VERSION-template.py | $(WRITE_IFCHANGED) $@
+		< python/VERSION-template.py > $@
 
 # Check that given variables are set and all have non-empty values,
 # die with an error otherwise.
