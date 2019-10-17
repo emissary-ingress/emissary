@@ -18,30 +18,6 @@ set -o errexit
 set -o nounset
 
 printf "== Begin: travis-cleanup.sh ==\n"
+set -o xtrace
 
-#eval $(make export-vars)
-
-echo "GIT_BRANCH ${GIT_BRANCH}"
-echo "CI_DEBUG_KAT_BRANCH ${CI_DEBUG_KAT_BRANCH}"
-
-teardown=yes
-
-if [ \( -n "$CI_DEBUG_KAT_BRANCH" \) ]; then
-	if [ "$GIT_BRANCH" = "$CI_DEBUG_KAT_BRANCH" ]; then
-		echo "Leaving Kat cluster intact for debugging:"
-		echo "===="
-		kubectl cluster-info
-        echo "==== DEV_KUBECONFIG ===="
-	    gzip -9 < ${DEV_KUBECONFIG} | base64
-		
-		teardown=
-	else
-		echo "Not running on debug branch ${CI_DEBUG_KAT_BRANCH}"
-	fi
-else
-	echo "No debug branch is set"
-fi
-
-if [ -n "$teardown" ]; then
-    kubernaut claims delete $(cat ~/kubernaut-claim.txt)
-fi
+kubernaut claims delete $(cat ~/kubernaut-claim.txt)
