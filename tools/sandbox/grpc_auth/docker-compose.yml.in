@@ -45,7 +45,7 @@ services:
       - "61595:80"
   
   zipkin:
-    image: openzipkin/zipkin:latest
+    image: openzipkin/zipkin:2.17
     networks:
       ambassador:
         aliases:

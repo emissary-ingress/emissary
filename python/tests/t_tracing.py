@@ -50,7 +50,7 @@ spec:
     spec:
       containers:
       - name: zipkin
-        image: openzipkin/zipkin
+        image: openzipkin/zipkin:2.17
         imagePullPolicy: Always
         ports:
         - name: http
@@ -159,7 +159,7 @@ spec:
     spec:
       containers:
       - name: zipkin
-        image: openzipkin/zipkin
+        image: openzipkin/zipkin:2.17
         imagePullPolicy: Always
         ports:
         - name: http
@@ -250,7 +250,7 @@ spec:
     spec:
       containers:
       - name: zipkin-auth
-        image: openzipkin/zipkin
+        image: openzipkin/zipkin:2.17
         imagePullPolicy: Always
         ports:
         - name: http
