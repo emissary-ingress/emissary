@@ -114,6 +114,15 @@
     - title: Configuring Ambassador
       link: /reference/configuration
       items:
+        - title: Configuration Format
+          link: /reference/config-format
+          items:
+            - title: Custom Resource Definitions
+              link: /reference/core/crds
+            - title: Service Annoations
+              link: /reference/core/annotations
+            - title: Kubernetes Ingress Resource
+              link: /reference/core/ingress-controller
         - title: Global Configuration
           link: /reference/modules
           items:
@@ -208,8 +217,6 @@
               link: /reference/pro/authentication
             - title: Environment
               link: /reference/pro/environment
-        - title: Custom Resource Definitions
-          link: /reference/core/crds
         - title: Filters
           link: /reference/filter-reference
     - title: Developer Portal
