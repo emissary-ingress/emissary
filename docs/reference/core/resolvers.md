@@ -32,9 +32,10 @@ The Kubernetes Service Resolver configures Ambassador to use Kubernetes services
 
 ```yaml
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v1
 kind: KubernetesServiceResolver
-name: kubernetes-service
+metadata:
+  name: kubernetes-service
 ```
 
 ### The Kubernetes Endpoint Resolver
@@ -43,9 +44,10 @@ The Kubernetes Endpoint Resolver configures Ambassador to resolve Kubernetes end
 
 ```yaml
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v1
 kind: KubernetesEndpointResolver
-name: endpoint
+metadata:
+  name: endpoint
 ```
 
 ### The Consul Resolver
@@ -54,29 +56,33 @@ The Consul Resolver configures Ambassador to use Consul for service discovery. W
 
 ```yaml
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v1
 kind: ConsulResolver
-name: consul-dc1
-address: consul-server.default.svc.cluster.local:8500
-datacenter: dc1
+metadata:
+  name: consul-dc1
+spec:
+  address: consul-server.default.svc.cluster.local:8500
+  datacenter: dc1
 ```
 - `address`: The fully-qualified domain name or IP address of your Consul server. This field also supports environment variable substitution.
 - `datacenter`: The Consul data center where your services are registered
 
 You may want to use an environment variable if you're running a Consul agent on each node in your cluster. In this setup, you could do the following:
 
-```
+```yaml
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v1
 kind: ConsulResolver
-name: consul-dc1
-address: "${HOST_IP}"
-datacenter: dc1
+metadata:
+  name: consul-dc1
+spec:
+  address: "${HOST_IP}"
+  datacenter: dc1
 ```
 
 and then add the `HOST_IP` environment variable to your Kubernetes deployment:
 
-```
+```yaml
 containers:
   - name: example
     image: quay.io/datawire/ambassador:%version%
@@ -94,37 +100,28 @@ Once a resolver is defined, you can use them in a given `Mapping`:
 
 ```yaml
 ---
-apiVersion: v1
-kind: Service
+apiVersion: getambassador.io/v1
+kind: Mapping
 metadata:
-  name: tour
-  annotations:
-    getambassador.io/config: |
-      ---
-      apiVersion: ambassador/v1
-      kind:  Mapping
-      name:  tour-ui_mapping
-      prefix: /
-      service: tour
-      load_balancer:
-        policy: round_robin
-      ---
-      apiVersion: ambassador/v1
-      kind:  Mapping
-      name:  bar_mapping
-      prefix: /bar/
-      service: https://bar:9000
-      tls: client-context
-      resolver: consul-dc1
-      load_balancer:
-        policy: round_robin
+  name: tour-ui
 spec:
-  selector:
-    app: tour
-  ports:
-    - port: 80
-      targetPort: http-api
-  type: NodePort
+  prefix: /
+  service: tour
+  resolver: endpoint
+  load_balancer:
+    policy: round_robin
+---
+apiVersion: getambassador.io/v1
+kind: Mapping
+metadata:
+  name: bar
+spec:
+  prefix: /bar/
+  service: https://bar:9000
+  tls: client-context
+  resolver: consul-dc1
+  load_balancer:
+    policy: round_robin
 ```
 
-The YAML configuration above will configure Ambassador to use Kubernetes Service Discovery  to route to the qotm Kubernetes service on requests with `prefix: /qotm/` and use Consul Service Discovery to route to the `bar` service on requests with `prefix: /bar/`.
+The YAML configuration above will configure Ambassador to use Kubernetes Service Discovery to route to the tour Kubernetes service on requests with `prefix: /` and use Consul Service Discovery to route to the `bar` service on requests with `prefix: /bar/`.

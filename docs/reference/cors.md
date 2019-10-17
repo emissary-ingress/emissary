@@ -71,18 +71,21 @@ The `cors` attribute enables the CORS filter. The following settings are support
 ## Example
 
 ```yaml
-apiVersion: ambassador/v1
+---
+apiVersion: getambassador.io/v1
 kind:  Mapping
-name:  cors_mapping
-prefix: /cors/
-service: cors-example
-cors:
-  origins: http://foo.example,http://bar.example
-  methods: POST, GET, OPTIONS
-  headers: Content-Type
-  credentials: true
-  exposed_headers: X-Custom-Header
-  max_age: "86400"
+metadata:
+  name:  cors
+spec:
+  prefix: /cors/
+  service: cors-example
+  cors:
+    origins: http://foo.example,http://bar.example
+    methods: POST, GET, OPTIONS
+    headers: Content-Type
+    credentials: true
+    exposed_headers: X-Custom-Header
+    max_age: "86400"
 ```
 ## [AuthService](/reference/services/auth-service) and Cross-Origin Resource Sharing
 

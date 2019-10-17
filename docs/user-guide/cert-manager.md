@@ -97,19 +97,20 @@ The HTTP-01 challenge verifies ownership of the domain by sending a request for 
     cert-manager uses an `Ingress` resource to issue the challenge to `/.well-known/acme-challenge` but, since Ambassador is not an `Ingress`, we will need to create a `Mapping` so the cert-manager can reach the temporary pod.
     ```yaml
     ---
+    apiVersion: getambassador.io/v1
+    kind: Mapping
+    metadata:
+      name: acme-challenge-mapping
+    spec:
+      prefix: /.well-known/acme-challenge
+      rewrite: ""
+      service: acme-challeneg-service
+
+    ---
     apiVersion: v1
     kind: Service
     metadata:
       name: acme-challenge-service
-      annotations:
-        getambassador.io/config: |
-          ---
-          apiVersion: ambassador/v1
-          kind:  Mapping
-          name:  acme-challenge-mapping
-          prefix: /.well-known/acme-challenge
-          rewrite: ""
-          service: acme-challenge-service 
     spec:
       ports:
       - port: 80

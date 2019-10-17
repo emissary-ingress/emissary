@@ -10,15 +10,17 @@ A `TracingService` manifest configures Ambassador to use an external trace visua
 
 ```yaml
 ---
-apiVersion: ambassador/v1
-kind: TracingService
-name: tracing
-service: "example-zipkin:9411"
-driver: zipkin
-config: {}
-tag_headers:
-- ":authority"
-- ":path"
+apiVersion: getambassador.io/v1
+kind:  TracingService
+metadata:
+  name:  tracing
+spec:
+  service: "example-zipkin:9411"
+  driver: zipkin
+  config: {}
+  tag_headers:
+  - ":authority"
+  - ":path"
 ```
 
 - `service` gives the URL of the external HTTP trace service.

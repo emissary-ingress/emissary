@@ -18,7 +18,7 @@ annotations.
 
 - You will need RBAC permissions to create `Ingress` resources.
 
-- Ambassador will need RBAC permissions to get, list, and watch `Ingress` resources. 
+- Ambassador will need RBAC permissions to get, list, watch, and update `Ingress` resources. 
 
   You can see this in the `https://getambassador.io/yaml/ambassador/ambassador-rbac.yaml`
   file, but this is the critical rule to add to Ambassador's `Role` or `ClusterRole`:
@@ -26,6 +26,9 @@ annotations.
       - apiGroups: [ "extensions" ]
         resources: [ "ingresses" ]
         verbs: ["get", "list", "watch"]
+      - apiGroups: [ "extensions" ]
+        resources: [ "ingresses/status" ]
+        verbs: ["update"]
 
 - You must create your `Ingress` resource with the correct `ingress.class`.
 
@@ -36,6 +39,30 @@ annotations.
 
   If you're not using the `default` ID, you'll need to add the `getambassador.io/ambassador-id`
   annotation to your `Ingress`. See the examples below.
+
+- You must create a `Service` resource with the correct `app.kubernetes.io/component` label.
+
+  Ambassador will automatically load balance Ingress resources using the endpoint exposed 
+  from the Service with the annotation `app.kubernetes.io/component: ambassador-service`.
+  
+      kind: Service
+      apiVersion: v1
+      metadata:
+        name: ingress-ambassador
+        labels:
+          app.kubernetes.io/component: ambassador-service
+      spec:
+        externalTrafficPolicy: Local
+        type: LoadBalancer
+        selector:
+          service: ambassador
+        ports:
+          - name: http
+            port: 80
+            targetPort: http
+          - name: https
+            port: 443
+            targetPort: https
 
 ### When should I use an `Ingress` instead of annotations or CRDs?
 
