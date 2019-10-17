@@ -56,12 +56,13 @@ COPY --from=envoy /usr/local/bin/envoy /usr/local/bin/envoy
 
 ENV KUBECONFIG=/buildroot/kubeconfig.yaml
 
-# After that, we can download !*@&#!*@&# PyYAML...
-RUN curl -O -L http://pyyaml.org/download/pyyaml/PyYAML-5.1.tar.gz
-RUN tar xzf PyYAML-5.1.tar.gz
-
-# ...and then install it.
-RUN cd PyYAML-5.1 && python3 setup.py --with-libyaml install
+# Download, build, and install PyYAML.
+RUN mkdir /tmp/pyyaml && \
+    cd /tmp/pyyaml && \
+    curl -O -L http://pyyaml.org/download/pyyaml/PyYAML-5.1.tar.gz && \
+    tar xzf PyYAML-5.1.tar.gz && \
+    cd PyYAML-5.1 && \
+    python3 setup.py --with-libyaml install
 
 # Then we can do the rest of the Python stuff.
 COPY requirements.txt .
