@@ -88,6 +88,8 @@
         link: /user-guide/consul
       - title: Istio and Ambassador
         link: /user-guide/with-istio
+      - title: Linkerd and Ambassador
+        link: /user-guide/linkerd2
     - title: Best Practices
       items:
       - title: Integration Testing with Service Preview
@@ -112,6 +114,15 @@
     - title: Configuring Ambassador
       link: /reference/configuration
       items:
+        - title: Configuration Format
+          link: /reference/config-format
+          items:
+            - title: Custom Resource Definitions
+              link: /reference/core/crds
+            - title: Service Annotations
+              link: /reference/core/annotations
+            - title: Kubernetes Ingress Resource
+              link: /reference/core/ingress-controller
         - title: Global Configuration
           link: /reference/modules
           items:
@@ -206,8 +217,6 @@
               link: /reference/pro/authentication
             - title: Environment
               link: /reference/pro/environment
-        - title: Custom Resource Definitions
-          link: /reference/core/crds
         - title: Filters
           link: /reference/filter-reference
     - title: Developer Portal

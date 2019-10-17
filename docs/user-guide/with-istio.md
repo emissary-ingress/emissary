@@ -48,29 +48,14 @@ Next you will deploy an ambassador service that acts as a point of ingress into 
 
 ```yaml
 ---
-apiVersion: v1
-kind: Service
-metadata:
-  labels:
-    service: ambassador
-  name: ambassador
-  annotations:
-    getambassador.io/config: |
-      ---
-      apiVersion: ambassador/v1
-      kind:  Mapping
-      name:  httpbin_mapping
-      prefix: /httpbin/
-      service: httpbin.org:80
-      host_rewrite: httpbin.org
-spec:
-  type: LoadBalancer
-  ports:
-  - name: ambassador
-    port: 80
-    targetPort: 8080
-  selector:
-    service: ambassador
+apiVersion: getambassador.io/v1
+kind: Mapping
+metadata: 
+  name: httpbin
+spec:     
+  prefix: /httpbin/
+  service: httpbin.org
+  host_rewrite: httpbin.org
 ```
 
 Then, apply it to the Kubernetes with `kubectl`:
@@ -128,21 +113,22 @@ If you're seeing a similar response, then everything is working great!
 2. Now you are going to modify the bookinfo demo `bookinfo.yaml` manifest to include the necessary Ambassador annotations. See below.
 
 ```yaml
+---
+apiVersion: getambassador.io/v1
+kind: Mapping
+metadata: 
+  name: productpage
+spec:     
+  prefix: /productpage/
+  rewrite: /productpage
+  service: productpage:9080
+---
 apiVersion: v1
 kind: Service
 metadata:
   name: productpage
   labels:
     app: productpage
-  annotations:
-    getambassador.io/config: |
-      ---
-      apiVersion: ambassador/v1
-      kind: Mapping
-      name: productpage_mapping
-      prefix: /productpage/
-      rewrite: /productpage
-      service: productpage:9080
 spec:
   ports:
   - port: 9080
@@ -235,65 +221,47 @@ Specifically note the mounting of the Istio secrets. For non RBAC cluster modify
 
 ```yaml
 ---
-apiVersion: v1
-kind: Service
+apiVersion: getambassador.io/v1
+kind: Module
 metadata:
-  labels:
-    service: ambassador
-  name: ambassador
-  annotations:
-    getambassador.io/config: |
-      ---
-      apiVersion: ambassador/v1
-      kind:  Mapping
-      name:  httpbin_mapping
-      prefix: /httpbin/
-      service: httpbin.org:80
-      host_rewrite: httpbin.org
-      ---
-      apiVersion: ambassador/v1
-      kind:  Module
-      name: tls
-      config:
-        server:
-          enabled: True
-          redirect_cleartext_from: 8080
-      ---
-      apiVersion: ambassador/v1
-      kind: TLSContext
-      name: istio-upstream
-      cert_chain_file: /etc/istiocerts/cert-chain.pem
-      private_key_file: /etc/istiocerts/key.pem
-      cacert_chain_file: /etc/istiocerts/root-cert.pem
+  name: tls
 spec:
-  type: LoadBalancer
-  ports:
-  - name: ambassador
-    port: 80
-    targetPort: 8080
-  selector:
-    service: ambassador
+  config:
+    server:
+      enabled: True
+      redirect_cleartext_from: 8080
+---
+apiVersion: getambassador.io/v1
+kind: TLSContext
+metadata:
+  name: istio-upstream
+spec:
+  cert_chain_file: /etc/istiocerts/cert-chain.pem
+  private_key_file: /etc/istiocerts/key.pem
+  cacert_chain_file: /etc/istiocerts/root-cert.pem
+
 ```
 
 This will define an `upstream` that uses the Istio certificates. We can now reuse the `istio-upstream` in all Ambassador mappings to enable communication with Istio pods.
 
 ``` yaml
+---
+apiVersion: getambassador.io/v1
+kind: Mapping
+metadata: 
+  name: productpage
+spec:     
+  prefix: /productpage/
+  rewrite: /productpage
+  service: https://productpage:9080
+  tls: istio-upstream
+---
 apiVersion: v1
 kind: Service
 metadata:
   name: productpage
   labels:
     app: productpage
-  annotations:
-    getambassador.io/config: |
-      ---
-      apiVersion: ambassador/v1
-      kind: Mapping
-      name: productpage_mapping
-      prefix: /productpage/
-      rewrite: /productpage
-      service: https://productpage:9080
-      tls: istio-upstream
 spec:
   ports:
   - port: 9080
@@ -314,13 +282,15 @@ For service-to-service calls via the Istio proxy, Istio will automatically handl
 
 ```yaml
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v1
 kind: TLSContext
-name: istio-upstream
-cert_chain_file: /etc/istiocerts/cert-chain.pem
-private_key_file: /etc/istiocerts/key.pem
-cacert_chain_file: /etc/istiocerts/root-cert.pem
-alpn_protocols: "istio"
+metadata:
+  name: istio-upstream
+spec:
+  cert_chain_file: /etc/istiocerts/cert-chain.pem
+  private_key_file: /etc/istiocerts/key.pem
+  cacert_chain_file: /etc/istiocerts/root-cert.pem
+  alpn_protocols: "istio"
 ```
 
 
@@ -348,15 +318,15 @@ zipkin    ClusterIP   10.102.146.104   <none>        9411/TCP   7m
 
 If Istio's Zipkin is up & running on `istio-system` Namespace, add the `TracingService` annotation pointing to it:
 ```yaml
-  annotations:
-    getambassador.io/config: |
-      ---
-      apiVersion: ambassador/v1
-      kind: TracingService
-      name: tracing
-      service: "zipkin.istio-system:9411"
-      driver: zipkin
-      config: {}
+---
+apiVersion: getambassador.io/v1
+kind: TracingService
+metadata:
+  name: tracing
+spec:
+  service: "zipkin.istio-system:9411"
+  driver: zipkin
+  config: {}
 ```
 
 *Note:* We are using the DNS entry `zipkin.istio-system` as well as the port that our service is running, in this case `9411`. Please see [Distributed Tracing](https://www.getambassador.io/reference/services/tracing-service) for more details on Tracing configuration.

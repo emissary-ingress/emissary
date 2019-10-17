@@ -53,25 +53,15 @@ spec:
    - port: 80
   selector:
     service: ambassador
-
 ---
-apiVersion: v1
-kind: Service
+apiVersion: getambassador.io/v1
+kind:  Mapping
 metadata:
-  name: httpbin
-  annotations:
-    getambassador.io/config: |
-      ---
-      apiVersion: ambassador/v1
-      kind:  Mapping
-      name:  httpbin_mapping
-      prefix: /httpbin/
-      service: httpbin.org:80
-      host_rewrite: httpbin.org
+  name:  httpbin
 spec:
-  ports:
-  - name: httpbin
-    port: 80
+  prefix: /httpbin/
+  service: httpbin.org
+  host_rewrite: httpbin.org
 ```
 And apply this into your cluster, e.g.:
 

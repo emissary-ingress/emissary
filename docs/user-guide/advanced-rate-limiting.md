@@ -28,15 +28,17 @@ Imagine the backend service is a Rust-y application that can only handle 3 reque
 We update the mapping for the `tour` service to add a request label `backend` to the route as part of a `request_label_group`:
 
 ```yaml
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v1
 kind: Mapping
-name: tour-backend_mapping
-prefix: /backend/
-service: tour
-labels:
-  ambassador:
-    - request_label_group:
-      - backend
+metadata:
+  name: tour-backend
+spec:
+  prefix: /backend/
+  service: tour
+  labels:
+    ambassador:
+      - request_label_group:
+        - backend
 ```
 
 *Note* If you're modifying an existing mapping, make sure you to update the apiVersion to `v1` as above from `v0`.
@@ -58,22 +60,24 @@ spec:
 
 `generic_key` in the example above is a special, hard-coded value that is used when a single string label is added to a request.
 
-Deploy the rate limit with `kubectl apply -f backend-ratelimit.yaml`. (Make sure you `kubectly apply` the modified `tour-backend_mapping` mapping as well.)
+Deploy the rate limit with `kubectl apply -f backend-ratelimit.yaml`. (Make sure you `kubectly apply` the modified `tour-backend` mapping as well.)
 
 ## Example 2: Per user rate limiting
 
 Suppose you've rewritten the tour backend service in Golang, and it's humming along nicely. You then discover that some users are taking advantage of this speed to sometimes cause a big spike in requests. You want to make sure that your API doesn't get overwhelmed by any single user. We use the `remote_address` special value in our mapping, which will automatically label all requests with the calling IP address:
 
 ```yaml
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v1
 kind: Mapping
-name: tour-backend_mapping
-prefix: /backend/
-service: tour
-labels:
-  ambassador:
-    - request_label_group:
-      - remote_address
+metadata:
+  name: tour-backend
+spec:
+  prefix: /backend/
+  service: tour
+  labels:
+    ambassador:
+      - request_label_group:
+        - remote_address
 ```
 
 We then update our rate limits to limit on `remote_address`:
@@ -91,7 +95,7 @@ spec:
      unit: minute
 ```
 
-Note for this to work, you need to make sure you've properly configured Ambassador to [propagate your original client IP address](https://www.getambassador.io/reference/modules/#use_remote_address).
+Note for this to work, you need to make sure you've properly configured Ambassador to [propagate your original client IP address](https://www.getambassador.io/reference/core/ambassador/#use_remote_address).
 
 ## Example 3: Load shedding GET requests
 
@@ -101,12 +105,14 @@ You've dramatically improved availability of the tour backend service, thanks to
 * We're going to implement a global rate limit on `GET` requests, but not `POST` requests.
 
 ```yaml
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v1
 kind: Mapping
-name: tour-backend_mapping
-prefix: /backend/
-service: tour
-labels:
+metadata:
+  name: tour-backend
+spec:
+  prefix: /backend/
+  service: tour
+  labels:
     ambassador:
       - request_label_group:
         - remote_address
@@ -135,16 +141,18 @@ Suppose, like [Example 2](/user-guide/advanced-rate-limiting#example-2-per-user-
 
 ```yaml
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v1
 kind: Module
-name: ambassador
-config:
-  use_remote_address: true
-  default_label_domain: ambassador
-  default_labels:
-    ambassador:
-      defaults:
-      - remote_address
+matadata:
+  name: ambassador
+spec:
+  config:
+    use_remote_address: true
+    default_label_domain: ambassador
+    default_labels:
+      ambassador:
+        defaults:
+        - remote_address
 ```
 
 We can then configure a global `RateLimit` object that limits on `remote_address`:
@@ -166,15 +174,17 @@ spec:
 Sometimes, you may have an API that cannot handle as much load as others in your cluster. In this case, a global rate limit may not be enough to ensure this API is not overloaded with requests from a user. To protect this API, you will need to create a label that tells Ambassador Pro to apply a stricter limit on requests. With the above global rate limit configuration rate limiting based off `remote_address`, you will need to add a request label to the services `Mapping`: 
 
 ```yaml
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v1
 kind: Mapping
-name: tour-backend_mapping
-prefix: /backend/
-service: tour
-labels:
-  ambassador:
-    - request_label_group:
-      - backend
+metadata:
+  name: tour-backend
+spec:
+  prefix: /backend/
+  service: tour
+  labels:
+    ambassador:
+      - request_label_group:
+        - backend
 ```
 
 Now, the `request_label_group`, contains both the `generic_key: backend` *and* the `remote_address` key applied from the global rate limit. This allows us to create a separate `RateLimit` object for this route:

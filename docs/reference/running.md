@@ -105,20 +105,14 @@ If you are using Ambassador Pro, if you set `AMBASSADOR_NAMESPACE` or `AMBASSADO
 Ambassador supports running multiple Ambassadors in the same cluster, without restricting a given Ambassador to a single namespace. This is done with the `AMBASSADOR_ID` setting. In the Ambassador module, set the `ambassador_id`, e.g.,
 
 ```yaml
-apiVersion: v1
-kind: Service
+---
+apiVersion: getambassador.io/v1
+kind:  Module
 metadata:
-  name: ambassador
-  namespace: ambassador-1
-  labels:
-    app: ambassador
-  annotations:
-    getambassador.io/config: |
-      ---
-      apiVersion: ambassador/v1
-      kind:  Module
-      name:  ambassador
-      ambassador_id: ambassador-1
+  name:  ambassador
+spec:
+  config:
+    ambassador_id: ambassador-1
 ```
 
 Then, assign each Ambassador pod a unique `AMBASSADOR_ID` with the environment variable as part of your deployment:
@@ -135,32 +129,40 @@ Ambassador will then only use YAML objects that include an appropriate `ambassad
 
 ```yaml
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v1
 kind:  Mapping
-name:  mapping_used_1
-ambassador_id: ambassador-1
-prefix: /demo1/
-service: demo1
+metadata:
+  name:  mapping-used
+spec:
+  ambassador_id: ambassador-1
+  prefix: /demo1/
+  service: demo1
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v1
 kind:  Mapping
-name:  mapping_used_2
-ambassador_id: [ "ambassador-1", "ambassador-2" ]
-prefix: /demo2/
-service: demo2
+metadata:
+  name:  mapping-used-2
+spec:
+  ambassador_id: [ "ambassador-1", "ambassador-2" ]
+  prefix: /demo2/
+  service: demo2
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v1
 kind:  Mapping
-name:  mapping_skipped_1
-prefix: /demo3/
-service: demo3
+metadata:
+  name:  mapping-skipped
+spec:
+  prefix: /demo3/
+  service: demo3
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v1
 kind:  Mapping
-name:  mapping_skipped_2
-ambassador_id: ambassador-2
-prefix: /demo4/
-service: demo4
+metadata:
+  name:  mapping-skipped-2
+spec:
+  ambassador_id: ambassador-2
+  prefix: /demo4/
+  service: demo4
 ```
 
 The list syntax (shown in `mapping_used_2` above) permits including a given object in the configuration for multiple Ambassadors. In this case `mapping_used_2` will be included in the configuration for `ambassador-1` and also for `ambassador-2`.

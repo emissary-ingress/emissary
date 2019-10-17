@@ -10,26 +10,32 @@ You may have multiple mappings listing the same resource but different `host` at
 
 ```yaml
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v1
 kind:  Mapping
-name:  tour-ui_mapping
-prefix: /
-service: tour1
+metadata:
+  name:  tour-ui
+spec:
+  prefix: /
+  service: tour1
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v1
 kind:  Mapping
-name:  tour-ui2_mapping
-prefix: /
-host: tour.datawire.io
-service: tour2
+metadata:
+  name:  tour-ui2
+spec:
+  prefix: /
+  host: tour.datawire.io
+  service: tour2
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v1
 kind:  Mapping
-name:  tour-ui3_mapping
-prefix: /
-host: "^tour[2-9]\\.datawire\\.io$"
-host_regex: true
-service: tour3
+metadata:
+  name:  tour-ui3
+spec:
+  prefix: /
+  host: "^tour[2-9]\\.datawire\\.io$"
+  host_regex: true
+  service: tour3
 ```
 
 will map requests for `/` to
@@ -48,12 +54,14 @@ An example: the default Ambassador configuration includes the following mapping 
 
 ```yaml
 ---
-apiVersion: ambassador/v1
-kind: Mapping
-name: httpbin_mapping
-prefix: /httpbin/
-service: httpbin.org:80
-host_rewrite: httpbin.org
+apiVersion: getambassador.io/v1
+kind:  Mapping
+metadata:
+  name:  httpbin
+spec:
+  prefix: /httpbin/
+  service: httpbin.org:80
+  host_rewrite: httpbin.org
 ```
 
 As it happens, `httpbin.org` is virtually hosted, and it simply _will not_ function without a `Host` header of `httpbin.org`, which means that the `host_rewrite` attribute is necessary here.

@@ -36,9 +36,12 @@ circuit_breakers:
 Circuit breakers defined on a single mapping:
 
 ```yaml
-apiVersion: ambassador/v1
+---
+apiVersion: getambassador.io/v1
 kind:  Mapping
-name:  tour-backend_mapping
+metadata:
+  name:  tour-backend
+spec:
 prefix: /backend/
 service: tour
 circuit_breakers:
@@ -49,17 +52,21 @@ circuit_breakers:
 A global circuit breaker:
 
 ```yaml
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v1
 kind:  Module
-name:  ambassador
-config:
-  circuit_breakers:
-  - max_connections: 2048
-    max_pending_requests: 2048
+metadata:
+  name:  ambassador
+spec:
+  config:
+    circuit_breakers:
+    - max_connections: 2048
+      max_pending_requests: 2048
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v1
 kind:  Mapping
-name:  tour-backend_mapping
+metadata:
+  name:  tour-backend
+spec:
 prefix: /backend/
 service: tour
 ```

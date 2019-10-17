@@ -7,19 +7,21 @@ Ambassador makes it easy to access your services from outside your application, 
 The example configuration below demonstrates the addition of the `use_websocket` attribute.
 
 ```yaml
+---
+apiVersion: getambassador.io/v1
+kind: Mapping
+metadata:
+  name: my-service-mapping
+spec:
+  prefix: /my-service/
+  service: my-service
+  use_websocket: true
+
+---
 kind: Service
 apiVersion: v1
 metadata:
   name: my-service
-  annotations:
-    getambassador.io/config: |
-      ---
-        apiVersion: ambassador/v1
-        kind:  Mapping
-        name:  my_service_mapping
-        prefix: /my-service/
-        service: my-service
-        use_websocket: true
 spec:
   selector:
     app: MyApp
