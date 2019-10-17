@@ -492,52 +492,6 @@ appears as a subdirectory of the other.
 
     a. Then run `make docker-update-base` to compile Envoy, and build+push new docker base images incorporating that Envoy binary.  This will also update the `go/apis/envoy/` directory if any of Envoy's protobuf definitions have changed; make sure to commit those changes when you commit the change to `ENVOY_COMMIT`.
 
-Updating the Test Services
---------------------------
-
-When running the tests, Ambassador relies on several different backend test services.
-These all live in the `test-services` directory, and can be rebuild with 
-
-```
-make test-services
-```
-
-which will build the test services, then push them to `$(DOCKER_REGISTRY)`.
-
-**Using locally-built tests:**
-
-To use a single test service that you've built locally, set the environment variable
-`TEST_SERVICE_$svc` to point to the image you've just built and pushed, e.g.
-
-```
-export TEST_SERVICE_AUTH=dwflynn/test_services:test-auth-v0.80.0-28-g3ed96316
-```
-
-before running `make test`. The different `$svc` possibilities are `auth`, `auth-tls`,
-`ratelimit`, `shadow`, and `stats`.
-
-To use your copy of _all_ the test services:
-
-```
-export TEST_SERVICE_REGISTRY=$registry
-export TEST_SERVICE_VERSION=$version
-```
-
-before running `make test`, e.g.
-
-```
-export TEST_SERVICE_REGISTRY=dwflynn/test_services
-export TEST_SERVICE_VERSION=v0.80.0-28-g3ed96316
-```
-
-to match the example above.
-
-**Updating the official tests:**
-
-The official versions of the test services live in the `quay.io/datawire/test_services` registry.
-To update those (which will require you to work at Datawire!), update `TEST_SERVICE_VERSION`
-in the Makefile and then `make test-services-release`.
-
 Version Numbering
 -----------------
 

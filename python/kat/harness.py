@@ -30,13 +30,10 @@ class TestImage:
     def __init__(self, *args, **kwargs) -> None:
         self.images: Dict[str, str] = {}
 
-        default_registry = os.environ.get('TEST_SERVICE_REGISTRY', 'quay.io/datawire/test_services')
-        default_version = os.environ.get('TEST_SERVICE_VERSION', '0.0.3')
-
         for svc in ['auth', 'auth-tls', 'ratelimit', 'shadow', 'stats']:
             key = svc.replace('-', '_').upper()
 
-            image = os.environ.get(f'TEST_SERVICE_{key}', f'{default_registry}:test-{svc}-{default_version}')
+            image = os.environ[f'TEST_SERVICE_{key}']
 
             self.images[svc] = image
 
