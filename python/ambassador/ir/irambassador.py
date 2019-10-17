@@ -42,6 +42,7 @@ class IRAmbassador (IRResource):
         'load_balancer',
         'readiness_probe',
         'regex_type',
+        'regex_max_size',
         'resolver',
         'debug_mode',
         'server_name',
