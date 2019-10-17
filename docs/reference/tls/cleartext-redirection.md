@@ -71,6 +71,8 @@ To configure Ambassador to handle this behavior you need set `redirect_cleartext
 
 As shown above, Ambassador performs this http -> https redirection by issuing a `301` redirect to `https://<hostname>/`. The `<hostname>` represents the domain name/IP address and port of the incoming request. This means if a port is defined on an incoming request, it will be redirected to https on that port. Because of this, cleartext redirection is not supported when using non-default http and https ports.
 
+Also, if you use multiple `TLSContext`s, it doesn't matter which `TLSContext` sets `redirect_cleartext_from`. However, it is an error to attempt to set `redirect_cleartext_from` on multiple distinct ports in multiple distinct `TLSContext`s.
+
 ## Protocol-based Redirection
 
 Ambassador can perform HTTP -> HTTPS redirection based off the protocol of the incoming request. This is done by checking the `x-forwarded-proto` header that can be set by an L7 load balancer or proxy sitting in front of Ambassador.
