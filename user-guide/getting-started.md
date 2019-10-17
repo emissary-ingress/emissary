@@ -1,12 +1,12 @@
-# Deploying Ambassador to Kubernetes
+# Deploying Ambassador Edge Stack to Kubernetes
 
-In this tutorial, we'll walk through the process of deploying Ambassador in Kubernetes for ingress routing. Ambassador provides all the functionality of a traditional ingress controller (i.e., path-based routing) while exposing many additional capabilities such as [authentication](/user-guide/auth-tutorial), URL rewriting, CORS, rate limiting, and automatic metrics collection (the [mappings reference](/reference/mappings) contains a full list of supported options). For more background on Kubernetes ingress, [read this blog post](https://blog.getambassador.io/kubernetes-ingress-nodeport-load-balancers-and-ingress-controllers-6e29f1c44f2d).
+In this tutorial, we'll walk through the process of deploying Ambassador Edge Stack in Kubernetes for ingress routing. Ambassador Edge Stack provides all the functionality of a traditional ingress controller (i.e., path-based routing) while exposing many additional capabilities such as [authentication](/user-guide/auth-tutorial), URL rewriting, CORS, rate limiting, and automatic metrics collection (the [mappings reference](/reference/mappings) contains a full list of supported options). For more background on Kubernetes ingress, [read this blog post](https://blog.getambassador.io/kubernetes-ingress-nodeport-load-balancers-and-ingress-controllers-6e29f1c44f2d).
 
-Ambassador is designed to allow service authors to control how their service is published to the Internet. We accomplish this by permitting a wide range of annotations on the *service*, which Ambassador reads to configure its Envoy Proxy. Below, we'll use service annotations to configure Ambassador to map `/httpbin/` to `httpbin.org`.
+Ambassador Edge Stack is designed to allow service authors to control how their service is published to the Internet. We accomplish this by permitting a wide range of annotations on the *service*, which Ambassador Edge Stack reads to configure its Envoy Proxy. Below, we'll use service annotations to configure Ambassador Edge Stack to map `/httpbin/` to `httpbin.org`.
 
-## 1. Deploying Ambassador
+## 1. Deploying Ambassador Edge Stack
 
-To deploy Ambassador in your **default** namespace, first you need to check if Kubernetes has RBAC enabled:
+To deploy Ambassador Edge Stack in your **default** namespace, first you need to check if Kubernetes has RBAC enabled:
 
 ```shell
 kubectl cluster-info dump --namespace kube-system | grep authorization-mode
@@ -15,7 +15,7 @@ kubectl cluster-info dump --namespace kube-system | grep authorization-mode
 If you see something like `--authorization-mode=Node,RBAC` in the output, then RBAC is enabled. The majority of current hosted Kubernetes providers (such as GKE) create
 clusters with RBAC enabled by default, and unfortunately the above command may not return any information indicating this.
 
-Note: If you're using Google Kubernetes Engine with RBAC, you'll need to grant permissions to the account that will be setting up Ambassador. To do this, get your official GKE username, and then grant `cluster-admin` role privileges to that username:
+Note: If you're using Google Kubernetes Engine with RBAC, you'll need to grant permissions to the account that will be setting up Ambassador Edge Stack. To do this, get your official GKE username, and then grant `cluster-admin` role privileges to that username:
 
 ```
 $ kubectl create clusterrolebinding my-cluster-admin-binding --clusterrole=cluster-admin --user=$(gcloud info --format="value(config.account)")
@@ -35,16 +35,16 @@ kubectl apply -f https://getambassador.io/yaml/ambassador/ambassador-no-rbac.yam
 
 We recommend downloading the YAML files and exploring the content. You will see
 that an `ambassador-admin` NodePort Service is created (which provides an
-Ambassador Diagnostic web UI), along with an ambassador ClusterRole, ServiceAccount and ClusterRoleBinding (if RBAC is enabled). An Ambassador Deployment is also created.
+Ambassador Diagnostic web UI), along with an ambassador ClusterRole, ServiceAccount and ClusterRoleBinding (if RBAC is enabled). An Ambassador Edge Stack Deployment is also created.
 
-When not installing Ambassador into the default namespace you must update the namespace used in the `ClusterRoleBinding` when RBAC is enabled.
+When not installing Ambassador Edge Stack into the default namespace you must update the namespace used in the `ClusterRoleBinding` when RBAC is enabled.
 
 For production configurations, we recommend you download these YAML files as your starting point, and customize them accordingly.
 
 
-## 2. Defining the Ambassador Service
+## 2. Defining the Ambassador Edge Stack Service
 
-Ambassador is deployed as a Kubernetes Service that references the ambassador
+Ambassador Edge Stack is deployed as a Kubernetes Service that references the ambassador
 Deployment you deployed previously. Create the following YAML and put it in a file called
 `ambassador-service.yaml`.
 
@@ -70,7 +70,7 @@ Deploy this service with `kubectl`:
 $ kubectl apply -f ambassador-service.yaml
 ```
 
-The YAML above creates a Kubernetes service for Ambassador of type `LoadBalancer`, and configures the `externalTrafficPolicy` to propagate [the original source IP](https://kubernetes.io/docs/tasks/access-application-cluster/create-external-load-balancer/#preserving-the-client-source-ip) of the client. All HTTP traffic will be evaluated against the routing rules you create. Note that if you're not deploying in an environment where `LoadBalancer` is a supported type (such as minikube), you'll need to change this to a different type of service, e.g., `NodePort`.
+The YAML above creates a Kubernetes service for Ambassador Edge Stack of type `LoadBalancer`, and configures the `externalTrafficPolicy` to propagate [the original source IP](https://kubernetes.io/docs/tasks/access-application-cluster/create-external-load-balancer/#preserving-the-client-source-ip) of the client. All HTTP traffic will be evaluated against the routing rules you create. Note that if you're not deploying in an environment where `LoadBalancer` is a supported type (such as minikube), you'll need to change this to a different type of service, e.g., `NodePort`.
 
 If you have a static IP provided by your cloud provider you can set as `loadBalancerIP`.
 
@@ -160,7 +160,7 @@ This YAML has also been published so you can deploy it remotely:
 kubectl apply -f https://getambassador.io/yaml/tour/tour.yaml
 ```
 
-When the `Mapping` CRDs are applied, Ambassador will use them to configure routing:
+When the `Mapping` CRDs are applied, Ambassador Edge Stack will use them to configure routing:
 
 - The first `Mapping` causes traffic from the `/` endpoint to be routed to the `tour-ui` React application.
 - The second `Mapping` causes traffic from the `/backend/` endpoint to be routed to the `tour-backend` service.
@@ -169,7 +169,7 @@ Note also the port numbers in the `service` field of the `Mapping`. This allows 
 
 ## 4. Testing the Mapping
 
-To test things out, we'll need the external IP for Ambassador (it might take some time for this to be available):
+To test things out, we'll need the external IP for Ambassador Edge Stack (it might take some time for this to be available):
 
 ```shell
 kubectl get svc -o wide ambassador
@@ -214,7 +214,7 @@ http://localhost/
 
 ## 5. The Diagnostics Service in Kubernetes
 
-Ambassador includes an integrated diagnostics service to help with troubleshooting. 
+Ambassador Edge Stack includes an integrated diagnostics service to help with troubleshooting. 
 
 By default, this is exposed to the internet at the URL `http://{{AMBASSADOR_HOST}}/ambassador/v0/diag/`. Go to that URL from a web browser to view the diagnostic UI.
 
@@ -231,7 +231,7 @@ spec:
       enabled: false
 ```
 
-After applying this `Module`, to view the diagnostics UI, we'll need to get the name of one of the Ambassador pods:
+After applying this `Module`, to view the diagnostics UI, we'll need to get the name of one of the Ambassador Edge Stack pods:
 
 ```
 $ kubectl get pods
@@ -250,18 +250,18 @@ will then let us view the diagnostics at http://localhost:8877/ambassador/v0/dia
 
 ## 6. Enable HTTPS
 
-Ambassador's versatile HTTPS configuration lets it support various HTTPS use cases whether simple or complex. 
+Ambassador Edge Stack's versatile HTTPS configuration lets it support various HTTPS use cases whether simple or complex. 
 
 Follow our [enabling HTTPS guide](/user-guide/tls-termination) to quickly enable HTTPS support for your applications.
 
 
 ## Next Steps
 
-We've just done a quick tour of some of the core features of Ambassador: diagnostics, routing, configuration, and authentication.
+We've just done a quick tour of some of the core features of Ambassador Edge Stack: diagnostics, routing, configuration, and authentication.
 
 - Join us on [Slack](https://d6e.co/slack);
 - Learn how to [add authentication](/user-guide/auth-tutorial) to existing services; or
 - Learn how to [add rate limiting](/user-guide/rate-limiting-tutorial) to existing services; or
 - Learn how to [add tracing](/user-guide/tracing-tutorial); or
-- Learn how to [use gRPC with Ambassador](/user-guide/grpc); or
-- Read about [configuring Ambassador](/reference/configuration).
+- Learn how to [use gRPC with Ambassador Edge Stack](/user-guide/grpc); or
+- Read about [configuring Ambassador Edge Stack](/reference/configuration).

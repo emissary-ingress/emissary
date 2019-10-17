@@ -1,8 +1,8 @@
-# Deploying Ambassador to Docker Compose for local development
+# Deploying Ambassador Edge Stack to Docker Compose for local development
 
-Docker Compose is useful for local development where Minikube may be undesirable. This guide is not intended for production deployments but it is intended to allow developers to quickly try out Ambassador features in a simple, local environment.
+Docker Compose is useful for local development where Minikube may be undesirable. This guide is not intended for production deployments but it is intended to allow developers to quickly try out Ambassador Edge Stack features in a simple, local environment.
 
-*It is important to note that any change to Ambassador's configuration using this method requires a restart of the Ambassador container and thus downtime.*
+*It is important to note that any change to Ambassador Edge Stack's configuration using this method requires a restart of the Ambassador Edge Stack container and thus downtime.*
 
 ## Prerequisites
 
@@ -10,7 +10,7 @@ We assume that you have the latest version of Docker at the time of the writing 
 
 ## 1. Creating a simple Docker Compose environment
 
-In this guide we will begin with a basic Ambassador API Gateway and add features over time. Not all features will be covered but by the end of this read you should know how to configure Ambassador to meet your local development needs.
+In this guide we will begin with a basic Ambassador Edge Stack API Gateway and add features over time. Not all features will be covered but by the end of this read you should know how to configure Ambassador Edge Stack to meet your local development needs.
 
 ### Create docker-compose.yaml file
 
@@ -33,13 +33,13 @@ services:
     - AMBASSADOR_NO_KUBEWATCH=no_kubewatch
 ```
 
-Note the mounted volume. When Ambassador bootstraps on container startup it checks the `/ambassador/ambassador-config` directory for configuration files. We will use this behavior to configure ambassador.
+Note the mounted volume. When Ambassador Edge Stack bootstraps on container startup it checks the `/ambassador/ambassador-config` directory for configuration files. We will use this behavior to configure ambassador.
 
-Note also the `AMBASSADOR_NO_KUBEWATCH` environment variable. Without this, Ambassador will try to use the Kubernetes API to watch for service changes, which won't work in Docker.
+Note also the `AMBASSADOR_NO_KUBEWATCH` environment variable. Without this, Ambassador Edge Stack will try to use the Kubernetes API to watch for service changes, which won't work in Docker.
 
 ### Create the initial configuration
 
-Ambassador will interpret a total absence of configuration information as meaning that it should wait for dynamic configuration, so we'll give it a bare-bones configuration to get started.
+Ambassador Edge Stack will interpret a total absence of configuration information as meaning that it should wait for dynamic configuration, so we'll give it a bare-bones configuration to get started.
 
 Create a `config` folder (which must match the mounted volume in the `docker-compose.yaml` file) and add a file called `ambassador.yaml` to the directory.
 (Note: Configuration files can have any name or combined into the same yaml file)
@@ -59,9 +59,9 @@ name: ambassador
 config: {}
 ```
 
-This will allow Ambassador to come up with a completely default configuration.
+This will allow Ambassador Edge Stack to come up with a completely default configuration.
 
-### Test using Ambassador's Diagnostics
+### Test using Ambassador Edge Stack's Diagnostics
 
 Run your compose environment and curl the diagnostics endpoint to ensure the compose file is working as expected.
 
@@ -83,7 +83,7 @@ x-envoy-upstream-service-time: 10
 
 ## 2. Make a change to the default configuration
 
-Let's turn off the diagnostics page to demonstrate how we will enable and configure Ambassador.
+Let's turn off the diagnostics page to demonstrate how we will enable and configure Ambassador Edge Stack.
 
 Edit the contents of the `config/ambassador.yaml` to this yaml configuration:
 
@@ -201,7 +201,7 @@ rewrite: /
 service: tour-backend:8080
 ```
 
-### Restart Ambassador and test
+### Restart Ambassador Edge Stack and test
 
 Re-run the same test as in the previous section to ensure the route works as before. This time we will need to bring up the new service first.
 
@@ -331,7 +331,7 @@ curl -v --user username:password localhost:8080/backend/get-quote/
 
 ## 5. Tracing
 
-As a final example we will configure Ambassador to send Zipkin traces to Jaeger. Integrating Zipkin into your services can be a vital glimpse into the performance bottlenecks of a distributed system.
+As a final example we will configure Ambassador Edge Stack to send Zipkin traces to Jaeger. Integrating Zipkin into your services can be a vital glimpse into the performance bottlenecks of a distributed system.
 
 ### Add the Jaeger container to the docker-compose.yaml file
 
@@ -377,7 +377,7 @@ services:
       - 9411:9411
 ```
 
-### Create a tracing configuration file for Ambassador
+### Create a tracing configuration file for Ambassador Edge Stack
 
 Add a new configuration file `config/tracing.yaml` with these contents:
 
@@ -390,7 +390,7 @@ service: tracing:9411
 driver: zipkin
 ```
 
-This will forward all of Ambassador's traces to the `tracing` service.
+This will forward all of Ambassador Edge Stack's traces to the `tracing` service.
 
 ### Make requests and observe the traces
 
@@ -411,4 +411,4 @@ In a browser you can go to [http://localhost:16686/](http://localhost:16686/) an
 
 ## Next Steps
 
-We have demonstrated that all the configurations that would normally be stored in kubernetes annotations can be saved as a yaml document in a volume mapped to `/ambassador/ambassador-config` within the Ambassador docker container. Hopefully this guide can be used to test new configurations locally before moving to a Kubernetes cluster. Of course, there will be differences between docker-compose and the Kubernetes implementation and one should be sure to test thoroughly in the latter before moving to production.
+We have demonstrated that all the configurations that would normally be stored in kubernetes annotations can be saved as a yaml document in a volume mapped to `/ambassador/ambassador-config` within the Ambassador Edge Stack docker container. Hopefully this guide can be used to test new configurations locally before moving to a Kubernetes cluster. Of course, there will be differences between docker-compose and the Kubernetes implementation and one should be sure to test thoroughly in the latter before moving to production.
