@@ -142,18 +142,6 @@ Gotchas/Prerequisites
    straightforward to modify the harness to limit the batch size if
    needed.)
 
- - The harness (and thus the tutorial) expects you to be running
-   `teleproxy` against the cluster. Telepresence should also work,
-   with the caveat that I haven't tried it. If the tele* requirement
-   turns out to be too brittle/environmentally sensitive, we can move
-   the traffic driver into the cluster, but so far I have found it to
-   be a very convenient way to work since I can directly interact with
-   both ambassader and all the backend services it fronts.
-
-   See the "How to use" section of
-   https://github.com/datawire/teleproxy for installation
-   instructions) against that cluster.
-
  - Because the harness works in batches, there is generally a pause up
    front and then all the tests run really fast. I recommend supplying
    the `-s` option to py.test since the harness will report progress
@@ -175,17 +163,7 @@ Running tests
 
 1. Get a kubernetes cluster and make sure your kubectl is pointed to it by default.
 
-2. Install teleproxy:
-
- - go get github.com/datawire/teleproxy/cmd/teleproxy
- - sudo chown root:wheel $(which teleproxy)
- - sudo chmod u+s $(which teleproxy)
-
-3. Fire up teleproxy:
-
- - teleproxy
-
-4. Run `py.test -s` from the appropriate directory:
+2. Run `py.test -s` from the appropriate directory:
 
  - cd ${BLAH}/poc
  - py.test -s

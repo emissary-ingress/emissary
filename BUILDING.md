@@ -70,12 +70,11 @@ Quick Build
 
 Building Ambassador is straightforward:
 
-```
-git clone https://github.com/datawire/ambassador
-cd ambassador
-git checkout master
-git checkout -b username/feature/my-branch-here
-make DOCKER_REGISTRY=<YOUR DOCKER REGISTRY> docker-push
+```console
+$ git clone https://github.com/datawire/ambassador
+$ cd ambassador
+ambassador$ git checkout -b username/feature/my-branch-here origin/master
+ambassador$ DEV_DOCKER_REPO=<YOUR_DOCKER_REPO> make docker-push
 ```
 
 This will build a Docker image of Ambassador containing your code changes and push it to your given registry. Once it's pushed, you can deploy the new image onto your cluster.
@@ -89,8 +88,8 @@ Ambassador is infrastructure software, so robust testing is a must. To build
 Ambassador and run all of the regression tests, run `make` with the following 
 arguments:
 
-```
-make DOCKER_REGISTRY=<YOUR DOCKER REGISTRY> KUBECONFIG=<YOUR KUBE CONFIG>
+```console
+ambassador$ DEV_DOCKER_REPO=<YOUR_DOCKER_REPO> KUBECONFIG=<YOUR_KUBE_CONFIG> make test
 ```
 
 The regression tests need a Kubernetes cluster to run, **and they assume that they have 
@@ -191,7 +190,7 @@ go version go1.13.1 darwin/amd64
 
 1. `git clone https://github.com/datawire/ambassador`
 2. `cd ambassador`
-3. `export DOCKER_REGISTRY=$registry`
+3. `export DEV_DOCKER_REPO=$repository`
 4. `git checkout -b username/feature/my-branch-here`
 5. `make setup-develop`
 6. `make test`, or
@@ -207,15 +206,17 @@ go version go1.13.1 darwin/amd64
 You can just follow the script above, but it may well be helpful to know some
 of the details around the build environment and workflow:
 
-#### `export DOCKER_REGISTRY=$registry`
+#### `export DEV_DOCKER_REPO=$repository`
 
 **This is mandatory.** It sets the registry to which you'll push Docker images, e.g.:
 
 - "dwflynn" will push to Dockerhub with user `dwflynn`
 - "gcr.io/flynn" will push to GCR with user `flynn`
 
+<!--
 If you're using minikube and don't want to push at all, set `DOCKER_REGISTRY` to "-".
 (If you're not using minikube, this is probably a _terrible_ idea.)
+-->
 
 You can separately tweak the registry from which images will be _pulled_ using
 `AMBASSADOR_REGISTRY`. See the files in `templates` for more here.
@@ -236,11 +237,11 @@ run the tests with `make test`, or to e.g. run the Ambassador CLI
 
 #### Docker Image Names
 
-Running `make docker-images` or `make docker-push` in development
-builds a Docker image that includes the short Git hash of your current
-commit in its name (because if the name doesn't change when you commit
-new code, it can be very hard to get some Kubernetes environments to
-actually pull the new image!).
+Running `make ambassador.docker.tag.dev` or `make docker-push` in
+development builds a Docker image that includes its own image hash in
+its name (because if the name doesn't change when you commit new code,
+it can be very hard to get some Kubernetes environments to actually
+pull the new image!).
 
 **Whenever you commit new code, you must rerun `make docker-push` 
 before doing things that try to use the image.** Yes, this is annoying,
@@ -322,10 +323,6 @@ The first time you run the tests, applying everything takes awhile. Be
 patient: the test suite tries hard not to do work it doesn't need to, so
 it will be much faster the second time.
 
-If you're using Kubernaut, you can release the Kubernaut cluster with
-`make clean-test`. This will happen automatically when you run `make clean`.
-The next `make test` run will claim a new Kubernaut cluster.
-
 Type Hinting
 ------------
 
@@ -335,7 +332,7 @@ good place to start is
 [the `mypy` cheat sheet](https://mypy.readthedocs.io/en/latest/cheat_sheet_py3.html).
 
 New code must be hinted, and the build process will verify that the type
-check passes when you `make docker-images`. Fair warning: this means that
+check passes when you `make test`. Fair warning: this means that
 PRs will not pass CI if the type checker fails.
 
 We strongly recommend using an editor that can do realtime type checking
@@ -365,15 +362,16 @@ CI runs Ambassador's test suite on every build. **You will be asked to add tests
 
 For more information on the test suite, see [its README](python/tests/README.md).
 
+<!--
 #### Running tests locally (in minikube)
 Tests consume quite a lot of resources, so make sure you allocate them accordingly to your minikube instance. (Honestly, if you're on a Mac, running the full test suite in minikube is likely to be a lost cause. Running a smaller subset can work great though.)
 
 1. Start minikube
 2. To build images directly into your minikube instance, set `DOCKER_REGISTRY=-` and point your docker client to docker daemon running inside minikube by running the command `eval $(minikube docker-env)`
 3. Point `KUBECONFIG` to minikube, generally using `export KUBECONFIG=~/.kube/config`
-4. Since everything is being run locally, you don't need a Kubernetes cluser using kubernaut. Set `USE_KUBERNAUT=false`.
 
 That's it! Now simply run `make clean docker-push test` for the first time. In the following iterations, you can drop `clean` or `docker-push` depending on the nature of test run.
+-->
 
 Updating Ambassador's Envoy
 ---------------------------
@@ -384,12 +382,12 @@ Ambassador currently relies on a custom Envoy build. This build lives in
 least as often as Envoy releases happen. 
 
 Ambassador's current release engineering works by using `git clone`ing the
-`datawire/envoy` tree into the `envoy-src` subdirectory of Ambassador's
+`datawire/envoy` tree into the `cxx/envoy/` subdirectory of Ambassador's
 source tree. **Pay attention** to your working directory as you work through
 the update procedure! There are two separate repos involved, even though one
 appears as a subdirectory of the other.
 
- 0. In Ambassador's `Makefile`:
+ 0. In Ambassador's `cxx/envoy.mk`:
 
     - `$ENVOY_REPO` is the URL of the Envoy source repo. Typically this is
       the `datawire/envoy` repo, shown above; and
@@ -401,21 +399,21 @@ appears as a subdirectory of the other.
     You **must** edit `$ENVOY_COMMIT` as part of the updating procedure. 
     Think hard before changing `$ENVOY_REPO`!
 
- 1. Within your `datawire/ambassador` clone, use `make envoy-src` to clone
-    `$ENVOY_REPO` to `./envoy-src`.  It will check out `$ENVOY_COMMMIT`
+ 1. Within your `datawire/ambassador` clone, use `make cxx/envoy` to clone
+    `$ENVOY_REPO` to `./cxx/envoy`.  It will check out `$ENVOY_COMMMIT`
     (instead of `master`):
 
-    ```
-    $ make envoy-src
-    git init envoy
+    ```console
+    ambassador$ make cxx/envoy
+    git init cxx/envoy
     …
     HEAD is now at a484da25f updated legacy RLS name
     ```
 
  2. You'll need to manipulate branches in `$ENVOY_REPO`, so
 
-    ```
-    $ cd envoy-src
+    ```console
+    ambassador$ cd cxx/envoy
     ```
 
     to be in the correct place.
@@ -423,16 +421,16 @@ appears as a subdirectory of the other.
  2. You'll need to have the latest commits from the `envoyproxy/envoy` repo
     available so that you can pull the latest changes:
 
-    ```
-    $ git remote add upstream git://github.com/envoyproxy/envoy.git
-    $ git fetch upstream master
+    ```console
+    ambassador/cxx/envoy$ git remote add upstream git://github.com/envoyproxy/envoy.git
+    ambassador/cxx/envoy$ git fetch upstream master
     ```
 
  3. Since `$ENVOY_COMMIT` typically points at the tip of the `rebase/master`
     branch, that's usually a good branch to work on:
 
-    ```
-    $ git checkout rebase/master
+    ```console
+    ambassador/cxx/envoy$ git checkout rebase/master
     Branch 'rebase/master' set up to track remote branch 'rebase/master' from 'origin'.
     Switched to a new branch 'rebase/master'
     ```
@@ -440,8 +438,8 @@ appears as a subdirectory of the other.
  4. Once on the correct branch, `git rebase` the commit you want for the new
     `$ENVOY_COMMIT`:
 
-    ```
-    $ git rebase $NEW_ENVOY_COMMIT
+    ```console
+    ambassador/cxx/envoy$ git rebase $NEW_ENVOY_COMMIT
     …
     ```
 
@@ -449,48 +447,54 @@ appears as a subdirectory of the other.
 
  6. Switch back to your enclosing Ambassador repo:
 
-    ```
-    $ cd ..
+    ```console
+    ambassador/cxx/envoy$ cd ../..
     ```
 
  7. Try compiling your new Envoy from the sources you've rebased locally:
 
-    ```
-    $ ENVOY_COMMIT=- make envoy-bin/envoy-static
+    ```console
+    ambassador$ ENVOY_COMMIT=- make bin_linux_amd64/envoy-static
     ```
 
     If there are problems with the build, you can run 
 
-    ```
-    $ ENVOY_COMMIT=- make envoy-shell
+    ```console
+    ambassador$ ENVOY_COMMIT=- make envoy-shell
     ```
 
     to get a shell in to the Docker image where Envoy is compiled.  Any changes
     you make in the Docker image WILL be copied back to the host, potentially
-    OVERWRITING changes you made  in the host's `./envoy-src/` directory.
+    OVERWRITING changes you made  in the host's `./cxx/envoy/` directory.
 
  8. Once you have a clean compile, run
 
-    ```
-    $ ENVOY_COMMIT=- make check-envoy
+    ```console
+    ambassador$ ENVOY_COMMIT=- make check-envoy
     ```
 
     to make sure that your new Envoy commit passes Envoy's own test-suite.
 
- 9. Finally, push your new Envoy commit _from the `envoy-src` directory_:
+ 9. Finally, push your new Envoy commit _from the `cxx/envoy` directory_:
 
-    ```
-    $ cd envoy-src
-    $ git tag "datawire-$(git describe --tags)"
-    $ git push --tags
+    ```console
+    ambassador$ cd cxx/envoy
+    ambassador/cxx/envoy$ git tag "datawire-$(git describe --tags)"
+    ambassador/cxx/envoy$ git push --tags
     …
-    $ git push -f origin rebase/master
+    ambassador/cxx/envoy$ git push -f origin rebase/master
     …
     ```
 
  10. Edit `ENVOY_COMMIT ?=` in the Makefile to point to your new Envoy commit.  Follow the instructions in the Makefile when doing so:
 
-    a. Then run `make docker-update-base` to compile Envoy, and build+push new docker base images incorporating that Envoy binary.  This will also update the `go/apis/envoy/` directory if any of Envoy's protobuf definitions have changed; make sure to commit those changes when you commit the change to `ENVOY_COMMIT`.
+    a. Then run `make update-base` to compile Envoy, update the
+       generated protobuf bindings to use with that Envoy, and
+       build+push a new Docker base image with that Envoy binary.
+       This will update the `api/` and `pkg/api/envoy/` directories if
+       any of Envoy's protobuf definitions have changed; make sure to
+       commit those changes when you commit the change to
+       `ENVOY_COMMIT`.
 
 Version Numbering
 -----------------

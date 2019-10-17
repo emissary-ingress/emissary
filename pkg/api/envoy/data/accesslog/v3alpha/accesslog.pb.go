@@ -24,7 +24,7 @@ var _ = math.Inf
 // is compatible with the proto package it is being compiled against.
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
-const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
+const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // HTTP version
 type HTTPAccessLogEntry_HTTPVersion int32
@@ -1043,70 +1043,12 @@ func (m *TLSProperties_CertificateProperties_SubjectAltName) GetDns() string {
 	return ""
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*TLSProperties_CertificateProperties_SubjectAltName) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _TLSProperties_CertificateProperties_SubjectAltName_OneofMarshaler, _TLSProperties_CertificateProperties_SubjectAltName_OneofUnmarshaler, _TLSProperties_CertificateProperties_SubjectAltName_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*TLSProperties_CertificateProperties_SubjectAltName) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*TLSProperties_CertificateProperties_SubjectAltName_Uri)(nil),
 		(*TLSProperties_CertificateProperties_SubjectAltName_Dns)(nil),
 	}
-}
-
-func _TLSProperties_CertificateProperties_SubjectAltName_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*TLSProperties_CertificateProperties_SubjectAltName)
-	// san
-	switch x := m.San.(type) {
-	case *TLSProperties_CertificateProperties_SubjectAltName_Uri:
-		_ = b.EncodeVarint(1<<3 | proto.WireBytes)
-		_ = b.EncodeStringBytes(x.Uri)
-	case *TLSProperties_CertificateProperties_SubjectAltName_Dns:
-		_ = b.EncodeVarint(2<<3 | proto.WireBytes)
-		_ = b.EncodeStringBytes(x.Dns)
-	case nil:
-	default:
-		return fmt.Errorf("TLSProperties_CertificateProperties_SubjectAltName.San has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _TLSProperties_CertificateProperties_SubjectAltName_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*TLSProperties_CertificateProperties_SubjectAltName)
-	switch tag {
-	case 1: // san.uri
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		x, err := b.DecodeStringBytes()
-		m.San = &TLSProperties_CertificateProperties_SubjectAltName_Uri{x}
-		return true, err
-	case 2: // san.dns
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		x, err := b.DecodeStringBytes()
-		m.San = &TLSProperties_CertificateProperties_SubjectAltName_Dns{x}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _TLSProperties_CertificateProperties_SubjectAltName_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*TLSProperties_CertificateProperties_SubjectAltName)
-	// san
-	switch x := m.San.(type) {
-	case *TLSProperties_CertificateProperties_SubjectAltName_Uri:
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(len(x.Uri)))
-		n += len(x.Uri)
-	case *TLSProperties_CertificateProperties_SubjectAltName_Dns:
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(len(x.Dns)))
-		n += len(x.Dns)
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 type HTTPRequestProperties struct {

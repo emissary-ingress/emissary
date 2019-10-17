@@ -21,7 +21,7 @@ var _ = math.Inf
 // is compatible with the proto package it is being compiled against.
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
-const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
+const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // MetadataMatcher provides a general interface to check if a given value is matched in
 // :ref:`Metadata <envoy_api_msg_core.Metadata>`. It uses `filter` and `path` to retrieve the value
@@ -218,55 +218,11 @@ func (m *MetadataMatcher_PathSegment) GetKey() string {
 	return ""
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*MetadataMatcher_PathSegment) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _MetadataMatcher_PathSegment_OneofMarshaler, _MetadataMatcher_PathSegment_OneofUnmarshaler, _MetadataMatcher_PathSegment_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*MetadataMatcher_PathSegment) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*MetadataMatcher_PathSegment_Key)(nil),
 	}
-}
-
-func _MetadataMatcher_PathSegment_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*MetadataMatcher_PathSegment)
-	// segment
-	switch x := m.Segment.(type) {
-	case *MetadataMatcher_PathSegment_Key:
-		_ = b.EncodeVarint(1<<3 | proto.WireBytes)
-		_ = b.EncodeStringBytes(x.Key)
-	case nil:
-	default:
-		return fmt.Errorf("MetadataMatcher_PathSegment.Segment has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _MetadataMatcher_PathSegment_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*MetadataMatcher_PathSegment)
-	switch tag {
-	case 1: // segment.key
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		x, err := b.DecodeStringBytes()
-		m.Segment = &MetadataMatcher_PathSegment_Key{x}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _MetadataMatcher_PathSegment_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*MetadataMatcher_PathSegment)
-	// segment
-	switch x := m.Segment.(type) {
-	case *MetadataMatcher_PathSegment_Key:
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(len(x.Key)))
-		n += len(x.Key)
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 func init() {

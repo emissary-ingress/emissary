@@ -25,7 +25,7 @@ var _ = math.Inf
 // is compatible with the proto package it is being compiled against.
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
-const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
+const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 type VirtualHost_TlsRequirementType int32
 
@@ -616,97 +616,13 @@ func (m *Route) GetTracing() *Tracing {
 	return nil
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*Route) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _Route_OneofMarshaler, _Route_OneofUnmarshaler, _Route_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*Route) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*Route_Route)(nil),
 		(*Route_Redirect)(nil),
 		(*Route_DirectResponse)(nil),
 	}
-}
-
-func _Route_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*Route)
-	// action
-	switch x := m.Action.(type) {
-	case *Route_Route:
-		_ = b.EncodeVarint(2<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.Route); err != nil {
-			return err
-		}
-	case *Route_Redirect:
-		_ = b.EncodeVarint(3<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.Redirect); err != nil {
-			return err
-		}
-	case *Route_DirectResponse:
-		_ = b.EncodeVarint(7<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.DirectResponse); err != nil {
-			return err
-		}
-	case nil:
-	default:
-		return fmt.Errorf("Route.Action has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _Route_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*Route)
-	switch tag {
-	case 2: // action.route
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(RouteAction)
-		err := b.DecodeMessage(msg)
-		m.Action = &Route_Route{msg}
-		return true, err
-	case 3: // action.redirect
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(RedirectAction)
-		err := b.DecodeMessage(msg)
-		m.Action = &Route_Redirect{msg}
-		return true, err
-	case 7: // action.direct_response
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(DirectResponseAction)
-		err := b.DecodeMessage(msg)
-		m.Action = &Route_DirectResponse{msg}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _Route_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*Route)
-	// action
-	switch x := m.Action.(type) {
-	case *Route_Route:
-		s := proto.Size(x.Route)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *Route_Redirect:
-		s := proto.Size(x.Redirect)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *Route_DirectResponse:
-		s := proto.Size(x.DirectResponse)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 // Compared to the :ref:`cluster <envoy_api_field_route.RouteAction.cluster>` field that specifies a
@@ -1116,104 +1032,14 @@ func (m *RouteMatch) GetGrpc() *RouteMatch_GrpcRouteMatchOptions {
 	return nil
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*RouteMatch) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _RouteMatch_OneofMarshaler, _RouteMatch_OneofUnmarshaler, _RouteMatch_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*RouteMatch) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*RouteMatch_Prefix)(nil),
 		(*RouteMatch_Path)(nil),
 		(*RouteMatch_Regex)(nil),
 		(*RouteMatch_SafeRegex)(nil),
 	}
-}
-
-func _RouteMatch_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*RouteMatch)
-	// path_specifier
-	switch x := m.PathSpecifier.(type) {
-	case *RouteMatch_Prefix:
-		_ = b.EncodeVarint(1<<3 | proto.WireBytes)
-		_ = b.EncodeStringBytes(x.Prefix)
-	case *RouteMatch_Path:
-		_ = b.EncodeVarint(2<<3 | proto.WireBytes)
-		_ = b.EncodeStringBytes(x.Path)
-	case *RouteMatch_Regex:
-		_ = b.EncodeVarint(3<<3 | proto.WireBytes)
-		_ = b.EncodeStringBytes(x.Regex)
-	case *RouteMatch_SafeRegex:
-		_ = b.EncodeVarint(10<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.SafeRegex); err != nil {
-			return err
-		}
-	case nil:
-	default:
-		return fmt.Errorf("RouteMatch.PathSpecifier has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _RouteMatch_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*RouteMatch)
-	switch tag {
-	case 1: // path_specifier.prefix
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		x, err := b.DecodeStringBytes()
-		m.PathSpecifier = &RouteMatch_Prefix{x}
-		return true, err
-	case 2: // path_specifier.path
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		x, err := b.DecodeStringBytes()
-		m.PathSpecifier = &RouteMatch_Path{x}
-		return true, err
-	case 3: // path_specifier.regex
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		x, err := b.DecodeStringBytes()
-		m.PathSpecifier = &RouteMatch_Regex{x}
-		return true, err
-	case 10: // path_specifier.safe_regex
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(matcher.RegexMatcher)
-		err := b.DecodeMessage(msg)
-		m.PathSpecifier = &RouteMatch_SafeRegex{msg}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _RouteMatch_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*RouteMatch)
-	// path_specifier
-	switch x := m.PathSpecifier.(type) {
-	case *RouteMatch_Prefix:
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(len(x.Prefix)))
-		n += len(x.Prefix)
-	case *RouteMatch_Path:
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(len(x.Path)))
-		n += len(x.Path)
-	case *RouteMatch_Regex:
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(len(x.Regex)))
-		n += len(x.Regex)
-	case *RouteMatch_SafeRegex:
-		s := proto.Size(x.SafeRegex)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 type RouteMatch_GrpcRouteMatchOptions struct {
@@ -1441,78 +1267,12 @@ func (m *CorsPolicy) GetShadowEnabled() *core.RuntimeFractionalPercent {
 	return nil
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*CorsPolicy) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _CorsPolicy_OneofMarshaler, _CorsPolicy_OneofUnmarshaler, _CorsPolicy_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*CorsPolicy) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*CorsPolicy_Enabled)(nil),
 		(*CorsPolicy_FilterEnabled)(nil),
 	}
-}
-
-func _CorsPolicy_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*CorsPolicy)
-	// enabled_specifier
-	switch x := m.EnabledSpecifier.(type) {
-	case *CorsPolicy_Enabled:
-		_ = b.EncodeVarint(7<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.Enabled); err != nil {
-			return err
-		}
-	case *CorsPolicy_FilterEnabled:
-		_ = b.EncodeVarint(9<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.FilterEnabled); err != nil {
-			return err
-		}
-	case nil:
-	default:
-		return fmt.Errorf("CorsPolicy.EnabledSpecifier has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _CorsPolicy_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*CorsPolicy)
-	switch tag {
-	case 7: // enabled_specifier.enabled
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(types.BoolValue)
-		err := b.DecodeMessage(msg)
-		m.EnabledSpecifier = &CorsPolicy_Enabled{msg}
-		return true, err
-	case 9: // enabled_specifier.filter_enabled
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(core.RuntimeFractionalPercent)
-		err := b.DecodeMessage(msg)
-		m.EnabledSpecifier = &CorsPolicy_FilterEnabled{msg}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _CorsPolicy_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*CorsPolicy)
-	// enabled_specifier
-	switch x := m.EnabledSpecifier.(type) {
-	case *CorsPolicy_Enabled:
-		s := proto.Size(x.Enabled)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *CorsPolicy_FilterEnabled:
-		s := proto.Size(x.FilterEnabled)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 // [#comment:next free field: 30]
@@ -1902,9 +1662,9 @@ func (m *RouteAction) GetHedgePolicy() *HedgePolicy {
 	return nil
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*RouteAction) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _RouteAction_OneofMarshaler, _RouteAction_OneofUnmarshaler, _RouteAction_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*RouteAction) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*RouteAction_Cluster)(nil),
 		(*RouteAction_ClusterHeader)(nil),
 		(*RouteAction_WeightedClusters)(nil),
@@ -1912,140 +1672,6 @@ func (*RouteAction) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) e
 		(*RouteAction_AutoHostRewrite)(nil),
 		(*RouteAction_AutoHostRewriteHeader)(nil),
 	}
-}
-
-func _RouteAction_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*RouteAction)
-	// cluster_specifier
-	switch x := m.ClusterSpecifier.(type) {
-	case *RouteAction_Cluster:
-		_ = b.EncodeVarint(1<<3 | proto.WireBytes)
-		_ = b.EncodeStringBytes(x.Cluster)
-	case *RouteAction_ClusterHeader:
-		_ = b.EncodeVarint(2<<3 | proto.WireBytes)
-		_ = b.EncodeStringBytes(x.ClusterHeader)
-	case *RouteAction_WeightedClusters:
-		_ = b.EncodeVarint(3<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.WeightedClusters); err != nil {
-			return err
-		}
-	case nil:
-	default:
-		return fmt.Errorf("RouteAction.ClusterSpecifier has unexpected type %T", x)
-	}
-	// host_rewrite_specifier
-	switch x := m.HostRewriteSpecifier.(type) {
-	case *RouteAction_HostRewrite:
-		_ = b.EncodeVarint(6<<3 | proto.WireBytes)
-		_ = b.EncodeStringBytes(x.HostRewrite)
-	case *RouteAction_AutoHostRewrite:
-		_ = b.EncodeVarint(7<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.AutoHostRewrite); err != nil {
-			return err
-		}
-	case *RouteAction_AutoHostRewriteHeader:
-		_ = b.EncodeVarint(29<<3 | proto.WireBytes)
-		_ = b.EncodeStringBytes(x.AutoHostRewriteHeader)
-	case nil:
-	default:
-		return fmt.Errorf("RouteAction.HostRewriteSpecifier has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _RouteAction_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*RouteAction)
-	switch tag {
-	case 1: // cluster_specifier.cluster
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		x, err := b.DecodeStringBytes()
-		m.ClusterSpecifier = &RouteAction_Cluster{x}
-		return true, err
-	case 2: // cluster_specifier.cluster_header
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		x, err := b.DecodeStringBytes()
-		m.ClusterSpecifier = &RouteAction_ClusterHeader{x}
-		return true, err
-	case 3: // cluster_specifier.weighted_clusters
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(WeightedCluster)
-		err := b.DecodeMessage(msg)
-		m.ClusterSpecifier = &RouteAction_WeightedClusters{msg}
-		return true, err
-	case 6: // host_rewrite_specifier.host_rewrite
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		x, err := b.DecodeStringBytes()
-		m.HostRewriteSpecifier = &RouteAction_HostRewrite{x}
-		return true, err
-	case 7: // host_rewrite_specifier.auto_host_rewrite
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(types.BoolValue)
-		err := b.DecodeMessage(msg)
-		m.HostRewriteSpecifier = &RouteAction_AutoHostRewrite{msg}
-		return true, err
-	case 29: // host_rewrite_specifier.auto_host_rewrite_header
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		x, err := b.DecodeStringBytes()
-		m.HostRewriteSpecifier = &RouteAction_AutoHostRewriteHeader{x}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _RouteAction_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*RouteAction)
-	// cluster_specifier
-	switch x := m.ClusterSpecifier.(type) {
-	case *RouteAction_Cluster:
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(len(x.Cluster)))
-		n += len(x.Cluster)
-	case *RouteAction_ClusterHeader:
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(len(x.ClusterHeader)))
-		n += len(x.ClusterHeader)
-	case *RouteAction_WeightedClusters:
-		s := proto.Size(x.WeightedClusters)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	// host_rewrite_specifier
-	switch x := m.HostRewriteSpecifier.(type) {
-	case *RouteAction_HostRewrite:
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(len(x.HostRewrite)))
-		n += len(x.HostRewrite)
-	case *RouteAction_AutoHostRewrite:
-		s := proto.Size(x.AutoHostRewrite)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *RouteAction_AutoHostRewriteHeader:
-		n += 2 // tag and wire
-		n += proto.SizeVarint(uint64(len(x.AutoHostRewriteHeader)))
-		n += len(x.AutoHostRewriteHeader)
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 // The router is capable of shadowing traffic from one cluster to another. The current
@@ -2274,97 +1900,13 @@ func (m *RouteAction_HashPolicy) GetTerminal() bool {
 	return false
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*RouteAction_HashPolicy) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _RouteAction_HashPolicy_OneofMarshaler, _RouteAction_HashPolicy_OneofUnmarshaler, _RouteAction_HashPolicy_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*RouteAction_HashPolicy) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*RouteAction_HashPolicy_Header_)(nil),
 		(*RouteAction_HashPolicy_Cookie_)(nil),
 		(*RouteAction_HashPolicy_ConnectionProperties_)(nil),
 	}
-}
-
-func _RouteAction_HashPolicy_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*RouteAction_HashPolicy)
-	// policy_specifier
-	switch x := m.PolicySpecifier.(type) {
-	case *RouteAction_HashPolicy_Header_:
-		_ = b.EncodeVarint(1<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.Header); err != nil {
-			return err
-		}
-	case *RouteAction_HashPolicy_Cookie_:
-		_ = b.EncodeVarint(2<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.Cookie); err != nil {
-			return err
-		}
-	case *RouteAction_HashPolicy_ConnectionProperties_:
-		_ = b.EncodeVarint(3<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.ConnectionProperties); err != nil {
-			return err
-		}
-	case nil:
-	default:
-		return fmt.Errorf("RouteAction_HashPolicy.PolicySpecifier has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _RouteAction_HashPolicy_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*RouteAction_HashPolicy)
-	switch tag {
-	case 1: // policy_specifier.header
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(RouteAction_HashPolicy_Header)
-		err := b.DecodeMessage(msg)
-		m.PolicySpecifier = &RouteAction_HashPolicy_Header_{msg}
-		return true, err
-	case 2: // policy_specifier.cookie
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(RouteAction_HashPolicy_Cookie)
-		err := b.DecodeMessage(msg)
-		m.PolicySpecifier = &RouteAction_HashPolicy_Cookie_{msg}
-		return true, err
-	case 3: // policy_specifier.connection_properties
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(RouteAction_HashPolicy_ConnectionProperties)
-		err := b.DecodeMessage(msg)
-		m.PolicySpecifier = &RouteAction_HashPolicy_ConnectionProperties_{msg}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _RouteAction_HashPolicy_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*RouteAction_HashPolicy)
-	// policy_specifier
-	switch x := m.PolicySpecifier.(type) {
-	case *RouteAction_HashPolicy_Header_:
-		s := proto.Size(x.Header)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *RouteAction_HashPolicy_Cookie_:
-		s := proto.Size(x.Cookie)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *RouteAction_HashPolicy_ConnectionProperties_:
-		s := proto.Size(x.ConnectionProperties)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 type RouteAction_HashPolicy_Header struct {
@@ -2844,78 +2386,12 @@ func (m *RetryPolicy_RetryPriority) GetTypedConfig() *types.Any {
 	return nil
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*RetryPolicy_RetryPriority) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _RetryPolicy_RetryPriority_OneofMarshaler, _RetryPolicy_RetryPriority_OneofUnmarshaler, _RetryPolicy_RetryPriority_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*RetryPolicy_RetryPriority) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*RetryPolicy_RetryPriority_Config)(nil),
 		(*RetryPolicy_RetryPriority_TypedConfig)(nil),
 	}
-}
-
-func _RetryPolicy_RetryPriority_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*RetryPolicy_RetryPriority)
-	// config_type
-	switch x := m.ConfigType.(type) {
-	case *RetryPolicy_RetryPriority_Config:
-		_ = b.EncodeVarint(2<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.Config); err != nil {
-			return err
-		}
-	case *RetryPolicy_RetryPriority_TypedConfig:
-		_ = b.EncodeVarint(3<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.TypedConfig); err != nil {
-			return err
-		}
-	case nil:
-	default:
-		return fmt.Errorf("RetryPolicy_RetryPriority.ConfigType has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _RetryPolicy_RetryPriority_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*RetryPolicy_RetryPriority)
-	switch tag {
-	case 2: // config_type.config
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(types.Struct)
-		err := b.DecodeMessage(msg)
-		m.ConfigType = &RetryPolicy_RetryPriority_Config{msg}
-		return true, err
-	case 3: // config_type.typed_config
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(types.Any)
-		err := b.DecodeMessage(msg)
-		m.ConfigType = &RetryPolicy_RetryPriority_TypedConfig{msg}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _RetryPolicy_RetryPriority_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*RetryPolicy_RetryPriority)
-	// config_type
-	switch x := m.ConfigType.(type) {
-	case *RetryPolicy_RetryPriority_Config:
-		s := proto.Size(x.Config)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *RetryPolicy_RetryPriority_TypedConfig:
-		s := proto.Size(x.TypedConfig)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 type RetryPolicy_RetryHostPredicate struct {
@@ -3006,78 +2482,12 @@ func (m *RetryPolicy_RetryHostPredicate) GetTypedConfig() *types.Any {
 	return nil
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*RetryPolicy_RetryHostPredicate) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _RetryPolicy_RetryHostPredicate_OneofMarshaler, _RetryPolicy_RetryHostPredicate_OneofUnmarshaler, _RetryPolicy_RetryHostPredicate_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*RetryPolicy_RetryHostPredicate) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*RetryPolicy_RetryHostPredicate_Config)(nil),
 		(*RetryPolicy_RetryHostPredicate_TypedConfig)(nil),
 	}
-}
-
-func _RetryPolicy_RetryHostPredicate_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*RetryPolicy_RetryHostPredicate)
-	// config_type
-	switch x := m.ConfigType.(type) {
-	case *RetryPolicy_RetryHostPredicate_Config:
-		_ = b.EncodeVarint(2<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.Config); err != nil {
-			return err
-		}
-	case *RetryPolicy_RetryHostPredicate_TypedConfig:
-		_ = b.EncodeVarint(3<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.TypedConfig); err != nil {
-			return err
-		}
-	case nil:
-	default:
-		return fmt.Errorf("RetryPolicy_RetryHostPredicate.ConfigType has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _RetryPolicy_RetryHostPredicate_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*RetryPolicy_RetryHostPredicate)
-	switch tag {
-	case 2: // config_type.config
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(types.Struct)
-		err := b.DecodeMessage(msg)
-		m.ConfigType = &RetryPolicy_RetryHostPredicate_Config{msg}
-		return true, err
-	case 3: // config_type.typed_config
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(types.Any)
-		err := b.DecodeMessage(msg)
-		m.ConfigType = &RetryPolicy_RetryHostPredicate_TypedConfig{msg}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _RetryPolicy_RetryHostPredicate_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*RetryPolicy_RetryHostPredicate)
-	// config_type
-	switch x := m.ConfigType.(type) {
-	case *RetryPolicy_RetryHostPredicate_Config:
-		s := proto.Size(x.Config)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *RetryPolicy_RetryHostPredicate_TypedConfig:
-		s := proto.Size(x.TypedConfig)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 type RetryPolicy_RetryBackOff struct {
@@ -3384,115 +2794,14 @@ func (m *RedirectAction) GetStripQuery() bool {
 	return false
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*RedirectAction) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _RedirectAction_OneofMarshaler, _RedirectAction_OneofUnmarshaler, _RedirectAction_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*RedirectAction) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*RedirectAction_HttpsRedirect)(nil),
 		(*RedirectAction_SchemeRedirect)(nil),
 		(*RedirectAction_PathRedirect)(nil),
 		(*RedirectAction_PrefixRewrite)(nil),
 	}
-}
-
-func _RedirectAction_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*RedirectAction)
-	// scheme_rewrite_specifier
-	switch x := m.SchemeRewriteSpecifier.(type) {
-	case *RedirectAction_HttpsRedirect:
-		t := uint64(0)
-		if x.HttpsRedirect {
-			t = 1
-		}
-		_ = b.EncodeVarint(4<<3 | proto.WireVarint)
-		_ = b.EncodeVarint(t)
-	case *RedirectAction_SchemeRedirect:
-		_ = b.EncodeVarint(7<<3 | proto.WireBytes)
-		_ = b.EncodeStringBytes(x.SchemeRedirect)
-	case nil:
-	default:
-		return fmt.Errorf("RedirectAction.SchemeRewriteSpecifier has unexpected type %T", x)
-	}
-	// path_rewrite_specifier
-	switch x := m.PathRewriteSpecifier.(type) {
-	case *RedirectAction_PathRedirect:
-		_ = b.EncodeVarint(2<<3 | proto.WireBytes)
-		_ = b.EncodeStringBytes(x.PathRedirect)
-	case *RedirectAction_PrefixRewrite:
-		_ = b.EncodeVarint(5<<3 | proto.WireBytes)
-		_ = b.EncodeStringBytes(x.PrefixRewrite)
-	case nil:
-	default:
-		return fmt.Errorf("RedirectAction.PathRewriteSpecifier has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _RedirectAction_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*RedirectAction)
-	switch tag {
-	case 4: // scheme_rewrite_specifier.https_redirect
-		if wire != proto.WireVarint {
-			return true, proto.ErrInternalBadWireType
-		}
-		x, err := b.DecodeVarint()
-		m.SchemeRewriteSpecifier = &RedirectAction_HttpsRedirect{x != 0}
-		return true, err
-	case 7: // scheme_rewrite_specifier.scheme_redirect
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		x, err := b.DecodeStringBytes()
-		m.SchemeRewriteSpecifier = &RedirectAction_SchemeRedirect{x}
-		return true, err
-	case 2: // path_rewrite_specifier.path_redirect
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		x, err := b.DecodeStringBytes()
-		m.PathRewriteSpecifier = &RedirectAction_PathRedirect{x}
-		return true, err
-	case 5: // path_rewrite_specifier.prefix_rewrite
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		x, err := b.DecodeStringBytes()
-		m.PathRewriteSpecifier = &RedirectAction_PrefixRewrite{x}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _RedirectAction_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*RedirectAction)
-	// scheme_rewrite_specifier
-	switch x := m.SchemeRewriteSpecifier.(type) {
-	case *RedirectAction_HttpsRedirect:
-		n += 1 // tag and wire
-		n += 1
-	case *RedirectAction_SchemeRedirect:
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(len(x.SchemeRedirect)))
-		n += len(x.SchemeRedirect)
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	// path_rewrite_specifier
-	switch x := m.PathRewriteSpecifier.(type) {
-	case *RedirectAction_PathRedirect:
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(len(x.PathRedirect)))
-		n += len(x.PathRedirect)
-	case *RedirectAction_PrefixRewrite:
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(len(x.PrefixRewrite)))
-		n += len(x.PrefixRewrite)
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 type DirectResponseAction struct {
@@ -4016,9 +3325,9 @@ func (m *RateLimit_Action) GetHeaderValueMatch() *RateLimit_Action_HeaderValueMa
 	return nil
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*RateLimit_Action) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _RateLimit_Action_OneofMarshaler, _RateLimit_Action_OneofUnmarshaler, _RateLimit_Action_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*RateLimit_Action) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*RateLimit_Action_SourceCluster_)(nil),
 		(*RateLimit_Action_DestinationCluster_)(nil),
 		(*RateLimit_Action_RequestHeaders_)(nil),
@@ -4026,144 +3335,6 @@ func (*RateLimit_Action) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buff
 		(*RateLimit_Action_GenericKey_)(nil),
 		(*RateLimit_Action_HeaderValueMatch_)(nil),
 	}
-}
-
-func _RateLimit_Action_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*RateLimit_Action)
-	// action_specifier
-	switch x := m.ActionSpecifier.(type) {
-	case *RateLimit_Action_SourceCluster_:
-		_ = b.EncodeVarint(1<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.SourceCluster); err != nil {
-			return err
-		}
-	case *RateLimit_Action_DestinationCluster_:
-		_ = b.EncodeVarint(2<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.DestinationCluster); err != nil {
-			return err
-		}
-	case *RateLimit_Action_RequestHeaders_:
-		_ = b.EncodeVarint(3<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.RequestHeaders); err != nil {
-			return err
-		}
-	case *RateLimit_Action_RemoteAddress_:
-		_ = b.EncodeVarint(4<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.RemoteAddress); err != nil {
-			return err
-		}
-	case *RateLimit_Action_GenericKey_:
-		_ = b.EncodeVarint(5<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.GenericKey); err != nil {
-			return err
-		}
-	case *RateLimit_Action_HeaderValueMatch_:
-		_ = b.EncodeVarint(6<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.HeaderValueMatch); err != nil {
-			return err
-		}
-	case nil:
-	default:
-		return fmt.Errorf("RateLimit_Action.ActionSpecifier has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _RateLimit_Action_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*RateLimit_Action)
-	switch tag {
-	case 1: // action_specifier.source_cluster
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(RateLimit_Action_SourceCluster)
-		err := b.DecodeMessage(msg)
-		m.ActionSpecifier = &RateLimit_Action_SourceCluster_{msg}
-		return true, err
-	case 2: // action_specifier.destination_cluster
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(RateLimit_Action_DestinationCluster)
-		err := b.DecodeMessage(msg)
-		m.ActionSpecifier = &RateLimit_Action_DestinationCluster_{msg}
-		return true, err
-	case 3: // action_specifier.request_headers
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(RateLimit_Action_RequestHeaders)
-		err := b.DecodeMessage(msg)
-		m.ActionSpecifier = &RateLimit_Action_RequestHeaders_{msg}
-		return true, err
-	case 4: // action_specifier.remote_address
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(RateLimit_Action_RemoteAddress)
-		err := b.DecodeMessage(msg)
-		m.ActionSpecifier = &RateLimit_Action_RemoteAddress_{msg}
-		return true, err
-	case 5: // action_specifier.generic_key
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(RateLimit_Action_GenericKey)
-		err := b.DecodeMessage(msg)
-		m.ActionSpecifier = &RateLimit_Action_GenericKey_{msg}
-		return true, err
-	case 6: // action_specifier.header_value_match
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(RateLimit_Action_HeaderValueMatch)
-		err := b.DecodeMessage(msg)
-		m.ActionSpecifier = &RateLimit_Action_HeaderValueMatch_{msg}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _RateLimit_Action_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*RateLimit_Action)
-	// action_specifier
-	switch x := m.ActionSpecifier.(type) {
-	case *RateLimit_Action_SourceCluster_:
-		s := proto.Size(x.SourceCluster)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *RateLimit_Action_DestinationCluster_:
-		s := proto.Size(x.DestinationCluster)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *RateLimit_Action_RequestHeaders_:
-		s := proto.Size(x.RequestHeaders)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *RateLimit_Action_RemoteAddress_:
-		s := proto.Size(x.RemoteAddress)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *RateLimit_Action_GenericKey_:
-		s := proto.Size(x.GenericKey)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *RateLimit_Action_HeaderValueMatch_:
-		s := proto.Size(x.HeaderValueMatch)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 // The following descriptor entry is appended to the descriptor:
@@ -4698,9 +3869,9 @@ func (m *HeaderMatcher) GetInvertMatch() bool {
 	return false
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*HeaderMatcher) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _HeaderMatcher_OneofMarshaler, _HeaderMatcher_OneofUnmarshaler, _HeaderMatcher_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*HeaderMatcher) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*HeaderMatcher_ExactMatch)(nil),
 		(*HeaderMatcher_RegexMatch)(nil),
 		(*HeaderMatcher_SafeRegexMatch)(nil),
@@ -4709,145 +3880,6 @@ func (*HeaderMatcher) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer)
 		(*HeaderMatcher_PrefixMatch)(nil),
 		(*HeaderMatcher_SuffixMatch)(nil),
 	}
-}
-
-func _HeaderMatcher_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*HeaderMatcher)
-	// header_match_specifier
-	switch x := m.HeaderMatchSpecifier.(type) {
-	case *HeaderMatcher_ExactMatch:
-		_ = b.EncodeVarint(4<<3 | proto.WireBytes)
-		_ = b.EncodeStringBytes(x.ExactMatch)
-	case *HeaderMatcher_RegexMatch:
-		_ = b.EncodeVarint(5<<3 | proto.WireBytes)
-		_ = b.EncodeStringBytes(x.RegexMatch)
-	case *HeaderMatcher_SafeRegexMatch:
-		_ = b.EncodeVarint(11<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.SafeRegexMatch); err != nil {
-			return err
-		}
-	case *HeaderMatcher_RangeMatch:
-		_ = b.EncodeVarint(6<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.RangeMatch); err != nil {
-			return err
-		}
-	case *HeaderMatcher_PresentMatch:
-		t := uint64(0)
-		if x.PresentMatch {
-			t = 1
-		}
-		_ = b.EncodeVarint(7<<3 | proto.WireVarint)
-		_ = b.EncodeVarint(t)
-	case *HeaderMatcher_PrefixMatch:
-		_ = b.EncodeVarint(9<<3 | proto.WireBytes)
-		_ = b.EncodeStringBytes(x.PrefixMatch)
-	case *HeaderMatcher_SuffixMatch:
-		_ = b.EncodeVarint(10<<3 | proto.WireBytes)
-		_ = b.EncodeStringBytes(x.SuffixMatch)
-	case nil:
-	default:
-		return fmt.Errorf("HeaderMatcher.HeaderMatchSpecifier has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _HeaderMatcher_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*HeaderMatcher)
-	switch tag {
-	case 4: // header_match_specifier.exact_match
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		x, err := b.DecodeStringBytes()
-		m.HeaderMatchSpecifier = &HeaderMatcher_ExactMatch{x}
-		return true, err
-	case 5: // header_match_specifier.regex_match
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		x, err := b.DecodeStringBytes()
-		m.HeaderMatchSpecifier = &HeaderMatcher_RegexMatch{x}
-		return true, err
-	case 11: // header_match_specifier.safe_regex_match
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(matcher.RegexMatcher)
-		err := b.DecodeMessage(msg)
-		m.HeaderMatchSpecifier = &HeaderMatcher_SafeRegexMatch{msg}
-		return true, err
-	case 6: // header_match_specifier.range_match
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(_type.Int64Range)
-		err := b.DecodeMessage(msg)
-		m.HeaderMatchSpecifier = &HeaderMatcher_RangeMatch{msg}
-		return true, err
-	case 7: // header_match_specifier.present_match
-		if wire != proto.WireVarint {
-			return true, proto.ErrInternalBadWireType
-		}
-		x, err := b.DecodeVarint()
-		m.HeaderMatchSpecifier = &HeaderMatcher_PresentMatch{x != 0}
-		return true, err
-	case 9: // header_match_specifier.prefix_match
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		x, err := b.DecodeStringBytes()
-		m.HeaderMatchSpecifier = &HeaderMatcher_PrefixMatch{x}
-		return true, err
-	case 10: // header_match_specifier.suffix_match
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		x, err := b.DecodeStringBytes()
-		m.HeaderMatchSpecifier = &HeaderMatcher_SuffixMatch{x}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _HeaderMatcher_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*HeaderMatcher)
-	// header_match_specifier
-	switch x := m.HeaderMatchSpecifier.(type) {
-	case *HeaderMatcher_ExactMatch:
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(len(x.ExactMatch)))
-		n += len(x.ExactMatch)
-	case *HeaderMatcher_RegexMatch:
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(len(x.RegexMatch)))
-		n += len(x.RegexMatch)
-	case *HeaderMatcher_SafeRegexMatch:
-		s := proto.Size(x.SafeRegexMatch)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *HeaderMatcher_RangeMatch:
-		s := proto.Size(x.RangeMatch)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *HeaderMatcher_PresentMatch:
-		n += 1 // tag and wire
-		n += 1
-	case *HeaderMatcher_PrefixMatch:
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(len(x.PrefixMatch)))
-		n += len(x.PrefixMatch)
-	case *HeaderMatcher_SuffixMatch:
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(len(x.SuffixMatch)))
-		n += len(x.SuffixMatch)
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 // Query parameter matching treats the query string of a request's :path header
@@ -4973,77 +4005,12 @@ func (m *QueryParameterMatcher) GetPresentMatch() bool {
 	return false
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*QueryParameterMatcher) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _QueryParameterMatcher_OneofMarshaler, _QueryParameterMatcher_OneofUnmarshaler, _QueryParameterMatcher_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*QueryParameterMatcher) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*QueryParameterMatcher_StringMatch)(nil),
 		(*QueryParameterMatcher_PresentMatch)(nil),
 	}
-}
-
-func _QueryParameterMatcher_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*QueryParameterMatcher)
-	// query_parameter_match_specifier
-	switch x := m.QueryParameterMatchSpecifier.(type) {
-	case *QueryParameterMatcher_StringMatch:
-		_ = b.EncodeVarint(5<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.StringMatch); err != nil {
-			return err
-		}
-	case *QueryParameterMatcher_PresentMatch:
-		t := uint64(0)
-		if x.PresentMatch {
-			t = 1
-		}
-		_ = b.EncodeVarint(6<<3 | proto.WireVarint)
-		_ = b.EncodeVarint(t)
-	case nil:
-	default:
-		return fmt.Errorf("QueryParameterMatcher.QueryParameterMatchSpecifier has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _QueryParameterMatcher_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*QueryParameterMatcher)
-	switch tag {
-	case 5: // query_parameter_match_specifier.string_match
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(matcher.StringMatcher)
-		err := b.DecodeMessage(msg)
-		m.QueryParameterMatchSpecifier = &QueryParameterMatcher_StringMatch{msg}
-		return true, err
-	case 6: // query_parameter_match_specifier.present_match
-		if wire != proto.WireVarint {
-			return true, proto.ErrInternalBadWireType
-		}
-		x, err := b.DecodeVarint()
-		m.QueryParameterMatchSpecifier = &QueryParameterMatcher_PresentMatch{x != 0}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _QueryParameterMatcher_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*QueryParameterMatcher)
-	// query_parameter_match_specifier
-	switch x := m.QueryParameterMatchSpecifier.(type) {
-	case *QueryParameterMatcher_StringMatch:
-		s := proto.Size(x.StringMatch)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *QueryParameterMatcher_PresentMatch:
-		n += 1 // tag and wire
-		n += 1
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 func init() {

@@ -24,7 +24,7 @@ var _ = math.Inf
 // is compatible with the proto package it is being compiled against.
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
-const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
+const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 type FilterChainMatch_ConnectionSourceType int32
 
@@ -150,78 +150,12 @@ func (m *Filter) GetTypedConfig() *types.Any {
 	return nil
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*Filter) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _Filter_OneofMarshaler, _Filter_OneofUnmarshaler, _Filter_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*Filter) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*Filter_Config)(nil),
 		(*Filter_TypedConfig)(nil),
 	}
-}
-
-func _Filter_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*Filter)
-	// config_type
-	switch x := m.ConfigType.(type) {
-	case *Filter_Config:
-		_ = b.EncodeVarint(2<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.Config); err != nil {
-			return err
-		}
-	case *Filter_TypedConfig:
-		_ = b.EncodeVarint(4<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.TypedConfig); err != nil {
-			return err
-		}
-	case nil:
-	default:
-		return fmt.Errorf("Filter.ConfigType has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _Filter_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*Filter)
-	switch tag {
-	case 2: // config_type.config
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(types.Struct)
-		err := b.DecodeMessage(msg)
-		m.ConfigType = &Filter_Config{msg}
-		return true, err
-	case 4: // config_type.typed_config
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(types.Any)
-		err := b.DecodeMessage(msg)
-		m.ConfigType = &Filter_TypedConfig{msg}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _Filter_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*Filter)
-	// config_type
-	switch x := m.ConfigType.(type) {
-	case *Filter_Config:
-		s := proto.Size(x.Config)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *Filter_TypedConfig:
-		s := proto.Size(x.TypedConfig)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 // Specifies the match criteria for selecting a specific filter chain for a
@@ -635,78 +569,12 @@ func (m *ListenerFilter) GetTypedConfig() *types.Any {
 	return nil
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*ListenerFilter) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _ListenerFilter_OneofMarshaler, _ListenerFilter_OneofUnmarshaler, _ListenerFilter_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*ListenerFilter) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*ListenerFilter_Config)(nil),
 		(*ListenerFilter_TypedConfig)(nil),
 	}
-}
-
-func _ListenerFilter_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*ListenerFilter)
-	// config_type
-	switch x := m.ConfigType.(type) {
-	case *ListenerFilter_Config:
-		_ = b.EncodeVarint(2<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.Config); err != nil {
-			return err
-		}
-	case *ListenerFilter_TypedConfig:
-		_ = b.EncodeVarint(3<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.TypedConfig); err != nil {
-			return err
-		}
-	case nil:
-	default:
-		return fmt.Errorf("ListenerFilter.ConfigType has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _ListenerFilter_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*ListenerFilter)
-	switch tag {
-	case 2: // config_type.config
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(types.Struct)
-		err := b.DecodeMessage(msg)
-		m.ConfigType = &ListenerFilter_Config{msg}
-		return true, err
-	case 3: // config_type.typed_config
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(types.Any)
-		err := b.DecodeMessage(msg)
-		m.ConfigType = &ListenerFilter_TypedConfig{msg}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _ListenerFilter_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*ListenerFilter)
-	// config_type
-	switch x := m.ConfigType.(type) {
-	case *ListenerFilter_Config:
-		s := proto.Size(x.Config)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *ListenerFilter_TypedConfig:
-		s := proto.Size(x.TypedConfig)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 func init() {

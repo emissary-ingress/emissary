@@ -22,7 +22,7 @@ var _ = math.Inf
 // is compatible with the proto package it is being compiled against.
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
-const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
+const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // Custom configuration for an :ref:`AccessLog <envoy_api_msg_config.filter.accesslog.v2.AccessLog>`
 // that writes log entries directly to a file. Configures the built-in *envoy.file_access_log*
@@ -120,74 +120,12 @@ func (m *FileAccessLog) GetJsonFormat() *types.Struct {
 	return nil
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*FileAccessLog) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _FileAccessLog_OneofMarshaler, _FileAccessLog_OneofUnmarshaler, _FileAccessLog_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*FileAccessLog) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*FileAccessLog_Format)(nil),
 		(*FileAccessLog_JsonFormat)(nil),
 	}
-}
-
-func _FileAccessLog_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*FileAccessLog)
-	// access_log_format
-	switch x := m.AccessLogFormat.(type) {
-	case *FileAccessLog_Format:
-		_ = b.EncodeVarint(2<<3 | proto.WireBytes)
-		_ = b.EncodeStringBytes(x.Format)
-	case *FileAccessLog_JsonFormat:
-		_ = b.EncodeVarint(3<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.JsonFormat); err != nil {
-			return err
-		}
-	case nil:
-	default:
-		return fmt.Errorf("FileAccessLog.AccessLogFormat has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _FileAccessLog_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*FileAccessLog)
-	switch tag {
-	case 2: // access_log_format.format
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		x, err := b.DecodeStringBytes()
-		m.AccessLogFormat = &FileAccessLog_Format{x}
-		return true, err
-	case 3: // access_log_format.json_format
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(types.Struct)
-		err := b.DecodeMessage(msg)
-		m.AccessLogFormat = &FileAccessLog_JsonFormat{msg}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _FileAccessLog_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*FileAccessLog)
-	// access_log_format
-	switch x := m.AccessLogFormat.(type) {
-	case *FileAccessLog_Format:
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(len(x.Format)))
-		n += len(x.Format)
-	case *FileAccessLog_JsonFormat:
-		s := proto.Size(x.JsonFormat)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 func init() {

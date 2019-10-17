@@ -23,7 +23,7 @@ var _ = math.Inf
 // is compatible with the proto package it is being compiled against.
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
-const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
+const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // Specifies the way to match a double value.
 type DoubleMatcher struct {
@@ -106,73 +106,12 @@ func (m *DoubleMatcher) GetExact() float64 {
 	return 0
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*DoubleMatcher) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _DoubleMatcher_OneofMarshaler, _DoubleMatcher_OneofUnmarshaler, _DoubleMatcher_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*DoubleMatcher) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*DoubleMatcher_Range)(nil),
 		(*DoubleMatcher_Exact)(nil),
 	}
-}
-
-func _DoubleMatcher_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*DoubleMatcher)
-	// match_pattern
-	switch x := m.MatchPattern.(type) {
-	case *DoubleMatcher_Range:
-		_ = b.EncodeVarint(1<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.Range); err != nil {
-			return err
-		}
-	case *DoubleMatcher_Exact:
-		_ = b.EncodeVarint(2<<3 | proto.WireFixed64)
-		_ = b.EncodeFixed64(math.Float64bits(x.Exact))
-	case nil:
-	default:
-		return fmt.Errorf("DoubleMatcher.MatchPattern has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _DoubleMatcher_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*DoubleMatcher)
-	switch tag {
-	case 1: // match_pattern.range
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(_type.DoubleRange)
-		err := b.DecodeMessage(msg)
-		m.MatchPattern = &DoubleMatcher_Range{msg}
-		return true, err
-	case 2: // match_pattern.exact
-		if wire != proto.WireFixed64 {
-			return true, proto.ErrInternalBadWireType
-		}
-		x, err := b.DecodeFixed64()
-		m.MatchPattern = &DoubleMatcher_Exact{math.Float64frombits(x)}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _DoubleMatcher_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*DoubleMatcher)
-	// match_pattern
-	switch x := m.MatchPattern.(type) {
-	case *DoubleMatcher_Range:
-		s := proto.Size(x.Range)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *DoubleMatcher_Exact:
-		n += 1 // tag and wire
-		n += 8
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 func init() {

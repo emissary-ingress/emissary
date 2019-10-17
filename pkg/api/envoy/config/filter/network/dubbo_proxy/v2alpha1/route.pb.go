@@ -25,7 +25,7 @@ var _ = math.Inf
 // is compatible with the proto package it is being compiled against.
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
-const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
+const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // [#comment:next free field: 6]
 type RouteConfiguration struct {
@@ -313,74 +313,12 @@ func (m *RouteAction) GetWeightedClusters() *route.WeightedCluster {
 	return nil
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*RouteAction) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _RouteAction_OneofMarshaler, _RouteAction_OneofUnmarshaler, _RouteAction_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*RouteAction) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*RouteAction_Cluster)(nil),
 		(*RouteAction_WeightedClusters)(nil),
 	}
-}
-
-func _RouteAction_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*RouteAction)
-	// cluster_specifier
-	switch x := m.ClusterSpecifier.(type) {
-	case *RouteAction_Cluster:
-		_ = b.EncodeVarint(1<<3 | proto.WireBytes)
-		_ = b.EncodeStringBytes(x.Cluster)
-	case *RouteAction_WeightedClusters:
-		_ = b.EncodeVarint(2<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.WeightedClusters); err != nil {
-			return err
-		}
-	case nil:
-	default:
-		return fmt.Errorf("RouteAction.ClusterSpecifier has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _RouteAction_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*RouteAction)
-	switch tag {
-	case 1: // cluster_specifier.cluster
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		x, err := b.DecodeStringBytes()
-		m.ClusterSpecifier = &RouteAction_Cluster{x}
-		return true, err
-	case 2: // cluster_specifier.weighted_clusters
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(route.WeightedCluster)
-		err := b.DecodeMessage(msg)
-		m.ClusterSpecifier = &RouteAction_WeightedClusters{msg}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _RouteAction_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*RouteAction)
-	// cluster_specifier
-	switch x := m.ClusterSpecifier.(type) {
-	case *RouteAction_Cluster:
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(len(x.Cluster)))
-		n += len(x.Cluster)
-	case *RouteAction_WeightedClusters:
-		s := proto.Size(x.WeightedClusters)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 // [#comment:next free field: 5]
@@ -526,74 +464,12 @@ func (m *MethodMatch_ParameterMatchSpecifier) GetRangeMatch() *_type.Int64Range 
 	return nil
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*MethodMatch_ParameterMatchSpecifier) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _MethodMatch_ParameterMatchSpecifier_OneofMarshaler, _MethodMatch_ParameterMatchSpecifier_OneofUnmarshaler, _MethodMatch_ParameterMatchSpecifier_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*MethodMatch_ParameterMatchSpecifier) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*MethodMatch_ParameterMatchSpecifier_ExactMatch)(nil),
 		(*MethodMatch_ParameterMatchSpecifier_RangeMatch)(nil),
 	}
-}
-
-func _MethodMatch_ParameterMatchSpecifier_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*MethodMatch_ParameterMatchSpecifier)
-	// parameter_match_specifier
-	switch x := m.ParameterMatchSpecifier.(type) {
-	case *MethodMatch_ParameterMatchSpecifier_ExactMatch:
-		_ = b.EncodeVarint(3<<3 | proto.WireBytes)
-		_ = b.EncodeStringBytes(x.ExactMatch)
-	case *MethodMatch_ParameterMatchSpecifier_RangeMatch:
-		_ = b.EncodeVarint(4<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.RangeMatch); err != nil {
-			return err
-		}
-	case nil:
-	default:
-		return fmt.Errorf("MethodMatch_ParameterMatchSpecifier.ParameterMatchSpecifier has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _MethodMatch_ParameterMatchSpecifier_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*MethodMatch_ParameterMatchSpecifier)
-	switch tag {
-	case 3: // parameter_match_specifier.exact_match
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		x, err := b.DecodeStringBytes()
-		m.ParameterMatchSpecifier = &MethodMatch_ParameterMatchSpecifier_ExactMatch{x}
-		return true, err
-	case 4: // parameter_match_specifier.range_match
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(_type.Int64Range)
-		err := b.DecodeMessage(msg)
-		m.ParameterMatchSpecifier = &MethodMatch_ParameterMatchSpecifier_RangeMatch{msg}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _MethodMatch_ParameterMatchSpecifier_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*MethodMatch_ParameterMatchSpecifier)
-	// parameter_match_specifier
-	switch x := m.ParameterMatchSpecifier.(type) {
-	case *MethodMatch_ParameterMatchSpecifier_ExactMatch:
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(len(x.ExactMatch)))
-		n += len(x.ExactMatch)
-	case *MethodMatch_ParameterMatchSpecifier_RangeMatch:
-		s := proto.Size(x.RangeMatch)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 func init() {

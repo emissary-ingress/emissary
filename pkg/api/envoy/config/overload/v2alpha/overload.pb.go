@@ -23,7 +23,7 @@ var _ = math.Inf
 // is compatible with the proto package it is being compiled against.
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
-const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
+const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 type ResourceMonitor struct {
 	// The name of the resource monitor to instantiate. Must match a registered
@@ -122,78 +122,12 @@ func (m *ResourceMonitor) GetTypedConfig() *types.Any {
 	return nil
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*ResourceMonitor) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _ResourceMonitor_OneofMarshaler, _ResourceMonitor_OneofUnmarshaler, _ResourceMonitor_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*ResourceMonitor) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*ResourceMonitor_Config)(nil),
 		(*ResourceMonitor_TypedConfig)(nil),
 	}
-}
-
-func _ResourceMonitor_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*ResourceMonitor)
-	// config_type
-	switch x := m.ConfigType.(type) {
-	case *ResourceMonitor_Config:
-		_ = b.EncodeVarint(2<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.Config); err != nil {
-			return err
-		}
-	case *ResourceMonitor_TypedConfig:
-		_ = b.EncodeVarint(3<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.TypedConfig); err != nil {
-			return err
-		}
-	case nil:
-	default:
-		return fmt.Errorf("ResourceMonitor.ConfigType has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _ResourceMonitor_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*ResourceMonitor)
-	switch tag {
-	case 2: // config_type.config
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(types.Struct)
-		err := b.DecodeMessage(msg)
-		m.ConfigType = &ResourceMonitor_Config{msg}
-		return true, err
-	case 3: // config_type.typed_config
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(types.Any)
-		err := b.DecodeMessage(msg)
-		m.ConfigType = &ResourceMonitor_TypedConfig{msg}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _ResourceMonitor_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*ResourceMonitor)
-	// config_type
-	switch x := m.ConfigType.(type) {
-	case *ResourceMonitor_Config:
-		s := proto.Size(x.Config)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *ResourceMonitor_TypedConfig:
-		s := proto.Size(x.TypedConfig)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 type ThresholdTrigger struct {
@@ -322,59 +256,11 @@ func (m *Trigger) GetThreshold() *ThresholdTrigger {
 	return nil
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*Trigger) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _Trigger_OneofMarshaler, _Trigger_OneofUnmarshaler, _Trigger_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*Trigger) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*Trigger_Threshold)(nil),
 	}
-}
-
-func _Trigger_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*Trigger)
-	// trigger_oneof
-	switch x := m.TriggerOneof.(type) {
-	case *Trigger_Threshold:
-		_ = b.EncodeVarint(2<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.Threshold); err != nil {
-			return err
-		}
-	case nil:
-	default:
-		return fmt.Errorf("Trigger.TriggerOneof has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _Trigger_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*Trigger)
-	switch tag {
-	case 2: // trigger_oneof.threshold
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(ThresholdTrigger)
-		err := b.DecodeMessage(msg)
-		m.TriggerOneof = &Trigger_Threshold{msg}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _Trigger_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*Trigger)
-	// trigger_oneof
-	switch x := m.TriggerOneof.(type) {
-	case *Trigger_Threshold:
-		s := proto.Size(x.Threshold)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 type OverloadAction struct {

@@ -22,7 +22,7 @@ var _ = math.Inf
 // is compatible with the proto package it is being compiled against.
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
-const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
+const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // A regex matcher designed for safety when used with untrusted input.
 type RegexMatcher struct {
@@ -102,59 +102,11 @@ func (m *RegexMatcher) GetRegex() string {
 	return ""
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*RegexMatcher) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _RegexMatcher_OneofMarshaler, _RegexMatcher_OneofUnmarshaler, _RegexMatcher_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*RegexMatcher) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*RegexMatcher_GoogleRe2)(nil),
 	}
-}
-
-func _RegexMatcher_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*RegexMatcher)
-	// engine_type
-	switch x := m.EngineType.(type) {
-	case *RegexMatcher_GoogleRe2:
-		_ = b.EncodeVarint(1<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.GoogleRe2); err != nil {
-			return err
-		}
-	case nil:
-	default:
-		return fmt.Errorf("RegexMatcher.EngineType has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _RegexMatcher_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*RegexMatcher)
-	switch tag {
-	case 1: // engine_type.google_re2
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(RegexMatcher_GoogleRE2)
-		err := b.DecodeMessage(msg)
-		m.EngineType = &RegexMatcher_GoogleRe2{msg}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _RegexMatcher_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*RegexMatcher)
-	// engine_type
-	switch x := m.EngineType.(type) {
-	case *RegexMatcher_GoogleRe2:
-		s := proto.Size(x.GoogleRe2)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 // Google's `RE2 <https://github.com/google/re2>`_ regex engine. The regex string must adhere to

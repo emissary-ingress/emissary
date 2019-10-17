@@ -21,7 +21,7 @@ var _ = math.Inf
 // is compatible with the proto package it is being compiled against.
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
-const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
+const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 type GrpcJsonTranscoder struct {
 	// Types that are valid to be assigned to DescriptorSet:
@@ -211,70 +211,12 @@ func (m *GrpcJsonTranscoder) GetIgnoreUnknownQueryParameters() bool {
 	return false
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*GrpcJsonTranscoder) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _GrpcJsonTranscoder_OneofMarshaler, _GrpcJsonTranscoder_OneofUnmarshaler, _GrpcJsonTranscoder_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*GrpcJsonTranscoder) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*GrpcJsonTranscoder_ProtoDescriptor)(nil),
 		(*GrpcJsonTranscoder_ProtoDescriptorBin)(nil),
 	}
-}
-
-func _GrpcJsonTranscoder_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*GrpcJsonTranscoder)
-	// descriptor_set
-	switch x := m.DescriptorSet.(type) {
-	case *GrpcJsonTranscoder_ProtoDescriptor:
-		_ = b.EncodeVarint(1<<3 | proto.WireBytes)
-		_ = b.EncodeStringBytes(x.ProtoDescriptor)
-	case *GrpcJsonTranscoder_ProtoDescriptorBin:
-		_ = b.EncodeVarint(4<<3 | proto.WireBytes)
-		_ = b.EncodeRawBytes(x.ProtoDescriptorBin)
-	case nil:
-	default:
-		return fmt.Errorf("GrpcJsonTranscoder.DescriptorSet has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _GrpcJsonTranscoder_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*GrpcJsonTranscoder)
-	switch tag {
-	case 1: // descriptor_set.proto_descriptor
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		x, err := b.DecodeStringBytes()
-		m.DescriptorSet = &GrpcJsonTranscoder_ProtoDescriptor{x}
-		return true, err
-	case 4: // descriptor_set.proto_descriptor_bin
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		x, err := b.DecodeRawBytes(true)
-		m.DescriptorSet = &GrpcJsonTranscoder_ProtoDescriptorBin{x}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _GrpcJsonTranscoder_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*GrpcJsonTranscoder)
-	// descriptor_set
-	switch x := m.DescriptorSet.(type) {
-	case *GrpcJsonTranscoder_ProtoDescriptor:
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(len(x.ProtoDescriptor)))
-		n += len(x.ProtoDescriptor)
-	case *GrpcJsonTranscoder_ProtoDescriptorBin:
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(len(x.ProtoDescriptorBin)))
-		n += len(x.ProtoDescriptorBin)
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 type GrpcJsonTranscoder_PrintOptions struct {

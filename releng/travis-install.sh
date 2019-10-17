@@ -45,6 +45,9 @@ chmod +x ~/bin/kubernaut
 gimme ${GO_VERSION}
 source ~/.gimme/envs/latest.env
 
+# Install awscli
+sudo pip install awscli
+
 # Configure kubernaut
 base64 -d < kconf.b64 | ( cd ~ ; tar xzf - )
 # Grab a kubernaut cluster
@@ -53,7 +56,10 @@ DEV_KUBECONFIG=~/.kube/${CLAIM_NAME}.yaml
 echo $CLAIM_NAME > ~/kubernaut-claim.txt
 kubernaut claims delete ${CLAIM_NAME}
 kubernaut claims create --name ${CLAIM_NAME} --cluster-group main
+# Do a quick sanity check on that cluster
 kubectl --kubeconfig ${DEV_KUBECONFIG} -n default get service kubernetes
+# Tell test-warn.sh that, yes, it's OK if it has its way with the cluster
+touch .skip_test_warning
 # Set up a registry in that cluster
 KUBECONFIG=${DEV_KUBECONFIG} go run ./cmd/k8sregistryctl up --storage=hostPath
 

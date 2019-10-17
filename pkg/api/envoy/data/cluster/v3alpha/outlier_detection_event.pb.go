@@ -22,7 +22,7 @@ var _ = math.Inf
 // is compatible with the proto package it is being compiled against.
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
-const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
+const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // Type of ejection that took place
 type OutlierEjectionType int32
@@ -268,78 +268,12 @@ func (m *OutlierDetectionEvent) GetEjectConsecutiveEvent() *OutlierEjectConsecut
 	return nil
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*OutlierDetectionEvent) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _OutlierDetectionEvent_OneofMarshaler, _OutlierDetectionEvent_OneofUnmarshaler, _OutlierDetectionEvent_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*OutlierDetectionEvent) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*OutlierDetectionEvent_EjectSuccessRateEvent)(nil),
 		(*OutlierDetectionEvent_EjectConsecutiveEvent)(nil),
 	}
-}
-
-func _OutlierDetectionEvent_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*OutlierDetectionEvent)
-	// event
-	switch x := m.Event.(type) {
-	case *OutlierDetectionEvent_EjectSuccessRateEvent:
-		_ = b.EncodeVarint(9<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.EjectSuccessRateEvent); err != nil {
-			return err
-		}
-	case *OutlierDetectionEvent_EjectConsecutiveEvent:
-		_ = b.EncodeVarint(10<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.EjectConsecutiveEvent); err != nil {
-			return err
-		}
-	case nil:
-	default:
-		return fmt.Errorf("OutlierDetectionEvent.Event has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _OutlierDetectionEvent_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*OutlierDetectionEvent)
-	switch tag {
-	case 9: // event.eject_success_rate_event
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(OutlierEjectSuccessRate)
-		err := b.DecodeMessage(msg)
-		m.Event = &OutlierDetectionEvent_EjectSuccessRateEvent{msg}
-		return true, err
-	case 10: // event.eject_consecutive_event
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(OutlierEjectConsecutive)
-		err := b.DecodeMessage(msg)
-		m.Event = &OutlierDetectionEvent_EjectConsecutiveEvent{msg}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _OutlierDetectionEvent_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*OutlierDetectionEvent)
-	// event
-	switch x := m.Event.(type) {
-	case *OutlierDetectionEvent_EjectSuccessRateEvent:
-		s := proto.Size(x.EjectSuccessRateEvent)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *OutlierDetectionEvent_EjectConsecutiveEvent:
-		s := proto.Size(x.EjectConsecutiveEvent)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 type OutlierEjectSuccessRate struct {

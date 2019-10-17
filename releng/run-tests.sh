@@ -1,4 +1,4 @@
-#!bash
+#!/usr/bin/env bash
 
 # Coverage checks are totally broken right now. I suspect that it's
 # probably the result of all the Ambassador stuff actually happen in
@@ -16,19 +16,48 @@ set -e
 set -o pipefail
 #set -x
 
-# We only want to pull images if they are not present locally. This impacts local test runs.
-echo "==== [$(date)] ==== Verifying $AMBASSADOR_DOCKER_IMAGE..."
-
-if [[ "$(docker images -q $AMBASSADOR_DOCKER_IMAGE 2> /dev/null)" == "" ]]; then
-    if ! docker pull $AMBASSADOR_DOCKER_IMAGE; then
-        echo "could not pull $AMBASSADOR_DOCKER_IMAGE" >&2
+imgvars=(
+    AMBASSADOR_DOCKER_IMAGE
+    KAT_SERVER_DOCKER_IMAGE
+    KAT_CLIENT_DOCKER_IMAGE
+    TEST_SERVICE_AUTH
+    TEST_SERVICE_AUTH_TLS
+    TEST_SERVICE_RATELIMIT
+    TEST_SERVICE_SHADOW
+    TEST_SERVICE_STATS
+)
+for varname in "${imgvars[@]}"; do
+    # We only want to pull images if they are not present locally. This impacts local test runs.
+    echo "==== [$(date)] ==== Verifying \$${varname}..."
+    varval=${!varname}
+    if [[ -n "${varval}" ]]; then
+        echo "set to '${varval}' in the environment" >&2
+    else
+        filebase=${varname}
+        filebase=${filebase%_DOCKER_IMAGE}
+        filebase=${filebase//_/-}
+        filebase=${filebase,,}
+        filebase=${filebase/#test-service-/test-}
+        filename=${ROOT}/${filebase}.docker.push.dev
+        if [[ -f "$filename" ]]; then
+            varval="$(sed -n 2p "$filename")"
+            if [[ -n "${varval}" ]]; then
+                eval "export $varname=$varval"
+                echo "set to '${varval}' in '${filename}'" >&2
+            fi
+        fi
+    fi
+    if [[ -z "${varval}" ]]; then
+        echo "variable '${varname}' is not set" >&2
         exit 1
     fi
-fi
+    if ! docker run --rm --entrypoint=true "$varval"; then
+        echo "could not pull $varval" >&2
+        exit 1
+    fi
+done
 
-if [[ "$USE_KUBERNAUT" != "true" ]]; then
-    ( cd "$ROOT"; bash "$HERE/test-warn.sh" )
-fi
+( cd "$ROOT"; bash "$HERE/test-warn.sh" )
 
 TEST_ARGS_GENERIC=(--tb=short -s --suppress-no-test-exit-code)
 TEST_ARGS_WITHOUT_KNATIVE=("${TEST_ARGS_GENERIC[@]}" -k 'not Knative')
@@ -111,7 +140,7 @@ run_test() {
 }
 
 
-( cd "$ROOT" ; make setup-test )
+( cd "$ROOT" ; ${MAKE:-make} setup-test )
 
 echo "==== [$(date)] ==== STARTING TESTS"
 
@@ -160,9 +189,9 @@ else
 
     ( cd /tmp; tar czf "$outdir.tgz" "$outdirbase" )
 
-    if [ -n "$AWS_ACCESS_KEY_ID" -a -n "$GIT_BRANCH_SANITIZED" ]; then
+    if [ -n "$AWS_ACCESS_KEY_ID" -a "$TRAVIS" = true ]; then
         now=$(date +"%y-%m-%dT%H:%M:%S")
-        branch=${GIT_BRANCH_SANITIZED:-localdev}
+        branch="$(printf ${GIT_BRANCH} | tr '[:upper:]' '[:lower:]' | sed -e 's/[^a-zA-Z0-9]/-/g' -e 's/-\{2,\}/-/g')"
         aws_key="kat-${branch}-${now}-${hr_el}-logs.tgz"
 
         echo "==== [$(date)] ==== Uploading log tarball as $aws_key"

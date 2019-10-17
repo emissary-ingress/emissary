@@ -21,7 +21,7 @@ var _ = math.Inf
 // is compatible with the proto package it is being compiled against.
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
-const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
+const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // Proto representation of certificate details. Admin endpoint uses this wrapper for `/certs` to
 // display certificate information. See :ref:`/certs <operations_admin_interface_certs>` for more
@@ -306,70 +306,12 @@ func (m *SubjectAlternateName) GetUri() string {
 	return ""
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*SubjectAlternateName) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _SubjectAlternateName_OneofMarshaler, _SubjectAlternateName_OneofUnmarshaler, _SubjectAlternateName_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*SubjectAlternateName) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*SubjectAlternateName_Dns)(nil),
 		(*SubjectAlternateName_Uri)(nil),
 	}
-}
-
-func _SubjectAlternateName_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*SubjectAlternateName)
-	// name
-	switch x := m.Name.(type) {
-	case *SubjectAlternateName_Dns:
-		_ = b.EncodeVarint(1<<3 | proto.WireBytes)
-		_ = b.EncodeStringBytes(x.Dns)
-	case *SubjectAlternateName_Uri:
-		_ = b.EncodeVarint(2<<3 | proto.WireBytes)
-		_ = b.EncodeStringBytes(x.Uri)
-	case nil:
-	default:
-		return fmt.Errorf("SubjectAlternateName.Name has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _SubjectAlternateName_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*SubjectAlternateName)
-	switch tag {
-	case 1: // name.dns
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		x, err := b.DecodeStringBytes()
-		m.Name = &SubjectAlternateName_Dns{x}
-		return true, err
-	case 2: // name.uri
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		x, err := b.DecodeStringBytes()
-		m.Name = &SubjectAlternateName_Uri{x}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _SubjectAlternateName_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*SubjectAlternateName)
-	// name
-	switch x := m.Name.(type) {
-	case *SubjectAlternateName_Dns:
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(len(x.Dns)))
-		n += len(x.Dns)
-	case *SubjectAlternateName_Uri:
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(len(x.Uri)))
-		n += len(x.Uri)
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 func init() {

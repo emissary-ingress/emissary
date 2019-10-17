@@ -24,7 +24,7 @@ var _ = math.Inf
 // is compatible with the proto package it is being compiled against.
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
-const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
+const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // Please see following for JWT authentication flow:
 //
@@ -274,78 +274,12 @@ func (m *JwtProvider) GetPayloadInMetadata() string {
 	return ""
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*JwtProvider) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _JwtProvider_OneofMarshaler, _JwtProvider_OneofUnmarshaler, _JwtProvider_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*JwtProvider) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*JwtProvider_RemoteJwks)(nil),
 		(*JwtProvider_LocalJwks)(nil),
 	}
-}
-
-func _JwtProvider_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*JwtProvider)
-	// jwks_source_specifier
-	switch x := m.JwksSourceSpecifier.(type) {
-	case *JwtProvider_RemoteJwks:
-		_ = b.EncodeVarint(3<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.RemoteJwks); err != nil {
-			return err
-		}
-	case *JwtProvider_LocalJwks:
-		_ = b.EncodeVarint(4<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.LocalJwks); err != nil {
-			return err
-		}
-	case nil:
-	default:
-		return fmt.Errorf("JwtProvider.JwksSourceSpecifier has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _JwtProvider_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*JwtProvider)
-	switch tag {
-	case 3: // jwks_source_specifier.remote_jwks
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(RemoteJwks)
-		err := b.DecodeMessage(msg)
-		m.JwksSourceSpecifier = &JwtProvider_RemoteJwks{msg}
-		return true, err
-	case 4: // jwks_source_specifier.local_jwks
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(core.DataSource)
-		err := b.DecodeMessage(msg)
-		m.JwksSourceSpecifier = &JwtProvider_LocalJwks{msg}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _JwtProvider_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*JwtProvider)
-	// jwks_source_specifier
-	switch x := m.JwksSourceSpecifier.(type) {
-	case *JwtProvider_RemoteJwks:
-		s := proto.Size(x.RemoteJwks)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *JwtProvider_LocalJwks:
-		s := proto.Size(x.LocalJwks)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 // This message specifies how to fetch JWKS from remote and how to cache it.
@@ -688,131 +622,15 @@ func (m *JwtRequirement) GetAllowMissingOrFailed() *types.Empty {
 	return nil
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*JwtRequirement) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _JwtRequirement_OneofMarshaler, _JwtRequirement_OneofUnmarshaler, _JwtRequirement_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*JwtRequirement) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*JwtRequirement_ProviderName)(nil),
 		(*JwtRequirement_ProviderAndAudiences)(nil),
 		(*JwtRequirement_RequiresAny)(nil),
 		(*JwtRequirement_RequiresAll)(nil),
 		(*JwtRequirement_AllowMissingOrFailed)(nil),
 	}
-}
-
-func _JwtRequirement_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*JwtRequirement)
-	// requires_type
-	switch x := m.RequiresType.(type) {
-	case *JwtRequirement_ProviderName:
-		_ = b.EncodeVarint(1<<3 | proto.WireBytes)
-		_ = b.EncodeStringBytes(x.ProviderName)
-	case *JwtRequirement_ProviderAndAudiences:
-		_ = b.EncodeVarint(2<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.ProviderAndAudiences); err != nil {
-			return err
-		}
-	case *JwtRequirement_RequiresAny:
-		_ = b.EncodeVarint(3<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.RequiresAny); err != nil {
-			return err
-		}
-	case *JwtRequirement_RequiresAll:
-		_ = b.EncodeVarint(4<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.RequiresAll); err != nil {
-			return err
-		}
-	case *JwtRequirement_AllowMissingOrFailed:
-		_ = b.EncodeVarint(5<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.AllowMissingOrFailed); err != nil {
-			return err
-		}
-	case nil:
-	default:
-		return fmt.Errorf("JwtRequirement.RequiresType has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _JwtRequirement_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*JwtRequirement)
-	switch tag {
-	case 1: // requires_type.provider_name
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		x, err := b.DecodeStringBytes()
-		m.RequiresType = &JwtRequirement_ProviderName{x}
-		return true, err
-	case 2: // requires_type.provider_and_audiences
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(ProviderWithAudiences)
-		err := b.DecodeMessage(msg)
-		m.RequiresType = &JwtRequirement_ProviderAndAudiences{msg}
-		return true, err
-	case 3: // requires_type.requires_any
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(JwtRequirementOrList)
-		err := b.DecodeMessage(msg)
-		m.RequiresType = &JwtRequirement_RequiresAny{msg}
-		return true, err
-	case 4: // requires_type.requires_all
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(JwtRequirementAndList)
-		err := b.DecodeMessage(msg)
-		m.RequiresType = &JwtRequirement_RequiresAll{msg}
-		return true, err
-	case 5: // requires_type.allow_missing_or_failed
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(types.Empty)
-		err := b.DecodeMessage(msg)
-		m.RequiresType = &JwtRequirement_AllowMissingOrFailed{msg}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _JwtRequirement_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*JwtRequirement)
-	// requires_type
-	switch x := m.RequiresType.(type) {
-	case *JwtRequirement_ProviderName:
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(len(x.ProviderName)))
-		n += len(x.ProviderName)
-	case *JwtRequirement_ProviderAndAudiences:
-		s := proto.Size(x.ProviderAndAudiences)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *JwtRequirement_RequiresAny:
-		s := proto.Size(x.RequiresAny)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *JwtRequirement_RequiresAll:
-		s := proto.Size(x.RequiresAll)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *JwtRequirement_AllowMissingOrFailed:
-		s := proto.Size(x.AllowMissingOrFailed)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 // This message specifies a list of RequiredProvider.

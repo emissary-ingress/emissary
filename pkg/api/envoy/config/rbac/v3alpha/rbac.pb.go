@@ -25,7 +25,7 @@ var _ = math.Inf
 // is compatible with the proto package it is being compiled against.
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
-const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
+const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // Should we do safe-list or block-list style access control?
 type RBAC_Action int32
@@ -395,9 +395,9 @@ func (m *Permission) GetRequestedServerName() *matcher.StringMatcher {
 	return nil
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*Permission) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _Permission_OneofMarshaler, _Permission_OneofUnmarshaler, _Permission_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*Permission) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*Permission_AndRules)(nil),
 		(*Permission_OrRules)(nil),
 		(*Permission_Any)(nil),
@@ -408,192 +408,6 @@ func (*Permission) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) er
 		(*Permission_NotRule)(nil),
 		(*Permission_RequestedServerName)(nil),
 	}
-}
-
-func _Permission_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*Permission)
-	// rule
-	switch x := m.Rule.(type) {
-	case *Permission_AndRules:
-		_ = b.EncodeVarint(1<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.AndRules); err != nil {
-			return err
-		}
-	case *Permission_OrRules:
-		_ = b.EncodeVarint(2<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.OrRules); err != nil {
-			return err
-		}
-	case *Permission_Any:
-		t := uint64(0)
-		if x.Any {
-			t = 1
-		}
-		_ = b.EncodeVarint(3<<3 | proto.WireVarint)
-		_ = b.EncodeVarint(t)
-	case *Permission_Header:
-		_ = b.EncodeVarint(4<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.Header); err != nil {
-			return err
-		}
-	case *Permission_DestinationIp:
-		_ = b.EncodeVarint(5<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.DestinationIp); err != nil {
-			return err
-		}
-	case *Permission_DestinationPort:
-		_ = b.EncodeVarint(6<<3 | proto.WireVarint)
-		_ = b.EncodeVarint(uint64(x.DestinationPort))
-	case *Permission_Metadata:
-		_ = b.EncodeVarint(7<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.Metadata); err != nil {
-			return err
-		}
-	case *Permission_NotRule:
-		_ = b.EncodeVarint(8<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.NotRule); err != nil {
-			return err
-		}
-	case *Permission_RequestedServerName:
-		_ = b.EncodeVarint(9<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.RequestedServerName); err != nil {
-			return err
-		}
-	case nil:
-	default:
-		return fmt.Errorf("Permission.Rule has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _Permission_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*Permission)
-	switch tag {
-	case 1: // rule.and_rules
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(Permission_Set)
-		err := b.DecodeMessage(msg)
-		m.Rule = &Permission_AndRules{msg}
-		return true, err
-	case 2: // rule.or_rules
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(Permission_Set)
-		err := b.DecodeMessage(msg)
-		m.Rule = &Permission_OrRules{msg}
-		return true, err
-	case 3: // rule.any
-		if wire != proto.WireVarint {
-			return true, proto.ErrInternalBadWireType
-		}
-		x, err := b.DecodeVarint()
-		m.Rule = &Permission_Any{x != 0}
-		return true, err
-	case 4: // rule.header
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(route.HeaderMatcher)
-		err := b.DecodeMessage(msg)
-		m.Rule = &Permission_Header{msg}
-		return true, err
-	case 5: // rule.destination_ip
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(core.CidrRange)
-		err := b.DecodeMessage(msg)
-		m.Rule = &Permission_DestinationIp{msg}
-		return true, err
-	case 6: // rule.destination_port
-		if wire != proto.WireVarint {
-			return true, proto.ErrInternalBadWireType
-		}
-		x, err := b.DecodeVarint()
-		m.Rule = &Permission_DestinationPort{uint32(x)}
-		return true, err
-	case 7: // rule.metadata
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(matcher.MetadataMatcher)
-		err := b.DecodeMessage(msg)
-		m.Rule = &Permission_Metadata{msg}
-		return true, err
-	case 8: // rule.not_rule
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(Permission)
-		err := b.DecodeMessage(msg)
-		m.Rule = &Permission_NotRule{msg}
-		return true, err
-	case 9: // rule.requested_server_name
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(matcher.StringMatcher)
-		err := b.DecodeMessage(msg)
-		m.Rule = &Permission_RequestedServerName{msg}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _Permission_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*Permission)
-	// rule
-	switch x := m.Rule.(type) {
-	case *Permission_AndRules:
-		s := proto.Size(x.AndRules)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *Permission_OrRules:
-		s := proto.Size(x.OrRules)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *Permission_Any:
-		n += 1 // tag and wire
-		n += 1
-	case *Permission_Header:
-		s := proto.Size(x.Header)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *Permission_DestinationIp:
-		s := proto.Size(x.DestinationIp)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *Permission_DestinationPort:
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(x.DestinationPort))
-	case *Permission_Metadata:
-		s := proto.Size(x.Metadata)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *Permission_NotRule:
-		s := proto.Size(x.NotRule)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *Permission_RequestedServerName:
-		s := proto.Size(x.RequestedServerName)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 // Used in the `and_rules` and `or_rules` fields in the `rule` oneof. Depending on the context,
@@ -798,9 +612,9 @@ func (m *Principal) GetNotId() *Principal {
 	return nil
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*Principal) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _Principal_OneofMarshaler, _Principal_OneofUnmarshaler, _Principal_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*Principal) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*Principal_AndIds)(nil),
 		(*Principal_OrIds)(nil),
 		(*Principal_Any)(nil),
@@ -810,179 +624,6 @@ func (*Principal) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) err
 		(*Principal_Metadata)(nil),
 		(*Principal_NotId)(nil),
 	}
-}
-
-func _Principal_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*Principal)
-	// identifier
-	switch x := m.Identifier.(type) {
-	case *Principal_AndIds:
-		_ = b.EncodeVarint(1<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.AndIds); err != nil {
-			return err
-		}
-	case *Principal_OrIds:
-		_ = b.EncodeVarint(2<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.OrIds); err != nil {
-			return err
-		}
-	case *Principal_Any:
-		t := uint64(0)
-		if x.Any {
-			t = 1
-		}
-		_ = b.EncodeVarint(3<<3 | proto.WireVarint)
-		_ = b.EncodeVarint(t)
-	case *Principal_Authenticated_:
-		_ = b.EncodeVarint(4<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.Authenticated); err != nil {
-			return err
-		}
-	case *Principal_SourceIp:
-		_ = b.EncodeVarint(5<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.SourceIp); err != nil {
-			return err
-		}
-	case *Principal_Header:
-		_ = b.EncodeVarint(6<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.Header); err != nil {
-			return err
-		}
-	case *Principal_Metadata:
-		_ = b.EncodeVarint(7<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.Metadata); err != nil {
-			return err
-		}
-	case *Principal_NotId:
-		_ = b.EncodeVarint(8<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.NotId); err != nil {
-			return err
-		}
-	case nil:
-	default:
-		return fmt.Errorf("Principal.Identifier has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _Principal_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*Principal)
-	switch tag {
-	case 1: // identifier.and_ids
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(Principal_Set)
-		err := b.DecodeMessage(msg)
-		m.Identifier = &Principal_AndIds{msg}
-		return true, err
-	case 2: // identifier.or_ids
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(Principal_Set)
-		err := b.DecodeMessage(msg)
-		m.Identifier = &Principal_OrIds{msg}
-		return true, err
-	case 3: // identifier.any
-		if wire != proto.WireVarint {
-			return true, proto.ErrInternalBadWireType
-		}
-		x, err := b.DecodeVarint()
-		m.Identifier = &Principal_Any{x != 0}
-		return true, err
-	case 4: // identifier.authenticated
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(Principal_Authenticated)
-		err := b.DecodeMessage(msg)
-		m.Identifier = &Principal_Authenticated_{msg}
-		return true, err
-	case 5: // identifier.source_ip
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(core.CidrRange)
-		err := b.DecodeMessage(msg)
-		m.Identifier = &Principal_SourceIp{msg}
-		return true, err
-	case 6: // identifier.header
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(route.HeaderMatcher)
-		err := b.DecodeMessage(msg)
-		m.Identifier = &Principal_Header{msg}
-		return true, err
-	case 7: // identifier.metadata
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(matcher.MetadataMatcher)
-		err := b.DecodeMessage(msg)
-		m.Identifier = &Principal_Metadata{msg}
-		return true, err
-	case 8: // identifier.not_id
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(Principal)
-		err := b.DecodeMessage(msg)
-		m.Identifier = &Principal_NotId{msg}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _Principal_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*Principal)
-	// identifier
-	switch x := m.Identifier.(type) {
-	case *Principal_AndIds:
-		s := proto.Size(x.AndIds)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *Principal_OrIds:
-		s := proto.Size(x.OrIds)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *Principal_Any:
-		n += 1 // tag and wire
-		n += 1
-	case *Principal_Authenticated_:
-		s := proto.Size(x.Authenticated)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *Principal_SourceIp:
-		s := proto.Size(x.SourceIp)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *Principal_Header:
-		s := proto.Size(x.Header)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *Principal_Metadata:
-		s := proto.Size(x.Metadata)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *Principal_NotId:
-		s := proto.Size(x.NotId)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 // Used in the `and_ids` and `or_ids` fields in the `identifier` oneof. Depending on the context,

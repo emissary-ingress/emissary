@@ -5,5 +5,5 @@ go.sum
 /Makefile
 /builder/
 /bin_linux_amd64/
-/envoy-src/
-/envoy-bin/
+/bin_darwin_amd64/
+/cxx/envoy/

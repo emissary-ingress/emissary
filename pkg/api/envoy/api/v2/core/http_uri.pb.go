@@ -22,7 +22,7 @@ var _ = math.Inf
 // is compatible with the proto package it is being compiled against.
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
-const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
+const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // Envoy external URI descriptor
 type HttpUri struct {
@@ -123,55 +123,11 @@ func (m *HttpUri) GetTimeout() *types.Duration {
 	return nil
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*HttpUri) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _HttpUri_OneofMarshaler, _HttpUri_OneofUnmarshaler, _HttpUri_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*HttpUri) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*HttpUri_Cluster)(nil),
 	}
-}
-
-func _HttpUri_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*HttpUri)
-	// http_upstream_type
-	switch x := m.HttpUpstreamType.(type) {
-	case *HttpUri_Cluster:
-		_ = b.EncodeVarint(2<<3 | proto.WireBytes)
-		_ = b.EncodeStringBytes(x.Cluster)
-	case nil:
-	default:
-		return fmt.Errorf("HttpUri.HttpUpstreamType has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _HttpUri_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*HttpUri)
-	switch tag {
-	case 2: // http_upstream_type.cluster
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		x, err := b.DecodeStringBytes()
-		m.HttpUpstreamType = &HttpUri_Cluster{x}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _HttpUri_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*HttpUri)
-	// http_upstream_type
-	switch x := m.HttpUpstreamType.(type) {
-	case *HttpUri_Cluster:
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(len(x.Cluster)))
-		n += len(x.Cluster)
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 func init() {

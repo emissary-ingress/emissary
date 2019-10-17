@@ -1,5 +1,3 @@
-#!python
-
 # Copyright 2018 Datawire. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,24 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-import sys
+################################################################
+# If you have to change this file, you _must_ update BASE_ENVOY_RELVER
+# in the Makefile, then run "make update-base" to build and push the
+# new image.
 
-output = open(sys.argv[1], "w")
+ARG ENVOY_BUILD_IMAGE
+FROM $ENVOY_BUILD_IMAGE
 
-while True:
-    line = sys.stdin.readline()
-
-    if not line:
-        break
-
-    output.write(line)
-    output.flush()
-
-    if line.startswith("try "):
-        sys.stdout.write("-")
-    else:
-        sys.stdout.write(".")
-
-    sys.stdout.flush()
-
-sys.stdout.write("\n")
+ADD ./envoy-static /usr/local/bin/envoy

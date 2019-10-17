@@ -24,7 +24,7 @@ var _ = math.Inf
 // is compatible with the proto package it is being compiled against.
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
-const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
+const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // Configuration for pluggable stats sinks.
 type StatsSink struct {
@@ -127,78 +127,12 @@ func (m *StatsSink) GetTypedConfig() *types.Any {
 	return nil
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*StatsSink) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _StatsSink_OneofMarshaler, _StatsSink_OneofUnmarshaler, _StatsSink_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*StatsSink) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*StatsSink_Config)(nil),
 		(*StatsSink_TypedConfig)(nil),
 	}
-}
-
-func _StatsSink_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*StatsSink)
-	// config_type
-	switch x := m.ConfigType.(type) {
-	case *StatsSink_Config:
-		_ = b.EncodeVarint(2<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.Config); err != nil {
-			return err
-		}
-	case *StatsSink_TypedConfig:
-		_ = b.EncodeVarint(3<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.TypedConfig); err != nil {
-			return err
-		}
-	case nil:
-	default:
-		return fmt.Errorf("StatsSink.ConfigType has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _StatsSink_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*StatsSink)
-	switch tag {
-	case 2: // config_type.config
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(types.Struct)
-		err := b.DecodeMessage(msg)
-		m.ConfigType = &StatsSink_Config{msg}
-		return true, err
-	case 3: // config_type.typed_config
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(types.Any)
-		err := b.DecodeMessage(msg)
-		m.ConfigType = &StatsSink_TypedConfig{msg}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _StatsSink_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*StatsSink)
-	// config_type
-	switch x := m.ConfigType.(type) {
-	case *StatsSink_Config:
-		s := proto.Size(x.Config)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *StatsSink_TypedConfig:
-		s := proto.Size(x.TypedConfig)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 // Statistics configuration such as tagging.
@@ -379,96 +313,13 @@ func (m *StatsMatcher) GetInclusionList() *matcher.ListStringMatcher {
 	return nil
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*StatsMatcher) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _StatsMatcher_OneofMarshaler, _StatsMatcher_OneofUnmarshaler, _StatsMatcher_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*StatsMatcher) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*StatsMatcher_RejectAll)(nil),
 		(*StatsMatcher_ExclusionList)(nil),
 		(*StatsMatcher_InclusionList)(nil),
 	}
-}
-
-func _StatsMatcher_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*StatsMatcher)
-	// stats_matcher
-	switch x := m.StatsMatcher.(type) {
-	case *StatsMatcher_RejectAll:
-		t := uint64(0)
-		if x.RejectAll {
-			t = 1
-		}
-		_ = b.EncodeVarint(1<<3 | proto.WireVarint)
-		_ = b.EncodeVarint(t)
-	case *StatsMatcher_ExclusionList:
-		_ = b.EncodeVarint(2<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.ExclusionList); err != nil {
-			return err
-		}
-	case *StatsMatcher_InclusionList:
-		_ = b.EncodeVarint(3<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.InclusionList); err != nil {
-			return err
-		}
-	case nil:
-	default:
-		return fmt.Errorf("StatsMatcher.StatsMatcher has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _StatsMatcher_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*StatsMatcher)
-	switch tag {
-	case 1: // stats_matcher.reject_all
-		if wire != proto.WireVarint {
-			return true, proto.ErrInternalBadWireType
-		}
-		x, err := b.DecodeVarint()
-		m.StatsMatcher = &StatsMatcher_RejectAll{x != 0}
-		return true, err
-	case 2: // stats_matcher.exclusion_list
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(matcher.ListStringMatcher)
-		err := b.DecodeMessage(msg)
-		m.StatsMatcher = &StatsMatcher_ExclusionList{msg}
-		return true, err
-	case 3: // stats_matcher.inclusion_list
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(matcher.ListStringMatcher)
-		err := b.DecodeMessage(msg)
-		m.StatsMatcher = &StatsMatcher_InclusionList{msg}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _StatsMatcher_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*StatsMatcher)
-	// stats_matcher
-	switch x := m.StatsMatcher.(type) {
-	case *StatsMatcher_RejectAll:
-		n += 1 // tag and wire
-		n += 1
-	case *StatsMatcher_ExclusionList:
-		s := proto.Size(x.ExclusionList)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *StatsMatcher_InclusionList:
-		s := proto.Size(x.InclusionList)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 // Designates a tag name and value pair. The value may be either a fixed value
@@ -575,70 +426,12 @@ func (m *TagSpecifier) GetFixedValue() string {
 	return ""
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*TagSpecifier) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _TagSpecifier_OneofMarshaler, _TagSpecifier_OneofUnmarshaler, _TagSpecifier_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*TagSpecifier) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*TagSpecifier_Regex)(nil),
 		(*TagSpecifier_FixedValue)(nil),
 	}
-}
-
-func _TagSpecifier_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*TagSpecifier)
-	// tag_value
-	switch x := m.TagValue.(type) {
-	case *TagSpecifier_Regex:
-		_ = b.EncodeVarint(2<<3 | proto.WireBytes)
-		_ = b.EncodeStringBytes(x.Regex)
-	case *TagSpecifier_FixedValue:
-		_ = b.EncodeVarint(3<<3 | proto.WireBytes)
-		_ = b.EncodeStringBytes(x.FixedValue)
-	case nil:
-	default:
-		return fmt.Errorf("TagSpecifier.TagValue has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _TagSpecifier_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*TagSpecifier)
-	switch tag {
-	case 2: // tag_value.regex
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		x, err := b.DecodeStringBytes()
-		m.TagValue = &TagSpecifier_Regex{x}
-		return true, err
-	case 3: // tag_value.fixed_value
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		x, err := b.DecodeStringBytes()
-		m.TagValue = &TagSpecifier_FixedValue{x}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _TagSpecifier_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*TagSpecifier)
-	// tag_value
-	switch x := m.TagValue.(type) {
-	case *TagSpecifier_Regex:
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(len(x.Regex)))
-		n += len(x.Regex)
-	case *TagSpecifier_FixedValue:
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(len(x.FixedValue)))
-		n += len(x.FixedValue)
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 // Stats configuration proto schema for built-in *envoy.statsd* sink. This sink does not support
@@ -757,74 +550,12 @@ func (m *StatsdSink) GetPrefix() string {
 	return ""
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*StatsdSink) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _StatsdSink_OneofMarshaler, _StatsdSink_OneofUnmarshaler, _StatsdSink_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*StatsdSink) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*StatsdSink_Address)(nil),
 		(*StatsdSink_TcpClusterName)(nil),
 	}
-}
-
-func _StatsdSink_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*StatsdSink)
-	// statsd_specifier
-	switch x := m.StatsdSpecifier.(type) {
-	case *StatsdSink_Address:
-		_ = b.EncodeVarint(1<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.Address); err != nil {
-			return err
-		}
-	case *StatsdSink_TcpClusterName:
-		_ = b.EncodeVarint(2<<3 | proto.WireBytes)
-		_ = b.EncodeStringBytes(x.TcpClusterName)
-	case nil:
-	default:
-		return fmt.Errorf("StatsdSink.StatsdSpecifier has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _StatsdSink_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*StatsdSink)
-	switch tag {
-	case 1: // statsd_specifier.address
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(core.Address)
-		err := b.DecodeMessage(msg)
-		m.StatsdSpecifier = &StatsdSink_Address{msg}
-		return true, err
-	case 2: // statsd_specifier.tcp_cluster_name
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		x, err := b.DecodeStringBytes()
-		m.StatsdSpecifier = &StatsdSink_TcpClusterName{x}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _StatsdSink_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*StatsdSink)
-	// statsd_specifier
-	switch x := m.StatsdSpecifier.(type) {
-	case *StatsdSink_Address:
-		s := proto.Size(x.Address)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *StatsdSink_TcpClusterName:
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(len(x.TcpClusterName)))
-		n += len(x.TcpClusterName)
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 // Stats configuration proto schema for built-in *envoy.dog_statsd* sink.
@@ -910,59 +641,11 @@ func (m *DogStatsdSink) GetPrefix() string {
 	return ""
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*DogStatsdSink) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _DogStatsdSink_OneofMarshaler, _DogStatsdSink_OneofUnmarshaler, _DogStatsdSink_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*DogStatsdSink) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*DogStatsdSink_Address)(nil),
 	}
-}
-
-func _DogStatsdSink_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*DogStatsdSink)
-	// dog_statsd_specifier
-	switch x := m.DogStatsdSpecifier.(type) {
-	case *DogStatsdSink_Address:
-		_ = b.EncodeVarint(1<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.Address); err != nil {
-			return err
-		}
-	case nil:
-	default:
-		return fmt.Errorf("DogStatsdSink.DogStatsdSpecifier has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _DogStatsdSink_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*DogStatsdSink)
-	switch tag {
-	case 1: // dog_statsd_specifier.address
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(core.Address)
-		err := b.DecodeMessage(msg)
-		m.DogStatsdSpecifier = &DogStatsdSink_Address{msg}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _DogStatsdSink_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*DogStatsdSink)
-	// dog_statsd_specifier
-	switch x := m.DogStatsdSpecifier.(type) {
-	case *DogStatsdSink_Address:
-		s := proto.Size(x.Address)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 // Stats configuration proto schema for built-in *envoy.stat_sinks.hystrix* sink.

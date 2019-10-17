@@ -22,7 +22,7 @@ var _ = math.Inf
 // is compatible with the proto package it is being compiled against.
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
-const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
+const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 type Buffer struct {
 	// The maximum request size that the filter will buffer before the connection
@@ -153,77 +153,12 @@ func (m *BufferPerRoute) GetBuffer() *Buffer {
 	return nil
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*BufferPerRoute) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _BufferPerRoute_OneofMarshaler, _BufferPerRoute_OneofUnmarshaler, _BufferPerRoute_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*BufferPerRoute) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*BufferPerRoute_Disabled)(nil),
 		(*BufferPerRoute_Buffer)(nil),
 	}
-}
-
-func _BufferPerRoute_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*BufferPerRoute)
-	// override
-	switch x := m.Override.(type) {
-	case *BufferPerRoute_Disabled:
-		t := uint64(0)
-		if x.Disabled {
-			t = 1
-		}
-		_ = b.EncodeVarint(1<<3 | proto.WireVarint)
-		_ = b.EncodeVarint(t)
-	case *BufferPerRoute_Buffer:
-		_ = b.EncodeVarint(2<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.Buffer); err != nil {
-			return err
-		}
-	case nil:
-	default:
-		return fmt.Errorf("BufferPerRoute.Override has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _BufferPerRoute_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*BufferPerRoute)
-	switch tag {
-	case 1: // override.disabled
-		if wire != proto.WireVarint {
-			return true, proto.ErrInternalBadWireType
-		}
-		x, err := b.DecodeVarint()
-		m.Override = &BufferPerRoute_Disabled{x != 0}
-		return true, err
-	case 2: // override.buffer
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(Buffer)
-		err := b.DecodeMessage(msg)
-		m.Override = &BufferPerRoute_Buffer{msg}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _BufferPerRoute_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*BufferPerRoute)
-	// override
-	switch x := m.Override.(type) {
-	case *BufferPerRoute_Disabled:
-		n += 1 // tag and wire
-		n += 1
-	case *BufferPerRoute_Buffer:
-		s := proto.Size(x.Buffer)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 func init() {
