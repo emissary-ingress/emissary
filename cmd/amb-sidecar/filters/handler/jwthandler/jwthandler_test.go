@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	envoyAuthV2 "github.com/datawire/ambassador/go/apis/envoy/service/auth/v2"
+	envoyAuthV2 "github.com/datawire/ambassador/pkg/api/envoy/service/auth/v2"
 	"github.com/dgrijalva/jwt-go"
 
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta2"

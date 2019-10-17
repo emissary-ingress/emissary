@@ -7,7 +7,7 @@ import (
 	"github.com/golang/mock/gomock"
 	stats "github.com/lyft/gostats"
 
-	pb "github.com/datawire/ambassador/go/apis/envoy/service/ratelimit/v2"
+	pb "github.com/datawire/ambassador/pkg/api/envoy/service/ratelimit/v2"
 
 	"github.com/lyft/ratelimit/src/config"
 	"github.com/lyft/ratelimit/src/redis"

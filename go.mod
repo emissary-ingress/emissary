@@ -6,14 +6,14 @@ require (
 	github.com/Jeffail/gabs v1.2.0
 	github.com/aclements/go-moremath v0.0.0-20180329182055-b1aff36309c7
 	github.com/bmizerany/perks v0.0.0-20141205001514-d9a9656a3a4b // indirect
-	github.com/datawire/ambassador v0.72.0
+	github.com/datawire/ambassador v0.83.1-ea10
 	github.com/datawire/liboauth2 v0.0.0-20190930180758-8a034a1de052
 	github.com/datawire/teleproxy v0.7.3-0.20191008172333-62878af1fb91
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/dgryski/go-gk v0.0.0-20140819190930-201884a44051 // indirect
 	github.com/die-net/lrucache v0.0.0-20181227122439-19a39ef22a11
 	github.com/gobwas/glob v0.2.3
-	github.com/gogo/protobuf v1.2.2-0.20190730201129-28a6bbf47e48
+	github.com/gogo/protobuf v1.3.0
 	github.com/google/uuid v1.1.1
 	github.com/gorilla/mux v1.6.1
 	github.com/gregjones/httpcache v0.0.0-20170728041850-787624de3eb7

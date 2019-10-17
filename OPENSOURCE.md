@@ -31,7 +31,7 @@ and Open Source software:
     github.com/go-openapi/spec                                            v0.17.2                                             Apache License 2.0
     github.com/go-openapi/swag                                            v0.17.2                                             Apache License 2.0
     github.com/gobwas/glob                                                v0.2.3                                              MIT license
-    github.com/gogo/protobuf                                              v1.2.2-0.20190730201129-28a6bbf47e48                3-clause BSD license
+    github.com/gogo/protobuf                                              v1.3.0                                              3-clause BSD license
     github.com/golang/groupcache                                          v0.0.0-20160516000752-02826c3e7903                  Apache License 2.0
     github.com/golang/protobuf                                            v1.3.1                                              3-clause BSD license
     github.com/google/btree                                               v0.0.0-20180813153112-4030bb1f1f0c                  Apache License 2.0

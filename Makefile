@@ -81,9 +81,9 @@ push-docs: ## Publish ./docs to https://github.com/datawire/ambassador-docs
 .PHONY: pull-docs push-docs
 
 #
-# Envoy
+# A/OSS
 
-AMBASSADOR_COMMIT = v0.83.0-rc2
+AMBASSADOR_COMMIT = v0.83.1-ea10
 
 # Git clone
 ambassador.stamp: %.stamp: $(var.)AMBASSADOR_COMMIT $(if $(call str.eq,$(AMBASSADOR_COMMIT),-),FORCE)
@@ -111,39 +111,15 @@ ambassador.stamp: %.stamp: $(var.)AMBASSADOR_COMMIT $(if $(call str.eq,$(AMBASSA
 # is mostly just a pattern rule "ambassador/%: ambassador", but it
 # only applies to the files listed in AMBASSADOR_TARGETS, instead of
 # all files starting with "ambassador/".
-AMBASSADOR_TARGETS += envoy-bin/envoy-static-stripped
-AMBASSADOR_TARGETS += ambassador.docker # We'll inject dependencies to this one
-AMBASSADOR_TARGETS += docker-base-images # We'll mark this one as .PHONY
-AMBASSADOR_TARGETS += docker-push-base-images # We'll mark this one as .PHONY, and inject a dependency
+AMBASSADOR_TARGETS += ambassador.docker
 $(addprefix ambassador/,$(AMBASSADOR_TARGETS)): ambassador/%: ambassador.stamp
-	DOCKER_REGISTRY=- BASE_DOCKER_REPO=$(BUILDCACHE_DOCKER_REPO) ENVOY_COMPILATION_MODE=opt ENVOY_FILE=envoy-bin/certified-envoy $(MAKE) -C ambassador $*
-
-# OK, working backwards from our final target of
-# `ambassador/ambassador.docker`:
-#
-# 1. We set ENVOY_FILE=envoy-bin/certified-envoy, so inject a
-#    dependency for that:
-ambassador/ambassador.docker: ambassador/envoy-bin/certified-envoy
-# 2. `ambassador/Makefile` doesn't know how to build
-#    `envoy-bin/certified-envoy`, so write a rule for it here (still
-#    working backwards):
-ambassador/envoy-bin/certified-envoy: bin_linux_amd64/certified-envoy | ambassador.stamp
-	test -d $(@D) || mkdir $(@D)
-	cp $< $@
-bin_linux_amd64/.go-build/certified-envoy: cmd/certified-envoy/envoy.go
-cmd/certified-envoy/envoy.go: cmd/certified-envoy/envoy-gen.go ambassador/envoy-bin/envoy-static-stripped
-	go run cmd/certified-envoy/envoy-gen.go ambassador/envoy-bin/envoy-static-stripped > $@
-
-ambassador/docker-push-base-images: ambassador/docker-base-images
-.PHONY: ambassador/docker-base-images
-.PHONY: ambassador/docker-push-base-images
+	DEV_REGISTRY=$(docker.LOCALHOST):31000 $(MAKE) -C ambassador $*
 
 # Override the release name of `ambassador/ambassador.docker` from
 # `ambassador` to `amb-core`.
 ambassador/ambassador.docker.tag.release: docker.tag.release = quay.io/datawire/ambassador_pro:amb-core-$(VERSION)
 
-push-docker-buildcache: ambassador/docker-push-base-images
-go-get: ambassador.stamp cmd/certified-envoy/envoy.go
+go-get: ambassador.stamp
 
 #
 # Lyft ratelimit
@@ -521,7 +497,6 @@ clean: $(addsuffix .clean,$(wildcard docker/*.docker)) loadtest-clean
 	rm -f ambassador.stamp
 	rm -f apro-abi.txt
 	rm -f build-aux/docker-registry.preload
-	rm -f cmd/certified-envoy/envoy.go
 	rm -f docker/*.docker.stamp
 	rm -f docker/*/*.opensource.tar.gz
 	rm -f docker/model-cluster-amb-sidecar-plugins/Dockerfile docker/model-cluster-amb-sidecar-plugins/*.so
@@ -533,6 +508,8 @@ clean: $(addsuffix .clean,$(wildcard docker/*.docker)) loadtest-clean
 # Files made by older versions.  Remove the tail of this list when the
 # commit making the change gets far enough in to the past.
 #
+# 2019-10-18
+	rm -f cmd/certified-envoy/envoy.go
 # 2019-10-10
 	rm -f tests/cluster/oauth-e2e/idp_*.png
 	rm -rf tests/cluster/oauth-e2e/node_modules

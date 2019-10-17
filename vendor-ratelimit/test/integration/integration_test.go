@@ -14,8 +14,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
 
-	pb_legacy "github.com/datawire/ambassador/go/apis/envoy/service/ratelimit/v1"
-	pb "github.com/datawire/ambassador/go/apis/envoy/service/ratelimit/v2"
+	pb_legacy "github.com/datawire/ambassador/pkg/api/envoy/service/ratelimit/v1"
+	pb "github.com/datawire/ambassador/pkg/api/envoy/service/ratelimit/v2"
 
 	"github.com/lyft/ratelimit/src/service_cmd/runner"
 	"github.com/lyft/ratelimit/test/common"
