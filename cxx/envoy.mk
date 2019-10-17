@@ -7,7 +7,7 @@ ENVOY_FILE ?= $(topsrcdir)/bin_linux_amd64/envoy-static-stripped
 # IF YOU MESS WITH ANY OF THESE VALUES, YOU MUST RUN `make update-base`.
   ENVOY_REPO ?= $(if $(IS_PRIVATE),git@github.com:datawire/envoy-private.git,git://github.com/datawire/envoy.git)
   ENVOY_COMMIT ?= 6e6ae35f214b040f76666d86b30a6ad3ceb67046
-  ENVOY_COMPILATION_MODE ?= dbg
+  ENVOY_COMPILATION_MODE ?= opt
 
   # Increment BASE_ENVOY_RELVER on changes to `docker/base-envoy/Dockerfile`, or Envoy recipes
   BASE_ENVOY_RELVER ?= 6
