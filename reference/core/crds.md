@@ -1,4 +1,4 @@
-# Using CRDs with Ambassador
+# Ambassador Configuration with Customer Resource Definitions (CRDs)
 
 As of Ambassador 0.70, any Ambassador resource can be expressed as a CRD in the `getambassador.io` API group:
 

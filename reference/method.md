@@ -10,12 +10,14 @@ For example:
 
 ```yaml
 ---
-aapiVersion: ambassador/v1
+apiVersion: getambassador.io/v1
 kind: Mapping
-name: get_mapping
-prefix: /backend/get_only/
-method: GET
-service: tour
+metadata:
+  name: get
+spec:
+  prefix: /backend/get_only/
+  method: GET
+  service: tour
 ```
 
 ## Using `method_regex`

@@ -30,18 +30,19 @@ In this guide, you will register a service with Consul and use Ambassador to dyn
 
     ```yaml
     ---
+    apiVersion: getambassador.io/v1
+    kind: ConsulResolver
+    metadata:
+      name: consul-dc1
+    spec:
+      address: consul-server.default.svc.cluster.local:8500
+      datacenter: dc1
+
+    ---
     apiVersion: v1
     kind: Service
     metadata:
       name: ambassador
-      annotations:
-        getambassador.io/config: |
-          ---
-          apiVersion: ambassador/v1
-          kind: ConsulResolver
-          name: consul-dc1
-          address: consul-server.default.svc.cluster.local:8500
-          datacenter: dc1
     spec:
       type: LoadBalancer
       selector:
@@ -120,25 +121,16 @@ You'll now register a demo application with Consul, and show how Ambassador can 
 
    ```yaml
    ---
-   apiVersion: v1
-   kind: Service
+   apiVersion: getambassador.io/v1
+   kind: Mapping
    metadata:
-     name: qotm-consul
-     annotations:
-       getambassador.io/config: |
-         ---
-         apiVersion: ambassador/v1
-         kind: Mapping
-         name: consul_qotm_mapping
-         prefix: /qotm-consul/
-         service: qotm-consul
-         resolver: consul-dc1
-         load_balancer: 
-           policy: round_robin
+     name: consul-qotm-mapping
    spec:
-     ports:
-     - name: http
-       port: 80
+     prefix: /qotm-consul/
+     service: qotm-consul
+     resolver: consul-dc1
+     load_balancer:
+       policy: round_robin
    ```
 Save the above YAML to a file named `qotm-mapping.yaml`, and use `kubectl apply -f qotm-mapping.yaml` to apply this configuration to your Kubernetes cluster. Note that in the above config:
    - `resolver` must be set to the `ConsulResolver` that you created in the previous step
@@ -224,32 +216,23 @@ This will install into your cluster:
 
     ```yaml
     ---
-    apiVersion: v1
-    kind: Service
+    apiVersion: getambassador.io/v1
+    kind: Mapping
     metadata:
-      name: qotm-consul-mtls
-      annotations:
-        getambassador.io/config: |
-          ---
-          apiVersion: ambassador/v1
-          kind: Mapping
-          name: consul_qotm_tls_mapping
-          prefix: /qotm-consul-tls/
-          service: qotm-proxy
-          resolver: consul-dc1
-          tls: ambassador-consul
-          load_balancer:
-            policy: round_robin
+      name: consul-qotm-mapping-tls
     spec:
-      ports:
-      - name: http
-        port: 80
+      prefix: /qotm-consul-tls/
+      service: qotm-sidecar-proxy
+      resolver: consul-dc1
+      tls: ambassador-consul
+      load_balancer:
+        policy: round_robin
     ```
     - `resolver` must be set to the `ConsulResolver` created when configuring Ambassador
     - `tls` must be set to the `TLSContext` storing the Consul mTLS certificates (e.g. `ambassador-consul`)
     - `load_balancer` must be set to configure Ambassador to route directly to the application endpoint(s) that are retrieved from Consul
 
-    Copy this YAML to a file named `qotm-consul-mtls-svc.yaml` and apply it to your cluster with `kubectl apply -f qotm-consul-mtls-svc.yaml`.
+    Copy this YAML to a file named `qotm-consul-mtls-mapping.yaml` and apply it to your cluster with `kubectl apply -f qotm-consul-mtls-mapping.yaml`.
 
 5. Send a request to the `/qotm-consul-tls/` API.
 
