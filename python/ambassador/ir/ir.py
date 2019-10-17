@@ -75,6 +75,7 @@ class IR:
     secret_handler: SecretHandler
     file_checker: Callable[[str], bool]
     resolvers: Dict[str, IRServiceResolver]
+    redirect_cleartext_from: Optional[int]
 
     def __init__(self, aconf: Config, secret_handler=None, file_checker=None) -> None:
         self.ambassador_id = Config.ambassador_id
@@ -126,6 +127,7 @@ class IR:
         self.tracing = None
         self.tls_contexts = {}
         self.tls_module = None
+        self.redirect_cleartext_from = None
         self.ratelimit = None
         self.listeners = []
         self.groups = {}
@@ -286,10 +288,21 @@ class IR:
 
     def save_tls_context(self, ctx: IRTLSContext) -> None:
         extant_ctx = self.tls_contexts.get(ctx.name, None)
+        is_valid = True
 
         if extant_ctx:
             self.post_error("Duplicate TLSContext %s; keeping definition from %s" % (ctx.name, extant_ctx.location))
-        else:
+            is_valid = False
+
+        if ctx.redirect_cleartext_from is not None:
+            if self.redirect_cleartext_from is None:
+                self.redirect_cleartext_from = ctx.redirect_cleartext_from
+            else:
+                if self.redirect_cleartext_from != ctx.redirect_cleartext_from:
+                    self.post_error("TLSContext: %s; configured conflicting redirect_from port: %d" % (ctx.name, ctx.redirect_cleartext_from))
+                    is_valid = False
+
+        if is_valid:
             self.tls_contexts[ctx.name] = ctx
 
     def get_resolver(self, name: str) -> Optional[IRServiceResolver]:
