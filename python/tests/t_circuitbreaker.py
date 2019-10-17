@@ -129,11 +129,10 @@ service: cbstatsd-sink
     def check(self):
         result_count = len(self.results)
 
-        failed = False
+        failures = []
 
         if result_count != 402:
-            print(f'wanted 402 results, got {result_count}')
-            failed = True
+            failures.append(f'wanted 402 results, got {result_count}')
         else:
             pending_results = self.results[1:400]
             stats = self.results[401].json or {}
@@ -158,27 +157,23 @@ service: cbstatsd-sink
             failed = False
 
             if not 300 < pending_overloaded < 400:
-                print(f'Expected between 300 and 400 overloaded, got {pending_overloaded}')
-                failed = True
+                failures.append(f'Expected between 300 and 400 overloaded, got {pending_overloaded}')
 
             cluster_stats = stats.get(self.__class__.TARGET_CLUSTER, {})
             rq_completed = cluster_stats.get('upstream_rq_completed', -1)
             rq_pending_overflow = cluster_stats.get('upstream_rq_pending_overflow', -1)
 
             if error != 0:
-                print(f"Expected no errors but got {error}")
-                failed = True
+                failures.append(f"Expected no errors but got {error}")
 
             if rq_completed != 400:
-                print(f'Expected 400 completed requests to {self.__class__.TARGET_CLUSTER}, got {rq_completed}')
-                failed = True
+                failures.append(f'Expected 400 completed requests to {self.__class__.TARGET_CLUSTER}, got {rq_completed}')
 
             if abs(pending_overloaded - rq_pending_overflow) >= 2:
-                print(f'Expected {pending_overloaded} rq_pending_overflow, got {rq_pending_overflow}')
-                failed = True
+                failures.append(f'Expected {pending_overloaded} rq_pending_overflow, got {rq_pending_overflow}')
 
-        if failed:
-            pytest.xfail("failed, see logs")
+        if failures:
+            pytest.xfail("failed:\n  %s" % "\n  ".join(failures))
 
 class GlobalCircuitBreakingTest(AmbassadorTest):
     target: ServiceType
@@ -229,11 +224,10 @@ config:
                         ignore_result=True, phase=1)
 
     def check(self):
-        failed = True
+        failures = []
 
         if len(self.results) != 400:
-            print(f'wanted 400 results, got {result_count}')
-            failed = True
+            failures.append(f'wanted 400 results, got {len(self.results)}')
         else:
             cb_mapping_results = self.results[0:200]
             normal_mapping_results = self.results[200:400]
@@ -246,8 +240,7 @@ config:
                     pr_mapping_overloaded += 1
 
             if pr_mapping_overloaded != 0:
-                print(f'[GCR] expected no -pr overloaded, got {pr_mapping_overloaded}')
-                failed = True
+                failures.append(f'[GCR] expected no -pr overloaded, got {pr_mapping_overloaded}')
 
             # '-normal' mapping tests: global configuration should be in effect
             normal_overloaded = 0
@@ -263,8 +256,7 @@ config:
                     normal_overloaded += 1
 
             if not 100 < normal_overloaded < 200:
-                print(f'[GCF] expected 100-200 normal_overloaded, got {normal_overloaded}')
-                failed = True
+                failures.append(f'[GCF] expected 100-200 normal_overloaded, got {normal_overloaded}')
 
-        if failed:
-            pytest.xfail("failed, see logs")
+        if failures:
+            pytest.xfail("failed:\n  %s" % "\n  ".join(failures))
