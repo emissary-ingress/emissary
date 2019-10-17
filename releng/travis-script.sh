@@ -57,20 +57,8 @@ git status
 
 printf "========\nSetting up environment...\n"
 
-# case "$COMMIT_TYPE" in
-#     GA)
-#         eval $(make DOCKER_EXTERNAL_REGISTRY=$DOCKER_REGISTRY export-vars)
-#         ;;
-#     *)
-#         eval $(make USE_KUBERNAUT=true \
-#                     DOCKER_EPHEMERAL_REGISTRY=true \
-#                     DOCKER_EXTERNAL_REGISTRY=$DOCKER_REGISTRY \
-#                     DOCKER_REGISTRY=localhost:31000 \
-#                     export-vars)
-#         ;;
-# esac
 set -o xtrace
-#make print-vars
+eval "$(make export-vars)"
 
 printf "========\nStarting build...\n"
 
@@ -91,28 +79,28 @@ esac
 
 printf "========\nPublishing artifacts...\n"
 
-# case "$COMMIT_TYPE" in
-#     GA)
-#         if [[ -n "${DOCKER_RELEASE_USERNAME:-}" ]]; then
-#             docker login -u="$DOCKER_RELEASE_USERNAME" --password-stdin "${AMBASSADOR_EXTERNAL_DOCKER_REPO%%/*}" <<<"$DOCKER_RELEASE_PASSWORD"
-#         fi
-#         make release
-#         ;;
-#     RC)
-#         if [[ -n "${DOCKER_RELEASE_USERNAME:-}" ]]; then
-#             docker login -u="$DOCKER_RELEASE_USERNAME" --password-stdin "${AMBASSADOR_EXTERNAL_DOCKER_REPO%%/*}" <<<"$DOCKER_RELEASE_PASSWORD"
-#         fi
-#         make release-rc
-#         ;;
-#     EA)
-#         if [[ -n "${DOCKER_RELEASE_USERNAME:-}" ]]; then
-#             docker login -u="$DOCKER_RELEASE_USERNAME" --password-stdin "${AMBASSADOR_EXTERNAL_DOCKER_REPO%%/*}" <<<"$DOCKER_RELEASE_PASSWORD"
-#         fi
-#         make release-ea
-#         ;;
-#     *)
-#         : # Nothing to do
-#         ;;
-# esac
+case "$COMMIT_TYPE" in
+    GA)
+        if [[ -n "${DOCKER_RELEASE_USERNAME:-}" ]]; then
+            docker login -u="$DOCKER_RELEASE_USERNAME" --password-stdin "${RELEASE_DOCKER_REPO%%/*}" <<<"$DOCKER_RELEASE_PASSWORD"
+        fi
+        make release
+        ;;
+    RC)
+        if [[ -n "${DOCKER_RELEASE_USERNAME:-}" ]]; then
+            docker login -u="$DOCKER_RELEASE_USERNAME" --password-stdin "${RELEASE_DOCKER_REPO%%/*}" <<<"$DOCKER_RELEASE_PASSWORD"
+        fi
+        make release-rc
+        ;;
+    EA)
+        if [[ -n "${DOCKER_RELEASE_USERNAME:-}" ]]; then
+            docker login -u="$DOCKER_RELEASE_USERNAME" --password-stdin "${RELEASE_DOCKER_REPO%%/*}" <<<"$DOCKER_RELEASE_PASSWORD"
+        fi
+        make release-ea
+        ;;
+    *)
+        : # Nothing to do
+        ;;
+esac
 
 printf "== End:   travis-script.sh ==\n"

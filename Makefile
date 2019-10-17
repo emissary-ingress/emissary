@@ -109,6 +109,11 @@ update-base: ## Run this whenever the base images (ex Envoy, ./docker/base-*/*) 
 	$(MAKE) $(addsuffix .docker.push.base,$(images.base))
 .PHONY: update-base
 
+export-vars:
+	@echo "export BASE_DOCKER_REPO='$(BASE_DOCKER_REPO)'"
+	@echo "export RELEASE_DOCKER_REPO='$(RELEASE_DOCKER_REPO)'"
+.PHONY: export-vars
+
 # Configure GNU Make itself
 SHELL = bash
 .SECONDARY:
