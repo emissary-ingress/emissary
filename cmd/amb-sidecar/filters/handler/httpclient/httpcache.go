@@ -99,7 +99,10 @@ func NewHTTPClient(logger types.Logger, maxStale time.Duration, insecure bool) *
 							TLSHandshakeTimeout:   10 * time.Second,
 							ExpectContinueTimeout: 1 * time.Second,
 							// #nosec G402
-							TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+							TLSClientConfig: &tls.Config{
+								Renegotiation:      tls.RenegotiateOnceAsClient,
+								InsecureSkipVerify: true,
+							},
 						}
 					}
 					res, err := transport.RoundTrip(req)
