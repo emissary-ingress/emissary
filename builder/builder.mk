@@ -37,7 +37,7 @@ ifeq ($(strip $(shell $(BUILDER))),)
 endif
 .PHONY: preflight
 
-sync: preflight
+sync: preflight base-envoy.docker
 	@$(foreach MODULE,$(MODULES),$(BUILDER) sync $(MODULE) $(SOURCE_$(MODULE)) &&) true
 .PHONY: sync
 
@@ -60,9 +60,9 @@ images: $(addsuffix .docker.tag.dev,$(images.all))
 snapshot.docker.stamp: compile
 	@$(MAKE) --no-print-directory commit
 	@docker image inspect snapshot --format='{{.Id}}' > $@
-$(addsuffix .docker.stamp,$(images.builder)): %.docker.stamp: snapshot.docker
+$(addsuffix .docker.stamp,$(images.builder)): %.docker.stamp: snapshot.docker base-envoy.docker
 	@printf "$(WHT)==$(GRN)Building $(BLU)$*$(GRN) image$(WHT)==$(END)\n"
-	@$(DBUILD) $(BUILDER_HOME) --iidfile $@ --build-arg artifacts=$$(cat snapshot.docker) --target $*
+	@$(DBUILD) $(BUILDER_HOME) --iidfile $@ --build-arg artifacts=$$(cat snapshot.docker) --build-arg envoy=$$(cat base-envoy.docker) --target $*
 %.docker: %.docker.stamp $(COPY_IFCHANGED)
 	@$(COPY_IFCHANGED) $< $@
 
