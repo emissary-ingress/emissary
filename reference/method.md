@@ -11,9 +11,9 @@ For example:
 ```yaml
 ---
 apiVersion: getambassador.io/v1
-kind: 
+kind: Mapping
 metadata:
-  name: get_mapping
+  name: get
 spec:
   prefix: /backend/get_only/
   method: GET

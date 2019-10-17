@@ -37,4 +37,4 @@ spec:
   weight: 10
 ```
 
-In this case, the `tour-backend2_mapping` will receive 10% of the requests for `/backend/`, and Ambassador will assign the remaining 90% to the `tour-backend_mapping`.
+In this case, the `tour-backend2` will receive 10% of the requests for `/backend/`, and Ambassador will assign the remaining 90% to the `tour-backend`.

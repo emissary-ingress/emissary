@@ -60,7 +60,7 @@ spec:
 
 `generic_key` in the example above is a special, hard-coded value that is used when a single string label is added to a request.
 
-Deploy the rate limit with `kubectl apply -f backend-ratelimit.yaml`. (Make sure you `kubectly apply` the modified `tour-backend_mapping` mapping as well.)
+Deploy the rate limit with `kubectl apply -f backend-ratelimit.yaml`. (Make sure you `kubectly apply` the modified `tour-backend` mapping as well.)
 
 ## Example 2: Per user rate limiting
 

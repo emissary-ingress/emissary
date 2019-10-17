@@ -222,7 +222,7 @@ This will install into your cluster:
       name: consul-qotm-mapping-tls
     spec:
       prefix: /qotm-consul-tls/
-      service: qotm-proxy
+      service: qotm-sidecar-proxy
       resolver: consul-dc1
       tls: ambassador-consul
       load_balancer:
@@ -232,7 +232,7 @@ This will install into your cluster:
     - `tls` must be set to the `TLSContext` storing the Consul mTLS certificates (e.g. `ambassador-consul`)
     - `load_balancer` must be set to configure Ambassador to route directly to the application endpoint(s) that are retrieved from Consul
 
-    Copy this YAML to a file named `qotm-consul-mtls-svc.yaml` and apply it to your cluster with `kubectl apply -f qotm-consul-mtls-svc.yaml`.
+    Copy this YAML to a file named `qotm-consul-mtls-mapping.yaml` and apply it to your cluster with `kubectl apply -f qotm-consul-mtls-mapping.yaml`.
 
 5. Send a request to the `/qotm-consul-tls/` API.
 
