@@ -92,22 +92,22 @@ Once the auth service is running, we need to tell Ambassador about it. The easie
 
 ```yaml
 ---
+apiVersion: getambassador.io/v1
+kind: AuthService
+metadata:
+  name: authentication
+spec:
+  auth_service: "example-auth:3000"
+  path_prefix: "/extauth"
+  allowed_request_headers:
+  - "x-qotm-session"
+  allowed_authorization_headers:
+  - "x-qotm-session"
+---
 apiVersion: v1
 kind: Service
 metadata:
   name: example-auth
-  annotations:
-    getambassador.io/config: |
-      ---
-      apiVersion: ambassador/v1
-      kind:  AuthService
-      name:  authentication
-      auth_service: "example-auth:3000"
-      path_prefix: "/extauth"
-      allowed_request_headers:
-      - "x-qotm-session"
-      allowed_authorization_headers:
-      - "x-qotm-session"
 spec:
   type: ClusterIP
   selector:
@@ -208,6 +208,13 @@ For more details about configuring authentication, read the documentation on [ex
 ## Legacy v0 API
 If using Ambassador v0.40.2 or earlier, use the deprecated v0 `AuthService` API
 ```yaml
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: example-auth
+  annotations:
+    getambassador.io/config: |
       ---
       apiVersion: ambassador/v0
       kind:  AuthService
@@ -216,4 +223,12 @@ If using Ambassador v0.40.2 or earlier, use the deprecated v0 `AuthService` API
       path_prefix: "/extauth"
       allowed_headers:
       - "x-qotm-session"
+spec:
+  type: ClusterIP
+  selector:
+    app: example-auth
+  ports:
+  - port: 3000
+    name: http-example-auth
+    targetPort: http-api
 ```

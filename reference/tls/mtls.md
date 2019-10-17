@@ -38,12 +38,14 @@ Istio creates stores it's tls certificates in a form that Ambassador is currentl
 
    ```yaml
    ---
-   apiVersion: ambassador/v1
+   apiVersion: getambassador.io/v1
    kind: TLSContext
-   name: istio-upstream
-   cert_chain_file: /etc/istiocerts/cert-chain.pem
-   private_key_file: /etc/istiocerts/key.pem
-   cacert_chain_file: /etc/istiocerts/root-cert.pem
+   metadata:
+     name: tls
+   spec:
+     cert_chain_file: /etc/istiocerts/cert-chain.pem
+     private_key_file: /etc/istiocerts/key.pem
+     cacert_chain_file: /etc/istiocerts/root-cert.pem
    ```
 
 3. Configure Ambassador to use this `TLSContext` when making connections to upstream services.
@@ -52,13 +54,15 @@ Istio creates stores it's tls certificates in a form that Ambassador is currentl
 
    ```yaml
    ---
-   apiVersion: ambassador/v1
+   apiVersion: getambassador.io/v1
    kind: Mapping
-   name: productpage_mapping
-   prefix: /productpage/
-   rewrite: /productpage
-   service: https://productpage:9080
-   tls: istio-upstream
+   metadata:
+     name: productpage
+   spec:
+     prefix: /productpage/
+     rewrite: /productpage
+     service: https://productpage:9080
+     tls: istio-upstream
    ```
 
 Ambassador will now use the certificate stored in the `istio.default` secret to originate TLS to istio-powered services. See the [Ambassador with Istio](/user-guide/with-istio#istio-mutual-tls) documentation) for an example with more information.
@@ -77,23 +81,27 @@ Since Consul does not expose TLS Certificates as Kubernetes secrets, we will nee
 
    ```yaml
    ---
-   apiVersion: ambassador/v1
+   apiVersion: getambassador.io/v1
    kind: TLSContext
-   name: ambassador-consul
-   hosts: []
-   secret: ambassador-consul-connect
+   metadata:
+     name: ambassador-consul
+   spec:
+     hosts: []
+     secret: ambassador-consul-connect
    ```
 
 2. Tell Ambassador to use the `TLSContext` when proxying requests by setting the `tls` attribute in a `Mapping`
 
    ```yaml
    ---
-   apiVersion: ambassador/v1
+   apiVersion: getambassador.io/v1
    kind: Mapping
-   name: qotm_mtls_mapping
-   prefix: /qotm-consul-mtls/
-   service: https://qotm-proxy
-   tls: ambassador-consul
+   metadata:
+     name: qotm-mtls
+   spec:
+     prefix: /qotm-consul-mtls/
+     service: https://qotm-proxy
+     tls: ambassador-consul
    ```
 
 Ambassador will now use the certificates loaded into the `ambassador-consul` `TLSContext` when proxying requests with `prefix: /qotm-consul-mtls`. See the [Consul example](/user-guide/consul#encrypted-tls) for an example configuration.

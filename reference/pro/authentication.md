@@ -37,6 +37,53 @@ The `ambassador_session.NAME.NAMESPACE` cookie is an opaque string that should b
 
 Applications using request submission formats other than HTML forms should perform analogous steps of ensuring that the value is duplicated in the cookie and in the request body.
 
+## RP-initiated logout
+
+When a logout occurs, it is often not enough to delete Ambassador
+Pro's session cookie or session data; after this happens, and the web
+browser is redirected to the Identity Provider to re-log-in, the
+Identity Provider may remember the previous login, and immediately
+re-authorize the user; it would be like the logout never even
+happened.
+
+To solve this, Ambassador Pro can use [OpenID Connect Session
+Management][oidc-session] to perform an "RP-Initiated Logout", where
+Ambassador Pro (the OpenID Connect "Relying Party" or "RP")
+communicates directly with Identity Providers that support OpenID
+Connect Session Management, to properly log out the user.
+Unfortunately, many Identity Providers do not support OpenID Connect
+Session Management.
+
+[oidc-session]: https://openid.net/specs/openid-connect-session-1_0.html
+
+This is done by having your application direct the web browser `POST`
+to `/.ambassador/oauth2/logout`.  There are 2 form-encoded values that
+you need to include:
+
+ 1. `realm`: The `name.namespace` of the `Filter` that you want to log
+    out of.  This may be submitted as part of the POST body, or may be set as an URL query parameter.
+ 2. `_xsrf`: The value of the `ambassador_session.{{realm}}` cookie
+    (where `{{realm}}` is as described above).  This must be set in the POST body, the URL query part will not be checked.
+
+For example:
+
+```html
+<form method="POST" action="/.ambassador/oauth2/logout">
+  <input type="hidden" name="realm" value="myfilter.mynamespace" />
+  <input type="hidden" name="_xsrf" value="{{ .Cookie.Value }}" />
+  <input type="submit" value="Log out" />
+</form>
+```
+
+or
+
+```html
+<form method="POST" action="/.ambassador/oauth2/logout?realm=myfilter.mynamespace">
+  <input type="hidden" name="_xsrf" value="{{ .Cookie.Value }}" />
+  <input type="submit" value="Log out" />
+</form>
+```
+
 ## Redis
 
 Ambassador Pro relies on Redis to store short-lived authentication credentials and rate limiting information. If the Redis data store is lost, users will need to log back in and all existing rate limits would be reset.

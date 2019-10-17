@@ -36,22 +36,26 @@ To configure Ambassador to handle this behavior you need to create a `tls` `Modu
 1. Create a `TLSContext` to handle TLS termination
 
     ```yaml
-    apiVersion: ambassador/v1
+    apiVersion: getambassador.io/v1
     kind: TLSContext
-    name: tls
-    hosts: ["*"]
-    secret: ambassador-cert
+    metadata:
+      name: tls
+    spec:
+      hosts: ["*"]
+      secret: ambassador-cert
     ```
 
 2. Configure a `TLS` `Module` to create the redirect listener in Ambassador on Ambassadors http port. By default, this is port `8080`
 
     ```yaml
-    apiVersion: ambassador/v1
+    apiVersion: getambassador.io/v1
     kind: Module
-    name: tls
-    config:
-      server:
-        redirect_cleartext_from: 8080
+    metadata:
+      name: tls
+    spec:
+      config:
+        server:
+          redirect_cleartext_from: 8080
     ```
 
 3. Verify the port assignments on the Ambassador service are correct.
@@ -88,12 +92,14 @@ While port-based redirection is preferred for most use cases, using the `x-forwa
 Protocol-based redirection is configured in the Ambassador `Module`:
 
 ```yaml
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v1
 kind: Module
-name: ambassador
-config:
-  use_remote_address: false
-  x_forwarded_proto_redirect: true
+metadata:
+  name: ambassador
+spec:
+  config:
+    use_remote_address: false
+    x_forwarded_proto_redirect: true
 ```
 
 **Note**: Ambassador will need to be restarted for this configuration to take affect.

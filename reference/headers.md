@@ -12,14 +12,16 @@ You can also set the `value` of a header to `true` to test for the existence of 
 
 ```yaml
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v1
 kind:  Mapping
-name:  tour-backend_mapping
-prefix: /backend/
-service: tour
-headers:
-  x-tour-mode: backend
-  x-random-header: datawire
+metadata:
+  name:  tour-backend
+spec:
+  prefix: /backend/
+  service: tour
+  headers:
+    x-tour-mode: backend
+    x-random-header: datawire
 
 ```
 
@@ -29,20 +31,24 @@ will allow requests to `/backend/` to succeed only if the `x-tour-mode` header h
 
 ```yaml
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v1
 kind:  Mapping
-name:  tour_mode_mapping
-prefix: /
-service: tour-mode
-headers:
-  x-tour-mode: true
+metadata:
+  name:  tour-mode
+spec:
+  prefix: /
+  service: tour-mode
+  headers:
+    x-tour-mode: true
 
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v1
 kind:  Mapping
-name:  tour_regular_mapping
-prefix: /
-service: tour-regular
+metadata:
+  name:  tour-regular
+spec:
+  prefix: /
+  service: tour-regular
 ```
 
 will send requests that contain the `x-tour-mode` header to the `tour-mode` target, while routing all other requests to the `tour-regular` target.
@@ -52,15 +58,14 @@ will send requests that contain the `x-tour-mode` header to the `tour-mode` targ
 The following mapping will route mobile requests from Android and iPhones to a mobile service:
 
 ```yaml
-name: mobile-ui
-  annotations:
-    getambassador.io/config: |
-      ---
-      apiVersion: ambassador/v1
-      kind:  Mapping
-      name:  mobile_ui_mapping
-      regex_headers:
-        user-agent: "^(?=.*\\bAndroid\\b)(?=.*\\b(m|M)obile\\b).*|(?=.*\\biPhone\\b)(?=.*\\b(m|M)obile\\b).*$"
-      prefix: /
-      service: mobile-ui
+---
+apiVersion: getambassador.io/v1
+kind:  Mapping
+metadata:
+  name:  tour-backend
+spec:
+  regex_headers:
+    user-agent: "^(?=.*\\bAndroid\\b)(?=.*\\b(m|M)obile\\b).*|(?=.*\\biPhone\\b)(?=.*\\b(m|M)obile\\b).*$"
+  prefix: /
+  service: mobile-ui
 ```

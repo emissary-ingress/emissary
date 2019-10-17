@@ -28,30 +28,38 @@ retry_policy:
 A per mapping retry policy:
 
 ```yaml
-apiVersion: ambassador/v1
+---
+apiVersion: getambassador.io/v1
 kind:  Mapping
-name:  tour-backend_mapping
-prefix: /backend/
-service: tour
-retry_policy:
-  retry_on: "5xx"
-  num_retries: 10
+metadata:
+  name:  tour-backend
+spec:
+  prefix: /backend/
+  service: tour
+  retry_policy:
+    retry_on: "5xx"
+    num_retries: 10
 ```
 
 A global retry policy (not recommended):
 
 ```yaml
-apiVersion: ambassador/v0
-kind:  Module
-name:  ambassador
-config:
-  retry_policy:
-    retry_on: "retriable-4xx"
-    num_retries: 4
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v1
+kind:  Module
+metadata:
+  name:  ambassador
+spec:
+  config:
+    retry_policy:
+      retry_on: "retriable-4xx"
+      num_retries: 4
+---
+apiVersion: getambassador.io/v1
 kind:  Mapping
-name:  tour-backend_mapping
+metadata:
+  name:  tour-backend
+spec:
 prefix: /backend/
 service: tour
 ```
