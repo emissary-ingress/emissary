@@ -7,147 +7,149 @@ Ambassador supports a variety of global configuration options in the `ambassador
 If present, the `ambassador` module defines system-wide configuration. This module can be applied on any Kubernetes service (the `ambassador` service itself is a common choice). **You may very well not need this module.** The defaults in the `ambassador` module are:
 
 ```yaml
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v1
 kind:  Module
-name:  ambassador
+metadata:
+  name:  ambassador
 # Put the id if you are using multiple ambassadors in the same cluster.
 # For more information: https://www.getambassador.io/reference/running/#ambassador_id.
 # ambassador_id: "<ambassador_id>"
-config:
-# admin_port is the port where Ambassador's Envoy will listen for
-# low-level admin requests. You should almost never need to change
-# this.
-# admin_port: 8001
+spec:
+  config:
+  # admin_port is the port where Ambassador's Envoy will listen for
+  # low-level admin requests. You should almost never need to change
+  # this.
+  # admin_port: 8001
 
-# default_label_domain and default_labels set a default domain and
-# request labels to every request for use by rate limiting. For
-# more on how to use these, see the Rate Limit reference.
+  # default_label_domain and default_labels set a default domain and
+  # request labels to every request for use by rate limiting. For
+  # more on how to use these, see the Rate Limit reference.
 
-# diag_port is the port where Ambassador will listen for requests
-# to the diagnostic service.
-# diag_port: 8877
+  # diag_port is the port where Ambassador will listen for requests
+  # to the diagnostic service.
+  # diag_port: 8877
 
-# The diagnostic service (at /ambassador/v0/diag/) defaults on, but
-# you can disable the api route. It will remain accessible on
-# diag_port.
-# diagnostics:
-#   enabled: true
+  # The diagnostic service (at /ambassador/v0/diag/) defaults on, but
+  # you can disable the api route. It will remain accessible on
+  # diag_port.
+  # diagnostics:
+  #   enabled: true
 
-# Should we automatically add Linkerd `l5d-dst-override` headers?
-# add_linkerd_headers: false
+  # Should we automatically add Linkerd `l5d-dst-override` headers?
+  # add_linkerd_headers: false
 
-# Should we enable the gRPC-http11 bridge?
-# enable_grpc_http11_bridge: false
+  # Should we enable the gRPC-http11 bridge?
+  # enable_grpc_http11_bridge: false
 
-# Should we enable the grpc-Web protocol?
-# enable_grpc_web: false
+  # Should we enable the grpc-Web protocol?
+  # enable_grpc_web: false
 
-# Should we enable http/1.0 protocol?
-# enable_http10: false
+  # Should we enable http/1.0 protocol?
+  # enable_http10: false
 
-# Should we do IPv4 DNS lookups when contacting services? Defaults to true,
-# but can be overridden in a [`Mapping`](/reference/mappings).
-# enable_ipv4: true
+  # Should we do IPv4 DNS lookups when contacting services? Defaults to true,
+  # but can be overridden in a [`Mapping`](/reference/mappings).
+  # enable_ipv4: true
 
-# Should we do IPv6 DNS lookups when contacting services? Defaults to false,
-# but can be overridden in a [`Mapping`](/reference/mappings).
-# enable_ipv6: false
+  # Should we do IPv6 DNS lookups when contacting services? Defaults to false,
+  # but can be overridden in a [`Mapping`](/reference/mappings).
+  # enable_ipv6: false
 
-# liveness probe defaults on, but you can disable the api route.
-# It will remain accessible on diag_port.
-# liveness_probe:
-#   enabled: true
+  # liveness probe defaults on, but you can disable the api route.
+  # It will remain accessible on diag_port.
+  # liveness_probe:
+  #   enabled: true
 
-# run a custom lua script on every request. see below for more details.
-# lua_scripts
+  # run a custom lua script on every request. see below for more details.
+  # lua_scripts
 
-# readiness probe defaults on, but you can disable the api route.
-# It will remain accessible on diag_port.
-# readiness_probe:
-#   enabled: true
+  # readiness probe defaults on, but you can disable the api route.
+  # It will remain accessible on diag_port.
+  # readiness_probe:
+  #   enabled: true
 
-# By default Envoy sets server_name response header to 'envoy'
-# Override it with this variable
-# server_name: envoy
+  # By default Envoy sets server_name response header to 'envoy'
+  # Override it with this variable
+  # server_name: envoy
 
-# If present, service_port will be the port Ambassador listens
-# on for microservice access. If not present, Ambassador will
-# use 8443 if TLS is configured, 8080 otherwise.
-# service_port: 8080
+  # If present, service_port will be the port Ambassador listens
+  # on for microservice access. If not present, Ambassador will
+  # use 8443 if TLS is configured, 8080 otherwise.
+  # service_port: 8080
 
-# statsd configures Ambassador statistics. These values can be
-# set in the Ambassador module or in an environment variable.
-# For more information, see the [Statistics reference](/reference/statistics/#exposing-statistics-via-statsd)
+  # statsd configures Ambassador statistics. These values can be
+  # set in the Ambassador module or in an environment variable.
+  # For more information, see the [Statistics reference](/reference/statistics/#exposing-statistics-via-statsd)
 
-# use_proxy_protocol controls whether Envoy will honor the PROXY
-# protocol on incoming requests.
-# use_proxy_proto: false
+  # use_proxy_protocol controls whether Envoy will honor the PROXY
+  # protocol on incoming requests.
+  # use_proxy_proto: false
 
-# envoy_log_type defines the type of log envoy will use , currently only support json or text
-# envoy_log_type: text
+  # envoy_log_type defines the type of log envoy will use , currently only support json or text
+  # envoy_log_type: text
 
-# envoy_log_path defines the path of log envoy will use. By default this is standard output
-# envoy_log_path: /dev/fd/1
+  # envoy_log_path defines the path of log envoy will use. By default this is standard output
+  # envoy_log_path: /dev/fd/1
 
-# use_remote_address controls whether Envoy will trust the remote
-# address of incoming connections or rely exclusively on the
-# X-Forwarded_For header.
-# use_remote_address: true
+  # use_remote_address controls whether Envoy will trust the remote
+  # address of incoming connections or rely exclusively on the
+  # X-Forwarded_For header.
+  # use_remote_address: true
 
-# xff_num_trusted_hops controls the how Envoy sets the trusted
-# client IP address of a request. If you have a proxy in front
-# of Ambassador, Envoy will set the trusted client IP to the
-# address of that proxy. To preserve the orginal client IP address,
-# setting x_num_trusted_hops: 1 will tell Envoy to use the client IP
-# address in X-Forwarded-For. Please see the envoy documentation for
-# more information: https://www.envoyproxy.io/docs/envoy/latest/configuration/http_conn_man/headers#x-forwarded-for
-# xff_num_trusted_hops: 0
+  # xff_num_trusted_hops controls the how Envoy sets the trusted
+  # client IP address of a request. If you have a proxy in front
+  # of Ambassador, Envoy will set the trusted client IP to the
+  # address of that proxy. To preserve the orginal client IP address,
+  # setting x_num_trusted_hops: 1 will tell Envoy to use the client IP
+  # address in X-Forwarded-For. Please see the envoy documentation for
+  # more information: https://www.envoyproxy.io/docs/envoy/latest/configuration/http_conn_man/headers#x-forwarded-for
+  # xff_num_trusted_hops: 0
 
-# Ambassador lets through only the HTTP requests with
-# `X-FORWARDED-PROTO: https` header set, and redirects all the other
-# requests to HTTPS if this field is set to true. Note that `use_remote_address`
-# must be set to false for this feature to work as expected.
-# x_forwarded_proto_redirect: false
+  # Ambassador lets through only the HTTP requests with
+  # `X-FORWARDED-PROTO: https` header set, and redirects all the other
+  # requests to HTTPS if this field is set to true. Note that `use_remote_address`
+  # must be set to false for this feature to work as expected.
+  # x_forwarded_proto_redirect: false
 
-# load_balancer sets the global load balancing type and policy that
-# Ambassador will use for all mappings, unless overridden in a
-# mapping. Defaults to round robin with Kubernetes.
-# More information at the [load balancer reference](/reference/core/load-balancer)
-# load_balancer:
-#   policy: round_robin/least_request/ring_hash/maglev
-#   ...
+  # load_balancer sets the global load balancing type and policy that
+  # Ambassador will use for all mappings, unless overridden in a
+  # mapping. Defaults to round robin with Kubernetes.
+  # More information at the [load balancer reference](/reference/core/load-balancer)
+  # load_balancer:
+  #   policy: round_robin/least_request/ring_hash/maglev
+  #   ...
 
-# circuit_breakers sets the global circuit breaking configuration that
-# Ambassador will use for all mappings, unless overridden in a
-# mapping.
-# More information at the [circuit breaking reference](/reference/core/circuit-breaking)
-# circuit_breakers:
-#   max_connections: 2048
-#   ...
+  # circuit_breakers sets the global circuit breaking configuration that
+  # Ambassador will use for all mappings, unless overridden in a
+  # mapping.
+  # More information at the [circuit breaking reference](/reference/core/circuit-breaking)
+  # circuit_breakers:
+  #   max_connections: 2048
+  #   ...
 
-# retry_policy lets you add resilience to your services in case of request failures by performing automatic retries.
-# retry_policy:
-#   retry_on: "5xx"
-#   ...
+  # retry_policy lets you add resilience to your services in case of request failures by performing automatic retries.
+  # retry_policy:
+  #   retry_on: "5xx"
+  #   ...
 
-# Set default CORS configuration for all mappings in the cluster. See
-# CORS syntax at https://www.getambassador.io/reference/cors.html
-# cors:
-#   origins: http://foo.example,http://bar.example
-#   methods: POST, GET, OPTIONS
-#   ...
-#   ...
+  # Set default CORS configuration for all mappings in the cluster. See
+  # CORS syntax at https://www.getambassador.io/reference/cors.html
+  # cors:
+  #   origins: http://foo.example,http://bar.example
+  #   methods: POST, GET, OPTIONS
+  #   ...
+  #   ...
 
-# Set the default upstream-connection idle timeout. If not set (the default), upstream
-# connections will never be closed due to idling.
-# cluster_idle_timeout_ms: 30000
+  # Set the default upstream-connection idle timeout. If not set (the default), upstream
+  # connections will never be closed due to idling.
+  # cluster_idle_timeout_ms: 30000
 
-# Set which regular expression engine to use. See the "Regular Expressions" section below.
-# regex_type: safe
+  # Set which regular expression engine to use. See the "Regular Expressions" section below.
+  # regex_type: safe 
 
-# This field controls the RE2 “program size” which is a rough estimate of how complex a compiled regex is to evaluate.
-# A regex that has a program size greater than the configured value will fail to compile.
-# regex_max_size: 100
+  # This field controls the RE2 “program size” which is a rough estimate of how complex a compiled regex is to
+  # evaluate.  A regex that has a program size greater than the configured value will fail to compile.
+  # regex_max_size: 200
 ```
 
 ### Overriding Default Ports
@@ -156,11 +158,13 @@ By default, Ambassador listens for HTTP or HTTPS traffic on ports 8080 or 8443 r
 
 ```yaml
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v1
 kind: Module
-name: ambassador
-config:
-  service_port: 4567
+metadata:
+  name: ambassador
+spec:
+  config:
+    service_port: 4567
 ```
 
 This will configure Ambassador to listen for traffic on port 4567 instead of 8080.
@@ -182,14 +186,16 @@ Ambassador supports the ability to inline Lua scripts that get run on every requ
 
 ```yaml
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v1
 kind: Module
-name: ambassador
-config:
-  lua_scripts: |
-    function envoy_on_response(response_handle)
-      response_handle:headers():add("Lua-Scripts-Enabled", "Processed")
-    end
+metadata:
+  name: ambassador
+spec:
+  config:
+    lua_scripts: |
+      function envoy_on_response(response_handle)
+        response_handle:headers():add("Lua-Scripts-Enabled", "Processed")
+      end
 ```
 
 For more details on the Lua API, see the [Envoy Lua filter documentation](https://www.envoyproxy.io/docs/envoy/latest/configuration/http_filters/lua_filter).

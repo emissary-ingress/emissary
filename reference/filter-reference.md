@@ -333,26 +333,49 @@ spec:
     filters:
     - name: "example-oauth2-filter"
       arguments:
-        scopes:
+        scopes:                   # optional; default is ["openid"]
         - "scope1"
         - "scope2"
+        insteadOfRedirect:        # optional; default is to do a redirect to the identity provider
+          httpStatusCode: integer # optional; default is 403
+          ifRequestHeader:        # optional; default is to return httpStatusCode for all requests that would redirect-to-identity-provider
+            name: "string"        # required
+            value: "string"       # optional; default is any non-empty string
 ```
 
-You may specify a list of OAuth scope values to include in the scope
-of the authorization request.  If one of the scope values for a path
-is not granted, then access to that resource is forbidden; if the
-`scopes` argument lists `foo`, but the authorization response from the
-provider does not include `foo` in the scope, then it will be taken to
-mean that the authorization server forbade access to this path, as the
-authenticated user does not have the `foo` resource scope.
+ - `scopes`: A list of OAuth scope values to include in the scope of
+   the authorization request.  If one of the scope values for a path
+   is not granted, then access to that resource is forbidden; if the
+   `scopes` argument lists `foo`, but the authorization response from
+   the provider does not include `foo` in the scope, then it will be
+   taken to mean that the authorization server forbade access to this
+   path, as the authenticated user does not have the `foo` resource
+   scope.
 
-The `openid` scope value is always included in the requested scope,
-even if it is not listed in the `FilterPolicy` argument.
+   The `openid` scope value is always included in the requested scope,
+   even if it is not listed in the `FilterPolicy` argument.
 
-As a special case, if the `offline_access` scope value is requested,
-but not included in the response then access is not forbidden.  With
-many identity providers, requesting the `offline_access` scope is
-necessary in order to receive a Refresh Token.
+   As a special case, if the `offline_access` scope value is
+   requested, but not included in the response then access is not
+   forbidden.  With many identity providers, requesting the
+   `offline_access` scope is necessary in order to receive a Refresh
+   Token.
+
+   The ordering of scope values does not matter, and is ignored.
+
+ - `insteadOfRedirect`: An action to perform instead of redirecting
+   the User-Agent to the identity provider.  By default, if the
+   User-Agent does not have an currently-authenticated session, then
+   Ambassador will redirect the User-Agent to the identity provider.
+   Setting `insteadOfRedirect` causes it to instead serve an
+   authorization-denied error page; by default HTTP 403 ("Forbidden"),
+   but this can be configured by the `httpStatusCode` sub-argument.
+   By default, `insteadOfRedirect` will apply to all requests that
+   would cause the redirect; setting the `ifRequestHeader`
+   sub-argument causes it to only apply to requests that have the HTTP
+   header field `name` (case-insensitive) set to `value`
+   (case-sensitive); or requests that have `name` set to any non-empty
+   string if `value` is unset.
 
 ### Filter Type: `Plugin`
 

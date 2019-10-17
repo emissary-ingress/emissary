@@ -23,29 +23,33 @@ For more details see [Envoy - Gzip](https://www.envoyproxy.io/docs/envoy/latest/
 ## Example
 
 ```yaml
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v1
 kind:  Module
-name:  ambassador
-config:
-  gzip:
-    memory_level: 2
-    min_content_length: 32
-    compression_level: BEST
-    compression_strategy: RLE
-    content_type: 
-    - application/javascript
-    - application/json
-    - text/plain
-    disable_on_etag_header: false
-    remove_accept_encoding_header: false
+metadata:
+  name:  ambassador
+spec:
+  config:
+    gzip:
+      memory_level: 2
+      min_content_length: 32
+      compression_level: BEST
+      compression_strategy: RLE
+      content_type: 
+      - application/javascript
+      - application/json
+      - text/plain
+      disable_on_etag_header: false
+      remove_accept_encoding_header: false
 ```
 
 Minimum configuration:
 ```yaml
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v1
 kind:  Module
-name:  ambassador
-config:
-  gzip:
-    enabled: true
+metadata:
+  name:  ambassador
+spec:
+  config:
+    gzip:
+      enabled: true
 ```

@@ -22,18 +22,19 @@ default port of 9411) to provide tracing support.
 
 ```yaml
 ---
+apiVersion: getambassador.io/v1
+kind: TracingService
+metadata:
+  name: tracing
+spec:
+  service: "zipkin:9411"
+  driver: zipkin
+  config: {}
+---
 apiVersion: v1
 kind: Service
 metadata:
   name: zipkin
-  annotations:
-    getambassador.io/config: |
-      ---
-      apiVersion: ambassador/v1
-      kind: TracingService
-      name: tracing
-      service: zipkin:9411
-      driver: zipkin
 spec:
   selector:
     app: zipkin
