@@ -49,23 +49,26 @@ Examples:
 
 ```yaml
 ---
-apiVersion: ambassador/v1
-kind: TCPMapping
-name: ssh_mapping
-port: 2222
-service: upstream:22
+apiVersion: getambassador.io/v1
+kind:  TCPMapping
+metadata:
+  name:  ssh
+spec:
+  port: 2222
+  service: upstream:22
 ```
 
 could be used to relay an SSH connection on port 2222, or
 
 
 ```yaml
----
-apiVersion: ambassador/v1
-kind: TCPMapping
-name: cockroach_mapping
-port: 26257
-service: cockroach:26257
+apiVersion: getambassador.io/v1
+kind:  TCPMapping
+metadata:
+  name:  cockroach
+spec:
+  port: 26257
+  service: cockroach:26257
 ```
 
 could proxy a CockroachDB connection.
@@ -82,27 +85,33 @@ Example:
 
 ```yaml
 ---
-apiVersion: ambassador/v1
-kind: TLSContext
-name: my-context
-hosts:
-- my-host-1
-- my-host-2
-secret: supersecret
+apiVersion: getambassador.io/v1
+kind:  TCPMapping
+metadata:
+  name:  my-context
+spec:
+  hosts:
+  - my-host-1
+  - my-host-2
+  secret: supersecret
 ---
-apiVersion: ambassador/v1
-kind: TCPMapping
-name: test_mapping
-port: 2222
-host: my-host-1
-service: upstream-host-1:9999
+apiVersion: getambassador.io/v1
+kind:  TCPMapping
+metadata:
+  name:  my-host-1
+spec:
+  port: 2222
+  host: my-host-1
+  service: upstream-host-1:9999
 ---
-apiVersion: ambassador/v1
-kind: TCPMapping
-name: test_mapping
-port: 2222
-host: my-host-2
-service: upstream-host-2:9999
+apiVersion: getambassador.io/v1
+kind:  TCPMapping
+metadata:
+  name:  my-host-2
+spec:
+  port: 2222
+  host: my-host-2
+  service: upstream-host-2:9999
 ```
 
 The example above will accept a TLS connection with SNI on port 2222. If the client requests SNI host `my-host-1`, the decrypted traffic will be relayed to `upstream-host-1`, port 9999. If the client requests SNI host `my-host-2`, the decrypted traffic will be relayed to `upstream-host-1`, port 9999. Any other SNI host will cause the TLS handshake to fail.
@@ -119,34 +128,42 @@ Example:
 
 ```yaml
 ---
-apiVersion: ambassador/v1
-kind: TLSContext
-name: my-context
-hosts:
-- my-host-1
-- my-host-2
-secret: supersecret
+apiVersion: getambassador.io/v1
+kind:  TCPMapping
+metadata:
+  name:  my-context
+spec:
+  hosts:
+  - my-host-1
+  - my-host-2
+  secret: supersecret
 ---
-apiVersion: ambassador/v1
-kind: TLSContext
-name: origination-context
-secret: othersecret
+apiVersion: getambassador.io/v1
+kind:  TCPMapping
+metadata:
+  name:  origination-context
+spec:
+  secret: othersecret
 ---
-apiVersion: ambassador/v1
-kind: TCPMapping
-name: test_mapping
-port: 2222
-host: my-host-1
-tls: true
-service: upstream-host-1:9999
+apiVersion: getambassador.io/v1
+kind:  TCPMapping
+metadata:
+  name:  test-1
+spec:
+  port: 2222
+  host: my-host-1
+  tls: true
+  service: upstream-host-1:9999
 ---
-apiVersion: ambassador/v1
-kind: TCPMapping
-name: test_mapping
-port: 2222
-host: my-host-2
-tls: origination-context
-service: upstream-host-2:9999
+apiVersion: getambassador.io/v1
+kind:  TCPMapping
+metadata:
+  name:  test-2
+spec:
+  port: 2222
+  host: my-host-2
+  tls: origination-context
+  service: upstream-host-2:9999
 ```
 
 The example above will accept a TLS connection with SNI on port 2222. 
@@ -165,17 +182,21 @@ Example:
 
 ```yaml
 ---
-apiVersion: ambassador/v1
-kind: TLSContext
-name: origination-context
-secret: othersecret
+apiVersion: getambassador.io/v1
+kind:  TCPMapping
+metadata:
+  name:  origination-context
+spec:
+  secret: othersecret
 ---
-apiVersion: ambassador/v1
-kind: TCPMapping
-name: test_mapping
-port: 2222
-tls: true
-service: upstream-host:9999
+apiVersion: getambassador.io/v1
+kind:  TCPMapping
+metadata:
+  name:  test
+spec:
+  port: 2222
+  tls: true
+  service: upstream-host:9999
 ```
 
 The example above will accept **any** connection to port 2222 and relay it over a **TLS** connection to `upstream-host` port 9999. No client certificate will be offered.

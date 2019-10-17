@@ -31,30 +31,22 @@ In the example at the top of the page;
 - The request hits Ambassador's redirect listener and Ambassador returns a `301` redirect to https.
 - The client resends the request as a standard https request (port 443) to Ambassador.
 
-To configure Ambassador to handle this behavior you need to create a `tls` `Module` that sets `redirect_cleartext_from: <http_port>`.
+To configure Ambassador to handle this behavior you need set `redirect_cleartext_from: <http_port>` in a `TLSContext`:
 
-1. Create a `TLSContext` to handle TLS termination
+1. Create a `TLSContext` to handle TLS termination, and tell it to enforce redirection. This example shows redirecting traffic to Ambassador's default cleartext service port, `8080`: 
 
     ```yaml
-    apiVersion: ambassador/v1
+    apiVersion: getambassador.io/v1
     kind: TLSContext
-    name: tls
-    hosts: ["*"]
-    secret: ambassador-cert
+    metadata:
+      name: tls
+    spec:
+      hosts: ["*"]
+      secret: ambassador-cert
+      redirect_cleartext_from: 8080
     ```
 
-2. Configure a `TLS` `Module` to create the redirect listener in Ambassador on Ambassadors http port. By default, this is port `8080`
-
-    ```yaml
-    apiVersion: ambassador/v1
-    kind: Module
-    name: tls
-    config:
-      server:
-        redirect_cleartext_from: 8080
-    ```
-
-3. Verify the port assignments on the Ambassador service are correct.
+2. Verify that the port assignments on the Ambassador service are correct.
 
     The below service definition uses the default http and https port assignments
 
@@ -79,6 +71,8 @@ To configure Ambassador to handle this behavior you need to create a `tls` `Modu
 
 As shown above, Ambassador performs this http -> https redirection by issuing a `301` redirect to `https://<hostname>/`. The `<hostname>` represents the domain name/IP address and port of the incoming request. This means if a port is defined on an incoming request, it will be redirected to https on that port. Because of this, cleartext redirection is not supported when using non-default http and https ports.
 
+Also, if you use multiple `TLSContext`s, it doesn't matter which `TLSContext` sets `redirect_cleartext_from`. However, it is an error to attempt to set `redirect_cleartext_from` on multiple distinct ports in multiple distinct `TLSContext`s.
+
 ## Protocol-based Redirection
 
 Ambassador can perform HTTP -> HTTPS redirection based off the protocol of the incoming request. This is done by checking the `x-forwarded-proto` header that can be set by an L7 load balancer or proxy sitting in front of Ambassador.
@@ -88,12 +82,14 @@ While port-based redirection is preferred for most use cases, using the `x-forwa
 Protocol-based redirection is configured in the Ambassador `Module`:
 
 ```yaml
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v1
 kind: Module
-name: ambassador
-config:
-  use_remote_address: false
-  x_forwarded_proto_redirect: true
+metadata:
+  name: ambassador
+spec:
+  config:
+    use_remote_address: false
+    x_forwarded_proto_redirect: true
 ```
 
 **Note**: Ambassador will need to be restarted for this configuration to take affect.

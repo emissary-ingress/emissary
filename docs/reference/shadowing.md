@@ -29,26 +29,28 @@ During shadowing, the host header is modified such that `-shadow` is appended.
 The following example may help illustrate how shadowing can be used. This first annotation sets up a basic mapping between the `myservice` Kubernetes service and the `/myservice/` prefix, as expected.
 
 ```yaml
-  getambassador.io/config: |
-      ---
-      apiVersion: ambassador/v1
-      kind: Mapping
-      name: myservice-mapping
-      prefix: /myservice/
-      service: myservice.default
+---
+apiVersion: getambassador.io/v1
+kind:  Mapping
+metadata:
+  name:  myservice
+spec:
+  prefix: /myservice/
+  service: myservice.default
 ```
 
 What if we want to shadow the traffic to `myservice`, and send that exact same traffic to `myservice-shadow`? We can create a new mapping that does this:
 
 ```yaml
-  getambassador.io/config: |
-      ---
-      apiVersion: ambassador/v1
-      kind: Mapping
-      name: myservice-shadow-mapping
-      prefix: /myservice/
-      service: myservice-shadow.default
-      shadow: true
+---
+apiVersion: getambassador.io/v1
+kind:  Mapping
+metadata:
+  name:  myservice-shadow
+spec:
+  prefix: /myservice/
+  service: myservice-shadow.default
+  shadow: true
 ```
 
 The `prefix` is set to be the same as the first annotation, which tells Ambassador which production traffic to shadow. The destination service, where the shadow traffic is routed, is a *different* Kubernetes service, `myservice-shadow`. Finally, the `shadow: true` annotation actually enables shadowing.
@@ -58,15 +60,16 @@ The `prefix` is set to be the same as the first annotation, which tells Ambassad
 It is possible to shadow a portion of the traffic by specifying the `weight` in the mapping. Eg.
 
 ```yaml
-  getambassador.io/config: |
-      ---
-      apiVersion: ambassador/v1
-      kind: Mapping
-      name: myservice-shadow-mapping
-      prefix: /myservice/
-      service: myservice-shadow.default
-      shadow: true
-      weight: 10
+---
+apiVersion: getambassador.io/v1
+kind:  Mapping
+metadata:
+  name:  myservice-shaddow
+spec:
+  prefix: /myservice/
+  service: myservice-shadow.default
+  shadow: true
+  weight: 10
 ```
 
 In the example above, only the 10% of the traffic will be forwarded to the shadowing service.
