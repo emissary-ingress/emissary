@@ -222,6 +222,7 @@ spec:
                 qotm_http_code = connection.getcode()
                 assert qotm_http_code == 200, f"Expected 200 OK, got {qotm_http_code}"
                 connection.close()
+                print(f"{qotm_url} is ready")
                 qotm_ready = True
 
             except Exception as e:
@@ -236,7 +237,7 @@ spec:
             self.create_qotm_mapping(namespace=namespace)
 
         # Let's give Ambassador some time to register the changes
-        time.sleep(15)
+        time.sleep(30)
 
         # Assert 200 OK at /qotm/ endpoint
         connection = request.urlopen(qotm_url, timeout=5)
