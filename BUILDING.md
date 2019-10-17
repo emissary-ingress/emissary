@@ -178,7 +178,7 @@ run the tests with `make test`, or to e.g. run the Ambassador CLI
 #### Docker Image Names
 
 Running `make ambassador.docker.tag.dev` or `make docker-push` in
-development builds a Docker image that includes its own image hag in
+development builds a Docker image that includes its own image hash in
 its name (because if the name doesn't change when you commit new code,
 it can be very hard to get some Kubernetes environments to actually
 pull the new image!).
