@@ -2,8 +2,7 @@ SCOUT_APP_KEY=
 
 update-aws:
 ifeq ($(AWS_ACCESS_KEY_ID),)
-	@echo 'AWS credentials not configured; not updating https://s3.amazonaws.com/datawire-static-files/ambassador/$(STABLE_TXT_KEY)'
-	@echo 'AWS credentials not configured; not updating latest version in Scout'
+	@echo 'AWS credentials not configured; not updating either https://s3.amazonaws.com/datawire-static-files/ambassador/$(STABLE_TXT_KEY) or the latest version in Scout'
 else
 	@if [ -n "$(STABLE_TXT_KEY)" ]; then \
         printf "$(RELEASE_VERSION)" > stable.txt; \

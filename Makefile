@@ -84,7 +84,6 @@ generate-clean: clobber
 .PHONY: generate generate-clean
 
 base-%.docker.stamp: docker/base-%/Dockerfile $(var.)BASE_IMAGE.%
-	@if [ -n "$(AMBASSADOR_DEV)" ]; then echo "Do not run this from a dev shell" >&2; exit 1; fi
 	@PS4=; set -ex; { \
 	    if ! docker run --rm --entrypoint=true $(BASE_IMAGE.$*); then \
 	        if [ -z '$(YES_I_AM_UPDATING_THE_BASE_IMAGES)' ]; then \
