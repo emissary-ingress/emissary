@@ -47,6 +47,12 @@ spec:
   #
   # secret_namespacing: true
 
+  # If you set 'redirect_cleartext_from' to a port number, HTTP traffic
+  # to that port will be redirected to HTTPS traffic. Make sure that the
+  # port number you specify matches the port on which Ambassador is
+  # listening!
+  # redirect_cleartext_from: 8080
+
   # 'cert_required' can be set to true to _require_ TLS client certificate
   # authentication.
   # type: boolean

@@ -31,9 +31,9 @@ In the example at the top of the page;
 - The request hits Ambassador's redirect listener and Ambassador returns a `301` redirect to https.
 - The client resends the request as a standard https request (port 443) to Ambassador.
 
-To configure Ambassador to handle this behavior you need to create a `tls` `Module` that sets `redirect_cleartext_from: <http_port>`.
+To configure Ambassador to handle this behavior you need set `redirect_cleartext_from: <http_port>` in a `TLSContext`:
 
-1. Create a `TLSContext` to handle TLS termination
+1. Create a `TLSContext` to handle TLS termination, and tell it to enforce redirection. This example shows redirecting traffic to Ambassador's default cleartext service port, `8080`: 
 
     ```yaml
     apiVersion: getambassador.io/v1
@@ -43,22 +43,10 @@ To configure Ambassador to handle this behavior you need to create a `tls` `Modu
     spec:
       hosts: ["*"]
       secret: ambassador-cert
+      redirect_cleartext_from: 8080
     ```
 
-2. Configure a `TLS` `Module` to create the redirect listener in Ambassador on Ambassadors http port. By default, this is port `8080`
-
-    ```yaml
-    apiVersion: getambassador.io/v1
-    kind: Module
-    metadata:
-      name: tls
-    spec:
-      config:
-        server:
-          redirect_cleartext_from: 8080
-    ```
-
-3. Verify the port assignments on the Ambassador service are correct.
+2. Verify that the port assignments on the Ambassador service are correct.
 
     The below service definition uses the default http and https port assignments
 
