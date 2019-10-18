@@ -19,14 +19,14 @@ import t_optiontests
 import t_plain
 import t_ratelimit
 import t_redirect
-import t_shadow
-import t_stats
+#import t_shadow
+#import t_stats
 import t_tcpmapping
 import t_tls
 import t_tracing
 import t_retrypolicy
 import t_consul
-import t_circuitbreaker
+#import t_circuitbreaker
 import t_knative
 import t_envoy_logs
 import t_ingress
