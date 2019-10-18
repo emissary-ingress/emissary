@@ -164,6 +164,11 @@ class IR:
             # Uhoh.
             self.ambassador_module.set_active(False)    # This can't be good.
 
+        # Do we have any Host resources?
+        if not self.aconf.get_config("hosts"):
+            self.logger.info("IR: No Host resources, forcing debug mode!")
+            self.ambassador_module.debug_mode = True
+
         # Save circuit breakers, outliers, and services.
         self.breakers = aconf.get_config("CircuitBreaker") or {}
         self.outliers = aconf.get_config("OutlierDetection") or {}
