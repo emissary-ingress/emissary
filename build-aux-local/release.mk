@@ -54,7 +54,7 @@ release-preflight-ea:
 		printf "'make release-ea' can only be run for commit tagged with 'vX.Y.Z-eaN'!\n"; \
 		exit 1; \
 	fi
-release-rc: release-preflight-ea
+release-ea: release-preflight-ea
 release-ea: ambassador.docker.push.release-ea
 release-ea: SCOUT_APP_KEY = earlyapp.json
 release-ea: STABLE_TXT_KEY = earlystable.txt
