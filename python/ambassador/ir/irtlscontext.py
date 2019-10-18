@@ -66,8 +66,11 @@ class IRTLSContext(IRResource):
         self.ecdh_curves = config.get('ecdh_curves')
         self.secret_namespacing = config.get('secret_namespacing', None)
 
-        rcf = config.get('redirect_cleartext_from')
+        # Assume that we have no redirect_cleartext_from...
+        self.redirect_cleartext_from = None
 
+        # Then override if actually an int.
+        rcf = config.get('redirect_cleartext_from')
         if rcf is not None:
             try:
                 self.redirect_cleartext_from = int(rcf)
