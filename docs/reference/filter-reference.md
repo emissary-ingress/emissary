@@ -46,7 +46,7 @@ metadata:
 spec:
   JWT:
     jwksURI: "https://ambassador-oauth-e2e.auth0.com/.well-known/jwks.json" # required, unless the only validAlgorithm is "none"
-    renegotiateTLS: true # optional, default is false
+    renegotiateTLS: never # optional, default is never
     insecureTLS: true # optional, default is false
     validAlgorithms: # omitting this means "all supported algos except for 'none'"
       - "RS256"
@@ -86,7 +86,7 @@ spec:
     clientURL:        "url-string"      # required
     stateTTL:         "duration-string" # optional; default is "5m"
     insecureTLS:      bool              # optional; default is false
-    renegotiateTLS:   bool              # optional; default is false
+    renegotiateTLS:   "string"          # optional; default is "never"
     audience:         "string"
     clientID:         "string"
     secret:           "string"
@@ -105,7 +105,7 @@ spec:
    `https://` IDP.  This is discouraged in favor of either using plain
    `http://` or [installing a self-signed
    certificate](#installing-self-signed-certificates).
- - `renegotiateTLS` allows a remote server to request TLS renegotiation once per connection.
+ - `renegotiateTLS` allows a remote server to request TLS renegotiation. Accepted values are "never", "onceAsClient", and "freelyAsClient".
  - audience: The OIDC audience.
  - clientID: The client ID you get from your IDP.
  - secret: The client secret you get from your IDP.

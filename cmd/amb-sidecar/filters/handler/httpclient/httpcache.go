@@ -56,7 +56,7 @@ func (fn roundTripperFunc) RoundTrip(req *http.Request) (*http.Response, error) 
 //        violation of RFC7234)
 //  - It logs all requests+responses, and whether or not they came
 //    from the network for from the cache.
-func NewHTTPClient(logger types.Logger, maxStale time.Duration, insecure bool, renegotiate bool) *http.Client {
+func NewHTTPClient(logger types.Logger, maxStale time.Duration, insecure bool, renegotiate tls.RenegotiationSupport) *http.Client {
 	return &http.Client{
 		Transport: roundTripperFunc(func(req *http.Request) (*http.Response, error) {
 			if maxStale > 0 {
@@ -84,15 +84,12 @@ func NewHTTPClient(logger types.Logger, maxStale time.Duration, insecure bool, r
 					cached = false
 					start := time.Now()
 					transport := http.DefaultTransport
-					if insecure || renegotiate {
+					if insecure || renegotiate != tls.RenegotiateNever {
 						// this is the definition of http.DefaultTransport,
 						// but with TLSClientConfig added.
-						renegotiationSupport := tls.RenegotiateNever
-						if renegotiate {
-							renegotiationSupport = tls.RenegotiateOnceAsClient
-						}
 						tlsConfig := &tls.Config{
-							Renegotiation:      renegotiationSupport,
+							Renegotiation: renegotiate,
+							// #nosec G402
 							InsecureSkipVerify: insecure,
 						}
 						transport = &http.Transport{
@@ -106,8 +103,7 @@ func NewHTTPClient(logger types.Logger, maxStale time.Duration, insecure bool, r
 							IdleConnTimeout:       90 * time.Second,
 							TLSHandshakeTimeout:   10 * time.Second,
 							ExpectContinueTimeout: 1 * time.Second,
-							// #nosec G402
-							TLSClientConfig: tlsConfig,
+							TLSClientConfig:       tlsConfig,
 						}
 					}
 					res, err := transport.RoundTrip(req)

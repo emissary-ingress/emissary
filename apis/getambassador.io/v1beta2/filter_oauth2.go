@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"crypto/tls"
 	"net/http"
 	"net/url"
 	"time"
@@ -28,8 +29,9 @@ type FilterOAuth2 struct {
 	RawMaxStale string        `json:"maxStale"`
 	MaxStale    time.Duration `json:"-"` // calculated from RawMaxStale
 
-	InsecureTLS    bool `json:"insecureTLS"`
-	RenegotiateTLS bool `json:"renegotiateTLS"`
+	InsecureTLS       bool                     `json:"insecureTLS"`
+	RawRenegotiateTLS string                   `json:"renegotiateTLS"`
+	RenegotiateTLS    tls.RenegotiationSupport `json:"-"`
 
 	AccessTokenValidation string `json:"accessTokenValidation"`
 }
@@ -97,6 +99,17 @@ func (m *FilterOAuth2) Validate(namespace string, secretsGetter coreV1client.Sec
 	default:
 		return errors.Errorf("accessTokenValidation=%q is invalid; valid values are %q",
 			m.AccessTokenValidation, []string{"auto", "jwt", "userinfo"})
+	}
+
+	switch m.RawRenegotiateTLS {
+	case "", "never":
+		m.RenegotiateTLS = tls.RenegotiateNever
+	case "onceAsClient":
+		m.RenegotiateTLS = tls.RenegotiateOnceAsClient
+	case "freelyAsClient":
+		m.RenegotiateTLS = tls.RenegotiateFreelyAsClient
+	default:
+		return errors.Errorf("invalid renegotiateTLS: %q", m.RawRenegotiateTLS)
 	}
 
 	return nil

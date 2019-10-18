@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"crypto/tls"
 	"net/url"
 	"text/template"
 
@@ -51,8 +52,9 @@ type FilterJWT struct {
 
 	InjectRequestHeaders []JWTHeaderField `json:"injectRequestHeaders"`
 
-	InsecureTLS    bool `json:"insecureTLS"`
-	RenegotiateTLS bool `json:"renegotiateTLS"`
+	InsecureTLS       bool                     `json:"insecureTLS"`
+	RawRenegotiateTLS string                   `json:"renegotiateTLS"`
+	RenegotiateTLS    tls.RenegotiationSupport `json:"-"`
 
 	ErrorResponse ErrorResponse `json:"errorResponse"`
 }
@@ -90,6 +92,17 @@ func (m *FilterJWT) Validate() error {
 		if err := hf.Validate(); err != nil {
 			return err
 		}
+	}
+
+	switch m.RawRenegotiateTLS {
+	case "", "never":
+		m.RenegotiateTLS = tls.RenegotiateNever
+	case "onceAsClient":
+		m.RenegotiateTLS = tls.RenegotiateOnceAsClient
+	case "freelyAsClient":
+		m.RenegotiateTLS = tls.RenegotiateFreelyAsClient
+	default:
+		return errors.Errorf("invalid renegotiateTLS: %q", m.RawRenegotiateTLS)
 	}
 
 	if m.ErrorResponse.RawBodyTemplate != "" {
