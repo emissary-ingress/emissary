@@ -21,22 +21,25 @@ else
             --body app.json; \
 	fi
 endif
+.PHONY: update-aws
 
 release-prep:
 	bash releng/release-prep.sh
+.PHONY: release-prep
 
 release-preflight:
 	@if ! [[ '$(RELEASE_VERSION)' =~ ^[0-9]+\.[0-9]+\.[0-9]+$$ ]]; then \
 		printf "'make release' can only be run for commit tagged with 'vX.Y.Z'!\n"; \
 		exit 1; \
 	fi
-ambassador-release.docker: release-preflight $(WRITE_IFCHANGED)
+ambassador-release.docker.stamp: release-preflight
 	docker pull $(RELEASE_DOCKER_REPO):$(RELEASE_VERSION)-rc-latest
-	docker image inspect $(RELEASE_DOCKER_REPO):$(RELEASE_VERSION)-rc-latest --format='{{.Id}}' | $(WRITE_IFCHANGED) $@
+	docker image inspect $(RELEASE_DOCKER_REPO):$(RELEASE_VERSION)-rc-latest --format='{{.Id}}' > $@
 release: ambassador-release.docker.push.release
 release: SCOUT_APP_KEY=app.json
 release: STABLE_TXT_KEY=stable.txt
 release: update-aws
+.PHONY: release-preflight release
 
 release-preflight-rc:
 	@if ! [[ '$(RELEASE_VERSION)' =~ ^[0-9]+\.[0-9]+\.[0-9]+-rc[0-9]+$$ ]]; then \
@@ -48,6 +51,7 @@ release-rc: ambassador.docker.push.release-rc
 release-rc: SCOUT_APP_KEY = testapp.json
 release-rc: STABLE_TXT_KEY = teststable.txt
 release-rc: update-aws
+.PHONY: release-preflight-rc release-rc
 
 release-preflight-ea:
 	@if ! [[ '$(RELEASE_VERSION)' =~ ^[0-9]+\.[0-9]+\.[0-9]+-ea[0-9]+$$ ]]; then \
@@ -59,3 +63,4 @@ release-ea: ambassador.docker.push.release-ea
 release-ea: SCOUT_APP_KEY = earlyapp.json
 release-ea: STABLE_TXT_KEY = earlystable.txt
 release-ea: update-aws
+.PHONY: release-preflight-ea release-ea
