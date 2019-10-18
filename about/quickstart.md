@@ -7,7 +7,7 @@ In this section, we'll get Ambassador running locally with a demo configuration.
 By default, Ambassador uses a demo configuration to show some of its basic features. Get it running with Docker, and expose Ambassador on port 8080:
 
 ```shell
-docker run -it -p 8080:8080 --name=ambassador --rm quay.io/datawire/ambassador:%version% --demo
+docker run -it -p 8080:8080 --name=ambassador --rm quay.io/datawire/ambassador:$version$ --demo
 ```
 
 ## 2. Ambassador's Diagnostics
