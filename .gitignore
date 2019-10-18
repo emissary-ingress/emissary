@@ -35,6 +35,10 @@ dist
 *.tmp
 log.txt
 
+# From `make update-aws`
+/stable.txt
+/app.json
+
 docs/_book
 docs/_site
 docs/Gemfile.lock
