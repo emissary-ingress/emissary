@@ -36,9 +36,7 @@ ambassador-release.docker.stamp: release-preflight
 	docker pull $(RELEASE_DOCKER_REPO):$(RELEASE_VERSION)-rc-latest
 	docker image inspect $(RELEASE_DOCKER_REPO):$(RELEASE_VERSION)-rc-latest --format='{{.Id}}' > $@
 release: ambassador-release.docker.push.release
-release: SCOUT_APP_KEY=app.json
-release: STABLE_TXT_KEY=stable.txt
-release: update-aws
+	$(MAKE) SCOUT_APP_KEY=app.json STABLE_TXT_KEY=stable.txt update-aws
 .PHONY: release-preflight release
 
 release-preflight-rc:
@@ -46,11 +44,10 @@ release-preflight-rc:
 		printf "'make release-rc' can only be run for commit tagged with 'vX.Y.Z-rcN'!\n"; \
 		exit 1; \
 	fi
-release-rc: release-preflight-rc
-release-rc: ambassador.docker.push.release-rc
-release-rc: SCOUT_APP_KEY = testapp.json
-release-rc: STABLE_TXT_KEY = teststable.txt
-release-rc: update-aws
+ambassador-release-rc.docker.stamp: release-preflight-rc | ambassador.docker
+	cat ambassador.docker > $@
+release-rc: ambassador-release-rc.docker.push.release
+	$(MAKE) SCOUT_APP_KEY=testapp.json STABLE_TXT_KEY=teststable.txt update-aws
 .PHONY: release-preflight-rc release-rc
 
 release-preflight-ea:
@@ -58,9 +55,8 @@ release-preflight-ea:
 		printf "'make release-ea' can only be run for commit tagged with 'vX.Y.Z-eaN'!\n"; \
 		exit 1; \
 	fi
-release-ea: release-preflight-ea
-release-ea: ambassador.docker.push.release-ea
-release-ea: SCOUT_APP_KEY = earlyapp.json
-release-ea: STABLE_TXT_KEY = earlystable.txt
-release-ea: update-aws
+ambassador-release-ea.docker.stamp: release-preflight-ea | ambassador.docker
+	cat ambassador.docker > $@
+release-ea: ambassador-release-ea.docker.push.release
+	$(MAKE) SCOUT_APP_KEY=earlyapp.json STABLE_TXT_KEY=earlystable.txt update-aws
 .PHONY: release-preflight-ea release-ea
