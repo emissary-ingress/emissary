@@ -95,6 +95,7 @@ ambassador.stamp: %.stamp: $(var.)AMBASSADOR_COMMIT $(if $(call str.eq,$(AMBASSA
 	    cd $*; \
 	    if ! git remote get-url origin &>/dev/null; then \
 	        git remote add origin https://github.com/datawire/ambassador; \
+	        git remote set-url --push origin git@github.com:datawire/ambassador.git; \
 	    fi; \
 	    git fetch || true; \
 	    if [ $(AMBASSADOR_COMMIT) != '-' ]; then \
