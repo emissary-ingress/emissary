@@ -227,7 +227,8 @@ docker.LOCALHOST = $(if $(filter darwin,$(GOHOSTOS)),host.docker.internal,localh
 
 %.docker.clean: $(addprefix %.docker.clean.,$(_docker.clean.groups))
 	if [ -e $*.docker ]; then docker image rm "$$(cat $*.docker)" || true; fi
-	rm -f $*.docker
+# It "shouldn't" need the ".*" suffix, but it makes it easier to hook in with things like a .stamp file
+	rm -f $*.docker $*.docker.*
 .PHONY: %.docker.clean
 
 # Evaluate _docker.tag.rule with _docker.tag.group=TAG_GROUPNAME for
