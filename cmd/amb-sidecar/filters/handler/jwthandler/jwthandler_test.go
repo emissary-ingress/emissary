@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	envoyAuthV2 "github.com/datawire/ambassador/go/apis/envoy/service/auth/v2"
-	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/dgrijalva/jwt-go"
 
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta2"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/jwthandler"
@@ -96,5 +96,20 @@ func TestJWTInjectHeaders(t *testing.T) {
 			assert := &testutil.Assert{T: t}
 			assert.StrEQ(th.Expect, request.Request.Http.Headers[thName])
 		})
+	}
+}
+
+func TestJWTErrorResponse(t *testing.T) {
+	assert := &testutil.Assert{T: t}
+
+	spec := crd.FilterJWT{
+		ValidAlgorithms: []string{"none"},
+		ErrorResponse:   crd.ErrorResponse{RawBodyTemplate: "Some {{.Template}}"},
+	}
+
+	assert.NotError(spec.Validate())
+	assert.StrEQ("application/json", spec.ErrorResponse.ContentType)
+	if spec.ErrorResponse.BodyTemplate == nil {
+		assert.T.Fatalf("Expected BodyTemplate to be parsed")
 	}
 }
