@@ -133,7 +133,11 @@ case "${cmd}" in
     compile)
         shift
         bootstrap
-        docker exec -it $(builder) /buildroot/builder.sh compile-internal
+        if [[ -t 0 ]]; then
+            docker exec -it $(builder) /buildroot/builder.sh compile-internal
+        else
+            docker exec $(builder) /buildroot/builder.sh compile-internal
+        fi
         ;;
     compile-internal)
         # This runs inside the builder image
