@@ -39,11 +39,16 @@ docker.tag.release-rc = $(error The 'release-rc' tag is only valid for the 'amba
 docker.tag.release-ea = $(error The 'release-ea' tag is only valid for the 'ambassador' image)
 docker.tag.base       = $(error The 'base' tag is only valid for the 'base-envoy' image)
 # ... except for on specific images
-ambassador.docker.tag.release: docker.tag.release    = $(RELEASE_DOCKER_REPO):$(RELEASE_VERSION)
-ambassador.docker.tag.release: docker.tag.release-rc = $(RELEASE_DOCKER_REPO):$(RELEASE_VERSION) $(RELEASE_REPO):$(BUILD_VERSION)-latest-rc
-ambassador.docker.tag.release: docker.tag.release-ea = $(RELEASE_DOCKER_REPO):$(RELEASE_VERSION)
+# ... haha, jk, it's broken in CI?
+#ambassador.docker.tag.release:
+docker.tag.release    = $(RELEASE_DOCKER_REPO):$(RELEASE_VERSION)
+#ambassador.docker.tag.release:
+docker.tag.release-rc = $(RELEASE_DOCKER_REPO):$(RELEASE_VERSION) $(RELEASE_REPO):$(BUILD_VERSION)-latest-rc
+#ambassador.docker.tag.release:
+docker.tag.release-ea = $(RELEASE_DOCKER_REPO):$(RELEASE_VERSION)
 BASE_IMAGE.envoy = $(BASE_DOCKER_REPO):envoy-$(BASE_VERSION.envoy)
-envoy-base.docker.tag.base:    docker.tag.base       = $(BASE_IMAGE.envoy)
+#envoy-base.docker.tag.base:
+docker.tag.base       = $(BASE_IMAGE.envoy)
 
 # We'll set REGISTRY_ERR in builder.mk
 docker.tag.dev = $(if $(DEV_REGISTRY),$(DEV_REGISTRY)/$*:$(patsubst sha256:%,%,$(shell cat $<)),$(REGISTRY_ERR))
@@ -75,6 +80,14 @@ include $(OSS_HOME)/build-aux-local/version.mk
 $(call module,ambassador,$(OSS_HOME))
 
 sync: python/ambassador/VERSION.py
+
+clean: _makefile_clean
+clobber: _makefile_clobber
+_makefile_clean:
+	rm -f python/ambassador/VERSION.py
+_makefile_clobber:
+	rm -rf bin_*/
+.PHONY: _makefile_clean _makefile_clobber
 
 generate: ## Update generated sources that get committed to git
 generate: pkg/api/kat/echo.pb.go

@@ -16,6 +16,15 @@ GIT_DIRTY := $(if $(shell git status --porcelain),dirty)
 # The _previous_ tag, plus a git delta, like 0.36.0-436-g8b8c5d3
 GIT_DESCRIPTION := $(shell git describe --tags)
 
+ifneq ($(CI),)
+ifneq ($(GIT_DIRTY),)
+$(warning Build is dirty:)
+$(shell git add . >&2)
+$(shell PAGER= git diff --cached >&2)
+$(error This should not happen in CI: the build should not be dirty)
+endif
+endif
+
 # RELEASE_VERSION is an X.Y.Z[-prerelease] (semver) string that we
 # will upload/release the image as.  It does NOT include a leading 'v'
 # (trimming the 'v' from the git tag is what the 'patsubst' is for).
