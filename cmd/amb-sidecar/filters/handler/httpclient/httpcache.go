@@ -87,9 +87,9 @@ func NewHTTPClient(logger types.Logger, maxStale time.Duration, insecure bool, r
 					if insecure || renegotiate != tls.RenegotiateNever {
 						// this is the definition of http.DefaultTransport,
 						// but with TLSClientConfig added.
+						// #nosec G402
 						tlsConfig := &tls.Config{
-							Renegotiation: renegotiate,
-							// #nosec G402
+							Renegotiation:      renegotiate,
 							InsecureSkipVerify: insecure,
 						}
 						transport = &http.Transport{
