@@ -43,7 +43,7 @@ docker.tag.base       = $(error The 'base' tag is only valid for the 'base-envoy
 #ambassador.docker.tag.release:
 docker.tag.release    = $(RELEASE_DOCKER_REPO):$(RELEASE_VERSION)
 #ambassador.docker.tag.release:
-docker.tag.release-rc = $(RELEASE_DOCKER_REPO):$(RELEASE_VERSION) $(RELEASE_DOCKER_REPO):$(BUILD_VERSION)-latest-rc
+docker.tag.release-rc = $(RELEASE_DOCKER_REPO):$(RELEASE_VERSION) $(RELEASE_DOCKER_REPO):$(BUILD_VERSION)-rc-latest
 #ambassador.docker.tag.release:
 docker.tag.release-ea = $(RELEASE_DOCKER_REPO):$(RELEASE_VERSION)
 BASE_IMAGE.envoy = $(BASE_DOCKER_REPO):envoy-$(BASE_VERSION.envoy)
