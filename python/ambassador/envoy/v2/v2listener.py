@@ -269,7 +269,7 @@ def v2filter_authv1(auth: IRAuth, v2config: 'V2Config'):
         if auth.get('add_linkerd_headers', False):
             svc = Service(auth.ir.logger, auth_cluster_uri(auth, cluster))
             headers_to_add.append({
-                'key' : 'l5d-dst-override', 
+                'key' : 'l5d-dst-override',
                 'value': svc.hostname_port
             })
 
@@ -321,7 +321,7 @@ def v2filter_authv1(auth: IRAuth, v2config: 'V2Config'):
 
         if 'failure_mode_allow' in auth:
             auth_info['config']["failure_mode_allow"] = auth.failure_mode_allow
-        
+
         if 'status_on_error' in auth:
             status_on_error: Optional[Dict[str, int]] = auth.get('status_on_error')
             auth_info['config']["status_on_error"] = status_on_error
