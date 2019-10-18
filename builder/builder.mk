@@ -69,6 +69,11 @@ $(addsuffix .docker.stamp,$(images.builder)): %.docker.stamp: snapshot.docker ba
 # snapshot.docker, since `docker commit` will bump timestamps.
 snapshot.docker: %.docker: %.docker.stamp $(COPY_IFCHANGED)
 	@CI= $(COPY_IFCHANGED) $< $@
+# Fricking frick, the __pycache__ and .egg files aren't staying the
+# same.  Just take off the seat-belt for now, we need to get a release
+# out.
+ambassador.docker: %.docker: %.docker.stamp $(COPY_IFCHANGED)
+	@CI= $(COPY_IFCHANGED) $< $@
 
 define REGISTRY_ERR
 $(shell printf '$(RED)ERROR: please set the DEV_REGISTRY make/env variable to the docker registry\n       you would like to use for development$(END)\n' >&2)
