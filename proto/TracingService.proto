@@ -1,0 +1,33 @@
+/**
+ * TracingService defines an external service used to handle tracing.
+ */
+syntax = "proto3";
+
+message TracingService {
+  // Common to all Ambassador objects.
+  string apiVersion = 1;
+  string kind = 2;
+  string name = 3;
+  repeated string ambassador_id = 4;
+  int32 generation = 5; // generally not used by humans!
+ 
+  enum Driver {
+    none = 0;
+    lightstep = 1;
+    zipkin = 2;
+    datadog = 3;
+  }
+  Driver driver = 6;
+  string service = 7;
+  repeated string tag_headers = 8;
+  Config config = 9;
+
+  message Config {
+    string access_token_file = 1;
+    string collector_cluster = 2;
+    string collector_endpoint = 3;
+    bool trace_id_128bit = 4;
+    bool shared_span_context = 5;
+    string service_name = 6;
+  }
+}

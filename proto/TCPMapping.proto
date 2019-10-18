@@ -1,0 +1,32 @@
+/**
+ * TCPMapping defines a way for Ambassador to work with layer 4
+ * traffic: you can tell Ambassador to route traffic for an
+ * particular address or SNI host/port combination to a given
+ * upstream service.
+ */
+syntax = "proto3";
+
+message TCPMapping {
+  string apiVersion = 1;
+  string kind = 2;
+  string name = 3;
+  repeated string ambassador_id = 4;
+  int32 generation = 5;
+  
+  int32 port = 6;
+  string host = 7;
+  string address = 8;
+  string service = 9;
+
+  bool enable_ipv4 = 10;
+  bool enable_ipv6 = 11;
+  int32 timeout_ms = 12;      // currently not used
+  int32 idle_timeout_ms = 13;
+
+  string resolver = 14;
+
+  oneof tls_info {
+    string tls_context = 15;
+    bool tls = 16;
+  }
+}

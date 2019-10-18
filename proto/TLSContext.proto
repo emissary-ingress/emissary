@@ -1,0 +1,34 @@
+/**
+ * TLSContext defines an Ambassador TLS context.
+ */
+syntax = "proto3";
+
+message TLSContext {
+  string apiVersion = 1;
+  string kind = 2;
+  string name = 3;
+  repeated string ambassador_id = 4;
+  int32 generation = 5;
+
+  repeated string hosts = 6;
+  string secret = 7;
+  string cert_chain_file = 8;
+  string private_key_file = 9;
+  string ca_secret = 10;
+  string cacert_chain_file = 11;
+  string alpn_protocols = 12;
+  bool cert_required = 13;
+  TLSVersion min_tls_version = 14;
+  TLSVersion max_tls_version = 15;
+  repeated string cipher_suites = 16;
+  repeated string ecdh_curves = 17;
+  bool secret_namespacing = 18;
+
+  enum TLSVersion {
+    ANY = 0;
+    V1_0 = 1;
+    V1_1 = 2;
+    V1_2 = 3;
+    V1_3 = 4;
+  }
+}

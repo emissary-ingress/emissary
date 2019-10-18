@@ -1,0 +1,120 @@
+/**
+ * Mapping tells Ambassador how to route traffic. It's the core of
+ * Ambassador, in many important ways.
+ */
+syntax = "proto3";
+
+import "google/protobuf/any.proto";
+
+message Mapping {
+  string apiVersion = 1;
+  string kind = 2;
+  string name = 3;
+  repeated string ambassador_id = 4;
+  int32 generation = 5;
+  
+  string prefix = 6;
+  bool prefix_regex = 7;
+  string service = 8;
+
+  repeated string add_request_headers = 9;
+  repeated string add_response_headers = 10;
+
+  bool add_linkerd_headers = 11;
+  bool auto_host_rewrite = 12;
+  bool case_sensitive = 13;
+  bool enable_ipv4 = 14;
+  bool enable_ipv6 = 15;
+  repeated CircuitBreaker circuit_breakers = 16;
+  CORS cors = 17;
+  RetryPolicy retry_policy = 18;
+  bool grpc = 19;
+  bool host_redirect = 20;
+  string host_rewrite = 21;
+  string method = 22;
+  bool method_regex = 23;
+  string outlier_detection = 24;
+  string path_redirect = 25;
+  string priority = 26;
+  int32 precedence = 27;
+  repeated string remove_request_headers = 28;
+  repeated string remove_response_headers = 29;
+  string resolver = 30;
+  string rewrite = 31;
+  bool shadow = 32;
+  int32 connect_timeout_ms = 33;
+  int32 cluster_idle_timeout_ms = 34;
+  int32 timeout_ms = 35;
+  int32 idle_timeout_ms = 36;
+  oneof tls_info {
+    string tls_context = 37;
+    bool tls = 38;
+  }
+  bool use_websocket = 39;
+  int32 weight = 40;
+  bool bypass_auth = 41;
+  string host = 42;
+  bool host_regex = 43;
+  map<string, string> headers = 44;
+  map<string, string> regex_headers = 45;
+  Labels labels = 46;
+  LoadBalancer load_balancer = 47;
+
+  // We used to allow 'modules' and 'envoy_override' as
+  // arrays of object, but drop them.
+
+  message CircuitBreaker {
+    enum Priorities {
+      default = 0;
+      high = 1;
+    }
+    Priorities priority = 1;
+    int32 max_connections = 2;
+    int32 max_pending_requests = 3;
+    int32 max_requests = 4;
+    int32 max_retries = 5;
+  }
+
+  message CORS {
+    repeated string origins = 1;
+    repeated string methods = 2;
+    repeated string headers = 3;
+    repeated string exposed_headers = 5;
+    bool credentials = 4;
+    string max_age = 6;
+  }
+  
+  message RetryPolicy {
+    // Legal values: 5xx, gateway-error, connect-failure, 
+    // retriable-4xx, refused-stream, retriable-status-codes
+    // 
+    // Technically this could be an enum, but... ew.
+    string retry_on = 1;
+    int32 num_retries = 2;
+    string per_try_timeout = 3;
+  }
+
+  message Labels {
+    map<string, google.protobuf.Any> labels = 1;
+  }
+
+  message LoadBalancer {
+    Policy policy = 1;
+    Cookie cookie = 2;
+    string header = 3;
+    bool source_ip = 4;
+
+    enum Policy {
+      round_robin = 0;
+      ring_hash = 1;
+      maglev = 2;
+      least_request = 3;
+    }
+
+    message Cookie {
+      string name = 1;
+      string path = 2;
+      string ttl = 3;
+    }
+  }
+}

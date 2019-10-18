@@ -1,0 +1,15 @@
+/**
+ * Module defines an expansion module. These should all go away.
+ */
+syntax = "proto3";
+
+import "google/protobuf/any.proto";
+
+message Module {
+  string apiVersion = 1;
+  string kind = 2;
+  string name = 3;
+  repeated string ambassador_id = 4;
+  int32 generation = 5;
+  google.protobuf.Any config = 6;
+}

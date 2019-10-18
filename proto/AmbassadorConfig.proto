@@ -1,0 +1,203 @@
+/**
+ * AmbassadorConfig defines global configuration for an Ambassador.
+ */
+syntax = "proto3";
+
+import "google/protobuf/any.proto";
+
+message AuthService {
+  // Common to all Ambassador objects.
+  string apiVersion = 1;
+  string kind = 2;
+  string name = 3;
+  repeated string ambassador_id = 4;
+  int32 generation = 5; // generally not used by humans!
+
+  // admin_port is the port where Ambassador's Envoy will listen for
+  // low-level admin requests. You should almost never need to change
+  // this.
+  int32 admin_port = 6;
+
+  // default_label_domain and default_labels set a default domain and
+  // request labels to every request for use by rate limiting. For
+  // more on how to use these, see the Rate Limit reference.
+
+  // diag_port is the port where Ambassador will listen for requests
+  // to the diagnostic service.
+  int32 diag_port = 7;
+
+  // By default Envoy sets server_name response header to 'envoy'
+  // Override it with this variable
+  string server_name = 8;
+
+  // If present, service_port will be the port Ambassador listens
+  // on for microservice access. If not present, Ambassador will
+  // use 8443 if TLS is configured, 8080 otherwise.
+  int32 service_port = 9;
+
+  message Features {
+    // The diagnostic service (at /ambassador/v0/diag/) defaults on, but
+    // you can disable the api route. It will remain accessible on
+    // diag_port.
+    bool diagnostics = 1;
+  
+    // Should we automatically add Linkerd `l5d-dst-override` headers?
+    bool linkerd_headers = 2;
+
+    // Should we enable the gRPC-http11 bridge?
+    bool grpc_http11_bridge = 3;
+
+    // Should we enable the grpc-Web protocol?
+    bool grpc_web = 4;
+
+    // Should we enable http/1.0 protocol?
+    bool http10 = 5;
+
+    // Should we do IPv4 DNS lookups when contacting services? Defaults to true,
+    // but can be overridden in a [`Mapping`](/reference/mappings).
+    bool ipv4_dns = 6;
+
+    // Should we do IPv6 DNS lookups when contacting services? Defaults to false,
+    // but can be overridden in a [`Mapping`](/reference/mappings).
+    bool ipv6_dns = 7;
+
+    // liveness_probe defaults on, but you can disable the api route.
+    // It will remain accessible on diag_port.
+    bool liveness_probe = 8;
+
+    // readiness_probe defaults on, but you can disable the api route.
+    // It will remain accessible on diag_port.
+    bool readiness_probe = 9;
+
+    // xff_num_trusted_hops controls the how Envoy sets the trusted
+    // client IP address of a request. If you have a proxy in front
+    // of Ambassador, Envoy will set the trusted client IP to the
+    // address of that proxy. To preserve the orginal client IP address,
+    // setting x_num_trusted_hops: 1 will tell Envoy to use the client IP
+    // address in X-Forwarded-For. Please see the envoy documentation for
+    // more information: https://www.envoyproxy.io/docs/envoy/latest/configuration/http_conn_man/headers#x-forwarded-for
+    int32 xff_num_trusted_hops = 10;
+
+    // proxy_proto controls whether Envoy will honor the PROXY
+    // protocol on incoming requests.
+    bool proxy_proto = 11;
+
+    // remote_address controls whether Envoy will trust the remote
+    // address of incoming connections or rely exclusively on the
+    // X-Forwarded_For header.
+    bool remote_address = 12;
+
+    // Ambassador lets through only the HTTP requests with
+    // `X-FORWARDED-PROTO: https` header set, and redirects all the other
+    // requests to HTTPS if this field is set to true. Note that `use_remote_address`
+    // must be set to false for this feature to work as expected.
+    bool x_forwarded_proto_redirect = 13;
+  }
+  Features features = 8;
+
+  // run a custom lua script on every request. see below for more details.
+  string lua_scripts = 9;
+
+  // envoy_log_type defines the type of log envoy will use , currently only support json or text
+  enum LogType {
+    TEXT = 0;
+    JSON = 1;
+  }
+  LogType envoy_log_type = 10;
+
+  // envoy_log_path defines the path of log envoy will use. By default this is standard output
+  string envoy_log_path = 11;
+
+  // load_balancer sets the global load balancing type and policy that
+  // Ambassador will use for all mappings, unless overridden in a
+  // mapping. Defaults to round robin with Kubernetes.
+  // More information at the [load balancer reference](/reference/core/load-balancer)
+
+  message LoadBalancer {
+    // Set the policy for load balancing
+    enum Policy {
+      ROUND_ROBIN = 0;
+      LEAST_REQUEST = 1;
+      RING_HASH = 2;
+      MAGLEV = 3;
+    }
+    Policy policy = 1;
+
+    message Cookie {
+      string name = 1;  // use this cookie name for affinity
+      string ttl = 2;   // TTL for the cookie
+      string path = 3;  // path to use for the cookie
+    }
+    Cookie cookie = 2;
+
+    string header = 3;    // use header for affinity
+    string source_ip = 4; // use source IP for affinity
+  }
+  LoadBalancer load_balancer = 12;
+
+  // circuit_breakers sets the global circuit breaking configuration that
+  // Ambassador will use for all mappings, unless overridden in a
+  // mapping.
+  // More information at the [circuit breaking reference](/reference/core/circuit-breaking)
+
+  message CircuitBreakers {
+    enum Priority {
+      DEFAULT = 0;
+      HIGH = 1;
+    }
+    Priority priority = 1;
+
+    int32 max_connections = 2;
+    int32 max_pending_requests = 3;
+    int32 max_requests = 4;
+    int32 max_retries = 5;
+  }
+  CircuitBreakers circuit_breakers = 13;
+
+  // retry_policy lets you add resilience to your services in case of request
+  // failures by performing automatic retries.
+
+  message RetryPolicy {
+    enum RetryOn {
+      ANY_5XX = 0;
+      GATEWAY_ERROR = 1;
+      CONNECT_FAILURE = 2;
+      RETRIABLE_4XX = 3;
+      REFUSED_STREAM = 4;
+      ANY_RETRIABLE = 5;
+    }
+    RetryOn retry_on = 1;
+
+    int32 num_retries = 2;
+    int32 per_try_timeout = 3;
+  }
+  RetryPolicy retry_policy = 14;
+
+  // Set default CORS configuration for all mappings in the cluster. See
+  // CORS syntax at https://www.getambassador.io/reference/cors.html
+
+  message CORS {
+    repeated string origins = 1;
+    repeated string methods = 2;
+    repeated string headers = 3;
+    repeated string exposed_headers = 4;
+    bool credentials = 5;
+    int32 max_age = 6;
+  }
+  CORS cors = 15;
+
+  // Set the default upstream-connection idle timeout. If not set (the default), upstream
+  // connections will never be closed due to idling.
+  int32 cluster_idle_timeout_ms = 16;
+
+  // Set which regular expression engine to use. See the "Regular Expressions" section below.
+  enum RegexType {
+    SAFE = 0;
+    UNSAFE = 1;
+  }
+  RegexType regex_type = 17;
+
+  // This field controls the RE2 “program size” which is a rough estimate of how complex a compiled regex is to
+  // evaluate.  A regex that has a program size greater than the configured value will fail to compile.
+  int32 regex_max_size = 18;
+}

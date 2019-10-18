@@ -1,0 +1,52 @@
+/**
+ * AuthService defines an external authentication service that Ambassador
+ * will use to check whether incoming requests should be allowed to 
+ * continue. The AuthService is particularly powerful because it can 
+ * modify many things about the request in flight.
+ */
+syntax = "proto3";
+
+message AuthService {
+  // Common to all Ambassador objects.
+  string apiVersion = 1;
+  string kind = 2;
+  string name = 3;
+  repeated string ambassador_id = 4;
+  int32 generation = 5; // generally not used by humans!
+
+  string auth_service = 6;  // This is the service to talk to.
+  string path_prefix = 7;   // This is prefixed to the path of every request.
+
+  // Set tls to True to do TLS origination with no client certificate.
+  // Set tls_context to the name of a context to use a client certificate when originating TLS.
+
+  oneof tls_info {
+    bool tls = 8;
+    string tls_context = 9;
+  }
+
+  enum AuthProtos {
+    HTTP = 0;
+    GRPC = 1;
+  }
+  AuthProtos proto = 10;
+
+  int32 timeout_ms = 11;
+  repeated string allowed_request_headers = 12;
+  repeated string allowed_authorization_headers = 13;
+  bool allow_request_body = 14;
+  bool add_linkerd_headers = 15;
+  bool failure_mode_allow = 16;
+
+  message AuthIncludeBody {
+    int32 max_bytes = 1;
+    bool allow_partial = 2;
+  }
+  AuthIncludeBody include_body = 17;
+
+  // Why isn't this just an int??
+  message AuthStatusOnError {
+    int32 code = 1;
+  }
+  AuthStatusOnError status_on_error = 18;
+}

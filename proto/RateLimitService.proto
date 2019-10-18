@@ -1,0 +1,26 @@
+/**
+ * RateLimitService defines a service that Ambassador can use to do
+ * rate limiting.
+ */
+syntax = "proto3";
+
+message RateLimitService {
+  // Common to all Ambassador objects.
+  string apiVersion = 1;
+  string kind = 2;
+  string name = 3;
+  repeated string ambassador_id = 4;
+  int32 generation = 5; // generally not used by humans!
+
+  string service = 6;
+  int32 timeout_ms = 7;
+  string domain = 8;
+
+  // Set tls to True to do TLS origination with no client certificate.
+  // Set tls_context to the name of a context to use a client certificate when originating TLS.
+
+  oneof tls_info {
+    bool tls = 9;
+    string tls_context = 10;
+  }
+}
