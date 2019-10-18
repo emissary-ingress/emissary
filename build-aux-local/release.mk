@@ -46,8 +46,9 @@ release-preflight-rc:
 		printf "'make release-rc' can only be run for commit tagged with 'vX.Y.Z-rcN'!\n"; \
 		exit 1; \
 	fi
-release-rc: release-preflight-rc
-release-rc: ambassador.docker.push.release-rc
+ambassador-release-rc.docker.stamp: release-preflight-rc | ambassador.docker
+	cat ambassador.docker > $@
+release-rc: ambassador-release-rc.docker.push.release
 release-rc: SCOUT_APP_KEY = testapp.json
 release-rc: STABLE_TXT_KEY = teststable.txt
 release-rc: update-aws
@@ -58,8 +59,9 @@ release-preflight-ea:
 		printf "'make release-ea' can only be run for commit tagged with 'vX.Y.Z-eaN'!\n"; \
 		exit 1; \
 	fi
-release-ea: release-preflight-ea
-release-ea: ambassador.docker.push.release-ea
+ambassador-release-ea.docker.stamp: release-preflight-ea | ambassador.docker
+	cat ambassador.docker > $@
+release-ea: ambassador-release-ea.docker.push.release
 release-ea: SCOUT_APP_KEY = earlyapp.json
 release-ea: STABLE_TXT_KEY = earlystable.txt
 release-ea: update-aws
