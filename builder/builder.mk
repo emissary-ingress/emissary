@@ -128,7 +128,7 @@ clean: $(addsuffix .docker.clean,$(images.all) snapshot)
 	@$(BUILDER) clean
 .PHONY: clean
 
-clobber:
+clobber: clean
 	@$(BUILDER) clobber
 .PHONY: clobber
 

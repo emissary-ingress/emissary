@@ -76,6 +76,14 @@ $(call module,ambassador,$(OSS_HOME))
 
 sync: python/ambassador/VERSION.py
 
+clean: _makefile_clean
+clobber: _makefile_clobber
+_makefile_clean:
+	rm -f python/ambassador/VERSION.py
+_makefile_clobber:
+	rm -rf bin_*/
+.PHONY: _makefile_clean _makefile_clobber
+
 generate: ## Update generated sources that get committed to git
 generate: pkg/api/kat/echo.pb.go
 generate-clean: ## Delete generated sources that get committed to git (implies `make clobber`)

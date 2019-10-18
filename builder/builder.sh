@@ -112,7 +112,6 @@ case "${cmd}" in
         clean
         ;;
     clobber)
-        clean
         vid=$(builder_volume)
         if [ -n "${vid}" ] ; then
             printf "${GRN}Killing cache volume ${BLU}${vid}${END}\n"
