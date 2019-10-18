@@ -94,6 +94,26 @@ Format:
 --->
 
 <!--- CueAddReleaseNotes --->
+## [0.84.0] October 18, 2019
+[0.84.0]: https://github.com/datawire/ambassador/compare/v0.83.0...v0.84.0
+
+### Features:
+
+- Support setting window_bits for the GZip filter (thanks to [Florent Delannoy](https://github.com/Pluies)!)
+- Correctly support tuning the regex_max_size, and bump its default to 200 (thanks to [Paul Salaberria](https://github.com/psalaberria002)!)
+- Support setting redirect_cleartext_from in a TLSContext
+
+### Bugfixes:
+
+- Correctly update loadbalancer status of Ingress resources
+- Don't enable diagd debugging in the test suite unless explicitly requested (thanks to [Jonathan Suever](https://github.com/suever)!)
+
+### Developer Notes:
+
+- Many many things about the build system have changed under the hood!
+   - Start with `make help`, and 
+   - Join our [Slack channel](https://d6e.co/slack) for more help!
+
 ## [0.83.0] October 08, 2019
 [0.83.0]: https://github.com/datawire/ambassador/compare/v0.82.0...v0.83.0
 
