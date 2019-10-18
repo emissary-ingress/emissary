@@ -650,13 +650,26 @@ redirect_cleartext_from: 8081
         num_errors = len(errors)
         assert num_errors == 3, "expected 3 errors, got {} -\n{}".format(num_errors, errors)
 
-        cert_err = errors[0]
-        pkey_err = errors[1]
-        rcf_err = errors[2]
+        errors_that_should_be_found = {
+          'TLSContext TLSContextTest-same-context-error is missing cert_chain_file': False,
+          'TLSContext TLSContextTest-same-context-error is missing private_key_file': False,
+          'TLSContext: TLSContextTest-rcf-error; configured conflicting redirect_from port: 8081': False
+        }
 
-        assert cert_err[1] == 'TLSContext TLSContextTest-same-context-error is missing cert_chain_file'
-        assert pkey_err[1] == 'TLSContext TLSContextTest-same-context-error is missing private_key_file'
-        assert rcf_err[1] == 'TLSContext: TLSContextTest-rcf-error; configured conflicting redirect_from port: 8081'
+        unknown_errors: List[str] = []
+        for err in errors:
+            text = err[1]
+
+            if text in errors_that_should_be_found:
+                errors_that_should_be_found[text] = True
+            else:
+                unknown_errors.append(f"Unexpected error {text}")
+
+        for err, found in errors_that_should_be_found.items():
+            if not found:
+                unknown_errors.append(f"Missing error {text}")
+
+        assert not unknown_errors, f"Problems with errors: {unknown_errors}"
 
         idx = 0
 
