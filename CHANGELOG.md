@@ -6,6 +6,10 @@ Behavior:
 
  * `apictl traffic initialize` no longer waits for the traffic-proxy to become ready before exiting.
 
+Other:
+
+ * Update Ambassador Core from Ambassador 0.83.0 to 0.83.1-ea10 (a pre-release of 0.84.0).
+
 ## 0.9.0 (2019-10-08)
 
 Configuration

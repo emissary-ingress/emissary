@@ -44,6 +44,8 @@ node_modules/
 # Remove the tail of this list when the commit making the change gets
 # far enough in to the past.
 
+# 2019-10-18
+/cmd/certified-envoy/envoy.go
 # 2019-10-10
 /tests/cluster/oauth-e2e/*.png
 /tests/cluster/oauth-e2e/node_modules/

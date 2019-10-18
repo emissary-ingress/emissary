@@ -8,9 +8,9 @@ import (
 	"google.golang.org/grpc"
 	rpc "istio.io/gogo-genproto/googleapis/google/rpc"
 
-	envoyCoreV2 "github.com/datawire/ambassador/go/apis/envoy/api/v2/core"
-	envoyAuthV2 "github.com/datawire/ambassador/go/apis/envoy/service/auth/v2"
-	envoyAuthV2alpha "github.com/datawire/ambassador/go/apis/envoy/service/auth/v2alpha"
+	envoyCoreV2 "github.com/datawire/ambassador/pkg/api/envoy/api/v2/core"
+	envoyAuthV2 "github.com/datawire/ambassador/pkg/api/envoy/service/auth/v2"
+	envoyAuthV2alpha "github.com/datawire/ambassador/pkg/api/envoy/service/auth/v2alpha"
 )
 
 func main() {

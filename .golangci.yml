@@ -28,8 +28,9 @@ linters-settings:
     packages:
       - errors # use "github.com/pkg/errors"
       - golang.org/x/net/context # use "context"
-      - github.com/datawire/kat-backend/xds # use "github.com/datawire/ambassador/go"
-      - github.com/lyft/ratelimit/proto # use "github.com/datawire/ambassador/go"
+      - github.com/datawire/ambassador/go # use "github.com/datawire/ambassador/pkg
+      - github.com/datawire/kat-backend/xds # use "github.com/datawire/ambassador/pkg/api/envoy
+      - github.com/lyft/ratelimit/proto # use "github.com/datawire/ambassador/pkg/api/envoy
       #- github.com/russross/blackfriday # use github.com/russross/blackfriday/v2 # can't turn off prefix-matching
       - gopkg.in/russross/blackfriday.v2 # use github.com/russross/blackfriday/v2
   goconst:

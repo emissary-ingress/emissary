@@ -49,8 +49,8 @@ import (
 	k8sClientCoreV1 "k8s.io/client-go/kubernetes/typed/core/v1"
 
 	// gRPC service APIs
-	rlsV1api "github.com/datawire/ambassador/go/apis/envoy/service/ratelimit/v1"
-	rlsV2api "github.com/datawire/ambassador/go/apis/envoy/service/ratelimit/v2"
+	rlsV1api "github.com/datawire/ambassador/pkg/api/envoy/service/ratelimit/v1"
+	rlsV2api "github.com/datawire/ambassador/pkg/api/envoy/service/ratelimit/v2"
 	healthapi "google.golang.org/grpc/health/grpc_health_v1"
 
 	"github.com/datawire/apro/lib/filterapi"
