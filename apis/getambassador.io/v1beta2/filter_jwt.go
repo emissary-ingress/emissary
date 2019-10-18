@@ -52,12 +52,20 @@ type FilterJWT struct {
 	InjectRequestHeaders []JWTHeaderField `json:"injectRequestHeaders"`
 
 	InsecureTLS bool `json:"insecureTLS"`
+
+	ErrorResponse ErrorResponse `json:"errorResponse"`
 }
 
 type JWTHeaderField struct {
 	Name     string             `json:"name"`
 	Value    string             `json:"value"`
 	Template *template.Template `json:"-"`
+}
+
+type ErrorResponse struct {
+	RawBodyTemplate string             `json:"bodyTemplate"`
+	ContentType     string             `json:"contentType"`
+	BodyTemplate    *template.Template `json:"-"`
 }
 
 func (m *FilterJWT) Validate() error {
@@ -80,6 +88,18 @@ func (m *FilterJWT) Validate() error {
 		hf := &(m.InjectRequestHeaders[i])
 		if err := hf.Validate(); err != nil {
 			return err
+		}
+	}
+
+	if m.ErrorResponse.RawBodyTemplate != "" {
+		parsedTemplate, err := template.New("Error template").Parse(m.ErrorResponse.RawBodyTemplate)
+		if err != nil {
+			return errors.Wrapf(err, "parsing template for custom error template")
+		}
+
+		m.ErrorResponse.BodyTemplate = parsedTemplate
+		if m.ErrorResponse.ContentType == "" {
+			m.ErrorResponse.ContentType = "application/json"
 		}
 	}
 

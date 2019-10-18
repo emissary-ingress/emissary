@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/dgrijalva/jwt-go"
 	"github.com/pkg/errors"
 
 	"github.com/datawire/liboauth2/resourceserver/rfc6750"
@@ -41,7 +41,11 @@ func (h *JWTFilter) Filter(ctx context.Context, r *filterapi.FilterRequest) (fil
 
 	token, err := validateToken(tokenString, h.Spec, httpClient)
 	if err != nil {
-		return middleware.NewErrorResponse(ctx, http.StatusUnauthorized, err, nil), nil
+		if h.Spec.ErrorResponse.BodyTemplate != nil {
+			return middleware.TemplatedErrorResponse(ctx, http.StatusUnauthorized, err, *h.Spec.ErrorResponse.BodyTemplate, h.Spec.ErrorResponse.ContentType), nil
+		} else {
+			return middleware.NewErrorResponse(ctx, http.StatusUnauthorized, err, nil), nil
+		}
 	}
 
 	ret := &filterapi.HTTPRequestModification{}
