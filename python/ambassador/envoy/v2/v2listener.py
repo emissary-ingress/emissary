@@ -607,7 +607,9 @@ class V2Listener(dict):
             base_http_config["tracing"] = {
                 "operation_name": "egress",
                 "random_sampling": {
-                    "value": config.ir.tracing.sampling_percent
+                    # https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_conn_man/runtime#runtime
+                    # the value is actually an integer in the range 0-10000
+                    "value": int(config.ir.tracing.sampling_percent * 100)
                 }
             }
 

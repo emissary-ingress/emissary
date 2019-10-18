@@ -187,7 +187,7 @@ kind: TracingService
 name: tracing-sampling
 service: zipkin-sampling:9411
 driver: zipkin
-sampling_percent: 0
+sampling_percent: 0.001
 """)
 
     def requirements(self):
@@ -274,6 +274,7 @@ service: zipkin-64:9411
 driver: zipkin
 config:
   trace_id_128bit: false
+sampling_percent: 100
 """)
 
     def requirements(self):

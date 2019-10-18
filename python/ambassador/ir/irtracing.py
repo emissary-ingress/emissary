@@ -81,7 +81,7 @@ class IRTracing (IRResource):
         # XXX host_rewrite actually isn't in the schema right now.
         self.host_rewrite = config.get('host_rewrite', None)
 
-        self.sampling_percent = config.get('sampling_percent', 100)
+        self.sampling_percent = config.get('sampling_percent', 100.0)
 
         # Remember that the config references us.
         self.referenced_by(config)
