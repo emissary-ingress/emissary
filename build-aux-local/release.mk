@@ -30,9 +30,9 @@ release-preflight:
 		printf "'make release' can only be run for commit tagged with 'vX.Y.Z'!\n"; \
 		exit 1; \
 	fi
-ambassador-release.docker: release-preflight $(WRITE_IFCHANGED)
+ambassador-release.docker.stamp: release-preflight
 	docker pull $(RELEASE_DOCKER_REPO):$(RELEASE_VERSION)-rc-latest
-	docker image inspect $(RELEASE_DOCKER_REPO):$(RELEASE_VERSION)-rc-latest --format='{{.Id}}' | $(WRITE_IFCHANGED) $@
+	docker image inspect $(RELEASE_DOCKER_REPO):$(RELEASE_VERSION)-rc-latest --format='{{.Id}}' > $@
 release: ambassador-release.docker.push.release
 release: SCOUT_APP_KEY=app.json
 release: STABLE_TXT_KEY=stable.txt
