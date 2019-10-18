@@ -65,6 +65,10 @@ $(addsuffix .docker.stamp,$(images.builder)): %.docker.stamp: snapshot.docker ba
 	@$(DBUILD) $(BUILDER_HOME) --iidfile $@ --build-arg artifacts=$$(cat snapshot.docker) --build-arg envoy=$$(cat base-envoy.docker) --target $*
 %.docker: %.docker.stamp $(COPY_IFCHANGED)
 	@$(COPY_IFCHANGED) $< $@
+# As a special case, don't enforce the "can't change in CI" rule for
+# snapshot.docker, since `docker commit` will bump timestamps.
+snapshot.docker: %.docker: %.docker.stamp $(COPY_IFCHANGED)
+	@CI= $(COPY_IFCHANGED) $< $@
 
 define REGISTRY_ERR
 $(shell printf '$(RED)ERROR: please set the DEV_REGISTRY make/env variable to the docker registry\n       you would like to use for development$(END)\n' >&2)
