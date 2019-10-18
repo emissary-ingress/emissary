@@ -237,7 +237,7 @@ spec:
             self.create_qotm_mapping(namespace=namespace)
 
         # Let's give Ambassador some time to register the changes
-        time.sleep(30)
+        time.sleep(60)
 
         # Assert 200 OK at /qotm/ endpoint
         connection = request.urlopen(qotm_url, timeout=5)
