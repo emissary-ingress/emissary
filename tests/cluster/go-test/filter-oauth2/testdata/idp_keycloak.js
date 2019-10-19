@@ -1,6 +1,6 @@
 module.exports.testcases = {
 	"Keycloak": {
-		resource: "https://ambassador.standalone.svc.cluster.local/keycloak/httpbin/headers",
+		resource: "https://ambassador.default.svc.cluster.local/keycloak/httpbin/headers",
 		username: "developer",
 		password: "developer",
 	},
