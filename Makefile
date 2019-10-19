@@ -319,7 +319,7 @@ docker/%/kubectl:
 %/03-auth0-secret.yaml: %/namespace.txt $(K8S_ENVS)
 	$(if $(K8S_ENVS),set -a && $(foreach k8s_env,$(abspath $(K8S_ENVS)), . $(k8s_env) && ))kubectl --namespace="$$(cat $*/namespace.txt)" create secret generic --dry-run --output=yaml auth0-secret --from-literal=oauth2-client-secret="$$IDP_AUTH0_CLIENT_SECRET" > $@
 
-PRELOAD_IMAGES = $(sort $(shell awk '($$1 == "FROM") && ($$2 !~ /^(sha256:|\$$)/) { print $$2}' docker/*/Dockerfile ambassador/Dockerfile*))
+PRELOAD_IMAGES = $(sort $(shell awk '($$1 == "FROM") && ($$2 !~ /^(sha256:|\$$)/) { print $$2}' docker/*/Dockerfile))
 $(addsuffix .docker.push.cluster,$(image.all)): build-aux/docker-registry.preload
 build-aux/docker-registry.preload: build-aux/docker-registry.deploy
 build-aux/docker-registry.preload: preload.yaml $(KUBEAPPLY) $(KUBECONFIG)
