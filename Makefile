@@ -83,7 +83,7 @@ push-docs: ## Publish ./docs to https://github.com/datawire/ambassador-docs
 #
 # A/OSS
 
-AMBASSADOR_COMMIT = 20a13dc22ed3aa9e28386f61e6fa272863025f9d
+AMBASSADOR_COMMIT = 64e109bc404ad434188f3993d4c3b5d9a4f89004
 
 # Git clone
 ambassador.stamp: %.stamp: $(var.)AMBASSADOR_COMMIT $(if $(call str.eq,$(AMBASSADOR_COMMIT),-),FORCE)
@@ -106,15 +106,9 @@ ambassador.stamp: %.stamp: $(var.)AMBASSADOR_COMMIT $(if $(call str.eq,$(AMBASSA
 	}
 	touch $@
 
-# Defer to `ambassador/Makefile` for several targets:
-#
-# The "list: pattern: dependencies" syntax is new to some people: it
-# is mostly just a pattern rule "ambassador/%: ambassador", but it
-# only applies to the files listed in AMBASSADOR_TARGETS, instead of
-# all files starting with "ambassador/".
-AMBASSADOR_TARGETS += ambassador.docker
-$(addprefix ambassador/,$(AMBASSADOR_TARGETS)): ambassador/%: ambassador.stamp
-	DEV_REGISTRY=$(docker.LOCALHOST):31000 $(MAKE) -C ambassador $*
+# Call in to `ambassador/Makefile` for several targets.
+%/ambassador.docker %/snapshot.docker: %/Makefile %.stamp %.Makefile vendor FORCE
+	DEV_REGISTRY=$(docker.LOCALHOST):31000 $(MAKE) -C $* -f ../$*.Makefile ambassador.docker
 
 # Override the release name of `ambassador/ambassador.docker` from
 # `ambassador` to `amb-core`.
@@ -282,6 +276,9 @@ docker/model-cluster-uaa.docker.stamp: %.docker.stamp: %/Dockerfile
 	        docker build --iidfile=$@ $*; \
 	    fi; \
 	}
+
+docker/aes.docker.stamp: %.docker.stamp: %/Dockerfile ambassador/ambassador.docker
+	docker build --iidfile=$@ --build-arg=aoss=$$(cat ambassador/ambassador.docker) --build-arg=artifacts=$$(cat ambassador/snapshot.docker) $*
 
 docker/app-sidecar.docker.stamp: docker/app-sidecar/ambex
 docker/app-sidecar/ambex:
