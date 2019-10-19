@@ -5,7 +5,6 @@
 # but:
 #  - split in to sections, for readability
 #  - modified to work with Kubernaut
-#  - in the "standalone" namespace
 #  - with the "telepresence-proxy" Service+Deployment added
 
 ### RBAC and CRDs moved to 02-ambassador-pro-rbac-and-crds.yaml
@@ -17,7 +16,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: ambassador-pro-redis
-  namespace: standalone
+  namespace: default
 spec:
   type: ClusterIP
   ports:
@@ -30,7 +29,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: ambassador-pro-redis
-  namespace: standalone
+  namespace: default
 spec:
   replicas: 1
   selector:
@@ -54,7 +53,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: ambassador-pro
-  namespace: standalone
+  namespace: default
   annotations:
     getambassador.io/config: |
       ---
@@ -121,7 +120,7 @@ apiVersion: getambassador.io/v1beta2
 kind: FilterPolicy
 metadata:
   name: apro-internal-access-control
-  namespace: standalone
+  namespace: default
 spec:
   rules:
     - host: "*"
@@ -133,7 +132,7 @@ apiVersion: getambassador.io/v1beta2
 kind: Filter
 metadata:
   name: apro-internal-access-control
-  namespace: standalone
+  namespace: default
 spec:
   Internal: {}
 ---
@@ -141,7 +140,7 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   name: ambassador-pro
-  namespace: standalone
+  namespace: default
 spec:
   replicas: 1
   selector:
@@ -189,14 +188,14 @@ spec:
           value: {{env "AMBASSADOR_LICENSE_KEY"}}
         # DevPortal settings
         - name: AMBASSADOR_URL
-          value: "https://ambassador.standalone.svc.cluster.local"
+          value: "https://ambassador.default.svc.cluster.local"
         # Change this if you want different poll rate for getting OpenAPI docs:
         - name: POLL_EVERY_SECS
           value: "60"
         - name: AMBASSADOR_INTERNAL_URL
-          value: "https://ambassador.standalone.svc.cluster.local:443"
+          value: "https://ambassador.default.svc.cluster.local:443"
         - name: AMBASSADOR_ADMIN_URL
-          value: "http://ambassador-admin.standalone:8877"
+          value: "http://ambassador-admin.default:8877"
 
 
 ######################################################################
@@ -209,7 +208,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: telepresence-proxy
-  namespace: standalone
+  namespace: default
 spec:
   type: ClusterIP
   clusterIP: None
@@ -227,7 +226,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: telepresence-proxy
-  namespace: standalone
+  namespace: default
   labels:
     app: telepresence-proxy
 spec:

@@ -1,1 +1,1 @@
-standalone
+default

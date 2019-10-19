@@ -4,7 +4,7 @@ apiVersion: getambassador.io/v1beta2
 kind: Filter
 metadata:
   name: keycloak
-  namespace: standalone
+  namespace: default
 spec:
   OAuth2:
     authorizationURL: {{env "IDP_KEYCLOAK_PROVIDER_URL"}}
@@ -17,7 +17,7 @@ apiVersion: getambassador.io/v1
 kind: Mapping
 metadata:
   name: filter-oauth2-keycloak-mapping
-  namespace: standalone
+  namespace: default
 spec:
   prefix: /keycloak/httpbin/
   rewrite: /
@@ -29,7 +29,7 @@ apiVersion: getambassador.io/v1beta2
 kind: FilterPolicy
 metadata:
   name: filter-oauth2-keycloak-policy
-  namespace: standalone
+  namespace: default
 spec:
   rules:
     - host: "*"

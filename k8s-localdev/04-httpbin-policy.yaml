@@ -3,7 +3,7 @@ apiVersion: getambassador.io/v1beta2
 kind: FilterPolicy
 metadata:
   name: httpbin-policy
-  namespace: localdev
+  namespace: default
 spec:
   # everything defaults to private; you can create rules to make stuff
   # public, and you can create rules to require additional scopes

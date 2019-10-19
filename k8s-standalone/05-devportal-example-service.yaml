@@ -5,7 +5,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: openapi
-  namespace: standalone
+  namespace: default
   annotations:
     getambassador.io/config: |
       ---
@@ -27,7 +27,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: openapi
-  namespace: standalone
+  namespace: default
 spec:
   replicas: 1
   strategy:

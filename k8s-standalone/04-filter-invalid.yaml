@@ -3,7 +3,7 @@ apiVersion: getambassador.io/v1beta2
 kind: Filter
 metadata:
   name: invalid-filter
-  namespace: standalone
+  namespace: default
 spec:
   JWT:
     jwksURI: not-a-uri
@@ -12,7 +12,7 @@ apiVersion: getambassador.io/v1
 kind: Mapping
 metadata:
   name: invalid-mapping
-  namespace: standalone
+  namespace: default
 spec:
   prefix: /invalid/
   service: httpbin.org:80
@@ -23,7 +23,7 @@ apiVersion: getambassador.io/v1beta2
 kind: FilterPolicy
 metadata:
   name: invalid-policy
-  namespace: standalone
+  namespace: default
 spec:
   rules:
     - host: "*"

@@ -6,7 +6,6 @@
 # but:
 #  - split in to sections, for readability
 #  - modified to work with Kubernaut
-#  - in the "standalone" namespace
 #  - with TLS enabled
 
 ######################################################################
@@ -18,7 +17,7 @@
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRole
 metadata:
-  name: ambassador-standalone
+  name: ambassador
 rules:
 - apiGroups: [""]
   resources:
@@ -40,20 +39,20 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: ambassador
-  namespace: standalone
+  namespace: default
 ---
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRoleBinding
 metadata:
-  name: ambassador-standalone
+  name: ambassador
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: ambassador-standalone
+  name: ambassador
 subjects:
 - kind: ServiceAccount
   name: ambassador
-  namespace: standalone
+  namespace: default
 
 
 ######################################################################
@@ -253,7 +252,7 @@ metadata:
   labels:
     service: ambassador-admin
   name: ambassador-admin
-  namespace: standalone
+  namespace: default
 spec:
   type: NodePort
   ports:
@@ -267,7 +266,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: ambassador
-  namespace: standalone
+  namespace: default
   annotations:
     getambassador.io/config: |
       ---
@@ -296,7 +295,7 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   name: ambassador
-  namespace: standalone
+  namespace: default
 spec:
   replicas: 1 # XXX: Kubernaut
   template:
@@ -329,6 +328,17 @@ spec:
         - name: SCOUT_DISABLE
           value: "1"
         - name: AMBASSADOR_LICENSE_KEY
+          ## Unlike all the rest of the YAML, this uses a v0 license
+          ## key, to make sure that they continue to work for newer
+          ## releases.  If that breaks, `make deploy` will time out,
+          ## because this pod will never pass its readiness checks.
+          ## The `tests/cluster/licensekeys/` e2e tests mostly do this,
+          ## but they run directly on compiled binaries, not the Docker
+          ## images supposedly containing those binaries.  We had an
+          ## issue where the Envoy binary was too aggressively cached,
+          ## and even though we compiled a new Envoy binary, the
+          ## amb-core image contained the old cached binary.
+          #value: {{env "AMBASSADOR_LICENSE_KEY_V0"}}
           value: {{env "AMBASSADOR_LICENSE_KEY"}}
         ports:
           - name: http

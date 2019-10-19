@@ -5,112 +5,9 @@
 # but:
 #  - split in to sections, for readability
 #  - modified to work with Kubernaut
-#  - in the "localdev" namespace
 #  - with the "telepresence-proxy" Service+Deployment added
 
-######################################################################
-# Create a ClusterRole+ClusterRoleBinding+ServiceAccount for
-# ambassador-pro that has access to the CRDs that we will create for
-# it below
-#
-# NB: ClusterRoles and ClusterRoleBindings are not namespaced
----
-apiVersion: rbac.authorization.k8s.io/v1beta1
-kind: ClusterRole
-metadata:
-  name: ambassador-pro-localdev
-rules:
-- apiGroups: ["getambassador.io"]
-  resources:
-  - filters
-  - filterpolicies
-  - ratelimits
-  verbs: ["get", "list", "watch"]
-- apiGroups: [""]
-  resources:
-  - secrets
-  verbs: ["get", "list", "watch"]
----
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: ambassador-pro
-  namespace: localdev
----
-apiVersion: rbac.authorization.k8s.io/v1beta1
-kind: ClusterRoleBinding
-metadata:
-  name: ambassador-pro-localdev
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: ambassador-pro-localdev
-subjects:
-- kind: ServiceAccount
-  name: ambassador-pro
-  namespace: localdev
-
-
-######################################################################
-# Create the CRDs used to configure ambassador-pro
----
-apiVersion: apiextensions.k8s.io/v1beta1
-kind: CustomResourceDefinition
-metadata:
-  name: filterpolicies.getambassador.io
-spec:
-  group: getambassador.io
-  version: v1beta2
-  versions:
-  - name: v1beta2
-    served: true
-    storage: true
-  scope: Namespaced
-  names:
-    plural: filterpolicies
-    singular: filterpolicy
-    kind: FilterPolicy
-    shortNames:
-    - fp
----
-apiVersion: apiextensions.k8s.io/v1beta1
-kind: CustomResourceDefinition
-metadata:
-  name: filters.getambassador.io
-spec:
-  group: getambassador.io
-  version: v1beta2
-  versions:
-  - name: v1beta2
-    served: true
-    storage: true
-  scope: Namespaced
-  names:
-    plural: filters
-    singular: filter
-    kind: Filter
-    shortNames:
-    - fil
----
-apiVersion: apiextensions.k8s.io/v1beta1
-kind: CustomResourceDefinition
-metadata:
-  name: ratelimits.getambassador.io
-spec:
-  group: getambassador.io
-  version: v1beta2
-  versions:
-    - name: v1beta2
-      served: true
-      storage: true
-  scope: Namespaced
-  names:
-    plural: ratelimits
-    singular: ratelimit
-    kind: RateLimit
-    shortNames:
-    - rl
-
+### RBAC and CRDs moved to 02-ambassador-pro-rbac-and-crds.yaml
 
 ######################################################################
 # Redis for Ambassador Pro
@@ -119,7 +16,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: ambassador-pro-redis
-  namespace: localdev
+  namespace: default
 spec:
   type: ClusterIP
   ports:
@@ -132,7 +29,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: ambassador-pro-redis
-  namespace: localdev
+  namespace: default
 spec:
   replicas: 1
   selector:
@@ -156,7 +53,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: ambassador-pro
-  namespace: localdev
+  namespace: default
   annotations:
     getambassador.io/config: |
       ---
@@ -174,6 +71,36 @@ metadata:
       auth_service: "ambassador-pro:80"
       allow_request_body: false # setting this to 'true' allows Plugin and External filters to access the body, but has performance overhead
       ---
+      apiVersion: ambassador/v1
+      kind: Mapping
+      name: ambassador-pro
+      prefix: /.ambassador/
+      rewrite: ""
+      service: "ambassador-pro:80"
+      ---
+      # Dev Portal
+      apiVersion: ambassador/v1
+      kind: Mapping
+      name: ambassador-pro-devportal
+      prefix: /docs/
+      rewrite: ""
+      add_response_headers:
+        x-test-proto: "%PROTOCOL%"
+        x-test-ip: "%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%"
+        x-test-static: This is apro standalone mapping
+      service: "ambassador-pro:80"
+      ---
+      apiVersion: ambassador/v1
+      kind: Mapping
+      name: ambassador-pro-devportal-api
+      prefix: /openapi/
+      rewrite: ""
+      add_response_headers:
+        x-test-proto: "%PROTOCOL%"
+        x-test-ip: "%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%"
+        x-test-static: This is apro standalone api mapping
+      service: "ambassador-pro:80"
+      ---
       # This mapping needs to exist, but is never actually followed.
       apiVersion: ambassador/v1
       kind: Mapping
@@ -189,11 +116,31 @@ spec:
     port: 80
     targetPort: http
 ---
+apiVersion: getambassador.io/v1beta2
+kind: FilterPolicy
+metadata:
+  name: apro-internal-access-control
+  namespace: default
+spec:
+  rules:
+    - host: "*"
+      path: "*/.ambassador-internal/*"
+      filters:
+        - name: apro-internal-access-control
+---
+apiVersion: getambassador.io/v1beta2
+kind: Filter
+metadata:
+  name: apro-internal-access-control
+  namespace: default
+spec:
+  Internal: {}
+---
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   name: ambassador-pro
-  namespace: localdev
+  namespace: default
 spec:
   replicas: 1
   selector:
@@ -205,13 +152,28 @@ spec:
         service: ambassador-pro
     spec:
       serviceAccountName: ambassador-pro
+      terminationGracePeriodSeconds: 0
       containers:
       - name: ambassador-pro
-        image: datawire/telepresence-k8s:0.97
+        image: {{env "AMB_SIDECAR_IMAGE"}}
+        livenessProbe:
+          httpGet:
+            path: /_/sys/healthz
+            port: 8500
+          initialDelaySeconds: 30
+          periodSeconds: 5
+        readinessProbe:
+          httpGet:
+            path: /_/sys/readyz
+            port: 8500
+          initialDelaySeconds: 30
+          periodSeconds: 5
         ports:
         - name: http
           containerPort: 8500
         env:
+        - name: APP_LOG_LEVEL
+          value: DEBUG
         - name: REDIS_SOCKET_TYPE
           value: tcp
         - name: REDIS_URL
@@ -224,19 +186,29 @@ spec:
           value: "true"
         - name: AMBASSADOR_LICENSE_KEY
           value: {{env "AMBASSADOR_LICENSE_KEY"}}
+        # DevPortal settings
+        - name: AMBASSADOR_URL
+          value: "https://ambassador.default.svc.cluster.local"
+        # Change this if you want different poll rate for getting OpenAPI docs:
+        - name: POLL_EVERY_SECS
+          value: "60"
+        - name: AMBASSADOR_INTERNAL_URL
+          value: "https://ambassador.default.svc.cluster.local:443"
+        - name: AMBASSADOR_ADMIN_URL
+          value: "http://ambassador-admin.default:8877"
 
 
 ######################################################################
 # Create the traffic-proxy Service+Deployment
 #
-# Does this *need* to be a localdev service, or can it be part of
+# Does this *need* to be a standalone service, or can it be part of
 # the main ambassador-pro deployment?  IDK.  --lukeshu
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: telepresence-proxy
-  namespace: localdev
+  namespace: default
 spec:
   type: ClusterIP
   clusterIP: None
@@ -254,7 +226,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: telepresence-proxy
-  namespace: localdev
+  namespace: default
   labels:
     app: telepresence-proxy
 spec:
