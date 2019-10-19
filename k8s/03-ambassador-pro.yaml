@@ -6,14 +6,14 @@
 apiVersion: getambassador.io/v1
 kind: RateLimitService
 metadata:
-  name: ambassador-pro
+  name: ambassador-pro-ratelimit
 spec:
   service: "127.0.0.1:8500"
 ---
 apiVersion: getambassador.io/v1
 kind: AuthService
 metadata:
-  name: authentication
+  name: ambassador-pro-auth
 spec:
   proto: grpc
   status_on_error:
@@ -30,7 +30,7 @@ spec:
   rewrite: ""
   service: "127.0.0.1:8500"
 ---
-# Dev Portal
+# DevPortal
 apiVersion: getambassador.io/v1
 kind: Mapping
 metadata:
@@ -60,14 +60,13 @@ spec:
 apiVersion: getambassador.io/v1beta2
 kind: FilterPolicy
 metadata:
-  name: apro-internal-access-control
-  namespace: default
+  name: ambassador-pro-internal-access-control
 spec:
   rules:
     - host: "*"
       path: "*/.ambassador-internal/*"
       filters:
-        - name: apro-internal-access-control
+        - name: ambassador-pro-internal-access-control
 ---
 apiVersion: getambassador.io/v1beta2
 kind: Filter
@@ -87,35 +86,7 @@ spec:
 
 ######################################################################
 # Create the 'ambassador', 'ambassador-admin', and 'ambassador-pro'
-# Services, and the Deployment that backs them all.
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: ambassador-pro
-spec:
-  type: ClusterIP
-  selector:
-    service: ambassador-pro
-  ports:
-  - name: http
-    port: 80
-    targetPort: pro-http
----
-apiVersion: v1
-kind: Service
-metadata:
-  labels:
-    service: ambassador-admin
-  name: ambassador-admin
-spec:
-  type: NodePort
-  ports:
-  - name: ambassador-admin
-    port: 8877
-    targetPort: admin
-  selector:
-    service: ambassador-pro
+# Services.
 ---
 apiVersion: v1
 kind: Service
@@ -132,21 +103,58 @@ spec:
     port: 443
     targetPort: https
   selector:
-    service: ambassador-pro
+    service: ambassador
 ---
-apiVersion: extensions/v1beta1
-kind: Deployment
+apiVersion: v1
+kind: Service
 metadata:
+  labels:
+    service: ambassador-admin
+  name: ambassador-admin
+spec:
+  type: NodePort
+  ports:
+  - name: ambassador-admin
+    port: 8877
+    targetPort: admin
+  selector:
+    service: ambassador
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    service: ambassador-pro
   name: ambassador-pro
 spec:
+  type: ClusterIP
+  ports:
+  - name: http
+    port: 80
+    targetPort: pro-http
+  selector:
+    service: ambassador
+
+######################################################################
+# Create the Deployment backing the 'ambassador', 'ambassador-admin',
+# and 'ambassador-pro' Services.
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ambassador
+spec:
   replicas: 1 # XXX: Kubernaut
+  selector:
+    matchLabels:
+      service: ambassador
   template:
     metadata:
       annotations:
         sidecar.istio.io/inject: "false"
         "consul.hashicorp.com/connect-inject": "false"
       labels:
-        service: ambassador-pro
+        service: ambassador
     spec:
       serviceAccountName: ambassador-pro
       terminationGracePeriodSeconds: 0
@@ -184,12 +192,12 @@ spec:
           #value: {{env "AMBASSADOR_LICENSE_KEY_V0"}}
           value: {{env "AMBASSADOR_LICENSE_KEY"}}
         ports:
-          - name: http
-            containerPort: 8080
-          - name: https
-            containerPort: 8443
-          - name: admin
-            containerPort: 8877
+        - name: http
+          containerPort: 8080
+        - name: https
+          containerPort: 8443
+        - name: admin
+          containerPort: 8877
         livenessProbe:
           httpGet:
             path: /ambassador/v0/check_alive
