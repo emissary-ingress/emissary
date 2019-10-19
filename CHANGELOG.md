@@ -107,6 +107,7 @@ Format:
 
 - Correctly update loadbalancer status of Ingress resources
 - Don't enable diagd debugging in the test suite unless explicitly requested (thanks to [Jonathan Suever](https://github.com/suever)!)
+- Switch to an Envoy release build
 
 ### Developer Notes:
 
