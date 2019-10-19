@@ -1,0 +1,40 @@
+# @TEMPLATE@
+---
+apiVersion: getambassador.io/v1beta2
+kind: Filter
+metadata:
+  name: azure
+  namespace: default
+spec:
+  OAuth2:
+    authorizationURL: {{env "IDP_AZURE_PROVIDER_URL"}}
+    clientURL: {{env "AUTH_TENANT_URL"}}
+    clientID: {{env "IDP_AZURE_CLIENT_ID"}}
+    secret: {{env "IDP_AZURE_CLIENT_SECRET"}}
+---
+apiVersion: getambassador.io/v1
+kind: Mapping
+metadata:
+  name: filter-oauth2-azure-mapping
+  namespace: default
+spec:
+  prefix: /azure/httpbin/
+  rewrite: /
+  service: httpbin.org:80
+  host_rewrite: httpbin.org
+  timeout_ms: 5000
+---
+apiVersion: getambassador.io/v1beta2
+kind: FilterPolicy
+metadata:
+  name: filter-oauth2-azure-policy
+  namespace: default
+spec:
+  rules:
+    - host: "*"
+      path: /azure/httpbin/**
+      filters:
+        - name: azure
+          arguments:
+            scopes:
+              - offline_access # request refresh tokens

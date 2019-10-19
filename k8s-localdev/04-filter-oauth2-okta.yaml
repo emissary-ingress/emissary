@@ -1,0 +1,38 @@
+# @TEMPLATE@
+---
+apiVersion: getambassador.io/v1beta2
+kind: Filter
+metadata:
+  name: okta
+  namespace: default
+spec:
+  OAuth2:
+    authorizationURL: {{env "IDP_OKTA_PROVIDER_URL"}}
+    clientURL: {{env "AUTH_TENANT_URL"}}
+    audience: {{env "IDP_OKTA_AUDIENCE"}}
+    clientID: {{env "IDP_OKTA_CLIENT_ID"}}
+    secret: {{env "IDP_OKTA_CLIENT_SECRET"}}
+---
+apiVersion: getambassador.io/v1
+kind: Mapping
+metadata:
+  name: filter-oauth2-okta-mapping
+  namespace: default
+spec:
+  prefix: /okta/httpbin/
+  rewrite: /
+  service: httpbin.org:80
+  host_rewrite: httpbin.org
+  timeout_ms: 5000
+---
+apiVersion: getambassador.io/v1beta2
+kind: FilterPolicy
+metadata:
+  name: filter-oauth2-okta-policy
+  namespace: default
+spec:
+  rules:
+    - host: "*"
+      path: /okta/httpbin/**
+      filters:
+        - name: okta

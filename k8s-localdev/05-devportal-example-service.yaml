@@ -1,0 +1,52 @@
+# @TEMPLATE@
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: openapi
+  namespace: default
+  annotations:
+    getambassador.io/config: |
+      ---
+      apiVersion: ambassador/v1
+      kind:  Mapping
+      name:  openapi_mapping
+      prefix: /openapi/
+      service: openapi
+spec:
+  selector:
+    app: openapi
+  ports:
+    - port: 80
+      name: http-openapi
+      targetPort: http-api
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: openapi
+  namespace: default
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app: openapi
+  template:
+    metadata:
+      annotations:
+        sidecar.istio.io/inject: "false"
+        "consul.hashicorp.com/connect-inject": "false"
+      labels:
+        app: openapi
+    spec:
+      containers:
+        - name: openapi
+          image: {{env "MODEL_CLUSTER_OPENAPI_SERVICE"}}
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http-api
+              containerPort: 5000
