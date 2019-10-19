@@ -159,38 +159,8 @@ spec:
       serviceAccountName: ambassador-pro
       terminationGracePeriodSeconds: 0
       containers:
-      - name: ambassador
-        image: {{env "AMBASSADOR_IMAGE"}}
-# XXX: Kubernaut
-#        resources:
-#          limits:
-#            cpu: 1
-#            memory: 400Mi
-#          requests:
-#            cpu: 200m
-#            memory: 100Mi
-        env:
-        - name: AMBASSADOR_NAMESPACE
-          valueFrom:
-            fieldRef:
-              fieldPath: metadata.namespace
-        - name: AMBASSADOR_SINGLE_NAMESPACE
-          value: "true"
-        - name: SCOUT_DISABLE
-          value: "1"
-        - name: AMBASSADOR_LICENSE_KEY
-          ## Unlike all the rest of the YAML, this uses a v0 license
-          ## key, to make sure that they continue to work for newer
-          ## releases.  If that breaks, `make deploy` will time out,
-          ## because this pod will never pass its readiness checks.
-          ## The `tests/cluster/licensekeys/` e2e tests mostly do this,
-          ## but they run directly on compiled binaries, not the Docker
-          ## images supposedly containing those binaries.  We had an
-          ## issue where the Envoy binary was too aggressively cached,
-          ## and even though we compiled a new Envoy binary, the
-          ## amb-core image contained the old cached binary.
-          #value: {{env "AMBASSADOR_LICENSE_KEY_V0"}}
-          value: {{env "AMBASSADOR_LICENSE_KEY"}}
+      - name: aes
+        image: {{env "AES_IMAGE"}}
         ports:
         - name: http
           containerPort: 8080
@@ -210,42 +180,51 @@ spec:
             port: 8877
           initialDelaySeconds: 30
           periodSeconds: 3
-      - name: ambassador-pro
-        image: {{env "AMB_SIDECAR_IMAGE"}}
-        ports:
-        - name: pro-http
-          containerPort: 8500
-        livenessProbe:
-          httpGet:
-            path: /_/sys/healthz
-            port: 8500
-          initialDelaySeconds: 30
-          periodSeconds: 5
-        readinessProbe:
-          httpGet:
-            path: /_/sys/readyz
-            port: 8500
-          initialDelaySeconds: 30
-          periodSeconds: 5
+        #livenessProbe:
+        #  httpGet:
+        #    path: /_/sys/healthz
+        #    port: 8500
+        #  initialDelaySeconds: 30
+        #  periodSeconds: 5
+        #readinessProbe:
+        #  httpGet:
+        #    path: /_/sys/readyz
+        #    port: 8500
+        #  initialDelaySeconds: 30
+        #  periodSeconds: 5
         env:
-        - name: APP_LOG_LEVEL
-          value: DEBUG
-        - name: REDIS_SOCKET_TYPE
-          value: tcp
-        - name: REDIS_URL
-          value: ambassador-pro-redis:6379
+        # A/OSS
         - name: AMBASSADOR_NAMESPACE
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
         - name: AMBASSADOR_SINGLE_NAMESPACE
           value: "true"
+        - name: SCOUT_DISABLE
+          value: "1"
+        # A/Pro
         - name: AMBASSADOR_LICENSE_KEY
+          ## Unlike all the rest of the YAML, this uses a v0 license
+          ## key, to make sure that they continue to work for newer
+          ## releases.  If that breaks, `make deploy` will time out,
+          ## because this pod will never pass its readiness checks.
+          ## The `tests/cluster/licensekeys/` e2e tests mostly do this,
+          ## but they run directly on compiled binaries, not the Docker
+          ## images supposedly containing those binaries.  We had an
+          ## issue where the Envoy binary was too aggressively cached,
+          ## and even though we compiled a new Envoy binary, the
+          ## amb-core image contained the old cached binary.
+          #value: {{env "AMBASSADOR_LICENSE_KEY_V0"}}
           value: {{env "AMBASSADOR_LICENSE_KEY"}}
-        # DevPortal settings
+        - name: APP_LOG_LEVEL
+          value: DEBUG
+        - name: REDIS_SOCKET_TYPE
+          value: tcp
+        - name: REDIS_URL
+          value: ambassador-pro-redis:6379
+        # A/Pro: DevPortal
         - name: AMBASSADOR_URL
           value: "https://ambassador.default.svc.cluster.local"
-        # Change this if you want different poll rate for getting OpenAPI docs:
         - name: POLL_EVERY_SECS
           value: "60"
         - name: AMBASSADOR_INTERNAL_URL

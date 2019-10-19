@@ -15,8 +15,8 @@ NAME            = ambassador-pro
 # For Make itself
 SHELL           = bash -o pipefail
 # For Makefile
-image.all       = $(sort $(patsubst %/Dockerfile,%,$(wildcard docker/*/Dockerfile)) docker/model-cluster-amb-sidecar-plugins ambassador/ambassador)
-image.norelease = $(filter docker/model-cluster-% docker/loadtest-%,$(image.all))
+image.all       = $(sort $(patsubst %/Dockerfile,%,$(wildcard docker/*/Dockerfile)) ambassador/ambassador)
+image.norelease = $(filter docker/model-cluster-% docker/loadtest-%,$(image.all)) ambassador/ambassador
 image.nocluster = docker/apro-plugin-runner
 # For docker.mk
 # If you change docker.tag.release, you'll also need to change the
@@ -109,10 +109,6 @@ ambassador.stamp: %.stamp: $(var.)AMBASSADOR_COMMIT $(if $(call str.eq,$(AMBASSA
 # Call in to `ambassador/Makefile` for several targets.
 %/ambassador.docker %/snapshot.docker: %.stamp %.Makefile vendor FORCE
 	DEV_REGISTRY=$(docker.LOCALHOST):31000 $(MAKE) -C $* -f ../$*.Makefile ambassador.docker
-
-# Override the release name of `ambassador/ambassador.docker` from
-# `ambassador` to `amb-core`.
-ambassador/ambassador.docker.tag.release: docker.tag.release = quay.io/datawire/ambassador_pro:amb-core-$(VERSION)
 
 go-get: ambassador.stamp
 
@@ -285,10 +281,8 @@ docker/app-sidecar/ambex:
 	curl -o $@ --fail 'https://s3.amazonaws.com/datawire-static-files/ambex/0.1.0/ambex'
 	chmod 755 $@
 
-docker/model-cluster-amb-sidecar-plugins/Dockerfile: docker/model-cluster-amb-sidecar-plugins/Dockerfile.gen docker/amb-sidecar.docker
-	$^ > $@
-docker/model-cluster-amb-sidecar-plugins.docker.stamp: docker/amb-sidecar.docker # ".SECONDARY:" (in common.mk) coming back to bite us
-docker/model-cluster-amb-sidecar-plugins.docker.stamp: $(foreach p,$(plugins),docker/model-cluster-amb-sidecar-plugins/$p.so)
+docker/model-cluster-aes-plugins.docker.stamp: %.docker.stamp: %/Dockerfile docker/aes.docker $(foreach p,$(plugins),%/$p.so)
+	docker build --iidfile=$@ --build-arg=aes=$$(cat docker/aes.docker) $*
 
 docker/consul_connect_integration.docker.stamp: docker/consul_connect_integration/kubectl
 
@@ -497,7 +491,7 @@ clean: $(addsuffix .clean,$(wildcard docker/*.docker)) loadtest-clean
 	rm -f build-aux/docker-registry.preload
 	rm -f docker/*.docker.stamp
 	rm -f docker/*/*.opensource.tar.gz
-	rm -f docker/model-cluster-amb-sidecar-plugins/Dockerfile docker/model-cluster-amb-sidecar-plugins/*.so
+	rm -f docker/model-cluster-aes-plugins/*.so
 	rm -f k8s*/??-ambassador-certs.yaml k8s*/*.pem
 	rm -f k8s*/??-auth0-secret.yaml
 	rm -f tests/*.log tests/*.tap tests/*/*.log tests/*/*.tap
@@ -506,6 +500,9 @@ clean: $(addsuffix .clean,$(wildcard docker/*.docker)) loadtest-clean
 # Files made by older versions.  Remove the tail of this list when the
 # commit making the change gets far enough in to the past.
 #
+# 2019-10-19
+	rm -f docker/amb-sidecar/amb-sidecar
+	rm -f docker/model-cluster-amb-sidecar-plugins/Dockerfile docker/model-cluster-amb-sidecar-plugins/*.so
 # 2019-10-18
 	rm -f cmd/certified-envoy/envoy.go
 # 2019-10-10
