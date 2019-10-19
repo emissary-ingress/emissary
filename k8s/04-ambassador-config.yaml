@@ -1,0 +1,11 @@
+---
+apiVersion: getambassador.io/v1
+kind: Module
+metadata:
+  name: tls
+spec:
+  config:
+    server:
+      enabled: True
+      redirect_cleartext_from: 80
+      alpn_protocols: h2

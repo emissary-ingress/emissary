@@ -1,74 +1,61 @@
 # @TEMPLATE@
 
 ######################################################################
-# Create the 'ambassador', 'ambassador-admin', and 'ambassador-pro'
-# Services, and the Deployment that backs them all.
+# Configure Ambassador OSS to use Ambassador Pro.
 ---
-apiVersion: v1
-kind: Service
+apiVersion: getambassador.io/v1
+kind: RateLimitService
 metadata:
   name: ambassador-pro
-  annotations:
-    getambassador.io/config: |
-      ---
-      apiVersion: ambassador/v1
-      kind: RateLimitService
-      name: ambassador-pro
-      service: "127.0.0.1:8500"
-      ---
-      apiVersion: ambassador/v1
-      kind: AuthService
-      name: authentication
-      proto: grpc
-      status_on_error:
-        code: 504
-      auth_service: "127.0.0.1:8500"
-      allow_request_body: false # setting this to 'true' allows Plugin and External filters to access the body, but has performance overhead
-      ---
-      apiVersion: ambassador/v1
-      kind: Mapping
-      name: ambassador-pro
-      prefix: /.ambassador/
-      rewrite: ""
-      service: "127.0.0.1:8500"
-      ---
-      # Dev Portal
-      apiVersion: ambassador/v1
-      kind: Mapping
-      name: ambassador-pro-devportal
-      prefix: /documentation/
-      rewrite: "/docs/"
-      add_response_headers:
-        x-test-proto: "%PROTOCOL%"
-        x-test-ip: "%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%"
-        x-test-static: This is apro mapping
-      service: "127.0.0.1:8500"
-      ---
-      apiVersion: ambassador/v1
-      kind: Mapping
-      name: ambassador-pro-devportal-api
-      prefix: /openapi/
-      rewrite: ""
-      add_response_headers:
-        x-test-proto: "%PROTOCOL%"
-        x-test-ip: "%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%"
-        x-test-static: This is apro api mapping
-      service: "127.0.0.1:8500"
-      ---
-      # This mapping needs to exist, but is never actually followed.
-      apiVersion: ambassador/v1
-      kind: Mapping
-      name: callback_mapping
-      prefix: /callback
-      service: NoTaReAlSeRvIcE
 spec:
-  type: ClusterIP
-  selector:
-    service: ambassador-pro
-  ports:
-  - name: http
-    port: 80
-    targetPort: pro-http
+  service: "127.0.0.1:8500"
+---
+apiVersion: getambassador.io/v1
+kind: AuthService
+metadata:
+  name: authentication
+spec:
+  proto: grpc
+  status_on_error:
+    code: 504
+  auth_service: "127.0.0.1:8500"
+  allow_request_body: false # setting this to 'true' allows Plugin and External filters to access the body, but has performance overhead
+---
+apiVersion: getambassador.io/v1
+kind: Mapping
+metadata:
+  name: ambassador-pro
+spec:
+  prefix: /.ambassador/
+  rewrite: ""
+  service: "127.0.0.1:8500"
+---
+# Dev Portal
+apiVersion: getambassador.io/v1
+kind: Mapping
+metadata:
+  name: ambassador-pro-devportal
+spec:
+  prefix: /documentation/
+  rewrite: "/docs/"
+  add_response_headers:
+    x-test-proto: "%PROTOCOL%"
+    x-test-ip: "%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%"
+    x-test-static: This is apro mapping
+  service: "127.0.0.1:8500"
+---
+apiVersion: getambassador.io/v1
+kind: Mapping
+metadata:
+  name: ambassador-pro-devportal-api
+spec:
+  prefix: /openapi/
+  rewrite: ""
+  add_response_headers:
+    x-test-proto: "%PROTOCOL%"
+    x-test-ip: "%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%"
+    x-test-static: This is apro api mapping
+  service: "127.0.0.1:8500"
 ---
 apiVersion: getambassador.io/v1beta2
 kind: FilterPolicy
@@ -85,10 +72,35 @@ spec:
 apiVersion: getambassador.io/v1beta2
 kind: Filter
 metadata:
-  name: apro-internal-access-control
-  namespace: default
+  name: ambassador-pro-internal-access-control
 spec:
   Internal: {}
+---
+# This mapping needs to exist, but is never actually followed.
+apiVersion: getambassador.io/v1
+kind: Mapping
+metadata:
+  name: callback-mapping
+spec:
+  prefix: /callback
+  service: NoTaReAlSeRvIcE
+
+######################################################################
+# Create the 'ambassador', 'ambassador-admin', and 'ambassador-pro'
+# Services, and the Deployment that backs them all.
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ambassador-pro
+spec:
+  type: ClusterIP
+  selector:
+    service: ambassador-pro
+  ports:
+  - name: http
+    port: 80
+    targetPort: pro-http
 ---
 apiVersion: v1
 kind: Service
@@ -109,17 +121,6 @@ apiVersion: v1
 kind: Service
 metadata:
   name: ambassador
-  annotations:
-    getambassador.io/config: |
-      ---
-      apiVersion: ambassador/v1
-      kind: Module
-      name: tls
-      config:
-        server:
-          enabled: True
-          redirect_cleartext_from: 80
-          alpn_protocols: h2
 spec:
   type: NodePort # XXX: Kubernaut
   externalTrafficPolicy: Local
