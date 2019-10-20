@@ -575,10 +575,14 @@ class V2Listener(dict):
             # Let self.handle_sni do the heavy lifting for SNI.
             self.handle_sni(config)
 
-        # If the filter chain is empty here, we had no contexts. Add a single empty element to
-        # to filter chain to make the logic below a bit simpler.
-        if not self.filter_chains:
+        # If the filter chain is empty here, we had no termination contexts. Add a single empty
+        # element to self.filter_chains to make the logic below a bit simpler.
+        #
+        # We also do this in debug mode, for the cleartext half of the world.
+        if config.ir.ambassador_module.debug_mode or not self.filter_chains:
+            # By definition, this chain has no TLS contexts.
             self.filter_chains.append({
+                'filter_chain_match': {},
                 'routes': self.routes
             })
 
@@ -692,6 +696,7 @@ class V2Listener(dict):
 
             global_sni = True
 
+            # SNI requires the TLS inspector, but really, we probably always need it these days.
             self.listener_filters.append({
                 'name': 'envoy.listener.tls_inspector',
                 'config': {}
@@ -709,7 +714,9 @@ class V2Listener(dict):
             chain: Dict[str, Any] = { 'tls_context': ctx }
 
             if global_sni:
-                filter_chain_match = {}
+                filter_chain_match = {
+                    'transport_protocol': 'tls'
+                }
 
                 if hosts != [ '*' ]:
                     filter_chain_match['server_names'] = hosts
