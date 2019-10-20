@@ -107,7 +107,7 @@ ambassador.stamp: %.stamp: $(var.)AMBASSADOR_COMMIT $(if $(call str.eq,$(AMBASSA
 	touch $@
 
 # Call in to `ambassador/Makefile` for several targets.
-%/ambassador.docker %/snapshot.docker: %/Makefile %.stamp %.Makefile vendor FORCE
+%/ambassador.docker %/snapshot.docker: %.stamp %.Makefile vendor FORCE
 	DEV_REGISTRY=$(docker.LOCALHOST):31000 $(MAKE) -C $* -f ../$*.Makefile ambassador.docker
 
 # Override the release name of `ambassador/ambassador.docker` from
@@ -316,7 +316,7 @@ docker/%/kubectl:
 %/03-auth0-secret.yaml: %/namespace.txt $(K8S_ENVS)
 	$(if $(K8S_ENVS),set -a && $(foreach k8s_env,$(abspath $(K8S_ENVS)), . $(k8s_env) && ))kubectl --namespace="$$(cat $*/namespace.txt)" create secret generic --dry-run --output=yaml auth0-secret --from-literal=oauth2-client-secret="$$IDP_AUTH0_CLIENT_SECRET" > $@
 
-PRELOAD_IMAGES = $(sort $(shell awk '($$1 == "FROM") && ($$2 !~ /^(sha256:|\$$)/) { print $$2}' docker/*/Dockerfile ambassador/Dockerfile*))
+PRELOAD_IMAGES = $(sort $(shell awk '($$1 == "FROM") && ($$2 !~ /^(sha256:|\$$)/) && ($$2 ~ /\//) { print $$2}' docker/*/Dockerfile ambassador/Dockerfile*))
 $(addsuffix .docker.push.cluster,$(image.all)): build-aux/docker-registry.preload
 build-aux/docker-registry.preload: build-aux/docker-registry.deploy
 build-aux/docker-registry.preload: preload.yaml $(KUBEAPPLY) $(KUBECONFIG)
