@@ -94,6 +94,12 @@ Format:
 --->
 
 <!--- CueAddReleaseNotes --->
+## [0.84.1] October 20, 2019
+[0.84.1]: https://github.com/datawire/ambassador/compare/v0.84.0...v0.84.1
+
+### Major changes:
+- Bugfix: Fix /ambassador permissions to allow running as non-root - Thanks @dmayle (https://github.com/dmayle) for reporting the bug.
+
 ## [0.84.0] October 18, 2019
 [0.84.0]: https://github.com/datawire/ambassador/compare/v0.83.0...v0.84.0
 
