@@ -19,9 +19,9 @@ and the CI will be green.
 
 2. The RC tag will trigger CI to run a new build and new tests. It had better pass: if not, figure out why. Monitor https://travis-ci.org/datawire/amabassador/ until the CI for ambassador completes and is green.
 
-4. The RC build will be available as e.g. `quay.io/datawire/ambassador:0.77.0-rc1` and also as e.g. `quay.io/datawire/ambassador:0.77.0-rc-latest`. Any other testing you want to do against this image, rock on.
+3. The RC build will be available as e.g. `quay.io/datawire/ambassador:0.77.0-rc1` and also as e.g. `quay.io/datawire/ambassador:0.77.0-rc-latest`. Any other testing you want to do against this image, rock on.
 
-5. When you're happy that the RC is ready for GA, **first** assemble the list of changes that you'll put into CHANGELOG.md: (Note: place this list in a separate file, maybe ~/temp-list.txt, but definitely not in CHANGELOG.md at this time.
+4. When you're happy that the RC is ready for GA, **first** assemble the list of changes that you'll put into CHANGELOG.md: (Note: place this list in a separate file, maybe `~/temp-list.txt`, but definitely not in CHANGELOG.md at this time.
    - We always call out things contributed by the community, including who committed it
      - you can mention the contributor with a link back to their GitHub page
    - We always call out features and major bugfixes
@@ -31,27 +31,31 @@ and the CI will be green.
      and at the list of closed PRs. This is an awkward area of the release process as there are a log commits
      and PRs but we only want to include a curated subset that makes sense to the users.
 
-6. Once the change list is assembled, hand it to Marketing so they can either write a blog post or tell you it's not needed.
+5. Once the change list is assembled, hand it to Marketing so they can either write a blog post or tell you it's not needed.
 
-6. While the blog post is being written, sync up the docs!
+6. While the blog post is being written, switch to a new branch for the release.
+   - `git checkout -b rel/0.84.0` (or whatever version). **Do not name this branch "release/...".**
+
+7. Next, sync up docs.
    - `make pull-docs` to pull updates from the docs repo
    - Handle conflicts as needed.
-   - Commit any conflict-resolution changes to `master`.
+   - Commit any conflict-resolution changes to your release branch.
 
-7. After the docs are synced, use `make release-prep` to update `CHANGELOG.md` and `docs/versions.yml`.
-   - This will prompt you for the release notes, so retrieve them from your previous file (mabye ~/temp-list.txt).
+8. After the docs are synced, use `make release-prep` to update `CHANGELOG.md` and `docs/versions.yml`.
+   - This will prompt you for the release notes, so retrieve them from your previous file (maybe `~/temp-list.txt`).
      The release notes are pasted in at a prompt (during the make), not read from a file, so you will need them
      accessible to select-and-copy (suggestion: open your previous file in another window).
    - It will _commit_, but not _push_, the updated files. Make sure the diffs it shows you look correct!
-   - Do a manual `git push` to update the world with your new files.
-   - It is *critical* to update `docs/versions.yml` so that everyone gets the new version.
+      - It is *critical* to update `docs/versions.yml` so that everyone gets the new version.
+   - Do a manual `git push` on your branch.
 
-8. Now for the time-critical bit.
-   - Tag `master` with a GA tag like `v0.77.0` and let CI do its thing. **This version tag must start with a 'v'.**
+9. Now for the time-critical bit.
+   - Tag your branch with a GA tag like `v0.77.0` and let CI do its thing. **This version tag must start with a 'v'.**
    - CI will retag the latest RC image as the GA image.
 
-9. _After the CI run finishes_:
-   - `make push-docs` _after the retag_ to push new docs out to the website.
+10. _After the CI run finishes_:
+   - Submit, and land, a PR for your branch.
+   - `make push-docs` from `master` _after the retag_ to push new docs out to the website.
    - Go to https://github.com/datawire/ambassador/releases and create a new release.
       - `make release-prep` should've output the text to paste into the release description.
 
@@ -59,7 +63,7 @@ and the CI will be green.
 
    **Note also** that even though the version _tag_ starts with a 'v', the version _number_ displayed by the diag UI will _not_ start with a 'v'.**
 
-10. Submit a PR into the `helm/charts` repo to update things in `stable/ambassador`:
+11. Submit a PR into the `helm/charts` repo to update things in `stable/ambassador`:
    - in `Chart.yaml`, update `appVersion` with the new Ambassador version, and bump `version`.
    - in `README.md`, update the default value of `image.tag`.
    - in `values.yaml`, update `tag`.
@@ -76,7 +80,7 @@ and the CI will be green.
       - open a PR
     - Once your PR is merged, _delete the feature branch without merging it back to origin/master_.
 
-11. Update the getambassador.io website by submitting a PR to the `datawire/getambassador.io` repo.
+12. Update the getambassador.io website by submitting a PR to the `datawire/getambassador.io` repo.
    - `src/releaseInfo.js` is the only file you should need to touch:
       - `ReleaseType` comes from Marketing, usually "Feature Release", "Maintenance Release", or "Security Update"
       - `CurrentVersion` is e.g. "0.78.0" -- no leading 'v' here
