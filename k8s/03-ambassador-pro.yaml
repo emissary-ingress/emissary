@@ -1,131 +1,109 @@
 # @TEMPLATE@
 
-### RBAC and CRDs moved to 02-ambassador-pro-rbac-and-crds.yaml
-
 ######################################################################
-# Redis for Ambassador Pro
+# Configure Ambassador OSS to use Ambassador Pro.
 ---
-apiVersion: v1
-kind: Service
+apiVersion: getambassador.io/v1
+kind: RateLimitService
 metadata:
-  name: ambassador-pro-redis
+  name: ambassador-pro-ratelimit
 spec:
-  type: ClusterIP
-  ports:
-  - port: 6379
-    targetPort: 6379
-  selector:
-    service: ambassador-pro-redis
+  service: "127.0.0.1:8500"
 ---
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: getambassador.io/v1
+kind: AuthService
 metadata:
-  name: ambassador-pro-redis
+  name: ambassador-pro-auth
 spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      service: ambassador-pro-redis
-  template:
-    metadata:
-      labels:
-        service: ambassador-pro-redis
-    spec:
-      containers:
-      - name: redis
-        image: redis:5.0.1
-      restartPolicy: Always
-
-
-######################################################################
-# Create the 'ambassador', 'ambassador-admin', and 'ambassador-pro'
-# Services, and the Deployment that backs them all.
+  proto: grpc
+  status_on_error:
+    code: 504
+  auth_service: "127.0.0.1:8500"
+  allow_request_body: false # setting this to 'true' allows Plugin and External filters to access the body, but has performance overhead
 ---
-apiVersion: v1
-kind: Service
+apiVersion: getambassador.io/v1
+kind: Mapping
 metadata:
   name: ambassador-pro
-  annotations:
-    getambassador.io/config: |
-      ---
-      apiVersion: ambassador/v1
-      kind: RateLimitService
-      name: ambassador-pro
-      service: "127.0.0.1:8500"
-      ---
-      apiVersion: ambassador/v1
-      kind: AuthService
-      name: authentication
-      proto: grpc
-      status_on_error:
-        code: 504
-      auth_service: "127.0.0.1:8500"
-      allow_request_body: false # setting this to 'true' allows Plugin and External filters to access the body, but has performance overhead
-      ---
-      apiVersion: ambassador/v1
-      kind: Mapping
-      name: ambassador-pro
-      prefix: /.ambassador/
-      rewrite: ""
-      service: "127.0.0.1:8500"
-      ---
-      # Dev Portal
-      apiVersion: ambassador/v1
-      kind: Mapping
-      name: ambassador-pro-devportal
-      prefix: /documentation/
-      rewrite: "/docs/"
-      add_response_headers:
-        x-test-proto: "%PROTOCOL%"
-        x-test-ip: "%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%"
-        x-test-static: This is apro mapping
-      service: "127.0.0.1:8500"
-      ---
-      apiVersion: ambassador/v1
-      kind: Mapping
-      name: ambassador-pro-devportal-api
-      prefix: /openapi/
-      rewrite: ""
-      add_response_headers:
-        x-test-proto: "%PROTOCOL%"
-        x-test-ip: "%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%"
-        x-test-static: This is apro api mapping
-      service: "127.0.0.1:8500"
-      ---
-      # This mapping needs to exist, but is never actually followed.
-      apiVersion: ambassador/v1
-      kind: Mapping
-      name: callback_mapping
-      prefix: /callback
-      service: NoTaReAlSeRvIcE
 spec:
-  type: ClusterIP
-  selector:
-    service: ambassador-pro
-  ports:
-  - name: http
-    port: 80
-    targetPort: pro-http
+  prefix: /.ambassador/
+  rewrite: ""
+  service: "127.0.0.1:8500"
+---
+# DevPortal
+apiVersion: getambassador.io/v1
+kind: Mapping
+metadata:
+  name: ambassador-pro-devportal
+spec:
+  prefix: /documentation/
+  rewrite: "/docs/"
+  add_response_headers:
+    x-test-proto: "%PROTOCOL%"
+    x-test-ip: "%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%"
+    x-test-static: This is apro mapping
+  service: "127.0.0.1:8500"
+---
+apiVersion: getambassador.io/v1
+kind: Mapping
+metadata:
+  name: ambassador-pro-devportal-api
+spec:
+  prefix: /openapi/
+  rewrite: ""
+  add_response_headers:
+    x-test-proto: "%PROTOCOL%"
+    x-test-ip: "%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%"
+    x-test-static: This is apro api mapping
+  service: "127.0.0.1:8500"
 ---
 apiVersion: getambassador.io/v1beta2
 kind: FilterPolicy
 metadata:
-  name: apro-internal-access-control
-  namespace: default
+  name: ambassador-pro-internal-access-control
 spec:
   rules:
     - host: "*"
       path: "*/.ambassador-internal/*"
       filters:
-        - name: apro-internal-access-control
+        - name: ambassador-pro-internal-access-control
 ---
 apiVersion: getambassador.io/v1beta2
 kind: Filter
 metadata:
-  name: apro-internal-access-control
-  namespace: default
+  name: ambassador-pro-internal-access-control
 spec:
   Internal: {}
+---
+# This mapping needs to exist, but is never actually followed.
+apiVersion: getambassador.io/v1
+kind: Mapping
+metadata:
+  name: callback-mapping
+spec:
+  prefix: /callback
+  service: NoTaReAlSeRvIcE
+
+######################################################################
+# Create the 'ambassador', 'ambassador-admin', and 'ambassador-pro'
+# Services.
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ambassador
+spec:
+  type: NodePort # XXX: Kubernaut
+  externalTrafficPolicy: Local
+  ports:
+  - name: http
+    port: 80
+    targetPort: http
+  - name: https
+    port: 443
+    targetPort: https
+  selector:
+    service: ambassador
 ---
 apiVersion: v1
 kind: Service
@@ -140,49 +118,43 @@ spec:
     port: 8877
     targetPort: admin
   selector:
-    service: ambassador-pro
+    service: ambassador
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: ambassador
-  annotations:
-    getambassador.io/config: |
-      ---
-      apiVersion: ambassador/v1
-      kind: Module
-      name: tls
-      config:
-        server:
-          enabled: True
-          redirect_cleartext_from: 80
-          alpn_protocols: h2
+  labels:
+    service: ambassador-pro
+  name: ambassador-pro
 spec:
-  type: NodePort # XXX: Kubernaut
-  externalTrafficPolicy: Local
+  type: ClusterIP
   ports:
   - name: http
     port: 80
-    targetPort: http
-  - name: https
-    port: 443
-    targetPort: https
+    targetPort: pro-http
   selector:
-    service: ambassador-pro
+    service: ambassador
+
+######################################################################
+# Create the Deployment backing the 'ambassador', 'ambassador-admin',
+# and 'ambassador-pro' Services.
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: ambassador-pro
+  name: ambassador
 spec:
   replicas: 1 # XXX: Kubernaut
+  selector:
+    matchLabels:
+      service: ambassador
   template:
     metadata:
       annotations:
         sidecar.istio.io/inject: "false"
         "consul.hashicorp.com/connect-inject": "false"
       labels:
-        service: ambassador-pro
+        service: ambassador
     spec:
       serviceAccountName: ambassador-pro
       terminationGracePeriodSeconds: 0
@@ -220,12 +192,12 @@ spec:
           #value: {{env "AMBASSADOR_LICENSE_KEY_V0"}}
           value: {{env "AMBASSADOR_LICENSE_KEY"}}
         ports:
-          - name: http
-            containerPort: 8080
-          - name: https
-            containerPort: 8443
-          - name: admin
-            containerPort: 8877
+        - name: http
+          containerPort: 8080
+        - name: https
+          containerPort: 8443
+        - name: admin
+          containerPort: 8877
         livenessProbe:
           httpGet:
             path: /ambassador/v0/check_alive
@@ -281,53 +253,3 @@ spec:
         - name: AMBASSADOR_ADMIN_URL
           value: "http://127.0.0.1:8877"
       restartPolicy: Always
-
-
-######################################################################
-# Create the traffic-proxy Service+Deployment
-#
-# Does this *need* to be a standalone service, or could it be a
-# sidecar?  IDK.  --lukeshu
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: telepresence-proxy
-spec:
-  type: ClusterIP
-  clusterIP: None
-  selector:
-    app: telepresence-proxy
-  ports:
-  - name: sshd
-    protocol: TCP
-    port: 8022
-  - name: api
-    protocol: TCP
-    port: 8081
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: telepresence-proxy
-  labels:
-    app: telepresence-proxy
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: telepresence-proxy
-  template:
-    metadata:
-      labels:
-        app: telepresence-proxy
-    spec:
-      containers:
-      - name: telepresence-proxy
-        image: {{env "PROXY_IMAGE"}}
-        ports:
-        - name: sshd
-          containerPort: 8022
-        env:
-        - name: AMBASSADOR_LICENSE_KEY
-          value: {{env "AMBASSADOR_LICENSE_KEY"}}
