@@ -27,8 +27,6 @@ import (
 	k8sClientDynamic "k8s.io/client-go/dynamic"
 	k8sClientCoreV1 "k8s.io/client-go/kubernetes/typed/core/v1"
 
-	"github.com/datawire/ambassador/pkg/k8s"
-
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
 )
 
@@ -37,20 +35,7 @@ const (
 	SelfSignedContextName = "fallback-self-signed-context"
 )
 
-func EnsureFallback(cfg types.Config, kubeinfo *k8s.KubeInfo) error {
-	restconfig, err := kubeinfo.GetRestConfig()
-	if err != nil {
-		return err
-	}
-	coreClient, err := k8sClientCoreV1.NewForConfig(restconfig)
-	if err != nil {
-		return err
-	}
-	dynamicClient, err := k8sClientDynamic.NewForConfig(restconfig)
-	if err != nil {
-		return err
-	}
-
+func EnsureFallback(cfg types.Config, coreClient k8sClientCoreV1.SecretsGetter, dynamicClient k8sClientDynamic.Interface) error {
 	if err := ensureFallbackSecret(cfg, coreClient); err != nil {
 		return err
 	}
