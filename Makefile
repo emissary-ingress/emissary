@@ -52,6 +52,7 @@ include build-aux/go-mod.mk
 include build-aux/go-version.mk
 include build-aux/k8s.mk
 include build-aux/teleproxy.mk
+include build-aux/go-bindata.mk
 include build-aux/pidfile.mk
 include build-aux/var.mk
 include build-aux/help.mk
@@ -82,6 +83,10 @@ push-docs: ## Publish ./docs to https://github.com/datawire/ambassador-docs
 		git push git@github.com:datawire/ambassador-docs.git "$${docs_new}:refs/heads/$(or $(PUSH_BRANCH),master)"; \
 	}
 .PHONY: pull-docs push-docs
+
+generate: cmd/amb-sidecar/firstboot/bindata.go
+cmd/amb-sidecar/firstboot/bindata.go: $(GO_BINDATA) $(shell find cmd/amb-sidecar/firstboot/bindata/)
+	PATH=$(dir $(GO_BINDATA)):$$PATH; cd $(@D) && go generate
 
 #
 # A/OSS

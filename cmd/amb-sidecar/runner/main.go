@@ -34,6 +34,7 @@ import (
 	filterhandler "github.com/datawire/apro/cmd/amb-sidecar/filters/handler"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/health"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/middleware"
+	"github.com/datawire/apro/cmd/amb-sidecar/firstboot"
 	rlscontroller "github.com/datawire/apro/cmd/amb-sidecar/ratelimits"
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
 	"github.com/datawire/apro/lib/licensekeys"
@@ -277,6 +278,8 @@ func runE(cmd *cobra.Command, args []string) error {
 			httpHandler.AddEndpoint("/docs/", "Documentation portal", devPortalServer.Router().ServeHTTP)
 			httpHandler.AddEndpoint("/openapi/", "Documentation portal API", devPortalServer.Router().ServeHTTP)
 		}
+
+		httpHandler.AddEndpoint("/firstboot/", "First boot wizard", firstboot.NewFirstBootWizard().ServeHTTP)
 
 		// Launch the server
 		server := &http.Server{
