@@ -17,6 +17,8 @@ import (
 )
 
 func TestConsulConnectTLSCertificateChainIsPresentAsKubernetesSecret(t *testing.T) {
+	t.SkipNow() // FIXME(lukeshu): test disabled because it's flakey
+
 	assert := testutil.Assert{T: t}
 
 	timeout := time.After(30 * time.Second)
