@@ -52,8 +52,8 @@ func (tc testcase) Run(t *testing.T) {
 
 func TestInsteadOfRedirect(t *testing.T) {
 	t.Parallel()
-	urlAny := urlMust(url.Parse("https://ambassador.standalone.svc.cluster.local/auth0/httpbin/headers"))
-	urlXHR := urlMust(url.Parse("https://ambassador.standalone.svc.cluster.local/auth0-k8s/httpbin/headers"))
+	urlAny := urlMust(url.Parse("https://ambassador.default.svc.cluster.local/auth0/httpbin/headers"))
+	urlXHR := urlMust(url.Parse("https://ambassador.default.svc.cluster.local/auth0-k8s/httpbin/headers"))
 
 	testcases := map[string]testcase{
 		"anyNone":  {URL: urlAny, Header: nil, ExpectedStatus: http.StatusSeeOther},

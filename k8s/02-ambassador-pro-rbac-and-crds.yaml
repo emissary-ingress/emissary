@@ -1,27 +1,15 @@
 # @TEMPLATE@
-#
-# This file is roughly:
-# cat <(curl https://getambassador.io/yaml/ambassador/ambassador-rbac.yaml) \
-#     <(curl https://getambassador.io/yaml/ambassador/ambassador-service.yaml) \
-#     <(curl https://getambassador.io/yaml/ambassador/pro/ambassador-pro.yaml)
-# but:
-#  - split in to sections, for readability
-#  - modified to work with Kubernaut
-#  - with TLS enabled
-#  - with the ambassador-pro.yaml bit modified to be a sidecar of the
-#    main ambassador deployment
-#  - with the "telepresence-proxy" Service+Deployment added
 
 ######################################################################
 # Create a ClusterRole+ClusterRoleBinding+ServiceAccount for
-# ambassador
+# ambassador-pro
 #
 # NB: ClusterRoles and ClusterRoleBindings are not namespaced
 ---
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRole
 metadata:
-  name: ambassador-sidecar
+  name: ambassador-pro
 rules:
 # Regular Ambassador access requirements
 - apiGroups: [""]
@@ -35,7 +23,7 @@ rules:
   resources:
   - customresourcedefinitions
   verbs: ["get", "list", "watch"]
-- apiGroups: [ "getambassador.io" ]
+- apiGroups: ["getambassador.io"]
   resources:
   - "*"
   verbs: ["get", "list", "watch"]
@@ -48,19 +36,19 @@ rules:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: ambassador
+  name: ambassador-pro
 ---
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRoleBinding
 metadata:
-  name: ambassador-sidecar
+  name: ambassador-pro
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: ambassador-sidecar
+  name: ambassador-pro
 subjects:
 - kind: ServiceAccount
-  name: ambassador
+  name: ambassador-pro
   namespace: default
 
 
@@ -311,4 +299,3 @@ spec:
     kind: RateLimit
     shortNames:
     - rl
-

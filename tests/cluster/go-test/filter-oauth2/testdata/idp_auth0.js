@@ -1,16 +1,16 @@
 module.exports.testcases = {
 	"Auth0 (/auth0/httpbin)": {
-		resource: "https://ambassador.standalone.svc.cluster.local/auth0/httpbin/headers",
+		resource: "https://ambassador.default.svc.cluster.local/auth0/httpbin/headers",
 		username: "testuser@datawire.com",
 		password: "TestUser321",
 	},
 	"Auth0 (/auth0-k8s/httpbin)": {
-		resource: "https://ambassador.standalone.svc.cluster.local/auth0-k8s/httpbin/headers",
+		resource: "https://ambassador.default.svc.cluster.local/auth0-k8s/httpbin/headers",
 		username: "testuser@datawire.com",
 		password: "TestUser321",
 	},
 	"Auth0 (/httpbin)": {
-		resource: "https://ambassador.standalone.svc.cluster.local/httpbin/headers",
+		resource: "https://ambassador.default.svc.cluster.local/httpbin/headers",
 		username: "testuser@datawire.com",
 		password: "TestUser321",
 	}
