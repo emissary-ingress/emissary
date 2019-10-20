@@ -4,7 +4,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: uaa-config
-  namespace: standalone
+  namespace: default
 data:
   uaa.yml: |
     oauth:
@@ -55,7 +55,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: uaa
-  namespace: standalone
+  namespace: default
 spec:
   type: ClusterIP
   ports:
@@ -69,7 +69,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: uaa
-  namespace: standalone
+  namespace: default
 spec:
   replicas: 1
   selector:

@@ -4,7 +4,7 @@ apiVersion: getambassador.io/v1beta2
 kind: Filter
 metadata:
   name: google
-  namespace: standalone
+  namespace: default
 spec:
   OAuth2:
     authorizationURL: {{env "IDP_GOOGLE_PROVIDER_URL"}}
@@ -16,7 +16,7 @@ apiVersion: getambassador.io/v1
 kind: Mapping
 metadata:
   name: filter-oauth2-google-mapping
-  namespace: standalone
+  namespace: default
 spec:
   prefix: /google/httpbin/
   rewrite: /
@@ -28,7 +28,7 @@ apiVersion: getambassador.io/v1beta2
 kind: FilterPolicy
 metadata:
   name: filter-oauth2-google-policy
-  namespace: standalone
+  namespace: default
 spec:
   rules:
     - host: "*"

@@ -51,7 +51,7 @@ func TestJWTInjectHeaders(t *testing.T) {
 	}
 
 	// run the filter //////////////////////////////////////////////////////
-	u, err := url.Parse("https://ambassador.standalone.svc.cluster.local/jwt/headers")
+	u, err := url.Parse("https://ambassador.default.svc.cluster.local/jwt/headers")
 	assert.NotError(err)
 	client := &http.Client{
 		Transport: &http.Transport{

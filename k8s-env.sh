@@ -27,7 +27,7 @@ AMBASSADOR_LICENSE_KEY_V1=eyJhbGciOiJQUzUxMiIsInR5cCI6IkpXVCJ9.eyJsaWNlbnNlX2tle
 AMBASSADOR_LICENSE_KEY=$AMBASSADOR_LICENSE_KEY_V1
 
 # 04-filter-oauth2-*.yaml
-AUTH_TENANT_URL=https://ambassador.standalone.svc.cluster.local
+AUTH_TENANT_URL=https://ambassador.default.svc.cluster.local
 
 # 04-filter-oauth2-auth0.yaml
 # These come directly from https://manage.auth0.com/#/applications/DOzF9q7U2OrvB7QniW9ikczS1onJgyiC/settings
@@ -47,7 +47,7 @@ IDP_AUTH0_CLIENT_SECRET=${_Auth0_Client_Secret}
 
 # 04-filter-oauth2-keycloak.yaml
 # Keycloak is configured statically in 04-keycloak.yaml
-IDP_KEYCLOAK_PROVIDER_URL=http://keycloak.localdev.svc.cluster.local/auth/realms/apro
+IDP_KEYCLOAK_PROVIDER_URL=http://keycloak.default.svc.cluster.local/auth/realms/apro
 IDP_KEYCLOAK_AUDIENCE=app
 IDP_KEYCLOAK_CLIENT_ID=app
 IDP_KEYCLOAK_CLIENT_SECRET=8517c278-0ae8-40e5-b418-20199b7e3fb5
@@ -84,7 +84,7 @@ IDP_AZURE_CLIENT_SECRET=${_Azure_Client_Secret}
 
 # 04-filter-oauth2-uaa.yaml, 04-uaa.yaml
 # UAA is configured statically in 04-uaa.yaml
-IDP_UAA_PROVIDER_URL=http://uaa.standalone.svc.cluster.local/uaa
+IDP_UAA_PROVIDER_URL=http://uaa.default.svc.cluster.local/uaa
 IDP_UAA_CLIENT_ID=ambassador
 IDP_UAA_CLIENT_SECRET=ambassador
 

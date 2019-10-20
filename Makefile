@@ -25,7 +25,7 @@ docker.tag.release    = quay.io/datawire/ambassador_pro:$(notdir $*)-$(VERSION)
 docker.tag.buildcache = $(BUILDCACHE_DOCKER_REPO):$(notdir $*)-$(VERSION)
 # For k8s.mk
 K8S_IMAGES      = $(filter-out $(image.nocluster),$(image.all))
-K8S_DIRS        = k8s-sidecar k8s-standalone k8s-localdev
+K8S_DIRS        = k8s
 K8S_ENVS        = k8s-env.sh
 # For go.mk
 go.PLATFORMS    = linux_amd64 darwin_amd64
@@ -316,7 +316,7 @@ docker/%/kubectl:
 %/03-auth0-secret.yaml: %/namespace.txt $(K8S_ENVS)
 	$(if $(K8S_ENVS),set -a && $(foreach k8s_env,$(abspath $(K8S_ENVS)), . $(k8s_env) && ))kubectl --namespace="$$(cat $*/namespace.txt)" create secret generic --dry-run --output=yaml auth0-secret --from-literal=oauth2-client-secret="$$IDP_AUTH0_CLIENT_SECRET" > $@
 
-PRELOAD_IMAGES = $(sort $(shell awk '($$1 == "FROM") && ($$2 !~ /^(sha256:|\$$)/) && ($$2 ~ /\//) { print $$2}' docker/*/Dockerfile ambassador/Dockerfile*))
+PRELOAD_IMAGES = $(sort $(shell awk '($$1 == "FROM") && ($$2 !~ /^(sha256:|\$$)/) && ($$2 ~ /\//) { print $$2}' docker/*/Dockerfile))
 $(addsuffix .docker.push.cluster,$(image.all)): build-aux/docker-registry.preload
 build-aux/docker-registry.preload: build-aux/docker-registry.deploy
 build-aux/docker-registry.preload: preload.yaml $(KUBEAPPLY) $(KUBECONFIG)
@@ -333,8 +333,8 @@ build-aux/docker-registry.preload: $(var.)PRELOAD_IMAGES
 	kubectl delete --namespace=docker-registry jobs/preload
 	touch $@
 
-deploy: $(addsuffix /04-ambassador-certs.yaml,$(K8S_DIRS)) k8s-standalone/03-auth0-secret.yaml
-apply: $(addsuffix /04-ambassador-certs.yaml,$(K8S_DIRS)) k8s-standalone/03-auth0-secret.yaml
+deploy: $(addsuffix /04-ambassador-certs.yaml,$(K8S_DIRS)) k8s/03-auth0-secret.yaml
+apply: $(addsuffix /04-ambassador-certs.yaml,$(K8S_DIRS)) k8s/03-auth0-secret.yaml
 
 #
 # Local Dev
@@ -498,8 +498,8 @@ clean: $(addsuffix .clean,$(wildcard docker/*.docker)) loadtest-clean
 	rm -f docker/*.docker.stamp
 	rm -f docker/*/*.opensource.tar.gz
 	rm -f docker/model-cluster-amb-sidecar-plugins/Dockerfile docker/model-cluster-amb-sidecar-plugins/*.so
-	rm -f k8s-*/??-ambassador-certs.yaml k8s-*/*.pem
-	rm -f k8s-*/??-auth0-secret.yaml
+	rm -f k8s*/??-ambassador-certs.yaml k8s*/*.pem
+	rm -f k8s*/??-auth0-secret.yaml
 	rm -f tests/*.log tests/*.tap tests/*/*.log tests/*/*.tap
 	rm -f tests/cluster/go-test/consul/new_root.*
 	rm -f tests/cluster/go-test/filter-oauth2/testdata/*.webm

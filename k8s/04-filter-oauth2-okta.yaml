@@ -4,7 +4,7 @@ apiVersion: getambassador.io/v1beta2
 kind: Filter
 metadata:
   name: okta
-  namespace: standalone
+  namespace: default
 spec:
   OAuth2:
     authorizationURL: {{env "IDP_OKTA_PROVIDER_URL"}}
@@ -17,7 +17,7 @@ apiVersion: getambassador.io/v1
 kind: Mapping
 metadata:
   name: filter-oauth2-okta-mapping
-  namespace: standalone
+  namespace: default
 spec:
   prefix: /okta/httpbin/
   rewrite: /
@@ -29,7 +29,7 @@ apiVersion: getambassador.io/v1beta2
 kind: FilterPolicy
 metadata:
   name: filter-oauth2-okta-policy
-  namespace: standalone
+  namespace: default
 spec:
   rules:
     - host: "*"

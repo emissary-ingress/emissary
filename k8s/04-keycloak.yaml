@@ -3,7 +3,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: keycloak
-  namespace: localdev
+  namespace: default
   labels:
     app: keycloak
 spec:
@@ -20,7 +20,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: keycloak-config
-  namespace: localdev
+  namespace: default
 data:
   realm-test.json: |
     {
@@ -105,7 +105,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: keycloak
-  namespace: localdev
+  namespace: default
 spec:
   replicas: 1
   selector:
