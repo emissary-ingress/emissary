@@ -11,7 +11,7 @@ def docker_start(logfile) -> bool:
     # Use a global here so that the child process doesn't get killed
     global child
 
-    cmd = f'docker run --rm --name ambassador -p8888:8080 {os.environ["AMBASSADOR_DOCKER_IMAGE"]} --demo'
+    cmd = f'docker run --rm --name ambassador -u8888:0 -p8888:8080 {os.environ["AMBASSADOR_DOCKER_IMAGE"]} --demo'
 
     child = pexpect.spawn(cmd, encoding='utf-8')
     child.logfile = logfile
