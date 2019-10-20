@@ -120,6 +120,11 @@ COPY --from=artifacts /buildroot/ambassador/demo/services /ambassador/demo-servi
 
 WORKDIR /ambassador
 
+# Fix permissions to allow correctly running as a non root user
+RUN chgrp -R 0 /ambassador && \
+    chmod -R u+x /ambassador && \
+    chmod -R g=u /ambassador /etc/passwd
+
 ENTRYPOINT [ "bash", "/buildroot/ambassador/python/entrypoint.sh" ]
 
 ########################################
