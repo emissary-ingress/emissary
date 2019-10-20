@@ -1,8 +1,7 @@
 #!/hint/sh
 
 # "Releasable" images
-AMBASSADOR_IMAGE=$(                  sed -n 2p ambassador/ambassador.docker.push.cluster)
-AMB_SIDECAR_IMAGE=$(                 sed -n 2p docker/model-cluster-amb-sidecar-plugins.docker.push.cluster) # XXX: not releasable because plugins
+AES_IMAGE=$(                         sed -n 2p docker/model-cluster-aes-plugins.docker.push.cluster) # XXX: not releasable because plugins
 CONSUL_CONNECT_INTEGRATION_IMAGE=$(  sed -n 2p docker/consul_connect_integration.docker.push.cluster)
 PROXY_IMAGE=$(                       sed -n 2p docker/traffic-proxy.docker.push.cluster)
 SIDECAR_IMAGE=$(                     sed -n 2p docker/app-sidecar.docker.push.cluster)

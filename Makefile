@@ -15,8 +15,8 @@ NAME            = ambassador-pro
 # For Make itself
 SHELL           = bash -o pipefail
 # For Makefile
-image.all       = $(sort $(patsubst %/Dockerfile,%,$(wildcard docker/*/Dockerfile)) docker/model-cluster-amb-sidecar-plugins ambassador/ambassador)
-image.norelease = $(filter docker/model-cluster-% docker/loadtest-%,$(image.all))
+image.all       = $(sort $(patsubst %/Dockerfile,%,$(wildcard docker/*/Dockerfile)) ambassador/ambassador)
+image.norelease = $(filter docker/model-cluster-% docker/loadtest-%,$(image.all)) ambassador/ambassador
 image.nocluster = docker/apro-plugin-runner
 # For docker.mk
 # If you change docker.tag.release, you'll also need to change the
@@ -83,7 +83,7 @@ push-docs: ## Publish ./docs to https://github.com/datawire/ambassador-docs
 #
 # A/OSS
 
-AMBASSADOR_COMMIT = 20a13dc22ed3aa9e28386f61e6fa272863025f9d
+AMBASSADOR_COMMIT = 64e109bc404ad434188f3993d4c3b5d9a4f89004
 
 # Git clone
 ambassador.stamp: %.stamp: $(var.)AMBASSADOR_COMMIT $(if $(call str.eq,$(AMBASSADOR_COMMIT),-),FORCE)
@@ -106,19 +106,9 @@ ambassador.stamp: %.stamp: $(var.)AMBASSADOR_COMMIT $(if $(call str.eq,$(AMBASSA
 	}
 	touch $@
 
-# Defer to `ambassador/Makefile` for several targets:
-#
-# The "list: pattern: dependencies" syntax is new to some people: it
-# is mostly just a pattern rule "ambassador/%: ambassador", but it
-# only applies to the files listed in AMBASSADOR_TARGETS, instead of
-# all files starting with "ambassador/".
-AMBASSADOR_TARGETS += ambassador.docker
-$(addprefix ambassador/,$(AMBASSADOR_TARGETS)): ambassador/%: ambassador.stamp
-	DEV_REGISTRY=$(docker.LOCALHOST):31000 $(MAKE) -C ambassador $*
-
-# Override the release name of `ambassador/ambassador.docker` from
-# `ambassador` to `amb-core`.
-ambassador/ambassador.docker.tag.release: docker.tag.release = quay.io/datawire/ambassador_pro:amb-core-$(VERSION)
+# Call in to `ambassador/Makefile` for several targets.
+%/ambassador.docker %/snapshot.docker: %.stamp %.Makefile vendor FORCE
+	DEV_REGISTRY=$(docker.LOCALHOST):31000 $(MAKE) -C $* -f ../$*.Makefile ambassador.docker
 
 go-get: ambassador.stamp
 
@@ -283,15 +273,16 @@ docker/model-cluster-uaa.docker.stamp: %.docker.stamp: %/Dockerfile
 	    fi; \
 	}
 
+docker/aes.docker.stamp: %.docker.stamp: %/Dockerfile ambassador/ambassador.docker
+	docker build --iidfile=$@ --build-arg=aoss=$$(cat ambassador/ambassador.docker) --build-arg=artifacts=$$(cat ambassador/snapshot.docker) $*
+
 docker/app-sidecar.docker.stamp: docker/app-sidecar/ambex
 docker/app-sidecar/ambex:
 	curl -o $@ --fail 'https://s3.amazonaws.com/datawire-static-files/ambex/0.1.0/ambex'
 	chmod 755 $@
 
-docker/model-cluster-amb-sidecar-plugins/Dockerfile: docker/model-cluster-amb-sidecar-plugins/Dockerfile.gen docker/amb-sidecar.docker
-	$^ > $@
-docker/model-cluster-amb-sidecar-plugins.docker.stamp: docker/amb-sidecar.docker # ".SECONDARY:" (in common.mk) coming back to bite us
-docker/model-cluster-amb-sidecar-plugins.docker.stamp: $(foreach p,$(plugins),docker/model-cluster-amb-sidecar-plugins/$p.so)
+docker/model-cluster-aes-plugins.docker.stamp: %.docker.stamp: %/Dockerfile docker/aes.docker $(foreach p,$(plugins),%/$p.so)
+	docker build --iidfile=$@ --build-arg=aes=$$(cat docker/aes.docker) $*
 
 docker/consul_connect_integration.docker.stamp: docker/consul_connect_integration/kubectl
 
@@ -319,7 +310,7 @@ docker/%/kubectl:
 %/03-auth0-secret.yaml: %/namespace.txt $(K8S_ENVS)
 	$(if $(K8S_ENVS),set -a && $(foreach k8s_env,$(abspath $(K8S_ENVS)), . $(k8s_env) && ))kubectl --namespace="$$(cat $*/namespace.txt)" create secret generic --dry-run --output=yaml auth0-secret --from-literal=oauth2-client-secret="$$IDP_AUTH0_CLIENT_SECRET" > $@
 
-PRELOAD_IMAGES = $(sort $(shell awk '($$1 == "FROM") && ($$2 !~ /^(sha256:|\$$)/) { print $$2}' docker/*/Dockerfile))
+PRELOAD_IMAGES = $(sort $(shell awk '($$1 == "FROM") && ($$2 !~ /^(sha256:|\$$)/) && ($$2 ~ /\//) { print $$2}' docker/*/Dockerfile))
 $(addsuffix .docker.push.cluster,$(image.all)): build-aux/docker-registry.preload
 build-aux/docker-registry.preload: build-aux/docker-registry.deploy
 build-aux/docker-registry.preload: preload.yaml $(KUBEAPPLY) $(KUBECONFIG)
@@ -500,7 +491,7 @@ clean: $(addsuffix .clean,$(wildcard docker/*.docker)) loadtest-clean
 	rm -f build-aux/docker-registry.preload
 	rm -f docker/*.docker.stamp
 	rm -f docker/*/*.opensource.tar.gz
-	rm -f docker/model-cluster-amb-sidecar-plugins/Dockerfile docker/model-cluster-amb-sidecar-plugins/*.so
+	rm -f docker/model-cluster-aes-plugins/*.so
 	rm -f k8s*/??-ambassador-certs.yaml k8s*/*.pem
 	rm -f k8s*/??-auth0-secret.yaml
 	rm -f tests/*.log tests/*.tap tests/*/*.log tests/*/*.tap
@@ -509,6 +500,9 @@ clean: $(addsuffix .clean,$(wildcard docker/*.docker)) loadtest-clean
 # Files made by older versions.  Remove the tail of this list when the
 # commit making the change gets far enough in to the past.
 #
+# 2019-10-19
+	rm -f docker/amb-sidecar/amb-sidecar
+	rm -f docker/model-cluster-amb-sidecar-plugins/Dockerfile docker/model-cluster-amb-sidecar-plugins/*.so
 # 2019-10-18
 	rm -f cmd/certified-envoy/envoy.go
 # 2019-10-10
