@@ -123,8 +123,8 @@ spec:
     Make sure you validate and test your template, not to generate server-side errors on top of client errors.
 
     `contentType` specifies the returned HTTP response content format. Defaults to `application/json`.
-    `bodyTemplate` is a [golang text/template](https://golang.org/pkg/text/template/) blob to be used for generating the response output. 
     
+    `bodyTemplate` is a [golang text/template](https://golang.org/pkg/text/template/) blob to be used for generating the response output. 
     The template can reference objects named:
     * `httpStatus` → `integer` the HTTP status code.
     * `error` → `error` the original error object.
