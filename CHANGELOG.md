@@ -4,7 +4,8 @@
 
 Configuration
 
- * `JWT` and `OAuth2` Filter types support `renegotiateTLS`
+ * The `JWT` and `OAuth2` Filter types support `renegotiateTLS`
+ * The `JWT` Filter now has an `errorResponse` argument that allows templating the filter's error response.
 
 Behavior:
 
