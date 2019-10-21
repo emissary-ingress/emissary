@@ -1,0 +1,589 @@
+# Create the namespace.
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ambassador
+
+# ambassador-oss-crds.yaml
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: authservices.getambassador.io
+spec:
+  group: getambassador.io
+  version: v1
+  versions:
+  - name: v1
+    served: true
+    storage: true
+  scope: Namespaced
+  names:
+    plural: authservices
+    singular: authservice
+    kind: AuthService
+    categories:
+    - ambassador-crds
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: consulresolvers.getambassador.io
+spec:
+  group: getambassador.io
+  version: v1
+  versions:
+  - name: v1
+    served: true
+    storage: true
+  scope: Namespaced
+  names:
+    plural: consulresolvers
+    singular: consulresolver
+    kind: ConsulResolver
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: kubernetesendpointresolvers.getambassador.io
+spec:
+  group: getambassador.io
+  version: v1
+  versions:
+  - name: v1
+    served: true
+    storage: true
+  scope: Namespaced
+  names:
+    plural: kubernetesendpointresolvers
+    singular: kubernetesendpointresolver
+    kind: KubernetesEndpointResolver
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: kubernetesserviceresolvers.getambassador.io
+spec:
+  group: getambassador.io
+  version: v1
+  versions:
+  - name: v1
+    served: true
+    storage: true
+  scope: Namespaced
+  names:
+    plural: kubernetesserviceresolvers
+    singular: kubernetesserviceresolver
+    kind: KubernetesServiceResolver
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: mappings.getambassador.io
+spec:
+  group: getambassador.io
+  version: v1
+  versions:
+  - name: v1
+    served: true
+    storage: true
+  scope: Namespaced
+  names:
+    plural: mappings
+    singular: mapping
+    kind: Mapping
+    categories:
+    - ambassador-crds
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: modules.getambassador.io
+spec:
+  group: getambassador.io
+  version: v1
+  versions:
+  - name: v1
+    served: true
+    storage: true
+  scope: Namespaced
+  names:
+    plural: modules
+    singular: module
+    kind: Module
+    categories:
+    - ambassador-crds
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: ratelimitservices.getambassador.io
+spec:
+  group: getambassador.io
+  version: v1
+  versions:
+  - name: v1
+    served: true
+    storage: true
+  scope: Namespaced
+  names:
+    plural: ratelimitservices
+    singular: ratelimitservice
+    kind: RateLimitService
+    categories:
+    - ambassador-crds
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: tcpmappings.getambassador.io
+spec:
+  group: getambassador.io
+  version: v1
+  versions:
+  - name: v1
+    served: true
+    storage: true
+  scope: Namespaced
+  names:
+    plural: tcpmappings
+    singular: tcpmapping
+    kind: TCPMapping
+    categories:
+    - ambassador-crds
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: tlscontexts.getambassador.io
+spec:
+  group: getambassador.io
+  version: v1
+  versions:
+  - name: v1
+    served: true
+    storage: true
+  scope: Namespaced
+  names:
+    plural: tlscontexts
+    singular: tlscontext
+    kind: TLSContext
+    categories:
+    - ambassador-crds
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: tracingservices.getambassador.io
+spec:
+  group: getambassador.io
+  version: v1
+  versions:
+  - name: v1
+    served: true
+    storage: true
+  scope: Namespaced
+  names:
+    plural: tracingservices
+    singular: tracingservice
+    kind: TracingService
+    categories:
+    - ambassador-crds
+
+# ambassador-pro-crds.yaml
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: filterpolicies.getambassador.io
+spec:
+  group: getambassador.io
+  version: v1beta2
+  versions:
+  - name: v1beta2
+    served: true
+    storage: true
+  scope: Namespaced
+  names:
+    plural: filterpolicies
+    singular: filterpolicy
+    kind: FilterPolicy
+    shortNames:
+    - fp
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: filters.getambassador.io
+spec:
+  group: getambassador.io
+  version: v1beta2
+  versions:
+  - name: v1beta2
+    served: true
+    storage: true
+  scope: Namespaced
+  names:
+    plural: filters
+    singular: filter
+    kind: Filter
+    shortNames:
+    - fil
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: ratelimits.getambassador.io
+spec:
+  group: getambassador.io
+  version: v1beta2
+  versions:
+    - name: v1beta2
+      served: true
+      storage: true
+  scope: Namespaced
+  names:
+    plural: ratelimits
+    singular: ratelimit
+    kind: RateLimit
+    shortNames:
+    - rl
+
+# combined rbac yaml
+# NB: ClusterRoles and ClusterRoleBindings are not namespaced
+
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRole
+metadata:
+  name: ambassador-pro
+rules:
+# Regular Ambassador access requirements
+- apiGroups: [""]
+  resources: [ "endpoints", "namespaces", "services" ]
+  verbs: ["get", "list", "watch"]
+- apiGroups: [ "getambassador.io" ]
+  resources: [ "*" ]
+  verbs: ["get", "list", "watch"]
+- apiGroups: [ "apiextensions.k8s.io" ]
+  resources: [ "customresourcedefinitions" ]
+  verbs: ["get", "list", "watch"]
+- apiGroups: [ "networking.internal.knative.dev" ]
+  resources: [ "clusteringresses", "ingresses" ]
+  verbs: ["get", "list", "watch"]
+- apiGroups: [ "networking.internal.knative.dev" ]
+  resources: [ "ingresses/status", "clusteringresses/status" ]
+  verbs: ["update"]
+- apiGroups: [ "extensions" ]
+  resources: [ "ingresses" ]
+  verbs: ["get", "list", "watch"]
+- apiGroups: [ "extensions" ]
+  resources: [ "ingresses/status" ]
+  verbs: ["update"]
+# Ambassador Pro access requirements.  Also gets "create" for secrets.
+- apiGroups: [""]
+  resources:
+  - secrets
+  verbs: ["get", "list", "watch", "create"]
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: ambassador-pro
+  namespace: ambassador
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: ambassador-pro
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: ambassador-pro
+subjects:
+- kind: ServiceAccount
+  name: ambassador-pro
+  namespace: ambassador
+# ambassador-pro-redis.yaml
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ambassador-pro-redis
+  namespace: ambassador
+spec:
+  type: ClusterIP
+  ports:
+  - port: 6379
+    targetPort: 6379
+  selector:
+    service: ambassador-pro-redis
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ambassador-pro-redis
+  namespace: ambassador
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      service: ambassador-pro-redis
+  template:
+    metadata:
+      labels:
+        service: ambassador-pro-redis
+    spec:
+      containers:
+      - name: redis
+        image: redis:5.0.1
+      restartPolicy: Always
+# ambassador-pro.yaml
+
+######################################################################
+# Configure Ambassador OSS to use Ambassador Pro.
+---
+apiVersion: getambassador.io/v1
+kind: RateLimitService
+metadata:
+  name: ambassador-pro-ratelimit
+  namespace: ambassador
+spec:
+  service: "127.0.0.1:8500"
+---
+apiVersion: getambassador.io/v1
+kind: AuthService
+metadata:
+  name: ambassador-pro-auth
+  namespace: ambassador
+spec:
+  proto: grpc
+  status_on_error:
+    code: 504
+  auth_service: "127.0.0.1:8500"
+  allow_request_body: false # setting this to 'true' allows Plugin and External filters to access the body, but has performance overhead
+---
+apiVersion: getambassador.io/v1
+kind: Mapping
+metadata:
+  name: ambassador-pro
+  namespace: ambassador
+spec:
+  prefix: /.ambassador/
+  rewrite: ""
+  service: "127.0.0.1:8500"
+---
+# DevPortal
+apiVersion: getambassador.io/v1
+kind: Mapping
+metadata:
+  name: ambassador-pro-devportal
+  namespace: ambassador
+spec:
+  prefix: /documentation/
+  rewrite: "/docs/"
+  add_response_headers:
+    x-test-proto: "%PROTOCOL%"
+    x-test-ip: "%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%"
+    x-test-static: This is apro mapping
+  service: "127.0.0.1:8500"
+---
+apiVersion: getambassador.io/v1
+kind: Mapping
+metadata:
+  name: ambassador-pro-devportal-api
+  namespace: ambassador
+spec:
+  prefix: /openapi/
+  rewrite: ""
+  add_response_headers:
+    x-test-proto: "%PROTOCOL%"
+    x-test-ip: "%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%"
+    x-test-static: This is apro api mapping
+  service: "127.0.0.1:8500"
+---
+apiVersion: getambassador.io/v1beta2
+kind: FilterPolicy
+metadata:
+  name: ambassador-pro-internal-access-control
+  namespace: ambassador
+spec:
+  rules:
+    - host: "*"
+      path: "*/.ambassador-internal/*"
+      filters:
+        - name: ambassador-pro-internal-access-control
+---
+apiVersion: getambassador.io/v1beta2
+kind: Filter
+metadata:
+  name: ambassador-pro-internal-access-control
+  namespace: ambassador
+spec:
+  Internal: {}
+---
+# This mapping needs to exist, but is never actually followed.
+apiVersion: getambassador.io/v1
+kind: Mapping
+metadata:
+  name: callback-mapping
+  namespace: ambassador
+spec:
+  prefix: /callback
+  service: NoTaReAlSeRvIcE
+
+######################################################################
+# Create the 'ambassador', 'ambassador-admin', and 'ambassador-pro'
+# Services.
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ambassador
+  namespace: ambassador
+spec:
+  type: LoadBalancer # XXX: Kubernaut
+  externalTrafficPolicy: Local
+  ports:
+  - name: http
+    port: 80
+    targetPort: http
+  - name: https
+    port: 443
+    targetPort: https
+  selector:
+    service: ambassador
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    service: ambassador-admin
+  name: ambassador-admin
+  namespace: ambassador
+spec:
+  type: ClusterIP
+  ports:
+  - name: ambassador-admin
+    port: 8877
+    targetPort: admin
+  selector:
+    service: ambassador
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    service: ambassador-pro
+  name: ambassador-pro
+  namespace: ambassador
+spec:
+  type: ClusterIP
+  ports:
+  - name: http
+    port: 80
+    targetPort: pro-http
+  selector:
+    service: ambassador
+
+######################################################################
+# Create the Deployment backing the 'ambassador', 'ambassador-admin',
+# and 'ambassador-pro' Services.
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ambassador
+  namespace: ambassador
+spec:
+  replicas: 1 # XXX: Kubernaut
+  selector:
+    matchLabels:
+      service: ambassador
+  template:
+    metadata:
+      annotations:
+        sidecar.istio.io/inject: "false"
+        "consul.hashicorp.com/connect-inject": "false"
+      labels:
+        service: ambassador
+    spec:
+      serviceAccountName: ambassador-pro
+      terminationGracePeriodSeconds: 0
+      imagePullSecrets:
+      - name: aes-pull-secret
+      containers:
+      - name: aes
+        image: quay.io/datawire/aes:0.0.0-e17b405
+        ports:
+        - name: http
+          containerPort: 8080
+        - name: https
+          containerPort: 8443
+        - name: admin
+          containerPort: 8877
+        livenessProbe:
+          httpGet:
+            path: /ambassador/v0/check_alive
+            port: 8877
+          initialDelaySeconds: 30
+          periodSeconds: 3
+        readinessProbe:
+          httpGet:
+            path: /ambassador/v0/check_ready
+            port: 8877
+          initialDelaySeconds: 30
+          periodSeconds: 3
+        #livenessProbe:
+        #  httpGet:
+        #    path: /_/sys/healthz
+        #    port: 8500
+        #  initialDelaySeconds: 30
+        #  periodSeconds: 5
+        #readinessProbe:
+        #  httpGet:
+        #    path: /_/sys/readyz
+        #    port: 8500
+        #  initialDelaySeconds: 30
+        #  periodSeconds: 5
+        env:
+        # A/OSS
+        - name: AMBASSADOR_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: AMBASSADOR_SINGLE_NAMESPACE
+          value: "true"
+        - name: SCOUT_DISABLE
+          value: "1"
+        # A/Pro
+        - name: AMBASSADOR_LICENSE_KEY
+          ## Unlike all the rest of the YAML, this uses a v0 license
+          ## key, to make sure that they continue to work for newer
+          ## releases.  If that breaks, `make deploy` will time out,
+          ## because this pod will never pass its readiness checks.
+          ## The `tests/cluster/licensekeys/` e2e tests mostly do this,
+          ## but they run directly on compiled binaries, not the Docker
+          ## images supposedly containing those binaries.  We had an
+          ## issue where the Envoy binary was too aggressively cached,
+          ## and even though we compiled a new Envoy binary, the
+          ## amb-core image contained the old cached binary.
+          #value: {{env "AMBASSADOR_LICENSE_KEY_V0"}}
+          value: "***REDACTED***"
+        - name: APP_LOG_LEVEL
+          value: DEBUG
+        - name: REDIS_SOCKET_TYPE
+          value: tcp
+        - name: REDIS_URL
+          value: ambassador-pro-redis:6379
+        # A/Pro: DevPortal
+        - name: AMBASSADOR_URL
+          value: "https://ambassador.default.svc.cluster.local"
+        - name: POLL_EVERY_SECS
+          value: "60"
+        - name: AMBASSADOR_INTERNAL_URL
+          value: "https://127.0.0.1:8443"
+        - name: AMBASSADOR_ADMIN_URL
+          value: "http://127.0.0.1:8877"
+      restartPolicy: Always

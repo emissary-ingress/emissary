@@ -1,5 +1,34 @@
 # Deploying Ambassador Edge Stack to Kubernetes
 
+## 1. Deploying Ambassador Edge Stack
+
+Note, the secret.yaml file is temporary and can be obtained from the [2K doc](https://docs.google.com/document/d/1xKWchVv4pWDayA_dbuyoGpKL2YViaDsd5TE7xK4I9a8/edit#).
+
+```shell
+kubectl apply -f secret.yaml
+kubectl apply -f https://getambassador.io/yaml/aes.yaml
+```
+
+## 2. Determine your IP Address
+
+Note that it may take a while for your load balancer ip address to be
+provisioned. Repeat this command as necessary until you get an ip
+address:
+
+```shell
+kubectl get -n ambassador service ambassador -o 'go-template={{range .status.loadBalancer.ingress}}{{print .ip "\n"}}{{end}}'
+```
+
+## 3. Assign a DNS name
+
+Assign a DNS name using the providor of your choice to the IP address acquired in Step 2.
+
+## 4. Complete the install
+
+Go to http://<your-host-name> and follow the instructions to complete the install.
+
+# XXX: everything below here is old.
+
 In this tutorial, we'll walk through the process of deploying Ambassador Edge Stack in Kubernetes for ingress routing. Ambassador Edge Stack provides all the functionality of a traditional ingress controller (i.e., path-based routing) while exposing many additional capabilities such as [authentication](/user-guide/auth-tutorial), URL rewriting, CORS, rate limiting, and automatic metrics collection (the [mappings reference](/reference/mappings) contains a full list of supported options). For more background on Kubernetes ingress, [read this blog post](https://blog.getambassador.io/kubernetes-ingress-nodeport-load-balancers-and-ingress-controllers-6e29f1c44f2d).
 
 Ambassador Edge Stack is designed to allow service authors to control how their service is published to the Internet. We accomplish this by permitting a wide range of annotations on the *service*, which Ambassador Edge Stack reads to configure its Envoy Proxy. Below, we'll use service annotations to configure Ambassador Edge Stack to map `/httpbin/` to `httpbin.org`.
