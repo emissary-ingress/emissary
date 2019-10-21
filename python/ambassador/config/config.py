@@ -54,6 +54,7 @@ class Config:
     StorageByKind: ClassVar[Dict[str, str]] = {
         'authservice': "auth_configs",
         'consulresolver': "resolvers",
+        'host': "hosts",
         'mapping': "mappings",
         'kubernetesendpointresolver': "resolvers",
         'kubernetesserviceresolver': "resolvers",
