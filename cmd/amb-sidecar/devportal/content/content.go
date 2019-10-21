@@ -18,6 +18,7 @@ type Content struct {
 	store   GlobbableView
 	funcMap template.FuncMap
 	md      MarkdownRenderer
+	source  *url.URL
 }
 
 type ContentVars interface {
@@ -31,6 +32,15 @@ func sanitizedURL(u *url.URL) *url.URL {
 		u.User = url.User("*redacted*")
 	}
 	return u
+}
+
+func (c *Content) Source() *url.URL {
+	ret, _ := c.source.Parse("")
+	return ret
+}
+
+func IsLocal(contentURL *url.URL) bool {
+	return contentURL.Scheme == "" || contentURL.Scheme == "file"
 }
 
 func NewContent(contentURL *url.URL) (*Content, error) {
@@ -54,7 +64,7 @@ func NewContent(contentURL *url.URL) (*Content, error) {
 	var err error
 
 	var content *Content
-	if contentURL.Scheme == "" || contentURL.Scheme == "file" {
+	if IsLocal(contentURL) {
 		logger.Info("Loading content from local path")
 		content = &Content{
 			store:   NewLocalDir(contentURL.Path),
@@ -77,6 +87,7 @@ func NewContent(contentURL *url.URL) (*Content, error) {
 			md:      renderer,
 		}
 	}
+	content.source = contentURL
 	return content, nil
 }
 
