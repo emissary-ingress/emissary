@@ -39,7 +39,7 @@ https://9cb034008ddfs819da268d9z13b7ecd26@github.com/datawire/private-devportal-
 Check out a local copy of your content repo (see `APRO_DEVPORTAL_CONTENT_URL` above) and from within run the following docker image:
 
 ```
-# docker run --rm --volume $PWD:/content --publish 8877:8877 quay.io/datawire/ambassador_pro:local-devportal-%aproVersion%
+# docker run --rm --volume $PWD:/content --publish 8877:8877 quay.io/datawire/ambassador_pro:local-devportal-$aproVersion$
 ```
 
 and open http://localhost:8877 in your browser. Any changes made locally to devportal content will be reflected immediately on page refresh

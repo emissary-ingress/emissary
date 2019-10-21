@@ -198,7 +198,7 @@ kubectl create secret generic ambassador-pro-license-key --from-literal=key={{AM
 
     ```yaml
           - name: ambassador-pro
-            image: quay.io/datawire/ambassador_pro:amb-sidecar-%aproVersion%
+            image: quay.io/datawire/ambassador_pro:amb-sidecar-$aproVersion$
     ```
 
 3. Change the image of the Ambassador container to use the certified version of Ambassador.
@@ -206,8 +206,8 @@ kubectl create secret generic ambassador-pro-license-key --from-literal=key={{AM
     ```diff
           containers:
           - name: ambassador
-    -       image: quay.io/datawire/ambassador:%version%
-    +       image: quay.io/datawire/ambassador_pro:amb-core-%aproVersion%
+    -       image: quay.io/datawire/ambassador:$version$
+    +       image: quay.io/datawire/ambassador_pro:amb-core-$aproVersion$
     ```
 
 4. Add the `AMBASSADOR_LICENSE_KEY` environment variable to the Ambassador container and have it get its value from the secret created in step 1.
