@@ -26,6 +26,8 @@ services:
 
 env:
   global:
+    - DEV_REGISTRY=quay.io/datawire-dev
+
     # Set from the repository settings:
     #- DOCKER_BUILD_USERNAME=[secure] (optional)
     #- DOCKER_BUILD_PASSWORD=[secure] (optional)
@@ -45,7 +47,7 @@ install:
   - PATH=~/bin:$PATH
   - source ~/.gimme/envs/latest.env
   - export DEV_KUBECONFIG=~/.kube/$(cat ~/kubernaut-claim.txt).yaml
-  - export DEV_REGISTRY=localhost:31000
+  - docker login -u="datawire-dev+ci" -p="CEAWVNREJHTOAHSOJFJHJZQYI7H9MELSU1RG1CD6XIFAURD5D7Y1N8F8MU0JO912" quay.io
 
 script:
   - ./releng/travis-script.sh

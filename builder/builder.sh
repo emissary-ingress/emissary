@@ -36,7 +36,7 @@ bootstrap() {
 
     if [ -z "$(builder)" ] ; then
         printf "${WHT}==${GRN}Bootstrapping build image${WHT}==${END}\n"
-        ${DBUILD} --build-arg envoy=$(cat ${DIR}/../base-envoy.docker) --target builder ${DIR} -t builder
+        ${DBUILD} --target builder ${DIR} -t builder
         if [ "$(uname -s)" == Darwin ]; then
             DOCKER_GID=$(stat -f "%g" /var/run/docker.sock)
         else
@@ -112,6 +112,7 @@ case "${cmd}" in
         clean
         ;;
     clobber)
+        clean
         vid=$(builder_volume)
         if [ -n "${vid}" ] ; then
             printf "${GRN}Killing cache volume ${BLU}${vid}${END}\n"
@@ -188,7 +189,7 @@ case "${cmd}" in
         cid=$(builder)
         if dirty ${cid}; then
 	    printf "${WHT}==${GRN}Snapshotting ${BLU}builder${GRN} image${WHT}==${END}\n"
-	    docker rmi -f "${name}" &> /dev/null
+	    docker rmi -f "${name}" > /dev/null
             docker commit -c 'ENTRYPOINT [ "/bin/bash" ]' ${cid} "${name}"
         fi
         clear-dirty ${cid}
