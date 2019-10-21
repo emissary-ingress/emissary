@@ -35,6 +35,7 @@ from .irfilter import IRFilter
 from .ircluster import IRCluster
 from .irbasemappinggroup import IRBaseMappingGroup
 from .irbasemapping import IRBaseMapping
+from .irhttpmapping import IRHTTPMapping
 from .irmappingfactory import MappingFactory
 from .irratelimit import IRRateLimit
 from .irtls import TLSModuleFactory, IRAmbassadorTLS
@@ -212,6 +213,36 @@ class IR:
         # are, and they're handled above. So. At this point go sort out all the Mappings
         ListenerFactory.load_all(self, aconf)
         MappingFactory.load_all(self, aconf)
+
+        # If we're in debug mode, take over the root prefix.
+        if self.ambassador_module.debug_mode:
+            self.logger.info(f"DEBUG: need edgy mapping")
+
+            counter = 0
+            name = 'edgy-mapping'
+
+            http_mappings = self.aconf.get_config('mappings') or {}
+            tcp_mappings = self.aconf.get_config('tcpmappings') or {}
+
+            while name in http_mappings or name in tcp_mappings:
+                name = f"edgy-mappings-{counter}"
+                counter += 1
+
+            base_edgy_mapping = {
+                'rkey': '--internal--',
+                'location': '--internal--',
+                'apiVersion': 'getambassador.io/v1',
+                'kind': 'Mapping',
+                'name': name,
+                'service': 'tour:5000',
+                'rewrite': '/'
+            }
+
+            for pfx in [ '/', '/edgy/' ]:
+                edgy_mapping = IRHTTPMapping(self, self.aconf, prefix=pfx, **base_edgy_mapping)
+
+                self.logger.info(f"DEBUG: adding edgy mapping {edgy_mapping}")
+                self.add_mapping(self.aconf, edgy_mapping)
 
         self.walk_saved_resources(aconf, 'add_mappings')
 
