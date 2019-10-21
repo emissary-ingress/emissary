@@ -84,10 +84,24 @@ _makefile_clobber:
 
 generate: ## Update generated sources that get committed to git
 generate: pkg/api/kat/echo.pb.go
+generate: pkg/api/getambassador.io/v2/Host.pb.go
+generate: python/ambassador/proto/v2/Host_pb2.py
 generate-clean: ## Delete generated sources that get committed to git (implies `make clobber`)
 generate-clean: clobber
 	rm -rf pkg/api
 .PHONY: generate generate-clean
+
+vendor: FORCE
+	go mod vendor
+
+pkg/api/getambassador.io/v2/Host.pb.go python/ambassador/proto/v2/Host_pb2.py: api/getambassador.io/v2/Host.proto vendor bin_$(GOHOSTOS)_$(GOHOSTARCH)/protoc bin_$(GOHOSTOS)_$(GOHOSTARCH)/protoc-gen-gogofast
+	mkdir -p pkg/api/getambassador.io/v2 python/ambassador/proto/v2
+	./bin_$(GOHOSTOS)_$(GOHOSTARCH)/protoc \
+		--proto_path=$(CURDIR)/vendor \
+		--proto_path=$(CURDIR)/api/getambassador.io/v2 \
+		--plugin=$(CURDIR)/bin_$(GOHOSTOS)_$(GOHOSTARCH)/protoc-gen-gogofast --gogofast_out=plugins=grpc:pkg/api/getambassador.io/v2 \
+		--python_out=python/ambassador/proto/v2 \
+		$(CURDIR)/$<
 
 base-%.docker.stamp: docker/base-%/Dockerfile $(var.)BASE_IMAGE.%
 	@PS4=; set -ex; { \

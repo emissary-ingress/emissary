@@ -1,0 +1,38 @@
+/**
+ * Host defines a way that an Ambassador will be visible to the 
+ * outside world. A minimal Host defines a hostname (of course) by
+ * which the Ambassador will be reachable, but a Host can also
+ * tell an Ambassador how to manage TLS, and which resources to 
+ * examine for further configuration.
+ */
+syntax = "proto3";
+
+import "k8s.io/apimachinery/pkg/apis/meta/v1/generated.proto";
+
+// The Host resource will usually be a Kubernetes CRD, but it could
+// appear in other forms. The HostSpec is the part of the Host resource
+// that doesn't change, no matter what form it's in -- when it's a CRD,
+// this is the part in the "spec" dictionary.
+message HostSpec {
+  // Common to all Ambassador objects (and optional).
+  repeated string ambassador_id = 1;
+
+  // Common to all Ambassador objects (and optional).
+  int32 generation = 2;
+
+  // Hostname by which the Ambassador can be reached.
+  string hostname = 3;
+
+  // Selector by which we can find further configuration. Defaults to hostname=$hostname
+  k8s.io.apimachinery.pkg.apis.meta.v1.LabelSelector selector = 4;
+
+  // Specifies who to talk ACME with to get certs. Defaults to Let's Encrypt; if "none", do
+  // not try to do TLS for this Host.
+  string acme_provider = 5;
+
+  // Name of the Kubernetes secret into which to save generated certificates. Defaults
+  // to $hostname
+  string secret_name = 6;
+}
+
+// TODO: We will likely need a HostStatus message too.
