@@ -32,7 +32,7 @@ type OAuth2Filter struct {
 
 func (f *OAuth2Filter) Filter(ctx context.Context, request *filterapi.FilterRequest) (filterapi.FilterResponse, error) {
 	logger := middleware.GetLogger(ctx)
-	httpClient := httpclient.NewHTTPClient(logger, f.Spec.MaxStale, f.Spec.InsecureTLS)
+	httpClient := httpclient.NewHTTPClient(logger, f.Spec.MaxStale, f.Spec.InsecureTLS, f.Spec.RenegotiateTLS)
 
 	discovered, err := discovery.Discover(httpClient, f.Spec, logger)
 	if err != nil {
@@ -67,7 +67,7 @@ func (f *OAuth2Filter) Filter(ctx context.Context, request *filterapi.FilterRequ
 func (f *OAuth2Filter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	logger := middleware.GetLogger(ctx)
-	httpClient := httpclient.NewHTTPClient(logger, f.Spec.MaxStale, f.Spec.InsecureTLS)
+	httpClient := httpclient.NewHTTPClient(logger, f.Spec.MaxStale, f.Spec.InsecureTLS, f.Spec.RenegotiateTLS)
 
 	discovered, err := discovery.Discover(httpClient, f.Spec, logger)
 	if err != nil {
