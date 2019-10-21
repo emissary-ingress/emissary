@@ -146,6 +146,10 @@ spec:
 
   # Set which regular expression engine to use. See the "Regular Expressions" section below.
   # regex_type: safe 
+
+  # This field controls the RE2 “program size” which is a rough estimate of how complex a compiled regex is to
+  # evaluate.  A regex that has a program size greater than the configured value will fail to compile.
+  # regex_max_size: 200
 ```
 
 ### Overriding Default Ports

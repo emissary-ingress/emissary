@@ -10,7 +10,7 @@ After completing [Getting Started](/user-guide/getting-started), you'll have a K
 
 ## 1. Deploy the rate limit service
 
-Ambassador delegates the actual rate limit logic to a third party service. We've written a [simple rate limit service](https://github.com/datawire/ambassador/tree/master/test-services/ratelimit-service) that:
+Ambassador delegates the actual rate limit logic to a third party service. We've written a [simple rate limit service](https://github.com/datawire/ambassador/tree/master/test/services/ratelimit-service) that:
 
 - listens for requests on port 5000;
 - handles gRPC `shouldRateLimit` requests;
