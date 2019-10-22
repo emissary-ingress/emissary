@@ -75,7 +75,7 @@ spec:
   # v1.2, or v1.3. It defaults to v1.3.
   # max_tls_version: v1.3
 
-  # Tells Ambassador to load TLS certificates from a file in it's container.
+  # Tells Ambassador to load TLS certificates from a file in its container.
   # type: string
   #
   # cert_chain_file: None
