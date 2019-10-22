@@ -133,11 +133,11 @@ shell:
 	@$(BUILDER) shell
 .PHONY: shell
 
-clean: $(addsuffix .docker.clean,$(images.all) snapshot)
+clean:
 	@$(BUILDER) clean
 .PHONY: clean
 
-clobber: clean
+clobber: clean $(addsuffix .docker.clean,$(images.all) snapshot)
 	@$(BUILDER) clobber
 .PHONY: clobber
 
