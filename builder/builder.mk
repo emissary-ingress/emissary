@@ -30,9 +30,9 @@ export DOCKER_ERR=$(RED)ERROR: cannot find docker, please make sure docker is in
 preflight:
 ifeq ($(strip $(shell $(BUILDER))),)
 	@printf "$(WHT)==$(GRN)Preflight checks$(WHT)==$(END)\n"
-	# Checking for rsync --info
+# Checking for rsync --info
 	test -n "$$(rsync --help | fgrep -- --info)" || (printf "$${RSYNC_ERR}\n"; exit 1)
-	# Checking for docker
+# Checking for docker
 	which docker > /dev/null || (printf "$${DOCKER_ERR}\n"; exit 1)
 endif
 .PHONY: preflight
@@ -114,7 +114,7 @@ pytest: test-ready
 		-e TEST_SERVICE_STATS=$$(sed -n 2p test-stats.docker.push.dev) \
 		-e KAT_IMAGE_PULL_POLICY=Always \
 		-e KAT_REQ_LIMIT \
-		-it $(shell $(BUILDER)) sh -c 'cd ambassador && pytest -ra $(PYTEST_ARGS)'
+		-it $(shell $(BUILDER)) sh -c 'cd ambassador && pytest --tb=short -ra $(PYTEST_ARGS)'
 .PHONY: pytest
 
 
@@ -133,11 +133,11 @@ shell:
 	@$(BUILDER) shell
 .PHONY: shell
 
-clean: $(addsuffix .docker.clean,$(images.all) snapshot)
+clean:
 	@$(BUILDER) clean
 .PHONY: clean
 
-clobber: clean
+clobber: clean $(addsuffix .docker.clean,$(images.all) snapshot)
 	@$(BUILDER) clobber
 .PHONY: clobber
 
