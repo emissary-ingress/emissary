@@ -11,6 +11,8 @@ venv
 /ambassador/
 /ambassador.stamp
 
+/devportal-content/
+
 *.docker
 *.docker.stamp
 *.docker.tag.*

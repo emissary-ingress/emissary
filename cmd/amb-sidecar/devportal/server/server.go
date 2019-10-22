@@ -3,6 +3,7 @@ package server
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 
@@ -183,7 +184,12 @@ func (s *Server) handleHTML(context string) http.HandlerFunc {
 		vars := s.vars(r, context)
 		tmpl, err := s.content.Get(vars)
 		if err != nil {
-			log.Fatal(err)
+			log.Warn(s.content.Source(), err)
+			w.WriteHeader(http.StatusInternalServerError)
+			io.WriteString(w, err.Error())
+			io.WriteString(w, "\n\n")
+			io.WriteString(w, s.content.Source().String())
+			return
 		}
 		buffer := s.pool.Get()
 		defer s.pool.Put(buffer)
@@ -191,7 +197,7 @@ func (s *Server) handleHTML(context string) http.HandlerFunc {
 		if err != nil {
 			log.Warn(err)
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(err.Error()))
+			io.WriteString(w, err.Error())
 			return
 		}
 		w.Header().Set("Content-Type", "text/html")
@@ -257,11 +263,21 @@ func NewServer(docroot string, content *content.Content, serviceLimit int) *Serv
 	// TODO in a later design iteration, we would serve static HTML, and
 	// have Javascript UI that queries the API endpoints. for this
 	// iteration, just doing it server-side.
-	router.HandleFunc(docroot+"/", s.handleHTML("landing"))
-	router.PathPrefix(docroot + "/assets/").HandlerFunc(s.handleStatic(docroot))
-	router.PathPrefix(docroot + "/styles/").HandlerFunc(s.handleStatic(docroot))
-	router.HandleFunc(docroot+"/page/{page}", s.handleHTML("page"))
-	router.HandleFunc(docroot+"/doc/{namespace}/{service}", s.handleHTML("doc"))
+	router.
+		HandleFunc(docroot+"/", s.handleHTML("landing")).
+		Methods("GET")
+	router.
+		PathPrefix(docroot + "/assets/").HandlerFunc(s.handleStatic(docroot)).
+		Methods("GET")
+	router.
+		PathPrefix(docroot + "/styles/").HandlerFunc(s.handleStatic(docroot)).
+		Methods("GET")
+	router.
+		HandleFunc(docroot+"/page/{page}", s.handleHTML("page")).
+		Methods("GET")
+	router.
+		HandleFunc(docroot+"/doc/{namespace}/{service}", s.handleHTML("doc")).
+		Methods("GET")
 
 	// *** Read-only API, requires less access control and may be exposed ***
 	// publicly:

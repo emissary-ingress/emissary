@@ -400,9 +400,12 @@ run-auth: bin_$(GOHOSTOS)_$(GOHOSTARCH)/amb-sidecar
 	env $$(cat pro-env.sh) APP_LOG_LEVEL=debug bin_$(GOHOSTOS)_$(GOHOSTARCH)/amb-sidecar main
 .PHONY: run-auth
 run-dev-portal: ## (LocalDev) Build and launch the dev server locally
-run-dev-portal: bin_$(GOHOSTOS)_$(GOHOSTARCH)/local-devportal
-	sh -x dev-hacks/dev-server.sh
+run-dev-portal: bin_$(GOHOSTOS)_$(GOHOSTARCH)/local-devportal devportal-content
+	bin_$(GOHOSTOS)_$(GOHOSTARCH)/local-devportal serve devportal-content
 .PHONY: run-dev-portal
+
+devportal-content:
+	git clone https://github.com/datawire/devportal-content
 
 venv/bin/activate: %/bin/activate:
 	mkdir -p $*
@@ -500,6 +503,8 @@ clean: $(addsuffix .clean,$(wildcard docker/*.docker)) loadtest-clean
 # Files made by older versions.  Remove the tail of this list when the
 # commit making the change gets far enough in to the past.
 #
+# 2019-10-22
+	rm -fr dev-hacks/
 # 2019-10-19
 	rm -f docker/amb-sidecar/amb-sidecar
 	rm -f docker/model-cluster-amb-sidecar-plugins/Dockerfile docker/model-cluster-amb-sidecar-plugins/*.so
@@ -566,12 +571,13 @@ clobber:
 	rm -rf dev-hacks/.venv/
 	rm -rf venv
 	rm -rf ambassador
+	rm -rf devportal-content
 
 #
 # Release
 
 RELEASE_DRYRUN ?=
-release.bins = apictl apictl-key apro-plugin-runner
+release.bins = apictl apictl-key apro-plugin-runner local-devportal
 release.images = $(filter-out $(image.norelease),$(image.all))
 
 release: ## Cut a release; upload binaries to S3 and Docker images to Quay
