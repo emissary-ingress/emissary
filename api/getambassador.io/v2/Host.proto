@@ -33,7 +33,7 @@ message HostSpec {
 
   // Name of the Kubernetes secret into which to save generated certificates. Defaults
   // to $hostname
-  string secret_name = 6;
+  k8s.io.api.core.v1.LocalObjectReference tls_secret = 6;
 }
 
 message ACMEProviderSpec {
