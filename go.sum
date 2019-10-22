@@ -30,8 +30,6 @@ github.com/armon/go-metrics v0.0.0-20180917152333-f0300d1749da/go.mod h1:Q73ZrmV
 github.com/armon/go-radix v0.0.0-20180808171621-7fddfc383310/go.mod h1:ufUuZ+zHj4x4TnLV4JWEpy2hxWSpsRywHrMgIH9cCH8=
 github.com/bgentry/speakeasy v0.1.0 h1:ByYyxL9InA1OWqxJqqp2A5pYHUrCiAL6K3J+LKSsQkY=
 github.com/bgentry/speakeasy v0.1.0/go.mod h1:+zsyZBPWlz7T6j88CTgSN5bM796AkVf0kBD4zp0CCIs=
-github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869 h1:DDGfHa7BWjL4YnC6+E63dPcxHo2sUxDIu8g3QgEJdRY=
-github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869/go.mod h1:Ekp36dRnpXw/yCqJaO+ZrUyxD+3VXMFFr56k5XYrpB4=
 github.com/bmizerany/perks v0.0.0-20141205001514-d9a9656a3a4b h1:AP/Y7sqYicnjGDfD5VcY4CIfh1hRXBUavxrvELjTiOE=
 github.com/bmizerany/perks v0.0.0-20141205001514-d9a9656a3a4b/go.mod h1:ac9efd0D1fsDb3EJvhqgXRbFx7bs2wqZ10HQPeU8U/Q=
 github.com/client9/misspell v0.3.4/go.mod h1:qj6jICC3Q7zFZvVWo7KLAzC3yx5G7kyvSDkc90ppPyw=
@@ -40,8 +38,6 @@ github.com/datawire/libk8s v0.0.0-20190923150809-3b461b0ee981/go.mod h1:GBLaVOgl
 github.com/datawire/liboauth2 v0.0.0-20190930180758-8a034a1de052 h1:ZHpQA5FLh7g9PLGVw9hZtfmG171cM3Vin62pbryum54=
 github.com/datawire/liboauth2 v0.0.0-20190930180758-8a034a1de052/go.mod h1:vI7KpNOeaANjxLPc3HLAyaY3GI0NCKUfetudypJ0640=
 github.com/datawire/pf v0.0.0-20180510150411-31a823f9495a/go.mod h1:H8uUmE8qqo7z9u30MYB9riLyRckPHOPBk9ZdCuH+dQQ=
-github.com/datawire/teleproxy v0.7.3-0.20191008172333-62878af1fb91 h1:HYiYYgfRvvAkN2YJL+1d+NDoojei4n+tgfcXqeN6Ha0=
-github.com/datawire/teleproxy v0.7.3-0.20191008172333-62878af1fb91/go.mod h1:zJcszWNe8hm+YamkdU2mfS+DUcCFMJBkG3ec4oDFNN0=
 github.com/datawire/vegeta v12.2.2-0.20190408190644-d94b721fc676+incompatible h1:6kO7uGyaYoMCMh/msX+/0ctqRNmHHvGZwmzvi0so1DI=
 github.com/datawire/vegeta v12.2.2-0.20190408190644-d94b721fc676+incompatible/go.mod h1:vffGW7inNy2jBw14JfMTUyveFieT7vuElP/4vWUA6uU=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=

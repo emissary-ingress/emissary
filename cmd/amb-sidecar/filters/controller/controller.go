@@ -11,7 +11,7 @@ import (
 
 	k8sClientCoreV1 "k8s.io/client-go/kubernetes/typed/core/v1"
 
-	"github.com/datawire/teleproxy/pkg/k8s"
+	"github.com/datawire/ambassador/pkg/k8s"
 
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta2"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/httpclient"
