@@ -30,9 +30,9 @@ export DOCKER_ERR=$(RED)ERROR: cannot find docker, please make sure docker is in
 preflight:
 ifeq ($(strip $(shell $(BUILDER))),)
 	@printf "$(WHT)==$(GRN)Preflight checks$(WHT)==$(END)\n"
-	# Checking for rsync --info
+# Checking for rsync --info
 	test -n "$$(rsync --help | fgrep -- --info)" || (printf "$${RSYNC_ERR}\n"; exit 1)
-	# Checking for docker
+# Checking for docker
 	which docker > /dev/null || (printf "$${DOCKER_ERR}\n"; exit 1)
 endif
 .PHONY: preflight
