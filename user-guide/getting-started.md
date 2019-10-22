@@ -3,7 +3,8 @@
 ## 1. Deploying Ambassador Edge Stack
 
 <div style="border: thick solid red">
-Note, the secret.yaml file is temporary during internal Datawire development and can be obtained from the [Google drive](https://drive.google.com/file/d/1q-fmSXU966UtAARrzyCnaKTVbcpkg2n-/view?usp=sharing).
+Note, the secret.yaml file is temporary during internal Datawire development and can be obtained from the 
+<a href="https://drive.google.com/file/d/1q-fmSXU966UtAARrzyCnaKTVbcpkg2n-/view?usp=sharing">Google drive</a>.
 </div>
 
 ```shell
