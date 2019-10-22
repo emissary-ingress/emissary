@@ -3,16 +3,17 @@ import pytest, re
 from kat.utils import ShellCommand
 from abstract_tests import AmbassadorTest, ServiceType, HTTP
 
-access_log_entry_regex = re.compile('^ACCESS \\[.*?\\] \\\"GET \\/ambassador')
+access_log_entry_regex = re.compile('^MY_REQUEST 200 .*')
 
 
-class EnvoyLogPathTest(AmbassadorTest):
+class EnvoyLogTest(AmbassadorTest):
     target: ServiceType
     log_path: str
 
     def init(self):
         self.target = HTTP()
         self.log_path = '/tmp/ambassador/ambassador.log'
+        self.log_format = 'MY_REQUEST %RESPONSE_CODE% \"%REQ(:AUTHORITY)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%UPSTREAM_HOST%\"'
 
     def config(self):
         yield self, self.format("""
@@ -23,6 +24,7 @@ name: ambassador
 ambassador_id: {self.ambassador_id}
 config:
   envoy_log_path: {self.log_path}
+  envoy_log_format: {self.log_format}
 """)
 
     def check(self):
@@ -31,4 +33,4 @@ config:
             pytest.exit("envoy access log does not exist")
 
         for line in cmd.stdout.splitlines():
-            assert access_log_entry_regex.match(line)
+            assert access_log_entry_regex.match(line), f"{line} does not match {access_log_entry_regex}"

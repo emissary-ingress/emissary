@@ -17,7 +17,7 @@ and the CI will be green.
     git tag v0.77.0-rc1 master
     git push --tags origin master
 
-2. The RC tag will trigger CI to run a new build and new tests. It had better pass: if not, figure out why. Monitor https://travis-ci.org/datawire/amabassador/ until the CI for ambassador completes and is green.
+2. The RC tag will trigger CI to run a new build and new tests. It had better pass: if not, figure out why. Monitor https://travis-ci.com/datawire/amabassador/ until the CI for ambassador completes and is green.
 
 3. The RC build will be available as e.g. `quay.io/datawire/ambassador:0.77.0-rc1` and also as e.g. `quay.io/datawire/ambassador:0.77.0-rc-latest`. Any other testing you want to do against this image, rock on.
 
