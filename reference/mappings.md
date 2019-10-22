@@ -129,12 +129,14 @@ Here's an example for a REST service which Ambassador will contact using HTTPS:
 
 ```yaml
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v1
 kind:  Mapping
-name:  backend-https_mapping
-prefix: /backend/secure/
-rewrite: /secure/
-service: https://tour
+metadata:
+  name:  backend-https
+spec:
+  prefix: /backend/secure/
+  rewrite: /secure/
+  service: https://tour
 ```
 
 (Note that the 'http://' prefix for an HTTP service is optional.)
@@ -143,19 +145,23 @@ Here's an example for a CQRS service (using HTTP):
 
 ```yaml
 ---
-apiVersion: ambassador/v1
-kind: Mapping
-name: cqrs_get_mapping
-prefix: /cqrs/
-method: GET
-service: getcqrs
+apiVersion: getambassador.io/v1
+kind:  Mapping
+metadata:
+  name:  cqrs-get
+spec:
+  prefix: /cqrs/
+  method: GET
+  service: getcqrs
 ---
-apiVersion: ambassador/v1
-kind: Mapping
-name: cqrs_put_mapping
-prefix: /cqrs/
-method: PUT
-service: putcqrs
+apiVersion: getambassador.io/v1
+kind:  Mapping
+metadata:
+  name:  cqrs-put
+spec:
+  prefix: /cqrs/
+  method: PUT
+  service: putcqrs
 ```
 
 ## Resources
@@ -230,11 +236,13 @@ For example, defining a mapping with only a `/` prefix will catch all requests p
 
 ```yaml
 ---
-apiVersion: ambassador/v1
-kind: Mapping
-name: catch-all
-prefix: /
-service: https://www.getambassador.io
+apiVersion: getambassador.io/v1
+kind:  Mapping
+metadata:
+  name:  catch-all
+spec:
+  prefix: /
+  service: https://www.getambassador.io
 ```
 
 ###  <a name="precedence"></a> Using `precedence`

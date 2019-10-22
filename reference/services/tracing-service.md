@@ -10,15 +10,17 @@ A `TracingService` manifest configures Ambassador to use an external trace visua
 
 ```yaml
 ---
-apiVersion: ambassador/v1
-kind: TracingService
-name: tracing
-service: "example-zipkin:9411"
-driver: zipkin
-config: {}
-tag_headers:
-- ":authority"
-- ":path"
+apiVersion: getambassador.io/v1
+kind:  TracingService
+metadata:
+  name:  tracing
+spec:
+  service: "example-zipkin:9411"
+  driver: zipkin
+  config: {}
+  tag_headers:
+  - ":authority"
+  - ":path"
 ```
 
 - `service` gives the URL of the external HTTP trace service.
@@ -41,7 +43,7 @@ Please note that you must use the HTTP/2 preudo-header names. For example:
 ### `datadog` driver configurations:
 - `service_name` the name of the service which is attached to the traces. The default value is `ambassador`.
 
-You may only use a single `TracingService` manifest.
+You may only use a single `TracingService` manifest per Ambassador deployment. Ensure [ambassador_id](/reference/running/#ambassador_id) is set correctly in the `TracingService` manifest.
 
 ## Example
 

@@ -113,12 +113,12 @@ spec:
     spec:
       containers:
       - name: tour-ui
-        image: quay.io/datawire/tour:ui-%tourVersion%
+        image: quay.io/datawire/tour:ui-$tourVersion$
         ports:
         - name: http
           containerPort: 5000
       - name: quote
-        image: quay.io/datawire/tour:backend-%tourVersion%
+        image: quay.io/datawire/tour:backend-$tourVersion$
         ports:
         - name: http
           containerPort: 8080
@@ -166,6 +166,14 @@ When the `Mapping` CRDs are applied, Ambassador will use them to configure routi
 - The second `Mapping` causes traffic from the `/backend/` endpoint to be routed to the `tour-backend` service.
 
 Note also the port numbers in the `service` field of the `Mapping`. This allows us to use a single service to route to both the containers running on the `tour` pod.
+
+<font color=#f9634E>**Important:**</font>
+
+Routing in Ambassador can be configured with Ambassador resources as shown above, Kubernetes service annotation, and Kubernetes Ingress resources. 
+
+Ambassador custom resources are the recommended config format and will be used throughout the documentation.
+
+See [configuration format](/reference/config-format) for more information on your configuration options.
 
 ## 4. Testing the Mapping
 
