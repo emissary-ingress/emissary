@@ -106,7 +106,7 @@ spec:
   # address of that proxy. To preserve the orginal client IP address,
   # setting x_num_trusted_hops: 1 will tell Envoy to use the client IP
   # address in X-Forwarded-For. Please see the envoy documentation for
-  # more information: https://www.envoyproxy.io/docs/envoy/latest/configuration/http_conn_man/headers#x-forwarded-for
+  # more information: https://www.envoyproxy.io/docs/envoy/v1.11.2/configuration/http_conn_man/headers#x-forwarded-for
   # xff_num_trusted_hops: 0
 
   # Ambassador lets through only the HTTP requests with
@@ -202,7 +202,7 @@ spec:
       end
 ```
 
-For more details on the Lua API, see the [Envoy Lua filter documentation](https://www.envoyproxy.io/docs/envoy/latest/configuration/http_filters/lua_filter).
+For more details on the Lua API, see the [Envoy Lua filter documentation](https://www.envoyproxy.io/docs/envoy/v1.11.2/configuration/http_filters/lua_filter).
 
 Some caveats around the embedded scripts:
 
@@ -222,7 +222,7 @@ If set, `cluster_idle_timeout_ms` specifies the timeout (in milliseconds) after 
 
 ### gRPC HTTP/1.1 bridge (`enable_grpc_http11_bridge`)
 
-Ambassador supports bridging HTTP/1.1 clients to backend gRPC servers. When an HTTP/1.1 connection is opened and the request content type is `application/grpc`, Ambassador will buffer the response and translate into gRPC requests. For more details on the translation process, see the [Envoy gRPC HTTP/1.1 bridge documentation](https://www.envoyproxy.io/docs/envoy/latest/configuration/http_filters/grpc_http1_bridge_filter.html). This setting can be enabled by setting `enable_grpc_http11_bridge: true`.
+Ambassador supports bridging HTTP/1.1 clients to backend gRPC servers. When an HTTP/1.1 connection is opened and the request content type is `application/grpc`, Ambassador will buffer the response and translate into gRPC requests. For more details on the translation process, see the [Envoy gRPC HTTP/1.1 bridge documentation](https://www.envoyproxy.io/docs/envoy/v1.11.2/configuration/http_filters/grpc_http1_bridge_filter.html). This setting can be enabled by setting `enable_grpc_http11_bridge: true`.
 
 ### gRPC-Web (`enable_grpc_web`)
 
@@ -257,7 +257,7 @@ The liveness and readiness probe both support `prefix`, `rewrite`, and `service`
 
 ### `use_remote_address`
 
-In Ambassador 0.50 and later, the default value for `use_remote_address` to `true`. When set to `true`, Ambassador will append to the `X-Forwarded-For` header its IP address so upstream clients of Ambassador can get the full set of IP addresses that have propagated a request.  You may also need to set `externalTrafficPolicy: Local` on your `LoadBalancer` as well to propagate the original source IP address..  See the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest/configuration/http_conn_man/headers.html) and the [Kubernetes documentation](https://kubernetes.io/docs/tasks/access-application-cluster/create-external-load-balancer/#preserving-the-client-source-ip) for more details.
+In Ambassador 0.50 and later, the default value for `use_remote_address` to `true`. When set to `true`, Ambassador will append to the `X-Forwarded-For` header its IP address so upstream clients of Ambassador can get the full set of IP addresses that have propagated a request.  You may also need to set `externalTrafficPolicy: Local` on your `LoadBalancer` as well to propagate the original source IP address..  See the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/v1.11.2/configuration/http_conn_man/headers.html) and the [Kubernetes documentation](https://kubernetes.io/docs/tasks/access-application-cluster/create-external-load-balancer/#preserving-the-client-source-ip) for more details.
 
 **Note well** that if you need to use `X-Forwarded-Proto`, you **must** set `use_remote_address` to `false`.
 
@@ -275,6 +275,6 @@ The value of `xff_num_trusted_hops` indicates the number of trusted proxies in f
 
 - If `use_remote_address` is `true` and `xff_num_trusted_hops` is set to a value N that is greater than zero, the trusted client address is the Nth address from the right end of XFF. (If the XFF contains fewer than N addresses, Envoy falls back to using the immediate downstream connection’s source address as trusted client address.)
 
-Refer to [Envoy's documentation](https://www.envoyproxy.io/docs/envoy/latest/configuration/http_conn_man/headers#x-forwarded-for) for some detailed examples on this interaction.
+Refer to [Envoy's documentation](https://www.envoyproxy.io/docs/envoy/v1.11.2/configuration/http_conn_man/headers#x-forwarded-for) for some detailed examples on this interaction.
 
 **NOTE:** This value is not dynamically configurable in Envoy. A restart is required  changing the value of `xff_num_trusted_hops` for Envoy to respect the change.
