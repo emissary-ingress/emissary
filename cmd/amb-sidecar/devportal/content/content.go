@@ -19,6 +19,7 @@ type Content struct {
 	funcMap template.FuncMap
 	md      MarkdownRenderer
 }
+
 type ContentVars interface {
 	SetPages(pages []string)
 	CurrentPage() (page string)

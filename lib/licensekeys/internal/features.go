@@ -1,3 +1,4 @@
+//nolint:dupl // We cannot unify feature and limit because of UnmarshalJSON needs access to a separate global variable
 package internal
 
 import (

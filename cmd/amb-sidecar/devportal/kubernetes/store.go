@@ -20,7 +20,8 @@ type ServiceMetadata struct {
 	BaseURL string
 	HasDoc  bool
 	// May be nil even if HasDoc is true if loaded without the doc.
-	Doc *openapi.OpenAPIDoc
+	Doc   *openapi.OpenAPIDoc
+	limit *LimitClaim
 }
 
 type ServiceRecord struct {
@@ -49,24 +50,77 @@ type ServiceStore interface {
 
 // In-memory implementation of ServiceStore.
 type inMemoryStore struct {
-	mutex    sync.RWMutex
-	metadata MetadataMap
+	mutex         sync.RWMutex
+	metadata      MetadataMap
+	documentLimit ThresholdLimit
+}
+
+type ThresholdLimit struct {
+	mutex sync.RWMutex
+	limit int
+	usage int
+}
+
+type LimitClaim struct {
+	claimed bool
+}
+
+func (t *ThresholdLimit) Claim(claim bool) *LimitClaim {
+	t.mutex.Lock()
+	defer t.mutex.Unlock()
+
+	if claim && t.usage < t.limit {
+		t.usage++
+	} else {
+		claim = false
+	}
+	return &LimitClaim{
+		claimed: claim,
+	}
+}
+
+func (t *ThresholdLimit) Unclaim(c *LimitClaim) {
+	if c == nil {
+		return
+	}
+	t.mutex.Lock()
+	defer t.mutex.Unlock()
+
+	if c.claimed {
+		t.usage--
+		c.claimed = false
+	}
 }
 
 // Create in-memory implementation of ServiceStore.
-func NewInMemoryStore() *inMemoryStore {
-	return &inMemoryStore{metadata: make(MetadataMap)}
+func NewInMemoryStore(serviceLimit int) *inMemoryStore {
+	return &inMemoryStore{
+		metadata:      make(MetadataMap),
+		documentLimit: ThresholdLimit{limit: serviceLimit},
+	}
 }
 
 func (s *inMemoryStore) Set(ks Service, m ServiceMetadata) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
+	if old, ok := s.metadata[ks]; ok {
+		s.documentLimit.Unclaim(old.limit)
+	}
+	s.documentLimit.Unclaim(m.limit)
+	m.HasDoc = m.Doc != nil
+	m.limit = s.documentLimit.Claim(m.HasDoc)
+	if !m.limit.claimed && m.HasDoc {
+		m.Doc.Redact()
+	}
 	s.metadata[ks] = &m
 }
 
 func (s *inMemoryStore) Delete(ks Service) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
+	if old, ok := s.metadata[ks]; ok {
+		s.documentLimit.Unclaim(old.limit)
+	}
 	delete(s.metadata, ks)
 }
 

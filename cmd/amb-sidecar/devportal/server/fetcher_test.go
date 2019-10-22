@@ -90,7 +90,7 @@ func urlMust(u *url.URL, err error) *url.URL {
 // Big picture test of retrieving info from diagd and OpenAPI endpoint.
 func TestFetcherRetrieve(t *testing.T) {
 	g := NewGomegaWithT(t)
-	s := NewServer("", nil)
+	s := NewServer("", nil, 1)
 
 	// Start out knowing about one service, but it's going to go away:
 	oldSvc := kubernetes.Service{Name: "old"}

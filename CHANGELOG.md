@@ -10,6 +10,7 @@ Configuration
 Behavior:
 
  * `apictl traffic initialize` no longer waits for the traffic-proxy to become ready before exiting.
+ * Feature: Developer portal will show swagger documentation for up to five services (or more with appropriate license)
 
 Other:
 

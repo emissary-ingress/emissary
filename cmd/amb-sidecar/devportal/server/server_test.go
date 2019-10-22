@@ -53,7 +53,7 @@ func TestAddThenGetViaHTTP(t *testing.T) {
 `)
 
 	g := NewGomegaWithT(t)
-	s := NewServer("", nil)
+	s := NewServer("", nil, 1)
 	baseURL := "https://example.com"
 	prefix := "/foo"
 	svc := kubernetes.Service{Name: "mysvc", Namespace: "myns"}
@@ -78,7 +78,7 @@ func TestAddThenGetViaHTTP(t *testing.T) {
 // An unknown OpenAPI doc results in a 404.
 func TestOpenAPIDocNotFound(t *testing.T) {
 	g := NewGomegaWithT(t)
-	s := NewServer("", nil)
+	s := NewServer("", nil, 1)
 	req, _ := http.NewRequest(
 		"GET", "/openapi/services/myns/mysvc/openapi.json", nil)
 	rr := httptest.NewRecorder()

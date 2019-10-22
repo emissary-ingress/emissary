@@ -241,7 +241,7 @@ func (s *Server) Init(fetcher MappingSubscriptions) {
 // TODO The URL scheme exposes Service names and K8s namespace names, which is
 // perhaps a security risk, and more broadly might be embarrassing for some
 // organizations. So might want some better URL scheme.
-func NewServer(docroot string, content *content.Content) *Server {
+func NewServer(docroot string, content *content.Content, serviceLimit int) *Server {
 	router := mux.NewRouter()
 	router.Use(logging.LoggingMiddleware)
 
@@ -249,7 +249,7 @@ func NewServer(docroot string, content *content.Content) *Server {
 	s := &Server{
 		router:   router,
 		content:  content,
-		K8sStore: kubernetes.NewInMemoryStore(),
+		K8sStore: kubernetes.NewInMemoryStore(serviceLimit),
 		pool:     bpool.NewBufferPool(64),
 		prefix:   root,
 	}

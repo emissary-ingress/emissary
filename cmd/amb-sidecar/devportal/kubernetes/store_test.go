@@ -67,5 +67,5 @@ func testStoreInterface(s ServiceStore, t *testing.T) {
 }
 
 func TestStore(t *testing.T) {
-	testStoreInterface(NewInMemoryStore(), t)
+	testStoreInterface(NewInMemoryStore(1), t)
 }

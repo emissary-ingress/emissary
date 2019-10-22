@@ -67,7 +67,9 @@ func init() {
 	var (
 		argCustomerID   string
 		argFeatures     []string
+		argLimits       []string
 		argLifetimeDays int
+		argV1           bool
 	)
 	create := &cobra.Command{
 		Use:   "create",
@@ -84,6 +86,11 @@ func init() {
 		},
 		fmt.Sprintf("comma-separated list of features to enable (known features: %v)",
 			strings.Join(licensekeys.ListKnownFeatures(), ",")))
+	create.Flags().StringSliceVar(&argLimits, "limits",
+		[]string{},
+		fmt.Sprintf("comma-separated list of limit=value (known limits: %v)",
+			strings.Join(licensekeys.ListKnownLimits(), ",")))
+	create.Flags().BoolVar(&argV1, "v1", false, "Create v1 license key, for forward compatibility")
 	create.MarkFlagRequired("id")
 	create.MarkFlagRequired("expiration")
 
@@ -102,7 +109,23 @@ func init() {
 		if len(unknownFeatures) > 0 {
 			return errors.Errorf("unrecognized --features: %v", unknownFeatures)
 		}
-		tokenstring := createTokenString(argCustomerID, features, now, expiresAt)
+		limits := make([]licensekeys.LimitValue, 0, len(argLimits))
+		type UnknownLimit struct {
+			Str string
+			Err error
+		}
+		var unknownLimits []UnknownLimit
+		for _, limitStr := range argLimits {
+			if limit, err := licensekeys.ParseLimitValue(limitStr); err != nil {
+				unknownLimits = append(unknownLimits, UnknownLimit{limitStr, err})
+			} else {
+				limits = append(limits, limit)
+			}
+		}
+		if len(unknownLimits) > 0 {
+			return errors.Errorf("unrecognized --limits: %v", unknownLimits)
+		}
+		tokenstring := createTokenString(argV1, argCustomerID, features, limits, now, expiresAt)
 		_, err := fmt.Println(tokenstring)
 		return err
 	}
@@ -110,17 +133,33 @@ func init() {
 	argparser.AddCommand(create)
 }
 
-func createTokenString(customerID string, features []licensekeys.Feature, now, expiresAt time.Time) string {
-	token := jwt.NewWithClaims(jwt.GetSigningMethod("PS512"), &licensekeys.LicenseClaimsV1{
-		LicenseKeyVersion: "v1",
-		CustomerID:        customerID,
-		EnabledFeatures:   features,
-		StandardClaims: jwt.StandardClaims{
-			IssuedAt:  now.Unix(),
-			NotBefore: now.Unix(),
-			ExpiresAt: expiresAt.Unix(),
-		},
-	})
+func createTokenString(argV1 bool, customerID string, features []licensekeys.Feature, limits []licensekeys.LimitValue, now, expiresAt time.Time) string {
+	var claims jwt.Claims
+	if argV1 {
+		claims = &licensekeys.LicenseClaimsV1{
+			LicenseKeyVersion: "v1",
+			CustomerID:        customerID,
+			EnabledFeatures:   features,
+			StandardClaims: jwt.StandardClaims{
+				IssuedAt:  now.Unix(),
+				NotBefore: now.Unix(),
+				ExpiresAt: expiresAt.Unix(),
+			},
+		}
+	} else {
+		claims = &licensekeys.LicenseClaimsV2{
+			LicenseKeyVersion: "v2",
+			CustomerID:        customerID,
+			EnabledFeatures:   features,
+			EnforcedLimits:    limits,
+			StandardClaims: jwt.StandardClaims{
+				IssuedAt:  now.Unix(),
+				NotBefore: now.Unix(),
+				ExpiresAt: expiresAt.Unix(),
+			},
+		}
+	}
+	token := jwt.NewWithClaims(jwt.GetSigningMethod("PS512"), claims)
 	tokenstring, err := token.SignedString(privKey)
 	if err != nil {
 		log.Fatalln(err)
@@ -137,4 +176,22 @@ func init() {
 		},
 	}
 	argparser.AddCommand(subcmd)
+}
+
+func init() {
+	validate := &cobra.Command{
+		Use:   "validate",
+		Short: "Validate the license keys passed as args",
+		Run: func(cmd *cobra.Command, args []string) {
+			for _, arg := range args {
+				key, err := licensekeys.ParseKey(arg)
+				if err != nil {
+					fmt.Println(err)
+					continue
+				}
+				fmt.Printf("%v\n", key)
+			}
+		},
+	}
+	argparser.AddCommand(validate)
 }
