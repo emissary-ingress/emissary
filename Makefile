@@ -577,7 +577,7 @@ clobber:
 # Release
 
 RELEASE_DRYRUN ?=
-release.bins = apictl apictl-key apro-plugin-runner
+release.bins = apictl apictl-key apro-plugin-runner local-devportal
 release.images = $(filter-out $(image.norelease),$(image.all))
 
 release: ## Cut a release; upload binaries to S3 and Docker images to Quay
