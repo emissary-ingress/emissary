@@ -14,15 +14,16 @@ _sym_db = _symbol_database.Default()
 
 
 from k8s.io.apimachinery.pkg.apis.meta.v1 import generated_pb2 as k8s_dot_io_dot_apimachinery_dot_pkg_dot_apis_dot_meta_dot_v1_dot_generated__pb2
+from k8s.io.api.core.v1 import generated_pb2 as k8s_dot_io_dot_api_dot_core_dot_v1_dot_generated__pb2
 
 
 DESCRIPTOR = _descriptor.FileDescriptor(
   name='Host.proto',
   package='',
   syntax='proto3',
-  serialized_pb=_b('\n\nHost.proto\x1a\x34k8s.io/apimachinery/pkg/apis/meta/v1/generated.proto\"\xba\x01\n\x08HostSpec\x12\x15\n\rambassador_id\x18\x01 \x03(\t\x12\x12\n\ngeneration\x18\x02 \x01(\x05\x12\x10\n\x08hostname\x18\x03 \x01(\t\x12\x45\n\x08selector\x18\x04 \x01(\x0b\x32\x33.k8s.io.apimachinery.pkg.apis.meta.v1.LabelSelector\x12\x15\n\racme_provider\x18\x05 \x01(\t\x12\x13\n\x0bsecret_name\x18\x06 \x01(\tb\x06proto3')
+  serialized_pb=_b('\n\nHost.proto\x1a\x34k8s.io/apimachinery/pkg/apis/meta/v1/generated.proto\x1a\"k8s.io/api/core/v1/generated.proto\"\xcd\x01\n\x08HostSpec\x12\x15\n\rambassador_id\x18\x01 \x03(\t\x12\x12\n\ngeneration\x18\x02 \x01(\x05\x12\x10\n\x08hostname\x18\x03 \x01(\t\x12\x45\n\x08selector\x18\x04 \x01(\x0b\x32\x33.k8s.io.apimachinery.pkg.apis.meta.v1.LabelSelector\x12(\n\racme_provider\x18\x05 \x01(\x0b\x32\x11.ACMEProviderSpec\x12\x13\n\x0bsecret_name\x18\x06 \x01(\t\"z\n\x10\x41\x43MEProviderSpec\x12\x11\n\tauthority\x18\x01 \x01(\t\x12\r\n\x05\x65mail\x18\x02 \x01(\t\x12\x44\n\x12private_key_secret\x18\x03 \x01(\x0b\x32(.k8s.io.api.core.v1.LocalObjectReferenceb\x06proto3')
   ,
-  dependencies=[k8s_dot_io_dot_apimachinery_dot_pkg_dot_apis_dot_meta_dot_v1_dot_generated__pb2.DESCRIPTOR,])
+  dependencies=[k8s_dot_io_dot_apimachinery_dot_pkg_dot_apis_dot_meta_dot_v1_dot_generated__pb2.DESCRIPTOR,k8s_dot_io_dot_api_dot_core_dot_v1_dot_generated__pb2.DESCRIPTOR,])
 
 
 
@@ -64,8 +65,8 @@ _HOSTSPEC = _descriptor.Descriptor(
       options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='acme_provider', full_name='HostSpec.acme_provider', index=4,
-      number=5, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=_b("").decode('utf-8'),
+      number=5, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
@@ -88,12 +89,60 @@ _HOSTSPEC = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=69,
-  serialized_end=255,
+  serialized_start=105,
+  serialized_end=310,
+)
+
+
+_ACMEPROVIDERSPEC = _descriptor.Descriptor(
+  name='ACMEProviderSpec',
+  full_name='ACMEProviderSpec',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='authority', full_name='ACMEProviderSpec.authority', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='email', full_name='ACMEProviderSpec.email', index=1,
+      number=2, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='private_key_secret', full_name='ACMEProviderSpec.private_key_secret', index=2,
+      number=3, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=312,
+  serialized_end=434,
 )
 
 _HOSTSPEC.fields_by_name['selector'].message_type = k8s_dot_io_dot_apimachinery_dot_pkg_dot_apis_dot_meta_dot_v1_dot_generated__pb2._LABELSELECTOR
+_HOSTSPEC.fields_by_name['acme_provider'].message_type = _ACMEPROVIDERSPEC
+_ACMEPROVIDERSPEC.fields_by_name['private_key_secret'].message_type = k8s_dot_io_dot_api_dot_core_dot_v1_dot_generated__pb2._LOCALOBJECTREFERENCE
 DESCRIPTOR.message_types_by_name['HostSpec'] = _HOSTSPEC
+DESCRIPTOR.message_types_by_name['ACMEProviderSpec'] = _ACMEPROVIDERSPEC
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 HostSpec = _reflection.GeneratedProtocolMessageType('HostSpec', (_message.Message,), dict(
@@ -102,6 +151,13 @@ HostSpec = _reflection.GeneratedProtocolMessageType('HostSpec', (_message.Messag
   # @@protoc_insertion_point(class_scope:HostSpec)
   ))
 _sym_db.RegisterMessage(HostSpec)
+
+ACMEProviderSpec = _reflection.GeneratedProtocolMessageType('ACMEProviderSpec', (_message.Message,), dict(
+  DESCRIPTOR = _ACMEPROVIDERSPEC,
+  __module__ = 'Host_pb2'
+  # @@protoc_insertion_point(class_scope:ACMEProviderSpec)
+  ))
+_sym_db.RegisterMessage(ACMEProviderSpec)
 
 
 # @@protoc_insertion_point(module_scope)

@@ -42,6 +42,7 @@ require (
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0
 	gopkg.in/yaml.v2 v2.2.2
 	istio.io/gogo-genproto v0.0.0-20190904133402-ee07f2785480
+	k8s.io/api v0.0.0-20190816221958-51687e09eeea
 	k8s.io/apimachinery v0.0.0-20190816201409-1714e684133b
 	k8s.io/cli-runtime v0.0.0-20190816224449-59d96aa1e208
 	k8s.io/client-go v11.0.1-0.20190816222228-6d55c1b1f1ca+incompatible
