@@ -7,6 +7,7 @@ require (
 	github.com/Masterminds/semver v1.4.2 // indirect
 	github.com/Masterminds/sprig v2.17.1+incompatible
 	github.com/aokoli/goutils v1.1.0 // indirect
+	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869
 	github.com/datawire/libk8s v0.0.0-20190923150809-3b461b0ee981
 	github.com/datawire/pf v0.0.0-20180510150411-31a823f9495a
 	github.com/ecodia/golang-awaitility v0.0.0-20180710094957-fb55e59708c7
