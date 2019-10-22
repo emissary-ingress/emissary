@@ -94,6 +94,13 @@ Format:
 --->
 
 <!--- CueAddReleaseNotes --->
+## [0.85.0] October 22, 2019
+[0.85.0]: https://github.com/datawire/ambassador/compare/v0.84.1...v0.85.0
+
+### Features
+
+- Support configuring the Envoy access log format (thanks to [John Esmet](https://github.com/esmet)!)
+
 ## [0.84.1] October 20, 2019
 [0.84.1]: https://github.com/datawire/ambassador/compare/v0.84.0...v0.84.1
 
