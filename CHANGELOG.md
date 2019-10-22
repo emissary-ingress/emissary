@@ -7,6 +7,10 @@ Configuration
  * The `JWT` and `OAuth2` Filter types support `renegotiateTLS`
  * The `JWT` Filter now has an `errorResponse` argument that allows templating the filter's error response.
 
+Other:
+
+ * Update Ambassador Core from Ambassador 0.83.0 to 0.85.0
+
 ## 0.9.0 (2019-10-08)
 
 Configuration

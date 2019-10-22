@@ -15,7 +15,7 @@ NAME            = ambassador-pro
 # For Make itself
 SHELL           = bash -o pipefail
 # For Makefile
-image.all       = $(sort $(patsubst %/Dockerfile,%,$(wildcard docker/*/Dockerfile)) docker/model-cluster-amb-sidecar-plugins ambassador/ambassador)
+image.all       = $(sort $(patsubst %/Dockerfile,%,$(wildcard docker/*/Dockerfile)) docker/model-cluster-amb-sidecar-plugins) # ambassador/ambassador)
 image.norelease = $(filter docker/model-cluster-% docker/loadtest-%,$(image.all))
 image.nocluster = docker/apro-plugin-runner
 # For docker.mk
