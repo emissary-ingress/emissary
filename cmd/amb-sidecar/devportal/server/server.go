@@ -3,6 +3,7 @@ package server
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 
@@ -185,9 +186,9 @@ func (s *Server) handleHTML(context string) http.HandlerFunc {
 		if err != nil {
 			log.Warn(s.content.Source(), err)
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(err.Error()))
-			w.Write([]byte("\n\n"))
-			w.Write([]byte(s.content.Source().String()))
+			io.WriteString(w, err.Error())
+			io.WriteString(w, "\n\n")
+			io.WriteString(w, s.content.Source().String())
 			return
 		}
 		buffer := s.pool.Get()
@@ -196,7 +197,7 @@ func (s *Server) handleHTML(context string) http.HandlerFunc {
 		if err != nil {
 			log.Warn(err)
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(err.Error()))
+			io.WriteString(w, err.Error())
 			return
 		}
 		w.Header().Set("Content-Type", "text/html")
