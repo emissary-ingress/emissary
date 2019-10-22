@@ -400,9 +400,12 @@ run-auth: bin_$(GOHOSTOS)_$(GOHOSTARCH)/amb-sidecar
 	env $$(cat pro-env.sh) APP_LOG_LEVEL=debug bin_$(GOHOSTOS)_$(GOHOSTARCH)/amb-sidecar main
 .PHONY: run-auth
 run-dev-portal: ## (LocalDev) Build and launch the dev server locally
-run-dev-portal: bin_$(GOHOSTOS)_$(GOHOSTARCH)/local-devportal
-	sh -x dev-hacks/dev-server.sh
+run-dev-portal: bin_$(GOHOSTOS)_$(GOHOSTARCH)/local-devportal devportal-content
+	bin_$(GOHOSTOS)_$(GOHOSTARCH)/local-devportal serve devportal-content
 .PHONY: run-dev-portal
+
+devportal-content:
+	git clone https://github.com/datawire/devportal-content
 
 venv/bin/activate: %/bin/activate:
 	mkdir -p $*
