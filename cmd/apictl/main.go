@@ -43,12 +43,12 @@ Information about open source code used in this executable is found at
 
 Information about open source code used in the Docker image installed by
 'apictl traffic initialize' is found in the '/traffic-proxy.opensource.tar.gz'
-file in the 'quay.io/datawire/ambassador_pro:traffic-proxy-{{.Version}}'
+file in the 'quay.io/datawire/aes:traffic-proxy-{{.Version}}'
 Docker image.
 
 Information about open source code used in the Docker image installed by
 'apictl traffic inject' is found in the '/app-sidecar.opensource.tar.gz'
-file in the 'quay.io/datawire/ambassador_pro:app-sidecar-{{.Version}}'
+file in the 'quay.io/datawire/aes:app-sidecar-{{.Version}}'
 Docker image.
 `)
 }

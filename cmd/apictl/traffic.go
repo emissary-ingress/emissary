@@ -112,7 +112,7 @@ func doInitialize(cmd *cobra.Command, args []string) error {
 
 	input := &strings.Builder{}
 	err := TRAFFIC_MANAGER.Execute(input, map[string]string{
-		"PROXY_IMAGE":            getenvDefault("PROXY_IMAGE", "quay.io/datawire/ambassador_pro:traffic-proxy-"+Version),
+		"PROXY_IMAGE":            getenvDefault("PROXY_IMAGE", "quay.io/datawire/aes:traffic-proxy-"+Version),
 		"AMBASSADOR_LICENSE_KEY": license_key,
 	})
 	if err != nil {
@@ -258,7 +258,7 @@ func munge(res k8s.Resource) error {
 	// inject the sidecar container
 	podSpec["containers"] = append(typecastList(podSpec["containers"]), map[string]interface{}{
 		"name":  "traffic-sidecar",
-		"image": getenvDefault("SIDECAR_IMAGE", "quay.io/datawire/ambassador_pro:app-sidecar-"+Version),
+		"image": getenvDefault("SIDECAR_IMAGE", "quay.io/datawire/aes:app-sidecar-"+Version),
 		"env": []map[string]string{
 			{"name": "APPNAME", "value": res.QName()},
 			{"name": "APPPORT", "value": app_port},

@@ -20,8 +20,11 @@ image.norelease = $(filter docker/model-cluster-% docker/loadtest-%,$(image.all)
 image.nocluster = docker/apro-plugin-runner
 # For docker.mk
 # If you change docker.tag.release, you'll also need to change the
-# image names in `cmd/apictl/traffic.go`.
-docker.tag.release    = quay.io/datawire/ambassador_pro:$(notdir $*)-$(VERSION)
+# image names in
+#  - `cmd/apictl/main.go`
+#  - `cmd/apictl/traffic.go`
+#  - `cmd/apro-plugin-runner/main.go`
+docker.tag.release    = quay.io/datawire/aes:$(notdir $*)-$(VERSION)
 docker.tag.buildcache = $(BUILDCACHE_DOCKER_REPO):$(notdir $*)-$(VERSION)
 # For k8s.mk
 K8S_IMAGES      = $(filter-out $(image.nocluster),$(image.all))
