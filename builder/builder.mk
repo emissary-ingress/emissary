@@ -114,7 +114,7 @@ pytest: test-ready
 		-e TEST_SERVICE_STATS=$$(sed -n 2p test-stats.docker.push.dev) \
 		-e KAT_IMAGE_PULL_POLICY=Always \
 		-e KAT_REQ_LIMIT \
-		-it $(shell $(BUILDER)) sh -c 'cd ambassador && pytest -ra $(PYTEST_ARGS)'
+		-it $(shell $(BUILDER)) sh -c 'cd ambassador && pytest --tb=short -ra $(PYTEST_ARGS)'
 .PHONY: pytest
 
 
