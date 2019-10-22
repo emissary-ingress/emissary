@@ -134,7 +134,7 @@ spec:
   - P-256
 ```
 
-## TLS `Module`
+## TLS `Module` (*Deprecated*)
 
 The TLS `Module` is deprecated. `TLSContext` should be used when using Ambassador version 0.50.0 and above.
 
@@ -189,4 +189,50 @@ spec:
       #
       # cacert_chain_file: /etc/cacert/tls.crt  # remember to set enabled!
 ```
+### `redirect_cleatext_from` (*Deprecated*)
 
+**Note:** Ambassador 0.84.0 now supports setting `redirect_cleartext_from` from a `TLSContext`. This should be used instead of the tls `Module` below.
+
+To configure Ambassador to do an http -> https redirect, you need to create a `tls` `Module` that sets `redirect_cleartext_from: <http_port>`.
+
+1. Create a `TLSContext` to handle TLS termination
+
+    ```yaml
+    apiVersion: ambassador/v1
+    kind: TLSContext
+    name: tls
+    hosts: ["*"]
+    secret: ambassador-cert
+    ```
+
+2. Configure a `TLS` `Module` to create the redirect listener in Ambassador on Ambassadors http port. By default, this is port `8080`
+
+    ```yaml
+    apiVersion: ambassador/v1
+    kind: Module
+    name: tls
+    config:
+      server:
+        redirect_cleartext_from: 8080
+    ```
+
+3. Verify the port assignments on the Ambassador service are correct.
+
+    The below service definition uses the default http and https port assignments
+
+    ```yaml
+    apiVersion: v1
+    kind: Service
+    metadata:
+      name: ambassador
+    spec:
+      ports:
+      - name: http
+        port: 80
+        targetPort: 8080
+      - name: https
+        port: 443
+        targetPort: 8443
+      selector:
+        service: ambassador
+    ```

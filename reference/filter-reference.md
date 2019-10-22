@@ -391,7 +391,7 @@ and any overlapping libraries used must have their versions match
 exactly.  This information is dockumented in an [apro-abi.txt][] file
 for each Ambassador Pro release.
 
-[apro-abi.txt]: https://s3.amazonaws.com/datawire-static-files/apro-abi/apro-abi@%aproVersion%.txt
+[apro-abi.txt]: https://s3.amazonaws.com/datawire-static-files/apro-abi/apro-abi@$aproVersion$.txt
 
 Plugins are compiled with `go build -buildmode=plugin`, and must have
 a `main.PluginMain` function with the signature `PluginMain(w
@@ -533,7 +533,7 @@ run `update-ca-certificates`.  Note that the `amb-sidecar` image sets
 root.
 
 ```Dockerfile
-FROM quay.io/datawire/ambassador_pro:amb-sidecar-%aproVersion%
+FROM quay.io/datawire/ambassador_pro:amb-sidecar-$aproVersion$
 USER root
 COPY ./my-certificate.pem /usr/local/share/ca-certificates/my-certificate.crt
 RUN update-ca-certificates
@@ -542,4 +542,4 @@ USER 1000
 
 When deploying Ambassador Pro, refer to that custom Docker image,
 rather than to
-`quay.io/datawire/ambassador_pro:amb-sidecar-%aproVersion%`.
+`quay.io/datawire/ambassador_pro:amb-sidecar-$aproVersion$`.
