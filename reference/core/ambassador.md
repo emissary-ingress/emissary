@@ -91,6 +91,10 @@ spec:
   # envoy_log_path defines the path of log envoy will use. By default this is standard output
   # envoy_log_path: /dev/fd/1
 
+  # envoy_log_format defines the envoy log line format.
+  # see https://www.envoyproxy.io/docs/envoy/latest/configuration/observability/access_log for a complete list of operators
+  # envoy_log_format: "ACCESS [%START_TIME%] \"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\" %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% \"%REQ(X-FORWARDED-FOR)%\" \"%REQ(U*    545 SER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\" \"%UPSTREAM_HOST%\""
+
   # use_remote_address controls whether Envoy will trust the remote
   # address of incoming connections or rely exclusively on the
   # X-Forwarded_For header.
