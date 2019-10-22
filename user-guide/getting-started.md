@@ -8,7 +8,8 @@ Note, the secret.yaml file is temporary during internal Datawire development and
 </div>
 
 ```shell
-kubectl apply -f secret.yaml && kubectl apply -f https://deploy-preview-91--datawire-ambassador.netlify.com/yaml/aes-crds.yaml && \
+kubectl apply -f secret.yaml && \
+kubectl apply -f https://deploy-preview-91--datawire-ambassador.netlify.com/yaml/aes-crds.yaml && \
 kubectl wait --for condition=established --timeout=60s crd -lproduct=aes && \
 kubectl apply -f https://deploy-preview-91--datawire-ambassador.netlify.com/yaml/aes.yaml && \
 kubectl -n ambassador wait --for condition=available --timeout=60s deploy -lproduct=aes
