@@ -503,6 +503,8 @@ clean: $(addsuffix .clean,$(wildcard docker/*.docker)) loadtest-clean
 # Files made by older versions.  Remove the tail of this list when the
 # commit making the change gets far enough in to the past.
 #
+# 2019-10-22
+	rm -fr dev-hacks/
 # 2019-10-19
 	rm -f docker/amb-sidecar/amb-sidecar
 	rm -f docker/model-cluster-amb-sidecar-plugins/Dockerfile docker/model-cluster-amb-sidecar-plugins/*.so
@@ -569,6 +571,7 @@ clobber:
 	rm -rf dev-hacks/.venv/
 	rm -rf venv
 	rm -rf ambassador
+	rm -rf devportal-content
 
 #
 # Release
