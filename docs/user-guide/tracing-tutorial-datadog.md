@@ -22,7 +22,8 @@ When using JSON logging with Envoy, Ambassador will automatically append the `dd
 ---
 apiVersion: getambassador.io/v1
 kind: Module
-name: ambassador
+metadata:
+  name: ambassador
 config:
   envoy_log_type: json
 ```
