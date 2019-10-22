@@ -97,6 +97,7 @@ test-ready: push
 .PHONY: test-ready
 
 PYTEST_ARGS ?=
+export PYTEST_ARGS
 
 pytest: test-ready
 	@printf "$(WHT)==$(GRN)Running $(BLU)py$(GRN) tests$(WHT)==$(END)\n"
@@ -106,16 +107,24 @@ pytest: test-ready
 		-e KAT_SERVER_DOCKER_IMAGE=$(KAT_SRV_IMAGE) \
 		-e KAT_IMAGE_PULL_POLICY=Always \
 		-e KAT_REQ_LIMIT \
-		-it $(shell $(BUILDER)) pytest $(PYTEST_ARGS)
+		-e PYTEST_ARGS \
+		-it $(shell $(BUILDER)) /buildroot/builder.sh pytest-internal
 .PHONY: pytest
 
 
 GOTEST_PKGS ?= ./...
+export GOTEST_PKGS
 GOTEST_ARGS ?=
+export GOTEST_ARGS
 
 gotest: test-ready
 	@printf "$(WHT)==$(GRN)Running $(BLU)go$(GRN) tests$(WHT)==$(END)\n"
-	docker exec -w /buildroot/$(MODULE) -e DTEST_REGISTRY=$(DEV_REGISTRY) -e DTEST_KUBECONFIG=/buildroot/kubeconfig.yaml -e GOTEST_PKGS=$(GOTEST_PKGS) -e GOTEST_ARGS=$(GOTEST_ARGS) $(shell $(BUILDER)) /buildroot/builder.sh test-internal
+	docker exec \
+		-e DTEST_REGISTRY=$(DEV_REGISTRY) \
+		-e DTEST_KUBECONFIG=/buildroot/kubeconfig.yaml \
+		-e GOTEST_PKGS \
+		-e GOTEST_ARGS \
+		-it $(shell $(BUILDER)) /buildroot/builder.sh gotest-internal
 .PHONY: gotest
 
 test: gotest pytest

@@ -162,7 +162,21 @@ case "${cmd}" in
             fi
         done
         ;;
-    test-internal)
+    pytest-internal)
+        # This runs inside the builder image
+        fail=""
+        for SRCDIR in $(find /buildroot -type d -name python -mindepth 2 -maxdepth 2); do
+            module=$(basename $(dirname ${SRCDIR}))
+            wd=$(dirname ${SRCDIR})
+            if ! (cd ${wd} && pytest ${PYTEST_ARGS}) then
+               fail="yes"
+            fi
+        done
+        if [ "${fail}" == yes ]; then
+            exit 1
+        fi
+        ;;
+    gotest-internal)
         # This runs inside the builder image
         fail=""
         for SRCDIR in $(find /buildroot -type f -name go.mod -mindepth 2 -maxdepth 2); do
