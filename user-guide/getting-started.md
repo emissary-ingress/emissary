@@ -2,7 +2,10 @@
 
 ## 1. Deploying Ambassador Edge Stack
 
-Note, the secret.yaml file is temporary and can be obtained [here](https://drive.google.com/file/d/1q-fmSXU966UtAARrzyCnaKTVbcpkg2n-/view?usp=sharing).
+Note, the secret.yaml file is temporary and can be obtained
+[here](https://drive.google.com/file/d/1q-fmSXU966UtAARrzyCnaKTVbcpkg2n-/view?usp=sharing). Also
+note, you will need to replace getambassador.io in the instructions
+below with the preview hostname!
 
 ```shell
 kubectl apply -f secret.yaml
