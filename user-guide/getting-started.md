@@ -14,8 +14,8 @@ kubectl apply -f https://deploy-preview-91--datawire-ambassador.netlify.com/yaml
 
 ## 2. Determine your IP Address
 
-Note that it may take a while for your load balancer ip address to be
-provisioned. Repeat this command as necessary until you get an ip
+Note that it may take a while for your load balancer IP address to be
+provisioned. Repeat this command as necessary until you get an IP
 address:
 
 ```shell
