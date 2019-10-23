@@ -61,7 +61,7 @@ sync() {
     real=$(cd ${sourcedir}; pwd)
 
     docker exec -i ${container} mkdir -p /buildroot/${name}
-    summarize-sync $name $container $(rsync --exclude-from=${DIR}/sync-excludes.txt --info=name -a --delete -e 'docker exec -i' ${real}/ ${container}:/buildroot/${name})
+    summarize-sync $name $container $(rsync --exclude-from=${DIR}/sync-excludes.txt --info=name -aO --delete -e 'docker exec -i' ${real}/ ${container}:/buildroot/${name})
 }
 
 dirty() {
