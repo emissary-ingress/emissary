@@ -195,7 +195,7 @@ class ListenerFactory:
             # We're redirecting cleartext. This means a second listener that has no TLS contexts,
             # and does nothing but redirects.
             new_listener = IRListener(
-                ir=ir, aconf=aconf, location=redirection_context,
+                ir=ir, aconf=aconf, location=redirection_context.location,
                 service_port=redirect_cleartext_from,
                 use_proxy_proto=amod.use_proxy_proto,
                 # Note: no TLS context here, this is a cleartext listener.
