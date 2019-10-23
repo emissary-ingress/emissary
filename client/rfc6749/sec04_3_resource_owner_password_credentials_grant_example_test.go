@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"sync"
 
-	"github.com/datawire/liboauth2/client/rfc6749"
+	"github.com/datawire/apro/client/rfc6749"
 )
 
 func ExampleResourceOwnerPasswordCredentialsClient() {

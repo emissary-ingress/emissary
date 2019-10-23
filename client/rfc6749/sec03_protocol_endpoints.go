@@ -5,7 +5,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	rfc6749common "github.com/datawire/liboauth2/common/rfc6749"
+	rfc6749common "github.com/datawire/apro/common/rfc6749"
 )
 
 // validateAuthorizationEndpointURI validates the requirements in §3.1.

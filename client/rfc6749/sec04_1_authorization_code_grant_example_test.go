@@ -6,13 +6,16 @@ import (
 	"net/http"
 	"sync"
 
-	"github.com/datawire/liboauth2/client/rfc6749"
+	"github.com/datawire/apro/client/rfc6749"
 )
 
-func ExampleImplicitClient() {
-	client, err := rfc6749.NewImplicitClient(
+func ExampleAuthorizationCodeClient() {
+	client, err := rfc6749.NewAuthorizationCodeClient(
 		"example-client",
 		mustParseURL("https://authorization-server.example.com/authorization"),
+		mustParseURL("https://authorization-server.example.com/token"),
+		rfc6749.ClientPasswordHeader("example-client", "example-password"),
+		http.DefaultClient,
 	)
 	if err != nil {
 		log.Fatal(err)
@@ -22,9 +25,9 @@ func ExampleImplicitClient() {
 	// stores pointers, it isn't actually nescessary to update the store whenever the session
 	// data changes.  However, save-on-change is implemented in this example in order to
 	// demonstrate how to save it for external data stores.
-	sessionStore := map[string]*rfc6749.ImplicitClientSessionData{}
+	sessionStore := map[string]*rfc6749.AuthorizationCodeClientSessionData{}
 	var sessionStoreLock sync.Mutex
-	LoadSession := func(r *http.Request) (sessionID string, sessionData *rfc6749.ImplicitClientSessionData) {
+	LoadSession := func(r *http.Request) (sessionID string, sessionData *rfc6749.AuthorizationCodeClientSessionData) {
 		cookie, _ := r.Cookie("session")
 		if cookie == nil {
 			return "", nil
@@ -35,7 +38,7 @@ func ExampleImplicitClient() {
 		sessionStoreLock.Unlock()
 		return sessionID, sessionData
 	}
-	SaveSession := func(sessionID string, sessionData *rfc6749.ImplicitClientSessionData) {
+	SaveSession := func(sessionID string, sessionData *rfc6749.AuthorizationCodeClientSessionData) {
 		sessionStoreLock.Lock()
 		sessionStore[sessionID] = sessionData
 		sessionStoreLock.Unlock()
@@ -71,12 +74,7 @@ func ExampleImplicitClient() {
 		http.Redirect(w, r, u.String(), http.StatusSeeOther)
 	})
 
-	http.HandleFunc("/.well-known/internal/redirecton", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "text/html")
-		_, _ = io.WriteString(w, `<script>window.location = "/.well-known/internal/redirection_helper?fragment=" + encodeURIComponent(window.location.hash.substring(1))</script>`)
-	})
-
-	http.HandleFunc("/.well-known/internal/redirecton_helper", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/.well-known/internal/redirection", func(w http.ResponseWriter, r *http.Request) {
 		sessionID, sessionData := LoadSession(r)
 		if sessionData == nil {
 			w.Header().Set("Content-Type", "text/html")
@@ -89,11 +87,15 @@ func ExampleImplicitClient() {
 			}
 		}()
 
-		fragment := r.URL.Query().Get("fragment")
-
-		err = client.ParseAuthorizationResponse(sessionData, fragment)
+		authorizationCode, err := client.ParseAuthorizationResponse(sessionData, r.URL)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		err = client.AccessToken(sessionData, authorizationCode)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadGateway)
 			return
 		}
 

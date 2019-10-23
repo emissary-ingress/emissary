@@ -6,7 +6,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/datawire/liboauth2/common/rfc7235/internal/rfc5234"
+	"github.com/datawire/apro/common/rfc7235/internal/rfc5234"
 )
 
 const (
