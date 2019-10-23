@@ -9,15 +9,15 @@ else
 		echo "updating $(STABLE_TXT_KEY) with $$(cat stable.txt)"; \
         aws s3api put-object \
             --bucket datawire-static-files \
-            --key ambassador/$(STABLE_TXT_KEY) \
+            --key aes/$(STABLE_TXT_KEY) \
             --body stable.txt; \
 	fi
 	@if [ -n "$(SCOUT_APP_KEY)" ]; then \
-		printf '{"application":"ambassador","latest_version":"$(RELEASE_VERSION)","notices":[]}' > app.json; \
+		printf '{"application":"aes","latest_version":"$(RELEASE_VERSION)","notices":[]}' > app.json; \
 		echo "updating $(SCOUT_APP_KEY) with $$(cat app.json)"; \
         aws s3api put-object \
             --bucket scout-datawire-io \
-            --key ambassador/$(SCOUT_APP_KEY) \
+            --key aes/$(SCOUT_APP_KEY) \
             --body app.json; \
 	fi
 endif
