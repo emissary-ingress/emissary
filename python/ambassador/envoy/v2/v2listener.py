@@ -587,7 +587,7 @@ class V2Listener(dict):
             config.ir.logger.info("V2L: no filter chains, need cleartext")
             need_cleartext = True
 
-        if config.ir.ambassador_module.get('allow_wizard', True):
+        if config.ir.wizard_allowed:
             config.ir.logger.info("V2L: wizard allowed, need cleartext")
             need_cleartext = True
 

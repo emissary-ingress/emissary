@@ -77,6 +77,7 @@ class IR:
     file_checker: Callable[[str], bool]
     resolvers: Dict[str, IRServiceResolver]
     redirect_cleartext_from: Optional[int]
+    wizard_allowed: bool
 
     def __init__(self, aconf: Config, secret_handler=None, file_checker=None) -> None:
         self.ambassador_id = Config.ambassador_id
@@ -85,6 +86,10 @@ class IR:
         self.statsd = aconf.statsd
 
         self.logger = logging.getLogger("ambassador.ir")
+
+        # Is the wizard allowed?
+        self.wizard_allowed = os.environ.get('AMBASSADOR_WIZARD_OK', None) and self.ambassador_module.get('allow-wizard', True)
+        self.logger.debug(f"Wizard is{'' if self.wizard_allowed else ' not'} allowed")
 
         # We're using setattr since since mypy complains about assigning directly to a method.
         secret_root = os.environ.get('AMBASSADOR_CONFIG_BASE_DIR', "/ambassador")
