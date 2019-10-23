@@ -165,11 +165,6 @@ class IR:
             # Uhoh.
             self.ambassador_module.set_active(False)    # This can't be good.
 
-        # Do we have any Host resources?
-        if not self.aconf.get_config("hosts"):
-            self.logger.info("IR: No Host resources, forcing debug mode!")
-            self.ambassador_module.debug_mode = True
-
         # Save circuit breakers, outliers, and services.
         self.breakers = aconf.get_config("CircuitBreaker") or {}
         self.outliers = aconf.get_config("OutlierDetection") or {}
@@ -214,9 +209,9 @@ class IR:
         ListenerFactory.load_all(self, aconf)
         MappingFactory.load_all(self, aconf)
 
-        # If we're in debug mode, take over the root prefix.
-        if self.ambassador_module.debug_mode:
-            self.logger.info(f"DEBUG: need edgy mapping")
+        # If the wizard is allowed, take over the root prefix.
+        if self.ambassador_module.get('allow-wizard', True):
+            self.logger.info(f"WIZARD ALLOWED: need edgy mapping")
 
             counter = 0
             name = 'edgy-mapping'

@@ -121,7 +121,9 @@ class ListenerFactory:
         # fire up multiprotocol listeners on ports 8080 and 8443. This means neither
         # requires TLS, but both have a full set of termination contexts.
 
-        if amod.debug_mode:
+        if amod.get('allow_wizard', True):
+            ir.logger.info('IRL: wizard allowed, overriding listeners')
+
             listeners = [
                 IRListener(
                     ir=ir, aconf=aconf, location=amod.location,
