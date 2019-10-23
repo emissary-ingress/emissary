@@ -481,6 +481,7 @@ class V2Listener(dict):
         self.http_filters: List[dict] = []
         self.listener_filters: List[dict] = []
         self.filter_chains: List[dict] = []
+        self.need_tls_inspector = False
 
         self.upgrade_configs: Optional[List[dict]] = None
 
@@ -599,14 +600,29 @@ class V2Listener(dict):
 
         if need_cleartext:
             # By definition, this chain has no TLS contexts.
-            self.filter_chains.append({
-                'filter_chain_match': {},
+            cleartext_chain = {
                 'routes': self.routes,
                 '_ctx_name': '-cleartext-',
                 '_ctx_hosts': ['*']
-            })
+            }
+
+            if self.need_tls_inspector:
+                cleartext_chain['filter_chain_match'] = {}
+
+            self.filter_chains.append(cleartext_chain)
 
             self.dump_chains(config)
+
+        # Set up the TLS inspector if we need it.
+        if self.need_tls_inspector:
+            config.ir.logger.info("V2L: enabling TLS inspector")
+
+            self.listener_filters.append({
+                'name': 'envoy.listener.tls_inspector',
+                'config': {}
+            })
+        else:
+            config.ir.logger.info("V2L: leaving TLS inspector disabled")
 
         # Clean up our filter chains...
         for chain in self.filter_chains:
@@ -708,7 +724,7 @@ class V2Listener(dict):
 
         for tls_context in config.ir.get_tls_contexts():
             if tls_context.get('hosts', None):
-                config.ir.logger.debug("V2Listener: SNI operating on termination context '%s'" % tls_context.name)
+                config.ir.logger.debug("V2Listener: SNI taking termination context '%s'" % tls_context.name)
                 config.ir.logger.debug(tls_context.as_json())
                 v2ctx = V2TLSContext(tls_context)
                 # config.ir.logger.debug(json.dumps(v2ctx, indent=4, sort_keys=True))
@@ -717,17 +733,13 @@ class V2Listener(dict):
                 config.ir.logger.debug("V2Listener: SNI skipping origination context '%s'" % tls_context.name)
 
         # OK. If we have multiple contexts here, SNI is likely a thing.
-        if len(envoy_contexts) > 0:
+        if len(envoy_contexts) > 1:
             config.ir.logger.debug("V2Listener: enabling SNI, %d contexts" % len(envoy_contexts))
             config.ir.logger.debug("            [ %s ]" % ", ".join([ x[0] for x in envoy_contexts ]))
 
             global_sni = True
-
-            # SNI requires the TLS inspector, but really, we probably always need it these days.
-            self.listener_filters.append({
-                'name': 'envoy.listener.tls_inspector',
-                'config': {}
-            })
+        else:
+            config.ir.logger.debug("V2Listener: disabling SNI, %d contexts" % len(envoy_contexts))
 
         for name, hosts, ctx in envoy_contexts:
             if not ctx:
@@ -743,15 +755,16 @@ class V2Listener(dict):
                 '_ctx_hosts': hosts
             }
 
-            if global_sni:
-                filter_chain_match = {
-                    'transport_protocol': 'tls'
-                }
+            # We have a TLS context, so we should make sure they're speaking TLS!
+            self.need_tls_inspector = True
+            filter_chain_match = {
+                'transport_protocol': 'tls'
+            }
 
-                if hosts != [ '*' ]:
-                    filter_chain_match['server_names'] = hosts
+            if global_sni and (hosts != [ '*' ]):
+                filter_chain_match['server_names'] = hosts
 
-                chain['filter_chain_match'] = filter_chain_match
+            chain['filter_chain_match'] = filter_chain_match
 
             for sni_route in config.sni_routes:
                 # Check if filter chain and SNI route have matching hosts
