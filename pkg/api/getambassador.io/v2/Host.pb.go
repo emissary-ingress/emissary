@@ -7,6 +7,7 @@ import (
 	fmt "fmt"
 	proto "github.com/gogo/protobuf/proto"
 	io "io"
+	v11 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	math "math"
 	math_bits "math/bits"
@@ -38,13 +39,13 @@ type HostSpec struct {
 	Selector *v1.LabelSelector `protobuf:"bytes,4,opt,name=selector,proto3" json:"selector,omitempty"`
 	// Specifies who to talk ACME with to get certs. Defaults to Let's Encrypt; if "none", do
 	// not try to do TLS for this Host.
-	AcmeProvider string `protobuf:"bytes,5,opt,name=acme_provider,json=acmeProvider,proto3" json:"acme_provider,omitempty"`
+	AcmeProvider *ACMEProviderSpec `protobuf:"bytes,5,opt,name=acme_provider,json=acmeProvider,proto3" json:"acme_provider,omitempty"`
 	// Name of the Kubernetes secret into which to save generated certificates. Defaults
 	// to $hostname
-	SecretName           string   `protobuf:"bytes,6,opt,name=secret_name,json=secretName,proto3" json:"secret_name,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
+	TlsSecret            *v11.LocalObjectReference `protobuf:"bytes,6,opt,name=tls_secret,json=tlsSecret,proto3" json:"tls_secret,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                  `json:"-"`
+	XXX_unrecognized     []byte                    `json:"-"`
+	XXX_sizecache        int32                     `json:"-"`
 }
 
 func (m *HostSpec) Reset()         { *m = HostSpec{} }
@@ -108,45 +109,118 @@ func (m *HostSpec) GetSelector() *v1.LabelSelector {
 	return nil
 }
 
-func (m *HostSpec) GetAcmeProvider() string {
+func (m *HostSpec) GetAcmeProvider() *ACMEProviderSpec {
 	if m != nil {
 		return m.AcmeProvider
+	}
+	return nil
+}
+
+func (m *HostSpec) GetTlsSecret() *v11.LocalObjectReference {
+	if m != nil {
+		return m.TlsSecret
+	}
+	return nil
+}
+
+type ACMEProviderSpec struct {
+	// Specifies who to talk ACME with to get certs. Defaults to Let's
+	// Encrypt; if "none", do not try to do TLS for this Host.
+	Authority            string                    `protobuf:"bytes,1,opt,name=authority,proto3" json:"authority,omitempty"`
+	Email                string                    `protobuf:"bytes,2,opt,name=email,proto3" json:"email,omitempty"`
+	PrivateKeySecret     *v11.LocalObjectReference `protobuf:"bytes,3,opt,name=private_key_secret,json=privateKeySecret,proto3" json:"private_key_secret,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                  `json:"-"`
+	XXX_unrecognized     []byte                    `json:"-"`
+	XXX_sizecache        int32                     `json:"-"`
+}
+
+func (m *ACMEProviderSpec) Reset()         { *m = ACMEProviderSpec{} }
+func (m *ACMEProviderSpec) String() string { return proto.CompactTextString(m) }
+func (*ACMEProviderSpec) ProtoMessage()    {}
+func (*ACMEProviderSpec) Descriptor() ([]byte, []int) {
+	return fileDescriptor_88d8e6496365725b, []int{1}
+}
+func (m *ACMEProviderSpec) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *ACMEProviderSpec) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_ACMEProviderSpec.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *ACMEProviderSpec) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ACMEProviderSpec.Merge(m, src)
+}
+func (m *ACMEProviderSpec) XXX_Size() int {
+	return m.Size()
+}
+func (m *ACMEProviderSpec) XXX_DiscardUnknown() {
+	xxx_messageInfo_ACMEProviderSpec.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ACMEProviderSpec proto.InternalMessageInfo
+
+func (m *ACMEProviderSpec) GetAuthority() string {
+	if m != nil {
+		return m.Authority
 	}
 	return ""
 }
 
-func (m *HostSpec) GetSecretName() string {
+func (m *ACMEProviderSpec) GetEmail() string {
 	if m != nil {
-		return m.SecretName
+		return m.Email
 	}
 	return ""
+}
+
+func (m *ACMEProviderSpec) GetPrivateKeySecret() *v11.LocalObjectReference {
+	if m != nil {
+		return m.PrivateKeySecret
+	}
+	return nil
 }
 
 func init() {
 	proto.RegisterType((*HostSpec)(nil), "HostSpec")
+	proto.RegisterType((*ACMEProviderSpec)(nil), "ACMEProviderSpec")
 }
 
 func init() { proto.RegisterFile("Host.proto", fileDescriptor_88d8e6496365725b) }
 
 var fileDescriptor_88d8e6496365725b = []byte{
-	// 270 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x4c, 0x90, 0xcf, 0x4a, 0xc3, 0x40,
-	0x10, 0xc6, 0xd9, 0xd6, 0x96, 0x76, 0x1a, 0x2f, 0x39, 0x85, 0x1e, 0x62, 0xd0, 0x4b, 0x4e, 0x1b,
-	0x6a, 0x3d, 0x78, 0xf6, 0xa4, 0x20, 0x2a, 0xe9, 0x03, 0x84, 0x49, 0x32, 0xa4, 0x4b, 0xba, 0xd9,
-	0x65, 0x77, 0x09, 0x78, 0xf5, 0xe9, 0x3c, 0xfa, 0x08, 0x92, 0x27, 0x91, 0xfc, 0xa1, 0xf6, 0x38,
-	0x3f, 0xe6, 0xfb, 0xe6, 0xc7, 0x00, 0x3c, 0x2b, 0xeb, 0xb8, 0x36, 0xca, 0xa9, 0xed, 0x43, 0xfd,
-	0x68, 0xb9, 0x50, 0x09, 0x6a, 0x21, 0xb1, 0x38, 0x8a, 0x86, 0xcc, 0x67, 0xa2, 0xeb, 0xaa, 0x07,
-	0x36, 0x91, 0xe4, 0x30, 0x69, 0x77, 0x49, 0x45, 0x0d, 0x19, 0x74, 0x54, 0x8e, 0xa9, 0xdb, 0xaf,
-	0x19, 0xac, 0xfa, 0x92, 0x83, 0xa6, 0xc2, 0xbf, 0x83, 0x6b, 0x94, 0x39, 0x5a, 0x8b, 0xa5, 0x32,
-	0x99, 0x28, 0x03, 0x16, 0xcd, 0xe3, 0x75, 0xea, 0xfd, 0xc3, 0x97, 0xd2, 0x0f, 0x01, 0xa6, 0x12,
-	0xa1, 0x9a, 0x60, 0x16, 0xb1, 0x78, 0x91, 0x5e, 0x10, 0x7f, 0x0b, 0xab, 0xa3, 0xb2, 0xae, 0x41,
-	0x49, 0xc1, 0x3c, 0x62, 0xf1, 0x3a, 0x3d, 0xcf, 0xfe, 0x3b, 0xac, 0x2c, 0x9d, 0xa8, 0x70, 0xca,
-	0x04, 0x57, 0x11, 0x8b, 0x37, 0xf7, 0x7b, 0x3e, 0x6a, 0xf3, 0x4b, 0x6d, 0xae, 0xeb, 0xaa, 0x07,
-	0x96, 0xf7, 0xda, 0xbc, 0xdd, 0xf1, 0x57, 0xcc, 0xe9, 0x74, 0x98, 0xa2, 0xe9, 0xb9, 0x64, 0x30,
-	0x2e, 0x24, 0x65, 0xda, 0xa8, 0x56, 0x94, 0x64, 0x82, 0xc5, 0x70, 0xd1, 0xeb, 0xe1, 0xc7, 0xc4,
-	0xfc, 0x1b, 0xd8, 0x58, 0x2a, 0x0c, 0xb9, 0x6c, 0x90, 0x5a, 0x0e, 0x2b, 0x30, 0xa2, 0x37, 0x94,
-	0xf4, 0xe4, 0x7d, 0x77, 0x21, 0xfb, 0xe9, 0x42, 0xf6, 0xdb, 0x85, 0x2c, 0x5f, 0x0e, 0x9f, 0xd9,
-	0xff, 0x05, 0x00, 0x00, 0xff, 0xff, 0x9b, 0x90, 0x73, 0x45, 0x5d, 0x01, 0x00, 0x00,
+	// 383 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x91, 0xcd, 0x6a, 0xdb, 0x40,
+	0x14, 0x85, 0x19, 0xbb, 0x36, 0xd6, 0xd4, 0x06, 0x77, 0xe8, 0x42, 0x98, 0x22, 0x84, 0xbb, 0xd1,
+	0x6a, 0x84, 0xeb, 0x52, 0xba, 0x6d, 0x4b, 0x69, 0x4b, 0x5b, 0x1c, 0xc6, 0x90, 0xad, 0x18, 0x8d,
+	0x6e, 0xec, 0x89, 0x7e, 0x46, 0xcc, 0x4c, 0x04, 0x7a, 0x99, 0xbc, 0x49, 0xf6, 0x59, 0xe6, 0x11,
+	0x82, 0x9f, 0x24, 0x48, 0x96, 0x7f, 0x08, 0xd9, 0x64, 0x39, 0x1f, 0xf7, 0x9c, 0x7b, 0xee, 0x19,
+	0x8c, 0x7f, 0x2b, 0x63, 0x69, 0xa9, 0x95, 0x55, 0xb3, 0xcf, 0xe9, 0x57, 0x43, 0xa5, 0x0a, 0x79,
+	0x29, 0x73, 0x2e, 0xb6, 0xb2, 0x00, 0x5d, 0x87, 0x65, 0xba, 0x69, 0x80, 0x09, 0x73, 0xb0, 0x3c,
+	0xac, 0x16, 0xe1, 0x06, 0x0a, 0xd0, 0xdc, 0x42, 0xd2, 0xa9, 0xe6, 0x27, 0x55, 0x28, 0x94, 0x86,
+	0x17, 0x66, 0xe6, 0x77, 0x3d, 0x3c, 0x6a, 0x16, 0xad, 0x4b, 0x10, 0xe4, 0x23, 0x9e, 0xf0, 0x3c,
+	0xe6, 0xc6, 0xf0, 0x44, 0xe9, 0x48, 0x26, 0x2e, 0xf2, 0xfb, 0x81, 0xc3, 0xc6, 0x27, 0xf8, 0x27,
+	0x21, 0x1e, 0xc6, 0x9d, 0x89, 0x54, 0x85, 0xdb, 0xf3, 0x51, 0x30, 0x60, 0x67, 0x84, 0xcc, 0xf0,
+	0x68, 0xab, 0x8c, 0x2d, 0x78, 0x0e, 0x6e, 0xdf, 0x47, 0x81, 0xc3, 0x8e, 0x6f, 0xb2, 0xc2, 0x23,
+	0x03, 0x19, 0x08, 0xab, 0xb4, 0xfb, 0xc6, 0x47, 0xc1, 0xdb, 0x4f, 0x4b, 0xba, 0x0f, 0x49, 0xcf,
+	0x4f, 0xa3, 0x65, 0xba, 0x69, 0x80, 0xa1, 0xcd, 0x69, 0xb4, 0x5a, 0xd0, 0x7f, 0x3c, 0x86, 0x6c,
+	0xdd, 0x49, 0xd9, 0xd1, 0x84, 0x7c, 0xc1, 0x13, 0x2e, 0x72, 0x88, 0x4a, 0xad, 0x2a, 0x99, 0x80,
+	0x76, 0x07, 0xad, 0xeb, 0x3b, 0xfa, 0xed, 0xc7, 0xff, 0x9f, 0x17, 0x1d, 0x6c, 0x6e, 0x63, 0xe3,
+	0x66, 0xee, 0x40, 0xc8, 0x2f, 0x8c, 0x6d, 0x66, 0x22, 0x03, 0x42, 0x83, 0x75, 0x87, 0xad, 0x28,
+	0x38, 0x8b, 0x42, 0x9b, 0xbe, 0xda, 0xc5, 0x4a, 0xf0, 0x6c, 0x15, 0x5f, 0x83, 0xb0, 0x0c, 0xae,
+	0x40, 0x43, 0x21, 0x80, 0x39, 0x36, 0x33, 0xeb, 0x56, 0x3a, 0xbf, 0x45, 0x78, 0xfa, 0x7c, 0x17,
+	0xf9, 0x80, 0x1d, 0x7e, 0x63, 0xb7, 0x4a, 0x4b, 0x5b, 0xbb, 0xa8, 0xed, 0xe0, 0x04, 0xc8, 0x7b,
+	0x3c, 0x80, 0x9c, 0xcb, 0xac, 0xed, 0xce, 0x61, 0xfb, 0x07, 0xb9, 0xc4, 0xa4, 0xd4, 0xb2, 0xe2,
+	0x16, 0xa2, 0x14, 0xea, 0x43, 0xb2, 0xfe, 0x2b, 0x93, 0x4d, 0x3b, 0x8f, 0xbf, 0x50, 0xef, 0x03,
+	0x7e, 0x1f, 0xdf, 0xef, 0x3c, 0xf4, 0xb0, 0xf3, 0xd0, 0xe3, 0xce, 0x43, 0xf1, 0xb0, 0xfd, 0xf5,
+	0xe5, 0x53, 0x00, 0x00, 0x00, 0xff, 0xff, 0x37, 0x8c, 0x3c, 0x5d, 0x5d, 0x02, 0x00, 0x00,
 }
 
 func (m *HostSpec) Marshal() (dAtA []byte, err error) {
@@ -173,17 +247,27 @@ func (m *HostSpec) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i -= len(m.XXX_unrecognized)
 		copy(dAtA[i:], m.XXX_unrecognized)
 	}
-	if len(m.SecretName) > 0 {
-		i -= len(m.SecretName)
-		copy(dAtA[i:], m.SecretName)
-		i = encodeVarintHost(dAtA, i, uint64(len(m.SecretName)))
+	if m.TlsSecret != nil {
+		{
+			size, err := m.TlsSecret.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintHost(dAtA, i, uint64(size))
+		}
 		i--
 		dAtA[i] = 0x32
 	}
-	if len(m.AcmeProvider) > 0 {
-		i -= len(m.AcmeProvider)
-		copy(dAtA[i:], m.AcmeProvider)
-		i = encodeVarintHost(dAtA, i, uint64(len(m.AcmeProvider)))
+	if m.AcmeProvider != nil {
+		{
+			size, err := m.AcmeProvider.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintHost(dAtA, i, uint64(size))
+		}
 		i--
 		dAtA[i] = 0x2a
 	}
@@ -223,6 +307,59 @@ func (m *HostSpec) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *ACMEProviderSpec) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *ACMEProviderSpec) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *ACMEProviderSpec) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if m.PrivateKeySecret != nil {
+		{
+			size, err := m.PrivateKeySecret.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintHost(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.Email) > 0 {
+		i -= len(m.Email)
+		copy(dAtA[i:], m.Email)
+		i = encodeVarintHost(dAtA, i, uint64(len(m.Email)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Authority) > 0 {
+		i -= len(m.Authority)
+		copy(dAtA[i:], m.Authority)
+		i = encodeVarintHost(dAtA, i, uint64(len(m.Authority)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
 func encodeVarintHost(dAtA []byte, offset int, v uint64) int {
 	offset -= sovHost(v)
 	base := offset
@@ -257,12 +394,36 @@ func (m *HostSpec) Size() (n int) {
 		l = m.Selector.Size()
 		n += 1 + l + sovHost(uint64(l))
 	}
-	l = len(m.AcmeProvider)
+	if m.AcmeProvider != nil {
+		l = m.AcmeProvider.Size()
+		n += 1 + l + sovHost(uint64(l))
+	}
+	if m.TlsSecret != nil {
+		l = m.TlsSecret.Size()
+		n += 1 + l + sovHost(uint64(l))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *ACMEProviderSpec) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Authority)
 	if l > 0 {
 		n += 1 + l + sovHost(uint64(l))
 	}
-	l = len(m.SecretName)
+	l = len(m.Email)
 	if l > 0 {
+		n += 1 + l + sovHost(uint64(l))
+	}
+	if m.PrivateKeySecret != nil {
+		l = m.PrivateKeySecret.Size()
 		n += 1 + l + sovHost(uint64(l))
 	}
 	if m.XXX_unrecognized != nil {
@@ -429,7 +590,7 @@ func (m *HostSpec) Unmarshal(dAtA []byte) error {
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field AcmeProvider", wireType)
 			}
-			var stringLen uint64
+			var msglen int
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowHost
@@ -439,27 +600,121 @@ func (m *HostSpec) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
+			if msglen < 0 {
 				return ErrInvalidLengthHost
 			}
-			postIndex := iNdEx + intStringLen
+			postIndex := iNdEx + msglen
 			if postIndex < 0 {
 				return ErrInvalidLengthHost
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.AcmeProvider = string(dAtA[iNdEx:postIndex])
+			if m.AcmeProvider == nil {
+				m.AcmeProvider = &ACMEProviderSpec{}
+			}
+			if err := m.AcmeProvider.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
 			iNdEx = postIndex
 		case 6:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field SecretName", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field TlsSecret", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowHost
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthHost
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthHost
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.TlsSecret == nil {
+				m.TlsSecret = &v11.LocalObjectReference{}
+			}
+			if err := m.TlsSecret.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipHost(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthHost
+			}
+			if (iNdEx + skippy) < 0 {
+				return ErrInvalidLengthHost
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *ACMEProviderSpec) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowHost
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: ACMEProviderSpec: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: ACMEProviderSpec: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Authority", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -487,7 +742,75 @@ func (m *HostSpec) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.SecretName = string(dAtA[iNdEx:postIndex])
+			m.Authority = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Email", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowHost
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthHost
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthHost
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Email = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field PrivateKeySecret", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowHost
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthHost
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthHost
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.PrivateKeySecret == nil {
+				m.PrivateKeySecret = &v11.LocalObjectReference{}
+			}
+			if err := m.PrivateKeySecret.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
