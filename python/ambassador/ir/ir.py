@@ -168,7 +168,7 @@ class IR:
             self.ambassador_module.set_active(False)    # This can't be good.
 
         # Check on the edge stack and the wizard.
-        self.edge_stack_allowed = True if os.environ.get('AMBASSADOR_', None) else False
+        self.edge_stack_allowed = True if os.environ.get('AMBASSADOR_EDGE_STACK', None) else False
         self.wizard_allowed = self.edge_stack_allowed and self.ambassador_module.get('allow-wizard', True)
 
         _mode_str = 'Edge Stack' if self.edge_stack_allowed else 'OSS'
