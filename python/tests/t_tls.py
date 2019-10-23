@@ -1024,7 +1024,8 @@ max_tls_version: v1.2
                     maxTLSv="v1.3",
                     error=[ "tls: server selected unsupported protocol version 303",
                             "tls: no supported versions satisfy MinVersion and MaxVersion",
-                            "tls: protocol version not supported" ])
+                            "tls: protocol version not supported",
+                            "read: connection reset by peer"])  # The TLS inspector just closes the connection. Wow.
 
     def check(self):
         tls_0_version = self.results[0].backend.request.tls.negotiated_protocol_version
