@@ -42,16 +42,17 @@ class MappingFactory:
                                          rewrite='/firstboot/',
                                          service='127.0.0.1:8500'))
 
-        # Whether the wizard is allowed or not, add the mapping for ACME challenges.
-        ir.logger.info(f"MappingFactory: adding ACME challenge mapping")
+        if ir.edge_stack_allowed:
+            # Whether the wizard is allowed or not, add the mapping for ACME challenges.
+            ir.logger.info(f"MappingFactory: adding ACME challenge mapping")
 
-        ir.add_mapping(aconf,
-                       IRHTTPMapping(ir, aconf, rkey='--internal--', location='--internal--',
-                                     name=unique_mapping_name(aconf, 'acme-mapping'),
-                                     apiVersion='getambassador.io/v1',
-                                     prefix='/.well-known/acme-challenge/',
-                                     rewrite='/.well-known/acme-challenge/',
-                                     service='127.0.0.1:8500'))
+            ir.add_mapping(aconf,
+                           IRHTTPMapping(ir, aconf, rkey='--internal--', location='--internal--',
+                                         name=unique_mapping_name(aconf, 'acme-mapping'),
+                                         apiVersion='getambassador.io/v1',
+                                         prefix='/.well-known/acme-challenge/',
+                                         rewrite='/.well-known/acme-challenge/',
+                                         service='127.0.0.1:8500'))
 
     @classmethod
     def load_config(cls, ir: 'IR', aconf: Config, config_name: str, mapping_class: Type[IRBaseMapping]) -> None:

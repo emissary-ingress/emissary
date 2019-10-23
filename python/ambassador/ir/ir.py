@@ -77,6 +77,7 @@ class IR:
     file_checker: Callable[[str], bool]
     resolvers: Dict[str, IRServiceResolver]
     redirect_cleartext_from: Optional[int]
+    edge_stack_allowed: bool
     wizard_allowed: bool
 
     def __init__(self, aconf: Config, secret_handler=None, file_checker=None) -> None:
@@ -86,10 +87,6 @@ class IR:
         self.statsd = aconf.statsd
 
         self.logger = logging.getLogger("ambassador.ir")
-
-        # Is the wizard allowed?
-        self.wizard_allowed = os.environ.get('AMBASSADOR_WIZARD_OK', None) and self.ambassador_module.get('allow-wizard', True)
-        self.logger.debug(f"Wizard is{'' if self.wizard_allowed else ' not'} allowed")
 
         # We're using setattr since since mypy complains about assigning directly to a method.
         secret_root = os.environ.get('AMBASSADOR_CONFIG_BASE_DIR', "/ambassador")
@@ -169,6 +166,15 @@ class IR:
         if not self.ambassador_module.finalize(self, aconf):
             # Uhoh.
             self.ambassador_module.set_active(False)    # This can't be good.
+
+        # Check on the edge stack and the wizard.
+        self.edge_stack_allowed = True if os.environ.get('AMBASSADOR_', None) else False
+        self.wizard_allowed = self.edge_stack_allowed and self.ambassador_module.get('allow-wizard', True)
+
+        _mode_str = 'Edge Stack' if self.edge_stack_allowed else 'OSS'
+        _wizard_str = 'allowed' if self.wizard_allowed else 'not allowed'
+
+        self.logger.debug(f"IR: starting {_mode_str}; wizard {_wizard_str}")
 
         # Save circuit breakers, outliers, and services.
         self.breakers = aconf.get_config("CircuitBreaker") or {}
