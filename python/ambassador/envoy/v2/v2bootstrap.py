@@ -2,8 +2,9 @@ from typing import TYPE_CHECKING
 from typing import cast as typecast
 
 from ...ir.ircluster import IRCluster
-from ...ir.irtracing import IRTracing
+from ...ir.irlogservice import IRLogService
 from ...ir.irratelimit import IRRateLimit
+from ...ir.irtracing import IRTracing
 
 from .v2cluster import V2Cluster
 
@@ -69,6 +70,12 @@ class V2Bootstrap(dict):
 
             assert tracing.cluster
             clusters.append(V2Cluster(config, typecast(IRCluster, tracing.cluster)))
+
+        if config.ir.log_services.values():
+            for als in config.ir.log_services.values():
+                log_service = typecast(IRLogService, als)
+                assert log_service.cluster
+                clusters.append(V2Cluster(config, typecast(IRCluster, log_service.cluster)))
 
         # if config.ratelimit:
         #     self['rate_limit_service'] = dict(config.ratelimit)

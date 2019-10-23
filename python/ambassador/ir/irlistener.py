@@ -40,7 +40,7 @@ class ListenerFactory:
     @classmethod
     def load_all(cls, ir: 'IR', aconf: Config) -> None:
         amod = ir.ambassador_module
-        
+
         primary_listener = IRListener(
             ir=ir, aconf=aconf, location=amod.location,
             service_port=amod.service_port,

@@ -39,6 +39,7 @@ from .irmappingfactory import MappingFactory
 from .irratelimit import IRRateLimit
 from .irtls import TLSModuleFactory, IRAmbassadorTLS
 from .irlistener import ListenerFactory, IRListener
+from .irlogservice import IRLogService, IRLogServiceFactory
 from .irtracing import IRTracing
 from .irtlscontext import IRTLSContext
 from .irserviceresolver import IRServiceResolver, IRServiceResolverFactory, SvcEndpoint, SvcEndpointSet
@@ -58,24 +59,25 @@ class IR:
     ambassador_id: str
     ambassador_namespace: str
     ambassador_nodename: str
-    tls_module: Optional[IRAmbassadorTLS]
-    tracing: Optional[IRTracing]
-    ratelimit: Optional[IRRateLimit]
-    router_config: Dict[str, Any]
-    filters: List[IRFilter]
-    listeners: List[IRListener]
-    groups: Dict[str, IRBaseMappingGroup]
+    aconf: Config
     clusters: Dict[str, IRCluster]
+    file_checker: Callable[[str], bool]
+    filters: List[IRFilter]
+    groups: Dict[str, IRBaseMappingGroup]
     grpc_services: Dict[str, IRCluster]
+    listeners: List[IRListener]
+    log_services: Dict[str, IRLogService]
+    ratelimit: Optional[IRRateLimit]
+    redirect_cleartext_from: Optional[int]
+    resolvers: Dict[str, IRServiceResolver]
+    router_config: Dict[str, Any]
     saved_resources: Dict[str, IRResource]
     saved_secrets: Dict[str, SavedSecret]
-    tls_contexts: Dict[str, IRTLSContext]
-    aconf: Config
-    secret_root: str
     secret_handler: SecretHandler
-    file_checker: Callable[[str], bool]
-    resolvers: Dict[str, IRServiceResolver]
-    redirect_cleartext_from: Optional[int]
+    secret_root: str
+    tls_contexts: Dict[str, IRTLSContext]
+    tls_module: Optional[IRAmbassadorTLS]
+    tracing: Optional[IRTracing]
 
     def __init__(self, aconf: Config, secret_handler=None, file_checker=None) -> None:
         self.ambassador_id = Config.ambassador_id
@@ -122,16 +124,17 @@ class IR:
         # multiple mappings can use the same service, and we don't want multiple
         # clusters.
         self.clusters = {}
-        self.grpc_services = {}
         self.filters = []
-        self.tracing = None
+        self.grpc_services = {}
+        self.listeners = []
+        self.log_services = {}
+        self.groups = {}
+        self.ratelimit = None
+        self.redirect_cleartext_from = None
+        self.resolvers = {}
         self.tls_contexts = {}
         self.tls_module = None
-        self.redirect_cleartext_from = None
-        self.ratelimit = None
-        self.listeners = []
-        self.groups = {}
-        self.resolvers = {}
+        self.tracing = None
 
         # OK, time to get this show on the road. First things first: set up the
         # Ambassador module.
@@ -164,6 +167,9 @@ class IR:
             # Uhoh.
             self.ambassador_module.set_active(False)    # This can't be good.
 
+        # REMEMBER FOR SAVING YOU NEED TO CALL save_resource!
+        # THIS IS VERY IMPORTANT!
+
         # Save circuit breakers, outliers, and services.
         self.breakers = aconf.get_config("CircuitBreaker") or {}
         self.outliers = aconf.get_config("OutlierDetection") or {}
@@ -174,9 +180,10 @@ class IR:
         # Next up, initialize our IRServiceResolvers.
         IRServiceResolverFactory.load_all(self, aconf)
 
-        # Save tracing and ratelimit settings.
+        # Save tracing, ratelimit, and logging settings.
         self.tracing = typecast(IRTracing, self.save_resource(IRTracing(self, aconf)))
         self.ratelimit = typecast(IRRateLimit, self.save_resource(IRRateLimit(self, aconf)))
+        IRLogServiceFactory.load_all(self, aconf)
 
         # After the Ambassador and TLS modules are done, we need to set up the
         # filter chains, which requires checking in on the auth, and
@@ -622,8 +629,11 @@ class IR:
             'groups': [ group.as_dict() for group in self.ordered_groups() ],
             'tls_contexts': [ context.as_dict() for context in self.tls_contexts.values() ],
             'services': self.services,
-            'k8s_status_updates': self.k8s_status_updates
+            'k8s_status_updates': self.k8s_status_updates,
         }
+
+        if self.log_services:
+            od['log_services'] = [ srv.as_dict() for srv in self.log_services.values() ]
 
         if self.tracing:
             od['tracing'] = self.tracing.as_dict()
