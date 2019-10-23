@@ -66,7 +66,7 @@ Information about open source code used in this executable is found at
 
 Information about open source code used in the Docker image used by
 '--docker' is found in the '/{{.Name}}.opensource.tar.gz' file in
-the 'quay.io/datawire/ambassador_pro:{{.Name}}-{{.Version}}'
+the 'quay.io/datawire/aes:{{.Name}}-{{.Version}}'
 Docker image.
 `))
 		t.Execute(os.Stdout, map[string]string{
@@ -136,7 +136,7 @@ func mainDocker(socketName, pluginFilepath string) error {
 
 	apro_plugin_runner_image := os.Getenv("APRO_PLUGIN_RUNNER_IMAGE")
 	if apro_plugin_runner_image == "" {
-		apro_plugin_runner_image = "quay.io/datawire/ambassador_pro:apro-plugin-runner-" + Version
+		apro_plugin_runner_image = "quay.io/datawire/aes:apro-plugin-runner-" + Version
 	}
 
 	pluginFileDir := filepath.Dir(pluginFilepath)
