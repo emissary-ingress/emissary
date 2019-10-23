@@ -196,7 +196,7 @@ $(BLD)Targets:$(END)
 
   $(BLD)make $(BLU)sync$(END)      -- syncs source code into the build container.
 
-  $(BLD)make $(BLU)version(END)    -- display source code versions.
+  $(BLD)make $(BLU)version$(END)    -- display source code versions.
 
   $(BLD)make $(BLU)compile$(END)   -- syncs and compiles the source code in the build container.
 
