@@ -7,8 +7,8 @@ import (
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/pkg/errors"
 
-	rfc6749common "github.com/datawire/liboauth2/common/rfc6749"
-	rfc6750resourceserver "github.com/datawire/liboauth2/resourceserver/rfc6750"
+	rfc6749common "github.com/datawire/apro/common/rfc6749"
+	rfc6750resourceserver "github.com/datawire/apro/resourceserver/rfc6750"
 
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta2"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/middleware"

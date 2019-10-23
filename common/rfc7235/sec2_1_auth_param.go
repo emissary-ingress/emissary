@@ -5,7 +5,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/datawire/liboauth2/common/rfc7235/internal/rfc7230"
+	"github.com/datawire/apro/common/rfc7235/internal/rfc7230"
 )
 
 // An AuthParam is an authentication parameter, as defined by §2.1.

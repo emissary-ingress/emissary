@@ -7,7 +7,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/datawire/liboauth2/resourceserver/rfc6749"
+	"github.com/datawire/apro/resourceserver/rfc6749"
 )
 
 // GetFromHeader returns the Bearer Token extracted from an HTTP request header, as specified by

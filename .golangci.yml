@@ -30,6 +30,15 @@ linters-settings:
       - golang.org/x/net/context # use "context"
       - github.com/datawire/kat-backend/xds/ # use "github.com/datawire/ambassador/go/"
       - github.com/lyft/ratelimit/proto/ # use "github.com/datawire/ambassador/go/"
+  goconst:
+    min-len: 5
+issues:
+  exclude-rules:
+    - linters: [dupl]
+      path: "(resourceserver|client|common)/.*"
+    - linters: [gocritic]
+      text: "elseif: can replace 'else {if cond {}}' with 'else if cond {}'"
+      path: "(resourceserver|client|common)/.*"
 run:
   build-tags:
     - test
