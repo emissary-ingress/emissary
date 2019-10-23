@@ -21,9 +21,9 @@ import (
 
 	"github.com/datawire/apro/lib/util"
 
-	"github.com/datawire/teleproxy/pkg/k8s"
-	"github.com/datawire/teleproxy/pkg/kubeapply"
-	"github.com/datawire/teleproxy/pkg/tpu"
+	"github.com/datawire/ambassador/pkg/k8s"
+	"github.com/datawire/ambassador/pkg/kubeapply"
+	"github.com/datawire/ambassador/pkg/tpu"
 
 	"github.com/datawire/apro/lib/licensekeys"
 )

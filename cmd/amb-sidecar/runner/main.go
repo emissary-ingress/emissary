@@ -24,7 +24,7 @@ import (
 	grpchealth "google.golang.org/grpc/health"
 
 	// first-party libraries
-	"github.com/datawire/teleproxy/pkg/k8s"
+	"github.com/datawire/ambassador/pkg/k8s"
 	stats "github.com/lyft/gostats"
 
 	// internal libraries: github.com/datawire/apro
