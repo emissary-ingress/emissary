@@ -214,36 +214,6 @@ class IR:
         ListenerFactory.load_all(self, aconf)
         MappingFactory.load_all(self, aconf)
 
-        # If the wizard is allowed, take over the root prefix.
-        if self.ambassador_module.get('allow-wizard', True):
-            self.logger.info(f"WIZARD ALLOWED: need edgy mapping")
-
-            counter = 0
-            name = 'edgy-mapping'
-
-            http_mappings = self.aconf.get_config('mappings') or {}
-            tcp_mappings = self.aconf.get_config('tcpmappings') or {}
-
-            while name in http_mappings or name in tcp_mappings:
-                name = f"edgy-mappings-{counter}"
-                counter += 1
-
-            base_edgy_mapping = {
-                'rkey': '--internal--',
-                'location': '--internal--',
-                'apiVersion': 'getambassador.io/v1',
-                'kind': 'Mapping',
-                'name': name,
-                'service': 'tour:5000',
-                'rewrite': '/'
-            }
-
-            for pfx in [ '/', '/edgy/' ]:
-                edgy_mapping = IRHTTPMapping(self, self.aconf, prefix=pfx, **base_edgy_mapping)
-
-                self.logger.info(f"DEBUG: adding edgy mapping {edgy_mapping}")
-                self.add_mapping(self.aconf, edgy_mapping)
-
         self.walk_saved_resources(aconf, 'add_mappings')
 
         TLSModuleFactory.finalize(self, aconf)
