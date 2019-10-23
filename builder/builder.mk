@@ -41,9 +41,15 @@ sync: preflight
 	@$(foreach MODULE,$(MODULES),$(BUILDER) sync $(MODULE) $(SOURCE_$(MODULE)) &&) true
 .PHONY: sync
 
+version:
+	@$(MAKE) --no-print-directory sync
+	@printf "$(WHT)==$(GRN)Module versions$(WHT)==$(END)\n"
+	@docker exec -i $(shell $(BUILDER)) /buildroot/builder.sh version-internal
+.PHONY: version
+
 compile:
 	@$(MAKE) --no-print-directory sync
-	@$(BUILDER) compile $(SOURCES)
+	@$(BUILDER) compile
 .PHONY: compile
 
 commit:
@@ -146,10 +152,18 @@ help:
 	@printf "$(subst $(NL),\n,$(HELP))\n"
 .PHONY: help
 
+# NOTE: this is not a typo, this is actually how you spell newline in Make
 define NL
 
 
 endef
+
+# NOTE: this is not a typo, this is actually how you spell space in Make
+define SPACE
+ 
+endef
+
+COMMA = ,
 
 define HELP
 
@@ -181,6 +195,8 @@ $(BLD)Targets:$(END)
   $(BLD)make $(BLU)preflight$(END) -- checks dependencies of this makefile.
 
   $(BLD)make $(BLU)sync$(END)      -- syncs source code into the build container.
+
+  $(BLD)make $(BLU)version(END)    -- display source code versions.
 
   $(BLD)make $(BLU)compile$(END)   -- syncs and compiles the source code in the build container.
 
