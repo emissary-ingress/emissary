@@ -5,7 +5,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	rfc6750client "github.com/datawire/liboauth2/client/rfc6750"
+	rfc6750client "github.com/datawire/apro/client/rfc6750"
 
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/oauth2handler/discovery"
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
