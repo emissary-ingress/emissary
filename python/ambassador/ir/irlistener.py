@@ -98,7 +98,7 @@ class ListenerFactory:
                 contexts[ctx.name] = ctx
 
                 ctx_kind = "a" if primary_context else "the primary"
-                ir.logger.debug(f"ListenerFactory: ctx {ctx.name} is {ctx_kind} termination context")
+                ir.logger.info(f"ListenerFactory: ctx {ctx.name} is {ctx_kind} termination context")
 
                 if not primary_context:
                     primary_context = ctx

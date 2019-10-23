@@ -601,8 +601,17 @@ class V2Listener(dict):
             # By definition, this chain has no TLS contexts.
             self.filter_chains.append({
                 'filter_chain_match': {},
-                'routes': self.routes
+                'routes': self.routes,
+                '_ctx_name': '-cleartext-',
+                '_ctx_hosts': ['*']
             })
+
+            self.dump_chains(config)
+
+        # Clean up our filter chains...
+        for chain in self.filter_chains:
+            chain.pop('_ctx_name', None)
+            chain.pop('_ctx_hosts', None)
 
         # OK. Build our base HTTP config...
         base_http_config: Dict[str, Any] = {
@@ -761,8 +770,8 @@ class V2Listener(dict):
                         matched = False
                         break
 
-                config.ir.logger.info("V2Listener:   SNI (2) route check %s %s take route for %s" %
-                                      (name, "TAKE" if matched else "SKIP", route_host))
+                config.ir.logger.info("V2Listener:   SNI (2) route check %s %s route for %s" %
+                                      (name, "TAKE" if matched else "SKIP", route_hosts))
 
                 if matched:
                     routes.append(sni_route['route'])
@@ -770,18 +779,19 @@ class V2Listener(dict):
             chain['routes'] = routes
             self.filter_chains.append(chain)
 
-        dumpinfo = []
+        self.dump_chains(config)
 
+    def dump_chains(self, config):
+        dumpinfo = []
         for chain in self.filter_chains:
             di = {
                 'filter_chain_match': chain.get('filter_chain_match') or {},
                 'route_count': len(chain['routes']),
-                'ctx_name': chain.pop('_ctx_name'),
-                'ctx_hosts': chain.pop('_ctx_hosts')
+                'ctx_name': chain['_ctx_name'],
+                'ctx_hosts': chain['_ctx_hosts']
             }
 
             dumpinfo.append(di)
-
         config.ir.logger.info("V2Listener: SNI filter chains\n%s" %
                               json.dumps(dumpinfo, indent=4, sort_keys=True))
 
