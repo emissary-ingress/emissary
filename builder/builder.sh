@@ -101,12 +101,16 @@ module_version() {
         fi
     done
 
+    if [[ ${RELEASE_VERSION} =~ ^v[0-9]+.*$ ]]; then
+        RELEASE_VERSION=${RELEASE_VERSION:1}
+    fi
+
     if [ -n "${dirty}" ]; then
         RELEASE_VERSION="${RELEASE_VERSION}-dirty"
     fi
 
     echo RELEASE_VERSION="\"${RELEASE_VERSION}\""
-    echo BUILD_VERSION="\"$(echo "${RELEASE_VERSION}" | sed 's/-rc[0-9]*$$//')\""
+    echo BUILD_VERSION="\"$(echo "${RELEASE_VERSION}" | sed 's/-rc[0-9]*$//')\""
 }
 
 sync() {
@@ -188,11 +192,19 @@ case "${cmd}" in
         bootstrap
         sync $1 $2 $(builder)
         ;;
+    release-version)
+        bootstrap
+        docker exec -i $(builder) /buildroot/builder.sh version-internal RELEASE_VERSION
+        ;;
+    version)
+        bootstrap
+        docker exec -i $(builder) /buildroot/builder.sh version-internal BUILD_VERSION
+        ;;
     version-internal)
-        for FILE in $(ls /buildroot/*.version | sort -u); do
-            . ${FILE}
-            echo ${MODULE}-${BUILD_VERSION}
-        done
+        shift
+        varname=$1
+        . $(ls /buildroot/*.version | sort -u | tail -1)
+        echo "${!varname}"
         ;;
     compile)
         shift

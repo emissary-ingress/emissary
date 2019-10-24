@@ -43,8 +43,7 @@ sync: preflight
 
 version:
 	@$(MAKE) --no-print-directory sync
-	@printf "$(WHT)==$(GRN)Module versions$(WHT)==$(END)\n"
-	@docker exec -i $(shell $(BUILDER)) /buildroot/builder.sh version-internal
+	@$(BUILDER) version $(DISTRO)
 .PHONY: version
 
 compile:
@@ -140,6 +139,46 @@ shell:
 	@$(BUILDER) shell
 .PHONY: shell
 
+AMB_IMAGE_RC=$(RELEASE_REGISTRY)/ambassador:$(RELEASE_VERSION)
+AMB_IMAGE_RC_LATEST=$(RELEASE_REGISTRY)/ambassador:$(BUILD_VERSION)-rc-latest
+AMB_IMAGE_RELEASE=$(RELEASE_REGISTRY)/ambassador:$(BUILD_VERSION)
+
+export RELEASE_REGISTRY_ERR=$(RED)ERROR: please set the RELEASE_REGISTRY make/env variable to the docker registry\n       you would like to use for release$(END)
+
+RELEASE_VERSION=$$($(BUILDER) release-version)
+BUILD_VERSION=$$($(BUILDER) version)
+
+rc: images
+	@test -n "$(RELEASE_REGISTRY)" || (printf "$${RELEASE_REGISTRY_ERR}\n"; exit 1)
+	@if [[ "$(RELEASE_VERSION)" =~ ^[0-9]+\.[0-9]+\.[0-9]+$$ ]]; then \
+		(printf "$(RED)ERROR: 'make rc' can only be used for non-release tags$(END)\n" && exit 1); \
+	fi
+	@printf "$(WHT)==$(GRN)Pushing release candidate $(BLU)ambassador$(GRN) image$(WHT)==$(END)\n"
+	docker tag ambassador $(AMB_IMAGE_RC)
+	docker push $(AMB_IMAGE_RC)
+	@if [[ "$(RELEASE_VERSION)" =~ ^[0-9]+\.[0-9]+\.[0-9]+-rc[0-9]*$$ ]]; then \
+		docker tag ambassador $(AMB_IMAGE_RC_LATEST) && \
+		docker push $(AMB_IMAGE_RC_LATEST) && \
+		printf "$(GRN)Tagged $(RELEASE_VERSION) as latest RC$(END)\n" ; \
+	fi
+.PHONY: rc
+
+release-prep:
+	bash $(OSS_HOME)/releng/release-prep.sh
+.PHONY: release-prep
+
+release:
+	@test -n "$(RELEASE_REGISTRY)" || (printf "$${RELEASE_REGISTRY_ERR}\n"; exit 1)
+	@$(MAKE) --no-print-directory sync
+	@if ! [[ "$(RELEASE_VERSION)" =~ ^[0-9]+\.[0-9]+\.[0-9]+$$ ]]; then \
+		(printf "$(RED)ERROR: 'make release' can only be used for release tags ('vX.Y.Z')$(END)\n" && exit 1); \
+	fi
+	@printf "$(WHT)==$(GRN)Promoting release $(BLU)ambassador$(GRN) image$(WHT)==$(END)\n"
+	docker pull $(AMB_IMAGE_RC_LATEST)
+	docker tag $(AMB_IMAGE_RC_LATEST) $(AMB_IMAGE_RELEASE)
+	docker push $(AMB_IMAGE_RELEASE)
+.PHONY: release
+
 clean:
 	@$(BUILDER) clean
 .PHONY: clean
@@ -220,6 +259,10 @@ $(BLD)Targets:$(END)
     Use $(BLD)\$$PYTEST_ARGS$(END) to pass args to pytest. ($(PYTEST_ARGS))
 
   $(BLD)make $(BLU)shell$(END)     -- starts a shell in the build container.
+
+  $(BLD)make $(BLU)rc$(END)        -- push a release candidate image to $(BLD)\$$RELEASE_REGISTRY$(END). ($(RELEASE_REGISTRY))
+
+  $(BLD)make $(BLU)release$(END)   -- promote a release candidate to a release.
 
   $(BLD)make $(BLU)clean$(END)     -- kills the build container.
 
