@@ -236,7 +236,7 @@ $(BLD)Targets:$(END)
 
   $(BLD)make $(BLU)sync$(END)      -- syncs source code into the build container.
 
-  $(BLD)make $(BLU)version$(END)    -- display source code versions.
+  $(BLD)make $(BLU)version$(END)   -- display source code version.
 
   $(BLD)make $(BLU)compile$(END)   -- syncs and compiles the source code in the build container.
 
@@ -263,10 +263,15 @@ $(BLD)Targets:$(END)
 
   $(BLD)make $(BLU)rc$(END)        -- push a release candidate image to $(BLD)\$$RELEASE_REGISTRY$(END). ($(RELEASE_REGISTRY))
 
-    The current commit must be tagged for this to work. If the tag is of the
-    form 'vX.Y.Z-rc[0-9]*', this will also push a tag of the form 'vX.Y.Z-rc-latest'.
+    The current commit must be tagged for this to work, and your tree must be clean.
+    If the tag is of the form 'vX.Y.Z-rc[0-9]*', this will also push a tag of the
+    form 'vX.Y.Z-rc-latest'.
 
   $(BLD)make $(BLU)release$(END)   -- promote a release candidate to a release.
+
+    The current commit must be tagged for this to work, and your tree must be clean.
+    Additionally, the tag must be of the form 'vX.Y.Z'. You must also have previously
+    build an RC for the same tag using the current $(BLD)\$$RELEASE_REGISTRY$(END).
 
   $(BLD)make $(BLU)clean$(END)     -- kills the build container.
 
