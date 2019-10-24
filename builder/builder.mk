@@ -262,6 +262,9 @@ $(BLD)Targets:$(END)
 
   $(BLD)make $(BLU)rc$(END)        -- push a release candidate image to $(BLD)\$$RELEASE_REGISTRY$(END). ($(RELEASE_REGISTRY))
 
+    The current commit must be tagged for this to work. If the tag is of the
+    form 'vX.Y.Z-rc[0-9]*', this will also push a tag of the form 'vX.Y.Z-rc-latest'.
+
   $(BLD)make $(BLU)release$(END)   -- promote a release candidate to a release.
 
   $(BLD)make $(BLU)clean$(END)     -- kills the build container.
