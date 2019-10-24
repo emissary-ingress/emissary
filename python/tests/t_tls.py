@@ -212,7 +212,8 @@ service: {self.target.path.fqdn}
         # error message that the Go authors will use, so I'm going ahead and including "certificate required"
         # in the list of allowed error messages below.  If that assumption ends up being wrong: Yes, future
         # person, it's OK to replace the string "certificate required" with the correct one for alert=116.
-        yield Query(self.url(self.name + "/"), insecure=True, minTLSv="v1.3", error=["tls: alert(116)", "tls: certificate required"])
+        yield Query(self.url(self.name + "/"), insecure=True, minTLSv="v1.3",
+                    error=["tls: alert(116)", "tls: certificate required", "read: connection reset"])
 
     def requirements(self):
         for r in super().requirements():
