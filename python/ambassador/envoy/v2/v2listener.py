@@ -592,7 +592,9 @@ class V2Listener(dict):
             config.ir.logger.info("V2L: wizard allowed, need cleartext")
             need_cleartext = True
 
-        for host in config.ir.aconf.get_config("hosts") or []:
+        host_dict = config.ir.aconf.get_config("hosts") or {}
+    
+        for host in host_dict.values():
             if host.get('acme-provider', 'zzz').lower() == 'none':
                 config.ir.logger.info(f"V2L: host {host.hostname} has ACME none, need cleartext")
                 need_cleartext = True
