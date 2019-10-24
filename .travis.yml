@@ -49,7 +49,6 @@ install:
   - PATH=~/bin:$PATH
   - source ~/.gimme/envs/latest.env
   - export DEV_KUBECONFIG=~/.kube/$(cat ~/kubernaut-claim.txt).yaml
-  - docker login -u="datawire-dev+ci" -p="CEAWVNREJHTOAHSOJFJHJZQYI7H9MELSU1RG1CD6XIFAURD5D7Y1N8F8MU0JO912" quay.io
 
 script:
   - docker pull ${DEV_REGISTRY}/builder:latest

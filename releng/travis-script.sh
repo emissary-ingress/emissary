@@ -94,12 +94,10 @@ case "$COMMIT_TYPE" in
     *)
         # CI might have set DOCKER_BUILD_USERNAME and DOCKER_BUILD_PASSWORD
         # (in case BASE_DOCKER_REPO is private)
-       if [[ -n "${DOCKER_BUILD_USERNAME:-}" ]]; then
-           docker login -u="$DOCKER_BUILD_USERNAME" --password-stdin "${BASE_DOCKER_REPO%%/*}" <<<"$DOCKER_BUILD_PASSWORD"
-       fi
+        docker login -u="${DOCKER_BUILD_USERNAME:datawire-dev+ci}" --password-stdin "${DEV_REGISTRY}" <<<"${DOCKER_BUILD_PASSWORD:-CEAWVNREJHTOAHSOJFJHJZQYI7H9MELSU1RG1CD6XIFAURD5D7Y1N8F8MU0JO912}"
 
-       make test
-       ;;
+        make test
+        ;;
 esac
 
 printf "========\nPublishing artifacts...\n"
@@ -107,7 +105,7 @@ printf "========\nPublishing artifacts...\n"
 case "$COMMIT_TYPE" in
     GA)
         if [[ -n "${DOCKER_RELEASE_USERNAME:-}" ]]; then
-            docker login -u="$DOCKER_RELEASE_USERNAME" --password-stdin "${RELEASE_DOCKER_REPO%%/*}" <<<"$DOCKER_RELEASE_PASSWORD"
+            docker login -u="$DOCKER_RELEASE_USERNAME" --password-stdin "${RELEASE_REGISTRY}" <<<"$DOCKER_RELEASE_PASSWORD"
         fi
         make release
         # XXX
@@ -115,7 +113,7 @@ case "$COMMIT_TYPE" in
         ;;
     RC)
         if [[ -n "${DOCKER_RELEASE_USERNAME:-}" ]]; then
-            docker login -u="$DOCKER_RELEASE_USERNAME" --password-stdin "${RELEASE_DOCKER_REPO%%/*}" <<<"$DOCKER_RELEASE_PASSWORD"
+            docker login -u="$DOCKER_RELEASE_USERNAME" --password-stdin "${RELEASE_REGISTRY}" <<<"$DOCKER_RELEASE_PASSWORD"
         fi
         make rc
         # XXX
@@ -123,7 +121,7 @@ case "$COMMIT_TYPE" in
         ;;
     EA)
         if [[ -n "${DOCKER_RELEASE_USERNAME:-}" ]]; then
-            docker login -u="$DOCKER_RELEASE_USERNAME" --password-stdin "${RELEASE_DOCKER_REPO%%/*}" <<<"$DOCKER_RELEASE_PASSWORD"
+            docker login -u="$DOCKER_RELEASE_USERNAME" --password-stdin "${RELEASE_REGISTRY}" <<<"$DOCKER_RELEASE_PASSWORD"
         fi
         make rc
         # XXX
