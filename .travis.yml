@@ -51,8 +51,10 @@ install:
   - docker login -u="datawire-dev+ci" -p="CEAWVNREJHTOAHSOJFJHJZQYI7H9MELSU1RG1CD6XIFAURD5D7Y1N8F8MU0JO912" quay.io
 
 script:
-  - ./releng/travis-script.sh
+  - docker pull ${DEV_REGISTRY}/builder:latest
+  - BOOTSTRAP_ARGS="--cache-from ${DEV_REGISTRY}/builder:latest" ./releng/travis-script.sh
 
 after_script:
   # release the kubernaut claim
   - ./releng/travis-cleanup.sh
+  - docker push ${DEV_REGISTRY}/builder:latest
