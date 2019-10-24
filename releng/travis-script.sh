@@ -96,7 +96,7 @@ case "$COMMIT_TYPE" in
         # (in case BASE_DOCKER_REPO is private)
         docker login -u="${DOCKER_BUILD_USERNAME:-datawire-dev+ci}" --password-stdin "${DEV_REGISTRY}" <<<"${DOCKER_BUILD_PASSWORD:-CEAWVNREJHTOAHSOJFJHJZQYI7H9MELSU1RG1CD6XIFAURD5D7Y1N8F8MU0JO912}"
 
-echo        make test
+        make test
         ;;
 esac
 
@@ -107,7 +107,7 @@ case "$COMMIT_TYPE" in
         if [[ -n "${DOCKER_RELEASE_USERNAME:-}" ]]; then
             docker login -u="$DOCKER_RELEASE_USERNAME" --password-stdin "${RELEASE_REGISTRY}" <<<"$DOCKER_RELEASE_PASSWORD"
         fi
-echo        make release
+        make release
         # XXX
 	#SCOUT_APP_KEY=app.json STABLE_TXT_KEY=stable.txt update-aws
         ;;
@@ -115,7 +115,7 @@ echo        make release
         if [[ -n "${DOCKER_RELEASE_USERNAME:-}" ]]; then
             docker login -u="$DOCKER_RELEASE_USERNAME" --password-stdin "${RELEASE_REGISTRY}" <<<"$DOCKER_RELEASE_PASSWORD"
         fi
-echo        make rc
+        make rc
         # XXX
 	#SCOUT_APP_KEY=testapp.json STABLE_TXT_KEY=teststable.txt update-aws
         ;;
@@ -123,7 +123,7 @@ echo        make rc
         if [[ -n "${DOCKER_RELEASE_USERNAME:-}" ]]; then
             docker login -u="$DOCKER_RELEASE_USERNAME" --password-stdin "${RELEASE_REGISTRY}" <<<"$DOCKER_RELEASE_PASSWORD"
         fi
-echo        make rc
+        make rc
         # XXX
         #SCOUT_APP_KEY=earlyapp.json STABLE_TXT_KEY=earlystable.txt update-aws
         ;;
