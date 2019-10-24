@@ -145,18 +145,19 @@ AMB_IMAGE_RELEASE=$(RELEASE_REGISTRY)/ambassador:$(BUILD_VERSION)
 
 export RELEASE_REGISTRY_ERR=$(RED)ERROR: please set the RELEASE_REGISTRY make/env variable to the docker registry\n       you would like to use for release$(END)
 
+RELEASE_TYPE=$$($(BUILDER) release-type)
 RELEASE_VERSION=$$($(BUILDER) release-version)
 BUILD_VERSION=$$($(BUILDER) version)
 
 rc: images
 	@test -n "$(RELEASE_REGISTRY)" || (printf "$${RELEASE_REGISTRY_ERR}\n"; exit 1)
-	@if [[ "$(RELEASE_VERSION)" =~ ^[0-9]+\.[0-9]+\.[0-9]+$$ ]]; then \
+	@if [ "$(RELEASE_TYPE)" == release ]; then \
 		(printf "$(RED)ERROR: 'make rc' can only be used for non-release tags$(END)\n" && exit 1); \
 	fi
 	@printf "$(WHT)==$(GRN)Pushing release candidate $(BLU)ambassador$(GRN) image$(WHT)==$(END)\n"
 	docker tag ambassador $(AMB_IMAGE_RC)
 	docker push $(AMB_IMAGE_RC)
-	@if [[ "$(RELEASE_VERSION)" =~ ^[0-9]+\.[0-9]+\.[0-9]+-rc[0-9]*$$ ]]; then \
+	@if [ "$(RELEASE_TYPE)" == rc ]; then \
 		docker tag ambassador $(AMB_IMAGE_RC_LATEST) && \
 		docker push $(AMB_IMAGE_RC_LATEST) && \
 		printf "$(GRN)Tagged $(RELEASE_VERSION) as latest RC$(END)\n" ; \
@@ -170,7 +171,7 @@ release-prep:
 release:
 	@test -n "$(RELEASE_REGISTRY)" || (printf "$${RELEASE_REGISTRY_ERR}\n"; exit 1)
 	@$(MAKE) --no-print-directory sync
-	@if ! [[ "$(RELEASE_VERSION)" =~ ^[0-9]+\.[0-9]+\.[0-9]+$$ ]]; then \
+	@if [ "$(RELEASE_TYPE)" != release ]; then \
 		(printf "$(RED)ERROR: 'make release' can only be used for release tags ('vX.Y.Z')$(END)\n" && exit 1); \
 	fi
 	@printf "$(WHT)==$(GRN)Promoting release $(BLU)ambassador$(GRN) image$(WHT)==$(END)\n"

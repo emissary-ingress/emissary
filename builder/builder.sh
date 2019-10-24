@@ -192,6 +192,22 @@ case "${cmd}" in
         bootstrap
         sync $1 $2 $(builder)
         ;;
+    release-type)
+        shift
+        RELVER="$1"
+        if [ -z "${RELVER}" ]; then
+            bootstrap
+            RELVER=$(docker exec -i $(builder) /buildroot/builder.sh version-internal RELEASE_VERSION)
+        fi
+
+        if [[ "${RELVER}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo release
+        elif [[ "${RELVER}" =~ ^[0-9]+\.[0-9]+\.[0-9]+-rc[0-9]*$ ]]; then
+            echo rc
+        else
+            echo other
+        fi
+        ;;
     release-version)
         bootstrap
         docker exec -i $(builder) /buildroot/builder.sh version-internal RELEASE_VERSION
