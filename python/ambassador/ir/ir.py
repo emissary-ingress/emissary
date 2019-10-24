@@ -77,6 +77,8 @@ class IR:
     file_checker: Callable[[str], bool]
     resolvers: Dict[str, IRServiceResolver]
     redirect_cleartext_from: Optional[int]
+    edge_stack_allowed: bool
+    wizard_allowed: bool
 
     def __init__(self, aconf: Config, secret_handler=None, file_checker=None) -> None:
         self.ambassador_id = Config.ambassador_id
@@ -165,10 +167,15 @@ class IR:
             # Uhoh.
             self.ambassador_module.set_active(False)    # This can't be good.
 
-        # Do we have any Host resources?
-        if not self.aconf.get_config("hosts"):
-            self.logger.info("IR: No Host resources, forcing debug mode!")
-            self.ambassador_module.debug_mode = True
+        # Check on the edge stack and the wizard. Note that the Edge Stack touchfile is _not_ within
+        # $AMBASSADOR_CONFIG_BASE_DIR: it stays in /ambassador no matter what.
+        self.edge_stack_allowed = os.path.exists('/ambassador/.edge_stack')
+        self.wizard_allowed = self.edge_stack_allowed and self.ambassador_module.get('allow-wizard', True)
+
+        _mode_str = 'Edge Stack' if self.edge_stack_allowed else 'OSS'
+        _wizard_str = 'allowed' if self.wizard_allowed else 'not allowed'
+
+        self.logger.debug(f"IR: starting {_mode_str}; wizard {_wizard_str}")
 
         # Save circuit breakers, outliers, and services.
         self.breakers = aconf.get_config("CircuitBreaker") or {}
@@ -213,36 +220,6 @@ class IR:
         # are, and they're handled above. So. At this point go sort out all the Mappings
         ListenerFactory.load_all(self, aconf)
         MappingFactory.load_all(self, aconf)
-
-        # If we're in debug mode, take over the root prefix.
-        if self.ambassador_module.debug_mode:
-            self.logger.info(f"DEBUG: need edgy mapping")
-
-            counter = 0
-            name = 'edgy-mapping'
-
-            http_mappings = self.aconf.get_config('mappings') or {}
-            tcp_mappings = self.aconf.get_config('tcpmappings') or {}
-
-            while name in http_mappings or name in tcp_mappings:
-                name = f"edgy-mappings-{counter}"
-                counter += 1
-
-            base_edgy_mapping = {
-                'rkey': '--internal--',
-                'location': '--internal--',
-                'apiVersion': 'getambassador.io/v1',
-                'kind': 'Mapping',
-                'name': name,
-                'service': 'tour:5000',
-                'rewrite': '/'
-            }
-
-            for pfx in [ '/', '/edgy/' ]:
-                edgy_mapping = IRHTTPMapping(self, self.aconf, prefix=pfx, **base_edgy_mapping)
-
-                self.logger.info(f"DEBUG: adding edgy mapping {edgy_mapping}")
-                self.add_mapping(self.aconf, edgy_mapping)
 
         self.walk_saved_resources(aconf, 'add_mappings')
 

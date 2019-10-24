@@ -98,7 +98,7 @@ class ListenerFactory:
                 contexts[ctx.name] = ctx
 
                 ctx_kind = "a" if primary_context else "the primary"
-                ir.logger.debug(f"ListenerFactory: ctx {ctx.name} is {ctx_kind} termination context")
+                ir.logger.info(f"ListenerFactory: ctx {ctx.name} is {ctx_kind} termination context")
 
                 if not primary_context:
                     primary_context = ctx
@@ -121,7 +121,9 @@ class ListenerFactory:
         # fire up multiprotocol listeners on ports 8080 and 8443. This means neither
         # requires TLS, but both have a full set of termination contexts.
 
-        if amod.debug_mode:
+        if ir.wizard_allowed:
+            ir.logger.info('IRL: wizard allowed, overriding listeners')
+
             listeners = [
                 IRListener(
                     ir=ir, aconf=aconf, location=amod.location,
@@ -193,7 +195,7 @@ class ListenerFactory:
             # We're redirecting cleartext. This means a second listener that has no TLS contexts,
             # and does nothing but redirects.
             new_listener = IRListener(
-                ir=ir, aconf=aconf, location=redirection_context,
+                ir=ir, aconf=aconf, location=redirection_context.location,
                 service_port=redirect_cleartext_from,
                 use_proxy_proto=amod.use_proxy_proto,
                 # Note: no TLS context here, this is a cleartext listener.
