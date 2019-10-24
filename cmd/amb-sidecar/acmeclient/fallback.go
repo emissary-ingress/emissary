@@ -13,15 +13,18 @@ import (
 	"math/big"
 	"net"
 	"net/url"
-	"os/exec"
 	"time"
 
 	"github.com/pkg/errors"
-	"gopkg.in/yaml.v2"
+
+	k8sErrors "k8s.io/apimachinery/pkg/api/errors"
+	k8sSchema "k8s.io/apimachinery/pkg/runtime/schema"
 
 	k8sTypesCoreV1 "k8s.io/api/core/v1"
-	k8sErrors "k8s.io/apimachinery/pkg/api/errors"
 	k8sTypesMetaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	k8sTypesUnstructured "k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+
+	k8sClientDynamic "k8s.io/client-go/dynamic"
 	k8sClientCoreV1 "k8s.io/client-go/kubernetes/typed/core/v1"
 
 	"github.com/datawire/ambassador/pkg/k8s"
@@ -43,40 +46,24 @@ func EnsureFallback(cfg types.Config, kubeinfo *k8s.KubeInfo) error {
 	if err != nil {
 		return err
 	}
+	dynamicClient, err := k8sClientDynamic.NewForConfig(restconfig)
+	if err != nil {
+		return err
+	}
 
 	if err := ensureFallbackSecret(cfg, coreClient); err != nil {
 		return err
 	}
-	if err := ensureFallbackContext(cfg, kubeinfo); err != nil {
+	if err := ensureFallbackContext(cfg, dynamicClient); err != nil {
 		return err
 	}
 	return nil
 }
 
-func applyResource(kubeinfo *k8s.KubeInfo, resource map[string]interface{}) error {
-	args, err := kubeinfo.GetKubectlArray("apply", "-f", "-")
-	if err != nil {
-		return err
-	}
-	cmd := exec.Command("kubectl", args...)
-	stdin, err := cmd.StdinPipe()
-	if err != nil {
-		return err
-	}
-	if err := cmd.Start(); err != nil {
-		return err
-	}
-	yamlErr := yaml.NewEncoder(stdin).Encode(resource)
-	stdin.Close()
-	exitErr := cmd.Wait()
-	if yamlErr != nil {
-		return yamlErr
-	}
-	return exitErr
-}
-
-func ensureFallbackContext(cfg types.Config, kubeinfo *k8s.KubeInfo) error {
-	return applyResource(kubeinfo, map[string]interface{}{
+func ensureFallbackContext(cfg types.Config, dynamicClient k8sClientDynamic.Interface) error {
+	tlsContextGetter := dynamicClient.Resource(k8sSchema.GroupVersionResource{Group: "getambassador.io", Version: "v1", Resource: "tlscontexts"})
+	tlsContextInterface := tlsContextGetter.Namespace(cfg.AmbassadorNamespace)
+	_, err := tlsContextInterface.Create(&k8sTypesUnstructured.Unstructured{map[string]interface{}{
 		"apiVersion": "getambassador.io/v1",
 		"kind":       "TLSContext",
 		"metadata": map[string]string{
@@ -89,7 +76,11 @@ func ensureFallbackContext(cfg types.Config, kubeinfo *k8s.KubeInfo) error {
 			},
 			"secret": SelfSignedSecretName,
 		},
-	})
+	}}, k8sTypesMetaV1.CreateOptions{})
+	if err != nil && !k8sErrors.IsAlreadyExists(err) {
+		return err
+	}
+	return nil
 }
 
 func ensureFallbackSecret(cfg types.Config, secretsGetter k8sClientCoreV1.SecretsGetter) error {
