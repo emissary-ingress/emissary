@@ -28,6 +28,7 @@ env:
   global:
     - DEV_REGISTRY=quay.io/datawire-dev
     - RELEASE_REGISTRY=quay.io/datawire-dev
+    - DBUILD_ARGS="--cache-from ${DEV_REGISTRY}/builder:latest"
 
     # Set from the repository settings:
     #- DOCKER_BUILD_USERNAME=[secure] (optional)
@@ -52,7 +53,7 @@ install:
 
 script:
   - docker pull ${DEV_REGISTRY}/builder:latest
-  - BOOTSTRAP_ARGS="--cache-from ${DEV_REGISTRY}/builder:latest" ./releng/travis-script.sh
+  - ./releng/travis-script.sh
 
 after_script:
   # release the kubernaut claim
