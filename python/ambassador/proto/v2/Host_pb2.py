@@ -21,7 +21,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='Host.proto',
   package='',
   syntax='proto3',
-  serialized_pb=_b('\n\nHost.proto\x1a\x34k8s.io/apimachinery/pkg/apis/meta/v1/generated.proto\x1a\"k8s.io/api/core/v1/generated.proto\"\xf4\x01\n\x08HostSpec\x12\x15\n\rambassador_id\x18\x01 \x03(\t\x12\x12\n\ngeneration\x18\x02 \x01(\x05\x12\x10\n\x08hostname\x18\x03 \x01(\t\x12\x45\n\x08selector\x18\x04 \x01(\x0b\x32\x33.k8s.io.apimachinery.pkg.apis.meta.v1.LabelSelector\x12\'\n\x0c\x61\x63meProvider\x18\x05 \x01(\x0b\x32\x11.ACMEProviderSpec\x12;\n\ttlsSecret\x18\x06 \x01(\x0b\x32(.k8s.io.api.core.v1.LocalObjectReference\"x\n\x10\x41\x43MEProviderSpec\x12\x11\n\tauthority\x18\x01 \x01(\t\x12\r\n\x05\x65mail\x18\x02 \x01(\t\x12\x42\n\x10privateKeySecret\x18\x03 \x01(\x0b\x32(.k8s.io.api.core.v1.LocalObjectReferenceb\x06proto3')
+  serialized_pb=_b('\n\nHost.proto\x1a\x34k8s.io/apimachinery/pkg/apis/meta/v1/generated.proto\x1a\"k8s.io/api/core/v1/generated.proto\"\xf4\x01\n\x08HostSpec\x12\x15\n\rambassador_id\x18\x01 \x03(\t\x12\x12\n\ngeneration\x18\x02 \x01(\x05\x12\x10\n\x08hostname\x18\x03 \x01(\t\x12\x45\n\x08selector\x18\x04 \x01(\x0b\x32\x33.k8s.io.apimachinery.pkg.apis.meta.v1.LabelSelector\x12\'\n\x0c\x61\x63meProvider\x18\x05 \x01(\x0b\x32\x11.ACMEProviderSpec\x12;\n\ttlsSecret\x18\x06 \x01(\x0b\x32(.k8s.io.api.core.v1.LocalObjectReference\"\x8e\x01\n\x10\x41\x43MEProviderSpec\x12\x11\n\tauthority\x18\x01 \x01(\t\x12\r\n\x05\x65mail\x18\x02 \x01(\t\x12\x42\n\x10privateKeySecret\x18\x03 \x01(\x0b\x32(.k8s.io.api.core.v1.LocalObjectReference\x12\x14\n\x0cregistration\x18\x04 \x01(\tb\x06proto3')
   ,
   dependencies=[k8s_dot_io_dot_apimachinery_dot_pkg_dot_apis_dot_meta_dot_v1_dot_generated__pb2.DESCRIPTOR,k8s_dot_io_dot_api_dot_core_dot_v1_dot_generated__pb2.DESCRIPTOR,])
 
@@ -122,6 +122,13 @@ _ACMEPROVIDERSPEC = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='registration', full_name='ACMEProviderSpec.registration', index=3,
+      number=4, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -134,8 +141,8 @@ _ACMEPROVIDERSPEC = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=351,
-  serialized_end=471,
+  serialized_start=352,
+  serialized_end=494,
 )
 
 _HOSTSPEC.fields_by_name['selector'].message_type = k8s_dot_io_dot_apimachinery_dot_pkg_dot_apis_dot_meta_dot_v1_dot_generated__pb2._LABELSELECTOR
