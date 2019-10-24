@@ -44,6 +44,9 @@ message ACMEProviderSpec {
   string email = 2;
 
   k8s.io.api.core.v1.LocalObjectReference privateKeySecret = 3;
+
+  // This is normally set automatically
+  string registration = 4;
 }
 
 // TODO: We will likely need a HostStatus message too.
