@@ -5,12 +5,13 @@ import (
 	"crypto/rsa"
 	"encoding/json"
 	"fmt"
-	"github.com/dgrijalva/jwt-go"
-	"github.com/google/uuid"
-	"github.com/pkg/errors"
 	"math/big"
 	"net/http"
 	"os"
+
+	"github.com/dgrijalva/jwt-go"
+	"github.com/google/uuid"
+	"github.com/pkg/errors"
 
 	"github.com/datawire/apro/lib/jwtsupport"
 )
@@ -147,6 +148,15 @@ func PhoneHome(claims *LicenseClaimsLatest, component, version string) error {
 	if err != nil {
 		panic(err)
 	}
+
+	// TODO: Populate licensed feature usage/limits
+	featuresDataSet := []map[string]interface{}{
+		//{
+		//	"name":  "feature-x",
+		//	"usage": 0,
+		//	"limit": 5,
+		//},
+	}
 	data := map[string]interface{}{
 		"application": "aes",
 		"install_id":  uuid.NewSHA1(space, []byte(customerID)).String(),
@@ -154,7 +164,7 @@ func PhoneHome(claims *LicenseClaimsLatest, component, version string) error {
 		"metadata": map[string]interface{}{
 			"id":        customerID,
 			"component": component,
-			// TODO: add licensed feature usage/limits
+			"features":  featuresDataSet,
 		},
 	}
 	body, err := json.MarshalIndent(data, "", "  ")
