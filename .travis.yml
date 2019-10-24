@@ -57,4 +57,4 @@ script:
 after_script:
   # release the kubernaut claim
   - ./releng/travis-cleanup.sh
-  - docker push ${DEV_REGISTRY}/builder:latest
+  - docker tag builder:latest ${DEV_REGISTRY}/builder:latest && docker push ${DEV_REGISTRY}/builder:latest
