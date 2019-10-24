@@ -29,11 +29,11 @@ message HostSpec {
 
   // Specifies who to talk ACME with to get certs. Defaults to Let's Encrypt; if "none", do
   // not try to do TLS for this Host.
-  ACMEProviderSpec acme_provider = 5;
+  ACMEProviderSpec acmeProvider = 5;
 
   // Name of the Kubernetes secret into which to save generated certificates. Defaults
   // to $hostname
-  k8s.io.api.core.v1.LocalObjectReference tls_secret = 6;
+  k8s.io.api.core.v1.LocalObjectReference tlsSecret = 6;
 }
 
 message ACMEProviderSpec {
@@ -43,7 +43,7 @@ message ACMEProviderSpec {
 
   string email = 2;
 
-  k8s.io.api.core.v1.LocalObjectReference private_key_secret = 3;
+  k8s.io.api.core.v1.LocalObjectReference privateKeySecret = 3;
 }
 
 // TODO: We will likely need a HostStatus message too.
