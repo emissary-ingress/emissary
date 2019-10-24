@@ -24,19 +24,17 @@ require (
 	github.com/lyft/gostats v0.2.6
 	github.com/lyft/ratelimit v1.3.0
 	github.com/mediocregopher/radix.v2 v0.0.0-20180603022615-94360be26253
-	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/nu7hatch/gouuid v0.0.0-20131221200532-179d4d0c4d8d // indirect
 	github.com/onsi/gomega v1.7.0
 	github.com/oxtoacart/bpool v0.0.0-20190530202638-03653db5a59c
 	github.com/pascaldekloe/goe v0.1.0 // indirect
 	github.com/pelletier/go-buffruneio v0.2.1-0.20180827162605-de1592c34d9c // indirect
 	github.com/pkg/errors v0.8.1
-	github.com/russross/blackfriday v1.5.2 // indirect
 	github.com/russross/blackfriday/v2 v2.0.1
 	github.com/satori/go.uuid v1.2.0
 	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect
 	github.com/sirupsen/logrus v1.4.0
-	github.com/spf13/cobra v0.0.3
+	github.com/spf13/cobra v0.0.5
 	github.com/spf13/pflag v1.0.3
 	github.com/streadway/quantile v0.0.0-20150917103942-b0c588724d25 // indirect
 	github.com/tsenart/vegeta v12.2.1+incompatible
@@ -48,16 +46,15 @@ require (
 	gitlab.com/opennota/wd v0.0.0-20180912061657-c5d65f63c638 // indirect
 	golang.org/x/net v0.0.0-20190812203447-cdfb69ac37fc
 	golang.org/x/sync v0.0.0-20190423024810-112230192c58
-	google.golang.org/genproto v0.0.0-20190123001331-8819c946db44 // indirect
 	google.golang.org/grpc v1.23.0
 	gopkg.in/russross/blackfriday.v2 v2.0.0-00010101000000-000000000000 // indirect
 	gopkg.in/src-d/go-billy.v4 v4.2.1
 	gopkg.in/src-d/go-git.v4 v4.8.1
-	gopkg.in/yaml.v2 v2.2.2
+	gopkg.in/yaml.v2 v2.2.4
 	istio.io/gogo-genproto v0.0.0-20190904133402-ee07f2785480
-	k8s.io/api v0.0.0-20190816221958-51687e09eeea
-	k8s.io/apimachinery v0.0.0-20190816201409-1714e684133b
-	k8s.io/client-go v11.0.1-0.20190816222228-6d55c1b1f1ca+incompatible
+	k8s.io/api v0.0.0-20191004120104-195af9ec3521
+	k8s.io/apimachinery v0.0.0-20191004115801-a2eda9f80ab8
+	k8s.io/client-go v0.0.0-20191004120905-f06fe3961ca9
 )
 
 replace github.com/lyft/ratelimit v1.3.0 => ./vendor-ratelimit
