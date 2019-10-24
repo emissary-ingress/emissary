@@ -13,6 +13,9 @@ def usage(program):
 base_host = os.environ.get('AMBASSADOR_EVENT_HOST', 'http://localhost:8877')
 base_path = os.environ.get('AMBASSADOR_EVENT_PATH', '_internal/v0')
 
+sidecar_host = os.environ.get('AMBASSADOR_SIDECAR_HOST', 'http://localhost:8500')
+sidecar_path = os.environ.get('AMBASSADOR_SIDECAR_PATH', '_internal/v0')
+
 url_type = 'update'
 arg_key = 'url'
 
@@ -36,10 +39,18 @@ while args and args[0].startswith('--'):
 if len(args) != 1:
     usage(program)
 
-r = requests.post(f'{base_host}/{base_path}/{url_type}', params={ arg_key: args[0] })
+urls = [ f'{base_host}/{base_path}/{url_type}' ]
 
-if r.status_code != 200:
-    sys.stderr.write("update to %s failed:\nstatus %d: %s" % (r.url, r.status_code, r.text))
-    sys.exit(1)
-else:
-    sys.exit(0)
+if os.path.exists('/ambassador/.edge_stack'):
+    urls.append(f'{sidecar_host}/{sidecar_path}/{url_type}')
+
+exitcode = 0
+
+for url in urls:
+    r = requests.post(url, params={ arg_key: args[0] })
+
+    if r.status_code != 200:
+        sys.stderr.write("update to %s failed:\nstatus %d: %s" % (r.url, r.status_code, r.text))
+        exitcode = 1
+
+sys.exit(exitcode)
