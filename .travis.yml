@@ -52,7 +52,8 @@ install:
 
 script:
   - docker pull ${DEV_REGISTRY}/builder:latest
-  - ./releng/travis-script.sh
+  # XXX temporarily override for testing
+  - DOCKER_RELEASE_USERNAME=datawire-dev+ci DOCKER_RELEASE_PASSWORD=CEAWVNREJHTOAHSOJFJHJZQYI7H9MELSU1RG1CD6XIFAURD5D7Y1N8F8MU0JO912 ./releng/travis-script.sh
 
 after_script:
   # release the kubernaut claim
