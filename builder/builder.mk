@@ -151,13 +151,13 @@ BUILD_VERSION=$$($(BUILDER) version)
 
 rc: images
 	@test -n "$(RELEASE_REGISTRY)" || (printf "$${RELEASE_REGISTRY_ERR}\n"; exit 1)
-	@if [ "$(RELEASE_TYPE)" == release ]; then \
+	@if [ "$(RELEASE_TYPE)" = release ]; then \
 		(printf "$(RED)ERROR: 'make rc' can only be used for non-release tags$(END)\n" && exit 1); \
 	fi
 	@printf "$(WHT)==$(GRN)Pushing release candidate $(BLU)ambassador$(GRN) image$(WHT)==$(END)\n"
 	docker tag ambassador $(AMB_IMAGE_RC)
 	docker push $(AMB_IMAGE_RC)
-	@if [ "$(RELEASE_TYPE)" == rc ]; then \
+	@if [ "$(RELEASE_TYPE)" = rc ]; then \
 		docker tag ambassador $(AMB_IMAGE_RC_LATEST) && \
 		docker push $(AMB_IMAGE_RC_LATEST) && \
 		printf "$(GRN)Tagged $(RELEASE_VERSION) as latest RC$(END)\n" ; \

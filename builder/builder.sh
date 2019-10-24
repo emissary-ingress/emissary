@@ -263,7 +263,7 @@ case "${cmd}" in
                fail="yes"
             fi
         done
-        if [ "${fail}" == yes ]; then
+        if [ "${fail}" = yes ]; then
             exit 1
         fi
         ;;
@@ -280,7 +280,7 @@ case "${cmd}" in
                 fi
             fi
         done
-        if [ "${fail}" == yes ]; then
+        if [ "${fail}" = yes ]; then
             exit 1
         fi
         ;;
