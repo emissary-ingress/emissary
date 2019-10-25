@@ -30,3 +30,14 @@ DUMMY:=$(shell $(SETUP))
 OSS_HOME ?= ambassador
 include ${OSS_HOME}/Makefile
 $(call module,apro,.)
+
+include build-aux/go-bindata.mk
+
+# Don't use 'generate' because the OSS Makefile's `make generate` does
+# not work when `$(OSS_HOME) != $(CURDIR)`.
+pro-generate: cmd/amb-sidecar/firstboot/bindata.go
+cmd/amb-sidecar/firstboot/bindata.go: $(GO_BINDATA) $(shell find cmd/amb-sidecar/firstboot/bindata/)
+	PATH=$(dir $(GO_BINDATA)):$$PATH; cd $(@D) && go generate
+pro-generate-clean:
+	rm -f cmd/amb-sidecar/firstboot/bindata.go
+.PHONY: pro-generate pro-generate-clean

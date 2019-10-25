@@ -10,10 +10,12 @@ require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/dgryski/go-gk v0.0.0-20140819190930-201884a44051 // indirect
 	github.com/die-net/lrucache v0.0.0-20181227122439-19a39ef22a11
+	github.com/elazarl/go-bindata-assetfs v1.0.0
+	github.com/go-acme/lego/v3 v3.1.0
 	github.com/gobwas/glob v0.2.3
 	github.com/gogo/protobuf v1.3.0
 	github.com/google/uuid v1.1.1
-	github.com/gorilla/mux v1.6.1
+	github.com/gorilla/mux v1.7.3
 	github.com/gregjones/httpcache v0.0.0-20170728041850-787624de3eb7
 	github.com/hashicorp/consul/api v1.1.0
 	github.com/hashicorp/go-msgpack v0.5.4 // indirect
@@ -32,8 +34,7 @@ require (
 	github.com/pkg/errors v0.8.1
 	github.com/russross/blackfriday/v2 v2.0.1
 	github.com/satori/go.uuid v1.2.0
-	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect
-	github.com/sirupsen/logrus v1.4.0
+	github.com/sirupsen/logrus v1.4.2
 	github.com/spf13/cobra v0.0.5
 	github.com/spf13/pflag v1.0.3
 	github.com/streadway/quantile v0.0.0-20150917103942-b0c588724d25 // indirect
@@ -44,7 +45,7 @@ require (
 	gitlab.com/golang-commonmark/mdurl v0.0.0-20180912090424-e5bce34c34f2 // indirect
 	gitlab.com/golang-commonmark/puny v0.0.0-20180912090636-2cd490539afe // indirect
 	gitlab.com/opennota/wd v0.0.0-20180912061657-c5d65f63c638 // indirect
-	golang.org/x/net v0.0.0-20190812203447-cdfb69ac37fc
+	golang.org/x/net v0.0.0-20190930134127-c5a3c61f89f3
 	golang.org/x/sync v0.0.0-20190423024810-112230192c58
 	google.golang.org/grpc v1.23.0
 	gopkg.in/russross/blackfriday.v2 v2.0.0-00010101000000-000000000000 // indirect
