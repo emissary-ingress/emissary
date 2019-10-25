@@ -231,7 +231,7 @@ workflows:
           filters:
             tags:
               only: /.*/
-      - "macOS":
-          filters:
-            branches:
-              only: master
+#      - "macOS":
+#          filters:
+#            branches:
+#              only: master
