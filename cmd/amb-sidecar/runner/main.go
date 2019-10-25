@@ -38,6 +38,7 @@ import (
 	"github.com/datawire/apro/cmd/amb-sidecar/firstboot"
 	rlscontroller "github.com/datawire/apro/cmd/amb-sidecar/ratelimits"
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
+	"github.com/datawire/apro/cmd/amb-sidecar/watt"
 	"github.com/datawire/apro/lib/licensekeys"
 	"github.com/datawire/apro/lib/util"
 
@@ -130,6 +131,8 @@ func runE(cmd *cobra.Command, args []string) error {
 	logrus.SetLevel(level) // FIXME(lukeshu): Some Lyft code still uses the global logger
 
 	kubeinfo := k8s.NewKubeInfo("", "", "") // Empty file/ctx/ns for defaults
+
+	snapshotStore := watt.NewSnapshotStore(http.DefaultClient /* XXX */)
 
 	// Initialize the errgroup we'll use to orchestrate the goroutines.
 	group := NewGroup(context.Background(), cfg, func(name string) types.Logger {
@@ -286,6 +289,8 @@ func runE(cmd *cobra.Command, args []string) error {
 		}
 
 		httpHandler.AddEndpoint("/firstboot/", "First boot wizard", http.StripPrefix("/firstboot", firstboot.NewFirstBootWizard()).ServeHTTP)
+
+		httpHandler.AddEndpoint("/_internal/v0/watt", "watt→post_uptate.py→this", snapshotStore.ServeHTTP)
 
 		// Launch the server
 		server := &http.Server{
