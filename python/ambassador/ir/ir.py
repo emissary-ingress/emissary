@@ -173,9 +173,12 @@ class IR:
         self.wizard_allowed = self.edge_stack_allowed and self.ambassador_module.get('allow-wizard', True)
 
         _mode_str = 'Edge Stack' if self.edge_stack_allowed else 'OSS'
-        _wizard_str = 'allowed' if self.wizard_allowed else 'not allowed'
+        _wizard_str = ''
 
-        self.logger.debug(f"IR: starting {_mode_str}; wizard {_wizard_str}")
+        if self.edge_stack_allowed:
+            _wizard_str = f"; wizard {'allowed' if self.wizard_allowed else 'not allowed'}"
+
+        self.logger.info(f"IR: starting {_mode_str}{_wizard_str}")
 
         # Save circuit breakers, outliers, and services.
         self.breakers = aconf.get_config("CircuitBreaker") or {}
