@@ -168,7 +168,7 @@ commands:
                 steps:
                  - run: ".circleci/kubernaut-claim.sh"
                  - run: "docker login -u=\"datawire-dev+ci\" -p=\"CEAWVNREJHTOAHSOJFJHJZQYI7H9MELSU1RG1CD6XIFAURD5D7Y1N8F8MU0JO912\" quay.io"
-                 - run: "DEV_REGISTRY=quay.io/datawire-dev DEV_KUBECONFIG=~/.kube/$(cat ~/kubernaut-claim.txt).yaml make gotest github.com/datawire/apro/..."
+                 - run: "DEV_REGISTRY=quay.io/datawire-dev DEV_KUBECONFIG=~/.kube/$(cat ~/kubernaut-claim.txt).yaml make gotest GOTEST_PKGS=github.com/datawire/apro/..."
                  - run:
                      command: ".circleci/kubernaut-unclaim.sh"
                      when: "always"
