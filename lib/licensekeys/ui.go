@@ -98,8 +98,8 @@ type cmdContext struct {
 func (ctx *cmdContext) phoneHome(claims *LicenseClaimsLatest) {
 	fmt.Printf("Calling Metriton\n")
 	b := &backoff.Backoff{
-		Min:    1 * time.Minute,
-		Max:    24 * time.Hour,
+		Min:    5 * time.Minute,
+		Max:    8 * time.Hour,
 		Jitter: true,
 		Factor: 2,
 	}
@@ -117,7 +117,10 @@ func (ctx *cmdContext) phoneHome(claims *LicenseClaimsLatest) {
 }
 
 func (ctx *cmdContext) phoneHomeEveryday(claims *LicenseClaimsLatest) {
-	phoneHomeTicker := time.NewTicker(24 * time.Hour)
+	// Phone home right now
+	go ctx.phoneHome(claims)
+	// And every 12 hours
+	phoneHomeTicker := time.NewTicker(12 * time.Hour)
 	for range phoneHomeTicker.C {
 		go ctx.phoneHome(claims)
 	}
@@ -149,7 +152,6 @@ func (ctx *cmdContext) KeyCheck(flags *flag.FlagSet) (*LicenseClaimsLatest, erro
 
 	claims, err := ParseKey(ctx.key)
 
-	go ctx.phoneHome(claims)
 	go ctx.phoneHomeEveryday(claims)
 
 	if err != nil {
