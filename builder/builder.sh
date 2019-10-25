@@ -121,7 +121,9 @@ sync() {
     real=$(cd ${sourcedir}; pwd)
 
     docker exec -i ${container} mkdir -p /buildroot/${name}
-    summarize-sync $name $container $(rsync --exclude-from=${DIR}/sync-excludes.txt --info=name -aO --delete -e 'docker exec -i' ${real}/ ${container}:/buildroot/${name})
+    declare -a lines
+    IFS='|' read -ra lines <<<$(rsync --exclude-from=${DIR}/sync-excludes.txt --info=name -aO --delete -e 'docker exec -i' ${real}/ ${container}:/buildroot/${name} | tr '\n' '|')
+    summarize-sync $name $container "${lines[@]}"
     (cd ${sourcedir} && module_version ${name} ) | docker exec -i ${container} sh -c "cat > /buildroot/${name}.version && if [ -e ${name}/python ]; then cp ${name}.version ${name}/python/; fi"
 }
 
@@ -140,20 +142,17 @@ summarize-sync() {
     shift
     container=$1
     shift
-    if [ "$#" != 0 ]; then
+    lines=("$@")
+    if [ "${#lines[@]}" != 0 ]; then
         docker exec -i ${container} touch /buildroot/${name}.dirty
     fi
-    printf "${GRN}Synced $# ${BLU}${name}${GRN} source files${END}\n"
-    prevdel=""
-    for var in "$@"; do
-        if [ -n "$prevdel" ]; then
-            printf "  ${YEL}deleted${END} $var\n"
+    printf "${GRN}Synced ${#lines[@]} ${BLU}${name}${GRN} source files${END}\n"
+    for i in {0..9}; do
+        if [ "$i" = "${#lines[@]}" ]; then
+            break
         fi
-        if [ "${var}" == "deleting" ]; then
-            prevdel="x"
-        else
-            prevdel=""
-        fi
+        line="${lines[$i]}"
+        printf "  ${YEL}${line}${END}\n"
     done
 }
 
