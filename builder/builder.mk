@@ -18,7 +18,7 @@ module = $(eval MODULES += $(1))$(eval SOURCE_$(1)=$(abspath $(2)))
 
 BUILDER_HOME := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
-BUILDER = $(abspath $(BUILDER_HOME)/builder.sh)
+BUILDER = BUILDER_NAME=$(NAME) $(abspath $(BUILDER_HOME)/builder.sh)
 DBUILD = $(abspath $(BUILDER_HOME)/dbuild.sh)
 
 all: help
@@ -44,8 +44,7 @@ sync: preflight
 .PHONY: sync
 
 version:
-	@$(MAKE) --no-print-directory sync
-	@$(BUILDER) version $(DISTRO)
+	@$(BUILDER) version
 .PHONY: version
 
 compile:
