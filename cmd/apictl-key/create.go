@@ -65,17 +65,19 @@ XVeDirHUsrZ7hC5rM/9SpLwOSjUB7Dp1ZdSzXDo2LJwtQWDI5Y/4/JY=
 
 func init() {
 	var (
-		argCustomerID   string
-		argFeatures     []string
-		argLimits       []string
-		argLifetimeDays int
-		argV1           bool
+		argCustomerEmail string
+		argCustomerID    string
+		argFeatures      []string
+		argLimits        []string
+		argLifetimeDays  int
+		argV1            bool
 	)
 	create := &cobra.Command{
 		Use:   "create",
 		Short: "Create a jwt token",
 	}
 	create.Flags().StringVarP(&argCustomerID, "id", "i", "", "id for key")
+	create.Flags().StringVar(&argCustomerEmail, "email", "", "The contact information for this license key")
 	create.Flags().IntVarP(&argLifetimeDays, "expiration", "e", 0, "expiration from now in days (can be negative for testing)")
 	create.Flags().StringSliceVar(&argFeatures, "features",
 		[]string{
@@ -125,7 +127,7 @@ func init() {
 		if len(unknownLimits) > 0 {
 			return errors.Errorf("unrecognized --limits: %v", unknownLimits)
 		}
-		tokenstring := createTokenString(argV1, argCustomerID, features, limits, now, expiresAt)
+		tokenstring := createTokenString(argV1, argCustomerID, argCustomerEmail, features, limits, now, expiresAt)
 		_, err := fmt.Println(tokenstring)
 		return err
 	}
@@ -133,7 +135,7 @@ func init() {
 	argparser.AddCommand(create)
 }
 
-func createTokenString(argV1 bool, customerID string, features []licensekeys.Feature, limits []licensekeys.LimitValue, now, expiresAt time.Time) string {
+func createTokenString(argV1 bool, customerID string, customerEmail string, features []licensekeys.Feature, limits []licensekeys.LimitValue, now, expiresAt time.Time) string {
 	var claims jwt.Claims
 	if argV1 {
 		claims = &licensekeys.LicenseClaimsV1{
@@ -150,6 +152,7 @@ func createTokenString(argV1 bool, customerID string, features []licensekeys.Fea
 		claims = &licensekeys.LicenseClaimsV2{
 			LicenseKeyVersion: "v2",
 			CustomerID:        customerID,
+			CustomerEmail:     customerEmail,
 			EnabledFeatures:   features,
 			EnforcedLimits:    limits,
 			StandardClaims: jwt.StandardClaims{

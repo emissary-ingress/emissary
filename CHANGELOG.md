@@ -7,6 +7,7 @@ Behavior:
  * `apictl traffic initialize` no longer waits for the traffic-proxy to become ready before exiting.
  * Feature: Developer portal will show swagger documentation for up to five services (or more with appropriate license)
  * Feature: local-devportal is now a standalone go binary with no external dependencies
+ * `v1` license keys were not being used so augment them to include emails
 
 Other:
 
