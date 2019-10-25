@@ -122,7 +122,7 @@ sync() {
 
     docker exec -i ${container} mkdir -p /buildroot/${name}
     declare -a lines
-    IFS='|' read -ra lines <<<$(rsync --exclude-from=${DIR}/sync-excludes.txt --info=name -aO --delete -e 'docker exec -i' ${real}/ ${container}:/buildroot/${name} | tr '\n' '|')
+    IFS='|' read -ra lines <<<"$(rsync --exclude-from=${DIR}/sync-excludes.txt --info=name -aO --delete -e 'docker exec -i' ${real}/ ${container}:/buildroot/${name} | tr '\n' '|')"
     summarize-sync $name $container "${lines[@]}"
     (cd ${sourcedir} && module_version ${name} ) | docker exec -i ${container} sh -c "cat > /buildroot/${name}.version && if [ -e ${name}/python ]; then cp ${name}.version ${name}/python/; fi"
 }
