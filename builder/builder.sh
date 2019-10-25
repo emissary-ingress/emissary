@@ -197,8 +197,8 @@ case "${cmd}" in
         shift
         RELVER="$1"
         if [ -z "${RELVER}" ]; then
-            bootstrap
-            RELVER=$(docker exec -i $(builder) /buildroot/builder.sh version-internal RELEASE_VERSION)
+            source <(module_version ${BUILDER_NAME})
+            RELVER="${RELEASE_VERSION}"
         fi
 
         if [[ "${RELVER}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
