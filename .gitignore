@@ -9,7 +9,6 @@
 .skip_test_warning
 venv
 __pycache__
-VERSION.py
 .pytest_cache
 .mypy_cache
 

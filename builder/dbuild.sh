@@ -49,7 +49,7 @@ if [ -z "$iidfile" ]; then
 fi
 
 # start docker and sleep in a race
-docker build $extra_args "$@" > $outfile 2>&1 &
+docker build ${DBUILD_ARGS} $extra_args "$@" > $outfile 2>&1 &
 build_pid=$!
 sleep 3 &
 sleep_pid=$!

@@ -37,50 +37,52 @@ ifeq ($(strip $(shell $(BUILDER))),)
 endif
 .PHONY: preflight
 
-sync: preflight base-envoy.docker
+sync: preflight
 	@$(foreach MODULE,$(MODULES),$(BUILDER) sync $(MODULE) $(SOURCE_$(MODULE)) &&) true
 .PHONY: sync
 
-compile: sync
-	@$(BUILDER) compile $(SOURCES)
+version:
+	@$(MAKE) --no-print-directory sync
+	@$(BUILDER) version $(DISTRO)
+.PHONY: version
+
+compile:
+	@$(MAKE) --no-print-directory sync
+	@$(BUILDER) compile
 .PHONY: compile
 
 commit:
 	@$(BUILDER) commit snapshot
 .PHONY: commit
 
-# Docker images that are built from the unified ./builder/Dockerfile
-images.builder = $(shell sed -n '/\#external/{N;s/.* as  *//p;}' < $(BUILDER_HOME)/Dockerfile)
-
-images.all += $(images.builder)
-images.cluster += $(images.builder)
-
-images: $(addsuffix .docker.tag.dev,$(images.all))
-.PHONY: images
-snapshot.docker.stamp: compile
+images:
+	@$(MAKE) --no-print-directory compile
 	@$(MAKE) --no-print-directory commit
-	@docker image inspect snapshot --format='{{.Id}}' > $@
-$(addsuffix .docker.stamp,$(images.builder)): %.docker.stamp: snapshot.docker base-envoy.docker
-	@printf "$(WHT)==$(GRN)Building $(BLU)$*$(GRN) image$(WHT)==$(END)\n"
-	@$(DBUILD) $(BUILDER_HOME) --iidfile $@ --build-arg artifacts=$$(cat snapshot.docker) --build-arg envoy=$$(cat base-envoy.docker) --target $*
-%.docker: %.docker.stamp $(COPY_IFCHANGED)
-	@$(COPY_IFCHANGED) $< $@
-# As a special case, don't enforce the "can't change in CI" rule for
-# snapshot.docker, since `docker commit` will bump timestamps.
-snapshot.docker: %.docker: %.docker.stamp $(COPY_IFCHANGED)
-	@CI= $(COPY_IFCHANGED) $< $@
-# Fricking frick, the __pycache__ and .egg files aren't staying the
-# same.  Just take off the seat-belt for now, we need to get a release
-# out.
-ambassador.docker: %.docker: %.docker.stamp $(COPY_IFCHANGED)
-	@CI= $(COPY_IFCHANGED) $< $@
+	@printf "$(WHT)==$(GRN)Building $(BLU)ambassador$(GRN) image$(WHT)==$(END)\n"
+	@$(DBUILD) $(BUILDER_HOME) --build-arg artifacts=snapshot --target ambassador -t ambassador
+	@printf "$(WHT)==$(GRN)Building $(BLU)kat-client$(GRN) image$(WHT)==$(END)\n"
+	@$(DBUILD) $(BUILDER_HOME) --build-arg artifacts=snapshot --target kat-client -t kat-client
+	@printf "$(WHT)==$(GRN)Building $(BLU)kat-server$(GRN) image$(WHT)==$(END)\n"
+	@$(DBUILD) $(BUILDER_HOME) --build-arg artifacts=snapshot --target kat-server -t kat-server
+.PHONY: images
 
-define REGISTRY_ERR
-$(shell printf '$(RED)ERROR: please set the DEV_REGISTRY make/env variable to the docker registry\n       you would like to use for development$(END)\n' >&2)
-$(error error)
-endef
+AMB_IMAGE=$(DEV_REGISTRY)/ambassador:$(shell docker images -q ambassador:latest)
+KAT_CLI_IMAGE=$(DEV_REGISTRY)/kat-client:$(shell docker images -q kat-client:latest)
+KAT_SRV_IMAGE=$(DEV_REGISTRY)/kat-server:$(shell docker images -q kat-server:latest)
 
-push: $(addsuffix .docker.push.dev,$(images.cluster))
+export REGISTRY_ERR=$(RED)ERROR: please set the DEV_REGISTRY make/env variable to the docker registry\n       you would like to use for development$(END)
+
+push: images
+	@test -n "$(DEV_REGISTRY)" || (printf "$${REGISTRY_ERR}\n"; exit 1)
+	@printf "$(WHT)==$(GRN)Pushing $(BLU)ambassador$(GRN) image$(WHT)==$(END)\n"
+	docker tag ambassador $(AMB_IMAGE)
+	docker push $(AMB_IMAGE)
+	@printf "$(WHT)==$(GRN)Pushing $(BLU)kat-client$(GRN) image$(WHT)==$(END)\n"
+	docker tag kat-client $(KAT_CLI_IMAGE)
+	docker push $(KAT_CLI_IMAGE)
+	@printf "$(WHT)==$(GRN)Pushing $(BLU)kat-server$(GRN) image$(WHT)==$(END)\n"
+	docker tag kat-server $(KAT_SRV_IMAGE)
+	docker push $(KAT_SRV_IMAGE)
 .PHONY: push
 
 export KUBECONFIG_ERR=$(RED)ERROR: please set the $(YEL)DEV_KUBECONFIG$(RED) make/env variable to the docker registry\n       you would like to use for development. Note this cluster must have access\n       to $(YEL)DEV_REGISTRY$(RED) ($(WHT)$(DEV_REGISTRY)$(RED))$(END)
@@ -100,30 +102,34 @@ test-ready: push
 .PHONY: test-ready
 
 PYTEST_ARGS ?=
+export PYTEST_ARGS
 
 pytest: test-ready
 	@printf "$(WHT)==$(GRN)Running $(BLU)py$(GRN) tests$(WHT)==$(END)\n"
 	docker exec \
-		-e AMBASSADOR_DOCKER_IMAGE=$$(sed -n 2p ambassador.docker.push.dev) \
-		-e KAT_CLIENT_DOCKER_IMAGE=$$(sed -n 2p kat-client.docker.push.dev) \
-		-e KAT_SERVER_DOCKER_IMAGE=$$(sed -n 2p kat-server.docker.push.dev) \
-		-e TEST_SERVICE_AUTH=$$(sed -n 2p test-auth.docker.push.dev) \
-		-e TEST_SERVICE_AUTH_TLS=$$(sed -n 2p test-auth-tls.docker.push.dev) \
-		-e TEST_SERVICE_RATELIMIT=$$(sed -n 2p test-ratelimit.docker.push.dev) \
-		-e TEST_SERVICE_SHADOW=$$(sed -n 2p test-shadow.docker.push.dev) \
-		-e TEST_SERVICE_STATS=$$(sed -n 2p test-stats.docker.push.dev) \
+		-e AMBASSADOR_DOCKER_IMAGE=$(AMB_IMAGE) \
+		-e KAT_CLIENT_DOCKER_IMAGE=$(KAT_CLI_IMAGE) \
+		-e KAT_SERVER_DOCKER_IMAGE=$(KAT_SRV_IMAGE) \
 		-e KAT_IMAGE_PULL_POLICY=Always \
 		-e KAT_REQ_LIMIT \
-		-it $(shell $(BUILDER)) sh -c 'cd ambassador && pytest --tb=short -ra $(PYTEST_ARGS)'
+		-e PYTEST_ARGS \
+		-it $(shell $(BUILDER)) /buildroot/builder.sh pytest-internal
 .PHONY: pytest
 
 
 GOTEST_PKGS ?= ./...
+export GOTEST_PKGS
 GOTEST_ARGS ?=
+export GOTEST_ARGS
 
 gotest: test-ready
 	@printf "$(WHT)==$(GRN)Running $(BLU)go$(GRN) tests$(WHT)==$(END)\n"
-	docker exec -w /buildroot/$(MODULE) -e DTEST_REGISTRY=$(DEV_REGISTRY) -e DTEST_KUBECONFIG=/buildroot/kubeconfig.yaml -e GOTEST_PKGS=$(GOTEST_PKGS) -e GOTEST_ARGS=$(GOTEST_ARGS) $(shell $(BUILDER)) /buildroot/builder.sh test-internal
+	docker exec \
+		-e DTEST_REGISTRY=$(DEV_REGISTRY) \
+		-e DTEST_KUBECONFIG=/buildroot/kubeconfig.yaml \
+		-e GOTEST_PKGS \
+		-e GOTEST_ARGS \
+		-it $(shell $(BUILDER)) /buildroot/builder.sh gotest-internal
 .PHONY: gotest
 
 test: gotest pytest
@@ -133,11 +139,52 @@ shell:
 	@$(BUILDER) shell
 .PHONY: shell
 
+AMB_IMAGE_RC=$(RELEASE_REGISTRY)/ambassador:$(RELEASE_VERSION)
+AMB_IMAGE_RC_LATEST=$(RELEASE_REGISTRY)/ambassador:$(BUILD_VERSION)-rc-latest
+AMB_IMAGE_RELEASE=$(RELEASE_REGISTRY)/ambassador:$(BUILD_VERSION)
+
+export RELEASE_REGISTRY_ERR=$(RED)ERROR: please set the RELEASE_REGISTRY make/env variable to the docker registry\n       you would like to use for release$(END)
+
+RELEASE_TYPE=$$($(BUILDER) release-type)
+RELEASE_VERSION=$$($(BUILDER) release-version)
+BUILD_VERSION=$$($(BUILDER) version)
+
+rc: images
+	@test -n "$(RELEASE_REGISTRY)" || (printf "$${RELEASE_REGISTRY_ERR}\n"; exit 1)
+	@if [ "$(RELEASE_TYPE)" = release ]; then \
+		(printf "$(RED)ERROR: 'make rc' can only be used for non-release tags$(END)\n" && exit 1); \
+	fi
+	@printf "$(WHT)==$(GRN)Pushing release candidate $(BLU)ambassador$(GRN) image$(WHT)==$(END)\n"
+	docker tag ambassador $(AMB_IMAGE_RC)
+	docker push $(AMB_IMAGE_RC)
+	@if [ "$(RELEASE_TYPE)" = rc ]; then \
+		docker tag ambassador $(AMB_IMAGE_RC_LATEST) && \
+		docker push $(AMB_IMAGE_RC_LATEST) && \
+		printf "$(GRN)Tagged $(RELEASE_VERSION) as latest RC$(END)\n" ; \
+	fi
+.PHONY: rc
+
+release-prep:
+	bash $(OSS_HOME)/releng/release-prep.sh
+.PHONY: release-prep
+
+release:
+	@test -n "$(RELEASE_REGISTRY)" || (printf "$${RELEASE_REGISTRY_ERR}\n"; exit 1)
+	@$(MAKE) --no-print-directory sync
+	@if [ "$(RELEASE_TYPE)" != release ]; then \
+		(printf "$(RED)ERROR: 'make release' can only be used for release tags ('vX.Y.Z')$(END)\n" && exit 1); \
+	fi
+	@printf "$(WHT)==$(GRN)Promoting release $(BLU)ambassador$(GRN) image$(WHT)==$(END)\n"
+	docker pull $(AMB_IMAGE_RC_LATEST)
+	docker tag $(AMB_IMAGE_RC_LATEST) $(AMB_IMAGE_RELEASE)
+	docker push $(AMB_IMAGE_RELEASE)
+.PHONY: release
+
 clean:
 	@$(BUILDER) clean
 .PHONY: clean
 
-clobber: clean $(addsuffix .docker.clean,$(images.all) snapshot)
+clobber:
 	@$(BUILDER) clobber
 .PHONY: clobber
 
@@ -145,10 +192,18 @@ help:
 	@printf "$(subst $(NL),\n,$(HELP))\n"
 .PHONY: help
 
+# NOTE: this is not a typo, this is actually how you spell newline in Make
 define NL
 
 
 endef
+
+# NOTE: this is not a typo, this is actually how you spell space in Make
+define SPACE
+ 
+endef
+
+COMMA = ,
 
 define HELP
 
@@ -181,6 +236,8 @@ $(BLD)Targets:$(END)
 
   $(BLD)make $(BLU)sync$(END)      -- syncs source code into the build container.
 
+  $(BLD)make $(BLU)version$(END)   -- display source code version.
+
   $(BLD)make $(BLU)compile$(END)   -- syncs and compiles the source code in the build container.
 
   $(BLD)make $(BLU)images$(END)    -- creates images from the build container.
@@ -203,6 +260,18 @@ $(BLD)Targets:$(END)
     Use $(BLD)\$$PYTEST_ARGS$(END) to pass args to pytest. ($(PYTEST_ARGS))
 
   $(BLD)make $(BLU)shell$(END)     -- starts a shell in the build container.
+
+  $(BLD)make $(BLU)rc$(END)        -- push a release candidate image to $(BLD)\$$RELEASE_REGISTRY$(END). ($(RELEASE_REGISTRY))
+
+    The current commit must be tagged for this to work, and your tree must be clean.
+    If the tag is of the form 'vX.Y.Z-rc[0-9]*', this will also push a tag of the
+    form 'vX.Y.Z-rc-latest'.
+
+  $(BLD)make $(BLU)release$(END)   -- promote a release candidate to a release.
+
+    The current commit must be tagged for this to work, and your tree must be clean.
+    Additionally, the tag must be of the form 'vX.Y.Z'. You must also have previously
+    build an RC for the same tag using the current $(BLD)\$$RELEASE_REGISTRY$(END).
 
   $(BLD)make $(BLU)clean$(END)     -- kills the build container.
 

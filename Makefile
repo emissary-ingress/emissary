@@ -1,100 +1,88 @@
-# file: Makefile
+OSS_HOME:=$(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
-# Copyright 2018 Datawire. All rights reserved.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License
-
-# Welcome to the Ambassador Makefile...
-
-# We'll set REGISTRY_ERR in builder.mk
-DEV_REGISTRY ?= $(REGISTRY_ERR)
-
-# IS_PRIVATE: empty=false, nonempty=true
-# Default is true if any of the git remotes have the string "private" in any of their URLs.
-_git_remote_urls := $(shell git remote | xargs -n1 git remote get-url --all)
-IS_PRIVATE ?= $(findstring private,$(_git_remote_urls))
-
-RELEASE_DOCKER_REPO ?= quay.io/datawire/ambassador$(if $(IS_PRIVATE),-private)
-BASE_DOCKER_REPO    ?= quay.io/datawire/ambassador-base$(if $(IS_PRIVATE),-private)
-DEV_DOCKER_REPO     ?= $(DEV_REGISTRY)/dev
-
-DOCKER_OPTS ?=
-
-YES_I_AM_UPDATING_THE_BASE_IMAGES ?=
-
-docker.tag.dev        = $(DEV_DOCKER_REPO):$(notdir $*)-$(shell tr : - < $<)
-# By default, don't allow .release, .release-rc, .release-ea, or .base tags...
-docker.tag.release    = $(error The 'release' tag is only valid for the 'ambassador-release{,-rc,-ea}' images)
-docker.tag.base       = $(error The 'base' tag is only valid for the 'base-envoy' image)
-# ... except for on specific images
-ambassador-release.docker.tag.release:    docker.tag.release = $(RELEASE_DOCKER_REPO):$(RELEASE_VERSION)
-ambassador-release-rc.docker.tag.release: docker.tag.release = $(RELEASE_DOCKER_REPO):$(RELEASE_VERSION) $(RELEASE_DOCKER_REPO):$(BUILD_VERSION)-rc-latest
-ambassador-release-ea.docker.tag.release: docker.tag.release = $(RELEASE_DOCKER_REPO):$(RELEASE_VERSION)
-BASE_IMAGE.envoy = $(BASE_DOCKER_REPO):envoy-$(BASE_VERSION.envoy)
-envoy-base.docker.tag.base:               docker.tag.base       = $(BASE_IMAGE.envoy)
-
-# We'll set REGISTRY_ERR in builder.mk
-docker.tag.dev = $(if $(DEV_REGISTRY),$(DEV_REGISTRY)/$*:$(patsubst sha256:%,%,$(shell cat $<)),$(REGISTRY_ERR))
-
-# All Docker images that we know how to build
-images.all =
-# The subset of $(images.all) that we will deploy to the
-# DEV_KUBECONFIG cluster.
-images.cluster =
-# The subset of $(images.all) that `make update-base` should update.
-images.base =
-
-images.all += $(patsubst docker/%/Dockerfile,%,$(wildcard docker/*/Dockerfile)) test-auth-tls
-images.cluster += $(filter test-%,$(images.all))
-images.base += $(filter base-%,$(images.all))
-
-OSS_HOME := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
-include $(OSS_HOME)/build-aux/prelude.mk
-include $(OSS_HOME)/build-aux/var.mk
-include $(OSS_HOME)/build-aux/docker.mk
 include $(OSS_HOME)/builder/builder.mk
-include $(OSS_HOME)/cxx/envoy.mk
-include $(OSS_HOME)/build-aux-local/kat.mk
-include $(OSS_HOME)/build-aux-local/docs.mk
-include $(OSS_HOME)/build-aux-local/release.mk
-include $(OSS_HOME)/build-aux-local/version.mk
-.DEFAULT_GOAL = help
 
 $(call module,ambassador,$(OSS_HOME))
-
-sync: python/ambassador/VERSION.py
-
-clean: _makefile_clean
-clobber: _makefile_clobber
-_makefile_clean:
-	rm -f python/ambassador/VERSION.py
-_makefile_clobber:
-	rm -rf bin_*/
-.PHONY: _makefile_clean _makefile_clobber
 
 generate: ## Update generated sources that get committed to git
 generate: pkg/api/kat/echo.pb.go
 generate: pkg/api/getambassador.io/v2/Host.pb.go
 generate: python/ambassador/proto/v2/Host_pb2.py
-generate-clean: ## Delete generated sources that get committed to git (implies `make clobber`)
-generate-clean: clobber
+generate-clean: ## Delete generated sources that get committed to git
+generate-clean:
 	rm -rf pkg/api
 .PHONY: generate generate-clean
 
-vendor: FORCE
-	go mod vendor
+## Install protoc
 
-pkg/api/getambassador.io/v2/Host.pb.go python/ambassador/proto/v2/Host_pb2.py: api/getambassador.io/v2/Host.proto vendor bin_$(GOHOSTOS)_$(GOHOSTARCH)/protoc bin_$(GOHOSTOS)_$(GOHOSTARCH)/protoc-gen-gogofast
+GOOS=$(shell go env GOOS)
+GOHOSTOS=$(shell go env GOHOSTOS)
+GOHOSTARCH=$(shell go env GOHOSTARCH)
+
+GRPC_WEB_VERSION = 1.0.3
+GRPC_WEB_PLATFORM = $(GOOS)-x86_64
+
+bin_$(GOHOSTOS)_$(GOHOSTARCH)/protoc-gen-grpc-web:
+	mkdir -p $(@D)
+	curl -o $@ -L --fail https://github.com/grpc/grpc-web/releases/download/$(GRPC_WEB_VERSION)/protoc-gen-grpc-web-$(GRPC_WEB_VERSION)-$(GRPC_WEB_PLATFORM)
+	chmod 755 $@
+
+# The version numbers of `protoc` (in this Makefile),
+# `protoc-gen-gogofast` (in go.mod), and `protoc-gen-validate` (in
+# go.mod) are based on
+# https://github.com/envoyproxy/go-control-plane/blob/0e75602d5e36e96eafbe053999c0569edec9fe07/Dockerfile.ci
+# (since that commit most closely corresponds to our ENVOY_COMMIT).
+# Additionally, the package names of those programs are mentioned in
+# ./go/pin.go, so that `go mod tidy` won't make the go.mod file forget
+# about them.
+
+PROTOC_VERSION = 3.5.1
+PROTOC_PLATFORM = $(patsubst darwin,osx,$(GOHOSTOS))-$(patsubst amd64,x86_64,$(patsubst 386,x86_32,$(GOHOSTARCH)))
+
+bin_$(GOHOSTOS)_$(GOHOSTARCH)/protoc:
+	mkdir -p $(@D)
+	set -o pipefail; curl --fail -L https://github.com/protocolbuffers/protobuf/releases/download/v$(PROTOC_VERSION)/protoc-$(PROTOC_VERSION)-$(PROTOC_PLATFORM).zip | bsdtar -x -f - -O bin/protoc > $@
+	chmod 755 $@
+
+bin_$(GOHOSTOS)_$(GOHOSTARCH)/protoc-gen-gogofast: go.mod
+	mkdir -p $(@D)
+	go build -o $@ github.com/gogo/protobuf/protoc-gen-gogofast
+
+bin_$(GOHOSTOS)_$(GOHOSTARCH)/protoc-gen-validate: go.mod
+	mkdir -p $(@D)
+	go build -o $@ github.com/envoyproxy/protoc-gen-validate
+
+clobber: _makefile_clobber
+_makefile_clobber:
+	rm -rf bin_*/
+.PHONY: _makefile_clobber
+
+## Generated sources
+
+vendor:
+	go mod vendor
+.PHONY: vendor
+
+pkg/api/kat/echo.pb.go: api/kat/echo.proto bin_$(GOHOSTOS)_$(GOHOSTARCH)/protoc bin_$(GOHOSTOS)_$(GOHOSTARCH)/protoc-gen-gogofast
+	mkdir -p $(@D)
+	./bin_$(GOHOSTOS)_$(GOHOSTARCH)/protoc \
+		--proto_path=$(CURDIR)/api/kat \
+		--plugin=$(CURDIR)/bin_$(GOHOSTOS)_$(GOHOSTARCH)/protoc-gen-gogofast --gogofast_out=plugins=grpc:$(@D) \
+		$(CURDIR)/$<
+
+tools/sandbox/grpc_web/echo_grpc_web_pb.js: api/kat/echo.proto bin_$(GOHOSTOS)_$(GOHOSTARCH)/protoc bin_$(GOHOSTOS)_$(GOHOSTARCH)/protoc-gen-grpc-web
+	./bin_$(GOHOSTOS)_$(GOHOSTARCH)/protoc \
+		--proto_path=$(CURDIR)/api/kat \
+		--plugin=$(CURDIR)/bin_$(GOHOSTOS)_$(GOHOSTARCH)/protoc-gen-grpc-web --grpc-web_out=import_style=commonjs,mode=grpcwebtext:$(@D) \
+		$(CURDIR)/$<
+
+tools/sandbox/grpc_web/echo_pb.js: api/kat/echo.proto bin_$(GOHOSTOS)_$(GOHOSTARCH)/protoc
+	./bin_$(GOHOSTOS)_$(GOHOSTARCH)/protoc \
+		--proto_path=$(CURDIR)/api/kat \
+		--js_out=import_style=commonjs:$(@D) \
+		$(CURDIR)/$<
+
+pkg/api/getambassador.io/v2/Host.pb.go python/ambassador/proto/v2/Host_pb2.py: api/getambassador.io/v2/Host.proto bin_$(GOHOSTOS)_$(GOHOSTARCH)/protoc bin_$(GOHOSTOS)_$(GOHOSTARCH)/protoc-gen-gogofast vendor
 	mkdir -p pkg/api/getambassador.io/v2 python/ambassador/proto/v2
 	./bin_$(GOHOSTOS)_$(GOHOSTARCH)/protoc \
 		--proto_path=$(CURDIR)/vendor \
@@ -103,38 +91,6 @@ pkg/api/getambassador.io/v2/Host.pb.go python/ambassador/proto/v2/Host_pb2.py: a
 		--python_out=python/ambassador/proto/v2 \
 		$(CURDIR)/$<
 
-base-%.docker.stamp: docker/base-%/Dockerfile $(var.)BASE_IMAGE.%
-	@PS4=; set -ex; { \
-	    if ! docker run --rm --entrypoint=true $(BASE_IMAGE.$*); then \
-	        if [ -z '$(YES_I_AM_UPDATING_THE_BASE_IMAGES)' ]; then \
-	            { set +x; } &>/dev/null; \
-	            echo 'error: failed to pull $(BASE_IMAGE.$*), but $$YES_I_AM_UPDATING_THE_BASE_IMAGES is not set'; \
-	            echo '       If you are trying to update the base images, then set that variable to a non-empty value.'; \
-	            echo '       If you are not trying to update the base images, then check your network connection and Docker credentials.'; \
-	            exit 1; \
-	        fi; \
-	        docker build $(DOCKER_OPTS) $($@.DOCKER_OPTS) -t $(BASE_IMAGE.$*) -f $< $(or $($@.DOCKER_DIR),.); \
-	    fi; \
-	}
-	docker image inspect $(BASE_IMAGE.$*) --format='{{.Id}}' > $@
-
-test-%.docker.stamp: docker/test-%/Dockerfile FORCE
-	docker build --quiet --iidfile=$@ $(<D)
-test-auth-tls.docker.stamp: docker/test-auth/Dockerfile FORCE
-	docker build --quiet --build-arg TLS=--tls --iidfile=$@ $(<D)
-
-update-base: ## Run this whenever the base images (ex Envoy, ./docker/base-*/*) change
-	$(MAKE) $(addsuffix .docker.tag.base,$(images.base))
-	$(MAKE) generate
-	$(MAKE) $(addsuffix .docker.push.base,$(images.base))
-.PHONY: update-base
-
-export-vars:
-	@echo "export BASE_DOCKER_REPO='$(BASE_DOCKER_REPO)'"
-	@echo "export RELEASE_DOCKER_REPO='$(RELEASE_DOCKER_REPO)'"
-.PHONY: export-vars
-
 # Configure GNU Make itself
-SHELL = bash
 .SECONDARY:
 .DELETE_ON_ERROR:
