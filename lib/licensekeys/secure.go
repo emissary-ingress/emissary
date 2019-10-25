@@ -180,7 +180,6 @@ func PhoneHome(claims *LicenseClaimsLatest, component, version string) error {
 		panic(err)
 	}
 	metritonEndpoint := "https://kubernaut.io/scout" // THIS CAN'T BE AN ENVIRONMENT VARIABLE, OR METRITON MIGHT BE HIJACKED
-	// metritonEndpoint := "http://34.201.149.144:31218/scout" // MY KUBERNAUT METRITON
 	resp, err := http.Post(metritonEndpoint, "application/json", bytes.NewBuffer(body))
 	if err != nil {
 		// TODO: Phone-home was not a success... allow soft-limit and we'll try again later
