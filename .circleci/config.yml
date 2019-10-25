@@ -166,8 +166,12 @@ commands:
           steps:
             - with-go-build-cache:
                 steps:
-                 - run: "docker login -u=\"datawire-dev+ci\" -p=\"CEAWVNREJHTOAHSOJFJHJZQYI7H9MELSU1RG1CD6XIFAURD5D7Y1N8F8MU0JO912\" quay.io"
-                 - run: "DEV_REGISTRY=quay.io/datawire-dev make gotest github.com/datawire/apro/..."
+                 - run: ".circleci/kubernaut-claim.sh"
+                 - run: "docker login -u=\"datawire-dev+aes\" -p=\"3M43T8BXB3L46H40R8W3K1JDNMIN6KP8Q5SC1SY2DRJQ7DZFE7LUJ1WE35QG3F0U\" quay.io"
+                 - run: "DEV_REGISTRY=quay.io/datawire-dev DEV_KUBECONFIG=~/.kube/$(cat ~/kubernaut-claim.txt).yaml make gotest GOTEST_PKGS=github.com/datawire/apro/..."
+                 - run:
+                     command: ".circleci/kubernaut-unclaim.sh"
+                     when: "always"
                  - save-logs
   "release":
     steps:
@@ -179,8 +183,6 @@ commands:
                 export AWS_SECRET_ACCESS_KEY=$DEPLOY_KEY
                 docker login -u="${DOCKER_RELEASE_USERNAME}" -p="${DOCKER_RELEASE_PASSWORD}" quay.io
                 make release
-            else
-                make release RELEASE_DRYRUN=y
             fi
   "clobber":
     steps:
@@ -222,7 +224,7 @@ jobs:
           executor-key: "201903-01"
       - main
       - release
-      - clobber
+#      - clobber
 
 workflows:
   "APro CI":

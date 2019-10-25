@@ -285,7 +285,7 @@ func runE(cmd *cobra.Command, args []string) error {
 			httpHandler.AddEndpoint("/openapi/", "Documentation portal API", devPortalServer.Router().ServeHTTP)
 		}
 
-		httpHandler.AddEndpoint("/firstboot/", "First boot wizard", firstboot.NewFirstBootWizard().ServeHTTP)
+		httpHandler.AddEndpoint("/firstboot/", "First boot wizard", http.StripPrefix("/firstboot", firstboot.NewFirstBootWizard()).ServeHTTP)
 
 		// Launch the server
 		server := &http.Server{
