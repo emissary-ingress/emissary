@@ -178,7 +178,7 @@ case "${cmd}" in
         vid=$(builder_volume)
         if [ -n "${vid}" ] ; then
             printf "${GRN}Killing cache volume ${BLU}${vid}${END}\n"
-            docker volume rm ${vid} > /dev/null 2>&1
+            docker volume rm ${vid} > /dev/null 2>&1 || true
         fi
         ;;
     bootstrap)
