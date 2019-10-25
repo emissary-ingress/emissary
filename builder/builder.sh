@@ -26,7 +26,7 @@ DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
 
 DBUILD=${DIR}/dbuild.sh
 
-builder() { docker ps -q -f label=builder; }
+builder() { docker ps -q -f label=builder -f label=${BUILDER_NAME}; }
 
 builder_volume() { docker volume ls -q -f label=builder; }
 
@@ -48,7 +48,7 @@ bootstrap() {
             echo "Unable to determine docker group-id"
             exit 1
         fi
-        docker run --group-add ${DOCKER_GID} -d --rm -v /var/run/docker.sock:/var/run/docker.sock -v $(builder_volume):/home/dw --net=host --cap-add NET_ADMIN -lbuilder --entrypoint tail builder -f /dev/null > /dev/null
+        docker run --group-add ${DOCKER_GID} -d --rm -v /var/run/docker.sock:/var/run/docker.sock -v $(builder_volume):/home/dw --net=host --cap-add NET_ADMIN -lbuilder -l${BUILDER_NAME} --entrypoint tail builder -f /dev/null > /dev/null
         printf "${GRN}Started build container ${BLU}$(builder)${END}\n"
     fi
 
@@ -210,18 +210,14 @@ case "${cmd}" in
         fi
         ;;
     release-version)
-        bootstrap
-        docker exec -i $(builder) /buildroot/builder.sh version-internal RELEASE_VERSION
+        shift
+        source <(module_version ${BUILDER_NAME})
+        echo "${RELEASE_VERSION}"
         ;;
     version)
-        bootstrap
-        docker exec -i $(builder) /buildroot/builder.sh version-internal BUILD_VERSION
-        ;;
-    version-internal)
         shift
-        varname=$1
-        . $(ls /buildroot/*.version | sort -u | tail -1)
-        echo "${!varname}"
+        source <(module_version ${BUILDER_NAME})
+        echo "${BUILD_VERSION}"
         ;;
     compile)
         shift

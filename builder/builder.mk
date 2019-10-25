@@ -18,7 +18,7 @@ module = $(eval MODULES += $(1))$(eval SOURCE_$(1)=$(abspath $(2)))
 
 BUILDER_HOME := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
-BUILDER = $(abspath $(BUILDER_HOME)/builder.sh)
+BUILDER = BUILDER_NAME=$(NAME) $(abspath $(BUILDER_HOME)/builder.sh)
 DBUILD = $(abspath $(BUILDER_HOME)/dbuild.sh)
 
 all: help
@@ -44,8 +44,7 @@ sync: preflight
 .PHONY: sync
 
 version:
-	@$(MAKE) --no-print-directory sync
-	@$(BUILDER) version $(DISTRO)
+	@$(BUILDER) version
 .PHONY: version
 
 compile:
@@ -87,7 +86,7 @@ push: images
 	docker push $(KAT_SRV_IMAGE)
 .PHONY: push
 
-export KUBECONFIG_ERR=$(RED)ERROR: please set the $(BLU)DEV_KUBECONFIG$(RED) make/env variable to the docker registry\n       you would like to use for development. Note this cluster must have access\n       to $(BLU)DEV_REGISTRY$(RED) (currently $(BLD)$(DEV_REGISTRY)$(END)$(RED))$(END)
+export KUBECONFIG_ERR=$(RED)ERROR: please set the $(BLU)DEV_KUBECONFIG$(RED) make/env variable to the cluster\n       you would like to use for development. Note this cluster must have access\n       to $(BLU)DEV_REGISTRY$(RED) (currently $(BLD)$(DEV_REGISTRY)$(END)$(RED))$(END)
 export KUBECTL_ERR=$(RED)ERROR: preflight kubectl check failed$(END)
 
 test-ready: push
