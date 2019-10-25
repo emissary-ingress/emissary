@@ -33,7 +33,7 @@ you can use the IP address you acquired in step 2 instead.
 
 ## 4. Complete the install
 
-Go to http://<your-host-name> and follow the instructions to complete the install.
+Go to http://&lt;your-host-name&gt; and follow the instructions to complete the install.
 
 
 ## Next Steps
