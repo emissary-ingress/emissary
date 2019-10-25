@@ -5,11 +5,13 @@ shopt -s expand_aliases
 alias echo_on="{ set -x; }"
 alias echo_off="{ set +x; } 2>/dev/null"
 
+# Choose colors carefully. If they don't work on both a black 
+# background and a white background, pick other colors (so white,
+# yellow, and black are poor choices).
 RED='\033[1;31m'
 GRN='\033[1;32m'
-YEL='\033[1;33m'
 BLU='\033[1;34m'
-WHT='\033[1;37m'
+CYN='\033[1;36m'
 END='\033[0m'
 
 set -e
@@ -35,7 +37,7 @@ bootstrap() {
     fi
 
     if [ -z "$(builder)" ] ; then
-        printf "${WHT}==${GRN}Bootstrapping build image${WHT}==${END}\n"
+        printf "${CYN}==> ${GRN}Bootstrapping build image${END}\n"
         ${DBUILD} --target builder ${DIR} -t builder
         if [ "$(uname -s)" == Darwin ]; then
             DOCKER_GID=$(stat -f "%g" /var/run/docker.sock)
@@ -152,7 +154,7 @@ summarize-sync() {
             break
         fi
         line="${lines[$i]}"
-        printf "  ${YEL}${line}${END}\n"
+        printf "  ${CYN}${line}${END}\n"
     done
 }
 
@@ -237,7 +239,7 @@ case "${cmd}" in
             if [ -e ${module}.dirty ]; then
                 case ${SRCDIR} in
                     */go.mod)
-                        printf "${WHT}==${GRN}Building ${BLU}${module}${GRN} go code${WHT}==${END}\n"
+                        printf "${CYN}==> ${GRN}Building ${BLU}${module}${GRN} go code${END}\n"
                         wd=$(dirname ${SRCDIR})
                         echo_on
                         (cd ${wd} && GOBIN=/buildroot/bin go install $(if [[ -f vendor/modules.txt ]]; then echo ' -mod=vendor '; fi) ./cmd/...) || exit 1
@@ -246,7 +248,7 @@ case "${cmd}" in
                         ;;
                     */python)
                         if ! [ -e ${SRCDIR}/*.egg-info ]; then
-                            printf "${WHT}==${GRN}Setting up ${BLU}${module}${GRN} python code${WHT}==${END}\n"
+                            printf "${CYN}==> ${GRN}Setting up ${BLU}${module}${GRN} python code${END}\n"
                             echo_on
                             sudo pip install --no-deps -e ${SRCDIR} || exit 1
                             echo_off
@@ -297,7 +299,7 @@ case "${cmd}" in
         fi
         cid=$(builder)
         if dirty ${cid}; then
-	    printf "${WHT}==${GRN}Snapshotting ${BLU}builder${GRN} image${WHT}==${END}\n"
+	    printf "${CYN}==> ${GRN}Snapshotting ${BLU}builder${GRN} image${END}\n"
 	    docker rmi -f "${name}" &> /dev/null
             docker commit -c 'ENTRYPOINT [ "/bin/bash" ]' ${cid} "${name}"
         fi
