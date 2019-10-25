@@ -308,6 +308,7 @@ spec:
       containers:
       - name: aes
         image: {{env "AES_IMAGE"}}
+        imagePullPolicy: Always
         ports:
         - name: http
           containerPort: 8080
