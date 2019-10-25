@@ -10,12 +10,11 @@
 # container. (The "builder" stage below.) We then produce optimized
 # release images by copying the specific binaries and entrypoints out
 # of the build container. The build container must always contain all
-# the binaries and entrypoints for any image that we produce, and
+# the binaries and entrypoints for any container we produce, and
 # therefore (with the appropriate entrypoint) can function in place of
-# any release image. The release images are trivial stages that simply
-# copy the relevant artifacts out of a snapshot of the builder
-# container; these release images are marked with the magic comment
-# "#external".
+# any release container. The release containers are trivial stages
+# that simply copy the relevant artifacts out of the builder
+# container.
 
 # This argument controlls the base image is used for both our build
 # container and for the release containers.
@@ -27,15 +26,13 @@ ARG base="frolvlad/alpine-glibc:alpine-3.10"
 ARG artifacts="builder"
 
 # This controls where we copy envoy from.
-ARG envoy
+ARG envoy="quay.io/datawire/ambassador:0.83.0"
 
 ########################################
 # The builder image
 ########################################
 
 FROM ${envoy} as envoy
-RUN strip /usr/local/bin/envoy
-
 FROM ${base} as builder
 
 WORKDIR /buildroot
@@ -93,14 +90,13 @@ ENTRYPOINT [ "/bin/bash" ]
 
 FROM ${artifacts} as artifacts
 
-#external
 FROM ${base} as ambassador
 
 RUN apk --no-cache add bash curl python3 libcap
 
 RUN ln -s /usr/bin/python3 /usr/bin/python
 
-COPY --from=builder /usr/local/bin/envoy /usr/local/bin/envoy
+COPY --from=envoy /usr/local/bin/envoy /usr/local/bin/envoy
 COPY --from=builder /usr/lib/python3.7/site-packages /usr/lib/python3.7/site-packages
 COPY --from=builder /usr/lib/libyaml* /usr/lib/
 
@@ -133,7 +129,6 @@ ENTRYPOINT [ "bash", "/buildroot/ambassador/python/entrypoint.sh" ]
 
 ########################################
 
-#external
 FROM ${base} as kat-client
 
 COPY --from=artifacts /buildroot/bin/kat-client /usr/bin/kat-client
@@ -142,7 +137,6 @@ CMD [ "sleep", "3600" ]
 
 ########################################
 
-#external
 FROM ${base} as kat-server
 
 COPY --from=artifacts /buildroot/bin/kat-server /usr/bin/kat-server

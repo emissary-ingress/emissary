@@ -12,8 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
+import os
 from typing import NamedTuple
 
+with open(os.path.join(os.path.dirname(__file__), "..", "ambassador.version")) as version:
+    exec(version.read())
 
 class GitInfo(NamedTuple):
     commit: str
@@ -27,15 +30,15 @@ class BuildInfo(NamedTuple):
     git: GitInfo
 
 
-Version = "{{VERSION}}"
+Version = BUILD_VERSION
 
 Build = BuildInfo(
     version=Version,
     git=GitInfo(
-        commit="{{GITCOMMIT}}",
-        branch="{{GITBRANCH}}",
-        dirty=bool("{{GITDIRTY}}"),
-        description="{{GITDESCRIPTION}}",
+        commit=GIT_COMMIT,
+        branch=GIT_BRANCH,
+        dirty=bool(GIT_DIRTY),
+        description=GIT_DESCRIPTION,
     )
 )
 

@@ -82,7 +82,7 @@ You'll now register a demo application with Consul, and show how Ambassador can 
         spec:
           containers:
           - name: qotm
-            image: datawire/qotm:%qotmVersion%
+            image: datawire/qotm:$qotmVersion$
             ports:
             - name: http-api
               containerPort: 5000
@@ -185,7 +185,7 @@ This will install into your cluster:
         spec:
           containers:
           - name: qotm
-            image: datawire/qotm:%qotmVersion%
+            image: datawire/qotm:$qotmVersion$
             ports:
             - name: http-api
               containerPort: 5000

@@ -58,9 +58,5 @@ kubernaut claims delete ${CLAIM_NAME}
 kubernaut claims create --name ${CLAIM_NAME} --cluster-group main
 # Do a quick sanity check on that cluster
 kubectl --kubeconfig ${DEV_KUBECONFIG} -n default get service kubernetes
-# Tell test-warn.sh that, yes, it's OK if it has its way with the cluster
-touch .skip_test_warning
-# Set up a registry in that cluster
-KUBECONFIG=${DEV_KUBECONFIG} go run ./cmd/k8sregistryctl up --storage=hostPath
 
 printf "== End:   travis-install.sh ==\n"

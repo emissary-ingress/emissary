@@ -36,7 +36,7 @@ bootstrap() {
 
     if [ -z "$(builder)" ] ; then
         printf "${WHT}==${GRN}Bootstrapping build image${WHT}==${END}\n"
-        ${DBUILD} --build-arg envoy=$(cat ${DIR}/../base-envoy.docker) --target builder ${DIR} -t builder
+        ${DBUILD} --target builder ${DIR} -t builder
         if [ "$(uname -s)" == Darwin ]; then
             DOCKER_GID=$(stat -f "%g" /var/run/docker.sock)
         else
@@ -53,6 +53,66 @@ bootstrap() {
     rsync -q -a -e 'docker exec -i' ${DIR}/builder.sh $(builder):/buildroot
 }
 
+module_version() {
+    echo MODULE="\"$1\""
+    # This is only "kinda" the git branch name:
+    #
+    #  - if checked out is the synthetic merge-commit for a PR, then use
+    #    the PR's branch name (even though the merge commit we have
+    #    checked out isn't part of the branch")
+    #  - if this is a CI run for a tag (not a branch or PR), then use the
+    #    tag name
+    #  - if none of the above, then use the actual git branch name
+    #
+    # read: https://graysonkoonce.com/getting-the-current-branch-name-during-a-pull-request-in-travis-ci/
+    for VAR in "${TRAVIS_PULL_REQUEST_BRANCH}" "${TRAVIS_BRANCH}" $(git rev-parse --abbrev-ref HEAD); do
+        if [ -n "${VAR}" ]; then
+            echo GIT_BRANCH="\"${VAR}\""
+            break
+        fi
+    done
+    # The short git commit hash
+    echo GIT_COMMIT="\"$(git rev-parse --short HEAD)\""
+    # Whether `git add . && git commit` would commit anything (empty=false, nonempty=true)
+    if [ -n "$(git status --porcelain)" ]; then
+        echo GIT_DIRTY="\"dirty\""
+        dirty="yes"
+    else
+        echo GIT_DIRTY="\"\""
+        dirty=""
+    fi
+    # The _previous_ tag, plus a git delta, like 0.36.0-436-g8b8c5d3
+    echo GIT_DESCRIPTION="\"$(git describe --tags)\""
+
+    # RELEASE_VERSION is an X.Y.Z[-prerelease] (semver) string that we
+    # will upload/release the image as.  It does NOT include a leading 'v'
+    # (trimming the 'v' from the git tag is what the 'patsubst' is for).
+    # If this is an RC or EA, then it includes the '-rcN' or '-eaN'
+    # suffix.
+    #
+    # BUILD_VERSION is of the same format, but is the version number that
+    # we build into the image.  Because an image built as a "release
+    # candidate" will ideally get promoted to be the GA image, we trim off
+    # the '-rcN' suffix.
+    for VAR in "${TRAVIS_TAG}" "$(git describe --tags --always)"; do
+        if [ -n "${VAR}" ]; then
+            RELEASE_VERSION="${VAR}"
+            break
+        fi
+    done
+
+    if [[ ${RELEASE_VERSION} =~ ^v[0-9]+.*$ ]]; then
+        RELEASE_VERSION=${RELEASE_VERSION:1}
+    fi
+
+    if [ -n "${dirty}" ]; then
+        RELEASE_VERSION="${RELEASE_VERSION}-dirty"
+    fi
+
+    echo RELEASE_VERSION="\"${RELEASE_VERSION}\""
+    echo BUILD_VERSION="\"$(echo "${RELEASE_VERSION}" | sed 's/-rc[0-9]*$//')\""
+}
+
 sync() {
     name=$1
     sourcedir=$2
@@ -61,7 +121,10 @@ sync() {
     real=$(cd ${sourcedir}; pwd)
 
     docker exec -i ${container} mkdir -p /buildroot/${name}
-    summarize-sync $name $container $(rsync --exclude-from=${DIR}/sync-excludes.txt --info=name -a --delete -e 'docker exec -i' ${real}/ ${container}:/buildroot/${name})
+    declare -a lines
+    IFS='|' read -ra lines <<<"$(rsync --exclude-from=${DIR}/sync-excludes.txt --info=name -aO --delete -e 'docker exec -i' ${real}/ ${container}:/buildroot/${name} | tr '\n' '|')"
+    summarize-sync $name $container "${lines[@]}"
+    (cd ${sourcedir} && module_version ${name} ) | docker exec -i ${container} sh -c "cat > /buildroot/${name}.version && if [ -e ${name}/python ]; then cp ${name}.version ${name}/python/; fi"
 }
 
 dirty() {
@@ -79,20 +142,17 @@ summarize-sync() {
     shift
     container=$1
     shift
-    if [ "$#" != 0 ]; then
+    lines=("$@")
+    if [ "${#lines[@]}" != 0 ]; then
         docker exec -i ${container} touch /buildroot/${name}.dirty
     fi
-    printf "${GRN}Synced $# ${BLU}${name}${GRN} source files${END}\n"
-    prevdel=""
-    for var in "$@"; do
-        if [ -n "$prevdel" ]; then
-            printf "  ${YEL}deleted${END} $var\n"
+    printf "${GRN}Synced ${#lines[@]} ${BLU}${name}${GRN} source files${END}\n"
+    for i in {0..9}; do
+        if [ "$i" = "${#lines[@]}" ]; then
+            break
         fi
-        if [ "${var}" == "deleting" ]; then
-            prevdel="x"
-        else
-            prevdel=""
-        fi
+        line="${lines[$i]}"
+        printf "  ${YEL}${line}${END}\n"
     done
 }
 
@@ -112,6 +172,7 @@ case "${cmd}" in
         clean
         ;;
     clobber)
+        clean
         vid=$(builder_volume)
         if [ -n "${vid}" ] ; then
             printf "${GRN}Killing cache volume ${BLU}${vid}${END}\n"
@@ -129,6 +190,36 @@ case "${cmd}" in
         shift
         bootstrap
         sync $1 $2 $(builder)
+        ;;
+    release-type)
+        shift
+        RELVER="$1"
+        if [ -z "${RELVER}" ]; then
+            bootstrap
+            RELVER=$(docker exec -i $(builder) /buildroot/builder.sh version-internal RELEASE_VERSION)
+        fi
+
+        if [[ "${RELVER}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo release
+        elif [[ "${RELVER}" =~ ^[0-9]+\.[0-9]+\.[0-9]+-rc[0-9]*$ ]]; then
+            echo rc
+        else
+            echo other
+        fi
+        ;;
+    release-version)
+        bootstrap
+        docker exec -i $(builder) /buildroot/builder.sh version-internal RELEASE_VERSION
+        ;;
+    version)
+        bootstrap
+        docker exec -i $(builder) /buildroot/builder.sh version-internal BUILD_VERSION
+        ;;
+    version-internal)
+        shift
+        varname=$1
+        . $(ls /buildroot/*.version | sort -u | tail -1)
+        echo "${!varname}"
         ;;
     compile)
         shift
@@ -165,7 +256,21 @@ case "${cmd}" in
             fi
         done
         ;;
-    test-internal)
+    pytest-internal)
+        # This runs inside the builder image
+        fail=""
+        for SRCDIR in $(find /buildroot -type d -name python -mindepth 2 -maxdepth 2); do
+            module=$(basename $(dirname ${SRCDIR}))
+            wd=$(dirname ${SRCDIR})
+            if ! (cd ${wd} && pytest --tb=short -ra ${PYTEST_ARGS}) then
+               fail="yes"
+            fi
+        done
+        if [ "${fail}" = yes ]; then
+            exit 1
+        fi
+        ;;
+    gotest-internal)
         # This runs inside the builder image
         fail=""
         for SRCDIR in $(find /buildroot -type f -name go.mod -mindepth 2 -maxdepth 2); do
@@ -178,7 +283,7 @@ case "${cmd}" in
                 fi
             fi
         done
-        if [ "${fail}" == yes ]; then
+        if [ "${fail}" = yes ]; then
             exit 1
         fi
         ;;
