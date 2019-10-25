@@ -166,8 +166,8 @@ commands:
           steps:
             - with-go-build-cache:
                 steps:
-                 - run: "docker login -u=\"${DOCKER_BUILD_USERNAME}\" -p=\"${DOCKER_BUILD_PASSWORD}\" quay.io"
-                 - run: "make test"
+                 - run: "docker login -u=\"datawire-dev+ci\" -p=\"CEAWVNREJHTOAHSOJFJHJZQYI7H9MELSU1RG1CD6XIFAURD5D7Y1N8F8MU0JO912\" quay.io"
+                 - run: "DEV_REGISTRY=quay.io/datawire/docker-dev make test"
                  - save-logs
   "release":
     steps:
