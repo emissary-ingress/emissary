@@ -11,3 +11,4 @@ go.sum
 /bin_linux_amd64/
 /bin_darwin_amd64/
 /cxx/envoy/
+/ambassador/
