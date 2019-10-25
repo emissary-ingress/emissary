@@ -72,7 +72,7 @@ func ensureFallbackContext(cfg types.Config, dynamicClient k8sClientDynamic.Inte
 		},
 		"spec": map[string]interface{}{
 			"hosts": []string{
-				"",
+				"*",
 			},
 			"secret": SelfSignedSecretName,
 		},
