@@ -212,7 +212,8 @@ service: {self.target.path.fqdn}
         # error message that the Go authors will use, so I'm going ahead and including "certificate required"
         # in the list of allowed error messages below.  If that assumption ends up being wrong: Yes, future
         # person, it's OK to replace the string "certificate required" with the correct one for alert=116.
-        yield Query(self.url(self.name + "/"), insecure=True, minTLSv="v1.3", error=["tls: alert(116)", "tls: certificate required"])
+        yield Query(self.url(self.name + "/"), insecure=True, minTLSv="v1.3",
+                    error=["tls: alert(116)", "tls: certificate required", "read: connection reset"])
 
     def requirements(self):
         for r in super().requirements():
@@ -1024,7 +1025,8 @@ max_tls_version: v1.2
                     maxTLSv="v1.3",
                     error=[ "tls: server selected unsupported protocol version 303",
                             "tls: no supported versions satisfy MinVersion and MaxVersion",
-                            "tls: protocol version not supported" ])
+                            "tls: protocol version not supported",
+                            "read: connection reset by peer"])  # The TLS inspector just closes the connection. Wow.
 
     def check(self):
         tls_0_version = self.results[0].backend.request.tls.negotiated_protocol_version

@@ -35,6 +35,7 @@ from .irfilter import IRFilter
 from .ircluster import IRCluster
 from .irbasemappinggroup import IRBaseMappingGroup
 from .irbasemapping import IRBaseMapping
+from .irhttpmapping import IRHTTPMapping
 from .irmappingfactory import MappingFactory
 from .irratelimit import IRRateLimit
 from .irtls import TLSModuleFactory, IRAmbassadorTLS
@@ -76,6 +77,8 @@ class IR:
     file_checker: Callable[[str], bool]
     resolvers: Dict[str, IRServiceResolver]
     redirect_cleartext_from: Optional[int]
+    edge_stack_allowed: bool
+    wizard_allowed: bool
 
     def __init__(self, aconf: Config, secret_handler=None, file_checker=None) -> None:
         self.ambassador_id = Config.ambassador_id
@@ -163,6 +166,19 @@ class IR:
         if not self.ambassador_module.finalize(self, aconf):
             # Uhoh.
             self.ambassador_module.set_active(False)    # This can't be good.
+
+        # Check on the edge stack and the wizard. Note that the Edge Stack touchfile is _not_ within
+        # $AMBASSADOR_CONFIG_BASE_DIR: it stays in /ambassador no matter what.
+        self.edge_stack_allowed = os.path.exists('/ambassador/.edge_stack')
+        self.wizard_allowed = self.edge_stack_allowed and self.ambassador_module.get('allow-wizard', True)
+
+        _mode_str = 'Edge Stack' if self.edge_stack_allowed else 'OSS'
+        _wizard_str = ''
+
+        if self.edge_stack_allowed:
+            _wizard_str = f"; wizard {'allowed' if self.wizard_allowed else 'not allowed'}"
+
+        self.logger.info(f"IR: starting {_mode_str}{_wizard_str}")
 
         # Save circuit breakers, outliers, and services.
         self.breakers = aconf.get_config("CircuitBreaker") or {}
