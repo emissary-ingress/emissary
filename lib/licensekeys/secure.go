@@ -7,8 +7,9 @@ import (
 	"fmt"
 	"math/big"
 	"net/http"
+	"os"
 
-	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/dgrijalva/jwt-go"
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 
@@ -82,6 +83,10 @@ func (limit LimitValue) String() string {
 	return fmt.Sprintf("%v=%v", limit.Name, limit.Value)
 }
 
+type MetritonResponse struct {
+	IsHardLimit bool `json:"hard_limit"`
+}
+
 func newBigIntFromBytes(bs []byte) *big.Int {
 	ret := big.NewInt(0)
 	ret.SetBytes(bs)
@@ -132,31 +137,68 @@ func ParseKey(licenseKey string) (*LicenseClaimsLatest, error) {
 }
 
 func PhoneHome(claims *LicenseClaimsLatest, component, version string) error {
+	if os.Getenv("SCOUT_DISABLE") != "" {
+		fmt.Printf("SCOUT_DISABLE, enforcing hard-limits")
+		// TODO: User has disabled phone-home through `SCOUT_DISABLE` var. Honor his will and enforce hard limits.
+		return nil
+	}
+
 	customerID := ""
 	if claims != nil {
 		customerID = claims.CustomerID
+	}
+	customerContact := ""
+	if claims != nil {
+		customerContact = claims.CustomerEmail
 	}
 	namespace, err := uuid.Parse("a4b394d6-02f4-11e9-87ca-f8344185863f")
 	if err != nil {
 		panic(err)
 	}
+
+	// TODO: Populate licensed feature usage/limits, if any usage > limit, log a message
+	featuresDataSet := []map[string]interface{}{
+		//{
+		//	"name":  "feature-x",
+		//	"usage": 0,
+		//	"limit": 5,
+		//},
+	}
 	data := map[string]interface{}{
-		"application": "ambassador-pro",
+		"application": "aes",
 		"install_id":  uuid.NewSHA1(namespace, []byte(customerID)).String(),
 		"version":     version,
-		"metadata": map[string]string{
+		"metadata": map[string]interface{}{
 			"id":        customerID,
+			"contact":   customerContact,
 			"component": component,
+			"features":  featuresDataSet,
 		},
 	}
 	body, err := json.MarshalIndent(data, "", "  ")
 	if err != nil {
 		panic(err)
 	}
-	resp, err := http.Post("https://kubernaut.io/scout", "application/json", bytes.NewBuffer(body))
+	metritonEndpoint := "https://kubernaut.io/scout" // THIS CAN'T BE AN ENVIRONMENT VARIABLE, OR METRITON MIGHT BE HIJACKED
+	resp, err := http.Post(metritonEndpoint, "application/json", bytes.NewBuffer(body))
 	if err != nil {
+		// TODO: Phone-home was not a success... allow soft-limit and we'll try again later
+		fmt.Printf("Metriton call was not a success... allow soft-limit\n")
 		return err
 	}
 	defer resp.Body.Close()
+
+	metritonResponse := MetritonResponse{}
+	err = json.NewDecoder(resp.Body).Decode(&metritonResponse)
+	if err != nil {
+		// TODO: Phone-home's response body could not be read... allow soft-limit and we'll try again later
+		fmt.Printf("Metriton call was not a success... allow soft-limit\n")
+		return err
+	}
+	if metritonResponse.IsHardLimit {
+		// TODO: Metriton is telling us to enforce hard limit
+		fmt.Printf("Metriton is enforcing hard-limits")
+		return nil
+	}
 	return nil
 }
