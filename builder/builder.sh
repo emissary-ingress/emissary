@@ -224,7 +224,11 @@ case "${cmd}" in
     compile)
         shift
         bootstrap
-        docker exec -it $(builder) /buildroot/builder.sh compile-internal
+        if [[ -t 0 ]]; then
+            docker exec -it $(builder) /buildroot/builder.sh compile-internal
+        else
+            docker exec $(builder) /buildroot/builder.sh compile-internal
+        fi
         ;;
     compile-internal)
         # This runs inside the builder image
@@ -258,7 +262,7 @@ case "${cmd}" in
         for SRCDIR in $(find /buildroot -type d -name python -mindepth 2 -maxdepth 2); do
             module=$(basename $(dirname ${SRCDIR}))
             wd=$(dirname ${SRCDIR})
-            if ! (cd ${wd} && pytest ${PYTEST_ARGS}) then
+            if ! (cd ${wd} && pytest --tb=short -ra ${PYTEST_ARGS}) then
                fail="yes"
             fi
         done
