@@ -37,8 +37,17 @@ HandlerResult = Optional[Tuple[str, List[AnyDict]]]
 # - Endpoint resources probably have just a name, a service name, and an endpoint
 #   address.
 
+CRDTypes = frozenset([
+    'AuthService', 'ConsulResolver', 'Host',
+    'KubernetesEndpointResolver', 'KubernetesServiceResolver',
+    'Mapping', 'Module', 'RateLimitService', 'TCPMapping', 
+    'TLSContext', 'TracingService',
+    'clusteringresses.networking.internal.knative.dev',
+    'ingresses.networking.internal.knative.dev'
+])
+
 class ResourceFetcher:
-    def __init__(self, logger: logging.Logger, aconf: 'Config') -> None:
+    def __init__(self, logger: logging.Logger, aconf: 'Config', skip_init_dir: bool=False) -> None:
         self.aconf = aconf
         self.logger = logger
         self.elements: List[ACResource] = []
@@ -53,6 +62,14 @@ class ResourceFetcher:
 
         # Ugh. Should we worry about multiple Helm charts for a single Ambassador?
         self.helm_chart: Optional[str] = None
+
+        if not skip_init_dir:
+            # Check AMBASSADOR_CONFIG_BASE_DIR/init_config for initialization resources.
+            base = os.environ.get('AMBASSADOR_CONFIG_BASE_DIR') or '/ambassador'
+            init_dir = os.path.join(base, 'init-config')
+
+            if os.path.isdir(init_dir):
+                self.load_from_filesystem(init_dir, k8s=True, recurse=True, finalize=False)
 
     @property
     def location(self):
@@ -175,12 +192,7 @@ class ResourceFetcher:
                     self.handle_k8s(obj)
 
             # ...then handle Ambassador CRDs.
-            for key in [ 'AuthService', 'ConsulResolver',
-                         'KubernetesEndpointResolver', 'KubernetesServiceResolver',
-                         'Mapping', 'Module', 'RateLimitService',
-                         'TCPMapping', 'TLSContext', 'TracingService',
-                         'clusteringresses.networking.internal.knative.dev',
-                         'ingresses.networking.internal.knative.dev']:
+            for key in CRDTypes:
                 for obj in watt_k8s.get(key) or []:
                     self.logger.debug(f"Handling CRD {key}...")
                     self.handle_k8s_crd(obj)
@@ -211,12 +223,17 @@ class ResourceFetcher:
             # self.logger.debug("%s: ignoring K8s object, no kind" % self.location)
             return
 
-        handler_name = f'handle_k8s_{kind.lower()}'
-        self.logger.debug(f"looking for handler {handler_name}")
-        handler = getattr(self, handler_name, None)
+        handler = None
+
+        if kind in CRDTypes:
+            handler = self.handle_k8s_crd
+        else:
+            handler_name = f'handle_k8s_{kind.lower()}'
+            self.logger.debug(f"looking for handler {handler_name}")
+            handler = getattr(self, handler_name, None)
 
         if not handler:
-            # self.logger.debug("%s: ignoring K8s object, no kind" % self.location)
+            self.logger.debug("%s: ignoring K8s object, unknown kind" % self.location)
             return
 
         result = handler(obj)

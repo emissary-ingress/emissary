@@ -240,7 +240,7 @@ case "${cmd}" in
                         printf "${WHT}==${GRN}Building ${BLU}${module}${GRN} go code${WHT}==${END}\n"
                         wd=$(dirname ${SRCDIR})
                         echo_on
-                        (cd ${wd} && GOBIN=/buildroot/bin go install ./cmd/...) || exit 1
+                        (cd ${wd} && GOBIN=/buildroot/bin go install $(if [[ -f vendor/modules.txt ]]; then echo ' -mod=vendor '; fi) ./cmd/...) || exit 1
                         echo_off
                         ;;
                     */python)
