@@ -2,11 +2,13 @@
 #DEV_REGISTRY=localhost:5000
 #DEV_KUBECONFIG=/tmp/k3s.yaml
 
+# Choose colors carefully. If they don't work on both a black 
+# background and a white background, pick other colors (so white,
+# yellow, and black are poor choices).
 RED=\033[1;31m
 GRN=\033[1;32m
-YEL=\033[1;33m
 BLU=\033[1;34m
-WHT=\033[1;37m
+CYN=\033[1;36m
 BLD=\033[1m
 END=\033[0m
 
@@ -29,7 +31,7 @@ export DOCKER_ERR=$(RED)ERROR: cannot find docker, please make sure docker is in
 
 preflight:
 ifeq ($(strip $(shell $(BUILDER))),)
-	@printf "$(WHT)==$(GRN)Preflight checks$(WHT)==$(END)\n"
+	@printf "$(CYN)==> $(GRN)Preflight checks$(END)\n"
 # Checking for rsync --info
 	test -n "$$(rsync --help | fgrep -- --info)" || (printf "$${RSYNC_ERR}\n"; exit 1)
 # Checking for docker
@@ -58,11 +60,11 @@ commit:
 images:
 	@$(MAKE) --no-print-directory compile
 	@$(MAKE) --no-print-directory commit
-	@printf "$(WHT)==$(GRN)Building $(BLU)ambassador$(GRN) image$(WHT)==$(END)\n"
+	@printf "$(CYN)==> $(GRN)Building $(BLU)ambassador$(GRN) image$(END)\n"
 	@$(DBUILD) $(BUILDER_HOME) --build-arg artifacts=snapshot --target ambassador -t ambassador
-	@printf "$(WHT)==$(GRN)Building $(BLU)kat-client$(GRN) image$(WHT)==$(END)\n"
+	@printf "$(CYN)==> $(GRN)Building $(BLU)kat-client$(GRN) image$(END)\n"
 	@$(DBUILD) $(BUILDER_HOME) --build-arg artifacts=snapshot --target kat-client -t kat-client
-	@printf "$(WHT)==$(GRN)Building $(BLU)kat-server$(GRN) image$(WHT)==$(END)\n"
+	@printf "$(CYN)==> $(GRN)Building $(BLU)kat-server$(GRN) image$(END)\n"
 	@$(DBUILD) $(BUILDER_HOME) --build-arg artifacts=snapshot --target kat-server -t kat-server
 .PHONY: images
 
@@ -74,21 +76,22 @@ export REGISTRY_ERR=$(RED)ERROR: please set the DEV_REGISTRY make/env variable t
 
 push: images
 	@test -n "$(DEV_REGISTRY)" || (printf "$${REGISTRY_ERR}\n"; exit 1)
-	@printf "$(WHT)==$(GRN)Pushing $(BLU)ambassador$(GRN) image$(WHT)==$(END)\n"
+	@printf "$(CYN)==> $(GRN)Pushing $(BLU)ambassador$(GRN) image$(END)\n"
 	docker tag ambassador $(AMB_IMAGE)
 	docker push $(AMB_IMAGE)
-	@printf "$(WHT)==$(GRN)Pushing $(BLU)kat-client$(GRN) image$(WHT)==$(END)\n"
+	@printf "$(CYN)==> $(GRN)Pushing $(BLU)kat-client$(GRN) image$(END)\n"
 	docker tag kat-client $(KAT_CLI_IMAGE)
 	docker push $(KAT_CLI_IMAGE)
-	@printf "$(WHT)==$(GRN)Pushing $(BLU)kat-server$(GRN) image$(WHT)==$(END)\n"
+	@printf "$(CYN)==> $(GRN)Pushing $(BLU)kat-server$(GRN) image$(END)\n"
 	docker tag kat-server $(KAT_SRV_IMAGE)
 	docker push $(KAT_SRV_IMAGE)
 .PHONY: push
 
-export KUBECONFIG_ERR=$(RED)ERROR: please set the $(YEL)DEV_KUBECONFIG$(RED) make/env variable to the docker registry\n       you would like to use for development. Note this cluster must have access\n       to $(YEL)DEV_REGISTRY$(RED) ($(WHT)$(DEV_REGISTRY)$(RED))$(END)
+export KUBECONFIG_ERR=$(RED)ERROR: please set the $(BLU)DEV_KUBECONFIG$(RED) make/env variable to the docker registry\n       you would like to use for development. Note this cluster must have access\n       to $(BLU)DEV_REGISTRY$(RED) (currently $(BLD)$(DEV_REGISTRY)$(END)$(RED))$(END)
 export KUBECTL_ERR=$(RED)ERROR: preflight kubectl check failed$(END)
 
 test-ready: push
+	@printf "$(CYN)==> $(GRN)Checking for test cluster$(END)\n"
 	@test -n "$(DEV_KUBECONFIG)" || (printf "$${KUBECONFIG_ERR}\n"; exit 1)
 	@kubectl --kubeconfig $(DEV_KUBECONFIG) -n default get service kubernetes > /dev/null || (printf "$${KUBECTL_ERR}\n"; exit 1)
 	@cat $(DEV_KUBECONFIG) | docker exec -i $(shell $(BUILDER)) sh -c "cat > /buildroot/kubeconfig.yaml"
@@ -105,7 +108,7 @@ PYTEST_ARGS ?=
 export PYTEST_ARGS
 
 pytest: test-ready
-	@printf "$(WHT)==$(GRN)Running $(BLU)py$(GRN) tests$(WHT)==$(END)\n"
+	@printf "$(CYN)==> $(GRN)Running $(BLU)py$(GRN) tests$(END)\n"
 	docker exec \
 		-e AMBASSADOR_DOCKER_IMAGE=$(AMB_IMAGE) \
 		-e KAT_CLIENT_DOCKER_IMAGE=$(KAT_CLI_IMAGE) \
@@ -123,7 +126,7 @@ GOTEST_ARGS ?=
 export GOTEST_ARGS
 
 gotest: test-ready
-	@printf "$(WHT)==$(GRN)Running $(BLU)go$(GRN) tests$(WHT)==$(END)\n"
+	@printf "$(CYN)==> $(GRN)Running $(BLU)go$(GRN) tests$(END)\n"
 	docker exec \
 		-e DTEST_REGISTRY=$(DEV_REGISTRY) \
 		-e DTEST_KUBECONFIG=/buildroot/kubeconfig.yaml \
@@ -154,7 +157,7 @@ rc: images
 	@if [ "$(RELEASE_TYPE)" = release ]; then \
 		(printf "$(RED)ERROR: 'make rc' can only be used for non-release tags$(END)\n" && exit 1); \
 	fi
-	@printf "$(WHT)==$(GRN)Pushing release candidate $(BLU)ambassador$(GRN) image$(WHT)==$(END)\n"
+	@printf "$(CYN)==> $(GRN)Pushing release candidate $(BLU)ambassador$(GRN) image$(END)\n"
 	docker tag ambassador $(AMB_IMAGE_RC)
 	docker push $(AMB_IMAGE_RC)
 	@if [ "$(RELEASE_TYPE)" = rc ]; then \
@@ -174,7 +177,7 @@ release:
 	@if [ "$(RELEASE_TYPE)" != release ]; then \
 		(printf "$(RED)ERROR: 'make release' can only be used for release tags ('vX.Y.Z')$(END)\n" && exit 1); \
 	fi
-	@printf "$(WHT)==$(GRN)Promoting release $(BLU)ambassador$(GRN) image$(WHT)==$(END)\n"
+	@printf "$(CYN)==> $(GRN)Promoting release $(BLU)ambassador$(GRN) image$(END)\n"
 	docker pull $(AMB_IMAGE_RC_LATEST)
 	docker tag $(AMB_IMAGE_RC_LATEST) $(AMB_IMAGE_RELEASE)
 	docker push $(AMB_IMAGE_RELEASE)
