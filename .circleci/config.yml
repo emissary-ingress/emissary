@@ -167,19 +167,8 @@ commands:
             - with-go-build-cache:
                 steps:
                  - run: "docker login -u=\"${DOCKER_BUILD_USERNAME}\" -p=\"${DOCKER_BUILD_PASSWORD}\" quay.io"
-                 - run: "make build # main build"
-                 - run: "make build # no-op build"
-                 - run: "make push-docker-buildcache || true"
-                 - run: "make deploy # main deploy"
-                 - run: "make deploy # no-op deploy"
-                 # FIXME: Figure out what's not parallel-safe about
-                 # the tests
-                 - run: "trap 'make unproxy' EXIT; set -x; make -j1 check"
-                 - run:
-                     command: "make unclaim"
-                     when: always
+                 - run: "make test"
                  - save-logs
-                 - run: "make help # verify that the build is not dirty"
   "release":
     steps:
       - run:
