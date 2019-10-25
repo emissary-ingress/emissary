@@ -1,3 +1,5 @@
+NAME ?= aes
+
 ifndef OSS_HOME
 AMBASSADOR_COMMIT = shared/edgy
 
