@@ -138,6 +138,7 @@ func ParseKey(licenseKey string) (*LicenseClaimsLatest, error) {
 
 func PhoneHome(claims *LicenseClaimsLatest, component, version string) error {
 	if os.Getenv("SCOUT_DISABLE") != "" {
+		fmt.Printf("SCOUT_DISABLE, enforcing hard-limits")
 		// TODO: User has disabled phone-home through `SCOUT_DISABLE` var. Honor his will and enforce hard limits.
 		return nil
 	}
@@ -146,12 +147,16 @@ func PhoneHome(claims *LicenseClaimsLatest, component, version string) error {
 	if claims != nil {
 		customerID = claims.CustomerID
 	}
+	customerContact := ""
+	if claims != nil {
+		customerContact = claims.CustomerEmail
+	}
 	namespace, err := uuid.Parse("a4b394d6-02f4-11e9-87ca-f8344185863f")
 	if err != nil {
 		panic(err)
 	}
 
-	// TODO: Populate licensed feature usage/limits
+	// TODO: Populate licensed feature usage/limits, if any usage > limit, log a message
 	featuresDataSet := []map[string]interface{}{
 		//{
 		//	"name":  "feature-x",
@@ -165,6 +170,7 @@ func PhoneHome(claims *LicenseClaimsLatest, component, version string) error {
 		"version":     version,
 		"metadata": map[string]interface{}{
 			"id":        customerID,
+			"contact":   customerContact,
 			"component": component,
 			"features":  featuresDataSet,
 		},
@@ -174,23 +180,26 @@ func PhoneHome(claims *LicenseClaimsLatest, component, version string) error {
 		panic(err)
 	}
 	metritonEndpoint := "https://kubernaut.io/scout" // THIS CAN'T BE AN ENVIRONMENT VARIABLE, OR METRITON MIGHT BE HIJACKED
-	// metritonEndpoint := "http://18.234.80.179:31823/scout" // MY KUBERNAUT METRITON
+	// metritonEndpoint := "http://34.201.149.144:31218/scout" // MY KUBERNAUT METRITON
 	resp, err := http.Post(metritonEndpoint, "application/json", bytes.NewBuffer(body))
 	if err != nil {
-		return err
 		// TODO: Phone-home was not a success... allow soft-limit and we'll try again later
+		fmt.Printf("Metriton call was not a success... allow soft-limit\n")
+		return err
 	}
 	defer resp.Body.Close()
 
 	metritonResponse := MetritonResponse{}
 	err = json.NewDecoder(resp.Body).Decode(&metritonResponse)
 	if err != nil {
-		return err
 		// TODO: Phone-home's response body could not be read... allow soft-limit and we'll try again later
+		fmt.Printf("Metriton call was not a success... allow soft-limit\n")
+		return err
 	}
 	if metritonResponse.IsHardLimit {
-		return nil
 		// TODO: Metriton is telling us to enforce hard limit
+		fmt.Printf("Metriton is enforcing hard-limits")
+		return nil
 	}
 	return nil
 }
