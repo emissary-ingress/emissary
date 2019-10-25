@@ -181,8 +181,8 @@ commands:
             if [[ "$CIRCLE_TAG" =~ ^v[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+(-.*)?$ ]]; then
                 export AWS_ACCESS_KEY_ID=$DEPLOY_KEY_ID
                 export AWS_SECRET_ACCESS_KEY=$DEPLOY_KEY
-                docker login -u="${DOCKER_RELEASE_USERNAME}" -p="${DOCKER_RELEASE_PASSWORD}" quay.io
-                make release
+                #docker login -u="${DOCKER_RELEASE_USERNAME}" -p="${DOCKER_RELEASE_PASSWORD}" quay.io
+                make rc
             fi
   "clobber":
     steps:
