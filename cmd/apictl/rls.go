@@ -10,7 +10,7 @@ import (
 	"github.com/spf13/cobra"
 	yaml "gopkg.in/yaml.v2"
 
-	"github.com/datawire/teleproxy/pkg/k8s"
+	"github.com/datawire/ambassador/pkg/k8s"
 
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta2"
 	"github.com/datawire/apro/lib/licensekeys"

@@ -14,22 +14,41 @@ import (
 // inconsistent limit strings.  It's a hack to get the Go compiler
 // to do more checking for us.
 
+// LimitType is a hacky approximation of an "enum" like limit.
+// It implements json.Marshaler, and Unmarshaler.
+type LimitType = internal.LimitType
+
 // Limit is a hacky approximation of an "enum" (since Go doesn't
 // have enums).  It implements fmt.Stringer, encoding/json.Marshaler,
 // and encoding/json.Unmarshaler.
 type Limit = internal.Limit
 
+// This is the exhaustive list of limit types, or values a limitvalue may take
+var (
+	// The type to use when you can't identify one.
+	LimitTypeUnrecognized = internal.LimitTypeUnrecognized
+	// A "count" of objects, e.g. only 5 dev-portal services allowed.
+	LimitTypeCount = addLimitType("count")
+	// A "rate" of objects, e.g. only 5 requests per second
+	LimitTypeRate = addLimitType("rate")
+)
+
 // This is the exhaustive list of values that a Limit may take.
 var (
 	LimitUnrecognized      = internal.LimitUnrecognized
-	LimitDevPortalServices = addLimit("devportal-services", 5)
+	LimitDevPortalServices = addLimit("devportal-services", LimitTypeCount, 5)
 )
 
-var limitDefaults = make(map[string]int)
+var limitDefaults = make(map[Limit]int)
 
-func addLimit(name string, defautlValue int) Limit {
-	limit := internal.AddLimit(name)
-	limitDefaults[limit.String()] = defautlValue
+func addLimitType(name string) LimitType {
+	limitType := internal.AddLimitType(name)
+	return limitType
+}
+
+func addLimit(name string, limitType LimitType, defautlValue int) Limit {
+	limit := internal.AddLimit(name, limitType)
+	limitDefaults[limit] = defautlValue
 	return limit
 }
 
@@ -73,7 +92,7 @@ func (cl *LicenseClaimsLatest) GetLimitValue(limit Limit) int {
 
 // GetLimitDefault returns the default value for the limit
 func GetLimitDefault(limit Limit) int {
-	return limitDefaults[limit.String()]
+	return limitDefaults[limit]
 }
 
 // ListKnownLimits returns a list of known limit names (strings

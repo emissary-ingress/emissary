@@ -1,0 +1,4 @@
+/vendor/
+/.gopath/
+/test.cov
+/test.cov.*

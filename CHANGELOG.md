@@ -1,21 +1,28 @@
 ## Ambassador Pro CHANGELOG
 
-## 0.9.1 (TBD)
-
-Configuration
-
- * The `JWT` and `OAuth2` Filter types support `renegotiateTLS`
- * The `JWT` Filter now has an `errorResponse` argument that allows templating the filter's error response.
+## 0.9.2 (TBD)
 
 Behavior:
 
  * `apictl traffic initialize` no longer waits for the traffic-proxy to become ready before exiting.
  * Feature: Developer portal will show swagger documentation for up to five services (or more with appropriate license)
  * Feature: local-devportal is now a standalone go binary with no external dependencies
+ * `v1` license keys were not being used so augment them to include emails
 
 Other:
 
- * Update Ambassador Core from Ambassador 0.83.0 to 0.83.1-ea10 (a pre-release of 0.84.0).
+ * `amb-core` and `amb-sidecar` have been merged in to a combined `aes` which is based on Ambassador OSS [version TBD].
+
+## 0.9.1 (2019-10-22)
+
+Configuration
+
+ * The `JWT` and `OAuth2` Filter types support `renegotiateTLS`
+ * The `JWT` Filter now has an `errorResponse` argument that allows templating the filter's error response.
+
+Other:
+
+ * Update Ambassador Core from Ambassador 0.83.0 to 0.85.0
 
 ## 0.9.0 (2019-10-08)
 

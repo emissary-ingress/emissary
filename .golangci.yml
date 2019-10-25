@@ -26,15 +26,18 @@ linters-settings:
     list-type: blacklist
     include-go-root: true
     packages:
-      - errors # use "github.com/pkg/errors"
-      - golang.org/x/net/context # use "context"
-      - github.com/datawire/ambassador/go # use "github.com/datawire/ambassador/pkg
-      - github.com/datawire/kat-backend/xds # use "github.com/datawire/ambassador/pkg/api/envoy
-      - github.com/lyft/ratelimit/proto # use "github.com/datawire/ambassador/pkg/api/envoy
-      #- github.com/russross/blackfriday # use github.com/russross/blackfriday/v2 # can't turn off prefix-matching
-      - gopkg.in/russross/blackfriday.v2 # use github.com/russross/blackfriday/v2
+      - errors                              # use "github.com/pkg/errors"
+      - golang.org/x/net/context            # use "context"
+      - github.com/datawire/teleproxy       # use "github.com/datawire/ambassador/pkg"
+      - github.com/datawire/ambassador/go   # use "github.com/datawire/ambassador/pkg"
+      - github.com/datawire/kat-backend/xds # use "github.com/datawire/ambassador/pkg/api/envoy"
+      - github.com/lyft/ratelimit/proto     # use "github.com/datawire/ambassador/pkg/api/envoy"
+      #- github.com/russross/blackfriday     # use "github.com/russross/blackfriday/v2" # can't turn off prefix-matching
+      - gopkg.in/russross/blackfriday.v2    # use "github.com/russross/blackfriday/v2"
   goconst:
     min-len: 12
+issues:
+  new-from-rev: a72c53cbcd05c806b1838d95146d049b09a51ffb
 run:
   build-tags:
     - test
