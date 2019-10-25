@@ -306,6 +306,7 @@ spec:
       containers:
       - name: aes
         image: quay.io/datawire-dev/aes:0.10.0-rc-latest
+        imagePullPolicy: Always
         ports:
         - name: http
           containerPort: 8080
