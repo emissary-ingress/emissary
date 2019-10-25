@@ -52,22 +52,26 @@ compile:
 	@$(BUILDER) compile
 .PHONY: compile
 
+SNAPSHOT=snapshot-$(NAME)
+
 commit:
-	@$(BUILDER) commit snapshot
+	@$(BUILDER) commit $(SNAPSHOT)
 .PHONY: commit
+
+REPO=$(NAME)
 
 images:
 	@$(MAKE) --no-print-directory compile
 	@$(MAKE) --no-print-directory commit
-	@printf "$(CYN)==> $(GRN)Building $(BLU)ambassador$(GRN) image$(END)\n"
-	@$(DBUILD) $(BUILDER_HOME) --build-arg artifacts=snapshot --target ambassador -t ambassador
+	@printf "$(CYN)==> $(GRN)Building $(BLU)$(REPO)$(GRN) image$(END)\n"
+	@$(DBUILD) $(BUILDER_HOME) --build-arg artifacts=$(SNAPSHOT) --target ambassador -t $(REPO)
 	@printf "$(CYN)==> $(GRN)Building $(BLU)kat-client$(GRN) image$(END)\n"
-	@$(DBUILD) $(BUILDER_HOME) --build-arg artifacts=snapshot --target kat-client -t kat-client
+	@$(DBUILD) $(BUILDER_HOME) --build-arg artifacts=$(SNAPSHOT) --target kat-client -t kat-client
 	@printf "$(CYN)==> $(GRN)Building $(BLU)kat-server$(GRN) image$(END)\n"
-	@$(DBUILD) $(BUILDER_HOME) --build-arg artifacts=snapshot --target kat-server -t kat-server
+	@$(DBUILD) $(BUILDER_HOME) --build-arg artifacts=$(SNAPSHOT) --target kat-server -t kat-server
 .PHONY: images
 
-AMB_IMAGE=$(DEV_REGISTRY)/ambassador:$(shell docker images -q ambassador:latest)
+AMB_IMAGE=$(DEV_REGISTRY)/$(REPO):$(shell docker images -q $(REPO):latest)
 KAT_CLI_IMAGE=$(DEV_REGISTRY)/kat-client:$(shell docker images -q kat-client:latest)
 KAT_SRV_IMAGE=$(DEV_REGISTRY)/kat-server:$(shell docker images -q kat-server:latest)
 
@@ -75,8 +79,8 @@ export REGISTRY_ERR=$(RED)ERROR: please set the DEV_REGISTRY make/env variable t
 
 push: images
 	@test -n "$(DEV_REGISTRY)" || (printf "$${REGISTRY_ERR}\n"; exit 1)
-	@printf "$(CYN)==> $(GRN)Pushing $(BLU)ambassador$(GRN) image$(END)\n"
-	docker tag ambassador $(AMB_IMAGE)
+	@printf "$(CYN)==> $(GRN)Pushing $(BLU)$(REPO)$(GRN) image$(END)\n"
+	docker tag $(REPO) $(AMB_IMAGE)
 	docker push $(AMB_IMAGE)
 	@printf "$(CYN)==> $(GRN)Pushing $(BLU)kat-client$(GRN) image$(END)\n"
 	docker tag kat-client $(KAT_CLI_IMAGE)
@@ -141,9 +145,9 @@ shell:
 	@$(BUILDER) shell
 .PHONY: shell
 
-AMB_IMAGE_RC=$(RELEASE_REGISTRY)/ambassador:$(RELEASE_VERSION)
-AMB_IMAGE_RC_LATEST=$(RELEASE_REGISTRY)/ambassador:$(BUILD_VERSION)-rc-latest
-AMB_IMAGE_RELEASE=$(RELEASE_REGISTRY)/ambassador:$(BUILD_VERSION)
+AMB_IMAGE_RC=$(RELEASE_REGISTRY)/$(REPO):$(RELEASE_VERSION)
+AMB_IMAGE_RC_LATEST=$(RELEASE_REGISTRY)/$(REPO):$(BUILD_VERSION)-rc-latest
+AMB_IMAGE_RELEASE=$(RELEASE_REGISTRY)/$(REPO):$(BUILD_VERSION)
 
 export RELEASE_REGISTRY_ERR=$(RED)ERROR: please set the RELEASE_REGISTRY make/env variable to the docker registry\n       you would like to use for release$(END)
 
@@ -156,11 +160,11 @@ rc: images
 	@if [ "$(RELEASE_TYPE)" = release ]; then \
 		(printf "$(RED)ERROR: 'make rc' can only be used for non-release tags$(END)\n" && exit 1); \
 	fi
-	@printf "$(CYN)==> $(GRN)Pushing release candidate $(BLU)ambassador$(GRN) image$(END)\n"
-	docker tag ambassador $(AMB_IMAGE_RC)
+	@printf "$(CYN)==> $(GRN)Pushing release candidate $(BLU)$(REPO)$(GRN) image$(END)\n"
+	docker tag $(REPO) $(AMB_IMAGE_RC)
 	docker push $(AMB_IMAGE_RC)
 	@if [ "$(RELEASE_TYPE)" = rc ]; then \
-		docker tag ambassador $(AMB_IMAGE_RC_LATEST) && \
+		docker tag $(REPO) $(AMB_IMAGE_RC_LATEST) && \
 		docker push $(AMB_IMAGE_RC_LATEST) && \
 		printf "$(GRN)Tagged $(RELEASE_VERSION) as latest RC$(END)\n" ; \
 	fi
@@ -176,7 +180,7 @@ release:
 	@if [ "$(RELEASE_TYPE)" != release ]; then \
 		(printf "$(RED)ERROR: 'make release' can only be used for release tags ('vX.Y.Z')$(END)\n" && exit 1); \
 	fi
-	@printf "$(CYN)==> $(GRN)Promoting release $(BLU)ambassador$(GRN) image$(END)\n"
+	@printf "$(CYN)==> $(GRN)Promoting release $(BLU)$(REPO)$(GRN) image$(END)\n"
 	docker pull $(AMB_IMAGE_RC_LATEST)
 	docker tag $(AMB_IMAGE_RC_LATEST) $(AMB_IMAGE_RELEASE)
 	docker push $(AMB_IMAGE_RELEASE)
@@ -210,7 +214,7 @@ COMMA = ,
 define HELP
 
 This Makefile builds Ambassador using a standard build environment inside
-a Docker container. The $(BLD)ambassador$(END), $(BLD)kat-server$(END), and $(BLD)kat-client$(END) images are
+a Docker container. The $(BLD)$(REPO)$(END), $(BLD)kat-server$(END), and $(BLD)kat-client$(END) images are
 created from this container after the build stage is finished.
 
 The build works by maintaining a running build container in the background.

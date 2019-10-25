@@ -178,7 +178,7 @@ case "${cmd}" in
         vid=$(builder_volume)
         if [ -n "${vid}" ] ; then
             printf "${GRN}Killing cache volume ${BLU}${vid}${END}\n"
-            docker volume rm ${vid} > /dev/null 2>&1
+            docker volume rm ${vid} > /dev/null 2>&1 || true
         fi
         ;;
     bootstrap)
@@ -197,8 +197,8 @@ case "${cmd}" in
         shift
         RELVER="$1"
         if [ -z "${RELVER}" ]; then
-            bootstrap
-            RELVER=$(docker exec -i $(builder) /buildroot/builder.sh version-internal RELEASE_VERSION)
+            source <(module_version ${BUILDER_NAME})
+            RELVER="${RELEASE_VERSION}"
         fi
 
         if [[ "${RELVER}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
