@@ -183,8 +183,6 @@ commands:
                 export AWS_SECRET_ACCESS_KEY=$DEPLOY_KEY
                 docker login -u="${DOCKER_RELEASE_USERNAME}" -p="${DOCKER_RELEASE_PASSWORD}" quay.io
                 make release
-            else
-                make release RELEASE_DRYRUN=y
             fi
   "clobber":
     steps:
