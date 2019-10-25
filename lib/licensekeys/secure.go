@@ -53,6 +53,7 @@ func (v1 *LicenseClaimsV1) ToLatest() *LicenseClaimsLatest {
 	v2 := &LicenseClaimsV2{
 		LicenseKeyVersion: v1.LicenseKeyVersion,
 		CustomerID:        v1.CustomerID,
+		CustomerEmail:     "unknown",
 		EnabledFeatures:   v1.EnabledFeatures,
 		StandardClaims:    v1.StandardClaims,
 	}
@@ -62,6 +63,7 @@ func (v1 *LicenseClaimsV1) ToLatest() *LicenseClaimsLatest {
 type LicenseClaimsV2 struct {
 	LicenseKeyVersion string       `json:"license_key_version"`
 	CustomerID        string       `json:"customer_id"`
+	CustomerEmail     string       `json:"customer_email"`
 	EnabledFeatures   []Feature    `json:"enabled_features"`
 	EnforcedLimits    []LimitValue `json:"enforced_limits"`
 	jwt.StandardClaims
@@ -134,13 +136,13 @@ func PhoneHome(claims *LicenseClaimsLatest, component, version string) error {
 	if claims != nil {
 		customerID = claims.CustomerID
 	}
-	space, err := uuid.Parse("a4b394d6-02f4-11e9-87ca-f8344185863f")
+	namespace, err := uuid.Parse("a4b394d6-02f4-11e9-87ca-f8344185863f")
 	if err != nil {
 		panic(err)
 	}
 	data := map[string]interface{}{
 		"application": "ambassador-pro",
-		"install_id":  uuid.NewSHA1(space, []byte(customerID)).String(),
+		"install_id":  uuid.NewSHA1(namespace, []byte(customerID)).String(),
 		"version":     version,
 		"metadata": map[string]string{
 			"id":        customerID,
