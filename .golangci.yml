@@ -36,6 +36,8 @@ linters-settings:
       - gopkg.in/russross/blackfriday.v2    # use "github.com/russross/blackfriday/v2"
   goconst:
     min-len: 12
+issues:
+  new-from-rev: a72c53cbcd05c806b1838d95146d049b09a51ffb
 run:
   build-tags:
     - test

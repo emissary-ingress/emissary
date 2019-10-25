@@ -13,24 +13,29 @@ import (
 
 type Limit struct {
 	value string
+	ltype LimitType
 }
 
 func (f Limit) String() string {
 	return f.value
 }
 
+func (f Limit) Type() LimitType {
+	return f.ltype
+}
+
 var limits = map[string]Limit{}
 
-func AddLimit(name string) Limit {
+func AddLimit(name string, limit_type LimitType) Limit {
 	if _, ok := limits[name]; ok {
 		panic(errors.Errorf("limit %q already registered", name))
 	}
-	limit := Limit{value: name}
+	limit := Limit{value: name, ltype: limit_type}
 	limits[name] = limit
 	return limit
 }
 
-var LimitUnrecognized = AddLimit("")
+var LimitUnrecognized = AddLimit("", LimitTypeUnrecognized)
 
 func (f *Limit) UnmarshalJSON(data []byte) error {
 	var str string
@@ -49,6 +54,8 @@ func (f *Limit) UnmarshalJSON(data []byte) error {
 }
 
 func (f Limit) MarshalJSON() ([]byte, error) {
+	// type does not need to be marshalled,
+	// it can be retreived by the name.
 	return json.Marshal(f.value)
 }
 

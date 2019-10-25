@@ -7,7 +7,6 @@ require (
 	github.com/aclements/go-moremath v0.0.0-20180329182055-b1aff36309c7
 	github.com/bmizerany/perks v0.0.0-20141205001514-d9a9656a3a4b // indirect
 	github.com/datawire/ambassador v0.83.1-ea10
-	github.com/datawire/liboauth2 v0.0.0-20190930180758-8a034a1de052
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/dgryski/go-gk v0.0.0-20140819190930-201884a44051 // indirect
 	github.com/die-net/lrucache v0.0.0-20181227122439-19a39ef22a11
@@ -61,7 +60,7 @@ require (
 
 replace github.com/lyft/ratelimit v1.3.0 => ./vendor-ratelimit
 
-replace github.com/datawire/ambassador => ./ambassador
+replace github.com/datawire/ambassador => ../ambassador
 
 replace github.com/tsenart/vegeta => github.com/datawire/vegeta v12.2.2-0.20190408190644-d94b721fc676+incompatible
 
