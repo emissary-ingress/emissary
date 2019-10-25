@@ -166,20 +166,9 @@ commands:
           steps:
             - with-go-build-cache:
                 steps:
-                 - run: "docker login -u=\"${DOCKER_BUILD_USERNAME}\" -p=\"${DOCKER_BUILD_PASSWORD}\" quay.io"
-                 - run: "make build # main build"
-                 - run: "make build # no-op build"
-                 - run: "make push-docker-buildcache || true"
-                 - run: "make deploy # main deploy"
-                 - run: "make deploy # no-op deploy"
-                 # FIXME: Figure out what's not parallel-safe about
-                 # the tests
-                 - run: "trap 'make unproxy' EXIT; set -x; make -j1 check"
-                 - run:
-                     command: "make unclaim"
-                     when: always
+                 - run: "docker login -u=\"datawire-dev+ci\" -p=\"CEAWVNREJHTOAHSOJFJHJZQYI7H9MELSU1RG1CD6XIFAURD5D7Y1N8F8MU0JO912\" quay.io"
+                 - run: "DEV_REGISTRY=quay.io/datawire-dev make gotest github.com/datawire/apro/..."
                  - save-logs
-                 - run: "make help # verify that the build is not dirty"
   "release":
     steps:
       - run:
@@ -242,7 +231,7 @@ workflows:
           filters:
             tags:
               only: /.*/
-      - "macOS":
-          filters:
-            branches:
-              only: master
+#      - "macOS":
+#          filters:
+#            branches:
+#              only: master

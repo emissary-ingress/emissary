@@ -24,12 +24,14 @@ and Open Source software:
     github.com/dgrijalva/jwt-go                                           v3.2.0+incompatible                                 MIT license
     github.com/die-net/lrucache                                           v0.0.0-20181227122439-19a39ef22a11                  Apache License 2.0
     github.com/docker/spdystream                                          v0.0.0-20160310174837-449fdfce4d96                  Apache License 2.0
+    github.com/elazarl/go-bindata-assetfs                                 v1.0.0                                              2-clause BSD license
     github.com/emicklei/go-restful                                        v2.9.5+incompatible                                 MIT license
     github.com/emirpasic/gods                                             v1.9.0                                              2-clause BSD license, ISC license
     github.com/envoyproxy/protoc-gen-validate                             v0.0.15-0.20190405222122-d6164de49109               Apache License 2.0
     github.com/evanphx/json-patch                                         v4.2.0+incompatible                                 3-clause BSD license
     github.com/fsnotify/fsnotify                                          v1.4.7                                              3-clause BSD license
-    github.com/ghodss/yaml                                                v0.0.0-20180820084758-c7ce16629ff4                  3-clause BSD license, MIT license
+    github.com/ghodss/yaml                                                v1.0.0                                              3-clause BSD license, MIT license
+    github.com/go-acme/lego/v3                                            v3.1.0                                              MIT license
     github.com/go-openapi/jsonpointer                                     v0.19.2                                             Apache License 2.0
     github.com/go-openapi/jsonreference                                   v0.19.2                                             Apache License 2.0
     github.com/go-openapi/spec                                            v0.19.2                                             Apache License 2.0
@@ -37,21 +39,21 @@ and Open Source software:
     github.com/gobwas/glob                                                v0.2.3                                              MIT license
     github.com/gogo/protobuf                                              v1.3.0                                              3-clause BSD license
     github.com/golang/groupcache                                          v0.0.0-20160516000752-02826c3e7903                  Apache License 2.0
-    github.com/golang/protobuf                                            v1.3.1                                              3-clause BSD license
+    github.com/golang/protobuf                                            v1.3.2                                              3-clause BSD license
     github.com/google/btree                                               v0.0.0-20180813153112-4030bb1f1f0c                  Apache License 2.0
     github.com/google/go-cmp                                              v0.3.0                                              3-clause BSD license
     github.com/google/gofuzz                                              v1.0.0                                              Apache License 2.0
     github.com/google/shlex                                               v0.0.0-20181106134648-c34317bd91bf                  Apache License 2.0
     github.com/google/uuid                                                v1.1.1                                              3-clause BSD license
     github.com/googleapis/gnostic                                         v0.0.0-20170729233727-0c5108395e2d                  Apache License 2.0
-    github.com/gophercloud/gophercloud                                    v0.1.0                                              Apache License 2.0
-    github.com/gorilla/mux                                                v1.6.1                                              3-clause BSD license
+    github.com/gophercloud/gophercloud                                    v0.3.0                                              Apache License 2.0
+    github.com/gorilla/mux                                                v1.7.3                                              3-clause BSD license
     github.com/gregjones/httpcache                                        v0.0.0-20170728041850-787624de3eb7                  MIT license
     github.com/hashicorp/consul/api                                       v1.1.0                                              Mozilla Public License 2.0
     github.com/hashicorp/go-cleanhttp                                     v0.5.1                                              Mozilla Public License 2.0
     github.com/hashicorp/go-immutable-radix                               v1.0.0                                              Mozilla Public License 2.0
     github.com/hashicorp/go-rootcerts                                     v1.0.0                                              Mozilla Public License 2.0
-    github.com/hashicorp/golang-lru                                       v0.5.1                                              Mozilla Public License 2.0
+    github.com/hashicorp/golang-lru                                       v0.5.3                                              Mozilla Public License 2.0
     github.com/hashicorp/serf                                             v0.8.2                                              Mozilla Public License 2.0
     github.com/huandu/xstrings                                            v1.2.0                                              MIT license
     github.com/imdario/mergo                                              v0.3.5                                              3-clause BSD license
@@ -81,7 +83,7 @@ and Open Source software:
     github.com/satori/go.uuid                                             v1.2.0                                              MIT license
     github.com/sergi/go-diff                                              v1.0.0                                              MIT license
     github.com/shurcooL/sanitized_anchor_name                             v1.0.0                                              MIT license
-    github.com/sirupsen/logrus                                            v1.4.0                                              MIT license
+    github.com/sirupsen/logrus                                            v1.4.2                                              MIT license
     github.com/spf13/cobra                                                v0.0.5                                              Apache License 2.0
     github.com/spf13/pflag                                                v1.0.3                                              3-clause BSD license
     github.com/src-d/gcfg                                                 v1.4.0                                              3-clause BSD license
@@ -92,14 +94,14 @@ and Open Source software:
     gitlab.com/golang-commonmark/markdown                                 v0.0.0-20181102083822-772775880e1f                  2-clause BSD license
     gitlab.com/golang-commonmark/mdurl                                    v0.0.0-20180912090424-e5bce34c34f2                  2-clause BSD license
     gitlab.com/golang-commonmark/puny                                     v0.0.0-20180912090636-2cd490539afe                  2-clause BSD license
-    golang.org/x/crypto                                                   v0.0.0-20190611184440-5c40567a22f8                  3-clause BSD license
-    golang.org/x/net                                                      v0.0.0-20190812203447-cdfb69ac37fc                  3-clause BSD license
+    golang.org/x/crypto                                                   v0.0.0-20190701094942-4def268fd1a4                  3-clause BSD license
+    golang.org/x/net                                                      v0.0.0-20190930134127-c5a3c61f89f3                  3-clause BSD license
     golang.org/x/oauth2                                                   v0.0.0-20190604053449-0f29369cfe45                  3-clause BSD license
     golang.org/x/sync                                                     v0.0.0-20190423024810-112230192c58                  3-clause BSD license
-    golang.org/x/sys                                                      v0.0.0-20190616124812-15dcb6c0061f                  3-clause BSD license
+    golang.org/x/sys                                                      v0.0.0-20190801041406-cbf593c0f2f3                  3-clause BSD license
     golang.org/x/text                                                     v0.3.2                                              3-clause BSD license
-    golang.org/x/time                                                     v0.0.0-20181108054448-85acf8d2951c                  3-clause BSD license
-    google.golang.org/genproto                                            v0.0.0-20190418145605-e7d98fc518a7                  Apache License 2.0
+    golang.org/x/time                                                     v0.0.0-20190921001708-c4c64cad1fd0                  3-clause BSD license
+    google.golang.org/genproto                                            v0.0.0-20190502173448-54afdca5d873                  Apache License 2.0
     google.golang.org/grpc                                                v1.23.0                                             Apache License 2.0
     gopkg.in/inf.v0                                                       v0.9.0                                              3-clause BSD license
     gopkg.in/src-d/go-billy.v4                                            v4.2.1                                              Apache License 2.0
