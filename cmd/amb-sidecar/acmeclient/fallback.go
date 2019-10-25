@@ -63,20 +63,22 @@ func EnsureFallback(cfg types.Config, kubeinfo *k8s.KubeInfo) error {
 func ensureFallbackContext(cfg types.Config, dynamicClient k8sClientDynamic.Interface) error {
 	tlsContextGetter := dynamicClient.Resource(k8sSchema.GroupVersionResource{Group: "getambassador.io", Version: "v1", Resource: "tlscontexts"})
 	tlsContextInterface := tlsContextGetter.Namespace(cfg.AmbassadorNamespace)
-	_, err := tlsContextInterface.Create(&k8sTypesUnstructured.Unstructured{map[string]interface{}{
-		"apiVersion": "getambassador.io/v1",
-		"kind":       "TLSContext",
-		"metadata": map[string]string{
-			"name":      SelfSignedContextName,
-			"namespace": cfg.AmbassadorNamespace,
-		},
-		"spec": map[string]interface{}{
-			"hosts": []string{
-				"*",
+	_, err := tlsContextInterface.Create(&k8sTypesUnstructured.Unstructured{
+		Object: map[string]interface{}{
+			"apiVersion": "getambassador.io/v1",
+			"kind":       "TLSContext",
+			"metadata": map[string]string{
+				"name":      SelfSignedContextName,
+				"namespace": cfg.AmbassadorNamespace,
 			},
-			"secret": SelfSignedSecretName,
+			"spec": map[string]interface{}{
+				"hosts": []string{
+					"*",
+				},
+				"secret": SelfSignedSecretName,
+			},
 		},
-	}}, k8sTypesMetaV1.CreateOptions{})
+	}, k8sTypesMetaV1.CreateOptions{})
 	if err != nil && !k8sErrors.IsAlreadyExists(err) {
 		return err
 	}
@@ -85,39 +87,36 @@ func ensureFallbackContext(cfg types.Config, dynamicClient k8sClientDynamic.Inte
 
 func ensureFallbackSecret(cfg types.Config, secretsGetter k8sClientCoreV1.SecretsGetter) error {
 	secretInterface := secretsGetter.Secrets(cfg.AmbassadorNamespace)
-	for {
-		_, err := secretInterface.Get(SelfSignedSecretName, k8sTypesMetaV1.GetOptions{})
-		if err == nil {
-			// already done; nothing to do
-			return nil
-		}
-		if !k8sErrors.IsNotFound(err) {
-			return err
-		}
-		// Try to create the secret, but ignore already-exists
-		// errors because there might be other replicas doing
-		// the same thing.
-		privatePEM, publicPEM, err := generateSelfSignedPEM()
-		if err != nil {
-			return err
-		}
-		_, err = secretInterface.Create(&k8sTypesCoreV1.Secret{
-			ObjectMeta: k8sTypesMetaV1.ObjectMeta{
-				Name:      SelfSignedSecretName,
-				Namespace: cfg.AmbassadorNamespace,
-			},
-			Type: k8sTypesCoreV1.SecretTypeTLS,
-			Data: map[string][]byte{
-				"tls.key": privatePEM,
-				"tls.crt": publicPEM,
-			},
-		})
-		if err != nil && !k8sErrors.IsAlreadyExists(err) {
-			return err
-		}
+	_, err := secretInterface.Get(SelfSignedSecretName, k8sTypesMetaV1.GetOptions{})
+	if err == nil {
+		// already done; nothing to do
 		return nil
-		// fall-through / retry
 	}
+	if !k8sErrors.IsNotFound(err) {
+		return err
+	}
+	// Try to create the secret, but ignore already-exists
+	// errors because there might be other replicas doing
+	// the same thing.
+	privatePEM, publicPEM, err := generateSelfSignedPEM()
+	if err != nil {
+		return err
+	}
+	_, err = secretInterface.Create(&k8sTypesCoreV1.Secret{
+		ObjectMeta: k8sTypesMetaV1.ObjectMeta{
+			Name:      SelfSignedSecretName,
+			Namespace: cfg.AmbassadorNamespace,
+		},
+		Type: k8sTypesCoreV1.SecretTypeTLS,
+		Data: map[string][]byte{
+			"tls.key": privatePEM,
+			"tls.crt": publicPEM,
+		},
+	})
+	if err != nil && !k8sErrors.IsAlreadyExists(err) {
+		return err
+	}
+	return nil
 }
 
 func generateSelfSignedPEM() ([]byte, []byte, error) {
