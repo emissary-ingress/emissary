@@ -7,7 +7,9 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"time"
 
+	"github.com/jpillora/backoff"
 	"github.com/pkg/errors"
 	flag "github.com/spf13/pflag"
 )
@@ -93,6 +95,34 @@ type cmdContext struct {
 	version     string
 }
 
+func (ctx *cmdContext) phoneHome(claims *LicenseClaimsLatest) {
+	fmt.Printf("Calling Metriton\n")
+	b := &backoff.Backoff{
+		Min:    1 * time.Minute,
+		Max:    24 * time.Hour,
+		Jitter: true,
+		Factor: 2,
+	}
+	for {
+		err := PhoneHome(claims, ctx.application, ctx.version)
+		if err != nil {
+			d := b.Duration()
+			fmt.Printf("Metriton error, retrying in %s: %v\n", d, err)
+			time.Sleep(d)
+			continue
+		}
+		b.Reset()
+		break
+	}
+}
+
+func (ctx *cmdContext) phoneHomeEveryday(claims *LicenseClaimsLatest) {
+	phoneHomeTicker := time.NewTicker(24 * time.Hour)
+	for range phoneHomeTicker.C {
+		go ctx.phoneHome(claims)
+	}
+}
+
 func (ctx *cmdContext) KeyCheck(flags *flag.FlagSet) (*LicenseClaimsLatest, error) {
 	var keysource string
 
@@ -119,12 +149,8 @@ func (ctx *cmdContext) KeyCheck(flags *flag.FlagSet) (*LicenseClaimsLatest, erro
 
 	claims, err := ParseKey(ctx.key)
 
-	go func() {
-		err := PhoneHome(claims, ctx.application, ctx.version)
-		if err != nil {
-			fmt.Fprintln(os.Stderr, "metriton error:", err)
-		}
-	}()
+	go ctx.phoneHome(claims)
+	go ctx.phoneHomeEveryday(claims)
 
 	if err != nil {
 		return nil, errors.Wrapf(err, "error validating license key from %s", keysource)

@@ -3,7 +3,7 @@ and Open Source software:
 
     Name                                                                  Version                                             License(s)
     ----                                                                  -------                                             ----------
-    the Go language standard library ("std")                              v1.13                                               3-clause BSD license
+    the Go language standard library ("std")                              v1.13.1                                             3-clause BSD license
     cloud.google.com/go                                                   v0.38.0                                             Apache License 2.0
     github.com/Azure/go-autorest/autorest                                 v0.9.0                                              Apache License 2.0
     github.com/Azure/go-autorest/autorest/adal                            v0.5.0                                              Apache License 2.0
@@ -58,6 +58,7 @@ and Open Source software:
     github.com/influxdata/tdigest                                         v0.0.0-20181121200506-bf2b5ad3c0a9                  Apache License 2.0
     github.com/jbenet/go-context                                          v0.0.0-20150711004518-d14ea06fba99                  MIT license
     github.com/jcuga/golongpoll                                           v0.0.0-20180711123949-939e3befd837                  MIT license
+    github.com/jpillora/backoff                                           v1.0.0                                              MIT license
     github.com/json-iterator/go                                           v1.1.7                                              MIT license
     github.com/kavu/go_reuseport                                          v1.2.0                                              MIT license
     github.com/kelseyhightower/envconfig                                  v1.1.0                                              MIT license
