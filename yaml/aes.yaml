@@ -305,7 +305,7 @@ spec:
       - name: aes-pull-secret
       containers:
       - name: aes
-        image: quay.io/datawire/aes:0.0.0-e17b405
+        image: quay.io/datawire-dev/aes:0.10.0-rc-latest
         ports:
         - name: http
           containerPort: 8080
