@@ -28,6 +28,7 @@ import (
 	stats "github.com/lyft/gostats"
 
 	// internal libraries: github.com/datawire/apro
+	"github.com/datawire/apro/cmd/amb-sidecar/acmeclient"
 	devportalcontent "github.com/datawire/apro/cmd/amb-sidecar/devportal/content"
 	devportalserver "github.com/datawire/apro/cmd/amb-sidecar/devportal/server"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/controller"
@@ -169,6 +170,11 @@ func runE(cmd *cobra.Command, args []string) error {
 			return nil
 		})
 	}
+
+	// ACME client
+	group.Go("acme_client", func(hardCtx, softCtx context.Context, cfg types.Config, l types.Logger) error {
+		return acmeclient.EnsureFallback(cfg, kubeinfo)
+	})
 
 	// HTTP server
 	group.Go("http", func(hardCtx, softCtx context.Context, cfg types.Config, l types.Logger) error {

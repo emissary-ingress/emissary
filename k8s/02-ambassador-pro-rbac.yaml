@@ -22,10 +22,16 @@ rules:
   resources:
   - "*"
   verbs: ["get", "list", "watch"]
-# Ambassador Pro access requirements.  Also gets "create" for secrets.
+# Ambassador Pro access requirements.  Also gets "create" for secrets,
+# tlscontexts, and hosts.
 - apiGroups: [""]
   resources:
   - secrets
+  verbs: ["get", "list", "watch", "create"]
+- apiGroups: ["getambassador.io"]
+  resources:
+  - tlscontexts
+  - hosts
   verbs: ["get", "list", "watch", "create"]
 ---
 apiVersion: v1
