@@ -365,7 +365,7 @@ wait_for_url "diagd" "http://localhost:8877/_internal/v0/ping"
 # WORKER: KUBEWATCH                                                            #
 ################################################################################
 if [[ -z "${AMBASSADOR_NO_KUBEWATCH}" ]]; then
-    KUBEWATCH_SYNC_KINDS="-s service"
+    KUBEWATCH_SYNC_KINDS="-s service -s Host"
 
     if [ ! -f "${AMBASSADOR_CONFIG_BASE_DIR}/.ambassador_ignore_ingress" ]; then
         KUBEWATCH_SYNC_KINDS="$KUBEWATCH_SYNC_KINDS -s ingresses"
@@ -398,6 +398,14 @@ if [[ -z "${AMBASSADOR_NO_KUBEWATCH}" ]]; then
            ${AMBASSADOR_LABEL_SELECTOR_ARG} \
            --watch /ambassador/watch_hook.py
 fi
+
+################################################################################
+# WORKER: extra sidecars                                                       #
+################################################################################
+shopt -s nullglob
+for sidecar in /ambassador/sidecars/*; do
+    launch "${sidecar##*/}" "$sidecar"
+done
 
 ################################################################################
 # Wait for one worker to quit, then kill the others                            #
