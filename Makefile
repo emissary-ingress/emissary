@@ -305,10 +305,6 @@ docker/%/kubectl:
 # Deploy
 
 # Generate the TLS secret
-%/cert.pem %/key.pem: %/namespace.txt
-	openssl req -x509 -newkey rsa:4096 -keyout $*/key.pem -out $*/cert.pem -days 365 -nodes -subj "/C=US/ST=Florida/L=Miami/O=SomeCompany/OU=ITdepartment/CN=ambassador.$$(cat $<).svc.cluster.local"
-%/04-ambassador-certs.yaml: %/cert.pem %/key.pem %/namespace.txt
-	kubectl --namespace="$$(cat $*/namespace.txt)" create secret tls --dry-run --output=yaml ambassador-certs --cert $*/cert.pem --key $*/key.pem > $@
 
 %/03-auth0-secret.yaml: %/namespace.txt $(K8S_ENVS)
 	$(if $(K8S_ENVS),set -a && $(foreach k8s_env,$(abspath $(K8S_ENVS)), . $(k8s_env) && ))kubectl --namespace="$$(cat $*/namespace.txt)" create secret generic --dry-run --output=yaml auth0-secret --from-literal=oauth2-client-secret="$$IDP_AUTH0_CLIENT_SECRET" > $@
@@ -330,8 +326,8 @@ build-aux/docker-registry.preload: $(var.)PRELOAD_IMAGES
 	kubectl delete --namespace=docker-registry jobs/preload
 	touch $@
 
-deploy: $(addsuffix /04-ambassador-certs.yaml,$(K8S_DIRS)) k8s/03-auth0-secret.yaml
-apply: $(addsuffix /04-ambassador-certs.yaml,$(K8S_DIRS)) k8s/03-auth0-secret.yaml
+deploy: k8s/03-auth0-secret.yaml
+apply: k8s/03-auth0-secret.yaml
 
 #
 # Local Dev
@@ -498,7 +494,6 @@ clean: $(addsuffix .clean,$(wildcard docker/*.docker)) loadtest-clean
 	rm -f docker/*.docker.stamp
 	rm -f docker/*/*.opensource.tar.gz
 	rm -f docker/model-cluster-aes-plugins/*.so
-	rm -f k8s*/??-ambassador-certs.yaml k8s*/*.pem
 	rm -f k8s*/??-auth0-secret.yaml
 	rm -f tests/*.log tests/*.tap tests/*/*.log tests/*/*.tap
 	rm -f tests/cluster/go-test/consul/new_root.*
@@ -506,6 +501,8 @@ clean: $(addsuffix .clean,$(wildcard docker/*.docker)) loadtest-clean
 # Files made by older versions.  Remove the tail of this list when the
 # commit making the change gets far enough in to the past.
 #
+# 2019-10-24
+	rm -f k8s*/??-ambassador-certs.yaml k8s*/*.pem
 # 2019-10-22
 	rm -fr dev-hacks/
 # 2019-10-19

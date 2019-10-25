@@ -26,7 +26,6 @@ venv
 
 *.pem
 /k8s*/*.o
-/k8s*/??-ambassador-certs.yaml
 /k8s*/??-auth0-secret.yaml
 /build-aux/docker-registry.preload
 node_modules/
@@ -46,6 +45,8 @@ node_modules/
 # Remove the tail of this list when the commit making the change gets
 # far enough in to the past.
 
+# 2019-10-24
+/k8s*/??-ambassador-certs.yaml
 # 2019-10-19
 /docker/amb-sidecar/amb-sidecar
 /docker/model-cluster-amb-sidecar-plugins/Dockerfile
