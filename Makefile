@@ -1,3 +1,4 @@
+ifndef OSS_HOME
 AMBASSADOR_COMMIT = shared/edgy
 
 # Git clone
@@ -22,6 +23,7 @@ define SETUP
 	    fi; \
 	}
 endef
+endif
 
 DUMMY:=$(shell $(SETUP))
 
