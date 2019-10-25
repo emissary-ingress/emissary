@@ -69,7 +69,7 @@ COPY requirements.txt .
 RUN pip install -r requirements.txt
 
 # XXX: this will go away
-RUN mkdir /ambassador && \
+RUN mkdir -p /ambassador/sidecars && \
     ln -s /buildroot/bin/watt /ambassador/watt && \
     ln -s /buildroot/ambassador/python/post_update.py /ambassador/post_update.py && \
     ln -s /buildroot/ambassador/python/watch_hook.py /ambassador/watch_hook.py && \
@@ -100,26 +100,24 @@ COPY --from=envoy /usr/local/bin/envoy /usr/local/bin/envoy
 COPY --from=builder /usr/lib/python3.7/site-packages /usr/lib/python3.7/site-packages
 COPY --from=builder /usr/lib/libyaml* /usr/lib/
 
-COPY --from=artifacts /buildroot/bin/ambex /usr/bin/ambex
-COPY --from=artifacts /buildroot/bin/watt /usr/bin/watt
-COPY --from=artifacts /buildroot/bin/kubestatus /usr/bin/kubestatus
+COPY --from=artifacts /buildroot/bin/ambex /buildroot/bin/ambex
+COPY --from=artifacts /buildroot/bin/watt /buildroot/bin/watt
+COPY --from=artifacts /buildroot/bin/kubestatus /buildroot/bin/kubestatus
 COPY --from=artifacts /usr/bin/kubectl /usr/bin/kubectl
 COPY --from=artifacts /buildroot/ambassador/python /buildroot/ambassador/python
 RUN cd /buildroot/ambassador/python && python setup.py install
 
-# XXX: this will go away
-RUN mkdir /ambassador && \
-    ln -s /usr/bin/watt /ambassador/watt && \
-    ln -s /usr/bin/kubestatus /ambassador/kubestatus && \
-    ln -s /buildroot/ambassador/python/post_update.py /ambassador/post_update.py && \
-    ln -s /buildroot/ambassador/python/watch_hook.py /ambassador/watch_hook.py && \
-    ln -s /buildroot/ambassador/python/kubewatch.py /ambassador/kubewatch.py
+COPY --from=artifacts /ambassador /ambassador
 
 COPY --from=artifacts /buildroot/ambassador/demo/config /ambassador/ambassador-demo-config
 COPY --from=artifacts /buildroot/ambassador/demo/services /ambassador/demo-services
 
 WORKDIR /ambassador
 
+ENV PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/buildroot/bin
+
+# XXX: is this still necessary or will the above copy inherit the
+#       correct permissions?
 # Fix permissions to allow correctly running as a non root user
 RUN chgrp -R 0 /ambassador && \
     chmod -R u+x /ambassador && \

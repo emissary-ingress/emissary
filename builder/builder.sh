@@ -241,6 +241,7 @@ case "${cmd}" in
                         wd=$(dirname ${SRCDIR})
                         echo_on
                         (cd ${wd} && GOBIN=/buildroot/bin go install $(if [[ -f vendor/modules.txt ]]; then echo ' -mod=vendor '; fi) ./cmd/...) || exit 1
+                        if [ -e ${wd}/post-compile.sh ]; then (cd ${wd} && bash post-compile.sh); fi
                         echo_off
                         ;;
                     */python)
