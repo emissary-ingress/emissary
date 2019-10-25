@@ -33,6 +33,9 @@ OSS_HOME ?= ambassador
 include ${OSS_HOME}/Makefile
 $(call module,apro,.)
 
+deploy: push
+	docker exec -e AES_IMAGE=$(AMB_IMAGE) -it $(shell $(BUILDER)) kubeapply -f apro/k8s-aes
+
 include build-aux/go-bindata.mk
 
 # Don't use 'generate' because the OSS Makefile's `make generate` does
