@@ -129,14 +129,14 @@ sync() {
     (cd ${sourcedir} && module_version ${name} ) | docker exec -i ${container} sh -c "cat > /buildroot/${name}.version && if [ -e ${name}/python ]; then cp ${name}.version ${name}/python/; fi"
 }
 
-dirty() {
+image-dirty() {
     cid=$1
-    docker exec -i ${cid} sh -c 'test -n "$(ls /buildroot | fgrep .dirty)"'
+    docker exec -i ${cid} sh -c 'test -e /buildroot/image.dirty'
 }
 
-clear-dirty() {
+image-clear() {
     cid=$1
-    docker exec -i ${cid} sh -c 'rm -f /buildroot/*.dirty'
+    docker exec -i ${cid} sh -c 'rm -f /buildroot/image.dirty'
 }
 
 summarize-sync() {
@@ -146,7 +146,7 @@ summarize-sync() {
     shift
     lines=("$@")
     if [ "${#lines[@]}" != 0 ]; then
-        docker exec -i ${container} touch /buildroot/${name}.dirty
+        docker exec -i ${container} touch ${name}.dirty image.dirty
     fi
     printf "${GRN}Synced ${#lines[@]} ${BLU}${name}${GRN} source files${END}\n"
     for i in {0..9}; do
@@ -252,6 +252,7 @@ case "${cmd}" in
                         chmod a+x ${SRCDIR}/*.py
                         ;;
                 esac
+                rm ${module}.dirty
             fi
         done
         ;;
@@ -294,12 +295,47 @@ case "${cmd}" in
             exit 1
         fi
         cid=$(builder)
-        if dirty ${cid}; then
+        if image-dirty ${cid}; then
 	    printf "${CYN}==> ${GRN}Snapshotting ${BLU}builder${GRN} image${END}\n"
 	    docker rmi -f "${name}" &> /dev/null
             docker commit -c 'ENTRYPOINT [ "/bin/bash" ]' ${cid} "${name}"
+	    printf "${CYN}==> ${GRN}Building ${BLU}${BUILDER_NAME}${GRN} image${END}\n"
+	    ${DBUILD} ${DIR} --build-arg artifacts=${name} --target ambassador -t ${BUILDER_NAME}
+	    printf "${CYN}==> ${GRN}Building ${BLU}kat-client${GRN} image${END}\n"
+	    ${DBUILD} ${DIR} --build-arg artifacts=${name} --target kat-client -t kat-client
+	    printf "${CYN}==> ${GRN}Building ${BLU}kat-server${GRN} image${END}\n"
+	    ${DBUILD} ${DIR} --build-arg artifacts=${name} --target kat-server -t kat-server
         fi
-        clear-dirty ${cid}
+        image-clear ${cid}
+        ;;
+    push)
+        shift
+        AMB_IMAGE=$1
+        KAT_CLI_IMAGE=$2
+        KAT_SRV_IMAGE=$3
+
+        cid=$(builder)
+
+        if ! docker exec -i ${cid} fgrep -q "${AMB_IMAGE}" /buildroot/pushed.log; then
+	    printf "${CYN}==> ${GRN}Pushing ${BLU}${BUILDER_NAME}${GRN} image${END}\n"
+	    docker tag ${BUILDER_NAME} ${AMB_IMAGE}
+	    docker push ${AMB_IMAGE}
+	    echo ${AMB_IMAGE} | docker exec -i ${cid} sh -c "cat >> /buildroot/pushed.log"
+        fi
+
+        if ! docker exec -i ${cid} fgrep -q "${KAT_CLI_IMAGE}" /buildroot/pushed.log; then
+	    printf "${CYN}==> ${GRN}Pushing ${BLU}kat-client${GRN} image${END}\n"
+	    docker tag kat-client ${KAT_CLI_IMAGE}
+	    docker push ${KAT_CLI_IMAGE}
+	    echo ${KAT_CLI_IMAGE} | docker exec -i ${cid} sh -c "cat >> /buildroot/pushed.log"
+        fi
+
+        if ! docker exec -i ${cid} fgrep -q "${KAT_SRV_IMAGE}" /buildroot/pushed.log; then
+	    printf "${CYN}==> ${GRN}Pushing ${BLU}kat-server${GRN} image${END}\n"
+	    docker tag kat-server ${KAT_SRV_IMAGE}
+	    docker push ${KAT_SRV_IMAGE}
+	    echo ${KAT_SRV_IMAGE} | docker exec -i ${cid} sh -c "cat >> /buildroot/pushed.log"
+        fi
         ;;
     shell)
         bootstrap

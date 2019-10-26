@@ -63,12 +63,6 @@ REPO=$(NAME)
 images:
 	@$(MAKE) --no-print-directory compile
 	@$(MAKE) --no-print-directory commit
-	@printf "$(CYN)==> $(GRN)Building $(BLU)$(REPO)$(GRN) image$(END)\n"
-	@$(DBUILD) $(BUILDER_HOME) --build-arg artifacts=$(SNAPSHOT) --target ambassador -t $(REPO)
-	@printf "$(CYN)==> $(GRN)Building $(BLU)kat-client$(GRN) image$(END)\n"
-	@$(DBUILD) $(BUILDER_HOME) --build-arg artifacts=$(SNAPSHOT) --target kat-client -t kat-client
-	@printf "$(CYN)==> $(GRN)Building $(BLU)kat-server$(GRN) image$(END)\n"
-	@$(DBUILD) $(BUILDER_HOME) --build-arg artifacts=$(SNAPSHOT) --target kat-server -t kat-server
 .PHONY: images
 
 AMB_IMAGE=$(DEV_REGISTRY)/$(REPO):$(shell docker images -q $(REPO):latest)
@@ -79,15 +73,7 @@ export REGISTRY_ERR=$(RED)ERROR: please set the DEV_REGISTRY make/env variable t
 
 push: images
 	@test -n "$(DEV_REGISTRY)" || (printf "$${REGISTRY_ERR}\n"; exit 1)
-	@printf "$(CYN)==> $(GRN)Pushing $(BLU)$(REPO)$(GRN) image$(END)\n"
-	docker tag $(REPO) $(AMB_IMAGE)
-	docker push $(AMB_IMAGE)
-	@printf "$(CYN)==> $(GRN)Pushing $(BLU)kat-client$(GRN) image$(END)\n"
-	docker tag kat-client $(KAT_CLI_IMAGE)
-	docker push $(KAT_CLI_IMAGE)
-	@printf "$(CYN)==> $(GRN)Pushing $(BLU)kat-server$(GRN) image$(END)\n"
-	docker tag kat-server $(KAT_SRV_IMAGE)
-	docker push $(KAT_SRV_IMAGE)
+	@$(BUILDER) push $(AMB_IMAGE) $(KAT_CLI_IMAGE) $(KAT_SRV_IMAGE)
 .PHONY: push
 
 export KUBECONFIG_ERR=$(RED)ERROR: please set the $(BLU)DEV_KUBECONFIG$(RED) make/env variable to the cluster\n       you would like to use for development. Note this cluster must have access\n       to $(BLU)DEV_REGISTRY$(RED) (currently $(BLD)$(DEV_REGISTRY)$(END)$(RED))$(END)
