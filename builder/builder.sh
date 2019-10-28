@@ -30,6 +30,21 @@ builder() { docker ps -q -f label=builder -f label=${BUILDER_NAME}; }
 
 builder_volume() { docker volume ls -q -f label=builder; }
 
+declare -a dsynced
+
+dsync() {
+    IFS='|' read -ra dsynced <<<"$(rsync --info=name -aO -e 'docker exec -i' $@ | tr '\n' '|')"
+}
+
+dexec() {
+    if [[ -t 0 ]]; then
+        flags=-it
+    else
+        flags=-i
+    fi
+    docker exec ${flags} $(builder) "$@"
+}
+
 bootstrap() {
     if [ -z "$(builder_volume)" ] ; then
         docker volume create --label builder
@@ -52,7 +67,7 @@ bootstrap() {
         printf "${GRN}Started build container ${BLU}$(builder)${END}\n"
     fi
 
-    rsync -q -a -e 'docker exec -i' ${DIR}/builder.sh $(builder):/buildroot
+    dsync ${DIR}/builder.sh $(builder):/buildroot
 }
 
 module_version() {
@@ -122,40 +137,32 @@ sync() {
 
     real=$(cd ${sourcedir}; pwd)
 
-    docker exec -i ${container} mkdir -p /buildroot/${name}
-    declare -a lines
-    IFS='|' read -ra lines <<<"$(rsync --exclude-from=${DIR}/sync-excludes.txt --info=name -aO --delete -e 'docker exec -i' ${real}/ ${container}:/buildroot/${name} | tr '\n' '|')"
-    summarize-sync $name $container "${lines[@]}"
-    (cd ${sourcedir} && module_version ${name} ) | docker exec -i ${container} sh -c "cat > /buildroot/${name}.version && if [ -e ${name}/python ]; then cp ${name}.version ${name}/python/; fi"
-}
-
-image-dirty() {
-    cid=$1
-    docker exec -i ${cid} sh -c 'test -e /buildroot/image.dirty'
-}
-
-image-clear() {
-    cid=$1
-    docker exec -i ${cid} sh -c 'rm -f /buildroot/image.dirty'
+    dexec mkdir -p /buildroot/${name}
+    dsync --exclude-from=${DIR}/sync-excludes.txt --delete ${real}/ ${container}:/buildroot/${name}
+    summarize-sync $name "${dsynced[@]}"
+    (cd ${sourcedir} && module_version ${name} ) | dexec sh -c "cat > /buildroot/${name}.version && if [ -e ${name}/python ]; then cp ${name}.version ${name}/python/; fi"
 }
 
 summarize-sync() {
     name=$1
     shift
-    container=$1
-    shift
     lines=("$@")
     if [ "${#lines[@]}" != 0 ]; then
-        docker exec -i ${container} touch ${name}.dirty image.dirty
+        dexec touch ${name}.dirty image.dirty
     fi
     printf "${GRN}Synced ${#lines[@]} ${BLU}${name}${GRN} source files${END}\n"
+    PARTIAL="yes"
     for i in {0..9}; do
         if [ "$i" = "${#lines[@]}" ]; then
+            PARTIAL=""
             break
         fi
         line="${lines[$i]}"
         printf "  ${CYN}${line}${END}\n"
     done
+    if [ -n "${PARTIAL}" ]; then
+        printf "  ${CYN}...${END}\n"
+    fi
 }
 
 clean() {
@@ -164,6 +171,20 @@ clean() {
         printf "${GRN}Killing build container ${BLU}${cid}${END}\n"
         docker kill ${cid} > /dev/null 2>&1
         docker wait ${cid} > /dev/null 2>&1 || true
+    fi
+}
+
+push-image() {
+    LOCAL="$1"
+    REMOTE="$2"
+
+    if ! ( dexec test -e /buildroot/pushed.log && dexec fgrep -q "${REMOTE}" /buildroot/pushed.log ); then
+	printf "${CYN}==> ${GRN}Pushing ${BLU}${LOCAL}${GRN}->${BLU}${REMOTE}${END}\n"
+	docker tag ${LOCAL} ${REMOTE}
+	docker push ${REMOTE}
+	echo ${REMOTE} | dexec sh -c "cat >> /buildroot/pushed.log"
+    else
+	printf "${CYN}==> ${GRN}Already pushed ${BLU}${LOCAL}${GRN}->${BLU}${REMOTE}${END}\n"
     fi
 }
 
@@ -222,11 +243,7 @@ case "${cmd}" in
     compile)
         shift
         bootstrap
-        if [[ -t 0 ]]; then
-            docker exec -it $(builder) /buildroot/builder.sh compile-internal
-        else
-            docker exec $(builder) /buildroot/builder.sh compile-internal
-        fi
+        dexec /buildroot/builder.sh compile-internal
         ;;
     compile-internal)
         # This runs inside the builder image
@@ -294,48 +311,24 @@ case "${cmd}" in
             echo "usage: ./builder.sh commit <image-name>"
             exit 1
         fi
-        cid=$(builder)
-        if image-dirty ${cid}; then
+        if dexec test -e /buildroot/image.dirty; then
 	    printf "${CYN}==> ${GRN}Snapshotting ${BLU}builder${GRN} image${END}\n"
 	    docker rmi -f "${name}" &> /dev/null
-            docker commit -c 'ENTRYPOINT [ "/bin/bash" ]' ${cid} "${name}"
-	    printf "${CYN}==> ${GRN}Building ${BLU}${BUILDER_NAME}${GRN} image${END}\n"
+            docker commit -c 'ENTRYPOINT [ "/bin/bash" ]' $(builder) "${name}"
+	    printf "${CYN}==> ${GRN}Building ${BLU}${BUILDER_NAME}${END}\n"
 	    ${DBUILD} ${DIR} --build-arg artifacts=${name} --target ambassador -t ${BUILDER_NAME}
-	    printf "${CYN}==> ${GRN}Building ${BLU}kat-client${GRN} image${END}\n"
+	    printf "${CYN}==> ${GRN}Building ${BLU}kat-client${END}\n"
 	    ${DBUILD} ${DIR} --build-arg artifacts=${name} --target kat-client -t kat-client
-	    printf "${CYN}==> ${GRN}Building ${BLU}kat-server${GRN} image${END}\n"
+	    printf "${CYN}==> ${GRN}Building ${BLU}kat-server${END}\n"
 	    ${DBUILD} ${DIR} --build-arg artifacts=${name} --target kat-server -t kat-server
         fi
-        image-clear ${cid}
+        dexec rm -f /buildroot/image.dirty
         ;;
     push)
         shift
-        AMB_IMAGE=$1
-        KAT_CLI_IMAGE=$2
-        KAT_SRV_IMAGE=$3
-
-        cid=$(builder)
-
-        if ! docker exec -i ${cid} fgrep -q "${AMB_IMAGE}" /buildroot/pushed.log; then
-	    printf "${CYN}==> ${GRN}Pushing ${BLU}${BUILDER_NAME}${GRN} image${END}\n"
-	    docker tag ${BUILDER_NAME} ${AMB_IMAGE}
-	    docker push ${AMB_IMAGE}
-	    echo ${AMB_IMAGE} | docker exec -i ${cid} sh -c "cat >> /buildroot/pushed.log"
-        fi
-
-        if ! docker exec -i ${cid} fgrep -q "${KAT_CLI_IMAGE}" /buildroot/pushed.log; then
-	    printf "${CYN}==> ${GRN}Pushing ${BLU}kat-client${GRN} image${END}\n"
-	    docker tag kat-client ${KAT_CLI_IMAGE}
-	    docker push ${KAT_CLI_IMAGE}
-	    echo ${KAT_CLI_IMAGE} | docker exec -i ${cid} sh -c "cat >> /buildroot/pushed.log"
-        fi
-
-        if ! docker exec -i ${cid} fgrep -q "${KAT_SRV_IMAGE}" /buildroot/pushed.log; then
-	    printf "${CYN}==> ${GRN}Pushing ${BLU}kat-server${GRN} image${END}\n"
-	    docker tag kat-server ${KAT_SRV_IMAGE}
-	    docker push ${KAT_SRV_IMAGE}
-	    echo ${KAT_SRV_IMAGE} | docker exec -i ${cid} sh -c "cat >> /buildroot/pushed.log"
-        fi
+        push-image ${BUILDER_NAME} "$1"
+        push-image kat-client "$2"
+        push-image kat-server "$3"
         ;;
     shell)
         bootstrap
