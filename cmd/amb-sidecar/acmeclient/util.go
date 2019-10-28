@@ -36,13 +36,13 @@ func stringSliceEqual(a, b []string) bool {
 	return true
 }
 
-// nameEncode an arbitrary string (such as a qualified hostname) to
+// NameEncode an arbitrary string (such as a qualified hostname) to
 // make it usable as a Kubernetes resource name.  The scheme is
 // urlencode-ish, but '-' instead of '%', and encodes all non
 // ASCII-letter/ASCII-digit octets; since letter/digit/hyphen (LDH) is
 // the set of characters that are always safe to use in the various
 // kubernetes contexts.
-func nameEncode(in string) string {
+func NameEncode(in string) string {
 	out := new(strings.Builder)
 	for _, b := range []byte(in) {
 		switch {

@@ -175,7 +175,7 @@ func (c *Controller) rectify(logger types.Logger) {
 	for _, host := range c.hosts {
 		spec := deepCopyHostSpec(host.Spec)
 
-		fillDefaults(spec)
+		FillDefaults(spec)
 		if !proto.Equal(spec, host.Spec) {
 			if err := c.updateHostSpec(host.GetNamespace(), host.GetName(), spec); err != nil {
 				logger.Errorln(err)
@@ -290,7 +290,7 @@ func (c *Controller) rectify(logger types.Logger) {
 	}
 }
 
-func fillDefaults(spec *ambassadorTypesV2.HostSpec) {
+func FillDefaults(spec *ambassadorTypesV2.HostSpec) {
 	if spec.Selector == nil {
 		spec.Selector = &k8sTypesMetaV1.LabelSelector{}
 	}
@@ -310,13 +310,13 @@ func fillDefaults(spec *ambassadorTypesV2.HostSpec) {
 			spec.AcmeProvider.PrivateKeySecret = &k8sTypesCoreV1.LocalObjectReference{}
 		}
 		if spec.AcmeProvider.PrivateKeySecret.Name == "" {
-			spec.AcmeProvider.PrivateKeySecret.Name = nameEncode(spec.AcmeProvider.Authority) + "--" + nameEncode(spec.AcmeProvider.Email)
+			spec.AcmeProvider.PrivateKeySecret.Name = NameEncode(spec.AcmeProvider.Authority) + "--" + NameEncode(spec.AcmeProvider.Email)
 		}
 		if spec.TlsSecret == nil {
 			spec.TlsSecret = &k8sTypesCoreV1.LocalObjectReference{}
 		}
 		if spec.TlsSecret.Name == "" {
-			spec.TlsSecret.Name = nameEncode(spec.AcmeProvider.Authority) + "--" + nameEncode(spec.AcmeProvider.Email) + "--" + nameEncode(spec.AcmeProvider.PrivateKeySecret.Name)
+			spec.TlsSecret.Name = NameEncode(spec.AcmeProvider.Authority) + "--" + NameEncode(spec.AcmeProvider.Email) + "--" + NameEncode(spec.AcmeProvider.PrivateKeySecret.Name)
 		}
 	}
 }

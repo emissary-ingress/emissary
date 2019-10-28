@@ -36,7 +36,7 @@
 						<span>Hostname to request a certificate for:</span>
 						<div>
 							<input type="text" name="hostname" v-model:value="hostname"
-								v-on:input="hostnameChanged=true" />
+								v-on:input="onHostnameChange" />
 							<p v-if="!hostnameChanged">We auto-filled this from the URL
 								you used to access this web page.  Feel free to change it, though.</p>
 						</div>
@@ -57,22 +57,15 @@
 						<div v-else>
 							<p>I have agreed to to the Terms of Service at <a v-bind:href="tosURL">{{ tosURL }}</a>.</p>
 						</div>
+					</label>
+					<label>
+						<span>Email:</span>
+						<input type="email" name="email" v-model:value="email"
+							v-on:input="updateYAML" />
+					</label>
 				</fieldset>
 
-				<pre>
-kubectl apply &lt;&lt;'EOF'
----
-apiVersion: getambassador.io/v1
-kind: Host
-metadata:
-  name: {{ hostname }}
-spec:
-  hostname: {{ hostname }}
-  selector:
-    hostname: {{ hostname }}
-  acmeProvider: {{ provider }}
-  tlsSecretName: {{ hostname }}
-EOF</pre>
+				<pre>{{ yaml }}</pre>
 				<input type="submit" value="Apply" />
 			</form>
 			<div>{{ output }}</div>
@@ -84,6 +77,7 @@ EOF</pre>
 					hostname: window.location.hostname,
 					provider: "https://acme-staging-v02.api.letsencrypt.org/directory", // "https://acme-v02.api.letsencrypt.org/directory",
 					tosAgree: false,
+					email: "",
 
 					hostnameChanged: false,
 
@@ -91,6 +85,9 @@ EOF</pre>
 					tosErr: null,
 					tosProvider: "",
 					tosURL: null,
+
+					yamlReq: null,
+					yaml: "",
 
 					output: "",
 					
@@ -100,6 +97,10 @@ EOF</pre>
 					this.onProviderChange(null);
 				},
 				methods: {
+					onHostnameChange: function(event) {
+						this.hostnameChanged = true;
+						this.updateYAML();
+					},
 					onProviderChange: function(event) {
 						let url = new URL('tos-url', window.location);
 						url.searchParams.set('ca-url', this.provider);
@@ -131,6 +132,7 @@ EOF</pre>
 						this.tosReq = req;
 						this.tosAgree = false;
 						req.send();
+						this.updateYAML();
 					},
 					onSubmit: function(event) {
 						let url = new URL('status', window.location);
@@ -144,8 +146,29 @@ EOF</pre>
 							}
 						};
 						req.onloadend = () => {
+							// recurse, to continually refresh the output status
 							this.onSubmit(null);
 						};
+						req.send();
+					},
+					updateYAML: function() {
+						let url = new URL('yaml', window.location);
+						url.searchParams.set('hostname', this.hostname);
+						url.searchParams.set('acme_authority', this.provider);
+						url.searchParams.set('acme_email', this.email);
+
+						let req = new XMLHttpRequest();
+						req.open("GET", url.toString());
+						req.onload = () => {
+							if (req.status == 200) {
+								this.yaml = req.response;
+							}
+							this.yamlReq = null;
+						};
+						if (this.yamlReq != null) {
+							this.yamlReq.abort();
+						}
+						this.yamlReq = req;
 						req.send();
 					},
 				},
