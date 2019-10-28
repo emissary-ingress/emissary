@@ -104,7 +104,7 @@ The HTTP-01 challenge verifies ownership of the domain by sending a request for 
     spec:
       prefix: /.well-known/acme-challenge
       rewrite: ""
-      service: acme-challeneg-service
+      service: acme-challenge-service
 
     ---
     apiVersion: v1
