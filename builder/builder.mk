@@ -180,6 +180,12 @@ clobber:
 	@$(BUILDER) clobber
 .PHONY: clobber
 
+env:
+	@printf "$(BLD)DEV_KUBECONFIG$(END)=$(BLU)\"$(DEV_KUBECONFIG)\"$(END)\n"
+	@printf "$(BLD)DEV_REGISTRY$(END)=$(BLU)\"$(DEV_REGISTRY)\"$(END)\n"
+	@printf "$(BLD)RELEASE_REGISTRY$(END)=$(BLU)\"$(RELEASE_REGISTRY)\"$(END)\n"
+.PHONY: env
+
 help:
 	@printf "$(subst $(NL),\n,$(HELP))\n"
 .PHONY: help
@@ -223,6 +229,8 @@ cache in the Docker volume.
 $(BLD)Targets:$(END)
 
   $(BLD)make $(BLU)help$(END)      -- displays this message.
+
+  $(BLD)make $(BLU)env$(END)       -- display the value of important env vars.
 
   $(BLD)make $(BLU)preflight$(END) -- checks dependencies of this makefile.
 
