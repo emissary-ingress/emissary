@@ -22,6 +22,7 @@ require (
 	github.com/hashicorp/go-sockaddr v1.0.2 // indirect
 	github.com/influxdata/tdigest v0.0.0-20181121200506-bf2b5ad3c0a9
 	github.com/jcuga/golongpoll v0.0.0-20180711123949-939e3befd837
+	github.com/jpillora/backoff v1.0.0
 	github.com/lyft/goruntime v0.1.8
 	github.com/lyft/gostats v0.2.6
 	github.com/lyft/ratelimit v1.3.0
