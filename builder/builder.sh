@@ -188,6 +188,10 @@ push-image() {
     fi
 }
 
+find-modules () {
+    find /buildroot -type d -mindepth 1 -maxdepth 1 \! -name bin
+}
+
 cmd="$1"
 
 case "${cmd}" in
@@ -247,42 +251,45 @@ case "${cmd}" in
         ;;
     compile-internal)
         # This runs inside the builder image
-        for SRCDIR in $(find /buildroot -type f -name go.mod -or -name python -type d -mindepth 2 -maxdepth 2); do
-            module=$(basename $(dirname ${SRCDIR}))
+        for MODDIR in $(find-modules); do
+            module=$(basename ${MODDIR})
+
             if [ -e ${module}.dirty ]; then
-                case ${SRCDIR} in
-                    */go.mod)
-                        printf "${CYN}==> ${GRN}Building ${BLU}${module}${GRN} go code${END}\n"
-                        wd=$(dirname ${SRCDIR})
+                if [ -e "${MODDIR}/go.mod" ]; then
+                    printf "${CYN}==> ${GRN}Building ${BLU}${module}${GRN} go code${END}\n"
+                    echo_on
+                    (cd ${MODDIR} && GOBIN=/buildroot/bin go install $(if [[ -f vendor/modules.txt ]]; then echo ' -mod=vendor '; fi) ./cmd/...) || exit 1
+                    if [ -e ${MODDIR}/post-compile.sh ]; then (cd ${MODDIR} && bash post-compile.sh); fi
+                    echo_off
+                fi
+
+                if [ -e "${MODDIR}/python" ]; then
+                    if ! [ -e ${MODDIR}/python/*.egg-info ]; then
+                        printf "${CYN}==> ${GRN}Setting up ${BLU}${module}${GRN} python code${END}\n"
                         echo_on
-                        (cd ${wd} && GOBIN=/buildroot/bin go install $(if [[ -f vendor/modules.txt ]]; then echo ' -mod=vendor '; fi) ./cmd/...) || exit 1
-                        if [ -e ${wd}/post-compile.sh ]; then (cd ${wd} && bash post-compile.sh); fi
+                        sudo pip install --no-deps -e ${MODDIR}/python || exit 1
                         echo_off
-                        ;;
-                    */python)
-                        if ! [ -e ${SRCDIR}/*.egg-info ]; then
-                            printf "${CYN}==> ${GRN}Setting up ${BLU}${module}${GRN} python code${END}\n"
-                            echo_on
-                            sudo pip install --no-deps -e ${SRCDIR} || exit 1
-                            echo_off
-                        fi
-                        chmod a+x ${SRCDIR}/*.py
-                        ;;
-                esac
+                    fi
+                    chmod a+x ${MODDIR}/python/*.py
+                fi
+
                 rm ${module}.dirty
+            else
+                printf "${CYN}==> ${GRN}Already built ${BLU}${module}${GRN}${END}\n"
             fi
         done
         ;;
     pytest-internal)
         # This runs inside the builder image
         fail=""
-        for SRCDIR in $(find /buildroot -type d -name python -mindepth 2 -maxdepth 2); do
-            module=$(basename $(dirname ${SRCDIR}))
-            wd=$(dirname ${SRCDIR})
-            if ! (cd ${wd} && pytest --tb=short -ra ${PYTEST_ARGS}) then
-               fail="yes"
+        for MODDIR in $(find-modules); do
+            if [ -e "${MODDIR}/python" ]; then
+                if ! (cd ${MODDIR} && pytest --tb=short -ra ${PYTEST_ARGS}) then
+                   fail="yes"
+                fi
             fi
         done
+
         if [ "${fail}" = yes ]; then
             exit 1
         fi
@@ -290,16 +297,18 @@ case "${cmd}" in
     gotest-internal)
         # This runs inside the builder image
         fail=""
-        for SRCDIR in $(find /buildroot -type f -name go.mod -mindepth 2 -maxdepth 2); do
-            module=$(basename $(dirname ${SRCDIR}))
-            wd=$(dirname ${SRCDIR})
-            pkgs=$(cd ${wd} && go list -f='{{ if or (gt (len .TestGoFiles) 0) (gt (len .XTestGoFiles) 0) }}{{ .ImportPath }}{{ end }}' ${GOTEST_PKGS})
-            if [ -n "${pkgs}" ]; then
-                if ! (cd ${wd} && go test ${pkgs} ${GOTEST_ARGS}) then
-                   fail="yes"
+        for MODDIR in $(find-modules); do
+            if [ -e "${MODDIR}/go.mod" ]; then
+                pkgs=$(cd ${MODDIR} && go list -f='{{ if or (gt (len .TestGoFiles) 0) (gt (len .XTestGoFiles) 0) }}{{ .ImportPath }}{{ end }}' ${GOTEST_PKGS})
+    
+                if [ -n "${pkgs}" ]; then
+                    if ! (cd ${MODDIR} && go test ${pkgs} ${GOTEST_ARGS}) then
+                       fail="yes"
+                    fi
                 fi
-                fi
+            fi
         done
+
         if [ "${fail}" = yes ]; then
             exit 1
         fi
