@@ -264,13 +264,13 @@ case "${cmd}" in
                 fi
 
                 if [ -e "${MODDIR}/python" ]; then
-                    if ! [ -e ${MODDIR}/*.egg-info ]; then
+                    if ! [ -e ${MODDIR}/python/*.egg-info ]; then
                         printf "${CYN}==> ${GRN}Setting up ${BLU}${module}${GRN} python code${END}\n"
                         echo_on
                         sudo pip install --no-deps -e ${MODDIR}/python || exit 1
                         echo_off
                     fi
-                    chmod a+x ${MODDIR}/*.py
+                    chmod a+x ${MODDIR}/python/*.py
                 fi
 
                 rm ${module}.dirty
