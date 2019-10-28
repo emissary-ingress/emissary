@@ -180,8 +180,12 @@ clobber:
 	@$(BUILDER) clobber
 .PHONY: clobber
 
+CURRENT_CONTEXT=$(shell kubectl --kubeconfig=$(DEV_KUBECONFIG) config current-context)
+CURRENT_NAMESPACE=$(shell kubectl config view -o=jsonpath="{.contexts[?(@.name==\"$(CURRENT_CONTEXT)\")].context.namespace}")
+
 env:
-	@printf "$(BLD)DEV_KUBECONFIG$(END)=$(BLU)\"$(DEV_KUBECONFIG)\"$(END)\n"
+	@printf "$(BLD)DEV_KUBECONFIG$(END)=$(BLU)\"$(DEV_KUBECONFIG)\"$(END)"
+	@printf " # Context: $(BLU)$(CURRENT_CONTEXT)$(END), Namespace: $(BLU)$(CURRENT_NAMESPACE)$(END)\n"
 	@printf "$(BLD)DEV_REGISTRY$(END)=$(BLU)\"$(DEV_REGISTRY)\"$(END)\n"
 	@printf "$(BLD)RELEASE_REGISTRY$(END)=$(BLU)\"$(RELEASE_REGISTRY)\"$(END)\n"
 .PHONY: env
