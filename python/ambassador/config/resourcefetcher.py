@@ -177,7 +177,7 @@ class ResourceFetcher:
             # ...then handle Ambassador CRDs.
             for key in [ 'AuthService', 'ConsulResolver',
                          'KubernetesEndpointResolver', 'KubernetesServiceResolver',
-                         'Mapping', 'Module', 'RateLimitService',
+                         'LoggingService', 'Mapping', 'Module', 'RateLimitService',
                          'TCPMapping', 'TLSContext', 'TracingService',
                          'clusteringresses.networking.internal.knative.dev',
                          'ingresses.networking.internal.knative.dev']:
