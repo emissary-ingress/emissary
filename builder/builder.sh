@@ -18,9 +18,9 @@ set -e
 
 SOURCE="${BASH_SOURCE[0]}"
 while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
-  DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
-  SOURCE="$(readlink "$SOURCE")"
-  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
+    DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
+    SOURCE="$(readlink "$SOURCE")"
+    [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
 done
 DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
 
@@ -179,12 +179,12 @@ push-image() {
     REMOTE="$2"
 
     if ! ( dexec test -e /buildroot/pushed.log && dexec fgrep -q "${REMOTE}" /buildroot/pushed.log ); then
-	printf "${CYN}==> ${GRN}Pushing ${BLU}${LOCAL}${GRN}->${BLU}${REMOTE}${END}\n"
-	docker tag ${LOCAL} ${REMOTE}
-	docker push ${REMOTE}
-	echo ${REMOTE} | dexec sh -c "cat >> /buildroot/pushed.log"
+        printf "${CYN}==> ${GRN}Pushing ${BLU}${LOCAL}${GRN}->${BLU}${REMOTE}${END}\n"
+        docker tag ${LOCAL} ${REMOTE}
+        docker push ${REMOTE}
+        echo ${REMOTE} | dexec sh -c "cat >> /buildroot/pushed.log"
     else
-	printf "${CYN}==> ${GRN}Already pushed ${BLU}${LOCAL}${GRN}->${BLU}${REMOTE}${END}\n"
+        printf "${CYN}==> ${GRN}Already pushed ${BLU}${LOCAL}${GRN}->${BLU}${REMOTE}${END}\n"
     fi
 }
 
@@ -298,7 +298,7 @@ case "${cmd}" in
                 if ! (cd ${wd} && go test ${pkgs} ${GOTEST_ARGS}) then
                    fail="yes"
                 fi
-            fi
+                fi
         done
         if [ "${fail}" = yes ]; then
             exit 1
@@ -312,15 +312,15 @@ case "${cmd}" in
             exit 1
         fi
         if dexec test -e /buildroot/image.dirty; then
-	    printf "${CYN}==> ${GRN}Snapshotting ${BLU}builder${GRN} image${END}\n"
-	    docker rmi -f "${name}" &> /dev/null
+            printf "${CYN}==> ${GRN}Snapshotting ${BLU}builder${GRN} image${END}\n"
+            docker rmi -f "${name}" &> /dev/null
             docker commit -c 'ENTRYPOINT [ "/bin/bash" ]' $(builder) "${name}"
-	    printf "${CYN}==> ${GRN}Building ${BLU}${BUILDER_NAME}${END}\n"
-	    ${DBUILD} ${DIR} --build-arg artifacts=${name} --target ambassador -t ${BUILDER_NAME}
-	    printf "${CYN}==> ${GRN}Building ${BLU}kat-client${END}\n"
-	    ${DBUILD} ${DIR} --build-arg artifacts=${name} --target kat-client -t kat-client
-	    printf "${CYN}==> ${GRN}Building ${BLU}kat-server${END}\n"
-	    ${DBUILD} ${DIR} --build-arg artifacts=${name} --target kat-server -t kat-server
+            printf "${CYN}==> ${GRN}Building ${BLU}${BUILDER_NAME}${END}\n"
+            ${DBUILD} ${DIR} --build-arg artifacts=${name} --target ambassador -t ${BUILDER_NAME}
+            printf "${CYN}==> ${GRN}Building ${BLU}kat-client${END}\n"
+            ${DBUILD} ${DIR} --build-arg artifacts=${name} --target kat-client -t kat-client
+            printf "${CYN}==> ${GRN}Building ${BLU}kat-server${END}\n"
+            ${DBUILD} ${DIR} --build-arg artifacts=${name} --target kat-server -t kat-server
         fi
         dexec rm -f /buildroot/image.dirty
         ;;
