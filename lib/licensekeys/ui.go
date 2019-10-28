@@ -96,7 +96,7 @@ type cmdContext struct {
 }
 
 func (ctx *cmdContext) phoneHome(claims *LicenseClaimsLatest) {
-	fmt.Printf("Calling Metriton\n")
+	fmt.Println("Calling Metriton")
 	b := &backoff.Backoff{
 		Min:    5 * time.Minute,
 		Max:    8 * time.Hour,
@@ -107,6 +107,11 @@ func (ctx *cmdContext) phoneHome(claims *LicenseClaimsLatest) {
 		err := PhoneHome(claims, ctx.application, ctx.version)
 		if err != nil {
 			d := b.Duration()
+			if b.Attempt() >= 8 {
+				fmt.Printf("Metriton error after %d attemps: %v\n", int(b.Attempt()), err)
+				b.Reset()
+				break
+			}
 			fmt.Printf("Metriton error, retrying in %s: %v\n", d, err)
 			time.Sleep(d)
 			continue

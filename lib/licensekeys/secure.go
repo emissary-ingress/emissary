@@ -138,7 +138,7 @@ func ParseKey(licenseKey string) (*LicenseClaimsLatest, error) {
 
 func PhoneHome(claims *LicenseClaimsLatest, component, version string) error {
 	if os.Getenv("SCOUT_DISABLE") != "" {
-		fmt.Printf("SCOUT_DISABLE, enforcing hard-limits")
+		fmt.Println("SCOUT_DISABLE, enforcing hard-limits")
 		// TODO: User has disabled phone-home through `SCOUT_DISABLE` var. Honor his will and enforce hard limits.
 		return nil
 	}
@@ -183,7 +183,7 @@ func PhoneHome(claims *LicenseClaimsLatest, component, version string) error {
 	resp, err := http.Post(metritonEndpoint, "application/json", bytes.NewBuffer(body))
 	if err != nil {
 		// TODO: Phone-home was not a success... allow soft-limit and we'll try again later
-		fmt.Printf("Metriton call was not a success... allow soft-limit\n")
+		fmt.Println("Metriton call was not a success... allow soft-limit")
 		return err
 	}
 	defer resp.Body.Close()
@@ -192,12 +192,12 @@ func PhoneHome(claims *LicenseClaimsLatest, component, version string) error {
 	err = json.NewDecoder(resp.Body).Decode(&metritonResponse)
 	if err != nil {
 		// TODO: Phone-home's response body could not be read... allow soft-limit and we'll try again later
-		fmt.Printf("Metriton call was not a success... allow soft-limit\n")
+		fmt.Println("Metriton call was not a success... allow soft-limit")
 		return err
 	}
 	if metritonResponse.IsHardLimit {
 		// TODO: Metriton is telling us to enforce hard limit
-		fmt.Printf("Metriton is enforcing hard-limits")
+		fmt.Println("Metriton is enforcing hard-limits")
 		return nil
 	}
 	return nil
