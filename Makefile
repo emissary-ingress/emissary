@@ -15,14 +15,10 @@ define SETUP
 	    cd ambassador; \
 	    if ! git remote get-url origin &>/dev/null; then \
 	        git remote add origin https://github.com/datawire/ambassador; \
-	        git remote set-url --push origin git@github.com:datawire/ambassador.git; \
+	        git remote set-url --push origin no_push; \
 	    fi; \
 	    git fetch || true; \
-	    if [ $(AMBASSADOR_COMMIT) != '-' ]; then \
-	        git checkout $(AMBASSADOR_COMMIT); \
-	    elif ! git rev-parse HEAD >/dev/null 2>&1; then \
-	        git checkout origin/master; \
-	    fi; \
+	    git checkout $(AMBASSADOR_COMMIT); \
 	}
 endef
 endif
