@@ -363,6 +363,23 @@ spec:
     plural: tracingservices
     singular: tracingservice
     kind: TracingService
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: logservices.getambassador.io
+spec:
+  group: getambassador.io
+  version: v1
+  versions:
+  - name: v1
+    served: true
+    storage: true
+  scope: Namespaced
+  names:
+    plural: logservices
+    singular: logservice
+    kind: LogService
 """
 
 RBAC_CLUSTER_SCOPE = """

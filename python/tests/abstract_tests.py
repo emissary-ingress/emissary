@@ -247,7 +247,7 @@ class AmbassadorTest(Test):
         envs.extend(self.env)
         [command.extend(["-e", env]) for env in envs]
 
-        ports = ["%s:8877" % (8877 + self.index), "%s:8080" % (8080 + self.index), "%s:8443" % (8443 + self.index)]
+        ports = ["%s:8877" % (8877 + self.index), "%s:8001" % (8001 + self.index), "%s:8080" % (8080 + self.index), "%s:8443" % (8443 + self.index)]
 
         if self.extra_ports:
             for port in self.extra_ports:
@@ -335,7 +335,7 @@ class ServiceType(Node):
     path: Name
     _manifests: Optional[str]
     use_superpod: bool = True
- 
+
     def __init__(self, service_manifests: str=None, namespace: str=None, *args, **kwargs) -> None:
         super().__init__(namespace=namespace, *args, **kwargs)
 
@@ -390,7 +390,7 @@ class GRPC(ServiceType):
 
 class EGRPC(ServiceType):
     skip_variant: ClassVar[bool] = True
-    
+
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, service_manifests=manifests.GRPC_ECHO_BACKEND, **kwargs)
 

@@ -13,6 +13,7 @@ import t_grpc_web
 import t_gzip
 import t_headerrouting
 import t_loadbalancer
+import t_logservice
 import t_lua_scripts
 import t_mappingtests
 import t_optiontests
