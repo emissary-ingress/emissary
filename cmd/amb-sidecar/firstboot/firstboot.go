@@ -11,10 +11,16 @@ import (
 
 	assetfs "github.com/elazarl/go-bindata-assetfs"
 	"github.com/go-acme/lego/v3/acme"
+	"github.com/pkg/errors"
 	"sigs.k8s.io/yaml"
+
+	k8sSchema "k8s.io/apimachinery/pkg/runtime/schema"
 
 	ambassadorTypesV2 "github.com/datawire/ambassador/pkg/api/getambassador.io/v2"
 	k8sTypesMetaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	k8sTypesUnstructured "k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+
+	k8sClientDynamic "k8s.io/client-go/dynamic"
 
 	"github.com/datawire/apro/cmd/amb-sidecar/acmeclient"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/httpclient"
@@ -24,11 +30,13 @@ import (
 
 type firstBootWizard struct {
 	staticfiles http.FileSystem
+	hostsGetter k8sClientDynamic.NamespaceableResourceInterface
 }
 
-func NewFirstBootWizard() http.Handler {
+func NewFirstBootWizard(dynamicClient k8sClientDynamic.Interface) http.Handler {
 	return &firstBootWizard{
 		staticfiles: &assetfs.AssetFS{Asset: Asset, AssetDir: AssetDir, Prefix: ""},
+		hostsGetter: dynamicClient.Resource(k8sSchema.GroupVersionResource{Group: "getambassador.io", Version: "v2", Resource: "hosts"}),
 	}
 }
 
@@ -83,15 +91,39 @@ func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				},
 			},
 		}
-		acmeclient.FillDefaults(dat.Spec)
-		bytes, err := yaml.Marshal(dat)
-		if err != nil {
-			// We generated 'dat'; it should always be valid.
-			panic(err)
+		switch r.Method {
+		case http.MethodGet:
+			// Go ahead and fill the defaults; we won't do this when actually applying
+			// it (in the http.MethodPost case), but it's informative to the user.
+			acmeclient.FillDefaults(dat.Spec)
+			bytes, err := yaml.Marshal(dat)
+			if err != nil {
+				// We generated 'dat'; it should always be valid.
+				panic(err)
+			}
+			// NB: YAML doesn't actually have a registered media type
+			// https://www.iana.org/assignments/media-types/media-types.xhtml
+			w.Header().Set("Content-Type", "application/x-yaml; charset=utf-8")
+			w.Write(bytes)
+		case http.MethodPost:
+			_, err := fb.hostsGetter.Namespace(dat.GetNamespace()).Create(&k8sTypesUnstructured.Unstructured{
+				Object: map[string]interface{}{
+					"apiVersion": "getambassador.io/v2",
+					"kind":       "Host",
+					"metadata":   dat.ObjectMeta,
+					"spec":       dat.Spec,
+				},
+			}, k8sTypesMetaV1.CreateOptions{})
+			if err != nil {
+				middleware.ServeErrorResponse(w, r.Context(), http.StatusBadRequest,
+					err, nil)
+				return
+			}
+			w.WriteHeader(http.StatusCreated)
+		default:
+			middleware.ServeErrorResponse(w, r.Context(), http.StatusMethodNotAllowed,
+				errors.New("method not allowed"), nil)
 		}
-		// NB: YAML doesn't actually have a registered media type https://www.iana.org/assignments/media-types/media-types.xhtml
-		w.Header().Set("Content-Type", "application/x-yaml; charset=utf-8")
-		w.Write(bytes)
 	case "/status":
 		//snapshot.GetHost(r.URL.Query().Get("host"))
 		io.WriteString(w, "todo...")
