@@ -60,4 +60,9 @@
       </table>
     </div>
   </div>
+  {% if licenseinfo and licenseinfo.features_over_limit %}
+  <div class="col-12" style="color:red; font-weight: bold">
+    Contact Datawire for a license key to remove limits on features: {{ ", ".join(licenseinfo.features_over_limit) }}
+  </div>
+  {% endif %}
 </div>

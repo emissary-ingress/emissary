@@ -29,6 +29,7 @@ import signal
 import threading
 import time
 import uuid
+import requests
 
 from pkg_resources import Requirement, resource_filename
 
@@ -113,6 +114,7 @@ class DiagApp (Flask):
 
     def setup(self, snapshot_path: str, bootstrap_path: str, ads_path: str,
               config_path: Optional[str], ambex_pid: int, kick: Optional[str],
+              license_endpoint: str,
               k8s=False, do_checks=True, no_envoy=False, reload=False, debug=False, verbose=False,
               notices=None, validation_retries=5, allow_fs_commands=False, local_scout=False,
               report_action_keys=False):
@@ -129,6 +131,7 @@ class DiagApp (Flask):
         self.allow_fs_commands = allow_fs_commands
         self.local_scout = local_scout
         self.report_action_keys = report_action_keys
+        self.license = License(license_endpoint)
 
         # This will raise an exception and crash if you pass it a string. That's intentional.
         self.ambex_pid = int(ambex_pid)
@@ -219,6 +222,23 @@ def standard_handler(f):
 ######## UTILITIES
 
 
+class License:
+    def __init__(self, license_endpoint: str) -> None:
+        self.license_endpoint = license_endpoint
+
+    def get(self, app) -> Any:
+        try:
+            license_info = requests.get(self.license_endpoint).json()
+            license_info["features_over_limit"] = []
+            for feature in license_info.get('features', []):
+                if feature.get('usage', 0) >= feature.get('limit', 1):
+                    license_info["features_over_limit"].append(feature.get('name'))
+            return license_info
+        except Exception as e:
+            app.logger.error("could not read license info: %s" % e)
+            app.logger.exception(e)
+
+
 class Notices:
     def __init__(self, local_config_path: str) -> None:
         self.local_path = local_config_path
@@ -292,7 +312,7 @@ def interval_format(seconds, normal_format, now_message):
 def system_info(app):
     ir = app.ir
     debug_mode = False
-    
+
     if ir:
         amod = ir.ambassador_module
         debug_mode = amod.get('debug_mode', False)
@@ -464,6 +484,7 @@ def show_overview(reqid=None):
                  envoy_status=envoy_status(app.estats),
                  loginfo=app.estats.loginfo,
                  notices=app.notices.notices,
+                 licenseinfo=app.license.get(app),
                  **ov, **ddict)
 
     if request.args.get('json', None):
@@ -1231,7 +1252,7 @@ class AmbassadorEventWatcher(threading.Thread):
                 odict['exit_code'] = 1
                 odict['output'] = e.output
                 self.logger.warn("envoy configuration validation timed out after {} seconds{}\n{}",
-                    timeout, ', retrying...' if retry < retries - 1 else '', e.output)
+                                 timeout, ', retrying...' if retry < retries - 1 else '', e.output)
                 continue
 
         if odict['exit_code'] == 0:
@@ -1325,8 +1346,10 @@ def _main(snapshot_path=None, bootstrap_path=None, ads_path=None,
     if no_envoy:
         no_checks = True
 
+    license_endpoint = 'http://127.0.0.1:8500/_/sys/license'
+
     # Create the application itself.
-    app.setup(snapshot_path, bootstrap_path, ads_path, config_path, ambex_pid, kick,
+    app.setup(snapshot_path, bootstrap_path, ads_path, config_path, ambex_pid, kick, license_endpoint,
               k8s, not no_checks, no_envoy, reload, debug, verbose, notices,
               validation_retries, allow_fs_commands, local_scout, report_action_keys)
 
