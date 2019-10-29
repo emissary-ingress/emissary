@@ -39,6 +39,7 @@ class ACResource (Resource):
     :param location: where should a human go to find the source of this resource?
     :param kind: what kind of thing is this?
     :param name: what's the name of this thing?
+    :param namespace: what namespace is this in?
     :param apiVersion: API version, defaults to "ambassador/v0" if not present
     :param serialization: original input serialization of obj, if we have it
     :param kwargs: key-value pairs that form the data object for this resource
@@ -50,6 +51,7 @@ class ACResource (Resource):
     def __init__(self, rkey: str, location: str, *,
                  kind: str,
                  name: Optional[str]=None,
+                 namespace: Optional[str]=None,
                  apiVersion: Optional[str]="ambassador/v0",
                  serialization: Optional[str]=None,
                  **kwargs) -> None:
@@ -69,7 +71,7 @@ class ACResource (Resource):
         # print("ACResource __init__ (%s %s)" % (kind, name))
 
         super().__init__(rkey=rkey, location=location,
-                         kind=kind, name=name,
+                         kind=kind, name=name, namespace=namespace,
                          apiVersion=typecast(str, apiVersion),
                          serialization=serialization,
                          **kwargs)
@@ -82,10 +84,12 @@ class ACResource (Resource):
                       kind: Optional[str]=None,
                       serialization: Optional[str]=None,
                       name: Optional[str]=None,
+                      namespace: Optional[str]=None,
                       apiVersion: Optional[str]=None,
                       **kwargs) -> R:
         new_name = name or other.name
         new_apiVersion = apiVersion or other.apiVersion
+        new_namespace = namespace or other.namespace
 
         # mypy 0.730 is Just Flat Wrong here. It tries to be "more strict" about
         # super(), which is fine, but it also flags this particular super() call
@@ -99,7 +103,7 @@ class ACResource (Resource):
             assert(isinstance(cls, Resource))
 
         return super().from_resource(other, rkey=rkey, location=location, kind=kind,
-                                     name=new_name, apiVersion=new_apiVersion,
+                                     name=new_name, apiVersion=new_apiVersion, namespace=new_namespace,
                                      serialization=serialization, **kwargs)
 
     # ACResource.INTERNAL is the magic ACResource we use to represent something created by

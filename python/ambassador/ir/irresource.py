@@ -38,13 +38,18 @@ class IRResource (Resource):
                  rkey: str,
                  kind: str,
                  name: str,
+                 namespace: Optional[str]=None,
                  location: str = "--internal--",
                  apiVersion: str="ambassador/ir",
                  **kwargs) -> None:
         # print("IRResource __init__ (%s %s)" % (kind, name))
 
+        if not namespace:
+            namespace = ir.ambassador_namespace
+
         super().__init__(rkey=rkey, location=location,
-                         kind=kind, name=name, apiVersion=apiVersion,
+                         kind=kind, name=name, namespace=namespace,
+                         apiVersion=apiVersion,
                          **kwargs)
         self.ir = ir
         self.logger = ir.logger

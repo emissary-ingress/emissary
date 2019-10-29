@@ -14,6 +14,8 @@ from ..utils import parse_yaml, dump_yaml
 AnyDict = Dict[str, Any]
 HandlerResult = Optional[Tuple[str, List[AnyDict]]]
 
+# XXX ALL OF THE BELOW COMMENT IS PROBABLY OUT OF DATE. (Flynn, 2019-10-29)
+#
 # Some thoughts:
 # - loading a bunch of Ambassador resources is different from loading a bunch of K8s
 #   services, because we should assume that if we're being a fed a bunch of Ambassador
@@ -130,7 +132,7 @@ class ResourceFetcher:
             self.finalize()
 
     def parse_yaml(self, serialization: str, k8s=False, rkey: Optional[str]=None,
-                   filename: Optional[str]=None, finalize: bool=True) -> None:
+                   filename: Optional[str]=None, finalize: bool=True, namespace: Optional[str]=None) -> None:
         # self.logger.debug("%s: parsing %d byte%s of YAML:\n%s" %
         #                   (self.location, len(serialization), "" if (len(serialization) == 1) else "s",
         #                    serialization))
@@ -139,8 +141,9 @@ class ResourceFetcher:
         serialization = os.path.expandvars(serialization)
 
         try:
+            # UGH. This parse_yaml is the one we imported from utils. XXX This needs to be fixed.
             objects = parse_yaml(serialization)
-            self.parse_object(objects=objects, k8s=k8s, rkey=rkey, filename=filename)
+            self.parse_object(objects=objects, k8s=k8s, rkey=rkey, filename=filename, namespace=namespace)
         except yaml.error.YAMLError as e:
             self.aconf.post_error("%s: could not parse YAML: %s" % (self.location, e))
 
@@ -241,8 +244,7 @@ class ResourceFetcher:
         if result:
             rkey, parsed_objects = result
 
-            self.parse_object(parsed_objects, k8s=False,
-                              filename=self.filename, rkey=rkey)
+            self.parse_object(parsed_objects, k8s=False, filename=self.filename, rkey=rkey)
 
     def handle_k8s_crd(self, obj: dict) -> None:
         # CRDs are _not_ allowed to have embedded objects in annotations, because ew.
@@ -293,13 +295,15 @@ class ResourceFetcher:
         # ...and then stuff in a couple of other things.
         amb_object['apiVersion'] = apiVersion
         amb_object['name'] = name
+        amb_object['namespace'] = namespace
         amb_object['kind'] = kind
         amb_object['generation'] = generation
 
         # Done. Parse it.
         self.parse_object([ amb_object ], k8s=False, filename=self.filename, rkey=resource_identifier)
 
-    def parse_object(self, objects, k8s=False, rkey: Optional[str]=None, filename: Optional[str]=None):
+    def parse_object(self, objects, k8s=False, rkey: Optional[str]=None,
+                     filename: Optional[str]=None, namespace: Optional[str]=None):
         self.push_location(filename, 1)
 
         # self.logger.debug("PARSE_OBJECT: incoming %d" % len(objects))
@@ -313,12 +317,12 @@ class ResourceFetcher:
                 # if not obj:
                 #     self.logger.debug("%s: empty object from %s" % (self.location, serialization))
 
-                self.process_object(obj, rkey=rkey)
+                self.process_object(obj, rkey=rkey, namespace=namespace)
                 self.ocount += 1
 
         self.pop_location()
 
-    def process_object(self, obj: dict, rkey: Optional[str]=None) -> None:
+    def process_object(self, obj: dict, rkey: Optional[str]=None, namespace: Optional[str]=None) -> None:
         if not isinstance(obj, dict):
             # Bug!!
             if not obj:
@@ -360,6 +364,10 @@ class ResourceFetcher:
         rkey = "%s.%d" % (rkey, self.ocount)
 
         # self.logger.debug("%s PROCESS %s updated rkey to %s" % (self.location, obj['kind'], rkey))
+
+        # Force the namespace, if need be.
+        if namespace and not obj.get('namespace', None):
+            obj['namespace'] = namespace
 
         # Brutal hackery.
         if obj['kind'] == 'Service':
@@ -422,7 +430,7 @@ class ResourceFetcher:
                 self.filename += ":annotation"
 
             try:
-                parsed_ambassador_annotations = parse_yaml(ambassador_annotations)
+                parsed_ambassador_annotations = parse_yaml(ambassador_annotations, namespace=ingress_namespace)
             except yaml.error.YAMLError as e:
                 self.logger.debug("could not parse YAML: %s" % e)
 
@@ -761,7 +769,7 @@ class ResourceFetcher:
                 self.filename += ":annotation"
 
             try:
-                objects = parse_yaml(annotations)
+                objects = parse_yaml(annotations, namespace=resource_namespace)
             except yaml.error.YAMLError as e:
                 self.logger.debug("could not parse YAML: %s" % e)
 

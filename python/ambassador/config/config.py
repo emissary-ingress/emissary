@@ -354,6 +354,10 @@ class Config:
         if 'name' not in resource:
             return RichStatus.fromError("need name")
 
+        # ...and also make sure it has a namespace.
+        if not resource.get('namespace', None):
+            resource['namespace'] = self.ambassador_namespace
+
         # ...and off we go. Save the source info...
         self.save_source(resource)
 
@@ -504,6 +508,7 @@ class Config:
         rdict.pop('kind', None)
 
         name = rdict.pop('name', None)
+        namespace = rdict.pop('namespace', None)
         generation = rdict.pop('generation', None)
 
         serialized = json.dumps(rdict)
