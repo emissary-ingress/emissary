@@ -371,7 +371,7 @@ class IR:
         if not secret_info:
             self.logger.error(f"Secret {ss_key} unknown")
 
-            ss = SavedSecret(secret_name, namespace, None, None, None)
+            ss = SavedSecret(secret_name, namespace, None, None, None, None)
         else:
             self.logger.info(f"resolve_secret {ss_key}: asking handler to cache")
 

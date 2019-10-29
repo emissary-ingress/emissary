@@ -68,7 +68,8 @@ class SecretRecorder(SecretHandler):
         secret_key = ( secret_name, namespace )
 
         if secret_key not in self.needed:
-            self.needed[secret_key] = SecretInfo(secret_name, namespace, '-crt-', '-key-', decode_b64=False)
+            self.needed[secret_key] = SecretInfo(secret_name, namespace, 'needed-secret', '-crt-', '-key-',
+                                                 decode_b64=False)
 
         return self.needed[secret_key]
 
@@ -76,9 +77,9 @@ class SecretRecorder(SecretHandler):
     def cache_secret(self, resource: 'IRResource', secret_info: SecretInfo):
         self.logger.debug("SecretRecorder (%s %s): skipping cache step for secret %s in namespace %s" %
                           (resource.kind, resource.name, secret_info.name, secret_info.namespace))
-        
-        return SavedSecret(secret_info.name, secret_info.namespace, '-crt-path-', '-key-path-',
-                           { 'tls_crt': '-crt-', 'tls_key': '-key-' })
+                          
+        return SavedSecret(secret_info.name, secret_info.namespace, '-crt-path-', '-key-path-', '-user-path-',
+                           { 'tls.crt': '-crt-', 'tls.key': '-key-', 'user.key': '-user-' })
 
 
 # XXX Sooooo there's some ugly stuff here.
