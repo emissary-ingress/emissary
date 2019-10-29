@@ -44,6 +44,7 @@ from ambassador import Config, IR
 from ambassador.config.resourcefetcher import ResourceFetcher
 from ambassador.ir.irserviceresolver import IRServiceResolverFactory
 from ambassador.ir.irtls import TLSModuleFactory, IRAmbassadorTLS
+from ambassador.ir.irhost import HostFactory
 from ambassador.ir.irambassador import IRAmbassador
 from ambassador.utils import SecretInfo, SavedSecret, SecretHandler
 

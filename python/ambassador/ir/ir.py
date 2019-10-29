@@ -35,7 +35,7 @@ from .irfilter import IRFilter
 from .ircluster import IRCluster
 from .irbasemappinggroup import IRBaseMappingGroup
 from .irbasemapping import IRBaseMapping
-from .irhttpmapping import IRHTTPMapping
+from .irhost import HostFactory
 from .irmappingfactory import MappingFactory
 from .irratelimit import IRRateLimit
 from .irtls import TLSModuleFactory, IRAmbassadorTLS
@@ -162,6 +162,9 @@ class IR:
 
         # Next, grab whatever information our aconf has about secrets...
         self.save_secret_info(aconf)
+
+        # ...then grab whatever we know about Hosts...
+        HostFactory.load_all(self, aconf)
 
         # ...and then it's on to default TLS stuff, both from the TLS module and from
         # any TLS contexts.
