@@ -29,6 +29,9 @@ class IRAuth (IRFilter):
             cluster=None,
             timeout_ms=None,
             connect_timeout_ms=3000,
+            keepalive_time=None,
+            keepalive_probes=None,
+            keepalive_interval=None,
             path_prefix=None,
             api_version=None,
             allowed_headers=[],
@@ -129,6 +132,9 @@ class IRAuth (IRFilter):
         self["proto"] = module.get("proto", "http")
         self["timeout_ms"] = module.get("timeout_ms", 5000)
         self["connect_timeout_ms"] = module.get("connect_timeout_ms", 3000)
+        self["keepalive_time"] = module.get("keepalive_time", None)
+        self["keepalive_probes"] = module.get("keepalive_probes", None)
+        self["keepalive_interval"] = module.get("keepalive_interval", None)
         self["cluster_idle_timeout_ms"] = module.get("cluster_idle_timeout_ms", None)
         self.__to_header_list('allowed_headers', module)
         self.__to_header_list('allowed_request_headers', module)
@@ -166,7 +172,7 @@ class IRAuth (IRFilter):
             "cluster": self.cluster.name
         }
 
-        for key in [ 'allowed_headers', 'path_prefix', 'timeout_ms', 'weight', 'connect_timeout_ms', 'cluster_idle_timeout_ms' ]:
+        for key in [ 'allowed_headers', 'path_prefix', 'timeout_ms', 'weight', 'connect_timeout_ms', 'keepalive_time', 'keepalive_probes', 'keepalive_interval', 'cluster_idle_timeout_ms' ]:
             if self.get(key, None):
                 config[key] = self[key]
 

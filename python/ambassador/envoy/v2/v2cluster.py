@@ -37,6 +37,13 @@ class V2Cluster(dict):
 
         fields = {
             'name': cluster.name,
+            'upstream_connection_options': {
+                'tcp_keepalive': {
+                    'keepalive_time': cluster.keepalive_time,
+                    'keepalive_interval': cluster.keepalive_interval,
+                    'keepalive_probes': cluster.keepalive_probes
+                }
+            },
             'type': cluster.type.upper(),
             'lb_policy': cluster.lb_type.upper(),
             'connect_timeout':"%0.3fs" % (float(cluster.connect_timeout_ms) / 1000.0),
