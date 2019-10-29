@@ -144,18 +144,18 @@ func (c *Controller) getSecret(namespace, name string) *k8sTypesCoreV1.Secret {
 	return nil
 }
 
-func (c *Controller) updateHostSpec(namespace, name string, spec *ambassadorTypesV2.HostSpec) error {
-	_, err := c.hostsGetter.Namespace(namespace).Update(&k8sTypesUnstructured.Unstructured{
+func (c *Controller) updateHost(host *watt.Host) error {
+	_, err := c.hostsGetter.Namespace(host.GetNamespace()).Update(&k8sTypesUnstructured.Unstructured{
 		Object: map[string]interface{}{
 			"apiVersion": "getambassador.io/v2",
 			"kind":       "Host",
-			"metadata": map[string]string{
-				"name":      name,
-				"namespace": namespace,
-			},
-			"spec": spec,
+			"metadata":   unstructureMetadata(&host.ObjectMeta),
+			"spec":       host.Spec,
 		},
 	}, k8sTypesMetaV1.UpdateOptions{})
+	if err != nil {
+		return errors.Wrapf(err, "update %q.%q", host.GetName(), host.GetNamespace())
+	}
 	return err
 }
 
@@ -174,51 +174,51 @@ func (c *Controller) rectify(logger types.Logger) {
 	// Use 'c.hosts' and 'c.secrets' to populate
 	// 'tlsSecretProviders' and 'tlsSecretHostnames'
 	acmeProviders := make(map[providerKey]*ambassadorTypesV2.ACMEProviderSpec)
-	for _, host := range c.hosts {
+	for _, _host := range c.hosts {
+		host := deepCopyHost(&_host)
 		logger := logger.WithField("host", host.GetName()+"."+host.GetNamespace())
 		logger.Debugln("processing host...")
-		spec := deepCopyHostSpec(host.Spec)
 
-		FillDefaults(spec)
-		if !proto.Equal(spec, host.Spec) {
+		FillDefaults(host.Spec)
+		if !proto.Equal(host.Spec, _host.Spec) {
 			logger.Debugln("saving defaults")
-			if err := c.updateHostSpec(host.GetNamespace(), host.GetName(), spec); err != nil {
+			if err := c.updateHost(host); err != nil {
 				logger.Errorln(err)
 			}
 			continue
 		}
 
-		if spec.AcmeProvider.Authority == "none" {
+		if host.Spec.AcmeProvider.Authority == "none" {
 			logger.Debugln("not an ACME Host")
 			continue
 		}
 
-		if c.getSecret(host.GetNamespace(), spec.AcmeProvider.PrivateKeySecret.Name) == nil {
+		if c.getSecret(host.GetNamespace(), host.Spec.AcmeProvider.PrivateKeySecret.Name) == nil {
 			logger.Debugln("creating user private key")
-			err := createUserPrivateKey(c.secretsGetter, host.GetNamespace(), spec.AcmeProvider.PrivateKeySecret.Name)
+			err := createUserPrivateKey(c.secretsGetter, host.GetNamespace(), host.Spec.AcmeProvider.PrivateKeySecret.Name)
 			if err != nil {
 				logger.Errorln(err)
 			}
 			continue
 		}
 
-		if spec.AcmeProvider.Registration == "" {
+		if host.Spec.AcmeProvider.Registration == "" {
 			logger.Debugln("registering user")
 			hashKey := providerKey{
-				Authority:            spec.AcmeProvider.Authority,
-				Email:                spec.AcmeProvider.Email,
-				PrivateKeySecretName: spec.AcmeProvider.PrivateKeySecret.Name,
+				Authority:            host.Spec.AcmeProvider.Authority,
+				Email:                host.Spec.AcmeProvider.Email,
+				PrivateKeySecretName: host.Spec.AcmeProvider.PrivateKeySecret.Name,
 			}
 			if dup, hasDup := acmeProviders[hashKey]; !hasDup {
-				err := c.userRegister(host.GetNamespace(), spec.AcmeProvider)
+				err := c.userRegister(host.GetNamespace(), host.Spec.AcmeProvider)
 				if err != nil {
 					logger.Errorln(err)
 					continue
 				}
 			} else {
-				spec.AcmeProvider = dup
+				host.Spec.AcmeProvider = dup
 			}
-			if err := c.updateHostSpec(host.GetNamespace(), host.GetName(), spec); err != nil {
+			if err := c.updateHost(host); err != nil {
 				logger.Errorln(err)
 			}
 			continue
@@ -231,14 +231,14 @@ func (c *Controller) rectify(logger types.Logger) {
 			tlsSecretProviders[host.GetNamespace()] = make(map[string]*ambassadorTypesV2.ACMEProviderSpec)
 			tlsSecretHostnames[host.GetNamespace()] = make(map[string][]string)
 		}
-		if dup, hasDup := tlsSecretProviders[host.GetNamespace()][spec.TlsSecret.Name]; hasDup {
-			if !proto.Equal(dup, spec.AcmeProvider) {
+		if dup, hasDup := tlsSecretProviders[host.GetNamespace()][host.Spec.TlsSecret.Name]; hasDup {
+			if !proto.Equal(dup, host.Spec.AcmeProvider) {
 				logger.Errorln(errors.New("acmeProvider mismatch"))
 			}
 		} else {
-			tlsSecretProviders[host.GetNamespace()][spec.TlsSecret.Name] = spec.AcmeProvider
+			tlsSecretProviders[host.GetNamespace()][host.Spec.TlsSecret.Name] = host.Spec.AcmeProvider
 		}
-		tlsSecretHostnames[host.GetNamespace()][spec.TlsSecret.Name] = append(tlsSecretHostnames[host.GetNamespace()][spec.TlsSecret.Name], spec.Hostname)
+		tlsSecretHostnames[host.GetNamespace()][host.Spec.TlsSecret.Name] = append(tlsSecretHostnames[host.GetNamespace()][host.Spec.TlsSecret.Name], host.Spec.Hostname)
 	}
 
 	// Now act on 'tlsSecretProviders' and 'tlsSecretHostnames'

@@ -7,7 +7,9 @@ import (
 	"sort"
 	"strings"
 
-	ambassadorTypesV2 "github.com/datawire/ambassador/pkg/api/getambassador.io/v2"
+	k8sTypesMetaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	"github.com/datawire/apro/cmd/amb-sidecar/watt"
 )
 
 func subjects(cert *x509.Certificate) []string {
@@ -58,9 +60,31 @@ func NameEncode(in string) string {
 }
 
 // *grumble grumble* k8s.io/code-generator/cmd/deepcopy-gen *grumble*
-func deepCopyHostSpec(in *ambassadorTypesV2.HostSpec) *ambassadorTypesV2.HostSpec {
+func deepCopyHost(in *watt.Host) *watt.Host {
 	b, _ := json.Marshal(in)
-	var out ambassadorTypesV2.HostSpec
+	var out watt.Host
 	_ = json.Unmarshal(b, &out)
 	return &out
+}
+
+// ufnstructureMetadata marshals a *k8sTypesMetaV1.ObjectMeta for us
+// in a `*k8sTypesUnstructured.Unstructured`.
+//
+// `*k8sTypesUnstructured.Unstructured` requires that the "metadata"
+// field be a `map[string]interface{}`.  Going through JSON is the
+// easiest way to get from a typed `*k8sTypesMetaV1.ObjectMeta` to an
+// untyped `map[string]interface{}`.  Yes, it's gross and stupid.
+func unstructureMetadata(in *k8sTypesMetaV1.ObjectMeta) map[string]interface{} {
+	var metadata map[string]interface{}
+	bs, err := json.Marshal(in)
+	if err != nil {
+		// 'in' is a valid object.  This should never happen.
+		panic(err)
+	}
+	if err := json.Unmarshal(bs, &metadata); err != nil {
+		// 'bs' is a valid JSON, we just generated it.  This
+		// should never happen.
+		panic(err)
+	}
+	return metadata
 }
