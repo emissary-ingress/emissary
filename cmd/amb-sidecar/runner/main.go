@@ -2,6 +2,7 @@ package runner
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"math/rand"
@@ -220,6 +221,29 @@ func runE(cmd *cobra.Command, args []string) error {
 		})
 		httpHandler.AddEndpoint("/_/sys/readyz", "readiness probe endpoint", healthprobeHandler)
 		httpHandler.AddEndpoint("/_/sys/healthz", "liveness probe endpoint", healthprobeHandler)
+
+		licenseInfoHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			type LicensedFeature struct {
+				Name  string `json:"name"`
+				Usage int32  `json:"usage"`
+				Limit int32  `json:"limit"`
+			}
+			licensedFeatures := []LicensedFeature{}
+			for _, feature := range licensekeys.ListKnownFeatures() {
+				// TODO: Fill in actual `usage` and `limit`.
+				licensedFeatures = append(licensedFeatures, LicensedFeature{feature, 7, 5})
+			}
+			body, err := json.Marshal(map[string]interface{}{
+				"features": licensedFeatures,
+			})
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			w.Header().Set("Content-Type", "application/json")
+			w.Write(body)
+		})
+		httpHandler.AddEndpoint("/_/sys/license", "license info endpoint", licenseInfoHandler)
 
 		// HealthService
 		healthService := grpchealth.NewServer()
