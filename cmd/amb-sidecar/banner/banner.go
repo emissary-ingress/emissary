@@ -4,7 +4,6 @@ import (
 	"github.com/datawire/apro/lib/licensekeys"
 	"html/template"
 	"net/http"
-	"strings"
 )
 
 type banner struct {
@@ -13,10 +12,9 @@ type banner struct {
 
 func NewBanner() http.Handler {
 	t := template.New("banner")
-	t = t.Funcs(template.FuncMap{"StringsJoin": strings.Join})
 	t, _ = t.Parse(`
 {{- if .features_over_limit -}}
-<div style="color:red; font-weight: bold">Contact Datawire for a license key to remove limits on features: {{ StringsJoin .features_over_limit ", " }}</div>
+<div style="color:red; font-weight: bold">You've reached the usage limits for your license. If you need to use Ambassador beyond the current limits, <a href="https://www.getambassador.io/contact/">please contact Datawire</a> for an Enterprise license.</div>
 {{- end -}}
 `)
 	return &banner{t: t}
