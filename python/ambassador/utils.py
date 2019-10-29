@@ -32,6 +32,7 @@ from .VERSION import Version
 from urllib.parse import urlparse
 
 if TYPE_CHECKING:
+    from .ir import IRResource
     from .ir.irtlscontext import IRTLSContext
     from .config.acresource import ACResource
 
@@ -305,13 +306,11 @@ class SecretInfo:
         )
 
     @classmethod
-    def from_dict(cls, context: 'IRTLSContext',
+    def from_dict(cls, resource: 'IRResource',
                   secret_name: str, namespace: str, source: str,
                   cert_data: Optional[Dict[str, Any]]) -> Optional['SecretInfo']:
-        logger = context.ir.logger
-
         if not cert_data:
-            logger.error("TLSContext %s: found no certificate in %s?" % (context.name, source))
+            resource.ir.logger.error(f"{resource.kind} {resource.name}: found no certificate in {source}?")
             return None
 
         # OK, we have something to work with. Hopefully.
@@ -320,7 +319,7 @@ class SecretInfo:
         if not cert:
             # Having no public half is definitely an error. Having no private half given a public half
             # might be OK, though -- that's up to our caller to decide.
-            logger.error("TLSContext %s: found data but no cert in %s?" % (context.name, source))
+            resource.ir.logger.error(f"{resource.kind} {resource.name}: found data but no certificate in {source}?")
             return None
 
         key = cert_data.get('tls.key', None)
@@ -362,18 +361,19 @@ class SecretHandler:
         self.cache_dir = cache_dir
         self.version = version
 
-    def load_secret(self, context: 'IRTLSContext',
-                    secret_name: str, namespace: str) -> Optional[SecretInfo]:
+    def load_secret(self, resource: 'IRResource', secret_name: str, namespace: str) -> Optional[SecretInfo]:
         # This is the fallback load_secret implementation; it is expected that subclasses
         # will override this.
         #
         # All this one does is return None, meaning that it couldn't find the requested
         # secret (because, well, it doesn't really look).
-        self.logger.debug(
-            f"SecretHandler: Trying to load secret {secret_name} in namespace {namespace} from TLSContext {context}")
+
+        self.logger.debug("SecretHandler (%s %s): load secret %s in namespace %s" %
+                          (resource.kind, resource.name, secret_name, namespace))
+
         return None
 
-    def cache_secret(self, context: 'IRTLSContext', secret_info: SecretInfo) -> SavedSecret:
+    def cache_secret(self, resource: 'IRResource', secret_info: SecretInfo) -> SavedSecret:
         name = secret_info.name
         namespace = secret_info.namespace
         cert = secret_info.tls_crt
@@ -416,7 +416,7 @@ class SecretHandler:
 
     # secret_info_from_k8s takes a K8s Secret and returns a SecretInfo (or None if something
     # is wrong).
-    def secret_info_from_k8s(self, context: 'IRTLSContext',
+    def secret_info_from_k8s(self, resource: 'IRResource',
                              secret_name: str, namespace: str, source: str,
                              serialization: Optional[str]) -> Optional[SecretInfo]:
         objects: Optional[List[Any]] = None
@@ -429,8 +429,7 @@ class SecretHandler:
             try:
                 objects = parse_yaml(serialization)
             except yaml.error.YAMLError as e:
-                self.logger.error("TLSContext %s: could not parse %s: %s" %
-                                  (context.name, source, e))
+                self.logger.error(f"{resource.kind} {resource.name}: could not parse {source}: {e}")
 
         if not objects:
             # Nothing in the serialization, we're done.
@@ -445,23 +444,23 @@ class SecretHandler:
             kind = obj.get('kind', None)
 
             if kind != "Secret":
-                self.logger.error("TLSContext %s: found K8s %s at %s.%d?" %
-                                  (context.name, kind, source, ocount))
+                self.logger.error("%s %s: found K8s %s at %s.%d?" %
+                                  (resource.kind, resource.name, kind, source, ocount))
                 errors += 1
                 continue
 
             metadata = obj.get('metadata', None)
 
             if not metadata:
-                self.logger.error("TLSContext %s: found K8s Secret with no metadata at %s.%d?" %
-                                  (context.name, source, ocount))
+                self.logger.error("%s %s: found K8s Secret with no metadata at %s.%d?" %
+                                  (resource.kind, resource.name, source, ocount))
                 errors += 1
                 continue
 
             if 'data' in obj:
                 if cert_data:
-                    self.logger.error("TLSContext %s: found multiple Secrets in %s?" %
-                                      (context.name, source))
+                    self.logger.error("%s %s: found multiple Secrets in %s?" %
+                                      (resource.kind, resource.name, source))
                     errors += 1
                     continue
 
@@ -471,7 +470,7 @@ class SecretHandler:
             # Bzzt.
             return None
 
-        return SecretInfo.from_dict(context, secret_name, namespace, source, cert_data)
+        return SecretInfo.from_dict(resource, secret_name, namespace, source, cert_data=cert_data)
 
 
 class NullSecretHandler(SecretHandler):
@@ -493,16 +492,20 @@ class NullSecretHandler(SecretHandler):
 
         super().__init__(logger, source_root, cache_dir, version)
 
-    def load_secret(self, context: 'IRTLSContext', secret_name: str, namespace: str) -> Optional[SecretInfo]:
+    def load_secret(self, resource: 'IRResource', secret_name: str, namespace: str) -> Optional[SecretInfo]:
         # In the Real World, the secret loader should, y'know, load secrets..
         # Here we're just gonna fake it.
-        self.logger.debug(f"NullSecretHandler: Trying to load secret {secret_name} in namespace {namespace} from TLSContext {context}")
+        self.logger.debug("NullSecretHandler (%s %s): load secret %s in namespace %s" %
+                          (resource.kind, resource.name, secret_name, namespace))
+
         return SecretInfo(secret_name, namespace, "fake-tls-crt", "fake-tls-key")
 
 
 class FSSecretHandler(SecretHandler):
-    def load_secret(self, context: 'IRTLSContext', secret_name: str, namespace: str) -> Optional[SecretInfo]:
-        self.logger.debug(f"FSSecretHandler: Trying to load secret {secret_name} in namespace {namespace} from TLSContext {context}")
+    def load_secret(self, resource: 'IRResource', secret_name: str, namespace: str) -> Optional[SecretInfo]:
+        self.logger.debug("FSSecretHandler (%s %s): load secret %s in namespace %s" %
+                          (resource.kind, resource.name, secret_name, namespace))
+
         source = os.path.join(self.source_root, namespace, "secrets", "%s.yaml" % secret_name)
 
         serialization = None
@@ -510,7 +513,8 @@ class FSSecretHandler(SecretHandler):
         try:
             serialization = open(source, "r").read()
         except IOError as e:
-            self.logger.error("TLSContext %s: FSSecretHandler could not open %s" % (context.name, source))
+            self.logger.error("%s %s: FSSecretHandler could not open %s" %
+                              (resource.kind, resource.name, source))
 
         # Yes, this duplicates part of self.secret_info_from_k8s, but whatever.
         objects: Optional[List[Any]] = None
@@ -520,16 +524,16 @@ class FSSecretHandler(SecretHandler):
             try:
                 objects = parse_yaml(serialization)
             except yaml.error.YAMLError as e:
-                self.logger.error("TLSContext %s: could not parse %s: %s" %
-                                  (context.name, source, e))
+                self.logger.error("%s %s: could not parse %s: %s" %
+                                  (resource.kind, resource.name, source, e))
 
         if not objects:
             # Nothing in the serialization, we're done.
             return None
 
         if len(objects) != 1:
-            self.logger.error("TLSContext %s: found %d objects in %s instead of exactly 1" %
-                              (context.name, len(objects), source))
+            self.logger.error("%s %s: found %d objects in %s instead of exactly 1" %
+                              (resource.kind, resource.name, len(objects), source))
             return None
 
         obj = objects[0]
@@ -539,22 +543,24 @@ class FSSecretHandler(SecretHandler):
 
         if version.startswith('ambassador') and (kind == 'Secret'):
             # It's an Ambassador Secret. It should have a public key and maybe a private key.
-            return SecretInfo.from_dict(context, secret_name, namespace, source, obj)
+            return SecretInfo.from_dict(resource, secret_name, namespace, source, obj)
 
         # Didn't look like an Ambassador object. Try K8s.
-        return self.secret_info_from_k8s(context, secret_name, namespace, source, serialization)
+        return self.secret_info_from_k8s(resource, secret_name, namespace, source, serialization)
 
 
 class KubewatchSecretHandler(SecretHandler):
-    def load_secret(self, context: 'IRTLSContext', secret_name: str, namespace: str) -> Optional[SecretInfo]:
-        self.logger.debug(f"KubewatchSecretHandler: Trying to load secret {secret_name} in namespace {namespace} from TLSContext {context}")
+    def load_secret(self, resource: 'IRResource', secret_name: str, namespace: str) -> Optional[SecretInfo]:
+        self.logger.debug("FSSecretHandler (%s %s): load secret %s in namespace %s" %
+                          (resource.kind, resource.name, secret_name, namespace))
+
         source = "%s/secrets/%s/%s" % (self.source_root, namespace, secret_name)
         serialization = load_url_contents(self.logger, source)
 
         if not serialization:
-            self.logger.error("TLSContext %s: SCC.url_reader could not load %s" % (context.name, source))
+            self.logger.error("%s %s: SCC.url_reader could not load %s" % (resource.kind, resource.name, source))
 
-        return self.secret_info_from_k8s(context, secret_name, namespace, source, serialization)
+        return self.secret_info_from_k8s(resource, secret_name, namespace, source, serialization)
 
 # TODO(gsagula): This duplicates code from ircluster.py.
 class ParsedService:

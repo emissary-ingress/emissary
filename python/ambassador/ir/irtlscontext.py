@@ -121,6 +121,28 @@ class IRTLSContext(IRResource):
 
         return True
 
+    def resolve_secret(self, secret_name: str) -> SavedSecret:
+        # Start by figuring out a namespace to look in. Assume that we're
+        # in the Ambassador's namespace...
+        namespace = self.ir.ambassador_namespace
+
+        # You can't just always allow '.' in a secret name to span namespaces, or you end up with
+        # https://github.com/datawire/ambassador/issues/1255, which is particularly problematic
+        # because (https://github.com/datawire/ambassador/issues/1475) Istio likes to use '.' in
+        # mTLS secret names. So we default to allowing the '.' as a namespace separator, but
+        # you can set secret_namespacing to False in a TLSContext or tls_secret_namespacing False
+        # in the Ambassador module's defaults to prevent that.
+
+        secret_namespacing = self.lookup('secret_namespacing', True,
+                                         default_key='tls_secret_namespacing')
+
+        self.ir.logger.info(f"TLSContext.resolve_secret {secret_name}, namespace {namespace}: namespacing is {secret_namespacing}")
+
+        if "." in secret_name and secret_namespacing:
+            secret_name, namespace = secret_name.split('.', 1)
+
+        return self.ir.resolve_secret(self, secret_name, namespace)
+
     def resolve(self) -> bool:
         if self.get('_ambassador_enabled', False):
             self.ir.logger.debug("IRTLSContext skipping resolution of null context")
@@ -148,7 +170,7 @@ class IRTLSContext(IRResource):
             # Yes. Try loading it. This always returns a SavedSecret, so that our caller
             # has access to the name and namespace. The SavedSecret will evaluate non-True
             # if we found no cert though.
-            ss = self.ir.resolve_secret(self, secret_name)
+            ss = self.resolve_secret(secret_name)
 
             self.ir.logger.debug("resolve_secrets: IR returned secret %s as %s" % (secret_name, ss))
 
@@ -183,7 +205,7 @@ class IRTLSContext(IRResource):
                 return False
 
             # They gave a secret name for the validation cert. Try loading it.
-            ss = self.ir.resolve_secret(self, ca_secret_name)
+            ss = self.resolve_secret(ca_secret_name)
 
             self.ir.logger.debug("resolve_secrets: IR returned secret %s as %s" % (ca_secret_name, ss))
 

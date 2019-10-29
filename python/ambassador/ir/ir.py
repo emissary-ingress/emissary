@@ -345,26 +345,7 @@ class IR:
     def get_tls_contexts(self) -> ValuesView[IRTLSContext]:
         return self.tls_contexts.values()
 
-    def resolve_secret(self, context: IRTLSContext, secret_name: str) -> SavedSecret:
-        # Start by figuring out a namespace to look in. Assume that we're
-        # in the Ambassador's namespace...
-        namespace = self.ambassador_namespace
-
-        # You can't just always allow '.' in a secret name to span namespaces, or you end up with
-        # https://github.com/datawire/ambassador/issues/1255, which is particularly problematic
-        # because (https://github.com/datawire/ambassador/issues/1475) Istio likes to use '.' in
-        # mTLS secret names. So we default to allowing the '.' as a namespace separator, but
-        # you can set secret_namespacing to False in a TLSContext or tls_secret_namespacing False
-        # in the Ambassador module's defaults to prevent that.
-
-        secret_namespacing = context.lookup('secret_namespacing', True,
-                                            default_key='tls_secret_namespacing')
-
-        self.logger.info(f"resolve_secret {secret_name}, namespace {namespace}: namespacing is {secret_namespacing}")
-
-        if "." in secret_name and secret_namespacing:
-            secret_name, namespace = secret_name.split('.', 1)
-
+    def resolve_secret(self, resource: IRResource, secret_name: str, namespace: str):
         # OK. Do we already have a SavedSecret for this?
         ss_key = f'{secret_name}.{namespace}'
 
@@ -376,15 +357,16 @@ class IR:
             return ss
 
         # OK, do we have a secret_info for it??
-        self.logger.debug(f"trying to get key {ss_key} from secret_info {self.secret_info}")
+        # self.logger.debug(f"resolve_secret {ss_key}: checking secret_info")
+
         secret_info = self.secret_info.get(ss_key, None)
 
         if secret_info:
             self.logger.info(f"resolve_secret {ss_key}: found secret_info")
         else:
             # No secret_info, so ask the secret_handler to find us one.
-            self.logger.info(f"resolve_secret {ss_key}: asking handler to load")
-            secret_info = self.secret_handler.load_secret(context, secret_name, namespace)
+            self.logger.info(f"resolve_secret {ss_key}: no secret_info, asking handler to load")
+            secret_info = self.secret_handler.load_secret(resource, secret_name, namespace)
 
         if not secret_info:
             self.logger.error(f"Secret {ss_key} unknown")
@@ -394,11 +376,10 @@ class IR:
             self.logger.info(f"resolve_secret {ss_key}: asking handler to cache")
 
             # OK, we got a secret_info. Cache that using the secret handler.
-            ss = self.secret_handler.cache_secret(context, secret_info)
+            ss = self.secret_handler.cache_secret(resource, secret_info)
 
             # Save this for next time.
             self.saved_secrets[secret_name] = ss
-
         return ss
 
     def resolve_targets(self, cluster: IRCluster, resolver_name: Optional[str],
