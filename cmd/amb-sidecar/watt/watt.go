@@ -88,6 +88,9 @@ func (ss *SnapshotStore) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	logger := middleware.GetLogger(r.Context())
+	logger.Debugf("loading WATT snapshot from %q", r.FormValue("url"))
+
 	resp, err := ss.httpClient.Get(r.FormValue("url"))
 	if err != nil {
 		middleware.ServeErrorResponse(w, r.Context(), http.StatusBadRequest,

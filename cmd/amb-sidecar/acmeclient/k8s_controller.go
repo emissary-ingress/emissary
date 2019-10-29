@@ -65,6 +65,7 @@ func (c *Controller) Worker(logger types.Logger) {
 				ticker.Stop()
 				return
 			}
+			logger.Debugln("processing snapshot change...")
 			if c.processSnapshot(snapshot) {
 				c.rectify(logger)
 			}
@@ -165,6 +166,7 @@ type providerKey struct {
 }
 
 func (c *Controller) rectify(logger types.Logger) {
+	logger.Debugln("rectify...")
 	// tlsSecretXXX[namespace][tls_secret_name]
 	tlsSecretProviders := make(map[string]map[string]*ambassadorTypesV2.ACMEProviderSpec)
 	tlsSecretHostnames := make(map[string]map[string][]string)
@@ -173,10 +175,13 @@ func (c *Controller) rectify(logger types.Logger) {
 	// 'tlsSecretProviders' and 'tlsSecretHostnames'
 	acmeProviders := make(map[providerKey]*ambassadorTypesV2.ACMEProviderSpec)
 	for _, host := range c.hosts {
+		logger := logger.WithField("host", host.GetName()+"."+host.GetNamespace())
+		logger.Debugln("processing host...")
 		spec := deepCopyHostSpec(host.Spec)
 
 		FillDefaults(spec)
 		if !proto.Equal(spec, host.Spec) {
+			logger.Debugln("saving defaults")
 			if err := c.updateHostSpec(host.GetNamespace(), host.GetName(), spec); err != nil {
 				logger.Errorln(err)
 			}
@@ -184,10 +189,12 @@ func (c *Controller) rectify(logger types.Logger) {
 		}
 
 		if spec.AcmeProvider.Authority == "none" {
+			logger.Debugln("not an ACME Host")
 			continue
 		}
 
 		if c.getSecret(host.GetNamespace(), spec.AcmeProvider.PrivateKeySecret.Name) == nil {
+			logger.Debugln("creating user private key")
 			err := createUserPrivateKey(c.secretsGetter, host.GetNamespace(), spec.AcmeProvider.PrivateKeySecret.Name)
 			if err != nil {
 				logger.Errorln(err)
@@ -196,6 +203,7 @@ func (c *Controller) rectify(logger types.Logger) {
 		}
 
 		if spec.AcmeProvider.Registration == "" {
+			logger.Debugln("registering user")
 			hashKey := providerKey{
 				Authority:            spec.AcmeProvider.Authority,
 				Email:                spec.AcmeProvider.Email,
@@ -218,6 +226,7 @@ func (c *Controller) rectify(logger types.Logger) {
 
 		// If we made it this far without "continue", then
 		// we're ready to aquire a certificate for this Host.
+		logger.Debugln("queuing for certificate check")
 		if _, nsSeen := tlsSecretProviders[host.GetNamespace()]; !nsSeen {
 			tlsSecretProviders[host.GetNamespace()] = make(map[string]*ambassadorTypesV2.ACMEProviderSpec)
 			tlsSecretHostnames[host.GetNamespace()] = make(map[string][]string)
