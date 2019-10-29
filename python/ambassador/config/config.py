@@ -458,7 +458,8 @@ class Config:
 
         if not validator:
             # Ew. Early binding for Python lambdas is kinda weird.
-            validator = lambda resource, args=(apiVersion, kind): self.cannot_validate(*args)
+            validator = typecast(Validator,
+                                 lambda resource, args=(apiVersion, kind): self.cannot_validate(*args))
 
         if validator:
             self.validators[schema_key] = validator
@@ -491,7 +492,8 @@ class Config:
         self.logger.debug(f"using validate_with_proto for getambassador.io/{apiVersion} {kind}")
 
         # Ew. Early binding for Python lambdas is kinda weird.
-        return lambda resource, protoclass=protoclass: self.validate_with_proto(resource, protoclass)
+        return typecast(Validator,
+                        lambda resource, protoclass=protoclass: self.validate_with_proto(resource, protoclass))
 
     def validate_with_proto(self, resource: ACResource, protoclass: Any) -> RichStatus:
         # This is... a little odd.
@@ -532,13 +534,18 @@ class Config:
                 self.logger.debug(f"using validate_with_jsonschema for getambassador.io/{apiVersion} {kind}")
 
                 # Ew. Early binding for Python lambdas is kinda weird.
-                return lambda resource, schema=schema: self.validate_with_jsonschema(resource, schema)
+                return typecast(Validator,
+                                lambda resource, schema=schema: self.validate_with_jsonschema(resource, schema))
         except OSError:
             self.logger.debug(f"no schema at {schema_path}, not validating")
             return None
         except json.decoder.JSONDecodeError as e:
             self.logger.warning(f"corrupt schema at {schema_path}, skipping ({e})")
             return None
+
+        # This can't actually happen -- the only way to get here is to have an uncaught
+        # exception. But it shuts up mypy so WTF.
+        return None
 
     def validate_with_jsonschema(self, resource: ACResource, schema: dict) -> RichStatus:
         try:

@@ -785,7 +785,7 @@ class V2Listener(dict):
 
             # We have a TLS context, so we should make sure they're speaking TLS!
             self.need_tls_inspector = True
-            filter_chain_match = {
+            filter_chain_match: Dict[str, Any] = {
                 'transport_protocol': 'tls'
             }
 
