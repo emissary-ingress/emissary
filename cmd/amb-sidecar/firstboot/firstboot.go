@@ -71,6 +71,9 @@ func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			ObjectMeta: k8sTypesMetaV1.ObjectMeta{
 				Name:      acmeclient.NameEncode(r.URL.Query().Get("hostname")),
 				Namespace: "default",
+				Labels: map[string]string{
+					"created-by": "aes-firstboot-web-ui",
+				},
 			},
 			Spec: &ambassadorTypesV2.HostSpec{
 				Hostname: r.URL.Query().Get("hostname"),
