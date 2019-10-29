@@ -46,9 +46,9 @@ metadata:
   name: hosts.getambassador.io
 spec:
   group: getambassador.io
-  version: v1
+  version: v2
   versions:
-  - name: v1
+  - name: v2
     served: true
     storage: true
   scope: Namespaced
