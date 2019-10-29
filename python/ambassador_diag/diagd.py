@@ -29,6 +29,7 @@ import signal
 import threading
 import time
 import uuid
+import requests
 
 from pkg_resources import Requirement, resource_filename
 
@@ -110,9 +111,10 @@ class DiagApp (Flask):
     last_request_info: Dict[str, int]
     last_request_time: Optional[datetime.datetime]
     latest_snapshot: str
+    banner_endpoint: Optional[str]
 
     def setup(self, snapshot_path: str, bootstrap_path: str, ads_path: str,
-              config_path: Optional[str], ambex_pid: int, kick: Optional[str],
+              config_path: Optional[str], ambex_pid: int, kick: Optional[str], banner_endpoint: Optional[str],
               k8s=False, do_checks=True, no_envoy=False, reload=False, debug=False, verbose=False,
               notices=None, validation_retries=5, allow_fs_commands=False, local_scout=False,
               report_action_keys=False):
@@ -129,6 +131,7 @@ class DiagApp (Flask):
         self.allow_fs_commands = allow_fs_commands
         self.local_scout = local_scout
         self.report_action_keys = report_action_keys
+        self.banner_endpoint = banner_endpoint
 
         # This will raise an exception and crash if you pass it a string. That's intentional.
         self.ambex_pid = int(ambex_pid)
@@ -460,10 +463,23 @@ def show_overview(reqid=None):
 
     ddict = collect_errors_and_notices(request, reqid, "overview", diag)
 
+    banner_content = None
+    app.logger.info(app.banner_endpoint)
+    if app.banner_endpoint:
+        try:
+            response = requests.get(app.banner_endpoint)
+            app.logger.info(response)
+            if response.status_code == 200:
+                banner_content = response.text
+        except Exception as e:
+            app.logger.error("could not get banner_content: %s" % e)
+            app.logger.exception(e)
+
     tvars = dict(system=system_info(app),
                  envoy_status=envoy_status(app.estats),
                  loginfo=app.estats.loginfo,
                  notices=app.notices.notices,
+                 banner_content=banner_content,
                  **ov, **ddict)
 
     if request.args.get('json', None):
@@ -1271,7 +1287,8 @@ class StandaloneApplication(gunicorn.app.base.BaseApplication):
 
 
 def _main(snapshot_path=None, bootstrap_path=None, ads_path=None,
-          *, dev_magic=False, config_path=None, ambex_pid=0, kick=None, k8s=False,
+          *, dev_magic=False, config_path=None, ambex_pid=0, kick=None,
+          banner_endpoint="http://127.0.0.1:8500/banner", k8s=False,
           no_checks=False, no_envoy=False, reload=False, debug=False, verbose=False,
           workers=None, port=Constants.DIAG_PORT, host='0.0.0.0', notices=None,
           validation_retries=5, allow_fs_commands=False, local_scout=False,
@@ -1286,6 +1303,7 @@ def _main(snapshot_path=None, bootstrap_path=None, ads_path=None,
     :param k8s: If True, assume config_path contains Kubernetes resources (only relevant with config_path)
     :param ambex_pid: Optional PID to signal with HUP after updating Envoy configuration
     :param kick: Optional command to run after updating Envoy configuration
+    :param banner_endpoint: Optional endpoint of extra banner to include
     :param no_checks: If True, don't do Envoy-cluster health checking
     :param no_envoy: If True, don't interact with Envoy at all
     :param reload: If True, run Flask in debug mode for live reloading
@@ -1326,7 +1344,7 @@ def _main(snapshot_path=None, bootstrap_path=None, ads_path=None,
         no_checks = True
 
     # Create the application itself.
-    app.setup(snapshot_path, bootstrap_path, ads_path, config_path, ambex_pid, kick,
+    app.setup(snapshot_path, bootstrap_path, ads_path, config_path, ambex_pid, kick, banner_endpoint,
               k8s, not no_checks, no_envoy, reload, debug, verbose, notices,
               validation_retries, allow_fs_commands, local_scout, report_action_keys)
 
