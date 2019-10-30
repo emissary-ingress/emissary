@@ -163,9 +163,6 @@ class IR:
         # Next, grab whatever information our aconf has about secrets...
         self.save_secret_info(aconf)
 
-        # ...then grab whatever we know about Hosts...
-        HostFactory.load_all(self, aconf)
-
         # ...and then it's on to default TLS stuff, both from the TLS module and from
         # any TLS contexts.
         #
@@ -175,6 +172,9 @@ class IR:
 
         TLSModuleFactory.load_all(self, aconf)
         TLSContextFactory.load_all(self, aconf)
+
+        # ...then grab whatever we know about Hosts...
+        HostFactory.load_all(self, aconf)
 
         # Now we can finalize the Ambassador module, to tidy up secrets et al. We do this
         # here so that secrets and TLS contexts are available.
@@ -339,8 +339,8 @@ class IR:
     def add_resolver(self, resolver: IRServiceResolver) -> None:
         self.resolvers[resolver.name] = resolver
 
-    # def has_tls_context(self, name: str) -> bool:
-    #     return bool(self.get_tls_context(name))
+    def has_tls_context(self, name: str) -> bool:
+        return bool(self.get_tls_context(name))
 
     def get_tls_context(self, name: str) -> Optional[IRTLSContext]:
         return self.tls_contexts.get(name, None)
@@ -376,7 +376,7 @@ class IR:
 
             ss = SavedSecret(secret_name, namespace, None, None, None, None)
         else:
-            self.logger.info(f"resolve_secret {ss_key}: asking handler to cache")
+            self.logger.info(f"resolve_secret {ss_key}: found secret, asking handler to cache")
 
             # OK, we got a secret_info. Cache that using the secret handler.
             ss = self.secret_handler.cache_secret(resource, secret_info)

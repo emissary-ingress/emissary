@@ -122,9 +122,8 @@ class IRTLSContext(IRResource):
         return True
 
     def resolve_secret(self, secret_name: str) -> SavedSecret:
-        # Start by figuring out a namespace to look in. Assume that we're
-        # in the Ambassador's namespace...
-        namespace = self.ir.ambassador_namespace
+        # Assume that we need to look in whichever namespace the TLSContext itself is in...
+        namespace = self.namespace
 
         # You can't just always allow '.' in a secret name to span namespaces, or you end up with
         # https://github.com/datawire/ambassador/issues/1255, which is particularly problematic
