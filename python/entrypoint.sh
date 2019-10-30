@@ -396,7 +396,7 @@ if [[ -z "${AMBASSADOR_NO_KUBEWATCH}" ]]; then
            ${KUBEWATCH_SYNC_KINDS} \
            ${AMBASSADOR_FIELD_SELECTOR_ARG} \
            ${AMBASSADOR_LABEL_SELECTOR_ARG} \
-           --watch /ambassador/watch_hook.py
+           --watch "python /ambassador/watch_hook.py"
 fi
 
 ################################################################################
