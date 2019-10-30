@@ -82,13 +82,13 @@ class IR:
     tracing: Optional[IRTracing]
     wizard_allowed: bool
 
-    def __init__(self, aconf: Config, secret_handler=None, file_checker=None) -> None:
+    def __init__(self, aconf: Config, secret_handler=None, file_checker=None, logger=None, watch_only=False) -> None:
         self.ambassador_id = Config.ambassador_id
         self.ambassador_namespace = Config.ambassador_namespace
         self.ambassador_nodename = aconf.ambassador_nodename
         self.statsd = aconf.statsd
 
-        self.logger = logging.getLogger("ambassador.ir")
+        self.logger = logger or logging.getLogger("ambassador.ir")
 
         # We're using setattr since since mypy complains about assigning directly to a method.
         secret_root = os.environ.get('AMBASSADOR_CONFIG_BASE_DIR', "/ambassador")
@@ -111,7 +111,6 @@ class IR:
 
         # First up: save the Config object. Its source map may be necessary later.
         self.aconf = aconf
-        self.k8s_status_updates = aconf.k8s_status_updates
 
         # Next, we'll want a way to keep track of resources we end up working
         # with. It starts out empty.
@@ -121,23 +120,33 @@ class IR:
         self.saved_secrets = {}
         self.secret_info: Dict[str, SecretInfo] = {}
 
-        # ...and the initial IR state is empty.
+        # ...and the initial IR state is empty _except for k8s_status_updates_.
         #
         # Note that we use a map for clusters, not a list -- the reason is that
         # multiple mappings can use the same service, and we don't want multiple
         # clusters.
+
+        self.breakers = {}
         self.clusters = {}
         self.filters = []
+        self.groups = {}
         self.grpc_services = {}
+        # self.k8s_status_updates is handled below.
         self.listeners = []
         self.log_services = {}
-        self.groups = {}
+        self.outliers = {}
         self.ratelimit = None
         self.redirect_cleartext_from = None
         self.resolvers = {}
+        self.saved_secrets = {}
+        self.secret_info = {}
+        self.services = {}
         self.tls_contexts = {}
         self.tls_module = None
         self.tracing = None
+
+        # Copy k8s_status_updates from our aconf.
+        self.k8s_status_updates = aconf.k8s_status_updates
 
         # OK, time to get this show on the road. First things first: set up the
         # Ambassador module.
@@ -169,6 +178,10 @@ class IR:
         if not self.ambassador_module.finalize(self, aconf):
             # Uhoh.
             self.ambassador_module.set_active(False)    # This can't be good.
+
+        # Once here, if we're only watching, we're done.
+        if watch_only:
+            return
 
         # Check on the edge stack and the wizard. Note that the Edge Stack touchfile is _not_ within
         # $AMBASSADOR_CONFIG_BASE_DIR: it stays in /ambassador no matter what.

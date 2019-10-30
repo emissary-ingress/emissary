@@ -82,50 +82,19 @@ class SecretRecorder(SecretHandler):
 # managing Resolvers and parsing service names. However, we really don't want to
 # do all the work of instantiating an IR.
 #
-# So we kinda fake it. And yeah, it's kind of disgusting.
+# The solution here is to subclass the IR and take advantage of the watch_only
+# initialization keyword, which skips the hard parts of building an IR.
 
 class FakeIR(IR):
-    def __init__(self, logger, aconf):
-        self.ambassador_id = Config.ambassador_id
-        self.ambassador_namespace = Config.ambassador_namespace
-        self.ambassador_nodename = aconf.ambassador_nodename
-
-        self.logger = logger
-        self.aconf = aconf
-
+    def __init__(self, aconf: Config, logger=None) -> None:
         # If we're asked about a secret, record interest in that secret.
-        self.secret_recorder = SecretRecorder(self.logger)
-        self.secret_handler = self.secret_recorder
+        self.secret_recorder = SecretRecorder(logger)
 
         # If we're asked about a file, it's good.
-        self.file_checker = lambda path: True
+        file_checker = lambda path: True
 
-        self.clusters = {}
-        self.grpc_services = {}
-        self.filters = []
-        self.tls_contexts = {}
-        self.tls_module = None
-        self.listeners = []
-        self.log_services = []
-        self.groups = {}
-        self.resolvers = {}
-        self.breakers = {}
-        self.outliers = {}
-        self.services = {}
-        self.tracing = None
-        self.ratelimit = None
-        self.saved_secrets = {}
-        self.secret_info = {}
-        self.k8s_status_updates = {}
-        self.redirect_cleartext_from = None
-
-        self.ambassador_module = IRAmbassador(self, aconf)
-
-        IRServiceResolverFactory.load_all(self, aconf)
-        TLSModuleFactory.load_all(self, aconf)
-        self.save_tls_contexts(aconf)
-
-        self.ambassador_module.finalize(self, aconf)
+        super().__init__(aconf, logger=logger, watch_only=True,
+                         secret_handler=self.secret_recorder, file_checker=file_checker)
 
     # Don't bother actually saving resources that come up when working with
     # the faked modules.
@@ -150,9 +119,9 @@ aconf.load_all(fetcher.sorted())
 mappings = aconf.get_config('mappings') or {}
 
 # ...but we need the fake IR to deal with resolvers and TLS contexts.
-fake = FakeIR(logger, aconf)
+fake = FakeIR(aconf, logger=logger)
 
-logger.debug("FakeIR: %s" % fake.as_json())
+logger.debug("IR: %s" % fake.as_json())
 
 resolvers = fake.resolvers
 contexts = fake.tls_contexts
@@ -205,6 +174,11 @@ for mname, mapping in mappings.items():
             elif resolver.kind == 'KubernetesEndpointResolver':
                 host = svc.hostname
                 namespace = Config.ambassador_namespace
+
+                if not host:
+                    # This is really kind of impossible.
+                    logger.error(f"KubernetesEndpointResolver {res_name} has no 'hostname'")
+                    continue
 
                 if "." in host:
                     (host, namespace) = host.split(".", 2)[0:2]
