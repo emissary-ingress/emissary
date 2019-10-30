@@ -1,15 +1,12 @@
-from typing import ClassVar, Dict, List, Optional, Tuple, TYPE_CHECKING
+from typing import Optional, TYPE_CHECKING
 
-import base64
-import os
-
-from ..utils import RichStatus, SavedSecret
-from ..config import Config, ACResource
+from ..utils import SavedSecret
+from ..config import Config
 from .irresource import IRResource
+from .irtlscontext import IRTLSContext
 
 if TYPE_CHECKING:
     from .ir import IR
-    from .irtls import IRAmbassadorTLS
 
 
 class IRHost(IRResource):
@@ -43,42 +40,63 @@ class IRHost(IRResource):
     def setup(self, ir: 'IR', aconf: Config) -> bool:
         ir.logger.info(f"Host {self.name} setting up")
 
+        tls_ss: Optional[SavedSecret] = None
+        pkey_ss: Optional[SavedSecret] = None
+
         if self.get('tlsSecret', None):
             tls_secret = self.tlsSecret
             tls_name = tls_secret.get('name', None)
 
-            # ir.logger.info(f"Host {self.name} has TLS secret {tls_secret}")
-
             if tls_name:
-                ir.logger.info(f"Host {self.name} has TLS secret name {tls_name}")
+                ir.logger.info(f"Host {self.name}: TLS secret name is {tls_name}")
 
-            ss = self.resolve(ir, tls_name)
+                tls_ss = self.resolve(ir, tls_name)
 
-            if not ss:
-                # Bzzt.
-                ir.logger.error(f"Host {self.name} has invalid TLS secret {tls_name}")
-                return False
+                if tls_ss:
+                    # OK, we have a TLS secret! Fire up a TLS context for it, if one doesn't
+                    # already exist.
+
+                    ctx_name = f"{self.name}-context"
+
+                    if ir.has_tls_context(ctx_name):
+                        ir.logger.info(f"Host {self.name}: TLSContext {ctx_name} already exists")
+                    else:
+                        ir.logger.info(f"Host {self.name}: creating TLSContext {ctx_name}")
+
+                        # XXX Ew. IRTLSContext should work with kwargs, no??
+                        ctx = IRTLSContext(ir, aconf,
+                                           rkey=self.rkey,
+                                           name=ctx_name,
+                                           namespace=self.namespace,
+                                           location=self.location,
+                                           hosts=[ self.hostname ],
+                                           secret=tls_name)
+
+                        if ctx.is_active():
+                            ctx.referenced_by(self)
+                            ctx.sourced_by(self)
+
+                            ir.save_tls_context(ctx)
+                        else:
+                            ir.logger.error(f"Host {self.name}: new TLSContext {ctx_name} is not valid")
+                else:
+                    ir.logger.error(f"Host {self.name}: continuing with invalid TLS secret {tls_name}")
+                    return False
 
         if self.get('acmeProvider', None):
             acme = self.acmeProvider
             pkey_secret = acme.get('privateKeySecret', None)
 
-            # ir.logger.info(f"Host {self.name} has ACME provider {acme}")
-
             if pkey_secret:
-                # ir.logger.info(f"Host {self.name} has ACME privateKeySecret {pkey_secret}")
-
                 pkey_name = pkey_secret.get('name', None)
 
                 if pkey_name:
-                    ir.logger.info(f"Host {self.name} has ACME private key name {pkey_name}")
+                    ir.logger.info(f"Host {self.name}: ACME private key name is {pkey_name}")
 
-                    ss = self.resolve(ir, pkey_name)
+                    pkey_ss = self.resolve(ir, pkey_name)
 
-                    if not ss:
-                        # Bzzt.
-                        ir.logger.error(f"Host {self.name} has invalid private key secret {pkey_name}")
-                        return False
+                    if not pkey_ss:
+                        ir.logger.error(f"Host {self.name}: continuing with invalid private key secret {pkey_name}")
 
         return True
 
@@ -90,7 +108,7 @@ class IRHost(IRResource):
         return ir.resolve_secret(self, secret_name, namespace)
 
 
-class HostFactory():
+class HostFactory:
     @classmethod
     def load_all(cls, ir: 'IR', aconf: Config) -> None:
         assert ir
@@ -102,4 +120,9 @@ class HostFactory():
                 ir.logger.debug("creating host for %s" % repr(config.as_dict()))
 
                 host = IRHost(ir, aconf, **config)
-                ir.save_resource(host)
+
+                if host.is_active():
+                    host.referenced_by(config)
+                    host.sourced_by(config)
+
+                    ir.save_resource(host)
