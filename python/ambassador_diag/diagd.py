@@ -464,16 +464,13 @@ def show_overview(reqid=None):
     ddict = collect_errors_and_notices(request, reqid, "overview", diag)
 
     banner_content = None
-    app.logger.info(app.banner_endpoint)
-    if app.banner_endpoint:
+    if app.banner_endpoint and app.ir and app.ir.edge_stack_allowed:
         try:
             response = requests.get(app.banner_endpoint)
-            app.logger.info(response)
             if response.status_code == 200:
                 banner_content = response.text
         except Exception as e:
             app.logger.error("could not get banner_content: %s" % e)
-            app.logger.exception(e)
 
     tvars = dict(system=system_info(app),
                  envoy_status=envoy_status(app.estats),
