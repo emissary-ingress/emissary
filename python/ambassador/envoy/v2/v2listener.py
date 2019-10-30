@@ -474,7 +474,7 @@ class V2Listener(dict):
 
         # Default some things to the way they should be for the redirect listener
         self.name = "redirect_listener"
-        self.access_log: Optional[List[dict]] = None
+        self.access_log: List[dict] = []
         self.require_tls: Optional[str] = 'EXTERNAL_ONLY'
         self.use_proxy_proto = listener.get('use_proxy_proto')
 
@@ -493,6 +493,32 @@ class V2Listener(dict):
                     'https_redirect': True
                 }
             } ]
+
+        # Get Access Log Rules
+        for al in config.ir.log_services.values():
+            access_log_obj = { "common_config": al.get_common_config() }
+            req_headers = []
+            resp_headers = []
+            trailer_headers = []
+
+            for additional_header in al.get_additional_headers():
+                if additional_header.get('during_request', True):
+                    req_headers.append(additional_header.get('header_name'))
+                if additional_header.get('during_response', True):
+                    resp_headers.append(additional_header.get('header_name'))
+                if additional_header.get('during_trailer', True):
+                    trailer_headers.append(additional_header.get('header_name'))
+
+            if al.driver == 'http':
+                access_log_obj['additional_request_headers_to_log'] = req_headers
+                access_log_obj['additional_response_headers_to_log'] = resp_headers
+                access_log_obj['additional_response_trailers_to_log'] = trailer_headers
+                self.access_log.append({"name": "envoy.http_grpc_access_log", "config": access_log_obj})
+            else:
+                # inherently TCP right now
+                # tcp loggers do not support additional headers
+                self.access_log.append({"name": "envoy.tcp_grpc_access_log", "config": access_log_obj})
+
 
         if listener.redirect_listener:
             self.http_filters = [{'name': 'envoy.router'}]
@@ -532,26 +558,26 @@ class V2Listener(dict):
                     json_format['dd.trace_id'] = '%REQ(X-DATADOG-TRACE-ID)%'
                     json_format['dd.span_id'] = '%REQ(X-DATADOG-PARENT-ID)%'
 
-                self.access_log = [ {
+                self.access_log.append({
                     'name': 'envoy.file_access_log',
                     'config': {
                         'path': config.ir.ambassador_module.envoy_log_path,
                         'json_format': json_format
                     }
-                } ]
+                })
             else:
                 # Use a sane access log spec
                 log_format = config.ir.ambassador_module.get('envoy_log_format', None)
                 if not log_format:
                     log_format = 'ACCESS [%START_TIME%] \"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\" %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% \"%REQ(X-FORWARDED-FOR)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\" \"%UPSTREAM_HOST%\"\n'
                 config.ir.logger.info("V2Listener: Using log_format '%s'" % log_format)
-                self.access_log = [ {
+                self.access_log.append({
                     'name': 'envoy.file_access_log',
                     'config': {
                         'path': config.ir.ambassador_module.envoy_log_path,
                         'format': log_format + '\n'
                     }
-                } ]
+                })
 
             # Assemble filters
             for f in config.ir.filters:

@@ -106,6 +106,7 @@ class FakeIR(IR):
         self.tls_contexts = {}
         self.tls_module = None
         self.listeners = []
+        self.log_services = []
         self.groups = {}
         self.resolvers = {}
         self.breakers = {}

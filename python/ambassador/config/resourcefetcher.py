@@ -40,8 +40,8 @@ HandlerResult = Optional[Tuple[str, List[AnyDict]]]
 CRDTypes = frozenset([
     'AuthService', 'ConsulResolver', 'Host',
     'KubernetesEndpointResolver', 'KubernetesServiceResolver',
-    'Mapping', 'Module', 'RateLimitService', 'TCPMapping', 
-    'TLSContext', 'TracingService',
+    'LogService', 'Mapping', 'Module', 'RateLimitService',
+    'TCPMapping', 'TLSContext', 'TracingService',
     'clusteringresses.networking.internal.knative.dev',
     'ingresses.networking.internal.knative.dev'
 ])

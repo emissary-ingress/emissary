@@ -62,6 +62,7 @@ class Config:
         'tcpmapping': "tcpmappings",
         'tlscontext': "tls_contexts",
         'tracingservice': "tracing_configs",
+        'logservice': "log_services",
     }
 
     KnativeResources = { 'ClusterIngress', 'KnativeIngress' }
@@ -513,7 +514,7 @@ class Config:
 
     def module_lookup(self, module_name: str, key: str, default: Any=None) -> Any:
         """
-        Look up a specific key in a given module. If the named module doesn't 
+        Look up a specific key in a given module. If the named module doesn't
         exist, or if the key doesn't exist in the module, return the default.
 
         :param module_name: name of the module you want.
