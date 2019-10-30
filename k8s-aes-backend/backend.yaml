@@ -16,6 +16,7 @@ metadata:
       kind: Mapping
       ambassador_id: metriton
       prefix: /signup
+      rewrite: /signup
       name: aes-backend
       service: aes-backend
 spec:
