@@ -52,3 +52,14 @@ cmd/amb-sidecar/firstboot/bindata.go: $(GO_BINDATA) $(shell find cmd/amb-sidecar
 pro-generate-clean:
 	rm -f cmd/amb-sidecar/firstboot/bindata.go
 .PHONY: pro-generate pro-generate-clean
+
+AES_BACKEND_IMAGE=gcr.io/datawireio/aes-backend:$(RELEASE_VERSION)
+
+# XXX: should make base a make variable
+deploy-aes-backend: images
+	cat Dockerfile.aes-backend | docker build -t aes-backend --build-arg artifacts=$(SNAPSHOT) -
+	docker tag aes-backend $(AES_BACKEND_IMAGE)
+	docker push $(AES_BACKEND_IMAGE)
+	@if [ -z "$(PROD_KUBECONFIG)" ]; then echo please set PROD_KUBECONFIG && exit 1; fi
+	cat k8s-aes-backend/*.yaml | AES_BACKEND_IMAGE=$(AES_BACKEND_IMAGE) envsubst | kubectl --kubeconfig="$(PROD_KUBECONFIG)" apply -f -
+.PHONY: deploy-aes-backend
