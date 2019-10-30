@@ -35,6 +35,13 @@ func init() {
 		}
 
 		http.HandleFunc("/signup", func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Access-Control-Allow-Origin", "*")
+			w.Header().Set("Access-Control-Allow-Methods", "POST")
+			w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
+			if r.Method == http.MethodOptions {
+				return
+			}
+
 			decoder := json.NewDecoder(r.Body)
 			var s struct {
 				Firstname string
