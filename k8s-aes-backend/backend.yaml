@@ -49,6 +49,7 @@ spec:
       containers:
       - name: aes-backend
         image: ${AES_BACKEND_IMAGE}
+        imagePullPolicy: Always
         ports:
         - containerPort: 8080
         env:
