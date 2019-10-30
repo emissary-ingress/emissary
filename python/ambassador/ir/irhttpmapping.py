@@ -74,6 +74,7 @@ class IRHTTPMapping (IRBaseMapping):
         "host_rewrite": True,
         "labels": True,       # Only supported in v1, handled in setup
         "load_balancer": True,
+        "keepalive": True,
         "method": True,
         "method_regex": True,
         "modules": True,
