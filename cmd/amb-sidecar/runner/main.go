@@ -29,6 +29,7 @@ import (
 
 	// internal libraries: github.com/datawire/apro
 	"github.com/datawire/apro/cmd/amb-sidecar/acmeclient"
+	"github.com/datawire/apro/cmd/amb-sidecar/banner"
 	devportalcontent "github.com/datawire/apro/cmd/amb-sidecar/devportal/content"
 	devportalserver "github.com/datawire/apro/cmd/amb-sidecar/devportal/server"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/controller"
@@ -305,6 +306,8 @@ func runE(cmd *cobra.Command, args []string) error {
 		}
 
 		httpHandler.AddEndpoint("/firstboot/", "First boot wizard", http.StripPrefix("/firstboot", firstboot.NewFirstBootWizard(dynamicClient)).ServeHTTP)
+
+		httpHandler.AddEndpoint("/banner/", "Diag UI banner", http.StripPrefix("/banner", banner.NewBanner()).ServeHTTP)
 
 		httpHandler.AddEndpoint("/.well-known/acme-challenge/", "ACME http-01 challenge", acmeclient.NewChallengeHandler(redisPool).ServeHTTP)
 
