@@ -9,9 +9,10 @@ metadata:
   labels:
     product: aes
 
-# combined rbac yaml
-# NB: ClusterRoles and ClusterRoleBindings are not namespaced
+######################################################################
+# RBAC
 
+# NB: ClusterRoles and ClusterRoleBindings are not namespaced
 ---
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRole
@@ -71,7 +72,8 @@ subjects:
   name: ambassador-pro
   namespace: ambassador
 
-# ambassador-pro-redis.yaml
+######################################################################
+# Redis
 ---
 apiVersion: v1
 kind: Service
@@ -220,8 +222,7 @@ spec:
   service: NoTaReAlSeRvIcE
 
 ######################################################################
-# Create the 'ambassador', 'ambassador-admin', and 'ambassador-pro'
-# Services.
+# Create the 'ambassador' and 'ambassador-admin' Services.
 ---
 apiVersion: v1
 kind: Service
@@ -231,7 +232,7 @@ metadata:
   labels:
     product: aes
 spec:
-  type: LoadBalancer # XXX: Kubernaut
+  type: LoadBalancer
   externalTrafficPolicy: Local
   ports:
   - name: http
@@ -259,27 +260,10 @@ spec:
     targetPort: admin
   selector:
     service: ambassador
----
-apiVersion: v1
-kind: Service
-metadata:
-  labels:
-    service: ambassador-pro
-    product: aes
-  name: ambassador-pro
-  namespace: ambassador
-spec:
-  type: ClusterIP
-  ports:
-  - name: http
-    port: 80
-    targetPort: pro-http
-  selector:
-    service: ambassador
 
 ######################################################################
-# Create the Deployment backing the 'ambassador', 'ambassador-admin',
-# and 'ambassador-pro' Services.
+# Create the Deployment backing the 'ambassador' and
+# 'ambassador-admin' Services.
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -289,7 +273,7 @@ metadata:
   labels:
     product: aes
 spec:
-  replicas: 1 # XXX: Kubernaut
+  replicas: 1
   selector:
     matchLabels:
       service: ambassador
@@ -348,17 +332,6 @@ spec:
           value: "1"
         # A/Pro
         - name: AMBASSADOR_LICENSE_KEY
-          ## Unlike all the rest of the YAML, this uses a v0 license
-          ## key, to make sure that they continue to work for newer
-          ## releases.  If that breaks, `make deploy` will time out,
-          ## because this pod will never pass its readiness checks.
-          ## The `tests/cluster/licensekeys/` e2e tests mostly do this,
-          ## but they run directly on compiled binaries, not the Docker
-          ## images supposedly containing those binaries.  We had an
-          ## issue where the Envoy binary was too aggressively cached,
-          ## and even though we compiled a new Envoy binary, the
-          ## amb-core image contained the old cached binary.
-          #value: {{env "AMBASSADOR_LICENSE_KEY_V0"}}
           value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImRldiIsImV4cCI6NDcwMDgyNjEzM30.wCxi5ICR6C5iEz6WkKpurNItK3zER12VNhM8F1zGkA8
         - name: APP_LOG_LEVEL
           value: DEBUG
