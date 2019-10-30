@@ -8,6 +8,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"os"
 
 	assetfs "github.com/elazarl/go-bindata-assetfs"
 	"github.com/go-acme/lego/v3/acme"
@@ -128,6 +129,11 @@ func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		//snapshot.GetHost(r.URL.Query().Get("host"))
 		io.WriteString(w, "todo...")
 	default:
-		http.FileServer(fb.staticfiles).ServeHTTP(w, r)
+		dir := os.Getenv("AES_STATIC_FILES")
+		files := fb.staticfiles
+		if dir != "" {
+			files = http.Dir(dir)
+		}
+		http.FileServer(files).ServeHTTP(w, r)
 	}
 }
