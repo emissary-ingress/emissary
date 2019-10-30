@@ -53,7 +53,8 @@ func init() {
 
 			err := decoder.Decode(&s)
 			if err != nil {
-				panic(err)
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
 			}
 
 			url := fmt.Sprintf("https://api.hubapi.com/contacts/v1/contact/createOrUpdate/email/%s/?hapikey=%s",
