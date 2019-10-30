@@ -90,15 +90,7 @@ func (c *Controller) processSnapshot(snapshot watt.Snapshot) (changed bool) {
 		changed = true
 	} else {
 		for i := range hosts {
-			if hosts[i].GetNamespace() != c.hosts[i].GetNamespace() {
-				changed = true
-				break
-			}
-			if hosts[i].GetName() != c.hosts[i].GetName() {
-				changed = true
-				break
-			}
-			if !proto.Equal(hosts[i].Spec, c.hosts[i].Spec) {
+			if !hostsEqual(&hosts[i], &c.hosts[i]) {
 				changed = true
 				break
 			}
@@ -121,7 +113,7 @@ func (c *Controller) processSnapshot(snapshot watt.Snapshot) (changed bool) {
 		changed = true
 	} else {
 		for i := range secrets {
-			if !proto.Equal(secrets[i], c.secrets[i]) {
+			if !secretsEqual(secrets[i], c.secrets[i]) {
 				changed = true
 				break
 			}
