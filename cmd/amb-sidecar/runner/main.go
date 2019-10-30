@@ -29,6 +29,7 @@ import (
 
 	// internal libraries: github.com/datawire/apro
 	"github.com/datawire/apro/cmd/amb-sidecar/acmeclient"
+	"github.com/datawire/apro/cmd/amb-sidecar/banner"
 	devportalcontent "github.com/datawire/apro/cmd/amb-sidecar/devportal/content"
 	devportalserver "github.com/datawire/apro/cmd/amb-sidecar/devportal/server"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/controller"
@@ -289,6 +290,7 @@ func runE(cmd *cobra.Command, args []string) error {
 		}
 
 		httpHandler.AddEndpoint("/firstboot/", "First boot wizard", http.StripPrefix("/firstboot", firstboot.NewFirstBootWizard()).ServeHTTP)
+		httpHandler.AddEndpoint("/banner/", "Diag UI banner", http.StripPrefix("/banner", banner.NewBanner()).ServeHTTP)
 
 		httpHandler.AddEndpoint("/_internal/v0/watt", "watt→post_uptate.py→this", snapshotStore.ServeHTTP)
 
