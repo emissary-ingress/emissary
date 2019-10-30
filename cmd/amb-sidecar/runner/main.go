@@ -50,6 +50,7 @@ import (
 	lyftservice "github.com/lyft/ratelimit/src/service"
 
 	// k8s clients
+	k8sClientDynamic "k8s.io/client-go/dynamic"
 	k8sClientCoreV1 "k8s.io/client-go/kubernetes/typed/core/v1"
 
 	// gRPC service APIs
@@ -133,6 +134,24 @@ func runE(cmd *cobra.Command, args []string) error {
 
 	kubeinfo := k8s.NewKubeInfo("", "", "") // Empty file/ctx/ns for defaults
 
+	restconfig, err := kubeinfo.GetRestConfig()
+	if err != nil {
+		return err
+	}
+	coreClient, err := k8sClientCoreV1.NewForConfig(restconfig)
+	if err != nil {
+		return err
+	}
+	dynamicClient, err := k8sClientDynamic.NewForConfig(restconfig)
+	if err != nil {
+		return err
+	}
+
+	redisPool, err := pool.New(cfg.RedisSocketType, cfg.RedisURL, cfg.RedisPoolSize)
+	if err != nil {
+		return errors.Wrap(err, "redis pool")
+	}
+
 	snapshotStore := watt.NewSnapshotStore(http.DefaultClient /* XXX */)
 
 	// Initialize the errgroup we'll use to orchestrate the goroutines.
@@ -176,8 +195,18 @@ func runE(cmd *cobra.Command, args []string) error {
 	}
 
 	// ACME client
+	acmeController := acmeclient.NewController(
+		redisPool,
+		http.DefaultClient, // XXX
+		snapshotStore.Subscribe(),
+		coreClient,
+		dynamicClient)
 	group.Go("acme_client", func(hardCtx, softCtx context.Context, cfg types.Config, l types.Logger) error {
-		return acmeclient.EnsureFallback(cfg, kubeinfo)
+		if err := acmeclient.EnsureFallback(cfg, coreClient, dynamicClient); err != nil {
+			return err
+		}
+		acmeController.Worker(l)
+		return nil
 	})
 
 	// HTTP server
@@ -186,11 +215,6 @@ func runE(cmd *cobra.Command, args []string) error {
 
 		statsStore := stats.NewDefaultStore()
 		statsStore.AddStatGenerator(stats.NewRuntimeStats(statsStore.Scope("go")))
-
-		redisPool, err := pool.New(cfg.RedisSocketType, cfg.RedisURL, cfg.RedisPoolSize)
-		if err != nil {
-			return errors.Wrap(err, "redis pool")
-		}
 
 		var redisPerSecondPool *pool.Pool
 		if cfg.RedisPerSecond {
@@ -239,14 +263,6 @@ func runE(cmd *cobra.Command, args []string) error {
 
 		// AuthService
 		if licenseClaims.RequireFeature(licensekeys.FeatureFilter) == nil || licenseClaims.RequireFeature(licensekeys.FeatureDevPortal) == nil {
-			restconfig, err := kubeinfo.GetRestConfig()
-			if err != nil {
-				return err
-			}
-			coreClient, err := k8sClientCoreV1.NewForConfig(restconfig)
-			if err != nil {
-				return err
-			}
 			authService, err := filterhandler.NewFilterMux(cfg, l.WithField("SUB", "http-handler"), ct, coreClient, redisPool)
 			if err != nil {
 				return err
@@ -289,8 +305,11 @@ func runE(cmd *cobra.Command, args []string) error {
 			httpHandler.AddEndpoint("/openapi/", "Documentation portal API", devPortalServer.Router().ServeHTTP)
 		}
 
-		httpHandler.AddEndpoint("/firstboot/", "First boot wizard", http.StripPrefix("/firstboot", firstboot.NewFirstBootWizard()).ServeHTTP)
+		httpHandler.AddEndpoint("/firstboot/", "First boot wizard", http.StripPrefix("/firstboot", firstboot.NewFirstBootWizard(dynamicClient)).ServeHTTP)
+
 		httpHandler.AddEndpoint("/banner/", "Diag UI banner", http.StripPrefix("/banner", banner.NewBanner()).ServeHTTP)
+
+		httpHandler.AddEndpoint("/.well-known/acme-challenge/", "ACME http-01 challenge", acmeclient.NewChallengeHandler(redisPool).ServeHTTP)
 
 		httpHandler.AddEndpoint("/_internal/v0/watt", "watt→post_uptate.py→this", snapshotStore.ServeHTTP)
 

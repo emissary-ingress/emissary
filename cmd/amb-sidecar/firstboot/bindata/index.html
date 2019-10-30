@@ -3,7 +3,6 @@
 	<head>
 		<meta charset="utf-8">
 		<title>Ambassador Edge Stack - first boot</title>
-		<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
 		<style>
 			fieldset             { display: table; }
 			fieldset > label     { display: table-row; }
@@ -29,126 +28,17 @@
 	</head>
 	<body>
 		<div id="app">
-			<form v-on:submit.prevent="onSubmit">
-				<fieldset>
-					<legend>Initial TLS setup</legend>
-					<label>
-						<span>Hostname to request a certificate for:</span>
-						<div>
-							<input type="text" name="hostname" v-model:value="hostname"
-								v-on:input="hostnameChanged=true" />
-							<p v-if="!hostnameChanged">We auto-filled this from the URL
-								you used to access this web page.  Feel free to change it, though.</p>
-						</div>
-					</label>
-					<label>
-						<span>ACME provider:</span>
-						<input type="url" name="provider" v-model:value="provider"
-							v-on:input="onProviderChange" />
-					</label>
-					<label>
-						<input type="checkbox" name="tos_agree" v-model:value="tosAgree" v-bind:disabled="tosReq || tosProvider !== provider || tosErr != null" />
-						<div v-if="tosReq">
-							<p>Loading spinner goes here</p>
-						</div>
-						<div v-else-if="tosErr">
-							<p><q>{{ tosProvider }}</q> does not appear to refer to valid ACME provider: <q>{{ tosErr }}</q>. <button v-on:click="onProviderChange">Retry</button></p>
-						</div>
-						<div v-else>
-							<p>I have agreed to to the Terms of Service at <a v-bind:href="tosURL">{{ tosURL }}</a>.</p>
-						</div>
-				</fieldset>
-
-				<pre>
-kubectl apply &lt;&lt;'EOF'
----
-apiVersion: getambassador.io/v1
-kind: Host
-metadata:
-  name: {{ hostname }}
-spec:
-  hostname: {{ hostname }}
-  selector:
-    hostname: {{ hostname }}
-  acmeProvider: {{ provider }}
-  tlsSecretName: {{ hostname }}
-EOF</pre>
-				<input type="submit" value="Apply" />
-			</form>
-			<div>{{ output }}</div>
+			<aes-host></aes-host>
 		</div>
-		<script>
-			var app = new Vue({
+		<script type="module">
+			import Vue from 'https://cdn.jsdelivr.net/npm/vue/dist/vue.esm.browser.min.js';
+			import AESHost from './aes-host.js';
+
+			var vm = new Vue({
+				components: {
+					'aes-host': AESHost,
+				},
 				el: '#app',
-				data: {
-					hostname: window.location.hostname,
-					provider: "https://acme-staging-v02.api.letsencrypt.org/directory", // "https://acme-v02.api.letsencrypt.org/directory",
-					tosAgree: false,
-
-					hostnameChanged: false,
-
-					tosReq: null,
-					tosErr: null,
-					tosProvider: "",
-					tosURL: null,
-
-					output: "",
-					
-				},
-				computed: {},
-				beforeMount: function() {
-					this.onProviderChange(null);
-				},
-				methods: {
-					onProviderChange: function(event) {
-						let url = new URL('tos-url', window.location);
-						url.searchParams.set('ca-url', this.provider);
-
-						let provider = this.provider; // capture for the closures below
-
-						let req = new XMLHttpRequest();
-						req.open("GET", url.toString());
-						req.onload = () => {
-							if (req.status == 200) {
-								this.tosURL = req.response;
-								this.tosErr = null;
-							} else {
-								this.tosURL = null;
-								this.tosErr = req.response;
-							}
-							this.tosProvider = provider;
-							this.tosReq = null;
-						};
-						req.onerror = () => {
-							this.tosURL = null;
-							this.tosErr = "XmlHttpRequest error";
-							this.tosProvider = provider;
-							this.tosReq = null;
-						};
-						if (this.tosReq != null) {
-							this.tosReq.abort();
-						}
-						this.tosReq = req;
-						this.tosAgree = false;
-						req.send();
-					},
-					onSubmit: function(event) {
-						let url = new URL('status', window.location);
-						url.searchParams.set('host', this.hostname);
-
-						let req = new XMLHttpRequest();
-						req.open("GET", url.toString());
-						req.onload = () => {
-							if (req.status == 200) {
-								this.output = req.response;
-							}
-						};
-						req.onloadend = () => {
-							this.onSubmit(null);
-						};
-						req.send();
-					},
-				},
 			});
 		</script>
 	</body>
