@@ -72,23 +72,22 @@ func parseUserPrivateKey(secret *k8sTypesCoreV1.Secret) (crypto.PrivateKey, erro
 	return privateKey, nil
 }
 
-func (c *Controller) userRegister(namespace string, spec *ambassadorTypesV2.ACMEProviderSpec) error {
+func (c *Controller) userRegister(namespace string, spec *ambassadorTypesV2.ACMEProviderSpec) (string, error) {
 	privateKeySecret := c.getSecret(namespace, spec.PrivateKeySecret.Name)
 	privateKey, err := parseUserPrivateKey(privateKeySecret)
 	if err != nil {
-		return err
+		return "", err
 	}
 	user, err := registerUser(c.httpClient,
 		spec.Authority,
 		spec.Email,
 		privateKey)
 	if err != nil {
-		return err
+		return "", err
 	}
 	reg, err := json.Marshal(user.GetRegistration())
 	if err != nil {
-		return err
+		return "", err
 	}
-	spec.Registration = string(reg)
-	return nil
+	return string(reg), nil
 }
