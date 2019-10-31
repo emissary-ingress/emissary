@@ -193,13 +193,13 @@ class ResourceFetcher:
             # Handle normal Kube objects...
             for key in [ 'service', 'endpoints', 'secret', 'ingresses' ]:
                 for obj in watt_k8s.get(key) or []:
-                    self.logger.debug(f"Handling Kubernetes {key}...")
+                    # self.logger.debug(f"Handling Kubernetes {key}...")
                     self.handle_k8s(obj)
 
             # ...then handle Ambassador CRDs.
             for key in CRDTypes:
                 for obj in watt_k8s.get(key) or []:
-                    self.logger.debug(f"Handling CRD {key}...")
+                    # self.logger.debug(f"Handling CRD {key}...")
                     self.handle_k8s_crd(obj)
 
             watt_consul = watt_dict.get('Consul', {})
@@ -228,17 +228,20 @@ class ResourceFetcher:
             # self.logger.debug("%s: ignoring K8s object, no kind" % self.location)
             return
 
+        metadata = obj.get('metadata') or {}
+        name = metadata.get('name') or '(no name?)'
+
         handler = None
 
         if kind in CRDTypes:
             handler = self.handle_k8s_crd
         else:
             handler_name = f'handle_k8s_{kind.lower()}'
-            self.logger.debug(f"looking for handler {handler_name}")
+            # self.logger.debug(f"looking for handler {handler_name} for K8s {kind} {name}")
             handler = getattr(self, handler_name, None)
 
         if not handler:
-            self.logger.debug("%s: ignoring K8s object, unknown kind" % self.location)
+            self.logger.debug(f"{self.location}: skipping K8s {kind}")
             return
 
         result = handler(obj)
@@ -250,8 +253,7 @@ class ResourceFetcher:
 
     def handle_k8s_crd(self, obj: dict) -> None:
         # CRDs are _not_ allowed to have embedded objects in annotations, because ew.
-
-        self.logger.debug(f"Handling K8s CRD: {obj}")
+        # self.logger.debug(f"Handling K8s CRD: {obj}")
 
         kind = obj.get('kind')
 
@@ -311,7 +313,7 @@ class ResourceFetcher:
         # self.logger.debug("PARSE_OBJECT: incoming %d" % len(objects))
 
         for obj in objects:
-            self.logger.debug("PARSE_OBJECT: checking %s" % obj)
+            # self.logger.debug("PARSE_OBJECT: checking %s" % obj)
 
             if k8s:
                 self.handle_k8s(obj)
