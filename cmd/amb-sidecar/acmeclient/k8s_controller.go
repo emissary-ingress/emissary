@@ -143,12 +143,45 @@ func (c *Controller) updateHost(host *ambassadorTypesV2.Host) error {
 			"kind":       "Host",
 			"metadata":   unstructureMetadata(host.ObjectMeta),
 			"spec":       host.Spec,
+			"status":     host.Status,
 		},
 	}, k8sTypesMetaV1.UpdateOptions{})
 	if err != nil {
 		return errors.Wrapf(err, "update %q.%q", host.GetName(), host.GetNamespace())
 	}
 	return err
+}
+
+func (c *Controller) recordHostPending(logger types.Logger, host *ambassadorTypesV2.Host, phaseCompleted, phasePending ambassadorTypesV2.HostPhase) {
+	logger.Debugln("updating pending host")
+	host.Status.State = ambassadorTypesV2.HostState_Pending
+	host.Status.PhaseCompleted = phaseCompleted
+	host.Status.PhasePending = phasePending
+	host.Status.Reason = ""
+	if err := c.updateHost(host); err != nil {
+		logger.Errorln(err)
+	}
+}
+
+func (c *Controller) recordHostReady(logger types.Logger, host *ambassadorTypesV2.Host) {
+	logger.Debugln("updating ready host")
+	host.Status.State = ambassadorTypesV2.HostState_Ready
+	host.Status.PhaseCompleted = ambassadorTypesV2.HostPhase_NA
+	host.Status.PhasePending = ambassadorTypesV2.HostPhase_NA
+	host.Status.Reason = ""
+	if err := c.updateHost(host); err != nil {
+		logger.Errorln(err)
+	}
+}
+
+func (c *Controller) recordHostError(logger types.Logger, host *ambassadorTypesV2.Host, phase ambassadorTypesV2.HostPhase, err error) {
+	logger.Debugln("updating errored host:", err)
+	host.Status.State = ambassadorTypesV2.HostState_Error
+	host.Status.PhasePending = phase
+	host.Status.Reason = err.Error()
+	if err := c.updateHost(host); err != nil {
+		logger.Errorln(err)
+	}
 }
 
 type providerKey struct {
@@ -171,25 +204,46 @@ func (c *Controller) rectify(logger types.Logger) {
 		logger := logger.WithField("host", host.GetName()+"."+host.GetNamespace())
 		logger.Debugln("processing host...")
 
-		FillDefaults(host.Spec)
+		FillDefaults(host)
 		if !proto.Equal(host.Spec, _host.Spec) {
 			logger.Debugln("saving defaults")
-			if err := c.updateHost(host); err != nil {
-				logger.Errorln(err)
-			}
+			c.recordHostPending(logger, host,
+				ambassadorTypesV2.HostPhase_DefaultsFilled,
+				ambassadorTypesV2.HostPhase_NA)
 			continue
 		}
 
-		if host.Spec.AcmeProvider.Authority == "none" {
-			logger.Debugln("not an ACME Host")
+		switch host.Status.TlsCertificateSource {
+		case ambassadorTypesV2.HostTLSCertificateSource_None:
+			logger.Debugln("Host does not use TLS")
+			c.recordHostReady(logger, host)
 			continue
+		case ambassadorTypesV2.HostTLSCertificateSource_Other:
+			logger.Debugln("Host uses externally provisioned TLS certificate")
+			if c.getSecret(host.GetMetadata().GetNamespace(), host.Spec.TlsSecret.Name) == nil {
+				c.recordHostError(logger, host,
+					ambassadorTypesV2.HostPhase_NA,
+					errors.New("tlsSecret does not exist"))
+			} else {
+				// TODO: Maybe validate that the secret contents are valid?
+				c.recordHostReady(logger, host)
+			}
+			continue
+		case ambassadorTypesV2.HostTLSCertificateSource_ACME:
+			// proceed
 		}
 
 		if c.getSecret(host.GetNamespace(), host.Spec.AcmeProvider.PrivateKeySecret.Name) == nil {
 			logger.Debugln("creating user private key")
 			err := createUserPrivateKey(c.secretsGetter, host.GetNamespace(), host.Spec.AcmeProvider.PrivateKeySecret.Name)
 			if err != nil {
-				logger.Errorln(err)
+				c.recordHostError(logger, host,
+					ambassadorTypesV2.HostPhase_ACMEUserPrivateKeyCreated,
+					err)
+			} else {
+				c.recordHostPending(logger, host,
+					ambassadorTypesV2.HostPhase_ACMEUserPrivateKeyCreated,
+					ambassadorTypesV2.HostPhase_ACMEUserRegistered)
 			}
 			continue
 		}
@@ -204,14 +258,16 @@ func (c *Controller) rectify(logger types.Logger) {
 			if dup, hasDup := acmeProviders[hashKey]; !hasDup {
 				err := c.userRegister(host.GetNamespace(), host.Spec.AcmeProvider)
 				if err != nil {
-					logger.Errorln(err)
+					c.recordHostError(logger, host,
+						ambassadorTypesV2.HostPhase_ACMEUserRegistered,
+						err)
 					continue
 				}
 			} else {
 				host.Spec.AcmeProvider = dup
-			}
-			if err := c.updateHost(host); err != nil {
-				logger.Errorln(err)
+				c.recordHostPending(logger, host,
+					ambassadorTypesV2.HostPhase_ACMEUserRegistered,
+					ambassadorTypesV2.HostPhase_ACMECertificateChallenge)
 			}
 			continue
 		}
@@ -225,6 +281,7 @@ func (c *Controller) rectify(logger types.Logger) {
 		}
 		if dup, hasDup := tlsSecretProviders[host.GetNamespace()][host.Spec.TlsSecret.Name]; hasDup {
 			if !proto.Equal(dup, host.Spec.AcmeProvider) {
+				// TODO: record this
 				logger.Errorln(errors.New("acmeProvider mismatch"))
 			}
 		} else {
@@ -262,11 +319,13 @@ func (c *Controller) rectify(logger types.Logger) {
 				user.Email = acmeProvider.Email
 				user.PrivateKey, err = parseUserPrivateKey(c.getSecret(namespace, acmeProvider.PrivateKeySecret.Name))
 				if err != nil {
+					// TODO: record this for all relevant hosts
 					logger.Errorln(err)
 					continue
 				}
 				var reg registration.Resource
 				if err = json.Unmarshal([]byte(acmeProvider.Registration), &reg); err != nil {
+					// TODO: record this for all relevant hosts
 					logger.Errorln(err)
 					continue
 				}
@@ -279,45 +338,61 @@ func (c *Controller) rectify(logger types.Logger) {
 					&user,
 					tlsSecretHostnames[namespace][tlsSecretName])
 				if err != nil {
+					// TODO: record this for all relevant hosts
 					logger.Errorln(err)
 					continue
 				}
 				if err = storeCertificate(c.secretsGetter, tlsSecretName, namespace, certResource); err != nil {
+					// TODO: record this for all relevant hosts
 					logger.Errorln(err)
 					continue
 				}
 			}
+			// TODO: record success for all relevant hosts
 		}
 	}
 }
 
-func FillDefaults(spec *ambassadorTypesV2.HostSpec) {
-	if spec.Selector == nil {
-		spec.Selector = &k8sTypesMetaV1.LabelSelector{}
+func FillDefaults(host *ambassadorTypesV2.Host) {
+	if host.Spec == nil {
+		host.Spec = &ambassadorTypesV2.HostSpec{}
 	}
-	if len(spec.Selector.MatchLabels)+len(spec.Selector.MatchExpressions) == 0 {
-		spec.Selector.MatchLabels = map[string]string{
-			"hostname": spec.Hostname,
+	if host.Spec.Selector == nil {
+		host.Spec.Selector = &k8sTypesMetaV1.LabelSelector{}
+	}
+	if len(host.Spec.Selector.MatchLabels)+len(host.Spec.Selector.MatchExpressions) == 0 {
+		host.Spec.Selector.MatchLabels = map[string]string{
+			"hostname": host.Spec.Hostname,
 		}
 	}
-	if spec.AcmeProvider == nil {
-		spec.AcmeProvider = &ambassadorTypesV2.ACMEProviderSpec{}
+	if host.Spec.AcmeProvider == nil {
+		host.Spec.AcmeProvider = &ambassadorTypesV2.ACMEProviderSpec{}
 	}
-	if spec.AcmeProvider.Authority == "" {
-		spec.AcmeProvider.Authority = "https://acme-staging-v02.api.letsencrypt.org/directory" // "https://acme-v02.api.letsencrypt.org/directory"
+	if host.Spec.AcmeProvider.Authority == "" {
+		host.Spec.AcmeProvider.Authority = "https://acme-staging-v02.api.letsencrypt.org/directory" // "https://acme-v02.api.letsencrypt.org/directory"
 	}
-	if spec.AcmeProvider.Authority != "none" {
-		if spec.AcmeProvider.PrivateKeySecret == nil {
-			spec.AcmeProvider.PrivateKeySecret = &k8sTypesCoreV1.LocalObjectReference{}
+	if host.Spec.AcmeProvider.Authority != "none" {
+		if host.Spec.AcmeProvider.PrivateKeySecret == nil {
+			host.Spec.AcmeProvider.PrivateKeySecret = &k8sTypesCoreV1.LocalObjectReference{}
 		}
-		if spec.AcmeProvider.PrivateKeySecret.Name == "" {
-			spec.AcmeProvider.PrivateKeySecret.Name = NameEncode(spec.AcmeProvider.Authority) + "--" + NameEncode(spec.AcmeProvider.Email)
+		if host.Spec.AcmeProvider.PrivateKeySecret.Name == "" {
+			host.Spec.AcmeProvider.PrivateKeySecret.Name = NameEncode(host.Spec.AcmeProvider.Authority) + "--" + NameEncode(host.Spec.AcmeProvider.Email)
 		}
-		if spec.TlsSecret == nil {
-			spec.TlsSecret = &k8sTypesCoreV1.LocalObjectReference{}
+		if host.Spec.TlsSecret == nil {
+			host.Spec.TlsSecret = &k8sTypesCoreV1.LocalObjectReference{}
 		}
-		if spec.TlsSecret.Name == "" {
-			spec.TlsSecret.Name = NameEncode(spec.AcmeProvider.Authority) + "--" + NameEncode(spec.AcmeProvider.Email) + "--" + NameEncode(spec.AcmeProvider.PrivateKeySecret.Name)
+		if host.Spec.TlsSecret.Name == "" {
+			host.Spec.TlsSecret.Name = NameEncode(host.Spec.AcmeProvider.Authority) + "--" + NameEncode(host.Spec.AcmeProvider.Email) + "--" + NameEncode(host.Spec.AcmeProvider.PrivateKeySecret.Name)
 		}
+	}
+	if host.Status == nil {
+		host.Status = &ambassadorTypesV2.HostStatus{}
+	}
+	if host.Spec.AcmeProvider.Authority != "none" {
+		host.Status.TlsCertificateSource = ambassadorTypesV2.HostTLSCertificateSource_ACME
+	} else if host.Spec.TlsSecret.Name == "" {
+		host.Status.TlsCertificateSource = ambassadorTypesV2.HostTLSCertificateSource_Other
+	} else {
+		host.Status.TlsCertificateSource = ambassadorTypesV2.HostTLSCertificateSource_None
 	}
 }
