@@ -110,7 +110,7 @@ if args:
     yaml_stream = open(args[0], "r")
 
 aconf = Config()
-fetcher = ResourceFetcher(logger, aconf)
+fetcher = ResourceFetcher(logger, aconf, watch_only=True)
 fetcher.parse_watt(yaml_stream.read())
 
 aconf.load_all(fetcher.sorted())

@@ -179,22 +179,26 @@ class IR:
             # Uhoh.
             self.ambassador_module.set_active(False)    # This can't be good.
 
-        # Once here, if we're only watching, we're done.
-        if watch_only:
-            return
-
         # Check on the edge stack and the wizard. Note that the Edge Stack touchfile is _not_ within
         # $AMBASSADOR_CONFIG_BASE_DIR: it stays in /ambassador no matter what.
         self.edge_stack_allowed = os.path.exists('/ambassador/.edge_stack')
         self.wizard_allowed = self.edge_stack_allowed and self.ambassador_module.get('allow-wizard', True)
 
+        _activity_str = 'watching' if watch_only else 'starting'
         _mode_str = 'Edge Stack' if self.edge_stack_allowed else 'OSS'
         _wizard_str = ''
 
         if self.edge_stack_allowed:
             _wizard_str = f"; wizard {'allowed' if self.wizard_allowed else 'not allowed'}"
 
-        self.logger.info(f"IR: starting {_mode_str}{_wizard_str}")
+        self.logger.info(f"IR: {_activity_str} {_mode_str}{_wizard_str}")
+
+        # Next up, initialize our IRServiceResolvers.
+        IRServiceResolverFactory.load_all(self, aconf)
+
+        # Once here, if we're only watching, we're done.
+        if watch_only:
+            return
 
         # REMEMBER FOR SAVING YOU NEED TO CALL save_resource!
         # THIS IS VERY IMPORTANT!
@@ -205,9 +209,6 @@ class IR:
         self.services = aconf.get_config("service") or {}
 
         self.cluster_ingresses_to_mappings()
-
-        # Next up, initialize our IRServiceResolvers.
-        IRServiceResolverFactory.load_all(self, aconf)
 
         # Save tracing, ratelimit, and logging settings.
         self.tracing = typecast(IRTracing, self.save_resource(IRTracing(self, aconf)))

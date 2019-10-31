@@ -49,13 +49,15 @@ CRDTypes = frozenset([
 ])
 
 class ResourceFetcher:
-    def __init__(self, logger: logging.Logger, aconf: 'Config', skip_init_dir: bool=False) -> None:
+    def __init__(self, logger: logging.Logger, aconf: 'Config',
+                 skip_init_dir: bool=False, watch_only=False) -> None:
         self.aconf = aconf
         self.logger = logger
         self.elements: List[ACResource] = []
         self.filename: Optional[str] = None
         self.ocount: int = 1
         self.saved: List[Tuple[Optional[str], int]] = []
+        self.watch_only = watch_only
 
         self.k8s_endpoints: Dict[str, AnyDict] = {}
         self.k8s_services: Dict[str, AnyDict] = {}
@@ -922,134 +924,136 @@ class ResourceFetcher:
         # self.logger.debug("==== FINALIZE START\n%s" % json.dumps(od, sort_keys=True, indent=4))
 
         for key, k8s_svc in self.k8s_services.items():
-            # See if we can find endpoints for this service.
-            k8s_ep = self.k8s_endpoints.get(key, None)
-            k8s_ep_ports = k8s_ep.get('ports', None) if k8s_ep else None
-
             k8s_name = k8s_svc['name']
             k8s_namespace = k8s_svc['namespace']
-
-            # OK, Kube is weird. The way all this works goes like this:
-            #
-            # 1. When you create a Kube Service, Kube will allocate a clusterIP
-            #    for it and update DNS to resolve the name of the service to
-            #    that clusterIP.
-            # 2. Kube will look over the pods matched by the Service's selectors
-            #    and stick those pods' IP addresses into Endpoints for the Service.
-            # 3. The Service will have ports listed. These service.port entries can
-            #    contain:
-            #      port -- a port number you can talk to at the clusterIP
-            #      name -- a name for this port
-            #      targetPort -- a port number you can talk to at the _endpoint_ IP
-            #    We'll call the 'port' entry here the "service-port".
-            # 4. If you talk to clusterIP:service-port, you will get magically
-            #    proxied by the Kube CNI to a target port at one of the endpoint IPs.
-            #
-            # The $64K question is: how does Kube decide which target port to use?
-            #
-            # First, if there's only one endpoint port, that's the one that gets used.
-            #
-            # If there's more than one, if the Service's port entry has a targetPort
-            # number, it uses that. Otherwise it tries to find an endpoint port with
-            # the same name as the service port. Otherwise, I dunno, it punts and uses
-            # the service-port.
-            #
-            # So that's how Ambassador is going to do it, for each Service port entry.
-            #
-            # If we have no endpoints at all, Ambassador will end up routing using
-            # just the service name and port per the Mapping's service spec.
 
             target_ports = {}
             target_addrs = []
             svc_endpoints = {}
 
-            if not k8s_ep or not k8s_ep_ports:
-                # No endpoints at all, so we're done with this service.
-                self.logger.debug(f'{key}: no endpoints at all')
-            else:
-                idx = -1
+            if not self.watch_only:
+                # If we're not in watch mode, try to find endpoints for this service.
 
-                for port in k8s_svc['ports']:
-                    idx += 1
+                k8s_ep = self.k8s_endpoints.get(key, None)
+                k8s_ep_ports = k8s_ep.get('ports', None) if k8s_ep else None
 
-                    k8s_target: Optional[int] = None
+                # OK, Kube is weird. The way all this works goes like this:
+                #
+                # 1. When you create a Kube Service, Kube will allocate a clusterIP
+                #    for it and update DNS to resolve the name of the service to
+                #    that clusterIP.
+                # 2. Kube will look over the pods matched by the Service's selectors
+                #    and stick those pods' IP addresses into Endpoints for the Service.
+                # 3. The Service will have ports listed. These service.port entries can
+                #    contain:
+                #      port -- a port number you can talk to at the clusterIP
+                #      name -- a name for this port
+                #      targetPort -- a port number you can talk to at the _endpoint_ IP
+                #    We'll call the 'port' entry here the "service-port".
+                # 4. If you talk to clusterIP:service-port, you will get magically
+                #    proxied by the Kube CNI to a target port at one of the endpoint IPs.
+                #
+                # The $64K question is: how does Kube decide which target port to use?
+                #
+                # First, if there's only one endpoint port, that's the one that gets used.
+                #
+                # If there's more than one, if the Service's port entry has a targetPort
+                # number, it uses that. Otherwise it tries to find an endpoint port with
+                # the same name as the service port. Otherwise, I dunno, it punts and uses
+                # the service-port.
+                #
+                # So that's how Ambassador is going to do it, for each Service port entry.
+                #
+                # If we have no endpoints at all, Ambassador will end up routing using
+                # just the service name and port per the Mapping's service spec.
 
-                    src_port = port.get('port', None)
+                if not k8s_ep or not k8s_ep_ports:
+                    # No endpoints at all, so we're done with this service.
+                    self.logger.debug(f'{key}: no endpoints at all')
+                else:
+                    idx = -1
 
-                    if not src_port:
-                        # WTFO. This is impossible.
-                        self.logger.error(f"Kubernetes service {key} has no port number at index {idx}?")
-                        continue
+                    for port in k8s_svc['ports']:
+                        idx += 1
 
-                    if len(k8s_ep_ports) == 1:
-                        # Just one endpoint port. Done.
-                        k8s_target = list(k8s_ep_ports.values())[0]
+                        k8s_target: Optional[int] = None
+
+                        src_port = port.get('port', None)
+
+                        if not src_port:
+                            # WTFO. This is impossible.
+                            self.logger.error(f"Kubernetes service {key} has no port number at index {idx}?")
+                            continue
+
+                        if len(k8s_ep_ports) == 1:
+                            # Just one endpoint port. Done.
+                            k8s_target = list(k8s_ep_ports.values())[0]
+                            target_ports[src_port] = k8s_target
+
+                            self.logger.debug(f'{key} port {src_port}: single endpoint port {k8s_target}')
+                            continue
+
+                        # Hmmm, we need to try to actually map whatever ports are listed for
+                        # this service. Oh well.
+
+                        found_key = False
+                        fallback: Optional[int] = None
+
+                        for attr in [ 'targetPort', 'name', 'port' ]:
+                            port_key = port.get(attr)   # This could be a name or a number, in general.
+
+                            if port_key:
+                                found_key = True
+
+                                if not fallback and (port_key != 'name') and str(port_key).isdigit():
+                                    # fallback can only be digits.
+                                    fallback = port_key
+
+                                # Do we have a destination port for this?
+                                k8s_target = k8s_ep_ports.get(str(port_key), None)
+
+                                if k8s_target:
+                                    self.logger.debug(f'{key} port {src_port} #{idx}: {attr} {port_key} -> {k8s_target}')
+                                    break
+                                else:
+                                    self.logger.debug(f'{key} port {src_port} #{idx}: {attr} {port_key} -> miss')
+
+                        if not found_key:
+                            # WTFO. This is impossible.
+                            self.logger.error(f"Kubernetes service {key} port {src_port} has an empty port spec at index {idx}?")
+                            continue
+
+                        if not k8s_target:
+                            # This is most likely because we don't have endpoint info at all, so we'll do service
+                            # routing.
+                            #
+                            # It's actually impossible for fallback to be unset, but WTF.
+                            k8s_target = fallback or src_port
+
+                            self.logger.debug(f'{key} port {src_port} #{idx}: falling back to {k8s_target}')
+
                         target_ports[src_port] = k8s_target
 
-                        self.logger.debug(f'{key} port {src_port}: single endpoint port {k8s_target}')
-                        continue
+                    if not target_ports:
+                        # WTFO. This is impossible. I guess we'll fall back to service routing.
+                        self.logger.error(f"Kubernetes service {key} has no routable ports at all?")
 
-                    # Hmmm, we need to try to actually map whatever ports are listed for
-                    # this service. Oh well.
+                    # OK. Once _that's_ done we have to take the endpoint addresses into
+                    # account, or just use the service name if we don't have that.
 
-                    found_key = False
-                    fallback: Optional[int] = None
+                    k8s_ep_addrs = k8s_ep.get('addresses', None)
 
-                    for attr in [ 'targetPort', 'name', 'port' ]:
-                        port_key = port.get(attr)   # This could be a name or a number, in general.
+                    if k8s_ep_addrs:
+                        for addr in k8s_ep_addrs:
+                            ip = addr.get('ip', None)
 
-                        if port_key:
-                            found_key = True
-
-                            if not fallback and (port_key != 'name') and str(port_key).isdigit():
-                                # fallback can only be digits.
-                                fallback = port_key
-
-                            # Do we have a destination port for this?
-                            k8s_target = k8s_ep_ports.get(str(port_key), None)
-
-                            if k8s_target:
-                                self.logger.debug(f'{key} port {src_port} #{idx}: {attr} {port_key} -> {k8s_target}')
-                                break
-                            else:
-                                self.logger.debug(f'{key} port {src_port} #{idx}: {attr} {port_key} -> miss')
-
-                    if not found_key:
-                        # WTFO. This is impossible.
-                        self.logger.error(f"Kubernetes service {key} port {src_port} has an empty port spec at index {idx}?")
-                        continue
-
-                    if not k8s_target:
-                        # This is most likely because we don't have endpoint info at all, so we'll do service
-                        # routing.
-                        #
-                        # It's actually impossible for fallback to be unset, but WTF.
-                        k8s_target = fallback or src_port
-
-                        self.logger.debug(f'{key} port {src_port} #{idx}: falling back to {k8s_target}')
-
-                    target_ports[src_port] = k8s_target
-
-                if not target_ports:
-                    # WTFO. This is impossible. I guess we'll fall back to service routing.
-                    self.logger.error(f"Kubernetes service {key} has no routable ports at all?")
-
-                # OK. Once _that's_ done we have to take the endpoint addresses into
-                # account, or just use the service name if we don't have that.
-
-                k8s_ep_addrs = k8s_ep.get('addresses', None)
-
-                if k8s_ep_addrs:
-                    for addr in k8s_ep_addrs:
-                        ip = addr.get('ip', None)
-
-                        if ip:
-                            target_addrs.append(ip)
+                            if ip:
+                                target_addrs.append(ip)
 
             # OK! If we have no target addresses, just use service routing.
-
             if not target_addrs:
-                self.logger.debug(f'{key} falling back to service routing')
+                if not self.watch_only:
+                    self.logger.debug(f'{key} falling back to service routing')
                 target_addrs = [ key ]
 
             for src_port, target_port in target_ports.items():
@@ -1058,7 +1062,6 @@ class ResourceFetcher:
                     'port': target_port
                 } for target_addr in target_addrs ]
 
-            # Nope. Set this up for service routing.
             self.services[f'k8s-{k8s_name}-{k8s_namespace}'] = {
                 'apiVersion': 'ambassador/v1',
                 'ambassador_id': Config.ambassador_id,
