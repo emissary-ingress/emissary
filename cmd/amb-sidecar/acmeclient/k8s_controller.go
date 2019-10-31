@@ -33,7 +33,7 @@ type Controller struct {
 	secretsGetter k8sClientCoreV1.SecretsGetter
 	hostsGetter   k8sClientDynamic.NamespaceableResourceInterface
 
-	hosts   []watt.Host
+	hosts   []*ambassadorTypesV2.Host
 	secrets []*k8sTypesCoreV1.Secret
 }
 
@@ -74,7 +74,7 @@ func (c *Controller) Worker(logger types.Logger) {
 }
 
 func (c *Controller) processSnapshot(snapshot watt.Snapshot) (changed bool) {
-	hosts := append([]watt.Host(nil), snapshot.Kubernetes.Host...)
+	hosts := append([]*ambassadorTypesV2.Host(nil), snapshot.Kubernetes.Host...)
 	sort.SliceStable(hosts, func(i, j int) bool {
 		switch {
 		case hosts[i].GetNamespace() < hosts[j].GetNamespace():
@@ -90,7 +90,7 @@ func (c *Controller) processSnapshot(snapshot watt.Snapshot) (changed bool) {
 		changed = true
 	} else {
 		for i := range hosts {
-			if !hostsEqual(&hosts[i], &c.hosts[i]) {
+			if !hostsEqual(hosts[i], c.hosts[i]) {
 				changed = true
 				break
 			}
@@ -136,12 +136,12 @@ func (c *Controller) getSecret(namespace, name string) *k8sTypesCoreV1.Secret {
 	return nil
 }
 
-func (c *Controller) updateHost(host *watt.Host) error {
+func (c *Controller) updateHost(host *ambassadorTypesV2.Host) error {
 	_, err := c.hostsGetter.Namespace(host.GetNamespace()).Update(&k8sTypesUnstructured.Unstructured{
 		Object: map[string]interface{}{
 			"apiVersion": "getambassador.io/v2",
 			"kind":       "Host",
-			"metadata":   unstructureMetadata(&host.ObjectMeta),
+			"metadata":   unstructureMetadata(host.ObjectMeta),
 			"spec":       host.Spec,
 		},
 	}, k8sTypesMetaV1.UpdateOptions{})
@@ -167,7 +167,7 @@ func (c *Controller) rectify(logger types.Logger) {
 	// 'tlsSecretProviders' and 'tlsSecretHostnames'
 	acmeProviders := make(map[providerKey]*ambassadorTypesV2.ACMEProviderSpec)
 	for _, _host := range c.hosts {
-		host := deepCopyHost(&_host)
+		host := deepCopyHost(_host)
 		logger := logger.WithField("host", host.GetName()+"."+host.GetNamespace())
 		logger.Debugln("processing host...")
 

@@ -26,7 +26,6 @@ import (
 	"github.com/datawire/apro/cmd/amb-sidecar/acmeclient"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/httpclient"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/middleware"
-	"github.com/datawire/apro/cmd/amb-sidecar/watt"
 )
 
 type firstBootWizard struct {
@@ -72,12 +71,12 @@ func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 		io.WriteString(w, tosURL)
 	case "/yaml":
-		dat := &watt.Host{
-			TypeMeta: k8sTypesMetaV1.TypeMeta{
+		dat := &ambassadorTypesV2.Host{
+			TypeMeta: &k8sTypesMetaV1.TypeMeta{
 				APIVersion: "getambassador.io/v2",
 				Kind:       "Host",
 			},
-			ObjectMeta: k8sTypesMetaV1.ObjectMeta{
+			ObjectMeta: &k8sTypesMetaV1.ObjectMeta{
 				Name:      acmeclient.NameEncode(r.URL.Query().Get("hostname")),
 				Namespace: "default",
 				Labels: map[string]string{
@@ -97,7 +96,13 @@ func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			// Go ahead and fill the defaults; we won't do this when actually applying
 			// it (in the http.MethodPost case), but it's informative to the user.
 			acmeclient.FillDefaults(dat.Spec)
-			bytes, err := yaml.Marshal(dat)
+			bytes, err := yaml.Marshal(map[string]interface{}{
+				"apiVersion": "getambassador.io/v2",
+				"kind":       "Host",
+				"metadata":   dat.ObjectMeta,
+				"spec":       dat.Spec,
+				"status":     dat.Status,
+			})
 			if err != nil {
 				// We generated 'dat'; it should always be valid.
 				panic(err)
