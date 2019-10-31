@@ -471,7 +471,7 @@ class SecretHandler:
             # Bzzt.
             return None
 
-        return SecretInfo.from_dict(context, secret_name, source, namespace, cert_data)
+        return SecretInfo.from_dict(context, secret_name, namespace, source, cert_data)
 
 
 class NullSecretHandler(SecretHandler):
