@@ -24,4 +24,6 @@ You can also install Ambassador Edge Stack using Helm, Docker, or Docker Compose
 | --- | --- | --- |
 | Helm is a package manager for Kubernetes. Ambassador Edge Stack comes pre-packaged as a Helm chart. [Deploy to Kubernetes via Helm.](/user-guide/helm) | The Docker install will let you try Ambassador Edge Stack locally in seconds, but is not supported for production. [Try via Docker.](/about/quickstart) | The Docker Compose setup gives you a local development environment (a good alternative to Minikube), but is not suitable for production. [Set up with Docker Compose.](/user-guide/docker-compose)
 
+### Ambassador Open Source
+
 If you want to install Ambassador Open Source, find instructions to do so <a href="/user-guide/install-ambassador-oss">here</a>.
