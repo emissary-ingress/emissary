@@ -27,9 +27,10 @@ kubectl get -n ambassador service ambassador -o 'go-template={{range .status.loa
 
 ## 3. Assign a DNS name (or not)
 
-Assign a DNS name using the providor of your choice to the IP address
-acquired in Step 2. If you can't/don't want to assign a DNS name, then
-you can use the IP address you acquired in step 2 instead.
+Navigate to your new IP address in your browser. Assign a DNS name using 
+the providor of your choice to the IP address acquired in Step 2. If you 
+can't/don't want to assign a DNS name, then you can use the IP address 
+you acquired in step 2 instead.
 
 ## 4. Complete the install
 
