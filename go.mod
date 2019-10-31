@@ -16,7 +16,7 @@ require (
 	github.com/fsnotify/fsnotify v1.4.7
 	github.com/gogo/googleapis v1.3.0 // indirect
 	github.com/gogo/protobuf v1.3.0
-	github.com/golang/protobuf v1.3.1
+	github.com/golang/protobuf v1.3.2
 	github.com/google/shlex v0.0.0-20181106134648-c34317bd91bf
 	github.com/gorilla/websocket v1.4.0
 	github.com/hashicorp/consul/api v1.1.0
@@ -27,6 +27,7 @@ require (
 	github.com/lyft/protoc-gen-validate v0.1.0 // indirect
 	github.com/miekg/dns v1.1.6
 	github.com/mitchellh/mapstructure v1.1.2
+	github.com/mitchellh/protoc-gen-go-json v0.0.0-20190813154521-ece073100ced
 	github.com/pkg/errors v0.8.1
 	github.com/sirupsen/logrus v1.4.0
 	github.com/spf13/cobra v0.0.5

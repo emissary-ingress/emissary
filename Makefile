@@ -9,6 +9,7 @@ $(call module,ambassador,$(OSS_HOME))
 generate: ## Update generated sources that get committed to git
 generate: $(patsubst $(OSS_HOME)/api/%.proto,                   $(OSS_HOME)/pkg/api/%.pb.go                         , $(shell find $(OSS_HOME)/api/                  -name '*.proto'))
 generate: $(patsubst $(OSS_HOME)/api/%.proto,                   $(OSS_HOME)/pkg/api/%.pb.validate.go                , $(shell find $(OSS_HOME)/api/envoy/            -name '*.proto'))
+generate: $(patsubst $(OSS_HOME)/api/%.proto,                   $(OSS_HOME)/pkg/api/%.pb.json.go                    , $(shell find $(OSS_HOME)/api/getambassador.io/ -name '*.proto'))
 generate: $(patsubst $(OSS_HOME)/api/getambassador.io/%.proto,  $(OSS_HOME)/python/ambassador/proto/%_pb2.py        , $(shell find $(OSS_HOME)/api/getambassador.io/ -name '*.proto'))
 generate: $(patsubst $(OSS_HOME)/api/kat/%.proto,               $(OSS_HOME)/tools/sandbox/grpc_web/%_pb.js          , $(shell find $(OSS_HOME)/api/kat/              -name '*.proto'))
 generate: $(patsubst $(OSS_HOME)/api/kat/%.proto,               $(OSS_HOME)/tools/sandbox/grpc_web/%_grpc_web_pb.js , $(shell find $(OSS_HOME)/api/kat/              -name '*.proto'))
@@ -88,6 +89,14 @@ $(tools/protoc-gen-grpc-web):
 	curl -o $@ -L --fail https://github.com/grpc/grpc-web/releases/download/$(GRPC_WEB_VERSION)/protoc-gen-grpc-web-$(GRPC_WEB_VERSION)-$(GRPC_WEB_PLATFORM)
 	chmod 755 $@
 
+# The version number of protoc-gen-validate is controlled by `./go.mod`.  Additionally, the package
+# name is mentioned in `./pkg/ignore/pin.go`, so that `go mod tidy` won't make the `go.mod` file
+# forget about it.
+tools/protoc-gen-go-json = $(OSS_HOME)/bin_$(GOHOSTOS)_$(GOHOSTARCH)/protoc-gen-go-json
+$(tools/protoc-gen-go-json): $(OSS_HOME)/go.mod
+	mkdir -p $(@D)
+	go build -o $@ github.com/mitchellh/protoc-gen-go-json
+
 #
 # `make generate` rules
 
@@ -162,6 +171,13 @@ $(OSS_HOME)/pkg/api/%.pb.validate.go: $(OSS_HOME)/api/%.proto $(tools/protoc) $(
 	$(call protoc,validate,$(OSS_HOME)/pkg/api,\
 	    $(tools/protoc-gen-validate))
 	sed -E -i.bak 's,"(envoy/.*)"$$,"github.com/datawire/ambassador/pkg/api/\1",' $@
+	rm -f $@.bak
+
+proto_options/go-json +=
+$(OSS_HOME)/pkg/api/%.pb.json.go: $(OSS_HOME)/api/%.proto $(tools/protoc) $(tools/protoc-gen-go-json) | $(OSS_HOME)/vendor
+	$(call protoc,go-json,$(OSS_HOME)/pkg/api,\
+	    $(tools/protoc-gen-go-json))
+	sed -E -i.bak 's,golang/protobuf,gogo/protobuf,g' $@
 	rm -f $@.bak
 
 proto_options/python +=
