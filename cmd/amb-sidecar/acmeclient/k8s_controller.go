@@ -192,10 +192,10 @@ type providerKey struct {
 }
 
 func (c *Controller) rectify(logger types.Logger) {
-	logger.Debugln("rectify...")
+	logger.Debugln("rectify: starting")
 
 	// Phase 0→1[→2]: NA→DefaultsFilled[→ACMEUserPrivateKeyCreated]
-	logger.Debugln("Phase 0→1[→2]: NA→DefaultsFilled[→ACMEUserPrivateKeyCreated]")
+	logger.Debugln("rectify: Phase 0→1[→2]: NA→DefaultsFilled[→ACMEUserPrivateKeyCreated]")
 	// Record in 'acmeHosts' a list of Hosts that are ready for the next ACME phase
 	var acmeHosts []*ambassadorTypesV2.Host
 	for _, _host := range c.hosts {
@@ -247,7 +247,7 @@ func (c *Controller) rectify(logger types.Logger) {
 
 	// Phase 2→3: ACMEUserPrivateKeyCreated→ACMEUserRegistered
 	// Populate 'acmeHostsBySecret' and 'acmeProviderBySecret' from 'acmeHosts'.
-	logger.Debugln("Phase 2→3: ACMEUserPrivateKeyCreated→ACMEUserRegistered")
+	logger.Debugln("rectify: Phase 2→3: ACMEUserPrivateKeyCreated→ACMEUserRegistered")
 	acmeHostsBySecret := make(map[string]map[string][]*ambassadorTypesV2.Host)
 	for _, host := range acmeHosts {
 		if _, nsSeen := acmeHostsBySecret[host.GetNamespace()]; !nsSeen {
@@ -296,7 +296,7 @@ func (c *Controller) rectify(logger types.Logger) {
 				}
 				for _, host := range hosts {
 					logger := logger.WithField("host", host.GetName()+"."+host.GetNamespace())
-					if host.Spec.AcmeProvider.Registration == "" {
+					if host.Spec.AcmeProvider.Registration != registration {
 						host.Spec.AcmeProvider.Registration = registration
 						c.recordHostPending(logger, host,
 							ambassadorTypesV2.HostPhase_ACMEUserRegistered,
@@ -314,7 +314,30 @@ func (c *Controller) rectify(logger types.Logger) {
 				providerKeys = append(providerKeys, key)
 			}
 			if len(providerKeys) > 1 {
-				// TODO: report a warning, stably-choose a winner (winner gets placed at index 0).
+				sort.Slice(providerKeys, func(i, j int) bool {
+					// return 'true' if we'd pick 'providerKeys[i]' over 'providerKeys[j]'
+					switch {
+					// choose the one with the most hosts
+					case len(hostsByProvider[providerKeys[i]]) > len(hostsByProvider[providerKeys[j]]):
+						return true
+					case len(hostsByProvider[providerKeys[i]]) < len(hostsByProvider[providerKeys[j]]):
+						return false
+					// as a tie-breaker, choose based on authority lexicographic sorting
+					case providerKeys[i].Authority < providerKeys[j].Authority:
+						return true
+					case providerKeys[i].Authority > providerKeys[j].Authority:
+						return false
+					// as a 2nd tie-breaker, choose based on email lexicographic sorting
+					case providerKeys[i].Email < providerKeys[j].Email:
+						return true
+					case providerKeys[i].Email > providerKeys[j].Email:
+						return false
+					// as a final tie-breaker, choose based on private key secret name lexicographic sorting
+					default:
+						return providerKeys[i].PrivateKeySecretName < providerKeys[j].PrivateKeySecretName
+					}
+				})
+				// TODO: report a warning
 			}
 			acmeProviderBySecret[namespace][tlsSecretName] = hostsByProvider[providerKeys[0]][0].Spec.AcmeProvider
 		}
@@ -322,6 +345,7 @@ func (c *Controller) rectify(logger types.Logger) {
 
 	// Phase 3→4: ACMEUserRegistered→ACMECertificateChallenge
 	// Now act on 'acmeProviderBySecret' and 'acmeHostsBySecret'
+	logger.Debugln("rectify: Phase 3→4: ACMEUserRegistered→ACMECertificateChallenge")
 	for namespace := range acmeProviderBySecret {
 		for tlsSecretName := range acmeProviderBySecret[namespace] {
 			hostnames := make([]string, 0, len(acmeHostsBySecret[namespace][tlsSecretName]))
@@ -355,14 +379,22 @@ func (c *Controller) rectify(logger types.Logger) {
 				user.Email = acmeProvider.Email
 				user.PrivateKey, err = parseUserPrivateKey(c.getSecret(namespace, acmeProvider.PrivateKeySecret.Name))
 				if err != nil {
-					// TODO: record this for all relevant hosts
-					logger.Errorln(err)
+					for _, host := range acmeHostsBySecret[namespace][tlsSecretName] {
+						logger := logger.WithField("host", host.GetName()+"."+host.GetNamespace())
+						c.recordHostError(logger, host,
+							ambassadorTypesV2.HostPhase_ACMECertificateChallenge,
+							err)
+					}
 					continue
 				}
 				var reg registration.Resource
 				if err = json.Unmarshal([]byte(acmeProvider.Registration), &reg); err != nil {
-					// TODO: record this for all relevant hosts
-					logger.Errorln(err)
+					for _, host := range acmeHostsBySecret[namespace][tlsSecretName] {
+						logger := logger.WithField("host", host.GetName()+"."+host.GetNamespace())
+						c.recordHostError(logger, host,
+							ambassadorTypesV2.HostPhase_ACMECertificateChallenge,
+							err)
+					}
 					continue
 				}
 				user.Registration = &reg
@@ -374,19 +406,33 @@ func (c *Controller) rectify(logger types.Logger) {
 					&user,
 					hostnames)
 				if err != nil {
-					// TODO: record this for all relevant hosts
-					logger.Errorln(err)
+					for _, host := range acmeHostsBySecret[namespace][tlsSecretName] {
+						logger := logger.WithField("host", host.GetName()+"."+host.GetNamespace())
+						c.recordHostError(logger, host,
+							ambassadorTypesV2.HostPhase_ACMECertificateChallenge,
+							err)
+					}
 					continue
 				}
 				if err = storeCertificate(c.secretsGetter, tlsSecretName, namespace, certResource); err != nil {
-					// TODO: record this for all relevant hosts
-					logger.Errorln(err)
+					for _, host := range acmeHostsBySecret[namespace][tlsSecretName] {
+						logger := logger.WithField("host", host.GetName()+"."+host.GetNamespace())
+						c.recordHostError(logger, host,
+							ambassadorTypesV2.HostPhase_ACMECertificateChallenge,
+							err)
+					}
 					continue
 				}
 			}
-			// TODO: record success for all relevant hosts
+			for _, host := range acmeHostsBySecret[namespace][tlsSecretName] {
+				if host.Status.State != ambassadorTypesV2.HostState_Ready {
+					logger := logger.WithField("host", host.GetName()+"."+host.GetNamespace())
+					c.recordHostReady(logger, host)
+				}
+			}
 		}
 	}
+	logger.Debugln("rectify: finished")
 }
 
 func FillDefaults(host *ambassadorTypesV2.Host) {
