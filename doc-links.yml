@@ -11,7 +11,7 @@
     - title: Ambassador vs. Other Software
       link: /about/alternatives
     - title: Installing Ambassador Edge Stack
-      link: /user-guide/install-edge-stack
+      link: /user-guide/install
       items:
       - title: Kubernetes (YAML)
         link: /user-guide/getting-started

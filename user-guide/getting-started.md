@@ -1,6 +1,6 @@
-# Deploying Ambassador Edge Stack to Kubernetes
+# Getting Started with Ambassador Edge Stack
 
-## 1. Deploying Ambassador Edge Stack
+## 1. Deploying Ambassador Edge Stack to Kubernetes
 
 <div style="border: thick solid red">
 Note, the secret.yaml file is temporary during internal Datawire development and can be obtained from the 
