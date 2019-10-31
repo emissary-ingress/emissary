@@ -58,7 +58,6 @@ func testBasicConfig(grpcPort, perSecond string) func(*testing.T) {
 		os.Setenv("RUNTIME_SUBDIRECTORY", "ratelimit")
 		os.Setenv("REDIS_PERSECOND_SOCKET_TYPE", "tcp")
 		os.Setenv("REDIS_PERSECOND_URL", "localhost:6380")
-		os.Setenv("REDIS_SOCKET_TYPE", "tcp")
 		os.Setenv("REDIS_URL", "localhost:6379")
 
 		go func() {

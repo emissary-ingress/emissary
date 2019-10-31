@@ -120,7 +120,7 @@ func runE(cmd *cobra.Command, args []string) error {
 	if len(fatal) > 0 {
 		return fatal[len(fatal)-1]
 	}
-	logrusLogger.Info("Ambassador Pro configuation loaded")
+	logrusLogger.Info("Ambassador Edge Stack configuation loaded")
 
 	if err := os.MkdirAll(filepath.Dir(cfg.RLSRuntimeDir), 0777); err != nil {
 		return err
@@ -147,9 +147,15 @@ func runE(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	redisPool, err := pool.New(cfg.RedisSocketType, cfg.RedisURL, cfg.RedisPoolSize)
-	if err != nil {
-		return errors.Wrap(err, "redis pool")
+	var redisPool *pool.Pool
+	if cfg.RedisURL != "" {
+		redisPool, err = pool.New(cfg.RedisSocketType, cfg.RedisURL, cfg.RedisPoolSize)
+		if err != nil {
+			logrusLogger.Errorf("redis pool configured but unavailable on startup: %v", err)
+		}
+	}
+	if redisPool == nil {
+		logrusLogger.Errorln("redis is not configured, Ambassador Edge Stack advanced features are disabled")
 	}
 
 	snapshotStore := watt.NewSnapshotStore(http.DefaultClient /* XXX */)
@@ -262,7 +268,7 @@ func runE(cmd *cobra.Command, args []string) error {
 			lyftserver.NewHealthChecker(healthService).ServeHTTP)
 
 		// AuthService
-		if licenseClaims.RequireFeature(licensekeys.FeatureFilter) == nil || licenseClaims.RequireFeature(licensekeys.FeatureDevPortal) == nil {
+		if redisPool != nil && (licenseClaims.RequireFeature(licensekeys.FeatureFilter) == nil || licenseClaims.RequireFeature(licensekeys.FeatureDevPortal) == nil) {
 			authService, err := filterhandler.NewFilterMux(cfg, l.WithField("SUB", "http-handler"), ct, coreClient, redisPool)
 			if err != nil {
 				return err
@@ -272,7 +278,7 @@ func runE(cmd *cobra.Command, args []string) error {
 		}
 
 		// RateLimitService
-		if licenseClaims.RequireFeature(licensekeys.FeatureRateLimit) == nil {
+		if redisPool != nil && licenseClaims.RequireFeature(licensekeys.FeatureRateLimit) == nil {
 			rateLimitScope := statsStore.Scope("ratelimit")
 			rateLimitService := lyftservice.NewService(
 				loader.New(
@@ -309,7 +315,9 @@ func runE(cmd *cobra.Command, args []string) error {
 
 		httpHandler.AddEndpoint("/banner/", "Diag UI banner", http.StripPrefix("/banner", banner.NewBanner()).ServeHTTP)
 
-		httpHandler.AddEndpoint("/.well-known/acme-challenge/", "ACME http-01 challenge", acmeclient.NewChallengeHandler(redisPool).ServeHTTP)
+		if redisPool != nil {
+			httpHandler.AddEndpoint("/.well-known/acme-challenge/", "ACME http-01 challenge", acmeclient.NewChallengeHandler(redisPool).ServeHTTP)
+		}
 
 		httpHandler.AddEndpoint("/_internal/v0/watt", "watt→post_uptate.py→this", snapshotStore.ServeHTTP)
 

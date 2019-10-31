@@ -28,11 +28,11 @@ type Config struct {
 	AmbassadorSingleNamespace bool   `env:"AMBASSADOR_SINGLE_NAMESPACE ,parser=empty/nonempty                   "`
 
 	// General
-	HTTPPort        string `env:"APRO_HTTP_PORT    ,parser=nonempty-string   ,default=8500 "`
-	LogLevel        string `env:"APP_LOG_LEVEL     ,parser=logrus.ParseLevel ,default=info "` // log level ("error" < "warn"/"warning" < "info" < "debug" < "trace")
-	RedisPoolSize   int    `env:"REDIS_POOL_SIZE   ,parser=strconv.ParseInt  ,default=10   "`
-	RedisSocketType string `env:"REDIS_SOCKET_TYPE ,parser=nonempty-string                 "`
-	RedisURL        string `env:"REDIS_URL         ,parser=nonempty-string                 "`
+	HTTPPort        string `env:"APRO_HTTP_PORT    ,parser=nonempty-string       ,default=8500 "`
+	LogLevel        string `env:"APP_LOG_LEVEL     ,parser=logrus.ParseLevel     ,default=info "` // log level ("error" < "warn"/"warning" < "info" < "debug" < "trace")
+	RedisPoolSize   int    `env:"REDIS_POOL_SIZE   ,parser=strconv.ParseInt      ,default=10   "`
+	RedisSocketType string `env:"REDIS_SOCKET_TYPE ,parser=nonempty-string       ,default=tcp  "`
+	RedisURL        string `env:"REDIS_URL         ,parser=possibly-empty-string               "` // if empty, disables AES features
 
 	// Auth (filters)
 	KeyPairSecretName      string `env:"APRO_KEYPAIR_SECRET_NAME      ,parser=nonempty-string ,default=ambassador-pro-keypair  "`

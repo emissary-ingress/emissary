@@ -76,7 +76,7 @@ you are starting in the `apro` directory.
 3 $ docker run -d -p 6379:6379 redis
 
 4 $ mkdir -p /tmp/config/config
-4 $ env REDIS_URL=localhost:6379 REDIS_SOCKET_TYPE=tcp USE_STATSD=false RUNTIME_ROOT=/tmp/config RUNTIME_SUBDIRECTORY=config PORT=7000 bin_darwin_amd64/amb-sidecar ratelimit
+4 $ env REDIS_URL=localhost:6379 USE_STATSD=false RUNTIME_ROOT=/tmp/config RUNTIME_SUBDIRECTORY=config PORT=7000 bin_darwin_amd64/amb-sidecar ratelimit
 
 5 $ bin_darwin_amd64/loadtest-locust-slave
 ```
