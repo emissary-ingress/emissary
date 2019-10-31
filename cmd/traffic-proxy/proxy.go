@@ -332,7 +332,7 @@ func main() {
 		Version: Version,
 		Run:     Main,
 	}
-	keycheck := licensekeys.InitializeCommandFlags(argparser.PersistentFlags(), "traffic-proxy", Version)
+	keycheck := licensekeys.InitializeCommandFlags(argparser.PersistentFlags(), "traffic-proxy", Version, "")
 	argparser.PersistentPreRun = func(cmd *cobra.Command, args []string) {
 		licenseClaims, err := keycheck(cmd.PersistentFlags())
 		if err == nil {

@@ -100,7 +100,7 @@ func main() {
 		Version: Version,
 		RunE:    Main,
 	}
-	keycheck := licensekeys.InitializeCommandFlags(argparser.PersistentFlags(), "application-sidecar", Version)
+	keycheck := licensekeys.InitializeCommandFlags(argparser.PersistentFlags(), "application-sidecar", Version, "")
 	argparser.PersistentPreRun = func(cmd *cobra.Command, args []string) {
 		licenseClaims, err := keycheck(cmd.PersistentFlags())
 		if err == nil {

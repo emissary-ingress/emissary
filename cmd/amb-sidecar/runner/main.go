@@ -73,7 +73,9 @@ func Main(version string) {
 		SilenceUsage:  true, // our FlagErrorFunc wil handle it
 	}
 
-	keycheck := licensekeys.InitializeCommandFlags(argparser.PersistentFlags(), "ambassador-sidecar", version)
+	// TODO(alexgervais): generate an "unregistered" fallback license key allowing every feature with low RPS (< 5), enforcing hard limits.
+	fallbackLicense := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImRldiIsImV4cCI6NDcwMDgyNjEzM30.wCxi5ICR6C5iEz6WkKpurNItK3zER12VNhM8F1zGkA8"
+	keycheck := licensekeys.InitializeCommandFlags(argparser.PersistentFlags(), "ambassador-sidecar", version, fallbackLicense)
 
 	argparser.SetFlagErrorFunc(func(cmd *cobra.Command, err error) error {
 		if err == nil {

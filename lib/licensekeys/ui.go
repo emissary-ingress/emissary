@@ -88,8 +88,9 @@ type cmdContext struct {
 	defaultKeyfile    string
 	defaultKeyfileErr error
 
-	keyfile string
-	key     string
+	keyfile         string
+	key             string
+	fallbackLicense string
 
 	application string
 	version     string
@@ -142,11 +143,18 @@ func (ctx *cmdContext) KeyCheck(flags *flag.FlagSet) (*LicenseClaimsLatest, erro
 			return nil, errors.New("no license key or license key file specified")
 		}
 		key, err := ioutil.ReadFile(ctx.keyfile)
-		if err != nil {
-			return nil, errors.Wrap(err, "error reading license key")
+		if err == nil {
+			ctx.key = strings.TrimSpace(string(key))
+			keysource = "file " + ctx.keyfile
+		} else {
+			if ctx.fallbackLicense != "" {
+				ctx.key = ctx.fallbackLicense
+				keysource = "unregistered"
+				// TODO(alexgervais): unregistered license in use, enforce hard-limits
+			} else {
+				return nil, errors.Wrap(err, "error reading license key")
+			}
 		}
-		ctx.key = strings.TrimSpace(string(key))
-		keysource = "file " + ctx.keyfile
 	} else {
 		if flags.Changed("license-key") {
 			keysource = "command line"
@@ -166,12 +174,13 @@ func (ctx *cmdContext) KeyCheck(flags *flag.FlagSet) (*LicenseClaimsLatest, erro
 	return claims, nil
 }
 
-func InitializeCommandFlags(flags *flag.FlagSet, application, version string) func(*flag.FlagSet) (*LicenseClaimsLatest, error) {
+func InitializeCommandFlags(flags *flag.FlagSet, application, version string, fallbackLicense string) func(*flag.FlagSet) (*LicenseClaimsLatest, error) {
 	ctx := &cmdContext{
 		application: application,
 		version:     version,
 	}
 	ctx.defaultKeyfile, ctx.defaultKeyfileErr = defaultLicenseFile()
+	ctx.fallbackLicense = fallbackLicense
 
 	flags.StringVar(&ctx.key, "license-key", os.Getenv("AMBASSADOR_LICENSE_KEY"), "ambassador license key")
 	flags.StringVar(&ctx.keyfile, "license-file", ctx.defaultKeyfile, "ambassador license file")

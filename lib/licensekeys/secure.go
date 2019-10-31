@@ -139,7 +139,7 @@ func ParseKey(licenseKey string) (*LicenseClaimsLatest, error) {
 func PhoneHome(claims *LicenseClaimsLatest, component, version string) error {
 	if os.Getenv("SCOUT_DISABLE") != "" {
 		fmt.Println("SCOUT_DISABLE, enforcing hard-limits")
-		// TODO: User has disabled phone-home through `SCOUT_DISABLE` var. Honor his will and enforce hard limits.
+		// TODO(alexgervais): User has disabled phone-home through `SCOUT_DISABLE` var. Honor his will and enforce hard limits.
 		return nil
 	}
 
@@ -156,7 +156,7 @@ func PhoneHome(claims *LicenseClaimsLatest, component, version string) error {
 		panic(err)
 	}
 
-	// TODO: Populate licensed feature usage/limits, if any usage > limit, log a message
+	// TODO(alexgervais): Populate licensed feature usage/limits, if any usage > limit, log a message
 	featuresDataSet := []map[string]interface{}{
 		//{
 		//	"name":  "feature-x",
@@ -182,7 +182,7 @@ func PhoneHome(claims *LicenseClaimsLatest, component, version string) error {
 	metritonEndpoint := "https://kubernaut.io/scout" // THIS CAN'T BE AN ENVIRONMENT VARIABLE, OR METRITON MIGHT BE HIJACKED
 	resp, err := http.Post(metritonEndpoint, "application/json", bytes.NewBuffer(body))
 	if err != nil {
-		// TODO: Phone-home was not a success... allow soft-limit and we'll try again later
+		// TODO(alexgervais): Phone-home was not a success... allow soft-limit and we'll try again later
 		fmt.Println("Metriton call was not a success... allow soft-limit")
 		return err
 	}
@@ -191,12 +191,12 @@ func PhoneHome(claims *LicenseClaimsLatest, component, version string) error {
 	metritonResponse := MetritonResponse{}
 	err = json.NewDecoder(resp.Body).Decode(&metritonResponse)
 	if err != nil {
-		// TODO: Phone-home's response body could not be read... allow soft-limit and we'll try again later
+		// TODO(alexgervais): Phone-home's response body could not be read... allow soft-limit and we'll try again later
 		fmt.Println("Metriton call was not a success... allow soft-limit")
 		return err
 	}
 	if metritonResponse.IsHardLimit {
-		// TODO: Metriton is telling us to enforce hard limit
+		// TODO(alexgervais): Metriton is telling us to enforce hard limit
 		fmt.Println("Metriton is enforcing hard-limits")
 		return nil
 	}

@@ -11,6 +11,7 @@ type banner struct {
 }
 
 func NewBanner() http.Handler {
+	// TODO(alexgervais): Display a banner inviting "unregistered" license users to enter their email
 	t := template.New("banner")
 	t, _ = t.Parse(`
 {{- if .features_over_limit -}}
@@ -23,7 +24,7 @@ func NewBanner() http.Handler {
 func (b *banner) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	licensedFeaturesOverLimit := []string{}
 	for _, feature := range licensekeys.ListKnownFeatures() {
-		// TODO: Filter on actual `usage` > `limit`
+		// TODO(alexgervais): Filter on actual `usage` >= `limit`
 		licensedFeaturesOverLimit = append(licensedFeaturesOverLimit, feature)
 	}
 	data := map[string]interface{}{
