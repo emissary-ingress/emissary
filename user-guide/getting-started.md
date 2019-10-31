@@ -14,6 +14,7 @@ kubectl wait --for condition=established --timeout=60s crd -lproduct=aes && \
 kubectl apply -f https://deploy-preview-91--datawire-ambassador.netlify.com/yaml/aes.yaml && \
 kubectl -n ambassador wait --for condition=available --timeout=60s deploy -lproduct=aes
 ```
+= clipboard_button
 
 ## 2. Determine your IP Address
 
