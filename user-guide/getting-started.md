@@ -7,7 +7,7 @@ Note, the secret.yaml file is temporary during internal Datawire development and
 <a href="https://drive.google.com/file/d/1q-fmSXU966UtAARrzyCnaKTVbcpkg2n-/view?usp=sharing">Google drive</a>.
 </div>
 
-<!-- Trigger
+
 ```shell
 kubectl apply -f secret.yaml && \
 kubectl apply -f https://deploy-preview-91--datawire-ambassador.netlify.com/yaml/aes-crds.yaml && \
@@ -17,7 +17,7 @@ kubectl -n ambassador wait --for condition=available --timeout=60s deploy -lprod
 ```
 = clipboard_button
 
-<button class="btn" data-clipboard-text="Just because you can doesn't mean you should — clipboard.js">
+<!-- Triggerbutton class="btn" data-clipboard-text="Just because you can doesn't mean you should — clipboard.js">
     Copy
 </button>
 -->
