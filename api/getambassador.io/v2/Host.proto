@@ -7,23 +7,28 @@
  */
 syntax = "proto3";
 
+package getambassador.io.v2;
+
 import "k8s.io/apimachinery/pkg/apis/meta/v1/generated.proto";
 import "k8s.io/api/core/v1/generated.proto";
+import "github.com/gogo/protobuf/gogoproto/gogo.proto";
 
 message Host {
+  k8s.io.apimachinery.pkg.apis.meta.v1.TypeMeta type_meta = 1 [(gogoproto.embed) = true, (gogoproto.jsontag) = ",inline"];
+
   // Standard object's metadata.
   // More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata
-  k8s.io.apimachinery.pkg.apis.meta.v1.ObjectMeta metadata = 1;
+  k8s.io.apimachinery.pkg.apis.meta.v1.ObjectMeta metadata = 2 [(gogoproto.embed) = true];
 
   // Specification of the desired behavior of the Host.
   // More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status
-  HostSpec spec = 2;
+  HostSpec spec = 3;
 
   // Most recently observed status of the Host.
   // This data may not be up to date.
   // Populated by AES.
   // More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status
-  HostStatus status = 3;
+  HostStatus status = 4;
 }
 
 // The Host resource will usually be a Kubernetes CRD, but it could
