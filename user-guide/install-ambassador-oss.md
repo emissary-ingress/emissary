@@ -37,14 +37,14 @@ We recommend downloading the YAML files and exploring the content. You will see
 that an `ambassador-admin` NodePort Service is created (which provides an
 Ambassador Diagnostic web UI), along with an ambassador ClusterRole, ServiceAccount and ClusterRoleBinding (if RBAC is enabled). An Ambassador Deployment is also created.
 
-When not installing Ambassador into the default namespace you must update the namespace used in the `ClusterRoleBinding` when RBAC is enabled.
+When not installing Ambassador Open Source into the default namespace you must update the namespace used in the `ClusterRoleBinding` when RBAC is enabled.
 
 For production configurations, we recommend you download these YAML files as your starting point, and customize them accordingly.
 
 
-## 2. Defining the Ambassador Service
+## 2. Defining the Ambassador Open Source Service
 
-Ambassador is deployed as a Kubernetes Service that references the ambassador
+Ambassador Open Sourceis deployed as a Kubernetes Service that references the ambassador
 Deployment you deployed previously. Create the following YAML and put it in a file called
 `ambassador-service.yaml`.
 
@@ -70,7 +70,7 @@ Deploy this service with `kubectl`:
 $ kubectl apply -f ambassador-service.yaml
 ```
 
-The YAML above creates a Kubernetes service for Ambassador of type `LoadBalancer`, and configures the `externalTrafficPolicy` to propagate [the original source IP](https://kubernetes.io/docs/tasks/access-application-cluster/create-external-load-balancer/#preserving-the-client-source-ip) of the client. All HTTP traffic will be evaluated against the routing rules you create. Note that if you're not deploying in an environment where `LoadBalancer` is a supported type (such as minikube), you'll need to change this to a different type of service, e.g., `NodePort`.
+The YAML above creates a Kubernetes service for Ambassador Open Source of type `LoadBalancer`, and configures the `externalTrafficPolicy` to propagate [the original source IP](https://kubernetes.io/docs/tasks/access-application-cluster/create-external-load-balancer/#preserving-the-client-source-ip) of the client. All HTTP traffic will be evaluated against the routing rules you create. Note that if you're not deploying in an environment where `LoadBalancer` is a supported type (such as minikube), you'll need to change this to a different type of service, e.g., `NodePort`.
 
 If you have a static IP provided by your cloud provider you can set as `loadBalancerIP`.
 
@@ -160,7 +160,7 @@ This YAML has also been published so you can deploy it remotely:
 kubectl apply -f https://getambassador.io/yaml/tour/tour.yaml
 ```
 
-When the `Mapping` CRDs are applied, Ambassador will use them to configure routing:
+When the `Mapping` CRDs are applied, Ambassador  Open Sourcewill use them to configure routing:
 
 - The first `Mapping` causes traffic from the `/` endpoint to be routed to the `tour-ui` React application.
 - The second `Mapping` causes traffic from the `/backend/` endpoint to be routed to the `tour-backend` service.
@@ -169,7 +169,7 @@ Note also the port numbers in the `service` field of the `Mapping`. This allows 
 
 <font color=#f9634E>**Important:**</font>
 
-Routing in Ambassador can be configured with Ambassador resources as shown above, Kubernetes service annotation, and Kubernetes Ingress resources. 
+Routing in Ambassador Open Source can be configured with Ambassador resources as shown above, Kubernetes service annotation, and Kubernetes Ingress resources. 
 
 Ambassador custom resources are the recommended config format and will be used throughout the documentation.
 
@@ -177,7 +177,7 @@ See [configuration format](/reference/config-format) for more information on you
 
 ## 4. Testing the Mapping
 
-To test things out, we'll need the external IP for Ambassador (it might take some time for this to be available):
+To test things out, we'll need the external IP for Ambassador Open Source (it might take some time for this to be available):
 
 ```shell
 kubectl get svc -o wide ambassador
@@ -222,7 +222,7 @@ http://localhost/
 
 ## 5. The Diagnostics Service in Kubernetes
 
-Ambassador includes an integrated diagnostics service to help with troubleshooting. 
+Ambassador Open Source includes an integrated diagnostics service to help with troubleshooting. 
 
 By default, this is exposed to the internet at the URL `http://{{AMBASSADOR_HOST}}/ambassador/v0/diag/`. Go to that URL from a web browser to view the diagnostic UI.
 
@@ -239,7 +239,7 @@ spec:
       enabled: false
 ```
 
-After applying this `Module`, to view the diagnostics UI, we'll need to get the name of one of the Ambassador pods:
+After applying this `Module`, to view the diagnostics UI, we'll need to get the name of one of the Ambassador Open Source pods:
 
 ```
 $ kubectl get pods
@@ -258,18 +258,10 @@ will then let us view the diagnostics at http://localhost:8877/ambassador/v0/dia
 
 ## 6. Enable HTTPS
 
-Ambassador's versatile HTTPS configuration lets it support various HTTPS use cases whether simple or complex. 
+Ambassador's versatile HTTPS configuration lets it support various HTTPS use cases whether simple or complex.
 
 Follow our [enabling HTTPS guide](/user-guide/tls-termination) to quickly enable HTTPS support for your applications.
 
+## Want more?
 
-## Next Steps
-
-We've just done a quick tour of some of the core features of Ambassador: diagnostics, routing, configuration, and authentication.
-
-- Join us on [Slack](https://d6e.co/slack);
-- Learn how to [add authentication](/user-guide/auth-tutorial) to existing services; or
-- Learn how to [add rate limiting](/user-guide/rate-limiting-tutorial) to existing services; or
-- Learn how to [add tracing](/user-guide/tracing-tutorial); or
-- Learn how to [use gRPC with Ambassador](/user-guide/grpc); or
-- Read about [configuring Ambassador](/reference/configuration).
+For more features, check out the latest build of [Ambassador Edge Stack](/user-guide/install).
