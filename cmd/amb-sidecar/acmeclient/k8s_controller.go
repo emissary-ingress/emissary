@@ -153,7 +153,7 @@ func (c *Controller) updateHost(host *ambassadorTypesV2.Host) error {
 }
 
 func (c *Controller) recordHostPending(logger types.Logger, host *ambassadorTypesV2.Host, phaseCompleted, phasePending ambassadorTypesV2.HostPhase) {
-	logger.Debugln("updating pending host")
+	logger.Debugf("updating pending host %d→%d", host.Status.PhaseCompleted, phaseCompleted)
 	host.Status.State = ambassadorTypesV2.HostState_Pending
 	host.Status.PhaseCompleted = phaseCompleted
 	host.Status.PhasePending = phasePending
@@ -201,7 +201,7 @@ func (c *Controller) rectify(logger types.Logger) {
 	for _, _host := range c.hosts {
 		host := deepCopyHost(_host)
 		logger := logger.WithField("host", host.GetName()+"."+host.GetNamespace())
-		logger.Debugln("processing host...")
+		logger.Debugln("rectify: processing host...")
 
 		FillDefaults(host)
 		if !proto.Equal(host.Spec, _host.Spec) {
@@ -214,10 +214,10 @@ func (c *Controller) rectify(logger types.Logger) {
 
 		switch host.Status.TlsCertificateSource {
 		case ambassadorTypesV2.HostTLSCertificateSource_None:
-			logger.Debugln("Host does not use TLS")
+			logger.Debugln("rectify: Host does not use TLS")
 			c.recordHostReady(logger, host)
 		case ambassadorTypesV2.HostTLSCertificateSource_Other:
-			logger.Debugln("Host uses externally provisioned TLS certificate")
+			logger.Debugln("rectify: Host uses externally provisioned TLS certificate")
 			if c.getSecret(host.GetNamespace(), host.Spec.TlsSecret.Name) == nil {
 				c.recordHostError(logger, host,
 					ambassadorTypesV2.HostPhase_NA,
@@ -228,7 +228,7 @@ func (c *Controller) rectify(logger types.Logger) {
 			}
 		case ambassadorTypesV2.HostTLSCertificateSource_ACME:
 			if c.getSecret(host.GetNamespace(), host.Spec.AcmeProvider.PrivateKeySecret.Name) == nil {
-				logger.Debugln("creating user private key")
+				logger.Debugln("rectify: creating user private key")
 				err := createUserPrivateKey(c.secretsGetter, host.GetNamespace(), host.Spec.AcmeProvider.PrivateKeySecret.Name)
 				if err != nil {
 					c.recordHostError(logger, host,
@@ -241,6 +241,7 @@ func (c *Controller) rectify(logger types.Logger) {
 				}
 				continue
 			}
+			logger.Debugln("rectify: accepting host for next phase")
 			acmeHosts = append(acmeHosts, host)
 		}
 	}
@@ -258,8 +259,20 @@ func (c *Controller) rectify(logger types.Logger) {
 	}
 	acmeProviderBySecret := make(map[string]map[string]*ambassadorTypesV2.ACMEProviderSpec)
 	for namespace := range acmeHostsBySecret {
+		logger := logger.WithField("namespace", namespace)
 		acmeProviderBySecret[namespace] = make(map[string]*ambassadorTypesV2.ACMEProviderSpec)
 		for tlsSecretName := range acmeHostsBySecret[namespace] {
+			logger := logger.WithField("secret", tlsSecretName)
+			logger.Debugf("rectify: processing hosts that share secret=%q: %v",
+				tlsSecretName,
+				func() []string {
+					hosts := make([]string, 0, len(acmeHostsBySecret[namespace][tlsSecretName]))
+					for _, host := range acmeHostsBySecret[namespace][tlsSecretName] {
+						hosts = append(hosts, host.GetName())
+					}
+					sort.Strings(hosts)
+					return hosts
+				}())
 			hostsByProvider := make(map[providerKey][]*ambassadorTypesV2.Host)
 			for _, host := range acmeHostsBySecret[namespace][tlsSecretName] {
 				hashKey := providerKey{
@@ -275,12 +288,17 @@ func (c *Controller) rectify(logger types.Logger) {
 				for _, host := range hosts {
 					if host.Spec.AcmeProvider.Registration != "" {
 						if registration != "" && registration != host.Spec.AcmeProvider.Registration {
-							// TODO: report a warning
+							// TODO: Report this warning to the user, not just on stderr
+							logger.Warningf("host=%q has disagreeing ACME registration: %q",
+								host.GetName(), host.Spec.AcmeProvider.Registration)
 						}
 						registration = host.Spec.AcmeProvider.Registration
 					}
 				}
-				if registration == "" {
+				if registration != "" {
+					logger.Debugln("found existing registration")
+				} else {
+					logger.Debugln("registering ACME user...")
 					var err error
 					registration, err = c.userRegister(namespace, hosts[0].Spec.AcmeProvider)
 					if err != nil {
@@ -306,6 +324,7 @@ func (c *Controller) rectify(logger types.Logger) {
 				}
 			}
 			if dirty {
+				logger.Debugln("1 or more hosts changed, ignoring secret until next snapshot...")
 				continue
 			}
 
@@ -337,8 +356,10 @@ func (c *Controller) rectify(logger types.Logger) {
 						return providerKeys[i].PrivateKeySecretName < providerKeys[j].PrivateKeySecretName
 					}
 				})
-				// TODO: report a warning
+				// TODO: Report this warning to the user, not just on stderr
+				logger.Warningln("there were multiple ACME providers specified for this secret")
 			}
+			logger.Debugln("rectify: accepting secret for next phase")
 			acmeProviderBySecret[namespace][tlsSecretName] = hostsByProvider[providerKeys[0]][0].Spec.AcmeProvider
 		}
 	}
@@ -347,12 +368,15 @@ func (c *Controller) rectify(logger types.Logger) {
 	// Now act on 'acmeProviderBySecret' and 'acmeHostsBySecret'
 	logger.Debugln("rectify: Phase 3→4: ACMEUserRegistered→ACMECertificateChallenge")
 	for namespace := range acmeProviderBySecret {
+		logger := logger.WithField("namespace", namespace)
 		for tlsSecretName := range acmeProviderBySecret[namespace] {
+			logger := logger.WithField("secret", tlsSecretName)
 			hostnames := make([]string, 0, len(acmeHostsBySecret[namespace][tlsSecretName]))
 			for _, host := range acmeHostsBySecret[namespace][tlsSecretName] {
 				hostnames = append(hostnames, host.Spec.Hostname)
 			}
 			sort.Strings(hostnames)
+			logger.Debugf("rectify: processing secret=%q (hostnames=%v)", tlsSecretName, hostnames)
 
 			needsRenew := false
 			secret := c.getSecret(namespace, tlsSecretName)
@@ -372,6 +396,7 @@ func (c *Controller) rectify(logger types.Logger) {
 				}
 			}
 
+			logger.Debugf("rectify: needsRenew=%v", needsRenew)
 			if needsRenew {
 				acmeProvider := acmeProviderBySecret[namespace][tlsSecretName]
 				var user acmeUser
@@ -399,6 +424,7 @@ func (c *Controller) rectify(logger types.Logger) {
 				}
 				user.Registration = &reg
 
+				logger.Debugln("rectify: requesting certificate...")
 				certResource, err := obtainCertificate(
 					c.httpClient,
 					c.redisPool,
@@ -424,6 +450,7 @@ func (c *Controller) rectify(logger types.Logger) {
 					continue
 				}
 			}
+			logger.Debugln("rectify: updating host status(s)")
 			for _, host := range acmeHostsBySecret[namespace][tlsSecretName] {
 				if host.Status.State != ambassadorTypesV2.HostState_Ready {
 					logger := logger.WithField("host", host.GetName()+"."+host.GetNamespace())
