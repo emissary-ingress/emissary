@@ -240,6 +240,11 @@ func (c *Controller) rectify(logger types.Logger) {
 						ambassadorTypesV2.HostPhase_ACMEUserRegistered)
 				}
 				continue
+			} else if host.Status.PhaseCompleted == ambassadorTypesV2.HostPhase_DefaultsFilled {
+				// this can happen if we end up with a snapshot of the world that was created in-between
+				// the call to `createUserPrivateKey()` and the call to `c.recordHostPending()`.
+				logger.Debugln("rectify: deferring host until next snapshot")
+				continue
 			}
 			logger.Debugln("rectify: accepting host for next phase")
 			acmeHosts = append(acmeHosts, host)
@@ -454,6 +459,11 @@ func (c *Controller) rectify(logger types.Logger) {
 			for _, host := range acmeHostsBySecret[namespace][tlsSecretName] {
 				if host.Status.State != ambassadorTypesV2.HostState_Ready {
 					logger := logger.WithField("host", host.GetName()+"."+host.GetNamespace())
+					// There's a small-but-possible chance that a previous run already set this, but
+					// we're operating on an outdated snapshot that has the `storeCertificate()`
+					// call but not the `c.recordHostReady()` call.  We might get a 409 Conflict,
+					// but that's OK; there's no actual information that can get lost here (unlike
+					// when we're filling host.Spec.AcmeProvider.Registration).
 					c.recordHostReady(logger, host)
 				}
 			}
