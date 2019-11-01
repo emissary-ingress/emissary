@@ -88,7 +88,7 @@ type cmdContext struct {
 	defaultKeyfile    string
 	defaultKeyfileErr error
 
-	keyfile string
+	Keyfile string
 	key     string
 
 	application string
@@ -131,22 +131,25 @@ func (ctx *cmdContext) phoneHomeEveryday(claims *LicenseClaimsLatest) {
 	}
 }
 
-func (ctx *cmdContext) KeyCheck(flags *flag.FlagSet) (*LicenseClaimsLatest, error) {
+func (ctx *cmdContext) KeyCheck(flags *flag.FlagSet, ignoreLoadedKey bool) (*LicenseClaimsLatest, error) {
 	var keysource string
+	if ignoreLoadedKey {
+		ctx.key = ""
+	}
 
 	if ctx.key == "" {
 		if !flags.Changed("license-file") && ctx.defaultKeyfileErr != nil {
 			return nil, errors.Wrap(ctx.defaultKeyfileErr, "error determining license key file")
 		}
-		if ctx.keyfile == "" {
+		if ctx.Keyfile == "" {
 			return nil, errors.New("no license key or license key file specified")
 		}
-		key, err := ioutil.ReadFile(ctx.keyfile)
+		key, err := ioutil.ReadFile(ctx.Keyfile)
 		if err != nil {
 			return nil, errors.Wrap(err, "error reading license key")
 		}
 		ctx.key = strings.TrimSpace(string(key))
-		keysource = "file " + ctx.keyfile
+		keysource = "file " + ctx.Keyfile
 	} else {
 		if flags.Changed("license-key") {
 			keysource = "command line"
@@ -166,7 +169,7 @@ func (ctx *cmdContext) KeyCheck(flags *flag.FlagSet) (*LicenseClaimsLatest, erro
 	return claims, nil
 }
 
-func InitializeCommandFlags(flags *flag.FlagSet, application, version string) func(*flag.FlagSet) (*LicenseClaimsLatest, error) {
+func InitializeCommandFlags(flags *flag.FlagSet, application, version string) *cmdContext {
 	ctx := &cmdContext{
 		application: application,
 		version:     version,
@@ -174,7 +177,7 @@ func InitializeCommandFlags(flags *flag.FlagSet, application, version string) fu
 	ctx.defaultKeyfile, ctx.defaultKeyfileErr = defaultLicenseFile()
 
 	flags.StringVar(&ctx.key, "license-key", os.Getenv("AMBASSADOR_LICENSE_KEY"), "ambassador license key")
-	flags.StringVar(&ctx.keyfile, "license-file", ctx.defaultKeyfile, "ambassador license file")
+	flags.StringVar(&ctx.Keyfile, "license-file", ctx.defaultKeyfile, "ambassador license file")
 
-	return ctx.KeyCheck
+	return ctx
 }
