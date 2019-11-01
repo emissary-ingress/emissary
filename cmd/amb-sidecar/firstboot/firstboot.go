@@ -34,8 +34,12 @@ type firstBootWizard struct {
 }
 
 func NewFirstBootWizard(dynamicClient k8sClientDynamic.Interface) http.Handler {
+	var files http.FileSystem = &assetfs.AssetFS{Asset: Asset, AssetDir: AssetDir, Prefix: ""}
+	if dir := os.Getenv("AES_STATIC_FILES"); dir != "" {
+		files = http.Dir(dir)
+	}
 	return &firstBootWizard{
-		staticfiles: &assetfs.AssetFS{Asset: Asset, AssetDir: AssetDir, Prefix: ""},
+		staticfiles: files,
 		hostsGetter: dynamicClient.Resource(k8sSchema.GroupVersionResource{Group: "getambassador.io", Version: "v2", Resource: "hosts"}),
 	}
 }
@@ -134,11 +138,6 @@ func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		//snapshot.GetHost(r.URL.Query().Get("host"))
 		io.WriteString(w, "todo...")
 	default:
-		dir := os.Getenv("AES_STATIC_FILES")
-		files := fb.staticfiles
-		if dir != "" {
-			files = http.Dir(dir)
-		}
-		http.FileServer(files).ServeHTTP(w, r)
+		http.FileServer(fb.staticfiles).ServeHTTP(w, r)
 	}
 }
