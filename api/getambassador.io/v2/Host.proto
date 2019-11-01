@@ -47,9 +47,15 @@ enum HostTLSCertificateSource {
 }
 
 enum HostState {
-  Pending = 0;
-  Ready   = 1;
-  Error   = 2;
+  // The default value is the "zero" value, and it would be great if
+  // "Pending" could be the default value; but it's Important that the
+  // "zero" value be able to be shown as empty/omitted from display,
+  // and we really do want `kubectl get hosts` to say "Pending" in the
+  // "STATE" column, and not leave the column empty.
+  Initial = 0;
+  Pending = 1;
+  Ready   = 2;
+  Error   = 3;
 }
 
 enum HostPhase {
