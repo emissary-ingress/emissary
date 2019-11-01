@@ -154,6 +154,27 @@ global_resolver = fake.ambassador_module.get('resolver', None)
 label_selector = os.environ.get('AMBASSADOR_LABEL_SELECTOR', '')
 logger.debug('label-selector: %s' % label_selector)
 
+# Walk hosts.
+for host in fake.get_hosts():
+    sel = host.get('selector') or {}
+    match_labels = sel.get('matchLabels') or {}
+
+    label_selector = None
+
+    if match_labels:
+        label_selector = ','.join([ f"{l}={v}" for l, v in match_labels.items() ])
+
+    for wanted_kind in [ 'service', 'secret' ]:
+        watch = {
+            "kind": wanted_kind,
+            "namespace": host.namespace,
+        }
+
+        if label_selector:
+            watch["label-selector"] = label_selector
+
+        kube_watches.append(watch)
+
 for mname, mapping in mappings.items():
     res_name = mapping.get('resolver', None)
     res_source = 'mapping'
