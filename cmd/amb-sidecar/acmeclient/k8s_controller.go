@@ -143,6 +143,7 @@ func (c *Controller) updateHost(host *ambassadorTypesV2.Host) error {
 			"kind":       "Host",
 			"metadata":   unstructureMetadata(host.ObjectMeta),
 			"spec":       host.Spec,
+			"status":     host.Status,
 		},
 	}, k8sTypesMetaV1.UpdateOptions{})
 	if err != nil {
@@ -151,6 +152,39 @@ func (c *Controller) updateHost(host *ambassadorTypesV2.Host) error {
 	return err
 }
 
+func (c *Controller) recordHostPending(logger types.Logger, host *ambassadorTypesV2.Host, phaseCompleted, phasePending ambassadorTypesV2.HostPhase) {
+	logger.Debugf("updating pending host %d→%d", host.Status.PhaseCompleted, phaseCompleted)
+	host.Status.State = ambassadorTypesV2.HostState_Pending
+	host.Status.PhaseCompleted = phaseCompleted
+	host.Status.PhasePending = phasePending
+	host.Status.Reason = ""
+	if err := c.updateHost(host); err != nil {
+		logger.Errorln(err)
+	}
+}
+
+func (c *Controller) recordHostReady(logger types.Logger, host *ambassadorTypesV2.Host) {
+	logger.Debugln("updating ready host")
+	host.Status.State = ambassadorTypesV2.HostState_Ready
+	host.Status.PhaseCompleted = ambassadorTypesV2.HostPhase_NA
+	host.Status.PhasePending = ambassadorTypesV2.HostPhase_NA
+	host.Status.Reason = ""
+	if err := c.updateHost(host); err != nil {
+		logger.Errorln(err)
+	}
+}
+
+func (c *Controller) recordHostError(logger types.Logger, host *ambassadorTypesV2.Host, phase ambassadorTypesV2.HostPhase, err error) {
+	logger.Debugln("updating errored host:", err)
+	host.Status.State = ambassadorTypesV2.HostState_Error
+	host.Status.PhasePending = phase
+	host.Status.Reason = err.Error()
+	if err := c.updateHost(host); err != nil {
+		logger.Errorln(err)
+	}
+}
+
+// providerKey is used as a hash key to bucket Hosts by ACME account.
 type providerKey struct {
 	Authority            string
 	Email                string
@@ -158,84 +192,197 @@ type providerKey struct {
 }
 
 func (c *Controller) rectify(logger types.Logger) {
-	logger.Debugln("rectify...")
-	// tlsSecretXXX[namespace][tls_secret_name]
-	tlsSecretProviders := make(map[string]map[string]*ambassadorTypesV2.ACMEProviderSpec)
-	tlsSecretHostnames := make(map[string]map[string][]string)
+	logger.Debugln("rectify: starting")
 
-	// Use 'c.hosts' and 'c.secrets' to populate
-	// 'tlsSecretProviders' and 'tlsSecretHostnames'
-	acmeProviders := make(map[providerKey]*ambassadorTypesV2.ACMEProviderSpec)
+	// Phase 0→1[→2]: NA→DefaultsFilled[→ACMEUserPrivateKeyCreated]
+	logger.Debugln("rectify: Phase 0→1[→2]: NA→DefaultsFilled[→ACMEUserPrivateKeyCreated]")
+	// Record in 'acmeHosts' a list of Hosts that are ready for the next ACME phase
+	var acmeHosts []*ambassadorTypesV2.Host
 	for _, _host := range c.hosts {
 		host := deepCopyHost(_host)
 		logger := logger.WithField("host", host.GetName()+"."+host.GetNamespace())
-		logger.Debugln("processing host...")
+		logger.Debugln("rectify: processing host...")
 
-		FillDefaults(host.Spec)
+		FillDefaults(host)
 		if !proto.Equal(host.Spec, _host.Spec) {
 			logger.Debugln("saving defaults")
-			if err := c.updateHost(host); err != nil {
-				logger.Errorln(err)
-			}
+			c.recordHostPending(logger, host,
+				ambassadorTypesV2.HostPhase_DefaultsFilled,
+				ambassadorTypesV2.HostPhase_NA)
 			continue
 		}
 
-		if host.Spec.AcmeProvider.Authority == "none" {
-			logger.Debugln("not an ACME Host")
-			continue
-		}
-
-		if c.getSecret(host.GetNamespace(), host.Spec.AcmeProvider.PrivateKeySecret.Name) == nil {
-			logger.Debugln("creating user private key")
-			err := createUserPrivateKey(c.secretsGetter, host.GetNamespace(), host.Spec.AcmeProvider.PrivateKeySecret.Name)
-			if err != nil {
-				logger.Errorln(err)
-			}
-			continue
-		}
-
-		if host.Spec.AcmeProvider.Registration == "" {
-			logger.Debugln("registering user")
-			hashKey := providerKey{
-				Authority:            host.Spec.AcmeProvider.Authority,
-				Email:                host.Spec.AcmeProvider.Email,
-				PrivateKeySecretName: host.Spec.AcmeProvider.PrivateKeySecret.Name,
-			}
-			if dup, hasDup := acmeProviders[hashKey]; !hasDup {
-				err := c.userRegister(host.GetNamespace(), host.Spec.AcmeProvider)
-				if err != nil {
-					logger.Errorln(err)
-					continue
-				}
+		switch host.Status.TlsCertificateSource {
+		case ambassadorTypesV2.HostTLSCertificateSource_None:
+			logger.Debugln("rectify: Host does not use TLS")
+			c.recordHostReady(logger, host)
+		case ambassadorTypesV2.HostTLSCertificateSource_Other:
+			logger.Debugln("rectify: Host uses externally provisioned TLS certificate")
+			if c.getSecret(host.GetNamespace(), host.Spec.TlsSecret.Name) == nil {
+				c.recordHostError(logger, host,
+					ambassadorTypesV2.HostPhase_NA,
+					errors.New("tlsSecret does not exist"))
 			} else {
-				host.Spec.AcmeProvider = dup
+				// TODO: Maybe validate that the secret contents are valid?
+				c.recordHostReady(logger, host)
 			}
-			if err := c.updateHost(host); err != nil {
-				logger.Errorln(err)
+		case ambassadorTypesV2.HostTLSCertificateSource_ACME:
+			if c.getSecret(host.GetNamespace(), host.Spec.AcmeProvider.PrivateKeySecret.Name) == nil {
+				logger.Debugln("rectify: creating user private key")
+				err := createUserPrivateKey(c.secretsGetter, host.GetNamespace(), host.Spec.AcmeProvider.PrivateKeySecret.Name)
+				if err != nil {
+					c.recordHostError(logger, host,
+						ambassadorTypesV2.HostPhase_ACMEUserPrivateKeyCreated,
+						err)
+				} else {
+					c.recordHostPending(logger, host,
+						ambassadorTypesV2.HostPhase_ACMEUserPrivateKeyCreated,
+						ambassadorTypesV2.HostPhase_ACMEUserRegistered)
+				}
+				continue
+			} else if host.Status.PhaseCompleted == ambassadorTypesV2.HostPhase_DefaultsFilled {
+				// this can happen if we end up with a snapshot of the world that was created in-between
+				// the call to `createUserPrivateKey()` and the call to `c.recordHostPending()`.
+				logger.Debugln("rectify: deferring host until next snapshot")
+				continue
 			}
-			continue
+			logger.Debugln("rectify: accepting host for next phase")
+			acmeHosts = append(acmeHosts, host)
 		}
-
-		// If we made it this far without "continue", then
-		// we're ready to aquire a certificate for this Host.
-		logger.Debugln("queuing for certificate check")
-		if _, nsSeen := tlsSecretProviders[host.GetNamespace()]; !nsSeen {
-			tlsSecretProviders[host.GetNamespace()] = make(map[string]*ambassadorTypesV2.ACMEProviderSpec)
-			tlsSecretHostnames[host.GetNamespace()] = make(map[string][]string)
-		}
-		if dup, hasDup := tlsSecretProviders[host.GetNamespace()][host.Spec.TlsSecret.Name]; hasDup {
-			if !proto.Equal(dup, host.Spec.AcmeProvider) {
-				logger.Errorln(errors.New("acmeProvider mismatch"))
-			}
-		} else {
-			tlsSecretProviders[host.GetNamespace()][host.Spec.TlsSecret.Name] = host.Spec.AcmeProvider
-		}
-		tlsSecretHostnames[host.GetNamespace()][host.Spec.TlsSecret.Name] = append(tlsSecretHostnames[host.GetNamespace()][host.Spec.TlsSecret.Name], host.Spec.Hostname)
 	}
 
-	// Now act on 'tlsSecretProviders' and 'tlsSecretHostnames'
-	for namespace := range tlsSecretProviders {
-		for tlsSecretName := range tlsSecretProviders[namespace] {
+	// Phase 2→3: ACMEUserPrivateKeyCreated→ACMEUserRegistered
+	// Populate 'acmeHostsBySecret' and 'acmeProviderBySecret' from 'acmeHosts'.
+	logger.Debugln("rectify: Phase 2→3: ACMEUserPrivateKeyCreated→ACMEUserRegistered")
+	acmeHostsBySecret := make(map[string]map[string][]*ambassadorTypesV2.Host)
+	for _, host := range acmeHosts {
+		if _, nsSeen := acmeHostsBySecret[host.GetNamespace()]; !nsSeen {
+			acmeHostsBySecret[host.GetNamespace()] = make(map[string][]*ambassadorTypesV2.Host)
+		}
+		acmeHostsBySecret[host.GetNamespace()][host.Spec.TlsSecret.Name] = append(acmeHostsBySecret[host.GetNamespace()][host.Spec.TlsSecret.Name],
+			host)
+	}
+	acmeProviderBySecret := make(map[string]map[string]*ambassadorTypesV2.ACMEProviderSpec)
+	for namespace := range acmeHostsBySecret {
+		logger := logger.WithField("namespace", namespace)
+		acmeProviderBySecret[namespace] = make(map[string]*ambassadorTypesV2.ACMEProviderSpec)
+		for tlsSecretName := range acmeHostsBySecret[namespace] {
+			logger := logger.WithField("secret", tlsSecretName)
+			logger.Debugf("rectify: processing hosts that share secret=%q: %v",
+				tlsSecretName,
+				func() []string {
+					hosts := make([]string, 0, len(acmeHostsBySecret[namespace][tlsSecretName]))
+					for _, host := range acmeHostsBySecret[namespace][tlsSecretName] {
+						hosts = append(hosts, host.GetName())
+					}
+					sort.Strings(hosts)
+					return hosts
+				}())
+			hostsByProvider := make(map[providerKey][]*ambassadorTypesV2.Host)
+			for _, host := range acmeHostsBySecret[namespace][tlsSecretName] {
+				hashKey := providerKey{
+					Authority:            host.Spec.AcmeProvider.Authority,
+					Email:                host.Spec.AcmeProvider.Email,
+					PrivateKeySecretName: host.Spec.AcmeProvider.PrivateKeySecret.Name,
+				}
+				hostsByProvider[hashKey] = append(hostsByProvider[hashKey], host)
+			}
+			dirty := false
+			for _, hosts := range hostsByProvider {
+				registration := ""
+				for _, host := range hosts {
+					if host.Spec.AcmeProvider.Registration != "" {
+						if registration != "" && registration != host.Spec.AcmeProvider.Registration {
+							// TODO: Report this warning to the user, not just on stderr
+							logger.Warningf("host=%q has disagreeing ACME registration: %q",
+								host.GetName(), host.Spec.AcmeProvider.Registration)
+						}
+						registration = host.Spec.AcmeProvider.Registration
+					}
+				}
+				if registration != "" {
+					logger.Debugln("found existing registration")
+				} else {
+					logger.Debugln("registering ACME user...")
+					var err error
+					registration, err = c.userRegister(namespace, hosts[0].Spec.AcmeProvider)
+					if err != nil {
+						for _, host := range hosts {
+							logger := logger.WithField("host", host.GetName()+"."+host.GetNamespace())
+							c.recordHostError(logger, host,
+								ambassadorTypesV2.HostPhase_ACMEUserRegistered,
+								err)
+						}
+						dirty = true
+						continue
+					}
+				}
+				for _, host := range hosts {
+					logger := logger.WithField("host", host.GetName()+"."+host.GetNamespace())
+					if host.Spec.AcmeProvider.Registration != registration {
+						host.Spec.AcmeProvider.Registration = registration
+						c.recordHostPending(logger, host,
+							ambassadorTypesV2.HostPhase_ACMEUserRegistered,
+							ambassadorTypesV2.HostPhase_ACMECertificateChallenge)
+						dirty = true
+					}
+				}
+			}
+			if dirty {
+				logger.Debugln("1 or more hosts changed, ignoring secret until next snapshot...")
+				continue
+			}
+
+			providerKeys := make([]providerKey, 0, len(hostsByProvider))
+			for key := range hostsByProvider {
+				providerKeys = append(providerKeys, key)
+			}
+			if len(providerKeys) > 1 {
+				sort.Slice(providerKeys, func(i, j int) bool {
+					// return 'true' if we'd pick 'providerKeys[i]' over 'providerKeys[j]'
+					switch {
+					// choose the one with the most hosts
+					case len(hostsByProvider[providerKeys[i]]) > len(hostsByProvider[providerKeys[j]]):
+						return true
+					case len(hostsByProvider[providerKeys[i]]) < len(hostsByProvider[providerKeys[j]]):
+						return false
+					// as a tie-breaker, choose based on authority lexicographic sorting
+					case providerKeys[i].Authority < providerKeys[j].Authority:
+						return true
+					case providerKeys[i].Authority > providerKeys[j].Authority:
+						return false
+					// as a 2nd tie-breaker, choose based on email lexicographic sorting
+					case providerKeys[i].Email < providerKeys[j].Email:
+						return true
+					case providerKeys[i].Email > providerKeys[j].Email:
+						return false
+					// as a final tie-breaker, choose based on private key secret name lexicographic sorting
+					default:
+						return providerKeys[i].PrivateKeySecretName < providerKeys[j].PrivateKeySecretName
+					}
+				})
+				// TODO: Report this warning to the user, not just on stderr
+				logger.Warningln("there were multiple ACME providers specified for this secret")
+			}
+			logger.Debugln("rectify: accepting secret for next phase")
+			acmeProviderBySecret[namespace][tlsSecretName] = hostsByProvider[providerKeys[0]][0].Spec.AcmeProvider
+		}
+	}
+
+	// Phase 3→4: ACMEUserRegistered→ACMECertificateChallenge
+	// Now act on 'acmeProviderBySecret' and 'acmeHostsBySecret'
+	logger.Debugln("rectify: Phase 3→4: ACMEUserRegistered→ACMECertificateChallenge")
+	for namespace := range acmeProviderBySecret {
+		logger := logger.WithField("namespace", namespace)
+		for tlsSecretName := range acmeProviderBySecret[namespace] {
+			logger := logger.WithField("secret", tlsSecretName)
+			hostnames := make([]string, 0, len(acmeHostsBySecret[namespace][tlsSecretName]))
+			for _, host := range acmeHostsBySecret[namespace][tlsSecretName] {
+				hostnames = append(hostnames, host.Spec.Hostname)
+			}
+			sort.Strings(hostnames)
+			logger.Debugf("rectify: processing secret=%q (hostnames=%v)", tlsSecretName, hostnames)
+
 			needsRenew := false
 			secret := c.getSecret(namespace, tlsSecretName)
 			if secret == nil {
@@ -250,74 +397,121 @@ func (c *Controller) rectify(logger types.Logger) {
 					// renew certs if they're >2/3 of the way through their lifecycle
 					needsRenew = needsRenew || time.Now().After(cert.NotBefore.Add(2*cert.NotAfter.Sub(cert.NotBefore)/3))
 					// or if the list of hostnames we want on it changed
-					sort.Strings(tlsSecretHostnames[namespace][tlsSecretName])
-					needsRenew = needsRenew || !stringSliceEqual(subjects(cert), tlsSecretHostnames[namespace][tlsSecretName])
+					needsRenew = needsRenew || !stringSliceEqual(subjects(cert), hostnames)
 				}
 			}
 
+			logger.Debugf("rectify: needsRenew=%v", needsRenew)
 			if needsRenew {
-				acmeProvider := tlsSecretProviders[namespace][tlsSecretName]
+				acmeProvider := acmeProviderBySecret[namespace][tlsSecretName]
 				var user acmeUser
 				var err error
 				user.Email = acmeProvider.Email
 				user.PrivateKey, err = parseUserPrivateKey(c.getSecret(namespace, acmeProvider.PrivateKeySecret.Name))
 				if err != nil {
-					logger.Errorln(err)
+					for _, host := range acmeHostsBySecret[namespace][tlsSecretName] {
+						logger := logger.WithField("host", host.GetName()+"."+host.GetNamespace())
+						c.recordHostError(logger, host,
+							ambassadorTypesV2.HostPhase_ACMECertificateChallenge,
+							err)
+					}
 					continue
 				}
 				var reg registration.Resource
 				if err = json.Unmarshal([]byte(acmeProvider.Registration), &reg); err != nil {
-					logger.Errorln(err)
+					for _, host := range acmeHostsBySecret[namespace][tlsSecretName] {
+						logger := logger.WithField("host", host.GetName()+"."+host.GetNamespace())
+						c.recordHostError(logger, host,
+							ambassadorTypesV2.HostPhase_ACMECertificateChallenge,
+							err)
+					}
 					continue
 				}
 				user.Registration = &reg
 
+				logger.Debugln("rectify: requesting certificate...")
 				certResource, err := obtainCertificate(
 					c.httpClient,
 					c.redisPool,
 					acmeProvider.Authority,
 					&user,
-					tlsSecretHostnames[namespace][tlsSecretName])
+					hostnames)
 				if err != nil {
-					logger.Errorln(err)
+					for _, host := range acmeHostsBySecret[namespace][tlsSecretName] {
+						logger := logger.WithField("host", host.GetName()+"."+host.GetNamespace())
+						c.recordHostError(logger, host,
+							ambassadorTypesV2.HostPhase_ACMECertificateChallenge,
+							err)
+					}
 					continue
 				}
 				if err = storeCertificate(c.secretsGetter, tlsSecretName, namespace, certResource); err != nil {
-					logger.Errorln(err)
+					for _, host := range acmeHostsBySecret[namespace][tlsSecretName] {
+						logger := logger.WithField("host", host.GetName()+"."+host.GetNamespace())
+						c.recordHostError(logger, host,
+							ambassadorTypesV2.HostPhase_ACMECertificateChallenge,
+							err)
+					}
 					continue
+				}
+			}
+			logger.Debugln("rectify: updating host status(s)")
+			for _, host := range acmeHostsBySecret[namespace][tlsSecretName] {
+				if host.Status.State != ambassadorTypesV2.HostState_Ready {
+					logger := logger.WithField("host", host.GetName()+"."+host.GetNamespace())
+					// There's a small-but-possible chance that a previous run already set this, but
+					// we're operating on an outdated snapshot that has the `storeCertificate()`
+					// call but not the `c.recordHostReady()` call.  We might get a 409 Conflict,
+					// but that's OK; there's no actual information that can get lost here (unlike
+					// when we're filling host.Spec.AcmeProvider.Registration).
+					c.recordHostReady(logger, host)
 				}
 			}
 		}
 	}
+	logger.Debugln("rectify: finished")
 }
 
-func FillDefaults(spec *ambassadorTypesV2.HostSpec) {
-	if spec.Selector == nil {
-		spec.Selector = &k8sTypesMetaV1.LabelSelector{}
+func FillDefaults(host *ambassadorTypesV2.Host) {
+	if host.Spec == nil {
+		host.Spec = &ambassadorTypesV2.HostSpec{}
 	}
-	if len(spec.Selector.MatchLabels)+len(spec.Selector.MatchExpressions) == 0 {
-		spec.Selector.MatchLabels = map[string]string{
-			"hostname": spec.Hostname,
+	if host.Spec.Selector == nil {
+		host.Spec.Selector = &k8sTypesMetaV1.LabelSelector{}
+	}
+	if len(host.Spec.Selector.MatchLabels)+len(host.Spec.Selector.MatchExpressions) == 0 {
+		host.Spec.Selector.MatchLabels = map[string]string{
+			"hostname": host.Spec.Hostname,
 		}
 	}
-	if spec.AcmeProvider == nil {
-		spec.AcmeProvider = &ambassadorTypesV2.ACMEProviderSpec{}
+	if host.Spec.AcmeProvider == nil {
+		host.Spec.AcmeProvider = &ambassadorTypesV2.ACMEProviderSpec{}
 	}
-	if spec.AcmeProvider.Authority == "" {
-		spec.AcmeProvider.Authority = "https://acme-staging-v02.api.letsencrypt.org/directory" // "https://acme-v02.api.letsencrypt.org/directory"
+	if host.Spec.AcmeProvider.Authority == "" {
+		host.Spec.AcmeProvider.Authority = "https://acme-staging-v02.api.letsencrypt.org/directory" // "https://acme-v02.api.letsencrypt.org/directory"
 	}
-	if spec.AcmeProvider.Authority != "none" {
-		if spec.AcmeProvider.PrivateKeySecret == nil {
-			spec.AcmeProvider.PrivateKeySecret = &k8sTypesCoreV1.LocalObjectReference{}
+	if host.Spec.AcmeProvider.Authority != "none" {
+		if host.Spec.AcmeProvider.PrivateKeySecret == nil {
+			host.Spec.AcmeProvider.PrivateKeySecret = &k8sTypesCoreV1.LocalObjectReference{}
 		}
-		if spec.AcmeProvider.PrivateKeySecret.Name == "" {
-			spec.AcmeProvider.PrivateKeySecret.Name = NameEncode(spec.AcmeProvider.Authority) + "--" + NameEncode(spec.AcmeProvider.Email)
+		if host.Spec.AcmeProvider.PrivateKeySecret.Name == "" {
+			host.Spec.AcmeProvider.PrivateKeySecret.Name = NameEncode(host.Spec.AcmeProvider.Authority) + "--" + NameEncode(host.Spec.AcmeProvider.Email)
 		}
-		if spec.TlsSecret == nil {
-			spec.TlsSecret = &k8sTypesCoreV1.LocalObjectReference{}
+		if host.Spec.TlsSecret == nil {
+			host.Spec.TlsSecret = &k8sTypesCoreV1.LocalObjectReference{}
 		}
-		if spec.TlsSecret.Name == "" {
-			spec.TlsSecret.Name = NameEncode(spec.AcmeProvider.Authority) + "--" + NameEncode(spec.AcmeProvider.Email) + "--" + NameEncode(spec.AcmeProvider.PrivateKeySecret.Name)
+		if host.Spec.TlsSecret.Name == "" {
+			host.Spec.TlsSecret.Name = NameEncode(host.Spec.AcmeProvider.Authority) + "--" + NameEncode(host.Spec.AcmeProvider.Email) + "--" + NameEncode(host.Spec.AcmeProvider.PrivateKeySecret.Name)
 		}
+	}
+	if host.Status == nil {
+		host.Status = &ambassadorTypesV2.HostStatus{}
+	}
+	if host.Spec.AcmeProvider.Authority != "none" {
+		host.Status.TlsCertificateSource = ambassadorTypesV2.HostTLSCertificateSource_ACME
+	} else if host.Spec.TlsSecret.Name == "" {
+		host.Status.TlsCertificateSource = ambassadorTypesV2.HostTLSCertificateSource_Other
+	} else {
+		host.Status.TlsCertificateSource = ambassadorTypesV2.HostTLSCertificateSource_None
 	}
 }

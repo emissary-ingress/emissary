@@ -95,7 +95,7 @@ func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		case http.MethodGet:
 			// Go ahead and fill the defaults; we won't do this when actually applying
 			// it (in the http.MethodPost case), but it's informative to the user.
-			acmeclient.FillDefaults(dat.Spec)
+			acmeclient.FillDefaults(dat)
 			bytes, err := yaml.Marshal(map[string]interface{}{
 				"apiVersion": "getambassador.io/v2",
 				"kind":       "Host",
