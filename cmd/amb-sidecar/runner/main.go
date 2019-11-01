@@ -3,12 +3,14 @@ package runner
 import (
 	"context"
 	"fmt"
+	"github.com/fsnotify/fsnotify"
 	"io"
 	"math/rand"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	// 3rd-party libraries
@@ -73,9 +75,7 @@ func Main(version string) {
 		SilenceUsage:  true, // our FlagErrorFunc wil handle it
 	}
 
-	// TODO(alexgervais): generate an "unregistered" fallback license key allowing every feature with low RPS (< 5), enforcing hard limits.
-	fallbackLicense := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImRldiIsImV4cCI6NDcwMDgyNjEzM30.wCxi5ICR6C5iEz6WkKpurNItK3zER12VNhM8F1zGkA8"
-	keycheck := licensekeys.InitializeCommandFlags(argparser.PersistentFlags(), "ambassador-sidecar", version, fallbackLicense)
+	cmdContext := licensekeys.InitializeCommandFlags(argparser.PersistentFlags(), "ambassador-sidecar", version)
 
 	argparser.SetFlagErrorFunc(func(cmd *cobra.Command, err error) error {
 		if err == nil {
@@ -98,9 +98,33 @@ func Main(version string) {
 
 	argparser.PersistentPreRunE = func(cmd *cobra.Command, args []string) error {
 		// License key validation
-		var err error
-		licenseClaims, err = keycheck(cmd.PersistentFlags())
-		return err
+		keyCheck := func(reset bool) *licensekeys.LicenseClaimsLatest {
+			claims, err := cmdContext.KeyCheck(cmd.PersistentFlags(), reset)
+			if err != nil {
+				logrusLogger.Errorln(err)
+				// TODO(alexgervais): Make sure this "unregistered" fallback license enforces low & hard limits on all necessary features
+				claims = &licensekeys.LicenseClaimsLatest{
+					CustomerID: "unregistered",
+					EnabledFeatures: []licensekeys.Feature{
+						licensekeys.FeatureUnrecognized,
+						licensekeys.FeatureFilter,
+						licensekeys.FeatureRateLimit,
+						licensekeys.FeatureTraffic,
+						licensekeys.FeatureDevPortal,
+					},
+					EnforcedLimits: []licensekeys.LimitValue{},
+				}
+			}
+			return claims
+		}
+		licenseClaims = keyCheck(false)
+		if cmdContext.Keyfile != "" {
+			triggerOnChange(cmdContext.Keyfile, func() {
+				logrusLogger.Infof("Refreshing license key, %s changed", cmdContext.Keyfile)
+				licenseClaims = keyCheck(true)
+			})
+		}
+		return nil
 	}
 
 	err := argparser.Execute()
@@ -108,6 +132,57 @@ func Main(version string) {
 		logrusLogger.Errorln(err)
 		os.Exit(1)
 	}
+}
+
+func triggerOnChange(watchFile string, trigger func()) {
+	initWG := sync.WaitGroup{}
+	initWG.Add(1)
+	go func() {
+		file := filepath.Clean(watchFile)
+		dir, _ := filepath.Split(file)
+
+		watcher, err := fsnotify.NewWatcher()
+		if err != nil {
+			logrusLogger.Errorf("Failed to create watch on %s: Changes might require a restart: %v", file, err)
+		}
+		defer watcher.Close()
+
+		eventsWG := sync.WaitGroup{}
+		eventsWG.Add(1)
+		go func() {
+			for {
+				select {
+				case event, ok := <-watcher.Events:
+					if !ok {
+						eventsWG.Done()
+						return
+					}
+					if event.Op&fsnotify.Rename == fsnotify.Rename {
+						if trigger != nil {
+							trigger()
+						}
+					} else if filepath.Clean(event.Name) == file &&
+						event.Op&fsnotify.Remove&fsnotify.Remove != 0 {
+						eventsWG.Done()
+						return
+					}
+				case err, _ := <-watcher.Errors:
+					logrusLogger.Errorln(err)
+					eventsWG.Done()
+					return
+				}
+			}
+		}()
+
+		logrusLogger.Infof("Creating watch on %s", dir)
+		err = watcher.Add(dir)
+		if err != nil {
+			logrusLogger.Errorf("Failed to create watch on %s: Changes might require a restart: %v", dir, err)
+		}
+		initWG.Done()
+		eventsWG.Wait()
+	}()
+	initWG.Wait()
 }
 
 func runE(cmd *cobra.Command, args []string) error {
@@ -309,7 +384,7 @@ func runE(cmd *cobra.Command, args []string) error {
 
 		httpHandler.AddEndpoint("/firstboot/", "First boot wizard", http.StripPrefix("/firstboot", firstboot.NewFirstBootWizard(dynamicClient)).ServeHTTP)
 
-		httpHandler.AddEndpoint("/banner/", "Diag UI banner", http.StripPrefix("/banner", banner.NewBanner()).ServeHTTP)
+		httpHandler.AddEndpoint("/banner/", "Diag UI banner", http.StripPrefix("/banner", banner.NewBanner(&licenseClaims)).ServeHTTP)
 
 		httpHandler.AddEndpoint("/.well-known/acme-challenge/", "ACME http-01 challenge", acmeclient.NewChallengeHandler(redisPool).ServeHTTP)
 

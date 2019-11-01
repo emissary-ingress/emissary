@@ -48,6 +48,7 @@ require (
 	gitlab.com/opennota/wd v0.0.0-20180912061657-c5d65f63c638 // indirect
 	golang.org/x/net v0.0.0-20190930134127-c5a3c61f89f3
 	golang.org/x/sync v0.0.0-20190423024810-112230192c58
+	golang.org/x/sys v0.0.0-20191029155521-f43be2a4598c // indirect
 	google.golang.org/grpc v1.23.0
 	gopkg.in/russross/blackfriday.v2 v2.0.0-00010101000000-000000000000 // indirect
 	gopkg.in/src-d/go-billy.v4 v4.2.1

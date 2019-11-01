@@ -88,9 +88,8 @@ type cmdContext struct {
 	defaultKeyfile    string
 	defaultKeyfileErr error
 
-	keyfile         string
-	key             string
-	fallbackLicense string
+	Keyfile string
+	key     string
 
 	application string
 	version     string
@@ -132,29 +131,25 @@ func (ctx *cmdContext) phoneHomeEveryday(claims *LicenseClaimsLatest) {
 	}
 }
 
-func (ctx *cmdContext) KeyCheck(flags *flag.FlagSet) (*LicenseClaimsLatest, error) {
+func (ctx *cmdContext) KeyCheck(flags *flag.FlagSet, ignoreLoadedKey bool) (*LicenseClaimsLatest, error) {
 	var keysource string
+	if ignoreLoadedKey {
+		ctx.key = ""
+	}
 
 	if ctx.key == "" {
 		if !flags.Changed("license-file") && ctx.defaultKeyfileErr != nil {
 			return nil, errors.Wrap(ctx.defaultKeyfileErr, "error determining license key file")
 		}
-		if ctx.keyfile == "" {
+		if ctx.Keyfile == "" {
 			return nil, errors.New("no license key or license key file specified")
 		}
-		key, err := ioutil.ReadFile(ctx.keyfile)
-		if err == nil {
-			ctx.key = strings.TrimSpace(string(key))
-			keysource = "file " + ctx.keyfile
-		} else {
-			if ctx.fallbackLicense != "" {
-				ctx.key = ctx.fallbackLicense
-				keysource = "unregistered"
-				// TODO(alexgervais): unregistered license in use, enforce hard-limits
-			} else {
-				return nil, errors.Wrap(err, "error reading license key")
-			}
+		key, err := ioutil.ReadFile(ctx.Keyfile)
+		if err != nil {
+			return nil, errors.Wrap(err, "error reading license key")
 		}
+		ctx.key = strings.TrimSpace(string(key))
+		keysource = "file " + ctx.Keyfile
 	} else {
 		if flags.Changed("license-key") {
 			keysource = "command line"
@@ -174,16 +169,15 @@ func (ctx *cmdContext) KeyCheck(flags *flag.FlagSet) (*LicenseClaimsLatest, erro
 	return claims, nil
 }
 
-func InitializeCommandFlags(flags *flag.FlagSet, application, version string, fallbackLicense string) func(*flag.FlagSet) (*LicenseClaimsLatest, error) {
+func InitializeCommandFlags(flags *flag.FlagSet, application, version string) *cmdContext {
 	ctx := &cmdContext{
 		application: application,
 		version:     version,
 	}
 	ctx.defaultKeyfile, ctx.defaultKeyfileErr = defaultLicenseFile()
-	ctx.fallbackLicense = fallbackLicense
 
 	flags.StringVar(&ctx.key, "license-key", os.Getenv("AMBASSADOR_LICENSE_KEY"), "ambassador license key")
-	flags.StringVar(&ctx.keyfile, "license-file", ctx.defaultKeyfile, "ambassador license file")
+	flags.StringVar(&ctx.Keyfile, "license-file", ctx.defaultKeyfile, "ambassador license file")
 
-	return ctx.KeyCheck
+	return ctx
 }
