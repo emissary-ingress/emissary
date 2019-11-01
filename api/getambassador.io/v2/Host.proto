@@ -10,6 +10,22 @@ syntax = "proto3";
 import "k8s.io/apimachinery/pkg/apis/meta/v1/generated.proto";
 import "k8s.io/api/core/v1/generated.proto";
 
+message Host {
+  // Standard object's metadata.
+  // More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata
+  k8s.io.apimachinery.pkg.apis.meta.v1.ObjectMeta metadata = 1;
+
+  // Specification of the desired behavior of the Host.
+  // More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status
+  HostSpec spec = 2;
+
+  // Most recently observed status of the Host.
+  // This data may not be up to date.
+  // Populated by AES.
+  // More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status
+  HostStatus status = 3;
+}
+
 // The Host resource will usually be a Kubernetes CRD, but it could
 // appear in other forms. The HostSpec is the part of the Host resource
 // that doesn't change, no matter what form it's in -- when it's a CRD,
@@ -36,6 +52,41 @@ message HostSpec {
   k8s.io.api.core.v1.LocalObjectReference tlsSecret = 6;
 }
 
+enum HostTLSCertificateSource {
+  Unknown = 0;
+  None    = 1;
+  Other   = 2;
+  ACME    = 3;
+}
+
+enum HostState {
+  Pending = 0;
+  Ready   = 1;
+  Error   = 2;
+}
+
+enum HostPhase {
+  NA                        = 0;
+  DefaultsFilled            = 1;
+  ACMEUserPrivateKeyCreated = 2;
+  ACMEUserRegistered        = 3;
+  ACMECertificateChallenge  = 4;
+}
+
+message HostStatus {
+  HostTLSCertificateSource tlsCertificateSource = 1;
+
+  HostState state = 2;
+
+  // phaseCompleted and phasePending are valid when state==Pending or
+  // state==Error.
+  HostPhase phaseCompleted = 3;
+  HostPhase phasePending = 4;
+
+  // reason is valid when state==Error
+  string reason = 5;
+}
+
 message ACMEProviderSpec {
   // Specifies who to talk ACME with to get certs. Defaults to Let's
   // Encrypt; if "none", do not try to do TLS for this Host.
@@ -48,5 +99,3 @@ message ACMEProviderSpec {
   // This is normally set automatically
   string registration = 4;
 }
-
-// TODO: We will likely need a HostStatus message too.
