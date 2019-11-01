@@ -243,6 +243,15 @@ for secret_key, secret_info in fake.secret_recorder.needed.items():
         }
     )
 
+if fake.edge_stack_allowed:
+    # If the edge stack is allowed, make sure we watch for our fallback context.
+    kube_watches.append(
+        {
+            "kind": "TLSContext",
+            "namespace": Config.ambassador_namespace
+        }
+    )
+
 # kube_watches.append(
 #     {
 #         "kind": "secret",
