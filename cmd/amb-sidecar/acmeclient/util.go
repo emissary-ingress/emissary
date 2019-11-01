@@ -10,10 +10,9 @@ import (
 
 	"github.com/gogo/protobuf/proto"
 
+	ambassadorTypesV2 "github.com/datawire/ambassador/pkg/api/getambassador.io/v2"
 	k8sTypesCoreV1 "k8s.io/api/core/v1"
 	k8sTypesMetaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
-	"github.com/datawire/apro/cmd/amb-sidecar/watt"
 )
 
 func subjects(cert *x509.Certificate) []string {
@@ -64,9 +63,9 @@ func NameEncode(in string) string {
 }
 
 // *grumble grumble* k8s.io/code-generator/cmd/deepcopy-gen *grumble*
-func deepCopyHost(in *watt.Host) *watt.Host {
+func deepCopyHost(in *ambassadorTypesV2.Host) *ambassadorTypesV2.Host {
 	b, _ := json.Marshal(in)
-	var out watt.Host
+	var out ambassadorTypesV2.Host
 	_ = json.Unmarshal(b, &out)
 	return &out
 }
@@ -96,7 +95,7 @@ func unstructureMetadata(in *k8sTypesMetaV1.ObjectMeta) map[string]interface{} {
 // hostsEqual returns whether 2 Host resources are equal.  Use this
 // instead of `proto.Equal()` because Host is not (yet?) spec'ed as a
 // protobuf (but HostSpec is, so we use `proto.Equal()` internally).
-func hostsEqual(a, b *watt.Host) bool {
+func hostsEqual(a, b *ambassadorTypesV2.Host) bool {
 	if a.GetNamespace() != b.GetNamespace() {
 		return false
 	}
