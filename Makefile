@@ -48,8 +48,11 @@ GOHOSTARCH=$(call lazyonce,GOHOSTARCH,$(shell go env GOHOSTARCH))
 
 # PROTOC_VERSION is based on
 # https://github.com/envoyproxy/go-control-plane/blob/0e75602d5e36e96eafbe053999c0569edec9fe07/Dockerfile.ci
-# (since that commit most closely corresponds to our ENVOY_COMMIT).
-PROTOC_VERSION            = 3.6.1
+# (since that commit most closely corresponds to our ENVOY_COMMIT).  That file says 3.6.1, so we're
+# going to try to be as close as that to possible; but go ahead and upgrade to 3.8.0, which is the
+# closest version that contains the fix so that it doesn't generate invalid Python if you name an
+# Enum member the same as a Python keyword.
+PROTOC_VERSION            = 3.8.0
 PROTOC_PLATFORM           = $(patsubst darwin,osx,$(GOHOSTOS))-$(patsubst amd64,x86_64,$(patsubst 386,x86_32,$(GOHOSTARCH)))
 tools/protoc              = $(OSS_HOME)/bin_$(GOHOSTOS)_$(GOHOSTARCH)/protoc
 $(tools/protoc):
