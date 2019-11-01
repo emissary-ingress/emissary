@@ -24,7 +24,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='getambassador.io.v2',
   syntax='proto3',
   serialized_options=None,
-  serialized_pb=_b('\n\x1egetambassador.io/v2/Host.proto\x12\x13getambassador.io.v2\x1a\x34k8s.io/apimachinery/pkg/apis/meta/v1/generated.proto\x1a\"k8s.io/api/core/v1/generated.proto\x1a-github.com/gogo/protobuf/gogoproto/gogo.proto\"\x88\x02\n\x08HostSpec\x12\x15\n\rambassador_id\x18\x01 \x03(\t\x12\x12\n\ngeneration\x18\x02 \x01(\x05\x12\x10\n\x08hostname\x18\x03 \x01(\t\x12\x45\n\x08selector\x18\x04 \x01(\x0b\x32\x33.k8s.io.apimachinery.pkg.apis.meta.v1.LabelSelector\x12;\n\x0c\x61\x63meProvider\x18\x05 \x01(\x0b\x32%.getambassador.io.v2.ACMEProviderSpec\x12;\n\ttlsSecret\x18\x06 \x01(\x0b\x32(.k8s.io.api.core.v1.LocalObjectReference\"\x86\x02\n\nHostStatus\x12K\n\x14tlsCertificateSource\x18\x01 \x01(\x0e\x32-.getambassador.io.v2.HostTLSCertificateSource\x12-\n\x05state\x18\x02 \x01(\x0e\x32\x1e.getambassador.io.v2.HostState\x12\x36\n\x0ephaseCompleted\x18\x03 \x01(\x0e\x32\x1e.getambassador.io.v2.HostPhase\x12\x34\n\x0cphasePending\x18\x04 \x01(\x0e\x32\x1e.getambassador.io.v2.HostPhase\x12\x0e\n\x06reason\x18\x05 \x01(\t\"\x8e\x01\n\x10\x41\x43MEProviderSpec\x12\x11\n\tauthority\x18\x01 \x01(\t\x12\r\n\x05\x65mail\x18\x02 \x01(\t\x12\x42\n\x10privateKeySecret\x18\x03 \x01(\x0b\x32(.k8s.io.api.core.v1.LocalObjectReference\x12\x14\n\x0cregistration\x18\x04 \x01(\t*F\n\x18HostTLSCertificateSource\x12\x0b\n\x07Unknown\x10\x00\x12\x08\n\x04None\x10\x01\x12\t\n\x05Other\x10\x02\x12\x08\n\x04\x41\x43ME\x10\x03*.\n\tHostState\x12\x0b\n\x07Pending\x10\x00\x12\t\n\x05Ready\x10\x01\x12\t\n\x05\x45rror\x10\x02*|\n\tHostPhase\x12\x06\n\x02NA\x10\x00\x12\x12\n\x0e\x44\x65\x66\x61ultsFilled\x10\x01\x12\x1d\n\x19\x41\x43MEUserPrivateKeyCreated\x10\x02\x12\x16\n\x12\x41\x43MEUserRegistered\x10\x03\x12\x1c\n\x18\x41\x43MECertificateChallenge\x10\x04\x62\x06proto3')
+  serialized_pb=_b('\n\x1egetambassador.io/v2/Host.proto\x12\x13getambassador.io.v2\x1a\x34k8s.io/apimachinery/pkg/apis/meta/v1/generated.proto\x1a\"k8s.io/api/core/v1/generated.proto\x1a-github.com/gogo/protobuf/gogoproto/gogo.proto\"\x88\x02\n\x08HostSpec\x12\x15\n\rambassador_id\x18\x01 \x03(\t\x12\x12\n\ngeneration\x18\x02 \x01(\x05\x12\x10\n\x08hostname\x18\x03 \x01(\t\x12\x45\n\x08selector\x18\x04 \x01(\x0b\x32\x33.k8s.io.apimachinery.pkg.apis.meta.v1.LabelSelector\x12;\n\x0c\x61\x63meProvider\x18\x05 \x01(\x0b\x32%.getambassador.io.v2.ACMEProviderSpec\x12;\n\ttlsSecret\x18\x06 \x01(\x0b\x32(.k8s.io.api.core.v1.LocalObjectReference\"\x86\x02\n\nHostStatus\x12K\n\x14tlsCertificateSource\x18\x01 \x01(\x0e\x32-.getambassador.io.v2.HostTLSCertificateSource\x12-\n\x05state\x18\x02 \x01(\x0e\x32\x1e.getambassador.io.v2.HostState\x12\x36\n\x0ephaseCompleted\x18\x03 \x01(\x0e\x32\x1e.getambassador.io.v2.HostPhase\x12\x34\n\x0cphasePending\x18\x04 \x01(\x0e\x32\x1e.getambassador.io.v2.HostPhase\x12\x0e\n\x06reason\x18\x05 \x01(\t\"\x8e\x01\n\x10\x41\x43MEProviderSpec\x12\x11\n\tauthority\x18\x01 \x01(\t\x12\r\n\x05\x65mail\x18\x02 \x01(\t\x12\x42\n\x10privateKeySecret\x18\x03 \x01(\x0b\x32(.k8s.io.api.core.v1.LocalObjectReference\x12\x14\n\x0cregistration\x18\x04 \x01(\t*F\n\x18HostTLSCertificateSource\x12\x0b\n\x07Unknown\x10\x00\x12\x08\n\x04None\x10\x01\x12\t\n\x05Other\x10\x02\x12\x08\n\x04\x41\x43ME\x10\x03*;\n\tHostState\x12\x0b\n\x07Initial\x10\x00\x12\x0b\n\x07Pending\x10\x01\x12\t\n\x05Ready\x10\x02\x12\t\n\x05\x45rror\x10\x03*|\n\tHostPhase\x12\x06\n\x02NA\x10\x00\x12\x12\n\x0e\x44\x65\x66\x61ultsFilled\x10\x01\x12\x1d\n\x19\x41\x43MEUserPrivateKeyCreated\x10\x02\x12\x16\n\x12\x41\x43MEUserRegistered\x10\x03\x12\x1c\n\x18\x41\x43MECertificateChallenge\x10\x04\x62\x06proto3')
   ,
   dependencies=[k8s_dot_io_dot_apimachinery_dot_pkg_dot_apis_dot_meta_dot_v1_dot_generated__pb2.DESCRIPTOR,k8s_dot_io_dot_api_dot_core_dot_v1_dot_generated__pb2.DESCRIPTOR,github_dot_com_dot_gogo_dot_protobuf_dot_gogoproto_dot_gogo__pb2.DESCRIPTOR,])
 
@@ -66,22 +66,26 @@ _HOSTSTATE = _descriptor.EnumDescriptor(
   file=DESCRIPTOR,
   values=[
     _descriptor.EnumValueDescriptor(
-      name='Pending', index=0, number=0,
+      name='Initial', index=0, number=0,
       serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='Ready', index=1, number=1,
+      name='Pending', index=1, number=1,
       serialized_options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='Error', index=2, number=2,
+      name='Ready', index=2, number=2,
+      serialized_options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='Error', index=3, number=3,
       serialized_options=None,
       type=None),
   ],
   containing_type=None,
   serialized_options=None,
   serialized_start=941,
-  serialized_end=987,
+  serialized_end=1000,
 )
 _sym_db.RegisterEnumDescriptor(_HOSTSTATE)
 
@@ -115,8 +119,8 @@ _HOSTPHASE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=989,
-  serialized_end=1113,
+  serialized_start=1002,
+  serialized_end=1126,
 )
 _sym_db.RegisterEnumDescriptor(_HOSTPHASE)
 
@@ -125,9 +129,10 @@ Unknown = 0
 globals()['None'] = 1
 Other = 2
 ACME = 3
-Pending = 0
-Ready = 1
-Error = 2
+Initial = 0
+Pending = 1
+Ready = 2
+Error = 3
 NA = 0
 DefaultsFilled = 1
 ACMEUserPrivateKeyCreated = 2
