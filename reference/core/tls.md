@@ -1,6 +1,6 @@
 # Transport Layer Security (TLS)
 
-Ambassador's robust TLS support exposes configuration options for different TLS use cases including:
+Ambassador Edge Stack's robust TLS support exposes configuration options for different TLS use cases including:
 
 - [Client Certification Validation](/reference/tls/client-cert-validation)
 - [HTTP -> HTTPS Redirection](/reference/tls/cleartext-redirection)
@@ -10,7 +10,7 @@ Ambassador's robust TLS support exposes configuration options for different TLS 
 
 ## TLSContext
 
-You control TLS configuration in Ambassador using `TLSContext` resources. Multiple `TLSContext`s can be defined in your cluster and can be used for any combination of TLS use cases.
+You control TLS configuration in Ambassador Edge Stack using `TLSContext` resources. Multiple `TLSContext`s can be defined in your cluster and can be used for any combination of TLS use cases.
 
 A full schema of the `TLSContext` can be found below with descriptions of the different configuration options. Reference documentation for configuring different use cases are linked to at the top of this document.
 
@@ -20,6 +20,7 @@ apiVersion: ambassador/v1
 kind: TLSContext
 name: tls-context-1
 
+<div style="border: thick solid red"> </div>
 
 
 # 'hosts' defines which the hosts for which this TLSContext is relevant.
@@ -99,9 +100,9 @@ If you leave off http/1.1, only HTTP2 connections will be supported.
 
 ### TLS Parameters
 
-The `min_tls_version` setting configures the minimum TLS protocol version that Ambassador will use to establish a secure connection. When a client using a lower version attempts to connect to the server, the handshake will result in the following error: `tls: protocol version not supported`.
+The `min_tls_version` setting configures the minimum TLS protocol version that Ambassador Edge Stack will use to establish a secure connection. When a client using a lower version attempts to connect to the server, the handshake will result in the following error: `tls: protocol version not supported`.
 
-The `max_tls_version` setting configures the maximum TLS protocol version that Ambassador will use to establish a secure connection. When a client using a higher version attempts to connect to the server, the handshake will result in the following error: `tls: server selected unsupported protocol version`.
+The `max_tls_version` setting configures the maximum TLS protocol version that Ambassador Edge Stack will use to establish a secure connection. When a client using a higher version attempts to connect to the server, the handshake will result in the following error: `tls: server selected unsupported protocol version`.
 
 The `cipher_suites` setting configures the supported [cipher list](https://commondatastorage.googleapis.com/chromium-boringssl-docs/ssl.h.html#Cipher-suite-configuration) when negotiating a TLS 1.0-1.2 connection. This setting has no effect when negotiating a TLS 1.3 connection.  When a client does not support a matching cipher a handshake error will result.
 
@@ -127,6 +128,9 @@ ecdh_curves:
 ## TLS `Module`
 
 The TLS `Module` is deprecated. `TLSContext` should be used when using Ambassador version 0.50.0 and above.
+
+<div style="border: thick solid red"> </div>
+
 
 ```yaml
 ---
@@ -177,4 +181,3 @@ config:
     #
     # cacert_chain_file: /etc/cacert/tls.crt  # remember to set enabled!
 ```
-

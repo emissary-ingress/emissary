@@ -1,6 +1,6 @@
 # Add Response Headers
 
-Ambassador can add a dictionary of HTTP headers that can be added to each response that is returned to client.
+Ambassador Edge Stack can add a dictionary of HTTP headers that can be added to each response that is returned to client.
 
 ## The `add_response_headers` annotation
 

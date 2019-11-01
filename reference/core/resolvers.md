@@ -1,10 +1,10 @@
 # Service discovery configuration
 
-Service discovery is how applications and (micro)services are located on the network. In a cloud environment, services are ephemeral, so a real-time service discovery mechanism is critical. Ambassador uses information from service discovery to determine where to route incoming requests.
+Service discovery is how applications and (micro)services are located on the network. In a cloud environment, services are ephemeral, so a real-time service discovery mechanism is critical. Ambassador Edge Stack uses information from service discovery to determine where to route incoming requests.
 
-## Ambassador support for service discovery
+## Ambassador Edge Stack support for service discovery
 
-Ambassador supports different mechanisms for service discovery. These mechanisms are:
+Ambassador Edge Stack supports different mechanisms for service discovery. These mechanisms are:
 
 * Kubernetes service-level discovery (default).
 * Kubernetes endpoint-level discovery.
@@ -12,11 +12,11 @@ Ambassador supports different mechanisms for service discovery. These mechanisms
 
 ### Kubernetes service-level discovery
 
-By default, Ambassador uses Kubernetes DNS and service-level discovery. In a `Mapping` resource, specifying `service: foo` will prompt Ambassador to look up the DNS address of the `foo` Kubernetes service. Traffic will be routed to the `foo` service. Kubernetes will then load balance that traffic between multiple pods. For more details on Kubernetes networking and how this works, see https://blog.getambassador.io/session-affinity-load-balancing-controls-grpc-web-and-ambassador-0-52-2b916b396d0c.
+By default, Ambassador Edge Stack uses Kubernetes DNS and service-level discovery. In a `Mapping` resource, specifying `service: foo` will prompt Ambassador Edge Stack to look up the DNS address of the `foo` Kubernetes service. Traffic will be routed to the `foo` service. Kubernetes will then load balance that traffic between multiple pods. For more details on Kubernetes networking and how this works, see https://blog.getambassador.io/session-affinity-load-balancing-controls-grpc-web-and-ambassador-0-52-2b916b396d0c.
 
 ### Kubernetes endpoint-level discovery
 
-Ambassador can also watch Kubernetes endpoints. This bypasses the Kubernetes service routing layer, and enables the use of advanced load balancing controls such as session affinity and maglev. For more details, see the [load balancing reference](/reference/core/load-balancer).
+Ambassador Edge Stack can also watch Kubernetes endpoints. This bypasses the Kubernetes service routing layer, and enables the use of advanced load balancing controls such as session affinity and maglev. For more details, see the [load balancing reference](/reference/core/load-balancer).
 
 ### Consul endpoint-level discovery
 
@@ -24,11 +24,11 @@ Ambassador natively integrates with [Consul](https://www.consul.io) for endpoint
 
 ## The `Resolver` resource
 
-The `Resolver` resource is used to configure Ambassador's service discovery strategy.
+The `Resolver` resource is used to configure the discovery service strategy for Ambassador Edge Stack.
 
 ### The Kubernetes Service Resolver
 
-The Kubernetes Service Resolver configures Ambassador to use Kubernetes services. If no resolver is specified, this behavior is the default. When this resolver is used, the `service.namespace` value from a `Mapping` is handed to the Kubernetes cluster's DNS resolver to determine where requests are sent. 
+The Kubernetes Service Resolver configures Ambassador Edge Stack to use Kubernetes services. If no resolver is specified, this behavior is the default. When this resolver is used, the `service.namespace` value from a `Mapping` is handed to the Kubernetes cluster's DNS resolver to determine where requests are sent. 
 
 ```yaml
 ---
@@ -39,7 +39,7 @@ name: kubernetes-service
 
 ### The Kubernetes Endpoint Resolver
 
-The Kubernetes Endpoint Resolver configures Ambassador to resolve Kubernetes endpoints. This enables the use of more [advanced load balancing configuration](/reference/core/load-balancer). When this resolver is used, the endpoints for the `service` defined in a `Mapping` are resolved and used to determine where requests are sent.
+The Kubernetes Endpoint Resolver configures Ambassador Edge Stack to resolve Kubernetes endpoints. This enables the use of more [advanced load balancing configuration](/reference/core/load-balancer). When this resolver is used, the endpoints for the `service` defined in a `Mapping` are resolved and used to determine where requests are sent.
 
 ```yaml
 ---
@@ -50,7 +50,7 @@ name: endpoint
 
 ### The Consul Resolver
 
-The Consul Resolver configures Ambassador to use Consul for service discovery. When this resolver is used, the `service` defined in a `Mapping` is passed to Consul, along with the datacenter specified, to determine where requests are sent.
+The Consul Resolver configures Ambassador Edge Stack to use Consul for service discovery. When this resolver is used, the `service` defined in a `Mapping` is passed to Consul, along with the datacenter specified, to determine where requests are sent.
 
 ```yaml
 ---
@@ -127,4 +127,4 @@ spec:
   type: NodePort
 ```
 
-The YAML configuration above will configure Ambassador to use Kubernetes Service Discovery  to route to the qotm Kubernetes service on requests with `prefix: /qotm/` and use Consul Service Discovery to route to the `bar` service on requests with `prefix: /bar/`.
+The YAML configuration above will configure Ambassador Edge Stack to use Kubernetes Service Discovery  to route to the qotm Kubernetes service on requests with `prefix: /qotm/` and use Consul Service Discovery to route to the `bar` service on requests with `prefix: /bar/`.

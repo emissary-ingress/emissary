@@ -4,9 +4,9 @@ Applications that consist of multiple services can be difficult to debug, as a s
 
 ## The TracingService
 
-When enabled, the `TracingService` will instruct Ambassador to initiate a trace on requests by generating and populating an `x-request-id` HTTP header. Services can make use of this `x-request-id` header in logging and forward it in downstream requests for tracing. Ambassador also integrates with external trace visualization services, including [LightStep](https://lightstep.com/) and Zipkin-compatible APIs such as [Zipkin](https://zipkin.io/) and [Jaeger](https://github.com/jaegertracing/) to allow you to store and visualize traces. You can read further on [Envoy's Tracing capabilities](https://www.envoyproxy.io/docs/envoy/latest/intro/arch_overview/tracing).
+When enabled, the `TracingService` will instruct Ambassador Edge Stack to initiate a trace on requests by generating and populating an `x-request-id` HTTP header. Services can make use of this `x-request-id` header in logging and forward it in downstream requests for tracing. Ambassador Edge Stack also integrates with external trace visualization services, including [LightStep](https://lightstep.com/) and Zipkin-compatible APIs such as [Zipkin](https://zipkin.io/) and [Jaeger](https://github.com/jaegertracing/) to allow you to store and visualize traces. You can read further on [Envoy's Tracing capabilities](https://www.envoyproxy.io/docs/envoy/latest/intro/arch_overview/tracing).
 
-A `TracingService` manifest configures Ambassador to use an external trace visualization service:
+A `TracingService` manifest configures Ambassador Edge Stack to use an external trace visualization service:
 
 ```yaml
 ---
@@ -45,4 +45,4 @@ You may only use a single `TracingService` manifest.
 
 ## Example
 
-The [Ambassador Tracing Tutorial](/user-guide/tracing-tutorial) has a simple Zipkin and DataDog tracing tutorials.
+The [Ambassador Edge Stack Tracing Tutorial](/user-guide/tracing-tutorial) has a simple Zipkin and DataDog tracing tutorials.

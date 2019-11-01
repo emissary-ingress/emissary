@@ -1,10 +1,10 @@
 # Rate Limiting with the RateLimitService
 
-Rate limiting is a powerful technique to improve the [availability and resilience of your services](https://blog.getambassador.io/rate-limiting-a-useful-tool-with-distributed-systems-6be2b1a4f5f4). In Ambassador, each request can have one or more *labels*. These labels are exposed to a third party service via a gRPC API. The third party service can then rate limit requests based on the request labels.
+Rate limiting is a powerful technique to improve the [availability and resilience of your services](https://blog.getambassador.io/rate-limiting-a-useful-tool-with-distributed-systems-6be2b1a4f5f4). In Ambassador Edge Stack, each request can have one or more *labels*. These labels are exposed to a third party service via a gRPC API. The third party service can then rate limit requests based on the request labels.
 
 ## Request labels
 
-Ambassador lets users add one or more labels to a given request. These labels are added as part of a `Mapping` object. For example:
+Ambassador Edge Stack lets users add one or more labels to a given request. These labels are added as part of a `Mapping` object. For example:
 
 ```
 apiVersion: ambassador/v1
@@ -24,7 +24,7 @@ In Ambassador, each engineer (or team) can be assigned its own *domain*. A domai
 
 ## Default labels
 
-Ambassador allows setting a default label on every request. A default label is set on the `ambassador` module. For example:
+Ambassador Edge Stack allows setting a default label on every request. A default label is set on the `ambassador` module. For example:
 
 ```yaml
 ---
@@ -41,9 +41,12 @@ config:
 
 ## External Rate Limit Service
 
-In order for Ambassador to rate limit, you need to implement a gRPC service that supports the Envoy [ratelimit.proto](https://github.com/datawire/ambassador/blob/master/ambassador/common/ratelimit/ratelimit.proto) interface. If you do not have the time or resources to implement your own rate limit service, [Ambassador Pro](/pro) integrates a high performance, rate limiting service. 
+In order for Ambassador Edge Stack to rate limit, you need to implement a gRPC service that supports the Envoy [ratelimit.proto](https://github.com/datawire/ambassador/blob/master/ambassador/common/ratelimit/ratelimit.proto) interface. If you do not have the time or resources to implement your own rate limit service, [Ambassador Pro](/pro) integrates a high performance, rate limiting service.
 
-Ambassador generates a gRPC request to the external rate limit service and provides a list of labels on which the rate limit service can base its decision to accept or reject the request:
+<div style="border: thick solid red"> </div>
+
+
+Ambassador Edge Stack generates a gRPC request to the external rate limit service and provides a list of labels on which the rate limit service can base its decision to accept or reject the request:
 
 ```
 [
@@ -55,17 +58,18 @@ Ambassador generates a gRPC request to the external rate limit service and provi
 ]
 ```
 
-If Ambassador cannot contact the rate limit service, it will allow the request to be processed as if there were no rate limit service configuration.
+If Ambassador Edge Stack cannot contact the rate limit service, it will allow the request to be processed as if there were no rate limit service configuration.
 
 It is the external rate limit service's responsibility to determine whether rate limiting should take place, depending on custom business logic. The rate limit service must simply respond to the request with an `OK` or `OVER_LIMIT` code:
-* If Envoy receives an `OK` response from the rate limit service, then Ambassador allows the client request to resume being processed by the normal Ambassador Envoy flow.
-* If Ambassador receives an `OVER_LIMIT` response, then Ambassador will return an HTTP 429 response to the client and will end the transaction flow, preventing the request from reaching the backing service.
+
+* If Envoy receives an `OK` response from the rate limit service, then Ambassador Edge Stack allows the client request to resume being processed by the normal Ambassador Envoy flow.
+* If Ambassador Edge Stack receives an `OVER_LIMIT` response, then Ambassador will return an HTTP 429 response to the client and will end the transaction flow, preventing the request from reaching the backing service.
 
 The headers injected by the [AuthService](/reference/services/auth-service) can also be passed to the rate limit service since the `AuthService` is invoked before the `RateLimitService`.
 
 ## Configuring the Rate Limit Service
 
-A `RateLimitService` manifest configures Ambassador to use an external service to check and enforce rate limits for incoming requests:
+A `RateLimitService` manifest configures Ambassador Edge Stack to use an external service to check and enforce rate limits for incoming requests:
 
 ```yaml
 ---
@@ -81,13 +85,13 @@ You may only use a single `RateLimitService` manifest.
 
 ## Rate Limit Service and TLS
 
-You can tell Ambassador to use TLS to talk to your service by using a `RateLimitService` with an `https://` prefix. However, you may also provide a `tls` attribute: if `tls` is present and `true`, Ambassador will originate TLS even if the `service` does not have the `https://` prefix.
+You can tell Ambassador Edge Stack to use TLS to talk to your service by using a `RateLimitService` with an `https://` prefix. However, you may also provide a `tls` attribute: if `tls` is present and `true`, Ambassador Edge Stack will originate TLS even if the `service` does not have the `https://` prefix.
 
 If `tls` is present with a value that is not `true`, the value is assumed to be the name of a defined TLS context, which will determine the certificate presented to the upstream service.
 
 ## Example
 
-The [Ambassador Rate Limiting Tutorial](/user-guide/rate-limiting-tutorial) has a simple rate limiting example. For a more advanced example, read the [advanced rate limiting tutorial](/user-guide/advanced-rate-limiting) with Ambassador Pro tutorial.
+The [Ambassador Edge Stack Rate Limiting Tutorial](/user-guide/rate-limiting-tutorial) has a simple rate limiting example. For a more advanced example, read the [advanced rate limiting tutorial](/user-guide/advanced-rate-limiting) with Ambassador Pro tutorial.
 
 ## Further reading
 

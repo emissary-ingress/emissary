@@ -1,12 +1,12 @@
-# Ambassador on AWS
+# Ambassador Edge Stack on AWS
 
-For the most part, Ambassador is platform agnostic and will run in the same way regardless of the your Kubernetes installation.
+For the most part, Ambassador Edge Stack is platform agnostic and will run in the same way regardless of the your Kubernetes installation.
 
-This is mostly true of AWS as well. The various methods of deploying Ambassador outlined in the [installation guide](/user-guide/install) will all work on AWS the same way they do on any Kubernetes installation. 
+This is mostly true of AWS as well. The various methods of deploying Ambassador Edge Stack outlined in the [installation guide](/user-guide/install) will all work on AWS the same way they do on any Kubernetes installation.
 
 However, Kubernetes exposes various annotations for controlling the configuration of the AWS load balancer deployed via a Kubernetes `type: LoadBalancer` service. 
 
-This guide goes over considerations that must be made when using these annotations with Ambassador.
+This guide goes over considerations that must be made when using these annotations with Ambassador Edge Stack.
 
 **Note:** By default `type: LoadBalancer` will deploy an Elastic Load Balancer (ELB) running in L4 mode. This is typically enough for most users and the configuration options laid out below are not required.
 
@@ -32,12 +32,12 @@ In Kubernetes, when using the AWS integration and a service of type `LoadBalance
 
 ## Load Balancer Annotations
 
-There are a number of `aws-load-balancer` annotations that can be configured in the Ambassador service to control the AWS load balancer it deploys. You can view all of them in the [Kubernetes documentation](https://kubernetes.io/docs/concepts/cluster-administration/cloud-providers/#load-balancers). This document will go over the subset that is most relevant when deploying Ambassador.
+There are a number of `aws-load-balancer` annotations that can be configured in the Ambassador Edge Stack service to control the AWS load balancer it deploys. You can view all of them in the [Kubernetes documentation](https://kubernetes.io/docs/concepts/cluster-administration/cloud-providers/#load-balancers). This document will go over the subset that is most relevant when deploying Ambassador Edge Stack.
 
 - `service.beta.kubernetes.io/aws-load-balancer-ssl-cert`: 
     Configures the load balancer to use a valid certificate ARN to terminate TLS at the Load Balancer.
     
-    Traffic from the client into the load balancer is encrypted but, since TLS is being terminated at the load balancer, traffic from the load balancer to Ambassador will be cleartext and Ambassador will be listening on the cleartext port 8080.
+    Traffic from the client into the load balancer is encrypted but, since TLS is being terminated at the load balancer, traffic from the load balancer to Ambassador Edge Stack will be cleartext and Ambassador Edge Stack will be listening on the cleartext port 8080.
 
 - `service.beta.kubernetes.io/aws-load-balancer-ssl-ports`:
     Configures which port the load balancer will be listening for SSL traffic on. Defaults to `"*"`.
@@ -53,12 +53,12 @@ There are a number of `aws-load-balancer` annotations that can be configured in 
 - `service.beta.kubernetes.io/aws-load-balancer-proxy-protocol`:
     Configures the ELB to enable the proxy protocol. `"*"`, which enables the proxy protocol on all ELB backends, is the only acceptable value.
 
-    If setting this value, you need to make sure Envoy is configured to use the proxy protocol. This can be configured by setting `use_proxy_proto: true` and `use_remote_address: false` in the [ambassador `Module`](/reference/core/ambassador). **Note:** a restart of Ambassador is required for this configuration to take effect.
+    If setting this value, you need to make sure Envoy is configured to use the proxy protocol. This can be configured by setting `use_proxy_proto: true` and `use_remote_address: false` in the [ambassador `Module`](/reference/core/ambassador). **Note:** a restart of Ambassador Edge Stack is required for this configuration to take effect.
     
 
 ## Yaml Configuration
 
-The following is a sample configuration for deploying Ambassador in AWS using Kubernetes YAML manifests:
+The following is a sample configuration for deploying Ambassador Edge Stack in AWS using Kubernetes YAML manifests:
 
 ```yaml
 ---
@@ -92,11 +92,11 @@ spec:
     service: ambassador
 ```
 
-In this configuration, an ELB is deployed with a multi-domain AWS Certificate Manager certificate and configured to terminate TLS on requests over port 443 and forward to Ambassador listening for cleartext on 8080. The ELB is configured to route TCP to support both WebSockets and HTTP. It also enables the proxy protocol so Ambassador needs to be configured to handle that by configuring an Ambassador `Module`.
+In this configuration, an ELB is deployed with a multi-domain AWS Certificate Manager certificate and configured to terminate TLS on requests over port 443 and forward to Ambassador Edge Stack listening for cleartext on 8080. The ELB is configured to route TCP to support both WebSockets and HTTP. It also enables the proxy protocol so Ambassador Edge Stack needs to be configured to handle that by configuring an Ambassador Edge Stack `Module`.
 
 ## Helm Values Configuration
 
-The following in a sample configuration for deploying Ambassador in AWS with some load balancer annotations using the Ambassador Helm chart.
+The following in a sample configuration for deploying Ambassador Edge Stack in AWS with some load balancer annotations using the Ambassador Edge Stack Helm chart.
 
 Create a values file with the following content:
 
@@ -138,9 +138,9 @@ In this configuration, an ELB is deployed with a multi-domain AWS Certificate Ma
 
 ## TLS Termination
 
-As with any Kubernetes environment, Ambassador can be configured to perform SSL offload by configuring a tls [`Module`](/reference/core/tls) or [`TLSContext`](/user-guide/sni). Refer to the [TLS Termination](/user-guide/tls-termination) documentation for more information. 
+As with any Kubernetes environment, Ambassador Edge Stack can be configured to perform SSL offload by configuring a tls [`Module`](/reference/core/tls) or [`TLSContext`](/user-guide/sni). Refer to the [TLS Termination](/user-guide/tls-termination) documentation for more information. 
 
-In AWS, you can also perform SSL offload with an ELB or ALB. If you choose to terminate TLS at the LB, Ambassador should be configured to listen for cleartext traffic on the default port 80. An example of this using an L4 ELB is shown at the top of this document. 
+In AWS, you can also perform SSL offload with an ELB or ALB. If you choose to terminate TLS at the LB, Ambassador Edge Stack should be configured to listen for cleartext traffic on the default port 80. An example of this using an L4 ELB is shown at the top of this document. 
 
 Enabling HTTP -> HTTPS redirection will depend on if your load balancer is running in L4 or L7 mode.
 
@@ -149,8 +149,8 @@ Enabling HTTP -> HTTPS redirection will depend on if your load balancer is runni
 When running an ELB in L4 mode, you will need to listen on two ports to redirect all incoming HTTP requests to HTTPS. The first port will listen for HTTP traffic to redirect to HTTPS, while the second port will listen for HTTPS traffic.
 
 Let's say,
-- port 80 on the load balancer forwards requests to port 8080 on Ambassador
-- port 443 on the load balancer forwards requests to port 8443 on Ambassador
+- port 80 on the load balancer forwards requests to port 8080 on Ambassador Edge Stack
+- port 443 on the load balancer forwards requests to port 8443 on Ambassador Edge Stack
 
 
 
@@ -183,7 +183,7 @@ config:
     redirect_cleartext_from: 8080
 ```
 
-**Note:** Ensure there is no `ambassador-certs` secret in Ambassador's Namespace. If present, the tls `Module` will configure Ambassador to expect HTTPS traffic.
+**Note:** Ensure there is no `ambassador-certs` secret in the Ambassador Edge Stack Namespace. If present, the tls `Module` will configure Ambassador Edge Stack to expect HTTPS traffic.
 
 Editing the example service configuration above will give us:
 
@@ -230,13 +230,13 @@ spec:
     service: ambassador
 ```
 
-This configuration makes Ambassador start a new listener on 8080 which redirects all cleartext HTTP traffic to HTTPS.
+This configuration makes Ambassador Edge Stack start a new listener on 8080 which redirects all cleartext HTTP traffic to HTTPS.
 
-**Note:** Ambassador only supports standard ports (80 and 443) on the load balancer for L4 redirection, [yet](https://github.com/datawire/ambassador/issues/702)! For instance, if you configure port 8888 for HTTP and 9999 for HTTPS on the load balancer, then an incoming request to `http://<host>:8888` will be redirected to `https://<host>:8888`. This will fail because HTTPS listener is on port 9999.
+**Note:** Ambassador Edge Stack only supports standard ports (80 and 443) on the load balancer for L4 redirection, [yet](https://github.com/datawire/ambassador/issues/702)! For instance, if you configure port 8888 for HTTP and 9999 for HTTPS on the load balancer, then an incoming request to `http://<host>:8888` will be redirected to `https://<host>:8888`. This will fail because HTTPS listener is on port 9999.
 
 ### L7 Load Balancer
 
-If you are running the load balancer in L7 mode, then you will want to redirect all the incoming HTTP requests without the `X-FORWARDED-PROTO: https` header to HTTPS. Here is an example Ambassador configuration for this scenario:
+If you are running the load balancer in L7 mode, then you will want to redirect all the incoming HTTP requests without the `X-FORWARDED-PROTO: https` header to HTTPS. Here is an example Ambassador Edge Stack configuration for this scenario:
 
 ```yaml
 ---

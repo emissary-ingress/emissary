@@ -1,6 +1,6 @@
 # Add Request Headers
 
-Ambassador can add a dictionary of HTTP headers that can be added to each request that is passed to a service.
+Ambassador Edge Stack can add a dictionary of HTTP headers that can be added to each request that is passed to a service.
 
 ## The `add_request_headers` annotation
 
