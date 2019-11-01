@@ -1,11 +1,11 @@
 # Debugging (Advanced)
 
-If Ambassador is not starting or is not behaving as you would expect, your first step should be the [Ambassador Diagnostics](/reference/diagnostics) service. This document covers more advanced use cases and approaches, and assumes that you have either looked at the diagnostic console or can't access this page due to an Ambassador initialisation issue.
+If Ambassador Edge Stack is not starting or is not behaving as you would expect, your first step should be the [Ambassador Diagnostics](/reference/diagnostics) service. This document covers more advanced use cases and approaches, and assumes that you have either looked at the diagnostic console or can't access this page due to an Ambassador Edge Stack initialisation issue.
 
 ## tl;dr Problem? Start here
 
 * [Example configuration for debug examples](#a-nameexample-configaexample-config-for-debug-demonstrations)
-* Ambassador not starting
+* Ambassador Edge Stack not starting
   * [Check Ambassador is running](#a-namecheck-runningachecking-ambassador-is-running) via `kubectl`
   * [Check the logs](#a-namelogsagetting-access-to-the-ambassador-logs)
 * Ambassador not behaving as expected
@@ -17,12 +17,12 @@ If Ambassador is not starting or is not behaving as you would expect, your first
 * Mounted TLS certificates not being detected by Ambassador
   * Exec into an Ambassador Pod and [manually verify](#a-nameexamining-podaexamining-an-ambassadorenvoy-pod-and-container) that the mount is as expected (and in the correct file system location)
 * You want to manually change and experiment with the generated Envoy configuration
-  * [Exec into an Ambassador Pod](#a-nameexamining-podaexamining-an-ambassadorenvoy-pod-and-container) and [manually experiment](#a-namemanually-experimentinga-manually-experimenting-with-ambassador--envoy-configuration) with changing the Envoy configuration and sending a SIGHUP to the parent process
+  * [Exec into an Ambassador Edge Stack Pod](#a-nameexamining-podaexamining-an-ambassadorenvoy-pod-and-container) and [manually experiment](#a-namemanually-experimentinga-manually-experimenting-with-ambassador--envoy-configuration) with changing the Envoy configuration and sending a SIGHUP to the parent process
 
 
 ## <a name="example-config"></a>Example Config for Debug Demonstrations
 
-The following debugging instructions assume that Ambassador and the following services from the
+The following debugging instructions assume that Ambassador Edge Stack and the following services from the
 [getting started guide](/user-guide/getting-started) have been deployed to a Kubernetes cluster.
 
 e.g. Create a cluster in GKE with RBAC support enabled and your user account configured correctly:
@@ -33,12 +33,12 @@ $ kubectl create clusterrolebinding cluster-admin-binding-new \
 --clusterrole cluster-admin --user <your_user_name>
 ```
 
-Deploy the latest version of Ambassador:
+Deploy the latest version of Ambassador Edge Stack:
 
 ```shell
 $ kubectl apply -f https://getambassador.io/yaml/ambassador/ambassador-rbac.yaml
 ```
-Next, create an Ambassador Service and deploy a basic `httpbin` Ambassador Mapping
+Next, create an Ambassador Edge Stack Service and deploy a basic `httpbin` Ambassador Edge Stack Mapping
 e.g. save this YAML to a file named ```ambassador-services.yaml```
 
 ```yaml
@@ -79,10 +79,10 @@ And apply this into your cluster, e.g.:
 $ kubectl apply -f ambassador-services.yaml
 ```
 
-## <a name="check-running"></a>Checking Ambassador is running
+## <a name="check-running"></a>Checking Ambassador Edge Stack is running
 
 If you cannot access the [diagnostics console](/reference/diagnostics) via ```kubectl port-forward <ambassador_pod_name> 8877```
-the first thing to check is that Ambassador is running. This can be achieved via
+the first thing to check is that Ambassador Edge Stack is running. This can be achieved via
 the standard Kubernetes commands.
 
 First, check the Deployment
@@ -93,7 +93,7 @@ NAME         DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
 ambassador   3         3         3            3           1m
 ```
 
-If after a brief period of time to allow for Ambassador to initialize the "desired" number of replicas does not equal the "current" or "available" number, then you will also want to check the associated Pods:
+If after a brief period of time to allow for Ambassador Edge Stack to initialize the "desired" number of replicas does not equal the "current" or "available" number, then you will also want to check the associated Pods:
 
 ```shell
 $ kubectl get pods
@@ -194,11 +194,11 @@ Events:
   Normal  Started                4m    kubelet, gke-ambassador-demo-default-pool-912378e5-dkxc  Started container
 ```
 
-## <a name="logs"></a>Getting Access to the Ambassador Logs
+## <a name="logs"></a>Getting Access to the Ambassador Edge Stack Logs
 
-The Ambassador logs can provide a lot of information if something isn't behaving as expected. There can be a lot of text to parse (especially when running in debug mode), but key information to look out for is the Ambassador process restarting unexpectedly, or malformed Envoy configuration.
+The Ambassador Edge Stack logs can provide a lot of information if something isn't behaving as expected. There can be a lot of text to parse (especially when running in debug mode), but key information to look out for is the Ambassador Edge Stack process restarting unexpectedly, or malformed Envoy configuration.
 
-In order to view the logs you will need to target an individual Ambassador Pod. e.g.:
+In order to view the logs you will need to target an individual Ambassador Edge Stack Pod. e.g.:
 
 ```shell
 $ kubectl get pods
@@ -220,13 +220,13 @@ $ kubectl logs ambassador-85c4cf67b-4pfj2
 [2018-10-10 12:27:01.977][21][info][main] source/server/drain_manager_impl.cc:63] shutting down parent after drain
 ```
 
-By using the [Ambassador diagnostics console](/reference/diagnostics) you can click a button to "Set Debug On", and this causes Ambassador to generate a lot more logging. This can be useful when tracking down a particularly subtle bug.
+By using the [Ambassador diagnostics console](/reference/diagnostics) you can click a button to "Set Debug On", and this causes Ambassador Edge Stack to generate a lot more logging. This can be useful when tracking down a particularly subtle bug.
 
-## <a name="examining-pod"></a>Examining an Ambassador/Envoy Pod and Container
+## <a name="examining-pod"></a>Examining an Ambassador Edge Stack/Envoy Pod and Container
 
-It can sometimes be useful to examine the contents of the Ambassador Pod, for example, to check volume mounts are correct (e.g. TLS certificates are present in the required directory), to determine the latest Ambassador configuration has been sent to the Pod, or that the generated Envoy configuration is correct (or as expected).
+It can sometimes be useful to examine the contents of the Ambassador Edge Stack Pod, for example, to check volume mounts are correct (e.g. TLS certificates are present in the required directory), to determine the latest Ambassador Edge Stack configuration has been sent to the Pod, or that the generated Envoy configuration is correct (or as expected).
 
-You can look into an Ambassador Pod by using ```kube-exec``` and the ```/bin/sh``` shell contained within the Ambassador container. e.g.:
+You can look into an Ambassador Edge Stack Pod by using ```kube-exec``` and the ```/bin/sh``` shell contained within the Ambassador Edge Stack container. e.g.:
 
 ```shell
 $ kubectl get pods
@@ -255,7 +255,7 @@ total 84
      4 -rwxrwxr--    1 root     root           175 Sep 25 20:28 requirements.txt
      4 -rwxr-xr-x    1 root     root           997 Sep 25 20:28 start-envoy.sh
 ```
-The above output shows a typical file list from a pre-0.50 Ambassador instance. The `ambassador -config-X` directories contain the Ambassador configuration that was specified during each update of Ambassador via Kubernetes config files, with the higher number indicating the more recent configuration (as verified by the directory timestamps). The easy method to determine the latest configuration is to look for the `ambassador-config-X` directory with the highest number.
+The above output shows a typical file list from a pre-0.50 Ambassador Edge Stack instance. The `ambassador -config-X` directories contain the Ambassador Edge Stack configuration that was specified during each update of Ambassador Edge Stack via Kubernetes config files, with the higher number indicating the more recent configuration (as verified by the directory timestamps). The easy method to determine the latest configuration is to look for the `ambassador-config-X` directory with the highest number.
 
 ```shell
 /ambassador # ls ambassador-config-2
@@ -279,7 +279,7 @@ host_rewrite: httpbin.org
 ```
 
 
-The Envoy Proxy configuration that was generated from the Ambassador configuration is found in corresponding `envoy-X.json` file (where the number matches the `ambassador-config-X` directory number). The contents of the Envoy configuration files can be very useful when looking for subtle mapping issues or bugs.
+The Envoy Proxy configuration that was generated from the Ambassador Edge Stack configuration is found in corresponding `envoy-X.json` file (where the number matches the `ambassador-config-X` directory number). The contents of the Envoy configuration files can be very useful when looking for subtle mapping issues or bugs.
 
 ```shell
 /ambassador # cat envoy-2.json
@@ -300,9 +300,9 @@ The Envoy Proxy configuration that was generated from the Ambassador configurati
               {
 ```
 
-## <a name="manually-experimenting"></a> Manually Experimenting with Ambassador / Envoy configuration
+## <a name="manually-experimenting"></a> Manually Experimenting with Ambassador Edge Stack / Envoy configuration
 
-If the generated Envoy configuration is not looking as expected, you can manually tweak this and restart the Envoy process. The general approach to this is to scale down the Ambassador Deployment to a single Pod in order to send all Ambassador traffic through this single instance (which is not recommended in production!), exec into the Pod and make the modification to the `envoy/envoy.json`. Then, restart the `ambex` process which will pass the updated `envoy.json` to Envoy. You can do this by getting the PID of `ambex` with `ps -ef | grep ambex`. Then run `kill -HUP $AMBEX_PID` to restart `ambex`.
+If the generated Envoy configuration is not looking as expected, you can manually tweak this and restart the Envoy process. The general approach to this is to scale down the Ambassador Edge Stack Deployment to a single Pod in order to send all Ambassador Edge Stack traffic through this single instance (which is not recommended in production!), exec into the Pod and make the modification to the `envoy/envoy.json`. Then, restart the `ambex` process which will pass the updated `envoy.json` to Envoy. You can do this by getting the PID of `ambex` with `ps -ef | grep ambex`. Then run `kill -HUP $AMBEX_PID` to restart `ambex`.
 
 ```shell
 $ kubectl scale deployment ambassador --replicas=1
@@ -341,4 +341,4 @@ total 64
 /ambassador $ kill -HUP 33
 ```
 
-Be aware that even though you have modified the configuration files, the Ambassador Diagnostic Console may not accurately reflect your updates. In order to determine that the restart was successful with the correct configuration, you can ensure that the "Set Debug On" has been enabled via the Diagnostic Console and you can follow the Ambassador/Envoy logs to see the new configuration has been loaded.
+Be aware that even though you have modified the configuration files, the Ambassador Edge Stack Diagnostic Console may not accurately reflect your updates. In order to determine that the restart was successful with the correct configuration, you can ensure that the "Set Debug On" has been enabled via the Diagnostic Console and you can follow the Ambassador Edge Stack/Envoy logs to see the new configuration has been loaded.

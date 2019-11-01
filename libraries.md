@@ -1,4 +1,4 @@
-# Libraries used by Ambassador
+# Libraries used by Ambassador Edge Stack
 
 | Library | Version | URL | License |
 | ------- | ------- | --- | ------- |

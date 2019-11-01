@@ -2,6 +2,8 @@
 
 Ambassador Pro adds native support for the OAuth and OIDC authentication schemes for single sign-on with an external identity providers (IDP). Ambassador Pro has been tested with Keycloak, Auth0, Okta, and UAA although other OAuth/OIDC-compliant identity providers should work. Please contact us on [Slack](https://d6e.co/slack) if you have questions about IDPs not listed below.
 
+<div style="border: thick solid red"> </div>
+
 ## 1. Configure an OAuth2 filter
 
 First, configure an OAuth2 filter for your identity provider. For information on how to configure your IDP, see the IDP configuration section below.
@@ -50,6 +52,7 @@ spec:
 Save the configuration to a file and apply it to the cluster: `kubectl apply -f httpbin-filter-policy.yaml`. For more information about filters and filter policies, consult the [filter reference](/reference/filter-reference).
 
 ## IDP Configuration
+
 You will need to configure your IDP to handle authentication requests. The way to do this varies by IDP.
 
 - [Auth0](/reference/idp-support/auth0)
@@ -59,6 +62,7 @@ You will need to configure your IDP to handle authentication requests. The way t
 - [UAA](/reference/idp-support/uaa)
 
 ## Configure Authentication Across Multiple Domains (Optional)
+
 Ambassador Pro supports authentication for multiple domains where each domain is issued its own access token. For example, imagine you're hosting both `domain1.example.com` and `domain2.example.com` on the same cluster. With multi-domain support, users will receive separate authentication tokens for `domain1` and `domain2`.
 
 To configure multi-domain access, you will need to create another authentication endpoint with your IDP (see [Configure your IDP](/user-guide/oauth-oidc-auth/#configure-your-idp)) and create another `Filter` for the new domain.
@@ -93,7 +97,6 @@ spec:
 ```
 
 Create a separate `FilterPolicy` that specifies which specific filters are applied to particular hosts or URLs.
-
 
 ## Further reading
 

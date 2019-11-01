@@ -1,10 +1,10 @@
 # Circuit Breakers
 
-Circuit breakers are a powerful technique to improve resilience. By preventing additional connections or requests to an overloaded service, circuit breakers limit the blast radius of an overloaded service. By design, Ambassador circuit breakers are distributed, i.e., different Ambassador instances do not coordinate circuit breaker information.
+Circuit breakers are a powerful technique to improve resilience. By preventing additional connections or requests to an overloaded service, circuit breakers limit the blast radius of an overloaded service. By design, Ambassador Edge Stack circuit breakers are distributed, i.e., different Ambassador Edge Stack instances do not coordinate circuit breaker information.
 
 ## Circuit breaker configuration
 
-Circuit breaking configuration can be set for all Ambassador mappings in the [ambassador](/reference/core/ambassador) module or set per [mapping](https://www.getambassador.io/reference/mappings#configuring-mappings).
+Circuit breaking configuration can be set for all Ambassador Edge Stack mappings in the [ambassador](/reference/core/ambassador) module or set per [mapping](https://www.getambassador.io/reference/mappings#configuring-mappings).
 
 The `circuit_breakers` attribute configures circuit breaking. The following fields are supported:
 ```yaml
@@ -20,7 +20,7 @@ circuit_breakers:
 (Default: `default`) Specifies the priority to which the circuit breaker settings apply to; can be set to either `default` or `high`.
 
 ### `max_connections`
-(Default: `1024`) Specifies the maximum number of connections that Ambassador will make to the services. In practice, this is more applicable to HTTP/1.1 than HTTP/2.
+(Default: `1024`) Specifies the maximum number of connections that Ambassador Edge Stack will make to the services. In practice, this is more applicable to HTTP/1.1 than HTTP/2.
 
 ### `max_pending_requests`
 (Default: `1024`) Specifies the maximum number of requests that will be queued while waiting for a connection. In practice, this is more applicable to HTTP/1.1 than HTTP/2.
