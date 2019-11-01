@@ -93,8 +93,8 @@ func unstructureMetadata(in *k8sTypesMetaV1.ObjectMeta) map[string]interface{} {
 }
 
 // hostsEqual returns whether 2 Host resources are equal.  Use this
-// instead of `proto.Equal()` because Host is not (yet?) spec'ed as a
-// protobuf (but HostSpec is, so we use `proto.Equal()` internally).
+// instead of `proto.Equal()` because (gogo/protobuf v1.3.0)
+// `proto.Equal()` panics on metav1.ObjectMeta.
 func hostsEqual(a, b *ambassadorTypesV2.Host) bool {
 	if a.GetNamespace() != b.GetNamespace() {
 		return false
@@ -105,13 +105,15 @@ func hostsEqual(a, b *ambassadorTypesV2.Host) bool {
 	if !proto.Equal(a.Spec, b.Spec) {
 		return false
 	}
+	if !proto.Equal(a.Status, b.Status) {
+		return false
+	}
 	return true
 }
 
 // secretsEqual returns whether 2 Secret resources are equal.  Use
-// this instead of `proto.Equal()` because there seems to be a bug in
-// (gogo/protobuf v1.3.0) `proto.Equal()` that causes it to panic when
-// I give it secrets.  IDK.
+// this instead of `proto.Equal()` because (gogo/protobuf v1.3.0)
+// `proto.Equal()` panics on metav1.ObjectMeta.
 func secretsEqual(a, b *k8sTypesCoreV1.Secret) bool {
 	if a.GetNamespace() != b.GetNamespace() {
 		return false
