@@ -545,7 +545,7 @@ min_tls_version: v1.0
 max_tls_version: v1.3
 redirect_cleartext_from: 8080
 """)
-        # Ambassador should return and error for this configuration.
+        # Ambassador should return an error for this configuration.
         yield self, self.format("""
 ---
 apiVersion: ambassador/v1
@@ -555,7 +555,7 @@ hosts:
 - tls-context-host-1
 redirect_cleartext_from: 8080
 """)
-      # Ambassador should return and error for this configuration.
+      # Ambassador should return an error for this configuration.
         yield self, self.format("""
 ---
 apiVersion: ambassador/v1
@@ -631,14 +631,14 @@ redirect_cleartext_from: 8081
                     insecure=True,
                     sni=True)
 
-        # 7 - explicit Host header 2 wins, we'll get the SNI cert for this overlapping path
+        # 8 - explicit Host header 2 wins, we'll get the SNI cert for this overlapping path
         yield Query(self.url(self.name + "/"),
                     headers={"Host": "tls-context-host-2"},
                     expected=200,
                     insecure=True,
                     sni=True)
 
-        # 8 - Redirect cleartext from actually redirects.
+        # 9 - Redirect cleartext from actually redirects.
         yield Query(self.url("tls-context-same/", scheme="http"),
                     headers={"Host": "tls-context-host-1"},
                     expected=301,

@@ -44,6 +44,7 @@ from ambassador import Config, IR
 from ambassador.config.resourcefetcher import ResourceFetcher
 from ambassador.ir.irserviceresolver import IRServiceResolverFactory
 from ambassador.ir.irtls import TLSModuleFactory, IRAmbassadorTLS
+from ambassador.ir.irhost import HostFactory
 from ambassador.ir.irambassador import IRAmbassador
 from ambassador.utils import SecretInfo, SavedSecret, SecretHandler
 
@@ -60,20 +61,26 @@ class SecretRecorder(SecretHandler):
         self.needed: Dict[Tuple[str, str], SecretInfo] = {}
 
     # Record what was requested, and always return True.
-    def load_secret(self, context: 'IRTLSContext',
+    def load_secret(self, resource: 'IRResource',
                     secret_name: str, namespace: str) -> Optional[SecretInfo]:
-        self.logger.info(f"SecretRecorder: Trying to load secret {secret_name} in namespace {namespace} from TLSContext {context}")
+        self.logger.debug("SecretRecorder (%s %s): load secret %s in namespace %s" %
+                          (resource.kind, resource.name, secret_name, namespace))
+
         secret_key = ( secret_name, namespace )
 
         if secret_key not in self.needed:
-            self.needed[secret_key] = SecretInfo(secret_name, namespace, '-crt-', '-key-', decode_b64=False)
+            self.needed[secret_key] = SecretInfo(secret_name, namespace, 'needed-secret', '-crt-', '-key-',
+                                                 decode_b64=False)
 
         return self.needed[secret_key]
 
     # Never cache anything.
-    def cache_secret(self, context: 'IRTLSContext', secret_info: SecretInfo):
-        return SavedSecret(secret_info.name, secret_info.namespace, '-crt-path-', '-key-path-',
-                           { 'tls_crt': '-crt-', 'tls_key': '-key-' })
+    def cache_secret(self, resource: 'IRResource', secret_info: SecretInfo):
+        self.logger.debug("SecretRecorder (%s %s): skipping cache step for secret %s in namespace %s" %
+                          (resource.kind, resource.name, secret_info.name, secret_info.namespace))
+                          
+        return SavedSecret(secret_info.name, secret_info.namespace, '-crt-path-', '-key-path-', '-user-path-',
+                           { 'tls.crt': '-crt-', 'tls.key': '-key-', 'user.key': '-user-' })
 
 
 # XXX Sooooo there's some ugly stuff here.
