@@ -258,7 +258,7 @@ case "${cmd}" in
                 if [ -e "${MODDIR}/go.mod" ]; then
                     printf "${CYN}==> ${GRN}Building ${BLU}${module}${GRN} go code${END}\n"
                     echo_on
-                    (cd ${MODDIR} && GOBIN=/buildroot/bin go install $(if [[ -f vendor/modules.txt ]]; then echo ' -mod=vendor '; fi) ./cmd/...) || exit 1
+                    (cd ${MODDIR} && GOBIN=/buildroot/bin go install ./cmd/...) || exit 1
                     if [ -e ${MODDIR}/post-compile.sh ]; then (cd ${MODDIR} && bash post-compile.sh); fi
                     echo_off
                 fi

@@ -7,8 +7,11 @@
  */
 syntax = "proto3";
 
+package getambassador.io.v2;
+
 import "k8s.io/apimachinery/pkg/apis/meta/v1/generated.proto";
 import "k8s.io/api/core/v1/generated.proto";
+import "github.com/gogo/protobuf/gogoproto/gogo.proto";
 
 // The Host resource will usually be a Kubernetes CRD, but it could
 // appear in other forms. The HostSpec is the part of the Host resource
@@ -36,6 +39,41 @@ message HostSpec {
   k8s.io.api.core.v1.LocalObjectReference tlsSecret = 6;
 }
 
+enum HostTLSCertificateSource {
+  Unknown = 0;
+  None    = 1;
+  Other   = 2;
+  ACME    = 3;
+}
+
+enum HostState {
+  Pending = 0;
+  Ready   = 1;
+  Error   = 2;
+}
+
+enum HostPhase {
+  NA                        = 0;
+  DefaultsFilled            = 1;
+  ACMEUserPrivateKeyCreated = 2;
+  ACMEUserRegistered        = 3;
+  ACMECertificateChallenge  = 4;
+}
+
+message HostStatus {
+  HostTLSCertificateSource tlsCertificateSource = 1;
+
+  HostState state = 2;
+
+  // phaseCompleted and phasePending are valid when state==Pending or
+  // state==Error.
+  HostPhase phaseCompleted = 3;
+  HostPhase phasePending = 4;
+
+  // reason is valid when state==Error
+  string reason = 5;
+}
+
 message ACMEProviderSpec {
   // Specifies who to talk ACME with to get certs. Defaults to Let's
   // Encrypt; if "none", do not try to do TLS for this Host.
@@ -48,5 +86,3 @@ message ACMEProviderSpec {
   // This is normally set automatically
   string registration = 4;
 }
-
-// TODO: We will likely need a HostStatus message too.

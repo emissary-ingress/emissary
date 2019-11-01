@@ -1,4 +1,5 @@
 *.version
+*.tmp
 .git
 *.egg-info
 __pycache__
@@ -12,3 +13,4 @@ go.sum
 /bin_darwin_amd64/
 /cxx/envoy/
 /ambassador/
+/vendor/
