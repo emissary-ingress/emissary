@@ -61,6 +61,7 @@ export default Vue.extend({
 			yaml: "",
 
 			output: "",
+			lastOutput: "",
 		};
 	},
 	computed: {},
@@ -105,20 +106,30 @@ export default Vue.extend({
 			req.send();
 			this.updateYAML();
 		},
+		handleOutput: function(str) {
+			if (str != this.lastOutput) {
+				this.output += new Date();
+				this.output += str;
+				this.output += "\n";
+				this.lastOutput = str;
+			}
+		},
 		refreshStatus: function() {
 			let url = new URL('status', window.location);
-			url.searchParams.set('host', this.hostname);
+			url.searchParams.set('hostname', this.hostname);
 
 			let req = new XMLHttpRequest();
 			req.open("GET", url.toString());
 			req.onload = () => {
 				if (req.status == 200) {
-					this.output = req.response;
+					this.handleOutput(req.response);
 				}
 			};
 			req.onloadend = () => {
-				// recurse, to continually refresh the output status
-				this.refreshStatus();
+				// recurse, to continually refresh the output status...
+				setTimeout(() => {
+					this.refreshStatus();
+				}, 1000/5); // ... but limited to 5rps
 			};
 			req.send();
 		},
@@ -132,14 +143,14 @@ export default Vue.extend({
 			req.open("POST", url.toString());
 			req.onload = () => {
 				if (req.status == 201) {
-					this.output = "Applying YAML...";
+					this.handleOutput("Applying YAML...");
 					this.refreshStatus();
 				} else {
-					this.output += "Error applying YAML: "+req.response;
+					this.handleOutput("Error applying YAML: "+req.response);
 				}
 			};
 			req.onerror = () => {
-				this.output += "Error applying YAML: "+"XmlHttpRequestError";
+				this.handleOutput("Error applying YAML: XmlHttpRequestError");
 			};
 			req.send();
 		},
