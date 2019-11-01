@@ -1,0 +1,32 @@
+/**
+ * Host defines a way that an Ambassador will be visible to the 
+ * outside world. A minimal Host defines a hostname (of course) by
+ * which the Ambassador will be reachable, but a Host can also
+ * tell an Ambassador how to manage TLS, and which resources to 
+ * examine for further configuration.
+ */
+syntax = "proto3";
+
+package getambassador.io.v2;
+
+import "k8s.io/apimachinery/pkg/apis/meta/v1/generated.proto";
+import "github.com/gogo/protobuf/gogoproto/gogo.proto";
+import "getambassador.io/v2/Host.proto";
+
+message Host {
+  k8s.io.apimachinery.pkg.apis.meta.v1.TypeMeta type_meta = 1 [(gogoproto.embed) = true, (gogoproto.jsontag) = ",inline"];
+
+  // Standard object's metadata.
+  // More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata
+  k8s.io.apimachinery.pkg.apis.meta.v1.ObjectMeta metadata = 2 [(gogoproto.embed) = true];
+
+  // Specification of the desired behavior of the Host.
+  // More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status
+  getambassador.io.v2.HostSpec spec = 3;
+
+  // Most recently observed status of the Host.
+  // This data may not be up to date.
+  // Populated by AES.
+  // More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status
+  getambassador.io.v2.HostStatus status = 4;
+}
