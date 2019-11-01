@@ -88,7 +88,7 @@ go [here](https://golang.org/doc/install).
   ```
 * To run the server locally using some sensible default settings you can do this (this will setup the server to read the configuration files from the path you specify):
   ```bash
-  USE_STATSD=false LOG_LEVEL=debug REDIS_SOCKET_TYPE=tcp REDIS_URL=localhost:6379 RUNTIME_ROOT=/home/user/src/runtime/data RUNTIME_SUBDIRECTORY=ratelimit
+  USE_STATSD=false LOG_LEVEL=debug REDIS_URL=localhost:6379 RUNTIME_ROOT=/home/user/src/runtime/data RUNTIME_SUBDIRECTORY=ratelimit
   ```
 
 ## Docker-compose setup

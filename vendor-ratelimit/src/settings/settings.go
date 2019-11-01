@@ -18,8 +18,8 @@ type Settings struct {
 	RuntimePath                string `envconfig:"RUNTIME_ROOT" default:"/srv/runtime_data/current"`
 	RuntimeSubdirectory        string `envconfig:"RUNTIME_SUBDIRECTORY"`
 	LogLevel                   string `envconfig:"LOG_LEVEL" default:"WARN"`
-	RedisSocketType            string `envconfig:"REDIS_SOCKET_TYPE" default:"unix"`
-	RedisUrl                   string `envconfig:"REDIS_URL" default:"/var/run/nutcracker/ratelimit.sock"`
+	RedisSocketType            string `envconfig:"REDIS_SOCKET_TYPE" default:"tcp"`
+	RedisUrl                   string `envconfig:"REDIS_URL"`
 	RedisPoolSize              int    `envconfig:"REDIS_POOL_SIZE" default:"10"`
 	RedisPerSecond             bool   `envconfig:"REDIS_PERSECOND" default:"false"`
 	RedisPerSecondSocketType   string `envconfig:"REDIS_PERSECOND_SOCKET_TYPE" default:"unix"`
