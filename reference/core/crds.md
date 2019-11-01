@@ -1,6 +1,9 @@
 # Using CRDs with Ambassador
 
-As of Ambassador 0.70, any Ambassador resource can be expressed as a CRD in the `getambassador.io` API group:
+<div style="border: thick solid red"> </div>
+
+
+As of Ambassador 0.70, any Ambassador Edge Stack resource can be expressed as a CRD in the `getambassador.io` API group:
 
 - use `apiVersion: getambassador.io/v1`
 - use the same `kind` as you would in an annotation
@@ -37,6 +40,8 @@ spec:
 
 ## CRDs supported by Ambassador
 
+<div style="border: thick solid red"> </div>
+
 The full set of CRDs supported by Ambassador in 0.70.0:
 
 | `Kind` | Kubernetes singular | Kubernetes plural |
@@ -60,7 +65,7 @@ should show all your `Mapping` CRDs.
 
 ## CRDs and RBAC
 
-You will need to grant your Kubernetes service appropriate RBAC permissions to use CRDs. The default Ambassador RBAC examples have been updated, but the appropriate rules are
+You will need to grant your Kubernetes service appropriate RBAC permissions to use CRDs. The default Ambassador Edge Stack RBAC examples have been updated, but the appropriate rules are
 
 ```yaml
 rules:

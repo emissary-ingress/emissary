@@ -1,10 +1,19 @@
 # Service Preview
 
+<div style="border: thick solid red"> </div>
+
 How do you verify that the code you've written actually works? Ambassador Pro's *Service Preview* lets developers see exactly how their service works in a realistic enviroment -- without impacting other developers or end users. Service Preview integrates [Telepresence](https://www.telepresence.io), the popular CNCF project for local development and debugging on Kubernetes.
+
+<div style="border: thick solid red"> </div>
+
 
 ## Install `apictl`
 
+<div style="border: thick solid red"> </div>
+
 `apictl` is the command client for Ambassador Pro.
+<div style="border: thick solid red"> </div>
+
 
 Download the latest version of the client:
 
@@ -140,7 +149,11 @@ In this quick start, we're going to preview a change we make to the backend serv
     apictl traffic initialize
     ```
 
+<div style="border: thick solid red"> </div>
+
 7. We need to create an `intercept` rule that tells Ambassador where to route specific requests. The following command will tell Ambassador to route any traffic for the `tour` deployment where the header `x-service-preview` is `dev` to go to port 8080 on localhost:
+<div style="border: thick solid red"> </div>
+
 
     ```
     apictl traffic intercept tour -n x-service-preview -m dev -t 8080

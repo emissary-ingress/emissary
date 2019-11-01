@@ -1,6 +1,6 @@
 # Global Configuration
 
-Ambassador supports a variety of global configuration options in the `ambassador` module.
+Ambassador Edge Stack supports a variety of global configuration options in the `ambassador` module.
 
 ## The `ambassador` Module
 
@@ -148,7 +148,7 @@ config:
 
 ### Overriding Default Ports
 
-By default, Ambassador listens for HTTP or HTTPS traffic on ports 8080 or 8443 respectively. This value can be overridden by setting the `service_port` in the Ambassador `Module`:
+By default, Ambassador Edge Stack listens for HTTP or HTTPS traffic on ports 8080 or 8443 respectively. This value can be overridden by setting the `service_port` in the Ambassador `Module`:
 
 ```yaml
 ---
@@ -159,22 +159,17 @@ config:
   service_port: 4567
 ```
 
-This will configure Ambassador to listen for traffic on port 4567 instead of 8080.
+This will configure Ambassador Edge Stack to listen for traffic on port 4567 instead of 8080.
 
 ### Regular Expressions (`regex_type`)
 
-If `regex_type` is unset (the default), or is set to any value other than `unsafe`, Ambassador will use the
-[RE2](https://github.com/google/re2/wiki/Syntax) regular expression engine. This engine is designed to support
-most regular expressions, but keep bounds on execution time. **RE2 is the recommended regular expression engine.**
+If `regex_type` is unset (the default), or is set to any value other than `unsafe`, Ambassador Edge Stack will use the [RE2](https://github.com/google/re2/wiki/Syntax) regular expression engine. This engine is designed to support most regular expressions, but keep bounds on execution time. **RE2 is the recommended regular expression engine.**
 
-If `regex_type` is set to `unsafe`, Ambassador will use the [modified ECMAScript](https://en.cppreference.com/w/cpp/regex/ecmascript)
-regular expression engine. **This is not recommended** since the modified ECMAScript engine can consume unbounded 
-CPU in some cases (mostly relating to backreferences and lookahead); it is provided for backward compatibility if
-necessary.
+If `regex_type` is set to `unsafe`, Ambassador Edge Stack will use the [modified ECMAScript](https://en.cppreference.com/w/cpp/regex/ecmascript) regular expression engine. **This is not recommended** since the modified ECMAScript engine can consume unbounded CPU in some cases (mostly relating to backreferences and lookahead); it is provided for backward compatibility if necessary.
 
 ### Lua Scripts (`lua_scripts`)
 
-Ambassador supports the ability to inline Lua scripts that get run on every request. This is useful for simple use cases that mutate requests or responses, e.g., add a custom header. Here is a sample:
+Ambassador Edge Stack supports the ability to inline Lua scripts that get run on every request. This is useful for simple use cases that mutate requests or responses, e.g., add a custom header. Here is a sample:
 
 ```yaml
 ---
@@ -193,10 +188,15 @@ For more details on the Lua API, see the [Envoy Lua filter documentation](https:
 Some caveats around the embedded scripts:
 
 * They run in-process, so any bugs in your Lua script can break every request
-* They're inlined in the Ambassador YAML, so you likely won't want to write complex logic in here
+* They're inlined in the Ambassador Edge Stack YAML, so you likely won't want to write complex logic in here
 * They're run on every request/response to every URL
 
+<div style="border: thick solid red"> </div>
+
 If you need more flexible and configurable options, Ambassador Pro supports a [pluggable Filter system](/reference/filter-reference).
+
+<div style="border: thick solid red"> </div>
+
 
 ### Linkerd Interoperability (`add_linkerd_headers`)
 
@@ -208,11 +208,11 @@ If set, `cluster_idle_timeout_ms` specifies the timeout (in milliseconds) after 
 
 ### gRPC HTTP/1.1 bridge (`enable_grpc_http11_bridge`)
 
-Ambassador supports bridging HTTP/1.1 clients to backend gRPC servers. When an HTTP/1.1 connection is opened and the request content type is `application/grpc`, Ambassador will buffer the response and translate into gRPC requests. For more details on the translation process, see the [Envoy gRPC HTTP/1.1 bridge documentation](https://www.envoyproxy.io/docs/envoy/latest/configuration/http_filters/grpc_http1_bridge_filter.html). This setting can be enabled by setting `enable_grpc_http11_bridge: true`.
+Ambassador Edge Stack supports bridging HTTP/1.1 clients to backend gRPC servers. When an HTTP/1.1 connection is opened and the request content type is `application/grpc`, Ambassador Edge Stack will buffer the response and translate into gRPC requests. For more details on the translation process, see the [Envoy gRPC HTTP/1.1 bridge documentation](https://www.envoyproxy.io/docs/envoy/latest/configuration/http_filters/grpc_http1_bridge_filter.html). This setting can be enabled by setting `enable_grpc_http11_bridge: true`.
 
 ### gRPC-Web (`enable_grpc_web`)
 
-gRPC-Web is a protocol built on gRPC that extends the benefits of gRPC to the browser. The gRPC-Web specification requires a server-side proxy to translate between gRPC-Web requests and gRPC backend services. Ambassador can serve as the service-side proxy for gRPC-Web when `enable_grpc_web: true` is set.
+gRPC-Web is a protocol built on gRPC that extends the benefits of gRPC to the browser. The gRPC-Web specification requires a server-side proxy to translate between gRPC-Web requests and gRPC backend services. Ambassador Edge Stack can serve as the service-side proxy for gRPC-Web when `enable_grpc_web: true` is set.
 
 ### HTTP/1.0 support (`enable_http10`)
 
@@ -220,12 +220,9 @@ Enable/disable handling of incoming HTTP/1.0 and HTTP 0.9 requests.
 
 ### `enable_ivp4` and `enable_ipv6`
 
-If both IPv4 and IPv6 are enabled, Ambassador will prefer IPv6. This can have strange effects if Ambassador receives
-`AAAA` records from a DNS lookup, but the underlying network of the pod doesn't actually support IPv6 traffic. For this
-reason, the default for 0.50.0 is IPv4 only.
+If both IPv4 and IPv6 are enabled, Ambassador Edge Stack will prefer IPv6. This can have strange effects if Ambassador Edge Stack receives `AAAA` records from a DNS lookup, but the underlying network of the pod doesn't actually support IPv6 traffic. For this reason, the default for 0.50.0 is IPv4 only.
 
-A `Mapping` can override both `enable_ipv4` and `enable_ipv6`, but if either is not stated explicitly in a `Mapping`,
-the values here are used. Most Ambassador installations will probably be able to avoid overridding these setting in `Mapping`s.
+A `Mapping` can override both `enable_ipv4` and `enable_ipv6`, but if either is not stated explicitly in a `Mapping`, the values here are used. Most Ambassador Edge Stack installations will probably be able to avoid overridding these setting in `Mapping`s.
 
 ### Readiness and Liveness probes (`readiness_probe` and `liveness_probe`)
 
@@ -239,23 +236,25 @@ readiness_probe:
 
 The liveness and readiness probe both support `prefix`, `rewrite`, and `service`, with the same meanings as for [mappings](/reference/mappings). Additionally, the `enabled` boolean may be set to `false` (as in the commented-out examples above) to disable support for the probe entirely.
 
-**Note well** that configuring the probes in the `ambassador` module only means that Ambassador will respond to the probes. You must still configure Kubernetes to perform the checks, as shown in the Datawire-provided YAML files.
+**Note well** that configuring the probes in the `ambassador` module only means that Ambassador Edge Stack will respond to the probes. You must still configure Kubernetes to perform the checks, as shown in the Datawire-provided YAML files.
 
 ### `use_remote_address`
 
-In Ambassador 0.50 and later, the default value for `use_remote_address` to `true`. When set to `true`, Ambassador will append to the `X-Forwarded-For` header its IP address so upstream clients of Ambassador can get the full set of IP addresses that have propagated a request.  You may also need to set `externalTrafficPolicy: Local` on your `LoadBalancer` as well to propagate the original source IP address..  See the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest/configuration/http_conn_man/headers.html) and the [Kubernetes documentation](https://kubernetes.io/docs/tasks/access-application-cluster/create-external-load-balancer/#preserving-the-client-source-ip) for more details.
+<div style="border: thick solid red"> </div>
+
+In Ambassador 0.50 and later, the default value for `use_remote_address` to `true`. When set to `true`, Ambassador Edge Stack will append to the `X-Forwarded-For` header its IP address so upstream clients of Ambassador Edge Stack can get the full set of IP addresses that have propagated a request.  You may also need to set `externalTrafficPolicy: Local` on your `LoadBalancer` as well to propagate the original source IP address..  See the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest/configuration/http_conn_man/headers.html) and the [Kubernetes documentation](https://kubernetes.io/docs/tasks/access-application-cluster/create-external-load-balancer/#preserving-the-client-source-ip) for more details.
 
 **Note well** that if you need to use `X-Forwarded-Proto`, you **must** set `use_remote_address` to `false`.
 
 ### `use_proxy_proto`
 
-Many load balancers can use the [PROXY protocol](https://www.haproxy.org/download/1.8/doc/proxy-protocol.txt) to convey information about the connection they are proxying. In order to support this in Ambassador, you'll need to set `use_proxy_protocol` to `true`; this is not the default since the PROXY protocol is not compatible with HTTP.
+Many load balancers can use the [PROXY protocol](https://www.haproxy.org/download/1.8/doc/proxy-protocol.txt) to convey information about the connection they are proxying. In order to support this in Ambassador Edge Stack, you'll need to set `use_proxy_protocol` to `true`; this is not the default since the PROXY protocol is not compatible with HTTP.
 
 ### `xff_num_trusted_hops`
 
-The value of `xff_num_trusted_hops` indicates the number of trusted proxies in front of Ambassador. The default setting is 0 which tells Envoy to use the immediate downstream connection's IP address as the trusted client address. The trusted client address is used to populate the `remote_address` field used for rate limiting and can affect which IP address Envoy will set as `X-Envoy-External-Address`.
+The value of `xff_num_trusted_hops` indicates the number of trusted proxies in front of Ambassador Edge Stack. The default setting is 0 which tells Envoy to use the immediate downstream connection's IP address as the trusted client address. The trusted client address is used to populate the `remote_address` field used for rate limiting and can affect which IP address Envoy will set as `X-Envoy-External-Address`.
 
-`xff_num_trusted_hops` behavior is determined by the value of `use_remote_address` (which defaults to `true` in Ambassador).
+`xff_num_trusted_hops` behavior is determined by the value of `use_remote_address` (which defaults to `true` in Ambassador Edge Stack).
 
 - If `use_remote_address` is `false` and `xff_num_trusted_hops` is set to a value N that is greater than zero, the trusted client address is the (N+1)th address from the right end of XFF. (If the XFF contains fewer than N+1 addresses, Envoy falls back to using the immediate downstream connection’s source address as trusted client address.)
 
