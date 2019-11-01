@@ -5,10 +5,12 @@ package firstboot
 import (
 	"crypto/tls"
 	"encoding/json"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
+	"sync/atomic"
 
 	assetfs "github.com/elazarl/go-bindata-assetfs"
 	"github.com/go-acme/lego/v3/acme"
@@ -26,22 +28,39 @@ import (
 	"github.com/datawire/apro/cmd/amb-sidecar/acmeclient"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/httpclient"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/middleware"
+	"github.com/datawire/apro/cmd/amb-sidecar/watt"
 )
 
 type firstBootWizard struct {
 	staticfiles http.FileSystem
 	hostsGetter k8sClientDynamic.NamespaceableResourceInterface
+
+	snapshot atomic.Value
 }
 
-func NewFirstBootWizard(dynamicClient k8sClientDynamic.Interface) http.Handler {
+func (fb *firstBootWizard) getSnapshot() watt.Snapshot {
+	return fb.snapshot.Load().(watt.Snapshot)
+}
+
+func NewFirstBootWizard(
+	dynamicClient k8sClientDynamic.Interface,
+	snapshotCh <-chan watt.Snapshot,
+) http.Handler {
 	var files http.FileSystem = &assetfs.AssetFS{Asset: Asset, AssetDir: AssetDir, Prefix: ""}
 	if dir := os.Getenv("AES_STATIC_FILES"); dir != "" {
 		files = http.Dir(dir)
 	}
-	return &firstBootWizard{
+	ret := &firstBootWizard{
 		staticfiles: files,
 		hostsGetter: dynamicClient.Resource(k8sSchema.GroupVersionResource{Group: "getambassador.io", Version: "v2", Resource: "hosts"}),
 	}
+	ret.snapshot.Store(watt.Snapshot{})
+	go func() {
+		for snapshot := range snapshotCh {
+			ret.snapshot.Store(snapshot)
+		}
+	}()
+	return ret
 }
 
 func getTermsOfServiceURL(httpClient *http.Client, caURL string) (string, error) {
@@ -135,8 +154,36 @@ func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				errors.New("method not allowed"), nil)
 		}
 	case "/status":
-		//snapshot.GetHost(r.URL.Query().Get("host"))
-		io.WriteString(w, "todo...")
+		needleHostname := r.URL.Query().Get("hostname")
+
+		var needle *ambassadorTypesV2.Host
+		for _, straw := range fb.getSnapshot().Kubernetes.Host {
+			if straw.GetSpec().Hostname == needleHostname {
+				needle = straw
+				break
+			}
+		}
+		if needle == nil {
+			io.WriteString(w, "host not found")
+		} else {
+			switch needle.GetStatus().GetState() {
+			case ambassadorTypesV2.HostState_Pending:
+				fmt.Fprintln(w,
+					"state:", needle.GetStatus().GetState(),
+					"phaseCompleted:", needle.GetStatus().GetPhaseCompleted(),
+					"phasePending:", needle.GetStatus().GetPhasePending())
+			case ambassadorTypesV2.HostState_Ready:
+				io.WriteString(w, "state: Ready")
+			case ambassadorTypesV2.HostState_Error:
+				fmt.Fprintln(w,
+					"state:", needle.GetStatus().GetState(),
+					"phaseCompleted:", needle.GetStatus().GetPhaseCompleted(),
+					"phasePending:", needle.GetStatus().GetPhasePending(),
+					"error reason:", needle.GetStatus().GetReason())
+			default:
+				io.WriteString(w, "state: <invalid state>")
+			}
+		}
 	default:
 		http.FileServer(fb.staticfiles).ServeHTTP(w, r)
 	}

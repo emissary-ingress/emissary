@@ -388,7 +388,11 @@ func runE(cmd *cobra.Command, args []string) error {
 			httpHandler.AddEndpoint("/openapi/", "Documentation portal API", devPortalServer.Router().ServeHTTP)
 		}
 
-		httpHandler.AddEndpoint("/firstboot/", "First boot wizard", http.StripPrefix("/firstboot", firstboot.NewFirstBootWizard(dynamicClient)).ServeHTTP)
+		httpHandler.AddEndpoint("/firstboot/", "First boot wizard", http.StripPrefix("/firstboot",
+			firstboot.NewFirstBootWizard(
+				dynamicClient,
+				snapshotStore.Subscribe(),
+			)).ServeHTTP)
 
 		httpHandler.AddEndpoint("/banner/", "Diag UI banner", http.StripPrefix("/banner", banner.NewBanner(&licenseClaims)).ServeHTTP)
 
