@@ -24,7 +24,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='getambassador.io.v2',
   syntax='proto3',
   serialized_options=None,
-  serialized_pb=_b('\n\x1egetambassador.io/v2/Host.proto\x12\x13getambassador.io.v2\x1a\x34k8s.io/apimachinery/pkg/apis/meta/v1/generated.proto\x1a\"k8s.io/api/core/v1/generated.proto\x1a-github.com/gogo/protobuf/gogoproto/gogo.proto\"\x82\x02\n\x04Host\x12R\n\ttype_meta\x18\x01 \x01(\x0b\x32..k8s.io.apimachinery.pkg.apis.meta.v1.TypeMetaB\x0f\xd0\xde\x1f\x01\xea\xde\x1f\x07,inline\x12H\n\x08metadata\x18\x02 \x01(\x0b\x32\x30.k8s.io.apimachinery.pkg.apis.meta.v1.ObjectMetaB\x04\xd0\xde\x1f\x01\x12+\n\x04spec\x18\x03 \x01(\x0b\x32\x1d.getambassador.io.v2.HostSpec\x12/\n\x06status\x18\x04 \x01(\x0b\x32\x1f.getambassador.io.v2.HostStatus\"\x88\x02\n\x08HostSpec\x12\x15\n\rambassador_id\x18\x01 \x03(\t\x12\x12\n\ngeneration\x18\x02 \x01(\x05\x12\x10\n\x08hostname\x18\x03 \x01(\t\x12\x45\n\x08selector\x18\x04 \x01(\x0b\x32\x33.k8s.io.apimachinery.pkg.apis.meta.v1.LabelSelector\x12;\n\x0c\x61\x63meProvider\x18\x05 \x01(\x0b\x32%.getambassador.io.v2.ACMEProviderSpec\x12;\n\ttlsSecret\x18\x06 \x01(\x0b\x32(.k8s.io.api.core.v1.LocalObjectReference\"\x86\x02\n\nHostStatus\x12K\n\x14tlsCertificateSource\x18\x01 \x01(\x0e\x32-.getambassador.io.v2.HostTLSCertificateSource\x12-\n\x05state\x18\x02 \x01(\x0e\x32\x1e.getambassador.io.v2.HostState\x12\x36\n\x0ephaseCompleted\x18\x03 \x01(\x0e\x32\x1e.getambassador.io.v2.HostPhase\x12\x34\n\x0cphasePending\x18\x04 \x01(\x0e\x32\x1e.getambassador.io.v2.HostPhase\x12\x0e\n\x06reason\x18\x05 \x01(\t\"\x8e\x01\n\x10\x41\x43MEProviderSpec\x12\x11\n\tauthority\x18\x01 \x01(\t\x12\r\n\x05\x65mail\x18\x02 \x01(\t\x12\x42\n\x10privateKeySecret\x18\x03 \x01(\x0b\x32(.k8s.io.api.core.v1.LocalObjectReference\x12\x14\n\x0cregistration\x18\x04 \x01(\t*F\n\x18HostTLSCertificateSource\x12\x0b\n\x07Unknown\x10\x00\x12\x08\n\x04None\x10\x01\x12\t\n\x05Other\x10\x02\x12\x08\n\x04\x41\x43ME\x10\x03*.\n\tHostState\x12\x0b\n\x07Pending\x10\x00\x12\t\n\x05Ready\x10\x01\x12\t\n\x05\x45rror\x10\x02*|\n\tHostPhase\x12\x06\n\x02NA\x10\x00\x12\x12\n\x0e\x44\x65\x66\x61ultsFilled\x10\x01\x12\x1d\n\x19\x41\x43MEUserPrivateKeyCreated\x10\x02\x12\x16\n\x12\x41\x43MEUserRegistered\x10\x03\x12\x1c\n\x18\x41\x43MECertificateChallenge\x10\x04\x62\x06proto3')
+  serialized_pb=_b('\n\x1egetambassador.io/v2/Host.proto\x12\x13getambassador.io.v2\x1a\x34k8s.io/apimachinery/pkg/apis/meta/v1/generated.proto\x1a\"k8s.io/api/core/v1/generated.proto\x1a-github.com/gogo/protobuf/gogoproto/gogo.proto\"\x88\x02\n\x08HostSpec\x12\x15\n\rambassador_id\x18\x01 \x03(\t\x12\x12\n\ngeneration\x18\x02 \x01(\x05\x12\x10\n\x08hostname\x18\x03 \x01(\t\x12\x45\n\x08selector\x18\x04 \x01(\x0b\x32\x33.k8s.io.apimachinery.pkg.apis.meta.v1.LabelSelector\x12;\n\x0c\x61\x63meProvider\x18\x05 \x01(\x0b\x32%.getambassador.io.v2.ACMEProviderSpec\x12;\n\ttlsSecret\x18\x06 \x01(\x0b\x32(.k8s.io.api.core.v1.LocalObjectReference\"\x86\x02\n\nHostStatus\x12K\n\x14tlsCertificateSource\x18\x01 \x01(\x0e\x32-.getambassador.io.v2.HostTLSCertificateSource\x12-\n\x05state\x18\x02 \x01(\x0e\x32\x1e.getambassador.io.v2.HostState\x12\x36\n\x0ephaseCompleted\x18\x03 \x01(\x0e\x32\x1e.getambassador.io.v2.HostPhase\x12\x34\n\x0cphasePending\x18\x04 \x01(\x0e\x32\x1e.getambassador.io.v2.HostPhase\x12\x0e\n\x06reason\x18\x05 \x01(\t\"\x8e\x01\n\x10\x41\x43MEProviderSpec\x12\x11\n\tauthority\x18\x01 \x01(\t\x12\r\n\x05\x65mail\x18\x02 \x01(\t\x12\x42\n\x10privateKeySecret\x18\x03 \x01(\x0b\x32(.k8s.io.api.core.v1.LocalObjectReference\x12\x14\n\x0cregistration\x18\x04 \x01(\t*F\n\x18HostTLSCertificateSource\x12\x0b\n\x07Unknown\x10\x00\x12\x08\n\x04None\x10\x01\x12\t\n\x05Other\x10\x02\x12\x08\n\x04\x41\x43ME\x10\x03*.\n\tHostState\x12\x0b\n\x07Pending\x10\x00\x12\t\n\x05Ready\x10\x01\x12\t\n\x05\x45rror\x10\x02*|\n\tHostPhase\x12\x06\n\x02NA\x10\x00\x12\x12\n\x0e\x44\x65\x66\x61ultsFilled\x10\x01\x12\x1d\n\x19\x41\x43MEUserPrivateKeyCreated\x10\x02\x12\x16\n\x12\x41\x43MEUserRegistered\x10\x03\x12\x1c\n\x18\x41\x43MECertificateChallenge\x10\x04\x62\x06proto3')
   ,
   dependencies=[k8s_dot_io_dot_apimachinery_dot_pkg_dot_apis_dot_meta_dot_v1_dot_generated__pb2.DESCRIPTOR,k8s_dot_io_dot_api_dot_core_dot_v1_dot_generated__pb2.DESCRIPTOR,github_dot_com_dot_gogo_dot_protobuf_dot_gogoproto_dot_gogo__pb2.DESCRIPTOR,])
 
@@ -53,8 +53,8 @@ _HOSTTLSCERTIFICATESOURCE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=1130,
-  serialized_end=1200,
+  serialized_start=869,
+  serialized_end=939,
 )
 _sym_db.RegisterEnumDescriptor(_HOSTTLSCERTIFICATESOURCE)
 
@@ -80,8 +80,8 @@ _HOSTSTATE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=1202,
-  serialized_end=1248,
+  serialized_start=941,
+  serialized_end=987,
 )
 _sym_db.RegisterEnumDescriptor(_HOSTSTATE)
 
@@ -115,8 +115,8 @@ _HOSTPHASE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=1250,
-  serialized_end=1374,
+  serialized_start=989,
+  serialized_end=1113,
 )
 _sym_db.RegisterEnumDescriptor(_HOSTPHASE)
 
@@ -134,58 +134,6 @@ ACMEUserPrivateKeyCreated = 2
 ACMEUserRegistered = 3
 ACMECertificateChallenge = 4
 
-
-
-_HOST = _descriptor.Descriptor(
-  name='Host',
-  full_name='getambassador.io.v2.Host',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='type_meta', full_name='getambassador.io.v2.Host.type_meta', index=0,
-      number=1, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=_b('\320\336\037\001\352\336\037\007,inline'), file=DESCRIPTOR),
-    _descriptor.FieldDescriptor(
-      name='metadata', full_name='getambassador.io.v2.Host.metadata', index=1,
-      number=2, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=_b('\320\336\037\001'), file=DESCRIPTOR),
-    _descriptor.FieldDescriptor(
-      name='spec', full_name='getambassador.io.v2.Host.spec', index=2,
-      number=3, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR),
-    _descriptor.FieldDescriptor(
-      name='status', full_name='getambassador.io.v2.Host.status', index=3,
-      number=4, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  serialized_options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=193,
-  serialized_end=451,
-)
 
 
 _HOSTSPEC = _descriptor.Descriptor(
@@ -249,8 +197,8 @@ _HOSTSPEC = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=454,
-  serialized_end=718,
+  serialized_start=193,
+  serialized_end=457,
 )
 
 
@@ -308,8 +256,8 @@ _HOSTSTATUS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=721,
-  serialized_end=983,
+  serialized_start=460,
+  serialized_end=722,
 )
 
 
@@ -360,14 +308,10 @@ _ACMEPROVIDERSPEC = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=986,
-  serialized_end=1128,
+  serialized_start=725,
+  serialized_end=867,
 )
 
-_HOST.fields_by_name['type_meta'].message_type = k8s_dot_io_dot_apimachinery_dot_pkg_dot_apis_dot_meta_dot_v1_dot_generated__pb2._TYPEMETA
-_HOST.fields_by_name['metadata'].message_type = k8s_dot_io_dot_apimachinery_dot_pkg_dot_apis_dot_meta_dot_v1_dot_generated__pb2._OBJECTMETA
-_HOST.fields_by_name['spec'].message_type = _HOSTSPEC
-_HOST.fields_by_name['status'].message_type = _HOSTSTATUS
 _HOSTSPEC.fields_by_name['selector'].message_type = k8s_dot_io_dot_apimachinery_dot_pkg_dot_apis_dot_meta_dot_v1_dot_generated__pb2._LABELSELECTOR
 _HOSTSPEC.fields_by_name['acmeProvider'].message_type = _ACMEPROVIDERSPEC
 _HOSTSPEC.fields_by_name['tlsSecret'].message_type = k8s_dot_io_dot_api_dot_core_dot_v1_dot_generated__pb2._LOCALOBJECTREFERENCE
@@ -376,7 +320,6 @@ _HOSTSTATUS.fields_by_name['state'].enum_type = _HOSTSTATE
 _HOSTSTATUS.fields_by_name['phaseCompleted'].enum_type = _HOSTPHASE
 _HOSTSTATUS.fields_by_name['phasePending'].enum_type = _HOSTPHASE
 _ACMEPROVIDERSPEC.fields_by_name['privateKeySecret'].message_type = k8s_dot_io_dot_api_dot_core_dot_v1_dot_generated__pb2._LOCALOBJECTREFERENCE
-DESCRIPTOR.message_types_by_name['Host'] = _HOST
 DESCRIPTOR.message_types_by_name['HostSpec'] = _HOSTSPEC
 DESCRIPTOR.message_types_by_name['HostStatus'] = _HOSTSTATUS
 DESCRIPTOR.message_types_by_name['ACMEProviderSpec'] = _ACMEPROVIDERSPEC
@@ -384,13 +327,6 @@ DESCRIPTOR.enum_types_by_name['HostTLSCertificateSource'] = _HOSTTLSCERTIFICATES
 DESCRIPTOR.enum_types_by_name['HostState'] = _HOSTSTATE
 DESCRIPTOR.enum_types_by_name['HostPhase'] = _HOSTPHASE
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
-
-Host = _reflection.GeneratedProtocolMessageType('Host', (_message.Message,), {
-  'DESCRIPTOR' : _HOST,
-  '__module__' : 'getambassador.io.v2.Host_pb2'
-  # @@protoc_insertion_point(class_scope:getambassador.io.v2.Host)
-  })
-_sym_db.RegisterMessage(Host)
 
 HostSpec = _reflection.GeneratedProtocolMessageType('HostSpec', (_message.Message,), {
   'DESCRIPTOR' : _HOSTSPEC,
@@ -414,6 +350,4 @@ ACMEProviderSpec = _reflection.GeneratedProtocolMessageType('ACMEProviderSpec', 
 _sym_db.RegisterMessage(ACMEProviderSpec)
 
 
-_HOST.fields_by_name['type_meta']._options = None
-_HOST.fields_by_name['metadata']._options = None
 # @@protoc_insertion_point(module_scope)
