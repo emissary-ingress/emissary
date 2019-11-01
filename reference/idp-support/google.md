@@ -15,6 +15,8 @@ To use Google as and IdP for Single Sign-On, you will first need to create an OA
 5. Click `Create` 
 6. Record the `client ID` and `client secret` in the pop-up window. You will need these when configuring Ambassador Pro
 
+<div style="border: thick solid red"> </div>
+
 ## Set up Ambassador
 
 After creating an OAuth client in Google, configuring Ambassador to make use it for authentication is simple.

@@ -2,6 +2,8 @@
 
 Rate limits are a powerful way to improve availability and scalability for your microservices. With Ambassador, individual requests can be annotated with metadata, called labels.  These labels can then be passed to a third party [rate limiting service](/reference/services/rate-limit-service) which can then rate limit based on this data. If you do not want to write your own rate limiting service, [Ambassador Pro](https://www.getambassador.io/pro) includes an integrated, flexible rate limiting service.
 
+<div style="border: thick solid red"> </div>
+
 ## Request labels
 
 In Ambassador 0.50 and later, each mapping in Ambassador can have multiple *labels* which annotate a given request. These labels are then passed to a rate limiting service through a gRPC interface. These labels are specified with the `labels` annotation:

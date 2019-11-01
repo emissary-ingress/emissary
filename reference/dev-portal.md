@@ -2,7 +2,7 @@
 
 ## Rendering API Documentation
 
-The Dev Portal will automatically discover all services known by Ambassador (i.e., have a valid `Mapping`). For each `prefix` in a `Mapping`, the Dev Portal will attempt to fetch a Swagger or OpenAPI specification from `$PREFIX/.ambassador-internal/openapi-docs/`. You will need to update your microservice to return a Swagger or OAPI document at this URL.
+The Dev Portal will automatically discover all services known by Ambassador Edge Stack (i.e., have a valid `Mapping`). For each `prefix` in a `Mapping`, the Dev Portal will attempt to fetch a Swagger or OpenAPI specification from `$PREFIX/.ambassador-internal/openapi-docs/`. You will need to update your microservice to return a Swagger or OAPI document at this URL.
 
 ### `/docs/`
 
@@ -10,9 +10,9 @@ Rendered API documentation is published at the `/docs/` URL by default. In a sub
 
 ### `.ambassador-internal`
 
-By default, `.ambassador-internal` is not publicly exposed by Ambassador. This is controlled by a special `FilterPolicy` called `apro-internal-access-control`.
+By default, `.ambassador-internal` is not publicly exposed by Ambassador Edge Stack. This is controlled by a special `FilterPolicy` called `apro-internal-access-control`.
 
- Note that these URLs are not publicly exposed by Ambassador, and are internal-only.
+ Note that these URLs are not publicly exposed by Ambassador Edge Stack, and are internal-only.
 
 ## Dev Portal configuration
 
@@ -20,7 +20,7 @@ The Dev Portal supports configuring the following environment variables for conf
 
 | Setting                          | Required (Y/N) |   Description       |
 | -------------------------------- | -------------- | ------------------- |
-| AMBASSADOR_URL                   | Y              | External URL of Ambassador; include the protocol (e.g., `https://`) |
+| AMBASSADOR_URL                   | Y              | External URL of Ambassador Edge Stack; include the protocol (e.g., `https://`) |
 | APRO_DEVPORTAL_CONTENT_URL       | Y              | URL to the repository hosting the content for the Portal |
 | POLL_EVERY_SECS                  | N              | Interval for polling OpenAPI docs; default 60 seconds |
 

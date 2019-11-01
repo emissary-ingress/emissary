@@ -1,14 +1,8 @@
 # Filters
 
-Filters are used to extend Ambassador to modify or intercept an HTTP
-request before sending to the the backend service.  You may use any of
-the built-in Filter types, or use the `Plugin` filter type to run
-custom code written in Golang.
+Filters are used to extend Ambassador Edge Stack to modify or intercept an HTTP request before sending to the the backend service.  You may use any of the built-in Filter types, or use the `Plugin` filter type to run custom code written in Golang.
 
-Filters are created with the `Filter` resource type, which contains
-global arguments to that filter.  Which Filter(s) to use for which
-HTTP requests is then configured in `FilterPolicy` resources, which
-may contain path-specific arguments to the filter.
+Filters are created with the `Filter` resource type, which contains global arguments to that filter.  Which Filter(s) to use for which HTTP requests is then configured in `FilterPolicy` resources, which may contain path-specific arguments to the filter.
 
 For more information about developing filters, see the [Filter Development Guide](/docs/guides/filter-dev-guide).
 
@@ -36,7 +30,7 @@ Currently, Ambassador supports four filter types: `External`, `JWT`, `OAuth2`, a
 
 ### Filter Type: `External`
 
-The `External` filter type exposes the Ambassador `AuthService` interface to external authentication services. This is useful in a number of situations, e.g., if you have already written a custom `AuthService`, but also want to use other filters.
+The `External` filter type exposes the Ambassador Edge Stack `AuthService` interface to external authentication services. This is useful in a number of situations, e.g., if you have already written a custom `AuthService`, but also want to use other filters.
 
 The `External` filter looks very similar to an `AuthService` annotation:
 
@@ -139,6 +133,9 @@ spec:
    need to escape the template strings meant to be interpretted by
    Ambassador Pro.
 
+   <div style="border: thick solid red"> </div>
+
+
 [Go `text/template`]: https://golang.org/pkg/text/template/
 
 #### Example `JWT` `Filter`
@@ -213,8 +210,7 @@ spec:
 
 ### Filter Type: `OAuth2`
 
-The `OAuth2` filter type performs OAuth2 authorization against an
-identity provider implementing [OIDC Discovery](https://openid.net/specs/openid-connect-discovery-1_0.html).
+The `OAuth2` filter type performs OAuth2 authorization against an identity provider implementing [OIDC Discovery](https://openid.net/specs/openid-connect-discovery-1_0.html).
 
 #### `OAuth2` Global Arguments
 
@@ -299,6 +295,8 @@ Information that you decide for yourself:
      an HTTP request to the identity provider for each authorized request to a
      protected resource.  This performs poorly, but functions properly
      with a wider range of identity providers.
+     <div style="border: thick solid red"> </div>
+
    * `"auto"` attempts has it do `"jwt"` validation if the Access
      Token parses as a JWT and the signature is valid, and otherwise
      falls back to `"userinfo"` validation.
@@ -307,7 +305,7 @@ Information that you decide for yourself:
    ignores the `no-store` and `no-cache` Cache-Control directives on
    responses.  This is useful for maintaining good performance when
    working with identity providers with mis-configured Cache-Control.
- - `stateTTL`: How long Ambassador will wait for the user to submit
+ - `stateTTL`: How long Ambassador Edge Stack will wait for the user to submit
    credentials to the identity provider and receive a response to that
    effect from the identity provider
 
@@ -366,7 +364,7 @@ spec:
  - `insteadOfRedirect`: An action to perform instead of redirecting
    the User-Agent to the identity provider.  By default, if the
    User-Agent does not have an currently-authenticated session, then
-   Ambassador will redirect the User-Agent to the identity provider.
+   Ambassador Edge Stack will redirect the User-Agent to the identity provider.
    Setting `insteadOfRedirect` causes it to instead serve an
    authorization-denied error page; by default HTTP 403 ("Forbidden"),
    but this can be configured by the `httpStatusCode` sub-argument.
@@ -379,17 +377,15 @@ spec:
 
 ### Filter Type: `Plugin`
 
-The `Plugin` filter type allows you to plug in your own custom code.
-This code is compiled to a `.so` file, which you load in to the
-Ambassador Pro container at `/etc/ambassador-plugins/${NAME}.so`.
+The `Plugin` filter type allows you to plug in your own custom code. This code is compiled to a `.so` file, which you load in to the Ambassador Pro container at `/etc/ambassador-plugins/${NAME}.so`.
+
+<div style="border: thick solid red"> </div>
 
 #### The Plugin Interface
 
-This code is written in the Go programming language (golang), and must
-be compiled with the exact same compiler settings as Ambassador Pro;
-and any overlapping libraries used must have their versions match
-exactly.  This information is dockumented in an [apro-abi.txt][] file
-for each Ambassador Pro release.
+This code is written in the Go programming language (golang), and must be compiled with the exact same compiler settings as Ambassador Pro; and any overlapping libraries used must have their versions match exactly.  This information is dockumented in an [apro-abi.txt][] file for each Ambassador Pro release.
+
+<div style="border: thick solid red"> </div>
 
 [apro-abi.txt]: https://s3.amazonaws.com/datawire-static-files/apro-abi/apro-abi@%aproVersion%.txt
 
@@ -407,17 +403,13 @@ import (
 func PluginMain(w http.ResponseWriter, r *http.Request) { … }
 ```
 
-`*http.Request` is the incoming HTTP request that can be mutated or
-intercepted, which is done by `http.ResponseWriter`.
+`*http.Request` is the incoming HTTP request that can be mutated or intercepted, which is done by `http.ResponseWriter`.
 
 Headers can be mutated by calling `w.Header().Set(HEADERNAME, VALUE)`.
 Finalize changes by calling `w.WriteHeader(http.StatusOK)`.
 
-If you call `w.WriteHeader()` with any value other than 200
-(`http.StatusOK`) instead of modifying the request, the plugin has
-taken over the request, and the request will not be sent to the
-backend service.  You can call `w.Write()` to write the body of an
-error page.
+If you call `w.WriteHeader()` with any value other than 200 (`http.StatusOK`) instead of modifying the request, the plugin has
+taken over the request, and the request will not be sent to the backend service.  You can call `w.Write()` to write the body of an error page.
 
 #### `Plugin` Global Arguments
 
@@ -460,9 +452,7 @@ spec:
       arguments: DEPENDS     # optional
 ```
 
-The type of the `arguments` property is dependent on the which Filter
-type is being referred to; see the "Path-Specific Arguments"
-documentation for each Filter type.
+The type of the `arguments` property is dependent on the which Filter type is being referred to; see the "Path-Specific Arguments" documentation for each Filter type.
 
 When multiple `Filter`s are specified in a rule:
 
@@ -472,7 +462,7 @@ When multiple `Filter`s are specified in a rule:
  * The final backend service (i.e., the service where the request will
    ultimately be routed) will only have access to inserted headers if
    they are listed in `allowed_authorization_headers` in the
-   Ambassador annotation.
+   Ambassador Edge Stack annotation.
  * Filter processing is aborted by the first filter to return a
    non-200 status.
 
@@ -516,21 +506,13 @@ spec:
     - name: auth0
 ```
 
-**Note:** Ambassador will choose the first `FilterPolicy` rule that matches the incoming request. 
-As in the above example, you must list your rules in the order of least to most generic.
+**Note:** Ambassador Edge Stack will choose the first `FilterPolicy` rule that matches the incoming request. As in the above example, you must list your rules in the order of least to most generic.
 
 ## Installing self-signed certificates
 
-The `JWT` and `OAuth2` filters speak to other servers over HTTP or
-HTTPS.  If those servers are configured to speak HTTPS using a
-self-signed certificate, attempting to talk to them will result in a
-error mentioning `ERR x509: certificate signed by unknown authority`.
-You can fix this by installing that self-signed certificate in to the
-Pro container following the standard procedure for Alpine Linux 3.8:
-Copy the certificate to `/usr/local/share/ca-certificates/` and then
-run `update-ca-certificates`.  Note that the `amb-sidecar` image sets
-`USER 1000`, but that `update-ca-certificates` needs to be run as
-root.
+The `JWT` and `OAuth2` filters speak to other servers over HTTP or HTTPS.  If those servers are configured to speak HTTPS using a
+self-signed certificate, attempting to talk to them will result in an error mentioning `ERR x509: certificate signed by unknown authority`. You can fix this by installing that self-signed certificate in to the
+Pro container following the standard procedure for Alpine Linux 3.8: Copy the certificate to `/usr/local/share/ca-certificates/` and then run `update-ca-certificates`.  Note that the `amb-sidecar` image sets `USER 1000`, but that `update-ca-certificates` needs to be run as root.
 
 ```Dockerfile
 FROM quay.io/datawire/ambassador_pro:amb-sidecar-%aproVersion%
@@ -541,5 +523,6 @@ USER 1000
 ```
 
 When deploying Ambassador Pro, refer to that custom Docker image,
-rather than to
-`quay.io/datawire/ambassador_pro:amb-sidecar-%aproVersion%`.
+rather than to `quay.io/datawire/ambassador_pro:amb-sidecar-%aproVersion%`.
+
+<div style="border: thick solid red"> </div>

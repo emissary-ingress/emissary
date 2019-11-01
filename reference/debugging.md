@@ -8,14 +8,14 @@ If Ambassador Edge Stack is not starting or is not behaving as you would expect,
 * Ambassador Edge Stack not starting
   * [Check Ambassador is running](#a-namecheck-runningachecking-ambassador-is-running) via `kubectl`
   * [Check the logs](#a-namelogsagetting-access-to-the-ambassador-logs)
-* Ambassador not behaving as expected
-  * [Check Ambassador is running correctly](#a-namecheck-runningachecking-ambassador-is-running) via `kubectl`
+* Ambassador Edge Stack not behaving as expected
+  * [Check Ambassador Edge Stack is running correctly](#a-namecheck-runningachecking-ambassador-is-running) via `kubectl`
   * [Check the logs](#a-namelogsagetting-access-to-the-ambassador-logs) (potentially with "Set Debug On" via the Diagnostic Console)
 * Ambassdor/Envoy configuration not as unexpected
   * "Set Debug On" (via Diagnostic Console) and [check the (now verbose) logs](#a-namelogsagetting-access-to-the-ambassador-logs)
-  * Exec into an Ambassador Pod and [manually verify](#a-nameexamining-podaexamining-an-ambassadorenvoy-pod-and-container) the generated Envoy configuration
-* Mounted TLS certificates not being detected by Ambassador
-  * Exec into an Ambassador Pod and [manually verify](#a-nameexamining-podaexamining-an-ambassadorenvoy-pod-and-container) that the mount is as expected (and in the correct file system location)
+  * Exec into an Ambassador Edge Stack Pod and [manually verify](#a-nameexamining-podaexamining-an-ambassadorenvoy-pod-and-container) the generated Envoy configuration
+* Mounted TLS certificates not being detected by Ambassador Edge Stack
+  * Exec into an Ambassador Edge Stack Pod and [manually verify](#a-nameexamining-podaexamining-an-ambassadorenvoy-pod-and-container) that the mount is as expected (and in the correct file system location)
 * You want to manually change and experiment with the generated Envoy configuration
   * [Exec into an Ambassador Edge Stack Pod](#a-nameexamining-podaexamining-an-ambassadorenvoy-pod-and-container) and [manually experiment](#a-namemanually-experimentinga-manually-experimenting-with-ambassador--envoy-configuration) with changing the Envoy configuration and sending a SIGHUP to the parent process
 

@@ -100,6 +100,9 @@ env:
 
 If you are using Ambassador Pro, if you set `AMBASSADOR_NAMESPACE` or `AMBASSADOR_SINGLE_NAMESPACE`, you will need to set them in **both** containers in the deployment.
 
+<div style="border: thick solid red"> </div>
+
+
 ## `AMBASSADOR_ID`
 
 Ambassador supports running multiple Ambassadors in the same cluster, without restricting a given Ambassador to a single namespace. This is done with the `AMBASSADOR_ID` setting. In the Ambassador module, set the `ambassador_id`, e.g.,

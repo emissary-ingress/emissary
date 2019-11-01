@@ -1,8 +1,8 @@
-# Ambassador Open Source
+# Ambassador Open Source Software (OSS)
 
-In this tutorial, we'll walk through the process of deploying Ambassador Open Source in Kubernetes for ingress routing. Ambassador provides all the functionality of a traditional ingress controller (i.e., path-based routing) while exposing many additional capabilities such as [authentication](/user-guide/auth-tutorial), URL rewriting, CORS, rate limiting, and automatic metrics collection (the [mappings reference](/reference/mappings) contains a full list of supported options). For more background on Kubernetes ingress, [read this blog post](https://blog.getambassador.io/kubernetes-ingress-nodeport-load-balancers-and-ingress-controllers-6e29f1c44f2d).
+In this tutorial, we'll walk through the process of deploying Ambassador Open Source in Kubernetes for ingress routing. Ambassador OSS provides all the functionality of a traditional ingress controller (i.e., path-based routing) while exposing many additional capabilities such as [authentication](/user-guide/auth-tutorial), URL rewriting, CORS, rate limiting, and automatic metrics collection (the [mappings reference](/reference/mappings) contains a full list of supported options). For more background on Kubernetes ingress, [read this blog post](https://blog.getambassador.io/kubernetes-ingress-nodeport-load-balancers-and-ingress-controllers-6e29f1c44f2d).
 
-Ambassador Open Source is designed to allow service authors to control how their service is published to the Internet. We accomplish this by permitting a wide range of annotations on the *service*, which Ambassador reads to configure its Envoy Proxy. Below, we'll use service annotations to configure Ambassador Open Source to map `/httpbin/` to `httpbin.org`.
+Ambassador Open Source is designed to allow service authors to control how their service is published to the Internet. We accomplish this by permitting a wide range of annotations on the *service*, which Ambassador OSS reads to configure its Envoy Proxy. Below, we'll use service annotations to configure Ambassador OSS to map `/httpbin/` to `httpbin.org`.
 
 ## 1. Deploying Ambassador Open Source
 
@@ -15,7 +15,7 @@ kubectl cluster-info dump --namespace kube-system | grep authorization-mode
 If you see something like `--authorization-mode=Node,RBAC` in the output, then RBAC is enabled. The majority of current hosted Kubernetes providers (such as GKE) create
 clusters with RBAC enabled by default, and unfortunately the above command may not return any information indicating this.
 
-Note: If you're using Google Kubernetes Engine with RBAC, you'll need to grant permissions to the account that will be setting up Ambassador. To do this, get your official GKE username, and then grant `cluster-admin` role privileges to that username:
+**Note:** If you're using Google Kubernetes Engine with RBAC, you'll need to grant permissions to the account that will be setting up Ambassador OSS. To do this, get your official GKE username, and then grant `cluster-admin` role privileges to that username:
 
 ```
 $ kubectl create clusterrolebinding my-cluster-admin-binding --clusterrole=cluster-admin --user=$(gcloud info --format="value(config.account)")
@@ -35,7 +35,7 @@ kubectl apply -f https://getambassador.io/yaml/ambassador/ambassador-no-rbac.yam
 
 We recommend downloading the YAML files and exploring the content. You will see
 that an `ambassador-admin` NodePort Service is created (which provides an
-Ambassador Diagnostic web UI), along with an ambassador ClusterRole, ServiceAccount and ClusterRoleBinding (if RBAC is enabled). An Ambassador Deployment is also created.
+Ambassador ODD Diagnostic web UI), along with an ambassador ClusterRole, ServiceAccount and ClusterRoleBinding (if RBAC is enabled). An Ambassador Open Source Deployment is also created.
 
 When not installing Ambassador Open Source into the default namespace you must update the namespace used in the `ClusterRoleBinding` when RBAC is enabled.
 
@@ -44,9 +44,7 @@ For production configurations, we recommend you download these YAML files as you
 
 ## 2. Defining the Ambassador Open Source Service
 
-Ambassador Open Sourceis deployed as a Kubernetes Service that references the ambassador
-Deployment you deployed previously. Create the following YAML and put it in a file called
-`ambassador-service.yaml`.
+Ambassador Open Source is deployed as a Kubernetes Service that references the ambassador Deployment you deployed previously. Create the following YAML and put it in a file called`ambassador-service.yaml`.
 
 ```yaml
 ---
@@ -160,7 +158,7 @@ This YAML has also been published so you can deploy it remotely:
 kubectl apply -f https://getambassador.io/yaml/tour/tour.yaml
 ```
 
-When the `Mapping` CRDs are applied, Ambassador  Open Sourcewill use them to configure routing:
+When the `Mapping` CRDs are applied, Ambassador Open Source will use them to configure routing:
 
 - The first `Mapping` causes traffic from the `/` endpoint to be routed to the `tour-ui` React application.
 - The second `Mapping` causes traffic from the `/backend/` endpoint to be routed to the `tour-backend` service.
@@ -169,9 +167,9 @@ Note also the port numbers in the `service` field of the `Mapping`. This allows 
 
 <font color=#f9634E>**Important:**</font>
 
-Routing in Ambassador Open Source can be configured with Ambassador resources as shown above, Kubernetes service annotation, and Kubernetes Ingress resources. 
+Routing in Ambassador Open Source can be configured with Ambassador OSS resources as shown above, Kubernetes service annotation, and Kubernetes Ingress resources.
 
-Ambassador custom resources are the recommended config format and will be used throughout the documentation.
+Ambassador OSS ustom resources are the recommended config format and will be used throughout the documentation.
 
 See [configuration format](/reference/config-format) for more information on your configuration options.
 
@@ -226,7 +224,7 @@ Ambassador Open Source includes an integrated diagnostics service to help with t
 
 By default, this is exposed to the internet at the URL `http://{{AMBASSADOR_HOST}}/ambassador/v0/diag/`. Go to that URL from a web browser to view the diagnostic UI.
 
-You can change the default so it is not exposed externally by default by setting `diagnostics.enabled: false` in the [ambassador `Module`](/reference/core/ambassador). 
+You can change the default so it is not exposed externally by default by setting `diagnostics.enabled: false` in the [ambassador `Module`](/reference/core/ambassador).
 
 ```yaml
 apiVersion: getambassador.io/v1
@@ -258,7 +256,7 @@ will then let us view the diagnostics at http://localhost:8877/ambassador/v0/dia
 
 ## 6. Enable HTTPS
 
-Ambassador's versatile HTTPS configuration lets it support various HTTPS use cases whether simple or complex.
+The versatile HTTPS configuration of Ambassador Open Source lets it support various HTTPS use cases whether simple or complex.
 
 Follow our [enabling HTTPS guide](/user-guide/tls-termination) to quickly enable HTTPS support for your applications.
 

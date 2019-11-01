@@ -1,5 +1,8 @@
 # Environment variables for the Ambassador Pro container
 
+<div style="border: thick solid red"> </div>
+
+
 | Variable                         | Default                                           | Value type                                                                    | Purpose                                              |
 |----------------------------------|---------------------------------------------------|-------------------------------------------------------------------------------|------------------------------------------------------|
 | `AMBASSADOR_ID`                  | `default`                                         | plain string                                                                  | Ambassador                                           |
@@ -62,6 +65,8 @@ for secrets can be be removed from the ClusterRole.  If manually
 providing the secret, it must have the "Opaque" type, with two data
 fields: `rsa.key` and `rsa.crt`, which contain PEM-encoded RSA private
 and public keys respectively.
+
+<div style="border: thick solid red"> </div>
 
 [^1]: This may change in a future release to reflect the Pods's
     namespace if deployed to a namespace other than `default`.
