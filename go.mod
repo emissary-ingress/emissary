@@ -11,6 +11,7 @@ require (
 	github.com/dgryski/go-gk v0.0.0-20140819190930-201884a44051 // indirect
 	github.com/die-net/lrucache v0.0.0-20181227122439-19a39ef22a11
 	github.com/elazarl/go-bindata-assetfs v1.0.0
+	github.com/fsnotify/fsnotify v1.4.7
 	github.com/go-acme/lego/v3 v3.1.0
 	github.com/gobwas/glob v0.2.3
 	github.com/gogo/protobuf v1.3.0
