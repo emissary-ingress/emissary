@@ -14,6 +14,8 @@ from ..utils import parse_yaml, dump_yaml
 AnyDict = Dict[str, Any]
 HandlerResult = Optional[Tuple[str, List[AnyDict]]]
 
+# XXX ALL OF THE BELOW COMMENT IS PROBABLY OUT OF DATE. (Flynn, 2019-10-29)
+#
 # Some thoughts:
 # - loading a bunch of Ambassador resources is different from loading a bunch of K8s
 #   services, because we should assume that if we're being a fed a bunch of Ambassador
@@ -47,13 +49,15 @@ CRDTypes = frozenset([
 ])
 
 class ResourceFetcher:
-    def __init__(self, logger: logging.Logger, aconf: 'Config', skip_init_dir: bool=False) -> None:
+    def __init__(self, logger: logging.Logger, aconf: 'Config',
+                 skip_init_dir: bool=False, watch_only=False) -> None:
         self.aconf = aconf
         self.logger = logger
         self.elements: List[ACResource] = []
         self.filename: Optional[str] = None
         self.ocount: int = 1
         self.saved: List[Tuple[Optional[str], int]] = []
+        self.watch_only = watch_only
 
         self.k8s_endpoints: Dict[str, AnyDict] = {}
         self.k8s_services: Dict[str, AnyDict] = {}
@@ -130,7 +134,7 @@ class ResourceFetcher:
             self.finalize()
 
     def parse_yaml(self, serialization: str, k8s=False, rkey: Optional[str]=None,
-                   filename: Optional[str]=None, finalize: bool=True) -> None:
+                   filename: Optional[str]=None, finalize: bool=True, namespace: Optional[str]=None) -> None:
         # self.logger.debug("%s: parsing %d byte%s of YAML:\n%s" %
         #                   (self.location, len(serialization), "" if (len(serialization) == 1) else "s",
         #                    serialization))
@@ -139,8 +143,9 @@ class ResourceFetcher:
         serialization = os.path.expandvars(serialization)
 
         try:
+            # UGH. This parse_yaml is the one we imported from utils. XXX This needs to be fixed.
             objects = parse_yaml(serialization)
-            self.parse_object(objects=objects, k8s=k8s, rkey=rkey, filename=filename)
+            self.parse_object(objects=objects, k8s=k8s, rkey=rkey, filename=filename, namespace=namespace)
         except yaml.error.YAMLError as e:
             self.aconf.post_error("%s: could not parse YAML: %s" % (self.location, e))
 
@@ -188,13 +193,13 @@ class ResourceFetcher:
             # Handle normal Kube objects...
             for key in [ 'service', 'endpoints', 'secret', 'ingresses' ]:
                 for obj in watt_k8s.get(key) or []:
-                    self.logger.debug(f"Handling Kubernetes {key}...")
+                    # self.logger.debug(f"Handling Kubernetes {key}...")
                     self.handle_k8s(obj)
 
             # ...then handle Ambassador CRDs.
             for key in CRDTypes:
                 for obj in watt_k8s.get(key) or []:
-                    self.logger.debug(f"Handling CRD {key}...")
+                    # self.logger.debug(f"Handling CRD {key}...")
                     self.handle_k8s_crd(obj)
 
             watt_consul = watt_dict.get('Consul', {})
@@ -223,17 +228,20 @@ class ResourceFetcher:
             # self.logger.debug("%s: ignoring K8s object, no kind" % self.location)
             return
 
+        metadata = obj.get('metadata') or {}
+        name = metadata.get('name') or '(no name?)'
+
         handler = None
 
         if kind in CRDTypes:
             handler = self.handle_k8s_crd
         else:
             handler_name = f'handle_k8s_{kind.lower()}'
-            self.logger.debug(f"looking for handler {handler_name}")
+            # self.logger.debug(f"looking for handler {handler_name} for K8s {kind} {name}")
             handler = getattr(self, handler_name, None)
 
         if not handler:
-            self.logger.debug("%s: ignoring K8s object, unknown kind" % self.location)
+            self.logger.debug(f"{self.location}: skipping K8s {kind}")
             return
 
         result = handler(obj)
@@ -241,13 +249,11 @@ class ResourceFetcher:
         if result:
             rkey, parsed_objects = result
 
-            self.parse_object(parsed_objects, k8s=False,
-                              filename=self.filename, rkey=rkey)
+            self.parse_object(parsed_objects, k8s=False, filename=self.filename, rkey=rkey)
 
     def handle_k8s_crd(self, obj: dict) -> None:
         # CRDs are _not_ allowed to have embedded objects in annotations, because ew.
-
-        self.logger.debug(f"Handling K8s CRD: {obj}")
+        # self.logger.debug(f"Handling K8s CRD: {obj}")
 
         kind = obj.get('kind')
 
@@ -293,19 +299,21 @@ class ResourceFetcher:
         # ...and then stuff in a couple of other things.
         amb_object['apiVersion'] = apiVersion
         amb_object['name'] = name
+        amb_object['namespace'] = namespace
         amb_object['kind'] = kind
         amb_object['generation'] = generation
 
         # Done. Parse it.
         self.parse_object([ amb_object ], k8s=False, filename=self.filename, rkey=resource_identifier)
 
-    def parse_object(self, objects, k8s=False, rkey: Optional[str]=None, filename: Optional[str]=None):
+    def parse_object(self, objects, k8s=False, rkey: Optional[str]=None,
+                     filename: Optional[str]=None, namespace: Optional[str]=None):
         self.push_location(filename, 1)
 
         # self.logger.debug("PARSE_OBJECT: incoming %d" % len(objects))
 
         for obj in objects:
-            self.logger.debug("PARSE_OBJECT: checking %s" % obj)
+            # self.logger.debug("PARSE_OBJECT: checking %s" % obj)
 
             if k8s:
                 self.handle_k8s(obj)
@@ -313,12 +321,12 @@ class ResourceFetcher:
                 # if not obj:
                 #     self.logger.debug("%s: empty object from %s" % (self.location, serialization))
 
-                self.process_object(obj, rkey=rkey)
+                self.process_object(obj, rkey=rkey, namespace=namespace)
                 self.ocount += 1
 
         self.pop_location()
 
-    def process_object(self, obj: dict, rkey: Optional[str]=None) -> None:
+    def process_object(self, obj: dict, rkey: Optional[str]=None, namespace: Optional[str]=None) -> None:
         if not isinstance(obj, dict):
             # Bug!!
             if not obj:
@@ -360,6 +368,10 @@ class ResourceFetcher:
         rkey = "%s.%d" % (rkey, self.ocount)
 
         # self.logger.debug("%s PROCESS %s updated rkey to %s" % (self.location, obj['kind'], rkey))
+
+        # Force the namespace, if need be.
+        if namespace and not obj.get('namespace', None):
+            obj['namespace'] = namespace
 
         # Brutal hackery.
         if obj['kind'] == 'Service':
@@ -422,7 +434,7 @@ class ResourceFetcher:
                 self.filename += ":annotation"
 
             try:
-                parsed_ambassador_annotations = parse_yaml(ambassador_annotations)
+                parsed_ambassador_annotations = parse_yaml(ambassador_annotations, namespace=ingress_namespace)
             except yaml.error.YAMLError as e:
                 self.logger.debug("could not parse YAML: %s" % e)
 
@@ -761,7 +773,7 @@ class ResourceFetcher:
                 self.filename += ":annotation"
 
             try:
-                objects = parse_yaml(annotations)
+                objects = parse_yaml(annotations, namespace=resource_namespace)
             except yaml.error.YAMLError as e:
                 self.logger.debug("could not parse YAML: %s" % e)
 
@@ -914,134 +926,136 @@ class ResourceFetcher:
         # self.logger.debug("==== FINALIZE START\n%s" % json.dumps(od, sort_keys=True, indent=4))
 
         for key, k8s_svc in self.k8s_services.items():
-            # See if we can find endpoints for this service.
-            k8s_ep = self.k8s_endpoints.get(key, None)
-            k8s_ep_ports = k8s_ep.get('ports', None) if k8s_ep else None
-
             k8s_name = k8s_svc['name']
             k8s_namespace = k8s_svc['namespace']
-
-            # OK, Kube is weird. The way all this works goes like this:
-            #
-            # 1. When you create a Kube Service, Kube will allocate a clusterIP
-            #    for it and update DNS to resolve the name of the service to
-            #    that clusterIP.
-            # 2. Kube will look over the pods matched by the Service's selectors
-            #    and stick those pods' IP addresses into Endpoints for the Service.
-            # 3. The Service will have ports listed. These service.port entries can
-            #    contain:
-            #      port -- a port number you can talk to at the clusterIP
-            #      name -- a name for this port
-            #      targetPort -- a port number you can talk to at the _endpoint_ IP
-            #    We'll call the 'port' entry here the "service-port".
-            # 4. If you talk to clusterIP:service-port, you will get magically
-            #    proxied by the Kube CNI to a target port at one of the endpoint IPs.
-            #
-            # The $64K question is: how does Kube decide which target port to use?
-            #
-            # First, if there's only one endpoint port, that's the one that gets used.
-            #
-            # If there's more than one, if the Service's port entry has a targetPort
-            # number, it uses that. Otherwise it tries to find an endpoint port with
-            # the same name as the service port. Otherwise, I dunno, it punts and uses
-            # the service-port.
-            #
-            # So that's how Ambassador is going to do it, for each Service port entry.
-            #
-            # If we have no endpoints at all, Ambassador will end up routing using
-            # just the service name and port per the Mapping's service spec.
 
             target_ports = {}
             target_addrs = []
             svc_endpoints = {}
 
-            if not k8s_ep or not k8s_ep_ports:
-                # No endpoints at all, so we're done with this service.
-                self.logger.debug(f'{key}: no endpoints at all')
-            else:
-                idx = -1
+            if not self.watch_only:
+                # If we're not in watch mode, try to find endpoints for this service.
 
-                for port in k8s_svc['ports']:
-                    idx += 1
+                k8s_ep = self.k8s_endpoints.get(key, None)
+                k8s_ep_ports = k8s_ep.get('ports', None) if k8s_ep else None
 
-                    k8s_target: Optional[int] = None
+                # OK, Kube is weird. The way all this works goes like this:
+                #
+                # 1. When you create a Kube Service, Kube will allocate a clusterIP
+                #    for it and update DNS to resolve the name of the service to
+                #    that clusterIP.
+                # 2. Kube will look over the pods matched by the Service's selectors
+                #    and stick those pods' IP addresses into Endpoints for the Service.
+                # 3. The Service will have ports listed. These service.port entries can
+                #    contain:
+                #      port -- a port number you can talk to at the clusterIP
+                #      name -- a name for this port
+                #      targetPort -- a port number you can talk to at the _endpoint_ IP
+                #    We'll call the 'port' entry here the "service-port".
+                # 4. If you talk to clusterIP:service-port, you will get magically
+                #    proxied by the Kube CNI to a target port at one of the endpoint IPs.
+                #
+                # The $64K question is: how does Kube decide which target port to use?
+                #
+                # First, if there's only one endpoint port, that's the one that gets used.
+                #
+                # If there's more than one, if the Service's port entry has a targetPort
+                # number, it uses that. Otherwise it tries to find an endpoint port with
+                # the same name as the service port. Otherwise, I dunno, it punts and uses
+                # the service-port.
+                #
+                # So that's how Ambassador is going to do it, for each Service port entry.
+                #
+                # If we have no endpoints at all, Ambassador will end up routing using
+                # just the service name and port per the Mapping's service spec.
 
-                    src_port = port.get('port', None)
+                if not k8s_ep or not k8s_ep_ports:
+                    # No endpoints at all, so we're done with this service.
+                    self.logger.debug(f'{key}: no endpoints at all')
+                else:
+                    idx = -1
 
-                    if not src_port:
-                        # WTFO. This is impossible.
-                        self.logger.error(f"Kubernetes service {key} has no port number at index {idx}?")
-                        continue
+                    for port in k8s_svc['ports']:
+                        idx += 1
 
-                    if len(k8s_ep_ports) == 1:
-                        # Just one endpoint port. Done.
-                        k8s_target = list(k8s_ep_ports.values())[0]
+                        k8s_target: Optional[int] = None
+
+                        src_port = port.get('port', None)
+
+                        if not src_port:
+                            # WTFO. This is impossible.
+                            self.logger.error(f"Kubernetes service {key} has no port number at index {idx}?")
+                            continue
+
+                        if len(k8s_ep_ports) == 1:
+                            # Just one endpoint port. Done.
+                            k8s_target = list(k8s_ep_ports.values())[0]
+                            target_ports[src_port] = k8s_target
+
+                            self.logger.debug(f'{key} port {src_port}: single endpoint port {k8s_target}')
+                            continue
+
+                        # Hmmm, we need to try to actually map whatever ports are listed for
+                        # this service. Oh well.
+
+                        found_key = False
+                        fallback: Optional[int] = None
+
+                        for attr in [ 'targetPort', 'name', 'port' ]:
+                            port_key = port.get(attr)   # This could be a name or a number, in general.
+
+                            if port_key:
+                                found_key = True
+
+                                if not fallback and (port_key != 'name') and str(port_key).isdigit():
+                                    # fallback can only be digits.
+                                    fallback = port_key
+
+                                # Do we have a destination port for this?
+                                k8s_target = k8s_ep_ports.get(str(port_key), None)
+
+                                if k8s_target:
+                                    self.logger.debug(f'{key} port {src_port} #{idx}: {attr} {port_key} -> {k8s_target}')
+                                    break
+                                else:
+                                    self.logger.debug(f'{key} port {src_port} #{idx}: {attr} {port_key} -> miss')
+
+                        if not found_key:
+                            # WTFO. This is impossible.
+                            self.logger.error(f"Kubernetes service {key} port {src_port} has an empty port spec at index {idx}?")
+                            continue
+
+                        if not k8s_target:
+                            # This is most likely because we don't have endpoint info at all, so we'll do service
+                            # routing.
+                            #
+                            # It's actually impossible for fallback to be unset, but WTF.
+                            k8s_target = fallback or src_port
+
+                            self.logger.debug(f'{key} port {src_port} #{idx}: falling back to {k8s_target}')
+
                         target_ports[src_port] = k8s_target
 
-                        self.logger.debug(f'{key} port {src_port}: single endpoint port {k8s_target}')
-                        continue
+                    if not target_ports:
+                        # WTFO. This is impossible. I guess we'll fall back to service routing.
+                        self.logger.error(f"Kubernetes service {key} has no routable ports at all?")
 
-                    # Hmmm, we need to try to actually map whatever ports are listed for
-                    # this service. Oh well.
+                    # OK. Once _that's_ done we have to take the endpoint addresses into
+                    # account, or just use the service name if we don't have that.
 
-                    found_key = False
-                    fallback: Optional[int] = None
+                    k8s_ep_addrs = k8s_ep.get('addresses', None)
 
-                    for attr in [ 'targetPort', 'name', 'port' ]:
-                        port_key = port.get(attr)   # This could be a name or a number, in general.
+                    if k8s_ep_addrs:
+                        for addr in k8s_ep_addrs:
+                            ip = addr.get('ip', None)
 
-                        if port_key:
-                            found_key = True
-
-                            if not fallback and (port_key != 'name') and str(port_key).isdigit():
-                                # fallback can only be digits.
-                                fallback = port_key
-
-                            # Do we have a destination port for this?
-                            k8s_target = k8s_ep_ports.get(str(port_key), None)
-
-                            if k8s_target:
-                                self.logger.debug(f'{key} port {src_port} #{idx}: {attr} {port_key} -> {k8s_target}')
-                                break
-                            else:
-                                self.logger.debug(f'{key} port {src_port} #{idx}: {attr} {port_key} -> miss')
-
-                    if not found_key:
-                        # WTFO. This is impossible.
-                        self.logger.error(f"Kubernetes service {key} port {src_port} has an empty port spec at index {idx}?")
-                        continue
-
-                    if not k8s_target:
-                        # This is most likely because we don't have endpoint info at all, so we'll do service
-                        # routing.
-                        #
-                        # It's actually impossible for fallback to be unset, but WTF.
-                        k8s_target = fallback or src_port
-
-                        self.logger.debug(f'{key} port {src_port} #{idx}: falling back to {k8s_target}')
-
-                    target_ports[src_port] = k8s_target
-
-                if not target_ports:
-                    # WTFO. This is impossible. I guess we'll fall back to service routing.
-                    self.logger.error(f"Kubernetes service {key} has no routable ports at all?")
-
-                # OK. Once _that's_ done we have to take the endpoint addresses into
-                # account, or just use the service name if we don't have that.
-
-                k8s_ep_addrs = k8s_ep.get('addresses', None)
-
-                if k8s_ep_addrs:
-                    for addr in k8s_ep_addrs:
-                        ip = addr.get('ip', None)
-
-                        if ip:
-                            target_addrs.append(ip)
+                            if ip:
+                                target_addrs.append(ip)
 
             # OK! If we have no target addresses, just use service routing.
-
             if not target_addrs:
-                self.logger.debug(f'{key} falling back to service routing')
+                if not self.watch_only:
+                    self.logger.debug(f'{key} falling back to service routing')
                 target_addrs = [ key ]
 
             for src_port, target_port in target_ports.items():
@@ -1050,7 +1064,6 @@ class ResourceFetcher:
                     'port': target_port
                 } for target_addr in target_addrs ]
 
-            # Nope. Set this up for service routing.
             self.services[f'k8s-{k8s_name}-{k8s_namespace}'] = {
                 'apiVersion': 'ambassador/v1',
                 'ambassador_id': Config.ambassador_id,

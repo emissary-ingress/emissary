@@ -225,7 +225,7 @@ func lines(st string) []string {
 }
 
 func invokeHook(p *supervisor.Process, hook, snapshot string) WatchSet {
-	cmd := exec.Command(hook)
+	cmd := exec.Command("sh", "-c", hook)
 	cmd.Stdin = strings.NewReader(snapshot)
 	var watches, errors strings.Builder
 	cmd.Stdout = &watches
