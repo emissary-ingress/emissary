@@ -132,7 +132,7 @@ service: httpbin.org
 host_rewrite: httpbin.org   
 ```
 
-Once again, restart ambassador and test the new mapping:
+Once again, restart Ambassador Edge Stack and test the new mapping:
 
 ```bash
 # restart the container to pick up new configuration settings
@@ -270,7 +270,7 @@ allowed_authorization_headers:
 - "x-qotm-session"
 ```
 
-This configuration will use the `AuthService` object to ensure that all requests made to ambassador are first sent to the `auth` docker container on port `3000` before being routed to the service that is mapped to the desired route. See the Authentication documentation for more details.
+This configuration will use the `AuthService` object to ensure that all requests made to Ambassador Edge Stack are first sent to the `auth` docker container on port `3000` before being routed to the service that is mapped to the desired route. See the Authentication documentation for more details.
 
 ### Verify that Authentication is working
 

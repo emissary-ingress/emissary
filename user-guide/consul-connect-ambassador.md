@@ -1,12 +1,14 @@
-# Consul Connect Integration with Ambassador
+# Consul Connect Integration with Ambassador Edge Stack
 
 ## Prerequisites
 
 ### Consul Connect
-Installation and configuration of Consul Connect is outside of the scope of this document. Please refer to [Consul documentation](https://www.consul.io/docs/platform/k8s/index.html) for information on how to install and configure Consul Connect. 
 
-### Ambassador
-Install and configure Ambassador. If you are using a cloud provider such as Amazon, Google, or Azure, you can type: 
+Installation and configuration of Consul Connect is outside of the scope of this document. Please refer to [Consul documentation](https://www.consul.io/docs/platform/k8s/index.html) for information on how to install and configure Consul Connect.
+
+### Ambassador Edge Stack
+
+Install and configure Ambassador. If you are using a cloud provider such as Amazon, Google, or Azure, you can type:
 
 ```
 kubectl apply -f https://getambassador.io/yaml/ambassador/ambassador-rbac.yaml
@@ -19,9 +21,9 @@ Note: If you are using GKE, you will need additional privileges:
 kubectl create clusterrolebinding my-cluster-admin-binding --clusterrole=cluster-admin --user=$(gcloud info --format="value(config.account)")
 ```
 
-For more detailed instructions on installing Ambassador, please see the [Ambassador installation guide](/user-guide/getting-started).
+For more detailed instructions on installing Ambassador Edge Stack, please see the [Ambassador Edge Stack installation guide](/user-guide/getting-started).
 
-**Note:** If you have automatic sidecar injection enabled, ensure the `"consul.hashicorp.com/connect-inject":` annotation is set to `"false"` in the Ambassador deployment spec.
+**Note:** If you have automatic sidecar injection enabled, ensure the `"consul.hashicorp.com/connect-inject":` annotation is set to `"false"` in the Ambassador Edge Stack deployment spec.
 
 ```yaml
 spec:
