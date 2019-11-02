@@ -149,7 +149,7 @@ class ResourceFetcher:
             # UGH. This parse_yaml is the one we imported from utils. XXX This needs to be fixed.
             objects = parse_yaml(serialization)
             self.parse_object(objects=objects, k8s=k8s, rkey=rkey, filename=filename,
-                              namespace=namespace)
+                              namespace=namespace, metadata_labels=metadata_labels)
         except yaml.error.YAMLError as e:
             self.aconf.post_error("%s: could not parse YAML: %s" % (self.location, e))
 

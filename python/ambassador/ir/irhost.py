@@ -67,6 +67,7 @@ class IRHost(IRResource):
                                            rkey=self.rkey,
                                            name=ctx_name,
                                            namespace=self.namespace,
+                                           metadata_labels=self.match_labels,
                                            location=self.location,
                                            hosts=[ self.hostname ],
                                            secret=tls_name)
