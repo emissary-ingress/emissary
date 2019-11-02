@@ -2,7 +2,7 @@
 
 With Keycloak as your IDP, you will need to create a `Client` to handle authentication requests from Ambassador Pro. The below instructions are known to work for Keycloak 4.8.
 
-<div style="border: thick solid red"> </div>
+
 
 1. Under "Realm Settings", record the "Name" of the realm your client is in. This will be needed to configure your `authorizationURL`.
 

@@ -43,7 +43,7 @@ spec:
 
 ## 1. Install the Ambassador Pro Consul Connector
 
-<div style="border: thick solid red"> </div>
+
 
 Ambassador Pro integrates with Consul Connect via a sidecar service. This service does two things:
 

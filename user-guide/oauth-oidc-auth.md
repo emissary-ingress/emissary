@@ -2,7 +2,7 @@
 
 Ambassador Pro adds native support for the OAuth and OIDC authentication schemes for single sign-on with an external identity providers (IDP). Ambassador Pro has been tested with Keycloak, Auth0, Okta, and UAA although other OAuth/OIDC-compliant identity providers should work. Please contact us on [Slack](https://d6e.co/slack) if you have questions about IDPs not listed below.
 
-<div style="border: thick solid red"> </div>
+
 
 ## 1. Configure an OAuth2 filter
 

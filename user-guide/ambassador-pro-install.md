@@ -1,5 +1,4 @@
 # Installing Ambassador Pro and Ambassador Dev Portal
----
 
 For users who need additional functionality, Datawire provides two add-on products to Ambassador:
 
@@ -10,7 +9,7 @@ Both of these products use a certified version of Ambassador that undergoes addi
 
 Information about the open source code used in Ambassador Pro and Dev Portal can be found in `/*.opensource.tar.gz` files in each Docker image. Both of these products are included in a single consolidated Docker image.
 
-<div style="border: thick solid red"> </div>
+
 
 ## 1. Clone the Reference Architecture
 The Ambassador add-on products are typically deployed on the same pod as Ambassador. In addition, Redis is used for the rate limit service. In this installation, we'll start with the standard configuration, which is available here:

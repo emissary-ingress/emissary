@@ -2,7 +2,7 @@
 ---
 Ambassador Pro's `FilterPolicy` custom resource definition (CRD) gives you fine-grained control over filters. Since authentication and access control is implemented in specific filters, the `FilterPolicy` CRD can be used for access control as well.
 
-<div style="border: thick solid red"> </div>
+
 
 ## Authentication Policy 
 A `rule` for the `FilterPolicy` CRD is a set of hosts, paths, and filters that indicate which filters should be applied to a given path or host.

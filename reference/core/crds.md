@@ -1,6 +1,6 @@
 # Using CRDs with Ambassador Edge Stack
 
-<div style="border: thick solid red"> </div>
+
 
 
 As of Ambassador 0.70, any Ambassador Edge Stack resource can be expressed as a CRD in the `getambassador.io` API group:
@@ -40,7 +40,7 @@ spec:
 
 ## CRDs supported by Ambassador Edge Stack
 
-<div style="border: thick solid red"> </div>
+
 
 The full set of CRDs supported by Ambassador in 0.70.0:
 

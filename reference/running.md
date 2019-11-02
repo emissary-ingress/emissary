@@ -100,7 +100,7 @@ env:
 
 If you are using Ambassador Pro, if you set `AMBASSADOR_NAMESPACE` or `AMBASSADOR_SINGLE_NAMESPACE`, you will need to set them in **both** containers in the deployment.
 
-<div style="border: thick solid red"> </div>
+
 
 
 ## `AMBASSADOR_ID`

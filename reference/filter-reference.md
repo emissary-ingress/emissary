@@ -133,7 +133,7 @@ spec:
    need to escape the template strings meant to be interpretted by
    Ambassador Pro.
 
-   <div style="border: thick solid red"> </div>
+   
 
 
 [Go `text/template`]: https://golang.org/pkg/text/template/
@@ -295,7 +295,7 @@ Information that you decide for yourself:
      an HTTP request to the identity provider for each authorized request to a
      protected resource.  This performs poorly, but functions properly
      with a wider range of identity providers.
-     <div style="border: thick solid red"> </div>
+     
 
    * `"auto"` attempts has it do `"jwt"` validation if the Access
      Token parses as a JWT and the signature is valid, and otherwise
@@ -379,13 +379,13 @@ spec:
 
 The `Plugin` filter type allows you to plug in your own custom code. This code is compiled to a `.so` file, which you load in to the Ambassador Pro container at `/etc/ambassador-plugins/${NAME}.so`.
 
-<div style="border: thick solid red"> </div>
+
 
 #### The Plugin Interface
 
 This code is written in the Go programming language (golang), and must be compiled with the exact same compiler settings as Ambassador Pro; and any overlapping libraries used must have their versions match exactly.  This information is dockumented in an [apro-abi.txt][] file for each Ambassador Pro release.
 
-<div style="border: thick solid red"> </div>
+
 
 [apro-abi.txt]: https://s3.amazonaws.com/datawire-static-files/apro-abi/apro-abi@%aproVersion%.txt
 
@@ -525,4 +525,4 @@ USER 1000
 When deploying Ambassador Pro, refer to that custom Docker image,
 rather than to `quay.io/datawire/ambassador_pro:amb-sidecar-%aproVersion%`.
 
-<div style="border: thick solid red"> </div>
+

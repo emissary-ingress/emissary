@@ -2,7 +2,7 @@
 
 **IMPORTANT:** Ambassador Pro requires the IDP return a JWT signed by the RS256 algorithm (asymmetric key). UAA defaults to symmetric key encryption which Ambassador Pro cannot read. You will need to provide your own asymmetric key when configuring UAA. e.g.
 
-<div style="border: thick solid red"> </div>
+
 
 
 `uaa.yml`

@@ -34,7 +34,7 @@ curl 'http://localhost:8080/qotm/?json=true'
 
 This request will route to the `qotm` service at `demo.getambassador.io`, and return a random quote for this very moment.
 
-You can see details of the mapping by clicking the blue `http://localhost:8080/qotm/ link at the very bottom of the `Ambassador Route Table` in the diagnostics overview.
+You can see details of the mapping by clicking the blue `http://localhost:8080/qotm/` link at the very bottom of the `Ambassador Route Table` in the diagnostics overview.
 
 ## 4. Authentication
 

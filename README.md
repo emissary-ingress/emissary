@@ -14,7 +14,6 @@ We've switched to GatsbyJS for generating the documentation, which gives us more
    of Ambassador Pro, you should submit your pull-request to
    [apro.git][] (in the `docs/` folder).
 
-<div style="border: thick solid red"> </div>
 
 If you're authoring the documentation, just edit the Markdown files. You can use GitHub to preview the Markdown.
 

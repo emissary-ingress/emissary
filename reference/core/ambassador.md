@@ -191,11 +191,11 @@ Some caveats around the embedded scripts:
 * They're inlined in the Ambassador Edge Stack YAML, so you likely won't want to write complex logic in here
 * They're run on every request/response to every URL
 
-<div style="border: thick solid red"> </div>
+
 
 If you need more flexible and configurable options, Ambassador Pro supports a [pluggable Filter system](/reference/filter-reference).
 
-<div style="border: thick solid red"> </div>
+
 
 
 ### Linkerd Interoperability (`add_linkerd_headers`)
@@ -240,7 +240,7 @@ The liveness and readiness probe both support `prefix`, `rewrite`, and `service`
 
 ### `use_remote_address`
 
-<div style="border: thick solid red"> </div>
+
 
 In Ambassador 0.50 and later, the default value for `use_remote_address` to `true`. When set to `true`, Ambassador Edge Stack will append to the `X-Forwarded-For` header its IP address so upstream clients of Ambassador Edge Stack can get the full set of IP addresses that have propagated a request.  You may also need to set `externalTrafficPolicy: Local` on your `LoadBalancer` as well to propagate the original source IP address..  See the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest/configuration/http_conn_man/headers.html) and the [Kubernetes documentation](https://kubernetes.io/docs/tasks/access-application-cluster/create-external-load-balancer/#preserving-the-client-source-ip) for more details.
 

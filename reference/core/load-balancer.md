@@ -177,6 +177,6 @@ load_balancer:
 
 ## Disabling advanced load balancing
 
-<div style="border: thick solid red"> </div>
+
 
 In Ambassador 0.60, you can disable advanced load balancing features by setting the environment variable `AMBASSADOR_DISABLE_ENDPOINTS` to any value. If you find that this is necessary, please reach out to us on [Slack](https://d6e.co/slack) so we can fix whatever is wrong!

@@ -10,7 +10,7 @@ To use Azure as your IDP, you will first need to register an OAuth application w
 
 3. Make a note of both the client and tenant IDs as these will be used later when configuring Ambassador Pro.
 
-<div style="border: thick solid red"> </div>
+
 
 4.  Click on `Authentication` in the left sidebar.
 

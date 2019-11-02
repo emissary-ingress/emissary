@@ -20,7 +20,7 @@ apiVersion: ambassador/v1
 kind: TLSContext
 name: tls-context-1
 
-<div style="border: thick solid red"> </div>
+
 
 
 # 'hosts' defines which the hosts for which this TLSContext is relevant.
@@ -129,7 +129,7 @@ ecdh_curves:
 
 The TLS `Module` is deprecated. `TLSContext` should be used when using Ambassador version 0.50.0 and above.
 
-<div style="border: thick solid red"> </div>
+
 
 
 ```yaml

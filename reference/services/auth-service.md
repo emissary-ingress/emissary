@@ -8,7 +8,7 @@ There are currently two supported versions of the `AuthService` manifest:
 
 `AuthService` V1, introduced in Ambassador 0.50, allows you to separately configure the headers that will be sent from the client to the auth service, and from the auth service to the upstream service. It also allows sending body data to the auth service.
 
-<div style="border: thick solid red"> </div>
+
 
 You should use `AuthService` V1 for any new deployment of Ambassador 0.50 or higher.
 

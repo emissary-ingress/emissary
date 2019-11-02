@@ -12,7 +12,7 @@ Like Ambassador, the Ambassador RLS is designed so that many different teams, wi
 
 In Ambassador Pro, each request can have multiple *labels*. Labels are arbitrary key/value pairs that contain any metadata about a given request, e.g., its IP, a hard-coded value, the path of the request, and so forth. The Rate Limit Service processes these labels and enforces any limits that are set on a label. Labels can be assigned to *domains*, which are separate namespaces. Typically, different teams would be responsible for different domains.
 
-<div style="border: thick solid red"> </div>
+
 
 ## Configuring Rate Limiting: The 50,000 foot view
 

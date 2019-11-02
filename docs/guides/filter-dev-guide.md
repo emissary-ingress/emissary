@@ -6,11 +6,9 @@ Sometimes you may want Ambassador Edge Stack to manipulate an incoming request. 
 * Add custom Authorization headers
 * Validate an incoming request fits an OpenAPI specification before passing the request to a target service
 
-<div style="border: thick solid red"> </div>
 
 Ambassador Edge Stack supports these use cases by allowing you to execute custom logic in `Filters`. Filters are written in Golang, and managed by Ambassador Pro.
 
-<div style="border: thick solid red"> </div>
 
 
 ## Creating and Deploying Filters
@@ -48,7 +46,7 @@ We've created an example filter that you can customize for your particular use c
 
 ## Rapid development of a custom filter
 
-During development, you may want to sidestep the deployment process for a faster development loop. The `apro-plugin-runner` helps you rapidly develop Ambassador filters locally.
+During development, you may want to sidestep the deployment process for a faster development loop. The `apro-plugin-runner` helps you rapidly develop Ambassador Edge Stack filters locally.
 
 To install the runner, download the latest version:
 

@@ -10,7 +10,7 @@ After completing [Getting Started](/user-guide/getting-started), you'll have a K
 
 Don't want to DIY? [Ambassador Pro](/pro) integrates with popular Identity Providers such as Auth0 to provide a seamless OAuth / OpenID Connect authentication flow for your services. Start a [free 14-day trial](/pro/free-trial) now!
 
-<div style="border: thick solid red"> </div>
+
 
 ## 1. Deploy the authentication service
 

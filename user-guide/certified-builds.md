@@ -2,7 +2,7 @@
 
 Ambassador Pro uses certified Ambassador builds. These builds are based on Ambassador OSS builds, but undergo additional testing. In addition, bug fixes and security issues may be backported to Ambassador Pro builds under specific situations.
 
-<div style="border: thick solid red"> </div>
+
 
 ## Certified build testing
 

@@ -26,7 +26,7 @@ To use Salesforce as your IDP, you will first need to register an OAuth applicat
 
 After waiting for salesforce to register the application with their servers, you should be ready to configure Ambassador Pro to Salesforce as an IdP.
 
-<div style="border: thick solid red"> </div>
+
 
 ## Set up Ambassador Edge Stack
 

@@ -1,6 +1,6 @@
 # Guides
 
-Guides are hands-on tutorials to walk you through configuring Ambassador for specific functionality.
+Guides are hands-on tutorials to walk you through configuring Ambassador Edge Stack or Ambassador Open Source for specific functionality.
 
 <table>
 <tr>

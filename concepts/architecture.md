@@ -1,4 +1,4 @@
-# Ambassador Architecture
+# Ambassador Edge Stack Architecture
 
 ## Ambassador Edge Stack is a control plane
 
@@ -20,8 +20,8 @@ Ambassador Edge Stack relies on Kubernetes for scaling, high availability, and p
 
 ### Stateless architecture
 
-By design, Ambassador Edge Stack is an entirely stateless architecture. Each individual Ambassador instance operates independently of other instancess. These Ambassador Edge Stack instances rely on Kubernetes to coordinate the configuration between different Ambassador instances. This enables Ambassador Edge Stack to sidestep the need to engineer a safe, highly available centralized control plane (and if you don't think that this is hard, check out [Jepsen](https://jepsen.io)). By contrast, other control plane architectures rely on a single centralized control plane to manage multiple instances of the data plane. This means that these control plane architectures must engineer resilience and availability into their central control plane.
+By design, Ambassador Edge Stack is an entirely stateless architecture. Each individual Ambassador Edge Stack instance operates independently of other instancess. These Ambassador Edge Stack instances rely on Kubernetes to coordinate the configuration between different Ambassador instances. This enables Ambassador Edge Stack to sidestep the need to engineer a safe, highly available centralized control plane (and if you don't think that this is hard, check out [Jepsen](https://jepsen.io)). By contrast, other control plane architectures rely on a single centralized control plane to manage multiple instances of the data plane. This means that these control plane architectures must engineer resilience and availability into their central control plane.
 
 ## Envoy Proxy
 
-Ambassador Edge Stack closely tracks Envoy Proxy releases. A stable branch of Envoy Proxy is maintained that enables the team to cherry pick specific fixes into Ambassador Edge Stack .
+Ambassador Edge Stack closely tracks Envoy Proxy releases. A stable branch of Envoy Proxy is maintained that enables the team to cherry pick specific fixes into Ambassador Edge Stack.

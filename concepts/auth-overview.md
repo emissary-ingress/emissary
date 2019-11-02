@@ -4,12 +4,7 @@ The implementation of an effective authentication strategy is vital to any appli
 
 Typically with web applications the authentication is implemented at the edge, either via an API/edge gateway, or via a top-level request filter within your application framework. It is also increasingly common for applications to use external identity providers -- such as Google, GitHub, or Facebook -- typically via an Identity hub like [Auth0](https://auth0.com/), [Keycloak](https://www.keycloak.org/) or [Okta](https://www.okta.com/) that provides authentication-as-a-service, rather than taking on the high cost (and risk) of maintaining their own identity database.
 
-<div style="border: thick solid red"> </div>
-
 This article is focused on implementing authentication at the edge with the Kubernetes-native [Ambassador Pro API gateway](https://www.getambassador.io/pro/), and shows an example of how to integrate this with third-party identity providers.
-
-<div style="border: thick solid red"> </div>
-
 
 ## How Ambassador Edge Stack Integrates with OAuth and OIDC
 
