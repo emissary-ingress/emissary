@@ -164,16 +164,20 @@ func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 		if needle == nil {
-			io.WriteString(w, "host not found")
+			io.WriteString(w, "waiting for Host resource to be created")
 		} else {
 			switch needle.GetStatus().GetState() {
+			case ambassadorTypesV2.HostState_Initial:
+				fmt.Fprintln(w,
+					"state:", needle.GetStatus().GetState())
 			case ambassadorTypesV2.HostState_Pending:
 				fmt.Fprintln(w,
 					"state:", needle.GetStatus().GetState(),
 					"phaseCompleted:", needle.GetStatus().GetPhaseCompleted(),
 					"phasePending:", needle.GetStatus().GetPhasePending())
 			case ambassadorTypesV2.HostState_Ready:
-				io.WriteString(w, "state: Ready")
+				fmt.Fprintln(w,
+					"state:", needle.GetStatus().GetState())
 			case ambassadorTypesV2.HostState_Error:
 				fmt.Fprintln(w,
 					"state:", needle.GetStatus().GetState(),
