@@ -1,4 +1,4 @@
-from typing import ClassVar, List, Optional, TYPE_CHECKING
+from typing import ClassVar, Dict, List, Optional, TYPE_CHECKING
 
 import base64
 
@@ -55,6 +55,7 @@ class IRTLSContext(IRResource):
                  name: str,      # REQUIRED
                  location: str,  # REQUIRED
                  namespace: Optional[str]=None,
+                 metadata_labels: Optional[Dict[str, str]]=None,
                  kind: str="IRTLSContext",
                  apiVersion: str = "getambassador.io/v2",
                  **kwargs) -> None:
@@ -66,7 +67,8 @@ class IRTLSContext(IRResource):
 
         super().__init__(
             ir=ir, aconf=aconf, rkey=rkey, location=location,
-            kind=kind, name=name, namespace=namespace, apiVersion=apiVersion,
+            kind=kind, name=name, namespace=namespace, metadata_labels=metadata_labels,
+            apiVersion=apiVersion,
             **new_args
         )
 

@@ -39,8 +39,10 @@ class IRTCPMapping (IRBaseMapping):
                  rkey: str,      # REQUIRED
                  name: str,      # REQUIRED
                  location: str,  # REQUIRED
+                 namespace: Optional[str] = None,
+                 metadata_labels: Optional[Dict[str, str]] = None,
 
-                 kind: str="IRMapping",
+                 kind: str="IRTCPMapping",
                  apiVersion: str="getambassador.io/v2",   # Not a typo! See below.
                  precedence: int=0,
                  **kwargs) -> None:
@@ -53,8 +55,8 @@ class IRTCPMapping (IRBaseMapping):
         # ...and then init the superclass.
         super().__init__(
             ir=ir, aconf=aconf, rkey=rkey, location=location,
-            kind=kind, name=name, apiVersion=apiVersion,
-            precedence=precedence,
+            kind=kind, name=name, namespace=namespace, metadata_labels=metadata_labels,
+            apiVersion=apiVersion, precedence=precedence,
             **new_args
         )
 

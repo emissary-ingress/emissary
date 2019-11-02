@@ -39,6 +39,7 @@ class IRResource (Resource):
                  kind: str,
                  name: str,
                  namespace: Optional[str]=None,
+                 metadata_labels: Optional[str]=None,
                  location: str = "--internal--",
                  apiVersion: str="ambassador/ir",
                  **kwargs) -> None:
@@ -48,7 +49,7 @@ class IRResource (Resource):
             namespace = ir.ambassador_namespace
 
         super().__init__(rkey=rkey, location=location,
-                         kind=kind, name=name, namespace=namespace,
+                         kind=kind, name=name, namespace=namespace, metadata_labels=metadata_labels,
                          apiVersion=apiVersion,
                          **kwargs)
         self.ir = ir

@@ -358,7 +358,7 @@ class Config:
         if not resource.get('namespace', None):
             resource['namespace'] = self.ambassador_namespace
 
-        # ...and off we go. Save the source info...
+        # ...it doesn't actually need a metadata_labels, so off we go. Save the source info...
         self.save_source(resource)
 
         # ...and figure out if this thing is OK.
@@ -515,6 +515,7 @@ class Config:
 
         name = rdict.pop('name', None)
         namespace = rdict.pop('namespace', None)
+        metadata_labels = rdict.pop('metadata_labels', None)
         generation = rdict.pop('generation', None)
 
         serialized = json.dumps(rdict)

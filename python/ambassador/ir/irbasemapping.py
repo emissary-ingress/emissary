@@ -18,16 +18,17 @@ class IRBaseMapping (IRResource):
                  rkey: str,      # REQUIRED
                  name: str,      # REQUIRED
                  location: str,  # REQUIRED
-
                  kind: str,      # REQUIRED
+                 namespace: Optional[str] = None,
+                 metadata_labels: Optional[Dict[str, str]] = None,
                  apiVersion: str="getambassador.io/v2",
                  precedence: int=0,
                  **kwargs) -> None:
         # Init the superclass...
         super().__init__(
             ir=ir, aconf=aconf, rkey=rkey, location=location,
-            kind=kind, name=name, apiVersion=apiVersion,
-            precedence=precedence,
+            kind=kind, name=name, namespace=namespace, metadata_labels=metadata_labels,
+            apiVersion=apiVersion, precedence=precedence,
             **kwargs
         )
 

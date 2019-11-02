@@ -108,8 +108,9 @@ class IRHTTPMapping (IRBaseMapping):
                  rkey: str,      # REQUIRED
                  name: str,      # REQUIRED
                  location: str,  # REQUIRED
-
-                 kind: str="IRMapping",
+                 namespace: Optional[str] = None,
+                 metadata_labels: Optional[Dict[str, str]] = None,
+                 kind: str="IRHTTPMapping",
                  apiVersion: str="getambassador.io/v2",   # Not a typo! See below.
                  precedence: int=0,
                  rewrite: str="/",
@@ -156,8 +157,8 @@ class IRHTTPMapping (IRBaseMapping):
         # ...and then init the superclass.
         super().__init__(
             ir=ir, aconf=aconf, rkey=rkey, location=location,
-            kind=kind, name=name, apiVersion=apiVersion,
-            headers=hdrs, add_request_headers=add_request_hdrs,
+            kind=kind, name=name, namespace=namespace, metadata_labels=metadata_labels,
+            apiVersion=apiVersion, headers=hdrs, add_request_headers=add_request_hdrs,
             precedence=precedence, rewrite=rewrite,
             **new_args
         )

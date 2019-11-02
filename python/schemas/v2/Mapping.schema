@@ -9,6 +9,10 @@
         "kind": { "type": "string" },
         "name": { "type": "string" },
         "namespace": { "type": "string" },
+        "metadata_labels": {
+            "type": "object",
+            "additionalProperties": { "type": [ "string", "boolean" ] }
+        },
         "ambassador_id": {
             "anyOf": [
                 { "type": "string" },
