@@ -1,6 +1,6 @@
 # Remove response headers
 
-Ambassador can remove a list of HTTP headers that would be sent to the client in the response (eg. default `x-envoy-upstream-service-time`)
+Ambassador Edge Stack can remove a list of HTTP headers that would be sent to the client in the response (eg. default `x-envoy-upstream-service-time`)
 
 ## The `remove_response_headers` annotation
 

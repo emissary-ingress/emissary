@@ -1,6 +1,6 @@
 # Host Headers
 
-Ambassador supports several different methods for managing the HTTP `Host` header.
+Ambassador Edge Stack supports several different methods for managing the HTTP `Host` header.
 
 ## Using `host` and `host_regex`
 
@@ -42,9 +42,9 @@ Note that enclosing regular expressions in quotes can be important to prevent ba
 
 ## Using `host_rewrite`
 
-By default, the `Host` header is not altered when talking to the service -- whatever `Host` header the client gave to Ambassador will be presented to the service. For many microservices this will be fine, but if you use Ambassador to route to services that use the `Host` header for routing, it's likely to fail (legacy monoliths are particularly susceptible to this, as well as external services). You can use `host_rewrite` to force the `Host` header to whatever value that such target services need.
+By default, the `Host` header is not altered when talking to the service -- whatever `Host` header the client gave to Ambassador Edge Stack will be presented to the service. For many microservices this will be fine, but if you use Ambassador Edge Stack to route to services that use the `Host` header for routing, it's likely to fail (legacy monoliths are particularly susceptible to this, as well as external services). You can use `host_rewrite` to force the `Host` header to whatever value that such target services need.
 
-An example: the default Ambassador configuration includes the following mapping for `httpbin.org`:
+An example: the default Ambassador Edge Stack configuration includes the following mapping for `httpbin.org`:
 
 ```yaml
 ---

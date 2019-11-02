@@ -1,6 +1,6 @@
 # Method-based routing
 
-Ambassador supports routing based on HTTP method and regular expression.
+Ambassador Edge Stack supports routing based on HTTP method and regular expression.
 
 ## Using `method`
 
