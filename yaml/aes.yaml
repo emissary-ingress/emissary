@@ -45,7 +45,7 @@ rules:
 - apiGroups: [""]
   resources:
   - secrets
-  verbs: ["get", "list", "watch", "create"]
+  verbs: ["get", "list", "watch", "create", "update"]
 ---
 apiVersion: v1
 kind: ServiceAccount
