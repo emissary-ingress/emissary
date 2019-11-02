@@ -21,11 +21,11 @@ To use Azure as your IDP, you will first need to register an OAuth application w
    - Under `Advanced settings`, make sure the application is issuing `Access tokens` by checking next to the box that says `Access tokens`
    - Under `Supported account types` select whichever option fits your usecase
 
-5. Click on `Certificates & secrets` in the left sidebar. Click `+ New client secret` and set the expiration date you wish. Copy the value of this secret somewhere. You will need it when configuring Ambassador.
+5. Click on `Certificates & secrets` in the left sidebar. Click `+ New client secret` and set the expiration date you wish. Copy the value of this secret somewhere. You will need it when configuring Ambassador Edge Stack.
 
-## Set up Ambassador
+## Set up Ambassador Edge Stack
 
-After configuring an OAuth application in Azure AD, configuring Ambassador to make use it for authentication is simple.
+After configuring an OAuth application in Azure AD, configuring Ambassador Edge Stack to make use it for authentication is simple.
 
 1. Create an [OAuth Filter](/reference/filter-reference#filter-type-oauth2) with the credentials from above
 

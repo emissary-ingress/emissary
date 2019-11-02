@@ -20,7 +20,7 @@ For more information on request labels, see the [Rate Limit reference](/referenc
 
 ## Domains
 
-In Ambassador, each engineer (or team) can be assigned its own *domain*. A domain is a separate namespace for labels. By creating individual domains, each team can assign their own labels to a given request, and independently set the rate limits based on their own labels.
+In Ambassador Edge Stack, each engineer (or team) can be assigned its own *domain*. A domain is a separate namespace for labels. By creating individual domains, each team can assign their own labels to a given request, and independently set the rate limits based on their own labels.
 
 ## Default labels
 
@@ -44,7 +44,6 @@ config:
 In order for Ambassador Edge Stack to rate limit, you need to implement a gRPC service that supports the Envoy [ratelimit.proto](https://github.com/datawire/ambassador/blob/master/ambassador/common/ratelimit/ratelimit.proto) interface. If you do not have the time or resources to implement your own rate limit service, [Ambassador Pro](/pro) integrates a high performance, rate limiting service.
 
 <div style="border: thick solid red"> </div>
-
 
 Ambassador Edge Stack generates a gRPC request to the external rate limit service and provides a list of labels on which the rate limit service can base its decision to accept or reject the request:
 

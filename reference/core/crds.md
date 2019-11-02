@@ -1,4 +1,4 @@
-# Using CRDs with Ambassador
+# Using CRDs with Ambassador Edge Stack
 
 <div style="border: thick solid red"> </div>
 
@@ -38,7 +38,7 @@ spec:
 
 (Note that the `namespace` must be declared in the `metadata`, but if needed, `ambassador_id` must be declared in the `spec`.)
 
-## CRDs supported by Ambassador
+## CRDs supported by Ambassador Edge Stack
 
 <div style="border: thick solid red"> </div>
 

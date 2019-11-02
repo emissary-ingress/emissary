@@ -56,10 +56,11 @@ Deploy the Ambassador Consul Connector via kubectl:
 kubectl apply -f https://getambassador.io/yaml/consul/ambassador-consul-connector.yaml
 ```
 
-## 2. Configure Ambassador
+## 2. Configure Ambassador Edge Stack
 
 ### Create the TLSContext
-You will need to tell Ambassador to use the certificate issued by Consul for `mTLS` with upstream services. This is accomplished by configuring a `TLSContext` to store the secret.
+
+You will need to tell Ambassador Edge Stackto use the certificate issued by Consul for `mTLS` with upstream services. This is accomplished by configuring a `TLSContext` to store the secret.
 
   ```yaml
   ---
@@ -70,8 +71,9 @@ You will need to tell Ambassador to use the certificate issued by Consul for `mT
   secret: ambassador-consul-connect
   ```
   
-### Configure Ambassador Mappings to use the TLSContext
-Ambassador needs to be configured to originate TLS to upstream services. This is done by providing a `TLSContext` to your service `Mapping`.  
+### Configure Ambassador Edge Stack Mappings to use the TLSContext
+
+Ambassador Edge Stack needs to be configured to originate TLS to upstream services. This is done by providing a `TLSContext` to your service `Mapping`.  
 
   ```yaml
   ---
@@ -85,6 +87,7 @@ Ambassador needs to be configured to originate TLS to upstream services. This is
   **Note:** All service mappings will need `tls: ambassador-consul` to authenticate with Connect-enabled upstream services.
 
 ## 3. Test the Ambassador Consul Connector
+
 To test that the Ambassador Consul Connector is working, you will need to have a service running with a Connect Sidecar. The following configuration will create the QoTM service with a Connect sidecar.
 
 ```yaml
@@ -130,10 +133,10 @@ Put this YAML in a file called `qotm-deploy.yaml` and apply it with `kubectl`:
 kubectl apply -f qotm-deploy.yaml
 ```
 
-Now, you will need to configure a service for Ambassador to route requests to. The following service will:
+Now, you will need to configure a service for Ambassador Edge Stack to route requests to. The following service will:
 
-- Create a `Mapping` to tell Ambassador to originate TLS using the `ambassador-consul` `TLSContext` configured earlier.
-- Route requests to Ambassador to the Connect sidecar in the QoTM pod using the statically assigned Consul port: `20000`.
+- Create a `Mapping` to tell Ambassador Edge Stack to originate TLS using the `ambassador-consul` `TLSContext` configured earlier.
+- Route requests to Ambassador Edge Stack to the Connect sidecar in the QoTM pod using the statically assigned Consul port: `20000`.
 
 ```yaml
 ---
@@ -170,5 +173,3 @@ Finally, test the service with cURL.
 ```
 curl -v https://{AMBASSADOR-EXTERNAL-IP}/qotm/
 ```
-
-

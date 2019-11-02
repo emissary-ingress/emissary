@@ -1,4 +1,4 @@
-# Upgrading to Ambassador Pro from Open Source Ambassador 
+# Upgrading to Ambassador Pro from Open Source Ambassador
 
 <div style="border: thick solid red"> </div>
 

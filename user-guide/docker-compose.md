@@ -33,7 +33,7 @@ services:
     - AMBASSADOR_NO_KUBEWATCH=no_kubewatch
 ```
 
-Note the mounted volume. When Ambassador Edge Stack bootstraps on container startup it checks the `/ambassador/ambassador-config` directory for configuration files. We will use this behavior to configure ambassador.
+Note the mounted volume. When Ambassador Edge Stack bootstraps on container startup it checks the `/ambassador/ambassador-config` directory for configuration files. We will use this behavior to configure Ambassador Edge Stack.
 
 Note also the `AMBASSADOR_NO_KUBEWATCH` environment variable. Without this, Ambassador Edge Stack will try to use the Kubernetes API to watch for service changes, which won't work in Docker.
 

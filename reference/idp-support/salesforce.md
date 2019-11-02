@@ -28,9 +28,9 @@ After waiting for salesforce to register the application with their servers, you
 
 <div style="border: thick solid red"> </div>
 
-## Set up Ambassador
+## Set up Ambassador Edge Stack
 
-After configuring an OAuth application in Salesforce, configuring Ambassador to make use it for authentication is simple.
+After configuring an OAuth application in Salesforce, configuring Ambassador Edge Stack to make use it for authentication is simple.
 
 1. Create an [OAuth Filter](/reference/filter-reference#filter-type-oauth2) with the credentials from above
 
