@@ -181,8 +181,8 @@ class IRAuth (IRFilter):
         if headers:
             allowed_headers = self.get(list_name, [])
 
-            for hdr in headers:
-                if hdr not in allowed_headers:
+            for hdr in sorted(headers):
+                if hdr.lower() not in allowed_headers:
                     allowed_headers.append(hdr.lower())
 
             self[list_name] = allowed_headers

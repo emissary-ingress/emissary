@@ -97,6 +97,10 @@ PYTEST_ARGS ?=
 export PYTEST_ARGS
 
 pytest: test-ready
+	$(MAKE) pytest-only
+.PHONY: pytest
+
+pytest-only:
 	@printf "$(CYN)==> $(GRN)Running $(BLU)py$(GRN) tests$(END)\n"
 	docker exec \
 		-e AMBASSADOR_DOCKER_IMAGE=$(AMB_IMAGE) \
@@ -104,9 +108,10 @@ pytest: test-ready
 		-e KAT_SERVER_DOCKER_IMAGE=$(KAT_SRV_IMAGE) \
 		-e KAT_IMAGE_PULL_POLICY=Always \
 		-e KAT_REQ_LIMIT \
+		-e KAT_RUN_MODE \
 		-e PYTEST_ARGS \
 		-it $(shell $(BUILDER)) /buildroot/builder.sh pytest-internal
-.PHONY: pytest
+.PHONY: pytest-only
 
 
 GOTEST_PKGS ?= ./...

@@ -34,11 +34,17 @@ class ShellCommand:
 
         self.proc = subprocess.run(args, **kwargs)
 
-    def check(self, what: str) -> bool:
+    def status(self) -> bool:
         try:
             self.proc.check_returncode()
             return True
         except Exception as e:
+            return False
+
+    def check(self, what: str) -> bool:
+        if self.status():
+            return True
+        else:
             print(f"==== COMMAND FAILED: {what}")
             print("---- command line ----")
             print(self.cmdline)
@@ -59,5 +65,5 @@ class ShellCommand:
         return self.proc.stderr.decode("utf-8")
 
     @classmethod
-    def run(cls, what: str, *args, **kwargs) -> None:
-        ShellCommand(*args, **kwargs).check(what)
+    def run(cls, what: str, *args, **kwargs) -> bool:
+        return ShellCommand(*args, **kwargs).check(what)
