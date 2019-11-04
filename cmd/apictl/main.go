@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/datawire/apro/lib/metriton"
 	"os"
 	"runtime"
 
@@ -20,7 +21,7 @@ var Version = "(unknown version)"
 var licenseClaims *licensekeys.LicenseClaimsLatest
 
 func init() {
-	cmdContext := licensekeys.InitializeCommandFlags(apictl.PersistentFlags(), "apictl", Version)
+	cmdContext := licensekeys.InitializeCommandFlags(apictl.PersistentFlags())
 	apictl.PersistentPreRun = func(cmd *cobra.Command, args []string) {
 		cmd.SilenceUsage = true // https://github.com/spf13/cobra/issues/340
 		if cmd.Name() == "help" {
@@ -29,6 +30,7 @@ func init() {
 		var err error
 		licenseClaims, err = cmdContext.KeyCheck(cmd.PersistentFlags(), false)
 		if err == nil {
+			go metriton.PhoneHome(licenseClaims, nil, "apictl", Version)
 			return
 		}
 		fmt.Fprintln(os.Stderr, err)

@@ -3,6 +3,7 @@ package runner
 import (
 	"context"
 	"fmt"
+	"github.com/datawire/apro/lib/metriton"
 	"github.com/fsnotify/fsnotify"
 	"io"
 	"math/rand"
@@ -65,6 +66,7 @@ import (
 )
 
 var licenseClaims *licensekeys.LicenseClaimsLatest
+var limit *limiter.LimiterImpl
 var logrusLogger *logrus.Logger
 
 func Main(version string) {
@@ -76,7 +78,7 @@ func Main(version string) {
 		SilenceUsage:  true, // our FlagErrorFunc wil handle it
 	}
 
-	cmdContext := licensekeys.InitializeCommandFlags(argparser.PersistentFlags(), "ambassador-sidecar", version)
+	cmdContext := licensekeys.InitializeCommandFlags(argparser.PersistentFlags())
 
 	argparser.SetFlagErrorFunc(func(cmd *cobra.Command, err error) error {
 		if err == nil {
@@ -115,9 +117,16 @@ func Main(version string) {
 					},
 					EnforcedLimits: []licensekeys.LimitValue{},
 				}
+				limit.SetUnregisteredLicenseHardLimits(true)
+			} else {
+				limit.SetUnregisteredLicenseHardLimits(false)
 			}
+			limit.SetClaims(claims)
+			go metriton.PhoneHomeEveryday(claims, limit, "ambassador-sidecar", version)
 			return claims
 		}
+
+		limit = limiter.NewLimiterImpl()
 		licenseClaims = keyCheck(false)
 		if cmdContext.Keyfile != "" {
 			triggerOnChange(cmdContext.Keyfile, func() {
@@ -238,8 +247,8 @@ func runE(cmd *cobra.Command, args []string) error {
 
 	snapshotStore := watt.NewSnapshotStore(http.DefaultClient /* XXX */)
 
-	// ... and then initialize the limiter
-	limit := limiter.NewLimiterImpl(redisPool, licenseClaims)
+	// ... and then set the limiter's redis pool
+	limit.SetRedisPool(redisPool)
 
 	// Initialize the errgroup we'll use to orchestrate the goroutines.
 	group := NewGroup(context.Background(), cfg, func(name string) types.Logger {

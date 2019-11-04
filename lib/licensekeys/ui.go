@@ -1,17 +1,13 @@
 package licensekeys
 
 import (
-	"fmt"
+	"github.com/pkg/errors"
+	flag "github.com/spf13/pflag"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
-	"time"
-
-	"github.com/jpillora/backoff"
-	"github.com/pkg/errors"
-	flag "github.com/spf13/pflag"
 )
 
 // userConfigDir returns the default directory to use for
@@ -90,45 +86,6 @@ type cmdContext struct {
 
 	Keyfile string
 	key     string
-
-	application string
-	version     string
-}
-
-func (ctx *cmdContext) phoneHome(claims *LicenseClaimsLatest) {
-	fmt.Println("Calling Metriton")
-	b := &backoff.Backoff{
-		Min:    5 * time.Minute,
-		Max:    8 * time.Hour,
-		Jitter: true,
-		Factor: 2,
-	}
-	for {
-		err := PhoneHome(claims, ctx.application, ctx.version)
-		if err != nil {
-			d := b.Duration()
-			if b.Attempt() >= 8 {
-				fmt.Printf("Metriton error after %d attemps: %v\n", int(b.Attempt()), err)
-				b.Reset()
-				break
-			}
-			fmt.Printf("Metriton error, retrying in %s: %v\n", d, err)
-			time.Sleep(d)
-			continue
-		}
-		b.Reset()
-		break
-	}
-}
-
-func (ctx *cmdContext) phoneHomeEveryday(claims *LicenseClaimsLatest) {
-	// Phone home right now
-	go ctx.phoneHome(claims)
-	// And every 12 hours
-	phoneHomeTicker := time.NewTicker(12 * time.Hour)
-	for range phoneHomeTicker.C {
-		go ctx.phoneHome(claims)
-	}
 }
 
 func (ctx *cmdContext) KeyCheck(flags *flag.FlagSet, ignoreLoadedKey bool) (*LicenseClaimsLatest, error) {
@@ -159,9 +116,6 @@ func (ctx *cmdContext) KeyCheck(flags *flag.FlagSet, ignoreLoadedKey bool) (*Lic
 	}
 
 	claims, err := ParseKey(ctx.key)
-
-	go ctx.phoneHomeEveryday(claims)
-
 	if err != nil {
 		return nil, errors.Wrapf(err, "error validating license key from %s", keysource)
 	}
@@ -169,11 +123,8 @@ func (ctx *cmdContext) KeyCheck(flags *flag.FlagSet, ignoreLoadedKey bool) (*Lic
 	return claims, nil
 }
 
-func InitializeCommandFlags(flags *flag.FlagSet, application, version string) *cmdContext {
-	ctx := &cmdContext{
-		application: application,
-		version:     version,
-	}
+func InitializeCommandFlags(flags *flag.FlagSet) *cmdContext {
+	ctx := &cmdContext{}
 	ctx.defaultKeyfile, ctx.defaultKeyfileErr = defaultLicenseFile()
 
 	flags.StringVar(&ctx.key, "license-key", os.Getenv("AMBASSADOR_LICENSE_KEY"), "ambassador license key")
