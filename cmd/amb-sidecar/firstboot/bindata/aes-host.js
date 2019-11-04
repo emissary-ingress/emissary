@@ -112,6 +112,9 @@ export default Vue.extend({
 				this.output += str;
 				this.output += "\n";
 				this.lastOutput = str;
+				if (str == "state: Ready\n") {
+					window.location = "/ambassador-edge-stack/admin#<jwt>";
+				}
 			}
 		},
 		refreshStatus: function() {
