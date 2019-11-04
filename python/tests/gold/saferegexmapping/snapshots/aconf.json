@@ -1,0 +1,128 @@
+{
+    "_errors": {},
+    "_notices": {},
+    "_sources": {
+        "--diagnostics--": {
+            "_referenced_by": {},
+            "apiVersion": "ambassador/v0",
+            "description": "The '--diagnostics--' source marks objects created by Ambassador to assist with diagnostic output.",
+            "kind": "Diagnostics",
+            "location": "--diagnostics--",
+            "name": "Ambassador Diagnostics",
+            "namespace": null,
+            "rkey": "--diagnostics--",
+            "serialization": null,
+            "version": "ambassador/v0"
+        },
+        "--internal--": {
+            "_referenced_by": {},
+            "apiVersion": "ambassador/v0",
+            "description": "The '--internal--' source marks objects created by Ambassador's internal logic.",
+            "kind": "Internal",
+            "location": "--internal--",
+            "name": "Ambassador Internals",
+            "namespace": null,
+            "rkey": "--internal--",
+            "serialization": null,
+            "version": "ambassador/v0"
+        },
+        "k8s-saferegexmapping-admin-default": {
+            "_referenced_by": {},
+            "ambassador_id": "saferegexmapping",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-saferegexmapping-admin-default",
+            "name": "saferegexmapping-admin",
+            "namespace": "default",
+            "rkey": "k8s-saferegexmapping-admin-default",
+            "serialization": "ambassador_id: saferegexmapping\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: saferegexmapping-admin\nnamespace: default\n"
+        },
+        "k8s-saferegexmapping-default": {
+            "_referenced_by": {},
+            "ambassador_id": "saferegexmapping",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-saferegexmapping-default",
+            "name": "saferegexmapping",
+            "namespace": "default",
+            "rkey": "k8s-saferegexmapping-default",
+            "serialization": "ambassador_id: saferegexmapping\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: saferegexmapping\nnamespace: default\n"
+        },
+        "k8s-saferegexmapping-http-default": {
+            "_referenced_by": {},
+            "ambassador_id": "saferegexmapping",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-saferegexmapping-http-default",
+            "name": "saferegexmapping-http",
+            "namespace": "default",
+            "rkey": "k8s-saferegexmapping-http-default",
+            "serialization": "ambassador_id: saferegexmapping\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: saferegexmapping-http\nnamespace: default\n"
+        },
+        "saferegexmapping.default.1": {
+            "_referenced_by": {},
+            "ambassador_id": "saferegexmapping",
+            "apiVersion": "ambassador/v1",
+            "host": "[a-zA-Z].*",
+            "host_regex": true,
+            "kind": "Mapping",
+            "location": "saferegexmapping.default.1",
+            "name": "SafeRegexMapping",
+            "namespace": "default",
+            "prefix": "/SafeRegexMapping/",
+            "prefix_regex": true,
+            "regex_headers": {
+                "X-Foo": "^[a-z].*"
+            },
+            "rkey": "saferegexmapping.default.1",
+            "serialization": "ambassador_id: saferegexmapping\napiVersion: ambassador/v1\nhost: '[a-zA-Z].*'\nhost_regex: true\nkind: Mapping\nname: SafeRegexMapping\nprefix: /SafeRegexMapping/\nprefix_regex: true\nregex_headers:\n  X-Foo: ^[a-z].*\nservice: http://saferegexmapping-http\n",
+            "service": "http://saferegexmapping-http"
+        }
+    },
+    "mappings": {
+        "SafeRegexMapping": {
+            "ambassador_id": "saferegexmapping",
+            "apiVersion": "ambassador/v1",
+            "host": "[a-zA-Z].*",
+            "host_regex": true,
+            "kind": "Mapping",
+            "name": "SafeRegexMapping",
+            "namespace": "default",
+            "prefix": "/SafeRegexMapping/",
+            "prefix_regex": true,
+            "regex_headers": {
+                "X-Foo": "^[a-z].*"
+            },
+            "service": "http://saferegexmapping-http"
+        }
+    },
+    "service": {
+        "k8s-saferegexmapping-admin-default": {
+            "ambassador_id": "saferegexmapping",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "name": "saferegexmapping-admin",
+            "namespace": "default"
+        },
+        "k8s-saferegexmapping-default": {
+            "ambassador_id": "saferegexmapping",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "name": "saferegexmapping",
+            "namespace": "default"
+        },
+        "k8s-saferegexmapping-http-default": {
+            "ambassador_id": "saferegexmapping",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "name": "saferegexmapping-http",
+            "namespace": "default"
+        }
+    }
+}

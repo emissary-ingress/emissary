@@ -1,0 +1,205 @@
+{
+    "_errors": {},
+    "_notices": {
+        "ambassadoridtest-http.default.1": [
+            "apiVersion ambassador/v0 is deprecated, consider upgrading"
+        ],
+        "ambassadoridtest-http.default.2": [
+            "apiVersion ambassador/v0 is deprecated, consider upgrading"
+        ],
+        "ambassadoridtest-http.default.3": [
+            "apiVersion ambassador/v0 is deprecated, consider upgrading"
+        ],
+        "ambassadoridtest.default.1": [
+            "apiVersion ambassador/v0 is deprecated, consider upgrading"
+        ]
+    },
+    "_sources": {
+        "--diagnostics--": {
+            "_referenced_by": {},
+            "apiVersion": "ambassador/v0",
+            "description": "The '--diagnostics--' source marks objects created by Ambassador to assist with diagnostic output.",
+            "kind": "Diagnostics",
+            "location": "--diagnostics--",
+            "name": "Ambassador Diagnostics",
+            "namespace": null,
+            "rkey": "--diagnostics--",
+            "serialization": null,
+            "version": "ambassador/v0"
+        },
+        "--internal--": {
+            "_referenced_by": {},
+            "apiVersion": "ambassador/v0",
+            "description": "The '--internal--' source marks objects created by Ambassador's internal logic.",
+            "kind": "Internal",
+            "location": "--internal--",
+            "name": "Ambassador Internals",
+            "namespace": null,
+            "rkey": "--internal--",
+            "serialization": null,
+            "version": "ambassador/v0"
+        },
+        "ambassadoridtest-http.default.1": {
+            "_referenced_by": {},
+            "ambassador_id": "ambassadoridtest",
+            "apiVersion": "ambassador/v0",
+            "kind": "Mapping",
+            "location": "ambassadoridtest-http.default.1",
+            "name": "ambassadoridtest-findme",
+            "namespace": "default",
+            "prefix": "/findme/",
+            "rkey": "ambassadoridtest-http.default.1",
+            "serialization": "ambassador_id: ambassadoridtest\napiVersion: ambassador/v0\nkind: Mapping\nname: ambassadoridtest-findme\nprefix: /findme/\nservice: ambassadoridtest-http\n",
+            "service": "ambassadoridtest-http"
+        },
+        "ambassadoridtest-http.default.2": {
+            "_referenced_by": {},
+            "ambassador_id": [
+                "ambassadoridtest",
+                "missme"
+            ],
+            "apiVersion": "ambassador/v0",
+            "kind": "Mapping",
+            "location": "ambassadoridtest-http.default.2",
+            "name": "ambassadoridtest-findme-array",
+            "namespace": "default",
+            "prefix": "/findme-array/",
+            "rkey": "ambassadoridtest-http.default.2",
+            "serialization": "ambassador_id:\n- ambassadoridtest\n- missme\napiVersion: ambassador/v0\nkind: Mapping\nname: ambassadoridtest-findme-array\nprefix: /findme-array/\nservice: ambassadoridtest-http\n",
+            "service": "ambassadoridtest-http"
+        },
+        "ambassadoridtest-http.default.3": {
+            "_referenced_by": {},
+            "ambassador_id": [
+                "missme",
+                "ambassadoridtest"
+            ],
+            "apiVersion": "ambassador/v0",
+            "kind": "Mapping",
+            "location": "ambassadoridtest-http.default.3",
+            "name": "ambassadoridtest-findme-array2",
+            "namespace": "default",
+            "prefix": "/findme-array2/",
+            "rkey": "ambassadoridtest-http.default.3",
+            "serialization": "ambassador_id:\n- missme\n- ambassadoridtest\napiVersion: ambassador/v0\nkind: Mapping\nname: ambassadoridtest-findme-array2\nprefix: /findme-array2/\nservice: ambassadoridtest-http\n",
+            "service": "ambassadoridtest-http"
+        },
+        "ambassadoridtest.default.1": {
+            "_referenced_by": {},
+            "ambassador_id": "ambassadoridtest",
+            "apiVersion": "ambassador/v0",
+            "config": {},
+            "kind": "Module",
+            "location": "ambassadoridtest.default.1",
+            "name": "ambassador",
+            "namespace": "default",
+            "rkey": "ambassadoridtest.default.1",
+            "serialization": "ambassador_id: ambassadoridtest\napiVersion: ambassador/v0\nconfig: {}\nkind: Module\nname: ambassador\n"
+        },
+        "k8s-ambassadoridtest-admin-default": {
+            "_referenced_by": {},
+            "ambassador_id": "ambassadoridtest",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-ambassadoridtest-admin-default",
+            "name": "ambassadoridtest-admin",
+            "namespace": "default",
+            "rkey": "k8s-ambassadoridtest-admin-default",
+            "serialization": "ambassador_id: ambassadoridtest\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: ambassadoridtest-admin\nnamespace: default\n"
+        },
+        "k8s-ambassadoridtest-default": {
+            "_referenced_by": {},
+            "ambassador_id": "ambassadoridtest",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-ambassadoridtest-default",
+            "name": "ambassadoridtest",
+            "namespace": "default",
+            "rkey": "k8s-ambassadoridtest-default",
+            "serialization": "ambassador_id: ambassadoridtest\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: ambassadoridtest\nnamespace: default\n"
+        },
+        "k8s-ambassadoridtest-http-default": {
+            "_referenced_by": {},
+            "ambassador_id": "ambassadoridtest",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-ambassadoridtest-http-default",
+            "name": "ambassadoridtest-http",
+            "namespace": "default",
+            "rkey": "k8s-ambassadoridtest-http-default",
+            "serialization": "ambassador_id: ambassadoridtest\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: ambassadoridtest-http\nnamespace: default\n"
+        }
+    },
+    "mappings": {
+        "ambassadoridtest-findme": {
+            "ambassador_id": "ambassadoridtest",
+            "apiVersion": "ambassador/v0",
+            "kind": "Mapping",
+            "name": "ambassadoridtest-findme",
+            "namespace": "default",
+            "prefix": "/findme/",
+            "service": "ambassadoridtest-http"
+        },
+        "ambassadoridtest-findme-array": {
+            "ambassador_id": [
+                "ambassadoridtest",
+                "missme"
+            ],
+            "apiVersion": "ambassador/v0",
+            "kind": "Mapping",
+            "name": "ambassadoridtest-findme-array",
+            "namespace": "default",
+            "prefix": "/findme-array/",
+            "service": "ambassadoridtest-http"
+        },
+        "ambassadoridtest-findme-array2": {
+            "ambassador_id": [
+                "missme",
+                "ambassadoridtest"
+            ],
+            "apiVersion": "ambassador/v0",
+            "kind": "Mapping",
+            "name": "ambassadoridtest-findme-array2",
+            "namespace": "default",
+            "prefix": "/findme-array2/",
+            "service": "ambassadoridtest-http"
+        }
+    },
+    "modules": {
+        "ambassador": {
+            "apiVersion": "ambassador/v0",
+            "kind": "Module",
+            "name": "ambassador",
+            "namespace": "default"
+        }
+    },
+    "service": {
+        "k8s-ambassadoridtest-admin-default": {
+            "ambassador_id": "ambassadoridtest",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "name": "ambassadoridtest-admin",
+            "namespace": "default"
+        },
+        "k8s-ambassadoridtest-default": {
+            "ambassador_id": "ambassadoridtest",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "name": "ambassadoridtest",
+            "namespace": "default"
+        },
+        "k8s-ambassadoridtest-http-default": {
+            "ambassador_id": "ambassadoridtest",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "name": "ambassadoridtest-http",
+            "namespace": "default"
+        }
+    }
+}

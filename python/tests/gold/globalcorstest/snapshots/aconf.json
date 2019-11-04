@@ -1,0 +1,175 @@
+{
+    "_errors": {},
+    "_notices": {},
+    "_sources": {
+        "--diagnostics--": {
+            "_referenced_by": {},
+            "apiVersion": "ambassador/v0",
+            "description": "The '--diagnostics--' source marks objects created by Ambassador to assist with diagnostic output.",
+            "kind": "Diagnostics",
+            "location": "--diagnostics--",
+            "name": "Ambassador Diagnostics",
+            "namespace": null,
+            "rkey": "--diagnostics--",
+            "serialization": null,
+            "version": "ambassador/v0"
+        },
+        "--internal--": {
+            "_referenced_by": {},
+            "apiVersion": "ambassador/v0",
+            "description": "The '--internal--' source marks objects created by Ambassador's internal logic.",
+            "kind": "Internal",
+            "location": "--internal--",
+            "name": "Ambassador Internals",
+            "namespace": null,
+            "rkey": "--internal--",
+            "serialization": null,
+            "version": "ambassador/v0"
+        },
+        "globalcorstest.default.1": {
+            "_referenced_by": {},
+            "ambassador_id": "globalcorstest",
+            "apiVersion": "ambassador/v1",
+            "config": {
+                "cors": {
+                    "methods": "POST, GET, OPTIONS",
+                    "origins": "http://foo.example.com"
+                }
+            },
+            "kind": "Module",
+            "location": "globalcorstest.default.1",
+            "name": "ambassador",
+            "namespace": "default",
+            "rkey": "globalcorstest.default.1",
+            "serialization": "ambassador_id: globalcorstest\napiVersion: ambassador/v1\nconfig:\n  cors:\n    methods: POST, GET, OPTIONS\n    origins: http://foo.example.com\nkind: Module\nname: ambassador\n"
+        },
+        "globalcorstest.default.2": {
+            "_referenced_by": {},
+            "ambassador_id": "globalcorstest",
+            "apiVersion": "ambassador/v1",
+            "kind": "Mapping",
+            "location": "globalcorstest.default.2",
+            "name": "globalcorstest-http-foo",
+            "namespace": "default",
+            "prefix": "/foo/",
+            "rkey": "globalcorstest.default.2",
+            "serialization": "ambassador_id: globalcorstest\napiVersion: ambassador/v1\nkind: Mapping\nname: globalcorstest-http-foo\nprefix: /foo/\nservice: globalcorstest-http\n",
+            "service": "globalcorstest-http"
+        },
+        "globalcorstest.default.3": {
+            "_referenced_by": {},
+            "ambassador_id": "globalcorstest",
+            "apiVersion": "ambassador/v1",
+            "cors": {
+                "methods": "POST, GET, OPTIONS",
+                "origins": "http://bar.example.com"
+            },
+            "kind": "Mapping",
+            "location": "globalcorstest.default.3",
+            "name": "globalcorstest-http-bar",
+            "namespace": "default",
+            "prefix": "/bar/",
+            "rkey": "globalcorstest.default.3",
+            "serialization": "ambassador_id: globalcorstest\napiVersion: ambassador/v1\ncors:\n  methods: POST, GET, OPTIONS\n  origins: http://bar.example.com\nkind: Mapping\nname: globalcorstest-http-bar\nprefix: /bar/\nservice: globalcorstest-http\n",
+            "service": "globalcorstest-http"
+        },
+        "k8s-globalcorstest-admin-default": {
+            "_referenced_by": {},
+            "ambassador_id": "globalcorstest",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-globalcorstest-admin-default",
+            "name": "globalcorstest-admin",
+            "namespace": "default",
+            "rkey": "k8s-globalcorstest-admin-default",
+            "serialization": "ambassador_id: globalcorstest\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: globalcorstest-admin\nnamespace: default\n"
+        },
+        "k8s-globalcorstest-default": {
+            "_referenced_by": {},
+            "ambassador_id": "globalcorstest",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-globalcorstest-default",
+            "name": "globalcorstest",
+            "namespace": "default",
+            "rkey": "k8s-globalcorstest-default",
+            "serialization": "ambassador_id: globalcorstest\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: globalcorstest\nnamespace: default\n"
+        },
+        "k8s-globalcorstest-http-default": {
+            "_referenced_by": {},
+            "ambassador_id": "globalcorstest",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-globalcorstest-http-default",
+            "name": "globalcorstest-http",
+            "namespace": "default",
+            "rkey": "k8s-globalcorstest-http-default",
+            "serialization": "ambassador_id: globalcorstest\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: globalcorstest-http\nnamespace: default\n"
+        }
+    },
+    "mappings": {
+        "globalcorstest-http-bar": {
+            "ambassador_id": "globalcorstest",
+            "apiVersion": "ambassador/v1",
+            "cors": {
+                "methods": "POST, GET, OPTIONS",
+                "origins": "http://bar.example.com"
+            },
+            "kind": "Mapping",
+            "name": "globalcorstest-http-bar",
+            "namespace": "default",
+            "prefix": "/bar/",
+            "service": "globalcorstest-http"
+        },
+        "globalcorstest-http-foo": {
+            "ambassador_id": "globalcorstest",
+            "apiVersion": "ambassador/v1",
+            "kind": "Mapping",
+            "name": "globalcorstest-http-foo",
+            "namespace": "default",
+            "prefix": "/foo/",
+            "service": "globalcorstest-http"
+        }
+    },
+    "modules": {
+        "ambassador": {
+            "apiVersion": "ambassador/v1",
+            "cors": {
+                "methods": "POST, GET, OPTIONS",
+                "origins": "http://foo.example.com"
+            },
+            "kind": "Module",
+            "name": "ambassador",
+            "namespace": "default"
+        }
+    },
+    "service": {
+        "k8s-globalcorstest-admin-default": {
+            "ambassador_id": "globalcorstest",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "name": "globalcorstest-admin",
+            "namespace": "default"
+        },
+        "k8s-globalcorstest-default": {
+            "ambassador_id": "globalcorstest",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "name": "globalcorstest",
+            "namespace": "default"
+        },
+        "k8s-globalcorstest-http-default": {
+            "ambassador_id": "globalcorstest",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "name": "globalcorstest-http",
+            "namespace": "default"
+        }
+    }
+}

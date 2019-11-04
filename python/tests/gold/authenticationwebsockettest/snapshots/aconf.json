@@ -1,0 +1,158 @@
+{
+    "_errors": {},
+    "_notices": {
+        "authenticationwebsockettest.default.2": [
+            "apiVersion ambassador/v0 is deprecated, consider upgrading"
+        ]
+    },
+    "_sources": {
+        "--diagnostics--": {
+            "_referenced_by": {},
+            "apiVersion": "ambassador/v0",
+            "description": "The '--diagnostics--' source marks objects created by Ambassador to assist with diagnostic output.",
+            "kind": "Diagnostics",
+            "location": "--diagnostics--",
+            "name": "Ambassador Diagnostics",
+            "namespace": null,
+            "rkey": "--diagnostics--",
+            "serialization": null,
+            "version": "ambassador/v0"
+        },
+        "--internal--": {
+            "_referenced_by": {},
+            "apiVersion": "ambassador/v0",
+            "description": "The '--internal--' source marks objects created by Ambassador's internal logic.",
+            "kind": "Internal",
+            "location": "--internal--",
+            "name": "Ambassador Internals",
+            "namespace": null,
+            "rkey": "--internal--",
+            "serialization": null,
+            "version": "ambassador/v0"
+        },
+        "authenticationwebsockettest.default.1": {
+            "_referenced_by": {},
+            "allow_request_body": true,
+            "allowed_request_headers": [
+                "Requested-Status"
+            ],
+            "ambassador_id": "authenticationwebsockettest",
+            "apiVersion": "ambassador/v1",
+            "auth_service": "authenticationwebsockettest-http-auth",
+            "kind": "AuthService",
+            "location": "authenticationwebsockettest.default.1",
+            "name": "authenticationwebsockettest-http-auth",
+            "namespace": "default",
+            "path_prefix": "/extauth",
+            "rkey": "authenticationwebsockettest.default.1",
+            "serialization": "allow_request_body: true\nallowed_request_headers:\n- Requested-Status\nambassador_id: authenticationwebsockettest\napiVersion: ambassador/v1\nauth_service: authenticationwebsockettest-http-auth\nkind: AuthService\nname: authenticationwebsockettest-http-auth\npath_prefix: /extauth\ntimeout_ms: 10000\n",
+            "timeout_ms": 10000
+        },
+        "authenticationwebsockettest.default.2": {
+            "_referenced_by": {},
+            "ambassador_id": "authenticationwebsockettest",
+            "apiVersion": "ambassador/v0",
+            "host_rewrite": "echo.websocket.org",
+            "kind": "Mapping",
+            "location": "authenticationwebsockettest.default.2",
+            "name": "AuthenticationWebsocketTest",
+            "namespace": "default",
+            "prefix": "/AuthenticationWebsocketTest/",
+            "rkey": "authenticationwebsockettest.default.2",
+            "serialization": "ambassador_id: authenticationwebsockettest\napiVersion: ambassador/v0\nhost_rewrite: echo.websocket.org\nkind: Mapping\nname: AuthenticationWebsocketTest\nprefix: /AuthenticationWebsocketTest/\nservice: http://echo.websocket.org\nuse_websocket: true\n",
+            "service": "http://echo.websocket.org",
+            "use_websocket": true
+        },
+        "k8s-authenticationwebsockettest-admin-default": {
+            "_referenced_by": {},
+            "ambassador_id": "authenticationwebsockettest",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-authenticationwebsockettest-admin-default",
+            "name": "authenticationwebsockettest-admin",
+            "namespace": "default",
+            "rkey": "k8s-authenticationwebsockettest-admin-default",
+            "serialization": "ambassador_id: authenticationwebsockettest\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: authenticationwebsockettest-admin\nnamespace: default\n"
+        },
+        "k8s-authenticationwebsockettest-default": {
+            "_referenced_by": {},
+            "ambassador_id": "authenticationwebsockettest",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-authenticationwebsockettest-default",
+            "name": "authenticationwebsockettest",
+            "namespace": "default",
+            "rkey": "k8s-authenticationwebsockettest-default",
+            "serialization": "ambassador_id: authenticationwebsockettest\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: authenticationwebsockettest\nnamespace: default\n"
+        },
+        "k8s-authenticationwebsockettest-http-auth-default": {
+            "_referenced_by": {},
+            "ambassador_id": "authenticationwebsockettest",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-authenticationwebsockettest-http-auth-default",
+            "name": "authenticationwebsockettest-http-auth",
+            "namespace": "default",
+            "rkey": "k8s-authenticationwebsockettest-http-auth-default",
+            "serialization": "ambassador_id: authenticationwebsockettest\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: authenticationwebsockettest-http-auth\nnamespace: default\n"
+        }
+    },
+    "auth_configs": {
+        "authenticationwebsockettest-http-auth": {
+            "allow_request_body": true,
+            "allowed_request_headers": [
+                "Requested-Status"
+            ],
+            "ambassador_id": "authenticationwebsockettest",
+            "apiVersion": "ambassador/v1",
+            "auth_service": "authenticationwebsockettest-http-auth",
+            "kind": "AuthService",
+            "name": "authenticationwebsockettest-http-auth",
+            "namespace": "default",
+            "path_prefix": "/extauth",
+            "timeout_ms": 10000
+        }
+    },
+    "mappings": {
+        "AuthenticationWebsocketTest": {
+            "ambassador_id": "authenticationwebsockettest",
+            "apiVersion": "ambassador/v0",
+            "host_rewrite": "echo.websocket.org",
+            "kind": "Mapping",
+            "name": "AuthenticationWebsocketTest",
+            "namespace": "default",
+            "prefix": "/AuthenticationWebsocketTest/",
+            "service": "http://echo.websocket.org",
+            "use_websocket": true
+        }
+    },
+    "service": {
+        "k8s-authenticationwebsockettest-admin-default": {
+            "ambassador_id": "authenticationwebsockettest",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "name": "authenticationwebsockettest-admin",
+            "namespace": "default"
+        },
+        "k8s-authenticationwebsockettest-default": {
+            "ambassador_id": "authenticationwebsockettest",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "name": "authenticationwebsockettest",
+            "namespace": "default"
+        },
+        "k8s-authenticationwebsockettest-http-auth-default": {
+            "ambassador_id": "authenticationwebsockettest",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "name": "authenticationwebsockettest-http-auth",
+            "namespace": "default"
+        }
+    }
+}
