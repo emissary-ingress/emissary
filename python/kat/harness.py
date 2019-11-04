@@ -344,6 +344,35 @@ class Node(ABC):
     def clone(self, name=None):
         return self.__class__(_clone=self, name=name)
 
+    def find_local_result(self, stop_at_first_ambassador: bool=False) -> Optional[Dict[str, str]]:
+        test_name = self.format('{self.path.k8s}')
+
+        # print(f"{test_name} {type(self)} FIND_LOCAL_RESULT")
+
+        end_result: Optional[Dict[str, str]] = None
+
+        n: Optional[Node] = self
+
+        while n:
+            node_name = n.format('{self.path.k8s}')
+            parent = n.parent
+            parent_name = parent.format('{self.path.k8s}') if parent else "-none-"
+
+            end_result = getattr(n, 'local_result', None)
+            result_str = end_result['result'] if end_result else '-none-'
+            # print(f"{test_name}: {'ambassador' if n.is_ambassador else 'node'} {node_name}, parent {parent_name}, local_result = {result_str}")
+
+            if end_result is not None:
+                break
+
+            if n.is_ambassador and stop_at_first_ambassador:
+                # This is an Ambassador: don't continue past it.
+                break
+
+            n = n.parent
+
+        return end_result
+
     def check_local(self, k8s_yaml_path: str) -> Tuple[bool, bool]:
         testname = self.format('{self.path.k8s}')
 
@@ -358,11 +387,14 @@ class Node(ABC):
         ambassador_namespace = getattr(self, 'namespace', 'default')
         ambassador_single_namespace = getattr(self, 'single_namespace', False)
 
-        # print(f"{testname} {ambassador_id}: ns {ambassador_namespace} ({'single' if ambassador_single_namespace else 'multi'})")
+        no_local_mode: bool = getattr(self, 'no_local_mode', False)
+        skip_local_reason: Optional[str] = getattr(self, 'skip_local_instead_of_xfail', None)
+
+        # print(f"{testname}: ns {ambassador_namespace} ({'single' if ambassador_single_namespace else 'multi'})")
 
         gold_path = os.path.join("/buildroot/ambassador/python/tests/gold", testname)
 
-        if os.path.isdir(gold_path) and not getattr(self, 'no_local_mode', False):
+        if os.path.isdir(gold_path) and not no_local_mode:
             # print(f"==== {testname} running locally from {gold_path}")
 
             # Yeah, I know, brutal hack.
@@ -395,22 +427,46 @@ class Node(ABC):
 
             return (True, True)
         else:
-            # reason = 'local mode not allowed' if getattr(self, 'no_local_mode', False) else f"local has no {gold_path}"
-            # print(f"==== SKIP: {testname} {reason}")
+            # If we have a local reason, has a parent already subsumed us?
+            #
+            # XXX The way KAT works, our parent will have always run earlier than us, so
+            # it's not clear if we can ever not have been subsumed.
 
-            if RUN_MODE == 'local':
-                # We're only allowing local stuff, so call this an fail.
-                self.local_result = {
-                    'result': 'xfail',
-                    'reason': f"missing {gold_path}"
-                }
+            if skip_local_reason:
+                local_result = self.find_local_result()
 
-                # Pretend that this ran locally, so that we don't try to do
-                # Envoy test.
-                return (True, True)
-            else:
-                self.local_result = None
-                return (True, False)
+                if local_result:
+                    self.local_result = {
+                        'result': 'skip',
+                        'reason': f"subsumed by {skip_local_reason} -- {local_result['result']}"
+                    }
+                    # print(f"==== {self.local_result['result'].upper()} {testname} {self.local_result['reason']}")
+                    return (True, True)
+
+            # OK, we weren't already subsumed. If we're in local mode, we'll skip or xfail
+            # depending on skip_local_reason.
+
+            if RUN_MODE == "local":
+                if skip_local_reason:
+                    self.local_result = {
+                        'result': 'skip',
+                        # 'reason': f"subsumed by {skip_local_reason} without result in local mode"
+                    }
+                    print(f"==== {self.local_result['result'].upper()} {testname} {self.local_result['reason']}")
+                    return (True, True)
+                else:
+                    # XFail -- but still return True, True so that we don't try to run Envoy on it.
+                    self.local_result = {
+                        'result': 'xfail',
+                        'reason': f"missing local cache {gold_path}"
+                    }
+                    # print(f"==== {self.local_result['result'].upper()} {testname} {self.local_result['reason']}")
+                    return (True, True)
+
+            # If here, we're not in local mode. Allow Envoy to run.
+            self.local_result = None
+            # print(f"==== IGNORE {testname} no local cache")
+            return (True, False)
 
     def has_local_result(self) -> bool:
         return bool(self.local_result)
@@ -516,45 +572,29 @@ class Test(Node):
 
     def check(self):
         pass
-    
+
     def handle_local_result(self) -> bool:
         test_name = self.format('{self.path.k8s}')
 
         print(f"{test_name} {type(self)} HANDLE_LOCAL_RESULT")
 
-        end_result: Optional[Dict[str, str]] = None
-
-        n: Optional[Node] = self
-
-        while n:
-            node_name = n.format('{self.path.k8s}')
-            parent = n.parent
-            parent_name = parent.format('{self.path.k8s}') if parent else "-none-"
-
-            end_result = getattr(n, 'local_result', None)
-            result_str = end_result['result'] if end_result else '-none-'
-            print(f"{test_name}: {'ambassador' if n.is_ambassador else 'node'} {node_name}, parent {parent_name}, local_result = {result_str}")
-
-            if end_result is not None:
-                break
-
-            if n.is_ambassador:
-                # This is an Ambassador: don't continue past it.
-                break
-
-            n = n.parent
+        end_result = self.find_local_result()
 
         if end_result is not None:
-            if end_result['result'] == 'pass':
+            result_type = end_result['result']
+
+            if result_type == 'pass':
                 pass
-            elif end_result['result'] == 'fail':
+            elif result_type == 'skip':
+                pytest.skip(end_result['reason'])
+            elif result_type == 'fail':
                 sys.stdout.write(end_result['stdout'])
 
-                if os.environ.get('KAT_MODE_VERBOSE', None):
+                if os.environ.get('KAT_VERBOSE', None):
                     sys.stderr.write(end_result['stderr'])
 
                 pytest.fail("local check failed")
-            elif end_result['result'] == 'xfail':
+            elif result_type == 'xfail':
                 pytest.xfail(end_result['reason'])
 
             return True
@@ -1477,13 +1517,13 @@ class Runner:
 
         for t in self.tests:
             if t in selected:
-                if t.has_local_result():
-                    # print(f"{t.name}: SKIP QUERY due to local result")
-                    continue
-
                 t.pending = []
                 t.queried = []
                 t.results = []
+
+                if t.has_local_result():
+                    # print(f"{t.name}: SKIP QUERY due to local result")
+                    continue
 
                 # print(f"{t.format('{self.path.k8s}')}: INCLUDE QUERY")
                 for q in t.queries():

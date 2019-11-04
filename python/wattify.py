@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 import sys
 
@@ -77,10 +77,14 @@ class WatchSpec:
                  bootstrap: Optional[bool]=False):
         self.logger = logger
         self.kind = kind
+        self.match_kinds = { self.kind.lower(): True }
         self.namespace = namespace
         self.labels: Optional[List[LabelSpec]] = None
         self.fields: Optional[List[FieldSpec]] = None
         self.bootstrap = bootstrap
+
+        if self.kind == 'ingresses':
+            self.match_kinds['ingress'] = True
 
         if labels:
             self.labels = [ LabelSpec(l) for l in labels.split(',') ]
@@ -124,10 +128,11 @@ class WatchSpec:
             return None
 
         # self.logger.debug(f"match {self}: check {obj}")
+        match_kind_str = ','.join(sorted(self.match_kinds.keys()))
 
         # OK. Does the kind match up?
-        if kind.lower() != self.kind.lower():
-            # self.logger.debug(f"match {self}: mismatch for kind {kind}")
+        if kind.lower() not in self.match_kinds:
+            # self.logger.debug(f"match {self}: mismatch for kind {kind}, match_kinds {match_kind_str}")
             return None
 
         # How about namespace (if present)?
@@ -151,7 +156,7 @@ class WatchSpec:
                     return None
 
         # Woo, it worked!
-        self.logger.debug(f"match {self}: good!")
+        self.logger.debug(f"match {self} - {match_kind_str}: good!")
         self.logger.debug(f"{obj}")
 
         return WatchResult(kind=self.kind, watch_id=str(self))
@@ -209,7 +214,7 @@ class Wattify:
 
         return watt_k8s
 
-    def run_hook(self, watt_k8s: WattDict) -> bool:
+    def run_hook(self, watt_k8s: WattDict) -> Tuple[bool, bool]:
         json.dump({ 'Consul': {}, 'Kubernetes': watt_k8s },
                   open("/tmp/wattify.json", "w"), sort_keys=True, indent=4)
 
@@ -225,7 +230,7 @@ class Wattify:
         hook = ShellCommand(*cmdline)
 
         if not hook.check(" ".join(cmdline)):
-            return False
+            return False, False
 
         for line in hook.stderr.splitlines(keepends=False):
             self.logger.info(f"hook stderr: {line}")
@@ -242,18 +247,18 @@ class Wattify:
                     logger=self.logger,
                     kind=w['kind'],
                     namespace=w.get('namespace'),
-                    labels=w.get('label_selector'),
-                    fields=w.get('field_selector'),
+                    labels=w.get('label-selector'),
+                    fields=w.get('field-selector'),
                     bootstrap=False
                 )
 
                 if self.maybe_add(potential):
                     any_changes = True
 
-        return any_changes
+        return True, any_changes
 
 @click.command(help="Mock the watt/watch_hook/diagd cycle to generate an IR from a Kubernetes YAML manifest.")
-@click.option('--debug/--no-debug', default=False,
+@click.option('--debug/--no-debug', default=True,
               help="enable debugging (default false)")
 @click.option('-n', '--namespace', type=click.STRING,
               help="namespace to watch (default all)")
@@ -369,7 +374,12 @@ def main(k8s_yaml_path: str, debug: bool, force_pod_labels: bool, update: bool,
 
         logger.info(f"WATT_K8S: {json.dumps(watt_k8s, sort_keys=True, indent=4)}")
 
-        if w.run_hook(watt_k8s):
+        hook_ok, any_changes = w.run_hook(watt_k8s)
+        
+        if not hook_ok:
+            raise Exception("hook failed")
+            
+        if any_changes:
             logger.info("WATT_K8S: some changes from the hook!")
             print("====== watches changed!")
         else:
