@@ -100,7 +100,7 @@ pytest: test-ready
 	$(MAKE) pytest-only
 .PHONY: pytest
 
-pytest-only:
+pytest-only: sync
 	@printf "$(CYN)==> $(GRN)Running $(BLU)py$(GRN) tests$(END)\n"
 	docker exec \
 		-e AMBASSADOR_DOCKER_IMAGE=$(AMB_IMAGE) \
@@ -109,6 +109,7 @@ pytest-only:
 		-e KAT_IMAGE_PULL_POLICY=Always \
 		-e KAT_REQ_LIMIT \
 		-e KAT_RUN_MODE \
+		-e KAT_VERBOSE \
 		-e PYTEST_ARGS \
 		-it $(shell $(BUILDER)) /buildroot/builder.sh pytest-internal
 .PHONY: pytest-only

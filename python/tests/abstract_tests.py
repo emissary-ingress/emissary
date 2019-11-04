@@ -425,6 +425,9 @@ class MappingTest(Test):
     options: Sequence['OptionTest']
     parent: AmbassadorTest
 
+    no_local_mode = True
+    skip_local_instead_of_xfail = "Plain (MappingTest)"
+
     def init(self, target: ServiceType, options=()) -> None:
         self.target = target
         self.options = list(options)
@@ -436,6 +439,9 @@ class OptionTest(Test):
     VALUES: ClassVar[Any] = None
     value: Any
     parent: Test
+
+    no_local_mode = True
+    skip_local_instead_of_xfail = "Plain (OptionTests)"
 
     @classmethod
     def variants(cls):
