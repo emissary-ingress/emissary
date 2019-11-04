@@ -1,4 +1,4 @@
-import Vue from 'https://cdn.jsdelivr.net/npm/vue/dist/vue.esm.browser.min.js';
+import Vue from 'https://cdn.jsdelivr.net/npm/vue/dist/vue.esm.browser.js';
 
 export default Vue.extend({
 	template: `<div>
