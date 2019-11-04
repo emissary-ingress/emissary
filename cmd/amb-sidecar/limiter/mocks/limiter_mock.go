@@ -7,27 +7,27 @@ import (
 
 type MockLimiter struct {
 	customHardLimits map[licensekeys.Limit]int
-	isHardLimit bool
+	isHardLimit      bool
 }
 
 func NewMockLimiter() *MockLimiter {
 	return &MockLimiter{
 		customHardLimits: make(map[licensekeys.Limit]int),
-		isHardLimit: false,
+		isHardLimit:      false,
 	}
 }
 
 func NewMockLimiterWithCustomHardLimit(isHardLimit bool) *MockLimiter {
 	return &MockLimiter{
 		customHardLimits: make(map[licensekeys.Limit]int),
-		isHardLimit: isHardLimit,
+		isHardLimit:      isHardLimit,
 	}
 }
 
 func NewMockLimiterWithCounts(theMap map[licensekeys.Limit]int, isHardLimit bool) *MockLimiter {
 	return &MockLimiter{
 		customHardLimits: theMap,
-		isHardLimit: isHardLimit,
+		isHardLimit:      isHardLimit,
 	}
 }
 
@@ -36,6 +36,10 @@ func (ml *MockLimiter) CanUseFeature(f licensekeys.Feature) bool {
 }
 
 func (ml *MockLimiter) SetClaims(newClaims *licensekeys.LicenseClaimsLatest) {
+}
+
+func (ml *MockLimiter) GetClaims() *licensekeys.LicenseClaimsLatest {
+	return nil
 }
 
 func (ml *MockLimiter) GetLimitValueAtPointInTime(toCheck licensekeys.Limit) int {

@@ -10,11 +10,11 @@ import (
 
 type banner struct {
 	t         *template.Template
-	limit     *limiter.LimiterImpl
+	limit     limiter.Limiter
 	redisPool *pool.Pool
 }
 
-func NewBanner(limit *limiter.LimiterImpl, redisPool *pool.Pool) http.Handler {
+func NewBanner(limit limiter.Limiter, redisPool *pool.Pool) http.Handler {
 	// TODO(alexgervais): Display a banner inviting "unregistered" license users to enter their email
 	t := template.New("banner")
 	t, _ = t.Parse(`
