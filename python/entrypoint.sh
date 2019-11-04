@@ -125,13 +125,13 @@ read -r -d '' -a ambassador_debug <<<"$AMBASSADOR_DEBUG"
 if in_array 'diagd' "${ambassador_debug[@]}"; then diagd_flags+=('--debug'); fi
 if in_array 'envoy' "${ambassador_debug[@]}"; then envoy_flags+=('-l' 'debug'); fi
 
-if in_array 'entrypoint'; then
+if in_array 'entrypoint' "${ambassador_debug[@]}"; then
     ENTRYPOINT_DEBUG=true
 
     debug "ENTRYPOINT_DEBUG enabled"
 fi
 
-if in_array 'entrypoint_trace'; then
+if in_array 'entrypoint_trace' "${ambassador_debug[@]}"; then
     log "ENTRYPOINT_TRACE enabled"
 
     echo 2>&1
