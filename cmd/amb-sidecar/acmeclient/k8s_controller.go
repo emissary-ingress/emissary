@@ -487,7 +487,7 @@ func FillDefaults(host *ambassadorTypesV2.Host) {
 		host.Spec.AcmeProvider = &ambassadorTypesV2.ACMEProviderSpec{}
 	}
 	if host.Spec.AcmeProvider.Authority == "" {
-		host.Spec.AcmeProvider.Authority = "https://acme-staging-v02.api.letsencrypt.org/directory" // "https://acme-v02.api.letsencrypt.org/directory"
+		host.Spec.AcmeProvider.Authority = "https://acme-v02.api.letsencrypt.org/directory"
 	}
 	if host.Spec.AcmeProvider.Authority != "none" {
 		if host.Spec.AcmeProvider.PrivateKeySecret == nil {

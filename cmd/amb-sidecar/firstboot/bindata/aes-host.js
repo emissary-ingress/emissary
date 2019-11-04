@@ -46,7 +46,7 @@ export default Vue.extend({
 	data: function() {
 		return {
 			hostname: window.location.hostname,
-			provider: "https://acme-staging-v02.api.letsencrypt.org/directory", // "https://acme-v02.api.letsencrypt.org/directory",
+			provider: "https://acme-v02.api.letsencrypt.org/directory",
 			tosAgree: false,
 			email: "",
 
