@@ -206,9 +206,13 @@ func (c *Controller) rectify(logger types.Logger) {
 		FillDefaults(host)
 		if !proto.Equal(host.Spec, _host.Spec) {
 			logger.Debugln("saving defaults")
+			nextPhase := ambassadorTypesV2.HostPhase_NA
+			if host.Status.TlsCertificateSource == ambassadorTypesV2.HostTLSCertificateSource_ACME {
+				nextPhase = ambassadorTypesV2.HostPhase_ACMEUserPrivateKeyCreated
+			}
 			c.recordHostPending(logger, host,
 				ambassadorTypesV2.HostPhase_DefaultsFilled,
-				ambassadorTypesV2.HostPhase_NA)
+				nextPhase)
 			continue
 		}
 
@@ -234,20 +238,15 @@ func (c *Controller) rectify(logger types.Logger) {
 					c.recordHostError(logger, host,
 						ambassadorTypesV2.HostPhase_ACMEUserPrivateKeyCreated,
 						err)
-				} else {
-					c.recordHostPending(logger, host,
-						ambassadorTypesV2.HostPhase_ACMEUserPrivateKeyCreated,
-						ambassadorTypesV2.HostPhase_ACMEUserRegistered)
 				}
-				continue
-			} else if host.Status.PhaseCompleted == ambassadorTypesV2.HostPhase_DefaultsFilled {
-				// this can happen if we end up with a snapshot of the world that was created in-between
-				// the call to `createUserPrivateKey()` and the call to `c.recordHostPending()`.
-				logger.Debugln("rectify: deferring host until next snapshot")
-				continue
+			} else if host.Status.State == ambassadorTypesV2.HostState_Pending && host.Status.PhaseCompleted < ambassadorTypesV2.HostPhase_ACMEUserPrivateKeyCreated {
+				c.recordHostPending(logger, host,
+					ambassadorTypesV2.HostPhase_ACMEUserPrivateKeyCreated,
+					ambassadorTypesV2.HostPhase_ACMEUserRegistered)
+			} else {
+				logger.Debugln("rectify: accepting host for next phase")
+				acmeHosts = append(acmeHosts, host)
 			}
-			logger.Debugln("rectify: accepting host for next phase")
-			acmeHosts = append(acmeHosts, host)
 		}
 	}
 
@@ -488,7 +487,7 @@ func FillDefaults(host *ambassadorTypesV2.Host) {
 		host.Spec.AcmeProvider = &ambassadorTypesV2.ACMEProviderSpec{}
 	}
 	if host.Spec.AcmeProvider.Authority == "" {
-		host.Spec.AcmeProvider.Authority = "https://acme-staging-v02.api.letsencrypt.org/directory" // "https://acme-v02.api.letsencrypt.org/directory"
+		host.Spec.AcmeProvider.Authority = "https://acme-v02.api.letsencrypt.org/directory"
 	}
 	if host.Spec.AcmeProvider.Authority != "none" {
 		if host.Spec.AcmeProvider.PrivateKeySecret == nil {

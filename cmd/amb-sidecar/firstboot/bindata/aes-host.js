@@ -1,4 +1,4 @@
-import Vue from 'https://cdn.jsdelivr.net/npm/vue/dist/vue.esm.browser.min.js';
+import Vue from 'https://cdn.jsdelivr.net/npm/vue/dist/vue.esm.browser.js';
 
 export default Vue.extend({
 	template: `<div>
@@ -46,7 +46,7 @@ export default Vue.extend({
 	data: function() {
 		return {
 			hostname: window.location.hostname,
-			provider: "https://acme-staging-v02.api.letsencrypt.org/directory", // "https://acme-v02.api.letsencrypt.org/directory",
+			provider: "https://acme-v02.api.letsencrypt.org/directory",
 			tosAgree: false,
 			email: "",
 
@@ -112,6 +112,9 @@ export default Vue.extend({
 				this.output += str;
 				this.output += "\n";
 				this.lastOutput = str;
+				if (str == "state: Ready\n") {
+					window.location = 'https://' + this.hostname + "/ambassador-edge-stack/admin#<jwt>";
+				}
 			}
 		},
 		refreshStatus: function() {
