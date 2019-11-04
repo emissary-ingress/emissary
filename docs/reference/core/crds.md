@@ -52,7 +52,7 @@ The full set of CRDs supported by Ambassador in 0.70.0:
 | `TLSContext` | `tlscontext` | `tlscontexts` |
 | `TracingService` | `tracingservice` | `tracingservices` |
 
-So, for example, if you're using CRDs then 
+So, for example, if you're using CRDs then
 
 ```kubectl get mappings```
 
@@ -146,8 +146,27 @@ spec:
   scope: Namespaced
   names:
     plural: kubernetesserviceresolvers
-    singular: kubernetesserviceresolver  
+    singular: kubernetesserviceresolver
     kind: KubernetesServiceResolver
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: logservices.getambassador.io
+spec:
+  group: getambassador.io
+  version: v1
+  versions:
+  - name: v1
+    served: true
+    storage: true
+  scope: Namespaced
+  names:
+    plural: logservices
+    singular: logservice
+    kind: LogService
+    categories:
+    - ambassador-crds
 ---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
