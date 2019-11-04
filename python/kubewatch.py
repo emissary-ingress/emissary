@@ -187,7 +187,7 @@ def main(debug):
                 '.ambassador_ignore_crds', 'Main CRDs',
                 [
                     'authservices.getambassador.io',
-                    'logservices.getammbassador.io',
+                    'logservices.getambassador.io',
                     'mappings.getambassador.io',
                     'modules.getambassador.io',
                     'ratelimitservices.getambassador.io',
