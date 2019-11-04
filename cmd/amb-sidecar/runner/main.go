@@ -39,6 +39,7 @@ import (
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/health"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/middleware"
 	"github.com/datawire/apro/cmd/amb-sidecar/firstboot"
+	"github.com/datawire/apro/cmd/amb-sidecar/limiter"
 	rlscontroller "github.com/datawire/apro/cmd/amb-sidecar/ratelimits"
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
 	"github.com/datawire/apro/cmd/amb-sidecar/watt"
@@ -210,7 +211,6 @@ func runE(cmd *cobra.Command, args []string) error {
 	logrus.SetLevel(level) // FIXME(lukeshu): Some Lyft code still uses the global logger
 
 	kubeinfo := k8s.NewKubeInfo("", "", "") // Empty file/ctx/ns for defaults
-
 	restconfig, err := kubeinfo.GetRestConfig()
 	if err != nil {
 		return err
@@ -225,9 +225,10 @@ func runE(cmd *cobra.Command, args []string) error {
 	}
 
 	var redisPool *pool.Pool
+	var redisPoolErr error
 	if cfg.RedisURL != "" {
-		redisPool, err = pool.New(cfg.RedisSocketType, cfg.RedisURL, cfg.RedisPoolSize)
-		if err != nil {
+		redisPool, redisPoolErr = pool.New(cfg.RedisSocketType, cfg.RedisURL, cfg.RedisPoolSize)
+		if redisPoolErr != nil {
 			logrusLogger.Errorf("redis pool configured but unavailable on startup: %v", err)
 		}
 	}
@@ -237,6 +238,9 @@ func runE(cmd *cobra.Command, args []string) error {
 
 	snapshotStore := watt.NewSnapshotStore(http.DefaultClient /* XXX */)
 
+	// ... and then initialize the limiter
+	limit := limiter.NewLimiterImpl(redisPool, licenseClaims)
+
 	// Initialize the errgroup we'll use to orchestrate the goroutines.
 	group := NewGroup(context.Background(), cfg, func(name string) types.Logger {
 		return types.WrapLogrus(logrusLogger).WithField("MAIN", name)
@@ -245,7 +249,7 @@ func runE(cmd *cobra.Command, args []string) error {
 	// Launch all of the worker goroutines...
 
 	// RateLimit controller
-	if licenseClaims.RequireFeature(licensekeys.FeatureRateLimit) == nil {
+	if limit.CanUseFeature(licensekeys.FeatureRateLimit) {
 		group.Go("ratelimit_controller", func(hardCtx, softCtx context.Context, cfg types.Config, l types.Logger) error {
 			return rlscontroller.DoWatch(softCtx, cfg, l)
 		})
@@ -253,7 +257,7 @@ func runE(cmd *cobra.Command, args []string) error {
 
 	// Filter+FilterPolicy controller
 	ct := &controller.Controller{}
-	if licenseClaims.RequireFeature(licensekeys.FeatureFilter) == nil || licenseClaims.RequireFeature(licensekeys.FeatureDevPortal) == nil {
+	if limit.CanUseFeature(licensekeys.FeatureFilter) || limit.CanUseFeature(licensekeys.FeatureDevPortal) {
 		group.Go("auth_controller", func(hardCtx, softCtx context.Context, cfg types.Config, l types.Logger) error {
 			ct.Config = cfg
 			ct.Logger = l
@@ -263,13 +267,12 @@ func runE(cmd *cobra.Command, args []string) error {
 
 	// DevPortal
 	var devPortalServer *devportalserver.Server
-	if licenseClaims.RequireFeature(licensekeys.FeatureDevPortal) == nil {
+	if limit.CanUseFeature(licensekeys.FeatureDevPortal) {
 		content, err := devportalcontent.NewContent(cfg.DevPortalContentURL)
 		if err != nil {
 			return err
 		}
-		devPortalServer = devportalserver.NewServer("/docs", content,
-			licenseClaims.GetLimitValue(licensekeys.LimitDevPortalServices))
+		devPortalServer = devportalserver.NewServer("/docs", content, limit)
 		group.Go("devportal_fetcher", func(hardCtx, softCtx context.Context, cfg types.Config, l types.Logger) error {
 			fetcher := devportalserver.NewFetcher(devPortalServer, devportalserver.HTTPGet, devPortalServer.KnownServices(), cfg)
 			fetcher.Run(softCtx)
@@ -299,7 +302,12 @@ func runE(cmd *cobra.Command, args []string) error {
 		statsStore := stats.NewDefaultStore()
 		statsStore.AddStatGenerator(stats.NewRuntimeStats(statsStore.Scope("go")))
 
+		if redisPoolErr != nil {
+			return errors.Wrap(redisPoolErr, "redis pool")
+		}
+
 		var redisPerSecondPool *pool.Pool
+		var err error
 		if cfg.RedisPerSecond {
 			redisPerSecondPool, err = pool.New(cfg.RedisPerSecondSocketType, cfg.RedisPerSecondURL, cfg.RedisPerSecondPoolSize)
 			if err != nil {

@@ -3,6 +3,7 @@ module github.com/datawire/apro
 go 1.13
 
 require (
+	github.com/Azure/go-autorest/autorest v0.9.0 // indirect
 	github.com/Jeffail/gabs v1.2.0
 	github.com/aclements/go-moremath v0.0.0-20180329182055-b1aff36309c7
 	github.com/bmizerany/perks v0.0.0-20141205001514-d9a9656a3a4b // indirect
@@ -29,6 +30,7 @@ require (
 	github.com/lyft/ratelimit v1.3.0
 	github.com/mediocregopher/radix.v2 v0.0.0-20180603022615-94360be26253
 	github.com/nu7hatch/gouuid v0.0.0-20131221200532-179d4d0c4d8d // indirect
+	github.com/o1egl/paseto v1.0.0
 	github.com/onsi/gomega v1.7.0
 	github.com/oxtoacart/bpool v0.0.0-20190530202638-03653db5a59c
 	github.com/pascaldekloe/goe v0.1.0 // indirect
@@ -47,6 +49,7 @@ require (
 	gitlab.com/golang-commonmark/mdurl v0.0.0-20180912090424-e5bce34c34f2 // indirect
 	gitlab.com/golang-commonmark/puny v0.0.0-20180912090636-2cd490539afe // indirect
 	gitlab.com/opennota/wd v0.0.0-20180912061657-c5d65f63c638 // indirect
+	golang.org/x/crypto v0.0.0-20190701094942-4def268fd1a4
 	golang.org/x/net v0.0.0-20190930134127-c5a3c61f89f3
 	golang.org/x/sync v0.0.0-20190423024810-112230192c58
 	golang.org/x/sys v0.0.0-20191029155521-f43be2a4598c // indirect

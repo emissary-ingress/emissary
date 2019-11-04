@@ -1,4 +1,4 @@
-package kubernetes
+package server
 
 import (
 	"fmt"
@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"github.com/datawire/apro/cmd/amb-sidecar/devportal/openapi"
+	"github.com/datawire/apro/cmd/amb-sidecar/limiter"
 )
 
 type Service struct {
@@ -20,8 +21,7 @@ type ServiceMetadata struct {
 	BaseURL string
 	HasDoc  bool
 	// May be nil even if HasDoc is true if loaded without the doc.
-	Doc   *openapi.OpenAPIDoc
-	limit *LimitClaim
+	Doc *openapi.OpenAPIDoc
 }
 
 type ServiceRecord struct {
@@ -31,97 +31,55 @@ type ServiceRecord struct {
 
 type MetadataMap map[Service]*ServiceMetadata
 
-// Storage for metadata about Kubernetes services. Implementations should assume
-// access from multiple goroutines.
-type ServiceStore interface {
-	// Store new metadata for a service. The OpenAPIDoc is presumed to
-	// already have been appropriately updated, e.g. prefixes munged.
-	Set(ks Service, m ServiceMetadata)
-	// Retrieve metadata or a service, optionally loading the OpenAPI doc if
-	// there is one.
-	Get(ks Service, with_doc bool) *ServiceMetadata
-	// Get all services' metadata. OpenAPI docs are not loaded.
-	List() MetadataMap
-	// Delete a service
-	Delete(ks Service)
-
-	Slice() []ServiceRecord
-}
-
-// In-memory implementation of ServiceStore.
 type inMemoryStore struct {
-	mutex         sync.RWMutex
-	metadata      MetadataMap
-	documentLimit ThresholdLimit
+	mutex    sync.RWMutex
+	limiter  limiter.Limiter
+	climiter limiter.CountLimiter
+	metadata MetadataMap
 }
 
-type ThresholdLimit struct {
-	mutex sync.RWMutex
-	limit int
-	usage int
-}
-
-type LimitClaim struct {
-	claimed bool
-}
-
-func (t *ThresholdLimit) Claim(claim bool) *LimitClaim {
-	t.mutex.Lock()
-	defer t.mutex.Unlock()
-
-	if claim && t.usage < t.limit {
-		t.usage++
-	} else {
-		claim = false
-	}
-	return &LimitClaim{
-		claimed: claim,
-	}
-}
-
-func (t *ThresholdLimit) Unclaim(c *LimitClaim) {
-	if c == nil {
-		return
-	}
-	t.mutex.Lock()
-	defer t.mutex.Unlock()
-
-	if c.claimed {
-		t.usage--
-		c.claimed = false
-	}
-}
-
-// Create in-memory implementation of ServiceStore.
-func NewInMemoryStore(serviceLimit int) *inMemoryStore {
+func newInMemoryStore(countLimiter limiter.CountLimiter, limiterImpl limiter.Limiter) *inMemoryStore {
 	return &inMemoryStore{
-		metadata:      make(MetadataMap),
-		documentLimit: ThresholdLimit{limit: serviceLimit},
+		metadata: make(MetadataMap),
+		limiter: limiterImpl,
+		climiter: countLimiter,
 	}
 }
 
-func (s *inMemoryStore) Set(ks Service, m ServiceMetadata) {
+func (s *inMemoryStore) Set(ks Service, m ServiceMetadata) error {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
-	if old, ok := s.metadata[ks]; ok {
-		s.documentLimit.Unclaim(old.limit)
+
+	// If this is a new service... Increment the count.
+	if _, ok := s.metadata[ks]; !ok {
+		err := s.climiter.IncrementUsage()
+		if err != nil {
+			if s.limiter.IsHardLimitAtPointInTime() {
+				return err
+			} else {
+				m.HasDoc = m.Doc != nil
+				if m.HasDoc {
+					m.Doc.Redact()
+				}
+			}
+		}
 	}
-	s.documentLimit.Unclaim(m.limit)
-	m.HasDoc = m.Doc != nil
-	m.limit = s.documentLimit.Claim(m.HasDoc)
-	if !m.limit.claimed && m.HasDoc {
-		m.Doc.Redact()
-	}
+
 	s.metadata[ks] = &m
+	return nil
 }
 
-func (s *inMemoryStore) Delete(ks Service) {
+func (s *inMemoryStore) Delete(ks Service) error {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
-	if old, ok := s.metadata[ks]; ok {
-		s.documentLimit.Unclaim(old.limit)
+
+	err := s.climiter.DecrementUsage()
+	if err != nil {
+		return err
 	}
+
 	delete(s.metadata, ks)
+	return nil
 }
 
 func (s *inMemoryStore) Get(ks Service, with_doc bool) *ServiceMetadata {

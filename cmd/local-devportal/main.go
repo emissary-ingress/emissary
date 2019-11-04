@@ -15,6 +15,7 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	devportalcontent "github.com/datawire/apro/cmd/amb-sidecar/devportal/content"
+	"github.com/datawire/apro/cmd/amb-sidecar/limiter/mocks"
 	devportalserver "github.com/datawire/apro/cmd/amb-sidecar/devportal/server"
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
 )
@@ -98,7 +99,8 @@ func serve(cmd *cobra.Command, args []string) {
 	}
 
 	docs := "/local-devportal"
-	server := devportalserver.NewServer(docs, content, 1)
+	limiter := mocks.NewMockLimiter()
+	server := devportalserver.NewServer(docs, content, limiter)
 
 	amb := newMockAmbassador()
 	amb.addMapping("default", "ambassador-pro-devportal", docs, server.Router())
