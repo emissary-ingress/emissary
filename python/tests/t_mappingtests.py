@@ -53,43 +53,6 @@ service: http://{self.target.path.fqdn}
                 assert r.backend.request.headers['x-envoy-original-path'][0] == f'/{self.name}/'
 
 
-class SimpleMapping(MappingTest):
-
-    parent: AmbassadorTest
-    target: ServiceType
-
-    @classmethod
-    def variants(cls):
-        for st in variants(ServiceType):
-            yield cls(st, name="{self.target.name}")
-
-            for mot in variants(OptionTest):
-                yield cls(st, (mot,), name="{self.target.name}-{self.options[0].name}")
-
-            yield cls(st, unique(v for v in variants(OptionTest)
-                                 if not getattr(v, "isolated", False)), name="{self.target.name}-all")
-
-    def config(self):
-        yield self, self.format("""
----
-apiVersion: ambassador/v1
-kind:  Mapping
-name:  {self.name}
-prefix: /{self.name}/
-service: http://{self.target.path.fqdn}
-""")
-
-    def queries(self):
-        yield Query(self.parent.url(self.name + "/"))
-        yield Query(self.parent.url(f'need-normalization/../{self.name}/'))
-
-    def check(self):
-        for r in self.results:
-            if r.backend:
-                assert r.backend.name == self.target.path.k8s, (r.backend.name, self.target.path.k8s)
-                assert r.backend.request.headers['x-envoy-original-path'][0] == f'/{self.name}/'
-
-
 class SimpleMappingIngress(MappingTest):
 
     parent: AmbassadorTest
