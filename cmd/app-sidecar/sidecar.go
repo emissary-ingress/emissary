@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/datawire/apro/lib/metriton"
 	"io/ioutil"
 	_log "log"
 	"math"
@@ -100,13 +101,14 @@ func main() {
 		Version: Version,
 		RunE:    Main,
 	}
-	cmdContext := licensekeys.InitializeCommandFlags(argparser.PersistentFlags(), "application-sidecar", Version)
+	cmdContext := licensekeys.InitializeCommandFlags(argparser.PersistentFlags())
 	argparser.PersistentPreRun = func(cmd *cobra.Command, args []string) {
 		licenseClaims, err := cmdContext.KeyCheck(cmd.PersistentFlags(), false)
 		if err == nil {
 			err = licenseClaims.RequireFeature(licensekeys.FeatureTraffic)
 		}
 		if err == nil {
+			go metriton.PhoneHome(licenseClaims, nil, "application-sidecar", Version)
 			return
 		}
 		fmt.Fprintln(os.Stderr, err)

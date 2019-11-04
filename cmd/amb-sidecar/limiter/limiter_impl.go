@@ -17,16 +17,22 @@ type LimiterImpl struct {
 	licenseClaims *licensekeys.LicenseClaimsLatest
 	// cryptoEngine is used for encrypting the values store in redis.
 	cryptoEngine *LimitCrypto
+	// unregisteredLicense is used to track unregistered licenses and enforce hard limits
+	unregisteredLicenseHardLimits bool
+	// phoneHomeHardLimits is used to track Metriton response enforcing hard limits
+	phoneHomeHardLimits bool
 }
 
 // NewLimiter properly creates a limiter instance.
 //
 // redisPool: a potential redis connection
 // claims: the potential claims the user has activated.
-func NewLimiterImpl(redisPool *pool.Pool, claims *licensekeys.LicenseClaimsLatest) *LimiterImpl {
+func NewLimiterImpl() *LimiterImpl {
 	return &LimiterImpl{
-		redisPool:     redisPool,
-		licenseClaims: claims,
+		redisPool:                     nil,
+		licenseClaims:                 nil,
+		unregisteredLicenseHardLimits: false,
+		phoneHomeHardLimits:           false,
 	}
 }
 
@@ -45,9 +51,29 @@ func (l *LimiterImpl) CanUseFeature(f licensekeys.Feature) bool {
 	return l.licenseClaims != nil && l.licenseClaims.RequireFeature(f) == nil
 }
 
+// SetRedisPool is useful for associating a redis connection pool after initialization.
+func (l *LimiterImpl) SetRedisPool(newRedisPool *pool.Pool) {
+	l.redisPool = newRedisPool
+}
+
 // SetClaims is useful for reloading a license key while the program is running.
 func (l *LimiterImpl) SetClaims(newClaims *licensekeys.LicenseClaimsLatest) {
 	l.licenseClaims = newClaims
+}
+
+// GetClaims is useful for using the loaded claims when computing limits, even after they were reloaded
+func (l *LimiterImpl) GetClaims() *licensekeys.LicenseClaimsLatest {
+	return l.licenseClaims
+}
+
+// SetUnregisteredLicenseHardLimits is useful for toggling license-enforced hard limits
+func (l *LimiterImpl) SetUnregisteredLicenseHardLimits(newUnregisteredLicenseHardLimits bool) {
+	l.unregisteredLicenseHardLimits = newUnregisteredLicenseHardLimits
+}
+
+// SetUnregisteredLicenseHardLimits is useful for toggling metriton-enforced hard limits
+func (l *LimiterImpl) SetPhoneHomeHardLimits(newPhoneHomeHardLimits bool) {
+	l.phoneHomeHardLimits = newPhoneHomeHardLimits
 }
 
 // GetLimitValueAtPointInTime returns the current limit value for the current
@@ -60,8 +86,7 @@ func (l *LimiterImpl) GetLimitValueAtPointInTime(toCheck licensekeys.Limit) int 
 // IsHardLimitAtPointInTime determines if at the point of time of calling this
 // we should enforce hard limits.
 func (l *LimiterImpl) IsHardLimitAtPointInTime() bool {
-	// TODO: integrate with phone home.
-	return false
+	return l.unregisteredLicenseHardLimits || l.phoneHomeHardLimits
 }
 
 // CreateCountLimiter creates a limiter that is capable of enforcing counts.
