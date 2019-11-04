@@ -113,7 +113,7 @@ spec:
     - name: BACKEND
       value: {self.path.k8s}
     - name: INCLUDE_EXTAUTH_HEADER
-      value: "yes" 
+      value: "yes"
 """
 
 GRPC_AUTH_BACKEND = """
@@ -134,7 +134,7 @@ spec:
     protocol: TCP
     port: 443
     targetPort: 8443
---- 
+---
 apiVersion: v1
 kind: Pod
 metadata:
@@ -172,7 +172,7 @@ spec:
     protocol: TCP
     port: 443
     targetPort: 8443
---- 
+---
 apiVersion: v1
 kind: Pod
 metadata:
@@ -261,6 +261,23 @@ spec:
     plural: kubernetesserviceresolvers
     singular: kubernetesserviceresolver
     kind: KubernetesServiceResolver
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: logservices.getambassador.io
+spec:
+  group: getambassador.io
+  version: v1
+  versions:
+  - name: v1
+    served: true
+    storage: true
+  scope: Namespaced
+  names:
+    plural: logservices
+    singular: logservice
+    kind: LogService
 ---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
@@ -363,23 +380,6 @@ spec:
     plural: tracingservices
     singular: tracingservice
     kind: TracingService
----
-apiVersion: apiextensions.k8s.io/v1beta1
-kind: CustomResourceDefinition
-metadata:
-  name: logservices.getambassador.io
-spec:
-  group: getambassador.io
-  version: v1
-  versions:
-  - name: v1
-    served: true
-    storage: true
-  scope: Namespaced
-  names:
-    plural: logservices
-    singular: logservice
-    kind: LogService
 """
 
 RBAC_CLUSTER_SCOPE = """
@@ -552,7 +552,7 @@ spec:
       value: "/tmp/ambassador"
     securityContext:
       allowPrivilegeEscalation: false
-      readOnlyRootFilesystem: true  
+      readOnlyRootFilesystem: true
       {capabilities_block}
     livenessProbe:
       httpGet:
