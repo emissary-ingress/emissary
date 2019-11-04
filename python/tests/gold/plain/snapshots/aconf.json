@@ -5,13 +5,13 @@
                 "error": "Ambassador could not find core CRD definitions. Please visit https://www.getambassador.io/reference/core/crds/ for more information. You can continue using Ambassador via Kubernetes annotations, any configuration via CRDs will be ignored...",
                 "hostname": "plain",
                 "ok": false,
-                "version": "0.86.0-rc5-131-g4bcda0e6-dirty"
+                "version": "0.86.0-rc5-133-gd823f7de-dirty"
             },
             {
                 "error": "Ambassador could not find Resolver type CRD definitions. Please visit https://www.getambassador.io/reference/core/crds/ for more information. You can continue using Ambassador via Kubernetes annotations, any configuration via CRDs will be ignored...",
                 "hostname": "plain",
                 "ok": false,
-                "version": "0.86.0-rc5-131-g4bcda0e6-dirty"
+                "version": "0.86.0-rc5-133-gd823f7de-dirty"
             }
         ]
     },
