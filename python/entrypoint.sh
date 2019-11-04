@@ -32,18 +32,6 @@ debug () {
     fi
 }
 
-in_array() {
-    local needle straw haystack
-    needle="$1"
-    haystack=("${@:2}")
-    for straw in "${haystack[@]}"; do
-        if [[ "$straw" == "$needle" ]]; then
-            return 0
-        fi
-    done
-    return 1
-}
-
 wait_for_url () {
     local name url tries_left delay status
 
@@ -122,21 +110,30 @@ envoy_flags=('-c' "${ENVOY_BOOTSTRAP_FILE}")
 # AMBASSADOR_DEBUG is a list of things to enable debugging for,
 # separated by spaces; parse that in to an array.
 read -r -d '' -a ambassador_debug <<<"$AMBASSADOR_DEBUG"
-if in_array 'diagd' "${ambassador_debug[@]}"; then diagd_flags+=('--debug'); fi
-if in_array 'envoy' "${ambassador_debug[@]}"; then envoy_flags+=('-l' 'debug'); fi
-
-if in_array 'entrypoint'; then
-    ENTRYPOINT_DEBUG=true
-
-    debug "ENTRYPOINT_DEBUG enabled"
-fi
-
-if in_array 'entrypoint_trace'; then
-    log "ENTRYPOINT_TRACE enabled"
-
-    echo 2>&1
-    set -x
-fi
+for item in "${ambassador_debug[@]}"; do
+    case "$item" in
+        diagd)
+            debug 'AMBASSADOR_DEBUG: `diagd --debug` enabled'
+            diagd_flags+=('--debug')
+            ;;
+        envoy)
+            debug 'AMBASSADOR_DEBUG: `envoy -l debug` enabled'
+            envoy_flags+=('-l' 'debug')
+            ;;
+        entrypoint)
+            debug "AMBASSADOR_DEBUG: ENTRYPOINT_DEBUG enabled"
+            ENTRYPOINT_DEBUG=true
+            ;;
+        entrypoint_trace)
+            debug "AMBASSADOR_DEBUG: ENTRYPOINT_TRACE enabled"
+            echo 2>&1
+            set -x
+            ;;
+        *)
+            debug "AMBASSADOR_DEBUG: unknown item: ${item@Q}"
+            ;;
+    esac
+done
 
 if [[ "$1" == "--demo" ]]; then
     # This is _not_ meant to be overridden by AMBASSADOR_CONFIG_BASE_DIR.
