@@ -10,6 +10,8 @@ type Limiter interface {
 	CanUseFeature(f licensekeys.Feature) bool
 	// Set the license key claims (to support reloading).
 	SetClaims(newClaims *licensekeys.LicenseClaimsLatest)
+	// Get the license key claims.
+	GetClaims() *licensekeys.LicenseClaimsLatest
 	// Get a particular limit value at a point in time.
 	GetLimitValueAtPointInTime(toCheck licensekeys.Limit) int
 	// Are we enforcing hard limits right now?

@@ -1,6 +1,7 @@
 package banner
 
 import (
+	"github.com/datawire/apro/cmd/amb-sidecar/limiter"
 	"github.com/datawire/apro/lib/licensekeys"
 	"github.com/mediocregopher/radix.v2/pool"
 	"html/template"
@@ -8,12 +9,12 @@ import (
 )
 
 type banner struct {
-	t             *template.Template
-	licenseClaims **licensekeys.LicenseClaimsLatest
-	redisPool     *pool.Pool
+	t         *template.Template
+	limit     limiter.Limiter
+	redisPool *pool.Pool
 }
 
-func NewBanner(licenseClaims **licensekeys.LicenseClaimsLatest, redisPool *pool.Pool) http.Handler {
+func NewBanner(limit limiter.Limiter, redisPool *pool.Pool) http.Handler {
 	// TODO(alexgervais): Display a banner inviting "unregistered" license users to enter their email
 	t := template.New("banner")
 	t, _ = t.Parse(`
@@ -23,7 +24,7 @@ func NewBanner(licenseClaims **licensekeys.LicenseClaimsLatest, redisPool *pool.
 <div style="color:red; font-weight: bold">You've reached the usage limits for your license. If you need to use Ambassador beyond the current limits, <a href="https://www.getambassador.io/contact/">please contact Datawire</a> for an Enterprise license.</div>
 {{- end -}}
 `)
-	return &banner{t: t, licenseClaims: licenseClaims, redisPool: redisPool}
+	return &banner{t: t, limit: limit, redisPool: redisPool}
 }
 
 func (b *banner) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -34,7 +35,7 @@ func (b *banner) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	data := map[string]interface{}{
 		"features_over_limit": licensedFeaturesOverLimit,
-		"unregistered":        (*b.licenseClaims).CustomerID == "unregistered",
+		"unregistered":        b.limit.GetClaims().CustomerID == "unregistered",
 		"hasRedis":            b.redisPool != nil,
 	}
 	b.t.Execute(w, data)
