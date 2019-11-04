@@ -13,6 +13,8 @@ import (
 	ambassadorTypesV2 "github.com/datawire/ambassador/pkg/api/getambassador.io/v2"
 	k8sTypesCoreV1 "k8s.io/api/core/v1"
 	k8sTypesMetaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	k8sClientCoreV1 "k8s.io/client-go/kubernetes/typed/core/v1"
 )
 
 func subjects(cert *x509.Certificate) []string {
@@ -121,12 +123,43 @@ func hostsEqual(a, b *ambassadorTypesV2.Host) bool {
 // this instead of `proto.Equal()` because (gogo/protobuf v1.3.0)
 // `proto.Equal()` panics on metav1.ObjectMeta.
 func secretsEqual(a, b *k8sTypesCoreV1.Secret) bool {
+	// metadata
 	if a.GetNamespace() != b.GetNamespace() {
 		return false
 	}
 	if a.GetName() != b.GetName() {
 		return false
 	}
+	if len(a.GetOwnerReferences()) != len(b.GetOwnerReferences()) {
+		return false
+	}
+	for i := range a.GetOwnerReferences() {
+		aRef := a.GetOwnerReferences()[i]
+		bRef := b.GetOwnerReferences()[i]
+		if aRef.APIVersion != bRef.APIVersion {
+			return false
+		}
+		if aRef.Kind != bRef.Kind {
+			return false
+		}
+		if aRef.Name != bRef.Name {
+			return false
+		}
+		if aRef.UID != bRef.UID {
+			return false
+		}
+		aController := aRef.Controller != nil && *aRef.Controller
+		bController := bRef.Controller != nil && *bRef.Controller
+		if aController != bController {
+			return false
+		}
+		aBlockOwnerDeletion := aRef.BlockOwnerDeletion != nil && *aRef.BlockOwnerDeletion
+		bBlockOwnerDeletion := bRef.BlockOwnerDeletion != nil && *bRef.BlockOwnerDeletion
+		if aBlockOwnerDeletion != bBlockOwnerDeletion {
+			return false
+		}
+	}
+	// content
 	if a.Type != b.Type {
 		return false
 	}
@@ -143,4 +176,36 @@ func secretsEqual(a, b *k8sTypesCoreV1.Secret) bool {
 		}
 	}
 	return true
+}
+
+func secretIsOwnedBy(secret *k8sTypesCoreV1.Secret, owner *ambassadorTypesV2.Host) bool {
+	for _, straw := range secret.ObjectMeta.OwnerReferences {
+		if straw.APIVersion == owner.TypeMeta.APIVersion &&
+			straw.Kind == owner.TypeMeta.Kind &&
+			straw.Name == owner.GetName() &&
+			straw.UID == owner.GetUID() {
+			return true
+		}
+	}
+	return false
+}
+
+func secretAddOwner(secret *k8sTypesCoreV1.Secret, owner *ambassadorTypesV2.Host) {
+	secret.ObjectMeta.OwnerReferences = append(secret.ObjectMeta.OwnerReferences, k8sTypesMetaV1.OwnerReference{
+		APIVersion: owner.TypeMeta.APIVersion,
+		Kind:       owner.TypeMeta.Kind,
+		Name:       owner.GetName(),
+		UID:        owner.GetUID(),
+	})
+}
+
+func storeSecret(secretsGetter k8sClientCoreV1.SecretsGetter, secret *k8sTypesCoreV1.Secret) error {
+	secretInterface := secretsGetter.Secrets(secret.GetNamespace())
+	var err error
+	if secret.GetResourceVersion() == "" {
+		_, err = secretInterface.Create(secret)
+	} else {
+		_, err = secretInterface.Update(secret)
+	}
+	return err
 }
