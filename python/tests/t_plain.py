@@ -12,6 +12,8 @@ class Plain(AmbassadorTest):
     single_namespace = True
     namespace = "plain-namespace"
 
+    no_local_mode = True
+
     @classmethod
     def variants(cls):
         yield cls(variants(MappingTest))

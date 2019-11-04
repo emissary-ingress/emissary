@@ -83,6 +83,9 @@ ExtAuthRequestHeaders = {
     'WWW-Authenticate': True,
 }
 
+def header_pattern_key(x: Dict[str, str]) -> List[Tuple[str, str]]:
+    return sorted([ (k, v) for k, v in x.items() ])
+
 @multi
 def v2filter(irfilter: IRFilter, v2config: 'V2Config'):
     del v2config  # silence unused-variable warning
@@ -205,15 +208,15 @@ def v2filter_authv0(auth: IRAuth, v2config: 'V2Config'):
                 'path_prefix': auth.path_prefix,
                 'authorization_request': {
                     'allowed_headers': {
-                        'patterns': allowed_request_headers
+                        'patterns': sorted(allowed_request_headers, key=header_pattern_key)
                     }
                 },
                 'authorization_response' : {
                     'allowed_upstream_headers': {
-                        'patterns': allowed_authorization_headers
+                        'patterns': sorted(allowed_authorization_headers, key=header_pattern_key)
                     },
                     'allowed_client_headers': {
-                        'patterns': allowed_authorization_headers
+                        'patterns': sorted(allowed_authorization_headers, key=header_pattern_key)
                     }
                 }
             }
@@ -285,16 +288,16 @@ def v2filter_authv1(auth: IRAuth, v2config: 'V2Config'):
                     'path_prefix': auth.path_prefix,
                     'authorization_request': {
                         'allowed_headers': {
-                            'patterns': allowed_request_headers
+                            'patterns': sorted(allowed_request_headers, key=header_pattern_key)
                         },
                         'headers_to_add' : headers_to_add
                     },
                     'authorization_response' : {
                         'allowed_upstream_headers': {
-                            'patterns': allowed_authorization_headers
+                            'patterns': sorted(allowed_authorization_headers, key=header_pattern_key)
                         },
                         'allowed_client_headers': {
-                            'patterns': allowed_authorization_headers
+                            'patterns': sorted(allowed_authorization_headers, key=header_pattern_key)
                         }
                     }
                 },

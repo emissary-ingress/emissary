@@ -79,6 +79,7 @@ class AmbassadorTest(Test):
     extra_ports: Optional[List[int]] = None
     debug_diagd: bool = False
     manifest_envs = ""
+    is_ambassador = True
 
     env = []
 
@@ -427,7 +428,7 @@ class MappingTest(Test):
     def init(self, target: ServiceType, options=()) -> None:
         self.target = target
         self.options = list(options)
-
+        self.is_ambassador = True
 
 @abstract_test
 class OptionTest(Test):

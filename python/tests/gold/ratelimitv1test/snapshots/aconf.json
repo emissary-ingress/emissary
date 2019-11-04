@@ -1,0 +1,188 @@
+{
+    "_errors": {},
+    "_notices": {},
+    "_sources": {
+        "--diagnostics--": {
+            "_referenced_by": {},
+            "apiVersion": "ambassador/v0",
+            "description": "The '--diagnostics--' source marks objects created by Ambassador to assist with diagnostic output.",
+            "kind": "Diagnostics",
+            "location": "--diagnostics--",
+            "name": "Ambassador Diagnostics",
+            "namespace": null,
+            "rkey": "--diagnostics--",
+            "serialization": null,
+            "version": "ambassador/v0"
+        },
+        "--internal--": {
+            "_referenced_by": {},
+            "apiVersion": "ambassador/v0",
+            "description": "The '--internal--' source marks objects created by Ambassador's internal logic.",
+            "kind": "Internal",
+            "location": "--internal--",
+            "name": "Ambassador Internals",
+            "namespace": null,
+            "rkey": "--internal--",
+            "serialization": null,
+            "version": "ambassador/v0"
+        },
+        "k8s-rate-limit-v1-default": {
+            "_referenced_by": {},
+            "ambassador_id": "ratelimitv1test",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-rate-limit-v1-default",
+            "name": "rate-limit-v1",
+            "namespace": "default",
+            "rkey": "k8s-rate-limit-v1-default",
+            "serialization": "ambassador_id: ratelimitv1test\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: rate-limit-v1\nnamespace: default\n"
+        },
+        "k8s-ratelimitv1test-admin-default": {
+            "_referenced_by": {},
+            "ambassador_id": "ratelimitv1test",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-ratelimitv1test-admin-default",
+            "name": "ratelimitv1test-admin",
+            "namespace": "default",
+            "rkey": "k8s-ratelimitv1test-admin-default",
+            "serialization": "ambassador_id: ratelimitv1test\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: ratelimitv1test-admin\nnamespace: default\n"
+        },
+        "k8s-ratelimitv1test-default": {
+            "_referenced_by": {},
+            "ambassador_id": "ratelimitv1test",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-ratelimitv1test-default",
+            "name": "ratelimitv1test",
+            "namespace": "default",
+            "rkey": "k8s-ratelimitv1test-default",
+            "serialization": "ambassador_id: ratelimitv1test\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: ratelimitv1test\nnamespace: default\n"
+        },
+        "k8s-ratelimitv1test-http-default": {
+            "_referenced_by": {},
+            "ambassador_id": "ratelimitv1test",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-ratelimitv1test-http-default",
+            "name": "ratelimitv1test-http",
+            "namespace": "default",
+            "rkey": "k8s-ratelimitv1test-http-default",
+            "serialization": "ambassador_id: ratelimitv1test\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: ratelimitv1test-http\nnamespace: default\n"
+        },
+        "ratelimitv1test-http.default.1": {
+            "_referenced_by": {},
+            "ambassador_id": "ratelimitv1test",
+            "apiVersion": "ambassador/v1",
+            "kind": "Mapping",
+            "labels": {
+                "ambassador": [
+                    {
+                        "request_label_group": [
+                            {
+                                "x-ambassador-test-allow": {
+                                    "header": "x-ambassador-test-allow",
+                                    "omit_if_not_present": true
+                                }
+                            }
+                        ]
+                    }
+                ]
+            },
+            "location": "ratelimitv1test-http.default.1",
+            "name": "ratelimit_target_mapping",
+            "namespace": "default",
+            "prefix": "/target/",
+            "rkey": "ratelimitv1test-http.default.1",
+            "serialization": "ambassador_id: ratelimitv1test\napiVersion: ambassador/v1\nkind: Mapping\nlabels:\n  ambassador:\n  - request_label_group:\n    - x-ambassador-test-allow:\n        header: x-ambassador-test-allow\n        omit_if_not_present: true\nname: ratelimit_target_mapping\nprefix: /target/\nservice: ratelimitv1test-http\n",
+            "service": "ratelimitv1test-http"
+        },
+        "ratelimitv1test.default.1": {
+            "_referenced_by": {},
+            "ambassador_id": "ratelimitv1test",
+            "apiVersion": "ambassador/v1",
+            "kind": "RateLimitService",
+            "location": "ratelimitv1test.default.1",
+            "name": "ratelimit-v1",
+            "namespace": "default",
+            "rkey": "ratelimitv1test.default.1",
+            "serialization": "ambassador_id: ratelimitv1test\napiVersion: ambassador/v1\nkind: RateLimitService\nname: ratelimit-v1\nservice: rate-limit-v1:5000\ntimeout_ms: 500\n",
+            "service": "rate-limit-v1:5000",
+            "timeout_ms": 500
+        }
+    },
+    "mappings": {
+        "ratelimit_target_mapping": {
+            "ambassador_id": "ratelimitv1test",
+            "apiVersion": "ambassador/v1",
+            "kind": "Mapping",
+            "labels": {
+                "ambassador": [
+                    {
+                        "request_label_group": [
+                            {
+                                "x-ambassador-test-allow": {
+                                    "header": "x-ambassador-test-allow",
+                                    "omit_if_not_present": true
+                                }
+                            }
+                        ]
+                    }
+                ]
+            },
+            "name": "ratelimit_target_mapping",
+            "namespace": "default",
+            "prefix": "/target/",
+            "service": "ratelimitv1test-http"
+        }
+    },
+    "ratelimit_configs": {
+        "ratelimit-v1": {
+            "ambassador_id": "ratelimitv1test",
+            "apiVersion": "ambassador/v1",
+            "kind": "RateLimitService",
+            "name": "ratelimit-v1",
+            "namespace": "default",
+            "service": "rate-limit-v1:5000",
+            "timeout_ms": 500
+        }
+    },
+    "service": {
+        "k8s-rate-limit-v1-default": {
+            "ambassador_id": "ratelimitv1test",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "name": "rate-limit-v1",
+            "namespace": "default"
+        },
+        "k8s-ratelimitv1test-admin-default": {
+            "ambassador_id": "ratelimitv1test",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "name": "ratelimitv1test-admin",
+            "namespace": "default"
+        },
+        "k8s-ratelimitv1test-default": {
+            "ambassador_id": "ratelimitv1test",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "name": "ratelimitv1test",
+            "namespace": "default"
+        },
+        "k8s-ratelimitv1test-http-default": {
+            "ambassador_id": "ratelimitv1test",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "name": "ratelimitv1test-http",
+            "namespace": "default"
+        }
+    }
+}
