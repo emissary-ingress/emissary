@@ -1,0 +1,173 @@
+{
+    "_errors": {},
+    "_notices": {
+        "tracingtestshorttraceid-http.default.1": [
+            "apiVersion ambassador/v0 is deprecated, consider upgrading"
+        ],
+        "tracingtestshorttraceid.default.1": [
+            "apiVersion ambassador/v0 is deprecated, consider upgrading"
+        ]
+    },
+    "_sources": {
+        "--diagnostics--": {
+            "_referenced_by": {},
+            "apiVersion": "ambassador/v0",
+            "description": "The '--diagnostics--' source marks objects created by Ambassador to assist with diagnostic output.",
+            "kind": "Diagnostics",
+            "location": "--diagnostics--",
+            "name": "Ambassador Diagnostics",
+            "namespace": null,
+            "rkey": "--diagnostics--",
+            "serialization": null,
+            "version": "ambassador/v0"
+        },
+        "--internal--": {
+            "_referenced_by": {},
+            "apiVersion": "ambassador/v0",
+            "description": "The '--internal--' source marks objects created by Ambassador's internal logic.",
+            "kind": "Internal",
+            "location": "--internal--",
+            "name": "Ambassador Internals",
+            "namespace": null,
+            "rkey": "--internal--",
+            "serialization": null,
+            "version": "ambassador/v0"
+        },
+        "k8s-tracingtestshorttraceid-admin-default": {
+            "_referenced_by": {},
+            "ambassador_id": "tracingtestshorttraceid",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-tracingtestshorttraceid-admin-default",
+            "name": "tracingtestshorttraceid-admin",
+            "namespace": "default",
+            "rkey": "k8s-tracingtestshorttraceid-admin-default",
+            "serialization": "ambassador_id: tracingtestshorttraceid\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: tracingtestshorttraceid-admin\nnamespace: default\n"
+        },
+        "k8s-tracingtestshorttraceid-default": {
+            "_referenced_by": {},
+            "ambassador_id": "tracingtestshorttraceid",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-tracingtestshorttraceid-default",
+            "name": "tracingtestshorttraceid",
+            "namespace": "default",
+            "rkey": "k8s-tracingtestshorttraceid-default",
+            "serialization": "ambassador_id: tracingtestshorttraceid\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: tracingtestshorttraceid\nnamespace: default\n"
+        },
+        "k8s-tracingtestshorttraceid-http-default": {
+            "_referenced_by": {},
+            "ambassador_id": "tracingtestshorttraceid",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-tracingtestshorttraceid-http-default",
+            "name": "tracingtestshorttraceid-http",
+            "namespace": "default",
+            "rkey": "k8s-tracingtestshorttraceid-http-default",
+            "serialization": "ambassador_id: tracingtestshorttraceid\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: tracingtestshorttraceid-http\nnamespace: default\n"
+        },
+        "k8s-zipkin-64-default": {
+            "_referenced_by": {},
+            "ambassador_id": "tracingtestshorttraceid",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-zipkin-64-default",
+            "name": "zipkin-64",
+            "namespace": "default",
+            "rkey": "k8s-zipkin-64-default",
+            "serialization": "ambassador_id: tracingtestshorttraceid\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: zipkin-64\nnamespace: default\n"
+        },
+        "tracingtestshorttraceid-http.default.1": {
+            "_referenced_by": {},
+            "ambassador_id": "tracingtestshorttraceid",
+            "apiVersion": "ambassador/v0",
+            "kind": "Mapping",
+            "location": "tracingtestshorttraceid-http.default.1",
+            "name": "tracing_target_mapping_64",
+            "namespace": "default",
+            "prefix": "/target-64/",
+            "rkey": "tracingtestshorttraceid-http.default.1",
+            "serialization": "ambassador_id: tracingtestshorttraceid\napiVersion: ambassador/v0\nkind: Mapping\nname: tracing_target_mapping_64\nprefix: /target-64/\nservice: tracingtestshorttraceid-http\n",
+            "service": "tracingtestshorttraceid-http"
+        },
+        "tracingtestshorttraceid.default.1": {
+            "_referenced_by": {},
+            "ambassador_id": "tracingtestshorttraceid",
+            "apiVersion": "ambassador/v0",
+            "config": {
+                "trace_id_128bit": false
+            },
+            "driver": "zipkin",
+            "kind": "TracingService",
+            "location": "tracingtestshorttraceid.default.1",
+            "name": "tracing-64",
+            "namespace": "default",
+            "rkey": "tracingtestshorttraceid.default.1",
+            "serialization": "ambassador_id: tracingtestshorttraceid\napiVersion: ambassador/v0\nconfig:\n  trace_id_128bit: false\ndriver: zipkin\nkind: TracingService\nname: tracing-64\nservice: zipkin-64:9411\n",
+            "service": "zipkin-64:9411"
+        }
+    },
+    "mappings": {
+        "tracing_target_mapping_64": {
+            "ambassador_id": "tracingtestshorttraceid",
+            "apiVersion": "ambassador/v0",
+            "kind": "Mapping",
+            "name": "tracing_target_mapping_64",
+            "namespace": "default",
+            "prefix": "/target-64/",
+            "service": "tracingtestshorttraceid-http"
+        }
+    },
+    "service": {
+        "k8s-tracingtestshorttraceid-admin-default": {
+            "ambassador_id": "tracingtestshorttraceid",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "name": "tracingtestshorttraceid-admin",
+            "namespace": "default"
+        },
+        "k8s-tracingtestshorttraceid-default": {
+            "ambassador_id": "tracingtestshorttraceid",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "name": "tracingtestshorttraceid",
+            "namespace": "default"
+        },
+        "k8s-tracingtestshorttraceid-http-default": {
+            "ambassador_id": "tracingtestshorttraceid",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "name": "tracingtestshorttraceid-http",
+            "namespace": "default"
+        },
+        "k8s-zipkin-64-default": {
+            "ambassador_id": "tracingtestshorttraceid",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "name": "zipkin-64",
+            "namespace": "default"
+        }
+    },
+    "tracing_configs": {
+        "tracing-64": {
+            "ambassador_id": "tracingtestshorttraceid",
+            "apiVersion": "ambassador/v0",
+            "config": {
+                "trace_id_128bit": false
+            },
+            "driver": "zipkin",
+            "kind": "TracingService",
+            "name": "tracing-64",
+            "namespace": "default",
+            "service": "zipkin-64:9411"
+        }
+    }
+}
