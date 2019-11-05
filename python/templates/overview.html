@@ -230,6 +230,10 @@ limitations under the License
                               {{ hdr['name'] }}: {{ hdr['value'] }}
                             {% endfor %}
                           {% endif %}
+                          {% if route['precedence'] != 0 %}
+                            <br/>
+                            precedence {{ route.precedence }}
+                          {% endif %}
                           </code>
                         </a>
                       </td>

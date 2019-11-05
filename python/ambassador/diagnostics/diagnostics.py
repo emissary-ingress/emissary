@@ -281,7 +281,8 @@ class DiagResult:
             'method': method,
             'headers': headers,
             'clusters': [ x.default_missing() for x in route_clusters ],
-            'host': host if host else '*'
+            'host': host if host else '*',
+            'precedence': group['precedence']
         }
 
         self.routes.append(route_info)
