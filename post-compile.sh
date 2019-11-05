@@ -5,9 +5,8 @@ sudo touch /ambassador/.edge_stack
 
 sudo mkdir -p /ambassador/webui/bindata && sudo rsync -a --delete /buildroot/apro/cmd/amb-sidecar/webui/bindata/  /ambassador/webui/bindata
 
-if [ ! -d /ambassador/init-config ]; then
-	sudo mkdir /ambassador/init-config
-fi
+sudo rm -rf /ambassador/init-config
+sudo mkdir /ambassador/init-config
 
 cat > /tmp/edge-stack-mappings.yaml <<EOF
 ---
