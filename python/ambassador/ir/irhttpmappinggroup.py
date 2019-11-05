@@ -177,7 +177,7 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
             self.mappings.append(mapping)
 
             if mapping.route_weight > self.group_weight:
-                self.group_weight = mapping.group_weight
+                self.group_weight = mapping.route_weight
 
         self.referenced_by(mapping)
 

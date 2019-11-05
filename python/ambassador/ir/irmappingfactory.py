@@ -30,30 +30,6 @@ class MappingFactory:
         cls.load_config(ir, aconf, "mappings", IRHTTPMapping)
         cls.load_config(ir, aconf, "tcpmappings", IRTCPMapping)
 
-        # If the wizard is allowed, take over the root prefix.
-        if ir.wizard_allowed:
-            ir.logger.info(f"WIZARD ALLOWED: adding firstboot mapping")
-
-            ir.add_mapping(aconf,
-                           IRHTTPMapping(ir, aconf, rkey='--internal--', location='--internal--',
-                                         name=unique_mapping_name(aconf, 'firstboot-mapping'),
-                                         apiVersion='getambassador.io/v1',
-                                         prefix='/',
-                                         rewrite='/firstboot/',
-                                         service='127.0.0.1:8500'))
-
-        if ir.edge_stack_allowed:
-            # Whether the wizard is allowed or not, add the mapping for ACME challenges.
-            ir.logger.info(f"MappingFactory: adding ACME challenge mapping")
-
-            ir.add_mapping(aconf,
-                           IRHTTPMapping(ir, aconf, rkey='--internal--', location='--internal--',
-                                         name=unique_mapping_name(aconf, 'acme-mapping'),
-                                         apiVersion='getambassador.io/v1',
-                                         prefix='/.well-known/acme-challenge/',
-                                         rewrite='/.well-known/acme-challenge/',
-                                         service='127.0.0.1:8500'))
-
     @classmethod
     def load_config(cls, ir: 'IR', aconf: Config, config_name: str, mapping_class: Type[IRBaseMapping]) -> None:
         config_info = aconf.get_config(config_name)
