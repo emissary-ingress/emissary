@@ -39,11 +39,11 @@ import (
 	filterhandler "github.com/datawire/apro/cmd/amb-sidecar/filters/handler"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/health"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/middleware"
-	"github.com/datawire/apro/cmd/amb-sidecar/firstboot"
 	"github.com/datawire/apro/cmd/amb-sidecar/limiter"
 	rlscontroller "github.com/datawire/apro/cmd/amb-sidecar/ratelimits"
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
 	"github.com/datawire/apro/cmd/amb-sidecar/watt"
+	"github.com/datawire/apro/cmd/amb-sidecar/webui"
 	"github.com/datawire/apro/lib/licensekeys"
 	"github.com/datawire/apro/lib/util"
 
@@ -405,8 +405,8 @@ func runE(cmd *cobra.Command, args []string) error {
 			httpHandler.AddEndpoint("/openapi/", "Documentation portal API", devPortalServer.Router().ServeHTTP)
 		}
 
-		httpHandler.AddEndpoint("/firstboot/", "First boot wizard", http.StripPrefix("/firstboot",
-			firstboot.NewFirstBootWizard(
+		httpHandler.AddEndpoint("/edge_stack_ui/", "Edge Stack admin UI", http.StripPrefix("/edge_stack_ui",
+			webui.New(
 				dynamicClient,
 				snapshotStore.Subscribe(),
 			)).ServeHTTP)

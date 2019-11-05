@@ -1,6 +1,6 @@
-//go:generate go-bindata -pkg=firstboot -prefix=bindata/ -modtime=1 bindata/...
+//go:generate go-bindata -pkg=webui -prefix=bindata/ -modtime=1 bindata/...
 
-package firstboot
+package webui
 
 import (
 	"crypto/tls"
@@ -42,7 +42,7 @@ func (fb *firstBootWizard) getSnapshot() watt.Snapshot {
 	return fb.snapshot.Load().(watt.Snapshot)
 }
 
-func NewFirstBootWizard(
+func New(
 	dynamicClient k8sClientDynamic.Interface,
 	snapshotCh <-chan watt.Snapshot,
 ) http.Handler {
