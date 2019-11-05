@@ -342,6 +342,9 @@ class IRHTTPMapping (IRBaseMapping):
             if hdr.value is not None:
                 h.update(hdr.value.encode('utf-8'))
 
+        if self.precedence != 0:
+            h.update(str(self.precedence).encode('utf-8'))
+
         return h.hexdigest()
 
     def _route_weight(self) -> List[Union[str, int]]:
