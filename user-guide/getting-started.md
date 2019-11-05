@@ -24,7 +24,7 @@ kubectl -n ambassador wait --for condition=available --timeout=60s deploy -lprod
 function copy_to_clipboard(the_id) {
   var copyText = document.getElementById(the_id).innerText;
   const el = document.createElement('textarea');  // Create a <textarea> element
-  el.value = str;                                 // Set its value to the string that you want copied
+  el.value = copyText;                            // Set its value to the string that you want copied
   el.setAttribute('readonly', '');                // Make it readonly to be tamper-proof
   el.style.position = 'absolute';                 
   el.style.left = '-9999px';                      // Move outside the screen to make it invisible
