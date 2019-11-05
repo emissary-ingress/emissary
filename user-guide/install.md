@@ -21,7 +21,9 @@ Ambassador Edge Stack is designed to run in Kubernetes for production. <a href="
 
 You can also install Ambassador Edge Stack using Helm, Docker, or Docker Compose.
 
-<div style="border: thick solid red"> Here we should have other methods: Helm, Docker, Docker Compose. 
+<div style="border: thick solid red"> 
+<!-- TODO: fix red bordered text -->
+Here we should have other methods: Helm, Docker, Docker Compose. 
 None of these other methods have been implemented or tested yet.
 </div>
 
