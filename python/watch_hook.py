@@ -60,19 +60,28 @@ class SecretRecorder(SecretHandler):
         super().__init__(logger, "-source_root-", "-cache_dir-", "0")
         self.needed: Dict[Tuple[str, str], SecretInfo] = {}
 
-    # Record what was requested, and always return True.
+    # Record what was requested, and always return success.
     def load_secret(self, resource: 'IRResource',
                     secret_name: str, namespace: str) -> Optional[SecretInfo]:
         self.logger.debug("SecretRecorder (%s %s): load secret %s in namespace %s" %
                           (resource.kind, resource.name, secret_name, namespace))
 
-        secret_key = ( secret_name, namespace )
+        return self.record_secret(secret_name, namespace)
+
+    def record_secret(self, secret_name: str, namespace: str) -> Optional[SecretInfo]:
+        secret_key = (secret_name, namespace)
 
         if secret_key not in self.needed:
             self.needed[secret_key] = SecretInfo(secret_name, namespace, 'needed-secret', '-crt-', '-key-',
                                                  decode_b64=False)
-
         return self.needed[secret_key]
+
+    # Secrets that're still needed also get recorded.
+    def still_needed(self, resource: 'IRResource', secret_name: str, namespace: str) -> None:
+        self.logger.debug("SecretRecorder (%s %s): secret %s in namespace %s is still needed" %
+                          (resource.kind, resource.name, secret_name, namespace))
+
+        self.record_secret(secret_name, namespace)
 
     # Never cache anything.
     def cache_secret(self, resource: 'IRResource', secret_info: SecretInfo):

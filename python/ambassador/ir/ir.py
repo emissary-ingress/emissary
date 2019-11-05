@@ -357,6 +357,7 @@ class IR:
         if ss:
             # Done. Return it.
             self.logger.info(f"resolve_secret {ss_key}: using cached SavedSecret")
+            self.secret_handler.still_needed(resource, secret_name, namespace)
             return ss
 
         # OK, do we have a secret_info for it??
@@ -366,6 +367,7 @@ class IR:
 
         if secret_info:
             self.logger.info(f"resolve_secret {ss_key}: found secret_info")
+            self.secret_handler.still_needed(resource, secret_name, namespace)
         else:
             # No secret_info, so ask the secret_handler to find us one.
             self.logger.info(f"resolve_secret {ss_key}: no secret_info, asking handler to load")
