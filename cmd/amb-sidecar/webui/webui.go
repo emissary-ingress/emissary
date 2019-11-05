@@ -10,6 +10,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"path"
+	"strings"
 	"sync/atomic"
 
 	assetfs "github.com/elazarl/go-bindata-assetfs"
@@ -80,9 +82,19 @@ func getTermsOfServiceURL(httpClient *http.Client, caURL string) (string, error)
 	return dir.Meta.TermsOfService, nil
 }
 
+func (fb *firstBootWizard) notFound(w http.ResponseWriter, r *http.Request) {
+	// TODO: do something with fb.staticfiles.Open("/404.html")
+	http.NotFound(w, r)
+}
+
 func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if !strings.HasPrefix(r.URL.Path, "/edge_stack/") {
+		// prevent navigating to /404.html and getting a 200 response
+		fb.notFound(w, r)
+		return
+	}
 	switch r.URL.Path {
-	case "/tos-url":
+	case "/edge_stack/admin/tos-url":
 		// Do this here, instead of in the web-browser,
 		// because CORS.
 		httpClient := httpclient.NewHTTPClient(middleware.GetLogger(r.Context()), 0, false, tls.RenegotiateNever)
@@ -93,7 +105,7 @@ func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 		io.WriteString(w, tosURL)
-	case "/yaml":
+	case "/edge_stack/admin/yaml":
 		dat := &ambassadorTypesV2.Host{
 			TypeMeta: &k8sTypesMetaV1.TypeMeta{
 				APIVersion: "getambassador.io/v2",
@@ -153,7 +165,7 @@ func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			middleware.ServeErrorResponse(w, r.Context(), http.StatusMethodNotAllowed,
 				errors.New("method not allowed"), nil)
 		}
-	case "/status":
+	case "/edge_stack/admin/status":
 		needleHostname := r.URL.Query().Get("hostname")
 
 		var needle *ambassadorTypesV2.Host
@@ -189,6 +201,11 @@ func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	default:
+		if _, err := fb.staticfiles.Open(path.Clean(r.URL.Path)); os.IsNotExist(err) {
+			// use our custom 404 handler instead of http.FileServer's
+			fb.notFound(w, r)
+			return
+		}
 		http.FileServer(fb.staticfiles).ServeHTTP(w, r)
 	}
 }
