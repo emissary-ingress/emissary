@@ -13,30 +13,26 @@ import (
 
 	"github.com/pkg/errors"
 
-	k8sErrors "k8s.io/apimachinery/pkg/api/errors"
-
 	ambassadorTypesV2 "github.com/datawire/ambassador/pkg/api/getambassador.io/v2"
 	k8sTypesCoreV1 "k8s.io/api/core/v1"
 	k8sTypesMetaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
-	k8sClientCoreV1 "k8s.io/client-go/kubernetes/typed/core/v1"
 )
 
-func createUserPrivateKey(secretsGetter k8sClientCoreV1.SecretsGetter, namespace, name string) error {
+func generateUserPrivateKeySecret(namespace, name string) (*k8sTypesCoreV1.Secret, error) {
 	privateKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	privateKeyBytes, err := x509.MarshalECPrivateKey(privateKey)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	privateKeyPEMBytes := pem.EncodeToMemory(&pem.Block{
 		Type:  "EC PRIVATE KEY",
 		Bytes: privateKeyBytes,
 	})
 
-	_, err = secretsGetter.Secrets(namespace).Create(&k8sTypesCoreV1.Secret{
+	return &k8sTypesCoreV1.Secret{
 		ObjectMeta: k8sTypesMetaV1.ObjectMeta{
 			Name:      name,
 			Namespace: namespace,
@@ -45,15 +41,7 @@ func createUserPrivateKey(secretsGetter k8sClientCoreV1.SecretsGetter, namespace
 		Data: map[string][]byte{
 			"user.key": privateKeyPEMBytes,
 		},
-	})
-	// Ignore already-exists errors, because (1) there are other
-	// replicas, and coordinating is hard (with a little-H?), and
-	// (2) it means that the code that de-duplicates acme
-	// providers canb e simpler.
-	if err != nil && k8sErrors.IsAlreadyExists(err) {
-		return nil
-	}
-	return err
+	}, nil
 }
 
 func parseUserPrivateKey(secret *k8sTypesCoreV1.Secret) (crypto.PrivateKey, error) {

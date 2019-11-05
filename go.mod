@@ -3,7 +3,6 @@ module github.com/datawire/apro
 go 1.13
 
 require (
-	github.com/Azure/go-autorest/autorest v0.9.0 // indirect
 	github.com/Jeffail/gabs v1.2.0
 	github.com/aclements/go-moremath v0.0.0-20180329182055-b1aff36309c7
 	github.com/bmizerany/perks v0.0.0-20141205001514-d9a9656a3a4b // indirect
