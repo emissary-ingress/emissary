@@ -400,6 +400,13 @@ class SecretHandler:
 
         return None
 
+    def still_needed(self, resource: 'IRResource', secret_name: str, namespace: str) -> None:
+        # This is the fallback no-op still_needed implementation, which honestly most things in
+        # the IR can use -- probably the watch_hook is all that'll need to override this.
+
+        self.logger.debug("SecretHandler (%s %s): secret %s in namespace %s is still needed" %
+                          (resource.kind, resource.name, secret_name, namespace))
+
     def cache_secret(self, resource: 'IRResource', secret_info: SecretInfo) -> SavedSecret:
         name = secret_info.name
         namespace = secret_info.namespace
