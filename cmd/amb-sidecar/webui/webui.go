@@ -14,7 +14,6 @@ import (
 	"strings"
 	"sync/atomic"
 
-	assetfs "github.com/elazarl/go-bindata-assetfs"
 	"github.com/go-acme/lego/v3/acme"
 	"github.com/pkg/errors"
 	"sigs.k8s.io/yaml"
@@ -48,10 +47,12 @@ func New(
 	dynamicClient k8sClientDynamic.Interface,
 	snapshotCh <-chan watt.Snapshot,
 ) http.Handler {
-	var files http.FileSystem = &assetfs.AssetFS{Asset: Asset, AssetDir: AssetDir, Prefix: ""}
-	if dir := os.Getenv("AES_STATIC_FILES"); dir != "" {
-		files = http.Dir(dir)
+	dir := os.Getenv("AES_WEBUI_BASE")
+	if dir == "" {
+		dir = "/ambassador/webui/bindata/"
 	}
+	var files http.FileSystem = http.Dir(dir)
+
 	ret := &firstBootWizard{
 		staticfiles: files,
 		hostsGetter: dynamicClient.Resource(k8sSchema.GroupVersionResource{Group: "getambassador.io", Version: "v2", Resource: "hosts"}),
