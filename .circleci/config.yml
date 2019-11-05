@@ -162,6 +162,7 @@ commands:
   "main":
     steps:
       - checkout
+      - run: ln -s project/ambassador ../ambassador
       - with-go-mod-cache:
           steps:
             - with-go-build-cache:
