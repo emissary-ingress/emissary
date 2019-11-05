@@ -38,7 +38,7 @@ Note that it may take a while for your load balancer IP address to be provisione
 <code class="language-shell" id="step2">
 kubectl get -n ambassador service ambassador -o 'go-template={{range .status.loadBalancer.ingress}}{{print .ip "\n"}}{{end}}'
 </code>
-</div>
+</pre>
 </div>
 <button onclick="copy_to_clipboard('step2')">Copy to Clipboard</button>
 
