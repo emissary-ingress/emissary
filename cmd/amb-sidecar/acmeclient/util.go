@@ -41,19 +41,25 @@ func stringSliceEqual(a, b []string) bool {
 	return true
 }
 
-// NameEncode an arbitrary string (such as a qualified hostname) to
-// make it usable as a Kubernetes resource name.  The scheme is
-// urlencode-ish, but '-' instead of '%', and encodes all non
-// ASCII-letter/ASCII-digit octets; since letter/digit/hyphen (LDH) is
-// the set of characters that are always safe to use in the various
-// kubernetes contexts.
+// NameEncode an arbitrary case-insensitive string to make it usable
+// as a Kubernetes resource name.  The scheme is urlencode-ish, but
+// '-' instead of '%', and encodes all non
+// ASCII-letter/ASCII-digit/'.' octets; since as the characters
+// allowed in a Kubernetes name are "digits (0-9), lower case letters
+// (a-z), `-`, and `.`"[1].  Upper-case ASCII letters are simply
+// translated to lower-case.
+//
+// For some Kubernetes resource types, `.` is also forbidden.  We
+// don't deal with that case.
+//
+// [1]: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
 func NameEncode(in string) string {
 	out := new(strings.Builder)
 	for _, b := range []byte(in) {
 		switch {
 		case 'A' <= b && b <= 'Z':
 			out.WriteByte(b - 'A' + 'a')
-		case ('a' <= b && b <= 'z') || ('0' <= b && b <= '9'):
+		case ('a' <= b && b <= 'z') || ('0' <= b && b <= '9') || (b == '.'):
 			out.WriteByte(b)
 		default:
 			fmt.Fprintf(out, "-%02x", b)
