@@ -44,14 +44,9 @@ deploy: test-ready
 
 include build-aux/go-bindata.mk
 
-# Don't use 'generate' because the OSS Makefile's `make generate` does
-# not work when `$(OSS_HOME) != $(CURDIR)`.
-pro-generate: cmd/amb-sidecar/firstboot/bindata.go
-cmd/amb-sidecar/firstboot/bindata.go: $(GO_BINDATA) $(shell find cmd/amb-sidecar/firstboot/bindata/)
+sync: cmd/amb-sidecar/webui/bindata.go
+cmd/amb-sidecar/webui/bindata.go: $(GO_BINDATA) $(shell find cmd/amb-sidecar/webui/bindata/)
 	PATH=$(dir $(GO_BINDATA)):$$PATH; cd $(@D) && go generate
-pro-generate-clean:
-	rm -f cmd/amb-sidecar/firstboot/bindata.go
-.PHONY: pro-generate pro-generate-clean
 
 AES_BACKEND_IMAGE=gcr.io/datawireio/aes-backend:$(RELEASE_VERSION)
 
