@@ -1,4 +1,4 @@
-//go:generate go-bindata -pkg=webui -prefix=bindata/ -modtime=1 bindata/...
+//go:generate go-bindata -pkg=webui -prefix=bindata/ bindata/...
 
 package webui
 
@@ -83,8 +83,10 @@ func getTermsOfServiceURL(httpClient *http.Client, caURL string) (string, error)
 }
 
 func (fb *firstBootWizard) notFound(w http.ResponseWriter, r *http.Request) {
-	// TODO: do something with fb.staticfiles.Open("/404.html")
-	http.NotFound(w, r)
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.WriteHeader(http.StatusNotFound)
+	file, _ := fb.staticfiles.Open("/404.html")
+	io.Copy(w, file)
 }
 
 func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
