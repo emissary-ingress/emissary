@@ -42,12 +42,6 @@ deploy: test-ready
 	@printf "$(GRN)Your ambassador service IP:$(END) $(BLD)$$(docker exec -it $(shell $(BUILDER)) kubectl get -n ambassador service ambassador -o 'go-template={{range .status.loadBalancer.ingress}}{{print .ip "\n"}}{{end}}')$(END)\n"
 .PHONY: deploy
 
-include build-aux/go-bindata.mk
-
-sync: cmd/amb-sidecar/webui/bindata.go
-cmd/amb-sidecar/webui/bindata.go: $(GO_BINDATA) $(shell find cmd/amb-sidecar/webui/bindata/)
-	PATH=$(dir $(GO_BINDATA)):$$PATH; cd $(@D) && go generate
-
 AES_BACKEND_IMAGE=gcr.io/datawireio/aes-backend:$(RELEASE_VERSION)
 
 # XXX: should make base a make variable
