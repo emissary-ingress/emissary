@@ -8,8 +8,7 @@ This tutorial assumes you have already followed the [Ambassador Edge Stack Getti
 
 After completing [Getting Started](/user-guide/getting-started), you'll have a Kubernetes cluster running Ambassador Edge Stack and the tour service. Let's walk through adding authentication to this setup.
 
-Don't want to DIY? [Ambassador Pro](/pro) integrates with popular Identity Providers such as Auth0 to provide a seamless OAuth / OpenID Connect authentication flow for your services. Start a [free 14-day trial](/pro/free-trial) now!
-
+Want to use all the features without worrying about passing the limit? [Ambassador Edge Stack Enterprise](/user-guide/ambassador-edge-stack-enterprise) allows you to use Ambassador Edge Stack for commericial and unlimited use. 
 
 
 ## 1. Deploy the authentication service

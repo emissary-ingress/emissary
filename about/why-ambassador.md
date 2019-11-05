@@ -49,7 +49,7 @@ Ambassador Edge Stack takes full advantage of Kubernetes and Envoy Proxy.
 [Deploy Ambassador Edge Stack today](https://www.getambassador.io/user-guide/install) and join the community [Slack Channel](http://d6e.co/slack).
 
 
-If you're interested in commercial support and additional features, see [Ambassador Pro](https://www.getambassador.io/pro).
+If you're interested in unlimited and commercial usage of all the features, [Ambassador Edge Stack Enterprise](https://www.getambassador.io/user-guide/ambassador-edge-stack-enterprise/).
 
 Interested in learning more?
 
