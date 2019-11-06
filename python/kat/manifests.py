@@ -200,6 +200,7 @@ metadata:
   name: authservices.getambassador.io
 spec:
   group: getambassador.io
+  version: v2
   versions:
   - name: v1
     served: true
@@ -221,6 +222,7 @@ metadata:
   name: consulresolvers.getambassador.io
 spec:
   group: getambassador.io
+  version: v2
   versions:
   - name: v1
     served: true
@@ -261,6 +263,7 @@ spec:
   - name: Age
     type: date
     JSONPath: .metadata.creationTimestamp
+  version: v2
   versions:
   - name: v2
     served: true
@@ -272,6 +275,7 @@ metadata:
   name: kubernetesendpointresolvers.getambassador.io
 spec:
   group: getambassador.io
+  version: v2
   versions:
   - name: v1
     served: true
@@ -291,6 +295,7 @@ metadata:
   name: kubernetesserviceresolvers.getambassador.io
 spec:
   group: getambassador.io
+  version: v2
   versions:
   - name: v1
     served: true
@@ -310,6 +315,7 @@ metadata:
   name: logservices.getambassador.io
 spec:
   group: getambassador.io
+  version: v2
   versions:
   - name: v1
     served: true
@@ -331,6 +337,7 @@ metadata:
   name: mappings.getambassador.io
 spec:
   group: getambassador.io
+  version: v2
   versions:
   - name: v1
     served: true
@@ -352,6 +359,7 @@ metadata:
   name: modules.getambassador.io
 spec:
   group: getambassador.io
+  version: v2
   versions:
   - name: v1
     served: true
@@ -373,6 +381,7 @@ metadata:
   name: ratelimitservices.getambassador.io
 spec:
   group: getambassador.io
+  version: v2
   versions:
   - name: v1
     served: true
@@ -394,6 +403,7 @@ metadata:
   name: tcpmappings.getambassador.io
 spec:
   group: getambassador.io
+  version: v2
   versions:
   - name: v1
     served: true
@@ -415,6 +425,7 @@ metadata:
   name: tlscontexts.getambassador.io
 spec:
   group: getambassador.io
+  version: v2
   versions:
   - name: v1
     served: true
@@ -436,6 +447,7 @@ metadata:
   name: tracingservices.getambassador.io
 spec:
   group: getambassador.io
+  version: v2
   versions:
   - name: v1
     served: true
