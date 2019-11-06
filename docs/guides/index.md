@@ -2,11 +2,11 @@
 
 Guides are hands-on tutorials to walk you through configuring Ambassador Edge Stack or Ambassador Open Source for specific functionality.
 
-<div style="border: solid green;padding:0.5em">
+<div style="border: solid gray;padding:0.5em">
 
 Ambassador Edge Stack is a community supported product available for free and limited use. Learn about [the features](getambassador.io/features) you can take advantage of today.
 
-For unlimited access and commercial use of Ambassador Edge Stack, [contact sales](https://www.getambassador.io/contact) for access to [Ambassador Edge Stack Enterprise](/user-guide/ambassador-edge-stack-enterprise) today.
+For unlimited access and commercial use of Ambassador Edge Stack, [contact sales](https:/www.getambassador.io/contact) for access to [Ambassador Edge Stack Enterprise](/user-guide/ambassador-edge-stack-enterprise) today.
 
 </div>
 
