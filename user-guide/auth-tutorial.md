@@ -100,7 +100,7 @@ metadata:
   annotations:
     getambassador.io/config: |
       ---
-      apiVersion: ambassador/v1
+      apiVersion: getambassador.io/v2
       kind:  AuthService
       name:  authentication
       auth_service: "example-auth:3000"
@@ -198,7 +198,7 @@ For more details about configuring authentication, read the documentation on [ex
 If using Ambassador Edge Stack v0.40.2 or earlier, use the deprecated v0 `AuthService` API
 ```yaml
       ---
-      apiVersion: ambassador/v0
+      apiVersion: getambassador.io/v2
       kind:  AuthService
       name:  authentication
       auth_service: "example-auth:3000"

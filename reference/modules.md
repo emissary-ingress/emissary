@@ -8,7 +8,7 @@ Modules can be added as annotations to an existing Kubernetes service, e.g., the
 
 ```
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: Module
 metadata:
   name: ambassador
@@ -32,13 +32,13 @@ metadata:
   annotations:
     getambassador.io/config: |
       ---
-      apiVersion: getambassador.io/v1
+      apiVersion: getambassador.io/v2
       kind: Module
       name: ambassador
       config:
         enable_grpc_web: True
       ---
-      apiVersion: getambassador.io/v1
+      apiVersion: getambassador.io/v2
       kind: Module
       name: tls
       config:

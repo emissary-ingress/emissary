@@ -131,7 +131,7 @@ spec:
             cpu: "0.1"
             memory: 100Mi
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
   name: tour-ui
@@ -139,7 +139,7 @@ spec:
   prefix: /
   service: tour:5000
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
   name: tour-backend
@@ -233,7 +233,7 @@ By default, this is exposed to the internet at the URL `http://{{AMBASSADOR_HOST
 You can change the default so it is not exposed externally by default by setting `diagnostics.enabled: false` in the [ambassador `Module`](/reference/core/ambassador).
 
 ```yaml
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: Module
 metadata:
   name: ambassador

@@ -36,7 +36,7 @@ To configure Ambassador Edge Stack to handle this behavior you need to create a 
 1. Create a `TLSContext` to handle TLS termination
 
     ```yaml
-    apiVersion: ambassador/v1
+    apiVersion: getambassador.io/v2
     kind: TLSContext
     name: tls
     hosts: ["*"]
@@ -46,7 +46,7 @@ To configure Ambassador Edge Stack to handle this behavior you need to create a 
 2. Configure a `TLS` `Module` to create the redirect listener in Ambassador Edge Stack on its http port. By default, this is port `8080`
 
     ```yaml
-    apiVersion: ambassador/v1
+    apiVersion: getambassador.io/v2
     kind: Module
     name: tls
     config:
@@ -88,7 +88,7 @@ While port-based redirection is preferred for most use cases, using the `x-forwa
 Protocol-based redirection is configured in the Ambassador Edge Stack `Module`:
 
 ```yaml
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: Module
 name: ambassador
 config:

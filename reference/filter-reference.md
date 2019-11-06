@@ -13,7 +13,7 @@ spec depends on the filter type:
 
 ```yaml
 ---
-apiVersion: getambassador.io/v1beta2
+apiVersion: getambassador.io/v2
 kind: Filter
 metadata:
   name:      "string"      # required; this is how to refer to the Filter in a FilterPolicy
@@ -36,7 +36,7 @@ The `External` filter looks very similar to an `AuthService` annotation:
 
 ```yaml
 ---
-apiVersion: getambassador.io/v1beta2
+apiVersion: getambassador.io/v2
 kind: Filter
 metadata:
   name: "example-external-filter"
@@ -80,7 +80,7 @@ The `JWT` filter type performs JWT validation. The list of acceptable signing ke
 
 ```yaml
 ---
-apiVersion: getambassador.io/v1beta2
+apiVersion: getambassador.io/v2
 kind: Filter
 metadata:
   name: "example-jwt-filter"
@@ -158,7 +158,7 @@ spec:
 #     "iat": 1516239022
 #   }
 ---
-apiVersion: getambassador.io/v1beta2
+apiVersion: getambassador.io/v2
 kind: Filter
 metadata:
   name: example-jwt-filter
@@ -216,7 +216,7 @@ The `OAuth2` filter type performs OAuth2 authorization against an identity provi
 
 ```yaml
 ---
-apiVersion: getambassador.io/v1beta2
+apiVersion: getambassador.io/v2
 kind: Filter
 metadata:
   name: "example-oauth2-filter"
@@ -319,7 +319,7 @@ numbers, each with optional fraction and a unit suffix, such as
 
 ```yaml
 ---
-apiVersion: getambassador.io/v1beta2
+apiVersion: getambassador.io/v2
 kind: FilterPolicy
 metadata:
   name: "example-filter-policy"
@@ -415,7 +415,7 @@ taken over the request, and the request will not be sent to the backend service.
 
 ```yaml
 ---
-apiVersion: getambassador.io/v1beta2
+apiVersion: getambassador.io/v2
 kind: Filter
 metadata:
   name: "example-plugin-filter"
@@ -437,7 +437,7 @@ which HTTP requests.
 
 ```yaml
 ---
-apiVersion: getambassador.io/v1beta2
+apiVersion: getambassador.io/v2
 kind: FilterPolicy
 metadata:
   name: "example-filter-policy"
@@ -473,7 +473,7 @@ configured to run on requests to `/httpbin/`.
 
 ```yaml
 ---
-apiVersion: getambassador.io/v1beta2
+apiVersion: getambassador.io/v2
 kind: Filter
 metadata:
   name: param-filter # This is the name used in FilterPolicy
@@ -483,7 +483,7 @@ spec:
     name: param-filter # The plugin's `.so` file's base name
 
 ---
-apiVersion: getambassador.io/v1beta2
+apiVersion: getambassador.io/v2
 kind: FilterPolicy
 metadata:
   name: httpbin-policy

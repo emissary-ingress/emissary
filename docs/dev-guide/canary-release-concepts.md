@@ -83,12 +83,12 @@ metadata:
  annotations:
    getambassador.io/config: |
      ---
-     apiVersion: ambassador/v1
+     apiVersion: getambassador.io/v2
      kind:  Mapping
      name:  payment
      prefix: /payment/
      ---
-     apiVersion: ambassador/v1
+     apiVersion: getambassador.io/v2
      kind:  Mapping
      name:  payment-canary
      prefix: /payment/

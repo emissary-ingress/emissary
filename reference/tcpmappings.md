@@ -49,7 +49,7 @@ Examples:
 
 ```yaml
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: TCPMapping
 name: ssh_mapping
 port: 2222
@@ -61,7 +61,7 @@ could be used to relay an SSH connection on port 2222, or
 
 ```yaml
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: TCPMapping
 name: cockroach_mapping
 port: 26257
@@ -82,7 +82,7 @@ Example:
 
 ```yaml
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: TLSContext
 name: my-context
 hosts:
@@ -90,14 +90,14 @@ hosts:
 - my-host-2
 secret: supersecret
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: TCPMapping
 name: test_mapping
 port: 2222
 host: my-host-1
 service: upstream-host-1:9999
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: TCPMapping
 name: test_mapping
 port: 2222
@@ -119,7 +119,7 @@ Example:
 
 ```yaml
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: TLSContext
 name: my-context
 hosts:
@@ -127,12 +127,12 @@ hosts:
 - my-host-2
 secret: supersecret
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: TLSContext
 name: origination-context
 secret: othersecret
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: TCPMapping
 name: test_mapping
 port: 2222
@@ -140,7 +140,7 @@ host: my-host-1
 tls: true
 service: upstream-host-1:9999
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: TCPMapping
 name: test_mapping
 port: 2222
@@ -165,12 +165,12 @@ Example:
 
 ```yaml
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: TLSContext
 name: origination-context
 secret: othersecret
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: TCPMapping
 name: test_mapping
 port: 2222

@@ -32,7 +32,7 @@ The Kubernetes Service Resolver configures Ambassador Edge Stack to use Kubernet
 
 ```yaml
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: KubernetesServiceResolver
 name: kubernetes-service
 ```
@@ -43,7 +43,7 @@ The Kubernetes Endpoint Resolver configures Ambassador Edge Stack to resolve Kub
 
 ```yaml
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: KubernetesEndpointResolver
 name: endpoint
 ```
@@ -54,7 +54,7 @@ The Consul Resolver configures Ambassador Edge Stack to use Consul for service d
 
 ```yaml
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: ConsulResolver
 name: consul-dc1
 address: consul-server.default.svc.cluster.local:8500
@@ -67,7 +67,7 @@ You may want to use an environment variable if you're running a Consul agent on 
 
 ```
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: ConsulResolver
 name: consul-dc1
 address: "${HOST_IP}"
@@ -101,7 +101,7 @@ metadata:
   annotations:
     getambassador.io/config: |
       ---
-      apiVersion: ambassador/v1
+      apiVersion: getambassador.io/v2
       kind:  Mapping
       name:  tour-ui_mapping
       prefix: /
@@ -109,7 +109,7 @@ metadata:
       load_balancer:
         policy: round_robin
       ---
-      apiVersion: ambassador/v1
+      apiVersion: getambassador.io/v2
       kind:  Mapping
       name:  bar_mapping
       prefix: /bar/

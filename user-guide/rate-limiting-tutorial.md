@@ -30,7 +30,7 @@ metadata:
   annotations:
     getambassador.io/config: |
       ---
-      apiVersion: ambassador/v1
+      apiVersion: getambassador.io/v2
       kind: RateLimitService
       name: ratelimit
       service: "example-rate-limit:5000"
@@ -107,13 +107,13 @@ metadata:
   annotations:
     getambassador.io/config: |
       ---
-      apiVersion: ambassador/v1
+      apiVersion: getambassador.io/v2
       kind: Mapping
       name: tour-ui_mapping
       prefix: /
       service: tour:5000
       ---
-      apiVersion: ambassador/v1
+      apiVersion: getambassador.io/v2
       kind: Mapping
       name: tour-backend_mapping
       prefix: /backend/
@@ -149,13 +149,13 @@ metadata:
   annotations:
     getambassador.io/config: |
       ---
-      apiVersion: ambassador/v0
+      apiVersion: getambassador.io/v2
       kind: Mapping
       name: tour-ui_mapping
       prefix: /
       service: tour:5000
       ---
-      apiVersion: ambassador/v0
+      apiVersion: getambassador.io/v2
       kind: Mapping
       name: tour-backend_mapping
       prefix: /backend/

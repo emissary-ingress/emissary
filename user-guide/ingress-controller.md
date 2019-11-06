@@ -114,7 +114,7 @@ is **exactly equivalent** to a `Mapping` CRD of
 
 ```yaml
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
   name: test-ingress-0-0
@@ -142,7 +142,7 @@ spec:
           serviceName: service1
           servicePort: 80
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
   name: my-mapping
@@ -175,7 +175,7 @@ This is equivalent to
 
 ```yaml
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
   name: test-ingress
@@ -215,7 +215,7 @@ This is equivalent to
 
 ```yaml
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
   name: host-foo-mapping
@@ -225,7 +225,7 @@ spec:
   host: foo.bar.com
   service: service1
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
   name: host-bar-mapping
@@ -266,7 +266,7 @@ This is equivalent to
 
 ```yaml
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: TLSContext
 metadata:
   name: sslexample-termination-context
@@ -275,7 +275,7 @@ spec:
   - sslexample.foo.com
   secret: testsecret-tls
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
   name: sslexample-mapping

@@ -53,7 +53,7 @@ Setting up Linkerd2 requires to install three components. The first is the CLI o
 
     ```yaml
     ---
-    apiVersion: getambassador.io/v1
+    apiVersion: getambassador.io/v2
     kind: Module
     metadata:
       name: ambassador
@@ -137,7 +137,7 @@ You'll now register a demo application with Linkerd2, and show how Ambassador Ed
 
    ```yaml
    ---
-   apiVersion: getambassador.io/v1
+   apiVersion: getambassador.io/v2
    kind: Mapping
    metadata:
      name: linkerd2-qotm

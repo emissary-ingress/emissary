@@ -5,7 +5,7 @@
 To effect an HTTP 301 `Redirect`, the `Mapping` **must** set `host_redirect` to `true`, with `service` set to the host to which the client should be redirected:
 
 ```yaml
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  redirect_mapping
 prefix: /redirect/
@@ -18,7 +18,7 @@ Using this `Mapping`, a request to `http://$AMBASSADOR_URL/redirect/` will resul
 The `Mapping` **may** also set `path_redirect` to change the path portion of the URL during the redirect:
 
 ```yaml
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  redirect_mapping
 prefix: /redirect/
@@ -40,7 +40,7 @@ To enable this `X-FORWARDED-PROTO` based HTTP to HTTPS redirection, add a `x_for
 An example configuration is as follows -
 
 ```yaml
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: Module
 name: ambassador
 config:

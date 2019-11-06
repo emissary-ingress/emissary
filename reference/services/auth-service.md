@@ -14,7 +14,7 @@ You should use `AuthService` V1 for any new deployment of Ambassador 0.50 or hig
 
 ```yaml
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: AuthService
 name: authentication
 auth_service: "example-auth:3000"
@@ -76,7 +76,7 @@ cluster_idle_timeout_ms: 30000
 
 ```yaml
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind:  AuthService
 name:  authentication
 auth_service: "example-auth:3000"

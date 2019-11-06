@@ -10,7 +10,7 @@ A `TracingService` manifest configures Ambassador Edge Stack to use an external 
 
 ```yaml
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: TracingService
 name: tracing
 service: "example-zipkin:9411"

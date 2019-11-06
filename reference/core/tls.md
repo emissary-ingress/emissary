@@ -16,7 +16,7 @@ A full schema of the `TLSContext` can be found below with descriptions of the di
 
 ```
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: TLSContext
 name: tls-context-1
 
@@ -87,7 +87,7 @@ The `alpn_protocols` setting configures the TLS ALPN protocol. To use gRPC over 
 The `alpn_protocols` setting is also required for HTTP/2 support.
 
 ```yaml
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  TLSContext
 name:  tls
 secret: ambassador-certs
@@ -110,7 +110,7 @@ The `ecdh_curves` setting configures the supported ECDH curves when negotiating 
 
 ```yaml
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: TLSContext
 name: ambassador-secure
 hosts: ["*"]
@@ -134,7 +134,7 @@ The TLS `Module` is deprecated. `TLSContext` should be used when using Ambassado
 
 ```yaml
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  Module
 name:  tls
 config:
