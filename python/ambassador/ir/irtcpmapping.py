@@ -41,7 +41,7 @@ class IRTCPMapping (IRBaseMapping):
                  location: str,  # REQUIRED
 
                  kind: str="IRMapping",
-                 apiVersion: str="getambassador.io/v1",   # Not a typo! See below.
+                 apiVersion: str="getambassador.io/v2",   # Not a typo! See below.
                  precedence: int=0,
                  **kwargs) -> None:
         # OK, this is a bit of a pain. We want to preserve the name and rkey and

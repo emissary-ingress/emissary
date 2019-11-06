@@ -522,7 +522,7 @@ class IR:
                             ci_mapping = {
                                 'rkey': mapping_identifier,
                                 'location': mapping_identifier,
-                                'apiVersion': 'getambassador.io/v1',
+                                'apiVersion': 'getambassador.io/v2',
                                 'kind': 'Mapping',
                                 'name': mapping_identifier,
                                 'prefix': '/'

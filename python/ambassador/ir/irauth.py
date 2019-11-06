@@ -146,8 +146,8 @@ class IRAuth (IRFilter):
         if self["api_version"] == None:
             self.post_error(RichStatus.fromError("AuthService config requires apiVersion field"))
 
-        if self["api_version"] == "getambassador.io/v1" and self["proto"] == None:
-            self.post_error(RichStatus.fromError("AuthService v1 config requires proto field."))
+        if (self["api_version"] != "getambassador.io/v0") and (self["proto"] == None):
+            self.post_error(RichStatus.fromError("AuthService after v0 requires proto field."))
 
         if self.get("include_body") and self.get("allow_request_body"):
             self.post_error('AuthService ignoring allow_request_body since include_body is present')

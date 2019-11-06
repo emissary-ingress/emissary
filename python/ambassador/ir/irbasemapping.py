@@ -20,7 +20,7 @@ class IRBaseMapping (IRResource):
                  location: str,  # REQUIRED
 
                  kind: str,      # REQUIRED
-                 apiVersion: str="getambassador.io/v1",
+                 apiVersion: str="getambassador.io/v2",
                  precedence: int=0,
                  **kwargs) -> None:
         # Init the superclass...

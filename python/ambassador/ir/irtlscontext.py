@@ -56,7 +56,7 @@ class IRTLSContext(IRResource):
                  location: str,  # REQUIRED
                  namespace: Optional[str]=None,
                  kind: str="IRTLSContext",
-                 apiVersion: str = "getambassador.io/v1",
+                 apiVersion: str = "getambassador.io/v2",
                  **kwargs) -> None:
 
         new_args = {

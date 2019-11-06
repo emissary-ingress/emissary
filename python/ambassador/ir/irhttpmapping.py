@@ -110,7 +110,7 @@ class IRHTTPMapping (IRBaseMapping):
                  location: str,  # REQUIRED
 
                  kind: str="IRMapping",
-                 apiVersion: str="getambassador.io/v1",   # Not a typo! See below.
+                 apiVersion: str="getambassador.io/v2",   # Not a typo! See below.
                  precedence: int=0,
                  rewrite: str="/",
                  **kwargs) -> None:
@@ -191,15 +191,15 @@ class IRHTTPMapping (IRBaseMapping):
             else:
                 return False
 
-        # Likewise, labels is supported only in V1:
+        # Likewise, labels is supported only in V1+:
         if 'labels' in self:
-            if self.apiVersion != 'getambassador.io/v1':
-                self.post_error("labels supported only in ambassador/v1 Mapping resources")
+            if self.apiVersion == 'getambassador.io/v0':
+                self.post_error("labels not supported in getambassador.io/v0 Mapping resources")
                 return False
 
         if 'rate_limits' in self:
             if self.apiVersion != 'getambassador.io/v0':
-                self.post_error("rate_limits supported only in ambassador/v0 Mapping resources")
+                self.post_error("rate_limits supported only in getambassador.io/v0 Mapping resources")
                 return False
 
             # Let's turn this into a set of labels instead.

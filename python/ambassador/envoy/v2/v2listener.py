@@ -91,13 +91,13 @@ def v2filter(irfilter: IRFilter, v2config: 'V2Config'):
     del v2config  # silence unused-variable warning
 
     if irfilter.kind == 'IRAuth':
-        if irfilter.api_version == 'getambassador.io/v1':
-            return 'IRAuth_v1'
-        elif irfilter.api_version == 'getambassador.io/v0':
+        if irfilter.api_version == 'getambassador.io/v0':
             return 'IRAuth_v0'
+        elif (irfilter.api_version == 'getambassador.io/v1') or (irfilter.api_version == 'getambassador.io/v2'):
+            return 'IRAuth_v1-2'
         else:
-            irfilter.post_error('AuthService version %s unknown, treating as v1' % irfilter.api_version)
-            return 'IRAuth_v1'
+            irfilter.post_error('AuthService version %s unknown, treating as v2' % irfilter.api_version)
+            return 'IRAuth_v1-2'
     else:
         return irfilter.kind
 
@@ -224,14 +224,14 @@ def v2filter_authv0(auth: IRAuth, v2config: 'V2Config'):
     }
 
 
-@v2filter.when("IRAuth_v1")
+@v2filter.when("IRAuth_v1-2")
 def v2filter_authv1(auth: IRAuth, v2config: 'V2Config'):
     del v2config  # silence unused-variable warning
 
     assert auth.cluster
     cluster = typecast(IRCluster, auth.cluster)
 
-    if auth.api_version != "getambassador.io/v1":
+    if (auth.api_version != "getambassador.io/v1") and (auth.api_version != "getambassador.io/v2"):
         auth.ir.logger.warning("IRAuth_v1 working on %s, mismatched at %s" % (auth.name, auth.api_version))
 
     assert auth.proto

@@ -121,7 +121,7 @@ name: {self.name}-same-context-1
 secret: auth-partial-secret
 
 ---
-apiVersion: ambassador/v1
+apiVersion: ambassador/v2
 kind: AuthService
 name:  {self.auth.path.k8s}
 auth_service: "{self.auth.path.fqdn}"
