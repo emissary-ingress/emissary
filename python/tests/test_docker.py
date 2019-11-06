@@ -52,8 +52,32 @@ def check_http(logfile) -> bool:
 
         return False
 
+def clicheck() -> bool:
+    child = pexpect.spawn("ambassador --help")
+
+    i = child.expect([ pexpect.EOF, pexpect.TIMEOUT, "Usage: ambassador" ])
+
+    if i == 0:
+        print('ambassador died without usage statement?')
+        return False
+    elif i == 1:
+        print('ambassador timed out without usage statement?')
+        return False
+
+    i = child.expect([ pexpect.EOF, pexpect.TIMEOUT ])
+
+    if i == 0:
+        return True
+    else:
+        print("ambassador timed out after usage statement?")
+        return False
+
+
 def test_docker():
     test_status = False
+
+    # We're running in the build container here, so the Ambassador CLI should work.
+    assert clicheck(), "CLI check failed"
 
     with open('/tmp/test_docker_output', 'w') as logfile:
         if not DockerImage:
