@@ -29,16 +29,20 @@
 	<body>
 		<div id="app">
 			<aes-logo></aes-logo>
-			<aes-host></aes-host>
+			<aes-logingate>
+				<aes-host></aes-host>
+			</aes-logingate>
 		</div>
 		<script type="module">
 			import Vue from 'https://cdn.jsdelivr.net/npm/vue/dist/vue.esm.browser.js';
 			import AESHost from './aes-host.js';
+			import AESLoginGate from './aes-logingate.js';
 			import AESLogo from './aes-logo.js';
 
 			var vm = new Vue({
 				components: {
 					'aes-host': AESHost,
+					'aes-logingate': AESLoginGate,
 					'aes-logo': AESLogo,
 				},
 				el: '#app',

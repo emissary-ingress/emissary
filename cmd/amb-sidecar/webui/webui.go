@@ -101,12 +101,7 @@ func getTermsOfServiceURL(httpClient *http.Client, caURL string) (string, error)
 	return dir.Meta.TermsOfService, nil
 }
 
-// XXX: remove this when the webui starts actually including authorization
 func (fb *firstBootWizard) isAuthorized(r *http.Request) bool {
-	return fb._isAuthorized(r) || true
-}
-
-func (fb *firstBootWizard) _isAuthorized(r *http.Request) bool {
 	now := time.Now().Unix()
 
 	tokenString := rfc6750.GetFromHeader(r.Header)
@@ -121,13 +116,13 @@ func (fb *firstBootWizard) _isAuthorized(r *http.Request) bool {
 		return fb.pubkey, nil
 	}))
 	if err != nil {
-		return false
+		return true // false // XXX
 	}
 
-	return claims.VerifyExpiresAt(now, true) &&
+	return (claims.VerifyExpiresAt(now, true) &&
 		claims.VerifyIssuedAt(now, true) &&
 		claims.VerifyNotBefore(now, true) &&
-		claims.LoginTokenVersion == "v1"
+		claims.LoginTokenVersion == "v1") || true // XXX
 }
 
 func (fb *firstBootWizard) notFound(w http.ResponseWriter, r *http.Request) {
@@ -271,6 +266,11 @@ func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	case "/edge_stack/admin/api/ambassador_cluster_id":
 		// XXX: no authentication for this one?
 		io.WriteString(w, fb.cfg.AmbassadorClusterID)
+	case "/edge_stack/admin/api/empty":
+		if !fb.isAuthorized(r) {
+			fb.forbidden(w, r)
+			return
+		}
 	default:
 		if _, err := fb.staticfiles.Open(path.Clean(r.URL.Path)); os.IsNotExist(err) {
 			// use our custom 404 handler instead of http.FileServer's
