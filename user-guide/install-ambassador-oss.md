@@ -2,7 +2,7 @@
 
 <div style="border: solid gray;padding:0.5em">
 
-Ambassador OSS is an open source Kubernetes-native API Gateway. We recommend upgrading to [Ambassador Edge Stack](/user-guide/getting-started) Community, which is available for free and limited use, along with additional functionality around security and developer onboarding. 
+Ambassador OSS is an open source Kubernetes-native API Gateway. We recommend upgrading to [Ambassador Edge Stack](/user-guide/upgrade-from-oss-to-edge-stack) Community, which is available for free and limited use, along with additional functionality around security and developer onboarding.
 
 </div>
 
