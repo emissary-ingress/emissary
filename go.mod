@@ -10,6 +10,7 @@ require (
 	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869
 	github.com/datawire/libk8s v0.0.0-20191023073802-9add2eb01af2
 	github.com/datawire/pf v0.0.0-20180510150411-31a823f9495a
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/ecodia/golang-awaitility v0.0.0-20180710094957-fb55e59708c7
 	github.com/envoyproxy/go-control-plane v0.6.9
 	github.com/envoyproxy/protoc-gen-validate v0.0.15-0.20190405222122-d6164de49109
@@ -28,6 +29,7 @@ require (
 	github.com/miekg/dns v1.1.6
 	github.com/mitchellh/mapstructure v1.1.2
 	github.com/mitchellh/protoc-gen-go-json v0.0.0-20190813154521-ece073100ced
+	github.com/pkg/browser v0.0.0-20180916011732-0a3d74bf9ce4
 	github.com/pkg/errors v0.8.1
 	github.com/sirupsen/logrus v1.4.0
 	github.com/spf13/cobra v0.0.5
