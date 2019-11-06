@@ -1,6 +1,6 @@
 # Keycloak
 
-With Keycloak as your IDP, you will need to create a `Client` to handle authentication requests from Ambassador Pro. The below instructions are known to work for Keycloak 4.8.
+With Keycloak as your IDP, you will need to create a `Client` to handle authentication requests from Ambassador Edge Stack. The below instructions are known to work for Keycloak 4.8.
 
 
 

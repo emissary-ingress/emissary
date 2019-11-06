@@ -13,7 +13,7 @@ To use Google as and IdP for Single Sign-On, you will first need to create an OA
    http(s)://{{AMBASSADOR_URL}}/callback
    ```
 5. Click `Create` 
-6. Record the `client ID` and `client secret` in the pop-up window. You will need these when configuring Ambassador Pro
+6. Record the `client ID` and `client secret` in the pop-up window. You will need these when configuring Ambassador Edge Stack
 
 
 
@@ -50,7 +50,7 @@ After creating an OAuth client in Google, configuring Ambassador Edge Stack to m
       rules:
           # Requires authentication on requests from any hostname
         - host: "*"
-          # Tells Ambassador Pro to apply the Filter only on request to the /backend/get-quote/ endpoint from the tour application(https://www.getambassador.io/user-guide/getting-started#3-creating-your-first-service)
+          # Tells Ambassador Edge Stack to apply the Filter only on request to the /backend/get-quote/ endpoint from the tour application(https://www.getambassador.io/user-guide/getting-started#3-creating-your-first-service)
           path: /backend/get-quote/
           # Identifies which Filter to use for the path and hose above
           filters:

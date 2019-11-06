@@ -193,7 +193,7 @@ Some caveats around the embedded scripts:
 
 
 
-If you need more flexible and configurable options, Ambassador Pro supports a [pluggable Filter system](/reference/filter-reference).
+If you need more flexible and configurable options, Ambassador Edge Stack supports a [pluggable Filter system](/reference/filter-reference).
 
 
 

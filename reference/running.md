@@ -98,7 +98,7 @@ env:
   value: "true"
 ```
 
-If you are using Ambassador Pro, if you set `AMBASSADOR_NAMESPACE` or `AMBASSADOR_SINGLE_NAMESPACE`, you will need to set them in **both** containers in the deployment.
+If you are using Ambassador Edge Stack, if you set `AMBASSADOR_NAMESPACE` or `AMBASSADOR_SINGLE_NAMESPACE`, you will need to set them in **both** containers in the deployment.
 
 
 
@@ -132,7 +132,7 @@ env:
   value: ambassador-1
 ```
 
-If you are using Ambassador Pro, if you set `AMBASSADOR_ID`, you will need to set it in **both** containers in the deployment.
+If you are using Ambassador Edge Stack, if you set `AMBASSADOR_ID`, you will need to set it in **both** containers in the deployment.
 
 Ambassador will then only use YAML objects that include an appropriate `ambassador_id` attribute. For example, if Ambassador is given the ID `ambassador-1` as above, then of these YAML objects, only the first two will be used:
 

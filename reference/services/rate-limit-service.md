@@ -41,7 +41,7 @@ config:
 
 ## External Rate Limit Service
 
-In order for Ambassador Edge Stack to rate limit, you need to implement a gRPC service that supports the Envoy [ratelimit.proto](https://github.com/datawire/ambassador/blob/master/ambassador/common/ratelimit/ratelimit.proto) interface. If you do not have the time or resources to implement your own rate limit service, [Ambassador Pro](/pro) integrates a high performance, rate limiting service.
+In order for Ambassador Edge Stack to rate limit, you need to implement a gRPC service that supports the Envoy [ratelimit.proto](https://github.com/datawire/ambassador/blob/master/ambassador/common/ratelimit/ratelimit.proto) interface. If you do not have the time or resources to implement your own rate limit service, [Ambassador Edge Stack](/pro) integrates a high performance, rate limiting service.
 
 
 
@@ -90,7 +90,7 @@ If `tls` is present with a value that is not `true`, the value is assumed to be 
 
 ## Example
 
-The [Ambassador Edge Stack Rate Limiting Tutorial](/user-guide/rate-limiting-tutorial) has a simple rate limiting example. For a more advanced example, read the [advanced rate limiting tutorial](/user-guide/advanced-rate-limiting) with Ambassador Pro tutorial.
+The [Ambassador Edge Stack Rate Limiting Tutorial](/user-guide/rate-limiting-tutorial) has a simple rate limiting example. For a more advanced example, read the [advanced rate limiting tutorial](/user-guide/advanced-rate-limiting) with Ambassador Edge Stack tutorial.
 
 ## Further reading
 

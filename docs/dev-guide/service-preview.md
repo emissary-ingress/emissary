@@ -1,14 +1,14 @@
 # Service Preview
 
 
-How do you verify that the code you've written actually works? Ambassador Pro's *Service Preview* lets developers see exactly how their service works in a realistic enviroment -- without impacting other developers or end users. Service Preview integrates [Telepresence](https://www.telepresence.io), the popular CNCF project for local development and debugging on Kubernetes.
+How do you verify that the code you've written actually works? Ambassador Edge Stack's *Service Preview* lets developers see exactly how their service works in a realistic enviroment -- without impacting other developers or end users. Service Preview integrates [Telepresence](https://www.telepresence.io), the popular CNCF project for local development and debugging on Kubernetes.
 
 
 
 ## Install `apictl`
 
 
-`apictl` is the command client for Ambassador Pro.
+`apictl` is the command client for Ambassador Edge Stack.
 
 
 Download the latest version of the client:

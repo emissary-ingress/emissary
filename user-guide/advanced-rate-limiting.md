@@ -1,6 +1,6 @@
 # Advanced Rate Limiting
 
-Ambassador Pro integrates a flexible, high performance Rate Limit Service (RLS). Similar to Ambassador, the RLS features a decentralized configuration model so that individual teams can manage their own rate limits. For example:
+Ambassador Edge Stack integrates a flexible, high performance Rate Limit Service (RLS). Similar to Ambassador, the RLS features a decentralized configuration model so that individual teams can manage their own rate limits. For example:
 
 * A service owner may want to manage load shedding characteristics, and ensuring specific types of requests take precedence over other types of requests
 * An operations engineer may want to ensure service availability overall when request volume is high, and limit the total number of requests being passed to upstream services
@@ -10,7 +10,7 @@ Like Ambassador, the Ambassador RLS is designed so that many different teams, wi
 
 ## Request labels and domains
 
-In Ambassador Pro, each request can have multiple *labels*. Labels are arbitrary key/value pairs that contain any metadata about a given request, e.g., its IP, a hard-coded value, the path of the request, and so forth. The Rate Limit Service processes these labels and enforces any limits that are set on a label. Labels can be assigned to *domains*, which are separate namespaces. Typically, different teams would be responsible for different domains.
+In Ambassador Edge Stack, each request can have multiple *labels*. Labels are arbitrary key/value pairs that contain any metadata about a given request, e.g., its IP, a hard-coded value, the path of the request, and so forth. The Rate Limit Service processes these labels and enforces any limits that are set on a label. Labels can be assigned to *domains*, which are separate namespaces. Typically, different teams would be responsible for different domains.
 
 
 
@@ -167,7 +167,7 @@ spec:
 
 ### Bypassing a Global Rate Limit
 
-Sometimes, you may have an API that cannot handle as much load as others in your cluster. In this case, a global rate limit may not be enough to ensure this API is not overloaded with requests from a user. To protect this API, you will need to create a label that tells Ambassador Pro to apply a stricter limit on requests. With the above global rate limit configuration rate limiting based off `remote_address`, you will need to add a request label to the services `Mapping`:
+Sometimes, you may have an API that cannot handle as much load as others in your cluster. In this case, a global rate limit may not be enough to ensure this API is not overloaded with requests from a user. To protect this API, you will need to create a label that tells Ambassador Edge Stack to apply a stricter limit on requests. With the above global rate limit configuration rate limiting based off `remote_address`, you will need to add a request label to the services `Mapping`:
 
 ```yaml
 apiVersion: ambassador/v1

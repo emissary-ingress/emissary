@@ -2,6 +2,11 @@
 
 Guides are hands-on tutorials to walk you through configuring Ambassador Edge Stack or Ambassador Open Source for specific functionality.
 
+``` Ambassador Edge Stack is a community supported product available for free and limited use. Read about its features here:  LINK LINK LINK
+
+For unlimited access and commercial use of Ambassador Edge Stack, contact sales for access to Ambassador Edge Stack Enterprise.
+```
+
 <table>
 <tr>
  <td style="vertical-align:top;">

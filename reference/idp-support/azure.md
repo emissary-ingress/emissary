@@ -8,7 +8,7 @@ To use Azure as your IDP, you will first need to register an OAuth application w
 
 2. After you have registered your application, click on `App Registrations` in the navigation panel on the left and select the application you just created.
 
-3. Make a note of both the client and tenant IDs as these will be used later when configuring Ambassador Pro.
+3. Make a note of both the client and tenant IDs as these will be used later when configuring Ambassador Edge Stack.
 
 
 
@@ -57,7 +57,7 @@ After configuring an OAuth application in Azure AD, configuring Ambassador Edge 
       rules:
           # Requires authentication on requests from any hostname
         - host: "*"
-          # Tells Ambassador Pro to apply the Filter only on request to the /backend/get-quote/ endpoint from the tour application(https://www.getambassador.io/user-guide/getting-started#3-creating-your-first-service)
+          # Tells Ambassador Edge Stack to apply the Filter only on request to the /backend/get-quote/ endpoint from the tour application(https://www.getambassador.io/user-guide/getting-started#3-creating-your-first-service)
           path: /backend/get-quote/
           # Identifies which Filter to use for the path and hose above
           filters:

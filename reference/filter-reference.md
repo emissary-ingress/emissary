@@ -131,7 +131,7 @@ spec:
    **Note**: If you are using a templating system for your YAML that
    also makes use of Go templating (for instance, Helm), then you will
    need to escape the template strings meant to be interpretted by
-   Ambassador Pro.
+   Ambassador Edge Stack.
 
    
 
@@ -291,7 +291,7 @@ Information that you decide for yourself:
      provider using non-encrypted signed JWTs as Access Tokens, and
      configuring the signing appropriately.
    * `"userinfo"`: Validates the access token by polling the OIDC
-     UserInfo Endpoint.  This means that Ambassador Pro must initiate
+     UserInfo Endpoint.  This means that Ambassador Edge Stack must initiate
      an HTTP request to the identity provider for each authorized request to a
      protected resource.  This performs poorly, but functions properly
      with a wider range of identity providers.
@@ -377,13 +377,13 @@ spec:
 
 ### Filter Type: `Plugin`
 
-The `Plugin` filter type allows you to plug in your own custom code. This code is compiled to a `.so` file, which you load in to the Ambassador Pro container at `/etc/ambassador-plugins/${NAME}.so`.
+The `Plugin` filter type allows you to plug in your own custom code. This code is compiled to a `.so` file, which you load in to the Ambassador Edge Stack container at `/etc/ambassador-plugins/${NAME}.so`.
 
 
 
 #### The Plugin Interface
 
-This code is written in the Go programming language (golang), and must be compiled with the exact same compiler settings as Ambassador Pro; and any overlapping libraries used must have their versions match exactly.  This information is dockumented in an [apro-abi.txt][] file for each Ambassador Pro release.
+This code is written in the Go programming language (golang), and must be compiled with the exact same compiler settings as Ambassador Edge Stack; and any overlapping libraries used must have their versions match exactly.  This information is dockumented in an [apro-abi.txt][] file for each Ambassador Edge Stack release.
 
 
 
@@ -522,7 +522,7 @@ RUN update-ca-certificates
 USER 1000
 ```
 
-When deploying Ambassador Pro, refer to that custom Docker image,
+When deploying Ambassador Edge Stack, refer to that custom Docker image,
 rather than to `quay.io/datawire/ambassador_pro:amb-sidecar-%aproVersion%`.
 
 

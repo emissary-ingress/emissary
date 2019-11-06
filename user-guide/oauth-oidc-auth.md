@@ -1,6 +1,6 @@
 # Configuring OAuth/OIDC Authentication
 
-Ambassador Pro adds native support for the OAuth and OIDC authentication schemes for single sign-on with an external identity providers (IDP). Ambassador Pro has been tested with Keycloak, Auth0, Okta, and UAA although other OAuth/OIDC-compliant identity providers should work. Please contact us on [Slack](https://d6e.co/slack) if you have questions about IDPs not listed below.
+Ambassador Edge Stack adds native support for the OAuth and OIDC authentication schemes for single sign-on with an external identity providers (IDP). Ambassador Edge Stack has been tested with Keycloak, Auth0, Okta, and UAA although other OAuth/OIDC-compliant identity providers should work. Please contact us on [Slack](https://d6e.co/slack) if you have questions about IDPs not listed below.
 
 
 
@@ -17,7 +17,7 @@ metadata:
   namespace: default
 spec:
   OAuth2:
-    authorizationURL: PROVIDER_URL ## URL where Ambassador Pro can find OAuth2 descriptor
+    authorizationURL: PROVIDER_URL ## URL where Ambassador Edge Stack can find OAuth2 descriptor
     clientURL: AMBASSADOR_URL ## URL your IDP will redirect back to. Typically the same as the requests host.
     audience: AUDIENCE ## OIDC Audience
     clientID: CLIENT_ID ## OAuth2 client from your IDP
@@ -63,7 +63,7 @@ You will need to configure your IDP to handle authentication requests. The way t
 
 ## Configure Authentication Across Multiple Domains (Optional)
 
-Ambassador Pro supports authentication for multiple domains where each domain is issued its own access token. For example, imagine you're hosting both `domain1.example.com` and `domain2.example.com` on the same cluster. With multi-domain support, users will receive separate authentication tokens for `domain1` and `domain2`.
+Ambassador Edge Stack supports authentication for multiple domains where each domain is issued its own access token. For example, imagine you're hosting both `domain1.example.com` and `domain2.example.com` on the same cluster. With multi-domain support, users will receive separate authentication tokens for `domain1` and `domain2`.
 
 To configure multi-domain access, you will need to create another authentication endpoint with your IDP (see [Configure your IDP](/user-guide/oauth-oidc-auth/#configure-your-idp)) and create another `Filter` for the new domain.
 

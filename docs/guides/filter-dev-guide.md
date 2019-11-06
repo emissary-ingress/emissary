@@ -7,7 +7,7 @@ Sometimes you may want Ambassador Edge Stack to manipulate an incoming request. 
 * Validate an incoming request fits an OpenAPI specification before passing the request to a target service
 
 
-Ambassador Edge Stack supports these use cases by allowing you to execute custom logic in `Filters`. Filters are written in Golang, and managed by Ambassador Pro.
+Ambassador Edge Stack supports these use cases by allowing you to execute custom logic in `Filters`. Filters are written in Golang, and managed by Ambassador Edge Stack.
 
 
 
@@ -26,10 +26,10 @@ We've created an example filter that you can customize for your particular use c
 
 4. Push the image to your Docker registry: `docker push $DOCKER_REGISTRY/amb-sidecar-plugin:VERSION`.
 
-5. Configure Ambassador Pro to use the plugin by creating a `Filter`
+5. Configure Ambassador Edge Stack to use the plugin by creating a `Filter`
    and `FilterPolicy` CRD, as per the [filter reference](/reference/filter-reference).
 
-6. Update the standard Ambassador Pro manifest to use your Docker
+6. Update the standard Ambassador Edge Stack manifest to use your Docker
    image instead of the standard sidecar.
 
    ```patch
@@ -53,7 +53,7 @@ To install the runner, download the latest version:
 <a class="pro-runner-dl" href="https://s3.amazonaws.com/datawire-static-files/apro-plugin-runner/%aproVersion%/darwin/amd64/apro-plugin-runner">Mac 64-bit</a> |
 <a class="pro-runner-linux-dl" href="https://s3.amazonaws.com/datawire-static-files/apro-plugin-runner/%aproVersion%/linux/amd64/apro-plugin-runner">Linux 64-bit</a>
 
-Note that the plugin runner must match the version of Ambassador Pro that you are running. Place the binary somewhere in your `$PATH`.
+Note that the plugin runner must match the version of Ambassador Edge Stack that you are running. Place the binary somewhere in your `$PATH`.
 
 Information about open source code used in `apro-plugin-runner` can be found by running `apro-plugin-runner --version`.
 

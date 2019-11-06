@@ -24,7 +24,7 @@ To use Salesforce as your IDP, you will first need to register an OAuth applicat
 
 8. Record the `Consumer Key` and `Consumer Secret` values from the `API (Enable OAuth Settings)` section in the newly created application's description page.
 
-After waiting for salesforce to register the application with their servers, you should be ready to configure Ambassador Pro to Salesforce as an IdP.
+After waiting for salesforce to register the application with their servers, you should be ready to configure Ambassador Edge Stack to Salesforce as an IdP.
 
 
 
@@ -62,7 +62,7 @@ After configuring an OAuth application in Salesforce, configuring Ambassador Edg
       rules:
           # Requires authentication on requests from any hostname
         - host: "*"
-          # Tells Ambassador Pro to apply the Filter only on request to the /backend/get-quote/ endpoint from the tour application(https://www.getambassador.io/user-guide/getting-started#3-creating-your-first-service)
+          # Tells Ambassador Edge Stack to apply the Filter only on request to the /backend/get-quote/ endpoint from the tour application(https://www.getambassador.io/user-guide/getting-started#3-creating-your-first-service)
           path: /backend/get-quote/
           # Identifies which Filter to use for the path and hose above
           filters:

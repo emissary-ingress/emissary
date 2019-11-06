@@ -1,4 +1,4 @@
-# Installing Ambassador Pro and Ambassador Dev Portal
+# Installing Ambassador Edge Stack and Ambassador Dev Portal
 
 For users who need additional functionality, Datawire provides two add-on products to Ambassador:
 
@@ -7,7 +7,7 @@ For users who need additional functionality, Datawire provides two add-on produc
 
 Both of these products use a certified version of Ambassador that undergoes additional testing and validation.
 
-Information about the open source code used in Ambassador Pro and Dev Portal can be found in `/*.opensource.tar.gz` files in each Docker image. Both of these products are included in a single consolidated Docker image.
+Information about the open source code used in Ambassador Edge Stack and Dev Portal can be found in `/*.opensource.tar.gz` files in each Docker image. Both of these products are included in a single consolidated Docker image.
 
 
 
@@ -24,9 +24,9 @@ Copy `env.sh.example` to `env.sh`, and add your specific license key to the `env
 
 This license key will be loaded into a Kubernetes secret that will be referenced by Ambassador.
 
-**Note:** Ambassador Pro will not start without a valid license key.
+**Note:** Ambassador Edge Stack will not start without a valid license key.
 
-## 3. Deploy Ambassador Pro
+## 3. Deploy Ambassador Edge Stack
 
 If you're on GKE, first, create the following `ClusterRoleBinding`:
 
@@ -34,13 +34,13 @@ If you're on GKE, first, create the following `ClusterRoleBinding`:
 kubectl create clusterrolebinding my-cluster-admin-binding --clusterrole=cluster-admin --user=$(gcloud info --format="value(config.account)")
 ```
 
-Then, deploy Ambassador Pro and Dev Portal:
+Then, deploy Ambassador Edge Stack and Dev Portal:
 
 ```
 make apply-ambassador
 ```
 
-This `make` command will use `kubectl` to deploy Ambassador Pro and Dev Portal and a basic test configuration to the cluster.
+This `make` command will use `kubectl` to deploy Ambassador Edge Stack and Dev Portal and a basic test configuration to the cluster.
 
 Verify that Ambassador is running:
 
@@ -52,7 +52,7 @@ ambassador-pro-redis-dff565f78-88bl2   1/1       Running            0         1h
 
 **Note:** If you are not deploying in a cloud environment that supports the `LoadBalancer` type, you will need to change the `ambassador/ambassador-service.yaml` to a different service type (e.g., `NodePort`).
 
-By default, Ambassador Pro uses ports 8500-8503.  If for whatever
+By default, Ambassador Edge Stack uses ports 8500-8503.  If for whatever
 reason those assignments are problematic (perhaps you [set
 `service_port`](/reference/running/#running-as-non-root) to one of
 those), you can set adjust these by setting environment variables:
@@ -99,7 +99,7 @@ In your browser, go to $AMBASSADOR_IP/docs/. This will bring up the Dev Portal. 
 
 ## 5. Pro and JWT
 
-We'll now walk through a few features of Pro. We'll start by configuring Ambassador Pro's JWT authentication filter.
+We'll now walk through a few features of Pro. We'll start by configuring Ambassador Edge Stack's JWT authentication filter.
 
 ```
 make apply-jwt
@@ -134,7 +134,7 @@ Get the External IP address of your Ambassador service:
 AMBASSADOR_IP=$(kubectl get svc ambassador -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
 ```
 
-We'll now test Ambassador Pro with the `httpbin` service. First, curl to the `httpbin` URL This URL is public, so it returns successfully without an authentication token.
+We'll now test Ambassador Edge Stack with the `httpbin` service. First, curl to the `httpbin` URL This URL is public, so it returns successfully without an authentication token.
 
 ```
 $ curl -k https://$AMBASSADOR_IP/httpbin/ip # No authentication token
@@ -163,9 +163,9 @@ $ curl -k --header "Authorization: Bearer eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.ey
 }
 ```
 
-## 6. Configure additional Ambassador Pro services
+## 6. Configure additional Ambassador Edge Stack services
 
-Ambassador Pro has many more features such as rate limiting, OAuth integration, and more.
+Ambassador Edge Stack has many more features such as rate limiting, OAuth integration, and more.
 
 ### Enabling Rate limiting
 
@@ -183,11 +183,11 @@ Service Preview requires a command-line client, `apictl`. For instructions on co
 
 The Dev Portal can be customized for both content and look-and-feel. For details on using the Dev Portal, see the [Dev Portal Reference](/reference/dev-portal).
 
-# Upgrading Ambassador Pro and Dev Portal
+# Upgrading Ambassador Edge Stack and Dev Portal
 
-If you have an existing Ambassador installation, you can also upgrade directly to Ambassador Pro and Dev Portal.
+If you have an existing Ambassador installation, you can also upgrade directly to Ambassador Edge Stack and Dev Portal.
 
-**Note**: For simplicity, we recommend storing this license key in a Kubernetes secret that can be referenced by both the certified Ambassador and Ambassador Pro containers. You can do this with the following command.
+**Note**: For simplicity, we recommend storing this license key in a Kubernetes secret that can be referenced by both the certified Ambassador and Ambassador Edge Stack containers. You can do this with the following command.
 
 ```
 kubectl create secret generic ambassador-pro-license-key --from-literal=key={{AMBASSADOR_PRO_LICENSE_KEY}}
@@ -195,7 +195,7 @@ kubectl create secret generic ambassador-pro-license-key --from-literal=key={{AM
 
 1. Create the `ambassador-pro-license-key` secret using the command above.
 
-2. Upgrade to the latest image of Ambassador Pro and Dev Portal:
+2. Upgrade to the latest image of Ambassador Edge Stack and Dev Portal:
 
     ```yaml
           - name: ambassador-pro
@@ -226,7 +226,7 @@ kubectl create secret generic ambassador-pro-license-key --from-literal=key={{AM
                   key: key
     ```
   
-5. Ensure the `AMBASSADOR_LICENSE_KEY` in the Ambassador Pro/Portal container is also referencing the `ambassador-pro-license-key` secret.
+5. Ensure the `AMBASSADOR_LICENSE_KEY` in the Ambassador Edge Stack/Portal container is also referencing the `ambassador-pro-license-key` secret.
 
     ```yaml
             env:

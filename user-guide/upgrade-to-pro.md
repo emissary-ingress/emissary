@@ -1,14 +1,14 @@
-# Upgrading to Ambassador Pro from Open Source Ambassador
+# Upgrading to Ambassador Edge Stack from Open Source Ambassador
 
-If you are already using Ambassador open source, upgrading to using Ambassador Pro is straight-forward. In this demo we will walk-through integrating Ambassador Pro into your currently running Ambassador instance and show how quickly you can secure your APIs with JWT authentication.
+If you are already using Ambassador open source, upgrading to using Ambassador Edge Stack is straight-forward. In this demo we will walk-through integrating Ambassador Edge Stack into your currently running Ambassador instance and show how quickly you can secure your APIs with JWT authentication.
 
-Information about open source code used in Ambassador Pro can be found in `/*.opensource.tar.gz` files in each Docker image.
+Information about open source code used in Ambassador Edge Stack can be found in `/*.opensource.tar.gz` files in each Docker image.
 
-## 1. Clone the Ambassador Pro configuration repository
+## 1. Clone the Ambassador Edge Stack configuration repository
 
-Ambassador Pro is a module that communicates with Ambassador, exposing the various Pro services to Ambassador. Ambassador Pro is typically deployed as a sidecar service to Ambassador, allowing for it to communicate with Ambassador locally. While this is the recommended deployment topology, for evaluation purposes it is simpler to deploy Ambassador Pro as a separate service in your Kubernetes cluster. 
+Ambassador Edge Stack is a module that communicates with Ambassador, exposing the various Pro services to Ambassador. Ambassador Edge Stack is typically deployed as a sidecar service to Ambassador, allowing for it to communicate with Ambassador locally. While this is the recommended deployment topology, for evaluation purposes it is simpler to deploy Ambassador Edge Stack as a separate service in your Kubernetes cluster. 
 
-We provide a reference architecture to demonstrate how easy it is to use the services provided by Ambassador Pro. 
+We provide a reference architecture to demonstrate how easy it is to use the services provided by Ambassador Edge Stack. 
 
 ```
 git clone https://github.com/datawire/pro-ref-arch
@@ -18,11 +18,11 @@ git clone https://github.com/datawire/pro-ref-arch
 
 Copy `env.sh.example` to `env.sh`, and add your specific license key to the `env.sh` file.
 
-**Note:** Ambassador Pro will not start without a valid license key.
+**Note:** Ambassador Edge Stack will not start without a valid license key.
 
-## 3. Deploy Ambassador Pro
+## 3. Deploy Ambassador Edge Stack
 
-Deploy Ambassador Pro using the `Makefile` in the root of the `pro-ref-arch` directory.
+Deploy Ambassador Edge Stack using the `Makefile` in the root of the `pro-ref-arch` directory.
 
 ```
 cd pro-ref-arch
@@ -30,9 +30,9 @@ cd pro-ref-arch
 make apply-upgrade-to-pro
 ```
 
-This `make` command will use `kubectl` to deploy Ambassador Pro alongside your Ambassador deployment. It will also redeploy the httpbin and QoTM services which are used for demo purposes.
+This `make` command will use `kubectl` to deploy Ambassador Edge Stack alongside your Ambassador deployment. It will also redeploy the httpbin and QoTM services which are used for demo purposes.
 
-Verify that Ambassador Pro is running:
+Verify that Ambassador Edge Stack is running:
 
 ```
 kubectl get pods | grep ambassador
@@ -42,7 +42,7 @@ ambassador-pro-6545769c68-vnnzz         1/1     Running   1          23h
 ambassador-pro-redis-6db64c5685-4k8fn   1/1     Running   0          23h
 ```
 
-By default, Ambassador Pro uses ports 8500-8503.  If for whatever
+By default, Ambassador Edge Stack uses ports 8500-8503.  If for whatever
 reason those assignments are problematic (perhaps you [set
 `service_port`](/reference/running/#running-as-non-root) to one of
 those), you can set adjust these by setting environment variables:
@@ -59,12 +59,12 @@ If you have deployed Ambassador with
 [`AMBASSADOR_ID`](/reference/running/#ambassador_id)
 set, you will also need to set them in the Pro container.
 
-**Note:** Ambassador Pro will replace your current `AuthService` implementation. Remove your current `AuthService` annotation before deploying Ambassador Pro. If you would like to keep your current `AuthService`, remove the `AuthService` annotation from the `ambassador-pro.yaml` file.
+**Note:** Ambassador Edge Stack will replace your current `AuthService` implementation. Remove your current `AuthService` annotation before deploying Ambassador Edge Stack. If you would like to keep your current `AuthService`, remove the `AuthService` annotation from the `ambassador-pro.yaml` file.
 
 
 ## 4. Configure JWT Authentication
 
-Now that you have Ambassador Pro running, we'll show a few features of Ambassador Pro. We'll start by configuring Ambassador Pro's JWT authentication filter.
+Now that you have Ambassador Edge Stack running, we'll show a few features of Ambassador Edge Stack. We'll start by configuring Ambassador Edge Stack's JWT authentication filter.
 
 ```
 make apply-jwt
@@ -94,7 +94,7 @@ spec:
 ```
 
 
-We'll now test Ambassador Pro with the `httpbin` service. First, curl to the `httpbin` URL This URL is public, so it returns successfully without an authentication token.
+We'll now test Ambassador Edge Stack with the `httpbin` service. First, curl to the `httpbin` URL This URL is public, so it returns successfully without an authentication token.
 
 ```
 $ curl -k https://$AMBASSADOR_URL/httpbin/ip # No authentication token
@@ -125,9 +125,9 @@ $ curl -k --header "Authorization: Bearer eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.ey
 
 **Important:** Many modules in the reference architecture assume HTTPS. You will need to adjust the `cURL` requests if your Ambassador installation is not secured with TLS.
 
-## 5. Configure additional Ambassador Pro services
+## 5. Configure additional Ambassador Edge Stack services
 
-Ambassador Pro has many more features such as rate limiting, OAuth integration, and more.
+Ambassador Edge Stack has many more features such as rate limiting, OAuth integration, and more.
 
 ### Enabling Rate limiting
 
@@ -143,4 +143,4 @@ Service Preview requires a command-line client, `apictl`. For instructions on co
 
 ### Enabling Consul Connect integration
 
-Ambassador Pro's Consul Connect integration is deployed as a separate Kubernetes service. For instructions on deploying Consul Connect, see the [Consul Connect integration guide](/user-guide/consul-connect-ambassador).
+Ambassador Edge Stack's Consul Connect integration is deployed as a separate Kubernetes service. For instructions on deploying Consul Connect, see the [Consul Connect integration guide](/user-guide/consul-connect-ambassador).

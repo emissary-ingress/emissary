@@ -1,6 +1,6 @@
 # Access Control
 ---
-Ambassador Pro's `FilterPolicy` custom resource definition (CRD) gives you fine-grained control over filters. Since authentication and access control is implemented in specific filters, the `FilterPolicy` CRD can be used for access control as well.
+Ambassador Edge Stack's `FilterPolicy` custom resource definition (CRD) gives you fine-grained control over filters. Since authentication and access control is implemented in specific filters, the `FilterPolicy` CRD can be used for access control as well.
 
 
 
