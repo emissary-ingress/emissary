@@ -27,6 +27,7 @@ DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
 DBUILD=${DIR}/dbuild.sh
 
 builder() { docker ps -q -f label=builder -f label=${BUILDER_NAME}; }
+builder_network() { docker network ls -q -f name=${BUILDER_NAME}; }
 
 builder_volume() { docker volume ls -q -f label=builder; }
 
@@ -51,6 +52,11 @@ bootstrap() {
         printf "${GRN}Created docker volume ${BLU}$(builder_volume)${GRN} for caching${END}\n"
     fi
 
+    if [ -z "$(builder_network)" ]; then
+        docker network create ${BUILDER_NAME} > /dev/null
+        printf "${GRN}Created docker network ${BLU}${BUILDER_NAME}${END}\n"
+    fi
+
     if [ -z "$(builder)" ] ; then
         printf "${CYN}==> ${GRN}Bootstrapping build image${END}\n"
         ${DBUILD} --target builder ${DIR} -t builder
@@ -63,7 +69,7 @@ bootstrap() {
             echo "Unable to determine docker group-id"
             exit 1
         fi
-        docker run --group-add ${DOCKER_GID} -d --rm -v /var/run/docker.sock:/var/run/docker.sock -v $(builder_volume):/home/dw --net=host --cap-add NET_ADMIN -lbuilder -l${BUILDER_NAME} --entrypoint tail builder -f /dev/null > /dev/null
+        docker run --network ${BUILDER_NAME} --network-alias "builder" --group-add ${DOCKER_GID} -d --rm -v /var/run/docker.sock:/var/run/docker.sock -v $(builder_volume):/home/dw --cap-add NET_ADMIN -lbuilder -l${BUILDER_NAME} ${BUILDER_PORTMAPS} --entrypoint tail builder -f /dev/null > /dev/null
         printf "${GRN}Started build container ${BLU}$(builder)${END}\n"
     fi
 
@@ -171,6 +177,11 @@ clean() {
         printf "${GRN}Killing build container ${BLU}${cid}${END}\n"
         docker kill ${cid} > /dev/null 2>&1
         docker wait ${cid} > /dev/null 2>&1 || true
+    fi
+    nid=$(builder_network)
+    if [ -n "${nid}" ] ; then
+        printf "${GRN}Removing docker network ${BLU}${nid}${END}\n"
+        docker network rm ${BUILDER_NAME} > /dev/null
     fi
 }
 
