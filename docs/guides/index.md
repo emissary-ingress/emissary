@@ -2,7 +2,7 @@
 
 Guides are hands-on tutorials to walk you through configuring Ambassador Edge Stack or Ambassador Open Source for specific functionality.
 
-<div style="border: solid green">
+<div style="border: solid green;padding:0.5em">
 
 Ambassador Edge Stack is a community supported product available for free and limited use. Learn about [the features](getambassador.io/features) you can take advantage of today.
 
