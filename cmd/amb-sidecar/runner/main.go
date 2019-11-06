@@ -3,8 +3,6 @@ package runner
 import (
 	"context"
 	"fmt"
-	"github.com/datawire/apro/lib/metriton"
-	"github.com/fsnotify/fsnotify"
 	"io"
 	"math/rand"
 	"net/http"
@@ -13,6 +11,9 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/datawire/apro/lib/metriton"
+	"github.com/fsnotify/fsnotify"
 
 	// 3rd-party libraries
 	"github.com/lyft/goruntime/loader"
@@ -257,6 +258,12 @@ func runE(cmd *cobra.Command, args []string) error {
 
 	// Launch all of the worker goroutines...
 
+	group.Go("watt_shutdown", func(hardCtx, softCtx context.Context, cfg types.Config, l types.Logger) error {
+		<-softCtx.Done()
+		snapshotStore.Close()
+		return nil
+	})
+
 	// RateLimit controller
 	if limit.CanUseFeature(licensekeys.FeatureRateLimit) {
 		group.Go("ratelimit_controller", func(hardCtx, softCtx context.Context, cfg types.Config, l types.Logger) error {
@@ -376,9 +383,9 @@ func runE(cmd *cobra.Command, args []string) error {
 			rateLimitScope := statsStore.Scope("ratelimit")
 			rateLimitService := lyftservice.NewService(
 				loader.New(
-					cfg.RLSRuntimeDir,               // runtime path
-					cfg.RLSRuntimeSubdir,            // runtime subdirectory
-					rateLimitScope.Scope("runtime"), // stats scope
+					cfg.RLSRuntimeDir,                                        // runtime path
+					cfg.RLSRuntimeSubdir,                                     // runtime subdirectory
+					rateLimitScope.Scope("runtime"),                          // stats scope
 					&loader.SymlinkRefresher{RuntimePath: cfg.RLSRuntimeDir}, // refresher
 				),
 				lyftredis.NewRateLimitCacheImpl(
