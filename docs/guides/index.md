@@ -1,6 +1,6 @@
 # Guides
 
-Guides are hands-on tutorials to walk you through configuring Ambassador Edge Stack or Ambassador Open Source for specific functionality.
+Guides are hands-on tutorials to walk you through configuring Ambassador Edge Stack or [Ambassador Open Source](user-guide/install-ambassador-oss) for specific functionality.
 
 <div style="border: solid gray;padding:0.5em">
 
@@ -9,8 +9,6 @@ Ambassador Edge Stack is a community supported product available for f
 For unlimited access and commercial use of Ambassador Edge Stack, [contact sales](https:/www.getambassador.io/contact) for access to [Ambassador Edge Stack Enterprise](/user-guide/ambassador-edge-stack-enterprise) today.
 
 </div>
-
-
 
 
 

@@ -1,5 +1,11 @@
 # Ambassador Open Source Software (OSS)
 
+<div style="border: solid gray;padding:0.5em">
+
+Ambassador OSS is an open source Kubernetes-native API Gateway. We recommend upgrading to [Ambassador Edge Stack](/user-guide/getting-started) Community, which is available for free and limited use, along with additional functionality around security and developer onboarding. 
+
+</div>
+
 In this tutorial, we'll walk through the process of deploying Ambassador Open Source in Kubernetes for ingress routing. Ambassador OSS provides all the functionality of a traditional ingress controller (i.e., path-based routing) while exposing many additional capabilities such as [authentication](/user-guide/auth-tutorial), URL rewriting, CORS, rate limiting, and automatic metrics collection (the [mappings reference](/reference/mappings) contains a full list of supported options). For more background on Kubernetes ingress, [read this blog post](https://blog.getambassador.io/kubernetes-ingress-nodeport-load-balancers-and-ingress-controllers-6e29f1c44f2d).
 
 Ambassador Open Source is designed to allow service authors to control how their service is published to the Internet. We accomplish this by permitting a wide range of annotations on the *service*, which Ambassador OSS reads to configure its Envoy Proxy. Below, we'll use service annotations to configure Ambassador OSS to map `/httpbin/` to `httpbin.org`.
