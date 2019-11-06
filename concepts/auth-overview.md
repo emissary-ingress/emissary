@@ -35,11 +35,4 @@ An identity hub sits between your application and the IdP that authenticates you
 The Auth0 docs provide a guide for adding social IdP "[connections](https://auth0.com/docs/identityproviders)" to your Auth0 account, and the Keycloak docs provide a guide for adding social identity "[brokers](https://www.keycloak.org/docs/2.5/server_admin/topics/identity-broker/social-login.html)".
 
 ## Learn More With the Ambassador Edge Stack and Auth0 Tutorial
-
 You can learn more from the [Single Sign-On with OAuth & OIDC](/user-guide/oauth-oidc-auth) tutorial, which also contains a full walkthrough of how to configure Ambassador Edge Stack with Auth0.
-
-<div style="border: solid gray;padding:0.5em">
-
-Ambassador Edge Stack is a community supported product with [features](getambassador.io/features) available for free and limited use. For unlimited access and commercial use of Ambassador Edge Stack, [contact sales](https:/www.getambassador.io/contact) for access to [Ambassador Edge Stack Enterprise](/user-guide/ambassador-edge-stack-enterprise) today.
-
-</div>

@@ -40,9 +40,3 @@ If Ambassador Edge Stack isn't working at all, start by looking at the data from
 If you need additional help, feel free to join our [Slack channel](https://d6e.co/slack) with the above information (along with your Kubernetes manifest).
 
 You can also increase the debug of Envoy through the button in the diagnostics panel. Turn on debug logging, issue a request, and capture the log output from the Ambassador Edge Stack pod using `kubectl logs` as described above.
-
-<div style="border: solid gray;padding:0.5em">
-
-Ambassador Edge Stack is a community supported product with [features](getambassador.io/features) available for free and limited use. For unlimited access and commercial use of Ambassador Edge Stack, [contact sales](https:/www.getambassador.io/contact) for access to [Ambassador Edge Stack Enterprise](/user-guide/ambassador-edge-stack-enterprise) today.
-
-</div>

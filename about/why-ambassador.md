@@ -56,11 +56,7 @@ Interested in learning more?
 * [Why did we start building Ambassador Edge Stack?](https://blog.getambassador.io/building-ambassador-an-open-source-api-gateway-on-kubernetes-and-envoy-ed01ed520844).
 * [Ambassador Edge Stack Architecture overview](https://www.getambassador.io/concepts/architecture)
 
-<div style="border: solid gray;padding:0.5em">
 
-Ambassador Edge Stack is a community supported product with [features](getambassador.io/features) available for free and limited use. For unlimited access and commercial use of Ambassador Edge Stack, [contact sales](https:/www.getambassador.io/contact) for access to [Ambassador Edge Stack Enterprise](/user-guide/ambassador-edge-stack-enterprise) today.
-
-</div>
 
 
 <script type="application/ld+json">

@@ -267,9 +267,3 @@ This will install into your cluster:
 For more about Ambassador' Edge Stacks integration with Consul, read the [service discovery configuration](/reference/core/resolvers) documentation.
 
 See the [TLS documentation](/reference/core/tls#mtls-consul) for information on configuring the Ambassador Edge Stack Consul connector.
-
-<div style="border: solid gray;padding:0.5em">
-
-Ambassador Edge Stack is a community supported product with [features](getambassador.io/features) available for free and limited use. For unlimited access and commercial use of Ambassador Edge Stack, [contact sales](https:/www.getambassador.io/contact) for access to [Ambassador Edge Stack Enterprise](/user-guide/ambassador-edge-stack-enterprise) today.
-
-</div>

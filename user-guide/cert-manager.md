@@ -214,9 +214,3 @@ The DNS-01 challenge verifies domain ownership by proving you have control over 
     ambassador-token-846d5   kubernetes.io/service-account-token   3         2h
     default-token-4l772      kubernetes.io/service-account-token   3         2h
     ```
-
-<div style="border: solid gray;padding:0.5em">
-
-Ambassador Edge Stack is a community supported product with [features](getambassador.io/features) available for free and limited use. For unlimited access and commercial use of Ambassador Edge Stack, [contact sales](https:/www.getambassador.io/contact) for access to [Ambassador Edge Stack Enterprise](/user-guide/ambassador-edge-stack-enterprise) today.
-
-</div>

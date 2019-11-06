@@ -14,10 +14,3 @@ In more detail, Ambassador Edge Stack supports developers in the following ways:
 * [Testing in production](/docs/dev-guide/test-in-prod)
 * Support for [canarying and shadow traffic](/docs/dev-guide/canary-release-concepts)
 * [Transparent monitoring](/reference/statistics) of L7 traffic to given services
-
-<div style="border: solid gray;padding:0.5em">
-
-Ambassador Edge Stack is a community supported product with [features](getambassador.io/features) available for free and limited use. For unlimited access and commercial use of Ambassador Edge Stack, [contact sales](https:/www.getambassador.io/contact) for access to [Ambassador Edge Stack Enterprise](/user-guide/ambassador-edge-stack-enterprise) today.
-
-</div>
-
