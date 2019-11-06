@@ -202,3 +202,9 @@ Given that `AMBASSADOR_NAMESPACE` is correctly set, Ambassador Edge Stack can ma
 
 - `service: servicename` will route to a service in the same namespace as the Ambassador Edge Stack, and
 - `service: servicename.namespace` will route to a service in a different namespace.
+
+<div style="border: solid gray;padding:0.5em">
+
+Ambassador Edge Stack is a community supported product with [features](getambassador.io/features) available for free and limited use. For unlimited access and commercial use of Ambassador Edge Stack, [contact sales](https:/www.getambassador.io/contact) for access to [Ambassador Edge Stack Enterprise](/user-guide/ambassador-edge-stack-enterprise) today.
+
+</div>

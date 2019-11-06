@@ -98,3 +98,9 @@ The [Ambassador Edge Stack Rate Limiting Tutorial](/user-guide/rate-limiting-tut
 * [Rate limiting for API Gateways](https://blog.getambassador.io/rate-limiting-for-api-gateways-892310a2da02)
 * [Implementing a Java Rate Limiting Service for Ambassador Edge Stack](https://blog.getambassador.io/implementing-a-java-rate-limiting-service-for-the-ambassador-api-gateway-e09d542455da)
 * [Designing a Rate Limit Service for Ambassador Edge Stack](https://blog.getambassador.io/designing-a-rate-limiting-service-for-ambassador-f460e9fabedb)
+
+<div style="border: solid gray;padding:0.5em">
+
+Ambassador Edge Stack is a community supported product with [features](getambassador.io/features) available for free and limited use. For unlimited access and commercial use of Ambassador Edge Stack, [contact sales](https:/www.getambassador.io/contact) for access to [Ambassador Edge Stack Enterprise](/user-guide/ambassador-edge-stack-enterprise) today.
+
+</div>

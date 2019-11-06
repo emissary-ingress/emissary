@@ -263,3 +263,9 @@ The value of `xff_num_trusted_hops` indicates the number of trusted proxies in f
 Refer to [Envoy's documentation](https://www.envoyproxy.io/docs/envoy/latest/configuration/http_conn_man/headers#x-forwarded-for) for some detailed examples on this interaction.
 
 **NOTE:** This value is not dynamically configurable in Envoy. A restart is required  changing the value of `xff_num_trusted_hops` for Envoy to respect the change.
+
+<div style="border: solid gray;padding:0.5em">
+
+Ambassador Edge Stack is a community supported product with [features](getambassador.io/features) available for free and limited use. For unlimited access and commercial use of Ambassador Edge Stack, [contact sales](https:/www.getambassador.io/contact) for access to [Ambassador Edge Stack Enterprise](/user-guide/ambassador-edge-stack-enterprise) today.
+
+</div>

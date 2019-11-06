@@ -41,3 +41,9 @@ Ambassador Edge Stack's configuration is assembled from multiple YAML blocks, to
     If two different developers try to map `/user/` to something, this can lead to unexpected behavior. Ambassador Edge Stack's canary-deployment logic means that it's more likely that traffic will be split between them than that it will throw an error -- again, the diagnostic service can help you here.
     
 **Note:** Unless specified, mapping attributes cannot be applied to any other resource type.
+
+<div style="border: solid gray;padding:0.5em">
+
+Ambassador Edge Stack is a community supported product with [features](getambassador.io/features) available for free and limited use. For unlimited access and commercial use of Ambassador Edge Stack, [contact sales](https:/www.getambassador.io/contact) for access to [Ambassador Edge Stack Enterprise](/user-guide/ambassador-edge-stack-enterprise) today.
+
+</div>

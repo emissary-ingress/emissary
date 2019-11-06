@@ -49,3 +49,9 @@ and open http://localhost:8877 in your browser. Any changes made locally to devp
 Default Dev Portal prefix is `/docs/`. To change the prefix, edit the ambassador Mapping CRD  named `ambassador-pro-devportal`. Change the `prefix` to your desired prefix (for example `/documentation/`) and change the `rewrite` to `/docs/`
 
 Note: Dev portal uses another mapping named `ambassador-pro-devportal-api` which, for now should not be changed. This restriction will be removed in a future release.
+
+<div style="border: solid gray;padding:0.5em">
+
+Ambassador Edge Stack is a community supported product with [features](getambassador.io/features) available for free and limited use. For unlimited access and commercial use of Ambassador Edge Stack, [contact sales](https:/www.getambassador.io/contact) for access to [Ambassador Edge Stack Enterprise](/user-guide/ambassador-edge-stack-enterprise) today.
+
+</div>

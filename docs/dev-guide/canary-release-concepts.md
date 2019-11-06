@@ -2,7 +2,6 @@
 
 Canary release is a technique to reduce the risk of introducing a new version of software in production by slowly rolling out the change to a small subset of users, before rolling it out to the entire infrastructure and making it available to everybody.
 
-
 ## Benefits of Canary Releases
 
 This technique was rather gruesomely inspired from the fact that canary birds were once used in coal mines to alert miners when toxic gases reached dangerous levels — the gases would kill the canary before killing the miners, which provides a warning to get out of the mine tunnels immediately. As long as the canary kept singing, the miners knew that the air was free of dangerous gases. If a canary died, then this signaled an immediate evacuation.
@@ -145,3 +144,10 @@ metadata:
 
 
 We've written more about canary releases on the [Ambassador Edge Stack blog](https://blog.getambassador.io). To learn more about this pattern, you can [read more here](https://blog.getambassador.io/cloud-native-patterns-canary-release-1cb8f82d371a).
+
+
+<div style="border: solid gray;padding:0.5em">
+
+Ambassador Edge Stack is a community supported product with [features](getambassador.io/features) available for free and limited use. For unlimited access and commercial use of Ambassador Edge Stack, [contact sales](https:/www.getambassador.io/contact) for access to [Ambassador Edge Stack Enterprise](/user-guide/ambassador-edge-stack-enterprise) today.
+
+</div>

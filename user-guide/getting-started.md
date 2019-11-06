@@ -56,7 +56,7 @@ kubectl get -n ambassador service ambassador -o 'go-template={{range .status.loa
 
 ## 3. Assign a DNS name (or not)
 
-Navigate to your new IP address in your browser. Assign a DNS name using the providor of your choice to the IP address acquired in Step 2. If you can't/don't want to assign a DNS name, then you can use the IP address you acquired in step 2 instead.
+Navigate to your new IP address in your browser. Assign a DNS name using the DNS Registrator of your choice to the IP address acquired in Step 2. If you can't/don't want to assign a DNS name, then you can use the IP address you acquired in step 2 instead.
 
 ## 4. Complete the install
 
@@ -82,3 +82,9 @@ the user interface.
 - Learn how to [add tracing](/user-guide/tracing-tutorial); or
 - Learn how to [use gRPC with Ambassador Edge Stack](/user-guide/grpc); or
 - Read about [configuring Ambassador Edge Stack](/reference/configuration).
+
+<div style="border: solid gray;padding:0.5em">
+
+Ambassador Edge Stack is a community supported product with [features](getambassador.io/features) available for free and limited use. For unlimited access and commercial use of Ambassador Edge Stack, [contact sales](https:/www.getambassador.io/contact) for access to [Ambassador Edge Stack Enterprise](/user-guide/ambassador-edge-stack-enterprise) today.
+
+</div>

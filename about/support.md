@@ -15,3 +15,9 @@ We offer both business hour (8am - 5pm EST, M-F) and 24x7 Sev 1 support for Amba
 ## Pricing
 
 [Contact us](https://www.getambassador.io/contact) to learn how we can help, and for detailed pricing information.
+
+<div style="border: solid gray;padding:0.5em">
+
+Ambassador Edge Stack is a community supported product with [features](getambassador.io/features) available for free and limited use. For unlimited access and commercial use of Ambassador Edge Stack, [contact sales](https:/www.getambassador.io/contact) for access to [Ambassador Edge Stack Enterprise](/user-guide/ambassador-edge-stack-enterprise) today.
+
+</div>

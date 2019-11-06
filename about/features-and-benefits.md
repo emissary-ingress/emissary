@@ -37,3 +37,10 @@ Ambassador Edge Stack supports rate limiting incoming requests. When configured,
 ## Integrated Diagnostics
 
 Ambassador Edge Stack includes a diagnostics service so that you can quickly debug issues associated with configuring Ambassador Edge Stack. For more information, see [running Ambassador Edge Stack](https://www.getambassador.io/reference/running).
+
+
+<div style="border: solid gray;padding:0.5em">
+
+Ambassador Edge Stack is a community supported product with [features](getambassador.io/features) available for free and limited use. For unlimited access and commercial use of Ambassador Edge Stack, [contact sales](https:/www.getambassador.io/contact) for access to [Ambassador Edge Stack Enterprise](/user-guide/ambassador-edge-stack-enterprise) today.
+
+</div>
