@@ -33,6 +33,8 @@ ifneq ($(strip $(OUTPUT)),)
 $(info $(OUTPUT))
 endif
 
+export BUILDER_PORTMAPS=-p 8080:8080 -p 8877:8877 -p 8500:8500
+
 OSS_HOME ?= ambassador
 include ${OSS_HOME}/Makefile
 $(call module,apro,.)
