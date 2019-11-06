@@ -6,7 +6,7 @@
     <title>
       Ambassador Edge Stack Admin
     </title>
-    
+
     <!--Admin style definitions-->
     <style>
 
@@ -62,7 +62,7 @@
 	  padding: 0.5em;
 	  background-color: #FFe8e8;
       }
-      
+
     </style>
 
 
@@ -80,7 +80,7 @@
       details {
           margin-left: 1em;
       }
-      
+
     </style>
     <script type="module" src="tabs.js"></script>
     <script type="module" src="signup.js"></script>
@@ -89,7 +89,7 @@
     <div id="all-wrapper">
       <div id="ambassador-logo">
 	<a href="https://www.getambassador.io/">
-	  <img src="https://www.getambassador.io/images/ambassador-logo-black.svg" alt="Ambassador Edge Stack" /> 
+	  <img src="https://www.getambassador.io/images/ambassador-logo-white.svg" alt="Ambassador Edge Stack" />
 	</a>
       </div>
 
@@ -110,13 +110,9 @@
             </div>
           </dw-tab>
 
-          <dw-tab name="Mappings">    
-            <h2>Mappings</h2>
-
-            <p>A Mapping is an association between a URL (called a prefix) and a target
-              service (called a target).
-            </p>
-            <a id="add-mapping" style="cursor:pointer;color:blue;text-decoration:underline;">Add a Mapping</a>
+          <dw-tab name="Mappings">
+            <h2>Mappings </h2>
+            <a id="add-mapping" style="cursor:pointer;color:blue;text-decoration:underline;">add</a>
             <div id="add-mapping-form" style="display:none">
               Name: <input id="add-mapping-name" type="text" name="prefix"/>
               Prefix: <input id="add-mapping-prefix" type="text" name="prefix"/>
