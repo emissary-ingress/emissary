@@ -1,6 +1,4 @@
-import Vue from 'https://cdn.jsdelivr.net/npm/vue/dist/vue.esm.browser.js';
-
-export default Vue.extend({
+export default {
 	template: `<div>
 <form v-on:submit.prevent="onSubmit">
 		<fieldset>
@@ -178,4 +176,4 @@ export default Vue.extend({
 			req.send();
 		},
 	},
-});
+};
