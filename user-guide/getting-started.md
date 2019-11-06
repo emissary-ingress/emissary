@@ -15,8 +15,7 @@ kubectl apply -f secret.yaml && \
 kubectl apply -f https://deploy-preview-91--datawire-ambassador.netlify.com/yaml/aes-crds.yaml && \
 kubectl wait --for condition=established --timeout=60s crd -lproduct=aes && \
 kubectl apply -f https://deploy-preview-91--datawire-ambassador.netlify.com/yaml/aes.yaml && \
-kubectl -n ambassador wait --for condition=available --timeout=60s deploy -lproduct=aes
-</code>
+kubectl -n ambassador wait --for condition=available --timeout=60s deploy -lproduct=aes</code>
 </div>
 </div>
 <button onclick="copy_to_clipboard('step1')">Copy to Clipboard</button>
@@ -50,8 +49,7 @@ Note that it may take a while for your load balancer IP address to be provisione
 <div class="gatsby-highlight" data-language="shell">
 <pre class="language-shell">
 <code class="language-shell" id="step2">
-kubectl get -n ambassador service ambassador -o 'go-template={{range .status.loadBalancer.ingress}}{{print .ip "\n"}}{{end}}'
-</code>
+kubectl get -n ambassador service ambassador -o 'go-template={{range .status.loadBalancer.ingress}}{{print .ip "\n"}}{{end}}'</code>
 </pre>
 </div>
 <button onclick="copy_to_clipboard('step2')">Copy to Clipboard</button>
