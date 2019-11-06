@@ -10,7 +10,7 @@ sudo mkdir /ambassador/init-config
 
 cat > /tmp/edge-stack-mappings.yaml <<EOF
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
   name: edgestack-fallback-mapping
@@ -20,7 +20,7 @@ spec:
   service: 127.0.0.1:8500
   precedence: -1000000
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
   name: edgestack-acme-mapping
