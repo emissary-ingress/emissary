@@ -1,3 +1,8 @@
+<div style="border: thick solid red">
+<!-- TODO: fix red bordered text -->
+This method of installation has not been tested and is not supported at this time.
+</div>
+
 # Installing Ambassador Edge Stack with Helm
 
 [Helm](https://helm.sh) is a package manager for Kubernetes. Ambassador Edge Stack is available as a Helm chart if you use Helm for package management. To install with Helm:

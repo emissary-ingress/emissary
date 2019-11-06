@@ -1,3 +1,8 @@
+<div style="border: thick solid red">
+<!-- TODO: fix red bordered text -->
+This method of installation has not been tested and is not supported at this time.
+</div>
+
 # Five minute quickstart
 
 In this section, we'll get Ambassador Edge Stack running locally with a demo configuration. In the next section, we'll then walk through how to deploy Ambassador Edge Stack in Kubernetes with a custom configuration.
