@@ -91,9 +91,9 @@ def v2filter(irfilter: IRFilter, v2config: 'V2Config'):
     del v2config  # silence unused-variable warning
 
     if irfilter.kind == 'IRAuth':
-        if irfilter.api_version == 'ambassador/v1':
+        if irfilter.api_version == 'getambassador.io/v1':
             return 'IRAuth_v1'
-        elif irfilter.api_version == 'ambassador/v0':
+        elif irfilter.api_version == 'getambassador.io/v0':
             return 'IRAuth_v0'
         else:
             irfilter.post_error('AuthService version %s unknown, treating as v1' % irfilter.api_version)
@@ -172,7 +172,7 @@ def v2filter_authv0(auth: IRAuth, v2config: 'V2Config'):
     assert auth.cluster
     cluster = typecast(IRCluster, auth.cluster)
 
-    assert auth.api_version == "ambassador/v0"
+    assert auth.api_version == "getambassador.io/v0"
 
     # This preserves almost exactly the same logic prior to ambassador/v1 implementation.
     request_headers = dict(ExtAuthRequestHeaders)
@@ -231,7 +231,7 @@ def v2filter_authv1(auth: IRAuth, v2config: 'V2Config'):
     assert auth.cluster
     cluster = typecast(IRCluster, auth.cluster)
 
-    if auth.api_version != "ambassador/v1":
+    if auth.api_version != "getambassador.io/v1":
         auth.ir.logger.warning("IRAuth_v1 working on %s, mismatched at %s" % (auth.name, auth.api_version))
 
     assert auth.proto

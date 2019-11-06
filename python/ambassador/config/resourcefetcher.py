@@ -455,7 +455,7 @@ class ResourceFetcher:
 
             if tls_secret is not None:
                 ingress_tls_context: Dict[str, Any] = {
-                    'apiVersion': 'ambassador/v1',
+                    'apiVersion': 'getambassador.io/v1',
                     'kind': 'TLSContext',
                     'metadata': {
                         'name': tls_unique_identifier,
@@ -482,7 +482,7 @@ class ResourceFetcher:
             db_mapping_identifier = f"{ingress_name}-default-backend"
 
             default_backend_mapping = {
-                'apiVersion': 'ambassador/v1',
+                'apiVersion': 'getambassador.io/v1',
                 'kind': 'Mapping',
                 'metadata': {
                     'name': db_mapping_identifier,
@@ -520,7 +520,7 @@ class ResourceFetcher:
                 mapping_identifier = f"{ingress_name}-{unique_suffix}"
 
                 path_mapping: Dict[str, Any] = {
-                    'apiVersion': 'ambassador/v1',
+                    'apiVersion': 'getambassador.io/v1',
                     'kind': 'Mapping',
                     'metadata': {
                         'name': mapping_identifier,
@@ -834,7 +834,7 @@ class ResourceFetcher:
         # No need to muck about with resolution later, just immediately turn this
         # into an Ambassador Secret resource.
         secret_info = {
-            'apiVersion': 'ambassador/v1',
+            'apiVersion': 'getambassador.io/v1',
             'ambassador_id': Config.ambassador_id,
             'kind': 'Secret',
             'name': resource_name,
@@ -867,7 +867,7 @@ class ResourceFetcher:
         # That's a function of the watch_hook putting it there.
 
         svc = {
-            'apiVersion': 'ambassador/v1',
+            'apiVersion': 'getambassador.io/v1',
             'ambassador_id': Config.ambassador_id,
             'kind': 'Service',
             'name': name,
@@ -1067,7 +1067,7 @@ class ResourceFetcher:
                 } for target_addr in target_addrs ]
 
             self.services[f'k8s-{k8s_name}-{k8s_namespace}'] = {
-                'apiVersion': 'ambassador/v1',
+                'apiVersion': 'getambassador.io/v1',
                 'ambassador_id': Config.ambassador_id,
                 'kind': 'Service',
                 'name': k8s_name,

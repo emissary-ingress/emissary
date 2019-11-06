@@ -27,11 +27,11 @@ class ACResource (Resource):
     - name (keyword-only) is the name of the Ambassador resource.
 
     - apiVersion (keyword-only) specifies the API version in use. It defaults to
-    "ambassador/v0" if not specified.
+      "getambassador.io/v0" if not specified.
 
     - serialization (keyword-only) is the _original input serialization_, if we have
-    it, of the object. If we don't have it, this should be None -- don't just serialize
-    the object to no purpose.
+      it, of the object. If we don't have it, this should be None -- don't just serialize
+      the object to no purpose.
 
     - any additional keyword arguments are saved in the Resource.
 
@@ -40,7 +40,7 @@ class ACResource (Resource):
     :param kind: what kind of thing is this?
     :param name: what's the name of this thing?
     :param namespace: what namespace is this in?
-    :param apiVersion: API version, defaults to "ambassador/v0" if not present
+    :param apiVersion: API version, defaults to "getambassador.io/v0" if not present
     :param serialization: original input serialization of obj, if we have it
     :param kwargs: key-value pairs that form the data object for this resource
     """
@@ -52,7 +52,7 @@ class ACResource (Resource):
                  kind: str,
                  name: Optional[str]=None,
                  namespace: Optional[str]=None,
-                 apiVersion: Optional[str]="ambassador/v0",
+                 apiVersion: Optional[str]="getambassador.io/v0",
                  serialization: Optional[str]=None,
                  **kwargs) -> None:
 
@@ -114,7 +114,7 @@ class ACResource (Resource):
             "--internal--", "--internal--",
             kind="Internal",
             name="Ambassador Internals",
-            version="ambassador/v0",
+            version="getambassador.io/v0",
             description="The '--internal--' source marks objects created by Ambassador's internal logic."
         )
 
@@ -127,7 +127,7 @@ class ACResource (Resource):
             "--diagnostics--", "--diagnostics--",
             kind="Diagnostics",
             name="Ambassador Diagnostics",
-            version="ambassador/v0",
+            version="getambassador.io/v0",
             description="The '--diagnostics--' source marks objects created by Ambassador to assist with diagnostic output."
         )
 

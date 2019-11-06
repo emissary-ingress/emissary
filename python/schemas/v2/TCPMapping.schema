@@ -4,7 +4,7 @@
 
     "type": "object",
     "properties": {
-        "apiVersion": { "enum": [ "getambassador.io/v0" ] },
+        "apiVersion": { "enum": [ "getambassador.io/v2" ] },
         "generation": { "type": "integer" },
         "kind": { "type": "string" },
         "name": { "type": "string" },
@@ -15,15 +15,20 @@
                 { "type": "array", "items": { "type": "string" } }
             ]
         },
-        
-        "auth_service": { "type": "string" },
-        "path_prefix": { "type": "string" },
+
+        "port": { "type": "integer" },
+        "host": { "type": "string" },
+        "address": { "type": "string" },
+        "idle_timeout_ms": { "type": "string" },
+        "weight": { "type": "integer" },
+        "enable_ipv4": { "type": "boolean" },
+        "enable_ipv6": { "type": "boolean" },
+        "resolver": { "type": "string" },
         "tls": { "type": [ "string", "boolean" ] },
-        "allowed_headers": {
-            "type": "array",
-            "items": { "type": "string" }
-        }
+
+        "service": { "type": "string" }
     },
-    "required": [ "apiVersion", "kind", "name", "auth_service" ],
+
+    "required": [ "apiVersion", "kind", "name", "service", "port" ],
     "additionalProperties": false
 }
