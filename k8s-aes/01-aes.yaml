@@ -114,7 +114,7 @@ spec:
 ######################################################################
 # Configure Ambassador Edge Stack.
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: RateLimitService
 metadata:
   name: ambassador-edge-stack-ratelimit
@@ -124,7 +124,7 @@ metadata:
 spec:
   service: "127.0.0.1:8500"
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: AuthService
 metadata:
   name: ambassador-edge-stack-auth
@@ -138,7 +138,7 @@ spec:
   auth_service: "127.0.0.1:8500"
   allow_request_body: false # setting this to 'true' allows Plugin and External filters to access the body, but has performance overhead
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
   name: ambassador-edge-stack
@@ -161,7 +161,7 @@ data:
 ######################################################################
 # Configure DevPortal
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
   name: ambassador-devportal
@@ -177,7 +177,7 @@ spec:
     x-test-static: This is apro mapping
   service: "127.0.0.1:8500"
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
   name: ambassador-devportal-api
@@ -193,7 +193,7 @@ spec:
     x-test-static: This is apro api mapping
   service: "127.0.0.1:8500"
 ---
-apiVersion: getambassador.io/v1beta2
+apiVersion: getambassador.io/v2
 kind: FilterPolicy
 metadata:
   name: ambassador-internal-access-control
@@ -207,7 +207,7 @@ spec:
       filters:
         - name: ambassador-internal-access-control
 ---
-apiVersion: getambassador.io/v1beta2
+apiVersion: getambassador.io/v2
 kind: Filter
 metadata:
   name: ambassador-internal-access-control
@@ -218,7 +218,7 @@ spec:
   Internal: {}
 ---
 # This mapping needs to exist, but is never actually followed.
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
   name: callback-mapping
