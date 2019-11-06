@@ -11,7 +11,9 @@ def docker_start(logfile) -> bool:
     # Use a global here so that the child process doesn't get killed
     global child
 
-    cmd = f'docker run --rm --name ambassador -u8888:0 -p8888:8080 {os.environ["AMBASSADOR_DOCKER_IMAGE"]} --demo'
+    print(os.environ["DOCKER_NETWORK"])
+
+    cmd = f'docker run --rm --network {os.environ["DOCKER_NETWORK"]} --network-alias docker-ambassador -u8888:0 {os.environ["AMBASSADOR_DOCKER_IMAGE"]} --demo'
 
     child = pexpect.spawn(cmd, encoding='utf-8')
     child.logfile = logfile
@@ -37,7 +39,7 @@ def docker_kill(logfile):
 
 def check_http(logfile) -> bool:
     try:
-        response = requests.get('http://localhost:8888/qotm/?json=true', headers={ 'Host': 'localhost' })
+        response = requests.get('http://docker-ambassador:8080/qotm/?json=true', headers={ 'Host': 'localhost' })
         text = response.text
 
         if response.status_code != 200:

@@ -40,7 +40,7 @@ def docker_start(logfile) -> bool:
     # Use a global here so that the child process doesn't get killed
     global child
 
-    cmd = f'docker run --rm --name diagd -p9998:9998 {os.environ["AMBASSADOR_DOCKER_IMAGE"]} --dev-magic'
+    cmd = f'docker run --rm --network {os.environ["DOCKER_NETWORK"]} --network-alias diagd {os.environ["AMBASSADOR_DOCKER_IMAGE"]} --dev-magic'
 
     child = pexpect.spawn(cmd, encoding='utf-8')
     child.logfile = logfile
@@ -72,7 +72,7 @@ def wait_for_diagd(logfile) -> bool:
         logfile.write(f'...checking diagd ({tries_left})\n')
 
         try:
-            response = requests.get('http://localhost:9998/_internal/v0/ping')
+            response = requests.get('http://diagd:9998/_internal/v0/ping')
 
             if response.status_code == 200:
                 logfile.write('   got it\n')
@@ -90,7 +90,7 @@ def wait_for_diagd(logfile) -> bool:
 
 def check_http(logfile, cmd: str) -> bool:
     try:
-        response = requests.post('http://localhost:9998/_internal/v0/fs', params={ 'path': f'cmd:{cmd}' })
+        response = requests.post('http://diagd:9998/_internal/v0/fs', params={ 'path': f'cmd:{cmd}' })
         text = response.text
 
         if response.status_code != 200:
@@ -105,7 +105,7 @@ def check_http(logfile, cmd: str) -> bool:
 
 def fetch_events(logfile) -> Any:
     try:
-        response = requests.get('http://localhost:9998/_internal/v0/events')
+        response = requests.get('http://diagd:9998/_internal/v0/events')
 
         if response.status_code != 200:
             logfile.write(f'events: wanted 200 but got {response.status_code} {response.text}\n')
