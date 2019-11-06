@@ -420,6 +420,7 @@ func runE(cmd *cobra.Command, args []string) error {
 		}
 		httpHandler.AddEndpoint("/edge_stack_ui/", "Edge Stack admin UI", http.StripPrefix("/edge_stack_ui",
 			webui.New(
+				cfg,
 				dynamicClient,
 				snapshotStore.Subscribe(),
 				pubKey,

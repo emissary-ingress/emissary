@@ -32,6 +32,7 @@ import (
 	"github.com/datawire/apro/cmd/amb-sidecar/acmeclient"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/httpclient"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/middleware"
+	"github.com/datawire/apro/cmd/amb-sidecar/types"
 	"github.com/datawire/apro/cmd/amb-sidecar/watt"
 	"github.com/datawire/apro/lib/jwtsupport"
 	"github.com/datawire/apro/resourceserver/rfc6750"
@@ -43,6 +44,7 @@ type LoginClaimsV1 struct {
 }
 
 type firstBootWizard struct {
+	cfg         types.Config
 	staticfiles http.FileSystem
 	hostsGetter k8sClientDynamic.NamespaceableResourceInterface
 
@@ -56,6 +58,7 @@ func (fb *firstBootWizard) getSnapshot() watt.Snapshot {
 }
 
 func New(
+	cfg types.Config,
 	dynamicClient k8sClientDynamic.Interface,
 	snapshotCh <-chan watt.Snapshot,
 	pubkey *rsa.PublicKey,
@@ -67,6 +70,7 @@ func New(
 	var files http.FileSystem = http.Dir(dir)
 
 	ret := &firstBootWizard{
+		cfg:         cfg,
 		staticfiles: files,
 		hostsGetter: dynamicClient.Resource(k8sSchema.GroupVersionResource{Group: "getambassador.io", Version: "v2", Resource: "hosts"}),
 		pubkey:      pubkey,
@@ -264,6 +268,9 @@ func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				io.WriteString(w, "state: <invalid state>")
 			}
 		}
+	case "/edge_stack/admin/api/ambassador_cluster_id":
+		// XXX: no authentication for this one?
+		io.WriteString(w, fb.cfg.AmbassadorClusterID)
 	default:
 		if _, err := fb.staticfiles.Open(path.Clean(r.URL.Path)); os.IsNotExist(err) {
 			// use our custom 404 handler instead of http.FileServer's
