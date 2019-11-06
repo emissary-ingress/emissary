@@ -200,9 +200,11 @@ metadata:
   name: authservices.getambassador.io
 spec:
   group: getambassador.io
-  version: v1
   versions:
   - name: v1
+    served: true
+    storage: false
+  - name: v2
     served: true
     storage: true
   scope: Namespaced
@@ -210,6 +212,8 @@ spec:
     plural: authservices
     singular: authservice
     kind: AuthService
+    categories:
+    - ambassador-crds
 ---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
@@ -217,9 +221,11 @@ metadata:
   name: consulresolvers.getambassador.io
 spec:
   group: getambassador.io
-  version: v1
   versions:
   - name: v1
+    served: true
+    storage: false
+  - name: v2
     served: true
     storage: true
   scope: Namespaced
@@ -234,16 +240,31 @@ metadata:
   name: hosts.getambassador.io
 spec:
   group: getambassador.io
-  version: v1
-  versions:
-  - name: v1
-    served: true
-    storage: true
-  scope: Namespaced
   names:
     plural: hosts
     singular: host
     kind: Host
+  scope: Namespaced
+  additionalPrinterColumns:
+  - name: Hostname
+    type: string
+    JSONPath: .spec.hostname
+  - name: State
+    type: string
+    JSONPath: .status.state
+  - name: Phase Completed
+    type: string
+    JSONPath: .status.phaseCompleted
+  - name: Phase Pending
+    type: string
+    JSONPath: .status.phasePending
+  - name: Age
+    type: date
+    JSONPath: .metadata.creationTimestamp
+  versions:
+  - name: v2
+    served: true
+    storage: true
 ---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
@@ -251,9 +272,11 @@ metadata:
   name: kubernetesendpointresolvers.getambassador.io
 spec:
   group: getambassador.io
-  version: v1
   versions:
   - name: v1
+    served: true
+    storage: false
+  - name: v2
     served: true
     storage: true
   scope: Namespaced
@@ -268,9 +291,11 @@ metadata:
   name: kubernetesserviceresolvers.getambassador.io
 spec:
   group: getambassador.io
-  version: v1
   versions:
   - name: v1
+    served: true
+    storage: false
+  - name: v2
     served: true
     storage: true
   scope: Namespaced
@@ -282,114 +307,14 @@ spec:
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
 metadata:
-  name: mappings.getambassador.io
-spec:
-  group: getambassador.io
-  version: v1
-  versions:
-  - name: v1
-    served: true
-    storage: true
-  scope: Namespaced
-  names:
-    plural: mappings
-    singular: mapping
-    kind: Mapping
----
-apiVersion: apiextensions.k8s.io/v1beta1
-kind: CustomResourceDefinition
-metadata:
-  name: modules.getambassador.io
-spec:
-  group: getambassador.io
-  version: v1
-  versions:
-  - name: v1
-    served: true
-    storage: true
-  scope: Namespaced
-  names:
-    plural: modules
-    singular: module
-    kind: Module
----
-apiVersion: apiextensions.k8s.io/v1beta1
-kind: CustomResourceDefinition
-metadata:
-  name: ratelimitservices.getambassador.io
-spec:
-  group: getambassador.io
-  version: v1
-  versions:
-  - name: v1
-    served: true
-    storage: true
-  scope: Namespaced
-  names:
-    plural: ratelimitservices
-    singular: ratelimitservice
-    kind: RateLimitService
----
-apiVersion: apiextensions.k8s.io/v1beta1
-kind: CustomResourceDefinition
-metadata:
-  name: tcpmappings.getambassador.io
-spec:
-  group: getambassador.io
-  version: v1
-  versions:
-  - name: v1
-    served: true
-    storage: true
-  scope: Namespaced
-  names:
-    plural: tcpmappings
-    singular: tcpmapping
-    kind: TCPMapping
----
-apiVersion: apiextensions.k8s.io/v1beta1
-kind: CustomResourceDefinition
-metadata:
-  name: tlscontexts.getambassador.io
-spec:
-  group: getambassador.io
-  version: v1
-  versions:
-  - name: v1
-    served: true
-    storage: true
-  scope: Namespaced
-  names:
-    plural: tlscontexts
-    singular: tlscontext
-    kind: TLSContext
----
-apiVersion: apiextensions.k8s.io/v1beta1
-kind: CustomResourceDefinition
-metadata:
-  name: tracingservices.getambassador.io
-spec:
-  group: getambassador.io
-  version: v1
-  versions:
-  - name: v1
-    served: true
-    storage: true
-  scope: Namespaced
-  names:
-    plural: tracingservices
-    singular: tracingservice
-    kind: TracingService
----
-apiVersion: apiextensions.k8s.io/v1beta1
-kind: CustomResourceDefinition
-metadata:
   name: logservices.getambassador.io
 spec:
   group: getambassador.io
-  version: v1
   versions:
   - name: v1
+    served: true
+    storage: false
+  - name: v2
     served: true
     storage: true
   scope: Namespaced
@@ -397,6 +322,132 @@ spec:
     plural: logservices
     singular: logservice
     kind: LogService
+    categories:
+    - ambassador-crds
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: mappings.getambassador.io
+spec:
+  group: getambassador.io
+  versions:
+  - name: v1
+    served: true
+    storage: false
+  - name: v2
+    served: true
+    storage: true
+  scope: Namespaced
+  names:
+    plural: mappings
+    singular: mapping
+    kind: Mapping
+    categories:
+    - ambassador-crds
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: modules.getambassador.io
+spec:
+  group: getambassador.io
+  versions:
+  - name: v1
+    served: true
+    storage: false
+  - name: v2
+    served: true
+    storage: true
+  scope: Namespaced
+  names:
+    plural: modules
+    singular: module
+    kind: Module
+    categories:
+    - ambassador-crds
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: ratelimitservices.getambassador.io
+spec:
+  group: getambassador.io
+  versions:
+  - name: v1
+    served: true
+    storage: false
+  - name: v2
+    served: true
+    storage: true
+  scope: Namespaced
+  names:
+    plural: ratelimitservices
+    singular: ratelimitservice
+    kind: RateLimitService
+    categories:
+    - ambassador-crds
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: tcpmappings.getambassador.io
+spec:
+  group: getambassador.io
+  versions:
+  - name: v1
+    served: true
+    storage: false
+  - name: v2
+    served: true
+    storage: true
+  scope: Namespaced
+  names:
+    plural: tcpmappings
+    singular: tcpmapping
+    kind: TCPMapping
+    categories:
+    - ambassador-crds
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: tlscontexts.getambassador.io
+spec:
+  group: getambassador.io
+  versions:
+  - name: v1
+    served: true
+    storage: false
+  - name: v2
+    served: true
+    storage: true
+  scope: Namespaced
+  names:
+    plural: tlscontexts
+    singular: tlscontext
+    kind: TLSContext
+    categories:
+    - ambassador-crds
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: tracingservices.getambassador.io
+spec:
+  group: getambassador.io
+  versions:
+  - name: v1
+    served: true
+    storage: false
+  - name: v2
+    served: true
+    storage: true
+  scope: Namespaced
+  names:
+    plural: tracingservices
+    singular: tracingservice
+    kind: TracingService
 """
 
 RBAC_CLUSTER_SCOPE = """
