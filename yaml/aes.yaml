@@ -1,3 +1,5 @@
+# @TEMPLATE@
+
 ######################################################################
 # 'ambassador' namespace.
 ---
@@ -336,13 +338,13 @@ spec:
         - name: AMBASSADOR_ADMIN_URL
           value: "http://127.0.0.1:8877"
         volumeMounts:
-          - mountPath: "/.config/ambassador"
-            name: ambassador-edge-stack-secrets
-            readOnly: true
+        - mountPath: "/.config/ambassador"
+          name: ambassador-edge-stack-secrets
+          readOnly: true
       restartPolicy: Always
       securityContext:
         runAsUser: 8888
       volumes:
-        - name: ambassador-edge-stack-secrets
-          secret:
-            secretName: ambassador-edge-stack
+      - name: ambassador-edge-stack-secrets
+        secret:
+          secretName: ambassador-edge-stack
