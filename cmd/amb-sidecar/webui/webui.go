@@ -3,6 +3,7 @@
 package webui
 
 import (
+	"crypto/rsa"
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
@@ -13,7 +14,9 @@ import (
 	"path"
 	"strings"
 	"sync/atomic"
+	"time"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/go-acme/lego/v3/acme"
 	"github.com/pkg/errors"
 	"sigs.k8s.io/yaml"
@@ -30,11 +33,20 @@ import (
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/httpclient"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/middleware"
 	"github.com/datawire/apro/cmd/amb-sidecar/watt"
+	"github.com/datawire/apro/lib/jwtsupport"
+	"github.com/datawire/apro/resourceserver/rfc6750"
 )
+
+type LoginClaimsV1 struct {
+	LoginTokenVersion  string `json:"login_token_version"`
+	jwt.StandardClaims `json:",inline"`
+}
 
 type firstBootWizard struct {
 	staticfiles http.FileSystem
 	hostsGetter k8sClientDynamic.NamespaceableResourceInterface
+
+	pubkey *rsa.PublicKey
 
 	snapshot atomic.Value
 }
@@ -46,6 +58,7 @@ func (fb *firstBootWizard) getSnapshot() watt.Snapshot {
 func New(
 	dynamicClient k8sClientDynamic.Interface,
 	snapshotCh <-chan watt.Snapshot,
+	pubkey *rsa.PublicKey,
 ) http.Handler {
 	dir := os.Getenv("AES_WEBUI_BASE")
 	if dir == "" {
@@ -56,6 +69,7 @@ func New(
 	ret := &firstBootWizard{
 		staticfiles: files,
 		hostsGetter: dynamicClient.Resource(k8sSchema.GroupVersionResource{Group: "getambassador.io", Version: "v2", Resource: "hosts"}),
+		pubkey:      pubkey,
 	}
 	ret.snapshot.Store(watt.Snapshot{})
 	go func() {
@@ -83,11 +97,46 @@ func getTermsOfServiceURL(httpClient *http.Client, caURL string) (string, error)
 	return dir.Meta.TermsOfService, nil
 }
 
+// XXX: remove this when the webui starts actually including authorization
+func (fb *firstBootWizard) isAuthorized(r *http.Request) bool {
+	return fb._isAuthorized(r) || true
+}
+
+func (fb *firstBootWizard) _isAuthorized(r *http.Request) bool {
+	now := time.Now().Unix()
+
+	tokenString := rfc6750.GetFromHeader(r.Header)
+	if tokenString == "" {
+		return false
+	}
+
+	var claims LoginClaimsV1
+
+	jwtParser := jwt.Parser{ValidMethods: []string{"PS512"}}
+	_, err := jwtsupport.SanitizeParse(jwtParser.ParseWithClaims(tokenString, &claims, func(_ *jwt.Token) (interface{}, error) {
+		return fb.pubkey, nil
+	}))
+	if err != nil {
+		return false
+	}
+
+	return claims.VerifyExpiresAt(now, true) &&
+		claims.VerifyIssuedAt(now, true) &&
+		claims.VerifyNotBefore(now, true) &&
+		claims.LoginTokenVersion == "v1"
+}
+
 func (fb *firstBootWizard) notFound(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.WriteHeader(http.StatusNotFound)
 	file, _ := fb.staticfiles.Open("/404.html")
 	io.Copy(w, file)
+}
+
+func (fb *firstBootWizard) forbidden(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	w.WriteHeader(http.StatusForbidden)
+	io.WriteString(w, "Ambassador Edge Stack admin webui API forbidden")
 }
 
 func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -98,6 +147,10 @@ func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	switch r.URL.Path {
 	case "/edge_stack/admin/tos-url":
+		if !fb.isAuthorized(r) {
+			fb.forbidden(w, r)
+			return
+		}
 		// Do this here, instead of in the web-browser,
 		// because CORS.
 		httpClient := httpclient.NewHTTPClient(middleware.GetLogger(r.Context()), 0, false, tls.RenegotiateNever)
@@ -109,6 +162,10 @@ func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 		io.WriteString(w, tosURL)
 	case "/edge_stack/admin/yaml":
+		if !fb.isAuthorized(r) {
+			fb.forbidden(w, r)
+			return
+		}
 		dat := &ambassadorTypesV2.Host{
 			TypeMeta: &k8sTypesMetaV1.TypeMeta{
 				APIVersion: "getambassador.io/v2",
@@ -169,6 +226,10 @@ func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				errors.New("method not allowed"), nil)
 		}
 	case "/edge_stack/admin/status":
+		if !fb.isAuthorized(r) {
+			fb.forbidden(w, r)
+			return
+		}
 		needleHostname := r.URL.Query().Get("hostname")
 
 		var needle *ambassadorTypesV2.Host
