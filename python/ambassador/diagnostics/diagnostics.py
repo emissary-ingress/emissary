@@ -282,8 +282,10 @@ class DiagResult:
             'headers': headers,
             'clusters': [ x.default_missing() for x in route_clusters ],
             'host': host if host else '*',
-            'precedence': group['precedence']
         }
+
+        if 'precedence' in group:
+            route_info['precedence'] = group['precedence']
 
         self.routes.append(route_info)
         self.include_referenced_elements(group)
