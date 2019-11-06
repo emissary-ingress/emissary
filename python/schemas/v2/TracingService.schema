@@ -4,7 +4,7 @@
 
     "type": "object",
     "properties": {
-        "apiVersion": { "enum": [ "getambassador.io/v0" ] },
+        "apiVersion": { "enum": [ "getambassador.io/v2" ] },
         "generation": { "type": "integer" },
         "kind": { "type": "string" },
         "name": { "type": "string" },
@@ -16,15 +16,17 @@
             ]
         },
         
-        "driver": { "enum": ["lightstep", "zipkin"] },
+        "driver": { "enum": ["lightstep", "zipkin", "datadog"] },
         "service": { "type": "string" },
         "config": {
             "type": "object",
             "properties": {
                 "access_token_file": { "type": "string" },
+                "collector_cluster": { "type": "string" },
                 "collector_endpoint": { "type": "string" },
                 "trace_id_128bit": { "type": "boolean" },
-                "shared_span_context": { "type": "boolean" }
+                "shared_span_context": { "type": "boolean" },
+                "service_name": { "type": "string" }
             },
             "additionalProperties": false
         },

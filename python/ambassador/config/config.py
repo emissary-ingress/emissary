@@ -406,15 +406,19 @@ class Config:
         apiVersion = resource.apiVersion
         originalApiVersion = apiVersion
 
-        # XXX HACK!
-        if apiVersion.startswith('getambassador.io/'):
-            apiVersion = apiVersion.replace('getambassador.io/', 'ambassador/')
+        # The Canonical API Version for our resources always starts with "getambassador.io/",
+        # but it used to always start with "ambassador/". Translate as needed for backward
+        # compatibility.
+
+        if apiVersion.startswith('ambassador/'):
+            apiVersion = apiVersion.replace('ambassador/', 'getambassador.io/')
             resource.apiVersion = apiVersion
 
         is_ambassador = False
 
-        # Ditch the leading ambassador/ that really needs to be there.
-        if apiVersion.startswith("ambassador/"):
+        # OK. If it really starts with getambassador.io/, we're good, and we can strip
+        # that off to make comparisons and keying easier.
+        if apiVersion.startswith("getambassador.io/"):
             is_ambassador = True
             apiVersion = apiVersion.split('/')[1]
         elif apiVersion.startswith('networking.internal.knative.dev'):

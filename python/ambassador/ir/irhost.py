@@ -23,7 +23,7 @@ class IRHost(IRResource):
                  location: str,  # REQUIRED
                  namespace: Optional[str]=None,
                  kind: str="IRHost",
-                 apiVersion: str="ambassador/v2",   # Not a typo! See below.
+                 apiVersion: str="getambassador.io/v2",   # Not a typo! See below.
                  **kwargs) -> None:
 
         new_args = {
