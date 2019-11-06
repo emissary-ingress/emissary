@@ -204,10 +204,12 @@ func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	default:
-		token, ok := r.URL.Query()["token"]
-		if !ok || len(token) < 1 {
-			http.Error(w, "invalid or missing jwt token", http.StatusUnauthorized)
-			return
+		if r.URL.Path != "/edge_stack/login/" {
+			token, ok := r.URL.Query()["token"]
+			if !ok || len(token) < 1 {
+				http.Redirect(w, r, "../login/", http.StatusSeeOther)
+				return
+			}
 		}
 		if _, err := fb.staticfiles.Open(path.Clean(r.URL.Path)); os.IsNotExist(err) {
 			// use our custom 404 handler instead of http.FileServer's
