@@ -40,6 +40,7 @@ import (
 	filterhandler "github.com/datawire/apro/cmd/amb-sidecar/filters/handler"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/health"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/middleware"
+	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/secret"
 	"github.com/datawire/apro/cmd/amb-sidecar/limiter"
 	rlscontroller "github.com/datawire/apro/cmd/amb-sidecar/ratelimits"
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
@@ -412,10 +413,16 @@ func runE(cmd *cobra.Command, args []string) error {
 			httpHandler.AddEndpoint("/openapi/", "Documentation portal API", devPortalServer.Router().ServeHTTP)
 		}
 
+		// web ui
+		_, pubKey, err := secret.GetKeyPair(cfg, coreClient)
+		if err != nil {
+			return errors.Wrap(err, "secret")
+		}
 		httpHandler.AddEndpoint("/edge_stack_ui/", "Edge Stack admin UI", http.StripPrefix("/edge_stack_ui",
 			webui.New(
 				dynamicClient,
 				snapshotStore.Subscribe(),
+				pubKey,
 			)).ServeHTTP)
 
 		httpHandler.AddEndpoint("/banner/", "Diag UI banner", http.StripPrefix("/banner", banner.NewBanner(limit, redisPool)).ServeHTTP)
