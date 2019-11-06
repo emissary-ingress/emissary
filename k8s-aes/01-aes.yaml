@@ -105,6 +105,7 @@ spec:
     metadata:
       labels:
         service: ambassador-redis
+        product: aes
     spec:
       containers:
       - name: redis
@@ -292,6 +293,7 @@ spec:
         "consul.hashicorp.com/connect-inject": "false"
       labels:
         service: ambassador
+        product: aes
     spec:
       serviceAccountName: ambassador
       terminationGracePeriodSeconds: 0
