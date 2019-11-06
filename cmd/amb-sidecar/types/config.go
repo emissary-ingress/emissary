@@ -24,6 +24,7 @@ import (
 type Config struct {
 	// Ambassador
 	AmbassadorID              string `env:"AMBASSADOR_ID               ,parser=nonempty-string ,default=default "`
+	AmbassadorClusterID       string `env:"AMBASSADOR_CLUSTER_ID       ,parser=possibly-empty-string            "`
 	AmbassadorNamespace       string `env:"AMBASSADOR_NAMESPACE        ,parser=nonempty-string ,default=default "`
 	AmbassadorSingleNamespace bool   `env:"AMBASSADOR_SINGLE_NAMESPACE ,parser=empty/nonempty                   "`
 
