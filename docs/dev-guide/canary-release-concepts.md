@@ -145,3 +145,14 @@ metadata:
 
 
 We've written more about canary releases on the [Ambassador Edge Stack blog](https://blog.getambassador.io). To learn more about this pattern, you can [read more here](https://blog.getambassador.io/cloud-native-patterns-canary-release-1cb8f82d371a).
+
+<div style="border: thick solid gray;padding:0.5em"> 
+
+Ambassador Edge Stack is a community supported product with 
+[features](getambassador.io/features) available for free and 
+limited use. For unlimited access and commercial use of
+Ambassador Edge Stack, [contact sales](https:/www.getambassador.io/contact) 
+for access to [Ambassador Edge Stack Enterprise](/user-guide/ambassador-edge-stack-enterprise) today.
+
+</div>
+</p>
