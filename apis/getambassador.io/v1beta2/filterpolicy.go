@@ -72,6 +72,10 @@ func (r *Rule) Validate(namespace string) error {
 			return errors.Errorf("onRequestModification=%q is invalid; valid values are %q",
 				r.Filters[i].OnRequestModification, []string{FilterActionContinue, FilterActionBreak})
 		}
+
+		if err := r.Filters[i].IfRequestHeader.Validate(); err != nil {
+			return errors.Wrap(err, "ifRequestHeader")
+		}
 	}
 	return nil
 }

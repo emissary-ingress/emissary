@@ -3,6 +3,8 @@ package v1
 import (
 	"encoding/json"
 	"net/http"
+
+	"github.com/pkg/errors"
 )
 
 type AmbassadorID []string
@@ -46,6 +48,13 @@ func (aid AmbassadorID) Matches(envVar string) bool {
 type HeaderFieldSelector struct {
 	Name  string `json:"name"`
 	Value string `json:"value"`
+}
+
+func (selector HeaderFieldSelector) Validate() error {
+	if selector.Name == "" && selector.Value != "" {
+		return errors.New("has .value but not a .name")
+	}
+	return nil
 }
 
 func (selector HeaderFieldSelector) Matches(header http.Header) bool {
