@@ -146,6 +146,11 @@ spec:
     * `.token.Header` → `map[string]interface{}` the JWT header, as parsed JSON
     * `.token.Claims` → `map[string]interface{}` the JWT claims, as parsed JSON
     * `.token.Signature` → `string` the token signature
+    * `.httpHeader` → [`http.Header`][] a copy of the header of the
+      incoming HTTP request.  Any changes to `.httpHEader` (such as by
+      using using `.httpHeader.Set`) have no effect.  It is
+      recommended to use `.httpHeader.Get` instead of treating it as a
+      map, in order to handle capitalization correctly.
 
    Any headers listed will override (not append to) the original
    request header with that name.
@@ -156,6 +161,7 @@ spec:
    Ambassador Pro.
 
 [Go `text/template`]: https://golang.org/pkg/text/template/
+[`http.Header`]: https://golang.org/pkg/net/http/#Header
 
 #### Example `JWT` `Filter`
 
@@ -225,6 +231,11 @@ spec:
       - name: "X-Authorization"
         value: "Authenticated {{.token.Header.typ}}; sub={{.token.Claims.sub}}; name={{printf \"%q\" .token.Claims.name}}"
         # result will be: "Authenticated JWT; sub=1234567890; name="John Doe""
+      - name: "X-UA"
+        value: "{{.httpHeader.Get \"User-Agent\"}}"
+        # result will be: "curl/7.66.0" or
+        # "Mozilla/5.0 (X11; Linux x86_64; rv:69.0) Gecko/20100101 Firefox/69.0"
+        # or whatever the requesting HTTP client is
     errorResponse:
       contentType: "application/json"
       bodyTemplate: |-
