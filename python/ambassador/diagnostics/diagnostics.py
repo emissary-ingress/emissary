@@ -287,6 +287,12 @@ class DiagResult:
         if 'precedence' in group:
             route_info['precedence'] = group['precedence']
 
+        metadata_labels = group.get('metadata_labels') or {}
+        diag_class = metadata_labels.get('ambassador_diag_class') or None
+
+        if diag_class:
+            route_info['diag_class'] = diag_class
+
         self.routes.append(route_info)
         self.include_referenced_elements(group)
 
