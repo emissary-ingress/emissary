@@ -24,3 +24,14 @@ The Datawire interpretation of the guidelines for Weaveworks' implementation of 
     1.  Weavework use a Kubernetes controller that follows an "[operator pattern](https://coreos.com/blog/introducing-operators.html)": By extending the functionality offered by Kubernetes, using a custom [controller](https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/) that follows the operator pattern, the cluster can be configured to always stay in sync with the Git-based 'source of truth'.
     1.  The Weaveworks team uses "diff" and "sync" tools such as the open source [kubediff,](https://github.com/weaveworks/kubediff) as well as internal tools like "terradiff" and "ansiblediff" (for Terraform and Ansible, respectively), that compare the intended state cluster state with actual state.
     1.  The [AppDirect engineering team](https://blog.getambassador.io/fireside-chat-with-alex-gervais-accelerating-appdirect-developer-workflow-with-ambassador-7586597b1c34) write Ambassador Edge Stack configuration within each team's Kubernetes service YAML manifests. These are stored in git and follow the same review/approval process as any other code unit, and the CD pipeline listens on changes to the git repo and applies the diff to Kubernetes
+
+<div style="border: thick solid gray;padding:0.5em"> 
+
+Ambassador Edge Stack is a community supported product with 
+[features](getambassador.io/features) available for free and 
+limited use. For unlimited access and commercial use of
+Ambassador Edge Stack, [contact sales](https:/www.getambassador.io/contact) 
+for access to [Ambassador Edge Stack Enterprise](/user-guide/ambassador-edge-stack-enterprise) today.
+
+</div>
+</p>
