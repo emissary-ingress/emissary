@@ -47,6 +47,7 @@ func TestJWTInjectHeaders(t *testing.T) {
 		"X-Token-C-Iat-Decimal": "1516239022",
 		"X-Token-S":             tokenString[strings.LastIndexByte(tokenString, '.')+1:],
 		"X-Authorization":       `Authenticated JWT; sub=1234567890; name="John Doe"`,
+		"X-UA":                  "Go-http-client/1.1",
 	}
 
 	// run the filter //////////////////////////////////////////////////////
