@@ -143,6 +143,7 @@ class TLSModuleFactory:
                 if (legacy_name.startswith('_') or
                     (legacy_name == 'name') or
                     (legacy_name == 'namespace') or
+                    (legacy_name == 'metadata_labels') or
                     (legacy_name == 'location') or
                     (legacy_name == 'kind') or
                     (legacy_name == 'enabled')):

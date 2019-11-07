@@ -63,7 +63,6 @@ class IRHost(IRResource):
                     else:
                         ir.logger.info(f"Host {self.name}: creating TLSContext {ctx_name}")
 
-                        # XXX Ew. IRTLSContext should work with kwargs, no??
                         ctx = IRTLSContext(ir, aconf,
                                            rkey=self.rkey,
                                            name=ctx_name,
@@ -71,6 +70,11 @@ class IRHost(IRResource):
                                            location=self.location,
                                            hosts=[ self.hostname ],
                                            secret=tls_name)
+
+                        metadata_labels = self.get('match_labels', None)
+
+                        if metadata_labels:
+                            ctx['metadata_labels'] = metadata_labels
 
                         if ctx.is_active():
                             ctx.referenced_by(self)

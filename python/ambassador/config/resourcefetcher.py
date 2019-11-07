@@ -134,7 +134,8 @@ class ResourceFetcher:
             self.finalize()
 
     def parse_yaml(self, serialization: str, k8s=False, rkey: Optional[str]=None,
-                   filename: Optional[str]=None, finalize: bool=True, namespace: Optional[str]=None) -> None:
+                   filename: Optional[str]=None, finalize: bool=True, namespace: Optional[str]=None,
+                   metadata_labels: Optional[Dict[str, str]]=None) -> None:
         # self.logger.debug("%s: parsing %d byte%s of YAML:\n%s" %
         #                   (self.location, len(serialization), "" if (len(serialization) == 1) else "s",
         #                    serialization))
@@ -145,7 +146,8 @@ class ResourceFetcher:
         try:
             # UGH. This parse_yaml is the one we imported from utils. XXX This needs to be fixed.
             objects = parse_yaml(serialization)
-            self.parse_object(objects=objects, k8s=k8s, rkey=rkey, filename=filename, namespace=namespace)
+            self.parse_object(objects=objects, k8s=k8s, rkey=rkey, filename=filename,
+                              namespace=namespace)
         except yaml.error.YAMLError as e:
             self.aconf.post_error("%s: could not parse YAML: %s" % (self.location, e))
 
@@ -265,6 +267,7 @@ class ResourceFetcher:
         metadata = obj.get('metadata') or {}
         name = metadata.get('name')
         namespace = metadata.get('namespace') or 'default'
+        metadata_labels: Optional[Dict[str, str]] = metadata.get('labels')
         generation = metadata.get('generation', 1)
         spec = obj.get('spec') or {}
 
@@ -302,6 +305,9 @@ class ResourceFetcher:
         amb_object['namespace'] = namespace
         amb_object['kind'] = kind
         amb_object['generation'] = generation
+
+        if metadata_labels:
+            amb_object['metadata_labels'] = metadata_labels
 
         # Done. Parse it.
         self.parse_object([ amb_object ], k8s=False, filename=self.filename, rkey=resource_identifier)
@@ -369,7 +375,7 @@ class ResourceFetcher:
 
         # self.logger.debug("%s PROCESS %s updated rkey to %s" % (self.location, obj['kind'], rkey))
 
-        # Force the namespace, if need be.
+        # Force the namespace and metadata_labels, if need be.
         if namespace and not obj.get('namespace', None):
             obj['namespace'] = namespace
 
@@ -394,6 +400,7 @@ class ResourceFetcher:
 
     def handle_k8s_ingress(self, k8s_object: AnyDict) -> HandlerResult:
         metadata = k8s_object.get('metadata', None)
+        metadata_labels: Optional[Dict[str, str]] = metadata.get('labels')
         ingress_name = metadata.get('name') if metadata else None
         ingress_namespace = metadata.get('namespace', 'default') if metadata else None
 
@@ -424,7 +431,7 @@ class ResourceFetcher:
         if skip:
             return None
 
-        # Let's see if our Ingress resource has Ambassdaor annotations on it
+        # Let's see if our Ingress resource has Ambassador annotations on it
         annotations = metadata.get('annotations', {})
         ambassador_annotations = annotations.get('getambassador.io/config', None)
 
@@ -467,6 +474,9 @@ class ResourceFetcher:
                     }
                 }
 
+                if metadata_labels:
+                    ingress_tls_context['metadata']['labels'] = metadata_labels
+
                 tls_hosts = tls.get('hosts', None)
                 if tls_hosts is not None:
                     ingress_tls_context['spec']['hosts'] = tls_hosts
@@ -494,6 +504,9 @@ class ResourceFetcher:
                     'service': f'{db_service_name}.{ingress_namespace}:{db_service_port}'
                 }
             }
+
+            if metadata_labels:
+                default_backend_mapping['metadata']['labels'] = metadata_labels
 
             self.logger.info(f"Generated mapping from Ingress {ingress_name}: {default_backend_mapping}")
             self.handle_k8s_crd(default_backend_mapping)
@@ -533,6 +546,9 @@ class ResourceFetcher:
                     }
                 }
 
+                if metadata_labels:
+                    path_mapping['metadata']['labels'] = metadata_labels
+
                 if rule_host is not None:
                     path_mapping['spec']['host'] = rule_host
 
@@ -549,6 +565,12 @@ class ResourceFetcher:
             self.aconf.k8s_status_updates[ingress_name] = ingress_status_update
 
         if parsed_ambassador_annotations is not None:
+            # Copy metadata_labels to parsed annotations, if need be.
+            if metadata_labels:
+                for p in parsed_ambassador_annotations:
+                    if p.get('metadata_labels') is None:
+                        p['metadata_labels'] = metadata_labels
+
             return resource_identifier, parsed_ambassador_annotations
 
         return None
@@ -584,6 +606,7 @@ class ResourceFetcher:
             return None
 
         metadata = k8s_object.get('metadata', None)
+        metadata_labels: Optional[Dict[str, str]] = metadata.get('labels')
         resource_name = metadata.get('name') if metadata else None
         resource_namespace = metadata.get('namespace', 'default') if metadata else None
         resource_subsets = k8s_object.get('subsets', None)
@@ -694,6 +717,10 @@ class ResourceFetcher:
                     'addresses': addresses,
                     'ports': port_dict
                 }
+
+                if metadata_labels:
+                    self.k8s_endpoints[resource_identifier]['metadata_labels'] = metadata_labels
+
             else:
                 self.logger.debug(f"ignoring K8s Endpoints {resource_identifier} with no routable ports")
 
@@ -707,6 +734,7 @@ class ResourceFetcher:
         # Again, we're trusting that the input isn't overly bloated on that latter bit.
 
         metadata = k8s_object.get('metadata', None)
+        metadata_labels: Optional[Dict[str, str]] = metadata.get('labels')
         resource_name = metadata.get('name') if metadata else None
         resource_namespace = metadata.get('namespace', 'default') if metadata else None
 
@@ -757,6 +785,9 @@ class ResourceFetcher:
                 'ports': ports
             }
 
+            if metadata_labels:
+                self.k8s_services[resource_identifier]['metadata_labels'] = metadata_labels
+
             selector = spec.get('selector', {})
 
             if self.is_ambassador_service(labels, selector):
@@ -774,6 +805,11 @@ class ResourceFetcher:
 
             try:
                 objects = parse_yaml(annotations, namespace=resource_namespace)
+
+                if metadata_labels:
+                    for obj in objects:
+                        if obj.get('metadata_labels') is None:
+                            obj['metadata_labels'] = metadata_labels
             except yaml.error.YAMLError as e:
                 self.logger.debug("could not parse YAML: %s" % e)
 
@@ -785,6 +821,7 @@ class ResourceFetcher:
 
         secret_type = k8s_object.get('type', None)
         metadata = k8s_object.get('metadata', None)
+        metadata_labels: Optional[Dict[str, str]] = metadata.get('labels')
         resource_name = metadata.get('name') if metadata else None
         resource_namespace = metadata.get('namespace', 'default') if metadata else None
         data = k8s_object.get('data', None)
@@ -841,6 +878,9 @@ class ResourceFetcher:
             'namespace': resource_namespace,
             'secret_type': secret_type
         }
+
+        if metadata_labels:
+            secret_info['metadata_labels'] = metadata_labels
 
         for key, value in data.items():
             secret_info[key.replace('.', '_')] = value
@@ -930,6 +970,7 @@ class ResourceFetcher:
         for key, k8s_svc in self.k8s_services.items():
             k8s_name = k8s_svc['name']
             k8s_namespace = k8s_svc['namespace']
+            k8s_metadata_labels = k8s_svc.get('metadata_labels', None)
 
             target_ports = {}
             target_addrs = []
@@ -1066,7 +1107,7 @@ class ResourceFetcher:
                     'port': target_port
                 } for target_addr in target_addrs ]
 
-            self.services[f'k8s-{k8s_name}-{k8s_namespace}'] = {
+            svc_resource = {
                 'apiVersion': 'getambassador.io/v2',
                 'ambassador_id': Config.ambassador_id,
                 'kind': 'Service',
@@ -1074,6 +1115,11 @@ class ResourceFetcher:
                 'namespace': k8s_namespace,
                 'endpoints': svc_endpoints
             }
+
+            if k8s_metadata_labels:
+                svc_resource['metadata_labels'] = k8s_metadata_labels
+
+            self.services[f'k8s-{k8s_name}-{k8s_namespace}'] = svc_resource
 
         # OK. After all that, go turn all of the things in self.services into Ambassador
         # Service resources.

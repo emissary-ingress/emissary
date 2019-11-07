@@ -84,7 +84,8 @@ class IRCORS (IRResource):
         raw_dict = super().as_dict()
 
         for key in list(raw_dict):
-            if key in ["_active", "_errored", "_referenced_by", "_rkey", "kind", "location", "name", "namespace"]:
+            if key in ["_active", "_errored", "_referenced_by", "_rkey",
+                       "kind", "location", "name", "namespace", "metadata_labels"]:
                 raw_dict.pop(key, None)
 
         return raw_dict

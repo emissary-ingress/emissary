@@ -42,6 +42,8 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
         # a CoreMappingKey -- if it appears, it can't have multiple values within an IRHTTPMappingGroup.
         'labels': True,
         'load_balancer': True,
+        # 'metadata_labels' will get flattened by merging. The group gets all the labels that all its
+        # Mappings have.
         'method': True,
         'prefix': True,
         'prefix_regex': True,
@@ -220,6 +222,7 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
 
         add_request_headers: Dict[str, Any] = {}
         add_response_headers: Dict[str, Any] = {}
+        metadata_labels: Dict[str, str] = {}
 
         for mapping in sorted(self.mappings, key=lambda m: m.route_weight):
             # if verbose:
@@ -239,12 +242,21 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
             add_request_headers.update(mapping.get('add_request_headers', {}))
             add_response_headers.update(mapping.get('add_response_headers', {}))
 
+            # Should we have higher weights win over lower if there are conflicts?
+            # Should we disallow conflicts?
+            metadata_labels.update(mapping.get('metadata_labels') or {})
+
         if add_request_headers:
             self.add_request_headers = add_request_headers
         if add_response_headers:
             self.add_response_headers = add_response_headers
+
+        if metadata_labels:
+            self.metadata_labels = metadata_labels
+
         if self.get('load_balancer', None) is None:
             self['load_balancer'] = ir.ambassador_module.load_balancer
+
         # if verbose:
         #     self.ir.logger.debug("%s after flattening %s" % (self, self.as_json()))
 
