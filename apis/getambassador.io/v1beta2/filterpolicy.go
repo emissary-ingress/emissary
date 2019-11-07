@@ -18,12 +18,12 @@ type Rule struct {
 }
 
 type FilterReference struct {
-	Name                  string              `json:"name"`
-	Namespace             string              `json:"namespace"`
-	OnResponse            string              `json:"onResponse"`
-	OnRequestModification string              `json:"onRequestModification"`
-	IfRequestHeader       HeaderFieldSelector `json:"ifRequestHeader"`
-	Arguments             interface{}         `json:"arguments"`
+	Name            string              `json:"name"`
+	Namespace       string              `json:"namespace"`
+	OnDeny          string              `json:"onDeny"`
+	OnAllow         string              `json:"onAllow"`
+	IfRequestHeader HeaderFieldSelector `json:"ifRequestHeader"`
+	Arguments       interface{}         `json:"arguments"`
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -53,24 +53,24 @@ func (r *Rule) Validate(namespace string) error {
 			r.Filters[i].Namespace = namespace
 		}
 
-		switch r.Filters[i].OnResponse {
+		switch r.Filters[i].OnDeny {
 		case "":
-			r.Filters[i].OnResponse = FilterActionBreak
+			r.Filters[i].OnDeny = FilterActionBreak
 		case FilterActionContinue, FilterActionBreak:
 			// do nothing
 		default:
-			return errors.Errorf("onResponse=%q is invalid; valid values are %q",
-				r.Filters[i].OnResponse, []string{FilterActionContinue, FilterActionBreak})
+			return errors.Errorf("onDeny=%q is invalid; valid values are %q",
+				r.Filters[i].OnDeny, []string{FilterActionContinue, FilterActionBreak})
 		}
 
-		switch r.Filters[i].OnRequestModification {
+		switch r.Filters[i].OnAllow {
 		case "":
-			r.Filters[i].OnRequestModification = FilterActionContinue
+			r.Filters[i].OnAllow = FilterActionContinue
 		case FilterActionContinue, FilterActionBreak:
 			// do nothing
 		default:
-			return errors.Errorf("onRequestModification=%q is invalid; valid values are %q",
-				r.Filters[i].OnRequestModification, []string{FilterActionContinue, FilterActionBreak})
+			return errors.Errorf("onAllow=%q is invalid; valid values are %q",
+				r.Filters[i].OnAllow, []string{FilterActionContinue, FilterActionBreak})
 		}
 
 		if err := r.Filters[i].IfRequestHeader.Validate(); err != nil {

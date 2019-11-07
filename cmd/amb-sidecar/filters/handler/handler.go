@@ -224,24 +224,24 @@ func (c *FilterMux) filter(ctx context.Context, request *filterapi.FilterRequest
 		}
 		switch response := response.(type) {
 		case *filterapi.HTTPResponse:
-			switch filterRef.OnResponse {
+			switch filterRef.OnDeny {
 			case crd.FilterActionBreak:
 				return response, nil
 			case crd.FilterActionContinue:
 				// do nothing
 			default:
-				panic(errors.Errorf("unexpected filterRef.OnResponse: %q", filterRef.OnResponse))
+				panic(errors.Errorf("unexpected filterRef.OnDeny: %q", filterRef.OnDeny))
 			}
 		case *filterapi.HTTPRequestModification:
 			filterutil.ApplyRequestModification(request, response)
 			sumResponse.Header = append(sumResponse.Header, response.Header...)
-			switch filterRef.OnRequestModification {
+			switch filterRef.OnAllow {
 			case crd.FilterActionBreak:
 				return sumResponse, nil
 			case crd.FilterActionContinue:
 				// do nothing
 			default:
-				panic(errors.Errorf("unexpected filterRef.OnRequestModification: %q", filterRef.OnRequestModification))
+				panic(errors.Errorf("unexpected filterRef.OnAllow: %q", filterRef.OnAllow))
 			}
 		default:
 			panic(errors.Errorf("unexpected filter response type %T", response))

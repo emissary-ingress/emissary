@@ -22,8 +22,8 @@ spec:
     path: /filter-actions/on/*
     filters:
      - name: jwt-filter
-       onResponse: continue
-       onRequestModification: break
+       onDeny: continue
+       onAllow: break
      - name: uaa
 
 
@@ -53,5 +53,5 @@ spec:
      - name: jwt-filter
        ifRequestHeader:
          name: "Authorization"
-       onRequestModification: break
+       onAllow: break
      - name: uaa
