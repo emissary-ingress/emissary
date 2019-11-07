@@ -42,12 +42,16 @@ func (ml *MockLimiter) GetClaims() *licensekeys.LicenseClaimsLatest {
 	return nil
 }
 
-func (ml *MockLimiter) GetLimitValueAtPointInTime(toCheck licensekeys.Limit) int {
-	if val, ok := ml.customHardLimits[toCheck]; ok {
+func (ml *MockLimiter) GetLimitValueAtPointInTime(toCheck *licensekeys.Limit) int {
+	if val, ok := ml.customHardLimits[*toCheck]; ok {
 		return val
 	} else {
-		return licensekeys.GetLimitDefault(toCheck)
+		return licensekeys.GetLimitDefault(*toCheck)
 	}
+}
+
+func (ml *MockLimiter) GetFeatureUsageValueAtPointInTime(toCheck *licensekeys.Limit) int {
+	return 0
 }
 
 func (ml *MockLimiter) IsHardLimitAtPointInTime() bool {
@@ -55,5 +59,5 @@ func (ml *MockLimiter) IsHardLimitAtPointInTime() bool {
 }
 
 func (ml *MockLimiter) CreateCountLimiter(limit *licensekeys.Limit) (limiter.CountLimiter, error) {
-	return NewMockLimitCounter(ml.GetLimitValueAtPointInTime(*limit)), nil
+	return NewMockLimitCounter(ml.GetLimitValueAtPointInTime(limit)), nil
 }

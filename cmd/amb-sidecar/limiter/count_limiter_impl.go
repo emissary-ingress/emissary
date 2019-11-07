@@ -144,7 +144,7 @@ func (this *CountLimiterImpl) attemptToChange(incrementing bool) (int, error) {
 		return -1, errors.New("Int32 overflow")
 	}
 	// Are we going to exceed limits, and is that a problem?
-	currentLimit := this.limiter.GetLimitValueAtPointInTime(*this.limit)
+	currentLimit := this.limiter.GetLimitValueAtPointInTime(this.limit)
 	if currentLimit != -1 && newUsage > currentLimit && this.limiter.IsHardLimitAtPointInTime() {
 		// If we're decrementing than just ignore the limit value increase.
 		// If you wanna get closer to your hard limit that's more than fine.
@@ -180,6 +180,10 @@ func (this *CountLimiterImpl) IsExceedingAtPointInTime() (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	currentLimit := this.limiter.GetLimitValueAtPointInTime(*this.limit)
+	currentLimit := this.limiter.GetLimitValueAtPointInTime(this.limit)
 	return currentValue > currentLimit, nil
+}
+
+func (this *CountLimiterImpl) GetUsageAtPointInTime() (int, error) {
+	return this.getUnderlyingValue()
 }

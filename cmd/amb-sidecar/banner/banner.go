@@ -29,9 +29,15 @@ func NewBanner(limit limiter.Limiter, redisPool *pool.Pool) http.Handler {
 
 func (b *banner) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	licensedFeaturesOverLimit := []string{}
-	for _, feature := range licensekeys.ListKnownFeatures() {
-		// TODO(alexgervais): Filter on actual `usage` >= `limit`
-		licensedFeaturesOverLimit = append(licensedFeaturesOverLimit, feature)
+	for _, limitName := range licensekeys.ListKnownLimits() {
+		limit, ok := licensekeys.ParseLimit(limitName)
+		if ok {
+			limitValue := b.limit.GetLimitValueAtPointInTime(&limit)
+			usageValue := b.limit.GetFeatureUsageValueAtPointInTime(&limit)
+			if usageValue >= limitValue {
+				licensedFeaturesOverLimit = append(licensedFeaturesOverLimit, limitName)
+			}
+		}
 	}
 	data := map[string]interface{}{
 		"features_over_limit": licensedFeaturesOverLimit,
