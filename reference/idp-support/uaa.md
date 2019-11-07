@@ -68,7 +68,7 @@ jwt:
 
    **Note:** The `scopes` field was set when creating the client in step 1. You can add any scopes you would like when creating the client.
 
-   <div style="border: thick solid gray;padding:0.5em"> 
+<div style="border: thick solid gray;padding:0.5em"> 
 
 Ambassador Edge Stack is a community supported product with 
 [features](getambassador.io/features) available for free and 
