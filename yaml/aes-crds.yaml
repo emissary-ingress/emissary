@@ -11,6 +11,9 @@ spec:
   versions:
   - name: v1
     served: true
+    storage: false
+  - name: v2
+    served: true
     storage: true
   scope: Namespaced
   names:
@@ -31,6 +34,9 @@ spec:
   version: v1
   versions:
   - name: v1
+    served: true
+    storage: false
+  - name: v2
     served: true
     storage: true
   scope: Namespaced
@@ -68,6 +74,7 @@ spec:
   - name: Age
     type: date
     JSONPath: .metadata.creationTimestamp
+  version: v2
   versions:
   - name: v2
     served: true
@@ -84,6 +91,9 @@ spec:
   version: v1
   versions:
   - name: v1
+    served: true
+    storage: false
+  - name: v2
     served: true
     storage: true
   scope: Namespaced
@@ -104,6 +114,9 @@ spec:
   versions:
   - name: v1
     served: true
+    storage: false
+  - name: v2
+    served: true
     storage: true
   scope: Namespaced
   names:
@@ -122,6 +135,9 @@ spec:
   version: v1
   versions:
   - name: v1
+    served: true
+    storage: false
+  - name: v2
     served: true
     storage: true
   scope: Namespaced
@@ -144,6 +160,9 @@ spec:
   versions:
   - name: v1
     served: true
+    storage: false
+  - name: v2
+    served: true
     storage: true
   scope: Namespaced
   names:
@@ -164,6 +183,9 @@ spec:
   version: v1
   versions:
   - name: v1
+    served: true
+    storage: false
+  - name: v2
     served: true
     storage: true
   scope: Namespaced
@@ -186,6 +208,9 @@ spec:
   versions:
   - name: v1
     served: true
+    storage: false
+  - name: v2
+    served: true
     storage: true
   scope: Namespaced
   names:
@@ -206,6 +231,9 @@ spec:
   version: v1
   versions:
   - name: v1
+    served: true
+    storage: false
+  - name: v2
     served: true
     storage: true
   scope: Namespaced
@@ -228,6 +256,9 @@ spec:
   versions:
   - name: v1
     served: true
+    storage: false
+  - name: v2
+    served: true
     storage: true
   scope: Namespaced
   names:
@@ -248,6 +279,9 @@ spec:
   version: v1
   versions:
   - name: v1
+    served: true
+    storage: false
+  - name: v2
     served: true
     storage: true
   scope: Namespaced
@@ -270,6 +304,9 @@ spec:
   versions:
   - name: v1beta2
     served: true
+    storage: false
+  - name: v2
+    served: true
     storage: true
   scope: Namespaced
   names:
@@ -291,6 +328,9 @@ spec:
   versions:
   - name: v1beta2
     served: true
+    storage: false
+  - name: v2
+    served: true
     storage: true
   scope: Namespaced
   names:
@@ -310,9 +350,12 @@ spec:
   group: getambassador.io
   version: v1beta2
   versions:
-    - name: v1beta2
-      served: true
-      storage: true
+  - name: v1beta2
+    served: true
+    storage: false
+  - name: v2
+    served: true
+    storage: true
   scope: Namespaced
   names:
     plural: ratelimits
