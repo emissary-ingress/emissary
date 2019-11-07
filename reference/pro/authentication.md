@@ -70,8 +70,8 @@ Session Management.
 [oidc-session]: https://openid.net/specs/openid-connect-session-1_0.html
 
 This is done by having your application direct the web browser `POST`
-to `/.ambassador/oauth2/logout`.  There are 2 form-encoded values that
-you need to include:
+*and navigate* to `/.ambassador/oauth2/logout`.  There are 2
+form-encoded values that you need to include:
 
  1. `realm`: The `name.namespace` of the `Filter` that you want to log
     out of.  This may be submitted as part of the POST body, or may be set as an URL query parameter.
@@ -81,7 +81,7 @@ you need to include:
 For example:
 
 ```html
-<form method="POST" action="/.ambassador/oauth2/logout">
+<form method="POST" action="/.ambassador/oauth2/logout" target="_blank">
   <input type="hidden" name="realm" value="myfilter.mynamespace" />
   <input type="hidden" name="_xsrf" value="{{ .Cookie.Value }}" />
   <input type="submit" value="Log out" />
@@ -91,7 +91,7 @@ For example:
 or
 
 ```html
-<form method="POST" action="/.ambassador/oauth2/logout?realm=myfilter.mynamespace">
+<form method="POST" action="/.ambassador/oauth2/logout?realm=myfilter.mynamespace" target="_blank">
   <input type="hidden" name="_xsrf" value="{{ .Cookie.Value }}" />
   <input type="submit" value="Log out" />
 </form>
