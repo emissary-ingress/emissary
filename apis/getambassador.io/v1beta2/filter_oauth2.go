@@ -136,13 +136,8 @@ type FilterOAuth2Arguments struct {
 }
 
 type OAuth2Redirect struct {
-	HTTPStatusCode  int           `json:"httpStatusCode"`
-	IfRequestHeader *OAuth2Header `json:"ifRequestHeader"`
-}
-
-type OAuth2Header struct {
-	Name  string  `json:"name"`
-	Value *string `json:"value"`
+	HTTPStatusCode  int                 `json:"httpStatusCode"`
+	IfRequestHeader HeaderFieldSelector `json:"ifRequestHeader"`
 }
 
 func (m *FilterOAuth2Arguments) Validate() error {
@@ -152,6 +147,12 @@ func (m *FilterOAuth2Arguments) Validate() error {
 		// using an RFC 7235-compatible authentication scheme
 		// to talk with us; 401 would be inappropriate.
 		m.InsteadOfRedirect.HTTPStatusCode = http.StatusForbidden
+
+		if err := m.InsteadOfRedirect.IfRequestHeader.Validate(); err != nil {
+			err = errors.Wrap(err, "ifRequestHeader")
+			err = errors.Wrap(err, "insteadOfRedirect")
+			return err
+		}
 	}
 
 	return nil

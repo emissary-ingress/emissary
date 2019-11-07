@@ -1,5 +1,12 @@
 ## Ambassador Pro CHANGELOG
 
+## 0.9.2 (TBD)
+
+Configuration
+
+ * Feature: `FilterPolicy` may now set `ifRequestHeader` to only apply a `Filter` to requests with appropriate headers.
+ * Feature: `FilterPolicy` may now set `onDeny` and `onAllow` to modify how `Filter`s chain together.
+
 ## 0.9.1 (2019-10-22)
 
 Configuration

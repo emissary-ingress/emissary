@@ -325,14 +325,7 @@ func (sessionInfo *SessionInfo) handleUnauthenticatedProxyRequest(ctx context.Co
 	}
 
 	if sessionInfo.c.Arguments.InsteadOfRedirect != nil {
-		noRedirect := true
-		if sessionInfo.c.Arguments.InsteadOfRedirect.IfRequestHeader != nil {
-			if sessionInfo.c.Arguments.InsteadOfRedirect.IfRequestHeader.Value != nil {
-				noRedirect = filterutil.GetHeader(request).Get(sessionInfo.c.Arguments.InsteadOfRedirect.IfRequestHeader.Name) == *sessionInfo.c.Arguments.InsteadOfRedirect.IfRequestHeader.Value
-			} else {
-				noRedirect = filterutil.GetHeader(request).Get(sessionInfo.c.Arguments.InsteadOfRedirect.IfRequestHeader.Name) != ""
-			}
-		}
+		noRedirect := sessionInfo.c.Arguments.InsteadOfRedirect.IfRequestHeader.Matches(filterutil.GetHeader(request))
 		if noRedirect {
 			return &filterapi.HTTPResponse{
 				StatusCode: sessionInfo.c.Arguments.InsteadOfRedirect.HTTPStatusCode,
