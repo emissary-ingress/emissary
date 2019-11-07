@@ -136,13 +136,8 @@ type FilterOAuth2Arguments struct {
 }
 
 type OAuth2Redirect struct {
-	HTTPStatusCode  int           `json:"httpStatusCode"`
-	IfRequestHeader *OAuth2Header `json:"ifRequestHeader"`
-}
-
-type OAuth2Header struct {
-	Name  string  `json:"name"`
-	Value *string `json:"value"`
+	HTTPStatusCode  int                 `json:"httpStatusCode"`
+	IfRequestHeader HeaderFieldSelector `json:"ifRequestHeader"`
 }
 
 func (m *FilterOAuth2Arguments) Validate() error {

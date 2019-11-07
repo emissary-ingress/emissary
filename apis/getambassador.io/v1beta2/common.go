@@ -2,6 +2,7 @@ package v1
 
 import (
 	"encoding/json"
+	"net/http"
 )
 
 type AmbassadorID []string
@@ -40,4 +41,20 @@ func (aid AmbassadorID) Matches(envVar string) bool {
 		}
 	}
 	return false
+}
+
+type HeaderFieldSelector struct {
+	Name  string `json:"name"`
+	Value string `json:"value"`
+}
+
+func (selector HeaderFieldSelector) Matches(header http.Header) bool {
+	if selector.Name == "" {
+		return true
+	}
+	value := header.Get(selector.Name)
+	if selector.Value == "" {
+		return value != ""
+	}
+	return value == selector.Value
 }
