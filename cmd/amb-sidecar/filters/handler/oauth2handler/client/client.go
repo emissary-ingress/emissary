@@ -199,12 +199,7 @@ func (c *OAuth2Client) ServeHTTP(w http.ResponseWriter, r *http.Request, ctx con
 			return
 		}
 
-		doubleSubmission := r.Header.Get("X-Ambassador-Xsrf")
-		if doubleSubmission == "" {
-			doubleSubmission = r.PostFormValue("_xsrf")
-		}
-
-		if doubleSubmission != xsrfToken {
+		if r.PostFormValue("_xsrf") != xsrfToken {
 			middleware.ServeErrorResponse(w, ctx, http.StatusForbidden,
 				errors.New("XSRF protection"), nil)
 			return
