@@ -51,7 +51,7 @@
                  "idle_time": {
                     "type": "integer"                     
                  },
-                 "interval: {
+                 "interval": {
                     "type": "integer"                     
                  }
             }
