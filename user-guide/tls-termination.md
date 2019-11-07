@@ -119,3 +119,14 @@ In Kubernetes, Jetstack's `cert-manager` provides a simple way to manage certifi
 ### Enable advanced TLS options
 
 Ambassador Edge Stack exposes configuration for many more advanced options around TLS termination, origination, client certificate validation, and SNI support. See the full [TLS reference](/reference/core/tls) for more information.
+
+<div style="border: thick solid gray;padding:0.5em"> 
+
+Ambassador Edge Stack is a community supported product with 
+[features](getambassador.io/features) available for free and 
+limited use. For unlimited access and commercial use of
+Ambassador Edge Stack, [contact sales](https:/www.getambassador.io/contact) 
+for access to [Ambassador Edge Stack Enterprise](/user-guide/ambassador-edge-stack-enterprise) today.
+
+</div>
+</p>

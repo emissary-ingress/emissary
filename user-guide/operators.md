@@ -13,3 +13,14 @@ In more detail, Ambassador Edge Stack supports operations in the following ways:
 * Integrated [diagnostics](/reference/statistics) and [tracing](/user-guide/tracing-tutorial) for troubleshooting
 * Supports running multiple Ambassador Edge Stacks in a cluster, with different versions, simplifying upgrades and testing
 * [Integrates with Istio](/user-guide/with-istio), if you need a service mesh
+
+<div style="border: thick solid gray;padding:0.5em"> 
+
+Ambassador Edge Stack is a community supported product with 
+[features](getambassador.io/features) available for free and 
+limited use. For unlimited access and commercial use of
+Ambassador Edge Stack, [contact sales](https:/www.getambassador.io/contact) 
+for access to [Ambassador Edge Stack Enterprise](/user-guide/ambassador-edge-stack-enterprise) today.
+
+</div>
+</p>
