@@ -41,6 +41,7 @@ class IRAmbassador (IRResource):
         'cluster_idle_timeout_ms',
         'liveness_probe',
         'load_balancer',
+        'keepalive',
         'readiness_probe',
         'regex_max_size',
         'regex_type',
@@ -224,6 +225,9 @@ class IRAmbassador (IRResource):
                 ir.save_filter(self.buffer)
             else:
                 return False
+
+        if amod and ('keepalive' in amod):
+            self.keepalive = amod['keepalive']
 
         # Finally, default CORS stuff.
         if amod and ('cors' in amod):
