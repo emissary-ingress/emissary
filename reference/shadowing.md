@@ -70,3 +70,14 @@ It is possible to shadow a portion of the traffic by specifying the `weight` in 
 ```
 
 In the example above, only the 10% of the traffic will be forwarded to the shadowing service.
+
+<div style="border: thick solid gray;padding:0.5em"> 
+
+Ambassador Edge Stack is a community supported product with 
+[features](getambassador.io/features) available for free and 
+limited use. For unlimited access and commercial use of
+Ambassador Edge Stack, [contact sales](https:/www.getambassador.io/contact) 
+for access to [Ambassador Edge Stack Enterprise](/user-guide/ambassador-edge-stack-enterprise) today.
+
+</div>
+</p>
