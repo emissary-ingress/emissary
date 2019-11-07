@@ -8,7 +8,7 @@ Installation and configuration of Consul Connect is outside of the scope of this
 
 ### Ambassador Edge Stack
 
-Install and configure Ambassador. If you are using a cloud provider such as Amazon, Google, or Azure, you can type:
+Install and configure Ambassador Edge Stack. If you are using a cloud provider such as Amazon, Google, or Azure, you can type:
 
 ```
 kubectl apply -f https://getambassador.io/yaml/ambassador/ambassador-rbac.yaml
@@ -173,3 +173,14 @@ Finally, test the service with cURL.
 ```
 curl -v https://{AMBASSADOR-EXTERNAL-IP}/qotm/
 ```
+
+<div style="border: thick solid gray;padding:0.5em"> 
+
+Ambassador Edge Stack is a community supported product with 
+[features](getambassador.io/features) available for free and 
+limited use. For unlimited access and commercial use of
+Ambassador Edge Stack, [contact sales](https:/www.getambassador.io/contact) 
+for access to [Ambassador Edge Stack Enterprise](/user-guide/ambassador-edge-stack-enterprise) today.
+
+</div>
+</p>
