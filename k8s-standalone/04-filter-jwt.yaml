@@ -66,6 +66,10 @@ spec:
       - name: "X-Authorization"
         value: "Authenticated {{.token.Header.typ}}; sub={{.token.Claims.sub}}; name={{printf \"%q\" .token.Claims.name}}"
         # result will be: "Authenticated JWT; sub=1234567890; name="John Doe""
+      - name: "X-UA"
+        value: "{{.httpHeader.Get \"User-Agent\"}}"
+        # result will be: "Go-http-client/1.1" or "curl/7.66.0" or whatever
+
 ---
 apiVersion: getambassador.io/v1beta2
 kind: FilterPolicy
