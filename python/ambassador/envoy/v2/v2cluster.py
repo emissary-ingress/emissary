@@ -26,7 +26,7 @@ if TYPE_CHECKING:
 class V2Cluster(dict):
     def __init__(self, config: 'V2Config', cluster: IRCluster) -> None:
         super().__init__()
-
+        
         dns_lookup_family = 'V4_ONLY'
 
         if cluster.enable_ipv6:
@@ -81,6 +81,28 @@ class V2Cluster(dict):
                 envoy_ctx = V2TLSContext(ctx=ctx, host_rewrite=cluster.get('host_rewrite', None))
                 if envoy_ctx:
                     fields['tls_context'] = envoy_ctx
+
+
+        keepalive = cluster.get('keepalive', None)
+        #in case of empty keepalive for service, we can try to fallback to default
+        if keepalive is None:
+            if cluster.ir.ambassador_module and cluster.ir.ambassador_module.get('keepalive', None):
+                keepalive = cluster.ir.ambassador_module['keepalive']
+
+        if keepalive is not None:
+            keepalive_options = {}    
+            keepalive_time = keepalive.get('time', None) 
+            keepalive_interval = keepalive.get('interval', None) 
+            keepalive_probes = keepalive.get('probes', None) 
+            
+            if keepalive_time is not None:
+                keepalive_options['keepalive_time'] = keepalive_time
+            if keepalive_interval is not None:
+                keepalive_options['keepalive_interval'] = keepalive_interval
+            if keepalive_probes is not None:
+                keepalive_options['keepalive_probes'] = keepalive_probes
+                
+            fields['upstream_connection_options'] = {'tcp_keepalive' : keepalive_options }
 
         self.update(fields)
 
