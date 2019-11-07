@@ -70,7 +70,10 @@ bootstrap() {
             echo "Unable to determine docker group-id"
             exit 1
         fi
-        docker run --network ${BUILDER_NAME} --network-alias "builder" --group-add ${DOCKER_GID} -d --rm -v /var/run/docker.sock:/var/run/docker.sock -v $(builder_volume):/home/dw --cap-add NET_ADMIN -lbuilder -l${BUILDER_NAME} ${BUILDER_PORTMAPS} --entrypoint tail builder -f /dev/null > /dev/null
+
+        echo_on
+        docker run --network ${BUILDER_NAME} --network-alias "builder" --group-add ${DOCKER_GID} -d --rm -v /var/run/docker.sock:/var/run/docker.sock -v $(builder_volume):/home/dw ${BUILDER_MOUNTS} --cap-add NET_ADMIN -lbuilder -l${BUILDER_NAME} ${BUILDER_PORTMAPS} --entrypoint tail builder -f /dev/null > /dev/null
+        echo_off
         printf "${GRN}Started build container ${BLU}$(builder)${END}\n"
     fi
 
