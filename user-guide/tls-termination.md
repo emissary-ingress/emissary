@@ -55,7 +55,7 @@ Run the following command to create a `TLSContext` CRD that configures Ambassado
 
 ```shell
 cat << EOF | kubectl apply -f -
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: TLSContext
 metadata:
   name: tls

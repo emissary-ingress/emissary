@@ -20,7 +20,7 @@ The various timeouts are applied onto a `Mapping` resource and can be combined.
 
 ```yaml
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  tour-backend_mapping
 prefix: /backend/

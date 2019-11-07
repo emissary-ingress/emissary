@@ -11,7 +11,7 @@ To use SNI, you simply need to:
 1. Create a `TLSContext` for the domain
 
     ```yaml
-    apiVersion: ambassador/v1
+    apiVersion: getambassador.io/v2
     kind: TLSContext
     name: example-tls
     hosts: example.com
@@ -21,7 +21,7 @@ To use SNI, you simply need to:
 2. Configure the `host` value on `Mapping`s associated with that domain
 
     ```yaml
-    apiVersion: ambassador/v1
+    apiVersion: getambassador.io/v2
     kind:  Mapping
     name:  example-mapping
     prefix: /example/
@@ -51,7 +51,7 @@ metadata:
   annotations:
     getambassador.io/config: |
       ---
-      apiVersion: ambassador/v1
+      apiVersion: getambassador.io/v2
       kind:  Mapping
       name:  httpbin-internal
       prefix: /httpbin/
@@ -59,7 +59,7 @@ metadata:
       host_rewrite: httpbin.org
       host: internal.example.com
       ---
-      apiVersion: ambassador/v1
+      apiVersion: getambassador.io/v2
       kind:  Mapping
       name:  httpbin-external
       prefix: /httpbin/
@@ -67,14 +67,14 @@ metadata:
       host_rewrite: httpbin.org
       host: external.example.com
       ---
-      apiVersion: ambassador/v1
+      apiVersion: getambassador.io/v2
       kind: TLSContext
       name: internal-context
       hosts:
       - internal.example.com
       secret: internal-secret
       ---
-      apiVersion: ambassador/v1
+      apiVersion: getambassador.io/v2
       kind: TLSContext
       name: external-context
       hosts:
@@ -102,7 +102,7 @@ metadata:
   annotations:
     getambassador.io/config: |
       ---
-      apiVersion: ambassador/v1
+      apiVersion: getambassador.io/v2
       kind:  Mapping
       name:  httpbin
       prefix: /httpbin/
@@ -110,7 +110,7 @@ metadata:
       host_rewrite: httpbin.org
       host: host.httpbin.org
       ---
-      apiVersion: ambassador/v1
+      apiVersion: getambassador.io/v2
       kind:  Mapping
       name:  mockbin
       prefix: /mockbin/
@@ -118,14 +118,14 @@ metadata:
       host_rewrite: mockbin.org
       host: host.mockbin.org
       ---
-      apiVersion: ambassador/v1
+      apiVersion: getambassador.io/v2
       kind: TLSContext
       name: httpbin
       hosts:
       - host.httpbin.org
       secret: httpbin-secret
       ---
-      apiVersion: ambassador/v1
+      apiVersion: getambassador.io/v2
       kind: TLSContext
       name: mockbin
       hosts:
@@ -133,7 +133,7 @@ metadata:
       secret: mockbin-secret
       ---
       # This mapping gets all the available SNI configurations applied to it
-      apiVersion: ambassador/v1
+      apiVersion: getambassador.io/v2
       kind:  Mapping
       name:  frontend
       prefix: /

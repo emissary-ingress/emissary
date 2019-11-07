@@ -64,7 +64,7 @@ You will need to tell Ambassador Edge Stackto use the certificate issued by Cons
 
   ```yaml
   ---
-  apiVersion: ambassador/v1
+  apiVersion: getambassador.io/v2
   kind: TLSContext
   name: ambassador-consul
   hosts: []
@@ -77,7 +77,7 @@ Ambassador Edge Stack needs to be configured to originate TLS to upstream servic
 
   ```yaml
   ---
-  apiVersion: ambassador/v1
+  apiVersion: getambassador.io/v2
   kind: Mapping
   name: qotm_mapping
   prefix: /qotm/
@@ -147,7 +147,7 @@ metadata:
   annotations:
     getambassador.io/config: |
       ---
-      apiVersion: ambassador/v1
+      apiVersion: getambassador.io/v2
       kind:  Mapping
       name:  qotm_mapping
       prefix: /qotm/

@@ -35,7 +35,7 @@ With Keycloak as your IDP, you will need to create a `Client` to handle authenti
 
    ```yaml
    ---
-   apiVersion: getambassador.io/v1beta2
+   apiVersion: getambassador.io/v2
    kind: Filter
    metadata:
      name: keycloak_filter
@@ -51,7 +51,7 @@ With Keycloak as your IDP, you will need to create a `Client` to handle authenti
 
    ```yaml
    ---
-   apiVersion: getambassador.io/v1beta2
+   apiVersion: getambassador.io/v2
    kind: FilterPolicy
    metadata:
      name: httpbin-policy

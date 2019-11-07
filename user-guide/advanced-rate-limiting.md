@@ -30,7 +30,7 @@ Imagine the backend service is a Rust-y application that can only handle 3 reque
 We update the mapping for the `tour` service to add a request label `backend` to the route as part of a `request_label_group`:
 
 ```yaml
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
 name: tour-backend_mapping
 prefix: /backend/
@@ -46,7 +46,7 @@ labels:
 We then need to configure the rate limit for the backend service. Create a new YAML file, `backend-ratelimit.yaml`, and put the following configuration into the file.
 
 ```yaml
-apiVersion: getambassador.io/v1beta1
+apiVersion: getambassador.io/v2
 kind: RateLimit
 metadata:
   name: backend-rate-limit
@@ -67,7 +67,7 @@ Deploy the rate limit with `kubectl apply -f backend-ratelimit.yaml`. (Make sure
 Suppose you've rewritten the tour backend service in Golang, and it's humming along nicely. You then discover that some users are taking advantage of this speed to sometimes cause a big spike in requests. You want to make sure that your API doesn't get overwhelmed by any single user. We use the `remote_address` special value in our mapping, which will automatically label all requests with the calling IP address:
 
 ```yaml
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
 name: tour-backend_mapping
 prefix: /backend/
@@ -81,7 +81,7 @@ labels:
 We then update our rate limits to limit on `remote_address`:
 
 ```yaml
-apiVersion: getambassador.io/v1beta1
+apiVersion: getambassador.io/v2
 kind: RateLimit
 metadata:
   name: backend-rate-limit
@@ -103,7 +103,7 @@ You've dramatically improved availability of the tour backend service, thanks to
 * We're going to implement a global rate limit on `GET` requests, but not `POST` requests.
 
 ```yaml
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
 name: tour-backend_mapping
 prefix: /backend/
@@ -120,7 +120,7 @@ labels:
 When we add multiple criteria to a pattern, the entire pattern matches when ANY of the rules match (i.e., a logical OR). A pattern match then triggers a rate limit event. Our rate limiting configuration becomes:
 
 ```yaml
-apiVersion: getambassador.io/v1beta1
+apiVersion: getambassador.io/v2
 kind: RateLimit
 metadata:
   name: backend-rate-limit
@@ -138,7 +138,7 @@ Suppose, like [Example 2](/user-guide/advanced-rate-limiting#example-2-per-user-
 
 ```yaml
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: Module
 name: ambassador
 config:
@@ -153,7 +153,7 @@ config:
 We can then configure a global `RateLimit` object that limits on `remote_address`:
 
 ```yaml
-apiVersion: getambassador.io/v1beta1
+apiVersion: getambassador.io/v2
 kind: RateLimit
 metadata:
   name: global-rate-limit
@@ -170,7 +170,7 @@ spec:
 Sometimes, you may have an API that cannot handle as much load as others in your cluster. In this case, a global rate limit may not be enough to ensure this API is not overloaded with requests from a user. To protect this API, you will need to create a label that tells Ambassador Edge Stack to apply a stricter limit on requests. With the above global rate limit configuration rate limiting based off `remote_address`, you will need to add a request label to the services `Mapping`:
 
 ```yaml
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
 name: tour-backend_mapping
 prefix: /backend/
@@ -184,7 +184,7 @@ labels:
 Now, the `request_label_group`, contains both the `generic_key: backend` *and* the `remote_address` key applied from the global rate limit. This allows us to create a separate `RateLimit` object for this route:
 
 ```yaml
-apiVersion: getambassador.io/v1beta1
+apiVersion: getambassador.io/v2
 kind: RateLimit
 metadata:
   name: backend-rate-limit

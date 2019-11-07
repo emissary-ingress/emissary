@@ -24,7 +24,7 @@ After creating an OAuth client in Google, configuring Ambassador Edge Stack to m
 1. Create an [OAuth Filter](/reference/filter-reference#filter-type-oauth2) with the credentials from above
 
     ```yaml
-    apiVersion: getambassador.io/v1beta2
+    apiVersion: getambassador.io/v2
     kind: Filter
     metadata:
       name: google
@@ -42,7 +42,7 @@ After creating an OAuth client in Google, configuring Ambassador Edge Stack to m
 2. Create a [FilterPolicy](/reference/filter-reference#filterpolicy-definition) to use the `Filter` created above
 
     ```yaml
-    apiVersion: getambassador.io/v1beta2
+    apiVersion: getambassador.io/v2
     kind: FilterPolicy
     metadata:
       name: azure-policy

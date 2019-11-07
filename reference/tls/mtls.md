@@ -38,7 +38,7 @@ Istio creates stores it's tls certificates in a form that Ambassador Edge Stack 
 
    ```yaml
    ---
-   apiVersion: ambassador/v1
+   apiVersion: getambassador.io/v2
    kind: TLSContext
    name: istio-upstream
    cert_chain_file: /etc/istiocerts/cert-chain.pem
@@ -52,7 +52,7 @@ Istio creates stores it's tls certificates in a form that Ambassador Edge Stack 
 
    ```yaml
    ---
-   apiVersion: ambassador/v1
+   apiVersion: getambassador.io/v2
    kind: Mapping
    name: productpage_mapping
    prefix: /productpage/
@@ -77,7 +77,7 @@ Since Consul does not expose TLS Certificates as Kubernetes secrets, we will nee
 
    ```yaml
    ---
-   apiVersion: ambassador/v1
+   apiVersion: getambassador.io/v2
    kind: TLSContext
    name: ambassador-consul
    hosts: []
@@ -88,7 +88,7 @@ Since Consul does not expose TLS Certificates as Kubernetes secrets, we will nee
 
    ```yaml
    ---
-   apiVersion: ambassador/v1
+   apiVersion: getambassador.io/v2
    kind: Mapping
    name: qotm_mtls_mapping
    prefix: /qotm-consul-mtls/

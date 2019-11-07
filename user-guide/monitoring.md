@@ -23,7 +23,7 @@ http(s)://ambassador:8877/metrics
 or externally by creating a `Mapping` similar to below:
 
 ```yaml
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
 name: metrics
 prefix: /metrics
@@ -207,7 +207,7 @@ metadata:
   annotations:
     getambassador.io/config: |
       ---
-      apiVersion: ambassador/v1
+      apiVersion: getambassador.io/v2
       kind: Mapping
       name: grafana-mapping
       prefix: /grafana/

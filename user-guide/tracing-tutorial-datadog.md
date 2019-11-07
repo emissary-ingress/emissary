@@ -20,7 +20,7 @@ When using JSON logging with Envoy, Ambassador Edge Stack will automatically app
 
 ```yaml
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: Module
 name: ambassador
 config:
@@ -33,7 +33,7 @@ Next configure a TracingService that will write your traces using the DataDog tr
 
 ```yaml
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: TracingService
 metadata:
   name: tracing

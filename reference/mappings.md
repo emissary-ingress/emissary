@@ -97,7 +97,7 @@ metadata:
   annotations:
     getambassador.io/config: |
       ---
-      apiVersion: ambassador/v1
+      apiVersion: getambassador.io/v2
       kind:  Mapping
       name:  tour-ui_mapping
       prefix: /
@@ -112,7 +112,7 @@ The same `Mapping` can be created as an independent resource:
 
 ```
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 metadata:
   name:  tour-ui
@@ -121,7 +121,7 @@ spec:
   service: http://tour
 ```
 
-If you're new to Ambassador Edge Stack, start with the CRD approach. Note that you *must* use the `getambassador.io/v1` `apiVersion` as noted above.
+If you're new to Ambassador Edge Stack, start with the CRD approach. Note that you *must* use the `getambassador.io/v2` `apiVersion` as noted above.
 
 ## Additional Example Mappings
 
@@ -129,7 +129,7 @@ Here's an example for a REST service which Ambassador Edge Stack will contact us
 
 ```yaml
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  backend-https_mapping
 prefix: /backend/secure/
@@ -143,14 +143,14 @@ Here's an example for a CQRS service (using HTTP):
 
 ```yaml
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
 name: cqrs_get_mapping
 prefix: /cqrs/
 method: GET
 service: getcqrs
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
 name: cqrs_put_mapping
 prefix: /cqrs/
@@ -230,7 +230,7 @@ For example, defining a mapping with only a `/` prefix will catch all requests p
 
 ```yaml
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
 name: catch-all
 prefix: /

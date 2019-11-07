@@ -57,7 +57,7 @@ metadata:
   annotations:
     getambassador.io/config: |
       ---
-      apiVersion: ambassador/v1
+      apiVersion: getambassador.io/v2
       kind:  Mapping
       name:  httpbin_mapping
       prefix: /httpbin/
@@ -137,7 +137,7 @@ metadata:
   annotations:
     getambassador.io/config: |
       ---
-      apiVersion: ambassador/v1
+      apiVersion: getambassador.io/v2
       kind: Mapping
       name: productpage_mapping
       prefix: /productpage/
@@ -244,14 +244,14 @@ metadata:
   annotations:
     getambassador.io/config: |
       ---
-      apiVersion: ambassador/v1
+      apiVersion: getambassador.io/v2
       kind:  Mapping
       name:  httpbin_mapping
       prefix: /httpbin/
       service: httpbin.org:80
       host_rewrite: httpbin.org
       ---
-      apiVersion: ambassador/v1
+      apiVersion: getambassador.io/v2
       kind:  Module
       name: tls
       config:
@@ -259,7 +259,7 @@ metadata:
           enabled: True
           redirect_cleartext_from: 8080
       ---
-      apiVersion: ambassador/v1
+      apiVersion: getambassador.io/v2
       kind: TLSContext
       name: istio-upstream
       cert_chain_file: /etc/istiocerts/cert-chain.pem
@@ -287,7 +287,7 @@ metadata:
   annotations:
     getambassador.io/config: |
       ---
-      apiVersion: ambassador/v1
+      apiVersion: getambassador.io/v2
       kind: Mapping
       name: productpage_mapping
       prefix: /productpage/
@@ -314,7 +314,7 @@ For service-to-service calls via the Istio proxy, Istio will automatically handl
 
 ```yaml
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: TLSContext
 name: istio-upstream
 cert_chain_file: /etc/istiocerts/cert-chain.pem
@@ -353,7 +353,7 @@ If Istio's Zipkin is up & running on `istio-system` Namespace, add the `TracingS
   annotations:
     getambassador.io/config: |
       ---
-      apiVersion: ambassador/v1
+      apiVersion: getambassador.io/v2
       kind: TracingService
       name: tracing
       service: "zipkin.istio-system:9411"

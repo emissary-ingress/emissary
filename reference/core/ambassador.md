@@ -7,7 +7,7 @@ Ambassador Edge Stack supports a variety of global configuration options in the 
 If present, the `ambassador` module defines system-wide configuration. This module can be applied on any Kubernetes service (the `ambassador` service itself is a common choice). **You may very well not need this module.** The defaults in the `ambassador` module are:
 
 ```yaml
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  Module
 name:  ambassador
 # Put the id if you are using multiple ambassadors in the same cluster.
@@ -152,7 +152,7 @@ By default, Ambassador Edge Stack listens for HTTP or HTTPS traffic on ports 808
 
 ```yaml
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: Module
 name: ambassador
 config:
@@ -173,7 +173,7 @@ Ambassador Edge Stack supports the ability to inline Lua scripts that get run on
 
 ```yaml
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: Module
 name: ambassador
 config:

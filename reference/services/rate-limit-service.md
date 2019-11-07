@@ -7,7 +7,7 @@ Rate limiting is a powerful technique to improve the [availability and resilienc
 Ambassador Edge Stack lets users add one or more labels to a given request. These labels are added as part of a `Mapping` object. For example:
 
 ```
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
 name: catalog
 prefix: /catalog/
@@ -28,7 +28,7 @@ Ambassador Edge Stack allows setting a default label on every request. A default
 
 ```yaml
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: Module
 name: ambassador
 config:
@@ -72,7 +72,7 @@ A `RateLimitService` manifest configures Ambassador Edge Stack to use an externa
 
 ```yaml
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: RateLimitService
 name: ratelimit
 service: "example-rate-limit:5000"

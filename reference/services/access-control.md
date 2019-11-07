@@ -20,7 +20,7 @@ The wildcard `*` is supported for both `path` and `host`.
 The following policy shows how the `filter` named `keycloak` is applied to requests to `/httpbin/headers`, while requests to `/httpbin/ip` are public.
 
 ```
-apiVersion: getambassador.io/v1beta2
+apiVersion: getambassador.io/v2
 kind: FilterPolicy
 metadata:
   name: httpbin-policy
@@ -41,7 +41,7 @@ spec:
 In this example, the `foo-keycloak` filter is used for requests to `foo.bar.com`, while the `example-auth0` filter is used for requests to `example.com`. This configuration is useful if you are hosting multiple domains in the same cluster.
 
 ```
-apiVersion: getambassador.io/v1beta1
+apiVersion: getambassador.io/v2
 kind: Policy
 metadata:
   name: multi-domain-policy

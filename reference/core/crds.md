@@ -5,7 +5,7 @@
 
 As of Ambassador 0.70, any Ambassador Edge Stack resource can be expressed as a CRD in the `getambassador.io` API group:
 
-- use `apiVersion: getambassador.io/v1`
+- use `apiVersion: getambassador.io/v2`
 - use the same `kind` as you would in an annotation
 - put the resource name in `metadata.name`
 - put everything else in `spec`
@@ -14,7 +14,7 @@ As an example, you could use the following CRDs for a very simple Lua test:
 
 ```yaml
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: Module
 metadata:
   name: ambassador
@@ -26,7 +26,7 @@ spec:
         response_handle: headers():add("Lua-Scripts-Enabled", "Processed")
       end
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
   name: lua-target-mapping

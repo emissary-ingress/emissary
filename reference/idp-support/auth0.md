@@ -32,7 +32,7 @@ With Auth0 as your IDP, you will need to create an `Application` to handle authe
 
    ```yaml
    ---
-   apiVersion: getambassador.io/v1beta2
+   apiVersion: getambassador.io/v2
    kind: Filter
    metadata:
      name: auth0_filter
@@ -48,7 +48,7 @@ With Auth0 as your IDP, you will need to create an `Application` to handle authe
 
    ```yaml
    ---
-   apiVersion: getambassador.io/v1beta2
+   apiVersion: getambassador.io/v2
    kind: FilterPolicy
    metadata:
      name: httpbin-policy

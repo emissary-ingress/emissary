@@ -9,7 +9,7 @@ Rate limits are a powerful way to improve availability and scalability for your 
 In Ambassador 0.50 and later, each mapping in Ambassador Edge Stack can have multiple *labels* which annotate a given request. These labels are then passed to a rate limiting service through a gRPC interface. These labels are specified with the `labels` annotation:
 
 ```yaml
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
 name: catalog
 prefix: /catalog/
@@ -54,7 +54,7 @@ Rate limit labels can be configured on a global level within the [Ambassador Edg
 
 ```yaml
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: Module
 name: ambassador
 config:
@@ -73,7 +73,7 @@ This will annotate every request with the string `default`, creating a key for a
 In pre-0.50 versions of Ambassador Edge Stack, a mapping can specify the `rate_limits` list attribute and at least one `rate_limits` rule which will call the external [RateLimitService](/reference/services/rate-limit-service) before proceeding with the request. An example:
 
 ```yaml
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind: Mapping
 name: rate_limits_mapping
 prefix: /rate-limit/

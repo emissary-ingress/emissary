@@ -12,7 +12,7 @@ You can also set the `value` of a header to `true` to test for the existence of 
 
 ```yaml
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  tour-backend_mapping
 prefix: /backend/
@@ -29,7 +29,7 @@ will allow requests to `/backend/` to succeed only if the `x-tour-mode` header h
 
 ```yaml
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  tour_mode_mapping
 prefix: /
@@ -38,7 +38,7 @@ headers:
   x-tour-mode: true
 
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  tour_regular_mapping
 prefix: /
@@ -56,7 +56,7 @@ name: mobile-ui
   annotations:
     getambassador.io/config: |
       ---
-      apiVersion: ambassador/v1
+      apiVersion: getambassador.io/v2
       kind:  Mapping
       name:  mobile_ui_mapping
       regex_headers:

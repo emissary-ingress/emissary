@@ -19,13 +19,13 @@ Specifying a weight only makes sense if you have multiple mappings for the same 
 
 ```yaml
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  tour-backend_mapping
 prefix: /backend/
 service: tour
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
 name: tour-backend2_mapping
 prefix: /backend/

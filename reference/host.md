@@ -10,20 +10,20 @@ You may have multiple mappings listing the same resource but different `host` at
 
 ```yaml
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  tour-ui_mapping
 prefix: /
 service: tour1
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  tour-ui2_mapping
 prefix: /
 host: tour.datawire.io
 service: tour2
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  tour-ui3_mapping
 prefix: /
@@ -48,7 +48,7 @@ An example: the default Ambassador Edge Stack configuration includes the followi
 
 ```yaml
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
 name: httpbin_mapping
 prefix: /httpbin/

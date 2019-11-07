@@ -119,7 +119,7 @@ The HTTP-01 challenge verifies ownership of the domain by sending a request for 
       annotations:
         getambassador.io/config: |
           ---
-          apiVersion: ambassador/v1
+          apiVersion: getambassador.io/v2
           kind:  Mapping
           name:  acme-challenge-mapping
           prefix: /.well-known/acme-challenge

@@ -74,7 +74,7 @@ so the URL `prefix` is `helloworld.Greeter` and the mapping would be:
 
 ```yaml
       ---
-      apiVersion: ambassador/v1
+      apiVersion: getambassador.io/v2
       kind: Mapping
       name: grpc_py_mapping
       grpc: True
@@ -99,7 +99,7 @@ metadata:
   annotations:
     getambassador.io/config: |
       ---
-      apiVersion: ambassador/v1
+      apiVersion: getambassador.io/v2
       kind: Mapping
       name: grpc_py_mapping
       grpc: True
@@ -249,7 +249,7 @@ metadata:
   annotations:
     getambassador.io/config: |
       ---
-      apiVersion: ambassador/v1
+      apiVersion: getambassador.io/v2
       kind: Mapping
       name: grpc_py_mapping
       grpc: True
@@ -269,7 +269,7 @@ spec:
 
 ```yaml
       ---
-      apiVersion: ambassador/v1
+      apiVersion: getambassador.io/v2
       kind:  Module
       name:  tls
       config:

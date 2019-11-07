@@ -31,7 +31,7 @@ The following example may help illustrate how shadowing can be used. This first 
 ```yaml
   getambassador.io/config: |
       ---
-      apiVersion: ambassador/v1
+      apiVersion: getambassador.io/v2
       kind: Mapping
       name: myservice-mapping
       prefix: /myservice/
@@ -43,7 +43,7 @@ What if we want to shadow the traffic to `myservice`, and send that exact same t
 ```yaml
   getambassador.io/config: |
       ---
-      apiVersion: ambassador/v1
+      apiVersion: getambassador.io/v2
       kind: Mapping
       name: myservice-shadow-mapping
       prefix: /myservice/
@@ -60,7 +60,7 @@ It is possible to shadow a portion of the traffic by specifying the `weight` in 
 ```yaml
   getambassador.io/config: |
       ---
-      apiVersion: ambassador/v1
+      apiVersion: getambassador.io/v2
       kind: Mapping
       name: myservice-shadow-mapping
       prefix: /myservice/

@@ -37,7 +37,7 @@ In this guide, you will register a service with Consul and use Ambassador Edge S
       annotations:
         getambassador.io/config: |
           ---
-          apiVersion: ambassador/v1
+          apiVersion: getambassador.io/v2
           kind: ConsulResolver
           name: consul-dc1
           address: consul-server.default.svc.cluster.local:8500
@@ -127,7 +127,7 @@ You'll now register a demo application with Consul, and show how Ambassador Edge
      annotations:
        getambassador.io/config: |
          ---
-         apiVersion: ambassador/v1
+         apiVersion: getambassador.io/v2
          kind: Mapping
          name: consul_qotm_mapping
          prefix: /qotm-consul/
@@ -233,7 +233,7 @@ This will install into your cluster:
       annotations:
         getambassador.io/config: |
           ---
-          apiVersion: ambassador/v1
+          apiVersion: getambassador.io/v2
           kind: Mapping
           name: consul_qotm_tls_mapping
           prefix: /qotm-consul-tls/

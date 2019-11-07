@@ -28,7 +28,7 @@ retry_policy:
 A per mapping retry policy:
 
 ```yaml
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  tour-backend_mapping
 prefix: /backend/
@@ -41,7 +41,7 @@ retry_policy:
 A global retry policy (not recommended):
 
 ```yaml
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind:  Module
 name:  ambassador
 config:
@@ -49,7 +49,7 @@ config:
     retry_on: "retriable-4xx"
     num_retries: 4
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  tour-backend_mapping
 prefix: /backend/

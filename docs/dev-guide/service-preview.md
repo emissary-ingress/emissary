@@ -51,13 +51,13 @@ In this quick start, we're going to preview a change we make to the backend serv
       annotations:
         getambassador.io/config: |
           ---
-          apiVersion: ambassador/v1
+          apiVersion: getambassador.io/v2
           kind: Mapping
           name: tour-ui_mapping
           prefix: /
           service: tour:5000
           ---
-          apiVersion: ambassador/v1
+          apiVersion: getambassador.io/v2
           kind: Mapping
           name: tour-backend_mapping
           prefix: /backend/

@@ -10,7 +10,7 @@ If the version is a path parameter and the resources are served by different ser
 
 ```yaml
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  qotm_mapping
 prefix: "/(v1|v2)/qotm/.*"

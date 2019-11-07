@@ -21,7 +21,7 @@ For more information on the different policies and the implications, see [load b
 When policy is set to `round_robin`, Ambassador Edge Stack discovers healthy endpoints for the given mapping, and load balances the incoming L7 requests in a round robin fashion. For example:
 
 ```yaml
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  Module
 name:  ambassador
 config:
@@ -34,7 +34,7 @@ or, per mapping:
 
 ```yaml
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  tour-ui_mapping
 prefix: /
@@ -50,7 +50,7 @@ Note that load balancing may not appear to be "even" due to Envoy's threading mo
 When policy is set to `least_request`, Ambassador Edge Stack discovers healthy endpoints for the given mapping, and load balances the incoming L7 requests to the endpoint with the fewest active requests. For example:
 
 ```yaml
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  Module
 name:  ambassador
 config:
@@ -63,7 +63,7 @@ or, per mapping:
 
 ```yaml
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  tour-ui_mapping
 prefix: /
@@ -98,7 +98,7 @@ If the cookie you wish to set affinity on is already present in incoming request
 For example, the following configuration asks the client to set a cookie named `sticky-cookie` with expiration of 60 seconds in response to the first request if the cookie is not already present.
 
 ```yaml
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  tour-ui_mapping
 prefix: /
@@ -122,7 +122,7 @@ Ambassador Edge Stack allows header based session affinity if the given header i
 
 Example:
 ```yaml
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  tour-ui_mapping
 prefix: /
@@ -143,7 +143,7 @@ load_balancer:
 Ambassador Edge Stack allows session affinity based on the source IP of incoming requests. For example:
 
 ```yaml
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  tour-ui_mapping
 prefix: /
@@ -157,14 +157,14 @@ load_balancer:
 Load balancing can be configured both globally, and overridden on a per mapping basis. The following example configures the default load balancing policy to be round robin, while using header-based session affinity for requests to the `/backend/` endpoint of the tour application:
 
 ```yaml
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind:  Module
 name:  ambassador
 config:
   resolver: my-resolver
   load_balancer:
     policy: round_robin
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  tour-backend_mapping
 prefix: /backend/

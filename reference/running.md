@@ -124,7 +124,7 @@ metadata:
   annotations:
     getambassador.io/config: |
       ---
-      apiVersion: ambassador/v1
+      apiVersion: getambassador.io/v2
       kind:  Module
       name:  ambassador
       ambassador_id: ambassador-1
@@ -144,27 +144,27 @@ Ambassador will then only use YAML objects that include an appropriate `ambassad
 
 ```yaml
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  mapping_used_1
 ambassador_id: ambassador-1
 prefix: /demo1/
 service: demo1
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  mapping_used_2
 ambassador_id: [ "ambassador-1", "ambassador-2" ]
 prefix: /demo2/
 service: demo2
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  mapping_skipped_1
 prefix: /demo3/
 service: demo3
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  mapping_skipped_2
 ambassador_id: ambassador-2
