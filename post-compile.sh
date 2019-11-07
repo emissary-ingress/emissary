@@ -14,6 +14,9 @@ apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
   name: edgestack-fallback-mapping
+  labels:
+    product: aes
+    ambassador_diag_class: private
 spec:
   prefix: /
   rewrite: /edge_stack_ui/
@@ -24,10 +27,28 @@ apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
   name: edgestack-acme-mapping
+  labels:
+    product: aes
+    ambassador_diag_class: private
 spec:
   prefix: /.well-known/acme-challenge/
   rewrite: /.well-known/acme-challenge/
   service: 127.0.0.1:8500
+  precedence: 1000000
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: ambassador-edge-stack
+  namespace: ambassador
+  labels:
+    product: aes
+    ambassador_diag_class: private
+spec:
+  prefix: /.ambassador/
+  rewrite: ""
+  service: "127.0.0.1:8500"  
+  precedence: 1000000
 EOF
 
 sudo mv /tmp/edge-stack-mappings.yaml /ambassador/init-config
