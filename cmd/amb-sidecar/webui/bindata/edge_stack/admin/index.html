@@ -141,8 +141,6 @@
       </script>
     </div>
 
-    <div id="debug"></div>
-
     <style>
       div.host, div.mapping {
           padding: 1em 1em;
@@ -157,16 +155,6 @@
           margin-left: 1em;
       }
     </style>
-
-    <script type="text/javascript">
-      $(()=>{
-        // check to see if the user connected via a defined host, and if not, send them to the tls page
-        $("#debug").text(window.location.hostname);
-        /*if (window.location.protocol == "http:") {
-          window.location.replace("../tls/");
-        }*/
-      })
-    </script>
 
     <script type="text/javascript">
       var snapshot
