@@ -89,24 +89,39 @@ func (ss *SnapshotStore) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	logger := middleware.GetLogger(r.Context())
-	logger.Debugf("loading WATT snapshot from %q", r.FormValue("url"))
 
-	resp, err := ss.httpClient.Get(r.FormValue("url"))
-	if err != nil {
-		middleware.ServeErrorResponse(w, r.Context(), http.StatusBadRequest,
-			err, nil)
-		return
-	}
-	defer resp.Body.Close()
+	_, push := r.URL.Query()["push"]
 
-	bodyBytes, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		middleware.ServeErrorResponse(w, r.Context(), http.StatusBadRequest,
-			err, nil)
-		return
+	var bodyBytes []byte
+	var err error
+
+	if push {
+		logger.Debugf("loading WATT snapshot from body")
+		bodyBytes, err = ioutil.ReadAll(r.Body)
+		if err != nil {
+			middleware.ServeErrorResponse(w, r.Context(), http.StatusBadRequest,
+				err, nil)
+			return
+		}
+	} else {
+		logger.Debugf("loading WATT snapshot from %q", r.FormValue("url"))
+		resp, err := ss.httpClient.Get(r.FormValue("url"))
+		if err != nil {
+			middleware.ServeErrorResponse(w, r.Context(), http.StatusBadRequest,
+				err, nil)
+			return
+		}
+		defer resp.Body.Close()
+		bodyBytes, err = ioutil.ReadAll(resp.Body)
+		if err != nil {
+			middleware.ServeErrorResponse(w, r.Context(), http.StatusBadRequest,
+				err, nil)
+			return
+		}
 	}
 
 	var snapshot Snapshot
+	snapshot.Raw = bodyBytes
 	if err := json.Unmarshal(bodyBytes, &snapshot); err != nil {
 		middleware.ServeErrorResponse(w, r.Context(), http.StatusBadRequest,
 			err, nil)

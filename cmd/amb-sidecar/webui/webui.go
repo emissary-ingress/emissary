@@ -57,7 +57,7 @@ func New(
 		staticfiles: files,
 		hostsGetter: dynamicClient.Resource(k8sSchema.GroupVersionResource{Group: "getambassador.io", Version: "v2", Resource: "hosts"}),
 	}
-	ret.snapshot.Store(watt.Snapshot{})
+	ret.snapshot.Store(watt.Snapshot{Raw: []byte("{}\n")})
 	go func() {
 		for snapshot := range snapshotCh {
 			ret.snapshot.Store(snapshot)
@@ -203,6 +203,9 @@ func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				io.WriteString(w, "state: <invalid state>")
 			}
 		}
+	case "/edge_stack/api/snapshot":
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		w.Write(fb.getSnapshot().Raw)
 	default:
 		if _, err := fb.staticfiles.Open(path.Clean(r.URL.Path)); os.IsNotExist(err) {
 			// use our custom 404 handler instead of http.FileServer's
