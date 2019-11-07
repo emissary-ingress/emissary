@@ -2,11 +2,17 @@
 
 This section is intended for operators running Ambassador Edge Stack, and covers various aspects of deploying and configuring Ambassador Edge Stack in production.
 
-<div style="border: solid gray;padding:0.5em">
+<div style="border: thick solid gray;padding:0.5em"> 
 
-Ambassador Edge Stack is a community supported product with [features](getambassador.io/features) available for free and limited use.For unlimited access and commercial use of Ambassador Edge Stack, [contact sales](https:/www.getambassador.io/contact) for access to [Ambassador Edge Stack Enterprise](/user-guide/ambassador-edge-stack-enterprise) today.
+Ambassador Edge Stack is a community supported product with 
+[features](getambassador.io/features) available for free and 
+limited use. For unlimited access and commercial use of
+Ambassador Edge Stack, [contact sales](https:/www.getambassador.io/contact) 
+for access to [Ambassador Edge Stack Enterprise](/user-guide/ambassador-edge-stack-enterprise) today.
 
 </div>
+</p>
+
 
 ## Ambassador Edge Stack and Kubernetes
 
@@ -285,8 +291,12 @@ The `request_*` counts are always incremental: they contain only information abo
 
 To completely disable feature reporting, set the environment variable `AMBASSADOR_DISABLE_FEATURES` to any non-empty value.
 
-<div style="border: solid gray;padding:0.5em">
+<div style="border: thick solid gray;padding:0.5em"> 
 
-Ambassador OSS is an open source Kubernetes-native API Gateway. We recommend upgrading to [Ambassador Edge Stack](/user-guide/getting-started) Community, which is available for free and limited use, along with additional functionality around security and developer onboarding. 
+Ambassador OSS is an open source Kubernetes-native API Gateway. 
+We recommend upgrading to [Ambassador Edge Stack](/user-guide/upgrade-from-oss-to-edge-stack) 
+Community, which is available for free and limited use, along 
+with additional functionality around security and developer onboarding.
 
 </div>
+</p>
