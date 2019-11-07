@@ -142,6 +142,8 @@ class IRTCPMappingGroup (IRBaseMappingGroup):
         :return: a list of the IRClusters this Group uses
         """
 
+        metadata_labels: Dict[str, str] = {}
+
         for mapping in sorted(self.mappings, key=lambda m: m.route_weight):
             self.ir.logger.debug("%s mapping %s" % (self, mapping.as_json()))
 
@@ -153,6 +155,13 @@ class IRTCPMappingGroup (IRBaseMappingGroup):
                 # self.ir.logger.debug("%s: flatten %s" % (self, k))
 
                 self[k] = mapping[k]
+
+            # Should we have higher weights win over lower if there are conflicts?
+            # Should we disallow conflicts?
+            metadata_labels.update(mapping.get('metadata_labels') or {})
+
+        if metadata_labels:
+            self.metadata_labels = metadata_labels
 
         # self.ir.logger.debug("%s after flattening %s" % (self, self.as_json()))
 

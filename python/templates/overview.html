@@ -218,12 +218,17 @@ limitations under the License
                   {% for route in route_info %}
                     <tr 
                       {% if loop.index % 2 %}
-                        style="background: rgba(86,61,124,.05);"
+                        style="background: rgba(86,61,124,.05);
+                        {%- if route.diag_class == "private" -%}
+                        font-style: oblique; opacity: 60%;
+                        {%- endif -%}"
                       {% endif %}
                       >
                       <td>
                         <a href="/ambassador/v0/diag/grp-{{ route['_group_id'] }}">
-                          <code>{{ route.key }}
+                          <code>
+                            {%- if route.diag_class == "private" -%}[internal route]<br/>{%- endif -%}
+                            {{ route.key }}
                           {% if route['headers'] %}
                             {% for hdr in route['headers'] %}
                               <br/>
