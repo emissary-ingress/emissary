@@ -7,6 +7,7 @@ import sys
 import difflib
 import errno
 import filecmp
+import functools
 import json
 import logging
 import os
@@ -14,6 +15,11 @@ import shlex
 import shutil
 
 import click
+
+# Use this instead of click.option
+click_option = functools.partial(click.option, show_default=True)
+click_option_no_default = functools.partial(click.option, show_default=False)
+
 
 from ambassador import Config, IR, EnvoyConfig
 from ambassador.config.resourcefetcher import ResourceFetcher
@@ -258,27 +264,27 @@ class Wattify:
         return True, any_changes
 
 @click.command(help="Mock the watt/watch_hook/diagd cycle to generate an IR from a Kubernetes YAML manifest.")
-@click.option('--debug/--no-debug', default=True,
-              help="enable debugging (default false)")
-@click.option('-n', '--namespace', type=click.STRING,
-              help="namespace to watch (default all)")
-@click.option('-s', '--source', type=click.STRING, multiple=True,
-              help="define initial source types")
-@click.option('--labels', type=click.STRING, multiple=True,
+@click_option('--debug/--no-debug', default=True,
+              help="enable debugging")
+@click_option('-n', '--namespace', type=click.STRING,
+              help="namespace to watch [default: all namespaces])")
+@click_option('-s', '--source', type=click.STRING, multiple=True,
+              help="define initial source types [default: all Ambassador resources]")
+@click_option('--labels', type=click.STRING, multiple=True,
               help="define initial label selector")
-@click.option('--force-pod-labels/--no-force-pod-labels', default=True,
-              help="copy initial label selector to /tmp/ambassador-pod-info/labels (default true)")
-@click.option('--kat-name', '--kat', type=click.STRING,
+@click_option('--force-pod-labels/--no-force-pod-labels', default=True,
+              help="copy initial label selector to /tmp/ambassador-pod-info/labels")
+@click_option('--kat-name', '--kat', type=click.STRING,
               help="emulate a running KAT test with this name")
-@click.option('-w', '--watch', type=click.STRING,
+@click_option('-w', '--watch', type=click.STRING, default="python /ambassador/watch_hook.py",
               help="define a watch hook")
-@click.option('--diff-path', '--diff', type=click.STRING,
+@click_option('--diff-path', '--diff', type=click.STRING,
               help="directory to diff against")
-@click.option('--include-ir/--no-include-ir', '--ir/--no-ir', default=False,
-              help="include IR in diff")
-@click.option('--include-aconf/--no-include-aconf', '--aconf/--no-aconf', default=False,
-              help="include AConf in diff")
-@click.option('--update/--no-update', default=False,
+@click_option('--include-ir/--no-include-ir', '--ir/--no-ir', default=False,
+              help="include IR in diff when using --diff-path")
+@click_option('--include-aconf/--no-include-aconf', '--aconf/--no-aconf', default=False,
+              help="include AConf in diff when using --diff-path")
+@click_option('--update/--no-update', default=False,
               help="update the diff path when finished")
 @click.argument('k8s-yaml-path')
 def main(k8s_yaml_path: str, debug: bool, force_pod_labels: bool, update: bool,
