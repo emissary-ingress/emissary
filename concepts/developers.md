@@ -94,3 +94,15 @@ Ambassador Edge Stack has chosen not to support ingress resources for the follow
 * The ingress API is extremely limited, and supports only a small subset of features from Ambassador Edge Stack
 * The ingress API has been in beta for a number of years, and there is the possibility of it being deprecated altogether
 * Having a separate object that is associated with the `service` object
+
+
+<div style="border: thick solid gray;padding:0.5em"> 
+
+Ambassador Edge Stack is a community supported product with 
+[features](getambassador.io/features) available for free and 
+limited use. For unlimited access and commercial use of
+Ambassador Edge Stack, [contact sales](https:/www.getambassador.io/contact) 
+for access to [Ambassador Edge Stack Enterprise](/user-guide/ambassador-edge-stack-enterprise) today.
+
+</div>
+</p>
