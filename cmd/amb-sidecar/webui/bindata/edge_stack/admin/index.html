@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
     <meta charset="utf-8">
     <title>Ambassador Edge Stack - Admin</title>
     <style>
@@ -12,11 +13,11 @@
   </head>
   <body>
     <div>
-      <div id="signup">Click here to sign up for a community license.</div>
+      <button id="signup">Click here to sign up for a community license.</button>
       <style>
         #signup {
-            padding: 20px;
-            border: 1px solid #888;
+            margin: auto;
+            width: 50%;
         }
 
         #signup-modal {
@@ -54,14 +55,13 @@
           <form>
 	    <span>Email:</span> <input id="signup-email" type="text" name="email" value=""/>
 	    <span>Confirm:</span> <input id="signup-email-confirm" type="text" name="email-confirm" value=""/>
-            <input id="signup-cancel" type="button" value="Cancel" /><input id="signup-go" type="button" value="Signup" />
+            <input id="signup-cancel" type="button" value="Cancel" /><input id="signup-go" type="button" value="Signup"/>
           </form>
-          <div id="signup-error"></div>
+          <div id="signup-error"/>
         </div>
         <div id="signup-finished">
           <span id="signup-finished-text"></span>
           <button id="signup-finished-continue">Continue</button>
-        </div>
         </div>
       </div>
       <script>
@@ -140,9 +140,136 @@
         }
       </script>
     </div>
-    <div>Stub for Admin UI. This might not end up
-      being much more than links into the docs for
-      kubecon.</div>
+
+    <div id="debug"></div>
+
+    <style>
+      div.host, div.mapping {
+          padding: 1em 1em;
+      }
+
+      span.json {
+          unicode-bidi: embed;
+          font-family: monospace;
+      }
+
+      details {
+          margin-left: 1em;
+      }
+    </style>
+
+    <script type="text/javascript">
+      $(()=>{
+        // check to see if the user connected via a defined host, and if not, send them to the tls page
+        $("#debug").text(window.location.hostname);
+        /*if (window.location.protocol == "http:") {
+          window.location.replace("../tls/");
+        }*/
+      })
+    </script>
+
+    <script type="text/javascript">
+      var snapshot
+
+      function path(el) {
+        if (el.parentElement == null) {
+          return ""
+        } else {
+          return path(el.parentElement) + "_" + el.id
+        }
+      }
+
+      function renderKind(obj) {
+        let md = obj.metadata
+        return $(`<div class="${obj.kind.toLowerCase()}" id="${md.namespace}_${md.name}"/>`)
+          .append(renderMetadata(md))
+          .append(renderSpec(obj.spec))
+          .append(renderStatus(obj.status))
+      }
+
+      function renderMetadata(md) {
+        return $(`<div class="metadata" id="metadata"/>`)
+          .append(`<span class="name">${md.namespace}/${md.name}</span>`)
+          .append($(`<details class="labels" id="labels"><summary>labels</summary></details>`)
+                  .append(renderObj(md.labels)))
+      }
+
+      function renderObj(obj, cls="obj") {
+        let result = $(`<div class="${cls}"/>`)
+        $.each(obj, (name, value) => {
+          details = $(`<details class="field" id="${name}"><summary>${name}</summary></details>`)
+          result.append(details)
+          scalars = ["string", "number", "boolean"]
+          if (scalars.includes(typeof value)) {
+            details.append(`<span class="value">${value}</span>`)
+          } else {
+            details.append(renderObj(value))
+          }
+        })
+        return result
+      }
+
+      function renderSpec(spec) {
+        return renderObj(spec, "spec")
+      }
+
+      function renderStatus(status) {
+        if (typeof status == "undefined") {
+          return $(`<details class="status" id="status"><summary>Status: none</summary></details>`)
+        }
+        return $(`<details class="status" id="status"><summary>Status: ${status.state}</summary></details>`).
+          append(renderObj(status))
+      }
+
+      function render() {
+        $.getJSON("/edge_stack/api/snapshot", data=>{
+          snapshot = data
+          let kube = "Kubernetes" in data ? data.Kubernetes : {
+            "Host": [],
+            "Mapping": []
+          }
+
+          let opened = new Set()
+          $("details[open]").each((i, e)=>opened.add(path(e)))
+
+          let hosts = kube.Host
+          let hostsDiv = $("#hosts").empty()
+
+          $.each(hosts, (index, host) => {
+            hostsDiv.append(renderKind(host))
+          })
+          if (hosts.length == 0) {
+            hostsDiv.append(`<p>there are no hosts, click <a href="todo">here</a> to create some</p>`)
+          }
+
+          let mappings = kube.Mapping
+          let mappingsDiv = $("#mappings").empty()
+          $.each(mappings, (index, mapping) => {
+            mappingsDiv.append(renderKind(mapping))
+          })
+          if (mappings.length == 0) {
+            mappingsDiv.append(`<p>there are no mappings, click <a href="todo">here</a> to create some</p>`)
+          }
+
+          $("details").each((i, e)=>{
+            if (opened.has(path(e))) {
+              e.setAttribute("open", "")
+            }
+          })
+
+          setTimeout(render, 1000)
+        })
+      }
+
+      $(render)
+    </script>
+
+    <h2>Hosts</h2>
+    <div id="hosts"></div>
+
+    <h2>Mappings</h2>
+    <div id="mappings"</div>
+
     </div>
   </body>
 </html>
