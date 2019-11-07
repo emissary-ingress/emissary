@@ -485,11 +485,14 @@ spec:
   - host: "glob-string"
     path: "glob-string"
     filters:                    # optional; omit or set to `null` to apply no filters to this request
-    - name:      "string"       # required
-      namespace: "string"       # optional; default is the same namespace as the FilterPolicy
-      onDeny:    "enum-string"  # optional; default is "break"
-      onAllow:   "enum-string"  # optional; default is "continue"
-      arguments: DEPENDS        # optional
+    - name: "string"              # required
+      namespace: "string"         # optional; default is the same namespace as the FilterPolicy
+      ifRequestHeader:            # optional; default to apply this filter to all requests matching the host & path
+        name: "string"              # required
+        value: "string"             # optional; default is any non-empty string
+      onDeny: "enum-string"       # optional; default is "break"
+      onAllow: "enum-string"      # optional; default is "continue"
+      arguments: DEPENDS          # optional
 ```
 
 The type of the `arguments` property is dependent on the which Filter
@@ -507,6 +510,12 @@ When multiple `Filter`s are specified in a rule:
       sending it to other filters or the upstream service (normally
       *allowing* the request to be forwarded to the upstream service
       with modifications).
+ * If a filter has a `ifRequestHeader` setting, the filter is skipped
+   unless the request (including any modifications made by earlier
+   filters) matches the described header; the request must have the
+   HTTP header field `name` (case-insensitive) set to `value`
+   (case-sensitive); or have `name` set to any non-empty string if
+   `value` is unset.
  * `onDeny` identifies what to do when the filter returns an "HTTP
    response":
    - `"break"`: End processing, and return the response directly to
