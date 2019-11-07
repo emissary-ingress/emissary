@@ -58,3 +58,14 @@ In a traditional enterprise API gateway, routing is used to isolate or compose/a
 Traditional enterprise API gateways are designed to solve the challenges of API management. While they may appear to solve some of the challenges of adopting microservices, the reality is that a microservices workflow creates a different set of requirements. Integrating a microservices API gateway into your development workflow empowers service teams to self-publish, monitor, and update their service, quickly and safely. This will enable your organization to ship software more rapidly, and with more reliability than ever before.
 
 For further reading on how an API Gateway can accelerate continuous delivery, read [this blog post](https://blog.getambassador.io/continuous-delivery-how-can-an-api-gateway-help-or-hinder-1ff15224ec4d).
+
+<div style="border: thick solid gray;padding:0.5em"> 
+
+Ambassador Edge Stack is a community supported product with 
+[features](getambassador.io/features) available for free and 
+limited use. For unlimited access and commercial use of
+Ambassador Edge Stack, [contact sales](https:/www.getambassador.io/contact) 
+for access to [Ambassador Edge Stack Enterprise](/user-guide/ambassador-edge-stack-enterprise) today.
+
+</div>
+</p>
