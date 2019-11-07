@@ -465,8 +465,6 @@ func (c *OAuth2Client) saveSession(redisClient *redis.Client, sessionID, xsrfTok
 		if err := redisClient.Cmd("SET", "session:"+sessionID, string(sessionDataBytes)).Err; err != nil {
 			return err
 		}
-	}
-	if xsrfToken != "" {
 		if err := redisClient.Cmd("SET", "session-xsrf:"+sessionID, xsrfToken).Err; err != nil {
 			return err
 		}
