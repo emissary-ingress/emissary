@@ -97,7 +97,7 @@ func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	switch r.URL.Path {
-	case "/edge_stack/admin/tos-url":
+	case "/edge_stack/tls/tos-url":
 		// Do this here, instead of in the web-browser,
 		// because CORS.
 		httpClient := httpclient.NewHTTPClient(middleware.GetLogger(r.Context()), 0, false, tls.RenegotiateNever)
@@ -108,7 +108,7 @@ func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 		io.WriteString(w, tosURL)
-	case "/edge_stack/admin/yaml":
+	case "/edge_stack/tls/yaml":
 		dat := &ambassadorTypesV2.Host{
 			TypeMeta: &k8sTypesMetaV1.TypeMeta{
 				APIVersion: "getambassador.io/v2",
@@ -168,7 +168,7 @@ func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			middleware.ServeErrorResponse(w, r.Context(), http.StatusMethodNotAllowed,
 				errors.New("method not allowed"), nil)
 		}
-	case "/edge_stack/admin/status":
+	case "/edge_stack/tls/status":
 		needleHostname := r.URL.Query().Get("hostname")
 
 		var needle *ambassadorTypesV2.Host

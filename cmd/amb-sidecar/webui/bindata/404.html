@@ -1,1 +1,31 @@
-TODO: “Congratulations, you have successfully installed AES, go to https://<their_domain_name>/edge_stack/admin to explore. Please note that if this is a new install you will need to click through the self signed cert warning.”
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <meta charset="utf-8">
+    <title>Ambassador Edge Stack - Admin</title>
+    <script type="text/javascript">
+      function DocumentReady() {
+        href = $("#admin_href")
+        href.attr("href", "http://" + window.location.host + "/edge_stack/admin/")
+        href.text("the admin page")
+      }
+      $(document).ready(DocumentReady);
+    </script>
+  </head>
+  <body>
+    <h2>404 page not found</h2>
+
+    <p>
+      Congratulations, you have successfully installed AES, but this
+      page does not exist. Please go to
+      <a id="admin_href"></a>
+      to explore and create some mappings so you can make it exist!
+    </p>
+
+    <p>
+      Please note that if this is a new install you will need to click
+      through the self signed cert warning.
+    </p>
+  </body>
+</html>

@@ -113,7 +113,7 @@ export default Vue.extend({
 				this.output += "\n";
 				this.lastOutput = str;
 				if (str == "state: Ready\n") {
-					window.location = 'https://' + this.hostname + "/ambassador-edge-stack/admin#<jwt>";
+					window.location = 'https://' + this.hostname + "/edge_stack/admin#<jwt>";
 				}
 			}
 		},
