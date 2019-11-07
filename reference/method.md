@@ -21,3 +21,14 @@ service: tour
 ## Using `method_regex`
 
 When `method_regex` is set to `true`, the value of the `method` annotation will be interpreted as a regular expression. 
+
+<div style="border: thick solid gray;padding:0.5em"> 
+
+Ambassador Edge Stack is a community supported product with 
+[features](getambassador.io/features) available for free and 
+limited use. For unlimited access and commercial use of
+Ambassador Edge Stack, [contact sales](https:/www.getambassador.io/contact) 
+for access to [Ambassador Edge Stack Enterprise](/user-guide/ambassador-edge-stack-enterprise) today.
+
+</div>
+</p>
