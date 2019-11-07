@@ -30,12 +30,25 @@ This is different from most OAuth implementations where the Authorization Server
 
 ## XSRF protection
 
-The `ambassador_session.NAME.NAMESPACE` cookie is an opaque string that should be used as an XSRF token.  Applications wishing to leverage Ambassador Pro in their XSRF attack protection should take two extra steps:
+The `ambassador_xsrf.NAME.NAMESPACE` cookie is an opaque string that should be used as an XSRF token.  Applications wishing to leverage Ambassador Pro in their XSRF attack protection should take two extra steps:
 
  1. When generating an HTML form, the server should read the cookie, and include a `<input type="hidden" name="_xsrf" value="COOKIE_VALUE" />` element in the form.
  2. When handling submitted form data should verify that the form value and the cookie value match.  If they do not match, it should refuse to handle the request, and return an HTTP 4XX response.
 
-Applications using request submission formats other than HTML forms should perform analogous steps of ensuring that the value is duplicated in the cookie and in the request body.
+Applications using request submission formats other than HTML forms
+should perform analogous steps of ensuring that the value is present
+in the request duplicated in the cookie and in either the request body
+or secure header field.  A secure header field is one that is not
+`Cookie`, is not "[simple][simple-header]", and is not explicitly
+allowed by the CORS policy.
+
+[simple-header]: https://www.w3.org/TR/cors/#simple-header
+
+**Note**: Prior versions of Ambassador Pro did not have a
+`ambassador_xsrf.NAME.NAMESPACE` cookie, and instead required you to
+use the `ambassador_session.NAME.NAMESPACE` cookie.  The
+`ambassador_session.NAME.NAMESPACE` cookie should no longer be used
+for XSRF-protection purposes
 
 ## RP-initiated logout
 
@@ -62,7 +75,7 @@ you need to include:
 
  1. `realm`: The `name.namespace` of the `Filter` that you want to log
     out of.  This may be submitted as part of the POST body, or may be set as an URL query parameter.
- 2. `_xsrf`: The value of the `ambassador_session.{{realm}}` cookie
+ 2. `_xsrf`: The value of the `ambassador_xsrf.{{realm}}` cookie
     (where `{{realm}}` is as described above).  This must be set in the POST body, the URL query part will not be checked.
 
 For example:
