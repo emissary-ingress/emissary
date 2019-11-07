@@ -18,11 +18,12 @@ type Rule struct {
 }
 
 type FilterReference struct {
-	Name                  string      `json:"name"`
-	Namespace             string      `json:"namespace"`
-	OnResponse            string      `json:"onResponse"`
-	OnRequestModification string      `json:"onRequestModification"`
-	Arguments             interface{} `json:"arguments"`
+	Name                  string              `json:"name"`
+	Namespace             string              `json:"namespace"`
+	OnResponse            string              `json:"onResponse"`
+	OnRequestModification string              `json:"onRequestModification"`
+	IfRequestHeader       HeaderFieldSelector `json:"ifRequestHeader"`
+	Arguments             interface{}         `json:"arguments"`
 }
 
 //////////////////////////////////////////////////////////////////////

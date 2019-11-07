@@ -167,6 +167,10 @@ func (c *FilterMux) filter(ctx context.Context, request *filterapi.FilterRequest
 	sumResponse := &filterapi.HTTPRequestModification{}
 	for _, filterRef := range rule.Filters {
 		filterQName := filterRef.Name + "." + filterRef.Namespace
+		if !filterRef.IfRequestHeader.Matches(filterutil.GetHeader(request)) {
+			logger.Debugf("skipping filter=%q", filterQName)
+			continue
+		}
 		logger.Debugf("applying filter=%q", filterQName)
 
 		filterInfo := findFilter(c.Controller, filterQName)
