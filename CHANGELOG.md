@@ -8,6 +8,10 @@ Configuration
  * Feature: `FilterPolicy` may now set `onDeny` and `onAllow` to modify how `Filter`s chain together.
  * Feature: `JWT` Filter `injectRequestHeaderse` templates can now read the incoming HTTP request headers.
 
+Behavior:
+
+ * The `OAuth2` filter's XSRF protection now works differently.  You should use the `ambassador_xsrf.{name}.{namespace}` cookie instead of the `ambassador_session.{name}.{namespace}` cookie for XSRF-protection purposes.
+
 ## 0.9.1 (2019-10-22)
 
 Configuration
