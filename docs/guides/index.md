@@ -1,16 +1,21 @@
 # Guides
 
-Guides are hands-on tutorials to walk you through configuring Ambassador Edge Stack or [Ambassador Open Source](content/user-guide/install-ambassador-oss) for specific functionality.
 
-<p>
-<div style="border: thin solid gray; padding: 0.5em;">
-Ambassador Edge Stack is a community supported product with <a href="/features">features</a> available for free and limited use.
-For unlimited access and commercial use of Ambassador Edge Stack, <a href="/contact">contact sales</a> for access to <a href="/user-guide/ambassador-edge-stack-enterprise">Ambassador Edge Stack</a> today.
+Guides are hands-on tutorials to walk you through configuring Ambassador Edge Stack or [Ambassador Open Source](/user-guide/install-ambassador-oss) for specific functionality.
+
+<div style="border: thick solid gray;padding:0.5em"> 
+
+Ambassador Edge Stack is a community supported product with 
+[features](getambassador.io/features) available for free and 
+limited use. For unlimited access and commercial use of
+Ambassador Edge Stack, [contact sales](https:/www.getambassador.io/contact) 
+for access to [Ambassador Edge Stack Enterprise](/user-guide/ambassador-edge-stack-enterprise) today.
+
 </div>
 </p>
 
 
-
+<p>
 
 <table>
 <tr>
