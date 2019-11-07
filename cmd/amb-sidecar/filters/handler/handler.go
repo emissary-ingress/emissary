@@ -220,10 +220,25 @@ func (c *FilterMux) filter(ctx context.Context, request *filterapi.FilterRequest
 		}
 		switch response := response.(type) {
 		case *filterapi.HTTPResponse:
-			return response, nil
+			switch filterRef.OnResponse {
+			case crd.FilterActionBreak:
+				return response, nil
+			case crd.FilterActionContinue:
+				// do nothing
+			default:
+				panic(errors.Errorf("unexpected filterRef.OnResponse: %q", filterRef.OnResponse))
+			}
 		case *filterapi.HTTPRequestModification:
 			filterutil.ApplyRequestModification(request, response)
 			sumResponse.Header = append(sumResponse.Header, response.Header...)
+			switch filterRef.OnRequestModification {
+			case crd.FilterActionBreak:
+				return sumResponse, nil
+			case crd.FilterActionContinue:
+				// do nothing
+			default:
+				panic(errors.Errorf("unexpected filterRef.OnRequestModification: %q", filterRef.OnRequestModification))
+			}
 		default:
 			panic(errors.Errorf("unexpected filter response type %T", response))
 		}
