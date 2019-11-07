@@ -484,12 +484,12 @@ spec:
   rules:
   - host: "glob-string"
     path: "glob-string"
-    filters:                                # optional; omit or set to `null` to apply no filters to this request
-    - name:                  "string"       # required
-      namespace:             "string"       # optional; default is the same namespace as the FilterPolicy
-      onResponse:            "enum-string"  # optional; default is "break"
-      onRequestModification: "enum-string"  # optional; default is "continue"
-      arguments:             DEPENDS        # optional
+    filters:                    # optional; omit or set to `null` to apply no filters to this request
+    - name:      "string"       # required
+      namespace: "string"       # optional; default is the same namespace as the FilterPolicy
+      onDeny:    "enum-string"  # optional; default is "break"
+      onAllow:   "enum-string"  # optional; default is "continue"
+      arguments: DEPENDS        # optional
 ```
 
 The type of the `arguments` property is dependent on the which Filter
@@ -501,10 +501,13 @@ When multiple `Filter`s are specified in a rule:
  * The filters are gone through in order
  * Each filter may either
    1. return a direct HTTP *response*, intended to be sent back to the
-      requesting HTTP client; or
+      requesting HTTP client (normally *denying* the request from
+      being forwarded to the upstream service); or
    2. return a modification to make the the HTTP *request* before
-      sending it to other filters or the upstream service.
- * `onResponse` identifies what to do when the filter returns an "HTTP
+      sending it to other filters or the upstream service (normally
+      *allowing* the request to be forwarded to the upstream service
+      with modifications).
+ * `onDeny` identifies what to do when the filter returns an "HTTP
    response":
    - `"break"`: End processing, and return the response directly to
      the requesitng HTTP client.  Later filters are not called.  The
@@ -513,7 +516,7 @@ When multiple `Filter`s are specified in a rule:
      next filter listed; or if at the end of the list, it is forwarded
      to the upstream service.  The HTTP response returned from the
      filter is discarded.
- * `onRequestModification` identifies what to do when the filter returns a
+ * `onAllow` identifies what to do when the filter returns a
    "modification to the HTTP request":
    - `"break"`: Apply the modification to the request, then end filter
      processing, and forward the modified request to the upstream
