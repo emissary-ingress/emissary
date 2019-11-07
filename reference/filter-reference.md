@@ -484,10 +484,12 @@ spec:
   rules:
   - host: "glob-string"
     path: "glob-string"
-    filters:                 # optional; omit or set to `null` to apply no filters to this request
-    - name:      "string"    # required
-      namespace: "string"    # optional; default is the same namespace as the FilterPolicy
-      arguments: DEPENDS     # optional
+    filters:                                # optional; omit or set to `null` to apply no filters to this request
+    - name:                  "string"       # required
+      namespace:             "string"       # optional; default is the same namespace as the FilterPolicy
+      onResponse:            "enum-string"  # optional; default is "break"
+      onRequestModification: "enum-string"  # optional; default is "continue"
+      arguments:             DEPENDS        # optional
 ```
 
 The type of the `arguments` property is dependent on the which Filter
@@ -497,14 +499,31 @@ documentation for each Filter type.
 When multiple `Filter`s are specified in a rule:
 
  * The filters are gone through in order
- * Later filters have access to _all_ headers inserted by earlier
-   filters.
- * The final backend service (i.e., the service where the request will
-   ultimately be routed) will only have access to inserted headers if
-   they are listed in `allowed_authorization_headers` in the
-   Ambassador annotation.
- * Filter processing is aborted by the first filter to return a
-   non-200 status.
+ * Each filter may either
+   1. return a direct HTTP *response*, intended to be sent back to the
+      requesting HTTP client; or
+   2. return a modification to make the the HTTP *request* before
+      sending it to other filters or the upstream service.
+ * `onResponse` identifies what to do when the filter returns an "HTTP
+   response":
+   - `"break"`: End processing, and return the response directly to
+     the requesitng HTTP client.  Later filters are not called.  The
+     request is not forwarded to the upstream service.
+   - `"continue"`: Continue processing.  The request is passed to the
+     next filter listed; or if at the end of the list, it is forwarded
+     to the upstream service.  The HTTP response returned from the
+     filter is discarded.
+ * `onRequestModification` identifies what to do when the filter returns a
+   "modification to the HTTP request":
+   - `"break"`: Apply the modification to the request, then end filter
+     processing, and forward the modified request to the upstream
+     service.  Later filters are not called.
+   - `"continue"`: Continue processing.  Apply the request
+     modification, then pass the modified request to the next filter
+     listed; or if at the end of the list, forward it to the upstream
+     service.
+ * Modifications to the request are cumulative; later filters have
+   access to _all_ headers inserted by earlier filters.
 
 ### `FilterPolicy` Example
 
