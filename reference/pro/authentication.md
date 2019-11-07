@@ -97,6 +97,38 @@ or
 </form>
 ```
 
+or from JavaScript
+
+```js
+function getCookie(name) {
+    var prefix = name + "=";
+    var cookies = document.cookie.split(';');
+    for (var i = 0; i < cookies.length; i++) {
+        var cookie = cookies[i].trimStart();
+        if (cookie.indexOf(prefix) == 0) {
+            return cookie.slice(prefix.length);
+        }
+    }
+    return "";
+}
+
+function logout(realm) {
+    var form = document.createElement('form');
+    form.method = 'post';
+    form.action = '/.ambassador/oauth2/logout?realm='+realm;
+    //form.target = '_blank'; // uncomment to open the identity provider's page in a new tab
+
+    var xsrfInput = document.createElement('input');
+    xsrfInput.type = 'hidden';
+    xsrfInput.name = '_xsrf';
+    xsrfInput.value = getCookie("ambassador_xsrf."+realm);
+    form.appendChild(xsrfInput);
+
+    document.body.appendChild(form);
+    form.submit();
+}
+```
+
 ## Redis
 
 Ambassador Pro relies on Redis to store short-lived authentication credentials and rate limiting information. If the Redis data store is lost, users will need to log back in and all existing rate limits would be reset.
