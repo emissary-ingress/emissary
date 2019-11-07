@@ -104,14 +104,23 @@ func prepareData(claims *licensekeys.LicenseClaimsLatest, limiter *limiter.Limit
 		activeClaims = limiter.GetClaims()
 	}
 
-	// TODO(alexgervais): Populate licensed feature usage/limits, if any usage > limit, log a message
 	// Make sure we log a message while calculating license usage, even if we don't actually call Metriton
-	featuresDataSet := []map[string]interface{}{
-		//{
-		//	"name":  "feature-x",
-		//	"usage": 0,
-		//	"limit": 5,
-		//},
+	featuresDataSet := []map[string]interface{}{}
+	for _, limitName := range licensekeys.ListKnownLimits() {
+		limit, ok := licensekeys.ParseLimit(limitName)
+		if ok {
+			limitValue := limiter.GetLimitValueAtPointInTime(&limit)
+			usageValue := limiter.GetFeatureUsageValueAtPointInTime(&limit)
+			featuresDataSet = append(featuresDataSet, map[string]interface{}{
+				"name":  limitName,
+				"usage": usageValue,
+				"limit": limitValue,
+			})
+			if usageValue >= limitValue {
+				fmt.Printf("You've reached the usage limits for your licensed feature %s usage (%d) limit (%d). Contact Datawire for a license key to remove limits https://www.getambassador.io/contact/\n",
+					limitName, usageValue, limitValue)
+			}
+		}
 	}
 	customerID := ""
 	if activeClaims != nil {

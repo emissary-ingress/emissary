@@ -107,18 +107,8 @@ func Main(version string) {
 			claims, err := cmdContext.KeyCheck(cmd.PersistentFlags(), reset)
 			if err != nil {
 				logrusLogger.Errorln(err)
-				// TODO(alexgervais): Make sure this "unregistered" fallback license enforces low & hard limits on all necessary features
-				claims = &licensekeys.LicenseClaimsLatest{
-					CustomerID: "unregistered",
-					EnabledFeatures: []licensekeys.Feature{
-						licensekeys.FeatureUnrecognized,
-						licensekeys.FeatureFilter,
-						licensekeys.FeatureRateLimit,
-						licensekeys.FeatureTraffic,
-						licensekeys.FeatureDevPortal,
-					},
-					EnforcedLimits: []licensekeys.LimitValue{},
-				}
+				claims = licensekeys.NewCommunityLicenseClaims()
+				claims.CustomerID = "unregistered"
 				limit.SetUnregisteredLicenseHardLimits(true)
 			} else {
 				limit.SetUnregisteredLicenseHardLimits(false)
@@ -384,9 +374,9 @@ func runE(cmd *cobra.Command, args []string) error {
 			rateLimitScope := statsStore.Scope("ratelimit")
 			rateLimitService := lyftservice.NewService(
 				loader.New(
-					cfg.RLSRuntimeDir,                                        // runtime path
-					cfg.RLSRuntimeSubdir,                                     // runtime subdirectory
-					rateLimitScope.Scope("runtime"),                          // stats scope
+					cfg.RLSRuntimeDir,               // runtime path
+					cfg.RLSRuntimeSubdir,            // runtime subdirectory
+					rateLimitScope.Scope("runtime"), // stats scope
 					&loader.SymlinkRefresher{RuntimePath: cfg.RLSRuntimeDir}, // refresher
 				),
 				lyftredis.NewRateLimitCacheImpl(
