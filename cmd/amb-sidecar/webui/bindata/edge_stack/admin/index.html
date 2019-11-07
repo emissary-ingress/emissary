@@ -1,70 +1,155 @@
-<!DOCTYPE html>
+<doctype html> 
 <html lang="en">
-  <head>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
-    <meta charset="utf-8">
-    <title>Ambassador Edge Stack - Admin</title>
-    <style>
-      body {
-	  max-width: 8in;
-	  margin: auto;
-      }
-    </style>
-  </head>
-  <body>
-    <div>
-      <button id="signup">Click here to sign up for a community license.</button>
-      <style>
-        #signup {
-            margin: auto;
-            width: 50%;
-        }
+	<head>
+		<meta charset="utf-8"> <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js">
+		</script>
+		<title>Ambassador Edge Stack Admin</title>
 
-        #signup-modal {
-            display: none;
-            position: fixed;
-            z-index: 1;
-            left:0;
-            top:0;
-            width:100%;
-            height:100%;
-            overflow:auto;
-            background-color: rgb(0,0,0);
-            background-color: rgba(0,0,0,0.4);
-        }
+	<!--Admin style definitions-->
+		<style>
+			body {
+				font-family: Source Sans Pro,sans-serif;
+				margin-left: 2em;
+				margin-right: 2em;
+			}
+			#all-wrapper {
+				width: 80%;
+				margin-left: 10%;
+			}
+			#ambassador-logo {
+				background-color: black;
+				padding: 5px;
+				width: 456px;
+				height: 42px;
+				margin-bottom: 1em
+			}
+			div.info-blob {
+				border: 1px solid #ede7f3;
+				box-shadow: 0 2px 4px rgba(0,0,0,.1);
+				padding: 0.5em;
+				margin-bottom: 0.6em;
+				line-height: 1.3;
+			}
+			div.info-blob2 {
+				border: thin solid grey;
+				border-radius: 0.4em;
+				padding: 0.5em;
+				margin-bottom: 0.6em;
+				line-height: 1.3;
+			}
+			div.info-title {
+				font-weight: bold;
+				font-size: 120%;
+			}
+			span.command {
+				background-color: #f5f2f0;;
+				padding: 3px;
+				letter-spacing: .2px;
+				font-family: Consolas,Monaco,Andale Mono,Ubuntu Mono,monospace;
+				font-size: 90%;
+				word-spacing: normal;
+				word-break: normal;
+				word-wrap: normal;
+				hypens: none;
+			}
+			div.overage-alert {
+				border: 3px solid red;
+				border-radius: 0.7em;
+				padding: 0.5em;
+				background-color: #FFe8e8;
+			}
+		</style>
 
-        #signup-content, #signup-finished {
-            display: none;
-            background-color: #fefefe;
-            margin: 15% auto;
-            padding: 20px;
-            border: 1px solid #888;
-            width: 80%;
-        }
+	<!--Form style definitions-->
+		<style>
+			#signup {
+				margin: auto;
+				width: 50%;
+			}
 
-        #signup-error {
-            color: #fe0000;
-        }
+			#signup-modal {
+				display: none;
+				position: fixed;
+				z-index: 1;
+				left:0;
+				top:0;
+				width:100%;
+				height:100%;
+				overflow:auto;
+				background-color: rgb(0,0,0);
+				background-color: rgba(0,0,0,0.4);
+			}
 
-        .invalid {
-            background-color: #fe0000;
-        }
-      </style>
-      <div id="signup-modal">
-        <div id="signup-content">
-          <form>
-	    <span>Email:</span> <input id="signup-email" type="text" name="email" value=""/>
-	    <span>Confirm:</span> <input id="signup-email-confirm" type="text" name="email-confirm" value=""/>
-            <input id="signup-cancel" type="button" value="Cancel" /><input id="signup-go" type="button" value="Signup"/>
-          </form>
-          <div id="signup-error"/>
-        </div>
-        <div id="signup-finished">
-          <span id="signup-finished-text"></span>
-          <button id="signup-finished-continue">Continue</button>
-        </div>
-      </div>
-      <script>
+			#signup-content, #signup-finished {
+				display: none;
+				background-color: #fefefe;
+				margin: 15% auto;
+				padding: 20px;
+				border: 1px solid #888;
+				width: 80%;
+			}
+
+			#signup-error {
+				color: #fe0000;
+			}
+
+			.invalid {
+				background-color: #fe0000;
+			}
+		</style>
+		<style>
+		  div.host, div.mapping {
+			  padding: 1em 1em;
+		  }
+
+		  span.json {
+			  unicode-bidi: embed;
+			  font-family: monospace;
+		  }
+
+		  details {
+			  margin-left: 1em;
+		  }
+		</style>
+	</head>
+	
+	
+	<body>
+		<div id="all-wrapper">
+			<div id="ambassador-logo">
+				<a href="https://www.getambassador.io/"> <img src="https://www.getambassador.io/images/ambassador-logo-white.svg" alt="Ambassador Edge Stack" /> </a> 
+			</div>
+			<div>
+				<button id="signup">Click here to sign up for a community license.</button> 
+				<div id="signup-modal">
+					<div id="signup-content">
+						<form>
+							<span>Email:</span> 
+							<input id="signup-email" type="text" name="email" value="" />
+							<span>Confirm:</span> 
+							<input id="signup-email-confirm" type="text" name="email-confirm" value="" />
+							<input id="signup-cancel" type="button" value="Cancel" />
+							<input id="signup-go" type="button" value="Signup" />
+						</form>
+							<div id="signup-error" />
+						</div>
+						<div id="signup-finished">
+							<span id="signup-finished-text"></span> <button id="signup-finished-continue">Continue</button> 
+						</div>
+					</div>
+				</div>
+			</div>
+			<h2>Hosts</h2>
+			<div id="hosts">
+			</div>
+			<h2>Mappings </h2>
+			<div id="mappings" 
+		</div>
+	</body>
+
+<!-- Scripts -->
+<script>
+
         var signup = document.getElementById("signup")
         var modal = document.getElementById("signup-modal")
         var email = document.getElementById("signup-email")
@@ -138,25 +223,10 @@
               .catch(error=>console.log(error))
           }
         }
-      </script>
-    </div>
-
-    <style>
-      div.host, div.mapping {
-          padding: 1em 1em;
-      }
-
-      span.json {
-          unicode-bidi: embed;
-          font-family: monospace;
-      }
-
-      details {
-          margin-left: 1em;
-      }
-    </style>
-
-    <script type="text/javascript">
+      
+		
+	</script>
+	<script type="text/javascript">
       var snapshot
 
       function path(el) {
@@ -169,21 +239,21 @@
 
       function renderKind(obj) {
         let md = obj.metadata
-        return $(`<div class="${obj.kind.toLowerCase()}" id="${md.namespace}_${md.name}"/>`)
+        return $(`<div class="${obj.kind.toLowerCase()}" id="${md.namespace}_${md.name}" />`)
           .append(renderMetadata(md))
           .append(renderSpec(obj.spec))
           .append(renderStatus(obj.status))
       }
 
       function renderMetadata(md) {
-        return $(`<div class="metadata" id="metadata"/>`)
+        return $(`<div class="metadata" id="metadata" />`)
           .append(`<span class="name">${md.namespace}/${md.name}</span>`)
           .append($(`<details class="labels" id="labels"><summary>labels</summary></details>`)
                   .append(renderObj(md.labels)))
       }
 
       function renderObj(obj, cls="obj") {
-        let result = $(`<div class="${cls}"/>`)
+        let result = $(`<div class="${cls}" />`)
         $.each(obj, (name, value) => {
           details = $(`<details class="field" id="${name}"><summary>${name}</summary></details>`)
           result.append(details)
@@ -250,14 +320,6 @@
       }
 
       $(render)
-    </script>
-
-    <h2>Hosts</h2>
-    <div id="hosts"></div>
-
-    <h2>Mappings</h2>
-    <div id="mappings"</div>
-
-    </div>
-  </body>
+    
+	</script>
 </html>
