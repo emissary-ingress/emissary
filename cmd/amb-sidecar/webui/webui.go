@@ -3,6 +3,7 @@
 package webui
 
 import (
+	"bytes"
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
@@ -21,6 +22,7 @@ import (
 	k8sSchema "k8s.io/apimachinery/pkg/runtime/schema"
 
 	ambassadorTypesV2 "github.com/datawire/ambassador/pkg/api/getambassador.io/v2"
+	"github.com/datawire/ambassador/pkg/supervisor"
 	k8sTypesMetaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	k8sTypesUnstructured "k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 
@@ -206,6 +208,19 @@ func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	case "/edge_stack/api/snapshot":
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.Write(fb.getSnapshot().Raw)
+	case "/edge_stack/api/apply":
+		apply := supervisor.Command("WEBUI", "kubectl", "apply", "-f", "-")
+		apply.Stdin = r.Body
+		var output bytes.Buffer
+		apply.Stdout = &output
+		apply.Stderr = &output
+		apply.Run()
+		if apply.ProcessState.ExitCode() == 0 {
+			w.WriteHeader(http.StatusOK)
+		} else {
+			w.WriteHeader(http.StatusBadRequest)
+		}
+		w.Write(output.Bytes())
 	default:
 		if _, err := fb.staticfiles.Open(path.Clean(r.URL.Path)); os.IsNotExist(err) {
 			// use our custom 404 handler instead of http.FileServer's
