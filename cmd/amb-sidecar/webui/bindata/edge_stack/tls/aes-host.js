@@ -117,25 +117,6 @@ export default Vue.extend({
 				}
 			}
 		},
-		refreshStatus: function() {
-			let url = new URL('status', window.location);
-			url.searchParams.set('hostname', this.hostname);
-
-			let req = new XMLHttpRequest();
-			req.open("GET", url.toString());
-			req.onload = () => {
-				if (req.status == 200) {
-					this.handleOutput(req.response);
-				}
-			};
-			req.onloadend = () => {
-				// recurse, to continually refresh the output status...
-				setTimeout(() => {
-					this.refreshStatus();
-				}, 1000/5); // ... but limited to 5rps
-			};
-			req.send();
-		},
 		onSubmit: function(event) {
 			let url = new URL('yaml', window.location);
 			url.searchParams.set('hostname', this.hostname);
@@ -147,7 +128,7 @@ export default Vue.extend({
 			req.onload = () => {
 				if (req.status == 201) {
 					this.handleOutput("Applying YAML...");
-					this.refreshStatus();
+				        window.location.replace("../admin/");
 				} else {
 					this.handleOutput("Error applying YAML: "+req.response);
 				}
