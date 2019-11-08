@@ -168,7 +168,7 @@ class WatchSpec:
         return WatchResult(kind=self.kind, watch_id=str(self))
 
 
-class Wattify:
+class Mockery:
     def __init__(self, logger: logging.Logger, debug: bool, sources: List[str],
                  labels: Optional[str], namespace: Optional[str], watch: str) -> None:
         self.logger = logger
@@ -222,14 +222,14 @@ class Wattify:
 
     def run_hook(self, watt_k8s: WattDict) -> Tuple[bool, bool]:
         json.dump({ 'Consul': {}, 'Kubernetes': watt_k8s },
-                  open("/tmp/wattify.json", "w"), sort_keys=True, indent=4)
+                  open("/tmp/mockery.json", "w"), sort_keys=True, indent=4)
 
         cmdline = shlex.split(self.watch)
 
         if self.debug:
             cmdline.append("--debug")
 
-        cmdline.append("/tmp/wattify.json")
+        cmdline.append("/tmp/mockery.json")
 
         self.logger.info(f"Running watch hook {cmdline}")
 
@@ -295,11 +295,11 @@ def main(k8s_yaml_path: str, debug: bool, force_pod_labels: bool, update: bool,
 
     logging.basicConfig(
         level=loglevel,
-        format="%(asctime)s wattify %(levelname)s: %(message)s",
+        format="%(asctime)s mockery %(levelname)s: %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S"
     )
 
-    logger = logging.getLogger('wattify')
+    logger = logging.getLogger('mockery')
 
     logger.debug(f"reading from {k8s_yaml_path}")
 
@@ -362,7 +362,7 @@ def main(k8s_yaml_path: str, debug: bool, force_pod_labels: bool, update: bool,
     # Pull in the YAML.
     manifest = parse_yaml(open(k8s_yaml_path, "r").read())
 
-    w = Wattify(logger, debug, source, ",".join(labels), namespace, watch)
+    w = Mockery(logger, debug, source, ",".join(labels), namespace, watch)
 
     iteration = 0
 
@@ -399,7 +399,7 @@ def main(k8s_yaml_path: str, debug: bool, force_pod_labels: bool, update: bool,
         if e.errno != errno.EEXIST:
             raise
 
-    scc = SecretHandler(logger, "wattify", "/tmp/ambassador/snapshots", f"v{iteration}")
+    scc = SecretHandler(logger, "mockery", "/tmp/ambassador/snapshots", f"v{iteration}")
 
     aconf = Config()
 
@@ -407,7 +407,7 @@ def main(k8s_yaml_path: str, debug: bool, force_pod_labels: bool, update: bool,
     logger.debug(f"Config.ambassador_namespace {Config.ambassador_namespace}")
 
     fetcher = ResourceFetcher(logger, aconf)
-    fetcher.parse_watt(open("/tmp/wattify.json", "r", encoding="utf-8").read())
+    fetcher.parse_watt(open("/tmp/mockery.json", "r", encoding="utf-8").read())
     aconf.load_all(fetcher.sorted())
 
     open("/tmp/ambassador/snapshots/aconf.json", "w", encoding="utf-8").write(aconf.as_json())
