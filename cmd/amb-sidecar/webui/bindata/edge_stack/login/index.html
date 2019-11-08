@@ -1,16 +1,83 @@
-<!DOCTYPE html>
+<doctype html> 
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <title>Ambassador Edge Stack - Login</title>
-  </head>
-  <body>
-    <p>Please download <a href="XXX-download-link">edgectl</a> and run
-       the command below in order to login to the admin UI:</p>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 
-    <pre id="edgectl-login-text">
-      edgectl login
-    </pre>
+	<title>Ambassador Edge Stack Admin</title>
+	
+	<!--Admin style definitions-->
+	<style>
+        body {
+            font-family: Source Sans Pro,sans-serif;
+            margin-left: 2em;
+            margin-right: 2em;
+        }
+        #all-wrapper {
+            width: 80%;
+            margin-left: 10%;
+        }
+        #ambassador-logo {
+            background-color: black;
+            padding: 5px;
+            width: 456px;
+            height: 42px;
+            margin-bottom: 1em
+        }
+        div.info-blob {
+            border: 1px solid #ede7f3;
+            box-shadow: 0 2px 4px rgba(0,0,0,.1);
+            padding: 0.5em;
+            margin-bottom: 0.6em;
+            line-height: 1.3;
+        }
+        div.info-blob2 {
+            border: thin solid grey;
+            border-radius: 0.4em;
+            padding: 0.5em;
+            margin-bottom: 0.6em;
+            line-height: 1.3;
+        }
+        div.info-title {
+            font-weight: bold;
+            font-size: 120%;
+        }
+        span.command {
+            background-color: #f5f2f0;;
+            padding: 3px;
+            letter-spacing: .2px;
+            font-family: Consolas,Monaco,Andale Mono,Ubuntu Mono,monospace;
+            font-size: 90%;
+            word-spacing: normal;
+            word-break: normal;
+            word-wrap: normal;
+            hypens: none;
+        }
+        div.overage-alert {
+            border: 3px solid red;
+            border-radius: 0.7em;
+            padding: 0.5em;
+            background-color: #FFe8e8;
+        }
+    </style>
+</head>
+
+  <body>
+	<div id="all-wrapper">
+		<div id="ambassador-logo">
+			<a href="https://www.getambassador.io/">
+				<img src="https://www.getambassador.io/images/ambassador-logo-white.svg" alt="Ambassador Edge Stack" /> 
+			</a>
+		</div>
+		
+		<div class="info-blob">
+			<p>Please download <a href="XXX-download-link">edgectl</a> and run
+			   the command below in order to login to the admin UI:</p>
+			<p>
+			  <span class="command"> edgectl login<span>
+			</p>
+		</div>
+    </div>
   </body>
 </html>
 

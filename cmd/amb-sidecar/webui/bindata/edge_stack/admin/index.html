@@ -1,12 +1,15 @@
-<doctype html> 
-<html lang="en">
-	<head>
-		<meta charset="utf-8"> <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js">
-		</script>
-		<title>Ambassador Edge Stack Admin</title>
+<doctype html>
+	<html lang="en">
+		<head>
+			<meta charset="utf-8">
+				<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+				<title>
+					Ambassador Edge Stack Admin
+				</title>
+				
+<!--Admin style definitions-->
+				<style>
 
-	<!--Admin style definitions-->
-		<style>
 			body {
 				font-family: Source Sans Pro,sans-serif;
 				margin-left: 2em;
@@ -58,98 +61,117 @@
 				padding: 0.5em;
 				background-color: #FFe8e8;
 			}
-		</style>
+		
+				</style>
 
-	<!--Form style definitions-->
-		<style>
-			#signup {
-				margin: auto;
-				width: 50%;
-			}
 
-			#signup-modal {
-				display: none;
-				position: fixed;
-				z-index: 1;
-				left:0;
-				top:0;
-				width:100%;
-				height:100%;
-				overflow:auto;
-				background-color: rgb(0,0,0);
-				background-color: rgba(0,0,0,0.4);
-			}
+<!--Form style definitions-->
+				<style>
+          #signup {
+            margin: auto;
+            width: 50%;
+          }
 
-			#signup-content, #signup-finished {
-				display: none;
-				background-color: #fefefe;
-				margin: 15% auto;
-				padding: 20px;
-				border: 1px solid #888;
-				width: 80%;
-			}
+          #signup-modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left:0;
+            top:0;
+            width:100%;
+            height:100%;
+            overflow:auto;
+            background-color: rgb(0,0,0);
+            background-color: rgba(0,0,0,0.4);
+          }
 
-			#signup-error {
-				color: #fe0000;
-			}
+          #signup-content, #signup-finished {
+            display: none;
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+          }
 
-			.invalid {
-				background-color: #fe0000;
-			}
-		</style>
-		<style>
-		  div.host, div.mapping {
-			  padding: 1em 1em;
-		  }
+          #signup-error {
+            color: #fe0000;
+          }
 
-		  span.json {
-			  unicode-bidi: embed;
-			  font-family: monospace;
-		  }
+          .invalid {
+            background-color: #fe0000;
+          }
+    
+            </style>
+            <style>
 
-		  details {
-			  margin-left: 1em;
-		  }
-		</style>
-	</head>
-	
-	
-	<body>
-		<div id="all-wrapper">
-			<div id="ambassador-logo">
-				<a href="https://www.getambassador.io/"> <img src="https://www.getambassador.io/images/ambassador-logo-white.svg" alt="Ambassador Edge Stack" /> </a> 
-			</div>
-			<div>
-				<button id="signup">Click here to sign up for a community license.</button> 
-				<div id="signup-modal">
-					<div id="signup-content">
-						<form>
-							<span>Email:</span> 
-							<input id="signup-email" type="text" name="email" value="" />
-							<span>Confirm:</span> 
-							<input id="signup-email-confirm" type="text" name="email-confirm" value="" />
-							<input id="signup-cancel" type="button" value="Cancel" />
-							<input id="signup-go" type="button" value="Signup" />
-						</form>
-							<div id="signup-error" />
+          div.host, div.mapping {
+            padding: 1em 1em;
+          }
+
+          span.json {
+            unicode-bidi: embed;
+            font-family: monospace;
+          }
+
+          details {
+            margin-left: 1em;
+          }
+		
+				</style>
+			</head>
+			<body>
+				<div id="all-wrapper">
+					<div id="ambassador-logo">
+						<a href="https://www.getambassador.io/">
+							<img src="https://www.getambassador.io/images/ambassador-logo-white.svg" alt="Ambassador Edge Stack" /> 
+						</a>
+					</div>
+					<div>
+						<div class="info-blob">
+							<button id="signup">
+								Click here to sign up for a community license.
+							</button>
 						</div>
-						<div id="signup-finished">
-							<span id="signup-finished-text"></span> <button id="signup-finished-continue">Continue</button> 
+						
+						<div id="signup-modal">
+							<div id="signup-content">
+								<form>
+									<span>
+										Email:
+									</span>
+									<input id="signup-email" type="text" name="email" value="" /> 
+									<span>
+										Confirm:
+									</span>
+									<input id="signup-email-confirm" type="text" name="email-confirm" value="" /> <input id="signup-cancel" type="button" value="Cancel" /> <input id="signup-go" type="button" value="Signup" /> 
+								</form>
+								<div id="signup-error" /> 
+							</div>
+							<div id="signup-finished">
+								<span id="signup-finished-text">
+								</span>
+								<button id="signup-finished-continue">
+									Continue
+								</button>
+							</div>
 						</div>
 					</div>
 				</div>
-			</div>
-			<h2>Hosts</h2>
-			<div id="hosts">
-			</div>
-			<h2>Mappings </h2>
-			<div id="mappings" 
-		</div>
-	</body>
+				
+				<h2>Hosts</h2>
+				<div class="info-blob">
+					<div id="hosts"></div>
+				</div>
+				
+				<h2>Mappings </h2>
+				<div class="info-blob">
+					<div id="mappings"></div>
+				</div>
+		</body>
 
 <!-- Scripts -->
-<script>
-
+		<script>
         var signup = document.getElementById("signup")
         var modal = document.getElementById("signup-modal")
         var email = document.getElementById("signup-email")
@@ -223,10 +245,10 @@
               .catch(error=>console.log(error))
           }
         }
-      
-		
-	</script>
-	<script type="text/javascript">
+      	
+		</script>
+		<script type="text/javascript">
+
       var snapshot
 
       function path(el) {
@@ -321,5 +343,6 @@
 
       $(render)
     
-	</script>
-</html>
+	
+		</script>
+	</html>
