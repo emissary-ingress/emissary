@@ -54,6 +54,73 @@ its `README.md`.
 Please don't, unless you're fixing docs for an upcoming feature that hasn't
 yet shipped.)
 
+## Testing Locally
+
+One of the quickest ways to do local tests is the `mockery` tool. 
+This tool runs inside the Docker container used to build Ambassador, using 
+`make shell`, so it's important to realize that it won't have access to your
+entire filesystem. There are two easy ways to arrange to get data in and out
+of the container:
+
+1. If you `make sync`, everything in the Ambassador source tree gets rsync'd
+   into the container's `/buildroot/ambassador`. The first time you start the
+   shell, this can take a bit, but after that it's pretty fast. You'll 
+   probably need to use `docker cp` to get data out of the container, though.
+
+2. You may be able to use Docker volume mounts by exporting `BUILDER_MOUNTS`
+   with the appropriate `-v` switches before running `make shell` -- e.g.
+
+    ```
+    export BUILDER_MOUNTS=$(pwd)/xfer:/xfer
+    make shell
+    ```
+
+   will cause the dev shell to mount `xfer` in your current directory as `/xfer`.
+   This is known to work well on MacOS (though volume mounts are slow on Mac,
+   so moving gigabytes of data around this way isn't ideal).
+
+Once you've sorted out how to move data around:
+
+1. Put together a set of Ambassador configuration CRDs in a file that's somewhere
+   that you'll be able to get them into the builder container. The easy way to do
+   this is to use the files you'd feed to `kubectl apply`; they should be actual 
+   Kubernetes objects with `metadata` and `spec` sections, etc. (If you want to 
+   use annotations, that's OK too, just put the whole `Service` object in there.)
+
+2. Run `make compile shell` to build everything and start the dev shell.
+
+3. From inside the build shell, run 
+
+   ```
+   python ambassador/python/mockery.py $path_to_your_file
+   ```
+
+   If you're using a non-default `ambassador_id` you need to provide it in the
+   environment:
+
+   ```
+   AMBASSADOR_ID=whatever python ambassador/python/mockery.py $path_to_your_file
+   ```
+
+   Finally, if you're trying to mimic `KAT`, copy the `/tmp/k8s-AmbassadorTest.yaml`
+   file from a KAT run to use as input, then
+
+   ```
+   python ambassador/python/mockery.py --kat $kat_test_name $path_to_k8s_AmbassadorTest.yaml
+   ```
+
+   where `$kat_test_name` is the class name of a `KAT` test class, like `LuaTest` or
+   `TLSContextTest`.
+
+
+4. Once it's done, `/tmp/ambassador/snapshots` will have all the output from the 
+   compiler phase of Ambassador.
+
+The point of `mockery` is that it mimics the configuration cycle of real Ambassador, 
+without relying at all on a Kubernetes cluster. This means that you can easily and
+quickly take a Kubernetes input and look at the generated Envoy configuration without
+any other infrastructure.
+
 ----------------------------------
 
 OLD NOTES HERE
