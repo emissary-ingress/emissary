@@ -63,7 +63,7 @@ func (h *JWTFilter) Filter(ctx context.Context, r *filterapi.FilterRequest) (fil
 				"Claims":    (map[string]interface{})(*(token.Claims.(*jwt.MapClaims))),
 				"Signature": token.Signature,
 			},
-			"httpHeader": filterutil.GetHeader(r),
+			"httpRequestHeader": filterutil.GetHeader(r),
 		}
 		value := new(strings.Builder)
 		if err := hf.Template.Execute(value, data); err != nil {
