@@ -52,7 +52,7 @@ func (s *inMemoryStore) Set(ks Service, m ServiceMetadata) error {
 
 	// If this is a new service... Increment the count.
 	if _, ok := s.metadata[ks]; !ok {
-		err := s.climiter.IncrementUsage()
+		err := s.climiter.IncrementUsage(ks.Name)
 		if err != nil {
 			if s.limiter.IsHardLimitAtPointInTime() {
 				return err
@@ -73,7 +73,7 @@ func (s *inMemoryStore) Delete(ks Service) error {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
-	err := s.climiter.DecrementUsage()
+	err := s.climiter.DecrementUsage(ks.Name)
 	if err != nil {
 		return err
 	}

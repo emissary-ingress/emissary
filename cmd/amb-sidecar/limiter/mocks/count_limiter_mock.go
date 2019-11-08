@@ -16,11 +16,15 @@ func NewMockLimitCounter(limit int) *MockCounter {
 	}
 }
 
+func (mc *MockCounter) GetUnderlyingValueAtPointInTime() (int, error) {
+	return mc.currentCount, nil
+}
+
 func (mc *MockCounter) IsExceedingAtPointInTime() (bool, error) {
 	return mc.currentCount > mc.limitAt, nil
 }
 
-func (mc *MockCounter) IncrementUsage() error {
+func (mc *MockCounter) IncrementUsage(key string) error {
 	if mc.currentCount >= mc.limitAt {
 		return errors.New("Does not allow for one more use")
 	} else {
@@ -29,7 +33,7 @@ func (mc *MockCounter) IncrementUsage() error {
 	}
 }
 
-func (mc *MockCounter) DecrementUsage() error {
+func (mc *MockCounter) DecrementUsage(key string) error {
 	mc.currentCount--
 	return nil
 }
