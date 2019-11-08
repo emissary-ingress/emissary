@@ -41,11 +41,7 @@ func (h *JWTFilter) Filter(ctx context.Context, r *filterapi.FilterRequest) (fil
 
 	token, err := validateToken(tokenString, h.Spec, httpClient)
 	if err != nil {
-		if h.Spec.ErrorResponse.BodyTemplate != nil {
-			return middleware.TemplatedErrorResponse(ctx, http.StatusUnauthorized, err, *h.Spec.ErrorResponse.BodyTemplate, h.Spec.ErrorResponse.ContentType), nil
-		} else {
-			return middleware.NewErrorResponse(ctx, http.StatusUnauthorized, err, nil), nil
-		}
+		return middleware.NewTemplatedErrorResponse(&h.Spec.ErrorResponse, ctx, http.StatusUnauthorized, err, nil), nil
 	}
 
 	ret := &filterapi.HTTPRequestModification{}
