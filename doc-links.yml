@@ -22,7 +22,7 @@
       - title: Visit Datawire.io
         link: https://www.datawire.io
         
-- title: Install & Upgrade
+- title: Installation & Upgrades
   items: 
   - title: Installing Ambassador Edge Stack
     link: /user-guide/install
@@ -45,11 +45,33 @@
     link: /user-guide/upgrade-from-oss-to-edge-stack
   - title: Certified Builds
     link: /user-guide/certified-builds
-    
 
-- title: Configuration Guides
+- title: Concepts
   items: 
-    - title: Guides
+  - title: Ambassador 101
+    link: /concepts/overview
+  - title: Ambassador Edge Stack Architecture
+    link: /concepts/architecture
+  - title: Ambassador Edge Stack Deployment Architecture
+    link: /concepts/ambassador-deployment
+  - title: Continuous Delivery, Declarative Config, and GitOps
+    link: /user-guide/cd-declarative-gitops
+  - title: Microservices API Gateways
+    link: /about/microservices-api-gateways
+  - title: Rate Limiting Concepts
+    link: /user-guide/rate-limiting
+  - title: Self-Service Routing and Deployment Control
+    link: /concepts/developers
+  - title: Safely Testing in Production
+    link: /docs/dev-guide/test-in-prod
+  - title: OAuth & OIDC Overview
+    link: /concepts/auth-overview
+  - title: Why Ambassador Edge Stack Uses Envoy Proxy (External Link)
+    link: https://blog.getambassador.io/envoy-vs-nginx-vs-haproxy-why-the-open-source-ambassador-api-gateway-chose-envoy-23826aed79ef
+
+- title: Guides & Tutorials 
+  items: 
+    - title: Available Guides
       link: /docs/guides/
       items:
     - title: Connecting Services
@@ -103,30 +125,8 @@
       - title: Monitoring Ingress with Prometheus and Grafana
         link: /user-guide/monitoring
 
-- title: Concepts
-  items: 
-  - title: Ambassador 101
-    link: /concepts/overview
-  - title: Ambassador Edge Stack Architecture
-    link: /concepts/architecture
-  - title: Ambassador Edge Stack Deployment Architecture
-    link: /concepts/ambassador-deployment
-  - title: Continuous Delivery, Declarative Config, and GitOps
-    link: /user-guide/cd-declarative-gitops
-  - title: Microservices API Gateways
-    link: /about/microservices-api-gateways
-  - title: Rate Limiting Concepts
-    link: /user-guide/rate-limiting
-  - title: Self-Service Routing and Deployment Control
-    link: /concepts/developers
-  - title: Safely Testing in Production
-    link: /docs/dev-guide/test-in-prod
-  - title: OAuth & OIDC Overview
-    link: /concepts/auth-overview
-  - title: Why Ambassador Edge Stack Uses Envoy Proxy (External Link)
-    link: https://blog.getambassador.io/envoy-vs-nginx-vs-haproxy-why-the-open-source-ambassador-api-gateway-chose-envoy-23826aed79ef
 
-- title: Reference & How To
+- title: Reference & Configurations
   items:
     - title: Configuring Ambassador Edge Stack
       link: /reference/configuration
