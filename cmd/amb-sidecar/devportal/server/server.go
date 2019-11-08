@@ -151,11 +151,23 @@ func (s *Server) handleOpenAPIUpdate() http.HandlerFunc {
 }
 
 type contentVars struct {
-	S      *Server
+	S      ServerView
 	Ctx    string
 	Prefix string
 	Pages  []string
 	Rq     map[string]string
+}
+
+type ServerView interface {
+	K8sStore() ServiceStoreView
+}
+
+type ServiceStoreView interface {
+	Slice() []ServiceRecord
+}
+
+func (s *Server) K8sStore() ServiceStoreView {
+	return s.serviceStore
 }
 
 func (s *Server) vars(r *http.Request, context string) content.ContentVars {
