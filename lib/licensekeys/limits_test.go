@@ -11,6 +11,8 @@ import (
 var allLimits = []licensekeys.Limit{
 	licensekeys.LimitUnrecognized,
 	licensekeys.LimitDevPortalServices,
+	licensekeys.LimitRateLimitService,
+	licensekeys.LimitAuthFilterService,
 }
 
 func limitInArray(needle licensekeys.Limit, haystack []licensekeys.Limit) bool {
