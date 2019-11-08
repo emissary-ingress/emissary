@@ -105,12 +105,6 @@ service: {self.target.path.fqdn}
         assert self.results[0].headers["Server"] == [ "test-server" ]
 
 
-class CliTest(AmbassadorTest):
-    def check(self):
-        cmd = ShellCommand('kubectl', 'exec', self.path.k8s, '--', 'ambassador', '--help')
-        assert cmd.check("ambassador cli")
-
-
 class SafeRegexMapping(AmbassadorTest):
 
     target: ServiceType

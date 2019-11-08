@@ -7,6 +7,7 @@ import sys
 import difflib
 import errno
 import filecmp
+import functools
 import json
 import logging
 import os
@@ -14,6 +15,11 @@ import shlex
 import shutil
 
 import click
+
+# Use this instead of click.option
+click_option = functools.partial(click.option, show_default=True)
+click_option_no_default = functools.partial(click.option, show_default=False)
+
 
 from ambassador import Config, IR, EnvoyConfig
 from ambassador.config.resourcefetcher import ResourceFetcher
@@ -162,7 +168,7 @@ class WatchSpec:
         return WatchResult(kind=self.kind, watch_id=str(self))
 
 
-class Wattify:
+class Mockery:
     def __init__(self, logger: logging.Logger, debug: bool, sources: List[str],
                  labels: Optional[str], namespace: Optional[str], watch: str) -> None:
         self.logger = logger
@@ -216,14 +222,14 @@ class Wattify:
 
     def run_hook(self, watt_k8s: WattDict) -> Tuple[bool, bool]:
         json.dump({ 'Consul': {}, 'Kubernetes': watt_k8s },
-                  open("/tmp/wattify.json", "w"), sort_keys=True, indent=4)
+                  open("/tmp/mockery.json", "w"), sort_keys=True, indent=4)
 
         cmdline = shlex.split(self.watch)
 
         if self.debug:
             cmdline.append("--debug")
 
-        cmdline.append("/tmp/wattify.json")
+        cmdline.append("/tmp/mockery.json")
 
         self.logger.info(f"Running watch hook {cmdline}")
 
@@ -258,27 +264,27 @@ class Wattify:
         return True, any_changes
 
 @click.command(help="Mock the watt/watch_hook/diagd cycle to generate an IR from a Kubernetes YAML manifest.")
-@click.option('--debug/--no-debug', default=True,
-              help="enable debugging (default false)")
-@click.option('-n', '--namespace', type=click.STRING,
-              help="namespace to watch (default all)")
-@click.option('-s', '--source', type=click.STRING, multiple=True,
-              help="define initial source types")
-@click.option('--labels', type=click.STRING, multiple=True,
+@click_option('--debug/--no-debug', default=True,
+              help="enable debugging")
+@click_option('-n', '--namespace', type=click.STRING,
+              help="namespace to watch [default: all namespaces])")
+@click_option('-s', '--source', type=click.STRING, multiple=True,
+              help="define initial source types [default: all Ambassador resources]")
+@click_option('--labels', type=click.STRING, multiple=True,
               help="define initial label selector")
-@click.option('--force-pod-labels/--no-force-pod-labels', default=True,
-              help="copy initial label selector to /tmp/ambassador-pod-info/labels (default true)")
-@click.option('--kat-name', '--kat', type=click.STRING,
+@click_option('--force-pod-labels/--no-force-pod-labels', default=True,
+              help="copy initial label selector to /tmp/ambassador-pod-info/labels")
+@click_option('--kat-name', '--kat', type=click.STRING,
               help="emulate a running KAT test with this name")
-@click.option('-w', '--watch', type=click.STRING,
+@click_option('-w', '--watch', type=click.STRING, default="python /ambassador/watch_hook.py",
               help="define a watch hook")
-@click.option('--diff-path', '--diff', type=click.STRING,
+@click_option('--diff-path', '--diff', type=click.STRING,
               help="directory to diff against")
-@click.option('--include-ir/--no-include-ir', '--ir/--no-ir', default=False,
-              help="include IR in diff")
-@click.option('--include-aconf/--no-include-aconf', '--aconf/--no-aconf', default=False,
-              help="include AConf in diff")
-@click.option('--update/--no-update', default=False,
+@click_option('--include-ir/--no-include-ir', '--ir/--no-ir', default=False,
+              help="include IR in diff when using --diff-path")
+@click_option('--include-aconf/--no-include-aconf', '--aconf/--no-aconf', default=False,
+              help="include AConf in diff when using --diff-path")
+@click_option('--update/--no-update', default=False,
               help="update the diff path when finished")
 @click.argument('k8s-yaml-path')
 def main(k8s_yaml_path: str, debug: bool, force_pod_labels: bool, update: bool,
@@ -289,11 +295,11 @@ def main(k8s_yaml_path: str, debug: bool, force_pod_labels: bool, update: bool,
 
     logging.basicConfig(
         level=loglevel,
-        format="%(asctime)s wattify %(levelname)s: %(message)s",
+        format="%(asctime)s mockery %(levelname)s: %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S"
     )
 
-    logger = logging.getLogger('wattify')
+    logger = logging.getLogger('mockery')
 
     logger.debug(f"reading from {k8s_yaml_path}")
 
@@ -356,7 +362,7 @@ def main(k8s_yaml_path: str, debug: bool, force_pod_labels: bool, update: bool,
     # Pull in the YAML.
     manifest = parse_yaml(open(k8s_yaml_path, "r").read())
 
-    w = Wattify(logger, debug, source, ",".join(labels), namespace, watch)
+    w = Mockery(logger, debug, source, ",".join(labels), namespace, watch)
 
     iteration = 0
 
@@ -393,7 +399,7 @@ def main(k8s_yaml_path: str, debug: bool, force_pod_labels: bool, update: bool,
         if e.errno != errno.EEXIST:
             raise
 
-    scc = SecretHandler(logger, "wattify", "/tmp/ambassador/snapshots", f"v{iteration}")
+    scc = SecretHandler(logger, "mockery", "/tmp/ambassador/snapshots", f"v{iteration}")
 
     aconf = Config()
 
@@ -401,7 +407,7 @@ def main(k8s_yaml_path: str, debug: bool, force_pod_labels: bool, update: bool,
     logger.debug(f"Config.ambassador_namespace {Config.ambassador_namespace}")
 
     fetcher = ResourceFetcher(logger, aconf)
-    fetcher.parse_watt(open("/tmp/wattify.json", "r", encoding="utf-8").read())
+    fetcher.parse_watt(open("/tmp/mockery.json", "r", encoding="utf-8").read())
     aconf.load_all(fetcher.sorted())
 
     open("/tmp/ambassador/snapshots/aconf.json", "w", encoding="utf-8").write(aconf.as_json())
