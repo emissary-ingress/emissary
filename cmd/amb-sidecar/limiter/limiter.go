@@ -20,4 +20,6 @@ type Limiter interface {
 	IsHardLimitAtPointInTime() bool
 	// Create a limiter that can handle counts.
 	CreateCountLimiter(limit *licensekeys.Limit) (CountLimiter, error)
+	// Create a limiter that can handle rates.
+	CreateRateLimiter(limit *licensekeys.Limit) (RateLimiter, error)
 }

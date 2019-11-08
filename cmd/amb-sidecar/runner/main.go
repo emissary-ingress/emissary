@@ -361,7 +361,7 @@ func runE(cmd *cobra.Command, args []string) error {
 
 		// AuthService
 		if redisPool != nil && (licenseClaims.RequireFeature(licensekeys.FeatureFilter) == nil || licenseClaims.RequireFeature(licensekeys.FeatureDevPortal) == nil) {
-			authService, err := filterhandler.NewFilterMux(cfg, l.WithField("SUB", "http-handler"), ct, coreClient, redisPool)
+			authService, err := filterhandler.NewFilterMux(cfg, l.WithField("SUB", "http-handler"), ct, coreClient, redisPool, limit)
 			if err != nil {
 				return err
 			}
@@ -386,7 +386,8 @@ func runE(cmd *cobra.Command, args []string) error {
 					rand.New(lyftredis.NewLockedSource(time.Now().Unix())),
 					cfg.ExpirationJitterMaxSeconds),
 				lyftconfig.NewRateLimitConfigLoaderImpl(),
-				rateLimitScope.Scope("service"))
+				rateLimitScope.Scope("service"),
+				limit)
 			rlsV1api.RegisterRateLimitServiceServer(grpcHandler, rateLimitService.GetLegacyService())
 			rlsV2api.RegisterRateLimitServiceServer(grpcHandler, rateLimitService)
 			httpHandler.AddEndpoint(

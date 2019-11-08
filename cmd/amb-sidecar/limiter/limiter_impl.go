@@ -128,3 +128,18 @@ func (l *LimiterImpl) CreateCountLimiter(limit *licensekeys.Limit) (CountLimiter
 		return realInstance, nil
 	}
 }
+
+// CreateRateLimiter creates a limiter that is capable of enforcing rates.
+func (l *LimiterImpl) CreateRateLimiter(limit *licensekeys.Limit) (RateLimiter, error) {
+	if limit.Type() != licensekeys.LimitTypeRate {
+		return nil, errors.New("This limit is not a rate type")
+	}
+
+	realInstance, err := newRateLimiterWindow(l.redisPool, l, limit, l.cryptoEngine)
+	if err != nil {
+		return newNoNoRate(), nil
+	} else {
+		l.registerLimiter(limit, realInstance)
+		return realInstance, nil
+	}
+}

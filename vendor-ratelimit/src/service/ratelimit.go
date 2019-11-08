@@ -2,6 +2,8 @@ package ratelimit
 
 import (
 	"context"
+	"github.com/datawire/apro/cmd/amb-sidecar/limiter"
+	"github.com/datawire/apro/lib/licensekeys"
 	"strings"
 	"sync"
 
@@ -58,6 +60,7 @@ type service struct {
 	stats              serviceStats
 	rlStatsScope       stats.Scope
 	legacy             *legacyService
+	AESRateLimiter     limiter.RateLimiter
 }
 
 func (this *service) reloadConfig() {
@@ -107,6 +110,14 @@ func checkServiceErr(something bool, msg string) {
 
 func (this *service) shouldRateLimitWorker(
 	ctx context.Context, request *pb.RateLimitRequest) *pb.RateLimitResponse {
+
+    err := this.AESRateLimiter.IncrementUsage()
+    if err != nil {
+		response := &pb.RateLimitResponse{}
+		finalCode := pb.RateLimitResponse_OVER_LIMIT
+		response.OverallCode = finalCode
+		return response
+	}
 
 	checkServiceErr(request.Domain != "", "rate limit domain must not be empty")
 	checkServiceErr(len(request.Descriptors) != 0, "rate limit descriptor list must not be empty")
@@ -182,7 +193,15 @@ func (this *service) GetCurrentConfig() config.RateLimitConfig {
 }
 
 func NewService(runtime loader.IFace, cache redis.RateLimitCache,
-	configLoader config.RateLimitConfigLoader, stats stats.Scope) RateLimitServiceServer {
+	configLoader config.RateLimitConfigLoader, stats stats.Scope, limiter *limiter.LimiterImpl) RateLimitServiceServer {
+
+	// Our own internal rate-limiter for AES license usage
+	// Error should never be set due to hardcoded enums
+	// but if it is make it break hard.
+	aeslimiter, err := limiter.CreateRateLimiter(&licensekeys.LimitRateLimitService)
+	if err != nil {
+		return nil
+	}
 
 	newService := &service{
 		runtime:            runtime,
@@ -193,6 +212,7 @@ func NewService(runtime loader.IFace, cache redis.RateLimitCache,
 		cache:              cache,
 		stats:              newServiceStats(stats),
 		rlStatsScope:       stats.Scope("rate_limit"),
+		AESRateLimiter:     aeslimiter,
 	}
 	newService.legacy = &legacyService{
 		s:                          newService,
