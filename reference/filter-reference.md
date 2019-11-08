@@ -116,12 +116,12 @@ spec:
     - name:   "header-name-string"    # required
       value:  "go-template-string"    # required
        
-    errorResponse:                  # optional; default is nil
+    errorResponse:                  # optional
       contentType: "string"           # deprecated; use 'headers' instead
       headers:                        # optional; default is [{name: "Content-Type", value: "application/json"}]
 	  - name: "header-name-string"      # required
 	    value: "go-template-string"     # required
-      bodyTemplate: "string"          # optional
+      bodyTemplate: "string"          # optional; default is `{{ . | json "" }}`
 ```
 
  - `insecureTLS` disables TLS verification for the cases when
@@ -156,14 +156,26 @@ spec:
     errors.
     * `contentType` is deprecated, and is equivalent to including a
       `name: "Content-Type"` item in `headers`.
-    * `headers` sets extra headers in the error response, and works
-      the same way as `injectRequestHeader`.
+    * `headers` sets extra HTTP header fields in the error response.
+      The value is specified as a [Go `text/template`][] string, with
+      the same data made available to it as `bodyTemplate` (below).
+      It does not have access to the `json` function.
     * `bodyTemplate` specifies body of the error; specified as a [Go
       `text/template`][] string, with the following data made
       available to it:
-      * `.httpStatus` → `integer` the HTTP status code to be returned
-      * `.error` → `error` the original error object
-      * `.requestId` → `integer` the Envoy request ID, for correlation
+
+       * `.status_code` → `integer` the HTTP status code to be returned
+       * `.httpStatus` → `integer` an alias for `.status_code` (hidden from `{{ . | json "" }}`)
+       * `.message` → `string` the error message string
+       * `.error` → `error` the raw Go `error` object that generated `.message` (hidden from `{{ . | json "" }}`)
+       * `.error.ValidationError` → [`jwt.ValidationError`][] the JWT validation error.
+       * `.request_id` → `string` the Envoy request ID, for correlation (hidden from `{{ . | json "" }}` unless `.status_code` is in the 5XX range)
+       * `.requestId` → `string` an alias for `.request_id` (hidden from `{{ . | json "" }}`)
+
+      In addition to the [standard functions available to Go
+      `text/template`s][Go `text/template` functions], there is a
+      `json` function that arg2 as JSON, using the arg1 string as the
+      starting indent level.
 
 **Note**: If you are using a templating system for your YAML that also
 makes use of Go templating (for instance, Helm), then you will need to
@@ -171,7 +183,9 @@ escape the template strings meant to be interpretted by Ambassador
 Pro.
 
 [Go `text/template`]: https://golang.org/pkg/text/template/
+[Go `text/template` functions]: https://golang.org/pkg/text/template/#hdr-Functions
 [`http.Header`]: https://golang.org/pkg/net/http/#Header
+[`jwt.ValidationError`]: https://godoc.org/github.com/dgrijalva/jwt-go#ValidationError
 
 #### Example `JWT` `Filter`
 
@@ -252,13 +266,16 @@ spec:
         value: "application/json"
       - name: "X-Correlation-ID"
         value: "{{ .httpRequestHeader.Get \"X-Correlation-ID\" }}"
+      # Regarding the "altErrorMessage" below:
+      #   ValidationErrorExpired = 1<<4 = 16
+      # https://godoc.org/github.com/dgrijalva/jwt-go#StandardClaims
       bodyTemplate: |-
         {
-            "errorMessage": "{{.error}}",
-            "altErrorMessage": "{{ if eq .error.ValidationError.Errors 2 }}expired{{ else }}invalid{{ end }}",
-            "errorCode": {{.error.ValidationError.Errors}},
-            "httpStatus": "{{.httpStatus}}",
-            "requestId": "{{.requestId}}"
+            "errorMessage": {{ .message | json "    " }},
+            "altErrorMessage": {{ if eq .error.ValidationError.Errors 16 }}"expired"{{ else }}"invalid"{{ end }},
+            "errorCode": {{ .error.ValidationError.Errors | json "    "}},
+            "httpStatus": "{{ .status_code }}",
+            "requestId": {{ .request_id | json "    " }}
         }
 ```
 
