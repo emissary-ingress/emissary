@@ -128,8 +128,9 @@ spec:
    `jwksURI` begins with `https://`.  This is discouraged in favor of
    either using plain `http://` or [installing a self-signed
    certificate](#installing-self-signed-certificates).
- - `renegotiateTLS` allows a remote server to request TLS renegotiation. 
-   Accepted values are "never", "onceAsClient", and "freelyAsClient".
+ - `renegotiateTLS` allows a remote server to request TLS
+   renegotiation.  Accepted values are "never", "onceAsClient", and
+   "freelyAsClient".
  - `injectRequestHeaders` injects HTTP header fields in to the request
    before sending it to the upstream service; where the header value
    can be set based on the JWT value.  The value is specified as a [Go
@@ -209,48 +210,48 @@ spec:
         value: "Fixed String"
         # result will be "Fixed String"
       - name: "X-Token-String"
-        value: "{{.token.Raw}}"
+        value: "{{ .token.Raw }}"
         # result will be "eyJhbGciOiJub25lIiwidHlwIjoiSldUIiwiZXh0cmEiOiJzbyBtdWNoIn0.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ."
       - name: "X-Token-H-Alg"
-        value: "{{.token.Header.alg}}"
+        value: "{{ .token.Header.alg }}"
         # result will be "none"
       - name: "X-Token-H-Typ"
-        value: "{{.token.Header.typ}}"
+        value: "{{ .token.Header.typ }}"
         # result will be "JWT"
       - name: "X-Token-H-Extra"
-        value: "{{.token.Header.extra}}"
+        value: "{{ .token.Header.extra }}"
         # result will be "so much"
       - name: "X-Token-C-Sub"
-        value: "{{.token.Claims.sub}}"
+        value: "{{ .token.Claims.sub }}"
         # result will be "1234567890"
       - name: "X-Token-C-Name"
-        value: "{{.token.Claims.name}}"
+        value: "{{ .token.Claims.name }}"
         # result will be "John Doe"
       - name: "X-Token-C-Iat"
-        value: "{{.token.Claims.iat}}"
+        value: "{{ .token.Claims.iat }}"
         # result will be "1.516239022e+09" (don't expect JSON numbers
         # to always be formatted the same as input; if you care about
         # that, specify the formatting; see the next example)
       - name: "X-Token-C-Iat-Decimal"
-        value: "{{printf \"%.0f\" .token.Claims.iat}}"
+        value: "{{ printf \"%.0f\" .token.Claims.iat }}"
         # result will be "1516239022"
       - name: "X-Token-S"
-        value: "{{.token.Signature}}"
+        value: "{{ .token.Signature }}"
         # result will be "" (since "alg: none" was used in this example JWT)
       - name: "X-Authorization"
-        value: "Authenticated {{.token.Header.typ}}; sub={{.token.Claims.sub}}; name={{printf \"%q\" .token.Claims.name}}"
+        value: "Authenticated {{ .token.Header.typ }}; sub={{ .token.Claims.sub }}; name={{ printf \"%q\" .token.Claims.name }}"
         # result will be: "Authenticated JWT; sub=1234567890; name="John Doe""
       - name: "X-UA"
-        value: "{{.httpRequestHeader.Get \"User-Agent\"}}"
+        value: "{{ .httpRequestHeader.Get \"User-Agent\" }}"
         # result will be: "curl/7.66.0" or
         # "Mozilla/5.0 (X11; Linux x86_64; rv:69.0) Gecko/20100101 Firefox/69.0"
         # or whatever the requesting HTTP client is
     errorResponse:
       headers:
-	  - name: "Content-Type"
-	    value: "application/json"
-	  - name: "X-Correlation-ID"
-	    value: "{{.httpRequestHeader.Get \"X-Correlation-ID\"}}"
+      - name: "Content-Type"
+        value: "application/json"
+      - name: "X-Correlation-ID"
+        value: "{{ .httpRequestHeader.Get \"X-Correlation-ID\" }}"
       bodyTemplate: |-
         {
             "errorMessage": "{{.error}}",
@@ -259,7 +260,6 @@ spec:
             "httpStatus": "{{.httpStatus}}",
             "requestId": "{{.requestId}}"
         }
-
 ```
 
 ### Filter Type: `OAuth2`
