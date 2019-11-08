@@ -70,6 +70,7 @@ func (l *LimiterImpl) SetRedisPool(newRedisPool *pool.Pool) {
 // SetClaims is useful for reloading a license key while the program is running.
 func (l *LimiterImpl) SetClaims(newClaims *licensekeys.LicenseClaimsLatest) {
 	l.licenseClaims = newClaims
+	l.cryptoEngine = NewLimitCrypto(newClaims)
 }
 
 // GetClaims is useful for using the loaded claims when computing limits, even after they were reloaded

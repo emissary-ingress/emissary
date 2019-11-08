@@ -1,7 +1,7 @@
 package limiter
 
 import (
-	"strconv"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -11,6 +11,14 @@ import (
 
 	"github.com/datawire/apro/lib/licensekeys"
 )
+
+const deleteScript = `
+	if redis.call("GET", KEYS[1]) == ARGV[1] then
+		return redis.call("DEL", KEYS[1])
+	else
+		return 0
+	end
+`
 
 // CountLimiter limits on counts.
 type CountLimiterImpl struct {
@@ -52,21 +60,21 @@ func newCountLimiterImpl(redisPool *pool.Pool, limiter Limiter, limit *licenseke
 //
 // When shooting for perfect accuracy make sure to use a method
 // that takes the redis lock.
-func (this *CountLimiterImpl) getUnderlyingValue() (int, error) {
+func (this *CountLimiterImpl) GetUnderlyingValueAtPointInTime() (int, error) {
 	resp, err := this.redisPool.Cmd("GET", this.limit.String()).Str()
 	if err != nil {
+		if err == redis.ErrRespNil || resp == "" {
+			return 0, err
+		}
 		return -1, err
 	}
+
 	decryptedValue, err := this.cryptoEngine.DecryptString(resp)
 	if err != nil {
 		return -1, err
 	}
-	val, err := strconv.ParseInt(decryptedValue, 16, 32)
-	if err != nil {
-		return -1, err
-	}
-
-	return int(val), nil
+	keys := strings.Split(decryptedValue, ",")
+	return len(keys), nil
 }
 
 // attemptAcquireLock attempts to acquire a lock for a redis client.
@@ -94,20 +102,34 @@ func (this *CountLimiterImpl) attemptAcquireLock(rc *redis.Client) (bool, string
 // releaseLock is a best effort release lock. the key will expire if we fail here
 // so it's okay to be best effort.
 func (this *CountLimiterImpl) releaseLock(rc *redis.Client, randStr string) {
-	randVal, err := rc.Cmd("GET", this.limit.String()+"-lock").Str()
-	// Let key expire
-	if err != nil {
-		return
+	rc.Cmd("EVAL", deleteScript, "1", this.limit.String()+"-lock", randStr)
+}
+
+// I still can't believe golang doesn't have a builtin check for
+// contains in a slice.
+func containsStrSlice(slice []string, item string) (bool, int) {
+	for idx, s := range slice {
+		if s == item {
+			return true, idx
+		}
+		idx++
 	}
-	if randVal == randStr {
-		// Attempt to delete key
-		rc.Cmd("DEL", this.limit.String()+"-lock")
-	}
+
+	return false, -1
+}
+
+func removeStrSlice(slice []string, idx int) []string {
+	slice[len(slice)-1], slice[idx] = slice[idx], slice[len(slice)-1]
+	return slice[:len(slice)-1]
 }
 
 // attemptToIncrement implements all the logic for attempting to increment values
 // taking into account limits
-func (this *CountLimiterImpl) attemptToChange(incrementing bool) (int, error) {
+func (this *CountLimiterImpl) attemptToChange(incrementing bool, key string) (int, error) {
+	if strings.Contains(key, ",") {
+		return -1, errors.New("Key cannot contain a ','")
+	}
+
 	rc, err := this.redisPool.Get()
 	if err != nil {
 		return -1, err
@@ -121,31 +143,35 @@ func (this *CountLimiterImpl) attemptToChange(incrementing bool) (int, error) {
 	defer this.releaseLock(rc, randStr)
 
 	val, err := rc.Cmd("GET", this.limit.String()).Str()
+
 	if err != nil {
-		return -1, err
-	}
-	decryptedStr, err := this.cryptoEngine.DecryptString(val)
-	if err != nil {
-		return -1, errors.New("Invalid current limit")
-	}
-	currentUsage, err := strconv.Atoi(decryptedStr)
-	if err != nil {
-		return -1, err
+		if err != redis.ErrRespNil {
+			return -1, err
+		}
 	}
 
-	newUsage := currentUsage
-	if incrementing {
-		newUsage = newUsage + 1
+	var keys []string
+	if err == redis.ErrRespNil || val == "" {
+		keys = make([]string, 0)
 	} else {
-		newUsage = newUsage - 1
+		decryptedStr, err := this.cryptoEngine.DecryptString(val)
+		if err != nil {
+			return -1, errors.New("Invalid current limit")
+		}
+		keys = strings.Split(decryptedStr, ",")
 	}
-	// Did we overflow/underflow?
-	if newUsage < 0 {
-		return -1, errors.New("Int32 overflow")
+
+	doesContain, idx := containsStrSlice(keys, key)
+	if doesContain && !incrementing {
+		removeStrSlice(keys, idx)
+	} else if !doesContain&& incrementing {
+		keys = append(keys, key)
 	}
-	// Are we going to exceed limits, and is that a problem?
+
 	currentLimit := this.limiter.GetLimitValueAtPointInTime(this.limit)
-	if currentLimit != -1 && newUsage > currentLimit && this.limiter.IsHardLimitAtPointInTime() {
+
+	// Are we going to exceed limits, and is that a problem?
+	if len(keys) > currentLimit && this.limiter.IsHardLimitAtPointInTime() {
 		// If we're decrementing than just ignore the limit value increase.
 		// If you wanna get closer to your hard limit that's more than fine.
 		if incrementing {
@@ -153,30 +179,31 @@ func (this *CountLimiterImpl) attemptToChange(incrementing bool) (int, error) {
 		}
 	}
 
-	newEncryptedValue, err := this.cryptoEngine.EncryptString(strconv.Itoa(newUsage))
+	joinedKey := strings.Join(keys, ",")
+	newEncryptedValue, err := this.cryptoEngine.EncryptString(joinedKey)
 	err = rc.Cmd("SET", this.limit.String(), newEncryptedValue).Err
-	return newUsage, err
+	return len(keys), err
 }
 
 // IncrementUsage tracks an increment in the usage count.
 //
 // Returns an error if we couldn't due to limits, or redis failure.
 // If the error is present do not allow the increment.
-func (this *CountLimiterImpl) IncrementUsage() error {
-	_, err := this.attemptToChange(true)
+func (this *CountLimiterImpl) IncrementUsage(key string) error {
+	_, err := this.attemptToChange(true, key)
 	return err
 }
 
 // DecrementUsage tracks a decrement in the usage count.
-func (this *CountLimiterImpl) DecrementUsage() error {
-	_, err := this.attemptToChange(false)
+func (this *CountLimiterImpl) DecrementUsage(key string) error {
+	_, err := this.attemptToChange(false, key)
 	return err
 }
 
 // IsExceedingAtPointInTime determines if we're exceeding at this point in
 // time.
 func (this *CountLimiterImpl) IsExceedingAtPointInTime() (bool, error) {
-	currentValue, err := this.getUnderlyingValue()
+	currentValue, err := this.GetUnderlyingValueAtPointInTime()
 	if err != nil {
 		return false, err
 	}
@@ -185,5 +212,5 @@ func (this *CountLimiterImpl) IsExceedingAtPointInTime() (bool, error) {
 }
 
 func (this *CountLimiterImpl) GetUsageAtPointInTime() (int, error) {
-	return this.getUnderlyingValue()
+	return this.GetUnderlyingValueAtPointInTime()
 }
