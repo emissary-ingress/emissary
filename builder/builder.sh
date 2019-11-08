@@ -34,7 +34,7 @@ builder_volume() { docker volume ls -q -f label=builder; }
 declare -a dsynced
 
 dsync() {
-    printf "${GRN}Synchronizing... $@${END}\n"
+    printf "${GRN}Synchronizing... $*${END}\n"
     IFS='|' read -ra dsynced <<<"$(rsync --info=name -aO -e 'docker exec -i' $@ 2> >(fgrep -v 'rsync: failed to set permissions on' >&2) | tr '\n' '|')"
 }
 
