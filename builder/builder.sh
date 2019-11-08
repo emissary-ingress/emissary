@@ -72,12 +72,14 @@ bootstrap() {
         fi
 
         echo_on
-        docker run --network ${BUILDER_NAME} --network-alias "builder" --group-add ${DOCKER_GID} -d --rm -v /var/run/docker.sock:/var/run/docker.sock -v $(builder_volume):/home/dw ${BUILDER_MOUNTS} --cap-add NET_ADMIN -lbuilder -l${BUILDER_NAME} ${BUILDER_PORTMAPS} --entrypoint tail builder -f /dev/null > /dev/null
+        docker run --network ${BUILDER_NAME} --network-alias "builder" --group-add ${DOCKER_GID} -d --rm -v /var/run/docker.sock:/var/run/docker.sock -v $(builder_volume):/home/dw ${BUILDER_MOUNTS} --cap-add NET_ADMIN -lbuilder -l${BUILDER_NAME} ${BUILDER_PORTMAPS} -e BUILDER_NAME=${BUILDER_NAME} --entrypoint tail builder -f /dev/null > /dev/null
         echo_off
+
         printf "${GRN}Started build container ${BLU}$(builder)${END}\n"
     fi
 
     dsync ${DIR}/builder.sh $(builder):/buildroot
+    dsync ${DIR}/builder_bash_rc $(builder):/home/dw/.bashrc
 }
 
 module_version() {
@@ -218,7 +220,9 @@ case "${cmd}" in
         vid=$(builder_volume)
         if [ -n "${vid}" ] ; then
             printf "${GRN}Killing cache volume ${BLU}${vid}${END}\n"
-            docker volume rm ${vid} > /dev/null 2>&1 || true
+            if ! docker volume rm ${vid} > /dev/null 2>&1 ; then \
+                printf "${RED}Could not kill cache volume; are other builders still running?${END}\n"
+            fi
         fi
         ;;
     bootstrap)
@@ -356,6 +360,7 @@ case "${cmd}" in
         ;;
     shell)
         bootstrap
+        printf "\n"
         docker exec -it "$(builder)" /bin/bash
         ;;
     *)
