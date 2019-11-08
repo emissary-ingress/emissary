@@ -127,55 +127,58 @@
 	  <img src="https://www.getambassador.io/images/ambassador-logo-white.svg" alt="Ambassador Edge Stack" /> 
 	</a>
       </div>
-      <div>
-	<div class="info-blob">
-	  <button id="signup">
-	    Click here to sign up for a community license.
-	  </button>
-	</div>
-	
-	<div id="signup-modal">
-	  <div id="signup-content">
-	    <form>
-	      <span>
-		Email:
-	      </span>
-	      <input id="signup-email" type="text" name="email" value="" /> 
-	      <span>
-		Confirm:
-	      </span>
-	      <input id="signup-email-confirm" type="text" name="email-confirm" value="" /> <input id="signup-cancel" type="button" value="Cancel" /> <input id="signup-go" type="button" value="Signup" /> 
-	    </form>
-	    <div id="signup-error" /> 
-	  </div>
-	  <div id="signup-finished">
-	    <span id="signup-finished-text">
-	    </span>
-	    <button id="signup-finished-continue">
-	      Continue
+
+      <div style="display:none" id="main">
+        <div>
+	  <div class="info-blob">
+	    <button id="signup">
+	      Click here to sign up for a community license.
 	    </button>
 	  </div>
-	</div>
+	  
+	  <div id="signup-modal">
+	    <div id="signup-content">
+	      <form>
+	        <span>
+		  Email:
+	        </span>
+	        <input id="signup-email" type="text" name="email" value="" /> 
+	        <span>
+		  Confirm:
+	        </span>
+	        <input id="signup-email-confirm" type="text" name="email-confirm" value="" /> <input id="signup-cancel" type="button" value="Cancel" /> <input id="signup-go" type="button" value="Signup" /> 
+	      </form>
+	      <div id="signup-error" /> 
+	    </div>
+	    <div id="signup-finished">
+	      <span id="signup-finished-text">
+	      </span>
+	      <button id="signup-finished-continue">
+	        Continue
+	      </button>
+	    </div>
+	  </div>
+        </div>
       </div>
-    </div>
-    
-    <h2>Hosts</h2>
-    <a href="../tls/">add</a>
-    <div class="info-blob">
-      <div id="hosts"></div>
-    </div>
-    
-    <h2>Mappings </h2>
-    <a id="add-mapping" style="cursor:pointer;color:blue;text-decoration:underline;">add</a>
-    <div id="add-mapping-form" style="display:none">
-      Name: <input id="add-mapping-name" type="text" name="prefix"/>
-      Prefix: <input id="add-mapping-prefix" type="text" name="prefix"/>
-      Rewrite: <input id="add-mapping-rewrite" type="text" name="rewrite" value=""/>
-      Target: <input id="add-mapping-target" type="text" name="target"/>
-      <button id="add-mapping-button">Add</button>
-    </div>
-    <div class="info-blob">
-      <div id="mappings"></div>
+
+      <h2>Hosts</h2>
+      <a href="../tls/">add</a>
+      <div class="info-blob">
+        <div id="hosts"></div>
+      </div>
+      
+      <h2>Mappings </h2>
+      <a id="add-mapping" style="cursor:pointer;color:blue;text-decoration:underline;">add</a>
+      <div id="add-mapping-form" style="display:none">
+        Name: <input id="add-mapping-name" type="text" name="prefix"/>
+        Prefix: <input id="add-mapping-prefix" type="text" name="prefix"/>
+        Rewrite: <input id="add-mapping-rewrite" type="text" name="rewrite" value=""/>
+        Target: <input id="add-mapping-target" type="text" name="target"/>
+        <button id="add-mapping-button">Add</button>
+      </div>
+      <div class="info-blob">
+        <div id="mappings"></div>
+      </div>
     </div>
   </body>
 
@@ -350,6 +353,12 @@
             e.setAttribute("open", "")
           }
         })
+
+        // We default the main section of the page to invisible until
+        // we get at least one successful interaction with the server
+        // so that we don't flash an empty set of hosts and mappings
+        // before redirect to login.
+        $("#main").show()
 
         setTimeout(render, 1000)
       }).fail(xhr=>{
