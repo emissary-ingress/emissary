@@ -10,6 +10,25 @@ BLU='\033[1;34m'
 CYN='\033[1;36m'
 END='\033[0m'
 
-PS1="${GRN}[$BUILDER_NAME] \\w \$${END} "
+source /etc/profile.d/bash_completion.sh
+source /usr/local/bin/kube-ps1.sh
 
 alias k=kubectl
+complete -F __start_kubectl k
+
+# These are already accomodated by the kubectx/kubens completions.
+alias kctx=kubectx
+alias kns=kubens
+
+__prompt_info () {
+	PS1="$(kube_ps1) ${BUILDER_NAME}:\w $ "
+}
+
+old=""
+
+if [ -n "$PROMPT_COMMAND" ]; then
+    old="$PROMPT_COMMAND"
+fi
+
+PROMPT_COMMAND="__prompt_info;$old"
+
