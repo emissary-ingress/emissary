@@ -58,10 +58,8 @@ bootstrap() {
         printf "${GRN}Created docker network ${BLU}${BUILDER_NAME}${END}\n"
     fi
 
-    which=$(git remote get-url origin | cut -d/ -f2)
-
     if [ -z "$(builder)" ] ; then
-        printf "${CYN}==> ${GRN}Bootstrapping build image for ${BLU}${which}${END}\n"
+        printf "${CYN}==> ${GRN}Bootstrapping build image${END}\n"
         ${DBUILD} --target builder ${DIR} -t builder
         if [ "$(uname -s)" == Darwin ]; then
             DOCKER_GID=$(stat -f "%g" /var/run/docker.sock)
@@ -75,9 +73,8 @@ bootstrap() {
 
         echo_on
         docker run --network ${BUILDER_NAME} --network-alias "builder" --group-add ${DOCKER_GID} -d --rm -v /var/run/docker.sock:/var/run/docker.sock -v $(builder_volume):/home/dw ${BUILDER_MOUNTS} --cap-add NET_ADMIN -lbuilder -l${BUILDER_NAME} ${BUILDER_PORTMAPS} --entrypoint tail builder -f /dev/null > /dev/null
-        docker exec $(builder) sh -c "echo 'PS1=\"${GRN}[$which] \\w \$${END} \"' > \$HOME/.bashrc"
         echo_off
-        printf "${GRN}Started build container ${BLU}$(builder)${GRN} for ${BLU}${which}${END}\n"
+        printf "${GRN}Started build container ${BLU}$(builder)${END}\n"
     fi
 
     dsync ${DIR}/builder.sh $(builder):/buildroot
@@ -359,7 +356,6 @@ case "${cmd}" in
         ;;
     shell)
         bootstrap
-        docker exec "$(builder)" echo
         docker exec -it "$(builder)" /bin/bash
         ;;
     *)
