@@ -101,10 +101,8 @@ func (l *LimiterImpl) GetLimitValueAtPointInTime(toCheck *licensekeys.Limit) int
 func (l *LimiterImpl) GetFeatureUsageValueAtPointInTime(toCheck *licensekeys.Limit) int {
 	limiter := l.lookupLimiter(toCheck)
 	if limiter != nil {
-		value, err := limiter.GetUsageAtPointInTime()
-		if err != nil {
-			return value
-		}
+		value, _ := limiter.GetUsageAtPointInTime()
+		return value
 	}
 	return 0
 }

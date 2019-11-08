@@ -20,9 +20,9 @@ type RateLimiterWindow struct {
 	limit *licensekeys.Limit
 	// cryptoEngine is used for encrypting the values store in redis.
 	cryptoEngine *LimitCrypto
+	// TODO(alexgervais): Remove and use redis
+	count int
 }
-
-var count int
 
 // newRateLimiterWindow creates a new limit based on a rate of requests.
 //
@@ -39,29 +39,30 @@ func newRateLimiterWindow(redisPool *pool.Pool, limiter Limiter, limit *licensek
 		limiter,
 		limit,
 		cryptoEngine,
+		0,
 	}, nil
 }
 
 func (this *RateLimiterWindow) getUnderlyingValue() (int, error) {
 	// TODO(alexgervais): impl
-	return count, nil
+	return this.count, nil
 }
 
 func (this *RateLimiterWindow) attemptToChange(incrementing bool) (int, error) {
 	// TODO(alexgervais): impl
 	if incrementing {
-		count++
+		this.count++
 	}
 	// Are we going to exceed limits, and is that a problem?
 	currentLimit := this.limiter.GetLimitValueAtPointInTime(this.limit)
-	if currentLimit != -1 && count > currentLimit && this.limiter.IsHardLimitAtPointInTime() {
+	if currentLimit != -1 && this.count > currentLimit && this.limiter.IsHardLimitAtPointInTime() {
 		// If we're decrementing than just ignore the limit value increase.
 		// If you wanna get closer to your hard limit that's more than fine.
 		if incrementing {
 			return -1, fmt.Errorf("rate-limit exceeded for feature %s", this.limit)
 		}
 	}
-	return count, nil
+	return this.count, nil
 }
 
 // IncrementUsage tracks an increment in the usage rate.
