@@ -1,52 +1,412 @@
 <!DOCTYPE html>
 <html lang="en">
-	<head>
-		<meta charset="utf-8">
-		<title>Ambassador Edge Stack - first boot</title>
-		<style>
-			fieldset             { display: table; }
-			fieldset > label     { display: table-row; }
-			fieldset > label > * { display: table-cell; }
+  <head>
+    <meta charset="utf-8">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <title>
+      Ambassador Edge Stack Admin
+    </title>
+    
+    <!--Admin style definitions-->
+    <style>
 
-			* { box-sizing: border-box; }
-			fieldset > label input[type="text"] { min-width: 40em; }
-			fieldset > label input[type="url"]  { min-width: 40em; }
-			textarea { font-family: monospace; }
-			#app {
-				max-width: 8in;
-				margin: auto;
-			}
-			pre {
-				background: black;
-				color: white;
-				width: calc(100% - 4em)%;
-				margin: 0 2em;
-				padding: 0.5em;
-				border: solid 1px green;
-			}
-		</style>
-	</head>
-	<body>
-		<div id="app">
-			<aes-logo></aes-logo>
-			<aes-logingate>
-				<aes-host></aes-host>
-			</aes-logingate>
-		</div>
-		<script type="module">
-			import Vue from 'https://cdn.jsdelivr.net/npm/vue/dist/vue.esm.browser.js';
-			import AESHost from './aes-host.js';
-			import AESLoginGate from './aes-logingate.js';
-			import AESLogo from './aes-logo.js';
+      body {
+	  font-family: Source Sans Pro,sans-serif;
+	  margin-left: 2em;
+	  margin-right: 2em;
+      }
+      #all-wrapper {
+	  width: 80%;
+	  margin-left: 10%;
+      }
+      #ambassador-logo {
+	  background-color: black;
+	  padding: 5px;
+	  width: 456px;
+	  height: 42px;
+	  margin-bottom: 1em
+      }
+      div.info-blob {
+	  border: 1px solid #ede7f3;
+	  box-shadow: 0 2px 4px rgba(0,0,0,.1);
+	  padding: 0.5em;
+	  margin-bottom: 0.6em;
+	  line-height: 1.3;
+      }
+      div.info-blob2 {
+	  border: thin solid grey;
+	  border-radius: 0.4em;
+	  padding: 0.5em;
+	  margin-bottom: 0.6em;
+	  line-height: 1.3;
+      }
+      div.info-title {
+	  font-weight: bold;
+	  font-size: 120%;
+      }
+      span.command {
+	  background-color: #f5f2f0;;
+	  padding: 3px;
+	  letter-spacing: .2px;
+	  font-family: Consolas,Monaco,Andale Mono,Ubuntu Mono,monospace;
+	  font-size: 90%;
+	  word-spacing: normal;
+	  word-break: normal;
+	  word-wrap: normal;
+	  hypens: none;
+      }
+      div.overage-alert {
+	  border: 3px solid red;
+	  border-radius: 0.7em;
+	  padding: 0.5em;
+	  background-color: #FFe8e8;
+      }
+      
+    </style>
 
-			var vm = new Vue({
-				components: {
-					'aes-host': AESHost,
-					'aes-logingate': AESLoginGate,
-					'aes-logo': AESLogo,
-				},
-				el: '#app',
-			});
-		</script>
-	</body>
+
+    <!--Form style definitions-->
+    <style>
+      #signup {
+          margin: auto;
+          width: 50%;
+      }
+
+      #signup-modal {
+          display: none;
+          position: fixed;
+          z-index: 1;
+          left:0;
+          top:0;
+          width:100%;
+          height:100%;
+          overflow:auto;
+          background-color: rgb(0,0,0);
+          background-color: rgba(0,0,0,0.4);
+      }
+
+      #signup-content, #signup-finished {
+          display: none;
+          background-color: #fefefe;
+          margin: 15% auto;
+          padding: 20px;
+          border: 1px solid #888;
+          width: 80%;
+      }
+
+      #signup-error {
+          color: #fe0000;
+      }
+
+      .invalid {
+          background-color: #fe0000;
+      }
+      
+    </style>
+    <style>
+
+      div.host, div.mapping {
+          padding: 1em 1em;
+      }
+
+      span.json {
+          unicode-bidi: embed;
+          font-family: monospace;
+      }
+
+      details {
+          margin-left: 1em;
+      }
+      
+    </style>
+  </head>
+  <body>
+    <div id="all-wrapper">
+      <div id="ambassador-logo">
+	<a href="https://www.getambassador.io/">
+	  <img src="https://www.getambassador.io/images/ambassador-logo-white.svg" alt="Ambassador Edge Stack" /> 
+	</a>
+      </div>
+
+      <div style="display:none" id="main">
+        <div>
+	  <div class="info-blob">
+	    <button id="signup">
+	      Click here to sign up for a community license.
+	    </button>
+	  </div>
+	  
+	  <div id="signup-modal">
+	    <div id="signup-content">
+	      <form>
+	        <span>
+		  Email:
+	        </span>
+	        <input id="signup-email" type="text" name="email" value="" /> 
+	        <span>
+		  Confirm:
+	        </span>
+	        <input id="signup-email-confirm" type="text" name="email-confirm" value="" /> <input id="signup-cancel" type="button" value="Cancel" /> <input id="signup-go" type="button" value="Signup" /> 
+	      </form>
+	      <div id="signup-error" /> 
+	    </div>
+	    <div id="signup-finished">
+	      <span id="signup-finished-text">
+	      </span>
+	      <button id="signup-finished-continue">
+	        Continue
+	      </button>
+	    </div>
+	  </div>
+        </div>
+      </div>
+
+      <h2>Hosts</h2>
+      <a href="../tls/" class="auth">add</a>
+      <div class="info-blob">
+        <div id="hosts"></div>
+      </div>
+      
+      <h2>Mappings </h2>
+      <a id="add-mapping" style="cursor:pointer;color:blue;text-decoration:underline;">add</a>
+      <div id="add-mapping-form" style="display:none">
+        Name: <input id="add-mapping-name" type="text" name="prefix"/>
+        Prefix: <input id="add-mapping-prefix" type="text" name="prefix"/>
+        Rewrite: <input id="add-mapping-rewrite" type="text" name="rewrite" value=""/>
+        Target: <input id="add-mapping-target" type="text" name="target"/>
+        <button id="add-mapping-button">Add</button>
+      </div>
+      <div class="info-blob">
+        <div id="mappings"></div>
+      </div>
+    </div>
+  </body>
+
+  <!-- Scripts -->
+  <script>
+    var signup = document.getElementById("signup")
+    var modal = document.getElementById("signup-modal")
+    var email = document.getElementById("signup-email")
+    var confirm = document.getElementById("signup-email-confirm")
+    var cancel = document.getElementById("signup-cancel")
+    var go = document.getElementById("signup-go")
+    var error = document.getElementById("signup-error")
+    var content = document.getElementById("signup-content")
+    var finished = document.getElementById("signup-finished")
+    var finished_text = document.getElementById("signup-finished-text")
+    var cont = document.getElementById("signup-finished-continue")
+
+    reset = function() {
+      modal.style.display="none";
+      content.style.display="none";
+      email.value="";
+      confirm.value="";
+      finished.style.display="none"
+      finished_text.innerHTML="";
+      cont.style.display="none";
+    }
+
+    cancel.onclick = reset
+    cont.onclick = reset
+
+    signup.onclick = function() {
+      modal.style.display="block";
+      content.style.display="block";
+      email.focus();
+    }
+
+
+    go.onclick = function() {
+      if (email.value == "") {
+        email.classList.add("invalid");
+        error.innerHTML="please supply an email"
+      } else if (email.value != confirm.value) {
+        email.classList.remove("invalid");
+        confirm.classList.add("invalid");
+        error.innerHTML="emails do not match"
+      } else {
+        email.classList.remove("invalid");
+        confirm.classList.remove("invalid");
+        error.innerHTML="";
+
+        content.style.display="none";
+        finished.style.display="block";
+        cont.style.display="none";
+        finished_text.innerHTML="Posting..."
+
+        fetch("https://metriton.datawire.io/signup", {
+          method: "POST",
+          headers:{
+            "content-type": "application/json; charset=UTF-8"
+          },
+          body: JSON.stringify({
+            email: email.value,
+            confirm: confirm.value
+          })
+        })
+          .then(data=>{return data.json()})
+          .then(res=>{
+            console.log(res);
+            cont.style.display="block";
+            if ("vid" in res) {
+              finished_text.innerHTML="Congratulations, please look for an email to " + email.value
+            } else {
+              finished_text.innerHTML="Sorry, there was a problem processing your request. Please contact support@datawire.io and supply this:<br>" + btoa(JSON.stringify(res))
+            }
+          })
+          .catch(error=>console.log(error))
+      }
+    }
+    
+    </script>
+  <script type="text/javascript">
+    $.ajaxSetup({
+      beforeSend: (xhr, settings) => {
+	xhr.setRequestHeader("Authorization", "Bearer " + window.location.hash.slice(1));
+      }
+    });
+
+    var snapshot
+
+    function path(el) {
+      if (el.parentElement == null) {
+        return ""
+      } else {
+        return path(el.parentElement) + "_" + el.id
+      }
+    }
+
+    function renderKind(obj) {
+      let md = obj.metadata
+      return $(`<div class="${obj.kind.toLowerCase()}" id="${md.namespace}_${md.name}" />`)
+        .append(renderMetadata(md))
+        .append(renderSpec(obj.spec))
+        .append(renderStatus(obj.status))
+    }
+
+    function renderMetadata(md) {
+      return $(`<div class="metadata" id="metadata" />`)
+        .append(`<span class="name">${md.namespace}/${md.name}</span>`)
+        .append($(`<details class="labels" id="labels"><summary>labels</summary></details>`)
+                .append(renderObj(md.labels)))
+    }
+
+    function renderObj(obj, cls="obj") {
+      let result = $(`<div class="${cls}" />`)
+      $.each(obj, (name, value) => {
+        details = $(`<details class="field" id="${name}"><summary>${name}</summary></details>`)
+        result.append(details)
+        scalars = ["string", "number", "boolean"]
+        if (scalars.includes(typeof value)) {
+          details.append(`<span class="value">${value}</span>`)
+        } else {
+          details.append(renderObj(value))
+        }
+      })
+      return result
+    }
+
+    function renderSpec(spec) {
+      return renderObj(spec, "spec")
+    }
+
+    function renderStatus(status) {
+      if (typeof status == "undefined") {
+        return $(`<details class="status" id="status"><summary>Status: none</summary></details>`)
+      }
+      return $(`<details class="status" id="status"><summary>Status: ${status.state}</summary></details>`).
+        append(renderObj(status))
+    }
+
+    function render() {
+      $.getJSON("/edge_stack/api/snapshot", data=>{
+        $(".auth").each((i, e) => {
+          href = e.getAttribute("href")
+          if (!href.includes("#")) {
+            e.setAttribute("href", href+window.location.hash)
+          }
+        })
+
+        snapshot = data
+        let kube = "Kubernetes" in data ? data.Kubernetes : {
+          "Host": [],
+          "Mapping": []
+        }
+
+        let opened = new Set()
+        $("details[open]").each((i, e)=>opened.add(path(e)))
+
+        let hosts = kube.Host || []
+        let hostsDiv = $("#hosts").empty()
+
+        $.each(hosts, (index, host) => {
+          hostsDiv.append(renderKind(host))
+        })
+        if (hosts.length == 0) {
+          hostsDiv.append(`<p>there are no hosts, click <a href="../tls/${window.location.hash}">here</a> to create some</p>`)
+        }
+
+        let mappings = kube.Mapping || []
+        let mappingsDiv = $("#mappings").empty()
+        $.each(mappings, (index, mapping) => {
+          mappingsDiv.append(renderKind(mapping))
+        })
+        if (mappings.length == 0) {
+          mappingsDiv.append(`<p>there are no mappings, click <a href="todo">here</a> to create some</p>`)
+        }
+
+        $("details").each((i, e)=>{
+          if (opened.has(path(e))) {
+            e.setAttribute("open", "")
+          }
+        })
+
+        // We default the main section of the page to invisible until
+        // we get at least one successful interaction with the server
+        // so that we don't flash an empty set of hosts and mappings
+        // before redirect to login.
+        $("#main").show()
+
+        setTimeout(render, 1000)
+      }).fail(xhr=>{
+        if (xhr.status == 401 || xhr.status == 403) {
+          window.location.replace("../login/")
+        } else {
+          console.log(xhr)
+        }
+      })
+    }
+
+    $(render)
+
+    $(()=>{
+      $("#add-mapping").click((e)=>{
+        e.target.style.display="none";
+        $("#add-mapping-form").show()
+      })
+
+      $("#add-mapping-button").click((e)=>{
+        let yaml = `
+---
+apiVersion: getambassador.io/v1
+kind: Mapping
+metadata:
+  name: "${$("#add-mapping-name").val()}"
+  namespace: default
+spec:
+  prefix: "${$("#add-mapping-prefix").val()}"
+  rewrite: "${$("#add-mapping-rewrite").val()}"
+  service: "${$("#add-mapping-target").val()}"
+`
+        $.post("/edge_stack/api/apply", yaml, null, "text").fail(xhr=>{
+          alert("BAD\n\n" + yaml + "\n\n" + xhr.responseText)
+        }).done(resp=>{
+          alert("OK\n" + resp)
+        })
+
+        $("#add-mapping-form").hide()
+        $("#add-mapping").show()
+      })
+    })
+    </script>
 </html>

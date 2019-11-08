@@ -1,0 +1,28 @@
+Run all these commands from the root of your apro checkout:
+
+1. make sure you have ambassador checked out parallel to your apro
+   repo, and at the exact commit specified in ambassador.commit,
+   i.e. this command should run and do something reasonable:
+
+     git -C ../ambassador checkout $(cat ambassador.commit)
+
+2. To run a stubbed out webui, in terminal 1:
+
+     go run ui_devloop/fake_envoy.go # this will run on port 8081
+
+   In terminal 2:
+
+     APRO_HTTP_PORT=8501 AES_WEBUI_BASE=${PWD}/cmd/amb-sidecar/webui/bindata/ go run cmd/amb-sidecar/main.go
+
+3. Visit http://localhost:8081 in your browser
+
+4. Hack away at the files in ${PWD}/cmd/amb-sidecar/webui/bindata/
+
+5. Run:
+
+     curl -X POST localhost:8501/_internal/v0/watt?push --data-binary @ui_devloop/snapshot.yaml
+
+   This will load some interesting data into the sidecar. This can let
+   you test out the UI with different data/states.
+
+6. Goto (4).
