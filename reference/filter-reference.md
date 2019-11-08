@@ -97,10 +97,10 @@ spec:
     insecureTLS:      bool          # optional; default is false
     renegotiateTLS:   "enum-string" # optional; default is "never"
     validAlgorithms:                # optional; default is "all supported algos except for 'none'"
-      - "RS256"
-      - "RS384"
-      - "RS512"
-      - "none"
+    - "RS256"
+    - "RS384"
+    - "RS512"
+    - "none"
 
     audience:         "string"      # optional, unless `requireAudience: true`
     requireAudience:  bool          # optional; default is false
@@ -113,23 +113,17 @@ spec:
     requireNotBefore: bool          # optional; default is false
 
     injectRequestHeaders:           # optional; default is []
-     - name:   "header-name-string" # required
-       value:  "go-template-string" # required
+    - name:   "header-name-string"    # required
+      value:  "go-template-string"    # required
        
     errorResponse:                  # optional; default is nil
-      contentType:    "string"      # optional; default is "application/json"
-      bodyTemplate:   "string"      # optional
+      contentType: "string"           # deprecated; use 'headers' instead
+      headers:                        # optional; default is [{name: "Content-Type", value: "application/json"}]
+	  - name: "header-name-string"      # required
+	    value: "go-template-string"     # required
+      bodyTemplate: "string"          # optional
 ```
- - `errorResponse` allows templating the error response, overriding the default json error format. 
-    Make sure you validate and test your template, not to generate server-side errors on top of client errors.
 
-    `contentType` specifies the returned HTTP response content format. Defaults to `application/json`.
-    
-    `bodyTemplate` is a [golang text/template](https://golang.org/pkg/text/template/) blob to be used for generating the response output. 
-    The template can reference objects named:
-    * `httpStatus` → `integer` the HTTP status code.
-    * `error` → `error` the original error object.
-    * `requestId` → `integer` the HTTP request ID, for correlation.
  - `insecureTLS` disables TLS verification for the cases when
    `jwksURI` begins with `https://`.  This is discouraged in favor of
    either using plain `http://` or [installing a self-signed
@@ -146,19 +140,34 @@ spec:
     * `.token.Header` → `map[string]interface{}` the JWT header, as parsed JSON
     * `.token.Claims` → `map[string]interface{}` the JWT claims, as parsed JSON
     * `.token.Signature` → `string` the token signature
-    * `.httpHeader` → [`http.Header`][] a copy of the header of the
-      incoming HTTP request.  Any changes to `.httpHEader` (such as by
-      using using `.httpHeader.Set`) have no effect.  It is
-      recommended to use `.httpHeader.Get` instead of treating it as a
-      map, in order to handle capitalization correctly.
+    * `.httpRequestHeader` → [`http.Header`][] a copy of the header of
+      the incoming HTTP request.  Any changes to `.httpRequestHeader`
+      (such as by using using `.httpRequestHeader.Set`) have no
+      effect.  It is recommended to use `.httpRequestHeader.Get`
+      instead of treating it as a map, in order to handle
+      capitalization correctly.
 
    Any headers listed will override (not append to) the original
    request header with that name.
+ - `errorResponse` allows templating the error response, overriding
+    the default json error format.  Make sure you validate and test
+    your template, not to generate server-side errors on top of client
+    errors.
+    * `contentType` is deprecated, and is equivalent to including a
+      `name: "Content-Type"` item in `headers`.
+    * `headers` sets extra headers in the error response, and works
+      the same way as `injectRequestHeader`.
+    * `bodyTemplate` specifies body of the error; specified as a [Go
+      `text/template`][] string, with the following data made
+      available to it:
+      * `.httpStatus` → `integer` the HTTP status code to be returned
+      * `.error` → `error` the original error object
+      * `.requestId` → `integer` the Envoy request ID, for correlation
 
-   **Note**: If you are using a templating system for your YAML that
-   also makes use of Go templating (for instance, Helm), then you will
-   need to escape the template strings meant to be interpretted by
-   Ambassador Pro.
+**Note**: If you are using a templating system for your YAML that also
+makes use of Go templating (for instance, Helm), then you will need to
+escape the template strings meant to be interpretted by Ambassador
+Pro.
 
 [Go `text/template`]: https://golang.org/pkg/text/template/
 [`http.Header`]: https://golang.org/pkg/net/http/#Header
@@ -232,12 +241,16 @@ spec:
         value: "Authenticated {{.token.Header.typ}}; sub={{.token.Claims.sub}}; name={{printf \"%q\" .token.Claims.name}}"
         # result will be: "Authenticated JWT; sub=1234567890; name="John Doe""
       - name: "X-UA"
-        value: "{{.httpHeader.Get \"User-Agent\"}}"
+        value: "{{.httpRequestHeader.Get \"User-Agent\"}}"
         # result will be: "curl/7.66.0" or
         # "Mozilla/5.0 (X11; Linux x86_64; rv:69.0) Gecko/20100101 Firefox/69.0"
         # or whatever the requesting HTTP client is
     errorResponse:
-      contentType: "application/json"
+      headers:
+	  - name: "Content-Type"
+	    value: "application/json"
+	  - name: "X-Correlation-ID"
+	    value: "{{.httpRequestHeader.Get \"X-Correlation-ID\"}}"
       bodyTemplate: |-
         {
             "errorMessage": "{{.error}}",
