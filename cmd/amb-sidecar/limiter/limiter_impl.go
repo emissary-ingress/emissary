@@ -21,6 +21,8 @@ type LimiterImpl struct {
 	unregisteredLicenseHardLimits bool
 	// phoneHomeHardLimits is used to track Metriton response enforcing hard limits
 	phoneHomeHardLimits bool
+	// limiters is used to track instantiated UsageLimiters
+	limiters map[string]UsageLimiter
 }
 
 // NewLimiter properly creates a limiter instance.
@@ -33,6 +35,7 @@ func NewLimiterImpl() *LimiterImpl {
 		licenseClaims:                 nil,
 		unregisteredLicenseHardLimits: false,
 		phoneHomeHardLimits:           false,
+		limiters:                      map[string]UsageLimiter{},
 	}
 }
 
@@ -42,6 +45,14 @@ func NewLimiterImpl() *LimiterImpl {
 //                in case redis is temporarily unavailable.
 func (l *LimiterImpl) hasRedisConnection() bool {
 	return l.redisPool != nil
+}
+
+func (l *LimiterImpl) registerLimiter(limit *licensekeys.Limit, limiter UsageLimiter) {
+	l.limiters[limit.String()] = limiter
+}
+
+func (l *LimiterImpl) lookupLimiter(limit *licensekeys.Limit) (limiter UsageLimiter) {
+	return l.limiters[limit.String()]
 }
 
 // CanUseFeature determines if a feature can be utilized.
@@ -79,8 +90,22 @@ func (l *LimiterImpl) SetPhoneHomeHardLimits(newPhoneHomeHardLimits bool) {
 // GetLimitValueAtPointInTime returns the current limit value for the current
 // license key. This is called point in time to communicate that this can change
 // over time, and you should check it back often.
-func (l *LimiterImpl) GetLimitValueAtPointInTime(toCheck licensekeys.Limit) int {
-	return l.licenseClaims.GetLimitValue(toCheck)
+func (l *LimiterImpl) GetLimitValueAtPointInTime(toCheck *licensekeys.Limit) int {
+	return l.licenseClaims.GetLimitValue(*toCheck)
+}
+
+// GetFeatureUsageValueAtPointInTime returns the feature's usage value.
+// This is called point in time to communicate that this can change
+// over time, and you should check it back often.
+func (l *LimiterImpl) GetFeatureUsageValueAtPointInTime(toCheck *licensekeys.Limit) int {
+	limiter := l.lookupLimiter(toCheck)
+	if limiter != nil {
+		value, err := limiter.GetUsageAtPointInTime()
+		if err != nil {
+			return value
+		}
+	}
+	return 0
 }
 
 // IsHardLimitAtPointInTime determines if at the point of time of calling this
@@ -99,6 +124,7 @@ func (l *LimiterImpl) CreateCountLimiter(limit *licensekeys.Limit) (CountLimiter
 	if err != nil {
 		return newNoNoCounter(), nil
 	} else {
+		l.registerLimiter(limit, realInstance)
 		return realInstance, nil
 	}
 }

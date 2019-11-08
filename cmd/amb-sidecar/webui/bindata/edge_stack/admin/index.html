@@ -257,6 +257,11 @@
     
     </script>
   <script type="text/javascript">
+    $.ajaxSetup({
+      beforeSend: (xhr, settings) => {
+	xhr.setRequestHeader("Authorization", "Bearer " + window.location.hash.slice(1));
+      }
+    });
 
     var snapshot
 
@@ -347,6 +352,12 @@
         })
 
         setTimeout(render, 1000)
+      }).fail(xhr=>{
+        if (xhr.status == 401 || xhr.status == 403) {
+          window.location.replace("../login/")
+        } else {
+          console.log(xhr)
+        }
       })
     }
 

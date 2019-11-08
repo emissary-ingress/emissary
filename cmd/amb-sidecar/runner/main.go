@@ -40,6 +40,7 @@ import (
 	filterhandler "github.com/datawire/apro/cmd/amb-sidecar/filters/handler"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/health"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/middleware"
+	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/secret"
 	"github.com/datawire/apro/cmd/amb-sidecar/limiter"
 	rlscontroller "github.com/datawire/apro/cmd/amb-sidecar/ratelimits"
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
@@ -106,18 +107,8 @@ func Main(version string) {
 			claims, err := cmdContext.KeyCheck(cmd.PersistentFlags(), reset)
 			if err != nil {
 				logrusLogger.Errorln(err)
-				// TODO(alexgervais): Make sure this "unregistered" fallback license enforces low & hard limits on all necessary features
-				claims = &licensekeys.LicenseClaimsLatest{
-					CustomerID: "unregistered",
-					EnabledFeatures: []licensekeys.Feature{
-						licensekeys.FeatureUnrecognized,
-						licensekeys.FeatureFilter,
-						licensekeys.FeatureRateLimit,
-						licensekeys.FeatureTraffic,
-						licensekeys.FeatureDevPortal,
-					},
-					EnforcedLimits: []licensekeys.LimitValue{},
-				}
+				claims = licensekeys.NewCommunityLicenseClaims()
+				claims.CustomerID = "unregistered"
 				limit.SetUnregisteredLicenseHardLimits(true)
 			} else {
 				limit.SetUnregisteredLicenseHardLimits(false)
@@ -383,9 +374,9 @@ func runE(cmd *cobra.Command, args []string) error {
 			rateLimitScope := statsStore.Scope("ratelimit")
 			rateLimitService := lyftservice.NewService(
 				loader.New(
-					cfg.RLSRuntimeDir,                                        // runtime path
-					cfg.RLSRuntimeSubdir,                                     // runtime subdirectory
-					rateLimitScope.Scope("runtime"),                          // stats scope
+					cfg.RLSRuntimeDir,               // runtime path
+					cfg.RLSRuntimeSubdir,            // runtime subdirectory
+					rateLimitScope.Scope("runtime"), // stats scope
 					&loader.SymlinkRefresher{RuntimePath: cfg.RLSRuntimeDir}, // refresher
 				),
 				lyftredis.NewRateLimitCacheImpl(
@@ -412,10 +403,17 @@ func runE(cmd *cobra.Command, args []string) error {
 			httpHandler.AddEndpoint("/openapi/", "Documentation portal API", devPortalServer.Router().ServeHTTP)
 		}
 
+		// web ui
+		_, pubKey, err := secret.GetKeyPair(cfg, coreClient)
+		if err != nil {
+			return errors.Wrap(err, "secret")
+		}
 		httpHandler.AddEndpoint("/edge_stack_ui/", "Edge Stack admin UI", http.StripPrefix("/edge_stack_ui",
 			webui.New(
+				cfg,
 				dynamicClient,
 				snapshotStore.Subscribe(),
+				pubKey,
 			)).ServeHTTP)
 
 		httpHandler.AddEndpoint("/banner/", "Diag UI banner", http.StripPrefix("/banner", banner.NewBanner(limit, redisPool)).ServeHTTP)

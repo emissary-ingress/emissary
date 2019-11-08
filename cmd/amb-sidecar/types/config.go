@@ -24,6 +24,7 @@ import (
 type Config struct {
 	// Ambassador
 	AmbassadorID              string `env:"AMBASSADOR_ID               ,parser=nonempty-string ,default=default "`
+	AmbassadorClusterID       string `env:"AMBASSADOR_CLUSTER_ID       ,parser=possibly-empty-string            "`
 	AmbassadorNamespace       string `env:"AMBASSADOR_NAMESPACE        ,parser=nonempty-string ,default=default "`
 	AmbassadorSingleNamespace bool   `env:"AMBASSADOR_SINGLE_NAMESPACE ,parser=empty/nonempty                   "`
 
@@ -33,10 +34,6 @@ type Config struct {
 	RedisPoolSize   int    `env:"REDIS_POOL_SIZE   ,parser=strconv.ParseInt      ,default=10   "`
 	RedisSocketType string `env:"REDIS_SOCKET_TYPE ,parser=nonempty-string       ,default=tcp  "`
 	RedisURL        string `env:"REDIS_URL         ,parser=possibly-empty-string               "` // if empty, disables AES features
-
-	// Auth (filters)
-	KeyPairSecretName      string `env:"APRO_KEYPAIR_SECRET_NAME      ,parser=nonempty-string ,default=ambassador-pro-keypair  "`
-	KeyPairSecretNamespace string `env:"APRO_KEYPAIR_SECRET_NAMESPACE ,parser=nonempty-string ,defaultFrom=AmbassadorNamespace "`
 
 	// Rate Limit
 	RLSRuntimeDir              string `env:"RLS_RUNTIME_DIR               ,parser=nonempty-string       ,default=/tmp/amb/config "` // e.g.: "/tmp/amb-sidecar.XYZ/rls-snapshot"; same as the RUNTIME_ROOT for Lyft ratelimit.  Must point to a _symlink_ to a directory, not a real directory.  The symlink need not already exist at launch.  Unlike Lyft ratelimit, the parent doesn't need to exist at launch either.

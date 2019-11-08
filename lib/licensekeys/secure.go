@@ -125,3 +125,19 @@ func ParseKey(licenseKey string) (*LicenseClaimsLatest, error) {
 	}
 	return licenseClaims.ToLatest(), nil
 }
+
+func NewCommunityLicenseClaims() *LicenseClaimsLatest {
+	// TODO(alexgervais): Make sure all features and limits are appropriate for fallback-community licenses
+	return &LicenseClaimsLatest{
+		EnabledFeatures: []Feature{
+			FeatureUnrecognized,
+			FeatureFilter,
+			FeatureRateLimit,
+			FeatureTraffic,
+			FeatureDevPortal,
+		},
+		EnforcedLimits: []LimitValue{
+			{LimitDevPortalServices, 5},
+		},
+	}
+}

@@ -1,6 +1,4 @@
-import Vue from 'https://cdn.jsdelivr.net/npm/vue/dist/vue.esm.browser.js';
-
-export default Vue.extend({
+export default {
 	template: `<div>
 <form v-on:submit.prevent="onSubmit">
 		<fieldset>
@@ -81,6 +79,7 @@ export default Vue.extend({
 
 			let req = new XMLHttpRequest();
 			req.open("GET", url.toString());
+			req.setRequestHeader("Authorization", "Bearer " + window.location.hash.slice(1));
 			req.onload = () => {
 				if (req.status == 200) {
 					this.tosURL = req.response;
@@ -112,9 +111,6 @@ export default Vue.extend({
 				this.output += str;
 				this.output += "\n";
 				this.lastOutput = str;
-				if (str == "state: Ready\n") {
-					window.location = 'https://' + this.hostname + "/edge_stack/admin#<jwt>";
-				}
 			}
 		},
 		onSubmit: function(event) {
@@ -125,6 +121,7 @@ export default Vue.extend({
 
 			let req = new XMLHttpRequest();
 			req.open("POST", url.toString());
+			req.setRequestHeader("Authorization", "Bearer " + window.location.hash.slice(1));
 			req.onload = () => {
 				if (req.status == 201) {
 					this.handleOutput("Applying YAML...");
@@ -146,6 +143,7 @@ export default Vue.extend({
 
 			let req = new XMLHttpRequest();
 			req.open("GET", url.toString());
+			req.setRequestHeader("Authorization", "Bearer " + window.location.hash.slice(1));
 			req.onload = () => {
 				if (req.status == 200) {
 					this.yaml = req.response;
@@ -159,4 +157,4 @@ export default Vue.extend({
 			req.send();
 		},
 	},
-});
+};

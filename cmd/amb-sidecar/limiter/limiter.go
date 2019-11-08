@@ -13,7 +13,9 @@ type Limiter interface {
 	// Get the license key claims.
 	GetClaims() *licensekeys.LicenseClaimsLatest
 	// Get a particular limit value at a point in time.
-	GetLimitValueAtPointInTime(toCheck licensekeys.Limit) int
+	GetLimitValueAtPointInTime(toCheck *licensekeys.Limit) int
+	// Get a particular feature usage at a point in time.
+	GetFeatureUsageValueAtPointInTime(toCheck *licensekeys.Limit) int
 	// Are we enforcing hard limits right now?
 	IsHardLimitAtPointInTime() bool
 	// Create a limiter that can handle counts.
