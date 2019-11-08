@@ -41,11 +41,9 @@ func (h *JWTFilter) Filter(ctx context.Context, r *filterapi.FilterRequest) (fil
 
 	token, err := validateToken(tokenString, h.Spec, httpClient)
 	if err != nil {
-		if h.Spec.ErrorResponse.BodyTemplate != nil {
-			return middleware.TemplatedErrorResponse(ctx, http.StatusUnauthorized, err, *h.Spec.ErrorResponse.BodyTemplate, h.Spec.ErrorResponse.ContentType), nil
-		} else {
-			return middleware.NewErrorResponse(ctx, http.StatusUnauthorized, err, nil), nil
-		}
+		return middleware.NewTemplatedErrorResponse(&h.Spec.ErrorResponse, ctx, http.StatusUnauthorized, err, map[string]interface{}{
+			"httpRequestHeader": filterutil.GetHeader(r),
+		}), nil
 	}
 
 	ret := &filterapi.HTTPRequestModification{}
@@ -63,7 +61,7 @@ func (h *JWTFilter) Filter(ctx context.Context, r *filterapi.FilterRequest) (fil
 				"Claims":    (map[string]interface{})(*(token.Claims.(*jwt.MapClaims))),
 				"Signature": token.Signature,
 			},
-			"httpHeader": filterutil.GetHeader(r),
+			"httpRequestHeader": filterutil.GetHeader(r),
 		}
 		value := new(strings.Builder)
 		if err := hf.Template.Execute(value, data); err != nil {
