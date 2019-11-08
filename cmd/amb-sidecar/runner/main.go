@@ -422,7 +422,7 @@ func runE(cmd *cobra.Command, args []string) error {
 			httpHandler.AddEndpoint("/.well-known/acme-challenge/", "ACME http-01 challenge", acmeclient.NewChallengeHandler(redisPool).ServeHTTP)
 		}
 
-		httpHandler.AddEndpoint("/_internal/v0/watt", "watt→post_uptate.py→this", snapshotStore.ServeHTTP)
+		httpHandler.AddEndpoint("/_internal/v0/watt", "watt→post_update.py→this", snapshotStore.ServeHTTP)
 
 		// Launch the server
 		server := &http.Server{

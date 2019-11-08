@@ -8,6 +8,7 @@ import (
 type Snapshot struct {
 	Consul     ResourceCollection
 	Kubernetes ResourceCollection
+	Raw        []byte `json:"-"`
 }
 
 type ResourceCollection struct {

@@ -3,6 +3,7 @@
 package webui
 
 import (
+	"bytes"
 	"crypto/rsa"
 	"crypto/tls"
 	"encoding/json"
@@ -24,6 +25,7 @@ import (
 	k8sSchema "k8s.io/apimachinery/pkg/runtime/schema"
 
 	ambassadorTypesV2 "github.com/datawire/ambassador/pkg/api/getambassador.io/v2"
+	"github.com/datawire/ambassador/pkg/supervisor"
 	k8sTypesMetaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	k8sTypesUnstructured "k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 
@@ -75,7 +77,7 @@ func New(
 		hostsGetter: dynamicClient.Resource(k8sSchema.GroupVersionResource{Group: "getambassador.io", Version: "v2", Resource: "hosts"}),
 		pubkey:      pubkey,
 	}
-	ret.snapshot.Store(watt.Snapshot{})
+	ret.snapshot.Store(watt.Snapshot{Raw: []byte("{}\n")})
 	go func() {
 		for snapshot := range snapshotCh {
 			ret.snapshot.Store(snapshot)
@@ -145,7 +147,7 @@ func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	switch r.URL.Path {
-	case "/edge_stack/admin/tos-url":
+	case "/edge_stack/tls/tos-url":
 		if !fb.isAuthorized(r) {
 			fb.forbidden(w, r)
 			return
@@ -160,7 +162,7 @@ func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 		io.WriteString(w, tosURL)
-	case "/edge_stack/admin/yaml":
+	case "/edge_stack/tls/yaml":
 		if !fb.isAuthorized(r) {
 			fb.forbidden(w, r)
 			return
@@ -224,7 +226,7 @@ func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			middleware.ServeErrorResponse(w, r.Context(), http.StatusMethodNotAllowed,
 				errors.New("method not allowed"), nil)
 		}
-	case "/edge_stack/admin/status":
+	case "/edge_stack/tls/status":
 		if !fb.isAuthorized(r) {
 			fb.forbidden(w, r)
 			return
@@ -263,6 +265,30 @@ func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				io.WriteString(w, "state: <invalid state>")
 			}
 		}
+	case "/edge_stack/api/snapshot":
+		if !fb.isAuthorized(r) {
+			fb.forbidden(w, r)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		w.Write(fb.getSnapshot().Raw)
+	case "/edge_stack/api/apply":
+		if !fb.isAuthorized(r) {
+			fb.forbidden(w, r)
+			return
+		}
+		apply := supervisor.Command("WEBUI", "kubectl", "apply", "-f", "-")
+		apply.Stdin = r.Body
+		var output bytes.Buffer
+		apply.Stdout = &output
+		apply.Stderr = &output
+		apply.Run()
+		if apply.ProcessState.ExitCode() == 0 {
+			w.WriteHeader(http.StatusOK)
+		} else {
+			w.WriteHeader(http.StatusBadRequest)
+		}
+		w.Write(output.Bytes())
 	case "/edge_stack/admin/api/ambassador_cluster_id":
 		// XXX: no authentication for this one?
 		io.WriteString(w, fb.cfg.AmbassadorClusterID)

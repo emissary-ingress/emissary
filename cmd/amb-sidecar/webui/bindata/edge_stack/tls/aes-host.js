@@ -111,30 +111,7 @@ export default {
 				this.output += str;
 				this.output += "\n";
 				this.lastOutput = str;
-				if (str == "state: Ready\n") {
-					window.location = 'https://' + this.hostname + "/ambassador-edge-stack/admin#<jwt>";
-				}
 			}
-		},
-		refreshStatus: function() {
-			let url = new URL('status', window.location);
-			url.searchParams.set('hostname', this.hostname);
-
-			let req = new XMLHttpRequest();
-			req.open("GET", url.toString());
-			req.setRequestHeader("Authorization", "Bearer " + window.location.hash.slice(1));
-			req.onload = () => {
-				if (req.status == 200) {
-					this.handleOutput(req.response);
-				}
-			};
-			req.onloadend = () => {
-				// recurse, to continually refresh the output status...
-				setTimeout(() => {
-					this.refreshStatus();
-				}, 1000/5); // ... but limited to 5rps
-			};
-			req.send();
 		},
 		onSubmit: function(event) {
 			let url = new URL('yaml', window.location);
@@ -148,7 +125,7 @@ export default {
 			req.onload = () => {
 				if (req.status == 201) {
 					this.handleOutput("Applying YAML...");
-					this.refreshStatus();
+				        window.location.replace("../admin/");
 				} else {
 					this.handleOutput("Error applying YAML: "+req.response);
 				}

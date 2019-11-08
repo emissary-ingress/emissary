@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>Ambassador Edge Stack - first boot</title>
+		<style>
+			fieldset             { display: table; }
+			fieldset > label     { display: table-row; }
+			fieldset > label > * { display: table-cell; }
+
+			* { box-sizing: border-box; }
+			fieldset > label input[type="text"] { min-width: 40em; }
+			fieldset > label input[type="url"]  { min-width: 40em; }
+			textarea { font-family: monospace; }
+			#app {
+				max-width: 8in;
+				margin: auto;
+			}
+			pre {
+				background: black;
+				color: white;
+				width: calc(100% - 4em)%;
+				margin: 0 2em;
+				padding: 0.5em;
+				border: solid 1px green;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="app">
+			<aes-logo></aes-logo>
+			<aes-logingate>
+				<aes-host></aes-host>
+			</aes-logingate>
+		</div>
+		<script type="module">
+			import Vue from 'https://cdn.jsdelivr.net/npm/vue/dist/vue.esm.browser.js';
+			import AESHost from './aes-host.js';
+			import AESLoginGate from './aes-logingate.js';
+			import AESLogo from './aes-logo.js';
+
+			var vm = new Vue({
+				components: {
+					'aes-host': AESHost,
+					'aes-logingate': AESLoginGate,
+					'aes-logo': AESLogo,
+				},
+				el: '#app',
+			});
+		</script>
+	</body>
+</html>
