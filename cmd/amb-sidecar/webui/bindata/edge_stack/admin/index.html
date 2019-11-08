@@ -162,7 +162,7 @@
       </div>
 
       <h2>Hosts</h2>
-      <a href="../tls/">add</a>
+      <a href="../tls/" class="auth">add</a>
       <div class="info-blob">
         <div id="hosts"></div>
       </div>
@@ -320,6 +320,13 @@
 
     function render() {
       $.getJSON("/edge_stack/api/snapshot", data=>{
+        $(".auth").each((i, e) => {
+          href = e.getAttribute("href")
+          if (!href.includes("#")) {
+            e.setAttribute("href", href+window.location.hash)
+          }
+        })
+
         snapshot = data
         let kube = "Kubernetes" in data ? data.Kubernetes : {
           "Host": [],
@@ -329,17 +336,17 @@
         let opened = new Set()
         $("details[open]").each((i, e)=>opened.add(path(e)))
 
-        let hosts = kube.Host
+        let hosts = kube.Host || []
         let hostsDiv = $("#hosts").empty()
 
         $.each(hosts, (index, host) => {
           hostsDiv.append(renderKind(host))
         })
         if (hosts.length == 0) {
-          hostsDiv.append(`<p>there are no hosts, click <a href="../tls/">here</a> to create some</p>`)
+          hostsDiv.append(`<p>there are no hosts, click <a href="../tls/${window.location.hash}">here</a> to create some</p>`)
         }
 
-        let mappings = kube.Mapping
+        let mappings = kube.Mapping || []
         let mappingsDiv = $("#mappings").empty()
         $.each(mappings, (index, mapping) => {
           mappingsDiv.append(renderKind(mapping))

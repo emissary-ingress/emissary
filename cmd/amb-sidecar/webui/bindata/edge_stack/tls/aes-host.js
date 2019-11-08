@@ -125,7 +125,7 @@ export default {
 			req.onload = () => {
 				if (req.status == 201) {
 					this.handleOutput("Applying YAML...");
-				        window.location.replace("../admin/");
+				        window.location.replace("../admin/" + window.location.hash);
 				} else {
 					this.handleOutput("Error applying YAML: "+req.response);
 				}

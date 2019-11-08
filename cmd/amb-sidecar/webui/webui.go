@@ -289,10 +289,10 @@ func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusBadRequest)
 		}
 		w.Write(output.Bytes())
-	case "/edge_stack/admin/api/ambassador_cluster_id":
+	case "/edge_stack/tls/api/ambassador_cluster_id":
 		// XXX: no authentication for this one?
 		io.WriteString(w, fb.cfg.AmbassadorClusterID)
-	case "/edge_stack/admin/api/empty":
+	case "/edge_stack/tls/api/empty":
 		if !fb.isAuthorized(r) {
 			fb.forbidden(w, r)
 			return

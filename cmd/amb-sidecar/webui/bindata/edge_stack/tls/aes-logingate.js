@@ -31,6 +31,7 @@ export default {
 				break;
 			case 403:
 				this.state = "unauthorized";
+				window.location.replace("../login/");
 				break;
 			default:
 				this.state = "error";
