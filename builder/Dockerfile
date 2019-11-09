@@ -42,14 +42,21 @@ ENV PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local
 # The YAML parser is... special. To get the C version, we need to install Cython and libyaml, then
 # build it locally -- just using pip won't work.
 
-RUN apk --no-cache add bash curl jq rsync python3 python3-dev build-base libffi-dev openssl-dev sudo \
+RUN apk --no-cache add bash bash-completion ncurses curl jq rsync python3 python3-dev build-base libffi-dev openssl-dev sudo \
                        iptables docker openssh-client libcap yaml-dev cython && \
     pip3 install -U pip && \
     curl --fail https://dl.google.com/go/go1.13.linux-amd64.tar.gz | tar -C /usr/local -xzf - && \
     curl --fail -L https://storage.googleapis.com/kubernetes-release/release/v1.16.0/bin/linux/amd64/kubectl -o /usr/bin/kubectl && \
     chmod a+x /usr/bin/kubectl && \
+    curl --fail -L https://raw.githubusercontent.com/ahmetb/kubectx/v0.7.0/kubectx -o /usr/local/bin/kubectx && \
+    curl --fail -L https://raw.githubusercontent.com/ahmetb/kubectx/v0.7.0/kubens -o /usr/local/bin/kubens && \
+    chmod a+x /usr/local/bin/kubectx /usr/local/bin/kubens && \
+    curl --fail -L https://raw.githubusercontent.com/ahmetb/kubectx/v0.7.0/completion/kubectx.bash -o /usr/share/bash-completion/completions/kubectx && \
+    curl --fail -L https://raw.githubusercontent.com/ahmetb/kubectx/v0.7.0/completion/kubens.bash -o /usr/share/bash-completion/completions/kubens && \
+    curl -L https://raw.githubusercontent.com/jonmosco/kube-ps1/v0.7.0/kube-ps1.sh -o /usr/local/bin/kube-ps1.sh && \
     ln -s /usr/bin/python3 /usr/bin/python
 
+RUN sh -c "/usr/bin/kubectl completion bash > /usr/share/bash-completion/completions/kubectl"
 RUN chmod u+s $(which docker)
 
 COPY --from=envoy /usr/local/bin/envoy /usr/local/bin/envoy
