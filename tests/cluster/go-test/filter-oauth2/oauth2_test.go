@@ -70,3 +70,14 @@ func TestInsteadOfRedirect(t *testing.T) {
 		t.Run(tcName, tc.Run)
 	}
 }
+
+func TestClientCredentials(t *testing.T) {
+	testcase{
+		URL: urlMust(url.Parse("https://ambassador.standalone.svc.cluster.local/okta-client-credentials/httpbin/headers")),
+		Header: http.Header{
+			"X-Ambassador-Client-ID":     {"0oa1seewd25KEdjRk357"},
+			"X-Ambassador-Client-Secret": {"suMFuqElbCFBhVw760Nf-TeuBLjR7uoUWpANM8bS"},
+		},
+		ExpectedStatus: http.StatusOK,
+	}.Run(t)
+}
