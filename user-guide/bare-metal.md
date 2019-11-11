@@ -94,13 +94,4 @@ This configuration does not require an Ambassador Edge Stack service be defined 
 
 **Note:** Before configuring Ambassador Edge Stack with this method, consider some of the functionality that is lost by bypassing the Kubernetes service including only having one Ambassador Edge Stack able to bind to port 8080 or 8443 per node and losing any load balancing that is typically performed by Kubernetes services. Join our [Slack channel](https://d6e.co/slack) to ask any questions you have regarding running Ambassador Edge Stack on a bare metal installation.
 
-<div style="border: thick solid gray;padding:0.5em"> 
 
-Ambassador Edge Stack is a community supported product with 
-[features](getambassador.io/features) available for free and 
-limited use. For unlimited access and commercial use of
-Ambassador Edge Stack, [contact sales](https:/www.getambassador.io/contact) 
-for access to [Ambassador Edge Stack Enterprise](/user-guide/ambassador-edge-stack-enterprise) today.
-
-</div>
-</p>

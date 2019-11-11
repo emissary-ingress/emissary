@@ -21,13 +21,3 @@ Observability is a critical requirement for testing in production. In any canary
 
 Modern cloud applications are continuously deployed, as different teams rapidly update their respective services. Deploying and testing updates in a pre-production staging environment introduces either a bottleneck to the speed of iteration, or provides little feedback due to the fact that staging is not representative of what will be running in production when the deployment actually occurs.  Testing in production addresses both of these challenges: developers evaluate their changes in the real-world environment, enabling rapid iteration.
 
-<div style="border: thick solid gray;padding:0.5em"> 
-
-Ambassador Edge Stack is a community supported product with 
-[features](getambassador.io/features) available for free and 
-limited use. For unlimited access and commercial use of
-Ambassador Edge Stack, [contact sales](https:/www.getambassador.io/contact) 
-for access to [Ambassador Edge Stack Enterprise](/user-guide/ambassador-edge-stack-enterprise) today.
-
-</div>
-</p>

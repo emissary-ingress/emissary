@@ -49,13 +49,4 @@ config:
 
 Note: Setting `x_forwarded_proto_redirect: true` will impact all your Ambassador Edge Stack mappings. Every HTTP request to Ambassador Edge Stack will only be allowed to pass if it has an `X-FORWARDED-PROTO: https` header.
 
-<div style="border: thick solid gray;padding:0.5em"> 
 
-Ambassador Edge Stack is a community supported product with 
-[features](getambassador.io/features) available for free and 
-limited use. For unlimited access and commercial use of
-Ambassador Edge Stack, [contact sales](https:/www.getambassador.io/contact) 
-for access to [Ambassador Edge Stack Enterprise](/user-guide/ambassador-edge-stack-enterprise) today.
-
-</div>
-</p>

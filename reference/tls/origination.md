@@ -45,13 +45,4 @@ The `example-service` service must now support tls v1.3 for Ambassador Edge Stac
 
 A `TLSContext` requires a certificate be provided even if not using it to terminate TLS. For origination purposes, this certificate can simply be self-signed unless mTLS is required.
 
-<div style="border: thick solid gray;padding:0.5em"> 
 
-Ambassador Edge Stack is a community supported product with 
-[features](getambassador.io/features) available for free and 
-limited use. For unlimited access and commercial use of
-Ambassador Edge Stack, [contact sales](https:/www.getambassador.io/contact) 
-for access to [Ambassador Edge Stack Enterprise](/user-guide/ambassador-edge-stack-enterprise) today.
-
-</div>
-</p>

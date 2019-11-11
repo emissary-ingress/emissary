@@ -35,13 +35,4 @@ weight: 10
 
 In this case, the `tour-backend2_mapping` will receive 10% of the requests for `/backend/`, and Ambassador Edge Stack will assign the remaining 90% to the `tour-backend_mapping`.
 
-<div style="border: thick solid gray;padding:0.5em"> 
 
-Ambassador Edge Stack is a community supported product with 
-[features](getambassador.io/features) available for free and 
-limited use. For unlimited access and commercial use of
-Ambassador Edge Stack, [contact sales](https:/www.getambassador.io/contact) 
-for access to [Ambassador Edge Stack Enterprise](/user-guide/ambassador-edge-stack-enterprise) today.
-
-</div>
-</p>
