@@ -103,6 +103,7 @@ func Main(version string) {
 
 	argparser.PersistentPreRunE = func(cmd *cobra.Command, args []string) error {
 		// License key validation
+		application := "ambassador-sidecar"
 		keyCheck := func(reset bool) *licensekeys.LicenseClaimsLatest {
 			claims, err := cmdContext.KeyCheck(cmd.PersistentFlags(), reset)
 			if err != nil {
@@ -114,13 +115,13 @@ func Main(version string) {
 				limit.SetUnregisteredLicenseHardLimits(false)
 			}
 			limit.SetClaims(claims)
-			go metriton.PhoneHome(claims, limit, "ambassador-sidecar", version)
+			go metriton.PhoneHome(claims, limit, application, version)
 			return claims
 		}
 
 		limit = limiter.NewLimiterImpl()
 		licenseClaims = keyCheck(false)
-		go metriton.PhoneHomeEveryday(licenseClaims, limit, "ambassador-sidecar", version)
+		go metriton.PhoneHomeEveryday(licenseClaims, limit, application, version)
 
 		if cmdContext.Keyfile != "" {
 			triggerOnChange(cmdContext.Keyfile, func() {
