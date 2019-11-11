@@ -1,0 +1,7 @@
+GOCACHE=/tmp/go-cache
+GOPROXY=file:///mnt/goproxy
+GOPATH=/home/circleci/.go_workspace:/usr/local/go_workspace
+GOOS=linux
+GOARCH=amd64
+CGO_ENABLED=1
+GO111MODULE=on

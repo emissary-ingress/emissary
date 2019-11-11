@@ -18,17 +18,9 @@ go.DOCKER_IMAGE = golang:$(APRO_GOVERSION)$(if $(filter 2,$(words $(subst ., ,$(
 
 # Since the GOPATH must match amb-sidecar, we *always* compile in
 # Docker, so that we can put it at an arbitrary path without fuss.
-go.GOBUILD  = docker run --rm
-# Map in the Go module cache so that we don't need to re-download
-# things every time.
-go.GOBUILD += --volume=$$(go env GOPATH)/pkg/mod/cache/download:/mnt/goproxy:ro --env=GOPROXY=file:///mnt/goproxy
-# Simulate running in the current directory as the current user.  That
-# UID probably doesn't have access to the container's default
-# GOCACHE=/.cache/go-build.
-go.GOBUILD += --volume $(CURDIR):$(CURDIR):rw --workdir=$(CURDIR) --user=$$(id -u) --env=GOCACHE=/tmp/go-cache
-go.GOBUILD += $(foreach _gopath,$(subst :, ,$(APRO_GOPATH)), --tmpfs=$(_gopath):uid=$$(id -u),gid=$$(id -g),mode=0755,rw )
-# Run `go build` mimicking the APro build
-go.GOBUILD += $(addprefix --env=,$(APRO_GOENV)) $(go.DOCKER_IMAGE) go build -trimpath
+go.GOBUILD  = docker exec -i $(shell docker ps -q -f label=component=plugin-builder) go build -trimpath
+
+container.ID = $(shell docker ps -q -f label=component=plugin-builder)
 
 all: .docker.stamp
 .PHONY: all
@@ -42,7 +34,7 @@ Dockerfile: Dockerfile.in .var.APRO_VERSION
 	date > $@
 
 push: .docker.stamp
-	docker push $(DOCKER_REGISTRY)
+	docker push $(DOCKER_IMAGE)
 .PHONY: push
 
 download-go:
@@ -50,6 +42,17 @@ download-go:
 download-docker:
 	docker pull $(go.DOCKER_IMAGE)
 .PHONY: download-go download-docker
+
+build-container:
+ifeq "$(shell docker ps -q -f label=component=plugin-builder)" ""
+	docker build -t plugin-builder --build-arg CUR_DIR=$(CURDIR) --build-arg AES_GOVERSION=$(APRO_GOVERSION)$(if $(filter 2,$(words $(subst ., ,$(APRO_GOVERSION)))),.0) --build-arg UID=$(shell id -u) build/
+	docker run --rm -d --env-file=${CURDIR}/build/goenv.txt plugin-builder
+endif
+
+sync: build-container
+  # rsync -e 'docker exec -i' -r $$(go env GOPATH)/pkg/mod/cache/download $(container.ID):/mnt/goproxy
+	rsync --exclude-from=${CURDIR}/build/sync-excludes.txt -e 'docker exec -i' -r . $(shell docker ps -q -f label=component=plugin-builder):$(CURDIR)
+	rsync -e 'docker exec -i' -r $(shell go env GOPATH)/pkg/mod/cache/download/ $(shell docker ps -q -f label=component=plugin-builder):/mnt/goproxy/
 
 .common-pkgs.txt: apro-abi@$(APRO_VERSION).pkgs.txt download-go
 	@bash -c 'comm -12 <(go list -m all|cut -d" " -f1|sort) <(< $< cut -d" " -f1|sort)' > $@
@@ -60,11 +63,13 @@ version-check: .common-pkgs.txt apro-abi@$(APRO_VERSION).pkgs.txt
 	}
 .PHONY: version-check
 
-%.so: %.go download-go download-docker version-check
+%.so: %.go download-go download-docker version-check sync
 	$(go.GOBUILD) -buildmode=plugin -o $@ $<
+	rsync -e 'docker exec -i' -r $(shell docker ps -q -f label=component=plugin-builder):${CURDIR}/ .
 
 clean:
 	rm -f -- *.so .docker.stamp .common-pkgs.txt .tmp.* .var.* Dockerfile apro-abi@*
+	docker kill $(shell docker ps -q -f label=component=plugin-builder)
 .PHONY: clean
 
 .DELETE_ON_ERROR:
