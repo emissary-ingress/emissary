@@ -13,6 +13,7 @@ import (
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/httpclient"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/middleware"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/oauth2handler/client/authorization_code_client"
+	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/oauth2handler/client/client_credentials_client"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/oauth2handler/discovery"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/oauth2handler/resourceserver"
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
@@ -55,7 +56,8 @@ func (f *OAuth2Filter) Filter(ctx context.Context, request *filterapi.FilterRequ
 	defer f.RedisPool.Put(redisClient)
 
 	var oauth2client OAuth2Client
-	if true {
+	switch f.Spec.GrantType {
+	case crd.GrantType_AuthorizationCode:
 		oauth2client = &authorization_code_client.OAuth2Client{
 			QName:     f.QName,
 			Spec:      f.Spec,
@@ -69,6 +71,19 @@ func (f *OAuth2Filter) Filter(ctx context.Context, request *filterapi.FilterRequ
 			PrivateKey: f.PrivateKey,
 			PublicKey:  f.PublicKey,
 		}
+	case crd.GrantType_ClientCredentials:
+		oauth2client = &client_credentials_client.OAuth2Client{
+			QName:     f.QName,
+			Spec:      f.Spec,
+			Arguments: f.Arguments,
+
+			ResourceServer: &resourceserver.OAuth2ResourceServer{
+				Spec:      f.Spec,
+				Arguments: f.Arguments,
+			},
+		}
+	default:
+		panic(errors.Errorf("unrecognized grantType=%#v", f.Spec.GrantType))
 	}
 
 	return oauth2client.Filter(ctx, logger, httpClient, discovered, redisClient, request), nil
@@ -95,7 +110,8 @@ func (f *OAuth2Filter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	defer f.RedisPool.Put(redisClient)
 
 	var oauth2client OAuth2Client
-	if true {
+	switch f.Spec.GrantType {
+	case crd.GrantType_AuthorizationCode:
 		oauth2client = &authorization_code_client.OAuth2Client{
 			QName:     f.QName,
 			Spec:      f.Spec,
@@ -104,6 +120,14 @@ func (f *OAuth2Filter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			PrivateKey: f.PrivateKey,
 			PublicKey:  f.PublicKey,
 		}
+	case crd.GrantType_ClientCredentials:
+		oauth2client = &client_credentials_client.OAuth2Client{
+			QName:     f.QName,
+			Spec:      f.Spec,
+			Arguments: f.Arguments,
+		}
+	default:
+		panic(errors.Errorf("unrecognized grantType=%#v", f.Spec.GrantType))
 	}
 
 	oauth2client.ServeHTTP(w, r, ctx, discovered, redisClient)
