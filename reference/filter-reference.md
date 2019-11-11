@@ -1,9 +1,11 @@
 # Filters
 
 Filters are used to extend Ambassador to modify or intercept an HTTP
-request before sending to the the backend service.  You may use any of
-the built-in Filter types, or use the `Plugin` filter type to run
-custom code written in Golang.
+request before sending to the backend service.  You may use any of the
+built-in Filter types, use the `Plugin` filter type to run custom code
+written in the Go programming language, or use the `External` filter
+type to call run out to custom code written in a programming language
+of your choice.
 
 Filters are created with the `Filter` resource type, which contains
 global arguments to that filter.  Which Filter(s) to use for which
@@ -70,7 +72,7 @@ spec:
    default value of `tls`, and of the port-part.  If no scheme-part is
    given, it behaves as if `http://` was given.
  - `timeout` is the total timeout for the request to the upstream
-   external filter, in milleseconds.
+   external filter, in milliseconds.
  - `proto` is either `"http"` or `"grpc"`.
 
 This `spec.External` is mostly identical to an [`AuthService`](./auth-service), with the following exceptions:
@@ -179,8 +181,7 @@ spec:
 
 **Note**: If you are using a templating system for your YAML that also
 makes use of Go templating (for instance, Helm), then you will need to
-escape the template strings meant to be interpretted by Ambassador
-Pro.
+escape the template strings meant to be interpreted by Ambassador Pro.
 
 [Go `text/template`]: https://golang.org/pkg/text/template/
 [Go `text/template` functions]: https://golang.org/pkg/text/template/#hdr-Functions
@@ -459,7 +460,7 @@ Ambassador Pro container at `/etc/ambassador-plugins/${NAME}.so`.
 This code is written in the Go programming language (golang), and must
 be compiled with the exact same compiler settings as Ambassador Pro;
 and any overlapping libraries used must have their versions match
-exactly.  This information is dockumented in an [apro-abi.txt][] file
+exactly.  This information is documented in an [apro-abi.txt][] file
 for each Ambassador Pro release.
 
 [apro-abi.txt]: https://s3.amazonaws.com/datawire-static-files/apro-abi/apro-abi@$aproVersion$.txt
