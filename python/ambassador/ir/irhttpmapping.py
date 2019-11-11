@@ -375,6 +375,6 @@ class IRHTTPMapping (IRBaseMapping):
 
     def status(self) -> Dict[str, str]:
         if not self.is_active():
-            return { 'state': 'inactive', 'reason': self.summarize_errors() }
+            return { 'state': 'Inactive', 'reason': self.summarize_errors() }
         else:
-            return { 'state': 'running' }
+            return { 'state': 'Running' }
