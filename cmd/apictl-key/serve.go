@@ -82,7 +82,6 @@ func init() {
 				return
 			}
 
-			// TODO(alexgervais): what features does it get, how long does it last?
 			now := time.Now()
 			expiresAt := now.Add(time.Duration(365) * 24 * time.Hour)
 			communityLicenseClaims := licensekeys.NewCommunityLicenseClaims()
