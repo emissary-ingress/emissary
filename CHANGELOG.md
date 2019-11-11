@@ -1,6 +1,6 @@
 ## Ambassador Pro CHANGELOG
 
-## 0.9.2 (TBD)
+## 0.10.0 (2019-11-11)
 
 Configuration
 
