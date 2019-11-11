@@ -36,9 +36,9 @@ var (
 // This is the exhaustive list of values that a Limit may take.
 var (
 	LimitUnrecognized      = internal.LimitUnrecognized
-	LimitDevPortalServices = addLimit("devportal-services", LimitTypeCount, 4294967295)
-	LimitRateLimitService  = addLimit("ratelimit-service", LimitTypeRate, 4294967295)
-	LimitAuthFilterService = addLimit("authfilter-service", LimitTypeRate, 4294967295)
+	LimitDevPortalServices = addLimit("devportal-services", LimitTypeCount, 5)
+	LimitRateLimitService  = addLimit("ratelimit-service", LimitTypeRate, 5)
+	LimitAuthFilterService = addLimit("authfilter-service", LimitTypeRate, 5)
 )
 
 var limitDefaults = make(map[Limit]int)

@@ -3,6 +3,7 @@ package licensekeys
 import (
 	"crypto/rsa"
 	"fmt"
+	"math"
 	"math/big"
 
 	"github.com/dgrijalva/jwt-go"
@@ -52,6 +53,12 @@ func (v1 *LicenseClaimsV1) ToLatest() *LicenseClaimsLatest {
 		CustomerEmail:     "unknown",
 		EnabledFeatures:   v1.EnabledFeatures,
 		StandardClaims:    v1.StandardClaims,
+		EnforcedLimits: []LimitValue{
+			// Make v1 license virtually unlimited.
+			{LimitDevPortalServices, math.MaxUint32},
+			{LimitRateLimitService, math.MaxUint32},
+			{LimitAuthFilterService, math.MaxUint32},
+		},
 	}
 	return v2.ToLatest()
 }
