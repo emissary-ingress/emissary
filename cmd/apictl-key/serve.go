@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/datawire/apro/lib/licensekeys"
 	"io"
 	"net/http"
 	"os"
@@ -81,10 +82,11 @@ func init() {
 				return
 			}
 
-			// XXX: what features does it get, how long does it last?
+			// TODO(alexgervais): what features does it get, how long does it last?
 			now := time.Now()
 			expiresAt := now.Add(time.Duration(365) * 24 * time.Hour)
-			licenseKey := createTokenString(false, s.Email, s.Email, nil, nil, now, expiresAt)
+			communityLicenseClaims := licensekeys.NewCommunityLicenseClaims()
+			licenseKey := createTokenString(false, s.Email, s.Email, communityLicenseClaims.EnabledFeatures, communityLicenseClaims.EnforcedLimits, now, expiresAt)
 			resp, err = http.Post(url, "application/json", bytes.NewBuffer(encode(map[string]interface{}{
 				"properties": []interface{}{
 					map[string]string{
