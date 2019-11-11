@@ -3,12 +3,13 @@ package handler
 import (
 	"context"
 	"crypto/rsa"
+	"github.com/datawire/apro/cmd/amb-sidecar/limiter"
 	"net/http"
 	"net/url"
 	"strings"
 	"time"
 
-	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/dgrijalva/jwt-go"
 	"github.com/mediocregopher/radix.v2/pool"
 	"github.com/pkg/errors"
 
@@ -28,12 +29,13 @@ import (
 )
 
 type FilterMux struct {
-	Controller  *controller.Controller
-	DefaultRule *crd.Rule
-	PrivateKey  *rsa.PrivateKey
-	PublicKey   *rsa.PublicKey
-	Logger      types.Logger
-	RedisPool   *pool.Pool
+	Controller      *controller.Controller
+	DefaultRule     *crd.Rule
+	PrivateKey      *rsa.PrivateKey
+	PublicKey       *rsa.PublicKey
+	Logger          types.Logger
+	RedisPool       *pool.Pool
+	AuthRateLimiter limiter.RateLimiter
 }
 
 func logResponse(logger types.Logger, ret filterapi.FilterResponse, took time.Duration) {
@@ -182,6 +184,11 @@ func (c *FilterMux) filter(ctx context.Context, request *filterapi.FilterRequest
 		var filterImpl filterapi.Filter
 		switch filterSpec := filterInfo.Spec.(type) {
 		case crd.FilterOAuth2:
+			err := c.AuthRateLimiter.IncrementUsage()
+			if err != nil {
+				return middleware.NewErrorResponse(ctx, http.StatusTooManyRequests, err, nil), nil
+			}
+
 			_filterImpl := &oauth2handler.OAuth2Filter{
 				PrivateKey: c.PrivateKey,
 				PublicKey:  c.PublicKey,
@@ -201,6 +208,11 @@ func (c *FilterMux) filter(ctx context.Context, request *filterapi.FilterRequest
 		case crd.FilterPlugin:
 			filterImpl = filterutil.HandlerToFilter(filterSpec.Handler)
 		case crd.FilterJWT:
+			err := c.AuthRateLimiter.IncrementUsage()
+			if err != nil {
+				return middleware.NewErrorResponse(ctx, http.StatusTooManyRequests, err, nil), nil
+			}
+
 			filterImpl = &jwthandler.JWTFilter{
 				Spec: filterSpec,
 			}

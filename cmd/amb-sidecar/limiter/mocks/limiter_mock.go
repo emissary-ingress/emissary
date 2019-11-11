@@ -61,3 +61,7 @@ func (ml *MockLimiter) IsHardLimitAtPointInTime() bool {
 func (ml *MockLimiter) CreateCountLimiter(limit *licensekeys.Limit) (limiter.CountLimiter, error) {
 	return NewMockLimitCounter(ml.GetLimitValueAtPointInTime(limit)), nil
 }
+
+func (ml *MockLimiter) CreateRateLimiter(limit *licensekeys.Limit) (limiter.RateLimiter, error) {
+	return NewMockLimitRate(ml.GetLimitValueAtPointInTime(limit)), nil
+}

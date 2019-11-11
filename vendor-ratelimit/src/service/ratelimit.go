@@ -5,6 +5,9 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/datawire/apro/cmd/amb-sidecar/limiter"
+	"github.com/datawire/apro/lib/licensekeys"
+
 	"github.com/lyft/goruntime/loader"
 	stats "github.com/lyft/gostats"
 	logger "github.com/sirupsen/logrus"
@@ -58,6 +61,7 @@ type service struct {
 	stats              serviceStats
 	rlStatsScope       stats.Scope
 	legacy             *legacyService
+	AESRateLimiter     limiter.RateLimiter
 }
 
 func (this *service) reloadConfig() {
@@ -121,6 +125,17 @@ func (this *service) shouldRateLimitWorker(
 		limitsToCheck[i] = snappedConfig.GetLimit(ctx, request.Domain, descriptor)
 	}
 
+	if len(limitsToCheck) > 0 && limitsToCheck[0] != nil {
+		// If we have some rate limits to check, make sure we are licensed for it!
+		err := this.AESRateLimiter.IncrementUsage()
+		if err != nil {
+			response := &pb.RateLimitResponse{}
+			finalCode := pb.RateLimitResponse_OVER_LIMIT
+			response.OverallCode = finalCode
+			return response
+		}
+	}
+
 	responseDescriptorStatuses := this.cache.DoLimit(ctx, request, limitsToCheck)
 	assert.Assert(len(limitsToCheck) == len(responseDescriptorStatuses))
 
@@ -182,7 +197,15 @@ func (this *service) GetCurrentConfig() config.RateLimitConfig {
 }
 
 func NewService(runtime loader.IFace, cache redis.RateLimitCache,
-	configLoader config.RateLimitConfigLoader, stats stats.Scope) RateLimitServiceServer {
+	configLoader config.RateLimitConfigLoader, stats stats.Scope, limiter *limiter.LimiterImpl) RateLimitServiceServer {
+
+	// Our own internal rate-limiter for AES license usage
+	// Error should never be set due to hardcoded enums
+	// but if it is make it break hard.
+	aeslimiter, err := limiter.CreateRateLimiter(&licensekeys.LimitRateLimitService)
+	if err != nil {
+		return nil
+	}
 
 	newService := &service{
 		runtime:            runtime,
@@ -193,6 +216,7 @@ func NewService(runtime loader.IFace, cache redis.RateLimitCache,
 		cache:              cache,
 		stats:              newServiceStats(stats),
 		rlStatsScope:       stats.Scope("rate_limit"),
+		AESRateLimiter:     aeslimiter,
 	}
 	newService.legacy = &legacyService{
 		s:                          newService,

@@ -101,10 +101,8 @@ func (l *LimiterImpl) GetLimitValueAtPointInTime(toCheck *licensekeys.Limit) int
 func (l *LimiterImpl) GetFeatureUsageValueAtPointInTime(toCheck *licensekeys.Limit) int {
 	limiter := l.lookupLimiter(toCheck)
 	if limiter != nil {
-		value, err := limiter.GetUsageAtPointInTime()
-		if err != nil {
-			return value
-		}
+		value, _ := limiter.GetUsageAtPointInTime()
+		return value
 	}
 	return 0
 }
@@ -124,6 +122,21 @@ func (l *LimiterImpl) CreateCountLimiter(limit *licensekeys.Limit) (CountLimiter
 	realInstance, err := newCountLimiterImpl(l.redisPool, l, limit, l.cryptoEngine)
 	if err != nil {
 		return newNoNoCounter(), nil
+	} else {
+		l.registerLimiter(limit, realInstance)
+		return realInstance, nil
+	}
+}
+
+// CreateRateLimiter creates a limiter that is capable of enforcing rates.
+func (l *LimiterImpl) CreateRateLimiter(limit *licensekeys.Limit) (RateLimiter, error) {
+	if limit.Type() != licensekeys.LimitTypeRate {
+		return nil, errors.New("This limit is not a rate type")
+	}
+
+	realInstance, err := newRateLimiterWindow(l.redisPool, l, limit)
+	if err != nil {
+		return newNoNoRate(), nil
 	} else {
 		l.registerLimiter(limit, realInstance)
 		return realInstance, nil
