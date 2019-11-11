@@ -45,6 +45,7 @@ type FilterOAuth2 struct {
 	AccessTokenValidation string `json:"accessTokenValidation"`
 }
 
+//nolint:gocyclo
 func (m *FilterOAuth2) Validate(namespace string, secretsGetter coreV1client.SecretsGetter) error {
 	u, err := url.Parse(m.RawAuthorizationURL)
 	if err != nil {
