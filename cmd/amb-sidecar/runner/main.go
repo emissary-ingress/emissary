@@ -114,12 +114,14 @@ func Main(version string) {
 				limit.SetUnregisteredLicenseHardLimits(false)
 			}
 			limit.SetClaims(claims)
-			go metriton.PhoneHomeEveryday(claims, limit, "ambassador-sidecar", version)
+			go metriton.PhoneHome(claims, limit, "ambassador-sidecar", version)
 			return claims
 		}
 
 		limit = limiter.NewLimiterImpl()
 		licenseClaims = keyCheck(false)
+		go metriton.PhoneHomeEveryday(licenseClaims, limit, "ambassador-sidecar", version)
+
 		if cmdContext.Keyfile != "" {
 			triggerOnChange(cmdContext.Keyfile, func() {
 				logrusLogger.Infof("Refreshing license key, %s changed", cmdContext.Keyfile)

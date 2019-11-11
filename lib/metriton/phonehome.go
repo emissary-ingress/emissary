@@ -20,9 +20,7 @@ type MetritonResponse struct {
 }
 
 func PhoneHomeEveryday(claims *licensekeys.LicenseClaimsLatest, limiter *limiter.LimiterImpl, application, version string) {
-	// Phone home right now
-	go PhoneHome(claims, limiter, application, version)
-	// And every 12 hours
+	// Phone home every 12 hours
 	phoneHomeTicker := time.NewTicker(12 * time.Hour)
 	for range phoneHomeTicker.C {
 		go PhoneHome(claims, limiter, application, version)
@@ -30,7 +28,12 @@ func PhoneHomeEveryday(claims *licensekeys.LicenseClaimsLatest, limiter *limiter
 }
 
 func PhoneHome(claims *licensekeys.LicenseClaimsLatest, limiter *limiter.LimiterImpl, application, version string) {
+	// We might be really excited to phone home, but let the limiters startup process attempt to initialize the Redis connection...
+	if limiter != nil {
+		time.Sleep(15 * time.Second)
+	}
 	fmt.Println("Calling Metriton")
+
 	b := &backoff.Backoff{
 		Min:    5 * time.Minute,
 		Max:    8 * time.Hour,
@@ -108,7 +111,7 @@ func prepareData(claims *licensekeys.LicenseClaimsLatest, limiter *limiter.Limit
 	featuresDataSet := []map[string]interface{}{}
 	for _, limitName := range licensekeys.ListKnownLimits() {
 		limit, ok := licensekeys.ParseLimit(limitName)
-		if ok {
+		if ok && limiter != nil {
 			limitValue := limiter.GetLimitValueAtPointInTime(&limit)
 			usageValue := limiter.GetFeatureUsageValueAtPointInTime(&limit)
 			featuresDataSet = append(featuresDataSet, map[string]interface{}{
