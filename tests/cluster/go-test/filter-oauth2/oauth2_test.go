@@ -72,12 +72,16 @@ func TestInsteadOfRedirect(t *testing.T) {
 }
 
 func TestClientCredentials(t *testing.T) {
-	testcase{
-		URL: urlMust(url.Parse("https://ambassador.standalone.svc.cluster.local/okta-client-credentials/httpbin/headers")),
-		Header: http.Header{
-			"X-Ambassador-Client-ID":     {"0oa1seewd25KEdjRk357"},
-			"X-Ambassador-Client-Secret": {"suMFuqElbCFBhVw760Nf-TeuBLjR7uoUWpANM8bS"},
-		},
-		ExpectedStatus: http.StatusOK,
-	}.Run(t)
+	u := urlMust(url.Parse("https://ambassador.standalone.svc.cluster.local/okta-client-credentials/httpbin/headers"))
+
+	testcases := map[string]testcase{
+		"empty":   {URL: u, Header: nil, ExpectedStatus: http.StatusForbidden},
+		"valid":   {URL: u, Header: http.Header{"X-Ambassador-Client-ID": {"0oa1seewd25KEdjRk357"}, "X-Ambassador-Client-Secret": {"suMFuqElbCFBhVw760Nf-TeuBLjR7uoUWpANM8bS"}}, ExpectedStatus: http.StatusOK},
+		"invalid": {URL: u, Header: http.Header{"X-Ambassador-Client-ID": {"0oa1seewd25KEdjRk357"}, "X-Ambassador-Client-Secret": {"bogus"}}, ExpectedStatus: http.StatusForbidden},
+	}
+
+	for tcName, tc := range testcases {
+		tc := tc // capture loop variable
+		t.Run(tcName, tc.Run)
+	}
 }
