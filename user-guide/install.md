@@ -2,9 +2,6 @@
 
 Ambassador Edge Stack can be installed in a variety of ways. The most common approach to installing Ambassador Edge Stack is directly on Kubernetes with our default, customizable manifest.
 
-
-
-
 ## Kubernetes
 
 

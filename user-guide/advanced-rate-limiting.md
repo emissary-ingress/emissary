@@ -195,6 +195,7 @@ spec:
      rate: 3
      unit: minute
 ```
+
 Now, requests will `/backend/` will be rate limited after only 3 requests.
 
 ## Rate limiting matching rules
@@ -214,5 +215,3 @@ The most common source of failure of the rate limiting service will occur when t
 ## More
 
 For more on rate limiting, see the [rate limit reference](/reference/rate-limits).
-
-

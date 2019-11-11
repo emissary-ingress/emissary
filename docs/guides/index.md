@@ -1,7 +1,7 @@
 # Guides
 
 
-Guides are hands-on tutorials to walk you through configuring Ambassador Edge Stack or [Ambassador Open Source](/user-guide/install-ambassador-oss) for specific functionality. 
+Guides are hands-on tutorials to walk you through configuring Ambassador Edge Stack or [Ambassador Open Source](/user-guide/install-ambassador-oss) for specific functionality.
 
 <p>
 
@@ -57,5 +57,3 @@ Guides are hands-on tutorials to walk you through configuring Ambassador Edge St
 </table>
 
 If you're interested in contributing to Ambassador, writing (or updating) a Guide is a great place to start. Join our [Slack channel](https://d6e.co/slack) in #ambassador-dev to get started.
-
-

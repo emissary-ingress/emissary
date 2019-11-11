@@ -86,7 +86,7 @@
         link: /user-guide/websockets-ambassador
     - title: Security
       items:
-      - title: Security  
+      - title: Encryption and Authentication  
         link:  /user-guide/security
       - title: Enabling HTTPS
         link: /user-guide/tls-termination
