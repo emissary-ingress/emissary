@@ -3,9 +3,10 @@ package licensekeys
 import (
 	"crypto/rsa"
 	"fmt"
+	"math/big"
+
 	"github.com/dgrijalva/jwt-go"
 	"github.com/pkg/errors"
-	"math/big"
 
 	"github.com/datawire/apro/lib/jwtsupport"
 )
