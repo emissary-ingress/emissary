@@ -15,16 +15,17 @@ import (
 type FilterOAuth2 struct {
 	RawAuthorizationURL string   `json:"authorizationURL"` // formerly AUTH_PROVIDER_URL
 	AuthorizationURL    *url.URL `json:"-"`                // calculated from RawAuthorizationURL
-	RawClientURL        string   `json:"clientURL"`        // formerly tenant.tenantUrl
-	ClientURL           *url.URL `json:"-"`                // calculated from RawClientURL
 
+	RawClientURL    string        `json:"clientURL"` // formerly tenant.tenantUrl
+	ClientURL       *url.URL      `json:"-"`         // calculated from RawClientURL
 	RawStateTTL     string        `json:"stateTTL"`
 	StateTTL        time.Duration `json:"-"` // calculated from RawStateTTL
-	Audience        string        `json:"audience"`
 	ClientID        string        `json:"clientID"`
 	Secret          string        `json:"secret"`
 	SecretName      string        `json:"secretName"`
 	SecretNamespace string        `json:"secretNamespace"`
+
+	//Audience        string        `json:"audience"`
 
 	RawMaxStale string        `json:"maxStale"`
 	MaxStale    time.Duration `json:"-"` // calculated from RawMaxStale
@@ -65,14 +66,6 @@ func (m *FilterOAuth2) Validate(namespace string, secretsGetter coreV1client.Sec
 		m.StateTTL = d
 	}
 
-	if m.RawMaxStale != "" {
-		d, err := time.ParseDuration(m.RawMaxStale)
-		if err != nil {
-			return errors.Wrapf(err, "parsing maxStale: %q", m.RawMaxStale)
-		}
-		m.MaxStale = d
-	}
-
 	if m.SecretName != "" {
 		if m.Secret != "" {
 			return errors.New("it is invalid to set both 'secret' and 'secretName'")
@@ -91,14 +84,12 @@ func (m *FilterOAuth2) Validate(namespace string, secretsGetter coreV1client.Sec
 		m.Secret = string(secretVal)
 	}
 
-	switch m.AccessTokenValidation {
-	case "":
-		m.AccessTokenValidation = "auto"
-	case "auto", "jwt", "userinfo":
-		// do nothing
-	default:
-		return errors.Errorf("accessTokenValidation=%q is invalid; valid values are %q",
-			m.AccessTokenValidation, []string{"auto", "jwt", "userinfo"})
+	if m.RawMaxStale != "" {
+		d, err := time.ParseDuration(m.RawMaxStale)
+		if err != nil {
+			return errors.Wrapf(err, "parsing maxStale: %q", m.RawMaxStale)
+		}
+		m.MaxStale = d
 	}
 
 	switch m.RawRenegotiateTLS {
@@ -110,6 +101,16 @@ func (m *FilterOAuth2) Validate(namespace string, secretsGetter coreV1client.Sec
 		m.RenegotiateTLS = tls.RenegotiateFreelyAsClient
 	default:
 		return errors.Errorf("invalid renegotiateTLS: %q", m.RawRenegotiateTLS)
+	}
+
+	switch m.AccessTokenValidation {
+	case "":
+		m.AccessTokenValidation = "auto"
+	case "auto", "jwt", "userinfo":
+		// do nothing
+	default:
+		return errors.Errorf("accessTokenValidation=%q is invalid; valid values are %q",
+			m.AccessTokenValidation, []string{"auto", "jwt", "userinfo"})
 	}
 
 	return nil
