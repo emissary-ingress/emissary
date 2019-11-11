@@ -134,7 +134,7 @@ func (l *LimiterImpl) CreateRateLimiter(limit *licensekeys.Limit) (RateLimiter, 
 		return nil, errors.New("This limit is not a rate type")
 	}
 
-	realInstance, err := newRateLimiterWindow(l.redisPool, l, limit, l.cryptoEngine)
+	realInstance, err := newRateLimiterWindow(l.redisPool, l, limit)
 	if err != nil {
 		return newNoNoRate(), nil
 	} else {

@@ -2,6 +2,7 @@ package ratelimit
 
 import (
 	"context"
+	"fmt"
 	"github.com/datawire/apro/cmd/amb-sidecar/limiter"
 	"github.com/datawire/apro/lib/licensekeys"
 	"strings"
@@ -111,14 +112,6 @@ func checkServiceErr(something bool, msg string) {
 func (this *service) shouldRateLimitWorker(
 	ctx context.Context, request *pb.RateLimitRequest) *pb.RateLimitResponse {
 
-    err := this.AESRateLimiter.IncrementUsage()
-    if err != nil {
-		response := &pb.RateLimitResponse{}
-		finalCode := pb.RateLimitResponse_OVER_LIMIT
-		response.OverallCode = finalCode
-		return response
-	}
-
 	checkServiceErr(request.Domain != "", "rate limit domain must not be empty")
 	checkServiceErr(len(request.Descriptors) != 0, "rate limit descriptor list must not be empty")
 
@@ -130,6 +123,17 @@ func (this *service) shouldRateLimitWorker(
 	limitsToCheck := make([]*config.RateLimit, len(request.Descriptors))
 	for i, descriptor := range request.Descriptors {
 		limitsToCheck[i] = snappedConfig.GetLimit(ctx, request.Domain, descriptor)
+	}
+
+	if len(limitsToCheck) > 0 && limitsToCheck[0] != nil {
+		// If we have some rate limits to check, make sure we are licensed for it!
+		err := this.AESRateLimiter.IncrementUsage()
+		if err != nil {
+			response := &pb.RateLimitResponse{}
+			finalCode := pb.RateLimitResponse_OVER_LIMIT
+			response.OverallCode = finalCode
+			return response
+		}
 	}
 
 	responseDescriptorStatuses := this.cache.DoLimit(ctx, request, limitsToCheck)

@@ -4,13 +4,15 @@ import (
 	"fmt"
 	"github.com/datawire/apro/lib/licensekeys"
 	"github.com/mediocregopher/radix.v2/pool"
+	"github.com/mediocregopher/radix.v2/redis"
 	"github.com/pkg/errors"
+	"math/rand"
+	"time"
 )
 
 // RateLimiter limits on sliding window.
 type RateLimiterWindow struct {
 	// A connection to the redis instance.
-	//
 	// This is required for a rate limiter.
 	redisPool *pool.Pool
 	// Need to take an instance of the limiter since the license key can be
@@ -18,10 +20,8 @@ type RateLimiterWindow struct {
 	limiter Limiter
 	// limit is the actual limit to enforce
 	limit *licensekeys.Limit
-	// cryptoEngine is used for encrypting the values store in redis.
-	cryptoEngine *LimitCrypto
-	// TODO(alexgervais): Remove and use redis
-	count int
+	// sliding time window for calculating rate limits
+	windowInSeconds int64
 }
 
 // newRateLimiterWindow creates a new limit based on a rate of requests.
@@ -29,7 +29,7 @@ type RateLimiterWindow struct {
 // redisPool: a connection to the redisPool
 // limit: the actual limit value.
 // crypto: the engine used for actually encrypting values in redis.
-func newRateLimiterWindow(redisPool *pool.Pool, limiter Limiter, limit *licensekeys.Limit, cryptoEngine *LimitCrypto) (*RateLimiterWindow, error) {
+func newRateLimiterWindow(redisPool *pool.Pool, limiter Limiter, limit *licensekeys.Limit) (*RateLimiterWindow, error) {
 	if redisPool == nil {
 		return nil, errors.New("Need a redis pool to enforce a rate limit")
 	}
@@ -38,31 +38,48 @@ func newRateLimiterWindow(redisPool *pool.Pool, limiter Limiter, limit *licensek
 		redisPool,
 		limiter,
 		limit,
-		cryptoEngine,
-		0,
+		int64(1),
 	}, nil
 }
 
 func (this *RateLimiterWindow) getUnderlyingValue() (int, error) {
-	// TODO(alexgervais): impl
-	return this.count, nil
+	// Get the number of events in the sorted-set
+	resp, err := this.redisPool.Cmd("ZCARD", this.limit.String()).Int()
+	if err != nil {
+		if err == redis.ErrRespNil {
+			return 0, err
+		}
+		return -1, err
+	}
+	return resp, nil
 }
 
 func (this *RateLimiterWindow) attemptToChange(incrementing bool) (int, error) {
-	// TODO(alexgervais): impl
-	if incrementing {
-		this.count++
+	rc, err := this.redisPool.Get()
+	if err != nil {
+		return -1, err
 	}
+	defer this.redisPool.Put(rc)
+
+	currentTimeMs := time.Now().UnixNano() / int64(time.Millisecond)
+	maxScoreMs := currentTimeMs - (this.windowInSeconds * 1000) // X seconds ago
+
+	// Flush old events from the sorted-set, everything older than `maxScoreMs` is out the window.
+	rc.Cmd("ZREMRANGEBYSCORE", this.limit.String(), 0, maxScoreMs) //.Int()
+
 	// Are we going to exceed limits, and is that a problem?
 	currentLimit := this.limiter.GetLimitValueAtPointInTime(this.limit)
-	if currentLimit != -1 && this.count > currentLimit && this.limiter.IsHardLimitAtPointInTime() {
-		// If we're decrementing than just ignore the limit value increase.
-		// If you wanna get closer to your hard limit that's more than fine.
-		if incrementing {
-			return -1, fmt.Errorf("rate-limit exceeded for feature %s", this.limit)
-		}
+	currentValue, _ := this.getUnderlyingValue()
+	currentValue++
+	if currentLimit != -1 && currentValue > currentLimit && incrementing && this.limiter.IsHardLimitAtPointInTime() {
+		return -1, fmt.Errorf("rate-limit exceeded for feature %s", this.limit)
 	}
-	return this.count, nil
+
+	// Either limits are not exceeded or it's not a problem: add this event to the sorted-set
+	rc.Cmd("ZADD", this.limit.String(), currentTimeMs, currentTimeMs+rand.Int63()) //.Int()
+	rc.Cmd("EXPIRE", this.limit.String(), this.windowInSeconds)                    //.Int()
+
+	return currentValue, nil
 }
 
 // IncrementUsage tracks an increment in the usage rate.
