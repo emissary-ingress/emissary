@@ -453,6 +453,8 @@ class IR:
         return self.add_to_listener(primary_listener, **kwargs)
 
     def add_mapping(self, aconf: Config, mapping: IRBaseMapping) -> Optional[IRBaseMappingGroup]:
+        mapping.check_status()
+
         if mapping.is_active():
             if mapping.group_id not in self.groups:
                 group_name = "GROUP: %s" % mapping.name

@@ -980,16 +980,17 @@ class AmbassadorEventWatcher(threading.Thread):
 
         if app.ir.k8s_status_updates:
             for name in app.ir.k8s_status_updates.keys():
+                # Strip off any namespace in the name.
+                resource_name = name.split('.', 1)[0]
                 kind, namespace, update = app.ir.k8s_status_updates[name]
-
-                self.logger.info(f"doing K8s status update for {kind} {namespace} {name}...")
-
                 text = json.dumps(update)
 
-                with open(f'/tmp/kstat-{kind}-{name}', 'w') as out:
+                self.logger.info(f"doing K8s status update for {kind} {namespace} {resource_name}: {text}...")
+
+                with open(f'/tmp/kstat-{kind}-{name}-{namespace}', 'w') as out:
                     out.write(text)
 
-                cmd = [ 'kubestatus', kind, '-f', f'metadata.name={name}', '-n', namespace, '-u', '/dev/fd/0' ]
+                cmd = [ 'kubestatus', kind, '-f', f'metadata.name={resource_name}', '-n', namespace, '-u', '/dev/fd/0' ]
                 self.logger.info(f"Running command: {cmd}")
 
                 try:
