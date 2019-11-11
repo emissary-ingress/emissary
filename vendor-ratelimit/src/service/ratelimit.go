@@ -2,11 +2,11 @@ package ratelimit
 
 import (
 	"context"
-	"fmt"
-	"github.com/datawire/apro/cmd/amb-sidecar/limiter"
-	"github.com/datawire/apro/lib/licensekeys"
 	"strings"
 	"sync"
+
+	"github.com/datawire/apro/cmd/amb-sidecar/limiter"
+	"github.com/datawire/apro/lib/licensekeys"
 
 	"github.com/lyft/goruntime/loader"
 	stats "github.com/lyft/gostats"
