@@ -352,6 +352,21 @@ spec:
     kind: Mapping
     categories:
     - ambassador-crds
+  additionalPrinterColumns:
+  - name: Prefix
+    type: string
+    JSONPath: .spec.prefix
+  - name: Service
+    type: string
+    JSONPath: .spec.service
+  - name: State
+    type: string
+    JSONPath: .status.state
+  - name: Reason
+    type: string
+    JSONPath: .status.reason
+  subresources:
+    status: {}   
 ---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
