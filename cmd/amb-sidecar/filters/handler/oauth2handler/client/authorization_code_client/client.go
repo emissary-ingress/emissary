@@ -1,4 +1,4 @@
-package client
+package authorization_code_client
 
 import (
 	"context"
@@ -371,17 +371,14 @@ func (sessionInfo *SessionInfo) handleUnauthenticatedProxyRequest(ctx context.Co
 	if sessionInfo.c.Arguments.InsteadOfRedirect != nil {
 		noRedirect := sessionInfo.c.Arguments.InsteadOfRedirect.IfRequestHeader.Matches(filterutil.GetHeader(request))
 		if noRedirect {
-			return &filterapi.HTTPResponse{
-				StatusCode: sessionInfo.c.Arguments.InsteadOfRedirect.HTTPStatusCode,
-				Header: http.Header{
-					"Set-Cookie": {
-						sessionCookie.String(),
-						xsrfCookie.String(),
-					},
-					"Content-Type": {"text/plain; charset=utf-8"},
-				},
-				Body: "session cookie is either missing, or refers to an expired or non-authenticated session",
+			ret := middleware.NewErrorResponse(ctx, sessionInfo.c.Arguments.InsteadOfRedirect.HTTPStatusCode,
+				errors.New("session cookie is either missing, or refers to an expired or non-authenticated session"),
+				nil)
+			ret.Header["Set-Cookie"] = []string{
+				sessionCookie.String(),
+				xsrfCookie.String(),
 			}
+			return ret
 		}
 	}
 

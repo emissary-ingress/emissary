@@ -12,19 +12,28 @@ import (
 	coreV1client "k8s.io/client-go/kubernetes/typed/core/v1"
 )
 
+const (
+	GrantType_AuthorizationCode = "AuthorizationCode"
+	GrantType_ClientCredentials = "ClientCredentials"
+)
+
 type FilterOAuth2 struct {
 	RawAuthorizationURL string   `json:"authorizationURL"` // formerly AUTH_PROVIDER_URL
 	AuthorizationURL    *url.URL `json:"-"`                // calculated from RawAuthorizationURL
-	RawClientURL        string   `json:"clientURL"`        // formerly tenant.tenantUrl
-	ClientURL           *url.URL `json:"-"`                // calculated from RawClientURL
 
+	GrantType string `json:"grantType"`
+
+	// grantType=AuthorizationCode
+	RawClientURL    string        `json:"clientURL"` // formerly tenant.tenantUrl
+	ClientURL       *url.URL      `json:"-"`         // calculated from RawClientURL
 	RawStateTTL     string        `json:"stateTTL"`
 	StateTTL        time.Duration `json:"-"` // calculated from RawStateTTL
-	Audience        string        `json:"audience"`
 	ClientID        string        `json:"clientID"`
 	Secret          string        `json:"secret"`
 	SecretName      string        `json:"secretName"`
 	SecretNamespace string        `json:"secretNamespace"`
+
+	//Audience        string        `json:"audience"`
 
 	RawMaxStale string        `json:"maxStale"`
 	MaxStale    time.Duration `json:"-"` // calculated from RawMaxStale
@@ -36,6 +45,7 @@ type FilterOAuth2 struct {
 	AccessTokenValidation string `json:"accessTokenValidation"`
 }
 
+//nolint:gocyclo
 func (m *FilterOAuth2) Validate(namespace string, secretsGetter coreV1client.SecretsGetter) error {
 	u, err := url.Parse(m.RawAuthorizationURL)
 	if err != nil {
@@ -46,23 +56,69 @@ func (m *FilterOAuth2) Validate(namespace string, secretsGetter coreV1client.Sec
 	}
 	m.AuthorizationURL = u
 
-	u, err = url.Parse(m.RawClientURL)
-	if err != nil {
-		return errors.Wrapf(err, "parsing clientURL: %q", m.RawClientURL)
+	if m.GrantType == "" {
+		m.GrantType = GrantType_AuthorizationCode
 	}
-	if !u.IsAbs() {
-		return errors.New("clientURL is not an absolute URL")
-	}
-	m.ClientURL = u
-
-	if m.RawStateTTL == "" {
-		m.StateTTL = 5 * time.Minute
-	} else {
-		d, err := time.ParseDuration(m.RawStateTTL)
+	switch m.GrantType {
+	case GrantType_AuthorizationCode:
+		u, err = url.Parse(m.RawClientURL)
 		if err != nil {
-			return errors.Wrapf(err, "parsing stateTTL: %q", m.RawStateTTL)
+			return errors.Wrapf(err, "parsing clientURL: %q", m.RawClientURL)
 		}
-		m.StateTTL = d
+		if !u.IsAbs() {
+			return errors.New("clientURL is not an absolute URL")
+		}
+		m.ClientURL = u
+
+		if m.RawStateTTL == "" {
+			m.StateTTL = 5 * time.Minute
+		} else {
+			d, err := time.ParseDuration(m.RawStateTTL)
+			if err != nil {
+				return errors.Wrapf(err, "parsing stateTTL: %q", m.RawStateTTL)
+			}
+			m.StateTTL = d
+		}
+
+		if m.SecretName != "" {
+			if m.Secret != "" {
+				return errors.New("it is invalid to set both 'secret' and 'secretName'")
+			}
+			if m.SecretNamespace == "" {
+				m.SecretNamespace = namespace
+			}
+			secret, err := secretsGetter.Secrets(m.SecretNamespace).Get(m.SecretName, metaV1.GetOptions{})
+			if err != nil {
+				return errors.Wrapf(err, "getting secret name=%q namespace=%q", m.SecretName, m.SecretNamespace)
+			}
+			secretVal, ok := secret.Data["oauth2-client-secret"]
+			if !ok {
+				return errors.Errorf("secret name=%q namespace=%q does not contain an oauth2-client-secret field", m.SecretName, m.SecretNamespace)
+			}
+			m.Secret = string(secretVal)
+		}
+	case GrantType_ClientCredentials:
+		if m.RawClientURL != "" {
+			return errors.New("it is invalid to set 'clientURL' when 'grantType==ClientCredentials'")
+		}
+		if m.RawStateTTL != "" {
+			return errors.New("it is invalid to set 'stateTTL' when 'grantType==ClientCredentials'")
+		}
+		if m.ClientID != "" {
+			return errors.New("it is invalid to set 'clientID' when 'grantType==ClientCredentials'")
+		}
+		if m.Secret != "" {
+			return errors.New("it is invalid to set 'secret' when 'grantType==ClientCredentials'")
+		}
+		if m.SecretName != "" {
+			return errors.New("it is invalid to set 'secretName' when 'grantType==ClientCredentials'")
+		}
+		if m.SecretNamespace != "" {
+			return errors.New("it is invalid to set 'secretNamespace' when 'grantType==ClientCredentials'")
+		}
+	default:
+		return errors.Errorf("grantType=%q is invalid; valid values are %q",
+			m.GrantType, []string{GrantType_AuthorizationCode, GrantType_ClientCredentials})
 	}
 
 	if m.RawMaxStale != "" {
@@ -71,34 +127,6 @@ func (m *FilterOAuth2) Validate(namespace string, secretsGetter coreV1client.Sec
 			return errors.Wrapf(err, "parsing maxStale: %q", m.RawMaxStale)
 		}
 		m.MaxStale = d
-	}
-
-	if m.SecretName != "" {
-		if m.Secret != "" {
-			return errors.New("it is invalid to set both 'secret' and 'secretName'")
-		}
-		if m.SecretNamespace == "" {
-			m.SecretNamespace = namespace
-		}
-		secret, err := secretsGetter.Secrets(m.SecretNamespace).Get(m.SecretName, metaV1.GetOptions{})
-		if err != nil {
-			return errors.Wrapf(err, "getting secret name=%q namespace=%q", m.SecretName, m.SecretNamespace)
-		}
-		secretVal, ok := secret.Data["oauth2-client-secret"]
-		if !ok {
-			return errors.Errorf("secret name=%q namespace=%q does not contain an oauth2-client-secret field", m.SecretName, m.SecretNamespace)
-		}
-		m.Secret = string(secretVal)
-	}
-
-	switch m.AccessTokenValidation {
-	case "":
-		m.AccessTokenValidation = "auto"
-	case "auto", "jwt", "userinfo":
-		// do nothing
-	default:
-		return errors.Errorf("accessTokenValidation=%q is invalid; valid values are %q",
-			m.AccessTokenValidation, []string{"auto", "jwt", "userinfo"})
 	}
 
 	switch m.RawRenegotiateTLS {
@@ -110,6 +138,16 @@ func (m *FilterOAuth2) Validate(namespace string, secretsGetter coreV1client.Sec
 		m.RenegotiateTLS = tls.RenegotiateFreelyAsClient
 	default:
 		return errors.Errorf("invalid renegotiateTLS: %q", m.RawRenegotiateTLS)
+	}
+
+	switch m.AccessTokenValidation {
+	case "":
+		m.AccessTokenValidation = "auto"
+	case "auto", "jwt", "userinfo":
+		// do nothing
+	default:
+		return errors.Errorf("accessTokenValidation=%q is invalid; valid values are %q",
+			m.AccessTokenValidation, []string{"auto", "jwt", "userinfo"})
 	}
 
 	return nil
