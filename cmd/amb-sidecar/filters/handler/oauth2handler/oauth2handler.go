@@ -6,14 +6,16 @@ import (
 	"net/http"
 
 	"github.com/mediocregopher/radix.v2/pool"
+	"github.com/mediocregopher/radix.v2/redis"
 	"github.com/pkg/errors"
 
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta2"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/httpclient"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/middleware"
-	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/oauth2handler/client"
+	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/oauth2handler/client/authorization_code_client"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/oauth2handler/discovery"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/oauth2handler/resourceserver"
+	"github.com/datawire/apro/cmd/amb-sidecar/types"
 	"github.com/datawire/apro/lib/filterapi"
 )
 
@@ -28,6 +30,11 @@ type OAuth2Filter struct {
 	QName      string
 	Spec       crd.FilterOAuth2
 	Arguments  crd.FilterOAuth2Arguments
+}
+
+type OAuth2Client interface {
+	Filter(ctx context.Context, logger types.Logger, httpClient *http.Client, discovered *discovery.Discovered, redisClient *redis.Client, request *filterapi.FilterRequest) filterapi.FilterResponse
+	ServeHTTP(w http.ResponseWriter, r *http.Request, ctx context.Context, discovered *discovery.Discovered, redisClient *redis.Client)
 }
 
 func (f *OAuth2Filter) Filter(ctx context.Context, request *filterapi.FilterRequest) (filterapi.FilterResponse, error) {
@@ -47,18 +54,21 @@ func (f *OAuth2Filter) Filter(ctx context.Context, request *filterapi.FilterRequ
 	}
 	defer f.RedisPool.Put(redisClient)
 
-	oauth2client := &client.OAuth2Client{
-		QName:     f.QName,
-		Spec:      f.Spec,
-		Arguments: f.Arguments,
-
-		ResourceServer: &resourceserver.OAuth2ResourceServer{
+	var oauth2client OAuth2Client
+	if true {
+		oauth2client = &authorization_code_client.OAuth2Client{
+			QName:     f.QName,
 			Spec:      f.Spec,
 			Arguments: f.Arguments,
-		},
 
-		PrivateKey: f.PrivateKey,
-		PublicKey:  f.PublicKey,
+			ResourceServer: &resourceserver.OAuth2ResourceServer{
+				Spec:      f.Spec,
+				Arguments: f.Arguments,
+			},
+
+			PrivateKey: f.PrivateKey,
+			PublicKey:  f.PublicKey,
+		}
 	}
 
 	return oauth2client.Filter(ctx, logger, httpClient, discovered, redisClient, request), nil
@@ -84,13 +94,16 @@ func (f *OAuth2Filter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	defer f.RedisPool.Put(redisClient)
 
-	oauth2client := &client.OAuth2Client{
-		QName:     f.QName,
-		Spec:      f.Spec,
-		Arguments: f.Arguments,
+	var oauth2client OAuth2Client
+	if true {
+		oauth2client = &authorization_code_client.OAuth2Client{
+			QName:     f.QName,
+			Spec:      f.Spec,
+			Arguments: f.Arguments,
 
-		PrivateKey: f.PrivateKey,
-		PublicKey:  f.PublicKey,
+			PrivateKey: f.PrivateKey,
+			PublicKey:  f.PublicKey,
+		}
 	}
 
 	oauth2client.ServeHTTP(w, r, ctx, discovered, redisClient)

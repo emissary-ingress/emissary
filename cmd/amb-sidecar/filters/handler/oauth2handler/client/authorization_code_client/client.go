@@ -1,4 +1,4 @@
-package client
+package authorization_code_client
 
 import (
 	"context"
