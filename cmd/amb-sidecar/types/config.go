@@ -51,6 +51,10 @@ type Config struct {
 	DevPortalPollInterval time.Duration `env:"POLL_EVERY_SECS            ,parser=integer-seconds ,default=60                                                "`
 	DevPortalContentURL   *url.URL      `env:"APRO_DEVPORTAL_CONTENT_URL ,parser=absolute-URL    ,default=https://github.com/datawire/devportal-content.git "`
 
+	// Local development
+	DevWebUIPort string `env:"DEV_WEBUI_PORT ,parser=possibly-empty-string                                     "`
+	DevWebUIDir  string `env:"DEV_WEBUI_DIR  ,parser=nonempty-string       ,default=/ambassador/webui/bindata/ "`
+
 	// gostats - This mimics vendor/github.com/lyft/gostats/settings.go,
 	// but the defaults aren't nescessarily the same.
 	UseStatsd     bool          `env:"USE_STATSD                     ,parser=strconv.ParseBool ,default=false     "`
