@@ -129,7 +129,14 @@ func processFilterSpec(filter k8s.Resource, cfg types.Config, coreClient *k8sCli
 		ret.Err = spec.OAuth2.Validate(filter.Namespace(), coreClient)
 		ret.Spec = *spec.OAuth2
 		if ret.Err == nil {
-			ret.Desc = fmt.Sprintf("oauth2_domain=%s, oauth2_client_id=%s", spec.OAuth2.Domain(), spec.OAuth2.ClientID)
+			switch spec.OAuth2.GrantType {
+			case crd.GrantType_AuthorizationCode:
+				ret.Desc = fmt.Sprintf("oauth2_domain=%s, oauth2_client_id=%s", spec.OAuth2.Domain(), spec.OAuth2.ClientID)
+			case crd.GrantType_ClientCredentials:
+				ret.Desc = fmt.Sprintf("oauth2_client_credentials=%s", spec.OAuth2.AuthorizationURL)
+			default:
+				panic("should not happen")
+			}
 		}
 	case spec.Plugin != nil:
 		ret.Err = spec.Plugin.Validate()
