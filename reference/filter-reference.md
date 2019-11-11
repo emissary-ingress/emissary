@@ -121,8 +121,8 @@ spec:
     errorResponse:                  # optional
       contentType: "string"           # deprecated; use 'headers' instead
       headers:                        # optional; default is [{name: "Content-Type", value: "application/json"}]
-	  - name: "header-name-string"      # required
-	    value: "go-template-string"     # required
+      - name: "header-name-string"      # required
+        value: "go-template-string"     # required
       bodyTemplate: "string"          # optional; default is `{{ . | json "" }}`
 ```
 
