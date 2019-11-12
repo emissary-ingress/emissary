@@ -47,6 +47,20 @@
                 "additionalProperties": false
             }
         },
+        "keepalive": {
+            "type": "object",
+            "properties": {
+                 "probes": {
+                    "type": "integer"                     
+                 },
+                 "idle_time": {
+                    "type": "integer"                     
+                 },
+                 "interval": {
+                    "type": "integer"                     
+                 }
+            }
+        },
         "cors": {
             "type": "object",
             "properties": {

@@ -57,6 +57,7 @@ class IRCluster (IRResource):
                  grpc: Optional[bool] = False,
                  allow_scheme: Optional[bool] = True,
                  load_balancer: Optional[dict] = None,
+                 keepalive: Optional[dict] = None,
                  circuit_breakers: Optional[list] = None,
 
                  rkey: str="-override-",
@@ -261,6 +262,7 @@ class IRCluster (IRResource):
             "lb_type": lb_type,
             "urls": [ url ],
             "load_balancer": load_balancer,
+            "keepalive": keepalive,
             "circuit_breakers": circuit_breakers,
             "service": service,
             'enable_ipv4': enable_ipv4,

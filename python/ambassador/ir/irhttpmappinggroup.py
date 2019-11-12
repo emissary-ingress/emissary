@@ -38,6 +38,7 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
         'headers': True,
         # 'host_rewrite': True,
         # 'idle_timeout_ms': True,
+        'keepalive': True,
         # 'labels' doesn't appear in the TransparentKeys list for IRMapping, but it's still
         # a CoreMappingKey -- if it appears, it can't have multiple values within an IRHTTPMappingGroup.
         'labels': True,
@@ -189,6 +190,7 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
     def add_cluster_for_mapping(ir: 'IR', aconf: Config, mapping: IRBaseMapping,
                                 marker: Optional[str] = None) -> IRCluster:
         # Find or create the cluster for this Mapping...
+
         cluster = IRCluster(ir=ir, aconf=aconf,
                             location=mapping.location,
                             service=mapping.service,
@@ -199,6 +201,7 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
                             enable_ipv6=mapping.get('enable_ipv6', None),
                             grpc=mapping.get('grpc', False),
                             load_balancer=mapping.get('load_balancer', None),
+                            keepalive=mapping.get('keepalive', None),
                             connect_timeout_ms=mapping.get('connect_timeout_ms', 3000),
                             cluster_idle_timeout_ms=mapping.get('cluster_idle_timeout_ms', None),
                             circuit_breakers=mapping.get('circuit_breakers', None),
@@ -275,6 +278,11 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
 
         # OK. Save some typing with local variables for default labels and our labels...
         labels: Dict[str, Any] = self.get('labels', None)
+
+        if self.get('keepalive', None) is None:
+            keepalive_default = ir.ambassador_module.get('keepalive', None)
+            if keepalive_default:
+                self['keepalive'] = keepalive_default
 
         if not labels:
             # No labels. Use the default label domain to see if we have some valid defaults.

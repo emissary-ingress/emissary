@@ -28,6 +28,12 @@ ARG artifacts="builder"
 # This controls where we copy envoy from.
 ARG envoy="quay.io/datawire/ambassador:0.85.0"
 
+# XXX In the past we copied Envoy from an Envoy builder image, and it 
+# was important to strip it. At this point we're copying from an 
+# Ambassador image, so it's already stripped, so let's not strip it
+# again.
+# RUN strip /usr/local/bin/envoy
+
 ########################################
 # The builder image
 ########################################
@@ -43,7 +49,7 @@ ENV PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local
 # build it locally -- just using pip won't work.
 
 RUN apk --no-cache add bash bash-completion ncurses curl jq rsync python3 python3-dev build-base libffi-dev openssl-dev sudo \
-                       iptables docker openssh-client libcap yaml-dev cython && \
+                       iptables docker openssh-client libcap libcap-dev yaml-dev cython git && \
     pip3 install -U pip && \
     curl --fail https://dl.google.com/go/go1.13.linux-amd64.tar.gz | tar -C /usr/local -xzf - && \
     curl --fail -L https://storage.googleapis.com/kubernetes-release/release/v1.16.0/bin/linux/amd64/kubectl -o /usr/bin/kubectl && \
@@ -112,6 +118,7 @@ COPY --from=artifacts /buildroot/bin/watt /buildroot/bin/watt
 COPY --from=artifacts /buildroot/bin/kubestatus /buildroot/bin/kubestatus
 COPY --from=artifacts /usr/bin/kubectl /usr/bin/kubectl
 COPY --from=artifacts /buildroot/ambassador/python /buildroot/ambassador/python
+COPY --from=artifacts /buildroot/bin/capabilities_wrapper /usr/local/bin/wrapper
 RUN cd /buildroot/ambassador/python && python setup.py install
 
 COPY --from=artifacts /ambassador /ambassador
@@ -129,6 +136,9 @@ ENV PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/buildroot
 RUN chgrp -R 0 /ambassador && \
     chmod -R u+x /ambassador && \
     chmod -R g=u /ambassador /etc/passwd
+# The capabilities here grant the wrapper the ability to use the cap_net_bind_service cap
+# and for Envoy to inherit it.
+RUN setcap cap_net_bind_service=p /usr/local/bin/wrapper; setcap cap_net_bind_service=ei /usr/local/bin/envoy
 
 ENTRYPOINT [ "bash", "/buildroot/ambassador/python/entrypoint.sh" ]
 
