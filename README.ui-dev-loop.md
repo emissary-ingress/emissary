@@ -14,7 +14,7 @@ Run all these commands from the root of your apro checkout:
    name instead of `aes:latest`):
 
    ```sh
-   docker run \
+   docker run -it \
        --volume=$KUBECONFIG:/root/.kube/config \
        --volume=$PWD/cmd/amb-sidecar/webui/bindata:/ambassador/webui/bindata \
        --env=DEV_WEBUI_PORT=9000 --publish=9000:9000 \
