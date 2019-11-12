@@ -305,9 +305,12 @@ class ResourceFetcher:
         amb_object['namespace'] = namespace
         amb_object['kind'] = kind
         amb_object['generation'] = generation
+        amb_object['metadata_labels'] = {}
 
         if metadata_labels:
             amb_object['metadata_labels'] = metadata_labels
+
+        amb_object['metadata_labels']['ambassador_crd'] = resource_identifier
 
         # Done. Parse it.
         self.parse_object([ amb_object ], k8s=False, filename=self.filename, rkey=resource_identifier)

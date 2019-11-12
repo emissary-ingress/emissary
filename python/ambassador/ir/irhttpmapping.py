@@ -360,3 +360,21 @@ class IRHTTPMapping (IRBaseMapping):
         weight += [ hdr.key() for hdr in self.headers ]
 
         return weight
+
+    def summarize_errors(self) -> str:
+        errors = self.ir.aconf.errors.get(self.rkey, [])
+        errstr = "(no errors)"
+
+        if errors:
+            errstr = errors[0].error
+
+            if len(errors) > 1:
+                errstr += " (and more)"
+
+        return errstr
+
+    def status(self) -> Dict[str, str]:
+        if not self.is_active():
+            return { 'state': 'Inactive', 'reason': self.summarize_errors() }
+        else:
+            return { 'state': 'Running' }
