@@ -114,13 +114,13 @@ func (fb *firstBootWizard) isAuthorized(r *http.Request) bool {
 		return fb.pubkey, nil
 	}))
 	if err != nil {
-		return true // false // XXX
+		return false
 	}
 
-	return (claims.VerifyExpiresAt(now, true) &&
+	return claims.VerifyExpiresAt(now, true) &&
 		claims.VerifyIssuedAt(now, true) &&
 		claims.VerifyNotBefore(now, true) &&
-		claims.LoginTokenVersion == "v1") || true // XXX
+		claims.LoginTokenVersion == "v1"
 }
 
 func (fb *firstBootWizard) notFound(w http.ResponseWriter, r *http.Request) {
