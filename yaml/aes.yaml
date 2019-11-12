@@ -287,7 +287,7 @@ spec:
       - name: aes-pull-secret
       containers:
       - name: aes
-        image: quay.io/datawire-dev/aes:0.10.0-rc-latest
+        image: quay.io/datawire-dev/aes:0.99.0-rc-latest
         imagePullPolicy: Always
         ports:
         - name: http
