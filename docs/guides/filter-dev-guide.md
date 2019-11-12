@@ -19,6 +19,8 @@ To build a `Plugin` `Filter` into the Ambassador Pro container you will need
 
 The `Plugin` `Filter` is built by `make` which uses Docker to create a stable build environment in a container and `rsync` to copy files between the container and your host machine.
 
+See the [README](https://github.com/datawire/apro-example-plugin) for more information on how the `Plugin` works.
+
 ## Creating and Deploying Filters
 
 We've created an example filter that you can customize for your particular use case.
