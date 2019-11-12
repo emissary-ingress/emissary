@@ -6,6 +6,7 @@ import (
 
 	"gopkg.in/src-d/go-billy.v4/memfs"
 	"gopkg.in/src-d/go-git.v4"
+	"gopkg.in/src-d/go-git.v4/plumbing"
 	"gopkg.in/src-d/go-git.v4/storage"
 	"gopkg.in/src-d/go-git.v4/storage/memory"
 )
@@ -13,6 +14,7 @@ import (
 type CheckoutOptions struct {
 	RepoURL         *url.URL
 	RefreshInterval time.Duration
+	Branch          string
 }
 
 type Checkout struct {
@@ -38,10 +40,11 @@ func (checkout *Checkout) Fs() Globbable {
 
 func (checkout *Checkout) clone() (err error) {
 	checkout.repo, err = git.Clone(checkout.store, checkout.workdir, &git.CloneOptions{
-		URL:          checkout.Options.RepoURL.String(),
-		SingleBranch: true,
-		NoCheckout:   false,
-		Depth:        1,
+		URL:           checkout.Options.RepoURL.String(),
+		SingleBranch:  true,
+		NoCheckout:    false,
+		Depth:         1,
+		ReferenceName: plumbing.NewBranchReferenceName(checkout.Options.Branch),
 	})
 	if err != nil {
 		return

@@ -45,11 +45,13 @@ type Config struct {
 	ExpirationJitterMaxSeconds int64  `env:"EXPIRATION_JITTER_MAX_SECONDS ,parser=strconv.ParseInt      ,default=300             "`
 
 	// Developer Portal
-	AmbassadorAdminURL    *url.URL      `env:"AMBASSADOR_ADMIN_URL       ,parser=absolute-URL    ,default=http://127.0.0.1:8877/                            "`
-	AmbassadorInternalURL *url.URL      `env:"AMBASSADOR_INTERNAL_URL    ,parser=absolute-URL    ,default=https://127.0.0.1:8443/                           "`
-	AmbassadorExternalURL *url.URL      `env:"AMBASSADOR_URL             ,parser=absolute-URL    ,default=https://api.example.com/                          "`
-	DevPortalPollInterval time.Duration `env:"POLL_EVERY_SECS            ,parser=integer-seconds ,default=60                                                "`
-	DevPortalContentURL   *url.URL      `env:"APRO_DEVPORTAL_CONTENT_URL ,parser=absolute-URL    ,default=https://github.com/datawire/devportal-content.git "`
+	AmbassadorAdminURL     *url.URL      `env:"AMBASSADOR_ADMIN_URL          ,parser=absolute-URL    ,default=http://127.0.0.1:8877/                            "`
+	AmbassadorInternalURL  *url.URL      `env:"AMBASSADOR_INTERNAL_URL       ,parser=absolute-URL    ,default=https://127.0.0.1:8443/                           "`
+	AmbassadorExternalURL  *url.URL      `env:"AMBASSADOR_URL                ,parser=absolute-URL    ,default=https://api.example.com/                          "`
+	DevPortalPollInterval  time.Duration `env:"POLL_EVERY_SECS               ,parser=integer-seconds ,default=60                                                "`
+	DevPortalContentURL    *url.URL      `env:"APRO_DEVPORTAL_CONTENT_URL    ,parser=absolute-URL    ,default=https://github.com/datawire/devportal-content.git "`
+	DevPortalContentSubdir string        `env:"APRO_DEVPORTAL_CONTENT_DIR    ,parser=nonempty-string ,default=/"`
+	DevPortalContentBranch string        `env:"APRO_DEVPORTAL_CONTENT_BRANCH ,parser=nonempty-string ,default=master"`
 
 	// gostats - This mimics vendor/github.com/lyft/gostats/settings.go,
 	// but the defaults aren't nescessarily the same.
