@@ -9,8 +9,6 @@ Sometimes you may want Ambassador Edge Stack to manipulate an incoming request. 
 
 Ambassador Edge Stack supports these use cases by allowing you to execute custom logic in `Filters`. Filters are written in Golang, and managed by Ambassador Edge Stack.
 
-
-
 ## Prerequisites
 
 `Plugin` `Filter`s are built as [Go plugins](https://golang.org/pkg/plugin/) and loaded directly into the Ambassador Pro container so they can run in-process with the rest of Ambassador Pro.
@@ -94,11 +92,8 @@ Now, you can quickly test and develop your filter.
     * Connection #0 to host localhost left intact
     ```
 
-    Note in the example above the `X-Dc` header is added. This lets you inspect the changes the filter is making to your HTTP header.
+Note in the example above the `X-Dc` header is added. This lets you inspect the changes the filter is making to your HTTP header.
 
 ## Further reading
 
 For more details about configuring filters and the `plugin` interface, see the [filter reference](/reference/filter-reference).
-
-
-
