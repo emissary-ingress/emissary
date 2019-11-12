@@ -11,5 +11,3 @@ Ambassador Edge Stack is a production tested, open source API Gateway that expos
 * [Reference](/reference/configuration). Detailed documentation on configuring and managing all aspects of Ambassador Edge Stack.
 
 If you have feedback or questions, please feel free to [join our Slack](https://d6e.co/slack) or [open a pull request](https://github.com/datawire/ambassador/pulls).
-
-opensource:

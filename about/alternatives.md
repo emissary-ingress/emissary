@@ -17,5 +17,3 @@ A Layer 7 proxy can be used as an API gateway, but typically requires additional
 ## Istio
 
 [Istio](https://istio.io) is an open source service mesh, built on Envoy. A service mesh is designed to manage east/west traffic, while an API gateway manages north/south traffic. Documentation on how to deploy Ambassador Edge Stack with Istio is [here](/user-guide/with-istio). In general, we've found that north/south traffic is quite different from east/west traffic (i.e., you don't control the client in the North/South use case).
-
-

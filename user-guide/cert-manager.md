@@ -1,6 +1,6 @@
 # Cert-Manager and Ambassador Edge Stack
 
-Creating and managing certificates in Kubernetes is made simple with Jetstack's [cert-manager](https://github.com/jetstack/cert-manager). cert-manager will automatically create and renew tls certificates and store them in Kubernetes secrets for easy use in a cluster.
+Creating and managing certificates in Kubernetes is made simple with Jetstack's [cert-manager](https://github.com/jetstack/cert-manager). cert-manager will automatically create and renew TLS certificates and store them in Kubernetes secrets for easy use in a cluster.
 
 Starting in Ambassador Edge Stack 0.50.0, Ambassador will automatically watch for secret changes and reload certificates upon renewal.
 

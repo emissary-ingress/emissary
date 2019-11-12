@@ -64,35 +64,4 @@ It's possible as a migration strategy to start with a centralized Ambassador Edg
 
 ## Ingress resources
 
-Astute Kubernetes observers may note that this decentralized model is not unique to Ambassador Edge Stack . In fact, Ingress controllers and Ingress resources can be used in a similar way. In this approach, a Kubernetes service stays unmodified, and a separate Ingress resource can be added to the Kubernetes manifest. You'd end up with something that looks like:
-
-```
-kind: Service
-apiVersion: v1
-metadata:
-  name: my-service
-spec:
-  selector:
-    app: MyApp
-  ports:
-  - protocol: TCP
-    port: 80
-    targetPort: 9376
----
-apiVersion: extensions/v1beta1
-kind: Ingress
-metadata:
-  name: my-service-ingress
-spec:
-  backend:
-    serviceName: my-service
-    servicePort: 80
-```
-
-Ambassador Edge Stack has chosen not to support ingress resources for the following reasons:
-
-* The ingress API is extremely limited, and supports only a small subset of features from Ambassador Edge Stack
-* The ingress API has been in beta for a number of years, and there is the possibility of it being deprecated altogether
-* Having a separate object that is associated with the `service` object
-
-
+You can use Ambassador Edge Stack as an [Ingress Controller](/user-guide/ingress-controller).

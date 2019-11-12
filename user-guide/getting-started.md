@@ -1,5 +1,7 @@
 # Getting Started with Ambassador Edge Stack
 
+```Note: These instructions do not work with Minikube.```
+
 ## 1. Deploying Ambassador Edge Stack to Kubernetes
 
 <div style="border: thick solid red">

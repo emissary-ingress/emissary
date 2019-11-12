@@ -22,29 +22,31 @@
       - title: Visit Datawire.io
         link: https://www.datawire.io
         
-- title: Installation & Upgrades
+- title: Install Ambassador Edge Stack
   items: 
-  - title: Installing Ambassador Edge Stack
-    link: /user-guide/install
-    items:
-    - title: Kubernetes (YAML)
-      link: /user-guide/getting-started
-    - title: Kubernetes (Helm)
-      link: /user-guide/helm
-    - title: Docker Quickstart
-      link: /about/quickstart
-    - title: Docker Compose
-      link: /user-guide/docker-compose
-    - title: Bare Metal
-      link: /user-guide/bare-metal
-  - title: Install Ambassador Open Source
-    link: /user-guide/install-ambassador-oss
-  - title: Early Access Releases
-    link: /user-guide/early-access
-  - title: Upgrade Ambassador Open Source to Ambassador Edge Stack
-    link: /user-guide/upgrade-from-oss-to-edge-stack
+  - title: Kubernetes (YAML)
+    link: /user-guide/getting-started
+  - title: Kubernetes (Helm)
+    link: /user-guide/helm
+  - title: Docker Quickstart
+    link: /about/quickstart
+  - title: Docker Compose
+    link: /user-guide/docker-compose
+  - title: Bare Metal
+    link: /user-guide/bare-metal
   - title: Certified Builds
     link: /user-guide/certified-builds
+  - title: Other Install & Upgrade Options
+    items: 
+    - title: Ambassador Installation & Upgrade
+      link: /user-guide/install
+    - title: Install Ambassador Open Source
+      link: /user-guide/install-ambassador-oss  
+    - title: Upgrade Ambassador OSS to Ambassador Edge Stack
+      link: /user-guide/upgrade-from-oss-to-edge-stack
+    - title: Early Access Releases
+      link: /user-guide/early-access
+
 
 - title: Concepts
   items: 
@@ -106,6 +108,8 @@
         link: /user-guide/consul
       - title: Istio and Ambassador Edge Stack
         link: /user-guide/with-istio
+      - title: Linkerd2
+        link: /user-guide/linkerd2
     - title: Best Practices
       items:
       - title: Integration Testing with Service Preview
@@ -224,10 +228,18 @@
       link: /reference/filter-reference
     - title: Developer Portal
       link: /reference/dev-portal
-    - title: Diagnostics
-      link: /reference/diagnostics
     - title: Statistics and Monitoring
       link: /reference/statistics
+    - title: Running Ambassador Edge Stack
+      items:  
+      - title: Running and Deployment 
+        link: /reference/running
+      - title: Debugging Ambassador Edge Stack
+        link: /reference/debugging
+      - title: Ambassador Edge Stack with AWS
+        link: /reference/ambassador-with-aws
+      - title: Diagnostics
+        link: /reference/diagnostics
 
 - title: Contributors
   items:
@@ -235,19 +247,3 @@
       link: https://github.com/datawire/ambassador/blob/master/BUILDING.md
     - title: Changelog (GitHub)
       link: https://github.com/datawire/ambassador/blob/master/CHANGELOG.md
-
-
-- title: Ambassador Edge Stack Enterprise
-  items:
-  - title: Overview
-    link: /reference/pro/authentication
-  - title: Environment
-    link: /reference/pro/environment
-  - title: Running Ambassador Edge Stack Enterprise
-    link: /reference/running
-  - title: Debugging Ambassador Edge Stack Enterprise
-    link: /reference/debugging
-  - title: Upgrading Ambassador Edge Stack Enterprise
-    link: /reference/upgrading
-  - title: Ambassador Edge Stack Enterprise with AWS
-    link: /reference/ambassador-with-aws

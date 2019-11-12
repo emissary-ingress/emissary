@@ -39,7 +39,7 @@ prefix: /
 service: https://example-service
 ```
 
-The `example-service` service must now support tls v1.3 for Ambassador Edge Stack to connect.
+The `example-service` service must now support TLS v1.3 for Ambassador Edge Stack to connect.
 
 **Note**: 
 

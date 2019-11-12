@@ -33,7 +33,7 @@ Guides are hands-on tutorials to walk you through configuring Ambassador Edge St
   <ul>
    <li><a href="/user-guide/consul">Using Consul for service discovery and mesh</a></li>
    <li><a href="/user-guide/with-istio">Istio</a></li>
-   <li>LinkerD: Coming Soon!</li>
+   <li><a href="/user-guide/linkerd2">Linkerd</a></li>
   </ul>
  </td>
 </tr>
@@ -55,5 +55,6 @@ Guides are hands-on tutorials to walk you through configuring Ambassador Edge St
   </td>
 </tr>
 </table>
-
+<p>
+<p>
 If you're interested in contributing to Ambassador, writing (or updating) a Guide is a great place to start. Join our [Slack channel](https://d6e.co/slack) in #ambassador-dev to get started.

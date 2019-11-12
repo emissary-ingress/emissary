@@ -5,6 +5,8 @@ This method of installation has not been tested and is not supported at this tim
 
 # Installing Ambassador Edge Stack with Helm
 
+```Note: These instructions do not work with Minikube.```
+
 [Helm](https://helm.sh) is a package manager for Kubernetes. Ambassador Edge Stack is available as a Helm chart if you use Helm for package management. To install with Helm:
 
 1. Install the Ambassador Edge Stack Chart:

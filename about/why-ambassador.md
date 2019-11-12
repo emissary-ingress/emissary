@@ -2,6 +2,8 @@
 
 Ambassador Edge Stack is an open source, Kubernetes-native [microservices API gateway](/about/microservices-api-gateways) built on the [Envoy Proxy](https://www.envoyproxy.io). Ambassador Edge Stack is built from the ground up to support multiple, independent teams that need to rapidly publish, monitor, and update services for end users. Ambassador Edge Stack can also be used to handle the functions of a Kubernetes ingress controller and load balancer (for more, see [this blog post](https://blog.getambassador.io/kubernetes-ingress-nodeport-load-balancers-and-ingress-controllers-6e29f1c44f2d)).
 
+Or, read the documentation on using Ambassador Edge Stack as an [Ingress Controller](/user-guide/ingress-controller).
+
 ## Cloud-native applications today
 
 Traditional cloud applications were built as using a monolithic approach. These applications were designed, coded, and deployed as a single unit. Today's cloud-native applications, by contrast, consist of many individual (micro)services. This results in an architecture that is:
