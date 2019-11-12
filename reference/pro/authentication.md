@@ -32,12 +32,25 @@ This is different from most OAuth implementations where the Authorization Server
 
 ## XSRF protection
 
-The `ambassador_session.NAME.NAMESPACE` cookie is an opaque string that should be used as an XSRF token.  Applications wishing to leverage Ambassador Edge Stack in their XSRF attack protection should take two extra steps:
+The `ambassador_xsrf.NAME.NAMESPACE` cookie is an opaque string that should be used as an XSRF token.  Applications wishing to leverage Ambassador Edge Stack in their XSRF attack protection should take two extra steps:
 
  1. When generating an HTML form, the server should read the cookie, and include a `<input type="hidden" name="_xsrf" value="COOKIE_VALUE" />` element in the form.
  2. When handling submitted form data should verify that the form value and the cookie value match.  If they do not match, it should refuse to handle the request, and return an HTTP 4XX response.
 
-Applications using request submission formats other than HTML forms should perform analogous steps of ensuring that the value is duplicated in the cookie and in the request body.
+Applications using request submission formats other than HTML forms
+should perform analogous steps of ensuring that the value is present
+in the request duplicated in the cookie and in either the request body
+or secure header field.  A secure header field is one that is not
+`Cookie`, is not "[simple][simple-header]", and is not explicitly
+allowed by the CORS policy.
+
+[simple-header]: https://www.w3.org/TR/cors/#simple-header
+
+**Note**: Prior versions of Ambassador Pro did not have a
+`ambassador_xsrf.NAME.NAMESPACE` cookie, and instead required you to
+use the `ambassador_session.NAME.NAMESPACE` cookie.  The
+`ambassador_session.NAME.NAMESPACE` cookie should no longer be used
+for XSRF-protection purposes
 
 ## RP-initiated logout
 
@@ -59,18 +72,18 @@ Session Management.
 [oidc-session]: https://openid.net/specs/openid-connect-session-1_0.html
 
 This is done by having your application direct the web browser `POST`
-to `/.ambassador/oauth2/logout`.  There are 2 form-encoded values that
-you need to include:
+*and navigate* to `/.ambassador/oauth2/logout`.  There are 2
+form-encoded values that you need to include:
 
  1. `realm`: The `name.namespace` of the `Filter` that you want to log
     out of.  This may be submitted as part of the POST body, or may be set as an URL query parameter.
- 2. `_xsrf`: The value of the `ambassador_session.{{realm}}` cookie
+ 2. `_xsrf`: The value of the `ambassador_xsrf.{{realm}}` cookie
     (where `{{realm}}` is as described above).  This must be set in the POST body, the URL query part will not be checked.
 
 For example:
 
 ```html
-<form method="POST" action="/.ambassador/oauth2/logout">
+<form method="POST" action="/.ambassador/oauth2/logout" target="_blank">
   <input type="hidden" name="realm" value="myfilter.mynamespace" />
   <input type="hidden" name="_xsrf" value="{{ .Cookie.Value }}" />
   <input type="submit" value="Log out" />
@@ -80,10 +93,42 @@ For example:
 or
 
 ```html
-<form method="POST" action="/.ambassador/oauth2/logout?realm=myfilter.mynamespace">
+<form method="POST" action="/.ambassador/oauth2/logout?realm=myfilter.mynamespace" target="_blank">
   <input type="hidden" name="_xsrf" value="{{ .Cookie.Value }}" />
   <input type="submit" value="Log out" />
 </form>
+```
+
+or from JavaScript
+
+```js
+function getCookie(name) {
+    var prefix = name + "=";
+    var cookies = document.cookie.split(';');
+    for (var i = 0; i < cookies.length; i++) {
+        var cookie = cookies[i].trimStart();
+        if (cookie.indexOf(prefix) == 0) {
+            return cookie.slice(prefix.length);
+        }
+    }
+    return "";
+}
+
+function logout(realm) {
+    var form = document.createElement('form');
+    form.method = 'post';
+    form.action = '/.ambassador/oauth2/logout?realm='+realm;
+    //form.target = '_blank'; // uncomment to open the identity provider's page in a new tab
+
+    var xsrfInput = document.createElement('input');
+    xsrfInput.type = 'hidden';
+    xsrfInput.name = '_xsrf';
+    xsrfInput.value = getCookie("ambassador_xsrf."+realm);
+    form.appendChild(xsrfInput);
+
+    document.body.appendChild(form);
+    form.submit();
+}
 ```
 
 ## Redis

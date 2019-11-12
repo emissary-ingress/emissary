@@ -177,7 +177,7 @@ spec:
             cpu: 100m
             memory: 100Mi
         env:
-          - name: GR_SERVER_ROOT_URL
+          - name: GF_SERVER_ROOT_URL
             value: {{AMBASSADOR_IP}}/grafana
           - name: GF_AUTH_BASIC_ENABLED
             value: "true"
@@ -362,4 +362,4 @@ This section will focus on setting up Prometheus to scrape stats from Ambassador
       - port: prometheus-metrics
     ```
 
-Prometheus is now configured to gather metrics from Ambassador Edge Stack.
+Prometheus is now configured to gather metrics from Ambassador Edge Stack. 
