@@ -51,8 +51,12 @@ func TestGetLimitValue(t *testing.T) {
 	}{
 		"v1 default": {
 			// Created with `./bin/apictl-key create --id=dev --expiration=$((100*365))`
-			Key:    "eyJhbGciOiJQUzUxMiIsInR5cCI6IkpXVCJ9.eyJsaWNlbnNlX2tleV92ZXJzaW9uIjoidjEiLCJjdXN0b21lcl9pZCI6ImRldiIsImVuYWJsZWRfZmVhdHVyZXMiOlsiZmlsdGVyIiwicmF0ZWxpbWl0IiwidHJhZmZpYyJdLCJleHAiOjQ3MTk4MzA5NTksImlhdCI6MTU2NjIzMDk1OSwibmJmIjoxNTY2MjMwOTU5fQ.DJ-BzcW2nBxiAmLc1LnbBhh5YfQ32W4bnRaIq07N1yYZjNp-EQDLiMJY_158x34u6tJN1iXl4HY0aaeYGzTgMk2HjW14rEv5Lt4M_DrQub_UQB9TbFjTdNtlBxJ-EI8l-CB_IO3jIYz4TwNUIk90kXhlBFk-CXw3aWZ8FLk0k_oSzzw414HwQRmi1walh1fqywOYg6v6kRTE2QDWJmWSeYjx4kXIh79gYaOhxsxAC_XtIO4KQIC7NUIKcT62EfCbZ4lT6zJgfcnuCLrZSiAj2131p2YQ3VKj8r1V5jtb76oKORItdarEX-isYuJKvg48UzTuucIT-8c6V91PRKtQvQ",
-			Limits: []licensekeys.LimitValue{},
+			Key: "eyJhbGciOiJQUzUxMiIsInR5cCI6IkpXVCJ9.eyJsaWNlbnNlX2tleV92ZXJzaW9uIjoidjEiLCJjdXN0b21lcl9pZCI6ImRldiIsImVuYWJsZWRfZmVhdHVyZXMiOlsiZmlsdGVyIiwicmF0ZWxpbWl0IiwidHJhZmZpYyJdLCJleHAiOjQ3MTk4MzA5NTksImlhdCI6MTU2NjIzMDk1OSwibmJmIjoxNTY2MjMwOTU5fQ.DJ-BzcW2nBxiAmLc1LnbBhh5YfQ32W4bnRaIq07N1yYZjNp-EQDLiMJY_158x34u6tJN1iXl4HY0aaeYGzTgMk2HjW14rEv5Lt4M_DrQub_UQB9TbFjTdNtlBxJ-EI8l-CB_IO3jIYz4TwNUIk90kXhlBFk-CXw3aWZ8FLk0k_oSzzw414HwQRmi1walh1fqywOYg6v6kRTE2QDWJmWSeYjx4kXIh79gYaOhxsxAC_XtIO4KQIC7NUIKcT62EfCbZ4lT6zJgfcnuCLrZSiAj2131p2YQ3VKj8r1V5jtb76oKORItdarEX-isYuJKvg48UzTuucIT-8c6V91PRKtQvQ",
+			Limits: []licensekeys.LimitValue{
+				{licensekeys.LimitDevPortalServices, 4294967295},
+				{licensekeys.LimitRateLimitService, 4294967295},
+				{licensekeys.LimitAuthFilterService, 4294967295},
+			},
 		},
 		"v1 with unknown limits": {
 			// The point of this test is that older APro don't reject license keys that enabled more recent
@@ -60,17 +64,20 @@ func TestGetLimitValue(t *testing.T) {
 			//
 			// Created by  modifying apictl-key to accept unknown --limits, and running
 			// `./bin/apictl-key create --id=dev --expiration=$((100*365)) --limits=devportal,bogus,borked`
-			Key:    "eyJhbGciOiJQUzUxMiIsInR5cCI6IkpXVCJ9.eyJsaWNlbnNlX2tleV92ZXJzaW9uIjoidjEiLCJjdXN0b21lcl9pZCI6ImRldiIsImVuYWJsZWRfZmVhdHVyZXMiOlsiZGV2cG9ydGFsIiwiYm9ndXMiLCJib3JrZWQiXSwiZXhwIjo0NzE5ODMyMDk1LCJpYXQiOjE1NjYyMzIwOTUsIm5iZiI6MTU2NjIzMjA5NX0.ThtzBpq1ybe2cTV98ZwqMs3pakgCl9vzXsony_FA9cIXRjzWxbyt9e4pWpskM132J26ACYmaGvshEYGutsL5QFVD4LF6wz9bAPbWDpCFlrzl1QevDFvXWoPCwBBSlK-RPs_8xChuK9Wpw273fYMRI_49j4Ml6EEl6uHeqKO58wUkeVF_eoDReZDrJFpL2Uenm85mGqkmHjOpHFBNMCHNXl_HwHYOj-Jnob85Ya79yU3HotVegKKVTxPQL-il5EqekooQBhJ-ELd7dm7-ubSiqN472QuqO0BAOG0x36ENz3hKo2OhqCdlSDcbLgNfw7b_iIO2gB1ySK2gA921-ICjfg",
-			Limits: []licensekeys.LimitValue{},
+			Key: "eyJhbGciOiJQUzUxMiIsInR5cCI6IkpXVCJ9.eyJsaWNlbnNlX2tleV92ZXJzaW9uIjoidjEiLCJjdXN0b21lcl9pZCI6ImRldiIsImVuYWJsZWRfZmVhdHVyZXMiOlsiZGV2cG9ydGFsIiwiYm9ndXMiLCJib3JrZWQiXSwiZXhwIjo0NzE5ODMyMDk1LCJpYXQiOjE1NjYyMzIwOTUsIm5iZiI6MTU2NjIzMjA5NX0.ThtzBpq1ybe2cTV98ZwqMs3pakgCl9vzXsony_FA9cIXRjzWxbyt9e4pWpskM132J26ACYmaGvshEYGutsL5QFVD4LF6wz9bAPbWDpCFlrzl1QevDFvXWoPCwBBSlK-RPs_8xChuK9Wpw273fYMRI_49j4Ml6EEl6uHeqKO58wUkeVF_eoDReZDrJFpL2Uenm85mGqkmHjOpHFBNMCHNXl_HwHYOj-Jnob85Ya79yU3HotVegKKVTxPQL-il5EqekooQBhJ-ELd7dm7-ubSiqN472QuqO0BAOG0x36ENz3hKo2OhqCdlSDcbLgNfw7b_iIO2gB1ySK2gA921-ICjfg",
+			Limits: []licensekeys.LimitValue{
+				{licensekeys.LimitDevPortalServices, 4294967295},
+				{licensekeys.LimitRateLimitService, 4294967295},
+				{licensekeys.LimitAuthFilterService, 4294967295},
+			},
 		},
 		"v2 with devportal limits": {
 			// Created with `apictl-key create -e 36500 --limits devportal-services=17 --features certified-envoy,devportal,filter,local-devportal,ratelimit,traffic --id dev`
 			Key: "eyJhbGciOiJQUzUxMiIsInR5cCI6IkpXVCJ9.eyJsaWNlbnNlX2tleV92ZXJzaW9uIjoidjIiLCJjdXN0b21lcl9pZCI6ImRldiIsImVuYWJsZWRfZmVhdHVyZXMiOlsiY2VydGlmaWVkLWVudm95IiwiZGV2cG9ydGFsIiwiZmlsdGVyIiwibG9jYWwtZGV2cG9ydGFsIiwicmF0ZWxpbWl0IiwidHJhZmZpYyJdLCJlbmZvcmNlZF9saW1pdHMiOlt7ImwiOiJkZXZwb3J0YWwtc2VydmljZXMiLCJ2IjoxN31dLCJleHAiOjQ3MjQ4MjcyNDAsImlhdCI6MTU3MTIyNzI0MCwibmJmIjoxNTcxMjI3MjQwfQ.YQOuhwwocVP0WinhelDtiBdaQ6J6KfZMOO-jxKbIqa_qLSOtxhlZ7-8dnAr-WUbgfUgpEbPqrqvvo0do55NvcaJafzkmh3PfsWt7npS7qEM99QQOS_AMFIyz7AC86KyA8k67HD6DCEys2WDJZiSC-mUm4bIDk-TVCIb9Ki7FwXsezcD41E9zP5_71OVmubXGtMCCXFyP-J6c0Gf4oQGwaBpDONwOMVPUHLZRjOnudsVr6JgLdlO_ULK2kiygSlTYtz7EtukL5ZDbvVF8d1wgzuVqr_wkYrsxKcnrwQwsD3ej3vSv-c5kJ7vkEhp0LHiUUPaG0Ub-CQM09K9h_cxzvQ",
 			Limits: []licensekeys.LimitValue{
-				{
-					Name:  licensekeys.LimitDevPortalServices,
-					Value: 17,
-				},
+				{licensekeys.LimitDevPortalServices, 17},
+				{licensekeys.LimitRateLimitService, 5},
+				{licensekeys.LimitAuthFilterService, 5},
 			},
 		},
 	}

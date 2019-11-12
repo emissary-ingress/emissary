@@ -65,11 +65,7 @@ func New(
 	snapshotCh <-chan watt.Snapshot,
 	pubkey *rsa.PublicKey,
 ) http.Handler {
-	dir := os.Getenv("AES_WEBUI_BASE")
-	if dir == "" {
-		dir = "/ambassador/webui/bindata/"
-	}
-	var files http.FileSystem = http.Dir(dir)
+	var files http.FileSystem = http.Dir(cfg.DevWebUIDir)
 
 	ret := &firstBootWizard{
 		cfg:         cfg,

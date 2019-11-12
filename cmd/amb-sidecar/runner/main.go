@@ -412,13 +412,34 @@ func runE(cmd *cobra.Command, args []string) error {
 		if err != nil {
 			return errors.Wrap(err, "secret")
 		}
-		httpHandler.AddEndpoint("/edge_stack_ui/", "Edge Stack admin UI", http.StripPrefix("/edge_stack_ui",
-			webui.New(
-				cfg,
-				dynamicClient,
-				snapshotStore.Subscribe(),
-				pubKey,
-			)).ServeHTTP)
+		webuiHandler := webui.New(
+			cfg,
+			dynamicClient,
+			snapshotStore.Subscribe(),
+			pubKey,
+		)
+		httpHandler.AddEndpoint("/edge_stack_ui/", "Edge Stack admin UI", http.StripPrefix("/edge_stack_ui", webuiHandler).ServeHTTP)
+		if cfg.DevWebUIPort != "" {
+			l.Infof("Serving webui on %q", ":"+cfg.DevWebUIPort)
+			group.Go("webui_http", func(hardCtx, softCtx context.Context, cfg types.Config, l types.Logger) error {
+				return util.ListenAndServeHTTPWithContext(hardCtx, softCtx, &http.Server{
+					Addr:     ":" + cfg.DevWebUIPort,
+					ErrorLog: l.WithField("SUB", "webui-server").StdLogger(types.LogLevelError),
+					Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+						ctx := r.Context()
+						ctx = middleware.WithLogger(ctx, l.WithField("SUB", "webui-server/handler"))
+						ctx = middleware.WithRequestID(ctx, "unknown")
+						r = r.WithContext(ctx)
+
+						if r.URL.Path == "/_internal/v0/watt" {
+							snapshotStore.ServeHTTP(w, r)
+						} else {
+							webuiHandler.ServeHTTP(w, r)
+						}
+					}),
+				})
+			})
+		}
 
 		httpHandler.AddEndpoint("/banner/", "Diag UI banner", http.StripPrefix("/banner", banner.NewBanner(limit, redisPool)).ServeHTTP)
 
