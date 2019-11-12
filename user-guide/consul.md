@@ -18,7 +18,7 @@ In this guide, you will register a service with Consul and use Ambassador Edge S
    - If you are using the [Consul Helm Chart](https://www.consul.io/docs/platform/k8s/helm.html) for installation, you must install the latest version of both the [Chart](https://github.com/hashicorp/consul-helm) and the Consul binary itself (configurable via the [`values.yaml`](https://www.consul.io/docs/platform/k8s/helm.html#configuration-values-) file). `git checkout` the most recent tag in the [consul-helm](https://github.com/hashicorp/consul-helm) repository to get the latest version of the Consul Helm chart.
    - If you would like to enable end-to-end TLS between all of your APIs in Kubernetes, you will need to set `connectInject.enabled: true` and `client.grpc: true` in the values.yaml file.
 
-2. Deploy Ambassador Edge Stack. Note: If this is your first time deploying Ambassador Edge Stack, reviewing the [Ambassador quick start](/user-guide/getting-started) is strongly recommended.
+2. Deploy Ambassador Edge Stack. Note: If this is your first time deploying Ambassador Edge Stack, reviewing the [quick start guide](/user-guide/getting-started) is strongly recommended.
 
    ```
    kubectl apply -f https://www.getambassador.io/yaml/ambassador/ambassador-rbac.yaml

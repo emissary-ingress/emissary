@@ -195,7 +195,8 @@ $ curl -v -u username:password $AMBASSADORURL/backend/get-quote/
 For more details about configuring authentication, read the documentation on [external authentication](/reference/services/auth-service).
 
 ## Legacy v0 API
-If using Ambassador Edge Stack v0.40.2 or earlier, use the deprecated v0 `AuthService` API
+
+If using Ambassador v0.40.2 or earlier, use the deprecated v0 `AuthService` API
 ```yaml
       ---
       apiVersion: getambassador.io/v2

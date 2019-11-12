@@ -4,14 +4,13 @@
 
 Ambassador Edge Stack enables Ambassador to operate as an Identity Aware Proxy as part of a Zero Trust security architecture in Kubernetes. In the traditional network-oriented security model, trust is assumed by your network location:  if you’re inside the network (e.g., behind the firewall), you’re trusted. If you’re outside the network, you’re not trusted until you join the network (e.g., by connecting via VPN). This trust model does not extend well to modern networks:
 
-
-
 * There is no “defense in depth”. Once an attacker breaches the (network) perimeter, an attacker in this model has full access to all internal resources.
 * Modern infrastructure is fully distributed: cloud providers, on-premises data centers, laptops, mobile devices. Creating a strong perimeter across this diffuse edge is impractical.
 
 In the zero trust model, every request to a resource is verified, regardless of where that request originates. Google was one of the first companies to deploy a complete zero trust architecture, as detailed in their [BeyondCorp security architecture whitepaper](https://ai.google/research/pubs/pub43231).
 
-## Identity-Aware Proxy
+## Identity-Aware Proxy]
+
 One of the key components of a zero trust architecture is the Identity-Aware Proxy. Ambassador Edge Stack can be deployed in front of an application or microservices, and authenticate users, check authorization, and enforce other types of security policies. Critically, Ambassador Edge Stack operates at the application level, which means it can take advantage of domain knowledge of users to improve security. Pro interfaces with the Identity Provider (IdP), which is the trusted canonical source for authentication and authorization information.
 
 

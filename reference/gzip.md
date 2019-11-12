@@ -6,7 +6,7 @@ Gzip enables Ambassador Edge Stack to compress upstream data upon client request
 
 When the gzip filter is enabled, request and response headers are inspected to determine whether or not the content should be compressed. The content is compressed and then sent to the client with the appropriate headers if either response and request allow.
 
-For more details see [Envoy - Gzip](https://www.envoyproxy.io/docs/envoy/latest/configuration/http_filters/gzip_filter#how-it-works)
+For more details see [Envoy - Gzip](https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/gzip_filter.html).
 
 ## The `gzip` API
 
