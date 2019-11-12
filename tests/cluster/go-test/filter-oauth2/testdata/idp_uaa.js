@@ -4,6 +4,16 @@ module.exports.testcases = {
 		username: "testuser@example.com",
 		password: "12345",
 	},
+	"UAA (filter action IfRequestHeader)": {
+		resource: "https://ambassador.standalone.svc.cluster.local/filter-actions/if/headers",
+		username: "testuser@example.com",
+		password: "12345",
+	},
+	"UAA (filter action OnAction)": {
+		resource: "https://ambassador.standalone.svc.cluster.local/filter-actions/on/headers",
+		username: "testuser@example.com",
+		password: "12345",
+	},
 };
 
 module.exports.authenticate = async function(browsertab, username, password) {

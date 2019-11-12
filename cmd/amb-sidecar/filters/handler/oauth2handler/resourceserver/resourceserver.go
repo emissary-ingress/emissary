@@ -151,7 +151,7 @@ func (rs *OAuth2ResourceServer) validateJWT(claims jwt.MapClaims, discovered *di
 
 	// Validate 'scopes' claim (draft standard).
 	// https://www.iana.org/assignments/jwt/jwt.xhtml
-	// https://tools.ietf.org/html/draft-ietf-oauth-token-exchange-16#section-4.2
+	// https://tools.ietf.org/html/draft-ietf-oauth-token-exchange-19#section-4.2
 	switch scopeClaim := claims["scope"].(type) {
 	case nil:
 		logger.Debugf("No scope to verify")

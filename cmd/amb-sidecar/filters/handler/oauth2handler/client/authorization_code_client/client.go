@@ -1,4 +1,4 @@
-package client
+package authorization_code_client
 
 import (
 	"context"
@@ -51,6 +51,10 @@ func (c *OAuth2Client) sessionCookieName() string {
 	return "ambassador_session." + c.QName
 }
 
+func (c *OAuth2Client) xsrfCookieName() string {
+	return "ambassador_xsrf." + c.QName
+}
+
 func (c *OAuth2Client) Filter(ctx context.Context, logger types.Logger, httpClient *http.Client, discovered *discovery.Discovered, redisClient *redis.Client, request *filterapi.FilterRequest) filterapi.FilterResponse {
 	oauthClient, err := rfc6749client.NewAuthorizationCodeClient(
 		c.Spec.ClientID,
@@ -67,10 +71,10 @@ func (c *OAuth2Client) Filter(ctx context.Context, logger types.Logger, httpClie
 
 	sessionInfo := &SessionInfo{c: c}
 	var sessionErr error
-	sessionInfo.sessionID, sessionInfo.sessionData, sessionErr = c.loadSession(redisClient, filterutil.GetHeader(request))
+	sessionInfo.sessionID, sessionInfo.xsrfToken, sessionInfo.sessionData, sessionErr = c.loadSession(redisClient, filterutil.GetHeader(request))
 	defer func() {
 		if sessionInfo.sessionData != nil {
-			err := c.saveSession(redisClient, sessionInfo.sessionID, sessionInfo.sessionData)
+			err := c.saveSession(redisClient, sessionInfo.sessionID, sessionInfo.xsrfToken, sessionInfo.sessionData)
 			if err != nil {
 				// TODO(lukeshu): Letting FilterMux recover() this panic() and generate an error message
 				// isn't the *worst* way of handling this error.
@@ -83,6 +87,9 @@ func (c *OAuth2Client) Filter(ctx context.Context, logger types.Logger, httpClie
 	switch {
 	case sessionErr != nil:
 		logger.Debugln("session status:", errors.Wrap(sessionErr, "no session"))
+	case c.readXSRFCookie(filterutil.GetHeader(request)) != sessionInfo.xsrfToken:
+		return middleware.NewErrorResponse(ctx, http.StatusForbidden,
+			errors.New("XSRF protection"), nil)
 	case sessionInfo.sessionData.CurrentAccessToken == nil:
 		logger.Debugln("session status:", "non-authenticated session")
 	default:
@@ -179,14 +186,20 @@ func (c *OAuth2Client) Filter(ctx context.Context, logger types.Logger, httpClie
 func (c *OAuth2Client) ServeHTTP(w http.ResponseWriter, r *http.Request, ctx context.Context, discovered *discovery.Discovered, redisClient *redis.Client) {
 	switch r.URL.Path {
 	case "/.ambassador/oauth2/logout":
-		sessionID, _, err := c.loadSession(redisClient, r.Header)
+		sessionID, xsrfToken, _, err := c.loadSession(redisClient, r.Header)
 		if err != nil {
 			middleware.ServeErrorResponse(w, ctx, http.StatusForbidden, // XXX: error code?
 				errors.Wrap(err, "no session"), nil)
 			return
 		}
 
-		if r.PostFormValue("_xsrf") != sessionID {
+		if c.readXSRFCookie(r.Header) != xsrfToken {
+			middleware.ServeErrorResponse(w, ctx, http.StatusForbidden,
+				errors.New("XSRF protection"), nil)
+			return
+		}
+
+		if r.PostFormValue("_xsrf") != xsrfToken {
 			middleware.ServeErrorResponse(w, ctx, http.StatusForbidden,
 				errors.New("XSRF protection"), nil)
 			return
@@ -204,7 +217,7 @@ func (c *OAuth2Client) ServeHTTP(w http.ResponseWriter, r *http.Request, ctx con
 		//query.Set("state", "TODO") // TODO: only OPTIONAL; only does something if "post_logout_redirect_uri"
 
 		// TODO: Don't do the delete until the post_logout_redirect_uri is hit?
-		if err := redisClient.Cmd("DEL", "session:"+sessionID).Err; err != nil {
+		if err := redisClient.Cmd("DEL", "session:"+sessionID, "session-xsrf:"+sessionID).Err; err != nil {
 			middleware.ServeErrorResponse(w, ctx, http.StatusInternalServerError,
 				err, nil)
 			return
@@ -219,6 +232,7 @@ func (c *OAuth2Client) ServeHTTP(w http.ResponseWriter, r *http.Request, ctx con
 type SessionInfo struct {
 	c           *OAuth2Client
 	sessionID   string
+	xsrfToken   string
 	sessionData *rfc6749client.AuthorizationCodeClientSessionData
 }
 
@@ -287,7 +301,7 @@ func (sessionInfo *SessionInfo) handleUnauthenticatedProxyRequest(ctx context.Co
 		return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
 			errors.Wrap(err, "failed to generate session ID"), nil)
 	}
-	cookie := &http.Cookie{
+	sessionCookie := &http.Cookie{
 		Name:  sessionInfo.c.sessionCookieName(),
 		Value: sessionInfo.sessionID,
 
@@ -308,8 +322,38 @@ func (sessionInfo *SessionInfo) handleUnauthenticatedProxyRequest(ctx context.Co
 		// TODO(lukeshu): consider using originalURL.Scheme
 		Secure: sessionInfo.c.Spec.TLS(),
 
-		// Don't expose the cookie to JavaScript.
+		// Do NOT expose the session cookie to JavaScript.
 		HttpOnly: true,
+	}
+
+	sessionInfo.xsrfToken, err = randomString(256)
+	if err != nil {
+		return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
+			errors.Wrap(err, "failed to generate XSRF token"), nil)
+	}
+	xsrfCookie := &http.Cookie{
+		Name:  sessionInfo.c.xsrfCookieName(),
+		Value: sessionInfo.xsrfToken,
+
+		// Expose the cookie to all paths on this host, not just directories of {{originalURL.Path}}.
+		// This is important, because `/callback` is probably not a subdirectory of originalURL.Path.
+		Path: "/",
+
+		// Strictly match {{originalURL.Hostname}}.  Explicitly setting it to originalURL.Hostname()
+		// would instead also match "*.{{originalURL.Hostname}}".
+		Domain: "",
+
+		// How long should the User-Agent retain the cookie?  If unset, it will expire at the end of the
+		// "session" (when they close their browser).
+		Expires: time.Time{},                                // as a time (low precedence)
+		MaxAge:  int((10 * 365 * 24 * time.Hour).Seconds()), // as a duration (high precedence)
+
+		// Whether to send the cookie for non-TLS requests.
+		// TODO(lukeshu): consider using originalURL.Scheme
+		Secure: sessionInfo.c.Spec.TLS(),
+
+		// DO expose the XSRF cookie to JavaScript.
+		HttpOnly: false,
 	}
 
 	// Build the full request
@@ -325,23 +369,16 @@ func (sessionInfo *SessionInfo) handleUnauthenticatedProxyRequest(ctx context.Co
 	}
 
 	if sessionInfo.c.Arguments.InsteadOfRedirect != nil {
-		noRedirect := true
-		if sessionInfo.c.Arguments.InsteadOfRedirect.IfRequestHeader != nil {
-			if sessionInfo.c.Arguments.InsteadOfRedirect.IfRequestHeader.Value != nil {
-				noRedirect = filterutil.GetHeader(request).Get(sessionInfo.c.Arguments.InsteadOfRedirect.IfRequestHeader.Name) == *sessionInfo.c.Arguments.InsteadOfRedirect.IfRequestHeader.Value
-			} else {
-				noRedirect = filterutil.GetHeader(request).Get(sessionInfo.c.Arguments.InsteadOfRedirect.IfRequestHeader.Name) != ""
-			}
-		}
+		noRedirect := sessionInfo.c.Arguments.InsteadOfRedirect.IfRequestHeader.Matches(filterutil.GetHeader(request))
 		if noRedirect {
-			return &filterapi.HTTPResponse{
-				StatusCode: sessionInfo.c.Arguments.InsteadOfRedirect.HTTPStatusCode,
-				Header: http.Header{
-					"Set-Cookie":   {cookie.String()},
-					"Content-Type": {"text/plain; charset=utf-8"},
-				},
-				Body: "session cookie is either missing, or refers to an expired or non-authenticated session",
+			ret := middleware.NewErrorResponse(ctx, sessionInfo.c.Arguments.InsteadOfRedirect.HTTPStatusCode,
+				errors.New("session cookie is either missing, or refers to an expired or non-authenticated session"),
+				nil)
+			ret.Header["Set-Cookie"] = []string{
+				sessionCookie.String(),
+				xsrfCookie.String(),
 			}
+			return ret
 		}
 	}
 
@@ -352,8 +389,11 @@ func (sessionInfo *SessionInfo) handleUnauthenticatedProxyRequest(ctx context.Co
 		// "See Other" which MUST convert to GET.
 		StatusCode: http.StatusSeeOther,
 		Header: http.Header{
-			"Set-Cookie": {cookie.String()},
-			"Location":   {authorizationRequestURI.String()},
+			"Set-Cookie": {
+				sessionCookie.String(),
+				xsrfCookie.String(),
+			},
+			"Location": {authorizationRequestURI.String()},
 		},
 		Body: "",
 	}
@@ -368,7 +408,20 @@ func randomString(bits int) (string, error) {
 	return hex.EncodeToString(buf), nil
 }
 
-func (c *OAuth2Client) loadSession(redisClient *redis.Client, requestHeader http.Header) (sessionID string, sessionData *rfc6749client.AuthorizationCodeClientSessionData, err error) {
+func (c *OAuth2Client) readXSRFCookie(requestHeader http.Header) string {
+	// BS to leverage net/http's cookie-parsing
+	r := &http.Request{
+		Header: requestHeader,
+	}
+
+	cookie, err := r.Cookie(c.xsrfCookieName())
+	if cookie == nil || err != nil {
+		return ""
+	}
+	return cookie.Value
+}
+
+func (c *OAuth2Client) loadSession(redisClient *redis.Client, requestHeader http.Header) (sessionID, xsrfToken string, sessionData *rfc6749client.AuthorizationCodeClientSessionData, err error) {
 	// BS to leverage net/http's cookie-parsing
 	r := &http.Request{
 		Header: requestHeader,
@@ -377,24 +430,30 @@ func (c *OAuth2Client) loadSession(redisClient *redis.Client, requestHeader http
 	// get the sessionID from the cookie
 	cookie, err := r.Cookie(c.sessionCookieName())
 	if cookie == nil {
-		return "", nil, err
+		return "", "", nil, err
 	}
 	sessionID = cookie.Value
+
+	// get the xsrf token from Redis
+	xsrfToken, err = redisClient.Cmd("GET", "session-xsrf:"+sessionID).Str()
+	if err != nil {
+		return "", "", nil, err
+	}
 
 	// get the sessionData from Redis
 	sessionDataBytes, err := redisClient.Cmd("GET", "session:"+sessionID).Bytes()
 	if err != nil {
-		return "", nil, err
+		return "", "", nil, err
 	}
 	sessionData = new(rfc6749client.AuthorizationCodeClientSessionData)
 	if err := json.Unmarshal(sessionDataBytes, sessionData); err != nil {
-		return "", nil, err
+		return "", "", nil, err
 	}
 
-	return sessionID, sessionData, nil
+	return sessionID, xsrfToken, sessionData, nil
 }
 
-func (c *OAuth2Client) saveSession(redisClient *redis.Client, sessionID string, sessionData *rfc6749client.AuthorizationCodeClientSessionData) error {
+func (c *OAuth2Client) saveSession(redisClient *redis.Client, sessionID, xsrfToken string, sessionData *rfc6749client.AuthorizationCodeClientSessionData) error {
 	if sessionData.IsDirty() {
 		sessionDataBytes, err := json.Marshal(sessionData)
 		if err != nil {
@@ -403,8 +462,14 @@ func (c *OAuth2Client) saveSession(redisClient *redis.Client, sessionID string, 
 		if err := redisClient.Cmd("SET", "session:"+sessionID, string(sessionDataBytes)).Err; err != nil {
 			return err
 		}
+		if err := redisClient.Cmd("SET", "session-xsrf:"+sessionID, xsrfToken).Err; err != nil {
+			return err
+		}
 	}
 	if err := redisClient.Cmd("EXPIRE", "session:"+sessionID, int64(sessionExpiry.Seconds())).Err; err != nil {
+		return err
+	}
+	if err := redisClient.Cmd("EXPIRE", "session-xsrf:"+sessionID, int64(sessionExpiry.Seconds())).Err; err != nil {
 		return err
 	}
 	return nil

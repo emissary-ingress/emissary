@@ -1,7 +1,9 @@
 package v1
 
 import (
+	"bytes"
 	"crypto/tls"
+	"encoding/json"
 	"net/url"
 	"text/template"
 
@@ -66,8 +68,10 @@ type JWTHeaderField struct {
 }
 
 type ErrorResponse struct {
+	ContentType string           `json:"contentType"`
+	Headers     []JWTHeaderField `json:"headers"`
+
 	RawBodyTemplate string             `json:"bodyTemplate"`
-	ContentType     string             `json:"contentType"`
 	BodyTemplate    *template.Template `json:"-"`
 }
 
@@ -90,7 +94,7 @@ func (m *FilterJWT) Validate() error {
 	for i := range m.InjectRequestHeaders {
 		hf := &(m.InjectRequestHeaders[i])
 		if err := hf.Validate(); err != nil {
-			return err
+			return errors.Wrap(err, "injectRequestHeaders")
 		}
 	}
 
@@ -105,17 +109,61 @@ func (m *FilterJWT) Validate() error {
 		return errors.Errorf("invalid renegotiateTLS: %q", m.RawRenegotiateTLS)
 	}
 
-	if m.ErrorResponse.RawBodyTemplate != "" {
-		parsedTemplate, err := template.New("Error template").Parse(m.ErrorResponse.RawBodyTemplate)
-		if err != nil {
-			return errors.Wrapf(err, "parsing template for custom error template")
-		}
+	if err := m.ErrorResponse.Validate(); err != nil {
+		return errors.Wrap(err, "errorResponse")
+	}
 
-		m.ErrorResponse.BodyTemplate = parsedTemplate
-		if m.ErrorResponse.ContentType == "" {
-			m.ErrorResponse.ContentType = "application/json"
+	return nil
+}
+
+func (er *ErrorResponse) Validate() error {
+	// Handle deprecated .ContentType
+	if er.ContentType != "" {
+		er.Headers = append(er.Headers, JWTHeaderField{
+			Name:  "Content-Type",
+			Value: er.ContentType,
+		})
+	}
+
+	// Fill defaults
+	if len(er.Headers) == 0 {
+		er.Headers = append(er.Headers, JWTHeaderField{
+			Name:  "Content-Type",
+			Value: "application/json",
+		})
+	}
+	if er.RawBodyTemplate == "" {
+		er.RawBodyTemplate = `{{ . | json "" }}`
+	}
+
+	// Parse+validate the header-field templates
+	for i := range er.Headers {
+		hf := &(er.Headers[i])
+		if err := hf.Validate(); err != nil {
+			return errors.Wrap(err, "headers")
 		}
 	}
+	// Parse+validate the bodyTemplate
+	tmpl, err := template.
+		New("bodyTemplate").
+		Funcs(template.FuncMap{
+			"json": func(prefix string, data interface{}) (string, error) {
+				nonIdentedJSON, err := json.Marshal(data)
+				if err != nil {
+					return "", err
+				}
+				var indentedJSON bytes.Buffer
+				if err := json.Indent(&indentedJSON, nonIdentedJSON, prefix, "\t"); err != nil {
+					return "", err
+				}
+				return indentedJSON.String(), nil
+			},
+		}).
+		Parse(er.RawBodyTemplate)
+	if err != nil {
+		return errors.Wrap(err, "parsing template for bodyTemplate")
+	}
+	er.BodyTemplate = tmpl
 
 	return nil
 }
@@ -123,7 +171,7 @@ func (m *FilterJWT) Validate() error {
 func (hf *JWTHeaderField) Validate() error {
 	tmpl, err := template.New(hf.Name).Parse(hf.Value)
 	if err != nil {
-		return errors.Wrapf(err, "parsing template for injected header %q", hf.Name)
+		return errors.Wrapf(err, "parsing template for header %q", hf.Name)
 	}
 	hf.Template = tmpl
 	return nil
