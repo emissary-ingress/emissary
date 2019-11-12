@@ -1,7 +1,5 @@
 # Getting Started with Ambassador Edge Stack
 
-```Note: These instructions do not work with Minikube.```
-
 ## 1. Deploying Ambassador Edge Stack to Kubernetes
 
 <div style="border: thick solid red">
@@ -55,6 +53,25 @@ kubectl get -n ambassador service ambassador -o 'go-template={{range .status.loa
 </pre>
 </div>
 <button onclick="copy_to_clipboard('step2')">Copy to Clipboard</button>
+
+*Minikube* Minikube does not natively support load balancers. Instead, get the URL of Ambassador from minikube with `minikube service list`:
+
+```
+(⎈ |minikube:ambassador)$ minikube service list
+|-------------|------------------|--------------------------------|
+|  NAMESPACE  |       NAME       |              URL               |
+|-------------|------------------|--------------------------------|
+| ambassador  | ambassador       | http://192.168.64.2:31230      |
+|             |                  | http://192.168.64.2:31042      |
+| ambassador  | ambassador-admin | No node port                   |
+| ambassador  | ambassador-redis | No node port                   |
+| default     | kubernetes       | No node port                   |
+| kube-system | kube-dns         | No node port                   |
+|-------------|------------------|--------------------------------|
+```
+
+Use any of the URLs listed next to `ambassador` to access the Ambassador Edge Stack.
+
 
 ## 3. Assign a DNS name (or not)
 
