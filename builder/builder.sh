@@ -5,7 +5,7 @@ shopt -s expand_aliases
 alias echo_on="{ set -x; }"
 alias echo_off="{ set +x; } 2>/dev/null"
 
-# Choose colors carefully. If they don't work on both a black 
+# Choose colors carefully. If they don't work on both a black
 # background and a white background, pick other colors (so white,
 # yellow, and black are poor choices).
 RED='\033[1;31m'
@@ -272,12 +272,13 @@ case "${cmd}" in
         # This runs inside the builder image
         for MODDIR in $(find-modules); do
             module=$(basename ${MODDIR})
+            eval "$(grep BUILD_VERSION "${module}.version")"
 
             if [ -e ${module}.dirty ]; then
                 if [ -e "${MODDIR}/go.mod" ]; then
                     printf "${CYN}==> ${GRN}Building ${BLU}${module}${GRN} go code${END}\n"
                     echo_on
-                    (cd ${MODDIR} && GOBIN=/buildroot/bin go install ./cmd/...) || exit 1
+                    (cd ${MODDIR} && go build -trimpath -ldflags "-X main.Version=$BUILD_VERSION" -o /buildroot/bin ./cmd/...) || exit 1
                     if [ -e ${MODDIR}/post-compile.sh ]; then (cd ${MODDIR} && bash post-compile.sh); fi
                     echo_off
                 fi
@@ -319,7 +320,7 @@ case "${cmd}" in
         for MODDIR in $(find-modules); do
             if [ -e "${MODDIR}/go.mod" ]; then
                 pkgs=$(cd ${MODDIR} && go list -f='{{ if or (gt (len .TestGoFiles) 0) (gt (len .XTestGoFiles) 0) }}{{ .ImportPath }}{{ end }}' ${GOTEST_PKGS})
-    
+
                 if [ -n "${pkgs}" ]; then
                     if ! (cd ${MODDIR} && go test ${pkgs} ${GOTEST_ARGS}) then
                        fail="yes"
