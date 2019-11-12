@@ -28,6 +28,18 @@ printf "== Begin: travis-install.sh ==\n"
 mkdir -p ~/bin
 PATH=~/bin:$PATH
 
+if [ "$TRAVIS_OS_NAME" = 'osx' ]; then
+    brew update > /dev/null
+    brew install golang || brew upgrade golang
+    echo bogus > ~/kubernaut-claim.txt
+    mkdir -p ~/.gimme/envs ~/.kube ~/bin
+    # NOTE: This makes `docker` and `kubernaut` no-ops for the rest of CI
+    touch ~/.gimme/envs/latest.env ~/.kube/bogus.yaml ~/bin/docker ~/bin/kubernaut
+    chmod 755 ~/bin/docker ~/bin/kubernaut
+    printf "== End:   travis-install.sh == (MacOS short-circuit)\n"
+    exit 0
+fi
+
 # Install kubectl
 curl -L -o ~/bin/kubectl https://storage.googleapis.com/kubernetes-release/release/v${KUBECTL_VERSION}/bin/linux/amd64/kubectl
 chmod +x ~/bin/kubectl

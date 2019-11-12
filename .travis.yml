@@ -1,9 +1,14 @@
----
-dist: bionic
+language: generic
 
-language: python
-python:
-  - "3.7"
+jobs:
+  include:
+    - os: osx
+      name: "MacOS"
+      osx_image: xcode10.1
+    - os: linux
+      name: "Linux"
+      dist: bionic
+
 addons:
   apt:
     packages:

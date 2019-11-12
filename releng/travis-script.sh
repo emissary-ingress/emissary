@@ -96,7 +96,7 @@ case "$COMMIT_TYPE" in
         # (in case BASE_DOCKER_REPO is private)
         docker login -u="${DOCKER_BUILD_USERNAME:-datawire-dev+ci}" --password-stdin "${DEV_REGISTRY}" <<<"${DOCKER_BUILD_PASSWORD:-CEAWVNREJHTOAHSOJFJHJZQYI7H9MELSU1RG1CD6XIFAURD5D7Y1N8F8MU0JO912}"
 
-        make test
+        [ "$TRAVIS_OS_NAME" = "linux" ] && make test
         ;;
 esac
 
