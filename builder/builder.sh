@@ -278,6 +278,7 @@ case "${cmd}" in
                 if [ -e "${MODDIR}/go.mod" ]; then
                     printf "${CYN}==> ${GRN}Building ${BLU}${module}${GRN} go code${END}\n"
                     echo_on
+                    mkdir -p /buildroot/bin
                     (cd ${MODDIR} && go build -trimpath -ldflags "-X main.Version=$BUILD_VERSION" -o /buildroot/bin ./cmd/...) || exit 1
                     if [ -e ${MODDIR}/post-compile.sh ]; then (cd ${MODDIR} && bash post-compile.sh); fi
                     echo_off
