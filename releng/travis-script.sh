@@ -96,7 +96,7 @@ case "$COMMIT_TYPE" in
         # (in case BASE_DOCKER_REPO is private)
         docker login -u="${DOCKER_BUILD_USERNAME:-datawire-dev+ci}" --password-stdin "${DEV_REGISTRY}" <<<"${DOCKER_BUILD_PASSWORD:-CEAWVNREJHTOAHSOJFJHJZQYI7H9MELSU1RG1CD6XIFAURD5D7Y1N8F8MU0JO912}"
 
-        make test
+        [ "$TRAVIS_OS_NAME" = "linux" ] && make test
         ;;
 esac
 
@@ -108,6 +108,8 @@ case "$COMMIT_TYPE" in
             docker login -u="$DOCKER_RELEASE_USERNAME" --password-stdin "${RELEASE_REGISTRY}" <<<"$DOCKER_RELEASE_PASSWORD"
         fi
         make release
+        # Promote for Edge Control binary (copy from latest.txt to stable.txt) on Linux.
+        [ "$TRAVIS_OS_NAME" = "linux" ] && ./releng/build-cli.sh promote
         # XXX
 	#SCOUT_APP_KEY=app.json STABLE_TXT_KEY=stable.txt update-aws
         ;;
@@ -116,6 +118,10 @@ case "$COMMIT_TYPE" in
             docker login -u="$DOCKER_RELEASE_USERNAME" --password-stdin "${RELEASE_REGISTRY}" <<<"$DOCKER_RELEASE_PASSWORD"
         fi
         make rc
+        # Build/push Edge Control binary. Tag (set latest.txt) on Linux.
+        ./releng/build-cli.sh build
+        ./releng/build-cli.sh push
+        [ "$TRAVIS_OS_NAME" = "linux" ] && ./releng/build-cli.sh tag
         # XXX
 	#SCOUT_APP_KEY=testapp.json STABLE_TXT_KEY=teststable.txt update-aws
         ;;
@@ -124,6 +130,9 @@ case "$COMMIT_TYPE" in
             docker login -u="$DOCKER_RELEASE_USERNAME" --password-stdin "${RELEASE_REGISTRY}" <<<"$DOCKER_RELEASE_PASSWORD"
         fi
         make rc
+        # Build/push Edge Control binary. Don't tag.
+        ./releng/build-cli.sh build
+        ./releng/build-cli.sh push
         # XXX
         #SCOUT_APP_KEY=earlyapp.json STABLE_TXT_KEY=earlystable.txt update-aws
         ;;
