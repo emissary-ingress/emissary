@@ -250,6 +250,16 @@ func (s *Server) Init(fetcher MappingSubscriptions) {
 		s.prefix = prefix
 		return true
 	})
+	fetcher.SubscribeMappingObserver("ambassador-devportal", func(prefix, rewrite string) bool {
+		prefix += "/"
+		log.WithFields(log.Fields{
+			"oldPrefix": s.prefix,
+			"prefix":    prefix,
+			"rewrite":   rewrite,
+		}).Info("Prefix detected from ambassador-devportal")
+		s.prefix = prefix
+		return true
+	})
 	fetcher.SubscribeMappingObserver("ambassador-pro-devportal-api", func(prefix, rewrite string) bool {
 		prefix += "/"
 		log.WithFields(log.Fields{
@@ -257,6 +267,15 @@ func (s *Server) Init(fetcher MappingSubscriptions) {
 			"prefix":    prefix,
 			"rewrite":   rewrite,
 		}).Info("API prefix detected from ambassador-pro-devportal-api (TODO)")
+		return true
+	})
+	fetcher.SubscribeMappingObserver("ambassador-devportal-api", func(prefix, rewrite string) bool {
+		prefix += "/"
+		log.WithFields(log.Fields{
+			"oldPrefix": s.prefix,
+			"prefix":    prefix,
+			"rewrite":   rewrite,
+		}).Info("API prefix detected from ambassador-devportal-api (TODO)")
 		return true
 	})
 }

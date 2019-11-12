@@ -15,8 +15,8 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	devportalcontent "github.com/datawire/apro/cmd/amb-sidecar/devportal/content"
-	"github.com/datawire/apro/cmd/amb-sidecar/limiter/mocks"
 	devportalserver "github.com/datawire/apro/cmd/amb-sidecar/devportal/server"
+	"github.com/datawire/apro/cmd/amb-sidecar/limiter/mocks"
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
 )
 
@@ -103,8 +103,8 @@ func serve(cmd *cobra.Command, args []string) {
 	server := devportalserver.NewServer(docs, content, limiter)
 
 	amb := newMockAmbassador()
-	amb.addMapping("default", "ambassador-pro-devportal", docs, server.Router())
-	amb.addMapping("default", "ambassador-pro-devportal-api", "/openapi", server.Router())
+	amb.addMapping("default", "ambassador-devportal", docs, server.Router())
+	amb.addMapping("default", "ambassador-devportal-api", "/openapi", server.Router())
 	amb.addMapping("ns1", "example-a", "/example-a", newSampleService("/example-a", true))
 	amb.addMapping("ns2", "example-b", "/example-b", newSampleService("/example-b", true))
 	amb.addMapping("ns1", "example-c", "/example-c", newSampleService("/example-c", false))
