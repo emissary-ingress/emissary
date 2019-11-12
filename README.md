@@ -8,6 +8,15 @@ example of a middleware needing to talk to an external service.
 
 ## Compiling
 
+### Prerequisites
+
+- A Linux or MacOS host (WSL on Windows is okay)
+- Docker
+- rsync
+
+The `Plugin` is compiled by building a container with a stable Golang environment and using `rsync` to copy files to and from the container.
+
+
 Just run
 
 	$ make DOCKER_REGISTRY=...
