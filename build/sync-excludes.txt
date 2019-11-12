@@ -1,0 +1,7 @@
+*.so
+Dockerfile.in
+/build/
+/Makefile
+.*
+*.md
+apro-abi*
