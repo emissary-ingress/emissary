@@ -13,4 +13,4 @@ check_url() {
 
 echo 'TAP version 13'
 echo 1..1
-check_url https://ambassador.default.svc.cluster.local/
+check_url https://ambassador.ambassador.svc.cluster.local/

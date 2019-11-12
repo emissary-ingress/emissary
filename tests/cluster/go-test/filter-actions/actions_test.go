@@ -66,7 +66,7 @@ func testJWT(t *testing.T) string {
 }
 
 func TestIfRequestHeader(t *testing.T) {
-	u := urlMust(url.Parse("https://ambassador.standalone.svc.cluster.local/filter-actions/if/headers"))
+	u := urlMust(url.Parse("https://ambassador.ambassador.svc.cluster.local/filter-actions/if/headers"))
 	jwt := testJWT(t)
 
 	testcases := map[string]testcase{
@@ -82,7 +82,7 @@ func TestIfRequestHeader(t *testing.T) {
 }
 
 func TestOnAction(t *testing.T) {
-	u := urlMust(url.Parse("https://ambassador.standalone.svc.cluster.local/filter-actions/on/headers"))
+	u := urlMust(url.Parse("https://ambassador.ambassador.svc.cluster.local/filter-actions/on/headers"))
 	jwt := testJWT(t)
 
 	testcases := map[string]testcase{
