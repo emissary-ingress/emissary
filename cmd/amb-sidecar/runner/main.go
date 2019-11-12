@@ -66,6 +66,12 @@ import (
 )
 
 var licenseClaims *licensekeys.LicenseClaimsLatest
+
+var licenseWatch struct {
+	Filename string
+	Callback func()
+}
+
 var limit *limiter.LimiterImpl
 var logrusLogger *logrus.Logger
 
@@ -122,10 +128,11 @@ func Main(version string) {
 		go metriton.PhoneHomeEveryday(licenseClaims, limit, application, version)
 
 		if cmdContext.Keyfile != "" {
-			triggerOnChange(cmdContext.Keyfile, func() {
+			licenseWatch.Filename = cmdContext.Keyfile
+			licenseWatch.Callback = func() {
 				logrusLogger.Infof("Refreshing license key, %s changed", cmdContext.Keyfile)
 				licenseClaims = keyCheck(true)
-			})
+			}
 		}
 		return nil
 	}
@@ -137,57 +144,51 @@ func Main(version string) {
 	}
 }
 
-func triggerOnChange(watchFile string, trigger func()) {
-	initWG := sync.WaitGroup{}
-	initWG.Add(1)
+func triggerOnChange(ctx context.Context, watchFile string, trigger func()) {
+	file := filepath.Clean(watchFile)
+	dir, _ := filepath.Split(file)
+
+	watcher, err := fsnotify.NewWatcher()
+	if err != nil {
+		logrusLogger.Errorf("Failed to create watch on %s: Changes might require a restart: %v", file, err)
+	}
+	defer watcher.Close()
+
+	eventsWG := sync.WaitGroup{}
+	eventsWG.Add(1)
 	go func() {
-		file := filepath.Clean(watchFile)
-		dir, _ := filepath.Split(file)
-
-		watcher, err := fsnotify.NewWatcher()
-		if err != nil {
-			logrusLogger.Errorf("Failed to create watch on %s: Changes might require a restart: %v", file, err)
-		}
-		defer watcher.Close()
-
-		eventsWG := sync.WaitGroup{}
-		eventsWG.Add(1)
-		go func() {
-			for {
-				select {
-				case event, ok := <-watcher.Events:
-					if !ok {
-						eventsWG.Done()
-						return
-					}
-					if event.Op&fsnotify.Rename == fsnotify.Rename {
-						if trigger != nil {
-							trigger()
-						}
-					} else if filepath.Clean(event.Name) == file &&
-						event.Op&fsnotify.Remove&fsnotify.Remove != 0 {
-						eventsWG.Done()
-						return
-					}
-				case err, ok := <-watcher.Errors:
-					if ok {
-						logrusLogger.Errorln(err)
-					}
-					eventsWG.Done()
+		defer eventsWG.Done()
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case event, ok := <-watcher.Events:
+				if !ok {
 					return
 				}
+				if event.Op&fsnotify.Rename == fsnotify.Rename {
+					if trigger != nil {
+						trigger()
+					}
+				} else if filepath.Clean(event.Name) == file &&
+					event.Op&fsnotify.Remove&fsnotify.Remove != 0 {
+					return
+				}
+			case err, ok := <-watcher.Errors:
+				if ok {
+					logrusLogger.Errorln(err)
+				}
+				return
 			}
-		}()
-
-		logrusLogger.Infof("Creating watch on %s", dir)
-		err = watcher.Add(dir)
-		if err != nil {
-			logrusLogger.Errorf("Failed to create watch on %s: Changes might require a restart: %v", dir, err)
 		}
-		initWG.Done()
-		eventsWG.Wait()
 	}()
-	initWG.Wait()
+
+	logrusLogger.Infof("Creating watch on %s", dir)
+	err = watcher.Add(dir)
+	if err != nil {
+		logrusLogger.Errorf("Failed to create watch on %s: Changes might require a restart: %v", dir, err)
+	}
+	eventsWG.Wait()
 }
 
 func runE(cmd *cobra.Command, args []string) error {
@@ -251,6 +252,13 @@ func runE(cmd *cobra.Command, args []string) error {
 	})
 
 	// Launch all of the worker goroutines...
+
+	if licenseWatch.Filename != "" {
+		group.Go("license_refresh", func(hardCtx, softCtx context.Context, cfg types.Config, l types.Logger) error {
+			triggerOnChange(softCtx, licenseWatch.Filename, licenseWatch.Callback)
+			return nil
+		})
+	}
 
 	group.Go("watt_shutdown", func(hardCtx, softCtx context.Context, cfg types.Config, l types.Logger) error {
 		<-softCtx.Done()
@@ -416,6 +424,7 @@ func runE(cmd *cobra.Command, args []string) error {
 			pubKey,
 		)
 		httpHandler.AddEndpoint("/edge_stack_ui/", "Edge Stack admin UI", http.StripPrefix("/edge_stack_ui", webuiHandler).ServeHTTP)
+		l.Debugf("DEV_WEBUI_PORT=%q", cfg.DevWebUIPort)
 		if cfg.DevWebUIPort != "" {
 			l.Infof("Serving webui on %q", ":"+cfg.DevWebUIPort)
 			group.Go("webui_http", func(hardCtx, softCtx context.Context, cfg types.Config, l types.Logger) error {
