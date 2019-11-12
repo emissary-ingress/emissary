@@ -128,13 +128,13 @@ func init() {
 			}
 		})
 
-		http.HandleFunc("/darwin/edgectl", func(w http.ResponseWriter, r *http.Request) {
+		http.HandleFunc("/downloads/darwin/edgectl", func(w http.ResponseWriter, r *http.Request) {
 			version := getEdgectlStable()
 			url := fmt.Sprintf("https://datawire-static-files.s3.amazonaws.com/edgectl/%s/darwin/amd64/edgectl", version)
 			http.Redirect(w, r, url, http.StatusFound) // 302
 		})
 
-		http.HandleFunc("/linux/edgectl", func(w http.ResponseWriter, r *http.Request) {
+		http.HandleFunc("/downloads/linux/edgectl", func(w http.ResponseWriter, r *http.Request) {
 			version := getEdgectlStable()
 			url := fmt.Sprintf("https://datawire-static-files.s3.amazonaws.com/edgectl/%s/linux/amd64/edgectl", version)
 			http.Redirect(w, r, url, http.StatusFound) // 302
