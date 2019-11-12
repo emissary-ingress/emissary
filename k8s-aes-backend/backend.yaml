@@ -19,6 +19,14 @@ metadata:
       rewrite: /signup
       name: aes-backend
       service: aes-backend
+      ---
+      apiVersion: ambassador/v1
+      kind: Mapping
+      ambassador_id: metriton
+      prefix: /downloads
+      rewrite: /downloads
+      name: aes-backend
+      service: aes-backend
 spec:
   type: ClusterIP
   ports:
