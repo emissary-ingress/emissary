@@ -68,10 +68,19 @@
       </div>
       <div class="info-blob">
         <h2>
-	  404 page not found
-	</h2>
-	<p>
-	  Congratulations, you have successfully installed AES, but this page does not exist. Please go to <a id="admin_href"></a> to explore and create some mappings so you can make it exist! 
+          404 page not found
+        </h2>
+        <p>
+	  Congratulations, you have successfully installed AES, but this
+	  page does not exist. Please go to <a id="admin_href"></a>
+	  to explore and create some mappings so you can make it exist!
+        </p>
+
+        <p>
+	  Please note, if this is a brand new AES install, your
+	  browser will give you a scary warning that the TLS
+	  certificate is self signed. Please click past this (just
+	  this once), and use the admin UI to setup TLS.
 	</p>
       </div>
     </div>
@@ -79,7 +88,7 @@
 
   <script type="text/javascript">
     function DocumentReady() {
-      $("#admin_href").attr("href", "http://" + window.location.host + "/edge_stack/admin/");
+      $("#admin_href").attr("href", "https://" + window.location.host + "/edge_stack/admin/");
       $("#admin_href").text("the admin page");
     }
     

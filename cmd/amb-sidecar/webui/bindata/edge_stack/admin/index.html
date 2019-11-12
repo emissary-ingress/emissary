@@ -148,7 +148,7 @@
 	        </span>
 	        <input id="signup-email-confirm" type="text" name="email-confirm" value="" /> <input id="signup-cancel" type="button" value="Cancel" /> <input id="signup-go" type="button" value="Signup" /> 
 	      </form>
-	      <div id="signup-error" /> 
+	      <div id="signup-error"> </div>
 	    </div>
 	    <div id="signup-finished">
 	      <span id="signup-finished-text">
@@ -278,21 +278,21 @@
 
     function renderKind(obj) {
       let md = obj.metadata
-      return $(`<div class="${obj.kind.toLowerCase()}" id="${md.namespace}_${md.name}" />`)
+      return $(`<div class="${obj.kind.toLowerCase()}" id="${md.namespace}_${md.name}"></div>`)
         .append(renderMetadata(md))
         .append(renderSpec(obj.spec))
         .append(renderStatus(obj.status))
     }
 
     function renderMetadata(md) {
-      return $(`<div class="metadata" id="metadata" />`)
+      return $(`<div class="metadata" id="metadata"></div>`)
         .append(`<span class="name">${md.namespace}/${md.name}</span>`)
         .append($(`<details class="labels" id="labels"><summary>labels</summary></details>`)
                 .append(renderObj(md.labels)))
     }
 
     function renderObj(obj, cls="obj") {
-      let result = $(`<div class="${cls}" />`)
+      let result = $(`<div class="${cls}"></div>`)
       $.each(obj, (name, value) => {
         details = $(`<details class="field" id="${name}"><summary>${name}</summary></details>`)
         result.append(details)
