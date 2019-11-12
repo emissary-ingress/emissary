@@ -422,6 +422,7 @@ github.com/pelletier/go-toml v1.2.0/go.mod h1:5z9KED0ma1S8pY6P1sdut58dfprrGBbd/9
 github.com/peterbourgon/diskv v2.0.1+incompatible h1:UBdAOUP5p4RWqPBg048CAvpKN+vxiaj6gdUUzhl4XmI=
 github.com/peterbourgon/diskv v2.0.1+incompatible/go.mod h1:uqqh8zWWbv1HBMNONnaR/tNboyR3/BZd58JJSHlUSCU=
 github.com/pierrec/lz4 v2.0.5+incompatible/go.mod h1:pdkljMzZIN41W+lC3N2tnIh5sFi+IEE17M5jbnwPHcY=
+github.com/pkg/browser v0.0.0-20180916011732-0a3d74bf9ce4/go.mod h1:4OwLy04Bl9Ef3GJJCoec+30X3LQs/0/m4HFRt/2LUSA=
 github.com/pkg/errors v0.8.0/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
 github.com/pkg/errors v0.8.1 h1:iURUrRGxPUNPdy5/HRSm+Yj6okJ6UtLINN0Q9M4+h3I=
 github.com/pkg/errors v0.8.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
@@ -511,6 +512,8 @@ gitlab.com/golang-commonmark/html v0.0.0-20180917080848-cfaf75183c4a h1:Ax7kdHNI
 gitlab.com/golang-commonmark/html v0.0.0-20180917080848-cfaf75183c4a/go.mod h1:JT4uoTz0tfPoyVH88GZoWDNm5NHJI2VbUW+eyPClueI=
 gitlab.com/golang-commonmark/linkify v0.0.0-20180917065525-c22b7bdb1179 h1:rbON2KwBnWuFMlSHM8LELLlwroDRZw6xv0e6il6e5dk=
 gitlab.com/golang-commonmark/linkify v0.0.0-20180917065525-c22b7bdb1179/go.mod h1:Gn+LZmCrhPECMD3SOKlE+BOHwhOYD9j7WT9NUtkCrC8=
+gitlab.com/golang-commonmark/linkify v0.0.0-20191026162114-a0c2df6c8f82 h1:oYrL81N608MLZhma3ruL8qTM4xcpYECGut8KSxRY59g=
+gitlab.com/golang-commonmark/linkify v0.0.0-20191026162114-a0c2df6c8f82/go.mod h1:Gn+LZmCrhPECMD3SOKlE+BOHwhOYD9j7WT9NUtkCrC8=
 gitlab.com/golang-commonmark/markdown v0.0.0-20181102083822-772775880e1f h1:jwXy/CsM4xS2aoiF2fHAlukmInWhd2TlWB+HDCyvzKc=
 gitlab.com/golang-commonmark/markdown v0.0.0-20181102083822-772775880e1f/go.mod h1:SIHlEr9462fpIfTrVWf3GqQDxnA65Vm3BMMsUtuA6W0=
 gitlab.com/golang-commonmark/mdurl v0.0.0-20180912090424-e5bce34c34f2 h1:wD/sPUgx2QJFPTyXZpJnLaROolfeKuruh06U4pRV0WY=

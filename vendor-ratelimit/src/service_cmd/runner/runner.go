@@ -23,6 +23,8 @@ import (
 	"github.com/lyft/ratelimit/src/server"
 	ratelimit "github.com/lyft/ratelimit/src/service"
 	"github.com/lyft/ratelimit/src/settings"
+
+	mock_limiter "github.com/datawire/apro/cmd/amb-sidecar/limiter/mocks"
 )
 
 func Run() {
@@ -77,7 +79,9 @@ func Run() {
 			rand.New(redis.NewLockedSource(time.Now().Unix())),
 			s.ExpirationJitterMaxSeconds),
 		config.NewRateLimitConfigLoaderImpl(),
-		statsScopeRatelimit.Scope("service"))
+		statsScopeRatelimit.Scope("service"),
+		mock_limiter.NewMockLimiter(),
+	)
 	debugHTTPHandler.AddEndpoint(
 		"/rlconfig",
 		"print out the currently loaded configuration for debugging",
