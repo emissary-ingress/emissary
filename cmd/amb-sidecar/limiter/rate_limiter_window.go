@@ -10,6 +10,8 @@ import (
 	"time"
 )
 
+var ErrRateLimiterNoRedis = errors.New("need a redis pool")
+
 // RateLimiter limits on sliding window.
 type RateLimiterWindow struct {
 	// A connection to the redis instance.
@@ -30,10 +32,6 @@ type RateLimiterWindow struct {
 // limit: the actual limit value.
 // crypto: the engine used for actually encrypting values in redis.
 func newRateLimiterWindow(redisPool *pool.Pool, limiter Limiter, limit *licensekeys.Limit) (*RateLimiterWindow, error) {
-	if redisPool == nil {
-		return nil, errors.New("Need a redis pool to enforce a rate limit")
-	}
-
 	return &RateLimiterWindow{
 		redisPool,
 		limiter,
@@ -87,6 +85,9 @@ func (this *RateLimiterWindow) attemptToChange(incrementing bool) (int, error) {
 // Returns an error if we couldn't due to limits, or redis failure.
 // If the error is present do not allow the increment.
 func (this *RateLimiterWindow) IncrementUsage() error {
+	if this.redisPool == nil {
+		return ErrRateLimiterNoRedis
+	}
 	_, err := this.attemptToChange(true)
 	return err
 }
@@ -94,6 +95,9 @@ func (this *RateLimiterWindow) IncrementUsage() error {
 // IsExceedingAtPointInTime determines if we're exceeding at this point in
 // time.
 func (this *RateLimiterWindow) IsExceedingAtPointInTime() (bool, error) {
+	if this.redisPool == nil {
+		return false, ErrRateLimiterNoRedis
+	}
 	currentValue, err := this.getUnderlyingValue()
 	if err != nil {
 		return false, err
@@ -103,5 +107,8 @@ func (this *RateLimiterWindow) IsExceedingAtPointInTime() (bool, error) {
 }
 
 func (this *RateLimiterWindow) GetUsageAtPointInTime() (int, error) {
+	if this.redisPool == nil {
+		return 0, ErrRateLimiterNoRedis
+	}
 	return this.getUnderlyingValue()
 }

@@ -233,7 +233,7 @@ func runE(cmd *cobra.Command, args []string) error {
 	if cfg.RedisURL != "" {
 		redisPool, redisPoolErr = pool.New(cfg.RedisSocketType, cfg.RedisURL, cfg.RedisPoolSize)
 		if redisPoolErr != nil {
-			logrusLogger.Errorf("redis pool configured but unavailable on startup: %v", err)
+			return errors.Wrap(redisPoolErr, "redis pool configured but unavailable")
 		}
 	}
 	if redisPool == nil {
@@ -271,7 +271,7 @@ func runE(cmd *cobra.Command, args []string) error {
 		group.Go("auth_controller", func(hardCtx, softCtx context.Context, cfg types.Config, l types.Logger) error {
 			ct.Config = cfg
 			ct.Logger = l
-			return ct.Watch(softCtx, kubeinfo, licenseClaims)
+			return ct.Watch(softCtx, kubeinfo, redisPool != nil)
 		})
 	}
 
@@ -311,10 +311,6 @@ func runE(cmd *cobra.Command, args []string) error {
 
 		statsStore := stats.NewDefaultStore()
 		statsStore.AddStatGenerator(stats.NewRuntimeStats(statsStore.Scope("go")))
-
-		if redisPoolErr != nil {
-			return errors.Wrap(redisPoolErr, "redis pool")
-		}
 
 		var redisPerSecondPool *pool.Pool
 		var err error
@@ -363,14 +359,12 @@ func runE(cmd *cobra.Command, args []string) error {
 			lyftserver.NewHealthChecker(healthService).ServeHTTP)
 
 		// AuthService
-		if redisPool != nil && (licenseClaims.RequireFeature(licensekeys.FeatureFilter) == nil || licenseClaims.RequireFeature(licensekeys.FeatureDevPortal) == nil) {
-			authService, err := filterhandler.NewFilterMux(cfg, l.WithField("SUB", "http-handler"), ct, coreClient, redisPool, limit)
-			if err != nil {
-				return err
-			}
-			filterapi.RegisterFilterService(grpcHandler, authService)
-			httpHandler.AddEndpoint("/.ambassador/", "OAuth2 Filter", authService.ServeHTTP)
+		authService, err := filterhandler.NewFilterMux(cfg, l.WithField("SUB", "http-handler"), ct, coreClient, redisPool, limit)
+		if err != nil {
+			return err
 		}
+		filterapi.RegisterFilterService(grpcHandler, authService)
+		httpHandler.AddEndpoint("/.ambassador/", "OAuth2 Filter", authService.ServeHTTP)
 
 		// RateLimitService
 		if redisPool != nil && licenseClaims.RequireFeature(licensekeys.FeatureRateLimit) == nil {

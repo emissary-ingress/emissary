@@ -190,6 +190,9 @@ func (c *FilterMux) filter(ctx context.Context, request *filterapi.FilterRequest
 		case crd.FilterOAuth2:
 			err := c.AuthRateLimiter.IncrementUsage()
 			if err != nil {
+				if err == limiter.ErrRateLimiterNoRedis {
+					return middleware.NewErrorResponse(ctx, http.StatusInternalServerError, err, nil), nil
+				}
 				return middleware.NewErrorResponse(ctx, http.StatusTooManyRequests, err, nil), nil
 			}
 
@@ -214,6 +217,9 @@ func (c *FilterMux) filter(ctx context.Context, request *filterapi.FilterRequest
 		case crd.FilterJWT:
 			err := c.AuthRateLimiter.IncrementUsage()
 			if err != nil {
+				if err == limiter.ErrRateLimiterNoRedis {
+					return middleware.NewErrorResponse(ctx, http.StatusInternalServerError, err, nil), nil
+				}
 				return middleware.NewErrorResponse(ctx, http.StatusTooManyRequests, err, nil), nil
 			}
 
