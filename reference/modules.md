@@ -60,11 +60,11 @@ spec:
     service: ambassador
 ```
 
-## The `ambassador` module
+## The `ambassador Module`
 
-The [`ambassador`](/reference/core/ambassador) module covers general configuration options for Ambassador Edge Stack as a whole. These configuration options generally pertain to routing, protocol support, and the like. Most of these options are likely of interest to operations.
+The [`ambassador Module`](/reference/core/ambassador) covers general configuration options for Ambassador Edge Stack as a whole. These configuration options generally pertain to routing, protocol support, and the like. Most of these options are likely of interest to operations.
 
-## The `tls` module
+## The `tls` Module
 
 The ['tls'](/reference/core/tls) module covers TLS configuration.
 

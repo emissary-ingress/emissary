@@ -53,8 +53,12 @@ kubectl get -n ambassador service ambassador -o 'go-template={{range .status.loa
 </pre>
 </div>
 <button onclick="copy_to_clipboard('step2')">Copy to Clipboard</button>
+<p>
+<p>
 
-*Minikube* Minikube does not natively support load balancers. Instead, get the URL of Ambassador from minikube with `minikube service list`:
+### Minikube Users
+
+If you happen to be using Minikube, note that Minikube does not natively support load balancers. Instead, to get the URL of Ambassador from minikube, use the command `minikube service list`
 
 ```
 (⎈ |minikube:ambassador)$ minikube service list
@@ -71,7 +75,6 @@ kubectl get -n ambassador service ambassador -o 'go-template={{range .status.loa
 ```
 
 Use any of the URLs listed next to `ambassador` to access the Ambassador Edge Stack.
-
 
 ## 3. Assign a DNS name (or not)
 
