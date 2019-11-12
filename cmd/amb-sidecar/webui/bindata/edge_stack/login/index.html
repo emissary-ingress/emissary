@@ -72,11 +72,18 @@
       
       <div class="info-blob">
         <div class="info-title">Welcome to Ambassador Edge Stack!</div>
-        <p>To login to the admin portal, use <span class="command">edgectl login</span>.</p>
-        <p>If you do not yet have the edgectl executable,
-          download it <a href="https://deploy-preview-91--datawire-ambassador.netlify.com/downloads/edgectl">from the getambassador.io website</a>.
+        <p>To login to the admin portal, use <span class="command" id="login"></span>.</p>
+        <p>If you do not yet have the edgectl executable, download it
+          from the getambassador.io
+          website: (<a href="https://metriton.datawire.io/downloads/darwin/edgectl">darwin</a>, <a href="https://metriton.datawire.io/downloads/linux/edgectl">linux</a>).
         </p>
       </div>
     </div>
   </body>
+
+  <script>
+    $(()=>{
+      $("#login").text("edgectl login " + window.location.host)
+    })
+  </script>
 </html>
