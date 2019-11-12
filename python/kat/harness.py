@@ -26,6 +26,16 @@ from yaml.scanner import ScannerError as YAMLScanError
 from multi import multi
 from .parser import dump, load, Tag
 
+import yaml as pyyaml
+
+pyyaml_loader = pyyaml.SafeLoader
+pyyaml_dumper = pyyaml.SafeDumper
+
+try:
+    pyyaml_loader = pyyaml.CSafeLoader
+    pyyaml_dumper = pyyaml.CSafeDumper
+except AttributeError:
+    pass
 
 # Run mode can be local (don't do any Envoy stuff), envoy (only do Envoy stuff),
 # or all (allow both). Default is all.
@@ -1034,6 +1044,8 @@ class Runner:
         self.ids = [t.path for t in self.tests]
         self.done = False
         self.skip_nonlocal_tests = False
+        self.ids_to_strip: Dict[str, bool] = {}
+        self.names_to_strip: Dict[str, bool] = {}
 
         @pytest.mark.parametrize("t", self.tests, ids=self.ids)
         def test(request, capsys, t):
@@ -1205,12 +1217,18 @@ class Runner:
             return False
 
         all_valid = True
+        self.ids_to_strip = {}
+        # This feels a bit wrong?
+        self.names_to_ignore = {}
 
         for n in (n for n in self.nodes if n in selected):
             local_possible, local_checked = n.check_local(fname)
 
-            if local_possible and not local_checked:
-                all_valid = False
+            if local_possible:
+                if local_checked:
+                    self.ids_to_strip[n.ambassador_id] = True
+                else:
+                    all_valid = False
 
         return all_valid
 
@@ -1290,6 +1308,68 @@ class Runner:
 
         # Something didn't work out quite right.
         print(f'Continuing with Kube tests...')
+        # print(f"ids_to_strip {self.ids_to_strip}")
+
+        # XXX It is _so stupid_ that we're reparsing the whole manifest here.
+        xxx_crap = pyyaml.load_all(open(fname, "r").read(), Loader=pyyaml_loader)
+
+        # Strip things we don't need from the manifest.
+        trimmed_manifests = []
+        trimmed = 0
+        kept = 0
+
+        for obj in xxx_crap:
+            keep = True
+
+            kind = '-nokind-'
+            name = '-noname-'
+            metadata: Dict[str, Any] = {}
+            labels: Dict[str, str] = {}
+            id_to_check: Optional[str] = None
+
+            if 'kind' in obj:
+                kind = obj['kind']
+
+            if 'metadata' in obj:
+                metadata = obj['metadata']
+
+            if 'name' in metadata:
+                name = metadata['name']
+
+            if 'labels' in metadata:
+                labels = metadata['labels']
+
+            if 'kat-ambassador-id' in labels:
+                id_to_check = labels['kat-ambassador-id']
+
+            # print(f"metadata {metadata} id_to_check {id_to_check} obj {obj}")
+
+            # Keep namespaces, just in case.
+            if kind == 'Namespace':
+                keep = True
+            else:
+                if id_to_check and (id_to_check in self.ids_to_strip):
+                    keep = False
+                    # print(f"...drop {kind} {name} (ID {id_to_check})")
+                    self.names_to_ignore[name] = True
+
+            if keep:
+                kept += 1
+                trimmed_manifests.append(obj)
+            else:
+                trimmed += 1
+
+        if trimmed:
+            print(f"After trimming: kept {kept}, trimmed {trimmed}")
+
+        yaml = pyyaml.dump_all(trimmed_manifests, Dumper=pyyaml_dumper)
+
+        fname = "/tmp/k8s-%s-trimmed.yaml" % self.scope
+
+        self.applied_manifests = False
+
+        # Always apply at this point, since we're doing the multi-run thing.
+        manifest_changed, manifest_reason = has_changed(yaml, fname)
 
         # First up: CRDs.
         final_crds = CRDS
@@ -1367,19 +1447,42 @@ class Runner:
         print("Waiting 5s after requirements, just because...")
         time.sleep(5)
 
+    @staticmethod
+    def _req_str(kind, req) -> str:
+        printable = req
+
+        if kind == 'url':
+            printable = req.url
+
+        return printable
+
     def _wait(self, selected):
         requirements = []
 
         for node in selected:
+            node_name = node.format("{self.path.k8s}")
+            ambassador_id = getattr(node, 'ambassador_id', None)
+
+            # print(f"{node_name} {ambassador_id}")
+
             if node.has_local_result():
-                # print(f"{node.name} has local result, skipping")
+                # print(f"{node_name} has local result, skipping")
+                continue
+
+            if ambassador_id and ambassador_id in self.ids_to_strip:
+                # print(f"{node_name} has id {ambassador_id}, stripping")
+                continue
+
+            if node_name in self.names_to_ignore:
+                # print(f"{node_name} marked to ignore, stripping")
                 continue
 
             # if RUN_MODE != "envoy":
-            #     print(f"{node.name}: including in nonlocal tests")
+            #     print(f"{node_name}: including in nonlocal tests")
 
-            for kind, name in node.requirements():
-                requirements.append((node, kind, name))
+            for kind, req in node.requirements():
+                # print(f"{node_name} add req ({node_name}, {kind}, {self._req_str(kind, req)})")
+                requirements.append((node, kind, req))
 
         homogenous = {}
 
@@ -1406,6 +1509,10 @@ class Runner:
                 reqs = homogenous[kind]
 
                 print("Checking %s %s requirements... " % (len(reqs), kind), end="")
+
+                # print("\n")
+                # for node, req in reqs:
+                #     print(f"...{node.format('{self.path.k8s}')} - {self._req_str(kind, req)}")
 
                 sys.stdout.flush()
 
@@ -1516,20 +1623,30 @@ class Runner:
         queries = []
 
         for t in self.tests:
+            t_name = t.format('{self.path.k8s}')
+
             if t in selected:
                 t.pending = []
                 t.queried = []
                 t.results = []
+            else:
+                continue
 
-                if t.has_local_result():
-                    # print(f"{t.name}: SKIP QUERY due to local result")
-                    continue
-
-                # print(f"{t.format('{self.path.k8s}')}: INCLUDE QUERY")
-                for q in t.queries():
-                    q.parent = t
-                    t.pending.append(q)
-                    queries.append(q)
+            if t.has_local_result():
+                # print(f"{t_name}: SKIP QUERY due to local result")
+                continue
+        
+            ambassador_id = getattr(t, 'ambassador_id', None)
+            
+            if ambassador_id and ambassador_id in self.ids_to_strip:
+                # print(f"{t_name}: SKIP QUERY due to ambassador_id {ambassador_id}")
+                continue
+                
+            # print(f"{t_name}: INCLUDE QUERY")
+            for q in t.queries():
+                q.parent = t
+                t.pending.append(q)
+                queries.append(q)
 
         phases = sorted(set([q.phase for q in queries]))
 
