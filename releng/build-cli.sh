@@ -23,7 +23,12 @@ case "$1" in
         echo "$version"
         ;;
     build)
-        go build -trimpath -ldflags "-X main.Version=$version" -o ~/bin/edgectl ./cmd/edgectl
+        if [ -n "$(builder/builder.sh builder)" ]; then
+            # Copy binary from container
+            docker cp "$(builder/builder.sh builder):/buildroot/bin/edgectl" ~/bin/edgectl
+        else
+            go build -trimpath -ldflags "-X main.Version=$version" -o ~/bin/edgectl ./cmd/edgectl
+        fi
         ;;
     push)
         # Push this OS/arch binary
