@@ -44,15 +44,15 @@ download-docker:
 .PHONY: download-go download-docker
 
 build-container:
-ifeq "$(shell docker ps -q -f label=component=plugin-builder)" ""
+ifeq "$(container.ID)" ""
 	docker build -t plugin-builder --build-arg CUR_DIR=$(CURDIR) --build-arg AES_GOVERSION=$(APRO_GOVERSION)$(if $(filter 2,$(words $(subst ., ,$(APRO_GOVERSION)))),.0) --build-arg UID=$(shell id -u) build/
 	docker run --rm -d --env-file=${CURDIR}/build/goenv.txt plugin-builder
 endif
 
 sync: build-container
   # rsync -e 'docker exec -i' -r $$(go env GOPATH)/pkg/mod/cache/download $(container.ID):/mnt/goproxy
-	rsync --exclude-from=${CURDIR}/build/sync-excludes.txt -e 'docker exec -i' -r . $(shell docker ps -q -f label=component=plugin-builder):$(CURDIR)
-	rsync -e 'docker exec -i' -r $(shell go env GOPATH)/pkg/mod/cache/download/ $(shell docker ps -q -f label=component=plugin-builder):/mnt/goproxy/
+	rsync --exclude-from=${CURDIR}/build/sync-excludes.txt -e 'docker exec -i' -r . $(container.ID):$(CURDIR)
+	rsync -e 'docker exec -i' -r $(shell go env GOPATH)/pkg/mod/cache/download/ $(container.ID):/mnt/goproxy/
 
 .common-pkgs.txt: apro-abi@$(APRO_VERSION).pkgs.txt download-go
 	@bash -c 'comm -12 <(go list -m all|cut -d" " -f1|sort) <(< $< cut -d" " -f1|sort)' > $@
@@ -65,11 +65,11 @@ version-check: .common-pkgs.txt apro-abi@$(APRO_VERSION).pkgs.txt
 
 %.so: %.go download-go download-docker version-check sync
 	$(go.GOBUILD) -buildmode=plugin -o $@ $<
-	rsync -e 'docker exec -i' -r $(shell docker ps -q -f label=component=plugin-builder):${CURDIR}/ .
+	rsync -e 'docker exec -i' -r $(container.ID):${CURDIR}/ .
 
 clean:
 	rm -f -- *.so .docker.stamp .common-pkgs.txt .tmp.* .var.* Dockerfile apro-abi@*
-	docker kill $(shell docker ps -q -f label=component=plugin-builder)
+	docker kill $(container.ID)
 .PHONY: clean
 
 .DELETE_ON_ERROR:
