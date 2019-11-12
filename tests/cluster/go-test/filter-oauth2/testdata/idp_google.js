@@ -36,7 +36,7 @@ const authenticate = async function(browsertab, username, password) {
 	await browsertab.type('input[type="password"]', password);
 	await clickNext(browsertab);
 
-	await browsertab.waitForResponse((resp) => {return resp.url().startsWith("http://localhost:31001/callback?");})
+	await browsertab.waitForResponse((resp) => {return resp.url().startsWith("http://localhost:31001/");})
 };
 
 const waitUntilRender = function(browsertab) {

@@ -7,8 +7,10 @@
 {{ $Google_Client_ID := "863968914497-8u7d8610nhvnpdf52s3krtsqahlss5mv.apps.googleusercontent.com" }}
 {{ $Google_Client_secret := "x1LhmCCGk_5AHs3iGlRiyvOV" }}
 # Make sure that:
-#  - "http://localhost:31001/callback" is added in "Authorized redirect URIs"
-#  - ./tests/cluster/go-test/filter-oauth2/testdata/idp_google.js listens on http://localhost:31001/callback and redirects it to "{{ $AmbassadorURL }}/callback" (preserving the query string)
+#  - "http://localhost:31001/.ambassador/oauth2/redirection-endpoint" is added in "Authorized redirect URIs"
+#  - ./tests/cluster/go-test/filter-oauth2/testdata/idp_google.js listens on
+#     "http://localhost:31001/.ambassador/oauth2/redirection-endpoint" and redirects it to
+#     "{{$AmbassadorURL}}/.ambassador/oauth2/redirection-endpoint" (preserving the query string)
 #  - A test user account is set up (and configured in ./tests/cluster/go-test/filter-oauth2/testdata/idp_google.js)
 
 ---
@@ -19,7 +21,7 @@ metadata:
 spec:
   OAuth2:
     authorizationURL: "https://accounts.google.com/"
-    clientURL: http://localhost:31001/callback
+    clientURL: http://localhost:31001
     clientID: {{ $Google_Client_ID }}
     secret: {{ $Google_Client_secret }}
 ---

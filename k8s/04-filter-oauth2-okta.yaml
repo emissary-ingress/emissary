@@ -10,7 +10,7 @@
 {{ $Okta_Client_ID := "0oaeshpr0wKNbyWQn356" }}
 {{ $Okta_Client_Secret := "7Z-C1IIxDSzr1ICmZgnKt8G1_Mdtm2CpqvKSNnXd" }}
 # Make sure that:
-#  - "{{$AmbassadorURL}}/callback" is in the "Login redirect URIs" field
+#  - "{{$AmbassadorURL}}/.ambassador/oauth2/redirection-endpoint" is in the "Login redirect URIs" field
 #  - A test user account is set up (and configured in ./tests/cluster/go-test/filter-oauth2/testdata/idp_okta.js)
 
 ---

@@ -10,6 +10,7 @@ Behavior:
  * Feature: Developer portal will show swagger documentation for up to five services (or more with appropriate license)
  * Feature: local-devportal is now a standalone go binary with no external dependencies
  * `v1` license keys were not being used so augment them to include emails
+ * The OAuth2 redirection endpoint has moved from `/callback` to `/.ambassador/oauth2/redirection-endpoint`.  Migrating Pro users will need to notify thier IDP of the change.
 
 Other:
 

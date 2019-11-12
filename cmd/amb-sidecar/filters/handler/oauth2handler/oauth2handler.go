@@ -22,8 +22,9 @@ import (
 
 // OAuth2Filter looks up the appropriate Tenant and Rule objects from
 // the CRD Controller, and validates the signed JWT tokens when
-// present in the request.  If the request Path is "/callback", it
-// validates IDP requests and handles code exchange flow.
+// present in the request.  If the request Path is
+// "/.ambassador/oauth2/redirection-endpoint", it validates IDP
+// requests and handles code exchange flow.
 type OAuth2Filter struct {
 	PrivateKey *rsa.PrivateKey
 	PublicKey  *rsa.PublicKey
