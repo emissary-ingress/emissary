@@ -50,7 +50,7 @@ Ambassador Edge Stack supports several special labels:
 Note: In Envoy, labels are referred to as descriptors.
 
 ### Global Rate Limiting
-Rate limit labels can be configured on a global level within the [Ambassador Edge Stack Module](/reference/modules#the-ambassador-module).
+Rate limit labels can be configured on a global level within the [`ambassador Module`](/reference/modules#the-ambassador-module).
 
 ```yaml
 ---

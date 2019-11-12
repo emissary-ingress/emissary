@@ -24,7 +24,7 @@ In Ambassador Edge Stack, each engineer (or team) can be assigned its own *domai
 
 ## Default labels
 
-Ambassador Edge Stack allows setting a default label on every request. A default label is set on the `ambassador` module. For example:
+Ambassador Edge Stack allows setting a default label on every request. A default label is set on the `ambassador Module`. For example:
 
 ```yaml
 ---
@@ -42,8 +42,6 @@ config:
 ## External Rate Limit Service
 
 In order for Ambassador Edge Stack to rate limit, you need to implement a gRPC service that supports the Envoy [ratelimit.proto](https://github.com/datawire/ambassador/blob/master/ambassador/common/ratelimit/ratelimit.proto) interface. If you do not have the time or resources to implement your own rate limit service, [Ambassador Edge Stack](/pro) integrates a high performance, rate limiting service.
-
-
 
 Ambassador Edge Stack generates a gRPC request to the external rate limit service and provides a list of labels on which the rate limit service can base its decision to accept or reject the request:
 
@@ -98,6 +96,3 @@ The [Ambassador Edge Stack Rate Limiting Tutorial](/user-guide/rate-limiting-tut
 * [Rate limiting for API Gateways](https://blog.getambassador.io/rate-limiting-for-api-gateways-892310a2da02)
 * [Implementing a Java Rate Limiting Service for Ambassador Edge Stack](https://blog.getambassador.io/implementing-a-java-rate-limiting-service-for-the-ambassador-api-gateway-e09d542455da)
 * [Designing a Rate Limit Service for Ambassador Edge Stack](https://blog.getambassador.io/designing-a-rate-limiting-service-for-ambassador-f460e9fabedb)
-
-
-

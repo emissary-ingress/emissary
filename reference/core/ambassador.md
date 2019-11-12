@@ -76,7 +76,7 @@ config:
 # service_port: 8080
 
 # statsd configures Ambassador statistics. These values can be
-# set in the Ambassador module or in an environment variable.
+# set in the ambassador Module or in an environment variable.
 # For more information, see the [Statistics reference](/reference/statistics/#exposing-statistics-via-statsd)
 
 # use_proxy_protocol controls whether Envoy will honor the PROXY

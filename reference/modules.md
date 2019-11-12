@@ -4,7 +4,7 @@ Modules let you enable and configure special behaviors for Ambassador Edge Stack
 
 ## Module configuration
 
-Modules can be added as annotations to an existing Kubernetes service, e.g., the Ambassador Edge Stack service. They can also be implemented as independent Kubernetes Custom Resource Definitions (CRDs). Here is a sample configuration of the core Ambassador Edge Stack `Module`:
+Modules can be added as annotations to an existing Kubernetes service, e.g., the Ambassador Edge Stack service. They can also be implemented as independent Kubernetes Custom Resource Definitions (CRDs). Here is a sample configuration of the core `ambassador Module`:
 
 ```
 ---
@@ -71,5 +71,3 @@ The ['tls'](/reference/core/tls) module covers TLS configuration.
 ## The `authentication` Module
 
 The `authentication` module is now deprecated. Use the [AuthService](/reference/services/auth-service) manifest type instead.
-
-

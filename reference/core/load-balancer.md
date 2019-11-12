@@ -1,6 +1,6 @@
 # Load Balancing in Ambassador Edge Stack
 
-Load balancing configuration can be set for all Ambassador Edge Stackmappings in the [ambassador](/reference/core/ambassador) module, or set per [mapping](https://www.getambassador.io/reference/mappings#configuring-mappings). If nothing is set, simple round robin balancing is used via Kubernetes services.
+Load balancing configuration can be set for all Ambassador Edge Stackmappings in the [ambassador](/reference/core/ambassador) module, or set per [mapping](/reference/mappings#configuring-mappings). If nothing is set, simple round robin balancing is used via Kubernetes services.
 
 To use advanced load balancing, you must first configure a [resolver](/reference/core/resolvers) that supports advanced load balancing (e.g., the Kubernetes Endpoint Resolver or Consul Resolver). Once a resolver is configured, you can use the `load_balancer` attribute. The following fields are supported:
 
@@ -15,7 +15,7 @@ Supported load balancer policies:
 - `ring_hash`
 - `maglev`
 
-For more information on the different policies and the implications, see [load balancing strategies in Kubernetes](https://blog.getambassador.io/load-balancing-strategies-in-kubernetes-l4-round-robin-l7-round-robin-ring-hash-and-more-6a5b81595d6c?source=collection_home---4------0---------------------).
+For more information on the different policies and the implications, see [load balancing strategies in Kubernetes](https://blog.getambassador.io/load-balancing-strategies-in-kubernetes-l4-round-robin-l7-round-robin-ring-hash-and-more-6a5b81595d6c).
 
 ## Round Robin
 When policy is set to `round_robin`, Ambassador Edge Stack discovers healthy endpoints for the given mapping, and load balances the incoming L7 requests in a round robin fashion. For example:
