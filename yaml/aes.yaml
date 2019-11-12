@@ -1,5 +1,3 @@
-# @TEMPLATE@
-
 ######################################################################
 # 'ambassador' namespace.
 ---
@@ -21,7 +19,6 @@ metadata:
   labels:
     product: aes
 rules:
-# Regular Ambassador access requirements
 - apiGroups: [""]
   resources: [ "endpoints", "namespaces", "services" ]
   verbs: ["get", "list", "watch"]
@@ -43,7 +40,6 @@ rules:
 - apiGroups: [ "extensions" ]
   resources: [ "ingresses/status" ]
   verbs: ["update"]
-# Ambassador Pro access requirements.  Also gets "create" for secrets.
 - apiGroups: [""]
   resources: [ "secrets" ]
   verbs: ["get", "list", "watch", "create", "update"]
@@ -152,6 +148,7 @@ data:
 apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
+  # This Mapping name is referenced by convention, it's important to leave as-is.
   name: ambassador-devportal
   namespace: ambassador
   labels:
@@ -159,15 +156,12 @@ metadata:
 spec:
   prefix: /documentation/
   rewrite: "/docs/"
-  add_response_headers:
-    x-test-proto: "%PROTOCOL%"
-    x-test-ip: "%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%"
-    x-test-static: This is apro mapping
   service: "127.0.0.1:8500"
 ---
 apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
+  # This Mapping name is referenced by convention, it's important to leave as-is.
   name: ambassador-devportal-api
   namespace: ambassador
   labels:
@@ -175,10 +169,6 @@ metadata:
 spec:
   prefix: /openapi/
   rewrite: ""
-  add_response_headers:
-    x-test-proto: "%PROTOCOL%"
-    x-test-ip: "%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%"
-    x-test-static: This is apro api mapping
   service: "127.0.0.1:8500"
 ---
 apiVersion: getambassador.io/v2
@@ -281,8 +271,16 @@ spec:
       labels:
         service: ambassador
     spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    service: ambassador
+                topologyKey: kubernetes.io/hostname
       serviceAccountName: ambassador
-      terminationGracePeriodSeconds: 0
       imagePullSecrets:
       - name: aes-pull-secret
       containers:
