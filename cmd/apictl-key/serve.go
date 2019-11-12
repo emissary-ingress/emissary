@@ -5,11 +5,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/datawire/apro/lib/licensekeys"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"os"
+	"strings"
 	"time"
+
+	"github.com/datawire/apro/lib/licensekeys"
 
 	"github.com/spf13/cobra"
 )
@@ -22,6 +25,23 @@ func encode(value interface{}) []byte {
 		panic(err)
 	}
 	return bytes
+}
+
+func getEdgectlStable() string {
+	const fallback = "0.8.0"
+	res, err := http.Get("https://s3.amazonaws.com/datawire-static-files/edgectl/stable.txt")
+	if err != nil {
+		return fallback
+	}
+	data, err := ioutil.ReadAll(res.Body)
+	res.Body.Close()
+	if err != nil {
+		return fallback
+	}
+	if res.StatusCode != http.StatusOK {
+		return fallback
+	}
+	return strings.TrimSpace(string(data))
 }
 
 func init() {
@@ -107,6 +127,19 @@ func init() {
 				panic(err)
 			}
 		})
+
+		http.HandleFunc("/darwin/edgectl", func(w http.ResponseWriter, r *http.Request) {
+			version := getEdgectlStable()
+			url := fmt.Sprintf("https://datawire-static-files.s3.amazonaws.com/edgectl/%s/darwin/amd64/edgectl", version)
+			http.Redirect(w, r, url, http.StatusFound) // 302
+		})
+
+		http.HandleFunc("/linux/edgectl", func(w http.ResponseWriter, r *http.Request) {
+			version := getEdgectlStable()
+			url := fmt.Sprintf("https://datawire-static-files.s3.amazonaws.com/edgectl/%s/linux/amd64/edgectl", version)
+			http.Redirect(w, r, url, http.StatusFound) // 302
+		})
+
 		return http.ListenAndServe(":8080", nil)
 	}
 
