@@ -16,31 +16,32 @@
 
 set -o errexit
 
-version=$(make version)
+binary_version="$(make version)"
+release_version="$(./builder/builder.sh release-version)"
 
 case "$1" in
     version)
-        echo "$version"
+        echo "$release_version"
         ;;
     build)
         if [ -n "$(builder/builder.sh builder)" ]; then
             # Copy binary from container
             docker cp "$(builder/builder.sh builder):/buildroot/bin/edgectl" ~/bin/edgectl
         else
-            go build -trimpath -ldflags "-X main.Version=$version" -o ~/bin/edgectl ./cmd/edgectl
+            go build -trimpath -ldflags "-X main.Version=$binary_version" -o ~/bin/edgectl ./cmd/edgectl
         fi
         ;;
     push)
         # Push this OS/arch binary
         aws s3api put-object \
             --bucket datawire-static-files \
-            --key "edgectl/$version/$(go env GOOS)/$(go env GOARCH)/edgectl" \
+            --key "edgectl/$release_version/$(go env GOOS)/$(go env GOARCH)/edgectl" \
             --body ~/bin/edgectl
         ;;
     tag)
         # Update latest.txt
         pushtmp=$(mktemp -d)
-        echo "$version" > "${pushtmp}/latest.txt"
+        echo "$release_version" > "${pushtmp}/latest.txt"
         aws s3api put-object \
             --bucket datawire-static-files \
             --key edgectl/latest.txt \
