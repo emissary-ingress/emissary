@@ -14,10 +14,10 @@ metadata:
       ---
       apiVersion: ambassador/v1
       kind: Mapping
+      name: aes-backend-signup
       ambassador_id: metriton
       prefix: /signup
       rewrite: /signup
-      name: aes-backend
       service: aes-backend
       ---
       apiVersion: ambassador/v1
