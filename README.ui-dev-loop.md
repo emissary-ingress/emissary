@@ -7,13 +7,13 @@ Run all these commands from the root of your apro checkout:
    Select a Docker image containing amb-sidecar.  You can create one
    named `aes:latest` by running `make images`, or the latest RC can
    be downloaded from `quay.io/datawire-dev/aes:0.99.0-rc-latest`.
-   
+
    Then run the following command (use the appropriate Docker image
    name instead of `aes:latest`):
 
    ```sh
    docker run -it \
-       --volume=$PWD/cmd/amb-sidecar/webui/bindata:/ambassador/webui/bindata \
+       --volume=$(pwd)/cmd/amb-sidecar/webui/bindata:/ambassador/webui/bindata \
        --env=DEV_WEBUI_PORT=9000 --publish=9000:9000 \
        --entrypoint=/ambassador/sidecars/amb-sidecar \
        aes:latest

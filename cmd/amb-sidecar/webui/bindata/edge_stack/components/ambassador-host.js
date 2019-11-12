@@ -36,9 +36,13 @@ export class AmbassadorHost extends LitElement {
     this.email = '';
     this.yaml = '';
     this.output = '';
+  }
 
+  onMount() {
     this.fetchNewTosUrl();
   }
+
+  onUnmount() {}
 
   fetchNewTosUrl() {
     let url = new URL('tos-url', window.location);

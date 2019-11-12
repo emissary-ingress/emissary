@@ -9,82 +9,85 @@
 
     <!--Admin style definitions-->
     <style>
-
       body {
-	  font-family: Source Sans Pro,sans-serif;
-	  margin-left: 2em;
-	  margin-right: 2em;
-      }
-      #all-wrapper {
-	  width: 80%;
-	  margin-left: 10%;
-      }
-      #ambassador-logo {
-	  background-color: white;
-	  padding: 5px;
-	  width: 456px;
-	  height: 42px;
-          margin: auto;
-	  margin-bottom: 1em;
-      }
-      div.info-blob {
-	  border: 1px solid #ede7f3;
-	  box-shadow: 0 2px 4px rgba(0,0,0,.1);
-	  padding: 0.5em;
-	  margin-bottom: 0.6em;
-	  line-height: 1.3;
-      }
-      div.info-blob2 {
-	  border: thin solid grey;
-	  border-radius: 0.4em;
-	  padding: 0.5em;
-	  margin-bottom: 0.6em;
-	  line-height: 1.3;
-      }
-      div.info-title {
-	  font-weight: bold;
-	  font-size: 120%;
-      }
-      span.command {
-	  background-color: #f5f2f0;;
-	  padding: 3px;
-	  letter-spacing: .2px;
-	  font-family: Consolas,Monaco,Andale Mono,Ubuntu Mono,monospace;
-	  font-size: 90%;
-	  word-spacing: normal;
-	  word-break: normal;
-	  word-wrap: normal;
-	  hypens: none;
-      }
-      div.overage-alert {
-	  border: 3px solid red;
-	  border-radius: 0.7em;
-	  padding: 0.5em;
-	  background-color: #FFe8e8;
+        font-family: Source Sans Pro, sans-serif;
+        margin-left: 2em;
+        margin-right: 2em;
       }
 
+      #all-wrapper {
+        width: 80%;
+        margin-left: 10%;
+      }
+
+      #ambassador-logo {
+        background-color: black;
+        padding: 5px;
+        width: 456px;
+        height: 42px;
+        margin-bottom: 1em
+      }
+
+      div.info-blob {
+        border: 1px solid #ede7f3;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, .1);
+        padding: 0.5em;
+        margin-bottom: 0.6em;
+        line-height: 1.3;
+      }
+
+      div.info-blob2 {
+        border: thin solid grey;
+        border-radius: 0.4em;
+        padding: 0.5em;
+        margin-bottom: 0.6em;
+        line-height: 1.3;
+      }
+
+      div.info-title {
+        font-weight: bold;
+        font-size: 120%;
+      }
+
+      span.command {
+        background-color: #f5f2f0;
+        ;
+        padding: 3px;
+        letter-spacing: .2px;
+        font-family: Consolas, Monaco, Andale Mono, Ubuntu Mono, monospace;
+        font-size: 90%;
+        word-spacing: normal;
+        word-break: normal;
+        word-wrap: normal;
+        hypens: none;
+      }
+
+      div.overage-alert {
+        border: 3px solid red;
+        border-radius: 0.7em;
+        padding: 0.5em;
+        background-color: #FFe8e8;
+      }
     </style>
 
 
     <style>
-
-      div.host, div.mapping {
-          padding: 1em 1em;
+      div.host,
+      div.mapping {
+        padding: 1em 1em;
       }
 
       span.json {
-          unicode-bidi: embed;
-          font-family: monospace;
+        unicode-bidi: embed;
+        font-family: monospace;
       }
 
       details {
-          margin-left: 1em;
+        margin-left: 1em;
       }
-
     </style>
-    <script type="module" src="tabs.js"></script>
-    <script type="module" src="signup.js"></script>
   </head>
+
   <body>
     <div id="all-wrapper">
       <div id="ambassador-logo">
@@ -145,10 +148,18 @@
   </body>
 
   <!-- Scripts -->
+  <script async defer type="module" src="https://cdn.pika.dev/-/lit-element/2.2.1/dist-es2019/lit-element.min.js"></script>
+  <script async defer type="module" src="/edge_stack/components/context.js"></script>
+  <script async defer type="module" src="/edge_stack/components/login-gate.js"></script>
+  <script async defer type="module" src="/edge_stack/components/tabs.js"></script>
+  <script async defer type="module" src="/edge_stack/components/signup.js"></script>
+  <script async defer type="module" src="/edge_stack/components/mapping-data.js"></script>
+  <script async defer type="module" src="/edge_stack/components/aes-mappings.js"></script>
+
   <script type="text/javascript">
     $.ajaxSetup({
       beforeSend: (xhr, settings) => {
-	xhr.setRequestHeader("Authorization", "Bearer " + window.location.hash.slice(1));
+        xhr.setRequestHeader("Authorization", "Bearer " + window.location.hash.slice(1));
       }
     });
 
@@ -174,7 +185,7 @@
       return $(`<div class="metadata" id="metadata"></div>`)
         .append(`<span class="name">${md.namespace}/${md.name}</span>`)
         .append($(`<details class="labels" id="labels"><summary>labels</summary></details>`)
-                .append(renderObj(md.labels)))
+          .append(renderObj(md.labels)))
     }
 
     function renderObj(obj, cls="obj") {
@@ -205,11 +216,11 @@
     }
 
     function render() {
-      $.getJSON("/edge_stack/api/snapshot", data=>{
+      $.getJSON("/edge_stack/api/snapshot", data => {
         $(".auth").each((i, e) => {
           href = e.getAttribute("href")
           if (!href.includes("#")) {
-            e.setAttribute("href", href+window.location.hash)
+            e.setAttribute("href", href + window.location.hash)
           }
         })
 
@@ -220,7 +231,7 @@
         }
 
         let opened = new Set()
-        $("details[open]").each((i, e)=>opened.add(path(e)))
+        $("details[open]").each((i, e) => opened.add(path(e)))
 
         let hosts = kube.Host || []
         let hostsDiv = $("#hosts").empty()
@@ -241,52 +252,40 @@
           mappingsDiv.append(`<p>There are no mappings defined.`)
         }
 
-        $("details").each((i, e)=>{
+        $("details").each((i, e) => {
           if (opened.has(path(e))) {
             e.setAttribute("open", "")
           }
         })
 
-        // We default the main section of the page to invisible until
-        // we get at least one successful interaction with the server
-        // so that we don't flash an empty set of hosts and mappings
-        // before redirect to login.
-        $("#main").show()
-
         setTimeout(render, 1000)
-      }).fail(xhr=>{
-        if (xhr.status == 401 || xhr.status == 403) {
-          window.location.replace("../login/")
-        } else {
-          console.log(xhr)
-        }
-      })
+      }).fail(xhr => console.log('Failed XHR', xhr));
     }
 
     $(render)
 
-    $(()=>{
-      $("#add-mapping").click((e)=>{
-        e.target.style.display="none";
+    $(() => {
+      $("#add-mapping").click((e) => {
+        e.target.style.display = "none";
         $("#add-mapping-form").show()
       })
 
-      $("#add-mapping-button").click((e)=>{
+      $("#add-mapping-button").click((e) => {
         let yaml = `
----
-apiVersion: getambassador.io/v1
-kind: Mapping
-metadata:
-  name: "${$("#add-mapping-name").val()}"
-  namespace: default
-spec:
-  prefix: "${$("#add-mapping-prefix").val()}"
-  rewrite: "${$("#add-mapping-rewrite").val()}"
-  service: "${$("#add-mapping-target").val()}"
-`
-        $.post("/edge_stack/api/apply", yaml, null, "text").fail(xhr=>{
+  ---
+  apiVersion: getambassador.io/v1
+  kind: Mapping
+  metadata:
+    name: "${$("#add-mapping-name").val()}"
+    namespace: default
+  spec:
+    prefix: "${$("#add-mapping-prefix").val()}"
+    rewrite: "${$("#add-mapping-rewrite").val()}"
+    service: "${$("#add-mapping-target").val()}"
+  `
+        $.post("/edge_stack/api/apply", yaml, null, "text").fail(xhr => {
           alert("BAD\n\n" + yaml + "\n\n" + xhr.responseText)
-        }).done(resp=>{
+        }).done(resp => {
           alert("OK\n" + resp)
         })
 
@@ -294,5 +293,5 @@ spec:
         $("#add-mapping").show()
       })
     })
-    </script>
+  </script>
 </html>
