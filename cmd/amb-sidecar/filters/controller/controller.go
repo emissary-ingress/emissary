@@ -93,7 +93,13 @@ func (e *NotThisAmbassadorError) Error() string {
 	return e.Message
 }
 
-func processFilterSpec(filter k8s.Resource, cfg types.Config, coreClient *k8sClientCoreV1.CoreV1Client, licenseClaims *licensekeys.LicenseClaimsLatest) FilterInfo {
+func processFilterSpec(
+	filter k8s.Resource,
+	cfg types.Config,
+	coreClient *k8sClientCoreV1.CoreV1Client,
+	licenseClaims *licensekeys.LicenseClaimsLatest,
+	haveRedis bool,
+) FilterInfo {
 	if cfg.AmbassadorSingleNamespace && filter.Namespace() != cfg.AmbassadorNamespace {
 		return FilterInfo{Err: &NotThisAmbassadorError{
 			Message: fmt.Sprintf("AMBASSADOR_SINGLE_NAMESPACE: .metadata.namespace=%q != AMBASSADOR_NAMESPACE=%q", filter.Namespace(), cfg.AmbassadorNamespace),
@@ -128,6 +134,9 @@ func processFilterSpec(filter k8s.Resource, cfg types.Config, coreClient *k8sCli
 	case spec.OAuth2 != nil:
 		ret.Err = spec.OAuth2.Validate(filter.Namespace(), coreClient)
 		ret.Spec = *spec.OAuth2
+		if ret.Err == nil && !haveRedis {
+			ret.Err = errors.Errorf("filter disabled because Redis does not seem to be available")
+		}
 		if ret.Err == nil {
 			ret.Desc = fmt.Sprintf("oauth2_domain=%s, oauth2_client_id=%s", spec.OAuth2.Domain(), spec.OAuth2.ClientID)
 		}
@@ -176,7 +185,12 @@ func processFilterSpec(filter k8s.Resource, cfg types.Config, coreClient *k8sCli
 }
 
 // Watch monitor changes in k8s cluster and updates rules
-func (c *Controller) Watch(ctx context.Context, kubeinfo *k8s.KubeInfo, licenseClaims *licensekeys.LicenseClaimsLatest) error {
+func (c *Controller) Watch(
+	ctx context.Context,
+	kubeinfo *k8s.KubeInfo,
+	licenseClaims *licensekeys.LicenseClaimsLatest,
+	haveRedis bool,
+) error {
 	c.storeRules([]crd.Rule{})
 	c.storeFilters(map[string]FilterInfo{})
 
@@ -198,7 +212,7 @@ func (c *Controller) Watch(ctx context.Context, kubeinfo *k8s.KubeInfo, licenseC
 	w.Watch("filters", func(w *k8s.Watcher) {
 		filters := map[string]FilterInfo{}
 		for _, mw := range w.List("filters") {
-			filterInfo := processFilterSpec(mw, c.Config, coreClient, licenseClaims)
+			filterInfo := processFilterSpec(mw, c.Config, coreClient, licenseClaims, haveRedis)
 			if filterInfo.Err != nil {
 				if _, notThisAmbassador := filterInfo.Err.(*NotThisAmbassadorError); notThisAmbassador {
 					c.Logger.Debugf("ignoring filter resource %q: %v", mw.QName(), filterInfo.Err)
