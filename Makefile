@@ -69,7 +69,9 @@ version-check: .common-pkgs.txt apro-abi@$(APRO_VERSION).pkgs.txt
 
 clean:
 	rm -f -- *.so .docker.stamp .common-pkgs.txt .tmp.* .var.* Dockerfile apro-abi@*
+ifeq "$(container.ID)" ""
 	docker kill $(container.ID)
+endif	
 .PHONY: clean
 
 .DELETE_ON_ERROR:
