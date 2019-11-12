@@ -4,9 +4,9 @@ Run all these commands from the root of your apro checkout:
 
 1. To run a stubbed out webui, in terminal 1:
 
-   Select a Docker image containing amb-sidecar.  You can create on
+   Select a Docker image containing amb-sidecar.  You can create one
    named `aes:latest` by running `make images`, or the latest RC can
-   be downloaded from `quay.io/datawire-dev/aes:0.10.0-rc-latest`.
+   be downloaded from `quay.io/datawire-dev/aes:0.99.0-rc-latest`.
    
    Ensure that your `KUBECONFIG` environmet variable is set.
 
@@ -33,6 +33,29 @@ Run all these commands from the root of your apro checkout:
    ```
 
    This will load some interesting data into the sidecar. This can let
-   you test out the UI with different data/states.
+   you test out the UI with different data/states. Note there are
+   other snapshots in the ui_devlooop directory.
 
-5. Goto (4).
+5. Goto (3).
+
+# UI Dev Big Picture
+
+Almost all user supplied ambassador inputs are CRDs and/or existing
+kubernetes resources. (There are some minor exceptions in the form of
+environment variables and files defined in the deployment. These
+exceptions are one-time setup/bootstrap configuration.)
+
+Ambassador communicates with users by watching for certain CRDs and
+kubernetes resources to be defined, and by updateing the status fields
+of those resources to provide user feedback.
+
+The UI is really just a way to render some/all of the ambassador
+inputs graphically in a way that is helpful to users, as well as
+supplying controls to allow a user to quickly produce new/updated yaml
+manifests and either directly apply them to the cluster or download
+them to check into git and/or apply by hand.
+
+There are (primarily) two backend endpoints that the UI leverages:
+
+/edge_stack/api/snapshot --> Returns the raw watt snapshot.
+/edge_stack/api/apply --> Applies kubernetes yaml to the cluster.
