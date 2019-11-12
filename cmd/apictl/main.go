@@ -2,13 +2,13 @@ package main
 
 import (
 	"fmt"
-	"github.com/datawire/apro/lib/metriton"
 	"os"
 	"runtime"
 
 	"github.com/spf13/cobra"
 
 	"github.com/datawire/apro/lib/licensekeys"
+	"github.com/datawire/apro/lib/metriton"
 )
 
 var apictl = &cobra.Command{

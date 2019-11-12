@@ -4,15 +4,15 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/datawire/apro/cmd/amb-sidecar/limiter"
-	"github.com/jpillora/backoff"
 	"net/http"
 	"os"
 	"time"
 
-	"github.com/datawire/apro/lib/licensekeys"
-
 	"github.com/google/uuid"
+	"github.com/jpillora/backoff"
+
+	"github.com/datawire/apro/cmd/amb-sidecar/limiter"
+	"github.com/datawire/apro/lib/licensekeys"
 )
 
 type MetritonResponse struct {
@@ -45,7 +45,7 @@ func PhoneHome(claims *licensekeys.LicenseClaimsLatest, limiter *limiter.Limiter
 		if err != nil {
 			d := b.Duration()
 			if b.Attempt() >= 8 {
-				fmt.Printf("Metriton error after %d attemps: %v\n", int(b.Attempt()), err)
+				fmt.Printf("Metriton error after %d attempts: %v\n", int(b.Attempt()), err)
 				b.Reset()
 				break
 			}

@@ -1,11 +1,13 @@
 package banner
 
 import (
-	"github.com/datawire/apro/cmd/amb-sidecar/limiter"
-	"github.com/datawire/apro/lib/licensekeys"
-	"github.com/mediocregopher/radix.v2/pool"
 	"html/template"
 	"net/http"
+
+	"github.com/mediocregopher/radix.v2/pool"
+
+	"github.com/datawire/apro/cmd/amb-sidecar/limiter"
+	"github.com/datawire/apro/lib/licensekeys"
 )
 
 type banner struct {

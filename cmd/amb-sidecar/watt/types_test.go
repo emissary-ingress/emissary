@@ -1,10 +1,10 @@
 package watt_test
 
 import (
+	"encoding/json"
 	"io/ioutil"
 	"path/filepath"
 	"testing"
-	"encoding/json"
 
 	"github.com/datawire/apro/cmd/amb-sidecar/watt"
 )

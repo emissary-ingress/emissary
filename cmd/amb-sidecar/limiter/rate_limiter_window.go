@@ -2,12 +2,14 @@ package limiter
 
 import (
 	"fmt"
-	"github.com/datawire/apro/lib/licensekeys"
+	"math/rand"
+	"time"
+
 	"github.com/mediocregopher/radix.v2/pool"
 	"github.com/mediocregopher/radix.v2/redis"
 	"github.com/pkg/errors"
-	"math/rand"
-	"time"
+
+	"github.com/datawire/apro/lib/licensekeys"
 )
 
 // RateLimiter limits on sliding window.

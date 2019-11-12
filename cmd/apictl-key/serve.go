@@ -5,13 +5,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/datawire/apro/lib/licensekeys"
 	"io"
 	"net/http"
 	"os"
 	"time"
 
 	"github.com/spf13/cobra"
+
+	"github.com/datawire/apro/lib/licensekeys"
 )
 
 var hubspotKey = os.Getenv("HUBSPOT_API_KEY")

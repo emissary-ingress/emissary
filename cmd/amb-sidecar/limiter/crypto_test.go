@@ -1,11 +1,11 @@
 package limiter
 
 import (
-	"time"
 	"testing"
+	"time"
 
-	. "github.com/onsi/gomega"
 	jwt "github.com/dgrijalva/jwt-go"
+	. "github.com/onsi/gomega"
 
 	"github.com/datawire/apro/lib/licensekeys"
 )

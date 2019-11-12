@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/datawire/apro/lib/metriton"
 	"io/ioutil"
 	_log "log"
 	"math"
@@ -15,6 +14,7 @@ import (
 
 	"github.com/datawire/apro/cmd/app-sidecar/longpoll"
 	"github.com/datawire/apro/lib/licensekeys"
+	"github.com/datawire/apro/lib/metriton"
 )
 
 var log = _log.New(os.Stderr, "", _log.LstdFlags)

@@ -1,13 +1,14 @@
 package licensekeys
 
 import (
-	"github.com/pkg/errors"
-	flag "github.com/spf13/pflag"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
+
+	"github.com/pkg/errors"
+	flag "github.com/spf13/pflag"
 )
 
 // userConfigDir returns the default directory to use for

@@ -15,8 +15,8 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	devportalcontent "github.com/datawire/apro/cmd/amb-sidecar/devportal/content"
-	"github.com/datawire/apro/cmd/amb-sidecar/limiter/mocks"
 	devportalserver "github.com/datawire/apro/cmd/amb-sidecar/devportal/server"
+	"github.com/datawire/apro/cmd/amb-sidecar/limiter/mocks"
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
 )
 

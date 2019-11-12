@@ -3,7 +3,6 @@ package handler
 import (
 	"context"
 	"crypto/rsa"
-	"github.com/datawire/apro/cmd/amb-sidecar/limiter"
 	"net/http"
 	"net/url"
 	"strings"
@@ -20,6 +19,7 @@ import (
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/jwthandler"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/middleware"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/oauth2handler"
+	"github.com/datawire/apro/cmd/amb-sidecar/limiter"
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
 	"github.com/datawire/apro/lib/filterapi"
 	"github.com/datawire/apro/lib/filterapi/filterutil"
