@@ -233,7 +233,7 @@ func runE(cmd *cobra.Command, args []string) error {
 	if cfg.RedisURL != "" {
 		redisPool, redisPoolErr = pool.New(cfg.RedisSocketType, cfg.RedisURL, cfg.RedisPoolSize)
 		if redisPoolErr != nil {
-			logrusLogger.Errorf("redis pool configured but unavailable on startup: %v", err)
+			return errors.Wrap(redisPoolErr, "redis pool configured but unavailable")
 		}
 	}
 	if redisPool == nil {
@@ -311,10 +311,6 @@ func runE(cmd *cobra.Command, args []string) error {
 
 		statsStore := stats.NewDefaultStore()
 		statsStore.AddStatGenerator(stats.NewRuntimeStats(statsStore.Scope("go")))
-
-		if redisPoolErr != nil {
-			return errors.Wrap(redisPoolErr, "redis pool")
-		}
 
 		var redisPerSecondPool *pool.Pool
 		var err error
