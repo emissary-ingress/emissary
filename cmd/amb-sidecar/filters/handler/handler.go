@@ -169,6 +169,10 @@ func (c *FilterMux) filter(ctx context.Context, request *filterapi.FilterRequest
 	sumResponse := &filterapi.HTTPRequestModification{}
 	for _, filterRef := range rule.Filters {
 		filterQName := filterRef.Name + "." + filterRef.Namespace
+		if !filterRef.IfRequestHeader.Matches(filterutil.GetHeader(request)) {
+			logger.Debugf("skipping filter=%q", filterQName)
+			continue
+		}
 		logger.Debugf("applying filter=%q", filterQName)
 
 		filterInfo := findFilter(c.Controller, filterQName)
@@ -232,10 +236,25 @@ func (c *FilterMux) filter(ctx context.Context, request *filterapi.FilterRequest
 		}
 		switch response := response.(type) {
 		case *filterapi.HTTPResponse:
-			return response, nil
+			switch filterRef.OnDeny {
+			case crd.FilterActionBreak:
+				return response, nil
+			case crd.FilterActionContinue:
+				// do nothing
+			default:
+				panic(errors.Errorf("unexpected filterRef.OnDeny: %q", filterRef.OnDeny))
+			}
 		case *filterapi.HTTPRequestModification:
 			filterutil.ApplyRequestModification(request, response)
 			sumResponse.Header = append(sumResponse.Header, response.Header...)
+			switch filterRef.OnAllow {
+			case crd.FilterActionBreak:
+				return sumResponse, nil
+			case crd.FilterActionContinue:
+				// do nothing
+			default:
+				panic(errors.Errorf("unexpected filterRef.OnAllow: %q", filterRef.OnAllow))
+			}
 		default:
 			panic(errors.Errorf("unexpected filter response type %T", response))
 		}
