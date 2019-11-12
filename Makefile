@@ -8,7 +8,7 @@ apro-abi@%.txt:
 %.mk: %.txt
 	{ \
 		sed -n 's/^# *_*/APRO_/p' < $<; \
-		echo APRO_GOENV = $$(sed -En 's/^# *([A-Z])/\1/p' < $<); \
+		echo APRO_GOENV=$$(sed -En 's/^# *([A-Z])/\1/p' < $<); \
 	} > $@
 %.pkgs.txt: %.txt
 	grep -v '^#' < $< > $@
@@ -46,7 +46,7 @@ download-docker:
 build-container:
 ifeq "$(container.ID)" ""
 	docker build -t plugin-builder --build-arg CUR_DIR=$(CURDIR) --build-arg AES_GOVERSION=$(APRO_GOVERSION)$(if $(filter 2,$(words $(subst ., ,$(APRO_GOVERSION)))),.0) --build-arg UID=$(shell id -u) build/
-	docker run --rm -d --env-file=${CURDIR}/build/goenv.txt plugin-builder
+	docker run --rm -d --env-file=${CURDIR}/apro-abi@$(APRO_VERSION).mk plugin-builder
 endif
 
 sync: build-container
