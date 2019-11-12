@@ -271,7 +271,7 @@ func runE(cmd *cobra.Command, args []string) error {
 		group.Go("auth_controller", func(hardCtx, softCtx context.Context, cfg types.Config, l types.Logger) error {
 			ct.Config = cfg
 			ct.Logger = l
-			return ct.Watch(softCtx, kubeinfo, licenseClaims, redisPool != nil)
+			return ct.Watch(softCtx, kubeinfo, redisPool != nil)
 		})
 	}
 
