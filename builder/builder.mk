@@ -54,6 +54,10 @@ sync: preflight
 	fi
 .PHONY: sync
 
+builder:
+	@$(BUILDER) builder
+.PHONY: builder
+
 version:
 	@$(BUILDER) version
 .PHONY: version
