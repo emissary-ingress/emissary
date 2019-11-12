@@ -3,13 +3,13 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"os"
 	"time"
 
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
 	"github.com/datawire/apro/lib/licensekeys"
@@ -63,6 +63,7 @@ func init() {
 				s.Email,
 				hubspotKey)
 
+			// #nosec G107
 			resp, err := http.Post(url, "application/json", bytes.NewBuffer(encode(map[string]interface{}{
 				"properties": []interface{}{
 					map[string]string{
@@ -88,6 +89,7 @@ func init() {
 			expiresAt := now.Add(time.Duration(365) * 24 * time.Hour)
 			communityLicenseClaims := licensekeys.NewCommunityLicenseClaims()
 			licenseKey := createTokenString(false, s.Email, s.Email, communityLicenseClaims.EnabledFeatures, communityLicenseClaims.EnforcedLimits, now, expiresAt)
+			// #nosec G107
 			resp, err = http.Post(url, "application/json", bytes.NewBuffer(encode(map[string]interface{}{
 				"properties": []interface{}{
 					map[string]string{

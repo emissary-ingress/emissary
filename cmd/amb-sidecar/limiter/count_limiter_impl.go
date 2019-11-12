@@ -112,7 +112,6 @@ func containsStrSlice(slice []string, item string) (bool, int) {
 		if s == item {
 			return true, idx
 		}
-		idx++
 	}
 
 	return false, -1
@@ -156,7 +155,7 @@ func (this *CountLimiterImpl) attemptToChange(incrementing bool, key string) (in
 	} else {
 		decryptedStr, err := this.cryptoEngine.DecryptString(val)
 		if err != nil {
-			return -1, errors.New("Invalid current limit")
+			return -1, errors.Wrap(err, "Invalid current limit")
 		}
 		keys = strings.Split(decryptedStr, ",")
 	}
@@ -181,6 +180,9 @@ func (this *CountLimiterImpl) attemptToChange(incrementing bool, key string) (in
 
 	joinedKey := strings.Join(keys, ",")
 	newEncryptedValue, err := this.cryptoEngine.EncryptString(joinedKey)
+	if err != nil {
+		return -1, err
+	}
 	err = rc.Cmd("SET", this.limit.String(), newEncryptedValue).Err
 	return len(keys), err
 }

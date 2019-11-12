@@ -169,8 +169,10 @@ func triggerOnChange(watchFile string, trigger func()) {
 						eventsWG.Done()
 						return
 					}
-				case err, _ := <-watcher.Errors:
-					logrusLogger.Errorln(err)
+				case err, ok := <-watcher.Errors:
+					if ok {
+						logrusLogger.Errorln(err)
+					}
 					eventsWG.Done()
 					return
 				}
