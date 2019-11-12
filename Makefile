@@ -53,6 +53,11 @@ lint: $(tools/golangci-lint)
 	}
 .PHONY: lint
 
+format: $(tools/golangci-lint)
+	$(tools/golangci-lint) run --fix ./... || true
+	(cd vendor-ratelimit && $(tools/golangci-lint) run --fix ./...) || true
+.PHONY: format
+
 deploy: test-ready
 	@docker exec -e AES_IMAGE=$(AMB_IMAGE) -it $(shell $(BUILDER)) kubeapply -f apro/k8s-aes
 	@printf "$(GRN)Your ambassador service IP:$(END) $(BLD)$$(docker exec -it $(shell $(BUILDER)) kubectl get -n ambassador service ambassador -o 'go-template={{range .status.loadBalancer.ingress}}{{print .ip "\n"}}{{end}}')$(END)\n"
