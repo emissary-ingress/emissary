@@ -22,6 +22,12 @@ Run all these commands from the root of your apro checkout:
        aes:latest
    ```
 
+   Alternatively, if you have go:
+
+   ```sh
+   DEV_WEBUI_DIR=${PWD}/cmd/amb-sidecar/webui/bindata APRO_HTTP_PORT=8501 DEV_WEBUI_PORT=9000 go run ./cmd/amb-sidecar
+   ```
+
 2. Visit http://localhost:9000 in your browser
 
 3. Hack away at the files in `${PWD}/cmd/amb-sidecar/webui/bindata/`
