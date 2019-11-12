@@ -64,15 +64,6 @@ Navigate to your new IP address in your browser. Assign a DNS name using the pro
 
 Go to http://&lt;your-host-name&gt; and follow the instructions to complete the install.
 
-## 5. Temporarily manually type the url
-
-<div style="border: thick solid red">
-<!-- TODO: fix red bordered text -->
-Temporarily, due to a bug in AES, after the "Complete the install" page shows that it is complete,
-you will need to manually enter http://&lt;your-host-name&gt;/admin to get to the next pages of
-the user interface.
-</div>
-
 
 ## Next Steps
 
