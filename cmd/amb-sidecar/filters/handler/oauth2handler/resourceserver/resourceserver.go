@@ -4,19 +4,18 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/datawire/ambassador/pkg/dlog"
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/pkg/errors"
-
-	rfc6749common "github.com/datawire/apro/common/rfc6749"
-	rfc6750resourceserver "github.com/datawire/apro/resourceserver/rfc6750"
 
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta2"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/middleware"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/oauth2handler/discovery"
-	"github.com/datawire/apro/cmd/amb-sidecar/types"
+	rfc6749common "github.com/datawire/apro/common/rfc6749"
 	"github.com/datawire/apro/lib/filterapi"
 	"github.com/datawire/apro/lib/filterapi/filterutil"
 	"github.com/datawire/apro/lib/jwtsupport"
+	rfc6750resourceserver "github.com/datawire/apro/resourceserver/rfc6750"
 )
 
 // OAuth2ResourceServer implements the OAuth Resource Server part of the Filter.
@@ -38,7 +37,7 @@ type OAuth2ResourceServer struct {
 // semantics), a FilterResponse of "nil" means to send the same
 // request to the upstream service (the other half of the Resource
 // Server).
-func (rs *OAuth2ResourceServer) Filter(ctx context.Context, logger types.Logger, httpClient *http.Client, discovered *discovery.Discovered, request *filterapi.FilterRequest, scope rfc6749common.Scope) filterapi.FilterResponse {
+func (rs *OAuth2ResourceServer) Filter(ctx context.Context, logger dlog.Logger, httpClient *http.Client, discovered *discovery.Discovered, request *filterapi.FilterRequest, scope rfc6749common.Scope) filterapi.FilterResponse {
 	// Validate the scope values we were granted.  We take the scope as an
 	// argument, instead of extracting it from the authorization, because there
 	// isn't actually a good portable way to extract it from the authorization.
@@ -56,7 +55,7 @@ func (rs *OAuth2ResourceServer) Filter(ctx context.Context, logger types.Logger,
 	return nil
 }
 
-func (rs *OAuth2ResourceServer) validateAccessToken(token string, discovered *discovery.Discovered, httpClient *http.Client, logger types.Logger) error {
+func (rs *OAuth2ResourceServer) validateAccessToken(token string, discovered *discovery.Discovered, httpClient *http.Client, logger dlog.Logger) error {
 	switch rs.Spec.AccessTokenValidation {
 	case "auto":
 		claims, err := rs.parseJWT(token, discovered)
@@ -133,7 +132,7 @@ func (rs *OAuth2ResourceServer) validateScope(actual rfc6749common.Scope) error 
 	}
 }
 
-func (rs *OAuth2ResourceServer) validateJWT(claims jwt.MapClaims, discovered *discovery.Discovered, logger types.Logger) error {
+func (rs *OAuth2ResourceServer) validateJWT(claims jwt.MapClaims, discovered *discovery.Discovered, logger dlog.Logger) error {
 	// Validate 'exp', 'iat', and 'nbf' claims.
 	if err := claims.Valid(); err != nil {
 		return err

@@ -25,6 +25,7 @@ import (
 	grpchealth "google.golang.org/grpc/health"
 
 	// first-party libraries
+	"github.com/datawire/ambassador/pkg/dlog"
 	"github.com/datawire/ambassador/pkg/k8s"
 	stats "github.com/lyft/gostats"
 
@@ -247,20 +248,20 @@ func runE(cmd *cobra.Command, args []string) error {
 	limit.SetRedisPool(redisPool)
 
 	// Initialize the errgroup we'll use to orchestrate the goroutines.
-	group := NewGroup(context.Background(), cfg, func(name string) types.Logger {
-		return types.WrapLogrus(logrusLogger).WithField("MAIN", name)
+	group := NewGroup(context.Background(), cfg, func(name string) dlog.Logger {
+		return dlog.WrapLogrus(logrusLogger).WithField("MAIN", name)
 	})
 
 	// Launch all of the worker goroutines...
 
 	if licenseWatch.Filename != "" {
-		group.Go("license_refresh", func(hardCtx, softCtx context.Context, cfg types.Config, l types.Logger) error {
+		group.Go("license_refresh", func(hardCtx, softCtx context.Context, cfg types.Config, l dlog.Logger) error {
 			triggerOnChange(softCtx, licenseWatch.Filename, licenseWatch.Callback)
 			return nil
 		})
 	}
 
-	group.Go("watt_shutdown", func(hardCtx, softCtx context.Context, cfg types.Config, l types.Logger) error {
+	group.Go("watt_shutdown", func(hardCtx, softCtx context.Context, cfg types.Config, l dlog.Logger) error {
 		<-softCtx.Done()
 		snapshotStore.Close()
 		return nil
@@ -268,7 +269,7 @@ func runE(cmd *cobra.Command, args []string) error {
 
 	// RateLimit controller
 	if limit.CanUseFeature(licensekeys.FeatureRateLimit) {
-		group.Go("ratelimit_controller", func(hardCtx, softCtx context.Context, cfg types.Config, l types.Logger) error {
+		group.Go("ratelimit_controller", func(hardCtx, softCtx context.Context, cfg types.Config, l dlog.Logger) error {
 			return rlscontroller.DoWatch(softCtx, cfg, l)
 		})
 	}
@@ -276,7 +277,7 @@ func runE(cmd *cobra.Command, args []string) error {
 	// Filter+FilterPolicy controller
 	ct := &controller.Controller{}
 	if limit.CanUseFeature(licensekeys.FeatureFilter) || limit.CanUseFeature(licensekeys.FeatureDevPortal) {
-		group.Go("auth_controller", func(hardCtx, softCtx context.Context, cfg types.Config, l types.Logger) error {
+		group.Go("auth_controller", func(hardCtx, softCtx context.Context, cfg types.Config, l dlog.Logger) error {
 			ct.Config = cfg
 			ct.Logger = l
 			return ct.Watch(softCtx, kubeinfo, redisPool != nil)
@@ -294,7 +295,7 @@ func runE(cmd *cobra.Command, args []string) error {
 			return err
 		}
 		devPortalServer = devportalserver.NewServer("/docs", content, limit)
-		group.Go("devportal_fetcher", func(hardCtx, softCtx context.Context, cfg types.Config, l types.Logger) error {
+		group.Go("devportal_fetcher", func(hardCtx, softCtx context.Context, cfg types.Config, l dlog.Logger) error {
 			fetcher := devportalserver.NewFetcher(devPortalServer, devportalserver.HTTPGet, devPortalServer.KnownServices(), cfg)
 			fetcher.Run(softCtx)
 			return nil
@@ -308,7 +309,7 @@ func runE(cmd *cobra.Command, args []string) error {
 		snapshotStore.Subscribe(),
 		coreClient,
 		dynamicClient)
-	group.Go("acme_client", func(hardCtx, softCtx context.Context, cfg types.Config, l types.Logger) error {
+	group.Go("acme_client", func(hardCtx, softCtx context.Context, cfg types.Config, l dlog.Logger) error {
 		if err := acmeclient.EnsureFallback(cfg, coreClient, dynamicClient); err != nil {
 			return err
 		}
@@ -317,7 +318,7 @@ func runE(cmd *cobra.Command, args []string) error {
 	})
 
 	// HTTP server
-	group.Go("http", func(hardCtx, softCtx context.Context, cfg types.Config, l types.Logger) error {
+	group.Go("http", func(hardCtx, softCtx context.Context, cfg types.Config, l dlog.Logger) error {
 		// A good chunk of this code mimics github.com/lyft/ratelimit/src/service_cmd/runner.Run()
 
 		statsStore := stats.NewDefaultStore()
@@ -427,13 +428,13 @@ func runE(cmd *cobra.Command, args []string) error {
 		l.Debugf("DEV_WEBUI_PORT=%q", cfg.DevWebUIPort)
 		if cfg.DevWebUIPort != "" {
 			l.Infof("Serving webui on %q", ":"+cfg.DevWebUIPort)
-			group.Go("webui_http", func(hardCtx, softCtx context.Context, cfg types.Config, l types.Logger) error {
+			group.Go("webui_http", func(hardCtx, softCtx context.Context, cfg types.Config, l dlog.Logger) error {
 				return util.ListenAndServeHTTPWithContext(hardCtx, softCtx, &http.Server{
 					Addr:     ":" + cfg.DevWebUIPort,
-					ErrorLog: l.WithField("SUB", "webui-server").StdLogger(types.LogLevelError),
+					ErrorLog: l.WithField("SUB", "webui-server").StdLogger(dlog.LogLevelError),
 					Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 						ctx := r.Context()
-						ctx = middleware.WithLogger(ctx, l.WithField("SUB", "webui-server/handler"))
+						ctx = dlog.WithLogger(ctx, l.WithField("SUB", "webui-server/handler"))
 						ctx = middleware.WithRequestID(ctx, "unknown")
 						r = r.WithContext(ctx)
 
@@ -458,14 +459,14 @@ func runE(cmd *cobra.Command, args []string) error {
 		// Launch the server
 		server := &http.Server{
 			Addr:     ":" + cfg.HTTPPort,
-			ErrorLog: l.WithField("SUB", "http-server").StdLogger(types.LogLevelError),
+			ErrorLog: l.WithField("SUB", "http-server").StdLogger(dlog.LogLevelError),
 			// The net/http.Server doesn't support h2c (unencrypted
 			// HTTP/2) built-in.  Since we want to have gRPC and plain
 			// HTTP/1 on the same unencrypted port, we need h2c.
 			// Fortunately, x/net has an h2c implementation we can use.
 			Handler: h2c.NewHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				ctx := r.Context()
-				ctx = middleware.WithLogger(ctx, l.WithField("SUB", "http-server/handler"))
+				ctx = dlog.WithLogger(ctx, l.WithField("SUB", "http-server/handler"))
 				ctx = middleware.WithRequestID(ctx, "unknown")
 				r = r.WithContext(ctx)
 

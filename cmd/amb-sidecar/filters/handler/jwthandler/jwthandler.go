@@ -6,10 +6,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/datawire/ambassador/pkg/dlog"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/pkg/errors"
-
-	"github.com/datawire/apro/resourceserver/rfc6750"
 
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta2"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/httpclient"
@@ -18,6 +17,7 @@ import (
 	"github.com/datawire/apro/lib/filterapi/filterutil"
 	"github.com/datawire/apro/lib/jwks"
 	"github.com/datawire/apro/lib/jwtsupport"
+	"github.com/datawire/apro/resourceserver/rfc6750"
 )
 
 func inArray(needle string, haystack []string) bool {
@@ -34,7 +34,7 @@ type JWTFilter struct {
 }
 
 func (h *JWTFilter) Filter(ctx context.Context, r *filterapi.FilterRequest) (filterapi.FilterResponse, error) {
-	logger := middleware.GetLogger(ctx)
+	logger := dlog.GetLogger(ctx)
 	httpClient := httpclient.NewHTTPClient(logger, 0, h.Spec.InsecureTLS, h.Spec.RenegotiateTLS)
 
 	tokenString := rfc6750.GetFromHeader(filterutil.GetHeader(r))

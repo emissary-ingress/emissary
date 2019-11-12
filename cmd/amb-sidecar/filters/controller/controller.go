@@ -11,8 +11,8 @@ import (
 
 	k8sClientCoreV1 "k8s.io/client-go/kubernetes/typed/core/v1"
 
+	"github.com/datawire/ambassador/pkg/dlog"
 	"github.com/datawire/ambassador/pkg/k8s"
-
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta2"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/httpclient"
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
@@ -21,7 +21,7 @@ import (
 
 // Controller is monitors changes in app configuration and policy custom resources.
 type Controller struct {
-	Logger  types.Logger
+	Logger  dlog.Logger
 	Config  types.Config
 	rules   atomic.Value
 	filters atomic.Value

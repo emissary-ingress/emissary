@@ -6,6 +6,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/datawire/ambassador/pkg/dlog"
 	"github.com/pkg/errors"
 	"golang.org/x/sync/errgroup"
 
@@ -19,12 +20,12 @@ type Group struct {
 	hardCtx       context.Context
 	softCtx       context.Context
 	cfg           types.Config
-	loggerFactory func(name string) types.Logger
+	loggerFactory func(name string) dlog.Logger
 	inner         *errgroup.Group
 }
 
 // NewGroup returns a new Group.
-func NewGroup(ctx context.Context, cfg types.Config, loggerFactory func(name string) types.Logger) *Group {
+func NewGroup(ctx context.Context, cfg types.Config, loggerFactory func(name string) dlog.Logger) *Group {
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 
@@ -69,7 +70,7 @@ func NewGroup(ctx context.Context, cfg types.Config, loggerFactory func(name str
 //
 //  - `softCtx` being canceled should trigger a graceful shutdown
 //  - `hardCtx` being canceled should trigger a not-so-graceful shutdown
-func (g *Group) Go(name string, fn func(hardCtx, softCtx context.Context, cfg types.Config, logger types.Logger) error) {
+func (g *Group) Go(name string, fn func(hardCtx, softCtx context.Context, cfg types.Config, logger dlog.Logger) error) {
 	g.inner.Go(func() error {
 		return fn(g.hardCtx, g.softCtx, g.cfg, g.loggerFactory(name))
 	})

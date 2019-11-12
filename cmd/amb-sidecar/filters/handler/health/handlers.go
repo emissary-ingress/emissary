@@ -1,8 +1,6 @@
 package health
 
-import (
-	"github.com/datawire/apro/cmd/amb-sidecar/types"
-)
+import "github.com/datawire/ambassador/pkg/dlog"
 
 type Probe interface {
 	Check() bool
@@ -30,7 +28,7 @@ func (p *StaticProbe) Check() bool {
 
 // MultiProbe executes zero or more probes.
 type MultiProbe struct {
-	Logger types.Logger
+	Logger dlog.Logger
 	probes map[string]Probe
 }
 

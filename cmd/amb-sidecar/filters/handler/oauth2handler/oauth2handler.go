@@ -5,6 +5,7 @@ import (
 	"crypto/rsa"
 	"net/http"
 
+	"github.com/datawire/ambassador/pkg/dlog"
 	"github.com/mediocregopher/radix.v2/pool"
 	"github.com/mediocregopher/radix.v2/redis"
 	"github.com/pkg/errors"
@@ -16,7 +17,6 @@ import (
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/oauth2handler/client/client_credentials_client"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/oauth2handler/discovery"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/oauth2handler/resourceserver"
-	"github.com/datawire/apro/cmd/amb-sidecar/types"
 	"github.com/datawire/apro/lib/filterapi"
 )
 
@@ -34,12 +34,12 @@ type OAuth2Filter struct {
 }
 
 type OAuth2Client interface {
-	Filter(ctx context.Context, logger types.Logger, httpClient *http.Client, discovered *discovery.Discovered, redisClient *redis.Client, request *filterapi.FilterRequest) filterapi.FilterResponse
+	Filter(ctx context.Context, logger dlog.Logger, httpClient *http.Client, discovered *discovery.Discovered, redisClient *redis.Client, request *filterapi.FilterRequest) filterapi.FilterResponse
 	ServeHTTP(w http.ResponseWriter, r *http.Request, ctx context.Context, discovered *discovery.Discovered, redisClient *redis.Client)
 }
 
 func (f *OAuth2Filter) Filter(ctx context.Context, request *filterapi.FilterRequest) (filterapi.FilterResponse, error) {
-	logger := middleware.GetLogger(ctx)
+	logger := dlog.GetLogger(ctx)
 	httpClient := httpclient.NewHTTPClient(logger, f.Spec.MaxStale, f.Spec.InsecureTLS, f.Spec.RenegotiateTLS)
 
 	discovered, err := discovery.Discover(httpClient, f.Spec, logger)
@@ -91,7 +91,7 @@ func (f *OAuth2Filter) Filter(ctx context.Context, request *filterapi.FilterRequ
 
 func (f *OAuth2Filter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	logger := middleware.GetLogger(ctx)
+	logger := dlog.GetLogger(ctx)
 	httpClient := httpclient.NewHTTPClient(logger, f.Spec.MaxStale, f.Spec.InsecureTLS, f.Spec.RenegotiateTLS)
 
 	discovered, err := discovery.Discover(httpClient, f.Spec, logger)

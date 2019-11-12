@@ -12,14 +12,14 @@ import (
 	"github.com/pkg/errors"
 	yaml "gopkg.in/yaml.v2"
 
+	"github.com/datawire/ambassador/pkg/dlog"
 	"github.com/datawire/ambassador/pkg/k8s"
-
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta2"
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
 	"github.com/datawire/apro/lib/mapstructure"
 )
 
-var rlslog types.Logger
+var rlslog dlog.Logger
 
 func max(a, b int) int {
 	if a > b {
@@ -29,7 +29,7 @@ func max(a, b int) int {
 	}
 }
 
-func DoWatch(ctx context.Context, cfg types.Config, _rlslog types.Logger) error {
+func DoWatch(ctx context.Context, cfg types.Config, _rlslog dlog.Logger) error {
 	rlslog = _rlslog
 
 	client, err := k8s.NewClient(nil)

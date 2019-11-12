@@ -17,6 +17,8 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/datawire/ambassador/pkg/dlog"
+	"github.com/datawire/ambassador/pkg/supervisor"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/go-acme/lego/v3/acme"
 	"github.com/pkg/errors"
@@ -25,7 +27,6 @@ import (
 	k8sSchema "k8s.io/apimachinery/pkg/runtime/schema"
 
 	ambassadorTypesV2 "github.com/datawire/ambassador/pkg/api/getambassador.io/v2"
-	"github.com/datawire/ambassador/pkg/supervisor"
 	k8sTypesMetaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	k8sTypesUnstructured "k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 
@@ -151,7 +152,7 @@ func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		// Do this here, instead of in the web-browser,
 		// because CORS.
-		httpClient := httpclient.NewHTTPClient(middleware.GetLogger(r.Context()), 0, false, tls.RenegotiateNever)
+		httpClient := httpclient.NewHTTPClient(dlog.GetLogger(r.Context()), 0, false, tls.RenegotiateNever)
 		tosURL, err := getTermsOfServiceURL(httpClient, r.URL.Query().Get("ca-url"))
 		if err != nil {
 			middleware.ServeErrorResponse(w, r.Context(), http.StatusBadRequest, err, nil)

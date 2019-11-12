@@ -6,6 +6,7 @@ import (
 	"sort"
 	"time"
 
+	"github.com/datawire/ambassador/pkg/dlog"
 	"github.com/go-acme/lego/v3/registration"
 	"github.com/gogo/protobuf/proto"
 	"github.com/mediocregopher/radix.v2/pool"
@@ -21,7 +22,6 @@ import (
 	k8sClientDynamic "k8s.io/client-go/dynamic"
 	k8sClientCoreV1 "k8s.io/client-go/kubernetes/typed/core/v1"
 
-	"github.com/datawire/apro/cmd/amb-sidecar/types"
 	"github.com/datawire/apro/cmd/amb-sidecar/watt"
 )
 
@@ -54,7 +54,7 @@ func NewController(
 	}
 }
 
-func (c *Controller) Worker(logger types.Logger) {
+func (c *Controller) Worker(logger dlog.Logger) {
 	ticker := time.NewTicker(24 * time.Hour)
 	for {
 		select {
@@ -152,7 +152,7 @@ func (c *Controller) updateHost(host *ambassadorTypesV2.Host) error {
 	return err
 }
 
-func (c *Controller) recordHostPending(logger types.Logger, host *ambassadorTypesV2.Host, phaseCompleted, phasePending ambassadorTypesV2.HostPhase) {
+func (c *Controller) recordHostPending(logger dlog.Logger, host *ambassadorTypesV2.Host, phaseCompleted, phasePending ambassadorTypesV2.HostPhase) {
 	logger.Debugf("updating pending host %d→%d", host.Status.PhaseCompleted, phaseCompleted)
 	if phaseCompleted <= host.Status.PhaseCompleted {
 		logger.Debugf("^^ THIS IS A BUG ^^: %d→%d is not a progression", host.Status.PhaseCompleted, phaseCompleted)
@@ -166,7 +166,7 @@ func (c *Controller) recordHostPending(logger types.Logger, host *ambassadorType
 	}
 }
 
-func (c *Controller) recordHostReady(logger types.Logger, host *ambassadorTypesV2.Host) {
+func (c *Controller) recordHostReady(logger dlog.Logger, host *ambassadorTypesV2.Host) {
 	logger.Debugln("updating ready host")
 	host.Status.State = ambassadorTypesV2.HostState_Ready
 	host.Status.PhaseCompleted = ambassadorTypesV2.HostPhase_NA
@@ -177,7 +177,7 @@ func (c *Controller) recordHostReady(logger types.Logger, host *ambassadorTypesV
 	}
 }
 
-func (c *Controller) recordHostError(logger types.Logger, host *ambassadorTypesV2.Host, phase ambassadorTypesV2.HostPhase, err error) {
+func (c *Controller) recordHostError(logger dlog.Logger, host *ambassadorTypesV2.Host, phase ambassadorTypesV2.HostPhase, err error) {
 	logger.Debugln("updating errored host:", err)
 	host.Status.State = ambassadorTypesV2.HostState_Error
 	host.Status.PhasePending = phase
@@ -187,7 +187,7 @@ func (c *Controller) recordHostError(logger types.Logger, host *ambassadorTypesV
 	}
 }
 
-func (c *Controller) recordHostsError(logger types.Logger, hosts []*ambassadorTypesV2.Host, phase ambassadorTypesV2.HostPhase, err error) {
+func (c *Controller) recordHostsError(logger dlog.Logger, hosts []*ambassadorTypesV2.Host, phase ambassadorTypesV2.HostPhase, err error) {
 	for _, host := range hosts {
 		logger := logger.WithField("host", host.GetName()+"."+host.GetNamespace())
 		c.recordHostError(logger, host, phase, err)
@@ -201,7 +201,7 @@ type providerKey struct {
 	PrivateKeySecretName string
 }
 
-func (c *Controller) rectify(logger types.Logger) {
+func (c *Controller) rectify(logger dlog.Logger) {
 	logger.Debugln("rectify: starting")
 
 	acmeHosts := c.rectifyPhase1(logger)
@@ -211,7 +211,7 @@ func (c *Controller) rectify(logger types.Logger) {
 }
 
 // Phase 0→1 (Pre-ACME): NA(state=Initial)→DefaultsFilled
-func (c *Controller) rectifyPhase1(logger types.Logger) []*ambassadorTypesV2.Host {
+func (c *Controller) rectifyPhase1(logger dlog.Logger) []*ambassadorTypesV2.Host {
 	var nextPhase []*ambassadorTypesV2.Host
 
 	logger.Debugln("rectify: Phase 0→1 (Pre-ACME): NA(state=Initial)→DefaultsFilled")
@@ -259,7 +259,7 @@ func (c *Controller) rectifyPhase1(logger types.Logger) []*ambassadorTypesV2.Hos
 }
 
 // Phase 1→2 (ACME account pre-registration): DefaultsFilled→ACMEUserPrivateKeyCreated
-func (c *Controller) rectifyPhase2(logger types.Logger, acmeHosts []*ambassadorTypesV2.Host) []*ambassadorTypesV2.Host {
+func (c *Controller) rectifyPhase2(logger dlog.Logger, acmeHosts []*ambassadorTypesV2.Host) []*ambassadorTypesV2.Host {
 	var nextPhase []*ambassadorTypesV2.Host
 
 	acmeHostsByPrivateKeySecret := make(map[string]map[string][]*ambassadorTypesV2.Host)
@@ -348,7 +348,7 @@ func (c *Controller) rectifyPhase2(logger types.Logger, acmeHosts []*ambassadorT
 }
 
 // Phase 2→3 (ACME account registration): ACMEUserPrivateKeyCreated→ACMEUserRegistered
-func (c *Controller) rectifyPhase3(logger types.Logger, acmeHosts []*ambassadorTypesV2.Host) (
+func (c *Controller) rectifyPhase3(logger dlog.Logger, acmeHosts []*ambassadorTypesV2.Host) (
 	acmeHostsByTLSSecret map[string]map[string][]*ambassadorTypesV2.Host,
 	acmeProviderByTLSSecret map[string]map[string]*ambassadorTypesV2.ACMEProviderSpec,
 ) {
@@ -487,7 +487,7 @@ func (c *Controller) rectifyPhase3(logger types.Logger, acmeHosts []*ambassadorT
 }
 
 // Phase 3→4→0 (ACME certificate request): ACMEUserRegistered→ACMECertificateChallenge→NA(state=Ready)
-func (c *Controller) rectifyPhase4(logger types.Logger,
+func (c *Controller) rectifyPhase4(logger dlog.Logger,
 	acmeHostsByTLSSecret map[string]map[string][]*ambassadorTypesV2.Host,
 	acmeProviderByTLSSecret map[string]map[string]*ambassadorTypesV2.ACMEProviderSpec,
 ) {

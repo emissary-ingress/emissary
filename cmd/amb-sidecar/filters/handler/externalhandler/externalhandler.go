@@ -11,12 +11,12 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/datawire/ambassador/pkg/dlog"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta2"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/httpclient"
-	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/middleware"
 	"github.com/datawire/apro/lib/filterapi"
 )
 
@@ -113,7 +113,7 @@ type ExternalFilter struct {
 }
 
 func (f *ExternalFilter) Filter(ctx context.Context, r *filterapi.FilterRequest) (filterapi.FilterResponse, error) {
-	logger := middleware.GetLogger(ctx)
+	logger := dlog.GetLogger(ctx)
 	ctx, ctxCancel := context.WithTimeout(ctx, f.Spec.Timeout)
 	defer ctxCancel()
 

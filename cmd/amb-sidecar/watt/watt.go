@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"sync"
 
+	"github.com/datawire/ambassador/pkg/dlog"
 	"github.com/pkg/errors"
 
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/middleware"
@@ -88,7 +89,7 @@ func (ss *SnapshotStore) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	logger := middleware.GetLogger(r.Context())
+	logger := dlog.GetLogger(r.Context())
 
 	_, push := r.URL.Query()["push"]
 
