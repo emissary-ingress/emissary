@@ -42,7 +42,7 @@ func (ss *SnapshotStore) Set(s Snapshot) {
 
 	if ss.closed {
 		// block forever
-		select{}
+		select {}
 	}
 
 	ss.snapshot = s
