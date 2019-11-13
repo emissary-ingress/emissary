@@ -1,5 +1,9 @@
 # Getting Started with Ambassador Edge Stack
 
+<img src="/doc-images/kubernetes.png"></a>
+
+Ambassador Edge Stack is designed to run in Kubernetes for production. 
+
 ## Before You Begin
 
 There are a few prerequisties that are important for a successful installation of Ambassador Edge Stack. Make sure have the following:
@@ -91,7 +95,7 @@ Navigate to your new IP address in your browser. Assign a DNS name using the pro
 
 Go to `http://&lt;your-host-name&gt;` and follow the instructions to complete the install.
 
-You will need to install the `edgectl` tool in order to fully configure your Ambassador Edge Stack UI. If you are having trouble downloading the files, you can download them directly from [this page](/user-guide/downloads)/
+You will need to install the `edgectl` tool in order to fully configure your Ambassador Edge Stack UI. If you are having trouble downloading the files, you can download them directly from [this page](/user-guide/downloads).
 
 ## Next Steps
 
