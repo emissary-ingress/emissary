@@ -1,7 +1,5 @@
 # Getting Started with Ambassador Edge Stack
 
-```Note: These instructions do not work with Minikube.```
-
 ## 1. Deploying Ambassador Edge Stack to Kubernetes
 
 <div style="border: thick solid red">
@@ -55,6 +53,28 @@ kubectl get -n ambassador service ambassador -o 'go-template={{range .status.loa
 </pre>
 </div>
 <button onclick="copy_to_clipboard('step2')">Copy to Clipboard</button>
+<p>
+<p>
+
+### Minikube Users
+
+If you happen to be using Minikube, note that Minikube does not natively support load balancers. Instead, to get the URL of Ambassador from minikube, use the command `minikube service list`
+
+```
+(⎈ |minikube:ambassador)$ minikube service list
+|-------------|------------------|--------------------------------|
+|  NAMESPACE  |       NAME       |              URL               |
+|-------------|------------------|--------------------------------|
+| ambassador  | ambassador       | http://192.168.64.2:31230      |
+|             |                  | http://192.168.64.2:31042      |
+| ambassador  | ambassador-admin | No node port                   |
+| ambassador  | ambassador-redis | No node port                   |
+| default     | kubernetes       | No node port                   |
+| kube-system | kube-dns         | No node port                   |
+|-------------|------------------|--------------------------------|
+```
+
+Use any of the URLs listed next to `ambassador` to access the Ambassador Edge Stack.
 
 ## 3. Assign a DNS name (or not)
 
@@ -63,15 +83,6 @@ Navigate to your new IP address in your browser. Assign a DNS name using the pro
 ## 4. Complete the install
 
 Go to http://&lt;your-host-name&gt; and follow the instructions to complete the install.
-
-## 5. Temporarily manually type the url
-
-<div style="border: thick solid red">
-<!-- TODO: fix red bordered text -->
-Temporarily, due to a bug in AES, after the "Complete the install" page shows that it is complete,
-you will need to manually enter http://&lt;your-host-name&gt;/admin to get to the next pages of
-the user interface.
-</div>
 
 
 ## Next Steps

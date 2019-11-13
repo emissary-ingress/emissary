@@ -14,7 +14,7 @@ This is what the authentication process looks like at a high level when using Am
 
 There is quite a bit happening in this diagram, and so it will be useful to provide an overview of all of the moving parts.
 
-# OpenID, OAuth, IdPs, OIDC, Oh my…
+# OpenID, OAuth, IdPs, OIDC, Oh my!
 
 In software development we are generally not shy about using lots of acronyms, and the authentication space is no different. There are quite a few acronyms to learn, but the underlying concepts are surprisingly simple. Here's a cheat sheet:
 
@@ -34,6 +34,5 @@ An identity hub sits between your application and the IdP that authenticates you
 
 The Auth0 docs provide a guide for adding social IdP "[connections](https://auth0.com/docs/identityproviders)" to your Auth0 account, and the Keycloak docs provide a guide for adding social identity "[brokers](https://www.keycloak.org/docs/2.5/server_admin/topics/identity-broker/social-login.html)".
 
-## Learn More With the Ambassador Edge Stack and Auth0 Tutorial
+## Learn More With the Ambassador Edge Stack and Auth0 Tutorial\
 You can learn more from the [Single Sign-On with OAuth & OIDC](/user-guide/oauth-oidc-auth) tutorial, which also contains a full walkthrough of how to configure Ambassador Edge Stack with Auth0.
-

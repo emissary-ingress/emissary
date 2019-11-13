@@ -15,10 +15,10 @@ Ambassador Edge Stack supports a number of attributes to configure and customize
 | `address`         | (optional) the IP address on which Ambassador Edge Stack should listen for connections for this Mapping -- if not present, Ambassador Edge Stack will listen on all addresses )
 | `port`            | (required) the TCP port on which Ambassador Edge Stack should listen for connections for this Mapping |
 | `idle_timeout_ms` | (optional) the timeout, in milliseconds, after which the connection will be terminated if no traffic is seen -- if not present, no timeout is applied |
-| `enable_ipv4` | (optional) if true, enables IPv4 DNS lookups for this mapping's service (the default is set by the [Ambassador Edge Stack module](/reference/modules)) |
-| `enable_ipv6` | (optional) if true, enables IPv6 DNS lookups for this mapping's service (the default is set by the [Ambassador Edge Stack module](/reference/modules)) |
+| `enable_ipv4` | (optional) if true, enables IPv4 DNS lookups for this mapping's service (the default is set by the [`ambassador Module`](/reference/modules)) |
+| `enable_ipv6` | (optional) if true, enables IPv6 DNS lookups for this mapping's service (the default is set by the [`ambassador Module`](/reference/modules)) |
 
-If both `enable_ipv4` and `enable_ipv6` are set, Ambassador Edge Stack will prefer IPv6 to IPv4. See the [Ambassador Edge Stack module](/reference/modules) documentation for more information.
+If both `enable_ipv4` and `enable_ipv6` are set, Ambassador Edge Stack will prefer IPv6 to IPv4. See the [`ambassador Module`](/reference/modules) documentation for more information.
 
 Ambassador Edge Stack can manage TCP connections using TLS:
 

@@ -35,7 +35,7 @@ In cases when TLS is being terminated at an external layer 7 load balancer, then
 
 This distinction between an originating HTTP request and an originating HTTPS request is done based on the `X-FORWARDED-PROTO` header that the external layer 7 load balancer adds to every request it forwards after TLS termination.
 
-To enable this `X-FORWARDED-PROTO` based HTTP to HTTPS redirection, add a `x_forwarded_proto_redirect: true` field to Ambassador Edge Stack module's configuration. Note that when this feature is enabled `use_remote_address` MUST be set to false.
+To enable this `X-FORWARDED-PROTO` based HTTP to HTTPS redirection, add a `x_forwarded_proto_redirect: true` field to `ambassador Module`'s configuration. Note that when this feature is enabled `use_remote_address` MUST be set to false.
 
 An example configuration is as follows -
 

@@ -65,7 +65,7 @@ You will need to configure your IDP to handle authentication requests. The way t
 
 Ambassador Edge Stack supports authentication for multiple domains where each domain is issued its own access token. For example, imagine you're hosting both `domain1.example.com` and `domain2.example.com` on the same cluster. With multi-domain support, users will receive separate authentication tokens for `domain1` and `domain2`.
 
-To configure multi-domain access, you will need to create another authentication endpoint with your IDP (see [Configure your IDP](/user-guide/oauth-oidc-auth/#configure-your-idp)) and create another `Filter` for the new domain.
+To configure multi-domain access, you will need to create another authentication endpoint with your IDP and create another `Filter` for the new domain.
 
 Example:
 

@@ -7,5 +7,3 @@ Currently, Ambassador Edge Stack supports plugins for authentication, rate limit
 * [AuthService](/reference/services/auth-service)
 * [RateLimitService](/reference/services/rate-limit-service)
 * [TracingService](/reference/services/tracing-service)
-
-

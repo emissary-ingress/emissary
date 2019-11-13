@@ -4,7 +4,7 @@ Ambassador Edge Stack is a Kubernetes-native API gateway for microservices. Amba
 
 Ambassador Edge Stack and Istio can be deployed together on Kubernetes. In this configuration, incoming traffic from outside the cluster is first routed through Ambassador Edge Stack , which then routes the traffic to Istio-powered services. Ambassador Edge Stack handles authentication, edge routing, TLS termination, and other traditional edge functions.
 
-This allows the operator to have the best of both worlds: a high performance, modern edge service (Ambassador Edge Stack) combined with a state-of-the-art service mesh (Istio). While Istio has introduced a [Gateway](https://istio.io/docs/tasks/traffic-management/ingress/#configuring-ingress-using-an-istio-gateway) abstraction, Ambassador Edge Stack still has a much broader feature set for edge routing than Istio. For more on this topic, see https://blog.getambassador.io/api-gateway-vs-service-mesh-104c01fa4784.
+This allows the operator to have the best of both worlds: a high performance, modern edge service (Ambassador Edge Stack) combined with a state-of-the-art service mesh (Istio). While Istio has introduced a [Gateway](https://istio.io/docs/tasks/traffic-management/ingress/#configuring-ingress-using-an-istio-gateway) abstraction, Ambassador Edge Stack still has a much broader feature set for edge routing than Istio. For more on this topic, see our blog post on [API Gateway vs Service Mesh](https://blog.getambassador.io/api-gateway-vs-service-mesh-104c01fa4784).
 
 ## Getting Ambassador Edge Stack Working With Istio
 
@@ -304,7 +304,7 @@ spec:
 ```
 Note the `tls: istio-upstream`, which lets Ambassador Edge Stack know which certificate to use when communicating with that service.
 
-In the definition above we also have TLS termination enabled; please see [the TLS termination tutorial](https://www.getambassador.io/user-guide/tls-termination) for more details.
+In the definition above we also have TLS termination enabled; please see [the TLS termination tutorial](/user-guide/tls-termination) for more details.
 
 ### PERMISSIVE mTLS
 
@@ -361,7 +361,7 @@ If Istio's Zipkin is up & running on `istio-system` Namespace, add the `TracingS
       config: {}
 ```
 
-*Note:* We are using the DNS entry `zipkin.istio-system` as well as the port that our service is running, in this case `9411`. Please see [Distributed Tracing](https://www.getambassador.io/reference/services/tracing-service) for more details on Tracing configuration.
+*Note:* We are using the DNS entry `zipkin.istio-system` as well as the port that our service is running, in this case `9411`. Please see [Distributed Tracing](/reference/services/tracing-service) for more details on Tracing configuration.
 
 ## Monitoring/Statistics Integration
 
@@ -420,7 +420,7 @@ $ export PROMETHEUS_POD=`kubectl get pods -n istio-system | grep prometheus | aw
 $ kubectl delete pod $PROMETHEUS_POD -n istio-system
 ```
 
-More details can be found in [Statistics and Monitoring](https://www.getambassador.io/reference/statistics).
+More details can be found in [Statistics and Monitoring](/reference/statistics).
 
 
 ## Grafana Dashboard
@@ -453,14 +453,15 @@ Next, adjust the Dashboard Registered Services metric:
 * Find Registered Services
 * Click on the down arrow and select Edit
 * Change the Metric to:
+
 ```yaml
 envoy_cluster_manager_active_clusters{job="ambassador"}
 ```
 
-Now lets save the changes:
+Now let's save the changes:
+
 * Click on Save Dashboard in the Top Right corner
 
 ## Roadmap
 
 There are a number of roadmap items that we'd like to tackle in improving Istio integration. This includes supporting Istio routing rules in Ambassador Edge Stack and full propagation of request headers (e.g., Zipkin tracing) between Ambassador Edge Stack and Istio. If you're interested in contributing, we'd welcome the help!
-
