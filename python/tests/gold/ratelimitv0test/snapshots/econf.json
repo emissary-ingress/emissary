@@ -109,6 +109,9 @@
                                     ],
                                     "http_filters": [
                                         {
+                                            "name": "envoy.cors"
+                                        },
+                                        {
                                             "config": {
                                                 "domain": "ambassador",
                                                 "rate_limit_service": {
@@ -122,9 +125,6 @@
                                                 "timeout": "0.500s"
                                             },
                                             "name": "envoy.rate_limit"
-                                        },
-                                        {
-                                            "name": "envoy.cors"
                                         },
                                         {
                                             "name": "envoy.router"
