@@ -53,7 +53,7 @@ spec:
     targetPort: 9376
 ```
 
-With this approach, there is no centralized Ambassador Edge Stack configuration file -- the routing configuration for Ambassador is associated with each individual service. This offers numerous benefits:
+With this approach, there is no centralized Ambassador Edge Stack configuration file -- the routing configuration for Ambassador Edge Stack is associated with each individual service. This offers numerous benefits:
 
 * Agility: Service owners can change their Ambassador Edge Stack onfiguration without worrying about other end users or going through a central operations function.
 * Organizational scalability: Configuring individual routes in Ambassador Edge Stack is the responsibility of service owners, instead of a centralized team.

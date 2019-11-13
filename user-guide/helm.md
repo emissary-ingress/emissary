@@ -7,8 +7,8 @@
    ```
    helm upgrade --install --wait my-release stable/ambassador
    ```
-   
-   For details on how to configure the chart, see the [official chart documentation](https://hub.helm.sh/charts/stable/ambassador) 
+
+   For details on how to configure the chart, see the [official chart documentation](https://hub.helm.sh/charts/stable/ambassador)
 
 
 2. Jump to [step 3](/user-guide/getting-started#3-creating-your-first-service) of the Ambassador Edge Stack tutorial to create your first service.
@@ -19,4 +19,4 @@
 
    To configure Ambassador Edge Stack to run as root, remove `runAsUser: 8888` from the `securityContext` in your `values.yaml`. Removing `service_port: 8080` from the Ambassador Edge Stack `Module` will tell Ambassador Edge Stack to listen on default HTTP and HTTPS ports.
 
-- The value of `ambassador.id` should not be changed unless you wish to run multiple Ambassador Edge Stack in your cluster. See notes on [AMBASSADOR_ID](/reference/running#ambassador_id) f you set it something other than `default`. 
+- The value of `ambassador.id` should not be changed unless you wish to run multiple Ambassador Edge Stack in your cluster. See notes on [AMBASSADOR_ID](/reference/running#ambassador_id) f you set it something other than `default`.

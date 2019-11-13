@@ -13,7 +13,7 @@ In order to use the `Ingress` resource effectively, it's important to understand
 - Ambassador Edge Stack will need RBAC permissions to get, list, watch, and update `Ingress` resources.
 
   You can see this in the `https://getambassador.io/yaml/ambassador/ambassador-rbac.yaml`
-  file, but this is the critical rule to add to Ambassador's `Role` or `ClusterRole`:
+  file, but this is the critical rule to add to Ambassador Edge Stack's `Role` or `ClusterRole`:
 
       - apiGroups: [ "extensions" ]
         resources: [ "ingresses" ]
@@ -66,7 +66,7 @@ Yes. All Ambassador Edge Stack configuration mechanisms are the same under the h
 
 ## `Ingress` Support in 0.80.0
 
-Ambassador 0.80.0 supports basic core functionality of the  `Ingress` resource, as defined by the [`Ingress`](https://kubernetes.io/docs/concepts/services-networking/ingress/) resource itself:
+Ambassador Edge Stack 0.80.0 supports basic core functionality of the  `Ingress` resource, as defined by the [`Ingress`](https://kubernetes.io/docs/concepts/services-networking/ingress/) resource itself:
 
 - Basic routing, including the `route` specification and the default backend
   functionality, is supported.
@@ -78,7 +78,7 @@ Ambassador 0.80.0 supports basic core functionality of the  `Ingress` resource, 
 
 Ambassador 0.80.0 does **not** extend the basic `Ingress` specification except as follows:
 
-- the `getambassador.io/ambassador-id` annotation allows you to set an Ambassador ID for
+- the `getambassador.io/ambassador-id` annotation allows you to set an Ambassador Edge Stack ID for
   the `Ingress` itself; and
 
 - the `getambassador.io/config` annotation can be provided on the `Ingress` resource, just
@@ -184,7 +184,7 @@ spec:
   service: exampleservice:8080
 ```
 
-### [Name based virtual hosting](https://kubernetes.io/docs/concepts/services-networking/ingress/#name-based-virtual-hosting) with an Ambassador ID
+### [Name based virtual hosting](https://kubernetes.io/docs/concepts/services-networking/ingress/#name-based-virtual-hosting) with an Ambassador  =Edge Stack ID
 
 ```yaml
 ---

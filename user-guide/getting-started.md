@@ -189,19 +189,10 @@ kubectl wait --for condition=established --timeout=60s crd -lproduct=aes && \
 kubectl apply -f https://deploy-preview-91--datawire-ambassador.netlify.com/yaml/aes.yaml && \
 kubectl -n ambassador wait --for condition=available --timeout=60s deploy -lproduct=aes
 ```
-= clipboard_button
-
-<!-- Triggerbutton class="btn" data-clipboard-text="Just because you can doesn't mean you should — clipboard.js">
-    Copy
-</button>
--->
-
 
 ## 2. Determine your IP Address
 
-Note that it may take a while for your load balancer IP address to be
-provisioned. Repeat this command as necessary until you get an IP
-address:
+Note that it may take a while for your load balancer IP address to be provisioned. Repeat this command as necessary until you get an IP address:
 
 ```shell
 kubectl get -n ambassador service ambassador -o 'go-template={{range .status.loadBalancer.ingress}}{{print .ip "\n"}}{{end}}'
@@ -209,10 +200,7 @@ kubectl get -n ambassador service ambassador -o 'go-template={{range .status.loa
 
 ## 3. Assign a DNS name (or not)
 
-Navigate to your new IP address in your browser. Assign a DNS name using 
-the providor of your choice to the IP address acquired in Step 2. If you 
-can't/don't want to assign a DNS name, then you can use the IP address 
-you acquired in step 2 instead.
+Navigate to your new IP address in your browser. Assign a DNS name using the providor of your choice to the IP address acquired in Step 2. If you can't/don't want to assign a DNS name, then you can use the IP address you acquired in step 2 instead.
 
 ## 4. Complete the install
 
