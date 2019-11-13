@@ -1,5 +1,13 @@
 # Getting Started with Ambassador Edge Stack
 
+## Before You Begin
+
+There are a few prerequisties that are important for a successful installation of Ambassador Edge Stack. Make sure have the following:
+
+* a running [Kubernetes cluster](https://kubernetes.io/docs/setup/)
+* the command line tool [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/)
+* the `edgectl` file download from [this page](/user-guide/downloads)
+
 ## 1. Deploying Ambassador Edge Stack to Kubernetes
 
 <div style="border: thick solid red">
@@ -95,5 +103,3 @@ Go to http://&lt;your-host-name&gt; and follow the instructions to complete the 
 - Learn how to [add tracing](/user-guide/tracing-tutorial); or
 - Learn how to [use gRPC with Ambassador Edge Stack](/user-guide/grpc); or
 - Read about [configuring Ambassador Edge Stack](/reference/configuration).
-
-

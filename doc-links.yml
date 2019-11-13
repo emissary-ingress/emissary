@@ -24,6 +24,8 @@
         
 - title: Install Ambassador Edge Stack
   items: 
+  - title: Installation Overview
+    link: /user-guide/install
   - title: Kubernetes (YAML)
     link: /user-guide/getting-started
   - title: Kubernetes (Helm)
@@ -38,8 +40,6 @@
     link: /user-guide/certified-builds
   - title: Other Install & Upgrade Options
     items: 
-    - title: Ambassador Installation & Upgrade
-      link: /user-guide/install
     - title: Install Ambassador Open Source
       link: /user-guide/install-ambassador-oss  
     - title: Upgrade Ambassador OSS to Ambassador Edge Stack
