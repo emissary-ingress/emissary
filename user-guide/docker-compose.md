@@ -21,7 +21,7 @@ version: '3.5'
 
 services:
   ambassador:
-    image: quay.io/datawire/ambassador:%version%
+    image: quay.io/datawire/ambassador:$version$
     ports:
     # expose port 8080 via 8080 on the host machine
     - 8080:8080
@@ -160,7 +160,7 @@ version: '3.5'
 
 services:
   ambassador:
-    image: quay.io/datawire/ambassador:%version%
+    image: quay.io/datawire/ambassador:$version$
     ports:
     - 8080:8080
     volumes:
@@ -170,11 +170,11 @@ services:
     # don't try to watch Kubernetes for configuration changes
     - AMBASSADOR_NO_KUBEWATCH=no_kubewatch
   tour-ui:
-    image: quay.io/datawire/tour:ui-%tourVersion%
+    image: quay.io/datawire/tour:ui-$tourVersion$
     ports:
     - 5000
   tour-backend:
-    image: quay.io/datawire/tour:backend-%tourVersion%
+    image: quay.io/datawire/tour:backend-$tourVersion$
     ports:
     - 8080
 ```
@@ -230,7 +230,7 @@ version: '3.5'
 
 services:
   ambassador:
-    image: quay.io/datawire/ambassador:%version%
+    image: quay.io/datawire/ambassador:$version$
     ports:
     - 8080:8080
     volumes:
@@ -240,11 +240,11 @@ services:
     # don't try to watch Kubernetes for configuration changes
     - AMBASSADOR_NO_KUBEWATCH=no_kubewatch
   tour-ui:
-    image: quay.io/datawire/tour:ui-%tourVersion%
+    image: quay.io/datawire/tour:ui-$tourVersion$
     ports:
     - 5000
   tour-backend:
-    image: quay.io/datawire/tour:backend-%tourVersion%
+    image: quay.io/datawire/tour:backend-$tourVersion$
     ports:
     - 8080
   auth:
@@ -342,7 +342,7 @@ version: '3.5'
 
 services:
   ambassador:
-    image: quay.io/datawire/ambassador:%version%
+    image: quay.io/datawire/ambassador:$version$
     ports:
     - 8080:8080
     volumes:
@@ -352,11 +352,11 @@ services:
     # don't try to watch Kubernetes for configuration changes
     - AMBASSADOR_NO_KUBEWATCH=no_kubewatch
   tour-ui:
-    image: quay.io/datawire/tour:ui-%tourVersion%
+    image: quay.io/datawire/tour:ui-$tourVersion$
     ports:
     - 5000
   tour-backend:
-    image: quay.io/datawire/tour:backend-%tourVersion%
+    image: quay.io/datawire/tour:backend-$tourVersion$
     ports:
     - 8080
   auth:

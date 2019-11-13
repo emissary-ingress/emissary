@@ -10,12 +10,14 @@ If the version is a path parameter and the resources are served by different ser
 
 ```yaml
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v1
 kind:  Mapping
-name:  qotm_mapping
-prefix: "/(v1|v2)/qotm/.*"
-prefix_regex: true
-service: qotm
+metadata:
+  name:  qotm
+spec:
+  prefix: "/(v1|v2)/qotm/.*"
+  prefix_regex: true
+  service: qotm
 ```
 
 will map requests to both `/v1` and `/v2` to the `qotm` service.

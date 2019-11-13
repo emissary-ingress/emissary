@@ -89,6 +89,7 @@ spec:
   JWT:
     jwksURI:          "url-string"  # required, unless the only validAlgorithm is "none"
     insecureTLS:      bool          # optional; default is false
+    renegotiateTLS:   "enum-string" # optional; default is "never"
     validAlgorithms:                # optional; default is "all supported algos except for 'none'"
       - "RS256"
       - "RS384"
@@ -108,12 +109,27 @@ spec:
     injectRequestHeaders:           # optional; default is []
      - name:   "header-name-string" # required
        value:  "go-template-string" # required
+       
+    errorResponse:                  # optional; default is nil
+      contentType:    "string"      # optional; default is "application/json"
+      bodyTemplate:   "string"      # optional
 ```
+ - `errorResponse` allows templating the error response, overriding the default json error format. 
+    Make sure you validate and test your template, not to generate server-side errors on top of client errors.
 
+    `contentType` specifies the returned HTTP response content format. Defaults to `application/json`.
+    
+    `bodyTemplate` is a [golang text/template](https://golang.org/pkg/text/template/) blob to be used for generating the response output. 
+    The template can reference objects named:
+    * `httpStatus` → `integer` the HTTP status code.
+    * `error` → `error` the original error object.
+    * `requestId` → `integer` the HTTP request ID, for correlation.
  - `insecureTLS` disables TLS verification for the cases when
    `jwksURI` begins with `https://`.  This is discouraged in favor of
    either using plain `http://` or [installing a self-signed
    certificate](#installing-self-signed-certificates).
+ - `renegotiateTLS` allows a remote server to request TLS renegotiation. 
+   Accepted values are "never", "onceAsClient", and "freelyAsClient".
  - `injectRequestHeaders` injects HTTP header fields in to the request
    before sending it to the upstream service; where the header value
    can be set based on the JWT value.  The value is specified as a [Go
@@ -206,6 +222,17 @@ spec:
       - name: "X-Authorization"
         value: "Authenticated {{.token.Header.typ}}; sub={{.token.Claims.sub}}; name={{printf \"%q\" .token.Claims.name}}"
         # result will be: "Authenticated JWT; sub=1234567890; name="John Doe""
+    errorResponse:
+      contentType: "application/json"
+      bodyTemplate: |-
+        {
+            "errorMessage": "{{.error}}",
+            "altErrorMessage": "{{ if eq .error.ValidationError.Errors 2 }}expired{{ else }}invalid{{ end }}",
+            "errorCode": {{.error.ValidationError.Errors}},
+            "httpStatus": "{{.httpStatus}}",
+            "requestId": "{{.requestId}}"
+        }
+
 ```
 
 ### Filter Type: `OAuth2`
@@ -225,6 +252,7 @@ spec:
   OAuth2:
     authorizationURL:      "url-string"      # required
     insecureTLS:           bool              # optional; default is false
+    renegotiateTLS:        "enum-string"     # optional; default is "never"
     clientID:              "string"          # required
     # A client secret must be specified.
     # This can be done by including the raw secret as a string in "secret",
@@ -256,6 +284,8 @@ Information about your identity provider:
    identity provider with an `https://` `authorizationURL`.  This is
    discouraged in favor of either using plain `http://` or [installing
    a self-signed certificate](#installing-self-signed-certificates).
+ - `renegotiateTLS` allows a remote server to request TLS renegotiation. 
+   Accepted values are "never", "onceAsClient", and "freelyAsClient".
  - `clientID`: The Client ID you get from your identity provider.
  - The client secret you get from your identity provider can be
    specified 2 different ways:
@@ -387,7 +417,7 @@ This code is written in the Go programming language (golang), and must be compil
 
 <div style="border: thick solid red"> </div>
 
-[apro-abi.txt]: https://s3.amazonaws.com/datawire-static-files/apro-abi/apro-abi@%aproVersion%.txt
+[apro-abi.txt]: https://s3.amazonaws.com/datawire-static-files/apro-abi/apro-abi@$aproVersion$.txt
 
 Plugins are compiled with `go build -buildmode=plugin`, and must have
 a `main.PluginMain` function with the signature `PluginMain(w
@@ -515,7 +545,7 @@ self-signed certificate, attempting to talk to them will result in an error ment
 Pro container following the standard procedure for Alpine Linux 3.8: Copy the certificate to `/usr/local/share/ca-certificates/` and then run `update-ca-certificates`.  Note that the `amb-sidecar` image sets `USER 1000`, but that `update-ca-certificates` needs to be run as root.
 
 ```Dockerfile
-FROM quay.io/datawire/ambassador_pro:amb-sidecar-%aproVersion%
+FROM quay.io/datawire/ambassador_pro:amb-sidecar-$aproVersion$
 USER root
 COPY ./my-certificate.pem /usr/local/share/ca-certificates/my-certificate.crt
 RUN update-ca-certificates
@@ -523,6 +553,7 @@ USER 1000
 ```
 
 When deploying Ambassador Pro, refer to that custom Docker image,
-rather than to `quay.io/datawire/ambassador_pro:amb-sidecar-%aproVersion%`.
+rather than to
+`quay.io/datawire/ambassador_pro:amb-sidecar-$aproVersion$`.
 
 <div style="border: thick solid red"> </div>

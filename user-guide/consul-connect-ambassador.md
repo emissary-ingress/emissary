@@ -61,11 +61,13 @@ You will need to tell Ambassador to use the certificate issued by Consul for `mT
 
   ```yaml
   ---
-  apiVersion: ambassador/v1
+  apiVersion: getambassador.io/v1
   kind: TLSContext
-  name: ambassador-consul
-  hosts: []
-  secret: ambassador-consul-connect
+  metadata:
+    name: ambassador-consul
+  spec:
+    hosts: []
+    secret: ambassador-consul-connect
   ```
   
 ### Configure Ambassador Mappings to use the TLSContext
@@ -73,12 +75,14 @@ Ambassador needs to be configured to originate TLS to upstream services. This is
 
   ```yaml
   ---
-  apiVersion: ambassador/v1
+  apiVersion: getambassador.io/v1
   kind: Mapping
-  name: qotm_mapping
-  prefix: /qotm/
-  tls: ambassador-consul
-  service: https://qotm:443
+  metadata:
+    name: qotm-mapping
+  spec:
+    prefix: /qotm/
+    tls: ambassador-consul
+    service: https://qotm:443
   ```
   **Note:** All service mappings will need `tls: ambassador-consul` to authenticate with Connect-enabled upstream services.
 
@@ -107,7 +111,7 @@ spec:
     spec:
       containers:
       - name: qotm
-        image: datawire/qotm:%qotmVersion%
+        image: datawire/qotm:$qotmVersion$
         ports:
         - name: http-api
           containerPort: 5000
@@ -135,19 +139,19 @@ Now, you will need to configure a service for Ambassador to route requests to. T
 
 ```yaml
 ---
+apiVersion: getambassador.io/v1
+kind: Mapping
+metadata:
+  name: qotm-mapping
+spec:
+  prefix: /qotm/
+  tls: ambassador-consul
+  service: https://qotm:443
+---
 apiVersion: v1
 kind: Service
 metadata:
   name: qotm
-  annotations:
-    getambassador.io/config: |
-      ---
-      apiVersion: ambassador/v1
-      kind:  Mapping
-      name:  qotm_mapping
-      prefix: /qotm/
-      tls: ambassador-consul
-      service: https://qotm:443
 spec:
   type: NodePort
   selector:

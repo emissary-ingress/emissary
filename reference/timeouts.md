@@ -20,12 +20,14 @@ The various timeouts are applied onto a `Mapping` resource and can be combined.
 
 ```yaml
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v1
 kind:  Mapping
-name:  tour-backend_mapping
-prefix: /backend/
-service: tour
-timeout_ms: 4000
-idle_timeout_ms: 500000
-connect_timeout_ms: 4000
+metadata:
+  name:  tour-backend
+spec:
+  prefix: /backend/
+  service: tour
+  timeout_ms: 4000
+  idle_timeout_ms: 500000
+  connect_timeout_ms: 4000
 ```

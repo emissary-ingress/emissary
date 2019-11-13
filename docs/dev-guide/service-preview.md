@@ -17,8 +17,8 @@ How do you verify that the code you've written actually works? Ambassador Pro's 
 
 Download the latest version of the client:
 
-<a class="apictl-dl" href="https://s3.amazonaws.com/datawire-static-files/apictl/%aproVersion%/darwin/amd64/apictl">Mac 64-bit</a> |
-<a class="apictl-linux-dl" href="https://s3.amazonaws.com/datawire-static-files/apictl/%aproVersion%/linux/amd64/apictl">Linux 64-bit</a>
+<a class="apictl-dl" href="https://s3.amazonaws.com/datawire-static-files/apictl/$aproVersion$/darwin/amd64/apictl">Mac 64-bit</a> |
+<a class="apictl-linux-dl" href="https://s3.amazonaws.com/datawire-static-files/apictl/$aproVersion$/linux/amd64/apictl">Linux 64-bit</a>
 
 Make sure the client is somewhere on your PATH. In addition, place your license key in `~/.ambassador.key`.
 
@@ -49,27 +49,30 @@ In this quick start, we're going to preview a change we make to the backend serv
    This will create a YAML file called `qotm-sidecar.yaml`. The file will look like the following:
 
    ```yaml
+    ---
+    apiVersion: getambassador.io/v1
+    kind: Mapping
+    metadata:  
+      name: tour-ui
+    spec:
+      prefix: /
+      service: tour:5000
+    ---
+    apiVersion: getambassador.io/v1
+    kind: Mapping
+    metadata:  
+      name: tour-backend
+    spec:
+      prefix: /backend/
+      service: tour:8080
+        labels:
+          ambassador:
+            - request_label:
+              - backend
+    ---
     apiVersion: v1
     kind: Service
     metadata:
-      annotations:
-        getambassador.io/config: |
-          ---
-          apiVersion: ambassador/v1
-          kind: Mapping
-          name: tour-ui_mapping
-          prefix: /
-          service: tour:5000
-          ---
-          apiVersion: ambassador/v1
-          kind: Mapping
-          name: tour-backend_mapping
-          prefix: /backend/
-          service: tour:8080
-          labels:
-            ambassador:
-              - request_label:
-                - backend
       name: tour
     spec:
       ports:
@@ -99,12 +102,12 @@ In this quick start, we're going to preview a change we make to the backend serv
             app: tour
         spec:
           containers:
-          - image: quay.io/datawire/tour:ui-%tourVersion%
+          - image: quay.io/datawire/tour:ui-$tourVersion$
             name: tour-ui
             ports:
             - containerPort: 5000
               name: http
-          - image: quay.io/datawire/tour:backend-%tourVersion%
+          - image: quay.io/datawire/tour:backend-$tourVersion$
             name: quote
             ports:
             - containerPort: 8080
@@ -120,7 +123,7 @@ In this quick start, we're going to preview a change we make to the backend serv
               value: "8080"
             - name: AMBASSADOR_LICENSE_KEY
               value: eJcbGciOiaIUzI1NiIsInR5cCkpXVCJ9.eCI6Im5rcmF1c2UiLCJleHAiOjE1Nzg0MTg4ODZ9.S_6-zdPyy4z1N4Jmo5e4A7fME4CbQVL_13ikw
-            image: quay.io/datawire/ambassador_pro:app-sidecar-%aproVersion%
+            image: quay.io/datawire/ambassador_pro:app-sidecar-$aproVersion$
             name: traffic-sidecar
             ports:
             - containerPort: 9900

@@ -10,13 +10,15 @@ The `remove_response_headers` attribute takes a list of keys used to match to th
 
 ```yaml
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v1
 kind:  Mapping
-name:  tour-ui_mapping
-prefix: /
-remove_response_headers:
-- x-envoy-upstream-service-time
-service: tour
+metadata:
+  name:  tour-ui
+spec:
+  prefix: /
+  remove_response_headers:
+  - x-envoy-upstream-service-time
+  service: tour
 ```
 
 will drop header with key `x-envoy-upstream-service-time`.

@@ -67,45 +67,34 @@ A more effective approach to Kubernetes canary releases is to use some kind of s
 
 Using the smart routing approach requires two Kubernetes Services to be created -- one for the stable version of the app e.g. "payment", and one for the canary version of the app e.g. "payment-canary"-- and associated Deployments can be created a configured as required (the Deployments are not involved with smart routing).
 
-Ambassador Edge Stack itself is deployed as a Service, typically of type LoadBalancer (which by default uses the underlying platform implementation of a load balancer e.g. on AWS this is an ELB, on GCP a TCP/UDP Load Balancer etc). With the application Services and the Ambassador Edge Stack Service deployed all that is required to enable a canary release is the creation of appropriate Ambassador Edge Stack Mapping, which are defined as Kubernetes annotations attached to a Service.
+Ambassador Edge Stack itself is deployed as a Service, typically of type LoadBalancer (which by default uses the underlying platform implementation of a load balancer e.g. on AWS this is an ELB, on GCP a TCP/UDP Load Balancer etc). With the application Services and the Ambassador Edge Stack Service deployed all that is required to enable a canary release is the creation of appropriate Ambassador Edge Stack Mapping, which are defined as a Kubernetes custom resource definition (CRD).
 
-The example below defines the annotations on the Ambassador Edge Stack Service itself, but any Service can be used. Note the "weight: 1" property in the payment-canary mapping, which tells Ambassador Edge Stack to route 1% of traffic to this service for the /payment/ route. By default the remaining amount of traffic, 99% in this case, will be routed to the Mapping without a weight specified.
+The example below defines the CRDs. Note the "weight: 1" property in the payment-canary mapping, which tells Ambassador Edge Stack to route 1% of traffic to this service for the /payment/ route. By default the remaining amount of traffic, 99% in this case, will be routed to the Mapping without a weight specified.
 
 Ambassador Edge Stack Service config:
 
 ```yaml
-apiVersion: v1
-kind: Service
+---
+apiVersion: getambassador.io/v1
+kind: Mapping
 metadata:
- labels:
-   service: ambassador
- name: ambassador
- annotations:
-   getambassador.io/config: |
-     ---
-     apiVersion: ambassador/v1
-     kind:  Mapping
-     name:  payment
-     prefix: /payment/
-     ---
-     apiVersion: ambassador/v1
-     kind:  Mapping
-     name:  payment-canary
-     prefix: /payment/
-     service: payment-canary:8081
-     Weight: 1
+  name: payment
 spec:
- type: LoadBalancer
- ports:
- - name: ambassador
-   port: 80
-   targetPort: 8080
- selector:
-   service: ambassador
+  prefix: /payment/
+  service: payment-service
+---
+apiVersion: getambassador.io/v1
+kind: Mapping
+metadata:
+  name: payment-canary
+spec:
+  prefix: /payment/
+  service: payment-canary:8081
+  weight: 1
 ```
 And the payment-service Service definition
 
-```
+```yaml
 apiVersion: v1   
 kind: Service
 metadata:
@@ -113,6 +102,17 @@ metadata:
 spec:
   selector:
     app: payment-app
+    track: stable
+...
+
+apiVersion: v1   
+kind: Service
+metadata:
+  name: payment-canary
+spec:
+  selector:
+    app: payment-app
+    track: canary
 ...
 
 

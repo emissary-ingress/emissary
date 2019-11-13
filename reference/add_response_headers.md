@@ -12,18 +12,20 @@ Envoy dynamic values `%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%` and `%PROTOCOL%`
 
 ```yaml
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v1
 kind:  Mapping
-name:  tour-backend_mapping
-prefix: /backend/
-add_response_headers:
-  x-test-proto: "%PROTOCOL%"
-  x-test-ip: "%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%"
-  x-test-static: This is a test header
-  x-test-object:
-    append: False
-    value: this is from object header config
-app: tour
+metadata:
+  name:  tour-backend
+spec:
+  prefix: /backend/
+  add_response_headers:
+    x-test-proto: "%PROTOCOL%"
+    x-test-ip: "%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%"
+    x-test-static: This is a test header
+    x-test-object:
+      append: False
+      value: this is from object header config
+  service: tour:8080
 ```
 
 will add the protocol, client IP, and a static header to returning response to client.

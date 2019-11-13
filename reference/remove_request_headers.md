@@ -10,13 +10,15 @@ The `remove_request_headers` attribute takes a list of keys used to match to the
 
 ```yaml
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v1
 kind:  Mapping
-name:  tour-ui_mapping
-prefix: /
-remove_request_headers:
-- authorization
-service: tour
+metadata:
+  name:  tour-ui
+spec:
+  prefix: /
+  remove_request_headers:
+  - authorization
+  service: tour:5000
 ```
 
 will drop header with key `authorization`.

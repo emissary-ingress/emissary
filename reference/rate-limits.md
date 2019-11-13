@@ -9,26 +9,29 @@ Rate limits are a powerful way to improve availability and scalability for your 
 In Ambassador 0.50 and later, each mapping in Ambassador Edge Stack can have multiple *labels* which annotate a given request. These labels are then passed to a rate limiting service through a gRPC interface. These labels are specified with the `labels` annotation:
 
 ```yaml
-apiVersion: ambassador/v1
-kind: Mapping
-name: catalog
-prefix: /catalog/
-service: catalog
-labels:
-  ambassador:
-    - string_request_label:         # a specific request label group
-      - catalog                     # annotate the request with the string `catalog`
-    - header_request_label:
-      - headerkey:                  # The name of the label
-          header: ":method"         # annotate the request with the specific HTTP method used
-          omit_if_not_present: true # if the header is not present, omit the label
-    - multi_request_label_group:
-      - authorityheader:
-          header: ":authority"
-          omit_if_not_present: true
-      - xuserheader:
-          header: "x-user"
-          omit_if_not_present: true
+---
+apiVersion: getambassador.io/v1
+kind:  Mapping
+metadata:
+  name:  catalog
+spec:
+  prefix: /catalog/
+  service: catalog
+  labels:
+    ambassador:
+      - string_request_label:         # a specific request label group
+        - catalog                     # annotate the request with the string `catalog`
+      - header_request_label:
+        - headerkey:                  # The name of the label
+            header: ":method"         # annotate the request with the specific HTTP method used
+            omit_if_not_present: true # if the header is not present, omit the label
+      - multi_request_label_group:
+        - authorityheader:
+            header: ":authority"
+            omit_if_not_present: true
+        - xuserheader:
+            header: "x-user"
+            omit_if_not_present: true
 ```
 
 Let's digest the above example:

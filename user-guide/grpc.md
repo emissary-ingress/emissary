@@ -74,14 +74,15 @@ service Greeter { ... }
 so the URL `prefix` is `helloworld.Greeter` and the mapping would be:
 
 ```yaml
-      ---
-      apiVersion: ambassador/v1
-      kind: Mapping
-      name: grpc_py_mapping
-      grpc: True
-      prefix: /helloworld.Greeter/
-      rewrite: /helloworld.Greeter/
-      service: grpc-example
+apiVersion: getambassador.io/v1
+kind: Mapping
+metadata:
+  name: grpc-py
+spec:
+  grpc: True
+  prefix: /helloworld.Greeter/
+  rewrite: /helloworld.Greeter/
+  service: grpc-example
 ```
 
 Note the `grpc: true` line —- this is what tells Envoy to use HTTP/2 so the request can communicate with the backend service. Also note that you'll need `prefix` and `rewrite` the same here, since the gRPC service needs the package and service to be in the request to do the right thing.
@@ -91,22 +92,23 @@ Note the `grpc: true` line —- this is what tells Envoy to use HTTP/2 so the re
 
 ```yaml
 ---
+apiVersion: getambassador.io/v1
+kind: Mapping
+metadata:
+  name: grpc-py
+spec:
+  grpc: True
+  prefix: /helloworld.Greeter/
+  rewrite: /helloworld.Greeter/
+  service: grpc-example
+
+---
 apiVersion: v1
 kind: Service
 metadata:
   labels:
     service: grpc-example
   name: grpc-example
-  annotations:
-    getambassador.io/config: |
-      ---
-      apiVersion: ambassador/v1
-      kind: Mapping
-      name: grpc_py_mapping
-      grpc: True
-      prefix: /helloworld.Greeter/
-      rewrite: /helloworld.Greeter/
-      service: grpc-example
 spec:
   type: ClusterIP
   ports:
@@ -185,7 +187,23 @@ There is some extra configuration required to connect to a gRPC service through 
 
 ![](/doc-images/gRPC-TLS.png)
 
-If you want to add TLS encyrption to your gRPC calls, first you need to tell Ambassador to add [ALPN protocols](/reference/core/tls) which are required by HTTP/2 to do TLS. Next, you need to change the client code slightly and tell it to open a secure RPC channel with Ambassador.
+If you want to add TLS encyrption to your gRPC calls, first you need to tell Ambassador to add [ALPN protocols](/reference/core/tls) which are required by HTTP/2 to do TLS.
+
+Ex:
+```yaml
+---
+apiVersion: getambassador.io/v1
+kind: TLSContext
+metadata:
+  name: tls
+spec:
+  hosts:
+  - "*"
+  secret: ambassador-cert
+  alpn_protocol: h2
+```
+
+Next, you need to change the client code slightly and tell it to open a secure RPC channel with Ambassador.
 
 ```diff
 - with grpc.insecure_channel(‘$AMBASSADORHOST:$PORT’) as channel:
@@ -240,23 +258,24 @@ Once deployed we will need to tell Ambassador to originate TLS to the applicatio
 
 ```yaml
 ---
+apiVersion: getambassador.io/v1
+kind: Mapping
+metadata:
+  name: grpc-py-tls
+spec:
+  grpc: True
+  tls: upstream
+  prefix: /hello.Greeter/
+  rewrite: /hello.Greeter/
+  service: https://grpc-py
+
+---
 apiVersion: v1
 kind: Service
 metadata:
   labels:
     service: grpc-py
   name: grpc-py
-  annotations:
-    getambassador.io/config: |
-      ---
-      apiVersion: ambassador/v1
-      kind: Mapping
-      name: grpc_py_mapping
-      grpc: True
-      tls: upstream
-      prefix: /hello.Greeter/
-      rewrite: /hello.Greeter/
-      service: https://grpc-py
 spec:
   type: ClusterIP
   ports:
@@ -268,22 +287,18 @@ spec:
 ```
 
 ```yaml
-      ---
-      apiVersion: ambassador/v1
-      kind:  Module
-      name:  tls
-      config:
-        server:
-          enabled: true
-          alpn_protocols: h2
-        client:
-          enabled: false
-        upstream:
-          alpn_protocols: h2
+---
+apiVersion: getambassador.io/v1
+kind: TLSContext
+metadata:
+  name: upstream
+spec:
+  alpn_protocols: h2
+  secret: ambassador-cert
 ```
-We need to tell Ambassador to route to the `service:` over https and have the service listen on `443`. We also need to give tell Ambassador to use ALPN protocols when originating TLS with the application, the same way we did with TLS termination. This is done by setting `alpn_protocols: ["h2"]` under a tls-context name (like `upstream`) in the TLS module and telling the service to use that tls-context in the mapping by setting `tls: upstream`.
+We need to tell Ambassador to route to the `service:` over https and have the service listen on `443`. We also need to give tell Ambassador to use ALPN protocols when originating TLS with the application, the same way we did with TLS termination. This is done by setting `alpn_protocols: h2` in a `TLSContext` telling the service to use that tls-context in the mapping by setting `tls: upstream`.
 
-Refer to the [TLS document](/reference/core/tls) for more information on TLS origination.
+Refer to the [TLS document](/reference/tls/origination/#advanced-configuration-using-a-tlscontext) for more information on TLS origination.
 
 
 ### gRPC Headers

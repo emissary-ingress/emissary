@@ -14,24 +14,26 @@ You should use `AuthService` V1 for any new deployment of Ambassador 0.50 or hig
 
 ```yaml
 ---
-apiVersion: ambassador/v1
-kind: AuthService
-name: authentication
-auth_service: "example-auth:3000"
-path_prefix:  "/extauth"
-proto: http
-allowed_request_headers:
-- "x-example-header"
-allowed_authorization_headers:
-- "x-qotm-session"
-include_body:
-  max_bytes: 4096
-  allow_partial: true
-status_on_error: 
-  code: 503
-failure_mode_allow: false
-add_linkerd_headers: true
-cluster_idle_timeout_ms: 30000
+apiVersion: getambassador.io/v1
+kind:  AuthService
+metadata:
+  name:  authentication
+spec:
+  auth_service: "example-auth:3000"
+  path_prefix:  "/extauth"
+  proto: http
+  allowed_request_headers:
+  - "x-example-header"
+  allowed_authorization_headers:
+  - "x-qotm-session"
+  include_body:
+    max_bytes: 4096
+    allow_partial: true
+  status_on_error: 
+    code: 503
+  failure_mode_allow: false
+  add_linkerd_headers: true
+  cluster_idle_timeout_ms: 30000
 ```
 
 - `proto` (optional) specifies the protocol to use when communicating with the auth service. Valid options are `http` (default) or `grpc`.
@@ -76,13 +78,15 @@ cluster_idle_timeout_ms: 30000
 
 ```yaml
 ---
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v1
 kind:  AuthService
-name:  authentication
-auth_service: "example-auth:3000"
-path_prefix: "/extauth"
-allowed_headers:
-- "x-qotm-session"
+metadata:
+  name:  authentication
+spec:
+  auth_service: "example-auth:3000"
+  path_prefix: "/extauth"
+  allowed_headers:
+  - "x-qotm-session"
 ```
 
 - `auth_service` gives the URL of the authentication service

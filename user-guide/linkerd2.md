@@ -98,7 +98,7 @@ You'll now register a demo application with Linkerd2, and show how Ambassador Ed
         spec:
           containers:
           - name: qotm
-            image: datawire/qotm:%qotmVersion%
+            image: datawire/qotm:$qotmVersion$
             ports:
             - name: http-api
               containerPort: 5000

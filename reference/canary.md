@@ -19,18 +19,22 @@ Specifying a weight only makes sense if you have multiple mappings for the same 
 
 ```yaml
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v1
 kind:  Mapping
-name:  tour-backend_mapping
-prefix: /backend/
-service: tour
+metadata:
+  name:  tour-backend
+spec:
+  prefix: /backend/
+  service: tour
 ---
-apiVersion: ambassador/v1
-kind: Mapping
-name: tour-backend2_mapping
-prefix: /backend/
-service: tourv2
-weight: 10
+apiVersion: getambassador.io/v1
+kind:  Mapping
+metadata:
+  name:  tour-backend2
+spec:
+  prefix: /backend/
+  service: tourv2
+  weight: 10
 ```
 
-In this case, the `tour-backend2_mapping` will receive 10% of the requests for `/backend/`, and Ambassador Edge Stack will assign the remaining 90% to the `tour-backend_mapping`.
+In this case, the `tour-backend2` will receive 10% of the requests for `/backend/`, and Ambassador Edge Stack will assign the remaining 90% to the `tour-backend`.

@@ -12,7 +12,7 @@ After completing [Getting Started](/user-guide/getting-started), you'll have a K
 
 ## 1. Deploy the rate limit service
 
-Ambassador Edge Stack delegates the actual rate limit logic to a third party service. We've written a [simple rate limit service](https://github.com/datawire/ambassador/tree/master/test-services/ratelimit-service) that:
+Ambassador Edge Stack delegates the actual rate limit logic to a third party service. We've written a [simple rate limit service](https://github.com/datawire/ambassador/tree/master/test/services/ratelimit-service) that:
 
 - listens for requests on port 5000;
 - handles gRPC `shouldRateLimit` requests;
@@ -23,17 +23,17 @@ Here's the YAML we'll start with:
 
 ```yaml
 ---
+apiVersion: getambassador.io/v1
+kind: RateLimitService
+metadata:
+  name: ratelimit
+spec:
+  service: "example-rate-limit:5000"
+---
 apiVersion: v1
 kind: Service
 metadata:
   name: example-rate-limit
-  annotations:
-    getambassador.io/config: |
-      ---
-      apiVersion: ambassador/v1
-      kind: RateLimitService
-      name: ratelimit
-      service: "example-rate-limit:5000"
 spec:
   type: ClusterIP
   selector:
@@ -86,7 +86,7 @@ We already have the `tour` service running, so let's apply some rate limits to t
 
 Ambassador 0.50.0 and later requires the `v1` API Version for rate limiting. The `v1` API uses the `labels` attribute to attach rate limiting descriptors. Review the [Rate Limits configuration documentation](/reference/rate-limits#request-labels) for more information.
 
-Replace the label that is applied to the `tour-backend_mapping` with:
+Replace the label that is applied to the `tour-backend` with:
 
 ```yaml
 labels:
@@ -97,43 +97,22 @@ labels:
           omit_if_not_present: true
 ```
 
-so the full service definition will now look like this:
+so the `Mapping` definition will now look like this:
 ```yaml
 ---
-apiVersion: v1
-kind: Service
+apiVersion: getambassador.io/v1
+kind: Mapping
 metadata:
-  name: tour
-  annotations:
-    getambassador.io/config: |
-      ---
-      apiVersion: ambassador/v1
-      kind: Mapping
-      name: tour-ui_mapping
-      prefix: /
-      service: tour:5000
-      ---
-      apiVersion: ambassador/v1
-      kind: Mapping
-      name: tour-backend_mapping
-      prefix: /backend/
-      service: tour:8080
-      labels:
-        ambassador:
-          - request_label_group:
-            - x-ambassador-test-allow:
-                header: "x-ambassador-test-allow"
-                omit_if_not_present: true
+  name: tour-backend
 spec:
-  ports:
-  - name: ui
-    port: 5000
-    targetPort: 5000
-  - name: backend
-    port: 8080
-    targetPort: 8080
-  selector:
-    app: tour
+  prefix: /backend/
+  service: tour:8080
+  labels:
+    ambassador:    
+      - request_label_group:      
+        - x-ambassador-test-allow:        
+          header: "x-ambassador-test-allow"
+          omit_if_not_present: true
 ```
 
 ### v0 API

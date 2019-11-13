@@ -37,7 +37,7 @@ We've created an example filter that you can customize for your particular use c
    ```patch
       containers:
       - name: ambassador-pro
-   -    image: quay.io/datawire/ambassador_pro:amb-sidecar-%aproVersion%
+   -    image: quay.io/datawire/ambassador_pro:amb-sidecar-$aproVersion$
    +    image: DOCKER_REGISTRY/amb-sidecar-plugin:VERSION
         ports:
         - name: ratelimit-grpc
@@ -52,8 +52,8 @@ During development, you may want to sidestep the deployment process for a faster
 
 To install the runner, download the latest version:
 
-<a class="pro-runner-dl" href="https://s3.amazonaws.com/datawire-static-files/apro-plugin-runner/%aproVersion%/darwin/amd64/apro-plugin-runner">Mac 64-bit</a> |
-<a class="pro-runner-linux-dl" href="https://s3.amazonaws.com/datawire-static-files/apro-plugin-runner/%aproVersion%/linux/amd64/apro-plugin-runner">Linux 64-bit</a>
+<a class="pro-runner-dl" href="https://s3.amazonaws.com/datawire-static-files/apro-plugin-runner/$aproVersion$/darwin/amd64/apro-plugin-runner">Mac 64-bit</a> |
+<a class="pro-runner-linux-dl" href="https://s3.amazonaws.com/datawire-static-files/apro-plugin-runner/$aproVersion$/linux/amd64/apro-plugin-runner">Linux 64-bit</a>
 
 Note that the plugin runner must match the version of Ambassador Pro that you are running. Place the binary somewhere in your `$PATH`.
 

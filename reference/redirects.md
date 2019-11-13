@@ -5,12 +5,15 @@
 To effect an HTTP 301 `Redirect`, the `Mapping` **must** set `host_redirect` to `true`, with `service` set to the host to which the client should be redirected:
 
 ```yaml
-apiVersion: ambassador/v1
+---
+apiVersion: getambassador.io/v1
 kind:  Mapping
-name:  redirect_mapping
-prefix: /redirect/
-service: httpbin.org
-host_redirect: true
+metadata:
+  name:  redirect
+spec:
+  prefix: /redirect/
+  service: httpbin.org
+  host_redirect: true
 ```
 
 Using this `Mapping`, a request to `http://$AMBASSADOR_URL/redirect/` will result in an HTTP 301 `Redirect` to `http://httpbin.org/redirect/`.
@@ -18,13 +21,16 @@ Using this `Mapping`, a request to `http://$AMBASSADOR_URL/redirect/` will resul
 The `Mapping` **may** also set `path_redirect` to change the path portion of the URL during the redirect:
 
 ```yaml
-apiVersion: ambassador/v1
+---
+apiVersion: getambassador.io/v1
 kind:  Mapping
-name:  redirect_mapping
-prefix: /redirect/
-service: httpbin.org
-host_redirect: true
-path_redirect: /ip
+metadata:
+  name:  redirect
+spec:
+  prefix: /redirect/
+  service: httpbin.org
+  host_redirect: true
+  path_redirect: /ip
 ```
 
 Here, a request to `http://$AMBASSADOR_URL/redirect/` will result in an HTTP 301 `Redirect` to `http://httpbin.org/ip`. As always with Ambassador Edge Stack, attention paid to the trailing `/` on a URL is helpful!
@@ -40,11 +46,14 @@ To enable this `X-FORWARDED-PROTO` based HTTP to HTTPS redirection, add a `x_for
 An example configuration is as follows -
 
 ```yaml
-apiVersion: ambassador/v1
-kind: Module
-name: ambassador
-config:
-  x_forwarded_proto_redirect: true
+---
+apiVersion: getambassador.io/v1
+kind:  Module
+metadata:
+  name:  ambassador
+spec:
+  config:
+    x_forwarded_proto_redirect: true
 ```
 
 Note: Setting `x_forwarded_proto_redirect: true` will impact all your Ambassador Edge Stack mappings. Every HTTP request to Ambassador Edge Stack will only be allowed to pass if it has an `X-FORWARDED-PROTO: https` header.

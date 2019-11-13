@@ -1,4 +1,4 @@
-# Using CRDs with Ambassador
+# Ambassador Configuration with Customer Resource Definitions (CRDs)
 
 <div style="border: thick solid red"> </div>
 

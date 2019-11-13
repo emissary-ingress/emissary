@@ -27,18 +27,18 @@ subjects:
     name: ambassador-consul-connect
     namespace: default
 ---
+apiVersion: ambassador/v1
+kind: TLSContext
+metadata:
+  name: ambassador-consul
+spec:
+  hosts: []
+  secret: ambassador-consul-connect
+---
 apiVersion: v1
 kind: Service
 metadata: 
   name: ambassador-consul-connector
-  annotations: 
-    getambassador.io/config: |
-      ---
-      apiVersion: ambassador/v1
-      kind: TLSContext
-      name: ambassador-consul
-      hosts: []
-      secret: ambassador-consul-connect
 spec:
   ports:
   - name: ambassador-consul-connector
@@ -73,7 +73,7 @@ spec:
       terminationGracePeriodSeconds: 0
       containers:
         - name: consul-connect-integration
-          image: quay.io/datawire/ambassador_pro:consul_connect_integration-%aproVersion%
+          image: quay.io/datawire/ambassador_pro:consul_connect_integration-$aproVersion$
           imagePullPolicy: Always
           resources:
             limits:

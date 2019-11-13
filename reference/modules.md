@@ -4,9 +4,9 @@ Modules let you enable and configure special behaviors for Ambassador Edge Stack
 
 ## Module configuration
 
-Modules can be added as annotations to an existing Kubernetes service, e.g., the Ambassador Edge Stack service. They can also be implemented as independent Kubernetes Custom Resource Definitions (CRDs). Here is a sample configuration of the core Ambassador Edge Stack `Module`:
+Modules can be added as annotations to an existing Kubernetes service, e.g., the Ambassador Edge Stack service. They can also be implemented as independent Kubernetes Custom Resource Definitions (CRDs). Here is a sample configuration of the core `ambassador` and `tls` `Module`s:
 
-```
+```yaml
 ---
 apiVersion: getambassador.io/v1
 kind: Module
@@ -14,16 +14,23 @@ metadata:
   name: ambassador
 spec:
   config:
+    enable_grpc_web: true
+---
+apiVersion: getambassador.io/v1
+kind: Module
+metadata:
+  name: tls
+spec:
+  config:
     server:
       enabled: true
-      secret: wild-demo-cert
+      secret: ambassador-certs
       redirect_cleartext_from: 8080
-    enable_grpc_web: true
 ```
 
 Here is the equivalent configuration as annotations on the `ambassador` Kubernetes `service`:
 
-```
+```yaml
 ---
 apiVersion: v1
 kind: Service
@@ -60,6 +67,8 @@ spec:
     service: ambassador
 ```
 
+**Note:** Modules are named resources. A `Module` with `name: ambassador` is distinctly different than a `Module` with `name: tls`. A `Module` with a name other than `ambassador` and `tls` will be ignored. 
+ 
 ## The `ambassador` module
 
 The [`ambassador`](/reference/core/ambassador) module covers general configuration options for Ambassador Edge Stack as a whole. These configuration options generally pertain to routing, protocol support, and the like. Most of these options are likely of interest to operations.

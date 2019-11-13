@@ -8,11 +8,13 @@ Telling Ambassador Edge Stack to talk to your services over HTTPS is easily conf
 
 ```yaml
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v1
 kind: Mapping
-name: basic-tls-mapping
-prefix: /
-service: https://example-service
+metadata:
+  name: basic-tls
+spec:
+  prefix: /
+  service: https://example-service
 ```
 
 ## Advanced Configuration Using a `TLSContext`
@@ -21,22 +23,26 @@ If your upstream services require more than basic HTTPS support (e.g. minimum TL
 
 ```yaml
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v1
 kind: TLSContext
-name: example-upstream
-secret: self-signed-cert
-min_tls_version: v1.3
+metadata:
+  name: tls
+spec:
+  secret: self-signed-cert
+  min_tls_version: v1.3
 ```
 
 Configure Ambassador Edge Stack to use this `TLSContext` for connections to upstream services by setting the `tls` attribute of a `Mapping`
 
 ```yaml
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v1
 kind: Mapping
-name: basic-tls-mapping
-prefix: /
-service: https://example-service
+metadata:
+  name: basic-tls
+spec:
+  prefix: /
+  service: https://example-service
 ```
 
 The `example-service` service must now support tls v1.3 for Ambassador Edge Stack to connect.

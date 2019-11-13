@@ -11,22 +11,27 @@ To use SNI, you simply need to:
 1. Create a `TLSContext` for the domain
 
     ```yaml
-    apiVersion: ambassador/v1
+    apiVersion: getambassador.io/v1
     kind: TLSContext
-    name: example-tls
-    hosts: example.com
-    secret: example-cert
+    metadata:
+      name: example-tls
+    spec:
+      hosts: 
+      - example.com
+      secret: example-cert
     ```
 
 2. Configure the `host` value on `Mapping`s associated with that domain
 
     ```yaml
-    apiVersion: ambassador/v1
+    apiVersion: getambassador.io/v1
     kind:  Mapping
-    name:  example-mapping
-    prefix: /example/
-    service: example-service
-    host: example.com
+    metadata:
+      name:  example-mapping
+    spec:
+      prefix: /example/
+      service: example-service
+      host: example.com
     ```
 
 Ambassador Edge Stack will check if any of the `TLSContext` resources have a matching host, and if it finds one, SNI configuration will be applied to that mapping. 
@@ -45,46 +50,44 @@ In this configuration:
 Note that the `TLSContext` and `Mapping` objects are on the same `Service` for illustrative purposes; more typically they would be managed separately as noted above.
 
 ```yaml
-apiVersion: v1
-kind: Service
+---
+apiVersion: getambassador.io/v1
+kind:  Mapping
 metadata:
-  annotations:
-    getambassador.io/config: |
-      ---
-      apiVersion: ambassador/v1
-      kind:  Mapping
-      name:  httpbin-internal
-      prefix: /httpbin/
-      service: httpbin.org:80
-      host_rewrite: httpbin.org
-      host: internal.example.com
-      ---
-      apiVersion: ambassador/v1
-      kind:  Mapping
-      name:  httpbin-external
-      prefix: /httpbin/
-      service: httpbin.org:80
-      host_rewrite: httpbin.org
-      host: external.example.com
-      ---
-      apiVersion: ambassador/v1
-      kind: TLSContext
-      name: internal-context
-      hosts:
-      - internal.example.com
-      secret: internal-secret
-      ---
-      apiVersion: ambassador/v1
-      kind: TLSContext
-      name: external-context
-      hosts:
-      - external.example.com
-      secret: external-secret
-  name: httpbin
+  name:  httpbin-internal
 spec:
-  ports:
-  - port: 80
-    targetPort: 80
+  prefix: /httpbin/
+  service: httpbin.org:80
+  host_rewrite: httpbin.org
+  host: internal.example.com
+---
+apiVersion: getambassador.io/v1
+kind:  Mapping
+metadata:
+  name:  httpbin-external
+spec:
+  prefix: /httpbin/
+  service: httpbin.org:80
+  host_rewrite: httpbin.org
+  host: external.example.com
+---
+apiVersion: getambassador.io/v1
+kind: TLSContext
+metadata:
+  name: internal-context
+spec:
+  hosts:
+  - internal.example.com
+  secret: internal-secret
+---
+apiVersion: getambassador.io/v1
+kind: TLSContext
+metadata:
+  name: external-context
+spec:
+  hosts:
+  - external.example.com
+  secret: external-secret
 ```
 
 ### Multiple mappings with a fallback
@@ -96,51 +99,51 @@ In this configuration:
 * The `frontend` mapping will be accessible via both via `host.httpbin.org` and `host.mockbin.org`
 
 ```yaml
-apiVersion: v1
-kind: Service
+---
+apiVersion: getambassador.io/v1
+kind:  Mapping
 metadata:
-  annotations:
-    getambassador.io/config: |
-      ---
-      apiVersion: ambassador/v1
-      kind:  Mapping
-      name:  httpbin
-      prefix: /httpbin/
-      service: httpbin.org:80
-      host_rewrite: httpbin.org
-      host: host.httpbin.org
-      ---
-      apiVersion: ambassador/v1
-      kind:  Mapping
-      name:  mockbin
-      prefix: /mockbin/
-      service: mockbin.org:80
-      host_rewrite: mockbin.org
-      host: host.mockbin.org
-      ---
-      apiVersion: ambassador/v1
-      kind: TLSContext
-      name: httpbin
-      hosts:
-      - host.httpbin.org
-      secret: httpbin-secret
-      ---
-      apiVersion: ambassador/v1
-      kind: TLSContext
-      name: mockbin
-      hosts:
-      - host.mockbin.org
-      secret: mockbin-secret
-      ---
-      # This mapping gets all the available SNI configurations applied to it
-      apiVersion: ambassador/v1
-      kind:  Mapping
-      name:  frontend
-      prefix: /
-      service: frontend
+  name:  httpbin
+spec:
+  prefix: /httpbin/
+  service: httpbin.org:80
+  host_rewrite: httpbin.org
+  host: host.httpbin.org
+---
+apiVersion: getambassador.io/v1
+kind:  Mapping
+metadata:
+  name:  mockbin
+spec:
+  prefix: /mockbin/
+  service: mockbin.org:80
+  host_rewrite: mockbin.org
+  host: host.mockbin.org
+---
+apiVersion: getambassador.io/v1
+kind: TLSContext
+metadata:
+  name: mockbin
+spec:
+  hosts:
+  - host.mockbin.org
+  secret: mockbin-secret
+---
+apiVersion: getambassador.io/v1
+kind: TLSContext
+metadata:
   name: httpbin
 spec:
-  ports:
-  - port: 80
-    targetPort: 80
+  hosts:
+  - host.httpbin.org
+  secret: httpbin-secret
+---
+# This mapping gets all the available SNI configurations applied to it
+apiVersion: getambassador.io/v1
+kind: Mapping
+metadata:
+  name: frontend
+spec:
+  prefix: /
+  service: frontend
 ```

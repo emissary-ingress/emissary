@@ -15,13 +15,14 @@ To configure client certificate by creating a secret to hold your client's CA ce
 2. Configure Ambassador Edge Stack to use this certificate for client certificate validation
 
     ```yaml
-    ---
-    apiVersion: ambassador/v1
+    apiVersion: getambassador.io/v1
     kind: TLSContext
-    name: tls
-    hosts: ["*"]
-    secret: ambassador-cert
-    ca_secret: client-cacert
+    metadata:
+      name: tls
+    spec:
+      hosts: ["*"]
+      secret: ambassador-cert
+      ca_secret: client-cacert
     ```
 
     **Note**: Client certificate validation requires Ambassador Edge Stack be configured to terminate TLS as well by providing a `secret` with TLS certificates for termination
@@ -33,12 +34,13 @@ Ambassador will now be configured to validate certificates that the client provi
 By default, Ambassador Edge Stack will allow requests through that do not provide client certificates. To tell Ambassador Edge Stack to reject requests that fail to provide a certificate, set `cert_required: true` in the `TLSContext` configuration.
 
 ```yaml
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v1
 kind: TLSContext
-name: tls
-name: tls
-hosts: ["*"]
-secret: ambassador-cert
-ca_secret: client-cacert
-cert_required: true
+metadata:
+  name: tls
+spec:
+  hosts: ["*"]
+  secret: ambassador-cert
+  ca_secret: client-cacert
+  cert_required: true
 ```

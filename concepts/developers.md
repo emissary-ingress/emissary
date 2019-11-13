@@ -30,19 +30,20 @@ spec:
 
 Because a Kubernetes `service` is the fundamental abstraction by which new services are exposed to other services and end users, Ambassador Edge Stack extends the `service` with custom annotations. For example:
 
-```
+```yaml
+---
+apiVersion: getambassador.io/v1
+kind: Mapping
+metadata:
+  name: my-service
+spec:
+  prefix: /my-service/
+  service: my-service
+---
 kind: Service
 apiVersion: v1
 metadata:
   name: my-service
-  annotations:
-    getambassador.io/config: |
-      ---
-        apiVersion: ambassador/v0
-        kind:  Mapping
-        name:  my_service_mapping
-        prefix: /my-service/
-        service: my-service
 spec:
   selector:
     app: MyApp

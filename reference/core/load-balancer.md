@@ -21,27 +21,31 @@ For more information on the different policies and the implications, see [load b
 When policy is set to `round_robin`, Ambassador Edge Stack discovers healthy endpoints for the given mapping, and load balances the incoming L7 requests in a round robin fashion. For example:
 
 ```yaml
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v1
 kind:  Module
-name:  ambassador
-config:
-  resolver: my-resolver
-  load_balancer:
-    policy: round_robin
+metadata:
+  name:  ambassador
+spec:
+  config:
+    resolver: my-resolver
+    load_balancer:
+      policy: round_robin
 ```
 
 or, per mapping:
 
 ```yaml
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v1
 kind:  Mapping
-name:  tour-ui_mapping
-prefix: /
-service: tour
-resolver: my-resolver
-load_balancer:
-  policy: round_robin
+metadata:
+  name:  tour-ui
+spec:
+  prefix: /
+  service: tour:5000
+  resolver: my-resolver
+  load_balancer:
+    policy: round_robin
 ```
 
 Note that load balancing may not appear to be "even" due to Envoy's threading model. For more details, see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest/faq/concurrency_lb).
@@ -50,27 +54,31 @@ Note that load balancing may not appear to be "even" due to Envoy's threading mo
 When policy is set to `least_request`, Ambassador Edge Stack discovers healthy endpoints for the given mapping, and load balances the incoming L7 requests to the endpoint with the fewest active requests. For example:
 
 ```yaml
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v1
 kind:  Module
-name:  ambassador
-config:
-  resolver: my-resolver
-  load_balancer:
-    policy: least_request
+metadata:
+  name:  ambassador
+spec:
+  config:
+    resolver: my-resolver
+    load_balancer:
+      policy: least_request
 ```
 
 or, per mapping:
 
 ```yaml
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v1
 kind:  Mapping
-name:  tour-ui_mapping
-prefix: /
-service: tour
-resolver: my-resolver
-load_balancer:
-  policy: least_request
+metadata:
+  name:  tour-ui
+spec:
+  prefix: /
+  service: tour:5000
+  resolver: my-resolver
+  load_balancer:
+    policy: least_request
 ```
 
 ## Sticky Sessions / Session Affinity
@@ -98,11 +106,13 @@ If the cookie you wish to set affinity on is already present in incoming request
 For example, the following configuration asks the client to set a cookie named `sticky-cookie` with expiration of 60 seconds in response to the first request if the cookie is not already present.
 
 ```yaml
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v1
 kind:  Mapping
-name:  tour-ui_mapping
-prefix: /
-service: tour
+metadata:
+  name:  tour-ui
+spec:
+  prefix: /
+service: tour:5000
 resolver: my-resolver
 load_balancer:
   policy: ring_hash
@@ -122,15 +132,17 @@ Ambassador Edge Stack allows header based session affinity if the given header i
 
 Example:
 ```yaml
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v1
 kind:  Mapping
-name:  tour-ui_mapping
-prefix: /
-service: tour
-resolver: my-resolver
-load_balancer:
-  policy: ring_hash
-  header: STICKY_HEADER
+metadata:
+  name:  tour-ui
+spec:
+  prefix: /
+  service: tour:5000
+  resolver: my-resolver
+  load_balancer:
+    policy: ring_hash
+    header: STICKY_HEADER
 ```
 
 ##### Source IP
@@ -143,36 +155,44 @@ load_balancer:
 Ambassador Edge Stack allows session affinity based on the source IP of incoming requests. For example:
 
 ```yaml
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v1
 kind:  Mapping
-name:  tour-ui_mapping
-prefix: /
-service: tour
-resolver: my-resolver
-load_balancer:
-  policy: ring_hash
-  source_ip: true
+metadata:
+  name:  tour-ui
+spec:
+  prefix: /
+  service: tour:5000
+  resolver: my-resolver
+  load_balancer:
+    policy: ring_hash
+    source_ip: true
 ```
 
 Load balancing can be configured both globally, and overridden on a per mapping basis. The following example configures the default load balancing policy to be round robin, while using header-based session affinity for requests to the `/backend/` endpoint of the tour application:
 
 ```yaml
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v1
 kind:  Module
-name:  ambassador
-config:
+metadata:
+  name:  ambassador
+spec:
+  config:
+    resolver: my-resolver
+    load_balancer:
+      policy: round_robin
+```
+```yaml
+apiVersion: getambassador.io/v1
+kind:  Mapping
+metadata:
+  name:  tour-backend
+spec:
+  prefix: /backend/
+  service: tour:8080
   resolver: my-resolver
   load_balancer:
-    policy: round_robin
-apiVersion: ambassador/v1
-kind:  Mapping
-name:  tour-backend_mapping
-prefix: /backend/
-service: tour
-resolver: my-resolver
-load_balancer:
-  policy: ring_hash
-  header: STICKY_HEADER
+    policy: ring_hash
+    header: STICKY_HEADER
 ```
 
 ## Disabling advanced load balancing
