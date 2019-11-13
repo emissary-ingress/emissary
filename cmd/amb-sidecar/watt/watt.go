@@ -12,6 +12,8 @@ import (
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/middleware"
 )
 
+// The part where you have to think about locking //////////////////////////////
+
 type SnapshotStore struct {
 	httpClient *http.Client
 
@@ -20,6 +22,12 @@ type SnapshotStore struct {
 	snapshot Snapshot
 
 	subscribers []chan<- Snapshot
+}
+
+func NewSnapshotStore(httpClient *http.Client) *SnapshotStore {
+	return &SnapshotStore{
+		httpClient: httpClient,
+	}
 }
 
 func (ss *SnapshotStore) Get() Snapshot {
@@ -38,15 +46,31 @@ func (ss *SnapshotStore) Set(s Snapshot) {
 	}
 }
 
-func (ss *SnapshotStore) Subscribe() <-chan Snapshot {
+func (ss *SnapshotStore) makeSubscriberCh() <-chan Snapshot {
 	ss.lock.Lock()
 	defer ss.lock.Unlock()
 
-	upstream := make(chan Snapshot)
+	ret := make(chan Snapshot)
+	ss.subscribers = append(ss.subscribers, ret)
+	return ret
+}
+
+func (ss *SnapshotStore) Close() {
+	ss.lock.Lock()
+	for _, subscriber := range ss.subscribers {
+		close(subscriber)
+	}
+	ss.subscribers = nil
+}
+
+// The part where you don't have to think about locking ////////////////////////
+
+func (ss *SnapshotStore) Subscribe() <-chan Snapshot {
+	upstream := ss.makeSubscriberCh()
 	downstream := make(chan Snapshot)
 
-	ss.subscribers = append(ss.subscribers, upstream)
 	go coalesce(upstream, downstream)
+
 	return downstream
 }
 
@@ -63,20 +87,6 @@ did_read:
 		goto do_read
 	case item, ok = <-upstream:
 		goto did_read
-	}
-}
-
-func (ss *SnapshotStore) Close() {
-	ss.lock.Lock()
-	for _, subscriber := range ss.subscribers {
-		close(subscriber)
-	}
-	ss.subscribers = nil
-}
-
-func NewSnapshotStore(httpClient *http.Client) *SnapshotStore {
-	return &SnapshotStore{
-		httpClient: httpClient,
 	}
 }
 
