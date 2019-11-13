@@ -363,9 +363,9 @@ metadata:
     product: aes
 spec:
   group: getambassador.io
-  version: v1beta2
+  version: v1beta1
   versions:
-  - name: v1beta2
+  - name: v1beta1
     served: true
     storage: false
   - name: v2
