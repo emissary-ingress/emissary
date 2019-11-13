@@ -31,8 +31,8 @@ func NewGroup(ctx context.Context, cfg types.Config, loggerFactory func(name str
 
 	hardCtx, hardCancel := context.WithCancel(ctx)
 
-	group, softCtx := errgroup.WithContext(hardCtx)
-	group.Go(func() error {
+	inner, softCtx := errgroup.WithContext(hardCtx)
+	inner.Go(func() error {
 		defer func() {
 			// If we receive another signal after
 			// graceful-shutdown, we should trigger a
@@ -62,7 +62,7 @@ func NewGroup(ctx context.Context, cfg types.Config, loggerFactory func(name str
 		softCtx:       softCtx,
 		cfg:           cfg,
 		loggerFactory: loggerFactory,
-		inner:         group,
+		inner:         inner,
 	}
 }
 
