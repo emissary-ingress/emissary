@@ -5,7 +5,6 @@
 package runner
 
 import (
-	"context"
 	"sync"
 )
 
@@ -22,14 +21,13 @@ type llGroup struct {
 	err     error
 }
 
-// WithContext returns a new llGroup and an associated Context derived from ctx.
+// newLLGroup returns a new llGroup.
 //
-// The derived Context is canceled the first time a function passed to Go
-// returns a non-nil error or the first time Wait returns, whichever occurs
+// The provided 'cancel' function is called the first time a function passed to
+// Go returns a non-nil error or the first time Wait returns, whichever occurs
 // first.
-func WithContext(ctx context.Context) (*llGroup, context.Context) {
-	ctx, cancel := context.WithCancel(ctx)
-	return &llGroup{cancel: cancel}, ctx
+func newLLGroup(cancel func()) *llGroup {
+	return &llGroup{cancel: cancel}
 }
 
 // Wait blocks until all function calls from the Go method have returned, then

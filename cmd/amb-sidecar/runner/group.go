@@ -30,8 +30,9 @@ func NewGroup(ctx context.Context, cfg types.Config, loggerFactory func(name str
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 
 	hardCtx, hardCancel := context.WithCancel(ctx)
+	softCtx, softCancel := context.WithCancel(hardCtx)
 
-	inner, softCtx := WithContext(hardCtx)
+	inner := newLLGroup(softCancel)
 	inner.Go(func() error {
 		defer func() {
 			// If we receive another signal after
