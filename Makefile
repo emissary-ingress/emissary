@@ -1,7 +1,7 @@
 PLUGIN_DIR ?= .
 
 DOCKER_REGISTRY ?= localhost:31000
-DOCKER_IMAGE = $(DOCKER_REGISTRY)/amb-sidecar-plugin:$(shell git describe --tags --always --dirty)
+DOCKER_IMAGE ?= $(DOCKER_REGISTRY)/amb-sidecar-custom:$(shell git describe --tags --always --dirty)
 
 APRO_VERSION = 0.10.0
 
