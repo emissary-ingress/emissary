@@ -11,10 +11,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/health"
+	"github.com/datawire/apro/cmd/amb-sidecar/types"
+	"github.com/datawire/apro/lib/licensekeys"
+	"github.com/sirupsen/logrus"
+
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-
-	"github.com/datawire/apro/lib/licensekeys"
 )
 
 var hubspotKey = os.Getenv("HUBSPOT_API_KEY")
@@ -44,16 +47,63 @@ func getEdgectlStable() string {
 	return strings.TrimSpace(string(data))
 }
 
+type HubspotUsageProbe struct {
+	l *logrus.Logger
+}
+
+func (p *HubspotUsageProbe) Check() bool {
+	url := fmt.Sprintf("https://api.hubapi.com/integrations/v1/limit/daily?hapikey=%s", hubspotKey)
+	// #nosec G107
+	resp, err := http.Get(url)
+	if err != nil {
+		p.l.WithError(err).Error("Request to hubspot API failed!")
+		return false
+	}
+	defer resp.Body.Close()
+	if resp != nil && resp.StatusCode != 200 {
+		p.l.Error("Request to hubspot API resulted in ", resp.StatusCode)
+		return false
+	}
+	p.l.Debug("hubspot API health check result: ", resp)
+	return true
+}
+
 func init() {
 	create := &cobra.Command{
 		Use:   "serve-aes-signup",
 		Short: "Generate an AES license key and trigger a hubspot workflow",
 	}
 
+	logrusFormatter := &logrus.TextFormatter{
+		TimestampFormat: "2006-01-02 15:04:05",
+		FullTimestamp:   true,
+	}
+	l := logrus.New()
+	l.Formatter = logrusFormatter
+	l.Level = logrus.DebugLevel
+	l.Out = os.Stdout
+
 	create.RunE = func(cmd *cobra.Command, args []string) error {
 		if hubspotKey == "" {
 			return errors.New("please set the HUBSPOT_API_KEY environment variable")
 		}
+
+		// Liveness and Readiness probes
+		healthprobe := health.MultiProbe{
+			Logger: types.WrapLogrus(l),
+		}
+		healthprobe.RegisterProbe("static", &health.StaticProbe{Value: true})
+		healthprobe.RegisterProbe("hubspot-usage", &HubspotUsageProbe{l: l})
+		healthprobeHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			healthy := healthprobe.Check()
+			if healthy {
+				w.WriteHeader(http.StatusOK)
+			} else {
+				w.WriteHeader(http.StatusInternalServerError)
+			}
+		})
+		http.HandleFunc("/signup/sys/readyz", healthprobeHandler)
+		http.HandleFunc("/signup/sys/healthz", healthprobeHandler)
 
 		http.HandleFunc("/signup", func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -78,6 +128,7 @@ func init() {
 				return
 			}
 
+			l.Infof("New signup request from %s", s.Email)
 			url := fmt.Sprintf("https://api.hubapi.com/contacts/v1/contact/createOrUpdate/email/%s/?hapikey=%s",
 				s.Email,
 				hubspotKey)
@@ -142,7 +193,9 @@ func init() {
 			http.Redirect(w, r, url, http.StatusFound) // 302
 		})
 
-		return http.ListenAndServe(":8080", nil)
+		addr := ":8080"
+		l.Infof("Serving requests on %s", addr)
+		return http.ListenAndServe(addr, nil)
 	}
 
 	argparser.AddCommand(create)
