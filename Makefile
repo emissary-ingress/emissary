@@ -1,5 +1,7 @@
+PLUGIN_DIR ?= .
+
 DOCKER_REGISTRY ?= localhost:31000
-DOCKER_IMAGE = $(DOCKER_REGISTRY)/amb-sidecar-plugin:$(shell git describe --tags --always --dirty)
+DOCKER_IMAGE ?= $(DOCKER_REGISTRY)/amb-sidecar-custom:$(shell git describe --tags --always --dirty)
 
 APRO_VERSION = 0.10.0
 
@@ -29,7 +31,7 @@ all: .docker.stamp
 	@echo $($*) > .tmp$@ && if cmp -s $@ .tmp$@; then cp -f .tmp$@ $@; else rm -f .tmp$@ || true; fi
 Dockerfile: Dockerfile.in .var.APRO_VERSION
 	sed 's,@APRO_VERSION@,$(APRO_VERSION),' < $< > $@
-.docker.stamp: $(patsubst %.go,%.so,$(wildcard *.go)) Dockerfile
+.docker.stamp: $(patsubst $(PLUGIN_DIR)/%.go,%.so,$(wildcard $(PLUGIN_DIR)/*)) Dockerfile
 	docker build -t $(DOCKER_IMAGE) .
 	date > $@
 
@@ -63,13 +65,13 @@ version-check: .common-pkgs.txt apro-abi@$(APRO_VERSION).pkgs.txt
 	}
 .PHONY: version-check
 
-%.so: %.go download-go download-docker version-check sync
+%.so: $(PLUGIN_DIR)/%.go download-go download-docker version-check sync
 	$(go.GOBUILD) -buildmode=plugin -o $@ $<
 	rsync -e 'docker exec -i' -r $(container.ID):${CURDIR}/ .
 
 clean:
 	rm -f -- *.so .docker.stamp .common-pkgs.txt .tmp.* .var.* Dockerfile apro-abi@*
-ifeq "$(container.ID)" ""
+ifneq "$(container.ID)" ""
 	docker kill $(container.ID)
 endif	
 .PHONY: clean

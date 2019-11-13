@@ -16,20 +16,40 @@ example of a middleware needing to talk to an external service.
 
 The `Plugin` is compiled by building a container with a stable Golang environment and using `rsync` to copy files to and from the container.
 
+---
 
-Just run
+To compile all `.go` files in the root of this repository just run
 
+	```shell
 	$ make DOCKER_REGISTRY=...
+	```
 
 It will generate a Docker image named
 
-	DOCKER_REGISTRY/amb-sidecar-plugin:VERSION
+	```shell
+	DOCKER_REGISTRY/amb-sidecar-custom:VERSION
+	```
 	
 where:
 
  - VERSION is `git describe --tags --always --dirty`.
  - DOCKER_REGISTRY is the `$DOCKER_REGISTRY` environment variable, or
    `localhost:31000` if the variable is not set.
+
+### Options
+
+To generate a Docker image with a custom name run
+
+	```shell
+	$ make DOCKER_IMAGE={{REGISTRY}}/{{IMAGE_NAME}}:{{IMAGE_TAG}}
+	```
+
+To build `.go` files in a non-root directory run
+
+	```shell
+	$ make DOCKER_REGISTRY=... PLUGIN_DIR=...
+	```
+	where `PLUGIN_DIR` is the directory for your `.go` files.
 
 To compile for a specific version of Ambassador Pro, set `APRO_VERSION`:
 
