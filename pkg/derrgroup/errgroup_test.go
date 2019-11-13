@@ -45,7 +45,7 @@ func ExampleGroup_justErrors() {
 	for _, url := range urls {
 		// Launch a goroutine to fetch the URL.
 		url := url // https://golang.org/doc/faq#closures_and_goroutines
-		g.Go(func() error {
+		g.Go(url, func() error {
 			// Fetch the URL.
 			resp, err := http.Get(url)
 			if err == nil {
@@ -73,7 +73,7 @@ func ExampleGroup_parallel() {
 		results := make([]Result, len(searches))
 		for i, search := range searches {
 			i, search := i, search // https://golang.org/doc/faq#closures_and_goroutines
-			g.Go(func() error {
+			g.Go(fmt.Sprintf("search-%d", i), func() error {
 				result, err := search(ctx, query)
 				if err == nil {
 					results[i] = result
@@ -122,7 +122,7 @@ func TestZeroGroup(t *testing.T) {
 		var firstErr error
 		for i, err := range tc.errs {
 			err := err
-			g.Go(func() error { return err })
+			g.Go(fmt.Sprintf("worker-%d", i), func() error { return err })
 
 			if firstErr == nil && err != nil {
 				firstErr = err
@@ -154,9 +154,9 @@ func TestWithContext(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		g := errgroup.NewGroup(cancel)
 
-		for _, err := range tc.errs {
+		for i, err := range tc.errs {
 			err := err
-			g.Go(func() error { return err })
+			g.Go(fmt.Sprintf("worker-%d", i), func() error { return err })
 		}
 
 		if err := g.Wait(); err != tc.want {

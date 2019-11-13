@@ -13,6 +13,16 @@ package derrgroup
 
 import (
 	"sync"
+
+	"github.com/pkg/errors"
+)
+
+type GoroutineState int
+
+const (
+	GoroutineRunning GoroutineState = iota
+	GoroutineExited
+	GoroutineErrored
 )
 
 // A Group is a collection of goroutines working on subtasks that are part of
@@ -23,6 +33,9 @@ type Group struct {
 	cancel func()
 
 	wg sync.WaitGroup
+
+	listMu sync.RWMutex
+	list   map[string]GoroutineState
 
 	errOnce sync.Once
 	err     error
@@ -51,13 +64,32 @@ func (g *Group) Wait() error {
 //
 // The first call to return a non-nil error cancels the group; its error will be
 // returned by Wait.
-func (g *Group) Go(f func() error) {
+func (g *Group) Go(name string, f func() error) {
+	g.listMu.Lock()
+	if g.list == nil {
+		g.list = make(map[string]GoroutineState)
+	}
+	if _, exists := g.list[name]; exists {
+		g.wg.Add(1)
+		g.listMu.Unlock()
+		go func() {
+			g.errOnce.Do(func() {
+				g.err = errors.Errorf("a goroutine with name %q already exists", name)
+				if g.cancel != nil {
+					g.cancel()
+				}
+			})
+			g.wg.Done()
+		}()
+	}
+	g.list[name] = GoroutineRunning
 	g.wg.Add(1)
+	g.listMu.Unlock()
 
 	go func() {
-		defer g.wg.Done()
-
+		exitState := GoroutineExited
 		if err := f(); err != nil {
+			exitState = GoroutineErrored
 			g.errOnce.Do(func() {
 				g.err = err
 				if g.cancel != nil {
@@ -65,5 +97,25 @@ func (g *Group) Go(f func() error) {
 				}
 			})
 		}
+		g.listMu.Lock()
+		if g.list == nil {
+			g.list = make(map[string]GoroutineState)
+		}
+		g.list[name] = exitState
+		g.wg.Done()
+		g.listMu.Unlock()
 	}()
+}
+
+// List returns a listing of all goroutines launched with Go.
+func (g *Group) List() map[string]GoroutineState {
+	g.listMu.RLock()
+	defer g.listMu.RUnlock()
+
+	ret := make(map[string]GoroutineState, len(g.list))
+	for k, v := range g.list {
+		ret[k] = v
+	}
+
+	return ret
 }

@@ -48,7 +48,7 @@ func MD5All(ctx context.Context, root string) (map[string][md5.Size]byte, error)
 	g := errgroup.NewGroup(cancel)
 	paths := make(chan string)
 
-	g.Go(func() error {
+	g.Go("walk", func() error {
 		defer close(paths)
 		return filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
 			if err != nil {
@@ -70,7 +70,7 @@ func MD5All(ctx context.Context, root string) (map[string][md5.Size]byte, error)
 	c := make(chan result)
 	const numDigesters = 20
 	for i := 0; i < numDigesters; i++ {
-		g.Go(func() error {
+		g.Go(fmt.Sprintf("digestor-%d", i), func() error {
 			for path := range paths {
 				data, err := ioutil.ReadFile(path)
 				if err != nil {
