@@ -11,13 +11,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
+	"github.com/spf13/cobra"
+
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/health"
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
 	"github.com/datawire/apro/lib/licensekeys"
-	"github.com/sirupsen/logrus"
-
-	"github.com/pkg/errors"
-	"github.com/spf13/cobra"
 )
 
 var hubspotKey = os.Getenv("HUBSPOT_API_KEY")
