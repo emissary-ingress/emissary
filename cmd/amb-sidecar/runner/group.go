@@ -40,13 +40,12 @@ func NewGroup(ctx context.Context, cfg types.Config, loggerFactory func(name str
 		inner:         newLLGroup(softCancel),
 	}
 
-	ret.inner.Go(func() error {
+	ret.Go("signal_handler", func(_, _ context.Context, _ types.Config, l dlog.Logger) error {
 		defer func() {
 			// If we receive another signal after
 			// graceful-shutdown, we should trigger a
 			// not-so-graceful shutdown.
 			go func() {
-				l := loggerFactory("signal_handler")
 				sig := <-sigs
 				l.Errorln(errors.Errorf("received signal %v", sig))
 				hardCancel()
@@ -73,7 +72,7 @@ func NewGroup(ctx context.Context, cfg types.Config, loggerFactory func(name str
 //  - `softCtx` being canceled should trigger a graceful shutdown
 //  - `hardCtx` being canceled should trigger a not-so-graceful shutdown
 func (g *Group) Go(name string, fn func(hardCtx, softCtx context.Context, cfg types.Config, logger dlog.Logger) error) {
-	g.inner.Go(func() error {
+	g.inner.Go(name, func() error {
 		return fn(g.hardCtx, g.softCtx, g.cfg, g.loggerFactory(name))
 	})
 }
@@ -81,4 +80,9 @@ func (g *Group) Go(name string, fn func(hardCtx, softCtx context.Context, cfg ty
 // Wait wraps llGroup.Wait().
 func (g *Group) Wait() error {
 	return g.inner.Wait()
+}
+
+// List wraps llGroup.List().
+func (g *Group) List() map[string]GoroutineState {
+	return g.inner.List()
 }
