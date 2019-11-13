@@ -116,6 +116,10 @@
                 "alpn_protocols": "h2",
                 "kind": "TLSContext",
                 "location": "ratelimitv1withtlstest-http.default.1",
+                "metadata_labels": {
+                    "kat-ambassador-id": "ratelimitv1withtlstest",
+                    "scope": "AmbassadorTest"
+                },
                 "name": "ratelimit-tls-context",
                 "namespace": "default",
                 "secret_info": {
@@ -167,6 +171,16 @@
         {
             "_active": true,
             "_errored": false,
+            "_rkey": "ir.cors",
+            "config": {},
+            "kind": "ir.cors",
+            "location": "--internal--",
+            "name": "cors",
+            "namespace": "default"
+        },
+        {
+            "_active": true,
+            "_errored": false,
             "_referenced_by": [
                 "ratelimitv1withtlstest.default.1"
             ],
@@ -210,6 +224,10 @@
                     "alpn_protocols": "h2",
                     "kind": "TLSContext",
                     "location": "ratelimitv1withtlstest-http.default.1",
+                    "metadata_labels": {
+                        "kat-ambassador-id": "ratelimitv1withtlstest",
+                        "scope": "AmbassadorTest"
+                    },
                     "name": "ratelimit-tls-context",
                     "namespace": "default",
                     "secret_info": {
@@ -270,6 +288,10 @@
                     "alpn_protocols": "h2",
                     "kind": "TLSContext",
                     "location": "ratelimitv1withtlstest-http.default.1",
+                    "metadata_labels": {
+                        "kat-ambassador-id": "ratelimitv1withtlstest",
+                        "scope": "AmbassadorTest"
+                    },
                     "name": "ratelimit-tls-context",
                     "namespace": "default",
                     "secret_info": {
@@ -289,16 +311,6 @@
             "namespace": "default",
             "service": "rate-limit-tls:5000",
             "type": "decoder"
-        },
-        {
-            "_active": true,
-            "_errored": false,
-            "_rkey": "ir.cors",
-            "config": {},
-            "kind": "ir.cors",
-            "location": "--internal--",
-            "name": "cors",
-            "namespace": "default"
         },
         {
             "_active": true,
@@ -375,7 +387,7 @@
                     },
                     "group_id": "b4db12f5b638f1750062dd4220911c4f6f44fc57",
                     "headers": [],
-                    "kind": "IRMapping",
+                    "kind": "IRHTTPMapping",
                     "location": "--internal--",
                     "name": "internal_readiness_probe_mapping",
                     "namespace": "default",
@@ -464,7 +476,7 @@
                     },
                     "group_id": "7df546235997704c909d473af2cbcb5e606d20de",
                     "headers": [],
-                    "kind": "IRMapping",
+                    "kind": "IRHTTPMapping",
                     "location": "--internal--",
                     "name": "internal_liveness_probe_mapping",
                     "namespace": "default",
@@ -553,7 +565,7 @@
                     },
                     "group_id": "8de18501d2044fe30db225289b318d5fda913b64",
                     "headers": [],
-                    "kind": "IRMapping",
+                    "kind": "IRHTTPMapping",
                     "location": "--internal--",
                     "name": "internal_diagnostics_probe_mapping",
                     "namespace": "default",
@@ -669,6 +681,10 @@
                         ]
                     },
                     "location": "ratelimitv1withtlstest-http.default.2",
+                    "metadata_labels": {
+                        "kat-ambassador-id": "ratelimitv1withtlstest",
+                        "scope": "AmbassadorTest"
+                    },
                     "name": "ratelimit_target_mapping",
                     "namespace": "default",
                     "precedence": 0,
@@ -682,17 +698,21 @@
                         "/target/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: ratelimitv1withtlstest\napiVersion: ambassador/v1\nkind: Mapping\nlabels:\n  ambassador:\n  - request_label_group:\n    - x-ambassador-test-allow:\n        header: x-ambassador-test-allow\n        omit_if_not_present: true\nname: ratelimit_target_mapping\nprefix: /target/\nservice: ratelimitv1withtlstest-http\n",
+                    "serialization": "ambassador_id: ratelimitv1withtlstest\napiVersion: ambassador/v1\nkind: Mapping\nlabels:\n  ambassador:\n  - request_label_group:\n    - x-ambassador-test-allow:\n        header: x-ambassador-test-allow\n        omit_if_not_present: true\nmetadata_labels:\n  kat-ambassador-id: ratelimitv1withtlstest\n  scope: AmbassadorTest\nname: ratelimit_target_mapping\nprefix: /target/\nservice: ratelimitv1withtlstest-http\n",
                     "service": "ratelimitv1withtlstest-http",
                     "weight": 100
                 }
             ],
+            "metadata_labels": {
+                "kat-ambassador-id": "ratelimitv1withtlstest",
+                "scope": "AmbassadorTest"
+            },
             "name": "GROUP: ratelimit_target_mapping",
             "namespace": "default",
             "precedence": 0,
             "prefix": "/target/",
             "rewrite": "/",
-            "serialization": "ambassador_id: ratelimitv1withtlstest\napiVersion: ambassador/v1\nkind: Mapping\nlabels:\n  ambassador:\n  - request_label_group:\n    - x-ambassador-test-allow:\n        header: x-ambassador-test-allow\n        omit_if_not_present: true\nname: ratelimit_target_mapping\nprefix: /target/\nservice: ratelimitv1withtlstest-http\n"
+            "serialization": "ambassador_id: ratelimitv1withtlstest\napiVersion: ambassador/v1\nkind: Mapping\nlabels:\n  ambassador:\n  - request_label_group:\n    - x-ambassador-test-allow:\n        header: x-ambassador-test-allow\n        omit_if_not_present: true\nmetadata_labels:\n  kat-ambassador-id: ratelimitv1withtlstest\n  scope: AmbassadorTest\nname: ratelimit_target_mapping\nprefix: /target/\nservice: ratelimitv1withtlstest-http\n"
         }
     ],
     "grpc_services": {
@@ -735,6 +755,10 @@
                 "alpn_protocols": "h2",
                 "kind": "TLSContext",
                 "location": "ratelimitv1withtlstest-http.default.1",
+                "metadata_labels": {
+                    "kat-ambassador-id": "ratelimitv1withtlstest",
+                    "scope": "AmbassadorTest"
+                },
                 "name": "ratelimit-tls-context",
                 "namespace": "default",
                 "secret_info": {
@@ -819,6 +843,10 @@
                 "alpn_protocols": "h2",
                 "kind": "TLSContext",
                 "location": "ratelimitv1withtlstest-http.default.1",
+                "metadata_labels": {
+                    "kat-ambassador-id": "ratelimitv1withtlstest",
+                    "scope": "AmbassadorTest"
+                },
                 "name": "ratelimit-tls-context",
                 "namespace": "default",
                 "secret_info": {
@@ -879,6 +907,10 @@
                 "alpn_protocols": "h2",
                 "kind": "TLSContext",
                 "location": "ratelimitv1withtlstest-http.default.1",
+                "metadata_labels": {
+                    "kat-ambassador-id": "ratelimitv1withtlstest",
+                    "scope": "AmbassadorTest"
+                },
                 "name": "ratelimit-tls-context",
                 "namespace": "default",
                 "secret_info": {
@@ -903,50 +935,68 @@
         "k8s-rate-limit-tls-default": {
             "_referenced_by": {},
             "ambassador_id": "ratelimitv1withtlstest",
-            "apiVersion": "ambassador/v1",
+            "apiVersion": "getambassador.io/v2",
             "endpoints": {},
             "kind": "Service",
             "location": "k8s-rate-limit-tls-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "ratelimitv1withtlstest",
+                "scope": "AmbassadorTest"
+            },
             "name": "rate-limit-tls",
             "namespace": "default",
             "rkey": "k8s-rate-limit-tls-default",
-            "serialization": "ambassador_id: ratelimitv1withtlstest\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: rate-limit-tls\nnamespace: default\n"
+            "serialization": "ambassador_id: ratelimitv1withtlstest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: ratelimitv1withtlstest\n  scope: AmbassadorTest\nname: rate-limit-tls\nnamespace: default\n"
         },
         "k8s-ratelimitv1withtlstest-admin-default": {
             "_referenced_by": {},
             "ambassador_id": "ratelimitv1withtlstest",
-            "apiVersion": "ambassador/v1",
+            "apiVersion": "getambassador.io/v2",
             "endpoints": {},
             "kind": "Service",
             "location": "k8s-ratelimitv1withtlstest-admin-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "ratelimitv1withtlstest",
+                "scope": "AmbassadorTest",
+                "service": "ratelimitv1withtlstest-admin"
+            },
             "name": "ratelimitv1withtlstest-admin",
             "namespace": "default",
             "rkey": "k8s-ratelimitv1withtlstest-admin-default",
-            "serialization": "ambassador_id: ratelimitv1withtlstest\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: ratelimitv1withtlstest-admin\nnamespace: default\n"
+            "serialization": "ambassador_id: ratelimitv1withtlstest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: ratelimitv1withtlstest\n  scope: AmbassadorTest\n  service: ratelimitv1withtlstest-admin\nname: ratelimitv1withtlstest-admin\nnamespace: default\n"
         },
         "k8s-ratelimitv1withtlstest-default": {
             "_referenced_by": {},
             "ambassador_id": "ratelimitv1withtlstest",
-            "apiVersion": "ambassador/v1",
+            "apiVersion": "getambassador.io/v2",
             "endpoints": {},
             "kind": "Service",
             "location": "k8s-ratelimitv1withtlstest-default",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "ratelimitv1withtlstest",
+                "scope": "AmbassadorTest"
+            },
             "name": "ratelimitv1withtlstest",
             "namespace": "default",
             "rkey": "k8s-ratelimitv1withtlstest-default",
-            "serialization": "ambassador_id: ratelimitv1withtlstest\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: ratelimitv1withtlstest\nnamespace: default\n"
+            "serialization": "ambassador_id: ratelimitv1withtlstest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: ratelimitv1withtlstest\n  scope: AmbassadorTest\nname: ratelimitv1withtlstest\nnamespace: default\n"
         },
         "k8s-ratelimitv1withtlstest-http-default": {
             "_referenced_by": {},
             "ambassador_id": "ratelimitv1withtlstest",
-            "apiVersion": "ambassador/v1",
+            "apiVersion": "getambassador.io/v2",
             "endpoints": {},
             "kind": "Service",
             "location": "k8s-ratelimitv1withtlstest-http-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "ratelimitv1withtlstest",
+                "scope": "AmbassadorTest"
+            },
             "name": "ratelimitv1withtlstest-http",
             "namespace": "default",
             "rkey": "k8s-ratelimitv1withtlstest-http-default",
-            "serialization": "ambassador_id: ratelimitv1withtlstest\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: ratelimitv1withtlstest-http\nnamespace: default\n"
+            "serialization": "ambassador_id: ratelimitv1withtlstest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: ratelimitv1withtlstest\n  scope: AmbassadorTest\nname: ratelimitv1withtlstest-http\nnamespace: default\n"
         }
     },
     "tls_contexts": [
@@ -961,6 +1011,10 @@
             "alpn_protocols": "h2",
             "kind": "TLSContext",
             "location": "ratelimitv1withtlstest-http.default.1",
+            "metadata_labels": {
+                "kat-ambassador-id": "ratelimitv1withtlstest",
+                "scope": "AmbassadorTest"
+            },
             "name": "ratelimit-tls-context",
             "namespace": "default",
             "secret_info": {
