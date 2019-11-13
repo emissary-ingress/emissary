@@ -152,7 +152,7 @@ sync() {
     dexec mkdir -p /buildroot/${name}
     dsync --exclude-from=${DIR}/sync-excludes.txt --delete ${real}/ ${container}:/buildroot/${name}
     summarize-sync $name "${dsynced[@]}"
-    (cd ${sourcedir} && module_version ${name} ) | dexec sh -c "cat > /buildroot/${name}.version && if [ -e ${name}/python ]; then cp ${name}.version ${name}/python/; fi"
+    (cd ${sourcedir} && module_version ${name} ) | dexec sh -c "cat > /buildroot/${name}.version && cp ${name}.version ambassador/python/"
 }
 
 summarize-sync() {
