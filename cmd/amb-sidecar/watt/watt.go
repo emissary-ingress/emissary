@@ -18,9 +18,9 @@ type SnapshotStore struct {
 	httpClient *http.Client
 
 	lock sync.RWMutex
-
-	snapshot Snapshot
-
+	// things guarded by 'lock'
+	closed      bool
+	snapshot    Snapshot
 	subscribers []chan<- Snapshot
 }
 
@@ -40,6 +40,11 @@ func (ss *SnapshotStore) Set(s Snapshot) {
 	ss.lock.Lock()
 	defer ss.lock.Unlock()
 
+	if ss.closed {
+		// block forever
+		select{}
+	}
+
 	ss.snapshot = s
 	for _, subscriber := range ss.subscribers {
 		subscriber <- s
@@ -51,12 +56,19 @@ func (ss *SnapshotStore) makeSubscriberCh() <-chan Snapshot {
 	defer ss.lock.Unlock()
 
 	ret := make(chan Snapshot)
-	ss.subscribers = append(ss.subscribers, ret)
+	if ss.closed {
+		close(ret)
+	} else {
+		ss.subscribers = append(ss.subscribers, ret)
+	}
 	return ret
 }
 
 func (ss *SnapshotStore) Close() {
 	ss.lock.Lock()
+	defer ss.lock.Unlock()
+
+	ss.closed = true
 	for _, subscriber := range ss.subscribers {
 		close(subscriber)
 	}
