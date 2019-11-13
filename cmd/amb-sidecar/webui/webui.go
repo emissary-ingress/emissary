@@ -110,6 +110,10 @@ func (fb *firstBootWizard) isAuthorized(r *http.Request) bool {
 
 	var claims LoginClaimsV1
 
+	if fb.pubkey == nil {
+		dlog.GetLogger(r.Context()).Warningln("bypassing JWT validation for request")
+		return true
+	}
 	jwtParser := jwt.Parser{ValidMethods: []string{"PS512"}}
 	_, err := jwtsupport.SanitizeParse(jwtParser.ParseWithClaims(tokenString, &claims, func(_ *jwt.Token) (interface{}, error) {
 		return fb.pubkey, nil

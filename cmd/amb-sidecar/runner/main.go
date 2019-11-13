@@ -418,7 +418,9 @@ func runE(cmd *cobra.Command, args []string) error {
 		// web ui
 		_, pubKey, err := secret.GetKeyPair(cfg, coreClient)
 		if err != nil {
-			return errors.Wrap(err, "secret")
+			err = errors.Wrap(err, "GetKeyPair")
+			// this is non fatal (mostly just to facilitate local dev); don't `return err`
+			l.Errorln("disabling webui JWT validation:", err)
 		}
 		webuiHandler := webui.New(
 			cfg,
