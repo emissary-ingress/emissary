@@ -57,6 +57,12 @@ func NewGroup(ctx context.Context, cfg types.Config, loggerFactory func(name str
 		inner:         newLLGroup(softCancel),
 	}
 
+	ret.Go("supervisor", func(_, _ context.Context, _ types.Config, l dlog.Logger) error {
+		<-softCtx.Done()
+		l.Infoln("shutting down")
+		return nil
+	})
+
 	ret.Go("signal_handler", func(_, _ context.Context, _ types.Config, l dlog.Logger) error {
 		defer func() {
 			// If we receive another signal after
