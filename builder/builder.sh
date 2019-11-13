@@ -152,7 +152,7 @@ sync() {
     dexec mkdir -p /buildroot/${name}
     dsync --exclude-from=${DIR}/sync-excludes.txt --delete ${real}/ ${container}:/buildroot/${name}
     summarize-sync $name "${dsynced[@]}"
-    (cd ${sourcedir} && module_version ${name} ) | dexec sh -c "cat > /buildroot/${name}.version && if [ -e ${name}/python ]; then cp ${name}.version ${name}/python/; fi"
+    (cd ${sourcedir} && module_version ${name} ) | dexec sh -c "cat > /buildroot/${name}.version && cp ${name}.version ambassador/python/"
 }
 
 summarize-sync() {
@@ -272,14 +272,14 @@ case "${cmd}" in
         # This runs inside the builder image
         for MODDIR in $(find-modules); do
             module=$(basename ${MODDIR})
-            eval "$(grep BUILD_VERSION "${module}.version")"
+            eval "$(grep BUILD_VERSION apro.version 2>/dev/null)" # this will `eval ''` for OSS-only builds, leaving BUILD_VERSION unset; don't embed the version-number in OSS Go binaries
 
             if [ -e ${module}.dirty ]; then
                 if [ -e "${MODDIR}/go.mod" ]; then
                     printf "${CYN}==> ${GRN}Building ${BLU}${module}${GRN} go code${END}\n"
                     echo_on
                     mkdir -p /buildroot/bin
-                    (cd ${MODDIR} && go build -trimpath -ldflags "-X main.Version=$BUILD_VERSION" -o /buildroot/bin ./cmd/...) || exit 1
+                    (cd ${MODDIR} && CGO_ENABLED=0 go build -trimpath ${BUILD_VERSION:+ -ldflags "-X main.Version=$BUILD_VERSION" } -o /buildroot/bin ./cmd/...) || exit 1
                     if [ -e ${MODDIR}/post-compile.sh ]; then (cd ${MODDIR} && bash post-compile.sh); fi
                     echo_off
                 fi
