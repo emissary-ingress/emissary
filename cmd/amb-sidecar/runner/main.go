@@ -311,7 +311,9 @@ func runE(cmd *cobra.Command, args []string) error {
 		dynamicClient)
 	group.Go("acme_client", func(hardCtx, softCtx context.Context, cfg types.Config, l dlog.Logger) error {
 		if err := acmeclient.EnsureFallback(cfg, coreClient, dynamicClient); err != nil {
-			return err
+			err = errors.Wrap(err, "create fallback TLSContext and TLS Secret")
+			l.Errorln(err)
+			// this is non fatal (mostly just to facilitate local dev); don't `return err`
 		}
 		acmeController.Worker(l)
 		return nil
