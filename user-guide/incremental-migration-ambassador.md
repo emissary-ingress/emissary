@@ -9,3 +9,5 @@ The primary benefit of using an API gateway within the development stage of a pr
 ## Test and QA: Shadowing and Shifting
 
 A modern API gateway can help with testing on many levels. As mentioned previously, we can deploy a service — or a new version of a service — into production, hide this deployment via the gateway, and run acceptance and nonfunctional tests here (e.g. load tests and security analysis). This is invaluable in and of itself, but we can also use a gateway to “shadow” (duplicate) real production traffic to the new version of the service and hide the responses from the user. This allows you to learn how this service will perform under realistic use cases and load.
+
+

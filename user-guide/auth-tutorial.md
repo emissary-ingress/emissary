@@ -8,9 +8,8 @@ This tutorial assumes you have already followed the [Ambassador Edge Stack Getti
 
 After completing [Getting Started](/user-guide/getting-started), you'll have a Kubernetes cluster running Ambassador Edge Stack and the tour service. Let's walk through adding authentication to this setup.
 
-Don't want to DIY? [Ambassador Pro](/pro) integrates with popular Identity Providers such as Auth0 to provide a seamless OAuth / OpenID Connect authentication flow for your services. Start a [free 14-day trial](/pro/free-trial) now!
+Want to use all the features without worrying about passing the limit? [Ambassador Edge Stack Enterprise](/user-guide/ambassador-edge-stack-enterprise) allows you to use Ambassador Edge Stack for commericial and unlimited use. 
 
-<div style="border: thick solid red"> </div>
 
 ## 1. Deploy the authentication service
 
@@ -94,7 +93,7 @@ Once the auth service is running, we need to tell Ambassador Edge Stack about it
 
 ```yaml
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: AuthService
 metadata:
   name: authentication
@@ -196,7 +195,8 @@ $ curl -v -u username:password $AMBASSADORURL/backend/get-quote/
 For more details about configuring authentication, read the documentation on [external authentication](/reference/services/auth-service).
 
 ## Legacy v0 API
-If using Ambassador Edge Stack v0.40.2 or earlier, use the deprecated v0 `AuthService` API
+
+If using Ambassador v0.40.2 or earlier, use the deprecated v0 `AuthService` API
 ```yaml
 ---
 apiVersion: v1
@@ -206,7 +206,7 @@ metadata:
   annotations:
     getambassador.io/config: |
       ---
-      apiVersion: ambassador/v0
+      apiVersion: getambassador.io/v2
       kind:  AuthService
       name:  authentication
       auth_service: "example-auth:3000"

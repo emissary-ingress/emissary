@@ -15,10 +15,10 @@ Ambassador Edge Stack supports a number of attributes to configure and customize
 | `address`         | (optional) the IP address on which Ambassador Edge Stack should listen for connections for this Mapping -- if not present, Ambassador Edge Stack will listen on all addresses )
 | `port`            | (required) the TCP port on which Ambassador Edge Stack should listen for connections for this Mapping |
 | `idle_timeout_ms` | (optional) the timeout, in milliseconds, after which the connection will be terminated if no traffic is seen -- if not present, no timeout is applied |
-| `enable_ipv4` | (optional) if true, enables IPv4 DNS lookups for this mapping's service (the default is set by the [Ambassador Edge Stack module](/reference/modules)) |
-| `enable_ipv6` | (optional) if true, enables IPv6 DNS lookups for this mapping's service (the default is set by the [Ambassador Edge Stack module](/reference/modules)) |
+| `enable_ipv4` | (optional) if true, enables IPv4 DNS lookups for this mapping's service (the default is set by the [`ambassador Module`](/reference/modules)) |
+| `enable_ipv6` | (optional) if true, enables IPv6 DNS lookups for this mapping's service (the default is set by the [`ambassador Module`](/reference/modules)) |
 
-If both `enable_ipv4` and `enable_ipv6` are set, Ambassador Edge Stack will prefer IPv6 to IPv4. See the [Ambassador Edge Stack module](/reference/modules) documentation for more information.
+If both `enable_ipv4` and `enable_ipv6` are set, Ambassador Edge Stack will prefer IPv6 to IPv4. See the [`ambassador Module`](/reference/modules) documentation for more information.
 
 Ambassador Edge Stack can manage TCP connections using TLS:
 
@@ -49,7 +49,7 @@ Examples:
 
 ```yaml
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind:  TCPMapping
 metadata:
   name:  ssh
@@ -62,7 +62,7 @@ could be used to relay an SSH connection on port 2222, or
 
 
 ```yaml
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind:  TCPMapping
 metadata:
   name:  cockroach
@@ -85,7 +85,7 @@ Example:
 
 ```yaml
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind:  TLSContext
 metadata:
   name:  my-context
@@ -95,7 +95,7 @@ spec:
   - my-host-2
   secret: supersecret
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind:  TCPMapping
 metadata:
   name:  my-host-1
@@ -104,7 +104,7 @@ spec:
   host: my-host-1
   service: upstream-host-1:9999
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind:  TCPMapping
 metadata:
   name:  my-host-2
@@ -128,7 +128,7 @@ Example:
 
 ```yaml
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind:  TLSContext
 metadata:
   name:  my-context
@@ -138,14 +138,14 @@ spec:
   - my-host-2
   secret: supersecret
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind:  TLSContext
 metadata:
   name:  origination-context
 spec:
   secret: othersecret
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind:  TCPMapping
 metadata:
   name:  test-1
@@ -155,7 +155,7 @@ spec:
   tls: true
   service: upstream-host-1:9999
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind:  TCPMapping
 metadata:
   name:  test-2
@@ -182,14 +182,14 @@ Example:
 
 ```yaml
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind:  TLSContext
 metadata:
   name:  origination-context
 spec:
   secret: othersecret
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind:  TCPMapping
 metadata:
   name:  test

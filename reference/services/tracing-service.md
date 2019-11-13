@@ -10,7 +10,7 @@ A `TracingService` manifest configures Ambassador Edge Stack to use an external 
 
 ```yaml
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind:  TracingService
 metadata:
   name:  tracing
@@ -29,18 +29,22 @@ spec:
 - `tag_headers` (optional) if present, specifies a list of other HTTP request headers which will be used as tags in the trace's span.
 
 Please note that you must use the HTTP/2 preudo-header names. For example:
+
 - the `host` header should be specified as the `:authority` header; and
 - the `method` header should be specified as the `:method` header.
 
-### `lightstep` driver configurations:
+### `lightstep` driver configurations
+
 - `access_token_file` provides the location of the file containing the access token to the LightStep API.
 
-### `zipkin` driver configurations:
+### `zipkin` driver configurations
+
 - `collector_endpoint` gives the API endpoint of the Zipkin service where the spans will be sent. The default value is `/api/v1/spans`
 - `trace_id_128bit` whether a 128bit trace id will be used when creating a new trace instance. Defaults to `true`. Setting to `false` will result in a 64 bit trace id being used.
 - `shared_span_context` whether client and server spans will shared the same span id. The default value is `true`.
 
-### `datadog` driver configurations:
+### `datadog` driver configurations
+
 - `service_name` the name of the service which is attached to the traces. The default value is `ambassador`.
 
 You may only use a single `TracingService` manifest per Ambassador deployment. Ensure [ambassador_id](/reference/running/#ambassador_id) is set correctly in the `TracingService` manifest.

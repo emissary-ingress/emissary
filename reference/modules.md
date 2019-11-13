@@ -4,31 +4,20 @@ Modules let you enable and configure special behaviors for Ambassador Edge Stack
 
 ## Module configuration
 
-Modules can be added as annotations to an existing Kubernetes service, e.g., the Ambassador Edge Stack service. They can also be implemented as independent Kubernetes Custom Resource Definitions (CRDs). Here is a sample configuration of the core `ambassador` and `tls` `Module`s:
+Modules can be added as annotations to an existing Kubernetes service, e.g., the Ambassador Edge Stack service. They can also be implemented as independent Kubernetes Custom Resource Definitions (CRDs). Here is a sample configuration of the core `ambassador Module`:
 
 ```yaml
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: Module
 metadata:
   name: ambassador
 spec:
   config:
     enable_grpc_web: true
----
-apiVersion: getambassador.io/v1
-kind: Module
-metadata:
-  name: tls
-spec:
-  config:
-    server:
-      enabled: true
-      secret: ambassador-certs
-      redirect_cleartext_from: 8080
 ```
 
-Here is the equivalent configuration as annotations on the `ambassador` Kubernetes `service`:
+Here is the equivalent configuration as an annotation on the `ambassador` Kubernetes `service`:
 
 ```yaml
 ---
@@ -39,20 +28,11 @@ metadata:
   annotations:
     getambassador.io/config: |
       ---
-      apiVersion: getambassador.io/v1
+      apiVersion: getambassador.io/v2
       kind: Module
       name: ambassador
       config:
         enable_grpc_web: True
-      ---
-      apiVersion: getambassador.io/v1
-      kind: Module
-      name: tls
-      config:
-        server:
-          enabled: true
-          secret: ambassador-certs
-          redirect_cleartext_from: 8080
 spec:
   type: LoadBalancer
   externalTrafficPolicy: Local
@@ -67,7 +47,7 @@ spec:
     service: ambassador
 ```
 
-**Note:** Modules are named resources. A `Module` with `name: ambassador` is distinctly different than a `Module` with `name: tls`. A `Module` with a name other than `ambassador` and `tls` will be ignored. 
+**Note:** Modules are named resources. A `Module` with `name: ambassador` is distinctly different than a `Module` with `name: my-module`.
  
 ## The `ambassador` module
 
@@ -75,7 +55,7 @@ The [`ambassador`](/reference/core/ambassador) module covers general configurati
 
 ## The `tls` module
 
-The ['tls'](/reference/core/tls) module covers TLS configuration.
+The `tls` module is now deprecated. Use the [TLSContext](/reference/core/tls) manifest type instead.
 
 ## The `authentication` Module
 

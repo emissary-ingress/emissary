@@ -7,3 +7,4 @@ Topics covered include:
 * 30,000 ft view of the [architecture](/concepts/architecture)
 * The role of a cloud native, [microservices-focused](/about/microservices-api-gateways) API gateway
 * Why the Ambassador Edge Stack project choose to use Envoy Proxy
+

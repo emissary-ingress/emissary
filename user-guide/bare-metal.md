@@ -1,4 +1,9 @@
-# Deploying Ambassador Edge Stackon a Bare Metal Kubernetes Installation
+<div style="border: thick solid red">
+<!-- TODO: fix red bordered text -->
+This method of installation has not been tested and is not supported at this time.
+</div>
+
+# Deploying Ambassador Edge Stack on a Bare Metal Kubernetes Installation
 
 In cloud environments, provisioning a readily available network load balancer with Ambassador Edge Stack is the best option for handling ingress into your Kubernetes cluster. When running kubernetes on a bare-metal setup, where network load balancers are not available by default, we need to consider different options for exposing Ambassador Edge Stack.
 
@@ -88,3 +93,5 @@ spec:
 This configuration does not require an Ambassador Edge Stack service be defined so you can remove that service if you have defined one.
 
 **Note:** Before configuring Ambassador Edge Stack with this method, consider some of the functionality that is lost by bypassing the Kubernetes service including only having one Ambassador Edge Stack able to bind to port 8080 or 8443 per node and losing any load balancing that is typically performed by Kubernetes services. Join our [Slack channel](https://d6e.co/slack) to ask any questions you have regarding running Ambassador Edge Stack on a bare metal installation.
+
+

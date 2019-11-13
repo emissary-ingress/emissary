@@ -8,7 +8,7 @@ Ambassador Edge Stack lets users add one or more labels to a given request. Thes
 
 ```yaml
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 metadata:
   name:  catalog
@@ -23,15 +23,15 @@ For more information on request labels, see the [Rate Limit reference](/referenc
 
 ## Domains
 
-In Ambassador, each engineer (or team) can be assigned its own *domain*. A domain is a separate namespace for labels. By creating individual domains, each team can assign their own labels to a given request, and independently set the rate limits based on their own labels.
+In Ambassador Edge Stack, each engineer (or team) can be assigned its own *domain*. A domain is a separate namespace for labels. By creating individual domains, each team can assign their own labels to a given request, and independently set the rate limits based on their own labels.
 
 ## Default labels
 
-Ambassador Edge Stack allows setting a default label on every request. A default label is set on the `ambassador` module. For example:
+Ambassador Edge Stack allows setting a default label on every request. A default label is set on the `ambassador Module`. For example:
 
 ```yaml
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind:  Module
 metadata:
   name:  ambassador
@@ -46,10 +46,7 @@ spec:
 
 ## External Rate Limit Service
 
-In order for Ambassador Edge Stack to rate limit, you need to implement a gRPC service that supports the Envoy [ratelimit.proto](https://github.com/datawire/ambassador/blob/master/ambassador/common/ratelimit/ratelimit.proto) interface. If you do not have the time or resources to implement your own rate limit service, [Ambassador Pro](/pro) integrates a high performance, rate limiting service.
-
-<div style="border: thick solid red"> </div>
-
+In order for Ambassador Edge Stack to rate limit, you need to implement a gRPC service that supports the Envoy [ratelimit.proto](https://github.com/datawire/ambassador/blob/master/ambassador/common/ratelimit/ratelimit.proto) interface. If you do not have the time or resources to implement your own rate limit service, [Ambassador Edge Stack](/pro) integrates a high performance, rate limiting service.
 
 Ambassador Edge Stack generates a gRPC request to the external rate limit service and provides a list of labels on which the rate limit service can base its decision to accept or reject the request:
 
@@ -78,7 +75,7 @@ A `RateLimitService` manifest configures Ambassador Edge Stack to use an externa
 
 ```yaml
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind:  RateLimitService
 metadata:
   name:  ratelimit
@@ -98,7 +95,7 @@ If `tls` is present with a value that is not `true`, the value is assumed to be 
 
 ## Example
 
-The [Ambassador Edge Stack Rate Limiting Tutorial](/user-guide/rate-limiting-tutorial) has a simple rate limiting example. For a more advanced example, read the [advanced rate limiting tutorial](/user-guide/advanced-rate-limiting) with Ambassador Pro tutorial.
+The [Ambassador Edge Stack Rate Limiting Tutorial](/user-guide/rate-limiting-tutorial) has a simple rate limiting example. For a more advanced example, read the [advanced rate limiting tutorial](/user-guide/advanced-rate-limiting) with Ambassador Edge Stack tutorial.
 
 ## Further reading
 

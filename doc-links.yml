@@ -1,78 +1,98 @@
-- title: Getting Started
-  link: /docs
-  collapsable: false
+- title: Welcome
+  collapsable: //blog.getambassador.io/envoy-vs-nginx-vs-haproxy-why-the-open-source-ambassador-api-gateway-chose-envoy-23826aed79ef
   items:
-    - title: Why Ambassador?
+    - title: Quick Start Guide
+      link: /docs
+    - title: Why Ambassador Edge Stack?
       link: /about/why-ambassador
     - title: Features and Benefits
       link: /about/features-and-benefits
-    - title: Using Ambassador in Your Organization
+    - title: Using Ambassador Edge Stack in Your Organization
       link: /concepts/using-ambassador-in-org
-    - title: Ambassador vs. Other Software
+    - title: Ambassador Edge Stack vs. Other Software
       link: /about/alternatives
-    - title: Installing Ambassador Edge Stack
+    - title: Need help?
+      items: 
+      - title: Contact Support
+        link: /about/support
+      - title: Ask on Slack
+        link: https://d6e.co/slack
+      - title: File a GitHub Issue
+        link: https://github.com/datawire/ambassador/issues/new
+      - title: Visit Datawire.io
+        link: https://www.datawire.io
+        
+- title: Install Ambassador Edge Stack
+  items: 
+  - title: Kubernetes (YAML)
+    link: /user-guide/getting-started
+  - title: Kubernetes (Helm)
+    link: /user-guide/helm
+  - title: Docker Quickstart
+    link: /about/quickstart
+  - title: Docker Compose
+    link: /user-guide/docker-compose
+  - title: Bare Metal
+    link: /user-guide/bare-metal
+  - title: Certified Builds
+    link: /user-guide/certified-builds
+  - title: Other Install & Upgrade Options
+    items: 
+    - title: Ambassador Installation & Upgrade
       link: /user-guide/install
-      items:
-      - title: Kubernetes (YAML)
-        link: /user-guide/getting-started
-      - title: Kubernetes (Helm)
-        link: /user-guide/helm
-      - title: Docker Quickstart
-        link: /about/quickstart
-      - title: Docker Compose
-        link: /user-guide/docker-compose
-      - title: Bare Metal
-        link: /user-guide/bare-metal
-      - title: Ambassador Pro and Dev Portal
-        link: /user-guide/ambassador-pro-install
-      - title: Upgrade Ambassador Open Source to Ambassador Pro
-        link: /user-guide/upgrade-to-pro
-      - title: Early Access Releases
-        link: /user-guide/early-access
-      - title: Certified Builds
-        link: /user-guide/certified-builds
+    - title: Install Ambassador Open Source
+      link: /user-guide/install-ambassador-oss  
+    - title: Upgrade Ambassador OSS to Ambassador Edge Stack
+      link: /user-guide/upgrade-from-oss-to-edge-stack
+    - title: Early Access Releases
+      link: /user-guide/early-access
+
 
 - title: Concepts
-  link: /concepts/overview
-  items:
-    - title: Ambassador Architecture
-      link: /concepts/architecture
-    - title: Ambassador Deployment Architecture
-      link: /concepts/ambassador-deployment
-    - title: Continuous Delivery, Declarative Config, and GitOps
-      link: /user-guide/cd-declarative-gitops
-    - title: Microservices API Gateways
-      link: /about/microservices-api-gateways
-    - title: Rate Limiting Concepts
-      link: /user-guide/rate-limiting
-    - title: Self-Service Routing and Deployment Control
-      link: /concepts/developers
-    - title: Safely Testing in Production
-      link: /docs/dev-guide/test-in-prod
-    - title: OAuth & OIDC Overview
-      link: /concepts/auth-overview
-    - title: Why Ambassador Uses Envoy Proxy (External Link)
-      link: https://blog.getambassador.io/envoy-vs-nginx-vs-haproxy-why-the-open-source-ambassador-api-gateway-chose-envoy-23826aed79ef
+  items: 
+  - title: Ambassador 101
+    link: /concepts/overview
+  - title: Ambassador Edge Stack Architecture
+    link: /concepts/architecture
+  - title: Ambassador Edge Stack Deployment Architecture
+    link: /concepts/ambassador-deployment
+  - title: Continuous Delivery, Declarative Config, and GitOps
+    link: /user-guide/cd-declarative-gitops
+  - title: Microservices API Gateways
+    link: /about/microservices-api-gateways
+  - title: Rate Limiting Concepts
+    link: /user-guide/rate-limiting
+  - title: Self-Service Routing and Deployment Control
+    link: /concepts/developers
+  - title: Safely Testing in Production
+    link: /docs/dev-guide/test-in-prod
+  - title: OAuth & OIDC Overview
+    link: /concepts/auth-overview
+  - title: Why Ambassador Edge Stack Uses Envoy Proxy (External Link)
+    link: https://blog.getambassador.io/envoy-vs-nginx-vs-haproxy-why-the-open-source-ambassador-api-gateway-chose-envoy-23826aed79ef
 
-- title: Guides
-  link: /docs/guides/
-  items:
+- title: Guides & Tutorials 
+  items: 
+    - title: Available Guides
+      link: /docs/guides/
+      items:
     - title: Connecting Services
       items:
       - title: Adding a Custom Filter for Routing
         link: /docs/guides/filter-dev-guide
-      - title: Knative and Ambassador
+      - title: Knative and Ambassador Edge Stack
         link: /user-guide/knative
-      - title: Use gRPC with Ambassador
+      - title: Use gRPC with Ambassador Edge Stack
         link: /user-guide/grpc
-      - title: Use WebSockets with Ambassador
+      - title: Use WebSockets with Ambassador Edge Stack
         link: /user-guide/websockets-ambassador
     - title: Security
-      link: /user-guide/security
       items:
+      - title: Encryption and Authentication  
+        link:  /user-guide/security
       - title: Enabling HTTPS
         link: /user-guide/tls-termination
-      - title: cert-manager with Ambassador
+      - title: cert-manager with Ambassador Edge Stack
         link: /user-guide/cert-manager
       - title: Basic Authentication
         link: /user-guide/auth-tutorial
@@ -84,17 +104,17 @@
         link: /user-guide/advanced-rate-limiting
     - title: Service Mesh
       items:
-      - title: Consul and Ambassador
+      - title: Consul and Ambassador Edge Stack
         link: /user-guide/consul
-      - title: Istio and Ambassador
+      - title: Istio and Ambassador Edge Stack
         link: /user-guide/with-istio
-      - title: Linkerd and Ambassador
+      - title: Linkerd and Ambassador Edge Stack
         link: /user-guide/linkerd2
     - title: Best Practices
       items:
       - title: Integration Testing with Service Preview
         link: /docs/dev-guide/service-preview
-      - title: Implementing GitOps with Ambassador
+      - title: Implementing GitOps with Ambassador Edge Stack
         link: /user-guide/gitops-ambassador
       - title: Testing in Production with Canary Releases
         link: /docs/dev-guide/canary-release-concepts
@@ -108,147 +128,126 @@
         link: /user-guide/tracing-tutorial-zipkin
       - title: Monitoring Ingress with Prometheus and Grafana
         link: /user-guide/monitoring
-- title: Reference
-  collapsable: false
-  items:
-    - title: Configuring Ambassador
-      link: /reference/configuration
-      items:
-        - title: Configuration Format
-          link: /reference/config-format
-          items:
-            - title: Custom Resource Definitions
-              link: /reference/core/crds
-            - title: Service Annotations
-              link: /reference/core/annotations
-            - title: Kubernetes Ingress Resource
-              link: /reference/core/ingress-controller
-        - title: Global Configuration
-          link: /reference/modules
-          items:
-            - title: Ambassador Core Configuration
-              link: /reference/core/ambassador
-            - title: Gzip compression
-              link: /reference/gzip
-            - title: Load Balancing Configuration
-              link: /reference/core/load-balancer
-            - title: Service Discovery Configuration
-              link: /reference/core/resolvers
-            - title: TLS Configuration
-              link: /reference/core/tls
-              items:
-                - title: Client Certificate Validation
-                  link: /reference/tls/client-cert-validation
-                - title: HTTP -> HTTPS Redirection
-                  link: /reference/tls/cleartext-redirection
-                - title: Mutual TLS (mTLS)
-                  link: /reference/tls/mtls
-                - title: Server Name Indication (SNI)
-                  link: /user-guide/sni
-                - title: TLS Origination
-                  link: /reference/tls/origination
-        - title: Configuring Services
-          link: /reference/mappings
-          items:
-            - title: Canary Releases
-              link: /reference/canary
-            - title: Circuit Breakers
-              link: /reference/circuit-breakers
-            - title: Cross Origin Resource Sharing
-              link: /reference/cors
-            - title: Header-based routing
-              link: /reference/headers
-            - title: Host Header
-              link: /reference/host
-            - title: Prefix Regex
-              link: /reference/prefix_regex
-            - title: Rate Limits
-              link: /reference/rate-limits
-            - title: Redirects
-              link: /reference/redirects
-            - title: Remove Request Headers
-              link: /reference/remove_request_headers
-            - title: Remove Response Headers
-              link: /reference/remove_response_headers
-            - title: Request Headers
-              link: /reference/add_request_headers
-            - title: Response Headers
-              link: /reference/add_response_headers
-            - title: Retries
-              link: /reference/retries
-            - title: Rewrites
-              link: /reference/rewrites
-            - title: Routing TCP Connections
-              link: /reference/tcpmappings
-            - title: Timeouts
-              link: /reference/timeouts
-            - title: Traffic Shadowing
-              link: /reference/shadowing
-        - title: Plugins
-          link: /reference/services/services
-          items:
-            - title: Authentication
-              link: /reference/services/auth-service
-            - title: Access Control
-              link: /reference/services/access-control
-            - title: Rate Limiting
-              link: /reference/services/rate-limit-service
-            - title: Tracing
-              link: /reference/services/tracing-service
-        - title: IDP Support
-          items:
-            - title: Auth0
-              link: /reference/idp-support/auth0
-            - title: Azure AD
-              link: /reference/idp-support/azure
-            - title: Google
-              link: /reference/idp-support/google
-            - title: Keycloak
-              link: /reference/idp-support/keycloak
-            - title: Okta
-              link: /reference/idp-support/okta
-            - title: Salesforce
-              link: /reference/idp-support/salesforce
-            - title: User Account and Authentication (UAA)
-              link: /reference/idp-support/uaa
-        - title: Pro
-          items:
-            - title: Overview
-              link: /reference/pro/authentication
-            - title: Environment
-              link: /reference/pro/environment
-        - title: Filters
-          link: /reference/filter-reference
+- title: Reference & Configurations
+items:
+- title: Configuring Ambassador Edge Stack
+link: /reference/configuration
+items:
+- title: Core Configuration
+link: /reference/core/ambassador
+items:
+- title: Custom Resource Definitions
+link: /reference/core/crds
+- title: Service Annotations
+link: /reference/core/annotations
+- title: Kubernetes Ingress Resource
+link: /reference/core/ingress-controller
+- title: Global Configuration
+link: /reference/modules
+items:
+- title: Gzip compression
+link: /reference/gzip
+- title: Load Balancing Configuration
+link: /reference/core/load-balancer
+- title: Service Discovery Configuration
+link: /reference/core/resolvers
+- title: TLS Configuration
+link: /reference/core/tls
+items:
+- title: Client Certificate Validation
+link: /reference/tls/client-cert-validation
+- title: HTTP -> HTTPS Redirection
+link: /reference/tls/cleartext-redirection
+- title: Mutual TLS (mTLS)
+link: /reference/tls/mtls
+- title: Server Name Indication (SNI)
+link: /user-guide/sni
+- title: TLS Origination
+link: /reference/tls/origination
+- title: Configuring Services
+link: /reference/mappings
+items:
+- title: Canary Releases
+link: /reference/canary
+- title: Circuit Breakers
+link: /reference/circuit-breakers
+- title: Cross Origin Resource Sharing
+link: /reference/cors
+- title: Header-based routing
+link: /reference/headers
+- title: Host Header
+link: /reference/host
+- title: Prefix Regex
+link: /reference/prefix_regex
+- title: Rate Limits
+link: /reference/rate-limits
+- title: Redirects
+link: /reference/redirects
+- title: Remove Request Headers
+link: /reference/remove_request_headers
+- title: Remove Response Headers
+link: /reference/remove_response_headers
+- title: Request Headers
+link: /reference/add_request_headers
+- title: Response Headers
+link: /reference/add_response_headers
+- title: Retries
+link: /reference/retries
+- title: Rewrites
+link: /reference/rewrites
+- title: Routing TCP Connections
+link: /reference/tcpmappings
+- title: Timeouts
+link: /reference/timeouts
+- title: Traffic Shadowing
+link: /reference/shadowing
+- title: Plugins
+link: /reference/services/services
+items:
+- title: Authentication
+link: /reference/services/auth-service
+- title: Access Control
+link: /reference/services/access-control
+- title: Rate Limiting
+link: /reference/services/rate-limit-service
+- title: Tracing
+link: /reference/services/tracing-service
+- title: IDP Support
+items:
+- title: Auth0
+link: /reference/idp-support/auth0
+- title: Azure AD
+link: /reference/idp-support/azure
+- title: Google
+link: /reference/idp-support/google
+- title: Keycloak
+link: /reference/idp-support/keycloak
+- title: Okta
+link: /reference/idp-support/okta
+- title: Salesforce
+link: /reference/idp-support/salesforce
+- title: User Account and Authentication (UAA)
+link: /reference/idp-support/uaa
+- title: Filters
+link: /reference/filter-reference
     - title: Developer Portal
       link: /reference/dev-portal
-    - title: Running Ambassador
-      link: /reference/running
-      items:
-        - title: Diagnostics
-          link: /reference/diagnostics
-        - title: Ambassador with AWS
-          link: /reference/ambassador-with-aws
-        - title: Debugging Ambassador
-          link: /reference/debugging
-    - title: Upgrading Ambassador
-      link: /reference/upgrading
     - title: Statistics and Monitoring
       link: /reference/statistics
+    - title: Running Ambassador Edge Stack
+      items:
+      - title: Running and Deployment
+        link: /reference/running
+      - title: Debugging Ambassador Edge Stack
+        link: /reference/debugging
+      - title: Ambassador Edge Stack with AWS
+        link: /reference/ambassador-with-aws
+      - title: Diagnostics
+        link: /reference/diagnostics
 
 - title: Contributors
   items:
-    - title: Building Ambassador (GitHub)
+    - title: Building Ambassador Edge Stack (GitHub)
       link: https://github.com/datawire/ambassador/blob/master/BUILDING.md
     - title: Changelog (GitHub)
       link: https://github.com/datawire/ambassador/blob/master/CHANGELOG.md
-
-- title: Need Help?
-  items:
-    - title: Support
-      link: /about/support
-    - title: Ask on Slack
-      link: https://d6e.co/slack
-    - title: File a GitHub Issue
-      link: https://github.com/datawire/ambassador/issues/new
-    - title: Visit Datawire.io
-      link: https://www.datawire.io

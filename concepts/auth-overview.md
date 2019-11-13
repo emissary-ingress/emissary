@@ -4,12 +4,7 @@ The implementation of an effective authentication strategy is vital to any appli
 
 Typically with web applications the authentication is implemented at the edge, either via an API/edge gateway, or via a top-level request filter within your application framework. It is also increasingly common for applications to use external identity providers -- such as Google, GitHub, or Facebook -- typically via an Identity hub like [Auth0](https://auth0.com/), [Keycloak](https://www.keycloak.org/) or [Okta](https://www.okta.com/) that provides authentication-as-a-service, rather than taking on the high cost (and risk) of maintaining their own identity database.
 
-<div style="border: thick solid red"> </div>
-
-This article is focused on implementing authentication at the edge with the Kubernetes-native [Ambassador Pro API gateway](https://www.getambassador.io/pro/), and shows an example of how to integrate this with third-party identity providers.
-
-<div style="border: thick solid red"> </div>
-
+This article is focused on implementing authentication at the edge with the Kubernetes-native [Ambassador Edge Stack API gateway](https://www.getambassador.io/pro/), and shows an example of how to integrate this with third-party identity providers.
 
 ## How Ambassador Edge Stack Integrates with OAuth and OIDC
 
@@ -19,7 +14,7 @@ This is what the authentication process looks like at a high level when using Am
 
 There is quite a bit happening in this diagram, and so it will be useful to provide an overview of all of the moving parts.
 
-# OpenID, OAuth, IdPs, OIDC, Oh my…
+# OpenID, OAuth, IdPs, OIDC, Oh my!
 
 In software development we are generally not shy about using lots of acronyms, and the authentication space is no different. There are quite a few acronyms to learn, but the underlying concepts are surprisingly simple. Here's a cheat sheet:
 
@@ -39,5 +34,5 @@ An identity hub sits between your application and the IdP that authenticates you
 
 The Auth0 docs provide a guide for adding social IdP "[connections](https://auth0.com/docs/identityproviders)" to your Auth0 account, and the Keycloak docs provide a guide for adding social identity "[brokers](https://www.keycloak.org/docs/2.5/server_admin/topics/identity-broker/social-login.html)".
 
-## Learn More With the Ambassador Edge Stack and Auth0 Tutorial
+## Learn More With the Ambassador Edge Stack and Auth0 Tutorial\
 You can learn more from the [Single Sign-On with OAuth & OIDC](/user-guide/oauth-oidc-auth) tutorial, which also contains a full walkthrough of how to configure Ambassador Edge Stack with Auth0.

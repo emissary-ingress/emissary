@@ -1,14 +1,12 @@
 # Rate Limiting
 
-Ambassador Edge Stack can validate incoming requests before routing them to a backing service. In this tutorial, we'll configure Ambassador Edge Stack to use a simple third party rate limit service. If you don't want to implement your own rate limiting service, Ambassador Pro integrates a [powerful, flexible rate-limiting service](/user-guide/advanced-rate-limiting).
-
-<div style="border: thick solid red"> </div>
+Ambassador Edge Stack can validate incoming requests before routing them to a backing service. In this tutorial, we'll configure Ambassador Edge Stack to use a simple third party rate limit service. If you don't want to implement your own rate limiting service, Ambassador Edge Stack integrates a [powerful, flexible rate-limiting service](/user-guide/advanced-rate-limiting).
 
 ## Before You Get Started
 
 This tutorial assumes you have already followed the [Ambassador Edge Stack Getting Started](/user-guide/getting-started) guide. If you haven't done that already, you should do that now.
 
-After completing [Getting Started](/user-guide/getting-started), you'll have a Kubernetes cluster running Ambassador and the Quote of the Moment service. Let's walk through adding rate limiting to this setup.
+Once completed, you'll have a Kubernetes cluster running Ambassador and the Quote of the Moment service. Let's walk through adding rate limiting to this setup.
 
 ## 1. Deploy the rate limit service
 
@@ -23,7 +21,7 @@ Here's the YAML we'll start with:
 
 ```yaml
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: RateLimitService
 metadata:
   name: ratelimit
@@ -100,7 +98,7 @@ labels:
 so the `Mapping` definition will now look like this:
 ```yaml
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
   name: tour-backend
@@ -128,13 +126,13 @@ metadata:
   annotations:
     getambassador.io/config: |
       ---
-      apiVersion: ambassador/v0
+      apiVersion: getambassador.io/v2
       kind: Mapping
       name: tour-ui_mapping
       prefix: /
       service: tour:5000
       ---
-      apiVersion: ambassador/v0
+      apiVersion: getambassador.io/v2
       kind: Mapping
       name: tour-backend_mapping
       prefix: /backend/

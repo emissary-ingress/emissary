@@ -12,7 +12,7 @@ Ambassador Edge Stack supports different mechanisms for service discovery. These
 
 ### Kubernetes service-level discovery
 
-By default, Ambassador Edge Stack uses Kubernetes DNS and service-level discovery. In a `Mapping` resource, specifying `service: foo` will prompt Ambassador Edge Stack to look up the DNS address of the `foo` Kubernetes service. Traffic will be routed to the `foo` service. Kubernetes will then load balance that traffic between multiple pods. For more details on Kubernetes networking and how this works, see https://blog.getambassador.io/session-affinity-load-balancing-controls-grpc-web-and-ambassador-0-52-2b916b396d0c.
+By default, Ambassador Edge Stack uses Kubernetes DNS and service-level discovery. In a `Mapping` resource, specifying `service: foo` will prompt Ambassador Edge Stack to look up the DNS address of the `foo` Kubernetes service. Traffic will be routed to the `foo` service. Kubernetes will then load balance that traffic between multiple pods. For more details on Kubernetes networking and how this works, see our blog post on [Session affinity, load balancing controls, gRPC-Web, and Ambassador](https://blog.getambassador.io/session-affinity-load-balancing-controls-grpc-web-and-ambassador-0-52-2b916b396d0c).
 
 ### Kubernetes endpoint-level discovery
 
@@ -32,7 +32,7 @@ The Kubernetes Service Resolver configures Ambassador Edge Stack to use Kubernet
 
 ```yaml
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: KubernetesServiceResolver
 metadata:
   name: kubernetes-service
@@ -44,7 +44,7 @@ The Kubernetes Endpoint Resolver configures Ambassador Edge Stack to resolve Kub
 
 ```yaml
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: KubernetesEndpointResolver
 metadata:
   name: endpoint
@@ -56,7 +56,7 @@ The Consul Resolver configures Ambassador Edge Stack to use Consul for service d
 
 ```yaml
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: ConsulResolver
 metadata:
   name: consul-dc1
@@ -71,7 +71,7 @@ You may want to use an environment variable if you're running a Consul agent on 
 
 ```yaml
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: ConsulResolver
 metadata:
   name: consul-dc1
@@ -100,7 +100,7 @@ Once a resolver is defined, you can use them in a given `Mapping`:
 
 ```yaml
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
   name: tour-ui
@@ -111,7 +111,7 @@ spec:
   load_balancer:
     policy: round_robin
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
   name: bar

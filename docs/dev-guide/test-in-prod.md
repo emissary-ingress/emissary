@@ -20,3 +20,4 @@ Observability is a critical requirement for testing in production. In any canary
 ## Benefits of testing in production
 
 Modern cloud applications are continuously deployed, as different teams rapidly update their respective services. Deploying and testing updates in a pre-production staging environment introduces either a bottleneck to the speed of iteration, or provides little feedback due to the fact that staging is not representative of what will be running in production when the deployment actually occurs.  Testing in production addresses both of these challenges: developers evaluate their changes in the real-world environment, enabling rapid iteration.
+

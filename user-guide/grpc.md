@@ -73,7 +73,7 @@ service Greeter { ... }
 so the URL `prefix` is `helloworld.Greeter` and the mapping would be:
 
 ```yaml
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
   name: grpc-py
@@ -91,7 +91,7 @@ Note the `grpc: true` line —- this is what tells Envoy to use HTTP/2 so the re
 
 ```yaml
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
   name: grpc-py
@@ -191,7 +191,7 @@ If you want to add TLS encyrption to your gRPC calls, first you need to tell Amb
 Ex:
 ```yaml
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: TLSContext
 metadata:
   name: tls
@@ -258,7 +258,7 @@ Once deployed we will need to tell Ambassador Edge Stack to originate TLS to the
 
 ```yaml
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
   name: grpc-py-tls
@@ -288,7 +288,7 @@ spec:
 
 ```yaml
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: TLSContext
 metadata:
   name: upstream
@@ -314,4 +314,4 @@ headers:
 
 Some [Kubernetes ingress controllers](https://kubernetes.io/docs/concepts/services-networking/ingress/) do not support HTTP/2 fully. As a result, if you are running Ambassador with an ingress controller in front, you may find that gRPC requests fail even with correct Ambassador Edge Stack configuration.
 
-A simple way around this is to use Ambassador Edge Stack with a `LoadBalancer` service, rather than an Ingress controller.
+A simple way around this is to use Ambassador Edge Stack with a `LoadBalancer` service, rather than an Ingress controller. You can also consider using [Ambassador Edge Stack as your Ingress Controller](/user-guide/ingress-controller).

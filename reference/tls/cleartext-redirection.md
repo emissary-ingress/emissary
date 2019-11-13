@@ -36,7 +36,7 @@ To configure Ambassador Edge Stack to handle this behavior you need set `redirec
 1. Create a `TLSContext` to handle TLS termination, and tell it to enforce redirection. This example shows redirecting traffic to Ambassador's default cleartext service port, `8080`: 
 
     ```yaml
-    apiVersion: getambassador.io/v1
+    apiVersion: getambassador.io/v2
     kind: TLSContext
     metadata:
       name: tls
@@ -84,7 +84,7 @@ While port-based redirection is preferred for most use cases, using the `x-forwa
 Protocol-based redirection is configured in the Ambassador Edge Stack `Module`:
 
 ```yaml
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: Module
 metadata:
   name: ambassador

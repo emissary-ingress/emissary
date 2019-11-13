@@ -75,7 +75,7 @@ Ambassador Edge Stack Service config:
 
 ```yaml
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
   name: payment
@@ -83,7 +83,7 @@ spec:
   prefix: /payment/
   service: payment-service
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
   name: payment-canary
@@ -144,4 +144,5 @@ metadata:
 ```
 
 
-We've written more about canary releases on the [Ambassador blog](https://blog.getambassador.io). To learn more about this pattern, you can [read more here](https://blog.getambassador.io/cloud-native-patterns-canary-release-1cb8f82d371a).
+We've written more about canary releases on the [Ambassador Edge Stack blog](https://blog.getambassador.io). To learn more about this pattern, you can [read more here](https://blog.getambassador.io/cloud-native-patterns-canary-release-1cb8f82d371a).
+

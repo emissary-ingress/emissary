@@ -1,19 +1,19 @@
 # Global Configuration
 
-Ambassador Edge Stack supports a variety of global configuration options in the `ambassador` module.
+Ambassador Edge Stack supports a variety of global configuration options in the `ambassador Module`.
 
-## The `ambassador` Module
+## The `ambassador Module`
 
-If present, the `ambassador` module defines system-wide configuration. This module can be applied on any Kubernetes service (the `ambassador` service itself is a common choice). **You may very well not need this module.** The defaults in the `ambassador` module are:
+If present, the `ambassador Module` defines system-wide configuration. This module can be applied on any Kubernetes service (the `ambassador` service itself is a common choice). **You may very well not need this module.** The defaults in the `ambassador Module` are:
 
 ```yaml
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind:  Module
 metadata:
   name:  ambassador
 spec:
   config:
-  # Put the id if you are using multiple ambassadors in the same cluster.
+  # Use ambassador_id only if you are using multiple ambassadors in the same cluster.
   # For more information: https://www.getambassador.io/reference/running/#ambassador_id.
   # ambassador_id: "<ambassador_id>"
   
@@ -163,7 +163,7 @@ By default, Ambassador Edge Stack listens for HTTP or HTTPS traffic on ports 808
 
 ```yaml
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: Module
 metadata:
   name: ambassador
@@ -186,7 +186,7 @@ Ambassador Edge Stack supports the ability to inline Lua scripts that get run on
 
 ```yaml
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: Module
 metadata:
   name: ambassador
@@ -198,7 +198,7 @@ spec:
       end
 ```
 
-For more details on the Lua API, see the [Envoy Lua filter documentation](https://www.envoyproxy.io/docs/envoy/v1.11.2/configuration/http_filters/lua_filter).
+For more details on the Lua API, see the [Envoy Lua filter documentation](https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/lua_filter.html).
 
 Some caveats around the embedded scripts:
 
@@ -206,11 +206,11 @@ Some caveats around the embedded scripts:
 * They're inlined in the Ambassador Edge Stack YAML, so you likely won't want to write complex logic in here
 * They're run on every request/response to every URL
 
-<div style="border: thick solid red"> </div>
 
-If you need more flexible and configurable options, Ambassador Pro supports a [pluggable Filter system](/reference/filter-reference).
 
-<div style="border: thick solid red"> </div>
+If you need more flexible and configurable options, Ambassador Edge Stack supports a [pluggable Filter system](/reference/filter-reference).
+
+
 
 
 ### Linkerd Interoperability (`add_linkerd_headers`)
@@ -223,7 +223,7 @@ If set, `cluster_idle_timeout_ms` specifies the timeout (in milliseconds) after 
 
 ### gRPC HTTP/1.1 bridge (`enable_grpc_http11_bridge`)
 
-Ambassador Edge Stack supports bridging HTTP/1.1 clients to backend gRPC servers. When an HTTP/1.1 connection is opened and the request content type is `application/grpc`, Ambassador Edge Stack will buffer the response and translate into gRPC requests. For more details on the translation process, see the [Envoy gRPC HTTP/1.1 bridge documentation](https://www.envoyproxy.io/docs/envoy/v1.11.2/configuration/http_filters/grpc_http1_bridge_filter.html). This setting can be enabled by setting `enable_grpc_http11_bridge: true`.
+Ambassador Edge Stack supports bridging HTTP/1.1 clients to backend gRPC servers. When an HTTP/1.1 connection is opened and the request content type is `application/grpc`, Ambassador Edge Stack will buffer the response and translate into gRPC requests. For more details on the translation process, see the [Envoy gRPC HTTP/1.1 bridge documentation](https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/grpc_http1_bridge_filter). This setting can be enabled by setting `enable_grpc_http11_bridge: true`.
 
 ### gRPC-Web (`enable_grpc_web`)
 
@@ -251,13 +251,12 @@ readiness_probe:
 
 The liveness and readiness probe both support `prefix`, `rewrite`, and `service`, with the same meanings as for [mappings](/reference/mappings). Additionally, the `enabled` boolean may be set to `false` (as in the commented-out examples above) to disable support for the probe entirely.
 
-**Note well** that configuring the probes in the `ambassador` module only means that Ambassador Edge Stack will respond to the probes. You must still configure Kubernetes to perform the checks, as shown in the Datawire-provided YAML files.
+**Note well** that configuring the probes in the `ambassador Module` only means that Ambassador Edge Stack will respond to the probes. You must still configure Kubernetes to perform the checks, as shown in the Datawire-provided YAML files.
 
 ### `use_remote_address`
 
-<div style="border: thick solid red"> </div>
 
-In Ambassador 0.50 and later, the default value for `use_remote_address` to `true`. When set to `true`, Ambassador Edge Stack will append to the `X-Forwarded-For` header its IP address so upstream clients of Ambassador Edge Stack can get the full set of IP addresses that have propagated a request.  You may also need to set `externalTrafficPolicy: Local` on your `LoadBalancer` as well to propagate the original source IP address..  See the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/v1.11.2/configuration/http_conn_man/headers.html) and the [Kubernetes documentation](https://kubernetes.io/docs/tasks/access-application-cluster/create-external-load-balancer/#preserving-the-client-source-ip) for more details.
+In Ambassador 0.50 and later, the default value for `use_remote_address` to `true`. When set to `true`, Ambassador Edge Stack will append to the `X-Forwarded-For` header its IP address so upstream clients of Ambassador Edge Stack can get the full set of IP addresses that have propagated a request.  You may also need to set `externalTrafficPolicy: Local` on your `LoadBalancer` as well to propagate the original source IP address..  See the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_conn_man/headers) and the [Kubernetes documentation](https://kubernetes.io/docs/tasks/access-application-cluster/create-external-load-balancer/#preserving-the-client-source-ip) for more details.
 
 **Note well** that if you need to use `X-Forwarded-Proto`, you **must** set `use_remote_address` to `false`.
 
@@ -275,6 +274,6 @@ The value of `xff_num_trusted_hops` indicates the number of trusted proxies in f
 
 - If `use_remote_address` is `true` and `xff_num_trusted_hops` is set to a value N that is greater than zero, the trusted client address is the Nth address from the right end of XFF. (If the XFF contains fewer than N addresses, Envoy falls back to using the immediate downstream connection’s source address as trusted client address.)
 
-Refer to [Envoy's documentation](https://www.envoyproxy.io/docs/envoy/v1.11.2/configuration/http_conn_man/headers#x-forwarded-for) for some detailed examples on this interaction.
+Refer to [Envoy's documentation](https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_conn_man/headers.html#x-forwarded-for) for some detailed examples on this interaction.
 
 **NOTE:** This value is not dynamically configurable in Envoy. A restart is required  changing the value of `xff_num_trusted_hops` for Envoy to respect the change.

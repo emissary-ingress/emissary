@@ -24,7 +24,7 @@ Ambassador Edge Stack fully supports gRPC and HTTP/2 routing, thanks to Envoy's 
 
 ## Istio Integration
 
-Ambassador Edge Stack integrates with the [Istio](https://istio.io) service mesh as the edge proxy. In this configuration, Ambassador routes external traffic to the internal Istio service mesh. See [Istio and Ambassador Edge Stack](/user-guide/with-istio) for details.
+Ambassador Edge Stack integrates with the [Istio](https://istio.io) service mesh as the edge proxy. In this configuration, Ambassador Edge Stack routes external traffic to the internal Istio service mesh. See [Istio and Ambassador Edge Stack](/user-guide/with-istio) for details.
 
 ## Authentication
 
@@ -36,4 +36,7 @@ Ambassador Edge Stack supports rate limiting incoming requests. When configured,
 
 ## Integrated Diagnostics
 
-Ambassador Edge Stack includes a diagnostics service so that you can quickly debug issues associated with configuring Ambassador. For more information, see [running Ambassador Edge Stack](https://www.getambassador.io/reference/running).
+Ambassador Edge Stack includes a diagnostics service so that you can quickly debug issues associated with configuring Ambassador Edge Stack. For more information, see [running Ambassador Edge Stack](https://www.getambassador.io/reference/running).
+
+
+

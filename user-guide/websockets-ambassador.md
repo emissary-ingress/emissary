@@ -8,7 +8,7 @@ The example configuration below demonstrates the addition of the `use_websocket`
 
 ```yaml
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
   name: my-service-mapping

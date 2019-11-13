@@ -19,3 +19,6 @@ Many data centers include services that are running outside of Kubernetes on bar
 The diagram below details a common network architecture for a hybrid on-premise data center. Traffic flows from core routers to MetalLB, which routes to Ambassador Edge Stack running in Kubernetes. Ambassador Edge Stack routes traffic to individual services running on both Kubernetes and VMs. Consul tracks the real-time network location of the services, which Ambassador Edge Stack uses to route to the given services.
 
 ![Architecture](/doc-images/consul-ambassador.png)
+
+
+

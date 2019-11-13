@@ -13,3 +13,5 @@ In more detail, Ambassador Edge Stack supports operations in the following ways:
 * Integrated [diagnostics](/reference/statistics) and [tracing](/user-guide/tracing-tutorial) for troubleshooting
 * Supports running multiple Ambassador Edge Stacks in a cluster, with different versions, simplifying upgrades and testing
 * [Integrates with Istio](/user-guide/with-istio), if you need a service mesh
+
+

@@ -1,6 +1,6 @@
 # Cert-Manager and Ambassador Edge Stack
 
-Creating and managing certificates in Kubernetes is made simple with Jetstack's [cert-manager](https://github.com/jetstack/cert-manager). cert-manager will automatically create and renew tls certificates and store them in Kubernetes secrets for easy use in a cluster.
+Creating and managing certificates in Kubernetes is made simple with Jetstack's [cert-manager](https://github.com/jetstack/cert-manager). cert-manager will automatically create and renew TLS certificates and store them in Kubernetes secrets for easy use in a cluster.
 
 Starting in Ambassador Edge Stack 0.50.0, Ambassador will automatically watch for secret changes and reload certificates upon renewal.
 
@@ -112,7 +112,7 @@ The HTTP-01 challenge verifies ownership of the domain by sending a request for 
     cert-manager uses an `Ingress` resource to issue the challenge to `/.well-known/acme-challenge` but, since Ambassador is not an `Ingress`, we will need to create a `Mapping` so the cert-manager can reach the temporary pod.
     ```yaml
     ---
-    apiVersion: getambassador.io/v1
+    apiVersion: getambassador.io/v2
     kind: Mapping
     metadata:
       name: acme-challenge-mapping

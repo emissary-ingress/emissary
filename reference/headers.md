@@ -12,7 +12,7 @@ You can also set the `value` of a header to `true` to test for the existence of 
 
 ```yaml
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 metadata:
   name:  tour-backend
@@ -31,7 +31,7 @@ will allow requests to `/backend/` to succeed only if the `x-tour-mode` header h
 
 ```yaml
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 metadata:
   name:  tour-mode
@@ -42,7 +42,7 @@ spec:
     x-tour-mode: true
 
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 metadata:
   name:  tour-regular
@@ -62,10 +62,12 @@ The following mapping will route mobile requests from Android and iPhones to a m
 apiVersion: getambassador.io/v1
 kind:  Mapping
 metadata:
-  name:  tour-backend
+  name: tour-mobile
 spec:
   regex_headers:
     user-agent: "^(?=.*\\bAndroid\\b)(?=.*\\b(m|M)obile\\b).*|(?=.*\\biPhone\\b)(?=.*\\b(m|M)obile\\b).*$"
   prefix: /
   service: mobile-ui
 ```
+
+

@@ -1,4 +1,5 @@
-# Create the namespace.
+######################################################################
+# 'ambassador' namespace.
 ---
 apiVersion: v1
 kind: Namespace
@@ -9,17 +10,15 @@ metadata:
 
 ######################################################################
 # RBAC
-
 # NB: ClusterRoles and ClusterRoleBindings are not namespaced
 ---
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRole
 metadata:
-  name: ambassador-pro
+  name: ambassador
   labels:
     product: aes
 rules:
-# Regular Ambassador access requirements
 - apiGroups: [""]
   resources: [ "endpoints", "namespaces", "services" ]
   verbs: ["get", "list", "watch"]
@@ -41,16 +40,14 @@ rules:
 - apiGroups: [ "extensions" ]
   resources: [ "ingresses/status" ]
   verbs: ["update"]
-# Ambassador Pro access requirements.  Also gets "create" for secrets.
 - apiGroups: [""]
-  resources:
-  - secrets
-  verbs: ["get", "list", "watch", "create"]
+  resources: [ "secrets" ]
+  verbs: ["get", "list", "watch", "create", "update"]
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: ambassador-pro
+  name: ambassador
   namespace: ambassador
   labels:
     product: aes
@@ -58,16 +55,16 @@ metadata:
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRoleBinding
 metadata:
-  name: ambassador-pro
+  name: ambassador
   labels:
     product: aes
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: ambassador-pro
+  name: ambassador
 subjects:
 - kind: ServiceAccount
-  name: ambassador-pro
+  name: ambassador
   namespace: ambassador
 
 ######################################################################
@@ -76,7 +73,7 @@ subjects:
 apiVersion: v1
 kind: Service
 metadata:
-  name: ambassador-pro-redis
+  name: ambassador-redis
   namespace: ambassador
   labels:
     product: aes
@@ -86,12 +83,12 @@ spec:
   - port: 6379
     targetPort: 6379
   selector:
-    service: ambassador-pro-redis
+    service: ambassador-redis
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: ambassador-pro-redis
+  name: ambassador-redis
   namespace: ambassador
   labels:
     product: aes
@@ -99,35 +96,34 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      service: ambassador-pro-redis
+      service: ambassador-redis
   template:
     metadata:
       labels:
-        service: ambassador-pro-redis
+        service: ambassador-redis
     spec:
       containers:
       - name: redis
         image: redis:5.0.1
       restartPolicy: Always
-# ambassador-pro.yaml
 
 ######################################################################
-# Configure Ambassador OSS to use Ambassador Pro.
+# Configure Ambassador Edge Stack.
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: RateLimitService
 metadata:
-  name: ambassador-pro-ratelimit
+  name: ambassador-edge-stack-ratelimit
   namespace: ambassador
   labels:
     product: aes
 spec:
   service: "127.0.0.1:8500"
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: AuthService
 metadata:
-  name: ambassador-pro-auth
+  name: ambassador-edge-stack-auth
   namespace: ambassador
   labels:
     product: aes
@@ -138,55 +134,47 @@ spec:
   auth_service: "127.0.0.1:8500"
   allow_request_body: false # setting this to 'true' allows Plugin and External filters to access the body, but has performance overhead
 ---
-apiVersion: getambassador.io/v1
-kind: Mapping
+apiVersion: v1
+kind: Secret
 metadata:
-  name: ambassador-pro
+  name: ambassador-edge-stack
   namespace: ambassador
-  labels:
-    product: aes
-spec:
-  prefix: /.ambassador/
-  rewrite: ""
-  service: "127.0.0.1:8500"
+data:
+  license-key: "" # This secret is just a placeholder, it is mounted as a volume and refreshed when changed
+
+######################################################################
+# Configure DevPortal
 ---
-# DevPortal
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
-  name: ambassador-pro-devportal
+  # This Mapping name is referenced by convention, it's important to leave as-is.
+  name: ambassador-devportal
   namespace: ambassador
   labels:
     product: aes
 spec:
   prefix: /documentation/
   rewrite: "/docs/"
-  add_response_headers:
-    x-test-proto: "%PROTOCOL%"
-    x-test-ip: "%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%"
-    x-test-static: This is apro mapping
   service: "127.0.0.1:8500"
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
-  name: ambassador-pro-devportal-api
+  # This Mapping name is referenced by convention, it's important to leave as-is.
+  name: ambassador-devportal-api
   namespace: ambassador
   labels:
     product: aes
 spec:
   prefix: /openapi/
   rewrite: ""
-  add_response_headers:
-    x-test-proto: "%PROTOCOL%"
-    x-test-ip: "%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%"
-    x-test-static: This is apro api mapping
   service: "127.0.0.1:8500"
 ---
-apiVersion: getambassador.io/v1beta2
+apiVersion: getambassador.io/v2
 kind: FilterPolicy
 metadata:
-  name: ambassador-pro-internal-access-control
+  name: ambassador-internal-access-control
   namespace: ambassador
   labels:
     product: aes
@@ -195,12 +183,12 @@ spec:
     - host: "*"
       path: "*/.ambassador-internal/*"
       filters:
-        - name: ambassador-pro-internal-access-control
+        - name: ambassador-internal-access-control
 ---
-apiVersion: getambassador.io/v1beta2
+apiVersion: getambassador.io/v2
 kind: Filter
 metadata:
-  name: ambassador-pro-internal-access-control
+  name: ambassador-internal-access-control
   namespace: ambassador
   labels:
     product: aes
@@ -208,7 +196,7 @@ spec:
   Internal: {}
 ---
 # This mapping needs to exist, but is never actually followed.
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
   name: callback-mapping
@@ -283,13 +271,21 @@ spec:
       labels:
         service: ambassador
     spec:
-      serviceAccountName: ambassador-pro
-      terminationGracePeriodSeconds: 0
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    service: ambassador
+                topologyKey: kubernetes.io/hostname
+      serviceAccountName: ambassador
       imagePullSecrets:
       - name: aes-pull-secret
       containers:
       - name: aes
-        image: quay.io/datawire-dev/aes:0.10.0-rc-latest
+        image: quay.io/datawire-dev/aes:0.99.0-rc-latest
         imagePullPolicy: Always
         ports:
         - name: http
@@ -308,36 +304,13 @@ spec:
             path: /ambassador/v0/check_ready
             port: 8877
           periodSeconds: 3
-        #livenessProbe:
-        #  httpGet:
-        #    path: /_/sys/healthz
-        #    port: 8500
-        #  initialDelaySeconds: 30
-        #  periodSeconds: 5
-        #readinessProbe:
-        #  httpGet:
-        #    path: /_/sys/readyz
-        #    port: 8500
-        #  initialDelaySeconds: 30
-        #  periodSeconds: 5
         env:
-        # A/OSS
         - name: AMBASSADOR_NAMESPACE
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
-        - name: SCOUT_DISABLE
-          value: "1"
-        # A/Pro
-        - name: AMBASSADOR_LICENSE_KEY
-          value: "***REDACTED***"
-        - name: APP_LOG_LEVEL
-          value: DEBUG
-        - name: REDIS_SOCKET_TYPE
-          value: tcp
         - name: REDIS_URL
-          value: ambassador-pro-redis:6379
-        # A/Pro: DevPortal
+          value: ambassador-redis:6379
         - name: AMBASSADOR_URL
           value: "https://ambassador.default.svc.cluster.local"
         - name: POLL_EVERY_SECS
@@ -346,4 +319,14 @@ spec:
           value: "https://127.0.0.1:8443"
         - name: AMBASSADOR_ADMIN_URL
           value: "http://127.0.0.1:8877"
+        volumeMounts:
+        - mountPath: "/.config/ambassador"
+          name: ambassador-edge-stack-secrets
+          readOnly: true
       restartPolicy: Always
+      securityContext:
+        runAsUser: 8888
+      volumes:
+      - name: ambassador-edge-stack-secrets
+        secret:
+          secretName: ambassador-edge-stack

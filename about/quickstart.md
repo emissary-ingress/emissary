@@ -1,3 +1,8 @@
+<div style="border: thick solid red">
+<!-- TODO: fix red bordered text -->
+This method of installation has not been tested and is not supported at this time.
+</div>
+
 # Five minute quickstart
 
 In this section, we'll get Ambassador Edge Stack running locally with a demo configuration. In the next section, we'll then walk through how to deploy Ambassador Edge Stack in Kubernetes with a custom configuration.
@@ -34,7 +39,7 @@ curl 'http://localhost:8080/qotm/?json=true'
 
 This request will route to the `qotm` service at `demo.getambassador.io`, and return a random quote for this very moment.
 
-You can see details of the mapping by clicking the blue `http://localhost:8080/qotm/ link at the very bottom of the `Ambassador Route Table` in the diagnostics overview.
+You can see details of the mapping by clicking the blue `http://localhost:8080/qotm/` link at the very bottom of the `Ambassador Route Table` in the diagnostics overview.
 
 ## 4. Authentication
 
@@ -63,3 +68,6 @@ Note that it's up to the auth service to decide what needs authentication -- tea
 ## Next steps
 
 We've just walked through some of the core features of Ambassador Edge Stack in a local configuration. To see Ambassador Edge Stack in action on Kubernetes, check out the [Kubernetes intall guide](/user-guide/install).
+
+
+

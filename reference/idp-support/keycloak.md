@@ -1,8 +1,8 @@
 # Keycloak
 
-With Keycloak as your IDP, you will need to create a `Client` to handle authentication requests from Ambassador Pro. The below instructions are known to work for Keycloak 4.8.
+With Keycloak as your IDP, you will need to create a `Client` to handle authentication requests from Ambassador Edge Stack. The below instructions are known to work for Keycloak 4.8.
 
-<div style="border: thick solid red"> </div>
+
 
 1. Under "Realm Settings", record the "Name" of the realm your client is in. This will be needed to configure your `authorizationURL`.
 
@@ -35,7 +35,7 @@ With Keycloak as your IDP, you will need to create a `Client` to handle authenti
 
    ```yaml
    ---
-   apiVersion: getambassador.io/v1beta2
+   apiVersion: getambassador.io/v2
    kind: Filter
    metadata:
      name: keycloak_filter
@@ -51,7 +51,7 @@ With Keycloak as your IDP, you will need to create a `Client` to handle authenti
 
    ```yaml
    ---
-   apiVersion: getambassador.io/v1beta2
+   apiVersion: getambassador.io/v2
    kind: FilterPolicy
    metadata:
      name: httpbin-policy
@@ -66,3 +66,6 @@ With Keycloak as your IDP, you will need to create a `Client` to handle authenti
                scopes:
                - "offline_access"
    ```
+
+
+

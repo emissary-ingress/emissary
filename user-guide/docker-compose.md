@@ -1,3 +1,8 @@
+<div style="border: thick solid red">
+<!-- TODO: fix red bordered text -->
+This method of installation has not been tested and is not supported at this time.
+</div>
+
 # Deploying Ambassador Edge Stack to Docker Compose for local development
 
 Docker Compose is useful for local development where Minikube may be undesirable. This guide is not intended for production deployments but it is intended to allow developers to quickly try out Ambassador Edge Stack features in a simple, local environment.
@@ -33,7 +38,7 @@ services:
     - AMBASSADOR_NO_KUBEWATCH=no_kubewatch
 ```
 
-Note the mounted volume. When Ambassador Edge Stack bootstraps on container startup it checks the `/ambassador/ambassador-config` directory for configuration files. We will use this behavior to configure ambassador.
+Note the mounted volume. When Ambassador Edge Stack bootstraps on container startup it checks the `/ambassador/ambassador-config` directory for configuration files. We will use this behavior to configure Ambassador Edge Stack.
 
 Note also the `AMBASSADOR_NO_KUBEWATCH` environment variable. Without this, Ambassador Edge Stack will try to use the Kubernetes API to watch for service changes, which won't work in Docker.
 
@@ -53,7 +58,7 @@ Set the contents of the `config/ambassador.yaml` to this yaml configuration:
 
 ```yaml
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: Module
 name: ambassador
 config: {}
@@ -89,7 +94,7 @@ Edit the contents of the `config/ambassador.yaml` to this yaml configuration:
 
 ```yaml
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: Module
 name: ambassador
 config:
@@ -124,7 +129,7 @@ Create a new file `config/mapping-httpbin.yaml` with these contents:
 
 ```yaml
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  httpbin_mapping
 prefix: /httpbin/
@@ -185,13 +190,13 @@ Edit the `config/mapping-tour.yaml` file and modify the `service` and `rewrite` 
 
 ```yaml
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
 name: tour-ui_mapping
 prefix: /
 service: tour-ui:5000
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 name:  tour-backend_mapping
 prefix: /backend/
@@ -259,7 +264,7 @@ Make a new file called `config/auth.yaml` with an auth definition inside:
 
 ```yaml
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  AuthService
 name:  authentication
 auth_service: "auth:3000"
@@ -383,7 +388,7 @@ Add a new configuration file `config/tracing.yaml` with these contents:
 
 ```yaml
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: TracingService
 name: tracing
 service: tracing:9411
@@ -412,3 +417,5 @@ In a browser you can go to [http://localhost:16686/](http://localhost:16686/) an
 ## Next Steps
 
 We have demonstrated that all the configurations that would normally be stored in kubernetes annotations can be saved as a yaml document in a volume mapped to `/ambassador/ambassador-config` within the Ambassador Edge Stack docker container. Hopefully this guide can be used to test new configurations locally before moving to a Kubernetes cluster. Of course, there will be differences between docker-compose and the Kubernetes implementation and one should be sure to test thoroughly in the latter before moving to production.
+
+

@@ -23,7 +23,7 @@
 
    ```yaml
    ---
-   apiVersion: getambassador.io/v1beta2
+   apiVersion: getambassador.io/v2
    kind: Filter
    metadata:
      name: okta_filter
@@ -39,7 +39,7 @@
 
    ```yaml
    ---
-   apiVersion: getambassador.io/v1beta2
+   apiVersion: getambassador.io/v2
    kind: FilterPolicy
    metadata:
      name: httpbin-policy
@@ -57,3 +57,5 @@
    ```
 
    **Note:** Scopes `openid` and `profile` are required at a minimum. Other scopes can be added to the `Authorization Server`
+
+

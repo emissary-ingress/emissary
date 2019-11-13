@@ -1,18 +1,14 @@
 # Service Preview
 
-<div style="border: thick solid red"> </div>
 
-How do you verify that the code you've written actually works? Ambassador Pro's *Service Preview* lets developers see exactly how their service works in a realistic enviroment -- without impacting other developers or end users. Service Preview integrates [Telepresence](https://www.telepresence.io), the popular CNCF project for local development and debugging on Kubernetes.
+How do you verify that the code you've written actually works? Ambassador Edge Stack's *Service Preview* lets developers see exactly how their service works in a realistic enviroment -- without impacting other developers or end users. Service Preview integrates [Telepresence](https://www.telepresence.io), the popular CNCF project for local development and debugging on Kubernetes.
 
-<div style="border: thick solid red"> </div>
 
 
 ## Install `apictl`
 
-<div style="border: thick solid red"> </div>
 
-`apictl` is the command client for Ambassador Pro.
-<div style="border: thick solid red"> </div>
+`apictl` is the command client for Ambassador Edge Stack.
 
 
 Download the latest version of the client:
@@ -26,7 +22,7 @@ Information about open source code used in `apictl` can be found by running `api
 
 ## Getting started
 
-In this quick start, we're going to preview a change we make to the backend service of the tour application, without impacting normal users of the application. Before getting started, make sure the [tour application is installed](https://www.getambassador.io/user-guide/getting-started#3-creating-your-first-service) on your cluster and you've installed the `apictl` command line tool, as explained above.
+In this quick start, we're going to preview a change we make to the backend service of the tour application, without impacting normal users of the application. Before getting started, make sure the [tour application is installed](/user-guide/getting-started#3-creating-your-first-service) on your cluster and you've installed the `apictl` command line tool, as explained above.
 
 1. We're first going to get the tour backend service running locally. Clone the tour repository and build a local image.
 
@@ -50,7 +46,7 @@ In this quick start, we're going to preview a change we make to the backend serv
 
    ```yaml
     ---
-    apiVersion: getambassador.io/v1
+    apiVersion: getambassador.io/v2
     kind: Mapping
     metadata:  
       name: tour-ui
@@ -58,7 +54,7 @@ In this quick start, we're going to preview a change we make to the backend serv
       prefix: /
       service: tour:5000
     ---
-    apiVersion: getambassador.io/v1
+    apiVersion: getambassador.io/v2
     kind: Mapping
     metadata:  
       name: tour-backend
@@ -152,10 +148,9 @@ In this quick start, we're going to preview a change we make to the backend serv
     apictl traffic initialize
     ```
 
-<div style="border: thick solid red"> </div>
 
-7. We need to create an `intercept` rule that tells Ambassador where to route specific requests. The following command will tell Ambassador to route any traffic for the `tour` deployment where the header `x-service-preview` is `dev` to go to port 8080 on localhost:
-<div style="border: thick solid red"> </div>
+7. We need to create an `intercept` rule that tells Ambassador Edge Stack where to route specific requests. The following command will tell Ambassador Edge Stack to route any traffic for the `tour` deployment where the header `x-service-preview` is `dev` to go to port 8080 on localhost:
+
 
 
     ```

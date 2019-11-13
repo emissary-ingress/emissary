@@ -1,5 +1,5 @@
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
   name: tour-ui
@@ -7,7 +7,7 @@ spec:
   prefix: /
   service: tour:5000
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
   name: tour-backend

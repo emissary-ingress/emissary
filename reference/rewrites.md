@@ -35,3 +35,5 @@ http://service1/prefix1/foo/bar
 Ambassador Edge Stack can be configured to not change the prefix as it forwards a request to the upstream service. To do that, specify an empty `rewrite` directive:
 
 - `rewrite: ""`
+
+

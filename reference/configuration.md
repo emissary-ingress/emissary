@@ -1,8 +1,8 @@
 # Ambassador Edge Stack Configuration
 
-Ambassador Edge Stack is configured in a declarative fashion, using YAML manifests to describe the state of the world. As with Kubernetes, Ambassador Edge Stack's manifests are identified with `apiVersion`, `kind`, and `name`. The current `apiVersion` is `getambassador.io/v1`; currently-supported `kind`s are:
+Ambassador Edge Stack is configured in a declarative fashion, using YAML manifests to describe the state of the world. As with Kubernetes, Ambassador Edge Stack's manifests are identified with `apiVersion`, `kind`, and `name`. The current `apiVersion` is `getambassador.io/v2`; currently-supported `kind`s are:
 
-- [`Module`](/reference/modules) manifests configure things that apply to Ambassador Edge Stack as a whole. For example, the `ambassador` module can define listener ports, and the `tls` module can configure TLS termination for Ambassador Edge Stack.
+- [`Module`](/reference/modules) manifests configure things that apply to Ambassador Edge Stack as a whole. For example, the `ambassador Module` can define listener ports, and the `tls` module can configure TLS termination for Ambassador Edge Stack.
 
 - [`AuthService`](/reference/services/auth-service) manifests configure the external authentication service[s] that Ambassador Edge Stack will use.
 
@@ -41,3 +41,5 @@ Ambassador Edge Stack's configuration is assembled from multiple YAML blocks, to
     If two different developers try to map `/user/` to something, this can lead to unexpected behavior. Ambassador Edge Stack's canary-deployment logic means that it's more likely that traffic will be split between them than that it will throw an error -- again, the diagnostic service can help you here.
     
 **Note:** Unless specified, mapping attributes cannot be applied to any other resource type.
+
+

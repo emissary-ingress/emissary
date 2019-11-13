@@ -14,3 +14,5 @@ In more detail, Ambassador Edge Stack supports developers in the following ways:
 * [Testing in production](/docs/dev-guide/test-in-prod)
 * Support for [canarying and shadow traffic](/docs/dev-guide/canary-release-concepts)
 * [Transparent monitoring](/reference/statistics) of L7 traffic to given services
+
+

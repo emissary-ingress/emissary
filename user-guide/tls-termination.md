@@ -55,7 +55,7 @@ Run the following command to create a `TLSContext` CRD that configures Ambassado
 
 ```shell
 cat << EOF | kubectl apply -f -
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: TLSContext
 metadata:
   name: tls
@@ -119,3 +119,4 @@ In Kubernetes, Jetstack's `cert-manager` provides a simple way to manage certifi
 ### Enable advanced TLS options
 
 Ambassador Edge Stack exposes configuration for many more advanced options around TLS termination, origination, client certificate validation, and SNI support. See the full [TLS reference](/reference/core/tls) for more information.
+

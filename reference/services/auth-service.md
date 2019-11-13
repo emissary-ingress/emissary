@@ -2,19 +2,11 @@
 
 Ambassador Edge Stack supports a highly flexible mechanism for authentication. An `AuthService` manifest configures Ambassador to use an external service to check authentication and authorization for incoming requests. Each incoming request is authenticated before routing to its destination.
 
-There are currently two supported versions of the `AuthService` manifest:
-
-### V1 (Ambassador 0.50.0 and higher):
-
-`AuthService` V1, introduced in Ambassador 0.50, allows you to separately configure the headers that will be sent from the client to the auth service, and from the auth service to the upstream service. It also allows sending body data to the auth service.
-
-<div style="border: thick solid red"> </div>
-
-You should use `AuthService` V1 for any new deployment of Ambassador 0.50 or higher.
+The currently supported version of the `AuthService` resource is `getambassador.io/v2`. Earlier versions are deprecated.
 
 ```yaml
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind:  AuthService
 metadata:
   name:  authentication
@@ -70,28 +62,7 @@ spec:
 
 - `add_linkerd_headers` (optional) when true, adds `l5d-dst-override` to the authorization request and set the hostname of the authorization server as the header value.
 
-- `cluster_idle_timeout_ms` (optional) sets the timeout, in milliseconds, before an idle connection upstream is closed. The default is provided by the `ambassador` `Module`; if no `cluster_idle_timeout_ms` is specified, upstream connections will never be closed due to idling.
-
-### v0 (Ambassador versions prior to 0.50.0)
-
-`AuthService` V0 was current prior to Ambassador 0.50.0. It is deprecated and support for V0 will be removed in a future Ambassador Edge Stack release.
-
-```yaml
----
-apiVersion: getambassador.io/v1
-kind:  AuthService
-metadata:
-  name:  authentication
-spec:
-  auth_service: "example-auth:3000"
-  path_prefix: "/extauth"
-  allowed_headers:
-  - "x-qotm-session"
-```
-
-- `auth_service` gives the URL of the authentication service
-- `path_prefix` (optional) gives a prefix prepended to every request going to the auth service
-- `allowed_headers` (optional) gives an array of headers that will be incorporated into the upstream request if the auth service supplies them.
+- `cluster_idle_timeout_ms` (optional) sets the timeout, in milliseconds, before an idle connection upstream is closed. The default is provided by the `ambassador Module`; if no `cluster_idle_timeout_ms` is specified, upstream connections will never be closed due to idling.
 
 ## Multiple AuthService resources
 

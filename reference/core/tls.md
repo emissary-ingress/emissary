@@ -16,7 +16,7 @@ A full schema of the `TLSContext` can be found below with descriptions of the di
 
 ```yaml
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: TLSContext
 metadata:
   name: tls-context-1
@@ -92,14 +92,14 @@ The `alpn_protocols` setting configures the TLS ALPN protocol. To use gRPC over 
 The `alpn_protocols` setting is also required for HTTP/2 support.
 
 ```yaml
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind:  TLSContext
 metadata:
   name:  tls
 spec:
-secret: ambassador-certs
-hosts: ["*"]
-alpn_protocols: h2[, http/1.1]
+  secret: ambassador-certs
+  hosts: ["*"]
+  alpn_protocols: h2[, http/1.1]
 ```
 Without setting setting alpn_protocols as shown above, HTTP2 will not be available via negotiation and will have to be explicitly requested by the client.
 
@@ -117,7 +117,7 @@ The `ecdh_curves` setting configures the supported ECDH curves when negotiating 
 
 ```yaml
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind:  TLSContext
 metadata:
   name:  tls
@@ -138,12 +138,12 @@ spec:
 
 The TLS `Module` is deprecated. `TLSContext` should be used when using Ambassador version 0.50.0 and above.
 
-<div style="border: thick solid red"> </div>
+
 
 
 ```yaml
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind:  Module
 metadata:
   name:  tls
@@ -192,50 +192,6 @@ spec:
       #
       # cacert_chain_file: /etc/cacert/tls.crt  # remember to set enabled!
 ```
-### `redirect_cleatext_from` (*Deprecated*)
 
-**Note:** Ambassador 0.84.0 now supports setting `redirect_cleartext_from` from a `TLSContext`. This should be used instead of the tls `Module` below.
 
-To configure Ambassador to do an http -> https redirect, you need to create a `tls` `Module` that sets `redirect_cleartext_from: <http_port>`.
 
-1. Create a `TLSContext` to handle TLS termination
-
-    ```yaml
-    apiVersion: ambassador/v1
-    kind: TLSContext
-    name: tls
-    hosts: ["*"]
-    secret: ambassador-cert
-    ```
-
-2. Configure a `TLS` `Module` to create the redirect listener in Ambassador on Ambassadors http port. By default, this is port `8080`
-
-    ```yaml
-    apiVersion: ambassador/v1
-    kind: Module
-    name: tls
-    config:
-      server:
-        redirect_cleartext_from: 8080
-    ```
-
-3. Verify the port assignments on the Ambassador service are correct.
-
-    The below service definition uses the default http and https port assignments
-
-    ```yaml
-    apiVersion: v1
-    kind: Service
-    metadata:
-      name: ambassador
-    spec:
-      ports:
-      - name: http
-        port: 80
-        targetPort: 8080
-      - name: https
-        port: 443
-        targetPort: 8443
-      selector:
-        service: ambassador
-    ```

@@ -53,7 +53,7 @@ Setting up Linkerd2 requires to install three components. The first is the CLI o
 
     ```yaml
     ---
-    apiVersion: getambassador.io/v1
+    apiVersion: getambassador.io/v2
     kind: Module
     metadata:
       name: ambassador
@@ -62,7 +62,7 @@ Setting up Linkerd2 requires to install three components. The first is the CLI o
         add_linkerd_headers: true
     ```
 
-    This will tell Ambassador Edge Stack to add additional headers to each request forwarded to Linkerd2 with information about where to route this request to. This is a general setting. You can also set `add_linkerd_headers` per [Mapping](https://www.getambassador.io/reference/mappings#mapping-configuration).
+    This will tell Ambassador Edge Stack to add additional headers to each request forwarded to Linkerd2 with information about where to route this request to. This is a general setting. You can also set `add_linkerd_headers` per [Mapping](/reference/mappings#mapping-configuration).
 
 ## Routing to Linkerd2 Services
 
@@ -137,7 +137,7 @@ You'll now register a demo application with Linkerd2, and show how Ambassador Ed
 
    ```yaml
    ---
-   apiVersion: getambassador.io/v1
+   apiVersion: getambassador.io/v2
    kind: Mapping
    metadata:
      name: linkerd2-qotm
@@ -167,3 +167,4 @@ If you now [configure TLS termination in Ambassador Edge Stack](/reference/core/
 ## More information
 
 For more about Ambassador Edge Stack's integration with Linkerd2, read the [service discovery configuration](/reference/core/resolvers) documentation.
+

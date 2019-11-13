@@ -41,7 +41,7 @@ spec:
      serviceAccountName: ambassador
 ```
 
-* Set the `service_port` element in the ambassador Module to 8080 (cleartext) or 8443 (TLS). This is the port that Ambassador will use to listen to incoming traffic. Note that any port number above 1024 will work; Ambassador will use 8080/8443 as its defaults in the future.
+* Set the `service_port` element in the `ambassador Module` to 8080 (cleartext) or 8443 (TLS). This is the port that Ambassador will use to listen to incoming traffic. Note that any port number above 1024 will work; Ambassador will use 8080/8443 as its defaults in the future.
 
 * Make sure that incoming traffic to Ambassador is configured to route to the `service_port`. If you're using the default Ambassador configuration, this means configuring the `targetPort` to point to the `service_port` above.
 
@@ -98,18 +98,18 @@ env:
   value: "true"
 ```
 
-If you are using Ambassador Pro, if you set `AMBASSADOR_NAMESPACE` or `AMBASSADOR_SINGLE_NAMESPACE`, you will need to set them in **both** containers in the deployment.
+If you are using Ambassador Edge Stack, if you set `AMBASSADOR_NAMESPACE` or `AMBASSADOR_SINGLE_NAMESPACE`, you will need to set them in **both** containers in the deployment.
 
-<div style="border: thick solid red"> </div>
+
 
 
 ## `AMBASSADOR_ID`
 
-Ambassador supports running multiple Ambassadors in the same cluster, without restricting a given Ambassador to a single namespace. This is done with the `AMBASSADOR_ID` setting. In the Ambassador module, set the `ambassador_id`, e.g.,
+Ambassador supports running multiple Ambassadors in the same cluster, without restricting a given Ambassador to a single namespace. This is done with the `AMBASSADOR_ID` setting. In the `ambassador Module`, set the `ambassador_id`, e.g.,
 
 ```yaml
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind:  Module
 metadata:
   name:  ambassador
@@ -126,13 +126,13 @@ env:
   value: ambassador-1
 ```
 
-If you are using Ambassador Pro, if you set `AMBASSADOR_ID`, you will need to set it in **both** containers in the deployment.
+If you are using Ambassador Edge Stack, if you set `AMBASSADOR_ID`, you will need to set it in **both** containers in the deployment.
 
 Ambassador will then only use YAML objects that include an appropriate `ambassador_id` attribute. For example, if Ambassador is given the ID `ambassador-1` as above, then of these YAML objects, only the first two will be used:
 
 ```yaml
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 metadata:
   name:  mapping-used
@@ -141,7 +141,7 @@ spec:
   prefix: /demo1/
   service: demo1
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 metadata:
   name:  mapping-used-2
@@ -150,7 +150,7 @@ spec:
   prefix: /demo2/
   service: demo2
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 metadata:
   name:  mapping-skipped
@@ -158,7 +158,7 @@ spec:
   prefix: /demo3/
   service: demo3
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 metadata:
   name:  mapping-skipped-2
@@ -170,47 +170,42 @@ spec:
 
 The list syntax (shown in `mapping_used_2` above) permits including a given object in the configuration for multiple Ambassadors. In this case `mapping_used_2` will be included in the configuration for `ambassador-1` and also for `ambassador-2`.
 
-**Note well that _any_ object can and should have an `ambassador_id` included** so, for example, it is _fully supported_ to use `ambassador_id` to qualify the `ambassador Module`, `TLS`, and `AuthService` objects. You will need to set Ambassador_id in all resources you want to use for Ambassador.
+**Note well that _any_ object can and should have an `ambassador_id` included** so, for example, it is _fully supported_ to use `ambassador_id` to qualify the `ambassador Module`, `TLS`, and `AuthService` objects. You will need to set Ambassador_id in all resources you want to use for Ambassador Edge Stack.
 
-If no `AMBASSADOR_ID` is assigned to an Ambassador, it will use the ID `default`. If no `ambassador_id` is present in a YAML object, it will also use the ID `default`.
+If no `AMBASSADOR_ID` is assigned to an Ambassador Edge Stack, it will use the ID `default`. If no `ambassador_id` is present in a YAML object, it will also use the ID `default`.
 
 ## `AMBASSADOR_VERIFY_SSL_FALSE`
 
-By default, Ambassador will verify the TLS certificates provided by the Kubernetes API. In some situations, the cluster may be deployed with self-signed certificates. In this case, set `AMBASSADOR_VERIFY_SSL_FALSE` to `true` to disable verifying the TLS certificates.
+By default, Ambassador Edge Stack will verify the TLS certificates provided by the Kubernetes API. In some situations, the cluster may be deployed with self-signed certificates. In this case, set `AMBASSADOR_VERIFY_SSL_FALSE` to `true` to disable verifying the TLS certificates.
 
 ## Configuration From the Filesystem
 
-If desired, Ambassador can be configured from YAML files in the directory `$AMBASSADOR_CONFIG_BASE_DIR/ambassador-config` (by default, `/ambassador/ambassador-config`, which is empty in the images built by Datawire). You could volume mount an external configuration directory here, for example, or use a custom Dockerfile to build configuration directly into a Docker image.
+If desired, Ambassador Edge Stack can be configured from YAML files in the directory `$AMBASSADOR_CONFIG_BASE_DIR/ambassador-config` (by default, `/ambassador/ambassador-config`, which is empty in the images built by Datawire). You could volume mount an external configuration directory here, for example, or use a custom Dockerfile to build configuration directly into a Docker image.
 
-Note well that while Ambassador will read its initial configuration from this directory, configuration loaded from Kubernetes annotations will _replace_ this initial configuration. If this is not what you want, you will need to set the environment variable `AMBASSADOR_NO_KUBEWATCH` so that Ambassador will not try to update its configuration from Kubernetes resources.
+Note well that while Ambassador Edge Stack will read its initial configuration from this directory, configuration loaded from Kubernetes annotations will _replace_ this initial configuration. If this is not what you want, you will need to set the environment variable `AMBASSADOR_NO_KUBEWATCH` so that Ambassador Edge Stack will not try to update its configuration from Kubernetes resources.
 
-Also note that the YAML files in the configuration directory must contain Ambassador resources, not Kubernetes resources with annotations.
+Also note that the YAML files in the configuration directory must contain Ambassador Edge Stack resources, not Kubernetes resources with annotations.
 
 ## Log levels and debugging
 
-Ambassador and Ambassador Pro support more verbose debugging levels. If using Ambassador, the [diagnostics](/reference/diagnostics/) service has a button to enable debug logging. Be aware that if you're running Ambassador on multiple pods, the debug log levels are not enabled for all pods -- they are configured on a per-pod basis.
+Ambassador Open Source and Ambassador Edge Stack support more verbose debugging levels. If using Ambassador Open Source, the [diagnostics](/reference/diagnostics/) service has a button to enable debug logging. Be aware that if you're running Ambassador on multiple pods, the debug log levels are not enabled for all pods -- they are configured on a per-pod basis.
 
-If using Ambassador Pro, you can adjust the log level by setting the `APP_LOG_LEVEL` environment variable; from least verbose to most verbose, the valid values are `error`, `warn`/`warning`, `info`, `debug`, and `trace`; the default is `info`.
+If using Ambassador Edge Stack, you can adjust the log level by setting the `APP_LOG_LEVEL` environment variable; from least verbose to most verbose, the valid values are `error`, `warn`/`warning`, `info`, `debug`, and `trace`; the default is `info`.
 
 ## Port Assignments
 
-Ambassador uses some TCP ports in the range 8000-8499 internally, as well as port 8877. Third-party software integrating with Ambassador should not use ports in this range on the Ambassador pod.
+Ambassador Edge Stackuses some TCP ports in the range 8000-8499 internally, as well as port 8877. Third-party software integrating with Ambassador Edge Stackshould not use ports in this range on the Ambassador pod.
 
-## Ambassador Update Checks (Scout)
+## Ambassador Edge Stack Update Checks (Scout)
 
-Ambassador integrates Scout, a service that periodically checks with Datawire servers to advise of available updates. Scout also sends anonymized usage data and the Ambassador version. This information is important to us as we prioritize test coverage, bug fixes, and feature development. Note that Ambassador will run regardless of the status of Scout (i.e., our uptime has zero impact on your uptime.)
+Ambassador Edge Stack integrates Scout, a service that periodically checks with Datawire servers to advise of available updates. Scout also sends anonymized usage data and the Ambassador Edge Stack version. This information is important to us as we prioritize test coverage, bug fixes, and feature development. Note that Ambassador Edge Stack will run regardless of the status of Scout (i.e., our uptime has zero impact on your uptime.)
 
 We do not recommend you disable Scout, since we use this mechanism to notify users of new release (including critical fixes and security issues). This check can be disabled by setting the environment
-variable `SCOUT_DISABLE` to `1` in your Ambassador deployment.
+variable `SCOUT_DISABLE` to `1` in your Ambassador Edge Stack deployment.
   
-Each Ambassador installation generates a unique cluster ID based on the UID of its Kubernetes namespace and
-its Ambassador ID: the resulting cluster ID is a UUID which cannot be used to reveal the namespace name nor
-Ambassador ID itself. Ambassador needs RBAC permission to get namespaces for this purpose, as shown in the 
-default YAML files provided by Datawire; if not granted this permission it will generate a UUID based only on
-the Ambassador ID. To disable cluster ID generation entirely, set the environment variable `AMBASSADOR_CLUSTER_ID`
-to a UUID that will be used for the cluster ID.
+Each Ambassador Edge Stack installation generates a unique cluster ID based on the UID of its Kubernetes namespace and its Ambassador Edge Stack ID: the resulting cluster ID is a UUID which cannot be used to reveal the namespace name nor Ambassador Edge Stack ID itself. Ambassador nEdge Stack eeds RBAC permission to get namespaces for this purpose, as shown in the  default YAML files provided by Datawire; if not granted this permission it will generate a UUID based only on the Ambassador Edge Stack ID. To disable cluster ID generation entirely, set the environment variable `AMBASSADOR_CLUSTER_ID` to a UUID that will be used for the cluster ID.
 
-Unless disabled, Ambassador will also report the following anonymized information back to Datawire:
+Unless disabled, Ambassador Edge Stack will also report the following anonymized information back to Datawire:
 
 | Attribute                 | Type  | Description               |
 | :------------------------ | :---- | :------------------------ |
@@ -282,10 +277,6 @@ Unless disabled, Ambassador will also report the following anonymized informatio
 | `x_forwarded_proto_redirect` | bool | is Ambassador redirecting based on `X-Forwarded-Proto`? |
 | `xff_num_trusted_hops` | int | what is the count of trusted hops for `X-Forwarded-For`? | 
 
-The `request_*` counts are always incremental: they contain only information about the last `request_elapsed` seconds.
-Additionally, they only provide a lower bound -- notably, if an Ambassador pod crashes or exits, no effort is made to
-ship out a final update, so it's very easy for counts to never be reported.   
+The `request_*` counts are always incremental: they contain only information about the last `request_elapsed` seconds. Additionally, they only provide a lower bound -- notably, if an Ambassador Edge Stack pod crashes or exits, no effort is made to ship out a final update, so it's very easy for counts to never be reported.
 
-To completely disable feature reporting, set the environment variable `AMBASSADOR_DISABLE_FEATURES` to any non-empty
-value.
-
+To completely disable feature reporting, set the environment variable `AMBASSADOR_DISABLE_FEATURES` to any non-empty value.

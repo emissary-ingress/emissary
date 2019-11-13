@@ -4,7 +4,7 @@ In this tutorial, we'll configure Ambassador Edge Stack to initiate a trace on s
 
 ## Before You Get Started
 
-This tutorial assumes you have already followed the [Ambassador Edge Stack Getting Started](/user-guide/getting-started.html) guide. If you haven't done that already, you should do that now.
+This tutorial assumes you have already followed the [Ambassador Edge Stack Getting Started](/user-guide/getting-started) guide. If you haven't done that already, you should do that now.
 
 After completing the Getting Started guide you will have a Kubernetes cluster running Ambassador Edge Stack and the Quote of the Moment service. Let's walk through adding tracing to this setup.
 
@@ -20,7 +20,7 @@ When using JSON logging with Envoy, Ambassador Edge Stack will automatically app
 
 ```yaml
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: Module
 name: ambassador
 config:
@@ -33,7 +33,7 @@ Next configure a TracingService that will write your traces using the DataDog tr
 
 ```yaml
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: TracingService
 metadata:
   name: tracing
@@ -59,3 +59,4 @@ Once you have made some requests you should be able to [view your traces](https:
 ## More
 
 For more details about configuring the external tracing service, read the documentation on [external tracing](/reference/services/tracing-service).
+

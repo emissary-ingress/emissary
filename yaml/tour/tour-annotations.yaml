@@ -1,4 +1,24 @@
 ---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: tour-ui
+spec:
+  prefix: /
+  service: tour:5000
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: tour-backend
+spec:
+  prefix: /backend/
+  service: tour:8080
+  labels:
+    ambassador:
+      - request_label:
+        - backend
+---
 apiVersion: v1
 kind: Service
 metadata:

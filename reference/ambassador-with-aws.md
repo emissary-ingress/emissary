@@ -75,7 +75,7 @@ metadata:
     service.beta.kubernetes.io/aws-load-balancer-proxy-protocol: "*"
     getambassador.io/config: |
       ---
-      apiVersion: ambassador/v1
+      apiVersion: getambassador.io/v2
       kind:  Module
       name:  ambassador
       config:
@@ -120,7 +120,7 @@ service:
     service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: "true"
     getambassador.io/config: |
       --- 
-      apiVersion: ambassador/v1
+      apiVersion: getambassador.io/v2
       kind:  Module
       name:  ambassador
       config:
@@ -174,7 +174,7 @@ Now, we want every request on port 80 to be redirected to port 443.
 To achieve this, you need to use `redirect_cleartext_from` as follows -
 
 ```yaml
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind:  Module
 name:  tls
 config:
@@ -202,14 +202,14 @@ metadata:
     service.beta.kubernetes.io/aws-load-balancer-proxy-protocol: "*"
     getambassador.io/config: |
       ---
-      apiVersion: ambassador/v1
+      apiVersion: getambassador.io/v2
       kind:  Module
       name:  ambassador
       config:
         use_remote_address: false
         use_proxy_proto: true
       ---
-      apiVersion: ambassador/v1
+      apiVersion: getambassador.io/v2
       kind: Module
       name: tls
       config:
@@ -253,7 +253,7 @@ metadata:
     service.beta.kubernetes.io/aws-load-balancer-proxy-protocol: "*"
     getambassador.io/config: |
       ---
-      apiVersion: ambassador/v1
+      apiVersion: getambassador.io/v2
       kind:  Module
       name:  ambassador
       config:
@@ -270,3 +270,5 @@ spec:
   selector:
     service: ambassador
 ```
+
+

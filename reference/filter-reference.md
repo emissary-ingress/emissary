@@ -1,6 +1,11 @@
 # Filters
 
-Filters are used to extend Ambassador Edge Stack to modify or intercept an HTTP request before sending to the the backend service.  You may use any of the built-in Filter types, or use the `Plugin` filter type to run custom code written in Golang.
+Filters are used to extend Ambassador Edge Stack to modify or
+intercept an HTTP request before sending to the backend service.  You
+may use any of the built-in Filter types, or use the `Plugin` filter
+type to run custom code written in the Go programming language, or use
+the `External` filter type to call run out to custom code written in a
+programming language of your choice.
 
 Filters are created with the `Filter` resource type, which contains global arguments to that filter.  Which Filter(s) to use for which HTTP requests is then configured in `FilterPolicy` resources, which may contain path-specific arguments to the filter.
 
@@ -13,7 +18,7 @@ spec depends on the filter type:
 
 ```yaml
 ---
-apiVersion: getambassador.io/v1beta2
+apiVersion: getambassador.io/v2
 kind: Filter
 metadata:
   name:      "string"      # required; this is how to refer to the Filter in a FilterPolicy
@@ -36,7 +41,7 @@ The `External` filter looks very similar to an `AuthService` annotation:
 
 ```yaml
 ---
-apiVersion: getambassador.io/v1beta2
+apiVersion: getambassador.io/v2
 kind: Filter
 metadata:
   name: "example-external-filter"
@@ -64,7 +69,7 @@ spec:
    default value of `tls`, and of the port-part.  If no scheme-part is
    given, it behaves as if `http://` was given.
  - `timeout` is the total timeout for the request to the upstream
-   external filter, in milleseconds.
+   external filter, in milliseconds.
  - `proto` is either `"http"` or `"grpc"`.
 
 This `spec.External` is mostly identical to an [`AuthService`](./auth-service), with the following exceptions:
@@ -80,7 +85,7 @@ The `JWT` filter type performs JWT validation. The list of acceptable signing ke
 
 ```yaml
 ---
-apiVersion: getambassador.io/v1beta2
+apiVersion: getambassador.io/v2
 kind: Filter
 metadata:
   name: "example-jwt-filter"
@@ -91,10 +96,10 @@ spec:
     insecureTLS:      bool          # optional; default is false
     renegotiateTLS:   "enum-string" # optional; default is "never"
     validAlgorithms:                # optional; default is "all supported algos except for 'none'"
-      - "RS256"
-      - "RS384"
-      - "RS512"
-      - "none"
+    - "RS256"
+    - "RS384"
+    - "RS512"
+    - "none"
 
     audience:         "string"      # optional, unless `requireAudience: true`
     requireAudience:  bool          # optional; default is false
@@ -107,23 +112,17 @@ spec:
     requireNotBefore: bool          # optional; default is false
 
     injectRequestHeaders:           # optional; default is []
-     - name:   "header-name-string" # required
-       value:  "go-template-string" # required
+    - name:   "header-name-string"    # required
+      value:  "go-template-string"    # required
        
-    errorResponse:                  # optional; default is nil
-      contentType:    "string"      # optional; default is "application/json"
-      bodyTemplate:   "string"      # optional
+    errorResponse:                  # optional
+      contentType: "string"           # deprecated; use 'headers' instead
+      headers:                        # optional; default is [{name: "Content-Type", value: "application/json"}]
+      - name: "header-name-string"      # required
+        value: "go-template-string"     # required
+      bodyTemplate: "string"          # optional; default is `{{ . | json "" }}`
 ```
- - `errorResponse` allows templating the error response, overriding the default json error format. 
-    Make sure you validate and test your template, not to generate server-side errors on top of client errors.
 
-    `contentType` specifies the returned HTTP response content format. Defaults to `application/json`.
-    
-    `bodyTemplate` is a [golang text/template](https://golang.org/pkg/text/template/) blob to be used for generating the response output. 
-    The template can reference objects named:
-    * `httpStatus` → `integer` the HTTP status code.
-    * `error` → `error` the original error object.
-    * `requestId` → `integer` the HTTP request ID, for correlation.
  - `insecureTLS` disables TLS verification for the cases when
    `jwksURI` begins with `https://`.  This is discouraged in favor of
    either using plain `http://` or [installing a self-signed
@@ -140,19 +139,51 @@ spec:
     * `.token.Header` → `map[string]interface{}` the JWT header, as parsed JSON
     * `.token.Claims` → `map[string]interface{}` the JWT claims, as parsed JSON
     * `.token.Signature` → `string` the token signature
+    * `.httpRequestHeader` → [`http.Header`][] a copy of the header of
+      the incoming HTTP request.  Any changes to `.httpRequestHeader`
+      (such as by using using `.httpRequestHeader.Set`) have no
+      effect.  It is recommended to use `.httpRequestHeader.Get`
+      instead of treating it as a map, in order to handle
+      capitalization correctly.
 
    Any headers listed will override (not append to) the original
    request header with that name.
+ - `errorResponse` allows templating the error response, overriding
+    the default json error format.  Make sure you validate and test
+    your template, not to generate server-side errors on top of client
+    errors.
+    * `contentType` is deprecated, and is equivalent to including a
+      `name: "Content-Type"` item in `headers`.
+    * `headers` sets extra HTTP header fields in the error response.
+      The value is specified as a [Go `text/template`][] string, with
+      the same data made available to it as `bodyTemplate` (below).
+      It does not have access to the `json` function.
+    * `bodyTemplate` specifies body of the error; specified as a [Go
+      `text/template`][] string, with the following data made
+      available to it:
 
-   **Note**: If you are using a templating system for your YAML that
-   also makes use of Go templating (for instance, Helm), then you will
-   need to escape the template strings meant to be interpretted by
-   Ambassador Pro.
+       * `.status_code` → `integer` the HTTP status code to be returned
+       * `.httpStatus` → `integer` an alias for `.status_code` (hidden from `{{ . | json "" }}`)
+       * `.message` → `string` the error message string
+       * `.error` → `error` the raw Go `error` object that generated `.message` (hidden from `{{ . | json "" }}`)
+       * `.error.ValidationError` → [`jwt.ValidationError`][] the JWT validation error.
+       * `.request_id` → `string` the Envoy request ID, for correlation (hidden from `{{ . | json "" }}` unless `.status_code` is in the 5XX range)
+       * `.requestId` → `string` an alias for `.request_id` (hidden from `{{ . | json "" }}`)
 
-   <div style="border: thick solid red"> </div>
+      In addition to the [standard functions available to Go
+      `text/template`s][Go `text/template` functions], there is a
+      `json` function that arg2 as JSON, using the arg1 string as the
+      starting indent level.
 
+**Note**: If you are using a templating system for your YAML that also
+makes use of Go templating (for instance, Helm), then you will need to
+escape the template strings meant to be interpreted by Ambassador Edge
+Stack.
 
 [Go `text/template`]: https://golang.org/pkg/text/template/
+[Go `text/template` functions]: https://golang.org/pkg/text/template/#hdr-Functions
+[`http.Header`]: https://golang.org/pkg/net/http/#Header
+[`jwt.ValidationError`]: https://godoc.org/github.com/dgrijalva/jwt-go#ValidationError
 
 #### Example `JWT` `Filter`
 
@@ -174,7 +205,7 @@ spec:
 #     "iat": 1516239022
 #   }
 ---
-apiVersion: getambassador.io/v1beta2
+apiVersion: getambassador.io/v2
 kind: Filter
 metadata:
   name: example-jwt-filter
@@ -191,48 +222,59 @@ spec:
         value: "Fixed String"
         # result will be "Fixed String"
       - name: "X-Token-String"
-        value: "{{.token.Raw}}"
+        value: "{{ .token.Raw }}"
         # result will be "eyJhbGciOiJub25lIiwidHlwIjoiSldUIiwiZXh0cmEiOiJzbyBtdWNoIn0.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ."
       - name: "X-Token-H-Alg"
-        value: "{{.token.Header.alg}}"
+        value: "{{ .token.Header.alg }}"
         # result will be "none"
       - name: "X-Token-H-Typ"
-        value: "{{.token.Header.typ}}"
+        value: "{{ .token.Header.typ }}"
         # result will be "JWT"
       - name: "X-Token-H-Extra"
-        value: "{{.token.Header.extra}}"
+        value: "{{ .token.Header.extra }}"
         # result will be "so much"
       - name: "X-Token-C-Sub"
-        value: "{{.token.Claims.sub}}"
+        value: "{{ .token.Claims.sub }}"
         # result will be "1234567890"
       - name: "X-Token-C-Name"
-        value: "{{.token.Claims.name}}"
+        value: "{{ .token.Claims.name }}"
         # result will be "John Doe"
       - name: "X-Token-C-Iat"
-        value: "{{.token.Claims.iat}}"
+        value: "{{ .token.Claims.iat }}"
         # result will be "1.516239022e+09" (don't expect JSON numbers
         # to always be formatted the same as input; if you care about
         # that, specify the formatting; see the next example)
       - name: "X-Token-C-Iat-Decimal"
-        value: "{{printf \"%.0f\" .token.Claims.iat}}"
+        value: "{{ printf \"%.0f\" .token.Claims.iat }}"
         # result will be "1516239022"
       - name: "X-Token-S"
-        value: "{{.token.Signature}}"
+        value: "{{ .token.Signature }}"
         # result will be "" (since "alg: none" was used in this example JWT)
       - name: "X-Authorization"
-        value: "Authenticated {{.token.Header.typ}}; sub={{.token.Claims.sub}}; name={{printf \"%q\" .token.Claims.name}}"
+        value: "Authenticated {{ .token.Header.typ }}; sub={{ .token.Claims.sub }}; name={{ printf \"%q\" .token.Claims.name }}"
         # result will be: "Authenticated JWT; sub=1234567890; name="John Doe""
+      - name: "X-UA"
+        value: "{{ .httpRequestHeader.Get \"User-Agent\" }}"
+        # result will be: "curl/7.66.0" or
+        # "Mozilla/5.0 (X11; Linux x86_64; rv:69.0) Gecko/20100101 Firefox/69.0"
+        # or whatever the requesting HTTP client is
     errorResponse:
-      contentType: "application/json"
+      headers:
+      - name: "Content-Type"
+        value: "application/json"
+      - name: "X-Correlation-ID"
+        value: "{{ .httpRequestHeader.Get \"X-Correlation-ID\" }}"
+      # Regarding the "altErrorMessage" below:
+      #   ValidationErrorExpired = 1<<4 = 16
+      # https://godoc.org/github.com/dgrijalva/jwt-go#StandardClaims
       bodyTemplate: |-
         {
-            "errorMessage": "{{.error}}",
-            "altErrorMessage": "{{ if eq .error.ValidationError.Errors 2 }}expired{{ else }}invalid{{ end }}",
-            "errorCode": {{.error.ValidationError.Errors}},
-            "httpStatus": "{{.httpStatus}}",
-            "requestId": "{{.requestId}}"
+            "errorMessage": {{ .message | json "    " }},
+            "altErrorMessage": {{ if eq .error.ValidationError.Errors 16 }}"expired"{{ else }}"invalid"{{ end }},
+            "errorCode": {{ .error.ValidationError.Errors | json "    "}},
+            "httpStatus": "{{ .status_code }}",
+            "requestId": {{ .request_id | json "    " }}
         }
-
 ```
 
 ### Filter Type: `OAuth2`
@@ -243,7 +285,7 @@ The `OAuth2` filter type performs OAuth2 authorization against an identity provi
 
 ```yaml
 ---
-apiVersion: getambassador.io/v1beta2
+apiVersion: getambassador.io/v2
 kind: Filter
 metadata:
   name: "example-oauth2-filter"
@@ -251,8 +293,12 @@ metadata:
 spec:
   OAuth2:
     authorizationURL:      "url-string"      # required
-    insecureTLS:           bool              # optional; default is false
-    renegotiateTLS:        "enum-string"     # optional; default is "never"
+    grantType              "enum-string"     # optional; default is "AuthorizationCode"
+    accessTokenValidation: "enum-string"     # optional; default is "auto"
+
+    # Settings for grantType=="AuthorizationCode"
+    clientURL:             "url-string"      # required
+    stateTTL:              "duration-string" # optional; default is "5m"
     clientID:              "string"          # required
     # A client secret must be specified.
     # This can be done by including the raw secret as a string in "secret",
@@ -262,52 +308,26 @@ spec:
     secretName:            "string"          # required (unless secret is set)
     secretNamespace:       "string"          # optional; default is the same namespace as the Filter
 
-    # The above is all information that you get directly from you identity provider.
-
-    clientURL:             "url-string"      # required
-
-    # The below is all information that you decide for yourself.
-
-    accessTokenValidation: "enum-string"     # optional; default is "auto"
+    # HTTP client settings for talking with the identity provider
+    insecureTLS:           bool              # optional; default is false
+    renegotiateTLS:        "enum-string"     # optional; default is "never"
     maxStale:              "duration-string" # optional; default is "0"
-    stateTTL:              "duration-string" # optional; default is "5m"
 ```
 
-<!-- There is an `adience` field that is currently ignored -->
-
-Information about your identity provider:
+General settings:
 
  - `authorizationURL`: Identifies where to look for the
    `/.well-known/openid-configuration` descriptor to figure out how to
    talk to the OAuth2 provider.
- - `insecureTLS` disables TLS verification when speaking to an
-   identity provider with an `https://` `authorizationURL`.  This is
-   discouraged in favor of either using plain `http://` or [installing
-   a self-signed certificate](#installing-self-signed-certificates).
- - `renegotiateTLS` allows a remote server to request TLS renegotiation. 
-   Accepted values are "never", "onceAsClient", and "freelyAsClient".
- - `clientID`: The Client ID you get from your identity provider.
- - The client secret you get from your identity provider can be
-   specified 2 different ways:
-   * As a string, in the `secret` field.
-   * As a Kubernetes `generic` Secret, named by
-     `secretName`/`secretNamespace`.  The Kubernetes secret must of
-     the `generic` type, with the value stored under the key
-     `oauth2-client-secret`.  If `secretNamespace` is not given, it
-     defaults to the namespace of the Filter resource.
-   * **Note**: It is invalid to set both `secret` and `secretName`.
-
-Information you must decide, and give to your identity provider:
-
- - `clientURL`: Identifies a hostname that can appropriately set
-   cookies for the application.  Only the scheme (`https://`) and
-   authority (`example.com:1234`) parts are used; the path part of the
-   URL is ignored.  You will also likely need to register
-   `${clientURL}/callback` as an authorized callback endpoint with
-   your identity provider.
-
-Information that you decide for yourself:
-
+ - `grantType`: Which type of OAuth 2.0 authorization grant to request
+   from the identity provider.  Currently supported are:
+   * `"AuthorizationCode"`: Authenticate by redirecting to a
+     login page served by the identity provider.
+   * `"ClientCredentials"`: Authenticate by requiring
+     `X-Ambassador-Client-ID` and `X-Ambassador-Client-Secret` HTTP
+     headers on incoming requests, and using them to authenticate to
+     the identity provider.  Support for the `ClientCredentials` is
+     currently preliminary, and only goes through limited testing.
  - `accessTokenValidation`: How to verify the liveness and scope of
    Access Tokens issued by the identity provider.  Valid values are
    either `"auto"`, `"jwt"`, or `"userinfo"`.  Empty or unset is
@@ -321,23 +341,52 @@ Information that you decide for yourself:
      provider using non-encrypted signed JWTs as Access Tokens, and
      configuring the signing appropriately.
    * `"userinfo"`: Validates the access token by polling the OIDC
-     UserInfo Endpoint.  This means that Ambassador Pro must initiate
-     an HTTP request to the identity provider for each authorized request to a
-     protected resource.  This performs poorly, but functions properly
-     with a wider range of identity providers.
-     <div style="border: thick solid red"> </div>
-
+     UserInfo Endpoint.  This means that Ambassador Edge Stack must
+     initiate an HTTP request to the identity provider for each
+     authorized request to a protected resource.  This performs
+     poorly, but functions properly with a wider range of identity
+     providers.
    * `"auto"` attempts has it do `"jwt"` validation if the Access
      Token parses as a JWT and the signature is valid, and otherwise
      falls back to `"userinfo"` validation.
+
+Settings that are only valid when `grantType: "AuthorizationCode"`:
+
+ - `clientURL`: (You determine this, and give it to your identity
+   provider) Identifies a hostname that can appropriately set cookies
+   for the application.  Only the scheme (`https://`) and authority
+   (`example.com:1234`) parts are used; the path part of the URL is
+   ignored.  You will also likely need to register
+   `${clientURL}/callback` as an authorized callback endpoint with
+   your identity provider.
+ - `clientID`: The Client ID you get from your identity provider.
+ - The client secret you get from your identity provider can be
+   specified 2 different ways:
+   * As a string, in the `secret` field.
+   * As a Kubernetes `generic` Secret, named by
+     `secretName`/`secretNamespace`.  The Kubernetes secret must of
+     the `generic` type, with the value stored under the key
+     `oauth2-client-secret`.  If `secretNamespace` is not given, it
+     defaults to the namespace of the Filter resource.
+   * **Note**: It is invalid to set both `secret` and `secretName`.
+ - `stateTTL`: (You decide this) How long Ambassador Edge Stack will
+   wait for the user to submit credentials to the identity provider
+   and receive a response to that effect from the identity provider
+
+HTTP client settings for talking to the identity provider:
+
  - `maxStale`: How long to keep stale cached OIDC replies for.  This
    sets the `max-stale` Cache-Control directive on requests, and also
    ignores the `no-store` and `no-cache` Cache-Control directives on
    responses.  This is useful for maintaining good performance when
    working with identity providers with mis-configured Cache-Control.
- - `stateTTL`: How long Ambassador Edge Stack will wait for the user to submit
-   credentials to the identity provider and receive a response to that
-   effect from the identity provider
+ - `insecureTLS` disables TLS verification when speaking to an
+   identity provider with an `https://` `authorizationURL`.  This is
+   discouraged in favor of either using plain `http://` or [installing
+   a self-signed certificate](#installing-self-signed-certificates).
+ - `renegotiateTLS` allows a remote server to request TLS
+   renegotiation.  Accepted values are "never", "onceAsClient", and
+   "freelyAsClient".
 
 `"duration-string"` strings are parsed as a sequence of decimal
 numbers, each with optional fraction and a unit suffix, such as
@@ -349,7 +398,7 @@ numbers, each with optional fraction and a unit suffix, such as
 
 ```yaml
 ---
-apiVersion: getambassador.io/v1beta2
+apiVersion: getambassador.io/v2
 kind: FilterPolicy
 metadata:
   name: "example-filter-policy"
@@ -361,7 +410,7 @@ spec:
     filters:
     - name: "example-oauth2-filter"
       arguments:
-        scopes:                   # optional; default is ["openid"]
+        scopes:                   # optional; default is ["openid"] for `grantType=="AuthorizationCode"`; [] for `grantType=="ClientCredentials"`
         - "scope1"
         - "scope2"
         insteadOfRedirect:        # optional; default is to do a redirect to the identity provider
@@ -380,8 +429,13 @@ spec:
    path, as the authenticated user does not have the `foo` resource
    scope.
 
-   The `openid` scope value is always included in the requested scope,
-   even if it is not listed in the `FilterPolicy` argument.
+   If `grantType: "AuthorizationCode"`, then the `openid` scope value
+   is always included in the requested scope, even if it is not listed
+   in the `FilterPolicy` argument.
+
+   If `grantType: "ClientCredentials"`, then the default scope is
+   empty.  If your identity provider does not have a default scope,
+   then you will need to configure one here.
 
    As a special case, if the `offline_access` scope value is
    requested, but not included in the response then access is not
@@ -403,19 +457,24 @@ spec:
    sub-argument causes it to only apply to requests that have the HTTP
    header field `name` (case-insensitive) set to `value`
    (case-sensitive); or requests that have `name` set to any non-empty
-   string if `value` is unset.
+   string if `value` is unset.  `ifRequestHeader` does nothing when
+   `grantType: "ClientCredentials"`, because Ambassador will never
+   redirect the User-Agent to the identity provider for the client
+   credentials grant type.
 
 ### Filter Type: `Plugin`
 
-The `Plugin` filter type allows you to plug in your own custom code. This code is compiled to a `.so` file, which you load in to the Ambassador Pro container at `/etc/ambassador-plugins/${NAME}.so`.
+The `Plugin` filter type allows you to plug in your own custom code. This code is compiled to a `.so` file, which you load in to the Ambassador Edge Stack container at `/etc/ambassador-plugins/${NAME}.so`.
 
-<div style="border: thick solid red"> </div>
+
 
 #### The Plugin Interface
 
-This code is written in the Go programming language (golang), and must be compiled with the exact same compiler settings as Ambassador Pro; and any overlapping libraries used must have their versions match exactly.  This information is dockumented in an [apro-abi.txt][] file for each Ambassador Pro release.
-
-<div style="border: thick solid red"> </div>
+This code is written in the Go programming language (golang), and must
+be compiled with the exact same compiler settings as Ambassador Edge
+Stack; and any overlapping libraries used must have their versions
+match exactly.  This information is documented in an [apro-abi.txt][]
+file for each Ambassador Edge Stack release.
 
 [apro-abi.txt]: https://s3.amazonaws.com/datawire-static-files/apro-abi/apro-abi@$aproVersion$.txt
 
@@ -445,7 +504,7 @@ taken over the request, and the request will not be sent to the backend service.
 
 ```yaml
 ---
-apiVersion: getambassador.io/v1beta2
+apiVersion: getambassador.io/v2
 kind: Filter
 metadata:
   name: "example-plugin-filter"
@@ -467,7 +526,7 @@ which HTTP requests.
 
 ```yaml
 ---
-apiVersion: getambassador.io/v1beta2
+apiVersion: getambassador.io/v2
 kind: FilterPolicy
 metadata:
   name: "example-filter-policy"
@@ -476,10 +535,15 @@ spec:
   rules:
   - host: "glob-string"
     path: "glob-string"
-    filters:                 # optional; omit or set to `null` to apply no filters to this request
-    - name:      "string"    # required
-      namespace: "string"    # optional; default is the same namespace as the FilterPolicy
-      arguments: DEPENDS     # optional
+    filters:                    # optional; omit or set to `null` to apply no filters to this request
+    - name: "string"              # required
+      namespace: "string"         # optional; default is the same namespace as the FilterPolicy
+      ifRequestHeader:            # optional; default to apply this filter to all requests matching the host & path
+        name: "string"              # required
+        value: "string"             # optional; default is any non-empty string
+      onDeny: "enum-string"       # optional; default is "break"
+      onAllow: "enum-string"      # optional; default is "continue"
+      arguments: DEPENDS          # optional
 ```
 
 The type of the `arguments` property is dependent on the which Filter type is being referred to; see the "Path-Specific Arguments" documentation for each Filter type.
@@ -487,14 +551,40 @@ The type of the `arguments` property is dependent on the which Filter type is be
 When multiple `Filter`s are specified in a rule:
 
  * The filters are gone through in order
- * Later filters have access to _all_ headers inserted by earlier
-   filters.
- * The final backend service (i.e., the service where the request will
-   ultimately be routed) will only have access to inserted headers if
-   they are listed in `allowed_authorization_headers` in the
-   Ambassador Edge Stack annotation.
- * Filter processing is aborted by the first filter to return a
-   non-200 status.
+ * Each filter may either
+   1. return a direct HTTP *response*, intended to be sent back to the
+      requesting HTTP client (normally *denying* the request from
+      being forwarded to the upstream service); or
+   2. return a modification to make the the HTTP *request* before
+      sending it to other filters or the upstream service (normally
+      *allowing* the request to be forwarded to the upstream service
+      with modifications).
+ * If a filter has a `ifRequestHeader` setting, the filter is skipped
+   unless the request (including any modifications made by earlier
+   filters) matches the described header; the request must have the
+   HTTP header field `name` (case-insensitive) set to `value`
+   (case-sensitive); or have `name` set to any non-empty string if
+   `value` is unset.
+ * `onDeny` identifies what to do when the filter returns an "HTTP
+   response":
+   - `"break"`: End processing, and return the response directly to
+     the requesitng HTTP client.  Later filters are not called.  The
+     request is not forwarded to the upstream service.
+   - `"continue"`: Continue processing.  The request is passed to the
+     next filter listed; or if at the end of the list, it is forwarded
+     to the upstream service.  The HTTP response returned from the
+     filter is discarded.
+ * `onAllow` identifies what to do when the filter returns a
+   "modification to the HTTP request":
+   - `"break"`: Apply the modification to the request, then end filter
+     processing, and forward the modified request to the upstream
+     service.  Later filters are not called.
+   - `"continue"`: Continue processing.  Apply the request
+     modification, then pass the modified request to the next filter
+     listed; or if at the end of the list, forward it to the upstream
+     service.
+ * Modifications to the request are cumulative; later filters have
+   access to _all_ headers inserted by earlier filters.
 
 ### `FilterPolicy` Example
 
@@ -503,7 +593,7 @@ configured to run on requests to `/httpbin/`.
 
 ```yaml
 ---
-apiVersion: getambassador.io/v1beta2
+apiVersion: getambassador.io/v2
 kind: Filter
 metadata:
   name: param-filter # This is the name used in FilterPolicy
@@ -513,7 +603,7 @@ spec:
     name: param-filter # The plugin's `.so` file's base name
 
 ---
-apiVersion: getambassador.io/v1beta2
+apiVersion: getambassador.io/v2
 kind: FilterPolicy
 metadata:
   name: httpbin-policy
@@ -552,8 +642,8 @@ RUN update-ca-certificates
 USER 1000
 ```
 
-When deploying Ambassador Pro, refer to that custom Docker image,
-rather than to
-`quay.io/datawire/ambassador_pro:amb-sidecar-$aproVersion$`.
+When deploying Ambassador Edge Stack, refer to that custom Docker image,
+rather than to `quay.io/datawire/ambassador_pro:amb-sidecar-$aproVersion$`
 
-<div style="border: thick solid red"> </div>
+
+

@@ -38,7 +38,7 @@ Istio creates stores it's tls certificates in a form that Ambassador Edge Stack 
 
    ```yaml
    ---
-   apiVersion: getambassador.io/v1
+   apiVersion: getambassador.io/v2
    kind: TLSContext
    metadata:
      name: tls
@@ -54,7 +54,7 @@ Istio creates stores it's tls certificates in a form that Ambassador Edge Stack 
 
    ```yaml
    ---
-   apiVersion: getambassador.io/v1
+   apiVersion: getambassador.io/v2
    kind: Mapping
    metadata:
      name: productpage
@@ -81,7 +81,7 @@ Since Consul does not expose TLS Certificates as Kubernetes secrets, we will nee
 
    ```yaml
    ---
-   apiVersion: getambassador.io/v1
+   apiVersion: getambassador.io/v2
    kind: TLSContext
    metadata:
      name: ambassador-consul
@@ -94,7 +94,7 @@ Since Consul does not expose TLS Certificates as Kubernetes secrets, we will nee
 
    ```yaml
    ---
-   apiVersion: getambassador.io/v1
+   apiVersion: getambassador.io/v2
    kind: Mapping
    metadata:
      name: qotm-mtls

@@ -1,8 +1,8 @@
 # Cloud Foundry User Account and Authentication Service (UAA)
 
-**IMPORTANT:** Ambassador Pro requires the IDP return a JWT signed by the RS256 algorithm (asymmetric key). UAA defaults to symmetric key encryption which Ambassador Pro cannot read. You will need to provide your own asymmetric key when configuring UAA. e.g.
+**IMPORTANT:** Ambassador Edge Stack requires the IDP return a JWT signed by the RS256 algorithm (asymmetric key). UAA defaults to symmetric key encryption which Ambassador Edge Stack cannot read. You will need to provide your own asymmetric key when configuring UAA. e.g.
 
-<div style="border: thick solid red"> </div>
+
 
 
 `uaa.yml`
@@ -33,7 +33,7 @@ jwt:
 
    ```yaml
    ---
-   apiVersion: getambassador.io/v1beta2
+   apiVersion: getambassador.io/v2
    kind: Filter
    metadata:
      name: uaa_filter
@@ -50,7 +50,7 @@ jwt:
 
    ```yaml
    ---
-   apiVersion: getambassador.io/v1beta2
+   apiVersion: getambassador.io/v2
    kind: FilterPolicy
    metadata:
      name: httpbin-policy
@@ -67,3 +67,5 @@ jwt:
    ```
 
    **Note:** The `scopes` field was set when creating the client in step 1. You can add any scopes you would like when creating the client.
+
+

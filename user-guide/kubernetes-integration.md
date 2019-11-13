@@ -23,3 +23,5 @@ Ambassador relies on Kubernetes for scaling, high availability, and persistence.
 ## Envoy Proxy
 
 Ambassador Edge Stack closely tracks Envoy Proxy releases. A stable branch of Envoy Proxy is maintained that enables the team to cherry pick specific fixes into Ambassador Edge Stack.
+
+

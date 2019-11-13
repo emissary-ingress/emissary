@@ -1,8 +1,8 @@
 # Rate Limits
 
-Rate limits are a powerful way to improve availability and scalability for your microservices. With Ambassador Edge Stack, individual requests can be annotated with metadata, called labels.  These labels can then be passed to a third party [rate limiting service](/reference/services/rate-limit-service) which can then rate limit based on this data. If you do not want to write your own rate limiting service, [Ambassador Pro](https://www.getambassador.io/pro) includes an integrated, flexible rate limiting service.
+Rate limits are a powerful way to improve availability and scalability for your microservices. With Ambassador Edge Stack, individual requests can be annotated with metadata, called labels.  These labels can then be passed to a third party [rate limiting service](/reference/services/rate-limit-service) which can then rate limit based on this data. If you do not want to write your own rate limiting service, [Ambassador Edge Stack](https://www.getambassador.io/pro) includes an integrated, flexible rate limiting service.
 
-<div style="border: thick solid red"> </div>
+
 
 ## Request labels
 
@@ -10,7 +10,7 @@ In Ambassador 0.50 and later, each mapping in Ambassador Edge Stack can have mul
 
 ```yaml
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 metadata:
   name:  catalog
@@ -53,11 +53,11 @@ Ambassador Edge Stack supports several special labels:
 Note: In Envoy, labels are referred to as descriptors.
 
 ### Global Rate Limiting
-Rate limit labels can be configured on a global level within the [Ambassador Edge Stack Module](/reference/modules#the-ambassador-module).
+Rate limit labels can be configured on a global level within the [`ambassador Module`](/reference/modules#the-ambassador-module).
 
 ```yaml
 ---
-apiVersion: ambassador/v1
+apiVersion: getambassador.io/v2
 kind: Module
 name: ambassador
 config:
@@ -76,7 +76,7 @@ This will annotate every request with the string `default`, creating a key for a
 In pre-0.50 versions of Ambassador Edge Stack, a mapping can specify the `rate_limits` list attribute and at least one `rate_limits` rule which will call the external [RateLimitService](/reference/services/rate-limit-service) before proceeding with the request. An example:
 
 ```yaml
-apiVersion: ambassador/v0
+apiVersion: getambassador.io/v2
 kind: Mapping
 name: rate_limits_mapping
 prefix: /rate-limit/

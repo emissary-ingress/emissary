@@ -15,7 +15,8 @@ To configure client certificate by creating a secret to hold your client's CA ce
 2. Configure Ambassador Edge Stack to use this certificate for client certificate validation
 
     ```yaml
-    apiVersion: getambassador.io/v1
+    ---
+    apiVersion: getambassador.io/v2
     kind: TLSContext
     metadata:
       name: tls
@@ -34,7 +35,7 @@ Ambassador will now be configured to validate certificates that the client provi
 By default, Ambassador Edge Stack will allow requests through that do not provide client certificates. To tell Ambassador Edge Stack to reject requests that fail to provide a certificate, set `cert_required: true` in the `TLSContext` configuration.
 
 ```yaml
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: TLSContext
 metadata:
   name: tls

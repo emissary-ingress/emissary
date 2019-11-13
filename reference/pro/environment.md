@@ -1,6 +1,6 @@
-# Environment variables for the Ambassador Pro container
+# Environment variables for the Ambassador Edge Stack container
 
-<div style="border: thick solid red"> </div>
+
 
 
 | Variable                         | Default                                           | Value type                                                                    | Purpose                                              |
@@ -10,7 +10,7 @@
 | `AMBASSADOR_SINGLE_NAMESPACE`    | empty                                             | Boolean; non-empty=true, empty=false                                          | Ambassador                                           |
 | <hr/>                            | <hr/>                                             | <hr/>                                                                         | <hr/>                                                |
 | `APRO_HTTP_PORT`                 | `8500`                                            | TCP port number or name                                                       | Filter gRPC, RateLimit gRPC, health HTTP, debug HTTP |
-| `APP_LOG_LEVEL`                  | `info`                                            | log level                                                                     | Ambassador Pro general-purpose                       |
+| `APP_LOG_LEVEL`                  | `info`                                            | log level                                                                     | Ambassador Edge Stack general-purpose                       |
 | `REDIS_POOL_SIZE`                | `10`                                              | integer                                                                       | Filter, RateLimit                                    |
 | `REDIS_SOCKET_TYPE`              | none, must be set manually                        | Go network such as `tcp` or `unix`; see [Go `net.Dial`][]                     | Filter, RateLimit                                    |
 | `REDIS_URL`                      | none, must be set manually                        | Go network address; for TCP this is a `host:port` pair; see [Go `net.Dial`][] | Filter, RateLimit                                    |
@@ -56,17 +56,17 @@ created (to a potentially different Redis instance) that is only used
 for per-second RateLimits.
 
 If the `APRO_KEYPAIR_SECRET_NAME`/`APRO_KEYPAIR_SECRET_NAMESPACE`
-Kubernetes secret does not already exist when Ambassador Pro starts,
+Kubernetes secret does not already exist when Ambassador Edge Stack starts,
 it will be automatically created; which obviously requires permission
 in the ClusterRole to create secrets.  If the secret already exists
-(either because an earlier instance of Ambassador Pro already created
+(either because an earlier instance of Ambassador Edge Stack already created
 it, or because it was created manually), then the "create" permission
 for secrets can be be removed from the ClusterRole.  If manually
 providing the secret, it must have the "Opaque" type, with two data
 fields: `rsa.key` and `rsa.crt`, which contain PEM-encoded RSA private
 and public keys respectively.
 
-<div style="border: thick solid red"> </div>
+
 
 [^1]: This may change in a future release to reflect the Pods's
     namespace if deployed to a namespace other than `default`.
@@ -74,3 +74,6 @@ and public keys respectively.
 
 [Go `net.Dial`]: https://golang.org/pkg/net/#Dial
 [Go `strconv.ParseBool`]: https://golang.org/pkg/strconv/#ParseBool
+
+
+

@@ -100,3 +100,5 @@ Ambassador Edge Stack can watch for changes in Knative configuration in your Kub
     ```
 
 We have now installed Knative with Ambassador Edge Stack handling traffic to our serverless applications. See the [Knative documentation](https://knative.dev/umentation/) for more information on what else Knative can do.
+
+

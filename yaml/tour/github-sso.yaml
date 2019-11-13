@@ -172,7 +172,7 @@ spec:
               path: /auth/realms/master
               port: 8080
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
   name: keycloak-demo-github-endpoint
