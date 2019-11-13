@@ -1045,7 +1045,7 @@ class Runner:
         self.done = False
         self.skip_nonlocal_tests = False
         self.ids_to_strip: Dict[str, bool] = {}
-        self.names_to_strip: Dict[str, bool] = {}
+        self.names_to_ignore: Dict[str, bool] = {}
 
         @pytest.mark.parametrize("t", self.tests, ids=self.ids)
         def test(request, capsys, t):
