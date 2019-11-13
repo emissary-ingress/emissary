@@ -66,8 +66,8 @@ The [`ambassador Module`](/reference/core/ambassador) covers general configurati
 
 ## The `tls` Module
 
-The ['tls'](/reference/core/tls) module covers TLS configuration.
+The ['tls'](/reference/core/tls) Module covers TLS configuration.
 
 ## The `authentication` Module
 
-The `authentication` module is now deprecated. Use the [AuthService](/reference/services/auth-service) manifest type instead.
+The `authentication` Module is now deprecated. Use the [AuthService](/reference/services/auth-service) manifest type instead.
