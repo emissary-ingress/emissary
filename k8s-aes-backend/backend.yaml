@@ -66,6 +66,16 @@ spec:
               secretKeyRef:
                 name: hubspot-api-key
                 key: hubspotKey
+        livenessProbe:
+          httpGet:
+            path: /signup/sys/healthz
+            port: 8080
+          periodSeconds: 60
+        readinessProbe:
+          httpGet:
+            path: /signup/sys/readyz
+            port: 8080
+          periodSeconds: 60
 ---
 apiVersion: v1
 kind: Secret
