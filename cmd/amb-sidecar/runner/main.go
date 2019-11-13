@@ -278,7 +278,10 @@ func runE(cmd *cobra.Command, args []string) error {
 	// DevPortal
 	var devPortalServer *devportalserver.Server
 	if limit.CanUseFeature(licensekeys.FeatureDevPortal) {
-		content, err := devportalcontent.NewContent(cfg.DevPortalContentURL)
+		content, err := devportalcontent.NewContent(
+			cfg.DevPortalContentURL,
+			cfg.DevPortalContentBranch,
+			cfg.DevPortalContentSubdir)
 		if err != nil {
 			return err
 		}

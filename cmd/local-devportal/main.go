@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"path/filepath"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -31,22 +30,29 @@ func parse(urlStr string) *url.URL {
 	return url
 }
 
-var devportal = &cobra.Command{
+var devportalCmd = &cobra.Command{
 	Use:  "local-devportal [command]",
 	Long: "Local devportal version " + Version,
 }
 
-func init() {
-	devportal.AddCommand(&cobra.Command{
-		Use:   "serve [devportal-content-dir]",
-		Short: "serve the specified directory [default .]",
-		Run:   serve,
-	})
+var serveCmd = &cobra.Command{
+	Use:   "serve [devportal-content-dir]",
+	Short: "serve the specified directory or git URL [default .]",
+	Run:   serve,
+}
 
+var branch string
+var path string
+
+func init() {
+	devportalCmd.AddCommand(serveCmd)
+
+	serveCmd.Flags().StringVar(&branch, "branch", "master", "Branch to checkout when cloning a git URL")
+	serveCmd.Flags().StringVar(&path, "path", "/", "Subdirectory to serve within the specified git URL")
 }
 
 func main() {
-	if err := devportal.Execute(); err != nil {
+	if err := devportalCmd.Execute(); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
@@ -73,29 +79,33 @@ func serve(cmd *cobra.Command, args []string) {
 		fmt.Println(err)
 		os.Exit(1)
 	}
-	if devportalcontent.IsLocal(contentURL) {
-		flag := filepath.Join(contentURL.Path, "devportal.yaml")
-		yml, err := os.Open(flag)
-		if err != nil {
-			defer yml.Close()
-		}
-		if os.IsNotExist(err) {
-			fmt.Printf("\nPlease specify a devportal checkout. %v\n\n", err)
-			os.Exit(1)
-		}
-	}
-
 	config := types.Config{
-		AmbassadorAdminURL:    parse("http://localhost:8877/"),
-		AmbassadorInternalURL: parse("http://localhost:8877/"),
-		AmbassadorExternalURL: parse("http://localhost:8877/"),
-		DevPortalPollInterval: 2000 * time.Second,
-		DevPortalContentURL:   contentURL,
+		AmbassadorAdminURL:     parse("http://localhost:8877/"),
+		AmbassadorInternalURL:  parse("http://localhost:8877/"),
+		AmbassadorExternalURL:  parse("http://localhost:8877/"),
+		DevPortalPollInterval:  2000 * time.Second,
+		DevPortalContentURL:    contentURL,
+		DevPortalContentBranch: branch,
+		DevPortalContentSubdir: path,
 	}
 
-	content, err := devportalcontent.NewContent(config.DevPortalContentURL)
+	content, err := devportalcontent.NewContent(
+		config.DevPortalContentURL,
+		config.DevPortalContentBranch,
+		config.DevPortalContentSubdir)
 	if err != nil {
 		log.Fatal(err)
+	}
+
+	yml, err := content.Fs().Open("devportal.yaml")
+	if yml != nil {
+		defer yml.Close()
+	}
+	if os.IsNotExist(err) {
+		root, err := content.Fs().Glob("/", "*")
+		fmt.Printf("\nPlease specify a devportal checkout. %v\n\n", err)
+		fmt.Printf("Looking at: %v\n\n", root)
+		os.Exit(1)
 	}
 
 	docs := "/local-devportal"

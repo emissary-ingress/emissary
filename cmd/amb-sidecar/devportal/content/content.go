@@ -43,10 +43,12 @@ func IsLocal(contentURL *url.URL) bool {
 	return contentURL.Scheme == "" || contentURL.Scheme == "file"
 }
 
-func NewContent(contentURL *url.URL) (*Content, error) {
+func NewContent(contentURL *url.URL, branch, subdir string) (*Content, error) {
 	logger := log.WithFields(log.Fields{
-		"subsystem":  "content",
-		"contentURL": sanitizedURL(contentURL).String(),
+		"subsystem":     "content",
+		"contentURL":    sanitizedURL(contentURL).String(),
+		"contentSubdir": subdir,
+		"contentBranch": branch,
 	})
 	funcMap := template.FuncMap{
 		// The name "inc" is what the function will be called in the template text.
@@ -75,6 +77,7 @@ func NewContent(contentURL *url.URL) (*Content, error) {
 		logger.Info("Loading content from git repo")
 		opts := CheckoutOptions{
 			RepoURL: contentURL,
+			Branch:  branch,
 		}
 		var checkout *Checkout
 		checkout, err = NewRepoCheckout(opts)
@@ -87,8 +90,18 @@ func NewContent(contentURL *url.URL) (*Content, error) {
 			md:      renderer,
 		}
 	}
+	store, err := NewChroot(content.store.Fs(), subdir)
+	if err != nil {
+		return nil, err
+	}
+	content.store = store
 	content.source = contentURL
+
 	return content, nil
+}
+
+func (c *Content) Fs() Globbable {
+	return c.store.Fs()
 }
 
 func (c *Content) Get(vars ContentVars) (*template.Template, error) {
@@ -144,13 +157,13 @@ func (c *Content) loadDirHTML(tmpl *template.Template, dir string) (templates te
 		"dir":       dir,
 	})
 	logger.Info("Scanning")
-	files, err := c.store.Fs().Glob(dir, "*.gohtml")
+	files, err := c.Fs().Glob(dir, "*.gohtml")
 	if err != nil {
 		return
 	}
 	for _, fn := range files {
 		name := JustName(fn)
-		err = c.loadTemplateHTML(tmpl, name, c.store.Fs().Join(dir, fn))
+		err = c.loadTemplateHTML(tmpl, name, c.Fs().Join(dir, fn))
 		if err != nil {
 			return
 		}
@@ -165,13 +178,13 @@ func (c *Content) loadDirMD(tmpl *template.Template, dir string, templatePrefix 
 		"dir":       dir,
 	})
 	logger.Info("Scanning")
-	files, err := c.store.Fs().Glob(dir, "*.gomd")
+	files, err := c.Fs().Glob(dir, "*.gomd")
 	if err != nil {
 		return
 	}
 	for _, fn := range files {
 		name := JustName(fn)
-		err = c.loadTemplateMD(tmpl, templatePrefix+name, c.store.Fs().Join(dir, fn))
+		err = c.loadTemplateMD(tmpl, templatePrefix+name, c.Fs().Join(dir, fn))
 		if err != nil {
 			return
 		}
@@ -186,7 +199,7 @@ func (c *Content) loadTemplateHTML(tmpl *template.Template, name, fn string) (er
 		"template-name": name,
 		"file":          fn,
 	})
-	data, err := c.store.Fs().ReadFile(fn)
+	data, err := c.Fs().ReadFile(fn)
 	if err != nil {
 		logger.Errorln("reading file", err)
 		return
@@ -200,7 +213,7 @@ func (c *Content) loadTemplateMD(tmpl *template.Template, name, fn string) error
 		"template-name": name,
 		"file":          fn,
 	})
-	src, err := c.store.Fs().ReadFileBytes(fn)
+	src, err := c.Fs().ReadFileBytes(fn)
 	if err != nil {
 		logger.Errorln("reading file", err)
 		return err
@@ -209,7 +222,7 @@ func (c *Content) loadTemplateMD(tmpl *template.Template, name, fn string) error
 	data := c.md.Render(src)
 
 	debug := fn + ".debughtml"
-	fd, err2 := c.store.Fs().Create(debug)
+	fd, err2 := c.Fs().Create(debug)
 	if err2 == nil {
 		defer fd.Close()
 		fd.Write([]byte(data))
@@ -217,7 +230,7 @@ func (c *Content) loadTemplateMD(tmpl *template.Template, name, fn string) error
 	err = c.parseTemplate(tmpl, name, debug, data)
 	if err != nil {
 		debug := fn + ".debugerr"
-		fd, err2 := c.store.Fs().Create(debug)
+		fd, err2 := c.Fs().Create(debug)
 		if err2 == nil {
 			defer fd.Close()
 			fd.Write([]byte(err.Error()))
@@ -265,7 +278,7 @@ func (c *Content) GetStatic(fn string) (resource *StaticResource, err error) {
 		"subsystem": "content",
 		"file":      fn,
 	})
-	stat, err := c.store.Fs().Stat(fn)
+	stat, err := c.Fs().Stat(fn)
 	if err != nil {
 		logger.Info(err)
 		return
@@ -274,7 +287,7 @@ func (c *Content) GetStatic(fn string) (resource *StaticResource, err error) {
 		logger.Info("will not serve directory")
 		return nil, fmt.Errorf("Will not serve directory %s", fn)
 	}
-	fd, err := c.store.Fs().Open(fn)
+	fd, err := c.Fs().Open(fn)
 	if err != nil {
 		logger.Info(err)
 		return
