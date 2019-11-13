@@ -23,7 +23,7 @@
         link: https://github.com/datawire/ambassador/issues/new
       - title: Visit Datawire.io
         link: https://www.datawire.io
-
+        
 - title: Install Ambassador Edge Stack
   items: 
   - title: Installation Overview
@@ -48,6 +48,7 @@
       link: /user-guide/install-ambassador-oss  
     - title: Early Access Releases
       link: /user-guide/early-access
+
 
 - title: Concepts
   items: 
@@ -109,7 +110,7 @@
         link: /user-guide/consul
       - title: Istio and Ambassador Edge Stack
         link: /user-guide/with-istio
-      - title: Linkerd and Ambassador Edge Stack
+      - title: Linkerd2
         link: /user-guide/linkerd2
     - title: Best Practices
       items:
@@ -130,116 +131,110 @@
       - title: Monitoring Ingress with Prometheus and Grafana
         link: /user-guide/monitoring
 
+
 - title: Reference & Configurations
   items:
-  - title: Configuring Ambassador Edge Stack
-    link: /reference/configuration
-    items:
-    - title: Core Configuration
+    - title: Configuring Ambassador Edge Stack
+      link: /reference/configuration
+    - title: Global Configuration
+      link: /reference/modules
+    - title: Ambassador Edge Stack Core Configuration
       link: /reference/core/ambassador
       items:
+        - title: Gzip compression
+          link: /reference/gzip
+        - title: Load Balancing Configuration
+          link: /reference/core/load-balancer
+        - title: Service Discovery Configuration
+          link: /reference/core/resolvers
+    - title: TLS Configuration
+      link: /reference/core/tls
+      items:
+      - title: Client Certificate Validation
+        link: /reference/tls/client-cert-validation
+      - title: HTTP -> HTTPS Redirection
+        link: /reference/tls/cleartext-redirection
+      - title: Mutual TLS (mTLS)
+        link: /reference/tls/mtls
+      - title: Server Name Indication (SNI)
+        link: /user-guide/sni
+      - title: TLS Origination
+        link: /reference/tls/origination
+    - title: Configuring Services
+      link: /reference/mappings
+      items:
+      - title: Canary Releases
+        link: /reference/canary
+      - title: Circuit Breakers
+        link: /reference/circuit-breakers
+      - title: Cross Origin Resource Sharing
+        link: /reference/cors
+      - title: Header-based routing
+        link: /reference/headers
+      - title: Host Header
+        link: /reference/host
+      - title: Prefix Regex
+        link: /reference/prefix_regex
+      - title: Rate Limits
+        link: /reference/rate-limits
+      - title: Redirects
+        link: /reference/redirects
+      - title: Remove Request Headers
+        link: /reference/remove_request_headers
+      - title: Remove Response Headers
+        link: /reference/remove_response_headers
+      - title: Request Headers
+        link: /reference/add_request_headers
+      - title: Response Headers
+        link: /reference/add_response_headers
+      - title: Retries
+        link: /reference/retries
+      - title: Rewrites
+        link: /reference/rewrites
+      - title: Routing TCP Connections
+        link: /reference/tcpmappings
+      - title: Timeouts
+        link: /reference/timeouts
+      - title: Traffic Shadowing
+        link: /reference/shadowing
+    - title: Plugins
+      link: /reference/services/services
+      items:
+      - title: Authentication
+        link: /reference/services/auth-service
+      - title: Access Control
+        link: /reference/services/access-control
+      - title: Rate Limiting
+        link: /reference/services/rate-limit-service
+      - title: Tracing
+        link: /reference/services/tracing-service
+    - title: IDP Support
+      items:
+      - title: Auth0
+        link: /reference/idp-support/auth0
+      - title: Azure AD
+        link: /reference/idp-support/azure
+      - title: Google
+        link: /reference/idp-support/google
+      - title: Keycloak
+        link: /reference/idp-support/keycloak
+      - title: Okta
+        link: /reference/idp-support/okta
+      - title: Salesforce
+        link: /reference/idp-support/salesforce
+      - title: User Account and Authentication (UAA)
+        link: /reference/idp-support/uaa
     - title: Custom Resource Definitions
       link: /reference/core/crds
-    - title: Service Annotations
-      link: /reference/core/annotations
-    - title: Kubernetes Ingress Resource
-      link: /reference/core/ingress-controller
-  - title: Global Configuration
-    link: /reference/modules
-    items:
-    - title: Gzip compression
-      link: /reference/gzip
-    - title: Load Balancing Configuration
-      link: /reference/core/load-balancer
-    - title: Service Discovery Configuration
-      link: /reference/core/resolvers
-  - title: TLS Configuration
-    link: /reference/core/tls
-    items:
-    - title: Client Certificate Validation
-      link: /reference/tls/client-cert-validation
-    - title: HTTP -> HTTPS Redirection
-      link: /reference/tls/cleartext-redirection
-    - title: Mutual TLS (mTLS)
-      link: /reference/tls/mtls
-    - title: Server Name Indication (SNI)
-      link: /user-guide/sni
-    - title: TLS Origination
-      link: /reference/tls/origination
-  - title: Configuring Services
-    link: /reference/mappings
-    items:
-    - title: Canary Releases
-      link: /reference/canary
-    - title: Circuit Breakers
-      link: /reference/circuit-breakers
-    - title: Cross Origin Resource Sharing
-      link: /reference/cors
-    - title: Header-based routing
-      link: /reference/headers
-    - title: Host Header
-      link: /reference/host
-    - title: Prefix Regex
-      link: /reference/prefix_regex
-    - title: Rate Limits
-      link: /reference/rate-limits
-    - title: Redirects
-      link: /reference/redirects
-    - title: Remove Request Headers
-      link: /reference/remove_request_headers
-    - title: Remove Response Headers
-      link: /reference/remove_response_headers
-    - title: Request Headers
-      link: /reference/add_request_headers
-    - title: Response Headers
-      link: /reference/add_response_headers
-    - title: Retries
-      link: /reference/retries
-    - title: Rewrites
-      link: /reference/rewrites
-    - title: Routing TCP Connections
-      link: /reference/tcpmappings
-    - title: Timeouts
-      link: /reference/timeouts
-    - title: Traffic Shadowing
-      link: /reference/shadowing
-  - title: Plugins
-    link: /reference/services/services
-    items:
-    - title: Authentication
-      link: /reference/services/auth-service
-    - title: Access Control
-      link: /reference/services/access-control
-    - title: Rate Limiting
-      link: /reference/services/rate-limit-service
-    - title: Tracing
-      link: /reference/services/tracing-service
-  - title: IDP Support
-    items:
-    - title: Auth0
-      link: /reference/idp-support/auth0
-    - title: Azure AD
-      link: /reference/idp-support/azure
-    - title: Google
-      link: /reference/idp-support/google
-    - title: Keycloak
-      link: /reference/idp-support/keycloak
-    - title: Okta
-      link: /reference/idp-support/okta
-    - title: Salesforce
-      link: /reference/idp-support/salesforce
-    - title: User Account and Authentication (UAA)
-      link: /reference/idp-support/uaa
-
-- title: Filters
-  link: /reference/filter-reference
+    - title: Filters
+      link: /reference/filter-reference
     - title: Developer Portal
       link: /reference/dev-portal
     - title: Statistics and Monitoring
       link: /reference/statistics
     - title: Running Ambassador Edge Stack
-      items:
-      - title: Running and Deployment
+      items:  
+      - title: Running and Deployment 
         link: /reference/running
       - title: Debugging Ambassador Edge Stack
         link: /reference/debugging
@@ -254,3 +249,5 @@
       link: https://github.com/datawire/ambassador/blob/master/BUILDING.md
     - title: Changelog (GitHub)
       link: https://github.com/datawire/ambassador/blob/master/CHANGELOG.md
+
+
