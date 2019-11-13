@@ -4,9 +4,8 @@
 
 There are a few prerequisties that are important for a successful installation of Ambassador Edge Stack. Make sure have the following:
 
-* a running [Kubernetes cluster](https://kubernetes.io/docs/setup/)
+* a clean, running [Kubernetes cluster](https://kubernetes.io/docs/setup/)
 * the command line tool [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/)
-* the `edgectl` file download from [this page](/user-guide/downloads)
 
 ## 1. Deploying Ambassador Edge Stack to Kubernetes
 
@@ -90,8 +89,9 @@ Navigate to your new IP address in your browser. Assign a DNS name using the pro
 
 ## 4. Complete the install
 
-Go to http://&lt;your-host-name&gt; and follow the instructions to complete the install.
+Go to `http://&lt;your-host-name&gt;` and follow the instructions to complete the install.
 
+You will need to install the `edgectl` tool in order to fully configure your Ambassador Edge Stack UI. If you are having trouble downloading the files, you can download them directly from [this page](/user-guide/downloads)/
 
 ## Next Steps
 
