@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/datawire/apro/lib/metriton"
 	"log"
 	"net"
 	"net/http"
@@ -18,6 +17,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/datawire/apro/lib/licensekeys"
+	"github.com/datawire/apro/lib/metriton"
 )
 
 // PatternInfo represents one Envoy header regex_match

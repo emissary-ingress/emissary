@@ -12,10 +12,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/datawire/apro/lib/metriton"
-	"github.com/fsnotify/fsnotify"
-
 	// 3rd-party libraries
+	"github.com/fsnotify/fsnotify"
 	"github.com/lyft/goruntime/loader"
 	"github.com/mediocregopher/radix.v2/pool"
 	"github.com/pkg/errors"
@@ -24,7 +22,6 @@ import (
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
 	"google.golang.org/grpc"
-
 	grpchealth "google.golang.org/grpc/health"
 
 	// first-party libraries
@@ -47,6 +44,7 @@ import (
 	"github.com/datawire/apro/cmd/amb-sidecar/watt"
 	"github.com/datawire/apro/cmd/amb-sidecar/webui"
 	"github.com/datawire/apro/lib/licensekeys"
+	"github.com/datawire/apro/lib/metriton"
 	"github.com/datawire/apro/lib/util"
 
 	// internal libraries: github.com/lyft/ratelimit
@@ -171,8 +169,10 @@ func triggerOnChange(watchFile string, trigger func()) {
 						eventsWG.Done()
 						return
 					}
-				case err, _ := <-watcher.Errors:
-					logrusLogger.Errorln(err)
+				case err, ok := <-watcher.Errors:
+					if ok {
+						logrusLogger.Errorln(err)
+					}
 					eventsWG.Done()
 					return
 				}

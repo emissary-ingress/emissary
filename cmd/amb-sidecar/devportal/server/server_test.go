@@ -119,7 +119,7 @@ func TestRedactedDocument(t *testing.T) {
 `)
 
 	g := NewGomegaWithT(t)
-	l := mocks.NewMockLimiterWithCounts(map[licensekeys.Limit]int {
+	l := mocks.NewMockLimiterWithCounts(map[licensekeys.Limit]int{
 		licensekeys.LimitDevPortalServices: 0,
 	}, false)
 	s := NewServer("", nil, l)
@@ -183,7 +183,7 @@ func TestHardLimitDocument(t *testing.T) {
 `)
 
 	g := NewGomegaWithT(t)
-	l := mocks.NewMockLimiterWithCounts(map[licensekeys.Limit]int {
+	l := mocks.NewMockLimiterWithCounts(map[licensekeys.Limit]int{
 		licensekeys.LimitDevPortalServices: 0,
 	}, true)
 	s := NewServer("", nil, l)

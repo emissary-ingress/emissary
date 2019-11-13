@@ -41,7 +41,7 @@ type inMemoryStore struct {
 func newInMemoryStore(countLimiter limiter.CountLimiter, limiterImpl limiter.Limiter) *inMemoryStore {
 	return &inMemoryStore{
 		metadata: make(MetadataMap),
-		limiter: limiterImpl,
+		limiter:  limiterImpl,
 		climiter: countLimiter,
 	}
 }

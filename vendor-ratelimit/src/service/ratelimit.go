@@ -197,7 +197,7 @@ func (this *service) GetCurrentConfig() config.RateLimitConfig {
 }
 
 func NewService(runtime loader.IFace, cache redis.RateLimitCache,
-	configLoader config.RateLimitConfigLoader, stats stats.Scope, limiter *limiter.LimiterImpl) RateLimitServiceServer {
+	configLoader config.RateLimitConfigLoader, stats stats.Scope, limiter limiter.Limiter) RateLimitServiceServer {
 
 	// Our own internal rate-limiter for AES license usage
 	// Error should never be set due to hardcoded enums

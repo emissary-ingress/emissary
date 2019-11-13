@@ -5,12 +5,9 @@ go 1.13
 require (
 	github.com/Jeffail/gabs v1.2.0
 	github.com/aclements/go-moremath v0.0.0-20180329182055-b1aff36309c7
-	github.com/bmizerany/perks v0.0.0-20141205001514-d9a9656a3a4b // indirect
 	github.com/datawire/ambassador v0.83.1-ea10
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
-	github.com/dgryski/go-gk v0.0.0-20140819190930-201884a44051 // indirect
 	github.com/die-net/lrucache v0.0.0-20181227122439-19a39ef22a11
-	github.com/elazarl/go-bindata-assetfs v1.0.0
 	github.com/fsnotify/fsnotify v1.4.7
 	github.com/go-acme/lego/v3 v3.1.0
 	github.com/gobwas/glob v0.2.3
@@ -19,8 +16,6 @@ require (
 	github.com/gorilla/mux v1.7.3
 	github.com/gregjones/httpcache v0.0.0-20170728041850-787624de3eb7
 	github.com/hashicorp/consul/api v1.1.0
-	github.com/hashicorp/go-msgpack v0.5.4 // indirect
-	github.com/hashicorp/go-sockaddr v1.0.2 // indirect
 	github.com/influxdata/tdigest v0.0.0-20181121200506-bf2b5ad3c0a9
 	github.com/jcuga/golongpoll v0.0.0-20180711123949-939e3befd837
 	github.com/jpillora/backoff v1.0.0
@@ -32,28 +27,22 @@ require (
 	github.com/o1egl/paseto v1.0.0
 	github.com/onsi/gomega v1.7.0
 	github.com/oxtoacart/bpool v0.0.0-20190530202638-03653db5a59c
-	github.com/pascaldekloe/goe v0.1.0 // indirect
-	github.com/pelletier/go-buffruneio v0.2.1-0.20180827162605-de1592c34d9c // indirect
 	github.com/pkg/errors v0.8.1
 	github.com/russross/blackfriday/v2 v2.0.1
 	github.com/satori/go.uuid v1.2.0
 	github.com/sirupsen/logrus v1.4.2
 	github.com/spf13/cobra v0.0.5
 	github.com/spf13/pflag v1.0.3
-	github.com/streadway/quantile v0.0.0-20150917103942-b0c588724d25 // indirect
 	github.com/tsenart/vegeta v12.2.1+incompatible
 	gitlab.com/golang-commonmark/html v0.0.0-20180917080848-cfaf75183c4a // indirect
-	gitlab.com/golang-commonmark/linkify v0.0.0-20180917065525-c22b7bdb1179 // indirect
+	gitlab.com/golang-commonmark/linkify v0.0.0-20191026162114-a0c2df6c8f82 // indirect
 	gitlab.com/golang-commonmark/markdown v0.0.0-20181102083822-772775880e1f
 	gitlab.com/golang-commonmark/mdurl v0.0.0-20180912090424-e5bce34c34f2 // indirect
 	gitlab.com/golang-commonmark/puny v0.0.0-20180912090636-2cd490539afe // indirect
-	gitlab.com/opennota/wd v0.0.0-20180912061657-c5d65f63c638 // indirect
 	golang.org/x/crypto v0.0.0-20190701094942-4def268fd1a4
 	golang.org/x/net v0.0.0-20190930134127-c5a3c61f89f3
 	golang.org/x/sync v0.0.0-20190423024810-112230192c58
-	golang.org/x/sys v0.0.0-20191029155521-f43be2a4598c // indirect
 	google.golang.org/grpc v1.23.0
-	gopkg.in/russross/blackfriday.v2 v2.0.0-00010101000000-000000000000 // indirect
 	gopkg.in/src-d/go-billy.v4 v4.2.1
 	gopkg.in/src-d/go-git.v4 v4.8.1
 	gopkg.in/yaml.v2 v2.2.4
@@ -64,9 +53,12 @@ require (
 	sigs.k8s.io/yaml v1.1.0
 )
 
-replace github.com/lyft/ratelimit v1.3.0 => ./vendor-ratelimit
-
-replace github.com/datawire/ambassador => ../ambassador
+// Point at the local checkouts
+replace (
+	github.com/datawire/ambassador => ../ambassador
+	github.com/datawire/apro => ./
+	github.com/lyft/ratelimit => ./vendor-ratelimit
+)
 
 replace github.com/tsenart/vegeta => github.com/datawire/vegeta v12.2.2-0.20190408190644-d94b721fc676+incompatible
 

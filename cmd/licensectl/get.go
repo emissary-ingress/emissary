@@ -3,20 +3,20 @@ package main
 import (
 	"fmt"
 
-	"github.com/pkg/errors"
 	"github.com/mediocregopher/radix.v2/pool"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
-	"github.com/datawire/apro/lib/licensekeys"
 	"github.com/datawire/apro/cmd/amb-sidecar/limiter"
+	"github.com/datawire/apro/lib/licensekeys"
 )
 
 func init() {
 	var (
-		argLicenseKey string
-		limitName string
+		argLicenseKey   string
+		limitName       string
 		redisSocketType string
-		redisUrl string
+		redisUrl        string
 	)
 	get := &cobra.Command{
 		Use:   "get",

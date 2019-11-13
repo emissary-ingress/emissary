@@ -136,6 +136,7 @@ func (fb *firstBootWizard) forbidden(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, "Ambassador Edge Stack admin webui API forbidden")
 }
 
+//nolint:gocyclo
 func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if !strings.HasPrefix(r.URL.Path, "/edge_stack/") {
 		// prevent navigating to /404.html and getting a 200 response

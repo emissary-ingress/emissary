@@ -636,11 +636,12 @@ func FillDefaults(host *ambassadorTypesV2.Host) {
 	if host.Status == nil {
 		host.Status = &ambassadorTypesV2.HostStatus{}
 	}
-	if host.Spec.AcmeProvider.Authority != "none" {
+	switch {
+	case host.Spec.AcmeProvider.Authority != "none":
 		host.Status.TlsCertificateSource = ambassadorTypesV2.HostTLSCertificateSource_ACME
-	} else if host.Spec.TlsSecret.Name == "" {
+	case host.Spec.TlsSecret.Name == "":
 		host.Status.TlsCertificateSource = ambassadorTypesV2.HostTLSCertificateSource_Other
-	} else {
+	default:
 		host.Status.TlsCertificateSource = ambassadorTypesV2.HostTLSCertificateSource_None
 	}
 }
