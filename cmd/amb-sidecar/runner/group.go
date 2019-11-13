@@ -25,8 +25,8 @@ type Group struct {
 	inner         *llGroup
 }
 
-func logGoroutines(l dlog.Logger, list map[string]GoroutineState) {
-	l.Errorln("  goroutine shutdown status:")
+func logGoroutines(printf func(format string, args ...interface{}), list map[string]GoroutineState) {
+	printf("  goroutine shutdown status:")
 	names := make([]string, 0, len(list))
 	nameWidth := 0
 	for name := range list {
@@ -37,7 +37,7 @@ func logGoroutines(l dlog.Logger, list map[string]GoroutineState) {
 	}
 	sort.Strings(names)
 	for _, name := range names {
-		l.Errorf("    %-*s: %s", nameWidth, name, list[name])
+		printf("    %-*s: %s", nameWidth, name, list[name])
 	}
 }
 
@@ -59,7 +59,7 @@ func NewGroup(ctx context.Context, cfg types.Config, loggerFactory func(name str
 
 	ret.Go("supervisor", func(_, _ context.Context, _ types.Config, l dlog.Logger) error {
 		<-softCtx.Done()
-		l.Infoln("shutting down")
+		l.Infoln("shutting down...")
 		return nil
 	})
 
@@ -71,12 +71,12 @@ func NewGroup(ctx context.Context, cfg types.Config, loggerFactory func(name str
 			go func() {
 				sig := <-sigs
 				l.Errorln(errors.Errorf("received signal %v", sig))
-				logGoroutines(l, ret.List())
+				logGoroutines(l.Errorf, ret.List())
 				hardCancel()
 				// keep logging signals
 				for sig := range sigs {
 					l.Errorln(errors.Errorf("received signal %v", sig))
-					logGoroutines(l, ret.List())
+					logGoroutines(l.Errorf, ret.List())
 				}
 			}()
 		}()
@@ -98,13 +98,24 @@ func NewGroup(ctx context.Context, cfg types.Config, loggerFactory func(name str
 //  - `hardCtx` being canceled should trigger a not-so-graceful shutdown
 func (g *Group) Go(name string, fn func(hardCtx, softCtx context.Context, cfg types.Config, logger dlog.Logger) error) {
 	g.inner.Go(name, func() error {
-		return fn(g.hardCtx, g.softCtx, g.cfg, g.loggerFactory(name))
+		logger := g.loggerFactory(name)
+		err := fn(g.hardCtx, g.softCtx, g.cfg, logger)
+		if err == nil {
+			logger.Debugln("goroutine exited without error")
+		} else {
+			logger.Errorln("goroutine exited with error:", err)
+		}
+		return err
 	})
 }
 
 // Wait wraps llGroup.Wait().
 func (g *Group) Wait() error {
-	return g.inner.Wait()
+	ret := g.inner.Wait()
+	if ret != nil {
+		logGoroutines(g.loggerFactory("shutdown_status").Infof, g.List())
+	}
+	return ret
 }
 
 // List wraps llGroup.List().

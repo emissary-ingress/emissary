@@ -140,7 +140,7 @@ func Main(version string) {
 
 	err := argparser.Execute()
 	if err != nil {
-		logrusLogger.Errorln(err)
+		logrusLogger.Errorln("shut down because of error:", err)
 		os.Exit(1)
 	}
 }
