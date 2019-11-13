@@ -44,7 +44,8 @@ func MD5All(ctx context.Context, root string) (map[string][md5.Size]byte, error)
 	// ctx is canceled when g.Wait() returns. When this version of MD5All returns
 	// - even in case of error! - we know that all of the goroutines have finished
 	// and the memory they were using can be garbage-collected.
-	g, ctx := errgroup.WithContext(ctx)
+	ctx, cancel := context.WithCancel(ctx)
+	g := errgroup.NewGroup(cancel)
 	paths := make(chan string)
 
 	g.Go(func() error {

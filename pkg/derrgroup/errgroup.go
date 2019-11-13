@@ -1,4 +1,4 @@
-// Copyright 2020 Datawire. All rights reserved.
+// Copyright 2019-2020 Datawire. All rights reserved.
 //
 // Copyright 2016 The Go Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style
@@ -12,7 +12,6 @@
 package derrgroup
 
 import (
-	"context"
 	"sync"
 )
 
@@ -29,14 +28,13 @@ type Group struct {
 	err     error
 }
 
-// WithContext returns a new Group and an associated Context derived from ctx.
+// NewGroup returns a new Group.
 //
-// The derived Context is canceled the first time a function passed to Go
-// returns a non-nil error or the first time Wait returns, whichever occurs
+// The provided 'cancel' function is called the first time a function passed to
+// Go returns a non-nil error or the first time Wait returns, whichever occurs
 // first.
-func WithContext(ctx context.Context) (*Group, context.Context) {
-	ctx, cancel := context.WithCancel(ctx)
-	return &Group{cancel: cancel}, ctx
+func NewGroup(cancel func()) *Group {
+	return &Group{cancel: cancel}
 }
 
 // Wait blocks until all function calls from the Go method have returned, then
