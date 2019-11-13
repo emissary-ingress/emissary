@@ -64,6 +64,8 @@ class ResourceFetcher:
         self.services: Dict[str, AnyDict] = {}
         self.ambassador_service_raw: AnyDict = {}
 
+        self.alerted_about_labels = False
+
         # Ugh. Should we worry about multiple Helm charts for a single Ambassador?
         self.helm_chart: Optional[str] = None
 
@@ -579,6 +581,7 @@ class ResourceFetcher:
         return None
 
     def is_ambassador_service(self, service_labels, service_selector):
+        # self.logger.info(f"is_ambassador_service checking {service_labels} - {service_selector}")
 
         # Every Ambassador service must have the label 'app.kubernetes.io/component: ambassador-service'
         if service_labels is None:
@@ -592,7 +595,11 @@ class ResourceFetcher:
         # We do this by checking that the pod's labels match the selector in the service.
         pod_labels_path = '/tmp/ambassador-pod-info/labels'
         if not os.path.isfile(pod_labels_path):
-            self.aconf.post_error(f"pod labels are not mounted in Ambassador container, please check pod configuration")
+            if not self.alerted_about_labels:
+                self.aconf.post_error(f"Pod labels are not mounted in the Ambassador container; Kubernetes Ingress support is likely to be limited")
+                self.alerted_about_labels = True
+
+            return False
 
         with open(pod_labels_path) as pod_labels_file:
             pod_labels = pod_labels_file.readlines()
