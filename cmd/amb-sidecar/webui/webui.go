@@ -127,7 +127,11 @@ func (fb *firstBootWizard) isAuthorized(r *http.Request) bool {
 func (fb *firstBootWizard) notFound(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.WriteHeader(http.StatusNotFound)
-	file, _ := fb.staticfiles.Open("/404.html")
+	file, err := fb.staticfiles.Open("/404.html")
+	if err != nil {
+		fmt.Fprintf(w, "<p>there was an error loading 404.html; is your <tt>DEV_WEBUI_DIR</tt> set correctly?</p>")
+		return
+	}
 	io.Copy(w, file)
 }
 
