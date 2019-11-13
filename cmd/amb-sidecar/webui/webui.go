@@ -17,6 +17,8 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/datawire/ambassador/pkg/dlog"
+	"github.com/datawire/ambassador/pkg/supervisor"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/go-acme/lego/v3/acme"
 	"github.com/pkg/errors"
@@ -25,7 +27,6 @@ import (
 	k8sSchema "k8s.io/apimachinery/pkg/runtime/schema"
 
 	ambassadorTypesV2 "github.com/datawire/ambassador/pkg/api/getambassador.io/v2"
-	"github.com/datawire/ambassador/pkg/supervisor"
 	k8sTypesMetaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	k8sTypesUnstructured "k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 
@@ -109,24 +110,32 @@ func (fb *firstBootWizard) isAuthorized(r *http.Request) bool {
 
 	var claims LoginClaimsV1
 
+	if fb.pubkey == nil {
+		dlog.GetLogger(r.Context()).Warningln("bypassing JWT validation for request")
+		return true
+	}
 	jwtParser := jwt.Parser{ValidMethods: []string{"PS512"}}
 	_, err := jwtsupport.SanitizeParse(jwtParser.ParseWithClaims(tokenString, &claims, func(_ *jwt.Token) (interface{}, error) {
 		return fb.pubkey, nil
 	}))
 	if err != nil {
-		return true // false // XXX
+		return false
 	}
 
-	return (claims.VerifyExpiresAt(now, true) &&
+	return claims.VerifyExpiresAt(now, true) &&
 		claims.VerifyIssuedAt(now, true) &&
 		claims.VerifyNotBefore(now, true) &&
-		claims.LoginTokenVersion == "v1") || true // XXX
+		claims.LoginTokenVersion == "v1"
 }
 
 func (fb *firstBootWizard) notFound(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.WriteHeader(http.StatusNotFound)
-	file, _ := fb.staticfiles.Open("/404.html")
+	file, err := fb.staticfiles.Open("/404.html")
+	if err != nil {
+		fmt.Fprintf(w, "<p>there was an error loading 404.html; is your <tt>DEV_WEBUI_DIR</tt> set correctly?</p>")
+		return
+	}
 	io.Copy(w, file)
 }
 
@@ -151,7 +160,7 @@ func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		// Do this here, instead of in the web-browser,
 		// because CORS.
-		httpClient := httpclient.NewHTTPClient(middleware.GetLogger(r.Context()), 0, false, tls.RenegotiateNever)
+		httpClient := httpclient.NewHTTPClient(dlog.GetLogger(r.Context()), 0, false, tls.RenegotiateNever)
 		tosURL, err := getTermsOfServiceURL(httpClient, r.URL.Query().Get("ca-url"))
 		if err != nil {
 			middleware.ServeErrorResponse(w, r.Context(), http.StatusBadRequest, err, nil)

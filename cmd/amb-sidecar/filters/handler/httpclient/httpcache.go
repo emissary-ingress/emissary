@@ -10,11 +10,10 @@ import (
 	"sync"
 	"time"
 
+	"github.com/datawire/ambassador/pkg/dlog"
 	"github.com/die-net/lrucache"
 	"github.com/gregjones/httpcache"
 	"github.com/pkg/errors"
-
-	"github.com/datawire/apro/cmd/amb-sidecar/types"
 )
 
 var httpCache = lrucache.New(8*1024, 0) // 8KiB seems like a reasonable default
@@ -56,7 +55,7 @@ func (fn roundTripperFunc) RoundTrip(req *http.Request) (*http.Response, error) 
 //        violation of RFC7234)
 //  - It logs all requests+responses, and whether or not they came
 //    from the network for from the cache.
-func NewHTTPClient(logger types.Logger, maxStale time.Duration, insecure bool, renegotiate tls.RenegotiationSupport) *http.Client {
+func NewHTTPClient(logger dlog.Logger, maxStale time.Duration, insecure bool, renegotiate tls.RenegotiationSupport) *http.Client {
 	return &http.Client{
 		Transport: roundTripperFunc(func(req *http.Request) (*http.Response, error) {
 			if maxStale > 0 {

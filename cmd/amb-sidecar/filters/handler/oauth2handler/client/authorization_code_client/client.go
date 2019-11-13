@@ -12,19 +12,18 @@ import (
 	"strings"
 	"time"
 
+	"github.com/datawire/ambassador/pkg/dlog"
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/mediocregopher/radix.v2/redis"
 	"github.com/pkg/errors"
 	uuid "github.com/satori/go.uuid"
 
+	crd "github.com/datawire/apro/apis/getambassador.io/v1beta2"
 	rfc6749client "github.com/datawire/apro/client/rfc6749"
 	rfc6750client "github.com/datawire/apro/client/rfc6750"
-
-	crd "github.com/datawire/apro/apis/getambassador.io/v1beta2"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/middleware"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/oauth2handler/discovery"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/oauth2handler/resourceserver"
-	"github.com/datawire/apro/cmd/amb-sidecar/types"
 	"github.com/datawire/apro/lib/filterapi"
 	"github.com/datawire/apro/lib/filterapi/filterutil"
 	"github.com/datawire/apro/lib/jwtsupport"
@@ -55,7 +54,7 @@ func (c *OAuth2Client) xsrfCookieName() string {
 	return "ambassador_xsrf." + c.QName
 }
 
-func (c *OAuth2Client) Filter(ctx context.Context, logger types.Logger, httpClient *http.Client, discovered *discovery.Discovered, redisClient *redis.Client, request *filterapi.FilterRequest) filterapi.FilterResponse {
+func (c *OAuth2Client) Filter(ctx context.Context, logger dlog.Logger, httpClient *http.Client, discovered *discovery.Discovered, redisClient *redis.Client, request *filterapi.FilterRequest) filterapi.FilterResponse {
 	oauthClient, err := rfc6749client.NewAuthorizationCodeClient(
 		c.Spec.ClientID,
 		discovered.AuthorizationEndpoint,
@@ -236,7 +235,7 @@ type SessionInfo struct {
 	sessionData *rfc6749client.AuthorizationCodeClientSessionData
 }
 
-func (sessionInfo *SessionInfo) handleAuthenticatedProxyRequest(ctx context.Context, logger types.Logger, httpClient *http.Client, discovered *discovery.Discovered, request *filterapi.FilterRequest, authorization http.Header) filterapi.FilterResponse {
+func (sessionInfo *SessionInfo) handleAuthenticatedProxyRequest(ctx context.Context, logger dlog.Logger, httpClient *http.Client, discovered *discovery.Discovered, request *filterapi.FilterRequest, authorization http.Header) filterapi.FilterResponse {
 	addAuthorization := &filterapi.HTTPRequestModification{}
 	for k, vs := range authorization {
 		for _, v := range vs {
@@ -271,7 +270,7 @@ func (sessionInfo *SessionInfo) handleAuthenticatedProxyRequest(ctx context.Cont
 	}
 }
 
-func (sessionInfo *SessionInfo) handleUnauthenticatedProxyRequest(ctx context.Context, logger types.Logger, httpClient *http.Client, oauthClient *rfc6749client.AuthorizationCodeClient, discovered *discovery.Discovered, request *filterapi.FilterRequest) filterapi.FilterResponse {
+func (sessionInfo *SessionInfo) handleUnauthenticatedProxyRequest(ctx context.Context, logger dlog.Logger, httpClient *http.Client, oauthClient *rfc6749client.AuthorizationCodeClient, discovered *discovery.Discovered, request *filterapi.FilterRequest) filterapi.FilterResponse {
 	// Use X-Forwarded-Proto instead of .GetScheme() to build the URL.
 	// https://github.com/datawire/ambassador/issues/1581
 	originalURL, err := url.ParseRequestURI(filterutil.GetHeader(request).Get("X-Forwarded-Proto") + "://" + request.GetRequest().GetHttp().GetHost() + request.GetRequest().GetHttp().GetPath())
@@ -357,11 +356,16 @@ func (sessionInfo *SessionInfo) handleUnauthenticatedProxyRequest(ctx context.Co
 	}
 
 	// Build the full request
+	state, err := sessionInfo.c.signState(originalURL)
+	if err != nil {
+		return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
+			err, nil)
+	}
 	var authorizationRequestURI *url.URL
 	authorizationRequestURI, sessionInfo.sessionData, err = oauthClient.AuthorizationRequest(
 		sessionInfo.c.Spec.CallbackURL(),
 		scope,
-		sessionInfo.c.signState(originalURL, logger),
+		state,
 	)
 	if err != nil {
 		return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
@@ -475,7 +479,7 @@ func (c *OAuth2Client) saveSession(redisClient *redis.Client, sessionID, xsrfTok
 	return nil
 }
 
-func (c *OAuth2Client) signState(originalURL *url.URL, logger types.Logger) string {
+func (c *OAuth2Client) signState(originalURL *url.URL) (string, error) {
 	t := jwt.New(jwt.SigningMethodRS256)
 	t.Claims = jwt.MapClaims{
 		"exp":          time.Now().Add(c.Spec.StateTTL).Unix(), // time when the token will expire (10 minutes from now)
@@ -485,15 +489,24 @@ func (c *OAuth2Client) signState(originalURL *url.URL, logger types.Logger) stri
 		"redirect_url": originalURL.String(),                   // original request url
 	}
 
-	k, err := t.SignedString(c.PrivateKey)
-	if err != nil {
-		logger.Errorf("failed to sign state: %v", err)
+	var ret string
+	var err error
+	if c.PrivateKey == nil {
+		err = errors.New("could not read internal Secret from Kubernetes")
+	} else {
+		ret, err = t.SignedString(c.PrivateKey)
 	}
 
-	return k
+	if err != nil {
+		return "", errors.Wrap(err, "failed to sign state")
+	}
+	return ret, nil
 }
 
 func checkState(state string, pubkey *rsa.PublicKey) (string, error) {
+	if pubkey == nil {
+		return "", errors.New("could not read internal Secret from Kubernetes")
+	}
 	if state == "" {
 		return "", errors.New("empty state param")
 	}

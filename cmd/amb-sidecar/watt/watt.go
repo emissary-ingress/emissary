@@ -6,19 +6,28 @@ import (
 	"net/http"
 	"sync"
 
+	"github.com/datawire/ambassador/pkg/dlog"
 	"github.com/pkg/errors"
 
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/middleware"
 )
 
+// The part where you have to think about locking //////////////////////////////
+
 type SnapshotStore struct {
 	httpClient *http.Client
 
 	lock sync.RWMutex
-
-	snapshot Snapshot
-
+	// things guarded by 'lock'
+	closed      bool
+	snapshot    Snapshot
 	subscribers []chan<- Snapshot
+}
+
+func NewSnapshotStore(httpClient *http.Client) *SnapshotStore {
+	return &SnapshotStore{
+		httpClient: httpClient,
+	}
 }
 
 func (ss *SnapshotStore) Get() Snapshot {
@@ -31,21 +40,49 @@ func (ss *SnapshotStore) Set(s Snapshot) {
 	ss.lock.Lock()
 	defer ss.lock.Unlock()
 
+	if ss.closed {
+		// block forever
+		select {}
+	}
+
 	ss.snapshot = s
 	for _, subscriber := range ss.subscribers {
 		subscriber <- s
 	}
 }
 
-func (ss *SnapshotStore) Subscribe() <-chan Snapshot {
+func (ss *SnapshotStore) makeSubscriberCh() <-chan Snapshot {
 	ss.lock.Lock()
 	defer ss.lock.Unlock()
 
-	upstream := make(chan Snapshot)
+	ret := make(chan Snapshot)
+	if ss.closed {
+		close(ret)
+	} else {
+		ss.subscribers = append(ss.subscribers, ret)
+	}
+	return ret
+}
+
+func (ss *SnapshotStore) Close() {
+	ss.lock.Lock()
+	defer ss.lock.Unlock()
+
+	ss.closed = true
+	for _, subscriber := range ss.subscribers {
+		close(subscriber)
+	}
+	ss.subscribers = nil
+}
+
+// The part where you don't have to think about locking ////////////////////////
+
+func (ss *SnapshotStore) Subscribe() <-chan Snapshot {
+	upstream := ss.makeSubscriberCh()
 	downstream := make(chan Snapshot)
 
-	ss.subscribers = append(ss.subscribers, upstream)
 	go coalesce(upstream, downstream)
+
 	return downstream
 }
 
@@ -65,20 +102,6 @@ did_read:
 	}
 }
 
-func (ss *SnapshotStore) Close() {
-	ss.lock.Lock()
-	for _, subscriber := range ss.subscribers {
-		close(subscriber)
-	}
-	ss.subscribers = nil
-}
-
-func NewSnapshotStore(httpClient *http.Client) *SnapshotStore {
-	return &SnapshotStore{
-		httpClient: httpClient,
-	}
-}
-
 func (ss *SnapshotStore) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// POST localhost:8500/_internal/v0/watt?url=...
 
@@ -88,7 +111,7 @@ func (ss *SnapshotStore) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	logger := middleware.GetLogger(r.Context())
+	logger := dlog.GetLogger(r.Context())
 
 	_, push := r.URL.Query()["push"]
 

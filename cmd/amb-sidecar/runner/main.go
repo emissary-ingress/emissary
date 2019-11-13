@@ -25,6 +25,7 @@ import (
 	grpchealth "google.golang.org/grpc/health"
 
 	// first-party libraries
+	"github.com/datawire/ambassador/pkg/dlog"
 	"github.com/datawire/ambassador/pkg/k8s"
 	stats "github.com/lyft/gostats"
 
@@ -66,6 +67,12 @@ import (
 )
 
 var licenseClaims *licensekeys.LicenseClaimsLatest
+
+var licenseWatch struct {
+	Filename string
+	Callback func()
+}
+
 var limit *limiter.LimiterImpl
 var logrusLogger *logrus.Logger
 
@@ -122,72 +129,67 @@ func Main(version string) {
 		go metriton.PhoneHomeEveryday(licenseClaims, limit, application, version)
 
 		if cmdContext.Keyfile != "" {
-			triggerOnChange(cmdContext.Keyfile, func() {
+			licenseWatch.Filename = cmdContext.Keyfile
+			licenseWatch.Callback = func() {
 				logrusLogger.Infof("Refreshing license key, %s changed", cmdContext.Keyfile)
 				licenseClaims = keyCheck(true)
-			})
+			}
 		}
 		return nil
 	}
 
 	err := argparser.Execute()
 	if err != nil {
-		logrusLogger.Errorln(err)
+		logrusLogger.Errorln("shut down with error:", err)
 		os.Exit(1)
 	}
 }
 
-func triggerOnChange(watchFile string, trigger func()) {
-	initWG := sync.WaitGroup{}
-	initWG.Add(1)
+func triggerOnChange(ctx context.Context, watchFile string, trigger func()) {
+	file := filepath.Clean(watchFile)
+	dir, _ := filepath.Split(file)
+
+	watcher, err := fsnotify.NewWatcher()
+	if err != nil {
+		logrusLogger.Errorf("Failed to create watch on %s: Changes might require a restart: %v", file, err)
+	}
+	defer watcher.Close()
+
+	eventsWG := sync.WaitGroup{}
+	eventsWG.Add(1)
 	go func() {
-		file := filepath.Clean(watchFile)
-		dir, _ := filepath.Split(file)
-
-		watcher, err := fsnotify.NewWatcher()
-		if err != nil {
-			logrusLogger.Errorf("Failed to create watch on %s: Changes might require a restart: %v", file, err)
-		}
-		defer watcher.Close()
-
-		eventsWG := sync.WaitGroup{}
-		eventsWG.Add(1)
-		go func() {
-			for {
-				select {
-				case event, ok := <-watcher.Events:
-					if !ok {
-						eventsWG.Done()
-						return
-					}
-					if event.Op&fsnotify.Rename == fsnotify.Rename {
-						if trigger != nil {
-							trigger()
-						}
-					} else if filepath.Clean(event.Name) == file &&
-						event.Op&fsnotify.Remove&fsnotify.Remove != 0 {
-						eventsWG.Done()
-						return
-					}
-				case err, ok := <-watcher.Errors:
-					if ok {
-						logrusLogger.Errorln(err)
-					}
-					eventsWG.Done()
+		defer eventsWG.Done()
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case event, ok := <-watcher.Events:
+				if !ok {
 					return
 				}
+				if event.Op&fsnotify.Rename == fsnotify.Rename {
+					if trigger != nil {
+						trigger()
+					}
+				} else if filepath.Clean(event.Name) == file &&
+					event.Op&fsnotify.Remove&fsnotify.Remove != 0 {
+					return
+				}
+			case err, ok := <-watcher.Errors:
+				if ok {
+					logrusLogger.Errorln(err)
+				}
+				return
 			}
-		}()
-
-		logrusLogger.Infof("Creating watch on %s", dir)
-		err = watcher.Add(dir)
-		if err != nil {
-			logrusLogger.Errorf("Failed to create watch on %s: Changes might require a restart: %v", dir, err)
 		}
-		initWG.Done()
-		eventsWG.Wait()
 	}()
-	initWG.Wait()
+
+	logrusLogger.Infof("Creating watch on %s", dir)
+	err = watcher.Add(dir)
+	if err != nil {
+		logrusLogger.Errorf("Failed to create watch on %s: Changes might require a restart: %v", dir, err)
+	}
+	eventsWG.Wait()
 }
 
 func runE(cmd *cobra.Command, args []string) error {
@@ -246,13 +248,20 @@ func runE(cmd *cobra.Command, args []string) error {
 	limit.SetRedisPool(redisPool)
 
 	// Initialize the errgroup we'll use to orchestrate the goroutines.
-	group := NewGroup(context.Background(), cfg, func(name string) types.Logger {
-		return types.WrapLogrus(logrusLogger).WithField("MAIN", name)
+	group := NewGroup(context.Background(), cfg, func(name string) dlog.Logger {
+		return dlog.WrapLogrus(logrusLogger).WithField("MAIN", name)
 	})
 
 	// Launch all of the worker goroutines...
 
-	group.Go("watt_shutdown", func(hardCtx, softCtx context.Context, cfg types.Config, l types.Logger) error {
+	if licenseWatch.Filename != "" {
+		group.Go("license_refresh", func(hardCtx, softCtx context.Context, cfg types.Config, l dlog.Logger) error {
+			triggerOnChange(softCtx, licenseWatch.Filename, licenseWatch.Callback)
+			return nil
+		})
+	}
+
+	group.Go("watt_shutdown", func(hardCtx, softCtx context.Context, cfg types.Config, l dlog.Logger) error {
 		<-softCtx.Done()
 		snapshotStore.Close()
 		return nil
@@ -260,15 +269,15 @@ func runE(cmd *cobra.Command, args []string) error {
 
 	// RateLimit controller
 	if limit.CanUseFeature(licensekeys.FeatureRateLimit) {
-		group.Go("ratelimit_controller", func(hardCtx, softCtx context.Context, cfg types.Config, l types.Logger) error {
-			return rlscontroller.DoWatch(softCtx, cfg, l)
+		group.Go("ratelimit_controller", func(hardCtx, softCtx context.Context, cfg types.Config, l dlog.Logger) error {
+			return rlscontroller.DoWatch(softCtx, cfg, kubeinfo, l)
 		})
 	}
 
 	// Filter+FilterPolicy controller
 	ct := &controller.Controller{}
 	if limit.CanUseFeature(licensekeys.FeatureFilter) || limit.CanUseFeature(licensekeys.FeatureDevPortal) {
-		group.Go("auth_controller", func(hardCtx, softCtx context.Context, cfg types.Config, l types.Logger) error {
+		group.Go("auth_controller", func(hardCtx, softCtx context.Context, cfg types.Config, l dlog.Logger) error {
 			ct.Config = cfg
 			ct.Logger = l
 			return ct.Watch(softCtx, kubeinfo, redisPool != nil)
@@ -286,7 +295,7 @@ func runE(cmd *cobra.Command, args []string) error {
 			return err
 		}
 		devPortalServer = devportalserver.NewServer("/docs", content, limit)
-		group.Go("devportal_fetcher", func(hardCtx, softCtx context.Context, cfg types.Config, l types.Logger) error {
+		group.Go("devportal_fetcher", func(hardCtx, softCtx context.Context, cfg types.Config, l dlog.Logger) error {
 			fetcher := devportalserver.NewFetcher(devPortalServer, devportalserver.HTTPGet, devPortalServer.KnownServices(), cfg)
 			fetcher.Run(softCtx)
 			return nil
@@ -300,16 +309,18 @@ func runE(cmd *cobra.Command, args []string) error {
 		snapshotStore.Subscribe(),
 		coreClient,
 		dynamicClient)
-	group.Go("acme_client", func(hardCtx, softCtx context.Context, cfg types.Config, l types.Logger) error {
+	group.Go("acme_client", func(hardCtx, softCtx context.Context, cfg types.Config, l dlog.Logger) error {
 		if err := acmeclient.EnsureFallback(cfg, coreClient, dynamicClient); err != nil {
-			return err
+			err = errors.Wrap(err, "create fallback TLSContext and TLS Secret")
+			l.Errorln(err)
+			// this is non fatal (mostly just to facilitate local dev); don't `return err`
 		}
 		acmeController.Worker(l)
 		return nil
 	})
 
 	// HTTP server
-	group.Go("http", func(hardCtx, softCtx context.Context, cfg types.Config, l types.Logger) error {
+	group.Go("http", func(hardCtx, softCtx context.Context, cfg types.Config, l dlog.Logger) error {
 		// A good chunk of this code mimics github.com/lyft/ratelimit/src/service_cmd/runner.Run()
 
 		statsStore := stats.NewDefaultStore()
@@ -364,7 +375,7 @@ func runE(cmd *cobra.Command, args []string) error {
 		// AuthService
 		authService, err := filterhandler.NewFilterMux(cfg, l.WithField("SUB", "http-handler"), ct, coreClient, redisPool, limit)
 		if err != nil {
-			return err
+			return errors.Wrap(err, "NewFilterMux")
 		}
 		filterapi.RegisterFilterService(grpcHandler, authService)
 		httpHandler.AddEndpoint("/.ambassador/", "OAuth2 Filter", authService.ServeHTTP)
@@ -407,7 +418,9 @@ func runE(cmd *cobra.Command, args []string) error {
 		// web ui
 		_, pubKey, err := secret.GetKeyPair(cfg, coreClient)
 		if err != nil {
-			return errors.Wrap(err, "secret")
+			err = errors.Wrap(err, "GetKeyPair")
+			// this is non fatal (mostly just to facilitate local dev); don't `return err`
+			l.Errorln("disabling webui JWT validation:", err)
 		}
 		webuiHandler := webui.New(
 			cfg,
@@ -416,15 +429,16 @@ func runE(cmd *cobra.Command, args []string) error {
 			pubKey,
 		)
 		httpHandler.AddEndpoint("/edge_stack_ui/", "Edge Stack admin UI", http.StripPrefix("/edge_stack_ui", webuiHandler).ServeHTTP)
+		l.Debugf("DEV_WEBUI_PORT=%q", cfg.DevWebUIPort)
 		if cfg.DevWebUIPort != "" {
 			l.Infof("Serving webui on %q", ":"+cfg.DevWebUIPort)
-			group.Go("webui_http", func(hardCtx, softCtx context.Context, cfg types.Config, l types.Logger) error {
+			group.Go("webui_http", func(hardCtx, softCtx context.Context, cfg types.Config, l dlog.Logger) error {
 				return util.ListenAndServeHTTPWithContext(hardCtx, softCtx, &http.Server{
 					Addr:     ":" + cfg.DevWebUIPort,
-					ErrorLog: l.WithField("SUB", "webui-server").StdLogger(types.LogLevelError),
+					ErrorLog: l.WithField("SUB", "webui-server").StdLogger(dlog.LogLevelError),
 					Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 						ctx := r.Context()
-						ctx = middleware.WithLogger(ctx, l.WithField("SUB", "webui-server/handler"))
+						ctx = dlog.WithLogger(ctx, l.WithField("SUB", "webui-server/handler"))
 						ctx = middleware.WithRequestID(ctx, "unknown")
 						r = r.WithContext(ctx)
 
@@ -449,14 +463,14 @@ func runE(cmd *cobra.Command, args []string) error {
 		// Launch the server
 		server := &http.Server{
 			Addr:     ":" + cfg.HTTPPort,
-			ErrorLog: l.WithField("SUB", "http-server").StdLogger(types.LogLevelError),
+			ErrorLog: l.WithField("SUB", "http-server").StdLogger(dlog.LogLevelError),
 			// The net/http.Server doesn't support h2c (unencrypted
 			// HTTP/2) built-in.  Since we want to have gRPC and plain
 			// HTTP/1 on the same unencrypted port, we need h2c.
 			// Fortunately, x/net has an h2c implementation we can use.
 			Handler: h2c.NewHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				ctx := r.Context()
-				ctx = middleware.WithLogger(ctx, l.WithField("SUB", "http-server/handler"))
+				ctx = dlog.WithLogger(ctx, l.WithField("SUB", "http-server/handler"))
 				ctx = middleware.WithRequestID(ctx, "unknown")
 				r = r.WithContext(ctx)
 

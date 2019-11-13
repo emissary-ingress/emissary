@@ -9,17 +9,16 @@ import (
 	"strings"
 	"time"
 
+	"github.com/datawire/ambassador/pkg/dlog"
 	"github.com/mediocregopher/radix.v2/redis"
 	"github.com/pkg/errors"
 
+	crd "github.com/datawire/apro/apis/getambassador.io/v1beta2"
 	rfc6749client "github.com/datawire/apro/client/rfc6749"
 	rfc6750client "github.com/datawire/apro/client/rfc6750"
-
-	crd "github.com/datawire/apro/apis/getambassador.io/v1beta2"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/middleware"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/oauth2handler/discovery"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/oauth2handler/resourceserver"
-	"github.com/datawire/apro/cmd/amb-sidecar/types"
 	"github.com/datawire/apro/lib/filterapi"
 	"github.com/datawire/apro/lib/filterapi/filterutil"
 )
@@ -38,7 +37,7 @@ type OAuth2Client struct {
 	ResourceServer *resourceserver.OAuth2ResourceServer
 }
 
-func (c *OAuth2Client) Filter(ctx context.Context, logger types.Logger, httpClient *http.Client, discovered *discovery.Discovered, redisClient *redis.Client, request *filterapi.FilterRequest) filterapi.FilterResponse {
+func (c *OAuth2Client) Filter(ctx context.Context, logger dlog.Logger, httpClient *http.Client, discovered *discovery.Discovered, redisClient *redis.Client, request *filterapi.FilterRequest) filterapi.FilterResponse {
 	// Build the scope
 	scope := make(rfc6749client.Scope, len(c.Arguments.Scopes))
 	for _, s := range c.Arguments.Scopes {
@@ -119,7 +118,7 @@ func (c *OAuth2Client) ServeHTTP(w http.ResponseWriter, r *http.Request, ctx con
 	}
 }
 
-func (c *OAuth2Client) handleAuthenticatedProxyRequest(ctx context.Context, logger types.Logger, httpClient *http.Client, discovered *discovery.Discovered, request *filterapi.FilterRequest, authorization http.Header, sessionData *rfc6749client.ClientCredentialsClientSessionData) filterapi.FilterResponse {
+func (c *OAuth2Client) handleAuthenticatedProxyRequest(ctx context.Context, logger dlog.Logger, httpClient *http.Client, discovered *discovery.Discovered, request *filterapi.FilterRequest, authorization http.Header, sessionData *rfc6749client.ClientCredentialsClientSessionData) filterapi.FilterResponse {
 	addAuthorization := &filterapi.HTTPRequestModification{}
 	for k, vs := range authorization {
 		for _, v := range vs {

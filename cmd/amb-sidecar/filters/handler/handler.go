@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/datawire/ambassador/pkg/dlog"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/mediocregopher/radix.v2/pool"
 	"github.com/pkg/errors"
@@ -20,7 +21,6 @@ import (
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/middleware"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/oauth2handler"
 	"github.com/datawire/apro/cmd/amb-sidecar/limiter"
-	"github.com/datawire/apro/cmd/amb-sidecar/types"
 	"github.com/datawire/apro/lib/filterapi"
 	"github.com/datawire/apro/lib/filterapi/filterutil"
 	"github.com/datawire/apro/lib/jwtsupport"
@@ -33,12 +33,12 @@ type FilterMux struct {
 	DefaultRule     *crd.Rule
 	PrivateKey      *rsa.PrivateKey
 	PublicKey       *rsa.PublicKey
-	Logger          types.Logger
+	Logger          dlog.Logger
 	RedisPool       *pool.Pool
 	AuthRateLimiter limiter.RateLimiter
 }
 
-func logResponse(logger types.Logger, ret filterapi.FilterResponse, took time.Duration) {
+func logResponse(logger dlog.Logger, ret filterapi.FilterResponse, took time.Duration) {
 	switch _ret := ret.(type) {
 	case *filterapi.HTTPResponse:
 		if _ret == nil {
@@ -66,7 +66,7 @@ func (c *FilterMux) Filter(ctx context.Context, request *filterapi.FilterRequest
 
 	requestID := request.GetRequest().GetHttp().GetId()
 	logger := c.Logger.WithField("REQUEST_ID", requestID)
-	_ctx := middleware.WithRequestID(middleware.WithLogger(ctx, logger), requestID)
+	_ctx := middleware.WithRequestID(dlog.WithLogger(ctx, logger), requestID)
 
 	logger.Infof("[gRPC] %s %s %s %s",
 		request.GetRequest().GetHttp().GetProtocol(),
@@ -147,7 +147,7 @@ func requestURL(request *filterapi.FilterRequest) (*url.URL, error) {
 }
 
 func (c *FilterMux) filter(ctx context.Context, request *filterapi.FilterRequest, requestID string) (filterapi.FilterResponse, error) {
-	logger := middleware.GetLogger(ctx)
+	logger := dlog.GetLogger(ctx)
 
 	originalURL, err := requestURL(request)
 	if err != nil {
@@ -236,7 +236,7 @@ func (c *FilterMux) filter(ctx context.Context, request *filterapi.FilterRequest
 			panic(errors.Errorf("unexpected filter type %T", filterSpec))
 		}
 
-		response, err := filterImpl.Filter(middleware.WithLogger(ctx, logger.WithField("FILTER", filterQName)), request)
+		response, err := filterImpl.Filter(dlog.WithLogger(ctx, logger.WithField("FILTER", filterQName)), request)
 		if err != nil {
 			return nil, err
 		}

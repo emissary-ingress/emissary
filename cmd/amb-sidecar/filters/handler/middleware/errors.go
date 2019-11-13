@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/datawire/ambassador/pkg/dlog"
 	"github.com/pkg/errors"
 
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta2"
@@ -77,9 +78,9 @@ func errorResponse(tmpl *crd.ErrorResponse, ctx context.Context, httpStatus int,
 	}
 
 	if httpStatus/100 == 5 {
-		GetLogger(ctx).Errorf("HTTP %v %+v", httpStatus, err)
+		dlog.GetLogger(ctx).Errorf("HTTP %v %+v", httpStatus, err)
 	} else {
-		GetLogger(ctx).Infof("HTTP %v %+v", httpStatus, err)
+		dlog.GetLogger(ctx).Infof("HTTP %v %+v", httpStatus, err)
 	}
 
 	return header, body.Bytes()
