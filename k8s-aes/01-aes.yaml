@@ -254,6 +254,7 @@ spec:
 ######################################################################
 # Create the Deployment backing the 'ambassador' and
 # 'ambassador-admin' Services.
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
