@@ -33,7 +33,8 @@ func NewFilterMux(
 ) (*FilterMux, error) {
 	privKey, pubKey, err := secret.GetKeyPair(config, secretsGetter)
 	if err != nil {
-		return nil, errors.Wrap(err, "secret")
+		// this is non fatal (mostly just to facilitate local dev); don't `return err`
+		logger.Errorln("OAuth2 Filters with grantType=AuthorizationCode will not work correctly:", err)
 	}
 
 	// Error should never be set due to hardcoded enums

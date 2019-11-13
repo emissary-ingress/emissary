@@ -193,7 +193,9 @@ func (c *Controller) Watch(
 
 	client, err := k8s.NewClient(kubeinfo)
 	if err != nil {
-		return err
+		// this is non fatal (mostly just to facilitate local dev); don't `return err`
+		c.Logger.Errorln("not watching Filter or FilterPolicy resources:", errors.Wrap(err, "k8s.NewClient"))
+		return nil
 	}
 	w := client.Watcher()
 

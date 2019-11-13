@@ -356,11 +356,16 @@ func (sessionInfo *SessionInfo) handleUnauthenticatedProxyRequest(ctx context.Co
 	}
 
 	// Build the full request
+	state, err := sessionInfo.c.signState(originalURL)
+	if err != nil {
+		return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
+			err, nil)
+	}
 	var authorizationRequestURI *url.URL
 	authorizationRequestURI, sessionInfo.sessionData, err = oauthClient.AuthorizationRequest(
 		sessionInfo.c.Spec.CallbackURL(),
 		scope,
-		sessionInfo.c.signState(originalURL, logger),
+		state,
 	)
 	if err != nil {
 		return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
@@ -474,7 +479,7 @@ func (c *OAuth2Client) saveSession(redisClient *redis.Client, sessionID, xsrfTok
 	return nil
 }
 
-func (c *OAuth2Client) signState(originalURL *url.URL, logger dlog.Logger) string {
+func (c *OAuth2Client) signState(originalURL *url.URL) (string, error) {
 	t := jwt.New(jwt.SigningMethodRS256)
 	t.Claims = jwt.MapClaims{
 		"exp":          time.Now().Add(c.Spec.StateTTL).Unix(), // time when the token will expire (10 minutes from now)
@@ -484,15 +489,24 @@ func (c *OAuth2Client) signState(originalURL *url.URL, logger dlog.Logger) strin
 		"redirect_url": originalURL.String(),                   // original request url
 	}
 
-	k, err := t.SignedString(c.PrivateKey)
-	if err != nil {
-		logger.Errorf("failed to sign state: %v", err)
+	var ret string
+	var err error
+	if c.PrivateKey == nil {
+		err = errors.New("could not read internal Secret from Kubernetes")
+	} else {
+		ret, err = t.SignedString(c.PrivateKey)
 	}
 
-	return k
+	if err != nil {
+		return "", errors.Wrap(err, "failed to sign state")
+	}
+	return ret, nil
 }
 
 func checkState(state string, pubkey *rsa.PublicKey) (string, error) {
+	if pubkey == nil {
+		return "", errors.New("could not read internal Secret from Kubernetes")
+	}
 	if state == "" {
 		return "", errors.New("empty state param")
 	}

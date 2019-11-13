@@ -375,7 +375,7 @@ func runE(cmd *cobra.Command, args []string) error {
 		// AuthService
 		authService, err := filterhandler.NewFilterMux(cfg, l.WithField("SUB", "http-handler"), ct, coreClient, redisPool, limit)
 		if err != nil {
-			return err
+			return errors.Wrap(err, "NewFilterMux")
 		}
 		filterapi.RegisterFilterService(grpcHandler, authService)
 		httpHandler.AddEndpoint("/.ambassador/", "OAuth2 Filter", authService.ServeHTTP)
