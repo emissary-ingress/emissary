@@ -32,8 +32,15 @@ func NewGroup(ctx context.Context, cfg types.Config, loggerFactory func(name str
 	hardCtx, hardCancel := context.WithCancel(ctx)
 	softCtx, softCancel := context.WithCancel(hardCtx)
 
-	inner := newLLGroup(softCancel)
-	inner.Go(func() error {
+	ret := &Group{
+		hardCtx:       hardCtx,
+		softCtx:       softCtx,
+		cfg:           cfg,
+		loggerFactory: loggerFactory,
+		inner:         newLLGroup(softCancel),
+	}
+
+	ret.inner.Go(func() error {
 		defer func() {
 			// If we receive another signal after
 			// graceful-shutdown, we should trigger a
@@ -58,13 +65,7 @@ func NewGroup(ctx context.Context, cfg types.Config, loggerFactory func(name str
 		}
 	})
 
-	return &Group{
-		hardCtx:       hardCtx,
-		softCtx:       softCtx,
-		cfg:           cfg,
-		loggerFactory: loggerFactory,
-		inner:         inner,
-	}
+	return ret
 }
 
 // Go wraps llGroup.Go().
@@ -77,7 +78,7 @@ func (g *Group) Go(name string, fn func(hardCtx, softCtx context.Context, cfg ty
 	})
 }
 
-// Go wraps llGroup.Wait().
+// Wait wraps llGroup.Wait().
 func (g *Group) Wait() error {
 	return g.inner.Wait()
 }
