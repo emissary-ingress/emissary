@@ -8,12 +8,12 @@ import (
 
 	"github.com/datawire/ambassador/pkg/dlog"
 	"github.com/pkg/errors"
-	"golang.org/x/sync/errgroup"
 
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
 )
 
-// Group is a wrapper around golang.org/x/sync/errgroup.Group that
+// Group is a wrapper around golang.org/x/sync/errgroup.Group (err, a
+// fork of errgroup) that:
 //  - includes application-specific arguments to your worker functions
 //  - handles SIGINT and SIGTERM
 type Group struct {
@@ -21,7 +21,7 @@ type Group struct {
 	softCtx       context.Context
 	cfg           types.Config
 	loggerFactory func(name string) dlog.Logger
-	inner         *errgroup.Group
+	inner         *llGroup
 }
 
 // NewGroup returns a new Group.
@@ -31,7 +31,7 @@ func NewGroup(ctx context.Context, cfg types.Config, loggerFactory func(name str
 
 	hardCtx, hardCancel := context.WithCancel(ctx)
 
-	inner, softCtx := errgroup.WithContext(hardCtx)
+	inner, softCtx := WithContext(hardCtx)
 	inner.Go(func() error {
 		defer func() {
 			// If we receive another signal after
@@ -66,7 +66,7 @@ func NewGroup(ctx context.Context, cfg types.Config, loggerFactory func(name str
 	}
 }
 
-// Go wraps errgroup.Group.Go().
+// Go wraps llGroup.Go().
 //
 //  - `softCtx` being canceled should trigger a graceful shutdown
 //  - `hardCtx` being canceled should trigger a not-so-graceful shutdown
@@ -76,7 +76,7 @@ func (g *Group) Go(name string, fn func(hardCtx, softCtx context.Context, cfg ty
 	})
 }
 
-// Go wraps errgroup.Group.Wait().
+// Go wraps llGroup.Wait().
 func (g *Group) Wait() error {
 	return g.inner.Wait()
 }
