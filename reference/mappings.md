@@ -38,8 +38,8 @@ Ambassador Edge Stack supports a number of attributes to configure and customize
 | `cluster_idle_timeout_ms` | the timeout, in milliseconds, before an idle connection upstream is closed (may be set on a `Mapping`, `AuthService`, or in the `ambassador Module`) | 
 | [`cors`](/reference/cors)           | enables Cross-Origin Resource Sharing (CORS) setting on a mapping |
 | [`circuit_breakers`](/reference/circuit-breakers) | configures circuit breaking on a mapping
-| `enable_ipv4` | if true, enables IPv4 DNS lookups for this mapping's service (the default is set by the [Ambassador module](/reference/modules)) |
-| `enable_ipv6` | if true, enables IPv6 DNS lookups for this mapping's service (the default is set by the [Ambassador module](/reference/modules)) |
+| `enable_ipv4` | if true, enables IPv4 DNS lookups for this mapping's service (the default is set by the [`ambassador Module`](/reference/modules)) |
+| `enable_ipv6` | if true, enables IPv6 DNS lookups for this mapping's service (the default is set by the [`ambassador Module`](/reference/modules)) |
 | [`grpc`](/user-guide/grpc) | if true, tells the system that the service will be handling gRPC calls |
 | [`headers`](/reference/headers)      | specifies a list of other HTTP headers which _must_ appear in the request for this mapping to be used to route the request |
 | [`host`](/reference/host) | specifies the value which _must_ appear in the request's HTTP `Host` header for this mapping to be used to route the request |
@@ -62,7 +62,7 @@ Ambassador Edge Stack supports a number of attributes to configure and customize
 | `use_websocket`           | if true, tells Ambassador Edge Stack that this service will use websockets |
 | `add_linkerd_headers`           | when true, Ambassador Edge Stack adds the `l5d-dst-override` header to the request and the `service` field is used as a value. Note that when `add_linkerd_headers` is set to true in the `ambassador Module`, the configuration will be applied to all mappings, including auth. `ambassador Module` and individual mapping configuration can be used together and the lastest will always take precedence over what is in the module. |
 
-If both `enable_ipv4` and `enable_ipv6` are set, Ambassador Edge Stack will prefer IPv6 to IPv4. See the [Ambassador module](/reference/modules) documentation for more information.
+If both `enable_ipv4` and `enable_ipv6` are set, Ambassador Edge Stack will prefer IPv6 to IPv4. See the [`ambassador Module`](/reference/modules) documentation for more information.
 
 Ambassador Edge Stack supports multiple deployment patterns for your services. These patterns are designed to let you safely release new versions of your service, while minimizing its impact on production users.
 

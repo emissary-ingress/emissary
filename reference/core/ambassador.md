@@ -1,10 +1,10 @@
 # Global Configuration
 
-Ambassador Edge Stack supports a variety of global configuration options in the `ambassador` module.
+Ambassador Edge Stack supports a variety of global configuration options in the `ambassador Module`.
 
-## The `ambassador` Module
+## The `ambassador Module`
 
-If present, the `ambassador` module defines system-wide configuration. This module can be applied on any Kubernetes service (the `ambassador` service itself is a common choice). **You may very well not need this module.** The defaults in the `ambassador` module are:
+If present, the `ambassador Module` defines system-wide configuration. This module can be applied on any Kubernetes service (the `ambassador` service itself is a common choice). **You may very well not need this module.** The defaults in the `ambassador Module` are:
 
 ```yaml
 apiVersion: getambassador.io/v2
@@ -236,7 +236,7 @@ readiness_probe:
 
 The liveness and readiness probe both support `prefix`, `rewrite`, and `service`, with the same meanings as for [mappings](/reference/mappings). Additionally, the `enabled` boolean may be set to `false` (as in the commented-out examples above) to disable support for the probe entirely.
 
-**Note well** that configuring the probes in the `ambassador` module only means that Ambassador Edge Stack will respond to the probes. You must still configure Kubernetes to perform the checks, as shown in the Datawire-provided YAML files.
+**Note well** that configuring the probes in the `ambassador Module` only means that Ambassador Edge Stack will respond to the probes. You must still configure Kubernetes to perform the checks, as shown in the Datawire-provided YAML files.
 
 ### `use_remote_address`
 
