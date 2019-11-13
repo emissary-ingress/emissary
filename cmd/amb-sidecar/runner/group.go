@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 	"os/signal"
+	"sort"
 	"syscall"
 
 	"github.com/datawire/ambassador/pkg/dlog"
@@ -22,6 +23,22 @@ type Group struct {
 	cfg           types.Config
 	loggerFactory func(name string) dlog.Logger
 	inner         *llGroup
+}
+
+func logGoroutines(l dlog.Logger, list map[string]GoroutineState) {
+	l.Errorln("  goroutine shutdown status:")
+	names := make([]string, 0, len(list))
+	nameWidth := 0
+	for name := range list {
+		names = append(names, name)
+		if len(name) > nameWidth {
+			nameWidth = len(name)
+		}
+	}
+	sort.Strings(names)
+	for _, name := range names {
+		l.Errorf("    %-*s: %s", nameWidth, name, list[name])
+	}
 }
 
 // NewGroup returns a new Group.
@@ -48,10 +65,12 @@ func NewGroup(ctx context.Context, cfg types.Config, loggerFactory func(name str
 			go func() {
 				sig := <-sigs
 				l.Errorln(errors.Errorf("received signal %v", sig))
+				logGoroutines(l, ret.List())
 				hardCancel()
 				// keep logging signals
 				for sig := range sigs {
 					l.Errorln(errors.Errorf("received signal %v", sig))
+					logGoroutines(l, ret.List())
 				}
 			}()
 		}()
