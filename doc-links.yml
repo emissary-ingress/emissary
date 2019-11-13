@@ -11,6 +11,8 @@
       link: /concepts/using-ambassador-in-org
     - title: Ambassador Edge Stack vs. Other Software
       link: /about/alternatives
+    - title: Certified Builds
+      link: /user-guide/certified-builds
     - title: Need help?
       items: 
       - title: Contact Support
@@ -24,26 +26,26 @@
         
 - title: Install Ambassador Edge Stack
   items: 
+  - title: Installation Overview
+    link: /user-guide/install
   - title: Kubernetes (YAML)
     link: /user-guide/getting-started
   - title: Kubernetes (Helm)
     link: /user-guide/helm
+  - title: Kubernetes Bare Metal
+    link: /user-guide/bare-metal
   - title: Docker Quickstart
     link: /about/quickstart
   - title: Docker Compose
     link: /user-guide/docker-compose
-  - title: Bare Metal
-    link: /user-guide/bare-metal
-  - title: Certified Builds
-    link: /user-guide/certified-builds
   - title: Other Install & Upgrade Options
     items: 
-    - title: Ambassador Installation & Upgrade
-      link: /user-guide/install
-    - title: Install Ambassador Open Source
-      link: /user-guide/install-ambassador-oss  
     - title: Upgrade Ambassador OSS to Ambassador Edge Stack
       link: /user-guide/upgrade-from-oss-to-edge-stack
+    - title: Upgrade from Ambassador Pro to Ambassador Edge Stack
+      link: /user-guide/upgrade-from-pro-to-edge-stack
+    - title: Install Ambassador Open Source
+      link: /user-guide/install-ambassador-oss  
     - title: Early Access Releases
       link: /user-guide/early-access
 

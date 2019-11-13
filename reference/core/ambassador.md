@@ -4,7 +4,7 @@ Ambassador Edge Stack supports a variety of global configuration options in the 
 
 ## The `ambassador Module`
 
-If present, the `ambassador Module` defines system-wide configuration. This module can be applied on any Kubernetes service (the `ambassador` service itself is a common choice). **You may very well not need this module.** The defaults in the `ambassador Module` are:
+If present, the `ambassador Module` defines system-wide configuration. This module can be applied on any Kubernetes service (the `ambassador` service itself is a common choice). **You may very well not need this Module.** The defaults in the `ambassador Module` are:
 
 ```yaml
 apiVersion: getambassador.io/v2

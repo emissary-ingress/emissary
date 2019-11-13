@@ -55,7 +55,11 @@ The [`ambassador`](/reference/core/ambassador) module covers general configurati
 
 ## The `tls` module
 
+<<<<<<< HEAD
 The `tls` module is now deprecated. Use the [TLSContext](/reference/core/tls) manifest type instead.
+=======
+The ['tls'](/reference/core/tls) Module covers TLS configuration.
+>>>>>>> Edge-stack-update
 
 ## The `authentication` Module
 

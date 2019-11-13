@@ -1,6 +1,6 @@
 # Load Balancing in Ambassador Edge Stack
 
-Load balancing configuration can be set for all Ambassador Edge Stackmappings in the [ambassador](/reference/core/ambassador) module, or set per [mapping](/reference/mappings#configuring-mappings). If nothing is set, simple round robin balancing is used via Kubernetes services.
+Load balancing configuration can be set for all Ambassador Edge Stackmappings in the [`ambassador`](/reference/core/ambassador) Module, or set per [mapping](/reference/mappings#configuring-mappings). If nothing is set, simple round robin balancing is used via Kubernetes services.
 
 To use advanced load balancing, you must first configure a [resolver](/reference/core/resolvers) that supports advanced load balancing (e.g., the Kubernetes Endpoint Resolver or Consul Resolver). Once a resolver is configured, you can use the `load_balancer` attribute. The following fields are supported:
 

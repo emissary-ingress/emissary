@@ -2,7 +2,7 @@
 
 Ambassador Edge Stack is configured in a declarative fashion, using YAML manifests to describe the state of the world. As with Kubernetes, Ambassador Edge Stack's manifests are identified with `apiVersion`, `kind`, and `name`. The current `apiVersion` is `getambassador.io/v2`; currently-supported `kind`s are:
 
-- [`Module`](/reference/modules) manifests configure things that apply to Ambassador Edge Stack as a whole. For example, the `ambassador Module` can define listener ports, and the `tls` module can configure TLS termination for Ambassador Edge Stack.
+- [`Module`](/reference/modules) manifests configure things that apply to Ambassador Edge Stack as a whole. For example, the `ambassador Module` can define listener ports, and the `tls` Module can configure TLS termination for Ambassador Edge Stack.
 
 - [`AuthService`](/reference/services/auth-service) manifests configure the external authentication service[s] that Ambassador Edge Stack will use.
 

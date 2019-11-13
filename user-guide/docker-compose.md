@@ -222,7 +222,7 @@ Go to http://localhost:8080/ in your browser and see the tour-ui application.
 
 ## 4. Add Authentication
 
-The authentication module can be used to verify the identity and other security concerns at the entrypoint to the docker-compose cluster.
+The `authentication` Module can be used to verify the identity and other security concerns at the entrypoint to the docker-compose cluster.
 
 We will use the `datawire/ambassador-auth-service` container as an example.
 

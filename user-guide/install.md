@@ -1,25 +1,12 @@
-# Installing Ambassador Edge Stack
+# Installation Overview
 
 Ambassador Edge Stack can be installed in a variety of ways. The most common approach to installing Ambassador Edge Stack is directly on Kubernetes with our default, customizable manifest.
 
-## Kubernetes
-
-
-<table>
-<tr>
-<td>
-<a href="/user-guide/getting-started"><img src="/doc-images/kubernetes.png"></a>
-</td>
-<td>
-
-Ambassador Edge Stack is designed to run in Kubernetes for production. <a href="/user-guide/getting-started">Deploy to Kubernetes via YAML</a>.
-</td>
-</tr>
-</table>
-
-## Other methods
-
-You can also install Ambassador Edge Stack using Helm, Docker, or Docker Compose.
+* Install with [Kubernetes via YAML](/user-guide/getting-started)
+* Install with [Kubernetes Helm](/user-guide/helm)
+* Install with [Kubernetes Bare Metal](/user-guide/bare-metal)
+* Install with [Docker's Quick Start](/user-guide/quickstart) Method
+* Install with [Docker Compose](/user-guide/docker-compose)
 
 <div style="border: thick solid red"> 
 <!-- TODO: fix red bordered text -->
@@ -27,6 +14,8 @@ Here we should have other methods: Helm, Docker, Docker Compose.
 None of these other methods have been implemented or tested yet.
 </div>
 
-### Ambassador Open Source
+## Other Install Options
 
-If you want to install Ambassador Open Source instead of Edge Stack, find instructions to do so <a href="/user-guide/install-ambassador-oss">here</a>.
+If you already have an existing edition of Ambassador and would like to upgrade, see the pages in **Other Install & Upgrade Options** category.
+
+These include upgrading from [Ambassador Open Source to Edge Stack](/user-guide/upgrade-from-oss-to-edge-stack), upgrading from [Ambassador Pro to Edge Stack](/user-guide/upgrade-from-pro-to-edge-stack), and installing [Ambassador Open Source](/user-guide/install-ambassador-oss).
