@@ -130,7 +130,7 @@ func (f *fetcher) Run(ctx context.Context) {
 
 // Get a string attribute of a JSON object:
 func getString(o *gabs.Container, attr string) string {
-	return o.S(attr).Data().(string)
+	return o.Path(attr).Data().(string)
 }
 
 var dialer = &net.Dialer{
@@ -230,6 +230,7 @@ func (f *fetcher) _retrieve(reason string) {
 			location_parts := strings.Split(location, ".")
 			prefix := getString(mapping, "prefix")
 			rewrite := getString(mapping, "rewrite")
+			clusterName := getString(mapping, "cluster.name")
 			prefix = strings.TrimRight(prefix, "/")
 			name := location_parts[0]
 			namespace := location_parts[1]
@@ -241,7 +242,7 @@ func (f *fetcher) _retrieve(reason string) {
 				baseURL = f.cfg.AmbassadorExternalURL.String()
 			}
 			mappingName := getString(mapping, "name")
-			if f.observeInternalMapping(mappingName, prefix, rewrite) {
+			if f.observeInternalMapping(mappingName, prefix, rewrite) || f.isInternalCluster(clusterName) {
 				f.logger.WithFields(log.Fields{
 					"mappingName": mappingName,
 					"name":        name,
@@ -249,6 +250,7 @@ func (f *fetcher) _retrieve(reason string) {
 					"baseURL":     baseURL,
 					"prefix":      prefix,
 					"rewrite":     rewrite,
+					"clusterName": clusterName,
 				}).Info("Found internal mapping, skipping")
 				continue
 			}
@@ -312,4 +314,11 @@ func (o *observer) observe(prefix, rewrite string) bool {
 		o.lastPrefix = prefix
 	}
 	return o.ret
+}
+
+func (f *fetcher) isInternalCluster(clusterName string) bool {
+	if clusterName == "cluster_127_0_0_1_8877" || clusterName == "cluster_127_0_0_1_8500" {
+		return true
+	}
+	return false
 }
