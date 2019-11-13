@@ -25,6 +25,19 @@ const (
 	GoroutineErrored
 )
 
+func (s GoroutineState) String() string {
+	switch s {
+	case GoroutineRunning:
+		return "running"
+	case GoroutineExited:
+		return "exited without error"
+	case GoroutineErrored:
+		return "exited with error"
+	default:
+		panic(errors.Errorf("invalid GoroutineState = %d", s))
+	}
+}
+
 // A Group is a collection of goroutines working on subtasks that are part of
 // the same overall task.
 //
