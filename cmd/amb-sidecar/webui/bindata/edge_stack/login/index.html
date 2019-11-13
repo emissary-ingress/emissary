@@ -59,6 +59,19 @@
           padding: 0.5em;
           background-color: #FFe8e8;
       }
+
+      pre {
+          margin: 1em;
+          padding: .5em;
+          background-color: #f5f2f0;;
+          letter-spacing: .2px;
+          font-family: Consolas,Monaco,Andale Mono,Ubuntu Mono,monospace;
+          font-size: 90%;
+          word-spacing: normal;
+          word-break: normal;
+          word-wrap: normal;
+          hypens: none;
+      }
     </style>
   </head>
 
@@ -77,13 +90,48 @@
           from the getambassador.io
           website: (<a href="https://metriton.datawire.io/downloads/darwin/edgectl">darwin</a>, <a href="https://metriton.datawire.io/downloads/linux/edgectl">linux</a>).
         </p>
+
+        <h2>Darwin</h2>
+        <pre id="install-darwin">
+sudo curl -L https://metriton.datawire.io/downloads/darwin/edgectl -o /usr/local/bin/edgectl && \
+sudo chmod a+x /usr/local/bin/edgectl</pre>
+
+        <button onclick="copy_to_clipboard('install-darwin')">Copy to Clipboard</button>
+
+        <h2>Linux</h2>
+        <pre id="install-linux">
+sudo curl -L https://metriton.datawire.io/downloads/linux/edgectl -o /usr/local/bin/edgectl && \
+sudo chmod a+x /usr/local/bin/edgectl</pre>
+
+        <button onclick="copy_to_clipboard('install-linux')">Copy to Clipboard</button>
       </div>
     </div>
   </body>
 
   <script>
-    $(()=>{
-      $("#login").text("edgectl login " + window.location.host)
-    })
+$(()=>{
+  $("#login").text("edgectl login " + window.location.host)
+})
+
+function copy_to_clipboard(the_id) {
+  var copyText = document.getElementById(the_id).innerText;
+  const el = document.createElement('textarea');  // Create a <textarea> element
+  el.value = copyText;                            // Set its value to the string that you want copied
+  el.setAttribute('readonly', '');                // Make it readonly to be tamper-proof
+  el.style.position = 'absolute';                 
+  el.style.left = '-9999px';                      // Move outside the screen to make it invisible
+  document.body.appendChild(el);                  // Append the <textarea> element to the HTML document
+  const selected =            
+    document.getSelection().rangeCount > 0        // Check if there is any content selected previously
+      ? document.getSelection().getRangeAt(0)     // Store selection if found
+      : false;                                    // Mark as false to know no selection existed before
+  el.select();                                    // Select the <textarea> content
+  document.execCommand('copy');                   // Copy - only works as a result of a user action (e.g. click events)
+  document.body.removeChild(el);                  // Remove the <textarea> element
+  if (selected) {                                 // If a selection existed before copying
+    document.getSelection().removeAllRanges();    // Unselect everything on the HTML document
+    document.getSelection().addRange(selected);   // Restore the original selection
+  }
+};
   </script>
 </html>
