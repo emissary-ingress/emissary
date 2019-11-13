@@ -140,7 +140,7 @@ func Main(version string) {
 
 	err := argparser.Execute()
 	if err != nil {
-		logrusLogger.Errorln("shut down because of error:", err)
+		logrusLogger.Errorln("shut down with error:", err)
 		os.Exit(1)
 	}
 }
@@ -270,7 +270,7 @@ func runE(cmd *cobra.Command, args []string) error {
 	// RateLimit controller
 	if limit.CanUseFeature(licensekeys.FeatureRateLimit) {
 		group.Go("ratelimit_controller", func(hardCtx, softCtx context.Context, cfg types.Config, l dlog.Logger) error {
-			return rlscontroller.DoWatch(softCtx, cfg, l)
+			return rlscontroller.DoWatch(softCtx, cfg, kubeinfo, l)
 		})
 	}
 

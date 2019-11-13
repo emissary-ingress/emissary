@@ -23,7 +23,6 @@ require (
 	github.com/lyft/gostats v0.2.6
 	github.com/lyft/ratelimit v1.3.0
 	github.com/mediocregopher/radix.v2 v0.0.0-20180603022615-94360be26253
-	github.com/nu7hatch/gouuid v0.0.0-20131221200532-179d4d0c4d8d // indirect
 	github.com/o1egl/paseto v1.0.0
 	github.com/onsi/gomega v1.7.0
 	github.com/oxtoacart/bpool v0.0.0-20190530202638-03653db5a59c

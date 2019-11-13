@@ -29,12 +29,14 @@ func max(a, b int) int {
 	}
 }
 
-func DoWatch(ctx context.Context, cfg types.Config, _rlslog dlog.Logger) error {
+func DoWatch(ctx context.Context, cfg types.Config, kubeinfo *k8s.KubeInfo, _rlslog dlog.Logger) error {
 	rlslog = _rlslog
 
-	client, err := k8s.NewClient(nil)
+	client, err := k8s.NewClient(kubeinfo)
 	if err != nil {
-		return err
+		// this is non fatal (mostly just to facilitate local dev); don't `return err`
+		rlslog.Errorln("not watching RateLimit resources:", errors.Wrap(err, "k8s.NewClient"))
+		return nil
 	}
 	w := client.Watcher()
 
