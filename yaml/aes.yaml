@@ -19,6 +19,7 @@ metadata:
   labels:
     product: aes
 rules:
+# Regular Ambassador access requirements
 - apiGroups: [""]
   resources: [ "endpoints", "namespaces", "services" ]
   verbs: ["get", "list", "watch"]
@@ -40,6 +41,7 @@ rules:
 - apiGroups: [ "extensions" ]
   resources: [ "ingresses/status" ]
   verbs: ["update"]
+# Ambassador Pro access requirements.  Also gets "create" for secrets.
 - apiGroups: [""]
   resources: [ "secrets" ]
   verbs: ["get", "list", "watch", "create", "update"]
@@ -274,15 +276,19 @@ spec:
       affinity:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
-            - weight: 100
-              podAffinityTerm:
-                labelSelector:
-                  matchLabels:
-                    service: ambassador
-                topologyKey: kubernetes.io/hostname
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  service: ambassador
+              topologyKey: kubernetes.io/hostname
       serviceAccountName: ambassador
+      terminationGracePeriodSeconds: 0
       imagePullSecrets:
       - name: aes-pull-secret
+      restartPolicy: Always
+      securityContext:
+        runAsUser: 8888
       containers:
       - name: aes
         image: quay.io/datawire-dev/aes:0.99.0-rc-latest
@@ -323,10 +329,15 @@ spec:
         - mountPath: "/.config/ambassador"
           name: ambassador-edge-stack-secrets
           readOnly: true
-      restartPolicy: Always
-      securityContext:
-        runAsUser: 8888
+        - name: ambassador-pod-info
+          mountPath: /tmp/ambassador-pod-info
       volumes:
       - name: ambassador-edge-stack-secrets
         secret:
           secretName: ambassador-edge-stack
+      - name: ambassador-pod-info
+        downwardAPI:
+          items:
+          - path: "labels"
+            fieldRef:
+              fieldPath: metadata.labels
