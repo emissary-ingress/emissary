@@ -2,12 +2,12 @@ export default {
 	template: `<img v-bind:src="url" />`,
 	data: function() {
 		return {
-			ambassadorClusterID: "",
+			ambassadorClusterID: null,
 		};
 	},
 	computed: {
 		url: function() {
-			if (this.ambassadorClusterID == "") {
+			if (this.ambassadorClusterID === null) {
 				return ""
 			}
 			return "https://getambassador.io/images/ambassador-logo.svg?" + this.ambassadorClusterID;
