@@ -105,8 +105,9 @@ tag-rc:
 		echo Last 10 tags: ; \
 		git tag --sort v:refname | egrep '^v[0-9]' | tail -10 ; \
 		(read -p "Please enter rc tag: " TAG && echo $${TAG} > /tmp/rc.tag) ; \
+		git tag -a $$(cat /tmp/rc.tag) ; \
+		git push --tags ; \
 	fi
-	git tag -a $$(cat /tmp/rc.tag)
 
 aes-rc: update-yaml
 	@$(MAKE) --no-print-directory tag-rc
