@@ -198,18 +198,6 @@ metadata:
     product: aes
 spec:
   Internal: {}
----
-# This mapping needs to exist, but is never actually followed.
-apiVersion: getambassador.io/v2
-kind: Mapping
-metadata:
-  name: callback-mapping
-  namespace: ambassador
-  labels:
-    product: aes
-spec:
-  prefix: /callback
-  service: NoTaReAlSeRvIcE
 
 ######################################################################
 # Create the 'ambassador' and 'ambassador-admin' Services.
