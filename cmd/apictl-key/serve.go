@@ -16,8 +16,9 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/health"
-	"github.com/datawire/apro/cmd/amb-sidecar/types"
 	"github.com/datawire/apro/lib/licensekeys"
+
+	"github.com/datawire/ambassador/pkg/dlog"
 )
 
 var hubspotKey = os.Getenv("HUBSPOT_API_KEY")
@@ -90,7 +91,7 @@ func init() {
 
 		// Liveness and Readiness probes
 		healthprobe := health.MultiProbe{
-			Logger: types.WrapLogrus(l),
+			Logger: dlog.WrapLogrus(l),
 		}
 		healthprobe.RegisterProbe("static", &health.StaticProbe{Value: true})
 		healthprobe.RegisterProbe("hubspot-usage", &HubspotUsageProbe{l: l})
