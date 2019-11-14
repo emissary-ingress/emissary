@@ -13,7 +13,7 @@ To deploy Ambassador Open Source in your **default** namespace, first you need t
 <div class="gatsby-highlight" data-language="shell">
 <pre class="language-shell">
 <code class="language-shell" id="step1">
-kubectl cluster-info dump --namespace kube-system | grep authorization-mode</code></div></div>
+kubectl cluster-info dump --namespace kube-system | grep authorization-mode</code></pre></div>
 <button onclick="copy_to_clipboard('step1')">Copy to Clipboard</button>
 <script>
 function copy_to_clipboard(the_id) {
@@ -46,7 +46,7 @@ clusters with RBAC enabled by default, and unfortunately the above command may n
 <div class="gatsby-highlight" data-language="shell">
 <pre class="language-shell">
 <code class="language-shell" id="step2">
-kubectl create clusterrolebinding my-cluster-admin-binding --clusterrole=cluster-admin --user=$(gcloud info --format="value(config.account)")</code></div></div>
+kubectl create clusterrolebinding my-cluster-admin-binding --clusterrole=cluster-admin --user=$(gcloud info --format="value(config.account)")</code></pre></div>
 <button onclick="copy_to_clipboard('step2')">Copy to Clipboard</button>
 
 If RBAC is enabled:
@@ -54,7 +54,7 @@ If RBAC is enabled:
 <div class="gatsby-highlight" data-language="shell">
 <pre class="language-shell">
 <code class="language-shell" id="step3">
-kubectl apply -f https://getambassador.io/yaml/ambassador/ambassador-rbac.yaml</code></div></div>
+kubectl apply -f https://getambassador.io/yaml/ambassador/ambassador-rbac.yaml</code></pre></div>
 <button onclick="copy_to_clipboard('step3')">Copy to Clipboard</button>
 
 Without RBAC, you can use:
@@ -62,7 +62,7 @@ Without RBAC, you can use:
 <div class="gatsby-highlight" data-language="shell">
 <pre class="language-shell">
 <code class="language-shell" id="step4">
-kubectl apply -f https://getambassador.io/yaml/ambassador/ambassador-no-rbac.yaml</code></div></div>
+kubectl apply -f https://getambassador.io/yaml/ambassador/ambassador-no-rbac.yaml</code></pre></div>
 <button onclick="copy_to_clipboard('step4')">Copy to Clipboard</button>
 
 We recommend downloading the YAML files and exploring the content. You will see
@@ -94,7 +94,7 @@ spec:
      targetPort: 8080
   selector:
     service: ambassador
-</code></div></div>
+</code></pre></div>
 <button onclick="copy_to_clipboard('step5')">Copy to Clipboard</button>
 
 Deploy this service with `kubectl`:
@@ -102,7 +102,7 @@ Deploy this service with `kubectl`:
 <div class="gatsby-highlight" data-language="shell">
 <pre class="language-shell">
 <code class="language-shell" id="step6">
-$ kubectl apply -f ambassador-service.yaml</code></div></div>
+$ kubectl apply -f ambassador-service.yaml</code></pre></div>
 <button onclick="copy_to_clipboard('step6')">Copy to Clipboard</button>
 
 The YAML above creates a Kubernetes service for Ambassador Open Source of type `LoadBalancer`, and configures the `externalTrafficPolicy` to propagate [the original source IP](https://kubernetes.io/docs/tasks/access-application-cluster/create-external-load-balancer/#preserving-the-client-source-ip) of the client. All HTTP traffic will be evaluated against the routing rules you create. Note that if you're not deploying in an environment where `LoadBalancer` is a supported type (such as minikube), you'll need to change this to a different type of service, e.g., `NodePort`.
@@ -183,7 +183,7 @@ spec:
     ambassador:
       - request_label:
         - backend
-</code></div></div>
+</code></pre></div>
 <button onclick="copy_to_clipboard('step7')">Copy to Clipboard</button>
 
 Then, apply it to the Kubernetes with `kubectl`:
@@ -191,7 +191,7 @@ Then, apply it to the Kubernetes with `kubectl`:
 <div class="gatsby-highlight" data-language="shell">
 <pre class="language-shell">
 <code class="language-shell" id="step8">
-kubectl apply -f tour.yaml</code></div></div>
+kubectl apply -f tour.yaml</code></pre></div>
 <button onclick="copy_to_clipboard('step8')">Copy to Clipboard</button>
 
 This YAML has also been published so you can deploy it remotely:
@@ -199,7 +199,7 @@ This YAML has also been published so you can deploy it remotely:
 <div class="gatsby-highlight" data-language="shell">
 <pre class="language-shell">
 <code class="language-shell" id="step9">
-kubectl apply -f https://getambassador.io/yaml/tour/tour.yaml</code></div></div>
+kubectl apply -f https://getambassador.io/yaml/tour/tour.yaml</code></pre></div>
 <button onclick="copy_to_clipboard('step9')">Copy to Clipboard</button>
 
 When the `Mapping` CRDs are applied, Ambassador Open Source will use them to configure routing:
@@ -224,7 +224,7 @@ To test things out, we'll need the external IP for Ambassador Open Source (it mi
 <div class="gatsby-highlight" data-language="shell">
 <pre class="language-shell">
 <code class="language-shell" id="step10">
-kubectl get svc -o wide ambassador</code></div></div>
+kubectl get svc -o wide ambassador</code></pre></div>
 <button onclick="copy_to_clipboard('step10')">Copy to Clipboard</button>
 
 Eventually, this should give you something like:
@@ -283,7 +283,7 @@ spec:
   config:
     diagnostics:
       enabled: false
-</code></div></div>
+</code></pre></div>
 <button onclick="copy_to_clipboard('step11')">Copy to Clipboard</button>
 
 After applying this `Module`, to view the diagnostics UI, we'll need to get the name of one of the Ambassador Open Source pods:
