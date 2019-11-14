@@ -100,21 +100,22 @@ final-push:
 		printf "$(RED)Please run: git -C $${EDGE_STACK_UPDATE} push$(END)\n"; \
 	fi	
 
-aes-rc: update-yaml
-	@echo Last 10 tags:
-	@git tag --sort v:refname | egrep '^v[0-9]' | tail -10
-	@(read -p "Please enter rc tag: " TAG && echo $${TAG} > /tmp/rc.tag)
+tag-rc:
+	@if [ -z "$$(git describe --exact-match HEAD)" ]; then \
+		@echo Last 10 tags: ; \
+		@git tag --sort v:refname | egrep '^v[0-9]' | tail -10 ; \
+		@(read -p "Please enter rc tag: " TAG && echo $${TAG} > /tmp/rc.tag) ; \
+	fi
 	git tag -a $$(cat /tmp/rc.tag)
-	git push --tags
+
+aes-rc: update-yaml
+	@$(MAKE) --no-print-directory tag-rc
 	@$(MAKE) --no-print-directory final-push
 
 aes-rc-now: update-yaml
 	@if [ -n "$$(git status --porcelain)" ]; then \
 		printf "$(RED)Your checkout must be clean.$(END)\n" && exit 1; \
 	fi
-	@echo Last 10 tags:
-	@git tag --sort v:refname | egrep '^v[0-9]' | tail -10
-	@(read -p "Please enter rc tag: " TAG && echo $${TAG} > /tmp/rc.tag)
-	git tag -a $$(cat /tmp/rc.tag)
+	@$(MAKE) --no-print-directory tag-rc
 	@$(MAKE) --no-print-directory rc RELEASE_REGISTRY=quay.io/datawire-dev
 	@$(MAKE) --no-print-directory final-push
