@@ -33,7 +33,7 @@ To expose statistics via StatsD, you will need to set an environment variable `S
 
 When this variable is set, Ambassador automatically sends statistics information to a Kubernetes service called `statsd-sink` using typical StatsD protocol settings, UDP to port 8125. You may also override the StatsD host by setting the `STATSD_HOST` environment variable. This can be useful if you have an existing StatsD sink available in your cluster.
 
-We have included a few example configurations in the [statsd-sink](https://github.com/datawire/ambassador/tree/master/statsd-sink) subdirectory to help you get started. Clone the repository to get local, editable copies.
+We have included a few example configurations in the [statsd-sink](https://github.com/datawire/ambassador/tree/master/deployments/statsd-sink) subdirectory to help you get started. Clone the repository to get local, editable copies.
 
 ## Graphite
 
