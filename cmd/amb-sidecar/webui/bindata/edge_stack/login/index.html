@@ -119,7 +119,7 @@ sudo chmod a+x /usr/local/bin/edgectl</pre>
 
   <script>
 $(()=>{
-  $("#login").text(`edgectl login ${window.location.host} ${get_os()}`)
+  $("#login").text(`edgectl login ${window.location.host}`)
   $(`#${get_os()}`).attr("open", "")
 })
 
