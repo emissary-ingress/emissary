@@ -271,6 +271,14 @@ func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				io.WriteString(w, "state: <invalid state>")
 			}
 		}
+	case "/edge_stack/api/config/ambassador-cluster-id":
+		// no authentication for this one
+		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+		io.WriteString(w, fb.cfg.AmbassadorClusterID)
+	case "/edge_stack/api/config/pod-namespace":
+		// no authentication for this one
+		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+		io.WriteString(w, fb.cfg.PodNamespace)
 	case "/edge_stack/api/snapshot":
 		if !fb.isAuthorized(r) {
 			fb.forbidden(w, r)
@@ -295,9 +303,6 @@ func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusBadRequest)
 		}
 		w.Write(output.Bytes())
-	case "/edge_stack/tls/api/ambassador_cluster_id":
-		// XXX: no authentication for this one?
-		io.WriteString(w, fb.cfg.AmbassadorClusterID)
 	case "/edge_stack/tls/api/empty":
 		if !fb.isAuthorized(r) {
 			fb.forbidden(w, r)
