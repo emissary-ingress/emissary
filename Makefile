@@ -104,16 +104,17 @@ aes-rc: update-yaml
 	@echo Last 10 tags:
 	@git tag --sort v:refname | egrep '^v[0-9]' | tail -10
 	@(read -p "Please enter rc tag: " TAG && echo $${TAG} > /tmp/rc.tag)
-	git tag -a $(cat /tmp/rc.tag)
+	git tag -a $$(cat /tmp/rc.tag)
 	git push --tags
 	@$(MAKE) --no-print-directory final-push
 
 aes-rc-now: update-yaml
-	@test -n "$$(git status --porcelain)" && (printf "$(RED)Your checkout must be clean.$(END)\n" && exit 1)
+	@if [ -n "$$(git status --porcelain)" ]; then \
+		printf "$(RED)Your checkout must be clean.$(END)\n" && exit 1; \
+	fi
 	@echo Last 10 tags:
 	@git tag --sort v:refname | egrep '^v[0-9]' | tail -10
 	@(read -p "Please enter rc tag: " TAG && echo $${TAG} > /tmp/rc.tag)
-	git tag -a $(cat /tmp/rc.tag)
-	git push --tags
+	git tag -a $$(cat /tmp/rc.tag)
 	@$(MAKE) --no-print-directory rc RELEASE_REGISTRY=quay.io/datawire-dev
 	@$(MAKE) --no-print-directory final-push
