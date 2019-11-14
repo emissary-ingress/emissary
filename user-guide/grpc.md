@@ -314,4 +314,4 @@ headers:
 
 Some [Kubernetes ingress controllers](https://kubernetes.io/docs/concepts/services-networking/ingress/) do not support HTTP/2 fully. As a result, if you are running Ambassador with an ingress controller in front, you may find that gRPC requests fail even with correct Ambassador Edge Stack configuration.
 
-A simple way around this is to use Ambassador Edge Stack with a `LoadBalancer` service, rather than an Ingress controller. You can also consider using [Ambassador Edge Stack as your Ingress Controller](/user-guide/ingress-controller).
+A simple way around this is to use Ambassador Edge Stack with a `LoadBalancer` service, rather than an Ingress controller. You can also consider using [Ambassador Edge Stack as your Ingress Controller](/reference/core/ingress-controller).

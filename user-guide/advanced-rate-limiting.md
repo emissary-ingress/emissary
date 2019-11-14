@@ -12,16 +12,12 @@ Like Ambassador, the Ambassador RLS is designed so that many different teams, wi
 
 In Ambassador Edge Stack, each request can have multiple *labels*. Labels are arbitrary key/value pairs that contain any metadata about a given request, e.g., its IP, a hard-coded value, the path of the request, and so forth. The Rate Limit Service processes these labels and enforces any limits that are set on a label. Labels can be assigned to *domains*, which are separate namespaces. Typically, different teams would be responsible for different domains.
 
-
-
 ## Configuring Rate Limiting: The 50,000 foot view
 
 Logically, configuring rate limiting is straightforward.
 
 1. Configure a specific mapping to include one or more request labels.
 2. Configure a limit for a given request label with the `RateLimit` resource.
-
-In the examples below, we'll use the backend service of the tour sample application used in the [Getting Started](https://www.getambassador.io/user-guide/getting-started#3-creating-your-first-service).
 
 ## Example 1: Global rate limiting for availability
 
@@ -97,7 +93,7 @@ spec:
      unit: minute
 ```
 
-Note for this to work, you need to make sure you've properly configured Ambassador Edge Stack to [propagate your original client IP address](https://www.getambassador.io/reference/core/ambassador/#use_remote_address).
+Note for this to work, you need to make sure you've properly configured Ambassador Edge Stack to [propagate your original client IP address](/reference/core/ambassador/#use_remote_address).
 
 ## Example 3: Load shedding GET requests
 

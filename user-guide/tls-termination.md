@@ -29,7 +29,7 @@ OpenSSL is a tool that allows us to create self-signed certificates for opening 
 - Create a certificate signed by the private key just created
 
    ```
-   openssl req -x509 -key key.pem -out cert.pem -days 365 -subj '/CN=ambassador-cert'
+   openssl req -x509 -key key.pem -out cert.pem -days 365 -new -subj '/CN=ambassador-cert'
    ```
 
 - Verify the `key.pem` and `cert.pem` files were created

@@ -5,7 +5,7 @@ Ambassador Edge Stack can be installed in a variety of ways. The most common app
 * Install with [Kubernetes via YAML](/user-guide/getting-started)
 * Install with [Kubernetes Helm](/user-guide/helm)
 * Install with [Kubernetes Bare Metal](/user-guide/bare-metal)
-* Install with [Docker's Quick Start](/user-guide/quickstart) Method
+* Install with [Docker's Quick Start](/about/quickstart) Method
 * Install with [Docker Compose](/user-guide/docker-compose)
 
 <div style="border: thick solid red"> 

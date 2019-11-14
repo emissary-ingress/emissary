@@ -1,5 +1,5 @@
 - title: Welcome
-  collapsable: //blog.getambassador.io/envoy-vs-nginx-vs-haproxy-why-the-open-source-ambassador-api-gateway-chose-envoy-23826aed79ef
+  collapsable: false
   items:
     - title: Quick Start Guide
       link: /docs
@@ -137,9 +137,10 @@
     - title: Configuring Ambassador Edge Stack
       link: /reference/configuration
     - title: Global Configuration
-      link: /reference/modules
-    - title: Ambassador Edge Stack Core Configuration
       link: /reference/core/ambassador
+    - title: Global Module Configuration
+      link: /reference/modules
+    - title: Core Configuration
       items:
         - title: Gzip compression
           link: /reference/gzip
@@ -147,9 +148,20 @@
           link: /reference/core/load-balancer
         - title: Service Discovery Configuration
           link: /reference/core/resolvers
-    - title: TLS Configuration
-      link: /reference/core/tls
+    - title: Running Ambassador Edge Stack
+      items:  
+      - title: Running and Deployment 
+        link: /reference/running
+      - title: Debugging Ambassador Edge Stack
+        link: /reference/debugging
+      - title: Ambassador Edge Stack with AWS
+        link: /reference/ambassador-with-aws
+      - title: Diagnostics
+        link: /reference/diagnostics
+    - title: Security Configuration
       items:
+      - title: TLS Configuration
+        link: /reference/core/tls
       - title: Client Certificate Validation
         link: /reference/tls/client-cert-validation
       - title: HTTP -> HTTPS Redirection
@@ -161,8 +173,9 @@
       - title: TLS Origination
         link: /reference/tls/origination
     - title: Configuring Services
-      link: /reference/mappings
       items:
+      - title: Configure Mappings
+        link: /reference/mappings
       - title: Canary Releases
         link: /reference/canary
       - title: Circuit Breakers
@@ -198,8 +211,9 @@
       - title: Traffic Shadowing
         link: /reference/shadowing
     - title: Plugins
-      link: /reference/services/services
       items:
+      - title: Available Services
+        link: /reference/services/services
       - title: Authentication
         link: /reference/services/auth-service
       - title: Access Control
@@ -226,22 +240,14 @@
         link: /reference/idp-support/uaa
     - title: Custom Resource Definitions
       link: /reference/core/crds
+    - title: Ambassador as an Ingress Controller
+      link: /reference/core/ingress-controller
     - title: Filters
       link: /reference/filter-reference
     - title: Developer Portal
       link: /reference/dev-portal
     - title: Statistics and Monitoring
       link: /reference/statistics
-    - title: Running Ambassador Edge Stack
-      items:  
-      - title: Running and Deployment 
-        link: /reference/running
-      - title: Debugging Ambassador Edge Stack
-        link: /reference/debugging
-      - title: Ambassador Edge Stack with AWS
-        link: /reference/ambassador-with-aws
-      - title: Diagnostics
-        link: /reference/diagnostics
 
 - title: Contributors
   items:

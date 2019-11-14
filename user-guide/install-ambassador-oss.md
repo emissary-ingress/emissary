@@ -1,6 +1,6 @@
 # Ambassador Open Source Software (OSS)
 
-In this tutorial, we'll walk through the process of deploying Ambassador Open Source in Kubernetes for ingress routing. Ambassador OSS provides all the functionality of a traditional ingress controller (i.e., path-based routing) while exposing many additional capabilities such as [authentication](/user-guide/auth-tutorial), URL rewriting, CORS, rate limiting, and automatic metrics collection (the [mappings reference](/reference/mappings) contains a full list of supported options). Note that Ambassador Edge Stack can be used as an [Ingress Controller](/user-guide/ingress-controller).
+In this tutorial, we'll walk through the process of deploying Ambassador Open Source in Kubernetes for ingress routing. Ambassador OSS provides all the functionality of a traditional ingress controller (i.e., path-based routing) while exposing many additional capabilities such as [authentication](/user-guide/auth-tutorial), URL rewriting, CORS, rate limiting, and automatic metrics collection (the [mappings reference](/reference/mappings) contains a full list of supported options). Note that Ambassador Edge Stack can be used as an [Ingress Controller](/reference/core/ingress-controller).
 
 For more background on Kubernetes ingress, [read this blog post](https://blog.getambassador.io/kubernetes-ingress-nodeport-load-balancers-and-ingress-controllers-6e29f1c44f2d).
 
@@ -103,6 +103,8 @@ Deploy this service with `kubectl`:
 <pre class="language-shell">
 <code class="language-shell" id="step6">
 $ kubectl apply -f ambassador-service.yaml</code></pre></div>
+<p>
+<p>
 <button onclick="copy_to_clipboard('step6')">Copy to Clipboard</button>
 
 The YAML above creates a Kubernetes service for Ambassador Open Source of type `LoadBalancer`, and configures the `externalTrafficPolicy` to propagate [the original source IP](https://kubernetes.io/docs/tasks/access-application-cluster/create-external-load-balancer/#preserving-the-client-source-ip) of the client. All HTTP traffic will be evaluated against the routing rules you create. Note that if you're not deploying in an environment where `LoadBalancer` is a supported type (such as minikube), you'll need to change this to a different type of service, e.g., `NodePort`.
@@ -184,6 +186,8 @@ spec:
       - request_label:
         - backend
 </code></pre></div>
+<p>
+<p>
 <button onclick="copy_to_clipboard('step7')">Copy to Clipboard</button>
 
 Then, apply it to the Kubernetes with `kubectl`:
@@ -225,6 +229,8 @@ To test things out, we'll need the external IP for Ambassador Open Source (it mi
 <pre class="language-shell">
 <code class="language-shell" id="step10">
 kubectl get svc -o wide ambassador</code></pre></div>
+<p>
+<p>
 <button onclick="copy_to_clipboard('step10')">Copy to Clipboard</button>
 
 Eventually, this should give you something like:
@@ -284,6 +290,8 @@ spec:
     diagnostics:
       enabled: false
 </code></pre></div>
+<p>
+<p>
 <button onclick="copy_to_clipboard('step11')">Copy to Clipboard</button>
 
 After applying this `Module`, to view the diagnostics UI, we'll need to get the name of one of the Ambassador Open Source pods:

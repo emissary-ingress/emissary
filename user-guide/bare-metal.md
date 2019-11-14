@@ -3,13 +3,15 @@
 This method of installation has not been tested and is not supported at this time.
 </div>
 
-# Deploying Ambassador Edge Stack on a Bare Metal Kubernetes Installation
+# Bare Metal Kubernetes Installation
 
 In cloud environments, provisioning a readily available network load balancer with Ambassador Edge Stack is the best option for handling ingress into your Kubernetes cluster. When running kubernetes on a bare-metal setup, where network load balancers are not available by default, we need to consider different options for exposing Ambassador Edge Stack.
 
 ## Exposing Ambassador via NodePort
 
-The simplest way to expose an application in Kubernetes is via a `NodePort` service. In this configuration, we create the [Ambassador Edge Stack service](/user-guide/getting-started#2-defining-the-ambassador-service) and identify `type: NodePort` instead of `LoadBalancer`. Kubernetes will then create a service and assign that service a port to be exposed externally and direct traffic to Ambassador Edge Stack via the defined `port`.
+The simplest way to expose an application in Kubernetes is via a `NodePort` service. In this configuration, we create the Ambassador Edge Stack service and identify `type: NodePort` instead of `LoadBalancer`. Kubernetes will then create a service and assign that service a port to be exposed externally and direct traffic to Ambassador Edge Stack via the defined `port`.
+
+Create the following YAML and put it in a file called `ambassador-service.yaml`.
 
 ```yaml
 ---
@@ -29,7 +31,7 @@ spec:
     service: ambassador
 ```
 
-Using a `NodePort` leaves Ambassador Edge Stack isolated from the host network, allowing the Kubernetes service to handle routing to Ambassador Edge Stack pods. You can drop-in this yaml to replace the `LoadBalancer` service in the [YAML installation guide](/user-guide/getting-started) and use `http://<External-Node-IP>:<NodePort>/` as the host for requests. 
+Using a `NodePort` leaves Ambassador Edge Stack isolated from the host network, allowing the Kubernetes service to handle routing to Ambassador Edge Stack pods. You can use `http://<External-Node-IP>:<NodePort>/` as the host for requests. 
 
 ## Exposing Ambassador Edge Stack via Host Network
 

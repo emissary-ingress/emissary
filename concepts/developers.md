@@ -73,4 +73,4 @@ It's possible as a migration strategy to start with a centralized Ambassador Edg
 
 ## Ingress resources
 
-You can use Ambassador Edge Stack as an [Ingress Controller](/user-guide/ingress-controller).
+You can use Ambassador Edge Stack as an [Ingress Controller](/reference/core/ingress-controller).

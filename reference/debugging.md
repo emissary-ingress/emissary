@@ -19,8 +19,7 @@ If Ambassador Edge Stack is not starting or is not behaving as you would expect,
 * You want to manually change and experiment with the generated Envoy configuration
   * [Exec into an Ambassador Edge Stack Pod](#a-nameexamining-podaexamining-an-ambassadorenvoy-pod-and-container) and [manually experiment](#a-namemanually-experimentinga-manually-experimenting-with-ambassador--envoy-configuration) with changing the Envoy configuration and sending a SIGHUP to the parent process
 
-
-## <a name="example-config"></a>Example Config for Debug Demonstrations
+## Example Config for Debug Demonstrations
 
 The following debugging instructions assume that Ambassador Edge Stack and the following services from the
 [getting started guide](/user-guide/getting-started) have been deployed to a Kubernetes cluster.
@@ -69,7 +68,7 @@ And apply this into your cluster, e.g.:
 $ kubectl apply -f ambassador-services.yaml
 ```
 
-## <a name="check-running"></a>Checking Ambassador Edge Stack is running
+### Checking Ambassador Edge Stack is running
 
 If you cannot access the [diagnostics console](/reference/diagnostics) via ```kubectl port-forward <ambassador_pod_name> 8877```
 the first thing to check is that Ambassador Edge Stack is running. This can be achieved via
@@ -184,7 +183,7 @@ Events:
   Normal  Started                4m    kubelet, gke-ambassador-demo-default-pool-912378e5-dkxc  Started container
 ```
 
-## <a name="logs"></a>Getting Access to the Ambassador Edge Stack Logs
+### Getting Access to the Ambassador Edge Stack Logs
 
 The Ambassador Edge Stack logs can provide a lot of information if something isn't behaving as expected. There can be a lot of text to parse (especially when running in debug mode), but key information to look out for is the Ambassador Edge Stack process restarting unexpectedly, or malformed Envoy configuration.
 
@@ -212,7 +211,7 @@ $ kubectl logs ambassador-85c4cf67b-4pfj2
 
 By using the [Ambassador diagnostics console](/reference/diagnostics) you can click a button to "Set Debug On", and this causes Ambassador Edge Stack to generate a lot more logging. This can be useful when tracking down a particularly subtle bug.
 
-## <a name="examining-pod"></a>Examining an Ambassador Edge Stack/Envoy Pod and Container
+### Examining an Ambassador Edge Stack/Envoy Pod and Container
 
 It can sometimes be useful to examine the contents of the Ambassador Edge Stack Pod, for example, to check volume mounts are correct (e.g. TLS certificates are present in the required directory), to determine the latest Ambassador Edge Stack configuration has been sent to the Pod, or that the generated Envoy configuration is correct (or as expected).
 
@@ -290,7 +289,7 @@ The Envoy Proxy configuration that was generated from the Ambassador Edge Stack 
               {
 ```
 
-## <a name="manually-experimenting"></a> Manually Experimenting with Ambassador Edge Stack / Envoy configuration
+### Manually Experimenting with Ambassador Edge Stack / Envoy configuration
 
 If the generated Envoy configuration is not looking as expected, you can manually tweak this and restart the Envoy process. The general approach to this is to scale down the Ambassador Edge Stack Deployment to a single Pod in order to send all Ambassador Edge Stack traffic through this single instance (which is not recommended in production!), exec into the Pod and make the modification to the `envoy/envoy.json`. Then, restart the `ambex` process which will pass the updated `envoy.json` to Envoy. You can do this by getting the PID of `ambex` with `ps -ef | grep ambex`. Then run `kill -HUP $AMBEX_PID` to restart `ambex`.
 
