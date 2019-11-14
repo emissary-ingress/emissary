@@ -10,30 +10,60 @@ Ambassador Open Source is designed to allow service authors to control how their
 
 To deploy Ambassador Open Source in your **default** namespace, first you need to check if Kubernetes has RBAC enabled:
 
-```shell
-kubectl cluster-info dump --namespace kube-system | grep authorization-mode
-```
+<div class="gatsby-highlight" data-language="shell">
+<pre class="language-shell">
+<code class="language-shell" id="step1">
+kubectl cluster-info dump --namespace kube-system | grep authorization-mode</code></div></div>
+<button onclick="copy_to_clipboard('step1')">Copy to Clipboard</button>
+<script>
+function copy_to_clipboard(the_id) {
+  var copyText = document.getElementById(the_id).innerText;
+  const el = document.createElement('textarea');  // Create a <textarea> element
+  el.value = copyText;                            // Set its value to the string that you want copied
+  el.setAttribute('readonly', '');                // Make it readonly to be tamper-proof
+  el.style.position = 'absolute';
+  el.style.left = '-9999px';                      // Move outside the screen to make it invisible
+  document.body.appendChild(el);                  // Append the <textarea> element to the HTML document
+  const selected =
+    document.getSelection().rangeCount > 0        // Check if there is any content selected previously
+      ? document.getSelection().getRangeAt(0)     // Store selection if found
+      : false;                                    // Mark as false to know no selection existed before
+  el.select();                                    // Select the <textarea> content
+  document.execCommand('copy');                   // Copy - only works as a result of a user action (e.g. click events)
+  document.body.removeChild(el);                  // Remove the <textarea> element
+  if (selected) {                                 // If a selection existed before copying
+    document.getSelection().removeAllRanges();    // Unselect everything on the HTML document
+    document.getSelection().addRange(selected);   // Restore the original selection
+  }
+};
+</script>
 
 If you see something like `--authorization-mode=Node,RBAC` in the output, then RBAC is enabled. The majority of current hosted Kubernetes providers (such as GKE) create
 clusters with RBAC enabled by default, and unfortunately the above command may not return any information indicating this.
 
 **Note:** If you're using Google Kubernetes Engine with RBAC, you'll need to grant permissions to the account that will be setting up Ambassador OSS. To do this, get your official GKE username, and then grant `cluster-admin` role privileges to that username:
 
-```
-$ kubectl create clusterrolebinding my-cluster-admin-binding --clusterrole=cluster-admin --user=$(gcloud info --format="value(config.account)")
-```
+<div class="gatsby-highlight" data-language="shell">
+<pre class="language-shell">
+<code class="language-shell" id="step2">
+kubectl create clusterrolebinding my-cluster-admin-binding --clusterrole=cluster-admin --user=$(gcloud info --format="value(config.account)")</code></div></div>
+<button onclick="copy_to_clipboard('step2')">Copy to Clipboard</button>
 
 If RBAC is enabled:
 
-```shell
-kubectl apply -f https://getambassador.io/yaml/ambassador/ambassador-rbac.yaml
-```
+<div class="gatsby-highlight" data-language="shell">
+<pre class="language-shell">
+<code class="language-shell" id="step3">
+kubectl apply -f https://getambassador.io/yaml/ambassador/ambassador-rbac.yaml</code></div></div>
+<button onclick="copy_to_clipboard('step3')">Copy to Clipboard</button>
 
 Without RBAC, you can use:
 
-```shell
-kubectl apply -f https://getambassador.io/yaml/ambassador/ambassador-no-rbac.yaml
-```
+<div class="gatsby-highlight" data-language="shell">
+<pre class="language-shell">
+<code class="language-shell" id="step4">
+kubectl apply -f https://getambassador.io/yaml/ambassador/ambassador-no-rbac.yaml</code></div></div>
+<button onclick="copy_to_clipboard('step4')">Copy to Clipboard</button>
 
 We recommend downloading the YAML files and exploring the content. You will see
 that an `ambassador-admin` NodePort Service is created (which provides an
@@ -48,7 +78,9 @@ For production configurations, we recommend you download these YAML files as you
 
 Ambassador Open Source is deployed as a Kubernetes Service that references the ambassador Deployment you deployed previously. Create the following YAML and put it in a file called`ambassador-service.yaml`.
 
-```yaml
+<div class="gatsby-highlight" data-language="yaml">
+<pre class="language-yaml">
+<code class="language-yaml" id="step5">
 ---
 apiVersion: v1
 kind: Service
@@ -62,13 +94,16 @@ spec:
      targetPort: 8080
   selector:
     service: ambassador
-```
+</code></div></div>
+<button onclick="copy_to_clipboard('step5')">Copy to Clipboard</button>
 
 Deploy this service with `kubectl`:
 
-```shell
-$ kubectl apply -f ambassador-service.yaml
-```
+<div class="gatsby-highlight" data-language="shell">
+<pre class="language-shell">
+<code class="language-shell" id="step6">
+$ kubectl apply -f ambassador-service.yaml</code></div></div>
+<button onclick="copy_to_clipboard('step6')">Copy to Clipboard</button>
 
 The YAML above creates a Kubernetes service for Ambassador Open Source of type `LoadBalancer`, and configures the `externalTrafficPolicy` to propagate [the original source IP](https://kubernetes.io/docs/tasks/access-application-cluster/create-external-load-balancer/#preserving-the-client-source-ip) of the client. All HTTP traffic will be evaluated against the routing rules you create. Note that if you're not deploying in an environment where `LoadBalancer` is a supported type (such as minikube), you'll need to change this to a different type of service, e.g., `NodePort`.
 
@@ -78,7 +113,9 @@ If you have a static IP provided by your cloud provider you can set as `loadBala
 
 Create the following YAML and put it in a file called `tour.yaml`.
 
-```yaml
+<div class="gatsby-highlight" data-language="yaml">
+<pre class="language-yaml">
+<code class="language-yaml" id="step7">
 ---
 apiVersion: v1
 kind: Service
@@ -146,19 +183,24 @@ spec:
     ambassador:
       - request_label:
         - backend
-```
+</code></div></div>
+<button onclick="copy_to_clipboard('step7')">Copy to Clipboard</button>
 
 Then, apply it to the Kubernetes with `kubectl`:
 
-```shell
-$ kubectl apply -f tour.yaml
-```
+<div class="gatsby-highlight" data-language="shell">
+<pre class="language-shell">
+<code class="language-shell" id="step8">
+kubectl apply -f tour.yaml</code></div></div>
+<button onclick="copy_to_clipboard('step8')">Copy to Clipboard</button>
 
 This YAML has also been published so you can deploy it remotely:
 
-```
-kubectl apply -f https://getambassador.io/yaml/tour/tour.yaml
-```
+<div class="gatsby-highlight" data-language="shell">
+<pre class="language-shell">
+<code class="language-shell" id="step9">
+kubectl apply -f https://getambassador.io/yaml/tour/tour.yaml</code></div></div>
+<button onclick="copy_to_clipboard('step9')">Copy to Clipboard</button>
 
 When the `Mapping` CRDs are applied, Ambassador Open Source will use them to configure routing:
 
@@ -179,9 +221,11 @@ See [configuration format](/reference/config-format) for more information on you
 
 To test things out, we'll need the external IP for Ambassador Open Source (it might take some time for this to be available):
 
-```shell
-kubectl get svc -o wide ambassador
-```
+<div class="gatsby-highlight" data-language="shell">
+<pre class="language-shell">
+<code class="language-shell" id="step10">
+kubectl get svc -o wide ambassador</code></div></div>
+<button onclick="copy_to_clipboard('step10')">Copy to Clipboard</button>
 
 Eventually, this should give you something like:
 
@@ -228,7 +272,9 @@ By default, this is exposed to the internet at the URL `http://{{AMBASSADOR_HOST
 
 You can change the default so it is not exposed externally by default by setting `diagnostics.enabled: false` in the [ambassador `Module`](/reference/core/ambassador).
 
-```yaml
+<div class="gatsby-highlight" data-language="yaml">
+<pre class="language-yaml">
+<code class="language-yaml" id="step11">
 apiVersion: getambassador.io/v2
 kind: Module
 metadata:
@@ -237,7 +283,8 @@ spec:
   config:
     diagnostics:
       enabled: false
-```
+</code></div></div>
+<button onclick="copy_to_clipboard('step11')">Copy to Clipboard</button>
 
 After applying this `Module`, to view the diagnostics UI, we'll need to get the name of one of the Ambassador Open Source pods:
 
