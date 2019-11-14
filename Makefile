@@ -75,9 +75,45 @@ deploy-aes-backend: images
 .PHONY: deploy-aes-backend
 
 update-yaml: sync
-	@if [ -z "$$EDGE_STACK_UPDATE" ]; then echo "$$EDGE_STACK_UPDATE must be set" >&2; exit 1; fi
-	docker exec $$($(MAKE) builder) python apro/fix-crds.py ambassador/docs/yaml/ambassador/ambassador-crds.yaml apro/k8s-aes-src/00-aes-crds.yaml > k8s-aes/00-aes-crds.yaml
-	cp k8s-aes/00-aes-crds.yaml $$EDGE_STACK_UPDATE/content/yaml/aes-crds.yaml
-	docker exec $$($(MAKE) builder) python apro/fix-yaml.py apro ambassador/docs/yaml/ambassador/ambassador-rbac.yaml apro/k8s-aes-src/01-aes.yaml > k8s-aes/01-aes.yaml
-	docker exec $$($(MAKE) builder) python apro/fix-yaml.py edge_stack ambassador/docs/yaml/ambassador/ambassador-rbac.yaml apro/k8s-aes-src/01-aes.yaml > $$EDGE_STACK_UPDATE/content/yaml/aes.yaml
+	@if [ -z "$${EDGE_STACK_UPDATE}" ]; then printf "$(RED)Please set EDGE_STACK_UPDATE to point to your getambassador.io clone$(END)\n" >&2; exit 1; fi
+	git -C "$${EDGE_STACK_UPDATE}" checkout Edge-stack-update
+	git -C "$${EDGE_STACK_UPDATE}" pull
+	docker exec $(shell $(BUILDER)) python apro/fix-crds.py ambassador/docs/yaml/ambassador/ambassador-crds.yaml apro/k8s-aes-src/00-aes-crds.yaml > k8s-aes/00-aes-crds.yaml
+	cp k8s-aes/00-aes-crds.yaml $${EDGE_STACK_UPDATE}/content/yaml/aes-crds.yaml
+	docker exec $(shell $(BUILDER)) python apro/fix-yaml.py apro ambassador/docs/yaml/ambassador/ambassador-rbac.yaml apro/k8s-aes-src/01-aes.yaml > k8s-aes/01-aes.yaml
+	docker exec $(shell $(BUILDER)) python apro/fix-yaml.py edge_stack ambassador/docs/yaml/ambassador/ambassador-rbac.yaml apro/k8s-aes-src/01-aes.yaml > $${EDGE_STACK_UPDATE}/content/yaml/aes.yaml
+	git -C "$${EDGE_STACK_UPDATE}" diff
+	@if [ -n "$$(git -C $${EDGE_STACK_UPDATE} diff)" ]; then printf \
+		"$(RED)Please inspect and commit the above changes to ${EDGE_STACK_UPDATE}$(END)\n" && exit 1; fi
+	git diff k8s-aes
+	@if [ -n "$$(git diff k8s-aes)" ]; then \
+		printf "$(RED)Please inspect and commit the above changes.$(END)\n" && exit 1; \
+	fi
 .PHONY: update-yaml
+
+
+final-push:
+	@if [ "$$(git push --tags --dry-run 2>&1)" != "Everything up-to-date" ]; then \
+		printf "$(RED)Please run: git push --tags$(END)\n"; \
+	fi	
+	@if [ "$$(git -C $${EDGE_STACK_UPDATE} push --dry-run 2>&1)" != "Everything up-to-date" ]; then \
+		printf "$(RED)Please run: git -C $${EDGE_STACK_UPDATE} push$(END)\n"; \
+	fi	
+
+aes-rc: update-yaml
+	@echo Last 10 tags:
+	@git tag --sort v:refname | egrep '^v[0-9]' | tail -10
+	@(read -p "Please enter rc tag: " TAG && echo $${TAG} > /tmp/rc.tag)
+	git tag -a $(cat /tmp/rc.tag)
+	git push --tags
+	@$(MAKE) --no-print-directory final-push
+
+aes-rc-now: update-yaml
+	@test -n "$$(git status --porcelain)" && (printf "$(RED)Your checkout must be clean.$(END)\n" && exit 1)
+	@echo Last 10 tags:
+	@git tag --sort v:refname | egrep '^v[0-9]' | tail -10
+	@(read -p "Please enter rc tag: " TAG && echo $${TAG} > /tmp/rc.tag)
+	git tag -a $(cat /tmp/rc.tag)
+	git push --tags
+	@$(MAKE) --no-print-directory rc RELEASE_REGISTRY=quay.io/datawire-dev
+	@$(MAKE) --no-print-directory final-push
