@@ -1,10 +1,12 @@
 package types
 
 import (
+	"io/ioutil"
 	"net/url"
 	"os"
 	"reflect"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/pkg/errors"
@@ -22,6 +24,9 @@ import (
 //  - Add new parser= values by editing ./internal/envconfig/envconfig_types.go (should be straight-forward)
 //  - Add new key=value options by editing ./internal/envconfig/envconfig.go (involves "reflect" wizardry)
 type Config struct {
+	// Kubernetes
+	PodNamespace string `env:"POD_NAMESPACE ,parser=nonempty-string "` // there's a hack to set the default below
+
 	// Ambassador
 	AmbassadorID              string `env:"AMBASSADOR_ID               ,parser=nonempty-string ,default=default "`
 	AmbassadorClusterID       string `env:"AMBASSADOR_CLUSTER_ID       ,parser=possibly-empty-string            "`
@@ -75,7 +80,28 @@ var configParser = func() envconfig.StructParser {
 	return ret
 }()
 
+// podNamespace is stolen from
+// "k8s.io/client-go/tools/clientcmd".inClusterConfig.Namespace()
+func podNamespace() string {
+	// This way assumes you've set the POD_NAMESPACE environment variable using the downward API.
+	// This check has to be done first for backwards compatibility with the way InClusterConfig was originally set up
+	if ns := os.Getenv("POD_NAMESPACE"); ns != "" {
+		return ns
+	}
+
+	// Fall back to the namespace associated with the service account token, if available
+	if data, err := ioutil.ReadFile("/var/run/secrets/kubernetes.io/serviceaccount/namespace"); err == nil {
+		if ns := strings.TrimSpace(string(data)); len(ns) > 0 {
+			return ns
+		}
+	}
+
+	return "default"
+}
+
 func ConfigFromEnv() (cfg Config, warn []error, fatal []error) {
+	os.Setenv("POD_NAMESPACE", podNamespace())
+
 	warn, fatal = configParser.ParseFromEnv(&cfg)
 
 	if cfg.RedisPerSecond {

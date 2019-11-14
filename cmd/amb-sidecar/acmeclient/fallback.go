@@ -47,14 +47,14 @@ func EnsureFallback(cfg types.Config, coreClient k8sClientCoreV1.SecretsGetter, 
 
 func ensureFallbackContext(cfg types.Config, dynamicClient k8sClientDynamic.Interface) error {
 	tlsContextGetter := dynamicClient.Resource(k8sSchema.GroupVersionResource{Group: "getambassador.io", Version: "v1", Resource: "tlscontexts"})
-	tlsContextInterface := tlsContextGetter.Namespace(cfg.AmbassadorNamespace)
+	tlsContextInterface := tlsContextGetter.Namespace(cfg.PodNamespace)
 	_, err := tlsContextInterface.Create(&k8sTypesUnstructured.Unstructured{
 		Object: map[string]interface{}{
 			"apiVersion": "getambassador.io/v1",
 			"kind":       "TLSContext",
 			"metadata": map[string]string{
 				"name":      SelfSignedContextName,
-				"namespace": cfg.AmbassadorNamespace,
+				"namespace": cfg.PodNamespace,
 			},
 			"spec": map[string]interface{}{
 				"hosts": []string{
@@ -71,7 +71,7 @@ func ensureFallbackContext(cfg types.Config, dynamicClient k8sClientDynamic.Inte
 }
 
 func ensureFallbackSecret(cfg types.Config, secretsGetter k8sClientCoreV1.SecretsGetter) error {
-	secretInterface := secretsGetter.Secrets(cfg.AmbassadorNamespace)
+	secretInterface := secretsGetter.Secrets(cfg.PodNamespace)
 	_, err := secretInterface.Get(SelfSignedSecretName, k8sTypesMetaV1.GetOptions{})
 	if err == nil {
 		// already done; nothing to do
@@ -90,7 +90,7 @@ func ensureFallbackSecret(cfg types.Config, secretsGetter k8sClientCoreV1.Secret
 	_, err = secretInterface.Create(&k8sTypesCoreV1.Secret{
 		ObjectMeta: k8sTypesMetaV1.ObjectMeta{
 			Name:      SelfSignedSecretName,
-			Namespace: cfg.AmbassadorNamespace,
+			Namespace: cfg.PodNamespace,
 		},
 		Type: k8sTypesCoreV1.SecretTypeTLS,
 		Data: map[string][]byte{

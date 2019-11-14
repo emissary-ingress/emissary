@@ -3,6 +3,7 @@
   <head>
     <meta charset="utf-8">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script type='text/javascript' src="https://codejoust.github.io/session.js/session-0.4.js"></script>
 
     <title>Ambassador Edge Stack Admin</title>
     
@@ -72,6 +73,10 @@
           word-wrap: normal;
           hypens: none;
       }
+
+      details {
+          margin: 1em;
+      }
     </style>
   </head>
 
@@ -91,27 +96,34 @@
           website: (<a href="https://metriton.datawire.io/downloads/darwin/edgectl">darwin</a>, <a href="https://metriton.datawire.io/downloads/linux/edgectl">linux</a>).
         </p>
 
-        <h2>Darwin</h2>
-        <pre id="install-darwin">
-sudo curl -L https://metriton.datawire.io/downloads/darwin/edgectl -o /usr/local/bin/edgectl && \
+        <details id="darwin">
+          <summary><h2 style="display:inline">Darwin</h2></summary>
+          <pre id="install-darwin">
+sudo curl -fL https://metriton.datawire.io/downloads/darwin/edgectl -o /usr/local/bin/edgectl && \
 sudo chmod a+x /usr/local/bin/edgectl</pre>
 
-        <button onclick="copy_to_clipboard('install-darwin')">Copy to Clipboard</button>
+          <button onclick="copy_to_clipboard('install-darwin')">Copy to Clipboard</button>
+        </details>
 
-        <h2>Linux</h2>
-        <pre id="install-linux">
-sudo curl -L https://metriton.datawire.io/downloads/linux/edgectl -o /usr/local/bin/edgectl && \
+        <details id="linux">
+          <summary><h2 style="display:inline">Linux</h2></summary>
+          <pre id="install-linux">
+sudo curl -fL https://metriton.datawire.io/downloads/linux/edgectl -o /usr/local/bin/edgectl && \
 sudo chmod a+x /usr/local/bin/edgectl</pre>
 
-        <button onclick="copy_to_clipboard('install-linux')">Copy to Clipboard</button>
+          <button onclick="copy_to_clipboard('install-linux')">Copy to Clipboard</button>
+        </details>
       </div>
     </div>
   </body>
 
   <script>
+$.get("../api/config/pod-namespace", namespace=>{
+  $("#login").text("edgectl login --namespace=" + namespace + " " + window.location.host)
+});
 $(()=>{
-  $("#login").text("edgectl login " + window.location.host)
-})
+  $(`#${get_os()}`).attr("open", "")
+});
 
 function copy_to_clipboard(the_id) {
   var copyText = document.getElementById(the_id).innerText;
@@ -132,6 +144,19 @@ function copy_to_clipboard(the_id) {
     document.getSelection().removeAllRanges();    // Unselect everything on the HTML document
     document.getSelection().addRange(selected);   // Restore the original selection
   }
-};
+}
+
+function get_os() {
+  var os = window.session.browser.os; // Mac, Win, Linux
+  if(os == "Mac") {
+    return "darwin"
+  } else if (os == "Windows") {
+    return "windows"
+  } else if (os == "Linux") {
+    return "linux"
+  } else {
+    return "other"
+  }
+}
   </script>
 </html>
