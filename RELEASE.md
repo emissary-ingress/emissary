@@ -7,7 +7,7 @@ To do an RC release right now:
 
 ### THE CI WAY
 
-2. Push tag `v0.10.0-rc$next` where `$next` is one more than the previous RC tag.
+2. Push tag `v0.99.0-rc$next` where `$next` is one more than the previous RC tag.
 
 3. Check CircleCI status at https://circleci.com/gh/datawire/apro.
 
