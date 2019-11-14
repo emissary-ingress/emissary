@@ -50,7 +50,7 @@ This sets up Graphite access at `http://localhost:8080/`.
 
 ## Prometheus
 
-[Prometheus](https://prometheus.io/) is an open-source monitoring and alerting system. If you use Prometheus, you can deploy the [Prometheus StatsD Exporter](https://github.com/prometheus/statsd_exporter) as the `statsd-sink` service. This will translate StatsD metrics into Prometheus metrics. Configure a Prometheus target to read from `statsd-sink` on port 9102 to complete the Prometheus configuration. A sample configuration for Prometheus is available [here](https://github.com/datawire/ambassador/blob/master/statsd-sink/prometheus/prom-statsd-sink.yaml).
+[Prometheus](https://prometheus.io/) is an open-source monitoring and alerting system. If you use Prometheus, you can deploy the [Prometheus StatsD Exporter](https://github.com/prometheus/statsd_exporter) as the `statsd-sink` service. This will translate StatsD metrics into Prometheus metrics. Configure a Prometheus target to read from `statsd-sink` on port 9102 to complete the Prometheus configuration. A sample configuration for Prometheus is available [here](https://github.com/datawire/ambassador/blob/master/deployments/statsd-sink/prometheus/prom-statsd-sink.yaml).
 
 You can optionally also add the `statsd-sink` service and Prometheus exporter as a sidecar on the Ambassador pod. If you do this, make sure to set `STATSD_HOST: localhost` so that UDP packets are routed to the sidecar.
 
@@ -122,7 +122,7 @@ kubectl port-forward prometheus-prometheus-0 9090
 
 ## StatsD as an Independent Deployment
 
-If you want to set up the StatsD sink as an independent deployment, [this example](https://github.com/datawire/ambassador/blob/master/statsd-sink/prometheus/prom-statsd-sink.yaml) configuration mirrors the Graphite and Datadog configurations.
+If you want to set up the StatsD sink as an independent deployment, [this example](https://github.com/datawire/ambassador/blob/master/deployments/statsd-sink/prometheus/prom-statsd-sink.yaml) configuration mirrors the Graphite and Datadog configurations.
 
 ## Grafana
 
