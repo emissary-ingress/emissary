@@ -73,3 +73,11 @@ deploy-aes-backend: images
 	@if [ -z "$(PROD_KUBECONFIG)" ]; then echo please set PROD_KUBECONFIG && exit 1; fi
 	cat k8s-aes-backend/*.yaml | AES_BACKEND_IMAGE=$(AES_BACKEND_IMAGE) envsubst | kubectl --kubeconfig="$(PROD_KUBECONFIG)" apply -f -
 .PHONY: deploy-aes-backend
+
+update-yaml: sync
+	@if [ -z "$$EDGE_STACK_UPDATE" ]; then echo "$$EDGE_STACK_UPDATE must be set" >&2; exit 1; fi
+	docker exec $$($(MAKE) builder) python apro/fix-crds.py ambassador/docs/yaml/ambassador/ambassador-crds.yaml apro/k8s-aes-src/00-aes-crds.yaml > k8s-aes/00-aes-crds.yaml
+	cp k8s-aes/00-aes-crds.yaml $$EDGE_STACK_UPDATE/content/yaml/aes-crds.yaml
+	docker exec $$($(MAKE) builder) python apro/fix-yaml.py apro ambassador/docs/yaml/ambassador/ambassador-rbac.yaml apro/k8s-aes-src/01-aes.yaml > k8s-aes/01-aes.yaml
+	docker exec $$($(MAKE) builder) python apro/fix-yaml.py edge_stack ambassador/docs/yaml/ambassador/ambassador-rbac.yaml apro/k8s-aes-src/01-aes.yaml > $$EDGE_STACK_UPDATE/content/yaml/aes.yaml
+.PHONY: update-yaml
