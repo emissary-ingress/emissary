@@ -17,7 +17,7 @@ make aes-rc
 
 ### THE MANUAL WAY
 
-Instead of steps 1 -3 above, you can do:
+Instead of steps 1-3 above, you can do:
 
 1.
 
