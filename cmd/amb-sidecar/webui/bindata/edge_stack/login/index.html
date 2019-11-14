@@ -109,9 +109,9 @@ sudo chmod a+x /usr/local/bin/edgectl</pre>
   </body>
 
   <script>
-$(()=>{
-  $("#login").text("edgectl login " + window.location.host)
-})
+$.get("../api/config/pod-namespace", namespace=>{
+  $("#login").text("edgectl login --namespace=" + namespace + " " + window.location.host)
+});
 
 function copy_to_clipboard(the_id) {
   var copyText = document.getElementById(the_id).innerText;

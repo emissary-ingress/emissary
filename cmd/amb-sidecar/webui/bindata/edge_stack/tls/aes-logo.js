@@ -15,7 +15,7 @@ export default {
 	},
 	beforeMount: function() {
 		let req = new XMLHttpRequest();
-		req.open("GET", "api/ambassador_cluster_id");
+		req.open("GET", "../api/config/ambassador-cluster-id");
 		req.onload = () => {
 			if (req.status == 200) {
 				this.ambassadorClusterID = req.response;

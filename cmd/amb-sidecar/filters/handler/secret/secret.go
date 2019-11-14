@@ -20,25 +20,25 @@ import (
 const SecretName = "ambassador-internal"
 
 // GetKeyPair loads an RSA key pair from a Kubernetes secret (named by
-// `SecretName` and `cfg.AmbassadorNamespace`).  If the secret does
-// not yet exist, it attempts to create it in a way that should be
-// safe for multiple replicas to be trying the same thing.
+// `SecretName` and `cfg.PodNamespace`).  If the secret does not yet
+// exist, it attempts to create it in a way that should be safe for
+// multiple replicas to be trying the same thing.
 //
 // Will return errors for things like RBAC failures or malformed keys.
 func GetKeyPair(cfg types.Config, secretsGetter k8sClientCoreV1.SecretsGetter) (*rsa.PrivateKey, *rsa.PublicKey, error) {
-	secretInterface := secretsGetter.Secrets(cfg.AmbassadorNamespace)
+	secretInterface := secretsGetter.Secrets(cfg.PodNamespace)
 	for {
 		secret, err := secretInterface.Get(SecretName, k8sTypesMetaV1.GetOptions{})
 		if err == nil {
 			privatePEM, ok := secret.Data["rsa.key"]
 			if !ok {
 				return nil, nil, errors.Errorf("secret name=%q namespace=%q exists but does not contain an %q %s field",
-					SecretName, cfg.AmbassadorNamespace, "rsa.key", "private-key")
+					SecretName, cfg.PodNamespace, "rsa.key", "private-key")
 			}
 			publicPEM, ok := secret.Data["rsa.crt"]
 			if !ok {
 				return nil, nil, errors.Errorf("secret name=%q namespace=%q exists but does not contain an %q %s field",
-					SecretName, cfg.AmbassadorNamespace, "rsa.crt", "public-key")
+					SecretName, cfg.PodNamespace, "rsa.crt", "public-key")
 			}
 			return parsePEM(privatePEM, publicPEM)
 		}
@@ -55,7 +55,7 @@ func GetKeyPair(cfg types.Config, secretsGetter k8sClientCoreV1.SecretsGetter) (
 		_, err = secretInterface.Create(&k8sTypesCoreV1.Secret{
 			ObjectMeta: k8sTypesMetaV1.ObjectMeta{
 				Name:      SecretName,
-				Namespace: cfg.AmbassadorNamespace,
+				Namespace: cfg.PodNamespace,
 			},
 			Type: k8sTypesCoreV1.SecretTypeOpaque,
 			Data: map[string][]byte{
