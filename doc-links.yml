@@ -80,6 +80,8 @@
       items:
     - title: Connecting Services
       items:
+      - title: How to Create a Service
+        link: /user-guide/create-a-service-example
       - title: Adding a Custom Filter for Routing
         link: /docs/guides/filter-dev-guide
       - title: Knative and Ambassador Edge Stack

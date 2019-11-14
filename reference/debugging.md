@@ -4,25 +4,25 @@ If Ambassador Edge Stack is not starting or is not behaving as you would expect,
 
 ## tl;dr Problem? Start here
 
-* [Example configuration for debug examples](#a-nameexample-configaexample-config-for-debug-demonstrations)
+* [Example configuration for debug examples](/reference/debugging#example-config-for-debug-demonstrations)
 * Ambassador Edge Stack not starting
-  * [Check Ambassador is running](#a-namecheck-runningachecking-ambassador-is-running) via `kubectl`
-  * [Check the logs](#a-namelogsagetting-access-to-the-ambassador-logs)
+  * [Check Ambassador is running](/reference/debugging#checking-ambassador-edge-stack-is-running) via `kubectl`
+  * [Check the logs](/reference/debugging#getting-access-to-the-ambassador-edge-stack-logs)
 * Ambassador Edge Stack not behaving as expected
-  * [Check Ambassador Edge Stack is running correctly](#a-namecheck-runningachecking-ambassador-is-running) via `kubectl`
-  * [Check the logs](#a-namelogsagetting-access-to-the-ambassador-logs) (potentially with "Set Debug On" via the Diagnostic Console)
+  * [Check Ambassador Edge Stack is running correctly](/reference/debugging#checking-ambassador-edge-stack-is-running) via `kubectl`
+  * [Check the logs](/reference/debugging#getting-access-to-the-ambassador-edge-stack-logs) (potentially with "Set Debug On" via the Diagnostic Console)
 * Ambassdor/Envoy configuration not as unexpected
-  * "Set Debug On" (via Diagnostic Console) and [check the (now verbose) logs](#a-namelogsagetting-access-to-the-ambassador-logs)
-  * Exec into an Ambassador Edge Stack Pod and [manually verify](#a-nameexamining-podaexamining-an-ambassadorenvoy-pod-and-container) the generated Envoy configuration
+  * "Set Debug On" (via Diagnostic Console) and [check the (now verbose) logs](/reference/debugging#getting-access-to-the-ambassador-edge-stack-logs)
+  * Exec into an Ambassador Edge Stack Pod and [manually verify](/reference/debugging#examining-an-ambassador-edge-stackenvoy-pod-and-container) the generated Envoy configuration
 * Mounted TLS certificates not being detected by Ambassador Edge Stack
-  * Exec into an Ambassador Edge Stack Pod and [manually verify](#a-nameexamining-podaexamining-an-ambassadorenvoy-pod-and-container) that the mount is as expected (and in the correct file system location)
+  * Exec into an Ambassador Edge Stack Pod and [manually verify](/reference/debugging#examining-an-ambassador-edge-stackenvoy-pod-and-container) that the mount is as expected (and in the correct file system location)
 * You want to manually change and experiment with the generated Envoy configuration
-  * [Exec into an Ambassador Edge Stack Pod](#a-nameexamining-podaexamining-an-ambassadorenvoy-pod-and-container) and [manually experiment](#a-namemanually-experimentinga-manually-experimenting-with-ambassador--envoy-configuration) with changing the Envoy configuration and sending a SIGHUP to the parent process
+  * [Exec into an Ambassador Edge Stack Pod](/reference/debugging#examining-an-ambassador-edge-stackenvoy-pod-and-container) and [manually experiment](/reference/debugging#manually-experimenting-with-ambassador-edge-stack--envoy-configuration) with changing the Envoy configuration and sending a SIGHUP to the parent process
 
 ## Example Config for Debug Demonstrations
 
 The following debugging instructions assume that Ambassador Edge Stack and the following services from the
-[getting started guide](/user-guide/getting-started) have been deployed to a Kubernetes cluster.
+[creating a service](/user-guide/create-a-service) example have been deployed to a Kubernetes cluster.
 
 e.g. Create a cluster in GKE with RBAC support enabled and your user account configured correctly:
 
