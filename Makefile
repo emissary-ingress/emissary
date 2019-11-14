@@ -102,9 +102,9 @@ final-push:
 
 tag-rc:
 	@if [ -z "$$(git describe --exact-match HEAD)" ]; then \
-		@echo Last 10 tags: ; \
-		@git tag --sort v:refname | egrep '^v[0-9]' | tail -10 ; \
-		@(read -p "Please enter rc tag: " TAG && echo $${TAG} > /tmp/rc.tag) ; \
+		echo Last 10 tags: ; \
+		git tag --sort v:refname | egrep '^v[0-9]' | tail -10 ; \
+		(read -p "Please enter rc tag: " TAG && echo $${TAG} > /tmp/rc.tag) ; \
 	fi
 	git tag -a $$(cat /tmp/rc.tag)
 
