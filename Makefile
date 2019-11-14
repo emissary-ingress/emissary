@@ -112,6 +112,7 @@ tag-rc:
 aes-rc: update-yaml
 	@$(MAKE) --no-print-directory tag-rc
 	@$(MAKE) --no-print-directory final-push
+	@printf "Please check your release here: https://circleci.com/gh/datawire/apro\n"
 
 aes-rc-now: update-yaml
 	@if [ -n "$$(git status --porcelain)" ]; then \
