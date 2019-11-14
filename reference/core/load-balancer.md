@@ -48,9 +48,10 @@ spec:
     policy: round_robin
 ```
 
-Note that load balancing may not appear to be "even" due to Envoy's threading model. For more details, see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest/faq/concurrency_lb).
+Note that load balancing may not appear to be "even" due to Envoy's threading model. For more details, see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest/faq/load_balancing/concurrency_lb).
 
 ## Least Request
+
 When policy is set to `least_request`, Ambassador Edge Stack discovers healthy endpoints for the given mapping, and load balances the incoming L7 requests to the endpoint with the fewest active requests. For example:
 
 ```yaml

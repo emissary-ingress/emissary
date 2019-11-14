@@ -79,7 +79,7 @@ These attributes are less commonly used, but can be used to override Ambassador 
 | `case_sensitive`          | determines whether `prefix` matching is case-sensitive; defaults to True |
 | [`host_redirect`](/reference/redirects) | if true, this `Mapping` performs an HTTP 301 `Redirect`, with the host portion of the URL replaced with the `service` value. |
 | [`path_redirect`](/reference/redirects)           | if set when `host_redirect` is also true, the path portion of the URL will replaced with the `path_redirect` value in the HTTP 301 `Redirect`. |
-| [`precedence`](#a-nameprecedencea-using-precedence)           | an integer overriding Ambassador Edge Stack's internal ordering for `Mapping`s. An absent `precedence` is the same as a `precedence` of 0. Higher `precedence` values are matched earlier. |
+| [`precedence`](#using-precedence)           | an integer overriding Ambassador Edge Stack's internal ordering for `Mapping`s. An absent `precedence` is the same as a `precedence` of 0. Higher `precedence` values are matched earlier. |
 | `bypass_auth`             | if true, tells Ambassador Edge Stack that this service should bypass `ExtAuth` (if configured) |
 
 The name of the mapping must be unique. If no `method` is given, all methods will be proxied.
@@ -245,7 +245,7 @@ spec:
   service: https://www.getambassador.io
 ```
 
-###  <a name="precedence"></a> Using `precedence`
+### Using `precedence`
 
 Ambassador Edge Stack sorts mappings such that those that are more highly constrained are evaluated before those less highly constrained. The prefix length, the request method and the constraint headers are all taken into account. These mechanisms, however, may not be sufficient to guarantee the correct ordering when regular expressions or highly complex constraints are in play.
 
@@ -253,7 +253,7 @@ For those situations, a `Mapping` can explicitly specify the `precedence`. A `Ma
 
 If multiple `Mapping`s have the same `precedence`, Ambassador Edge Stack's normal sorting determines the ordering within the `precedence`; however, there is no way that Ambassador Edge Stack can ever sort a `Mapping` with a lower `precedence` ahead of one at a higher `precedence`.
 
-###  <a name="using-tls"></a> Using `tls`
+### Using `tls`
 
 In most cases, you won't need the `tls` attribute: just use a `service` with an `https://` prefix. However, note that if the `tls` attribute is present and `true`, Ambassador Edge Stack will originate TLS even if the `service` does not have the `https://` prefix.
 
@@ -271,5 +271,3 @@ Given that `AMBASSADOR_NAMESPACE` is correctly set, Ambassador Edge Stack can ma
 When using Linkerd, requests going to an upstream service need to include the `l5d-dst-override` header to ensure that Linkerd will route them correctly. Setting `add_linkerd_headers` does this automatically, based on the `service` attribute in the `Mapping`. 
 
 If `add_linkerd_headers` is not specified for a given `Mapping`, the default is taken from the [`ambassador Module`](/reference/modules). The overall default is `false`: you must explicitly enable `add_linkerd_headers` for Ambassador Edge Stack to add the header for you (although you can always add it yourself with `add_request_headers`, of course).
-
-

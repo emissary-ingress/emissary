@@ -4,7 +4,7 @@ In this tutorial, we'll configure Ambassador Edge Stack to initiate a trace on s
 
 ## Before You Get Started
 
-This tutorial assumes you have already followed the [Ambassador Edge Stack Getting Started](/user-guide/getting-started) guide. If you haven't done that already, you should do that now.
+This tutorial assumes you have already followed the Ambassador Edge Stack [Getting Started](/user-guide/getting-started) guide. If you haven't done that already, you should do that now.
 
 After completing the Getting Started guide you will have a Kubernetes cluster running Ambassador Edge Stack and the Quote of the Moment service. Let's walk through adding tracing to this setup.
 
@@ -12,7 +12,7 @@ After completing the Getting Started guide you will have a Kubernetes cluster ru
 
 In this tutorial you will use a simple deployment of the open source [Zipkin](https://zipkin.io/) distributed tracing system to store and visualize the Ambassador Edge Stack-generated traces. The trace data will be stored in-memory within the Zipkin container, and you will be able to explore the traces via the Zipkin web UI.
 
-First, add the following YAML to a file named `zipkin.yaml`. This configuration will create a zipkin Deployment that uses the [`openzipkin/zipkin`](https://hub.docker.com/r/openzipkin/zipkin/) container image and also an associated Service. You will notice that the Service also has an notation on it that configures Ambassador Edge Stack to use the zipkin service (running on the default port of 9411) to provide tracing support.
+First, add the following YAML to a file named `zipkin.yaml`. This configuration will create a zipkin Deployment that uses the [openzipkin/zipkin](https://hub.docker.com/r/openzipkin/zipkin/) container image and also an associated Service. You will notice that the Service also has an notation on it that configures Ambassador Edge Stack to use the zipkin service (running on the default port of 9411) to provide tracing support.
 
 ```yaml
 ---

@@ -10,7 +10,7 @@ This allows the operator to have the best of both worlds: a high performance, mo
 
 Getting Ambassador Edge Stack working with Istio is straightforward. In this example, we'll use the `bookinfo` sample application from Istio.
 
-1. Install Istio on Kubernetes, following [the default instructions](https://istio.io/docs/setup/kubernetes/install/kubernetes/) (without using mutual TLS auth between sidecars)
+1. Install Istio on Kubernetes, following [the default instructions](https://istio.io/docs/setup/platform-setup/gke/) (without using mutual TLS auth between sidecars)
 2. Next, install the Bookinfo sample application, following the [instructions](https://istio.io/docs/examples/bookinfo/#if-you-are-running-on-kubernetes).
 3. Verify that the sample application is working as expected.
 
@@ -276,9 +276,9 @@ In the definition above we also have TLS termination enabled; please see [the TL
 
 ### PERMISSIVE mTLS
 
-Istio can be configured in either [`PERMISSIVE`](https://istio.io/docs/concepts/security/#permissive-mode) or STRICT mode for mTLS. `PERMISSIVE` mode allows for services to opt-in to mTLS to make the transition easier.
+Istio can be configured in either [PERMISSIVE](https://istio.io/docs/concepts/security/#permissive-mode) or STRICT mode for mTLS. `PERMISSIVE` mode allows for services to opt-in to mTLS to make the transition easier.
 
-For service-to-service calls via the Istio proxy, Istio will automatically handle this mTLS opt-in when you configure a [`DestinationRule`](https://istio.io/docs/reference/config/networking/v1alpha3/destination-rule/). However, since there is no Istio proxy running sidecar to Ambassador Edge Stack, to do mTLS between Ambassador Edge Stack and an Istio service in `PERMISSIVE` mode, we need to tell the service to listen for mTLS traffic by setting `alpn_protocols: "istio"` in the `TLSContext`:
+For service-to-service calls via the Istio proxy, Istio will automatically handle this mTLS opt-in when you configure a [DestinationRule](https://istio.io/docs/concepts/traffic-management/#destination-rules). However, since there is no Istio proxy running sidecar to Ambassador Edge Stack, to do mTLS between Ambassador Edge Stack and an Istio service in `PERMISSIVE` mode, we need to tell the service to listen for mTLS traffic by setting `alpn_protocols: "istio"` in the `TLSContext`:
 
 ```yaml
 ---

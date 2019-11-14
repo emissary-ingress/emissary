@@ -4,7 +4,7 @@ Prometheus is an open-source monitoring and alerting system. When used along wit
 
 ## Deployment
 
-This guide will focus on deploying Prometheus and Grafana alongside Ambassador Edge Stack in Kubernetes using the [Prometheus Operator](https://github.com/coreos/prometheus-operator)
+This guide will focus on deploying Prometheus and Grafana alongside Ambassador Edge Stack in Kubernetes using the [Prometheus Operator](https://github.com/coreos/prometheus-operator).
 
 **Note:** Both Prometheus and Grafana can be deployed as standalone applications outside of Kubernetes. This process is well-documented within the website and docs for their respective projects.
 

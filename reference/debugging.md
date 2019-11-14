@@ -22,7 +22,7 @@ If Ambassador Edge Stack is not starting or is not behaving as you would expect,
 ## Example Config for Debug Demonstrations
 
 The following debugging instructions assume that Ambassador Edge Stack and the following services from the
-[creating a service](/dev-guide/service-preview/#create-a-service) example have been deployed to a Kubernetes cluster.
+[creating a service](/docs/dev-guide/service-preview/#create-a-service) example have been deployed to a Kubernetes cluster.
 
 e.g. Create a cluster in GKE with RBAC support enabled and your user account configured correctly:
 

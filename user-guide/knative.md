@@ -17,7 +17,7 @@ Ambassador Edge Stack can watch for changes in Knative configuration in your Kub
 
 - Knative requires a Kubernetes cluster v1.11 or newer with the MutatingAdmissionWebhook admission controller enabled. kubectl v1.10 is also required. This guide assumes that you’ve already created a Kubernetes cluster which you’re comfortable installing alpha software on.
 
-- Ambassador Edge Stack should be installed in your cluster. Follow one of the [installation guides](https://www.getambassador.io/user-guide/install) for instructions on installing Ambassador Edge Stack.
+- Ambassador Edge Stack should be installed in your cluster. Follow one of the [installation guides](/user-guide/install) for instructions on installing Ambassador Edge Stack.
 
 #### Installation
 
