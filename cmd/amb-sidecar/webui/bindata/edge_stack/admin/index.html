@@ -21,7 +21,7 @@
       }
 
       #ambassador-logo {
-        background-color: black;
+        background-color: white;
         padding: 5px;
         width: 456px;
         height: 42px;
@@ -68,13 +68,9 @@
         padding: 0.5em;
         background-color: #FFe8e8;
       }
-    </style>
 
-
-    <style>
-      div.host,
-      div.mapping {
-        padding: 1em 1em;
+      div.host, div.mapping {
+          padding: 1em 1em;
       }
 
       span.json {
@@ -91,9 +87,9 @@
   <body>
     <div id="all-wrapper">
       <div id="ambassador-logo">
-	<a href="https://www.getambassador.io/">
-	  <img src="https://www.getambassador.io/images/ambassador-logo-white.svg" alt="Ambassador Edge Stack" />
-	</a>
+        <a href="https://www.getambassador.io/">
+          <img src="https://www.getambassador.io/images/ambassador-logo-black.svg" alt="Ambassador Edge Stack" />
+        </a>
       </div>
 
       <div id="main">
@@ -114,9 +110,13 @@
             </div>
           </dw-tab>
 
-          <dw-tab name="Mappings">
-            <h2>Mappings </h2>
-            <a id="add-mapping" style="cursor:pointer;color:blue;text-decoration:underline;">add</a>
+          <dw-tab name="Mappings">    
+            <h2>Mappings</h2>
+
+            <p>A Mapping is an association between a URL (called a prefix) and a target
+              service (called a target).
+            </p>
+            <a id="add-mapping" style="cursor:pointer;color:blue;text-decoration:underline;">Add a Mapping</a>
             <div id="add-mapping-form" style="display:none">
               Name: <input id="add-mapping-name" type="text" name="prefix"/>
               Prefix: <input id="add-mapping-prefix" type="text" name="prefix"/>
@@ -274,17 +274,17 @@
 
       $("#add-mapping-button").click((e) => {
         let yaml = `
-  ---
-  apiVersion: getambassador.io/v1
-  kind: Mapping
-  metadata:
-    name: "${$("#add-mapping-name").val()}"
-    namespace: default
-  spec:
-    prefix: "${$("#add-mapping-prefix").val()}"
-    rewrite: "${$("#add-mapping-rewrite").val()}"
-    service: "${$("#add-mapping-target").val()}"
-  `
+---
+apiVersion: getambassador.io/v1
+kind: Mapping
+metadata:
+  name: "${$("#add-mapping-name").val()}"
+  namespace: default
+spec:
+  prefix: "${$("#add-mapping-prefix").val()}"
+  rewrite: "${$("#add-mapping-rewrite").val()}"
+  service: "${$("#add-mapping-target").val()}"
+`
         $.post("/edge_stack/api/apply", yaml, null, "text").fail(xhr => {
           alert("BAD\n\n" + yaml + "\n\n" + xhr.responseText)
         }).done(resp => {
