@@ -20,7 +20,7 @@
 	  margin-left: 10%;
       }
       #ambassador-logo {
-	  background-color: black;
+	  background-color: white;
 	  padding: 5px;
 	  width: 456px;
 	  height: 42px;
@@ -89,7 +89,7 @@
     <div id="all-wrapper">
       <div id="ambassador-logo">
 	<a href="https://www.getambassador.io/">
-	  <img src="https://www.getambassador.io/images/ambassador-logo-white.svg" alt="Ambassador Edge Stack" /> 
+	  <img src="https://www.getambassador.io/images/ambassador-logo-black.svg" alt="Ambassador Edge Stack" /> 
 	</a>
       </div>
 
@@ -101,15 +101,22 @@
 
           <dw-tab name="Hosts">
             <h2>Hosts</h2>
-            <a href="../tls/" class="auth">add</a>
+
+            <p>A Host represents a domain that is managed by Ambassador, e.g., example.org.</p>
+
+            <a href="../tls/" class="auth">Add a Host</a>
             <div class="info-blob">
               <div id="hosts"></div>
             </div>
           </dw-tab>
 
           <dw-tab name="Mappings">    
-            <h2>Mappings </h2>
-            <a id="add-mapping" style="cursor:pointer;color:blue;text-decoration:underline;">add</a>
+            <h2>Mappings</h2>
+
+            <p>A Mapping is an association between a URL (called a prefix) and a target
+              service (called a target).
+            </p>
+            <a id="add-mapping" style="cursor:pointer;color:blue;text-decoration:underline;">Add a Mapping</a>
             <div id="add-mapping-form" style="display:none">
               Name: <input id="add-mapping-name" type="text" name="prefix"/>
               Prefix: <input id="add-mapping-prefix" type="text" name="prefix"/>
@@ -226,7 +233,7 @@
           hostsDiv.append(renderKind(host))
         })
         if (hosts.length == 0) {
-          hostsDiv.append(`<p>there are no hosts, click <a href="../tls/${window.location.hash}">here</a> to create some</p>`)
+          hostsDiv.append(`<p>There are no hosts defined.`)
         }
 
         let mappings = kube.Mapping || []
@@ -235,7 +242,7 @@
           mappingsDiv.append(renderKind(mapping))
         })
         if (mappings.length == 0) {
-          mappingsDiv.append(`<p>there are no mappings, click <a href="todo">here</a> to create some</p>`)
+          mappingsDiv.append(`<p>There are no mappings defined.`)
         }
 
         $("details").each((i, e)=>{
