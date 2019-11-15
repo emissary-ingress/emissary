@@ -94,3 +94,7 @@ IDP_UAA_CLIENT_SECRET=ambassador
 IDP_GOOGLE_PROVIDER_URL=https://accounts.google.com/
 IDP_GOOGLE_CLIENT_ID=863968914497-8u7d8610nhvnpdf52s3krtsqahlss5mv.apps.googleusercontent.com
 IDP_GOOGLE_CLIENT_SECRET=x1LhmCCGk_5AHs3iGlRiyvOV
+# Make sure that:
+#  - "http://localhost:31001/callback" is added in "Authorized redirect URIs"
+#  - ./tests/cluster/go-test/filter-oauth2/testdata/idp_google.js listens on http://localhost:31001/callback and redirects it to "${AUTH_TENANT_URL}/callback" (preserving the query string)
+#  - A test user account is set up (and configured in ./tests/cluster/go-test/filter-oauth2/testdata/idp_google.js)
