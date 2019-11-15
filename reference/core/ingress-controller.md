@@ -184,7 +184,7 @@ spec:
   service: exampleservice:8080
 ```
 
-### [Name based virtual hosting](https://kubernetes.io/docs/concepts/services-networking/ingress/#name-based-virtual-hosting) with an Ambassador  =Edge Stack ID
+### [Name based virtual hosting](https://kubernetes.io/docs/concepts/services-networking/ingress/#name-based-virtual-hosting) with an Ambassador Edge Stack ID
 
 ```yaml
 ---

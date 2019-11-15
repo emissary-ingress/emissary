@@ -46,7 +46,7 @@ spec:
 
 ## External Rate Limit Service
 
-In order for Ambassador Edge Stack to rate limit, you need to implement a gRPC service that supports the Envoy [ratelimit.proto](https://github.com/datawire/ambassador/blob/master/ambassador/common/ratelimit/ratelimit.proto) interface. If you do not have the time or resources to implement your own rate limit service, [Ambassador Edge Stack](/pro) integrates a high performance, rate limiting service.
+In order for Ambassador Edge Stack to rate limit, you need to implement a gRPC service that supports the Envoy [ratelimit.proto](https://github.com/datawire/ambassador/tree/master/docker/test-ratelimit/ratelimit.proto) interface. If you do not have the time or resources to implement your own rate limit service, Ambassador Edge Stack integrates a high performance, rate limiting service.
 
 Ambassador Edge Stack generates a gRPC request to the external rate limit service and provides a list of labels on which the rate limit service can base its decision to accept or reject the request:
 
