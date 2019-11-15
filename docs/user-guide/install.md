@@ -18,8 +18,8 @@ Ambassador is designed to run in Kubernetes for production. <a href="/user-guide
 
 ## Other methods
 
-You can also install Ambassador using Helm, Docker, or Docker Compose.
+You can also install Ambassador using Helm, Kustomize, Docker, or Docker Compose.
 
-| [![Helm](/doc-images/helm.png)](/user-guide/helm) | [![Docker](/doc-images/docker.png)](/about/quickstart) | [![Docker Compose](/doc-images/docker-compose.png)](/user-guide/docker-compose)
-| --- | --- | --- |
-| Helm is a package manager for Kubernetes. Ambassador comes pre-packaged as a Helm chart. [Deploy to Kubernetes via Helm.](/user-guide/helm) | The Docker install will let you try Ambassador locally in seconds, but is not supported for production. [Try via Docker.](/about/quickstart) | The Docker Compose setup gives you a local development environment (a good alternative to Minikube), but is not suitable for production. [Set up with Docker Compose.](/user-guide/docker-compose)
+| [![Helm](/doc-images/helm.png)](/user-guide/helm)  | [![Kustomize](/doc-images/kustomize.png)](/user-guide/kustomize) | [![Docker](/doc-images/docker.png)](/about/quickstart) | [![Docker Compose](/doc-images/docker-compose.png)](/user-guide/docker-compose)
+| --- | --- | --- | --- |
+| Helm is a package manager for Kubernetes. Ambassador comes pre-packaged as a Helm chart. [Deploy to Kubernetes via Helm.](/user-guide/helm) | Ambassador comes with a base kustomization that you can use to deploy or customize. [Deploy to Kubernetes with Kustomize.](/user-guide/kustomize) | The Docker install will let you try Ambassador locally in seconds, but is not supported for production. [Try via Docker.](/about/quickstart) | The Docker Compose setup gives you a local development environment (a good alternative to Minikube), but is not suitable for production. [Set up with Docker Compose.](/user-guide/docker-compose)
