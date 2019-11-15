@@ -22,6 +22,7 @@ metadata:
   name: ambassador
 spec:
   type: LoadBalancer
+  externalTrafficPolicy: Local
   ports:
   - name: ambassador-https
     port: 443
