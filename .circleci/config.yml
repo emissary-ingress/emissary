@@ -197,8 +197,13 @@ commands:
     steps:
       - checkout
       - run: make target_does_not_exist || true
+      - run: ln -s project/ambassador ../ambassador
       - run: ./ambassador/builder/module_version.sh apro
-      - run: ./ambassador/builder/build_push_cli.sh build
+      - with-go-mod-cache:
+          steps:
+            - with-go-build-cache:
+                steps:
+                  - run: ./ambassador/builder/build_push_cli.sh build
 
 jobs:
 
