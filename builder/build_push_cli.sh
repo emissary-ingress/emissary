@@ -24,7 +24,7 @@ source <("${SRCDIR}/module_version.sh" unused)
 
 case "$1" in
     build)
-        go build -trimpath -ldflags "-X main.Version=$BUILD_VERSION" -o ~/bin/edgectl "${SRCDIR}/../cmd/edgectl"
+        cd "${SRCDIR}/.." && go build -trimpath -ldflags "-X main.Version=$BUILD_VERSION" -o ~/bin/edgectl ./cmd/edgectl
         ;;
     push)
         # Push this OS/arch binary
