@@ -55,16 +55,16 @@ export class Signup extends LitElement {
   handleSubmit() {
     if (this.email().value == "") {
       this.email().classList.add("invalid")
-      this.message = "please supply an email"
+      this.message = "Please supply an email."
     } else if (this.email().value != this.confirm().value) {
       this.email().classList.remove("invalid")
       this.confirm().classList.add("invalid")
-      this.message = "emails do not match"
+      this.message = "Emails do not match."
     } else {
       console.log("blah")
       this.email().classList.remove("invalid")
       this.confirm().classList.remove("invalid")
-      this.message = "Posting..."
+      this.message = "Requesting a license key..."
       this.state = "pending"
 
       fetch("https://metriton.datawire.io/signup", {
@@ -81,7 +81,7 @@ export class Signup extends LitElement {
         .then(res=>{
           console.log(res);
           if ("vid" in res) {
-            this.message = "Congratulations, please look for an email to " + this.email().value
+            this.message = "Congratulations! A license key has been sent to " + this.email().value
           } else {
             this.message = "Sorry, there was a problem processing your request. Please contact support@datawire.io and supply this:<br>" + btoa(JSON.stringify(res))
           }
@@ -101,7 +101,7 @@ export class Signup extends LitElement {
   render() {
     return html`
 <button @click=${this.handleSignup} style="display:${this.state == "start" ? "block" : "none"}">
-  Click here to sign up for a community license.
+  Click here to sign up for a free Community license.
 </button>
 
 <div style="display:${this.state == "entry" ? "block" : "none"}">
