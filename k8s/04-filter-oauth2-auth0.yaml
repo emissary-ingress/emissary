@@ -1,6 +1,6 @@
 # @TEMPLATE@
 ---
-apiVersion: getambassador.io/v1beta2
+apiVersion: getambassador.io/v2
 kind: Filter
 metadata:
   name: auth0
@@ -14,7 +14,7 @@ spec:
     secret: {{env "IDP_AUTH0_CLIENT_SECRET"}}
     maxStale: 12h
 ---
-apiVersion: getambassador.io/v1beta2
+apiVersion: getambassador.io/v2
 kind: Filter
 metadata:
   name: auth0-k8s
@@ -28,7 +28,7 @@ spec:
     secretName: auth0-secret
     maxStale: 12h
 ---
-apiVersion: getambassador.io/v1beta2
+apiVersion: getambassador.io/v2
 kind: Filter
 metadata:
   name: wiki-plugin
@@ -39,7 +39,7 @@ spec:
   Plugin:
     name: wiki-plugin
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
   name: filter-oauth2-auth0-mapping-1
@@ -50,7 +50,7 @@ spec:
   host_rewrite: httpbin.org
   timeout_ms: 5000
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
   name: filter-oauth2-auth0-mapping-2
@@ -62,7 +62,7 @@ spec:
   host_rewrite: httpbin.org
   timeout_ms: 5000
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
   name: filter-oauth2-auth0-mapping-3
@@ -74,7 +74,7 @@ spec:
   host_rewrite: httpbin.org
   timeout_ms: 5000
 ---
-apiVersion: getambassador.io/v1beta2
+apiVersion: getambassador.io/v2
 kind: FilterPolicy
 metadata:
   name: filter-oauth2-auth0-policy

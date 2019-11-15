@@ -1,17 +1,17 @@
 # @TEMPLATE@
 ---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: mapping-for-intercepted
+spec:
+  prefix: /intercepted/
+  service: intercepted
+---
 apiVersion: v1
 kind: Service
 metadata:
   name: intercepted
-  annotations:
-    getambassador.io/config: |
-      ---
-      apiVersion: ambassador/v1
-      kind: apping
-      name: mapping_for_intercepted
-      prefix: /intercepted/
-      service: intercepted
 spec:
   type: ClusterIP
   selector:

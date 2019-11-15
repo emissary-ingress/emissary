@@ -1,5 +1,5 @@
 ---
-apiVersion: getambassador.io/v1beta2
+apiVersion: getambassador.io/v2
 kind: Filter
 metadata:
   name: load-filter-jwt-filter
@@ -12,7 +12,7 @@ spec:
     audience: "myapp"
     requireAudience: false
 ---
-apiVersion: getambassador.io/v1beta2
+apiVersion: getambassador.io/v2
 kind: FilterPolicy
 metadata:
   name: load-filter-jwt-filterpolicy

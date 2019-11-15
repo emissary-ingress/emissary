@@ -1,5 +1,5 @@
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
   name: filter-actions-on-mapping
@@ -11,7 +11,7 @@ spec:
   host_rewrite: httpbin.org
   timeout_ms: 5000
 ---
-apiVersion: getambassador.io/v1beta2
+apiVersion: getambassador.io/v2
 kind: FilterPolicy
 metadata:
   name: filter-actions-on-policy
@@ -28,7 +28,7 @@ spec:
 
 
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
   name: filter-actions-if-mapping
@@ -40,7 +40,7 @@ spec:
   host_rewrite: httpbin.org
   timeout_ms: 5000
 ---
-apiVersion: getambassador.io/v1beta2
+apiVersion: getambassador.io/v2
 kind: FilterPolicy
 metadata:
   name: filter-actions-if-policy

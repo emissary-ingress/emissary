@@ -1,17 +1,17 @@
 ---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: load-testing-base
+spec:
+  prefix: /load-testing/
+  service: load-http-echo
+---
 apiVersion: v1
 kind: Service
 metadata:
   name: load-http-echo
   namespace: default
-  annotations:
-    getambassador.io/config: |
-      ---
-      apiVersion: ambassador/v1
-      kind: Mapping
-      name: load_testing_base
-      prefix: /load-testing/
-      service: load-http-echo
 spec:
   selector:
     app: load-http-echo

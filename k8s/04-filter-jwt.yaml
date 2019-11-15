@@ -15,7 +15,7 @@
 #     "iat": 1516239022
 #   }
 ---
-apiVersion: getambassador.io/v1beta2
+apiVersion: getambassador.io/v2
 kind: Filter
 metadata:
   name: jwt-filter
@@ -88,7 +88,7 @@ spec:
         }
 
 ---
-apiVersion: getambassador.io/v1beta2
+apiVersion: getambassador.io/v2
 kind: FilterPolicy
 metadata:
   name: jwt-filter-policy
@@ -100,7 +100,7 @@ spec:
       filters:
         - name: jwt-filter
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
   name: jwt-filter-mapping

@@ -1,5 +1,5 @@
 ---
-apiVersion: getambassador.io/v1beta2
+apiVersion: getambassador.io/v2
 kind: RateLimit
 metadata:
   name: amb
@@ -10,7 +10,7 @@ spec:
     rate: 3
     unit: minute
 ---
-apiVersion: getambassador.io/v1beta2
+apiVersion: getambassador.io/v2
 kind: RateLimit
 metadata:
   name: rlfoo
@@ -27,7 +27,7 @@ spec:
     unit: day
     rate: 5
 ---
-apiVersion: getambassador.io/v1beta2
+apiVersion: getambassador.io/v2
 kind: RateLimit
 metadata:
   name: rlbar
@@ -44,7 +44,7 @@ spec:
     unit: day
     rate: 5
 ---
-apiVersion: getambassador.io/v1beta2
+apiVersion: getambassador.io/v2
 kind: RateLimit
 metadata:
   name: rlbaz
@@ -61,7 +61,7 @@ spec:
     unit: day
     rate: 5
 ---
-apiVersion: getambassador.io/v1beta2
+apiVersion: getambassador.io/v2
 kind: RateLimit
 metadata:
   name: rlqux

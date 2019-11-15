@@ -1,6 +1,6 @@
 # @TEMPLATE@
 ---
-apiVersion: getambassador.io/v1beta2
+apiVersion: getambassador.io/v2
 kind: Filter
 metadata:
   name: azure
@@ -12,7 +12,7 @@ spec:
     clientID: {{env "IDP_AZURE_CLIENT_ID"}}
     secret: {{env "IDP_AZURE_CLIENT_SECRET"}}
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
   name: filter-oauth2-azure-mapping
@@ -24,7 +24,7 @@ spec:
   host_rewrite: httpbin.org
   timeout_ms: 5000
 ---
-apiVersion: getambassador.io/v1beta2
+apiVersion: getambassador.io/v2
 kind: FilterPolicy
 metadata:
   name: filter-oauth2-azure-policy

@@ -1,21 +1,21 @@
 ---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: load-testing-rl-second
+spec:
+  prefix: /load-testing/rl-second/
+  service: load-http-echo
+  labels:
+    ambassador:
+      - request_label_group:
+        - second
+---
 apiVersion: v1
 kind: Service
 metadata:
   name: load-second
   namespace: default
-  annotations:
-    getambassador.io/config: |
-      ---
-      apiVersion: ambassador/v1
-      kind: Mapping
-      name: load_testing_rl_second
-      prefix: /load-testing/rl-second/
-      service: load-http-echo
-      labels:
-        ambassador:
-          - request_label_group:
-            - second
 spec:
   selector:
     app: load-http-echo
@@ -24,7 +24,7 @@ spec:
     name: http
     targetPort: http-api
 ---
-apiVersion: getambassador.io/v1beta2
+apiVersion: getambassador.io/v2
 kind: RateLimit
 metadata:
   name: second-rate-limit

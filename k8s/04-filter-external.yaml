@@ -1,7 +1,7 @@
 # @TEMPLATE@
 
 ---
-apiVersion: getambassador.io/v1beta2
+apiVersion: getambassador.io/v2
 kind: Filter
 metadata:
   name: grpc-auth-filter
@@ -46,7 +46,7 @@ spec:
           containerPort: 3000
 
 ---
-apiVersion: getambassador.io/v1beta2
+apiVersion: getambassador.io/v2
 kind: Filter
 metadata:
   name: http-auth-filter
@@ -97,7 +97,7 @@ spec:
           containerPort: 4000
 
 ---
-apiVersion: getambassador.io/v1beta2
+apiVersion: getambassador.io/v2
 kind: FilterPolicy
 metadata:
   name: external-policy
@@ -113,31 +113,22 @@ spec:
       filters:
         - name: http-auth-filter
 ---
-apiVersion: v1
-kind: Service
+apiVersion: getambassador.io/v2
+kind: Mapping
 metadata:
-  name: external-httpbin
-  namespace: default
-  annotations:
-    getambassador.io/config: |
-      ---
-      apiVersion: ambassador/v1
-      kind: Mapping
-      name: external-grpc-mapping
-      prefix: /external-grpc/
-      service: httpbin.org:80
-      host_rewrite: httpbin.org
-      timeout_ms: 5000
-      ---
-      apiVersion: ambassador/v1
-      kind: Mapping
-      name: external-http-mapping
-      prefix: /external-http/
-      service: httpbin.org:80
-      host_rewrite: httpbin.org
-      timeout_ms: 5000
+  name: external-grpc-mapping
 spec:
-  type: ClusterIP
-  ports:
-  - name: external-httpbin
-    port: 80
+  prefix: /external-grpc/
+  service: httpbin.org:80
+  host_rewrite: httpbin.org
+  timeout_ms: 5000
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: external-http-mapping
+spec:
+  prefix: /external-http/
+  service: httpbin.org:80
+  host_rewrite: httpbin.org
+  timeout_ms: 5000

@@ -1,19 +1,19 @@
 # @TEMPLATE@
 
 ---
+apiVersion: getambassador.io/v2
+kind:  Mapping
+metadata:
+  name:  openapi-mapping
+spec:
+  prefix: /openapi/
+  service: openapi
+---
 apiVersion: v1
 kind: Service
 metadata:
   name: openapi
   namespace: default
-  annotations:
-    getambassador.io/config: |
-      ---
-      apiVersion: ambassador/v1
-      kind:  Mapping
-      name:  openapi_mapping
-      prefix: /openapi/
-      service: openapi
 spec:
   selector:
     app: openapi

@@ -1,17 +1,17 @@
 # @TEMPLATE@
 ---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: mapping-for-echo
+spec:
+  prefix: /echo/
+  service: echo
+---
 apiVersion: v1
 kind: Service
 metadata:
   name: echo
-  annotations:
-    getambassador.io/config: |
-      ---
-      apiVersion: ambassador/v1
-      kind: Mapping
-      name: mapping_for_echo
-      prefix: /echo/
-      service: echo
 spec:
   type: ClusterIP
   selector:
