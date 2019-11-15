@@ -4,8 +4,9 @@
 
 Behavior:
 
- * Feature: Developer portal can check out a non-default branch. Control with APRO_DEVPORTAL_CONTENT_BRANCH env var
- * Feature: Developer portal can use a subdir of a checkout. Control with APRO_DEVPORTAL_CONTENT_DIR env var
+ * Renamed environment variable APRO_DEVPORTAL_CONTENT_URL to DEVPORTAL_CONTENT_URL
+ * Feature: Developer portal can check out a non-default branch. Control with DEVPORTAL_CONTENT_BRANCH env var
+ * Feature: Developer portal can use a subdir of a checkout. Control with DEVPORTAL_CONTENT_DIR env var
  * `apictl traffic initialize` no longer waits for the traffic-proxy to become ready before exiting.
  * Feature: Developer portal will show swagger documentation for up to five services (or more with appropriate license)
  * Feature: local-devportal is now a standalone go binary with no external dependencies
