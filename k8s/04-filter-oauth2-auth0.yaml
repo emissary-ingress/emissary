@@ -4,7 +4,6 @@ apiVersion: getambassador.io/v2
 kind: Filter
 metadata:
   name: auth0
-  namespace: default
 spec:
   OAuth2:
     authorizationURL: {{env "IDP_AUTH0_PROVIDER_URL"}}
@@ -18,7 +17,6 @@ apiVersion: getambassador.io/v2
 kind: Filter
 metadata:
   name: auth0-k8s
-  namespace: default
 spec:
   OAuth2:
     authorizationURL: {{env "IDP_AUTH0_PROVIDER_URL"}}
@@ -32,7 +30,6 @@ apiVersion: getambassador.io/v2
 kind: Filter
 metadata:
   name: wiki-plugin
-  namespace: default
 spec:
   # set ambassador_id as a test of https://github.com/datawire/apro/issues/227
   ambassador_id: "default"
@@ -43,7 +40,6 @@ apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
   name: filter-oauth2-auth0-mapping-1
-  namespace: default
 spec:
   prefix: /httpbin/
   service: httpbin.org:80
@@ -54,7 +50,6 @@ apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
   name: filter-oauth2-auth0-mapping-2
-  namespace: default
 spec:
   prefix: /auth0/httpbin/
   rewrite: /
@@ -66,7 +61,6 @@ apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
   name: filter-oauth2-auth0-mapping-3
-  namespace: default
 spec:
   prefix: /auth0-k8s/httpbin/
   rewrite: /
@@ -78,7 +72,6 @@ apiVersion: getambassador.io/v2
 kind: FilterPolicy
 metadata:
   name: filter-oauth2-auth0-policy
-  namespace: default
 spec:
   rules:
     # /httpbin/

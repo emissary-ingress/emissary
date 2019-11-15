@@ -5,10 +5,9 @@ apiVersion: getambassador.io/v2
 kind: Filter
 metadata:
   name: grpc-auth-filter
-  namespace: default
 spec:
   External:
-    auth_service: "grpc-auth:3000"
+    auth_service: "grpc-auth.default.svc.cluster.local:3000"
     proto: grpc
     allow_request_body: false
 ---
@@ -16,7 +15,6 @@ apiVersion: v1
 kind: Service
 metadata:
   name: grpc-auth
-  namespace: default
 spec:
   type: ClusterIP
   selector:
@@ -30,7 +28,6 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   name: grpc-auth
-  namespace: default
 spec:
   replicas: 1
   template:
@@ -50,10 +47,9 @@ apiVersion: getambassador.io/v2
 kind: Filter
 metadata:
   name: http-auth-filter
-  namespace: default
 spec:
   External:
-    auth_service: "http-auth:4000"
+    auth_service: "http-auth.default.svc.cluster.local:4000"
     path_prefix: "/frobnitz"
     proto: http
     allowed_request_headers:
@@ -67,7 +63,6 @@ apiVersion: v1
 kind: Service
 metadata:
   name: http-auth
-  namespace: default
 spec:
   type: ClusterIP
   selector:
@@ -81,7 +76,6 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   name: http-auth
-  namespace: default
 spec:
   replicas: 1
   template:
@@ -101,7 +95,6 @@ apiVersion: getambassador.io/v2
 kind: FilterPolicy
 metadata:
   name: external-policy
-  namespace: default
 spec:
   rules:
     - host: "*"

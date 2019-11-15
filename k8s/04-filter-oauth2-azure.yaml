@@ -4,7 +4,6 @@ apiVersion: getambassador.io/v2
 kind: Filter
 metadata:
   name: azure
-  namespace: default
 spec:
   OAuth2:
     authorizationURL: {{env "IDP_AZURE_PROVIDER_URL"}}
@@ -16,7 +15,6 @@ apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
   name: filter-oauth2-azure-mapping
-  namespace: default
 spec:
   prefix: /azure/httpbin/
   rewrite: /
@@ -28,7 +26,6 @@ apiVersion: getambassador.io/v2
 kind: FilterPolicy
 metadata:
   name: filter-oauth2-azure-policy
-  namespace: default
 spec:
   rules:
     - host: "*"

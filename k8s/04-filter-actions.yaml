@@ -3,7 +3,6 @@ apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
   name: filter-actions-on-mapping
-  namespace: standalone
 spec:
   prefix: /filter-actions/on/
   rewrite: /
@@ -15,7 +14,6 @@ apiVersion: getambassador.io/v2
 kind: FilterPolicy
 metadata:
   name: filter-actions-on-policy
-  namespace: standalone
 spec:
   rules:
   - host: "*"
@@ -32,7 +30,6 @@ apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
   name: filter-actions-if-mapping
-  namespace: standalone
 spec:
   prefix: /filter-actions/if/
   rewrite: /
@@ -44,7 +41,6 @@ apiVersion: getambassador.io/v2
 kind: FilterPolicy
 metadata:
   name: filter-actions-if-policy
-  namespace: standalone
 spec:
   rules:
   - host: "*"

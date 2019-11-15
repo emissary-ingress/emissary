@@ -3,7 +3,6 @@ apiVersion: getambassador.io/v2
 kind: Filter
 metadata:
   name: load-filter-jwt-filter
-  namespace: default
 spec:
   JWT:
     jwksURI: "https://getambassador-demo.auth0.com/.well-known/jwks.json"
@@ -16,7 +15,6 @@ apiVersion: getambassador.io/v2
 kind: FilterPolicy
 metadata:
   name: load-filter-jwt-filterpolicy
-  namespace: default
 spec:
   rules:
   - host: "*"

@@ -19,7 +19,6 @@ apiVersion: getambassador.io/v2
 kind: Filter
 metadata:
   name: jwt-filter
-  namespace: default
 spec:
   JWT:
     jwksURI: "https://getambassador-demo.auth0.com/.well-known/jwks.json"
@@ -92,7 +91,6 @@ apiVersion: getambassador.io/v2
 kind: FilterPolicy
 metadata:
   name: jwt-filter-policy
-  namespace: default
 spec:
   rules:
     - host: "*"
@@ -104,7 +102,6 @@ apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
   name: jwt-filter-mapping
-  namespace: default
 spec:
   prefix: /jwt/
   service: httpbin.org:80
