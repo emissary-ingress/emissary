@@ -6,63 +6,79 @@ export class LoginGate extends LitElement {
       authToken: String,
       authenticated: Boolean,
       loading: Boolean,
-      hasError: Boolean
+      hasError: Boolean,
+      os: String,
+      namespace: String
     };
   }
 
   static get styles() {
     return css`
-* {
-  font-family: Source Sans Pro,sans-serif;
-  margin-left: 2em;
-  margin-right: 2em;
+:host {
+    font-family: Source Sans Pro,sans-serif;
+    margin-left: 2em;
+    margin-right: 2em;
 }
-
 #all-wrapper {
-  width: 80%;
-  margin-left: 10%;
+    width: 80%;
+    margin-left: 10%;
 }
 #ambassador-logo {
-  background-color: black;
-  padding: 5px;
-  width: 456px;
-  height: 42px;
-  margin-bottom: 1em
+    background-color: black;
+    padding: 5px;
+    width: 456px;
+    height: 42px;
+    margin-bottom: 1em
 }
 div.info-blob {
-  border: 1px solid #ede7f3;
-  box-shadow: 0 2px 4px rgba(0,0,0,.1);
-  padding: 0.5em;
-  margin-bottom: 0.6em;
-  line-height: 1.3;
+    border: 1px solid #ede7f3;
+    box-shadow: 0 2px 4px rgba(0,0,0,.1);
+    padding: 0.5em;
+    margin-bottom: 0.6em;
+    line-height: 1.3;
 }
 div.info-blob2 {
-  border: thin solid grey;
-  border-radius: 0.4em;
-  padding: 0.5em;
-  margin-bottom: 0.6em;
-  line-height: 1.3;
+    border: thin solid grey;
+    border-radius: 0.4em;
+    padding: 0.5em;
+    margin-bottom: 0.6em;
+    line-height: 1.3;
 }
 div.info-title {
-  font-weight: bold;
-  font-size: 120%;
+    font-weight: bold;
+    font-size: 120%;
 }
 span.command {
-  background-color: #f5f2f0;;
-  padding: 3px;
-  letter-spacing: .2px;
-  font-family: Consolas,Monaco,Andale Mono,Ubuntu Mono,monospace;
-  font-size: 90%;
-  word-spacing: normal;
-  word-break: normal;
-  word-wrap: normal;
-  hypens: none;
+    background-color: #f5f2f0;;
+    padding: 3px;
+    letter-spacing: .2px;
+    font-family: Consolas,Monaco,Andale Mono,Ubuntu Mono,monospace;
+    font-size: 90%;
+    word-spacing: normal;
+    word-break: normal;
+    word-wrap: normal;
+    hypens: none;
 }
 div.overage-alert {
-  border: 3px solid red;
-  border-radius: 0.7em;
-  padding: 0.5em;
-  background-color: #FFe8e8;
+    border: 3px solid red;
+    border-radius: 0.7em;
+    padding: 0.5em;
+    background-color: #FFe8e8;
+}
+pre {
+    margin: 1em;
+    padding: .5em;
+    background-color: #f5f2f0;;
+    letter-spacing: .2px;
+    font-family: Consolas,Monaco,Andale Mono,Ubuntu Mono,monospace;
+    font-size: 90%;
+    word-spacing: normal;
+    word-break: normal;
+    word-wrap: normal;
+    hypens: none;
+}
+details {
+    margin: 1em;
 }
     `;
   }
@@ -78,7 +94,27 @@ div.overage-alert {
     this.isSlotOpen = false;
     this.slotChildren = [];
 
+    this.namespace = '';
+    this.os = this.getOS();
+
     this.loadData();
+  }
+
+  getOS() {
+    if (window != null && window['session'] != null && window['session']['browser'] != null && window['session']['browser']['os'] != null) {
+      const os = window.session.browser.os; // Mac, Win, Linux
+      if(os == "Mac") {
+        return "darwin";
+      } else if (os == "Windows") {
+        return "windows";
+      } else if (os == "Linux") {
+        return "linux";
+      } else {
+        return "other";
+      }
+    } else {
+      return "other";
+    }
   }
 
   onSlotChange({ target }) {
@@ -116,8 +152,20 @@ div.overage-alert {
       }
     }).then((data) => {
       this.authenticated = (data.status == 200);
-      this.loading = false;
-      this.hasError = false;
+      if (this.authenticated) {
+        this.loading = false;
+        this.hasError = false;
+      } else {
+        fetch('/edge_stack/api/config/pod-namespace', {
+          headers: {
+            'Authorization': 'Bearer ' + this.authToken
+          }
+        }).then(data => data.text()).then(body => {
+          this.namespace = body;
+          this.loading = false;
+          this.hasError = false;
+        });
+      }
     }).catch((err) => {
       console.log(err);
 
@@ -139,15 +187,116 @@ div.overage-alert {
     `;
   }
 
+  copyToKeyboard(theId) {
+    const copyText = this.shadowRoot.getElementById(theId).innerText;
+    const el = document.createElement('textarea');  // Create a <textarea> element
+    el.value = copyText;                            // Set its value to the string that you want copied
+    el.setAttribute('readonly', '');                // Make it readonly to be tamper-proof
+    el.style.position = 'absolute';
+    el.style.left = '-9999px';                      // Move outside the screen to make it invisible
+    document.body.appendChild(el);                  // Append the <textarea> element to the HTML document
+    const selected =
+      document.getSelection().rangeCount > 0        // Check if there is any content selected previously
+        ? document.getSelection().getRangeAt(0)     // Store selection if found
+        : false;                                    // Mark as false to know no selection existed before
+    el.select();                                    // Select the <textarea> content
+    document.execCommand('copy');                   // Copy - only works as a result of a user action (e.g. click events)
+    document.body.removeChild(el);                  // Remove the <textarea> element
+    if (selected) {                                 // If a selection existed before copying
+      document.getSelection().removeAllRanges();    // Unselect everything on the HTML document
+      document.getSelection().addRange(selected);   // Restore the original selection
+    }
+  }
+
+  copyLoginToKeyboard() {
+    this.copyToKeyboard('login');
+  }
+
+  copyDarwinInstallToKeyboard() {
+    this.copyToKeyboard('install-darwin');
+  }
+
+  copyLinuxInstallToKeyboard() {
+    this.copyToKeyboard('install-linux');
+  }
+
+  renderDarwinDetails() {
+    // TODO(xxx): make this not repeat
+    if (this.os == 'darwin') {
+      return html`
+<details id="darwin" open>
+  <summary><h2 style="display:inline">Darwin</h2></summary>
+  <pre id="install-darwin">
+sudo curl -fL https://metriton.datawire.io/downloads/darwin/edgectl -o /usr/local/bin/edgectl && \\
+sudo chmod a+x /usr/local/bin/edgectl
+  </pre>
+
+  <button @click=${this.copyDarwinInstallToKeyboard.bind(this)}>Copy to Clipboard</button>
+</details>
+      `;
+    } else {
+      return html`
+<details id="darwin">
+  <summary><h2 style="display:inline">Darwin</h2></summary>
+  <pre id="install-darwin">
+sudo curl -fL https://metriton.datawire.io/downloads/darwin/edgectl -o /usr/local/bin/edgectl && \\
+sudo chmod a+x /usr/local/bin/edgectl
+  </pre>
+
+  <button @click=${this.copyDarwinInstallToKeyboard.bind(this)}>Copy to Clipboard</button>
+</details>
+      `;
+    }
+  }
+
+  renderLinuxDetails() {
+    if (this.os == 'linux') {
+      return html`
+<details id="linux" open>
+  <summary><h2 style="display:inline">Linux</h2></summary>
+  <pre id="install-linux">
+sudo curl -fL https://metriton.datawire.io/downloads/linux/edgectl -o /usr/local/bin/edgectl && \\
+sudo chmod a+x /usr/local/bin/edgectl
+  </pre>
+
+  <button @click=${this.copyLinuxInstallToKeyboard.bind(this)}>Copy to Clipboard</button>
+</details>
+      `;
+    } else {
+      return html `
+<details id="linux">
+  <summary><h2 style="display:inline">Linux</h2></summary>
+  <pre id="install-linux">
+sudo curl -fL https://metriton.datawire.io/downloads/linux/edgectl -o /usr/local/bin/edgectl && \\
+sudo chmod a+x /usr/local/bin/edgectl
+  </pre>
+
+  <button @click=${this.copyLinuxInstallToKeyboard.bind(this)}>Copy to Clipboard</button>
+</details>
+      `;
+    }
+  }
+
   renderUnauthenticated() {
     return html`
 <div id="all-wrapper">
+  <div id="ambassador-logo">
+	  <a href="https://www.getambassador.io/">
+	    <img src="https://www.getambassador.io/images/ambassador-logo-white.svg" alt="Ambassador Edge Stack" />
+	  </a>
+  </div>
+
   <div class="info-blob">
-    <div class="info-title">Welcome to Ambassador Edge Stack!</div>
-    <p>To login to the admin portal, use <span class="command">edgectl login ${window.location.hostname}</span>.</p>
+    <h1 class="info-title">Welcome to Ambassador Edge Stack!</h1>
+    <p>To login to the admin portal, use: <span class="command" id="login">edgectl login --namespace=${this.namespace} ${window.location.host}</span> <button style="margin-left: 1em" @click=${this.copyLoginToKeyboard.bind(this)}>Copy to Clipboard</button></p>
     <p>
-      If you do not yet have the edgectl executable, download it <a href="https://deploy-preview-91--datawire-ambassador.netlify.com/downloads/edgectl">from the getambassador.io website</a>.
+      If you do not yet have the edgectl executable, download it
+      from the getambassador.io
+      website: (<a href="https://metriton.datawire.io/downloads/darwin/edgectl">darwin</a>, <a href="https://metriton.datawire.io/downloads/linux/edgectl">linux</a>).
     </p>
+
+    ${this.renderDarwinDetails()}
+    ${this.renderLinuxDetails()}
   </div>
 </div>
     `;
