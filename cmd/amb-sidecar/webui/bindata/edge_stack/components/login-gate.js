@@ -123,7 +123,7 @@ details {
     if (this.isSlotOpen) {
       this.slotChildren = target.assignedNodes().filter(node => node.nodeName != '#text');
       this.slotChildren.forEach(node => {
-        if (node.hasOwnProperty('onMount') && typeof node['onMount'] == 'function') {
+        if (node['onMount'] != null && typeof node['onMount'] == 'function') {
           node.onMount();
         }
       });

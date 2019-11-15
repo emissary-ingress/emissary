@@ -20,10 +20,15 @@ export default class MappingData extends LitElement {
   }
 
   fetchData() {
-    fetch('/edge_stack/api/snapshot')
+    fetch('/edge_stack/api/snapshot', {
+      headers: {
+        'Authorization': 'Bearer ' + window.location.hash.slice(1)
+      }
+    })
       .then((data) => data.json())
       .then((json) => {
         this.setContext(json);
+        this.loading = false;
         this.fetchData();
       })
       .catch((err) => { console.log('error fetching snapshot', err); })
