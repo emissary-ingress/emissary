@@ -193,6 +193,12 @@ commands:
      # wipe out artifacts that are useful for debugging.
      - run: make clobber
      - run: "git clean -ndx; test -z \"$(git clean -ndx)\""
+  "edgectl":
+    steps:
+      - checkout
+      - run: make target_does_not_exist || true
+      - run: ./ambassador/builder/module_version.sh apro
+      - run: ./ambassador/builder/build_push_cli.sh build
 
 jobs:
 
@@ -228,13 +234,35 @@ jobs:
       - release
 #      - clobber
 
+  "macOS-edgectl":
+    macos:
+      xcode: "10.1.0"
+    steps:
+      - pip-install:
+          packages: awscli
+      - install-go
+      - edgectl
+
+  "Ubuntu-edgectl":
+    machine:
+      # If you bump this, be sure to bump install-python.executor-key
+      # below.
+      image: "ubuntu-1604:201903-01"
+    steps:
+      - pip-install:
+          packages: awscli
+      - install-go
+      - edgectl
+
 workflows:
   "APro CI":
     jobs:
-      - "Ubuntu":
-          filters:
-            tags:
-              only: /.*/
+      - "Ubuntu-edgectl"
+      - "macOS-edgectl"
+      # - "Ubuntu":
+      #     filters:
+      #       tags:
+      #         only: /.*/
 #      - "macOS":
 #          filters:
 #            branches:
