@@ -56,25 +56,3 @@ Interested in learning more?
 * [Ambassador Edge Stack Architecture overview](/concepts/architecture)
 
 
-<script type="application/ld+json">
-  {
-    "@context": "http://schema.org/",
-    "@type": "SoftwareApplication",
-    "name": "Ambassador API Gateway",
-    "description": "Ambassador, open source, Kubernetes-native API Gateway for microservices built on the Envoy Proxy.",
-    "applicationCategory": "Cloud Software",
-    "applicationSubCategory": "API Gateway",
-    "operatingSystem": "Kubernetes 1.6 or later"
-    "downloadUrl": "https://www.getambassador.io/",
-    "author": "Datawire",
-    "version": "0.39",
-    "offers": {
-      "@type": "Offer",
-      "priceCurrency": "USD",
-      "price": "0.00"
-    }
-  }
-</script>
-
-
-

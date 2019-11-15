@@ -9,7 +9,6 @@ Ambassador Edge Stack can be installed in a variety of ways. The most common app
 * Install with [Docker Compose](/user-guide/docker-compose)
 
 <div style="border: thick solid red"> 
-<!-- TODO: fix red bordered text -->
 Here we should have other methods: Helm, Docker, Docker Compose. 
 None of these other methods have been implemented or tested yet.
 </div>

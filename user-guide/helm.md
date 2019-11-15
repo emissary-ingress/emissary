@@ -1,5 +1,4 @@
 <div style="border: thick solid red">
-<!-- TODO: fix red bordered text -->
 This method of installation has not been tested and is not supported at this time.
 </div>
 
@@ -18,15 +17,12 @@ This method of installation has not been tested and is not supported at this tim
    Details on how to configure the chart, see the [official chart documentation](https://hub.helm.sh/charts/stable/ambassador)
 
 <div style="border: thick solid red">
-<!-- TODO: fix red bordered text -->
 Next step took service creation from AmbOSS so not sure if this needs to be changed to work for AES
 </div>
 
 2. Create your first service(s) based on what you need. For example, here are some of the services you can create with Ambassador Edge Stack:
 
-    <div class="gatsby-highlight" data-language="yaml">
-    <pre class="language-yaml">
-    <code class="language-yaml" id="step7">
+```yaml
     ---
     apiVersion: v1
     kind: Service
@@ -94,7 +90,6 @@ Next step took service creation from AmbOSS so not sure if this needs to be chan
         ambassador:
         - request_label:
             - backend
-    </code></pre></div>
+```
 <p>
 <p>
-<button onclick="copy_to_clipboard('step7')">Copy to Clipboard</button>

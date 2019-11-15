@@ -126,7 +126,7 @@ When the `Mapping` CRDs are applied, Ambassador will use them to configure routi
 
 Note also the port numbers in the `service` field of the `Mapping`. This allows us to use a single service to route to both the containers running on the `tour` pod.
 
-<font color=#f9634E>**Important:**</font>
+<span style="color:#f9634E">**Important:**</span>
 
 Routing in Ambassador Open Source can be configured with Ambassador OSS resources as shown above, Kubernetes service annotation, and Kubernetes Ingress resources.
 
