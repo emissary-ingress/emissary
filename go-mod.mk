@@ -192,7 +192,7 @@ go-fmt: go-get $(go.lock)
 go-test: ## (Go) Check the code with `go test`
 go-test: go-build
 ifeq ($(go.DISABLE_GO_TEST),)
-	$(MAKE) $(dir $(_go-mod.mk))go-test.tap.summary
+	$(MAKE) -f $(firstword $(MAKEFILE_LIST)) $(dir $(_go-mod.mk))go-test.tap.summary
 endif
 
 $(dir $(_go-mod.mk))go-test.tap: $(GOTEST2TAP) $(TAP_DRIVER) $(go.lock) FORCE
@@ -205,7 +205,7 @@ go-doc: ## (Go) Run a `godoc -http` server
 go-doc: $(dir $(_go-mod.mk))gopath
 	{ \
 		while sleep 1; do \
-			$(MAKE) --quiet $(dir $(_go-mod.mk))gopath/src/$(go.module); \
+			$(MAKE) -f $(firstword $(MAKEFILE_LIST)) --quiet $(dir $(_go-mod.mk))gopath/src/$(go.module); \
 		done & \
 		trap "kill $$!" EXIT; \
 		GOPATH=$(dir $(_go-mod.mk))gopath godoc -http :8080; \
@@ -216,7 +216,7 @@ $(dir $(_go-mod.mk))gopath: FORCE vendor
 	mkdir -p $(dir $(_go-mod.mk))gopath/src
 	echo 'module bogus' > $(dir $(_go-mod.mk))gopath/go.mod
 	rsync --archive --delete vendor/ $(dir $(_go-mod.mk))gopath/src/
-	$(MAKE) $(dir $(_go-mod.mk))gopath/src/$(go.module)
+	$(MAKE) -f $(firstword $(MAKEFILE_LIST)) $(dir $(_go-mod.mk))gopath/src/$(go.module)
 $(dir $(_go-mod.mk))gopath/src/$(go.module): $(go.lock) FORCE
 	mkdir -p $@
 	$(go.lock)go list ./... | sed -e 's,^$(go.module),,' -e 's,$$,/*.go,' | rsync --archive --prune-empty-dirs --delete-excluded --include='*/' --include-from=/dev/stdin --exclude='*' ./ $@/
