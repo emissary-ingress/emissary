@@ -29,7 +29,7 @@ metadata:
   labels:
     service: echo
 spec:
-  replicas: 3
+  replicas: 1
   selector:
     matchLabels:
       service: echo
