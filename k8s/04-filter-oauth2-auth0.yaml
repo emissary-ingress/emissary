@@ -1,4 +1,18 @@
 # @TEMPLATE@
+# See also: 03-auth0-secret.yaml
+
+{{ $AmbassadorURL := "https://ambassador.ambassador.svc.cluster.local" }}
+# These come directly from https://manage.auth0.com/#/applications/DOzF9q7U2OrvB7QniW9ikczS1onJgyiC/settings
+# The administrator credentials to see that page are at
+#    $(keybase config get -b mountdir)/team/datawireio/secrets/auth0.auth0.apro-testing.*
+{{ $Auth0_Domain := "ambassador-oauth-e2e.auth0.com" }}
+{{ $Auth0_Client_ID := "DOzF9q7U2OrvB7QniW9ikczS1onJgyiC" }}
+{{ $Auth0_Client_Secret := "MkpnAmzX-EEzV708qD_giNd9CF_R-owNau94QZVgOfna9FYf-SdTvATuNkrEDBk-" }}
+# Make sure that:
+#  - "{{$AmbassadorURL}}/callback" is in the "Allowed Callback URLs" textbox
+#  - "{{$AmbassadorURL}}" is in the "Allowed Web Origins" textbox
+#  - A test user account is set up (and configured in ./tests/cluster/go-test/filter-oauth2/testdata/idp_auth0.js)
+
 ---
 apiVersion: getambassador.io/v2
 kind: Filter
@@ -6,11 +20,11 @@ metadata:
   name: auth0
 spec:
   OAuth2:
-    authorizationURL: {{env "IDP_AUTH0_PROVIDER_URL"}}
-    clientURL: {{env "AUTH_TENANT_URL"}}
-    audience: {{env "IDP_AUTH0_AUDIENCE"}}
-    clientID: {{env "IDP_AUTH0_CLIENT_ID"}}
-    secret: {{env "IDP_AUTH0_CLIENT_SECRET"}}
+    authorizationURL: https://{{ $Auth0_Domain }}
+    clientURL: {{ $AmbassadorURL }}
+    audience: https://{{ $Auth0_Domain }}/api/v2/
+    clientID: {{ $Auth0_Client_ID }}
+    secret: {{ $Auth0_Client_Secret }}
     maxStale: 12h
 ---
 apiVersion: getambassador.io/v2
@@ -19,10 +33,10 @@ metadata:
   name: auth0-k8s
 spec:
   OAuth2:
-    authorizationURL: {{env "IDP_AUTH0_PROVIDER_URL"}}
-    clientURL: {{env "AUTH_TENANT_URL"}}
-    audience: {{env "IDP_AUTH0_AUDIENCE"}}
-    clientID: {{env "IDP_AUTH0_CLIENT_ID"}}
+    authorizationURL: https://{{ $Auth0_Domain }}
+    clientURL: {{ $AmbassadorURL }}
+    audience: https://{{ $Auth0_Domain }}/api/v2/
+    clientID: {{ $Auth0_Client_ID }}
     secretName: auth0-secret
     maxStale: 12h
 ---

@@ -1,4 +1,9 @@
 # @TEMPLATE@
+{{ $AmbassadorURL := "https://ambassador.ambassador.svc.cluster.local" }}
+
+{{ $UAA_ClientID := "ambassador" }}
+{{ $UAA_ClientSecret := "ambassador" }}
+
 ---
 apiVersion: getambassador.io/v2
 kind: Filter
@@ -6,10 +11,10 @@ metadata:
   name: uaa
 spec:
   OAuth2:
-    authorizationURL: {{env "IDP_UAA_PROVIDER_URL"}}
-    clientURL: {{env "AUTH_TENANT_URL"}}
-    clientID: {{env "IDP_UAA_CLIENT_ID"}}
-    secret: {{env "IDP_UAA_CLIENT_SECRET"}}
+    authorizationURL: http://uaa.default.svc.cluster.local/uaa
+    clientURL: {{ $AmbassadorURL }}
+    clientID: {{ $UAA_ClientID }}
+    secret: {{ $UAA_ClientSecret }}
 ---
 apiVersion: getambassador.io/v2
 kind: Mapping
@@ -42,14 +47,14 @@ data:
   uaa.yml: |
     oauth:
       clients:
-        {{env "IDP_UAA_CLIENT_ID"}}:
+        {{ $UAA_ClientID }}:
           name: ambassador client
           override: true
           scope: openid
           authorities: uaa.none
           authorized-grant-types: authorization_code
-          secret: {{env "IDP_UAA_CLIENT_SECRET"}}
-          redirect-uri: {{env "AUTH_TENANT_URL"}}/callback
+          secret: {{ $UAA_ClientSecret }}
+          redirect-uri: {{ $AmbassadorURL }}/callback
     jwt:
       token:
         signing-key: |

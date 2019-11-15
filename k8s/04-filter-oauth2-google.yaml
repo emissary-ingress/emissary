@@ -1,4 +1,16 @@
 # @TEMPLATE@
+
+{{ $AmbassadorURL := "https://ambassador.ambassador.svc.cluster.local" }}
+
+# 04-filter-oauth2-google.yaml
+# These come directly from https://console.developers.google.com/apis/credentials/oauthclient/863968914497-8u7d8610nhvnpdf52s3krtsqahlss5mv.apps.googleusercontent.com?project=datawireio&folder&organizationId=1023803081209
+{{ $Google_Client_ID := "863968914497-8u7d8610nhvnpdf52s3krtsqahlss5mv.apps.googleusercontent.com" }}
+{{ $Google_Client_secret := "x1LhmCCGk_5AHs3iGlRiyvOV" }}
+# Make sure that:
+#  - "http://localhost:31001/callback" is added in "Authorized redirect URIs"
+#  - ./tests/cluster/go-test/filter-oauth2/testdata/idp_google.js listens on http://localhost:31001/callback and redirects it to "{{ $AmbassadorURL }}/callback" (preserving the query string)
+#  - A test user account is set up (and configured in ./tests/cluster/go-test/filter-oauth2/testdata/idp_google.js)
+
 ---
 apiVersion: getambassador.io/v2
 kind: Filter
@@ -6,10 +18,10 @@ metadata:
   name: google
 spec:
   OAuth2:
-    authorizationURL: {{env "IDP_GOOGLE_PROVIDER_URL"}}
+    authorizationURL: "https://accounts.google.com/"
     clientURL: http://localhost:31001/callback
-    clientID: {{env "IDP_GOOGLE_CLIENT_ID"}}
-    secret: {{env "IDP_GOOGLE_CLIENT_SECRET"}}
+    clientID: {{ $Google_Client_ID }}
+    secret: {{ $Google_Client_secret }}
 ---
 apiVersion: getambassador.io/v2
 kind: Mapping
