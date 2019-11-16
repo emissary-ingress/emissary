@@ -9,7 +9,7 @@
 {{ $Auth0_Client_ID := "DOzF9q7U2OrvB7QniW9ikczS1onJgyiC" }}
 {{ $Auth0_Client_Secret := "MkpnAmzX-EEzV708qD_giNd9CF_R-owNau94QZVgOfna9FYf-SdTvATuNkrEDBk-" }}
 # Make sure that:
-#  - "{{$AmbassadorURL}}/callback" is in the "Allowed Callback URLs" textbox
+#  - "{{$AmbassadorURL}}/.ambassador/oauth2/redirection-endpoint" is in the "Allowed Callback URLs" textbox
 #  - "{{$AmbassadorURL}}" is in the "Allowed Web Origins" textbox
 #  - A test user account is set up (and configured in ./tests/cluster/go-test/filter-oauth2/testdata/idp_auth0.js)
 

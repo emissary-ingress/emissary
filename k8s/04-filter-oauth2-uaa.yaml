@@ -54,7 +54,7 @@ data:
           authorities: uaa.none
           authorized-grant-types: authorization_code
           secret: {{ $UAA_ClientSecret }}
-          redirect-uri: {{ $AmbassadorURL }}/callback
+          redirect-uri: {{ $AmbassadorURL }}/.ambassador/oauth2/redirection-endpoint
     jwt:
       token:
         signing-key: |

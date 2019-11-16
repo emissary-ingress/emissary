@@ -8,7 +8,7 @@
 # This comes directly from https://portal.azure.com/#blade/Microsoft_AAD_RegisteredApps/ApplicationMenuBlade/Credentials/appId/3e1ce1e1-094d-4ff5-baed-5ba99e32f809/isMSAApp/
 {{ $Azure_Client_Secret := "d@HzogM7321tAHXVhI]E]Lt@6.s=TEyb" }}
 # Make sure that:
-#  - "{{ $AmbassadorURL }}/callback" is added as a "Redirect URI" at https://portal.azure.com/#blade/Microsoft_AAD_RegisteredApps/ApplicationMenuBlade/Authentication/appId/3e1ce1e1-094d-4ff5-baed-5ba99e32f809/isMSAApp/
+#  - "{{ $AmbassadorURL }}/.ambassador/oauth2/redirection-endpoint" is added as a "Redirect URI" at https://portal.azure.com/#blade/Microsoft_AAD_RegisteredApps/ApplicationMenuBlade/Authentication/appId/3e1ce1e1-094d-4ff5-baed-5ba99e32f809/isMSAApp/
 #  - A test user account is set up (and configured in ./tests/cluster/go-test/filter-oauth2/testdata/idp_azure.js)
 # The administrator credentials to log in to portal.azure.com are at
 #    $(keybase config get -b mountdir)/team/datawireio/secrets/azure.portal.apro-testing.*

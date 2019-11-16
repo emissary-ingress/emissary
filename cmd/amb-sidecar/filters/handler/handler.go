@@ -269,7 +269,10 @@ func (c *FilterMux) filter(ctx context.Context, request *filterapi.FilterRequest
 }
 
 func ruleForURL(c *controller.Controller, u *url.URL) *crd.Rule {
-	if u.Path == "/callback" {
+	switch u.Path {
+	case "/.ambassador/oauth2/logout":
+		return nil
+	case "/.ambassador/oauth2/redirection-endpoint":
 		claims := jwt.MapClaims{}
 		_, _, err := jwtsupport.SanitizeParseUnverified(new(jwt.Parser).ParseUnverified(u.Query().Get("state"), claims))
 		if err == nil {
@@ -280,8 +283,10 @@ func ruleForURL(c *controller.Controller, u *url.URL) *crd.Rule {
 				}
 			}
 		}
+		return findRule(c, u.Host, u.Path)
+	default:
+		return findRule(c, u.Host, u.Path)
 	}
-	return findRule(c, u.Host, u.Path)
 }
 
 func findFilter(c *controller.Controller, qname string) *controller.FilterInfo {

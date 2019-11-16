@@ -232,13 +232,8 @@ func (c *Controller) Watch(
 	})
 
 	w.Watch("filterpolicies", func(w *k8s.Watcher) {
-		rules := make([]crd.Rule, 1)
+		var rules []crd.Rule
 
-		// callback is always default.
-		rules = append(rules, crd.Rule{
-			Host: "*",
-			Path: "/callback",
-		})
 		for _, p := range w.List("filterpolicies") {
 			logger := c.Logger.WithField("FILTERPOLICY", p.QName())
 

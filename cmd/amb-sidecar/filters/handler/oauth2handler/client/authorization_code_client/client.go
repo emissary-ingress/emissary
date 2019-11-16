@@ -119,7 +119,7 @@ func (c *OAuth2Client) Filter(ctx context.Context, logger dlog.Logger, httpClien
 			errors.Wrapf(err, "could not parse URI: %q", request.GetRequest().GetHttp().GetPath()), nil)
 	}
 	switch u.Path {
-	case "/callback":
+	case "/.ambassador/oauth2/redirection-endpoint":
 		if sessionInfo.sessionData == nil {
 			return middleware.NewErrorResponse(ctx, http.StatusForbidden,
 				errors.Errorf("no %q cookie", c.sessionCookieName()), nil)
@@ -135,14 +135,17 @@ func (c *OAuth2Client) Filter(ctx context.Context, logger dlog.Logger, httpClien
 					errors.Wrapf(err, "invalid state"), nil)
 			}
 			u, _ := url.Parse(originalURL)
-			if u.Path == "/callback" {
+			if u.Path == "/.ambassador/oauth2/redirection-endpoint" {
 				// Avoid a redirect loop.  This "shouldn't" happen; we "shouldn't"
 				// have generated (in .handleUnauthenticatedProxyRequest) a
 				// sessionData.Request.State with this URL with this path.  However,
 				// APro 0.8.0 and older could be tricked in to generating such a
-				// .State.  So turn it in to an error page.
+				// .State.  So turn it in to an error page.  Of course, APro 0.8.0
+				// used "/callback" instead of
+				// "/.ambassador/oauth2/redirection-endpoint", so this even more
+				// "shouldn't" happen now.
 				return middleware.NewErrorResponse(ctx, http.StatusNotAcceptable,
-					errors.New("no representation of /callback resource"), nil)
+					errors.New("no representation of /.ambassador/oauth2/redirection-endpoint resource"), nil)
 			}
 		} else {
 			authorizationCode, err := oauthClient.ParseAuthorizationResponse(sessionInfo.sessionData, u)
@@ -305,7 +308,8 @@ func (sessionInfo *SessionInfo) handleUnauthenticatedProxyRequest(ctx context.Co
 		Value: sessionInfo.sessionID,
 
 		// Expose the cookie to all paths on this host, not just directories of {{originalURL.Path}}.
-		// This is important, because `/callback` is probably not a subdirectory of originalURL.Path.
+		// This is important, because `/.ambassador/oauth2/redirection-endpoint` is probably not a
+		// subdirectory of originalURL.Path.
 		Path: "/",
 
 		// Strictly match {{originalURL.Hostname}}.  Explicitly setting it to originalURL.Hostname()
@@ -335,7 +339,8 @@ func (sessionInfo *SessionInfo) handleUnauthenticatedProxyRequest(ctx context.Co
 		Value: sessionInfo.xsrfToken,
 
 		// Expose the cookie to all paths on this host, not just directories of {{originalURL.Path}}.
-		// This is important, because `/callback` is probably not a subdirectory of originalURL.Path.
+		// This is important, because `/.ambassador/oauth2/redirection-endpoint` is probably not a
+		// subdirectory of originalURL.Path.
 		Path: "/",
 
 		// Strictly match {{originalURL.Hostname}}.  Explicitly setting it to originalURL.Hostname()
