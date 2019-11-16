@@ -1,11 +1,12 @@
 const fs = require('fs');
 const puppeteer = require('puppeteer');
 
-function TestSkipError(message) {
-	this.name = "TestSkipError";
-	this.message = "Test Skipped: " + message;
+class TestSkipError extends Error {
+	constructor(message) {
+		super("Test Skipped: " + message);
+		this.name = "TestSkipError";
+	}
 }
-TestSkipError.prototype = Error.prototype;
 
 const withBrowserTab = async function(fn) {
 	const browser = await puppeteer.launch({

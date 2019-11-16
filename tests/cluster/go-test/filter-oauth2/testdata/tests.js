@@ -14,7 +14,7 @@ module.exports.standardTest = async (browsertab, idpfile, testname) => {
 		// authenticate to the IDP
 		let done = browsertab.waitForResponse(idpfile.testcases[testname].resource)
 		    .then(() => browsertab.waitForFunction(() => {return document.readyState == "complete";}));
-		await idpfile.authenticate(browsertab, idpfile.testcases[testname].username, idpfile.testcases[testname].password, () => {this.skip();});
+		await idpfile.authenticate(browsertab, idpfile.testcases[testname].username, idpfile.testcases[testname].password);
 		await done;
 		// verify that we got redirected properly
 		expect(browsertab.url()).to.equal(idpfile.testcases[testname].resource);
@@ -38,7 +38,7 @@ module.exports.chainTest = async (browsertab, idpfile, testname) => {
 	// authenticate to the IDP
 	let done = browsertab.waitForResponse(idpfile.testcases[testname].resource)
 	    .then(() => browsertab.waitForFunction(() => {return document.readyState == "complete";}));
-	await idpfile.authenticate(browsertab, idpfile.testcases[testname].username, idpfile.testcases[testname].password, () => {this.skip();});
+	await idpfile.authenticate(browsertab, idpfile.testcases[testname].username, idpfile.testcases[testname].password);
 	await done
 	// verify that we got redirected properly
 	expect(browsertab.url()).to.equal(idpfile.testcases[testname].resource);
