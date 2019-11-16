@@ -96,7 +96,7 @@ spec:
       path: /httpbin/**
       filters:
         - name: auth0
-        - name: wiki-plugin
+        #- name: wiki-plugin
     # /auth0/httpbin/
     - host: "*"
       path: /auth0/httpbin/**
