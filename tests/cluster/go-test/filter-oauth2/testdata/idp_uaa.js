@@ -1,16 +1,16 @@
 module.exports.testcases = {
 	"UAA": {
-		resource: "https://ambassador.default.svc.cluster.local/uaa/httpbin/headers",
+		resource: "https://ambassador.ambassador.svc.cluster.local/uaa/httpbin/headers",
 		username: "testuser@example.com",
 		password: "12345",
 	},
 	"UAA (filter action IfRequestHeader)": {
-		resource: "https://ambassador.standalone.svc.cluster.local/filter-actions/if/headers",
+		resource: "https://ambassador.ambassador.svc.cluster.local/filter-actions/if/headers",
 		username: "testuser@example.com",
 		password: "12345",
 	},
 	"UAA (filter action OnAction)": {
-		resource: "https://ambassador.standalone.svc.cluster.local/filter-actions/on/headers",
+		resource: "https://ambassador.ambassador.svc.cluster.local/filter-actions/on/headers",
 		username: "testuser@example.com",
 		password: "12345",
 	},

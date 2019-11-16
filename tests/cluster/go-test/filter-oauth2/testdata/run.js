@@ -1,11 +1,24 @@
 const fs = require('fs');
 const puppeteer = require('puppeteer');
 
-function TestSkipError(message) {
-	this.name = "TestSkipError";
-	this.message = "Test Skipped: " + message;
+class TestSkipError extends Error {
+	constructor(message) {
+		super("Test Skipped: " + message);
+		this.name = "TestSkipError";
+	}
 }
-TestSkipError.prototype = Error.prototype;
+
+const writeFile = (file, data) => {
+    return new Promise((resolve, reject) => {
+        fs.writeFile(file, data, error => {
+		if (error) {
+			reject(error);
+		} else {
+			resolve();
+		}
+        });
+    });
+};
 
 const withBrowserTab = async function(fn) {
 	const browser = await puppeteer.launch({
@@ -21,6 +34,7 @@ const withBrowserTab = async function(fn) {
 		try {
 			await fn(browsertab);
 		} finally {
+			//await writeFile("/tmp/f.html", await browsertab.content());
 			console.log("final url is: "+browsertab.url());
 		}
 	} finally {
@@ -43,7 +57,7 @@ const resolveTestPromise = function(promise) {
 	promise.then(
 		(value) => { process.exit(0); },
 		(error) => {
-			console.log(error);
+			console.log("error:", error);
 			if (error instanceof TestSkipError) {
 				process.exit(77);
 			} else {

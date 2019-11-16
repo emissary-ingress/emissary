@@ -1,23 +1,35 @@
 # @TEMPLATE@
+# See also: 04-filter-pauth2-okta-client-credentials.yaml
+
+{{ $AmbassadorURL := "https://ambassador.ambassador.svc.cluster.local" }}
+
+# These come directly from https://dev-264701-admin.okta.com/admin/app/oidc_client/instance/0oaeshpr0wKNbyWQn356/#tab-general
+# The administrator credentials to view that page are at
+#    $(keybase config get -b mountdir)/team/datawireio/secrets/okta.dev-264701.firstname_lastname.*
+{{ $Okta_Org_URL := "https://dev-264701.okta.com" }}
+{{ $Okta_Client_ID := "0oaeshpr0wKNbyWQn356" }}
+{{ $Okta_Client_Secret := "7Z-C1IIxDSzr1ICmZgnKt8G1_Mdtm2CpqvKSNnXd" }}
+# Make sure that:
+#  - "{{$AmbassadorURL}}/callback" is in the "Login redirect URIs" field
+#  - A test user account is set up (and configured in ./tests/cluster/go-test/filter-oauth2/testdata/idp_okta.js)
+
 ---
-apiVersion: getambassador.io/v1beta2
+apiVersion: getambassador.io/v2
 kind: Filter
 metadata:
   name: okta
-  namespace: default
 spec:
   OAuth2:
-    authorizationURL: {{env "IDP_OKTA_PROVIDER_URL"}}
-    clientURL: {{env "AUTH_TENANT_URL"}}
-    audience: {{env "IDP_OKTA_AUDIENCE"}}
-    clientID: {{env "IDP_OKTA_CLIENT_ID"}}
-    secret: {{env "IDP_OKTA_CLIENT_SECRET"}}
+    authorizationURL: {{ $Okta_Org_URL }}/oauth2/default
+    clientURL: {{ $AmbassadorURL }}
+    audience: api://default
+    clientID: {{ $Okta_Client_ID }}
+    secret: {{ $Okta_Client_Secret }}
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
   name: filter-oauth2-okta-mapping
-  namespace: default
 spec:
   prefix: /okta/httpbin/
   rewrite: /
@@ -25,11 +37,10 @@ spec:
   host_rewrite: httpbin.org
   timeout_ms: 5000
 ---
-apiVersion: getambassador.io/v1beta2
+apiVersion: getambassador.io/v2
 kind: FilterPolicy
 metadata:
   name: filter-oauth2-okta-policy
-  namespace: default
 spec:
   rules:
     - host: "*"

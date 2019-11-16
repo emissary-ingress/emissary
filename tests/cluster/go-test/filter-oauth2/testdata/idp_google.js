@@ -1,13 +1,13 @@
 const run = require('./run.js');
 
 var server = require('http').createServer((request, response) => {
-	response.writeHead(307, {"Location": "https://ambassador.default.svc.cluster.local"+request.url});
+	response.writeHead(307, {"Location": "https://ambassador.ambassador.svc.cluster.local"+request.url});
 	response.end();
 });
 
 module.exports.testcases = {
 	"Google": {
-		resource: "https://ambassador.default.svc.cluster.local/google/httpbin/headers",
+		resource: "https://ambassador.ambassador.svc.cluster.local/google/httpbin/headers",
 		username: "ambassadorprotesting@gmail.com",
 		password: "NO2I27Bg1XY",
 		before: () => { server.listen(31001); },
@@ -15,23 +15,28 @@ module.exports.testcases = {
 	},
 };
 
+const clickNext = async function(browsertab) {
+	const button = await Promise.race([
+		browsertab.waitForSelector('[role="button"]#identifierNext', { visible: true }),
+		browsertab.waitForSelector('[role="button"]#passwordNext', { visible: true }),
+		browsertab.waitForSelector('.rc-button-submit', { visible: true }),
+	]);
+	await button.click();
+};
+
 // This is a private variable instead of 'module.exports.authenticate' so we can wrap it below.
 const authenticate = async function(browsertab, username, password) {
 	// page 1: Username
 	await browsertab.waitForSelector('input[type="email"]', { visible: true });
-	await browsertab.waitForSelector('[role="button"]#identifierNext', { visible: true });
+	await browsertab.waitForFunction(() => {return document.activeElement === document.querySelector('input[type="email"]');});
 	await browsertab.type('input[type="email"]', username);
-	await browsertab.click('[role="button"]#identifierNext');
+	await clickNext(browsertab);
 	// page 2: Password
 	await browsertab.waitForSelector('input[type="password"]', { visible: true });
-	await browsertab.waitForSelector('[role="button"]#passwordNext', { visible: true });
 	await browsertab.type('input[type="password"]', password);
-	await browsertab.click('[role="button"]#passwordNext');
+	await clickNext(browsertab);
 
-	await Promise.race([
-		confirmRecoveryEmail(browsertab),
-		browsertab.waitForResponse((resp) => {return resp.url().startsWith("http://localhost:31001/callback?");}),
-	]);
+	await browsertab.waitForResponse((resp) => {return resp.url().startsWith("http://localhost:31001/callback?");})
 };
 
 const waitUntilRender = function(browsertab) {
@@ -41,19 +46,34 @@ const waitUntilRender = function(browsertab) {
 	});
 };
 
-const confirmRecoveryEmail = async function(browsertab) {
-	await browsertab.waitForFunction(() => {return window.location.href.startsWith("https://accounts.google.com/signin/v2/challenge/selection?");});
-	await waitUntilRender(browsertab);
+const handleChallenges = async function(browsertab) {
+	await Promise.race([
+		// Confirm recovery email
+		browsertab.waitForFunction(() => {return window.location.href.startsWith("https://accounts.google.com/signin/v2/challenge/selection?");}).then(async () => {
+			await waitUntilRender(browsertab);
 
-	await browsertab.waitForSelector('[role="link"][data-challengetype="12"]', { visible: true });
-	await browsertab.click('[role="link"][data-challengetype="12"]');
-	await browsertab.click('[role="link"][data-challengetype="12"]'); // IDK why, try clicking it twice
+			await browsertab.waitForSelector('[role="link"][data-challengetype="12"]', { visible: true });
+			await browsertab.click('[role="link"][data-challengetype="12"]');
+			await browsertab.click('[role="link"][data-challengetype="12"]'); // IDK why, try clicking it twice
 
-	await browsertab.waitForSelector('input[type="email"]', { visible: true });
-	await browsertab.waitForSelector('[role="button"]', { visible: true });
-	await browsertab.type('input[type="email"]', "dev+apro-gmail@datawire.io");
-	await browsertab.click('[role="button"]');
-}
+			await browsertab.waitForSelector('input[type="email"]', { visible: true });
+			await browsertab.waitForSelector('[role="button"]', { visible: true });
+			await browsertab.type('input[type="email"]', "dev+apro-gmail@datawire.io");
+			await clickNext(browsertab);
+		}),
+		// Click "next" for transient errors
+		browsertab.waitForFunction(() => {return window.location.href.startsWith("https://accounts.google.com/info/unknownerror?");}).then(async () => {
+			await browsertab.waitForSelector('[role="button"]', { visible: true });
+			await browsertab.click('[role="button"]');
+		}),
+		// Click "allow" for consent-confirmation
+		browsertab.waitForFunction(() => {return window.location.href.startsWith("https://accounts.google.com/signin/oauth/legacy/consent?");}).then(async () => {
+			await browsertab.waitForSelector('button#submit_approve_access', { visible: true });
+			await browsertab.click('button#submit_approve_access');
+		}),
+	]);
+	return handleChallenges(browsertab);
+};
 
 module.exports.authenticate = function(browsertab, username, password) {
 	return Promise.race([
@@ -67,5 +87,7 @@ module.exports.authenticate = function(browsertab, username, password) {
 			.then(() => {return Promise.reject(new run.TestSkipError("denied"));}),
 		// otherwise, authenticate as normal.
 		authenticate(browsertab, username, password),
+		// Click "next" and such if it decides to add extra pages; this recurses and  will never resolve
+		handleChallenges(browsertab),
 	]);
 };

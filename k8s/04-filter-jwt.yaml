@@ -15,11 +15,10 @@
 #     "iat": 1516239022
 #   }
 ---
-apiVersion: getambassador.io/v1beta2
+apiVersion: getambassador.io/v2
 kind: Filter
 metadata:
   name: jwt-filter
-  namespace: default
 spec:
   JWT:
     jwksURI: "https://getambassador-demo.auth0.com/.well-known/jwks.json"
@@ -88,11 +87,10 @@ spec:
         }
 
 ---
-apiVersion: getambassador.io/v1beta2
+apiVersion: getambassador.io/v2
 kind: FilterPolicy
 metadata:
   name: jwt-filter-policy
-  namespace: default
 spec:
   rules:
     - host: "*"
@@ -100,11 +98,10 @@ spec:
       filters:
         - name: jwt-filter
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
   name: jwt-filter-mapping
-  namespace: default
 spec:
   prefix: /jwt/
   service: httpbin.org:80

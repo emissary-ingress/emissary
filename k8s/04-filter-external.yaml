@@ -1,14 +1,13 @@
 # @TEMPLATE@
 
 ---
-apiVersion: getambassador.io/v1beta2
+apiVersion: getambassador.io/v2
 kind: Filter
 metadata:
   name: grpc-auth-filter
-  namespace: default
 spec:
   External:
-    auth_service: "grpc-auth:3000"
+    auth_service: "grpc-auth.default.svc.cluster.local:3000"
     proto: grpc
     allow_request_body: false
 ---
@@ -16,7 +15,6 @@ apiVersion: v1
 kind: Service
 metadata:
   name: grpc-auth
-  namespace: default
 spec:
   type: ClusterIP
   selector:
@@ -30,7 +28,6 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   name: grpc-auth
-  namespace: default
 spec:
   replicas: 1
   template:
@@ -46,14 +43,13 @@ spec:
           containerPort: 3000
 
 ---
-apiVersion: getambassador.io/v1beta2
+apiVersion: getambassador.io/v2
 kind: Filter
 metadata:
   name: http-auth-filter
-  namespace: default
 spec:
   External:
-    auth_service: "http-auth:4000"
+    auth_service: "http-auth.default.svc.cluster.local:4000"
     path_prefix: "/frobnitz"
     proto: http
     allowed_request_headers:
@@ -67,7 +63,6 @@ apiVersion: v1
 kind: Service
 metadata:
   name: http-auth
-  namespace: default
 spec:
   type: ClusterIP
   selector:
@@ -81,7 +76,6 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   name: http-auth
-  namespace: default
 spec:
   replicas: 1
   template:
@@ -97,11 +91,10 @@ spec:
           containerPort: 4000
 
 ---
-apiVersion: getambassador.io/v1beta2
+apiVersion: getambassador.io/v2
 kind: FilterPolicy
 metadata:
   name: external-policy
-  namespace: default
 spec:
   rules:
     - host: "*"
@@ -113,31 +106,22 @@ spec:
       filters:
         - name: http-auth-filter
 ---
-apiVersion: v1
-kind: Service
+apiVersion: getambassador.io/v2
+kind: Mapping
 metadata:
-  name: external-httpbin
-  namespace: default
-  annotations:
-    getambassador.io/config: |
-      ---
-      apiVersion: ambassador/v1
-      kind: Mapping
-      name: external-grpc-mapping
-      prefix: /external-grpc/
-      service: httpbin.org:80
-      host_rewrite: httpbin.org
-      timeout_ms: 5000
-      ---
-      apiVersion: ambassador/v1
-      kind: Mapping
-      name: external-http-mapping
-      prefix: /external-http/
-      service: httpbin.org:80
-      host_rewrite: httpbin.org
-      timeout_ms: 5000
+  name: external-grpc-mapping
 spec:
-  type: ClusterIP
-  ports:
-  - name: external-httpbin
-    port: 80
+  prefix: /external-grpc/
+  service: httpbin.org:80
+  host_rewrite: httpbin.org
+  timeout_ms: 5000
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: external-http-mapping
+spec:
+  prefix: /external-http/
+  service: httpbin.org:80
+  host_rewrite: httpbin.org
+  timeout_ms: 5000

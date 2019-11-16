@@ -1,6 +1,6 @@
 module.exports.testcases = {
 	"Azure AD": {
-		resource: "https://ambassador.default.svc.cluster.local/azure/httpbin/headers",
+		resource: "https://ambassador.ambassador.svc.cluster.local/azure/httpbin/headers",
 		username: "testuser@aprotesting.onmicrosoft.com",
 		password: "XntXkbhJ/1ux3ZYIyjGt",
 	},

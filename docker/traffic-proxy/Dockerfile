@@ -7,7 +7,6 @@ RUN apk add --no-cache openssh ca-certificates libc6-compat && \
     chmod g+w /etc/passwd
 
 COPY ./run.sh ./traffic-proxy /app/
-COPY ./*.opensource.tar.gz /
 
 USER 1000:0
 WORKDIR /app

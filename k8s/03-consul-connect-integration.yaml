@@ -6,10 +6,10 @@ kind: ClusterRole
 metadata:
   name: consul-connect-integration
 rules:
-  - apiGroups: [""]
-    resources:
-      - secrets
-    verbs: ["get", "list", "create", "delete", "patch"]
+- apiGroups: [""]
+  resources:
+  - secrets
+  verbs: ["get", "list", "create", "delete", "patch"]
 
 ---
 apiVersion: v1
@@ -27,9 +27,9 @@ roleRef:
   kind: ClusterRole
   name: consul-connect-integration
 subjects:
-  - kind: ServiceAccount
-    name: consul-connect-integration
-    namespace: default
+- kind: ServiceAccount
+  name: consul-connect-integration
+  namespace: default
 
 ---
 apiVersion: apps/v1
@@ -53,20 +53,13 @@ spec:
       serviceAccountName: consul-connect-integration
       terminationGracePeriodSeconds: 0
       containers:
-        - name: consul-connect-integration
-          image: {{env "CONSUL_CONNECT_INTEGRATION_IMAGE"}}
-          imagePullPolicy: Always
-          resources:
-            limits:
-              cpu: 200m
-              memory: 200Mi
-            requests:
-              cpu: 100m
-              memory: 50Mi
-          env:
-            # Consul runs as a DaemonSet on each Node therefore we need to talk to the Host machine.
-            # See: https://www.consul.io/docs/platform/k8s/run.html#architecture
-            - name: _CONSUL_HOST
-              value: consul
-            - name: AMBASSADOR_LICENSE_KEY
-              value: {{env "AMBASSADOR_LICENSE_KEY"}}
+      - name: consul-connect-integration
+        image: {{env "CONSUL_CONNECT_INTEGRATION_IMAGE"}}
+        imagePullPolicy: Always
+        env:
+          # Consul runs as a DaemonSet on each Node therefore we need to talk to the Host machine.
+          # See: https://www.consul.io/docs/platform/k8s/run.html#architecture
+          - name: _CONSUL_HOST
+            value: consul
+          - name: AMBASSADOR_LICENSE_KEY
+            value: {{env "AMBASSADOR_LICENSE_KEY"}}

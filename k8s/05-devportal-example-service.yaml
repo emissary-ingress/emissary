@@ -1,19 +1,18 @@
 # @TEMPLATE@
 
 ---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name:  openapi-mapping
+spec:
+  prefix: /openapi/
+  service: openapi
+---
 apiVersion: v1
 kind: Service
 metadata:
   name: openapi
-  namespace: default
-  annotations:
-    getambassador.io/config: |
-      ---
-      apiVersion: ambassador/v1
-      kind:  Mapping
-      name:  openapi_mapping
-      prefix: /openapi/
-      service: openapi
 spec:
   selector:
     app: openapi
@@ -27,7 +26,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: openapi
-  namespace: default
 spec:
   replicas: 1
   strategy:
@@ -45,7 +43,7 @@ spec:
     spec:
       containers:
         - name: openapi
-          image: {{env "MODEL_CLUSTER_OPENAPI_SERVICE"}}
+          image: {{env "MODEL_CLUSTER_OPENAPI_SERVICE_IMAGE"}}
           imagePullPolicy: IfNotPresent
           ports:
             - name: http-api
