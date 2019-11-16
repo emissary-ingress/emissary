@@ -130,8 +130,7 @@
           </dw-tab>
 
           <dw-tab name="APIs">
-            <h2>APIs</h2>
-            <a href="/docs/">OpenAPI Documentation</a>
+            <dw-apis id="apis"></dw-apis>
           </dw-tab>
 
           <dw-tab name="Documentation">
@@ -155,9 +154,12 @@
   <script async defer type="module" src="/edge_stack/components/context.js"></script>
   <script async defer type="module" src="/edge_stack/components/login-gate.js"></script>
   <script async defer type="module" src="/edge_stack/components/tabs.js"></script>
+  <script async defer type="module" src="/edge_stack/components/apis.js"></script>
   <script async defer type="module" src="/edge_stack/components/signup.js"></script>
   <script async defer type="module" src="/edge_stack/components/mapping-data.js"></script>
   <script async defer type="module" src="/edge_stack/components/aes-mappings.js"></script>
+
+  <script type="module" src="https://unpkg.com/rapidoc/dist/rapidoc-min.js"></script>
 
   <script type="text/javascript">
     $.ajaxSetup({
