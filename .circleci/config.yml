@@ -204,6 +204,7 @@ commands:
             - with-go-build-cache:
                 steps:
                   - run: ./ambassador/builder/build_push_cli.sh build
+      - run: ~/bin/edgectl version || true
 
 jobs:
 
