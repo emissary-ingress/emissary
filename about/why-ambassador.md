@@ -55,4 +55,5 @@ Interested in learning more?
 * [Why did we start building Ambassador Edge Stack?](https://blog.getambassador.io/building-ambassador-an-open-source-api-gateway-on-kubernetes-and-envoy-ed01ed520844)
 * [Ambassador Edge Stack Architecture overview](/concepts/architecture)
 
+<GoogleStructuredData/>
 
