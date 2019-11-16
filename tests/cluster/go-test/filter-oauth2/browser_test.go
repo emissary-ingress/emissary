@@ -161,7 +161,6 @@ run.browserTest(%d, %q, async (browsertab) => {
 }
 
 func TestCanAuthorizeRequests(t *testing.T) {
-	t.Parallel()
 	ensureNPMInstalled(t)
 
 	fileInfos, err := ioutil.ReadDir("testdata")
@@ -173,7 +172,6 @@ func TestCanAuthorizeRequests(t *testing.T) {
 		fileInfo := fileInfo // capture loop variable
 		if strings.HasPrefix(fileInfo.Name(), "idp_") && strings.HasSuffix(fileInfo.Name(), ".js") {
 			t.Run(fileInfo.Name(), func(t *testing.T) {
-				t.Parallel()
 
 				cmd := exec.Command("node", "--print", fmt.Sprintf("JSON.stringify(require(%q).testcases)", "./"+fileInfo.Name()))
 				cmd.Dir = "./testdata/"
@@ -192,7 +190,6 @@ func TestCanAuthorizeRequests(t *testing.T) {
 				for casename := range jsonData {
 					casename := casename // capture loop variable
 					t.Run(casename, func(t *testing.T) {
-						t.Parallel()
 						browserTest(t, 60*time.Second, fmt.Sprintf(`tests.standardTest(browsertab, require("./%s"), "%s")`, fileInfo.Name(), casename))
 					})
 				}
@@ -202,21 +199,17 @@ func TestCanAuthorizeRequests(t *testing.T) {
 }
 
 func TestCanBeChainedWithOtherFilters(t *testing.T) {
-	t.Parallel()
 	ensureNPMInstalled(t)
 
 	t.Run("run", func(t *testing.T) {
-		t.Parallel()
 		browserTest(t, 60*time.Second, `tests.chainTest(browsertab, require("./idp_auth0.js"), "Auth0 (/httpbin)")`)
 	})
 }
 
 func TestCanBeTurnedOffForSpecificPaths(t *testing.T) {
-	t.Parallel()
 	ensureNPMInstalled(t)
 
 	t.Run("run", func(t *testing.T) {
-		t.Parallel()
 		browserTest(t, 60*time.Second, `tests.disableTest(browsertab, require("./idp_auth0.js"), "Auth0 (/httpbin)")`)
 	})
 }
