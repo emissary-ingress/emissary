@@ -2,9 +2,6 @@ language: generic
 
 jobs:
   include:
-    - os: osx
-      name: "MacOS"
-      osx_image: xcode10.1
     - os: linux
       name: "Linux"
       dist: bionic
