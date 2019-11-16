@@ -203,8 +203,18 @@ commands:
           steps:
             - with-go-build-cache:
                 steps:
+                  - run: ./ambassador/builder/module_version.sh unused
                   - run: ./ambassador/builder/build_push_cli.sh build
       - run: ~/bin/edgectl version || true
+      - run:
+          name: "Release"
+          command: |
+            if [[ "$CIRCLE_TAG" =~ ^v[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+(-.*)?$ ]]; then
+                export AWS_ACCESS_KEY_ID=$DEPLOY_KEY_ID
+                export AWS_SECRET_ACCESS_KEY=$DEPLOY_KEY
+                ./ambassador/builder/build_push_cli.sh push
+                ./ambassador/builder/build_push_cli.sh tag
+            fi
 
 jobs:
 
