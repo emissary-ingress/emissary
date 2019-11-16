@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+# FIXME: This is *copied* from builder.sh. Duplicate code!
+
 module_version() {
     echo MODULE="\"$1\""
     # This is only "kinda" the git branch name:
