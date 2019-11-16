@@ -2,11 +2,9 @@
 
 Guides are hands-on tutorials to walk you through configuring Ambassador Edge Stack or Ambassador Open Source for specific functionality.
 
-<p>
-
-<table>
+<table style="margin-top:1em;margin-bottom:1em">
 <tr>
- <td style="vertical-align:top;">
+ <td style="vertical-align:top;width:45%;">
   <strong>Connecting Services</strong>
  <ul>
   <li><a href="/dev-guide/service-preview/#create-a-service"> How to Create a Service</a></li>
@@ -16,7 +14,7 @@ Guides are hands-on tutorials to walk you through configuring Ambassador Edge St
   <li><a href="/docs/guides/filter-dev-guide">Request Transformation with Filters</a></li>
  </ul>
  </td>
- <td style="vertical-align:top;">
+ <td style="vertical-align:top;width:55%;">
   <strong>Security</strong>
  <ul>
   <li><a href="/user-guide/tls-termination">Transport Layer Security (TLS) Guide</a></li>
@@ -28,7 +26,9 @@ Guides are hands-on tutorials to walk you through configuring Ambassador Edge St
   <li><a href="/user-guide/advanced-rate-limiting">Advanced Rate Limiting</a></li>   
  </ul>
  </td>
- <td style="vertical-align:top;">
+</tr>
+<tr>
+ <td style="vertical-align:top;width:45%;">
   <strong>Service Mesh</strong>
   <ul>
    <li><a href="/user-guide/consul">Using Consul for service discovery and mesh</a></li>
@@ -36,9 +36,7 @@ Guides are hands-on tutorials to walk you through configuring Ambassador Edge St
    <li><a href="/user-guide/linkerd2">Linkerd</a></li>
   </ul>
  </td>
-</tr>
-<tr>
- <td style="vertical-align:top;">
+ <td style="vertical-align:top;width:55%;">
   <strong>Best Practices</strong>
   <ul>
    <li><a href="/user-guide/gitops-ambassador">Implementing GitOps with Ambassador</a></li>
@@ -46,7 +44,9 @@ Guides are hands-on tutorials to walk you through configuring Ambassador Edge St
    <li><a href="/docs/dev-guide/service-preview">Integration Testing with Service Preview</a></li>
   </ul>
  </td>
- <td style="vertical-align:top;">
+</tr>
+<tr>
+ <td style="vertical-align:top;" colspan="2">
   <strong>Observability</strong>
   <ul>
    <li><a href="/user-guide/tracing-tutorial">Distributing Tracing</a></li>
@@ -55,6 +55,5 @@ Guides are hands-on tutorials to walk you through configuring Ambassador Edge St
   </td>
 </tr>
 </table>
-<p>
-<p>
+
 If you're interested in contributing to Ambassador, writing (or updating) a Guide is a great place to start. Join our [Slack channel](https://d6e.co/slack) in #ambassador-dev to get started.

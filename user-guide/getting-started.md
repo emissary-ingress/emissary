@@ -29,8 +29,6 @@ Note that it may take a while for your load balancer IP address to be provisione
 ```shell
 kubectl get -n ambassador service ambassador -o 'go-template={{range .status.loadBalancer.ingress}}{{print .ip "\n"}}{{end}}'
 ```
-<p>
-<p>
 
 ### Minikube Users
 

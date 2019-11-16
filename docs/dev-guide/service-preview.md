@@ -25,99 +25,87 @@ In this quick start, we're going to create an application and then add a backend
 
 Create the following YAML and put it in a file called `tour.yaml`.
 
-  <div class="gatsby-highlight" data-language="yaml">
-  <pre class="language-yaml">
-  <code class="language-yaml" id="step7">
-  ---
-  apiVersion: v1
-  kind: Service
-  metadata:
-    name: tour
-  spec:
-    ports:
-    - name: ui
-      port: 5000
-      targetPort: 5000
-    - name: backend
-      port: 8080
-      targetPort: 8080
-    selector:
+```yaml
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tour
+spec:
+  ports:
+  - name: ui
+    port: 5000
+    targetPort: 5000
+  - name: backend
+    port: 8080
+    targetPort: 8080
+  selector:
+    app: tour
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tour
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
       app: tour
-  ---
-  apiVersion: apps/v1
-  kind: Deployment
-  metadata:
-    name: tour
-  spec:
-    replicas: 1
-    selector:
-      matchLabels:
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
         app: tour
-    strategy:
-      type: RollingUpdate
-    template:
-      metadata:
-        labels:
-          app: tour
-      spec:
-        containers:
-        - name: tour-ui
-          image: quay.io/datawire/tour:ui-$tourVersion$
-          ports:
-          - name: http
-            containerPort: 5000
-        - name: quote
-          image: quay.io/datawire/tour:backend-$tourVersion$
-          ports:
-          - name: http
-            containerPort: 8080
-          resources:
-            limits:
-              cpu: "0.1"
-              memory: 100Mi
-  ---
-  apiVersion: getambassador.io/v2
-  kind: Mapping
-  metadata:
-    name: tour-ui
-  spec:
-    prefix: /
-    service: tour:5000
-  ---
-  apiVersion: getambassador.io/v2
-  kind: Mapping
-  metadata:
-    name: tour-backend
-  spec:
-    prefix: /backend/
-    service: tour:8080
-    labels:
-      ambassador:
-        - request_label:
-          - backend
-  </code></pre></div>
-  <p>
-  <p>
-  <button onclick="copy_to_clipboard('step7')">Copy to Clipboard</button>
+    spec:
+      containers:
+      - name: tour-ui
+        image: quay.io/datawire/tour:ui-$tourVersion$
+        ports:
+        - name: http
+          containerPort: 5000
+      - name: quote
+        image: quay.io/datawire/tour:backend-$tourVersion$
+        ports:
+        - name: http
+          containerPort: 8080
+        resources:
+          limits:
+            cpu: "0.1"
+            memory: 100Mi
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: tour-ui
+spec:
+  prefix: /
+  service: tour:5000
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: tour-backend
+spec:
+  prefix: /backend/
+  service: tour:8080
+  labels:
+    ambassador:
+      - request_label:
+        - backend
+```
 
 Then, apply it to the Kubernetes with `kubectl`:
 
-  <div class="gatsby-highlight" data-language="shell">
-  <pre class="language-shell">
-  <code class="language-shell" id="step8">
-  kubectl apply -f tour.yaml</code></pre></div>
-
-<button onclick="copy_to_clipboard('step8')">Copy to Clipboard</button>
+```shell
+kubectl apply -f tour.yaml</code></pre></div>
+```
 
 This YAML has also been published so you can deploy it remotely:
 
-  <div class="gatsby-highlight" data-language="shell">
-  <pre class="language-shell">
-  <code class="language-shell" id="step9">
-  kubectl apply -f https://getambassador.io/yaml/tour/tour.yaml</code></pre></div>
-
-
-<button onclick="copy_to_clipboard('step9')">Copy to Clipboard</button>
+```shell
+kubectl apply -f https://getambassador.io/yaml/tour/tour.yaml</code></pre></div>
+```
 
 When the `Mapping` CRDs are applied, Ambassador will use them to configure routing:
 
@@ -138,13 +126,9 @@ See [configuration format](/reference/config-format) for more information on you
 
 To test things out, we'll need the external IP for Ambassador (it might take some time for this to be available):
 
-<div class="gatsby-highlight" data-language="shell">
-<pre class="language-shell">
-<code class="language-shell" id="step10">
+```shell
 kubectl get svc -o wide ambassador</code></pre></div>
-<p>
-<p>
-<button onclick="copy_to_clipboard('step10')">Copy to Clipboard</button>
+```
 
 Eventually, this should give you something like:
 
