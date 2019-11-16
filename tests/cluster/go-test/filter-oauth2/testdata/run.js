@@ -44,7 +44,7 @@ const resolveTestPromise = function(promise) {
 	promise.then(
 		(value) => { process.exit(0); },
 		(error) => {
-			console.log(error);
+			console.log("error:", error);
 			if (error instanceof TestSkipError) {
 				process.exit(77);
 			} else {

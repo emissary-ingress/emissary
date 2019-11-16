@@ -100,7 +100,7 @@ run.browserTest(%d, %q, async (browsertab) => {
 	cmd.Stderr = lw
 	t.Log(time.Now(), "starting...")
 	nodeErr := cmd.Run()
-	t.Log(time.Now(), "...finished")
+	t.Log(time.Now(), "...finished:", nodeErr)
 
 	// Turn the timestamped screenshots in to a video //////////////////////
 	//
