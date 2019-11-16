@@ -18,4 +18,4 @@ None of these other methods have been implemented or tested yet.
 
 If you already have an existing edition of Ambassador and would like to upgrade, see the pages in **Other Install & Upgrade Options** category.
 
-These include upgrading from [Ambassador Open Source to Edge Stack](/user-guide/upgrade-from-oss-to-edge-stack), upgrading from [Ambassador Pro to Edge Stack](/user-guide/upgrade-from-pro-to-edge-stack), and installing [Ambassador Open Source](/user-guide/install-ambassador-oss).
+These include upgrading from **Ambassador Open Source to Edge Stack**, upgrading from **Ambassador Pro to Edge Stack** and installing [Ambassador Open Source](/user-guide/install-ambassador-oss).

@@ -93,8 +93,6 @@ Go to `http://&lt;your-host-name&gt;` and follow the instructions to complete th
 
 You will need to install the `edgectl` tool in order to fully configure your Ambassador Edge Stack UI. If you are having trouble downloading the files, you can download them directly from [this page](/user-guide/downloads).
 
-If you are deploying on a MacOS Catalina, follow [these instructions](/user-guide/downloads#section-macos-catalina-permissions-error) to install `Edgectl`.
-
 ## Next Steps
 
 <!-- TODO: should we include this? We've just done a quick tour of some of the core features of Ambassador Edge Stack: diagnostics, routing, configuration, and authentication. -->

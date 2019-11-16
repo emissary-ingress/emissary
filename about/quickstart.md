@@ -67,4 +67,4 @@ Note that it's up to the auth service to decide what needs authentication -- tea
 
 ## Next steps
 
-We've just walked through some of the core features of Ambassador Edge Stack in a local configuration. To see Ambassador Edge Stack in action on Kubernetes, check out the [Kubernetes intall guide](/user-guide/install).
+We've just walked through some of the core features of Ambassador Edge Stack in a local configuration. To see Ambassador Edge Stack in action on Kubernetes, check out the [Kubernetes install guide](/user-guide/install).
