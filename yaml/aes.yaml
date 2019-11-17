@@ -165,6 +165,19 @@ spec:
 apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
+  # This Mapping name is what the demo uses. Sigh.
+  name: ambassador-devportal-demo
+  namespace: ambassador
+  labels:
+    product: aes
+spec:
+  prefix: /docs/
+  rewrite: "/docs/"
+  service: "127.0.0.1:8500"
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
   # This Mapping name is referenced by convention, it's important to leave as-is.
   name: ambassador-devportal-api
   namespace: ambassador
