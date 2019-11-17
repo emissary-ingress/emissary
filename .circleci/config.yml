@@ -272,8 +272,14 @@ jobs:
 workflows:
   "APro CI":
     jobs:
-      - "Ubuntu-edgectl"
-      - "macOS-edgectl"
+      - "Ubuntu-edgectl":
+          filters:
+            tags:
+              only: /.*/
+      - "macOS-edgectl":
+          filters:
+            tags:
+              only: /.*/
       - "Ubuntu":
           filters:
             tags:
