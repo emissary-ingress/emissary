@@ -275,10 +275,10 @@ workflows:
     jobs:
       - "Ubuntu-edgectl"
       - "macOS-edgectl"
-      # - "Ubuntu":
-      #     filters:
-      #       tags:
-      #         only: /.*/
+      - "Ubuntu":
+          filters:
+            tags:
+              only: /.*/
 #      - "macOS":
 #          filters:
 #            branches:
