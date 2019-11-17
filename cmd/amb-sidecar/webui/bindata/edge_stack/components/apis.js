@@ -142,6 +142,19 @@ export class APIs extends LitElement {
       }
     }
   }
+  
+  apiName(api) {
+    let apiName = `${api.service_name}.${api.service_namespace}`
+
+    return `${apiName}`
+  }
+
+  compareAPIs(api1, api2) {
+    let name1 = this.apiName(api1)
+    let name2 = this.apiName(api2)
+
+    return name1.localeCompare(name2)
+  }
 
   render() {
     window.apis = this
@@ -158,6 +171,8 @@ export class APIs extends LitElement {
       this.deferHackStyles()
 
       var rendered = []
+      
+      this.apis.sort(this.compareAPIs.bind(this))
 
       this.apis.forEach((api, index) => {
         rendered.push(this.renderAPIDocs(api, index))
@@ -172,18 +187,12 @@ export class APIs extends LitElement {
 // ${repeat(this.apis, (api) => this.apiKey(api), (api, idx) => this.renderAPIDocs(api, idx))}
     }
   }
-  
-  apiKey(api) {
-    let apiName = `${api.service_name}.${api.service_namespace}`
-
-    return `api-${apiName}`
-  }
 
   renderAPIDocs(api, index) {
-    let apiName = `${api.service_name}-${api.service_namespace}`
+    let apiName = this.apiName(api)
 
     return html`
-<div id=${this.apiKey(api)} class="api-doc">
+<div id="api-${apiName}" class="api-doc">
   ${this.renderAPIDetails(api, apiName)}
 </div>
 `
@@ -191,7 +200,7 @@ export class APIs extends LitElement {
 
   renderAPIDetails(api, apiName) {
     if (api.has_doc) {
-      let detailKey = `${this.apiKey(api)}-details`
+      let detailKey = `${apiName}-details`
       let detailURL = `/openapi/services/${api.service_namespace}/${api.service_name}/openapi.json`
 
       return html`
