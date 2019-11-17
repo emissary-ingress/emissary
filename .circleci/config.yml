@@ -203,7 +203,6 @@ commands:
           steps:
             - with-go-build-cache:
                 steps:
-                  - run: ./ambassador/builder/module_version.sh unused
                   - run: ./ambassador/builder/build_push_cli.sh build
       - run: ~/bin/edgectl version || true
       - run:
