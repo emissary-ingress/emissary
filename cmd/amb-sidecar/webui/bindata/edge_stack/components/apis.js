@@ -39,12 +39,13 @@ export class APIs extends LitElement {
   constructor() {
     super()
     this.reset()
+    this.doRefresh = true               // true to allow auto-refreshing
+    this.waitingForHackStyles = false   // true while we have a deferred hackStyles call
   }
 
   reset() {
     this.apis = []
     this.details = {}
-    // this.message = "Initial Message Prop"
   }
 
   connectedCallback() {
@@ -67,11 +68,83 @@ export class APIs extends LitElement {
       }
     })
 
-    console.log("will reload APIs in 10 seconds")
-    setTimeout(this.loadFromServer.bind(this), 10000)
+    if (this.doRefresh) {
+      console.log("will reload APIs in 10 seconds")
+      setTimeout(this.loadFromServer.bind(this), 10000)
+    }
+  }
+
+  deferHackStyles() {
+    if (!this.waitingForHackStyles) {
+      this.waitingForHackStyles = true
+      // console.log("DEFERRING HACKSTYLES")
+      setTimeout(this.hackStyles.bind(this), 1)      
+    }
+    // else {
+    //   console.log("ALREADY DEFERRING HACKSTYLES")
+    // }
+  }
+
+  linkCSS(href) {
+    let link = document.createElement('link')
+    link.setAttribute('rel', 'stylesheet')
+    link.setAttribute('type', 'text/css')
+    link.setAttribute('href', href)
+    return link
+  }
+
+  hackStyles() {
+    this.waitingForHackStyles = false
+    let apiDivs = this.shadowRoot.children[0].getElementsByTagName('rapi-doc')
+
+    // console.log("HACKSTYLES", api/Divs)
+
+    for (let i = 0; i < apiDivs.length; i++) {
+      let aDiv = apiDivs[i]
+
+      // console.log("HACKING", aDiv)
+
+      while (true) {
+        if (!aDiv.shadowRoot) {
+          // Reschedule. FFS.
+          // console.log("NOT YET READY")
+          this.deferHackStyles()
+          return
+        }
+
+        let aDivChildren = aDiv.shadowRoot.children
+        // console.log("  CHILDREN", aDivChildren)
+
+        if (!aDivChildren) {
+          break
+        }
+
+        let aKid = aDivChildren[0]
+        // console.log("  CHILD0", aKid)
+
+        if (aKid.tagName == 'STYLE') {
+          // console.log("  SMITE")
+          aKid.remove()
+        }
+        else {
+          // Our work here is done.
+
+          aDiv.shadowRoot.prepend(this.linkCSS("/edge_stack/styles/rapidoc-table.css"))
+          aDiv.shadowRoot.prepend(this.linkCSS("/edge_stack/styles/rapidoc-input.css"))
+          aDiv.shadowRoot.prepend(this.linkCSS("/edge_stack/styles/rapidoc-fonts.css"))
+          aDiv.shadowRoot.prepend(this.linkCSS("/edge_stack/styles/rapidoc-flex.css"))
+          aDiv.shadowRoot.prepend(this.linkCSS("/edge_stack/styles/rapidoc-endpoint.css"))
+          aDiv.shadowRoot.prepend(this.linkCSS("/edge_stack/styles/rapidoc-elements.css"))
+          aDiv.shadowRoot.prepend(this.linkCSS("/edge_stack/styles/rapidoc-colors.css"))
+
+          break
+        }
+      }
+    }
   }
 
   render() {
+    window.apis = this
     console.log(`APIs rendering ${this.apis.length} API${(this.apis.length == 1) ? "" : "s"}`)
 
     if (this.apis.length == 0) {
@@ -82,13 +155,13 @@ export class APIs extends LitElement {
 `
     }
     else {
+      this.deferHackStyles()
+
       var rendered = []
 
       this.apis.forEach((api, index) => {
         rendered.push(this.renderAPIDocs(api, index))
       })
-
-      console.log(rendered)
 
       return html`
 <div id="apis-div">
@@ -97,7 +170,6 @@ export class APIs extends LitElement {
 </div>
 `
 // ${repeat(this.apis, (api) => this.apiKey(api), (api, idx) => this.renderAPIDocs(api, idx))}
-
     }
   }
   
@@ -111,7 +183,7 @@ export class APIs extends LitElement {
     let apiName = `${api.service_name}-${api.service_namespace}`
 
     return html`
-<div id=${this.apiKey(api)}>
+<div id=${this.apiKey(api)} class="api-doc">
   ${this.renderAPIDetails(api, apiName)}
 </div>
 `
