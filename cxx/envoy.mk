@@ -145,9 +145,7 @@ envoy-shell: $(ENVOY_BASH.deps)
 #
 # Envoy generate
 
-generate: api/envoy
-
-api/envoy: $(srcdir)/envoy
+$(OSS_HOME)/api/envoy: $(srcdir)/envoy
 	rsync --recursive --delete --delete-excluded --prune-empty-dirs --include='*/' --include='*.proto' --exclude='*' $</api/envoy/ $@
 
 update-base: $(OSS_HOME)/bin_linux_amd64/envoy-static-stripped
@@ -162,16 +160,13 @@ update-base: $(OSS_HOME)/bin_linux_amd64/envoy-static-stripped
 
 clean: _clean-envoy
 clobber: _clobber-envoy
-generate-clean: _generate-clean-envoy
 
 _clean-envoy: _clean-envoy-old
 _clean-envoy: $(srcdir)/envoy-build-container.txt.clean
 	rm -f $(srcdir)/envoy-build-image.txt
 _clobber-envoy: _clean-envoy
 	$(if $(filter-out -,$(ENVOY_COMMIT)),rm -rf $(srcdir)/envoy)
-_generate-clean-envoy: _clobber-envoy
-	rm -rf $(OSS_HOME)/api/envoy
-.PHONY: _clean-envoy _clobber-envoy _generate-clean-envoy
+.PHONY: _clean-envoy _clobber-envoy
 
 # Files made by older versions.  Remove the tail of this list when the
 # commit making the change gets far enough in to the past.
