@@ -1,3 +1,4 @@
+#!/bin/sh
 for x in \
 	'envoy.cluster.cluster_http___statsdtest_http.upstream_rq_200:310|c' \
 	'envoy.cluster.cluster_http___statsdtest_http.upstream_rq_2xx:310|c' \

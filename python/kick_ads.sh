@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Usage: [DIAGD_ONLY=y] ENVOY_DIR=<envoy_dir> kick_ads.sh <ambex-pid> <envoy-flags...>
 
 if [[ -n "$DIAGD_ONLY" ]]; then
@@ -11,7 +11,7 @@ arg_envoy_flags=("${@:2}")
 
 envoy_pid_file="${ENVOY_DIR}/envoy.pid"
 
-if [[ ! -r "$envoy_pid_file" ]] || ! kill -0 $(cat "${envoy_pid_file}"); then
+if [[ ! -r "$envoy_pid_file" ]] || ! kill -0 "$(cat "${envoy_pid_file}")"; then
     # Envoy isn't running. Start it.
     envoy "${arg_envoy_flags[@]}" &
     envoy_pid="$!"

@@ -9,8 +9,8 @@
 # to the pytest line, and, uh, I guess recover and merge all the .coverage 
 # files from the containers??
 
-HERE=$(cd $(dirname $0); pwd)
-ROOT=$(cd .. ; pwd)
+HERE=$(cd "$(dirname "$0")"; pwd)
+ROOT=$(cd "$HERE/.." ; pwd)
 
 set -e
 set -o pipefail
@@ -59,7 +59,7 @@ done
 
 ( cd "$ROOT"; bash "$HERE/test-warn.sh" )
 
-TEST_ARGS_GENERIC=(--tb=short -s --suppress-no-test-exit-code)
+TEST_ARGS_GENERIC=('--tb=short' '-s' '--suppress-no-test-exit-code')
 TEST_ARGS_WITHOUT_KNATIVE=("${TEST_ARGS_GENERIC[@]}" -k 'not Knative')
 TEST_ARGS_WITH_KNATIVE=("${TEST_ARGS_GENERIC[@]}" -k 'Knative')
 
@@ -68,6 +68,7 @@ SERIALIZE_KNATIVE_TESTS=true
 
 seq=("")
 
+TEST_NAME="${TEST_NAME:-}" # shut up shellcheck, we get TEST_NAME from the environment
 if [[ -n "${TEST_NAME}" ]]; then
     case "${TEST_NAME}" in
     group0) seq=('Plain' 'not Plain and (A or C)' 'not Plain and not (A or C)') ;;
@@ -126,11 +127,9 @@ run_test() {
             docker ps -a > "$tmpdir/docker.txt" 2>&1
         fi
 
-        for pod in $(kubectl get pods -o jsonpath='{range .items[?(@.status.phase != "Running")]}{.metadata.name}:{.status.phase}{"\n"}{end}'); do
-            # WTFO.
-            podname=$(echo $pod | cut -d: -f1)
-            kubectl logs $podname > "$tmpdir/pod-$podname.log" 2>&1
-        done
+        while read -r podname; do
+            kubectl logs "$podname" >& "$tmpdir/pod-$podname.log"
+        done < <(kubectl get pods -o jsonpath='{range .items[?(@.status.phase != "Running")]}{.metadata.name}{"\n"}{end}')
     else
         echo "==== [$(date)] $pretty_test_name ==== SUCCEEDED"
     fi
@@ -147,13 +146,12 @@ echo "==== [$(date)] ==== STARTING TESTS"
 failed=()
 
 for t_name in "${seq[@]}"; do
-    run_test "${t_name}" "${TEST_ARGS_WITHOUT_KNATIVE[@]}"
+    run_test "${t_name}" "${TEST_ARGS[@]}"
 done
 
 if [[ "$SERIALIZE_KNATIVE_TESTS" = true ]] ; then
     echo "==== Running Knative tests ===="
-    all_tests=("")
-    run_test "${all_tests}" "${TEST_ARGS_WITH_KNATIVE[@]}"
+    run_test '' "${TEST_ARGS_WITH_KNATIVE[@]}"
 fi
 
 if (( ${#failed[@]} == 0 )); then
@@ -168,37 +166,28 @@ else
         mv /tmp/k8s-AmbassadorTest.yaml "$tmpdir"
     fi
 
-    copy_if_present () {
-        pattern="$1"
-        dest="$2"
-        expanded="$(echo $pattern)"
-
-        if [ "$expanded" != "$pattern" ]; then
-            cp $pattern $dest
-        fi
-    }
-
-    copy_if_present '/tmp/kat-logs-*' "$tmpdir"
-    copy_if_present '/tmp/kat-events-*' "$tmpdir"
-    copy_if_present '/tmp/kat-client*' "$tmpdir"
-
-    copy_if_present '/tmp/teleproxy.log' "$tmpdir"
-    copy_if_present '/etc/resolv.conf' "$tmpdir"
+    cp \
+        /tmp/kat-logs-* \
+        /tmp/kat-events-* \
+        /tmp/kat-client* \
+        /tmp/teleproxy.log \
+        /etc/resolv.conf \
+        "$tmpdir" 2>/dev/null || true
 
     mv "$tmpdir" "$outdir"
 
     ( cd /tmp; tar czf "$outdir.tgz" "$outdirbase" )
 
-    if [ -n "$AWS_ACCESS_KEY_ID" -a "$TRAVIS" = true ]; then
+    if [[ -n "$AWS_ACCESS_KEY_ID" && "$TRAVIS" == true ]]; then
         now=$(date +"%y-%m-%dT%H:%M:%S")
-        branch="$(printf ${GIT_BRANCH} | tr '[:upper:]' '[:lower:]' | sed -e 's/[^a-zA-Z0-9]/-/g' -e 's/-\{2,\}/-/g')"
-        aws_key="kat-${branch}-${now}-${hr_el}-logs.tgz"
+        branch="$(sed -e 's/[^a-zA-Z0-9]/-/g' -e 's/-\{2,\}/-/g' <<<"${GIT_BRANCH^^}")"
+        aws_key="kat-${branch}-${now}-logs.tgz"
 
         echo "==== [$(date)] ==== Uploading log tarball as $aws_key"
 
         aws s3api put-object \
             --bucket datawire-static-files \
-            --key kat/${aws_key} \
+            --key "kat/${aws_key}" \
             --body "${outdir}.tgz"
 
         echo "==== [$(date)] ==== Recover log tarball with"

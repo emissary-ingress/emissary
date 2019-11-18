@@ -22,7 +22,7 @@ GH_TOKEN="${GH_TOKEN:?not set}"
 TARGET_BRANCH="master"
 
 rm -rf /tmp/getambassador.io
-git clone --single-branch -b ${TARGET_BRANCH} https://d6e-automaton:${GH_TOKEN}@github.com/datawire/getambassador.io.git /tmp/getambassador.io
+git clone --single-branch -b "$TARGET_BRANCH" "https://d6e-automaton:${GH_TOKEN}@github.com/datawire/getambassador.io.git" /tmp/getambassador.io
 cd /tmp/getambassador.io
 npm run pull-docs
-git push origin ${TARGET_BRANCH}
+git push origin "$TARGET_BRANCH"

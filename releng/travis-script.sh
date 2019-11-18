@@ -19,25 +19,27 @@ set -o nounset
 
 update-aws() {
     if [ -z "${AWS_ACCESS_KEY_ID}" ]; then
-        @echo 'AWS credentials not configured; not updating either https://s3.amazonaws.com/datawire-static-files/ambassador/$(STABLE_TXT_KEY) or the latest version in Scout'
+        @printf 'AWS credentials not configured; not updating either %s or %s\n' \
+         "https://s3.amazonaws.com/datawire-static-files/ambassador/${STABLE_TXT_KEY}" \
+         'the latest version in Scout'
         exit
     fi
 
     if [ -n "${STABLE_TXT_KEY}" ]; then
-        printf "${RELEASE_VERSION}" > stable.txt
+        printf '%s' "${RELEASE_VERSION}" > stable.txt
         echo "updating ${STABLE_TXT_KEY} with $(cat stable.txt)"
         aws s3api put-object \
             --bucket datawire-static-files \
-            --key ambassador/${STABLE_TXT_KEY} \
+            --key "ambassador/${STABLE_TXT_KEY}" \
             --body stable.txt
     fi
 
     if [ -n "${SCOUT_APP_KEY}" ]; then
-        printf '{"application":"ambassador","latest_version":"${RELEASE_VERSION}","notices":[]}' > app.json
+        printf '{"application":"ambassador","latest_version":"%s","notices":[]}' "${RELEASE_VERSION}" > app.json
         echo "updating ${SCOUT_APP_KEY} with $(cat app.json)"
         aws s3api put-object \
             --bucket scout-datawire-io \
-            --key ambassador/$(SCOUT_APP_KEY) \
+            --key "ambassador/${SCOUT_APP_KEY}" \
             --body app.json
     fi
 }
@@ -77,7 +79,7 @@ then
 fi
 git update-ref -d refs/upstream-tag
 
-printf "========\nCOMMIT_TYPE $COMMIT_TYPE; git status:\n"
+printf "========\nCOMMIT_TYPE %s; git status:\n" "$COMMIT_TYPE"
 
 git status
 

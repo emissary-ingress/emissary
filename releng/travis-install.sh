@@ -43,6 +43,7 @@ chmod +x ~/bin/kubernaut
 
 # Install Go
 gimme ${GO_VERSION}
+# shellcheck disable=SC1090
 source ~/.gimme/envs/latest.env
 
 # Install awscli
@@ -53,10 +54,10 @@ base64 -d < kconf.b64 | ( cd ~ ; tar xzf - )
 # Grab a kubernaut cluster
 CLAIM_NAME=kat-${USER}-$(uuidgen)
 DEV_KUBECONFIG=~/.kube/${CLAIM_NAME}.yaml
-echo $CLAIM_NAME > ~/kubernaut-claim.txt
-kubernaut claims delete ${CLAIM_NAME}
-kubernaut claims create --name ${CLAIM_NAME} --cluster-group main
+printf '%s\n' "$CLAIM_NAME" > ~/kubernaut-claim.txt
+kubernaut claims delete "$CLAIM_NAME"
+kubernaut claims create --name "$CLAIM_NAME" --cluster-group main
 # Do a quick sanity check on that cluster
-kubectl --kubeconfig ${DEV_KUBECONFIG} -n default get service kubernetes
+kubectl --kubeconfig "$DEV_KUBECONFIG" -n default get service kubernetes
 
 printf "== End:   travis-install.sh ==\n"

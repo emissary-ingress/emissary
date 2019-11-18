@@ -13,7 +13,7 @@ lint-oss:
 	  r=0; \
 	  mypy --follow-imports=skip --ignore-missing-imports $(OSS_HOME)/python || r=$$?; \
 	  (cd $(OSS_HOME) && golangci-lint run ./...) || r=$$?; \
-	  shellcheck $(OSS_HOME)/builder/*.sh $(OSS_HOME)/builder/builder_bash_rc || r=$$?; \
+	  shellcheck $(OSS_HOME)/*/*.sh $(OSS_HOME)/docker/*/*.sh $(OSS_HOME)/cmd/*/*.sh $(OSS_HOME)/builder/builder_bash_rc || r=$$?; \
 	  exit $$r; \
 	}
 .PHONY: lint-oss

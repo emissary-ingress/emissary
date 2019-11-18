@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Copyright 2018 Datawire. All rights reserved.
 #
@@ -20,7 +20,7 @@ log () {
     local now
 
     now=$(date +"%Y-%m-%d %H:%M:%S")
-    echo "${now} AMBASSADOR INFO ${@}" >&2
+    echo "${now} AMBASSADOR INFO $*" >&2
 }
 
 debug () {
@@ -28,7 +28,7 @@ debug () {
 
     if [ -n "$ENTRYPOINT_DEBUG" ]; then
         now=$(date +"%Y-%m-%d %H:%M:%S")
-        echo "${now} AMBASSADOR DEBUG ${@}" >&2
+        echo "${now} AMBASSADOR DEBUG $*" >&2
     fi
 }
 
@@ -44,7 +44,7 @@ wait_for_url () {
     while (( tries_left > 0 )); do
         debug "pinging $name ($tries_left)..."
 
-        status=$(curl -s -o /dev/null -w "%{http_code}" $url)
+        status=$(curl -s -o /dev/null -w "%{http_code}" "$url")
 
         if [ "$status" = "200" ]; then
             break
@@ -107,17 +107,18 @@ fi
 envoy_config_file="${ENVOY_DIR}/envoy.json"         # not a typo, see above
 envoy_flags=('-c' "${ENVOY_BOOTSTRAP_FILE}")
 
+AMBASSADOR_DEBUG=${AMBASSADOR_DEBUG:-} # shut up warning about misspelling from shellcheck
 # AMBASSADOR_DEBUG is a list of things to enable debugging for,
 # separated by spaces; parse that in to an array.
 read -r -d '' -a ambassador_debug <<<"$AMBASSADOR_DEBUG"
 for item in "${ambassador_debug[@]}"; do
     case "$item" in
         diagd)
-            debug 'AMBASSADOR_DEBUG: `diagd --debug` enabled'
+            debug 'AMBASSADOR_DEBUG: "diagd --debug" enabled'
             diagd_flags+=('--debug')
             ;;
         envoy)
-            debug 'AMBASSADOR_DEBUG: `envoy -l debug` enabled'
+            debug 'AMBASSADOR_DEBUG: "envoy -l debug" enabled'
             envoy_flags+=('-l' 'debug')
             ;;
         entrypoint)
@@ -187,25 +188,25 @@ mkdir -p "${ENVOY_DIR}"
 ################################################################################
 
 ambassador_exit() {
-    RC=${1:-1}
+    local RC=${1:-1}
 
     if [ -n "$AMBASSADOR_EXIT_DELAY" ]; then
         log "sleeping before shutdown ($RC)"
-        sleep $AMBASSADOR_EXIT_DELAY
+        sleep "$AMBASSADOR_EXIT_DELAY"
     fi
 
     log "killing extant processes"
     jobs -p | xargs -r kill --
 
     log "shutting down ($RC)"
-    exit $RC
+    exit "$RC"
 }
 
 diediedie() {
-    NAME=$1
-    STATUS=$2
+    local NAME=$1
+    local STATUS=$2
 
-    if [ $STATUS -eq 0 ]; then
+    if [ "$STATUS" -eq 0 ]; then
         log "$NAME claimed success, but exited \?\?\?\?"
     else
         log "$NAME exited with status $STATUS"
@@ -230,7 +231,7 @@ launch() {
 
     cmd="$1"    # this is a human-readable name used only for logging.
     shift
-    args="${@@Q}"
+    args="${*@Q}"
 
     log "launching worker process '${cmd}': ${args}"
 
@@ -331,7 +332,7 @@ kick_ads() {
 
         kill -HUP "${pids[ambex]}"
 
-        if [ -n "$AMBASSADOR_DEMO_MODE" -a -z "$demo_chimed" ]; then
+        if [[ -n "$AMBASSADOR_DEMO_MODE" && -z "$demo_chimed" ]]; then
             # Wait for Envoy...
             wait_for_url "envoy" "http://localhost:8001/ready"
 
@@ -362,37 +363,53 @@ wait_for_url "diagd" "http://localhost:8877/_internal/v0/ping"
 # WORKER: KUBEWATCH                                                            #
 ################################################################################
 if [[ -z "${AMBASSADOR_NO_KUBEWATCH}" ]]; then
-    KUBEWATCH_SYNC_KINDS="-s service -s Host"
+    KUBEWATCH_SYNC_KINDS=(
+        -s service
+        -s Host
+    )
 
     if [ ! -f "${AMBASSADOR_CONFIG_BASE_DIR}/.ambassador_ignore_ingress" ]; then
-        KUBEWATCH_SYNC_KINDS="$KUBEWATCH_SYNC_KINDS -s ingresses"
+        KUBEWATCH_SYNC_KINDS+=(-s ingresses)
     fi
 
     if [ ! -f "${AMBASSADOR_CONFIG_BASE_DIR}/.ambassador_ignore_crds" ]; then
-        KUBEWATCH_SYNC_KINDS="$KUBEWATCH_SYNC_KINDS -s AuthService -s LogService -s Mapping -s Module -s RateLimitService -s TCPMapping -s TLSContext -s TracingService"
+        KUBEWATCH_SYNC_KINDS+=(
+            -s AuthService
+            -s LogService
+            -s Mapping
+            -s Module
+            -s RateLimitService
+            -s TCPMapping
+            -s TLSContext
+            -s TracingService
+        )
     fi
 
     if [ ! -f "${AMBASSADOR_CONFIG_BASE_DIR}/.ambassador_ignore_crds_2" ]; then
-        KUBEWATCH_SYNC_KINDS="$KUBEWATCH_SYNC_KINDS -s ConsulResolver -s KubernetesEndpointResolver -s KubernetesServiceResolver"
+        KUBEWATCH_SYNC_KINDS+=(
+            -s ConsulResolver
+            -s KubernetesEndpointResolver
+            -s KubernetesServiceResolver
+        )
     fi
 
-    AMBASSADOR_FIELD_SELECTOR_ARG=""
+    AMBASSADOR_FIELD_SELECTOR_ARGS=()
     if [ -n "$AMBASSADOR_FIELD_SELECTOR" ] ; then
-	    AMBASSADOR_FIELD_SELECTOR_ARG="--fields $AMBASSADOR_FIELD_SELECTOR"
+	    AMBASSADOR_FIELD_SELECTOR_ARGS=(--fields "$AMBASSADOR_FIELD_SELECTOR")
     fi
 
-    AMBASSADOR_LABEL_SELECTOR_ARG=""
+    AMBASSADOR_LABEL_SELECTOR_ARGS=()
     if [ -n "$AMBASSADOR_LABEL_SELECTOR" ] ; then
-	    AMBASSADOR_LABEL_SELECTOR_ARG="--labels $AMBASSADOR_LABEL_SELECTOR"
+	    AMBASSADOR_LABEL_SELECTOR_ARGS=(--labels "$AMBASSADOR_LABEL_SELECTOR")
     fi
 
     launch "watt" watt \
            --port 8002 \
            ${AMBASSADOR_SINGLE_NAMESPACE:+ --namespace "${AMBASSADOR_NAMESPACE}" } \
            --notify 'python /ambassador/post_update.py --watt ' \
-           ${KUBEWATCH_SYNC_KINDS} \
-           ${AMBASSADOR_FIELD_SELECTOR_ARG} \
-           ${AMBASSADOR_LABEL_SELECTOR_ARG} \
+           "${KUBEWATCH_SYNC_KINDS[@]}" \
+           "${AMBASSADOR_FIELD_SELECTOR_ARGS[@]}" \
+           "${AMBASSADOR_LABEL_SELECTOR_ARGS[@]}" \
            --watch "python /ambassador/watch_hook.py"
 fi
 
@@ -409,7 +426,7 @@ done
 ################################################################################
 
 debug "waiting"
-debug "PIDS: $pids"
+debug "PIDS: $(declare -p pids)"
 
 while true; do
     wait

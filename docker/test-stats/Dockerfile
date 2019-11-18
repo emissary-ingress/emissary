@@ -28,7 +28,7 @@ LABEL PROJECT_REPO_URL         = "git@github.com:datawire/ambassador.git" \
 # blindly hack up this file.
 
 # We need curl, pip, and dnsutils (for nslookup).
-RUN apk --no-cache add curl python3 bind-tools jq
+RUN apk --no-cache add bash curl python3 bind-tools jq
 RUN python3 -m ensurepip && \
     rm -r /usr/lib/python*/ensurepip && \
     pip3 install --upgrade pip setuptools && \

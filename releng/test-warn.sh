@@ -1,4 +1,4 @@
-#!bash
+#!/hint/bash
 
 if [ ! -r ".skip_test_warning" ]; then
     cat <<EOF
@@ -27,7 +27,7 @@ WARNING: Your current Kubernetes context will be WIPED OUT by this test.
 EOF
 
     while true; do
-        read -p 'Is this really OK? (y/N) ' yn
+        read -r -p 'Is this really OK? (y/N) ' yn
 
         case $yn in
             [Yy]* ) break;;

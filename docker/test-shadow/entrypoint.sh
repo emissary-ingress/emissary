@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Copyright 2018 Datawire. All rights reserved.
 #
@@ -20,35 +20,32 @@ export LANG=C.UTF-8
 APPDIR=${APPDIR:-/application}
 
 env | grep V
-echo "DEMO: args $@"
+echo "DEMO: args ${*@Q}"
 
 pids=()
 
 handle_chld() {
     local tmp=()
 
-    for (( i=0; i<${#pids[@]}; ++i )); do
-        split=(${pids[$i]//;/ })    # the space after the trailing / is critical!
-        pid=${split[0]}
-        name=${split[1]}
+    local entry pid name
+    for entry in "${pids[@]}"; do
+        IFS=';' read -r pid name <<<"$entry"
 
-        if [ ! -d /proc/$pid ]; then
-            wait $pid
+        if [ ! -d "/proc/$pid" ]; then
+            wait "$pid"
             echo "DEMO: $name exited: $?"
             echo "DEMO: shutting down"
             exit 1
         else
-            tmp+=(${pids[i]})
+            tmp+=("$entry}")
         fi
     done
 
-    pids=(${tmp[@]})
+    pids=("${tmp[@]}")
 }
 
 set -o monitor
 trap "handle_chld" CHLD
-
-ROOT=$$
 
 echo "SHADOW: starting shadow service"
 /usr/bin/python3 "$APPDIR/shadow.py" "$@" &
@@ -56,4 +53,3 @@ pids+=("$!;shadow")
 
 echo "SHADOW: waiting"
 wait
-
