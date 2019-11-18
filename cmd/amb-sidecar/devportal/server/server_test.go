@@ -8,6 +8,7 @@ import (
 	"github.com/Jeffail/gabs"
 	. "github.com/onsi/gomega"
 
+	"github.com/datawire/apro/cmd/amb-sidecar/devportal/content"
 	"github.com/datawire/apro/cmd/amb-sidecar/devportal/openapi"
 	"github.com/datawire/apro/cmd/amb-sidecar/limiter/mocks"
 	"github.com/datawire/apro/lib/licensekeys"
@@ -55,7 +56,8 @@ func TestAddThenGetViaHTTP(t *testing.T) {
 
 	g := NewGomegaWithT(t)
 	l := mocks.NewMockLimiter()
-	s := NewServer("", nil, l)
+	c := content.NewMockContent(content.ContentConfig{Version: "2"})
+	s := NewServer("/xyz", c, l)
 	baseURL := "https://example.com"
 	prefix := "/foo"
 	svc := Service{Name: "mysvc", Namespace: "myns"}
@@ -68,7 +70,7 @@ func TestAddThenGetViaHTTP(t *testing.T) {
 
 	// We can retrieve the updated OpenAPI via HTTP:
 	req, err := http.NewRequest(
-		"GET", "/openapi/services/myns/mysvc/openapi.json", nil)
+		"GET", "/xyz/api/v2/services/myns/mysvc/openapi.json", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -122,7 +124,8 @@ func TestRedactedDocument(t *testing.T) {
 	l := mocks.NewMockLimiterWithCounts(map[licensekeys.Limit]int{
 		licensekeys.LimitDevPortalServices: 0,
 	}, false)
-	s := NewServer("", nil, l)
+	c := content.NewMockContent(content.ContentConfig{Version: "2"})
+	s := NewServer("/xyz", c, l)
 	baseURL := "https://example.com"
 	prefix := "/foo"
 	svc := Service{Name: "mysvc", Namespace: "myns"}
@@ -133,7 +136,7 @@ func TestRedactedDocument(t *testing.T) {
 	}
 
 	req, err := http.NewRequest(
-		"GET", "/openapi/services/myns/mysvc/openapi.json", nil)
+		"GET", "/xyz/api/v2/services/myns/mysvc/openapi.json", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -186,7 +189,8 @@ func TestHardLimitDocument(t *testing.T) {
 	l := mocks.NewMockLimiterWithCounts(map[licensekeys.Limit]int{
 		licensekeys.LimitDevPortalServices: 0,
 	}, true)
-	s := NewServer("", nil, l)
+	c := content.NewMockContent(content.ContentConfig{Version: "2"})
+	s := NewServer("/xyz", c, l)
 	baseURL := "https://example.com"
 	prefix := "/foo"
 	svc := Service{Name: "mysvc", Namespace: "myns"}
@@ -197,7 +201,7 @@ func TestHardLimitDocument(t *testing.T) {
 	}
 
 	req, _ := http.NewRequest(
-		"GET", "/openapi/services/myns/mysvc/openapi.json", nil)
+		"GET", "/xyz/api/v2/services/myns/mysvc/openapi.json", nil)
 	rr := httptest.NewRecorder()
 	s.router.ServeHTTP(rr, req)
 	g.Expect(rr.Code).To(Equal(http.StatusNotFound))
@@ -207,9 +211,10 @@ func TestHardLimitDocument(t *testing.T) {
 func TestOpenAPIDocNotFound(t *testing.T) {
 	g := NewGomegaWithT(t)
 	l := mocks.NewMockLimiter()
-	s := NewServer("", nil, l)
+	c := content.NewMockContent(content.ContentConfig{Version: "2"})
+	s := NewServer("/xyz", c, l)
 	req, _ := http.NewRequest(
-		"GET", "/openapi/services/myns/mysvc/openapi.json", nil)
+		"GET", "/xyz/api/v2/services/myns/mysvc/openapi.json", nil)
 	rr := httptest.NewRecorder()
 	s.router.ServeHTTP(rr, req)
 	g.Expect(rr.Code).To(Equal(http.StatusNotFound))

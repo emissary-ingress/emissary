@@ -114,7 +114,9 @@ func serve(cmd *cobra.Command, args []string) {
 
 	amb := newMockAmbassador()
 	amb.addMapping("default", "ambassador-devportal", docs, server.Router())
-	amb.addMapping("default", "ambassador-devportal-api", "/openapi", server.Router())
+        if content.Config().Version == "1" {
+	        amb.addMapping("default", "ambassador-devportal-api", "/openapi", server.Router())
+	}
 	amb.addMapping("ns1", "example-a", "/example-a", newSampleService("/example-a", true))
 	amb.addMapping("ns2", "example-b", "/example-b", newSampleService("/example-b", true))
 	amb.addMapping("ns1", "example-c", "/example-c", newSampleService("/example-c", false))

@@ -76,35 +76,6 @@
                 "kind": "Mapping",
                 "metadata": {
                     "annotations": {
-                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"getambassador.io/v1\",\"kind\":\"Mapping\",\"metadata\":{\"annotations\":{},\"labels\":{\"product\":\"aes\"},\"name\":\"ambassador-pro-devportal-api\",\"namespace\":\"ambassador\"},\"spec\":{\"add_response_headers\":{\"x-test-ip\":\"%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%\",\"x-test-proto\":\"%PROTOCOL%\",\"x-test-static\":\"This is apro api mapping\"},\"prefix\":\"/openapi/\",\"rewrite\":\"\",\"service\":\"127.0.0.1:8500\"}}\n"
-                    },
-                    "creationTimestamp": "2019-10-30T14:52:51Z",
-                    "generation": 1,
-                    "labels": {
-                        "product": "aes"
-                    },
-                    "name": "ambassador-pro-devportal-api",
-                    "namespace": "ambassador",
-                    "resourceVersion": "6040",
-                    "selfLink": "/apis/getambassador.io/v1/namespaces/ambassador/mappings/ambassador-pro-devportal-api",
-                    "uid": "f226b4d1-fb24-11e9-a908-42010a9600a7"
-                },
-                "spec": {
-                    "add_response_headers": {
-                        "x-test-ip": "%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%",
-                        "x-test-proto": "%PROTOCOL%",
-                        "x-test-static": "This is apro api mapping"
-                    },
-                    "prefix": "/openapi/",
-                    "rewrite": "",
-                    "service": "127.0.0.1:8500"
-                }
-            },
-            {
-                "apiVersion": "getambassador.io/v1",
-                "kind": "Mapping",
-                "metadata": {
-                    "annotations": {
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"getambassador.io/v1\",\"kind\":\"Mapping\",\"metadata\":{\"annotations\":{},\"labels\":{\"product\":\"aes\"},\"name\":\"callback-mapping\",\"namespace\":\"ambassador\"},\"spec\":{\"prefix\":\"/callback\",\"service\":\"NoTaReAlSeRvIcE\"}}\n"
                     },
                     "creationTimestamp": "2019-10-30T14:52:51Z",

@@ -12,6 +12,7 @@ import (
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 
+	"github.com/datawire/apro/cmd/amb-sidecar/devportal/content"
 	"github.com/datawire/apro/cmd/amb-sidecar/devportal/openapi"
 	"github.com/datawire/apro/cmd/amb-sidecar/limiter/mocks"
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
@@ -91,7 +92,8 @@ func urlMust(u *url.URL, err error) *url.URL {
 func TestFetcherRetrieve(t *testing.T) {
 	g := NewGomegaWithT(t)
 	l := mocks.NewMockLimiter()
-	s := NewServer("", nil, l)
+	c := content.NewMockContent(content.ContentConfig{Version: "2"})
+	s := NewServer("", c, l)
 
 	// Start out knowing about one service, but it's going to go away:
 	oldSvc := Service{Name: "old"}

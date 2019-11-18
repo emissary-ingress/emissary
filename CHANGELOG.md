@@ -4,6 +4,7 @@
 
 Behavior:
 
+ * Developer portal no longer requires the /openapi Mapping
  * Renamed environment variable APRO_DEVPORTAL_CONTENT_URL to DEVPORTAL_CONTENT_URL
  * Feature: Developer portal can check out a non-default branch. Control with DEVPORTAL_CONTENT_BRANCH env var
  * Feature: Developer portal can use a subdir of a checkout. Control with DEVPORTAL_CONTENT_DIR env var

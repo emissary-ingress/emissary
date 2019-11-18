@@ -8,6 +8,7 @@ import (
 	"time"
 
 	log "github.com/sirupsen/logrus"
+	"gopkg.in/yaml.v2"
 )
 
 type GlobbableView interface {
@@ -19,6 +20,11 @@ type Content struct {
 	funcMap template.FuncMap
 	md      MarkdownRenderer
 	source  *url.URL
+	config  ContentConfig
+}
+
+type ContentConfig struct {
+	Version string
 }
 
 type ContentVars interface {
@@ -97,7 +103,37 @@ func NewContent(contentURL *url.URL, branch, subdir string) (*Content, error) {
 	content.store = store
 	content.source = contentURL
 
+	err = content.loadConfig()
+	if err != nil {
+		return nil, err
+	}
+
 	return content, nil
+}
+
+func NewMockContent(config ContentConfig) *Content {
+	return &Content{
+		config: config,
+	}
+}
+
+func (c *Content) loadConfig() error {
+	f, err := c.Fs().Open("devportal.yaml")
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	cfg := ContentConfig{}
+	err = yaml.NewDecoder(f).Decode(&cfg)
+	if err != nil {
+		return err
+	}
+	c.config = cfg
+	return nil
+}
+
+func (c *Content) Config() ContentConfig {
+	return c.config
 }
 
 func (c *Content) Fs() Globbable {
