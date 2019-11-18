@@ -20,4 +20,4 @@ set -o nounset
 printf "== Begin: travis-cleanup.sh ==\n"
 set -o xtrace
 
-kubernaut claims delete $(cat ~/kubernaut-claim.txt)
+kubernaut claims delete "$(cat ~/kubernaut-claim.txt)"

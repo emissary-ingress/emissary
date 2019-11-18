@@ -14,13 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-this_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
-[ -d "$this_dir" ] || {
-        echo "FATAL: no current dir (maybe running in zsh?)"
-        exit 1
-}
-TOP_DIR=$(realpath $this_dir/..)
-
 GO_VERSION=1.13
 HELM_VERSION=2.9.1
 KUBECTL_VERSION=1.17.4
@@ -51,6 +44,7 @@ chmod +x ~/bin/kubernaut
 
 # Install Go
 gimme ${GO_VERSION}
+# shellcheck disable=SC1090
 source ~/.gimme/envs/latest.env
 
 # Install awscli
@@ -65,13 +59,13 @@ base64 -d < kconf.b64 | ( cd ~ ; tar xzf - )
 # Grab a kubernaut cluster
 CLAIM_NAME=kat-${USER}-$(uuidgen)
 DEV_KUBECONFIG=~/.kube/${CLAIM_NAME}.yaml
-echo $CLAIM_NAME > ~/kubernaut-claim.txt
-kubernaut claims delete ${CLAIM_NAME}
-kubernaut claims create --name ${CLAIM_NAME} --cluster-group main
+printf '%s\n' "$CLAIM_NAME" > ~/kubernaut-claim.txt
+kubernaut claims delete "$CLAIM_NAME"
+kubernaut claims create --name "$CLAIM_NAME" --cluster-group main
 # Do a quick sanity check on that cluster
-kubectl --kubeconfig ${DEV_KUBECONFIG} -n default get service kubernetes
+kubectl --kubeconfig "$DEV_KUBECONFIG" -n default get service kubernetes
 
 # Print Kubernetes version
-kubectl --kubeconfig ${DEV_KUBECONFIG} version
+kubectl --kubeconfig "$DEV_KUBECONFIG" version
 
 printf "== End:   travis-install.sh ==\n"

@@ -20,7 +20,7 @@ set -o nounset
 printf "== Begin: travis-script.sh ==\n"
 
 echo "Environment:"
-env | fgrep 'TRAVIS
+env | grep -F 'TRAVIS
 AMB
 KUBE
 DOCKER' | sort
@@ -67,7 +67,7 @@ then
 fi
 git update-ref -d refs/upstream-tag
 
-printf "========\nCOMMIT_TYPE $COMMIT_TYPE; git status:\n"
+printf "========\nCOMMIT_TYPE %s; git status:\n" "$COMMIT_TYPE"
 
 git status
 

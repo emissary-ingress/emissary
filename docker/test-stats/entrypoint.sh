@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 # Copyright 2018 Datawire. All rights reserved.
 #
@@ -20,15 +20,15 @@ export LANG=C.UTF-8
 APPDIR=${APPDIR:-/application}
 
 env | grep V
-echo "STATS-TEST: args $@"
+echo "STATS-TEST: args ${*@Q}"
 
 pids=""
 
 diediedie() {
-    NAME=$1
-    STATUS=$2
+    local NAME=$1
+    local STATUS=$2
 
-    if [ $STATUS -eq 0 ]; then
+    if [ "$STATUS" -eq 0 ]; then
         echo "STATS-TEST: $NAME claimed success, but exited \?\?\?\?"
     else
         echo "STATS-TEST: $NAME exited with status $STATUS"
@@ -39,7 +39,7 @@ diediedie() {
 
 handle_chld() {
     trap - CHLD
-    local tmp
+    local entry tmp
     for entry in $pids; do
         local pid="${entry%:*}"
         local name="${entry#*:}"
@@ -63,8 +63,6 @@ handle_int() {
 # set -o monitor
 trap "handle_chld" CHLD
 trap "handle_int" INT
-
-ROOT=$$
 
 echo "STATS-TEST: starting stats-test service"
 /usr/bin/python3 "$APPDIR/stats-test.py" "$@" &

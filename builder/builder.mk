@@ -180,7 +180,7 @@ pytest-only: sync preflight-cluster
 .PHONY: pytest-only
 
 pytest-gold:
-	sh $(COPY_GOLD) $(PYTEST_GOLD_DIR)
+	$(COPY_GOLD) $(PYTEST_GOLD_DIR)
 
 GOTEST_PKGS ?= ./...
 export GOTEST_PKGS

@@ -1,4 +1,4 @@
-#!bash
+#!/usr/bin/env bash
 
 GOLDDIR=${1:-python/tests/gold}
 
@@ -9,15 +9,16 @@ copy_gold () {
 	local pod="$1"
 	local namespace="${2:-default}"
 
-	if kubectl cp -n $namespace $pod:/tmp/ambassador "$GOLDDIR/${pod}-tmp" >/dev/null 2>&1; then
+	if kubectl cp -n "$namespace" "$pod":/tmp/ambassador "$GOLDDIR/${pod}-tmp" >/dev/null 2>&1; then
+        # shellcheck disable=2115
 		rm -rf "$GOLDDIR/$pod"
 		mv "$GOLDDIR/${pod}-tmp" "$GOLDDIR/${pod}"
 		printf "                                                                \r"
-		printf "${pod}...\r"
+		printf "%s...\r" "${pod}.${namespace}"
 		# echo "$pod: copied"
 	else
 		printf "                                                                \r"
-		printf "${pod}.${namespace}: failed\n"
+		printf "%s: failed\n" "${pod}.${namespace}"
 	fi
 }
 

@@ -8,11 +8,11 @@ alias echo_off="{ set +x; } 2>/dev/null"
 # Choose colors carefully. If they don't work on both a black
 # background and a white background, pick other colors (so white,
 # yellow, and black are poor choices).
-RED='\033[1;31m'
-GRN='\033[1;32m'
-BLU='\033[1;34m'
-CYN='\033[1;36m'
-END='\033[0m'
+RED=$'\e[1;31m'
+GRN=$'\e[1;32m'
+BLU=$'\e[1;34m'
+CYN=$'\e[1;36m'
+END=$'\e[0m'
 
 set -e
 
@@ -26,30 +26,27 @@ DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
 
 DBUILD=${DIR}/dbuild.sh
 
-# command for running a container (ie, "docker run")
-DOCKER_RUN=${DOCKER_RUN:-docker run}
-
 # the name of the Doccker network
 # note: use your local k3d/microk8s/kind network for running tests
 DOCKER_NETWORK=${DOCKER_NETWORK:-${BUILDER_NAME}}
 
-builder() { docker ps -q -f label=builder -f label="${BUILDER_NAME}"; }
-builder_network() { docker network ls -q -f name="${DOCKER_NETWORK}"; }
+builder() { docker ps -q -f label=builder -f label="$BUILDER_NAME"; }
+builder_network() { docker network ls -q -f name="$DOCKER_NETWORK"; }
 
 builder_volume() { docker volume ls -q -f label=builder; }
 
 declare -a dsynced
 
 dsync() {
-    printf "${GRN}Synchronizing... $*${END}\n"
+    printf "%sSynchronizing... %s%s\n" "$GRN" "$*" "$END"
     TIMEFORMAT="(sync took %1R seconds)"
-    time IFS='|' read -ra dsynced <<<"$(rsync --info=name -aO -e 'docker exec -i' $@ 2> >(fgrep -v 'rsync: failed to set permissions on' >&2) | tr '\n' '|')"
+    time IFS='|' read -ra dsynced <<<"$(rsync --info=name -aO -e 'docker exec -i' "$@" 2> >(grep -Fv 'rsync: failed to set permissions on' >&2) | tr '\n' '|')"
 }
 
 dcopy() {
-    printf "${GRN}Copying... $*${END}\n"
+    printf "%sCopying... %s%s\n" "$GRN" "$*" "$END"
     TIMEFORMAT="(copy took %1R seconds)"
-    time docker cp $@
+    time docker cp "$@"
 }
 
 dexec() {
@@ -58,84 +55,101 @@ dexec() {
     else
         flags=-i
     fi
-    docker exec ${flags} $(builder) "$@"
+    docker exec ${flags} "$(builder)" "$@"
 }
 
 bootstrap() {
     if [ -z "$(builder_volume)" ] ; then
         docker volume create --label builder
-        printf "${GRN}Created docker volume ${BLU}$(builder_volume)${GRN} for caching${END}\n"
+        printf "%sCreated docker volume %s%s%s for caching%s\n" "$GRN" "$BLU" "$(builder_volume)" "$GRN" "$END"
     fi
 
     if [ -z "$(builder_network)" ]; then
-        docker network create "${DOCKER_NETWORK}" > /dev/null
-        printf "${GRN}Created docker network ${BLU}${DOCKER_NETWORK}${END}\n"
+        docker network create "$DOCKER_NETWORK" > /dev/null
+        printf "%sCreated docker network %s%s%s\n" "$GRN" "$BLU" "$DOCKER_NETWORK" "$END"
     else
-        printf "${GRN}Connecting to existing network ${BLU}${DOCKER_NETWORK}${GRN}${END}\n"
+        printf "%sConnecting to existing network %s%s%s\n" "$GRN" "$BLU" "$DOCKER_NETWORK" "$END"
     fi
 
     if [ -z "$(builder)" ] ; then
-        printf "${CYN}==> ${GRN}Bootstrapping build image${END}\n"
-        ${DBUILD} --build-arg envoy="${ENVOY_DOCKER_TAG}" --target builder ${DIR} -t builder
+        printf "%s==> %sBootstrapping build image%s\n" "$CYN" "$GRN" "$END"
+        ${DBUILD} --build-arg envoy="${ENVOY_DOCKER_TAG}" --target builder "$DIR" -t builder
         if [ "$(uname -s)" == Darwin ]; then
             DOCKER_GID=$(stat -f "%g" /var/run/docker.sock)
         else
             DOCKER_GID=$(stat -c "%g" /var/run/docker.sock)
         fi
-        if [ -z "${DOCKER_GID}" ]; then
+        if [ -z "$DOCKER_GID" ]; then
             echo "Unable to determine docker group-id"
             exit 1
         fi
 
+        # Allow the user to set DOCKER_RUN, BUILDER_MOUNTS, and
+        # BUILDER_PORTMAPS environment variables.
+        #
+        # shellcheck disable=SC2206
+        local docker_run=(${DOCKER_RUN:-docker run})
+        # shellcheck disable=SC2206
+        local builder_mounts=($BUILDER_MOUNTS)
+        # shellcheck disable=SC2206
+        local builder_portmaps=($BUILDER_PORTMAPS)
+
+        local now
         now=$(date +"%H%M%S")
+
         echo_on
-        $DOCKER_RUN --name "bld-${BUILDER_NAME}-${now}" --network "${DOCKER_NETWORK}" --network-alias "builder" --group-add ${DOCKER_GID} -d --rm -v /var/run/docker.sock:/var/run/docker.sock -v $(builder_volume):/home/dw ${BUILDER_MOUNTS} --cap-add NET_ADMIN -lbuilder -l${BUILDER_NAME} ${BUILDER_PORTMAPS} -e BUILDER_NAME=${BUILDER_NAME} --entrypoint tail builder -f /dev/null > /dev/null
+        "${docker_run[@]}" \
+            --name="bld-${BUILDER_NAME}-${now}" \
+            --network="$DOCKER_NETWORK" \
+            --network-alias="builder" \
+            --group-add="$DOCKER_GID" \
+            --detach \
+            --rm \
+            --volume=/var/run/docker.sock:/var/run/docker.sock \
+            --volume="$(builder_volume)":/home/dw \
+            "${builder_mounts[@]/#/--volume=}" \
+            --cap-add=NET_ADMIN \
+            --label=builder \
+            --label="$BUILDER_NAME" \
+            "${builder_portmaps[@]/#/--publish=}" \
+            --env=BUILDER_NAME="$BUILDER_NAME" \
+            --entrypoint=tail builder -f /dev/null > /dev/null
         echo_off
 
-        printf "${GRN}Started build container ${BLU}$(builder)${END}\n"
+        printf "%sStarted build container %s%s%s\n" "$GRN" "$BLU" "$(builder)" "$END"
     fi
 
-    dcopy ${DIR}/builder.sh $(builder):/buildroot
-    dcopy ${DIR}/builder_bash_rc $(builder):/home/dw/.bashrc
+    dcopy "${DIR}/builder.sh" "$(builder)":/buildroot
+    dcopy "${DIR}/builder_bash_rc" "$(builder)":/home/dw/.bashrc
 }
 
 module_version() {
-    echo MODULE="\"$1\""
-    # This is only "kinda" the git branch name:
-    #
-    #  - if checked out is the synthetic merge-commit for a PR, then use
-    #    the PR's branch name (even though the merge commit we have
-    #    checked out isn't part of the branch")
-    #  - if this is a CI run for a tag (not a branch or PR), then use the
-    #    tag name
-    #  - if none of the above, then use the actual git branch name
-    #
-    # read: https://graysonkoonce.com/getting-the-current-branch-name-during-a-pull-request-in-travis-ci/
-    for VAR in "${TRAVIS_PULL_REQUEST_BRANCH}" "${TRAVIS_BRANCH}" $(git rev-parse --abbrev-ref HEAD); do
-        if [ -n "${VAR}" ]; then
-            echo GIT_BRANCH="\"${VAR}\""
-            break
-        fi
-    done
-    # The short git commit hash
-    echo GIT_COMMIT="\"$(git rev-parse --short HEAD)\""
+    shopt -s extglob
+    set -o nounset
+    set -o errexit
+
+    # shellcheck disable=SC2030
+    local \
+        GIT_DIRTY \
+        RELEASE_VERSION \
+        BUILD_VERSION
+
     # Whether `git add . && git commit` would commit anything (empty=false, nonempty=true)
     if [ -n "$(git status --porcelain)" ]; then
-        echo GIT_DIRTY="\"dirty\""
-        dirty="yes"
+        GIT_DIRTY='dirty'
     else
-        echo GIT_DIRTY="\"\""
-        dirty=""
+        GIT_DIRTY=''
     fi
-    # The _previous_ tag, plus a git delta, like 0.36.0-436-g8b8c5d3
-    echo GIT_DESCRIPTION="\"$(git describe --tags)\""
 
     # RELEASE_VERSION is an X.Y.Z[-prerelease] (semver) string that we
     # will upload/release the image as.  It does NOT include a leading 'v'
     # (trimming the 'v' from the git tag is what the 'patsubst' is for).
     # If this is an RC or EA, then it includes the '-rc.N' or '-ea.N'
     # suffix.
-    #
+    RELEASE_VERSION="${TRAVIS_TAG:-$(git describe --tags --always)}"
+    RELEASE_VERSION="${RELEASE_VERSION#v}"
+    RELEASE_VERSION+="${GIT_DIRTY:+-dirty}"
+
     # BUILD_VERSION is of the same format, but is the version number that
     # we build into the image.  Because an image built as a "release
     # candidate" will ideally get promoted to be the GA image, we trim off
@@ -151,12 +165,12 @@ module_version() {
         RELEASE_VERSION=${RELEASE_VERSION:1}
     fi
 
-    if [ -n "${dirty}" ]; then
-        RELEASE_VERSION="${RELEASE_VERSION}-dirty"
-    fi
-
     echo RELEASE_VERSION="\"${RELEASE_VERSION}\""
-    echo BUILD_VERSION="\"$(echo "${RELEASE_VERSION}" | sed 's/-rc\.[0-9]*$//')\""
+
+    # shellcheck disable=SC2001
+    BUILD_VERSION=$(echo "${RELEASE_VERSION}" | sed 's/-rc\.[0-9]*$//')
+
+    echo BUILD_VERSION="\"${BUILD_VERSION}\""
 }
 
 sync() {
@@ -164,12 +178,13 @@ sync() {
     sourcedir=$2
     container=$3
 
-    real=$(cd ${sourcedir}; pwd)
+    real=$(cd "$sourcedir"; pwd)
 
-    dexec mkdir -p /buildroot/${name}
-    dsync --exclude-from=${DIR}/sync-excludes.txt --delete ${real}/ ${container}:/buildroot/${name}
-    summarize-sync $name "${dsynced[@]}"
-    (cd ${sourcedir} && module_version ${name} ) | dexec sh -c "cat > /buildroot/${name}.version && cp ${name}.version ambassador/python/"
+    dexec mkdir -p "/buildroot/${name}"
+    dsync --exclude-from="${DIR}/sync-excludes.txt" --delete "${real}/" "${container}:/buildroot/${name}"
+    summarize-sync "$name" "${dsynced[@]}"
+    # shellcheck disable=SC2016
+    (cd "$sourcedir" && module_version "$name" ) | dexec sh -c 'name=$1; cat > "/buildroot/${name}.version" && cp "${name}.version" ambassador/python/' -- "$name"
 }
 
 summarize-sync() {
@@ -177,7 +192,7 @@ summarize-sync() {
     shift
     lines=("$@")
     if [ "${#lines[@]}" != 0 ]; then
-        dexec touch ${name}.dirty image.dirty
+        dexec touch "${name}.dirty" image.dirty
     fi
     for line in "${lines[@]}"; do
         if [[ $line = *.go ]]; then
@@ -185,7 +200,7 @@ summarize-sync() {
             break
         fi
     done
-    printf "${GRN}Synced ${#lines[@]} ${BLU}${name}${GRN} source files${END}\n"
+    printf "%sSynced %s %s%s%s source files%s\n" "$GRN" "${#lines[@]}" "$BLU" "$name" "$GRN" "$END"
     PARTIAL="yes"
     for i in {0..9}; do
         if [ "$i" = "${#lines[@]}" ]; then
@@ -193,25 +208,25 @@ summarize-sync() {
             break
         fi
         line="${lines[$i]}"
-        printf "  ${CYN}%s${END}\n" "$line"
+        printf "  %s%s%s\n" "$CYN" "$line" "$END"
     done
     if [ -n "${PARTIAL}" ]; then
-        printf "  ${CYN}...${END}\n"
+        printf "  %s...%s\n" "$CYN" "$END"
     fi
 }
 
 clean() {
     cid=$(builder)
     if [ -n "${cid}" ] ; then
-        printf "${GRN}Killing build container ${BLU}${cid}${END}\n"
-        docker kill ${cid} > /dev/null 2>&1
-        docker wait ${cid} > /dev/null 2>&1 || true
+        printf "%sKilling build container %s%s%s\n" "$GRN" "$BLU" "$cid" "$END"
+        docker kill "$cid" > /dev/null 2>&1
+        docker wait "$cid" > /dev/null 2>&1 || true
     fi
     nid=$(builder_network)
     if [ -n "${nid}" ] ; then
-        printf "${GRN}Removing docker network ${BLU}${DOCKER_NETWORK} (${nid})${END}\n"
+        printf "%sRemoving docker network %s%s (%s)%s\n" "$GRN" "$BLU" "$DOCKER_NETWORK" "$nid" "$END"
         # This will fail if the network has some other endpoints alive: silence any errors
-        docker network rm ${nid} 2>&1 >/dev/null || true
+        docker network rm "$nid" >/dev/null 2>&1 || true
     fi
 }
 
@@ -220,12 +235,12 @@ push-image() {
     REMOTE="$2"
 
     if ! ( dexec test -e /buildroot/pushed.log && dexec fgrep -q "${REMOTE}" /buildroot/pushed.log ); then
-        printf "${CYN}==> ${GRN}Pushing ${BLU}${LOCAL}${GRN}->${BLU}${REMOTE}${END}\n"
-        docker tag ${LOCAL} ${REMOTE}
-        docker push ${REMOTE}
-        echo ${REMOTE} | dexec sh -c "cat >> /buildroot/pushed.log"
+        printf "%s==> %sPushing %s%s%s->%s%s%s\n" "$CYN" "$GRN" "$BLU" "$LOCAL" "$GRN" "$BLU" "$REMOTE" "$END"
+        docker tag "$LOCAL" "$REMOTE"
+        docker push "$REMOTE"
+        echo "$REMOTE" | dexec sh -c "cat >> /buildroot/pushed.log"
     else
-        printf "${CYN}==> ${GRN}Already pushed ${BLU}${LOCAL}${GRN}->${BLU}${REMOTE}${END}\n"
+        printf "%s==> %sAlready pushed %s%s%s->%s%s%s\n" "$CYN" "$GRN" "$BLU" "$LOCAL" "$GRN" "$BLU" "$REMOTE" "$END"
     fi
 }
 
@@ -233,8 +248,11 @@ find-modules () {
     find /buildroot -type d -mindepth 1 -maxdepth 1 \! -name bin | sort
 }
 
+if [[ $# -eq 0 ]]; then
+    set -- builder
+fi
 cmd="$1"
-
+shift
 case "${cmd}" in
     clean)
         clean
@@ -243,52 +261,50 @@ case "${cmd}" in
         clean
         vid=$(builder_volume)
         if [ -n "${vid}" ] ; then
-            printf "${GRN}Killing cache volume ${BLU}${vid}${END}\n"
-            if ! docker volume rm ${vid} > /dev/null 2>&1 ; then \
-                printf "${RED}Could not kill cache volume; are other builders still running?${END}\n"
+            printf "%sKilling cache volume %s%s%s\n" "$GRN" "$BLU" "$vid" "$END"
+            if ! docker volume rm "$vid" > /dev/null 2>&1 ; then \
+                printf "%sCould not kill cache volume; are other builders still running?%s\n" "$RED" "$END"
             fi
         fi
         ;;
     bootstrap)
         bootstrap
-        echo $(builder)
+        builder
         ;;
-    builder|"")
-        echo $(builder)
+    builder)
+        builder
         ;;
     sync)
-        shift
         bootstrap
-        sync $1 $2 $(builder)
+        sync "$1" "$2" "$(builder)"
         ;;
     release-type)
-        shift
         RELVER="$1"
-        if [ -z "${RELVER}" ]; then
-            source <(module_version ${BUILDER_NAME})
-            RELVER="${RELEASE_VERSION}"
+        if [ -z "$RELVER" ]; then
+            eval "$(module_version "$BUILDER_NAME")"
+            # shellcheck disable=SC2031
+            RELVER="$RELEASE_VERSION"
         fi
 
-        if [[ "${RELVER}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        if [[ "$RELVER" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             echo release
-        elif [[ "${RELVER}" =~ ^[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]*$ ]]; then
+        elif [[ "$RELVER" =~ ^[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]*$ ]]; then
             echo rc
         else
             echo other
         fi
         ;;
     release-version)
-        shift
-        source <(module_version ${BUILDER_NAME})
-        echo "${RELEASE_VERSION}"
+        eval "$(module_version "$BUILDER_NAME")"
+        # shellcheck disable=SC2031
+        echo "$RELEASE_VERSION"
         ;;
     version)
-        shift
-        source <(module_version ${BUILDER_NAME})
-        echo "${BUILD_VERSION}"
+        eval "$(module_version "$BUILDER_NAME")"
+        # shellcheck disable=SC2031
+        echo "$BUILD_VERSION"
         ;;
     compile)
-        shift
         bootstrap
         dexec /buildroot/builder.sh compile-internal
         ;;
@@ -301,34 +317,37 @@ case "${cmd}" in
         fi
 
         for MODDIR in $(find-modules); do
-            module=$(basename ${MODDIR})
-            eval "$(grep BUILD_VERSION apro.version 2>/dev/null)" # this will `eval ''` for OSS-only builds, leaving BUILD_VERSION unset; dont embed the version-number in OSS Go binaries
+            module=$(basename "$MODDIR")
+            eval "$(grep BUILD_VERSION apro.version 2>/dev/null)" # this will `eval ''` for OSS-only builds, leaving BUILD_VERSION unset; don't embed the version-number in OSS Go binaries
 
-            if [ -e ${module}.dirty ] || ([ "$module" != ambassador ] && [ -e go.dirty ]) ; then
+            if [ -e "${module}.dirty" ] || { [ "$module" != ambassador ] && [ -e go.dirty ]; }; then
                 if [ -e "${MODDIR}/go.mod" ]; then
-                    printf "${CYN}==> ${GRN}Building ${BLU}${module}${GRN} go code${END}\n"
+                    printf "%s==> %sBuilding %s%s%s go code%s\n" "$CYN" "$GRN" "$BLU" "$module" "$GRN" "$END"
                     echo_on
                     mkdir -p /buildroot/bin
-                    (cd ${MODDIR} && go build -trimpath ${BUILD_VERSION:+ -ldflags "-X main.Version=$BUILD_VERSION" } -o /buildroot/bin ./cmd/...) || exit 1
-                    if [ -e ${MODDIR}/post-compile.sh ]; then (cd ${MODDIR} && bash post-compile.sh); fi
+                    # shellcheck disable=SC2031
+                    (cd "$MODDIR" && go build -trimpath ${BUILD_VERSION:+ -ldflags "-X main.Version=$BUILD_VERSION" } -o /buildroot/bin ./cmd/...) || exit 1
+                    if [ -e "${MODDIR}/post-compile.sh" ]; then (cd "${MODDIR}" && bash ./post-compile.sh); fi
                     echo_off
                 fi
             fi
 
-            if [ -e ${module}.dirty ]; then
+            if [ -e "${module}.dirty" ]; then
                 if [ -e "${MODDIR}/python" ]; then
-                    if ! [ -e ${MODDIR}/python/*.egg-info ]; then
-                        printf "${CYN}==> ${GRN}Setting up ${BLU}${module}${GRN} python code${END}\n"
+                    shopt -s nullglob
+                    egginfos=("$MODDIR"/python/*.egg-info)
+                    if [[ ${#egginfos[@]} -eq 0 ]]; then
+                        printf "%s==> %sSetting up %s%s%s python code%s\n" "$CYN" "$GRN" "$BLU" "$module" "$GRN" "$END"
                         echo_on
-                        sudo pip install --no-deps -e ${MODDIR}/python || exit 1
+                        sudo pip install --no-deps -e "${MODDIR}/python" || exit 1
                         echo_off
                     fi
-                    chmod a+x ${MODDIR}/python/*.py
+                    chmod a+x "${MODDIR}/python"/*.py
                 fi
 
-                rm ${module}.dirty
+                rm "${module}.dirty"
             else
-                printf "${CYN}==> ${GRN}Already built ${BLU}${module}${GRN}${END}\n"
+                printf "%s==> %sAlready built %s%s%s%s\n" "$CYN" "$GRN" "$BLU" "$module" "$GRN" "$END"
             fi
         done
         rm -f go.dirty  # Do this after _all_ the Go code is built
@@ -338,7 +357,10 @@ case "${cmd}" in
         fail=""
         for MODDIR in $(find-modules); do
             if [ -e "${MODDIR}/python" ]; then
-                if ! (cd ${MODDIR} && pytest --tb=short -ra ${PYTEST_ARGS}) then
+                # Allow the user to set a PYTEST_ARGS environment variable.
+                # shellcheck disable=SC2206
+                pytest_args=($PYTEST_ARGS)
+                if ! (cd "$MODDIR" && pytest --tb=short -ra "${pytest_args[@]}") then
                    fail="yes"
                 fi
             fi
@@ -353,10 +375,16 @@ case "${cmd}" in
         fail=""
         for MODDIR in $(find-modules); do
             if [ -e "${MODDIR}/go.mod" ]; then
-                pkgs=$(cd ${MODDIR} && go list -f='{{ if or (gt (len .TestGoFiles) 0) (gt (len .XTestGoFiles) 0) }}{{ .ImportPath }}{{ end }}' ${GOTEST_PKGS})
+                # Allow the user to set a GOTEST_PKGS environment variable.
+                # shellcheck disable=SC2206
+                gotest_pkgs=($GOTEST_PKGS)
+                IFS='|' read -ra pkgs <<<"$(cd "$MODDIR" && go list -f='{{ if or (gt (len .TestGoFiles) 0) (gt (len .XTestGoFiles) 0) }}{{ .ImportPath }}{{ end }}' "${gotest_pkgs[@]}" | tr '\n' '|')"
 
-                if [ -n "${pkgs}" ]; then
-                    if ! (cd ${MODDIR} && go test ${pkgs} ${GOTEST_ARGS}) then
+                if [ "${#pkgs[@]}" -gt 0 ]; then
+                    # Allow the user to set a GOTEST_ARGS environment variable.
+                    # shellcheck disable=SC2206
+                    gotest_args=($GOTEST_ARGS)
+                    if ! (cd "$MODDIR" && go test "${pkgs[@]}" "${gotest_args[@]}") then
                        fail="yes"
                     fi
                 fi
@@ -368,28 +396,26 @@ case "${cmd}" in
         fi
         ;;
     commit)
-        shift
         name=$1
         if [ -z "${name}" ]; then
             echo "usage: ./builder.sh commit <image-name>"
             exit 1
         fi
         if dexec test -e /buildroot/image.dirty; then
-            printf "${CYN}==> ${GRN}Snapshotting ${BLU}builder${GRN} image${END}\n"
-            docker rmi -f "${name}" &> /dev/null
-            docker commit -c 'ENTRYPOINT [ "/bin/bash" ]' $(builder) "${name}"
-            printf "${CYN}==> ${GRN}Building ${BLU}${BUILDER_NAME}${END}\n"
-            ${DBUILD} ${DIR} --build-arg artifacts=${name} --build-arg envoy="${ENVOY_DOCKER_TAG}" --target ambassador -t ${BUILDER_NAME}
-            printf "${CYN}==> ${GRN}Building ${BLU}kat-client${END}\n"
-            ${DBUILD} ${DIR} --build-arg artifacts=${name} --build-arg envoy="${ENVOY_DOCKER_TAG}" --target kat-client -t kat-client
-            printf "${CYN}==> ${GRN}Building ${BLU}kat-server${END}\n"
-            ${DBUILD} ${DIR} --build-arg artifacts=${name} --build-arg envoy="${ENVOY_DOCKER_TAG}" --target kat-server -t kat-server
+            printf "%s==> %sSnapshotting %sbuilder%s image%s\n" "$CYN" "$GRN" "$BLU" "$GRN" "$END"
+            docker rmi -f "$name" &> /dev/null
+            docker commit -c 'ENTRYPOINT [ "/bin/bash" ]' "$(builder)" "$name"
+            printf "%s==> %sBuilding %s%s%s\n" "$CYN" "$GRN" "$BLU" "$BUILDER_NAME" "$END"
+            "$DBUILD" "$DIR" --build-arg artifacts="$name" --build-arg envoy="$ENVOY_DOCKER_TAG" --target ambassador -t "$BUILDER_NAME"
+            printf "%s==> %sBuilding %skat-client%s\n" "$CYN" "$GRN" "$BLU" "$END"
+            "$DBUILD" "$DIR" --build-arg artifacts="$name" --build-arg envoy="$ENVOY_DOCKER_TAG" --target kat-client -t kat-client
+            printf "%s==> %sBuilding %skat-server%s\n" "$CYN" "$GRN" "$BLU" "$END"
+            "$DBUILD" "$DIR" --build-arg artifacts="$name" --build-arg envoy="$ENVOY_DOCKER_TAG" --target kat-server -t kat-server
         fi
         dexec rm -f /buildroot/image.dirty
         ;;
     push)
-        shift
-        push-image ${BUILDER_NAME} "$1"
+        push-image "$BUILDER_NAME" "$1"
         push-image kat-client "$2"
         push-image kat-server "$3"
         ;;

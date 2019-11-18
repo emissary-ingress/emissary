@@ -17,7 +17,7 @@
 set -e
 
 press_enter() {
-    read -s -p "Press enter to continue"
+    read -r -s -p "Press enter to continue"
     echo
 }
 
@@ -34,16 +34,16 @@ echo "$RELEASE_PROMPT"
 press_enter
 
 echo "Fetching latest release tag from GitHub"
-CURRENT_VERSION=$(curl --silent "https://api.github.com/repos/datawire/ambassador/releases/latest" | fgrep 'tag_name' | cut -d'"' -f 4)
+CURRENT_VERSION=$(curl --silent "https://api.github.com/repos/datawire/ambassador/releases/latest" | jq -r .tag_name)
 echo
 echo "Current version: ${CURRENT_VERSION}"
 echo
-git log --pretty=oneline --abbrev-commit ${CURRENT_VERSION}^..
+git log --pretty=oneline --abbrev-commit "${CURRENT_VERSION}^.."
 echo
 echo "^ these changes have been made since the last release, pick the right version number accordingly"
 
 while true; do
-	read -p "Enter new version: " DESIRED_VERSION
+    read -r -p "Enter new version: " DESIRED_VERSION
 
 	if [[ "$DESIRED_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$ ]]; then
 	    # RC: good.
@@ -97,14 +97,14 @@ RELEASE_NOTES_TEMPLATE="Delete everything from this template that you do not wan
 - Bugfix: <insert bugfix description here>"
 
 temp_file=$(mktemp)
-echo "${RELEASE_NOTES_TEMPLATE}" > ${temp_file}
+trap 'rm -f ${temp_file}' EXIT
+echo "${RELEASE_NOTES_TEMPLATE}" > "${temp_file}"
 
-if ! ${EDITOR:-vi} ${temp_file}; then
+if ! ${EDITOR:-vi} "${temp_file}"; then
     exit 1
 fi
 
-RELEASE_NOTES=$(<${temp_file})
-trap 'rm -f ${temp_file}' EXIT
+RELEASE_NOTES=$(cat "$temp_file")
 
 current_v=$CURRENT_VERSION
 

@@ -13,17 +13,22 @@
 # limitations under the License
 
 import os
+import shlex
 from typing import NamedTuple
 
+ver_vars = {}
 try:
-    with open(os.path.join(os.path.dirname(__file__), "..", "ambassador.version")) as version:
-        exec(version.read())
+    with open(os.path.join(os.path.dirname(__file__), "..", "ambassador.version")) as ver_file:
+        for word in shlex.split(ver_file.read()):
+            if '=' in word:
+                k, v = word.split('=', 1)
+                ver_vars[k] = v
 except FileNotFoundError:
-    BUILD_VERSION = "dirty"
-    GIT_COMMIT = "dirty"
-    GIT_BRANCH = "master"
-    GIT_DIRTY = True
-    GIT_DESCRIPTION = "dirty"
+    ver_vars['BUILD_VERSION'] = "dirty"
+    ver_vars['GIT_COMMIT'] = "dirty"
+    ver_vars['GIT_BRANCH'] = "master"
+    ver_vars['GIT_DIRTY'] = True
+    ver_vars['GIT_DESCRIPTION'] = "dirty"
 
 class GitInfo(NamedTuple):
     commit: str
@@ -37,15 +42,15 @@ class BuildInfo(NamedTuple):
     git: GitInfo
 
 
-Version = BUILD_VERSION
+Version = ver_vars['BUILD_VERSION']
 
 Build = BuildInfo(
     version=Version,
     git=GitInfo(
-        commit=GIT_COMMIT,
-        branch=GIT_BRANCH,
-        dirty=bool(GIT_DIRTY),
-        description=GIT_DESCRIPTION,
+        commit=ver_vars['GIT_COMMIT'],
+        branch=ver_vars['GIT_BRANCH'],
+        dirty=bool(ver_vars['GIT_DIRTY']),
+        description=ver_vars['GIT_DESCRIPTION'],
     )
 )
 

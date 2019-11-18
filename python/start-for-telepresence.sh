@@ -1,3 +1,4 @@
+#!/hint/sh
 # Copyright 2018 Datawire. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-ln -sf $TELEPRESENCE_ROOT/var/run/secrets /var/run/secrets
+ln -sf "$TELEPRESENCE_ROOT/var/run/secrets" /var/run/secrets
 export LC_ALL=C.UTF-8
 export LANG=C.UTF-8
 python3 setup.py develop
