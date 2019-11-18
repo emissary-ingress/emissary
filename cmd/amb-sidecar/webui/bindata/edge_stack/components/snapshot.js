@@ -1,7 +1,7 @@
 import  {LitElement, html} from 'https://cdn.pika.dev/-/lit-element/2.2.1/dist-es2019/lit-element.min.js';
 import {useContext} from '/edge_stack/components/context.js';
 
-export default class MappingData extends LitElement {
+export default class Snapshot extends LitElement {
   static get properties() {
     return {
       data: Object,
@@ -12,10 +12,8 @@ export default class MappingData extends LitElement {
   constructor() {
     super();
 
-    const arr = useContext('aes-api-snapshot', null);
-
-    this.setContext = arr[1];
-    this.data = {};
+    this.setSnapshot = useContext('aes-api-snapshot', null)[1];
+    this.setAuthenticated = useContext('auth-state', null)[1];
     this.loading = false;
   }
 
@@ -25,21 +23,26 @@ export default class MappingData extends LitElement {
         'Authorization': 'Bearer ' + window.location.hash.slice(1)
       }
     })
-      .then((data) => data.json())
-      .then((json) => {
-        this.setContext(json);
-        this.loading = false;
-        this.fetchData();
+      .then((response) => {
+        if (response.status == 401 || response.status == 403) {
+          this.setAuthenticated(false)
+          this.setSnapshot({})
+        }  else {
+          response.json().then((json) => {
+            this.setSnapshot(json)
+            this.setAuthenticated(true)
+            this.loading = false;
+            setTimeout(this.fetchData.bind(this), 1000);
+          })
+        }
       })
       .catch((err) => { console.log('error fetching snapshot', err); })
   }
 
-  onMount() {
+  firstUpdated() {
     this.loading = true;
-
     this.fetchData();
   }
-  onUnmount() {}
 
   render() {
     if (this.loading) {
@@ -52,4 +55,4 @@ export default class MappingData extends LitElement {
   }
 }
 
-customElements.define('aes-snapshot-provider', MappingData);
+customElements.define('aes-snapshot-provider', Snapshot);

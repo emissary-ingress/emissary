@@ -1,9 +1,9 @@
-import  {LitElement, css, html} from 'https://cdn.pika.dev/-/lit-element/2.2.1/dist-es2019/lit-element.min.js';
+import {LitElement, css, html} from 'https://cdn.pika.dev/-/lit-element/2.2.1/dist-es2019/lit-element.min.js';
+import {registerContextChangeHandler, useContext} from '/edge_stack/components/context.js';
 
 export class LoginGate extends LitElement {
   static get properties() {
     return {
-      authToken: String,
       authenticated: Boolean,
       loading: Boolean,
       hasError: Boolean,
@@ -53,7 +53,7 @@ span.command {
     padding: 3px;
     letter-spacing: .2px;
     font-family: Consolas,Monaco,Andale Mono,Ubuntu Mono,monospace;
-    font-size: 90%;
+    font-size: 80%;
     word-spacing: normal;
     word-break: normal;
     word-wrap: normal;
@@ -71,7 +71,7 @@ pre {
     background-color: #f5f2f0;;
     letter-spacing: .2px;
     font-family: Consolas,Monaco,Andale Mono,Ubuntu Mono,monospace;
-    font-size: 90%;
+    font-size: 80%;
     word-spacing: normal;
     word-break: normal;
     word-wrap: normal;
@@ -86,18 +86,22 @@ details {
   constructor() {
     super();
 
-    this.authToken = window.location.hash.slice(1);
-    this.authenticated = false;
     this.hasError = false;
     this.loading = true;
-
-    this.isSlotOpen = false;
-    this.slotChildren = [];
 
     this.namespace = '';
     this.os = this.getOS();
 
     this.loadData();
+
+    this.authenticated = useContext('auth-state', null)[0];
+    registerContextChangeHandler('auth-state', this.onAuthChange.bind(this));
+
+
+  }
+
+  onAuthChange(auth) {
+    this.authenticated = auth
   }
 
   getOS() {
@@ -117,62 +121,18 @@ details {
     }
   }
 
-  onSlotChange({ target }) {
-    this.isSlotOpen = !this.isSlotOpen;
-
-    if (this.isSlotOpen) {
-      this.slotChildren = target.assignedNodes().filter(node => node.nodeName != '#text');
-      this.slotChildren.forEach(node => {
-        if (node['onMount'] != null && typeof node['onMount'] == 'function') {
-          node.onMount();
-        }
-      });
-    } else {
-      let nodes = target.assignedNodes().filter(node => node.nodeName != '#text');
-      let removed_nodes = [];
-      this.slotChildren = this.slotChildren.filter(node => {
-        if (nodes.indexOf(node) == -1) {
-          removed_nodes.push(node);
-          return false;
-        }
-        return true;
-      });
-      removed_nodes.forEach(removedNode => {
-        if (removedNode.hasOwnProperty('onUnmount') && typeof removedNode['onUnmount'] == 'function') {
-          node.onUnmount();
-        }
-      });
-    }
-  }
-
   loadData() {
-    fetch('/edge_stack/tls/api/empty', {
-      headers: {
-        'Authorization': 'Bearer ' + this.authToken
-      }
-    }).then((data) => {
-      this.authenticated = (data.status == 200);
-      if (this.authenticated) {
+    fetch('/edge_stack/api/config/pod-namespace')
+      .then(data => data.text()).then(body => {
+        this.namespace = body;
         this.loading = false;
         this.hasError = false;
-      } else {
-        fetch('/edge_stack/api/config/pod-namespace', {
-          headers: {
-            'Authorization': 'Bearer ' + this.authToken
-          }
-        }).then(data => data.text()).then(body => {
-          this.namespace = body;
-          this.loading = false;
-          this.hasError = false;
-        });
-      }
-    }).catch((err) => {
-      console.log(err);
-
-      this.authenticated = false;
-      this.loading = false;
-      this.hasError = true;
-    });
+      })
+      .catch((err) => {
+        console.log(err);
+        this.loading = false;
+        this.hasError = true;
+      });
   }
 
   renderError() {
@@ -279,13 +239,6 @@ sudo chmod a+x /usr/local/bin/edgectl
 
   renderUnauthenticated() {
     return html`
-<div id="all-wrapper">
-  <div id="ambassador-logo">
-	  <a href="https://www.getambassador.io/">
-	    <img src="https://www.getambassador.io/images/ambassador-logo-white.svg" alt="Ambassador Edge Stack" />
-	  </a>
-  </div>
-
   <div class="info-blob">
     <h1 class="info-title">Welcome to Ambassador Edge Stack!</h1>
     <p>To login to the admin portal, use: <span class="command" id="login">edgectl login --namespace=${this.namespace} ${window.location.host}</span> <button style="margin-left: 1em" @click=${this.copyLoginToKeyboard.bind(this)}>Copy to Clipboard</button></p>
@@ -298,21 +251,18 @@ sudo chmod a+x /usr/local/bin/edgectl
     ${this.renderDarwinDetails()}
     ${this.renderLinuxDetails()}
   </div>
-</div>
     `;
   }
 
   render() {
     if (this.hasError) {
       return this.renderError();
-    } else if (this.loading) {
+    } else if (this.loading || this.authenticated == null) {
       return this.renderLoading();
     } else if (!this.authenticated) {
       return this.renderUnauthenticated();
     } else {
-      return html`
-<slot @slotchange=${this.onSlotChange}></slot>
-      `;
+      return html`<slot></slot>`;
     }
   }
 }

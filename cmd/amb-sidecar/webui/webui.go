@@ -153,7 +153,7 @@ func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	switch r.URL.Path {
-	case "/edge_stack/tls/tos-url":
+	case "/edge_stack/api/tos-url":
 		if !fb.isAuthorized(r) {
 			fb.forbidden(w, r)
 			return

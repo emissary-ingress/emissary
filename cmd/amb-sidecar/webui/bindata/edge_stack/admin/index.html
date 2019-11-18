@@ -3,6 +3,7 @@
   <head>
     <meta charset="utf-8">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script type='text/javascript' src="https://codejoust.github.io/session.js/session-0.4.js"></script>
     <title>
       Ambassador Edge Stack Admin
     </title>
@@ -80,6 +81,15 @@
       details {
         margin-left: 1em;
       }
+
+      h2 {
+          margin: 0.1em;
+      }
+
+      login-gate {
+          margin: 0;
+          padding: 0;
+      }
     </style>
   </head>
 
@@ -94,55 +104,67 @@
       <div id="main">
         <login-gate>
           <aes-snapshot-provider>
-        <dw-tabs>
-          <div class="info-blob" slot="sticky">
-            <dw-signup></dw-signup>
-          </div>
+            <dw-tabs>
+              <div class="info-blob" slot="sticky">
+                <dw-signup></dw-signup>
+              </div>
 
-          <dw-tab name="Hosts">
-            <h2>Hosts</h2>
+              <dw-tab name="Hosts">
+                <div class="info-blob">
+                  <h2>Hosts</h2>
 
-            <p>A Host represents a domain that is managed by Ambassador, e.g., example.org.</p>
+                  <p>A Host represents a domain that is managed by Ambassador, e.g., example.org.</p>
 
-            <a href="../tls/" class="auth">Add a Host</a>
-            <div class="info-blob">
-              <div id="hosts"></div>
-            </div>
-          </dw-tab>
+                  <dw-host-add><span style="cursor:pointer;color:blue;">Add a Host</span></dw-host-add>
+                </div>
 
-          <dw-tab name="Mappings">
-            <h2>Mappings</h2>
+                <div class="info-blob">
+                  <div id="hosts"></div>
+                </div>
+              </dw-tab>
 
-            <p>A Mapping is an association between a URL (called a prefix) and a target
-              service (called a target).
-            </p>
-            <a id="add-mapping" style="cursor:pointer;color:blue;text-decoration:underline;">Add a Mapping</a>
-            <div id="add-mapping-form" style="display:none">
-              Name: <input id="add-mapping-name" type="text" name="prefix"/>
-              Prefix: <input id="add-mapping-prefix" type="text" name="prefix"/>
-              Rewrite: <input id="add-mapping-rewrite" type="text" name="rewrite" value=""/>
-              Target: <input id="add-mapping-target" type="text" name="target"/>
-              <button id="add-mapping-button">Add</button>
-            </div>
-            <div class="info-blob">
-              <div id="mappings"></div>
-            </div>
-          </dw-tab>
+              <dw-tab name="Mappings">
+                <div class="info-blob">
+                  <h2>Mappings</h2>
 
-          <dw-tab name="APIs">
-            <dw-apis id="apis"></dw-apis>
-          </dw-tab>
+                  <p>
+                    A Mapping is an association between a URL (called a prefix) and a target
+                    service (called a target).
+                  </p>
 
-          <dw-tab name="Documentation">
-            <ul>
-              <li><a href="https://getambassador.io/docs/">Ambassador Documentation</a></li>
-              <li><a href="https://getambassador.io/concepts/overview">Concepts</a></li>
-              <li><a href="https://getambassador.io/docs/guides/">Guides</a></li>
-              <li><a href="https://getambassador.io/reference/configuration">Configuration Reference</a></li>
-            </ul>
-          </dw-tab>
-        </dw-tabs>
-      </aes-snapshot-provider>
+                  <a id="add-mapping" style="cursor:pointer;color:blue;text-decoration:underline;">Add a Mapping</a>
+                </div>
+
+                <div id="add-mapping-form" style="display:none">
+                  Name: <input id="add-mapping-name" type="text" name="prefix"/>
+                  Prefix: <input id="add-mapping-prefix" type="text" name="prefix"/>
+                  Rewrite: <input id="add-mapping-rewrite" type="text" name="rewrite" value=""/>
+                  Target: <input id="add-mapping-target" type="text" name="target"/>
+                  <button id="add-mapping-button">Add</button>
+                </div>
+                <div class="info-blob">
+                  <div id="mappings"></div>
+                </div>
+              </dw-tab>
+
+              <dw-tab name="APIs">
+                <div class="info-blob">
+                  <dw-apis id="apis"></dw-apis>
+                </div>
+              </dw-tab>
+
+              <dw-tab name="Documentation">
+                <div class="info-blob">
+                  <ul>
+                    <li><a href="https://getambassador.io/docs/">Ambassador Documentation</a></li>
+                    <li><a href="https://getambassador.io/concepts/overview">Concepts</a></li>
+                    <li><a href="https://getambassador.io/docs/guides/">Guides</a></li>
+                    <li><a href="https://getambassador.io/reference/configuration">Configuration Reference</a></li>
+                  </ul>
+                </div>
+              </dw-tab>
+            </dw-tabs>
+          </aes-snapshot-provider>
         </login-gate>
       </div>
 
@@ -156,7 +178,8 @@
   <script async defer type="module" src="/edge_stack/components/tabs.js"></script>
   <script async defer type="module" src="/edge_stack/components/apis.js"></script>
   <script async defer type="module" src="/edge_stack/components/signup.js"></script>
-  <script async defer type="module" src="/edge_stack/components/mapping-data.js"></script>
+  <script async defer type="module" src="/edge_stack/components/host.js"></script>
+  <script async defer type="module" src="/edge_stack/components/snapshot.js"></script>
   <script async defer type="module" src="/edge_stack/components/aes-mappings.js"></script>
 
   <script type="module" src="https://unpkg.com/rapidoc/dist/rapidoc-min.js"></script>
