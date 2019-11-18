@@ -168,7 +168,10 @@ commands:
             - with-go-build-cache:
                 steps:
                  - run: ".circleci/kubernaut-claim.sh"
-                 - run: "make lint"
+                 # XXX: the make lint below breaks releases because it
+                 # ends up changing go.mod, and then our version
+                 # becomes blah-rc-dirty
+                 # - run: "make lint"
                  - run: "docker login -u=\"datawire-dev+aes\" -p=\"3M43T8BXB3L46H40R8W3K1JDNMIN6KP8Q5SC1SY2DRJQ7DZFE7LUJ1WE35QG3F0U\" quay.io"
                  - run: "DEV_REGISTRY=quay.io/datawire-dev DEV_KUBECONFIG=~/.kube/$(cat ~/kubernaut-claim.txt).yaml make gotest GOTEST_PKGS=github.com/datawire/apro/..."
                  - run:
