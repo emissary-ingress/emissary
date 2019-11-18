@@ -7,7 +7,6 @@ Guides are hands-on tutorials to walk you through configuring Ambassador Edge St
  <td style="vertical-align:top;width:45%;">
   <strong>Connecting Services</strong>
  <ul>
-  <li><a href="/dev-guide/service-preview/#create-a-service"> How to Create a Service</a></li>
   <li><a href="/user-guide/knative">Using the Knative serverless framework</a></li>
   <li><a href="/user-guide/grpc">Using gRPC</a></li>
   <li><a href="/user-guide/websockets-ambassador">Using WebSockets</a></li>

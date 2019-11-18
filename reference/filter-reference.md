@@ -1,7 +1,7 @@
 # Filters
 
 Filters are used to extend Ambassador Edge Stack to modify or
-intercept an HTTP request before sending to the backend service.  You
+intercept an HTTP request before sending to your backend service.  You
 may use any of the built-in Filter types, or use the `Plugin` filter
 type to run custom code written in the Go programming language, or use
 the `External` filter type to call run out to custom code written in a

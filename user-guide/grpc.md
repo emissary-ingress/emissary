@@ -84,7 +84,7 @@ spec:
   service: grpc-example
 ```
 
-Note the `grpc: true` line —- this is what tells Envoy to use HTTP/2 so the request can communicate with the backend service. Also note that you'll need `prefix` and `rewrite` the same here, since the gRPC service needs the package and service to be in the request to do the right thing.
+Note the `grpc: true` line —- this is what tells Envoy to use HTTP/2 so the request can communicate with your backend service. Also note that you'll need `prefix` and `rewrite` the same here, since the gRPC service needs the package and service to be in the request to do the right thing.
 
 ### Deploying to Kubernetes
 `grpc_example.yaml`

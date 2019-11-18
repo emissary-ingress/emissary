@@ -58,7 +58,7 @@ Make a change to the backend source code. In `backend/main.go`, uncomment out li
     ...
     ```
 
-    This will insure that the backend service will return a quote of "Service Preview rocks" every time.
+    This will insure that your backend service will return a quote of "Service Preview rocks" every time.
 
 ### Rebuild the Container
 
