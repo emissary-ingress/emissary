@@ -103,17 +103,6 @@ Once a resolver is defined, you can use them in a given `Mapping`:
 apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
-  name: tour-ui
-spec:
-  prefix: /
-  service: tour
-  resolver: endpoint
-  load_balancer:
-    policy: round_robin
----
-apiVersion: getambassador.io/v2
-kind: Mapping
-metadata:
   name: bar
 spec:
   prefix: /bar/
@@ -124,4 +113,4 @@ spec:
     policy: round_robin
 ```
 
-The YAML configuration above will configure Ambassador Edge Stack to use Kubernetes Service Discovery to route to the tour Kubernetes service on requests with `prefix: /` and use Consul Service Discovery to route to the `bar` service on requests with `prefix: /bar/`.
+The YAML configuration above will configure Ambassador Edge Stack to use Kubernetes Service Discovery to route to the Consul Service Discovery to route to the `bar` service on requests with `prefix: /bar/`.

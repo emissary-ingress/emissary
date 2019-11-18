@@ -57,7 +57,7 @@ After configuring an OAuth application in Azure AD, configuring Ambassador Edge 
       rules:
           # Requires authentication on requests from any hostname
         - host: "*"
-          # Tells Ambassador Edge Stack to apply the Filter only on request to the /backend/get-quote/ endpoint from the tour application(https://www.getambassador.io/docs/dev-guide/service-preview/#create-a-service)
+          # Tells Ambassador Edge Stack to apply the Filter only on request to the /backend/get-quote/ endpoint 
           path: /backend/get-quote/
           # Identifies which Filter to use for the path and hose above
           filters:

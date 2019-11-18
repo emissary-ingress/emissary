@@ -86,60 +86,11 @@ The name of the mapping must be unique. If no `method` is given, all methods wil
 
 ## Mapping resources and CRDs
 
-Mapping resources can be defined as annotations on Kubernetes services or as independent custom resource definitions. For example, here is a `Mapping` on a Kubernetes `service`:
-
-```
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: httpbin
-  annotations:
-    getambassador.io/config: |
-      ---
-      apiVersion: getambassador.io/v2
-      kind:  Mapping
-      name:  tour-ui_mapping
-      prefix: /
-      service: http://tour
-spec:
-  ports:
-  - name: httpbin
-    port: 80
-```
-
-The same `Mapping` can be created as an independent resource:
-
-```
----
-apiVersion: getambassador.io/v2
-kind:  Mapping
-metadata:
-  name:  tour-ui
-spec:
-  prefix: /
-  service: http://tour
-```
+Mapping resources can be defined as annotations on Kubernetes services or as independent custom resource definitions.
 
 If you're new to Ambassador Edge Stack, start with the CRD approach. Note that you *must* use the `getambassador.io/v2` `apiVersion` as noted above.
 
 ## Additional Example Mappings
-
-Here's an example for a REST service which Ambassador Edge Stack will contact using HTTPS:
-
-```yaml
----
-apiVersion: getambassador.io/v2
-kind:  Mapping
-metadata:
-  name:  backend-https
-spec:
-  prefix: /backend/secure/
-  rewrite: /secure/
-  service: https://tour
-```
-
-(Note that the 'http://' prefix for an HTTP service is optional.)
 
 Here's an example for a CQRS service (using HTTP):
 

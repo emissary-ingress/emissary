@@ -14,20 +14,3 @@ Ambassador Edge Stack enables you to control timeouts in several different ways.
 
 `connect_timeout_ms` controls the connection-level timeout for Ambassador Edge Stack to an upstream service.
 
-### Example
-
-The various timeouts are applied onto a `Mapping` resource and can be combined.
-
-```yaml
----
-apiVersion: getambassador.io/v2
-kind:  Mapping
-metadata:
-  name:  tour-backend
-spec:
-  prefix: /backend/
-  service: tour
-  timeout_ms: 4000
-  idle_timeout_ms: 500000
-  connect_timeout_ms: 4000
-```

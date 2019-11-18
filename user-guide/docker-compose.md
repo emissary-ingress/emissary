@@ -155,69 +155,18 @@ curl localhost:8080/httpbin/ip
 
 While routing to an external service is useful, more often than not our Docker Compose environment will contain a number of services that need routing.
 
-### Add the tour-ui and tour-backend service to the docker-compose.yaml file
-
-Edit the `docker-compose.yaml` file and add a new `tour` service. It should now look like this:
-
-```yaml
-version: '3.5'
-
-services:
-  ambassador:
-    image: quay.io/datawire/ambassador:$version$
-    ports:
-    - 8080:8080
-    volumes:
-    # mount a volume where we can inject configuration files
-    - ./config:/ambassador/ambassador-config
-    environment:
-    # don't try to watch Kubernetes for configuration changes
-    - AMBASSADOR_NO_KUBEWATCH=no_kubewatch
-  tour-ui:
-    image: quay.io/datawire/tour:ui-$tourVersion$
-    ports:
-    - 5000
-  tour-backend:
-    image: quay.io/datawire/tour:backend-$tourVersion$
-    ports:
-    - 8080
-```
-
-### Update the mapping-tour.yaml file to route to our internal tour service
-
-Edit the `config/mapping-tour.yaml` file and modify the `service` and `rewrite` field. It should now look like this:
-
-```yaml
----
-apiVersion: getambassador.io/v2
-kind: Mapping
-name: tour-ui_mapping
-prefix: /
-service: tour-ui:5000
----
-apiVersion: getambassador.io/v2
-kind:  Mapping
-name:  tour-backend_mapping
-prefix: /backend/
-# remove the backend prefix when talking to the backend service
-rewrite: /
-# change the `service` parameter to the name of our service with the port
-service: tour-backend:8080
-```
 
 ### Restart Ambassador Edge Stack and test
 
 Re-run the same test as in the previous section to ensure the route works as before. This time we will need to bring up the new service first.
 
 ```bash
-# start all new containers (eg. tour-ui and tour-backend)
+# start all new containers
 docker-compose up -d
 
 # restart the container to pick up new configuration settings
 docker-compose up -d -V ambassador
 ```
-
-Go to http://localhost:8080/ in your browser and see the tour-ui application.
 
 ## 4. Add Authentication
 
@@ -227,35 +176,7 @@ We will use the `datawire/ambassador-auth-service` container as an example.
 
 ### Create docker-compose.yaml service entry
 
-Update the `docker-compose.yaml` file to include the new `auth` service:
-
-```yaml
-version: '3.5'
-
-services:
-  ambassador:
-    image: quay.io/datawire/ambassador:$version$
-    ports:
-    - 8080:8080
-    volumes:
-    # mount a volume where we can inject configuration files
-    - ./config:/ambassador/ambassador-config
-    environment:
-    # don't try to watch Kubernetes for configuration changes
-    - AMBASSADOR_NO_KUBEWATCH=no_kubewatch
-  tour-ui:
-    image: quay.io/datawire/tour:ui-$tourVersion$
-    ports:
-    - 5000
-  tour-backend:
-    image: quay.io/datawire/tour:backend-$tourVersion$
-    ports:
-    - 8080
-  auth:
-    image: datawire/ambassador-auth-service:latest
-    ports:
-    - 3000
-```
+Update the `docker-compose.yaml` file to include the new `auth` service.
 
 ### Create the auth.yaml configuration
 
@@ -339,47 +260,7 @@ As a final example we will configure Ambassador Edge Stack to send Zipkin traces
 
 ### Add the Jaeger container to the docker-compose.yaml file
 
-Building on our original `docker-compose.yaml` file, we can add a new service called `tracing` to the list:
-
-```yaml
-version: '3.5'
-
-services:
-  ambassador:
-    image: quay.io/datawire/ambassador:$version$
-    ports:
-    - 8080:8080
-    volumes:
-    # mount a volume where we can inject configuration files
-    - ./config:/ambassador/ambassador-config
-    environment:
-    # don't try to watch Kubernetes for configuration changes
-    - AMBASSADOR_NO_KUBEWATCH=no_kubewatch
-  tour-ui:
-    image: quay.io/datawire/tour:ui-$tourVersion$
-    ports:
-    - 5000
-  tour-backend:
-    image: quay.io/datawire/tour:backend-$tourVersion$
-    ports:
-    - 8080
-  auth:
-    image: datawire/ambassador-auth-service:latest
-    ports:
-    - 3000
-  tracing:
-    image: jaegertracing/all-in-one:latest
-    environment:
-      COLLECTOR_ZIPKIN_HTTP_PORT: 9411
-    ports: 
-      - 5775:5775/udp
-      - 6831:6831/udp
-      - 6832:6832/udp
-      - 5778:5778
-      - 16686:16686
-      - 14268:14268
-      - 9411:9411
-```
+Building on our original `docker-compose.yaml` file, we can add a new service called `tracing` to the list.
 
 ### Create a tracing configuration file for Ambassador Edge Stack
 
@@ -398,7 +279,7 @@ This will forward all of Ambassador Edge Stack's traces to the `tracing` service
 
 ### Make requests and observe the traces
 
-After reloading the Docker containers and configuration we should be able to make requests to the tour backend service and see the traces in the Jaeger front-end UI.
+After reloading the Docker containers and configuration we should be able to make requests to a backend service and see the traces in the Jaeger front-end UI.
 
 ```bash
 # start all new containers (eg. tracing)
@@ -416,5 +297,3 @@ In a browser you can go to [http://localhost:16686/](http://localhost:16686/) an
 ## Next Steps
 
 We have demonstrated that all the configurations that would normally be stored in kubernetes annotations can be saved as a yaml document in a volume mapped to `/ambassador/ambassador-config` within the Ambassador Edge Stack docker container. Hopefully this guide can be used to test new configurations locally before moving to a Kubernetes cluster. Of course, there will be differences between docker-compose and the Kubernetes implementation and one should be sure to test thoroughly in the latter before moving to production.
-
-

@@ -15,26 +15,4 @@ Ambassador Edge Stack supports fine-grained canary releases. Ambassador Edge Sta
 
 The `weight` attribute specifies how much traffic for a given resource will be routed using a given mapping. Its value is an integer percentage between 0 and 100. Ambassador Edge Stack will balance weights to make sure that, for every resource, the mappings for that resource will have weights adding to 100%. (In the simplest case, a single mapping is guaranteed to receive 100% of the traffic no matter whether it's assigned a `weight` or not.)
 
-Specifying a weight only makes sense if you have multiple mappings for the same resource, and typically you would _not_ assign a weight to the "default" mapping (the mapping expected to handle most traffic): letting Ambassador Edge Stack assign that mapping all the traffic not otherwise spoken for tends to make life easier when updating weights. Here's an example, which might appear during a canary deployment:
-
-```yaml
----
-apiVersion: getambassador.io/v2
-kind:  Mapping
-metadata:
-  name:  tour-backend
-spec:
-  prefix: /backend/
-  service: tour
----
-apiVersion: getambassador.io/v2
-kind:  Mapping
-metadata:
-  name:  tour-backend2
-spec:
-  prefix: /backend/
-  service: tourv2
-  weight: 10
-```
-
-In this case, the `tour-backend2` will receive 10% of the requests for `/backend/`, and Ambassador Edge Stack will assign the remaining 90% to the `tour-backend`.
+Specifying a weight only makes sense if you have multiple mappings for the same resource, and typically you would _not_ assign a weight to the "default" mapping (the mapping expected to handle most traffic): letting Ambassador Edge Stack assign that mapping all the traffic not otherwise spoken for tends to make life easier when updating weights. 

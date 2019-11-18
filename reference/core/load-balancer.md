@@ -32,22 +32,6 @@ spec:
       policy: round_robin
 ```
 
-or, per mapping:
-
-```yaml
----
-apiVersion: getambassador.io/v2
-kind:  Mapping
-metadata:
-  name:  tour-ui
-spec:
-  prefix: /
-  service: tour:5000
-  resolver: my-resolver
-  load_balancer:
-    policy: round_robin
-```
-
 Note that load balancing may not appear to be "even" due to Envoy's threading model. For more details, see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest/faq/load_balancing/concurrency_lb).
 
 ## Least Request
@@ -64,22 +48,6 @@ spec:
     resolver: my-resolver
     load_balancer:
       policy: least_request
-```
-
-or, per mapping:
-
-```yaml
----
-apiVersion: getambassador.io/v2
-kind:  Mapping
-metadata:
-  name:  tour-ui
-spec:
-  prefix: /
-  service: tour:5000
-  resolver: my-resolver
-  load_balancer:
-    policy: least_request
 ```
 
 ## Sticky Sessions / Session Affinity
@@ -106,22 +74,6 @@ If the cookie you wish to set affinity on is already present in incoming request
 
 For example, the following configuration asks the client to set a cookie named `sticky-cookie` with expiration of 60 seconds in response to the first request if the cookie is not already present.
 
-```yaml
-apiVersion: getambassador.io/v2
-kind:  Mapping
-metadata:
-  name:  tour-ui
-spec:
-  prefix: /
-service: tour:5000
-resolver: my-resolver
-load_balancer:
-  policy: ring_hash
-  cookie:
-    name: sticky-cookie
-    ttl: 60s
-```
-
 ### Header
 ```yaml
 load_balancer:
@@ -131,21 +83,6 @@ load_balancer:
 
 Ambassador Edge Stack allows header based session affinity if the given header is present on incoming requests.
 
-Example:
-```yaml
-apiVersion: getambassador.io/v2
-kind:  Mapping
-metadata:
-  name:  tour-ui
-spec:
-  prefix: /
-  service: tour:5000
-  resolver: my-resolver
-  load_balancer:
-    policy: ring_hash
-    header: STICKY_HEADER
-```
-
 ##### Source IP
 ```yaml
 load_balancer:
@@ -153,51 +90,10 @@ load_balancer:
   source_ip: <boolean>
 ```
 
-Ambassador Edge Stack allows session affinity based on the source IP of incoming requests. For example:
+Ambassador Edge Stack allows session affinity based on the source IP of incoming requests. 
 
-```yaml
-apiVersion: getambassador.io/v2
-kind:  Mapping
-metadata:
-  name:  tour-ui
-spec:
-  prefix: /
-  service: tour:5000
-  resolver: my-resolver
-  load_balancer:
-    policy: ring_hash
-    source_ip: true
-```
-
-Load balancing can be configured both globally, and overridden on a per mapping basis. The following example configures the default load balancing policy to be round robin, while using header-based session affinity for requests to the `/backend/` endpoint of the tour application:
-
-```yaml
-apiVersion: getambassador.io/v2
-kind:  Module
-metadata:
-  name:  ambassador
-spec:
-  config:
-    resolver: my-resolver
-    load_balancer:
-      policy: round_robin
-```
-```yaml
-apiVersion: getambassador.io/v2
-kind:  Mapping
-metadata:
-  name:  tour-backend
-spec:
-  prefix: /backend/
-  service: tour:8080
-  resolver: my-resolver
-  load_balancer:
-    policy: ring_hash
-    header: STICKY_HEADER
-```
+Load balancing can be configured both globally, and overridden on a per mapping basis. 
 
 ## Disabling advanced load balancing
-
-
 
 In Ambassador 0.60, you can disable advanced load balancing features by setting the environment variable `AMBASSADOR_DISABLE_ENDPOINTS` to any value. If you find that this is necessary, please reach out to us on [Slack](https://d6e.co/slack) so we can fix whatever is wrong!

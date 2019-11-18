@@ -78,13 +78,13 @@ Ambassador Edge Stack will see the annotations and reconfigure itself within a f
 
 Ambassador Edge Stack only validates requests on Mappings which set rate limiting descriptors. If Ambassador cannot contact the rate limit service, it will allow the request to be processed as if there were no rate limit service configuration.
 
-We already have the `tour` service running, so let's apply some rate limits to the service. The easiest way to do that is to annotate the `tour` service. While we could use `kubectl patch` for this, it's simpler to just modify the service definition and re-apply.
+If you have a service running, you can apply some rate limits to the service. The easiest way to do that is to annotate your service. While we could use `kubectl patch` for this, it's simpler to just modify the service definition and re-apply.
 
 ### v1 API
 
 Ambassador 0.50.0 and later requires the `v1` API Version for rate limiting. The `v1` API uses the `labels` attribute to attach rate limiting descriptors. Review the [Rate Limits configuration documentation](/reference/rate-limits#request-labels) for more information.
 
-Replace the label that is applied to the `tour-backend` with:
+Replace the label that is applied to the `service-backend` with:
 
 ```yaml
 labels:
@@ -95,63 +95,10 @@ labels:
           omit_if_not_present: true
 ```
 
-so the `Mapping` definition will now look like this:
-```yaml
----
-apiVersion: getambassador.io/v2
-kind: Mapping
-metadata:
-  name: tour-backend
-spec:
-  prefix: /backend/
-  service: tour:8080
-  labels:
-    ambassador:    
-      - request_label_group:      
-        - x-ambassador-test-allow:        
-          header: "x-ambassador-test-allow"
-          omit_if_not_present: true
-```
-
 ### v0 API
 
 Ambassador versions 0.40.2 and earlier use the `v0` API version which uses the `rate_limits` attribute to set rate limiting descriptors. Review the [Rate Limits configuration documentation](/reference/rate-limits#the-rate_limits-attribute) for more information.
 
-```yaml
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: tour
-  annotations:
-    getambassador.io/config: |
-      ---
-      apiVersion: getambassador.io/v2
-      kind: Mapping
-      name: tour-ui_mapping
-      prefix: /
-      service: tour:5000
-      ---
-      apiVersion: getambassador.io/v2
-      kind: Mapping
-      name: tour-backend_mapping
-      prefix: /backend/
-      service: tour:8080
-      rate_limits:
-        - descriptor: A test case
-          headers:
-            - "x-ambassador-test-allow"
-spec:
-  ports:
-  - name: ui
-    port: 5000
-    targetPort: 5000
-  - name: backend
-    port: 8080
-    targetPort: 8080
-  selector:
-    app: tour
-```
 
 This configuration tells Ambassador Edge Stack about the rate limit rules to apply, notably that it needs the `x-ambassador-test-allow` header, and that it should set "A test case" as the `generic_key` descriptor when performing the gRPC request.
 

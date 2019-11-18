@@ -6,7 +6,7 @@ Ambassador Edge Stack can authenticate incoming requests before routing them to 
 
 This tutorial assumes you have already followed the Ambassador Edge Stack [Getting Started](/user-guide/getting-started) guide. If you haven't done that already, you should do that now.
 
-Once complete, you'll have a Kubernetes cluster running Ambassador Edge Stack and the tour service. Let's walk through adding authentication to this setup.
+Once complete, you'll have a Kubernetes cluster running Ambassador Edge Stack. Let's walk through adding authentication to this setup.
 
 ## 1. Deploy the authentication service
 

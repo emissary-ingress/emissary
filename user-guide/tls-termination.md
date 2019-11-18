@@ -92,7 +92,7 @@ spec:
 
 If the output to the `kubectl` command is not similar to the example above, edit the Ambassador Edge Stack service to add the `https` port.
 
-After verifying Ambassador Edge Stack is listening on port 443, send a request to the tour backend service with curl:
+After verifying Ambassador Edge Stack is listening on port 443, send a request to the backend service with curl:
 
 ```
 curl -k https://{{AMBASSADOR_IP}}/backend/
