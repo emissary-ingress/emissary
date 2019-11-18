@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # This script is functionally equivalent to invoking `docker build`
 # directly, however it provides an enhanced UX.
@@ -19,15 +19,14 @@
 # killing the three subprocess we started and removing the two tmp
 # files
 cleanup() {
-    kill $build_pid $sleep_pid $tail_pid 2> /dev/null
-    wait $build_pid $sleep_pid $tail_pid 2> /dev/null
-    rm -f $outfile $tmpiidfile
+    kill "$build_pid" "$sleep_pid" "$tail_pid" 2> /dev/null
+    wait "$build_pid" "$sleep_pid" "$tail_pid" 2> /dev/null
+    rm -f -- "$outfile" "$tmpiidfile"
 }
 trap cleanup EXIT
 
 # look to see if they passed us an --iidfile arg
-for var in "$@"
-do
+for var in "$@"; do
     if [ -n "$found" ] && [ -z "$iidfile" ]; then
         iidfile="$var"
     fi
@@ -41,22 +40,27 @@ do
     esac
 done
 
+extra_args=()
 outfile=$(mktemp /tmp/docker-build.XXXXXX)
 if [ -z "$iidfile" ]; then
     tmpiidfile=$(mktemp /tmp/docker-build-iid.XXXXXX)
-    extra_args="--iidfile $tmpiidfile"
+    extra_args+=(--iidfile "$tmpiidfile")
     iidfile=$tmpiidfile
 fi
 
+# Allow the user to set a DBUILD_ARGS environment variable
+# shellcheck disable=SC2206
+dbuild_args=($DBUILD_ARGS)
+
 # start docker and sleep in a race
-docker build ${DBUILD_ARGS} $extra_args "$@" > $outfile 2>&1 &
+docker build "${dbuild_args[@]}" "${extra_args[@]}" "$@" > "$outfile" 2>&1 &
 build_pid=$!
 sleep 3 &
 sleep_pid=$!
 
 # wait till one of them wins
 if ((BASH_VERSINFO[0] < 4)); then
-    until ! kill -s 0 $build_pid > /dev/null 2>&1 || ! kill -s 0 $sleep_pid > /dev/null 2>&1 ; do
+    until ! kill -s 0 "$build_pid" >& /dev/null || ! kill -s 0 "$sleep_pid" >& /dev/null; do
         sleep 0.1
     done
 else
@@ -64,25 +68,25 @@ else
 fi
 
 # if the build is still running lets tail the output
-if kill -s 0 $build_pid > /dev/null 2>&1; then
-    tail -f -n +0 $outfile &
+if kill -s 0 "$build_pid" > /dev/null 2>&1; then
+    tail -f -n +0 "$outfile" &
     tail_pid=$!
 fi
 
 # wait for the build to finish
-wait $build_pid
+wait "$build_pid"
 RESULT=$?
 
 # if didn't tail the output we need to provide some output
-if [ -z "$tailpid" ]; then
+if [ -z "$tail_pid" ]; then
 
     # if the build was good, lets just display the image id, otherwise
     # if the build was bad, we need the full output
-    if [ $RESULT == 0 ]; then
-        echo $(cat $iidfile)
+    if [ "$RESULT" == 0 ]; then
+        cat "$iidfile"
     else
-        cat $outfile
+        cat "$outfile"
     fi
 fi
 
-exit $RESULT
+exit "$RESULT"
