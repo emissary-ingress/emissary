@@ -104,6 +104,8 @@ export class APIs extends LitElement {
 
       // console.log("HACKING", aDiv)
 
+      var needLinks = false
+
       while (true) {
         if (!aDiv.shadowRoot) {
           // Reschedule. FFS.
@@ -125,20 +127,23 @@ export class APIs extends LitElement {
         if (aKid.tagName == 'STYLE') {
           // console.log("  SMITE")
           aKid.remove()
+          needLinks = true
         }
         else {
-          // Our work here is done.
-
-          aDiv.shadowRoot.prepend(this.linkCSS("/edge_stack/styles/rapidoc-table.css"))
-          aDiv.shadowRoot.prepend(this.linkCSS("/edge_stack/styles/rapidoc-input.css"))
-          aDiv.shadowRoot.prepend(this.linkCSS("/edge_stack/styles/rapidoc-fonts.css"))
-          aDiv.shadowRoot.prepend(this.linkCSS("/edge_stack/styles/rapidoc-flex.css"))
-          aDiv.shadowRoot.prepend(this.linkCSS("/edge_stack/styles/rapidoc-endpoint.css"))
-          aDiv.shadowRoot.prepend(this.linkCSS("/edge_stack/styles/rapidoc-elements.css"))
-          aDiv.shadowRoot.prepend(this.linkCSS("/edge_stack/styles/rapidoc-colors.css"))
-
           break
         }
+      }
+
+      if (needLinks) {
+        console.log("  ADDLINKS")
+
+        aDiv.shadowRoot.prepend(this.linkCSS("/edge_stack/styles/rapidoc-table.css"))
+        aDiv.shadowRoot.prepend(this.linkCSS("/edge_stack/styles/rapidoc-input.css"))
+        aDiv.shadowRoot.prepend(this.linkCSS("/edge_stack/styles/rapidoc-fonts.css"))
+        aDiv.shadowRoot.prepend(this.linkCSS("/edge_stack/styles/rapidoc-flex.css"))
+        aDiv.shadowRoot.prepend(this.linkCSS("/edge_stack/styles/rapidoc-endpoint.css"))
+        aDiv.shadowRoot.prepend(this.linkCSS("/edge_stack/styles/rapidoc-elements.css"))
+        aDiv.shadowRoot.prepend(this.linkCSS("/edge_stack/styles/rapidoc-colors.css"))
       }
     }
   }
