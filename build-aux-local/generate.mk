@@ -256,7 +256,7 @@ $(OSS_HOME)/generate.tmp/%_grpc_web_pb.js: $(OSS_HOME)/api/%.proto $(tools/proto
 # This madness with sed is because protoc likes to insert broken imports when generating
 # Python code, and my attempts to sort out how to fix the protoc invocation are taking 
 # longer than I have right now.
-# (Previous we just did cp $< $@ instead of the sed call.)
+# (Previously we just did cp $< $@ instead of the sed call.)
 
 $(OSS_HOME)/python/ambassador/proto/%.py: $(OSS_HOME)/generate.tmp/getambassador.io/%.py
 	mkdir -p $(@D)
