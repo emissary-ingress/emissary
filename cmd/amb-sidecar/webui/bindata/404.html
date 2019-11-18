@@ -45,17 +45,18 @@
           <div class="right-side">
             <h1 class="app-title">Area Under Construction</h1>
             <p class="app-text">We're still working on this part of the site for you.</p>
-            <p class="app-text">Come back in a little while, or <a class="app-link" href="/edge_stack/admin">go to the admin interface</a> to work on other configurations.</p>
+            <p class="app-text">Come back in a little while, or <a class="app-link">go to the admin interface</a> to work on other configurations.</p>
             <p class="app-notice" style="display: none;">Notice: You must accept the self-signed certificate before setting up a TLS certificate.</p>
           </div>
         </div>
       </main>
     </div>
     <script>
-      fetch('/edge_stack/admin').then(function (resp) {
-      }).catch(function(err) {
+      let link = document.getElementsByClassName("app-link")[0]
+      link.setAttribute("href", `https://${window.location.host}/edge_stack/admin`)
+      if (window.location.protocol == 'http:') {
         document.getElementsByClassName('app-notice')[0].removeAttribute('style');
-      });
+      }
     </script>
   </body>
 </html>
