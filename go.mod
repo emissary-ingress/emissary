@@ -23,7 +23,7 @@ require (
 	github.com/lyft/gostats v0.2.6
 	github.com/lyft/ratelimit v1.3.0
 	github.com/mediocregopher/radix.v2 v0.0.0-20180603022615-94360be26253
-	github.com/nu7hatch/gouuid v0.0.0-20131221200532-179d4d0c4d8d // indirect
+	github.com/nu7hatch/gouuid v0.0.0-20131221200532-179d4d0c4d8d
 	github.com/o1egl/paseto v1.0.0
 	github.com/onsi/gomega v1.7.0
 	github.com/oxtoacart/bpool v0.0.0-20190530202638-03653db5a59c
@@ -34,11 +34,6 @@ require (
 	github.com/spf13/cobra v0.0.5
 	github.com/spf13/pflag v1.0.3
 	github.com/tsenart/vegeta v12.2.1+incompatible
-	gitlab.com/golang-commonmark/html v0.0.0-20180917080848-cfaf75183c4a // indirect
-	gitlab.com/golang-commonmark/linkify v0.0.0-20191026162114-a0c2df6c8f82 // indirect
-	gitlab.com/golang-commonmark/markdown v0.0.0-20181102083822-772775880e1f
-	gitlab.com/golang-commonmark/mdurl v0.0.0-20180912090424-e5bce34c34f2 // indirect
-	gitlab.com/golang-commonmark/puny v0.0.0-20180912090636-2cd490539afe // indirect
 	golang.org/x/crypto v0.0.0-20190701094942-4def268fd1a4
 	golang.org/x/net v0.0.0-20190930134127-c5a3c61f89f3
 	golang.org/x/sync v0.0.0-20190423024810-112230192c58
@@ -66,9 +61,3 @@ replace github.com/tsenart/vegeta => github.com/datawire/vegeta v12.2.2-0.201904
 // golint in their go.sum, and (2) erroneously refer to it as
 // github.com/golang/lint instead of golang.org/x/lint
 replace github.com/golang/lint => golang.org/x/lint v0.0.0-20190227174305-5b3e6a55c961
-
-// Allow pre-Go-modules blackfriday import paths to keep working
-//   v1.y.z: github.com/russross/blackfriday (pre-modules) (used by gitlab.com/golang-commonmark/markdown.test)
-//   v2.0.0: gopkg.in/russross/blackfriday.v2 (pre-modules) (also used by gitlab.com/golang-commonmark/markdown.test)
-//   v2.0.1: github.com/russross/blackfriday/v2 (post-modules) (used by everything else)
-replace gopkg.in/russross/blackfriday.v2 => github.com/russross/blackfriday v2.0.0+incompatible

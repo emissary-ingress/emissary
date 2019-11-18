@@ -6,23 +6,11 @@ import (
 	"strings"
 
 	"github.com/oxtoacart/bpool"
-
 	blackfriday "github.com/russross/blackfriday/v2"
-	"gitlab.com/golang-commonmark/markdown"
 )
 
 type MarkdownRenderer interface {
 	Render(src []byte) string
-}
-
-type CommonmarkRenderer struct{}
-
-func (c *CommonmarkRenderer) Render(src []byte) (data string) {
-	md := markdown.New(
-		markdown.Tables(true),
-		markdown.HTML(true))
-	data = md.RenderToString(src)
-	return
 }
 
 type BlackfridayRenderer struct{}
