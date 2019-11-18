@@ -35,7 +35,7 @@ API endpoints:
 
 ### Listing
 
-`/openapi/services` returns a JSON list of objects of the form:
+`/docs/api/v2/services` returns a JSON list of objects of the form:
 
 ```json
 {
@@ -49,11 +49,11 @@ API endpoints:
 
 ### Get OpenAPI documentation
 
-`/openapi/services/{namespace}/{name}/openapi.json` for a given Service's namespace and name returns the OpenAPI docs as JSON.
+`/docs/api/v2/services/{namespace}/{name}/openapi.json` for a given Service's namespace and name returns the OpenAPI docs as JSON.
 
 ### Set metadata
 
-POST to `/openapi/services` with:
+POST to `/docs/api/v2/services` with:
 
 
 ```json

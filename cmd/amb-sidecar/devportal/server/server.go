@@ -260,24 +260,6 @@ func (s *Server) Init(fetcher MappingSubscriptions) {
 		s.prefix = prefix
 		return true
 	})
-	fetcher.SubscribeMappingObserver("ambassador-pro-devportal-api", func(prefix, rewrite string) bool {
-		prefix += "/"
-		log.WithFields(log.Fields{
-			"oldPrefix": s.prefix,
-			"prefix":    prefix,
-			"rewrite":   rewrite,
-		}).Info("API prefix detected from ambassador-pro-devportal-api (TODO)")
-		return true
-	})
-	fetcher.SubscribeMappingObserver("ambassador-devportal-api", func(prefix, rewrite string) bool {
-		prefix += "/"
-		log.WithFields(log.Fields{
-			"oldPrefix": s.prefix,
-			"prefix":    prefix,
-			"rewrite":   rewrite,
-		}).Info("API prefix detected from ambassador-devportal-api (TODO)")
-		return true
-	})
 }
 
 // Create a new HTTP server instance.
@@ -307,43 +289,55 @@ func NewServer(docroot string, content *content.Content, limiter limiter.Limiter
 		prefix:       root,
 	}
 
+	s.mountDocs(docroot)
+
+	switch content.Config().Version {
+	case "1":
+		s.mountAPI("/openapi")
+	case "2":
+		s.mountAPI(docroot + "/api/v2")
+	}
+	return s
+}
+
+func (s *Server) mountDocs(docroot string) {
 	// TODO in a later design iteration, we would serve static HTML, and
 	// have Javascript UI that queries the API endpoints. for this
 	// iteration, just doing it server-side.
-	router.
+	s.router.
 		HandleFunc(docroot+"/", s.handleHTML("landing")).
 		Methods("GET")
-	router.
+	s.router.
 		PathPrefix(docroot + "/assets/").HandlerFunc(s.handleStatic(docroot)).
 		Methods("GET")
-	router.
+	s.router.
 		PathPrefix(docroot + "/styles/").HandlerFunc(s.handleStatic(docroot)).
 		Methods("GET")
-	router.
+	s.router.
 		HandleFunc(docroot+"/page/{page}", s.handleHTML("page")).
 		Methods("GET")
-	router.
+	s.router.
 		HandleFunc(docroot+"/doc/{namespace}/{service}", s.handleHTML("doc")).
 		Methods("GET")
+}
 
+func (s *Server) mountAPI(apiroot string) {
 	// *** Read-only API, requires less access control and may be exposed ***
 	// publicly:
 	// List services:
-	router.
-		HandleFunc("/openapi/services", s.handleOpenAPIListing()).
+	s.router.
+		HandleFunc(apiroot+"/services", s.handleOpenAPIListing()).
 		Methods("GET")
 	// Return the OpenAPI JSON:
-	router.
+	s.router.
 		HandleFunc(
-			"/openapi/services/{namespace}/{service}/openapi.json",
+			apiroot+"/services/{namespace}/{service}/openapi.json",
 			s.handleOpenAPIGet()).
 		Methods("GET")
 
 	// *** Write API, needs access control at some point ***
 	// Set information about new service:
-	router.
-		HandleFunc("/openapi/services", s.handleOpenAPIUpdate()).
+	s.router.
+		HandleFunc(apiroot+"/services", s.handleOpenAPIUpdate()).
 		Methods("POST")
-
-	return s
 }
