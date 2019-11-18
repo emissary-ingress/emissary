@@ -1,35 +1,4 @@
 # ------------------------------------------------------------------------------
-# gRPC bindings for KAT
-# ------------------------------------------------------------------------------
-
-GRPC_WEB_VERSION = 1.0.3
-GRPC_WEB_PLATFORM = $(GOOS)-x86_64
-
-bin_$(GOHOSTOS)_$(GOHOSTARCH)/protoc-gen-grpc-web: $(var.)GRPC_WEB_VERSION $(var.)GRPC_WEB_PLATFORM
-	mkdir -p $(@D)
-	curl -o $@ -L --fail https://github.com/grpc/grpc-web/releases/download/$(GRPC_WEB_VERSION)/protoc-gen-grpc-web-$(GRPC_WEB_VERSION)-$(GRPC_WEB_PLATFORM)
-	chmod 755 $@
-
-pkg/api/kat/echo.pb.go: api/kat/echo.proto bin_$(GOHOSTOS)_$(GOHOSTARCH)/protoc bin_$(GOHOSTOS)_$(GOHOSTARCH)/protoc-gen-gogofast
-	mkdir -p $(@D)
-	./bin_$(GOHOSTOS)_$(GOHOSTARCH)/protoc \
-		--proto_path=$(CURDIR)/api/kat \
-		--plugin=$(CURDIR)/bin_$(GOHOSTOS)_$(GOHOSTARCH)/protoc-gen-gogofast --gogofast_out=plugins=grpc:$(@D) \
-		$(CURDIR)/$<
-
-tools/sandbox/grpc_web/echo_grpc_web_pb.js: api/kat/echo.proto bin_$(GOHOSTOS)_$(GOHOSTARCH)/protoc bin_$(GOHOSTOS)_$(GOHOSTARCH)/protoc-gen-grpc-web
-	./bin_$(GOHOSTOS)_$(GOHOSTARCH)/protoc \
-		--proto_path=$(CURDIR)/api/kat \
-		--plugin=$(CURDIR)/bin_$(GOHOSTOS)_$(GOHOSTARCH)/protoc-gen-grpc-web --grpc-web_out=import_style=commonjs,mode=grpcwebtext:$(@D) \
-		$(CURDIR)/$<
-
-tools/sandbox/grpc_web/echo_pb.js: api/kat/echo.proto bin_$(GOHOSTOS)_$(GOHOSTARCH)/protoc
-	./bin_$(GOHOSTOS)_$(GOHOSTARCH)/protoc \
-		--proto_path=$(CURDIR)/api/kat \
-		--js_out=import_style=commonjs:$(@D) \
-		$(CURDIR)/$<
-
-# ------------------------------------------------------------------------------
 # KAT docker-compose sandbox
 # ------------------------------------------------------------------------------
 
