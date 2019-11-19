@@ -13,6 +13,11 @@ import (
 	"time"
 
 	"github.com/jcuga/golongpoll"
+	// golongpoll doesn't have a go.mod, and something about that
+	// confuses Go about whether it needs golongpoll's gouuid
+	// dependency or not.  So, tell Go explicitly: We need gouuid.
+	_ "github.com/nu7hatch/gouuid"
+
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
