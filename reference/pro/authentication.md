@@ -9,7 +9,7 @@ Ambassador Edge Stack enables Ambassador to operate as an Identity Aware Proxy a
 
 In the zero trust model, every request to a resource is verified, regardless of where that request originates. Google was one of the first companies to deploy a complete zero trust architecture, as detailed in their [BeyondCorp security architecture whitepaper](https://ai.google/research/pubs/pub43231).
 
-## Identity-Aware Proxy]
+## Identity-Aware Proxy
 
 One of the key components of a zero trust architecture is the Identity-Aware Proxy. Ambassador Edge Stack can be deployed in front of an application or microservices, and authenticate users, check authorization, and enforce other types of security policies. Critically, Ambassador Edge Stack operates at the application level, which means it can take advantage of domain knowledge of users to improve security. Pro interfaces with the Identity Provider (IdP), which is the trusted canonical source for authentication and authorization information.
 
