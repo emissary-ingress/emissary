@@ -17,18 +17,20 @@ import (
 	ambassadorTypesV2 "github.com/datawire/ambassador/pkg/api/getambassador.io/v2"
 	k8sTypesCoreV1 "k8s.io/api/core/v1"
 	k8sTypesMetaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	k8sTypesUnstructured "k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 
 	k8sClientDynamic "k8s.io/client-go/dynamic"
 	k8sClientCoreV1 "k8s.io/client-go/kubernetes/typed/core/v1"
 
+	"github.com/datawire/apro/cmd/amb-sidecar/events"
 	"github.com/datawire/apro/cmd/amb-sidecar/watt"
 )
 
 type Controller struct {
 	redisPool  *pool.Pool
 	httpClient *http.Client
-	snapshotCh <-chan watt.Snapshot
+
+	snapshotCh  <-chan watt.Snapshot
+	eventLogger *events.EventLogger
 
 	secretsGetter k8sClientCoreV1.SecretsGetter
 	hostsGetter   k8sClientDynamic.NamespaceableResourceInterface
@@ -41,13 +43,15 @@ func NewController(
 	redisPool *pool.Pool,
 	httpClient *http.Client,
 	snapshotCh <-chan watt.Snapshot,
+	eventLogger *events.EventLogger,
 	secretsGetter k8sClientCoreV1.SecretsGetter,
 	dynamicClient k8sClientDynamic.Interface,
 ) *Controller {
 	return &Controller{
-		redisPool:  redisPool,
-		httpClient: httpClient,
-		snapshotCh: snapshotCh,
+		redisPool:   redisPool,
+		httpClient:  httpClient,
+		snapshotCh:  snapshotCh,
+		eventLogger: eventLogger,
 
 		secretsGetter: secretsGetter,
 		hostsGetter:   dynamicClient.Resource(k8sSchema.GroupVersionResource{Group: "getambassador.io", Version: "v2", Resource: "hosts"}),
@@ -137,22 +141,14 @@ func (c *Controller) getSecret(namespace, name string) *k8sTypesCoreV1.Secret {
 }
 
 func (c *Controller) updateHost(host *ambassadorTypesV2.Host) error {
-	_, err := c.hostsGetter.Namespace(host.GetNamespace()).Update(&k8sTypesUnstructured.Unstructured{
-		Object: map[string]interface{}{
-			"apiVersion": "getambassador.io/v2",
-			"kind":       "Host",
-			"metadata":   unstructureMetadata(host.ObjectMeta),
-			"spec":       host.Spec,
-			"status":     host.Status,
-		},
-	}, k8sTypesMetaV1.UpdateOptions{})
+	_, err := c.hostsGetter.Namespace(host.GetNamespace()).Update(unstructureHost(host), k8sTypesMetaV1.UpdateOptions{})
 	if err != nil {
 		return errors.Wrapf(err, "update %q.%q", host.GetName(), host.GetNamespace())
 	}
 	return err
 }
 
-func (c *Controller) recordHostPending(logger dlog.Logger, host *ambassadorTypesV2.Host, phaseCompleted, phasePending ambassadorTypesV2.HostPhase) {
+func (c *Controller) recordHostPending(logger dlog.Logger, host *ambassadorTypesV2.Host, phaseCompleted, phasePending ambassadorTypesV2.HostPhase, reasonPending string) {
 	logger.Debugf("updating pending host %d→%d", host.Status.PhaseCompleted, phaseCompleted)
 	if phaseCompleted <= host.Status.PhaseCompleted {
 		logger.Debugf("^^ THIS IS A BUG ^^: %d→%d is not a progression", host.Status.PhaseCompleted, phaseCompleted)
@@ -164,9 +160,10 @@ func (c *Controller) recordHostPending(logger dlog.Logger, host *ambassadorTypes
 	if err := c.updateHost(host); err != nil {
 		logger.Errorln(err)
 	}
+	c.eventLogger.Namespace(host.GetNamespace()).Event(unstructureHost(host), k8sTypesCoreV1.EventTypeNormal, "Pending", reasonPending)
 }
 
-func (c *Controller) recordHostReady(logger dlog.Logger, host *ambassadorTypesV2.Host) {
+func (c *Controller) recordHostReady(logger dlog.Logger, host *ambassadorTypesV2.Host, readyReason string) {
 	logger.Debugln("updating ready host")
 	host.Status.State = ambassadorTypesV2.HostState_Ready
 	host.Status.PhaseCompleted = ambassadorTypesV2.HostPhase_NA
@@ -175,6 +172,7 @@ func (c *Controller) recordHostReady(logger dlog.Logger, host *ambassadorTypesV2
 	if err := c.updateHost(host); err != nil {
 		logger.Errorln(err)
 	}
+	c.eventLogger.Namespace(host.GetNamespace()).Event(unstructureHost(host), k8sTypesCoreV1.EventTypeNormal, "Ready", readyReason)
 }
 
 func (c *Controller) recordHostError(logger dlog.Logger, host *ambassadorTypesV2.Host, phase ambassadorTypesV2.HostPhase, err error) {
@@ -185,12 +183,19 @@ func (c *Controller) recordHostError(logger dlog.Logger, host *ambassadorTypesV2
 	if err := c.updateHost(host); err != nil {
 		logger.Errorln(err)
 	}
+	c.eventLogger.Namespace(host.GetNamespace()).Event(unstructureHost(host), k8sTypesCoreV1.EventTypeWarning, "Error", err.Error())
 }
 
 func (c *Controller) recordHostsError(logger dlog.Logger, hosts []*ambassadorTypesV2.Host, phase ambassadorTypesV2.HostPhase, err error) {
 	for _, host := range hosts {
 		logger := logger.WithField("host", host.GetName()+"."+host.GetNamespace())
 		c.recordHostError(logger, host, phase, err)
+	}
+}
+
+func (c *Controller) recordHostsEvent(hosts []*ambassadorTypesV2.Host, reason string) {
+	for _, host := range hosts {
+		c.eventLogger.Namespace(host.GetNamespace()).Event(unstructureHost(host), k8sTypesCoreV1.EventTypeNormal, "Pending", reason)
 	}
 }
 
@@ -229,23 +234,23 @@ func (c *Controller) rectifyPhase1(logger dlog.Logger) []*ambassadorTypesV2.Host
 			}
 			c.recordHostPending(logger, host,
 				ambassadorTypesV2.HostPhase_DefaultsFilled,
-				nextPhase)
+				nextPhase, "waiting for Host DefaultsFilled change to be reflected in snapshot")
 			continue
 		}
 
 		switch host.Status.TlsCertificateSource {
 		case ambassadorTypesV2.HostTLSCertificateSource_None:
 			logger.Debugln("rectify: Host: does not use TLS")
-			c.recordHostReady(logger, host)
+			c.recordHostReady(logger, host, "non-TLS Host marked ready")
 		case ambassadorTypesV2.HostTLSCertificateSource_Other:
-			logger.Debugln("rectify: Host: uses externally provisioned TLS certificate")
+			logger.Debugln("rectify: Host: uses externally-provisioned TLS certificate")
 			if c.getSecret(host.GetNamespace(), host.Spec.TlsSecret.Name) == nil {
 				c.recordHostError(logger, host,
 					ambassadorTypesV2.HostPhase_NA,
 					errors.New("tlsSecret does not exist"))
 			} else {
 				// TODO: Maybe validate that the secret contents are valid?
-				c.recordHostReady(logger, host)
+				c.recordHostReady(logger, host, "Host with externally-provisioned TLS certificate marked Ready")
 			}
 		case ambassadorTypesV2.HostTLSCertificateSource_ACME:
 			logger.Debugln("rectify: Host: accepting Host for next phase")
@@ -290,6 +295,7 @@ func (c *Controller) rectifyPhase2(logger dlog.Logger, acmeHosts []*ambassadorTy
 			secret := c.getSecret(namespace, privateKeySecretName)
 			if secret == nil {
 				logger.Debugln("rectify: Secret: creating user private key")
+				c.recordHostsEvent(hosts, "creating private key Secret")
 				secret, err := generateUserPrivateKeySecret(namespace, privateKeySecretName)
 				if err != nil {
 					c.recordHostsError(logger, hosts,
@@ -303,7 +309,9 @@ func (c *Controller) rectifyPhase2(logger dlog.Logger, acmeHosts []*ambassadorTy
 					c.recordHostsError(logger, hosts,
 						ambassadorTypesV2.HostPhase_ACMEUserPrivateKeyCreated,
 						err)
+					continue
 				}
+				c.recordHostsEvent(hosts, "waiting for private key Secret creation to be reflected in snapshot")
 				continue
 			} else {
 				secret = secret.DeepCopy()
@@ -316,11 +324,14 @@ func (c *Controller) rectifyPhase2(logger dlog.Logger, acmeHosts []*ambassadorTy
 				}
 				if secretIsDirty {
 					logger.Debugln("rectify: Secret: updating ownership of user private key")
+					c.recordHostsEvent(hosts, "modifying private key Secret")
 					if err := storeSecret(c.secretsGetter, secret); err != nil {
 						c.recordHostsError(logger, hosts,
 							ambassadorTypesV2.HostPhase_ACMEUserPrivateKeyCreated,
 							err)
+						continue
 					}
+					c.recordHostsEvent(hosts, "waiting for private key Secret modification to be reflected in snapshot")
 					continue
 				}
 			}
@@ -331,7 +342,8 @@ func (c *Controller) rectifyPhase2(logger dlog.Logger, acmeHosts []*ambassadorTy
 					logger.Debugln("rectify: Secret: updating HostStatuses")
 					c.recordHostPending(logger, host,
 						ambassadorTypesV2.HostPhase_ACMEUserPrivateKeyCreated,
-						ambassadorTypesV2.HostPhase_ACMEUserRegistered)
+						ambassadorTypesV2.HostPhase_ACMEUserRegistered,
+						"waiting for Host status change to be reflected in snapshot")
 					hostsDirty = true
 				}
 			}
@@ -406,7 +418,9 @@ func (c *Controller) rectifyPhase3(logger dlog.Logger, acmeHosts []*ambassadorTy
 				for _, host := range hosts {
 					if host.Spec.AcmeProvider.Registration != "" {
 						if registration != "" && registration != host.Spec.AcmeProvider.Registration {
-							// TODO: Report this warning to the user, not just on stderr
+							c.eventLogger.Namespace(host.GetNamespace()).Eventf(unstructureHost(host), k8sTypesCoreV1.EventTypeWarning, "Warning",
+								"Host has disagreeing ACME registration from other Hosts with the same ACME credentials: %q",
+								host.Spec.AcmeProvider.Registration)
 							logger.Warningf("rectify: Secret: provider: host=%q has disagreeing ACME registration: %q",
 								host.GetName(), host.Spec.AcmeProvider.Registration)
 						}
@@ -417,6 +431,7 @@ func (c *Controller) rectifyPhase3(logger dlog.Logger, acmeHosts []*ambassadorTy
 					logger.Debugln("rectify: Secret: provider: found existing registration")
 				} else {
 					logger.Debugln("rectify: Secret: provider: registering ACME user...")
+					c.recordHostsEvent(hosts, "registering ACME account")
 					var err error
 					registration, err = c.userRegister(namespace, hosts[0].Spec.AcmeProvider)
 					if err != nil {
@@ -429,6 +444,7 @@ func (c *Controller) rectifyPhase3(logger dlog.Logger, acmeHosts []*ambassadorTy
 						dirty = true
 						continue
 					}
+					c.recordHostsEvent(hosts, "ACME account registered")
 				}
 				for _, host := range hosts {
 					logger := logger.WithField("host", host.GetName()+"."+host.GetNamespace())
@@ -437,7 +453,8 @@ func (c *Controller) rectifyPhase3(logger dlog.Logger, acmeHosts []*ambassadorTy
 						host.Spec.AcmeProvider.Registration = registration
 						c.recordHostPending(logger, host,
 							ambassadorTypesV2.HostPhase_ACMEUserRegistered,
-							ambassadorTypesV2.HostPhase_ACMECertificateChallenge)
+							ambassadorTypesV2.HostPhase_ACMECertificateChallenge,
+							"waiting for Host ACME account registration change to be reflected in snapshot")
 						dirty = true
 					}
 				}
@@ -475,7 +492,9 @@ func (c *Controller) rectifyPhase3(logger dlog.Logger, acmeHosts []*ambassadorTy
 						return providerKeys[i].PrivateKeySecretName < providerKeys[j].PrivateKeySecretName
 					}
 				})
-				// TODO: Report this warning to the user, not just on stderr
+				for _, host := range acmeHostsByTLSSecret[namespace][tlsSecretName] {
+					c.eventLogger.Namespace(host.GetNamespace()).Event(unstructureHost(host), k8sTypesCoreV1.EventTypeWarning, "Warning", "Host specified an 'acmeProvider' that differs from other Hosts with the same 'tlsSecret'")
+				}
 				logger.Warningln("there were multiple ACME providers specified for this secret")
 			}
 			logger.Debugln("rectify: Secret: accepting Hosts for next phase")
@@ -535,6 +554,7 @@ func (c *Controller) rectifyPhase4(logger dlog.Logger,
 
 			logger.Debugf("rectify: Secret: needsRenew=%v", needsRenew)
 			if needsRenew {
+				c.recordHostsEvent(hosts, "requires new TLS certificate")
 				acmeProvider := acmeProviderByTLSSecret[namespace][tlsSecretName]
 				var user acmeUser
 				var err error
@@ -556,6 +576,7 @@ func (c *Controller) rectifyPhase4(logger dlog.Logger,
 				user.Registration = &reg
 
 				logger.Debugln("rectify: Secret: requesting certificate...")
+				c.recordHostsEvent(hosts, "performing ACME challenge")
 				certResource, err := obtainCertificate(
 					c.httpClient,
 					c.redisPool,
@@ -582,18 +603,21 @@ func (c *Controller) rectifyPhase4(logger dlog.Logger,
 			}
 			if secretIsDirty {
 				logger.Debugln("rectify: Secret: updating Secret")
+				c.recordHostsEvent(hosts, "updating TLS Secret")
 				if err := storeSecret(c.secretsGetter, secret); err != nil {
 					c.recordHostsError(logger, hosts,
 						ambassadorTypesV2.HostPhase_ACMECertificateChallenge,
 						err)
+					continue
 				}
+				c.recordHostsEvent(hosts, "waiting for TLS Secret update to be reflected in snapshot")
 				continue
 			}
 			logger.Debugln("rectify: Secret: updating HostStatuses")
 			for _, host := range acmeHostsByTLSSecret[namespace][tlsSecretName] {
 				if host.Status.State != ambassadorTypesV2.HostState_Ready {
 					logger := logger.WithField("host", host.GetName()+"."+host.GetNamespace())
-					c.recordHostReady(logger, host)
+					c.recordHostReady(logger, host, "Host with ACME-provisioned TLS certificate marked Ready")
 				}
 			}
 		}

@@ -44,6 +44,7 @@ import (
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
 	"github.com/datawire/apro/cmd/amb-sidecar/watt"
 	"github.com/datawire/apro/cmd/amb-sidecar/webui"
+	"github.com/datawire/apro/cmd/amb-sidecar/events"
 	"github.com/datawire/apro/lib/licensekeys"
 	"github.com/datawire/apro/lib/metriton"
 	"github.com/datawire/apro/lib/util"
@@ -230,6 +231,15 @@ func runE(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	eventLogger, err := events.NewEventLogger(
+		cfg,
+		coreClient,
+		dlog.WrapLogrus(logrusLogger).WithField("MAIN", "event-broadcaster"),
+	)
+	if err != nil {
+		return err
+	}
+
 	var redisPool *pool.Pool
 	var redisPoolErr error
 	if cfg.RedisURL != "" {
@@ -309,6 +319,7 @@ func runE(cmd *cobra.Command, args []string) error {
 		redisPool,
 		http.DefaultClient, // XXX
 		snapshotStore.Subscribe(),
+		eventLogger,
 		coreClient,
 		dynamicClient)
 	group.Go("acme_client", func(hardCtx, softCtx context.Context, cfg types.Config, l dlog.Logger) error {

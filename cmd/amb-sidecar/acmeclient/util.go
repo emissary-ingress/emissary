@@ -13,6 +13,7 @@ import (
 	ambassadorTypesV2 "github.com/datawire/ambassador/pkg/api/getambassador.io/v2"
 	k8sTypesCoreV1 "k8s.io/api/core/v1"
 	k8sTypesMetaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	k8sTypesUnstructured "k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 
 	k8sClientCoreV1 "k8s.io/client-go/kubernetes/typed/core/v1"
 )
@@ -78,7 +79,7 @@ func deepCopyHost(in *ambassadorTypesV2.Host) *ambassadorTypesV2.Host {
 	return &out
 }
 
-// ufnstructureMetadata marshals a *k8sTypesMetaV1.ObjectMeta for us
+// unstructureMetadata marshals a *k8sTypesMetaV1.ObjectMeta for us
 // in a `*k8sTypesUnstructured.Unstructured`.
 //
 // `*k8sTypesUnstructured.Unstructured` requires that the "metadata"
@@ -98,6 +99,24 @@ func unstructureMetadata(in *k8sTypesMetaV1.ObjectMeta) map[string]interface{} {
 		panic(err)
 	}
 	return metadata
+}
+
+// unstructureHost returns a *k8sTypesUnstructured.Unstructured
+// representation of an *ambassadorTypesV2.Host.  There are a 2
+// reasons why we might want this:
+//
+//  1. For use with a k8sClientDynamic.Interface
+//  2. For use as a k8sRuntime.Object
+func unstructureHost(host *ambassadorTypesV2.Host) *k8sTypesUnstructured.Unstructured {
+	return &k8sTypesUnstructured.Unstructured{
+		Object: map[string]interface{}{
+			"apiVersion": "getambassador.io/v2",
+			"kind":       "Host",
+			"metadata":   unstructureMetadata(host.ObjectMeta),
+			"spec":       host.Spec,
+			"status":     host.Status,
+		},
+	}
 }
 
 // hostsEqual returns whether 2 Host resources are equal.  Use this
