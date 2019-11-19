@@ -211,7 +211,7 @@ func MakeIntercept(p *supervisor.Process, tm *TrafficManager, ii *InterceptInfo)
 
 	sshCmd := []string{
 		"ssh", "-C", "-N", "telepresence@localhost",
-		"-oConnectTimeout=5", "-oExitOnForwardFailure=yes",
+		"-oConnectTimeout=10", "-oExitOnForwardFailure=yes",
 		"-oStrictHostKeyChecking=no", "-oUserKnownHostsFile=/dev/null",
 		"-p", strconv.Itoa(tm.sshPort),
 		"-R", fmt.Sprintf("%d:%s:%d", cept.port, ii.TargetHost, ii.TargetPort),
@@ -233,5 +233,8 @@ func (cept *Intercept) check(p *supervisor.Process) error {
 func (cept *Intercept) quit(p *supervisor.Process) error {
 	cept.done = true
 	_ = cept.crc.Close()
-	return cept.ii.Release(p, cept.tm, cept.port)
+	if err := cept.ii.Release(p, cept.tm, cept.port); err != nil {
+		p.Log(err)
+	}
+	return nil
 }
