@@ -498,7 +498,7 @@ Headers can be mutated by calling `w.Header().Set(HEADERNAME, VALUE)`.
 Finalize changes by calling `w.WriteHeader(http.StatusOK)`.
 
 If you call `w.WriteHeader()` with any value other than 200 (`http.StatusOK`) instead of modifying the request, the plugin has
-taken over the request, and the request will not be sent to the backend service.  You can call `w.Write()` to write the body of an error page.
+taken over the request, and the request will not be sent to your backend service.  You can call `w.Write()` to write the body of an error page.
 
 #### `Plugin` Global Arguments
 
