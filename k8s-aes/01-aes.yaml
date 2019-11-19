@@ -44,10 +44,14 @@ rules:
 - apiGroups: [ "extensions" ]
   resources: [ "ingresses/status" ]
   verbs: ["update"]
-# Ambassador Pro access requirements.  Also gets "create" for secrets.
+# Ambassador Pro access requirements.  Also gets "create" and "update"
+# for secrets, and "create" for events.
 - apiGroups: [""]
   resources: [ "secrets" ]
   verbs: ["get", "list", "watch", "create", "update"]
+- apiGroups: [""]
+  resources: [ "events" ]
+  verbs: ["get", "list", "watch", "create"]
 ---
 apiVersion: v1
 kind: ServiceAccount
