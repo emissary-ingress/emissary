@@ -34,6 +34,7 @@ import (
 	"github.com/datawire/apro/cmd/amb-sidecar/banner"
 	devportalcontent "github.com/datawire/apro/cmd/amb-sidecar/devportal/content"
 	devportalserver "github.com/datawire/apro/cmd/amb-sidecar/devportal/server"
+	"github.com/datawire/apro/cmd/amb-sidecar/events"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/controller"
 	filterhandler "github.com/datawire/apro/cmd/amb-sidecar/filters/handler"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/health"
@@ -44,7 +45,6 @@ import (
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
 	"github.com/datawire/apro/cmd/amb-sidecar/watt"
 	"github.com/datawire/apro/cmd/amb-sidecar/webui"
-	"github.com/datawire/apro/cmd/amb-sidecar/events"
 	"github.com/datawire/apro/lib/licensekeys"
 	"github.com/datawire/apro/lib/metriton"
 	"github.com/datawire/apro/lib/util"
@@ -296,7 +296,7 @@ func runE(cmd *cobra.Command, args []string) error {
 
 	// DevPortal
 	var devPortalServer *devportalserver.Server
-        var devPortalContentVersion string
+	var devPortalContentVersion string
 	if limit.CanUseFeature(licensekeys.FeatureDevPortal) {
 		content, err := devportalcontent.NewContent(
 			cfg.DevPortalContentURL,
@@ -305,7 +305,7 @@ func runE(cmd *cobra.Command, args []string) error {
 		if err != nil {
 			return err
 		}
-                devPortalContentVersion = content.Config().Version
+		devPortalContentVersion = content.Config().Version
 		devPortalServer = devportalserver.NewServer("/docs", content, limit)
 		group.Go("devportal_fetcher", func(hardCtx, softCtx context.Context, cfg types.Config, l dlog.Logger) error {
 			fetcher := devportalserver.NewFetcher(devPortalServer, devportalserver.HTTPGet, devPortalServer.KnownServices(), cfg)
@@ -426,8 +426,8 @@ func runE(cmd *cobra.Command, args []string) error {
 		if licenseClaims.RequireFeature(licensekeys.FeatureDevPortal) == nil {
 			httpHandler.AddEndpoint("/docs/", "Documentation portal", devPortalServer.Router().ServeHTTP)
 			if devPortalContentVersion == "1" {
-		   	        httpHandler.AddEndpoint("/openapi/", "Documentation portal API", devPortalServer.Router().ServeHTTP)
-                        }
+				httpHandler.AddEndpoint("/openapi/", "Documentation portal API", devPortalServer.Router().ServeHTTP)
+			}
 		}
 
 		// web ui

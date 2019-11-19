@@ -13,8 +13,8 @@ import (
 	// k8s clients
 	k8sClientCoreV1 "k8s.io/client-go/kubernetes/typed/core/v1"
 
-	// internal packages
 	"github.com/datawire/ambassador/pkg/dlog"
+
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
 )
 
