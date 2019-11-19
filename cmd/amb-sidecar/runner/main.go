@@ -44,6 +44,7 @@ import (
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
 	"github.com/datawire/apro/cmd/amb-sidecar/watt"
 	"github.com/datawire/apro/cmd/amb-sidecar/webui"
+	"github.com/datawire/apro/cmd/amb-sidecar/events"
 	"github.com/datawire/apro/lib/licensekeys"
 	"github.com/datawire/apro/lib/metriton"
 	"github.com/datawire/apro/lib/util"
@@ -53,12 +54,6 @@ import (
 	lyftredis "github.com/lyft/ratelimit/src/redis"
 	lyftserver "github.com/lyft/ratelimit/src/server"
 	lyftservice "github.com/lyft/ratelimit/src/service"
-
-	// k8s misc
-	k8sRecord "k8s.io/client-go/tools/record"
-
-	// k8s types
-	k8sTypesCoreV1 "k8s.io/api/core/v1"
 
 	// k8s clients
 	k8sClientDynamic "k8s.io/client-go/dynamic"
@@ -236,23 +231,14 @@ func runE(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	eventBroadcaster := k8sRecord.NewBroadcaster()
-	eventBroadcaster.StartRecordingToSink(&k8sClientCoreV1.EventSinkImpl{
-		Interface: coreClient.Events(cfg.AmbassadorNamespace),
-	})
-	eventBroadcaster.StartLogging(dlog.WrapLogrus(logrusLogger).
-		WithField("MAIN", "event-broadcaster").
-		Infof)
-	hostname, err := os.Hostname()
+	eventLogger, err := events.NewEventLogger(
+		cfg,
+		coreClient,
+		dlog.WrapLogrus(logrusLogger).WithField("MAIN", "event-broadcaster"),
+	)
 	if err != nil {
 		return err
 	}
-	eventRecorder := eventBroadcaster.NewRecorder(
-		nil, // a k8sRuntime.Scheme, only used if we try to record an event for an object without apiVersion/kind
-		k8sTypesCoreV1.EventSource{
-			Component: "Ambassador Edge Stack",
-			Host:      hostname,
-		})
 
 	var redisPool *pool.Pool
 	var redisPoolErr error
@@ -333,9 +319,9 @@ func runE(cmd *cobra.Command, args []string) error {
 		redisPool,
 		http.DefaultClient, // XXX
 		snapshotStore.Subscribe(),
+		eventLogger,
 		coreClient,
-		dynamicClient,
-		eventRecorder)
+		dynamicClient)
 	group.Go("acme_client", func(hardCtx, softCtx context.Context, cfg types.Config, l dlog.Logger) error {
 		if err := acmeclient.EnsureFallback(cfg, coreClient, dynamicClient); err != nil {
 			err = errors.Wrap(err, "create fallback TLSContext and TLS Secret")

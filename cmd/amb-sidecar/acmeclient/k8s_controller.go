@@ -13,7 +13,6 @@ import (
 	"github.com/pkg/errors"
 
 	k8sSchema "k8s.io/apimachinery/pkg/runtime/schema"
-	k8sRecord "k8s.io/client-go/tools/record"
 
 	ambassadorTypesV2 "github.com/datawire/ambassador/pkg/api/getambassador.io/v2"
 	k8sTypesCoreV1 "k8s.io/api/core/v1"
@@ -22,17 +21,19 @@ import (
 	k8sClientDynamic "k8s.io/client-go/dynamic"
 	k8sClientCoreV1 "k8s.io/client-go/kubernetes/typed/core/v1"
 
+	"github.com/datawire/apro/cmd/amb-sidecar/events"
 	"github.com/datawire/apro/cmd/amb-sidecar/watt"
 )
 
 type Controller struct {
 	redisPool  *pool.Pool
 	httpClient *http.Client
-	snapshotCh <-chan watt.Snapshot
+
+	snapshotCh  <-chan watt.Snapshot
+	eventLogger *events.EventLogger
 
 	secretsGetter k8sClientCoreV1.SecretsGetter
 	hostsGetter   k8sClientDynamic.NamespaceableResourceInterface
-	eventRecorder k8sRecord.EventRecorder
 
 	hosts   []*ambassadorTypesV2.Host
 	secrets []*k8sTypesCoreV1.Secret
@@ -42,18 +43,18 @@ func NewController(
 	redisPool *pool.Pool,
 	httpClient *http.Client,
 	snapshotCh <-chan watt.Snapshot,
+	eventLogger *events.EventLogger,
 	secretsGetter k8sClientCoreV1.SecretsGetter,
 	dynamicClient k8sClientDynamic.Interface,
-	eventRecorder k8sRecord.EventRecorder,
 ) *Controller {
 	return &Controller{
-		redisPool:  redisPool,
-		httpClient: httpClient,
-		snapshotCh: snapshotCh,
+		redisPool:   redisPool,
+		httpClient:  httpClient,
+		snapshotCh:  snapshotCh,
+		eventLogger: eventLogger,
 
 		secretsGetter: secretsGetter,
 		hostsGetter:   dynamicClient.Resource(k8sSchema.GroupVersionResource{Group: "getambassador.io", Version: "v2", Resource: "hosts"}),
-		eventRecorder: eventRecorder,
 	}
 }
 
@@ -159,7 +160,7 @@ func (c *Controller) recordHostPending(logger dlog.Logger, host *ambassadorTypes
 	if err := c.updateHost(host); err != nil {
 		logger.Errorln(err)
 	}
-	c.eventRecorder.Event(unstructureHost(host), k8sTypesCoreV1.EventTypeNormal, "Pending", reasonPending)
+	c.eventLogger.Namespace(host.GetNamespace()).Event(unstructureHost(host), k8sTypesCoreV1.EventTypeNormal, "Pending", reasonPending)
 }
 
 func (c *Controller) recordHostReady(logger dlog.Logger, host *ambassadorTypesV2.Host, readyReason string) {
@@ -171,7 +172,7 @@ func (c *Controller) recordHostReady(logger dlog.Logger, host *ambassadorTypesV2
 	if err := c.updateHost(host); err != nil {
 		logger.Errorln(err)
 	}
-	c.eventRecorder.Event(unstructureHost(host), k8sTypesCoreV1.EventTypeNormal, "Ready", readyReason)
+	c.eventLogger.Namespace(host.GetNamespace()).Event(unstructureHost(host), k8sTypesCoreV1.EventTypeNormal, "Ready", readyReason)
 }
 
 func (c *Controller) recordHostError(logger dlog.Logger, host *ambassadorTypesV2.Host, phase ambassadorTypesV2.HostPhase, err error) {
@@ -182,7 +183,7 @@ func (c *Controller) recordHostError(logger dlog.Logger, host *ambassadorTypesV2
 	if err := c.updateHost(host); err != nil {
 		logger.Errorln(err)
 	}
-	c.eventRecorder.Event(unstructureHost(host), k8sTypesCoreV1.EventTypeWarning, "Error", err.Error())
+	c.eventLogger.Namespace(host.GetNamespace()).Event(unstructureHost(host), k8sTypesCoreV1.EventTypeWarning, "Error", err.Error())
 }
 
 func (c *Controller) recordHostsError(logger dlog.Logger, hosts []*ambassadorTypesV2.Host, phase ambassadorTypesV2.HostPhase, err error) {
@@ -194,7 +195,7 @@ func (c *Controller) recordHostsError(logger dlog.Logger, hosts []*ambassadorTyp
 
 func (c *Controller) recordHostsEvent(hosts []*ambassadorTypesV2.Host, reason string) {
 	for _, host := range hosts {
-		c.eventRecorder.Event(unstructureHost(host), k8sTypesCoreV1.EventTypeNormal, "Pending", reason)
+		c.eventLogger.Namespace(host.GetNamespace()).Event(unstructureHost(host), k8sTypesCoreV1.EventTypeNormal, "Pending", reason)
 	}
 }
 
@@ -417,7 +418,7 @@ func (c *Controller) rectifyPhase3(logger dlog.Logger, acmeHosts []*ambassadorTy
 				for _, host := range hosts {
 					if host.Spec.AcmeProvider.Registration != "" {
 						if registration != "" && registration != host.Spec.AcmeProvider.Registration {
-							c.eventRecorder.Eventf(unstructureHost(host), k8sTypesCoreV1.EventTypeWarning, "Warning",
+							c.eventLogger.Namespace(host.GetNamespace()).Eventf(unstructureHost(host), k8sTypesCoreV1.EventTypeWarning, "Warning",
 								"Host has disagreeing ACME registration from other Hosts with the same ACME credentials: %q",
 								host.Spec.AcmeProvider.Registration)
 							logger.Warningf("rectify: Secret: provider: host=%q has disagreeing ACME registration: %q",
@@ -492,7 +493,7 @@ func (c *Controller) rectifyPhase3(logger dlog.Logger, acmeHosts []*ambassadorTy
 					}
 				})
 				for _, host := range acmeHostsByTLSSecret[namespace][tlsSecretName] {
-					c.eventRecorder.Event(unstructureHost(host), k8sTypesCoreV1.EventTypeWarning, "Warning", "Host specified an 'acmeProvider' that differs from other Hosts with the same 'tlsSecret'")
+					c.eventLogger.Namespace(host.GetNamespace()).Event(unstructureHost(host), k8sTypesCoreV1.EventTypeWarning, "Warning", "Host specified an 'acmeProvider' that differs from other Hosts with the same 'tlsSecret'")
 				}
 				logger.Warningln("there were multiple ACME providers specified for this secret")
 			}
