@@ -26,8 +26,15 @@ DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
 
 DBUILD=${DIR}/dbuild.sh
 
+# command for running a container (ie, "docker run")
+DOCKER_RUN=${DOCKER_RUN:-docker run}
+
+# the name of the Doccker network
+# note: use your local k3d/microk8s/kind network for running tests
+DOCKER_NETWORK=${DOCKER_NETWORK:-${BUILDER_NAME}}
+
 builder() { docker ps -q -f label=builder -f label=${BUILDER_NAME}; }
-builder_network() { docker network ls -q -f name=${BUILDER_NAME}; }
+builder_network() { docker network ls -q -f name=${DOCKER_NETWORK}; }
 
 builder_volume() { docker volume ls -q -f label=builder; }
 
@@ -54,8 +61,10 @@ bootstrap() {
     fi
 
     if [ -z "$(builder_network)" ]; then
-        docker network create ${BUILDER_NAME} > /dev/null
-        printf "${GRN}Created docker network ${BLU}${BUILDER_NAME}${END}\n"
+        docker network create ${DOCKER_NETWORK} > /dev/null
+        printf "${GRN}Created docker network ${BLU}${DOCKER_NETWORK}${END}\n"
+    else
+        printf "${GRN}Connecting to existing network ${BLU}${DOCKER_NETWORK}${GRN}${END}\n"
     fi
 
     if [ -z "$(builder)" ] ; then
@@ -72,7 +81,7 @@ bootstrap() {
         fi
 
         echo_on
-        docker run --network ${BUILDER_NAME} --network-alias "builder" --group-add ${DOCKER_GID} -d --rm -v /var/run/docker.sock:/var/run/docker.sock -v $(builder_volume):/home/dw ${BUILDER_MOUNTS} --cap-add NET_ADMIN -lbuilder -l${BUILDER_NAME} ${BUILDER_PORTMAPS} -e BUILDER_NAME=${BUILDER_NAME} --entrypoint tail builder -f /dev/null > /dev/null
+        $DOCKER_RUN --network ${DOCKER_NETWORK} --network-alias "builder" --group-add ${DOCKER_GID} -d --rm -v /var/run/docker.sock:/var/run/docker.sock -v $(builder_volume):/home/dw ${BUILDER_MOUNTS} --cap-add NET_ADMIN -lbuilder -l${BUILDER_NAME} ${BUILDER_PORTMAPS} -e BUILDER_NAME=${BUILDER_NAME} --entrypoint tail builder -f /dev/null > /dev/null
         echo_off
 
         printf "${GRN}Started build container ${BLU}$(builder)${END}\n"
@@ -186,8 +195,9 @@ clean() {
     fi
     nid=$(builder_network)
     if [ -n "${nid}" ] ; then
-        printf "${GRN}Removing docker network ${BLU}${nid}${END}\n"
-        docker network rm ${BUILDER_NAME} > /dev/null
+        printf "${GRN}Removing docker network ${BLU}${DOCKER_NETWORK} (${nid})${END}\n"
+        # This will fail if the network has some other endpoints alive: silence any errors
+        docker network rm ${nid} 2&>1 >/dev/null || /bin/true
     fi
 }
 
