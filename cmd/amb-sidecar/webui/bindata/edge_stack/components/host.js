@@ -222,8 +222,9 @@ spec:
   render() {
     let host = this.host
     let spec = host.spec
-    let status = host.status.state
-    let reason = status == "Error" ? `(${host.status.reason})` : ''
+    let status = host.status || {"state": "<none>"}
+    let hostState = status.state
+    let reason = hostState == "Error" ? `(${status.reason})` : ''
 
     let state = this.state
 
@@ -276,7 +277,7 @@ spec:
 
   <div class="left ${list_or_edit}">Status:</div>
   <div class="right ${list_or_edit}">
-    <span>${status} ${reason}</span>
+    <span>${hostState} ${reason}</span>
   </div>
 
   <div class="both">
