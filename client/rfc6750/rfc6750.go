@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"net/textproto"
 	"net/url"
 	"strings"
 
@@ -64,7 +63,7 @@ func (ae *AuthorizationError) ErrorURI() *url.URL { return ae.ParamErrorURI }
 // ErrorFromErrorResponse inspects a Resource Access Response for the WWW-Authenticate header, which
 // indicates an authorization failure, per §3.
 func ErrorFromErrorResponse(resp *http.Response) (*AuthorizationError, error) {
-	for _, challengeStr := range resp.Header[textproto.CanonicalMIMEHeaderKey("WWW-Authenticate")] {
+	for _, challengeStr := range resp.Header[http.CanonicalHeaderKey("WWW-Authenticate")] {
 		challenge, err := rfc7235.ParseChallenge(challengeStr)
 		if !strings.EqualFold(challenge.AuthScheme, "Bearer") {
 			continue

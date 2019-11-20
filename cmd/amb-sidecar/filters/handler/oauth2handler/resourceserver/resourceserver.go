@@ -47,7 +47,7 @@ func (rs *OAuth2ResourceServer) Filter(ctx context.Context, logger types.Logger,
 			errors.Wrap(err, "insufficient privilege scope"), nil)
 	}
 	// Validate the authorization.
-	token := rfc6750resourceserver.GetFromHeader(filterutil.GetHeader(request))
+	token, _ := rfc6750resourceserver.GetFromHeader(filterutil.GetHeader(request))
 	if err := rs.validateAccessToken(token, discovered, httpClient, logger); err != nil {
 		return middleware.NewErrorResponse(ctx, http.StatusBadRequest, err, nil)
 	}

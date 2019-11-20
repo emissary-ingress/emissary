@@ -37,7 +37,7 @@ func (h *JWTFilter) Filter(ctx context.Context, r *filterapi.FilterRequest) (fil
 	logger := middleware.GetLogger(ctx)
 	httpClient := httpclient.NewHTTPClient(logger, 0, h.Spec.InsecureTLS, h.Spec.RenegotiateTLS)
 
-	tokenString := rfc6750.GetFromHeader(filterutil.GetHeader(r))
+	tokenString, _ := rfc6750.GetFromHeader(filterutil.GetHeader(r))
 
 	token, err := validateToken(tokenString, h.Spec, httpClient)
 	if err != nil {

@@ -10,23 +10,23 @@ import (
 	"github.com/datawire/apro/common/rfc7235/internal/rfc7230"
 )
 
-// A Challenge is an authentication challenge, as defined by §2.1
-type Challenge struct {
+// Credentials is a set of authentication credentials, as defined by §2.1
+type Credentials struct {
 	AuthScheme string
-	Body       ChallengeBody
+	Body       CredentialsBody
 }
 
-func (c Challenge) String() string {
+func (c Credentials) String() string {
 	return c.AuthScheme + " " + c.Body.String()
 }
 
-// ParseChallenge parses a string containing a Challenge, as defined by §2.1.
+// ParseCredentials parses a string containing Credentials, as defined by §2.1.
 //
-// If an auth-scheme is parsed, then the returned Challenge will have AuthScheme set, even if there
+// If an auth-scheme is parsed, then the returned Credentials will have AuthScheme set, even if there
 // is an error parsing the remainder and an error is returned.
-func ParseChallenge(str string) (Challenge, error) {
+func ParseCredentials(str string) (Credentials, error) {
 	// ABNF:
-	//     challenge      = auth-scheme [ 1*SP ( token68 / [ ( "," / auth-param ) *( OWS "," [ OWS auth-param ] ) ] ) ]
+	//     credentials    = auth-scheme [ 1*SP ( token68 / [ ( "," / auth-param ) *( OWS "," [ OWS auth-param ] ) ] ) ]
 	//     token68        = 1*( ALPHA / DIGIT / "-" / "." / "_" / "~" / "+" / "/" ) *"="
 	//     auth-param     = token BWS "=" BWS ( token / quoted-string )
 	//     OWS            = *( SP / HTAB )
@@ -40,22 +40,22 @@ func ParseChallenge(str string) (Challenge, error) {
 	bodyStr := strings.TrimLeft(str[sp:], " ")
 
 	if !rfc7230.IsValidToken(authScheme) {
-		return Challenge{}, errors.Errorf("invalid challenge: invalid auth-scheme: %q", authScheme)
+		return Credentials{}, errors.Errorf("invalid credentials: invalid auth-scheme: %q", authScheme)
 	}
 
-	ret := Challenge{
+	ret := Credentials{
 		AuthScheme: authScheme,
 	}
 
 	if strings.Trim(strings.TrimRight(bodyStr, "="), rfc5234.CharsetALPHA+rfc5234.CharsetDIGIT+"-._~+/") == "" {
 		// token68
-		ret.Body = ChallengeLegacy(bodyStr)
+		ret.Body = CredentialsLegacy(bodyStr)
 	} else {
 		// auth-param list
 		//
 		// ABNF:
 		//     [ ( "," / auth-param ) *( OWS "," [ OWS auth-param ] ) ]
-		bodyList := ChallengeParameters{}
+		bodyList := CredentialsParameters{}
 		if len(bodyStr) > 0 {
 			var param AuthParam
 			var err error
@@ -65,7 +65,7 @@ func ParseChallenge(str string) (Challenge, error) {
 			} else {
 				param, bodyStr, err = ScanAuthParam(bodyStr)
 				if err != nil {
-					return ret, errors.Wrap(err, "invalid challenge")
+					return ret, errors.Wrap(err, "invalid credentials")
 				}
 				bodyList = append(bodyList, param)
 			}
@@ -74,16 +74,16 @@ func ParseChallenge(str string) (Challenge, error) {
 				// ABNF: OWS ","
 				bodyStr = strings.TrimLeft(bodyStr, " \t")
 				if len(bodyStr) == 0 {
-					return ret, errors.New("invalid challenge: expected a ',' bug got EOF")
+					return ret, errors.New("invalid credentials: expected a ',' bug got EOF")
 				} else if bodyStr[0] != ',' {
-					return ret, errors.Errorf("invalid challenge: expected a ',' bug got %#v", bodyStr[0])
+					return ret, errors.Errorf("invalid credentials: expected a ',' bug got %#v", bodyStr[0])
 				}
 				bodyStr = bodyStr[1:]
 				// ABNF: [ OWS auth-param ]
 				if len(strings.TrimLeft(bodyStr, " \t")) > 0 {
 					param, bodyStr, err = ScanAuthParam(strings.TrimLeft(bodyStr, " \t"))
 					if err != nil {
-						return ret, errors.Wrap(err, "invalid challenge")
+						return ret, errors.Wrap(err, "invalid credentials")
 					}
 					bodyList = append(bodyList, param)
 				}
@@ -95,18 +95,18 @@ func ParseChallenge(str string) (Challenge, error) {
 	return ret, nil
 }
 
-// ChallengeBody is the body of a Challenge; either ChallengeParameters or ChallengeLegacy, as
-// defined by §2.1.
-type ChallengeBody interface {
+// CredentialsBody is the body of a set of Credentials; either CredentialsParameters or
+// CredentialsLegacy, as defined by §2.1.
+type CredentialsBody interface {
 	fmt.Stringer
-	isChallengeBody()
+	isCredentialsBody()
 }
 
-// ChallengeParameters is a list of authentication parameters making up the body of a Challenge, as
-// defined by §2.1.
-type ChallengeParameters []AuthParam
+// CredentialsParameters is a list of authentication parameters making up the body of a Credentials,
+// as defined by §2.1.
+type CredentialsParameters []AuthParam
 
-func (params ChallengeParameters) String() string {
+func (params CredentialsParameters) String() string {
 	paramStrs := make([]string, 0, len(params))
 	for _, param := range params {
 		paramStrs = append(paramStrs, param.String())
@@ -114,9 +114,9 @@ func (params ChallengeParameters) String() string {
 	return strings.Join(paramStrs, ", ")
 }
 
-func (ChallengeParameters) isChallengeBody() {}
+func (CredentialsParameters) isCredentialsBody() {}
 
-// ChallengeLegacy is a "token68" string making up the body of a Challenge, as defined by §2.1.
+// CredentialsLegacy is a "token68" string making up the body of a Credentials, as defined by §2.1.
 //
 // Per §2.1:
 //  > The token68 syntax allows the 66 unreserved URI characters
@@ -128,13 +128,13 @@ func (ChallengeParameters) isChallengeBody() {}
 // Per §5.1.2:
 //  > The "token68" notation was introduced for compatibility with
 //  > existing authentication schemes and can only be used once per
-//  > challenge or credential.  Thus, new schemes ought to use the
+//  > credentials or credential.  Thus, new schemes ought to use the
 //  > auth-param syntax instead, because otherwise future extensions
 //  > will be impossible.
-type ChallengeLegacy string
+type CredentialsLegacy string
 
-func (t68 ChallengeLegacy) String() string {
+func (t68 CredentialsLegacy) String() string {
 	return string(t68)
 }
 
-func (ChallengeLegacy) isChallengeBody() {}
+func (CredentialsLegacy) isCredentialsBody() {}
