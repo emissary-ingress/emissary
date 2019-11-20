@@ -525,13 +525,13 @@ func (c *Controller) rectifyPhase4(logger dlog.Logger,
 			sort.Strings(hostnames)
 			logger.Debugf("rectify: processing Secret=%q (hostnames=%v)", tlsSecretName, hostnames)
 
-			needsRenew := false
+			needsRenewReason := ""
 			secretIsDirty := false
 
 			secret := c.getSecret(namespace, tlsSecretName)
 			if secret == nil {
 				// "renew" certs that we don't even have an old version of
-				needsRenew = true
+				needsRenewReason = "tlsSecret does not exist"
 				secret = &k8sTypesCoreV1.Secret{
 					ObjectMeta: k8sTypesMetaV1.ObjectMeta{
 						Name:      tlsSecretName,
@@ -544,19 +544,30 @@ func (c *Controller) rectifyPhase4(logger dlog.Logger,
 				secret = secret.DeepCopy()
 				if cert, err := parseTLSSecret(secret); err != nil {
 					// "renew" invalid certs
-					needsRenew = true
+					needsRenewReason = fmt.Sprintf("tlsSecret doesn't appear to contain a valid TLS certificate: %v", err)
+				} else if !stringSliceEqual(subjects(cert), hostnames) {
+					// or if the list of hostnames we want on it changed
+					needsRenewReason = fmt.Sprintf("list of desired host names changed: desired=%q certificate=%q", hostnames, subjects(cert))
 				} else {
 					// renew certs if they're >2/3 of the way through their lifecycle
-					needsRenew = needsRenew || time.Now().After(cert.NotBefore.Add(2*cert.NotAfter.Sub(cert.NotBefore)/3))
-					// or if the list of hostnames we want on it changed
-					needsRenew = needsRenew || !stringSliceEqual(subjects(cert), hostnames)
+					now := time.Now()
+					age := now.Sub(cert.NotBefore)
+					lifespan := cert.NotAfter.Sub(cert.NotBefore)
+					if age > 2*lifespan/3 {
+						needsRenewReason = fmt.Sprintf("certificate is more than 2/3 of the way to expiration: %v is %d%% of the way from %v to %v",
+							now,
+							100*int64(age)/int64(lifespan),
+							cert.NotBefore,
+							cert.NotAfter)
+					}
 				}
 			}
 
-			logger.Debugf("rectify: Secret: needsRenew=%v", needsRenew)
-			if needsRenew {
-				c.recordHostsEvent(hosts, fmt.Sprintf("tlsSecret %q.%q (hostnames=%q): needs updated",
-					tlsSecretName, namespace, hostnames))
+			logger.Debugf("rectify: Secret: needsRenewReason=%v", needsRenewReason)
+			if needsRenewReason != "" {
+				c.recordHostsEvent(hosts, fmt.Sprintf("tlsSecret %q.%q (hostnames=%q): needs updated: %v",
+					tlsSecretName, namespace, hostnames,
+					needsRenewReason))
 				acmeProvider := acmeProviderByTLSSecret[namespace][tlsSecretName]
 				var user acmeUser
 				var err error
