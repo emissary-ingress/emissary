@@ -2,6 +2,7 @@ package acmeclient
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"sort"
 	"time"
@@ -554,7 +555,8 @@ func (c *Controller) rectifyPhase4(logger dlog.Logger,
 
 			logger.Debugf("rectify: Secret: needsRenew=%v", needsRenew)
 			if needsRenew {
-				c.recordHostsEvent(hosts, "requires new TLS certificate")
+				c.recordHostsEvent(hosts, fmt.Sprintf("tlsSecret %q.%q (hostnames=%q): needs updated",
+					tlsSecretName, namespace, hostnames))
 				acmeProvider := acmeProviderByTLSSecret[namespace][tlsSecretName]
 				var user acmeUser
 				var err error
@@ -576,7 +578,8 @@ func (c *Controller) rectifyPhase4(logger dlog.Logger,
 				user.Registration = &reg
 
 				logger.Debugln("rectify: Secret: requesting certificate...")
-				c.recordHostsEvent(hosts, "performing ACME challenge")
+				c.recordHostsEvent(hosts, fmt.Sprintf("performing ACME challenge for tlsSecret %q.%q (hostnames=%q)...",
+					tlsSecretName, namespace, hostnames))
 				certResource, err := obtainCertificate(
 					c.httpClient,
 					c.redisPool,
@@ -586,7 +589,8 @@ func (c *Controller) rectifyPhase4(logger dlog.Logger,
 				if err != nil {
 					c.recordHostsError(logger, hosts,
 						ambassadorTypesV2.HostPhase_ACMECertificateChallenge,
-						err)
+						errors.Wrapf(err, "obtaining tlsSecret %q.%q (hostnames=%q)",
+							tlsSecretName, namespace, hostnames))
 					continue
 				}
 				secret.Data = map[string][]byte{
@@ -607,7 +611,8 @@ func (c *Controller) rectifyPhase4(logger dlog.Logger,
 				if err := storeSecret(c.secretsGetter, secret); err != nil {
 					c.recordHostsError(logger, hosts,
 						ambassadorTypesV2.HostPhase_ACMECertificateChallenge,
-						err)
+						errors.Wrapf(err, "updating tlsSecret %q.%q (hostnames=%q)",
+							tlsSecretName, namespace, hostnames))
 					continue
 				}
 				c.recordHostsEvent(hosts, "waiting for TLS Secret update to be reflected in snapshot")
