@@ -95,7 +95,32 @@ div.both {
   }
 
   onDelete(host) {
-    alert("TODO")
+    fetch('/edge_stack/api/delete',
+          {
+            method: "POST",
+            headers: new Headers({
+              'Authorization': 'Bearer ' + window.location.hash.slice(1)
+            }),
+            body: JSON.stringify({
+              Namespace: host.metadata.namespace,
+              Names: [`host/${host.metadata.name}`]
+            })
+          })
+      .then(r=>{
+        r.text().then(t=>{
+          if (r.ok) {
+            alert("OK\n" + t)
+          } else {
+            alert("BAD\n" + t)
+          }
+          if (this.state.mode == "add") {
+            this.state.mode = "off"
+          } else {
+            this.state.mode = "list"
+          }
+          this.reset()
+        })
+      })
   }
 
   onCancel(host) {

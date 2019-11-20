@@ -303,6 +303,34 @@ func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusBadRequest)
 		}
 		w.Write(output.Bytes())
+	case "/edge_stack/api/delete":
+		if !fb.isAuthorized(r) {
+			fb.forbidden(w, r)
+			return
+		}
+		decoder := json.NewDecoder(r.Body)
+		var obj struct {
+			Namespace string
+			Names     []string
+		}
+		err := decoder.Decode(&obj)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			io.WriteString(w, err.Error())
+			return
+		}
+		delete := supervisor.Command("WEBUI", "kubectl",
+			append([]string{"delete", "--wait=false", "--namespace", obj.Namespace}, obj.Names...)...)
+		var output bytes.Buffer
+		delete.Stdout = &output
+		delete.Stderr = &output
+		delete.Run()
+		if delete.ProcessState.ExitCode() == 0 {
+			w.WriteHeader(http.StatusOK)
+		} else {
+			w.WriteHeader(http.StatusBadRequest)
+		}
+		w.Write(output.Bytes())
 	case "/edge_stack/tls/api/empty":
 		if !fb.isAuthorized(r) {
 			fb.forbidden(w, r)
