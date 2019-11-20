@@ -11,22 +11,26 @@ import (
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
 )
 
-func (rs *OAuth2ResourceServer) validateAccessTokenUserinfo(token string, discovered *discovery.Discovered, httpClient *http.Client, logger types.Logger) error {
+func (rs *OAuth2ResourceServer) validateAccessTokenUserinfo(token string, discovered *discovery.Discovered, httpClient *http.Client, logger types.Logger) (tokenErr, serverErr error) {
 	// This method is a little funny, since it has the Resource
 	// Server acting like a Client to a different Resource server.
 
 	req, err := http.NewRequest("GET", discovered.UserInfoEndpoint.String(), nil)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	rfc6750client.AddToHeader(token, req.Header)
 	res, err := httpClient.Do(req)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer res.Body.Close()
 	if res.StatusCode != 200 {
-		return errors.Errorf("token validation through userinfo endpoint failed: HTTP %d", res.StatusCode)
+		err := errors.Errorf("token validation through userinfo endpoint failed: HTTP %d", res.StatusCode)
+		if res.StatusCode/100 == 4 {
+			return err, nil
+		}
+		return nil, err
 	}
-	return nil
+	return nil, nil
 }

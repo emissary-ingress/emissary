@@ -64,6 +64,7 @@ func (f *OAuth2Filter) Filter(ctx context.Context, request *filterapi.FilterRequ
 			Arguments: f.Arguments,
 
 			ResourceServer: &resourceserver.OAuth2ResourceServer{
+				QName:     f.QName,
 				Spec:      f.Spec,
 				Arguments: f.Arguments,
 			},
@@ -78,6 +79,7 @@ func (f *OAuth2Filter) Filter(ctx context.Context, request *filterapi.FilterRequ
 			Arguments: f.Arguments,
 
 			ResourceServer: &resourceserver.OAuth2ResourceServer{
+				QName:     f.QName,
 				Spec:      f.Spec,
 				Arguments: f.Arguments,
 			},

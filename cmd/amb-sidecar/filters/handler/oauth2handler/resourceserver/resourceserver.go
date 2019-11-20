@@ -7,9 +7,6 @@ import (
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/pkg/errors"
 
-	rfc6749common "github.com/datawire/apro/common/rfc6749"
-	rfc6750resourceserver "github.com/datawire/apro/resourceserver/rfc6750"
-
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta2"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/middleware"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/oauth2handler/discovery"
@@ -17,10 +14,13 @@ import (
 	"github.com/datawire/apro/lib/filterapi"
 	"github.com/datawire/apro/lib/filterapi/filterutil"
 	"github.com/datawire/apro/lib/jwtsupport"
+	"github.com/datawire/apro/resourceserver/rfc6749"
+	"github.com/datawire/apro/resourceserver/rfc6750"
 )
 
 // OAuth2ResourceServer implements the OAuth Resource Server part of the Filter.
 type OAuth2ResourceServer struct {
+	QName     string
 	Spec      crd.FilterOAuth2
 	Arguments crd.FilterOAuth2Arguments
 }
@@ -38,41 +38,87 @@ type OAuth2ResourceServer struct {
 // semantics), a FilterResponse of "nil" means to send the same
 // request to the upstream service (the other half of the Resource
 // Server).
-func (rs *OAuth2ResourceServer) Filter(ctx context.Context, logger types.Logger, httpClient *http.Client, discovered *discovery.Discovered, request *filterapi.FilterRequest, scope rfc6749common.Scope) filterapi.FilterResponse {
-	// Validate the scope values we were granted.  We take the scope as an
-	// argument, instead of extracting it from the authorization, because there
-	// isn't actually a good portable way to extract it from the authorization.
-	if err := rs.validateScope(scope); err != nil {
-		return middleware.NewErrorResponse(ctx, http.StatusForbidden,
-			errors.Wrap(err, "insufficient privilege scope"), nil)
+func (rs *OAuth2ResourceServer) Filter(ctx context.Context, logger types.Logger, httpClient *http.Client, discovered *discovery.Discovered, request *filterapi.FilterRequest, clientScope rfc6749.Scope) filterapi.FilterResponse {
+	validator := &rfc6750.AuthorizationValidator{
+		Realm: rs.QName,
+		RequiredScope: func() rfc6749.Scope {
+			desired := make(rfc6749.Scope, len(rs.Arguments.Scopes))
+			for _, scopeValue := range rs.Arguments.Scopes {
+				if scopeValue == "offline_access" {
+					continue
+				}
+				desired[scopeValue] = struct{}{}
+			}
+			return desired
+		}(),
+		TokenValidationFunc: func(token string) (scope rfc6749.Scope, reasonInvalid, serverErr error) {
+			jwtScope, jwtErr, serverErr := rs.validateAccessToken(token, discovered, httpClient, logger)
+			if serverErr != nil {
+				return nil, nil, serverErr
+			}
+			if jwtErr != nil {
+				return nil, jwtErr, nil
+			}
+			// We took the scope as an argument from the client, instead of extracting it from the
+			// authorization token, because there isn't actually a good portable way to extract it
+			// from the authorization token (it's IDP-specific).  We can get away with avoiding
+			// IDP-specific behavior because we trust the client.
+			switch len(jwtScope) {
+			case 0:
+				return clientScope, nil, nil
+			default:
+				// However, if we did extract a scope claim from a JWT authorization token,
+				// then go ahead and validate it too.  We use the intersection of the
+				// client-reported scope and the jwt-reported scope; effectively validating
+				// *both*.
+				unionScope := make(rfc6749.Scope)
+				for scopeValue := range clientScope {
+					if _, both := jwtScope[scopeValue]; both {
+						unionScope[scopeValue] = struct{}{}
+					}
+				}
+				return unionScope, nil, nil
+			}
+		},
 	}
-	// Validate the authorization.
-	token, _ := rfc6750resourceserver.GetFromHeader(filterutil.GetHeader(request))
-	if err := rs.validateAccessToken(token, discovered, httpClient, logger); err != nil {
-		return middleware.NewErrorResponse(ctx, http.StatusBadRequest, err, nil)
+	err := validator.ValidateAuthorization(&http.Request{
+		Header: filterutil.GetHeader(request),
+	})
+	if err != nil {
+		switch err := err.(type) {
+		case *rfc6750.AuthorizationError:
+			ret := middleware.NewErrorResponse(ctx, err.HTTPStatusCode, err, nil)
+			ret.Header.Set("WWW-Authenticate", err.Challenge.String())
+			return ret
+		default:
+			return middleware.NewErrorResponse(ctx, http.StatusInternalServerError, err, nil)
+		}
 	}
 	// If everything has passed, go ahead and have Envoy proxy to the other half
 	// of the Resource Server.
 	return nil
 }
 
-func (rs *OAuth2ResourceServer) validateAccessToken(token string, discovered *discovery.Discovered, httpClient *http.Client, logger types.Logger) error {
+func (rs *OAuth2ResourceServer) validateAccessToken(token string, discovered *discovery.Discovered, httpClient *http.Client, logger types.Logger) (scope rfc6749.Scope, tokenErr error, serverErr error) {
 	switch rs.Spec.AccessTokenValidation {
 	case "auto":
 		claims, err := rs.parseJWT(token, discovered)
 		if err == nil {
-			return rs.validateJWT(claims, discovered, logger)
+			scope, tokenErr = rs.validateJWT(claims, discovered, logger)
+			return scope, tokenErr, nil
 		}
 		logger.Debugln("rejecting JWT validation; falling back to UserInfo Endpoint validation:", err)
 		fallthrough
 	case "userinfo":
-		return rs.validateAccessTokenUserinfo(token, discovered, httpClient, logger)
+		tokenErr, serverErr = rs.validateAccessTokenUserinfo(token, discovered, httpClient, logger)
+		return nil, tokenErr, serverErr
 	case "jwt":
 		claims, err := rs.parseJWT(token, discovered)
 		if err != nil {
-			return err
+			return nil, err, nil
 		}
-		return rs.validateJWT(claims, discovered, logger)
+		scope, tokenErr = rs.validateJWT(claims, discovered, logger)
+		return scope, tokenErr, nil
 	}
 	panic("not reached")
 }
@@ -109,34 +155,10 @@ func (rs *OAuth2ResourceServer) parseJWT(token string, discovered *discovery.Dis
 	return claims, nil
 }
 
-func (rs *OAuth2ResourceServer) validateScope(actual rfc6749common.Scope) error {
-	desired := make(rfc6749common.Scope, len(rs.Arguments.Scopes))
-	for _, s := range rs.Arguments.Scopes {
-		desired[s] = struct{}{}
-	}
-	var missing []string
-	for scopeValue := range desired {
-		if scopeValue == "offline_access" {
-			continue
-		}
-		if _, ok := actual[scopeValue]; !ok {
-			missing = append(missing, scopeValue)
-		}
-	}
-	switch len(missing) {
-	case 0:
-		return nil
-	case 1:
-		return errors.Errorf("missing required scope value: %q", missing[0])
-	default:
-		return errors.Errorf("missing required scope values: %q", missing)
-	}
-}
-
-func (rs *OAuth2ResourceServer) validateJWT(claims jwt.MapClaims, discovered *discovery.Discovered, logger types.Logger) error {
+func (rs *OAuth2ResourceServer) validateJWT(claims jwt.MapClaims, discovered *discovery.Discovered, logger types.Logger) (rfc6749.Scope, error) {
 	// Validate 'exp', 'iat', and 'nbf' claims.
 	if err := claims.Valid(); err != nil {
-		return err
+		return nil, err
 	}
 
 	// Validate 'aud' claim.
@@ -146,7 +168,7 @@ func (rs *OAuth2ResourceServer) validateJWT(claims jwt.MapClaims, discovered *di
 
 	// Validate 'iss' claim.
 	if !claims.VerifyIssuer(discovered.Issuer, false) {
-		return errors.Errorf("token has wrong issuer: token=%#v expected=%q", claims["iss"], discovered.Issuer)
+		return nil, errors.Errorf("token has wrong issuer: token=%#v expected=%q", claims["iss"], discovered.Issuer)
 	}
 
 	// Validate 'scopes' claim (draft standard).
@@ -156,11 +178,9 @@ func (rs *OAuth2ResourceServer) validateJWT(claims jwt.MapClaims, discovered *di
 	case nil:
 		logger.Debugf("No scope to verify")
 	case string: // proposed standard; most Authorization Servers do this
-		if err := rs.validateScope(rfc6749common.ParseScope(scopeClaim)); err != nil {
-			return errors.Wrap(err, "token has wrong scope")
-		}
+		return rfc6749.ParseScope(scopeClaim), nil
 	case []interface{}: // UAA does this
-		actual := make(rfc6749common.Scope, len(scopeClaim))
+		actual := make(rfc6749.Scope, len(scopeClaim))
 		for _, scopeValue := range scopeClaim {
 			switch scopeValue := scopeValue.(type) {
 			case string:
@@ -169,12 +189,10 @@ func (rs *OAuth2ResourceServer) validateJWT(claims jwt.MapClaims, discovered *di
 				logger.Warningf("Unexpected scope[n] type: %T", scopeValue)
 			}
 		}
-		if err := rs.validateScope(actual); err != nil {
-			return errors.Wrap(err, "token has wrong scope")
-		}
+		return actual, nil
 	default:
 		logger.Warningf("Unexpected scope type: %T", scopeClaim)
 	}
 
-	return nil
+	return nil, nil
 }

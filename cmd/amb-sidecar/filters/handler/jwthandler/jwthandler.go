@@ -9,8 +9,6 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/pkg/errors"
 
-	"github.com/datawire/apro/resourceserver/rfc6750"
-
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta2"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/httpclient"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/middleware"
@@ -18,6 +16,8 @@ import (
 	"github.com/datawire/apro/lib/filterapi/filterutil"
 	"github.com/datawire/apro/lib/jwks"
 	"github.com/datawire/apro/lib/jwtsupport"
+	"github.com/datawire/apro/resourceserver/rfc6749"
+	"github.com/datawire/apro/resourceserver/rfc6750"
 )
 
 func inArray(needle string, haystack []string) bool {
@@ -37,13 +37,37 @@ func (h *JWTFilter) Filter(ctx context.Context, r *filterapi.FilterRequest) (fil
 	logger := middleware.GetLogger(ctx)
 	httpClient := httpclient.NewHTTPClient(logger, 0, h.Spec.InsecureTLS, h.Spec.RenegotiateTLS)
 
-	tokenString, _ := rfc6750.GetFromHeader(filterutil.GetHeader(r))
-
-	token, err := validateToken(tokenString, h.Spec, httpClient)
+	var tokenParsed *jwt.Token
+	var hackKeepOldTemplatesWorking error
+	validator := &rfc6750.AuthorizationValidator{
+		//Realm:         h.Spec.Realm, // TODO: add h.Spec.Realm
+		//RequiredScope: h.Spec.Scope, // TODO: add h.Spec.Scope
+		TokenValidationFunc: func(tokenString string) (scope rfc6749.Scope, reasonInvalid, serverError error) {
+			tokenParsed, reasonInvalid, serverError = validateToken(tokenString, h.Spec, httpClient)
+			hackKeepOldTemplatesWorking = reasonInvalid
+			//scope = TODO: extract scope from tokenParsed; share code with oauth2handler/resourceserver.OAuth2ResourceServer.validateJWT()
+			return
+		},
+	}
+	err := validator.ValidateAuthorization(&http.Request{
+		Header: filterutil.GetHeader(r),
+	})
 	if err != nil {
-		return middleware.NewTemplatedErrorResponse(&h.Spec.ErrorResponse, ctx, http.StatusUnauthorized, err, map[string]interface{}{
-			"httpRequestHeader": filterutil.GetHeader(r),
-		}), nil
+		switch err := err.(type) {
+		case *rfc6750.AuthorizationError:
+			if hackKeepOldTemplatesWorking == nil {
+				hackKeepOldTemplatesWorking = err
+			}
+			ret := middleware.NewTemplatedErrorResponse(&h.Spec.ErrorResponse, ctx, err.HTTPStatusCode, hackKeepOldTemplatesWorking, map[string]interface{}{
+				"httpRequestHeader": filterutil.GetHeader(r),
+			})
+			if _, overridden := ret.Header[http.CanonicalHeaderKey("WWW-Authenticate")]; !overridden {
+				ret.Header.Set("WWW-Authenticate", err.Challenge.String())
+			}
+			return ret, nil
+		default:
+			return middleware.NewErrorResponse(ctx, http.StatusInternalServerError, err, nil), nil
+		}
 	}
 
 	ret := &filterapi.HTTPRequestModification{}
@@ -56,17 +80,21 @@ func (h *JWTFilter) Filter(ctx context.Context, r *filterapi.FilterRequest) (fil
 			//
 			//"token": token,
 			"token": map[string]interface{}{
-				"Raw":       token.Raw,
-				"Header":    token.Header,
-				"Claims":    (map[string]interface{})(*(token.Claims.(*jwt.MapClaims))),
-				"Signature": token.Signature,
+				"Raw":       tokenParsed.Raw,
+				"Header":    tokenParsed.Header,
+				"Claims":    (map[string]interface{})(*(tokenParsed.Claims.(*jwt.MapClaims))),
+				"Signature": tokenParsed.Signature,
 			},
 			"httpRequestHeader": filterutil.GetHeader(r),
 		}
 		value := new(strings.Builder)
 		if err := hf.Template.Execute(value, data); err != nil {
-			return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
-				errors.Wrapf(err, "computing header field %q", hf.Name), nil), nil
+			return middleware.NewTemplatedErrorResponse(&h.Spec.ErrorResponse, ctx, http.StatusInternalServerError,
+				errors.Wrapf(err, "computing header field %q", hf.Name),
+				map[string]interface{}{
+					"httpRequestHeader": filterutil.GetHeader(r),
+				},
+			), nil
 		}
 		ret.Header = append(ret.Header, &filterapi.HTTPHeaderReplaceValue{
 			Key:   hf.Name,
@@ -77,11 +105,16 @@ func (h *JWTFilter) Filter(ctx context.Context, r *filterapi.FilterRequest) (fil
 	return ret, nil
 }
 
-func validateToken(signedString string, filter crd.FilterJWT, httpClient *http.Client) (*jwt.Token, error) {
-	jwtParser := jwt.Parser{ValidMethods: filter.ValidAlgorithms}
+func validateToken(signedString string, filter crd.FilterJWT, httpClient *http.Client) (token *jwt.Token, reasonInvalid, serverError error) {
+	// Get the key
+	keys, err := jwks.FetchJWKS(httpClient, filter.JSONWebKeySetURI.String())
+	if err != nil {
+		return nil, nil, err
+	}
 
+	jwtParser := jwt.Parser{ValidMethods: filter.ValidAlgorithms}
 	var claims jwt.MapClaims
-	token, err := jwtsupport.SanitizeParse(jwtParser.ParseWithClaims(signedString, &claims, func(t *jwt.Token) (interface{}, error) {
+	token, err = jwtsupport.SanitizeParse(jwtParser.ParseWithClaims(signedString, &claims, func(t *jwt.Token) (interface{}, error) {
 		if t.Method == jwt.SigningMethodNone && inArray("none", filter.ValidAlgorithms) {
 			return jwt.UnsafeAllowNoneSignatureType, nil
 		}
@@ -95,42 +128,37 @@ func validateToken(signedString string, filter crd.FilterJWT, httpClient *http.C
 			return nil, errors.New("kid is not a string")
 		}
 
-		// Get the key
-		keys, err := jwks.FetchJWKS(httpClient, filter.JSONWebKeySetURI.String())
-		if err != nil {
-			return nil, err
-		}
 		return keys.GetKey(kid)
 	}))
 	if err != nil {
-		return nil, err
+		return nil, err, nil
 	}
 
 	now := time.Now().Unix()
 
 	if filter.RequireAudience || filter.Audience != "" {
 		if !claims.VerifyAudience(filter.Audience, filter.RequireAudience) {
-			return nil, errors.Errorf("Token has wrong audience: token=%#v expected=%q", claims["aud"], filter.Audience)
+			return nil, errors.Errorf("Token has wrong audience: token=%#v expected=%q", claims["aud"], filter.Audience), nil
 		}
 	}
 
 	if filter.RequireIssuer || filter.Issuer != "" {
 		if !claims.VerifyIssuer(filter.Issuer, filter.RequireIssuer) {
-			return nil, errors.Errorf("Token has wrong issuer: token=%#v expected=%q", claims["iss"], filter.Issuer)
+			return nil, errors.Errorf("Token has wrong issuer: token=%#v expected=%q", claims["iss"], filter.Issuer), nil
 		}
 	}
 
 	if !claims.VerifyExpiresAt(now, filter.RequireExpiresAt) {
-		return nil, errors.New("Token is expired")
+		return nil, errors.New("Token is expired"), nil
 	}
 
 	if !claims.VerifyIssuedAt(now, filter.RequireIssuedAt) {
-		return nil, errors.New("Token used before issued")
+		return nil, errors.New("Token used before issued"), nil
 	}
 
 	if !claims.VerifyNotBefore(now, filter.RequireNotBefore) {
-		return nil, errors.New("Token is not valid yet")
+		return nil, errors.New("Token is not valid yet"), nil
 	}
 
-	return token, nil
+	return token, nil, nil
 }
