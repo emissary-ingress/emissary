@@ -3,6 +3,7 @@ package v1
 import (
 	"encoding/json"
 	"net/http"
+	"text/template"
 
 	"github.com/pkg/errors"
 )
@@ -66,4 +67,19 @@ func (selector HeaderFieldSelector) Matches(header http.Header) bool {
 		return value != ""
 	}
 	return value == selector.Value
+}
+
+type HeaderFieldTemplate struct {
+	Name     string             `json:"name"`
+	Value    string             `json:"value"`
+	Template *template.Template `json:"-"`
+}
+
+func (hf *HeaderFieldTemplate) Validate() error {
+	tmpl, err := template.New(hf.Name).Parse(hf.Value)
+	if err != nil {
+		return errors.Wrapf(err, "parsing template for header %q", hf.Name)
+	}
+	hf.Template = tmpl
+	return nil
 }
