@@ -3,6 +3,8 @@ import {useContext} from '/edge_stack/components/context.js';
 import {getCookie} from '/edge_stack/components/cookies.js';
 
 function updateCredentials(value) {
+  // Keep this in-sync with webui.go:registerActivity()
+  //
   // - Don't set expires=/max-age=; leave it as a "session cookie", so
   //   that it will expire at the end of the "session" (when they
   //   close their browser).  We'll let time-based expiration be

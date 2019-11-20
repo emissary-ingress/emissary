@@ -51,7 +51,8 @@ type firstBootWizard struct {
 	staticfiles http.FileSystem
 	hostsGetter k8sClientDynamic.NamespaceableResourceInterface
 
-	pubkey *rsa.PublicKey
+	privkey *rsa.PrivateKey
+	pubkey  *rsa.PublicKey
 
 	snapshot atomic.Value
 }
@@ -64,6 +65,7 @@ func New(
 	cfg types.Config,
 	dynamicClient k8sClientDynamic.Interface,
 	snapshotCh <-chan watt.Snapshot,
+	privkey *rsa.PrivateKey,
 	pubkey *rsa.PublicKey,
 ) http.Handler {
 	var files http.FileSystem = http.Dir(cfg.DevWebUIDir)
@@ -72,6 +74,7 @@ func New(
 		cfg:         cfg,
 		staticfiles: files,
 		hostsGetter: dynamicClient.Resource(k8sSchema.GroupVersionResource{Group: "getambassador.io", Version: "v2", Resource: "hosts"}),
+		privkey:     privkey,
 		pubkey:      pubkey,
 	}
 	ret.snapshot.Store(watt.Snapshot{Raw: []byte("{}\n")})
@@ -128,6 +131,35 @@ func (fb *firstBootWizard) isAuthorized(r *http.Request) bool {
 		claims.LoginTokenVersion == "v1"
 }
 
+func (fb *firstBootWizard) registerActivity(w http.ResponseWriter, r *http.Request) {
+	if fb.privkey == nil {
+		dlog.GetLogger(r.Context()).Warningln("bypassing JWT refesh")
+		return
+	}
+	// Keep this in-sync with edgectl/aes_login.go
+	now := time.Now()
+	duration := 30 * time.Minute
+	token, err := jwt.NewWithClaims(jwt.GetSigningMethod("PS512"), &LoginClaimsV1{
+		"v1",
+		jwt.StandardClaims{
+			IssuedAt:  now.Unix(),
+			NotBefore: now.Unix(),
+			ExpiresAt: (now.Add(duration)).Unix(),
+		},
+	}).SignedString(fb.privkey)
+	if err != nil {
+		dlog.GetLogger(r.Context()).Warningln("failed to generate JWT", err)
+		return
+	}
+
+	// Keep this in-sync with snapshot.js:updateCredentials()
+	http.SetCookie(w, &http.Cookie{
+		Name:  "edge_stack_auth",
+		Value: token,
+		Path:  "/edge_stack/",
+	})
+}
+
 func (fb *firstBootWizard) notFound(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.WriteHeader(http.StatusNotFound)
@@ -158,6 +190,7 @@ func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			fb.forbidden(w, r)
 			return
 		}
+		fb.registerActivity(w, r)
 		// Do this here, instead of in the web-browser,
 		// because CORS.
 		httpClient := httpclient.NewHTTPClient(dlog.GetLogger(r.Context()), 0, false, tls.RenegotiateNever)
@@ -173,6 +206,7 @@ func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			fb.forbidden(w, r)
 			return
 		}
+		fb.registerActivity(w, r)
 		dat := &ambassadorTypesV2.Host{
 			TypeMeta: &k8sTypesMetaV1.TypeMeta{
 				APIVersion: "getambassador.io/v2",
@@ -291,6 +325,7 @@ func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			fb.forbidden(w, r)
 			return
 		}
+		fb.registerActivity(w, r)
 		apply := supervisor.Command("WEBUI", "kubectl", "apply", "-f", "-")
 		apply.Stdin = r.Body
 		var output bytes.Buffer
