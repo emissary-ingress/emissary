@@ -85,12 +85,15 @@ kind: Service
 metadata:
   name: tour
 spec:
+  type: NodePort
   ports:
   - name: ui
     port: 5000
+    protocol: TCP
     targetPort: 5000
   - name: backend
     port: 8080
+    protocol: TCP
     targetPort: 8080
   selector:
     app: tour
