@@ -145,7 +145,7 @@ func processFilterSpec(filter k8s.Resource, cfg types.Config, coreClient *k8sCli
 			ret.Desc = fmt.Sprintf("plugin=%s", spec.Plugin.Name)
 		}
 	case spec.JWT != nil:
-		ret.Err = spec.JWT.Validate()
+		ret.Err = spec.JWT.Validate(filter.QName())
 		ret.Spec = *spec.JWT
 		if ret.Err == nil {
 			ret.Desc = "jwt"

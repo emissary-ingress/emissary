@@ -40,7 +40,7 @@ func (h *JWTFilter) Filter(ctx context.Context, r *filterapi.FilterRequest) (fil
 	var tokenParsed *jwt.Token
 	var hackKeepOldTemplatesWorking error
 	validator := &rfc6750.AuthorizationValidator{
-		//Realm:         h.Spec.Realm, // TODO: add h.Spec.Realm
+		Realm: h.Spec.ErrorResponse.Realm,
 		//RequiredScope: h.Spec.Scope, // TODO: add h.Spec.Scope
 		TokenValidationFunc: func(tokenString string) (scope rfc6749.Scope, reasonInvalid, serverError error) {
 			tokenParsed, reasonInvalid, serverError = validateToken(tokenString, h.Spec, httpClient)

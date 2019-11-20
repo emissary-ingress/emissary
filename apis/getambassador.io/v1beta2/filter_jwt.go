@@ -62,6 +62,8 @@ type FilterJWT struct {
 }
 
 type ErrorResponse struct {
+	Realm string `json:"realm"`
+
 	ContentType string                `json:"contentType"`
 	Headers     []HeaderFieldTemplate `json:"headers"`
 
@@ -69,7 +71,7 @@ type ErrorResponse struct {
 	BodyTemplate    *template.Template `json:"-"`
 }
 
-func (m *FilterJWT) Validate() error {
+func (m *FilterJWT) Validate(qname string) error {
 	if m.RawJSONWebKeySetURI == "" {
 		if !(len(m.ValidAlgorithms) == 1 && m.ValidAlgorithms[0] == "none") {
 			return errors.New("jwksURI is required unless validAlgorithms=[\"none\"]")
@@ -103,14 +105,14 @@ func (m *FilterJWT) Validate() error {
 		return errors.Errorf("invalid renegotiateTLS: %q", m.RawRenegotiateTLS)
 	}
 
-	if err := m.ErrorResponse.Validate(); err != nil {
+	if err := m.ErrorResponse.Validate(qname); err != nil {
 		return errors.Wrap(err, "errorResponse")
 	}
 
 	return nil
 }
 
-func (er *ErrorResponse) Validate() error {
+func (er *ErrorResponse) Validate(qname string) error {
 	// Handle deprecated .ContentType
 	if er.ContentType != "" {
 		er.Headers = append(er.Headers, HeaderFieldTemplate{
@@ -120,6 +122,9 @@ func (er *ErrorResponse) Validate() error {
 	}
 
 	// Fill defaults
+	if er.Realm == "" {
+		er.Realm = qname
+	}
 	if len(er.Headers) == 0 {
 		er.Headers = append(er.Headers, HeaderFieldTemplate{
 			Name:  "Content-Type",
