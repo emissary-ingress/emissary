@@ -1,4 +1,5 @@
 import  {LitElement, html, css} from 'https://cdn.pika.dev/-/lit-element/2.2.1/dist-es2019/lit-element.min.js';
+import {getCookie} from '/edge_stack/components/cookies.js';
 
 export class AmbassadorHost extends LitElement {
   static get properties() {
@@ -51,7 +52,7 @@ export class AmbassadorHost extends LitElement {
     this.isFetchingTos = true;
     fetch(url, {
       headers: {
-        'Authorization': 'Bearer '+window.location.hash.slice(1)
+        'Authorization': 'Bearer ' + getCookie("edge_stack_auth")
       }
     }).then((data) => {
       if (data.status == 200) {
@@ -109,7 +110,7 @@ export class AmbassadorHost extends LitElement {
 
     fetch(url.toString(), {
       headers: {
-        'Authorization': 'Bearer ' + window.location.hash.slice(1)
+        'Authorization': 'Bearer ' + getCookie("edge_stack_auth")
       }
     }).then((data) => {
       if (data.status == 200) {
@@ -137,7 +138,7 @@ export class AmbassadorHost extends LitElement {
 
     fetch(url.toString(), {
       headers: {
-        'Authorization': 'Bearer ' + window.location.hash.slice(1)
+        'Authorization': 'Bearer ' + getCookie("edge_stack_auth")
       }
     }).then((data) => {
       if (data.status == 200) {
@@ -169,7 +170,7 @@ export class AmbassadorHost extends LitElement {
     fetch(url.toString(), {
       method: 'POST',
       headers: {
-        'Authorization': 'Bearer ' + window.location.hash.slice(1)
+        'Authorization': 'Bearer ' + getCookie("edge_stack_auth")
       }
     }).then((data) => {
       if (data.status == 201) {
