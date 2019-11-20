@@ -303,11 +303,6 @@ func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusBadRequest)
 		}
 		w.Write(output.Bytes())
-	case "/edge_stack/tls/api/empty":
-		if !fb.isAuthorized(r) {
-			fb.forbidden(w, r)
-			return
-		}
 	default:
 		if _, err := fb.staticfiles.Open(path.Clean(r.URL.Path)); os.IsNotExist(err) {
 			// use our custom 404 handler instead of http.FileServer's
