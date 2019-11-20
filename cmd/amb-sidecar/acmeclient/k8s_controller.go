@@ -257,6 +257,8 @@ func (c *Controller) rectifyPhase1(logger dlog.Logger) []*ambassadorTypesV2.Host
 			logger.Debugln("rectify: Host: accepting Host for next phase")
 			nextPhase = append(nextPhase, host)
 		default:
+			// Even if the user filled in an invalid TlsCertificateSource with kubectl or something,
+			// FillDefaults should have corrected it by the time we make it to this part of the code.
 			logger.Debugf("rectify: Host: THIS IS A BUG: Unknown TlsCertificateSource", host.Status.TlsCertificateSource)
 		}
 	}
