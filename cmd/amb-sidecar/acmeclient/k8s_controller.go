@@ -551,24 +551,20 @@ func (c *Controller) rectifyPhase4(logger dlog.Logger,
 				secretIsDirty = true
 			} else {
 				secret = secret.DeepCopy()
+				now := time.Now()
 				if cert, err := parseTLSSecret(secret); err != nil {
 					// "renew" invalid certs
 					needsRenewReason = fmt.Sprintf("tlsSecret doesn't appear to contain a valid TLS certificate: %v", err)
 				} else if !stringSliceEqual(subjects(cert), hostnames) {
 					// or if the list of hostnames we want on it changed
 					needsRenewReason = fmt.Sprintf("list of desired host names changed: desired=%q certificate=%q", hostnames, subjects(cert))
-				} else {
+				} else if age, lifespan := now.Sub(cert.NotBefore), cert.NotAfter.Sub(cert.NotBefore); age > 2*lifespan/3 {
 					// renew certs if they're >2/3 of the way through their lifecycle
-					now := time.Now()
-					age := now.Sub(cert.NotBefore)
-					lifespan := cert.NotAfter.Sub(cert.NotBefore)
-					if age > 2*lifespan/3 {
-						needsRenewReason = fmt.Sprintf("certificate is more than 2/3 of the way to expiration: %v is %d%% of the way from %v to %v",
-							now,
-							100*int64(age)/int64(lifespan),
-							cert.NotBefore,
-							cert.NotAfter)
-					}
+					needsRenewReason = fmt.Sprintf("certificate is more than 2/3 of the way to expiration: %v is %d%% of the way from %v to %v",
+						now,
+						100*int64(age)/int64(lifespan),
+						cert.NotBefore,
+						cert.NotAfter)
 				}
 			}
 
