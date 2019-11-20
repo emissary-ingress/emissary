@@ -654,7 +654,8 @@ func FillDefaults(host *ambassadorTypesV2.Host) {
 			host.Spec.TlsSecret = &k8sTypesCoreV1.LocalObjectReference{}
 		}
 		if host.Spec.TlsSecret.Name == "" {
-			host.Spec.TlsSecret.Name = NameEncode(host.Spec.AcmeProvider.Authority) + "--" + NameEncode(host.Spec.AcmeProvider.Email) + "--" + NameEncode(host.Spec.AcmeProvider.PrivateKeySecret.Name)
+			//host.Spec.TlsSecret.Name = NameEncode(host.Spec.AcmeProvider.Authority) + "--" + NameEncode(host.Spec.AcmeProvider.Email) + "--" + NameEncode(host.Spec.AcmeProvider.PrivateKeySecret.Name)
+			host.Spec.TlsSecret.Name = NameEncode(host.Spec.Hostname)
 		}
 	}
 	if host.Status == nil {
