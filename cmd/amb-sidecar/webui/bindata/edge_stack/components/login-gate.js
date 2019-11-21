@@ -181,10 +181,8 @@ details {
   }
 
   renderDarwinDetails() {
-    // TODO(xxx): make this not repeat
-    if (this.os == 'darwin') {
-      return html`
-<details id="darwin" open>
+    return html`
+<details id="darwin" ?open=${this.os == 'darwin'}>
   <summary><h2 style="display:inline">Darwin</h2></summary>
   <pre id="install-darwin">
 sudo curl -fL https://metriton.datawire.io/downloads/darwin/edgectl -o /usr/local/bin/edgectl && \\
@@ -193,26 +191,12 @@ sudo chmod a+x /usr/local/bin/edgectl
 
   <button @click=${this.copyDarwinInstallToKeyboard.bind(this)}>Copy to Clipboard</button>
 </details>
-      `;
-    } else {
-      return html`
-<details id="darwin">
-  <summary><h2 style="display:inline">Darwin</h2></summary>
-  <pre id="install-darwin">
-sudo curl -fL https://metriton.datawire.io/downloads/darwin/edgectl -o /usr/local/bin/edgectl && \\
-sudo chmod a+x /usr/local/bin/edgectl
-  </pre>
-
-  <button @click=${this.copyDarwinInstallToKeyboard.bind(this)}>Copy to Clipboard</button>
-</details>
-      `;
-    }
+    `;
   }
 
   renderLinuxDetails() {
-    if (this.os == 'linux') {
-      return html`
-<details id="linux" open>
+    return html`
+<details id="linux" ?open=${this.os == 'linux'}>
   <summary><h2 style="display:inline">Linux</h2></summary>
   <pre id="install-linux">
 sudo curl -fL https://metriton.datawire.io/downloads/linux/edgectl -o /usr/local/bin/edgectl && \\
@@ -221,20 +205,7 @@ sudo chmod a+x /usr/local/bin/edgectl
 
   <button @click=${this.copyLinuxInstallToKeyboard.bind(this)}>Copy to Clipboard</button>
 </details>
-      `;
-    } else {
-      return html `
-<details id="linux">
-  <summary><h2 style="display:inline">Linux</h2></summary>
-  <pre id="install-linux">
-sudo curl -fL https://metriton.datawire.io/downloads/linux/edgectl -o /usr/local/bin/edgectl && \\
-sudo chmod a+x /usr/local/bin/edgectl
-  </pre>
-
-  <button @click=${this.copyLinuxInstallToKeyboard.bind(this)}>Copy to Clipboard</button>
-</details>
-      `;
-    }
+    `;
   }
 
   renderUnauthenticated() {
