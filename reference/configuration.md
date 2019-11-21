@@ -16,7 +16,7 @@ Note that each of these `kind`s are supported as both annotations and as Custom 
 
 ## Configuration sources
 
-Ambassador Edge Stackassembles its configuration from YAML blocks that may be stored:
+Ambassador Edge Stack assembles its configuration from YAML blocks that may be stored:
 
 - as `annotations` on Kubernetes `service`s (this is the recommended technique);
 - as data in a Kubernetes `ConfigMap`; or

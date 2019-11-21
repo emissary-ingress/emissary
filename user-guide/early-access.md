@@ -19,8 +19,5 @@ We recommend testing with shadowing, as documented below, before switching to an
 One strategy for testing early access releases involves using Ambassador Edge Stack ID and traffic shadowing. You can do the following:
 
 1. Install Ambassador Edge Stack Early Access on your cluster with a unique Ambassador Edge Stack ID.
-2. Shadow traffic from your production Ambassador E dge Stackinstance to the Ambassador Edge Stack Early Access release.
+2. Shadow traffic from your production Ambassador E dge Stack instance to the Ambassador Edge Stack Early Access release.
 3. Monitor the Early Access release to determine if there are any problems.
-
-
-

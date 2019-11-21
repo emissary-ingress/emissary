@@ -194,7 +194,7 @@ If using Ambassador Edge Stack, you can adjust the log level by setting the `APP
 
 ## Port Assignments
 
-Ambassador Edge Stackuses some TCP ports in the range 8000-8499 internally, as well as port 8877. Third-party software integrating with Ambassador Edge Stackshould not use ports in this range on the Ambassador pod.
+Ambassador Edge Stack uses some TCP ports in the range 8000-8499 internally, as well as port 8877. Third-party software integrating with Ambassador Edge Stack should not use ports in this range on the Ambassador pod.
 
 ## Ambassador Edge Stack Update Checks (Scout)
 

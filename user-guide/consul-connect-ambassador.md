@@ -60,7 +60,7 @@ kubectl apply -f https://getambassador.io/yaml/consul/ambassador-consul-connecto
 
 ### Create the TLSContext
 
-You will need to tell Ambassador Edge Stackto use the certificate issued by Consul for `mTLS` with upstream services. This is accomplished by configuring a `TLSContext` to store the secret.
+You will need to tell Ambassador Edge Stack to use the certificate issued by Consul for `mTLS` with upstream services. This is accomplished by configuring a `TLSContext` to store the secret.
 
   ```yaml
   ---
