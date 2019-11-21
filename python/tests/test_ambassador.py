@@ -5,6 +5,7 @@ from abstract_tests import AmbassadorTest
 # Import all the real tests from other files, to make it easier to pick and choose during development.
 
 import t_basics
+import t_capabilities
 import t_cors
 import t_extauth
 import t_grpc

@@ -350,7 +350,15 @@ kick_ads() {
 
         if [ -z "${pids[envoy]}" ]; then
             # Envoy isn't running. Start it.
-            launch "envoy" envoy "${envoy_flags[@]}"
+            # First check to see if this process has the capability to bind to a low port, if so it can run Envoy through a wrapper to grant the same
+            capsh --decode=$(awk '/CapInh/ { print $2}' /proc/$$/status) | grep -q cap_net_bind_service
+            if [ $? -eq 0 ]; then
+              log "cap_net_bind_service is supported, launching Envoy through a wrapper"
+              launch "envoy-wrapper" wrapper "${envoy_flags[@]}"
+            else
+              log "cap_net_bind_service is not supported, launching Envoy directly"
+              launch "envoy" envoy "${envoy_flags[@]}"
+            fi
 
             log "KICK: started Envoy as PID ${pids[envoy]}"
         fi
