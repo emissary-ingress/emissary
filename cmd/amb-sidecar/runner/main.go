@@ -431,7 +431,7 @@ func runE(cmd *cobra.Command, args []string) error {
 		}
 
 		// web ui
-		_, pubKey, err := secret.GetKeyPair(cfg, coreClient)
+		privkey, pubKey, err := secret.GetKeyPair(cfg, coreClient)
 		if err != nil {
 			err = errors.Wrap(err, "GetKeyPair")
 			// this is non fatal (mostly just to facilitate local dev); don't `return err`
@@ -441,6 +441,7 @@ func runE(cmd *cobra.Command, args []string) error {
 			cfg,
 			dynamicClient,
 			snapshotStore.Subscribe(),
+			privkey,
 			pubKey,
 		)
 		httpHandler.AddEndpoint("/edge_stack_ui/", "Edge Stack admin UI", http.StripPrefix("/edge_stack_ui", webuiHandler).ServeHTTP)

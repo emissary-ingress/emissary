@@ -1,6 +1,7 @@
 import { LitElement, html, css } from 'https://cdn.pika.dev/-/lit-element/2.2.1/dist-es2019/lit-element.min.js'
 import { repeat } from '/edge_stack/components/repeat.js';
 import {registerContextChangeHandler, useContext} from '/edge_stack/components/context.js';
+import {getCookie} from '/edge_stack/components/cookies.js';
 
 export class HostAdd extends LitElement {
 
@@ -44,7 +45,7 @@ div {
     url.searchParams.set('ca-url', value)
     fetch(url, {
       headers: new Headers({
-        'Authorization': 'Bearer ' + window.location.hash.slice(1)
+        'Authorization': 'Bearer ' + getCookie("edge_stack_auth")
       })
     })
       .then(r=>{
@@ -100,7 +101,7 @@ spec:
           {
             method: "POST",
             headers: new Headers({
-              'Authorization': 'Bearer ' + window.location.hash.slice(1)
+              'Authorization': 'Bearer ' + getCookie("edge_stack_auth")
             }),
             body: yaml
           })
