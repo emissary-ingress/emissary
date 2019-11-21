@@ -182,10 +182,12 @@
 
   <script type="module" src="https://unpkg.com/rapidoc/dist/rapidoc-min.js"></script>
 
-  <script type="text/javascript">
+  <script type="module">
+    import {getCookie} from '/edge_stack/components/cookies.js';
+
     $.ajaxSetup({
       beforeSend: (xhr, settings) => {
-        xhr.setRequestHeader("Authorization", "Bearer " + window.location.hash.slice(1));
+        xhr.setRequestHeader("Authorization", "Bearer " + getCookie("edge_stack_auth"));
       }
     });
 
@@ -217,9 +219,9 @@
     function renderObj(obj, cls="obj") {
       let result = $(`<div class="${cls}"></div>`)
       $.each(obj, (name, value) => {
-        details = $(`<details class="field" id="${name}"><summary>${name}</summary></details>`)
+        let details = $(`<details class="field" id="${name}"><summary>${name}</summary></details>`)
         result.append(details)
-        scalars = ["string", "number", "boolean"]
+        let scalars = ["string", "number", "boolean"]
         if (scalars.includes(typeof value)) {
           details.append(`<span class="value">${value}</span>`)
         } else {
@@ -243,13 +245,6 @@
 
     function render() {
       $.getJSON("/edge_stack/api/snapshot", data => {
-        $(".auth").each((i, e) => {
-          href = e.getAttribute("href")
-          if (!href.includes("#")) {
-            e.setAttribute("href", href + window.location.hash)
-          }
-        })
-
         snapshot = data
         let kube = "Kubernetes" in data ? data.Kubernetes : {
           "Host": [],

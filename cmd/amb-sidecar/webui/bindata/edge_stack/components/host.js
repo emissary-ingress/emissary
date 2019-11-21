@@ -1,5 +1,6 @@
 import { LitElement, html, css } from 'https://cdn.pika.dev/-/lit-element/2.2.1/dist-es2019/lit-element.min.js'
 import {registerContextChangeHandler, useContext} from '/edge_stack/components/context.js'
+import {getCookie} from '/edge_stack/components/cookies.js';
 
 // holds the UI state of a host widget, this can be merged with Host when we have repeat
 class HostUIState {
@@ -99,7 +100,7 @@ div.both {
           {
             method: "POST",
             headers: new Headers({
-              'Authorization': 'Bearer ' + window.location.hash.slice(1)
+              'Authorization': 'Bearer ' + getCookie("edge_stack_auth")
             }),
             body: JSON.stringify({
               Namespace: this.host.metadata.namespace,
@@ -179,7 +180,7 @@ spec:
           {
             method: "POST",
             headers: new Headers({
-              'Authorization': 'Bearer ' + window.location.hash.slice(1)
+              'Authorization': 'Bearer ' + getCookie("edge_stack_auth")
             }),
             body: yaml
           })
@@ -230,7 +231,7 @@ spec:
     url.searchParams.set('ca-url', value)
     fetch(url, {
       headers: new Headers({
-        'Authorization': 'Bearer ' + window.location.hash.slice(1)
+        'Authorization': 'Bearer ' + getCookie("edge_stack_auth")
       })
     })
       .then(r=>{
