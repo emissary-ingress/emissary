@@ -136,6 +136,8 @@ div.both {
 
   reset() {
     this.state.messages.length = 0
+    this.name().value = this.name().defaultValue
+    this.namespace().value = this.namespace().defaultValue
   }
 
   addError(message) {

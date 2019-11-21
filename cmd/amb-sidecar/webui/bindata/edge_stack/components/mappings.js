@@ -7,6 +7,12 @@ class Mapping extends Resource {
     return "Mapping"
   }
 
+  reset() {
+    super.reset()
+    this.prefix().value = this.prefix().defaultValue
+    this.target().value = this.target().defaultValue
+  }
+
   prefix() {
     return this.shadowRoot.querySelector('input[name="prefix"]')
   }
