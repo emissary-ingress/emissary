@@ -129,19 +129,10 @@
                     A Mapping is an association between a URL (called a prefix) and a target
                     service (called a target).
                   </p>
-
-                  <a id="add-mapping" style="cursor:pointer;color:blue;text-decoration:underline;">Add a Mapping</a>
                 </div>
 
-                <div id="add-mapping-form" style="display:none">
-                  Name: <input id="add-mapping-name" type="text" name="prefix"/>
-                  Prefix: <input id="add-mapping-prefix" type="text" name="prefix"/>
-                  Rewrite: <input id="add-mapping-rewrite" type="text" name="rewrite" value=""/>
-                  Target: <input id="add-mapping-target" type="text" name="target"/>
-                  <button id="add-mapping-button">Add</button>
-                </div>
                 <div class="info-blob">
-                  <div id="mappings"></div>
+                  <dw-mappings></dw-mappings>
                 </div>
               </dw-tab>
 
@@ -178,141 +169,6 @@
   <script async defer type="module" src="/edge_stack/components/signup.js"></script>
   <script async defer type="module" src="/edge_stack/components/host.js"></script>
   <script async defer type="module" src="/edge_stack/components/snapshot.js"></script>
-  <script async defer type="module" src="/edge_stack/components/aes-mappings.js"></script>
-
-  <script type="module" src="https://unpkg.com/rapidoc/dist/rapidoc-min.js"></script>
-
-  <script type="module">
-    import {getCookie} from '/edge_stack/components/cookies.js';
-
-    $.ajaxSetup({
-      beforeSend: (xhr, settings) => {
-        xhr.setRequestHeader("Authorization", "Bearer " + getCookie("edge_stack_auth"));
-      }
-    });
-
-    var snapshot
-
-    function path(el) {
-      if (el.parentElement == null) {
-        return ""
-      } else {
-        return path(el.parentElement) + "_" + el.id
-      }
-    }
-
-    function renderKind(obj) {
-      let md = obj.metadata
-      return $(`<div class="${obj.kind.toLowerCase()}" id="${md.namespace}_${md.name}"></div>`)
-        .append(renderMetadata(md))
-        .append(renderSpec(obj.spec))
-        .append(renderStatus(obj.status))
-    }
-
-    function renderMetadata(md) {
-      return $(`<div class="metadata" id="metadata"></div>`)
-        .append(`<span class="name">${md.namespace}/${md.name}</span>`)
-        .append($(`<details class="labels" id="labels"><summary>labels</summary></details>`)
-          .append(renderObj(md.labels)))
-    }
-
-    function renderObj(obj, cls="obj") {
-      let result = $(`<div class="${cls}"></div>`)
-      $.each(obj, (name, value) => {
-        let details = $(`<details class="field" id="${name}"><summary>${name}</summary></details>`)
-        result.append(details)
-        let scalars = ["string", "number", "boolean"]
-        if (scalars.includes(typeof value)) {
-          details.append(`<span class="value">${value}</span>`)
-        } else {
-          details.append(renderObj(value))
-        }
-      })
-      return result
-    }
-
-    function renderSpec(spec) {
-      return renderObj(spec, "spec")
-    }
-
-    function renderStatus(status) {
-      if (typeof status == "undefined") {
-        return $(`<details class="status" id="status"><summary>Status: none</summary></details>`)
-      }
-      return $(`<details class="status" id="status"><summary>Status: ${status.state}</summary></details>`).
-        append(renderObj(status))
-    }
-
-    function render() {
-      $.getJSON("/edge_stack/api/snapshot", data => {
-        snapshot = data
-        let kube = "Kubernetes" in data ? data.Kubernetes : {
-          "Host": [],
-          "Mapping": []
-        }
-
-        let opened = new Set()
-        $("details[open]").each((i, e) => opened.add(path(e)))
-
-        let hosts = kube.Host || []
-        let hostsDiv = $("#hosts").empty()
-
-        $.each(hosts, (index, host) => {
-          hostsDiv.append(renderKind(host))
-        })
-        if (hosts.length == 0) {
-          hostsDiv.append(`<p>There are no hosts defined.`)
-        }
-
-        let mappings = kube.Mapping || []
-        let mappingsDiv = $("#mappings").empty()
-        $.each(mappings, (index, mapping) => {
-          mappingsDiv.append(renderKind(mapping))
-        })
-        if (mappings.length == 0) {
-          mappingsDiv.append(`<p>There are no mappings defined.`)
-        }
-
-        $("details").each((i, e) => {
-          if (opened.has(path(e))) {
-            e.setAttribute("open", "")
-          }
-        })
-
-        setTimeout(render, 1000)
-      }).fail(xhr => console.log('Failed XHR', xhr));
-    }
-
-    $(render)
-
-    $(() => {
-      $("#add-mapping").click((e) => {
-        e.target.style.display = "none";
-        $("#add-mapping-form").show()
-      })
-
-      $("#add-mapping-button").click((e) => {
-        let yaml = `
----
-apiVersion: getambassador.io/v1
-kind: Mapping
-metadata:
-  name: "${$("#add-mapping-name").val()}"
-  namespace: default
-spec:
-  prefix: "${$("#add-mapping-prefix").val()}"
-  rewrite: "${$("#add-mapping-rewrite").val()}"
-  service: "${$("#add-mapping-target").val()}"
-`
-        $.post("/edge_stack/api/apply", yaml, null, "text").fail(xhr => {
-          alert("BAD\n\n" + yaml + "\n\n" + xhr.responseText)
-        }).done(resp => {
-          alert("OK\n" + resp)
-        })
-
-        $("#add-mapping-form").hide()
-        $("#add-mapping").show()
-      })
-    })
-  </script>
+  <script async defer type="module" src="/edge_stack/components/mappings.js"></script>
+  <script async defer type="module" src="https://unpkg.com/rapidoc/dist/rapidoc-min.js"></script>
 </html>
