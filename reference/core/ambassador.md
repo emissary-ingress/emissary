@@ -12,11 +12,10 @@ kind:  Module
 metadata:
   name:  ambassador
 spec:
-  config:
-  # Put the id if you are using multiple ambassadors in the same cluster.
-  # For more information: https://www.getambassador.io/reference/running/#ambassador_id.
-  # ambassador_id: "<ambassador_id>"
-  
+# Put the id if you are using multiple ambassadors in the same cluster.
+# For more information: https://www.getambassador.io/reference/running/#ambassador_id.
+# ambassador_id: "<ambassador_id>"
+  config: 
   # admin_port is the port where Ambassador's Envoy will listen for
   # low-level admin requests. You should almost never need to change
   # this.
