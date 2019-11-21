@@ -2,6 +2,7 @@ package acmeclient
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"sort"
 	"time"
@@ -10,6 +11,7 @@ import (
 	"github.com/go-acme/lego/v3/registration"
 	"github.com/gogo/protobuf/proto"
 	"github.com/mediocregopher/radix.v2/pool"
+	"github.com/mholt/certmagic"
 	"github.com/pkg/errors"
 
 	k8sSchema "k8s.io/apimachinery/pkg/runtime/schema"
@@ -253,9 +255,17 @@ func (c *Controller) rectifyPhase1(logger dlog.Logger) []*ambassadorTypesV2.Host
 				c.recordHostReady(logger, host, "Host with externally-provisioned TLS certificate marked Ready")
 			}
 		case ambassadorTypesV2.HostTLSCertificateSource_ACME:
-			logger.Debugln("rectify: Host: accepting Host for next phase")
-			nextPhase = append(nextPhase, host)
+			if !certmagic.HostQualifies(host.Spec.Hostname) {
+				c.recordHostError(logger, host,
+					ambassadorTypesV2.HostPhase_NA,
+					errors.Errorf("hostname=%q does not qualify for ACME management", host.Spec.Hostname))
+			} else {
+				logger.Debugln("rectify: Host: accepting Host for next phase")
+				nextPhase = append(nextPhase, host)
+			}
 		default:
+			// Even if the user filled in an invalid TlsCertificateSource with kubectl or something,
+			// FillDefaults should have corrected it by the time we make it to this part of the code.
 			logger.Debugf("rectify: Host: THIS IS A BUG: Unknown TlsCertificateSource", host.Status.TlsCertificateSource)
 		}
 	}
@@ -524,13 +534,13 @@ func (c *Controller) rectifyPhase4(logger dlog.Logger,
 			sort.Strings(hostnames)
 			logger.Debugf("rectify: processing Secret=%q (hostnames=%v)", tlsSecretName, hostnames)
 
-			needsRenew := false
+			needsRenewReason := ""
 			secretIsDirty := false
 
 			secret := c.getSecret(namespace, tlsSecretName)
 			if secret == nil {
 				// "renew" certs that we don't even have an old version of
-				needsRenew = true
+				needsRenewReason = "tlsSecret does not exist"
 				secret = &k8sTypesCoreV1.Secret{
 					ObjectMeta: k8sTypesMetaV1.ObjectMeta{
 						Name:      tlsSecretName,
@@ -541,20 +551,28 @@ func (c *Controller) rectifyPhase4(logger dlog.Logger,
 				secretIsDirty = true
 			} else {
 				secret = secret.DeepCopy()
+				now := time.Now()
 				if cert, err := parseTLSSecret(secret); err != nil {
 					// "renew" invalid certs
-					needsRenew = true
-				} else {
-					// renew certs if they're >2/3 of the way through their lifecycle
-					needsRenew = needsRenew || time.Now().After(cert.NotBefore.Add(2*cert.NotAfter.Sub(cert.NotBefore)/3))
+					needsRenewReason = fmt.Sprintf("tlsSecret doesn't appear to contain a valid TLS certificate: %v", err)
+				} else if !stringSliceEqual(subjects(cert), hostnames) {
 					// or if the list of hostnames we want on it changed
-					needsRenew = needsRenew || !stringSliceEqual(subjects(cert), hostnames)
+					needsRenewReason = fmt.Sprintf("list of desired host names changed: desired=%q certificate=%q", hostnames, subjects(cert))
+				} else if age, lifespan := now.Sub(cert.NotBefore), cert.NotAfter.Sub(cert.NotBefore); age > 2*lifespan/3 {
+					// renew certs if they're >2/3 of the way through their lifecycle
+					needsRenewReason = fmt.Sprintf("certificate is more than 2/3 of the way to expiration: %v is %d%% of the way from %v to %v",
+						now,
+						100*int64(age)/int64(lifespan),
+						cert.NotBefore,
+						cert.NotAfter)
 				}
 			}
 
-			logger.Debugf("rectify: Secret: needsRenew=%v", needsRenew)
-			if needsRenew {
-				c.recordHostsEvent(hosts, "requires new TLS certificate")
+			logger.Debugf("rectify: Secret: needsRenewReason=%v", needsRenewReason)
+			if needsRenewReason != "" {
+				c.recordHostsEvent(hosts, fmt.Sprintf("tlsSecret %q.%q (hostnames=%q): needs updated: %v",
+					tlsSecretName, namespace, hostnames,
+					needsRenewReason))
 				acmeProvider := acmeProviderByTLSSecret[namespace][tlsSecretName]
 				var user acmeUser
 				var err error
@@ -576,7 +594,8 @@ func (c *Controller) rectifyPhase4(logger dlog.Logger,
 				user.Registration = &reg
 
 				logger.Debugln("rectify: Secret: requesting certificate...")
-				c.recordHostsEvent(hosts, "performing ACME challenge")
+				c.recordHostsEvent(hosts, fmt.Sprintf("performing ACME challenge for tlsSecret %q.%q (hostnames=%q)...",
+					tlsSecretName, namespace, hostnames))
 				certResource, err := obtainCertificate(
 					c.httpClient,
 					c.redisPool,
@@ -586,7 +605,8 @@ func (c *Controller) rectifyPhase4(logger dlog.Logger,
 				if err != nil {
 					c.recordHostsError(logger, hosts,
 						ambassadorTypesV2.HostPhase_ACMECertificateChallenge,
-						err)
+						errors.Wrapf(err, "obtaining tlsSecret %q.%q (hostnames=%q)",
+							tlsSecretName, namespace, hostnames))
 					continue
 				}
 				secret.Data = map[string][]byte{
@@ -607,7 +627,8 @@ func (c *Controller) rectifyPhase4(logger dlog.Logger,
 				if err := storeSecret(c.secretsGetter, secret); err != nil {
 					c.recordHostsError(logger, hosts,
 						ambassadorTypesV2.HostPhase_ACMECertificateChallenge,
-						err)
+						errors.Wrapf(err, "updating tlsSecret %q.%q (hostnames=%q)",
+							tlsSecretName, namespace, hostnames))
 					continue
 				}
 				c.recordHostsEvent(hosts, "waiting for TLS Secret update to be reflected in snapshot")
@@ -654,7 +675,8 @@ func FillDefaults(host *ambassadorTypesV2.Host) {
 			host.Spec.TlsSecret = &k8sTypesCoreV1.LocalObjectReference{}
 		}
 		if host.Spec.TlsSecret.Name == "" {
-			host.Spec.TlsSecret.Name = NameEncode(host.Spec.AcmeProvider.Authority) + "--" + NameEncode(host.Spec.AcmeProvider.Email) + "--" + NameEncode(host.Spec.AcmeProvider.PrivateKeySecret.Name)
+			//host.Spec.TlsSecret.Name = NameEncode(host.Spec.AcmeProvider.Authority) + "--" + NameEncode(host.Spec.AcmeProvider.Email) + "--" + NameEncode(host.Spec.AcmeProvider.PrivateKeySecret.Name)
+			host.Spec.TlsSecret.Name = NameEncode(host.Spec.Hostname)
 		}
 	}
 	if host.Status == nil {
