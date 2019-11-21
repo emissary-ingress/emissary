@@ -85,7 +85,7 @@ div.both {
     this.requestUpdate()
   }
 
-  onEdit(host) {
+  onEdit() {
     if (this.state.mode != "edit") {
       this.state.mode = "edit"
     } else {
@@ -94,7 +94,7 @@ div.both {
     this.requestUpdate()
   }
 
-  onDelete(host) {
+  onDelete() {
     fetch('/edge_stack/api/delete',
           {
             method: "POST",
@@ -102,8 +102,8 @@ div.both {
               'Authorization': 'Bearer ' + window.location.hash.slice(1)
             }),
             body: JSON.stringify({
-              Namespace: host.metadata.namespace,
-              Names: [`host/${host.metadata.name}`]
+              Namespace: this.host.metadata.namespace,
+              Names: [`host/${this.host.metadata.name}`]
             })
           })
       .then(r=>{
@@ -123,7 +123,7 @@ div.both {
       })
   }
 
-  onCancel(host) {
+  onCancel() {
     this.requestUpdate()
 
     if (this.state.mode == "add") {
@@ -143,7 +143,7 @@ div.both {
     this.state.show_tos = false
   }
 
-  onSave(host) {
+  onSave() {
     this.requestUpdate()
 
     this.state.messages.length = 0
@@ -307,10 +307,10 @@ spec:
 
   <div class="both">
     <label>
-      <button class="${list}" @click=${()=>this.onEdit(host)}>Edit</button>
-      <button class="${list}" @click=${()=>this.onDelete(host)}>Delete</button>
-      <button class="${edit}" @click=${()=>this.onCancel(host)}>Cancel</button>
-      <button class="${edit}" @click=${(e)=>this.onSave(host, e)}>Save</button>
+      <button class="${list}" @click=${()=>this.onEdit()}>Edit</button>
+      <button class="${list}" @click=${()=>this.onDelete()}>Delete</button>
+      <button class="${edit}" @click=${()=>this.onCancel()}>Cancel</button>
+      <button class="${edit}" @click=${()=>this.onSave()}>Save</button>
     </label>
   </div>
 
