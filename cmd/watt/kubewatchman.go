@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/datawire/ambassador/pkg/k8s"
@@ -116,32 +117,73 @@ func fmtNamespace(ns string) string {
 	if ns == "" {
 		return "*"
 	}
-
 	return ns
 }
 
 func (b *kubebootstrap) Work(p *supervisor.Process) error {
-	for _, kind := range b.kinds {
-		p.Logf("adding kubernetes watch for %q in namespace %q", kind, fmtNamespace(kubernetesNamespace))
+	pendingResources := map[string]struct{}{}
 
-		watcherFunc := func(ns, kind string) func(watcher *k8s.Watcher) {
-			return func(watcher *k8s.Watcher) {
-				resources := watcher.List(kind)
-				p.Logf("found %d %q in namespace %q", len(resources), kind, fmtNamespace(ns))
-				for _, n := range b.notify {
-					n <- k8sEvent{kind: kind, resources: resources}
-				}
-				p.Logf("sent %q to %d receivers", kind, len(b.notify))
-			}
+	addWatcher := func(kind string, watcherFunc func(*k8s.Watcher)) error {
+		return b.kubeAPIWatcher.SelectiveWatch(b.namespace, kind, b.fieldSelector, b.labelSelector, watcherFunc)
+	}
+
+	// try to install watchers for all the resources in our pending list
+	tryToWatchAllPending := func() error {
+		if len(pendingResources) == 0 {
+			return nil
 		}
 
-		err := b.kubeAPIWatcher.SelectiveWatch(b.namespace, kind, b.fieldSelector, b.labelSelector, watcherFunc(b.namespace, kind))
+		for kind, _ := range pendingResources {
+			watcherFunc := func(ns, kind string) func(watcher *k8s.Watcher) {
+				return func(watcher *k8s.Watcher) {
+					resources := watcher.List(kind)
+					p.Logf("found %d %q in namespace %q", len(resources), kind, fmtNamespace(ns))
+					for _, n := range b.notify {
+						n <- k8sEvent{kind: kind, resources: resources}
+					}
+					p.Logf("sent %q to %d receivers", kind, len(b.notify))
+				}
+			}
 
-		if err != nil {
-			return err
+			if err := addWatcher(kind, watcherFunc(b.namespace, kind)); err != nil {
+				if errors.Is(err, k8s.ErrUnkResource) {
+					p.Logf("%q does no exist in the cluster at this time: will try later on...", kind)
+				} else {
+					return err
+				}
+			} else {
+				p.Logf("watcher for %q successfully installed", kind)
+				delete(pendingResources, kind)
+			}
+		}
+		p.Logf("%d resources are pending", len(pendingResources))
+		return nil
+	}
+
+	// fill the list of pending resources
+	for _, kind := range b.kinds {
+		pendingResources[kind] = struct{}{}
+	}
+
+	// ... and try to add watchers for all of them
+	if err := tryToWatchAllPending(); err != nil {
+		return err
+	}
+
+	// some CRDs can be missing from the cluster (like after an upgrade, where users have changed only the image).
+	// in those cases we should not fail but install a watcher for CRDs that installs the
+	// watcher when the CRD is available.
+	if len(pendingResources) > 0 {
+		if err := addWatcher("customresourcedefinition",
+			func(watcher *k8s.Watcher) {
+				_ = b.kubeAPIWatcher.Refresh()
+				_ = tryToWatchAllPending()
+			}); err != nil {
+			return fmt.Errorf("could not watch CRDs: %w", err)
 		}
 	}
 
+	p.Logf("Watching resources...")
 	b.kubeAPIWatcher.Start()
 	p.Ready()
 

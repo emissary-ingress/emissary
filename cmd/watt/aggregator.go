@@ -143,7 +143,7 @@ func (a *aggregator) isComplete(p *supervisor.Process, watchset WatchSet) bool {
 
 	for _, w := range watchset.ConsulWatches {
 		if _, ok := a.ids[w.WatchId()]; ok {
-			p.Logf("initialized k8s watch: %s", w.WatchId())
+			p.Logf("initialized consul watch: %s", w.WatchId())
 		} else {
 			complete = false
 			p.Logf("waiting for consul watch: %s", w.WatchId())
