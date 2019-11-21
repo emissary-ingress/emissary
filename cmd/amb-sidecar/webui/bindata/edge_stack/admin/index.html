@@ -136,6 +136,22 @@
                 </div>
               </dw-tab>
 
+              <dw-tab name="Services">
+                <div class="info-blob">
+                  <h2>Services</h2>
+
+                  <p>
+                    These are special services that enhance the functionality of
+                    Ambassador by having Ambassador call out to them when
+                    handling requests.
+                  </p>
+                </div>
+
+                <div class="info-blob">
+                  <dw-services></dw-services>
+                </div>
+              </dw-tab>
+
               <dw-tab name="APIs">
                 <div class="info-blob">
                   <dw-apis id="apis"></dw-apis>
@@ -170,5 +186,6 @@
   <script async defer type="module" src="/edge_stack/components/host.js"></script>
   <script async defer type="module" src="/edge_stack/components/snapshot.js"></script>
   <script async defer type="module" src="/edge_stack/components/mappings.js"></script>
+  <script async defer type="module" src="/edge_stack/components/services.js"></script>
   <script async defer type="module" src="https://unpkg.com/rapidoc/dist/rapidoc-min.js"></script>
 </html>
