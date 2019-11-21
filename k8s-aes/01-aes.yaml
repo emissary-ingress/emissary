@@ -28,7 +28,7 @@ rules:
   verbs: ["get", "list", "watch"]
 - apiGroups: [ "getambassador.io" ]
   resources: [ "*" ]
-  verbs: ["get", "list", "watch", "update", "create" ]
+  verbs: ["get", "list", "watch", "update", "create", "delete" ]
 - apiGroups: [ "apiextensions.k8s.io" ]
   resources: [ "customresourcedefinitions" ]
   verbs: ["get", "list", "watch"]
@@ -44,14 +44,10 @@ rules:
 - apiGroups: [ "extensions" ]
   resources: [ "ingresses/status" ]
   verbs: ["update"]
-# Ambassador Pro access requirements.  Also gets "create" and "update"
-# for secrets, and "create" for events.
+# Ambassador Pro access requirements.  Also gets "create" for secrets.
 - apiGroups: [""]
   resources: [ "secrets" ]
   verbs: ["get", "list", "watch", "create", "update"]
-- apiGroups: [""]
-  resources: [ "events" ]
-  verbs: ["get", "list", "watch", "create"]
 ---
 apiVersion: v1
 kind: ServiceAccount

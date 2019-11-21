@@ -21,18 +21,11 @@ import (
 	"github.com/datawire/ambassador/pkg/supervisor"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/go-acme/lego/v3/acme"
-	"github.com/pkg/errors"
-	"sigs.k8s.io/yaml"
 
 	k8sSchema "k8s.io/apimachinery/pkg/runtime/schema"
 
-	ambassadorTypesV2 "github.com/datawire/ambassador/pkg/api/getambassador.io/v2"
-	k8sTypesMetaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	k8sTypesUnstructured "k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-
 	k8sClientDynamic "k8s.io/client-go/dynamic"
 
-	"github.com/datawire/apro/cmd/amb-sidecar/acmeclient"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/httpclient"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/middleware"
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
@@ -201,110 +194,6 @@ func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 		io.WriteString(w, tosURL)
-	case "/edge_stack/tls/yaml":
-		if !fb.isAuthorized(r) {
-			fb.forbidden(w, r)
-			return
-		}
-		fb.registerActivity(w, r)
-		dat := &ambassadorTypesV2.Host{
-			TypeMeta: &k8sTypesMetaV1.TypeMeta{
-				APIVersion: "getambassador.io/v2",
-				Kind:       "Host",
-			},
-			ObjectMeta: &k8sTypesMetaV1.ObjectMeta{
-				Name:      acmeclient.NameEncode(r.URL.Query().Get("hostname")),
-				Namespace: "default",
-				Labels: map[string]string{
-					"created-by": "aes-firstboot-web-ui",
-				},
-			},
-			Spec: &ambassadorTypesV2.HostSpec{
-				Hostname: r.URL.Query().Get("hostname"),
-				AcmeProvider: &ambassadorTypesV2.ACMEProviderSpec{
-					Authority: r.URL.Query().Get("acme_authority"),
-					Email:     r.URL.Query().Get("acme_email"),
-				},
-			},
-		}
-		switch r.Method {
-		case http.MethodGet:
-			// Go ahead and fill the defaults; we won't do this when actually applying
-			// it (in the http.MethodPost case), but it's informative to the user.
-			acmeclient.FillDefaults(dat)
-			bytes, err := yaml.Marshal(map[string]interface{}{
-				"apiVersion": "getambassador.io/v2",
-				"kind":       "Host",
-				"metadata":   dat.ObjectMeta,
-				"spec":       dat.Spec,
-				"status":     dat.Status,
-			})
-			if err != nil {
-				// We generated 'dat'; it should always be valid.
-				panic(err)
-			}
-			// NB: YAML doesn't actually have a registered media type
-			// https://www.iana.org/assignments/media-types/media-types.xhtml
-			w.Header().Set("Content-Type", "application/x-yaml; charset=utf-8")
-			w.Write(bytes)
-		case http.MethodPost:
-			_, err := fb.hostsGetter.Namespace(dat.GetNamespace()).Create(&k8sTypesUnstructured.Unstructured{
-				Object: map[string]interface{}{
-					"apiVersion": "getambassador.io/v2",
-					"kind":       "Host",
-					"metadata":   dat.ObjectMeta,
-					"spec":       dat.Spec,
-				},
-			}, k8sTypesMetaV1.CreateOptions{})
-			if err != nil {
-				middleware.ServeErrorResponse(w, r.Context(), http.StatusBadRequest,
-					err, nil)
-				return
-			}
-			w.WriteHeader(http.StatusCreated)
-		default:
-			middleware.ServeErrorResponse(w, r.Context(), http.StatusMethodNotAllowed,
-				errors.New("method not allowed"), nil)
-		}
-	case "/edge_stack/tls/status":
-		if !fb.isAuthorized(r) {
-			fb.forbidden(w, r)
-			return
-		}
-		needleHostname := r.URL.Query().Get("hostname")
-
-		var needle *ambassadorTypesV2.Host
-		for _, straw := range fb.getSnapshot().Kubernetes.Host {
-			if straw.GetSpec().Hostname == needleHostname {
-				needle = straw
-				break
-			}
-		}
-		if needle == nil {
-			io.WriteString(w, "waiting for Host resource to be created")
-		} else {
-			switch needle.GetStatus().GetState() {
-			case ambassadorTypesV2.HostState_Initial:
-				fmt.Fprintln(w,
-					"state:", needle.GetStatus().GetState())
-			case ambassadorTypesV2.HostState_Pending:
-				fmt.Fprintln(w,
-					"state:", needle.GetStatus().GetState(),
-					"phaseCompleted:", needle.GetStatus().GetPhaseCompleted(),
-					"phasePending:", needle.GetStatus().GetPhasePending())
-			case ambassadorTypesV2.HostState_Ready:
-				fmt.Fprintln(w,
-					"state:", needle.GetStatus().GetState())
-			case ambassadorTypesV2.HostState_Error:
-				fmt.Fprintln(w,
-					"state:", needle.GetStatus().GetState(),
-					"phaseCompleted:", needle.GetStatus().GetPhaseCompleted(),
-					"phasePending:", needle.GetStatus().GetPhasePending(),
-					"error reason:", needle.GetStatus().GetReason())
-			default:
-				io.WriteString(w, "state: <invalid state>")
-			}
-		}
 	case "/edge_stack/api/config/ambassador-cluster-id":
 		// no authentication for this one
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
@@ -338,6 +227,40 @@ func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusBadRequest)
 		}
 		w.Write(output.Bytes())
+	case "/edge_stack/api/delete":
+		if !fb.isAuthorized(r) {
+			fb.forbidden(w, r)
+			return
+		}
+		fb.registerActivity(w, r)
+		decoder := json.NewDecoder(r.Body)
+		var obj struct {
+			Namespace string
+			Names     []string
+		}
+		err := decoder.Decode(&obj)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			io.WriteString(w, err.Error())
+			return
+		}
+		delete := supervisor.Command("WEBUI", "kubectl",
+			append([]string{"delete", "--wait=false", "--namespace", obj.Namespace}, obj.Names...)...)
+		var output bytes.Buffer
+		delete.Stdout = &output
+		delete.Stderr = &output
+		delete.Run()
+		if delete.ProcessState.ExitCode() == 0 {
+			w.WriteHeader(http.StatusOK)
+		} else {
+			w.WriteHeader(http.StatusBadRequest)
+		}
+		w.Write(output.Bytes())
+	case "/edge_stack/tls/api/empty":
+		if !fb.isAuthorized(r) {
+			fb.forbidden(w, r)
+			return
+		}
 	default:
 		if _, err := fb.staticfiles.Open(path.Clean(r.URL.Path)); os.IsNotExist(err) {
 			// use our custom 404 handler instead of http.FileServer's
