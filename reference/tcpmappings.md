@@ -174,7 +174,7 @@ If the client requests SNI host `my-host-2`, the decrypted traffic will be relay
 
 Any other SNI host will cause the TLS handshake to fail.
 
-#### 'host' is not set, but `tls` is
+#### host is not set, but `tls` is
 
 Here, Ambassador Edge Stack will accept the connection **without terminating TLS**, then relay traffic over a **TLS** connection upstream. This is probably useful only to accept unencrypted traffic and force it to be encrypted when it leaves Ambassador Edge Stack.
 

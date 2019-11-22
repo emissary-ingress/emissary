@@ -11,9 +11,9 @@ Ambassador Edge Stack supports these use cases by allowing you to execute custom
 
 ## Prerequisites
 
-`Plugin` `Filter`s are built as [Go plugins](https://golang.org/pkg/plugin/) and loaded directly into the Ambassador Pro container so they can run in-process with the rest of Ambassador Pro.
+`Plugin` `Filter`s are built as [Go plugins](https://golang.org/pkg/plugin/) and loaded directly into the Ambassador Edge Stack container so they can run in-process with the rest of Ambassador Edge Stack.
 
-To build a `Plugin` `Filter` into the Ambassador Pro container you will need
+To build a `Plugin` `Filter` into the Ambassador Edge Stack container you will need
 - Linux or MacOS host (Windows Subsystem for Linux is ok)
 - [Docker](https://docs.docker.com/v17.09/engine/installation/) 
 - [rsync](https://rsync.samba.org/)

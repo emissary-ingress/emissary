@@ -45,7 +45,7 @@ allowed by the CORS policy.
 
 [simple-header]: https://www.w3.org/TR/cors/#simple-header
 
-**Note**: Prior versions of Ambassador Pro did not have a
+**Note**: Prior versions of Ambassador Edge Stack did not have a
 `ambassador_xsrf.NAME.NAMESPACE` cookie, and instead required you to
 use the `ambassador_session.NAME.NAMESPACE` cookie.  The
 `ambassador_session.NAME.NAMESPACE` cookie should no longer be used
