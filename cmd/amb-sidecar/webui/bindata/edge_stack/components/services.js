@@ -16,9 +16,7 @@ export class Service extends Resource {
   // internal
   irData() {
     const qname = this.resource.metadata.name + "." + this.resource.metadata.namespace;
-    return this.diag.ambassador_services.find(s => {
-      return s._source in this.diag.source_map[qname];
-    });
+    return this.diag.ambassador_services.find(s => s._source in this.diag.source_map[qname]);
   }
 
   // implement

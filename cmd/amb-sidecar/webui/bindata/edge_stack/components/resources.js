@@ -101,8 +101,8 @@ div.both {
               'Authorization': 'Bearer ' + getCookie("edge_stack_auth")
             }),
             body: JSON.stringify({
-              Namespace: this.resource.metadata.namespace,
-              Names: [`${this.kind()}/${this.resource.metadata.name}`]
+              Namespace: this.namespace(),
+              Names: [`${this.kind()}/${this.name()}`]
             })
           })
       .then(r=>{
@@ -147,11 +147,11 @@ div.both {
   validate() {}
 
   name() {
-    return this.shadowRoot.querySelector('input[name="name"]')
+    return this.resource.metadata.name;
   }
 
   namespace() {
-    return this.shadowRoot.querySelector('input[name="namespace"]')
+    return this.resource.metadata.namespace;
   }
 
   onSave() {
@@ -207,11 +207,11 @@ spec: ${JSON.stringify(this.spec())}
 <slot class="${this.state.mode == "off" ? "" : "off"}" @click=${this.onAdd.bind(this)}></slot>
 <div class="${this.state.mode == "off" ? "off" : "frame"}">
   <div class="title">
-    ${this.kind()}: <span class="${this.visible("list", "edit")}">${this.resource.metadata.name}</span>
-          <input class="${this.visible("add")}" name="name" type="text" value="${this.resource.metadata.name}"/>
+    ${this.kind()}: <span class="${this.visible("list", "edit")}">${this.name()}</span>
+          <input class="${this.visible("add")}" name="name" type="text" value="${this.name()}"/>
 
 
-      (<span class="${this.visible("list", "edit")}">${this.resource.metadata.namespace}</span><input class="${this.visible("add")}" name="namespace" type="text" value="${this.resource.metadata.namespace}"/>)</div>
+      (<span class="${this.visible("list", "edit")}">${this.namespace()}</span><input class="${this.visible("add")}" name="namespace" type="text" value="${this.namespace()}"/>)</div>
 
   ${this.renderResource()}
 
