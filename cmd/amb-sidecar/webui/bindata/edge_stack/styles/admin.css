@@ -1,0 +1,103 @@
+:root {
+	--dw-purple: #5F3EFF;
+	--dw-orange: #FF4329;
+}
+body {
+	font-family: Source Sans Pro, sans-serif;
+	margin-left: 2em;
+	margin-right: 2em;
+}
+section-heading {
+	margin: 0.1em;
+	font-size: 120%;
+	font-weight: bold;
+}
+div.admin-section {
+	border: 1px solid #ede7f3;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, .1);
+	padding: 0.5em;
+	margin-bottom: 0.6em;
+	line-height: 1.3;
+	position: relative;
+}
+.admin-section p {
+	margin-top: 0;
+}
+.admin-section code {
+	font-size: 120%;
+}
+
+#admin-page-outer-wrapper {
+	width: 80%;
+	margin-left: 10%;
+}
+#ambassador-logo {
+	background-color: white;
+	padding: 5px;
+	width: 456px;
+	height: 42px;
+	margin-bottom: 1em
+}
+
+/* - - - - - - the below styles are being refactored and placed above - - - - - */
+div.info-blob {
+	border: 1px solid #ede7f3;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, .1);
+	padding: 0.5em;
+	margin-bottom: 0.6em;
+	line-height: 1.3;
+}
+
+div.info-blob2 {
+	border: thin solid grey;
+	border-radius: 0.4em;
+	padding: 0.5em;
+	margin-bottom: 0.6em;
+	line-height: 1.3;
+}
+
+div.info-title {
+	font-weight: bold;
+	font-size: 120%;
+}
+
+span.command {
+	background-color: #f5f2f0;
+	padding: 3px;
+	letter-spacing: .2px;
+	font-family: Consolas, Monaco, Andale Mono, Ubuntu Mono, monospace;
+	font-size: 90%;
+	word-spacing: normal;
+	word-break: normal;
+	word-wrap: normal;
+	hyphens: none;
+}
+
+div.overage-alert {
+	border: 3px solid red;
+	border-radius: 0.7em;
+	padding: 0.5em;
+	background-color: #FFe8e8;
+}
+
+div.host, div.mapping {
+	padding: 1em 1em;
+}
+
+span.json {
+	unicode-bidi: embed;
+	font-family: monospace;
+}
+
+details {
+	margin-left: 1em;
+}
+
+h2 {
+	margin: 0.1em;
+}
+
+login-gate {
+	margin: 0;
+	padding: 0;
+}
