@@ -8,6 +8,14 @@ export class UIState {
   constructor() {
     this.mode = "list" // one of add, edit, list, detail, off
     this.messages = []
+    this._init = false
+  }
+
+  init(resource) {
+    if (!this._init) {
+      resource.init()
+      this._init = true
+    }
   }
 
   renderErrors() {
@@ -77,6 +85,17 @@ div.both {
     super()
     this.resource = {}
     this.state = new UIState()
+  }
+
+  // This is invoked when the UI state is new... when we get repeat,
+  // this will be able to go away and we can just use constructors.
+  init() {}
+
+  update() {
+    if (this.state instanceof UIState) {
+      this.state.init(this)
+    }
+    super.update()
   }
 
   onAdd() {
