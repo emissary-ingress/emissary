@@ -1,6 +1,34 @@
 - title: Welcome
   collapsable: false
   items:
+    - title: Ambassador Overview
+    - link: /docs
+    - title: Quick Start Guide
+      link: /user-guide/quick-start-guide
+    - title: Contact Support
+      link: /about/support
+    
+- title: Setup and Deployment
+  items:
+    - title: Product Requirements
+      link: /user-guide/product-requirements
+    - title: Install Ambassador
+      link: /user-guide/install
+    - title: 
+
+
+
+- title: How to
+  items:
+    - title:
+      link: 
+
+
+
+
+- title: Welcome
+  collapsable: false
+  items:
     - title: Quick Start Guide
       link: /docs
     - title: Why Ambassador Edge Stack?
