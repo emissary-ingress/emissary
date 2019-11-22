@@ -14,21 +14,32 @@ export class Service extends Resource {
   }
 
   // internal
-  irURL() {
-    if (this.kind() === 'AuthService') {
-      return this.spec().auth_service;
-    } else {
-      return this.spec().service;
-    }
+  irData() {
+    const qname = this.resource.metadata.name + "." + this.resource.metadata.namespace;
+    return this.diag.ambassador_services.find(s => {
+      return s._source in this.diag.source_map[qname];
+    });
   }
 
   // implement
   renderResource() {
     return html`
      <div class="left">Service URL:</div>
-     <div class="right">${this.irURL()}</div>
+     <div class="right">${this.irData().name}</div>
+
+     <div class="left">Weight:</div>
+     <div class="right">${this.irData()._service_weight}</div>
+
      <div class="left">Spec:</div>
      <div class="right"><pre>${JSON.stringify(this.spec(), null, 4)}</pre></div>`;
+  }
+
+  // override
+  static get properties() {
+    return {
+      resource: {type: Map},
+      diag: {type: Object},
+    }
   }
 
   // override; don't show any of the "edit/delete/whatever" buttons;
@@ -51,6 +62,7 @@ export class Services extends LitElement {
   static get properties() {
     return {
       services: {type: Array},
+      diag: {type: Object},
     };
   }
 
@@ -59,7 +71,9 @@ export class Services extends LitElement {
 
     const [currentSnapshot, setSnapshot] = useContext('aes-api-snapshot', null);
     this.onSnapshotChange(currentSnapshot)
+    this.onDiagChange({})
     registerContextChangeHandler('aes-api-snapshot', this.onSnapshotChange.bind(this))
+    registerContextChangeHandler('aes-api-diag', this.onDiagChange.bind(this))
  }
 
   static get styles() {
@@ -69,7 +83,7 @@ export class Services extends LitElement {
   render() {
     return html`<div>
       ${this.services.map(s => {
-        return html`<dw-service .resource=${s}></dw-service>`;
+        return html`<dw-service .resource=${s} .diag=${this.diag}></dw-service>`;
       })}
     </div>`;
   }
@@ -83,6 +97,10 @@ export class Services extends LitElement {
       (((snapshot || {}).Kubernetes || {}).TracingService || []),
       (((snapshot || {}).Kubernetes || {}).LogService || []),
     ].reduce((acc, item) => acc.concat(item));
+  }
+
+  onDiagChange(snapshot) {
+    this.diag = snapshot;
   }
 }
 customElements.define('dw-services', Services);
