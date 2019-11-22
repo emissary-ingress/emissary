@@ -233,6 +233,40 @@ func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 		io.WriteString(w, fb.cfg.PodNamespace)
 	case "/edge_stack/api/snapshot":
+		snapshotHost := fb.cfg.DevWebUISnapshotHost
+		if snapshotHost != "" {
+			client := &http.Client{}
+			req, err := http.NewRequest("GET",
+				fmt.Sprintf("https://%s/edge_stack/api/snapshot", snapshotHost),
+				nil)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			req.Header = r.Header
+
+			resp, err := client.Do(req)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+
+			defer resp.Body.Close()
+
+			// headers
+
+			for name, values := range resp.Header {
+				w.Header()[name] = values
+			}
+
+			// status (must come after setting headers and before copying body)
+			w.WriteHeader(resp.StatusCode)
+
+			// body
+			io.Copy(w, resp.Body)
+			return
+		}
+
 		if !fb.isAuthorized(r) {
 			fb.forbidden(w, r)
 			return
