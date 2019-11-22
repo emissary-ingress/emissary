@@ -14,7 +14,7 @@ import (
 	"os"
 	"path"
 	"strings"
-	"sync/atomic"
+	"sync"
 	"time"
 
 	"github.com/datawire/ambassador/pkg/dlog"
@@ -39,6 +39,11 @@ type LoginClaimsV1 struct {
 	jwt.StandardClaims `json:",inline"`
 }
 
+type Snapshot struct {
+	Watt json.RawMessage
+	Diag json.RawMessage
+}
+
 type firstBootWizard struct {
 	cfg         types.Config
 	staticfiles http.FileSystem
@@ -47,11 +52,29 @@ type firstBootWizard struct {
 	privkey *rsa.PrivateKey
 	pubkey  *rsa.PublicKey
 
-	snapshot atomic.Value
+	snapshotLock sync.Mutex
+	snapshot     Snapshot
 }
 
-func (fb *firstBootWizard) getSnapshot() watt.Snapshot {
-	return fb.snapshot.Load().(watt.Snapshot)
+func (fb *firstBootWizard) getSnapshot() Snapshot {
+	fb.snapshotLock.Lock()
+	defer fb.snapshotLock.Unlock()
+
+	if fb.snapshot.Diag == nil {
+		resp, err := http.Get("http://127.0.0.1:8877/ambassador/v0/diag/?json=true")
+		if err != nil {
+			goto end
+		}
+		defer resp.Body.Close()
+		bodyBytes, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			goto end
+		}
+		fb.snapshot.Diag = json.RawMessage(bodyBytes)
+	}
+
+end:
+	return fb.snapshot
 }
 
 func New(
@@ -69,11 +92,18 @@ func New(
 		hostsGetter: dynamicClient.Resource(k8sSchema.GroupVersionResource{Group: "getambassador.io", Version: "v2", Resource: "hosts"}),
 		privkey:     privkey,
 		pubkey:      pubkey,
+
+		snapshot: Snapshot{
+			Watt: json.RawMessage(`{}`),
+			Diag: nil,
+		},
 	}
-	ret.snapshot.Store(watt.Snapshot{Raw: []byte("{}\n")})
 	go func() {
 		for snapshot := range snapshotCh {
-			ret.snapshot.Store(snapshot)
+			ret.snapshotLock.Lock()
+			ret.snapshot.Watt = snapshot.Raw
+			ret.snapshot.Diag = nil
+			ret.snapshotLock.Unlock()
 		}
 	}()
 	return ret
@@ -208,7 +238,7 @@ func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
-		w.Write(fb.getSnapshot().Raw)
+		json.NewEncoder(w).Encode(fb.getSnapshot())
 	case "/edge_stack/api/apply":
 		if !fb.isAuthorized(r) {
 			fb.forbidden(w, r)

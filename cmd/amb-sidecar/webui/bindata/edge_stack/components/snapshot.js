@@ -30,6 +30,7 @@ export default class Snapshot extends LitElement {
     super();
 
     this.setSnapshot = useContext('aes-api-snapshot', null)[1];
+    this.setDiag = useContext('aes-api-diag', null)[1];
     this.setAuthenticated = useContext('auth-state', null)[1];
     this.loading = false;
 
@@ -49,22 +50,24 @@ export default class Snapshot extends LitElement {
     })
       .then((response) => {
         if (response.status == 400 || response.status == 401 || response.status == 403) {
-	  if (this.fragment === "should-try") {
-	    updateCredentials(window.location.hash.slice(1));
-	    this.fragment = "trying";
-	    setTimeout(this.fetchData.bind(this), 1);
-	  } else {
-	    this.fragment = "";
+          if (this.fragment === "should-try") {
+            updateCredentials(window.location.hash.slice(1));
+            this.fragment = "trying";
+            setTimeout(this.fetchData.bind(this), 1);
+          } else {
+            this.fragment = "";
             this.setAuthenticated(false);
             this.setSnapshot({});
-	  }
+            this.setDiag({});
+          }
         } else {
           response.json().then((json) => {
-	    if (this.fragment == "trying") {
-	      window.location.hash = "";
-	    }
-	    this.fragment = ""
-            this.setSnapshot(json)
+            if (this.fragment == "trying") {
+              window.location.hash = "";
+            }
+            this.fragment = ""
+            this.setSnapshot(json.Watt)
+            this.setDiag(json.Diag || {})
             this.setAuthenticated(true)
             this.loading = false;
             setTimeout(this.fetchData.bind(this), 1000);
