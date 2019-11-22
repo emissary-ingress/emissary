@@ -1,6 +1,8 @@
 package watt
 
 import (
+	"encoding/json"
+
 	ambassadorTypesV2 "github.com/datawire/ambassador/pkg/api/getambassador.io/v2"
 	k8sTypesCoreV1 "k8s.io/api/core/v1"
 )
@@ -8,7 +10,7 @@ import (
 type Snapshot struct {
 	Consul     ResourceCollection
 	Kubernetes ResourceCollection
-	Raw        []byte `json:"-"`
+	Raw        json.RawMessage `json:"-"`
 }
 
 type ResourceCollection struct {
