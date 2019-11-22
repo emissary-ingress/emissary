@@ -80,7 +80,7 @@ export class Mappings extends Resources {
 <dw-mapping
   .resource=${newMapping}
   .state=${this.addState}>
-  <button>Add</button>
+  <add-button></add-button>
 </dw-mapping>
 <div>
   ${this.resources.map(r => {

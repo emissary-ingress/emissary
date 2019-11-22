@@ -30,16 +30,9 @@ export class LoginGate extends LitElement {
     height: 42px;
     margin-bottom: 1em
 }
-div.info-blob {
+div.login-section {
     border: 1px solid #ede7f3;
     box-shadow: 0 2px 4px rgba(0,0,0,.1);
-    padding: 0.5em;
-    margin-bottom: 0.6em;
-    line-height: 1.3;
-}
-div.info-blob2 {
-    border: thin solid grey;
-    border-radius: 0.4em;
     padding: 0.5em;
     margin-bottom: 0.6em;
     line-height: 1.3;
@@ -210,7 +203,7 @@ sudo chmod a+x /usr/local/bin/edgectl
 
   renderUnauthenticated() {
     return html`
-  <div class="info-blob">
+  <div class="login-section">
     <h1 class="info-title">Welcome to Ambassador Edge Stack!</h1>
     <p>To login to the admin portal, use: <span class="command" id="login">edgectl login --namespace=${this.namespace} ${window.location.host}</span> <button style="margin-left: 1em" @click=${this.copyLoginToKeyboard.bind(this)}>Copy to Clipboard</button></p>
     <p>

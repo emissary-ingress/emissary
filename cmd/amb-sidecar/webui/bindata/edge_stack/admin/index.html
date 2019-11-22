@@ -22,7 +22,7 @@
         <login-gate>
           <aes-snapshot-provider>
             <dw-tabs>
-              <div class="info-blob" slot="sticky">
+              <div class="admin-section" slot="sticky">
                 <dw-signup></dw-signup>
               </div>
 
@@ -30,8 +30,7 @@
                 <div class="admin-section">
                   <p>
                   <section-heading>Hosts.</section-heading>
-                    Hosts are domains that are managed by Ambassador, e.g., <code>example.org</code>.</p>
-                  <add-button></add-button>
+                    Hosts are domains that are managed by Ambassador Edge Stack, e.g., <code>example.org</code>.</p>
 
                   <dw-hosts></dw-hosts>
                 </div>
@@ -49,13 +48,12 @@
               </dw-tab>
 
               <dw-tab name="Services">
-                <div class="info-blob">
-                  <h2>Services</h2>
-
+                <div class="admin-section">
                   <p>
-                    These are special services that enhance the functionality of
-                    Ambassador by having Ambassador call out to them when
-                    handling requests.
+                    <section-heading>Services.</section-heading>
+                    Special services that enhance the functionality of
+                    Ambassador Edge Stack. These services are called when Ambassador
+                    handles requests.
                   </p>
 
                   <dw-services></dw-services>
@@ -63,13 +61,13 @@
               </dw-tab>
 
               <dw-tab name="APIs">
-                <div class="info-blob">
+                <div class="admin-section">
                   <dw-apis id="apis"></dw-apis>
                 </div>
               </dw-tab>
 
               <dw-tab name="Documentation">
-                <div class="info-blob">
+                <div class="admin-section">
                   <ul>
                     <li><a href="https://getambassador.io/docs/">Ambassador Documentation</a></li>
                     <li><a href="https://getambassador.io/concepts/overview">Concepts</a></li>
