@@ -105,7 +105,7 @@ export class Host extends Resource {
   <div class="left">Hostname:</div>
   <div class="right">
     <span class="${this.visible("list")}">${spec.hostname}</span>
-    <input class="${this.visible("edit")}" type="text" name="hostname"  value="${spec.hostname}" />
+    <input class="${this.visible("edit", "add")}" type="text" name="hostname"  value="${spec.hostname}" />
   </div>
 
   <div class="left">ACME Provider:</div>
