@@ -12,6 +12,11 @@ section-heading {
 	font-size: 120%;
 	font-weight: bold;
 }
+.section-text {
+	display: inline-block;
+	margin-right: 10%;
+	margin-left: 2.5px;
+}
 div.admin-section {
 	border: 1px solid #ede7f3;
 	box-shadow: 0 2px 4px rgba(0, 0, 0, .1);

@@ -6,9 +6,10 @@ template.innerHTML = `
     }
     button {
       display: block;
+      float: right;
       overflow: hidden;
       position: relative;
-      padding: 0;
+      padding: 0 0 3px 1px;
       font-size: 16px;
       font-weight: bold;
       text-overflow: ellipsis;
@@ -19,6 +20,7 @@ template.innerHTML = `
       height: 1.7em;
       box-sizing: border-box;
       border: 1px solid #a1a1a1;
+      border-radius: 50%;
       background: #ffffff;
       box-shadow: 0 2px 4px 0 rgba(0,0,0, 0.05), 0 2px 8px 0 rgba(161,161,161, 0.4);
       color: #363636;
