@@ -21,6 +21,7 @@ import (
 	"github.com/datawire/ambassador/pkg/supervisor"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/go-acme/lego/v3/acme"
+	"github.com/pkg/errors"
 
 	k8sSchema "k8s.io/apimachinery/pkg/runtime/schema"
 
@@ -273,6 +274,18 @@ func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		json.NewEncoder(w).Encode(fb.getSnapshot())
+	case "/edge_stack/api/activity":
+		if !fb.isAuthorized(r) {
+			fb.forbidden(w, r)
+			return
+		}
+		switch r.Method {
+		case http.MethodPost:
+			fb.registerActivity(w, r)
+		default:
+			middleware.ServeErrorResponse(w, r.Context(), http.StatusMethodNotAllowed,
+				errors.New("method not allowed"), nil)
+		}
 	case "/edge_stack/api/apply":
 		if !fb.isAuthorized(r) {
 			fb.forbidden(w, r)
