@@ -1,6 +1,6 @@
 import { LitElement, html, css } from 'https://cdn.pika.dev/-/lit-element/2.2.1/dist-es2019/lit-element.min.js'
 
-export class Documentation extends LitElement {
+export class Support extends LitElement {
   static get properties() {
     return {};
   }
@@ -57,23 +57,23 @@ img {
     return html`
       <ul>
 
-        <li><a href="https://www.getambassador.io/docs/" target="_blank">
-          <img src="/edge_stack/images/card-docs.png"/>
-          <span>Ambassador Edge Stack Documentation</span>
+        <li><a href="http://d6e.co/slack" target="_blank">
+          <img src="/edge_stack/images/logos/slack-mark.svg"/>
+          <span>Slack: go here to ask for help</span>
         </a></li>
 
-        <li><a href="https://www.getambassador.io/resources/" target="_blank">
-          <img src="/edge_stack/images/card-resources.png"/>
-          <span>Resources and Case Studies</span>
+        <li><a href="https://github.com/datawire/ambassador/issues/new/choose" target="_blank">
+          <img src="/edge_stack/images/logos/github-mark.png"/>
+          <span>Found a bug or have a feature request?</span>
         </a></li>
 
-        <li><a href="https://blog.getambassador.io/" target="_blank">
-          <img src="/edge_stack/images/logos/medium-mark.png"/>
-          <span>Blog</span>
+        <li><a href="https://www.getambassador.io/contact" target="_blank">
+          <img src="/edge_stack/images/logos/datawire-mark.png"/>
+          <span>Enterprise Support</span>
         </a></li>
 
       </ul>
     `;
   }
 }
-customElements.define('dw-documentation', Documentation);
+customElements.define('dw-support', Support);
