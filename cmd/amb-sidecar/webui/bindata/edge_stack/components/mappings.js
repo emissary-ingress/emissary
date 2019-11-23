@@ -84,8 +84,8 @@ class Mapping extends Resource { //TODO need to abstract the changes I made to t
       <div class="up-down-triangle" @click=${() => this.onExpand()}></div>
       <div class="grid" @click=${() => this.onStartEdit()}>
         <div class="left">
-          <span>${this.resource.metadata.name}</span>
-          <span class="namespace">(${this.resource.metadata.namespace})</span>
+          <span>${this.name()}</span>
+          <span class="namespace">(${this.namespace()})</span>
         </div>
         <div class="right">
           <span class="code">${this.resource.spec.prefix}</span>
@@ -96,8 +96,8 @@ class Mapping extends Resource { //TODO need to abstract the changes I made to t
       <div class="up-down-triangle" @click=${() => this.onCollapse()}></div>
       <div class="grid" @click=${() => this.onStartEdit()}>
         <div class="left">
-          <span>${this.resource.metadata.name}</span>
-          <span class="namespace">(${this.resource.metadata.namespace})</span>
+          <span>${this.name()}</span>
+          <span class="namespace">(${this.namespace()})</span>
         </div>
         <div class="right">
           <span class="code">${this.resource.spec.prefix}</span>
