@@ -55,6 +55,10 @@ export class APIs extends LitElement {
   }
 
   loadFromServer() {
+    if(1) {//MOREMORE
+      return {} //MOREMORE
+    } else {//MOREMORE
+
     $.getJSON("/openapi/services", apis => {
       console.log("APIs load succeeded")
       console.log(apis)
@@ -72,6 +76,7 @@ export class APIs extends LitElement {
       console.log("will reload APIs in 10 seconds")
       setTimeout(this.loadFromServer.bind(this), 10000)
     }
+    }//MOREMORE
   }
 
   deferHackStyles() {

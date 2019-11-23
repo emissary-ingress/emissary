@@ -49,6 +49,14 @@ Run all these commands from the root of your apro checkout:
    you test out the UI with different data/states. Note there are
    other snapshots in the ui_devlooop directory.
 
+4a. To get data directly from the cluster, use the DEV_WEBUI_SNAPSHOT_HOST environment variable:
+
+       ```sh
+       DEV_WEBUI_SNAPSHOT_HOST=<my-cluster-host-or-ip> DEV_WEBUI_DIR=${PWD}/cmd/amb-sidecar/webui/bindata APRO_HTTP_PORT=8501 DEV_WEBUI_PORT=9000 go run ./cmd/amb-sidecar
+       ```
+
+    The local backend will then forward all snapshot requests to the backend in the cluster.
+
 5. Goto (3).
 
 # UI Dev Big Picture

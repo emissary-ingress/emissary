@@ -21,16 +21,19 @@ export class Tabs extends LitElement {
   padding: 0.5em;
   line-height: 1.3;
   cursor: pointer;
-  color: blue;
 }
-
+.tab.active {
+  background-color: var(--dw-purple);
+  color: white;
+}
 .tab:hover {
   background-color: #ede7f3;
 }
-
-.active {
-  background-color: #ede7f3;
+.tab.active:hover {
+  background-color: var(--dw-purple);
+  color: white;
 }
+
 `
   }
 

@@ -59,8 +59,9 @@ type Config struct {
 	DevPortalContentBranch string        `env:"DEVPORTAL_CONTENT_BRANCH      ,parser=nonempty-string ,default=master"`
 
 	// Local development
-	DevWebUIPort string `env:"DEV_WEBUI_PORT ,parser=possibly-empty-string                                     "`
-	DevWebUIDir  string `env:"DEV_WEBUI_DIR  ,parser=nonempty-string       ,default=/ambassador/webui/bindata/ "`
+	DevWebUIPort         string `env:"DEV_WEBUI_PORT ,parser=possibly-empty-string                                     "`
+	DevWebUIDir          string `env:"DEV_WEBUI_DIR  ,parser=nonempty-string       ,default=/ambassador/webui/bindata/ "`
+	DevWebUISnapshotHost string `env:"DEV_WEBUI_SNAPSHOT_HOST ,parser=possibly-empty-string"`
 
 	// gostats - This mimics vendor/github.com/lyft/gostats/settings.go,
 	// but the defaults aren't nescessarily the same.

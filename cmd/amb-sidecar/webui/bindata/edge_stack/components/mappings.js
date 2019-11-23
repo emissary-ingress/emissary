@@ -28,7 +28,52 @@ class Mapping extends Resource {
     }
   }
 
-  renderResource() {
+  render() {
+    return html`
+<slot class="${this.state.mode == "off" ? "" : "off"}" @click=${this.onAdd.bind(this)}></slot>
+<div class="${this.state.mode == "off" ? "off" : "frame"}">
+    <div class="left">
+      <span class="${this.visible("list", "edit")}">${this.resource.metadata.name}</span
+          ><input class="${this.visible("add")}" name="name" type="text" value="${this.resource.metadata.name}"/>
+      (<span class="${this.visible("list", "edit")}">${this.resource.metadata.namespace}</span
+          ><input class="${this.visible("add")}" name="namespace" type="text" value="${this.resource.metadata.namespace}"/>)
+    </div>
+    <div class="right">
+      <span class="${this.visible("list")}"><span class="code">${this.resource.spec.prefix}</span></span
+          ><input class="${this.visible("edit", "add")}" type="text" name="prefix" value="${this.resource.spec.prefix}" />
+    </div>
+</div>
+</div>`
+    //TODO MOREMORE expandable
+  }
+
+    old_render() {  //TODO
+      return html`
+<slot class="${this.state.mode == "off" ? "" : "off"}" @click=${this.onAdd.bind(this)}></slot>
+<div class="${this.state.mode == "off" ? "off" : "frame"}">
+  <div class="title">
+    ${this.kind()}: <span class="${this.visible("list", "edit")}">${this.resource.metadata.name}</span>
+          <input class="${this.visible("add")}" name="name" type="text" value="${this.resource.metadata.name}"/>
+
+
+      (<span class="${this.visible("list", "edit")}">${this.resource.metadata.namespace}</span><input class="${this.visible("add")}" name="namespace" type="text" value="${this.resource.metadata.namespace}"/>)</div>
+
+  ${this.renderResource()}
+
+  <div class="both">
+    <label>
+      <button class="${this.visible("list")}" @click=${() => this.onEdit()}>Edit</button>
+      <button class="${this.visible("list")}" @click=${() => this.onDelete()}>Delete</button>
+      <button class="${this.visible("edit", "add")}" @click=${() => this.onCancel()}>Cancel</button>
+      <button class="${this.visible("edit", "add")}" @click=${() => this.onSave()}>Save</button>
+    </label>
+  </div>
+
+  ${this.state.renderErrors()}
+</div>`
+    }
+
+  old_renderResource() {  //TODO
     let resource = this.resource
     let spec = resource.spec
     let status = resource.status || {"state": "<none>"}
