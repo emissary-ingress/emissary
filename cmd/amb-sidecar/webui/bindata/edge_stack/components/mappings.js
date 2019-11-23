@@ -1,16 +1,15 @@
 import {html} from 'https://cdn.pika.dev/-/lit-element/2.2.1/dist-es2019/lit-element.min.js'
 import {Resource, Resources} from '/edge_stack/components/resources.js';
 
-class Mapping extends Resource {
+class Mapping extends Resource { //TODO need to abstract the changes I made to the outer Resource class for use in other sub-classes
 
   kind() {
     return "Mapping"
   }
 
   /*
-   * In addition to the attributes supplied by my parent class (Resource)
-   * (those attributes are metadata.name and metadata.namespace) the attributes
-   * of a Mapping are: prefix and target.
+   * In addition to the metadata.name and metadata.namespace attributes supplied
+   * by my parent class (parent = Resource) the attributes of a Mapping are: prefix and target.
    */
   reset() {
     super.reset();
@@ -63,7 +62,7 @@ class Mapping extends Resource {
   }
   render_off_mode() {
     /*
-     * TODO this mode is not completed
+     * TODO the 'off' mode is not completed
      */
     return html`
 <slot @click=${this.onAdd.bind(this)}></slot>
@@ -119,15 +118,37 @@ class Mapping extends Resource {
   }
   render_edit_mode() {
     /*
-     * TODO this mode is not completed
+     * TODO this comment about the 'edit' mode needs to be written
      */
-    return html`MOREMOREedit ` // TODO
+    return html`
+<div class="frame-no-grid">
+  <div style="float: right">
+    <div class="one-grid">
+      <div class="one-grid-one" @click=${() => this.onCancelButton()}><img class="edit-action-icon" src="/edge_stack/images/cancel.png"/></div>
+      <div class="one-grid-one" @click=${() => this.onSaveButton()}><img class="edit-action-icon" src="/edge_stack/images/save.png"/></div>
+      <div class="one-grid-one" @click=${() => this.onDeleteButton()}><img class="edit-action-icon" src="/edge_stack/images/delete.png"/></div>
+    </div>
+  </div>
+  <div class="three-grid">
+    <div class="three-grid-all">
+      <span>${this.resource.metadata.name}</span>
+      <span class="namespace">(${this.resource.metadata.namespace})</span>
+    </div>
+    <div class="three-grid-one edit-field-label">prefix url:</div>
+    <div class="three-grid-two"><input type="text" name="prefix" value="${this.resource.spec.prefix}" /></div>
+    <div class="three-grid-three"></div>
+    <div class="three-grid-one edit-field-label">service:</div>
+    <div class="three-grid-two"><input type="text" name="prefix" value="${this.resource.spec.service}" /></div>
+    <div class="three-grid-three"></div>
+  </div>
+</div>
+`
   }
   render_add_mode() {
     /*
-     * TODO this mode is not completed
+     * TODO the 'add' mode is not completed
      */
-    return html`MOREMOREedit ` // TODO
+    return html`NOT YET IMPLEMENTED ` // TODO
   }
   /*
    * The onExpand and onCollapse functions are triggered by clicking on the
@@ -152,6 +173,29 @@ class Mapping extends Resource {
     if (this.state.mode != "edit") {
       this.state.mode = "edit"
     }
+  }
+  /*
+   * TODO this comment about onCancelButton needs to be written
+   */
+  onCancelButton() {
+    this.requestUpdate()
+    if( this.state.mode === "edit") {
+      this.state.mode = "list";
+    } else {
+      this.state.mode = "off";
+    }
+  }
+  /*
+   * TODO this comment about onSaveButton needs to be written
+   */
+  onSaveButton() {
+    alert('Save!'); // TODO save is not yet re-implemented
+  }
+  /*
+   * TODO this comment about onDeleteButton needs to be written
+   */
+  onDeleteButton() {
+    alert('Delete!'); // TODO delete is not yet re-implemented
   }
 
   /*
