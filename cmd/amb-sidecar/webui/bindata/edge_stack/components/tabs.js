@@ -6,28 +6,37 @@ export class Tabs extends LitElement {
     return css`
 .tabs {
   float: left;
-  width: 15%;
+  width: 190px;
+  background-color: black;
+  color: white;
+  height: 90vh;
+  font-size: 85%;
+  font-weight: bold;
 }
 
 .main {
-  margin-left: 16%;
+  margin-left: 190px;
 }
 
 .tab {
-  border: 1px solid #ede7f3;
-  box-shadow: 0 2px 4px rgba(0,0,0,.1);
-  border-radius: 0.2em;
   display: block;
-  padding: 0.5em;
+  padding: 1em;
   line-height: 1.3;
   cursor: pointer;
+}
+.tab img {
+  vertical-align: middle;
+  padding-right: 0.8em;
+}
+.tab span.icon-aligned {
+  vertical-align: middle;
 }
 .tab.active {
   background-color: var(--dw-purple);
   color: white;
 }
 .tab:hover {
-  background-color: #ede7f3;
+  background-color: #a9a9a9;
 }
 .tab.active:hover {
   background-color: var(--dw-purple);
@@ -59,7 +68,11 @@ export class Tabs extends LitElement {
       } else {
         this.tabs[i].style.display = "none"
       }
-      this.links.push(html`<span class="${classes}" @click=${e=>this.handleClick(i, e)}>${this.tabs[i].tabName()}</span> `)
+      if( this.tabs[i].tabIconFilename()) {
+        this.links.push(html`<span class="${classes}" @click=${e => this.handleClick(i, e)}><img src="${this.tabs[i].tabIconFilename()}"/><span class="icon-aligned">${this.tabs[i].tabName()}</span></span> `)
+      } else {
+        this.links.push(html`<span class="${classes}" @click=${e => this.handleClick(i, e)}>${this.tabs[i].tabName()}</span> `)
+      }
     }
     this.requestUpdate()
   }
@@ -90,17 +103,23 @@ customElements.define('dw-tabs', Tabs)
 export class Tab extends LitElement {
   static get properties() {
     return {
-      name: { type: String }
+      name: { type: String },
+      icon: { type: String }
     }
   }
 
   constructor() {
-    super()
-    this.name = ""
+    super();
+    this.name = "";
+    this.icon = "";
   }
 
   tabName() {
-    return this.name
+    return this.name;
+  }
+
+  tabIconFilename() {
+    return this.icon;
   }
 
   render() {
