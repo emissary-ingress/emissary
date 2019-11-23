@@ -55,13 +55,19 @@ div.title {
   padding: 0.5em;
 }
 
-/*
+/* -- -- -- -- -- -- -- -- -- -- -- --  
  * These styles are used in mappings.js
+ */
+/*
+ * We separate the frame from the grid so that we can have different grids inside the frame.
  */
 div.frame-no-grid {
   border: 2px solid #ede7f3;
   border-radius: 0.4em;
 }
+/*
+ * Collapsed and expanded are used in the read-only list display of the Mappings.
+ */
 .collapsed div.up-down-triangle {
   float: left;
   margin-left: 0;
@@ -80,6 +86,9 @@ div.frame-no-grid {
 .expanded div.up-down-triangle::before {
   content: "\\25BD"
 }
+/*
+ * grid is used in the read-only list display of the Mappings
+ */
 div.grid {
   display: grid;
   grid-template-columns: 50% 50%;
@@ -87,9 +96,67 @@ div.grid {
 div.grid div {
   margin: 0.1em;
 }
+.namespace {
+  color: #989898;
+  font-size: 80%;
+}
+/*
+ * three-grid is used in the edit display of the Mappings
+ * along with edit-field classes
+ */
+.edit-field {
+  padding-left: 2em;
+}
+.edit-field-label {
+  color: #202020;
+}
+.three-grid {
+  display: grid;
+  grid-template-columns: 40% 50% 10%;
+}
+.three-grid-all {
+  grid-column: 1 / 4;
+}
+.three-grid-one {
+  grid-column: 1 / 2;
+  text-align: right;
+  padding-right: 1em;
+  margin: 0 0 0.25em 0;
+}
+.three-grid-two {
+  grid-column: 2 / 3;
+  margin: 0 0 0.25em 0;
+}
+.three-grid-three {
+  grid-column: 3 / 4;
+  margin: 0 0 0.25em 0;
+}
+.three-grid-two input[type=text] {
+  width: 100%;
+}
+/*
+ * one-grid is used in the edit display for the three action icons
+ * on the right side
+ */
+.one-grid {
+  grid-template-columns: 40px;
+  margin-top: -0.2em;
+}
+.one-grid-one {
+  grid-column: 1 / 2;
+  margin: 0;
+  padding: 0;
+}
+.edit-action-icon {
+  cursor: pointer;
+  width: 25px;
+  height: 25px;
+  padding: 0;
+  margin: 0;
+}
 /*
  * End of styles for mappings.js
- */
+ *  -- -- -- -- -- -- -- -- -- -- -- --  */
  
 div.left {
   grid-column: 1 / 2;
@@ -101,7 +168,9 @@ div.both {
   grid-column: 1 / 3;
 }
 .off { display: none; }
-span.code { font-family: Monaco, monospace; }
+span.code { 
+  font-family: Monaco, monospace;
+}
 
 `
   }
@@ -152,8 +221,8 @@ span.code { font-family: Monaco, monospace; }
               'Authorization': 'Bearer ' + getCookie("edge_stack_auth")
             }),
             body: JSON.stringify({
-              Namespace: this.resource.metadata.namespace,
-              Names: [`${this.kind()}/${this.resource.metadata.name}`]
+              Namespace: this.namespace(),
+              Names: [`${this.kind()}/${this.name()}`]
             })
           })
       .then(r=>{
@@ -198,11 +267,11 @@ span.code { font-family: Monaco, monospace; }
   validate() {}
 
   name() {
-    return this.shadowRoot.querySelector('input[name="name"]')
+    return this.resource.metadata.name;
   }
 
   namespace() {
-    return this.shadowRoot.querySelector('input[name="namespace"]')
+    return this.resource.metadata.namespace;
   }
 
   onSave() {
@@ -258,11 +327,11 @@ spec: ${JSON.stringify(this.spec())}
 <slot class="${this.state.mode == "off" ? "" : "off"}" @click=${this.onAdd.bind(this)}></slot>
 <div class="${this.state.mode == "off" ? "off" : "frame"}">
   <div class="title">
-    ${this.kind()}: <span class="${this.visible("list", "edit")}">${this.resource.metadata.name}</span>
-          <input class="${this.visible("add")}" name="name" type="text" value="${this.resource.metadata.name}"/>
+    ${this.kind()}: <span class="${this.visible("list", "edit")}">${this.name()}</span>
+          <input class="${this.visible("add")}" name="name" type="text" value="${this.name()}"/>
 
 
-      (<span class="${this.visible("list", "edit")}">${this.resource.metadata.namespace}</span><input class="${this.visible("add")}" name="namespace" type="text" value="${this.resource.metadata.namespace}"/>)</div>
+      (<span class="${this.visible("list", "edit")}">${this.namespace()}</span><input class="${this.visible("add")}" name="namespace" type="text" value="${this.namespace()}"/>)</div>
 
   ${this.renderResource()}
 

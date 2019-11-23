@@ -16,9 +16,7 @@ export class Service extends Resource {
   // internal
   irData() {
     const qname = this.resource.metadata.name + "." + this.resource.metadata.namespace;
-    return this.diag.ambassador_services.find(s => {
-      return s._source in this.diag.source_map[qname];
-    });
+    return this.diag.ambassador_services.find(s => s._source in this.diag.source_map[qname]);
   }
 
   // implement
@@ -74,7 +72,7 @@ export class Services extends LitElement {
     this.onDiagChange({})
     registerContextChangeHandler('aes-api-snapshot', this.onSnapshotChange.bind(this))
     registerContextChangeHandler('aes-api-diag', this.onDiagChange.bind(this))
- }
+  }
 
   static get styles() {
     return css``;

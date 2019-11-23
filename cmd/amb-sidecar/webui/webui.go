@@ -11,6 +11,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"os"
 	"path"
 	"strings"
@@ -21,6 +22,7 @@ import (
 	"github.com/datawire/ambassador/pkg/supervisor"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/go-acme/lego/v3/acme"
+	"github.com/pkg/errors"
 
 	k8sSchema "k8s.io/apimachinery/pkg/runtime/schema"
 
@@ -60,7 +62,7 @@ func (fb *firstBootWizard) getSnapshot() Snapshot {
 	fb.snapshotLock.Lock()
 	defer fb.snapshotLock.Unlock()
 
-	if fb.snapshot.Diag == nil {
+	if fb.snapshot.Diag == nil || true {
 		resp, err := http.Get("http://127.0.0.1:8877/ambassador/v0/diag/?json=true")
 		if err != nil {
 			goto end
@@ -273,6 +275,18 @@ func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		json.NewEncoder(w).Encode(fb.getSnapshot())
+	case "/edge_stack/api/activity":
+		if !fb.isAuthorized(r) {
+			fb.forbidden(w, r)
+			return
+		}
+		switch r.Method {
+		case http.MethodPost:
+			fb.registerActivity(w, r)
+		default:
+			middleware.ServeErrorResponse(w, r.Context(), http.StatusMethodNotAllowed,
+				errors.New("method not allowed"), nil)
+		}
 	case "/edge_stack/api/apply":
 		if !fb.isAuthorized(r) {
 			fb.forbidden(w, r)
@@ -320,10 +334,27 @@ func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusBadRequest)
 		}
 		w.Write(output.Bytes())
-	case "/edge_stack/tls/api/empty":
+	case "/edge_stack/api/log-level":
 		if !fb.isAuthorized(r) {
 			fb.forbidden(w, r)
 			return
+		}
+		fb.registerActivity(w, r)
+		switch r.Method {
+		case http.MethodPost:
+			query := make(url.Values)
+			query.Set("loglevel", r.FormValue("loglevel"))
+			resp, err := http.Get("http://127.0.0.1:8877/ambassador/v0/diag/?" + query.Encode())
+			if err != nil {
+				middleware.ServeErrorResponse(w, r.Context(), http.StatusBadGateway,
+					err, nil)
+				return
+			}
+			resp.Body.Close()
+			w.WriteHeader(resp.StatusCode)
+		default:
+			middleware.ServeErrorResponse(w, r.Context(), http.StatusMethodNotAllowed,
+				errors.New("method not allowed"), nil)
 		}
 	default:
 		if _, err := fb.staticfiles.Open(path.Clean(r.URL.Path)); os.IsNotExist(err) {

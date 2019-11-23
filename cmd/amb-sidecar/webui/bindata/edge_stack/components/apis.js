@@ -55,9 +55,9 @@ export class APIs extends LitElement {
   }
 
   loadFromServer() {
-    if(1) {//MOREMORE
-      return {} //MOREMORE
-    } else {//MOREMORE
+    if(1) {//TODO temporarily removed because it was filling the console with error messages making it hard to debug other problems MOREMORE
+      return {} //TODO part of the temporary removal MOREMORE
+    } else {//TODO part of the temporary removal MOREMORE
 
     $.getJSON("/openapi/services", apis => {
       console.log("APIs load succeeded")
@@ -76,7 +76,7 @@ export class APIs extends LitElement {
       console.log("will reload APIs in 10 seconds")
       setTimeout(this.loadFromServer.bind(this), 10000)
     }
-    }//MOREMORE
+    }//TODO part of the temporary removal MOREMORE
   }
 
   deferHackStyles() {
