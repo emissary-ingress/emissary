@@ -32,7 +32,7 @@ export default class Snapshot extends LitElement {
     this.setSnapshot = useContext('aes-api-snapshot', null)[1];
     this.setDiag = useContext('aes-api-diag', null)[1];
     this.setAuthenticated = useContext('auth-state', null)[1];
-    this.loading = false;
+    this.loading = true;
 
     if (getCookie("edge_stack_auth")) {
       this.fragment = "should-try";
@@ -69,7 +69,17 @@ export default class Snapshot extends LitElement {
             this.setSnapshot(json.Watt)
             this.setDiag(json.Diag || {})
             this.setAuthenticated(true)
-            this.loading = false;
+            if (this.loading) {
+              this.loading = false;
+              document.onclick = () => {
+                fetch('/edge_stack/api/activity', {
+                  method: 'POST',
+                  headers: new Headers({
+                    'Authorization': 'Bearer ' + getCookie("edge_stack_auth")
+                  }),
+                });
+              }
+            }
             setTimeout(this.fetchData.bind(this), 1000);
           })
         }

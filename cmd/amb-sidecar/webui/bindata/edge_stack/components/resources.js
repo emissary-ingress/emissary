@@ -8,6 +8,14 @@ export class UIState {
   constructor() {
     this.mode = "list" // one of add, edit, list, detail, off
     this.messages = []
+    this._init = false
+  }
+
+  init(resource) {
+    if (!this._init) {
+      resource.init()
+      this._init = true
+    }
   }
 
   renderErrors() {
@@ -31,18 +39,15 @@ export class Resource extends LitElement {
 .error {
   color: red;
 }
-
 div {
   margin: 0.4em;
 }
-
 div.frame {
   display: grid;
-  grid-template-columns: max-content;
+  grid-template-columns: 50% 50%;
   border: 2px solid #ede7f3;
   border-radius: 0.4em;
 }
-
 div.title {
   grid-column: 1 / 3;
   background: #ede7f3;
@@ -50,19 +55,123 @@ div.title {
   padding: 0.5em;
 }
 
+/* -- -- -- -- -- -- -- -- -- -- -- --  
+ * These styles are used in mappings.js
+ */
+/*
+ * We separate the frame from the grid so that we can have different grids inside the frame.
+ */
+div.frame-no-grid {
+  border: 2px solid #ede7f3;
+  border-radius: 0.4em;
+}
+/*
+ * Collapsed and expanded are used in the read-only list display of the Mappings.
+ */
+.collapsed div.up-down-triangle {
+  float: left;
+  margin-left: 0;
+  margin-top: 0.25em;
+  cursor: pointer;
+}
+.collapsed div.up-down-triangle::before {
+  content: "\\25B7"
+}
+.expanded div.up-down-triangle {
+  float: left;
+  margin-left: 0;
+  margin-top: 0.25em;
+  cursor: pointer; 
+}
+.expanded div.up-down-triangle::before {
+  content: "\\25BD"
+}
+/*
+ * grid is used in the read-only list display of the Mappings
+ */
+div.grid {
+  display: grid;
+  grid-template-columns: 50% 50%;
+}
+div.grid div {
+  margin: 0.1em;
+}
+.namespace {
+  color: #989898;
+  font-size: 80%;
+}
+/*
+ * three-grid is used in the edit display of the Mappings
+ * along with edit-field classes
+ */
+.edit-field {
+  padding-left: 2em;
+}
+.edit-field-label {
+  color: #202020;
+}
+.three-grid {
+  display: grid;
+  grid-template-columns: 40% 50% 10%;
+}
+.three-grid-all {
+  grid-column: 1 / 4;
+}
+.three-grid-one {
+  grid-column: 1 / 2;
+  text-align: right;
+  padding-right: 1em;
+  margin: 0 0 0.25em 0;
+}
+.three-grid-two {
+  grid-column: 2 / 3;
+  margin: 0 0 0.25em 0;
+}
+.three-grid-three {
+  grid-column: 3 / 4;
+  margin: 0 0 0.25em 0;
+}
+.three-grid-two input[type=text] {
+  width: 100%;
+}
+/*
+ * one-grid is used in the edit display for the three action icons
+ * on the right side
+ */
+.one-grid {
+  grid-template-columns: 40px;
+  margin-top: -0.2em;
+}
+.one-grid-one {
+  grid-column: 1 / 2;
+  margin: 0;
+  padding: 0;
+}
+.edit-action-icon {
+  cursor: pointer;
+  width: 25px;
+  height: 25px;
+  padding: 0;
+  margin: 0;
+}
+/*
+ * End of styles for mappings.js
+ *  -- -- -- -- -- -- -- -- -- -- -- --  */
+ 
 div.left {
   grid-column: 1 / 2;
 }
-
 div.right {
   grid-column: 2 / 3;
 }
-
 div.both {
   grid-column: 1 / 3;
 }
-
 .off { display: none; }
+span.code { 
+  font-family: Monaco, monospace;
+}
+
 `
   }
 
@@ -77,6 +186,17 @@ div.both {
     super()
     this.resource = {}
     this.state = new UIState()
+  }
+
+  // This is invoked when the UI state is new... when we get repeat,
+  // this will be able to go away and we can just use constructors.
+  init() {}
+
+  update() {
+    if (this.state instanceof UIState) {
+      this.state.init(this)
+    }
+    super.update()
   }
 
   onAdd() {

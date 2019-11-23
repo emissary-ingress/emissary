@@ -7,94 +7,11 @@
     <title>
       Ambassador Edge Stack Admin
     </title>
-
-    <!--Admin style definitions-->
-    <style>
-      body {
-        font-family: Source Sans Pro, sans-serif;
-        margin-left: 2em;
-        margin-right: 2em;
-      }
-
-      #all-wrapper {
-        width: 80%;
-        margin-left: 10%;
-      }
-
-      #ambassador-logo {
-        background-color: white;
-        padding: 5px;
-        width: 456px;
-        height: 42px;
-        margin-bottom: 1em
-      }
-
-      div.info-blob {
-        border: 1px solid #ede7f3;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, .1);
-        padding: 0.5em;
-        margin-bottom: 0.6em;
-        line-height: 1.3;
-      }
-
-      div.info-blob2 {
-        border: thin solid grey;
-        border-radius: 0.4em;
-        padding: 0.5em;
-        margin-bottom: 0.6em;
-        line-height: 1.3;
-      }
-
-      div.info-title {
-        font-weight: bold;
-        font-size: 120%;
-      }
-
-      span.command {
-        background-color: #f5f2f0;
-        padding: 3px;
-        letter-spacing: .2px;
-        font-family: Consolas, Monaco, Andale Mono, Ubuntu Mono, monospace;
-        font-size: 90%;
-        word-spacing: normal;
-        word-break: normal;
-        word-wrap: normal;
-        hyphens: none;
-      }
-
-      div.overage-alert {
-        border: 3px solid red;
-        border-radius: 0.7em;
-        padding: 0.5em;
-        background-color: #FFe8e8;
-      }
-
-      div.host, div.mapping {
-          padding: 1em 1em;
-      }
-
-      span.json {
-        unicode-bidi: embed;
-        font-family: monospace;
-      }
-
-      details {
-        margin-left: 1em;
-      }
-
-      h2 {
-          margin: 0.1em;
-      }
-
-      login-gate {
-          margin: 0;
-          padding: 0;
-      }
-    </style>
+    <link rel="stylesheet" type="text/css" href="/edge_stack/styles/admin.css">
   </head>
 
   <body>
-    <div id="all-wrapper">
+    <div id="admin-page-outer-wrapper">
       <div id="ambassador-logo">
         <a href="https://www.getambassador.io/">
           <img src="https://www.getambassador.io/images/ambassador-logo-black.svg" alt="Ambassador Edge Stack" />
@@ -105,71 +22,59 @@
         <login-gate>
           <aes-snapshot-provider>
             <dw-tabs>
-              <div class="info-blob" slot="sticky">
+              <div class="admin-section" slot="sticky">
                 <dw-signup></dw-signup>
               </div>
 
-              <dw-tab name="Hosts">
-                <div class="info-blob">
-                  <h2>Hosts</h2>
+              <dw-tab name="Hosts" icon="/edge_stack/images/hosts.png">
+                <div class="admin-section">
+                  <div class="section-heading">Hosts.</div>
+                    <p><span class="section-text">Hosts are domains that are managed by Ambassador Edge Stack, e.g., <code>example.org</code>.</span></p>
 
-                  <p>A Host represents a domain that is managed by Ambassador, e.g., example.org.</p>
-                </div>
-
-                <div class="info-blob">
                   <dw-hosts></dw-hosts>
                 </div>
               </dw-tab>
 
-              <dw-tab name="Mappings">
-                <div class="info-blob">
-                  <h2>Mappings</h2>
-
-                  <p>
-                    A Mapping is an association between a URL (called a prefix) and a target
-                    service (called a target).
+              <dw-tab name="Mappings" icon="/edge_stack/images/mappings.png">
+                <div class="admin-section">
+                  <div class="section-heading">Mappings.</div>
+                  <p>Associations between prefix URLs
+                  and target services.
                   </p>
-                </div>
 
-                <div class="info-blob">
                   <dw-mappings></dw-mappings>
                 </div>
               </dw-tab>
 
-              <dw-tab name="Services">
-                <div class="info-blob">
-                  <h2>Services</h2>
-
-                  <p>
-                    These are special services that enhance the functionality of
-                    Ambassador by having Ambassador call out to them when
-                    handling requests.
+              <dw-tab name="Services" icon="/edge_stack/images/services.png">
+                <div class="admin-section">
+                    <div class="section-heading">Services.</div>
+                    <p>Special services that enhance the functionality of
+                    Ambassador Edge Stack. These services are called when Ambassador
+                    handles requests.
                   </p>
-                </div>
 
-                <div class="info-blob">
                   <dw-services></dw-services>
                 </div>
               </dw-tab>
 
               <dw-tab name="Resolvers">
-                <div class="info-blob">
-                  <h2>Resolvers in use</h2>
-                </div>
+                <div class="admin-section">
+                  <div class="section-heading">Resolvers.</div>
+                  <p>Resolvers in use.</p>
 
-                <div class="info-blob">
                   <dw-resolvers></dw-resolvers>
                 </div>
               </dw-tab>
 
-              <dw-tab name="APIs">
-                <div class="info-blob">
+              <dw-tab name="APIs" icon="/edge_stack/images/apis.png">
+                <div class="admin-section">
                   <dw-apis id="apis"></dw-apis>
                 </div>
               </dw-tab>
 
-              <dw-tab name="Documentation">
-                <div class="info-blob">
+              <dw-tab name="Documentation" icon="/edge_stack/images/docs.png">
+                <div class="admin-section">
                   <ul>
                     <li><a href="https://getambassador.io/docs/">Ambassador Documentation</a></li>
                     <li><a href="https://getambassador.io/concepts/overview">Concepts</a></li>
@@ -193,10 +98,11 @@
   <script async defer type="module" src="/edge_stack/components/tabs.js"></script>
   <script async defer type="module" src="/edge_stack/components/apis.js"></script>
   <script async defer type="module" src="/edge_stack/components/signup.js"></script>
-  <script async defer type="module" src="/edge_stack/components/host.js"></script>
+  <script async defer type="module" src="/edge_stack/components/hosts.js"></script>
   <script async defer type="module" src="/edge_stack/components/snapshot.js"></script>
   <script async defer type="module" src="/edge_stack/components/mappings.js"></script>
   <script async defer type="module" src="/edge_stack/components/services.js"></script>
   <script async defer type="module" src="/edge_stack/components/resolvers.js"></script>
+  <script async defer type="module" src="/edge_stack/components/add-button.js"></script>
   <script async defer type="module" src="https://unpkg.com/rapidoc/dist/rapidoc-min.js"></script>
 </html>
