@@ -1,5 +1,6 @@
 import { LitElement, html, css } from 'https://cdn.pika.dev/-/lit-element/2.2.1/dist-es2019/lit-element.min.js'
 import { registerContextChangeHandler, useContext } from '/edge_stack/components/context.js'
+import { getCookie } from '/edge_stack/components/cookies.js';
 
 export class Debugging extends LitElement {
   // external ////////////////////////////////////////////////////////
@@ -104,8 +105,8 @@ export class Debugging extends LitElement {
         </dl>
 
         <div>
-          <button @click=${this.setLogLevel('debug')}>Set log level to <q>debug</q></button>
-          <button @click=${this.setLogLevel('info')}>Set log level to <q>info</q></button>
+          <button @click=${()=>{this.setLogLevel('debug')}}>Set log level to <q>debug</q></button>
+          <button @click=${()=>{this.setLogLevel('info')}}>Set log level to <q>info</q></button>
         </div>
 
       </fieldset>
@@ -167,7 +168,16 @@ export class Debugging extends LitElement {
   }
 
   setLogLevel(level) {
-    // TODO
+    let formdata = new FormData();
+    formdata.append('loglevel', level);
+
+    fetch('/edge_stack/api/log-level', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + getCookie("edge_stack_auth"),
+      },
+      body: formdata,
+    });
   }
 }
 
