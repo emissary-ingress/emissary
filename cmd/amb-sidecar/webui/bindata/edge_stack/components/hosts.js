@@ -164,7 +164,7 @@ export default class Hosts extends Resources {
       },
       status: {}}
     return html`
-<dw-host .resource=${addHost} .state=${this.addState}><button>Add</button></dw-host>
+<dw-host .resource=${addHost} .state=${this.addState}><add-button></add-button></dw-host>
 <div>
   ${this.resources.map(h => html`<dw-host .resource=${h} .state=${this.state(h)}></dw-host>`)}
 </div>`
