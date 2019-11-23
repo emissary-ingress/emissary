@@ -39,38 +39,33 @@ export class Resource extends LitElement {
 .error {
   color: red;
 }
-
 div {
   margin: 0.4em;
 }
-
 div.frame {
   display: grid;
-  grid-template-columns: max-content;
+  grid-template-columns: 50% 50%;
   border: 2px solid #ede7f3;
   border-radius: 0.4em;
 }
-
 div.title {
   grid-column: 1 / 3;
   background: #ede7f3;
   margin: 0;
   padding: 0.5em;
 }
-
 div.left {
   grid-column: 1 / 2;
 }
-
 div.right {
   grid-column: 2 / 3;
 }
-
 div.both {
   grid-column: 1 / 3;
 }
-
 .off { display: none; }
+span.code { font-family: Monaco, monospace; }
+
 `
   }
 
