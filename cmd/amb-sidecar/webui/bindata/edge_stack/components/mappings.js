@@ -83,10 +83,10 @@ class Mapping extends Resource {
 <div class="frame-no-grid">
     <div class="collapsed" id="collapsed-div">
       <div class="up-down-triangle" @click=${() => this.onExpand()}></div>
-      <div class="grid">
+      <div class="grid" @click=${() => this.onStartEdit()}>
         <div class="left">
           <span>${this.resource.metadata.name}</span>
-          (<span>${this.resource.metadata.namespace}</span>)
+          <span class="namespace">(${this.resource.metadata.namespace})</span>
         </div>
         <div class="right">
           <span class="code">${this.resource.spec.prefix}</span>
@@ -95,10 +95,10 @@ class Mapping extends Resource {
     </div>
     <div class="expanded off" id="expanded-div">
       <div class="up-down-triangle" @click=${() => this.onCollapse()}></div>
-      <div class="grid">
+      <div class="grid" @click=${() => this.onStartEdit()}>
         <div class="left">
           <span>${this.resource.metadata.name}</span>
-          (<span>${this.resource.metadata.namespace}</span>)
+          <span class="namespace">(${this.resource.metadata.namespace})</span>
         </div>
         <div class="right">
           <span class="code">${this.resource.spec.prefix}</span>
@@ -142,6 +142,16 @@ class Mapping extends Resource {
   onCollapse() {
     this.shadowRoot.getElementById("collapsed-div").classList.remove("off");
     this.shadowRoot.getElementById( "expanded-div").classList.add("off");
+  }
+  /*
+   * The onStartEdit function is triggered by clicking on a read-only displayed
+   * version. It switches the mode of the component and then triggers a re-render.
+   */
+  onStartEdit() {
+    this.requestUpdate()
+    if (this.state.mode != "edit") {
+      this.state.mode = "edit"
+    }
   }
 
   /*

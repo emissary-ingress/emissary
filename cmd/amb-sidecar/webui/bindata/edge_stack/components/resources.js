@@ -55,7 +55,7 @@ div.title {
   padding: 0.5em;
 }
 
-/*
+/* -- -- -- -- -- -- -- -- -- -- -- --  
  * These styles are used in mappings.js
  */
 div.frame-no-grid {
@@ -87,9 +87,13 @@ div.grid {
 div.grid div {
   margin: 0.1em;
 }
+.namespace {
+  color: #989898;
+  font-size: 80%;
+}
 /*
  * End of styles for mappings.js
- */
+ *  -- -- -- -- -- -- -- -- -- -- -- --  */
  
 div.left {
   grid-column: 1 / 2;
@@ -101,7 +105,9 @@ div.both {
   grid-column: 1 / 3;
 }
 .off { display: none; }
-span.code { font-family: Monaco, monospace; }
+span.code { 
+  font-family: Monaco, monospace;
+}
 
 `
   }
