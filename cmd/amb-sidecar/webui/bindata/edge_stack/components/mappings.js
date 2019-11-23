@@ -7,20 +7,22 @@ class Mapping extends Resource {
     return "Mapping"
   }
 
+  /*
+   * In addition to the attributes supplied by my parent class (Resource)
+   * (those attributes are metadata.name and metadata.namespace) the attributes
+   * of a Mapping are: prefix and target.
+   */
   reset() {
-    super.reset()
-    this.prefix().value = this.prefix().defaultValue
-    this.target().value = this.target().defaultValue
+    super.reset();
+    this.prefix().value = this.prefix().defaultValue;
+    this.target().value = this.target().defaultValue;
   }
-
   prefix() {
     return this.shadowRoot.querySelector('input[name="prefix"]')
   }
-
   target() {
     return this.shadowRoot.querySelector('input[name="target"]')
   }
-
   spec() {
     return {
       prefix: this.prefix().value,
@@ -28,26 +30,123 @@ class Mapping extends Resource {
     }
   }
 
+  /*
+   * The rendering functions in this file use the CSS styles defined in the resources.js
+   * file. It's a little confusing and it's a left-over/consequence of this class
+   * being a subclass of the more general Resource class. In the future we might find
+   * a better way to encapsulate the styles; or not.
+   */
+
+  /*
+   * A Mapping renders itself differently for each of its four states:
+   *   off: ??
+   *   list: shows the read-only version of the object
+   *   edit: shows the editable version of the object (all the input fields)
+   *   add: shows the add version of the object, similar to the edit version
+   */
   render() {
+    if( this.state.mode === "off") {
+      return this.render_off_mode();
+    } else {
+      if( this.state.mode === "list") {
+        return this.render_list_mode();
+      } else if( this.state.mode === "edit") {
+        return this.render_edit_mode();
+      } else if( this.state.mode === "add") {
+        return this.render_add_mode();
+      } else {
+        /* there should always be a mode, so we should never get here, but if
+         * we do, we render in the default way, which is list mode. */
+        return this.render_list_mode();
+      }
+    }
+  }
+  render_off_mode() {
+    /*
+     * TODO this mode is not completed
+     */
     return html`
-<slot class="${this.state.mode == "off" ? "" : "off"}" @click=${this.onAdd.bind(this)}></slot>
-<div class="${this.state.mode == "off" ? "off" : "frame"}">
-    <div class="left">
-      <span class="${this.visible("list", "edit")}">${this.resource.metadata.name}</span
-          ><input class="${this.visible("add")}" name="name" type="text" value="${this.resource.metadata.name}"/>
-      (<span class="${this.visible("list", "edit")}">${this.resource.metadata.namespace}</span
-          ><input class="${this.visible("add")}" name="namespace" type="text" value="${this.resource.metadata.namespace}"/>)
+<slot @click=${this.onAdd.bind(this)}></slot>
+`
+  }
+  render_list_mode() {
+    /*
+     * The list (read-only) version of the object is an expand/collapse
+     * object. It shows a summary when collapsed and then a complete
+     * version when expanded. In HTML, we generate both of those versions
+     * at the same time and then use the display: none to turn one of the
+     * versions off.
+     */
+    let resourceState = status.state
+    let reason = resourceState == "Error" ? `(${status.reason})` : ''
+    return html`
+<div class="frame-no-grid">
+    <div class="collapsed" id="collapsed-div">
+      <div class="up-down-triangle" @click=${() => this.onExpand()}></div>
+      <div class="grid">
+        <div class="left">
+          <span>${this.resource.metadata.name}</span>
+          (<span>${this.resource.metadata.namespace}</span>)
+        </div>
+        <div class="right">
+          <span class="code">${this.resource.spec.prefix}</span>
+        </div>
+      </div>
     </div>
-    <div class="right">
-      <span class="${this.visible("list")}"><span class="code">${this.resource.spec.prefix}</span></span
-          ><input class="${this.visible("edit", "add")}" type="text" name="prefix" value="${this.resource.spec.prefix}" />
+    <div class="expanded off" id="expanded-div">
+      <div class="up-down-triangle" @click=${() => this.onCollapse()}></div>
+      <div class="grid">
+        <div class="left">
+          <span>${this.resource.metadata.name}</span>
+          (<span>${this.resource.metadata.namespace}</span>)
+        </div>
+        <div class="right">
+          <span class="code">${this.resource.spec.prefix}</span>
+        </div>
+        <div class="left" style="text-align:right;">
+          &rArr;
+        </div>
+        <div class="right">
+          <span>${this.resource.spec.service}</span>
+        </div>
+        <div class="both">
+           <span>${resourceState} ${reason}</span>
+        </div>
+      </div>
     </div>
 </div>
-</div>`
-    //TODO MOREMORE expandable
+`
+  }
+  render_edit_mode() {
+    /*
+     * TODO this mode is not completed
+     */
+    return html`MOREMOREedit ` // TODO
+  }
+  render_add_mode() {
+    /*
+     * TODO this mode is not completed
+     */
+    return html`MOREMOREedit ` // TODO
+  }
+  /*
+   * The onExpand and onCollapse functions are triggered by clicking on the
+   * expand/collapse triangles and they act by hiding one of the two divs and
+   * showing the other one. The two divs (expanded and collapsed) are produced
+   * by render_list_mode().
+   */
+  onExpand() {
+    this.shadowRoot.getElementById("collapsed-div").classList.add("off");
+    this.shadowRoot.getElementById( "expanded-div").classList.remove("off");
+  }
+  onCollapse() {
+    this.shadowRoot.getElementById("collapsed-div").classList.remove("off");
+    this.shadowRoot.getElementById( "expanded-div").classList.add("off");
   }
 
-    old_render() {  //TODO
+  /*
+   * This is old code that needs to be removed and it is fully converted to the new code.
+    old_render() {
       return html`
 <slot class="${this.state.mode == "off" ? "" : "off"}" @click=${this.onAdd.bind(this)}></slot>
 <div class="${this.state.mode == "off" ? "off" : "frame"}">
@@ -73,7 +172,7 @@ class Mapping extends Resource {
 </div>`
     }
 
-  old_renderResource() {  //TODO
+  old_renderResource() {
     let resource = this.resource
     let spec = resource.spec
     let status = resource.status || {"state": "<none>"}
@@ -99,8 +198,10 @@ class Mapping extends Resource {
   </div>
 `
   }
+  */
 
 }
+
 
 customElements.define('dw-mapping', Mapping)
 

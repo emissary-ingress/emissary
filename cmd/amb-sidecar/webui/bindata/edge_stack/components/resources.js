@@ -54,6 +54,43 @@ div.title {
   margin: 0;
   padding: 0.5em;
 }
+
+/*
+ * These styles are used in mappings.js
+ */
+div.frame-no-grid {
+  border: 2px solid #ede7f3;
+  border-radius: 0.4em;
+}
+.collapsed div.up-down-triangle {
+  float: left;
+  margin-left: 0;
+  margin-top: 0.25em;
+  cursor: pointer;
+}
+.collapsed div.up-down-triangle::before {
+  content: "\\25B7"
+}
+.expanded div.up-down-triangle {
+  float: left;
+  margin-left: 0;
+  margin-top: 0.25em;
+  cursor: pointer; 
+}
+.expanded div.up-down-triangle::before {
+  content: "\\25BD"
+}
+div.grid {
+  display: grid;
+  grid-template-columns: 50% 50%;
+}
+div.grid div {
+  margin: 0.1em;
+}
+/*
+ * End of styles for mappings.js
+ */
+ 
 div.left {
   grid-column: 1 / 2;
 }
