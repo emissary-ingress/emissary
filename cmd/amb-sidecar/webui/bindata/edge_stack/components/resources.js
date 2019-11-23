@@ -2,7 +2,64 @@ import { LitElement, html, css} from 'https://cdn.pika.dev/-/lit-element/2.2.1/d
 import {registerContextChangeHandler, useContext} from '/edge_stack/components/context.js'
 import {getCookie} from '/edge_stack/components/cookies.js';
 
-// holds the UI state of a kubernetes resource widget, this can be merged with Resource when we have repeat
+/**
+ * The classes in this file provide the building blocks we use for
+ * displaying, adding, and editing kubernetes resources, most
+ * importantly the CRDs that ambassador uses to get input from users and
+ * communicate output back to users.
+ *
+ * There are a couple different goals of using an abstraction here:
+ *
+ *  - Consistency of experience for cross-cutting aspects of CRDs.
+ *
+ *    One of the things that makes kubernetes powerful for advanced
+ *    users is the ways that they can treat all their resources the
+ *    same way. Labels, annotations, selectors, and status are some
+ *    examples of these shared concepts that we want to provide a
+ *    consistent experience for.
+ *
+ *  - Gitops workflow.
+ *
+ *    A particularly important example of the above consistent
+ *    experience is the ability to use a gitops workflow to manage
+ *    your kubernetes resources. For example, defining your source of
+ *    truth declaratively in git and updating your cluster via apply.
+ *    We need our UI to work well with this gitops workflow
+ *
+ * Of course in addition to the above, we also want to be able to
+ * customize each resource so that we can display, add, and edit it in
+ * the best way for that resource. Navigate quickly to other relevant
+ * resources, and in general help new users become advanced users
+ * faster!
+ *
+ * There are two base classes (Resource, and Resources) intended to be
+ * extended as a way to define two web components that work with each
+ * other: a single-resource web component, e.g. <dw-host>, and a
+ * many-resource component for displaying lots of resources,
+ * e.g. <dw-hosts>.
+ */
+
+/**
+ * The UIState class holds the transient UI state of a kubernetes
+ * resource widget, for example whether the widget is in detail or
+ * list view, or whether we are editing it, or any error messages
+ * discovered when validating on save.
+ *
+ * The reason all this state needs to be kept in a separate class is
+ * that the data associated with the resource itself (e.g. the labels,
+ * spec, status, etc.), is all asynchronously updated whenever it
+ * changes in kubernetes, and we don't want the UI state to reset
+ * whenever this change happens and we need to rerender our widgets.
+ *
+ * Normally we would ensure this by using the repeat directive in our
+ * html templates, and we could just hold this state as regular
+ * properties inside our Resource class, but for now we need to keep
+ * all that state here, and have our many-resource component carefully
+ * manage the UIState objects for us.
+ *
+ * You can add your own transient UI state by overriding the init()
+ * method of Resource and initializing whatever fields you want.
+ */
 export class UIState {
 
   constructor() {
@@ -30,8 +87,74 @@ export class UIState {
       return html``
     }
   }
+
 }
 
+/**
+ * This is a utility component used in conjuction with the Resource
+ * class to control visibility of elements in different modes. Within
+ * a renderResource() method, you can use:
+ *
+ *    <visible-modes mode1 ... modeN>...</visible-modes>
+ *
+ * to control visibility.
+ */
+
+export class VisibleModes extends LitElement {
+
+  static get properties() {
+    return {
+      mode: {type: String}
+    }
+  }
+
+  constructor() {
+    super()
+    this.mode = "default"
+  }
+
+  render() {
+    let display = this.attributes.getNamedItem(this.mode) != null ? "inline" : "none"
+    return html`<slot style="display:${display}"></slot>`
+  }
+
+}
+
+customElements.define('visible-modes', VisibleModes)
+
+/**
+ * The Resource class is an abstract base class that is extended in
+ * order to create a widget for a kubernetes resource. The base class
+ * provides state machinery and a standard set of controls
+ * (add/edit/save) for switching between list, detail, edit, and add
+ * modes.
+ *
+ * When extended to display a given resource, each mode can be
+ * customized as appropriate to provide the optimal experience for
+ * that resource.
+ *
+ * When you extend a Resource, you MUST override the following
+ * methods. See each method for a more detailed description:
+ *
+ *  kind() --> return the kubernetes "Kind" of the resource
+ *
+ *  spec() --> define how yaml is rendered for the kubectl apply that happens on add/save
+ *
+ *  renderResource() --> define how the customizable portions of the widget look for each view
+ *
+ * When you extend a Resource, you probably SHOULD override the
+ * following methods. See each method for a more detailed description:
+ *
+ *   validate() --> define how to perform custom validation prior to save
+ *
+ *   reset() --> reset any ui state related to add/edit on cancel
+ *
+ * When you extend a Resource, you MAY override the following
+ * methods. See each method for a more detailed description:
+ *
+ *   init() --> initialize any ui state when a widget is first
+ *              rendered
+ */
 export class Resource extends LitElement {
 
   static get styles() {
@@ -188,8 +311,12 @@ span.code {
     this.state = new UIState()
   }
 
-  // This is invoked when the UI state is new... when we get repeat,
-  // this will be able to go away and we can just use constructors.
+  /**
+   * This is invoked whenever a resource is first displayed on the
+   * page. You can use this to initialize new UI state. When we get
+   * repeat, this will be able to go away and we can just use
+   * constructors.
+   */
   init() {}
 
   update() {
@@ -254,15 +381,36 @@ span.code {
     this.reset()
   }
 
+  /**
+   * This method is invoked to reset the add/edit state of the widget
+   * when the cancel button is pressed. If you add to this state,
+   * which is super likely, you should override this method and reset
+   * the state you add. You should also remember to call
+   * super.reset() so the common state is also reset.
+   */
+
   reset() {
     this.state.messages.length = 0
     this.name().value = this.name().defaultValue
     this.namespace().value = this.namespace().defaultValue
   }
 
+  /**
+   * This method is invoked from inside the validate() method to
+   * indicate there is an error. If any errors have been added by
+   * validate(), they are displayed to the user rather than allowing
+   * the save action to proceed.
+   */
+
   addError(message) {
     this.state.messages.push(message)
   }
+
+  /**
+   * This method is invoked on save in order to validate input prior
+   * to proceeding with the save action. Use the addError() method to
+   * supply error messages if any input is invalid.
+   */
 
   validate() {}
 
@@ -322,6 +470,16 @@ spec: ${JSON.stringify(this.spec())}
     return [...arguments].includes(this.state.mode) ? "" : "off"
   }
 
+  visibleStyle() {
+    return [...arguments].includes(this.state.mode) ? "" : `display:none`
+  }
+
+  updated() {
+    this.shadowRoot.querySelectorAll("visible-modes").forEach((vm)=>{
+      vm.mode = this.state.mode
+    })
+  }
+
   render() {
     return html`
 <slot class="${this.state.mode == "off" ? "" : "off"}" @click=${this.onAdd.bind(this)}></slot>
@@ -348,20 +506,73 @@ spec: ${JSON.stringify(this.spec())}
 </div>`
   }
 
+  /**
+   * Override this method to return the kubernetes Kind of the
+   * resource, .e.g 'Host', or 'Mapping'.
+   */
   kind() {
     throw new Error("please implement kind()")
   }
 
+  /**
+   * Override this method to implement the save behavior of a
+   * resource.  This method must return an object that will get
+   * rendered with JSON.stringify and supplied as the`spec:` portion
+   * of the kubernetes yaml that is passed to `kubectl apply`.
+   */
   spec() {
     throw new Error("please implement spec()")
   }
 
+  /**
+   * Override this method to control how a resource renders everything
+   * but the kubernetes metadata. This method needs to do the right
+   * thing depending on the value of 'this.state.mode'. For example,
+   * if the mode is detail, this should render all/most of the
+   * contents of the spec and status portion of the resource. If it is
+   * edit, it should render the contents as form inputs. If it is
+   * list, it should show a compact summary of just the relevant
+   * stuff.
+   *
+   * The <visible-modes> component provides a convenient way to
+   * control the visibility of elements that you render. For example:
+   *
+   *   <visible-modes list detail>Summary: ${summary}</visible-modes>
+   *   <visible-modes detail>${long-explanation}</visible-modes>
+   *
+   * Also:
+   * 
+   *   Field: <visible-modes list>${value}</visible-modes>
+   *          <visible-modes add edit><input type=text value=${value}/></visible-modes>
+   */
   renderResource() {
     throw new Error("please implement renderResource()")
   }
 
 }
 
+/**
+ * The Resources class is an abstract base class that is extended in
+ * order to create a container widget for listing kubernetes resources
+ * of a single kind. The base class provides machinery to manage the
+ * UI state of all the contained widgets, so we can have compact list
+ * displays, expand/edit individual items, etc. (That particular
+ * aspect of this component will be much less central once we have
+ * repeat and we don't need to explicitly manage ephemeral UI state.)
+ *
+ * The Resources class also registers a change handler so it can
+ * asynchronously update and rerender all the kubernetes resources
+ * contained within whenever the data changes on the server.
+ *
+ * To implement a Resources container element, you must extend this
+ * class and override the following methods. See individual methods
+ * for more details:
+ *
+ *   key() --> tells us where in the watt snapshot our resources are
+ *
+ *   render() --> tell us how to display the collection
+ *
+ */
 export class Resources extends LitElement {
 
   static get properties() {
@@ -402,10 +613,49 @@ export class Resources extends LitElement {
     return this._states[key]
   }
 
+  /**
+   * Override this to provide a key within the Kubernetes portion of
+   * the watt snapshot. This is usually the kubernetes Kind of the
+   * resource. (We may want to replace this at some point with a more
+   * generic means to override this.)
+   */
   key() {
     throw new Error("please implement key()")
   }
 
+  /**
+   * Override this to show control how the collection renders. Most of the time this should look like this:
+   *
+   *    render() {
+   *      let addHost = {
+   *        metadata: {
+   *          namespace: "default",
+   *          name: window.location.hostname
+   *        },
+   *        spec: {
+   *          hostname: window.location.hostname,
+   *          acmeProvider: {
+   *            authority: "https://acme-v02.api.letsencrypt.org/directory",
+   *            email: ""
+   *          }
+   *        },
+   *        status: {}}
+   *      return html`
+   *  <dw-host .resource=${addHost} .state=${this.addState}><add-button></add-button></dw-host>
+   *  <div>
+   *    ${this.resources.map(h => html`<dw-host .resource=${h} .state=${this.state(h)}></dw-host>`)}
+   *  </div>`
+   *    }
+   *
+   * The key elements being:
+   *
+   *   a) define the default resource for when you click add
+   *   b) include a single resource component (the <dw-host...>)
+   *      for where you want add to be
+   *   c) render the <dw-host> elements that form the existing
+   *      resources and pass in the resource data and ui state
+   *
+   */
   render() {
     throw new Error("please implement render()")
   }
