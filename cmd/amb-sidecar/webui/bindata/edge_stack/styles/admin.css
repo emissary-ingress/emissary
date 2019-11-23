@@ -7,10 +7,11 @@ body {
 	margin-left: 2em;
 	margin-right: 2em;
 }
-section-heading {
+.section-heading {
 	margin: 0.1em;
 	font-size: 120%;
 	font-weight: bold;
+	margin-top: 0;
 }
 .section-text {
 	display: inline-block;
