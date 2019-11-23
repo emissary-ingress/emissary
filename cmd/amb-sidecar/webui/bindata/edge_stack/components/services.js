@@ -72,7 +72,7 @@ export class Services extends LitElement {
     this.onDiagChange({})
     registerContextChangeHandler('aes-api-snapshot', this.onSnapshotChange.bind(this))
     registerContextChangeHandler('aes-api-diag', this.onDiagChange.bind(this))
- }
+  }
 
   static get styles() {
     return css``;

@@ -96,7 +96,7 @@ export class Resolvers extends LitElement {
     this.onDiagChange(currentDiag);
     registerContextChangeHandler('aes-api-snapshot', this.onWattChange.bind(this));
     registerContextChangeHandler('aes-api-diag', this.onDiagChange.bind(this));
- }
+  }
 
   static get styles() {
     return css``;
