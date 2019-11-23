@@ -61,7 +61,7 @@ func (fb *firstBootWizard) getSnapshot() Snapshot {
 	fb.snapshotLock.Lock()
 	defer fb.snapshotLock.Unlock()
 
-	if fb.snapshot.Diag == nil {
+	if fb.snapshot.Diag == nil || true {
 		resp, err := http.Get("http://127.0.0.1:8877/ambassador/v0/diag/?json=true")
 		if err != nil {
 			goto end
