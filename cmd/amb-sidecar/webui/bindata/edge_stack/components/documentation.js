@@ -16,10 +16,10 @@ export class Documentation extends LitElement {
   render() {
     return html`
       <ul>
-        <li><a href="https://getambassador.io/docs/">Ambassador Documentation</a></li>
-        <li><a href="https://getambassador.io/concepts/overview">Concepts</a></li>
-        <li><a href="https://getambassador.io/docs/guides/">Guides</a></li>
-        <li><a href="https://getambassador.io/reference/configuration">Configuration Reference</a></li>
+        <li><a href="https://getambassador.io/docs/" target="_blank">Ambassador Documentation</a></li>
+        <li><a href="https://getambassador.io/concepts/overview" target="_blank">Concepts</a></li>
+        <li><a href="https://getambassador.io/docs/guides/" target="_blank">Guides</a></li>
+        <li><a href="https://getambassador.io/reference/configuration" target="_blank">Configuration Reference</a></li>
       </ul>
     `;
   }
