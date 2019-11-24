@@ -603,6 +603,14 @@ export class ResourceSet extends LitElement {
     registerContextChangeHandler('aes-api-snapshot', this.onSnapshotChange.bind(this))
   }
 
+  /**
+   * This method is invoked with the snapshot of server state (aka the
+   * watt snapshot). Said snapshot comes from the
+   * /edge_stack/api/snapshot endpoint which can be found in webui.go
+   *
+   * This method can be overridden so long as it sets this.resources
+   * to an appropriate set of resources extracted from the snapshot.
+   */
   onSnapshotChange(snapshot) {
     let defaults = {}
     defaults[this.key()] = []
@@ -619,10 +627,12 @@ export class ResourceSet extends LitElement {
   }
 
   /**
-   * Override this to provide a key within the Kubernetes portion of
-   * the watt snapshot. This is usually the kubernetes Kind of the
-   * resource. (We may want to replace this at some point with a more
-   * generic means to override this.)
+   * Override this method to control which resources the ResourceSet
+   * shows.  By default, this.onSnapshotChange(snapshot) will extract
+   * resources from snapshot['Kubernetes'][key()]. The Kubernetes map
+   * inside the snapshot holds resources keyed by kubernetes Kind, so
+   * you'd typically set this to something like 'Host' if you
+   * e.g. wanted to display Host resources.
    */
   key() {
     throw new Error("please implement key()")
