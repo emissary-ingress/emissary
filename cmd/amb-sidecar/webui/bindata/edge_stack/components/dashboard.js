@@ -4,14 +4,13 @@
    */
 
 import { LitElement, html, css } from "https://cdn.pika.dev/-/lit-element/2.2.1/dist-es2019/lit-element.min.js";
+import {useContext, registerContextChangeHandler} from '/edge_stack/components/context.js'
 
    // Set a callback to run when the Google Visualization API is loaded.
   google.charts.setOnLoadCallback(chartsLoaded);
 
 /* The Dashboard class, drawing dashboard elements in a matrix of dash-element div's. */
 export class Dashboard extends LitElement {
-  var chartElementsToUpdate = new Set();
-
   /* styles() returns the styles for frames, triangles, etc. copied from resources.js.
      this should really be in a superclass that is shared by all Admin pages. */
   static get styles() {
@@ -20,7 +19,12 @@ export class Dashboard extends LitElement {
         color: red;
       }
       
+      div.element {
+        display: inline-block;
+      }
+      
       div.element-titlebar {
+        text-align: center;
         font-weight: bold;
         background-color: lightgray;
         width: 200px;
@@ -33,6 +37,7 @@ export class Dashboard extends LitElement {
 
       div.element-content {
         background-color: whitesmoke;
+        text-align: center; 
         width: 200px;
         height: 200px;
         border: 2px solid lightgray;
@@ -47,6 +52,11 @@ export class Dashboard extends LitElement {
   /* The constructor doesn't do anything at the moment...*/
   constructor() {
     super()
+
+    const [currentSnapshot, setSnapshot] = useContext('aes-api-snapshot', null);
+    this.onSnapshotChange(currentSnapshot);
+    registerContextChangeHandler('aes-api-snapshot', this.onSnapshotChange.bind(this));
+
   };
 
   /* Initialize the dashboard. */
@@ -69,17 +79,35 @@ export class Dashboard extends LitElement {
     this.state.messages.push("validating dashboard...why?")
   };
 
-  /* Render the component by returning a TemplateResult, using the html helper function. */
+  onSnapshotChange(snapshot) {
+    this.services = [
+    (((snapshot || {}).Kubernetes || {}).AuthService || []),
+    (((snapshot || {}).Kubernetes || {}).RateLimitService || []),
+    (((snapshot || {}).Kubernetes || {}).TracingService || []),
+    (((snapshot || {}).Kubernetes || {}).LogService || []),
+  ].reduce((acc, item) => acc.concat(item));
+
+  this.requestUpdate();
+}
+
+/* Render the component by returning a TemplateResult, using the html helper function. */
   render() {
+    /* return html`Hello World from Dashboard` */
+    var test_value = "testing...";
+    var num_of_services = 0;
+
+    if (this.services) {
+      num_of_services = this.services.length
+    }
+
     return html`
-        $(this.renderGraphItem("Graph1"))
-        $(this.renderSummaryItem("Summary1"))
-        $(this.renderGraphItem("Graph2"))
-        $(this.renderSummaryItem("Summary2"))
-        $(this.renderGraphItem("Graph3"))
-        $(this.renderSummaryItem("Summary3"))
+      ${this.renderSummaryItem("Number of Services", num_of_services)}
+      ${this.renderSummaryItem("Summary 1", test_value)}
+      ${this.renderGraphItem("Graph 1", test_value)}
+      ${this.renderSummaryItem("Summary 1", test_value)}
+      ${this.renderGraphItem("Graph 1", test_value)}
+      ${this.renderSummaryItem("Summary 1", test_value)}
     `
-    // return html`Hello World from Dashboard`
   };
 
   updated(changedProperties) {
@@ -95,8 +123,6 @@ export class Dashboard extends LitElement {
   /* Draw a chart in the given element. */
   drawChart(element_id) {
     if (true) {
-      google.charts.load('current', {'packages':['corechart']});
-
       // Create the data table.
       var data = new google.visualization.DataTable();
       data.addColumn('string', 'Topping');
@@ -123,27 +149,26 @@ export class Dashboard extends LitElement {
   }
 
   /* Returns a single graph item in a box. */
-  renderGraphItem(title) {
+  renderGraphItem(title, value) {
     return html`
-        <div float: right>
-        <div class="element-titlebar">Graph $(title)</div>
-        <div class="element-content">Graph Content Goes Here</div>
+        <div class="element">
+        <div class="element-titlebar">Graph ${title}</div>
+        <div class="element-content">Graph Content Goes Here: ${value}</div>
         </div>`
   }
 
   /* Returns a single summary item in a box. */
-  renderSummaryItem(title) {
+  renderSummaryItem(title, value) {
     return html`
-        <div float: right>
-        <div class="element-titlebar">Summary $(title)</div>
-        <div class="element-content">Summary Content Goes Here</div>
+        <div class="element">
+        <div class="element-titlebar">${title}</div>
+        <div class="element-content">${value}</div>
         </div>`
   }
 };
 
 // Callback to recognize when the Google Charts are loaded.
 function chartsLoaded() {
-  googleChartsLoaded = true;
   console.log("Google Charts Loaded")
 }
 
