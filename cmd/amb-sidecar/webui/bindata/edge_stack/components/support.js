@@ -34,16 +34,16 @@ ul > li > a {
   text-align: center;
 
   margin: 0.4em;
-  border: 2px solid #ede7f3;
+  border: 2px solid var(--dw-item-border);
   border-radius: 0.4em;
-  background-color: #fdfaff;
+  background-color: var(--dw-item-background-fill);
 
   text-decoration: none;
   color: black;
 }
 
 ul > li > a:hover {
-  background-color: #ede7f3;
+  background-color: var(--dw-item-background-hover);
 }
 
 ul > li > a > * {

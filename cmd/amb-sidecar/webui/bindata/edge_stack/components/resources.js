@@ -127,12 +127,12 @@ div {
 div.frame {
   display: grid;
   grid-template-columns: 50% 50%;
-  border: 2px solid #ede7f3;
+  border: 2px solid var(--dw-item-border);
   border-radius: 0.4em;
 }
 div.title {
   grid-column: 1 / 3;
-  background: #ede7f3;
+  background: var(--dw-item-background-fill);
   margin: 0;
   padding: 0.5em;
 }
@@ -144,7 +144,7 @@ div.title {
  * We separate the frame from the grid so that we can have different grids inside the frame.
  */
 div.frame-no-grid {
-  border: 2px solid #ede7f3;
+  border: 2px solid var(--dw-item-border);
   border-radius: 0.4em;
 }
 /*
