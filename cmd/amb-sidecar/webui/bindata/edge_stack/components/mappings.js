@@ -85,7 +85,7 @@ class Mapping extends SingleResource { //TODO need to abstract the changes I mad
       <div class="grid" @click=${() => this.onStartEdit()}>
         <div class="left">
           <span>${this.name()}</span>
-          <span class="namespace">(${this.namespace()})</span>
+          <span class="crd-namespace">(${this.namespace()})</span>
         </div>
         <div class="right">
           <span class="code">${this.resource.spec.prefix}</span>
@@ -97,7 +97,7 @@ class Mapping extends SingleResource { //TODO need to abstract the changes I mad
       <div class="grid" @click=${() => this.onStartEdit()}>
         <div class="left">
           <span>${this.name()}</span>
-          <span class="namespace">(${this.namespace()})</span>
+          <span class="crd-namespace">(${this.namespace()})</span>
         </div>
         <div class="right">
           <span class="code">${this.resource.spec.prefix}</span>
@@ -132,7 +132,7 @@ class Mapping extends SingleResource { //TODO need to abstract the changes I mad
   <div class="three-grid">
     <div class="three-grid-all">
       <span>${this.resource.metadata.name}</span>
-      <span class="namespace">(${this.resource.metadata.namespace})</span>
+      <span class="crd-namespace">(${this.resource.metadata.namespace})</span>
     </div>
     <div class="three-grid-one edit-field-label">prefix url:</div>
     <div class="three-grid-two"><input type="text" name="prefix" value="${this.resource.spec.prefix}" /></div>

@@ -122,21 +122,44 @@ export class SingleResource extends LitElement {
   color: red;
 }
 div {
-  margin: 0.4em;
+/*  margin: 0.4em; */
 }
 div.frame {
   display: grid;
-  grid-template-columns: 50% 50%;
+  margin: 0.4em;
+  grid-template-columns: repeat(10, 10%);
+  grid-gap: 0 0;
   border: 2px solid var(--dw-item-border);
   border-radius: 0.4em;
 }
 div.title {
-  grid-column: 1 / 3;
+  grid-column: 1 / 11;
   background: var(--dw-item-background-fill);
   margin: 0;
   padding: 0.5em;
 }
-
+div.attribute-name {
+  grid-column: 1 / 3;
+  padding-right: 0.5em;
+  text-align: right;
+  font-variant: small-caps;
+}
+div.attribute-value {
+  grid-column: 3 / 11;
+}
+.crd-name {
+  font-weight: bold;
+}
+.crd-namespace {
+  color: #989898;
+  font-size: 80%;
+}
+.off { 
+  display: none; 
+}
+span.code { 
+  font-family: Monaco, monospace;
+}
 /* -- -- -- -- -- -- -- -- -- -- -- --  
  * These styles are used in mappings.js
  */
@@ -178,10 +201,7 @@ div.grid {
 div.grid div {
   margin: 0.1em;
 }
-.namespace {
-  color: #989898;
-  font-size: 80%;
-}
+
 /*
  * three-grid is used in the edit display of the Mappings
  * along with edit-field classes
@@ -248,10 +268,6 @@ div.right {
 }
 div.both {
   grid-column: 1 / 3;
-}
-.off { display: none; }
-span.code { 
-  font-family: Monaco, monospace;
 }
 
 `
@@ -354,7 +370,6 @@ span.code {
    * the state you add. You should also remember to call
    * super.reset() so the common state is also reset.
    */
-
   reset() {
     this.state.messages.length = 0;
     this.name().value = this.name().defaultValue;
@@ -367,7 +382,6 @@ span.code {
    * validate(), they are displayed to the user rather than allowing
    * the save action to proceed.
    */
-
   addError(message) {
     this.state.messages.push(message)
   }
@@ -381,7 +395,6 @@ span.code {
    * this.addError(message) *is* invoked one or more times, then the
    * data is assumed invalid.
    */
-
   validate() {}
 
   // internal
@@ -457,11 +470,9 @@ spec: ${JSON.stringify(this.spec())}
 <slot class="${this.state.mode === "off" ? "" : "off"}" @click=${this.onAdd.bind(this)}></slot>
 <div class="${this.state.mode === "off" ? "off" : "frame"}">
   <div class="title">
-    ${this.kind()}: <span class="${this.visible("list", "edit")}">${this.name()}</span>
+    ${this.kind()}: <span class="crd-name ${this.visible("list", "edit")}">${this.name()}</span>
           <input class="${this.visible("add")}" name="name" type="text" value="${this.name()}"/>
-
-
-      (<span class="${this.visible("list", "edit")}">${this.namespace()}</span><input class="${this.visible("add")}" name="namespace" type="text" value="${this.namespace()}"/>)</div>
+      <span class="crd-namespace">(<span class="${this.visible("list", "edit")}">${this.namespace()}</span><input class="${this.visible("add")}" name="namespace" type="text" value="${this.namespace()}"/>)</span></div>
 
   ${this.renderResource()}
 
