@@ -4,6 +4,15 @@
     <meta charset="utf-8">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
     <script type='text/javascript' src="https://codejoust.github.io/session.js/session-0.4.js"></script>
+
+    <!-- Google Charts -->
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js">
+    </script>
+    <script type="text/javascript">
+        google.charts.load('current', {'packages':['corechart']});
+        google.load('visualization', '1.0', { packages: ['corechart'] });
+    </script>
+
     <title>
       Ambassador Edge Stack Admin
     </title>
@@ -28,12 +37,8 @@
 
               <dw-tab name="Dashboard">
                 <div class="admin-section">
-                  <p>
-                  <section-heading >Dashboard.</section-heading>
-                    <span class="section-text">Dashboard.</span>
-                  </p>
-
-                  <dw-dashboard>Dashboard - nothing happens, doesn't even load dashboard.js</dw-dashboard>
+                  <div class="section-heading">Dashboard</div>
+                  <dw-dashboard id="Dashboard">Dashboard - nothing happens, doesn't even load dashboard.js</dw-dashboard>
                 </div>
               </dw-tab>
               
