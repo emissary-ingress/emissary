@@ -58,17 +58,17 @@ img {
       <ul>
 
         <li><a href="https://www.getambassador.io/docs/" target="_blank">
-          <img src="/edge_stack/images/card-docs.png" alt="Ambassador Edge Stack Documentation"/>
+          <img src="/edge_stack/images/card-docs.png" alt=""/>
           <span>Ambassador Edge Stack Documentation</span>
         </a></li>
 
         <li><a href="https://www.getambassador.io/resources/" target="_blank">
-          <img src="/edge_stack/images/card-resources.png" alt="Resources and Case Studies"/>
+          <img src="/edge_stack/images/card-resources.png" alt=""/>
           <span>Resources and Case Studies</span>
         </a></li>
 
         <li><a href="https://blog.getambassador.io/" target="_blank">
-          <img src="/edge_stack/images/logos/medium-mark.png" alt="Blog"/>
+          <img src="/edge_stack/images/logos/medium-mark.png" alt=""/>
           <span>Blog</span>
         </a></li>
 
