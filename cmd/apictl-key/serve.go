@@ -54,16 +54,22 @@ type HubspotUsageProbe struct {
 
 func (p *HubspotUsageProbe) Check() bool {
 	url := fmt.Sprintf("https://api.hubapi.com/integrations/v1/limit/daily?hapikey=%s", hubspotKey)
+	httpClient := &http.Client{
+		Timeout: time.Second * 2,
+	}
 	// #nosec G107
-	resp, err := http.Get(url)
+	resp, err := httpClient.Get(url)
 	if err != nil {
 		p.l.WithError(err).Error("Request to hubspot API failed!")
-		return false
+		// TODO(alexgervais): We don't really want to crash our health probe if Hubspot is down.
+		//                    Post AES launch, we should really instrument metrics about hubspot and build observability
+		//                    around our API usage and downstream health.
+		return true
 	}
 	defer resp.Body.Close()
 	if resp != nil && resp.StatusCode != 200 {
 		p.l.Error("Request to hubspot API resulted in ", resp.StatusCode)
-		return false
+		return true
 	}
 	p.l.Debug("hubspot API health check result: ", resp)
 	return true

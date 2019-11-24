@@ -58,6 +58,21 @@
                 </div>
               </dw-tab>
 
+              <dw-tab name="Resolvers">
+                <div class="admin-section">
+                  <div class="section-heading">Resolvers.</div>
+                  <p>Resolvers in use.</p>
+
+                  <dw-resolvers></dw-resolvers>
+                </div>
+              </dw-tab>
+
+              <dw-tab name="Debugging">
+                <div class="admin-section">
+                  <dw-debugging></dw-debugging>
+                </div>
+              </dw-tab>
+
               <dw-tab name="APIs" icon="/edge_stack/images/apis.png">
                 <div class="admin-section">
                   <dw-apis id="apis"></dw-apis>
@@ -66,12 +81,13 @@
 
               <dw-tab name="Documentation" icon="/edge_stack/images/docs.png">
                 <div class="admin-section">
-                  <ul>
-                    <li><a href="https://getambassador.io/docs/">Ambassador Documentation</a></li>
-                    <li><a href="https://getambassador.io/concepts/overview">Concepts</a></li>
-                    <li><a href="https://getambassador.io/docs/guides/">Guides</a></li>
-                    <li><a href="https://getambassador.io/reference/configuration">Configuration Reference</a></li>
-                  </ul>
+                  <dw-documentation></dw-documentation>
+                </div>
+              </dw-tab>
+
+              <dw-tab name="Support">
+                <div class="admin-section">
+                  <dw-support></dw-support>
                 </div>
               </dw-tab>
             </dw-tabs>
@@ -93,6 +109,10 @@
   <script async defer type="module" src="/edge_stack/components/snapshot.js"></script>
   <script async defer type="module" src="/edge_stack/components/mappings.js"></script>
   <script async defer type="module" src="/edge_stack/components/services.js"></script>
+  <script async defer type="module" src="/edge_stack/components/resolvers.js"></script>
+  <script async defer type="module" src="/edge_stack/components/debugging.js"></script>
+  <script async defer type="module" src="/edge_stack/components/documentation.js"></script>
+  <script async defer type="module" src="/edge_stack/components/support.js"></script>
   <script async defer type="module" src="/edge_stack/components/add-button.js"></script>
   <script async defer type="module" src="https://unpkg.com/rapidoc/dist/rapidoc-min.js"></script>
 </html>
