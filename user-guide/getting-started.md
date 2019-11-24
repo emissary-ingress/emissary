@@ -2,9 +2,9 @@
 
 <img src="/doc-images/kubernetes.png"  style="width:60px;height:57px;"/>
 
-Ambassador Edge Stack is designed to run in Kubernetes for production. However, there are a few prerequisties that are important for a successful installation of Ambassador Edge Stack. Make sure have the following:
+Ambassador Edge Stack is designed to run in Kubernetes for production. However, there are a few prerequisites that are important for a successful installation of Ambassador Edge Stack. Make sure you have the following:
 
-* a clean, running [Kubernetes cluster](https://kubernetes.io/docs/setup/)
+* a clean, running [Kubernetes cluster](https://kubernetes.io/docs/setup/), version 1.11 or later
 * the command line tool [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/)
 
 ## 1. Deploying Ambassador Edge Stack to Kubernetes
@@ -32,7 +32,7 @@ kubectl get -n ambassador service ambassador -o 'go-template={{range .status.loa
 
 ### Minikube Users
 
-If you happen to be using Minikube, note that Minikube does not natively support load balancers. Instead, to get the URL of Ambassador from minikube, use the command `minikube service list`
+If you happen to be using Minikube, note that Minikube does not natively support load balancers. Instead, to get the URL of Ambassador from minikube, use the command `minikube service list`:
 
 ```
 (⎈ |minikube:ambassador)$ minikube service list
@@ -56,9 +56,9 @@ Navigate to your new IP address in your browser. Assign a DNS name using the pro
 
 ## 4. Complete the install
 
-Go to `http://&lt;your-host-name&gt;` and follow the instructions to complete the install.
+Go to `http://<your-host-name>` and follow the instructions to complete the install.
 
-You will need to install the `edgectl` tool in order to fully configure your Ambassador Edge Stack UI. If you are having trouble downloading the files, you can download them directly from [this page](/user-guide/downloads).
+You will need to install the `edgectl` tool in order to fully configure the Ambassador Edge Stack UI. If you are having trouble downloading `edgectl`, you can download them directly from [this page](/user-guide/downloads).
 
 ## Next Steps
 
