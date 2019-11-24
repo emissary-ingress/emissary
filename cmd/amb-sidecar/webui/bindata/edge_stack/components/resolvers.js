@@ -1,8 +1,8 @@
 import { LitElement, html, css } from 'https://cdn.pika.dev/-/lit-element/2.2.1/dist-es2019/lit-element.min.js'
-import {Resource} from '/edge_stack/components/resources.js'
+import {SingleResource} from '/edge_stack/components/resources.js'
 import {registerContextChangeHandler, useContext} from '/edge_stack/components/context.js'
 
-export class Resolver extends Resource {
+export class Resolver extends SingleResource {
   // implement
   kind() {
     return this.resource_diag.kind;

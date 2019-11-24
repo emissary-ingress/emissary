@@ -111,7 +111,6 @@ import {getCookie} from '/edge_stack/components/cookies.js';
  */
 export class SingleResource extends LitElement {
 
-
   /**
    * Override this to add custom styles. Make sure you include the
    * base class styles by including the result of super.styles() in
@@ -128,12 +127,12 @@ div {
 div.frame {
   display: grid;
   grid-template-columns: 50% 50%;
-  border: 2px solid #ede7f3;
+  border: 2px solid var(--dw-item-border);
   border-radius: 0.4em;
 }
 div.title {
   grid-column: 1 / 3;
-  background: #ede7f3;
+  background: var(--dw-item-background-fill);
   margin: 0;
   padding: 0.5em;
 }
@@ -145,7 +144,7 @@ div.title {
  * We separate the frame from the grid so that we can have different grids inside the frame.
  */
 div.frame-no-grid {
-  border: 2px solid #ede7f3;
+  border: 2px solid var(--dw-item-border);
   border-radius: 0.4em;
 }
 /*
@@ -268,8 +267,8 @@ span.code {
 
   // internal
   constructor() {
-    super()
-    this.resource = {}
+    super();
+    this.resource = {};
     this.state = new UIState()
   }
 
@@ -291,14 +290,14 @@ span.code {
 
   // internal
   onAdd() {
-    this.requestUpdate()
+    this.requestUpdate();
     this.state.mode = "add"
   }
 
   // internal
   onEdit() {
-    this.requestUpdate()
-    if (this.state.mode != "edit") {
+    this.requestUpdate();
+    if (this.state.mode !== "edit") {
       this.state.mode = "edit"
     } else {
       this.state.mode = "list"
@@ -325,7 +324,7 @@ span.code {
           } else {
             alert("BAD\n" + t)
           }
-          if (this.state.mode == "add") {
+          if (this.state.mode === "add") {
             this.state.mode = "off"
           } else {
             this.state.mode = "list"
@@ -337,9 +336,9 @@ span.code {
 
   // internal
   onCancel() {
-    this.requestUpdate()
+    this.requestUpdate();
 
-    if (this.state.mode == "add") {
+    if (this.state.mode === "add") {
       this.state.mode = "off"
     } else {
       this.state.mode = "list"
@@ -357,8 +356,8 @@ span.code {
    */
 
   reset() {
-    this.state.messages.length = 0
-    this.name().value = this.name().defaultValue
+    this.state.messages.length = 0;
+    this.name().value = this.name().defaultValue;
     this.namespace().value = this.namespace().defaultValue
   }
 
@@ -397,10 +396,10 @@ span.code {
 
   // internal
   onSave() {
-    this.requestUpdate()
+    this.requestUpdate();
 
-    this.state.messages.length = 0
-    this.validate()
+    this.state.messages.length = 0;
+    this.validate();
     if (this.state.messages.length > 0) {
       return
     }
@@ -413,7 +412,7 @@ metadata:
   name: "${this.name().value}"
   namespace: "${this.namespace().value}"
 spec: ${JSON.stringify(this.spec())}
-`
+`;
 
     fetch('/edge_stack/api/apply',
           {
@@ -430,7 +429,7 @@ spec: ${JSON.stringify(this.spec())}
           } else {
             alert("BAD\n\n" + yaml + "\n\n" + t)
           }
-          if (this.state.mode == "add") {
+          if (this.state.mode === "add") {
             this.state.mode = "off"
           } else {
             this.state.mode = "list"
@@ -455,8 +454,8 @@ spec: ${JSON.stringify(this.spec())}
   // internal
   render() {
     return html`
-<slot class="${this.state.mode == "off" ? "" : "off"}" @click=${this.onAdd.bind(this)}></slot>
-<div class="${this.state.mode == "off" ? "off" : "frame"}">
+<slot class="${this.state.mode === "off" ? "" : "off"}" @click=${this.onAdd.bind(this)}></slot>
+<div class="${this.state.mode === "off" ? "off" : "frame"}">
   <div class="title">
     ${this.kind()}: <span class="${this.visible("list", "edit")}">${this.name()}</span>
           <input class="${this.visible("add")}" name="name" type="text" value="${this.name()}"/>
@@ -618,9 +617,9 @@ export class ResourceSet extends LitElement {
     } else {
       this.resources = []
     }
-    this._states = {}
-    this.addState = new UIState()
-    this.addState.mode = "off"
+    this._states = {};
+    this.addState = new UIState();
+    this.addState.mode = "off";
     registerContextChangeHandler('aes-api-snapshot', this.onSnapshotChange.bind(this))
   }
 
@@ -633,16 +632,16 @@ export class ResourceSet extends LitElement {
    * to an appropriate set of resources extracted from the snapshot.
    */
   onSnapshotChange(snapshot) {
-    let defaults = {}
-    defaults[this.key()] = []
-    let kube = snapshot['Kubernetes'] || defaults
+    let defaults = {};
+    defaults[this.key()] = [];
+    let kube = snapshot['Kubernetes'] || defaults;
     this.resources = kube[this.key()] || []
   }
 
   // internal
   state(resource) {
-    let key = resource.metadata.namespace + ":" + resource.metadata.name
-    if (this._states[key] == undefined) {
+    let key = resource.metadata.namespace + ":" + resource.metadata.name;
+    if (this._states[key] === undefined) {
       this._states[key] = new UIState()
     }
     return this._states[key]
@@ -747,15 +746,15 @@ export class UIState {
 
   // internal
   constructor() {
-    this.mode = "list" // one of add, edit, list, detail, off
-    this.messages = []
+    this.mode = "list"; // one of add, edit, list, detail, off
+    this.messages = [];
     this._init = false
   }
 
   // internal
   init(resource) {
     if (!this._init) {
-      resource.init()
+      resource.init();
       this._init = true
     }
   }
@@ -799,7 +798,7 @@ export class VisibleModes extends LitElement {
 
   // internal
   constructor() {
-    super()
+    super();
     this.mode = "default"
   }
 
@@ -815,22 +814,10 @@ export class VisibleModes extends LitElement {
    * SingleResource widget.
    */
   render() {
-    let display = this.attributes.getNamedItem(this.mode) != null ? "inline" : "none"
+    let display = this.attributes.getNamedItem(this.mode) != null ? "inline" : "none";
     return html`<slot style="display:${display}"></slot>`
   }
 
 }
 
-customElements.define('visible-modes', VisibleModes)
-
-/**
- * Old name of SingleResource. This is here just so I don't need to
- * update all uses in one giant commit.
- */
-export class Resource extends SingleResource {}
-
-/**
- * Old name of ResourceSet. This is here just so I don't need to
- * update all uses in one giant commit.
- */
-export class Resources extends ResourceSet {}
+customElements.define('visible-modes', VisibleModes);

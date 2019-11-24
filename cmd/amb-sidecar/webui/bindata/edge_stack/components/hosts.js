@@ -1,11 +1,11 @@
 import {html} from 'https://cdn.pika.dev/-/lit-element/2.2.1/dist-es2019/lit-element.min.js'
-import {Resource, Resources} from '/edge_stack/components/resources.js';
+import {SingleResource, ResourceSet} from '/edge_stack/components/resources.js';
 import {getCookie} from '/edge_stack/components/cookies.js';
 
-export class Host extends Resource {
+export class Host extends SingleResource {
 
   constructor() {
-    super()
+    super();
     this.tos = html`...`
   }
 
@@ -14,10 +14,10 @@ export class Host extends Resource {
   }
 
   reset() {
-    super.reset()
-    let fields = [this.provider(), this.email(), this.hostname()]
-    fields.forEach(x=>x.value = x.defaultValue)
-    this.tos_agree().checked = false
+    super.reset();
+    let fields = [this.provider(), this.email(), this.hostname()];
+    fields.forEach(x=>x.value = x.defaultValue);
+    this.tos_agree().checked = false;
     this.state.show_tos = false
   }
 
@@ -26,7 +26,7 @@ export class Host extends Resource {
       this.state.messages.push("you must agree to terms of service")
     }
 
-    var emailFormat = /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(.\w{2,3})+$/
+    var emailFormat = /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(.\w{2,3})+$/;
 
     if (!this.email().value.match(emailFormat)) {
       this.state.messages.push("you must supply a valid email address")
@@ -64,13 +64,13 @@ export class Host extends Resource {
   }
 
   providerChanged(userEdit) {
-    this.requestUpdate()
+    this.requestUpdate();
     if (userEdit) {
       this.state.show_tos = true
     }
-    let value = this.provider().value
-    let url = new URL('/edge_stack/api/tos-url', window.location)
-    url.searchParams.set('ca-url', value)
+    let value = this.provider().value;
+    let url = new URL('/edge_stack/api/tos-url', window.location);
+    url.searchParams.set('ca-url', value);
     fetch(url, {
       headers: new Headers({
         'Authorization': 'Bearer ' + getCookie("edge_stack_auth")
@@ -92,14 +92,14 @@ export class Host extends Resource {
   }
 
   renderResource() {
-    let host = this.resource
-    let spec = host.spec
-    let status = host.status || {"state": "<none>"}
-    let hostState = status.state
-    let reason = hostState == "Error" ? `(${status.reason})` : ''
+    let host = this.resource;
+    let spec = host.spec;
+    let status = host.status || {"state": "<none>"};
+    let hostState = status.state;
+    let reason = hostState === "Error" ? `(${status.reason})` : '';
 
     let state = this.state
-    let tos = state.show_tos || state.mode == "add" ? "right" : "off"
+    let tos = state.show_tos || state.mode === "add" ? "right" : "off";
 
     return html`
   <div class="left">Hostname:</div>
@@ -141,9 +141,9 @@ export class Host extends Resource {
 
 }
 
-customElements.define('dw-host', Host)
+customElements.define('dw-host', Host);
 
-export default class Hosts extends Resources {
+export class Hosts extends ResourceSet {
 
   key() {
     return "Host"
@@ -162,7 +162,7 @@ export default class Hosts extends Resources {
           email: ""
         }
       },
-      status: {}}
+      status: {}};
     return html`
 <dw-host .resource=${addHost} .state=${this.addState}><add-button></add-button></dw-host>
 <div>
@@ -172,4 +172,4 @@ export default class Hosts extends Resources {
 
 }
 
-customElements.define('dw-hosts', Hosts)
+customElements.define('dw-hosts', Hosts);

@@ -1,5 +1,8 @@
 :root {
 	--dw-purple: #5F3EFF;
+	--dw-item-background-fill: #fdfaff;
+	--dw-item-background-hover: #ede7f3;
+	--dw-item-border: #ede7f3;
 	--dw-orange: #FF4329;
 }
 body {
@@ -19,7 +22,7 @@ body {
 	margin-left: 2.5px;
 }
 div.admin-section {
-	border: 1px solid #ede7f3;
+	border: 1px solid var(--dw-item-border);
 	box-shadow: 0 2px 4px rgba(0, 0, 0, .1);
 	padding: 0.5em;
 	margin-bottom: 0.6em;

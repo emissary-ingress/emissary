@@ -11,6 +11,11 @@ export class Documentation extends LitElement {
 
   static get styles() {
     return css`
+div.center {
+   margin: auto;
+   max-width: 6.6in;
+}
+
 ul {
   display: flex;
   flex-direction: row;
@@ -29,15 +34,16 @@ ul > li > a {
   text-align: center;
 
   margin: 0.4em;
-  border: 2px solid #ede7f3;
+  border: 2px solid var(--dw-item-border);
   border-radius: 0.4em;
-  background-color: #fdfaff;
+  background-color: var(--dw-item-background-fill);
 
   text-decoration: none;
+  color: black;
 }
 
 ul > li > a:hover {
-  background-color: #ede7f3;
+  background-color: var(--dw-item-background-hover);
 }
 
 ul > li > a > * {
@@ -55,24 +61,24 @@ img {
 
   render() {
     return html`
-      <ul>
+      <div class="center"><ul>
 
         <li><a href="https://www.getambassador.io/docs/" target="_blank">
-          <img src="/edge_stack/images/card-docs.png"/>
+          <img src="/edge_stack/images/card-docs.png" alt=""/>
           <span>Ambassador Edge Stack Documentation</span>
         </a></li>
 
         <li><a href="https://www.getambassador.io/resources/" target="_blank">
-          <img src="/edge_stack/images/card-resources.png"/>
-          <span>Resources and Case Studies</span>
+          <img src="/edge_stack/images/card-resources.png" alt=""/>
+          <span>Resources and<br/>Case Studies</span>
         </a></li>
 
         <li><a href="https://blog.getambassador.io/" target="_blank">
-          <img src="/edge_stack/images/logos/medium-mark.png"/>
-          <span>Blog</span>
+          <img src="/edge_stack/images/logos/medium-mark.png" alt=""/>
+          <span>Ambassador Edge Stack Blog</span>
         </a></li>
 
-      </ul>
+      </ul></div>
     `;
   }
 }
