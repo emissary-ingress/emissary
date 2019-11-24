@@ -76,8 +76,8 @@ class Mapping extends SingleResource { //TODO need to abstract the changes I mad
      * at the same time and then use the display: none to turn one of the
      * versions off.
      */
-    let resourceState = status.state
-    let reason = resourceState == "Error" ? `(${status.reason})` : ''
+    let resourceState = status.state;
+    let reason = resourceState == "Error" ? `(${status.reason})` : '';
     return html`
 <div class="frame-no-grid">
     <div class="collapsed" id="collapsed-div">
@@ -169,8 +169,8 @@ class Mapping extends SingleResource { //TODO need to abstract the changes I mad
    * version. It switches the mode of the component and then triggers a re-render.
    */
   onStartEdit() {
-    this.requestUpdate()
-    if (this.state.mode != "edit") {
+    this.requestUpdate();
+    if (this.state.mode !== "edit") {
       this.state.mode = "edit"
     }
   }
@@ -178,7 +178,7 @@ class Mapping extends SingleResource { //TODO need to abstract the changes I mad
    * TODO this comment about onCancelButton needs to be written
    */
   onCancelButton() {
-    this.requestUpdate()
+    this.requestUpdate();
     if( this.state.mode === "edit") {
       this.state.mode = "list";
     } else {
@@ -257,7 +257,7 @@ class Mapping extends SingleResource { //TODO need to abstract the changes I mad
 }
 
 
-customElements.define('dw-mapping', Mapping)
+customElements.define('dw-mapping', Mapping);
 
 export class Mappings extends ResourceSet {
 
@@ -275,7 +275,7 @@ export class Mappings extends ResourceSet {
         prefix: "",
         service: ""
       }
-    }
+    };
     return html`
 <dw-mapping
   .resource=${newMapping}
@@ -291,4 +291,4 @@ export class Mappings extends ResourceSet {
 
 }
 
-customElements.define('dw-mappings', Mappings)
+customElements.define('dw-mappings', Mappings);

@@ -68,9 +68,9 @@ export class Services extends LitElement {
     super();
 
     const [currentSnapshot, setSnapshot] = useContext('aes-api-snapshot', null);
-    this.onSnapshotChange(currentSnapshot)
-    this.onDiagChange({})
-    registerContextChangeHandler('aes-api-snapshot', this.onSnapshotChange.bind(this))
+    this.onSnapshotChange(currentSnapshot);
+    this.onDiagChange({});
+    registerContextChangeHandler('aes-api-snapshot', this.onSnapshotChange.bind(this));
     registerContextChangeHandler('aes-api-diag', this.onDiagChange.bind(this))
   }
 

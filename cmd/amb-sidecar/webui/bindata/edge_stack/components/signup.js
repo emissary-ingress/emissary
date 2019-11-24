@@ -35,37 +35,37 @@ export class Signup extends LitElement {
   }
 
   constructor() {
-    super()
-    this.state = "start"
+    super();
+    this.state = "start";
     this.message = ""
   }
 
   handleSignup() {
-    this.state = "entry"
+    this.state = "entry";
     this.email().focus()
   }
 
   reset() {
-    this.state = "start"
-    this.message = ""
-    this.email().value = ""
+    this.state = "start";
+    this.message = "";
+    this.email().value = "";
     this.confirm().value = ""
   }
 
   handleSubmit() {
-    if (this.email().value == "") {
-      this.email().classList.add("invalid")
+    if (this.email().value === "") {
+      this.email().classList.add("invalid");
       this.message = "Please supply an email."
-    } else if (this.email().value != this.confirm().value) {
-      this.email().classList.remove("invalid")
-      this.confirm().classList.add("invalid")
+    } else if (this.email().value !== this.confirm().value) {
+      this.email().classList.remove("invalid");
+      this.confirm().classList.add("invalid");
       this.message = "Emails do not match."
     } else {
-      console.log("blah")
-      this.email().classList.remove("invalid")
-      this.confirm().classList.remove("invalid")
-      this.message = "Requesting a license key..."
-      this.state = "pending"
+      console.log("blah");
+      this.email().classList.remove("invalid");
+      this.confirm().classList.remove("invalid");
+      this.message = "Requesting a license key...";
+      this.state = "pending";
 
       fetch("https://metriton.datawire.io/signup", {
         method: "POST",
@@ -100,11 +100,11 @@ export class Signup extends LitElement {
 
   render() {
     return html`
-<button @click=${this.handleSignup} style="display:${this.state == "start" ? "block" : "none"}">
+<button @click=${this.handleSignup} style="display:${this.state === "start" ? "block" : "none"}">
   Click here to sign up for a free Community license.
 </button>
 
-<div style="display:${this.state == "entry" ? "block" : "none"}">
+<div style="display:${this.state === "entry" ? "block" : "none"}">
   <form>
     <span>
       Email:
@@ -118,7 +118,7 @@ export class Signup extends LitElement {
   <div class="invalid">${this.message}</div>
 </div>
 
-<div style="display:${this.state == "pending" ? "block" : "none"}">
+<div style="display:${this.state === "pending" ? "block" : "none"}">
   <span>${this.message}</span>
   <button @click=${this.reset}>Continue</button>
 </div>
@@ -127,4 +127,4 @@ export class Signup extends LitElement {
 
 }
 
-customElements.define('dw-signup', Signup)
+customElements.define('dw-signup', Signup);

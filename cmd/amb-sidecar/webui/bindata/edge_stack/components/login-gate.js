@@ -100,11 +100,11 @@ details {
   getOS() {
     if (window != null && window['session'] != null && window['session']['browser'] != null && window['session']['browser']['os'] != null) {
       const os = window.session.browser.os; // Mac, Win, Linux
-      if(os == "Mac") {
+      if(os === "Mac") {
         return "darwin";
-      } else if (os == "Windows") {
+      } else if (os === "Windows") {
         return "windows";
-      } else if (os == "Linux") {
+      } else if (os === "Linux") {
         return "linux";
       } else {
         return "other";
@@ -175,7 +175,7 @@ details {
 
   renderDarwinDetails() {
     return html`
-<details id="darwin" ?open=${this.os == 'darwin'}>
+<details id="darwin" ?open=${this.os === 'darwin'}>
   <summary><h2 style="display:inline">Darwin</h2></summary>
   <pre id="install-darwin">
 sudo curl -fL https://metriton.datawire.io/downloads/darwin/edgectl -o /usr/local/bin/edgectl && \\
@@ -189,7 +189,7 @@ sudo chmod a+x /usr/local/bin/edgectl
 
   renderLinuxDetails() {
     return html`
-<details id="linux" ?open=${this.os == 'linux'}>
+<details id="linux" ?open=${this.os === 'linux'}>
   <summary><h2 style="display:inline">Linux</h2></summary>
   <pre id="install-linux">
 sudo curl -fL https://metriton.datawire.io/downloads/linux/edgectl -o /usr/local/bin/edgectl && \\

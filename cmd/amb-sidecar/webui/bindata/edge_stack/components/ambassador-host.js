@@ -55,7 +55,7 @@ export class AmbassadorHost extends LitElement {
         'Authorization': 'Bearer ' + getCookie("edge_stack_auth")
       }
     }).then((data) => {
-      if (data.status == 200) {
+      if (data.status === 200) {
         data.body.then((data) => {
           this.tosUrl = data;
           this.failedTOS = false;
@@ -97,7 +97,7 @@ export class AmbassadorHost extends LitElement {
 		this.output += str;
 		this.output += "\n";
 		this.lastOutput = str;
-		if (str == "state: Ready\n") {
+		if (str === "state: Ready\n") {
 			window.location = `https://${this.hostname}/ambassador-edge-stack/admin#<jwt>`;
 		}
   }
@@ -113,7 +113,7 @@ export class AmbassadorHost extends LitElement {
         'Authorization': 'Bearer ' + getCookie("edge_stack_auth")
       }
     }).then((data) => {
-      if (data.status == 200) {
+      if (data.status === 200) {
         data.body.then((txt) => {
           this.yaml = txt;
         });
@@ -141,7 +141,7 @@ export class AmbassadorHost extends LitElement {
         'Authorization': 'Bearer ' + getCookie("edge_stack_auth")
       }
     }).then((data) => {
-      if (data.status == 200) {
+      if (data.status === 200) {
         data.body.then((txt) => {
           this.handleOutput(txt);
           this.refershAgain();
@@ -173,7 +173,7 @@ export class AmbassadorHost extends LitElement {
         'Authorization': 'Bearer ' + getCookie("edge_stack_auth")
       }
     }).then((data) => {
-      if (data.status == 201) {
+      if (data.status === 201) {
         this.handleOutput('Applying YAML...');
         this.refreshStatus();
       } else {
@@ -204,11 +204,11 @@ export class AmbassadorHost extends LitElement {
       <input type="checkbox" name="tos_agree" value="${this.hasAgreedToTOS}" @change="${this.agreeToTOS}" disabled="${(this.isFetchingTos || this.failedTOS)}">
       ${this.isAgreeingToTOS ? html`<p>Loading Spinner goes here</p>` : html``}
       ${this.failedTOS ? html`Error encoutered agreeing to TOS, see console, and refresh.` : html``}
-      ${this.tosUrl != '' ? html`I have agreed to the Terms of Service at <a href="${this.tosUrl}">${this.tosUrl}.</a>` : html``}
+      ${this.tosUrl !== '' ? html`I have agreed to the Terms of Service at <a href="${this.tosUrl}">${this.tosUrl}.</a>` : html``}
     </label>
     <label>
       <span>Email:</span>
-      <input type="email" name="email" value="${this.email}" @change="${this.onEmailChange}"></input>
+      <input type="email" name="email" value="${this.email}" @change="${this.onEmailChange}"/>
     </label>
     <pre>
       ${this.yaml}
@@ -216,7 +216,7 @@ export class AmbassadorHost extends LitElement {
     <input type="submit" value="Apply" />
   </fieldset>
 </form>
-${this.output != '' ? html`<p>${this.output}</p>` : html``}
+${this.output !== '' ? html`<p>${this.output}</p>` : html``}
     `;
   }
 }
