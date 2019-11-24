@@ -31,6 +31,10 @@ export class Tabs extends LitElement {
 .tab span.icon-aligned {
   vertical-align: middle;
 }
+.tab span.with-no-icon {
+  vertical-align: middle;
+  padding-left: 33px;
+}
 .tab.active {
   background-color: var(--dw-purple);
   color: white;
@@ -71,7 +75,7 @@ export class Tabs extends LitElement {
       if( this.tabs[i].tabIconFilename()) {
         this.links.push(html`<span class="${classes}" @click=${e => this.handleClick(i, e)}><img src="${this.tabs[i].tabIconFilename()}"/><span class="icon-aligned">${this.tabs[i].tabName()}</span></span> `)
       } else {
-        this.links.push(html`<span class="${classes}" @click=${e => this.handleClick(i, e)}>${this.tabs[i].tabName()}</span> `)
+        this.links.push(html`<span class="${classes}" @click=${e => this.handleClick(i, e)}><span class="with-no-icon">${this.tabs[i].tabName()}</span></span> `)
       }
     }
     this.requestUpdate()
