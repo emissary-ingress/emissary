@@ -111,6 +111,12 @@ import {getCookie} from '/edge_stack/components/cookies.js';
  */
 export class SingleResource extends LitElement {
 
+
+  /**
+   * Override this to add custom styles. Make sure you include the
+   * base class styles by including the result of super.styles() in
+   * your result.
+   */
   static get styles() {
     return css`
 .error {
@@ -252,6 +258,7 @@ span.code {
 `
   }
 
+  // internal
   static get properties() {
     return {
       resource: {type: Map},
@@ -259,6 +266,7 @@ span.code {
     }
   }
 
+  // internal
   constructor() {
     super()
     this.resource = {}
@@ -273,6 +281,7 @@ span.code {
    */
   init() {}
 
+  // internal
   update() {
     if (this.state instanceof UIState) {
       this.state.init(this)
@@ -280,11 +289,13 @@ span.code {
     super.update()
   }
 
+  // internal
   onAdd() {
     this.requestUpdate()
     this.state.mode = "add"
   }
 
+  // internal
   onEdit() {
     this.requestUpdate()
     if (this.state.mode != "edit") {
@@ -294,6 +305,7 @@ span.code {
     }
   }
 
+  // internal
   onDelete() {
     fetch('/edge_stack/api/delete',
           {
@@ -323,6 +335,7 @@ span.code {
       })
   }
 
+  // internal
   onCancel() {
     this.requestUpdate()
 
@@ -363,19 +376,26 @@ span.code {
   /**
    * This method is invoked on save in order to validate input prior
    * to proceeding with the save action. Use the addError() method to
-   * supply error messages if any input is invalid.
+   * supply error messages if any input is invalid. This method does
+   * not return a value. If this.addError(message) is not invoked in
+   * the implementation, then the data is assumed valid. If
+   * this.addError(message) *is* invoked one or more times, then the
+   * data is assumed invalid.
    */
 
   validate() {}
 
+  // internal
   name() {
     return this.shadowRoot.querySelector('input[name="name"]')
   }
 
+  // internal
   namespace() {
     return this.shadowRoot.querySelector('input[name="namespace"]')
   }
 
+  // internal
   onSave() {
     this.requestUpdate()
 
@@ -420,20 +440,19 @@ spec: ${JSON.stringify(this.spec())}
       })
   }
 
+  // deprecated, use <visible-modes>...</visible-modes> instead
   visible() {
     return [...arguments].includes(this.state.mode) ? "" : "off"
   }
 
-  visibleStyle() {
-    return [...arguments].includes(this.state.mode) ? "" : `display:none`
-  }
-
+  // internal
   updated() {
     this.shadowRoot.querySelectorAll("visible-modes").forEach((vm)=>{
       vm.mode = this.state.mode
     })
   }
 
+  // internal
   render() {
     return html`
 <slot class="${this.state.mode == "off" ? "" : "off"}" @click=${this.onAdd.bind(this)}></slot>
@@ -580,6 +599,7 @@ spec: ${JSON.stringify(this.spec())}
  */
 export class ResourceSet extends LitElement {
 
+  // internal
   static get properties() {
     return {
       resources: {type: Array},
@@ -588,6 +608,7 @@ export class ResourceSet extends LitElement {
     };
   }
 
+  // internal
   constructor() {
     super();
 
@@ -618,6 +639,7 @@ export class ResourceSet extends LitElement {
     this.resources = kube[this.key()] || []
   }
 
+  // internal
   state(resource) {
     let key = resource.metadata.namespace + ":" + resource.metadata.name
     if (this._states[key] == undefined) {
@@ -723,12 +745,14 @@ export class ResourceSet extends LitElement {
  */
 export class UIState {
 
+  // internal
   constructor() {
     this.mode = "list" // one of add, edit, list, detail, off
     this.messages = []
     this._init = false
   }
 
+  // internal
   init(resource) {
     if (!this._init) {
       resource.init()
@@ -736,6 +760,7 @@ export class UIState {
     }
   }
 
+  // internal
   renderErrors() {
     if (this.messages.length > 0) {
       return html`
@@ -765,12 +790,14 @@ export class UIState {
 
 export class VisibleModes extends LitElement {
 
+  // internal
   static get properties() {
     return {
       mode: {type: String}
     }
   }
 
+  // internal
   constructor() {
     super()
     this.mode = "default"
