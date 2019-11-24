@@ -11,6 +11,11 @@ export class Documentation extends LitElement {
 
   static get styles() {
     return css`
+div.center {
+   margin: auto;
+   max-width: 6.6in;
+}
+
 ul {
   display: flex;
   flex-direction: row;
@@ -34,6 +39,7 @@ ul > li > a {
   background-color: #fdfaff;
 
   text-decoration: none;
+  color: black;
 }
 
 ul > li > a:hover {
@@ -55,7 +61,7 @@ img {
 
   render() {
     return html`
-      <ul>
+      <div class="center"><ul>
 
         <li><a href="https://www.getambassador.io/docs/" target="_blank">
           <img src="/edge_stack/images/card-docs.png" alt=""/>
@@ -64,15 +70,15 @@ img {
 
         <li><a href="https://www.getambassador.io/resources/" target="_blank">
           <img src="/edge_stack/images/card-resources.png" alt=""/>
-          <span>Resources and Case Studies</span>
+          <span>Resources and<br/>Case Studies</span>
         </a></li>
 
         <li><a href="https://blog.getambassador.io/" target="_blank">
           <img src="/edge_stack/images/logos/medium-mark.png" alt=""/>
-          <span>Blog</span>
+          <span>Ambassador Edge Stack Blog</span>
         </a></li>
 
-      </ul>
+      </ul></div>
     `;
   }
 }
