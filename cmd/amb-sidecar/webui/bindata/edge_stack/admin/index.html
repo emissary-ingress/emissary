@@ -8,10 +8,6 @@
     <!-- Google Charts -->
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js">
     </script>
-    <script type="text/javascript">
-        google.charts.load('current', {'packages':['corechart']});
-        google.charts.load('visualization', '1.0', { 'packages': ['corechart'] });
-    </script>
 
     <title>
       Ambassador Edge Stack Admin
@@ -40,6 +36,8 @@
                   <div class="section-heading">Dashboard</div>
                   <dw-dashboard id="Dashboard">Dashboard - nothing happens, doesn't even load dashboard.js</dw-dashboard>
                 </div>
+
+                <div id="chart-element"></div>
               </dw-tab>
               
               <dw-tab name="Hosts" icon="/edge_stack/images/hosts.png">
