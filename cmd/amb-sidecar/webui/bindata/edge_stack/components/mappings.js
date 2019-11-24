@@ -1,7 +1,7 @@
 import {html} from 'https://cdn.pika.dev/-/lit-element/2.2.1/dist-es2019/lit-element.min.js'
-import {Resource, Resources} from '/edge_stack/components/resources.js';
+import {SingleResource, ResourceSet} from '/edge_stack/components/resources.js';
 
-class Mapping extends Resource { //TODO need to abstract the changes I made to the outer Resource class for use in other sub-classes
+class Mapping extends SingleResource { //TODO need to abstract the changes I made to the outer Resource class for use in other sub-classes
 
   kind() {
     return "Mapping"
@@ -76,8 +76,8 @@ class Mapping extends Resource { //TODO need to abstract the changes I made to t
      * at the same time and then use the display: none to turn one of the
      * versions off.
      */
-    let resourceState = status.state
-    let reason = resourceState == "Error" ? `(${status.reason})` : ''
+    let resourceState = status.state;
+    let reason = resourceState == "Error" ? `(${status.reason})` : '';
     return html`
 <div class="frame-no-grid">
     <div class="collapsed" id="collapsed-div">
@@ -169,8 +169,8 @@ class Mapping extends Resource { //TODO need to abstract the changes I made to t
    * version. It switches the mode of the component and then triggers a re-render.
    */
   onStartEdit() {
-    this.requestUpdate()
-    if (this.state.mode != "edit") {
+    this.requestUpdate();
+    if (this.state.mode !== "edit") {
       this.state.mode = "edit"
     }
   }
@@ -178,7 +178,7 @@ class Mapping extends Resource { //TODO need to abstract the changes I made to t
    * TODO this comment about onCancelButton needs to be written
    */
   onCancelButton() {
-    this.requestUpdate()
+    this.requestUpdate();
     if( this.state.mode === "edit") {
       this.state.mode = "list";
     } else {
@@ -257,9 +257,9 @@ class Mapping extends Resource { //TODO need to abstract the changes I made to t
 }
 
 
-customElements.define('dw-mapping', Mapping)
+customElements.define('dw-mapping', Mapping);
 
-export class Mappings extends Resources {
+export class Mappings extends ResourceSet {
 
   key() {
     return 'Mapping'
@@ -275,7 +275,7 @@ export class Mappings extends Resources {
         prefix: "",
         service: ""
       }
-    }
+    };
     return html`
 <dw-mapping
   .resource=${newMapping}
@@ -291,4 +291,4 @@ export class Mappings extends Resources {
 
 }
 
-customElements.define('dw-mappings', Mappings)
+customElements.define('dw-mappings', Mappings);

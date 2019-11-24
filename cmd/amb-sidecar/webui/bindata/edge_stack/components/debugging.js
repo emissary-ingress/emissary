@@ -137,7 +137,7 @@ export class Debugging extends LitElement {
 
       </fieldset>
 
-      ${this.diagd.errors.length == 0 ? html`` : html`
+      ${this.diagd.errors.length === 0 ? html`` : html`
       <fieldset>
         <legend>CONFIGURATION ERRORS</legend>
 

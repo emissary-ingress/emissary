@@ -1,8 +1,8 @@
 import { LitElement, html, css } from 'https://cdn.pika.dev/-/lit-element/2.2.1/dist-es2019/lit-element.min.js'
-import {Resource} from '/edge_stack/components/resources.js'
+import {SingleResource} from '/edge_stack/components/resources.js'
 import {registerContextChangeHandler, useContext} from '/edge_stack/components/context.js'
 
-export class Service extends Resource {
+export class Service extends SingleResource {
   // implement
   kind() {
     return this.resource.kind;
@@ -68,9 +68,9 @@ export class Services extends LitElement {
     super();
 
     const [currentSnapshot, setSnapshot] = useContext('aes-api-snapshot', null);
-    this.onSnapshotChange(currentSnapshot)
-    this.onDiagChange({})
-    registerContextChangeHandler('aes-api-snapshot', this.onSnapshotChange.bind(this))
+    this.onSnapshotChange(currentSnapshot);
+    this.onDiagChange({});
+    registerContextChangeHandler('aes-api-snapshot', this.onSnapshotChange.bind(this));
     registerContextChangeHandler('aes-api-diag', this.onDiagChange.bind(this))
   }
 
