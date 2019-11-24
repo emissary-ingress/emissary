@@ -821,15 +821,3 @@ export class VisibleModes extends LitElement {
 }
 
 customElements.define('visible-modes', VisibleModes);
-
-/**
- * Old name of SingleResource. This is here just so I don't need to
- * update all uses in one giant commit.
- */
-export class Resource extends SingleResource {}
-
-/**
- * Old name of ResourceSet. This is here just so I don't need to
- * update all uses in one giant commit.
- */
-export class Resources extends ResourceSet {}

@@ -1,8 +1,8 @@
 import {html} from 'https://cdn.pika.dev/-/lit-element/2.2.1/dist-es2019/lit-element.min.js'
-import {Resource, Resources} from '/edge_stack/components/resources.js';
+import {SingleResource, ResourceSet} from '/edge_stack/components/resources.js';
 import {getCookie} from '/edge_stack/components/cookies.js';
 
-export class Host extends Resource {
+export class Host extends SingleResource {
 
   constructor() {
     super()
@@ -143,7 +143,7 @@ export class Host extends Resource {
 
 customElements.define('dw-host', Host)
 
-export default class Hosts extends Resources {
+export default class Hosts extends ResourceSet {
 
   key() {
     return "Host"

@@ -1,7 +1,7 @@
 import {html} from 'https://cdn.pika.dev/-/lit-element/2.2.1/dist-es2019/lit-element.min.js'
-import {Resource, Resources} from '/edge_stack/components/resources.js';
+import {SingleResource, ResourceSet} from '/edge_stack/components/resources.js';
 
-class Mapping extends Resource { //TODO need to abstract the changes I made to the outer Resource class for use in other sub-classes
+class Mapping extends SingleResource { //TODO need to abstract the changes I made to the outer Resource class for use in other sub-classes
 
   kind() {
     return "Mapping"
@@ -259,7 +259,7 @@ class Mapping extends Resource { //TODO need to abstract the changes I made to t
 
 customElements.define('dw-mapping', Mapping)
 
-export class Mappings extends Resources {
+export class Mappings extends ResourceSet {
 
   key() {
     return 'Mapping'
