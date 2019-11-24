@@ -202,7 +202,13 @@ def main(debug):
                     'kubernetesendpointresolvers.getambassador.io',
                     'kubernetesserviceresolvers.getambassador.io'
                 ]
-            )
+            ),
+            (
+                '.ambassador_ignore_crds_3', 'Host CRDs',
+                [
+                    'hosts.getambassador.io'
+                ]
+            )            
         ]
 
         # Flynn would say "Ew.", but we need to patch this till https://github.com/kubernetes-client/python/issues/376

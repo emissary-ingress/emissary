@@ -362,7 +362,7 @@ wait_for_url "diagd" "http://localhost:8877/_internal/v0/ping"
 # WORKER: KUBEWATCH                                                            #
 ################################################################################
 if [[ -z "${AMBASSADOR_NO_KUBEWATCH}" ]]; then
-    KUBEWATCH_SYNC_KINDS="-s service -s Host"
+    KUBEWATCH_SYNC_KINDS="-s service"
 
     if [ ! -f "${AMBASSADOR_CONFIG_BASE_DIR}/.ambassador_ignore_ingress" ]; then
         KUBEWATCH_SYNC_KINDS="$KUBEWATCH_SYNC_KINDS -s ingresses"
@@ -374,6 +374,10 @@ if [[ -z "${AMBASSADOR_NO_KUBEWATCH}" ]]; then
 
     if [ ! -f "${AMBASSADOR_CONFIG_BASE_DIR}/.ambassador_ignore_crds_2" ]; then
         KUBEWATCH_SYNC_KINDS="$KUBEWATCH_SYNC_KINDS -s ConsulResolver -s KubernetesEndpointResolver -s KubernetesServiceResolver"
+    fi
+
+    if [ ! -f "${AMBASSADOR_CONFIG_BASE_DIR}/.ambassador_ignore_crds_3" ]; then
+        KUBEWATCH_SYNC_KINDS="$KUBEWATCH_SYNC_KINDS -s Host"
     fi
 
     AMBASSADOR_FIELD_SELECTOR_ARG=""
