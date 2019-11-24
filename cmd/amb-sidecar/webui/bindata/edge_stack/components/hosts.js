@@ -1,4 +1,4 @@
-import {html} from 'https://cdn.pika.dev/-/lit-element/2.2.1/dist-es2019/lit-element.min.js'
+import {html} from '/edge_stack/vendor/lit-element.min.js'
 import {SingleResource, ResourceSet} from '/edge_stack/components/resources.js';
 import {getCookie} from '/edge_stack/components/cookies.js';
 
