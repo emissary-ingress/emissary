@@ -130,12 +130,34 @@ div.frame {
   grid-gap: 0 0;
   border: 2px solid var(--dw-item-border);
   border-radius: 0.4em;
+  position: relative;
 }
 div.title {
   grid-column: 1 / 11;
   background: var(--dw-item-background-fill);
   margin: 0;
   padding: 0.5em;
+}
+div.title-button {
+  position: absolute;
+  top: 0.4em;
+  right: 0.5em;
+}
+div.edit-buttons {
+  position: absolute;
+  right: 0.5em;
+  top: 40px;
+}
+div.edit-buttons-column {
+  display: grid;
+  grid-template-columns: 3em;
+  grid-gap:0.2em;
+}
+div.edit-buttons button {
+  grid-column: 1 / 2;
+}
+div.edit-buttons button.delete-button {
+  margin-top: 0.9em;
 }
 div.attribute-name {
   grid-column: 1 / 3;
@@ -490,6 +512,9 @@ spec: ${JSON.stringify(this.spec())}
     return html`
 <slot class="${this.state.mode === "off" ? "" : "off"}" @click=${this.onAdd.bind(this)}></slot>
 <div class="${this.state.mode === "off" ? "off" : "frame"}">
+  <div class="title-button ${this.visible("list")}">
+    <button @click=${()=>this.onEdit()}>Edit</button>
+  </div>
   <div class="title">
     ${this.kind()}: <span class="crd-name ${this.visible("list", "edit")}">${this.name()}</span>
           <input class="${this.visible("add")}" name="name" type="text" value="${this.name()}"/>
@@ -497,13 +522,12 @@ spec: ${JSON.stringify(this.spec())}
 
   ${this.renderResource()}
 
-  <div class="both">
-    <label>
-      <button class="${this.visible("list")}" @click=${()=>this.onEdit()}>Edit</button>
-      <button class="${this.visible("list")}" @click=${()=>this.onDelete()}>Delete</button>
-      <button class="${this.visible("edit", "add")}" @click=${()=>this.onCancel()}>Cancel</button>
+  <div class="edit-buttons ${this.visible("edit", "add")}">
+    <div class="edit-buttons-column">
       <button class="${this.visible("edit", "add")}" @click=${()=>this.onSave()}>Save</button>
-    </label>
+      <button class="${this.visible("edit", "add")}" @click=${()=>this.onCancel()}>Cancel</button>
+      <button class="${this.visible("edit")} delete-button" @click=${()=>this.onDelete()}>Delete</button>
+    </div>
   </div>
 
   ${this.state.renderErrors()}
