@@ -42,6 +42,10 @@ func (ml *MockLimiter) GetClaims() *licensekeys.LicenseClaimsLatest {
 	return nil
 }
 
+func (ml *MockLimiter) GetFeaturesOverLimitAtPointInTime() []string {
+	return []string{}
+}
+
 func (ml *MockLimiter) GetLimitValueAtPointInTime(toCheck *licensekeys.Limit) int {
 	if val, ok := ml.customHardLimits[*toCheck]; ok {
 		return val
