@@ -6,8 +6,19 @@ import (
 
 	"github.com/pkg/errors"
 
+	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	coreV1client "k8s.io/client-go/kubernetes/typed/core/v1"
 )
+
+type Filter struct {
+	*metaV1.TypeMeta   `json:",inline"`
+	*metaV1.ObjectMeta `json:"metadata"`
+	Spec               *FilterSpec   `json:"spec"`
+	Status             *FilterStatus `json:"status"`
+
+	UnwrappedSpec interface{} `json:"-"`
+	Desc          string      `json:"-"`
+}
 
 type FilterSpec struct {
 	AmbassadorID AmbassadorID `json:"ambassador_id"`
@@ -17,6 +28,32 @@ type FilterSpec struct {
 	JWT      *FilterJWT      `json:",omitempty"`
 	External *FilterExternal `json:",omitempty"`
 	Internal *FilterInternal `json:",omitempty"`
+}
+
+const (
+	FilterState_OK    = "OK"
+	FilterState_Error = "Error"
+)
+
+type FilterStatus struct {
+	State  string `json:"state"`
+	Reason string `json:"reason"`
+}
+
+func (filter *Filter) Validate(secretsGetter coreV1client.SecretsGetter, haveRedis bool) error {
+	var err error
+	filter.UnwrappedSpec, filter.Desc, err = filter.Spec.Validate(filter.GetNamespace(), secretsGetter, haveRedis)
+	if err == nil {
+		filter.Status = &FilterStatus{
+			State: FilterState_OK,
+		}
+	} else {
+		filter.Status = &FilterStatus{
+			State:  FilterState_Error,
+			Reason: err.Error(),
+		}
+	}
+	return err
 }
 
 func kindCount(isKind map[string]bool) uint {
@@ -38,17 +75,20 @@ func kindNames(isKind map[string]bool) []string {
 	return ret
 }
 
-type FilterInfo struct {
-	Spec interface{}
-	Desc string
-	Err  error
-}
-
-func (spec *FilterSpec) Validate(namespace string, secretsGetter coreV1client.SecretsGetter, haveRedis bool) FilterInfo {
-	var ret FilterInfo
+func (spec *FilterSpec) Validate(namespace string, secretsGetter coreV1client.SecretsGetter, haveRedis bool) (unwrappedSpec interface{}, desc string, err error) {
+	var ret struct {
+		Spec interface{}
+		Desc string
+		Err  error
+	}
+	defer func() {
+		unwrappedSpec = ret.Spec
+		desc = ret.Desc
+		err = ret.Err
+	}()
 	if spec == nil {
 		ret.Err = errors.New("spec must be set")
-		return ret
+		return
 	}
 
 	isKind := map[string]bool{
@@ -60,7 +100,7 @@ func (spec *FilterSpec) Validate(namespace string, secretsGetter coreV1client.Se
 	}
 	if kindCount(isKind) != 1 {
 		ret.Err = errors.Errorf("must specify exactly 1 of: %v", kindNames(isKind))
-		return ret
+		return
 	}
 
 	switch {
@@ -105,5 +145,6 @@ func (spec *FilterSpec) Validate(namespace string, secretsGetter coreV1client.Se
 		panic("should not happen")
 	}
 
-	return ret
+	// nolint:nakedret
+	return
 }

@@ -93,21 +93,21 @@ func (c *FilterMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	switch r.URL.Path {
 	case "/.ambassador/oauth2/logout":
 		filterQName := r.FormValue("realm")
-		filterInfo := findFilter(c.Controller, filterQName)
-		if filterInfo == nil {
+		filter := findFilter(c.Controller, filterQName)
+		if filter == nil {
 			middleware.ServeErrorResponse(w, ctx, http.StatusBadRequest,
 				errors.Errorf("invalid realm: %q", filterQName), nil)
 			return
 		}
-		filterSpec, filterSpecOK := filterInfo.Spec.(crd.FilterOAuth2)
+		filterSpec, filterSpecOK := filter.UnwrappedSpec.(crd.FilterOAuth2)
 		if !filterSpecOK {
 			middleware.ServeErrorResponse(w, ctx, http.StatusBadRequest,
 				errors.Errorf("invalid realm: %q", filterQName), nil)
 			return
 		}
-		if filterInfo.Err != nil {
+		if filter.Status.State != crd.FilterState_OK {
 			middleware.ServeErrorResponse(w, ctx, http.StatusInternalServerError,
-				errors.Wrapf(filterInfo.Err, "error in filter %q configuration", filterQName), nil)
+				errors.Errorf("error in filter %q configuration: %s", filterQName, filter.Status.Reason), nil)
 			return
 		}
 
@@ -175,18 +175,18 @@ func (c *FilterMux) filter(ctx context.Context, request *filterapi.FilterRequest
 		}
 		logger.Debugf("applying filter=%q", filterQName)
 
-		filterInfo := findFilter(c.Controller, filterQName)
-		if filterInfo == nil {
+		filter := findFilter(c.Controller, filterQName)
+		if filter == nil {
 			return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
 				errors.Errorf("could not find not filter: %q", filterQName), nil), nil
 		}
-		if filterInfo.Err != nil {
+		if filter.Status.State != crd.FilterState_OK {
 			return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
-				errors.Wrapf(filterInfo.Err, "error in filter %q configuration", filterQName), nil), nil
+				errors.Errorf("error in filter %q configuration: %s", filterQName, filter.Status.Reason), nil), nil
 		}
 
 		var filterImpl filterapi.Filter
-		switch filterSpec := filterInfo.Spec.(type) {
+		switch filterSpec := filter.UnwrappedSpec.(type) {
 		case crd.FilterOAuth2:
 			err := c.AuthRateLimiter.IncrementUsage()
 			if err != nil {
@@ -289,7 +289,7 @@ func ruleForURL(c *controller.Controller, u *url.URL) *crd.Rule {
 	}
 }
 
-func findFilter(c *controller.Controller, qname string) *controller.FilterInfo {
+func findFilter(c *controller.Controller, qname string) *crd.Filter {
 	filters := c.LoadFilters()
 	if filters == nil {
 		return nil

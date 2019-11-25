@@ -42,18 +42,16 @@ func (c *Controller) LoadRules() []crd.Rule {
 	return typed
 }
 
-type FilterInfo = crd.FilterInfo
-
-func (c *Controller) storeFilters(filters map[string]FilterInfo) {
+func (c *Controller) storeFilters(filters map[string]crd.Filter) {
 	c.filters.Store(filters)
 }
 
-func (c *Controller) LoadFilters() map[string]FilterInfo {
+func (c *Controller) LoadFilters() map[string]crd.Filter {
 	untyped := c.filters.Load()
 	if untyped == nil {
 		return nil
 	}
-	typed, ok := untyped.(map[string]FilterInfo)
+	typed, ok := untyped.(map[string]crd.Filter)
 	if !ok {
 		return nil
 	}
@@ -68,27 +66,22 @@ func (e *NotThisAmbassadorError) Error() string {
 	return e.Message
 }
 
-func processFilterSpec(
-	filter k8s.Resource,
-	cfg types.Config,
-	coreClient *k8sClientCoreV1.CoreV1Client,
-	haveRedis bool,
-) FilterInfo {
-	if cfg.AmbassadorSingleNamespace && filter.Namespace() != cfg.AmbassadorNamespace {
-		return FilterInfo{Err: &NotThisAmbassadorError{
-			Message: fmt.Sprintf("AMBASSADOR_SINGLE_NAMESPACE: .metadata.namespace=%q != AMBASSADOR_NAMESPACE=%q", filter.Namespace(), cfg.AmbassadorNamespace),
-		}}
+func parseFilter(untypedFilter k8s.Resource, cfg types.Config) (crd.Filter, error) {
+	if cfg.AmbassadorSingleNamespace && untypedFilter.Namespace() != cfg.AmbassadorNamespace {
+		return crd.Filter{}, &NotThisAmbassadorError{
+			Message: fmt.Sprintf("AMBASSADOR_SINGLE_NAMESPACE: .metadata.namespace=%q != AMBASSADOR_NAMESPACE=%q", untypedFilter.Namespace(), cfg.AmbassadorNamespace),
+		}
 	}
-	var spec crd.FilterSpec
-	if err := mapstructure.Convert(filter.Spec(), &spec); err != nil {
-		return FilterInfo{Err: errors.Wrap(err, "malformed filter resource spec")}
+	var filter crd.Filter
+	if err := mapstructure.Convert(untypedFilter, &filter); err != nil {
+		return crd.Filter{}, errors.Wrap(err, "malformed filter resource spec")
 	}
-	if !spec.AmbassadorID.Matches(cfg.AmbassadorID) {
-		return FilterInfo{Err: &NotThisAmbassadorError{
-			Message: fmt.Sprintf("AMBASSADOR_ID: .spec.ambassador_id=%v not contains AMBASSADOR_ID=%q", spec.AmbassadorID, cfg.AmbassadorID),
-		}}
+	if !filter.Spec.AmbassadorID.Matches(cfg.AmbassadorID) {
+		return crd.Filter{}, &NotThisAmbassadorError{
+			Message: fmt.Sprintf("AMBASSADOR_ID: .spec.ambassador_id=%v does not contain AMBASSADOR_ID=%q", filter.Spec.AmbassadorID, cfg.AmbassadorID),
+		}
 	}
-	return spec.Validate(filter.Namespace(), coreClient, haveRedis)
+	return filter, nil
 }
 
 // Watch monitor changes in k8s cluster and updates rules
@@ -98,7 +91,7 @@ func (c *Controller) Watch(
 	haveRedis bool,
 ) error {
 	c.storeRules([]crd.Rule{})
-	c.storeFilters(map[string]FilterInfo{})
+	c.storeFilters(map[string]crd.Filter{})
 
 	restconfig, err := kubeinfo.GetRestConfig()
 	if err != nil {
@@ -118,19 +111,22 @@ func (c *Controller) Watch(
 	w := client.Watcher()
 
 	w.Watch("filters", func(w *k8s.Watcher) {
-		filters := map[string]FilterInfo{}
-		for _, mw := range w.List("filters") {
-			filterInfo := processFilterSpec(mw, c.Config, coreClient, haveRedis)
-			if filterInfo.Err != nil {
-				if _, notThisAmbassador := filterInfo.Err.(*NotThisAmbassadorError); notThisAmbassador {
-					c.Logger.Debugf("ignoring filter resource %q: %v", mw.QName(), filterInfo.Err)
+		filters := map[string]crd.Filter{}
+		for _, untypedFilter := range w.List("filters") {
+			filter, err := parseFilter(untypedFilter, c.Config)
+			if err != nil {
+				if _, notThisAmbassador := err.(*NotThisAmbassadorError); notThisAmbassador {
+					c.Logger.Debugf("ignoring Filter resource %q: %v", untypedFilter.QName(), err)
 				} else {
-					c.Logger.Errorf("error in filter resource %q: %v", mw.QName(), filterInfo.Err)
+					c.Logger.Errorf("malformed Filter resource %q: %v", untypedFilter.QName(), err)
 				}
-			} else {
-				c.Logger.Infof("loaded filter resource %q: %v", mw.QName(), filterInfo.Desc)
+				continue
 			}
-			filters[mw.QName()] = filterInfo
+			if err := filter.Validate(coreClient, haveRedis); err != nil {
+				c.Logger.Errorf("error in Filter resource %q: %v", untypedFilter.QName(), err)
+			}
+			c.Logger.Infof("loaded filter resource %q: %v", untypedFilter.QName(), filter.Desc)
+			filters[untypedFilter.QName()] = filter
 		}
 
 		if len(filters) == 0 {
