@@ -32,12 +32,158 @@ let WhenChartsAreLoadedPromise = {
     }
 };
 
-
 /* Load the charts package.  Note that it will load asynchronously so we have
  * to wait for a setOnLoadCallback (see the Dashboard constructor)
  */
 google.charts.load('current', {'packages':['corechart']});
 google.charts.load('visualization', '1.0', { 'packages': ['corechart'] });
+
+/* ===================================================================================
+ * Dashboard panels defined as objects.  Declared here so that they can be added
+ * to the Dashboard on instantiation.
+ * ===================================================================================
+ */
+
+/* Pie Chart Demo */
+let demoPieChart = {
+  _title: "Demo Pie Chart",
+  _elementId: "demo_pie",
+
+  render: function() {
+    return `
+    <div class="element">
+        <div class="element-titlebar">${this._title}</div>
+        <div class="element-content" id="${this._elementId}"></div>
+     </div>
+    `
+  },
+
+  onSnapshotChange: function(snapshot) {
+    this._mushrooms  = Math.random(20);
+    this._pepperoni  = Math.random(10);
+	},
+
+  draw: function(dashboard) {
+    /* Create the data table. */
+    var data = new google.visualization.DataTable();
+    data.addColumn('string', 'Topping');
+    data.addColumn('number', 'Slices');
+    data.addRows([
+      ['Mushrooms', this._mushrooms],
+      ['Onions', 1],
+      ['Olives', 1],
+      ['Zucchini', 1],
+      ['Pepperoni', this._pepperoni]
+    ]);
+
+    /* Set chart options */
+    var options = {
+      'title': 'How Much Pizza I Ate Last Night',
+      'width': '80%',
+      'height': '80%'
+    };
+
+    /* Instantiate and draw our chart, passing in some options. */
+    var element = dashboard.shadowRoot.getElementById(this._elementId);
+
+    /* may not have shadow DOM by now, so test. */
+    if (element) {
+      var chart = new google.visualization.PieChart(element);
+      chart.draw(data, options);
+    }
+  }
+};
+
+/* Count of Services Demo */
+let demoServiceCount = {
+  _title: "Number of Services",
+  _elementId: "demo_services",
+  _serviceCount: 0,
+
+  render: function() {
+    return `
+    <div class="element">
+      <div class="element-titlebar">${this._title}</div>
+      <div class="element-content" id=“${this._elementId}”>${this._serviceCount}</div>
+    </div>
+    `
+  },
+
+  onSnapshotChange: function(snapshot) {
+    if (snapshot) {
+      this._services = [
+      (((snapshot || {}).Kubernetes || {}).AuthService || []),
+      (((snapshot || {}).Kubernetes || {}).RateLimitService || []),
+      (((snapshot || {}).Kubernetes || {}).TracingService || []),
+      (((snapshot || {}).Kubernetes || {}).LogService || []),
+    ].reduce((acc, item) => acc.concat(item));
+
+      this._serviceCount = this._services.length;
+    }
+	},
+
+  draw: function(dashboard) {}
+};
+
+/* Column Chart Demo */
+let demoColumnChart = {
+  _title: "Demo Column Chart",
+  _elementId: "demo_columns",
+  _annualRevenue: [
+        ['Year', 'Millions', { role: 'style' } ],
+        [2015, 10, 'color: gray'],
+        [2016, 11, 'color: gray'],
+        [2017, 13, 'color: gray'],
+        [2018, 15, 'color: gray'],
+        [2019, 16, 'color: gray']
+  ],
+
+  render: function() {
+    return `
+    <div class="element">
+      <div class="element-titlebar">${this._title}</div>
+      <div class="element-content" id="${this._elementId}"></div>
+    </div>
+    `
+  },
+
+  onSnapshotChange: function(services) {
+    /* Revenue data: keep 5 columns, and bump revenue by
+     * a random amount between -1 and 3.
+     */
+    var i;
+    for (i=1; i<=4; i++) {
+      this._annualRevenue[i] = this._annualRevenue[i+1]
+    }
+    /* Bump up the year and revenue number */
+    this._annualRevenue[5] = [
+      this._annualRevenue[4][0] + 1,
+      this._annualRevenue[4][1] + Math.floor(Math.random() * Math.floor(3)) - 1,
+      this._annualRevenue[4][2]
+    ];
+	},
+
+  draw: function(dashboard) {
+    /* Create the data table. */
+    var data = google.visualization.arrayToDataTable(this._annualRevenue);
+
+    /* Set chart options */
+    var options = {
+      'title': 'Annual Revenue',
+      'width': '80%',
+      'height': '80%'
+    };
+
+    /* Instantiate and draw our chart, passing in some options. */
+    var element = dashboard.shadowRoot.getElementById(this._elementId);
+
+    /* may not have shadow DOM by now, so test. */
+    if (element) {
+      var chart = new google.visualization.ColumnChart(element);
+      chart.draw(data, options);
+    }
+  }
+};
 
 /* ===================================================================================*/
 /* The Dashboard class, drawing dashboard elements in a matrix of div.element blocks. */
@@ -85,19 +231,8 @@ export class Dashboard extends LitElement {
   constructor() {
     super();
 
-    /* Initialize the pizza values */
-    this.mushrooms  = Math.random(20);
-    this.pepperoni  = Math.random(10);
-
-    /* Initialize the annual revenue table */
-    this.annualRevenue = [
-        ['Year', 'Millions', { role: 'style' } ],
-        [2015, 10, 'color: gray'],
-        [2016, 11, 'color: gray'],
-        [2017, 13, 'color: gray'],
-        [2018, 15, 'color: gray'],
-        [2019, 16, 'color: gray']
-      ];
+    /* Initialize the list of dashboard panels */
+    this._panels = [ demoPieChart,  demoServiceCount, demoColumnChart ]
 
     /* Use the aes-api-snapshot and set up the callback. */
     const [currentSnapshot, setSnapshot] = useContext('aes-api-snapshot', null);
@@ -123,34 +258,10 @@ export class Dashboard extends LitElement {
 
   /* Get new data from Kubernetes services. */
   onSnapshotChange(snapshot) {
-    this.services = [
-      (((snapshot || {}).Kubernetes || {}).AuthService || []),
-      (((snapshot || {}).Kubernetes || {}).RateLimitService || []),
-      (((snapshot || {}).Kubernetes || {}).TracingService || []),
-      (((snapshot || {}).Kubernetes || {}).LogService || []),
-    ].reduce((acc, item) => acc.concat(item));
-
-    /* Update the chart data. This will be moved out to appropriate
-     * JavaScript objects, but for testing purposes we are just going to
-     * have instance variables hold the data.
-     */
-    this.mushrooms  = Math.random(20);
-    this.pepperoni  = Math.random(10);
-
-    /* Revenue data: keep 5 columns, and bump revenue by
-     * a random amount between -1 and 3.
-     */
-    var graphAnnotations = this.annualRevenue[0];
-    var i;
-    for (i=1; i<=4; i++) {
-      this.annualRevenue[i] = this.annualRevenue[i+1]
-    }
-    /* Bump up the year and revenue number */
-    this.annualRevenue[5] = [
-      this.annualRevenue[4][0] + 1,
-      this.annualRevenue[4][1] + Math.floor(Math.random() * Math.floor(3)) - 1,
-      this.annualRevenue[4][2]
-    ];
+    /* Notify each panel of the change */
+    this._panels.forEach((panel) => {
+      panel.onSnapshotChange(snapshot)
+    });
 
     /* Request an update of the Dashboard */
     this.requestUpdate();
@@ -158,98 +269,26 @@ export class Dashboard extends LitElement {
 
   /* Render the component by returning a TemplateResult, using the html helper function. */
   render() {
-    let num_services = 0;
-
-    if (this.services) {
-      num_services = this.services.length;
-    }
-
     /* Wait for the update to be completed */
     this.updateComplete.then(() => {
       WhenChartsAreLoadedPromise.then(
         () => {
           console.log("draw charts");
-          this.drawCharts();
-        } );
+          /* Notify each panel to draw */
+          this._panels.forEach((panel) => {
+            panel.draw(this)
+          });
+        });
     });
 
-    /* Construct the HTML template. */
-    return html`
-      ${this.renderChartItem('piechart', 'Pie Chart Example')}
-      ${this.renderTextItem('services', 'Number of Services', num_services)}
-      ${this.renderChartItem('columnchart', 'Column Chart Example')}
-    `
+    /* Return the concatenated html renderings for each panel */
+    var the_html = this._panels.reduce((html_str, panel) => {
+      return html_str + panel.render() + "\n";
+    }, "");
+
+    return html([the_html]);
   }
 
-  /* Draw all the charts */
-  drawCharts() {
-    this.drawPieChart("piechart");
-    this.drawColumnChart("columnchart");
-  }
-
-  /* Renders a single Dashboard element in a box. */
-  renderTextItem(item_id, title, text) {
-    return html`
-        <div class="element">
-        <div class="element-titlebar">${title}</div>
-        <div class="element-content" id="${item_id}">${text}</div>
-        </div>`
-  }
-
-  /* Render a single Chart item by chart_id. */
-  renderChartItem(item_id, title) {
-    return html`
-     <div class="element">
-        <div class="element-titlebar">${title}</div>
-        <div class="element-content" id="${item_id}"></div>
-     </div>
-     `
-  }
-
-  /* Draw an example pie chart */
-  drawPieChart(element_id) {
-    /* Create the data table. */
-    var data = new google.visualization.DataTable();
-    data.addColumn('string', 'Topping');
-    data.addColumn('number', 'Slices');
-    data.addRows([
-      ['Mushrooms', this.mushrooms],
-      ['Onions', 1],
-      ['Olives', 1],
-      ['Zucchini', 1],
-      ['Pepperoni', this.pepperoni]
-    ]);
-
-    /* Set chart options */
-    var options = {
-      'title': 'How Much Pizza I Ate Last Night',
-      'width': '80%',
-      'height': '80%'
-    };
-
-    /* Instantiate and draw our chart, passing in some options. */
-    var element = this.shadowRoot.getElementById(element_id);
-    var chart = new google.visualization.PieChart(element);
-    chart.draw(data, options);
-  }
-
-  /* Draw an example column chart */
-  drawColumnChart(element_id) {
-    /* Create the data table. */
-    var data = google.visualization.arrayToDataTable(this.annualRevenue);
-
-    /* Set chart options */
-    var options = {
-      'title': 'Annual Revenue',
-      'width': '80%',
-      'height': '80%'
-    };
-
-    /* Instantiate and draw our chart, passing in some options. */
-    var element = this.shadowRoot.getElementById(element_id);
-    var chart = new google.visualization.ColumnChart(element);
-    chart.draw(data, options);
-  }
 
   /* chartsLoaded callback.  Resolve the promise to let the Dashboard
    * know that the library is available and charts can now be drawn.
