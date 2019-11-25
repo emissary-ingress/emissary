@@ -17,7 +17,7 @@ import (
 
 type WatchHook func(p *supervisor.Process, snapshot string) WatchSet
 
-type aggregator struct {
+type Aggregator struct {
 	// Input channel used to tell us about kubernetes state.
 	KubernetesEvents chan k8sEvent
 	// Input channel used to tell us about consul endpoints.
@@ -30,7 +30,7 @@ type aggregator struct {
 	snapshots chan<- string
 	// We won't consider ourselves "bootstrapped" until we hear
 	// about all these kinds.
-	requiredKinds       []string
+	requiredKinds       map[string]bool
 	watchHook           WatchHook
 	limiter             limiter.Limiter
 	ids                 map[string]bool
@@ -41,14 +41,14 @@ type aggregator struct {
 }
 
 func NewAggregator(snapshots chan<- string, k8sWatches chan<- []KubernetesWatchSpec, consulWatches chan<- []ConsulWatchSpec,
-	requiredKinds []string, watchHook WatchHook, limiter limiter.Limiter) *aggregator {
-	return &aggregator{
+	watchHook WatchHook, limiter limiter.Limiter) *Aggregator {
+	return &Aggregator{
 		KubernetesEvents:    make(chan k8sEvent),
 		ConsulEvents:        make(chan consulEvent),
 		k8sWatches:          k8sWatches,
 		consulWatches:       consulWatches,
 		snapshots:           snapshots,
-		requiredKinds:       requiredKinds,
+		requiredKinds:       make(map[string]bool),
 		watchHook:           watchHook,
 		limiter:             limiter,
 		ids:                 make(map[string]bool),
@@ -57,7 +57,7 @@ func NewAggregator(snapshots chan<- string, k8sWatches chan<- []KubernetesWatchS
 	}
 }
 
-func (a *aggregator) Work(p *supervisor.Process) error {
+func (a *Aggregator) Work(p *supervisor.Process) error {
 	p.Ready()
 
 	for {
@@ -74,12 +74,16 @@ func (a *aggregator) Work(p *supervisor.Process) error {
 	}
 }
 
-func (a *aggregator) updateConsulResources(event consulEvent) {
+func (a *Aggregator) MarkRequired(key string, required bool) {
+	a.requiredKinds[key] = required
+}
+
+func (a *Aggregator) updateConsulResources(event consulEvent) {
 	a.ids[event.WatchId] = true
 	a.consulEndpoints[event.Endpoints.Service] = event.Endpoints
 }
 
-func (a *aggregator) setKubernetesResources(event k8sEvent) {
+func (a *Aggregator) setKubernetesResources(event k8sEvent) {
 	a.ids[event.watchId] = true
 	submap, ok := a.kubernetesResources[event.watchId]
 	if !ok {
@@ -89,7 +93,7 @@ func (a *aggregator) setKubernetesResources(event k8sEvent) {
 	submap[event.kind] = event.resources
 }
 
-func (a *aggregator) generateSnapshot() (string, error) {
+func (a *Aggregator) generateSnapshot() (string, error) {
 	k8sResources := make(map[string][]k8s.Resource)
 	for _, submap := range a.kubernetesResources {
 		for k, v := range submap {
@@ -109,15 +113,17 @@ func (a *aggregator) generateSnapshot() (string, error) {
 	return string(jsonBytes), nil
 }
 
-func (a *aggregator) isKubernetesBootstrapped(p *supervisor.Process) bool {
+func (a *Aggregator) isKubernetesBootstrapped(p *supervisor.Process) bool {
 	submap, sok := a.kubernetesResources[""]
 	if !sok {
 		return false
 	}
-	for _, k := range a.requiredKinds {
-		_, ok := submap[k]
-		if !ok {
-			return false
+	for k, v := range a.requiredKinds {
+		if v {
+			_, ok := submap[k]
+			if !ok {
+				return false
+			}
 		}
 	}
 	return true
@@ -129,7 +135,7 @@ func (a *aggregator) isKubernetesBootstrapped(p *supervisor.Process) bool {
 // aggregate state of the world is complete when any consul services
 // referenced by kubernetes have populated endpoint information (even
 // if the value of the populated info is an empty set of endpoints).
-func (a *aggregator) isComplete(p *supervisor.Process, watchset WatchSet) bool {
+func (a *Aggregator) isComplete(p *supervisor.Process, watchset WatchSet) bool {
 	complete := true
 
 	for _, w := range watchset.KubernetesWatches {
@@ -153,7 +159,7 @@ func (a *aggregator) isComplete(p *supervisor.Process, watchset WatchSet) bool {
 	return complete
 }
 
-func (a *aggregator) maybeNotify(p *supervisor.Process) {
+func (a *Aggregator) maybeNotify(p *supervisor.Process) {
 	now := time.Now()
 	delay := a.limiter.Limit(now)
 	if delay == 0 {
@@ -165,7 +171,7 @@ func (a *aggregator) maybeNotify(p *supervisor.Process) {
 	}
 }
 
-func (a *aggregator) notify(p *supervisor.Process) {
+func (a *Aggregator) notify(p *supervisor.Process) {
 	a.notifyMux.Lock()
 	defer a.notifyMux.Unlock()
 
@@ -196,7 +202,7 @@ func (a *aggregator) notify(p *supervisor.Process) {
 	}
 }
 
-func (a *aggregator) getWatches(p *supervisor.Process) WatchSet {
+func (a *Aggregator) getWatches(p *supervisor.Process) WatchSet {
 	snapshot, err := a.generateSnapshot()
 	if err != nil {
 		p.Logf("generate snapshot failed %v", err)

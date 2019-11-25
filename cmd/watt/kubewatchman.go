@@ -105,6 +105,7 @@ func (w *kubewatchman) Work(p *supervisor.Process) error {
 }
 
 type kubebootstrap struct {
+	aggregator     *Aggregator
 	namespace      string
 	kinds          []string
 	fieldSelector  string
@@ -146,12 +147,14 @@ func (b *kubebootstrap) Work(p *supervisor.Process) error {
 			}
 
 			if err := addWatcher(kind, watcherFunc(b.namespace, kind)); err != nil {
+				b.aggregator.MarkRequired(kind, false)
 				if errors.Is(err, k8s.ErrUnkResource) {
 					p.Logf("%q does no exist in the cluster at this time: will try later on...", kind)
 				} else {
 					return err
 				}
 			} else {
+				b.aggregator.MarkRequired(kind, true)
 				p.Logf("watcher for %q successfully installed", kind)
 				delete(pendingResources, kind)
 			}
