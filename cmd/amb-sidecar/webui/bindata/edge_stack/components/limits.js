@@ -1,6 +1,5 @@
-import {html} from 'https://cdn.pika.dev/-/lit-element/2.2.1/dist-es2019/lit-element.min.js'
+import {html} from '/edge_stack/vendor/lit-element.min.js'
 import {SingleResource, ResourceSet} from '/edge_stack/components/resources.js';
-import {getCookie} from '/edge_stack/components/cookies.js';
 
 export class Limit extends SingleResource {
 
@@ -23,21 +22,28 @@ export class Limit extends SingleResource {
   }
 
   renderResource() {
-    let spec = this.resource.spec
+    let spec = this.resource.spec;
     return html`
-  <div class="left">Domain:</div>
-  <div class="right">
+  <div class="attribute-name">domain:</div>
+  <div class="attribute-value">
     <visible-modes list detail>${spec.domain}</visible-modes>
     <visible-modes edit add><input type=text name="domain" value="${spec.domain}"/></visible-modes>
   </div>
 `
   }
+  // Override because we only have one row in the renderResource
+  minimumNumberOfAddRows() {
+    return 1;
+  }
+  minimumNumberOfEditRows() {
+    return 1;
+  }
 
 }
 
-customElements.define('dw-limit', Limit)
+customElements.define('dw-limit', Limit);
 
-export default class Limits extends ResourceSet {
+export class Limits extends ResourceSet {
 
   getResources(snapshot) {
     return snapshot.getResources("RateLimit")
@@ -52,7 +58,7 @@ export default class Limits extends ResourceSet {
       spec: {
         domain: ""
       },
-      status: {}}
+      status: {}};
     return html`
 <dw-limit .resource=${addLimit} .state=${this.addState}><add-button></add-button></dw-limit>
 <div>
@@ -62,4 +68,4 @@ export default class Limits extends ResourceSet {
 
 }
 
-customElements.define('dw-limits', Limits)
+customElements.define('dw-limits', Limits);

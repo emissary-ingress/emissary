@@ -1,4 +1,4 @@
-import  {LitElement, html} from 'https://cdn.pika.dev/-/lit-element/2.2.1/dist-es2019/lit-element.min.js';
+import  {LitElement, html} from '/edge_stack/vendor/lit-element.min.js';
 import {registerContextChangeHandler, useContext} from '/edge_stack/components/context.js';
 import {getCookie} from '/edge_stack/components/cookies.js';
 

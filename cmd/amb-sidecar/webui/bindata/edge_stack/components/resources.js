@@ -1,4 +1,4 @@
-import { LitElement, html, css} from 'https://cdn.pika.dev/-/lit-element/2.2.1/dist-es2019/lit-element.min.js'
+import { LitElement, html, css} from '/edge_stack/vendor/lit-element.min.js'
 import {Snapshot} from '/edge_stack/components/snapshot.js'
 import {getCookie} from '/edge_stack/components/cookies.js';
 
@@ -106,8 +106,7 @@ import {getCookie} from '/edge_stack/components/cookies.js';
  * When you extend a SingleResource, you MAY override the following
  * methods. See each method for a more detailed description:
  *
- *   init() --> initialize any ui state when a widget is first
- *              rendered
+ *   init() --> initialize any ui state when a widget is first rendered
  */
 export class SingleResource extends LitElement {
 
@@ -122,138 +121,78 @@ export class SingleResource extends LitElement {
   color: red;
 }
 div {
-  margin: 0.4em;
+/*  margin: 0.4em; */
 }
 div.frame {
   display: grid;
-  grid-template-columns: 50% 50%;
+  margin: 0.4em;
+  grid-template-columns: repeat(10, 10%);
+  grid-gap: 0 0;
   border: 2px solid var(--dw-item-border);
   border-radius: 0.4em;
+  position: relative;
+  padding-bottom: 0.2em;
 }
 div.title {
-  grid-column: 1 / 3;
+  grid-column: 1 / 11;
   background: var(--dw-item-background-fill);
   margin: 0;
   padding: 0.5em;
+  max-height: 1.3em;
 }
-
-/* -- -- -- -- -- -- -- -- -- -- -- --  
- * These styles are used in mappings.js
- */
-/*
- * We separate the frame from the grid so that we can have different grids inside the frame.
- */
-div.frame-no-grid {
-  border: 2px solid var(--dw-item-border);
-  border-radius: 0.4em;
+div.title-button {
+  position: absolute;
+  top: 0.4em;
+  right: 0.5em;
 }
-/*
- * Collapsed and expanded are used in the read-only list display of the Mappings.
- */
-.collapsed div.up-down-triangle {
-  float: left;
-  margin-left: 0;
-  margin-top: 0.25em;
-  cursor: pointer;
+div.edit-buttons {
+  position: absolute;
+  right: 0.5em;
+  top: 38px;
 }
-.collapsed div.up-down-triangle::before {
-  content: "\\25B7"
-}
-.expanded div.up-down-triangle {
-  float: left;
-  margin-left: 0;
-  margin-top: 0.25em;
-  cursor: pointer; 
-}
-.expanded div.up-down-triangle::before {
-  content: "\\25BD"
-}
-/*
- * grid is used in the read-only list display of the Mappings
- */
-div.grid {
+div.edit-buttons-column {
   display: grid;
-  grid-template-columns: 50% 50%;
+  grid-template-columns: 3em;
+  grid-gap:0.2em;
 }
-div.grid div {
-  margin: 0.1em;
+div.edit-buttons button {
+  grid-column: 1 / 2;
 }
-.namespace {
-  color: #989898;
+div.edit-buttons button.delete-button {
+  margin-top: 0.9em;
+}
+div.attribute-name {
+  grid-column: 1 / 4;
+  padding-right: 0.5em;
+  text-align: right;
+  font-variant: small-caps;
+}
+div.attribute-value {
+  grid-column: 4 / 11;
+}
+div.error-value {
+  grid-column: 3 / 11;
+}
+div.error-value ul {
+  margin-block-start: 0.3em;
+  padding-inline-start: 0;
+}
+div.error-value li {
+  list-style-type: none;
+}
+.crd-name {
+  font-weight: bold;
+}
+.crd-namespace {
+  color: #888888;
   font-size: 80%;
 }
-/*
- * three-grid is used in the edit display of the Mappings
- * along with edit-field classes
- */
-.edit-field {
-  padding-left: 2em;
+.off { 
+  display: none; 
 }
-.edit-field-label {
-  color: #202020;
-}
-.three-grid {
-  display: grid;
-  grid-template-columns: 40% 50% 10%;
-}
-.three-grid-all {
-  grid-column: 1 / 4;
-}
-.three-grid-one {
-  grid-column: 1 / 2;
-  text-align: right;
-  padding-right: 1em;
-  margin: 0 0 0.25em 0;
-}
-.three-grid-two {
-  grid-column: 2 / 3;
-  margin: 0 0 0.25em 0;
-}
-.three-grid-three {
-  grid-column: 3 / 4;
-  margin: 0 0 0.25em 0;
-}
-.three-grid-two input[type=text] {
-  width: 100%;
-}
-/*
- * one-grid is used in the edit display for the three action icons
- * on the right side
- */
-.one-grid {
-  grid-template-columns: 40px;
-  margin-top: -0.2em;
-}
-.one-grid-one {
-  grid-column: 1 / 2;
-  margin: 0;
-  padding: 0;
-}
-.edit-action-icon {
-  cursor: pointer;
-  width: 25px;
-  height: 25px;
-  padding: 0;
-  margin: 0;
-}
-/*
- * End of styles for mappings.js
- *  -- -- -- -- -- -- -- -- -- -- -- --  */
- 
-div.left {
-  grid-column: 1 / 2;
-}
-div.right {
-  grid-column: 2 / 3;
-}
-div.both {
-  grid-column: 1 / 3;
-}
-.off { display: none; }
 span.code { 
   font-family: Monaco, monospace;
 }
-
 `
   }
 
@@ -290,6 +229,11 @@ span.code {
 
   // internal
   onAdd() {
+    //TODO The user interface might have a strange midway state when one does an add: maybe need crosshatching to show "change in progress"
+    if( this.readOnly() ) {
+      return; // we shouldn't be able to get here because there is no add button,
+              // but if we do, don't do anything.
+    }
     this.requestUpdate();
     this.reset();
     this.state.mode = "add"
@@ -297,6 +241,10 @@ span.code {
 
   // internal
   onEdit() {
+    if( this.readOnly() ) {
+      return; // we shouldn't be able to get here because there is no edit button,
+              // but if we do, don't do anything.
+    }
     this.requestUpdate();
     this.reset();
     if (this.state.mode !== "edit") {
@@ -308,6 +256,13 @@ span.code {
 
   // internal
   onDelete() {
+    //TODO The user interface has a strange midway state when one does a delete: need crosshatching to show "change in progress"
+    if( this.readOnly() ) {
+      this.state.mode = "list";
+      return; // we shouldn't be able to get here because there is no edit button,
+              // and thus no delete button, but if we do, don't do anything.
+    }
+    //TODO need a modal to confirm delete
     fetch('/edge_stack/api/delete',
           {
             method: "POST",
@@ -322,9 +277,9 @@ span.code {
       .then(r=>{
         r.text().then(t=>{
           if (r.ok) {
-            alert("OK\n" + t)
+            // happy path
           } else {
-            alert("BAD\n" + t)
+            alert("BAD\n" + t) //TODO show the error in the UI somehow, this alert is not the best UI
           }
           if (this.state.mode === "add") {
             this.state.mode = "off"
@@ -356,7 +311,6 @@ span.code {
    * the state you add. You should also remember to call
    * super.reset() so the common state is also reset.
    */
-
   reset() {
     this.state.messages.length = 0;
     this.nameInput().value = this.nameInput().defaultValue;
@@ -369,7 +323,6 @@ span.code {
    * validate(), they are displayed to the user rather than allowing
    * the save action to proceed.
    */
-
   addError(message) {
     this.state.messages.push(message)
   }
@@ -383,7 +336,6 @@ span.code {
    * this.addError(message) *is* invoked one or more times, then the
    * data is assumed invalid.
    */
-
   validate() {}
 
   // internal
@@ -408,6 +360,12 @@ span.code {
 
   // internal
   onSave() {
+    //TODO The user interface has a strange midway state when one does a save: need crosshatching to show "change in progress"
+    if( this.readOnly() ) {
+      this.state.mode = "list";
+      return; // we shouldn't be able to get here because there is no edit button,
+              // and thus no save button, but if we do, don't do anything.
+    }
     this.requestUpdate();
 
     this.state.messages.length = 0;
@@ -437,9 +395,9 @@ spec: ${JSON.stringify(this.spec())}
       .then(r=>{
         r.text().then(t=>{
           if (r.ok) {
-            alert("OK\n" + t)
+            // happy path
           } else {
-            alert("BAD\n\n" + yaml + "\n\n" + t)
+            alert("BAD\n\n" + yaml + "\n\n" + t) //TODO show the error in the UI somehow, this alert is not the best UI
           }
           if (this.state.mode === "add") {
             this.state.mode = "off"
@@ -468,22 +426,31 @@ spec: ${JSON.stringify(this.spec())}
     return html`
 <slot class="${this.state.mode === "off" ? "" : "off"}" @click=${this.onAdd.bind(this)}></slot>
 <div class="${this.state.mode === "off" ? "off" : "frame"}">
+  <div class="title-button ${this.visible("list" + (this.readOnly()?"/ro":""))}">
+    <button @click=${()=>this.onEdit()}>Edit</button>
+  </div>
   <div class="title">
-    ${this.kind()}: <span class="${this.visible("list", "edit")}">${this.name()}</span>
+    ${this.kind()}: <span class="crd-name ${this.visible("list", "edit")}">${this.name()}</span>
           <input class="${this.visible("add")}" name="name" type="text" value="${this.name()}"/>
-
-
-      (<span class="${this.visible("list", "edit")}">${this.namespace()}</span><input class="${this.visible("add")}" name="namespace" type="text" value="${this.namespace()}"/>)</div>
+      <span class="crd-namespace">(<span class="${this.visible("list", "edit")}">${this.namespace()}</span><input class="${this.visible("add")}" name="namespace" type="text" value="${this.namespace()}"/>)</span></div>
 
   ${this.renderResource()}
 
-  <div class="both">
-    <label>
-      <button class="${this.visible("list")}" @click=${()=>this.onEdit()}>Edit</button>
-      <button class="${this.visible("list")}" @click=${()=>this.onDelete()}>Delete</button>
-      <button class="${this.visible("edit", "add")}" @click=${()=>this.onCancel()}>Cancel</button>
+  ${((this.state.mode === "add") && (this.minimumNumberOfAddRows() < 2)) ? 
+      html`<div class="attribute-value">&nbsp;</div>` : ""}
+  ${((this.state.mode === "edit") && (this.minimumNumberOfEditRows() < 2)) ? 
+      html`<div class="attribute-value">&nbsp;</div>` : ""}
+  ${((this.state.mode === "edit") && (this.minimumNumberOfEditRows() < 3)) ? 
+      html`<div class="attribute-value">&nbsp;</div>` : ""}
+  ${((this.state.mode === "edit") && (this.minimumNumberOfEditRows() < 4)) ? 
+      html`<div class="attribute-value">&nbsp;</div>` : ""}
+  
+  <div class="edit-buttons ${this.visible("edit", "add")}">
+    <div class="edit-buttons-column">
       <button class="${this.visible("edit", "add")}" @click=${()=>this.onSave()}>Save</button>
-    </label>
+      <button class="${this.visible("edit", "add")}" @click=${()=>this.onCancel()}>Cancel</button>
+      <button class="${this.visible("edit")} delete-button" @click=${()=>this.onDelete()}>Delete</button>
+    </div>
   </div>
 
   ${this.state.renderErrors()}
@@ -496,6 +463,13 @@ spec: ${JSON.stringify(this.spec())}
    */
   kind() {
     throw new Error("please implement kind()")
+  }
+
+  /**
+   * Override this method to make this object be read-only.
+   */
+  readOnly() {
+    return false;
   }
 
   /**
@@ -579,6 +553,22 @@ spec: ${JSON.stringify(this.spec())}
    */
   renderResource() {
     throw new Error("please implement renderResource()")
+  }
+
+  /**
+   * To help the UI place buttons within the rectangle border (or more
+   * precisely, to help the UI grow the rectangle border to fit all the
+   * buttons, these two functions should be overridden if the renderResource
+   * has fewer than four rows in edit mode and/or fewer than two rows in
+   * add mode.
+   * (Override these functions if the add and edit buttons on the right
+   * side of the frame are extending below the bottom of the frame.)
+   */
+  minimumNumberOfAddRows() {
+    return 2;
+  }
+  minimumNumberOfEditRows() {
+    return 4;
   }
 
 }
@@ -771,7 +761,7 @@ export class UIState {
   renderErrors() {
     if (this.messages.length > 0) {
       return html`
-<div class="both">
+<div class="error-value">
   <ul>
     ${this.messages.map(m=>html`<li><span class="error">${m}</span></li>`)}
   </ul>
@@ -829,3 +819,8 @@ export class VisibleModes extends LitElement {
 }
 
 customElements.define('visible-modes', VisibleModes);
+
+//TODO the favicon.ico doesn't load because it gets our custom 404 page instead. This needs fixing.
+//TODO We need a way to link from tab to tab: click on the dashboard panel about rate limits and
+//   go to the rate limit tab; click on a service in a mapping resource, and go to the services tab
+//   with that service resource highlighted. Etc.

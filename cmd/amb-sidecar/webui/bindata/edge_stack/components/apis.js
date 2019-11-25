@@ -1,4 +1,4 @@
-import { LitElement, html, css } from 'https://cdn.pika.dev/-/lit-element/2.2.1/dist-es2019/lit-element.min.js'
+import { LitElement, html, css } from '/edge_stack/vendor/lit-element.min.js'
 
 export class APIs extends LitElement {
 
@@ -49,18 +49,18 @@ export class APIs extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
-    console.log("APIs doing initial load");
+    //console.log("APIs doing initial load");
     this.loadFromServer()
   }
 
   loadFromServer() {
-    if(1) {//TODO temporarily removed because it was filling the console with error messages making it hard to debug other problems MOREMORE
-      return {} //TODO part of the temporary removal MOREMORE
-    } else {//TODO part of the temporary removal MOREMORE
+    if(1) {//TODO temporarily removed because it was filling the console with error messages making it hard to debug other problems
+      return {} //TODO part of the above temporary removal
+    } else {//TODO part of the above temporary removal
 
     $.getJSON("/openapi/services", apis => {
-      console.log("APIs load succeeded");
-      console.log(apis);
+      //console.log("APIs load succeeded");
+      //console.log(apis);
       this.apis = apis
     }).fail(xhr=>{
       if (xhr.status === 401 || xhr.status === 403) {
@@ -72,10 +72,10 @@ export class APIs extends LitElement {
     });
 
     if (this.doRefresh) {
-      console.log("will reload APIs in 10 seconds");
+      //console.log("will reload APIs in 10 seconds");
       setTimeout(this.loadFromServer.bind(this), 10000)
     }
-    }//TODO part of the temporary removal MOREMORE
+    }//TODO part of the above temporary removal
   }
 
   deferHackStyles() {
@@ -139,7 +139,7 @@ export class APIs extends LitElement {
       }
 
       if (needLinks) {
-        console.log("  ADDLINKS");
+        //console.log("  ADDLINKS");
 
         aDiv.shadowRoot.prepend(this.linkCSS("/edge_stack/styles/rapidoc-table.css"));
         aDiv.shadowRoot.prepend(this.linkCSS("/edge_stack/styles/rapidoc-input.css"));
@@ -167,7 +167,7 @@ export class APIs extends LitElement {
 
   render() {
     window.apis = this;
-    console.log(`APIs rendering ${this.apis.length} API${(this.apis.length === 1) ? "" : "s"}`);
+    //console.log(`APIs rendering ${this.apis.length} API${(this.apis.length === 1) ? "" : "s"}`);
 
     if (this.apis.length === 0) {
       return html`
