@@ -3,14 +3,15 @@
 /* Dashboard and dashboard element classes using LitElement and Google Charts. */
 /* ===================================================================================*/
 
-/* Import the LitElement class and html and css helpers. */
 import { LitElement, html, css } from "https://cdn.pika.dev/-/lit-element/2.2.1/dist-es2019/lit-element.min.js";  //TODO FIXME
-
-/* Get context updates */
 import {useContext, registerContextChangeHandler} from '/edge_stack/components/context.js'
 
-/* Create a global Promise to sychronize charts loaded and shadow dom finalized. */
-
+/**
+ * This is a Promise-like object used to synchronize between google charts loaded callback and the
+ * updateCompleted callback. Specifically, the function that we execute at updateCompleted requires
+ * the google charts to have loaded completely, but since that is down asynchronously, we have to
+ * wait.
+ */
 let WhenChartsAreLoadedPromise = {
     _pending: [],
     then: function (f) {
@@ -32,8 +33,9 @@ let WhenChartsAreLoadedPromise = {
     }
 };
 
-/* Load the charts package.  Note that it will load asynchronously so we have
- * to wait for a setOnLoadCallback (see the Dashboard constructor)
+/*
+ * Load the google charts package.  Note that it will load asynchronously so we have
+ * to wait for a setOnLoadCallback which is done in the Dashboard constructor.
  */
 google.charts.load('current', {'packages':['corechart']});
 google.charts.load('visualization', '1.0', { 'packages': ['corechart'] });
@@ -42,20 +44,31 @@ google.charts.load('visualization', '1.0', { 'packages': ['corechart'] });
  * Dashboard panels defined as objects.  Declared here so that they can be added
  * to the Dashboard on instantiation.
  * ===================================================================================
+ *
+ * The Dashboard panel objects are objects that define three functions:
+ *   render() => string
+ *        Return a string of the html for the panel. Note that it must return a string
+ *        and not an html template.
+ *   onSnapshotChange(snapshot) => (no return value)
+ *        Called each time a new snapshot is received from Ambassador. This function
+ *        is used to update any internal state for the panel from the data in the snapshot.
+ *   draw(shadow_root) => (no return value)
+ *        Use the google chart apis to create a chart and attach it to panel's element
+ *        in the shadow DOM. This function does nothing if there is no chart in the panel.
  */
 
-/* Pie Chart Demo */
+/**
+ * Pie Chart Demo - this is a demo only and not an Ambassador-useful panel.
+ */
 let demoPieChart = {
   _title: "Demo Pie Chart",
   _elementId: "demo_pie",
 
   render: function() {
-    return `
-    <div class="element">
+    return `<div class="element">
         <div class="element-titlebar">${this._title}</div>
         <div class="element-content" id="${this._elementId}"></div>
-     </div>
-    `
+     </div>`
   },
 
   onSnapshotChange: function(snapshot) {
@@ -63,7 +76,7 @@ let demoPieChart = {
     this._pepperoni  = Math.random(10);
 	},
 
-  draw: function(dashboard) {
+  draw: function(shadow_root) {
     /* Create the data table. */
     var data = new google.visualization.DataTable();
     data.addColumn('string', 'Topping');
@@ -84,7 +97,7 @@ let demoPieChart = {
     };
 
     /* Instantiate and draw our chart, passing in some options. */
-    var element = dashboard.shadowRoot.getElementById(this._elementId);
+    var element = shadow_root.getElementById(this._elementId);
 
     /* may not have shadow DOM by now, so test. */
     if (element) {
@@ -94,19 +107,19 @@ let demoPieChart = {
   }
 };
 
-/* Count of Services Demo */
+/**
+ * Panel showing a count of the Services
+ */
 let demoServiceCount = {
   _title: "Number of Services",
   _elementId: "demo_services",
   _serviceCount: 0,
 
   render: function() {
-    return `
-    <div class="element">
+    return `<div class="element">
       <div class="element-titlebar">${this._title}</div>
       <div class="element-content" id=“${this._elementId}”>${this._serviceCount}</div>
-    </div>
-    `
+    </div>`
   },
 
   onSnapshotChange: function(snapshot) {
@@ -122,10 +135,12 @@ let demoServiceCount = {
     }
 	},
 
-  draw: function(dashboard) {}
+  draw: function(shadow_root) {}
 };
 
-/* Column Chart Demo */
+/**
+ * Column Chart Demo - this demo has no useful Ambassador purpose
+ */
 let demoColumnChart = {
   _title: "Demo Column Chart",
   _elementId: "demo_columns",
@@ -139,18 +154,15 @@ let demoColumnChart = {
   ],
 
   render: function() {
-    return `
-    <div class="element">
+    return `<div class="element">
       <div class="element-titlebar">${this._title}</div>
       <div class="element-content" id="${this._elementId}"></div>
-    </div>
-    `
+    </div>`
   },
 
   onSnapshotChange: function(services) {
     /* Revenue data: keep 5 columns, and bump revenue by
-     * a random amount between -1 and 3.
-     */
+     * a random amount between -1 and 3. */
     var i;
     for (i=1; i<=4; i++) {
       this._annualRevenue[i] = this._annualRevenue[i+1]
@@ -163,7 +175,7 @@ let demoColumnChart = {
     ];
 	},
 
-  draw: function(dashboard) {
+  draw: function(shadow_root) {
     /* Create the data table. */
     var data = google.visualization.arrayToDataTable(this._annualRevenue);
 
@@ -175,7 +187,7 @@ let demoColumnChart = {
     };
 
     /* Instantiate and draw our chart, passing in some options. */
-    var element = dashboard.shadowRoot.getElementById(this._elementId);
+    var element = shadow_root.getElementById(this._elementId);
 
     /* may not have shadow DOM by now, so test. */
     if (element) {
@@ -198,14 +210,16 @@ export class Dashboard extends LitElement {
       }
       
       div.element {
-        display: inline-block;
+        display: inline-grid;
+        padding-bottom: 0.5em;
+        padding-right: 0.5em;
       }
       
       div.element-titlebar {
         text-align: center;
         font-weight: bold;
         background-color: lightgray;
-        width: 240px;
+        width: 200px;
         height: 16px;
         border: 2px solid lightgray;
         padding: 8px;
@@ -216,8 +230,8 @@ export class Dashboard extends LitElement {
       div.element-content {
         background-color: whitesmoke;
         text-align: center; 
-        width: 240px;
-        height: 240px;
+        width: 200px;
+        height: 200px;
         border: 2px solid lightgray;
         padding: 8px;
         top-margin: 0px;
@@ -227,34 +241,21 @@ export class Dashboard extends LitElement {
       span.code { font-family: Monaco, monospace; }`
   };
 
-  /* Dashboard constructor.  Set up callbacks, context handlers. */
   constructor() {
     super();
 
     /* Initialize the list of dashboard panels */
     this._panels = [ demoPieChart,  demoServiceCount, demoColumnChart ]
 
-    /* Use the aes-api-snapshot and set up the callback. */
     const [currentSnapshot, setSnapshot] = useContext('aes-api-snapshot', null);
     this.onSnapshotChange(currentSnapshot);
     registerContextChangeHandler('aes-api-snapshot', this.onSnapshotChange.bind(this));
 
     /* Set up the Google Charts setOnLoad callback.  Note that we can't draw
      * charts until the package has loaded, so we will be notified when this
-     * happens and set a promise to synchronize with the DOM being updated.
-     */
+     * happens and set a promise to synchronize with the DOM being updated. */
     google.charts.setOnLoadCallback(this.chartsLoaded.bind(this));
-
-    /* Watch for the DOMContentLoaded event, for debugging purposes. */
-    document.addEventListener('DOMContentLoaded', (event) => { this.domLoaded() });
   };
-
-  /* Updated properties from the Dashboard.  Currently this is not used. */
-  updated(changedProperties) {
-    changedProperties.forEach((oldValue, propName) => {
-      console.log(`${propName} changed. oldValue: ${oldValue}`);
-    });
-  }
 
   /* Get new data from Kubernetes services. */
   onSnapshotChange(snapshot) {
@@ -269,28 +270,30 @@ export class Dashboard extends LitElement {
 
   /* Render the component by returning a TemplateResult, using the html helper function. */
   render() {
-    /* Wait for the update to be completed */
+    /*
+     * Wait for the update to be completed and then..
+     */
     this.updateComplete.then(() => {
       WhenChartsAreLoadedPromise.then(
         () => {
-          console.log("draw charts");
-          /* Notify each panel to draw */
+          /* ..and then draw the charts for each panel */
           this._panels.forEach((panel) => {
-            panel.draw(this)
+            panel.draw(this.shadowRoot);
           });
         });
     });
 
-    /* Return the concatenated html renderings for each panel */
-    var the_html = this._panels.reduce((html_str, panel) => {
+    /*
+     * Return the concatenated html renderings for each panel
+     */
+    let the_html = this._panels.reduce((html_str, panel) => {
       return html_str + panel.render() + "\n";
     }, "");
-
     return html([the_html]);
   }
 
-
-  /* chartsLoaded callback.  Resolve the promise to let the Dashboard
+  /*
+   * chartsLoaded callback.  Resolve the promise to let the Dashboard
    * know that the library is available and charts can now be drawn.
    * It is a sort of mutex collaborating with updateComplete which is called
    * in the render() method.
@@ -302,5 +305,4 @@ export class Dashboard extends LitElement {
 
 /* ===================================================================================*/
 
-/* Define the Dashboard lit-element class as 'dw-dashboard' */
 customElements.define('dw-dashboard', Dashboard);
