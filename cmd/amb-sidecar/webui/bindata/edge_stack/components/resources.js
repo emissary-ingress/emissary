@@ -357,8 +357,8 @@ span.code {
 
   reset() {
     this.state.messages.length = 0;
-    this.name().value = this.name().defaultValue;
-    this.namespace().value = this.namespace().defaultValue
+    this.nameInputElement().value = this.nameInputElement().defaultValue;
+    this.namespaceInputElement().value = this.namespaceInputElement().defaultValue;
   }
 
   /**
@@ -395,6 +395,16 @@ span.code {
   }
 
   // internal
+  nameInputElement() {
+    return this.shadowRoot.querySelector('input[name="name"]')
+  }
+
+  // internal
+  namespaceInputElement() {
+    return this.shadowRoot.querySelector('input[name="namespace"]')
+  }
+
+  // internal
   onSave() {
     this.requestUpdate();
 
@@ -409,8 +419,8 @@ span.code {
 apiVersion: getambassador.io/v2
 kind: ${this.kind()}
 metadata:
-  name: "${this.name().value}"
-  namespace: "${this.namespace().value}"
+  name: "${this.nameInputElement().value}"
+  namespace: "${this.namespaceInputElement().value}"
 spec: ${JSON.stringify(this.spec())}
 `;
 
