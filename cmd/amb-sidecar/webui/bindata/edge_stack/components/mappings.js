@@ -261,8 +261,8 @@ customElements.define('dw-mapping', Mapping);
 
 export class Mappings extends ResourceSet {
 
-  key() {
-    return 'Mapping'
+  getResources(snapshot) {
+    return snapshot.getResources('Mapping')
   }
 
   render() {
