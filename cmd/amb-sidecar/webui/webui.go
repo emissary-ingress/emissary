@@ -103,17 +103,17 @@ func (fb *firstBootWizard) getSnapshot() Snapshot {
 		return list
 	}()
 
-	func() {
+	ret.Diag = func() json.RawMessage {
 		resp, err := http.Get("http://127.0.0.1:8877/ambassador/v0/diag/?json=true")
 		if err == nil {
-			return
+			return nil
 		}
 		defer resp.Body.Close()
 		bodyBytes, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
-			return
+			return nil
 		}
-		ret.Diag = json.RawMessage(bodyBytes)
+		return json.RawMessage(bodyBytes)
 	}()
 
 	ret.License = LicenseInfo{
