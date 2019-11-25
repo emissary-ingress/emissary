@@ -15,15 +15,15 @@ export class Resolver extends SingleResource {
 
   // implement
   renderResource() {
-    return html`
-     <div class="left">Spec:</div>
-     <div class="right"><pre>${JSON.stringify((this.resource_watt||{}).spec, null, 4)}</pre></div>
-
-     <!--
-     <div class="left">diag:</div>
-     <div class="right"><pre>${JSON.stringify(this.resource_diag, null, 4)}</pre></div>
-     -->
-     `;
+    let str = '';
+    let spec = (this.resource_watt||{}).spec;
+    for (let key in spec) {
+      if (spec.hasOwnProperty(key)) {
+        str += `<div class="attribute-name">${key}</div>
+        <div class="attribute-value">${spec[key]}</div>`;
+      }
+    }
+    return html([str]);
   }
 
   // override
@@ -63,16 +63,9 @@ export class Resolver extends SingleResource {
     }
   }
 
-  // override; don't show any of the "edit/delete/whatever" buttons;
-  // this tab is read-only.
-  static get styles() {
-    return css`${super.styles} button { display: none; }`;
-  }
-
-  // override; don't show any of the "edit/delete/whatever" buttons;
-  // this tab is read-only.
-  visible() {
-    return [...arguments].includes("list") ? "" : "off";
+  // override; this tab is read-only
+  readOnly() {
+    return true;
   }
 }
 customElements.define('dw-resolver', Resolver);

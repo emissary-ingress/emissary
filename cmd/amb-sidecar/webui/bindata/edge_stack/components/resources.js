@@ -131,6 +131,7 @@ div.frame {
   border: 2px solid var(--dw-item-border);
   border-radius: 0.4em;
   position: relative;
+  padding-bottom: 0.2em;
 }
 div.title {
   grid-column: 1 / 11;
@@ -344,6 +345,10 @@ div.both {
 
   // internal
   onEdit() {
+    if( this.readOnly() ) {
+      return; // we shouldn't be able to get here because there is no edit button,
+              // but if we do, don't do anything.
+    }
     this.requestUpdate();
     this.reset();
     if (this.state.mode !== "edit") {
@@ -355,6 +360,11 @@ div.both {
 
   // internal
   onDelete() {
+    if( this.readOnly() ) {
+      this.state.mode = "list";
+      return; // we shouldn't be able to get here because there is no edit button,
+              // but if we do, don't do anything.
+    }
     fetch('/edge_stack/api/delete',
           {
             method: "POST",
@@ -452,6 +462,11 @@ div.both {
 
   // internal
   onSave() {
+    if( this.readOnly() ) {
+      this.state.mode = "list";
+      return; // we shouldn't be able to get here because there is no edit button,
+              // but if we do, don't do anything.
+    }
     this.requestUpdate();
 
     this.state.messages.length = 0;
@@ -512,7 +527,7 @@ spec: ${JSON.stringify(this.spec())}
     return html`
 <slot class="${this.state.mode === "off" ? "" : "off"}" @click=${this.onAdd.bind(this)}></slot>
 <div class="${this.state.mode === "off" ? "off" : "frame"}">
-  <div class="title-button ${this.visible("list")}">
+  <div class="title-button ${this.visible("list" + (this.readOnly()?"/ro":""))}">
     <button @click=${()=>this.onEdit()}>Edit</button>
   </div>
   <div class="title">
@@ -540,6 +555,13 @@ spec: ${JSON.stringify(this.spec())}
    */
   kind() {
     throw new Error("please implement kind()")
+  }
+
+  /**
+   * Override this method to make this object be read-only.
+   */
+  readOnly() {
+    return false;
   }
 
   /**
