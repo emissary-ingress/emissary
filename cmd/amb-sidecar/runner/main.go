@@ -41,7 +41,7 @@ import (
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/middleware"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/secret"
 	"github.com/datawire/apro/cmd/amb-sidecar/limiter"
-	rlscontroller "github.com/datawire/apro/cmd/amb-sidecar/ratelimits"
+	rls "github.com/datawire/apro/cmd/amb-sidecar/ratelimits"
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
 	"github.com/datawire/apro/cmd/amb-sidecar/watt"
 	"github.com/datawire/apro/cmd/amb-sidecar/webui"
@@ -277,10 +277,12 @@ func runE(cmd *cobra.Command, args []string) error {
 		return nil
 	})
 
+	rls := rls.New()
+
 	// RateLimit controller
 	if limit.CanUseFeature(licensekeys.FeatureRateLimit) {
 		group.Go("ratelimit_controller", func(hardCtx, softCtx context.Context, cfg types.Config, l dlog.Logger) error {
-			return rlscontroller.DoWatch(softCtx, cfg, kubeinfo, l)
+			return rls.DoWatch(softCtx, cfg, kubeinfo, l)
 		})
 	}
 
@@ -398,9 +400,9 @@ func runE(cmd *cobra.Command, args []string) error {
 			rateLimitScope := statsStore.Scope("ratelimit")
 			rateLimitService := lyftservice.NewService(
 				loader.New(
-					cfg.RLSRuntimeDir,               // runtime path
-					cfg.RLSRuntimeSubdir,            // runtime subdirectory
-					rateLimitScope.Scope("runtime"), // stats scope
+					cfg.RLSRuntimeDir,                                        // runtime path
+					cfg.RLSRuntimeSubdir,                                     // runtime subdirectory
+					rateLimitScope.Scope("runtime"),                          // stats scope
 					&loader.SymlinkRefresher{RuntimePath: cfg.RLSRuntimeDir}, // refresher
 				),
 				lyftredis.NewRateLimitCacheImpl(
@@ -441,6 +443,7 @@ func runE(cmd *cobra.Command, args []string) error {
 			cfg,
 			dynamicClient,
 			snapshotStore.Subscribe(),
+			rls,
 			privkey,
 			pubKey,
 		)
