@@ -1,7 +1,8 @@
 import {html} from '/edge_stack/vendor/lit-element.min.js'
 import {SingleResource, ResourceSet} from '/edge_stack/components/resources.js';
 
-class Mapping extends SingleResource { //TODO need to abstract the changes I made to the outer Resource class for use in other sub-classes
+class Mapping extends SingleResource {
+  //TODO When Bjorn did a “Save” of a new mapping, he got errors in console about parse errors in the JSON returned from snapshot.
   /**
    * Implement.
    */

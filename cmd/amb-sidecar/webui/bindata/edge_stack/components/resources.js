@@ -229,6 +229,7 @@ span.code {
 
   // internal
   onAdd() {
+    //TODO The user interface might have a strange midway state when one does an add: maybe need crosshatching to show "change in progress"
     if( this.readOnly() ) {
       return; // we shouldn't be able to get here because there is no add button,
               // but if we do, don't do anything.
@@ -255,11 +256,13 @@ span.code {
 
   // internal
   onDelete() {
+    //TODO The user interface has a strange midway state when one does a delete: need crosshatching to show "change in progress"
     if( this.readOnly() ) {
       this.state.mode = "list";
       return; // we shouldn't be able to get here because there is no edit button,
               // and thus no delete button, but if we do, don't do anything.
     }
+    //TODO need a modal to confirm delete
     fetch('/edge_stack/api/delete',
           {
             method: "POST",
@@ -357,6 +360,7 @@ span.code {
 
   // internal
   onSave() {
+    //TODO The user interface has a strange midway state when one does a save: need crosshatching to show "change in progress"
     if( this.readOnly() ) {
       this.state.mode = "list";
       return; // we shouldn't be able to get here because there is no edit button,
@@ -557,6 +561,8 @@ spec: ${JSON.stringify(this.spec())}
    * buttons, these two functions should be overridden if the renderResource
    * has fewer than four rows in edit mode and/or fewer than two rows in
    * add mode.
+   * (Override these functions if the add and edit buttons on the right
+   * side of the frame are extending below the bottom of the frame.)
    */
   minimumNumberOfAddRows() {
     return 2;
