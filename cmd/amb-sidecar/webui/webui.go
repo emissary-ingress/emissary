@@ -28,7 +28,6 @@ import (
 
 	k8sClientDynamic "k8s.io/client-go/dynamic"
 
-	crd "github.com/datawire/apro/apis/getambassador.io/v1beta2"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/httpclient"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/middleware"
 	"github.com/datawire/apro/cmd/amb-sidecar/limiter"
@@ -46,9 +45,8 @@ type LoginClaimsV1 struct {
 }
 
 type Snapshot struct {
-	Watt       json.RawMessage
+	Watt       map[string]map[string]interface{}
 	Diag       json.RawMessage
-	Limits     []crd.RateLimit
 	License    LicenseInfo
 	RedisInUse bool
 }
@@ -76,10 +74,15 @@ type firstBootWizard struct {
 func (fb *firstBootWizard) getSnapshot() Snapshot {
 	var ret Snapshot
 
-	ret.Watt = fb.snapshotStore.Get().Raw
-	if len(ret.Watt) == 0 {
-		ret.Watt = json.RawMessage(`{}`)
+	if err := json.Unmarshal(fb.snapshotStore.Get().Raw, &ret.Watt); err != nil || ret.Watt == nil {
+		ret.Watt = make(map[string]map[string]interface{})
 	}
+	// XXX we should really have watt watch everything, but for
+	// now I'm just patching over that stuff here.
+	if ret.Watt["Kubernetes"] == nil {
+		ret.Watt["Kubernetes"] = make(map[string]interface{})
+	}
+	ret.Watt["Kubernetes"]["RateLimit"] = fb.rlController.GetLimits()
 
 	func() {
 		resp, err := http.Get("http://127.0.0.1:8877/ambassador/v0/diag/?json=true")
@@ -93,11 +96,6 @@ func (fb *firstBootWizard) getSnapshot() Snapshot {
 		}
 		ret.Diag = json.RawMessage(bodyBytes)
 	}()
-
-	ret.Limits = fb.rlController.GetLimits()
-	if ret.Limits == nil {
-		ret.Limits = []crd.RateLimit{}
-	}
 
 	ret.License = LicenseInfo{
 		Claims:            fb.limiter.GetClaims(),
