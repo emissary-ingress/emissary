@@ -20,26 +20,32 @@ import (
 
 // Controller is monitors changes in app configuration and policy custom resources.
 type Controller struct {
-	Logger  dlog.Logger
-	Config  types.Config
-	rules   atomic.Value
-	filters atomic.Value
+	Logger   dlog.Logger
+	Config   types.Config
+	policies atomic.Value
+	filters  atomic.Value
 }
 
-func (c *Controller) storeRules(rules []crd.Rule) {
-	c.rules.Store(rules)
+func (c *Controller) storePolicies(policies []crd.FilterPolicy, rules []crd.Rule) {
+	c.policies.Store(struct {
+		Policies []crd.FilterPolicy
+		Rules    []crd.Rule
+	}{policies, rules})
 }
 
-func (c *Controller) LoadRules() []crd.Rule {
-	untyped := c.rules.Load()
+func (c *Controller) LoadPolicies() ([]crd.FilterPolicy, []crd.Rule) {
+	untyped := c.policies.Load()
 	if untyped == nil {
-		return nil
+		return nil, nil
 	}
-	typed, ok := untyped.([]crd.Rule)
+	typed, ok := untyped.(struct {
+		Policies []crd.FilterPolicy
+		Rules    []crd.Rule
+	})
 	if !ok {
-		return nil
+		return nil, nil
 	}
-	return typed
+	return typed.Policies, typed.Rules
 }
 
 func (c *Controller) storeFilters(filters map[string]crd.Filter) {
@@ -84,13 +90,31 @@ func parseFilter(untypedFilter k8s.Resource, cfg types.Config) (crd.Filter, erro
 	return filter, nil
 }
 
+func parseFilterPolicy(untypedFilterPolicy k8s.Resource, cfg types.Config) (crd.FilterPolicy, error) {
+	if cfg.AmbassadorSingleNamespace && untypedFilterPolicy.Namespace() != cfg.AmbassadorNamespace {
+		return crd.FilterPolicy{}, &NotThisAmbassadorError{
+			Message: fmt.Sprintf("AMBASSADOR_SINGLE_NAMESPACE: .metadata.namespace=%q != AMBASSADOR_NAMESPACE=%q", untypedFilterPolicy.Namespace(), cfg.AmbassadorNamespace),
+		}
+	}
+	var filterPolicy crd.FilterPolicy
+	if err := mapstructure.Convert(untypedFilterPolicy, &filterPolicy); err != nil {
+		return crd.FilterPolicy{}, errors.Wrap(err, "malformed filterPolicy resource spec")
+	}
+	if !filterPolicy.Spec.AmbassadorID.Matches(cfg.AmbassadorID) {
+		return crd.FilterPolicy{}, &NotThisAmbassadorError{
+			Message: fmt.Sprintf("AMBASSADOR_ID: .spec.ambassador_id=%v does not contain AMBASSADOR_ID=%q", filterPolicy.Spec.AmbassadorID, cfg.AmbassadorID),
+		}
+	}
+	return filterPolicy, nil
+}
+
 // Watch monitor changes in k8s cluster and updates rules
 func (c *Controller) Watch(
 	ctx context.Context,
 	kubeinfo *k8s.KubeInfo,
 	haveRedis bool,
 ) error {
-	c.storeRules([]crd.Rule{})
+	c.storePolicies([]crd.FilterPolicy{}, []crd.Rule{})
 	c.storeFilters(map[string]crd.Filter{})
 
 	restconfig, err := kubeinfo.GetRestConfig()
@@ -146,30 +170,28 @@ func (c *Controller) Watch(
 	})
 
 	w.Watch("filterpolicies", func(w *k8s.Watcher) {
+		var policies []crd.FilterPolicy
 		var rules []crd.Rule
 
-		for _, p := range w.List("filterpolicies") {
-			logger := c.Logger.WithField("FILTERPOLICY", p.QName())
+		for _, untypedPolicy := range w.List("filterpolicies") {
+			logger := c.Logger.WithField("FILTERPOLICY", untypedPolicy.QName())
 
-			var spec crd.FilterPolicySpec
-			err := mapstructure.Convert(p.Spec(), &spec)
+			policy, err := parseFilterPolicy(untypedPolicy, c.Config)
 			if err != nil {
-				logger.Errorln(errors.Wrap(err, "malformed filter policy resource spec"))
+				if _, notThisAmbassador := err.(*NotThisAmbassadorError); notThisAmbassador {
+					c.Logger.Debugf("ignoring FilterPolicy resource %q: %v", untypedPolicy.QName(), err)
+				} else {
+					c.Logger.Errorf("malformed FilterPolicy resource %q: %v", untypedPolicy.QName(), err)
+				}
 				continue
 			}
-			if c.Config.AmbassadorSingleNamespace && p.Namespace() != c.Config.AmbassadorNamespace {
-				continue
-			}
-			if !spec.AmbassadorID.Matches(c.Config.AmbassadorID) {
-				continue
-			}
-
-			for _, rule := range spec.Rules {
-				if err := rule.Validate(p.Namespace()); err != nil {
-					logger.Errorln(errors.Wrap(err, "filter policy resource rule"))
+			policyErr := policy.Validate()
+			for i := range policy.Spec.Rules {
+				if policy.Status.RuleStatuses[i].State != crd.RuleState_OK {
+					logger.Errorf("error in FilterPolicy resource .spec.rules[%d]: %s", i, policy.Status.RuleStatuses[i].Reason)
 					continue
 				}
-
+				rule := policy.Spec.Rules[i]
 				filterStrs := make([]string, 0, len(rule.Filters))
 				for _, filterRef := range rule.Filters {
 					filterStrs = append(filterStrs, filterRef.Name+"."+filterRef.Namespace)
@@ -179,9 +201,13 @@ func (c *Controller) Watch(
 
 				rules = append(rules, rule)
 			}
+			if policyErr != nil {
+				logger.Errorf("error in FilterPolicy resource: %v", err)
+			}
+			policies = append(policies, policy)
 		}
 
-		c.storeRules(rules)
+		c.storePolicies(policies, rules)
 	})
 
 	go func() {

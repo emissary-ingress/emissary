@@ -102,6 +102,7 @@ func (fb *firstBootWizard) getSnapshot() Snapshot {
 		}
 		return list
 	}()
+	ret.Watt["Kubernetes"]["FilterPolicy"], _ = fb.filterController.LoadPolicies()
 
 	ret.Diag = func() json.RawMessage {
 		resp, err := http.Get("http://127.0.0.1:8877/ambassador/v0/diag/?json=true")

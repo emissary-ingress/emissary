@@ -302,7 +302,7 @@ func findFilter(c *controller.Controller, qname string) *crd.Filter {
 }
 
 func findRule(c *controller.Controller, host, path string) *crd.Rule {
-	rules := c.LoadRules()
+	_, rules := c.LoadPolicies()
 	if rules == nil {
 		return nil
 	}
