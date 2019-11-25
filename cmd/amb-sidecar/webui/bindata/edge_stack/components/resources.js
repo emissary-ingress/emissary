@@ -369,9 +369,9 @@ div.both {
       .then(r=>{
         r.text().then(t=>{
           if (r.ok) {
-            alert("OK\n" + t)
+            // happy path
           } else {
-            alert("BAD\n" + t)
+            alert("BAD\n" + t) //TODO show the error in the UI somehow, this alert is not the best UI
           }
           if (this.state.mode === "add") {
             this.state.mode = "off"
@@ -481,9 +481,9 @@ spec: ${JSON.stringify(this.spec())}
       .then(r=>{
         r.text().then(t=>{
           if (r.ok) {
-            alert("OK\n" + t)
+            // happy path
           } else {
-            alert("BAD\n\n" + yaml + "\n\n" + t)
+            alert("BAD\n\n" + yaml + "\n\n" + t) //TODO show the error in the UI somehow, this alert is not the best UI
           }
           if (this.state.mode === "add") {
             this.state.mode = "off"
