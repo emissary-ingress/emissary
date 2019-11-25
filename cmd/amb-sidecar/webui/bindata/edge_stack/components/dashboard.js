@@ -1,17 +1,20 @@
 
-  /* Dashboard and dashboard element classes.
-   * Assumes that ChartJS has been loaded into the html page.
-   */
+/* Dashboard and dashboard element classes using LitElement and Google Charts. */
 
+/* Import the LitElement class and html and css helpers. */
 import { LitElement, html, css } from "https://cdn.pika.dev/-/lit-element/2.2.1/dist-es2019/lit-element.min.js";
+
+/* Get context updates */
 import {useContext, registerContextChangeHandler} from '/edge_stack/components/context.js'
 
-  // Create a global Promise to sychronize charts loaded and shadow dom finalized.
-  var chartsPromise = () => {};
+/* Create a global Promise to sychronize charts loaded and shadow dom finalized. */
+var chartsPromise = () => {};
 
-  // Set a callback to run when the Google Visualization API is loaded.
-  google.charts.load('current', {'packages':['corechart']});
-  google.charts.load('visualization', '1.0', { 'packages': ['corechart'] });
+/* Load the charts package.  Note that it will load asynchronously so we have
+ * to wait for a setOnLoadCallback (see the Dashboard constructor)
+ */
+google.charts.load('current', {'packages':['corechart']});
+google.charts.load('visualization', '1.0', { 'packages': ['corechart'] });
 
 /* The Dashboard class, drawing dashboard elements in a matrix of div.element blocks. */
 export class Dashboard extends LitElement {
@@ -30,7 +33,7 @@ export class Dashboard extends LitElement {
         text-align: center;
         font-weight: bold;
         background-color: lightgray;
-        width: 200px;
+        width: 240px;
         height: 16px;
         border: 2px solid lightgray;
         padding: 8px;
@@ -41,8 +44,8 @@ export class Dashboard extends LitElement {
       div.element-content {
         background-color: whitesmoke;
         text-align: center; 
-        width: 200px;
-        height: 200px;
+        width: 240px;
+        height: 240px;
         border: 2px solid lightgray;
         padding: 8px;
         top-margin: 0px;
@@ -52,150 +55,214 @@ export class Dashboard extends LitElement {
       span.code { font-family: Monaco, monospace; }`
   };
 
-  /* The constructor doesn't do anything at the moment...*/
+  /* Dashboard constructor.  Set up callbacks, context handlers. */
   constructor() {
     super()
 
+    /* Initialize the pizza values */
+    this.mushrooms  = Math.random(20);
+    this.pepperoni  = Math.random(10);
+
+    /* Initialize the annual revenue table */
+    this.annualRevenue = [
+        ['Year', 'Millions', { role: 'style' } ],
+        [2015, 10, 'color: gray'],
+        [2016, 11, 'color: gray'],
+        [2017, 13, 'color: gray'],
+        [2018, 15, 'color: gray'],
+        [2019, 16, 'color: gray']
+      ];
+
+    /* Use the aes-api-snapshot and set up the callback. */
     const [currentSnapshot, setSnapshot] = useContext('aes-api-snapshot', null);
     this.onSnapshotChange(currentSnapshot);
     registerContextChangeHandler('aes-api-snapshot', this.onSnapshotChange.bind(this));
+
+    /* Set up the Google Charts setOnLoad callback.  Note that we can't draw
+     * charts until the package has loaded, so we will be notified when this
+     * happens and set a promise to synchronize with the DOM being updated.
+     */
     google.charts.setOnLoadCallback(this.chartsLoaded.bind(this));
 
+    /* Watch for the DOMContentLoaded event, for debugging purposes. */
     document.addEventListener('DOMContentLoaded', (event) => { this.domLoaded() });
-
   };
+
 
   /* Initialize the dashboard. */
   init() {
     super.init()
-  };
 
-  // Reset the dashboard
+   };
+
+
+  /* Reset the dashboard */
   reset() {
     super.reset()
   };
 
-  // Update, will eventually call render()
+
+  /* Update, will cause render() to be called. */
   update() {
     super.update()
   };
 
-  // Updated properties from the Dashboard.  Currently this is not used.
+
+  /* Updated properties from the Dashboard.  Currently this is not used. */
   updated(changedProperties) {
     changedProperties.forEach((oldValue, propName) => {
       console.log(`${propName} changed. oldValue: ${oldValue}`);
     });
   }
 
-  // Validate the dashboard.  Not sure why this would be called.
+
+  /* Validate the dashboard.  Not sure why this would be called. */
   validate() {
     this.state.messages.push("validating dashboard...why?")
   };
 
-  // Get new data from Kubernetes services.
+
+  /* Get new data from Kubernetes services. */
   onSnapshotChange(snapshot) {
     this.services = [
-    (((snapshot || {}).Kubernetes || {}).AuthService || []),
-    (((snapshot || {}).Kubernetes || {}).RateLimitService || []),
-    (((snapshot || {}).Kubernetes || {}).TracingService || []),
-    (((snapshot || {}).Kubernetes || {}).LogService || []),
-  ].reduce((acc, item) => acc.concat(item));
+      (((snapshot || {}).Kubernetes || {}).AuthService || []),
+      (((snapshot || {}).Kubernetes || {}).RateLimitService || []),
+      (((snapshot || {}).Kubernetes || {}).TracingService || []),
+      (((snapshot || {}).Kubernetes || {}).LogService || []),
+    ].reduce((acc, item) => acc.concat(item));
 
-    this.chartval = Math.random(10);
-  this.requestUpdate();
-}
 
-  // Render the component by returning a TemplateResult, using the html helper function.
+    /* Update the chart data. This will be moved out to appropriate
+     * JavaScript objects, but for testing purposes we are just going to
+     * have instance variables hold the data.
+     */
+    this.mushrooms  = Math.random(20);
+    this.pepperoni  = Math.random(10);
+
+    /* Revenue data: keep 5 columns, and bump revenue by
+     * a random amount between -1 and 3.
+     */
+    var graphAnnotations = this.annualRevenue[0];
+    var i;
+    for (i=1; i<=4; i++) {
+      this.annualRevenue[i] = this.annualRevenue[i+1]
+    }
+    /* Bump up the year and revenue number */
+    this.annualRevenue[5] = [
+      this.annualRevenue[4][0] + 1,
+      this.annualRevenue[4][1] + Math.floor(Math.random() * Math.floor(3)) - 1,
+      this.annualRevenue[4][2]
+    ]
+
+    /* Request an update of the Dashboard */
+    this.requestUpdate();
+  }
+
+  /* Render the component by returning a TemplateResult, using the html helper function. */
   render() {
-    /* return html`Hello World from Dashboard` */
-    var test_value = "testing...";
-    var num_of_services = 0;
+    var num_services = 0;
 
     if (this.services) {
-      num_of_services = this.services.length
+      num_services = this.services.length;
     }
 
-    // Wait for the update to be completed
+    /* Wait for the update to be completed */
     this.updateComplete.then(() => {
       console.log("updateComplete");
 
       if (chartsPromise === true) {
-        this.drawChart("test_chart");
+        this.drawCharts();
       }
       else {
         chartsPromise = () => {
-          this.drawChart("test_chart")
+          this.drawCharts();
         }
       }
     })
 
+    /* Construct the HTML template. */
     return html`
-      ${this.renderChartItem("test_chart")}
-      ${this.renderSummaryItem("Number of Services", num_of_services)}
-      ${this.renderSummaryItem("Summary 1", test_value)}
-      ${this.renderGraphItem("Graph 1", test_value)}
-      ${this.renderSummaryItem("Summary 1", test_value)}
-      ${this.renderGraphItem("Graph 1", test_value)}
-      ${this.renderSummaryItem("Summary 1", test_value)}
+      ${this.renderChartItem('piechart', 'Pie Chart Example')}
+      ${this.renderTextItem('services', 'Number of Services', num_services)}
+      ${this.renderChartItem('columnchart', 'Column Chart Example')}
     `
-  };
+  }
 
-    // Renders a single graph item in a box.
-  renderGraphItem(title, value) {
+  /* Draw all the charts */
+  drawCharts() {
+    this.drawPieChart("piechart");
+    this.drawColumnChart("columnchart");
+  }
+
+  /* Renders a single Dashboard element in a box. */
+  renderTextItem(item_id, title, text) {
     return html`
         <div class="element">
-        <div class="element-titlebar">Graph ${title}</div>
-        <div class="element-content">Graph Content Goes Here: ${value}</div>
+        <div class="element-titlebar">${title}</div>
+        <div class="element-content" id="${item_id}">${text}</div>
         </div>`
   }
 
-   // Render a single Chart item by chart_id.
-  renderChartItem(chart_id) {
+
+  /* Render a single Chart item by chart_id. */
+  renderChartItem(item_id, title) {
     return html`
      <div class="element">
-        <div class="element-titlebar">Google Chart</div>
-        <div class="element-content" id="${chart_id}"></div>
+        <div class="element-titlebar">${title}</div>
+        <div class="element-content" id="${item_id}"></div>
      </div>
      `
   }
 
-  // Render a single summary item in a box.
-  renderSummaryItem(title, value) {
-    return html`
-        <div class="element">
-        <div class="element-titlebar">${title}</div>
-        <div class="element-content">${value}</div>
-        </div>`
-  }
-
-  /* Draw a chart in the given element. */
-  drawChart(element_id) {
-    // Create the data table.
+  /* Draw an example pie chart */
+  drawPieChart(element_id) {
+    /* Create the data table. */
     var data = new google.visualization.DataTable();
     data.addColumn('string', 'Topping');
     data.addColumn('number', 'Slices');
     data.addRows([
-      ['Mushrooms', this.chartval],
+      ['Mushrooms', this.mushrooms],
       ['Onions', 1],
       ['Olives', 1],
       ['Zucchini', 1],
-      ['Pepperoni', 2]
+      ['Pepperoni', this.pepperoni]
     ]);
 
-    // Set chart options
+    /* Set chart options */
     var options = {
       'title': 'How Much Pizza I Ate Last Night',
       'width': '80%',
       'height': '80%'
     };
 
-    // Instantiate and draw our chart, passing in some options.
+    /* Instantiate and draw our chart, passing in some options. */
     var element = this.shadowRoot.getElementById(element_id);
     var chart = new google.visualization.PieChart(element);
     chart.draw(data, options);
   }
 
-  // Charts loaded --
+  /* Draw an example column chart */
+  drawColumnChart(element_id) {
+    /* Create the data table. */
+    var data = google.visualization.arrayToDataTable(this.annualRevenue);
+
+    /* Set chart options */
+    var options = {
+      'title': 'Annual Revenue',
+      'width': '80%',
+      'height': '80%'
+    };
+
+    /* Instantiate and draw our chart, passing in some options. */
+    var element = this.shadowRoot.getElementById(element_id);
+    var chart = new google.visualization.ColumnChart(element);
+    chart.draw(data, options);
+  }
+
+  /* chartsLoaded callback.  Sets up a promise and resolves it.  This
+   * is a sort of mutex collaborating with updateComplete which is called
+   * in the render() method.
+   */
   chartsLoaded() {
     console.log("Dashboard received chartsLoaded");
     var promise = chartsPromise;
@@ -203,12 +270,12 @@ export class Dashboard extends LitElement {
     promise();
   }
 
-  // Page DOM loaded.
+  /* Page DOM loaded.  Currently just for debugging. */
   domLoaded() {
     console.log("Dashboard received DOMLoaded");
   }
 };
 
 
-// Define the Dashboard lit-element class as 'dw-dashboard'
+/* Define the Dashboard lit-element class as 'dw-dashboard' */
 customElements.define('dw-dashboard', Dashboard);
