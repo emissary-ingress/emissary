@@ -821,3 +821,6 @@ export class VisibleModes extends LitElement {
 customElements.define('visible-modes', VisibleModes);
 
 //TODO the favicon.ico doesn't load because it gets our custom 404 page instead. This needs fixing.
+//TODO We need a way to link from tab to tab: click on the dashboard panel about rate limits and
+//   go to the rate limit tab; click on a service in a mapping resource, and go to the services tab
+//   with that service resource highlighted. Etc.
