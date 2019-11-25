@@ -204,11 +204,13 @@ sudo chmod a+x /usr/local/bin/edgectl
     return html`
   <div class="login-section">
     <h1 class="info-title">Welcome to Ambassador Edge Stack!</h1>
-    <p>To login to the admin portal, use: <span class="command" id="login">edgectl login --namespace=${this.namespace} ${window.location.host}</span> <button style="margin-left: 1em" @click=${this.copyLoginToKeyboard.bind(this)}>Copy to Clipboard</button></p>
     <p>
-      If you do not yet have the edgectl executable, download it
+      To start using the Edge Policy Consule, download the edgectl executable
       from the getambassador.io
       website: (<a href="https://metriton.datawire.io/downloads/darwin/edgectl">darwin</a>, <a href="https://metriton.datawire.io/downloads/linux/edgectl">linux</a>).
+    </p>
+    <p>
+    Once downloaded, you can login to the Edge Policy Console with: <span class="command" id="login">edgectl login --namespace=${this.namespace} ${window.location.host}</span> <button style="margin-left: 1em" @click=${this.copyLoginToKeyboard.bind(this)}>Copy to Clipboard</button>
     </p>
 
     ${this.renderDarwinDetails()}
