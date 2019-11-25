@@ -138,6 +138,7 @@ div.title {
   background: var(--dw-item-background-fill);
   margin: 0;
   padding: 0.5em;
+  max-height: 1.3em;
 }
 div.title-button {
   position: absolute;
@@ -147,7 +148,7 @@ div.title-button {
 div.edit-buttons {
   position: absolute;
   right: 0.5em;
-  top: 40px;
+  top: 38px;
 }
 div.edit-buttons-column {
   display: grid;
@@ -338,6 +339,10 @@ div.both {
 
   // internal
   onAdd() {
+    if( this.readOnly() ) {
+      return; // we shouldn't be able to get here because there is no add button,
+              // but if we do, don't do anything.
+    }
     this.requestUpdate();
     this.reset();
     this.state.mode = "add"
@@ -363,7 +368,7 @@ div.both {
     if( this.readOnly() ) {
       this.state.mode = "list";
       return; // we shouldn't be able to get here because there is no edit button,
-              // but if we do, don't do anything.
+              // and thus no delete button, but if we do, don't do anything.
     }
     fetch('/edge_stack/api/delete',
           {
@@ -465,7 +470,7 @@ div.both {
     if( this.readOnly() ) {
       this.state.mode = "list";
       return; // we shouldn't be able to get here because there is no edit button,
-              // but if we do, don't do anything.
+              // and thus no save button, but if we do, don't do anything.
     }
     this.requestUpdate();
 
@@ -537,6 +542,15 @@ spec: ${JSON.stringify(this.spec())}
 
   ${this.renderResource()}
 
+  ${((this.state.mode === "add") && (this.minimumNumberOfAddRows() < 2)) ? 
+      html`<div class="attribute-value">&nbsp;</div>` : ""}
+  ${((this.state.mode === "edit") && (this.minimumNumberOfEditRows() < 2)) ? 
+      html`<div class="attribute-value">&nbsp;</div>` : ""}
+  ${((this.state.mode === "edit") && (this.minimumNumberOfEditRows() < 3)) ? 
+      html`<div class="attribute-value">&nbsp;</div>` : ""}
+  ${((this.state.mode === "edit") && (this.minimumNumberOfEditRows() < 4)) ? 
+      html`<div class="attribute-value">&nbsp;</div>` : ""}
+  
   <div class="edit-buttons ${this.visible("edit", "add")}">
     <div class="edit-buttons-column">
       <button class="${this.visible("edit", "add")}" @click=${()=>this.onSave()}>Save</button>
@@ -645,6 +659,20 @@ spec: ${JSON.stringify(this.spec())}
    */
   renderResource() {
     throw new Error("please implement renderResource()")
+  }
+
+  /**
+   * To help the UI place buttons within the rectangle border (or more
+   * precisely, to help the UI grow the rectangle border to fit all the
+   * buttons, these two functions should be overridden if the renderResource
+   * has fewer than four rows in edit mode and/or fewer than two rows in
+   * add mode.
+   */
+  minimumNumberOfAddRows() {
+    return 2;
+  }
+  minimumNumberOfEditRows() {
+    return 4;
   }
 
 }
