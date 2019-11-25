@@ -23,6 +23,7 @@ import (
 	"github.com/datawire/ambassador/pkg/supervisor"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/go-acme/lego/v3/acme"
+	"github.com/mediocregopher/radix.v2/pool"
 	"github.com/pkg/errors"
 
 	k8sSchema "k8s.io/apimachinery/pkg/runtime/schema"
@@ -31,10 +32,12 @@ import (
 
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/httpclient"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/middleware"
+	"github.com/datawire/apro/cmd/amb-sidecar/limiter"
 	rls "github.com/datawire/apro/cmd/amb-sidecar/ratelimits"
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
 	"github.com/datawire/apro/cmd/amb-sidecar/watt"
 	"github.com/datawire/apro/lib/jwtsupport"
+	"github.com/datawire/apro/lib/licensekeys"
 	"github.com/datawire/apro/resourceserver/rfc6750"
 )
 
@@ -44,9 +47,17 @@ type LoginClaimsV1 struct {
 }
 
 type Snapshot struct {
-	Watt   json.RawMessage
-	Diag   json.RawMessage
-	Limits []k8s.Resource
+	Watt       json.RawMessage
+	Diag       json.RawMessage
+	Limits     []k8s.Resource
+	License    LicenseInfo
+	RedisInUse bool
+}
+
+type LicenseInfo struct {
+	Claims            *licensekeys.LicenseClaimsLatest
+	HardLimit         bool
+	FeaturesOverLimit []string
 }
 
 type firstBootWizard struct {
@@ -54,7 +65,8 @@ type firstBootWizard struct {
 	staticfiles http.FileSystem
 	hostsGetter k8sClientDynamic.NamespaceableResourceInterface
 
-	rls *rls.RateLimitController
+	rls     *rls.RateLimitController
+	limiter limiter.Limiter
 
 	privkey *rsa.PrivateKey
 	pubkey  *rsa.PublicKey
@@ -82,6 +94,9 @@ func (fb *firstBootWizard) getSnapshot() Snapshot {
 
 end:
 	fb.snapshot.Limits = fb.rls.GetLimits()
+	fb.snapshot.License.Claims = fb.limiter.GetClaims()
+	fb.snapshot.License.HardLimit = fb.limiter.IsHardLimitAtPointInTime()
+	fb.snapshot.License.FeaturesOverLimit = fb.limiter.GetFeaturesOverLimitAtPointInTime()
 	return fb.snapshot
 }
 
@@ -92,6 +107,8 @@ func New(
 	rls *rls.RateLimitController,
 	privkey *rsa.PrivateKey,
 	pubkey *rsa.PublicKey,
+	limiter limiter.Limiter,
+	redisPool *pool.Pool,
 ) http.Handler {
 	var files http.FileSystem = http.Dir(cfg.DevWebUIDir)
 
@@ -100,15 +117,18 @@ func New(
 		staticfiles: files,
 		hostsGetter: dynamicClient.Resource(k8sSchema.GroupVersionResource{Group: "getambassador.io", Version: "v2", Resource: "hosts"}),
 
-		rls: rls,
+		rls:     rls,
+		limiter: limiter,
 
 		privkey: privkey,
 		pubkey:  pubkey,
 
 		snapshot: Snapshot{
-			Watt:   json.RawMessage(`{}`),
-			Diag:   nil,
-			Limits: []k8s.Resource{},
+			Watt:       json.RawMessage(`{}`),
+			Diag:       nil,
+			Limits:     []k8s.Resource{},
+			License:    LicenseInfo{},
+			RedisInUse: redisPool != nil,
 		},
 	}
 	go func() {

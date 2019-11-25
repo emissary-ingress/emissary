@@ -88,6 +88,24 @@ func (l *LimiterImpl) SetPhoneHomeHardLimits(newPhoneHomeHardLimits bool) {
 	l.phoneHomeHardLimits = newPhoneHomeHardLimits
 }
 
+// GetFeaturesOverLimitAtPointInTime returns the current features with usage above licensed limits.
+// This is called point in time to communicate that this can change
+// over time, and you should check it back often.
+func (l *LimiterImpl) GetFeaturesOverLimitAtPointInTime() []string {
+	licensedFeaturesOverLimit := []string{}
+	for _, limitName := range licensekeys.ListKnownLimits() {
+		limit, ok := licensekeys.ParseLimit(limitName)
+		if ok {
+			limitValue := l.GetLimitValueAtPointInTime(&limit)
+			usageValue := l.GetFeatureUsageValueAtPointInTime(&limit)
+			if usageValue >= limitValue {
+				licensedFeaturesOverLimit = append(licensedFeaturesOverLimit, limitName)
+			}
+		}
+	}
+	return licensedFeaturesOverLimit
+}
+
 // GetLimitValueAtPointInTime returns the current limit value for the current
 // license key. This is called point in time to communicate that this can change
 // over time, and you should check it back often.

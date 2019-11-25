@@ -46,7 +46,15 @@ class SnapshotWrapper {
    * Return the JSON representation of the OSS diagnostics page.
    */
   getDiagnostics() {
-    return this.data.Diag || {}
+    return this.data.Diag || {};
+  }
+
+  getLicense() {
+    return this.data.License || {};
+  }
+
+  getRedisInUse() {
+    return this.data.RedisInUse || false;
   }
 
 }
