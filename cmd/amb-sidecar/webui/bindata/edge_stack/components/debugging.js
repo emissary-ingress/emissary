@@ -9,6 +9,7 @@ export class Debugging extends LitElement {
     return {
       diagd: {type: Object},
       licenseClaims: { type: Object },
+      featuresOverLimit: { type: Object },
       redisInUse: { type: Boolean }
     };
   }
@@ -104,6 +105,11 @@ export class Debugging extends LitElement {
           <dd>${this.diagd.system.statsd_enabled ? "enabled" : "disabled"}</dd>
 
         </dl>
+        
+        ${this.featuresOverLimit.length > 0 
+          ? html`<div style="color:red; font-weight: bold">You've reached the usage limits for your license. If you need to use Ambassador beyond the current limits, <a href="https://www.getambassador.io/contact/">please contact Datawire</a> for an Enterprise license.</div>`
+          : html``
+        }
       </fieldset>
 
       <fieldset>
@@ -177,6 +183,7 @@ export class Debugging extends LitElement {
        errors: [],
      });
     this.licenseClaims = snapshot.getLicense().Claims || {};
+    this.featuresOverLimit = snapshot.getLicense().FeaturesOverLimit || [];
     this.redisInUse = snapshot.getRedisInUse();
   }
 
