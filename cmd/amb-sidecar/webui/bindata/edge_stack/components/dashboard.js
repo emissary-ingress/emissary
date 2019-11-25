@@ -1,5 +1,7 @@
 
+/* ===================================================================================*/
 /* Dashboard and dashboard element classes using LitElement and Google Charts. */
+/* ===================================================================================*/
 
 /* Import the LitElement class and html and css helpers. */
 import { LitElement, html, css } from "https://cdn.pika.dev/-/lit-element/2.2.1/dist-es2019/lit-element.min.js";
@@ -8,7 +10,28 @@ import { LitElement, html, css } from "https://cdn.pika.dev/-/lit-element/2.2.1/
 import {useContext, registerContextChangeHandler} from '/edge_stack/components/context.js'
 
 /* Create a global Promise to sychronize charts loaded and shadow dom finalized. */
-var chartsPromise = () => {};
+
+var WhenChartsAreLoadedPromise = {
+    _pending: [],
+    then: function (f) {
+        /* the charts library isn't loaded yet, so queue up the
+         * lambdas until the library is loaded */
+        this._pending.push(f);
+    },
+    resolve: function() {
+        /* when the charts library is loaded, I replace myself with a
+         * new object that doesn't queue the lambdas and then.. */
+        WhenChartsAreLoadedPromise = {
+            then: function (f) { f(); },
+            resolve: function () {}
+        };
+        /* ..then execute all the pending lambdas */
+        for(i = 0; i < this._pending.length; i++) {
+            this._pending[i]();
+        }
+    }
+};
+
 
 /* Load the charts package.  Note that it will load asynchronously so we have
  * to wait for a setOnLoadCallback (see the Dashboard constructor)
@@ -16,7 +39,10 @@ var chartsPromise = () => {};
 google.charts.load('current', {'packages':['corechart']});
 google.charts.load('visualization', '1.0', { 'packages': ['corechart'] });
 
+/* ===================================================================================*/
 /* The Dashboard class, drawing dashboard elements in a matrix of div.element blocks. */
+/* ===================================================================================*/
+
 export class Dashboard extends LitElement {
   /* styles() returns the styles for the dashboard elements. */
   static get styles() {
@@ -170,14 +196,11 @@ export class Dashboard extends LitElement {
     this.updateComplete.then(() => {
       console.log("updateComplete");
 
-      if (chartsPromise === true) {
-        this.drawCharts();
-      }
-      else {
-        chartsPromise = () => {
+      WhenChartsAreLoadedPromise.then(
+        () => {
+          console.log("draw charts");
           this.drawCharts();
-        }
-      }
+        } );
     })
 
     /* Construct the HTML template. */
@@ -259,15 +282,14 @@ export class Dashboard extends LitElement {
     chart.draw(data, options);
   }
 
-  /* chartsLoaded callback.  Sets up a promise and resolves it.  This
-   * is a sort of mutex collaborating with updateComplete which is called
+  /* chartsLoaded callback.  Resolve the promise to let the Dashboard
+   * know that the library is available and charts can now be drawn.
+   * It is a sort of mutex collaborating with updateComplete which is called
    * in the render() method.
    */
   chartsLoaded() {
     console.log("Dashboard received chartsLoaded");
-    var promise = chartsPromise;
-    chartsPromise = true;
-    promise();
+    WhenChartsAreLoadedPromise.resolve();
   }
 
   /* Page DOM loaded.  Currently just for debugging. */
@@ -276,6 +298,7 @@ export class Dashboard extends LitElement {
   }
 };
 
+/* ===================================================================================*/
 
 /* Define the Dashboard lit-element class as 'dw-dashboard' */
 customElements.define('dw-dashboard', Dashboard);
