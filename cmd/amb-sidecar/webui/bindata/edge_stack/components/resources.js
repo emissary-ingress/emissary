@@ -819,3 +819,5 @@ export class VisibleModes extends LitElement {
 }
 
 customElements.define('visible-modes', VisibleModes);
+
+//TODO the favicon.ico doesn't load because it gets our custom 404 page instead. This needs fixing.
