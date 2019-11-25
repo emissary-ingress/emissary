@@ -58,18 +58,20 @@ export class APIs extends LitElement {
       return {} //TODO part of the above temporary removal
     } else {//TODO part of the above temporary removal
 
-    $.getJSON("/openapi/services", apis => {
-      //console.log("APIs load succeeded");
-      //console.log(apis);
-      this.apis = apis
-    }).fail(xhr=>{
-      if (xhr.status === 401 || xhr.status === 403) {
-        window.location.replace("../login/")
-      }
-      else {
-        console.log(xhr)
-      }
-    });
+      fetch('/openapi/services')
+        .then((resp) => {
+          if (resp.status === 401 || resp.status === 403) {
+            return new Promise((_, reject) => {
+              reject(`Invalid Status: ${resp.status}`);
+            });
+          } else {
+            return resp.json();
+          }
+        })
+        .then((json) => {
+          this.apis = json;
+        })
+        .catch((err) => console.log(err));
 
     if (this.doRefresh) {
       //console.log("will reload APIs in 10 seconds");
@@ -82,7 +84,7 @@ export class APIs extends LitElement {
     if (!this.waitingForHackStyles) {
       this.waitingForHackStyles = true;
       // console.log("DEFERRING HACKSTYLES")
-      setTimeout(this.hackStyles.bind(this), 1)      
+      setTimeout(this.hackStyles.bind(this), 1)
     }
     // else {
     //   console.log("ALREADY DEFERRING HACKSTYLES")
@@ -151,7 +153,7 @@ export class APIs extends LitElement {
       }
     }
   }
-  
+
   apiName(api) {
     let apiName = `${api.service_name}.${api.service_namespace}`;
 
@@ -180,7 +182,7 @@ export class APIs extends LitElement {
       this.deferHackStyles();
 
       var rendered = [];
-      
+
       this.apis.sort(this.compareAPIs.bind(this));
 
       this.apis.forEach((api, index) => {
@@ -213,11 +215,11 @@ export class APIs extends LitElement {
       let detailURL = `/openapi/services/${api.service_namespace}/${api.service_name}/openapi.json`;
 
       return html`
-<rapi-doc id="${detailKey}" 
+<rapi-doc id="${detailKey}"
   spec-url="${detailURL}"
-  show-header="false" 
-  show-info="true" 
-  allow-authentication="false"  
+  show-header="false"
+  show-info="true"
+  allow-authentication="false"
 >
   <div>Documentation for ${apiName} at ${api.routing_prefix}</div>
 </rapi-doc>
