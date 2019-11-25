@@ -208,7 +208,13 @@ def main(debug):
                 [
                     'hosts.getambassador.io'
                 ]
-            )            
+            ),
+            (
+                '.ambassador_ignore_crds_4', 'LogService CRDs',
+                [
+                    'logservices.getambassador.io'
+                ]
+            )
         ]
 
         # Flynn would say "Ew.", but we need to patch this till https://github.com/kubernetes-client/python/issues/376
