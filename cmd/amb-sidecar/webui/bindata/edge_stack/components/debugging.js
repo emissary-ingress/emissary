@@ -8,6 +8,7 @@ export class Debugging extends LitElement {
   static get properties() {
     return {
       diagd: {type: Object},
+      licenseClaims: { type: Object }
     };
   }
 
@@ -51,6 +52,9 @@ export class Debugging extends LitElement {
 
           <dt>Ambassador version</dt>
           <dd>${this.diagd.system.version}</dd>
+          
+          <dt>License</dt>
+          <dd>${this.licenseClaims.customer_email || this.licenseClaims.customer_id}</dd>
 
           <dt>Hostname</dt>
           <dd>${this.diagd.system.hostname}</dd>
@@ -154,7 +158,7 @@ export class Debugging extends LitElement {
   // internal ////////////////////////////////////////////////////////
 
   onSnapshotChange(snapshot) {
-    let diagnostics = snapshot.getDiagnostics()
+    let diagnostics = snapshot.getDiagnostics();
     this.diagd = (('system' in (diagnostics||{})) ? diagnostics :
      {
        system: {
@@ -164,6 +168,7 @@ export class Debugging extends LitElement {
        loginfo: {},
        errors: [],
      });
+    this.licenseClaims = snapshot.getLicense().Claims || {};
   }
 
   setLogLevel(level) {

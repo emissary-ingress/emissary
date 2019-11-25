@@ -7,7 +7,6 @@ import (
 	"github.com/mediocregopher/radix.v2/pool"
 
 	"github.com/datawire/apro/cmd/amb-sidecar/limiter"
-	"github.com/datawire/apro/lib/licensekeys"
 )
 
 type banner struct {
@@ -17,7 +16,6 @@ type banner struct {
 }
 
 func NewBanner(limit limiter.Limiter, redisPool *pool.Pool) http.Handler {
-	// TODO(alexgervais): Display a banner inviting "unregistered" license users to enter their email
 	t := template.New("banner")
 	t, _ = t.Parse(`
 {{- if not .hasRedis -}}
@@ -30,19 +28,8 @@ func NewBanner(limit limiter.Limiter, redisPool *pool.Pool) http.Handler {
 }
 
 func (b *banner) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	licensedFeaturesOverLimit := []string{}
-	for _, limitName := range licensekeys.ListKnownLimits() {
-		limit, ok := licensekeys.ParseLimit(limitName)
-		if ok {
-			limitValue := b.limit.GetLimitValueAtPointInTime(&limit)
-			usageValue := b.limit.GetFeatureUsageValueAtPointInTime(&limit)
-			if usageValue >= limitValue {
-				licensedFeaturesOverLimit = append(licensedFeaturesOverLimit, limitName)
-			}
-		}
-	}
 	data := map[string]interface{}{
-		"features_over_limit": licensedFeaturesOverLimit,
+		"features_over_limit": b.limit.GetFeaturesOverLimitAtPointInTime(),
 		"unregistered":        b.limit.GetClaims().CustomerID == "unregistered",
 		"hasRedis":            b.redisPool != nil,
 	}

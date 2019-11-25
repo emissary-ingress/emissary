@@ -50,7 +50,7 @@ func (v1 *LicenseClaimsV1) ToLatest() *LicenseClaimsLatest {
 	v2 := &LicenseClaimsV2{
 		LicenseKeyVersion: v1.LicenseKeyVersion,
 		CustomerID:        v1.CustomerID,
-		CustomerEmail:     "unknown",
+		CustomerEmail:     "",
 		EnabledFeatures:   v1.EnabledFeatures,
 		StandardClaims:    v1.StandardClaims,
 		EnforcedLimits: []LimitValue{

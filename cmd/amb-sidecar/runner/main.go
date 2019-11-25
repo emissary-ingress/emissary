@@ -400,9 +400,9 @@ func runE(cmd *cobra.Command, args []string) error {
 			rateLimitScope := statsStore.Scope("ratelimit")
 			rateLimitService := lyftservice.NewService(
 				loader.New(
-					cfg.RLSRuntimeDir,                                        // runtime path
-					cfg.RLSRuntimeSubdir,                                     // runtime subdirectory
-					rateLimitScope.Scope("runtime"),                          // stats scope
+					cfg.RLSRuntimeDir,               // runtime path
+					cfg.RLSRuntimeSubdir,            // runtime subdirectory
+					rateLimitScope.Scope("runtime"), // stats scope
 					&loader.SymlinkRefresher{RuntimePath: cfg.RLSRuntimeDir}, // refresher
 				),
 				lyftredis.NewRateLimitCacheImpl(
@@ -446,6 +446,8 @@ func runE(cmd *cobra.Command, args []string) error {
 			rls,
 			privkey,
 			pubKey,
+			limit,
+			redisPool,
 		)
 		httpHandler.AddEndpoint("/edge_stack_ui/", "Edge Stack admin UI", http.StripPrefix("/edge_stack_ui", webuiHandler).ServeHTTP)
 		l.Debugf("DEV_WEBUI_PORT=%q", cfg.DevWebUIPort)

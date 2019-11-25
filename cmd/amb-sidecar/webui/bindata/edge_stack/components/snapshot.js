@@ -49,6 +49,10 @@ class SnapshotWrapper {
     return this.data.Diag || {}
   }
 
+  getLicense() {
+    return this.data.License || {}
+  }
+
 }
 
 export class Snapshot extends LitElement {

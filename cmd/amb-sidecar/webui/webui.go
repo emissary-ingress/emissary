@@ -23,6 +23,7 @@ import (
 	"github.com/datawire/ambassador/pkg/supervisor"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/go-acme/lego/v3/acme"
+	"github.com/mediocregopher/radix.v2/pool"
 	"github.com/pkg/errors"
 
 	k8sSchema "k8s.io/apimachinery/pkg/runtime/schema"
@@ -31,10 +32,12 @@ import (
 
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/httpclient"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/middleware"
+	"github.com/datawire/apro/cmd/amb-sidecar/limiter"
 	rls "github.com/datawire/apro/cmd/amb-sidecar/ratelimits"
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
 	"github.com/datawire/apro/cmd/amb-sidecar/watt"
 	"github.com/datawire/apro/lib/jwtsupport"
+	"github.com/datawire/apro/lib/licensekeys"
 	"github.com/datawire/apro/resourceserver/rfc6750"
 )
 
@@ -44,9 +47,17 @@ type LoginClaimsV1 struct {
 }
 
 type Snapshot struct {
-	Watt   json.RawMessage
-	Diag   json.RawMessage
-	Limits []k8s.Resource
+	Watt       json.RawMessage
+	Diag       json.RawMessage
+	Limits     []k8s.Resource
+	License    LicenseInfo
+	RedisIsUse bool
+}
+
+type LicenseInfo struct {
+	Claims            *licensekeys.LicenseClaimsLatest
+	HardLimit         bool
+	FeaturesOverLimit []string
 }
 
 type firstBootWizard struct {
@@ -92,6 +103,8 @@ func New(
 	rls *rls.RateLimitController,
 	privkey *rsa.PrivateKey,
 	pubkey *rsa.PublicKey,
+	limiter limiter.Limiter,
+	redisPool *pool.Pool,
 ) http.Handler {
 	var files http.FileSystem = http.Dir(cfg.DevWebUIDir)
 
@@ -109,6 +122,12 @@ func New(
 			Watt:   json.RawMessage(`{}`),
 			Diag:   nil,
 			Limits: []k8s.Resource{},
+			License: LicenseInfo{
+				Claims:            limiter.GetClaims(),
+				HardLimit:         limiter.IsHardLimitAtPointInTime(),
+				FeaturesOverLimit: limiter.GetFeaturesOverLimitAtPointInTime(),
+			},
+			RedisIsUse: redisPool != nil,
 		},
 	}
 	go func() {
