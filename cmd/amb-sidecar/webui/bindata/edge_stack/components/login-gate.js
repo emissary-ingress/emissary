@@ -89,8 +89,6 @@ details {
 
     this.authenticated = useContext('auth-state', null)[0];
     registerContextChangeHandler('auth-state', this.onAuthChange.bind(this));
-
-
   }
 
   onAuthChange(auth) {
@@ -98,13 +96,14 @@ details {
   }
 
   getOS() {
-    if (window != null && window['session'] != null && window['session']['browser'] != null && window['session']['browser']['os'] != null) {
-      const os = window.session.browser.os; // Mac, Win, Linux
-      if(os === "Mac") {
-        return "darwin";
-      } else if (os === "Windows") {
+    if (window != null && window["navigator"] != null && window["navigator"]["platform"] != null) {
+      const os = window.navigator.platform; // Mac, Win, Linux
+
+      if (os.toLocaleLowerCase().indexOf("win") != -1) {
         return "windows";
-      } else if (os === "Linux") {
+      } else if (os.toLowerCase().indexOf("mac") != -1) {
+        return "darwin";
+      } else if (os.toLowerCase().indexOf("linux") != -1) {
         return "linux";
       } else {
         return "other";
