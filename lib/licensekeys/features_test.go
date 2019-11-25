@@ -54,6 +54,7 @@ func TestRequireFeature(t *testing.T) {
 				licensekeys.FeatureFilter,
 				licensekeys.FeatureRateLimit,
 				licensekeys.FeatureTraffic,
+				licensekeys.FeaturePaidSupport,
 			},
 		},
 		"v0 expired": {
@@ -68,6 +69,7 @@ func TestRequireFeature(t *testing.T) {
 				licensekeys.FeatureTraffic,
 				licensekeys.FeatureRateLimit,
 				licensekeys.FeatureFilter,
+				licensekeys.FeaturePaidSupport,
 			},
 		},
 		"v1 with devportal": {
@@ -78,6 +80,7 @@ func TestRequireFeature(t *testing.T) {
 				licensekeys.FeatureRateLimit,
 				licensekeys.FeatureFilter,
 				licensekeys.FeatureDevPortal,
+				licensekeys.FeaturePaidSupport,
 			},
 		},
 		"v1 with just filter": {
@@ -85,6 +88,7 @@ func TestRequireFeature(t *testing.T) {
 			Key: "eyJhbGciOiJQUzUxMiIsInR5cCI6IkpXVCJ9.eyJsaWNlbnNlX2tleV92ZXJzaW9uIjoidjEiLCJjdXN0b21lcl9pZCI6ImRldiIsImVuYWJsZWRfZmVhdHVyZXMiOlsiZmlsdGVyIl0sImV4cCI6NDcxOTgzMjM4NCwiaWF0IjoxNTY2MjMyMzg0LCJuYmYiOjE1NjYyMzIzODR9.BPAPuZtz6_T0zxjfPGHtQXP9F_Abvr9jbWQvyQjAFr8N0fkYEXp13g9ctaem5orvghoT72yrEl6SX6GUGuV5RfNs-VMp05AvkooCX5ndvSA6h_hLG8pz4wATFRCW8cuU04rfCdn8xs5EzNPPgiBDs2vyL9yxDdcLDGkXAuaVRvEkScdJDsCewlBnVi_TrItE7HyQVG9tcW0rcLbaLBySa1TpiRy1G9vjDaZgUftI5ywcS44TK72i2zt4I8uDueZUw7t8815c00wFv1HQ4Pu9OVObr0h7DvTai4yfClhebRDv4Z3lQMrsv9n2KYv9JLVqrfstqhBKCrclPb78hAKi3g",
 			Features: []licensekeys.Feature{
 				licensekeys.FeatureFilter,
+				licensekeys.FeaturePaidSupport,
 			},
 		},
 		"v1 expired": {
@@ -112,6 +116,7 @@ func TestRequireFeature(t *testing.T) {
 			Features: []licensekeys.Feature{
 				licensekeys.FeatureDevPortal,
 				licensekeys.FeatureUnrecognized,
+				licensekeys.FeaturePaidSupport,
 			},
 		},
 	}
