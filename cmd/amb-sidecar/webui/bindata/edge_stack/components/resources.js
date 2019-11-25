@@ -151,7 +151,7 @@ div.attribute-value {
   font-weight: bold;
 }
 .crd-namespace {
-  color: #989898;
+  color: #888888;
   font-size: 80%;
 }
 .off { 
