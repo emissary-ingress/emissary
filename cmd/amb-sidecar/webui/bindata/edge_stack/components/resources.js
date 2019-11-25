@@ -1,5 +1,5 @@
 import { LitElement, html, css} from '/edge_stack/vendor/lit-element.min.js'
-import {registerContextChangeHandler, useContext} from '/edge_stack/components/context.js'
+import {Snapshot} from '/edge_stack/components/snapshot.js'
 import {getCookie} from '/edge_stack/components/cookies.js';
 
 /**
@@ -307,12 +307,14 @@ div.both {
   // internal
   onAdd() {
     this.requestUpdate();
+    this.reset();
     this.state.mode = "add"
   }
 
   // internal
   onEdit() {
     this.requestUpdate();
+    this.reset();
     if (this.state.mode !== "edit") {
       this.state.mode = "edit"
     } else {
@@ -372,8 +374,8 @@ div.both {
    */
   reset() {
     this.state.messages.length = 0;
-    this.name().value = this.name().defaultValue;
-    this.namespace().value = this.namespace().defaultValue
+    this.nameInput().value = this.nameInput().defaultValue;
+    this.namespaceInput().value = this.namespaceInput().defaultValue
   }
 
   /**
@@ -408,6 +410,16 @@ div.both {
   }
 
   // internal
+  nameInput() {
+    return this.shadowRoot.querySelector(`input[name="name"]`)
+  }
+
+  // internal
+  namespaceInput() {
+    return this.shadowRoot.querySelector(`input[name="namespace"]`)
+  }
+
+  // internal
   onSave() {
     this.requestUpdate();
 
@@ -422,8 +434,8 @@ div.both {
 apiVersion: getambassador.io/v2
 kind: ${this.kind()}
 metadata:
-  name: "${this.name().value}"
-  namespace: "${this.namespace().value}"
+  name: "${this.nameInput().value}"
+  namespace: "${this.namespaceInput().value}"
 spec: ${JSON.stringify(this.spec())}
 `;
 
@@ -602,7 +614,7 @@ spec: ${JSON.stringify(this.spec())}
  * class and override the following methods. See individual methods
  * for more details:
  *
- *   key() --> tells us where in the watt snapshot our resources are
+ *   getResources(snapshot) --> extracts the right resources from the backend snapshot
  *
  *   render() --> tell us how to display the collection
  *
@@ -621,17 +633,11 @@ export class ResourceSet extends LitElement {
   // internal
   constructor() {
     super();
-
-    const arr = useContext('aes-api-snapshot', null);
-    if (arr[0] != null) {
-      this.resources = arr[0][this.key()] || []
-    } else {
-      this.resources = []
-    }
+    this.resources = [];
     this._states = {};
     this.addState = new UIState();
     this.addState.mode = "off";
-    registerContextChangeHandler('aes-api-snapshot', this.onSnapshotChange.bind(this))
+    Snapshot.subscribe(this.onSnapshotChange.bind(this))
   }
 
   /**
@@ -639,14 +645,11 @@ export class ResourceSet extends LitElement {
    * watt snapshot). Said snapshot comes from the
    * /edge_stack/api/snapshot endpoint which can be found in webui.go
    *
-   * This method can be overridden so long as it sets this.resources
-   * to an appropriate set of resources extracted from the snapshot.
+   * This method can be overridden so long as the overriden
+   * implementation uses super to invoke the original implementation.
    */
   onSnapshotChange(snapshot) {
-    let defaults = {};
-    defaults[this.key()] = [];
-    let kube = snapshot['Kubernetes'] || defaults;
-    this.resources = kube[this.key()] || []
+    this.resources = this.getResources(snapshot)
   }
 
   // internal
@@ -659,15 +662,20 @@ export class ResourceSet extends LitElement {
   }
 
   /**
-   * Override this method to control which resources the ResourceSet
-   * shows.  By default, this.onSnapshotChange(snapshot) will extract
-   * resources from snapshot['Kubernetes'][key()]. The Kubernetes map
-   * inside the snapshot holds resources keyed by kubernetes Kind, so
-   * you'd typically set this to something like 'Host' if you
-   * e.g. wanted to display Host resources.
+   * Override this method to extract the correct set of resources for
+   * the ResourceSet to have. For example, if you wanted to display
+   * all Host, resources, you would implement the following
+   * getResource(snapshot) method:
+   *
+   *   getResources(snapshot) {
+   *     return snapshot.getResources('Host')
+   *   }
+   *
+   * See the SnapshotWrapper class in snapshot.js for all the APIs you
+   * can use to extract resources from a snapshot.
    */
-  key() {
-    throw new Error("please implement key()")
+  getResources() {
+    throw new Error("please implement getResources(snapshot)")
   }
 
   /**

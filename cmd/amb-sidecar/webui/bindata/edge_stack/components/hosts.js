@@ -186,8 +186,8 @@ customElements.define('dw-host', SingleHost);
 
 export class Hosts extends ResourceSet {
 
-  key() {
-    return "Host"
+  getResources(snapshot) {
+    return snapshot.getResources("Host")
   }
 
   render() {

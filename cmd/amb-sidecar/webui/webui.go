@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"github.com/datawire/ambassador/pkg/dlog"
+	"github.com/datawire/ambassador/pkg/k8s"
 	"github.com/datawire/ambassador/pkg/supervisor"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/go-acme/lego/v3/acme"
@@ -30,6 +31,7 @@ import (
 
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/httpclient"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/middleware"
+	rls "github.com/datawire/apro/cmd/amb-sidecar/ratelimits"
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
 	"github.com/datawire/apro/cmd/amb-sidecar/watt"
 	"github.com/datawire/apro/lib/jwtsupport"
@@ -42,14 +44,17 @@ type LoginClaimsV1 struct {
 }
 
 type Snapshot struct {
-	Watt json.RawMessage
-	Diag json.RawMessage
+	Watt   json.RawMessage
+	Diag   json.RawMessage
+	Limits []k8s.Resource
 }
 
 type firstBootWizard struct {
 	cfg         types.Config
 	staticfiles http.FileSystem
 	hostsGetter k8sClientDynamic.NamespaceableResourceInterface
+
+	rls *rls.RateLimitController
 
 	privkey *rsa.PrivateKey
 	pubkey  *rsa.PublicKey
@@ -76,6 +81,7 @@ func (fb *firstBootWizard) getSnapshot() Snapshot {
 	}
 
 end:
+	fb.snapshot.Limits = fb.rls.GetLimits()
 	return fb.snapshot
 }
 
@@ -83,6 +89,7 @@ func New(
 	cfg types.Config,
 	dynamicClient k8sClientDynamic.Interface,
 	snapshotCh <-chan watt.Snapshot,
+	rls *rls.RateLimitController,
 	privkey *rsa.PrivateKey,
 	pubkey *rsa.PublicKey,
 ) http.Handler {
@@ -92,18 +99,23 @@ func New(
 		cfg:         cfg,
 		staticfiles: files,
 		hostsGetter: dynamicClient.Resource(k8sSchema.GroupVersionResource{Group: "getambassador.io", Version: "v2", Resource: "hosts"}),
-		privkey:     privkey,
-		pubkey:      pubkey,
+
+		rls: rls,
+
+		privkey: privkey,
+		pubkey:  pubkey,
 
 		snapshot: Snapshot{
-			Watt: json.RawMessage(`{}`),
-			Diag: nil,
+			Watt:   json.RawMessage(`{}`),
+			Diag:   nil,
+			Limits: []k8s.Resource{},
 		},
 	}
 	go func() {
 		for snapshot := range snapshotCh {
 			ret.snapshotLock.Lock()
 			ret.snapshot.Watt = snapshot.Raw
+			ret.snapshot.Limits = rls.GetLimits()
 			ret.snapshot.Diag = nil
 			ret.snapshotLock.Unlock()
 		}

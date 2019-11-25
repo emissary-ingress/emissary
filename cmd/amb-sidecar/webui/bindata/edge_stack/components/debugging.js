@@ -1,5 +1,5 @@
 import { LitElement, html, css } from '/edge_stack/vendor/lit-element.min.js'
-import { registerContextChangeHandler, useContext } from '/edge_stack/components/context.js'
+import { Snapshot } from '/edge_stack/components/snapshot.js'
 import { getCookie } from '/edge_stack/components/cookies.js';
 
 export class Debugging extends LitElement {
@@ -14,9 +14,7 @@ export class Debugging extends LitElement {
   constructor() {
     super();
 
-    const [currentDiagd, setDiagd] = useContext('aes-api-diag', null);
-    this.onDiagdChange(currentDiagd);
-    registerContextChangeHandler('aes-api-diag', this.onDiagdChange.bind(this));
+    Snapshot.subscribe(this.onSnapshotChange.bind(this));
   }
 
   static get styles() {
@@ -155,8 +153,9 @@ export class Debugging extends LitElement {
 
   // internal ////////////////////////////////////////////////////////
 
-  onDiagdChange(snapshot) {
-    this.diagd = (('system' in (snapshot||{})) ? snapshot :
+  onSnapshotChange(snapshot) {
+    let diagnostics = snapshot.getDiagnostics()
+    this.diagd = (('system' in (diagnostics||{})) ? diagnostics :
      {
        system: {
          env_status: {},
