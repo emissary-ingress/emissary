@@ -3,7 +3,7 @@
 /* Dashboard and dashboard element classes using LitElement and Google Charts. */
 /* ===================================================================================*/
 
-import { LitElement, html, css } from "https://cdn.pika.dev/-/lit-element/2.2.1/dist-es2019/lit-element.min.js";  //TODO FIXME
+import { LitElement, html, css } from '/edge_stack/vendor/lit-element.min.js'
 import { Snapshot } from '/edge_stack/components/snapshot.js'
 
 /**
@@ -78,7 +78,7 @@ let demoPieChart = {
 
   draw: function(shadow_root) {
     /* Create the data table. */
-    var data = new google.visualization.DataTable();
+    let data = new google.visualization.DataTable();
     data.addColumn('string', 'Topping');
     data.addColumn('number', 'Slices');
     data.addRows([
@@ -90,19 +90,19 @@ let demoPieChart = {
     ]);
 
     /* Set chart options */
-    var options = {
+    let options = {
       'title': 'How Much Pizza I Ate Last Night',
       'width': '80%',
       'height': '80%'
     };
 
     /* Instantiate and draw our chart, passing in some options. */
-    var element = shadow_root.getElementById(this._elementId);
+    let element = shadow_root.getElementById(this._elementId);
 
     /* may not have shadow DOM by now, so test. */
     if (element) {
       if( element.offsetParent !== null ) {
-        var chart = new google.visualization.PieChart(element);
+        let chart = new google.visualization.PieChart(element);
         chart.draw(data, options);
       }
     }
@@ -126,7 +126,7 @@ let demoServiceCount = {
 
   onSnapshotChange: function(snapshot) {
     if (snapshot) {
-      let kinds = ['AuthService', 'RateLimitService', 'TracingService', 'LogService']
+      let kinds = ['AuthService', 'RateLimitService', 'TracingService', 'LogService'];
       let services = [];
       kinds.forEach((k)=>{
         services.push(...snapshot.getResources(k))
@@ -163,8 +163,7 @@ let demoColumnChart = {
   onSnapshotChange: function(services) {
     /* Revenue data: keep 5 columns, and bump revenue by
      * a random amount between -1 and 3. */
-    var i;
-    for (i=1; i<=4; i++) {
+    for (let i=1; i<=4; i++) {
       this._annualRevenue[i] = this._annualRevenue[i+1]
     }
     /* Bump up the year and revenue number */
@@ -177,22 +176,22 @@ let demoColumnChart = {
 
   draw: function(shadow_root) {
     /* Create the data table. */
-    var data = google.visualization.arrayToDataTable(this._annualRevenue);
+    let data = google.visualization.arrayToDataTable(this._annualRevenue);
 
     /* Set chart options */
-    var options = {
+    let options = {
       'title': 'Annual Revenue',
       'width': '80%',
       'height': '80%'
     };
 
     /* Instantiate and draw our chart, passing in some options. */
-    var element = shadow_root.getElementById(this._elementId);
+    let element = shadow_root.getElementById(this._elementId);
 
     /* may not have shadow DOM by now, so test. */
     if (element) {
       if( element.offsetParent !== null ) {
-        var chart = new google.visualization.ColumnChart(element);
+        let chart = new google.visualization.ColumnChart(element);
         chart.draw(data, options);
       }
     }
@@ -247,14 +246,9 @@ export class Dashboard extends LitElement {
     super();
 
     /* Initialize the list of dashboard panels */
-    this._panels = [ demoPieChart,  demoServiceCount, demoColumnChart ]
+    this._panels = [ demoPieChart,  demoServiceCount, demoColumnChart ];
 
-        Snapshot.subscribe(this.onSnapshotChange.bind(this))
-/*TODO was:
-    const [currentSnapshot, setSnapshot] = useContext('aes-api-snapshot', null);
-    this.onSnapshotChange(currentSnapshot);
-    registerContextChangeHandler('aes-api-snapshot', this.onSnapshotChange.bind(this));
-*/
+    Snapshot.subscribe(this.onSnapshotChange.bind(this));
     /* Set up the Google Charts setOnLoad callback.  Note that we can't draw
      * charts until the package has loaded, so we will be notified when this
      * happens and set a promise to synchronize with the DOM being updated. */
