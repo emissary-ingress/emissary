@@ -16,7 +16,11 @@ export class Service extends SingleResource {
   // internal
   irData() {
     const qname = this.resource.metadata.name + "." + this.resource.metadata.namespace;
-    return this.diag.ambassador_services.find(s => s._source in this.diag.source_map[qname]);
+    if (this.diag['ambassador_services'] == null) {
+      return [];
+    } else {
+      return this.diag.ambassador_services.find(s => s._source in this.diag.source_map[qname]);
+    }
   }
 
   // implement
@@ -67,6 +71,10 @@ export class Services extends LitElement {
 
   constructor() {
     super();
+
+    this.diag = {};
+    this.services = [];
+
     Snapshot.subscribe(this.onSnapshotChange.bind(this))
   }
 
