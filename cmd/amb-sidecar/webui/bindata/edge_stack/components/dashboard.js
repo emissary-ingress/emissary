@@ -101,8 +101,10 @@ let demoPieChart = {
 
     /* may not have shadow DOM by now, so test. */
     if (element) {
-      var chart = new google.visualization.PieChart(element);
-      chart.draw(data, options);
+      if( element.offsetParent !== null ) {
+        var chart = new google.visualization.PieChart(element);
+        chart.draw(data, options);
+      }
     }
   }
 };
@@ -191,8 +193,10 @@ let demoColumnChart = {
 
     /* may not have shadow DOM by now, so test. */
     if (element) {
-      var chart = new google.visualization.ColumnChart(element);
-      chart.draw(data, options);
+      if( element.offsetParent !== null ) {
+        var chart = new google.visualization.ColumnChart(element);
+        chart.draw(data, options);
+      }
     }
   }
 };
