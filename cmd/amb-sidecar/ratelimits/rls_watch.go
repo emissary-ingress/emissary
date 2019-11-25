@@ -85,13 +85,13 @@ func (r *RateLimitController) DoWatch(ctx context.Context, cfg types.Config, kub
 		config := &Config{Domains: make(map[string]*Domain)}
 		var limits []crd.RateLimit
 		for _, _r := range w.List("ratelimits") {
+			if cfg.AmbassadorSingleNamespace && _r.Namespace() != cfg.AmbassadorNamespace {
+				continue
+			}
 			var r crd.RateLimit
 			err := mapstructure.Convert(_r, &r)
 			if err != nil || r.Spec == nil {
 				rlslog.Errorln(errors.Wrap(err, "malformed RateLimit resource"))
-				continue
-			}
-			if cfg.AmbassadorSingleNamespace && r.GetNamespace() != cfg.AmbassadorNamespace {
 				continue
 			}
 			if !r.Spec.AmbassadorID.Matches(cfg.AmbassadorID) {
