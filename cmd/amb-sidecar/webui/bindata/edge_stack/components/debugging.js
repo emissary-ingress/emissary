@@ -8,7 +8,8 @@ export class Debugging extends LitElement {
   static get properties() {
     return {
       diagd: {type: Object},
-      licenseClaims: { type: Object }
+      licenseClaims: { type: Object },
+      redisInUse: { type: Boolean }
     };
   }
 
@@ -70,6 +71,13 @@ export class Debugging extends LitElement {
                  ? html`alive but not yet ready (running ${this.diagd.envoy_status.uptime})`
                  : html`not running`)
           }</dd>
+          
+          <dt>Redis status</dt>
+          <dd>
+          ${this.redisInUse
+            ? html`configured`
+            : html`Authentication and Rate Limiting are disabled as Ambassador Edge Stack is not configured to use Redis. Please follow the <a href="https://www.getambassador.io/user-guide/install">Ambassador Edge Stack installation guide</a> to complete your setup.`}
+          </dd>
 
         </dl>
         <dl>
@@ -169,6 +177,7 @@ export class Debugging extends LitElement {
        errors: [],
      });
     this.licenseClaims = snapshot.getLicense().Claims || {};
+    this.redisInUse = snapshot.getRedisInUse();
   }
 
   setLogLevel(level) {

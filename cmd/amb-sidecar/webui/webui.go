@@ -51,7 +51,7 @@ type Snapshot struct {
 	Diag       json.RawMessage
 	Limits     []k8s.Resource
 	License    LicenseInfo
-	RedisIsUse bool
+	RedisInUse bool
 }
 
 type LicenseInfo struct {
@@ -127,7 +127,7 @@ func New(
 				HardLimit:         limiter.IsHardLimitAtPointInTime(),
 				FeaturesOverLimit: limiter.GetFeaturesOverLimitAtPointInTime(),
 			},
-			RedisIsUse: redisPool != nil,
+			RedisInUse: redisPool != nil,
 		},
 	}
 	go func() {
