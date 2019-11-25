@@ -19,7 +19,6 @@ import (
 	"time"
 
 	"github.com/datawire/ambassador/pkg/dlog"
-	"github.com/datawire/ambassador/pkg/k8s"
 	"github.com/datawire/ambassador/pkg/supervisor"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/go-acme/lego/v3/acme"
@@ -30,6 +29,7 @@ import (
 
 	k8sClientDynamic "k8s.io/client-go/dynamic"
 
+	crd "github.com/datawire/apro/apis/getambassador.io/v1beta2"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/httpclient"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/middleware"
 	"github.com/datawire/apro/cmd/amb-sidecar/limiter"
@@ -49,7 +49,7 @@ type LoginClaimsV1 struct {
 type Snapshot struct {
 	Watt       json.RawMessage
 	Diag       json.RawMessage
-	Limits     []k8s.Resource
+	Limits     []crd.RateLimit
 	License    LicenseInfo
 	RedisInUse bool
 }
@@ -126,7 +126,7 @@ func New(
 		snapshot: Snapshot{
 			Watt:       json.RawMessage(`{}`),
 			Diag:       nil,
-			Limits:     []k8s.Resource{},
+			Limits:     []crd.RateLimit{},
 			License:    LicenseInfo{},
 			RedisInUse: redisPool != nil,
 		},
