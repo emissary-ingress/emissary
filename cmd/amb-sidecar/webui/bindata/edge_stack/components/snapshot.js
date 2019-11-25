@@ -113,11 +113,21 @@ export class Snapshot extends LitElement {
             this.setSnapshot(new SnapshotWrapper({}));
           }
         } else {
-          response.json()
-            .then((json) => {
+          response.text()
+            .then((text) => {
+              var json
+              try {
+                json = JSON.parse(text);
+              } catch(err) {
+                console.log('error parsing snapshot', err)
+                console.log(text)
+                setTimeout(this.fetchData.bind(this), 1000);
+                return
+              }
               if (this.fragment == "trying") {
                 window.location.hash = "";
               }
+
               this.fragment = ""
               this.setSnapshot(new SnapshotWrapper(json || {}))
               this.setAuthenticated(true)
@@ -132,6 +142,7 @@ export class Snapshot extends LitElement {
                   });
                 }
               }
+
               setTimeout(this.fetchData.bind(this), 1000);
             })
             .catch((err) => {
