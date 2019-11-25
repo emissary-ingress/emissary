@@ -17,6 +17,7 @@ Behavior:
 Other:
 
  * `amb-core` and `amb-sidecar` have been merged in to a combined `aes` which is based on Ambassador OSS [version TBD].
+ * `login-gate-js`content has been updated for a clearer first time experience. 
 
 ## 0.10.0 (2019-11-11)
 
