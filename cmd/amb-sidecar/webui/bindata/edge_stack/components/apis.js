@@ -49,7 +49,7 @@ export class APIs extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
-    console.log("APIs doing initial load");
+    //console.log("APIs doing initial load");
     this.loadFromServer()
   }
 
@@ -59,8 +59,8 @@ export class APIs extends LitElement {
     } else {//TODO part of the temporary removal MOREMORE
 
     $.getJSON("/openapi/services", apis => {
-      console.log("APIs load succeeded");
-      console.log(apis);
+      //console.log("APIs load succeeded");
+      //console.log(apis);
       this.apis = apis
     }).fail(xhr=>{
       if (xhr.status === 401 || xhr.status === 403) {
@@ -72,7 +72,7 @@ export class APIs extends LitElement {
     });
 
     if (this.doRefresh) {
-      console.log("will reload APIs in 10 seconds");
+      //console.log("will reload APIs in 10 seconds");
       setTimeout(this.loadFromServer.bind(this), 10000)
     }
     }//TODO part of the temporary removal MOREMORE
@@ -139,7 +139,7 @@ export class APIs extends LitElement {
       }
 
       if (needLinks) {
-        console.log("  ADDLINKS");
+        //console.log("  ADDLINKS");
 
         aDiv.shadowRoot.prepend(this.linkCSS("/edge_stack/styles/rapidoc-table.css"));
         aDiv.shadowRoot.prepend(this.linkCSS("/edge_stack/styles/rapidoc-input.css"));
@@ -167,7 +167,7 @@ export class APIs extends LitElement {
 
   render() {
     window.apis = this;
-    console.log(`APIs rendering ${this.apis.length} API${(this.apis.length === 1) ? "" : "s"}`);
+    //console.log(`APIs rendering ${this.apis.length} API${(this.apis.length === 1) ? "" : "s"}`);
 
     if (this.apis.length === 0) {
       return html`
