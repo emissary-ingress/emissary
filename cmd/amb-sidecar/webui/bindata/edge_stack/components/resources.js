@@ -292,16 +292,6 @@ div.grid div {
 /*
  * End of styles for mappings.js
  *  -- -- -- -- -- -- -- -- -- -- -- --  */
- 
-div.left {
-  grid-column: 1 / 2;
-}
-div.right {
-  grid-column: 2 / 3;
-}
-div.both {
-  grid-column: 1 / 3;
-}
 
 `
   }

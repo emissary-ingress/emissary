@@ -83,11 +83,11 @@ class Mapping extends SingleResource { //TODO need to abstract the changes I mad
     <div class="collapsed" id="collapsed-div">
       <div class="up-down-triangle" @click=${() => this.onExpand()}></div>
       <div class="grid" @click=${() => this.onStartEdit()}>
-        <div class="left">
+        <div class="attribute-name">
           <span>${this.name()}</span>
           <span class="crd-namespace">(${this.namespace()})</span>
         </div>
-        <div class="right">
+        <div class="attribute-value">
           <span class="code">${this.resource.spec.prefix}</span>
         </div>
       </div>
@@ -95,20 +95,20 @@ class Mapping extends SingleResource { //TODO need to abstract the changes I mad
     <div class="expanded off" id="expanded-div">
       <div class="up-down-triangle" @click=${() => this.onCollapse()}></div>
       <div class="grid" @click=${() => this.onStartEdit()}>
-        <div class="left">
+        <div class="attribute-name">
           <span>${this.name()}</span>
           <span class="crd-namespace">(${this.namespace()})</span>
         </div>
-        <div class="right">
+        <div class="attribute-value">
           <span class="code">${this.resource.spec.prefix}</span>
         </div>
-        <div class="left" style="text-align:right;">
+        <div class="attribute-name" style="text-align:right;">
           &rArr;
         </div>
-        <div class="right">
+        <div class="attribute-name">
           <span>${this.resource.spec.service}</span>
         </div>
-        <div class="both">
+        <div class="attribute-value">
            <span>${resourceState} ${reason}</span>
         </div>
       </div>
@@ -198,61 +198,7 @@ class Mapping extends SingleResource { //TODO need to abstract the changes I mad
     alert('Delete!'); // TODO delete is not yet re-implemented
   }
 
-  /*
-   * This is old code that needs to be removed and it is fully converted to the new code.
-    old_render() {
-      return html`
-<slot class="${this.state.mode == "off" ? "" : "off"}" @click=${this.onAdd.bind(this)}></slot>
-<div class="${this.state.mode == "off" ? "off" : "frame"}">
-  <div class="title">
-    ${this.kind()}: <span class="${this.visible("list", "edit")}">${this.resource.metadata.name}</span>
-          <input class="${this.visible("add")}" name="name" type="text" value="${this.resource.metadata.name}"/>
 
-
-      (<span class="${this.visible("list", "edit")}">${this.resource.metadata.namespace}</span><input class="${this.visible("add")}" name="namespace" type="text" value="${this.resource.metadata.namespace}"/>)</div>
-
-  ${this.renderResource()}
-
-  <div class="both">
-    <label>
-      <button class="${this.visible("list")}" @click=${() => this.onEdit()}>Edit</button>
-      <button class="${this.visible("list")}" @click=${() => this.onDelete()}>Delete</button>
-      <button class="${this.visible("edit", "add")}" @click=${() => this.onCancel()}>Cancel</button>
-      <button class="${this.visible("edit", "add")}" @click=${() => this.onSave()}>Save</button>
-    </label>
-  </div>
-
-  ${this.state.renderErrors()}
-</div>`
-    }
-
-  old_renderResource() {
-    let resource = this.resource
-    let spec = resource.spec
-    let status = resource.status || {"state": "<none>"}
-    let resourceState = status.state
-    let reason = resourceState == "Error" ? `(${status.reason})` : ''
-
-    return html`
-  <div class="left">Prefix:</div>
-  <div class="right">
-    <span class="${this.visible("list")}">${spec.prefix}</span>
-    <input class="${this.visible("edit", "add")}" type="text" name="prefix"  value="${spec.prefix}" />
-  </div>
-
-  <div class="left">Target:</div>
-  <div class="right">
-    <span class="${this.visible("list")}">${spec.service}</span>
-    <input class="${this.visible("edit", "add")}" type="text" name="target"  value="${spec.service}" />
-  </div>
-
-  <div class="left ${this.visible("list", "edit")}">Status:</div>
-  <div class="right ${this.visible("list", "edit")}">
-    <span>${resourceState} ${reason}</span>
-  </div>
-`
-  }
-  */
 
 }
 
