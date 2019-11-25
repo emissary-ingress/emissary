@@ -14,6 +14,7 @@ import (
 	"net/url"
 	"os"
 	"path"
+	"sort"
 	"strings"
 	"time"
 
@@ -28,6 +29,8 @@ import (
 
 	k8sClientDynamic "k8s.io/client-go/dynamic"
 
+	crd "github.com/datawire/apro/apis/getambassador.io/v1beta2"
+	filtercontroller "github.com/datawire/apro/cmd/amb-sidecar/filters/controller"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/httpclient"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/middleware"
 	"github.com/datawire/apro/cmd/amb-sidecar/limiter"
@@ -62,10 +65,11 @@ type firstBootWizard struct {
 	staticfiles http.FileSystem
 	hostsGetter k8sClientDynamic.NamespaceableResourceInterface
 
-	snapshotStore *watt.SnapshotStore
-	rlController  *rls.RateLimitController
-	limiter       limiter.Limiter
-	haveRedis     bool
+	snapshotStore    *watt.SnapshotStore
+	rlController     *rls.RateLimitController
+	filterController *filtercontroller.Controller
+	limiter          limiter.Limiter
+	haveRedis        bool
 
 	privkey *rsa.PrivateKey
 	pubkey  *rsa.PublicKey
@@ -83,6 +87,21 @@ func (fb *firstBootWizard) getSnapshot() Snapshot {
 		ret.Watt["Kubernetes"] = make(map[string]interface{})
 	}
 	ret.Watt["Kubernetes"]["RateLimit"] = fb.rlController.GetLimits()
+	ret.Watt["Kubernetes"]["Filter"] = func() []crd.Filter {
+		dict := fb.filterController.LoadFilters()
+		// consistent order
+		qnames := make([]string, 0, len(dict))
+		for qname := range dict {
+			qnames = append(qnames, qname)
+		}
+		sort.Strings(qnames)
+		// main
+		list := make([]crd.Filter, 0, len(dict))
+		for _, filter := range dict {
+			list = append(list, filter)
+		}
+		return list
+	}()
 
 	func() {
 		resp, err := http.Get("http://127.0.0.1:8877/ambassador/v0/diag/?json=true")
@@ -113,6 +132,7 @@ func New(
 	dynamicClient k8sClientDynamic.Interface,
 	snapshotStore *watt.SnapshotStore,
 	rlController *rls.RateLimitController,
+	filterController *filtercontroller.Controller,
 	privkey *rsa.PrivateKey,
 	pubkey *rsa.PublicKey,
 	limiter limiter.Limiter,
@@ -125,10 +145,11 @@ func New(
 		staticfiles: files,
 		hostsGetter: dynamicClient.Resource(k8sSchema.GroupVersionResource{Group: "getambassador.io", Version: "v2", Resource: "hosts"}),
 
-		snapshotStore: snapshotStore,
-		rlController:  rlController,
-		limiter:       limiter,
-		haveRedis:     redisPool != nil,
+		snapshotStore:    snapshotStore,
+		rlController:     rlController,
+		filterController: filterController,
+		limiter:          limiter,
+		haveRedis:        redisPool != nil,
 
 		privkey: privkey,
 		pubkey:  pubkey,

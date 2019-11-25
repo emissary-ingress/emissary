@@ -444,6 +444,7 @@ func runE(cmd *cobra.Command, args []string) error {
 			dynamicClient,
 			snapshotStore,
 			rls,
+			ct,
 			privkey,
 			pubKey,
 			limit,
