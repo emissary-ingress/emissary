@@ -4,7 +4,7 @@
 /* ===================================================================================*/
 
 import { LitElement, html, css } from "https://cdn.pika.dev/-/lit-element/2.2.1/dist-es2019/lit-element.min.js";  //TODO FIXME
-import {useContext, registerContextChangeHandler} from '/edge_stack/components/context.js'
+import { Snapshot } from '/edge_stack/components/snapshot.js'
 
 /**
  * This is a Promise-like object used to synchronize between google charts loaded callback and the
@@ -126,18 +126,16 @@ let demoServiceCount = {
 
   onSnapshotChange: function(snapshot) {
     if (snapshot) {
-      this._services = [
-      (((snapshot || {}).Kubernetes || {}).AuthService || []),
-      (((snapshot || {}).Kubernetes || {}).RateLimitService || []),
-      (((snapshot || {}).Kubernetes || {}).TracingService || []),
-      (((snapshot || {}).Kubernetes || {}).LogService || []),
-    ].reduce((acc, item) => acc.concat(item));
-
-      this._serviceCount = this._services.length;
+      let kinds = ['AuthService', 'RateLimitService', 'TracingService', 'LogService']
+      let services = [];
+      kinds.forEach((k)=>{
+        services.push(...snapshot.getResources(k))
+      });
+      this._serviceCount = services.length;
     }
 	},
 
-  draw: function(shadow_root) {}
+  draw: function(shadow_root) { /*text panel, no chart to draw*/ }
 };
 
 /**
@@ -251,10 +249,12 @@ export class Dashboard extends LitElement {
     /* Initialize the list of dashboard panels */
     this._panels = [ demoPieChart,  demoServiceCount, demoColumnChart ]
 
+        Snapshot.subscribe(this.onSnapshotChange.bind(this))
+/*TODO was:
     const [currentSnapshot, setSnapshot] = useContext('aes-api-snapshot', null);
     this.onSnapshotChange(currentSnapshot);
     registerContextChangeHandler('aes-api-snapshot', this.onSnapshotChange.bind(this));
-
+*/
     /* Set up the Google Charts setOnLoad callback.  Note that we can't draw
      * charts until the package has loaded, so we will be notified when this
      * happens and set a promise to synchronize with the DOM being updated. */
