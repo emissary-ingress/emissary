@@ -1,6 +1,6 @@
 import { LitElement, html, css } from 'https://cdn.pika.dev/-/lit-element/2.2.1/dist-es2019/lit-element.min.js'
 import {SingleResource} from '/edge_stack/components/resources.js'
-import {registerContextChangeHandler, useContext} from '/edge_stack/components/context.js'
+import {Snapshot} from '/edge_stack/components/snapshot.js'
 
 export class Service extends SingleResource {
   // implement
@@ -45,16 +45,12 @@ export class Service extends SingleResource {
   static get styles() {
     return css`${super.styles} button { display: none; }`;
   }
-
-  // override; don't show any of the "edit/delete/whatever" buttons;
-  // this tab is read-only.
-  visible() {
-    return [...arguments].includes("list") ? "" : "off";
-  }
 }
+
 customElements.define('dw-service', Service);
 
 export class Services extends LitElement {
+
   // external ////////////////////////////////////////////////////////
 
   static get properties() {
@@ -66,12 +62,7 @@ export class Services extends LitElement {
 
   constructor() {
     super();
-
-    const [currentSnapshot, setSnapshot] = useContext('aes-api-snapshot', null);
-    this.onSnapshotChange(currentSnapshot);
-    this.onDiagChange({});
-    registerContextChangeHandler('aes-api-snapshot', this.onSnapshotChange.bind(this));
-    registerContextChangeHandler('aes-api-diag', this.onDiagChange.bind(this))
+    Snapshot.subscribe(this.onSnapshotChange.bind(this))
   }
 
   static get styles() {
@@ -89,16 +80,14 @@ export class Services extends LitElement {
   // internal ////////////////////////////////////////////////////////
 
   onSnapshotChange(snapshot) {
-    this.services = [
-      (((snapshot || {}).Kubernetes || {}).AuthService || []),
-      (((snapshot || {}).Kubernetes || {}).RateLimitService || []),
-      (((snapshot || {}).Kubernetes || {}).TracingService || []),
-      (((snapshot || {}).Kubernetes || {}).LogService || []),
-    ].reduce((acc, item) => acc.concat(item));
+    let kinds = ['AuthService', 'RateLimitService', 'TracingService', 'LogService']
+    this.services = []
+    kinds.forEach((k)=>{
+      this.services.push(...snapshot.getResources(k))
+    })
+    this.diag = snapshot.getDiagnostics();
   }
 
-  onDiagChange(snapshot) {
-    this.diag = snapshot;
-  }
 }
+
 customElements.define('dw-services', Services);
