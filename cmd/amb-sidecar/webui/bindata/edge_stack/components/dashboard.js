@@ -4,14 +4,14 @@
 /* ===================================================================================*/
 
 /* Import the LitElement class and html and css helpers. */
-import { LitElement, html, css } from "https://cdn.pika.dev/-/lit-element/2.2.1/dist-es2019/lit-element.min.js";
+import { LitElement, html, css } from "https://cdn.pika.dev/-/lit-element/2.2.1/dist-es2019/lit-element.min.js";  //TODO FIXME
 
 /* Get context updates */
 import {useContext, registerContextChangeHandler} from '/edge_stack/components/context.js'
 
 /* Create a global Promise to sychronize charts loaded and shadow dom finalized. */
 
-var WhenChartsAreLoadedPromise = {
+let WhenChartsAreLoadedPromise = {
     _pending: [],
     then: function (f) {
         /* the charts library isn't loaded yet, so queue up the
@@ -26,7 +26,7 @@ var WhenChartsAreLoadedPromise = {
             resolve: function () {}
         };
         /* ..then execute all the pending lambdas */
-        for(i = 0; i < this._pending.length; i++) {
+      for(let i = 0; i < this._pending.length; i++) {
             this._pending[i]();
         }
     }
@@ -83,7 +83,7 @@ export class Dashboard extends LitElement {
 
   /* Dashboard constructor.  Set up callbacks, context handlers. */
   constructor() {
-    super()
+    super();
 
     /* Initialize the pizza values */
     this.mushrooms  = Math.random(20);
@@ -114,39 +114,12 @@ export class Dashboard extends LitElement {
     document.addEventListener('DOMContentLoaded', (event) => { this.domLoaded() });
   };
 
-
-  /* Initialize the dashboard. */
-  init() {
-    super.init()
-
-   };
-
-
-  /* Reset the dashboard */
-  reset() {
-    super.reset()
-  };
-
-
-  /* Update, will cause render() to be called. */
-  update() {
-    super.update()
-  };
-
-
   /* Updated properties from the Dashboard.  Currently this is not used. */
   updated(changedProperties) {
     changedProperties.forEach((oldValue, propName) => {
       console.log(`${propName} changed. oldValue: ${oldValue}`);
     });
   }
-
-
-  /* Validate the dashboard.  Not sure why this would be called. */
-  validate() {
-    this.state.messages.push("validating dashboard...why?")
-  };
-
 
   /* Get new data from Kubernetes services. */
   onSnapshotChange(snapshot) {
@@ -156,7 +129,6 @@ export class Dashboard extends LitElement {
       (((snapshot || {}).Kubernetes || {}).TracingService || []),
       (((snapshot || {}).Kubernetes || {}).LogService || []),
     ].reduce((acc, item) => acc.concat(item));
-
 
     /* Update the chart data. This will be moved out to appropriate
      * JavaScript objects, but for testing purposes we are just going to
@@ -178,7 +150,7 @@ export class Dashboard extends LitElement {
       this.annualRevenue[4][0] + 1,
       this.annualRevenue[4][1] + Math.floor(Math.random() * Math.floor(3)) - 1,
       this.annualRevenue[4][2]
-    ]
+    ];
 
     /* Request an update of the Dashboard */
     this.requestUpdate();
@@ -186,7 +158,7 @@ export class Dashboard extends LitElement {
 
   /* Render the component by returning a TemplateResult, using the html helper function. */
   render() {
-    var num_services = 0;
+    let num_services = 0;
 
     if (this.services) {
       num_services = this.services.length;
@@ -194,14 +166,12 @@ export class Dashboard extends LitElement {
 
     /* Wait for the update to be completed */
     this.updateComplete.then(() => {
-      console.log("updateComplete");
-
       WhenChartsAreLoadedPromise.then(
         () => {
           console.log("draw charts");
           this.drawCharts();
         } );
-    })
+    });
 
     /* Construct the HTML template. */
     return html`
@@ -225,7 +195,6 @@ export class Dashboard extends LitElement {
         <div class="element-content" id="${item_id}">${text}</div>
         </div>`
   }
-
 
   /* Render a single Chart item by chart_id. */
   renderChartItem(item_id, title) {
@@ -288,15 +257,9 @@ export class Dashboard extends LitElement {
    * in the render() method.
    */
   chartsLoaded() {
-    console.log("Dashboard received chartsLoaded");
     WhenChartsAreLoadedPromise.resolve();
   }
-
-  /* Page DOM loaded.  Currently just for debugging. */
-  domLoaded() {
-    console.log("Dashboard received DOMLoaded");
-  }
-};
+}
 
 /* ===================================================================================*/
 
