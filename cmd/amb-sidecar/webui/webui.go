@@ -15,7 +15,6 @@ import (
 	"os"
 	"path"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/datawire/ambassador/pkg/dlog"
@@ -65,46 +64,57 @@ type firstBootWizard struct {
 	staticfiles http.FileSystem
 	hostsGetter k8sClientDynamic.NamespaceableResourceInterface
 
-	rls     *rls.RateLimitController
-	limiter limiter.Limiter
+	snapshotStore *watt.SnapshotStore
+	rlController  *rls.RateLimitController
+	limiter       limiter.Limiter
+	haveRedis     bool
 
 	privkey *rsa.PrivateKey
 	pubkey  *rsa.PublicKey
-
-	snapshotLock sync.Mutex
-	snapshot     Snapshot
 }
 
 func (fb *firstBootWizard) getSnapshot() Snapshot {
-	fb.snapshotLock.Lock()
-	defer fb.snapshotLock.Unlock()
+	var ret Snapshot
 
-	if fb.snapshot.Diag == nil || true {
+	ret.Watt = fb.snapshotStore.Get().Raw
+	if len(ret.Watt) == 0 {
+		ret.Watt = json.RawMessage(`{}`)
+	}
+
+	func() {
 		resp, err := http.Get("http://127.0.0.1:8877/ambassador/v0/diag/?json=true")
-		if err != nil {
-			goto end
+		if err == nil {
+			return
 		}
 		defer resp.Body.Close()
 		bodyBytes, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
-			goto end
+			return
 		}
-		fb.snapshot.Diag = json.RawMessage(bodyBytes)
+		ret.Diag = json.RawMessage(bodyBytes)
+	}()
+
+	ret.Limits = fb.rlController.GetLimits()
+	if ret.Limits == nil {
+		ret.Limits = []crd.RateLimit{}
 	}
 
-end:
-	fb.snapshot.Limits = fb.rls.GetLimits()
-	fb.snapshot.License.Claims = fb.limiter.GetClaims()
-	fb.snapshot.License.HardLimit = fb.limiter.IsHardLimitAtPointInTime()
-	fb.snapshot.License.FeaturesOverLimit = fb.limiter.GetFeaturesOverLimitAtPointInTime()
-	return fb.snapshot
+	ret.License = LicenseInfo{
+		Claims:            fb.limiter.GetClaims(),
+		HardLimit:         fb.limiter.IsHardLimitAtPointInTime(),
+		FeaturesOverLimit: fb.limiter.GetFeaturesOverLimitAtPointInTime(),
+	}
+
+	ret.RedisInUse = fb.haveRedis
+
+	return ret
 }
 
 func New(
 	cfg types.Config,
 	dynamicClient k8sClientDynamic.Interface,
-	snapshotCh <-chan watt.Snapshot,
-	rls *rls.RateLimitController,
+	snapshotStore *watt.SnapshotStore,
+	rlController *rls.RateLimitController,
 	privkey *rsa.PrivateKey,
 	pubkey *rsa.PublicKey,
 	limiter limiter.Limiter,
@@ -112,35 +122,19 @@ func New(
 ) http.Handler {
 	var files http.FileSystem = http.Dir(cfg.DevWebUIDir)
 
-	ret := &firstBootWizard{
+	return &firstBootWizard{
 		cfg:         cfg,
 		staticfiles: files,
 		hostsGetter: dynamicClient.Resource(k8sSchema.GroupVersionResource{Group: "getambassador.io", Version: "v2", Resource: "hosts"}),
 
-		rls:     rls,
-		limiter: limiter,
+		snapshotStore: snapshotStore,
+		rlController:  rlController,
+		limiter:       limiter,
+		haveRedis:     redisPool != nil,
 
 		privkey: privkey,
 		pubkey:  pubkey,
-
-		snapshot: Snapshot{
-			Watt:       json.RawMessage(`{}`),
-			Diag:       nil,
-			Limits:     []crd.RateLimit{},
-			License:    LicenseInfo{},
-			RedisInUse: redisPool != nil,
-		},
 	}
-	go func() {
-		for snapshot := range snapshotCh {
-			ret.snapshotLock.Lock()
-			ret.snapshot.Watt = snapshot.Raw
-			ret.snapshot.Limits = rls.GetLimits()
-			ret.snapshot.Diag = nil
-			ret.snapshotLock.Unlock()
-		}
-	}()
-	return ret
 }
 
 func getTermsOfServiceURL(httpClient *http.Client, caURL string) (string, error) {

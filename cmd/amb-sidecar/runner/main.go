@@ -442,7 +442,7 @@ func runE(cmd *cobra.Command, args []string) error {
 		webuiHandler := webui.New(
 			cfg,
 			dynamicClient,
-			snapshotStore.Subscribe(),
+			snapshotStore,
 			rls,
 			privkey,
 			pubKey,
