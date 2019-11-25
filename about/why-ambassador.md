@@ -1,8 +1,8 @@
-# Why Ambassador Edge Stack?
+# Why the Ambassador Edge Stack?
 
-Ambassador Edge Stack is an open source, Kubernetes-native [microservices API gateway](/about/microservices-api-gateways) built on the [Envoy Proxy](https://www.envoyproxy.io). Ambassador Edge Stack is built from the ground up to support multiple, independent teams that need to rapidly publish, monitor, and update services for end users. Ambassador Edge Stack can also be used to handle the functions of a Kubernetes ingress controller and load balancer (for more, see [this blog post](https://blog.getambassador.io/kubernetes-ingress-nodeport-load-balancers-and-ingress-controllers-6e29f1c44f2d)).
+The Ambassador Edge Stack is an open source, Kubernetes-native [microservices API gateway](/about/microservices-api-gateways) built on the [Envoy Proxy](https://www.envoyproxy.io). The Ambassador Edge Stack is built from the ground up to support multiple, independent teams that need to rapidly publish, monitor, and update services for end users. The Ambassador Edge Stack can also be used to handle the functions of a Kubernetes ingress controller and load balancer (for more, see [this blog post](https://blog.getambassador.io/kubernetes-ingress-nodeport-load-balancers-and-ingress-controllers-6e29f1c44f2d)).
 
-Or, read the documentation on using Ambassador Edge Stack as an [Ingress Controller](/reference/core/ingress-controller).
+Or, read the documentation on using the Ambassador Edge Stack as an [Ingress Controller](/reference/core/ingress-controller).
 
 ## Cloud-native applications today
 
@@ -12,17 +12,17 @@ Traditional cloud applications were built as using a monolithic approach. These 
 * __Dynamic__: Services are frequently updated and released (often without coordination), which results in a constantly-changing application.
 * __Decentralized__: Services are managed by independent product-focused teams, with different development workflows and release cadences.
 
-## Ambassador Edge Stack and cloud-native applications
+## The Ambassador Edge Stack and cloud-native applications
 
-Ambassador Edge Stack is engineered for cloud-native applications.
+The Ambassador Edge Stack is engineered for cloud-native applications.
 
 ### Heterogeneous services
 
-Ambassador Edge Stack is commonly used to route traffic to a wide variety of services. It supports:
+The Ambassador Edge Stack is commonly used to route traffic to a wide variety of services. It supports:
 
 * configuration on a *per-service* basis, enabling fine-grained control of timeouts, rate limiting, authentication policies, and more.
 * a wide range of L7 protocols natively, including HTTP, HTTP/2, [gRPC](/user-guide/grpc), [gRPC-Web](https://github.com/grpc/grpc-web), and [WebSockets](/user-guide/websockets-ambassador).
-* Can [route raw TCP](/reference/tcpmappings) for services that use protocols not directly supported by Ambassador Edge Stack 
+* Can [route raw TCP](/reference/tcpmappings) for services that use protocols not directly supported by The Ambassador Edge Stack 
 
 ### Dynamic services
 
