@@ -161,13 +161,13 @@ div.edit-buttons button.delete-button {
   margin-top: 0.9em;
 }
 div.attribute-name {
-  grid-column: 1 / 3;
+  grid-column: 1 / 4;
   padding-right: 0.5em;
   text-align: right;
   font-variant: small-caps;
 }
 div.attribute-value {
-  grid-column: 3 / 11;
+  grid-column: 4 / 11;
 }
 div.error-value {
   grid-column: 3 / 11;

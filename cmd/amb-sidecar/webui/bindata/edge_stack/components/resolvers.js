@@ -19,7 +19,7 @@ export class Resolver extends SingleResource {
     let spec = (this.resource_watt||{}).spec;
     for (let key in spec) {
       if (spec.hasOwnProperty(key)) {
-        str += `<div class="attribute-name">${key}</div>
+        str += `<div class="attribute-name">${key}:</div>
         <div class="attribute-value">${spec[key]}</div>`;
       }
     }
