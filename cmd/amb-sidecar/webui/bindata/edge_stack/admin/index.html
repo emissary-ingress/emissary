@@ -4,6 +4,11 @@
     <meta charset="utf-8">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
     <script type='text/javascript' src="https://codejoust.github.io/session.js/session-0.4.js"></script>
+
+    <!-- Google Charts -->
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js">
+    </script>
+
     <title>
       Ambassador Edge Stack Admin
     </title>
@@ -26,7 +31,16 @@
                 <dw-signup></dw-signup>
               </div>
 
+              <dw-tab name="Dashboard">
+                <div class="admin-section">
+                  <dw-dashboard></dw-dashboard>
+                </div>
+
+                <div id="chart-element"></div>
+              </dw-tab>
+              
               <dw-tab name="Hosts" icon="/edge_stack/images/hosts.png">
+
                 <div class="admin-section">
                   <div class="section-heading">Hosts.</div>
                     <p><span class="section-text">Hosts are domains that are managed by Ambassador Edge Stack, e.g., <code>example.org</code>.</span></p>
@@ -115,6 +129,7 @@
   <script async defer type="module" src="/edge_stack/components/tabs.js"></script>
   <script async defer type="module" src="/edge_stack/components/apis.js"></script>
   <script async defer type="module" src="/edge_stack/components/signup.js"></script>
+  <script async defer type="module" src="/edge_stack/components/dashboard.js"></script>
   <script async defer type="module" src="/edge_stack/components/hosts.js"></script>
   <script async defer type="module" src="/edge_stack/components/snapshot.js"></script>
   <script async defer type="module" src="/edge_stack/components/mappings.js"></script>
