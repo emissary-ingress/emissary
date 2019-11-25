@@ -106,8 +106,7 @@ import {getCookie} from '/edge_stack/components/cookies.js';
  * When you extend a SingleResource, you MAY override the following
  * methods. See each method for a more detailed description:
  *
- *   init() --> initialize any ui state when a widget is first
- *              rendered
+ *   init() --> initialize any ui state when a widget is first rendered
  */
 export class SingleResource extends LitElement {
 
@@ -146,6 +145,16 @@ div.attribute-name {
 }
 div.attribute-value {
   grid-column: 3 / 11;
+}
+div.error-value {
+  grid-column: 3 / 11;
+}
+div.error-value ul {
+  margin-block-start: 0.3em;
+  padding-inline-start: 0;
+}
+div.error-value li {
+  list-style-type: none;
 }
 .crd-name {
   font-weight: bold;
@@ -782,7 +791,7 @@ export class UIState {
   renderErrors() {
     if (this.messages.length > 0) {
       return html`
-<div class="both">
+<div class="error-value">
   <ul>
     ${this.messages.map(m=>html`<li><span class="error">${m}</span></li>`)}
   </ul>
