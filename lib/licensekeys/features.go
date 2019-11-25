@@ -27,6 +27,7 @@ var (
 	FeatureDevPortal      = internal.AddFeature("devportal")
 	FeatureLocalDevPortal = internal.AddFeature("local-devportal")
 	FeatureCertifiedEnvoy = internal.AddFeature("certified-envoy")
+	FeaturePaidSupport    = internal.AddFeature("paid-support")
 )
 
 // ParseFeature turns a feature string in to one of the recognized

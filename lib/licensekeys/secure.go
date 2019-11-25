@@ -60,6 +60,18 @@ func (v1 *LicenseClaimsV1) ToLatest() *LicenseClaimsLatest {
 			{LimitAuthFilterService, math.MaxUint32},
 		},
 	}
+
+	// Assuming all pre-v2 licenses have paid-support, even if the feature flag was added afterwards
+	shouldAddPaidSupport := true
+	for _, feature := range v2.EnabledFeatures {
+		if feature == FeaturePaidSupport {
+			shouldAddPaidSupport = false
+		}
+	}
+	if shouldAddPaidSupport {
+		v2.EnabledFeatures = append(v2.EnabledFeatures, FeaturePaidSupport)
+	}
+
 	return v2.ToLatest()
 }
 
