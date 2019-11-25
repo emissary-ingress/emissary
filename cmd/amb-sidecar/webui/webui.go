@@ -65,7 +65,8 @@ type firstBootWizard struct {
 	staticfiles http.FileSystem
 	hostsGetter k8sClientDynamic.NamespaceableResourceInterface
 
-	rls *rls.RateLimitController
+	rls     *rls.RateLimitController
+	limiter limiter.Limiter
 
 	privkey *rsa.PrivateKey
 	pubkey  *rsa.PublicKey
@@ -93,6 +94,9 @@ func (fb *firstBootWizard) getSnapshot() Snapshot {
 
 end:
 	fb.snapshot.Limits = fb.rls.GetLimits()
+	fb.snapshot.License.Claims = fb.limiter.GetClaims()
+	fb.snapshot.License.HardLimit = fb.limiter.IsHardLimitAtPointInTime()
+	fb.snapshot.License.FeaturesOverLimit = fb.limiter.GetFeaturesOverLimitAtPointInTime()
 	return fb.snapshot
 }
 
@@ -113,20 +117,17 @@ func New(
 		staticfiles: files,
 		hostsGetter: dynamicClient.Resource(k8sSchema.GroupVersionResource{Group: "getambassador.io", Version: "v2", Resource: "hosts"}),
 
-		rls: rls,
+		rls:     rls,
+		limiter: limiter,
 
 		privkey: privkey,
 		pubkey:  pubkey,
 
 		snapshot: Snapshot{
-			Watt:   json.RawMessage(`{}`),
-			Diag:   nil,
-			Limits: []k8s.Resource{},
-			License: LicenseInfo{
-				Claims:            limiter.GetClaims(),
-				HardLimit:         limiter.IsHardLimitAtPointInTime(),
-				FeaturesOverLimit: limiter.GetFeaturesOverLimitAtPointInTime(),
-			},
+			Watt:       json.RawMessage(`{}`),
+			Diag:       nil,
+			Limits:     []k8s.Resource{},
+			License:    LicenseInfo{},
 			RedisInUse: redisPool != nil,
 		},
 	}
