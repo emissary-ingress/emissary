@@ -97,8 +97,7 @@ img {
             </a></li>`
         }
 
-        ${this.enabledFeatures.includes("support-basic-tier") 
-            || this.enabledFeatures.includes("support-business-tier")
+        ${this.enabledFeatures.includes("support-business-tier")
             || this.enabledFeatures.includes("support-24x7-tier")
           ? html`<li><a href="mailto:support@datawire.io" target="_blank">
               <img src="/edge_stack/images/logos/email-mark.png" alt=""/>
