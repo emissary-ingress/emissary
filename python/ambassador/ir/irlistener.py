@@ -1,5 +1,7 @@
 from typing import Optional, Tuple, TYPE_CHECKING
 
+import copy
+
 from ..config import Config
 from .irresource import IRResource
 from .irtlscontext import IRTLSContext
@@ -117,46 +119,7 @@ class ListenerFactory:
 
                     ir.logger.debug(f"ListenerFactory: {ctx.name} sets redirect_cleartext_from {redirect_cleartext_from}")
 
-        # OK, handle the simple case first: if we're in debug mode, just always
-        # fire up multiprotocol listeners on ports 8080 and 8443. This means neither
-        # requires TLS, but both have a full set of termination contexts.
-
-        if ir.wizard_allowed:
-            ir.logger.info('IRL: wizard allowed, overriding listeners')
-
-            listeners = [
-                IRListener(
-                    ir=ir, aconf=aconf, location=amod.location,
-                    service_port=8080,
-                    require_tls=False,
-                    use_proxy_proto=False
-                ),
-                IRListener(
-                    ir=ir, aconf=aconf, location=amod.location,
-                    service_port=8443,
-                    require_tls=False,
-                    use_proxy_proto=False
-                )
-            ]
-
-            for listener in listeners:
-                # If we have TLS contexts, all the listeners need to get them
-                # all.
-                #
-                # If we _don't_ have TLS contexts... well, that's kind of interesting
-                # if we're in debug mode, because it shouldn't really happen. Go ahead
-                # and fire things up without any, and trust that the rest of the
-                # system will be supplying something Soon(tm).
-
-                if contexts:
-                    listener['tls_contexts'] = contexts
-
-                ir.add_listener(listener)
-
-            # This is all we do in debug mode.
-            return
-
-        # We're not in debug mode here, so set up our primary listener. If we have TLS termination
+        # Set up our primary listener. If we have TLS termination
         # contexts, we'll attach them to this listener, and it'll do TLS on whatever service port
         # the user has configured.
         primary_listener = IRListener(
@@ -192,6 +155,8 @@ class ListenerFactory:
         ir.add_listener(primary_listener)
 
         if redirect_cleartext_from:
+            ir.logger.info(f"ListenerFactory: creating redirect listener on {redirect_cleartext_from}")
+
             # We're redirecting cleartext. This means a second listener that has no TLS contexts,
             # and does nothing but redirects.
             new_listener = IRListener(
@@ -215,6 +180,27 @@ class ListenerFactory:
                 new_listener.server_name = amod.server_name
 
             ir.add_listener(new_listener)
+        elif ir.wizard_allowed:
+            # No redirection, and the wizard is allowed. If the primary listener
+            # (which has all the TLS contexts alreday, right?) is on 8080 or 8443,
+            # copy it (including all the contexts) and swap the port.
+
+            primary_port = primary_listener.service_port
+            copy_to_port: Optional[int] = None
+
+            if primary_port == 8080:
+                copy_to_port = 8443
+            elif primary_port == 8443:
+                copy_to_port = 8080
+
+            if copy_to_port is None:
+                ir.logger.info(f"IRL: wizard allowed, but primary port is {primary_port} -- doing nothing")
+            else:
+                ir.logger.info(f"IRL: wizard allowed, primary port is {primary_port}, copying to {copy_to_port}")
+
+                copied_listener = copy.deepcopy(primary_listener)
+                copied_listener.service_port = copy_to_port
+                ir.add_listener(copied_listener)
 
     @classmethod
     def finalize(cls, ir: 'IR', aconf: Config) -> None:
