@@ -27,7 +27,6 @@ var (
 	FeatureDevPortal           = internal.AddFeature("devportal")
 	FeatureLocalDevPortal      = internal.AddFeature("local-devportal")
 	FeatureCertifiedEnvoy      = internal.AddFeature("certified-envoy")
-	FeatureSupportBasicTier    = internal.AddFeature("support-basic-tier")
 	FeatureSupportBusinessTier = internal.AddFeature("support-business-tier")
 	FeatureSupport24x7Tier     = internal.AddFeature("support-24x7-tier")
 )
