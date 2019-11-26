@@ -26,8 +26,11 @@ DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
 
 DBUILD=${DIR}/dbuild.sh
 
-# command for running a container (ie, "docker run")
-DOCKER_RUN=${DOCKER_RUN:-docker run}
+# Allow the user to set a DOCKER_RUN environment variable command for
+# running a container (ie, "docker run").
+#
+# shellcheck disable=SC2206
+docker_run=(${DOCKER_RUN:-docker run})
 
 # the name of the Doccker network
 # note: use your local k3d/microk8s/kind network for running tests
@@ -89,7 +92,7 @@ bootstrap() {
         local builder_portmaps=($BUILDER_PORTMAPS)
 
         echo_on
-        $DOCKER_RUN \
+        "${docker_run[@]}" \
             --network="$DOCKER_NETWORK" \
             --network-alias="builder" \
             --group-add="$DOCKER_GID" \
