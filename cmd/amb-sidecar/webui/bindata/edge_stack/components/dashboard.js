@@ -47,8 +47,7 @@ google.charts.load('visualization', '1.0', { 'packages': ['corechart'] });
  *
  * The Dashboard panel objects are objects that define three functions:
  *   render() => string
- *        Return a string of the html for the panel. Note that it must return a string
- *        and not an html template.
+ *        Return a html template for the panel.
  *   onSnapshotChange(snapshot) => (no return value)
  *        Called each time a new snapshot is received from Ambassador. This function
  *        is used to update any internal state for the panel from the data in the snapshot.
@@ -56,6 +55,17 @@ google.charts.load('visualization', '1.0', { 'packages': ['corechart'] });
  *        Use the google chart apis to create a chart and attach it to panel's element
  *        in the shadow DOM. This function does nothing if there is no chart in the panel.
  */
+
+/* Rendering utilities */
+
+/* No, One, many things... */
+let countString = function(count, singular_text, plural_text) {
+    switch(count) {
+      case 0:  return `No ${plural_text}`;    break;
+      case 1:  return `One ${singular_text}`; break;
+      default: return `${count} ${plural_text}`;
+    }
+};
 
 /**
  * Pie Chart Demo - this is a demo only and not an Ambassador-useful panel.
@@ -65,7 +75,7 @@ let demoPieChart = {
   _elementId: "demo_pie",
 
   render: function() {
-    return `<div class="element">
+    return html`<div class="element">
         <div class="element-titlebar">${this._title}</div>
         <div class="element-content" id="${this._elementId}"></div>
      </div>`
@@ -109,34 +119,6 @@ let demoPieChart = {
   }
 };
 
-/**
- * Panel showing a count of the Services
- */
-let demoServiceCount = {
-  _title: "Number of Services",
-  _elementId: "demo_services",
-  _serviceCount: 0,
-
-  render: function() {
-    return `<div class="element">
-      <div class="element-titlebar">${this._title}</div>
-      <div class="element-content" id=“${this._elementId}”>${this._serviceCount}</div>
-    </div>`
-  },
-
-  onSnapshotChange: function(snapshot) {
-    if (snapshot) {
-      let kinds = ['AuthService', 'RateLimitService', 'TracingService', 'LogService'];
-      let services = [];
-      kinds.forEach((k)=>{
-        services.push(...snapshot.getResources(k))
-      });
-      this._serviceCount = services.length;
-    }
-	},
-
-  draw: function(shadow_root) { /*text panel, no chart to draw*/ }
-};
 
 /**
  * Column Chart Demo - this demo has no useful Ambassador purpose
@@ -154,7 +136,7 @@ let demoColumnChart = {
   ],
 
   render: function() {
-    return `<div class="element">
+    return html`<div class="element">
       <div class="element-titlebar">${this._title}</div>
       <div class="element-content" id="${this._elementId}"></div>
     </div>`
@@ -198,6 +180,164 @@ let demoColumnChart = {
   }
 };
 
+/**
+ * Panel showing a count of the Hosts
+ */
+let HostsPanel = {
+  _title: "Hosts",
+  _elementId: "hosts_count",
+  _hostsCount: 0,
+
+  render: function() {
+    return html`
+    <div class="element" style="cursor:pointer" @click=${this.onClick}>
+      <div class="element-titlebar">${this._title}</div>
+      <div class="element-content" id=“${this._elementId}”>
+        <br><br><br>
+        <p><span class = "status">${countString(this._hostsCount, "Host", "Hosts")}</span></p>
+      </div>
+    </div>`
+  },
+
+  onSnapshotChange: function(snapshot) {
+    if (snapshot) {
+      let hosts = snapshot.getResources('Host');
+      this._hostsCount = hosts.length;
+    }
+	},
+
+  draw: function(shadow_root) { /*text panel, no chart to draw*/ },
+
+  onClick: function() {
+    window.location.hash = "#hosts";
+  }
+};
+
+
+/**
+ * Panel showing a count of the Services
+ */
+let ServicesPanel = {
+  _title: "Services",
+  _elementId: "services_count",
+  _serviceCount: 0,
+
+  render: function() {
+    return html`
+    <div class="element" style="cursor:pointer" @click=${this.onClick}>
+      <div class="element-titlebar">${this._title}</div>
+      <div class="element-content" id=“${this._elementId}”>
+        <br><br><br>
+        <p><span class = "status">${this._serviceCount} Services</span></p>
+      </div>
+    </div>`
+  },
+
+  onSnapshotChange: function(snapshot) {
+    if (snapshot) {
+      let kinds = ['AuthService', 'RateLimitService', 'TracingService', 'LogService'];
+      let services = [];
+      kinds.forEach((k)=>{
+        services.push(...snapshot.getResources(k))
+      });
+      this._serviceCount = services.length;
+    }
+	},
+
+  draw: function(shadow_root) { /*text panel, no chart to draw*/ },
+
+  onClick: function() {
+    window.location.hash = "#services";
+  }
+};
+
+/**
+ * Panel showing a count of the Mappings
+ */
+let MappingsPanel = {
+  _title: "Mappings",
+  _elementId: "mappings_count",
+  _mappingsCount: 0,
+
+  render: function() {
+    return html`
+    <div class="element" style="cursor:pointer" @click=${this.onClick}>
+      <div class="element-titlebar">${this._title}</div>
+      <div class="element-content" id=“${this._elementId}”>
+        <br><br><br>
+        <p><span class = "status">${this._mappingsCount} Mappings</span></p>
+      </div>
+    </div>`
+  },
+
+  onSnapshotChange: function(snapshot) {
+    if (snapshot) {
+      let mappings = snapshot.getResources('Mapping');
+      this._mappingsCount = mappings.length;
+    }
+	},
+
+  draw: function(shadow_root) { /*text panel, no chart to draw*/ },
+
+  onClick: function() {
+    window.location.hash = "#mappings";
+  }
+};
+
+/**
+ * Panel showing System Status
+ */
+let StatusPanel = {
+  _title: "System Status",
+  _elementId: "system_status",
+
+  render: function() {
+    let redis = this._snapshot.getRedisInUse();
+    let envoy = this._diagd.envoy_status.ready;
+    let errors= this._diagd.errors.length;
+
+    return html`
+    <div class="element" style="cursor:pointer" @click=${this.onClick}>
+      <div class="element-titlebar">${this._title}</div>
+      <div class="element-content" id=“${this._elementId}”>
+        <br>
+        ${this.renderStatus(redis, "Redis In Use", "Redis Unavailable")}
+        ${this.renderStatus(envoy, "Envoy Ready", "Envoy Unavailable")}
+        ${this.renderStatus(errors == 0, "No Errors", countString(errors, "Error", "Errors"))}
+      </div>
+    </div>`
+  },
+
+  renderStatus: function(condition, true_text, false_text) {
+    return html`
+      ${condition
+      ? html`<p><span class = "status" style="color: green">${true_text}</span></p>`
+      : html`<p><span class = "status" style="color: red">${false_text}</span></p>`}
+    `;
+  },
+
+  onSnapshotChange: function(snapshot) {
+    if (snapshot) {
+      this._snapshot  = snapshot;
+      let diagnostics = snapshot.getDiagnostics();
+      this._diagd = (('system' in (diagnostics||{})) ? diagnostics :
+     {
+       system: {
+         env_status: {},
+       },
+       envoy_status: {},
+       loginfo: {},
+       errors: [],
+     });
+    }
+  },
+
+  draw: function(shadow_root) { /*text panel, no chart to draw*/ },
+
+  onClick: function() {
+    window.location.hash = "#debugging";
+  }
+};
 /* ===================================================================================*/
 /* The Dashboard class, drawing dashboard elements in a matrix of div.element blocks. */
 /* ===================================================================================*/
@@ -239,14 +379,15 @@ export class Dashboard extends LitElement {
         left-margin: 20px;
        }
        
-      span.code { font-family: Monaco, monospace; }`
+      span.code { font-family: Monaco, monospace; }
+      span.status { font-family: Helvetica; font-weight: 900; font-size: 150%;}`
   };
 
   constructor() {
     super();
 
     /* Initialize the list of dashboard panels */
-    this._panels = [ demoPieChart,  demoServiceCount, demoColumnChart ];
+    this._panels = [ HostsPanel, MappingsPanel, ServicesPanel, StatusPanel ];
 
     Snapshot.subscribe(this.onSnapshotChange.bind(this));
     /* Set up the Google Charts setOnLoad callback.  Note that we can't draw
@@ -284,10 +425,7 @@ export class Dashboard extends LitElement {
     /*
      * Return the concatenated html renderings for each panel
      */
-    let the_html = this._panels.reduce((html_str, panel) => {
-      return html_str + panel.render() + "\n";
-    }, "");
-    return html([the_html]);
+    return( this._panels.reduce( (accum, each) => html`${accum} ${each.render()}`, html`` ) );
   }
 
   /*
