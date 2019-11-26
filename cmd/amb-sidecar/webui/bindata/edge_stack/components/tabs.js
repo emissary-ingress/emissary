@@ -50,7 +50,7 @@ export class Tabs extends LitElement {
 `
   }
 
-  displayHash() {
+  handleHashChange() {
     console.log(window.location.hash);
     for (let i = 0; i < this.tabs.length; i++) {
       if(window.location.hash === ('#' + this.tabs[i].tabHashName())) {
@@ -71,12 +71,12 @@ export class Tabs extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
-    window.addEventListener("hashchange", this.displayHash.bind(this), false);
+    window.addEventListener("hashchange", this.handleHashChange.bind(this), false);
   }
 
   disconnectedCallback() {
     super.disconnectedCallback();
-    window.remmoveEventListener("hashchange", this.displayHash.bind(this), false);
+    window.remmoveEventListener("hashchange", this.handleHashChange.bind(this), false);
   }
 
   handleSlotChange({target}) {
