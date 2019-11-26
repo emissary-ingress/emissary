@@ -330,29 +330,20 @@ return "M " + sX + " " + sY + " A " + [ rx , ry , φ / (2*π) *360, fA, fS, eX, 
     <div class="element" style="cursor:pointer" @click=${this.onClick}>
       <div class="element-titlebar">${this._title}</div>
       <div class="element-content" id=“${this._elementId}”>
-<svg height="200" width="200" style="position:absolute;top:3.2em;left:1em;">
-<g stroke="${redis ? "#22EE55" : "red"}" fill="none" stroke-linecap="round" stroke-width="8">
-  <path d="${f_svg_ellipse_arc([100,100], [90,90], [0,1.95], 0)}" />
-  </g>
-<g stroke="${errors === 0 ? "#22EE55" : "red"}" fill="none" stroke-linecap="round" stroke-width="8">
-  <path d="${f_svg_ellipse_arc([100,100], [90,90], [2.1,1.95], 0)}" />
-  </g>
-<g stroke="${envoy ? "#22EE55" : "red"}" fill="none" stroke-linecap="round" stroke-width="8">
-  <path d="${f_svg_ellipse_arc([100,100], [90,90], [4.2,1.95], 0)}" />
-  </g>
-</svg>
-<style>
-div.system-status {
-font-size: 70%;
-padding-top: 65px;
-}
-div.system-status p {
-margin: 0;
-}
-</style>
+        <svg class="element-svg-overlay">
+          <g stroke="${redis ? "#22EE55" : "red"}" fill="none" stroke-linecap="round" stroke-width="8">
+            <path d="${f_svg_ellipse_arc([100,100], [90,90], [0,1.95], 0)}" />
+            </g>
+          <g stroke="${errors === 0 ? "#22EE55" : "red"}" fill="none" stroke-linecap="round" stroke-width="8">
+            <path d="${f_svg_ellipse_arc([100,100], [90,90], [2.1,1.95], 0)}" />
+            </g>
+          <g stroke="${envoy ? "#22EE55" : "red"}" fill="none" stroke-linecap="round" stroke-width="8">
+            <path d="${f_svg_ellipse_arc([100,100], [90,90], [4.2,1.95], 0)}" />
+            </g>
+        </svg>
         <div class="system-status">
-        ${this.renderStatus(redis, "Redis In Use", "Redis Unavailable")}
-        ${this.renderStatus(envoy, "Envoy Ready", "Envoy Unavailable")}
+        ${this.renderStatus(redis, "Redis in use", "Redis unavailable")}
+        ${this.renderStatus(envoy, "Envoy ready", "Envoy unavailable")}
         ${this.renderStatus(errors === 0, "No Errors", countString(errors, "Error", "Errors"))}
         </div>
       </div>
@@ -428,10 +419,25 @@ export class Dashboard extends LitElement {
         padding: 8px;
         top-margin: 0px;
         left-margin: 20px;
-       }
+      }
        
       span.code { font-family: Monaco, monospace; }
-      span.status { font-family: Helvetica; font-weight: 900; font-size: 150%;}`
+      span.status { font-family: Helvetica; font-weight: 900; font-size: 150%;}
+      svg.element-svg-overlay {
+        height:200px;
+        width:200px;
+        position:absolute;
+        top:3.2em;
+        left:1em;
+      }
+      div.system-status {
+        font-size: 70%;
+        padding-top: 65px;
+      }
+      div.system-status p {
+        margin: 0;
+      }
+`
   };
 
   constructor() {
