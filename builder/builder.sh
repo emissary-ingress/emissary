@@ -26,8 +26,15 @@ DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
 
 DBUILD=${DIR}/dbuild.sh
 
+# command for running a container (ie, "docker run")
+DOCKER_RUN=${DOCKER_RUN:-docker run}
+
+# the name of the Doccker network
+# note: use your local k3d/microk8s/kind network for running tests
+DOCKER_NETWORK=${DOCKER_NETWORK:-${BUILDER_NAME}}
+
 builder() { docker ps -q -f label=builder -f label="$BUILDER_NAME"; }
-builder_network() { docker network ls -q -f name="$BUILDER_NAME"; }
+builder_network() { docker network ls -q -f name="$DOCKER_NETWORK"; }
 
 builder_volume() { docker volume ls -q -f label=builder; }
 
@@ -54,8 +61,10 @@ bootstrap() {
     fi
 
     if [ -z "$(builder_network)" ]; then
-        docker network create "$BUILDER_NAME" > /dev/null
-        printf "%sCreated docker network %s%s%s\n" "$GRN" "$BLU" "$BUILDER_NAME" "$END"
+        docker network create "$DOCKER_NETWORK" > /dev/null
+        printf "%sCreated docker network %s%s%s\n" "$GRN" "$BLU" "$DOCKER_NETWORK" "$END"
+    else
+        printf "%sConnecting to existing network %s%s%s%s\n" "$GRN" "$BLU" "$DOCKER_NETWORK" "$GRN" "$END"
     fi
 
     if [ -z "$(builder)" ] ; then
@@ -80,21 +89,21 @@ bootstrap() {
         local builder_portmaps=($BUILDER_PORTMAPS)
 
         echo_on
-        docker run \
-               --network="$BUILDER_NAME" \
-               --network-alias="builder" \
-               --group-add="$DOCKER_GID" \
-               --detach \
-               --rm \
-               --volume=/var/run/docker.sock:/var/run/docker.sock \
-               --volume="$(builder_volume)":/home/dw \
-               "${builder_mounts[@]/#/--volume=}" \
-               --cap-add=NET_ADMIN \
-               --label=builder \
-               --label="$BUILDER_NAME" \
-               "${builder_portmaps[@]/#/--publish=}" \
-               --env=BUILDER_NAME="$BUILDER_NAME" \
-               --entrypoint=tail builder -f /dev/null > /dev/null
+        $DOCKER_RUN \
+            --network="$DOCKER_NETWORK" \
+            --network-alias="builder" \
+            --group-add="$DOCKER_GID" \
+            --detach \
+            --rm \
+            --volume=/var/run/docker.sock:/var/run/docker.sock \
+            --volume="$(builder_volume)":/home/dw \
+            "${builder_mounts[@]/#/--volume=}" \
+            --cap-add=NET_ADMIN \
+            --label=builder \
+            --label="$BUILDER_NAME" \
+            "${builder_portmaps[@]/#/--publish=}" \
+            --env=BUILDER_NAME="$BUILDER_NAME" \
+            --entrypoint=tail builder -f /dev/null > /dev/null
         echo_off
 
         printf "%sStarted build container %s%s%s\n" "$GRN" "$BLU" "$(builder)" "$END"
@@ -216,8 +225,9 @@ clean() {
     fi
     nid=$(builder_network)
     if [ -n "${nid}" ] ; then
-        printf "%sRemoving docker network %s%s%s\n" "$GRN" "$BLU" "$nid" "$END"
-        docker network rm "$BUILDER_NAME" > /dev/null
+        printf "%sRemoving docker network %s%s (%s)%s\n" "$GRN" "$BLU" "$DOCKER_NETWORK" "$nid" "$END"
+        # This will fail if the network has some other endpoints alive: silence any errors
+        docker network rm "$nid" >& /dev/null || true
     fi
 }
 
