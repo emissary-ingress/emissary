@@ -1,4 +1,5 @@
 import { LitElement, html, css } from '/edge_stack/vendor/lit-element.min.js'
+import {useContext} from '/edge_stack/components/context.js';
 
 export class Tabs extends LitElement {
 
@@ -89,7 +90,18 @@ export class Tabs extends LitElement {
       let classes = "tab";
       if (i === this.current || this.tabs[i].slot === "sticky") {
         this.tabs[i].style.display = "block";
-        window.location.hash = "#" + this.tabs[i].tabHashName();
+        if( window.location.hash.length > 300 ) {
+          /* if a long hash, then it might be a login cookie */
+          if (useContext('auth-state', null)[0]) {
+            /* logged in, so don't need to preserve the hash tag */
+            window.location.hash = "#" + this.tabs[i].tabHashName();
+          } else {
+            /* not logged in, so don't change the hash cookie */
+          }
+        } else {
+          /* shorter hash, so it can't be a login cookie, so go ahead and change it */
+          window.location.hash = "#" + this.tabs[i].tabHashName();
+        }
         classes += " active"
       } else {
         this.tabs[i].style.display = "none"
