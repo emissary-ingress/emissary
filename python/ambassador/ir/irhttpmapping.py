@@ -367,7 +367,7 @@ class IRHTTPMapping (IRBaseMapping):
         errstr = "(no errors)"
 
         if errors:
-            errstr = errors[0].error
+            errstr = errors[0].get('error') or 'unknown error?'
 
             if len(errors) > 1:
                 errstr += " (and more)"
