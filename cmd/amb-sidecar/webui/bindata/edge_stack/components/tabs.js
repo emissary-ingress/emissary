@@ -51,7 +51,6 @@ export class Tabs extends LitElement {
   }
 
   handleHashChange() {
-    console.log(window.location.hash);
     for (let i = 0; i < this.tabs.length; i++) {
       if(window.location.hash === ('#' + this.tabs[i].tabHashName())) {
         if( this.current !== i ) {
