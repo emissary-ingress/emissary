@@ -50,24 +50,49 @@ export class Tabs extends LitElement {
 `
   }
 
+  displayHash() {
+    console.log(window.location.hash);
+    for (let i = 0; i < this.tabs.length; i++) {
+      if(window.location.hash === ('#' + this.tabs[i].tabHashName())) {
+        if( this.current !== i ) {
+          this.handleClick(i, null);
+        }
+        break;
+      }
+    }
+  }
+
   constructor() {
-    super()
-    this.tabs = []
-    this.links = []
+    super();
+    this.tabs = [];
+    this.links = [];
     this.current = 0
   }
 
+  connectedCallback() {
+    super.connectedCallback();
+    //window.onhashchange = displayHash;
+    window.addEventListener("hashchange", this.displayHash.bind(this), false);
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    //window.onhashchange = null;
+    window.remmoveEventListener("hashchange", this.displayHash.bind(this), false);
+  }
+
   handleSlotChange({target}) {
-    this.tabs = target.assignedNodes().filter(n => 'tabName' in n)
+    this.tabs = target.assignedNodes().filter(n => 'tabName' in n);
     this.showCurrent()
   }
 
   showCurrent() {
-    this.links = []
+    this.links = [];
     for (let i = 0; i < this.tabs.length; i++) {
-      let classes = "tab"
-      if (i == this.current || this.tabs[i].slot == "sticky") {
-        this.tabs[i].style.display = "block"
+      let classes = "tab";
+      if (i === this.current || this.tabs[i].slot === "sticky") {
+        this.tabs[i].style.display = "block";
+        window.location.hash = "#" + this.tabs[i].tabHashName();
         classes += " active"
       } else {
         this.tabs[i].style.display = "none"
@@ -82,7 +107,7 @@ export class Tabs extends LitElement {
   }
 
   handleClick(i, e) {
-    this.current = i
+    this.current = i;
     this.showCurrent()
   }
 
@@ -102,20 +127,32 @@ export class Tabs extends LitElement {
 
 }
 
-customElements.define('dw-tabs', Tabs)
+customElements.define('dw-tabs', Tabs);
 
 export class Tab extends LitElement {
   static get properties() {
     return {
       name: { type: String },
-      icon: { type: String }
+      icon: { type: String },
+      hashname: { type: String }
     }
   }
 
   constructor() {
     super();
     this.name = "";
+    this.hashname = "";
     this.icon = "";
+  }
+
+  set name(val) {
+    let oldVal = this._name;
+    this._name = val;
+    this.hashname = val.toLowerCase().replace(/[^\w]+/,'-');
+  }
+
+  get name() {
+    return this._name;
   }
 
   tabName() {
@@ -126,9 +163,13 @@ export class Tab extends LitElement {
     return this.icon;
   }
 
+  tabHashName() {
+    return this.hashname;
+  }
+
   render() {
     return html`<div><slot></slot></div>`
   }
 }
 
-customElements.define('dw-tab', Tab)
+customElements.define('dw-tab', Tab);
