@@ -1,5 +1,5 @@
-import  {LitElement, html} from 'https://cdn.pika.dev/-/lit-element/2.2.1/dist-es2019/lit-element.min.js';
-import {useContext} from '/edge_stack/components/context.js';
+import  {LitElement, html} from '/edge_stack/vendor/lit-element.min.js';
+import {registerContextChangeHandler, useContext} from '/edge_stack/components/context.js';
 import {getCookie} from '/edge_stack/components/cookies.js';
 
 function updateCredentials(value) {
@@ -17,7 +17,61 @@ function updateCredentials(value) {
   document.cookie = `edge_stack_auth=${value}; path=/edge_stack/`;
 }
 
-export default class Snapshot extends LitElement {
+/**
+ * This class wraps the snapshot that the server returns and provides
+ * a set of more consistent, convenient, and document APIs for
+ * accessing the data.
+ */
+class SnapshotWrapper {
+  constructor(data) {
+    this.data = data
+  }
+
+  /**
+   * Return all the kubernetes resources (that the backend AES
+   * instance is paying attention to) of the specified Kind.
+   */
+  getResources(kind) {
+    // XXX we should really update this to return a uniform data
+    // structure on the server side, but for now I'm patching over
+    // that stuff here
+    if (kind === "RateLimit") {
+      return this.data.Limits || []
+    } else {
+      return ((this.data.Watt || {}).Kubernetes || {})[kind] || []
+    }
+  }
+
+  /**
+   * Return the JSON representation of the OSS diagnostics page.
+   */
+  getDiagnostics() {
+    return this.data.Diag || {};
+  }
+
+  getLicense() {
+    return this.data.License || {};
+  }
+
+  getRedisInUse() {
+    return this.data.RedisInUse || false;
+  }
+
+}
+
+export class Snapshot extends LitElement {
+
+  /**
+   * Subscribe to snapshots from the AES backend server. The
+   * onSnapshotChange parameter is a function that will be passed an
+   * instance of the SnapshotWrapper class.
+   */
+  static subscribe(onSnapshotChange) {
+    const arr = useContext('aes-api-snapshot', null);
+    onSnapshotChange(arr[0] || new SnapshotWrapper({}));
+    registerContextChangeHandler('aes-api-snapshot', onSnapshotChange);
+  }
+
   static get properties() {
     return {
       data: Object,
@@ -30,7 +84,6 @@ export default class Snapshot extends LitElement {
     super();
 
     this.setSnapshot = useContext('aes-api-snapshot', null)[1];
-    this.setDiag = useContext('aes-api-diag', null)[1];
     this.setAuthenticated = useContext('auth-state', null)[1];
     this.loading = true;
 
@@ -57,31 +110,44 @@ export default class Snapshot extends LitElement {
           } else {
             this.fragment = "";
             this.setAuthenticated(false);
-            this.setSnapshot({});
-            this.setDiag({});
+            this.setSnapshot(new SnapshotWrapper({}));
           }
         } else {
-          response.json().then((json) => {
-            if (this.fragment == "trying") {
-              window.location.hash = "";
-            }
-            this.fragment = ""
-            this.setSnapshot(json.Watt)
-            this.setDiag(json.Diag || {})
-            this.setAuthenticated(true)
-            if (this.loading) {
-              this.loading = false;
-              document.onclick = () => {
-                fetch('/edge_stack/api/activity', {
-                  method: 'POST',
-                  headers: new Headers({
-                    'Authorization': 'Bearer ' + getCookie("edge_stack_auth")
-                  }),
-                });
+          response.text()
+            .then((text) => {
+              var json
+              try {
+                json = JSON.parse(text);
+              } catch(err) {
+                console.log('error parsing snapshot', err)
+                console.log(text)
+                setTimeout(this.fetchData.bind(this), 1000);
+                return
               }
-            }
-            setTimeout(this.fetchData.bind(this), 1000);
-          })
+              if (this.fragment == "trying") {
+                window.location.hash = "";
+              }
+
+              this.fragment = ""
+              this.setSnapshot(new SnapshotWrapper(json || {}))
+              this.setAuthenticated(true)
+              if (this.loading) {
+                this.loading = false;
+                document.onclick = () => {
+                  fetch('/edge_stack/api/activity', {
+                    method: 'POST',
+                    headers: new Headers({
+                      'Authorization': 'Bearer ' + getCookie("edge_stack_auth")
+                    }),
+                  });
+                }
+              }
+
+              setTimeout(this.fetchData.bind(this), 1000);
+            })
+            .catch((err) => {
+              console.log('error parsing snapshot', err);
+            })
         }
       })
       .catch((err) => { console.log('error fetching snapshot', err); })

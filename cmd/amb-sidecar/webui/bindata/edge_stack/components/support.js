@@ -1,4 +1,4 @@
-import { LitElement, html, css } from 'https://cdn.pika.dev/-/lit-element/2.2.1/dist-es2019/lit-element.min.js'
+import { LitElement, html, css } from '/edge_stack/vendor/lit-element.min.js'
 
 export class Support extends LitElement {
   static get properties() {

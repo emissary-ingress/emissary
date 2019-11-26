@@ -1,4 +1,5 @@
-import { LitElement, html, css } from 'https://cdn.pika.dev/-/lit-element/2.2.1/dist-es2019/lit-element.min.js'
+import { LitElement, html, css } from '/edge_stack/vendor/lit-element.min.js'
+import { Snapshot } from '/edge_stack/components/snapshot.js'
 
 export class Signup extends LitElement {
 
@@ -24,32 +25,52 @@ export class Signup extends LitElement {
 .invalid {
     background-color: #fe0000;
 }
+
+div.admin-section {
+    border: 1px solid #ede7f3;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, .1);
+    padding: 0.5em;
+    margin-bottom: 0.6em;
+    line-height: 1.3;
+    position: relative;
+}
 `
   }
 
   static get properties() {
     return {
       state: { type: String },
-      message: { type: String }
+      message: { type: String },
+      licenseClaims: { type: Object }
     }
   }
 
   constructor() {
     super();
-    this.state = "start";
-    this.message = ""
+
+    Snapshot.subscribe(this.onSnapshotChange.bind(this));
+
+    this.reset();
+  }
+
+  onSnapshotChange(snapshot) {
+    this.licenseClaims = snapshot.getLicense().Claims || {};
   }
 
   handleSignup() {
     this.state = "entry";
-    this.email().focus()
+    this.email().focus();
   }
 
   reset() {
     this.state = "start";
     this.message = "";
-    this.email().value = "";
-    this.confirm().value = ""
+    if (this.email()) {
+      this.email().value = "";
+    }
+    if (this.confirm()) {
+      this.confirm().value = "";
+    }
   }
 
   handleSubmit() {
@@ -61,7 +82,6 @@ export class Signup extends LitElement {
       this.confirm().classList.add("invalid");
       this.message = "Emails do not match."
     } else {
-      console.log("blah");
       this.email().classList.remove("invalid");
       this.confirm().classList.remove("invalid");
       this.message = "Requesting a license key...";
@@ -100,27 +120,29 @@ export class Signup extends LitElement {
 
   render() {
     return html`
-<button @click=${this.handleSignup} style="display:${this.state === "start" ? "block" : "none"}">
-  Click here to sign up for a free Community license.
-</button>
-
-<div style="display:${this.state === "entry" ? "block" : "none"}">
-  <form>
-    <span>
-      Email:
-    </span>
-    <input id="email" type="text" name="email" value="" /> 
-    <span>
-      Confirm:
-    </span>
-    <input id="confirm" type="text" name="email-confirm" value="" /> <input @click=${this.reset} type="button" value="Cancel" /> <input @click=${this.handleSubmit} type="button" value="Signup" /> 
-  </form>
-  <div class="invalid">${this.message}</div>
-</div>
-
-<div style="display:${this.state === "pending" ? "block" : "none"}">
-  <span>${this.message}</span>
-  <button @click=${this.reset}>Continue</button>
+<div class="admin-section" slot="sticky" style="display:${this.licenseClaims.customer_id == "unregistered" ? "block" : "none"}">
+  <button @click=${this.handleSignup} style="display:${this.state === "start" ? "block" : "none"}">
+    Click here to sign up for a free Community license.
+  </button>
+  
+  <div style="display:${this.state === "entry" ? "block" : "none"}">
+    <form>
+      <span>
+        Email:
+      </span>
+      <input id="email" type="text" name="email" value="" /> 
+      <span>
+        Confirm:
+      </span>
+      <input id="confirm" type="text" name="email-confirm" value="" /> <input @click=${this.reset} type="button" value="Cancel" /> <input @click=${this.handleSubmit} type="button" value="Signup" /> 
+    </form>
+    <div class="invalid">${this.message}</div>
+  </div>
+  
+  <div style="display:${this.state === "pending" ? "block" : "none"}">
+    <span>${this.message}</span>
+    <button @click=${this.reset}>Continue</button>
+  </div>
 </div>
 `
   }

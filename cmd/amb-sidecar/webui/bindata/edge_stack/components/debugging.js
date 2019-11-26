@@ -1,5 +1,5 @@
-import { LitElement, html, css } from 'https://cdn.pika.dev/-/lit-element/2.2.1/dist-es2019/lit-element.min.js'
-import { registerContextChangeHandler, useContext } from '/edge_stack/components/context.js'
+import { LitElement, html, css } from '/edge_stack/vendor/lit-element.min.js'
+import { Snapshot } from '/edge_stack/components/snapshot.js'
 import { getCookie } from '/edge_stack/components/cookies.js';
 
 export class Debugging extends LitElement {
@@ -8,15 +8,16 @@ export class Debugging extends LitElement {
   static get properties() {
     return {
       diagd: {type: Object},
+      licenseClaims: { type: Object },
+      featuresOverLimit: { type: Object },
+      redisInUse: { type: Boolean }
     };
   }
 
   constructor() {
     super();
 
-    const [currentDiagd, setDiagd] = useContext('aes-api-diag', null);
-    this.onDiagdChange(currentDiagd);
-    registerContextChangeHandler('aes-api-diag', this.onDiagdChange.bind(this));
+    Snapshot.subscribe(this.onSnapshotChange.bind(this));
   }
 
   static get styles() {
@@ -53,6 +54,9 @@ export class Debugging extends LitElement {
 
           <dt>Ambassador version</dt>
           <dd>${this.diagd.system.version}</dd>
+          
+          <dt>License</dt>
+          <dd>${this.licenseClaims.customer_email || this.licenseClaims.customer_id}</dd>
 
           <dt>Hostname</dt>
           <dd>${this.diagd.system.hostname}</dd>
@@ -68,6 +72,13 @@ export class Debugging extends LitElement {
                  ? html`alive but not yet ready (running ${this.diagd.envoy_status.uptime})`
                  : html`not running`)
           }</dd>
+          
+          <dt>Redis status</dt>
+          <dd>
+          ${this.redisInUse
+            ? html`configured`
+            : html`Authentication and Rate Limiting are disabled as Ambassador Edge Stack is not configured to use Redis. Please follow the <a href="https://www.getambassador.io/user-guide/install">Ambassador Edge Stack installation guide</a> to complete your setup.`}
+          </dd>
 
         </dl>
         <dl>
@@ -94,6 +105,11 @@ export class Debugging extends LitElement {
           <dd>${this.diagd.system.statsd_enabled ? "enabled" : "disabled"}</dd>
 
         </dl>
+        
+        ${this.featuresOverLimit.length > 0 
+          ? html`<div style="color:red; font-weight: bold">You've reached the usage limits for your license. If you need to use Ambassador beyond the current limits, <a href="https://www.getambassador.io/contact/">please contact Datawire</a> for an Enterprise license.</div>`
+          : html``
+        }
       </fieldset>
 
       <fieldset>
@@ -155,8 +171,9 @@ export class Debugging extends LitElement {
 
   // internal ////////////////////////////////////////////////////////
 
-  onDiagdChange(snapshot) {
-    this.diagd = (('system' in (snapshot||{})) ? snapshot :
+  onSnapshotChange(snapshot) {
+    let diagnostics = snapshot.getDiagnostics();
+    this.diagd = (('system' in (diagnostics||{})) ? diagnostics :
      {
        system: {
          env_status: {},
@@ -165,6 +182,9 @@ export class Debugging extends LitElement {
        loginfo: {},
        errors: [],
      });
+    this.licenseClaims = snapshot.getLicense().Claims || {};
+    this.featuresOverLimit = snapshot.getLicense().FeaturesOverLimit || [];
+    this.redisInUse = snapshot.getRedisInUse();
   }
 
   setLogLevel(level) {

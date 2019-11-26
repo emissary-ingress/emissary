@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/pkg/errors"
 	yaml "gopkg.in/yaml.v2"
@@ -29,7 +30,35 @@ func max(a, b int) int {
 	}
 }
 
-func DoWatch(ctx context.Context, cfg types.Config, kubeinfo *k8s.KubeInfo, _rlslog dlog.Logger) error {
+type RateLimitController struct {
+	lock   sync.RWMutex // everything after this is guarded by the lock
+	limits []k8s.Resource
+}
+
+func (r *RateLimitController) withLock(doit func()) {
+	r.lock.Lock()
+	defer r.lock.Unlock()
+	doit()
+}
+
+func (r *RateLimitController) setLimits(limits []k8s.Resource) {
+	r.withLock(func() {
+		r.limits = limits
+	})
+}
+
+func (r *RateLimitController) GetLimits() (result []k8s.Resource) {
+	r.withLock(func() {
+		result = r.limits
+	})
+	return
+}
+
+func New() *RateLimitController {
+	return &RateLimitController{}
+}
+
+func (r *RateLimitController) DoWatch(ctx context.Context, cfg types.Config, kubeinfo *k8s.KubeInfo, _rlslog dlog.Logger) error {
 	rlslog = _rlslog
 
 	client, err := k8s.NewClient(kubeinfo)
@@ -61,6 +90,7 @@ func DoWatch(ctx context.Context, cfg types.Config, kubeinfo *k8s.KubeInfo, _rls
 	fatal := make(chan error)
 	w.Watch("ratelimits", func(w *k8s.Watcher) {
 		config := &Config{Domains: make(map[string]*Domain)}
+		var limits []k8s.Resource
 		for _, r := range w.List("ratelimits") {
 			var spec crd.RateLimitSpec
 			err := mapstructure.Convert(r.Spec(), &spec)
@@ -75,9 +105,13 @@ func DoWatch(ctx context.Context, cfg types.Config, kubeinfo *k8s.KubeInfo, _rls
 				continue
 			}
 
+			limits = append(limits, r)
+
 			SetSource(&spec, r.QName())
 			config.add(spec)
 		}
+
+		r.setLimits(limits)
 
 		count += 1
 		realout := fmt.Sprintf("%s-%d/%s", cfg.RLSRuntimeDir, count, cfg.RLSRuntimeSubdir)

@@ -1,6 +1,6 @@
-import { LitElement, html, css } from 'https://cdn.pika.dev/-/lit-element/2.2.1/dist-es2019/lit-element.min.js'
+import { LitElement, html, css } from '/edge_stack/vendor/lit-element.min.js'
 import {SingleResource} from '/edge_stack/components/resources.js'
-import {registerContextChangeHandler, useContext} from '/edge_stack/components/context.js'
+import {Snapshot} from '/edge_stack/components/snapshot.js'
 
 export class Service extends SingleResource {
   // implement
@@ -16,20 +16,30 @@ export class Service extends SingleResource {
   // internal
   irData() {
     const qname = this.resource.metadata.name + "." + this.resource.metadata.namespace;
-    return this.diag.ambassador_services.find(s => s._source in this.diag.source_map[qname]);
+    if (this.diag['ambassador_services'] == null) {
+      return [];
+    } else {
+      return this.diag.ambassador_services.find(s => s._source in this.diag.source_map[qname]);
+    }
   }
 
   // implement
   renderResource() {
-    return html`
-     <div class="left">Service URL:</div>
-     <div class="right">${this.irData().name}</div>
+    let str = `
+     <div class="attribute-name">service url:</div>
+     <div class="attribute-value">${this.irData().name}</div>
 
-     <div class="left">Weight:</div>
-     <div class="right">${this.irData()._service_weight}</div>
-
-     <div class="left">Spec:</div>
-     <div class="right"><pre>${JSON.stringify(this.spec(), null, 4)}</pre></div>`;
+     <div class="attribute-name">weight:</div>
+     <div class="attribute-value">${this.irData()._service_weight}</div>
+`;
+    let spec = (this.spec()||{});
+    for (let key in spec) {
+      if (spec.hasOwnProperty(key)) {
+        str += `<div class="attribute-name">${key}:</div>
+        <div class="attribute-value">${spec[key]}</div>`;
+      }
+    }
+    return html([str]);
   }
 
   // override
@@ -40,21 +50,16 @@ export class Service extends SingleResource {
     }
   }
 
-  // override; don't show any of the "edit/delete/whatever" buttons;
-  // this tab is read-only.
-  static get styles() {
-    return css`${super.styles} button { display: none; }`;
-  }
-
-  // override; don't show any of the "edit/delete/whatever" buttons;
-  // this tab is read-only.
-  visible() {
-    return [...arguments].includes("list") ? "" : "off";
+  // override; this tab is read-only
+  readOnly() {
+    return true;
   }
 }
+
 customElements.define('dw-service', Service);
 
 export class Services extends LitElement {
+
   // external ////////////////////////////////////////////////////////
 
   static get properties() {
@@ -67,15 +72,10 @@ export class Services extends LitElement {
   constructor() {
     super();
 
-    const [currentSnapshot, setSnapshot] = useContext('aes-api-snapshot', null);
-    this.onSnapshotChange(currentSnapshot);
-    this.onDiagChange({});
-    registerContextChangeHandler('aes-api-snapshot', this.onSnapshotChange.bind(this));
-    registerContextChangeHandler('aes-api-diag', this.onDiagChange.bind(this))
-  }
+    this.diag = {};
+    this.services = [];
 
-  static get styles() {
-    return css``;
+    Snapshot.subscribe(this.onSnapshotChange.bind(this))
   }
 
   render() {
@@ -89,16 +89,14 @@ export class Services extends LitElement {
   // internal ////////////////////////////////////////////////////////
 
   onSnapshotChange(snapshot) {
-    this.services = [
-      (((snapshot || {}).Kubernetes || {}).AuthService || []),
-      (((snapshot || {}).Kubernetes || {}).RateLimitService || []),
-      (((snapshot || {}).Kubernetes || {}).TracingService || []),
-      (((snapshot || {}).Kubernetes || {}).LogService || []),
-    ].reduce((acc, item) => acc.concat(item));
+    let kinds = ['AuthService', 'RateLimitService', 'TracingService', 'LogService']
+    this.services = []
+    kinds.forEach((k)=>{
+      this.services.push(...snapshot.getResources(k))
+    })
+    this.diag = snapshot.getDiagnostics();
   }
 
-  onDiagChange(snapshot) {
-    this.diag = snapshot;
-  }
 }
+
 customElements.define('dw-services', Services);

@@ -2,12 +2,123 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
-    <script type='text/javascript' src="https://codejoust.github.io/session.js/session-0.4.js"></script>
+
     <title>
       Ambassador Edge Stack Admin
     </title>
-    <link rel="stylesheet" type="text/css" href="/edge_stack/styles/admin.css">
+
+    <!--
+      If you're thinking about adding a script/css here, please don't.
+
+      The only thing that should live in head are things critical to rendering
+      anything on the page. If anything fails to load here for whatever reason.
+
+      Plus async defer can't kick in so we can start rendering content as it comes
+      in progressively.
+    -->
+
+    <!-- Gritical Global Styles -->
+    <style>
+      :root {
+        --dw-purple: #5F3EFF;
+        --dw-item-background-fill: #fdfaff;
+        --dw-item-background-hover: #ede7f3;
+        --dw-item-border: #ede7f3;
+        --dw-orange: #FF4329;
+      }
+
+      body {
+        font-family: Source Sans Pro, sans-serif;
+        margin-left: 2em;
+        margin-right: 2em;
+      }
+
+      /* TODO(cynthia/xxx): Place anything below this in per-component styles. */
+
+      .section-heading {
+        margin: 0.1em;
+        font-size: 120%;
+        font-weight: bold;
+        margin-top: 0;
+      }
+      .section-text {
+        display: inline-block;
+        margin-right: 10%;
+        margin-left: 2.5px;
+      }
+      div.admin-section {
+        border: 1px solid var(--dw-item-border);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, .1);
+        padding: 0.5em;
+        margin-bottom: 0.6em;
+        line-height: 1.3;
+        position: relative;
+      }
+      .admin-section p {
+        margin-top: 0;
+      }
+      .admin-section code {
+        font-size: 120%;
+      }
+
+      #admin-page-outer-wrapper {
+        width: 80%;
+        margin-left: 10%;
+      }
+      #ambassador-logo {
+        background-color: white;
+        padding: 5px;
+        width: 456px;
+        height: 42px;
+        margin-bottom: 1em
+      }
+
+      div.info-title {
+        font-weight: bold;
+        font-size: 120%;
+      }
+
+      span.command {
+        background-color: #f5f2f0;
+        padding: 3px;
+        letter-spacing: .2px;
+        font-family: Consolas, Monaco, Andale Mono, Ubuntu Mono, monospace;
+        font-size: 90%;
+        word-spacing: normal;
+        word-break: normal;
+        word-wrap: normal;
+        hyphens: none;
+      }
+
+      div.overage-alert {
+        border: 3px solid red;
+        border-radius: 0.7em;
+        padding: 0.5em;
+        background-color: #FFe8e8;
+      }
+
+      div.host, div.mapping {
+        padding: 1em 1em;
+      }
+
+      span.json {
+        unicode-bidi: embed;
+        font-family: monospace;
+      }
+
+      details {
+        margin-left: 1em;
+      }
+
+      h2 {
+        margin: 0.1em;
+      }
+
+      login-gate {
+        margin: 0;
+        padding: 0;
+      }
+    </style>
   </head>
 
   <body>
@@ -22,9 +133,13 @@
         <login-gate>
           <aes-snapshot-provider>
             <dw-tabs>
-              <div class="admin-section" slot="sticky">
-                <dw-signup></dw-signup>
-              </div>
+              <dw-signup></dw-signup>
+
+              <dw-tab name="Dashboard">
+                <div class="admin-section">
+                  <dw-dashboard></dw-dashboard>
+                </div>
+              </dw-tab>
 
               <dw-tab name="Hosts" icon="/edge_stack/images/hosts.png">
                 <div class="admin-section">
@@ -38,20 +153,30 @@
               <dw-tab name="Mappings" icon="/edge_stack/images/mappings.png">
                 <div class="admin-section">
                   <div class="section-heading">Mappings.</div>
-                  <p>Associations between prefix URLs
-                  and target services.
+                  <p><span class="section-text">Associations between prefix URLs
+                    and target services.</span>
                   </p>
 
                   <dw-mappings></dw-mappings>
                 </div>
               </dw-tab>
 
+              <dw-tab name="Rate Limits" icon="/edge_stack/images/mappings.png">
+                <div class="admin-section">
+                  <div class="section-heading">Rate Limits.</div>
+                  <p><span class="section-text">Rate limits for different request classes.</span>
+                  </p>
+
+                  <dw-limits></dw-limits>
+                </div>
+              </dw-tab>
+
               <dw-tab name="Services" icon="/edge_stack/images/services.png">
                 <div class="admin-section">
                     <div class="section-heading">Services.</div>
-                    <p>Special services that enhance the functionality of
+                    <p><span class="section-text">Special services that enhance the functionality of
                     Ambassador Edge Stack. These services are called when Ambassador
-                    handles requests.
+                      handles requests.</span>
                   </p>
 
                   <dw-services></dw-services>
@@ -61,7 +186,7 @@
               <dw-tab name="Resolvers">
                 <div class="admin-section">
                   <div class="section-heading">Resolvers.</div>
-                  <p>Resolvers in use.</p>
+                  <p><span class="section-text">Resolvers in use.</span></p>
 
                   <dw-resolvers></dw-resolvers>
                 </div>
@@ -98,21 +223,38 @@
     </div>
   </body>
 
-  <!-- Scripts -->
-  <script async defer type="module" src="https://cdn.pika.dev/-/lit-element/2.2.1/dist-es2019/lit-element.min.js"></script>
+  <!--
+    Load in scripts. NOTE: The ordering here matters. A lot.
+
+    The load order here is:
+      1. Critical Vendor Scripts needed for every page.
+      2. Components needed to show the "first view" (the dashboard tab).
+      3. Components needed in order of tabs (note: might be useful to rank instead based on what people actually go to first).
+  -->
+
+  <!-- Critical Vendor Scripts -->
+  <script async defer type="module" src="/edge_stack/vendor/polyfill.js"></script>
+  <script async defer type="module" src="/edge_stack/vendor/lit-element.min.js"></script>
+  <script async defer src="/edge_stack/vendor/loader.js"></script>
+
+  <!-- First Page Needed -->
   <script async defer type="module" src="/edge_stack/components/context.js"></script>
   <script async defer type="module" src="/edge_stack/components/login-gate.js"></script>
-  <script async defer type="module" src="/edge_stack/components/tabs.js"></script>
-  <script async defer type="module" src="/edge_stack/components/apis.js"></script>
-  <script async defer type="module" src="/edge_stack/components/signup.js"></script>
-  <script async defer type="module" src="/edge_stack/components/hosts.js"></script>
   <script async defer type="module" src="/edge_stack/components/snapshot.js"></script>
+  <script async defer type="module" src="/edge_stack/components/tabs.js"></script>
+  <script async defer type="module" src="/edge_stack/components/signup.js"></script>
+  <script async defer type="module" src="/edge_stack/components/dashboard.js"></script>
+
+  <!-- Later Page Scripts -->
+  <script async defer type="module" src="/edge_stack/components/add-button.js"></script>
+  <script async defer type="module" src="/edge_stack/components/hosts.js"></script>
   <script async defer type="module" src="/edge_stack/components/mappings.js"></script>
+  <script async defer type="module" src="/edge_stack/components/limits.js"></script>
   <script async defer type="module" src="/edge_stack/components/services.js"></script>
   <script async defer type="module" src="/edge_stack/components/resolvers.js"></script>
   <script async defer type="module" src="/edge_stack/components/debugging.js"></script>
+  <script async defer type="module" src="/edge_stack/vendor/rapidoc.min.js"></script>
+  <script async defer type="module" src="/edge_stack/components/apis.js"></script>
   <script async defer type="module" src="/edge_stack/components/documentation.js"></script>
   <script async defer type="module" src="/edge_stack/components/support.js"></script>
-  <script async defer type="module" src="/edge_stack/components/add-button.js"></script>
-  <script async defer type="module" src="https://unpkg.com/rapidoc/dist/rapidoc-min.js"></script>
 </html>

@@ -1,4 +1,4 @@
-import {LitElement, css, html} from 'https://cdn.pika.dev/-/lit-element/2.2.1/dist-es2019/lit-element.min.js';
+import {LitElement, css, html} from '/edge_stack/vendor/lit-element.min.js';
 import {registerContextChangeHandler, useContext} from '/edge_stack/components/context.js';
 
 export class LoginGate extends LitElement {
@@ -89,8 +89,6 @@ details {
 
     this.authenticated = useContext('auth-state', null)[0];
     registerContextChangeHandler('auth-state', this.onAuthChange.bind(this));
-
-
   }
 
   onAuthChange(auth) {
@@ -98,13 +96,14 @@ details {
   }
 
   getOS() {
-    if (window != null && window['session'] != null && window['session']['browser'] != null && window['session']['browser']['os'] != null) {
-      const os = window.session.browser.os; // Mac, Win, Linux
-      if(os === "Mac") {
-        return "darwin";
-      } else if (os === "Windows") {
+    if (window != null && window["navigator"] != null && window["navigator"]["platform"] != null) {
+      const os = window.navigator.platform; // Mac, Win, Linux
+
+      if (os.toLocaleLowerCase().indexOf("win") != -1) {
         return "windows";
-      } else if (os === "Linux") {
+      } else if (os.toLowerCase().indexOf("mac") != -1) {
+        return "darwin";
+      } else if (os.toLowerCase().indexOf("linux") != -1) {
         return "linux";
       } else {
         return "other";
@@ -205,11 +204,13 @@ sudo chmod a+x /usr/local/bin/edgectl
     return html`
   <div class="login-section">
     <h1 class="info-title">Welcome to Ambassador Edge Stack!</h1>
-    <p>To login to the admin portal, use: <span class="command" id="login">edgectl login --namespace=${this.namespace} ${window.location.host}</span> <button style="margin-left: 1em" @click=${this.copyLoginToKeyboard.bind(this)}>Copy to Clipboard</button></p>
     <p>
-      If you do not yet have the edgectl executable, download it
+      To start using the Edge Policy Consule, download the edgectl executable
       from the getambassador.io
       website: (<a href="https://metriton.datawire.io/downloads/darwin/edgectl">darwin</a>, <a href="https://metriton.datawire.io/downloads/linux/edgectl">linux</a>).
+    </p>
+    <p>
+    Once downloaded, you can login to the Edge Policy Console with: <span class="command" id="login">edgectl login --namespace=${this.namespace} ${window.location.host}</span> <button style="margin-left: 1em" @click=${this.copyLoginToKeyboard.bind(this)}>Copy to Clipboard</button>
     </p>
 
     ${this.renderDarwinDetails()}
