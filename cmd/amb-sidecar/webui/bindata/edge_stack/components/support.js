@@ -25,7 +25,6 @@ export class Support extends LitElement {
     return css`
 div.center {
    margin: auto;
-   max-width: 6.6in;
 }
 
 ul {
@@ -33,6 +32,7 @@ ul {
   flex-direction: row;
   flex-wrap: wrap;
   padding: 0;
+  justify-content: center;
 }
 
 ul > li {
@@ -85,7 +85,8 @@ img {
           <span>Found a bug or have a feature request?<br/>File an issue.</span>
         </a></li>
 
-        ${this.enabledFeatures.includes("paid-support")
+        ${this.enabledFeatures.includes("support-business-tier")
+            || this.enabledFeatures.includes("support-24x7-tier")
           ? html`<li><a href="https://support.datawire.io" target="_blank">
               <img src="/edge_stack/images/logos/datawire-mark.png" alt=""/>
               <span>Enterprise Support</span>
@@ -94,6 +95,16 @@ img {
               <img src="/edge_stack/images/logos/datawire-mark.png" alt=""/>
               <span>Contact Ambassador</span>
             </a></li>`
+        }
+
+        ${this.enabledFeatures.includes("support-basic-tier") 
+            || this.enabledFeatures.includes("support-business-tier")
+            || this.enabledFeatures.includes("support-24x7-tier")
+          ? html`<li><a href="mailto:support@datawire.io" target="_blank">
+              <img src="/edge_stack/images/logos/email-mark.png" alt=""/>
+              <span>support@datawire.io</span>
+            </a></li>`
+          : html ``
         }
         
        </ul>
