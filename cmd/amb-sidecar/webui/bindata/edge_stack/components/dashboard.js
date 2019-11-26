@@ -47,8 +47,7 @@ google.charts.load('visualization', '1.0', { 'packages': ['corechart'] });
  *
  * The Dashboard panel objects are objects that define three functions:
  *   render() => string
- *        Return a string of the html for the panel. Note that it must return a string
- *        and not an html template.
+ *        Return a html template for the panel.
  *   onSnapshotChange(snapshot) => (no return value)
  *        Called each time a new snapshot is received from Ambassador. This function
  *        is used to update any internal state for the panel from the data in the snapshot.
@@ -65,7 +64,7 @@ let demoPieChart = {
   _elementId: "demo_pie",
 
   render: function() {
-    return `<div class="element">
+    return html`<div class="element">
         <div class="element-titlebar">${this._title}</div>
         <div class="element-content" id="${this._elementId}"></div>
      </div>`
@@ -118,7 +117,7 @@ let demoServiceCount = {
   _serviceCount: 0,
 
   render: function() {
-    return `<div class="element">
+    return html`<div class="element" style="cursor:pointer" @click=${this.onClick}>
       <div class="element-titlebar">${this._title}</div>
       <div class="element-content" id=“${this._elementId}”>${this._serviceCount}</div>
     </div>`
@@ -135,7 +134,11 @@ let demoServiceCount = {
     }
 	},
 
-  draw: function(shadow_root) { /*text panel, no chart to draw*/ }
+  draw: function(shadow_root) { /*text panel, no chart to draw*/ },
+
+  onClick: function() {
+    window.location.hash = "#services";
+  }
 };
 
 /**
@@ -154,7 +157,7 @@ let demoColumnChart = {
   ],
 
   render: function() {
-    return `<div class="element">
+    return html`<div class="element">
       <div class="element-titlebar">${this._title}</div>
       <div class="element-content" id="${this._elementId}"></div>
     </div>`
@@ -284,10 +287,7 @@ export class Dashboard extends LitElement {
     /*
      * Return the concatenated html renderings for each panel
      */
-    let the_html = this._panels.reduce((html_str, panel) => {
-      return html_str + panel.render() + "\n";
-    }, "");
-    return html([the_html]);
+    return( this._panels.reduce( (accum, each) => html`${accum} ${each.render()}`, html`` ) );
   }
 
   /*
