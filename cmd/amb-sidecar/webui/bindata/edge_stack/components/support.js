@@ -1,19 +1,30 @@
 import { LitElement, html, css } from '/edge_stack/vendor/lit-element.min.js'
+import { Snapshot } from '/edge_stack/components/snapshot.js'
 
 export class Support extends LitElement {
+
   static get properties() {
-    return {};
+    return {
+      licenseClaims: { type: Object },
+      enabledFeatures: { type: Object }
+    };
   }
 
   constructor() {
     super();
+
+    Snapshot.subscribe(this.onSnapshotChange.bind(this));
+  }
+
+  onSnapshotChange(snapshot) {
+    this.licenseClaims = snapshot.getLicense().Claims || {};
+    this.enabledFeatures = this.licenseClaims.enabled_features || [];
   }
 
   static get styles() {
     return css`
 div.center {
    margin: auto;
-   max-width: 6.6in;
 }
 
 ul {
@@ -21,6 +32,7 @@ ul {
   flex-direction: row;
   flex-wrap: wrap;
   padding: 0;
+  justify-content: center;
 }
 
 ul > li {
@@ -61,8 +73,8 @@ img {
 
   render() {
     return html`
-      <div class="center"><ul>
-
+      <div class="center">
+       <ul>
         <li><a href="http://d6e.co/slack" target="_blank">
           <img src="/edge_stack/images/logos/slack-mark.svg" alt=""/>
           <span>Ask for help on Slack</span>
@@ -73,12 +85,35 @@ img {
           <span>Found a bug or have a feature request?<br/>File an issue.</span>
         </a></li>
 
-        <li><a href="https://www.getambassador.io/contact" target="_blank">
-          <img src="/edge_stack/images/logos/datawire-mark.png" alt=""/>
-          <span>Enterprise Support</span>
-        </a></li>
+        ${this.enabledFeatures.includes("support-business-tier")
+            || this.enabledFeatures.includes("support-24x7-tier")
+          ? html`<li><a href="https://support.datawire.io" target="_blank">
+              <img src="/edge_stack/images/logos/datawire-mark.png" alt=""/>
+              <span>Enterprise Support</span>
+            </a></li>`
+          : html `<li><a href="https://www.getambassador.io/contact" target="_blank">
+              <img src="/edge_stack/images/logos/datawire-mark.png" alt=""/>
+              <span>Contact Ambassador</span>
+            </a></li>`
+        }
 
-      </ul></div>
+        ${this.enabledFeatures.includes("support-basic-tier") 
+            || this.enabledFeatures.includes("support-business-tier")
+            || this.enabledFeatures.includes("support-24x7-tier")
+          ? html`<li><a href="mailto:support@datawire.io" target="_blank">
+              <img src="/edge_stack/images/logos/email-mark.png" alt=""/>
+              <span>support@datawire.io</span>
+            </a></li>`
+          : html ``
+        }
+        
+       </ul>
+       
+       ${this.licenseClaims.customer_id != "unregistered" 
+         ? html`<div>Ambassador is licensed to ${this.licenseClaims.customer_email || this.licenseClaims.customer_id}</div>`
+         : html`<div>Ambassador is running unlicensed</div>`
+       }
+      </div>
     `;
   }
 }
