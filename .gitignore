@@ -33,6 +33,7 @@ node_modules/
 *.log
 .tmp*
 *.tmp
+.DS_Store
 
 # --- IDE/text editor stuff ---
 .idea
