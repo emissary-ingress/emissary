@@ -71,13 +71,11 @@ export class Tabs extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
-    //window.onhashchange = displayHash;
     window.addEventListener("hashchange", this.displayHash.bind(this), false);
   }
 
   disconnectedCallback() {
     super.disconnectedCallback();
-    //window.onhashchange = null;
     window.remmoveEventListener("hashchange", this.displayHash.bind(this), false);
   }
 
