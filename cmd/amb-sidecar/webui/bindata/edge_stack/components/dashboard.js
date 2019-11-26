@@ -47,8 +47,7 @@ google.charts.load('visualization', '1.0', { 'packages': ['corechart'] });
  *
  * The Dashboard panel objects are objects that define three functions:
  *   render() => string
- *        Return a string of the html for the panel. Note that it must return a string
- *        and not an html template.
+ *        Return a html template for the panel.
  *   onSnapshotChange(snapshot) => (no return value)
  *        Called each time a new snapshot is received from Ambassador. This function
  *        is used to update any internal state for the panel from the data in the snapshot.
@@ -56,6 +55,17 @@ google.charts.load('visualization', '1.0', { 'packages': ['corechart'] });
  *        Use the google chart apis to create a chart and attach it to panel's element
  *        in the shadow DOM. This function does nothing if there is no chart in the panel.
  */
+
+/* Rendering utilities */
+
+/* No, One, many things... */
+let countString = function(count, singular_text, plural_text) {
+    switch(count) {
+      case 0:  return `No ${plural_text}`;    break;
+      case 1:  return `1 ${singular_text}`; break;
+      default: return `${count} ${plural_text}`;
+    }
+};
 
 /**
  * Pie Chart Demo - this is a demo only and not an Ambassador-useful panel.
@@ -65,7 +75,7 @@ let demoPieChart = {
   _elementId: "demo_pie",
 
   render: function() {
-    return `<div class="element">
+    return html`<div class="element">
         <div class="element-titlebar">${this._title}</div>
         <div class="element-content" id="${this._elementId}"></div>
      </div>`
@@ -109,34 +119,6 @@ let demoPieChart = {
   }
 };
 
-/**
- * Panel showing a count of the Services
- */
-let demoServiceCount = {
-  _title: "Number of Services",
-  _elementId: "demo_services",
-  _serviceCount: 0,
-
-  render: function() {
-    return `<div class="element">
-      <div class="element-titlebar">${this._title}</div>
-      <div class="element-content" id=“${this._elementId}”>${this._serviceCount}</div>
-    </div>`
-  },
-
-  onSnapshotChange: function(snapshot) {
-    if (snapshot) {
-      let kinds = ['AuthService', 'RateLimitService', 'TracingService', 'LogService'];
-      let services = [];
-      kinds.forEach((k)=>{
-        services.push(...snapshot.getResources(k))
-      });
-      this._serviceCount = services.length;
-    }
-	},
-
-  draw: function(shadow_root) { /*text panel, no chart to draw*/ }
-};
 
 /**
  * Column Chart Demo - this demo has no useful Ambassador purpose
@@ -154,7 +136,7 @@ let demoColumnChart = {
   ],
 
   render: function() {
-    return `<div class="element">
+    return html`<div class="element">
       <div class="element-titlebar">${this._title}</div>
       <div class="element-content" id="${this._elementId}"></div>
     </div>`
@@ -198,6 +180,154 @@ let demoColumnChart = {
   }
 };
 
+/**
+ * Panel showing a count of the Hosts, Mappings, and Services
+ */
+let CountsPanel = {
+  _title: "Counts",
+  _elementId: "counts",
+  _hostsCount: 0,
+  _mappingsCount: 0,
+  _servicesCount: 0,
+
+  render: function() {
+    return html`
+    <div class="element" style="cursor:pointer">
+      <div class="element-titlebar">${this._title}</div>
+      <div class="element-content" id=“${this._elementId}”>
+        <p style="margin-top: 2.8em"><span class = "status" @click=${this.onClickHosts}>${countString(this._hostsCount, "Host", "Hosts")}</span></p>
+        <p><span class = "status" @click=${this.onClickMappings}>${countString(this._mappingsCount, "Mapping", "Mappings")}</span></p>
+        <p><span class = "status" @click=${this.onClickServices}>${countString(this._servicesCount, "Service", "Services")}</span></p>
+      </div>
+    </div>`
+  },
+
+  onSnapshotChange: function(snapshot) {
+    if (snapshot) {
+      let hosts = snapshot.getResources('Host');
+      this._hostsCount = hosts.length;
+
+      let kinds = ['AuthService', 'RateLimitService', 'TracingService', 'LogService'];
+      let services = [];
+      kinds.forEach((k)=>{
+        services.push(...snapshot.getResources(k))
+      });
+      this._serviceCount = services.length;
+
+      let mappings = snapshot.getResources('Mapping');
+      this._mappingsCount = mappings.length;
+    }
+	},
+
+  draw: function(shadow_root) { /*text panel, no chart to draw*/ },
+
+  onClickHosts: function() {
+    window.location.hash = "#hosts";
+  },
+
+  onClickMappings: function() {
+    window.location.hash = "#mappings";
+  },
+
+  onClickServices: function() {
+    window.location.hash = "#services";
+  }
+};
+
+/**
+ * Panel showing System Status
+ */
+let StatusPanel = {
+  _title: "System Status",
+  _elementId: "system_status",
+
+  render: function() {
+    let redis = this._snapshot.getRedisInUse();
+    let envoy = this._diagd.envoy_status.ready;
+    let errors= this._diagd.errors.length;
+
+    const cos = Math.cos;
+    const sin = Math.sin;
+    const π = Math.PI;
+
+    const f_matrix_times = (( [[a,b], [c,d]], [x,y]) => [ a * x + b * y, c * x + d * y]);
+    const f_rotate_matrix = ((x) => [[cos(x),-sin(x)], [sin(x), cos(x)]]);
+    const f_vec_add = (([a1, a2], [b1, b2]) => [a1 + b1, a2 + b2]);
+
+    const f_svg_ellipse_arc = (([cx,cy],[rx,ry], [t1, Δ], φ ) => {
+      /* [
+      returns a SVG path element that represent a ellipse.
+      cx,cy → center of ellipse
+      rx,ry → major minor radius
+      t1 → start angle, in radian.
+      Δ → angle to sweep, in radian. positive.
+      φ → rotation on the whole, in radian
+      url: SVG Circle Arc http://xahlee.info/js/svg_circle_arc.html
+      Version 2019-06-19
+       ] */
+      Δ = Δ % (2*π);
+      const rotMatrix = f_rotate_matrix (φ);
+      const [sX, sY] = ( f_vec_add ( f_matrix_times ( rotMatrix, [rx * cos(t1), ry * sin(t1)] ), [cx,cy] ) );
+      const [eX, eY] = ( f_vec_add ( f_matrix_times ( rotMatrix, [rx * cos(t1+Δ), ry * sin(t1+Δ)] ), [cx,cy] ) );
+      const fA = ( (  Δ > π ) ? 1 : 0 );
+      const fS = ( (  Δ > 0 ) ? 1 : 0 );
+      return "M " + sX + " " + sY + " A " + [ rx , ry , φ / (2*π) *360, fA, fS, eX, eY ].join(" ")
+    });
+
+    return html`
+    <div class="element" style="cursor:pointer" @click=${this.onClick}>
+      <div class="element-titlebar">${this._title}</div>
+      <div class="element-content" id=“${this._elementId}”>
+        <svg class="element-svg-overlay">
+          <g stroke="${redis ? "#22EE55" : "red"}" fill="none" stroke-linecap="round" stroke-width="8">
+            <path d="${f_svg_ellipse_arc([100,100], [90,90], [0,1.95], 0)}" />
+            </g>
+          <g stroke="${errors === 0 ? "#22EE55" : "red"}" fill="none" stroke-linecap="round" stroke-width="8">
+            <path d="${f_svg_ellipse_arc([100,100], [90,90], [2.1,1.95], 0)}" />
+            </g>
+          <g stroke="${envoy ? "#22EE55" : "red"}" fill="none" stroke-linecap="round" stroke-width="8">
+            <path d="${f_svg_ellipse_arc([100,100], [90,90], [4.2,1.95], 0)}" />
+            </g>
+        </svg>
+        <div class="system-status">
+        ${this.renderStatus(redis, "Redis in use", "Redis unavailable")}
+        ${this.renderStatus(envoy, "Envoy ready", "Envoy unavailable")}
+        ${this.renderStatus(errors === 0, "No Errors", countString(errors, "Error", "Errors"))}
+        </div>
+      </div>
+    </div>`
+  },
+
+  renderStatus: function(condition, true_text, false_text) {
+    return html`
+      ${condition
+      ? html`<p><span class = "status" style="color: green">${true_text}</span></p>`
+      : html`<p><span class = "status" style="color: red">${false_text}</span></p>`}
+    `;
+  },
+
+  onSnapshotChange: function(snapshot) {
+    if (snapshot) {
+      this._snapshot  = snapshot;
+      let diagnostics = snapshot.getDiagnostics();
+      this._diagd = (('system' in (diagnostics||{})) ? diagnostics :
+     {
+       system: {
+         env_status: {},
+       },
+       envoy_status: {},
+       loginfo: {},
+       errors: [],
+     });
+    }
+  },
+
+  draw: function(shadow_root) { /*text panel, no chart to draw*/ },
+
+  onClick: function() {
+    window.location.hash = "#debugging";
+  }
+};
 /* ===================================================================================*/
 /* The Dashboard class, drawing dashboard elements in a matrix of div.element blocks. */
 /* ===================================================================================*/
@@ -237,16 +367,40 @@ export class Dashboard extends LitElement {
         padding: 8px;
         top-margin: 0px;
         left-margin: 20px;
-       }
-       
-      span.code { font-family: Monaco, monospace; }`
+      }
+      div.element-content p {
+        margin-top: 0.5em;
+        margin-bottom: 0.5em;
+      }
+      span.code { font-family: Monaco, monospace; }
+      span.status { 
+        font-family: Helvetica; 
+        font-weight: 900;
+        font-size: 130%;
+        color: #555555;
+      }
+      svg.element-svg-overlay {
+        height:200px;
+        width:200px;
+        position:absolute;
+        top:3.2em;
+        left:1em;
+      }
+      div.system-status {
+        font-size: 90%;
+        padding-top: 65px;
+      }
+      div.system-status p {
+        margin: 0;
+      }
+`
   };
 
   constructor() {
     super();
 
     /* Initialize the list of dashboard panels */
-    this._panels = [ demoPieChart,  demoServiceCount, demoColumnChart ];
+    this._panels = [ StatusPanel, CountsPanel ];
 
     Snapshot.subscribe(this.onSnapshotChange.bind(this));
     /* Set up the Google Charts setOnLoad callback.  Note that we can't draw
@@ -284,10 +438,7 @@ export class Dashboard extends LitElement {
     /*
      * Return the concatenated html renderings for each panel
      */
-    let the_html = this._panels.reduce((html_str, panel) => {
-      return html_str + panel.render() + "\n";
-    }, "");
-    return html([the_html]);
+    return( this._panels.reduce( (accum, each) => html`${accum} ${each.render()}`, html`` ) );
   }
 
   /*
