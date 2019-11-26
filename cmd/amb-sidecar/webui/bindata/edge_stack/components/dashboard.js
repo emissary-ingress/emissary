@@ -387,7 +387,7 @@ export class Dashboard extends LitElement {
     super();
 
     /* Initialize the list of dashboard panels */
-    this._panels = [ HostsPanel, MappingsPanel, ServicesPanel, demoPieChart, StatusPanel, demoColumnChart ];
+    this._panels = [ HostsPanel, MappingsPanel, ServicesPanel, StatusPanel ];
 
     Snapshot.subscribe(this.onSnapshotChange.bind(this));
     /* Set up the Google Charts setOnLoad callback.  Note that we can't draw
