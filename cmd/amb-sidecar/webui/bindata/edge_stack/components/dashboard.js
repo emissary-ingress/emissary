@@ -62,7 +62,7 @@ google.charts.load('visualization', '1.0', { 'packages': ['corechart'] });
 let countString = function(count, singular_text, plural_text) {
     switch(count) {
       case 0:  return `No ${plural_text}`;    break;
-      case 1:  return `One ${singular_text}`; break;
+      case 1:  return `1 ${singular_text}`; break;
       default: return `${count} ${plural_text}`;
     }
 };
@@ -181,20 +181,23 @@ let demoColumnChart = {
 };
 
 /**
- * Panel showing a count of the Hosts
+ * Panel showing a count of the Hosts, Mappings, and Services
  */
-let HostsPanel = {
-  _title: "Hosts",
-  _elementId: "hosts_count",
+let CountsPanel = {
+  _title: "Counts",
+  _elementId: "counts",
   _hostsCount: 0,
+  _mappingsCount: 0,
+  _servicesCount: 0,
 
   render: function() {
     return html`
-    <div class="element" style="cursor:pointer" @click=${this.onClick}>
+    <div class="element" style="cursor:pointer">
       <div class="element-titlebar">${this._title}</div>
       <div class="element-content" id=“${this._elementId}”>
-        <br><br><br>
-        <p><span class = "status">${countString(this._hostsCount, "Host", "Hosts")}</span></p>
+        <p style="margin-top: 2.8em"><span class = "status" @click=${this.onClickHosts}>${countString(this._hostsCount, "Host", "Hosts")}</span></p>
+        <p><span class = "status" @click=${this.onClickMappings}>${countString(this._mappingsCount, "Mapping", "Mappings")}</span></p>
+        <p><span class = "status" @click=${this.onClickServices}>${countString(this._servicesCount, "Service", "Services")}</span></p>
       </div>
     </div>`
   },
@@ -203,75 +206,14 @@ let HostsPanel = {
     if (snapshot) {
       let hosts = snapshot.getResources('Host');
       this._hostsCount = hosts.length;
-    }
-	},
 
-  draw: function(shadow_root) { /*text panel, no chart to draw*/ },
-
-  onClick: function() {
-    window.location.hash = "#hosts";
-  }
-};
-
-
-/**
- * Panel showing a count of the Services
- */
-let ServicesPanel = {
-  _title: "Services",
-  _elementId: "services_count",
-  _serviceCount: 0,
-
-  render: function() {
-    return html`
-    <div class="element" style="cursor:pointer" @click=${this.onClick}>
-      <div class="element-titlebar">${this._title}</div>
-      <div class="element-content" id=“${this._elementId}”>
-        <br><br><br>
-        <p><span class = "status">${this._serviceCount} Services</span></p>
-      </div>
-    </div>`
-  },
-
-  onSnapshotChange: function(snapshot) {
-    if (snapshot) {
       let kinds = ['AuthService', 'RateLimitService', 'TracingService', 'LogService'];
       let services = [];
       kinds.forEach((k)=>{
         services.push(...snapshot.getResources(k))
       });
       this._serviceCount = services.length;
-    }
-	},
 
-  draw: function(shadow_root) { /*text panel, no chart to draw*/ },
-
-  onClick: function() {
-    window.location.hash = "#services";
-  }
-};
-
-/**
- * Panel showing a count of the Mappings
- */
-let MappingsPanel = {
-  _title: "Mappings",
-  _elementId: "mappings_count",
-  _mappingsCount: 0,
-
-  render: function() {
-    return html`
-    <div class="element" style="cursor:pointer" @click=${this.onClick}>
-      <div class="element-titlebar">${this._title}</div>
-      <div class="element-content" id=“${this._elementId}”>
-        <br><br><br>
-        <p><span class = "status">${this._mappingsCount} Mappings</span></p>
-      </div>
-    </div>`
-  },
-
-  onSnapshotChange: function(snapshot) {
-    if (snapshot) {
       let mappings = snapshot.getResources('Mapping');
       this._mappingsCount = mappings.length;
     }
@@ -279,8 +221,16 @@ let MappingsPanel = {
 
   draw: function(shadow_root) { /*text panel, no chart to draw*/ },
 
-  onClick: function() {
+  onClickHosts: function() {
+    window.location.hash = "#hosts";
+  },
+
+  onClickMappings: function() {
     window.location.hash = "#mappings";
+  },
+
+  onClickServices: function() {
+    window.location.hash = "#services";
   }
 };
 
@@ -297,34 +247,32 @@ let StatusPanel = {
     let errors= this._diagd.errors.length;
 
     const cos = Math.cos;
-const sin = Math.sin;
-const π = Math.PI;
+    const sin = Math.sin;
+    const π = Math.PI;
 
-const f_matrix_times = (( [[a,b], [c,d]], [x,y]) => [ a * x + b * y, c * x + d * y]);
-const f_rotate_matrix = ((x) => [[cos(x),-sin(x)], [sin(x), cos(x)]]);
-const f_vec_add = (([a1, a2], [b1, b2]) => [a1 + b1, a2 + b2]);
+    const f_matrix_times = (( [[a,b], [c,d]], [x,y]) => [ a * x + b * y, c * x + d * y]);
+    const f_rotate_matrix = ((x) => [[cos(x),-sin(x)], [sin(x), cos(x)]]);
+    const f_vec_add = (([a1, a2], [b1, b2]) => [a1 + b1, a2 + b2]);
 
-const f_svg_ellipse_arc = (([cx,cy],[rx,ry], [t1, Δ], φ ) => {
-/* [
-returns a SVG path element that represent a ellipse.
-cx,cy → center of ellipse
-rx,ry → major minor radius
-t1 → start angle, in radian.
-Δ → angle to sweep, in radian. positive.
-φ → rotation on the whole, in radian
-url: SVG Circle Arc http://xahlee.info/js/svg_circle_arc.html
-Version 2019-06-19
- ] */
-Δ = Δ % (2*π);
-const rotMatrix = f_rotate_matrix (φ);
-const [sX, sY] = ( f_vec_add ( f_matrix_times ( rotMatrix, [rx * cos(t1), ry * sin(t1)] ), [cx,cy] ) );
-const [eX, eY] = ( f_vec_add ( f_matrix_times ( rotMatrix, [rx * cos(t1+Δ), ry * sin(t1+Δ)] ), [cx,cy] ) );
-const fA = ( (  Δ > π ) ? 1 : 0 );
-const fS = ( (  Δ > 0 ) ? 1 : 0 );
-return "M " + sX + " " + sY + " A " + [ rx , ry , φ / (2*π) *360, fA, fS, eX, eY ].join(" ")
-});
-
-
+    const f_svg_ellipse_arc = (([cx,cy],[rx,ry], [t1, Δ], φ ) => {
+      /* [
+      returns a SVG path element that represent a ellipse.
+      cx,cy → center of ellipse
+      rx,ry → major minor radius
+      t1 → start angle, in radian.
+      Δ → angle to sweep, in radian. positive.
+      φ → rotation on the whole, in radian
+      url: SVG Circle Arc http://xahlee.info/js/svg_circle_arc.html
+      Version 2019-06-19
+       ] */
+      Δ = Δ % (2*π);
+      const rotMatrix = f_rotate_matrix (φ);
+      const [sX, sY] = ( f_vec_add ( f_matrix_times ( rotMatrix, [rx * cos(t1), ry * sin(t1)] ), [cx,cy] ) );
+      const [eX, eY] = ( f_vec_add ( f_matrix_times ( rotMatrix, [rx * cos(t1+Δ), ry * sin(t1+Δ)] ), [cx,cy] ) );
+      const fA = ( (  Δ > π ) ? 1 : 0 );
+      const fS = ( (  Δ > 0 ) ? 1 : 0 );
+      return "M " + sX + " " + sY + " A " + [ rx , ry , φ / (2*π) *360, fA, fS, eX, eY ].join(" ")
+    });
 
     return html`
     <div class="element" style="cursor:pointer" @click=${this.onClick}>
@@ -420,9 +368,17 @@ export class Dashboard extends LitElement {
         top-margin: 0px;
         left-margin: 20px;
       }
-       
+      div.element-content p {
+        margin-top: 0.5em;
+        margin-bottom: 0.5em;
+      }
       span.code { font-family: Monaco, monospace; }
-      span.status { font-family: Helvetica; font-weight: 900; font-size: 150%;}
+      span.status { 
+        font-family: Helvetica; 
+        font-weight: 900;
+        font-size: 130%;
+        color: #555555;
+      }
       svg.element-svg-overlay {
         height:200px;
         width:200px;
@@ -431,7 +387,7 @@ export class Dashboard extends LitElement {
         left:1em;
       }
       div.system-status {
-        font-size: 70%;
+        font-size: 90%;
         padding-top: 65px;
       }
       div.system-status p {
@@ -444,7 +400,7 @@ export class Dashboard extends LitElement {
     super();
 
     /* Initialize the list of dashboard panels */
-    this._panels = [ StatusPanel, HostsPanel, MappingsPanel, ServicesPanel ];
+    this._panels = [ StatusPanel, CountsPanel ];
 
     Snapshot.subscribe(this.onSnapshotChange.bind(this));
     /* Set up the Google Charts setOnLoad callback.  Note that we can't draw
