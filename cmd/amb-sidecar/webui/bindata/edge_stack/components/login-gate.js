@@ -129,7 +129,7 @@ details {
 
   renderError() {
     return html`
-<dw-error description="Failed to read data... please check your network connectivity."/>
+<dw-wholepage-error description="Having trouble connecting to the Kubernetes cluster... please check your network connectivity."/>
     `;
   }
 

@@ -16,13 +16,15 @@ export class Error extends LitElement {
     return css`
 div {
   position: absolute;
-  left: 0;
-  top: 35px;
-  width: 100%;
+  left: 20%;
+  top: 2em;
+  width: 60%;
   text-align: center;
-  background-color: #fe0000;
+  background-color: #fecccc;
   padding: 4px 0 4px 0;
   font-weight: bold;
+  border: 3px #fe0000 solid;
+  box-shadow: rgba(0,0,0,0.3) 0px 2px 4px;
 }
 `
   }
@@ -32,4 +34,4 @@ div {
   }
 }
 
-customElements.define('dw-error', Error);
+customElements.define('dw-wholepage-error', Error);

@@ -173,7 +173,7 @@ export class Snapshot extends LitElement {
     } else if (this.loadingError) {
       return html`
         <slot></slot>
-        <dw-error description="Failed to refresh data... please check your network connectivity and reload this page."/>
+        <dw-wholepage-error description="Having trouble connecting to the Kubernetes cluster...  please check your network connectivity."/>
       `;
     } else {
       return html`<slot></slot>`;
