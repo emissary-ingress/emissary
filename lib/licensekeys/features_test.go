@@ -17,6 +17,8 @@ var allFeatures = []licensekeys.Feature{
 	licensekeys.FeatureLocalDevPortal,
 	licensekeys.FeatureCertifiedEnvoy,
 	licensekeys.FeatureSupportBasicTier,
+	licensekeys.FeatureSupportBusinessTier,
+	licensekeys.FeatureSupport24x7Tier,
 }
 
 func featureInArray(needle licensekeys.Feature, haystack []licensekeys.Feature) bool {
