@@ -296,14 +296,65 @@ let StatusPanel = {
     let envoy = this._diagd.envoy_status.ready;
     let errors= this._diagd.errors.length;
 
+    const cos = Math.cos;
+const sin = Math.sin;
+const π = Math.PI;
+
+const f_matrix_times = (( [[a,b], [c,d]], [x,y]) => [ a * x + b * y, c * x + d * y]);
+const f_rotate_matrix = ((x) => [[cos(x),-sin(x)], [sin(x), cos(x)]]);
+const f_vec_add = (([a1, a2], [b1, b2]) => [a1 + b1, a2 + b2]);
+
+const f_svg_ellipse_arc = (([cx,cy],[rx,ry], [t1, Δ], φ ) => {
+/* [
+returns a SVG path element that represent a ellipse.
+cx,cy → center of ellipse
+rx,ry → major minor radius
+t1 → start angle, in radian.
+Δ → angle to sweep, in radian. positive.
+φ → rotation on the whole, in radian
+url: SVG Circle Arc http://xahlee.info/js/svg_circle_arc.html
+Version 2019-06-19
+ ] */
+Δ = Δ % (2*π);
+const rotMatrix = f_rotate_matrix (φ);
+const [sX, sY] = ( f_vec_add ( f_matrix_times ( rotMatrix, [rx * cos(t1), ry * sin(t1)] ), [cx,cy] ) );
+const [eX, eY] = ( f_vec_add ( f_matrix_times ( rotMatrix, [rx * cos(t1+Δ), ry * sin(t1+Δ)] ), [cx,cy] ) );
+const fA = ( (  Δ > π ) ? 1 : 0 );
+const fS = ( (  Δ > 0 ) ? 1 : 0 );
+return "M " + sX + " " + sY + " A " + [ rx , ry , φ / (2*π) *360, fA, fS, eX, eY ].join(" ")
+});
+
+
+
     return html`
     <div class="element" style="cursor:pointer" @click=${this.onClick}>
       <div class="element-titlebar">${this._title}</div>
       <div class="element-content" id=“${this._elementId}”>
-        <br>
+<svg height="200" width="200" style="position:absolute;top:3.2em;left:1em;">
+<g stroke="${redis ? "#22EE55" : "red"}" fill="none" stroke-linecap="round" stroke-width="8">
+  <path d="${f_svg_ellipse_arc([100,100], [90,90], [0,1.95], 0)}" />
+  </g>
+<g stroke="${errors === 0 ? "#22EE55" : "red"}" fill="none" stroke-linecap="round" stroke-width="8">
+  <path d="${f_svg_ellipse_arc([100,100], [90,90], [2.1,1.95], 0)}" />
+  </g>
+<g stroke="${envoy ? "#22EE55" : "red"}" fill="none" stroke-linecap="round" stroke-width="8">
+  <path d="${f_svg_ellipse_arc([100,100], [90,90], [4.2,1.95], 0)}" />
+  </g>
+</svg>
+<style>
+div.system-status {
+font-size: 70%;
+padding-top: 65px;
+}
+div.system-status p {
+margin: 0;
+}
+</style>
+        <div class="system-status">
         ${this.renderStatus(redis, "Redis In Use", "Redis Unavailable")}
         ${this.renderStatus(envoy, "Envoy Ready", "Envoy Unavailable")}
-        ${this.renderStatus(errors == 0, "No Errors", countString(errors, "Error", "Errors"))}
+        ${this.renderStatus(errors === 0, "No Errors", countString(errors, "Error", "Errors"))}
+        </div>
       </div>
     </div>`
   },
@@ -387,7 +438,7 @@ export class Dashboard extends LitElement {
     super();
 
     /* Initialize the list of dashboard panels */
-    this._panels = [ HostsPanel, MappingsPanel, ServicesPanel, StatusPanel ];
+    this._panels = [ StatusPanel, HostsPanel, MappingsPanel, ServicesPanel ];
 
     Snapshot.subscribe(this.onSnapshotChange.bind(this));
     /* Set up the Google Charts setOnLoad callback.  Note that we can't draw
