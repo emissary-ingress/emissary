@@ -197,7 +197,7 @@ clean() {
     if [ -n "${nid}" ] ; then
         printf "${GRN}Removing docker network ${BLU}${DOCKER_NETWORK} (${nid})${END}\n"
         # This will fail if the network has some other endpoints alive: silence any errors
-        docker network rm ${nid} 2&>1 >/dev/null || true
+        docker network rm ${nid} 2>&1 >/dev/null || true
     fi
 }
 
