@@ -17,8 +17,8 @@ import (
 	"github.com/pkg/errors"
 	uuid "github.com/satori/go.uuid"
 
-	rfc6749client "github.com/datawire/liboauth2/client/rfc6749"
-	rfc6750client "github.com/datawire/liboauth2/client/rfc6750"
+	rfc6749client "github.com/datawire/apro/client/rfc6749"
+	rfc6750client "github.com/datawire/apro/client/rfc6750"
 
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta2"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/middleware"
