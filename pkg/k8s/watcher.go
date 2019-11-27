@@ -2,9 +2,12 @@ package k8s
 
 import (
 	"fmt"
+	"io" // for panic stuff
 	"strings"
 	"sync"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -15,7 +18,94 @@ import (
 	"k8s.io/client-go/dynamic"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	"k8s.io/client-go/tools/cache"
+
+	"github.com/pkg/errors" // for panic stuff
 )
+
+//==== copypasta from apro/lib/util/panic.go
+// package util
+
+// import (
+// 	"fmt"
+// 	"io"
+
+// 	"github.com/pkg/errors"
+// )
+
+// causer is not exported by github.com/pkg/errors.
+type causer interface {
+	Cause() error
+}
+
+// stackTracer is not exported by github.com/pkg/errors.
+type stackTracer interface {
+	StackTrace() errors.StackTrace
+}
+
+// featurefulError documents the features of
+// github.com/pkg/errors.Wrap().
+type featurefulError interface {
+	error
+	//causer
+	stackTracer
+	fmt.Formatter
+}
+
+type panicError struct {
+	err featurefulError
+}
+
+func (pe panicError) Error() string                 { return "PANIC: " + pe.err.Error() }
+func (pe panicError) Cause() error                  { return pe.err }
+func (pe panicError) StackTrace() errors.StackTrace { return pe.err.StackTrace()[1:] }
+func (pe panicError) Format(s fmt.State, verb rune) {
+	switch verb {
+	case 'v':
+		io.WriteString(s, "PANIC: ")
+		if s.Flag('+') {
+			fmt.Fprintf(s, "%v", pe.err)
+			pe.StackTrace().Format(s, verb)
+			return
+		}
+		io.WriteString(s, pe.err.Error())
+	case 's':
+		io.WriteString(s, pe.Error())
+	case 'q':
+		fmt.Fprintf(s, "%q", pe.Error())
+	}
+}
+
+var _ causer = panicError{}
+var _ featurefulError = panicError{}
+
+// PanicToError takes an arbitrary object returned from recover(), and
+// returns an appropriate error.
+//
+// If the input is nil, then nil is returned.
+//
+// If the input is an error returned from a previus call to
+// PanicToError(), then it is returned verbatim.
+//
+// If the input is an error, it is wrapped with the message "PANIC:"
+// and has a stack trace attached to it.
+//
+// If the input is anything else, it is formatted with "%+v" and
+// returned as an error with a stack trace attached.
+func PanicToError(rec interface{}) error {
+	if rec == nil {
+		return nil
+	}
+	switch rec := rec.(type) {
+	case panicError:
+		return rec
+	case error:
+		return panicError{err: errors.WithStack(rec).(featurefulError)}
+	default:
+		return panicError{err: errors.Errorf("%+v", rec).(featurefulError)}
+	}
+}
+
+//=== copypasta ends
 
 type listWatchAdapter struct {
 	resource      dynamic.ResourceInterface
@@ -197,6 +287,12 @@ func (w *Watcher) WatchQuery(query Query, listener func(*Watcher)) error {
 
 // Start starts the watcher
 func (w *Watcher) Start() {
+	w.StartWithErrorHandler(nil)
+}
+
+// StartWithErrorHandler starts the watcher, but allows supplying an error handler to call
+// instead of panic()ing on errors.
+func (w *Watcher) StartWithErrorHandler(handler func(kind ResourceType, stage string, err error)) {
 	w.mutex.Lock()
 	if w.started {
 		w.mutex.Unlock()
@@ -205,18 +301,54 @@ func (w *Watcher) Start() {
 		w.started = true
 		w.mutex.Unlock()
 	}
+
 	for kind := range w.watches {
-		w.sync(kind)
+		err := w.catcher(func() { w.sync(kind) })
+
+		if err != nil {
+			if handler != nil {
+				log.Infof("handling sync err %q", err)
+				handler(kind, "sync", err)
+			} else {
+				log.Infof("unhandled sync err %q", err)
+				panic(err)
+			}
+		}
 	}
 
-	for _, watch := range w.watches {
-		watch.invoke()
+	for kind, watch := range w.watches {
+		err := w.catcher(func() { watch.invoke() })
+
+		if err != nil {
+			if handler != nil {
+				log.Infof("handling invoke err %q", err)
+				handler(kind, "invoke", err)
+			} else {
+				log.Infof("unhandled invoke err %q", err)
+				panic(err)
+			}
+		}
 	}
 
 	w.wg.Add(len(w.watches))
 	for _, watch := range w.watches {
 		go watch.runner()
 	}
+}
+
+func (w *Watcher) catcher(doSomething func()) error {
+	// Catch panics from the bootstrapper.
+	var err error = nil
+
+	defer func() {
+		if _err := PanicToError(recover()); _err != nil {
+			err = _err
+		}
+	}()
+
+	doSomething()
+
+	return err
 }
 
 func (w *Watcher) sync(kind ResourceType) {
