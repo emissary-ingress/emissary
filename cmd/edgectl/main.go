@@ -36,6 +36,33 @@ to troubleshoot problems.
 // edgectl is the full path to the Edge Control binary
 var edgectl string
 
+/*
+Future command help layout
+
+Edge Stack Commands:
+  login             Access the Ambassador Edge Stack admin UI
+  license           Set or update the Ambassador Edge Stack license key
+
+Cluster Commands:
+  status            Show connectivity status
+  connect           Connect to a cluster
+  disconnect        Disconnect from the connected cluster
+  intercept         Manage deployment intercepts
+
+Daemon Commands:
+  daemon            Launch Edge Control Daemon in the background (sudo)
+  pause             Turn off network overrides (to use a VPN)
+  resume            Turn network overrides on (after using edgectl pause)
+  quit              Tell Edge Control Daemon to quit (for upgrades)
+
+Other Commands:
+  version           Show program's version number and exit
+  help              Help about any command
+
+https://github.com/kubernetes/kubernetes/blob/master/pkg/kubectl/cmd/cmd.go#L487
+
+ */
+
 func main() {
 	// Figure out our executable and save it
 	if executable, err := os.Executable(); err != nil {
@@ -124,6 +151,8 @@ func getRootCommand() *cobra.Command {
 		"namespace", "n", "ambassador",
 		"The Kubernetes namespace to use. Defaults to ambassador.",
 	)
+	_ = loginCmd.Flags().Bool("url", false, "Just show the URL (don't launch a browser)")
+	_ = loginCmd.Flags().Bool("token", false, "Also display the login token")
 	rootCmd.AddCommand(loginCmd)
 	licenseCmd := &cobra.Command{
 		Use:   "license [flags] LICENSE_KEY",
