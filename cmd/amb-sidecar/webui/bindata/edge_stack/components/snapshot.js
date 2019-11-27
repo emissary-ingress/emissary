@@ -119,9 +119,10 @@ export class Snapshot extends LitElement {
             .then((text) => {
               var json;
               try {
-                json = JSON.parse(text);
+                  json = JSON.parse(text);
               } catch(err) {
                 this.loadingError = err;
+                this.requestUpdate();
                 console.error('error parsing snapshot', err);
                 setTimeout(this.fetchData.bind(this), 1000);
                 return
@@ -136,6 +137,7 @@ export class Snapshot extends LitElement {
               if (this.loading) {
                 this.loading = false;
                 this.loadingError = null;
+                this.requestUpdate();
                 document.onclick = () => {
                   fetch('/edge_stack/api/activity', {
                     method: 'POST',
@@ -144,18 +146,25 @@ export class Snapshot extends LitElement {
                     }),
                   });
                 }
+              } else {
+                if( this.loadingError ) {
+                  this.loadingError = null;
+                  this.requestUpdate();
+                }
               }
 
               setTimeout(this.fetchData.bind(this), 1000);
             })
             .catch((err) => {
               this.loadingError = err;
+              this.requestUpdate();
               console.error('error reading snapshot', err);
             })
         }
       })
       .catch((err) => {
         this.loadingError = err;
+        this.requestUpdate();
         console.error('error fetching snapshot', err);
       })
   }

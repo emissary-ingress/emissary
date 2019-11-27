@@ -9,12 +9,12 @@ export class Error extends LitElement {
 
   constructor() {
     super();
-    this.description = "Having trouble connecting to the Kubernetes cluster...<br>please check your network connectivity.";
+    this.description = html`Having trouble connecting to the Kubernetes cluster...<br>please check your network connectivity.`;
   }
 
   static get styles() {
     return css`
-div {
+div.outer {
   position: absolute;
   left: 20%;
   top: 2em;
@@ -26,11 +26,28 @@ div {
   border: 3px #fecccc solid;
   box-shadow: rgba(0,0,0,0.3) 0px 2px 4px;
 }
+#spinner-img {
+  width: 40px;
+  height: 40px;
+  overflow: hidden;
+  float: left;
+}
+img {
+  width: 218px;
+  height: 149px;
+  margin: -54px 0 0 -90px;
+}
+#inner {
+}
 `
   }
 
   render() {
-    return html( ["<div>" + this.description + "</div>"]);
+    return html`
+<div class="outer">
+    <div id="spinner-img"><img src="/edge_stack/images/busy_spinner.gif"/></div>
+    <div id="inner">${this.description}</div>
+</div>`;
   }
 }
 
