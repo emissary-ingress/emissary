@@ -292,7 +292,7 @@ func (w *Watcher) Start() {
 
 // StartWithErrorHandler starts the watcher, but allows supplying an error handler to call
 // instead of panic()ing on errors.
-func (w *Watcher) StartWithErrorHandler(handler func(kind ResourceType, stage string, err error)) {
+func (w *Watcher) StartWithErrorHandler(handler func(kind string, stage string, err error)) {
 	w.mutex.Lock()
 	if w.started {
 		w.mutex.Unlock()
@@ -302,13 +302,18 @@ func (w *Watcher) StartWithErrorHandler(handler func(kind ResourceType, stage st
 		w.mutex.Unlock()
 	}
 
-	for kind := range w.watches {
+	ableToSync := make(map[ResourceType]watch)
+	ableToWatch := make(map[ResourceType]watch)
+
+	for kind, watch := range w.watches {
 		err := w.catcher(func() { w.sync(kind) })
 
-		if err != nil {
+		if err == nil {
+			ableToSync[kind] = watch
+		} else {
 			if handler != nil {
 				log.Infof("handling sync err %q", err)
-				handler(kind, "sync", err)
+				handler(kind.String(), "sync", err)
 			} else {
 				log.Infof("unhandled sync err %q", err)
 				panic(err)
@@ -316,13 +321,15 @@ func (w *Watcher) StartWithErrorHandler(handler func(kind ResourceType, stage st
 		}
 	}
 
-	for kind, watch := range w.watches {
+	for kind, watch := range ableToSync {
 		err := w.catcher(func() { watch.invoke() })
 
-		if err != nil {
+		if err == nil {
+			ableToWatch[kind] = watch
+		} else {
 			if handler != nil {
 				log.Infof("handling invoke err %q", err)
-				handler(kind, "invoke", err)
+				handler(kind.String(), "invoke", err)
 			} else {
 				log.Infof("unhandled invoke err %q", err)
 				panic(err)
@@ -331,15 +338,13 @@ func (w *Watcher) StartWithErrorHandler(handler func(kind ResourceType, stage st
 	}
 
 	w.wg.Add(len(w.watches))
-	for _, watch := range w.watches {
+	for kind, watch := range ableToWatch {
+		log.Infof("starting watch runner for %q", kind.String())
 		go watch.runner()
 	}
 }
 
-func (w *Watcher) catcher(doSomething func()) error {
-	// Catch panics from the bootstrapper.
-	var err error = nil
-
+func (w *Watcher) catcher(doSomething func()) (err error) {
 	defer func() {
 		if _err := PanicToError(recover()); _err != nil {
 			err = _err
@@ -348,7 +353,7 @@ func (w *Watcher) catcher(doSomething func()) error {
 
 	doSomething()
 
-	return err
+	return
 }
 
 func (w *Watcher) sync(kind ResourceType) {

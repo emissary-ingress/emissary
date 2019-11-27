@@ -187,7 +187,9 @@ func (b *kubebootstrap) Work(p *supervisor.Process) error {
 	}
 
 	p.Logf("Watching resources...")
-	b.kubeAPIWatcher.Start()
+	b.kubeAPIWatcher.StartWithErrorHandler(func(kind string, stage string, err error) {
+		p.Logf("could not watch %q at stage %q: %q", kind, stage, err)
+	})
 	p.Ready()
 
 	for range p.Shutdown() {
