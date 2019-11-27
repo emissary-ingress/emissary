@@ -32,22 +32,21 @@ kubectl get -n ambassador service ambassador -o 'go-template={{range .status.loa
 
 ### Minikube Users
 
-If you happen to be using Minikube, note that Minikube does not natively support load balancers. Instead, to get the URL of Ambassador from minikube, use the command `minikube service list` and you should see something similar to the folllowing:
+If you happen to be using Minikube, note that Minikube does not natively support load balancers. Instead, to get the URL of Ambassador from minikube, use the command `minikube service list` which will print something similar to the following:
 
-
-(⎈ |minikube:ambassador)$ minikube service list
- |-------------|------------------|--------------------------------|
- |  NAMESPACE  |       NAME       |              URL               |
- |-------------|------------------|--------------------------------|
- | ambassador  | ambassador       | http://192.168.64.2:31230      |
- |             |                  | http://192.168.64.2:31042      |
- | ambassador  | ambassador-admin | No node port                   |
- | ambassador  | ambassador-redis | No node port                   |
- | default     | kubernetes       | No node port                   |
- | kube-system | kube-dns         | No node port                   |
- |-------------|------------------|--------------------------------|
- ```
-
+    ```
+    (⎈ |minikube:ambassador)$ minikube service list
+    |-------------|------------------|--------------------------------|
+    |  NAMESPACE  |       NAME       |              URL               |
+    |-------------|------------------|--------------------------------|
+    | ambassador  | ambassador       | http://192.168.64.2:31230      |
+    |             |                  | http://192.168.64.2:31042      |
+    | ambassador  | ambassador-admin | No node port                   |
+    | ambassador  | ambassador-redis | No node port                   |
+    | default     | kubernetes       | No node port                   |
+    | kube-system | kube-dns         | No node port                   |
+    |-------------|------------------|--------------------------------|
+    ```
 
 Use any of the URLs listed next to `ambassador` to access the Ambassador Edge Stack.
 
