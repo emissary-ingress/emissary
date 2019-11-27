@@ -2,7 +2,7 @@
 
 ## Rendering API Documentation
 
-The Dev Portal will automatically discover all services known by Ambassador Edge Stack (i.e., have a valid `Mapping`). For each `prefix` in a `Mapping`, the Dev Portal will attempt to fetch a Swagger or OpenAPI specification from `$PREFIX/.ambassador-internal/openapi-docs/`. You will need to update your microservice to return a Swagger or OAPI document at this URL.
+The Dev Portal will automatically discover all services known by the Ambassador Edge Stack (i.e., have a valid `Mapping`). For each `prefix` in a `Mapping`, the Dev Portal will attempt to fetch a Swagger or OpenAPI specification from `$PREFIX/.ambassador-internal/openapi-docs/`. You will need to update your microservice to return a Swagger or OAPI document at this URL.
 
 ### `/docs/`
 
@@ -10,9 +10,9 @@ Rendered API documentation is published at the `/docs/` URL by default. In a sub
 
 ### `.ambassador-internal`
 
-By default, `.ambassador-internal` is not publicly exposed by Ambassador Edge Stack. This is controlled by a special `FilterPolicy` called `apro-internal-access-control`.
+By default, `.ambassador-internal` is not publicly exposed by the Ambassador Edge Stack. This is controlled by a special `FilterPolicy` called `apro-internal-access-control`.
 
- Note that these URLs are not publicly exposed by Ambassador Edge Stack, and are internal-only.
+ Note that these URLs are not publicly exposed by the Ambassador Edge Stack, and are internal-only.
 
 ## Dev Portal configuration
 
@@ -46,8 +46,6 @@ and open http://localhost:8877 in your browser. Any changes made locally to devp
 
 ## Customizing the Dev Portal URL prefix
 
-Default Dev Portal prefix is `/docs/`. To change the prefix, edit the ambassador Mapping CRD  named `ambassador-pro-devportal`. Change the `prefix` to your desired prefix (for example `/documentation/`) and change the `rewrite` to `/docs/`
+Default Dev Portal prefix is `/docs/`. To change the prefix, edit the `ambassador` Mapping CRD named `ambassador-pro-devportal`. Change the `prefix` to your desired prefix (for example `/documentation/`) and change the `rewrite` to `/docs/`
 
 Note: Dev portal uses another mapping named `ambassador-pro-devportal-api` which, for now should not be changed. This restriction will be removed in a future release.
-
-

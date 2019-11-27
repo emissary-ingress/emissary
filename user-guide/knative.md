@@ -7,9 +7,9 @@
 
 We will be focusing on Knative Serving which builds on Kubernetes to support deploying and serving of serverless applications and functions.
 
-Ambassador Edge Stack can watch for changes in Knative configuration in your Kubernetes cluster and set up routing accordingly.
+The Ambassador Edge Stack can watch for changes in Knative configuration in your Kubernetes cluster and set up routing accordingly.
 
-**Note:** Knative was originally built with Istio handling cluster networking. This integration lets us replace Istio with Ambassador Edge Stack which will dramatically reduce the operational overhead of running Knative.
+**Note:** Knative was originally built with Istio handling cluster networking. This integration lets us replace Istio with the Ambassador Edge Stack which will dramatically reduce the operational overhead of running Knative.
 
 ## Getting started
 
@@ -17,7 +17,7 @@ Ambassador Edge Stack can watch for changes in Knative configuration in your Kub
 
 - Knative requires a Kubernetes cluster v1.11 or newer with the MutatingAdmissionWebhook admission controller enabled. kubectl v1.10 is also required. This guide assumes that you’ve already created a Kubernetes cluster which you’re comfortable installing alpha software on.
 
-- Ambassador Edge Stack should be installed in your cluster. Follow one of the [installation guides](/user-guide/install) for instructions on installing Ambassador Edge Stack.
+- The Ambassador Edge Stack should be installed in your cluster. Follow one of the [installation guides](/user-guide/install) for instructions on installing the Ambassador Edge Stack.
 
 #### Installation
 
@@ -25,11 +25,11 @@ Ambassador Edge Stack can watch for changes in Knative configuration in your Kub
 
    Knative is installed from remote YAML manifests. Check the [Knative install documentation](https://knative.dev/docs/install/knative-with-ambassador/) to install the most recent version of Knative.
 
-   **Note:** You can safely ignore the `no matches for kind "Gateway" in version "networking.istio.io/v1alpha3"` warnings during the installation since we will be using Ambassador Edge Stack instead of the Istio gateway.
+   **Note:** You can safely ignore the `no matches for kind "Gateway" in version "networking.istio.io/v1alpha3"` warnings during the installation since we will be using the Ambassador Edge Stack instead of the Istio gateway.
 
-2. Configure Ambassador Edge Stack to listen for Knative Services
+2. Configure the Ambassador Edge Stack to listen for Knative Services
 
-    After Knative is installed, we need to tell Ambassador Edge Stack to start looking for any Knative service we create.
+    After Knative is installed, we need to tell the Ambassador Edge Stack to start looking for any Knative service we create.
 
     This is done by setting the `AMBASSADOR_KNATIVE_SUPPORT` environment variable to `"true"` in the Ambassador Edge Stack deployment.
 
