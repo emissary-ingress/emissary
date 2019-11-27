@@ -49,7 +49,7 @@ kubectl get -n ambassador service ambassador -o 'go-template={{range .status.loa
 
 Your load balancer may not provision your IP address automatically. You can repeat the provided command as necessary until you get an IP address.
 
-Note: If you are a **Minikube user**, Minikube does not natively support load balancers. Instead, use the following command: `minikube service list` 
+Note: If you are a **Minikube user**, Minikube does not natively support load balancers. Instead, use the following command: `minikube service list`
 
 You should see something similar to the following:
 
@@ -69,34 +69,34 @@ You should see something similar to the following:
 
 Use any of the URLs listed next to `ambassador` to access the Ambassador Edge Stack.
 
-1. Once you have an IP address, navigate to it in your browser. Optionally assign a DNS name to your IP address from step 2 using a provider of your choice, such as gandi.net. Or, continue using the IP address instead. 
+3. Once you have an IP address, navigate to it in your browser. Optionally assign a DNS name to your IP address from step 2 using a provider of your choice, such as gandi.net. Or, continue using the IP address instead. 
 
-2. Navigate to `http://<your-host-name>/edge_stack/admin/` and follow the instructions to install the edgectl executable file in order to use the Edge Policy Console, the admin interface. 
+4. Navigate to `http://<your-host-name>/edge_stack/admin/` and follow the instructions to install the `edgectl` executable file in order to use the Edge Policy Console, the admin interface.
 
 * Note that you must click through the certificate warning for access to the instructions.
 
 ## Add Hosts and Configure TLS
 
-You now have access to the Edge Policy Console, where you can start to secure your application with automatic HTTPS, configure TLS with ease, and create CRDs and mappings independently of your Ops teams. 
+You now have access to the Edge Policy Console, where you can start to secure your application with automatic HTTPS, configure TLS with ease, and create CRDs and mappings independently of your Ops teams.
 
-To secure your application with HTTPS, you must first add a Host to your Ambassador Edge Stack Configuration.
+To secure your application with HTTPS, you must first add a Host to your Ambassador Edge Stack configuration.
 
 **To do so:**
 
-1. From the left menu, go to the **Hosts** tab and then click the **(+)** button on the right. 
+1. From the left menu, go to the **Hosts** tab and then click the **(+)** button on the right.
 A configuration table appears with your IP address prepopulated in the “Resource” field. You can change this, but we recommend using your hostname in this field.
+
 * Note: If you want to use automatic TLS during this section, your host must be an FQDN. Otherwise, you will see an error message indicating that your host does not qualify for the ACME Certificate. You can continue without TLS configuration.
 
-
-In the “Namespace” field, add an existing namespace. We recommend that it matches the namespace of your Kubeconfig context, or leaving it set to “Default.”
-Read and check the box to agree to the Terms of Service.
-Enter your email address to receive your TLS certificate.
+2. In the “Namespace” field, add an existing namespace. We recommend that it matches the namespace of your Kubeconfig context, or leaving it set to “Default.”
+3. Read and check the box to agree to the Terms of Service.
+4. Enter your email address to receive your TLS certificate.
 
 Your hostname will appear in a pending state as the Ambassador Edge Stack configures automatic TLS. In the “Status” field, you will see the TLS status change. If you receive an error that your hostname does not qualify for ACME management, you can still configure TLS following [these instructions].
 
 To upgrade from the evaluation mode, [sign up for a free community license] today.
 
-## Create Mappings 
+## Create Mappings
 
 Before you can create `Mappings`, you should verify that all of the CRDs were successfully installed using `Kubectl`, the command-line tool that allows you to control Kubernetes.
 
@@ -110,14 +110,13 @@ Next, you can start to create your own Mappings. You can do this in the Edge Pol
 
 **To configure Mappings in the Edge Policy Console:**
 
-Navigate to your Edge Policy Console.
-From the left menu, click the **Mappings** tab.
-On the right hand side, click the **(+)** button to add a mapping.
-In the empty table, provide information to configure your mapping. 
-Click the **Save** button.
-In your command line, if you run the  `kubectl get mappings` again, you will see that your new Mapping has been adding to the CRDs of the Ambassador Edge Stack.
+1. Navigate to your Edge Policy Console.
+2. From the left menu, click the **Mappings** tab.
+3. On the right hand side, click the **(+)** button to add a mapping.
+4. In the empty table, provide information to configure your mapping. 
+5. Click the **Save** button.
+6. In your command line, if you run the  `kubectl get mappings` again, you will see that your new Mapping has been adding to the CRDs of the Ambassador Edge Stack.
 
+## What’s Next?
 
-## What’s Next? 
-
-To learn more about how the Ambassador Edge Stack works, along with use cases, best practices, and more, check out the [Product Overview](/user-guide/docs!
+To learn more about how the Ambassador Edge Stack works, along with use cases, best practices, and more, check out the [Product Overview](/content/docs/index.md]!
