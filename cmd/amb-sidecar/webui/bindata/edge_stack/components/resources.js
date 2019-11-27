@@ -697,6 +697,92 @@ export class ResourceSet extends LitElement {
 }
 
 /**
+ * The SortableResourceSet class is an abstract base class that is extended in
+ * order to create a container widget for listing sorted kubernetes resources
+ * of a single Kind. The SortableResourceSet extends ResourceSet, adding an
+ * HTML selector for picking a "sort by" attribute.
+ *
+ * See ResourceSet.
+ *
+ * To implement a SortableResourceSet container element, you must extend this
+ * class and override the following methods. See individual methods
+ * for more details:
+ *
+ *   sortFn(sortByAttribute) --> must return a `compare` function, for the collection.sort()
+ *     https://www.w3schools.com/js/js_array_sort.asp
+ *
+ *     sortFn(sortByAttribute) {
+ *       return function(a, b) { return a[sortByAttribute] - b[sortByAttribute] };
+ *     }
+ *
+ *   renderSet() --> tell us how to display the collection
+ *
+ */
+export class SortableResourceSet extends ResourceSet {
+
+  // internal
+  static get properties() {
+    return {
+      sortFields: { type: Array },
+      sortBy: { type: String }
+    };
+  }
+
+  /**
+   * @param sortFields: A non-empty Array of {value, label} Objects by which it is possible to sort the ResourceSet. eg.:
+   *   super([
+   *     {
+   *       value: "name",         // String. When selected, the value will be passed as argument in `sortFn`.
+   *       label: "Mapping Name"  // String. Display label for the HTML component.
+   *     },
+   *     ...
+   *   ]);
+   */
+  constructor(sortFields) {
+    super();
+    if (!sortFields || sortFields.length === 0) {
+      throw new Error('please pass `sortFields` to constructor');
+    }
+    this.sortFields = sortFields;
+    this.sortBy = this.sortFields[0].value;
+  }
+
+  onChangeSortByAttribute(e) {
+    this.sortBy = e.target.options[e.target.selectedIndex].value;
+  }
+
+  static get styles() {
+    return css`
+div.sortby {
+  text-align: right;
+  font-size: 80%;
+  margin: -20px 8px 0 0;
+}
+    `
+  }
+
+  render() {
+    return html`
+<div class="sortby">Sort by
+  <select id="sortByAttribute" @change=${this.onChangeSortByAttribute}>
+    ${this.sortFields.map(f => {
+      return html`<option value="${f.value}">${f.label}</option>`
+    })}
+  </select>
+</div>
+${this.resources.sort(this.sortFn(this.sortBy)) && this.renderSet()}`
+  }
+
+  renderSet() {
+    throw new Error("please implement renderSet()");
+  }
+
+  sortFn(sortByAttribute) {
+    throw new Error("please implement sortFn(sortByAttribute)");
+  }
+}
+
+/**
  * The UIState class holds the transient UI state of a kubernetes
  * resource widget, for example whether the widget is in detail or
  * list view, or whether we are editing it, or any error messages were
