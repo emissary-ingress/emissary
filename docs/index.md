@@ -1,4 +1,4 @@
-# Welcome
+# Ambassador Overview 
 
 Ambassador Edge Stack is a production tested, open source API Gateway that exposes the power of [Envoy Proxy](https://www.envoyproxy.io) in Kubernetes.
 
