@@ -40,23 +40,38 @@ class SnapshotWrapper {
     } else {
       return ((this.data.Watt || {}).Kubernetes || {})[kind] || []
     }
-  }
+  };
+
+   /*
+    * Return all the kubernetes resources (that the backend AES
+    * instance is paying attention to) that have been changed by the user
+    * with the Web UI.
+    */
+  getChangedResources() {
+    var hosts     = this.getResources("Host");
+    var mappings  = this.getResources("Mapping");
+    var services  = this.getResources("Service");
+    var resolvers = this.getResources("Resolver");
+    var resources = [].concat(hosts, mappings, services, resolvers);
+
+    /* filter on annotation: "AES-UI-Changed": true */
+    return resources;
+  };
 
   /**
    * Return the JSON representation of the OSS diagnostics page.
    */
   getDiagnostics() {
     return this.data.Diag || {};
-  }
+  };
 
   getLicense() {
     return this.data.License || {};
-  }
+  };
 
   getRedisInUse() {
     return this.data.RedisInUse || false;
-  }
-
+  };
 }
 
 export class Snapshot extends LitElement {

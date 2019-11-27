@@ -343,10 +343,24 @@ span.code {
    */
   validate() {}
 
+  // internal()
+  _yaml {
+    return yaml`
+---
+apiVersion: getambassador.io/v2
+kind: ${this.kind()}
+metadata:
+  name: "${this.nameInput().value}"
+  namespace: "${this.namespaceInput().value}"
+spec: ${JSON.stringify(this.spec())}
+`
+  }
+
   // internal
   name() {
     return this.resource.metadata.name;
   }
+
 
   // internal
   namespace() {
@@ -385,7 +399,7 @@ span.code {
       return
     }
 
-    let ts = 1;
+    let ts = new Date().toISOString();
     let yaml = `
 ---
 apiVersion: getambassador.io/v2
@@ -488,8 +502,8 @@ spec: ${JSON.stringify(this.spec())}
    */
   readOnly() {
     let annotations = this.annotations;
-    if (aes_editable_key in annotations) {
-      return !annotations[aes_editable_key];
+    if (aes_editable in annotations) {
+      return !annotations[aes_editable];
     }
     else {
       return false;
