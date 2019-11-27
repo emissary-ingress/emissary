@@ -696,6 +696,28 @@ export class ResourceSet extends LitElement {
 
 }
 
+/**
+ * The SortableResourceSet class is an abstract base class that is extended in
+ * order to create a container widget for listing sorted kubernetes resources
+ * of a single Kind. The SortableResourceSet extends ResourceSet, adding an
+ * HTML selector for picking a "sort by" attribute.
+ *
+ * See ResourceSet.
+ *
+ * To implement a SortableResourceSet container element, you must extend this
+ * class and override the following methods. See individual methods
+ * for more details:
+ *
+ *   sortFn(sortByAttribute) --> must return a `compare` function, for the collection.sort()
+ *     https://www.w3schools.com/js/js_array_sort.asp
+ *
+ *     sortFn(sortByAttribute) {
+ *       return function(a, b) { return a[sortByAttribute] - b[sortByAttribute] };
+ *     }
+ *
+ *   renderSet() --> tell us how to display the collection
+ *
+ */
 export class SortableResourceSet extends ResourceSet {
 
   // internal
@@ -706,7 +728,16 @@ export class SortableResourceSet extends ResourceSet {
     };
   }
 
-  // internal
+  /**
+   * @param sortFields: A non-empty Array of {value, label} Objects by which it is possible to sort the ResourceSet. eg.:
+   *   super([
+   *     {
+   *       value: String, // String. When selected, the value will be passed as argument in `sortFn`.
+   *       label: String  // String. Display label for the HTML component.
+   *     },
+   *     ...
+   *   ]);
+   */
   constructor(sortFields) {
     super();
     if (!sortFields || sortFields.length === 0) {
@@ -746,8 +777,8 @@ ${this.resources.sort(this.sortFn(this.sortBy)) && this.renderSet()}`
     throw new Error("please implement renderSet()");
   }
 
-  sortFn() {
-    throw new Error("please implement sortFn()");
+  sortFn(sortByAttribute) {
+    throw new Error("please implement sortFn(sortByAttribute)");
   }
 }
 
