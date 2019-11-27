@@ -732,8 +732,8 @@ export class SortableResourceSet extends ResourceSet {
    * @param sortFields: A non-empty Array of {value, label} Objects by which it is possible to sort the ResourceSet. eg.:
    *   super([
    *     {
-   *       value: String, // String. When selected, the value will be passed as argument in `sortFn`.
-   *       label: String  // String. Display label for the HTML component.
+   *       value: "name",         // String. When selected, the value will be passed as argument in `sortFn`.
+   *       label: "Mapping Name"  // String. Display label for the HTML component.
    *     },
    *     ...
    *   ]);
