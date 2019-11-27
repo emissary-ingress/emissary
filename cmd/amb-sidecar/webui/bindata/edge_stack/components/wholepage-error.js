@@ -9,7 +9,7 @@ export class Error extends LitElement {
 
   constructor() {
     super();
-    this.description = "Unknown error";
+    this.description = "Having trouble connecting to the Kubernetes cluster...<br>please check your network connectivity.";
   }
 
   static get styles() {
@@ -20,17 +20,17 @@ div {
   top: 2em;
   width: 60%;
   text-align: center;
-  background-color: #fecccc;
-  padding: 4px 0 4px 0;
+  background-color: #fef4f4;
+  padding: 1em;
   font-weight: bold;
-  border: 3px #fe0000 solid;
+  border: 3px #fecccc solid;
   box-shadow: rgba(0,0,0,0.3) 0px 2px 4px;
 }
 `
   }
 
   render() {
-    return html`<div>${this.description}</div>`
+    return html( ["<div>" + this.description + "</div>"]);
   }
 }
 

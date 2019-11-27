@@ -173,7 +173,7 @@ export class Snapshot extends LitElement {
     } else if (this.loadingError) {
       return html`
         <slot></slot>
-        <dw-wholepage-error description="Having trouble connecting to the Kubernetes cluster...  please check your network connectivity."/>
+        <dw-wholepage-error/>
       `;
     } else {
       return html`<slot></slot>`;
