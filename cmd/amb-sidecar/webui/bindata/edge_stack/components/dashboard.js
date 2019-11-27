@@ -1,6 +1,5 @@
-
 /* ===================================================================================*/
-/* Dashboard and dashboard element classes using LitElement and Google Charts. */
+/* Dashboard and dashboard element classes using LitElement.                          */
 /* ===================================================================================*/
 
 import { LitElement, html, css } from '/edge_stack/vendor/lit-element.min.js'
@@ -33,13 +32,6 @@ let WhenChartsAreLoadedPromise = {
     }
 };
 
-/*
- * Load the google charts package.  Note that it will load asynchronously so we have
- * to wait for a setOnLoadCallback which is done in the Dashboard constructor.
- */
-google.charts.load('current', {'packages':['corechart']});
-google.charts.load('visualization', '1.0', { 'packages': ['corechart'] });
-
 /* ===================================================================================
  * Dashboard panels defined as objects.  Declared here so that they can be added
  * to the Dashboard on instantiation.
@@ -65,119 +57,6 @@ let countString = function(count, singular_text, plural_text) {
       case 1:  return `1 ${singular_text}`; break;
       default: return `${count} ${plural_text}`;
     }
-};
-
-/**
- * Pie Chart Demo - this is a demo only and not an Ambassador-useful panel.
- */
-let demoPieChart = {
-  _title: "Demo Pie Chart",
-  _elementId: "demo_pie",
-
-  render: function() {
-    return html`<div class="element">
-        <div class="element-titlebar">${this._title}</div>
-        <div class="element-content" id="${this._elementId}"></div>
-     </div>`
-  },
-
-  onSnapshotChange: function(snapshot) {
-    this._mushrooms  = Math.random(20);
-    this._pepperoni  = Math.random(10);
-	},
-
-  draw: function(shadow_root) {
-    /* Create the data table. */
-    let data = new google.visualization.DataTable();
-    data.addColumn('string', 'Topping');
-    data.addColumn('number', 'Slices');
-    data.addRows([
-      ['Mushrooms', this._mushrooms],
-      ['Onions', 1],
-      ['Olives', 1],
-      ['Zucchini', 1],
-      ['Pepperoni', this._pepperoni]
-    ]);
-
-    /* Set chart options */
-    let options = {
-      'title': 'How Much Pizza I Ate Last Night',
-      'width': '80%',
-      'height': '80%'
-    };
-
-    /* Instantiate and draw our chart, passing in some options. */
-    let element = shadow_root.getElementById(this._elementId);
-
-    /* may not have shadow DOM by now, so test. */
-    if (element) {
-      if( element.offsetParent !== null ) {
-        let chart = new google.visualization.PieChart(element);
-        chart.draw(data, options);
-      }
-    }
-  }
-};
-
-
-/**
- * Column Chart Demo - this demo has no useful Ambassador purpose
- */
-let demoColumnChart = {
-  _title: "Demo Column Chart",
-  _elementId: "demo_columns",
-  _annualRevenue: [
-        ['Year', 'Millions', { role: 'style' } ],
-        [2015, 10, 'color: gray'],
-        [2016, 11, 'color: gray'],
-        [2017, 13, 'color: gray'],
-        [2018, 15, 'color: gray'],
-        [2019, 16, 'color: gray']
-  ],
-
-  render: function() {
-    return html`<div class="element">
-      <div class="element-titlebar">${this._title}</div>
-      <div class="element-content" id="${this._elementId}"></div>
-    </div>`
-  },
-
-  onSnapshotChange: function(services) {
-    /* Revenue data: keep 5 columns, and bump revenue by
-     * a random amount between -1 and 3. */
-    for (let i=1; i<=4; i++) {
-      this._annualRevenue[i] = this._annualRevenue[i+1]
-    }
-    /* Bump up the year and revenue number */
-    this._annualRevenue[5] = [
-      this._annualRevenue[4][0] + 1,
-      this._annualRevenue[4][1] + Math.floor(Math.random() * Math.floor(3)) - 1,
-      this._annualRevenue[4][2]
-    ];
-	},
-
-  draw: function(shadow_root) {
-    /* Create the data table. */
-    let data = google.visualization.arrayToDataTable(this._annualRevenue);
-
-    /* Set chart options */
-    let options = {
-      'title': 'Annual Revenue',
-      'width': '80%',
-      'height': '80%'
-    };
-
-    /* Instantiate and draw our chart, passing in some options. */
-    let element = shadow_root.getElementById(this._elementId);
-
-    /* may not have shadow DOM by now, so test. */
-    if (element) {
-      if( element.offsetParent !== null ) {
-        let chart = new google.visualization.ColumnChart(element);
-        chart.draw(data, options);
-      }
-    }
-  }
 };
 
 /**
@@ -328,9 +207,6 @@ let StatusPanel = {
     window.location.hash = "#debugging";
   }
 };
-/* ===================================================================================*/
-/* The Dashboard class, drawing dashboard elements in a matrix of div.element blocks. */
-/* ===================================================================================*/
 
 export class Dashboard extends LitElement {
   /* styles() returns the styles for the dashboard elements. */
@@ -339,13 +215,13 @@ export class Dashboard extends LitElement {
       .error {
         color: red;
       }
-      
+
       div.element {
         display: inline-grid;
         padding-bottom: 0.5em;
         padding-right: 0.5em;
       }
-      
+
       div.element-titlebar {
         text-align: center;
         font-weight: bold;
@@ -360,7 +236,7 @@ export class Dashboard extends LitElement {
 
       div.element-content {
         background-color: whitesmoke;
-        text-align: center; 
+        text-align: center;
         width: 200px;
         height: 200px;
         border: 2px solid lightgray;
@@ -373,8 +249,8 @@ export class Dashboard extends LitElement {
         margin-bottom: 0.5em;
       }
       span.code { font-family: Monaco, monospace; }
-      span.status { 
-        font-family: Helvetica; 
+      span.status {
+        font-family: Helvetica;
         font-weight: 900;
         font-size: 130%;
         color: #555555;
@@ -403,10 +279,6 @@ export class Dashboard extends LitElement {
     this._panels = [ StatusPanel, CountsPanel ];
 
     Snapshot.subscribe(this.onSnapshotChange.bind(this));
-    /* Set up the Google Charts setOnLoad callback.  Note that we can't draw
-     * charts until the package has loaded, so we will be notified when this
-     * happens and set a promise to synchronize with the DOM being updated. */
-    google.charts.setOnLoadCallback(this.chartsLoaded.bind(this));
   };
 
   /* Get new data from Kubernetes services. */
