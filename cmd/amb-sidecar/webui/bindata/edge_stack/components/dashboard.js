@@ -2,8 +2,8 @@
 /* Dashboard and dashboard element classes using LitElement.                          */
 /* ===================================================================================*/
 
-import { LitElement, html, css } from '/edge_stack/vendor/lit-element.min.js'
-import { Snapshot } from '/edge_stack/components/snapshot.js'
+import { LitElement, html, css } from '/edge_stack/vendor/lit-element.min.js';
+import { Snapshot } from '/edge_stack/components/snapshot.js';
 
 /**
  * This is a Promise-like object used to synchronize between google charts loaded callback and the
@@ -82,20 +82,18 @@ let CountsPanel = {
   },
 
   onSnapshotChange: function(snapshot) {
-    if (snapshot) {
-      let hosts = snapshot.getResources('Host');
-      this._hostsCount = hosts.length;
+    let hosts = snapshot.getResources('Host');
+    this._hostsCount = hosts.length;
 
-      let kinds = ['AuthService', 'RateLimitService', 'TracingService', 'LogService'];
-      let services = [];
-      kinds.forEach((k)=>{
-        services.push(...snapshot.getResources(k))
-      });
-      this._serviceCount = services.length;
+    let kinds = ['AuthService', 'RateLimitService', 'TracingService', 'LogService'];
+    let services = [];
+    kinds.forEach((k)=>{
+      services.push(...snapshot.getResources(k))
+    });
+    this._servicesCount = services.length;
 
-      let mappings = snapshot.getResources('Mapping');
-      this._mappingsCount = mappings.length;
-    }
+    let mappings = snapshot.getResources('Mapping');
+    this._mappingsCount = mappings.length;
 	},
 
   draw: function(shadow_root) { /*text panel, no chart to draw*/ },
@@ -272,6 +270,12 @@ export class Dashboard extends LitElement {
 `
   };
 
+  static get properties() {
+    return {
+      snapshot: { type: Object }
+    };
+  }
+
   constructor() {
     super();
 
@@ -282,14 +286,13 @@ export class Dashboard extends LitElement {
   };
 
   /* Get new data from Kubernetes services. */
-  onSnapshotChange(snapshot) {
+  onSnapshotChange(newSnapshot) {
     /* Notify each panel of the change */
     this._panels.forEach((panel) => {
-      panel.onSnapshotChange(snapshot)
+      panel.onSnapshotChange(newSnapshot)
     });
 
-    /* Request an update of the Dashboard */
-    this.requestUpdate();
+    this.snapshot = newSnapshot;
   }
 
   /* Render the component by returning a TemplateResult, using the html helper function. */
