@@ -3,17 +3,17 @@
   items:
     - title: Ambassador Overview
     - link: /docs
-    - title: Quick Start Guide
-      link: /user-guide/quick-start-guide
+    - title: Getting Started with Ambassador
+      link: /user-guide/getting-started
     - title: Contact Support
       link: /about/support
     
-- title: Setup and Deployment
+- title: Install & Deploy
   items:
+    - title: Quick Start Installation Guide
+      link: /user-guide/install
     - title: Product Requirements
       link: /user-guide/product-requirements
-    - title: Install Ambassador
-      link: /user-guide/install
     - title: 
 
 
