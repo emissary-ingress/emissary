@@ -102,6 +102,9 @@ module.exports.authenticate = function(browsertab, username, password) {
 		browsertab.waitForFunction(() => {return window.location.href.startsWith("https://accounts.google.com/signin/oauth/deniedsigninrejected?");})
 			.then(() => {return waitUntilRender(browsertab);})
 			.then(() => {return Promise.reject(new run.TestSkipError("denied"));}),
+		browsertab.waitForFunction(() => {return window.location.href.startsWith("https://accounts.google.com/signin/rejected?");})
+			.then(() => {return waitUntilRender(browsertab);})
+			.then(() => {return Promise.reject(new run.TestSkipError("denied"));}),
 		// otherwise, authenticate as normal.
 		authenticate(browsertab, username, password),
 		// Click "next" and such if it decides to add extra pages; this recurses and  will never resolve
