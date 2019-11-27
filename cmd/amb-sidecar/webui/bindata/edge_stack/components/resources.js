@@ -257,12 +257,17 @@ span.code {
   // internal
   onDelete() {
     //TODO The user interface has a strange midway state when one does a delete: need crosshatching to show "change in progress"
-    if( this.readOnly() ) {
+    if (this.readOnly()) {
       this.state.mode = "list";
       return; // we shouldn't be able to get here because there is no edit button,
               // and thus no delete button, but if we do, don't do anything.
     }
-    //TODO need a modal to confirm delete
+
+    let proceed = confirm(`You are about to delete the ${this.kind()} named '${this.name()}' in the '${this.namespace()}' namespace.\n\nAre you sure?`);
+    if (!proceed) {
+      return; // user canceled the action
+    }
+
     fetch('/edge_stack/api/delete',
           {
             method: "POST",
