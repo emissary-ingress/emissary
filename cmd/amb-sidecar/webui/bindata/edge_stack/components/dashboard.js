@@ -328,6 +328,8 @@ let StatusPanel = {
     window.location.hash = "#debugging";
   }
 };
+
+
 /* ===================================================================================*/
 /* The Dashboard class, drawing dashboard elements in a matrix of div.element blocks. */
 /* ===================================================================================*/
