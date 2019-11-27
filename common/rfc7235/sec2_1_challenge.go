@@ -63,7 +63,7 @@ func ParseChallenge(str string) (Challenge, error) {
 			if bodyStr[0] == ',' {
 				bodyStr = bodyStr[1:]
 			} else {
-				param, bodyStr, err = ScanAuthParam(bodyStr)
+				param, bodyStr, err = scanAuthParam(bodyStr)
 				if err != nil {
 					return ret, errors.Wrap(err, "invalid challenge")
 				}
@@ -81,7 +81,7 @@ func ParseChallenge(str string) (Challenge, error) {
 				bodyStr = bodyStr[1:]
 				// ABNF: [ OWS auth-param ]
 				if len(strings.TrimLeft(bodyStr, " \t")) > 0 {
-					param, bodyStr, err = ScanAuthParam(strings.TrimLeft(bodyStr, " \t"))
+					param, bodyStr, err = scanAuthParam(strings.TrimLeft(bodyStr, " \t"))
 					if err != nil {
 						return ret, errors.Wrap(err, "invalid challenge")
 					}

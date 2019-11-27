@@ -28,15 +28,15 @@ func (p AuthParam) String() string {
 	return p.Key + "=" + p.Value
 }
 
-// ScanAuthParam scans a auth-param (as defined by §2.1) from the beginning of a string, and returns
+// scanAuthParam scans a auth-param (as defined by §2.1) from the beginning of a string, and returns
 // the structured result, as well as the remainder of the input string.
 //
 // For example:
 //
-//     ScanAuthParam(`foo = "bar baz" remainder`) => (AuthParam{Key: `foo`, `Value: `bar baz`}, ` remainder`, nil)
+//     scanAuthParam(`foo = "bar baz" remainder`) => (AuthParam{Key: `foo`, Value: `bar baz`}, ` remainder`, nil)
 //
 // If a syntax error is encountered, (AuthParam{}, "", err) is returned.
-func ScanAuthParam(input string) (param AuthParam, rest string, err error) {
+func scanAuthParam(input string) (param AuthParam, rest string, err error) {
 	rest = input
 
 	// ABNF:
