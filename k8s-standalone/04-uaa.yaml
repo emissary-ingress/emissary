@@ -106,19 +106,19 @@ spec:
             port: 8080
       - name: uaa
         image: alpine:3.8
-        args: ["/usr/bin/tail", "-n+1", "-f", "/tmp/cargo/conf/logs/uaa.log"]
+        args: ["/bin/sh", "-c", "while ! test -f \"$1\"; do sleep 1; done; tail -n+1 -f \"$1\"", "--", "/tmp/cargo/conf/logs/uaa.log"]
         volumeMounts:
         - name: log-volume
           mountPath: /tmp
       - name: uaa-events
         image: alpine:3.8
-        args: ["/usr/bin/tail", "-n+1", "-f", "/tmp/cargo/conf/logs/uaa_events.log"]
+        args: ["/bin/sh", "-c", "while ! test -f \"$1\"; do sleep 1; done; tail -n+1 -f \"$1\"", "--", "/tmp/cargo/conf/logs/uaa_events.log"]
         volumeMounts:
         - name: log-volume
           mountPath: /tmp
       - name: statsd
         image: alpine:3.8
-        args: ["/usr/bin/tail", "-n+1", "-f", "/tmp/cargo/conf/logs/statsd.log"]
+        args: ["/bin/sh", "-c", "while ! test -f \"$1\"; do sleep 1; done; tail -n+1 -f \"$1\"", "--", "/tmp/cargo/conf/logs/statsd.log"]
         volumeMounts:
         - name: log-volume
           mountPath: /tmp

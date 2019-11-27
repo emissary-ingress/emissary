@@ -31,7 +31,7 @@ linters-settings:
       - github.com/datawire/kat-backend/xds/ # use "github.com/datawire/ambassador/go/"
       - github.com/lyft/ratelimit/proto/ # use "github.com/datawire/ambassador/go/"
   goconst:
-    min-len: 5
+    min-len: 12
 issues:
   exclude-rules:
     - linters: [dupl]
