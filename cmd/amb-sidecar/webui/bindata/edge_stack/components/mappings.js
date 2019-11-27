@@ -1,4 +1,4 @@
-import {html} from '/edge_stack/vendor/lit-element.min.js'
+import {html, css} from '/edge_stack/vendor/lit-element.min.js'
 import {SingleResource, ResourceSet} from '/edge_stack/components/resources.js';
 
 class Mapping extends SingleResource {
@@ -97,6 +97,16 @@ export class Mappings extends ResourceSet {
     this.sortBy = e.target.options[e.target.selectedIndex].value;
   }
 
+  static get styles() {
+    return css`
+div.sortby {
+  text-align: right;
+  font-size: 80%;
+  margin: -20px 8px 0 0;
+}
+    `
+  }
+
   render() {
     let newMapping = {
       metadata: {
@@ -109,11 +119,13 @@ export class Mappings extends ResourceSet {
       }
     };
     return html`
-<select id="sortByAttribute" @change=${this.onChangeSortByAttribute}>
-  <option value="name" selected>Name</option>
-  <option value="namespace">Namespace</option>
-  <option value="prefix">Prefix</option>
-</select>
+<div class="sortby">Sort by
+  <select id="sortByAttribute" @change=${this.onChangeSortByAttribute}>
+    <option value="name" selected>Name</option>
+    <option value="namespace">Namespace</option>
+    <option value="prefix">Prefix</option>
+  </select>
+</div>
 <dw-mapping
   .resource=${newMapping}
   .state=${this.addState}>
