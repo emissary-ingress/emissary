@@ -67,8 +67,8 @@ export class Snapshot extends LitElement {
    * instance of the SnapshotWrapper class.
    */
   static subscribe(onSnapshotChange) {
-    const arr = useContext('aes-api-snapshot', null);
-    onSnapshotChange(arr[0] || new SnapshotWrapper({}));
+    const arr = useContext('aes-api-snapshot', new SnapshotWrapper({}));
+    onSnapshotChange(arr[0]);
     registerContextChangeHandler('aes-api-snapshot', onSnapshotChange);
   }
 
@@ -84,7 +84,7 @@ export class Snapshot extends LitElement {
   constructor() {
     super();
 
-    this.setSnapshot = useContext('aes-api-snapshot', null)[1];
+    this.setSnapshot = useContext('aes-api-snapshot', new SnapshotWrapper({}))[1];
     this.setAuthenticated = useContext('auth-state', null)[1];
     this.loading = true;
     this.loadingError = null;
