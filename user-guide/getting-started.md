@@ -32,9 +32,9 @@ kubectl get -n ambassador service ambassador -o 'go-template={{range .status.loa
 
 ### Minikube Users
 
-If you happen to be using Minikube, note that Minikube does not natively support load balancers. Instead, to get the URL of Ambassador from minikube, use `minikube servicelist` to print something similar to the following:
+If you happen to be using Minikube, note that Minikube does not natively support load balancers. Instead, to get the URL of Ambassador from minikube, use <code>minikube servicelist</code> to print something similar to the following:
 
-````(⎈ |minikube:ambassador)$ minikube service list`
+```(⎈ |minikube:ambassador)$ minikube service list
 |-------------|------------------|--------------------------------|
 |  NAMESPACE  |       NAME       |              URL               |
 |-------------|------------------|--------------------------------|
