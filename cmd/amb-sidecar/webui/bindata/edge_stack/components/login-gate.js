@@ -30,6 +30,13 @@ export class LoginGate extends LitElement {
     height: 42px;
     margin-bottom: 1em
 }
+summary:focus {
+    outline: none;
+    color: red;
+}
+.darwinLink, .linuxLink{
+    color: #5F3EFF;
+}
 div.login-section {
     border: 1px solid var(--dw-item-border);
     box-shadow: 0 2px 4px rgba(0,0,0,.1);
@@ -37,16 +44,44 @@ div.login-section {
     margin-bottom: 0.6em;
     line-height: 1.3;
 }
+div.login-container {
+     display: flex;
+     justify-content: space-between;
+}
+div.login-darwin {
+    border: 1px solid #5F3EFF;
+    width: 50%;
+}
+div.login-linux {
+    border: 1px solid #5F3EFF;
+    width: 50%;
+}
 div.info-title {
     font-weight: bold;
     font-size: 120%;
+}
+h1.info-title, p.login-downloadText {
+    text-align: center;
+}
+p.login-instr {
+    font-size: 90%;
+    text-align: center;
+    margin-bottom: 2em;
+}
+p.login-edgectl {
+  font-size: 120%;
+  text-align: center;
+  margin-bottom: 2em;
+}
+p.download {
+    margin: 16px;
 }
 span.command {
     background-color: #f5f2f0;;
     padding: 3px;
     letter-spacing: .2px;
     font-family: Consolas,Monaco,Andale Mono,Ubuntu Mono,monospace;
-    font-size: 80%;
+    font-size: 120%;
     word-spacing: normal;
     word-break: normal;
     word-wrap: normal;
@@ -174,10 +209,14 @@ details {
 
   renderDarwinDetails() {
     return html`
-<details id="darwin" ?open=${this.os === 'darwin'}>
-  <summary><h2 style="display:inline">Darwin</h2></summary>
+  <details id="darwin" ?open=${this.os === 'darwin'}>
+  <summary id="focus"><h2 style="display:inline">Darwin
+    <img src="/edge_stack/images/logos/apple.svg" alt="linux logo" width=35 display=inline>
+          </h2>
+  </summary>
   <pre id="install-darwin">
-sudo curl -fL https://metriton.datawire.io/downloads/darwin/edgectl -o /usr/local/bin/edgectl && \\
+sudo curl -fL https://metriton.datawire.io/downloads
+/darwin/edgectl -o /usr/local/bin/edgectl && \\
 sudo chmod a+x /usr/local/bin/edgectl
   </pre>
 
@@ -189,9 +228,13 @@ sudo chmod a+x /usr/local/bin/edgectl
   renderLinuxDetails() {
     return html`
 <details id="linux" ?open=${this.os === 'linux'}>
-  <summary><h2 style="display:inline">Linux</h2></summary>
+  <summary><h2 style="display:inline">Linux
+    <img src="/edge_stack/images/logos/linuxTux.svg" alt="linux logo" width=35 display=inline>
+          </h2>
+  </summary>
   <pre id="install-linux">
-sudo curl -fL https://metriton.datawire.io/downloads/linux/edgectl -o /usr/local/bin/edgectl && \\
+sudo curl -fL https://metriton.datawire.io/downloads
+/linux/edgectl -o /usr/local/bin/edgectl && \\
 sudo chmod a+x /usr/local/bin/edgectl
   </pre>
 
@@ -203,18 +246,24 @@ sudo chmod a+x /usr/local/bin/edgectl
   renderUnauthenticated() {
     return html`
   <div class="login-section">
-    <h1 class="info-title">Welcome to Ambassador Edge Stack!</h1>
-    <p>
-      To start using the Edge Policy Consule, download the edgectl executable
-      from the getambassador.io
-      website: (<a href="https://metriton.datawire.io/downloads/darwin/edgectl">darwin</a>, <a href="https://metriton.datawire.io/downloads/linux/edgectl">linux</a>).
+    <h1 class="info-title">User Login</h1>
+    <p class="login-downloadText">
+ 
     </p>
-    <p>
-    Once downloaded, you can login to the Edge Policy Console with: <span class="command" id="login">edgectl login --namespace=${this.namespace} ${window.location.host}</span> <button style="margin-left: 1em" @click=${this.copyLoginToKeyboard.bind(this)}>Copy to Clipboard</button>
-    </p>
-
-    ${this.renderDarwinDetails()}
-    ${this.renderLinuxDetails()}
+    <p class="login-instr">
+    Using the Edge Policy Console (edgectl executable) available from the getambassador.io website at the links below, login with <br> </p>
+    <p class="login-edgectl"><span class="command" id="login" style="block">edgectl login --namespace=${this.namespace} ${window.location.host}</span> <button style="margin-left: 1em" @click=${this.copyLoginToKeyboard.bind(this)}>Copy to Clipboard</button>
+   
+    <div class="login-container">
+      <div class="login-darwin">
+        ${this.renderDarwinDetails()}
+      <p class="download">Download <a href="https://metriton.datawire.io/downloads/darwin/edgectl" class="darwinLink">EPC for Darwin </a></p>
+      </div>
+      <div class="login-linux">
+        ${this.renderLinuxDetails()}
+      <p class="download">Download <a href="https://metriton.datawire.io/downloads/linux/edgectl" class="linuxLink">EPC for Linux </a></p>
+      </div>
+    </div>
   </div>
     `;
   }
