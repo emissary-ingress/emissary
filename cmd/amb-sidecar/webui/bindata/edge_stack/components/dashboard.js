@@ -434,8 +434,8 @@ let ClustersPanel = {
     };
 
     /* Draw a circle of the average percentage. */
-    let total_clusters   = clusters_running + clusters_waiting;
-    let average_health   = clusters_pct_sum/clusters_running;
+    let total_clusters   =  clusters_running + clusters_waiting;
+    let average_health   = (clusters_running > 0 ? clusters_pct_sum/clusters_running : 100);
     const twopi  = 6.28; // real pi causes the ellipse to draw incorrectly at 2*pi
     const arcgap = 0.15;
 
