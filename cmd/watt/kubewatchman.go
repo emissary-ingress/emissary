@@ -5,12 +5,14 @@ import (
 
 	"github.com/datawire/ambassador/pkg/k8s"
 	"github.com/datawire/ambassador/pkg/supervisor"
+	"github.com/datawire/ambassador/pkg/watt"
 )
 
 type k8sEvent struct {
 	watchId   string
 	kind      string
 	resources []k8s.Resource
+	errors    []watt.Error
 }
 
 type KubernetesWatchMaker struct {
@@ -120,6 +122,12 @@ func fmtNamespace(ns string) string {
 	return ns
 }
 
+func (b *kubebootstrap) SaveError(message string) {
+	for _, n := range b.notify {
+		n <- k8sEvent{errors: []watt.Error{watt.NewError("kubebootstrap", message)}}
+	}
+}
+
 func (b *kubebootstrap) Work(p *supervisor.Process) error {
 	for _, kind := range b.kinds {
 		p.Logf("adding kubernetes watch for %q in namespace %q", kind, fmtNamespace(kubernetesNamespace))
@@ -136,11 +144,12 @@ func (b *kubebootstrap) Work(p *supervisor.Process) error {
 		}
 
 		err := b.kubeAPIWatcher.SelectiveWatch(b.namespace, kind, b.fieldSelector, b.labelSelector, watcherFunc(b.namespace, kind))
-
 		if err != nil {
 			return err
 		}
 	}
+
+	b.SaveError("gratuitous error before starting")
 
 	b.kubeAPIWatcher.Start()
 	p.Ready()

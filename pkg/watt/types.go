@@ -2,6 +2,7 @@ package watt
 
 import (
 	"encoding/json"
+	"time"
 
 	"github.com/datawire/ambassador/pkg/consulwatch"
 
@@ -24,7 +25,18 @@ func (s *ConsulSnapshot) DeepCopy() (*ConsulSnapshot, error) {
 	return res, err
 }
 
+type Error struct {
+	Source    string
+	Message   string
+	Timestamp int64
+}
+
+func NewError(source, message string) Error {
+	return Error{Source: source, Message: message, Timestamp: time.Now().Unix()}
+}
+
 type Snapshot struct {
 	Consul     ConsulSnapshot            `json:",omitempty"`
 	Kubernetes map[string][]k8s.Resource `json:",omitempty"`
+	Errors     map[string][]Error        `json:",omitempty"`
 }
