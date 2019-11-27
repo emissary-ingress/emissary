@@ -1,5 +1,5 @@
-import {html, css} from '/edge_stack/vendor/lit-element.min.js'
-import {SingleResource, ResourceSet} from '/edge_stack/components/resources.js';
+import {html} from '/edge_stack/vendor/lit-element.min.js'
+import {SingleResource, SortableResourceSet} from '/edge_stack/components/resources.js';
 
 class Mapping extends SingleResource {
   //TODO When Bjorn did a “Save” of a new mapping, he got errors in console about parse errors in the JSON returned from snapshot.
@@ -66,17 +66,14 @@ class Mapping extends SingleResource {
 
 customElements.define('dw-mapping', Mapping);
 
-export class Mappings extends ResourceSet {
-
-  static get properties() {
-    return {
-      sortBy: { type: String }
-    }
-  }
+export class Mappings extends SortableResourceSet {
 
   constructor() {
-    super();
-    this.sortBy = 'name';
+    super([
+      {value: "name", label: "Name"},
+      {value: "namespace", label: "Namespace"},
+      {value: "prefix", label: "Prefix"}
+    ]);
   }
 
   getResources(snapshot) {
@@ -93,21 +90,7 @@ export class Mappings extends ResourceSet {
     }
   }
 
-  onChangeSortByAttribute(e) {
-    this.sortBy = e.target.options[e.target.selectedIndex].value;
-  }
-
-  static get styles() {
-    return css`
-div.sortby {
-  text-align: right;
-  font-size: 80%;
-  margin: -20px 8px 0 0;
-}
-    `
-  }
-
-  render() {
+  renderSet() {
     let newMapping = {
       metadata: {
         namespace: "default",
@@ -119,20 +102,13 @@ div.sortby {
       }
     };
     return html`
-<div class="sortby">Sort by
-  <select id="sortByAttribute" @change=${this.onChangeSortByAttribute}>
-    <option value="name" selected>Name</option>
-    <option value="namespace">Namespace</option>
-    <option value="prefix">Prefix</option>
-  </select>
-</div>
 <dw-mapping
   .resource=${newMapping}
   .state=${this.addState}>
   <add-button></add-button>
 </dw-mapping>
 <div>
-  ${this.resources.sort(this.sortFn(this.sortBy)).map(r => {
+  ${this.resources.map(r => {
     return html`<dw-mapping .resource=${r} .state=${this.state(r)}></dw-mapping>`
   })}
 </div>`
