@@ -68,8 +68,33 @@ customElements.define('dw-mapping', Mapping);
 
 export class Mappings extends ResourceSet {
 
+  static get properties() {
+    return {
+      sortBy: { type: String }
+    }
+  }
+
+  constructor() {
+    super();
+    this.sortBy = 'name';
+  }
+
   getResources(snapshot) {
     return snapshot.getResources('Mapping')
+  }
+
+  sortFn(sortByAttribute) {
+    return function(r1, r2) {
+      if (sortByAttribute === "name" || sortByAttribute === "namespace") {
+        return r1.metadata[sortByAttribute].localeCompare(r2.metadata[sortByAttribute]);
+      } else {
+        return r1.spec[sortByAttribute].localeCompare(r2.spec[sortByAttribute]);
+      }
+    }
+  }
+
+  onChangeSortByAttribute(e) {
+    this.sortBy = e.target.options[e.target.selectedIndex].value;
   }
 
   render() {
@@ -84,13 +109,18 @@ export class Mappings extends ResourceSet {
       }
     };
     return html`
+<select id="sortByAttribute" @change=${this.onChangeSortByAttribute}>
+  <option value="name" selected>Name</option>
+  <option value="namespace">Namespace</option>
+  <option value="prefix">Prefix</option>
+</select>
 <dw-mapping
   .resource=${newMapping}
   .state=${this.addState}>
   <add-button></add-button>
 </dw-mapping>
 <div>
-  ${this.resources.map(r => {
+  ${this.resources.sort(this.sortFn(this.sortBy)).map(r => {
     return html`<dw-mapping .resource=${r} .state=${this.state(r)}></dw-mapping>`
   })}
 </div>`
