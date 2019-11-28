@@ -1,5 +1,5 @@
 import {html} from '/edge_stack/vendor/lit-element.min.js'
-import {SingleResource, ResourceSet} from '/edge_stack/components/resources.js';
+import {SingleResource, SortableResourceSet} from '/edge_stack/components/resources.js';
 
 class Mapping extends SingleResource {
   //TODO When Bjorn did a “Save” of a new mapping, he got errors in console about parse errors in the JSON returned from snapshot.
@@ -66,13 +66,31 @@ class Mapping extends SingleResource {
 
 customElements.define('dw-mapping', Mapping);
 
-export class Mappings extends ResourceSet {
+export class Mappings extends SortableResourceSet {
+
+  constructor() {
+    super([
+      {value: "name", label: "Name"},
+      {value: "namespace", label: "Namespace"},
+      {value: "prefix", label: "Prefix"}
+    ]);
+  }
 
   getResources(snapshot) {
     return snapshot.getResources('Mapping')
   }
 
-  render() {
+  sortFn(sortByAttribute) {
+    return function(r1, r2) {
+      if (sortByAttribute === "name" || sortByAttribute === "namespace") {
+        return r1.metadata[sortByAttribute].localeCompare(r2.metadata[sortByAttribute]);
+      } else {
+        return r1.spec[sortByAttribute].localeCompare(r2.spec[sortByAttribute]);
+      }
+    }
+  }
+
+  renderSet() {
     let newMapping = {
       metadata: {
         namespace: "default",

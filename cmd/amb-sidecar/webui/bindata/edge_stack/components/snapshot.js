@@ -102,8 +102,8 @@ export class Snapshot extends LitElement {
    * instance of the SnapshotWrapper class.
    */
   static subscribe(onSnapshotChange) {
-    const arr = useContext('aes-api-snapshot', null);
-    onSnapshotChange(arr[0] || new SnapshotWrapper({}));
+    const arr = useContext('aes-api-snapshot', new SnapshotWrapper({}));
+    onSnapshotChange(arr[0]);
     registerContextChangeHandler('aes-api-snapshot', onSnapshotChange);
   }
 
@@ -111,6 +111,7 @@ export class Snapshot extends LitElement {
     return {
       data: Object,
       loading: Boolean,
+      loadingError: Boolean,
       fragment: String,
     };
   }
@@ -118,9 +119,10 @@ export class Snapshot extends LitElement {
   constructor() {
     super();
 
-    this.setSnapshot = useContext('aes-api-snapshot', null)[1];
+    this.setSnapshot = useContext('aes-api-snapshot', new SnapshotWrapper({}))[1];
     this.setAuthenticated = useContext('auth-state', null)[1];
     this.loading = true;
+    this.loadingError = null;
 
     if (getCookie("edge_stack_auth")) {
       this.fragment = "should-try";
@@ -137,7 +139,7 @@ export class Snapshot extends LitElement {
       }
     })
       .then((response) => {
-        if (response.status == 400 || response.status == 401 || response.status == 403) {
+        if (response.status === 400 || response.status === 401 || response.status === 403) {
           if (this.fragment === "should-try") {
             updateCredentials(window.location.hash.slice(1));
             this.fragment = "trying";
@@ -150,24 +152,27 @@ export class Snapshot extends LitElement {
         } else {
           response.text()
             .then((text) => {
-              var json
+              var json;
               try {
-                json = JSON.parse(text);
+                  json = JSON.parse(text);
               } catch(err) {
-                console.log('error parsing snapshot', err)
-                console.log(text)
+                this.loadingError = err;
+                this.requestUpdate();
+                console.error('error parsing snapshot', err);
                 setTimeout(this.fetchData.bind(this), 1000);
                 return
               }
-              if (this.fragment == "trying") {
+              if (this.fragment === "trying") {
                 window.location.hash = "";
               }
 
-              this.fragment = ""
-              this.setSnapshot(new SnapshotWrapper(json || {}))
-              this.setAuthenticated(true)
+              this.fragment = "";
+              this.setSnapshot(new SnapshotWrapper(json || {}));
+              this.setAuthenticated(true);
               if (this.loading) {
                 this.loading = false;
+                this.loadingError = null;
+                this.requestUpdate();
                 document.onclick = () => {
                   fetch('/edge_stack/api/activity', {
                     method: 'POST',
@@ -176,16 +181,27 @@ export class Snapshot extends LitElement {
                     }),
                   });
                 }
+              } else {
+                if( this.loadingError ) {
+                  this.loadingError = null;
+                  this.requestUpdate();
+                }
               }
 
               setTimeout(this.fetchData.bind(this), 1000);
             })
             .catch((err) => {
-              console.log('error parsing snapshot', err);
+              this.loadingError = err;
+              this.requestUpdate();
+              console.error('error reading snapshot', err);
             })
         }
       })
-      .catch((err) => { console.log('error fetching snapshot', err); })
+      .catch((err) => {
+        this.loadingError = err;
+        this.requestUpdate();
+        console.error('error fetching snapshot', err);
+      })
   }
 
   firstUpdated() {
@@ -197,6 +213,11 @@ export class Snapshot extends LitElement {
     if (this.loading) {
       return html`
       Loading...
+      `;
+    } else if (this.loadingError) {
+      return html`
+        <slot></slot>
+        <dw-wholepage-error/>
       `;
     } else {
       return html`<slot></slot>`;
