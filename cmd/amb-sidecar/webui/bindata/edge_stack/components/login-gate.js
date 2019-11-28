@@ -217,7 +217,7 @@ details {
   renderDarwinDetails() {
     return html`
   <details id="darwin" ?open=${this.os === 'darwin'}>
-  <summary id="darwinFocus", onClick=${this.removeLinuxFocus}><h2 style="display:inline">Darwin
+  <summary id="darwinFocus"><h2 style="display:inline">Darwin
     <img src="/edge_stack/images/logos/apple.svg" alt="linux logo" width=35 display=inline>
           </h2>
   </summary>
@@ -235,7 +235,7 @@ sudo chmod a+x /usr/local/bin/edgectl
   renderLinuxDetails() {
     return html`
 <details id="linux" ?open=${this.os === 'linux'}>
-  <summary id="linuxFocus", onClick=${this.removeDarwinFocus}><h2 style="display:inline">Linux
+  <summary id="linuxFocus"><h2 style="display:inline">Linux
     <img src="/edge_stack/images/logos/linuxTux.svg" alt="linux logo" width=40 display=inline>
           </h2>
   </summary>
@@ -259,7 +259,7 @@ sudo chmod a+x /usr/local/bin/edgectl
  
     </p>
     <p class="login-instr">
-    Using the Edge Policy Console (edgectl executable) available from the getambassador.io website at the links below, login with <br> </p>
+    Using the Edge Policy Console (edgectl executable) available from the datawire.io website at the links below, login with <br> </p>
     <p class="login-edgectl"><span class="command" id="login" style="block">edgectl login --namespace=${this.namespace} ${window.location.host}</span> <button style="margin-left: 1em" @click=${this.copyLoginToKeyboard.bind(this)}>Copy to Clipboard</button>
    
     <div class="login-container">
