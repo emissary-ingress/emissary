@@ -18,7 +18,11 @@ import (
 // §2.1.  If there is no Bearer Token, it returns an empty string and no error.  A valid Bearer
 // Token is never empty.
 func GetFromHeader(header http.Header) (string, error) {
-	credentials, err := rfc7235.ParseCredentials(header.Get("Authorization"))
+	str := header.Get("Authorization")
+	if str == "" {
+		return "", nil
+	}
+	credentials, err := rfc7235.ParseCredentials(str)
 	if err != nil {
 		return "", errors.Wrap(err, "invalid Authorization header")
 	}
