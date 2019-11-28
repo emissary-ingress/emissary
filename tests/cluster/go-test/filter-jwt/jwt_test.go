@@ -98,31 +98,33 @@ func TestJWTInjectHeaders(t *testing.T) {
 	}
 }
 
+// customErrorResponse is the custom bodyTemplate in 04-filter-jwt.yaml
+type customErrorResponse struct {
+	ErrorMessage    string `json:"errorMessage"`
+	AltErrorMessage string `json:"altErrorMessage"`
+	ErrorCode       int    `json:"errorCode"`
+	HTTPStatus      string `json:"httpStatus"`
+	//RequestID       string `json:"requestId"`
+}
+
 func TestJWTErrorResponse(t *testing.T) {
+	t.Parallel()
 	assert := &testutil.Assert{T: t}
 
 	// build the test-case /////////////////////////////////////////////////
-	tokenStruct := jwt.NewWithClaims(jwt.GetSigningMethod("none"), jwt.MapClaims{
+	tokenString, err := jwt.NewWithClaims(jwt.GetSigningMethod("none"), jwt.MapClaims{
 		"sub":  "1234567890",
 		"name": "John Doe",
 		"iat":  1516239022,
 		"exp":  1516239023,
-	})
-	tokenStruct.Header["extra"] = "so much"
-	tokenString, err := tokenStruct.SignedString(jwt.UnsafeAllowNoneSignatureType)
+	}).SignedString(jwt.UnsafeAllowNoneSignatureType)
 	assert.NotError(err)
 
 	testHeaders := map[string]string{
 		"X-Correlation-ID": "foobar",
 		"Content-Type":     "application/json",
 	}
-	testBody := struct {
-		ErrorMessage    string `json:"errorMessage"`
-		AltErrorMessage string `json:"altErrorMessage"`
-		ErrorCode       int    `json:"errorCode"`
-		HTTPStatus      string `json:"httpStatus"`
-		//RequestID       string `json:"requestId"`
-	}{
+	testBody := customErrorResponse{
 		ErrorMessage:    "Token validation error: token is invalid: errorFlags=0x00000010=(ValidationErrorExpired) wrappedError=(Token is expired)",
 		AltErrorMessage: "expired",
 		ErrorCode:       16,
@@ -158,13 +160,7 @@ func TestJWTErrorResponse(t *testing.T) {
 	bodyBytes, err := ioutil.ReadAll(resp.Body)
 	assert.NotError(err)
 	t.Logf("Body: %s", bodyBytes)
-	var body struct {
-		ErrorMessage    string `json:"errorMessage"`
-		AltErrorMessage string `json:"altErrorMessage"`
-		ErrorCode       int    `json:"errorCode"`
-		HTTPStatus      string `json:"httpStatus"`
-		//RequestID       string `json:"requestId"`
-	}
+	var body customErrorResponse
 	assert.NotError(json.Unmarshal(bodyBytes, &body))
 
 	for key, val := range testHeaders {
