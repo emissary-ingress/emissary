@@ -59,6 +59,46 @@ let countString = function(count, singular_text, plural_text) {
     }
 };
 
+let LicensePanel = {
+  _title: "License",
+  _elementId: "license",
+  licenseClaims: {},
+  featuresOverLimit: [],
+
+  render: function() {
+    return (this.featuresOverLimit.length > 0 || !this.isLicenseRegistered() ? html`
+    <div class="element" style="cursor:pointer">
+      <div class="element-titlebar">${this._title}</div>
+      <div class="element-content centered" id=“${this._elementId}”>
+        <div>
+        ${this.featuresOverLimit.length > 0
+          ? html`<div style="color:red; font-weight: bold">
+                  You've reached the usage limits for your license.
+                  ${this.isLicenseRegistered() 
+                    ? html`<br/>If you need to use Ambassador beyond the current limits, <a href="https://www.getambassador.io/contact/">please contact Datawire</a> for an Enterprise license.` 
+                    : html``}
+                 </div>`
+          : html``
+        }
+        <br/>
+        ${!this.isLicenseRegistered() ? html`<dw-signup></dw-signup>` : html``}
+        </div>
+      </div>
+    </div>` : html``)
+  },
+
+  onSnapshotChange: function(snapshot) {
+    this.licenseClaims = snapshot.getLicense().Claims || {};
+    this.featuresOverLimit = snapshot.getLicense().FeaturesOverLimit || [];
+	},
+
+  isLicenseRegistered: function() {
+    return this.licenseClaims && this.licenseClaims.customer_id !== "unregistered";
+  },
+
+  draw: function(shadow_root) { /*text panel, no chart to draw*/ },
+};
+
 /**
  * Panel showing a count of the Hosts, Mappings, and Services
  */
@@ -73,7 +113,7 @@ let CountsPanel = {
     return html`
     <div class="element" style="cursor:pointer">
       <div class="element-titlebar">${this._title}</div>
-      <div class="element-content" id=“${this._elementId}”>
+      <div class="element-content " id=“${this._elementId}”>
         <p style="margin-top: 2.8em"><span class = "status" @click=${this.onClickHosts}>${countString(this._hostsCount, "Host", "Hosts")}</span></p>
         <p><span class = "status" @click=${this.onClickMappings}>${countString(this._mappingsCount, "Mapping", "Mappings")}</span></p>
         <p><span class = "status" @click=${this.onClickServices}>${countString(this._servicesCount, "Service", "Services")}</span></p>
@@ -242,6 +282,11 @@ export class Dashboard extends LitElement {
         top-margin: 0px;
         left-margin: 20px;
       }
+      div.centered {
+        display: flex;
+        justify-content: center;
+        align-items: center
+      }
       div.element-content p {
         margin-top: 0.5em;
         margin-bottom: 0.5em;
@@ -280,7 +325,7 @@ export class Dashboard extends LitElement {
     super();
 
     /* Initialize the list of dashboard panels */
-    this._panels = [ StatusPanel, CountsPanel ];
+    this._panels = [ StatusPanel, CountsPanel, LicensePanel ];
 
     Snapshot.subscribe(this.onSnapshotChange.bind(this));
   };
