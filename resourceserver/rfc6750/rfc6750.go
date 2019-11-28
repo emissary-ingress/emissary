@@ -18,25 +18,18 @@ import (
 // §2.1.  If there is no Bearer Token, it returns an empty string and no error.  A valid Bearer
 // Token is never empty.
 func GetFromHeader(header http.Header) (string, error) {
-	// RFC 7235 specifically mentions that there may be multiple WWW-Authenticate response
-	// headers, but makes no explicit mention about how to handle multiple Authorization request
-	// headers.  Given the possiblity of multiple challenges, I think it only makes sense to do
-	// the same here and allow multiple credentials.
-	for _, credentialsStr := range header[http.CanonicalHeaderKey("Authorization")] {
-		credentials, err := rfc7235.ParseCredentials(credentialsStr)
-		if !strings.EqualFold(credentials.AuthScheme, "Bearer") {
-			continue
-		}
-		if err != nil {
-			return "", err
-		}
-		token, tokenOK := credentials.Body.(rfc7235.CredentialsLegacy)
-		if !tokenOK {
-			return "", errors.New("invalid Bearer credentials: used auth-param syntax instead of token68 syntax")
-		}
-		return token.String(), nil
+	credentials, err := rfc7235.ParseCredentials(header.Get("Authorization"))
+	if err != nil {
+		return "", errors.Wrap(err, "invalid Authorization header")
 	}
-	return "", nil
+	if !strings.EqualFold(credentials.AuthScheme, "Bearer") {
+		return "", nil
+	}
+	token, tokenOK := credentials.Body.(rfc7235.CredentialsLegacy)
+	if !tokenOK {
+		return "", errors.New("invalid Bearer credentials: used auth-param syntax instead of token68 syntax")
+	}
+	return token.String(), nil
 }
 
 // GetFromBody returns the Bearer Token extracted from an "application/x-www-form-urlencoded"

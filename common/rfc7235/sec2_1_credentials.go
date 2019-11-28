@@ -6,7 +6,6 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/datawire/apro/common/rfc7235/internal/rfc5234"
 	"github.com/datawire/apro/common/rfc7235/internal/rfc7230"
 )
 
@@ -20,79 +19,66 @@ func (c Credentials) String() string {
 	return c.AuthScheme + " " + c.Body.String()
 }
 
-// ParseCredentials parses a string containing Credentials, as defined by §2.1.
+// ParseCredentials parses a string as a set of credentials as defined by §2.1.
 //
-// If an auth-scheme is parsed, then the returned Credentials will have AuthScheme set, even if there
-// is an error parsing the remainder and an error is returned.
+// If the entirety of str can't be parsed as a set of credentials, then (Credentials{}, err) is
+// returned, where err describes what's wrong with the input sting.
 func ParseCredentials(str string) (Credentials, error) {
+	ret, rest, err := scanCredentials(str)
+	if err != nil {
+		return Credentials{}, err
+	}
+	if rest != "" {
+		return Credentials{}, errors.Errorf("invalid credentials: unparsable suffix: %q", rest)
+	}
+	return ret, nil
+}
+
+// scanCredentials scans credentials (as defined by §2.1) from the beginning of a string, and
+// returns the structured result, as well as the remainder of the input string.
+//
+// If the input does not have credentials as a prefix, then (Credentials{}, "", err) is returned,
+// where err explains why the prefix is not a set of credentials.
+func scanCredentials(str string) (Credentials, string, error) {
 	// ABNF:
-	//     credentials    = auth-scheme [ 1*SP ( token68 / [ ( "," / auth-param ) *( OWS "," [ OWS auth-param ] ) ] ) ]
+	//     credentials    = auth-scheme [ 1*SP ( token68 / #auth-param ) ]
+	//     auth-scheme    = token
 	//     token68        = 1*( ALPHA / DIGIT / "-" / "." / "_" / "~" / "+" / "/" ) *"="
 	//     auth-param     = token BWS "=" BWS ( token / quoted-string )
 	//     OWS            = *( SP / HTAB )
 	//     BWS            = OWS
+
 	sp := strings.IndexByte(str, ' ')
 	if sp < 0 {
-		sp = len(str)
+		return Credentials{}, "", errors.New("invalid credentials: no ' ' (SP) to separate the auth-scheme from the body")
 	}
-
 	authScheme := str[:sp]
-	bodyStr := strings.TrimLeft(str[sp:], " ")
-
+	rest := strings.TrimLeft(str[sp:], " ")
 	if !rfc7230.IsValidToken(authScheme) {
-		return Credentials{}, errors.Errorf("invalid credentials: invalid auth-scheme: %q", authScheme)
+		return Credentials{}, "", errors.Errorf("invalid credentials: invalid auth-scheme: %q", authScheme)
 	}
 
-	ret := Credentials{
-		AuthScheme: authScheme,
-	}
-
-	if strings.Trim(strings.TrimRight(bodyStr, "="), rfc5234.CharsetALPHA+rfc5234.CharsetDIGIT+"-._~+/") == "" {
-		// token68
-		ret.Body = CredentialsLegacy(bodyStr)
-	} else {
-		// auth-param list
-		//
-		// ABNF:
-		//     [ ( "," / auth-param ) *( OWS "," [ OWS auth-param ] ) ]
-		bodyList := CredentialsParameters{}
-		if len(bodyStr) > 0 {
-			var param AuthParam
-			var err error
-			// leading part
-			if bodyStr[0] == ',' {
-				bodyStr = bodyStr[1:]
-			} else {
-				param, bodyStr, err = scanAuthParam(bodyStr)
-				if err != nil {
-					return ret, errors.Wrap(err, "invalid credentials")
-				}
-				bodyList = append(bodyList, param)
-			}
-			// repeating part
-			for len(bodyStr) > 0 {
-				// ABNF: OWS ","
-				bodyStr = strings.TrimLeft(bodyStr, " \t")
-				if len(bodyStr) == 0 {
-					return ret, errors.New("invalid credentials: expected a ',' bug got EOF")
-				} else if bodyStr[0] != ',' {
-					return ret, errors.Errorf("invalid credentials: expected a ',' bug got %#v", bodyStr[0])
-				}
-				bodyStr = bodyStr[1:]
-				// ABNF: [ OWS auth-param ]
-				if len(strings.TrimLeft(bodyStr, " \t")) > 0 {
-					param, bodyStr, err = scanAuthParam(strings.TrimLeft(bodyStr, " \t"))
-					if err != nil {
-						return ret, errors.Wrap(err, "invalid credentials")
-					}
-					bodyList = append(bodyList, param)
-				}
-			}
+	// try both, and choose the greedy option
+	var body CredentialsBody
+	legacyStr, legacyRest, legacyErr := scanToken68(rest)
+	paramsRaw, paramsRest, paramsErr := rfc7230.ScanList(rest, 0, 0, func(input string) (interface{}, string, error) { return scanAuthParam(input) })
+	switch {
+	case legacyErr != nil && paramsErr != nil:
+		return Credentials{}, "", errors.Errorf("invalid credentials: body does not appear to be a token68 (%v) or an auth-param list (%v)", legacyErr, paramsErr)
+	case legacyErr == nil && (paramsErr != nil || len(legacyRest) < len(paramsRest)):
+		body = CredentialsLegacy(legacyStr)
+		rest = legacyRest
+	case paramsErr == nil && (legacyErr != nil || len(paramsRest) < len(legacyRest)):
+		_body := make(CredentialsParameters, 0, len(paramsRaw))
+		for _, param := range paramsRaw {
+			_body = append(_body, param.(AuthParam))
 		}
-		ret.Body = bodyList
+		body = _body
+		rest = paramsRest
+	default:
+		panic("should not happen")
 	}
-
-	return ret, nil
+	return Credentials{AuthScheme: authScheme, Body: body}, rest, nil
 }
 
 // CredentialsBody is the body of a set of Credentials; either CredentialsParameters or
