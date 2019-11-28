@@ -99,7 +99,7 @@ let renderArc = function(color, start_rad, end_rad) {
       //return "M " + sX + " " + sY + " A " + [ rx , ry , φ / (2*π) *360, fA, fS, eX, eY ].join(" ")
     });
 
-    var result = html`
+    var result = svg`
         <g stroke="${color}" fill="none" stroke-linecap="round" stroke-width="8">
             <path d="${f_svg_ellipse_arc([100,100], [90,90], [start_rad,end_rad], 0)}"/>
         </g>
@@ -375,11 +375,11 @@ let StatusPanel = {
 
 
   /**
- * Panel showing Cluster count and status
+ * Panel showing Services count and status
  */
-let ClustersPanel = {
-  _title: "Clusters",
-  _elementId: "clusters_status",
+let ServicesPanel = {
+  _title: "Services",
+  _elementId: "services_status",
 
   render: function() {
     const cos = Math.cos;
@@ -415,27 +415,27 @@ let ClustersPanel = {
     let errors= this._diagd.errors.length;
     let stats = this._diagd.cluster_stats;
 
-    /* Calculate number of running and waiting clusters,
-     * and for running clusters, average health percentage
+    /* Calculate number of running and waiting services,
+     * and for running services, average health percentage
      */
 
-    let clusters_running = 0;
-    let clusters_waiting = 0;
-    let clusters_pct_sum = 0;
+    let services_running = 0;
+    let services_waiting = 0;
+    let services_pct_sum = 0;
 
     for (const [key, value] of Object.entries(stats)) {
       if (value.healthy_percent) {
-        clusters_running += 1
-        clusters_pct_sum += value.healthy_percent
+        services_running += 1
+        services_pct_sum += value.healthy_percent
       }
       else {
-        clusters_waiting += 1
+        services_waiting += 1
       }
     };
 
     /* Draw a circle of the average percentage. */
-    let total_clusters   =  clusters_running + clusters_waiting;
-    let average_health   = (clusters_running > 0 ? clusters_pct_sum/clusters_running : 100);
+    let total_services   =  services_running + services_waiting;
+    let average_health   = 35; // (services_running > 0 ? services_pct_sum/services_running : 100);
     const twopi  = 6.28; // real pi causes the ellipse to draw incorrectly at 2*pi
     const arcgap = 0.15;
 
@@ -449,6 +449,24 @@ let ClustersPanel = {
 
     var result;
 
+   result = html`
+      <div class="element" style="cursor:pointer" @click=${this.onClick}>
+        <div class="element-titlebar">${this._title}</div>
+        <div class="element-content" id=“${this._elementId}”>
+          <svg class="element-svg-overlay">
+            ${renderArc("#22EE55", 0, health_radians)}
+            ${average_health < 100 ? renderArc("red", health_radians+arcgap, twopi-health_radians-2*arcgap) : html``}
+          </svg>
+          <div class="system-status">
+          <p><span class = "status" style="color: green">${countString(total_services, "Service", "Services")}</span></p>
+          <p><span class = "status" style="color: ${average_health >= 80  ? "green" : "gray"}">${average_health}% Healthy</span></p>
+          <p><span class = "status" style="color: ${services_waiting == 0 ? "green" : "gray"}">${services_waiting} Waiting</span></p>
+  
+          </div>
+        </div>
+      </div>`;
+
+    /*
     if (average_health == 100) {
       result = html`
       <div class="element" style="cursor:pointer" @click=${this.onClick}>
@@ -460,9 +478,9 @@ let ClustersPanel = {
              </g>
           </svg>
           <div class="system-status">
-          <p><span class = "status" style="color: green">${countString(total_clusters, "Cluster", "Clusters")}</span></p>
+          <p><span class = "status" style="color: green">${countString(total_services, "Service", "Services")}</span></p>
           <p><span class = "status" style="color: ${average_health >= 80  ? "green" : "gray"}">${average_health}% Healthy</span></p>
-          <p><span class = "status" style="color: ${clusters_waiting == 0 ? "green" : "gray"}">${clusters_waiting} Waiting</span></p>
+          <p><span class = "status" style="color: ${services_waiting == 0 ? "green" : "gray"}">${services_waiting} Waiting</span></p>
   
           </div>
         </div>
@@ -482,14 +500,15 @@ let ClustersPanel = {
             </g>
           </svg>
           <div class="system-status">
-          <p><span class = "status" style="color: green">${countString(total_clusters, "Cluster", "Clusters")}</span></p>
+          <p><span class = "status" style="color: green">${countString(total_services, "Service", "Services")}</span></p>
           <p><span class = "status" style="color: ${average_health >= 80  ? "green" : "gray"}">${average_health}% Healthy</span></p>
-          <p><span class = "status" style="color: ${clusters_waiting == 0 ? "green" : "gray"}">${clusters_waiting} Waiting</span></p>
+          <p><span class = "status" style="color: ${services_waiting == 0 ? "green" : "gray"}">${services_waiting} Waiting</span></p>
   
           </div>
         </div>
       </div>`;
     };
+     */
 
     return result;
   },
@@ -605,7 +624,7 @@ export class Dashboard extends LitElement {
     super();
 
     /* Initialize the list of dashboard panels */
-    this._panels = [StatusPanel, CountsPanel, ClustersPanel];
+    this._panels = [StatusPanel, CountsPanel, ServicesPanel];
 
     Snapshot.subscribe(this.onSnapshotChange.bind(this));
     /* Set up the Google Charts setOnLoad callback.  Note that we can't draw
