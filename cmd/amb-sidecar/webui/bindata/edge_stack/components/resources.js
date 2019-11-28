@@ -2,11 +2,6 @@ import { LitElement, html, css} from '/edge_stack/vendor/lit-element.min.js'
 import {Snapshot} from '/edge_stack/components/snapshot.js'
 import {getCookie} from '/edge_stack/components/cookies.js';
 
-const aes_editable   = "AES-UI-Editable";
-const aes_changed    = "AES-UI-Changed";
-const aes_source     = "AES-UI-Source-URI";
-const aes_downloaded = "AES-UI-Downloaded";
-
 /**
  * The classes in this file provide the building blocks we use for
  * displaying, adding, and editing kubernetes resources, most
@@ -359,12 +354,6 @@ span.code {
   }
 
   // internal
-  annotations() {
-    return this.resource.metadata.annotations;
-  }
-
-
-  // internal
   nameInput() {
     return this.shadowRoot.querySelector(`input[name="name"]`)
   }
@@ -390,7 +379,6 @@ span.code {
       return
     }
 
-    let ts = 1;
     let yaml = `
 ---
 apiVersion: getambassador.io/v2
@@ -398,9 +386,6 @@ kind: ${this.kind()}
 metadata:
   name: "${this.nameInput().value}"
   namespace: "${this.namespaceInput().value}"
-  annotations:
-    ${aes_changed}: ${ts}
-    ${aes_downloaded}: false
 spec: ${JSON.stringify(this.spec())}
 `;
 
@@ -487,18 +472,9 @@ spec: ${JSON.stringify(this.spec())}
 
   /**
    * Override this method to make this object be read-only.
-   * Default functionality is to check for an annotation that
-   * allows editing.  Default is read-only unless the annotation
-   * is set to true.
    */
   readOnly() {
-    let annotations = this.annotations;
-    if (aes_editable_key in annotations) {
-      return !annotations[aes_editable_key];
-    }
-    else {
-      return false;
-    }
+    return false;
   }
 
   /**
