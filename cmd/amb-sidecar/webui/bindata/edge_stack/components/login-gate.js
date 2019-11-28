@@ -30,6 +30,9 @@ export class LoginGate extends LitElement {
     height: 42px;
     margin-bottom: 1em
 }
+button:hover {
+  background-color: #a9a9a9;
+}
 summary:focus {
     outline: none;
     color: red;
@@ -119,7 +122,7 @@ details {
 
     this.namespace = '';
     this.os = this.getOS();
-
+    
     this.loadData();
 
     this.authenticated = useContext('auth-state', null)[0];
@@ -174,6 +177,10 @@ details {
     `;
   }
 
+  updated(changedProperties) {
+    this.renderFocus();
+  }
+
   copyToKeyboard(theId) {
     const copyText = this.shadowRoot.getElementById(theId).innerText;
     const el = document.createElement('textarea');  // Create a <textarea> element
@@ -210,7 +217,7 @@ details {
   renderDarwinDetails() {
     return html`
   <details id="darwin" ?open=${this.os === 'darwin'}>
-  <summary id="focus"><h2 style="display:inline">Darwin
+  <summary id="darwinFocus", onClick=${this.removeLinuxFocus}><h2 style="display:inline">Darwin
     <img src="/edge_stack/images/logos/apple.svg" alt="linux logo" width=35 display=inline>
           </h2>
   </summary>
@@ -228,10 +235,11 @@ sudo chmod a+x /usr/local/bin/edgectl
   renderLinuxDetails() {
     return html`
 <details id="linux" ?open=${this.os === 'linux'}>
-  <summary><h2 style="display:inline">Linux
-    <img src="/edge_stack/images/logos/linuxTux.svg" alt="linux logo" width=35 display=inline>
+  <summary id="linuxFocus", onClick=${this.removeDarwinFocus}><h2 style="display:inline">Linux
+    <img src="/edge_stack/images/logos/linuxTux.svg" alt="linux logo" width=40 display=inline>
           </h2>
   </summary>
+  
   <pre id="install-linux">
 sudo curl -fL https://metriton.datawire.io/downloads
 /linux/edgectl -o /usr/local/bin/edgectl && \\
@@ -266,6 +274,15 @@ sudo chmod a+x /usr/local/bin/edgectl
     </div>
   </div>
     `;
+  }
+
+  renderFocus() {
+    if (this.os === "darwin"){
+    this.shadowRoot.getElementById('darwinFocus').focus();
+    
+    } else if (this.os === "linux") {
+    this.shadowRoot.getElementById('linuxFocus').focus();  
+    }
   }
 
   render() {
