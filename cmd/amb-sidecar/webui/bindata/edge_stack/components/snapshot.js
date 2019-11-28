@@ -2,6 +2,11 @@ import  {LitElement, html} from '/edge_stack/vendor/lit-element.min.js';
 import {registerContextChangeHandler, useContext} from '/edge_stack/components/context.js';
 import {getCookie} from '/edge_stack/components/cookies.js';
 
+export const aes_res_editable   = "aes-res-editable";
+export const aes_res_changed    = "aes-res-changed";
+export const aes_res_source     = "aes-res-source-uri";
+export const aes_res_downloaded = "aes-res-downloaded";
+
 function updateCredentials(value) {
   // Keep this in-sync with webui.go:registerActivity()
   //
@@ -54,8 +59,23 @@ class SnapshotWrapper {
     var resolvers = this.getResources("Resolver");
     var resources = [].concat(hosts, mappings, services, resolvers);
 
-    /* filter on annotation: "AES-UI-Changed": true */
-    return resources;
+    /* filter on annotation: "aes-res-changed".
+    *  if the key exists in the annotations, it's changed,
+    *  and the value is the timestamp of the change.
+    */
+    var changed = resources.filter((res) => {
+      let md = res.metadata;
+      if ("annotations" in md) {
+        var changeDate = md.annotations.aes_res_changed;
+        return !(changeDate === undefined)
+      }
+      else {
+        return false
+      }
+    });
+
+    /* list of changed resources. */
+    return changed;
   };
 
   /**

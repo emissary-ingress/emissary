@@ -1,48 +1,80 @@
-import {html} from '/edge_stack/vendor/lit-element.min.js'
+import {css, html} from '/edge_stack/vendor/lit-element.min.js'
 import {SingleResource, ResourceSet} from '/edge_stack/components/resources.js';
-import {getCookie} from '/edge_stack/components/cookies.js';
 
-/**
- * A YAMLItem is the UI-side object for a "getambassador.io/v2" resource of any kind.
- */
-export class YAMLItem extends SingleResource {
-  constructor() {
-    super();
-  }
 
-  render() {
-  let resource = this.resource;
+/* Extremely simple SingleResource subclass to list resource items. */
+class YAMLItem extends SingleResource {
+  /** Return the kind of this specific resource. */
+  kind() {
+    let res = this.resource;
+    return ("kind" in res ? res.kind : "")
+  };
 
-  return html`Resource YAML goes here...`;
+  /* Don't allow editing, since we're just listing the resources. */
+  readOnly() {
+    return true;
+  };
 
-  return html`
-    <div class="attribute-name">Resource:</div>
-    <div class="attribute-value">
-      <span class="${this.visible("list")}">${resource.name}</span>
-    </div>
-    
-    <div class="attribute-name">YAML:</div>
-    <div class="attribute-value">
-    <span class="${this.visible("list")}">${resource._yaml}</span>
-    </div>`
-  }
+  /* renderResource: no content, resources.js will draw titles. */
+  renderResource() {
+    return html``
+  };
 }
 
 customElements.define('dw-yaml-item', YAMLItem);
 
+
+/* Extremely simple ResourceSet subclass to list changed resources. */
 export class YAMLDownloads extends ResourceSet {
+
+    /* styles() returns the styles for the YAML downloads list. */
+  static get styles() {
+    return css`
+      .section-heading {
+        margin: 0.1em;
+        font-size: 120%;
+        font-weight: bold;
+        margin-top: 0;
+      }
+`
+  };
+
   getResources(snapshot) {
-    return snapshot.GetChangedResources()
+    return snapshot.getChangedResources()
   }
 
   render() {
+    /* Template for ResourceSet*/
+    let newItem = {
+      metadata: {
+        namespace: "default",
+        name: ""
+      },
+      spec: {
+        prefix: "",
+        service: ""
+      }
+    };
 
+    /* Title depending on whether there are changes to download. */
+    let changed_title =
+      this.resources.length > 0
+        ? "Changed Resources to download:"
+        : "No Changed Resources";
+
+    /* The HTML: */
     return html`
-      <div>
-        ${this.resources.map(h => html`<dw-yaml-item .resource=${h}}></dw-yaml-item>`)}
-      </div>`
+    <div class="section-heading">${changed_title}</div>
+    <dw-yaml-item .resource=${newItem} .state=${this.addState}>
+    </dw-yaml-item>
+    
+    <div>
+    ${this.resources.map(r => {
+    return html`<dw-yaml-item .resource=${r} .state=${this.state(r)}></dw-yaml-item>`
+    })}
+    </div>
+`
   }
-
 }
 
 customElements.define('dw-yaml-dl', YAMLDownloads);
