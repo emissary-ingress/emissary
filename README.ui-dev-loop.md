@@ -32,7 +32,7 @@ Run all these commands from the root of your apro checkout:
     b. Run the sidecar locally:
 
        ```sh
-       DEV_WEBUI_DIR=${PWD}/cmd/amb-sidecar/webui/bindata APRO_HTTP_PORT=8501 DEV_WEBUI_PORT=9000 go run ./cmd/amb-sidecar
+       DEV_WEBUI_DIR=${PWD}/cmd/amb-sidecar/webui/bindata POD_NAMESPACE=ambassador APRO_HTTP_PORT=8501 DEV_WEBUI_PORT=9000 go run ./cmd/amb-sidecar
        ```
 
 2. Visit http://localhost:9000 in your browser
@@ -52,7 +52,7 @@ Run all these commands from the root of your apro checkout:
 4a. To get data directly from the cluster, use the DEV_WEBUI_SNAPSHOT_HOST environment variable:
 
        ```sh
-       DEV_WEBUI_SNAPSHOT_HOST=<my-cluster-host-or-ip> DEV_WEBUI_DIR=${PWD}/cmd/amb-sidecar/webui/bindata APRO_HTTP_PORT=8501 DEV_WEBUI_PORT=9000 go run ./cmd/amb-sidecar
+       DEV_WEBUI_SNAPSHOT_HOST=<my-cluster-host-or-ip> POD_NAMESPACE=ambassador DEV_WEBUI_DIR=${PWD}/cmd/amb-sidecar/webui/bindata APRO_HTTP_PORT=8501 DEV_WEBUI_PORT=9000 go run ./cmd/amb-sidecar
        ```
 
     The local backend will then forward all snapshot requests to the backend in the cluster.

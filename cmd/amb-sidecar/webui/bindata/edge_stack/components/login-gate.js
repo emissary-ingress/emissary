@@ -159,7 +159,7 @@ details {
         this.hasError = false;
       })
       .catch((err) => {
-        console.log(err);
+        console.error(err);
         this.loading = false;
         this.hasError = true;
       });
@@ -167,7 +167,7 @@ details {
 
   renderError() {
     return html`
-<p>Error check the console.</p>
+<dw-wholepage-error/>
     `;
   }
 
@@ -288,7 +288,7 @@ sudo chmod a+x /usr/local/bin/edgectl
   render() {
     if (this.hasError) {
       return this.renderError();
-    } else if (this.loading || this.authenticated == null) {
+    } else if (this.loading) {
       return this.renderLoading();
     } else if (!this.authenticated) {
       return this.renderUnauthenticated();
