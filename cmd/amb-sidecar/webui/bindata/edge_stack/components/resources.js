@@ -761,9 +761,9 @@ export class SortableResourceSet extends ResourceSet {
   static get styles() {
     return css`
 div.sortby {
-  text-align: right;
-  font-size: 80%;
-  margin: -20px 8px 0 0;
+    text-align: right;
+    font-size: 80%;
+    margin: -20px 8px 0 0;
 }
     `
   }
