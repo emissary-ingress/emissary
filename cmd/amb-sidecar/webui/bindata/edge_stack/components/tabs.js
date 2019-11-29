@@ -69,6 +69,7 @@ export class Tabs extends LitElement {
     super();
 
     this.current = '';
+    this.links = [];
     this.tabs = [];
     Array.from(this.children).forEach(node => {
       if (node.localName == "dw-tab") {
