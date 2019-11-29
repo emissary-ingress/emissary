@@ -25,14 +25,17 @@ template.innerHTML = `
       box-shadow: 0 2px 4px 0 rgba(0,0,0, 0.05), 0 2px 8px 0 rgba(161,161,161, 0.4);
       color: #363636;
     }
+    button:focus {
+      background-color: red;
+    }
     :host {
         position: absolute;
         top: 0.1em;
         right: 0.1em;
     }
   </style>
-  <div class="container">
-    <button>+</button>
+  <div class="container" tabindex="1">
+    <button>+++</button>
   </div>
 `;
 class AddButton extends HTMLElement {

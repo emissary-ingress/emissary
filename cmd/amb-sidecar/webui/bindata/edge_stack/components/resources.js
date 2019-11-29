@@ -120,6 +120,10 @@ export class SingleResource extends LitElement {
 .error {
   color: red;
 }
+button:hover,
+button:focus {
+  background-color: #ede7f3;
+}
 div {
 /*  margin: 0.4em; */
 }
@@ -189,6 +193,10 @@ div.error-value li {
 }
 .off { 
   display: none; 
+}
+input:hover,
+input:focus {
+  background-color: #ede7f3;
 }
 span.code { 
   font-family: Monaco, monospace;
@@ -764,6 +772,12 @@ div.sortby {
     text-align: right;
     font-size: 80%;
     margin: -20px 8px 0 0;
+}
+select:hover {
+    background-color: #ede7f3;
+}
+select:focus {
+    background-color: #ede7f3;
 }
     `
   }
