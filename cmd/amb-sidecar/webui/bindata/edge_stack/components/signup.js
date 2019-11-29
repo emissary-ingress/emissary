@@ -34,6 +34,13 @@ div.admin-section {
     line-height: 1.3;
     position: relative;
 }
+
+form {
+    text-align: left;
+}
+form input[type=text] {
+    width: 100px;
+}
 `
   }
 
@@ -103,7 +110,8 @@ div.admin-section {
           if ("vid" in res) {
             this.message = "Congratulations! A license key has been sent to " + this.email().value
           } else {
-            this.message = "Sorry, there was a problem processing your request. Please contact support@datawire.io and supply this:<br>" + btoa(JSON.stringify(res))
+            this.message = "Sorry, there was a problem processing your request. Please contact support@datawire.io";
+            console.error(btoa(JSON.stringify(res)));
           }
         })
         .catch(error=>console.log(error))
