@@ -14,6 +14,18 @@ if( urlParams.has('debug-backend') ) {
 }
 
 export function ApiFetch(url, init_values) {
-  return fetch(ApiRootUrl + url, init_values );
+  let the_url = url;
+  if( ApiRootUrl ) {
+    if( !((typeof(the_url) === 'string') || (the_url instanceof String)) ) {
+      the_url = '' + the_url;
+    }
+    if( the_url.startsWith('http') ) {
+      let m = the_url.match(/^[^\/]*\/\/[^\/]*(.*)$/)
+      the_url = ApiRootUrl + m[1]
+    } else {
+      the_url = ApiRootUrl + the_url
+    }
+  }
+  return fetch(the_url, init_values );
 }
 

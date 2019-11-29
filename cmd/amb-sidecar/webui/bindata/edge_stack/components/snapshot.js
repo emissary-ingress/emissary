@@ -15,8 +15,7 @@ function updateCredentials(value) {
   //   would instead also match "*.${window.location.hostname".
   //
   // - Restrict it to the `/edge_stack/*` path.
-//MOREMORE  document.cookie = `edge_stack_auth=${value}; path=/edge_stack/`;
-  document.cookie = `edge_stack_auth=${value}`;
+  document.cookie = `edge_stack_auth=${value}; path=/edge_stack/`;
 }
 
 /**
