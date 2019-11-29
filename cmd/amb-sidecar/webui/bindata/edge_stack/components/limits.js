@@ -1,5 +1,5 @@
-import {html} from '/edge_stack/vendor/lit-element.min.js'
-import {SingleResource, ResourceSet} from '/edge_stack/components/resources.js';
+import {html} from '../vendor/lit-element.min.js'
+import {SingleResource, ResourceSet} from './resources.js';
 
 export class Limit extends SingleResource {
 

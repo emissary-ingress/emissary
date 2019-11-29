@@ -1,5 +1,6 @@
-import { LitElement, html, css } from '/edge_stack/vendor/lit-element.min.js'
-import { Snapshot } from '/edge_stack/components/snapshot.js'
+import { LitElement, html, css } from '../vendor/lit-element.min.js'
+import { Snapshot } from './snapshot.js'
+import {ApiFetch} from "./api-fetch.js";
 
 export class Signup extends LitElement {
 
@@ -87,7 +88,7 @@ div.admin-section {
       this.message = "Requesting a license key...";
       this.state = "pending";
 
-      fetch("https://metriton.datawire.io/signup", {
+      ApiFetch("https://metriton.datawire.io/signup", {
         method: "POST",
         headers:{
           "content-type": "application/json; charset=UTF-8"

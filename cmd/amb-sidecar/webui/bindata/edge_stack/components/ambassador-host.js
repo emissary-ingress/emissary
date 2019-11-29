@@ -1,5 +1,5 @@
-import  {LitElement, html, css} from '/edge_stack/vendor/lit-element.min.js';
-import {getCookie} from '/edge_stack/components/cookies.js';
+import  {LitElement, html, css} from '../vendor/lit-element.min.js';
+import {getCookie} from './cookies.js';
 
 export class AmbassadorHost extends LitElement {
   static get properties() {
@@ -50,7 +50,7 @@ export class AmbassadorHost extends LitElement {
     url.searchParams.set('ca-url', this.provider);
 
     this.isFetchingTos = true;
-    fetch(url, {
+    ApiFetch(url, {
       headers: {
         'Authorization': 'Bearer ' + getCookie("edge_stack_auth")
       }
@@ -108,7 +108,7 @@ export class AmbassadorHost extends LitElement {
 		url.searchParams.set('acme_authority', this.provider);
     url.searchParams.set('acme_email', this.email);
 
-    fetch(url.toString(), {
+    ApiFetch(url.toString(), {
       headers: {
         'Authorization': 'Bearer ' + getCookie("edge_stack_auth")
       }
@@ -136,7 +136,7 @@ export class AmbassadorHost extends LitElement {
     let url = new URL('status', window.location);
     url.searchParams.set('hostname', this.hostname);
 
-    fetch(url.toString(), {
+    ApiFetch(url.toString(), {
       headers: {
         'Authorization': 'Bearer ' + getCookie("edge_stack_auth")
       }
@@ -167,7 +167,7 @@ export class AmbassadorHost extends LitElement {
 		url.searchParams.set('acme_authority', this.provider);
     url.searchParams.set('acme_email', this.email);
 
-    fetch(url.toString(), {
+    ApiFetch(url.toString(), {
       method: 'POST',
       headers: {
         'Authorization': 'Bearer ' + getCookie("edge_stack_auth")

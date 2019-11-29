@@ -1,4 +1,4 @@
-import { LitElement, html, css } from '/edge_stack/vendor/lit-element.min.js'
+import { LitElement, html, css } from '../vendor/lit-element.min.js'
 
 export class Documentation extends LitElement {
   static get properties() {
@@ -64,17 +64,17 @@ img {
       <div class="center"><ul>
 
         <li><a href="https://www.getambassador.io/docs/" target="_blank">
-          <img src="/edge_stack/images/card-docs.png" alt=""/>
+          <img src="../images/card-docs.png" alt=""/>
           <span>Ambassador Edge Stack Documentation</span>
         </a></li>
 
         <li><a href="https://www.getambassador.io/resources/" target="_blank">
-          <img src="/edge_stack/images/card-resources.png" alt=""/>
+          <img src="../images/card-resources.png" alt=""/>
           <span>Resources and<br/>Case Studies</span>
         </a></li>
 
         <li><a href="https://blog.getambassador.io/" target="_blank">
-          <img src="/edge_stack/images/logos/medium-mark.png" alt=""/>
+          <img src="../images/logos/medium-mark.png" alt=""/>
           <span>Ambassador Edge Stack Blog</span>
         </a></li>
 

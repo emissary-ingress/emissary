@@ -1,5 +1,6 @@
-import {LitElement, css, html} from '/edge_stack/vendor/lit-element.min.js';
-import {registerContextChangeHandler, useContext} from '/edge_stack/components/context.js';
+import {LitElement, css, html} from '../vendor/lit-element.min.js';
+import {registerContextChangeHandler, useContext} from './context.js';
+import {ApiFetch} from "./api-fetch.js";
 
 export class LoginGate extends LitElement {
   static get properties() {
@@ -114,7 +115,8 @@ details {
   }
 
   loadData() {
-    fetch('/edge_stack/api/config/pod-namespace')
+    ApiFetch('/edge_stack/api/config/pod-namespace')
+    //fetch('http://localhost:9000/edge_stack/api/config/pod-namespace', { mode:'no-cors'})
       .then(data => data.text()).then(body => {
         this.namespace = body;
         this.loading = false;

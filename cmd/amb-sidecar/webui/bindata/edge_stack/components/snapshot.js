@@ -1,6 +1,7 @@
-import  {LitElement, html} from '/edge_stack/vendor/lit-element.min.js';
-import {registerContextChangeHandler, useContext} from '/edge_stack/components/context.js';
-import {getCookie} from '/edge_stack/components/cookies.js';
+import  {LitElement, html} from '../vendor/lit-element.min.js';
+import {registerContextChangeHandler, useContext} from './context.js';
+import {getCookie} from './cookies.js';
+import {ApiFetch} from "./api-fetch.js";
 
 function updateCredentials(value) {
   // Keep this in-sync with webui.go:registerActivity()
@@ -14,7 +15,8 @@ function updateCredentials(value) {
   //   would instead also match "*.${window.location.hostname".
   //
   // - Restrict it to the `/edge_stack/*` path.
-  document.cookie = `edge_stack_auth=${value}; path=/edge_stack/`;
+//MOREMORE  document.cookie = `edge_stack_auth=${value}; path=/edge_stack/`;
+  document.cookie = `edge_stack_auth=${value}`;
 }
 
 /**
@@ -98,7 +100,7 @@ export class Snapshot extends LitElement {
   }
 
   fetchData() {
-    fetch('/edge_stack/api/snapshot', {
+    ApiFetch('/edge_stack/api/snapshot', {
       headers: {
         'Authorization': 'Bearer ' + getCookie("edge_stack_auth")
       }
@@ -139,7 +141,7 @@ export class Snapshot extends LitElement {
                 this.loadingError = null;
                 this.requestUpdate();
                 document.onclick = () => {
-                  fetch('/edge_stack/api/activity', {
+                  ApiFetch('/edge_stack/api/activity', {
                     method: 'POST',
                     headers: new Headers({
                       'Authorization': 'Bearer ' + getCookie("edge_stack_auth")

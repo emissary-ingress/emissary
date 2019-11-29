@@ -1,5 +1,5 @@
-import { LitElement, html, css } from '/edge_stack/vendor/lit-element.min.js'
-import {useContext} from '/edge_stack/components/context.js';
+import { LitElement, html, css } from '../vendor/lit-element.min.js'
+import {useContext} from './context.js';
 
 export class Tabs extends LitElement {
 
