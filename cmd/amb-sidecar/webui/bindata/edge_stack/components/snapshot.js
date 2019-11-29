@@ -1,6 +1,6 @@
-import  {LitElement, html} from '../vendor/lit-element.min.js';
-import {registerContextChangeHandler, useContext} from '../components/context.js';
-import {getCookie} from '../components/cookies.js';
+import  {LitElement, html} from '/edge_stack/vendor/lit-element.min.js';
+import {registerContextChangeHandler, useContext} from '/edge_stack/components/context.js';
+import {getCookie} from '/edge_stack/components/cookies.js';
 
 function updateCredentials(value) {
   // Keep this in-sync with webui.go:registerActivity()

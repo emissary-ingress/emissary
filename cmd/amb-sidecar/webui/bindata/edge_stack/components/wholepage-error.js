@@ -1,4 +1,4 @@
-import {LitElement, css, html} from '../vendor/lit-element.min.js';
+import {LitElement, css, html} from '/edge_stack/vendor/lit-element.min.js';
 
 export class Error extends LitElement {
   static get properties() {

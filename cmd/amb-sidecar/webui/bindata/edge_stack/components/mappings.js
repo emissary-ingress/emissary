@@ -1,5 +1,5 @@
-import {html} from '../vendor/lit-element.min.js'
-import {SingleResource, SortableResourceSet} from '../components/resources.js';
+import {html} from '/edge_stack/vendor/lit-element.min.js'
+import {SingleResource, SortableResourceSet} from '/edge_stack/components/resources.js';
 
 class Mapping extends SingleResource {
   //TODO When Bjorn did a “Save” of a new mapping, he got errors in console about parse errors in the JSON returned from snapshot.

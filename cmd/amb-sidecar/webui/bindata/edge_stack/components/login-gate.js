@@ -1,5 +1,5 @@
-import {LitElement, css, html} from '../vendor/lit-element.min.js';
-import {registerContextChangeHandler, useContext} from '../components/context.js';
+import {LitElement, css, html} from '/edge_stack/vendor/lit-element.min.js';
+import {registerContextChangeHandler, useContext} from '/edge_stack/components/context.js';
 
 export class LoginGate extends LitElement {
   static get properties() {

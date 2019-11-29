@@ -1,4 +1,4 @@
-import { LitElement, html, css } from '../vendor/lit-element.min.js'
+import { LitElement, html, css } from '/edge_stack/vendor/lit-element.min.js'
 
 export class Documentation extends LitElement {
   static get properties() {

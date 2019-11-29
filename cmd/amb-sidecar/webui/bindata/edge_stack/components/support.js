@@ -1,5 +1,5 @@
-import { LitElement, html, css } from '../vendor/lit-element.min.js'
-import { Snapshot } from '../components/snapshot.js'
+import { LitElement, html, css } from '/edge_stack/vendor/lit-element.min.js'
+import { Snapshot } from '/edge_stack/components/snapshot.js'
 
 export class Support extends LitElement {
 
