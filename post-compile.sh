@@ -5,10 +5,11 @@ sudo touch /ambassador/.edge_stack
 
 sudo mkdir -p /ambassador/webui/bindata && sudo rsync -a --delete /buildroot/apro/cmd/amb-sidecar/webui/bindata/  /ambassador/webui/bindata
 
-(
-  cd /ambassador/webui/bindata/
-  webpack --config webpack.config.js
-)
+#for file in $PWD/edge_stack/components/*
+for file in /ambassador/webui/bindata/edge_stack/components/*
+do
+  NODE_PATH="$(npm root -g)" rollup -c rollup.config.js -i $file -o $file
+done
 
 sudo rm -rf /ambassador/init-config
 sudo mkdir /ambassador/init-config
