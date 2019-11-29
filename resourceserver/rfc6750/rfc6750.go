@@ -173,8 +173,19 @@ type AuthorizationError struct {
 	Challenge      rfc7235.Challenge
 }
 
-func (e *AuthorizationError) Error() string {
+func (e *AuthorizationError) String() string {
 	return fmt.Sprintf("HTTP %d / WWW-Authorize: %s", e.HTTPStatusCode, e.Challenge)
+}
+
+func (e *AuthorizationError) Error() string {
+	if params, paramsOK := e.Challenge.Body.(rfc7235.ChallengeParameters); paramsOK {
+		for _, param := range params {
+			if param.Key == "error_description" {
+				return param.Value
+			}
+		}
+	}
+	return e.String()
 }
 
 // ValidateAuthorization inspects a request received and decides whether to authorize it.  If the

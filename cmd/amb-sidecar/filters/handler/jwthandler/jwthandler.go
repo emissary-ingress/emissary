@@ -33,6 +33,11 @@ type JWTFilter struct {
 	Spec crd.FilterJWT
 }
 
+type errorWithValidationError struct {
+	error
+	ValidationError interface{}
+}
+
 func (h *JWTFilter) Filter(ctx context.Context, r *filterapi.FilterRequest) (filterapi.FilterResponse, error) {
 	logger := middleware.GetLogger(ctx)
 	httpClient := httpclient.NewHTTPClient(logger, 0, h.Spec.InsecureTLS, h.Spec.RenegotiateTLS)
@@ -57,6 +62,11 @@ func (h *JWTFilter) Filter(ctx context.Context, r *filterapi.FilterRequest) (fil
 		case *rfc6750.AuthorizationError:
 			if hackKeepOldTemplatesWorking == nil {
 				hackKeepOldTemplatesWorking = err
+			}
+			if _, isValidationError := hackKeepOldTemplatesWorking.(*jwtsupport.JWTGoError); !isValidationError {
+				hackKeepOldTemplatesWorking = errorWithValidationError{
+					error: hackKeepOldTemplatesWorking,
+				}
 			}
 			ret := middleware.NewTemplatedErrorResponse(&h.Spec.ErrorResponse, ctx, err.HTTPStatusCode, hackKeepOldTemplatesWorking, map[string]interface{}{
 				"httpRequestHeader": filterutil.GetHeader(r),
@@ -89,7 +99,7 @@ func (h *JWTFilter) Filter(ctx context.Context, r *filterapi.FilterRequest) (fil
 		}
 		value := new(strings.Builder)
 		if err := hf.Template.Execute(value, data); err != nil {
-			return middleware.NewTemplatedErrorResponse(&h.Spec.ErrorResponse, ctx, http.StatusInternalServerError,
+			return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
 				errors.Wrapf(err, "computing header field %q", hf.Name),
 				map[string]interface{}{
 					"httpRequestHeader": filterutil.GetHeader(r),
