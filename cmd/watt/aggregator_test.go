@@ -20,14 +20,14 @@ type aggIsolator struct {
 	snapshots     chan string
 	k8sWatches    chan []KubernetesWatchSpec
 	consulWatches chan []ConsulWatchSpec
-	aggregator    *aggregator
+	aggregator    *Aggregator
 	sup           *supervisor.Supervisor
 	done          chan struct{}
 	t             *testing.T
 	cancel        context.CancelFunc
 }
 
-func newAggIsolator(t *testing.T, requiredKinds []string, watchHook WatchHook) *aggIsolator {
+func newAggIsolator(t *testing.T, watchHook WatchHook) *aggIsolator {
 	// aggregator uses zero length channels for its inputs so we can
 	// control the total ordering of all inputs and therefore
 	// intentionally trigger any order of events we want to test
@@ -41,8 +41,7 @@ func newAggIsolator(t *testing.T, requiredKinds []string, watchHook WatchHook) *
 		// for signaling when the isolator is done
 		done: make(chan struct{}),
 	}
-	iso.aggregator = NewAggregator(iso.snapshots, iso.k8sWatches, iso.consulWatches, requiredKinds, watchHook,
-		limiter.NewUnlimited())
+	iso.aggregator = NewAggregator(iso.snapshots, iso.k8sWatches, iso.consulWatches, watchHook, limiter.NewUnlimited())
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	iso.cancel = cancel
 	iso.sup = supervisor.WithContext(ctx)
@@ -54,8 +53,8 @@ func newAggIsolator(t *testing.T, requiredKinds []string, watchHook WatchHook) *
 	return iso
 }
 
-func startAggIsolator(t *testing.T, requiredKinds []string, watchHook WatchHook) *aggIsolator {
-	iso := newAggIsolator(t, requiredKinds, watchHook)
+func startAggIsolator(t *testing.T, watchHook WatchHook) *aggIsolator {
+	iso := newAggIsolator(t, watchHook)
 	iso.Start()
 	return iso
 }
@@ -116,7 +115,7 @@ data:
 
 // make sure we shutdown even before achieving a bootstrapped state
 func TestAggregatorShutdown(t *testing.T) {
-	iso := startAggIsolator(t, nil, nil)
+	iso := startAggIsolator(t, nil)
 	defer iso.Stop()
 }
 
@@ -143,8 +142,12 @@ func TestAggregatorBootstrap(t *testing.T) {
 			return WatchSet{}
 		}
 	}
-	iso := startAggIsolator(t, []string{"service", "configmap"}, watchHook)
+	iso := startAggIsolator(t, watchHook)
 	defer iso.Stop()
+
+	// Mark services and configmaps as required.
+	iso.aggregator.MarkRequired("service", true)
+	iso.aggregator.MarkRequired("configmap", true)
 
 	// initial kubernetes state is just services
 	iso.aggregator.KubernetesEvents <- k8sEvent{"", "service", SERVICES}
