@@ -25,6 +25,12 @@ export class Signup extends LitElement {
 .invalid {
     background-color: #fe0000;
 }
+button:hover {
+  background-color: #ede7f3;
+}
+input:hover {
+    background-color: #ede7f3;
+}
 
 div.admin-section {
     border: 1px solid #ede7f3;

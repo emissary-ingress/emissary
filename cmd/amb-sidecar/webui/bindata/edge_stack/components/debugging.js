@@ -22,6 +22,9 @@ export class Debugging extends LitElement {
 
   static get styles() {
     return css`
+    button:hover {
+      background-color: #ede7f3;
+    }
       dl {
         display: grid;
         grid-template-columns: max-content;
