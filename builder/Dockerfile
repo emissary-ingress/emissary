@@ -49,7 +49,7 @@ ENV PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local
 # build it locally -- just using pip won't work.
 
 RUN apk --no-cache add bash bash-completion ncurses curl jq rsync python3 python3-dev build-base libffi-dev openssl-dev sudo \
-                       iptables docker openssh-client libcap libcap-dev yaml-dev cython git && \
+                       iptables docker openssh-client libcap libcap-dev yaml-dev cython git nodejs npm && \
     pip3 install -U pip && \
     curl --fail https://dl.google.com/go/go1.13.linux-amd64.tar.gz | tar -C /usr/local -xzf - && \
     curl --fail -L https://storage.googleapis.com/kubernetes-release/release/v1.16.0/bin/linux/amd64/kubectl -o /usr/bin/kubectl && \
@@ -60,7 +60,8 @@ RUN apk --no-cache add bash bash-completion ncurses curl jq rsync python3 python
     curl --fail -L https://raw.githubusercontent.com/ahmetb/kubectx/v0.7.0/completion/kubectx.bash -o /usr/share/bash-completion/completions/kubectx && \
     curl --fail -L https://raw.githubusercontent.com/ahmetb/kubectx/v0.7.0/completion/kubens.bash -o /usr/share/bash-completion/completions/kubens && \
     curl -L https://raw.githubusercontent.com/jonmosco/kube-ps1/v0.7.0/kube-ps1.sh -o /usr/local/bin/kube-ps1.sh && \
-    ln -s /usr/bin/python3 /usr/bin/python
+    ln -s /usr/bin/python3 /usr/bin/python && \
+    npm install -g rollup rollup-plugin-terser
 
 RUN sh -c "/usr/bin/kubectl completion bash > /usr/share/bash-completion/completions/kubectl"
 RUN chmod u+s $(which docker)
