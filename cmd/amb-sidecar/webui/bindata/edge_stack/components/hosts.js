@@ -1,6 +1,6 @@
-import {html} from '/edge_stack/vendor/lit-element.min.js'
-import {SingleResource, ResourceSet} from '/edge_stack/components/resources.js';
-import {getCookie} from '/edge_stack/components/cookies.js';
+import {html} from '../vendor/lit-element.min.js'
+import {SingleResource, ResourceSet} from '../components/resources.js';
+import {getCookie} from '../components/cookies.js';
 
 /**
  * A SingleHost is the UI-side object for a "getambassador.io/v2 Host" resource.

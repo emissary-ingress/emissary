@@ -1,5 +1,5 @@
-import  {LitElement, html, css} from '/edge_stack/vendor/lit-element.min.js';
-import {getCookie} from '/edge_stack/components/cookies.js';
+import  {LitElement, html, css} from '../vendor/lit-element.min.js';
+import {getCookie} from '../components/cookies.js';
 
 export class AmbassadorHost extends LitElement {
   static get properties() {

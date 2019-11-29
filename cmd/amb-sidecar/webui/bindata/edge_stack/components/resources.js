@@ -1,6 +1,6 @@
-import { LitElement, html, css} from '/edge_stack/vendor/lit-element.min.js'
-import {Snapshot} from '/edge_stack/components/snapshot.js'
-import {getCookie} from '/edge_stack/components/cookies.js';
+import { LitElement, html, css} from '../vendor/lit-element.min.js'
+import {Snapshot} from '../components/snapshot.js'
+import {getCookie} from '../components/cookies.js';
 
 /**
  * The classes in this file provide the building blocks we use for

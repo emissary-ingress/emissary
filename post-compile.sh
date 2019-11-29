@@ -5,6 +5,11 @@ sudo touch /ambassador/.edge_stack
 
 sudo mkdir -p /ambassador/webui/bindata && sudo rsync -a --delete /buildroot/apro/cmd/amb-sidecar/webui/bindata/  /ambassador/webui/bindata
 
+(
+  cd /ambassador/webui/bindata/
+  webpack --config webpack.config.js
+)
+
 sudo rm -rf /ambassador/init-config
 sudo mkdir /ambassador/init-config
 

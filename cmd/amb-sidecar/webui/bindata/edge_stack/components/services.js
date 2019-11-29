@@ -1,6 +1,6 @@
-import { LitElement, html, css } from '/edge_stack/vendor/lit-element.min.js'
-import {SingleResource} from '/edge_stack/components/resources.js'
-import {Snapshot} from '/edge_stack/components/snapshot.js'
+import { LitElement, html, css } from '../vendor/lit-element.min.js'
+import {SingleResource} from '../components/resources.js'
+import {Snapshot} from '../components/snapshot.js'
 
 export class Service extends SingleResource {
   // implement
