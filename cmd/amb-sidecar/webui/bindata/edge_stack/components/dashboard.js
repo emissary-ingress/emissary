@@ -285,7 +285,8 @@ export class Dashboard extends LitElement {
       div.centered {
         display: flex;
         justify-content: center;
-        align-items: center
+        align-items: center;
+        overflow: scroll;
       }
       div.element-content p {
         margin-top: 0.5em;
