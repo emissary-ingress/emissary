@@ -281,17 +281,18 @@ span.code {
           })
       .then(r=>{
         r.text().then(t=>{
+          this.reset();
           if (r.ok) {
             // happy path
           } else {
-            alert("BAD\n" + t) //TODO show the error in the UI somehow, this alert is not the best UI
+            console.error(t);
+            this.addError(`Unexpected error while deleting resource: ${r.statusText}`); // Make sure we add this error to the stack after calling this.reset();
           }
           if (this.state.mode === "add") {
             this.state.mode = "off"
           } else {
             this.state.mode = "list"
           }
-          this.reset()
         })
       })
   }
@@ -399,17 +400,18 @@ spec: ${JSON.stringify(this.spec())}
           })
       .then(r=>{
         r.text().then(t=>{
+          this.reset();
           if (r.ok) {
             // happy path
           } else {
-            alert("BAD\n\n" + yaml + "\n\n" + t) //TODO show the error in the UI somehow, this alert is not the best UI
+            console.error(t);
+            this.addError(`Unexpected error while saving resource: ${r.statusText}`); // Make sure we add this error to the stack after calling this.reset();
           }
           if (this.state.mode === "add") {
             this.state.mode = "off"
           } else {
             this.state.mode = "list"
           }
-          this.reset()
         })
       })
   }
