@@ -32,7 +32,7 @@ For example, a component might look something like this:
 class MyComponent extends LitElement {
   static get properties() {
     return {
-			data: { type: String },
+      data: { type: String },
       metadata: { affects_render: { type: String } }
     };
   }
@@ -40,7 +40,7 @@ class MyComponent extends LitElement {
   constructor() {
     super();
 
-		this.data = 'data';
+    this.data = 'data';
     this.metadata = {
       affects_render: 'World',
     };
@@ -49,28 +49,28 @@ class MyComponent extends LitElement {
 
   onClick() {
     this.metadata = { ...this.metadata, affects_render: "blue" };
-		console.log('OnClick', this.metadata);
+    console.log('OnClick', this.metadata);
   }
 
   onClickTwo() {
     this.does_not_affect_render = "newer";
-		console.log('OnClickTwo', this.metadata);
+    console.log('OnClickTwo', this.metadata);
   }
 
-	onClickThree() {
-		this.data = 'newer';
-		console.log('OCT', this.data);
-	}
+  onClickThree() {
+    this.data = 'newer';
+    console.log('OCT', this.data);
+  }
 
   render() {
-		console.log('render!', this.metadata);
+    console.log('render!', this.metadata);
 
-		return html`
+    return html`
       <button @click="${this.onClick}">Trigger Re-Render</button>
       <button @click="${this.onClickTwo}">Change Prop</button>
-			<button @click="${this.onClickThree}">Also Trigger Re-Render</button>
+      <button @click="${this.onClickThree}">Also Trigger Re-Render</button>
       <div>${this.metadata.affects_render}</div>
-			<div>${this.data}</div>
+      <div>${this.data}</div>
     `;
   }
 }
