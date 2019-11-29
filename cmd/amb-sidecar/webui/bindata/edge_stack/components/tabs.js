@@ -60,6 +60,7 @@ export class Tabs extends LitElement {
     for (let i = 0; i < this.tabs.length; i++) {
       if(window.location.hash === ('#' + this.tabs[i].tabHashName())) {
         this.current = this.tabs[i].name;
+        this.showCurrent();
         break;
       }
     }
