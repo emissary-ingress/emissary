@@ -1,6 +1,11 @@
 import { LitElement, html, css } from '/edge_stack/vendor/lit-element.min.js'
-import {useContext} from '/edge_stack/components/context.js';
+import { useContext } from '/edge_stack/components/context.js';
 
+/**
+ * Provides a small wrapper around named slots, to properly
+ * render one of a series of "tabs". There is also a special
+ * named slot called: "sticky" that will always be rendered.
+ */
 export class Tabs extends LitElement {
 
   static get styles() {
@@ -51,22 +56,40 @@ export class Tabs extends LitElement {
 `
   }
 
-  handleHashChange() {
-    for (let i = 0; i < this.tabs.length; i++) {
-      if(window.location.hash === ('#' + this.tabs[i].tabHashName())) {
-        if( this.current !== i ) {
-          this.handleClick(i, null);
-        }
-        break;
-      }
-    }
+  /**
+   * A list of properties to track for "re-render".
+   *
+   * NOTE: this is not guaranteed to be a full list of properties
+   *       but only a list of items that when changed will trigger
+   *       a re-render (these will be debounced if a lot of updates
+   *       happen at once).
+   */
+  static get properties() {
+    return {
+      current: { type: String },
+      tabs: { type: Array }
+    };
   }
 
   constructor() {
     super();
+
+    this.current = '';
     this.tabs = [];
-    this.links = [];
-    this.current = 0
+    Array.from(this.children).forEach(node => {
+      if (node.localName == "dw-tab") {
+        this.tabs.push(node);
+      }
+    });
+  }
+
+  handleHashChange() {
+    for (let idx = 0; idx < this.tabs.length; idx++) {
+      if(window.location.hash === ('#' + this.tabs[idx].tabHashName())) {
+        this.current = this.tabs[idx].name;
+        break;
+      }
+    }
   }
 
   connectedCallback() {
@@ -79,59 +102,81 @@ export class Tabs extends LitElement {
     window.remmoveEventListener("hashchange", this.handleHashChange.bind(this), false);
   }
 
-  handleSlotChange({target}) {
-    this.tabs = target.assignedNodes().filter(n => 'tabName' in n);
-    this.showCurrent()
+  handleSlotChange() {
+    // Create a variable, and set it instead of mutating
+    // since mutations cause re-rendering.
+    let newTabs = [];
+    Array.from(this.children).forEach(node => {
+      if (node.localName == "dw-tab") {
+        newTabs.push(node);
+      }
+    });
+    this.tabs = newTabs;
   }
 
-  showCurrent() {
-    this.links = [];
-    for (let i = 0; i < this.tabs.length; i++) {
+  handleClick(name) {
+    this.current = name;
+  }
+
+  renderLinks() {
+    let links = [];
+    let currentTab = this.current;
+    if (currentTab == '' && this.tabs.length > 0) {
+      currentTab = this.tabs[0].name;
+    }
+
+    for (let idx = 0; idx < this.tabs.length; ++idx) {
       let classes = "tab";
-      if (i === this.current || this.tabs[i].slot === "sticky") {
-        this.tabs[i].style.display = "block";
+      if (this.tabs[idx].name === currentTab || this.tabs[idx].slot === "sticky") {
+        this.tabs[idx].style.display = "block";
+
         if( window.location.hash.length > 300 ) {
           /* if a long hash, then it might be a login cookie */
           if (useContext('auth-state', null)[0]) {
             /* logged in, so don't need to preserve the hash tag */
-            window.location.hash = "#" + this.tabs[i].tabHashName();
+            window.location.hash = "#" + this.tabs[idx].tabHashName();
           } else {
             /* not logged in, so don't change the hash cookie */
           }
         } else {
           /* shorter hash, so it can't be a login cookie, so go ahead and change it */
-          window.location.hash = "#" + this.tabs[i].tabHashName();
+          window.location.hash = "#" + this.tabs[idx].tabHashName();
         }
-        classes += " active"
+
+        classes += " active";
       } else {
-        this.tabs[i].style.display = "none"
+        this.tabs[idx].style.display = "none";
       }
-      if( this.tabs[i].tabIconFilename()) {
-        this.links.push(html`<span class="${classes}" @click=${e => this.handleClick(i, e)}><img src="${this.tabs[i].tabIconFilename()}"/><span class="icon-aligned">${this.tabs[i].tabName()}</span></span> `)
+
+      if (this.tabs[idx].tabIconFilename()) {
+        links.push(html`
+          <span class="${classes}" @click=${() => this.handleClick(this.tabs[idx].name)}>
+            <img src="${this.tabs[idx].tabIconFilename()}"/>
+            <span class="icon-aligned">${this.tabs[idx].tabName()}</span>
+          </span>
+        `);
       } else {
-        this.links.push(html`<span class="${classes}" @click=${e => this.handleClick(i, e)}><span class="with-no-icon">${this.tabs[i].tabName()}</span></span> `)
+        links.push(html`
+          <span class="${classes}" @click=${() => this.handleClick(this.tabs[idx].name)}>
+            <span class="with-no-icon">${this.tabs[idx].tabName()}</span>
+          </span>
+        `);
       }
     }
-    this.requestUpdate()
-  }
 
-  handleClick(i, e) {
-    this.current = i;
-    this.showCurrent()
+    return links;
   }
 
   render() {
     return html`
-<div class="tabs">
-  ${this.links}
-</div>
-<div class="main">
-  <slot name="sticky"></slot>
-</div>
-<div class="main">
-  <slot @slotchange=${this.handleSlotChange}></slot>
-</div>
-`
+      <div class="tabs">
+        ${this.renderLinks()}
+      </div>
+      <div class="main">
+        <slot name="sticky"></slot>
+        <slot @slotchange=${this.handleSlotChange}></slot>
+      </div>
+    `;
   }
 
 }
@@ -149,6 +194,7 @@ export class Tab extends LitElement {
 
   constructor() {
     super();
+
     this.name = "";
     this.hashname = "";
     this.icon = "";
@@ -177,7 +223,7 @@ export class Tab extends LitElement {
   }
 
   render() {
-    return html`<div><slot></slot></div>`
+    return html`<slot></slot>`;
   }
 }
 
