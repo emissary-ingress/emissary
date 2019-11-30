@@ -2,7 +2,7 @@
 /* Dashboard and dashboard element classes using LitElement.                          */
 /* ===================================================================================*/
 
-import { LitElement, html, css } from '/edge_stack/vendor/lit-element.min.js';
+import { LitElement, html, css, svg } from '/edge_stack/vendor/lit-element.min.js';
 import { Snapshot } from '/edge_stack/components/snapshot.js';
 
 /**
@@ -53,11 +53,53 @@ let WhenChartsAreLoadedPromise = {
 /* No, One, many things... */
 let countString = function(count, singular_text, plural_text) {
     switch(count) {
-      case 0:  return `No ${plural_text}`;    break;
-      case 1:  return `1 ${singular_text}`; break;
+      case 0:  return `No ${plural_text}`;
+      case 1:  return `1 ${singular_text}`;
       default: return `${count} ${plural_text}`;
     }
 };
+
+/* Rendering an arc in an SVG div */
+
+let renderArc = function(color, start_rad, end_rad) {
+    const cos = Math.cos;
+    const sin = Math.sin;
+    const π   = Math.PI;
+
+    const f_matrix_times = (( [[a,b], [c,d]], [x,y]) => [ a * x + b * y, c * x + d * y]);
+    const f_rotate_matrix = ((x) => [[cos(x),-sin(x)], [sin(x), cos(x)]]);
+    const f_vec_add = (([a1, a2], [b1, b2]) => [a1 + b1, a2 + b2]);
+
+    const f_svg_ellipse_arc = (([cx,cy],[rx,ry], [t1, Δ], φ ) => {
+      /* [
+      returns a SVG path element that represent a ellipse.
+      cx,cy → center of ellipse
+      rx,ry → major minor radius
+      t1 → start angle, in radian.
+      Δ → angle to sweep, in radian. positive.
+      φ → rotation on the whole, in radian
+      url: SVG Circle Arc http://xahlee.info/js/svg_circle_arc.html
+      Version 2019-06-19
+       ] */
+      Δ = Δ % (2*π);
+      const rotMatrix = f_rotate_matrix (φ);
+      const [sX, sY] = ( f_vec_add ( f_matrix_times ( rotMatrix, [rx * cos(t1), ry * sin(t1)] ), [cx,cy] ) );
+      const [eX, eY] = ( f_vec_add ( f_matrix_times ( rotMatrix, [rx * cos(t1+Δ), ry * sin(t1+Δ)] ), [cx,cy] ) );
+      const fA = ( (  Δ > π ) ? 1 : 0 );
+      const fS = ( (  Δ > 0 ) ? 1 : 0 );
+      //return "M " + sX + " " + sY + " L " + (sX + 100) + " " + sY;
+      return "M " + sX + " " + sY + " A " + [ rx , ry , φ / (2*π) *360, fA, fS, eX, eY ].join(" ")
+    });
+
+    var result = svg`
+        <g stroke="${color}" fill="none" stroke-linecap="round" stroke-width="8">
+            <path d="${f_svg_ellipse_arc([100,100], [90,90], [start_rad,end_rad], 0)}"/>
+        </g>
+    `;
+
+    return result
+  };
+
 
 let LicensePanel = {
   _title: "License",
@@ -246,6 +288,139 @@ let StatusPanel = {
   }
 };
 
+  /**
+ * Panel showing System Services count and status
+ */
+let SystemServicesPanel = {
+  _title: "System Services",
+  _elementId: "system_services",
+
+  render: function() {
+    const cos = Math.cos;
+    const sin = Math.sin;
+    const π = Math.PI;
+
+    const f_matrix_times = (( [[a,b], [c,d]], [x,y]) => [ a * x + b * y, c * x + d * y]);
+    const f_rotate_matrix = ((x) => [[cos(x),-sin(x)], [sin(x), cos(x)]]);
+    const f_vec_add = (([a1, a2], [b1, b2]) => [a1 + b1, a2 + b2]);
+
+    const f_svg_ellipse_arc = (([cx,cy],[rx,ry], [t1, Δ], φ ) => {
+      /* [
+      returns a SVG path element that represent a ellipse.
+      cx,cy → center of ellipse
+      rx,ry → major minor radius
+      t1 → start angle, in radian.
+      Δ → angle to sweep, in radian. positive.
+      φ → rotation on the whole, in radian
+      url: SVG Circle Arc http://xahlee.info/js/svg_circle_arc.html
+      Version 2019-06-19
+       ] */
+      Δ = Δ % (2*π);
+      const rotMatrix = f_rotate_matrix (φ);
+      const [sX, sY] = ( f_vec_add ( f_matrix_times ( rotMatrix, [rx * cos(t1), ry * sin(t1)] ), [cx,cy] ) );
+      const [eX, eY] = ( f_vec_add ( f_matrix_times ( rotMatrix, [rx * cos(t1+Δ), ry * sin(t1+Δ)] ), [cx,cy] ) );
+      const fA = ( (  Δ > π ) ? 1 : 0 );
+      const fS = ( (  Δ > 0 ) ? 1 : 0 );
+      return "M " + sX + " " + sY + " A " + [ rx , ry , φ / (2*π) *360, fA, fS, eX, eY ].join(" ")
+    });
+
+    let redis = this._snapshot.getRedisInUse();
+    let envoy = this._diagd.envoy_status.ready;
+    let errors= this._diagd.errors.length;
+    let stats = this._diagd.cluster_stats;
+
+    /* Calculate number of running and waiting services,
+     * and for running services, average health percentage
+     */
+
+    let services_running = 0;
+    let services_waiting = 0;
+    let services_pct_sum = 0;
+
+    for (const [key, value] of Object.entries(stats)) {
+      if (value.healthy_percent) {
+        services_running += 1
+        services_pct_sum += value.healthy_percent
+      }
+      else {
+        services_waiting += 1
+      }
+    };
+
+    /* Draw a circle of the average percentage. */
+    let total_services   =  services_running + services_waiting;
+    let average_health   = (services_running > 0 ? services_pct_sum/services_running : 100);
+    const twopi  = 6.28; // real pi causes the ellipse to draw incorrectly at 2*pi
+    const arcgap = 0.15;
+
+    const health_radians = twopi*(average_health/100);
+
+    /* Unfortunate hack: can't factor out the SVG code, so have to have a conditional
+     * and duplicate code :-(  See renderArc for how we'd really like to switch between the two conditions:
+     * ${renderArc("green", 0, health_radians)}
+       ${average_health < 100 ? renderArc("red", health_radians+arcgap, twopi-health_radians-2*arcgap) : html``}
+     */
+
+    var result;
+
+   result = html`
+      <div class="element" style="cursor:pointer" @click=${this.onClick}>
+        <div class="element-titlebar">${this._title}</div>
+        <div class="element-content" id=“${this._elementId}”>
+          <svg class="element-svg-overlay">
+            ${renderArc("#22EE55", 0, health_radians)}
+            ${average_health < 100 ? renderArc("red", health_radians+arcgap, twopi-health_radians-2*arcgap) : html``}
+         </svg>
+          <div class="system-status">
+          <p><span class = "status" style="color: green">${countString(total_services, "Service", "Services")}</span></p>
+          <p><span class = "status" style="color: ${average_health >= 80  ? "green" : "gray"}">${average_health}% Healthy</span></p>
+          <p><span class = "status" style="color: ${services_waiting == 0 ? "green" : "gray"}">${services_waiting} Waiting</span></p>
+  
+          </div>
+        </div>
+      </div>`;
+
+
+
+    return result;
+  },
+
+  renderStatus: function(condition, true_text, false_text) {
+    return html`
+      ${condition
+      ? html`<p><span class = "status" style="color: green">${true_text}</span></p>`
+      : html`<p><span class = "status" style="color: red">${false_text}</span></p>`}
+    `;
+  },
+
+  onSnapshotChange: function(snapshot) {
+    if (snapshot) {
+      this._snapshot  = snapshot;
+      let diagnostics = snapshot.getDiagnostics();
+      this._diagd = (('system' in (diagnostics||{})) ? diagnostics :
+     {
+       system: {
+         env_status: {},
+       },
+       envoy_status: {},
+       loginfo: {},
+       errors: [],
+     });
+    }
+  },
+
+  draw: function(shadow_root) { /*text panel, no chart to draw*/ },
+
+  onClick: function() {
+    window.location.hash = "#debugging";
+  }
+};
+
+
+/* ===================================================================================*/
+/* The Dashboard class, drawing dashboard elements in a matrix of div.element blocks. */
+/* ===================================================================================*/
+
 export class Dashboard extends LitElement {
   /* styles() returns the styles for the dashboard elements. */
   static get styles() {
@@ -273,6 +448,7 @@ export class Dashboard extends LitElement {
       }
 
       div.element-content {
+        position: relative;
         background-color: whitesmoke;
         text-align: center;
         width: 200px;
@@ -287,10 +463,12 @@ export class Dashboard extends LitElement {
         justify-content: center;
         align-items: center
       }
+
       div.element-content p {
         margin-top: 0.5em;
         margin-bottom: 0.5em;
       }
+      
       span.code { font-family: Monaco, monospace; }
       span.status {
         font-family: Helvetica;
@@ -298,17 +476,20 @@ export class Dashboard extends LitElement {
         font-size: 130%;
         color: #555555;
       }
+      
       svg.element-svg-overlay {
+        position:absolute;
         height:200px;
         width:200px;
-        position:absolute;
-        top:3.2em;
-        left:1em;
+        top:0.5em;
+        left:0.5em;
       }
+      
       div.system-status {
         font-size: 90%;
         padding-top: 65px;
       }
+      
       div.system-status p {
         margin: 0;
       }
@@ -325,7 +506,7 @@ export class Dashboard extends LitElement {
     super();
 
     /* Initialize the list of dashboard panels */
-    this._panels = [ StatusPanel, CountsPanel, LicensePanel ];
+    this._panels = [ CountsPanel, StatusPanel, SystemServicesPanel, LicensePanel ];
 
     Snapshot.subscribe(this.onSnapshotChange.bind(this));
   };
