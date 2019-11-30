@@ -108,9 +108,9 @@ export class YAMLDownloads extends ResourceSet {
      * for each resource that we wrote out.
      */
 
-    this.resources.map((res) => {
+    /* this.resources.map((res) => {
       this.applyResChanges(res, )
-    })
+    }) */
   }
 
   render() {
