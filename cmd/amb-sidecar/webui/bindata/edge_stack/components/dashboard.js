@@ -289,11 +289,11 @@ let StatusPanel = {
 };
 
   /**
- * Panel showing Services count and status
+ * Panel showing System Services count and status
  */
-let ServicesPanel = {
-  _title: "Services",
-  _elementId: "services_status",
+let SystemServicesPanel = {
+  _title: "System Services",
+  _elementId: "system_services",
 
   render: function() {
     const cos = Math.cos;
@@ -506,7 +506,7 @@ export class Dashboard extends LitElement {
     super();
 
     /* Initialize the list of dashboard panels */
-    this._panels = [ StatusPanel, CountsPanel, LicensePanel, ServicesPanel ];
+    this._panels = [ CountsPanel, StatusPanel, SystemServicesPanel, LicensePanel ];
 
     Snapshot.subscribe(this.onSnapshotChange.bind(this));
   };
