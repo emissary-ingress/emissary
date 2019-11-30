@@ -163,7 +163,7 @@ export class SingleHost extends SingleResource {
   </div>
 
   <div class="${tos}">
-    <input style="border-color:red;" type="checkbox" name="tos_agree" />
+    <input type="checkbox" name="tos_agree" />
     <span>I have agreed to to the Terms of Service at: ${this.tos}</span>
   </div>
 

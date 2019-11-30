@@ -773,9 +773,7 @@ div.sortby {
     font-size: 80%;
     margin: -20px 8px 0 0;
 }
-select:hover {
-    background-color: #ede7f3;
-}
+select:hover,
 select:focus {
     background-color: #ede7f3;
 }
