@@ -256,6 +256,7 @@ func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		/* ..and for the http GETs and POSTs, reply with the necessary CORS header. */
 			w.Header().Set("Access-Control-Allow-Origin", "http://localhost:63342") 
 		}
+		/* Learn more about CORS: https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS */
 	}
 	switch r.URL.Path {
 	case "/edge_stack/api/tos-url":
