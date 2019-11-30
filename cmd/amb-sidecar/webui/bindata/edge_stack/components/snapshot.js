@@ -3,7 +3,7 @@ import {registerContextChangeHandler, useContext} from './context.js';
 import {getCookie} from './cookies.js';
 import {ApiFetch} from "./api-fetch.js";
 
-function updateCredentials(value) {
+export function updateCredentials(value) {
   // Keep this in-sync with webui.go:registerActivity()
   //
   // - Don't set expires=/max-age=; leave it as a "session cookie", so

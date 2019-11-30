@@ -119,11 +119,14 @@ Refresh (or shift-refresh) your browser as necessary to get the updated files.
 2. Set up JetBrains WebStorm. These set-up tasks only need to be done once:
    1. Configure [Live Edit](https://www.jetbrains.com/help/webstorm/live-editing.html).
    2. Configure [the Javscript debugger](https://www.jetbrains.com/help/webstorm/configuring-javascript-debugger.html)
-   3. Add the [JetBrains extension to Chrome](https://chrome.google.com/webstore/detail/jetbrains-ide-support/hmhgeddbohgjknpmjagkdomcpobmllji)
-   4. _(optional)_ Configure WebStorm to use [your Chrome user configuration](https://www.jetbrains.com/help/webstorm/configuring-browsers.html#enablingUseOfBrowsers)
+   3. _(optional)_ Configure WebStorm to use [your Chrome user configuration](https://www.jetbrains.com/help/webstorm/configuring-browsers.html#enablingUseOfBrowsers)
+   4. Add the [JetBrains extension to Chrome](https://chrome.google.com/webstore/detail/jetbrains-ide-support/hmhgeddbohgjknpmjagkdomcpobmllji).
+      Note that you need to add the extension to the user being used by WebStorm. So if
+      you didn't configure in #3, you have to open Chrome by running something from
+      WebStorm, then install the extension in that instance of Chrome.
    5. Open a WebStorm project on `${PWD}/cmd/amb-sidecar/webui/bindata/edge_stack`
    6. Use Run > Edit Configurations.. to add a run configuration for `admin/index.html`
-      with `?debug-backend=http://localhost:9000#` at the end of the URL.
+      with `?debug-backend=http://localhost:9000` at the end of the URL.
 
 3. Run the sidecar locally with the local backend forwarding
  all snapshot requests to the backend in the cluster.
@@ -142,11 +145,13 @@ Refresh (or shift-refresh) your browser as necessary to get the updated files.
    opens index.html, etc.
    
 5. The only awkward part of the dev loop at this time is that the security JWT
-   is passed in through the URL which is defined in the run configuration. So
-   each time you need to use `edgectl login` to re-login, you have to copy the
-   JWT part of the url into the run configuration and then close the Chrome
-   window and then re-launch the debugger (thus using the new url with the JWT
-   from the run configuration). 
+   is passed in through the URL, but the URL is defined in the run configuration.
+   So you would need to update the run configuration with the JWT. However, for
+   convenience, when you run with the `?debug-backend=` feature, there is an
+   extra panel at the bottom of the login page with a button to enter the JWT.
+   Use it by running `edgectl login`, then copying the url from the browser
+   bar of the window that opens, closing that window, then clicking the "Enter
+   URL+JWT" button and pasting the URL.
 
 
 # UI Dev Big Picture

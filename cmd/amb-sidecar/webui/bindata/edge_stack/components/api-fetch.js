@@ -29,3 +29,6 @@ export function ApiFetch(url, init_values) {
   return fetch(the_url, init_values );
 }
 
+export function hasDebugBackend() {
+  return ApiRootUrl !== "";
+}
