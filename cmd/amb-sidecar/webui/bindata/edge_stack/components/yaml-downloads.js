@@ -1,7 +1,5 @@
 import {css, html} from '/edge_stack/vendor/lit-element.min.js'
-//import { saveAs } from '/edge_stack/vendor/FileSaver.min.js'
 import {SingleResource, ResourceSet} from '/edge_stack/components/resources.js';
-
 
 /* Extremely simple SingleResource subclass to list resource items. */
 class YAMLItem extends SingleResource {
@@ -46,6 +44,48 @@ export class YAMLDownloads extends ResourceSet {
     return snapshot.getChangedResources()
   }
 
+  /* CleanResource:
+   * remove selected properties from the resource that are
+   * Kubernetes-internal or otherwise not gitOps friendly.
+   * metadata:
+   *   creationTimestamp:...
+   *   generation:...
+   *   resourceVersion:...
+   *   selfLink:...
+   *   uid:...
+   *   status:...
+   *   annotations:
+   *    kubectl.kubernetes.io/last-applied-configuration:...
+   *    aes_res_changed: '2019-11-30T04:40:02.132Z'
+   *    aes_res_downloaded:...
+   */
+
+  cleanResource(resource) {
+    let metadata    = resource.metadata;
+    let annotations = metadata.annotations;
+
+    /* Delete specific annotations: */
+    delete annotations["kubectl.kubernetes.io/last-applied-configuration"]
+    delete annotations.aes_res_changed
+    delete annotations.aes_res_downloaded
+
+    /* Delete other metadata */
+    delete metadata.creationTimestamp
+    delete metadata.generation
+    delete metadata.resourceVersion
+    delete metadata.selfLink
+    delete metadata.uid
+
+    /* Delete the resource status. */
+    delete resource.status
+
+    /* Return the cleaned resource. Note that this has changed
+     * the original resource, so we expect a new snapshot to
+     * restore all the previous values from the server.
+     */
+    return resource
+  }
+
   /* Download the resources listed in the YAML Downloads tab.
    * When done, reset the annotations in each resource:
    * set aes_res_changed to "false" and
@@ -54,15 +94,23 @@ export class YAMLDownloads extends ResourceSet {
   doDownload() {
     console.log("Clicked on doDownload")
 
-    for (const res of this.resources) {
-      console.log("============")
-      console.log(res.getYaml())
-    }
+    /* dump each resource as YAML */
+    var res_yml = this.resources.map((res) => {
+      res = this.cleanResource(res)
+      return "---\n" + jsyaml.safeDump(res)
+    })
 
-    // var blob = new Blob(["Hello, world!"], {type: "text/plain;charset=utf-8"});
-    // saveAs()
+    /* Write out a single file with all the changed resources */
+    var blob = new Blob(res_yml, {type: "text/plain;charset=utf-8"});
+    saveAs(blob, "resources.yml");
 
+    /* Tell Kubernetes to reset the aes_res_changed to false
+     * for each resource that we wrote out.
+     */
 
+    this.resources.map((res) => {
+      this.applyResChanges(res, )
+    })
   }
 
   render() {
@@ -98,11 +146,12 @@ export class YAMLDownloads extends ResourceSet {
     })}
     </div>
     
-    <div align="center">
-    <button @click=${this.doDownload} style="display:"block">
-    Download ${count} changed resources
-    </button>
-    </div>
+    ${count > 0 ?
+      html`<div align="center">
+        <button @click=${this.doDownload.bind(this)} style="display:"block" id="click_to_dl">
+        Download ${count} changed resources
+        </button>
+        </div>` : html``}
 `
   }
 }
