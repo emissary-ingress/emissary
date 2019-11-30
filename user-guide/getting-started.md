@@ -32,10 +32,9 @@ kubectl get -n ambassador service ambassador -o 'go-template={{range .status.loa
 
 ### Minikube Users
 
-If you happen to be using Minikube, note that Minikube does not natively support load balancers. Instead, to get the URL of Ambassador from minikube, use `minikube servicelist` to print something similar to the following:
+If you happen to be using Minikube, note that Minikube does not natively support load balancers. Instead, to get the URL of Ambassador from minikube, use `minikube servicelist`to print something similar to the following:
 
-<pre><code>
-(⎈ |minikube:ambassador)$ minikube service list
+```(⎈ |minikube:ambassador)$ minikube service list
 |-------------|------------------|--------------------------------|
 |  NAMESPACE  |       NAME       |              URL               |
 |-------------|------------------|--------------------------------|
@@ -46,7 +45,8 @@ If you happen to be using Minikube, note that Minikube does not natively support
 | default     | kubernetes       | No node port                   |
 | kube-system | kube-dns         | No node port                   |
 |-------------|------------------|--------------------------------|
-</pre></code>
+
+```
 
 Use any of the URLs listed next to `ambassador` to access the Ambassador Edge Stack.
 
