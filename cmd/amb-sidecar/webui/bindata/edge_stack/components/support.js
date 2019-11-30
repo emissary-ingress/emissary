@@ -1,17 +1,8 @@
 import { LitElement, html, css } from '/edge_stack/vendor/lit-element.min.js'
 import { Snapshot } from '/edge_stack/components/snapshot.js'
+import { License } from '/edge_stack/components/license.js'
 
 export class Support extends LitElement {
-
-  static get _BUSINESS_SUPPORT() {
-    return "support-business-tier";
-  }
-  static get _24X7_SUPPORT() {
-    return "support-24x7-tier";
-  }
-  static get _LATEST_LICENSE_KEY_VERSION() {
-    return "v2";
-  }
 
   static get properties() {
     return {
@@ -34,33 +25,33 @@ export class Support extends LitElement {
   }
 
   hasTicketSupport() {
-    return this.enabledFeatures.includes(Support._BUSINESS_SUPPORT)
-      || this.enabledFeatures.includes(Support._24X7_SUPPORT);
+    return this.enabledFeatures.includes(License._BUSINESS_SUPPORT)
+      || this.enabledFeatures.includes(License._24X7_SUPPORT);
   }
 
   hasEmailSupport() {
-    return this.enabledFeatures.includes(Support._BUSINESS_SUPPORT)
-      || this.enabledFeatures.includes(Support._24X7_SUPPORT);
+    return this.enabledFeatures.includes(License._BUSINESS_SUPPORT)
+      || this.enabledFeatures.includes(License._24X7_SUPPORT);
   }
 
   hasPhoneSupport() {
-    return this.enabledFeatures.includes(Support._24X7_SUPPORT);
+    return this.enabledFeatures.includes(License._24X7_SUPPORT);
   }
 
   hasOldLicense() {
-    return this.licenseClaims.license_key_version !== Support._LATEST_LICENSE_KEY_VERSION;
+    return this.licenseClaims.license_key_version !== License._LATEST_LICENSE_KEY_VERSION;
   }
 
   slackLink() {
     if (this.licenseMetadata.support_slack_link) {
-      return this.licenseMetadata.support_slack_link
+      return this.licenseMetadata.support_slack_link;
     }
     return "http://d6e.co/slack";
   }
 
   phoneSupportNumber() {
     if (this.licenseMetadata.support_phone_number) {
-      return this.licenseMetadata.support_phone_number
+      return this.licenseMetadata.support_phone_number;
     }
     return "";
   }
@@ -158,7 +149,7 @@ img {
         
        </ul>
        
-       ${this.licenseClaims.customer_id != "unregistered" 
+       ${this.licenseClaims.customer_id !== License._UNREGISTERED_CUSTOMER_ID 
          ? html`<div>
                   Ambassador is licensed to <code>${this.licenseClaims.customer_email || this.licenseClaims.customer_id}</code>
                   and is valid until <code>${new Date(this.licenseClaims.exp * 1000).toISOString()}</code><br/>

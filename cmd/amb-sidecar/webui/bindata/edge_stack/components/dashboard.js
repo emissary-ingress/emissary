@@ -4,6 +4,7 @@
 
 import { LitElement, html, css, svg } from '/edge_stack/vendor/lit-element.min.js';
 import { Snapshot } from '/edge_stack/components/snapshot.js';
+import { License } from '/edge_stack/components/license.js';
 
 /**
  * This is a Promise-like object used to synchronize between google charts loaded callback and the
@@ -135,7 +136,7 @@ let LicensePanel = {
 	},
 
   isLicenseRegistered: function() {
-    return this.licenseClaims && this.licenseClaims.customer_id !== "unregistered";
+    return this.licenseClaims && this.licenseClaims.customer_id !== License._UNREGISTERED_CUSTOMER_ID;
   },
 
   draw: function(shadow_root) { /*text panel, no chart to draw*/ },
