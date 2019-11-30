@@ -353,9 +353,13 @@ span.code {
   validate() {}
 
 
-  // internal()
-  _yaml() {
-    return yaml`
+  /* get the YAML text for this resource,
+   * by filling out the basic key/value pairs
+   * and calling spec() for the details...
+   */
+
+  getYaml() {
+    return `
 ---
 apiVersion: getambassador.io/v2
 kind: ${this.kind()}
@@ -364,6 +368,32 @@ metadata:
   namespace: "${this.namespaceInput().value}"
 spec: ${JSON.stringify(this.spec())}
 `
+  }
+
+  /* get the YAML text for this resource,
+   * by filling out the basic key/value pairs
+   * and calling spec() for the details.
+   * This also sets the editable, changed,
+   * and downloaded annotations.  Usually
+   * called with parameters (true, timestamp, false)
+   */
+
+    getYamlWithAnnotations(resEditable, resChanged, resDownloaded) {
+      let ts = new Date().toISOString();
+
+      return `
+---
+apiVersion: getambassador.io/v2
+kind: ${this.kind()}
+metadata:
+  name: "${this.nameInput().value}"
+  namespace: "${this.namespaceInput().value}"
+  annotations:
+    ${aes_res_editable}: "${resEditable}"
+    ${aes_res_changed}: "${resChanged}"
+    ${aes_res_downloaded}: "${resDownloaded}"
+spec: ${JSON.stringify(this.spec())}
+`;
   }
 
   // internal

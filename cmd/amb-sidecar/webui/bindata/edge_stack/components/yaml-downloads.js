@@ -1,4 +1,5 @@
 import {css, html} from '/edge_stack/vendor/lit-element.min.js'
+//import { saveAs } from '/edge_stack/vendor/FileSaver.min.js'
 import {SingleResource, ResourceSet} from '/edge_stack/components/resources.js';
 
 
@@ -28,19 +29,40 @@ customElements.define('dw-yaml-item', YAMLItem);
 export class YAMLDownloads extends ResourceSet {
 
     /* styles() returns the styles for the YAML downloads list. */
+  static saveCSS = css`
+    .section-heading {
+      margin: 0.1em;
+      font-size: 120%;
+      font-weight: bold;
+      margin-top: 0;
+    }
+`;
+
   static get styles() {
-    return css`
-      .section-heading {
-        margin: 0.1em;
-        font-size: 120%;
-        font-weight: bold;
-        margin-top: 0;
-      }
-`
+    return this.saveCSS
   };
 
   getResources(snapshot) {
     return snapshot.getChangedResources()
+  }
+
+  /* Download the resources listed in the YAML Downloads tab.
+   * When done, reset the annotations in each resource:
+   * set aes_res_changed to "false" and
+   * set aes_res_downloaded to "true".
+   */
+  doDownload() {
+    console.log("Clicked on doDownload")
+
+    for (const res of this.resources) {
+      console.log("============")
+      console.log(res.getYaml())
+    }
+
+    // var blob = new Blob(["Hello, world!"], {type: "text/plain;charset=utf-8"});
+    // saveAs()
+
+
   }
 
   render() {
@@ -56,9 +78,11 @@ export class YAMLDownloads extends ResourceSet {
       }
     };
 
+    let count = this.resources.length;
+
     /* Title depending on whether there are changes to download. */
     let changed_title =
-      this.resources.length > 0
+      count > 0
         ? "Changed Resources to download:"
         : "No Changed Resources";
 
@@ -72,6 +96,12 @@ export class YAMLDownloads extends ResourceSet {
     ${this.resources.map(r => {
     return html`<dw-yaml-item .resource=${r} .state=${this.state(r)}></dw-yaml-item>`
     })}
+    </div>
+    
+    <div align="center">
+    <button @click=${this.doDownload} style="display:"block">
+    Download ${count} changed resources
+    </button>
     </div>
 `
   }

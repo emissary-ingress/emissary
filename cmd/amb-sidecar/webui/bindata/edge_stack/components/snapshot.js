@@ -2,10 +2,10 @@ import  {LitElement, html} from '/edge_stack/vendor/lit-element.min.js';
 import {registerContextChangeHandler, useContext} from '/edge_stack/components/context.js';
 import {getCookie} from '/edge_stack/components/cookies.js';
 
-export const aes_res_editable   = "aes-res-editable";
-export const aes_res_changed    = "aes-res-changed";
-export const aes_res_source     = "aes-res-source-uri";
-export const aes_res_downloaded = "aes-res-downloaded";
+export const aes_res_editable   = "aes_res_editable";
+export const aes_res_changed    = "aes_res_changed";
+export const aes_res_source     = "aes_res_source_uri";
+export const aes_res_downloaded = "aes_res_downloaded";
 
 function updateCredentials(value) {
   // Keep this in-sync with webui.go:registerActivity()
