@@ -401,7 +401,6 @@ span.code {
       return
     }
 
-    let ts = new Date().toISOString();
     let yaml = `
 ---
 apiVersion: getambassador.io/v2
@@ -411,7 +410,7 @@ metadata:
   namespace: "${this.namespaceInput().value}"
   annotations:
     ${aes_res_editable}: "true"
-    ${aes_res_changed}: "${ts}"
+    ${aes_res_changed}: "true"
     ${aes_res_downloaded}: "false"
 spec: ${JSON.stringify(this.spec())}
 `;

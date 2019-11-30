@@ -66,8 +66,9 @@ class SnapshotWrapper {
     var changed = resources.filter((res) => {
       let md = res.metadata;
       if ("annotations" in md) {
-        var changeDate = md.annotations.aes_res_changed;
-        return !(changeDate === undefined)
+        var changed = md.annotations.aes_res_changed;
+        /* changed is undefined, true, or false. */
+        return changed === "true"
       }
       else {
         return false

@@ -1,5 +1,7 @@
-import {css, html} from '/edge_stack/vendor/lit-element.min.js'
-import {SingleResource, ResourceSet} from '/edge_stack/components/resources.js';
+import { getCookie } from '/edge_stack/components/cookies.js';
+import { css, html } from '/edge_stack/vendor/lit-element.min.js'
+import { SingleResource, ResourceSet } from '/edge_stack/components/resources.js';
+import { aes_res_editable, aes_res_changed, aes_res_downloaded } from '/edge_stack/components/snapshot.js'
 
 /* Extremely simple SingleResource subclass to list resource items. */
 class YAMLItem extends SingleResource {
@@ -44,27 +46,19 @@ export class YAMLDownloads extends ResourceSet {
     return snapshot.getChangedResources()
   }
 
-  /* CleanResource:
+  /* cleanResource:
    * remove selected properties from the resource that are
    * Kubernetes-internal or otherwise not gitOps friendly.
-   * metadata:
-   *   creationTimestamp:...
-   *   generation:...
-   *   resourceVersion:...
-   *   selfLink:...
-   *   uid:...
-   *   status:...
-   *   annotations:
-   *    kubectl.kubernetes.io/last-applied-configuration:...
-   *    aes_res_changed: '2019-11-30T04:40:02.132Z'
-   *    aes_res_downloaded:...
    */
-
   cleanResource(resource) {
     let metadata    = resource.metadata;
     let annotations = metadata.annotations;
 
-    /* Delete specific annotations: */
+    /* Delete specific annotations.  Note the semantics of
+     * delete allow the attempted deletion of properties that
+     * do not exist (in which case true is returned) so no
+     * exception handling is needed here.
+     */
     delete annotations["kubectl.kubernetes.io/last-applied-configuration"]
     delete annotations.aes_res_changed
     delete annotations.aes_res_downloaded
@@ -80,10 +74,48 @@ export class YAMLDownloads extends ResourceSet {
     delete resource.status
 
     /* Return the cleaned resource. Note that this has changed
-     * the original resource, so we expect a new snapshot to
-     * restore all the previous values from the server.
+     * the original resource object, so we expect a new snapshot
+     * to restore all the previous values from the server.
      */
     return resource
+  }
+
+  /* Reset the editable, changed, and downloaded flags
+   * for the given resource by calling apply.
+   */
+  applyResChanges(resource, editable, changed, downloaded) {
+    let yaml = `
+---
+apiVersion: getambassador.io/v2
+kind: ${resource.kind}
+metadata:
+  name: "${resource.metadata.name}"
+  namespace: "${resource.metadata.namespace}"
+  annotations:
+    ${aes_res_editable}: "${editable}"
+    ${aes_res_changed}: "${changed}"
+    ${aes_res_downloaded}: "${downloaded}"
+spec: ${JSON.stringify(resource.spec)}
+`;
+
+    fetch('/edge_stack/api/apply',
+          {
+            method: "POST",
+            headers: new Headers({
+              'Authorization': 'Bearer ' + getCookie("edge_stack_auth")
+            }),
+            body: yaml
+          })
+      .then(r=>{
+        r.text().then(t=>{
+          if (r.ok) {
+            // happy path
+          } else {
+            console.error(t);
+            this.addError(`Unexpected error while updating resource annotations: ${r.statusText}`); // Make sure we add this error to the stack after calling this.reset();
+          }
+        })
+      })
   }
 
   /* Download the resources listed in the YAML Downloads tab.
@@ -92,8 +124,6 @@ export class YAMLDownloads extends ResourceSet {
    * set aes_res_downloaded to "true".
    */
   doDownload() {
-    console.log("Clicked on doDownload")
-
     /* dump each resource as YAML */
     var res_yml = this.resources.map((res) => {
       res = this.cleanResource(res)
@@ -108,9 +138,13 @@ export class YAMLDownloads extends ResourceSet {
      * for each resource that we wrote out.
      */
 
-    /* this.resources.map((res) => {
-      this.applyResChanges(res, )
-    }) */
+    this.resources.map((res) => {
+      // editable = true, changed = false, downloaded = true
+      this.applyResChanges(res, true, false, true)
+    })
+
+    /* update the page -- changed resources should disappear... */
+    this.requestUpdate()
   }
 
   render() {
@@ -149,9 +183,10 @@ export class YAMLDownloads extends ResourceSet {
     ${count > 0 ?
       html`<div align="center">
         <button @click=${this.doDownload.bind(this)} style="display:"block" id="click_to_dl">
-        Download ${count} changed resources
+        Download ${count} changed
         </button>
         </div>` : html``}
+    
 `
   }
 }
