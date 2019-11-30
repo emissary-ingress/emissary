@@ -14,12 +14,11 @@ import (
 	"net/url"
 	"os"
 	"path"
+	"sort"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/datawire/ambassador/pkg/dlog"
-	"github.com/datawire/ambassador/pkg/k8s"
 	"github.com/datawire/ambassador/pkg/supervisor"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/go-acme/lego/v3/acme"
@@ -30,6 +29,8 @@ import (
 
 	k8sClientDynamic "k8s.io/client-go/dynamic"
 
+	crd "github.com/datawire/apro/apis/getambassador.io/v1beta2"
+	filtercontroller "github.com/datawire/apro/cmd/amb-sidecar/filters/controller"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/httpclient"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/middleware"
 	"github.com/datawire/apro/cmd/amb-sidecar/limiter"
@@ -47,9 +48,8 @@ type LoginClaimsV1 struct {
 }
 
 type Snapshot struct {
-	Watt       json.RawMessage
+	Watt       map[string]map[string]interface{}
 	Diag       json.RawMessage
-	Limits     []k8s.Resource
 	License    LicenseInfo
 	RedisInUse bool
 }
@@ -65,46 +65,75 @@ type firstBootWizard struct {
 	staticfiles http.FileSystem
 	hostsGetter k8sClientDynamic.NamespaceableResourceInterface
 
-	rls     *rls.RateLimitController
-	limiter limiter.Limiter
+	snapshotStore    *watt.SnapshotStore
+	rlController     *rls.RateLimitController
+	filterController *filtercontroller.Controller
+	limiter          limiter.Limiter
+	haveRedis        bool
 
 	privkey *rsa.PrivateKey
 	pubkey  *rsa.PublicKey
-
-	snapshotLock sync.Mutex
-	snapshot     Snapshot
 }
 
 func (fb *firstBootWizard) getSnapshot() Snapshot {
-	fb.snapshotLock.Lock()
-	defer fb.snapshotLock.Unlock()
+	var ret Snapshot
 
-	if fb.snapshot.Diag == nil || true {
+	if err := json.Unmarshal(fb.snapshotStore.Get().Raw, &ret.Watt); err != nil || ret.Watt == nil {
+		ret.Watt = make(map[string]map[string]interface{})
+	}
+	// XXX we should really have watt watch everything, but for
+	// now I'm just patching over that stuff here.
+	if ret.Watt["Kubernetes"] == nil {
+		ret.Watt["Kubernetes"] = make(map[string]interface{})
+	}
+	ret.Watt["Kubernetes"]["RateLimit"] = fb.rlController.GetLimits()
+	ret.Watt["Kubernetes"]["Filter"] = func() []crd.Filter {
+		dict := fb.filterController.LoadFilters()
+		// consistent order
+		qnames := make([]string, 0, len(dict))
+		for qname := range dict {
+			qnames = append(qnames, qname)
+		}
+		sort.Strings(qnames)
+		// main
+		list := make([]crd.Filter, 0, len(dict))
+		for _, filter := range dict {
+			list = append(list, filter)
+		}
+		return list
+	}()
+	ret.Watt["Kubernetes"]["FilterPolicy"], _ = fb.filterController.LoadPolicies()
+
+	ret.Diag = func() json.RawMessage {
 		resp, err := http.Get("http://127.0.0.1:8877/ambassador/v0/diag/?json=true")
 		if err != nil {
-			goto end
+			return nil
 		}
 		defer resp.Body.Close()
 		bodyBytes, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
-			goto end
+			return nil
 		}
-		fb.snapshot.Diag = json.RawMessage(bodyBytes)
+		return json.RawMessage(bodyBytes)
+	}()
+
+	ret.License = LicenseInfo{
+		Claims:            fb.limiter.GetClaims(),
+		HardLimit:         fb.limiter.IsHardLimitAtPointInTime(),
+		FeaturesOverLimit: fb.limiter.GetFeaturesOverLimitAtPointInTime(),
 	}
 
-end:
-	fb.snapshot.Limits = fb.rls.GetLimits()
-	fb.snapshot.License.Claims = fb.limiter.GetClaims()
-	fb.snapshot.License.HardLimit = fb.limiter.IsHardLimitAtPointInTime()
-	fb.snapshot.License.FeaturesOverLimit = fb.limiter.GetFeaturesOverLimitAtPointInTime()
-	return fb.snapshot
+	ret.RedisInUse = fb.haveRedis
+
+	return ret
 }
 
 func New(
 	cfg types.Config,
 	dynamicClient k8sClientDynamic.Interface,
-	snapshotCh <-chan watt.Snapshot,
-	rls *rls.RateLimitController,
+	snapshotStore *watt.SnapshotStore,
+	rlController *rls.RateLimitController,
+	filterController *filtercontroller.Controller,
 	privkey *rsa.PrivateKey,
 	pubkey *rsa.PublicKey,
 	limiter limiter.Limiter,
@@ -112,35 +141,20 @@ func New(
 ) http.Handler {
 	var files http.FileSystem = http.Dir(cfg.DevWebUIDir)
 
-	ret := &firstBootWizard{
+	return &firstBootWizard{
 		cfg:         cfg,
 		staticfiles: files,
 		hostsGetter: dynamicClient.Resource(k8sSchema.GroupVersionResource{Group: "getambassador.io", Version: "v2", Resource: "hosts"}),
 
-		rls:     rls,
-		limiter: limiter,
+		snapshotStore:    snapshotStore,
+		rlController:     rlController,
+		filterController: filterController,
+		limiter:          limiter,
+		haveRedis:        redisPool != nil,
 
 		privkey: privkey,
 		pubkey:  pubkey,
-
-		snapshot: Snapshot{
-			Watt:       json.RawMessage(`{}`),
-			Diag:       nil,
-			Limits:     []k8s.Resource{},
-			License:    LicenseInfo{},
-			RedisInUse: redisPool != nil,
-		},
 	}
-	go func() {
-		for snapshot := range snapshotCh {
-			ret.snapshotLock.Lock()
-			ret.snapshot.Watt = snapshot.Raw
-			ret.snapshot.Limits = rls.GetLimits()
-			ret.snapshot.Diag = nil
-			ret.snapshotLock.Unlock()
-		}
-	}()
-	return ret
 }
 
 func getTermsOfServiceURL(httpClient *http.Client, caURL string) (string, error) {

@@ -461,7 +461,7 @@ export class Dashboard extends LitElement {
       div.centered {
         display: flex;
         justify-content: center;
-        align-items: center
+        align-items: center;
       }
 
       div.element-content p {
