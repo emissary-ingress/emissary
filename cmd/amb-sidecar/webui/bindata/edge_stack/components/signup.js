@@ -1,5 +1,6 @@
 import { LitElement, html, css } from '/edge_stack/vendor/lit-element.min.js'
 import { Snapshot } from '/edge_stack/components/snapshot.js'
+import { License } from '/edge_stack/components/license.js'
 
 export class Signup extends LitElement {
 
@@ -136,7 +137,7 @@ form input[type=text] {
 
   render() {
     return html`
-<div class="admin-section" slot="sticky" style="display:${this.licenseClaims.customer_id == "unregistered" ? "block" : "none"}">
+<div class="admin-section" slot="sticky" style="display:${this.licenseClaims.customer_id === License._UNREGISTERED_CUSTOMER_ID ? "block" : "none"}">
   <button @click=${this.handleSignup} style="display:${this.state === "start" ? "block" : "none"}">
     Click here to sign up for a free Community license.
   </button>
