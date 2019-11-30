@@ -328,7 +328,7 @@ let SystemServicesPanel = {
     let redis = this._snapshot.getRedisInUse();
     let envoy = this._diagd.envoy_status.ready;
     let errors= this._diagd.errors.length;
-    let stats = this._diagd.cluster_stats;
+    let stats = this._diagd.cluster_stats || {};
 
     /* Calculate number of running and waiting services,
      * and for running services, average health percentage
