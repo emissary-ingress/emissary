@@ -106,7 +106,7 @@ func (fb *firstBootWizard) getSnapshot() Snapshot {
 
 	ret.Diag = func() json.RawMessage {
 		resp, err := http.Get("http://127.0.0.1:8877/ambassador/v0/diag/?json=true")
-		if err == nil {
+		if err != nil {
 			return nil
 		}
 		defer resp.Body.Close()
