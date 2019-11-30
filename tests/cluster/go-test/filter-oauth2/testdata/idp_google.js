@@ -48,7 +48,7 @@ const waitUntilRender = function(browsertab) {
 
 const handleChallenges = async function(browsertab) {
 	await Promise.race([
-		// Confirm recovery email
+		// Confirm recovery email (old?)
 		browsertab.waitForFunction(() => {return window.location.href.startsWith("https://accounts.google.com/signin/v2/challenge/selection?");}).then(async () => {
 			await waitUntilRender(browsertab);
 
@@ -60,6 +60,23 @@ const handleChallenges = async function(browsertab) {
 			await browsertab.waitForSelector('[role="button"]', { visible: true });
 			await browsertab.type('input[type="email"]', "dev+apro-gmail@datawire.io");
 			await clickNext(browsertab);
+		}),
+		// Confirm recovery email (new?)
+		browsertab.waitForFunction(() => {return window.location.href.startsWith("https://accounts.google.com/signin/selectchallenge/");}).then(async () => {
+			await waitUntilRender(browsertab);
+
+			let inputChoose = await browsertab.waitForSelector('form[action="/signin/challenge/kpe/4"] button[type="submit"]', { visible: true });
+			await inputChoose.click();
+
+			let inputEmail = await browsertab.waitForSelector('input[type="email"]', { visible: true });
+			let inputDone = await browsertab.waitForSelector('input[type="submit"][value="Done"]', { visible: true });
+			await inputEmail.type("dev+apro-gmail@datawire.io");
+			await inputDone.click();
+		}),
+		// Click "confirm" to confirm the recovery info
+		browsertab.waitForFunction(() => {return window.location.href.startsWith("https://myaccount.google.com/signinoptions/recovery-options-collection?");}).then(async () => {
+			let button = await browsertab.waitForXPath('//div[@role="button"]//span[contains(text(), "Confirm")]');
+			await button.click();
 		}),
 		// Click "next" for transient errors
 		browsertab.waitForFunction(() => {return window.location.href.startsWith("https://accounts.google.com/info/unknownerror?");}).then(async () => {
@@ -83,6 +100,9 @@ module.exports.authenticate = function(browsertab, username, password) {
 			.then(() => {return Promise.reject(new run.TestSkipError("captcha"));}),
 		// If Google decides to reject the signin, just skip the test :(
 		browsertab.waitForFunction(() => {return window.location.href.startsWith("https://accounts.google.com/signin/oauth/deniedsigninrejected?");})
+			.then(() => {return waitUntilRender(browsertab);})
+			.then(() => {return Promise.reject(new run.TestSkipError("denied"));}),
+		browsertab.waitForFunction(() => {return window.location.href.startsWith("https://accounts.google.com/signin/rejected?");})
 			.then(() => {return waitUntilRender(browsertab);})
 			.then(() => {return Promise.reject(new run.TestSkipError("denied"));}),
 		// otherwise, authenticate as normal.
