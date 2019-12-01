@@ -8,7 +8,14 @@
       exports: {}
     };
     factory();
-    global.FileSaver = mod.exports;
+
+    /* global is undefined at first load. */
+    if (global === undefined) {
+      return;
+    }
+    else {
+      global.FileSaver = mod.exports;
+    };
   }
 })(this, function () {
   "use strict";
