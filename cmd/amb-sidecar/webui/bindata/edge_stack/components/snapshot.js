@@ -79,6 +79,7 @@ class SnapshotWrapper {
     return changed;
   };
 
+
   /**
    * Return the JSON representation of the OSS diagnostics page.
    */

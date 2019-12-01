@@ -32,26 +32,19 @@ func max(a, b int) int {
 
 type RateLimitController struct {
 	lock   sync.RWMutex // everything after this is guarded by the lock
-	limits []k8s.Resource
+	limits []crd.RateLimit
 }
 
-func (r *RateLimitController) withLock(doit func()) {
+func (r *RateLimitController) setLimits(limits []crd.RateLimit) {
 	r.lock.Lock()
 	defer r.lock.Unlock()
-	doit()
+	r.limits = limits
 }
 
-func (r *RateLimitController) setLimits(limits []k8s.Resource) {
-	r.withLock(func() {
-		r.limits = limits
-	})
-}
-
-func (r *RateLimitController) GetLimits() (result []k8s.Resource) {
-	r.withLock(func() {
-		result = r.limits
-	})
-	return
+func (r *RateLimitController) GetLimits() []crd.RateLimit {
+	r.lock.Lock()
+	defer r.lock.Unlock()
+	return r.limits
 }
 
 func New() *RateLimitController {
@@ -90,25 +83,26 @@ func (r *RateLimitController) DoWatch(ctx context.Context, cfg types.Config, kub
 	fatal := make(chan error)
 	w.Watch("ratelimits", func(w *k8s.Watcher) {
 		config := &Config{Domains: make(map[string]*Domain)}
-		var limits []k8s.Resource
-		for _, r := range w.List("ratelimits") {
-			var spec crd.RateLimitSpec
-			err := mapstructure.Convert(r.Spec(), &spec)
-			if err != nil {
-				rlslog.Errorln(errors.Wrap(err, "malformed ratelimit resource spec"))
+		var limits []crd.RateLimit
+		for _, _r := range w.List("ratelimits") {
+			if cfg.AmbassadorSingleNamespace && _r.Namespace() != cfg.AmbassadorNamespace {
 				continue
 			}
-			if cfg.AmbassadorSingleNamespace && r.Namespace() != cfg.AmbassadorNamespace {
+			var r crd.RateLimit
+			err := mapstructure.Convert(_r, &r)
+			if err != nil || r.Spec == nil {
+				rlslog.Errorln(errors.Wrap(err, "malformed RateLimit resource"))
 				continue
 			}
-			if !spec.AmbassadorID.Matches(cfg.AmbassadorID) {
+			if !r.Spec.AmbassadorID.Matches(cfg.AmbassadorID) {
 				continue
 			}
 
 			limits = append(limits, r)
 
-			SetSource(&spec, r.QName())
-			config.add(spec)
+			qname := r.GetName() + "." + r.GetNamespace()
+			SetSource(r.Spec, qname)
+			config.add(*r.Spec)
 		}
 
 		r.setLimits(limits)
