@@ -28,18 +28,14 @@ customElements.define('dw-yaml-item', YAMLItem);
 /* Extremely simple ResourceSet subclass to list changed resources. */
 export class YAMLDownloads extends ResourceSet {
 
-    /* styles() returns the styles for the YAML downloads list. */
-  static saveCSS = css`
+  static get styles() {
+    return css`
     .section-heading {
       margin: 0.1em;
       font-size: 120%;
       font-weight: bold;
       margin-top: 0;
-    }
-`;
-
-  static get styles() {
-    return this.saveCSS
+    }`
   };
 
   getResources(snapshot) {

@@ -47,17 +47,27 @@ class SnapshotWrapper {
     }
   };
 
-   /*
+  /* Return all Kubernetes resources regardless of kind */
+  getAllResources() {
+    var allKinds  = (this.data.Watt || {}).Kubernetes || {}
+    var resources = []
+
+      for (const [key, value] of Object.entries(allKinds)) {
+        if (value === null) { continue }
+        resources = resources.concat(value)
+    }
+
+    return resources
+  }
+
+    /*
     * Return all the kubernetes resources (that the backend AES
     * instance is paying attention to) that have been changed by the user
     * with the Web UI.
     */
   getChangedResources() {
-    var hosts     = this.getResources("Host");
-    var mappings  = this.getResources("Mapping");
-    var services  = this.getResources("Service");
-    var resolvers = this.getResources("Resolver");
-    var resources = [].concat(hosts, mappings, services, resolvers);
+    /* Get every resource */
+    var resources = this.getAllResources()
 
     /* filter on annotation: "aes-res-changed".
     *  if the key exists in the annotations, it's changed,

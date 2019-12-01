@@ -1,4 +1,4 @@
-import { Snapshot, aes_res_editable, aes_res_changed, aes_res_source, aes_res_downloaded } from '/edge_stack/components/snapshot.js'
+import { Snapshot, aes_res_editable, aes_res_changed } from '/edge_stack/components/snapshot.js'
 import { LitElement, html, css} from '/edge_stack/vendor/lit-element.min.js'
 import {getCookie} from '/edge_stack/components/cookies.js';
 
