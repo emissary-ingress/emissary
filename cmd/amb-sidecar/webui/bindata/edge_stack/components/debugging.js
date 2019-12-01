@@ -1,6 +1,7 @@
-import { LitElement, html, css } from '/edge_stack/vendor/lit-element.min.js'
-import { Snapshot } from '/edge_stack/components/snapshot.js'
-import { getCookie } from '/edge_stack/components/cookies.js';
+import { LitElement, html, css } from '../vendor/lit-element.min.js'
+import { Snapshot } from './snapshot.js'
+import { getCookie } from './cookies.js';
+import {ApiFetch} from "./api-fetch.js";
 
 export class Debugging extends LitElement {
   // external ////////////////////////////////////////////////////////
@@ -195,7 +196,7 @@ export class Debugging extends LitElement {
     let formdata = new FormData();
     formdata.append('loglevel', level);
 
-    fetch('/edge_stack/api/log-level', {
+    ApiFetch('/edge_stack/api/log-level', {
       method: 'POST',
       headers: {
         'Authorization': 'Bearer ' + getCookie("edge_stack_auth"),

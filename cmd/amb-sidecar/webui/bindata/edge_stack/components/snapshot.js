@@ -1,13 +1,14 @@
-import  {LitElement, html} from '/edge_stack/vendor/lit-element.min.js';
-import {registerContextChangeHandler, useContext} from '/edge_stack/components/context.js';
-import {getCookie} from '/edge_stack/components/cookies.js';
+import  {LitElement, html} from '../vendor/lit-element.min.js';
+import {registerContextChangeHandler, useContext} from './context.js';
+import {getCookie} from './cookies.js';
+import {ApiFetch} from "./api-fetch.js";
 
 export const aes_res_editable   = "aes_res_editable";
 export const aes_res_changed    = "aes_res_changed";
 export const aes_res_source     = "aes_res_source_uri";
 export const aes_res_downloaded = "aes_res_downloaded";
 
-function updateCredentials(value) {
+export function updateCredentials(value) {
   // Keep this in-sync with webui.go:registerActivity()
   //
   // - Don't set expires=/max-age=; leave it as a "session cookie", so
@@ -145,7 +146,7 @@ export class Snapshot extends LitElement {
   }
 
   fetchData() {
-    fetch('/edge_stack/api/snapshot', {
+    ApiFetch('/edge_stack/api/snapshot', {
       headers: {
         'Authorization': 'Bearer ' + getCookie("edge_stack_auth")
       }
@@ -186,7 +187,7 @@ export class Snapshot extends LitElement {
                 this.loadingError = null;
                 this.requestUpdate();
                 document.onclick = () => {
-                  fetch('/edge_stack/api/activity', {
+                  ApiFetch('/edge_stack/api/activity', {
                     method: 'POST',
                     headers: new Headers({
                       'Authorization': 'Bearer ' + getCookie("edge_stack_auth")

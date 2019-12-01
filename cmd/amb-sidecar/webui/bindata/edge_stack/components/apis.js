@@ -1,4 +1,5 @@
-import { LitElement, html, css } from '/edge_stack/vendor/lit-element.min.js'
+import { LitElement, html, css } from '../vendor/lit-element.min.js'
+import {ApiFetch} from "./api-fetch.js";
 
 export class APIs extends LitElement {
 
@@ -58,7 +59,7 @@ export class APIs extends LitElement {
       return {} //TODO part of the above temporary removal
     } else {//TODO part of the above temporary removal
 
-      fetch('/openapi/services')
+      ApiFetch('/openapi/services')
         .then((resp) => {
           if (resp.status === 401 || resp.status === 403) {
             return new Promise((_, reject) => {

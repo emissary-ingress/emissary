@@ -1,6 +1,7 @@
-import { LitElement, html, css } from '/edge_stack/vendor/lit-element.min.js'
-import { Snapshot } from '/edge_stack/components/snapshot.js'
-import { License } from '/edge_stack/components/license.js'
+import { LitElement, html, css } from '../vendor/lit-element.min.js'
+import { Snapshot } from './snapshot.js'
+import { License } from './license.js'
+import {ApiFetch} from "./api-fetch.js";
 
 export class Signup extends LitElement {
 
@@ -93,17 +94,13 @@ form input[type=text] {
     if (this.email().value === "") {
       this.email().classList.add("invalid");
       this.message = "Please supply an email."
-    } else if (this.email().value !== this.confirm().value) {
-      this.email().classList.remove("invalid");
-      this.confirm().classList.add("invalid");
-      this.message = "Emails do not match."
     } else {
       this.email().classList.remove("invalid");
       this.confirm().classList.remove("invalid");
       this.message = "Requesting a license key...";
       this.state = "pending";
 
-      fetch("https://metriton.datawire.io/signup", {
+      ApiFetch("https://metriton.datawire.io/signup", {
         method: "POST",
         headers:{
           "content-type": "application/json; charset=UTF-8"
@@ -137,21 +134,19 @@ form input[type=text] {
 
   render() {
     return html`
-<div class="admin-section" slot="sticky" style="display:${this.licenseClaims.customer_id === License._UNREGISTERED_CUSTOMER_ID ? "block" : "none"}">
-  <button @click=${this.handleSignup} style="display:${this.state === "start" ? "block" : "none"}">
-    Click here to sign up for a free Community license.
+<div class="admin-section" style="display:${this.licenseClaims.customer_id === License._UNREGISTERED_CUSTOMER_ID ? "block" : "none"}">
+  <div style="margin: auto auto 1em auto; color: var(--dw-purple);">You’re currently running AES in evaluation mode.</div>
+  <button @click=${this.handleSignup} style="margin: auto; font-size: 100%; display:${this.state === "start" ? "block" : "none"}">
+    Get a free Community license.
   </button>
   
   <div style="display:${this.state === "entry" ? "block" : "none"}">
-    <form>
-      <span>
+    <form style="width:100%; display:table;">
+      <span style="display: table-cell; padding-right: 4px; font-size: 90%;">
         Email:
       </span>
-      <input id="email" type="text" name="email" value="" /> 
-      <span>
-        Confirm:
-      </span>
-      <input id="confirm" type="text" name="email-confirm" value="" /> <input @click=${this.reset} type="button" value="Cancel" /> <input @click=${this.handleSubmit} type="button" value="Signup" /> 
+      <input id="email" type="text" name="email" value="" style="display: table-cell; width: 100%"/> 
+      <input @click=${this.reset} type="button" value="Cancel" /> <input @click=${this.handleSubmit} type="button" value="Signup" /> 
     </form>
     <div class="invalid">${this.message}</div>
   </div>

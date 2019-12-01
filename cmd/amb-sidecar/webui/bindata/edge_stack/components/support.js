@@ -1,6 +1,6 @@
-import { LitElement, html, css } from '/edge_stack/vendor/lit-element.min.js'
-import { Snapshot } from '/edge_stack/components/snapshot.js'
-import { License } from '/edge_stack/components/license.js'
+import { LitElement, html, css } from '../vendor/lit-element.min.js'
+import { Snapshot } from './snapshot.js'
+import { License } from './license.js'
 
 export class Support extends LitElement {
 
@@ -111,29 +111,29 @@ img {
       <div class="center">
        <ul>
         <li><a href="${this.slackLink()}" target="_blank">
-          <img src="/edge_stack/images/logos/slack-mark.svg" alt=""/>
+          <img src="../images/logos/slack-mark.svg" alt=""/>
           <span>Ask for help on Slack</span>
         </a></li>
 
         <li><a href="https://github.com/datawire/ambassador/issues/new/choose" target="_blank">
-          <img src="/edge_stack/images/logos/github-mark.png" alt=""/>
+          <img src="../images/logos/github-mark.png" alt=""/>
           <span>Found a bug or have a feature request?<br/>File an issue.</span>
         </a></li>
 
         ${this.hasTicketSupport()
           ? html`<li><a href="https://support.datawire.io" target="_blank">
-              <img src="/edge_stack/images/logos/datawire-mark.png" alt=""/>
+              <img src="../images/logos/datawire-mark.png" alt=""/>
               <span>Enterprise Support</span>
             </a></li>`
           : html `<li><a href="https://www.getambassador.io/contact" target="_blank">
-              <img src="/edge_stack/images/logos/datawire-mark.png" alt=""/>
+              <img src="../images/logos/datawire-mark.png" alt=""/>
               <span>Contact Ambassador</span>
             </a></li>`
         }
 
         ${this.hasEmailSupport()
           ? html`<li><a href="mailto:support@datawire.io" target="_blank">
-              <img src="/edge_stack/images/logos/email-mark.png" alt=""/>
+              <img src="../images/logos/email-mark.png" alt=""/>
               <span>support@datawire.io</span>
             </a></li>`
           : html ``
@@ -150,12 +150,12 @@ img {
        </ul>
        
        ${((this.licenseClaims.customer_id != null) && (this.licenseClaims.customer_id !== License._UNREGISTERED_CUSTOMER_ID)) 
-         ? html`<div>
-                  Ambassador is licensed to <code>${this.licenseClaims.customer_email || this.licenseClaims.customer_id}</code>
-                  and is valid until <code>${new Date(this.licenseClaims.exp * 1000).toISOString()}</code><br/>
-                  ${this.hasOldLicense() ? html`You are running a older-generation license. Please contact Support for an upgraded Ambassador Edge Stack license key.` : html``}
+         ? html`<div style="text-align: center;">
+                  Licensed to ${this.licenseClaims.customer_email || this.licenseClaims.customer_id}
+                  through ${new Date(this.licenseClaims.exp * 1000).toLocaleDateString()}
+                  ${this.hasOldLicense() ? html`<p style="font-size:90%; color:gray;">You have a older-generation license. Please contact Support for<br/>an upgraded Ambassador Edge Stack license key to enable more features.</p>` : html``}
                 </div>`
-         : html`<div>Ambassador is running unlicensed</div>`
+         : html`<div style="text-align: center;">Running in evaluation mode. Use the dashboard to get a <a href="#dashboard">free Community license</a>.</div>`
        }
       </div>
     `;

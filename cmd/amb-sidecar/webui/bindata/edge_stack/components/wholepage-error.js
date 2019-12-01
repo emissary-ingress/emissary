@@ -1,4 +1,4 @@
-import {LitElement, css, html} from '/edge_stack/vendor/lit-element.min.js';
+import {LitElement, css, html} from '../vendor/lit-element.min.js';
 
 export class Error extends LitElement {
   static get properties() {
@@ -45,7 +45,7 @@ img {
   render() {
     return html`
 <div class="outer">
-    <div id="spinner-img"><img src="/edge_stack/images/busy_spinner.gif"/></div>
+    <div id="spinner-img"><img src="../images/busy_spinner.gif"/></div>
     <div id="inner">${this.description}</div>
 </div>`;
   }
