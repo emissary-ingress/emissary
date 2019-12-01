@@ -197,8 +197,12 @@ img#linuxLogo {
   }
 
   onAuthChange(auth) {
-    this.authenticated = auth
+    if( this.authenticated !== auth ) {
+      this.authenticated = auth;
+      this.loading = false;
+    }
   }
+
 
   getOS() {
     if (window != null && window["navigator"] != null && window["navigator"]["platform"] != null) {
@@ -222,7 +226,7 @@ img#linuxLogo {
     fetch('/edge_stack/api/config/pod-namespace')
       .then(data => data.text()).then(body => {
         this.namespace = body;
-        this.loading = false;
+        //this.loading = false;
         this.hasError = false;
       })
       .catch((err) => {
