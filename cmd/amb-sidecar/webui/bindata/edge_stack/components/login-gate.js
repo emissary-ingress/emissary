@@ -112,9 +112,9 @@ p.login-instr {
     margin-bottom: 1em;
 }
 p.login-edgectl {
-  font-size: 120%;
-  text-align: center;
-  margin-bottom: 2em;
+    font-size: 120%;
+    text-align: center;
+    margin-bottom: 2em;
 }
 p.download {
     margin: 16px;
@@ -144,7 +144,7 @@ span.repeatUser{
     margin-left: 1em;
 }
 span.repeatUserIcon{
-    font-size: 22px;
+    font-size: 30px;
 }
 div.overage-alert {
     border: 3px solid red;
