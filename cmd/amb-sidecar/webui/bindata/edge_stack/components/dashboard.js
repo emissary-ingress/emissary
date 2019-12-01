@@ -288,7 +288,6 @@ let StatusPanel = {
   }
 };
 
-
   /**
  * Panel showing System Services count and status
  */

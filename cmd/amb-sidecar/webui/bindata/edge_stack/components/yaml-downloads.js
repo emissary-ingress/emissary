@@ -50,7 +50,7 @@ export class YAMLDownloads extends ResourceSet {
    * remove selected properties from the resource that are
    * Kubernetes-internal or otherwise not gitOps friendly.
    */
-  cleanResource(resource) {
+  cleanResource(resource, timestamp) {
     let metadata    = resource.metadata;
     let annotations = metadata.annotations;
 
@@ -60,8 +60,12 @@ export class YAMLDownloads extends ResourceSet {
      * exception handling is needed here.
      */
     delete annotations["kubectl.kubernetes.io/last-applied-configuration"]
+    delete annotations.aes_res_editable
     delete annotations.aes_res_changed
-    delete annotations.aes_res_downloaded
+
+    /* but add the timestamp for download.
+     */
+    annotations.aes_res_downloaded = timestamp
 
     /* Delete other metadata */
     delete metadata.creationTimestamp
@@ -80,10 +84,10 @@ export class YAMLDownloads extends ResourceSet {
     return resource
   }
 
-  /* Reset the editable, changed, and downloaded flags
-   * for the given resource by calling apply.
+  /* Tell Kubernetes that the resource has changed the
+     aes_res_changed and aes_res_downloaded annotations.
    */
-  applyResChanges(resource, editable, changed, downloaded) {
+  applyResource(resource, timestamp) {
     let yaml = `
 ---
 apiVersion: getambassador.io/v2
@@ -92,9 +96,8 @@ metadata:
   name: "${resource.metadata.name}"
   namespace: "${resource.metadata.namespace}"
   annotations:
-    ${aes_res_editable}: "${editable}"
-    ${aes_res_changed}: "${changed}"
-    ${aes_res_downloaded}: "${downloaded}"
+    ${aes_res_changed}: "false"
+    ${aes_res_downloaded}: "${timestamp}"
 spec: ${JSON.stringify(resource.spec)}
 `;
 
@@ -124,24 +127,24 @@ spec: ${JSON.stringify(resource.spec)}
    * set aes_res_downloaded to "true".
    */
   doDownload() {
+    let timestamp = new Date().toISOString();
+
     /* dump each resource as YAML */
     var res_yml = this.resources.map((res) => {
-      res = this.cleanResource(res)
+      res = this.cleanResource(res, timestamp)
       return "---\n" + jsyaml.safeDump(res)
+    })
+
+    /* Write back to Kubernetes, with change flag cleared
+     * and a download timestamp.
+     */
+    this.resources.map((res) => {
+      this.applyResource(res, timestamp)
     })
 
     /* Write out a single file with all the changed resources */
     var blob = new Blob(res_yml, {type: "text/plain;charset=utf-8"});
     saveAs(blob, "resources.yml");
-
-    /* Tell Kubernetes to reset the aes_res_changed to false
-     * for each resource that we wrote out.
-     */
-
-    this.resources.map((res) => {
-      // editable = true, changed = false, downloaded = true
-      this.applyResChanges(res, true, false, true)
-    })
 
     /* update the page -- changed resources should disappear... */
     this.requestUpdate()

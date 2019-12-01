@@ -353,11 +353,6 @@ span.code {
   validate() {}
 
 
-  /* get the YAML text for this resource,
-   * by filling out the basic key/value pairs
-   * and calling spec() for the details...
-   */
-
   // internal
   name() {
     return this.resource.metadata.name;
@@ -409,9 +404,7 @@ metadata:
   name: "${this.nameInput().value}"
   namespace: "${this.namespaceInput().value}"
   annotations:
-    ${aes_res_editable}: "true"
     ${aes_res_changed}: "true"
-    ${aes_res_downloaded}: "false"
 spec: ${JSON.stringify(this.spec())}
 `;
 

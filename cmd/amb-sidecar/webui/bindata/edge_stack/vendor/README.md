@@ -3,5 +3,4 @@
 (polyfill.js) https://cdn.pika.dev/-/@pika/polyfill/0.0.3/dist-es2017/polyfill.min.js
 (lit-element.min.js) Lit-Element: https://cdn.pika.dev/-/lit-element/2.2.1/dist-es2019/lit-element.min.js
 (rapidoc.min.js) Rapidoc: https://cdn.pika.dev/-/rapidoc/7.0.3/dist-es2017/rapidoc.min.js
-(FileSaver.min.js) FileSaver 2.0.2: https://github.com/eligrey/FileSaver.js
 (FileSaver.js) FileSaver 2.0.2: https://github.com/eligrey/FileSaver.js
