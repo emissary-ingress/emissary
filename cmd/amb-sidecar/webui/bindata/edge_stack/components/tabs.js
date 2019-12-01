@@ -28,6 +28,7 @@ export class Tabs extends LitElement {
   padding: 1em;
   line-height: 1.3;
   cursor: pointer;
+  text-decoration: none;
 }
 .tab img {
   vertical-align: middle;
