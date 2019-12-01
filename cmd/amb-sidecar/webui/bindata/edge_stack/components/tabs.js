@@ -3,8 +3,7 @@ import {useContext} from './context.js';
 
 /**
  * Provides a small wrapper around named slots, to properly
- * render one of a series of "tabs". There is also a special
- * named slot called: "sticky" that will always be rendered.
+ * render one of a series of "tabs".
  */
 export class Tabs extends LitElement {
   static get styles() {
@@ -114,7 +113,7 @@ export class Tabs extends LitElement {
 
     for (let idx = 0; idx < this.tabs.length; ++idx) {
       let classes = "tab";
-      if (this.tabs[idx].name === currentTab || this.tabs[idx].slot === "sticky") {
+      if (this.tabs[idx].name === currentTab) {
         this.tabs[idx].style.display = "block";
 
         if( window.location.hash.length > 300 ) {
@@ -163,7 +162,6 @@ export class Tabs extends LitElement {
         ${this.renderLinks()}
       </div>
       <div class="main">
-        <slot name="sticky"></slot>
         <slot name="${tabName}"></slot>
       </div>
     `;
