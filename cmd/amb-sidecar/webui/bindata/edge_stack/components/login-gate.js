@@ -367,9 +367,11 @@ sudo chmod a+x /usr/local/bin/edgectl</pre>
 
   renderFocus() {
     if (this.os === "darwin"){
-    this.shadowRoot.getElementById('darwinFocus').focus();
+      let element = this.shadowRoot.getElementById('darwinFocus');
+      if( element ) { element.focus(); }
     } else if (this.os === "linux") {
-    this.shadowRoot.getElementById('linuxFocus').focus();  
+      let element = this.shadowRoot.getElementById('linuxFocus');
+      if( element ) { element.focus(); }
     }
   }
 
