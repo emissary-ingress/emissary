@@ -1,8 +1,16 @@
 import {html} from '../vendor/lit-element.min.js'
 import {SingleResource, SortableResourceSet} from './resources.js';
+import './request-labels.js';
 
 class Mapping extends SingleResource {
-  //TODO When Bjorn did a “Save” of a new mapping, he got errors in console about parse errors in the JSON returned from snapshot.
+
+  /**
+   * Implement.
+   */
+  init() {
+    this.state.labels = null;
+  }
+
   /**
    * Implement.
    */
@@ -18,6 +26,7 @@ class Mapping extends SingleResource {
     super.reset();
     this.prefixInput().value = this.prefixInput().defaultValue;
     this.targetInput().value = this.targetInput().defaultValue;
+    this.state.labels = null;
   }
 
   prefixInput() {
@@ -34,14 +43,31 @@ class Mapping extends SingleResource {
   spec() {
     return {
       prefix: this.prefixInput().value,
-      service: this.targetInput().value
+      service: this.targetInput().value,
+      labels: {
+        ambassador: this.state.labels
+      }
     }
+  }
+
+  /**
+   * Override.
+   */
+  onEdit() {
+    super.onEdit()
+    this.state.labels = this.labels()
+  }
+
+  // internal
+  labels() {
+    return (this.resource.spec.labels || {}).ambassador || [];
   }
 
   /**
    * Implement.
    */
   renderResource() {
+    let labels = this.state.mode === "edit" ? this.state.labels : this.labels();
     return html`
     <div class="attribute-name">prefix url:</div>
     <div class="attribute-value"><visible-modes list><code>${this.resource.spec.prefix}</code></visible-modes>
@@ -50,8 +76,13 @@ class Mapping extends SingleResource {
     <div class="attribute-name">service:</div>
     <div class="attribute-value"><visible-modes list>${this.resource.spec.service}</visible-modes>
       <visible-modes add edit><input type="text" name="target" value="${this.resource.spec.service}" /></visible-modes>
-      </div>
-
+    </div>
+    <div class="attribute-name">labels:</div>
+    <div class="attribute-value">
+      <dw-request-labels .mode=${this.state.mode} .labels=${labels}
+                         @change=${(e)=>{this.state.labels = e.target.labels}}>
+      </dw-request-labels>
+    </div>
 `
   }
   /**
@@ -62,7 +93,6 @@ class Mapping extends SingleResource {
   }
 
 }
-
 
 customElements.define('dw-mapping', Mapping);
 

@@ -1,5 +1,5 @@
 import { LitElement, html, css} from '../vendor/lit-element.min.js'
-import {Snapshot} from './snapshot.js'
+import {Snapshot, aes_res_editable, aes_res_changed} from './snapshot.js'
 import {getCookie} from './cookies.js';
 import {ApiFetch} from "./api-fetch.js";
 
@@ -121,6 +121,10 @@ export class SingleResource extends LitElement {
 .error {
   color: red;
 }
+button:hover,
+button:focus {
+  background-color: #ede7f3;
+}
 div {
 /*  margin: 0.4em; */
 }
@@ -190,6 +194,10 @@ div.error-value li {
 }
 .off { 
   display: none; 
+}
+input:hover,
+input:focus {
+  background-color: #ede7f3;
 }
 span.code { 
   font-family: Monaco, monospace;
@@ -345,15 +353,23 @@ span.code {
    */
   validate() {}
 
+
   // internal
   name() {
     return this.resource.metadata.name;
   }
 
+
   // internal
   namespace() {
     return this.resource.metadata.namespace;
   }
+
+  // internal
+  annotations() {
+    return this.resource.metadata.annotations;
+  }
+
 
   // internal
   nameInput() {
@@ -388,6 +404,8 @@ kind: ${this.kind()}
 metadata:
   name: "${this.nameInput().value}"
   namespace: "${this.namespaceInput().value}"
+  annotations:
+    ${aes_res_changed}: "true"
 spec: ${JSON.stringify(this.spec())}
 `;
 
@@ -475,9 +493,18 @@ spec: ${JSON.stringify(this.spec())}
 
   /**
    * Override this method to make this object be read-only.
+   * Default functionality is to check for an annotation that
+   * allows editing.  Default is editable unless the annotation
+   * is set to false. [NOTE: may want to switch this?]
    */
   readOnly() {
-    return false;
+    let annotations = this.annotations;
+    if (aes_res_editable in annotations) {
+      return !annotations[aes_res_editable];
+    }
+    else {
+      return false;
+    }
   }
 
   /**
@@ -762,9 +789,13 @@ export class SortableResourceSet extends ResourceSet {
   static get styles() {
     return css`
 div.sortby {
-  text-align: right;
-  font-size: 80%;
-  margin: -20px 8px 0 0;
+    text-align: right;
+    font-size: 80%;
+    margin: -20px 8px 0 0;
+}
+select:hover,
+select:focus {
+    background-color: #ede7f3;
 }
     `
   }

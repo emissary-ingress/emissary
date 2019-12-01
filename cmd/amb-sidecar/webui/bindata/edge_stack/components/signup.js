@@ -1,5 +1,6 @@
 import { LitElement, html, css } from '../vendor/lit-element.min.js'
 import { Snapshot } from './snapshot.js'
+import { License } from './license.js'
 import {ApiFetch} from "./api-fetch.js";
 
 export class Signup extends LitElement {
@@ -26,6 +27,14 @@ export class Signup extends LitElement {
 .invalid {
     background-color: #fe0000;
 }
+button:hover,
+button:focus{
+  background-color: #ede7f3;
+}
+input:hover,
+input:focus {
+    background-color: #ede7f3;
+}
 
 div.admin-section {
     border: 1px solid #ede7f3;
@@ -34,6 +43,13 @@ div.admin-section {
     margin-bottom: 0.6em;
     line-height: 1.3;
     position: relative;
+}
+
+form {
+    text-align: left;
+}
+form input[type=text] {
+    width: 100px;
 }
 `
   }
@@ -104,7 +120,8 @@ div.admin-section {
           if ("vid" in res) {
             this.message = "Congratulations! A license key has been sent to " + this.email().value
           } else {
-            this.message = "Sorry, there was a problem processing your request. Please contact support@datawire.io and supply this:<br>" + btoa(JSON.stringify(res))
+            this.message = "Sorry, there was a problem processing your request. Please contact support@datawire.io";
+            console.error(btoa(JSON.stringify(res)));
           }
         })
         .catch(error=>console.log(error))
@@ -121,7 +138,7 @@ div.admin-section {
 
   render() {
     return html`
-<div class="admin-section" slot="sticky" style="display:${this.licenseClaims.customer_id == "unregistered" ? "block" : "none"}">
+<div class="admin-section" slot="sticky" style="display:${this.licenseClaims.customer_id === License._UNREGISTERED_CUSTOMER_ID ? "block" : "none"}">
   <button @click=${this.handleSignup} style="display:${this.state === "start" ? "block" : "none"}">
     Click here to sign up for a free Community license.
   </button>

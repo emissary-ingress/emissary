@@ -42,6 +42,7 @@ func (ss *SnapshotStore) Set(s Snapshot) {
 
 	if ss.closed {
 		// block forever
+		ss.lock.Unlock()
 		select {}
 	}
 
