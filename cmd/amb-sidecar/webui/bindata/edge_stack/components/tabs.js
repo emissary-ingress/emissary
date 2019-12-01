@@ -7,7 +7,6 @@ import { useContext } from '/edge_stack/components/context.js';
  * named slot called: "sticky" that will always be rendered.
  */
 export class Tabs extends LitElement {
-
   static get styles() {
     return css`
 .tabs {
@@ -53,7 +52,10 @@ export class Tabs extends LitElement {
   color: white;
 }
 
-`
+.tab-text {
+  color: white;
+}
+    `;
   }
 
   /**
@@ -102,22 +104,6 @@ export class Tabs extends LitElement {
     window.remmoveEventListener("hashchange", this.handleHashChange.bind(this), false);
   }
 
-  handleSlotChange() {
-    // Create a variable, and set it instead of mutating
-    // since mutations cause re-rendering.
-    let newTabs = [];
-    Array.from(this.children).forEach(node => {
-      if (node.localName == "dw-tab") {
-        newTabs.push(node);
-      }
-    });
-    this.tabs = newTabs;
-  }
-
-  handleClick(name) {
-    this.current = name;
-  }
-
   renderLinks() {
     let links = [];
     let currentTab = this.current;
@@ -144,22 +130,20 @@ export class Tabs extends LitElement {
         }
 
         classes += " active";
-      } else {
-        this.tabs[idx].style.display = "none";
       }
 
       if (this.tabs[idx].tabIconFilename()) {
         links.push(html`
-          <span class="${classes}" @click=${() => this.handleClick(this.tabs[idx].name)}>
+          <a class="${classes}" href="#${this.tabs[idx].tabHashName()}">
             <img src="${this.tabs[idx].tabIconFilename()}"/>
-            <span class="icon-aligned">${this.tabs[idx].tabName()}</span>
-          </span>
+            <span class="tab-text icon-aligned">${this.tabs[idx].tabName()}</span>
+          </a>
         `);
       } else {
         links.push(html`
-          <span class="${classes}" @click=${() => this.handleClick(this.tabs[idx].name)}>
-            <span class="with-no-icon">${this.tabs[idx].tabName()}</span>
-          </span>
+          <a class="${classes}" href="#${this.tabs[idx].tabHashName()}">
+            <span class="tab-text with-no-icon">${this.tabs[idx].tabName()}</span>
+          </a>
         `);
       }
     }
@@ -168,13 +152,18 @@ export class Tabs extends LitElement {
   }
 
   render() {
+    let tabName = this.current;
+    if (tabName == '') {
+      tabName = this.tabs[0].name;
+    }
+
     return html`
       <div class="tabs">
         ${this.renderLinks()}
       </div>
       <div class="main">
         <slot name="sticky"></slot>
-        <slot @slotchange=${this.handleSlotChange}></slot>
+        <slot name="${tabName}"></slot>
       </div>
     `;
   }
@@ -186,7 +175,7 @@ customElements.define('dw-tabs', Tabs);
 export class Tab extends LitElement {
   static get properties() {
     return {
-      name: { type: String },
+      _name: { type: String },
       icon: { type: String },
       hashname: { type: String }
     }
@@ -195,15 +184,23 @@ export class Tab extends LitElement {
   constructor() {
     super();
 
-    this.name = "";
-    this.hashname = "";
     this.icon = "";
+    this._name = (this.getAttribute('slot') || '');
+    this.updateHashname();
+  }
+
+  updateHashname() {
+    this.hashname = this.name.toLowerCase().replace(/[^\w]+/, '-');
+  }
+
+  set slot(val) {
+    this._name = val;
+    this.updateHashname();
   }
 
   set name(val) {
-    let oldVal = this._name;
     this._name = val;
-    this.hashname = val.toLowerCase().replace(/[^\w]+/,'-');
+    this.updateHashname();
   }
 
   get name() {
@@ -211,7 +208,7 @@ export class Tab extends LitElement {
   }
 
   tabName() {
-    return this.name;
+    return this._name;
   }
 
   tabIconFilename() {
