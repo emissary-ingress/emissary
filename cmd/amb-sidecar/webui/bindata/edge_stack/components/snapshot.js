@@ -8,7 +8,7 @@ export const aes_res_changed    = "aes_res_changed";
 export const aes_res_source     = "aes_res_source_uri";
 export const aes_res_downloaded = "aes_res_downloaded";
 
-function updateCredentials(value) {
+export function updateCredentials(value) {
   // Keep this in-sync with webui.go:registerActivity()
   //
   // - Don't set expires=/max-age=; leave it as a "session cookie", so
