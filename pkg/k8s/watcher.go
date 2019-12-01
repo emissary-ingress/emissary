@@ -227,8 +227,15 @@ func (w *Watcher) WatchQuery(query Query, listener func(*Watcher)) error {
 	}
 
 	invoke := func() {
+		log.Debugf("invoke %q lock", ri.String())
 		w.mutex.Lock()
-		defer w.mutex.Unlock()
+
+		defer func() {
+			log.Debugf("invoke %q unlock", ri.String())
+			w.mutex.Unlock()
+		}()
+
+		log.Debugf("invoke %q listener", ri.String())
 		listener(w)
 	}
 
@@ -302,46 +309,97 @@ func (w *Watcher) StartWithErrorHandler(handler func(kind string, stage string, 
 		w.mutex.Unlock()
 	}
 
-	ableToSync := make(map[ResourceType]watch)
+	// Make sure that we do all the initial types in a block and _then_ start everything
+	// going, so that we don't reconfigure over and over again at boot.
 	ableToWatch := make(map[ResourceType]watch)
 
 	for kind, watch := range w.watches {
-		err := w.catcher(func() { w.sync(kind) })
-
-		if err == nil {
-			ableToSync[kind] = watch
-		} else {
-			if handler != nil {
-				log.Infof("handling sync err %q", err)
-				handler(kind.String(), "sync", err)
-			} else {
-				log.Infof("unhandled sync err %q", err)
-				panic(err)
-			}
-		}
-	}
-
-	for kind, watch := range ableToSync {
-		err := w.catcher(func() { watch.invoke() })
+		stage, err := w.SyncWatcherForResourceType(kind)
 
 		if err == nil {
 			ableToWatch[kind] = watch
 		} else {
 			if handler != nil {
-				log.Infof("handling invoke err %q", err)
-				handler(kind.String(), "invoke", err)
+				log.Infof("handling %q err %q", stage, err)
+				handler(kind.String(), stage, err)
 			} else {
-				log.Infof("unhandled invoke err %q", err)
+				log.Infof("unhandled %q err %q", stage, err)
 				panic(err)
 			}
+
+			return
 		}
 	}
 
-	w.wg.Add(len(w.watches))
-	for kind, watch := range ableToWatch {
-		log.Infof("starting watch runner for %q", kind.String())
-		go watch.runner()
+	for kind := range ableToWatch {
+		w.RunWatcherForResourceType(kind)
 	}
+}
+
+// StartWatcherForKind fully starts the watcher for a single kind of resource.
+func (w *Watcher) StartWatcherForKind(kind string) (string, error) {
+	resourceType, err := w.Client.ResolveResourceType(kind)
+
+	if err != nil {
+		return "resolve", err
+	}
+
+	return w.StartWatcherForResourceType(resourceType)
+}
+
+// StartWatcherForResourceType fully starts the watcher for a single ResourceType.
+func (w *Watcher) StartWatcherForResourceType(resourceType ResourceType) (string, error) {
+	log.Debugf("Sync %q", resourceType.String())
+	stage, err := w.SyncWatcherForResourceType(resourceType)
+
+	if err != nil {
+		return stage, err
+	}
+
+	log.Debugf("Run %q", resourceType.String())
+	w.RunWatcherForResourceType(resourceType)
+
+	return "", nil
+}
+
+// SyncWatcherForResourceType does the initial synchronization for a single ResourceType.
+func (w *Watcher) SyncWatcherForResourceType(resourceType ResourceType) (string, error) {
+	watch := w.watches[resourceType]
+
+	// First try to sync.
+	log.Debugf("catcher and sync %q", resourceType.String())
+	err := w.catcher(func() { w.sync(resourceType) })
+
+	if err != nil {
+		return "sync", err
+	}
+
+	// Next, try to start the watch running.
+	log.Debugf("catcher and invoke %q", resourceType.String())
+	err = w.catcher(func() { watch.invoke() })
+
+	if err != nil {
+		return "invoke", err
+	}
+
+	// Done.
+	log.Debugf("sync done %q", resourceType.String())
+	return "", nil
+}
+
+// RunWatcherForResourceType starts running the watcher for a single ResourceType, assuming
+// that it has already been synchronized.
+func (w *Watcher) RunWatcherForResourceType(resourceType ResourceType) {
+	watch := w.watches[resourceType]
+
+	// Note the presence of the additional wait for our waitgroup...
+	w.wg.Add(1)
+
+	// ...and start the watch's runner.
+	log.Infof("starting watch runner for %q", resourceType.String())
+	go watch.runner()
+
+	log.Debugf("start done %q", resourceType.String())
 }
 
 func (w *Watcher) catcher(doSomething func()) (err error) {
