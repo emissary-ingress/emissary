@@ -179,8 +179,8 @@ export class Snapshot extends LitElement {
               }
 
               this.fragment = "";
-              this.setSnapshot(new SnapshotWrapper(json || {}));
               this.setAuthenticated(true);
+              this.setSnapshot(new SnapshotWrapper(json || {}));
               if (this.loading) {
                 this.loading = false;
                 this.loadingError = null;
