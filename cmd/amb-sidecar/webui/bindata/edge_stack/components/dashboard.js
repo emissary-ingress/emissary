@@ -2,9 +2,9 @@
 /* Dashboard and dashboard element classes using LitElement.                          */
 /* ===================================================================================*/
 
-import { LitElement, html, css, svg } from '/edge_stack/vendor/lit-element.min.js';
-import { Snapshot } from '/edge_stack/components/snapshot.js';
-import { License } from '/edge_stack/components/license.js';
+import { LitElement, html, css, svg } from '../vendor/lit-element.min.js';
+import { Snapshot } from './snapshot.js';
+import { License } from './license.js';
 
 /**
  * This is a Promise-like object used to synchronize between google charts loaded callback and the

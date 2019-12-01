@@ -255,6 +255,23 @@ func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		fb.notFound(w, r)
 		return
 	}
+        if fb.cfg.DevWebUIWebstorm != "" {
+		/* When developing locally with NetBrains WebStorm, it opens Chrome at post 63342, so
+		 * we need to allow Chrome to CORS request to this local go server. Chrome does pre-flight
+		 * checks with the http OPTIONS, so respond appropriately to that.. */
+		switch r.Method {
+		case http.MethodOptions:
+	                w.Header().Set("Access-Control-Allow-Origin", "http://localhost:63342")
+	       	        w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+	       	        w.Header().Set("Access-Control-Allow-Headers", "Authorization, Content-Type")
+	       	        w.WriteHeader(http.StatusOK)
+	                return;
+		default:
+		/* ..and for the http GETs and POSTs, reply with the necessary CORS header. */
+			w.Header().Set("Access-Control-Allow-Origin", "http://localhost:63342") 
+		}
+		/* Learn more about CORS: https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS */
+	}
 	switch r.URL.Path {
 	case "/edge_stack/api/tos-url":
 		if !fb.isAuthorized(r) {
@@ -280,6 +297,12 @@ func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		// no authentication for this one
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 		io.WriteString(w, fb.cfg.PodNamespace)
+	case "/edge_stack/api/config/debug-config":
+		// no authentication for this one
+		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+		io.WriteString(w, "v1\n");
+		io.WriteString(w, os.Getenv("DEV_WEBUI_PORT"));
+		io.WriteString(w, "\n");
 	case "/edge_stack/api/snapshot":
 		snapshotHost := fb.cfg.DevWebUISnapshotHost
 		if snapshotHost != "" {
@@ -338,7 +361,15 @@ func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			fb.forbidden(w, r)
 			return
 		}
-		fb.registerActivity(w, r)
+		switch r.Method {
+		case http.MethodPost:
+			fb.registerActivity(w, r) // the happy path
+		case http.MethodOptions:
+			return // do nothing
+		default:
+			middleware.ServeErrorResponse(w, r.Context(), http.StatusMethodNotAllowed,
+				errors.New("method not allowed"), nil)
+		}
 		apply := supervisor.Command("WEBUI", "kubectl", "apply", "-f", "-")
 		apply.Stdin = r.Body
 		var output bytes.Buffer
@@ -356,7 +387,15 @@ func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			fb.forbidden(w, r)
 			return
 		}
-		fb.registerActivity(w, r)
+		switch r.Method {
+		case http.MethodPost:
+			fb.registerActivity(w, r) // the happy path
+		case http.MethodOptions:
+			return // do nothing
+		default:
+			middleware.ServeErrorResponse(w, r.Context(), http.StatusMethodNotAllowed,
+				errors.New("method not allowed"), nil)
+		}
 		decoder := json.NewDecoder(r.Body)
 		var obj struct {
 			Namespace string

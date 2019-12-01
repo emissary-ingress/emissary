@@ -1,5 +1,7 @@
-import {LitElement, css, html} from '/edge_stack/vendor/lit-element.min.js';
-import {registerContextChangeHandler, useContext} from '/edge_stack/components/context.js';
+import {LitElement, css, html} from '../vendor/lit-element.min.js'
+import {registerContextChangeHandler, useContext} from './context.js'
+import {ApiFetch, hasDebugBackend} from './api-fetch.js'
+import {updateCredentials} from './snapshot.js'
 
 export class LoginGate extends LitElement {
   static get properties() {
@@ -167,6 +169,18 @@ pre {
 details {
     margin: 1em;
 }
+
+#debug-dev-loop-box {
+  width: 90%;
+  text-align: center;
+  border: thin dashed black;
+  padding: 0.5em; 
+}
+#debug-dev-loop-box div {
+  margin: auto;
+}
+#debug-dev-loop-box button {
+}
 div.wordwrapSudo {
     overflow: scroll;
 }    
@@ -223,7 +237,8 @@ img#linuxLogo {
   }
 
   loadData() {
-    fetch('/edge_stack/api/config/pod-namespace')
+    ApiFetch('/edge_stack/api/config/pod-namespace')
+    //fetch('http://localhost:9000/edge_stack/api/config/pod-namespace', { mode:'no-cors'})
       .then(data => data.text()).then(body => {
         this.namespace = body;
         //this.loading = false;
@@ -283,6 +298,29 @@ img#linuxLogo {
 
   copyLinuxInstallToKeyboard() {
     this.copyToKeyboard('install-linux');
+  }
+
+  renderDebugDetails() {
+    if( hasDebugBackend() ) {
+    return html`
+      <div id="debug-dev-loop-box"><div>
+        <h3>Debug</h3>
+        1. <button style="margin-right: 1em" @click=${this.copyLoginToKeyboard.bind(this)}>Copy edgectl command to clipboard</button>
+        2. <button @click="${this.enterDebugDetails.bind(this)}">Enter the URL+JWT</button>
+      </div></div>
+` } else {
+      return html``
+    }
+  }
+  enterDebugDetails() {
+    let the_whole_url = prompt("Enter the edgectl url w/ JST", "");
+    let segments = the_whole_url.split('#');
+    if( segments.length > 1 ) {
+      updateCredentials(segments[1]);
+    } else {
+      updateCredentials(segments[0]);
+    }
+    window.location.reload();
   }
 
   renderDarwinDetails() {
@@ -361,6 +399,7 @@ sudo chmod a+x /usr/local/bin/edgectl</pre>
         ${this.renderLinuxDetails()}
       </div>
     </div>
+        ${this.renderDebugDetails()}
   </div>
     `;
   }

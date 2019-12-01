@@ -1,6 +1,6 @@
-import {html} from '/edge_stack/vendor/lit-element.min.js'
-import {SingleResource, SortableResourceSet} from '/edge_stack/components/resources.js';
-import '/edge_stack/components/request-labels.js';
+import {html} from '../vendor/lit-element.min.js'
+import {SingleResource, SortableResourceSet} from './resources.js';
+import './request-labels.js';
 
 class Mapping extends SingleResource {
 

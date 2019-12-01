@@ -1,6 +1,7 @@
-import { Snapshot, aes_res_editable, aes_res_changed } from '/edge_stack/components/snapshot.js'
-import { LitElement, html, css} from '/edge_stack/vendor/lit-element.min.js'
-import {getCookie} from '/edge_stack/components/cookies.js';
+import { LitElement, html, css} from '../vendor/lit-element.min.js'
+import {Snapshot, aes_res_editable, aes_res_changed} from './snapshot.js'
+import {getCookie} from './cookies.js';
+import {ApiFetch} from "./api-fetch.js";
 
 /**
  * The classes in this file provide the building blocks we use for
@@ -276,7 +277,7 @@ span.code {
       return; // user canceled the action
     }
 
-    fetch('/edge_stack/api/delete',
+    ApiFetch('/edge_stack/api/delete',
           {
             method: "POST",
             headers: new Headers({
@@ -408,7 +409,7 @@ metadata:
 spec: ${JSON.stringify(this.spec())}
 `;
 
-    fetch('/edge_stack/api/apply',
+    ApiFetch('/edge_stack/api/apply',
           {
             method: "POST",
             headers: new Headers({

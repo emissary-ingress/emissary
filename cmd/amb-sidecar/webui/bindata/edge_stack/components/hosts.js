@@ -1,6 +1,7 @@
-import {html} from '/edge_stack/vendor/lit-element.min.js'
-import {SingleResource, ResourceSet} from '/edge_stack/components/resources.js';
-import {getCookie} from '/edge_stack/components/cookies.js';
+import {html} from '../vendor/lit-element.min.js'
+import {SingleResource, ResourceSet} from './resources.js';
+import {getCookie} from './cookies.js';
+import {ApiFetch} from "./api-fetch.js";
 
 /**
  * A SingleHost is the UI-side object for a "getambassador.io/v2 Host" resource.
@@ -109,7 +110,7 @@ export class SingleHost extends SingleResource {
     let value = this.provider().value;
     let url = new URL('/edge_stack/api/tos-url', window.location);
     url.searchParams.set('ca-url', value);
-    fetch(url, {
+    ApiFetch(url, {
       headers: new Headers({
         'Authorization': 'Bearer ' + getCookie("edge_stack_auth")
       })
