@@ -30,6 +30,44 @@ export class LoginGate extends LitElement {
     height: 42px;
     margin-bottom: 1em
 }
+button {
+  margin-left: 1.5em;
+}
+button:hover {
+  background-color: #ede7f3;
+}
+button:focus {
+  background-color: #ede7f3;
+}
+div.login-repeatUser {
+  display: flex;
+  justify-content: space-between;
+  border: 1px solid #ede7f3;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, .1);
+  padding: 0.5em;
+  margin-bottom: 0.6em;
+  line-height: 1.3;
+  position: relative;
+}
+div.login-newUser {
+  display: flex;
+  justify-content: space-between;
+  padding-bottom: 0;
+  border: 1px solid #ede7f3;
+  border-top: 1px solid #ede7f3;
+  border-right: 1px solid #ede7f3;
+  box-shadow: 0 2px 4px rgba(0,0,0,.1);
+  padding: 0.5em;
+  line-height: 1.3;
+  position: relative;
+}
+summary:focus {
+    outline: none;
+    color: #5F3EFF;
+}
+.darwinLink, .linuxLink{
+    color: #5F3EFF;
+}
 div.login-section {
     border: 1px solid var(--dw-item-border);
     box-shadow: 0 2px 4px rgba(0,0,0,.1);
@@ -37,20 +75,76 @@ div.login-section {
     margin-bottom: 0.6em;
     line-height: 1.3;
 }
+div.login-container {
+     display: flex;
+     justify-content: space-between;
+}
+div.login-darwin {
+    width: 50%;
+    border: 1px solid #ede7f3;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, .1);
+    padding: 0.5em;
+    margin-bottom: 0.6em;
+    line-height: 1.3;
+    position: relative;
+    overflow: hidden;
+}
+div.login-linux {
+    width: 50%;
+    border: 1px solid #ede7f3;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, .1);
+    padding: 0.5em;
+    margin-bottom: 0.6em;
+    line-height: 1.3;
+    position: relative;
+    overflow: hidden;
+}
 div.info-title {
     font-weight: bold;
     font-size: 120%;
 }
+h1.info-title, p.login-downloadText {
+    text-align: center;
+}
+p.login-instr {
+    font-size: 90%;
+    text-align: center;
+    margin-bottom: 1em;
+}
+p.login-edgectl {
+  font-size: 120%;
+  text-align: center;
+  margin-bottom: 2em;
+}
+p.download {
+    margin: 16px;
+}
+span.repeatUserText {
+    font-size: 140%;
+}
 span.command {
-    background-color: #f5f2f0;;
+    background-color: #f5f2f0;
+    color: #5F3EFF;
     padding: 3px;
     letter-spacing: .2px;
     font-family: Consolas,Monaco,Andale Mono,Ubuntu Mono,monospace;
-    font-size: 80%;
+    font-size: 150%;
     word-spacing: normal;
     word-break: normal;
     word-wrap: normal;
     hypens: none;
+}
+span.newUser {
+    margin-left: 1em;
+}
+span.newUserIcon {
+    font-size: 22px;
+}
+span.repeatUser{
+    margin-left: 1em;
+}
+span.repeatUserIcon{
+    font-size: 22px;
 }
 div.overage-alert {
     border: 3px solid red;
@@ -73,6 +167,17 @@ pre {
 details {
     margin: 1em;
 }
+div.wordwrapSudo {
+    overflow: scroll;
+}    
+img#darwinLogo {
+    width: 35px;
+    margin: 0 0 -5px 0;
+}
+img#linuxLogo {
+  width: 35px;
+  margin: 0 0 -8px 0;
+}
     `;
   }
 
@@ -84,7 +189,7 @@ details {
 
     this.namespace = '';
     this.os = this.getOS();
-
+    
     this.loadData();
 
     this.authenticated = useContext('auth-state', null)[0];
@@ -139,6 +244,10 @@ details {
     `;
   }
 
+  updated(changedProperties) {
+    this.renderFocus();
+  }
+
   copyToKeyboard(theId) {
     const copyText = this.shadowRoot.getElementById(theId).innerText;
     const el = document.createElement('textarea');  // Create a <textarea> element
@@ -174,28 +283,42 @@ details {
 
   renderDarwinDetails() {
     return html`
-<details id="darwin" ?open=${this.os === 'darwin'}>
-  <summary><h2 style="display:inline">Darwin</h2></summary>
-  <pre id="install-darwin">
-sudo curl -fL https://metriton.datawire.io/downloads/darwin/edgectl -o /usr/local/bin/edgectl && \\
-sudo chmod a+x /usr/local/bin/edgectl
-  </pre>
-
+  <details id="darwin" ?open=${this.os === 'darwin'}>
+  <summary id="darwinFocus"><h2 style="display:inline">MacOS
+    <img id="darwinLogo" src="/edge_stack/images/logos/apple.svg" alt="linux logo" display=inline>
+          </h2>
+  </summary>
+  <h3>1. Download with this CLI:</h3>
+  
+  <pre id="install-darwin"><div class="wordwrapSudo">sudo curl -fL https://metriton.datawire.io/downloads
+/darwin/edgectl -o /usr/local/bin/edgectl && \\
+sudo chmod a+x /usr/local/bin/edgectl</div></pre>
+  
   <button @click=${this.copyDarwinInstallToKeyboard.bind(this)}>Copy to Clipboard</button>
+  <h3>2. Or download the executable:</h3>
+  <p class="download">Download <a href="https://metriton.datawire.io/downloads/darwin/edgectl" class="darwinLink">edgectl for MacOS</a></p>
 </details>
     `;
   }
 
   renderLinuxDetails() {
     return html`
+    
 <details id="linux" ?open=${this.os === 'linux'}>
-  <summary><h2 style="display:inline">Linux</h2></summary>
-  <pre id="install-linux">
-sudo curl -fL https://metriton.datawire.io/downloads/linux/edgectl -o /usr/local/bin/edgectl && \\
-sudo chmod a+x /usr/local/bin/edgectl
-  </pre>
+  <summary id="linuxFocus"><h2 style="display:inline">Linux
+    <img id="linuxLogo" src="/edge_stack/images/logos/linuxTux.svg" alt="linux logo" display=inline>
+          </h2>
+  </summary>
+  <h3>1. Download with this CLI:</h3>
+  
+  <pre class="installText" id="install-linux"><div class="wordwrapSudo">sudo curl -fL https://metriton.datawire.io/downloads
+/linux/edgectl -o /usr/local/bin/edgectl && \\
+sudo chmod a+x /usr/local/bin/edgectl</pre>
 
   <button @click=${this.copyLinuxInstallToKeyboard.bind(this)}>Copy to Clipboard</button>
+  <h3>2. Or download the executable:</h3>
+  <p class="download">Download <a href="https://metriton.datawire.io/downloads/linux/edgectl" class="linuxLink">edgectl for Linux </a></p>
+  
 </details>
     `;
   }
@@ -203,20 +326,47 @@ sudo chmod a+x /usr/local/bin/edgectl
   renderUnauthenticated() {
     return html`
   <div class="login-section">
-    <h1 class="info-title">Welcome to Ambassador Edge Stack!</h1>
-    <p>
-      To start using the Edge Policy Consule, download the edgectl executable
-      from the getambassador.io
-      website: (<a href="https://metriton.datawire.io/downloads/darwin/edgectl">darwin</a>, <a href="https://metriton.datawire.io/downloads/linux/edgectl">linux</a>).
+    <h1 class="info-title">Welcome to Ambassador Edge Stack</h1>
+    <p class="login-downloadText">
     </p>
-    <p>
-    Once downloaded, you can login to the Edge Policy Console with: <span class="command" id="login">edgectl login --namespace=${this.namespace} ${window.location.host}</span> <button style="margin-left: 1em" @click=${this.copyLoginToKeyboard.bind(this)}>Copy to Clipboard</button>
+   
+    <p class="login-instr">
+      <div class="login-repeatUser">
+        <span class="repeatUser">
+          <span class="repeatUserIcon" style="display: inline">&#129413;&nbsp;</span>
+            <span class="repeatUserText">Repeat users can log in to the Edge Policy Console directly with this command:<br></span>
     </p>
 
-    ${this.renderDarwinDetails()}
-    ${this.renderLinuxDetails()}
+    <p class="login-edgectl">
+      <span class="command" id="login" style="block">edgectl login --namespace=${this.namespace} ${window.location.host}</span> 
+      <button style="margin-left: 1em" @click=${this.copyLoginToKeyboard.bind(this)}>Copy to Clipboard</button>
+        </span>
+    </p>  
+  </div>
+
+    <p class="login-instr">
+    <div class="login-newUser">
+    <span class="newUser"><span class="newUserIcon" style="display: inline">&#128037;&nbsp;</span>First time users will need to download and install the edgectl executable. Once complete, log in to Ambassador with the edgectl command above.</p>
+    </span></div>
+    
+    <div class="login-container">
+      <div class="login-darwin">
+        ${this.renderDarwinDetails()}
+      </div>
+      <div class="login-linux">
+        ${this.renderLinuxDetails()}
+      </div>
+    </div>
   </div>
     `;
+  }
+
+  renderFocus() {
+    if (this.os === "darwin"){
+    this.shadowRoot.getElementById('darwinFocus').focus();
+    } else if (this.os === "linux") {
+    this.shadowRoot.getElementById('linuxFocus').focus();  
+    }
   }
 
   render() {
