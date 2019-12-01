@@ -120,6 +120,9 @@ spec:
       containers:
         - name: keycloak
           image: jboss/keycloak:4.8.3.Final
+          resources:
+            requests:
+              memory: "512Mi"
           volumeMounts:
             - name: config-volume
               mountPath: /tmp/keycloak

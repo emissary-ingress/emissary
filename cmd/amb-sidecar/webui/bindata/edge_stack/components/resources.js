@@ -1,5 +1,5 @@
+import { Snapshot, aes_res_editable, aes_res_changed } from '/edge_stack/components/snapshot.js'
 import { LitElement, html, css} from '/edge_stack/vendor/lit-element.min.js'
-import {Snapshot} from '/edge_stack/components/snapshot.js'
 import {getCookie} from '/edge_stack/components/cookies.js';
 
 /**
@@ -352,15 +352,23 @@ span.code {
    */
   validate() {}
 
+
   // internal
   name() {
     return this.resource.metadata.name;
   }
 
+
   // internal
   namespace() {
     return this.resource.metadata.namespace;
   }
+
+  // internal
+  annotations() {
+    return this.resource.metadata.annotations;
+  }
+
 
   // internal
   nameInput() {
@@ -395,6 +403,8 @@ kind: ${this.kind()}
 metadata:
   name: "${this.nameInput().value}"
   namespace: "${this.namespaceInput().value}"
+  annotations:
+    ${aes_res_changed}: "true"
 spec: ${JSON.stringify(this.spec())}
 `;
 
@@ -482,9 +492,18 @@ spec: ${JSON.stringify(this.spec())}
 
   /**
    * Override this method to make this object be read-only.
+   * Default functionality is to check for an annotation that
+   * allows editing.  Default is editable unless the annotation
+   * is set to false. [NOTE: may want to switch this?]
    */
   readOnly() {
-    return false;
+    let annotations = this.annotations;
+    if (aes_res_editable in annotations) {
+      return !annotations[aes_res_editable];
+    }
+    else {
+      return false;
+    }
   }
 
   /**
