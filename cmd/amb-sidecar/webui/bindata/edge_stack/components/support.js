@@ -149,7 +149,7 @@ img {
         
        </ul>
        
-       ${this.licenseClaims.customer_id !== License._UNREGISTERED_CUSTOMER_ID 
+       ${((this.licenseClaims.customer_id != null) && (this.licenseClaims.customer_id !== License._UNREGISTERED_CUSTOMER_ID)) 
          ? html`<div>
                   Ambassador is licensed to <code>${this.licenseClaims.customer_email || this.licenseClaims.customer_id}</code>
                   and is valid until <code>${new Date(this.licenseClaims.exp * 1000).toISOString()}</code><br/>
