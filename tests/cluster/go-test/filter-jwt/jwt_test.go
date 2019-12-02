@@ -27,9 +27,10 @@ func TestJWTInjectHeaders(t *testing.T) {
 
 	// build the test-case /////////////////////////////////////////////////
 	tokenStruct := jwt.NewWithClaims(jwt.GetSigningMethod("none"), jwt.MapClaims{
-		"sub":  "1234567890",
-		"name": "John Doe",
-		"iat":  1516239022,
+		"sub":   "1234567890",
+		"name":  "John Doe",
+		"iat":   1516239022,
+		"scope": "openid myscope",
 	})
 	tokenStruct.Header["extra"] = "so much"
 	tokenString, err := tokenStruct.SignedString(jwt.UnsafeAllowNoneSignatureType)
@@ -135,18 +136,29 @@ func TestJWTErrorResponse(t *testing.T) {
 
 	// build the test-case /////////////////////////////////////////////////
 	expiredToken, err := jwt.NewWithClaims(jwt.GetSigningMethod("none"), jwt.MapClaims{
-		"sub":  "1234567890",
-		"name": "John Doe",
-		"iat":  1516239022,
-		"exp":  1516239023,
+		"sub":   "1234567890",
+		"name":  "John Doe",
+		"iat":   1516239022,
+		"exp":   1516239023,
+		"scope": "openid myscope",
+	}).SignedString(jwt.UnsafeAllowNoneSignatureType)
+	assert.NotError(err)
+
+	insufficientToken, err := jwt.NewWithClaims(jwt.GetSigningMethod("none"), jwt.MapClaims{
+		"sub":   "1234567890",
+		"name":  "John Doe",
+		"iat":   1516239022,
+		"exp":   1616239022,
+		"scope": "openid",
 	}).SignedString(jwt.UnsafeAllowNoneSignatureType)
 	assert.NotError(err)
 
 	validToken, err := jwt.NewWithClaims(jwt.GetSigningMethod("none"), jwt.MapClaims{
-		"sub":  "1234567890",
-		"name": "John Doe",
-		"iat":  1516239022,
-		"exp":  1616239022,
+		"sub":   "1234567890",
+		"name":  "John Doe",
+		"iat":   1516239022,
+		"exp":   1616239022,
+		"scope": "openid myscope",
 	}).SignedString(jwt.UnsafeAllowNoneSignatureType)
 	assert.NotError(err)
 
@@ -247,6 +259,27 @@ func TestJWTErrorResponse(t *testing.T) {
 				},
 			},
 		},
+		"insufficientScope": {
+			Request: &http.Request{
+				Method: "GET",
+				URL:    u,
+				Header: http.Header{
+					"Authorization": {"Bearer " + insufficientToken},
+				},
+			},
+			ExpectedResponse: httpResponse{
+				StatusCode: http.StatusForbidden,
+				Header: map[string]string{
+					"Content-Type":     "application/json",
+					"WWW-Authenticate": `Bearer error=insufficient_scope, error_description="missing required scope value: \"myscope\"", scope="openid myscope", realm="jwt-filter.standalone"`,
+				},
+				Body: customErrorResponse{
+					ErrorMessage: `missing required scope value: "myscope"`,
+					HTTPStatus:   "403",
+					//"requestId": "7167523368329307446"
+				},
+			},
+		},
 	}
 
 	client := &http.Client{
@@ -259,6 +292,7 @@ func TestJWTErrorResponse(t *testing.T) {
 		testdata := testdata // capture loop variable
 		t.Run(testname, func(t *testing.T) {
 			t.Parallel()
+			assert := &testutil.Assert{T: t}
 
 			// run the request
 			resp, err := client.Do(testdata.Request)

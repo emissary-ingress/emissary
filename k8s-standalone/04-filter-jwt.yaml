@@ -101,6 +101,10 @@ spec:
       path: /jwt/**
       filters:
         - name: jwt-filter
+          arguments:
+            scope:
+             - openid
+             - myscope
 ---
 apiVersion: getambassador.io/v1
 kind: Mapping

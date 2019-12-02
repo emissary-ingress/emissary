@@ -30,7 +30,8 @@ func inArray(needle string, haystack []string) bool {
 }
 
 type JWTFilter struct {
-	Spec crd.FilterJWT
+	Spec      crd.FilterJWT
+	Arguments crd.FilterJWTArguments
 }
 
 type errorWithValidationError struct {
@@ -46,7 +47,16 @@ func (h *JWTFilter) Filter(ctx context.Context, r *filterapi.FilterRequest) (fil
 	var hackKeepOldTemplatesWorking error
 	validator := &rfc6750.AuthorizationValidator{
 		Realm: h.Spec.ErrorResponse.Realm,
-		//RequiredScope: h.Spec.Scope, // TODO: add h.Spec.Scope
+		RequiredScope: func() rfc6749.Scope {
+			desired := make(rfc6749.Scope, len(h.Arguments.Scope))
+			for _, scopeValue := range h.Arguments.Scope {
+				if scopeValue == "offline_access" {
+					continue
+				}
+				desired[scopeValue] = struct{}{}
+			}
+			return desired
+		}(),
 		TokenValidationFunc: func(tokenString string) (scope rfc6749.Scope, reasonInvalid, serverError error) {
 			var claims jwt.MapClaims
 			tokenParsed, claims, reasonInvalid, serverError = validateToken(tokenString, h.Spec, httpClient)

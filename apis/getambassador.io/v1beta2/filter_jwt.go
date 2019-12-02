@@ -98,3 +98,9 @@ func (m *FilterJWT) Validate(qname string) error {
 
 	return nil
 }
+
+//////////////////////////////////////////////////////////////////////
+
+type FilterJWTArguments struct {
+	Scope []string `json:"scope"`
+}
