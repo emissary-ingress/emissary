@@ -374,7 +374,7 @@ let SystemServicesPanel = {
          </svg>
           <div class="system-status">
           <p><span class = "status" style="color: green">${countString(total_services, "Service", "Services")}</span></p>
-          <p><span class = "status" style="color: ${average_health >= 80  ? "green" : "gray"}">${average_health}% Healthy</span></p>
+          <p><span class = "status" style="color: ${average_health >= 80  ? "green" : "gray"}">${FormatFloat(average_health, 0)}% Healthy</span></p>
           <p><span class = "status" style="color: ${services_waiting == 0 ? "green" : "gray"}">${services_waiting} Waiting</span></p>
   
           </div>
@@ -557,3 +557,16 @@ export class Dashboard extends LitElement {
 /* ===================================================================================*/
 
 customElements.define('dw-dashboard', Dashboard);
+
+/**
+ * Format a floating point numbers compactily. Limit to at most
+ * maxDigits so we can avoid things like 3.33333333333, but avoid just
+ * using float.toFixed(2), because that will print values like 100 as
+ * 100.00.
+ *
+ * XXX: Do we want a shared utility thing somewhere for this sort of thing?
+ */
+function FormatFloat(x, maxDigits=2) {
+    const m = Math.pow(10, maxDigits);
+    return Math.round(x*m)/m;
+}
