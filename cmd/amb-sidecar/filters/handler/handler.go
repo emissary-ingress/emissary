@@ -164,8 +164,14 @@ func (c *FilterMux) filter(ctx context.Context, request *filterapi.FilterRequest
 	logger.Infof("selected rule host=%q, path=%q, filters=[%s]",
 		rule.Host, rule.Path, strings.Join(filterStrs, ", "))
 
+	return c.runFilters(rule.Filters, ctx, request)
+}
+
+func (c *FilterMux) runFilters(filters []crd.FilterReference, ctx context.Context, request *filterapi.FilterRequest) (filterapi.FilterResponse, error) {
+	logger := middleware.GetLogger(ctx)
+
 	sumResponse := &filterapi.HTTPRequestModification{}
-	for _, filterRef := range rule.Filters {
+	for _, filterRef := range filters {
 		filterQName := filterRef.Name + "." + filterRef.Namespace
 		if !filterRef.IfRequestHeader.Matches(filterutil.GetHeader(request)) {
 			logger.Debugf("skipping filter=%q", filterQName)
