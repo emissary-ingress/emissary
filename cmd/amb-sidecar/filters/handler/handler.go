@@ -164,10 +164,10 @@ func (c *FilterMux) filter(ctx context.Context, request *filterapi.FilterRequest
 	logger.Infof("selected rule host=%q, path=%q, filters=[%s]",
 		rule.Host, rule.Path, strings.Join(filterStrs, ", "))
 
-	return c.RunFilters(rule.Filters, ctx, request)
+	return c.runFilters(rule.Filters, ctx, request)
 }
 
-func (c *FilterMux) RunFilters(filters []crd.FilterReference, ctx context.Context, request *filterapi.FilterRequest) (filterapi.FilterResponse, error) {
+func (c *FilterMux) runFilters(filters []crd.FilterReference, ctx context.Context, request *filterapi.FilterRequest) (filterapi.FilterResponse, error) {
 	logger := middleware.GetLogger(ctx)
 
 	sumResponse := &filterapi.HTTPRequestModification{}
@@ -234,7 +234,7 @@ func (c *FilterMux) runFilter(filterRef crd.FilterReference, ctx context.Context
 			RedisPool:  c.RedisPool,
 			QName:      filterQName,
 			Spec:       filterSpec,
-			RunFilters: c.RunFilters,
+			RunFilters: c.runFilters,
 		}
 		if err := mapstructure.Convert(filterRef.Arguments, &_filterImpl.Arguments); err != nil {
 			return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
