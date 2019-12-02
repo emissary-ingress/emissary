@@ -2,11 +2,11 @@
 This method of installation has not been tested and is not supported at this time.
 </div>
 
-# Deploying Ambassador Edge Stack to Docker Compose for local development
+# Deploying the Ambassador Edge Stack to Docker Compose for local development
 
-Docker Compose is useful for local development where Minikube may be undesirable. This guide is not intended for production deployments but it is intended to allow developers to quickly try out Ambassador Edge Stack features in a simple, local environment.
+Docker Compose is useful for local development where Minikube may be undesirable. This guide is not intended for production deployments but it is intended to allow developers to quickly try out the Ambassador Edge Stack features in a simple, local environment.
 
-*It is important to note that any change to Ambassador Edge Stack's configuration using this method requires a restart of the Ambassador Edge Stack container and thus downtime.*
+*It is important to note that any change to the Ambassador Edge Stack's configuration using this method requires a restart of the Ambassador Edge Stack container and thus downtime.*
 
 ## Prerequisites
 
@@ -14,7 +14,7 @@ We assume that you have the latest version of Docker at the time of the writing 
 
 ## 1. Creating a simple Docker Compose environment
 
-In this guide we will begin with a basic Ambassador Edge Stack API Gateway and add features over time. Not all features will be covered but by the end of this read you should know how to configure Ambassador Edge Stack to meet your local development needs.
+In this guide we will begin with a basic Ambassador Edge Stack API Gateway and add features over time. Not all features will be covered but by the end of this read you should know how to configure the Ambassador Edge Stack to meet your local development needs.
 
 ### Create docker-compose.yaml file
 
@@ -37,13 +37,13 @@ services:
     - AMBASSADOR_NO_KUBEWATCH=no_kubewatch
 ```
 
-Note the mounted volume. When Ambassador Edge Stack bootstraps on container startup it checks the `/ambassador/ambassador-config` directory for configuration files. We will use this behavior to configure Ambassador Edge Stack.
+Note the mounted volume. When the Ambassador Edge Stack bootstraps on container startup it checks the `/ambassador/ambassador-config` directory for configuration files. We will use this behavior to configure the Ambassador Edge Stack.
 
-Note also the `AMBASSADOR_NO_KUBEWATCH` environment variable. Without this, Ambassador Edge Stack will try to use the Kubernetes API to watch for service changes, which won't work in Docker.
+Note also the `AMBASSADOR_NO_KUBEWATCH` environment variable. Without this, the Ambassador Edge Stack will try to use the Kubernetes API to watch for service changes, which won't work in Docker.
 
 ### Create the initial configuration
 
-Ambassador Edge Stack will interpret a total absence of configuration information as meaning that it should wait for dynamic configuration, so we'll give it a bare-bones configuration to get started.
+The Ambassador Edge Stack will interpret a total absence of configuration information as meaning that it should wait for dynamic configuration, so we'll give it a bare-bones configuration to get started.
 
 Create a `config` folder (which must match the mounted volume in the `docker-compose.yaml` file) and add a file called `ambassador.yaml` to the directory.
 (Note: Configuration files can have any name or combined into the same yaml file)
@@ -63,7 +63,7 @@ name: ambassador
 config: {}
 ```
 
-This will allow Ambassador Edge Stack to come up with a completely default configuration.
+This will allow the Ambassador Edge Stack to come up with a completely default configuration.
 
 ### Test using Ambassador Edge Stack's Diagnostics
 
@@ -87,7 +87,7 @@ x-envoy-upstream-service-time: 10
 
 ## 2. Make a change to the default configuration
 
-Let's turn off the diagnostics page to demonstrate how we will enable and configure Ambassador Edge Stack.
+Let's turn off the diagnostics page to demonstrate how we will enable and configure the Ambassador Edge Stack.
 
 Edit the contents of the `config/ambassador.yaml` to this yaml configuration:
 
@@ -136,7 +136,7 @@ service: httpbin.org
 host_rewrite: httpbin.org   
 ```
 
-Once again, restart Ambassador Edge Stack and test the new mapping:
+Once again, restart the Ambassador Edge Stack and test the new mapping:
 
 ```bash
 # restart the container to pick up new configuration settings
@@ -155,8 +155,7 @@ curl localhost:8080/httpbin/ip
 
 While routing to an external service is useful, more often than not our Docker Compose environment will contain a number of services that need routing.
 
-
-### Restart Ambassador Edge Stack and test
+### Restart the Ambassador Edge Stack and test
 
 Re-run the same test as in the previous section to ensure the route works as before. This time we will need to bring up the new service first.
 
@@ -195,7 +194,7 @@ allowed_authorization_headers:
 - "x-qotm-session"
 ```
 
-This configuration will use the `AuthService` object to ensure that all requests made to Ambassador Edge Stack are first sent to the `auth` docker container on port `3000` before being routed to the service that is mapped to the desired route. See the Authentication documentation for more details.
+This configuration will use the `AuthService` object to ensure that all requests made to the Ambassador Edge Stack are first sent to the `auth` docker container on port `3000` before being routed to the service that is mapped to the desired route. See the Authentication documentation for more details.
 
 ### Verify that Authentication is working
 
@@ -256,13 +255,13 @@ curl -v --user username:password localhost:8080/backend/get-quote/
 
 ## 5. Tracing
 
-As a final example we will configure Ambassador Edge Stack to send Zipkin traces to Jaeger. Integrating Zipkin into your services can be a vital glimpse into the performance bottlenecks of a distributed system.
+As a final example we will configure the Ambassador Edge Stack to send Zipkin traces to Jaeger. Integrating Zipkin into your services can be a vital glimpse into the performance bottlenecks of a distributed system.
 
 ### Add the Jaeger container to the docker-compose.yaml file
 
 Building on our original `docker-compose.yaml` file, we can add a new service called `tracing` to the list.
 
-### Create a tracing configuration file for Ambassador Edge Stack
+### Create a tracing configuration file for the Ambassador Edge Stack
 
 Add a new configuration file `config/tracing.yaml` with these contents:
 

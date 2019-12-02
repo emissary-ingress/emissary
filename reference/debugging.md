@@ -1,27 +1,27 @@
 # Debugging (Advanced)
 
-If Ambassador Edge Stack is not starting or is not behaving as you would expect, your first step should be the [Ambassador Diagnostics](/reference/diagnostics) service. This document covers more advanced use cases and approaches, and assumes that you have either looked at the diagnostic console or can't access this page due to an Ambassador Edge Stack initialisation issue.
+If the Ambassador Edge Stack is not starting or is not behaving as you would expect, your first step should be the [Ambassador Diagnostics](/reference/diagnostics) service. This document covers more advanced use cases and approaches, and assumes that you have either looked at the diagnostic console or can't access this page due to an the Ambassador Edge Stack initialisation issue.
 
 ## tl;dr Problem? Start here
 
 * [Example configuration for debug examples](/reference/debugging#example-config-for-debug-demonstrations)
 * Ambassador Edge Stack not starting
-  * [Check Ambassador is running](/reference/debugging#checking-ambassador-edge-stack-is-running) via `kubectl`
+  * [Check to see if the Ambassador Edge Stack is running](/reference/debugging#checking-ambassador-edge-stack-is-running) via `kubectl`
   * [Check the logs](/reference/debugging#getting-access-to-the-ambassador-edge-stack-logs)
-* Ambassador Edge Stack not behaving as expected
+* The Ambassador Edge Stack is not behaving as expected
   * [Check Ambassador Edge Stack is running correctly](/reference/debugging#checking-ambassador-edge-stack-is-running) via `kubectl`
   * [Check the logs](/reference/debugging#getting-access-to-the-ambassador-edge-stack-logs) (potentially with "Set Debug On" via the Diagnostic Console)
 * Ambassdor/Envoy configuration not as unexpected
   * "Set Debug On" (via Diagnostic Console) and [check the (now verbose) logs](/reference/debugging#getting-access-to-the-ambassador-edge-stack-logs)
   * Exec into an Ambassador Edge Stack Pod and [manually verify](/reference/debugging#examining-an-ambassador-edge-stackenvoy-pod-and-container) the generated Envoy configuration
-* Mounted TLS certificates not being detected by Ambassador Edge Stack
+* Mounted TLS certificates not being detected by the Ambassador Edge Stack
   * Exec into an Ambassador Edge Stack Pod and [manually verify](/reference/debugging#examining-an-ambassador-edge-stackenvoy-pod-and-container) that the mount is as expected (and in the correct file system location)
 * You want to manually change and experiment with the generated Envoy configuration
   * [Exec into an Ambassador Edge Stack Pod](/reference/debugging#examining-an-ambassador-edge-stackenvoy-pod-and-container) and [manually experiment](/reference/debugging#manually-experimenting-with-ambassador-edge-stack--envoy-configuration) with changing the Envoy configuration and sending a SIGHUP to the parent process
 
 ## Example Config for Debug Demonstrations
 
-The following debugging instructions assume that you have deployed Ambassador Edge Stack and a backend service to a Kubernetes cluster.
+The following debugging instructions assume that you have deployed the Ambassador Edge Stack and a backend service to a Kubernetes cluster.
 
 e.g. Create a cluster in GKE with RBAC support enabled and your user account configured correctly:
 
@@ -31,7 +31,7 @@ $ kubectl create clusterrolebinding cluster-admin-binding-new \
 --clusterrole cluster-admin --user <your_user_name>
 ```
 
-Deploy the latest version of Ambassador Edge Stack:
+Deploy the latest version of the Ambassador Edge Stack:
 
 ```shell
 $ kubectl apply -f https://getambassador.io/yaml/ambassador/ambassador-rbac.yaml
@@ -70,7 +70,7 @@ $ kubectl apply -f ambassador-services.yaml
 ### Checking Ambassador Edge Stack is running
 
 If you cannot access the [diagnostics console](/reference/diagnostics) via ```kubectl port-forward <ambassador_pod_name> 8877```
-the first thing to check is that Ambassador Edge Stack is running. This can be achieved via
+the first thing to check is that the Ambassador Edge Stack is running. This can be achieved via
 the standard Kubernetes commands.
 
 First, check the Deployment
@@ -81,7 +81,7 @@ NAME         DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
 ambassador   3         3         3            3           1m
 ```
 
-If after a brief period of time to allow for Ambassador Edge Stack to initialize the "desired" number of replicas does not equal the "current" or "available" number, then you will also want to check the associated Pods:
+If after a brief period of time to allow for the Ambassador Edge Stack to initialize the "desired" number of replicas does not equal the "current" or "available" number, then you will also want to check the associated Pods:
 
 ```shell
 $ kubectl get pods

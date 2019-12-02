@@ -1,22 +1,22 @@
 # Ambassador Edge Stack and Istio: Edge Proxy and Service Mesh
 
-Ambassador Edge Stack is a Kubernetes-native API gateway for microservices. Ambassador Edge Stack is deployed at the edge of your network, and routes incoming traffic to your internal services (aka "north-south" traffic).  [Istio](https://istio.io/) is a service mesh for microservices, and is designed to add application-level Layer (L7) observability, routing, and resilience to service-to-service traffic (aka "east-west" traffic). Both Istio and Ambassador Edge Stack are built using [Envoy](https://www.envoyproxy.io).
+The Ambassador Edge Stack is a Kubernetes-native API gateway for microservices. The Edge Stack is deployed at the edge of your network, and routes incoming traffic to your internal services (aka "north-south" traffic).  [Istio](https://istio.io/) is a service mesh for microservices, and is designed to add application-level Layer (L7) observability, routing, and resilience to service-to-service traffic (aka "east-west" traffic). Both Istio and the Ambassador Edge Stack are built using [Envoy](https://www.envoyproxy.io).
 
-Ambassador Edge Stack and Istio can be deployed together on Kubernetes. In this configuration, incoming traffic from outside the cluster is first routed through Ambassador Edge Stack , which then routes the traffic to Istio-powered services. Ambassador Edge Stack handles authentication, edge routing, TLS termination, and other traditional edge functions.
+Ambassador Edge Stack and Istio can be deployed together on Kubernetes. In this configuration, incoming traffic from outside the cluster is first routed through the Ambassador Edge Stack, which then routes the traffic to Istio-powered services. The Ambassador Edge Stack handles authentication, edge routing, TLS termination, and other traditional edge functions.
 
-This allows the operator to have the best of both worlds: a high performance, modern edge service (Ambassador Edge Stack) combined with a state-of-the-art service mesh (Istio). While Istio has introduced a [Gateway](https://istio.io/docs/tasks/traffic-management/ingress/#configuring-ingress-using-an-istio-gateway) abstraction, Ambassador Edge Stack still has a much broader feature set for edge routing than Istio. For more on this topic, see our blog post on [API Gateway vs Service Mesh](https://blog.getambassador.io/api-gateway-vs-service-mesh-104c01fa4784).
+This allows the operator to have the best of both worlds: a high performance, modern edge service (Ambassador Edge Stack) combined with a state-of-the-art service mesh (Istio). While Istio has introduced a [Gateway](https://istio.io/docs/tasks/traffic-management/ingress/#configuring-ingress-using-an-istio-gateway) abstraction, the Ambassador Edge Stack still has a much broader feature set for edge routing than Istio. For more on this topic, see our blog post on [API Gateway vs Service Mesh](https://blog.getambassador.io/api-gateway-vs-service-mesh-104c01fa4784).
 
 ## Getting Ambassador Edge Stack Working With Istio
 
-Getting Ambassador Edge Stack working with Istio is straightforward. In this example, we'll use the `bookinfo` sample application from Istio.
+Getting the Ambassador Edge Stack working with Istio is straightforward. In this example, we'll use the `bookinfo` sample application from Istio.
 
 1. Install Istio on Kubernetes, following [the default instructions](https://istio.io/docs/setup/platform-setup/gke/) (without using mutual TLS auth between sidecars)
 2. Next, install the Bookinfo sample application, following the [instructions](https://istio.io/docs/examples/bookinfo/#if-you-are-running-on-kubernetes).
 3. Verify that the sample application is working as expected.
 
-By default, the Bookinfo application uses the Istio ingress. To use Ambassador Edge Stack, we need to:
+By default, the Bookinfo application uses the Istio ingress. To use the Ambassador Edge Stack, we need to:
 
-1. Install Ambassador Edge Stack.
+1. Install the Ambassador Edge Stack.
 
 First you will need to deploy the Ambassador Edge Stack ambassador-admin service to your cluster:
 
@@ -42,9 +42,9 @@ Without RBAC, you can use:
 kubectl apply -f https://getambassador.io/yaml/ambassador/ambassador-no-rbac.yaml
 ```
 
-(Note that if you are planning to use mutual TLS for communication between Ambassador Edge Stack and Istio/services in the future, then the order in which you deploy the ambassador-admin service and the ambassador LoadBalancer service below may need to be swapped)
+(Note that if you are planning to use mutual TLS for communication between the Ambassador Edge Stack and Istio/services in the future, then the order in which you deploy the ambassador-admin service and the ambassador LoadBalancer service below may need to be swapped)
 
-Next you will deploy an ambassador service that acts as a point of ingress into the cluster via the LoadBalancer type. Create the following YAML and put it in a file called `ambassador-service.yaml`.
+Next you will deploy an `ambassador` service that acts as a point of ingress into the cluster via the LoadBalancer type. Create the following YAML and put it in a file called `ambassador-service.yaml`.
 
 ```yaml
 ---
@@ -66,8 +66,8 @@ kubectl apply -f ambassador-service.yaml
 
 The YAML above does several things:
 
-* It creates a Kubernetes service for Ambassador Edge Stack, of type `LoadBalancer`. Note that if you're not deploying in an environment where `LoadBalancer` is a supported type (i.e. MiniKube), you'll need to change this to a different type of service, e.g., `NodePort`.
-* It creates a test route that will route traffic from `/httpbin/` to the public `httpbin.org` HTTP Request and Response service (which provides useful endpoint that can be used for diagnostic purposes). In Ambassador Edge Stack, Kubernetes annotations (as shown above) are used for configuration. More commonly, you'll want to configure routes as part of your service deployment process, as shown in [this more advanced example](https://www.datawire.io/faster/canary-workflow/).
+* It creates a Kubernetes service for the Ambassador Edge Stack, of type `LoadBalancer`. Note that if you're not deploying in an environment where `LoadBalancer` is a supported type (i.e. MiniKube), you'll need to change this to a different type of service, e.g., `NodePort`.
+* It creates a test route that will route traffic from `/httpbin/` to the public `httpbin.org` HTTP Request and Response service (which provides useful endpoint that can be used for diagnostic purposes). In the Ambassador Edge Stack, Kubernetes annotations (as shown above) are used for configuration. More commonly, you'll want to configure routes as part of your service deployment process, as shown in [this more advanced example](https://www.datawire.io/faster/canary-workflow/).
 
 You can see if the two Ambassador Edge Stack services are running correctly (and also obtain the LoadBalancer IP address when this is assigned after a few minutes) by executing the following commands:
 
@@ -97,7 +97,7 @@ reviews-v3-3240307257-xl1l6      2/2       Running   0          16m
 
 Above we see that external IP assigned to our LoadBalancer is 35.224.41.XX (XX is used to mask the actual value), and that all ambassador pods are running (Ambassador Edge Stack relies on Kubernetes to provide high availability, and so there should be two small pods running on each node within the cluster).
 
-You can test if Ambassador Edge Stack has been installed correctly by using the test route to `httpbin.org` to get the external cluster [Origin IP](https://httpbin.org/ip) from which the request was made:
+You can test if the Ambassador Edge Stack has been installed correctly by using the test route to `httpbin.org` to get the external cluster [Origin IP](https://httpbin.org/ip) from which the request was made:
 
 ```shell
 $ curl 35.224.41.XX/httpbin/ip
@@ -147,15 +147,15 @@ kubectl apply -f <(istioctl kube-inject -f samples/bookinfo/kube/bookinfo.yaml)
 
 3. Optionally, delete the Ingress controller from the `bookinfo.yaml` manifest by typing `kubectl delete ingress gateway`.
 
-4. Test Ambassador Edge Stack by going to the IP of the Ambassador LoadBalancer you configured above e.g. `35.192.109.XX/productpage/`. You can see the actual IP address again for Ambassador Edge Stack by typing `kubectl get services ambassador`.
+4. Test the Ambassador Edge Stack by going to the IP of the Ambassador LoadBalancer you configured above e.g. `35.192.109.XX/productpage/`. You can see the actual IP address again for the Ambassador Edge Stack by typing `kubectl get services ambassador`.
 
 ## Automatic Sidecar Injection
 
-Newer versions of Istio support Kubernetes initializers to [automatically inject the Istio sidecar](https://istio.io/docs/setup/kubernetes/additional-setup/sidecar-injection/#automatic-sidecar-injection). You don't need to inject the Istio sidecar into the pods of Ambassador Edge Stack -- Ambassador Edge Stack's Envoy instance will automatically route to the appropriate service(s). Ambassador Edge Stack's pods are configured to skip sidecar injection, using an annotation as [explained in the documentation](https://istio.io/docs/setup/kubernetes/additional-setup/sidecar-injection/#policy).
+Newer versions of Istio support Kubernetes initializers to [automatically inject the Istio sidecar](https://istio.io/docs/setup/kubernetes/additional-setup/sidecar-injection/#automatic-sidecar-injection). You don't need to inject the Istio sidecar into the pods of the Ambassador Edge Stack -- Ambassador Edge Stack's Envoy instance will automatically route to the appropriate service(s). Ambassador Edge Stack's pods are configured to skip sidecar injection, using an annotation as [explained in the documentation](https://istio.io/docs/setup/kubernetes/additional-setup/sidecar-injection/#policy).
 
 ## Istio Mutual TLS
 
-In case Istio mutual TLS is enabled on the cluster, the mapping outlined above will not function correctly as the Istio sidecar will intercept the connections and the service will only be reachable via `https` using the Istio managed certificates, which are available in each namespace via the `istio.default` secret. To get the proxy working we need to tell Ambassador Edge Stack to use those certificates when communicating with Istio enabled service. To do this we need to modify the Ambassador Edge Stack deployment installed above.
+In case Istio mutual TLS is enabled on the cluster, the mapping outlined above will not function correctly as the Istio sidecar will intercept the connections and the service will only be reachable via `https` using the Istio managed certificates, which are available in each namespace via the `istio.default` secret. To get the proxy working we need to tell the Ambassador Edge Stack to use those certificates when communicating with Istio enabled service. To do this we need to modify the Ambassador Edge Stack deployment installed above.
 
 In case of RBAC:
 
@@ -270,7 +270,7 @@ spec:
   selector:
     app: productpage
 ```
-Note the `tls: istio-upstream`, which lets Ambassador Edge Stack know which certificate to use when communicating with that service.
+Note the `tls: istio-upstream`, which lets the Ambassador Edge Stack know which certificate to use when communicating with that service.
 
 In the definition above we also have TLS termination enabled; please see [the TLS termination tutorial](/user-guide/tls-termination) for more details.
 
@@ -278,7 +278,7 @@ In the definition above we also have TLS termination enabled; please see [the TL
 
 Istio can be configured in either [PERMISSIVE](https://istio.io/docs/concepts/security/#permissive-mode) or STRICT mode for mTLS. `PERMISSIVE` mode allows for services to opt-in to mTLS to make the transition easier.
 
-For service-to-service calls via the Istio proxy, Istio will automatically handle this mTLS opt-in when you configure a [DestinationRule](https://istio.io/docs/concepts/traffic-management/#destination-rules). However, since there is no Istio proxy running sidecar to Ambassador Edge Stack, to do mTLS between Ambassador Edge Stack and an Istio service in `PERMISSIVE` mode, we need to tell the service to listen for mTLS traffic by setting `alpn_protocols: "istio"` in the `TLSContext`:
+For service-to-service calls via the Istio proxy, Istio will automatically handle this mTLS opt-in when you configure a [DestinationRule](https://istio.io/docs/concepts/traffic-management/#destination-rules). However, since there is no Istio proxy running sidecar to the Ambassador Edge Stack, to do mTLS between Ambassador Edge Stack and an Istio service in `PERMISSIVE` mode, we need to tell the service to listen for mTLS traffic by setting `alpn_protocols: "istio"` in the `TLSContext`:
 
 ```yaml
 ---
@@ -296,10 +296,10 @@ spec:
 
 ### Istio RBAC Authorization
 
-While using `istio.default` secret works for mutual TLS only, to be able to interop with [Istio RBAC Authorization](https://istio.io/docs/concepts/security/#authorization) the Ambassador Edge Stack needs to have Istio certificate that matches service account that Ambassador Edge Stack deployment is using (by default the service account is `ambassador`).
+While using `istio.default` secret works for mutual TLS only, to be able to interop with [Istio RBAC Authorization](https://istio.io/docs/concepts/security/#authorization) the Ambassador Edge Stack needs to have Istio certificate that matches service account that the Ambassador Edge Stack deployment is using (by default the service account is `ambassador`).
 
 The `istio.default` secret is for `default` service account, as can be seen in the certificate Subject Alternative Name: `spiffe://cluster.local/ns/default/sa/default`.
-So when Ambassador Edge Stack is using this certificate but running under `ambassador` service account the Istio RBAC will not work as expected.
+So when the Ambassador Edge Stack is using this certificate but running under `ambassador` service account the Istio RBAC will not work as expected.
 
 Fortunately, Istio automatically creates a secret for each service account, including `ambassador` service account.
 These secrets are named as `istio.{service account name}`.
@@ -308,7 +308,7 @@ So if your Ambassador Edge Stack deployment uses `ambassador` service account, t
 
 ## Tracing Integration
 
-Istio provides a tracing mechanism based on Zipkin, which is one of the drivers supported by Ambassador Edge Stack. In order to achieve an end-to-end tracing, it is possible to integrate Ambassador Edge Stack with Istio's Zipkin.
+Istio provides a tracing mechanism based on Zipkin, which is one of the drivers supported by the Ambassador Edge Stack. In order to achieve an end-to-end tracing, it is possible to integrate the Ambassador Edge Stack with Istio's Zipkin.
 
 First confirm that Istio's Zipkin is up and running in the `istio-system` Namespace:
 
@@ -335,7 +335,7 @@ spec:
 
 ## Monitoring/Statistics Integration
 
-Istio also provides a Prometheus service that is an open-source monitoring and alerting system which is supported by Ambassador Edge Stack as well. It is possible to integrate Ambassador Edge Stack into Istio's Prometheus to have all statistics and monitoring in a single place.
+Istio also provides a Prometheus service that is an open-source monitoring and alerting system which is supported by the Ambassador Edge Stack as well. It is possible to integrate the Ambassador Edge Stack into Istio's Prometheus to have all statistics and monitoring in a single place.
 
 First we need to change our Ambassador Edge Stack Deployment to use the [Prometheus StatsD Exporter](https://github.com/prometheus/statsd_exporter) as its sidecar. Do this by applying the [ambassador-rbac-prometheus.yaml](https://www.getambassador.io/yaml/ambassador/ambassador-rbac-prometheus.yaml):
 ```sh
@@ -404,7 +404,7 @@ $ kubectl -n istio-system port-forward $(kubectl -n istio-system get pod -l app=
 
 Now, open Grafana tool by acessing: `http://localhost:3000/`
 
-To install Ambassador Edge Stack Dashboard:
+To install the Ambassador Edge Stack Dashboard:
 
 * Click on Create
 * Select Import
@@ -434,4 +434,4 @@ Now let's save the changes:
 
 ## Roadmap
 
-There are a number of roadmap items that we'd like to tackle in improving Istio integration. This includes supporting Istio routing rules in Ambassador Edge Stack and full propagation of request headers (e.g., Zipkin tracing) between Ambassador Edge Stack and Istio. If you're interested in contributing, we'd welcome the help!
+There are a number of roadmap items that we'd like to tackle in improving Istio integration. This includes supporting Istio routing rules in the Ambassador Edge Stack and full propagation of request headers (e.g., Zipkin tracing) between the Ambassador Edge Stack and Istio. If you're interested in contributing, we'd welcome the help!

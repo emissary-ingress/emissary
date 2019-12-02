@@ -1,6 +1,6 @@
 # Filters
 
-Filters are used to extend Ambassador Edge Stack to modify or
+Filters are used to extend the Ambassador Edge Stack to modify or
 intercept an HTTP request before sending to your backend service.  You
 may use any of the built-in Filter types, or use the `Plugin` filter
 type to run custom code written in the Go programming language, or use
@@ -31,7 +31,7 @@ spec:
     GLOBAL_FILTER_ARGUMENTS
 ```
 
-Currently, Ambassador supports four filter types: `External`, `JWT`, `OAuth2`, and `Plugin`.
+Currently, the Ambassador Edge Stack supports four filter types: `External`, `JWT`, `OAuth2`, and `Plugin`.
 
 ### Filter Type: `External`
 
@@ -177,7 +177,7 @@ spec:
 
 **Note**: If you are using a templating system for your YAML that also
 makes use of Go templating (for instance, Helm), then you will need to
-escape the template strings meant to be interpreted by Ambassador Edge
+escape the template strings meant to be interpreted by the Ambassador Edge
 Stack.
 
 [Go `text/template`]: https://golang.org/pkg/text/template/
@@ -369,7 +369,7 @@ Settings that are only valid when `grantType: "AuthorizationCode"`:
      `oauth2-client-secret`.  If `secretNamespace` is not given, it
      defaults to the namespace of the Filter resource.
    * **Note**: It is invalid to set both `secret` and `secretName`.
- - `stateTTL`: (You decide this) How long Ambassador Edge Stack will
+ - `stateTTL`: (You decide this) How long the Ambassador Edge Stack will
    wait for the user to submit credentials to the identity provider
    and receive a response to that effect from the identity provider
 
@@ -447,7 +447,7 @@ spec:
 
  - `insteadOfRedirect`: An action to perform instead of redirecting
    the User-Agent to the identity provider.  By default, if the
-   User-Agent does not have an currently-authenticated session, then
+   User-Agent does not have an currently-authenticated session, then the
    Ambassador Edge Stack will redirect the User-Agent to the identity provider.
    Setting `insteadOfRedirect` causes it to instead serve an
    authorization-denied error page; by default HTTP 403 ("Forbidden"),
@@ -466,14 +466,12 @@ spec:
 
 The `Plugin` filter type allows you to plug in your own custom code. This code is compiled to a `.so` file, which you load in to the Ambassador Edge Stack container at `/etc/ambassador-plugins/${NAME}.so`.
 
-
-
 #### The Plugin Interface
 
 This code is written in the Go programming language (golang), and must
-be compiled with the exact same compiler settings as Ambassador Edge
+be compiled with the exact same compiler settings as the Ambassador Edge
 Stack; and any overlapping libraries used must have their versions
-match exactly.  This information is documented in an [apro-abi.txt][]
+match exactly. This information is documented in an [apro-abi.txt][]
 file for each Ambassador Edge Stack release.
 
 [apro-abi.txt]: https://s3.amazonaws.com/datawire-static-files/apro-abi/apro-abi@$aproVersion$.txt
@@ -626,7 +624,7 @@ spec:
     - name: auth0
 ```
 
-**Note:** Ambassador Edge Stack will choose the first `FilterPolicy` rule that matches the incoming request. As in the above example, you must list your rules in the order of least to most generic.
+**Note:** THe Ambassador Edge Stack will choose the first `FilterPolicy` rule that matches the incoming request. As in the above example, you must list your rules in the order of least to most generic.
 
 ## Installing self-signed certificates
 
@@ -642,8 +640,5 @@ RUN update-ca-certificates
 USER 1000
 ```
 
-When deploying Ambassador Edge Stack, refer to that custom Docker image,
+When deploying the Ambassador Edge Stack, refer to that custom Docker image,
 rather than to `quay.io/datawire/ambassador_pro:amb-sidecar-$aproVersion$`
-
-
-

@@ -1,6 +1,6 @@
 # Ambassador Open Source Software (OSS)
 
-In this tutorial, we'll walk through the process of deploying Ambassador Open Source in Kubernetes for ingress routing. Ambassador OSS provides all the functionality of a traditional ingress controller (i.e., path-based routing) while exposing many additional capabilities such as [authentication](/user-guide/auth-tutorial), URL rewriting, CORS, rate limiting, and automatic metrics collection (the [mappings reference](/reference/mappings) contains a full list of supported options). Note that Ambassador Edge Stack can be used as an [Ingress Controller](/reference/core/ingress-controller).
+In this tutorial, we'll walk through the process of deploying Ambassador Open Source in Kubernetes for ingress routing. Ambassador OSS provides all the functionality of a traditional ingress controller (i.e., path-based routing) while exposing many additional capabilities such as [authentication](/user-guide/auth-tutorial), URL rewriting, CORS, rate limiting, and automatic metrics collection (the [mappings reference](/reference/mappings) contains a full list of supported options). Note that the Ambassador Edge Stack can be used as an [Ingress Controller](/reference/core/ingress-controller).
 
 For more background on Kubernetes ingress, [read this blog post](https://blog.getambassador.io/kubernetes-ingress-nodeport-load-balancers-and-ingress-controllers-6e29f1c44f2d).
 
@@ -117,4 +117,4 @@ Follow our [enabling HTTPS guide](/user-guide/tls-termination) to quickly enable
 
 ## Want more?
 
-For more features, check out the latest build of [Ambassador Edge Stack](/user-guide/install).
+For more features, check out the latest build of the [Ambassador Edge Stack](/user-guide/install).
