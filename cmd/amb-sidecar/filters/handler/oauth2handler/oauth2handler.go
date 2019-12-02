@@ -31,6 +31,7 @@ type OAuth2Filter struct {
 	QName      string
 	Spec       crd.FilterOAuth2
 	Arguments  crd.FilterOAuth2Arguments
+	RunFilters func(filters []crd.FilterReference, ctx context.Context, request *filterapi.FilterRequest) (filterapi.FilterResponse, error)
 }
 
 type OAuth2Client interface {
@@ -71,6 +72,8 @@ func (f *OAuth2Filter) Filter(ctx context.Context, request *filterapi.FilterRequ
 
 			PrivateKey: f.PrivateKey,
 			PublicKey:  f.PublicKey,
+
+			RunFilters: f.RunFilters,
 		}
 	case crd.GrantType_ClientCredentials:
 		oauth2client = &client_credentials_client.OAuth2Client{

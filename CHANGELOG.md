@@ -6,6 +6,7 @@ Configuration:
 
  * `JWT` Filter now has a `realm` setting to configure the realm mentioned in `WWW-Authenticate` of error responses.
  * Feature: `JWT` Filter now has a FilterPolicy argument `scope` to preform `draft-ietf-oauth-token-exchange`-compatible Scope validation.
+ * Feature: `OAuth2` Filter now has a `.insteadOfRedirect.filters` FilterPolicy argument that lets you provide a list of filters to run; as if you were listing them directly in a FilterPolicy.
 
 Behavior:
 
