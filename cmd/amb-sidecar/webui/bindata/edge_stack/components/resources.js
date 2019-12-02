@@ -349,8 +349,35 @@ span.code {
    * this.addError(message) *is* invoked one or more times, then the
    * data is assumed invalid.
    */
-  validate() {}
+  validate() {
+    /*
+     * name and namespaces rules as defined
+     * by https://kubernetes.io/docs/tasks/administer-cluster/namespaces/#creating-a-new-namespace
+     * saying "must be a DNS compatible label" and https://www.zytrax.com/books/dns/apa/names.html defining
+     * a DNS compatible label.
+     */
+    var nameFormat = /^[A-Za-z0-9][A-Za-z0-9\.\-]*$/;
+    var badNameFormat1 = /^[0-9\.]+$/;
+    var badNameFormat2 = /.*(-\.)$/;
 
+    let nameInputValue = this.nameInput().value;
+    if(!( nameInputValue.match(nameFormat)
+       && !nameInputValue.match(badNameFormat1)
+       && !nameInputValue.match(badNameFormat2) )) {
+      this.state.messages.push("Name needs to be {A-Za-z0-9-.}")
+    }
+
+    var namespaceFormat = /^[A-Za-z0-9][A-Za-z0-9\-]*$/;
+    var badNamespaceFormat1 = /^[0-9]+$/;
+    var badNamespaceFormat2 = /.*-$/;
+    let namespaceInputValue = this.namespaceInput().value;
+    if(!( namespaceInputValue.match(namespaceFormat)
+      && namespaceInputValue.length <= 63
+      && !namespaceInputValue.match(badNamespaceFormat1)
+      && !namespaceInputValue.match(badNamespaceFormat2) )) {
+      this.state.messages.push("Namespace needs to be {A-Za-z0-9-}, length <= 63")
+    }
+  }
 
   // internal
   name() {
