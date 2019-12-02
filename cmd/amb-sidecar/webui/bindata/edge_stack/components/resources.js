@@ -519,6 +519,11 @@ spec: ${JSON.stringify(this.spec())}
 
   /**
    * Return the source URI for this resource, if one exists.
+   * In the case we have a source URI, provide a button next to the
+   * Edit button which, when clicked, opens a window on that source URI.
+   * Basically this is useful for tracking resources as they are applied
+   * using GitOps, though the annotation must be applied in the GitOps
+   * pipeline for this to work.
    */
   sourceURI() {
     /* Make sure we have annotations, and return the aes_res_source, or undefined */
