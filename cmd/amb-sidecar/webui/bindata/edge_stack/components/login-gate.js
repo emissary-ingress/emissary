@@ -155,21 +155,19 @@ div.overage-alert {
     background-color: #FFe8e8;
 }
 pre {
-    margin: 1em;
+    margin: 0 1em 1em 1em;
     padding: .5em;
-    background-color: #f5f2f0;;
+    background-color: #f5f2f0;
     letter-spacing: .2px;
     font-family: Consolas,Monaco,Andale Mono,Ubuntu Mono,monospace;
     font-size: 80%;
-    word-spacing: normal;
-    word-break: normal;
-    word-wrap: normal;
-    hypens: none;
+    white-space: normal;
+    overflow-wrap: break-word;
+    width: 95;
 }
 details {
     margin: 1em;
 }
-
 #debug-dev-loop-box {
   width: 90%;
   text-align: center;
@@ -180,10 +178,7 @@ details {
   margin: auto;
 }
 #debug-dev-loop-box button {
-}
-div.wordwrapSudo {
-    overflow: scroll;
-}    
+}  
 img#darwinLogo {
     width: 35px;
     margin: 0 0 -5px 0;
@@ -332,9 +327,7 @@ img#linuxLogo {
   </summary>
   <h3>1. Download with this CLI:</h3>
   
-  <pre id="install-darwin"><div class="wordwrapSudo">sudo curl -fL https://metriton.datawire.io/downloads
-/darwin/edgectl -o /usr/local/bin/edgectl && \\
-sudo chmod a+x /usr/local/bin/edgectl</div></pre>
+  <pre id="install-darwin">sudo curl -fL https://metriton.datawire.io/downloads/darwin/edgectl -o /usr/local/bin/edgectl && \\sudo chmod a+x /usr/local/bin/edgectl</pre>
   
   <button @click=${this.copyDarwinInstallToKeyboard.bind(this)}>Copy to Clipboard</button>
   <h3>2. Or download the executable:</h3>
@@ -353,9 +346,7 @@ sudo chmod a+x /usr/local/bin/edgectl</div></pre>
   </summary>
   <h3>1. Download with this CLI:</h3>
   
-  <pre class="installText" id="install-linux"><div class="wordwrapSudo">sudo curl -fL https://metriton.datawire.io/downloads
-/linux/edgectl -o /usr/local/bin/edgectl && \\
-sudo chmod a+x /usr/local/bin/edgectl</pre>
+  <pre id="install-linux">sudo curl -fL https://metriton.datawire.io/downloads/linux/edgectl -o /usr/local/bin/edgectl && \\sudo chmod a+x /usr/local/bin/edgectl</pre>
 
   <button @click=${this.copyLinuxInstallToKeyboard.bind(this)}>Copy to Clipboard</button>
   <h3>2. Or download the executable:</h3>
