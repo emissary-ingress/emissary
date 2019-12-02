@@ -48,9 +48,10 @@ func (h *JWTFilter) Filter(ctx context.Context, r *filterapi.FilterRequest) (fil
 		Realm: h.Spec.ErrorResponse.Realm,
 		//RequiredScope: h.Spec.Scope, // TODO: add h.Spec.Scope
 		TokenValidationFunc: func(tokenString string) (scope rfc6749.Scope, reasonInvalid, serverError error) {
-			tokenParsed, reasonInvalid, serverError = validateToken(tokenString, h.Spec, httpClient)
+			var claims jwt.MapClaims
+			tokenParsed, claims, reasonInvalid, serverError = validateToken(tokenString, h.Spec, httpClient)
 			hackKeepOldTemplatesWorking = reasonInvalid
-			//scope = TODO: extract scope from tokenParsed; share code with oauth2handler/resourceserver.OAuth2ResourceServer.validateJWT()
+			scope = GetScope(logger, claims)
 			return
 		},
 	}
@@ -115,15 +116,14 @@ func (h *JWTFilter) Filter(ctx context.Context, r *filterapi.FilterRequest) (fil
 	return ret, nil
 }
 
-func validateToken(signedString string, filter crd.FilterJWT, httpClient *http.Client) (token *jwt.Token, reasonInvalid, serverError error) {
+func validateToken(signedString string, filter crd.FilterJWT, httpClient *http.Client) (token *jwt.Token, claims jwt.MapClaims, reasonInvalid, serverError error) {
 	// Get the key
 	keys, err := jwks.FetchJWKS(httpClient, filter.JSONWebKeySetURI.String())
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 
 	jwtParser := jwt.Parser{ValidMethods: filter.ValidAlgorithms}
-	var claims jwt.MapClaims
 	token, err = jwtsupport.SanitizeParse(jwtParser.ParseWithClaims(signedString, &claims, func(t *jwt.Token) (interface{}, error) {
 		if t.Method == jwt.SigningMethodNone && inArray("none", filter.ValidAlgorithms) {
 			return jwt.UnsafeAllowNoneSignatureType, nil
@@ -141,34 +141,34 @@ func validateToken(signedString string, filter crd.FilterJWT, httpClient *http.C
 		return keys.GetKey(kid)
 	}))
 	if err != nil {
-		return nil, err, nil
+		return nil, nil, err, nil
 	}
 
 	now := time.Now().Unix()
 
 	if filter.RequireAudience || filter.Audience != "" {
 		if !claims.VerifyAudience(filter.Audience, filter.RequireAudience) {
-			return nil, errors.Errorf("Token has wrong audience: token=%#v expected=%q", claims["aud"], filter.Audience), nil
+			return nil, nil, errors.Errorf("Token has wrong audience: token=%#v expected=%q", claims["aud"], filter.Audience), nil
 		}
 	}
 
 	if filter.RequireIssuer || filter.Issuer != "" {
 		if !claims.VerifyIssuer(filter.Issuer, filter.RequireIssuer) {
-			return nil, errors.Errorf("Token has wrong issuer: token=%#v expected=%q", claims["iss"], filter.Issuer), nil
+			return nil, nil, errors.Errorf("Token has wrong issuer: token=%#v expected=%q", claims["iss"], filter.Issuer), nil
 		}
 	}
 
 	if !claims.VerifyExpiresAt(now, filter.RequireExpiresAt) {
-		return nil, errors.New("Token is expired"), nil
+		return nil, nil, errors.New("Token is expired"), nil
 	}
 
 	if !claims.VerifyIssuedAt(now, filter.RequireIssuedAt) {
-		return nil, errors.New("Token used before issued"), nil
+		return nil, nil, errors.New("Token used before issued"), nil
 	}
 
 	if !claims.VerifyNotBefore(now, filter.RequireNotBefore) {
-		return nil, errors.New("Token is not valid yet"), nil
+		return nil, nil, errors.New("Token is not valid yet"), nil
 	}
 
-	return token, nil, nil
+	return token, claims, nil, nil
 }

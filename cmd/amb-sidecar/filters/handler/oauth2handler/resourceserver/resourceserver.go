@@ -8,6 +8,7 @@ import (
 	"github.com/pkg/errors"
 
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta2"
+	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/jwthandler"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/middleware"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/oauth2handler/discovery"
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
@@ -171,28 +172,5 @@ func (rs *OAuth2ResourceServer) validateJWT(claims jwt.MapClaims, discovered *di
 		return nil, errors.Errorf("token has wrong issuer: token=%#v expected=%q", claims["iss"], discovered.Issuer)
 	}
 
-	// Validate 'scopes' claim (draft standard).
-	// https://www.iana.org/assignments/jwt/jwt.xhtml
-	// https://tools.ietf.org/html/draft-ietf-oauth-token-exchange-19#section-4.2
-	switch scopeClaim := claims["scope"].(type) {
-	case nil:
-		logger.Debugf("No scope to verify")
-	case string: // proposed standard; most Authorization Servers do this
-		return rfc6749.ParseScope(scopeClaim), nil
-	case []interface{}: // UAA does this
-		actual := make(rfc6749.Scope, len(scopeClaim))
-		for _, scopeValue := range scopeClaim {
-			switch scopeValue := scopeValue.(type) {
-			case string:
-				actual[scopeValue] = struct{}{}
-			default:
-				logger.Warningf("Unexpected scope[n] type: %T", scopeValue)
-			}
-		}
-		return actual, nil
-	default:
-		logger.Warningf("Unexpected scope type: %T", scopeClaim)
-	}
-
-	return nil, nil
+	return jwthandler.GetScope(logger, claims), nil
 }
