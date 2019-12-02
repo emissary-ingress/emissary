@@ -17,6 +17,23 @@ spec:
 apiVersion: getambassador.io/v1beta2
 kind: Filter
 metadata:
+  name: auth0-jwt
+  namespace: standalone
+spec:
+  JWT:
+    # These settings are taken from "{{env "IDP_AUTH0_PROVIDER_URL"}}/.well-known/openid-configuration"
+    jwksURI: "https://ambassador-oauth-e2e.auth0.com/.well-known/jwks.json"
+    issuer: "https://ambassador-oauth-e2e.auth0.com/"
+    # Add "none", for testing purposes
+    validAlgorithms:
+    - "RS256"
+    - "RS384"
+    - "RS512"
+    - "none"
+---
+apiVersion: getambassador.io/v1beta2
+kind: Filter
+metadata:
   name: auth0-k8s
   namespace: standalone
 spec:
@@ -74,6 +91,18 @@ spec:
   host_rewrite: httpbin.org
   timeout_ms: 5000
 ---
+apiVersion: getambassador.io/v1
+kind: Mapping
+metadata:
+  name: filter-oauth2-auth0-mapping-4
+  namespace: standalone
+spec:
+  prefix: /auth0-or-jwt/
+  rewrite: /
+  service: httpbin.org:80
+  host_rewrite: httpbin.org
+  timeout_ms: 5000
+---
 apiVersion: getambassador.io/v1beta2
 kind: FilterPolicy
 metadata:
@@ -110,3 +139,16 @@ spec:
               ifRequestHeader:         # optional, default is to return httpStatusCode for all requests that would redirect-to-IDP
                 name: X-Requested-With # required
                 value: XMLHttpRequest  # optional, default is any non-empty string
+    - host: "*"
+      path: /auth0-or-jwt/**
+      filters:
+        - name: auth0
+          arguments:
+            insteadOfRedirect:         # optional, default is to do a redirect
+              ifRequestHeader:         # optional, default is to return httpStatusCode for all requests that would redirect-to-IDP
+                name: X-Requested-With # required
+              filters:
+              - name: auth0-jwt
+                arguments:
+                  scope:
+                  - openid

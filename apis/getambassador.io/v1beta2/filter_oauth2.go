@@ -174,17 +174,32 @@ type FilterOAuth2Arguments struct {
 }
 
 type OAuth2Redirect struct {
-	HTTPStatusCode  int                 `json:"httpStatusCode"`
 	IfRequestHeader HeaderFieldSelector `json:"ifRequestHeader"`
+	HTTPStatusCode  int                 `json:"httpStatusCode"`
+	Filters         []FilterReference   `json:"filters"`
 }
 
-func (m *FilterOAuth2Arguments) Validate() error {
-	if m.InsteadOfRedirect != nil && m.InsteadOfRedirect.HTTPStatusCode == 0 {
-		// The default is 403 Forbidden, and definitely not
-		// 401 Unauthorized, because the User Agent is not
-		// using an RFC 7235-compatible authentication scheme
-		// to talk with us; 401 would be inappropriate.
-		m.InsteadOfRedirect.HTTPStatusCode = http.StatusForbidden
+func (m *FilterOAuth2Arguments) Validate(namespace string) error {
+	if m.InsteadOfRedirect != nil {
+		if m.InsteadOfRedirect.Filters == nil && m.InsteadOfRedirect.HTTPStatusCode == 0 {
+			// The default is 403 Forbidden, and definitely not
+			// 401 Unauthorized, because the User Agent is not
+			// using an RFC 7235-compatible authentication scheme
+			// to talk with us; 401 would be inappropriate.
+			m.InsteadOfRedirect.HTTPStatusCode = http.StatusForbidden
+		}
+
+		if (m.InsteadOfRedirect.HTTPStatusCode == 0) == (m.InsteadOfRedirect.Filters == nil) {
+			err := errors.New("must set either 'httpStatusCode' or 'filters'; not both")
+			err = errors.Wrap(err, "insteadOfRedirect")
+			return err
+		}
+
+		if err := validateFilters(m.InsteadOfRedirect.Filters, namespace); err != nil {
+			err = errors.Wrap(err, "filters")
+			err = errors.Wrap(err, "insteadOfRedirect")
+			return err
+		}
 
 		if err := m.InsteadOfRedirect.IfRequestHeader.Validate(); err != nil {
 			err = errors.Wrap(err, "ifRequestHeader")

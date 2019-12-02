@@ -48,32 +48,39 @@ const (
 )
 
 func (r *Rule) Validate(namespace string) error {
-	for i := range r.Filters {
-		if r.Filters[i].Namespace == "" {
-			r.Filters[i].Namespace = namespace
+	if err := validateFilters(r.Filters, namespace); err != nil {
+		return errors.Wrap(err, "filters")
+	}
+	return nil
+}
+
+func validateFilters(filters []FilterReference, namespace string) error {
+	for i := range filters {
+		if filters[i].Namespace == "" {
+			filters[i].Namespace = namespace
 		}
 
-		switch r.Filters[i].OnDeny {
+		switch filters[i].OnDeny {
 		case "":
-			r.Filters[i].OnDeny = FilterActionBreak
+			filters[i].OnDeny = FilterActionBreak
 		case FilterActionContinue, FilterActionBreak:
 			// do nothing
 		default:
 			return errors.Errorf("onDeny=%q is invalid; valid values are %q",
-				r.Filters[i].OnDeny, []string{FilterActionContinue, FilterActionBreak})
+				filters[i].OnDeny, []string{FilterActionContinue, FilterActionBreak})
 		}
 
-		switch r.Filters[i].OnAllow {
+		switch filters[i].OnAllow {
 		case "":
-			r.Filters[i].OnAllow = FilterActionContinue
+			filters[i].OnAllow = FilterActionContinue
 		case FilterActionContinue, FilterActionBreak:
 			// do nothing
 		default:
 			return errors.Errorf("onAllow=%q is invalid; valid values are %q",
-				r.Filters[i].OnAllow, []string{FilterActionContinue, FilterActionBreak})
+				filters[i].OnAllow, []string{FilterActionContinue, FilterActionBreak})
 		}
 
-		if err := r.Filters[i].IfRequestHeader.Validate(); err != nil {
+		if err := filters[i].IfRequestHeader.Validate(); err != nil {
 			return errors.Wrap(err, "ifRequestHeader")
 		}
 	}

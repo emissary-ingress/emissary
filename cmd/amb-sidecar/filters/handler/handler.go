@@ -164,10 +164,10 @@ func (c *FilterMux) filter(ctx context.Context, request *filterapi.FilterRequest
 	logger.Infof("selected rule host=%q, path=%q, filters=[%s]",
 		rule.Host, rule.Path, strings.Join(filterStrs, ", "))
 
-	return c.runFilters(rule.Filters, ctx, request)
+	return c.RunFilters(rule.Filters, ctx, request)
 }
 
-func (c *FilterMux) runFilters(filters []crd.FilterReference, ctx context.Context, request *filterapi.FilterRequest) (filterapi.FilterResponse, error) {
+func (c *FilterMux) RunFilters(filters []crd.FilterReference, ctx context.Context, request *filterapi.FilterRequest) (filterapi.FilterResponse, error) {
 	logger := middleware.GetLogger(ctx)
 
 	sumResponse := &filterapi.HTTPRequestModification{}
@@ -234,12 +234,13 @@ func (c *FilterMux) runFilter(filterRef crd.FilterReference, ctx context.Context
 			RedisPool:  c.RedisPool,
 			QName:      filterQName,
 			Spec:       filterSpec,
+			RunFilters: c.RunFilters,
 		}
 		if err := mapstructure.Convert(filterRef.Arguments, &_filterImpl.Arguments); err != nil {
 			return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
 				errors.Wrap(err, "invalid filter.argument"), nil), nil
 		}
-		if err := _filterImpl.Arguments.Validate(); err != nil {
+		if err := _filterImpl.Arguments.Validate(filterRef.Namespace); err != nil {
 			return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
 				errors.Wrap(err, "invalid filter.argument"), nil), nil
 		}

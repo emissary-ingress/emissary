@@ -45,6 +45,8 @@ type OAuth2Client struct {
 
 	PrivateKey *rsa.PrivateKey
 	PublicKey  *rsa.PublicKey
+
+	RunFilters func(filters []crd.FilterReference, ctx context.Context, request *filterapi.FilterRequest) (filterapi.FilterResponse, error)
 }
 
 func (c *OAuth2Client) sessionCookieName() string {
@@ -371,14 +373,23 @@ func (sessionInfo *SessionInfo) handleUnauthenticatedProxyRequest(ctx context.Co
 	if sessionInfo.c.Arguments.InsteadOfRedirect != nil {
 		noRedirect := sessionInfo.c.Arguments.InsteadOfRedirect.IfRequestHeader.Matches(filterutil.GetHeader(request))
 		if noRedirect {
-			ret := middleware.NewErrorResponse(ctx, sessionInfo.c.Arguments.InsteadOfRedirect.HTTPStatusCode,
-				errors.New("session cookie is either missing, or refers to an expired or non-authenticated session"),
-				nil)
-			ret.Header["Set-Cookie"] = []string{
-				sessionCookie.String(),
-				xsrfCookie.String(),
+			if sessionInfo.c.Arguments.InsteadOfRedirect.HTTPStatusCode != 0 {
+				ret := middleware.NewErrorResponse(ctx, sessionInfo.c.Arguments.InsteadOfRedirect.HTTPStatusCode,
+					errors.New("session cookie is either missing, or refers to an expired or non-authenticated session"),
+					nil)
+				ret.Header["Set-Cookie"] = []string{
+					sessionCookie.String(),
+					xsrfCookie.String(),
+				}
+				return ret
+			} else {
+				ret, err := sessionInfo.c.RunFilters(sessionInfo.c.Arguments.InsteadOfRedirect.Filters, middleware.WithLogger(ctx, logger), request)
+				if err != nil {
+					return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
+						errors.Wrap(err, "insteadOfRedirect.filters"), nil)
+				}
+				return ret
 			}
-			return ret
 		}
 	}
 
