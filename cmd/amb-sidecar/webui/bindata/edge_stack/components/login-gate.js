@@ -163,7 +163,7 @@ pre {
     font-size: 80%;
     white-space: normal;
     overflow-wrap: break-word;
-    width: 95;
+    width: 92%;
 }
 details {
     margin: 1em;
