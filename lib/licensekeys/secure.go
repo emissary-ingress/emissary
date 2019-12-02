@@ -59,6 +59,7 @@ func (v1 *LicenseClaimsV1) ToLatest() *LicenseClaimsLatest {
 			{LimitRateLimitService, math.MaxUint32},
 			{LimitAuthFilterService, math.MaxUint32},
 		},
+		Metadata: map[string]string{},
 	}
 
 	// Assuming all pre-v2 licenses have business-support, even if the feature flag was added afterwards
@@ -76,11 +77,12 @@ func (v1 *LicenseClaimsV1) ToLatest() *LicenseClaimsLatest {
 }
 
 type LicenseClaimsV2 struct {
-	LicenseKeyVersion string       `json:"license_key_version"`
-	CustomerID        string       `json:"customer_id"`
-	CustomerEmail     string       `json:"customer_email"`
-	EnabledFeatures   []Feature    `json:"enabled_features"`
-	EnforcedLimits    []LimitValue `json:"enforced_limits"`
+	LicenseKeyVersion string            `json:"license_key_version"`
+	CustomerID        string            `json:"customer_id"`
+	CustomerEmail     string            `json:"customer_email"`
+	EnabledFeatures   []Feature         `json:"enabled_features"`
+	EnforcedLimits    []LimitValue      `json:"enforced_limits"`
+	Metadata          map[string]string `json:"metadata"`
 	jwt.StandardClaims
 }
 
@@ -160,5 +162,6 @@ func NewCommunityLicenseClaims() *LicenseClaimsLatest {
 			{LimitRateLimitService, 5},
 			{LimitAuthFilterService, 5},
 		},
+		Metadata: map[string]string{},
 	}
 }

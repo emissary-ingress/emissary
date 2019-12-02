@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/dgrijalva/jwt-go"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
@@ -69,6 +69,7 @@ func init() {
 		argCustomerID    string
 		argFeatures      []string
 		argLimits        []string
+		argMetadata      []string
 		argLifetimeDays  int
 		argV1            bool
 	)
@@ -92,6 +93,9 @@ func init() {
 		[]string{},
 		fmt.Sprintf("comma-separated list of limit=value (known limits: %v)",
 			strings.Join(licensekeys.ListKnownLimits(), ",")))
+	create.Flags().StringSliceVar(&argMetadata, "metadata",
+		[]string{},
+		"comma-separated list of metadata=value (common metadata fields include: support_slack_link, support_phone_number)")
 	create.Flags().BoolVar(&argV1, "v1", false, "Create v1 license key, for forward compatibility")
 	create.MarkFlagRequired("id")
 	create.MarkFlagRequired("expiration")
@@ -111,15 +115,15 @@ func init() {
 		if len(unknownFeatures) > 0 {
 			return errors.Errorf("unrecognized --features: %v", unknownFeatures)
 		}
-		limits := make([]licensekeys.LimitValue, 0, len(argLimits))
-		type UnknownLimit struct {
+		type UnknownArgField struct {
 			Str string
 			Err error
 		}
-		var unknownLimits []UnknownLimit
+		limits := make([]licensekeys.LimitValue, 0, len(argLimits))
+		var unknownLimits []UnknownArgField
 		for _, limitStr := range argLimits {
 			if limit, err := licensekeys.ParseLimitValue(limitStr); err != nil {
-				unknownLimits = append(unknownLimits, UnknownLimit{limitStr, err})
+				unknownLimits = append(unknownLimits, UnknownArgField{limitStr, err})
 			} else {
 				limits = append(limits, limit)
 			}
@@ -127,7 +131,19 @@ func init() {
 		if len(unknownLimits) > 0 {
 			return errors.Errorf("unrecognized --limits: %v", unknownLimits)
 		}
-		tokenstring := createTokenString(argV1, argCustomerID, argCustomerEmail, features, limits, now, expiresAt)
+		metadata := map[string]string{}
+		var unknownMetadata []UnknownArgField
+		for _, metadataStr := range argMetadata {
+			if k, v, err := parseMetadataField(metadataStr); err != nil {
+				unknownMetadata = append(unknownMetadata, UnknownArgField{metadataStr, err})
+			} else {
+				metadata[k] = v
+			}
+		}
+		if len(unknownMetadata) > 0 {
+			return errors.Errorf("unrecognized --metadata: %v", unknownMetadata)
+		}
+		tokenstring := createTokenString(argV1, argCustomerID, argCustomerEmail, features, limits, metadata, now, expiresAt)
 		_, err := fmt.Println(tokenstring)
 		return err
 	}
@@ -135,7 +151,7 @@ func init() {
 	argparser.AddCommand(create)
 }
 
-func createTokenString(argV1 bool, customerID string, customerEmail string, features []licensekeys.Feature, limits []licensekeys.LimitValue, now, expiresAt time.Time) string {
+func createTokenString(argV1 bool, customerID string, customerEmail string, features []licensekeys.Feature, limits []licensekeys.LimitValue, metadata map[string]string, now, expiresAt time.Time) string {
 	var claims jwt.Claims
 	if argV1 {
 		claims = &licensekeys.LicenseClaimsV1{
@@ -155,6 +171,7 @@ func createTokenString(argV1 bool, customerID string, customerEmail string, feat
 			CustomerEmail:     customerEmail,
 			EnabledFeatures:   features,
 			EnforcedLimits:    limits,
+			Metadata:          metadata,
 			StandardClaims: jwt.StandardClaims{
 				IssuedAt:  now.Unix(),
 				NotBefore: now.Unix(),
@@ -168,6 +185,14 @@ func createTokenString(argV1 bool, customerID string, customerEmail string, feat
 		log.Fatalln(err)
 	}
 	return tokenstring
+}
+
+func parseMetadataField(str string) (key string, value string, err error) {
+	parts := strings.SplitN(str, "=", 2)
+	if len(parts) < 2 {
+		return "", "", fmt.Errorf("missing '=' in %q", str)
+	}
+	return parts[0], parts[1], nil
 }
 
 func init() {
