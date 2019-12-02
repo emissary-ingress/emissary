@@ -374,7 +374,7 @@ let SystemServicesPanel = {
          </svg>
           <div class="system-status">
           <p><span class = "status" style="color: green">${countString(total_services, "Service", "Services")}</span></p>
-          <p><span class = "status" style="color: ${average_health >= 80  ? "green" : "gray"}">${FormatFloat(average_health)}% Healthy</span></p>
+          <p><span class = "status" style="color: ${average_health >= 80  ? "green" : "gray"}">${FormatFloat(average_health, 0)}% Healthy</span></p>
           <p><span class = "status" style="color: ${services_waiting == 0 ? "green" : "gray"}">${services_waiting} Waiting</span></p>
   
           </div>
