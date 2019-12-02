@@ -73,6 +73,8 @@ class Mapping extends SingleResource {
    */
   renderResource() {
     let labels = this.state.mode === "edit" ? this.state.labels : this.labels();
+    let source = this.sourceURI();
+
     return html`
     <div class="attribute-name">prefix url:</div>
     <div class="attribute-value"><visible-modes list><code>${this.resource.spec.prefix}</code></visible-modes>
@@ -88,6 +90,14 @@ class Mapping extends SingleResource {
                          @change=${(e)=>{this.state.labels = e.target.labels}}>
       </dw-request-labels>
     </div>
+    
+    ${typeof source == 'string'
+        ? html`
+          <div class="attribute-name ${this.visible("list", "edit")}">source:</div>
+          <div class="attribute-value ${this.visible("list", "edit")}">
+          <a href=${source}>${source}</a>
+          </div>`
+        : html``}
 `
   }
   /**

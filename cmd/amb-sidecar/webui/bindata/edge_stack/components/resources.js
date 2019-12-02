@@ -510,7 +510,7 @@ spec: ${JSON.stringify(this.spec())}
   sourceURI() {
     let annotations = this.annotations;
     if (aes_res_source in annotations) {
-      return !annotations[aes_res_source];
+      return annotations[aes_res_source];
     }
     else {
       /* Return undefined (same as nonexistent property, vs. null) */
