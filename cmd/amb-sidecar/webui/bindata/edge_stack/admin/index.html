@@ -34,13 +34,12 @@
         margin-right: 2em;
       }
 
-      /* TODO(cynthia/xxx): Place anything below this in per-component styles. */
+      /* TODO: Place anything below this in per-component styles. */
 
       .section-heading {
-        margin: 0.1em;
+        margin: 0 0.1em;
         font-size: 120%;
         font-weight: bold;
-        margin-top: 0;
       }
       .section-text {
         display: inline-block;
@@ -74,12 +73,12 @@
         margin-bottom: 1em
       }
 
-      div.info-title {
+      div.info-title { /* used in login-gate */
         font-weight: bold;
         font-size: 120%;
       }
 
-      span.command {
+      span.command { /* used in login-gate */
         background-color: #f5f2f0;
         padding: 3px;
         letter-spacing: .2px;
@@ -91,7 +90,7 @@
         hyphens: none;
       }
 
-      div.overage-alert {
+      div.overage-alert { /* used in login-gate */
         border: 3px solid red;
         border-radius: 0.7em;
         padding: 0.5em;
@@ -102,10 +101,10 @@
         padding: 1em 1em;
       }
 
-      span.json {
-        unicode-bidi: embed;
-        font-family: monospace;
-      }
+      /*span.json {*/
+      /*  unicode-bidi: embed;*/
+      /*  font-family: monospace;*/
+      /*}*/
 
       details {
         margin-left: 1em;
@@ -136,13 +135,13 @@
             <dw-tabs>
               <dw-signup></dw-signup>
 
-              <dw-tab name="Dashboard">
+              <dw-tab slot="Dashboard">
                 <div class="admin-section">
                   <dw-dashboard></dw-dashboard>
                 </div>
               </dw-tab>
 
-              <dw-tab name="Hosts" icon="/edge_stack/images/hosts.png">
+              <dw-tab slot="Hosts" icon="/edge_stack/images/hosts.png">
                 <div class="admin-section">
                   <div class="section-heading">Hosts.</div>
                     <p><span class="section-text">Hosts are domains that are managed by Ambassador Edge Stack, e.g., <code>example.org</code>.</span></p>
@@ -151,7 +150,7 @@
                 </div>
               </dw-tab>
 
-              <dw-tab name="Mappings" icon="/edge_stack/images/mappings.png">
+              <dw-tab slot="Mappings" icon="/edge_stack/images/mappings.png">
                 <div class="admin-section">
                   <div class="section-heading">Mappings.</div>
                   <p><span class="section-text">Associations between prefix URLs
@@ -170,7 +169,7 @@
                 </div>
               </dw-tab>
 
-              <dw-tab name="Rate Limits" icon="/edge_stack/images/mappings.png">
+              <dw-tab slot="Rate Limits" icon="/edge_stack/images/mappings.png">
                 <div class="admin-section">
                   <div class="section-heading">Rate Limits.</div>
                   <p><span class="section-text">Rate limits for different request classes.</span>
@@ -180,7 +179,7 @@
                 </div>
               </dw-tab>
 
-              <dw-tab name="Services" icon="/edge_stack/images/services.png">
+              <dw-tab slot="Services" icon="/edge_stack/images/services.png">
                 <div class="admin-section">
                     <div class="section-heading">Services.</div>
                     <p><span class="section-text">Special services that enhance the functionality of
@@ -192,7 +191,7 @@
                 </div>
               </dw-tab>
 
-              <dw-tab name="Resolvers">
+              <dw-tab slot="Resolvers">
                 <div class="admin-section">
                   <div class="section-heading">Resolvers.</div>
                   <p><span class="section-text">Resolvers in use.</span></p>
@@ -201,25 +200,31 @@
                 </div>
               </dw-tab>
 
-              <dw-tab name="Debugging">
+              <dw-tab slot="Debugging">
                 <div class="admin-section">
                   <dw-debugging></dw-debugging>
                 </div>
               </dw-tab>
 
-              <dw-tab name="APIs" icon="/edge_stack/images/apis.png">
+               <dw-tab slot="YAML Download">
+                <div class="admin-section">
+                  <dw-yaml-dl></dw-yaml-dl>
+                </div>
+              </dw-tab>
+
+             <dw-tab slot="APIs" icon="/edge_stack/images/apis.png">
                 <div class="admin-section">
                   <dw-apis id="apis"></dw-apis>
                 </div>
               </dw-tab>
 
-              <dw-tab name="Documentation" icon="/edge_stack/images/docs.png">
+              <dw-tab slot="Documentation" icon="/edge_stack/images/docs.png">
                 <div class="admin-section">
                   <dw-documentation></dw-documentation>
                 </div>
               </dw-tab>
 
-              <dw-tab name="Support">
+              <dw-tab slot="Support">
                 <div class="admin-section">
                   <dw-support></dw-support>
                 </div>
@@ -242,29 +247,35 @@
   -->
 
   <!-- Critical Vendor Scripts -->
-  <script async defer type="module" src="/edge_stack/vendor/polyfill.js"></script>
-  <script async defer type="module" src="/edge_stack/vendor/lit-element.min.js"></script>
+  <script async defer type="module" src="../vendor/polyfill.js"></script>
+  <script async defer type="module" src="../vendor/lit-element.min.js"></script>
+  <script async defer type="module" src="../vendor/js-yaml.min.js"></script>
+  <script async defer type="module" src="../vendor/FileSaver.js"></script>
 
   <!-- First Page Needed -->
-  <script async defer type="module" src="/edge_stack/components/context.js"></script>
-  <script async defer type="module" src="/edge_stack/components/login-gate.js"></script>
-  <script async defer type="module" src="/edge_stack/components/snapshot.js"></script>
-  <script async defer type="module" src="/edge_stack/components/tabs.js"></script>
-  <script async defer type="module" src="/edge_stack/components/signup.js"></script>
-  <script async defer type="module" src="/edge_stack/components/dashboard.js"></script>
+  <script async defer type="module" src="../components/license.js"></script>
+  <script async defer type="module" src="../components/api-fetch.js"></script>
+  <script async defer type="module" src="../components/context.js"></script>
+  <script async defer type="module" src="../components/login-gate.js"></script>
+  <script async defer type="module" src="../components/snapshot.js"></script>
+  <script async defer type="module" src="../components/tabs.js"></script>
+  <script async defer type="module" src="../components/signup.js"></script>
+  <script async defer type="module" src="../components/dashboard.js"></script>
 
   <!-- Later Page Scripts -->
-  <script async defer type="module" src="/edge_stack/components/add-button.js"></script>
-  <script async defer type="module" src="/edge_stack/components/hosts.js"></script>
-  <script async defer type="module" src="/edge_stack/components/mappings.js"></script>
-  <script async defer type="module" src="/edge_stack/components/limits.js"></script>
-  <script async defer type="module" src="/edge_stack/components/services.js"></script>
-  <script async defer type="module" src="/edge_stack/components/resolvers.js"></script>
-  <script async defer type="module" src="/edge_stack/components/debugging.js"></script>
-  <script async defer type="module" src="/edge_stack/components/routetable.js"></script>
-  <script async defer type="module" src="/edge_stack/vendor/rapidoc.min.js"></script>
-  <script async defer type="module" src="/edge_stack/components/apis.js"></script>
-  <script async defer type="module" src="/edge_stack/components/documentation.js"></script>
-  <script async defer type="module" src="/edge_stack/components/wholepage-error.js"></script>
-  <script async defer type="module" src="/edge_stack/components/support.js"></script>
+  <script async defer type="module" src="../components/add-button.js"></script>
+  <script async defer type="module" src="../components/hosts.js"></script>
+  <script async defer type="module" src="../components/mappings.js"></script>
+  <script async defer type="module" src="../components/limits.js"></script>
+  <script async defer type="module" src="../components/services.js"></script>
+  <script async defer type="module" src="../components/resolvers.js"></script>
+  <script async defer type="module" src="../components/debugging.js"></script>
+  <script async defer type="module" src="../components/yaml-downloads.js"></script>
+  <script async defer type="module" src="../components/routetable.js"></script>
+  <script async defer type="module" src="../vendor/rapidoc.min.js"></script>
+  <script async defer type="module" src="../components/apis.js"></script>
+  <script async defer type="module" src="../components/documentation.js"></script>
+  <script async defer type="module" src="../components/wholepage-error.js"></script>
+  <script async defer type="module" src="../components/support.js"></script>
+
 </html>

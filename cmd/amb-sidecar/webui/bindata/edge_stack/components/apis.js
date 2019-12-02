@@ -1,4 +1,5 @@
-import { LitElement, html, css } from '/edge_stack/vendor/lit-element.min.js'
+import { LitElement, html, css } from '../vendor/lit-element.min.js'
+import {ApiFetch} from "./api-fetch.js";
 
 export class APIs extends LitElement {
 
@@ -54,11 +55,7 @@ export class APIs extends LitElement {
   }
 
   loadFromServer() {
-    if(1) {//TODO temporarily removed because it was filling the console with error messages making it hard to debug other problems
-      return {} //TODO part of the above temporary removal
-    } else {//TODO part of the above temporary removal
-
-      fetch('/openapi/services')
+      ApiFetch('/openapi/services')
         .then((resp) => {
           if (resp.status === 401 || resp.status === 403) {
             return new Promise((_, reject) => {
@@ -77,7 +74,6 @@ export class APIs extends LitElement {
       //console.log("will reload APIs in 10 seconds");
       setTimeout(this.loadFromServer.bind(this), 10000)
     }
-    }//TODO part of the above temporary removal
   }
 
   deferHackStyles() {

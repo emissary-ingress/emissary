@@ -89,9 +89,6 @@ import {LitElement, html} from '/edge_stack/vendor/lit-element.min.js'
  *   I would like it to be. Each label part is either "Global",
  *   "Client", or "Header".
  *
- *   In order to actually achieve a rate limit, we will also need a UI
- *   for the rate limits tab.
- *
  *   From what I recall messing with rate limiting before, the most
  *   difficult piece was that there is very poor feedback about
  *   whether your pattern is actually matching the labels the way you

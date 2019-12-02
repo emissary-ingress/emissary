@@ -1,6 +1,6 @@
-import { LitElement, html, css } from '/edge_stack/vendor/lit-element.min.js'
-import {SingleResource} from '/edge_stack/components/resources.js'
-import {Snapshot} from '/edge_stack/components/snapshot.js'
+import { LitElement, html, css } from '../vendor/lit-element.min.js'
+import {SingleResource} from './resources.js'
+import {Snapshot} from './snapshot.js'
 
 export class Service extends SingleResource {
   // implement
@@ -36,7 +36,7 @@ export class Service extends SingleResource {
     for (let key in spec) {
       if (spec.hasOwnProperty(key)) {
         str += `<div class="attribute-name">${key}:</div>
-        <div class="attribute-value">${spec[key]}</div>`;
+        <div class="attribute-value">${(typeof spec[key] === 'string') ? spec[key] : JSON.stringify(spec[key])}</div>`;
       }
     }
     return html([str]);

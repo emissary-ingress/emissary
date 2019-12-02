@@ -2,8 +2,9 @@
 /* Dashboard and dashboard element classes using LitElement.                          */
 /* ===================================================================================*/
 
-import { LitElement, html, css, svg } from '/edge_stack/vendor/lit-element.min.js';
-import { Snapshot } from '/edge_stack/components/snapshot.js';
+import { LitElement, html, css, svg } from '../vendor/lit-element.min.js';
+import { Snapshot } from './snapshot.js';
+import { License } from './license.js';
 
 /**
  * This is a Promise-like object used to synchronize between google charts loaded callback and the
@@ -135,7 +136,7 @@ let LicensePanel = {
 	},
 
   isLicenseRegistered: function() {
-    return this.licenseClaims && this.licenseClaims.customer_id !== "unregistered";
+    return this.licenseClaims && this.licenseClaims.customer_id !== License._UNREGISTERED_CUSTOMER_ID;
   },
 
   draw: function(shadow_root) { /*text panel, no chart to draw*/ },
@@ -327,7 +328,7 @@ let SystemServicesPanel = {
     let redis = this._snapshot.getRedisInUse();
     let envoy = this._diagd.envoy_status.ready;
     let errors= this._diagd.errors.length;
-    let stats = this._diagd.cluster_stats;
+    let stats = this._diagd.cluster_stats || {};
 
     /* Calculate number of running and waiting services,
      * and for running services, average health percentage

@@ -1,6 +1,7 @@
-import { LitElement, html, css} from '/edge_stack/vendor/lit-element.min.js'
-import {Snapshot} from '/edge_stack/components/snapshot.js'
-import {getCookie} from '/edge_stack/components/cookies.js';
+import { LitElement, html, css} from '../vendor/lit-element.min.js'
+import {Snapshot, aes_res_editable, aes_res_changed} from './snapshot.js'
+import {getCookie} from './cookies.js';
+import {ApiFetch} from "./api-fetch.js";
 
 /**
  * The classes in this file provide the building blocks we use for
@@ -237,7 +238,6 @@ span.code {
 
   // internal
   onAdd() {
-    //TODO The user interface might have a strange midway state when one does an add: maybe need crosshatching to show "change in progress"
     if( this.readOnly() ) {
       return; // we shouldn't be able to get here because there is no add button,
               // but if we do, don't do anything.
@@ -264,7 +264,6 @@ span.code {
 
   // internal
   onDelete() {
-    //TODO The user interface has a strange midway state when one does a delete: need crosshatching to show "change in progress"
     if (this.readOnly()) {
       this.state.mode = "list";
       return; // we shouldn't be able to get here because there is no edit button,
@@ -276,7 +275,7 @@ span.code {
       return; // user canceled the action
     }
 
-    fetch('/edge_stack/api/delete',
+    ApiFetch('/edge_stack/api/delete',
           {
             method: "POST",
             headers: new Headers({
@@ -352,15 +351,23 @@ span.code {
    */
   validate() {}
 
+
   // internal
   name() {
     return this.resource.metadata.name;
   }
 
+
   // internal
   namespace() {
     return this.resource.metadata.namespace;
   }
+
+  // internal
+  annotations() {
+    return this.resource.metadata.annotations;
+  }
+
 
   // internal
   nameInput() {
@@ -374,7 +381,6 @@ span.code {
 
   // internal
   onSave() {
-    //TODO The user interface has a strange midway state when one does a save: need crosshatching to show "change in progress"
     if( this.readOnly() ) {
       this.state.mode = "list";
       return; // we shouldn't be able to get here because there is no edit button,
@@ -395,10 +401,12 @@ kind: ${this.kind()}
 metadata:
   name: "${this.nameInput().value}"
   namespace: "${this.namespaceInput().value}"
+  annotations:
+    ${aes_res_changed}: "true"
 spec: ${JSON.stringify(this.spec())}
 `;
 
-    fetch('/edge_stack/api/apply',
+    ApiFetch('/edge_stack/api/apply',
           {
             method: "POST",
             headers: new Headers({
@@ -482,9 +490,18 @@ spec: ${JSON.stringify(this.spec())}
 
   /**
    * Override this method to make this object be read-only.
+   * Default functionality is to check for an annotation that
+   * allows editing.  Default is editable unless the annotation
+   * is set to false. [NOTE: may want to switch this?]
    */
   readOnly() {
-    return false;
+    let annotations = this.annotations;
+    if (aes_res_editable in annotations) {
+      return !annotations[aes_res_editable];
+    }
+    else {
+      return false;
+    }
   }
 
   /**
@@ -924,7 +941,3 @@ export class VisibleModes extends LitElement {
 }
 
 customElements.define('visible-modes', VisibleModes);
-
-//TODO We need a way to link from tab to tab: click on the dashboard panel about rate limits and
-//   go to the rate limit tab; click on a service in a mapping resource, and go to the services tab
-//   with that service resource highlighted. Etc.
