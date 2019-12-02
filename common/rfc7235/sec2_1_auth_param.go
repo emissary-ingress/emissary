@@ -28,15 +28,16 @@ func (p AuthParam) String() string {
 	return p.Key + "=" + p.Value
 }
 
-// ScanAuthParam scans a auth-param (as defined by §2.1) from the beginning of a string, and returns
-// the structured result, as well as the remainder of the input string.
+// scanAuthParam scans an auth-param (as defined by §2.1) from the beginning of a string, and
+// returns the structured result, as well as the remainder of the input string.
 //
 // For example:
 //
-//     ScanAuthParam(`foo = "bar baz" remainder`) => (AuthParam{Key: `foo`, `Value: `bar baz`}, ` remainder`, nil)
+//     scanAuthParam(`foo = "bar baz" remainder`) => (AuthParam{Key: `foo`, Value: `bar baz`}, ` remainder`, nil)
 //
-// If a syntax error is encountered, (AuthParam{}, "", err) is returned.
-func ScanAuthParam(input string) (param AuthParam, rest string, err error) {
+// If the input does not have an auth-param as a prefix, then (AuthParam{}, "", err) is returned,
+// where err describes why the prefix is not an auth-param.
+func scanAuthParam(input string) (param AuthParam, rest string, err error) {
 	rest = input
 
 	// ABNF:
@@ -80,11 +81,10 @@ func ScanAuthParam(input string) (param AuthParam, rest string, err error) {
 			return AuthParam{}, "", errors.Wrap(err, "invalid auth-param")
 		}
 	default:
-		param.Value = rest[:len(rest)-len(strings.TrimLeft(rest, rfc7230.CharsetTChar))]
-		if len(param.Value) == 0 {
-			return AuthParam{}, "", errors.Errorf("invalid auth-param: expected a value, but got non-quoted-string, non-token character %#v", rest[0])
+		param.Value, rest, err = rfc7230.ScanToken(rest)
+		if err != nil {
+			return AuthParam{}, "", errors.Wrap(err, "invalid auth-param")
 		}
-		rest = rest[len(param.Value):]
 	}
 
 	return param, rest, nil

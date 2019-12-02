@@ -2,44 +2,244 @@
 package rfc6750
 
 import (
+	"fmt"
 	"mime"
 	"net/http"
 	"net/url"
 	"strings"
 
+	"github.com/pkg/errors"
+
+	"github.com/datawire/apro/common/rfc7235"
 	"github.com/datawire/apro/resourceserver/rfc6749"
 )
 
 // GetFromHeader returns the Bearer Token extracted from an HTTP request header, as specified by
-// §2.1.  If there is no Bearer Token, it returns an empty string.
-func GetFromHeader(header http.Header) string {
-	valueParts := strings.SplitN(header.Get("Authorization"), " ", 2)
-	if len(valueParts) != 2 || !strings.EqualFold(valueParts[0], "Bearer") {
-		return ""
+// §2.1.  If there is no Bearer Token, it returns an empty string and no error.  A valid Bearer
+// Token is never empty.
+func GetFromHeader(header http.Header) (string, error) {
+	str := header.Get("Authorization")
+	if str == "" {
+		return "", nil
 	}
-	return valueParts[1]
+	credentials, err := rfc7235.ParseCredentials(str)
+	if err != nil {
+		return "", errors.Wrap(err, "invalid Authorization header")
+	}
+	if !strings.EqualFold(credentials.AuthScheme, "Bearer") {
+		return "", nil
+	}
+	token, tokenOK := credentials.Body.(rfc7235.CredentialsLegacy)
+	if !tokenOK {
+		return "", errors.New("invalid Bearer credentials: used auth-param syntax instead of token68 syntax")
+	}
+	return token.String(), nil
 }
 
 // GetFromBody returns the Bearer Token extracted from an "application/x-www-form-urlencoded"
-// request body, as specified by §2.2.  If there is no Bearer Token, it returns an empty string.
-func GetFromBody(body url.Values) string {
-	if len(body["access_token"]) != 1 {
-		return ""
+// request body, as specified by §2.2.  If there is no Bearer Token, it returns an empty string and
+// no error.  A valid Bearer Token is never empty.
+func GetFromBody(req *http.Request) (string, error) {
+	ct, _, err := mime.ParseMediaType(req.Header.Get("Content-Type"))
+	if err != nil || ct != "application/x-www-form-urlencoded" {
+		return "", nil
 	}
-	return body["access_token"][0]
+	if err := req.ParseForm(); err != nil {
+		return "", err
+	}
+	switch len(req.PostForm["access_token"]) {
+	case 0:
+		return "", nil
+	case 1:
+		token := req.PostForm["access_token"][0]
+		if token == "" {
+			return "", errors.New("invalid Bearer credentials: empty (but set) access_token body parameter")
+		}
+		return token, nil
+	default:
+		return "", errors.New("invalid Bearer credentials: repeated access_token body parameter")
+	}
 }
 
 // GetFromURI returns the Bearer Token extracted from a request URI query parameter, as specified by
-// §2.3.  If there is no Bearer Token, it returns an empty string.
+// §2.3.  If there is no Bearer Token, it returns an empty string and no error.  A valid Bearer
+// Token is never empty.
 //
 // If you do get the Bearer Token from the request URI, then "success (2XX status) responses to
 // these requests SHOULD contain a Cache-Control header with the 'private' option"; it is up to you
 // to include that option.
-func GetFromURI(query url.Values) string {
-	if len(query["access_token"]) != 1 {
-		return ""
+func GetFromURI(query url.Values) (string, error) {
+	switch len(query["access_token"]) {
+	case 0:
+		return "", nil
+	case 1:
+		token := query["access_token"][0]
+		if token == "" {
+			return "", errors.New("invalid Bearer credentials: empty (but set) access_token query parameter")
+		}
+		return token, nil
+	default:
+		return "", errors.New("invalid Bearer credentials: repeated access_token query parameter")
 	}
-	return query["access_token"][0]
+}
+
+type AuthorizationValidator struct {
+	// SupportBody and SupportURI identify whether to support extracting the Bearer Token from
+	// the request body and request URI respectively (in addition to being able to extract it
+	// from the request HTTP header, which is always supported).  Support for these is optional,
+	// and in the case of URI, actively discouraged.  If you do set SupportURI=true, then
+	// "success (2XX status) responses to these requests SHOULD contain a Cache-Control header
+	// with the 'private' option" (§2.3); it is up to you to include that option.
+	SupportBody bool
+	SupportURI  bool
+
+	// Realm is the realm (if any) to self-identify as in WWW-Authenticate challenges.
+	Realm string
+
+	// TokenValidationFunc is a function that returns whether a given Bearer Token is valid.  If
+	// the token is determined to be valid, it must return (scope, nil, nil) where (scope) is
+	// the scope of the token.  If the token is determined to be invalid, it must return (nil,
+	// reason, nil).  If there is an error determining whether the token is valid or invalid,
+	// then it must return (nil, nil, reason).
+	TokenValidationFunc func(token string) (scope rfc6749.Scope, reasonInvalid, serverError error)
+
+	// RequiredScope is this minimum scope an Access Token must have to authorize a request.
+	RequiredScope rfc6749.Scope
+}
+
+// Mash-up of §2 and §3
+func (v *AuthorizationValidator) get(req *http.Request) (string, error) {
+	var token, _token string
+	var cnt uint
+	var err error
+
+	_token, err = GetFromHeader(req.Header)
+	if err != nil {
+		return "", err
+	}
+	if _token != "" {
+		token = _token
+		cnt++
+	}
+
+	if v.SupportURI {
+		_token, err = GetFromURI(req.URL.Query())
+		if err != nil {
+			return "", err
+		}
+		if _token != "" {
+			token = _token
+			cnt++
+		}
+	}
+
+	if v.SupportBody {
+		_token, err = GetFromBody(req)
+		if err != nil {
+			return "", err
+		}
+		if _token != "" {
+			token = _token
+			cnt++
+		}
+	}
+
+	switch cnt {
+	case 0:
+		return "", nil
+	case 1:
+		return token, nil
+	default:
+		return "", errors.New("invalid Bearer credentials: access token provided with multiple methods")
+	}
+}
+
+// §3
+func (v *AuthorizationValidator) fmtChallenge(challengeParams rfc7235.ChallengeParameters) rfc7235.Challenge {
+	if v.Realm != "" {
+		challengeParams = append(challengeParams,
+			rfc7235.AuthParam{Key: "realm", Value: v.Realm})
+	}
+	return rfc7235.Challenge{
+		AuthScheme: "Bearer",
+		Body:       challengeParams,
+	}
+}
+
+// AuthorizationError represents the error response to an insufficiently authorized resource
+// request, per §3.
+type AuthorizationError struct {
+	HTTPStatusCode int
+	Challenge      rfc7235.Challenge
+}
+
+func (e *AuthorizationError) String() string {
+	return fmt.Sprintf("HTTP %d / WWW-Authorize: %s", e.HTTPStatusCode, e.Challenge)
+}
+
+func (e *AuthorizationError) Error() string {
+	if params, paramsOK := e.Challenge.Body.(rfc7235.ChallengeParameters); paramsOK {
+		for _, param := range params {
+			if param.Key == "error_description" {
+				return param.Value
+			}
+		}
+	}
+	return e.String()
+}
+
+// ValidateAuthorization inspects a request received and decides whether to authorize it.  If the
+// request is authorized, then nil is returned.  If the request is not authorized, then an error of
+// type *AuthoriationError is returned.  Errors of other types indicate that there was an error in
+// deciding whether to authorize the request.
+func (v *AuthorizationValidator) ValidateAuthorization(req *http.Request) error {
+	token, err := v.get(req)
+	if err != nil {
+		return &AuthorizationError{
+			HTTPStatusCode: http.StatusBadRequest,
+			Challenge: v.fmtChallenge(rfc7235.ChallengeParameters{
+				{Key: "error", Value: "invalid_request"},
+				{Key: "error_description", Value: err.Error()},
+			}),
+		}
+	}
+
+	actualScope, invalidErr, serverErr := v.TokenValidationFunc(token)
+	if serverErr != nil {
+		return serverErr
+	}
+	if invalidErr != nil {
+		return &AuthorizationError{
+			HTTPStatusCode: http.StatusUnauthorized,
+			Challenge: v.fmtChallenge(rfc7235.ChallengeParameters{
+				{Key: "error", Value: "invalid_token"},
+				{Key: "error_description", Value: invalidErr.Error()},
+			}),
+		}
+	}
+
+	var missing []string
+	for scopeValue := range v.RequiredScope {
+		if _, ok := actualScope[scopeValue]; !ok {
+			missing = append(missing, scopeValue)
+		}
+	}
+	switch len(missing) {
+	case 0:
+		return nil
+	case 1:
+		err = errors.Errorf("missing required scope value: %q", missing[0])
+	default:
+		err = errors.Errorf("missing required scope values: %q", missing)
+	}
+	return &AuthorizationError{
+		HTTPStatusCode: http.StatusForbidden,
+		Challenge: v.fmtChallenge(rfc7235.ChallengeParameters{
+			{Key: "error", Value: "insufficient_scope"},
+			{Key: "error_description", Value: err.Error()},
+			{Key: "scope", Value: v.RequiredScope.String()},
+		}),
+	}
 }
 
 // §3.1.
@@ -66,22 +266,13 @@ var errorMeanings = map[string]string{
 		"resource.",
 }
 
-// A TokenValidationFunc is a function that returns whether a given Bearer Token is valid.  If the
-// token is determined to be valid, it must return (true, nil); if it is determined to be invalid,
-// it must return (false, nil); if there is an error determining whether it is valid or invalid,
-// then it must return an error.
-type TokenValidationFunc func(token string) (valid bool, err error)
-
 // OAuthProtocolExtension returns the information to register Bearer Token support with an OAuth 2.0
 // ResourceServer, per §6.
 //
-// The supportBody and supportURI arguments identify whether to support extracting the Bearer Token
-// from the request body and request URI respectively (in addition to being able to extract it from
-// the request HTTP header, which is always supported).  Support for these is optional, and in the
-// case of URI, actively discouraged.  If you do set supportURI=true, then "success (2XX status)
-// responses to these requests SHOULD contain a Cache-Control header with the 'private' option"
-// (§2.3); it is up to you to include that option.
-func OAuthProtocolExtension(supportBody, supportURI bool, validate TokenValidationFunc) rfc6749.ProtocolExtension {
+// If you do set validator.SupportURI=true, then "success (2XX status) responses to these requests
+// SHOULD contain a Cache-Control header with the 'private' option" (§2.3); it is up to you to
+// include that option.
+func OAuthProtocolExtension(validator *AuthorizationValidator) rfc6749.ProtocolExtension {
 	return rfc6749.ProtocolExtension{
 		AccessTokenTypes: []rfc6749.AccessTokenType{
 			{
@@ -90,35 +281,7 @@ func OAuthProtocolExtension(supportBody, supportURI bool, validate TokenValidati
 				ChangeController:                  "IETF",
 				SpecificationDocuments:            []string{"RFC 6750"},
 
-				ValidateAuthorization: func(req *http.Request) (bool, error) {
-					token := GetFromHeader(req.Header)
-					if token != "" {
-						return validate(token)
-					}
-					var bodyErr error
-					if supportBody {
-						ct, _, err := mime.ParseMediaType(req.Header.Get("Content-Type"))
-						if err != nil && ct == "application/x-www-form-urlencoded" {
-							err := req.ParseForm()
-							if err != nil {
-								bodyErr = err
-							} else if token := GetFromBody(req.PostForm); token != "" {
-								return validate(token)
-							}
-						}
-					}
-					if supportURI {
-						token := GetFromURI(req.URL.Query())
-						if token != "" {
-							return validate(token)
-						}
-					}
-					if bodyErr != nil {
-						return false, bodyErr
-					}
-					// TODO: maybe differentiate between different failure cases?
-					return false, nil
-				},
+				ValidateAuthorization: validator.ValidateAuthorization,
 			},
 		},
 		ExtensionErrors: []rfc6749.ExtensionError{
