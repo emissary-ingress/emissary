@@ -710,12 +710,14 @@ class AmbassadorEventWatcher(threading.Thread):
                 except Exception as e:
                     self.logger.error("could not update estats: %s" % e)
                     self.logger.exception(e)
+                    self._respond(rqueue, 500, 'Envoy stats update failed')
             elif cmd == 'CONFIG_FS':
                 try:
                     self.load_config_fs(rqueue, arg)
                 except Exception as e:
                     self.logger.error("could not reconfigure: %s" % e)
                     self.logger.exception(e)
+                    self._respond(rqueue, 500, 'configuration from filesystem failed')
             elif cmd == 'CONFIG':
                 version, url = arg
 
@@ -729,6 +731,7 @@ class AmbassadorEventWatcher(threading.Thread):
                 except Exception as e:
                     self.logger.error("could not reconfigure: %s" % e)
                     self.logger.exception(e)
+                    self._respond(rqueue, 500, 'configuration failed')
             elif cmd == 'SCOUT':
                 try:
                     self._respond(rqueue, 200, 'checking Scout')
@@ -736,8 +739,10 @@ class AmbassadorEventWatcher(threading.Thread):
                 except Exception as e:
                     self.logger.error("could not reconfigure: %s" % e)
                     self.logger.exception(e)
+                    self._respond(rqueue, 500, 'scout check failed')
             else:
-                self.logger.error("unknown event type: '%s' '%s'" % (cmd, arg))
+                self.logger.error(f"unknown event type: '{cmd}' '{arg}'")
+                self._respond(rqueue, 400, f"unknown event type '{cmd}' '{arg}'")
 
     def _respond(self, rqueue: queue.Queue, status: int, info='') -> None:
         self.logger.debug("responding to query with %s %s" % (status, info))
