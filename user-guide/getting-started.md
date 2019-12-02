@@ -9,10 +9,7 @@ Ambassador Edge Stack is designed to run in Kubernetes for production. However, 
 
 ## 1. Deploying Ambassador Edge Stack to Kubernetes
 
-<div style="border: thick solid red">
-Note, the secret.yaml file is temporary during internal Datawire development and can be obtained from the 
-<a href="https://drive.google.com/file/d/1q-fmSXU966UtAARrzyCnaKTVbcpkg2n-/view?usp=sharing">Google drive</a>.
-</div>
+In your command line tool, run the following:
 
 ```shell
 kubectl apply -f secret.yaml && \

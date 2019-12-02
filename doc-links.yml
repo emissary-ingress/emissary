@@ -30,14 +30,6 @@
     link: /user-guide/install
   - title: Kubernetes (YAML)
     link: /user-guide/getting-started
-  - title: Kubernetes (Helm)
-    link: /user-guide/helm
-  - title: Kubernetes Bare Metal
-    link: /user-guide/bare-metal
-  - title: Docker Quickstart
-    link: /about/quickstart
-  - title: Docker Compose
-    link: /user-guide/docker-compose
   - title: Other Install & Upgrade Options
     items: 
     - title: Upgrade Ambassador OSS to Ambassador Edge Stack

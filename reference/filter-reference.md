@@ -176,7 +176,7 @@ spec:
       starting indent level.
 
 **Note**: If you are using a templating system for your YAML that also
-makes use of Go templating (for instance, Helm), then you will need to
+makes use of Go templating, then you will need to
 escape the template strings meant to be interpreted by the Ambassador Edge
 Stack.
 

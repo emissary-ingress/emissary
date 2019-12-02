@@ -1,6 +1,6 @@
 # Consul Integration
 
-[Consul](https://www.consul.io) is a widely used service mesh. Ambassador Edge Stack natively supports Consul for service discovery and end-to-end TLS (including mTLS between services). This capability is particularly useful when deploying Ambassador Edge Stack in so-called hybrid clouds, where applications are deployed on bare metal, VMs, and Kubernetes. In this environment, Ambassador Edge Stack can securely route over TLS to any application regardless of where it is deployed.
+[Consul](https://www.consul.io) is a widely used service mesh. Ambassador Edge Stack natively supports Consul for service discovery and end-to-end TLS (including mTLS between services). This capability is particularly useful when deploying Ambassador Edge Stack in so-called hybrid clouds, where applications are deployed on VMs and Kubernetes. In this environment, Ambassador Edge Stack can securely route over TLS to any application regardless of where it is deployed.
 
 ## Architecture Overview
 
@@ -13,10 +13,6 @@ In this architecture, Consul serves as the source of truth for your entire data 
 In this guide, you will register a service with Consul and use Ambassador Edge Stack to dynamically route requests to that service based on Consul's service discovery data. If you already have Ambassador Edge Stack installed, you will just need to configure the `ConsulResolver` in step 3.
 
 1. Install and configure Consul ([instructions](https://www.consul.io/docs/platform/k8s/index.html)). Consul can be deployed anywhere in your data center.
-
-   **Note**
-   - If you are using the [Consul Helm Chart](https://www.consul.io/docs/platform/k8s/helm.html) for installation, you must install the latest version of both the [Chart](https://github.com/hashicorp/consul-helm) and the Consul binary itself (configurable via the [`values.yaml`](https://www.consul.io/docs/platform/k8s/helm.html#configuration-values-) file). `git checkout` the most recent tag in the [consul-helm](https://github.com/hashicorp/consul-helm) repository to get the latest version of the Consul Helm chart.
-   - If you would like to enable end-to-end TLS between all of your APIs in Kubernetes, you will need to set `connectInject.enabled: true` and `client.grpc: true` in the values.yaml file.
 
 2. Deploy Ambassador Edge Stack. Note: If this is your first time deploying Ambassador Edge Stack, reviewing the [quick start guide](/user-guide/getting-started) is strongly recommended.
 
@@ -55,7 +51,7 @@ In this guide, you will register a service with Consul and use Ambassador Edge S
 
 ## Routing to Consul Services
 
-You'll now register a demo application with Consul, and show how Ambassador Edge Stack can route to this application using endpoint data from Consul. To simplify this tutorial, you'll deploy the application in Kubernetes, although in practice this application can be deployed anywhere in your data center (e.g., on VMs or bare metal).
+You'll now register a demo application with Consul, and show how Ambassador Edge Stack can route to this application using endpoint data from Consul. To simplify this tutorial, you'll deploy the application in Kubernetes, although in practice this application can be deployed anywhere in your data center (e.g., on VMs).
 
 1. Deploy the QOTM demo application. The QOTM application contains code to automatically register itself with Consul, using the CONSUL_IP and POD_IP environment variables specified within the QOTM container spec.
 

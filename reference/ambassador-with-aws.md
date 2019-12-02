@@ -94,48 +94,6 @@ spec:
 
 In this configuration, an ELB is deployed with a multi-domain AWS Certificate Manager certificate and configured to terminate TLS on requests over port 443 and forward to Ambassador Edge Stack listening for cleartext on 8080. The ELB is configured to route TCP to support both WebSockets and HTTP. It also enables the proxy protocol so Ambassador Edge Stack needs to be configured to handle that by configuring an Ambassador Edge Stack `Module`.
 
-## Helm Values Configuration
-
-The following in a sample configuration for deploying Ambassador Edge Stack in AWS with some load balancer annotations using the Ambassador Edge Stack Helm chart.
-
-Create a values file with the following content:
-
-`values.aws.yaml`
-```yaml
-service:
-  http:
-    enabled: true
-    port: 80
-    targetPort: 8080
-
-  https:
-    enabled: true
-    port: 443
-    targetPort: 8443
-
-  annotations:
-    service.beta.kubernetes.io/aws-load-balancer-ssl-cert: "{{ tls certificate arn }}"
-    service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "443"
-    service.beta.kubernetes.io/aws-load-balancer-backend-protocol: "http"
-    service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: "true"
-    getambassador.io/config: |
-      --- 
-      apiVersion: getambassador.io/v2
-      kind:  Module
-      name:  ambassador
-      config:
-        use_proxy_proto: false
-        use_remote_address: false
-        x_forwarded_proto_redirect: true
-```
-
-Install with: 
-```
-helm install --name ambassador stable/ambassador
-```
-
-In this configuration, an ELB is deployed with a multi-domain AWS Certificate Manager certificate. The ELB is configured to route in L7 mode, which means only HTTP(S) traffic is supported, and not web sockets. TLS termination occurs at the ELB. Automatic redirection of HTTP to HTTPS is enabled. Downstream services can extract the client IP from the `X-FORWARDED-FOR` header
-
 ## TLS Termination
 
 As with any Kubernetes environment, Ambassador Edge Stack can be configured to perform SSL offload by configuring a tls [`Module`](/reference/core/tls) or [`TLSContext`](/user-guide/sni). Refer to the [TLS Termination](/user-guide/tls-termination) documentation for more information. 

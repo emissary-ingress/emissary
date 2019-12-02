@@ -10,7 +10,7 @@ There are currently no early access releases available.
 
 ### Installing the Ambassador Edge Stack Early Access releases
 
-We do not recommend Helm for early access releases. Instead, use a Kubernetes deployment as usual, but use image `quay.io/datawire/ambassador:0.50.0-ea5`.
+Use a Kubernetes deployment as usual, but use image `quay.io/datawire/ambassador:0.50.0-ea5`.
 
 We recommend testing with shadowing, as documented below, before switching to any new Ambassador Edge Stack release. We also recommend testing with shadowing for all early access releases before deploying in production.
 
