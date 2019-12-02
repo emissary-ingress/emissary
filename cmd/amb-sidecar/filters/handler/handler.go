@@ -173,57 +173,7 @@ func (c *FilterMux) filter(ctx context.Context, request *filterapi.FilterRequest
 		}
 		logger.Debugf("applying filter=%q", filterQName)
 
-		filterInfo := findFilter(c.Controller, filterQName)
-		if filterInfo == nil {
-			return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
-				errors.Errorf("could not find not filter: %q", filterQName), nil), nil
-		}
-		if filterInfo.Err != nil {
-			return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
-				errors.Wrapf(filterInfo.Err, "error in filter %q configuration", filterQName), nil), nil
-		}
-
-		var filterImpl filterapi.Filter
-		switch filterSpec := filterInfo.Spec.(type) {
-		case crd.FilterOAuth2:
-			_filterImpl := &oauth2handler.OAuth2Filter{
-				PrivateKey: c.PrivateKey,
-				PublicKey:  c.PublicKey,
-				RedisPool:  c.RedisPool,
-				QName:      filterQName,
-				Spec:       filterSpec,
-			}
-			if err := mapstructure.Convert(filterRef.Arguments, &_filterImpl.Arguments); err != nil {
-				return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
-					errors.Wrap(err, "invalid filter.argument"), nil), nil
-			}
-			if err := _filterImpl.Arguments.Validate(); err != nil {
-				return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
-					errors.Wrap(err, "invalid filter.argument"), nil), nil
-			}
-			filterImpl = _filterImpl
-		case crd.FilterPlugin:
-			filterImpl = filterutil.HandlerToFilter(filterSpec.Handler)
-		case crd.FilterJWT:
-			_filterImpl := &jwthandler.JWTFilter{
-				Spec: filterSpec,
-			}
-			if err := mapstructure.Convert(filterRef.Arguments, &_filterImpl.Arguments); err != nil {
-				return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
-					errors.Wrap(err, "invalid filter.argument"), nil), nil
-			}
-			filterImpl = _filterImpl
-		case crd.FilterExternal:
-			filterImpl = &externalhandler.ExternalFilter{
-				Spec: filterSpec,
-			}
-		case crd.FilterInternal:
-			filterImpl = internalhandler.MakeInternalFilter()
-		default:
-			panic(errors.Errorf("unexpected filter type %T", filterSpec))
-		}
-
-		response, err := filterImpl.Filter(middleware.WithLogger(ctx, logger.WithField("FILTER", filterQName)), request)
+		response, err := c.runFilter(filterRef, ctx, request)
 		if err != nil {
 			return nil, err
 		}
@@ -253,6 +203,63 @@ func (c *FilterMux) filter(ctx context.Context, request *filterapi.FilterRequest
 		}
 	}
 	return sumResponse, nil
+}
+
+func (c *FilterMux) runFilter(filterRef crd.FilterReference, ctx context.Context, request *filterapi.FilterRequest) (filterapi.FilterResponse, error) {
+	filterQName := filterRef.Name + "." + filterRef.Namespace
+	logger := middleware.GetLogger(ctx)
+
+	filterInfo := findFilter(c.Controller, filterQName)
+	if filterInfo == nil {
+		return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
+			errors.Errorf("could not find not filter: %q", filterQName), nil), nil
+	}
+	if filterInfo.Err != nil {
+		return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
+			errors.Wrapf(filterInfo.Err, "error in filter %q configuration", filterQName), nil), nil
+	}
+
+	var filterImpl filterapi.Filter
+	switch filterSpec := filterInfo.Spec.(type) {
+	case crd.FilterOAuth2:
+		_filterImpl := &oauth2handler.OAuth2Filter{
+			PrivateKey: c.PrivateKey,
+			PublicKey:  c.PublicKey,
+			RedisPool:  c.RedisPool,
+			QName:      filterQName,
+			Spec:       filterSpec,
+		}
+		if err := mapstructure.Convert(filterRef.Arguments, &_filterImpl.Arguments); err != nil {
+			return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
+				errors.Wrap(err, "invalid filter.argument"), nil), nil
+		}
+		if err := _filterImpl.Arguments.Validate(); err != nil {
+			return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
+				errors.Wrap(err, "invalid filter.argument"), nil), nil
+		}
+		filterImpl = _filterImpl
+	case crd.FilterPlugin:
+		filterImpl = filterutil.HandlerToFilter(filterSpec.Handler)
+	case crd.FilterJWT:
+		_filterImpl := &jwthandler.JWTFilter{
+			Spec: filterSpec,
+		}
+		if err := mapstructure.Convert(filterRef.Arguments, &_filterImpl.Arguments); err != nil {
+			return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
+				errors.Wrap(err, "invalid filter.argument"), nil), nil
+		}
+		filterImpl = _filterImpl
+	case crd.FilterExternal:
+		filterImpl = &externalhandler.ExternalFilter{
+			Spec: filterSpec,
+		}
+	case crd.FilterInternal:
+		filterImpl = internalhandler.MakeInternalFilter()
+	default:
+		panic(errors.Errorf("unexpected filter type %T", filterSpec))
+	}
+
+	return filterImpl.Filter(middleware.WithLogger(ctx, logger.WithField("FILTER", filterQName)), request)
 }
 
 func ruleForURL(c *controller.Controller, u *url.URL) *crd.Rule {
