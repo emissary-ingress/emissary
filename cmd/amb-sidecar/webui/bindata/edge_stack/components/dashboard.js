@@ -418,6 +418,43 @@ let SystemServicesPanel = {
 };
 
 
+/**
+ * Panel showing a count of the number of resources ready for download.
+ */
+let ResYAMLPanel = {
+  _title: "YAML Download",
+  _elementId: "yaml_dl",
+  _resCount: 0,
+
+  render: function() {
+    if (this._resCount > 0) {
+       return html`
+        <div class="element" style="cursor:pointer">
+          <div class="element-titlebar">${this._title}</div>
+          <div class="element-content " id=“${this._elementId}”>
+            <p style="margin-top: 3.5em"><span class = "status" @click=${this.onClickYAML}>${countString(this._resCount, "Resource", "Resources")}</span></p>
+            <p><span class = "status" style="color: green" @click=${this.onClickYAML}>Download Available</span></p>
+          </div>
+        </div>`
+    }
+    else {
+      return html``
+    }
+   },
+
+  onSnapshotChange: function(snapshot) {
+    let changed = snapshot.getChangedResources();
+    this._resCount = changed.length;
+	},
+
+  draw: function(shadow_root) { /*text panel, no chart to draw*/ },
+
+  onClickYAML: function() {
+    window.location.hash = "#yaml-download";
+  },
+
+};
+
 /* ===================================================================================*/
 /* The Dashboard class, drawing dashboard elements in a matrix of div.element blocks. */
 /* ===================================================================================*/
@@ -507,7 +544,7 @@ export class Dashboard extends LitElement {
     super();
 
     /* Initialize the list of dashboard panels */
-    this._panels = [ CountsPanel, StatusPanel, SystemServicesPanel, LicensePanel ];
+    this._panels = [ CountsPanel, StatusPanel, SystemServicesPanel, ResYAMLPanel, LicensePanel ];
 
     Snapshot.subscribe(this.onSnapshotChange.bind(this));
   };
