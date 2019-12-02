@@ -1,8 +1,18 @@
 ## Ambassador Pro CHANGELOG
 
+## 0.10.1 (TBD)
+
+Configuration:
+
+ * `JWT` Filter now has a `realm` setting to configure the realm mentioned in `WWW-Authenticate` of error responses.
+
+Behavior:
+
+ * Feature: `JWT` Filter now generates RFC 6750-compliant responses with the `WWW-Authenticate` header set.
+
 ## 0.10.0 (2019-11-11)
 
-Configuration
+Configuration:
 
  * Feature: `FilterPolicy` may now set `ifRequestHeader` to only apply a `Filter` to requests with appropriate headers.
  * Feature: `FilterPolicy` may now set `onDeny` and `onAllow` to modify how `Filter`s chain together.
@@ -16,7 +26,7 @@ Behavior:
 
 ## 0.9.1 (2019-10-22)
 
-Configuration
+Configuration:
 
  * The `JWT` and `OAuth2` Filter types support `renegotiateTLS`
  * The `JWT` Filter now has an `errorResponse` argument that allows templating the filter's error response.
