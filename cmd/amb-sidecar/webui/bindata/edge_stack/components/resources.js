@@ -262,6 +262,16 @@ span.code {
     }
   }
 
+
+  // internal
+  /* Open the window on the source URI */
+  onSource(mouseEvent) {
+    window.open(this.sourceURI())
+
+    /* Defocus the button */
+    mouseEvent.currentTarget.blur()
+  }
+
   // internal
   onDelete() {
     if (this.readOnly()) {
@@ -451,6 +461,9 @@ spec: ${JSON.stringify(this.spec())}
 <div class="${this.state.mode === "off" ? "off" : "frame"}">
   <div class="title-button ${this.visible("list" + (this.readOnly()?"/ro":""))}">
     <button @click=${()=>this.onEdit()}>Edit</button>
+    ${typeof this.sourceURI() == 'string'
+      ? html`<button @click=${(x)=>this.onSource(x)}>Source</button>`
+      : html``}
   </div>
   <div class="title">
     ${this.kind()}: <span class="crd-name ${this.visible("list", "edit")}">${this.name()}</span>
@@ -508,6 +521,11 @@ spec: ${JSON.stringify(this.spec())}
    * Return the source URI for this resource, if one exists.
    */
   sourceURI() {
+    /* debugging */
+
+    return "http://datawire.io"
+
+    /* Make sure we have annotations, and return the aes_res_source, or undefined */
     let annotations = this.annotations;
     if (aes_res_source in annotations) {
       return annotations[aes_res_source];

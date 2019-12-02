@@ -90,14 +90,6 @@ class Mapping extends SingleResource {
                          @change=${(e)=>{this.state.labels = e.target.labels}}>
       </dw-request-labels>
     </div>
-    
-    ${typeof source == 'string'
-        ? html`
-          <div class="attribute-name ${this.visible("list", "edit")}">source:</div>
-          <div class="attribute-value ${this.visible("list", "edit")}">
-          <a href=${source}>${source}</a>
-          </div>`
-        : html``}
 `
   }
   /**

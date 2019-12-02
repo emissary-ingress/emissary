@@ -136,7 +136,6 @@ export class SingleHost extends SingleResource {
   renderResource() {
     let host = this.resource;
     let spec = host.spec;
-    let source = this.sourceURI()
     let status = host.status || {"state": "<none>"};
     let hostState = status.state;
     let reason = (hostState === "Error") ? `(${status.reason})` : '';
@@ -179,16 +178,6 @@ export class SingleHost extends SingleResource {
   <div class="attribute-value ${this.visible("list", "edit")}">
     <span>${hostState} ${reason}</span>
   </div>
-  
-  ${typeof source == 'string'
-    ? html`
-      <div class="attribute-name ${this.visible("list", "edit")}">source:</div>
-      <div class="attribute-value ${this.visible("list", "edit")}">
-      <a href=${source}>${source}</a>
-      </div>`
-    : html``}
-
-
 `
   }
 
