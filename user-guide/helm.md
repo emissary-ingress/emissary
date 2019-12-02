@@ -1,3 +1,7 @@
+<div style="border: thick solid red">
+This method of installation has not been tested and is not supported at this time.
+</div>
+
 # Installing Ambassador Edge Stack with Helm
 
 ```Note: These instructions do not work with Minikube.```

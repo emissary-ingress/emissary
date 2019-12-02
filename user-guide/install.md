@@ -8,6 +8,11 @@ Ambassador Edge Stack can be installed in a variety of ways. The most common app
 * Install with [Docker's Quick Start](/about/quickstart) Method
 * Install with [Docker Compose](/user-guide/docker-compose)
 
+<div style="border: thick solid red"> 
+Here we should have other methods: Helm, Docker, Docker Compose. 
+None of these other methods have been implemented or tested yet.
+</div>
+
 ## Other Install Options
 
 If you already have an existing edition of Ambassador and would like to upgrade, see the pages in **Other Install & Upgrade Options** category.
