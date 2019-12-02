@@ -238,7 +238,6 @@ span.code {
 
   // internal
   onAdd() {
-    //TODO The user interface might have a strange midway state when one does an add: maybe need crosshatching to show "change in progress"
     if( this.readOnly() ) {
       return; // we shouldn't be able to get here because there is no add button,
               // but if we do, don't do anything.
@@ -265,7 +264,6 @@ span.code {
 
   // internal
   onDelete() {
-    //TODO The user interface has a strange midway state when one does a delete: need crosshatching to show "change in progress"
     if (this.readOnly()) {
       this.state.mode = "list";
       return; // we shouldn't be able to get here because there is no edit button,
@@ -383,7 +381,6 @@ span.code {
 
   // internal
   onSave() {
-    //TODO The user interface has a strange midway state when one does a save: need crosshatching to show "change in progress"
     if( this.readOnly() ) {
       this.state.mode = "list";
       return; // we shouldn't be able to get here because there is no edit button,
@@ -944,7 +941,3 @@ export class VisibleModes extends LitElement {
 }
 
 customElements.define('visible-modes', VisibleModes);
-
-//TODO We need a way to link from tab to tab: click on the dashboard panel about rate limits and
-//   go to the rate limit tab; click on a service in a mapping resource, and go to the services tab
-//   with that service resource highlighted. Etc.
