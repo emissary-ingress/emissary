@@ -164,7 +164,8 @@ func init() {
 			now := time.Now()
 			expiresAt := now.Add(time.Duration(365) * 24 * time.Hour)
 			communityLicenseClaims := licensekeys.NewCommunityLicenseClaims()
-			licenseKey := createTokenString(false, s.Email, s.Email, communityLicenseClaims.EnabledFeatures, communityLicenseClaims.EnforcedLimits, now, expiresAt)
+			metadata := map[string]string{}
+			licenseKey := createTokenString(false, s.Email, s.Email, communityLicenseClaims.EnabledFeatures, communityLicenseClaims.EnforcedLimits, metadata, now, expiresAt)
 			// #nosec G107
 			resp, err = http.Post(url, "application/json", bytes.NewBuffer(encode(map[string]interface{}{
 				"properties": []interface{}{
