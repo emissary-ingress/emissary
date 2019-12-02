@@ -1,7 +1,3 @@
-<div style="border: thick solid red">
-This method of installation has not been tested and is not supported at this time.
-</div>
-
 # Deploying the Ambassador Edge Stack to Docker Compose for local development
 
 Docker Compose is useful for local development where Minikube may be undesirable. This guide is not intended for production deployments but it is intended to allow developers to quickly try out the Ambassador Edge Stack features in a simple, local environment.

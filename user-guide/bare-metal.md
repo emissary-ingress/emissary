@@ -1,7 +1,3 @@
-<div style="border: thick solid red">
-This method of installation has not been tested and is not supported at this time.
-</div>
-
 # Bare Metal Kubernetes Installation
 
 In cloud environments, provisioning a readily available network load balancer with Ambassador Edge Stack is the best option for handling ingress into your Kubernetes cluster. When running kubernetes on a bare-metal setup, where network load balancers are not available by default, we need to consider different options for exposing Ambassador Edge Stack.
