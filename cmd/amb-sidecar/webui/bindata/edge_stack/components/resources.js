@@ -1,5 +1,5 @@
 import { LitElement, html, css} from '../vendor/lit-element.min.js'
-import {Snapshot, aes_res_editable, aes_res_changed} from './snapshot.js'
+import {Snapshot, aes_res_editable, aes_res_changed, aes_res_source} from './snapshot.js'
 import {getCookie} from './cookies.js';
 import {ApiFetch} from "./api-fetch.js";
 
@@ -501,6 +501,20 @@ spec: ${JSON.stringify(this.spec())}
     }
     else {
       return false;
+    }
+  }
+
+  /**
+   * Return the source URI for this resource, if one exists.
+   */
+  sourceURI() {
+    let annotations = this.annotations;
+    if (aes_res_source in annotations) {
+      return !annotations[aes_res_source];
+    }
+    else {
+      /* Return undefined (same as nonexistent property, vs. null) */
+      return undefined;
     }
   }
 
