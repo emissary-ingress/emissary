@@ -585,7 +585,8 @@ class Diagnostics:
             'errors': self.errors,
             'notices': self.notices,
             'groups': { key: value.as_dict() for key, value in self.groups.items() },
-            'clusters': { key: value.as_dict() for key, value in self.clusters.items() }
+            'clusters': { key: value.as_dict() for key, value in self.clusters.items() },
+            'tlscontexts': [ x.as_dict() for x in self.ir.tls_contexts.values() ]
         }
 
     def _remember_source(self, src_key: str, dest_key: str) -> None:
