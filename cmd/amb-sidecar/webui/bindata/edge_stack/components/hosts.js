@@ -51,6 +51,7 @@ export class SingleHost extends SingleResource {
   }
 
   validate() {
+    super.validate();
     /*
      * We validate that the user has agreed to the Terms of Service,
      * which is either: (i) if we are not showing the Terms of Service,

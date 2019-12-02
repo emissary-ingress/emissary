@@ -349,8 +349,30 @@ span.code {
    * this.addError(message) *is* invoked one or more times, then the
    * data is assumed invalid.
    */
-  validate() {}
+  validate() {
+    /*
+     * name and namespaces rules as defined by
+     * https://kubernetes.io/docs/concepts/overview/working-with-objects/names/
+     */
+    var nameFormat = /^[a-z0-9][a-z0-9\.\-]*$/; // lower-case letters, numbers, dash, and dot
+    var badNameFormat1 = /.*(-\.)$/; // can't end in - or .
 
+    let nameInputValue = this.nameInput().value;
+    if(!( nameInputValue.match(nameFormat)
+       && nameInputValue.length <= 253
+       && !nameInputValue.match(badNameFormat1) )) {
+      this.state.messages.push("Name must be {a-z0-9-.}, length <= 253")
+    }
+
+    var namespaceFormat = nameFormat;
+    var badNamespaceFormat1 = badNameFormat1;
+    let namespaceInputValue = this.namespaceInput().value;
+    if(!( namespaceInputValue.match(namespaceFormat)
+      && namespaceInputValue.length <= 253
+      && !namespaceInputValue.match(badNamespaceFormat1) )) {
+      this.state.messages.push("Namespace must be {a-z0-9-.}, length <= 253")
+    }
+  }
 
   // internal
   name() {
