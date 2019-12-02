@@ -3,19 +3,12 @@ import { terser } from 'rollup-plugin-terser';
 export default [{
   output: {
     externalLiveBindings: false,
-    format: "esm"
+    format: "esm",
+    plugins: [
+      terser({
+        include: [/^.+\.js$/],
+      })
+    ],
   },
-  plugins: [
-    terser({
-      include: [/^.+\.js$/],
-    })
-  ],
-  external: [ // Listing dependencies here will reduce the number of warnings
-    '/edge_stack/vendor/lit-element.min.js',
-    '/edge_stack/components/snapshot.js',
-    '/edge_stack/components/resources.js',
-    '/edge_stack/components/cookies.js',
-    '/edge_stack/components/context.js',
-    '/edge_stack/components/request-labels.js'
-  ]
+  external: id => true // Every import will be treated as an external dependency and rollup won't generate a bundle.
 }];
