@@ -5,6 +5,7 @@
 Configuration:
 
  * `JWT` Filter now has a `realm` setting to configure the realm mentioned in `WWW-Authenticate` of error responses.
+ * Feature: `JWT` Filter now has a FilterPolicy argument `scope` to preform `draft-ietf-oauth-token-exchange`-compatible Scope validation.
 
 Behavior:
 

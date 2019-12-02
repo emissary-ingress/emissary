@@ -205,9 +205,14 @@ func (c *FilterMux) filter(ctx context.Context, request *filterapi.FilterRequest
 		case crd.FilterPlugin:
 			filterImpl = filterutil.HandlerToFilter(filterSpec.Handler)
 		case crd.FilterJWT:
-			filterImpl = &jwthandler.JWTFilter{
+			_filterImpl := &jwthandler.JWTFilter{
 				Spec: filterSpec,
 			}
+			if err := mapstructure.Convert(filterRef.Arguments, &_filterImpl.Arguments); err != nil {
+				return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
+					errors.Wrap(err, "invalid filter.argument"), nil), nil
+			}
+			filterImpl = _filterImpl
 		case crd.FilterExternal:
 			filterImpl = &externalhandler.ExternalFilter{
 				Spec: filterSpec,
