@@ -42,6 +42,8 @@ type FilterOAuth2 struct {
 	RawRenegotiateTLS string                   `json:"renegotiateTLS"`
 	RenegotiateTLS    tls.RenegotiationSupport `json:"-"`
 
+	ExtraAuthorizationParameters map[string]string `json:"extraAuthorizationParameters"`
+
 	AccessTokenValidation string `json:"accessTokenValidation"`
 }
 
@@ -138,6 +140,19 @@ func (m *FilterOAuth2) Validate(namespace string, secretsGetter coreV1client.Sec
 		m.RenegotiateTLS = tls.RenegotiateFreelyAsClient
 	default:
 		return errors.Errorf("invalid renegotiateTLS: %q", m.RawRenegotiateTLS)
+	}
+
+	for key := range m.ExtraAuthorizationParameters {
+		_, conflict := map[string]struct{}{
+			"response_type": {},
+			"client_id":     {},
+			"redirect_uri":  {},
+			"scope":         {},
+			"state":         {},
+		}[key]
+		if conflict {
+			return errors.Errorf("extraAuthorizationParameters: may not manually specify built-in OAuth parameter %q", key)
+		}
 	}
 
 	switch m.AccessTokenValidation {
