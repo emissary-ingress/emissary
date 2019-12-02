@@ -292,7 +292,8 @@ class EnvoyStats (object):
 
                 # Weird.
                 # upstream_ok = cluster.get('upstream_rq_2xx', 0)
-                upstream_total = cluster.get('upstream_rq_pending_total', 0)
+                # upstream_total = cluster.get('upstream_rq_pending_total', 0)
+                upstream_total = cluster.get('upstream_rq_completed', 0)
 
                 upstream_4xx = cluster.get('upstream_rq_4xx', 0)
                 upstream_5xx = cluster.get('upstream_rq_5xx', 0)
