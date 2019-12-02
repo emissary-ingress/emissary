@@ -38,14 +38,7 @@ class SnapshotWrapper {
    * instance is paying attention to) of the specified Kind.
    */
   getResources(kind) {
-    // XXX we should really update this to return a uniform data
-    // structure on the server side, but for now I'm patching over
-    // that stuff here
-    if (kind === "RateLimit") {
-      return this.data.Limits || []
-    } else {
-      return ((this.data.Watt || {}).Kubernetes || {})[kind] || []
-    }
+    return ((this.data.Watt || {}).Kubernetes || {})[kind] || []
   };
 
   /* Return all Kubernetes resources regardless of kind */

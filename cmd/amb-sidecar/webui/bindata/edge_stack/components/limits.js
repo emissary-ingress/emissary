@@ -1,19 +1,24 @@
 import {html} from '../vendor/lit-element.min.js'
-import {SingleResource, ResourceSet} from './resources.js';
+import {SingleResource, SortableResourceSet} from './resources.js';
+import './limit-set.js';
 
 export class Limit extends SingleResource {
 
-  constructor() {
-    super()
+  static get properties() {
+    let copy = JSON.parse(JSON.stringify(super.properties));
+    copy["limits"] = {type: Array};
+    return copy
   }
 
-  domain() {
-    return this.shadowRoot.querySelector('input[name="domain"]')
+  constructor() {
+    super();
+    this.limits = [];
   }
 
   spec() {
     return {
-      domain: this.domain().value
+      domain: "ambassador",
+      limits: this.limits
     }
   }
 
@@ -21,13 +26,25 @@ export class Limit extends SingleResource {
     return "RateLimit"
   }
 
+  onEdit() {
+    super.onEdit();
+    this.limits = ( this.resource.spec.limits || [] )
+  }
+
+  limitsChanged(limitSet) {
+    this.limits = limitSet.limits;
+  }
+
   renderResource() {
     let spec = this.resource.spec;
+    let limits = this.state.mode === "edit" || this.state.mode === "add" ? this.limits : spec.limits || [];
     return html`
-  <div class="attribute-name">domain:</div>
+  <div class="attribute-value" style="margin: 0.5em">
+    <visible-modes add edit>Use "*" to match against any value.</visible-modes>
+  </div>
+  <div class="attribute-name">limits:</div>
   <div class="attribute-value">
-    <visible-modes list detail>${spec.domain}</visible-modes>
-    <visible-modes edit add><input type=text name="domain" value="${spec.domain}"/></visible-modes>
+    <dw-limit-set .mode=${this.state.mode} .limits=${limits} @change=${(e)=>this.limitsChanged(e.target)}></dw-limit-set>
   </div>
 `
   }
@@ -43,20 +60,37 @@ export class Limit extends SingleResource {
 
 customElements.define('dw-limit', Limit);
 
-export class Limits extends ResourceSet {
+export class Limits extends SortableResourceSet {
 
-  getResources(snapshot) {
-    return snapshot.getResources("RateLimit")
+  constructor() {
+    super([
+      {value: "name", label: "Name"},
+      {value: "namespace", label: "Namespace"}
+    ]);
   }
 
-  render() {
+  getResources(snapshot) {
+    return snapshot.getResources("RateLimit");
+  }
+
+  sortFn(sortByAttribute) {
+    return function(r1, r2) {
+      if (sortByAttribute === "name" || sortByAttribute === "namespace") {
+        return r1.metadata[sortByAttribute].localeCompare(r2.metadata[sortByAttribute]);
+      } else {
+        return r1.spec[sortByAttribute].localeCompare(r2.spec[sortByAttribute]);
+      }
+    }
+  }
+
+  renderSet() {
     let addLimit = {
       metadata: {
         namespace: "default",
         name: ""
       },
       spec: {
-        domain: ""
+        domain: "ambassador"
       },
       status: {}};
     return html`

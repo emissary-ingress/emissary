@@ -41,13 +41,18 @@ class Mapping extends SingleResource {
    * Implement.
    */
   spec() {
-    return {
+    let result = {
       prefix: this.prefixInput().value,
-      service: this.targetInput().value,
-      labels: {
+      service: this.targetInput().value
+    };
+
+    if (this.state.labels) {
+      result["labels"] = {
         ambassador: this.state.labels
-      }
+      };
     }
+
+    return result;
   }
 
   /**
