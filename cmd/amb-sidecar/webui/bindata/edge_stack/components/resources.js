@@ -521,10 +521,6 @@ spec: ${JSON.stringify(this.spec())}
    * Return the source URI for this resource, if one exists.
    */
   sourceURI() {
-    /* debugging */
-
-    return "http://datawire.io"
-
     /* Make sure we have annotations, and return the aes_res_source, or undefined */
     let annotations = this.annotations;
     if (aes_res_source in annotations) {
