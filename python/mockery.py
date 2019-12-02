@@ -21,7 +21,7 @@ click_option = functools.partial(click.option, show_default=True)
 click_option_no_default = functools.partial(click.option, show_default=False)
 
 
-from ambassador import Config, IR, EnvoyConfig
+from ambassador import Config, IR, Diagnostics, EnvoyConfig
 from ambassador.config.resourcefetcher import ResourceFetcher
 from ambassador.utils import parse_yaml, SecretHandler
 from kat.utils import ShellCommand
@@ -425,6 +425,11 @@ def main(k8s_yaml_path: str, debug: bool, force_pod_labels: bool, update: bool,
 
     with open("/tmp/ambassador/snapshots/bootstrap.json", "w", encoding="utf-8") as outfile:
         outfile.write(json.dumps(bootstrap_config, sort_keys=True, indent=4))
+
+    diag = Diagnostics(ir, econf)
+
+    with open("/tmp/ambassador/snapshots/diag.json", "w", encoding="utf-8") as outfile:
+        outfile.write(json.dumps(diag.as_dict(), sort_keys=True, indent=4))
 
     if diff_path:
         diffs = False
