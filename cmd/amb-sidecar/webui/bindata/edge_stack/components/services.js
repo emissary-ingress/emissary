@@ -36,7 +36,7 @@ export class Service extends SingleResource {
     for (let key in spec) {
       if (spec.hasOwnProperty(key)) {
         str += `<div class="attribute-name">${key}:</div>
-        <div class="attribute-value">${spec[key]}</div>`;
+        <div class="attribute-value">${(typeof spec[key] === 'string') ? spec[key] : JSON.stringify(spec[key])}</div>`;
       }
     }
     return html([str]);
