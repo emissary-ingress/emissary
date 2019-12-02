@@ -28,8 +28,14 @@ type Aggregator struct {
 	consulWatches chan<- []ConsulWatchSpec
 	// Output channel used to communicate with the invoker.
 	snapshots chan<- string
-	// We won't consider ourselves "bootstrapped" until we hear
-	// about all these kinds.
+	// We won't consider ourselves "bootstrapped" until we hear about
+	// every kind that has a true value here (i.e. if we find that
+	// requiredKinds["service"] == true, but requiredKinds["Mappings"] == false,
+	// we will require service to be present but we won't require Mappings
+	// to be present.
+	//
+	// (This is a map rather than a list because it makes it easier to be
+	// certain that we don't list the same requiredKind twice.)
 	requiredKinds       map[string]bool
 	watchHook           WatchHook
 	limiter             limiter.Limiter
