@@ -364,6 +364,7 @@ func (sessionInfo *SessionInfo) handleUnauthenticatedProxyRequest(ctx context.Co
 		sessionInfo.c.Spec.CallbackURL(),
 		scope,
 		sessionInfo.c.signState(originalURL, logger),
+		sessionInfo.c.Spec.ExtraAuthorizationParameters,
 	)
 	if err != nil {
 		return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,

@@ -11,6 +11,8 @@ spec:
     clientURL: {{env "AUTH_TENANT_URL"}}
     clientID: {{env "IDP_AZURE_CLIENT_ID"}}
     secret: {{env "IDP_AZURE_CLIENT_SECRET"}}
+    extraAuthorizationParameters:
+      domain_hint: "aprotesting.onmicrosoft.com"
 ---
 apiVersion: getambassador.io/v1
 kind: Mapping
