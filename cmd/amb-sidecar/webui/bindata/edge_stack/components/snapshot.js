@@ -181,20 +181,12 @@ export class Snapshot extends LitElement {
                 this.loadingError = null;
                 this.requestUpdate();
                 document.onclick = () => {
-                  console.log("document.onClick"); //MOREMORE
                   ApiFetch('/edge_stack/api/activity', {
                     method: 'POST',
                     headers: new Headers({
                       'Authorization': 'Bearer ' + getCookie("edge_stack_auth")
                     }),
-                  })
-                    .then((response) => {//MOREMORE
-                      console.log("apiActivity.then " + response.status); //MOREMORE
-                    })//MOREMORE
-                    .catch((err) => {//MOREMORE
-                      console.log("apiActivity.catch"); //MOREMORE
-                  }) //MOREMORE
-                  ;
+                  });
                 }
               } else {
                 if( this.loadingError ) {
