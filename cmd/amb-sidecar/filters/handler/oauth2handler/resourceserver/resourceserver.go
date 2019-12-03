@@ -24,6 +24,8 @@ type OAuth2ResourceServer struct {
 	QName     string
 	Spec      crd.FilterOAuth2
 	Arguments crd.FilterOAuth2Arguments
+
+	RunJWTFilter func(filterRef crd.JWTFilterReference, ctx context.Context, request *filterapi.FilterRequest) (filterapi.FilterResponse, error)
 }
 
 // Filter kinda implements filterapi.Filter, but takes a bunch of
@@ -40,6 +42,13 @@ type OAuth2ResourceServer struct {
 // request to the upstream service (the other half of the Resource
 // Server).
 func (rs *OAuth2ResourceServer) Filter(ctx context.Context, logger types.Logger, httpClient *http.Client, discovered *discovery.Discovered, request *filterapi.FilterRequest, clientScope rfc6749.Scope) filterapi.FilterResponse {
+	if rs.Spec.AccessTokenJWTFilter.Name != "" {
+		ret, err := rs.RunJWTFilter(rs.Spec.AccessTokenJWTFilter, middleware.WithLogger(ctx, logger), request)
+		if err != nil {
+			return middleware.NewErrorResponse(ctx, http.StatusInternalServerError, err, nil)
+		}
+		return ret
+	}
 	validator := &rfc6750.AuthorizationValidator{
 		Realm: rs.QName,
 		RequiredScope: func() rfc6749.Scope {
