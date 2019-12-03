@@ -92,13 +92,13 @@ func _runWatt(cmd *cobra.Command, args []string) int {
 		ExecWatchHook(watchHooks), limiter)
 
 	kubebootstrap := kubebootstrap{
-		aggregator:     aggregator,
 		namespace:      kubernetesNamespace,
 		kinds:          initialSources,
 		fieldSelector:  initialFieldSelector,
 		labelSelector:  initialLabelSelector,
 		kubeAPIWatcher: kubeAPIWatcher,
 		notify:         []chan<- k8sEvent{aggregator.KubernetesEvents},
+		markRequired:   aggregator.MarkRequired,
 	}
 
 	consulwatchman := consulwatchman{

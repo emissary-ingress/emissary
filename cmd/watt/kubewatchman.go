@@ -106,13 +106,16 @@ func (w *kubewatchman) Work(p *supervisor.Process) error {
 }
 
 type kubebootstrap struct {
-	aggregator     *Aggregator
 	namespace      string
 	kinds          []string
 	fieldSelector  string
 	labelSelector  string
 	notify         []chan<- k8sEvent
 	kubeAPIWatcher *k8s.Watcher
+
+	// markRequired is a function that we'll use to indicate whether a given kind of
+	// resource is required (or not) for a successful bootstrap.
+	markRequired func(key string, required bool)
 
 	// pendingResources is the set of things that we would like to watch for.
 	// It will vary over time -- it starts as the full set that we want to
@@ -196,7 +199,7 @@ func (b *kubebootstrap) tryToWatchAllPending(runImmediately bool) error {
 		if err != nil {
 			// Hmmm, this isn't good. Mark this resource type as _not_ required
 			// (since we'll never get results for it)...
-			b.aggregator.MarkRequired(kind, false)
+			b.markRequired(kind, false)
 
 			// ...and look at the error.
 			if errors.Is(err, k8s.ErrUnkResource) {
@@ -209,7 +212,7 @@ func (b *kubebootstrap) tryToWatchAllPending(runImmediately bool) error {
 			}
 		} else {
 			// No errors! Mark this resource type as required...
-			b.aggregator.MarkRequired(kind, true)
+			b.markRequired(kind, true)
 
 			// ...remove it from the set of pendingResources...
 			// b.logger("watcher for %q successfully installed", kind)
