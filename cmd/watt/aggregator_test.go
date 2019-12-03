@@ -20,7 +20,7 @@ type aggIsolator struct {
 	snapshots     chan string
 	k8sWatches    chan []KubernetesWatchSpec
 	consulWatches chan []ConsulWatchSpec
-	aggregator    *Aggregator
+	aggregator    *aggregator
 	sup           *supervisor.Supervisor
 	done          chan struct{}
 	t             *testing.T
