@@ -271,7 +271,7 @@ func TestJWTErrorResponse(t *testing.T) {
 				StatusCode: http.StatusForbidden,
 				Header: map[string]string{
 					"Content-Type":     "application/json",
-					"WWW-Authenticate": `Bearer error=insufficient_scope, error_description="missing required scope value: \"myscope\"", scope="openid myscope", realm="jwt-filter.standalone"`,
+					"WWW-Authenticate": `Bearer error=insufficient_scope, error_description="missing required scope value: \"myscope\"", scope="myscope openid", realm="jwt-filter.standalone"`,
 				},
 				Body: customErrorResponse{
 					ErrorMessage: `missing required scope value: "myscope"`,
