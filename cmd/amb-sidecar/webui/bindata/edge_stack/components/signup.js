@@ -85,9 +85,6 @@ form input[type=text] {
     if (this.email()) {
       this.email().value = "";
     }
-    if (this.confirm()) {
-      this.confirm().value = "";
-    }
   }
 
   handleSubmit() {
@@ -96,7 +93,6 @@ form input[type=text] {
       this.message = "Please supply an email."
     } else {
       this.email().classList.remove("invalid");
-      this.confirm().classList.remove("invalid");
       this.message = "Requesting a license key...";
       this.state = "pending";
 
@@ -107,7 +103,7 @@ form input[type=text] {
         },
         body: JSON.stringify({
           email: this.email().value,
-          confirm: this.confirm().value
+          confirm: this.email().value
         })
       })
         .then(data=>{return data.json()})
@@ -126,10 +122,6 @@ form input[type=text] {
 
   email() {
     return this.shadowRoot.getElementById("email")
-  }
-
-  confirm() {
-    return this.shadowRoot.getElementById("confirm")
   }
 
   render() {

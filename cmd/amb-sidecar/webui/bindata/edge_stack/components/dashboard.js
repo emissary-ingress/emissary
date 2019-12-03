@@ -290,7 +290,7 @@ let StatusPanel = {
 };
 
   /**
- * Panel showing System Services count and status
+ * Panel showing System Services count and status.
  */
 let SystemServicesPanel = {
   _title: "System Services",
@@ -334,16 +334,28 @@ let SystemServicesPanel = {
      * and for running services, average health percentage
      */
 
-    let services_running = 0;
-    let services_waiting = 0;
-    let services_pct_sum = 0;
+    let services_running   = 0;
+    let services_waiting   = 0;
+    let services_pct_sum   = 0;
+    let services_bad_data  = false;
 
     for (const [key, value] of Object.entries(stats)) {
-      if (value.healthy_percent) {
-        services_running += 1
-        services_pct_sum += value.healthy_percent
+      let hp = value.healthy_percent;
+
+      /* If there is a healthy_percent value: */
+      if (hp) {
+         /* If it is a valid percentage, compute averages */
+         if (hp >= 0 && hp <= 100) {
+           services_running += 1
+           services_pct_sum += value.healthy_percent
+         }
+         /* Not a valid percentage so note we have bad data. */
+         else {
+           services_bad_data = true
+         }
       }
-      else {
+      /* value.healthy_percent not defined, service is waiting. */
+     else {
         services_waiting += 1
       }
     };
@@ -354,34 +366,49 @@ let SystemServicesPanel = {
     const twopi  = 6.28; // real pi causes the ellipse to draw incorrectly at 2*pi
     const arcgap = 0.15;
 
+    /* compute health_radians from average health*/
     const health_radians = twopi*(average_health/100);
 
-    /* Unfortunate hack: can't factor out the SVG code, so have to have a conditional
-     * and duplicate code :-(  See renderArc for how we'd really like to switch between the two conditions:
-     * ${renderArc("green", 0, health_radians)}
-       ${average_health < 100 ? renderArc("red", health_radians+arcgap, twopi-health_radians-2*arcgap) : html``}
+    /* Render the element.  There are a number of states that change the appearance of the element:
+     * if services_bad_data is true, then:
+     *   a full circle is rendered in gray
+     *   the text says "X Services" / "--" / "Y waiting"
+     *   where the text colors are all gray
+     *
+     * else if we have good services data:
+     *  render two arcs, one in green for the % healthy and one in red for unhealthy;
+     *  the text say "X Services" / "% Healthy" / "Y Waiting"
+     *  where  "%Healthy is green if >= 80%, gray otherwise
+     *  and "Y Waiting" is green if zero waiting, gray otherwise.
      */
+    const gray  = "color: gray";
+    const green = "color: green";
 
+    var services_color = (services_bad_data) ? gray : green;
+    var health_color   = (average_health < 80  || services_bad_data) ? gray : green;
+    var waiting_color  = (services_waiting > 0 || services_bad_data) ? gray : green;
     var result;
 
-   result = html`
+    result = html`
       <div class="element" style="cursor:pointer" @click=${this.onClick}>
         <div class="element-titlebar">${this._title}</div>
         <div class="element-content" id=“${this._elementId}”>
           <svg class="element-svg-overlay">
-            ${renderArc("#22EE55", 0, health_radians)}
-            ${average_health < 100 ? renderArc("red", health_radians+arcgap, twopi-health_radians-2*arcgap) : html``}
+            ${services_bad_data
+              ? html`${renderArc("gray", 0, twopi)}`
+              : html`
+                ${renderArc("#22EE55", 0, health_radians)}
+                ${average_health < 100 ? renderArc("red", health_radians+arcgap, twopi-health_radians-2*arcgap) : html``}`}
          </svg>
           <div class="system-status">
-          <p><span class = "status" style="color: green">${countString(total_services, "Service", "Services")}</span></p>
-          <p><span class = "status" style="color: ${average_health >= 80  ? "green" : "gray"}">${average_health}% Healthy</span></p>
-          <p><span class = "status" style="color: ${services_waiting == 0 ? "green" : "gray"}">${services_waiting} Waiting</span></p>
-  
+          <p><span class = "status" style=${services_color}>${countString(total_services, "Service", "Services")}</span></p>
+          ${services_bad_data
+            ? html`<p><span class = "status" style=${gray}>--</span></p>`
+            : html`<p><span class = "status" style=${health_color}>${FormatFloat(average_health, 0)}% Healthy</span></p>`}
+          <p><span class = "status" style=${waiting_color}>${services_waiting} Waiting</span></p>
           </div>
         </div>
       </div>`;
-
-
 
     return result;
   },
@@ -417,6 +444,43 @@ let SystemServicesPanel = {
   }
 };
 
+
+/**
+ * Panel showing a count of the number of resources ready for download.
+ */
+let ResYAMLPanel = {
+  _title: "YAML Download",
+  _elementId: "yaml_dl",
+  _resCount: 0,
+
+  render: function() {
+    if (this._resCount > 0) {
+       return html`
+        <div class="element" style="cursor:pointer">
+          <div class="element-titlebar">${this._title}</div>
+          <div class="element-content " id=“${this._elementId}”>
+            <p style="margin-top: 3.5em"><span class = "status" @click=${this.onClickYAML}>${countString(this._resCount, "Resource", "Resources")}</span></p>
+            <p><span class = "status" style="color: green" @click=${this.onClickYAML}>Download Available</span></p>
+          </div>
+        </div>`
+    }
+    else {
+      return html``
+    }
+   },
+
+  onSnapshotChange: function(snapshot) {
+    let changed = snapshot.getChangedResources();
+    this._resCount = changed.length;
+	},
+
+  draw: function(shadow_root) { /*text panel, no chart to draw*/ },
+
+  onClickYAML: function() {
+    window.location.hash = "#yaml-download";
+  },
+
+};
 
 /* ===================================================================================*/
 /* The Dashboard class, drawing dashboard elements in a matrix of div.element blocks. */
@@ -507,7 +571,7 @@ export class Dashboard extends LitElement {
     super();
 
     /* Initialize the list of dashboard panels */
-    this._panels = [ CountsPanel, StatusPanel, SystemServicesPanel, LicensePanel ];
+    this._panels = [ CountsPanel, StatusPanel, SystemServicesPanel, ResYAMLPanel, LicensePanel ];
 
     Snapshot.subscribe(this.onSnapshotChange.bind(this));
   };
@@ -557,3 +621,16 @@ export class Dashboard extends LitElement {
 /* ===================================================================================*/
 
 customElements.define('dw-dashboard', Dashboard);
+
+/**
+ * Format a floating point numbers compactily. Limit to at most
+ * maxDigits so we can avoid things like 3.33333333333, but avoid just
+ * using float.toFixed(2), because that will print values like 100 as
+ * 100.00.
+ *
+ * XXX: Do we want a shared utility thing somewhere for this sort of thing?
+ */
+function FormatFloat(x, maxDigits=2) {
+    const m = Math.pow(10, maxDigits);
+    return Math.round(x*m)/m;
+}
