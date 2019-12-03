@@ -150,7 +150,7 @@ func TestAggregatorBootstrap(t *testing.T) {
 	iso.aggregator.MarkRequired("configmap", true)
 
 	// initial kubernetes state is just services
-	iso.aggregator.KubernetesEvents <- k8sEvent{"", "service", SERVICES}
+	iso.aggregator.KubernetesEvents <- k8sEvent{"", "service", SERVICES, nil}
 
 	// we should not generate a snapshot or consulWatches yet
 	// because we specified configmaps are required
@@ -159,7 +159,7 @@ func TestAggregatorBootstrap(t *testing.T) {
 
 	// the configmap references a consul service, so we shouldn't
 	// get a snapshot yet, but we should get watches
-	iso.aggregator.KubernetesEvents <- k8sEvent{"", "configmap", RESOLVER}
+	iso.aggregator.KubernetesEvents <- k8sEvent{"", "configmap", RESOLVER, nil}
 	expect(t, iso.snapshots, Timeout(100*time.Millisecond))
 	expect(t, iso.consulWatches, func(watches []ConsulWatchSpec) bool {
 		if len(watches) != 1 {
