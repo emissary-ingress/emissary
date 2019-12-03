@@ -2,9 +2,12 @@ package k8s
 
 import (
 	"fmt"
+	"io" // for panic stuff
 	"strings"
 	"sync"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -15,7 +18,94 @@ import (
 	"k8s.io/client-go/dynamic"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	"k8s.io/client-go/tools/cache"
+
+	"github.com/pkg/errors" // for panic stuff
 )
+
+//==== copypasta from apro/lib/util/panic.go
+// package util
+
+// import (
+// 	"fmt"
+// 	"io"
+
+// 	"github.com/pkg/errors"
+// )
+
+// causer is not exported by github.com/pkg/errors.
+type causer interface {
+	Cause() error
+}
+
+// stackTracer is not exported by github.com/pkg/errors.
+type stackTracer interface {
+	StackTrace() errors.StackTrace
+}
+
+// featurefulError documents the features of
+// github.com/pkg/errors.Wrap().
+type featurefulError interface {
+	error
+	//causer
+	stackTracer
+	fmt.Formatter
+}
+
+type panicError struct {
+	err featurefulError
+}
+
+func (pe panicError) Error() string                 { return "PANIC: " + pe.err.Error() }
+func (pe panicError) Cause() error                  { return pe.err }
+func (pe panicError) StackTrace() errors.StackTrace { return pe.err.StackTrace()[1:] }
+func (pe panicError) Format(s fmt.State, verb rune) {
+	switch verb {
+	case 'v':
+		io.WriteString(s, "PANIC: ")
+		if s.Flag('+') {
+			fmt.Fprintf(s, "%v", pe.err)
+			pe.StackTrace().Format(s, verb)
+			return
+		}
+		io.WriteString(s, pe.err.Error())
+	case 's':
+		io.WriteString(s, pe.Error())
+	case 'q':
+		fmt.Fprintf(s, "%q", pe.Error())
+	}
+}
+
+var _ causer = panicError{}
+var _ featurefulError = panicError{}
+
+// PanicToError takes an arbitrary object returned from recover(), and
+// returns an appropriate error.
+//
+// If the input is nil, then nil is returned.
+//
+// If the input is an error returned from a previus call to
+// PanicToError(), then it is returned verbatim.
+//
+// If the input is an error, it is wrapped with the message "PANIC:"
+// and has a stack trace attached to it.
+//
+// If the input is anything else, it is formatted with "%+v" and
+// returned as an error with a stack trace attached.
+func PanicToError(rec interface{}) error {
+	if rec == nil {
+		return nil
+	}
+	switch rec := rec.(type) {
+	case panicError:
+		return rec
+	case error:
+		return panicError{err: errors.WithStack(rec).(featurefulError)}
+	default:
+		return panicError{err: errors.Errorf("%+v", rec).(featurefulError)}
+	}
+}
+
+//=== copypasta ends
 
 type listWatchAdapter struct {
 	resource      dynamic.ResourceInterface
@@ -37,6 +127,7 @@ func (lw listWatchAdapter) Watch(options v1.ListOptions) (pwatch.Interface, erro
 	return lw.resource.Watch(options)
 }
 
+// Watcher is a kubernetes watcher that can watch multiple queries simultaneously
 type Watcher struct {
 	Client  *Client
 	watches map[ResourceType]watch
@@ -94,6 +185,10 @@ func (w *Watcher) WatchNamespace(namespace, resources string, listener func(*Wat
 	return w.SelectiveWatch(namespace, resources, "", "", listener)
 }
 
+func (w *Watcher) Refresh() error {
+	return w.Client.Refresh()
+}
+
 func (w *Watcher) SelectiveWatch(namespace, resources, fieldSelector, labelSelector string,
 	listener func(*Watcher)) error {
 	return w.WatchQuery(Query{
@@ -132,8 +227,15 @@ func (w *Watcher) WatchQuery(query Query, listener func(*Watcher)) error {
 	}
 
 	invoke := func() {
+		log.Debugf("invoke %q lock", ri.String())
 		w.mutex.Lock()
-		defer w.mutex.Unlock()
+
+		defer func() {
+			log.Debugf("invoke %q unlock", ri.String())
+			w.mutex.Unlock()
+		}()
+
+		log.Debugf("invoke %q listener", ri.String())
 		listener(w)
 	}
 
@@ -190,7 +292,14 @@ func (w *Watcher) WatchQuery(query Query, listener func(*Watcher)) error {
 	return nil
 }
 
+// Start starts the watcher
 func (w *Watcher) Start() {
+	w.StartWithErrorHandler(nil)
+}
+
+// StartWithErrorHandler starts the watcher, but allows supplying an error handler to call
+// instead of panic()ing on errors.
+func (w *Watcher) StartWithErrorHandler(handler func(kind string, stage string, err error)) {
 	w.mutex.Lock()
 	if w.started {
 		w.mutex.Unlock()
@@ -199,18 +308,110 @@ func (w *Watcher) Start() {
 		w.started = true
 		w.mutex.Unlock()
 	}
-	for kind := range w.watches {
-		w.sync(kind)
+
+	// Make sure that we do all the initial types in a block and _then_ start everything
+	// going, so that we don't reconfigure over and over again at boot.
+	ableToWatch := make(map[ResourceType]watch)
+
+	for kind, watch := range w.watches {
+		stage, err := w.SyncWatcherForResourceType(kind)
+
+		if err == nil {
+			ableToWatch[kind] = watch
+		} else {
+			if handler != nil {
+				log.Infof("handling %q err %q", stage, err)
+				handler(kind.String(), stage, err)
+			} else {
+				log.Infof("unhandled %q err %q", stage, err)
+				panic(err)
+			}
+
+			return
+		}
 	}
 
-	for _, watch := range w.watches {
-		watch.invoke()
+	for kind := range ableToWatch {
+		w.RunWatcherForResourceType(kind)
+	}
+}
+
+// StartWatcherForKind fully starts the watcher for a single kind of resource.
+func (w *Watcher) StartWatcherForKind(kind string) (string, error) {
+	resourceType, err := w.Client.ResolveResourceType(kind)
+
+	if err != nil {
+		return "resolve", err
 	}
 
-	w.wg.Add(len(w.watches))
-	for _, watch := range w.watches {
-		go watch.runner()
+	return w.StartWatcherForResourceType(resourceType)
+}
+
+// StartWatcherForResourceType fully starts the watcher for a single ResourceType.
+func (w *Watcher) StartWatcherForResourceType(resourceType ResourceType) (string, error) {
+	log.Debugf("Sync %q", resourceType.String())
+	stage, err := w.SyncWatcherForResourceType(resourceType)
+
+	if err != nil {
+		return stage, err
 	}
+
+	log.Debugf("Run %q", resourceType.String())
+	w.RunWatcherForResourceType(resourceType)
+
+	return "", nil
+}
+
+// SyncWatcherForResourceType does the initial synchronization for a single ResourceType.
+func (w *Watcher) SyncWatcherForResourceType(resourceType ResourceType) (string, error) {
+	watch := w.watches[resourceType]
+
+	// First try to sync.
+	log.Debugf("catcher and sync %q", resourceType.String())
+	err := w.catcher(func() { w.sync(resourceType) })
+
+	if err != nil {
+		return "sync", err
+	}
+
+	// Next, try to start the watch running.
+	log.Debugf("catcher and invoke %q", resourceType.String())
+	err = w.catcher(func() { watch.invoke() })
+
+	if err != nil {
+		return "invoke", err
+	}
+
+	// Done.
+	log.Debugf("sync done %q", resourceType.String())
+	return "", nil
+}
+
+// RunWatcherForResourceType starts running the watcher for a single ResourceType, assuming
+// that it has already been synchronized.
+func (w *Watcher) RunWatcherForResourceType(resourceType ResourceType) {
+	watch := w.watches[resourceType]
+
+	// Note the presence of the additional wait for our waitgroup...
+	w.wg.Add(1)
+
+	// ...and start the watch's runner.
+	log.Infof("starting watch runner for %q", resourceType.String())
+	go watch.runner()
+
+	log.Debugf("start done %q", resourceType.String())
+}
+
+func (w *Watcher) catcher(doSomething func()) (err error) {
+	defer func() {
+		if _err := PanicToError(recover()); _err != nil {
+			err = _err
+		}
+	}()
+
+	doSomething()
+
+	return
 }
 
 func (w *Watcher) sync(kind ResourceType) {
@@ -229,6 +430,7 @@ func (w *Watcher) sync(kind ResourceType) {
 	}
 }
 
+// List lists all the resources with kind `kind`
 func (w *Watcher) List(kind string) []Resource {
 	ri, err := w.Client.ResolveResourceType(kind)
 	if err != nil {
@@ -247,6 +449,7 @@ func (w *Watcher) List(kind string) []Resource {
 	}
 }
 
+// UpdateStatus updates the status of the `resource` provided
 func (w *Watcher) UpdateStatus(resource Resource) (Resource, error) {
 	ri, err := w.Client.ResolveResourceType(resource.QKind())
 	if err != nil {
@@ -276,6 +479,7 @@ func (w *Watcher) UpdateStatus(resource Resource) (Resource, error) {
 	}
 }
 
+// Get gets the `qname` resource (of kind `kind`)
 func (w *Watcher) Get(kind, qname string) Resource {
 	resources := w.List(kind)
 	for _, res := range resources {
@@ -286,6 +490,7 @@ func (w *Watcher) Get(kind, qname string) Resource {
 	return Resource{}
 }
 
+// Exists returns true if the `qname` resource (of kind `kind`) exists
 func (w *Watcher) Exists(kind, qname string) bool {
 	return w.Get(kind, qname).Name() != ""
 }
