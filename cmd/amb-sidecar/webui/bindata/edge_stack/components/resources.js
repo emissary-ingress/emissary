@@ -460,10 +460,10 @@ spec: ${JSON.stringify(this.spec())}
 <slot class="${this.state.mode === "off" ? "" : "off"}" @click=${this.onAdd.bind(this)}></slot>
 <div class="${this.state.mode === "off" ? "off" : "frame"}">
   <div class="title-button ${this.visible("list" + (this.readOnly()?"/ro":""))}">
-    <button @click=${()=>this.onEdit()}>Edit</button>
     ${typeof this.sourceURI() == 'string'
       ? html`<button @click=${(x)=>this.onSource(x)}>Source</button>`
       : html``}
+    <button @click=${()=>this.onEdit()}>Edit</button>
   </div>
   <div class="title">
     ${this.kind()}: <span class="crd-name ${this.visible("list", "edit")}">${this.name()}</span>
