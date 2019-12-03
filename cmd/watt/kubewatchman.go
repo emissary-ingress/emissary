@@ -156,13 +156,6 @@ func (b *kubebootstrap) makeWatcherFunc(ns, kind string) func(watcher *k8s.Watch
 	}
 }
 
-// // addWatcher is a convenience function to add a selective watcher for
-// // a given resource, using our current namespace, field selector, and
-// // label selector.
-// func (b *kubebootstrap) addWatcher(kind string, watcherFunc func(*k8s.Watcher)) error {
-// 	return b.kubeAPIWatcher.SelectiveWatch(b.namespace, kind, b.fieldSelector, b.labelSelector, watcherFunc)
-// }
-
 // tryToWatchAllPending walks over all of our pendingResources and tries
 // to get their watchers running.
 //
