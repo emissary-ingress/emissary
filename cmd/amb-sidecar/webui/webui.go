@@ -175,7 +175,12 @@ func getTermsOfServiceURL(httpClient *http.Client, caURL string) (string, error)
 }
 
 func (fb *firstBootWizard) isAuthorized(r *http.Request) bool {
-	now := time.Now().Unix()
+	now := time.Now()
+	duration := -5 * time.Minute
+	toleratedNow := now.Add(duration)
+
+	nowUnix := now.Unix()
+	toleratedNowUnix := toleratedNow.Unix()
 
 	tokenString := rfc6750.GetFromHeader(r.Header)
 	if tokenString == "" {
@@ -196,9 +201,9 @@ func (fb *firstBootWizard) isAuthorized(r *http.Request) bool {
 		return false
 	}
 
-	return claims.VerifyExpiresAt(now, true) &&
-		claims.VerifyIssuedAt(now, true) &&
-		claims.VerifyNotBefore(now, true) &&
+	return claims.VerifyExpiresAt(nowUnix, true) &&
+		claims.VerifyIssuedAt(toleratedNowUnix, true) &&
+		claims.VerifyNotBefore(toleratedNowUnix, true) &&
 		claims.LoginTokenVersion == "v1"
 }
 

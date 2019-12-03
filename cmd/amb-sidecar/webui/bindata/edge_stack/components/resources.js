@@ -1,5 +1,5 @@
 import { LitElement, html, css} from '../vendor/lit-element.min.js'
-import {Snapshot, aes_res_editable, aes_res_changed} from './snapshot.js'
+import {Snapshot, aes_res_editable, aes_res_changed, aes_res_source} from './snapshot.js'
 import {getCookie} from './cookies.js';
 import {ApiFetch} from "./api-fetch.js";
 
@@ -262,6 +262,16 @@ span.code {
     }
   }
 
+
+  // internal
+  /* Open the window on the source URI */
+  onSource(mouseEvent) {
+    window.open(this.sourceURI())
+
+    /* Defocus the button */
+    mouseEvent.currentTarget.blur()
+  }
+
   // internal
   onDelete() {
     if (this.readOnly()) {
@@ -472,6 +482,9 @@ spec: ${JSON.stringify(this.spec())}
 <slot class="${this.state.mode === "off" ? "" : "off"}" @click=${this.onAdd.bind(this)}></slot>
 <div class="${this.state.mode === "off" ? "off" : "frame"}">
   <div class="title-button ${this.visible("list" + (this.readOnly()?"/ro":""))}">
+    ${typeof this.sourceURI() == 'string'
+      ? html`<button @click=${(x)=>this.onSource(x)}>Source</button>`
+      : html``}
     <button @click=${()=>this.onEdit()}>Edit</button>
   </div>
   <div class="title">
@@ -523,6 +536,26 @@ spec: ${JSON.stringify(this.spec())}
     }
     else {
       return false;
+    }
+  }
+
+  /**
+   * Return the source URI for this resource, if one exists.
+   * In the case we have a source URI, provide a button next to the
+   * Edit button which, when clicked, opens a window on that source URI.
+   * Basically this is useful for tracking resources as they are applied
+   * using GitOps, though the annotation must be applied in the GitOps
+   * pipeline for this to work.
+   */
+  sourceURI() {
+    /* Make sure we have annotations, and return the aes_res_source, or undefined */
+    let annotations = this.annotations;
+    if (aes_res_source in annotations) {
+      return annotations[aes_res_source];
+    }
+    else {
+      /* Return undefined (same as nonexistent property, vs. null) */
+      return undefined;
     }
   }
 
