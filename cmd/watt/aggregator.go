@@ -38,6 +38,7 @@ type aggregator struct {
 	consulEndpoints     map[string]consulwatch.Endpoints
 	bootstrapped        bool
 	notifyMux           sync.Mutex
+	errors              map[string][]watt.Error
 }
 
 func NewAggregator(snapshots chan<- string, k8sWatches chan<- []KubernetesWatchSpec, consulWatches chan<- []ConsulWatchSpec,
@@ -54,6 +55,7 @@ func NewAggregator(snapshots chan<- string, k8sWatches chan<- []KubernetesWatchS
 		ids:                 make(map[string]bool),
 		kubernetesResources: make(map[string]map[string][]k8s.Resource),
 		consulEndpoints:     make(map[string]consulwatch.Endpoints),
+		errors:              make(map[string][]watt.Error),
 	}
 }
 
@@ -80,6 +82,12 @@ func (a *aggregator) updateConsulResources(event consulEvent) {
 }
 
 func (a *aggregator) setKubernetesResources(event k8sEvent) {
+	if len(event.errors) > 0 {
+		for _, kError := range event.errors {
+			a.errors[kError.Source] = append(a.errors[kError.Source], kError)
+		}
+		return
+	}
 	a.ids[event.watchId] = true
 	submap, ok := a.kubernetesResources[event.watchId]
 	if !ok {
@@ -99,6 +107,7 @@ func (a *aggregator) generateSnapshot() (string, error) {
 	s := watt.Snapshot{
 		Consul:     watt.ConsulSnapshot{Endpoints: a.consulEndpoints},
 		Kubernetes: k8sResources,
+		Errors:     a.errors,
 	}
 
 	jsonBytes, err := json.MarshalIndent(s, "", "    ")
