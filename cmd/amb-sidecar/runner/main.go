@@ -221,25 +221,28 @@ func getDiagSnapshot() []byte {
 	}
 }
 
-// isFallbackTLSDesired returns a false if a TLS context is already present, otherwise returns true.
+// isFallbackTLSDesired queries a diag snapshot, then returns false if a TLSContext that defines Hosts (a termination
+// context) is present, otherwise returns true. It also includes an explanatory message.
 func isFallbackTLSDesired() (bool, string) {
 	snapshotBytes := getDiagSnapshot()
 	snapshot := struct {
-		AmbassadorElements map[string]struct{
-			Kind string `json:"kind"`
-		} `json:"ambassador_elements"`
+		TLSContexts []struct {
+			Hosts     []string `json:"hosts"`
+			Name      string   `json:"name"`
+			Namespace string   `json:"namespace"`
+		} `json:"tlscontexts"`
 	}{}
 	if err := json.Unmarshal(snapshotBytes, &snapshot); err != nil {
 		err = errors.Wrap(err, "parse diag snapshot for acme")
 		return true, err.Error()
-	} else {
-		for name, obj := range snapshot.AmbassadorElements {
-			if obj.Kind == "TLSContext" {
-				return false, fmt.Sprintf("TLSContext %q exists", name)
-			}
+	}
+	for _, obj := range snapshot.TLSContexts {
+		// A TLSContext that defines Hosts is a “termination context”. Without Hosts it’s an “origination context”.
+		if len(obj.Hosts) > 0 {
+			return false, fmt.Sprintf("TLSContext %q (ns=%q) exists with Hosts defined", obj.Name, obj.Namespace)
 		}
 	}
-	return true, "No TLSContext found in snapshot"
+	return true, "No termination TLSContext found in snapshot"
 }
 
 func runE(cmd *cobra.Command, args []string) error {
