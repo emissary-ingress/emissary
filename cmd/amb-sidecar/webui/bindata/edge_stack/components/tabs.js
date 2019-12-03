@@ -152,6 +152,15 @@ export class Tabs extends LitElement {
   }
 
   render() {
+    if (this.current === '') {
+      let hash = window.location.hash.slice(1);
+      this.tabs.forEach(tab => {
+        if (hash === tab.tabHashName()) {
+          this.current = tab.name;
+        }
+      })
+    }
+
     let tabName = this.current;
     if (tabName == '') {
       tabName = this.tabs[0].name;
