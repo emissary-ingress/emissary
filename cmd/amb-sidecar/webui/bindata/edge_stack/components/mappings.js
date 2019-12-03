@@ -73,6 +73,8 @@ class Mapping extends SingleResource {
    */
   renderResource() {
     let labels = this.state.mode === "edit" ? this.state.labels : this.labels();
+    let source = this.sourceURI();
+
     return html`
     <div class="attribute-name">prefix url:</div>
     <div class="attribute-value"><visible-modes list><code>${this.resource.spec.prefix}</code></visible-modes>
