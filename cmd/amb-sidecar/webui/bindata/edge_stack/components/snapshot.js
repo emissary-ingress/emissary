@@ -5,7 +5,7 @@ import {ApiFetch} from "./api-fetch.js";
 
 export const aes_res_editable   = "aes_res_editable";
 export const aes_res_changed    = "aes_res_changed";
-export const aes_res_source     = "aes_res_source_uri";
+export const aes_res_source     = "aes_res_source";
 export const aes_res_downloaded = "aes_res_downloaded";
 
 export function updateCredentials(value) {
