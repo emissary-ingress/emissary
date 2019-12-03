@@ -213,8 +213,15 @@ func (fb *firstBootWizard) registerActivity(w http.ResponseWriter, r *http.Reque
 	token, err := jwt.NewWithClaims(jwt.GetSigningMethod("PS512"), &LoginClaimsV1{
 		"v1",
 		jwt.StandardClaims{
-			IssuedAt:  now.Unix(),
-			NotBefore: now.Unix(),
+			/* We remove these two claims (IAT and NBF) because, with clock skew between the client browser
+			 * and the server, we were seeing users randomly being logged out by being given quote-invalid-unquote
+			 * JWTs, i.e., JWTs that weren't valid until slightly in the future from now due to the NBF.
+			 * One option to solve this would have been to set the NBF to now-5 minutes to accommodate clock
+			 * skew. Another option would be to verify the JWT with some flexibility (but that isn't possible
+			 * in the go library we are using). So the option we chose was to remove these two claims so that
+			 * they aren't checked against. */
+			//IssuedAt:  now.Unix(),
+			//NotBefore: now.Unix(),
 			ExpiresAt: (now.Add(duration)).Unix(),
 		},
 	}).SignedString(fb.privkey)
