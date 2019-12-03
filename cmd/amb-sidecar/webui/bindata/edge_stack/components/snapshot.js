@@ -136,6 +136,8 @@ export class Snapshot extends LitElement {
       updateCredentials(window.location.hash.slice(1));
       this.fragment = "trying";
     }
+
+    this.intervalFunction = setInterval(this.fetchData.bind(this), 1000); // fetch a new snapshot every second
   }
 
   fetchData() {
@@ -149,7 +151,7 @@ export class Snapshot extends LitElement {
           if (this.fragment === "should-try") {
             updateCredentials(window.location.hash.slice(1));
             this.fragment = "trying";
-            setTimeout(this.fetchData.bind(this), 1);
+            setTimeout(this.fetchData.bind(this), 0); // try again immediately
           } else {
             this.fragment = "";
             this.setAuthenticated(false);
@@ -165,7 +167,6 @@ export class Snapshot extends LitElement {
                 this.loadingError = err;
                 this.requestUpdate();
                 console.error('error parsing snapshot', err);
-                setTimeout(this.fetchData.bind(this), 1000);
                 return
               }
               if (this.fragment === "trying") {
@@ -180,12 +181,20 @@ export class Snapshot extends LitElement {
                 this.loadingError = null;
                 this.requestUpdate();
                 document.onclick = () => {
+                  console.log("document.onClick"); //MOREMORE
                   ApiFetch('/edge_stack/api/activity', {
                     method: 'POST',
                     headers: new Headers({
                       'Authorization': 'Bearer ' + getCookie("edge_stack_auth")
                     }),
-                  });
+                  })
+                    .then((response) => {//MOREMORE
+                      console.log("apiActivity.then " + response.status); //MOREMORE
+                    })//MOREMORE
+                    .catch((err) => {//MOREMORE
+                      console.log("apiActivity.catch"); //MOREMORE
+                  }) //MOREMORE
+                  ;
                 }
               } else {
                 if( this.loadingError ) {
@@ -193,8 +202,6 @@ export class Snapshot extends LitElement {
                   this.requestUpdate();
                 }
               }
-
-              setTimeout(this.fetchData.bind(this), 1000);
             })
             .catch((err) => {
               this.loadingError = err;
