@@ -1,6 +1,6 @@
 # Certified Builds
 
-Ambassador Edge Stack uses certified Ambassador builds. These builds are based on Ambassador OSS builds, but undergo additional testing. In addition, bug fixes and security issues may be backported to Ambassador Edge Stack builds under specific situations.
+`Ambassador Edge Stack` uses certified Ambassador builds. These builds are based on Ambassador OSS builds, but undergo additional testing. In addition, bug fixes and security issues may be backported to Ambassador Edge Stack builds under specific situations.
 
 
 
