@@ -33,7 +33,7 @@ To expose statistics via StatsD, you will need to set an environment variable `S
 
 When this variable is set, Ambassador automatically sends statistics information to a Kubernetes service called `statsd-sink` using typical StatsD protocol settings, UDP to port 8125. You may also override the StatsD host by setting the `STATSD_HOST` environment variable. This can be useful if you have an existing StatsD sink available in your cluster.
 
-We have included a few example configurations in the [statsd-sink](https://github.com/datawire/ambassador/tree/master/statsd-sink) subdirectory to help you get started. Clone the repository to get local, editable copies.
+We have included a few example configurations in the [statsd-sink](https://github.com/datawire/ambassador/tree/master/deployments/statsd-sink) subdirectory to help you get started. Clone the repository to get local, editable copies.
 
 ## Graphite
 
@@ -50,7 +50,7 @@ This sets up Graphite access at `http://localhost:8080/`.
 
 ## Prometheus
 
-[Prometheus](https://prometheus.io/) is an open-source monitoring and alerting system. If you use Prometheus, you can deploy the [Prometheus StatsD Exporter](https://github.com/prometheus/statsd_exporter) as the `statsd-sink` service. This will translate StatsD metrics into Prometheus metrics. Configure a Prometheus target to read from `statsd-sink` on port 9102 to complete the Prometheus configuration. A sample configuration for Prometheus is available [here](https://github.com/datawire/ambassador/blob/master/statsd-sink/prometheus/prom-statsd-sink.yaml).
+[Prometheus](https://prometheus.io/) is an open-source monitoring and alerting system. If you use Prometheus, you can deploy the [Prometheus StatsD Exporter](https://github.com/prometheus/statsd_exporter) as the `statsd-sink` service. This will translate StatsD metrics into Prometheus metrics. Configure a Prometheus target to read from `statsd-sink` on port 9102 to complete the Prometheus configuration. A sample configuration for Prometheus is available [here](https://github.com/datawire/ambassador/blob/master/deployments/statsd-sink/prometheus/prom-statsd-sink.yaml).
 
 You can optionally also add the `statsd-sink` service and Prometheus exporter as a sidecar on the Ambassador pod. If you do this, make sure to set `STATSD_HOST: localhost` so that UDP packets are routed to the sidecar.
 
@@ -122,7 +122,7 @@ kubectl port-forward prometheus-prometheus-0 9090
 
 ## StatsD as an Independent Deployment
 
-If you want to set up the StatsD sink as an independent deployment, [this example](https://github.com/datawire/ambassador/blob/master/statsd-sink/prometheus/prom-statsd-sink.yaml) configuration mirrors the Graphite and Datadog configurations.
+If you want to set up the StatsD sink as an independent deployment, [this example](https://github.com/datawire/ambassador/blob/master/deployments/statsd-sink/prometheus/prom-statsd-sink.yaml) configuration mirrors the Graphite and Datadog configurations.
 
 ## Grafana
 
