@@ -89,7 +89,7 @@ func _runWatt(cmd *cobra.Command, args []string) int {
 	invoker := NewInvoker(port, notifyReceivers)
 	limiter := limiter.NewComposite(limiter.NewUnlimited(), limiter.NewInterval(interval), interval)
 	aggregator := NewAggregator(invoker.Snapshots, aggregatorToKubewatchmanCh, aggregatorToConsulwatchmanCh,
-		initialSources, ExecWatchHook(watchHooks), limiter)
+		ExecWatchHook(watchHooks), limiter)
 
 	kubebootstrap := kubebootstrap{
 		namespace:      kubernetesNamespace,
@@ -98,6 +98,7 @@ func _runWatt(cmd *cobra.Command, args []string) int {
 		labelSelector:  initialLabelSelector,
 		kubeAPIWatcher: kubeAPIWatcher,
 		notify:         []chan<- k8sEvent{aggregator.KubernetesEvents},
+		markRequired:   aggregator.MarkRequired,
 	}
 
 	consulwatchman := consulwatchman{
