@@ -171,6 +171,7 @@ func (v *AuthorizationValidator) fmtChallenge(challengeParams rfc7235.ChallengeP
 type AuthorizationError struct {
 	HTTPStatusCode int
 	Challenge      rfc7235.Challenge
+	err            error
 }
 
 func (e *AuthorizationError) String() string {
@@ -178,6 +179,9 @@ func (e *AuthorizationError) String() string {
 }
 
 func (e *AuthorizationError) Error() string {
+	if e.err != nil {
+		return e.err.Error()
+	}
 	if params, paramsOK := e.Challenge.Body.(rfc7235.ChallengeParameters); paramsOK {
 		for _, param := range params {
 			if param.Key == "error_description" {
@@ -201,6 +205,13 @@ func (v *AuthorizationValidator) ValidateAuthorization(req *http.Request) error 
 				{Key: "error", Value: "invalid_request"},
 				{Key: "error_description", Value: err.Error()},
 			}),
+		}
+	}
+	if token == "" {
+		return &AuthorizationError{
+			HTTPStatusCode: http.StatusUnauthorized,
+			Challenge:      v.fmtChallenge(rfc7235.ChallengeParameters{}),
+			err:            errors.New("no Bearer token"),
 		}
 	}
 
