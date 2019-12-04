@@ -24,6 +24,7 @@ var _ = math.Inf
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // Specifies the way to match a string.
+// [#next-free-field: 6]
 type StringMatcher struct {
 	// Types that are valid to be assigned to MatchPattern:
 	//	*StringMatcher_Exact

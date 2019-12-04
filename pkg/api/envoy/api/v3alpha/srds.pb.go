@@ -29,7 +29,7 @@ var _ = math.Inf
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // Specifies a routing scope, which associates a
-// :ref:`Key<envoy_api_msg_ScopedRouteConfiguration.Key>` to a
+// :ref:`Key<envoy_api_msg_api.v3alpha.ScopedRouteConfiguration.Key>` to a
 // :ref:`envoy_api_msg_RouteConfiguration` (identified by its resource name).
 //
 // The HTTP connection manager builds up a table consisting of these Key to
@@ -87,8 +87,6 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 // would result in the routing table defined by the `route-config1`
 // RouteConfiguration being assigned to the HTTP request/stream.
 //
-// [#comment:next free field: 4]
-// [#proto-status: experimental]
 type ScopedRouteConfiguration struct {
 	// The name assigned to the routing scope.
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`

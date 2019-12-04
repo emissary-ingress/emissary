@@ -75,6 +75,7 @@ func (m *Clusters) GetClusterStatuses() []*ClusterStatus {
 }
 
 // Details an individual cluster's current status.
+// [#next-free-field: 6]
 type ClusterStatus struct {
 	// Name of the cluster.
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
@@ -102,7 +103,7 @@ type ClusterStatus struct {
 	HostStatuses []*HostStatus `protobuf:"bytes,4,rep,name=host_statuses,json=hostStatuses,proto3" json:"host_statuses,omitempty"`
 	// The success rate threshold used in the last interval when only locally originated failures were
 	// taken into account and externally originated errors were treated as success.
-	// This field should be interpretted only when
+	// This field should be interpreted only when
 	// :ref:`outlier_detection.split_external_local_origin_errors<envoy_api_field_cluster.OutlierDetection.split_external_local_origin_errors>`
 	// is *true*. The threshold is used to eject hosts based on their success rate.
 	// See :ref:`Cluster outlier detection <arch_overview_outlier_detection>` documentation for
@@ -190,6 +191,7 @@ func (m *ClusterStatus) GetLocalOriginSuccessRateEjectionThreshold() *_type.Perc
 }
 
 // Current state of a particular host.
+// [#next-free-field: 9]
 type HostStatus struct {
 	// Address of this host.
 	Address *core.Address `protobuf:"bytes,1,opt,name=address,proto3" json:"address,omitempty"`
@@ -220,7 +222,7 @@ type HostStatus struct {
 	// Request success rate for this host over the last calculated
 	// interval when only locally originated errors are taken into account and externally originated
 	// errors were treated as success.
-	// This field should be interpretted only when
+	// This field should be interpreted only when
 	// :ref:`outlier_detection.split_external_local_origin_errors<envoy_api_field_cluster.OutlierDetection.split_external_local_origin_errors>`
 	// is *true*.
 	// See :ref:`Cluster outlier detection <arch_overview_outlier_detection>` documentation for
@@ -325,6 +327,7 @@ func (m *HostStatus) GetLocalOriginSuccessRate() *_type.Percent {
 }
 
 // Health status for a host.
+// [#next-free-field: 7]
 type HostHealthStatus struct {
 	// The host is currently failing active health checks.
 	FailedActiveHealthCheck bool `protobuf:"varint,1,opt,name=failed_active_health_check,json=failedActiveHealthCheck,proto3" json:"failed_active_health_check,omitempty"`

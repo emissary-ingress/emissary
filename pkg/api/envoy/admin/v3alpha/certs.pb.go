@@ -131,6 +131,7 @@ func (m *Certificate) GetCertChain() []*CertificateDetails {
 	return nil
 }
 
+// [#next-free-field: 7]
 type CertificateDetails struct {
 	// Path of the certificate.
 	Path string `protobuf:"bytes,1,opt,name=path,proto3" json:"path,omitempty"`

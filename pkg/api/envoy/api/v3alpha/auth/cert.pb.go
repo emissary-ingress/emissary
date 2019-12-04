@@ -294,18 +294,19 @@ func (*PrivateKeyProvider) XXX_OneofWrappers() []interface{} {
 	}
 }
 
+// [#next-free-field: 7]
 type TlsCertificate struct {
 	// The TLS certificate chain.
 	CertificateChain *core.DataSource `protobuf:"bytes,1,opt,name=certificate_chain,json=certificateChain,proto3" json:"certificate_chain,omitempty"`
 	// The TLS private key.
 	PrivateKey *core.DataSource `protobuf:"bytes,2,opt,name=private_key,json=privateKey,proto3" json:"private_key,omitempty"`
 	// BoringSSL private key method provider. This is an alternative to :ref:`private_key
-	// <envoy_api_field_auth.TlsCertificate.private_key>` field. This can't be
+	// <envoy_api_field_api.v3alpha.auth.TlsCertificate.private_key>` field. This can't be
 	// marked as ``oneof`` due to API compatibility reasons. Setting both :ref:`private_key
-	// <envoy_api_field_auth.TlsCertificate.private_key>` and
+	// <envoy_api_field_api.v3alpha.auth.TlsCertificate.private_key>` and
 	// :ref:`private_key_provider
-	// <envoy_api_field_auth.TlsCertificate.private_key_provider>` fields will result in an
-	// error.
+	// <envoy_api_field_api.v3alpha.auth.TlsCertificate.private_key_provider>` fields will result in
+	// an error.
 	PrivateKeyProvider *PrivateKeyProvider `protobuf:"bytes,6,opt,name=private_key_provider,json=privateKeyProvider,proto3" json:"private_key_provider,omitempty"`
 	// The password to decrypt the TLS private key. If this field is not set, it is assumed that the
 	// TLS private key is not password encrypted.
@@ -400,10 +401,11 @@ type TlsSessionTicketKeys struct {
 	// All keys are candidates for decrypting received tickets. This allows for easy rotation of keys
 	// by, for example, putting the new key first, and the previous key second.
 	//
-	// If :ref:`session_ticket_keys <envoy_api_field_auth.DownstreamTlsContext.session_ticket_keys>`
-	// is not specified, the TLS library will still support resuming sessions via tickets, but it will
-	// use an internally-generated and managed key, so sessions cannot be resumed across hot restarts
-	// or on different hosts.
+	// If :ref:`session_ticket_keys
+	// <envoy_api_field_api.v3alpha.auth.DownstreamTlsContext.session_ticket_keys>` is not specified,
+	// the TLS library will still support resuming sessions via tickets, but it will use an
+	// internally-generated and managed key, so sessions cannot be resumed across hot restarts or on
+	// different hosts.
 	//
 	// Each key must contain exactly 80 bytes of cryptographically-secure random data. For
 	// example, the output of ``openssl rand 80``.
@@ -464,20 +466,21 @@ func (m *TlsSessionTicketKeys) GetKeys() []*core.DataSource {
 	return nil
 }
 
+// [#next-free-field: 9]
 type CertificateValidationContext struct {
 	// TLS certificate data containing certificate authority certificates to use in verifying
 	// a presented peer certificate (e.g. server certificate for clusters or client certificate
 	// for listeners). If not specified and a peer certificate is presented it will not be
 	// verified. By default, a client certificate is optional, unless one of the additional
 	// options (:ref:`require_client_certificate
-	// <envoy_api_field_auth.DownstreamTlsContext.require_client_certificate>`,
+	// <envoy_api_field_api.v3alpha.auth.DownstreamTlsContext.require_client_certificate>`,
 	// :ref:`verify_certificate_spki
-	// <envoy_api_field_auth.CertificateValidationContext.verify_certificate_spki>`,
+	// <envoy_api_field_api.v3alpha.auth.CertificateValidationContext.verify_certificate_spki>`,
 	// :ref:`verify_certificate_hash
-	// <envoy_api_field_auth.CertificateValidationContext.verify_certificate_hash>`, or
+	// <envoy_api_field_api.v3alpha.auth.CertificateValidationContext.verify_certificate_hash>`, or
 	// :ref:`verify_subject_alt_name
-	// <envoy_api_field_auth.CertificateValidationContext.verify_subject_alt_name>`) is also
-	// specified.
+	// <envoy_api_field_api.v3alpha.auth.CertificateValidationContext.verify_subject_alt_name>`) is
+	// also specified.
 	//
 	// It can optionally contain certificate revocation lists, in which case Envoy will verify
 	// that the presented peer certificate has not been revoked by one of the included CRLs.
@@ -494,9 +497,9 @@ type CertificateValidationContext struct {
 	//
 	// .. code-block:: bash
 	//
-	//   $ openssl x509 -in path/to/client.crt -noout -pubkey \
-	//     | openssl pkey -pubin -outform DER \
-	//     | openssl dgst -sha256 -binary \
+	//   $ openssl x509 -in path/to/client.crt -noout -pubkey
+	//     | openssl pkey -pubin -outform DER
+	//     | openssl dgst -sha256 -binary
 	//     | openssl enc -base64
 	//   NvqYIYSbgK2vCJpQhObf77vv+bQWtc5ek5RIOwPiC9A=
 	//
@@ -504,15 +507,16 @@ type CertificateValidationContext struct {
 	//
 	// When both:
 	// :ref:`verify_certificate_hash
-	// <envoy_api_field_auth.CertificateValidationContext.verify_certificate_hash>` and
+	// <envoy_api_field_api.v3alpha.auth.CertificateValidationContext.verify_certificate_hash>` and
 	// :ref:`verify_certificate_spki
-	// <envoy_api_field_auth.CertificateValidationContext.verify_certificate_spki>` are specified,
-	// a hash matching value from either of the lists will result in the certificate being accepted.
+	// <envoy_api_field_api.v3alpha.auth.CertificateValidationContext.verify_certificate_spki>` are
+	// specified, a hash matching value from either of the lists will result in the certificate being
+	// accepted.
 	//
 	// .. attention::
 	//
 	//   This option is preferred over :ref:`verify_certificate_hash
-	//   <envoy_api_field_auth.CertificateValidationContext.verify_certificate_hash>`,
+	//   <envoy_api_field_api.v3alpha.auth.CertificateValidationContext.verify_certificate_hash>`,
 	//   because SPKI is tied to a private key, so it doesn't change when the certificate
 	//   is renewed using the same private key.
 	VerifyCertificateSpki []string `protobuf:"bytes,3,rep,name=verify_certificate_spki,json=verifyCertificateSpki,proto3" json:"verify_certificate_spki,omitempty"`
@@ -538,10 +542,11 @@ type CertificateValidationContext struct {
 	//
 	// When both:
 	// :ref:`verify_certificate_hash
-	// <envoy_api_field_auth.CertificateValidationContext.verify_certificate_hash>` and
+	// <envoy_api_field_api.v3alpha.auth.CertificateValidationContext.verify_certificate_hash>` and
 	// :ref:`verify_certificate_spki
-	// <envoy_api_field_auth.CertificateValidationContext.verify_certificate_spki>` are specified,
-	// a hash matching value from either of the lists will result in the certificate being accepted.
+	// <envoy_api_field_api.v3alpha.auth.CertificateValidationContext.verify_certificate_spki>` are
+	// specified, a hash matching value from either of the lists will result in the certificate being
+	// accepted.
 	VerifyCertificateHash []string `protobuf:"bytes,2,rep,name=verify_certificate_hash,json=verifyCertificateHash,proto3" json:"verify_certificate_hash,omitempty"`
 	// An optional list of Subject Alternative Names. If specified, Envoy will verify that the
 	// Subject Alternative Name of the presented certificate matches one of the specified values.
@@ -550,7 +555,7 @@ type CertificateValidationContext struct {
 	//
 	//   Subject Alternative Names are easily spoofable and verifying only them is insecure,
 	//   therefore this option must be used together with :ref:`trusted_ca
-	//   <envoy_api_field_auth.CertificateValidationContext.trusted_ca>`.
+	//   <envoy_api_field_api.v3alpha.auth.CertificateValidationContext.trusted_ca>`.
 	VerifySubjectAltName []string `protobuf:"bytes,4,rep,name=verify_subject_alt_name,json=verifySubjectAltName,proto3" json:"verify_subject_alt_name,omitempty"`
 	// [#not-implemented-hide:] Must present a signed time-stamped OCSP response.
 	RequireOcspStaple *types.BoolValue `protobuf:"bytes,5,opt,name=require_ocsp_staple,json=requireOcspStaple,proto3" json:"require_ocsp_staple,omitempty"`
@@ -659,6 +664,7 @@ func (m *CertificateValidationContext) GetAllowExpiredCertificate() bool {
 }
 
 // TLS context shared by both client and server TLS contexts.
+// [#next-free-field: 9]
 type CommonTlsContext struct {
 	// TLS protocol versions, cipher suites etc.
 	TlsParams *TlsParameters `protobuf:"bytes,1,opt,name=tls_params,json=tlsParams,proto3" json:"tls_params,omitempty"`
@@ -873,6 +879,12 @@ func (m *CommonTlsContext_CombinedCertificateValidationContext) GetValidationCon
 
 type UpstreamTlsContext struct {
 	// Common TLS context settings.
+	//
+	// .. attention::
+	//
+	//   Server certificate verification is not enabled by default. Configure
+	//   :ref:`trusted_ca<envoy_api_field_api.v3alpha.auth.CertificateValidationContext.trusted_ca>`
+	//   to enable verification.
 	CommonTlsContext *CommonTlsContext `protobuf:"bytes,1,opt,name=common_tls_context,json=commonTlsContext,proto3" json:"common_tls_context,omitempty"`
 	// SNI string to use when creating TLS backend connections.
 	Sni string `protobuf:"bytes,2,opt,name=sni,proto3" json:"sni,omitempty"`
@@ -953,6 +965,7 @@ func (m *UpstreamTlsContext) GetMaxSessionKeys() *types.UInt32Value {
 	return nil
 }
 
+// [#next-free-field: 6]
 type DownstreamTlsContext struct {
 	// Common TLS context settings.
 	CommonTlsContext *CommonTlsContext `protobuf:"bytes,1,opt,name=common_tls_context,json=commonTlsContext,proto3" json:"common_tls_context,omitempty"`
@@ -1071,11 +1084,11 @@ func (*DownstreamTlsContext) XXX_OneofWrappers() []interface{} {
 	}
 }
 
-// [#proto-status: experimental]
 type SdsSecretConfig struct {
 	// Name (FQDN, UUID, SPKI, SHA256, etc.) by which the secret can be uniquely referred to.
 	// When both name and config are specified, then secret can be fetched and/or reloaded via SDS.
-	// When only name is specified, then secret will be loaded from static resources [V2-API-DIFF].
+	// When only name is specified, then secret will be loaded from static
+	// resources.
 	Name                 string             `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	SdsConfig            *core.ConfigSource `protobuf:"bytes,2,opt,name=sds_config,json=sdsConfig,proto3" json:"sds_config,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}           `json:"-"`
@@ -1130,7 +1143,6 @@ func (m *SdsSecretConfig) GetSdsConfig() *core.ConfigSource {
 	return nil
 }
 
-// [#proto-status: experimental]
 type Secret struct {
 	// Name (FQDN, UUID, SPKI, SHA256, etc.) by which the secret can be uniquely referred to.
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
