@@ -4,14 +4,23 @@ There’s a saying that no code is ever truly proven or tested until it’s runn
 
 ## Testing in production
 
-The problem with testing in production is the possibility that real-world users could be impacted by any errors in a given update. Over the past few years, two approaches for testing against production traffic have gained increasing acceptance. These patterns are:
+The problem with testing in production is the possibility that real-world users could be impacted by any errors in a given update. Over the past few years, two approaches for testing against production traffic have gained increasing acceptance. These patterns are traffic shaodowing, and canary releasing.
 
-* Traffic shadowing: this approach “shadows” or mirrors a small amount of real user traffic from production to your application under test:
-  * Although the shadowed results can be verified (both the downstream response and associated upstream side effects) they are not returned to the user -- the user only sees the results from the currently released application. Typically any side effects are not persisted or are executed as a no-op and verified (much like setting up a mock, and verifying that a method/function was called with the correct parameters).
-  * This allows verification that the application is not crashing or otherwise behaving badly from an operational perspective when dealing with real user traffic and behaviour (and the larger the percentage of traffic shadowed, the higher the probability of confidence).
-* Canary releasing: this approach shifts a small amount of real user traffic from production to your application under test:
-  * The user will see the direct response from the canary version of application from any traffic that is shifted to the canary release, and they will not trigger or see the response from the current production released version of the application. The canary results can also be verified (both the downstream response and associated upstream side effects), but it is key to understand that any side effects will be persisted.
-  * In addition to allowing verification that the application is not crashing or otherwise behaving badly from an operational perspective when dealing with real user traffic and behaviour, canary releasing allows user validation. For example, if a business KPI performs worse for all canaried requests, then this most likely indicates that the canaried application should not be fully released in its current form.
+### Traffic Shadowing
+
+This approach “shadows” or mirrors a small amount of real user traffic from production to your application under test.
+
+Although the shadowed results can be verified (both the downstream response and associated upstream side effects) they are not returned to the user -- the user only sees the results from the currently released application. Typically any side effects are not persisted or are executed as a no-op and verified (much like setting up a mock, and verifying that a method/function was called with the correct parameters).
+
+This allows verification that the application is not crashing or otherwise behaving badly from an operational perspective when dealing with real user traffic and behaviour (and the larger the percentage of traffic shadowed, the higher the probability of confidence).
+
+### Canary Releasing 
+
+This approach shifts a small amount of real user traffic from production to your application under test.
+
+The user will see the direct response from the canary version of application from any traffic that is shifted to the canary release, and they will not trigger or see the response from the current production released version of the application. The canary results can also be verified (both the downstream response and associated upstream side effects), but it is key to understand that any side effects will be persisted.
+
+In addition to allowing verification that the application is not crashing or otherwise behaving badly from an operational perspective when dealing with real user traffic and behaviour, canary releasing allows user validation. For example, if a business KPI performs worse for all canaried requests, then this most likely indicates that the canaried application should not be fully released in its current form.
 
 ## Observability and testing in production
 

@@ -18,7 +18,7 @@
         
 - title: Install Ambassador Edge Stack
   items: 
-  - title: Installation Overview
+  - title: Quick Start Installation Guide
     link: /user-guide/install
   - title: Other Install & Upgrade Options
     items: 

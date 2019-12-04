@@ -2,7 +2,7 @@
 
 The Ambassador Edge Stack provides a comprehensive, self-service edge stack in the Kubernetes cluster with a decentralized deployment model and a declarative paradigm. So what does that mean, exactly?
 
-* **Comprehensive allows** you to take all the different pieces of your cluster, application, traffic, security, etc, and conveniently manage them all in one place, instead of having to individually configure them all, or their interactions with one another.
+* **Comprehensive** allows you to take all the different pieces of your cluster, application, traffic, security, etc, and conveniently manage them all in one place, instead of having to individually configure them all, or their interactions with one another.
 * **Self service** is the ability for an application developer to independently complete configurations without bothering their Operations team. For the Ambassador Edge Stack, this means app-devs can configure the traffic at the “edge” of their application.
 
 In other words, **the Ambassador Edge Stack is an all-in-one edge stack management tool** that allows developers and platform engineers alike to skip the red tape and get things done without stepping on each other’s toes.
@@ -92,11 +92,11 @@ To secure your application with HTTPS, you must first add a Host to your Ambassa
 4. Read and check the box to agree to the Terms of Service.
 5. Enter your email address to receive your TLS certificate.
 
-Your hostname will appear in a pending state as the Ambassador Edge Stack configures automatic TLS. In the “Status” field, you will see the TLS status change. If you receive an error that your hostname does not qualify for ACME management, you can still configure TLS followin [these instructions](/reference/core/tls).
+Your hostname will appear in a pending state as the Ambassador Edge Stack configures automatic TLS. In the “Status” field, you will see the TLS status change. If you receive an error that your hostname does not qualify for ACME management, you can still configure TLS following [these instructions](/reference/core/tls).
 
 To upgrade from evaluation mode, [sign up for a free community license] today.
 
-## Create Mappings 
+## Create Mappings
 
 Mappings allow you to associate parts of your domain with different URLs, IP addresses, or prefixes. Create your own Mappings in the administrative interface, the Edge Policy Console, to map out your own application.
 
@@ -116,12 +116,12 @@ To show you how powerful the Ambassador Edge Stack is, follow the instructions t
 
 ### Verify Mappings
 
-After you create Mappings, you can also verify that all of the CRDs were successfully installed using the command `kubectl get mappings`
+After you create Mappings, you can also verify that all of the CRDs were successfully installed using the command `kubectl get mappings`. Kubectl is the command-line tool that allows you to control Kubernetes.
 
-Kubectl is the command-line tool that allows you to control Kubernetes. Because Ambassador is built on top of Kubernetes, it’s more than likely that you already have `kubectl` installed on your machine. However, if you don’t, you can install it following [these directions](https://kubernetes.io/docs/tasks/tools/install-kubectl/).
+Because Ambassador is built on top of Kubernetes, it’s more than likely that you already have `kubectl` installed on your machine. However, if you don’t, you can install it following [these directions](https://kubernetes.io/docs/tasks/tools/install-kubectl/).
 
 Kubernetes will print the Custom Resource Definitions that were installed with the Ambassador Edge Stack, and you’ll see that your new Mapping has been adding to the CRDs of the Ambassador Edge Stack.
 
 ## What’s Next?
 
-To learn more about how the Ambassador Edge Stack works, along with use cases, best practices, and more, check out the
+To learn more about how the Ambassador Edge Stack works, along with use cases, best practices, and more, check out the [Ambassador](/about/why-ambassador) story.

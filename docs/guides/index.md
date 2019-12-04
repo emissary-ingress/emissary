@@ -18,11 +18,10 @@ Guides are hands-on tutorials to walk you through configuring the Ambassador Edg
  <ul>
   <li><a href="/user-guide/tls-termination">Transport Layer Security (TLS) Guide</a></li>
   <li><a href="/user-guide/sni">Server Name Indication with TLS Guide</a></li>
-  <li><a href="/user-guide/cert-manager">Using JetStack cert-manager to automatically provision TLS certificates</a></li>
   <li><a href="/user-guide/auth-tutorial">Basic HTTP Authentication Guide</a></li>
   <li><a href="/user-guide/oauth-oidc-auth">Single Sign-On with OAuth & OIDC</a></li>
   <li><a href="/user-guide/rate-limiting-tutorial">Basic Rate Limiting</a></li>
-  <li><a href="/user-guide/advanced-rate-limiting">Advanced Rate Limiting</a></li>   
+  <li><a href="/user-guide/advanced-rate-limiting">Advanced Rate Limiting</a></li>
  </ul>
  </td>
 </tr>
@@ -32,7 +31,7 @@ Guides are hands-on tutorials to walk you through configuring the Ambassador Edg
   <ul>
    <li><a href="/user-guide/consul">Using Consul for service discovery and mesh</a></li>
    <li><a href="/user-guide/with-istio">Istio</a></li>
-   <li><a href="/user-guide/linkerd2">Linkerd</a></li>
+   <li><a href="/user-guide/linkerd2">Linkerd2</a></li>
   </ul>
  </td>
  <td style="vertical-align:top;width:55%;">
