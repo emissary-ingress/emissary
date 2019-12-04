@@ -175,10 +175,6 @@ $ curl -v -u username:password $AMBASSADORURL/backend/get-quote/
 }
 ```
 
-## More
-
-For more details about configuring authentication, read the documentation on [external authentication](/reference/services/auth-service).
-
 ## Legacy v0 API
 
 If using Ambassador v0.40.2 or earlier, use the deprecated v0 `AuthService` API
@@ -208,3 +204,7 @@ spec:
     name: http-example-auth
     targetPort: http-api
 ```
+
+## More
+
+For more details about configuring authentication, read the documentation on [external authentication](/reference/services/auth-service).
