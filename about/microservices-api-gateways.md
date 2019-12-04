@@ -26,7 +26,7 @@ A microservices API gateway also supports dynamically routing user requests to d
 
 At first glance, the use case described above may be fulfilled with a enterprise-focused API gateway. While this may be true, the actual emphasis of enterprise API gateways and microservices API gateways are somewhat different:
 
-| Use case      | API gateway       | Microservices API gateway                |
+| Use case      | Traditional Enterprise API gateway       | Microservices API gateway                |
 |---------------|-------------------|------------------------------|
 | Primary Purpose  | Expose, compose, and manage internal business APIs | Expose and observe internal business services |
 | Publishing Functionality | API management team or service team registers / updates gateway via admin API | Service team registers / updates gateway via declarative code as part of the deployment process |

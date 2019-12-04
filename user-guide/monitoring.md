@@ -1,12 +1,12 @@
 # Monitoring with Prometheus and Grafana
 
-Prometheus is an open-source monitoring and alerting system. When used along with Grafana, we can create a dynamic dashboard for monitoring ingress into our Kubernetes cluster.
+Prometheus is an open-source monitoring and alerting system. When used along with Grafana, you can create a dynamic dashboard for monitoring ingress into our Kubernetes cluster.
 
 ## Deployment
 
 This guide will focus on deploying Prometheus and Grafana alongside Ambassador Edge Stack in Kubernetes using the [Prometheus Operator](https://github.com/coreos/prometheus-operator).
 
-**Note:** Both Prometheus and Grafana can be deployed as standalone applications outside of Kubernetes. This process is well-documented within the website and docs for their respective projects.
+**Note:** Both Prometheus and Grafana can be deployed as standalone applications outside of Kubernetes. This process is well-documented within the website and docs within their respective projects.
 
 ### Ambassador Edge Stack
 

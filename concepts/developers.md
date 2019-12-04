@@ -28,7 +28,7 @@ spec:
     targetPort: 9376
 ```
 
-Because a Kubernetes `service` is the fundamental abstraction by which new services are exposed to other services and end users, Ambassador Edge Stack extends the `service` with custom annotations. For example:
+Because a Kubernetes `service` is the fundamental abstraction by which new services are exposed to other services and end users, Ambassador Edge Stack extends the `service` with custom mapping. For example:
 
 ```yaml
 ---
@@ -44,14 +44,6 @@ kind: Service
 apiVersion: v1
 metadata:
   name: my-service
-  annotations:
-    getambassador.io/config: |
-      ---
-        apiVersion: getambassador.io/v2
-        kind:  Mapping
-        name:  my_service_mapping
-        prefix: /my-service/
-        service: my-service
 spec:
   selector:
     app: MyApp
@@ -66,10 +58,6 @@ With this approach, there is no centralized Ambassador Edge Stack configuration 
 * Agility: Service owners can change their Ambassador Edge Stack onfiguration without worrying about other end users or going through a central operations function.
 * Organizational scalability: Configuring individual routes in Ambassador Edge Stack is the responsibility of service owners, instead of a centralized team.
 * Maintainability: If a service is deleted, the route disappears with the service. All of the machinery used to manage Kubernetes manifests can be used with Ambassador Edge Stack without modification.
-
-## Centralized configuration
-
-It's possible as a migration strategy to start with a centralized Ambassador Edge Stack configuration that contains all the necessary mappings (you can create a dummy `service` for this). In general, though, this approach is not recommended.
 
 ## Ingress resources
 

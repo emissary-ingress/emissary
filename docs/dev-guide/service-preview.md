@@ -24,52 +24,42 @@ In this quick start, we're going to create an application and then add a backend
 
 Test to make sure that both your production and development instances of QOTM work:
 
-    ```
     curl $AMBASSADOR_IP/backend/ # test production
     curl localhost:8080/         # test development
-    ```
 
 ### Initialize Traffic Manager
 
  Initialize the traffic manager for the cluster.
 
-    ```
     apictl traffic initialize
-    ```
-
 
 ### Route Locally
 
 Requests with the header `x-service-preview: dev` will now get routed locally:
 
-    ```
     curl -H "x-service-preview: dev" $AMBASSADOR_IP/backend/` # will go to local Docker instance
     curl $AMBASSADOR_IP/backend/                              # will go to production instance
-    ```
 
 ### Change Backend Code
 
 Make a change to the backend source code. In `backend/main.go`, uncomment out line 85, and comment out line 84, so it reads like so:
 
-    ```golang
-    ...
-    //quote := s.random.RandomSelectionFromStringSlice(s.quotes)
-    quote := "Service Preview Rocks!"
-    ...
-    ```
+```golang
+//quote := s.random.RandomSelectionFromStringSlice(s.quotes)
+quote := "Service Preview Rocks!"
+```
 
-    This will insure that your backend service will return a quote of "Service Preview rocks" every time.
+This will insure that your backend service will return a quote of "Service Preview rocks" every time.
 
 ### Rebuild the Container
 
 Rebuild the docker container and rerun  the `curl` above, which will now route to your (modified) local copy of the QOTM service:
 
-    ```
     make docker.run -C backend/
     curl -H "x-service-preview: dev" $AMBASSADOR_IP/qotm/` # will go to local Docker instance
-    ```
 
-    To recap: With Preview, we can now see test and visualize changes to our service that we've mode locally, without impacting other users of the stable version of that service.
+
+To recap: With Preview, we can now see test and visualize changes to our service that we've mode locally, without impacting other users of the stable version of that service.
 
 ## Using Service Preview
 

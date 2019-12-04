@@ -117,6 +117,6 @@ Open your web browser to the Zipkin dashboard http://192.168.99.107:31043/zipkin
 In the Zipkin UI, click on the "Find Traces" button to get a listing instrumented traces. Each of the traces that are displayed can be clicked on, which provides further information
 about each span and associated metadata.
 
-## More
+## Learn More
 
-For more details about configuring the external tracing service, read the documentation on [external tracing](/reference/services/tracing-service).
+For more details about configuring the external, distributed tracing service, read about [distrubuted tracing](/reference/services/tracing-service).

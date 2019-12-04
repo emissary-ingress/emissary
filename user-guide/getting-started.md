@@ -1,74 +1,26 @@
-# Getting Started with Ambassador Edge Stack
+# Getting Started with the Ambassador Edge Stack 
 
-<img src="/doc-images/kubernetes.png"  style="width:60px;height:57px;"/>
+The Ambassador Edge Stack is a comprehensive, self-service edge stack for Kubernetes, allowing you to control application traffic to your services with a declarative policy engine, and provide frictionless authentication, access control, and rate limiting to your application and services.
 
-Ambassador Edge Stack is designed to run in Kubernetes for production. However, there are a few prerequisites that are important for a successful installation of Ambassador Edge Stack. Make sure you have the following:
+You’ll also be able to rapidly onboard developers to your application, and easily manage the Ambassador Edge Stack via its administrative interface, the Edge Policy Console.
 
-* a clean, running [Kubernetes cluster](https://kubernetes.io/docs/setup/), version 1.11 or later
-* the command line tool [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/)
+To start taking advantage of the Ambassador Edge Stack, we recommend the following:
 
-## 1. Deploying Ambassador Edge Stack to Kubernetes
+1. [Install the Ambassador Edge Stack] in a matter of minutes 
+2. Browse the [features] for comprehensive product use 
+3. Review [best practices] and [tutorials] for maximum value
+4. Explore Advanced Options
 
-In your command line tool, run the following:
+[Learn about [Ambassador] and what else you can do with [it].
 
-```shell
-kubectl apply -f secret.yaml && \
-kubectl apply -f https://deploy-preview-91--datawire-ambassador.netlify.com/yaml/aes-crds.yaml && \
-kubectl wait --for condition=established --timeout=60s crd -lproduct=aes && \
-kubectl apply -f https://deploy-preview-91--datawire-ambassador.netlify.com/yaml/aes.yaml && \
-kubectl -n ambassador wait --for condition=available --timeout=60s deploy -lproduct=aes
-```
+PS: Need help or have something to tell us? Check out our [support pages].
 
-## 2. Determine your IP Address
+## Install the Ambassador Edge Stack
 
-Note that it may take a while for your load balancer IP address to be provisioned. Repeat this command as necessary until you get an IP address:
+The Ambassador Edge Stack (community version) is free and available for you to download [here]. You can also choose to deploy the [Ambassador API Gateway] instead. 
 
-```shell
-kubectl get -n ambassador service ambassador -o 'go-template={{range .status.loadBalancer.ingress}}{{print .ip "\n"}}{{end}}'
-```
+Check out [recommendations] for the best experience using the administrative interface, the [Edge Policy Console].
 
-### Minikube Users
+## Check Out the Features 
 
-If you happen to be using Minikube, note that Minikube does not natively support load balancers. Instead, to get the URL of Ambassador from minikube, use the following command to print avaiable URLs:
-
-```bash
-minikube service list
-```
-
-The command line will print something similar to the following:
-
-```bash
-(⎈ |minikube:ambassador)$ minikube service list
-|-------------|------------------|--------------------------------|
-|  NAMESPACE  |       NAME       |              URL               |
-|-------------|------------------|--------------------------------|
-| ambassador  | ambassador       | http://192.168.64.2:31230      |
-|             |                  | http://192.168.64.2:31042      |
-| ambassador  | ambassador-admin | No node port                   |
-| ambassador  | ambassador-redis | No node port                   |
-| default     | kubernetes       | No node port                   |
-| kube-system | kube-dns         | No node port                   |
-|-------------|------------------|--------------------------------|
-```
-
-Use any of the URLs listed next to `ambassador` to access the Ambassador Edge Stack.
-
-## 3. Assign a DNS name (or not)
-
-Navigate to your new IP address in your browser. Assign a DNS name using the providor of your choice to the IP address acquired in Step 2. If you can't/don't want to assign a DNS name, then you can use the IP address you acquired in step 2 instead.
-
-## 4. Complete the install
-
-Go to `http://<your-host-name>` and follow the instructions to complete the install.
-
-You will need to install the `edgectl` tool in order to fully configure the Ambassador Edge Stack UI. If you are having trouble downloading `edgectl`, you can download them directly from [this page](/user-guide/downloads).
-
-## Next Steps
-
-
-- Join us on [Slack](https://d6e.co/slack);
-- Learn how to [add authentication](/user-guide/auth-tutorial) to existing services; or
-- Learn how to [add rate limiting](/user-guide/rate-limiting-tutorial) to existing services; or
-- Learn how to [add tracing](/user-guide/tracing-tutorial); or
-- Learn how to [use gRPC with Ambassador Edge Stack](/user-guide/grpc); or
-- Read about [configuring Ambassador Edge Stack](/reference/configuration).
+The following table lists all of the features available to you with the Ambassador Edge Stack. [Want to learn more?]

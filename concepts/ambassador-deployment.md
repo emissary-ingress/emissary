@@ -8,7 +8,7 @@ If you're using a public cloud provider such as Amazon, Azure, or Google, the Am
 
 ## On-Premise Data Center
 
-In an on-premise data center, the Ambassador Edge Stack is deployed on the Kubernetes cluster. Instead of exposing it via the `LoadBalancer` service type, the Ambassador Edge Stack is exposed as a `NodePort`. Traffic is sent to a specific port on any of the nodes in the cluster, which route the traffic to the Ambassador Edge Stack , which then routes the traffic to your services running in Kubernetes. In addition, you'll need to deploy a separate load balancer to route traffic from your core routers to Ambassador Edge Stack . [MetalLB](https://metallb.universe.tf/) is an open source external load balancer for Kubernetes designed for this problem. Other options are traditional TCP load balancers such as F5 or Citrix Netscaler.
+In an on-premise data center, the Ambassador Edge Stack is deployed on the Kubernetes cluster. Instead of exposing it via the `LoadBalancer` service type, the Ambassador Edge Stack is exposed as a `NodePort`. Traffic is sent to a specific port on any of the nodes in the cluster, which route the traffic to the Ambassador Edge Stack, which then routes the traffic to your services running in Kubernetes. In addition, you'll need to deploy a separate load balancer to route traffic from your core routers to Ambassador Edge Stack . [MetalLB](https://metallb.universe.tf/) is an open source external load balancer for Kubernetes designed for this problem. Other options are traditional TCP load balancers such as F5 or Citrix Netscaler.
 
 ## Hybrid data center
 

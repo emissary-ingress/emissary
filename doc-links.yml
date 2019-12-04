@@ -1,8 +1,8 @@
 - title: Welcome
   collapsable: false
   items:
-    - title: Quick Start Guide
-      link: /docs
+    - title: Getting Started with the Ambassador Edge Stack
+      link: /user-guide/getting-started
     - title: Why Ambassador Edge Stack?
       link: /about/why-ambassador
     - title: Features and Benefits
@@ -14,22 +14,12 @@
     - title: Certified Builds
       link: /user-guide/certified-builds
     - title: Need help?
-      items: 
-      - title: Contact Support
-        link: /about/support
-      - title: Ask on Slack
-        link: https://d6e.co/slack
-      - title: File a GitHub Issue
-        link: https://github.com/datawire/ambassador/issues/new
-      - title: Visit Datawire.io
-        link: https://www.datawire.io
+      link: /about/support
         
 - title: Install Ambassador Edge Stack
   items: 
   - title: Installation Overview
     link: /user-guide/install
-  - title: Kubernetes (YAML)
-    link: /user-guide/getting-started
   - title: Other Install & Upgrade Options
     items: 
     - title: Upgrade Ambassador OSS to Ambassador Edge Stack

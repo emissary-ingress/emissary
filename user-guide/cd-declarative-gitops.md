@@ -23,14 +23,14 @@ A microservice development team's workflow therefore moves from this deployment 
 3. Operations reviews ticket.
 4. Operations initiates infrastructure change management process.
 5. Operations executes change using UI or REST API.
-6. Operations notifies app dev of the change.
+6. Operations notifies app developer of the change.
 7. App developer tests change, and opens a ticket to give feedback to operations if necessary.
 
-To do this with Ambassador Edge Stack:
+To do this deployment pattern with Ambassador Edge Stack:
 
-1. App dev opens Pull Request in Git with proposed edge configuration changes.
+1. App developer opens Pull Request in Git with proposed edge configuration changes.
 2. Operations reviews PR, offers comments and ultimately merges PR.
-3. Automated CI pipeline applies changes to Ambassador Edge Stack.
-4. App dev tests changes.
+3. Automated GitOps delivery pipeline applies changes to Ambassador Edge Stack.
+4. App devdeveloper tests changes.
 
 
