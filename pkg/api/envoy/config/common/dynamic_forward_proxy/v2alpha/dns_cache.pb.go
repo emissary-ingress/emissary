@@ -27,6 +27,7 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // Configuration for the dynamic forward proxy DNS cache. See the :ref:`architecture overview
 // <arch_overview_http_dynamic_forward_proxy>` for more information.
+// [#next-free-field: 6]
 type DnsCacheConfig struct {
 	// The name of the cache. Multiple named caches allow independent dynamic forward proxy
 	// configurations to operate within a single Envoy process using different configurations. All

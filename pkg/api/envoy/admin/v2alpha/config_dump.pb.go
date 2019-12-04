@@ -148,6 +148,7 @@ func (m *BootstrapConfigDump) GetLastUpdated() *types.Timestamp {
 // Envoy's listener manager fills this message with all currently known listeners. Listener
 // configuration information can be used to recreate an Envoy configuration by populating all
 // listeners as static listeners or by returning them in a LDS response.
+// [#next-free-field: 6]
 type ListenersConfigDump struct {
 	// This is the :ref:`version_info <envoy_api_field_DiscoveryResponse.version_info>` in the
 	// last processed LDS discovery response. If there are only static bootstrap listeners, this field

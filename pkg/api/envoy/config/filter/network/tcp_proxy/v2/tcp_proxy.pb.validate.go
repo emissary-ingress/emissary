@@ -62,25 +62,19 @@ func (m *TcpProxy) Validate() error {
 		}
 	}
 
-	if d := m.GetIdleTimeout(); d != nil {
-		dur, err := types.DurationFromProto(d)
-		if err != nil {
-			return TcpProxyValidationError{
-				field:  "IdleTimeout",
-				reason: "value is not a valid duration",
-				cause:  err,
+	{
+		tmp := m.GetIdleTimeout()
+
+		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+			if err := v.Validate(); err != nil {
+				return TcpProxyValidationError{
+					field:  "IdleTimeout",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
 			}
 		}
-
-		gt := time.Duration(0*time.Second + 0*time.Nanosecond)
-
-		if dur <= gt {
-			return TcpProxyValidationError{
-				field:  "IdleTimeout",
-				reason: "value must be greater than 0s",
-			}
-		}
-
 	}
 
 	{

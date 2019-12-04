@@ -41,7 +41,7 @@ ambassador-release.docker.tag.release:    docker.tag.release = $(RELEASE_DOCKER_
 ambassador-release-rc.docker.tag.release: docker.tag.release = $(RELEASE_DOCKER_REPO):$(RELEASE_VERSION) $(RELEASE_DOCKER_REPO):$(BUILD_VERSION)-rc-latest
 ambassador-release-ea.docker.tag.release: docker.tag.release = $(RELEASE_DOCKER_REPO):$(RELEASE_VERSION)
 BASE_IMAGE.envoy = $(BASE_DOCKER_REPO):envoy-$(BASE_VERSION.envoy)
-envoy-base.docker.tag.base:               docker.tag.base       = $(BASE_IMAGE.envoy)
+base-envoy.docker.tag.base:               docker.tag.base       = $(BASE_IMAGE.envoy)
 
 # We'll set REGISTRY_ERR in builder.mk
 docker.tag.dev = $(if $(DEV_REGISTRY),$(DEV_REGISTRY)/$*:$(patsubst sha256:%,%,$(shell cat $<)),$(REGISTRY_ERR))
