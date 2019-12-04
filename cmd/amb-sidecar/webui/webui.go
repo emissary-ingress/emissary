@@ -15,6 +15,7 @@ import (
 	"os"
 	"path"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -201,10 +202,20 @@ func (fb *firstBootWizard) isAuthorized(r *http.Request) bool {
 		return false
 	}
 
-	return claims.VerifyExpiresAt(nowUnix, true) &&
-		claims.VerifyIssuedAt(toleratedNowUnix, true) &&
-		claims.VerifyNotBefore(toleratedNowUnix, true) &&
-		claims.LoginTokenVersion == "v1"
+	var expiresAtVerification = claims.VerifyExpiresAt(nowUnix, true)
+	var issuedAtVerification = claims.VerifyIssuedAt(toleratedNowUnix, true)
+	var notBeforeVerification = claims.VerifyNotBefore(toleratedNowUnix, true)
+	var loginTokenVersionVerification = claims.LoginTokenVersion == "v1"
+	if expiresAtVerification && /* issuedAtVerification && notBeforeVerification && */ loginTokenVersionVerification {
+		return true
+	} else {
+		dlog.GetLogger(r.Context()).Warningln("token failed verification (exp,iat,nbf,vers): " +
+			strconv.FormatBool(expiresAtVerification) + " " +
+			strconv.FormatBool(issuedAtVerification) + " " +
+			strconv.FormatBool(notBeforeVerification) + " " +
+			strconv.FormatBool(loginTokenVersionVerification))
+		return false
+	}
 }
 
 func (fb *firstBootWizard) registerActivity(w http.ResponseWriter, r *http.Request) {
