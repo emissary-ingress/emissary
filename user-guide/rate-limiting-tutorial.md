@@ -72,13 +72,11 @@ spec:
 
 This configuration tells the Ambassador Edge Stack about the rate limit service, notably that it is serving requests at `example-rate-limit:5000`.
 
-The Ambassador Edge Stack will see the annotations and reconfigure itself within a few seconds.
+The Ambassador Edge Stack will see the RateLimitService and reconfigure itself within a few seconds. Note that the v2 API is available for the Ambsassador Edge Stack.
 
 ## 2. Configure Ambassador Edge Stack Mappings
 
 The Ambassador Edge Stack only validates requests on Mappings which set rate limiting descriptors. If Ambassador cannot contact the rate limit service, it will allow the request to be processed as if there were no rate limit service configuration.
-
-If you have a service running, you can apply some rate limits to the service. The easiest way to do that is to annotate your service. While we could use `kubectl patch` for this, it's simpler to just modify the service definition and re-apply.
 
 ### v1 API
 

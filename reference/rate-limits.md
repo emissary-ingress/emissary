@@ -72,10 +72,10 @@ This will annotate every request with the string `default`, creating a key for a
 
 ## The `rate_limits` attribute
 
-In pre-0.50 versions of Ambassador Edge Stack, a mapping can specify the `rate_limits` list attribute and at least one `rate_limits` rule which will call the external [RateLimitService](/reference/services/rate-limit-service) before proceeding with the request. An example:
+In pre-0.50 versions of the Ambassador API Gateway, a mapping can specify the `rate_limits` list attribute and at least one `rate_limits` rule which will call the external [RateLimitService](/reference/services/rate-limit-service) before proceeding with the request. An example:
 
 ```yaml
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v0
 kind: Mapping
 name: rate_limits_mapping
 prefix: /rate-limit/

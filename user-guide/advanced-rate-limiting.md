@@ -73,13 +73,13 @@ spec:
      unit: minute
 ```
 
-Now, requests will `/backend/` will be rate limited after only 3 requests.
+Now, requests to `/backend/` will be rate limited after only 3 requests.
 
 ## Rate limiting matching rules
 
 The following rules apply to the rate limit patterns:
 
-* Patterns are order-sensitive, and must respect the order in which a request is labeled. For example, in #3 above, the `remote_address` pattern must come before the `generic_key` pattern. Switching the two will fail to match.
+* Patterns are order-sensitive, and must respect the order in which a request is labeled.
 * Every label in a label group must exist in the pattern in order for matching to occur.
 * By default, any type of failure will let the request pass through (fail open).
 * The Ambassador Edge Stack sets a hard timeout of 20ms on the rate limiting service. If the rate limit service does not respond within the timeout period, the request will pass through.
