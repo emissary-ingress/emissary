@@ -239,8 +239,7 @@ span.code {
   constructor() {
     super();
     this.resource = {};
-    this.state = new UIState()
-    this.showingYaml = false;
+    this.state = new UIState();
   }
 
   /**
@@ -398,10 +397,10 @@ span.code {
 
     switch (strategy) {
     case "ignore":
-      this.diff.set(pathName, "ignored");
+      this.state.diff.set(pathName, "ignored");
       return undefined;
     case "replace":
-      this.diff.set(pathName, "replaced");
+      this.state.diff.set(pathName, "replaced");
       return updated;
     }
 
@@ -409,7 +408,7 @@ span.code {
 
     // handle null as a special case here because typeof null returns "object"
     if (original === null) {
-      this.diff.set(pathName, "updated");
+      this.state.diff.set(pathName, "updated");
       return updated;
     }
 
@@ -420,13 +419,13 @@ span.code {
       switch (updatedType) {
       case "object":
         if (Array.isArray(updated)) {
-          this.diff.set(pathName, "updated");
+          this.state.diff.set(pathName, "updated");
           return updated;
         } else {
           return this.mergeObject(original, updated, path);
         }
       default:
-        this.diff.set(pathName, "updated");
+        this.state.diff.set(pathName, "updated");
         return updated;
       }
     case "object":
@@ -440,7 +439,7 @@ span.code {
     case "bigint":
     case "boolean":
       if (original === updated || updated === undefined) { return original; }
-      this.diff.set(pathName, "updated");
+      this.state.diff.set(pathName, "updated");
       return updated;
     default:
       throw new Error(`don't know how to merge ${originalType}`);
@@ -479,23 +478,34 @@ span.code {
 
   // internal
   onYaml() {
-    this.showingYaml = !this.showingYaml;
+    this.state.showingYaml = !this.state.showingYaml;
     this.requestUpdate();
   }
 
   mergedYaml() {
-    this.diff = new Map();
+    this.state.diff = new Map();
     var spec;
-    if (this.state.mode === "edit" || this.state.mode === "add") {
-      spec = this.spec();
-    } else {
-      spec = {};
+    var mergeInput = {metadata: {annotations: {}}};
+    if (this.state.mode === "edit") {
+      mergeInput.spec = this.spec();
+    } else if (this.state.mode === "add") {
+      mergeInput.kind = this.kind();
+      mergeInput.apiVersion = "getambassador.io/v2";
+      mergeInput.metadata.name = this.nameInput().value
+      mergeInput.metadata.namespace = this.namespaceInput().value
+      mergeInput.spec = {};
     }
+    mergeInput.metadata.annotations[aes_res_changed] = "true";
+    let yaml = jsyaml.safeDump(this.merge(this.resource, mergeInput));
+    return yaml;
+  }
+
+  renderMergedYaml() {
     try {
-      let yaml = jsyaml.safeDump(this.merge(this.resource, {spec: spec}));
+      let yaml = this.mergedYaml();
       let entries = [];
       let changes = false;
-      this.diff.forEach((v, k) => {
+      this.state.diff.forEach((v, k) => {
         if (v !== "ignored") {
           changes = true;
           entries.push(html`
@@ -505,7 +515,7 @@ span.code {
       });
 
       return html`
-<div class="yaml" style="display: ${this.showingYaml ? "block" : "none"}">
+<div class="yaml" style="display: ${this.state.showingYaml ? "block" : "none"}">
   ${changes ? html`Changes:` : html``}
   <div class="changes">
 ${entries}
@@ -613,17 +623,7 @@ ${entries}
       return
     }
 
-    let yaml = `
----
-apiVersion: getambassador.io/v2
-kind: ${this.kind()}
-metadata:
-  name: "${this.nameInput().value}"
-  namespace: "${this.namespaceInput().value}"
-  annotations:
-    ${aes_res_changed}: "true"
-spec: ${JSON.stringify(this.spec())}
-`;
+    let yaml = this.mergedYaml();
 
     ApiFetch('/edge_stack/api/apply',
           {
@@ -673,7 +673,7 @@ spec: ${JSON.stringify(this.spec())}
       ? html`<button @click=${(x)=>this.onSource(x)}>Source</button>`
       : html``}
     <visible-modes list detail add edit>
-      <input type="checkbox" .checked=${this.showingYaml} @click=${(e)=>this.onYaml(e.target.checked)}>Show Yaml</input>
+      <input type="checkbox" .checked=${this.state.showingYaml} @click=${(e)=>this.onYaml(e.target.checked)}>Show Yaml</input>
     </visible-modes>
     <visible-modes list detail>
       <button ?disabled=${this.readOnly()} @click=${()=>this.onEdit()}>Edit</button>
@@ -704,7 +704,7 @@ spec: ${JSON.stringify(this.spec())}
   </div>
 
   ${this.state.renderErrors()}
-  ${this.mergedYaml()}
+  ${this.renderMergedYaml()}
 </div>`
   }
 

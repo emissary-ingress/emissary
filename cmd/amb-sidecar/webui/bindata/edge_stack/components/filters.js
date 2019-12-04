@@ -25,6 +25,30 @@ class Filter extends SingleResource {
     return "Filter"
   }
 
+  /**
+   * We need to customize the merge strategy here because the filter
+   * CRD uses the presence/absence of keys as a descriminator to
+   * indicate what type of filter the resource represents, e.g.:
+   *
+   *   spec:
+   *     OAuth2: { ... }
+   *
+   *   spec:
+   *     JWT: { ... }
+   *
+   * The above two specs are mutually exclusive and represent
+   * different kinds of filter types.
+   *
+   * The UI surfaces this as a type field that you can select. If you
+   * do select a new type, all the fields change to represent what is
+   * allowed to go underneath spec.<new-type>.
+   *
+   * The net of this is that if you do not change the type of the
+   * filter, then you want to use the merge strategy. If you *do*
+   * change the type of the filter, then you need to use the replace
+   * strategy because you don't want (and can't have) OAuth2 *and* JWT
+   * properties at the same time.
+   */
   mergeStrategy(path) {
     if (path === `spec.${this.filterType()}`) {
       if (this.type === this.filterType()) {
