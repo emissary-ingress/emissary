@@ -73,6 +73,7 @@ spec:
       annotations:
         consul.hashicorp.com/connect-inject: 'false'
         sidecar.istio.io/inject: 'false'
+        linkerd.io/inject: disabled
       labels:
         service: ambassador
     spec:
