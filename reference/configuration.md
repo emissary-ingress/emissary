@@ -1,6 +1,6 @@
 # The Ambassador Edge Stack Configuration
 
-The Ambassador Edge Stack is configured in a declarative fashion, using YAML manifests to describe the state of the world. As with Kubernetes, the Ambassador Edge Stack's manifests are identified with `apiVersion`, `kind`, and `name`. The current `apiVersion` is `getambassador.io/v2`; currently-supported `kind`s are:
+The Ambassador Edge Stack is configured in a declarative fashion, using YAML manifests to describe the state of the world. As with Kubernetes, the Ambassador Edge Stack's manifests are identified with `apiVersion`, `kind`, and `name`. The current `apiVersion` is `getambassador.io/v2`; some of the currently-supported `kind`s are:
 
 - [`Module`](/reference/modules) manifests configure things that apply to the Ambassador Edge Stack as a whole. For example, the `ambassador Module` can define listener ports, and the `tls` Module can configure TLS termination for the Ambassador Edge Stack.
 
@@ -10,7 +10,7 @@ The Ambassador Edge Stack is configured in a declarative fashion, using YAML man
 
 - [`TracingService`](/reference/services/tracing-service) manifests configure the external tracing service that the Ambassador Edge Stack will use.
 
-- [`Mapping`](/reference/mappings) manifests associate REST _resources_ with Kubernetes _services_. the Ambassador Edge Stack _must_ have one or more mappings defined to provide access to any services at all.
+- [`Mapping`](/reference/mappings) manifests associate REST _resources_ with Kubernetes _services_. The Ambassador Edge Stack _must_ have one or more mappings defined to provide access to any services at all.
 
 Note that each of these `kind`s are supported as both annotations and as Custom Resource Definitions (CRDs).
 

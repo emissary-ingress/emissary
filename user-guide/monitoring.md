@@ -38,7 +38,7 @@ spec:     
 
 ### Prometheus Operator
 
-The [Prometheus Operator](https://github.com/coreos/prometheus-operator) for Kubernetes provides an easy way to manage your Prometheus deployment using Kubernetes-style resources with custom resource definitions (CRDs).
+The [Prometheus Operator](https://github.com/coreos/prometheus-operator) for Kubernetes provides an easy way to manage your Prometheus deployment using Kubernetes-style resources with Custom Resource Definitions (CRDs).
 
 In this section, we will deploy the Prometheus Operator using the standard YAML files. 
 
@@ -102,7 +102,7 @@ In this section, we will deploy the Prometheus Operator using the standard YAML 
 
    Finally, we need tell Prometheus where to scrape metrics from. The Prometheus Operator easily manages this using a `ServiceMonitor` CRD. To tell Prometheus to scrape metrics from Ambassador Edge Stack's `/metrics` endpoint, copy the following YAML to a file called `ambassador-monitor.yaml`, and apply it with `kubectl`.
 
-    If you are running an Ambassador version higher than 0.71.0 and want to scrape metrics directly from the `/metrics` endpoint of Ambassador Edge Stack running in the `default` namespace:
+    If you are running an Ambassador version higher than 0.71.0 and want to scrape metrics directly from the `/metrics` endpoint of Ambassador Edge Stack running in the `ambassador` namespace:
 
     ```yaml
     ---
@@ -116,7 +116,7 @@ In this section, we will deploy the Prometheus Operator using the standard YAML 
     spec:
       namespaceSelector:
         matchNames:
-        - default
+        - ambassador
       selector:
         matchLabels:
           service: ambassador-admin
@@ -143,7 +143,7 @@ CoreOS has published a full [API reference](https://coreos.com/operators/prometh
 
 Grafana is an open source graphing tool for plotting data points. Grafana allows you to create dynamic dashboards for monitoring your ingress traffic stats collected from Prometheus.
 
-We have published a [sample dashboard](https://grafana.com/dashboards/10434) you can use for monitoring your ingress traffic. Since the stats from the `/metrics` and `/stats` endpoints are different, you will see a section in the dashboard for each use case.
+We have published a [sample dashboard](https://grafana.com/grafana/dashboards/4698) you can use for monitoring your ingress traffic. Since the stats from the `/metrics` and `/stats` endpoints are different, you will see a section in the dashboard for each use case.
 
 To deploy Grafana behind Ambassador Edge Stack: replace `{{AMBASSADOR_IP}}` with the IP address of your Ambassador Edge Stack service, copy the YAML below, and apply it with `kubectl`:
 
@@ -252,7 +252,7 @@ The Prometheus data model is, at it's core, time-series based. Therefore, it mak
 
 ### Statsd Exporter: Output Statistics to Ambassador Edge Stack
 
-If running a pre-`0.71.0` version of Ambassador Edge Stack, you will need to configure Envoy to output stats to a separate collector before being scraped by Prometheus. You will use the [Prometheus StatsD Exporter](https://github.com/prometheus/statsd_exporter) to do this.
+If running a pre-`0.71.0` version of Ambassador, you will need to configure Envoy to output stats to a separate collector before being scraped by Prometheus. You will use the [Prometheus StatsD Exporter](https://github.com/prometheus/statsd_exporter) to do this.
 
 1. Deploy the StatsD Exporter in the `default` namespace
 

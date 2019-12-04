@@ -7,11 +7,11 @@ You’ll also be able to rapidly onboard developers to your application, and eas
 To start taking advantage of the Ambassador Edge Stack, we recommend the following:
 
 1. [Install the Ambassador Edge Stack](/user-guide/install) in a matter of minutes
-2. Browse feature for comprehensive product use
-3. Review Best Practices and tutorials for maximum value
-4. Explore Advanced Options
+2. [Browse features for comprehensive](/user-guide/getting-started#browse-through-features) product use
+3. [Review Concepts and Tutorials](/user-guide/getting-started#review-concepts-and-tutorials) for maximum value
+4. [Explore Advanced Options](/user-guide/getting-started#explore-advanced-options)
 
-[Learn about Ambassador](/about/why-ambassador) and what else you can do with [it].
+[Learn about Ambassador](/about/why-ambassador) and what else you can do with it.
 
 PS: Need help or have something to tell us? Check out our [support pages](/about/support).
 
@@ -21,7 +21,7 @@ The Ambassador Edge Stack (community version) is free and available for you to d
 
 Check out [recommendations](/user-guide/product-requirements) for the best experience using the administrative interface, the [Edge Policy Console](/reference/dev-portal).
 
-## Check Out the Features
+## Browse Through Features
 
 The following table lists all of the features available to you with the Ambassador Edge Stack. [Want to learn more?](https://www.getambassador.io/features/)
 

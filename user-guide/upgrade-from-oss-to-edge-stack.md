@@ -4,21 +4,21 @@ If you currently have the open source API Gateway version of Ambassador, you can
 
 **Prerequistes**:
 
-* You must have properly installed Ambassador previously following [these](/user-guide/-install-ambassador-oss) instructions.
+* You must have properly installed Ambassador previously following [these](/user-guide/install-ambassador-oss) instructions.
 * You must have TLS configured and working properly on your Ambassador instance following [these](/user-guide/tls-termination/) instructions.
 
 **To upgrade your instance of Ambassador**:
 
-1. [Install Redis](/user-guide/upgrade-from-oss-to-edge-stack#install-redis)
-2. [Create the Edge Stack Secret](/user-guide/upgrade-from-oss-to-edge-stack#create-the-edge-stack-secret)
-3. [Create a New Deployment](/user-guide/upgrade-from-oss-to-edge-stack#create-a-new-deployment)
-4. [Delete the Old Deployment](/user-guide/upgrade-from-oss-to-edge-stack#delete-the-old-deployment)
-5. [Update CRDs](/user-guide/upgrade-from-oss-to-edge-stack#update-crds)
-6. [Update RBAC Permissions](/user-guide/upgrade-from-oss-to-edge-stack#update-rbac-permissions)
-7. [Apply the aes Configuration](/user-guide/upgrade-from-oss-to-edge-stack#apply-the-aes-configuration)
-8. [What's Next?](/user-guide/upgrade-from-oss-to-edge-stack#whats-next)
+1. [Install Redis](/user-guide/upgrade-from-oss-to-edge-stack#1-install-redis)
+2. [Create an Empty Secret CRD](user-guide/upgrade-from-oss-to-edge-stack#2-create-an-empty-secret-crd)
+3. [Create a New Deployment](/user-guide/upgrade-from-oss-to-edge-stack#3-create-a-new-deployment)
+4. [Delete the Old Deployment](/user-guide/upgrade-from-oss-to-edge-stack#4-delete-the-old-deployment)
+5. [Update CRDs](/user-guide/upgrade-from-oss-to-edge-stack#5-update-crds)
+6. [Update RBAC Permissions](/user-guide/upgrade-from-oss-to-edge-stack#6-update-rbac-permissions)
+7. [Apply the aes Configuration](/user-guide/upgrade-from-oss-to-edge-stack#7-apply-the-aes-configuration)
+8. [What's Next?](/user-guide/upgrade-from-oss-to-edge-stack#8-whats-next)
 
-## Install Redis
+## 1. Install Redis
 
 Before you can upgrade, you'll need to install the Redis deployment. Use the following command:
 
@@ -66,9 +66,9 @@ spec:
 EOF
 ```
 
-## Create the Edge Stack Secret
+## 2. Create an Empty Secret CRD
 
-Next, create the `secret.yaml` with the following command:
+Next, use the following command to create an empty secret CRD to use in your k8s cluster:
 
 ```
 cat <<EOF | kubectl apply -f -
@@ -83,7 +83,7 @@ data:
 EOF
 ```
 
-## Create a New Deployment
+## 3. Create a New Deployment
 
 Create the new `aes` deployment in the same namespace in as your current deployment; in the following file, replace `default` with your own namespace. Use the following command:
 
@@ -179,7 +179,7 @@ spec:
           secretName: ambassador-edge-stack
 ```
 
-## Delete the Old Deployment
+## 4. Delete the Old Deployment
 
 Use the following command to delete your deployment of the API Gateway:
 
@@ -187,7 +187,7 @@ Use the following command to delete your deployment of the API Gateway:
 kubectl delete deployment -n default ambassador
 ```
 
-## Update CRDs
+## 5. Update CRDs
 
 Use the following command to update your CRDs:
 
@@ -195,7 +195,7 @@ Use the following command to update your CRDs:
 kubectl apply -f https://deploy-preview-91--datawire-ambassador.netlify.com/yaml/aes-crds.yaml
 ```
 
-## Update RBAC Permissions
+## 6. Update RBAC Permissions
 
 Use the following command to update your RBAC permissions:
 
@@ -238,7 +238,7 @@ rules:
 EOF
 ```
 
-## Apply the `aes` Configuration
+## 7. Apply the `aes` Configuration
 
 Finally, apply the remaining `aes` configurations using the following command: 
 
@@ -329,6 +329,6 @@ spec:
 EOF
 ```
 
-## What's Next?
+## 8. What's Next?
 
-Now that you have the Ambassador Edge Stack up and running, check out the [Getting Started](/user-guide/getting-started) guide for recommendations on what to do next and take full advantage of its features. 
+Now that you have the Ambassador Edge Stack up and running, check out the [Getting Started](/user-guide/getting-started) guide for recommendations on what to do next and take full advantage of its features.

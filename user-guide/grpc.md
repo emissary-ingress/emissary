@@ -244,7 +244,7 @@ def serve():
     server.start()
 ```
 
-Rebuild your docker container **making sure the certificates are included** and follow the same steps of testing and deploying to kubernetes. You will need to make a small change the the client code to test locally.
+Rebuild your docker container **making sure the certificates are included** and follow the same steps of testing and deploying to kubernetes. You will need to make a small change to the client code to test locally.
 
 ```diff
 - with grpc.insecure_channel(‘localhost:$PORT’) as channel:
@@ -297,7 +297,7 @@ spec:
   secret: ambassador-cert
 ```
 
-We need to tell Ambassador Edge Stack to route to the `service:` over https and have the service listen on `443`. We also need to give tell Ambassador Edge Stack to use ALPN protocols when originating TLS with the application, the same way we did with TLS termination. This is done by setting `alpn_protocols: ["h2"]` in a `TLSContext` telling the service to use that tls-context in the mapping by setting `tls: upstream`.
+We need to tell Ambassador Edge Stack to route to the `service:` over https and have the service listen on `443`. We also need to tell tell Ambassador Edge Stack to use ALPN protocols when originating TLS with the application, the same way we did with TLS termination. This is done by setting `alpn_protocols: ["h2"]` in a `TLSContext` telling the service to use that tls-context in the mapping by setting `tls: upstream`.
 
 Refer to the [TLS document](/reference/tls/origination/#advanced-configuration-using-a-tlscontext) for more information on TLS origination.
 
