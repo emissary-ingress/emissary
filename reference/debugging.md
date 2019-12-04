@@ -1,8 +1,8 @@
 # Debugging (Advanced)
 
-If the Ambassador Edge Stack is not starting or is not behaving as you would expect, your first step should be the [Ambassador Diagnostics](/reference/diagnostics) service. This document covers more advanced use cases and approaches, and assumes that you have either looked at the diagnostic console or can't access this page due to an the Ambassador Edge Stack initialisation issue.
+If the Ambassador Edge Stack is not starting or is not behaving as you would expect, you should visit the Edge Policy Console. This console document covers more advanced use cases and approaches using the command line instead of the Edge Policy Consolee, and assumes that you have either looked at the console or can't access the page due to an issue.
 
-## tl;dr Problem? Start here
+## tl;dr Problem? Start here 
 
 * [Example configuration for debug examples](/reference/debugging#example-config-for-debug-demonstrations)
 * Ambassador Edge Stack not starting
