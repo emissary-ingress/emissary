@@ -1,20 +1,20 @@
-# Running Ambassador Edge Stack
+# Running the Ambassador Edge Stack
 
-This section is intended for operators running Ambassador Edge Stack, and covers various aspects of deploying and configuring Ambassador Edge Stack in production.
+This section is intended for operators running the Ambassador Edge Stack, and covers various aspects of deploying and configuring the Ambassador Edge Stack in production.
 
-## Ambassador Edge Stack and Kubernetes
+## The Ambassador Edge Stack and Kubernetes
 
-Ambassador Edge Stack relies on Kubernetes for reliability, availability, and scalability. This means that features such as Kubernetes readiness and liveness probes, rolling updates, and the Horizontal Pod Autoscaling should be utilized to manage Ambassador Edge Stack.
+The Ambassador Edge Stack relies on Kubernetes for reliability, availability, and scalability. This means that features such as Kubernetes readiness and liveness probes, rolling updates, and the Horizontal Pod Autoscaling should be utilized to manage the Ambassador Edge Stack.
 
 ## Default configuration
 
-The default configuration of Ambassador Edge Stack includes default [resource limits](https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/#resource-requests-and-limits-of-pod-and-container), as well as [readiness and liveness probes](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/). These values should be adjusted for your specific environment.
+The default configuration of the Ambassador Edge Stack includes default [resource limits](https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/#resource-requests-and-limits-of-pod-and-container), as well as [readiness and liveness probes](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/). These values should be adjusted for your specific environment.
 
 ## Running as non-root
 
-Starting with Ambassador 0.35, we support running Ambassador Edge Stack as non-root. This is the recommended configuration, and will be the default configuration in future releases. We recommend you configure Ambassador Edge Stack to run as non-root as follows:
+Starting with Ambassador 0.35, we support running the Ambassador Edge Stack as non-root. This is the recommended configuration, and will be the default configuration in future releases. We recommend you configure the Ambassador Edge Stack to run as non-root as follows:
 
-* Have Kubernetes run Ambassador Edge Stack as non-root. This may happen by default (e.g., OpenShift) or you can set a `securityContext` in your Deployment as shown below in this abbreviated example:
+* Have Kubernetes run the Ambassador Edge Stack as non-root. This may happen by default (e.g., OpenShift) or you can set a `securityContext` in your Deployment as shown below in this abbreviated example:
 
 ```yaml
 ---
@@ -66,7 +66,7 @@ existing file into a directory will fail.)
 
 ## Running as daemonset
 
-Ambassador can be deployed as daemonset to have one pod per node in Kubernetes cluster. This setup is especially helpful when you have Kubernetes cluster running on bare metal or private cloud. 
+Ambassador can be deployed as daemonset to have one pod per node in Kubernetes cluster. This setup is especially helpful when you have Kubernetes cluster running on a private cloud.
 
 * Ideal scenario could be when you are running containers on Kubernetes along side with your non containerized applications running exposed via VIP using BIG-IP or similar products. In such cases, east-west traffic is routed based on iRules to certain set of application pools consisting of application or web servers. In this setup, along side of traditonal application servers, two or more Ambassador pods can also be part of the application pools. In case of failure there is atleast one Ambassdor pod available to BIG-IP and can take care of routing traffic to kubernetes cluster.
 
@@ -98,7 +98,7 @@ env:
   value: "true"
 ```
 
-If you are using Ambassador Edge Stack, if you set `AMBASSADOR_NAMESPACE` or `AMBASSADOR_SINGLE_NAMESPACE`, you will need to set them in **both** containers in the deployment.
+If you are using the Ambassador Edge Stack, if you set `AMBASSADOR_NAMESPACE` or `AMBASSADOR_SINGLE_NAMESPACE`, you will need to set them in **both** containers in the deployment.
 
 
 
@@ -126,7 +126,7 @@ env:
   value: ambassador-1
 ```
 
-If you are using Ambassador Edge Stack, if you set `AMBASSADOR_ID`, you will need to set it in **both** containers in the deployment.
+If you are using the Ambassador Edge Stack, if you set `AMBASSADOR_ID`, you will need to set it in **both** containers in the deployment.
 
 Ambassador will then only use YAML objects that include an appropriate `ambassador_id` attribute. For example, if Ambassador is given the ID `ambassador-1` as above, then of these YAML objects, only the first two will be used:
 
@@ -170,42 +170,42 @@ spec:
 
 The list syntax (shown in `mapping_used_2` above) permits including a given object in the configuration for multiple Ambassadors. In this case `mapping_used_2` will be included in the configuration for `ambassador-1` and also for `ambassador-2`.
 
-**Note well that _any_ object can and should have an `ambassador_id` included** so, for example, it is _fully supported_ to use `ambassador_id` to qualify the `ambassador Module`, `TLS`, and `AuthService` objects. You will need to set Ambassador_id in all resources you want to use for Ambassador Edge Stack.
+**Note well that _any_ object can and should have an `ambassador_id` included** so, for example, it is _fully supported_ to use `ambassador_id` to qualify the `ambassador Module`, `TLS`, and `AuthService` objects. You will need to set Ambassador_id in all resources you want to use for the Ambassador Edge Stack.
 
 If no `AMBASSADOR_ID` is assigned to an Ambassador Edge Stack, it will use the ID `default`. If no `ambassador_id` is present in a YAML object, it will also use the ID `default`.
 
 ## `AMBASSADOR_VERIFY_SSL_FALSE`
 
-By default, Ambassador Edge Stack will verify the TLS certificates provided by the Kubernetes API. In some situations, the cluster may be deployed with self-signed certificates. In this case, set `AMBASSADOR_VERIFY_SSL_FALSE` to `true` to disable verifying the TLS certificates.
+By default, the Ambassador Edge Stack will verify the TLS certificates provided by the Kubernetes API. In some situations, the cluster may be deployed with self-signed certificates. In this case, set `AMBASSADOR_VERIFY_SSL_FALSE` to `true` to disable verifying the TLS certificates.
 
 ## Configuration From the Filesystem
 
-If desired, Ambassador Edge Stack can be configured from YAML files in the directory `$AMBASSADOR_CONFIG_BASE_DIR/ambassador-config` (by default, `/ambassador/ambassador-config`, which is empty in the images built by Datawire). You could volume mount an external configuration directory here, for example, or use a custom Dockerfile to build configuration directly into a Docker image.
+If desired, the Ambassador Edge Stack can be configured from YAML files in the directory `$AMBASSADOR_CONFIG_BASE_DIR/ambassador-config` (by default, `/ambassador/ambassador-config`, which is empty in the images built by Datawire). You could volume mount an external configuration directory here, for example, or use a custom Dockerfile to build configuration directly into a Docker image.
 
-Note well that while Ambassador Edge Stack will read its initial configuration from this directory, configuration loaded from Kubernetes annotations will _replace_ this initial configuration. If this is not what you want, you will need to set the environment variable `AMBASSADOR_NO_KUBEWATCH` so that Ambassador Edge Stack will not try to update its configuration from Kubernetes resources.
+Note well that while the Ambassador Edge Stack will read its initial configuration from this directory, configuration loaded from Kubernetes annotations will _replace_ this initial configuration. If this is not what you want, you will need to set the environment variable `AMBASSADOR_NO_KUBEWATCH` so that the Ambassador Edge Stack will not try to update its configuration from Kubernetes resources.
 
-Also note that the YAML files in the configuration directory must contain Ambassador Edge Stack resources, not Kubernetes resources with annotations.
+Also note that the YAML files in the configuration directory must contain the Ambassador Edge Stack resources, not Kubernetes resources with annotations.
 
 ## Log levels and debugging
 
-Ambassador Open Source and Ambassador Edge Stack support more verbose debugging levels. If using Ambassador Open Source, the [diagnostics](/reference/diagnostics/) service has a button to enable debug logging. Be aware that if you're running Ambassador on multiple pods, the debug log levels are not enabled for all pods -- they are configured on a per-pod basis.
+The Ambassador API Gateway and the Ambassador Edge Stack support more verbose debugging levels. If using the Ambassador API Gateway, the [diagnostics](/reference/diagnostics/) service has a button to enable debug logging. Be aware that if you're running Ambassador on multiple pods, the debug log levels are not enabled for all pods -- they are configured on a per-pod basis.
 
-If using Ambassador Edge Stack, you can adjust the log level by setting the `APP_LOG_LEVEL` environment variable; from least verbose to most verbose, the valid values are `error`, `warn`/`warning`, `info`, `debug`, and `trace`; the default is `info`.
+If using the Ambassador Edge Stack, you can adjust the log level by setting the `APP_LOG_LEVEL` environment variable; from least verbose to most verbose, the valid values are `error`, `warn`/`warning`, `info`, `debug`, and `trace`; the default is `info`.
 
 ## Port Assignments
 
-Ambassador Edge Stackuses some TCP ports in the range 8000-8499 internally, as well as port 8877. Third-party software integrating with Ambassador Edge Stackshould not use ports in this range on the Ambassador pod.
+The Ambassador Edge Stack uses some TCP ports in the range 8000-8499 internally, as well as port 8877. Third-party software integrating with the Ambassador Edge Stack should not use ports in this range on the Ambassador pod.
 
-## Ambassador Edge Stack Update Checks (Scout)
+## The Ambassador Edge Stack Update Checks (Scout)
 
-Ambassador Edge Stack integrates Scout, a service that periodically checks with Datawire servers to advise of available updates. Scout also sends anonymized usage data and the Ambassador Edge Stack version. This information is important to us as we prioritize test coverage, bug fixes, and feature development. Note that Ambassador Edge Stack will run regardless of the status of Scout (i.e., our uptime has zero impact on your uptime.)
+AThe mbassador Edge Stack integrates Scout, a service that periodically checks with Datawire servers to advise of available updates. Scout also sends anonymized usage data and the Ambassador Edge Stack version. This information is important to us as we prioritize test coverage, bug fixes, and feature development. Note that the Ambassador Edge Stack will run regardless of the status of Scout (i.e., our uptime has zero impact on your uptime.)
 
 We do not recommend you disable Scout, since we use this mechanism to notify users of new release (including critical fixes and security issues). This check can be disabled by setting the environment
 variable `SCOUT_DISABLE` to `1` in your Ambassador Edge Stack deployment.
   
 Each Ambassador Edge Stack installation generates a unique cluster ID based on the UID of its Kubernetes namespace and its Ambassador Edge Stack ID: the resulting cluster ID is a UUID which cannot be used to reveal the namespace name nor Ambassador Edge Stack ID itself. Ambassador nEdge Stack eeds RBAC permission to get namespaces for this purpose, as shown in the  default YAML files provided by Datawire; if not granted this permission it will generate a UUID based only on the Ambassador Edge Stack ID. To disable cluster ID generation entirely, set the environment variable `AMBASSADOR_CLUSTER_ID` to a UUID that will be used for the cluster ID.
 
-Unless disabled, Ambassador Edge Stack will also report the following anonymized information back to Datawire:
+Unless disabled, the Ambassador Edge Stack will also report the following anonymized information back to Datawire:
 
 | Attribute                 | Type  | Description               |
 | :------------------------ | :---- | :------------------------ |

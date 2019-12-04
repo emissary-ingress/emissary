@@ -1,6 +1,6 @@
-# Ambassador Configuration Format
+# The Ambassador Edge Stack Configuration Format
 
-Ambassador exposes three methods for configuration.
+The Ambassador Edge Stack exposes three methods for configuration.
 
 - [Ambassador Customer Resource Definitions (CRDs)](/reference/core/crds)
 - [Kubernetes Service Annotations](/reference/core/annotations)

@@ -1,12 +1,12 @@
-# Ambassador Configuration with Kubernetes Service Annotations
+# The Ambassador Configuration with Kubernetes Service Annotations
 
-Ambassador configuration can be expressed as an annotation of a Kubernetes Service.
+The Ambassador configuration can be expressed as an annotation of a Kubernetes Service.
 
 ## Benefits
 
-For many people, this is the preferred format for configuring Ambassador because it directly ties the routing configuration in with the Service definition. i.e. Creating the Service creates the route in Ambassador and deleteing the service removes the route.
+For many people, this is the preferred format for configuring the Ambassador because it directly ties the routing configuration in with the Service definition. i.e. Creating the Service creates the route in the Ambassador and deleteing the service removes the route.
 
-It also allows you to install and configure Ambassador without needing cluster permissions to add CRDs to the cluster.
+It also allows you to install and configure the Ambassador without needing cluster permissions to add CRDs to the cluster.
 
 ## Drawbacks
 
@@ -96,6 +96,7 @@ config:
 
 4. Finally, add the object as an annotation of a Kubernetes Service with key `getambassador.io/config`
 ```yaml
+
 ---
 apiVersion: v1
 kind: Service

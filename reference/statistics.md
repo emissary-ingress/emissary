@@ -62,21 +62,6 @@ For example, by default each service that the API Gateway serves will create a n
 
 [Follow this guide](https://github.com/prometheus/statsd_exporter/tree/v0.6.0#metric-mapping-and-configuration) to learn how to modify your mappings.
 
-#### Configuring for Helm
-
-If you deploy using Helm the value that you should change is `prometheusExporter.configuration`. Set it to something like this:
-
-```yaml
-  configuration: |
-    ---
-    mappings:
-    - match: 'envoy.cluster.*.upstream_rq_total'
-      name: "envoy_cluster_upstream_rq_total"
-      timer_type: 'histogram'
-      labels:
-        cluster_name: "$1"
-```
-
 #### Configuring for kubectl
 
 In the [ambassador-rbac-prometheus](https://github.com/datawire/ambassador/blob/master/templates) example template there is a `ConfigMap` that should be updated. Add your mapping to the `configuration` property.
