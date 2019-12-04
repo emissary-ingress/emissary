@@ -2,8 +2,10 @@ package runner
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"math/rand"
 	"net/http"
 	"os"
@@ -193,6 +195,56 @@ func triggerOnChange(ctx context.Context, watchFile string, trigger func()) {
 	eventsWG.Wait()
 }
 
+// getDiagSnapshot returns a Diag snapshot or waits forever. Note that if we get stuck here, the pod will most likely
+// fail its liveness check, which also hits the Diag daemon.
+func getDiagSnapshot() []byte {
+	for {
+		res := func() []byte {
+			resp, err := http.Get("http://127.0.0.1:8877/ambassador/v0/diag/?json=true")
+			if err != nil {
+				return nil
+			}
+			defer resp.Body.Close()
+			bodyBytes, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				return nil
+			}
+			if resp.StatusCode != 200 {
+				return nil
+			}
+			return bodyBytes
+		}()
+		if res != nil {
+			return res
+		}
+		time.Sleep(100 * time.Millisecond)
+	}
+}
+
+// isFallbackTLSDesired queries a diag snapshot, then returns false if a TLSContext that defines Hosts (a termination
+// context) is present, otherwise returns true. It also includes an explanatory message.
+func isFallbackTLSDesired() (bool, string) {
+	snapshotBytes := getDiagSnapshot()
+	snapshot := struct {
+		TLSContexts []struct {
+			Hosts     []string `json:"hosts"`
+			Name      string   `json:"name"`
+			Namespace string   `json:"namespace"`
+		} `json:"tlscontexts"`
+	}{}
+	if err := json.Unmarshal(snapshotBytes, &snapshot); err != nil {
+		err = errors.Wrap(err, "parse diag snapshot for acme")
+		return true, err.Error()
+	}
+	for _, obj := range snapshot.TLSContexts {
+		// A TLSContext that defines Hosts is a “termination context”. Without Hosts it’s an “origination context”.
+		if len(obj.Hosts) > 0 {
+			return false, fmt.Sprintf("TLSContext %q (ns=%q) exists with Hosts defined", obj.Name, obj.Namespace)
+		}
+	}
+	return true, "No termination TLSContext found in snapshot"
+}
+
 func runE(cmd *cobra.Command, args []string) error {
 	// Load the configuration
 	cfg, warn, fatal := types.ConfigFromEnv()
@@ -325,10 +377,17 @@ func runE(cmd *cobra.Command, args []string) error {
 		coreClient,
 		dynamicClient)
 	group.Go("acme_client", func(hardCtx, softCtx context.Context, cfg types.Config, l dlog.Logger) error {
-		if err := acmeclient.EnsureFallback(cfg, coreClient, dynamicClient); err != nil {
-			err = errors.Wrap(err, "create fallback TLSContext and TLS Secret")
-			l.Errorln(err)
-			// this is non fatal (mostly just to facilitate local dev); don't `return err`
+		// Don't create a fallback context if a termination context already exists, because that would be redundant.
+		fallbackDesired, reason := isFallbackTLSDesired()
+		if fallbackDesired {
+			l.Debugln("Creating fallback TLS configuration because", reason)
+			if err := acmeclient.EnsureFallback(cfg, coreClient, dynamicClient); err != nil {
+				err = errors.Wrap(err, "create fallback TLSContext and TLS Secret")
+				l.Errorln(err)
+				// this is non fatal (mostly just to facilitate local dev); don't `return err`
+			}
+		} else {
+			l.Debugln("Not creating fallback TLS configuration because", reason)
 		}
 		acmeController.Worker(l)
 		return nil
@@ -400,9 +459,9 @@ func runE(cmd *cobra.Command, args []string) error {
 			rateLimitScope := statsStore.Scope("ratelimit")
 			rateLimitService := lyftservice.NewService(
 				loader.New(
-					cfg.RLSRuntimeDir,               // runtime path
-					cfg.RLSRuntimeSubdir,            // runtime subdirectory
-					rateLimitScope.Scope("runtime"), // stats scope
+					cfg.RLSRuntimeDir,                                        // runtime path
+					cfg.RLSRuntimeSubdir,                                     // runtime subdirectory
+					rateLimitScope.Scope("runtime"),                          // stats scope
 					&loader.SymlinkRefresher{RuntimePath: cfg.RLSRuntimeDir}, // refresher
 				),
 				lyftredis.NewRateLimitCacheImpl(
