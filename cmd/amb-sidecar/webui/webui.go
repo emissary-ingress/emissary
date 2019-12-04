@@ -458,11 +458,39 @@ func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				errors.New("method not allowed"), nil)
 		}
 	default:
-		if _, err := fb.staticfiles.Open(path.Clean(r.URL.Path)); os.IsNotExist(err) {
+		var fi os.FileInfo
+
+		// OK. Is this a directory with an index.html in it?
+		cleaned := path.Clean(r.URL.Path)
+		indexPath := path.Join(cleaned, "index.html")
+
+		openFile, err := fb.staticfiles.Open(indexPath)
+
+		if err != nil {
+			// Nope. Can we open it at all?
+
+			openFile, err = fb.staticfiles.Open(cleaned)
+			defer openFile.Close()
+
+			if err == nil {
+				// Yup. Is it a directory?
+				fi, err = openFile.Stat()
+
+				if err == nil {
+					if fi.IsDir() {
+						// Yup. Force an error so we don't serve it.
+						err = errors.New("is directory")
+					}
+				}
+			}
+		}
+
+		if err != nil { // was if os.IsNotExist(err), but why limit it?
 			// use our custom 404 handler instead of http.FileServer's
 			fb.notFound(w, r)
 			return
 		}
+
 		http.FileServer(fb.staticfiles).ServeHTTP(w, r)
 	}
 }
