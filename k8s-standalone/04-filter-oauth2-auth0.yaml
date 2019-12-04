@@ -1,48 +1,27 @@
 # @TEMPLATE@
+
+# Case 1: /oauth2-auth0-nojwt-and-plugin-and-whitelist/
+#  1. Simple Auth0 configuration--we don't set the 'audience'
+#     Authorization Parameter, so the Access Token is _not_ a JWT, so
+#     we thereby test falling back to `accessTokenValidation:
+#     userinfo`.
+#  2. We chain it with the wiki-plugin, thereby testing
+#     a. FilterPolicies combining multiple filters
+#     b. the ability to run Plugins
+#  3. The `/ip` endpoint is excluded from authentication, testing that
+#     we can punch holes.
 ---
 apiVersion: getambassador.io/v1beta2
 kind: Filter
 metadata:
-  name: auth0
+  name: oauth2-auth0-nojwt
   namespace: standalone
 spec:
   OAuth2:
     authorizationURL: {{env "IDP_AUTH0_PROVIDER_URL"}}
     clientURL: {{env "AUTH_TENANT_URL"}}
-    audience: {{env "IDP_AUTH0_AUDIENCE"}}
     clientID: {{env "IDP_AUTH0_CLIENT_ID"}}
     secret: {{env "IDP_AUTH0_CLIENT_SECRET"}}
-    maxStale: 12h
----
-apiVersion: getambassador.io/v1beta2
-kind: Filter
-metadata:
-  name: auth0-jwt
-  namespace: standalone
-spec:
-  JWT:
-    # These settings are taken from "{{env "IDP_AUTH0_PROVIDER_URL"}}/.well-known/openid-configuration"
-    jwksURI: "https://ambassador-oauth-e2e.auth0.com/.well-known/jwks.json"
-    issuer: "https://ambassador-oauth-e2e.auth0.com/"
-    # Add "none", for testing purposes
-    validAlgorithms:
-    - "RS256"
-    - "RS384"
-    - "RS512"
-    - "none"
----
-apiVersion: getambassador.io/v1beta2
-kind: Filter
-metadata:
-  name: auth0-k8s
-  namespace: standalone
-spec:
-  OAuth2:
-    authorizationURL: {{env "IDP_AUTH0_PROVIDER_URL"}}
-    clientURL: {{env "AUTH_TENANT_URL"}}
-    audience: {{env "IDP_AUTH0_AUDIENCE"}}
-    clientID: {{env "IDP_AUTH0_CLIENT_ID"}}
-    secretName: auth0-secret
     maxStale: 12h
 ---
 apiVersion: getambassador.io/v1beta2
@@ -59,45 +38,10 @@ spec:
 apiVersion: getambassador.io/v1
 kind: Mapping
 metadata:
-  name: filter-oauth2-auth0-mapping-1
+  name: oauth2-auth0-nojwt-and-plugin-and-whitelist
   namespace: standalone
 spec:
-  prefix: /httpbin/
-  service: httpbin.org:80
-  host_rewrite: httpbin.org
-  timeout_ms: 5000
----
-apiVersion: getambassador.io/v1
-kind: Mapping
-metadata:
-  name: filter-oauth2-auth0-mapping-2
-  namespace: standalone
-spec:
-  prefix: /auth0/httpbin/
-  rewrite: /
-  service: httpbin.org:80
-  host_rewrite: httpbin.org
-  timeout_ms: 5000
----
-apiVersion: getambassador.io/v1
-kind: Mapping
-metadata:
-  name: filter-oauth2-auth0-mapping-3
-  namespace: standalone
-spec:
-  prefix: /auth0-k8s/httpbin/
-  rewrite: /
-  service: httpbin.org:80
-  host_rewrite: httpbin.org
-  timeout_ms: 5000
----
-apiVersion: getambassador.io/v1
-kind: Mapping
-metadata:
-  name: filter-oauth2-auth0-mapping-4
-  namespace: standalone
-spec:
-  prefix: /auth0-or-jwt/
+  prefix: /oauth2-auth0-nojwt-and-plugin-and-whitelist/
   rewrite: /
   service: httpbin.org:80
   host_rewrite: httpbin.org
@@ -106,49 +50,215 @@ spec:
 apiVersion: getambassador.io/v1beta2
 kind: FilterPolicy
 metadata:
-  name: filter-oauth2-auth0-policy
+  name: oauth2-auth0-nojwt-and-plugin-and-whitelist
   namespace: standalone
 spec:
   rules:
-    # /httpbin/
     - host: "*"
-      path: /httpbin/ip
+      path: /oauth2-auth0-nojwt-and-plugin-and-whitelist/ip
       filters: null
     - host: "*"
-      path: /httpbin/**
+      path: /oauth2-auth0-nojwt-and-plugin-and-whitelist/**
       filters:
-        - name: auth0
+        - name: oauth2-auth0-nojwt
         - name: wiki-plugin
-    # /auth0/httpbin/
+
+# Case 2: /oauth2-auth0-nojwt-and-k8ssecret-and-xhrerror/
+#  1. Similar Auth0 configuration to Case 1 (/oauth2-auth0-nojwt-…), but load
+#     the client secret from a Kubernetes Secret, instead of having it
+#     inline.
+#  2. We test exact-matching with insteadOfRedirect error-responses.
+---
+apiVersion: getambassador.io/v1beta2
+kind: Filter
+metadata:
+  name: oauth2-auth0-nojwt-and-k8ssecret
+  namespace: standalone
+spec:
+  OAuth2:
+    authorizationURL: {{env "IDP_AUTH0_PROVIDER_URL"}}
+    clientURL: {{env "AUTH_TENANT_URL"}}
+    audience: {{env "IDP_AUTH0_AUDIENCE"}}
+    clientID: {{env "IDP_AUTH0_CLIENT_ID"}}
+    secretName: auth0-secret
+    maxStale: 12h
+---
+apiVersion: getambassador.io/v1
+kind: Mapping
+metadata:
+  name: oauth2-auth0-nojwt-and-k8ssecret-and-xhrerror
+  namespace: standalone
+spec:
+  prefix: /oauth2-auth0-nojwt-and-k8ssecret-and-xhrerror/
+  rewrite: /
+  service: httpbin.org:80
+  host_rewrite: httpbin.org
+  timeout_ms: 5000
+---
+apiVersion: getambassador.io/v1beta2
+kind: FilterPolicy
+metadata:
+  name: oauth2-auth0-nojwt-and-k8ssecret-and-xhrerror
+  namespace: standalone
+spec:
+  rules:
     - host: "*"
-      path: /auth0/httpbin/**
+      path: /oauth2-auth0-nojwt-and-k8ssecret-and-xhrerror/**
       filters:
-        - name: auth0
+        - name: oauth2-auth0-nojwt-and-k8ssecret
           arguments:
-            insteadOfRedirect:         # optional, default is to do a redirect
-              ifRequestHeader:         # optional, default is to return httpStatusCode for all requests that would redirect-to-IDP
-                name: X-Requested-With # required
-    # /auth0-k8s/httpbin/
+            insteadOfRedirect:
+              httpStatusCode: 401
+              ifRequestHeader:
+                name: X-Requested-With
+                value: XMLHttpRequest
+
+
+# Case 3: /oauth2-auth0-nojwt-and-anyerror/
+#  1. We test any-matching with insteadOfRedirect error-responses.
+---
+apiVersion: getambassador.io/v1
+kind: Mapping
+metadata:
+  name: oauth2-auth0-nojwt-and-anyerror
+  namespace: standalone
+spec:
+  prefix: /oauth2-auth0-nojwt-and-anyerror/
+  rewrite: /
+  service: httpbin.org:80
+  host_rewrite: httpbin.org
+  timeout_ms: 5000
+---
+apiVersion: getambassador.io/v1beta2
+kind: FilterPolicy
+metadata:
+  name: oauth2-auth0-nojwt-and-anyerror
+  namespace: standalone
+spec:
+  rules:
     - host: "*"
-      path: /auth0-k8s/httpbin/**
+      path: /oauth2-auth0-nojwt-and-anyerror/**
       filters:
-        - name: auth0-k8s
+        - name: oauth2-auth0-nojwt
           arguments:
-            insteadOfRedirect:         # optional, default is to do a redirect
-              httpStatusCode: 401      # optional, default is 403
-              ifRequestHeader:         # optional, default is to return httpStatusCode for all requests that would redirect-to-IDP
-                name: X-Requested-With # required
-                value: XMLHttpRequest  # optional, default is any non-empty string
+            insteadOfRedirect:
+              ifRequestHeader:
+                name: X-Requested-With
+
+# Case 4: /oauth2-auth0-simplejwt/
+#  1. Set the (non-standard) "audience" Authorization Parameter, so
+#     that the Access Token is a JWT, and we can test JWT validation.
+---
+apiVersion: getambassador.io/v1beta2
+kind: Filter
+metadata:
+  name: oauth2-auth0-simplejwt
+  namespace: standalone
+spec:
+  OAuth2:
+    authorizationURL: {{env "IDP_AUTH0_PROVIDER_URL"}}
+    clientURL: {{env "AUTH_TENANT_URL"}}
+    clientID: {{env "IDP_AUTH0_CLIENT_ID"}}
+    secret: {{env "IDP_AUTH0_CLIENT_SECRET"}}
+    maxStale: 12h
+    extraAuthorizationParameters:
+      audience: {{env "IDP_AUTH0_AUDIENCE"}}
+    accessTokenValidation: jwt
+---
+apiVersion: getambassador.io/v1
+kind: Mapping
+metadata:
+  name: oauth2-auth0-simplejwt
+  namespace: standalone
+spec:
+  prefix: /oauth2-auth0-simplejwt/
+  rewrite: /
+  service: httpbin.org:80
+  host_rewrite: httpbin.org
+  timeout_ms: 5000
+---
+apiVersion: getambassador.io/v1beta2
+kind: FilterPolicy
+metadata:
+  name: oauth2-auth0-simplejwt
+  namespace: standalone
+spec:
+  rules:
     - host: "*"
-      path: /auth0-or-jwt/**
+      path: /oauth2-auth0-simplejwt/**
       filters:
-        - name: auth0
+        - name: oauth2-auth0-simplejwt
+
+# Case 5: /oauth2-auth0-complexjwt/
+#  1. Set the (non-standard) "audience" Authorization Parameter, so
+#     that the Access Token is a JWT, and we can test JWT validation.
+#  2. Set `accessTokenJWTFilter` to do more configurable validation
+#     (validate that the "aud" claim is set).
+#  3. Use the JWT Filter directly if the "Authorization" header is
+#     set.
+---
+apiVersion: getambassador.io/v1beta2
+kind: Filter
+metadata:
+  name: oauth2-auth0-complexjwt
+  namespace: standalone
+spec:
+  OAuth2:
+    authorizationURL: {{env "IDP_AUTH0_PROVIDER_URL"}}
+    clientURL: {{env "AUTH_TENANT_URL"}}
+    clientID: {{env "IDP_AUTH0_CLIENT_ID"}}
+    secret: {{env "IDP_AUTH0_CLIENT_SECRET"}}
+    maxStale: 12h
+    extraAuthorizationParameters:
+      audience: {{env "IDP_AUTH0_AUDIENCE"}}
+    accessTokenValidation: jwt
+---
+apiVersion: getambassador.io/v1beta2
+kind: Filter
+metadata:
+  name: jwt-auth0
+  namespace: standalone
+spec:
+  JWT:
+    # These settings are taken from "{{env "IDP_AUTH0_PROVIDER_URL"}}/.well-known/openid-configuration"
+    jwksURI: "https://ambassador-oauth-e2e.auth0.com/.well-known/jwks.json"
+    issuer: "https://ambassador-oauth-e2e.auth0.com/"
+    validAlgorithms:
+    - "RS256"
+    - "RS384"
+    - "RS512"
+    # Add "none" for testing purposes, so that we can craft our own JWTs
+    - "none"
+---
+apiVersion: getambassador.io/v1
+kind: Mapping
+metadata:
+  name: oauth2-auth0-complexjwt
+  namespace: standalone
+spec:
+  prefix: /oauth2-auth0-complexjwt/
+  rewrite: /
+  service: httpbin.org:80
+  host_rewrite: httpbin.org
+  timeout_ms: 5000
+---
+apiVersion: getambassador.io/v1beta2
+kind: FilterPolicy
+metadata:
+  name: oauth2-auth0-complexjwt
+  namespace: standalone
+spec:
+  rules:
+    - host: "*"
+      path: /oauth2-auth0-complexjwt/**
+      filters:
+        - name: oauth2-auth0-complexjwt
           arguments:
-            insteadOfRedirect:         # optional, default is to do a redirect
-              ifRequestHeader:         # optional, default is to return httpStatusCode for all requests that would redirect-to-IDP
-                name: X-Requested-With # required
+            insteadOfRedirect:
+              ifRequestHeader:
+                name: X-Requested-With
               filters:
-              - name: auth0-jwt
+              - name: jwt-auth0
                 arguments:
                   scope:
                   - openid

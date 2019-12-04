@@ -202,7 +202,7 @@ func TestCanBeChainedWithOtherFilters(t *testing.T) {
 	ensureNPMInstalled(t)
 
 	t.Run("run", func(t *testing.T) {
-		browserTest(t, 60*time.Second, `tests.chainTest(browsertab, require("./idp_auth0.js"), "Auth0 (/httpbin)")`)
+		browserTest(t, 60*time.Second, `tests.chainTest(browsertab, require("./idp_auth0.js"), "Auth0 (/oauth2-auth0-nojwt-and-plugin-and-whitelist)")`)
 	})
 }
 
@@ -210,6 +210,6 @@ func TestCanBeTurnedOffForSpecificPaths(t *testing.T) {
 	ensureNPMInstalled(t)
 
 	t.Run("run", func(t *testing.T) {
-		browserTest(t, 60*time.Second, `tests.disableTest(browsertab, require("./idp_auth0.js"), "Auth0 (/httpbin)")`)
+		browserTest(t, 60*time.Second, `tests.disableTest(browsertab, require("./idp_auth0.js"), "Auth0 (/oauth2-auth0-nojwt-and-plugin-and-whitelist)")`)
 	})
 }
