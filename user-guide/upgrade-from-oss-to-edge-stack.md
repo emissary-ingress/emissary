@@ -1,3 +1,3 @@
-# Upgrade from Ambassador Open Source to Ambassador Edge Stack
+# Upgrade from the API Gateway to the Ambassador Edge Stack
 
 Content coming soon! : )

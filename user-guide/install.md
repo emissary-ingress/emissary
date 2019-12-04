@@ -7,4 +7,4 @@ Ambassador Edge Stack can be installed in a variety of ways. The most common app
 
 If you already have an existing edition of Ambassador and would like to upgrade, see the pages in **Other Install & Upgrade Options** category.
 
-These include upgrading from **Ambassador Open Source to Edge Stack**, upgrading from **Ambassador Pro to Edge Stack** and installing [Ambassador Open Source](/user-guide/install-ambassador-oss).
+These include upgrading from the **Ambassador API Gateway to Edge Stack**, upgrading from **Ambassador Pro to Edge Stack** and installing the [Ambassador API Gateway](/user-guide/install-ambassador-oss).
