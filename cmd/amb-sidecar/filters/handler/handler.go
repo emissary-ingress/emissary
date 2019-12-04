@@ -36,11 +36,17 @@ type FilterMux struct {
 	RedisPool   *pool.Pool
 }
 
-func logResponse(logger types.Logger, ret filterapi.FilterResponse, took time.Duration) {
+func logResponse(logger types.Logger, ret filterapi.FilterResponse, took time.Duration) error {
 	switch _ret := ret.(type) {
+	case nil:
+		err := errors.Errorf("[gRPC] %T : unexpected nil", _ret)
+		logger.Errorf("%v (%v)", err, took)
+		return err
 	case *filterapi.HTTPResponse:
 		if _ret == nil {
-			logger.Errorf("[gRPC] %T : unexpected nil (%v)", _ret, took)
+			err := errors.Errorf("[gRPC] %T : unexpected nil", _ret)
+			logger.Errorf("%v (%v)", err, took)
+			return err
 		} else {
 			if loc := _ret.Header.Get("Location"); loc != "" {
 				logger.Infof("[gRPC] %T : %d -> %q (%v)", _ret, _ret.StatusCode, loc, took)
@@ -50,13 +56,18 @@ func logResponse(logger types.Logger, ret filterapi.FilterResponse, took time.Du
 		}
 	case *filterapi.HTTPRequestModification:
 		if _ret == nil {
-			logger.Errorf("[gRPC] %T : unexpected nil (%v)", _ret, took)
+			err := errors.Errorf("[gRPC] %T : unexpected nil", _ret)
+			logger.Errorf("%v (%v)", err, took)
+			return err
 		} else {
 			logger.Infof("[gRPC] %T : %d headers (%v)", _ret, len(_ret.Header), took)
 		}
 	default:
-		logger.Errorf("[gRPC] %T : unexpected response type (%v)", _ret, took)
+		err := errors.Errorf("[gRPC] %T : unexpected response type", _ret)
+		logger.Errorf("%v (%v)", err, took)
+		return err
 	}
+	return nil
 }
 
 func (c *FilterMux) Filter(ctx context.Context, request *filterapi.FilterRequest) (ret filterapi.FilterResponse, err error) {
@@ -79,7 +90,11 @@ func (c *FilterMux) Filter(ctx context.Context, request *filterapi.FilterRequest
 			ret = middleware.NewErrorResponse(_ctx, http.StatusInternalServerError, err, nil)
 			err = nil
 		}
-		logResponse(logger, ret, time.Since(start))
+		err = logResponse(logger, ret, time.Since(start))
+		if err != nil {
+			ret = middleware.NewErrorResponse(_ctx, http.StatusInternalServerError, err, nil)
+			err = nil
+		}
 	}()
 	ret, err = c.filter(_ctx, request, requestID)
 	return
