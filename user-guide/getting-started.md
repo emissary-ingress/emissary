@@ -21,6 +21,6 @@ The Ambassador Edge Stack (community version) is free and available for you to d
 
 Check out [recommendations] for the best experience using the administrative interface, the [Edge Policy Console].
 
-## Check Out the Features 
+## Check Out the Features
 
 The following table lists all of the features available to you with the Ambassador Edge Stack. [Want to learn more?]
