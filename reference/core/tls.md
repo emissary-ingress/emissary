@@ -21,7 +21,7 @@ kind: TLSContext
 metadata:
   name: tls-context-1
 spec:
-  # 'hosts' defines which the hosts for which this TLSContext is relevant.
+  # 'hosts' defines the hosts for which this TLSContext is relevant.
   # It ties into SNI. A TLSContext without "hosts" is useful only for 
   # originating TLS. 
   # type: array of strings
@@ -101,7 +101,7 @@ spec:
   hosts: ["*"]
   alpn_protocols: h2[, http/1.1]
 ```
-Without setting setting alpn_protocols as shown above, HTTP2 will not be available via negotiation and will have to be explicitly requested by the client.
+Without setting alpn_protocols as shown above, HTTP2 will not be available via negotiation and will have to be explicitly requested by the client.
 
 If you leave off http/1.1, only HTTP2 connections will be supported.
 
