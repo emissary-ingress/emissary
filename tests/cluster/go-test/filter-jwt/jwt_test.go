@@ -183,7 +183,28 @@ func TestJWTErrorResponse(t *testing.T) {
 					"WWW-Authenticate": "",
 				},
 				Body: httpbinHeaders{
-					// TODO
+					Headers: map[string]string{
+						"Accept-Encoding":                "gzip",
+						"Authorization":                  "Bearer eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJleHAiOjE2MTYyMzkwMjIsImlhdCI6MTUxNjIzOTAyMiwibmFtZSI6IkpvaG4gRG9lIiwic2NvcGUiOiJvcGVuaWQgbXlzY29wZSIsInN1YiI6IjEyMzQ1Njc4OTAifQ.",
+						"Host":                           "httpbin.org",
+						"User-Agent":                     "Go-http-client/1.1",
+						"X-Authorization":                "Authenticated JWT; sub=1234567890; name=\"John Doe\"",
+						"X-Envoy-Expected-Rq-Timeout-Ms": "5000",
+						"X-Envoy-Internal":               "true",
+						"X-Envoy-Original-Path":          "/jwt/headers",
+						"X-Fixed-String":                 "Fixed String",
+						"X-Override":                     "after",
+						"X-Token-C-Iat":                  "1.516239022e+09",
+						"X-Token-C-Iat-Decimal":          "1516239022",
+						"X-Token-C-Name":                 "John Doe",
+						"X-Token-C-Sub":                  "1234567890",
+						"X-Token-H-Alg":                  "none",
+						"X-Token-H-Extra":                "<no value>",
+						"X-Token-H-Typ":                  "JWT",
+						"X-Token-S":                      "",
+						"X-Token-String":                 "eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJleHAiOjE2MTYyMzkwMjIsImlhdCI6MTUxNjIzOTAyMiwibmFtZSI6IkpvaG4gRG9lIiwic2NvcGUiOiJvcGVuaWQgbXlzY29wZSIsInN1YiI6IjEyMzQ1Njc4OTAifQ.",
+						"X-Ua":                           "Go-http-client/1.1",
+					},
 				},
 			},
 		},
@@ -328,7 +349,7 @@ func TestJWTErrorResponse(t *testing.T) {
 			case httpbinHeaders:
 				var body httpbinHeaders
 				assert.NotError(json.Unmarshal(bodyBytes, &body))
-				if expectedBody.Equal(body) {
+				if !expectedBody.Equal(body) {
 					t.Errorf("Wrong body:\n"+
 						"\texpected: %#v\n"+
 						"\treceived: %#v\n",
