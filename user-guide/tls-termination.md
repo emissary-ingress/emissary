@@ -14,7 +14,7 @@ This guide requires you have the following installed:
 
 ## Install Ambassador Edge Stack
 
-Install Ambassador Edge Stack in Kubernetes using the [YAML manifests](/user-guide/getting-started).
+Install Ambassador Edge Stack in Kubernetes using the [YAML manifests](/user-guide/install).
 
 ## Create a Self-Signed Certificate
 

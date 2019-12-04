@@ -72,8 +72,6 @@ load_balancer:
 
 If the cookie you wish to set affinity on is already present in incoming requests, then you only need the `cookie.name` field. However, if you want Ambassador Edge Stack to generate and set a cookie in response to the first request, then you need to specify a value for the `cookie.ttl` field which generates a cookie with the given expiration time.
 
-For example, the following configuration asks the client to set a cookie named `sticky-cookie` with expiration of 60 seconds in response to the first request if the cookie is not already present.
-
 ### Header
 ```yaml
 load_balancer:

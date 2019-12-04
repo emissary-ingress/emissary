@@ -96,8 +96,6 @@
         link: /user-guide/linkerd2
     - title: Best Practices
       items:
-      - title: Integration Testing with Service Preview
-        link: /docs/dev-guide/service-preview
       - title: Implementing GitOps with Ambassador Edge Stack
         link: /user-guide/gitops-ambassador
       - title: Testing in Production with Canary Releases

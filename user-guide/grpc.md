@@ -1,6 +1,6 @@
 # gRPC and Ambassador Edge Stack
 
-Ambassador Edge Stack makes it easy to access your services from outside your application. This includes gRPC services, although a little bit of additional configuration is required: by default, Envoy connects to upstream services using HTTP/1.x and then upgrades to HTTP/2 whenever possible. However, gRPC is built on HTTP/2 and most gRPC servers do not speak HTTP/1.x at all. Ambassador Edge Stack must tell its underlying Envoy that your gRPC service only wants to speak that HTTP/2, using the `grpc` attribute of a `Mapping`.
+Ambassador Edge Stack makes it easy to access your services from outside your application. This includes gRPC services, although a little bit of additional configuration is required: by default, Envoy connects to upstream services using HTTP/1.x and then upgrades to HTTP/2 whenever possible. However, gRPC is built on HTTP/2 and most gRPC servers do not speak HTTP/1.x at all. Ambassador Edge Stack must tell its underlying Envoy that your gRPC service only wants to speak to that HTTP/2, using the `grpc` attribute of a `Mapping`.
 
 ## Writing a gRPC service for Ambassador Edge Stack
 
@@ -40,16 +40,16 @@ EXPOSE 50051
 Create the container and test it:
 
 ```shell
-$ docker build -t <docker_reg>/grpc_example .
-$ docker run -p 50051:50051 <docker_reg>/example
+$ docker build -t <docker_reg>/grpc_example
+$ docker run -p 50051:50051 <docker_reg>/grpc_example
 ```
 
-Where `<docker_reg>` is your Docker profile.
+Where `<docker_reg>` is your Docker user or registry.
 
 Switch to another terminal and, from the same directory, run the `greeter_client`. The output should be the same as running it outside of the container.
 
 ```shell
-$ docker run -p 50051:50051 <docker_reg>/example
+$ docker run -p 50051:50051 <docker_reg>/grpc_example
 Greeter client received: Hello, you!
 ```
 
@@ -84,7 +84,7 @@ spec:
   service: grpc-example
 ```
 
-Note the `grpc: true` line —- this is what tells Envoy to use HTTP/2 so the request can communicate with your backend service. Also note that you'll need `prefix` and `rewrite` the same here, since the gRPC service needs the package and service to be in the request to do the right thing.
+Note the `grpc: true` line - this is what tells Envoy to use HTTP/2 so the request can communicate with your backend service. Also note that you'll need `prefix` and `rewrite` the same here, since the gRPC service needs the package and service to be in the request to do the right thing.
 
 ### Deploying to Kubernetes
 `grpc_example.yaml`
@@ -142,7 +142,7 @@ spec:
 
 After adding the Ambassador Edge Stack mapping to the service, the rest of the Kubernetes deployment YAML file is pretty straightforward. We need to identify the container image to use, expose the `containerPort` to listen on the same port the Docker container is listening on, and map the service port (80) to the container port (50051).
 
-Once you have the YAML file configured, deploy it to your cluster with kubectl.
+Once you have the YAML file and the correct Docker registry, deploy it to your cluster with kubectl.
 
 ```shell
 $ kubectl apply -f grpc_example.yaml

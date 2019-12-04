@@ -1,7 +1,6 @@
 # Knative Integration
 
-[Knative](https://knative.dev/) is a popular Kubernetes-based platform for managing serverless workloads with 3 main components:
-- Build - Source-to-container build orchestration
+[Knative](https://knative.dev/) is a popular Kubernetes-based platform for managing serverless workloads with 2 main components:
 - Eventing - Management and delivery of events
 - Serving - Request-driven compute that can scale to zero
 
@@ -15,9 +14,9 @@ The Ambassador Edge Stack can watch for changes in Knative configuration in your
 
 #### Prerequisites
 
-- Knative requires a Kubernetes cluster v1.11 or newer with the MutatingAdmissionWebhook admission controller enabled. kubectl v1.10 is also required. This guide assumes that you’ve already created a Kubernetes cluster which you’re comfortable installing alpha software on.
-
-- The Ambassador Edge Stack should be installed in your cluster. Follow one of the [installation guides](/user-guide/install) for instructions on installing the Ambassador Edge Stack.
+- Knative now requires Kubernetes v1.14, as well as a [compatible kubectl](https://knative.dev/docs/install/knative-with-ambassador/)
+- `kubectl` v1.10 is also required. This guide assumes that you’ve already created a Kubernetes cluster which you’re comfortable installing alpha software on.
+- The Ambassador Edge Stack should be installed in your cluster. Follow the [installation guides](/user-guide/install) for instructions on installing the Ambassador Edge Stack.
 
 #### Installation
 

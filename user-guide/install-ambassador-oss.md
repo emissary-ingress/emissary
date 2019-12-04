@@ -1,6 +1,6 @@
 # The Ambassador API Gateway
 
-In this tutorial, we'll walk through the process of deploying the Ambassador API Gateway in Kubernetes for ingress routing. the Ambassador API Gateway provides all the functionality of a traditional ingress controller (i.e., path-based routing) while exposing many additional capabilities such as [authentication](/user-guide/auth-tutorial), URL rewriting, CORS, rate limiting, and automatic metrics collection (the [mappings reference](/reference/mappings) contains a full list of supported options). Note that the Ambassador Edge Stack can be used as an [Ingress Controller](/reference/core/ingress-controller).
+In this tutorial, we'll walk through the process of deploying the Ambassador API Gateway in Kubernetes for ingress routing. The Ambassador API Gateway provides all the functionality of a traditional ingress controller (i.e., path-based routing) while exposing many additional capabilities such as [authentication](/user-guide/auth-tutorial), URL rewriting, CORS, rate limiting, and automatic metrics collection (the [mappings reference](/reference/mappings) contains a full list of supported options). Note that the Ambassador Edge Stack can be used as an [Ingress Controller](/reference/core/ingress-controller).
 
 For more background on Kubernetes ingress, [read this blog post](https://blog.getambassador.io/kubernetes-ingress-nodeport-load-balancers-and-ingress-controllers-6e29f1c44f2d).
 
@@ -14,9 +14,8 @@ To deploy Ambassador in your **default** namespace, first you need to check if K
 kubectl cluster-info dump --namespace kube-system | grep authorization-mode
 ```
 
-If you see something like `--authorization-mode=Node,RBAC` in the output, then RBAC is enabled. The majority of current hosted Kubernetes providers (such as GKE) create
-clusters with RBAC enabled by default, and unfortunately the above command may not return any information indicating this.
-u
+If you see something like `--authorization-mode=Node,RBAC` in the output, then RBAC is enabled. The majority of current hosted Kubernetes providers (such as GKE) create clusters with RBAC enabled by default, and unfortunately the above command may not return any information indicating this.
+
 **Note:** If you're using Google Kubernetes Engine with RBAC, you'll need to grant permissions to the account that will be setting up the Ambassador API Gateway. To do this, get your official GKE username, and then grant `cluster-admin` role privileges to that username:
 
 ```shell

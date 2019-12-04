@@ -27,7 +27,7 @@ Find additional requirements and recommendations for a successful installation a
 
 ## Deploy the Ambassador Edge Stack to Kubernetes
 
-The Ambassador Edge Stack is deployed via our custom manifest in a YAML file.
+The Ambassador Edge Stack is deployed from the command line via our custom manifest in a YAML file.
 
 **To deploy the Ambassador Edge Stack:**
 

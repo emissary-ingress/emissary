@@ -69,7 +69,7 @@ To configure multi-domain access, you will need to create another authentication
 
 Example:
 
-```
+```yaml
 ---
 apiVersion: getambassador.io/v2
 kind: Filter
@@ -101,5 +101,3 @@ Create a separate `FilterPolicy` that specifies which specific filters are appli
 ## Further reading
 
 The [filter reference](/reference/filter-reference) covers the specifics of filters and filter policies in much more detail.
-
-

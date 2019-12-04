@@ -1,8 +1,8 @@
 # Cert-Manager and Ambassador Edge Stack
 
-Creating and managing certificates in Kubernetes is made simple with Jetstack's [cert-manager](https://github.com/jetstack/cert-manager). cert-manager will automatically create and renew TLS certificates and store them in Kubernetes secrets for easy use in a cluster.
+Creating and managing certificates in Kubernetes is made simple with Jetstack's [cert-manager](https://github.com/jetstack/cert-manager). Cert-manager will automatically create and renew TLS certificates and store them in Kubernetes secrets for easy use in a cluster.
 
-Starting in Ambassador Edge Stack 0.50.0, Ambassador will automatically watch for secret changes and reload certificates upon renewal.
+Starting in the Ambassador API Gateway 0.50.0, Ambassador will automatically watch for secret changes and reload certificates upon renewal.
 
 ## Install Cert-Manager
 
@@ -24,7 +24,7 @@ helm install -n cert-manager --set webhook.enabled=false stable/cert-manager
 
 ## Issuing Certificates
 
-cert-manager issues certificates from a CA such as [Let's Encrypt](https://letsencrypt.org/). It does this using the ACME protocol which supports various challenge mechanisms for verifying ownership of the domain. 
+cert-manager issues certificates from a CA such as [Let's Encrypt](https://letsencrypt.org/). It does this using the ACME protocol which supports various challenge mechanisms for verifying ownership of the domain.
 
 ### Issuer
 
@@ -109,8 +109,9 @@ The HTTP-01 challenge verifies ownership of the domain by sending a request for 
 
 4. Create a Mapping for the `/.well-known/acme-challenge` route.
 
-    cert-manager uses an `Ingress` resource to issue the challenge to `/.well-known/acme-challenge` but, since Ambassador is not an `Ingress`, we will need to create a `Mapping` so the cert-manager can reach the temporary pod.
-    ```yaml
+cert-manager uses an `Ingress` resource to issue the challenge to `/.well-known/acme-challenge` but, since Ambassador is not an `Ingress`, we will need to create a `Mapping` so the cert-manager can reach the temporary pod.
+ 
+```yaml
     ---
     apiVersion: getambassador.io/v2
     kind: Mapping
@@ -132,9 +133,9 @@ The HTTP-01 challenge verifies ownership of the domain by sending a request for 
         targetPort: 8089
       selector:
         certmanager.k8s.io/acme-http01-solver: "true"
-    ```
+```
 
-    Apply the YAML and wait a couple of minutes. cert-manager will retry the challenge and issue the certificate.
+Apply the YAML and wait a couple of minutes. cert-manager will retry the challenge and issue the certificate.
 
 5. Verify the secret is created:
 

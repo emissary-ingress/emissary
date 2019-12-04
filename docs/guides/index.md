@@ -39,7 +39,6 @@ Guides are hands-on tutorials to walk you through configuring the Ambassador Edg
   <ul>
    <li><a href="/user-guide/gitops-ambassador">Implementing GitOps with Ambassador</a></li>
    <li><a href="/docs/dev-guide/canary-release-concepts">Testing in Production with Canary Releases</a></li>
-   <li><a href="/docs/dev-guide/service-preview">Integration Testing with Service Preview</a></li>
   </ul>
  </td>
 </tr>
