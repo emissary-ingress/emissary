@@ -9,14 +9,14 @@ In other words, **the Ambassador Edge Stack is an all-in-one edge stack manageme
 
 The Ambassador Edge Stack enables GitOps-style management of your application, in addition to the easy to use Edge Policy Console interface that visually displays all of your configurations.
 
-**To start using the Ambassador Edge Stack and its features right away:**
+To start using the Ambassador Edge Stack and its features right away:
 
-1. Install the Ambassador Edge Stack
-2. Add Hosts for automatic HTTPS
-3. Create and Verify Mappings
-4. Explore other Possibilities
+1. [Install the Ambassador Edge Stack](/user-guide/install#install-the-ambassador-edge-stack)
+2. [Add Hosts for automatic HTTPS](user-guide/install#add-hosts-and-configure-tls)
+3. [Create and Verify Mappings](/user-guide/install#create-mappings)
+4. [What's Next?](/user-guide/install#whats-next)
 
-### Working Requirements
+## Before You Begin
 
 The Ambassador Edge Stack is designed to run in Kubernetes for production. The most essential requirements are:
 
@@ -25,9 +25,9 @@ The Ambassador Edge Stack is designed to run in Kubernetes for production. The m
 
 Find additional requirements and recommendations for a successful installation and deployment on the [Product Requirements](/user-guide/product-requirements) page.
 
-## Deploy the Ambassador Edge Stack to Kubernetes
+## Install the Ambassador Edge Stack
 
-The Ambassador Edge Stack is deployed from the command line via our custom manifest in a YAML file.
+The Ambassador Edge Stack is deployed to Kubernetes from the command line via our custom manifest in a YAML file.
 
 **To deploy the Ambassador Edge Stack:**
 
@@ -94,7 +94,7 @@ To secure your application with HTTPS, you must first add a Host to your Ambassa
 
 Your hostname will appear in a pending state as the Ambassador Edge Stack configures automatic TLS. In the “Status” field, you will see the TLS status change. If you receive an error that your hostname does not qualify for ACME management, you can still configure TLS following [these instructions](/reference/core/tls).
 
-To upgrade from evaluation mode, [sign up for a free community license] today.
+To upgrade from evaluation mode, sign up for a free community license today from your Edge Policy Console.
 
 ## Create Mappings
 
