@@ -364,22 +364,18 @@ span.code {
      * name and namespaces rules as defined by
      * https://kubernetes.io/docs/concepts/overview/working-with-objects/names/
      */
-    var nameFormat = /^[a-z0-9][a-z0-9\.\-]*$/; // lower-case letters, numbers, dash, and dot
-    var badNameFormat1 = /.*(-\.)$/; // can't end in - or .
+    var nameFormat = /^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$/; // lower-case letters, numbers, dash, and dot
 
     let nameInputValue = this.nameInput().value;
     if(!( nameInputValue.match(nameFormat)
-       && nameInputValue.length <= 253
-       && !nameInputValue.match(badNameFormat1) )) {
+       && nameInputValue.length <= 253 )) {
       this.state.messages.push("Name must be {a-z0-9-.}, length <= 253")
     }
 
     var namespaceFormat = nameFormat;
-    var badNamespaceFormat1 = badNameFormat1;
     let namespaceInputValue = this.namespaceInput().value;
     if(!( namespaceInputValue.match(namespaceFormat)
-      && namespaceInputValue.length <= 253
-      && !namespaceInputValue.match(badNamespaceFormat1) )) {
+      && namespaceInputValue.length <= 253 )) {
       this.state.messages.push("Namespace must be {a-z0-9-.}, length <= 253")
     }
   }
@@ -448,17 +444,17 @@ spec: ${JSON.stringify(this.spec())}
           })
       .then(r=>{
         r.text().then(t=>{
-          this.reset();
           if (r.ok) {
             // happy path
+            this.reset();
+            if (this.state.mode === "add") {
+              this.state.mode = "off"
+            } else {
+              this.state.mode = "list"
+            }
           } else {
             console.error(t);
-            this.addError(`Unexpected error while saving resource: ${r.statusText}`); // Make sure we add this error to the stack after calling this.reset();
-          }
-          if (this.state.mode === "add") {
-            this.state.mode = "off"
-          } else {
-            this.state.mode = "list"
+            this.addError(`Unable to ${this.state.mode === "add" ? "create" : "save"} because: ${t}`); // Make sure we add this error to the stack after calling this.reset();
           }
         })
       })
