@@ -358,8 +358,9 @@ span.code {
   defaultMergeStrategy(pathName) {
     switch (pathName) {
     case "metadata.annotations.kubectl.kubernetes.io/last-applied-configuration":
-    case "metadata.generation":
     case "metadata.creationTimestamp":
+    case "metadata.generation":
+    case "metadata.resourceVersion":
     case "metadata.selfLink":
     case "metadata.uid":
     case "status":
