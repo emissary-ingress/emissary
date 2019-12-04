@@ -301,6 +301,25 @@ func TestJWTErrorResponse(t *testing.T) {
 				},
 			},
 		},
+		"noToken": {
+			Request: &http.Request{
+				Method: "GET",
+				URL:    u,
+				Header: http.Header{},
+			},
+			ExpectedResponse: httpResponse{
+				StatusCode: http.StatusUnauthorized,
+				Header: map[string]string{
+					"Content-Type":     "application/json",
+					"WWW-Authenticate": `Bearer realm="jwt-filter.standalone"`,
+				},
+				Body: customErrorResponse{
+					ErrorMessage: `no Bearer token`,
+					HTTPStatus:   "401",
+					//"requestId": "7167523368329307446"
+				},
+			},
+		},
 	}
 
 	client := &http.Client{
