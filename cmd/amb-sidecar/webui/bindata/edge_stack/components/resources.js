@@ -494,7 +494,7 @@ span.code {
       mergeInput.apiVersion = "getambassador.io/v2";
       mergeInput.metadata.name = this.nameInput().value
       mergeInput.metadata.namespace = this.namespaceInput().value
-      mergeInput.spec = {};
+      mergeInput.spec = this.spec();
     }
     mergeInput.metadata.annotations[aes_res_changed] = "true";
     let yaml = jsyaml.safeDump(this.merge(this.resource, mergeInput));
