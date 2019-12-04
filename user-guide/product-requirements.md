@@ -14,7 +14,7 @@ Then, please review the following recommendations for the Ambassador Edge Stack:
 
 ## Port Assignments
 
-The Ambassador Edge Stack uses the following ports to listen for HTTP/HTTPS traffic automatically via TCP:
+The Ambassador Edge Stack uses the following ports to listen for HTTP/HTTPS traffic automatically via TCP: 
 
 | Port | Process | Function |
 | :--- | :------ | :------- |
@@ -23,16 +23,12 @@ The Ambassador Edge Stack uses the following ports to listen for HTTP/HTTPS traf
 | 8003 | `ambex` | Internal `ambex` snapshot access; not exposed outside pod |
 | 8080 | `envoy` | Default HTTP service port |
 | 8443 | `envoy` | Default HTTPS service port |
-| 8877 | `diagd` | Direct access to diagnostics UI |
-| 8500 | ???
 
-Ambassador binds to ports 8080, 8443, and 8500 by default. Note that Ambassador products do not support the UDP protocol.
+Note that Ambassador products do not support the UDP protocol.
 
 ### Future Port Assignments
 
-Any future assignments you must make for Ambassador must come from the port range 8000-8499.
-
-Third-party software integrating with Ambassador Edge Stack should not use ports in this range on the Ambassador pod.
+Ambassador will never use ports outside of the range of 8000-8999. Third-party software integrating with Ambassador Edge Stack **must not** use ports in this range on the Ambassador pod and will error or fail if they do.
 
 ## Resource Recommendations
 
@@ -40,13 +36,13 @@ Because resource usage is expected to be linear with your traffic, we recommend 
 
 ## Version Control
 
-We recommend that you stay on the latest version of Ambassador.
+We recommend that you stay on the latest version of Ambassador. While you can always read back Ambassador's configuration from `annotation`s or its diagnostic service, Ambassador will not do versioning for you. Tools like [Forge](https://forge.sh) can help you maintain proper version control for your services' routing configurations.
 
 If you want to be part of the early access releases, learn about how to do so [here](/user-guide/early-access).
 
 ## Edge Policy Console Requirements
 
-To use the administrative interface, the Edge Policy Console, we recommend that you use the following operating systems: 
+To use the administrative interface, the Edge Policy Console, we recommend that you use the following operating systems:
 
 * Linux (x84 64bit)
 * OS X 10.11 (El Capitan) or newer

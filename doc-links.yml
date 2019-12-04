@@ -1,204 +1,74 @@
 - title: Welcome
   collapsable: false
   items:
-    - title: Ambassador Overview
-    - link: /docs
     - title: Getting Started with Ambassador
       link: /user-guide/getting-started
+    - title: Why Ambassador?
+      link: /about/why-ambassador
     - title: Contact Support
       link: /about/support
-    
-- title: Install & Deploy
+
+- title: Install
   items:
     - title: Quick Start Installation Guide
       link: /user-guide/install
     - title: Product Requirements
-      link: /user-guide/product-requirements
-    - title: 
-
-
-- title: Concepts
-  items:
-    title: Glossary
-    link: 
-
-
-
-- title: How to
-  items:
-    - title:
-      link: 
-
-
-- title: Third Party Configurations
-  items:
-    - title: 
-
-
-
-
-- title: Welcome
-  collapsable: false
-  items:
-    - title: Quick Start Guide
-      link: /docs
-    - title: Why Ambassador Edge Stack?
-      link: /about/why-ambassador
-    - title: Features and Benefits
-      link: /about/features-and-benefits
-    - title: Using Ambassador Edge Stack in Your Organization
-      link: /concepts/using-ambassador-in-org
-    - title: Ambassador Edge Stack vs. Other Software
-      link: /about/alternatives
-    - title: Certified Builds
-      link: /user-guide/certified-builds
-    - title: Need help?
+      link: /user-guide/product-requirements  
+    - title: Other Installation Options
       items: 
-      - title: Contact Support
-        link: /about/support
-      - title: Ask on Slack
-        link: https://d6e.co/slack
-      - title: File a GitHub Issue
-        link: https://github.com/datawire/ambassador/issues/new
-      - title: Visit Datawire.io
-        link: https://www.datawire.io
-        
-- title: Install Ambassador Edge Stack
-  items: 
-  - title: Installation Overview
-    link: /user-guide/install
-  - title: Kubernetes (YAML)
-    link: /user-guide/getting-started
-  - title: Kubernetes (Helm)
-    link: /user-guide/helm
-  - title: Kubernetes Bare Metal
-    link: /user-guide/bare-metal
-  - title: Docker Quickstart
-    link: /about/quickstart
-  - title: Docker Compose
-    link: /user-guide/docker-compose
-  - title: Other Install & Upgrade Options
-    items: 
-    - title: Upgrade Ambassador OSS to Ambassador Edge Stack
-      link: /user-guide/upgrade-from-oss-to-edge-stack
-    - title: Upgrade from Ambassador Pro to Ambassador Edge Stack
-      link: /user-guide/upgrade-from-pro-to-edge-stack
-    - title: Install Ambassador Open Source
-      link: /user-guide/install-ambassador-oss  
-    - title: Early Access Releases
-      link: /user-guide/early-access
+      - title: Upgrade Ambassador from the API Gateway to the Edge Stack
+        link: /user-guide/upgrade-from-oss-to-edge-stack
+      - title: Upgrade from Ambassador Pro to Ambassador Edge Stack
+        link: /user-guide/upgrade-from-pro-to-edge-stack
+      - title: Install Ambassador Open Source
+        link: /user-guide/install-ambassador-oss  
+      - title: Early Access Releases
+        link: /user-guide/early-access
 
-
-- title: Concepts
-  items: 
-  - title: Ambassador 101
-    link: /concepts/overview
-  - title: Ambassador Edge Stack Architecture
-    link: /concepts/architecture
-  - title: Ambassador Edge Stack Deployment Architecture
-    link: /concepts/ambassador-deployment
-  - title: Continuous Delivery, Declarative Config, and GitOps
-    link: /user-guide/cd-declarative-gitops
-  - title: Microservices API Gateways
-    link: /about/microservices-api-gateways
-  - title: Rate Limiting Concepts
-    link: /user-guide/rate-limiting
-  - title: Self-Service Routing and Deployment Control
-    link: /concepts/developers
-  - title: Safely Testing in Production
-    link: /docs/dev-guide/test-in-prod
-  - title: OAuth & OIDC Overview
-    link: /concepts/auth-overview
-  - title: Why Ambassador Edge Stack Uses Envoy Proxy (External Link)
-    link: https://blog.getambassador.io/envoy-vs-nginx-vs-haproxy-why-the-open-source-ambassador-api-gateway-chose-envoy-23826aed79ef
-
-- title: Guides & Tutorials 
-  items: 
-    - title: Available Guides
-      link: /docs/guides/
-      items:
-    - title: Connecting Services
-      items:
-      - title: Adding a Custom Filter for Routing
-        link: /docs/guides/filter-dev-guide
-      - title: Knative and Ambassador Edge Stack
-        link: /user-guide/knative
-      - title: Use gRPC with Ambassador Edge Stack
-        link: /user-guide/grpc
-      - title: Use WebSockets with Ambassador Edge Stack
-        link: /user-guide/websockets-ambassador
-    - title: Security
-      items:
-      - title: Encryption and Authentication  
-        link:  /user-guide/security
-      - title: Enabling HTTPS
-        link: /user-guide/tls-termination
-      - title: cert-manager with Ambassador Edge Stack
-        link: /user-guide/cert-manager
-      - title: Basic Authentication
-        link: /user-guide/auth-tutorial
-      - title: Single Sign-On with OAuth & OIDC
-        link: /user-guide/oauth-oidc-auth
-      - title: Basic Rate Limiting
-        link: /user-guide/rate-limiting-tutorial
-      - title: Advanced Rate Limiting
-        link: /user-guide/advanced-rate-limiting
-    - title: Service Mesh
-      items:
-      - title: Consul and Ambassador Edge Stack
-        link: /user-guide/consul
-      - title: Istio and Ambassador Edge Stack
-        link: /user-guide/with-istio
-      - title: Linkerd2
-        link: /user-guide/linkerd2
-    - title: Best Practices
-      items:
-      - title: Integration Testing with Service Preview
-        link: /docs/dev-guide/service-preview
-      - title: Implementing GitOps with Ambassador Edge Stack
-        link: /user-guide/gitops-ambassador
-      - title: Testing in Production with Canary Releases
-        link: /docs/dev-guide/canary-release-concepts
-    - title: Observability
-      items:
-      - title: Distributed Tracing
-        link: /user-guide/tracing-tutorial
-      - title: DataDog Distributed Tracing
-        link: /user-guide/tracing-tutorial-datadog
-      - title: Zipkin Distributed Tracing
-        link: /user-guide/tracing-tutorial-zipkin
-      - title: Monitoring Ingress with Prometheus and Grafana
-        link: /user-guide/monitoring
-
-
-- title: Reference & Configurations
+- title: Configure
   items:
-    - title: Configuring Ambassador Edge Stack
-      link: /reference/configuration
-    - title: Global Configuration
-      link: /reference/core/ambassador
-    - title: Global Module Configuration
-      link: /reference/modules
-    - title: Core Configuration
-      items:
+  - title: Configuration Recommendations
+    link: /reference/configuration
+  - title: Core Configurations
+    items:        
+        - title: Global Configuration
+          link: /reference/core/ambassador
+        - title: Module Configuration
+          link: /reference/modules
         - title: Gzip compression
           link: /reference/gzip
         - title: Load Balancing Configuration
           link: /reference/core/load-balancer
         - title: Service Discovery Configuration
           link: /reference/core/resolvers
-    - title: Running Ambassador Edge Stack
-      items:  
-      - title: Running and Deployment 
-        link: /reference/running
-      - title: Debugging Ambassador Edge Stack
-        link: /reference/debugging
-      - title: Ambassador Edge Stack with AWS
-        link: /reference/ambassador-with-aws
-      - title: Diagnostics
-        link: /reference/diagnostics
-    - title: Security Configuration
-      items:
+        - title: Custom Resource Definitions
+          link: /reference/core/crds
+        - title: Ingress Controller
+          link: /reference/core/ingress-controller
+  - title: Filters
+    items: 
+        - title: Custom Filter for Routing
+          link: /docs/guides/filter-dev-guide
+        - title: Filters
+          link: /reference/filter-reference
+        - title: External Filter Type
+          link: /reference/external-filter-type
+        - title: OAuth Filter Type
+          link: /reference/oauth-filter-type
+        - title: JWT Filter Type
+          link: /reference/jwt-filter-type
+        - title: FilterPolicy Definition
+          link: /reference/filterpolicy-definition
+  - title: The Edge Policy Console
+    items:
+        - title: Using the Administrative Interface
+          link: /reference/dev-portal
+        - title: Diagnostics
+          link: /reference/diagnostics
+        - title: Debugging
+          link: /reference/debugging
+  - title: Security 
+    items:
       - title: TLS Configuration
         link: /reference/core/tls
       - title: Client Certificate Validation
@@ -211,8 +81,8 @@
         link: /user-guide/sni
       - title: TLS Origination
         link: /reference/tls/origination
-    - title: Configuring Services
-      items:
+  - title: Service Routing
+    items:
       - title: Configure Mappings
         link: /reference/mappings
       - title: Canary Releases
@@ -249,18 +119,76 @@
         link: /reference/timeouts
       - title: Traffic Shadowing
         link: /reference/shadowing
-    - title: Plugins
-      items:
-      - title: Available Services
-        link: /reference/services/services
+  - title: Deprecated Configurations
+    items:
       - title: Authentication
         link: /reference/services/auth-service
-      - title: Access Control
-        link: /reference/services/access-control
       - title: Rate Limiting
         link: /reference/services/rate-limit-service
-      - title: Tracing
-        link: /reference/services/tracing-service
+
+- title: Concepts
+  items: 
+  - title: Ambassador 101
+    link: /concepts/overview
+  - title: Ambassador Edge Stack Architecture
+    link: /concepts/architecture
+  - title: Ambassador Edge Stack Deployment Architecture
+    link: /concepts/ambassador-deployment
+  - title: Microservices API Gateways
+    link: /about/microservices-api-gateways
+  - title: Rate Limiting Concepts
+    link: /user-guide/rate-limiting
+  - title: Self-Service Routing and Deployment Control
+    link: /concepts/developers
+  - title: OAuth & OIDC Overview
+    link: /concepts/auth-overview
+  - title: Why Ambassador Edge Stack Uses Envoy Proxy (External Link)
+    link: https://blog.getambassador.io/envoy-vs-nginx-vs-haproxy-why-the-open-source-ambassador-api-gateway-chose-envoy-23826aed79ef
+  - title: Features and Benefits
+    link: /about/features-and-benefits
+  - title: Ambassador Edge Stack vs. Other Software
+    link: /about/alternatives
+  - title: Certified Builds
+    link: /user-guide/certified-builds
+- title: Best Practices 
+  items:
+    - title: Running in Production 
+      link: /reference/running
+    - title: Using Ambassador Edge Stack in Your Organization
+      link: /concepts/using-ambassador-in-org
+    - title: Integration Testing with Service Preview
+      link: /docs/dev-guide/service-preview
+    - title: Implementing GitOps with Ambassador Edge Stack
+      link: /user-guide/gitops-ambassador
+    - title: Testing in Production with Canary Releases
+      link: /docs/dev-guide/canary-release-concepts
+    - title: Safely Testing in Production
+      link: /docs/dev-guide/test-in-prod
+    - title: Continuous Delivery, Declarative Config, and GitOps
+      link: /user-guide/cd-declarative-gitops
+
+- title: Third Party Connections
+  items:
+    - title: Available Configurations
+      link: /docs/guides/
+    - title: Service Mesh
+      items:
+      - title: Consul
+        link: /user-guide/consul
+      - title: Istio
+        link: /user-guide/with-istio
+      - title: Linkerd2
+        link: /user-guide/linkerd2
+    - title: Observability
+      items:
+      - title: Distributed Tracing
+        link: /user-guide/tracing-tutorial
+      - title: DataDog Distributed Tracing
+        link: /user-guide/tracing-tutorial-datadog
+      - title: Zipkin Distributed Tracing
+        link: /user-guide/tracing-tutorial-zipkin
+      - title: Monitoring Ingress with Prometheus and Grafana
+        link: /user-guide/monitoring
     - title: IDP Support
       items:
       - title: Auth0
@@ -277,16 +205,24 @@
         link: /reference/idp-support/salesforce
       - title: User Account and Authentication (UAA)
         link: /reference/idp-support/uaa
-    - title: Custom Resource Definitions
-      link: /reference/core/crds
-    - title: Ambassador as an Ingress Controller
-      link: /reference/core/ingress-controller
-    - title: Filters
-      link: /reference/filter-reference
-    - title: Developer Portal
-      link: /reference/dev-portal
-    - title: Statistics and Monitoring
-      link: /reference/statistics
+    - title: Custom Policies
+      items:
+      - title: Available Services
+        link: /reference/services/services
+      - title: Access Control
+        link: /reference/services/access-control
+      - title: Tracing
+        link: /reference/services/tracing-service
+    - title: Protocol Support
+      items:
+      - title: Knative and Ambassador Edge Stack
+        link: /user-guide/knative
+      - title: Use gRPC with Ambassador Edge Stack
+        link: /user-guide/grpc
+      - title: Use WebSockets with Ambassador Edge Stack
+        link: /user-guide/websockets-ambassador
+      - title: Load Balancing with AWS
+        link: /reference/ambassador-with-aws
 
 - title: Contributors
   items:
@@ -294,5 +230,3 @@
       link: https://github.com/datawire/ambassador/blob/master/BUILDING.md
     - title: Changelog (GitHub)
       link: https://github.com/datawire/ambassador/blob/master/CHANGELOG.md
-
-
