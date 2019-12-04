@@ -36,7 +36,7 @@ Because resource usage is expected to be linear with your traffic, we recommend 
 
 ## Version Control
 
-We recommend that you stay on the latest version of Ambassador. While you can always read back Ambassador's configuration from `annotation`s or its diagnostic service, Ambassador will not do versioning for you. Tools like [Forge](https://forge.sh) can help you maintain proper version control for your services' routing configurations.
+We recommend that you stay on the latest version of Ambassador. While you can always read back Ambassador's configuration from `annotation`s or its diagnostic service, Ambassador will not do versioning for you.
 
 If you want to be part of the early access releases, learn about how to do so [here](/user-guide/early-access).
 

@@ -81,14 +81,14 @@ env:
 - name: AMBASSADOR_NAMESPACE
   valueFrom:
     fieldRef:
-      fieldPath: metadata.namespace          
+      fieldPath: metadata.namespace
 ```
 
 Given that `AMBASSADOR_NAMESPACE` is set, Ambassador [mappings](/reference/mappings) can operate within the same namespace, or across namespaces. **Note well** that mappings will have to explicitly include the namespace with the service to cross namespaces; see the [mapping](/reference/mappings) documentation for more information.
 
 If you only want Ambassador to only work within a single namespace, set `AMBASSADOR_SINGLE_NAMESPACE` as an environment variable.
 
-```
+```yaml
 env:
 - name: AMBASSADOR_NAMESPACE
   valueFrom:
@@ -98,10 +98,7 @@ env:
   value: "true"
 ```
 
-If you are using the Ambassador Edge Stack, if you set `AMBASSADOR_NAMESPACE` or `AMBASSADOR_SINGLE_NAMESPACE`, you will need to set them in **both** containers in the deployment.
-
-
-
+If you are using the Ambassador Edge Stack, if you set `AMBASSADOR_NAMESPACE` or `AMBASSADOR_SINGLE_NAMESPACE`, set it in deployment container. 
 
 ## `AMBASSADOR_ID`
 
@@ -126,7 +123,7 @@ env:
   value: ambassador-1
 ```
 
-If you are using the Ambassador Edge Stack, if you set `AMBASSADOR_ID`, you will need to set it in **both** containers in the deployment.
+If you are using the Ambassador Edge Stack, if you set `AMBASSADOR_ID`, you will need to set it in the deployment container.
 
 Ambassador will then only use YAML objects that include an appropriate `ambassador_id` attribute. For example, if Ambassador is given the ID `ambassador-1` as above, then of these YAML objects, only the first two will be used:
 

@@ -2,7 +2,7 @@
 
 Ambassador Edge Stack's robust TLS support exposes configuration options for different TLS use cases including:
 
-- [Client Certification Validation](/reference/tls/client-cert-validation)
+- [Client Certificate Validation](/reference/tls/client-cert-validation)
 - [HTTP -> HTTPS Redirection](/reference/tls/cleartext-redirection)
 - [Mutual TLS](/reference/tls/mtls)
 - [Server Name Indication (SNI)](/user-guide/sni)
@@ -12,7 +12,7 @@ Ambassador Edge Stack's robust TLS support exposes configuration options for dif
 
 You control TLS configuration in Ambassador Edge Stack using `TLSContext` resources. Multiple `TLSContext`s can be defined in your cluster and can be used for any combination of TLS use cases.
 
-A full schema of the `TLSContext` can be found below with descriptions of the different configuration options. Reference documentation for configuring different use cases are linked to at the top of this document.
+A full schema of the `TLSContext` can be found below with descriptions of the different configuration options. 
 
 ```yaml
 ---

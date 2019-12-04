@@ -15,12 +15,12 @@ spec:
   config:
   # Use ambassador_id only if you are using multiple ambassadors in the same cluster.
   # For more information: https://www.getambassador.io/reference/running/#ambassador_id.
-  # ambassador_id: "<ambassador_id>"
+        # ambassador_id: "<ambassador_id>"
   
   # admin_port is the port where Ambassador's Envoy will listen for
   # low-level admin requests. You should almost never need to change
   # this.
-  # admin_port: 8001
+        # admin_port: 8001
 
   # default_label_domain and default_labels set a default domain and
   # request labels to every request for use by rate limiting. For
@@ -28,55 +28,55 @@ spec:
 
   # diag_port is the port where Ambassador will listen for requests
   # to the diagnostic service.
-  # diag_port: 8877
+        # diag_port: 8877
 
   # The diagnostic service (at /ambassador/v0/diag/) defaults on, but
   # you can disable the api route. It will remain accessible on
   # diag_port.
-  # diagnostics:
-  #   enabled: true
+        # diagnostics:
+        #   enabled: true
 
   # Should we automatically add Linkerd `l5d-dst-override` headers?
-  # add_linkerd_headers: false
+        # add_linkerd_headers: false
 
   # Should we enable the gRPC-http11 bridge?
-  # enable_grpc_http11_bridge: false
+        # enable_grpc_http11_bridge: false
 
   # Should we enable the grpc-Web protocol?
-  # enable_grpc_web: false
+        # enable_grpc_web: false
 
   # Should we enable http/1.0 protocol?
-  # enable_http10: false
+        # enable_http10: false
 
   # Should we do IPv4 DNS lookups when contacting services? Defaults to true,
   # but can be overridden in a [`Mapping`](/reference/mappings).
-  # enable_ipv4: true
+        # enable_ipv4: true
 
   # Should we do IPv6 DNS lookups when contacting services? Defaults to false,
   # but can be overridden in a [`Mapping`](/reference/mappings).
-  # enable_ipv6: false
+        # enable_ipv6: false
 
   # liveness probe defaults on, but you can disable the api route.
   # It will remain accessible on diag_port.
-  # liveness_probe:
-  #   enabled: true
+        # liveness_probe:
+        #   enabled: true
 
   # run a custom lua script on every request. see below for more details.
-  # lua_scripts
+        # lua_scripts
 
   # readiness probe defaults on, but you can disable the api route.
   # It will remain accessible on diag_port.
-  # readiness_probe:
-  #   enabled: true
+        # readiness_probe:
+        #   enabled: true
 
   # By default Envoy sets server_name response header to 'envoy'
   # Override it with this variable
-  # server_name: envoy
+        # server_name: envoy
 
   # If present, service_port will be the port Ambassador listens
   # on for microservice access. If not present, Ambassador will
   # use 8443 if TLS is configured, 8080 otherwise.
-  # service_port: 8080
+       # service_port: 8080
 
   # statsd configures Ambassador statistics. These values can be
   # set in the Ambassador module or in an environment variable.
@@ -84,22 +84,22 @@ spec:
 
   # use_proxy_protocol controls whether Envoy will honor the PROXY
   # protocol on incoming requests.
-  # use_proxy_proto: false
+        # use_proxy_proto: false
 
   # envoy_log_type defines the type of log envoy will use , currently only support json or text
-  # envoy_log_type: text
+       # envoy_log_type: text
 
   # envoy_log_path defines the path of log envoy will use. By default this is standard output
-  # envoy_log_path: /dev/fd/1
+        # envoy_log_path: /dev/fd/1
 
   # envoy_log_format defines the envoy log line format.
   # see https://www.envoyproxy.io/docs/envoy/latest/configuration/observability/access_log for a complete list of operators
-  # envoy_log_format: "ACCESS [%START_TIME%] \"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\" %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% \"%REQ(X-FORWARDED-FOR)%\" \"%REQ(U*    545 SER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\" \"%UPSTREAM_HOST%\""
+        # envoy_log_format: "ACCESS [%START_TIME%] \"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\" %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% \"%REQ(X-FORWARDED-FOR)%\" \"%REQ(U*    545 SER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\" \"%UPSTREAM_HOST%\""
 
   # use_remote_address controls whether Envoy will trust the remote
   # address of incoming connections or rely exclusively on the
   # X-Forwarded_For header.
-  # use_remote_address: true
+        # use_remote_address: true
 
   # xff_num_trusted_hops controls the how Envoy sets the trusted
   # client IP address of a request. If you have a proxy in front
@@ -108,53 +108,53 @@ spec:
   # setting x_num_trusted_hops: 1 will tell Envoy to use the client IP
   # address in X-Forwarded-For. Please see the envoy documentation for
   # more information: https://www.envoyproxy.io/docs/envoy/v1.11.2/configuration/http_conn_man/headers#x-forwarded-for
-  # xff_num_trusted_hops: 0
+        # xff_num_trusted_hops: 0
 
   # Ambassador lets through only the HTTP requests with
   # `X-FORWARDED-PROTO: https` header set, and redirects all the other
   # requests to HTTPS if this field is set to true. Note that `use_remote_address`
   # must be set to false for this feature to work as expected.
-  # x_forwarded_proto_redirect: false
+        # x_forwarded_proto_redirect: false
 
   # load_balancer sets the global load balancing type and policy that
   # Ambassador will use for all mappings, unless overridden in a
   # mapping. Defaults to round robin with Kubernetes.
   # More information at the [load balancer reference](/reference/core/load-balancer)
-  # load_balancer:
-  #   policy: round_robin/least_request/ring_hash/maglev
-  #   ...
+        # load_balancer:
+        #   policy: round_robin/least_request/ring_hash/maglev
+        #   ...
 
   # circuit_breakers sets the global circuit breaking configuration that
   # Ambassador will use for all mappings, unless overridden in a
   # mapping.
   # More information at the [circuit breaking reference](/reference/core/circuit-breaking)
-  # circuit_breakers:
-  #   max_connections: 2048
-  #   ...
+        # circuit_breakers:
+        #   max_connections: 2048
+        #   ...
 
   # retry_policy lets you add resilience to your services in case of request failures by performing automatic retries.
-  # retry_policy:
-  #   retry_on: "5xx"
-  #   ...
+        # retry_policy:
+        #   retry_on: "5xx"
+        #   ...
 
   # Set default CORS configuration for all mappings in the cluster. See
   # CORS syntax at https://www.getambassador.io/reference/cors.html
-  # cors:
-  #   origins: http://foo.example,http://bar.example
-  #   methods: POST, GET, OPTIONS
-  #   ...
-  #   ...
+        # cors:
+        #   origins: http://foo.example,http://bar.example
+        #   methods: POST, GET, OPTIONS
+        #   ...
+        #   ...
 
   # Set the default upstream-connection idle timeout. If not set (the default), upstream
   # connections will never be closed due to idling.
-  # cluster_idle_timeout_ms: 30000
+        # cluster_idle_timeout_ms: 30000
 
   # Set which regular expression engine to use. See the "Regular Expressions" section below.
   # regex_type: safe 
 
   # This field controls the RE2 “program size” which is a rough estimate of how complex a compiled regex is to
   # evaluate.  A regex that has a program size greater than the configured value will fail to compile.
-  # regex_max_size: 200
+        # regex_max_size: 200
 ```
 
 ### Overriding Default Ports
@@ -235,7 +235,7 @@ Enable/disable handling of incoming HTTP/1.0 and HTTP 0.9 requests.
 
 ### `enable_ivp4` and `enable_ipv6`
 
-If both IPv4 and IPv6 are enabled, Ambassador Edge Stack will prefer IPv6. This can have strange effects if Ambassador Edge Stack receives `AAAA` records from a DNS lookup, but the underlying network of the pod doesn't actually support IPv6 traffic. For this reason, the default for 0.50.0 is IPv4 only.
+If both IPv4 and IPv6 are enabled, Ambassador Edge Stack will prefer IPv6. This can have strange effects if Ambassador Edge Stack receives `AAAA` records from a DNS lookup, but the underlying network of the pod doesn't actually support IPv6 traffic. For this reason, the default is IPv4 only.
 
 A `Mapping` can override both `enable_ipv4` and `enable_ipv6`, but if either is not stated explicitly in a `Mapping`, the values here are used. Most Ambassador Edge Stack installations will probably be able to avoid overridding these setting in `Mapping`s.
 

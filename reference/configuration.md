@@ -18,7 +18,7 @@ Note that each of these `kind`s are supported as both annotations and as Custom 
 
 The Ambassador Edge Stack assembles its configuration from YAML blocks that may be stored:
 
-- as `annotations` on Kubernetes `service`s (this is the recommended technique);
+- as Custom Resource Definitions on Kubernetes `service`s (this is the recommended technique);
 - as data in a Kubernetes `ConfigMap`; or
 - as files in the Ambassador Edge Stack's local filesystem.
 
@@ -30,7 +30,7 @@ The Ambassador Edge Stack's configuration is assembled from multiple YAML blocks
 
 - Ambassador Edge Stack's configuration should be under version control.
 
-    While you can always read back the Ambassador Edge Stack's configuration from `annotation`s or its diagnostic service, the Ambassador Edge Stack will not do versioning for you. Tools like [Forge](https://forge.sh) can help you maintain proper version control for your services' routing configurations.
+    While you can always read back the Ambassador Edge Stack's configuration from `annotation`s or its diagnostic service, the Ambassador Edge Stack will not do versioning for you.
 
 - Be aware that the Ambassador Edge Stack tries to not start with a broken configuration, but it's not perfect.
 

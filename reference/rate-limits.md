@@ -68,7 +68,7 @@ config:
       - default
 ```
 
-This will annotate every request with the string `default`, creating a key for a rate limiting service to rate limit based off. 
+This will annotate every request with the string `default`, creating a key for a rate limiting service based off of the appropriate rate limit.
 
 ## The `rate_limits` attribute
 

@@ -1,6 +1,6 @@
 # Client Certificate Validation
 
-Ambassador Edge Stack can be configured to use a provided CA certificate to validate certificates sent from your clients. This allows for client-side mTLS where both Ambassador Edge Stack and the client but provide and validate each other's certificates.
+Ambassador Edge Stack can be configured to use a provided CA certificate to validate certificates sent from your clients. This allows for client-side mTLS where both Ambassador Edge Stack and the client provide and validate each other's certificates.
 
 ## Configuration
 
