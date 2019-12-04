@@ -78,7 +78,6 @@ spec:
   OAuth2:
     authorizationURL: {{env "IDP_AUTH0_PROVIDER_URL"}}
     clientURL: {{env "AUTH_TENANT_URL"}}
-    audience: {{env "IDP_AUTH0_AUDIENCE"}}
     clientID: {{env "IDP_AUTH0_CLIENT_ID"}}
     secretName: auth0-secret
     maxStale: 12h
@@ -212,6 +211,11 @@ spec:
     extraAuthorizationParameters:
       audience: {{env "IDP_AUTH0_AUDIENCE"}}
     accessTokenValidation: jwt
+    accessTokenJWTFilter:
+      name: jwt-auth0
+      arguments:
+        scope:
+        - openid
 ---
 apiVersion: getambassador.io/v1beta2
 kind: Filter
@@ -223,11 +227,15 @@ spec:
     # These settings are taken from "{{env "IDP_AUTH0_PROVIDER_URL"}}/.well-known/openid-configuration"
     jwksURI: "https://ambassador-oauth-e2e.auth0.com/.well-known/jwks.json"
     issuer: "https://ambassador-oauth-e2e.auth0.com/"
+    # This is our "complex" validation
+    audience: {{env "IDP_AUTH0_AUDIENCE"}}
+    requireAudience: true
+    injectRequestHeaders:
+    - name: "X-Test-Header"
+      value: "yeppers"
+    # Add "none" for testing purposes, so that we can craft our own JWTs
     validAlgorithms:
     - "RS256"
-    - "RS384"
-    - "RS512"
-    # Add "none" for testing purposes, so that we can craft our own JWTs
     - "none"
 ---
 apiVersion: getambassador.io/v1

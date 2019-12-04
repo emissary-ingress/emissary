@@ -17,6 +17,7 @@ import (
 
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta2"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/middleware"
+	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/oauth2handler/client/clientcommon"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/oauth2handler/discovery"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/oauth2handler/resourceserver"
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
@@ -120,38 +121,7 @@ func (c *OAuth2Client) ServeHTTP(w http.ResponseWriter, r *http.Request, ctx con
 }
 
 func (c *OAuth2Client) handleAuthenticatedProxyRequest(ctx context.Context, logger types.Logger, httpClient *http.Client, discovered *discovery.Discovered, request *filterapi.FilterRequest, authorization http.Header, sessionData *rfc6749client.ClientCredentialsClientSessionData) filterapi.FilterResponse {
-	addAuthorization := &filterapi.HTTPRequestModification{}
-	for k, vs := range authorization {
-		for _, v := range vs {
-			addAuthorization.Header = append(addAuthorization.Header, &filterapi.HTTPHeaderReplaceValue{
-				Key:   k,
-				Value: v,
-			})
-		}
-	}
-	filterutil.ApplyRequestModification(request, addAuthorization)
-
-	resourceResponse := c.ResourceServer.Filter(ctx, logger, httpClient, discovered, request, sessionData.CurrentAccessToken.Scope)
-	if resourceResponse == nil {
-		// nil means to send the same request+authorization to the upstream service, so tell
-		// Envoy to add the authorization to the request.
-		return addAuthorization
-	} else if resourceResponse, typeOK := resourceResponse.(*filterapi.HTTPResponse); typeOK && resourceResponse.StatusCode == http.StatusUnauthorized {
-		// The upstream Resource Server returns 401 Unauthorized to the Client--the Client does NOT pass
-		// 401 along to the User Agent; the User Agent is NOT using an RFC 7235-compatible
-		// authentication scheme to talk to the Client; 401 would be inappropriate.
-		//
-		// Instead, wrap the 401 response in a 403 Forbidden response.
-		return middleware.NewErrorResponse(ctx, http.StatusForbidden,
-			errors.New("authorization rejected"),
-			map[string]interface{}{
-				"synthesized_upstream_response": resourceResponse,
-			},
-		)
-	} else {
-		// Otherwise, just return the upstream resource server's response
-		return resourceResponse
-	}
+	return clientcommon.HandleAuthenticatedProxyRequest(middleware.WithLogger(ctx, logger), httpClient, discovered, request, authorization, sessionData.CurrentAccessToken.Scope, c.ResourceServer)
 }
 
 func (c *OAuth2Client) loadSession(redisClient *redis.Client, clientID, clientSecret string) (*rfc6749client.ClientCredentialsClientSessionData, error) {

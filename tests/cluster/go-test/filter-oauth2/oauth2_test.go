@@ -63,6 +63,7 @@ func TestInsteadOfRedirect(t *testing.T) {
 	insufficientToken, err := jwt.NewWithClaims(jwt.GetSigningMethod("none"), jwt.MapClaims{
 		"sub":   "1234567890",
 		"name":  "John Doe",
+		"aud":   "urn:datawire:ambassador:testapi",
 		"iat":   1516239022,
 		"exp":   1616239022,
 		"scope": "",
@@ -72,6 +73,7 @@ func TestInsteadOfRedirect(t *testing.T) {
 	validToken, err := jwt.NewWithClaims(jwt.GetSigningMethod("none"), jwt.MapClaims{
 		"sub":   "1234567890",
 		"name":  "John Doe",
+		"aud":   "urn:datawire:ambassador:testapi",
 		"iat":   1516239022,
 		"exp":   1616239022,
 		"scope": "openid",

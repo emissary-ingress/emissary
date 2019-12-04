@@ -42,7 +42,7 @@ _Auth0_Client_Secret=MkpnAmzX-EEzV708qD_giNd9CF_R-owNau94QZVgOfna9FYf-SdTvATuNkr
 #  - "${AUTH_TENANT_URL}" is in the "Allowed Web Origins" textbox
 #  - A test user account is set up (and configured in ./tests/cluster/oauth-e2e/idp_auth0.js)
 IDP_AUTH0_PROVIDER_URL=https://${_Auth0_Domain}
-IDP_AUTH0_AUDIENCE=https://${_Auth0_Domain}/api/v2/
+IDP_AUTH0_AUDIENCE=urn:datawire:ambassador:testapi
 IDP_AUTH0_CLIENT_ID=${_Auth0_Client_ID}
 IDP_AUTH0_CLIENT_SECRET=${_Auth0_Client_Secret}
 

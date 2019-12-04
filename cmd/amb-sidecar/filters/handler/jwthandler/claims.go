@@ -7,6 +7,30 @@ import (
 	"github.com/datawire/apro/resourceserver/rfc6749"
 )
 
+func GetAudience(claims jwt.MapClaims) []string {
+	// https://tools.ietf.org/html/rfc7519#section-4.1.3
+	switch claim := claims["aud"].(type) {
+	case nil:
+		return nil
+	case string:
+		return []string{claim}
+	case []interface{}:
+		ret := make([]string, 0, len(claim))
+		for _, item := range claim {
+			switch item := item.(type) {
+			case string:
+				ret = append(ret, item)
+			default:
+				//logger.Warningf("Unexpected aud[n] type: %T", item)
+			}
+		}
+		return ret
+	default:
+		//logger.Warningf("Unexpected aud type: %T", claim)
+		return nil
+	}
+}
+
 func GetScope(logger types.Logger, claims jwt.MapClaims) rfc6749.Scope {
 	// Parse the 'scope' claim (draft standard).
 	// https://www.iana.org/assignments/jwt/jwt.xhtml
