@@ -148,10 +148,11 @@ func (m *BootstrapConfigDump) GetLastUpdated() *types.Timestamp {
 // Envoy's listener manager fills this message with all currently known listeners. Listener
 // configuration information can be used to recreate an Envoy configuration by populating all
 // listeners as static listeners or by returning them in a LDS response.
+// [#next-free-field: 6]
 type ListenersConfigDump struct {
-	// This is the :ref:`version_info <envoy_api_field_DiscoveryResponse.version_info>` in the
-	// last processed LDS discovery response. If there are only static bootstrap listeners, this field
-	// will be "".
+	// This is the :ref:`version_info <envoy_api_field_api.v3alpha.DiscoveryResponse.version_info>` in
+	// the last processed LDS discovery response. If there are only static bootstrap listeners, this
+	// field will be "".
 	VersionInfo string `protobuf:"bytes,1,opt,name=version_info,json=versionInfo,proto3" json:"version_info,omitempty"`
 	// The statically loaded listener configs.
 	StaticListeners []*ListenersConfigDump_StaticListener `protobuf:"bytes,2,rep,name=static_listeners,json=staticListeners,proto3" json:"static_listeners,omitempty"`
@@ -302,9 +303,9 @@ func (m *ListenersConfigDump_StaticListener) GetLastUpdated() *types.Timestamp {
 // Describes a dynamically loaded cluster via the LDS API.
 type ListenersConfigDump_DynamicListener struct {
 	// This is the per-resource version information. This version is currently taken from the
-	// :ref:`version_info <envoy_api_field_DiscoveryResponse.version_info>` field at the time
-	// that the listener was loaded. In the future, discrete per-listener versions may be supported
-	// by the API.
+	// :ref:`version_info <envoy_api_field_api.v3alpha.DiscoveryResponse.version_info>` field at the
+	// time that the listener was loaded. In the future, discrete per-listener versions may be
+	// supported by the API.
 	VersionInfo string `protobuf:"bytes,1,opt,name=version_info,json=versionInfo,proto3" json:"version_info,omitempty"`
 	// The listener config.
 	Listener *v3alpha1.Listener `protobuf:"bytes,2,opt,name=listener,proto3" json:"listener,omitempty"`
@@ -373,9 +374,9 @@ func (m *ListenersConfigDump_DynamicListener) GetLastUpdated() *types.Timestamp 
 // configuration information can be used to recreate an Envoy configuration by populating all
 // clusters as static clusters or by returning them in a CDS response.
 type ClustersConfigDump struct {
-	// This is the :ref:`version_info <envoy_api_field_DiscoveryResponse.version_info>` in the
-	// last processed CDS discovery response. If there are only static bootstrap clusters, this field
-	// will be "".
+	// This is the :ref:`version_info <envoy_api_field_api.v3alpha.DiscoveryResponse.version_info>` in
+	// the last processed CDS discovery response. If there are only static bootstrap clusters, this
+	// field will be "".
 	VersionInfo string `protobuf:"bytes,1,opt,name=version_info,json=versionInfo,proto3" json:"version_info,omitempty"`
 	// The statically loaded cluster configs.
 	StaticClusters []*ClustersConfigDump_StaticCluster `protobuf:"bytes,2,rep,name=static_clusters,json=staticClusters,proto3" json:"static_clusters,omitempty"`
@@ -514,9 +515,9 @@ func (m *ClustersConfigDump_StaticCluster) GetLastUpdated() *types.Timestamp {
 // Describes a dynamically loaded cluster via the CDS API.
 type ClustersConfigDump_DynamicCluster struct {
 	// This is the per-resource version information. This version is currently taken from the
-	// :ref:`version_info <envoy_api_field_DiscoveryResponse.version_info>` field at the time
-	// that the cluster was loaded. In the future, discrete per-cluster versions may be supported by
-	// the API.
+	// :ref:`version_info <envoy_api_field_api.v3alpha.DiscoveryResponse.version_info>` field at the
+	// time that the cluster was loaded. In the future, discrete per-cluster versions may be
+	// supported by the API.
 	VersionInfo string `protobuf:"bytes,1,opt,name=version_info,json=versionInfo,proto3" json:"version_info,omitempty"`
 	// The cluster config.
 	Cluster *v3alpha1.Cluster `protobuf:"bytes,2,opt,name=cluster,proto3" json:"cluster,omitempty"`
@@ -702,8 +703,8 @@ func (m *RoutesConfigDump_StaticRouteConfig) GetLastUpdated() *types.Timestamp {
 
 type RoutesConfigDump_DynamicRouteConfig struct {
 	// This is the per-resource version information. This version is currently taken from the
-	// :ref:`version_info <envoy_api_field_DiscoveryResponse.version_info>` field at the time that
-	// the route configuration was loaded.
+	// :ref:`version_info <envoy_api_field_api.v3alpha.DiscoveryResponse.version_info>` field at the
+	// time that the route configuration was loaded.
 	VersionInfo string `protobuf:"bytes,1,opt,name=version_info,json=versionInfo,proto3" json:"version_info,omitempty"`
 	// The route config.
 	RouteConfig *v3alpha1.RouteConfiguration `protobuf:"bytes,2,opt,name=route_config,json=routeConfig,proto3" json:"route_config,omitempty"`
@@ -903,8 +904,8 @@ type ScopedRoutesConfigDump_DynamicScopedRouteConfigs struct {
 	// The name assigned to the scoped route configurations.
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	// This is the per-resource version information. This version is currently taken from the
-	// :ref:`version_info <envoy_api_field_DiscoveryResponse.version_info>` field at the time that
-	// the scoped routes configuration was loaded.
+	// :ref:`version_info <envoy_api_field_api.v3alpha.DiscoveryResponse.version_info>` field at the
+	// time that the scoped routes configuration was loaded.
 	VersionInfo string `protobuf:"bytes,2,opt,name=version_info,json=versionInfo,proto3" json:"version_info,omitempty"`
 	// The scoped route configurations.
 	ScopedRouteConfigs []*v3alpha1.ScopedRouteConfiguration `protobuf:"bytes,3,rep,name=scoped_route_configs,json=scopedRouteConfigs,proto3" json:"scoped_route_configs,omitempty"`
