@@ -33,8 +33,6 @@ type FilterOAuth2 struct {
 	SecretName      string        `json:"secretName"`
 	SecretNamespace string        `json:"secretNamespace"`
 
-	//Audience        string        `json:"audience"`
-
 	RawMaxStale string        `json:"maxStale"`
 	MaxStale    time.Duration `json:"-"` // calculated from RawMaxStale
 
@@ -44,7 +42,14 @@ type FilterOAuth2 struct {
 
 	ExtraAuthorizationParameters map[string]string `json:"extraAuthorizationParameters"`
 
-	AccessTokenValidation string `json:"accessTokenValidation"`
+	AccessTokenValidation string             `json:"accessTokenValidation"`
+	AccessTokenJWTFilter  JWTFilterReference `json:"accessTokenJWTFilter"`
+}
+
+type JWTFilterReference struct {
+	Name      string             `json:"name"`
+	Namespace string             `json:"namespace"`
+	Arguments FilterJWTArguments `json:"arguments"`
 }
 
 //nolint:gocyclo
@@ -163,6 +168,23 @@ func (m *FilterOAuth2) Validate(namespace string, secretsGetter coreV1client.Sec
 	default:
 		return errors.Errorf("accessTokenValidation=%q is invalid; valid values are %q",
 			m.AccessTokenValidation, []string{"auto", "jwt", "userinfo"})
+	}
+
+	if m.AccessTokenJWTFilter.Name != "" {
+		switch m.AccessTokenValidation {
+		case "auto":
+			m.AccessTokenValidation = "jwt"
+		case "jwt":
+			// do nothing
+		case "userinfo":
+			return errors.Errorf("accessTokenValidation=%q does not do JWT validation, but accessTokenJWTFilter is set",
+				m.AccessTokenValidation)
+		default:
+			panic("should not happen")
+		}
+		if m.AccessTokenJWTFilter.Namespace == "" {
+			m.AccessTokenJWTFilter.Namespace = namespace
+		}
 	}
 
 	return nil

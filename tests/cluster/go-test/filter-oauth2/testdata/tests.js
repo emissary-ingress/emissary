@@ -2,7 +2,7 @@ const { expect } = require('chai');
 const run = require('./run.js');
 
 // can authorize requests
-module.exports.standardTest = async (browsertab, idpfile, testname) => {
+const standardTest = async (browsertab, idpfile, testname) => {
 	if (idpfile.testcases[testname].before) {
 		idpfile.testcases[testname].before();
 	}
@@ -27,6 +27,7 @@ module.exports.standardTest = async (browsertab, idpfile, testname) => {
 		}
 	}
 };
+module.exports.standardTest = standardTest;
 
 // can be chained with other filters
 module.exports.chainTest = async (browsertab, idpfile, testname) => {
@@ -59,3 +60,26 @@ module.exports.disableTest = async (browsertab, idpfile, testname) => {
 	const responseBody = JSON.parse(await browsertab.evaluate(() => {return document.body.textContent}));
 	expect(responseBody.origin).to.be.a('string');
 };
+
+const writeFile = (file, data) => {
+	return new Promise((resolve, reject) => {
+		fs.writeFile(file, data, error => {
+			if (error) {
+				reject(error);
+			} else {
+				resolve();
+			}
+		});
+	});
+};
+
+module.exports.writeSessionID = async (browsertab, idpfile, testname, sessionFilename, xsrfFilename) => {
+	await module.exports.standardTest(browsertab, idpfile, testname);
+	console.log("now authenticated");
+	let cookies = await browsertab.cookies();
+	console.log("cookies:", cookies);
+	let sessionID = cookies.find(c=>c.name.match(/^ambassador_session\./)).value;
+	await writeFile(sessionFilename, sessionID);
+	let xsrfToken = cookies.find(c=>c.name.match(/^ambassador_xsrf\./)).value;
+	await writeFile(xsrfFilename, xsrfToken);
+}

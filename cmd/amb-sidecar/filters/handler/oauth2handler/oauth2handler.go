@@ -25,13 +25,14 @@ import (
 // present in the request.  If the request Path is "/callback", it
 // validates IDP requests and handles code exchange flow.
 type OAuth2Filter struct {
-	PrivateKey *rsa.PrivateKey
-	PublicKey  *rsa.PublicKey
-	RedisPool  *pool.Pool
-	QName      string
-	Spec       crd.FilterOAuth2
-	Arguments  crd.FilterOAuth2Arguments
-	RunFilters func(filters []crd.FilterReference, ctx context.Context, request *filterapi.FilterRequest) (filterapi.FilterResponse, error)
+	PrivateKey   *rsa.PrivateKey
+	PublicKey    *rsa.PublicKey
+	RedisPool    *pool.Pool
+	QName        string
+	Spec         crd.FilterOAuth2
+	Arguments    crd.FilterOAuth2Arguments
+	RunFilters   func(filters []crd.FilterReference, ctx context.Context, request *filterapi.FilterRequest) (filterapi.FilterResponse, error)
+	RunJWTFilter func(filterRef crd.JWTFilterReference, ctx context.Context, request *filterapi.FilterRequest) (filterapi.FilterResponse, error)
 }
 
 type OAuth2Client interface {
@@ -65,9 +66,10 @@ func (f *OAuth2Filter) Filter(ctx context.Context, request *filterapi.FilterRequ
 			Arguments: f.Arguments,
 
 			ResourceServer: &resourceserver.OAuth2ResourceServer{
-				QName:     f.QName,
-				Spec:      f.Spec,
-				Arguments: f.Arguments,
+				QName:        f.QName,
+				Spec:         f.Spec,
+				Arguments:    f.Arguments,
+				RunJWTFilter: f.RunJWTFilter,
 			},
 
 			PrivateKey: f.PrivateKey,
@@ -82,9 +84,10 @@ func (f *OAuth2Filter) Filter(ctx context.Context, request *filterapi.FilterRequ
 			Arguments: f.Arguments,
 
 			ResourceServer: &resourceserver.OAuth2ResourceServer{
-				QName:     f.QName,
-				Spec:      f.Spec,
-				Arguments: f.Arguments,
+				QName:        f.QName,
+				Spec:         f.Spec,
+				Arguments:    f.Arguments,
+				RunJWTFilter: f.RunJWTFilter,
 			},
 		}
 	default:

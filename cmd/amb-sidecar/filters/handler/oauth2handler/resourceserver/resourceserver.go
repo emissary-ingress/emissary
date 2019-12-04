@@ -24,6 +24,8 @@ type OAuth2ResourceServer struct {
 	QName     string
 	Spec      crd.FilterOAuth2
 	Arguments crd.FilterOAuth2Arguments
+
+	RunJWTFilter func(filterRef crd.JWTFilterReference, ctx context.Context, request *filterapi.FilterRequest) (filterapi.FilterResponse, error)
 }
 
 // Filter kinda implements filterapi.Filter, but takes a bunch of
@@ -34,12 +36,14 @@ type OAuth2ResourceServer struct {
 // Token without writing IDP-specific code.  But the (Client) caller
 // has that information, so just accept it as an argument (breaking
 // the layering/abstraction).
-//
-// As a "special" case (i.e. not part of the filterapi.Filter
-// semantics), a FilterResponse of "nil" means to send the same
-// request to the upstream service (the other half of the Resource
-// Server).
 func (rs *OAuth2ResourceServer) Filter(ctx context.Context, logger types.Logger, httpClient *http.Client, discovered *discovery.Discovered, request *filterapi.FilterRequest, clientScope rfc6749.Scope) filterapi.FilterResponse {
+	if rs.Spec.AccessTokenJWTFilter.Name != "" {
+		ret, err := rs.RunJWTFilter(rs.Spec.AccessTokenJWTFilter, middleware.WithLogger(ctx, logger), request)
+		if err != nil {
+			return middleware.NewErrorResponse(ctx, http.StatusInternalServerError, err, nil)
+		}
+		return ret
+	}
 	validator := &rfc6750.AuthorizationValidator{
 		Realm: rs.QName,
 		RequiredScope: func() rfc6749.Scope {
@@ -97,7 +101,7 @@ func (rs *OAuth2ResourceServer) Filter(ctx context.Context, logger types.Logger,
 	}
 	// If everything has passed, go ahead and have Envoy proxy to the other half
 	// of the Resource Server.
-	return nil
+	return &filterapi.HTTPRequestModification{}
 }
 
 func (rs *OAuth2ResourceServer) validateAccessToken(token string, discovered *discovery.Discovered, httpClient *http.Client, logger types.Logger) (scope rfc6749.Scope, tokenErr error, serverErr error) {

@@ -126,6 +126,15 @@ func (h *JWTFilter) Filter(ctx context.Context, r *filterapi.FilterRequest) (fil
 	return ret, nil
 }
 
+func stringInArray(needle string, haystack []string) bool {
+	for _, straw := range haystack {
+		if straw == needle {
+			return true
+		}
+	}
+	return false
+}
+
 func validateToken(signedString string, filter crd.FilterJWT, httpClient *http.Client) (token *jwt.Token, claims jwt.MapClaims, reasonInvalid, serverError error) {
 	// Get the key
 	keys, err := jwks.FetchJWKS(httpClient, filter.JSONWebKeySetURI.String())
@@ -157,8 +166,11 @@ func validateToken(signedString string, filter crd.FilterJWT, httpClient *http.C
 	now := time.Now().Unix()
 
 	if filter.RequireAudience || filter.Audience != "" {
-		if !claims.VerifyAudience(filter.Audience, filter.RequireAudience) {
-			return nil, nil, errors.Errorf("Token has wrong audience: token=%#v expected=%q", claims["aud"], filter.Audience), nil
+		audienceClaim := GetAudience(claims)
+		if filter.RequireAudience || len(audienceClaim) > 0 {
+			if !stringInArray(filter.Audience, audienceClaim) {
+				return nil, nil, errors.Errorf("Token has wrong audience: token=%#v expected=%q", audienceClaim, filter.Audience), nil
+			}
 		}
 	}
 

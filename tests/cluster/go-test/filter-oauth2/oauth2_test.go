@@ -56,13 +56,14 @@ func TestInsteadOfRedirect(t *testing.T) {
 	t.Parallel()
 	assert := &testutil.Assert{T: t}
 
-	urlAny := urlMust(url.Parse("https://ambassador.standalone.svc.cluster.local/auth0/httpbin/headers"))
-	urlXHR := urlMust(url.Parse("https://ambassador.standalone.svc.cluster.local/auth0-k8s/httpbin/headers"))
-	urlJWT := urlMust(url.Parse("https://ambassador.standalone.svc.cluster.local/auth0-or-jwt/headers"))
+	urlAny := urlMust(url.Parse("https://ambassador.standalone.svc.cluster.local/oauth2-auth0-nojwt-and-anyerror/headers"))
+	urlXHR := urlMust(url.Parse("https://ambassador.standalone.svc.cluster.local/oauth2-auth0-nojwt-and-k8ssecret-and-xhrerror/headers"))
+	urlJWT := urlMust(url.Parse("https://ambassador.standalone.svc.cluster.local/oauth2-auth0-complexjwt/headers"))
 
 	insufficientToken, err := jwt.NewWithClaims(jwt.GetSigningMethod("none"), jwt.MapClaims{
 		"sub":   "1234567890",
 		"name":  "John Doe",
+		"aud":   "urn:datawire:ambassador:testapi",
 		"iat":   1516239022,
 		"exp":   1616239022,
 		"scope": "",
@@ -72,6 +73,7 @@ func TestInsteadOfRedirect(t *testing.T) {
 	validToken, err := jwt.NewWithClaims(jwt.GetSigningMethod("none"), jwt.MapClaims{
 		"sub":   "1234567890",
 		"name":  "John Doe",
+		"aud":   "urn:datawire:ambassador:testapi",
 		"iat":   1516239022,
 		"exp":   1616239022,
 		"scope": "openid",
