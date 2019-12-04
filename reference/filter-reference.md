@@ -341,7 +341,14 @@ spec:
   OAuth2:
     authorizationURL:      "url-string"      # required
     grantType              "enum-string"     # optional; default is "AuthorizationCode"
+    extraAuthorizationParameters:            # optional; default is {}
+      "string": "string"
+
     accessTokenValidation: "enum-string"     # optional; default is "auto"
+    accessTokenJWTFilter:                    # optional; default is null
+      name: "string"                           # required
+      namespace: "string"                      # optional; default is the same namespace as the Filter
+      arguments: JWT-Filter-Arguments          # optional
 
     # Settings for grantType=="AuthorizationCode"
     clientURL:             "url-string"      # required
@@ -371,26 +378,38 @@ General settings:
      headers on incoming requests, and using them to authenticate to
      the identity provider.  Support for the `ClientCredentials` is
      currently preliminary, and only goes through limited testing.
+ - `extraAuthorizationParameters`: Extra (non-standard or extension)
+    OAuth authorization parameters to use.  It is not valid to specify
+    a parameter used by OAuth itself ("response_type", "client_id",
+    "redirect_uri", "scope", or "state").
  - `accessTokenValidation`: How to verify the liveness and scope of
    Access Tokens issued by the identity provider.  Valid values are
    either `"auto"`, `"jwt"`, or `"userinfo"`.  Empty or unset is
    equivalent to `"auto"`.
-   * `"jwt"`: Validates the Access Token as a JWT.  It accepts the
-     RS256, RS384, or RS512 signature algorithms, and validates the
-     signature against the JWKS from OIDC Discovery.  It then
-     validates the `exp`, `iat`, `nbf`, `iss` (with the Issuer from
-     OIDC Discovery), and `scope` claims; if present, none of the
-     scopes are required to be present.  This relies on the identity
-     provider using non-encrypted signed JWTs as Access Tokens, and
-     configuring the signing appropriately.
+   * `"jwt"`: Validates the Access Token as a JWT.
+     + By default: It accepts the RS256, RS384, or RS512 signature
+       algorithms, and validates the signature against the JWKS from
+       OIDC Discovery.  It then validates the `exp`, `iat`, `nbf`,
+       `iss` (with the Issuer from OIDC Discovery), and `scope`
+       claims; if present, none of the scopes are required to be
+       present.  This relies on the identity provider using
+       non-encrypted signed JWTs as Access Tokens, and configuring the
+       signing appropriately
+	 + This behavior can be modified by delegating to [`JWT`
+       Filter](#filter-type-jwt) with `accessTokenJWTFilter`.  The
+       arguments are the same as the arguments when erferring to a JWT
+       Filter from a FilterPolicy.
    * `"userinfo"`: Validates the access token by polling the OIDC
      UserInfo Endpoint.  This means that Ambassador Pro must initiate
      an HTTP request to the identity provider for each authorized
      request to a protected resource.  This performs poorly, but
-     functions properly with a wider range of identity providers.
-   * `"auto"` attempts has it do `"jwt"` validation if the Access
-     Token parses as a JWT and the signature is valid, and otherwise
-     falls back to `"userinfo"` validation.
+     functions properly with a wider range of identity providers.  It is
+     not valid to set `accessTokenJWTFilter` if
+     `accessTokenValidation: userinfo`.
+   * `"auto"` attempts has it do `"jwt"` validation
+     `accessTokenJWTFilter` is set or if the Access Token parses as a
+     JWT and the signature is valid, and otherwise falls back to
+     `"userinfo"` validation.
 
 Settings that are only valid when `grantType: "AuthorizationCode"`:
 
