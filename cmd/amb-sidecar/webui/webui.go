@@ -470,7 +470,6 @@ func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			// Nope. Can we open it at all?
 
 			openFile, err = fb.staticfiles.Open(cleaned)
-			defer openFile.Close()
 
 			if err == nil {
 				// Yup. Is it a directory?
@@ -483,6 +482,10 @@ func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 					}
 				}
 			}
+		}
+
+		if openFile != nil {
+			openFile.Close()
 		}
 
 		if err != nil { // was if os.IsNotExist(err), but why limit it?
