@@ -58,7 +58,7 @@ export class SingleHost extends SingleResource {
      * then we assume that they have already agreed, or (ii) if we are
      * showing the TOS, then the checkbox needs to be checked.
      */
-    if (this.state.show_tos && !this.tos_agree().checked) {
+    if (this.isTOSshowing() && !this.tos_agree().checked) {
       this.state.messages.push("You must agree to terms of service")
     }
     /*
@@ -134,6 +134,10 @@ export class SingleHost extends SingleResource {
     return "Host"
   }
 
+  isTOSshowing() {
+    return this.state.show_tos || this.state.mode === "add";
+  }
+
   renderResource() {
     let host = this.resource;
     let spec = host.spec;
@@ -142,7 +146,7 @@ export class SingleHost extends SingleResource {
     let reason = (hostState === "Error") ? `(${status.reason})` : '';
 
     let state = this.state;
-    let tos = state.show_tos || state.mode === "add" ? "attribute-value" : "off";
+    let tos = this.isTOSshowing() ? "attribute-value" : "off";
 
     return html`
   <div class="attribute-name">hostname:</div>
