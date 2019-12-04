@@ -192,6 +192,28 @@ div.error-value li {
   color: #888888;
   font-size: 80%;
 }
+
+div.yaml {
+  margin: 0.4em;
+  grid-column: 1 / 11;
+}
+
+div.yaml pre {
+  overflow-x: auto;
+}
+
+div.changes {
+  display: grid;
+  grid-gap: 0 0;
+  padding-bottom: 0.2em;
+}
+div.yaml-path {
+  grid-column: 2;
+}
+div.yaml-change {
+  grid-column: 3;
+}
+
 .off { 
   display: none; 
 }
@@ -218,6 +240,7 @@ span.code {
     super();
     this.resource = {};
     this.state = new UIState()
+    this.showingYaml = false;
   }
 
   /**
@@ -325,6 +348,174 @@ span.code {
     }
 
     this.reset()
+  }
+
+  // Override to customize merge strategy for a specific Kind
+  mergeStrategy(pathName) {
+    return undefined;
+  }
+
+  // Default merge strategies. Do not override.
+  defaultMergeStrategy(pathName) {
+    switch (pathName) {
+    case "metadata.annotations.kubectl.kubernetes.io/last-applied-configuration":
+    case "metadata.generation":
+    case "metadata.creationTimestamp":
+    case "metadata.selfLink":
+    case "metadata.uid":
+    case "status":
+      return "ignore";
+    case "":
+    default:
+      return "merge";
+    }
+  }
+
+  // internal
+  _mergeStrategy(path) {
+    let pathName = path.join('.');
+    let strategy = this.mergeStrategy(pathName);
+    switch (strategy) {
+    case "ignore":
+    case "merge":
+    case "replace":
+      return strategy;
+    default:
+      return this.defaultMergeStrategy(pathName);
+    }
+  }
+
+  /**
+   * Merge the original and updated values based on the result of this._mergeStrategy(pathName).
+   *
+   * We also track the changes that we make to the original yaml. This
+   * was originally for debugging, but it's also useful feedback for
+   * users.
+   */
+  merge(original, updated, path=[]) {
+    let pathName = path.join('.');
+    let strategy = this._mergeStrategy(path);
+
+    switch (strategy) {
+    case "ignore":
+      this.diff.set(pathName, "ignored");
+      return undefined;
+    case "replace":
+      this.diff.set(pathName, "replaced");
+      return updated;
+    }
+
+    // the rest of this function is the "merge" case:
+
+    // handle null as a special case here because typeof null returns "object"
+    if (original === null) {
+      this.diff.set(pathName, "updated");
+      return updated;
+    }
+
+    let originalType = typeof original;
+    switch (originalType) {
+    case "undefined":
+      let updatedType = typeof updated;
+      switch (updatedType) {
+      case "object":
+        if (Array.isArray(updated)) {
+          this.diff.set(pathName, "updated");
+          return updated;
+        } else {
+          return this.mergeObject(original, updated, path);
+        }
+      default:
+        this.diff.set(pathName, "updated");
+        return updated;
+      }
+    case "object":
+      if (Array.isArray(original)) {
+        return updated;
+      } else {
+        return this.mergeObject(original, updated, path);
+      }
+    case "string":
+    case "number":
+    case "bigint":
+    case "boolean":
+      if (original === updated || updated === undefined) { return original; }
+      this.diff.set(pathName, "updated");
+      return updated;
+    default:
+      throw new Error(`don't know how to merge ${originalType}`);
+    }
+  }
+
+  mergeObject(original, updates, path) {
+    if (original === undefined) {
+      original = {};
+    }
+    if (updates === undefined) {
+      updates = {};
+    }
+    let originalHas = Object.prototype.hasOwnProperty.bind(original);
+    let updatesHas = Object.prototype.hasOwnProperty.bind(updates);
+    let result = {};
+    let keys = new Set(Object.keys(original).concat(Object.keys(updates)));
+    keys.forEach(key=>{
+      var merged;
+      if (originalHas(key) && updatesHas(key)) {
+        merged = this.merge(original[key], updates[key], path.concat([key]));
+      } else if (originalHas(key) && !updatesHas(key)) {
+        merged = this.merge(original[key], undefined, path.concat([key]));
+      } else if (!originalHas(key) && updatesHas(key)) {
+        merged = this.merge(undefined, updates[key], path.concat([key]));
+      } else {
+        throw new Error("this should be impossible");
+      }
+      if (merged !== undefined) {
+        result[key] = merged;
+      }
+    });
+
+    return result;
+  }
+
+  // internal
+  onYaml() {
+    this.showingYaml = !this.showingYaml;
+    this.requestUpdate();
+  }
+
+  mergedYaml() {
+    this.diff = new Map();
+    var spec;
+    if (this.state.mode === "edit" || this.state.mode === "add") {
+      spec = this.spec();
+    } else {
+      spec = {};
+    }
+    try {
+      let yaml = jsyaml.safeDump(this.merge(this.resource, {spec: spec}));
+      let entries = [];
+      let changes = false;
+      this.diff.forEach((v, k) => {
+        if (v !== "ignored") {
+          changes = true;
+          entries.push(html`
+<div class="yaml-path">${k}</div> <div class="yaml-change">${v}</div>
+`);
+        }
+      });
+
+      return html`
+<div class="yaml" style="display: ${this.showingYaml ? "block" : "none"}">
+  ${changes ? html`Changes:` : html``}
+  <div class="changes">
+${entries}
+  </div>
+  <pre>${yaml}</pre>
+</div>
+`;
+    } catch (e) {
+      return html`<pre>${e.stack}</pre>`;
+    }
   }
 
   /**
@@ -477,11 +668,16 @@ spec: ${JSON.stringify(this.spec())}
     return html`
 <slot class="${this.state.mode === "off" ? "" : "off"}" @click=${this.onAdd.bind(this)}></slot>
 <div class="${this.state.mode === "off" ? "off" : "frame"}">
-  <div class="title-button ${this.visible("list" + (this.readOnly()?"/ro":""))}">
+  <div class="title-button">
     ${typeof this.sourceURI() == 'string'
       ? html`<button @click=${(x)=>this.onSource(x)}>Source</button>`
       : html``}
-    <button @click=${()=>this.onEdit()}>Edit</button>
+    <visible-modes list detail add edit>
+      <input type="checkbox" .checked=${this.showingYaml} @click=${(e)=>this.onYaml(e.target.checked)}>Show Yaml</input>
+    </visible-modes>
+    <visible-modes list detail>
+      <button ?disabled=${this.readOnly()} @click=${()=>this.onEdit()}>Edit</button>
+    </visible-modes>
   </div>
   <div class="title">
     ${this.kind()}: <span class="crd-name ${this.visible("list", "edit")}">${this.name()}</span>
@@ -508,6 +704,7 @@ spec: ${JSON.stringify(this.spec())}
   </div>
 
   ${this.state.renderErrors()}
+  ${this.mergedYaml()}
 </div>`
   }
 

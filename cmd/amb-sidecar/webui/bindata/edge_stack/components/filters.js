@@ -25,6 +25,16 @@ class Filter extends SingleResource {
     return "Filter"
   }
 
+  mergeStrategy(path) {
+    if (path === `spec.${this.filterType()}`) {
+      if (this.type === this.filterType()) {
+        return "merge";
+      } else {
+        return "replace";
+      }
+    }
+  }
+
   /**
    * Implement.
    */
