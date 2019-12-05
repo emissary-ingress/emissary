@@ -4,10 +4,12 @@ package oauth2_test
 
 import (
 	"bytes"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
+	"net/http"
 	"net/url"
 	"os"
 	"os/exec"
@@ -18,6 +20,11 @@ import (
 	"sync"
 	"testing"
 	"time"
+
+	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/mediocregopher/radix.v2/redis"
+
+	"github.com/datawire/apro/lib/testutil"
 )
 
 type logWriter struct {
@@ -203,7 +210,7 @@ func TestCanBeChainedWithOtherFilters(t *testing.T) {
 	ensureNPMInstalled(t)
 
 	t.Run("run", func(t *testing.T) {
-		browserTest(t, 60*time.Second, `tests.chainTest(browsertab, require("./idp_auth0.js"), "Auth0 (/httpbin)")`)
+		browserTest(t, 60*time.Second, `tests.chainTest(browsertab, require("./idp_auth0.js"), "Auth0 (/oauth2-auth0-nojwt-and-plugin-and-whitelist)")`)
 	})
 }
 
@@ -211,6 +218,143 @@ func TestCanBeTurnedOffForSpecificPaths(t *testing.T) {
 	ensureNPMInstalled(t)
 
 	t.Run("run", func(t *testing.T) {
-		browserTest(t, 60*time.Second, `tests.disableTest(browsertab, require("./idp_auth0.js"), "Auth0 (/httpbin)")`)
+		browserTest(t, 60*time.Second, `tests.disableTest(browsertab, require("./idp_auth0.js"), "Auth0 (/oauth2-auth0-nojwt-and-plugin-and-whitelist)")`)
+	})
+}
+
+func TestCanUseComplexJWTValidation(t *testing.T) {
+	ensureNPMInstalled(t)
+
+	t.Run("run", func(t *testing.T) {
+		assert := &testutil.Assert{T: t}
+
+		// step 1: get the session ID
+		sessionID, xsrfToken := func() (string, string) {
+			dirname, err := ioutil.TempDir("", "TestCanUseComplexJWTValidation.")
+			assert.NotError(err)
+			defer os.RemoveAll(dirname)
+
+			sessionFilename := filepath.Join(dirname, "session-id.txt")
+			xsrfFilename := filepath.Join(dirname, "xsrf-token.txt")
+
+			browserTest(t, 60*time.Second, fmt.Sprintf(`tests.writeSessionID(browsertab, require("./idp_auth0.js"), "Auth0 (/oauth2-auth0-complexjwt)", %q, %q)`, sessionFilename, xsrfFilename))
+			assert.Bool(!t.Failed())
+
+			sessionID, err := ioutil.ReadFile(sessionFilename)
+			assert.NotError(err)
+
+			xsrfToken, err := ioutil.ReadFile(xsrfFilename)
+			assert.NotError(err)
+
+			return string(sessionID), string(xsrfToken)
+		}()
+
+		// step 2: connect to Redis so that we can directly manipulate the Access Token
+		redisClient, err := redis.Dial("tcp", "ambassador-redis.ambassador.svc.cluster.local:6379")
+		if err != nil {
+			t.Fatal(err)
+		}
+		getSessionData := func() interface{} {
+			sessionDataBytes, err := redisClient.Cmd("GET", "session:"+sessionID).Bytes()
+			assert.NotError(err)
+			var sessionData interface{}
+			assert.NotError(json.Unmarshal(sessionDataBytes, &sessionData))
+			return sessionData
+		}
+		setSessionData := func(sessionData interface{}) {
+			sessionDataBytes, err := json.Marshal(sessionData)
+			assert.NotError(err)
+			assert.NotError(redisClient.Cmd("SET", "session:"+sessionID, sessionDataBytes).Err)
+		}
+
+		// step 3: set up an HTTP client so we don't have to keep going through the headless browser
+		curlJSON := func(urlStr string) (int, interface{}) {
+			client := &http.Client{
+				CheckRedirect: func(req *http.Request, via []*http.Request) error {
+					return http.ErrUseLastResponse
+				},
+				Transport: &http.Transport{
+					// #nosec G402
+					TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+				},
+			}
+
+			req := &http.Request{
+				Method: http.MethodGet,
+				URL:    urlMust(url.Parse(urlStr)),
+				Header: make(http.Header),
+			}
+			req.AddCookie(&http.Cookie{Name: "ambassador_session.oauth2-auth0-complexjwt.default", Value: sessionID})
+			req.AddCookie(&http.Cookie{Name: "ambassador_xsrf.oauth2-auth0-complexjwt.default", Value: xsrfToken})
+
+			resp, err := client.Do(req)
+			assert.NotError(err)
+			defer resp.Body.Close()
+
+			bodyBytes, err := ioutil.ReadAll(resp.Body)
+			assert.NotError(err)
+			var bodyData interface{}
+			assert.NotError(json.Unmarshal(bodyBytes, &bodyData))
+			t.Logf("=> HTTP %v : %v", resp.StatusCode, bodyData)
+			return resp.StatusCode, bodyData
+		}
+
+		// step 4: validate that the session+access token work
+		sessionData := getSessionData()
+		func() {
+			accessToken := sessionData.(map[string]interface{})["CurrentAccessToken"].(map[string]interface{})["AccessToken"].(string)
+			respCode, respBody := curlJSON("https://ambassador.ambassador.svc.cluster.local/oauth2-auth0-complexjwt/headers")
+			assert.IntEQ(http.StatusOK, respCode)
+			authorization := respBody.(map[string]interface{})["headers"].(map[string]interface{})["Authorization"].(string)
+			assert.StrEQ("Bearer "+accessToken, authorization)
+			test := respBody.(map[string]interface{})["headers"].(map[string]interface{})["X-Test-Header"].(string)
+			assert.StrEQ("yeppers", test)
+		}()
+
+		// step 5: validate that we can spoof an valid access token
+		func() {
+			accessToken, err := jwt.NewWithClaims(jwt.GetSigningMethod("none"), jwt.MapClaims{
+				"iss": "https://ambassador-oauth-e2e.auth0.com/",
+				"sub": "auth0|5bbd4a9c5e09334d778a8b89",
+				"aud": []string{
+					"urn:datawire:ambassador:testapi",
+					"https://ambassador-oauth-e2e.auth0.com/userinfo",
+				},
+				"iat":   1575420683,
+				"exp":   1675507083,
+				"azp":   "DOzF9q7U2OrvB7QniW9ikczS1onJgyiC",
+				"scope": "openid",
+			}).SignedString(jwt.UnsafeAllowNoneSignatureType)
+			assert.NotError(err)
+			sessionData.(map[string]interface{})["CurrentAccessToken"].(map[string]interface{})["AccessToken"] = accessToken
+			setSessionData(sessionData)
+			respCode, respBody := curlJSON("https://ambassador.ambassador.svc.cluster.local/oauth2-auth0-complexjwt/headers")
+			assert.IntEQ(http.StatusOK, respCode)
+			authorization := respBody.(map[string]interface{})["headers"].(map[string]interface{})["Authorization"].(string)
+			assert.StrEQ("Bearer "+accessToken, authorization)
+			test := respBody.(map[string]interface{})["headers"].(map[string]interface{})["X-Test-Header"].(string)
+			assert.StrEQ("yeppers", test)
+		}()
+
+		// step 6: validate that the JWT Filter is being strict about aud; spoof an invalid access token
+		func() {
+			accessToken, err := jwt.NewWithClaims(jwt.GetSigningMethod("none"), jwt.MapClaims{
+				"iss": "https://ambassador-oauth-e2e.auth0.com/",
+				"sub": "auth0|5bbd4a9c5e09334d778a8b89",
+				"aud": []string{
+					"urn:datawire:ambassador:testapi-bogus",
+					"https://ambassador-oauth-e2e.auth0.com/userinfo",
+				},
+				"iat":   1575420683,
+				"exp":   1675507083,
+				"azp":   "DOzF9q7U2OrvB7QniW9ikczS1onJgyiC",
+				"scope": "openid",
+			}).SignedString(jwt.UnsafeAllowNoneSignatureType)
+			assert.NotError(err)
+			sessionData.(map[string]interface{})["CurrentAccessToken"].(map[string]interface{})["AccessToken"] = accessToken
+			setSessionData(sessionData)
+			respCode, _ := curlJSON("https://ambassador.ambassador.svc.cluster.local/oauth2-auth0-complexjwt/headers")
+			assert.IntEQ(http.StatusForbidden, respCode)
+		}()
 	})
 }

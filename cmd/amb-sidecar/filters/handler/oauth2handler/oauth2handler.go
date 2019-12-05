@@ -26,12 +26,14 @@ import (
 // "/.ambassador/oauth2/redirection-endpoint", it validates IDP
 // requests and handles code exchange flow.
 type OAuth2Filter struct {
-	PrivateKey *rsa.PrivateKey
-	PublicKey  *rsa.PublicKey
-	RedisPool  *pool.Pool
-	QName      string
-	Spec       crd.FilterOAuth2
-	Arguments  crd.FilterOAuth2Arguments
+	PrivateKey   *rsa.PrivateKey
+	PublicKey    *rsa.PublicKey
+	RedisPool    *pool.Pool
+	QName        string
+	Spec         crd.FilterOAuth2
+	Arguments    crd.FilterOAuth2Arguments
+	RunFilters   func(filters []crd.FilterReference, ctx context.Context, request *filterapi.FilterRequest) (filterapi.FilterResponse, error)
+	RunJWTFilter func(filterRef crd.JWTFilterReference, ctx context.Context, request *filterapi.FilterRequest) (filterapi.FilterResponse, error)
 }
 
 type OAuth2Client interface {
@@ -65,12 +67,16 @@ func (f *OAuth2Filter) Filter(ctx context.Context, request *filterapi.FilterRequ
 			Arguments: f.Arguments,
 
 			ResourceServer: &resourceserver.OAuth2ResourceServer{
-				Spec:      f.Spec,
-				Arguments: f.Arguments,
+				QName:        f.QName,
+				Spec:         f.Spec,
+				Arguments:    f.Arguments,
+				RunJWTFilter: f.RunJWTFilter,
 			},
 
 			PrivateKey: f.PrivateKey,
 			PublicKey:  f.PublicKey,
+
+			RunFilters: f.RunFilters,
 		}
 	case crd.GrantType_ClientCredentials:
 		oauth2client = &client_credentials_client.OAuth2Client{
@@ -79,8 +85,10 @@ func (f *OAuth2Filter) Filter(ctx context.Context, request *filterapi.FilterRequ
 			Arguments: f.Arguments,
 
 			ResourceServer: &resourceserver.OAuth2ResourceServer{
-				Spec:      f.Spec,
-				Arguments: f.Arguments,
+				QName:        f.QName,
+				Spec:         f.Spec,
+				Arguments:    f.Arguments,
+				RunJWTFilter: f.RunJWTFilter,
 			},
 		}
 	default:
