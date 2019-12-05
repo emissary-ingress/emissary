@@ -21,7 +21,7 @@ To start using the Ambassador Edge Stack and its features right away:
 The Ambassador Edge Stack is designed to run in Kubernetes for production. The most essential requirements are:
 
 * Kubernetes Cluster 1.11 or later
-* Kubectl
+* `Kubectl`
 
 Find additional requirements and recommendations for a successful installation and deployment on the [Product Requirements](/user-guide/product-requirements) page.
 
@@ -77,7 +77,7 @@ Use any of the URLs listed next to `ambassador` to access the Ambassador Edge St
 
 ## Add Hosts and Configure TLS
 
-You now have access to the Edge Policy Console, where you can start to secure your application with automatic HTTPS, configure TLS with ease, and create CRDs and mappings independently of your Ops teams. 
+You now have access to the Edge Policy Console, where you can start to secure your application with automatic HTTPS, configure TLS with ease, and create CRDs and mappings independently of your Ops teams.
 
 To secure your application with HTTPS, you must first add a Host to your Ambassador Edge Stack Configuration. 
 
@@ -116,7 +116,7 @@ To show you how powerful the Ambassador Edge Stack is, follow the instructions t
 
 ### Verify Mappings
 
-After you create Mappings, you can also verify that all of the CRDs were successfully installed using the command `kubectl get mappings`. Kubectl is the command-line tool that allows you to control Kubernetes.
+After you create Mappings, you can also verify that all of the CRDs were successfully installed using the command `kubectl get mappings`. `Kubectl` is the command-line tool that allows you to control Kubernetes.
 
 Because Ambassador is built on top of Kubernetes, it’s more than likely that you already have `kubectl` installed on your machine. However, if you don’t, you can install it following [these directions](https://kubernetes.io/docs/tasks/tools/install-kubectl/).
 

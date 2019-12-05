@@ -66,11 +66,11 @@ existing file into a directory will fail.)
 
 ## Running as daemonset
 
-Ambassador can be deployed as daemonset to have one pod per node in Kubernetes cluster. This setup is especially helpful when you have Kubernetes cluster running on a private cloud.
+Ambassador can be deployed as daemonset to have one pod per node in a Kubernetes cluster. This setup is especially helpful when you have a Kubernetes cluster running on a private cloud.
 
-* Ideal scenario could be when you are running containers on Kubernetes along side with your non containerized applications running exposed via VIP using BIG-IP or similar products. In such cases, east-west traffic is routed based on iRules to certain set of application pools consisting of application or web servers. In this setup, along side of traditonal application servers, two or more Ambassador pods can also be part of the application pools. In case of failure there is atleast one Ambassdor pod available to BIG-IP and can take care of routing traffic to kubernetes cluster.
+* In an ideal example scenario, you are running containers on Kubernetes alongside with your non containerized applications running exposed via VIP using BIG-IP or similar products. In such cases, east-west traffic is routed based on iRules to certain a set of application pools consisting of application or web servers. In this setup, alongside of traditonal application servers, two or more Ambassador pods can also be part of the application pools. In case of failure there is at least one Ambassdor pod available to BIG-IP that can take care of routing traffic to the Kubernetes cluster.
 
-* In manifest files `kind: Deployment` needs to be updated to `kind: DaemonSet`  and  `replicas` should be removed in `spec`section.
+* In manifest files `kind: Deployment` needs to be updated to `kind: DaemonSet`  and  `replicas` should be removed in `spec` section.
 
 ## Namespaces
 
@@ -86,7 +86,7 @@ env:
 
 Given that `AMBASSADOR_NAMESPACE` is set, Ambassador [mappings](/reference/mappings) can operate within the same namespace, or across namespaces. **Note well** that mappings will have to explicitly include the namespace with the service to cross namespaces; see the [mapping](/reference/mappings) documentation for more information.
 
-If you only want Ambassador to only work within a single namespace, set `AMBASSADOR_SINGLE_NAMESPACE` as an environment variable.
+If you want Ambassador to only work within a single namespace, set `AMBASSADOR_SINGLE_NAMESPACE` as an environment variable.
 
 ```yaml
 env:
@@ -98,7 +98,7 @@ env:
   value: "true"
 ```
 
-If you are using the Ambassador Edge Stack, if you set `AMBASSADOR_NAMESPACE` or `AMBASSADOR_SINGLE_NAMESPACE`, set it in deployment container. 
+With the Ambassador Edge Stack, if you set `AMBASSADOR_NAMESPACE` or `AMBASSADOR_SINGLE_NAMESPACE`, set it in deployment container. 
 
 ## `AMBASSADOR_ID`
 
@@ -123,9 +123,9 @@ env:
   value: ambassador-1
 ```
 
-If you are using the Ambassador Edge Stack, if you set `AMBASSADOR_ID`, you will need to set it in the deployment container.
+With Ambassador Edge Stack, if you set `AMBASSADOR_ID`, you will need to set it in the deployment container.
 
-Ambassador will then only use YAML objects that include an appropriate `ambassador_id` attribute. For example, if Ambassador is given the ID `ambassador-1` as above, then of these YAML objects, only the first two will be used:
+Ambassador will then only use YAML objects that include an appropriate `ambassador_id` attribute. For example, if Ambassador is given the ID `ambassador-1` as above, only the first two YAML objects below will be used:
 
 ```yaml
 ---
@@ -165,7 +165,7 @@ spec:
   service: demo4
 ```
 
-The list syntax (shown in `mapping_used_2` above) permits including a given object in the configuration for multiple Ambassadors. In this case `mapping_used_2` will be included in the configuration for `ambassador-1` and also for `ambassador-2`.
+The list syntax (shown in `mapping_used_2` above) permits including a given object in the configuration for multiple Ambassador instances. In this case `mapping_used_2` will be included in the configuration for `ambassador-1` and also for `ambassador-2`.
 
 **Note well that _any_ object can and should have an `ambassador_id` included** so, for example, it is _fully supported_ to use `ambassador_id` to qualify the `ambassador Module`, `TLS`, and `AuthService` objects. You will need to set Ambassador_id in all resources you want to use for the Ambassador Edge Stack.
 

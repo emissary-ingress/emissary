@@ -32,14 +32,14 @@ Ambassador Edge Stack supports a number of attributes to configure and customize
 
 | Attribute                 | Description               |
 | :------------------------ | :------------------------ |
-| `add_linkerd_headers` | if true, automatically adds `l5d-dst-override` headers for Linkerd interoperability (the default is set by the [`ambassador Module`](/reference/modules)) |
+| `add_linkerd_headers` | if true, automatically adds `l5d-dst-override` headers for Linkerd interoperability (the default is set by the `ambassador` [Module](/reference/modules)) |
 | [`add_request_headers`](/reference/add_request_headers) | specifies a dictionary of other HTTP headers that should be added to each request when talking to the service |
 | [`add_response_headers`](/reference/add_response_headers) | specifies a dictionary of other HTTP headers that should be added to each response when returning response to client |
 | `cluster_idle_timeout_ms` | the timeout, in milliseconds, before an idle connection upstream is closed (may be set on a `Mapping`, `AuthService`, or in the `ambassador Module`) | 
 | [`cors`](/reference/cors)           | enables Cross-Origin Resource Sharing (CORS) setting on a mapping |
 | [`circuit_breakers`](/reference/circuit-breakers) | configures circuit breaking on a mapping
-| `enable_ipv4` | if true, enables IPv4 DNS lookups for this mapping's service (the default is set by the [`ambassador Module`](/reference/modules)) |
-| `enable_ipv6` | if true, enables IPv6 DNS lookups for this mapping's service (the default is set by the [`ambassador Module`](/reference/modules)) |
+| `enable_ipv4` | if true, enables IPv4 DNS lookups for this mapping's service (the default is set by the `ambassador`[Module](/reference/modules)) |
+| `enable_ipv6` | if true, enables IPv6 DNS lookups for this mapping's service (the default is set by the `ambassador`[Module](/reference/modules)) |
 | [`grpc`](/user-guide/grpc) | if true, tells the system that the service will be handling gRPC calls |
 | [`headers`](/reference/headers)      | specifies a list of other HTTP headers which _must_ appear in the request for this mapping to be used to route the request |
 | [`host`](/reference/host) | specifies the value which _must_ appear in the request's HTTP `Host` header for this mapping to be used to route the request |
@@ -60,9 +60,9 @@ Ambassador Edge Stack supports a number of attributes to configure and customize
 | [`idle_timeout_ms`](/reference/timeouts)         | the timeout, in milliseconds, after which connections through this `Mapping` will be terminated if no traffic is seen. Defaults to 300000 (5 minutes). |
 | [`tls`](#using-tls)       | if true, tells the system that it should use HTTPS to contact this service. (It's also possible to use `tls` to specify a certificate to present to the service.) |
 | `use_websocket`           | if true, tells Ambassador Edge Stack that this service will use websockets |
-| `add_linkerd_headers`           | when true, Ambassador Edge Stack adds the `l5d-dst-override` header to the request and the `service` field is used as a value. Note that when `add_linkerd_headers` is set to true in the `ambassador Module`, the configuration will be applied to all mappings, including auth. `ambassador Module` and individual mapping configuration can be used together and the lastest will always take precedence over what is in the module. |
+| `add_linkerd_headers`           | when true, Ambassador Edge Stack adds the `l5d-dst-override` header to the request and the `service` field is used as a value. Note that when `add_linkerd_headers` is set to true in the `ambassador Module`, the configuration will be applied to all mappings, including auth. `ambassador Module` and individual mapping configurations can be used together, and the latest will always take precedence over the module’s configurations. |
 
-If both `enable_ipv4` and `enable_ipv6` are set, Ambassador Edge Stack will prefer IPv6 to IPv4. See the [`ambassador Module`](/reference/modules) documentation for more information.
+If both `enable_ipv4` and `enable_ipv6` are set, Ambassador Edge Stack will prefer IPv6 to IPv4. See the `ambassador`[Module](/reference/modules) documentation for more information.
 
 Ambassador Edge Stack supports multiple deployment patterns for your services. These patterns are designed to let you safely release new versions of your service, while minimizing its impact on production users.
 
@@ -88,7 +88,7 @@ The name of the mapping must be unique. If no `method` is given, all methods wil
 
 Mapping resources can be defined as annotations on Kubernetes services or as independent custom resource definitions.
 
-If you're new to Ambassador Edge Stack, start with the CRD approach. Note that you *must* use the `getambassador.io/v2` `apiVersion` as noted above.
+If you're new to Ambassador Edge Stack, start with the CRD approach. Note that you *must* use the `getambassador.io/v2` `apiVersion` as specified below.
 
 ## Additional Example Mappings
 
@@ -221,4 +221,4 @@ Given that `AMBASSADOR_NAMESPACE` is correctly set, Ambassador Edge Stack can ma
 
 When using Linkerd, requests going to an upstream service need to include the `l5d-dst-override` header to ensure that Linkerd will route them correctly. Setting `add_linkerd_headers` does this automatically, based on the `service` attribute in the `Mapping`. 
 
-If `add_linkerd_headers` is not specified for a given `Mapping`, the default is taken from the [`ambassador Module`](/reference/modules). The overall default is `false`: you must explicitly enable `add_linkerd_headers` for Ambassador Edge Stack to add the header for you (although you can always add it yourself with `add_request_headers`, of course).
+If `add_linkerd_headers` is not specified for a given `Mapping`, the default is taken from the `ambassador`[Module](/reference/modules). The overall default is `false`: you must explicitly enable `add_linkerd_headers` for Ambassador Edge Stack to add the header for you (although you can always add it yourself with `add_request_headers`, of course).

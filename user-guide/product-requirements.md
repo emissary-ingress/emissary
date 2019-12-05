@@ -3,7 +3,7 @@
 Before [installing](/user-guide/install) the Ambassador Edge Stack, make sure you have, at a very minimum the following:
 
 * A Clean, running Kubernetes cluster v1.11 or higher
-* Kubectl
+* `Kubectl`
 
 Then, please review the following recommendations for the Ambassador Edge Stack:
 
