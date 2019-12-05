@@ -322,7 +322,12 @@ func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	case "/edge_stack/api/snapshot":
 		snapshotHost := fb.cfg.DevWebUISnapshotHost
 		if snapshotHost != "" {
-			client := &http.Client{}
+			client := &http.Client{
+				Transport: &http.Transport{
+					// #nosec G402
+					TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+				},
+			}
 			req, err := http.NewRequest("GET",
 				fmt.Sprintf("https://%s/edge_stack/api/snapshot", snapshotHost),
 				nil)
