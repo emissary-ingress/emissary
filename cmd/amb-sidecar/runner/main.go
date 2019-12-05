@@ -198,7 +198,7 @@ func triggerOnChange(ctx context.Context, watchFile string, trigger func()) {
 // getDiagSnapshot returns a Diag snapshot or waits forever. Note that if we get stuck here, the pod will most likely
 // fail its liveness check, which also hits the Diag daemon.
 func getDiagSnapshot(ctx context.Context) []byte {
-	ticker := time.NewTicker(time.Second/10)
+	ticker := time.NewTicker(time.Second)
 	defer ticker.Stop()
 	for {
 		select {
