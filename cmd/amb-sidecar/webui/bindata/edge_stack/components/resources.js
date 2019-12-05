@@ -909,12 +909,21 @@ export class ResourceSet extends LitElement {
    * implementation uses super to invoke the original implementation.
    */
   onSnapshotChange(snapshot) {
-    this.resources = this.getResources(snapshot)
+    this.resources = this.getResources(snapshot);
+    // sort so that we don't randomly change the order whenever we get an update
+    this.resources.sort((a, b) => {
+      return this.key(a).localeCompare(this.key(b));
+    });
+  }
+
+  // internal
+  key(resource) {
+    return resource.kind + ":" + resource.metadata.namespace + ":" + resource.metadata.name;
   }
 
   // internal
   state(resource) {
-    let key = resource.metadata.namespace + ":" + resource.metadata.name;
+    let key = this.key(resource);
     if (this._states[key] === undefined) {
       this._states[key] = new UIState()
     }
