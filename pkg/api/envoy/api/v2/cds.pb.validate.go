@@ -40,6 +40,26 @@ func (m *Cluster) Validate() error {
 		return nil
 	}
 
+	for idx, item := range m.GetTransportSocketMatches() {
+		_, _ = idx, item
+
+		{
+			tmp := item
+
+			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+				if err := v.Validate(); err != nil {
+					return ClusterValidationError{
+						field:  fmt.Sprintf("TransportSocketMatches[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					}
+				}
+			}
+		}
+
+	}
+
 	if len(m.GetName()) < 1 {
 		return ClusterValidationError{
 			field:  "Name",
@@ -266,15 +286,30 @@ func (m *Cluster) Validate() error {
 			}
 		}
 
-		gt := time.Duration(0*time.Second + 0*time.Nanosecond)
+		gt := time.Duration(0*time.Second + 1000000*time.Nanosecond)
 
 		if dur <= gt {
 			return ClusterValidationError{
 				field:  "DnsRefreshRate",
-				reason: "value must be greater than 0s",
+				reason: "value must be greater than 1ms",
 			}
 		}
 
+	}
+
+	{
+		tmp := m.GetDnsFailureRefreshRate()
+
+		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+			if err := v.Validate(); err != nil {
+				return ClusterValidationError{
+					field:  "DnsFailureRefreshRate",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
 	}
 
 	// no validation rules for RespectDnsTtl
@@ -466,6 +501,21 @@ func (m *Cluster) Validate() error {
 			if err := v.Validate(); err != nil {
 				return ClusterValidationError{
 					field:  "LoadBalancingPolicy",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+	}
+
+	{
+		tmp := m.GetLrsServer()
+
+		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+			if err := v.Validate(); err != nil {
+				return ClusterValidationError{
+					field:  "LrsServer",
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
@@ -865,6 +915,111 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = UpstreamConnectionOptionsValidationError{}
+
+// Validate checks the field values on Cluster_TransportSocketMatch with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, an error is returned.
+func (m *Cluster_TransportSocketMatch) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	if utf8.RuneCountInString(m.GetName()) < 1 {
+		return Cluster_TransportSocketMatchValidationError{
+			field:  "Name",
+			reason: "value length must be at least 1 runes",
+		}
+	}
+
+	{
+		tmp := m.GetMatch()
+
+		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+			if err := v.Validate(); err != nil {
+				return Cluster_TransportSocketMatchValidationError{
+					field:  "Match",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+	}
+
+	{
+		tmp := m.GetTransportSocket()
+
+		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+			if err := v.Validate(); err != nil {
+				return Cluster_TransportSocketMatchValidationError{
+					field:  "TransportSocket",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+	}
+
+	return nil
+}
+
+// Cluster_TransportSocketMatchValidationError is the validation error returned
+// by Cluster_TransportSocketMatch.Validate if the designated constraints
+// aren't met.
+type Cluster_TransportSocketMatchValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e Cluster_TransportSocketMatchValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e Cluster_TransportSocketMatchValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e Cluster_TransportSocketMatchValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e Cluster_TransportSocketMatchValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e Cluster_TransportSocketMatchValidationError) ErrorName() string {
+	return "Cluster_TransportSocketMatchValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e Cluster_TransportSocketMatchValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sCluster_TransportSocketMatch.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = Cluster_TransportSocketMatchValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = Cluster_TransportSocketMatchValidationError{}
 
 // Validate checks the field values on Cluster_CustomClusterType with the rules
 // defined in the proto definition for this message. If any rules are
@@ -1540,6 +1695,122 @@ var _ interface {
 	ErrorName() string
 } = Cluster_CommonLbConfigValidationError{}
 
+// Validate checks the field values on Cluster_RefreshRate with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, an error is returned.
+func (m *Cluster_RefreshRate) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	if m.GetBaseInterval() == nil {
+		return Cluster_RefreshRateValidationError{
+			field:  "BaseInterval",
+			reason: "value is required",
+		}
+	}
+
+	if d := m.GetBaseInterval(); d != nil {
+		dur, err := types.DurationFromProto(d)
+		if err != nil {
+			return Cluster_RefreshRateValidationError{
+				field:  "BaseInterval",
+				reason: "value is not a valid duration",
+				cause:  err,
+			}
+		}
+
+		gt := time.Duration(0*time.Second + 1000000*time.Nanosecond)
+
+		if dur <= gt {
+			return Cluster_RefreshRateValidationError{
+				field:  "BaseInterval",
+				reason: "value must be greater than 1ms",
+			}
+		}
+
+	}
+
+	if d := m.GetMaxInterval(); d != nil {
+		dur, err := types.DurationFromProto(d)
+		if err != nil {
+			return Cluster_RefreshRateValidationError{
+				field:  "MaxInterval",
+				reason: "value is not a valid duration",
+				cause:  err,
+			}
+		}
+
+		gt := time.Duration(0*time.Second + 1000000*time.Nanosecond)
+
+		if dur <= gt {
+			return Cluster_RefreshRateValidationError{
+				field:  "MaxInterval",
+				reason: "value must be greater than 1ms",
+			}
+		}
+
+	}
+
+	return nil
+}
+
+// Cluster_RefreshRateValidationError is the validation error returned by
+// Cluster_RefreshRate.Validate if the designated constraints aren't met.
+type Cluster_RefreshRateValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e Cluster_RefreshRateValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e Cluster_RefreshRateValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e Cluster_RefreshRateValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e Cluster_RefreshRateValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e Cluster_RefreshRateValidationError) ErrorName() string {
+	return "Cluster_RefreshRateValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e Cluster_RefreshRateValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sCluster_RefreshRate.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = Cluster_RefreshRateValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = Cluster_RefreshRateValidationError{}
+
 // Validate checks the field values on Cluster_LbSubsetConfig_LbSubsetSelector
 // with the rules defined in the proto definition for this message. If any
 // rules are violated, an error is returned.
@@ -1652,6 +1923,8 @@ func (m *Cluster_CommonLbConfig_ZoneAwareLbConfig) Validate() error {
 			}
 		}
 	}
+
+	// no validation rules for FailTrafficOnPanic
 
 	return nil
 }

@@ -112,6 +112,7 @@ func (*FaultAbort) XXX_OneofWrappers() []interface{} {
 	}
 }
 
+// [#next-free-field: 14]
 type HTTPFault struct {
 	// If specified, the filter will inject delays based on the values in the
 	// object.

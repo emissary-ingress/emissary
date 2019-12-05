@@ -26,6 +26,7 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
+// [#next-free-field: 11]
 type TcpProxy struct {
 	// The prefix to use when emitting :ref:`statistics
 	// <config_network_filters_tcp_proxy_stats>`.
@@ -40,8 +41,12 @@ type TcpProxy struct {
 	MetadataMatch *core.Metadata `protobuf:"bytes,9,opt,name=metadata_match,json=metadataMatch,proto3" json:"metadata_match,omitempty"`
 	// The idle timeout for connections managed by the TCP proxy filter. The idle timeout
 	// is defined as the period in which there are no bytes sent or received on either
-	// the upstream or downstream connection. If not set, connections will never be closed
-	// by the TCP proxy due to being idle.
+	// the upstream or downstream connection. If not set, the default idle timeout is 1 hour. If set
+	// to 0s, the timeout will be disabled.
+	//
+	// .. warning::
+	//   Disabling this timeout has a highly likelihood of yielding connection leaks due to lost TCP
+	//   FIN packets, etc.
 	IdleTimeout *types.Duration `protobuf:"bytes,8,opt,name=idle_timeout,json=idleTimeout,proto3" json:"idle_timeout,omitempty"`
 	// [#not-implemented-hide:] The idle timeout for connections managed by the TCP proxy
 	// filter. The idle timeout is defined as the period in which there is no
@@ -55,8 +60,6 @@ type TcpProxy struct {
 	// Configuration for :ref:`access logs <arch_overview_access_logs>`
 	// emitted by the this tcp_proxy.
 	AccessLog []*v3alpha.AccessLog `protobuf:"bytes,5,rep,name=access_log,json=accessLog,proto3" json:"access_log,omitempty"`
-	// [#not-implemented-hide:] Deprecated.
-	DeprecatedV1 *TcpProxy_DeprecatedV1 `protobuf:"bytes,6,opt,name=deprecated_v1,json=deprecatedV1,proto3" json:"deprecated_v1,omitempty"` // Deprecated: Do not use.
 	// The maximum number of unsuccessful connection attempts that will be made before
 	// giving up. If the parameter is not specified, 1 connection attempt will be made.
 	MaxConnectAttempts   *types.UInt32Value `protobuf:"bytes,7,opt,name=max_connect_attempts,json=maxConnectAttempts,proto3" json:"max_connect_attempts,omitempty"`
@@ -177,14 +180,6 @@ func (m *TcpProxy) GetAccessLog() []*v3alpha.AccessLog {
 	return nil
 }
 
-// Deprecated: Do not use.
-func (m *TcpProxy) GetDeprecatedV1() *TcpProxy_DeprecatedV1 {
-	if m != nil {
-		return m.DeprecatedV1
-	}
-	return nil
-}
-
 func (m *TcpProxy) GetMaxConnectAttempts() *types.UInt32Value {
 	if m != nil {
 		return m.MaxConnectAttempts
@@ -198,170 +193,6 @@ func (*TcpProxy) XXX_OneofWrappers() []interface{} {
 		(*TcpProxy_Cluster)(nil),
 		(*TcpProxy_WeightedClusters)(nil),
 	}
-}
-
-// [#not-implemented-hide:] Deprecated.
-// TCP Proxy filter configuration using V1 format.
-type TcpProxy_DeprecatedV1 struct {
-	// The route table for the filter. All filter instances must have a route
-	// table, even if it is empty.
-	Routes               []*TcpProxy_DeprecatedV1_TCPRoute `protobuf:"bytes,1,rep,name=routes,proto3" json:"routes,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}                          `json:"-"`
-	XXX_unrecognized     []byte                            `json:"-"`
-	XXX_sizecache        int32                             `json:"-"`
-}
-
-func (m *TcpProxy_DeprecatedV1) Reset()         { *m = TcpProxy_DeprecatedV1{} }
-func (m *TcpProxy_DeprecatedV1) String() string { return proto.CompactTextString(m) }
-func (*TcpProxy_DeprecatedV1) ProtoMessage()    {}
-func (*TcpProxy_DeprecatedV1) Descriptor() ([]byte, []int) {
-	return fileDescriptor_0cada114fb4da110, []int{0, 0}
-}
-func (m *TcpProxy_DeprecatedV1) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *TcpProxy_DeprecatedV1) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_TcpProxy_DeprecatedV1.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *TcpProxy_DeprecatedV1) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_TcpProxy_DeprecatedV1.Merge(m, src)
-}
-func (m *TcpProxy_DeprecatedV1) XXX_Size() int {
-	return m.Size()
-}
-func (m *TcpProxy_DeprecatedV1) XXX_DiscardUnknown() {
-	xxx_messageInfo_TcpProxy_DeprecatedV1.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_TcpProxy_DeprecatedV1 proto.InternalMessageInfo
-
-func (m *TcpProxy_DeprecatedV1) GetRoutes() []*TcpProxy_DeprecatedV1_TCPRoute {
-	if m != nil {
-		return m.Routes
-	}
-	return nil
-}
-
-// A TCP proxy route consists of a set of optional L4 criteria and the
-// name of a cluster. If a downstream connection matches all the
-// specified criteria, the cluster in the route is used for the
-// corresponding upstream connection. Routes are tried in the order
-// specified until a match is found. If no match is found, the connection
-// is closed. A route with no criteria is valid and always produces a
-// match.
-type TcpProxy_DeprecatedV1_TCPRoute struct {
-	// The cluster to connect to when a the downstream network connection
-	// matches the specified criteria.
-	Cluster string `protobuf:"bytes,1,opt,name=cluster,proto3" json:"cluster,omitempty"`
-	// An optional list of IP address subnets in the form
-	// “ip_address/xx”. The criteria is satisfied if the destination IP
-	// address of the downstream connection is contained in at least one of
-	// the specified subnets. If the parameter is not specified or the list
-	// is empty, the destination IP address is ignored. The destination IP
-	// address of the downstream connection might be different from the
-	// addresses on which the proxy is listening if the connection has been
-	// redirected.
-	DestinationIpList []*core.CidrRange `protobuf:"bytes,2,rep,name=destination_ip_list,json=destinationIpList,proto3" json:"destination_ip_list,omitempty"`
-	// An optional string containing a comma-separated list of port numbers
-	// or ranges. The criteria is satisfied if the destination port of the
-	// downstream connection is contained in at least one of the specified
-	// ranges. If the parameter is not specified, the destination port is
-	// ignored. The destination port address of the downstream connection
-	// might be different from the port on which the proxy is listening if
-	// the connection has been redirected.
-	DestinationPorts string `protobuf:"bytes,3,opt,name=destination_ports,json=destinationPorts,proto3" json:"destination_ports,omitempty"`
-	// An optional list of IP address subnets in the form
-	// “ip_address/xx”. The criteria is satisfied if the source IP address
-	// of the downstream connection is contained in at least one of the
-	// specified subnets. If the parameter is not specified or the list is
-	// empty, the source IP address is ignored.
-	SourceIpList []*core.CidrRange `protobuf:"bytes,4,rep,name=source_ip_list,json=sourceIpList,proto3" json:"source_ip_list,omitempty"`
-	// An optional string containing a comma-separated list of port numbers
-	// or ranges. The criteria is satisfied if the source port of the
-	// downstream connection is contained in at least one of the specified
-	// ranges. If the parameter is not specified, the source port is
-	// ignored.
-	SourcePorts          string   `protobuf:"bytes,5,opt,name=source_ports,json=sourcePorts,proto3" json:"source_ports,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *TcpProxy_DeprecatedV1_TCPRoute) Reset()         { *m = TcpProxy_DeprecatedV1_TCPRoute{} }
-func (m *TcpProxy_DeprecatedV1_TCPRoute) String() string { return proto.CompactTextString(m) }
-func (*TcpProxy_DeprecatedV1_TCPRoute) ProtoMessage()    {}
-func (*TcpProxy_DeprecatedV1_TCPRoute) Descriptor() ([]byte, []int) {
-	return fileDescriptor_0cada114fb4da110, []int{0, 0, 0}
-}
-func (m *TcpProxy_DeprecatedV1_TCPRoute) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *TcpProxy_DeprecatedV1_TCPRoute) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_TcpProxy_DeprecatedV1_TCPRoute.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *TcpProxy_DeprecatedV1_TCPRoute) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_TcpProxy_DeprecatedV1_TCPRoute.Merge(m, src)
-}
-func (m *TcpProxy_DeprecatedV1_TCPRoute) XXX_Size() int {
-	return m.Size()
-}
-func (m *TcpProxy_DeprecatedV1_TCPRoute) XXX_DiscardUnknown() {
-	xxx_messageInfo_TcpProxy_DeprecatedV1_TCPRoute.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_TcpProxy_DeprecatedV1_TCPRoute proto.InternalMessageInfo
-
-func (m *TcpProxy_DeprecatedV1_TCPRoute) GetCluster() string {
-	if m != nil {
-		return m.Cluster
-	}
-	return ""
-}
-
-func (m *TcpProxy_DeprecatedV1_TCPRoute) GetDestinationIpList() []*core.CidrRange {
-	if m != nil {
-		return m.DestinationIpList
-	}
-	return nil
-}
-
-func (m *TcpProxy_DeprecatedV1_TCPRoute) GetDestinationPorts() string {
-	if m != nil {
-		return m.DestinationPorts
-	}
-	return ""
-}
-
-func (m *TcpProxy_DeprecatedV1_TCPRoute) GetSourceIpList() []*core.CidrRange {
-	if m != nil {
-		return m.SourceIpList
-	}
-	return nil
-}
-
-func (m *TcpProxy_DeprecatedV1_TCPRoute) GetSourcePorts() string {
-	if m != nil {
-		return m.SourcePorts
-	}
-	return ""
 }
 
 // Allows for specification of multiple upstream clusters along with weights
@@ -379,7 +210,7 @@ func (m *TcpProxy_WeightedCluster) Reset()         { *m = TcpProxy_WeightedClust
 func (m *TcpProxy_WeightedCluster) String() string { return proto.CompactTextString(m) }
 func (*TcpProxy_WeightedCluster) ProtoMessage()    {}
 func (*TcpProxy_WeightedCluster) Descriptor() ([]byte, []int) {
-	return fileDescriptor_0cada114fb4da110, []int{0, 1}
+	return fileDescriptor_0cada114fb4da110, []int{0, 0}
 }
 func (m *TcpProxy_WeightedCluster) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -433,7 +264,7 @@ func (m *TcpProxy_WeightedCluster_ClusterWeight) Reset() {
 func (m *TcpProxy_WeightedCluster_ClusterWeight) String() string { return proto.CompactTextString(m) }
 func (*TcpProxy_WeightedCluster_ClusterWeight) ProtoMessage()    {}
 func (*TcpProxy_WeightedCluster_ClusterWeight) Descriptor() ([]byte, []int) {
-	return fileDescriptor_0cada114fb4da110, []int{0, 1, 0}
+	return fileDescriptor_0cada114fb4da110, []int{0, 0, 0}
 }
 func (m *TcpProxy_WeightedCluster_ClusterWeight) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -478,8 +309,6 @@ func (m *TcpProxy_WeightedCluster_ClusterWeight) GetWeight() uint32 {
 
 func init() {
 	proto.RegisterType((*TcpProxy)(nil), "envoy.config.filter.network.tcp_proxy.v3alpha.TcpProxy")
-	proto.RegisterType((*TcpProxy_DeprecatedV1)(nil), "envoy.config.filter.network.tcp_proxy.v3alpha.TcpProxy.DeprecatedV1")
-	proto.RegisterType((*TcpProxy_DeprecatedV1_TCPRoute)(nil), "envoy.config.filter.network.tcp_proxy.v3alpha.TcpProxy.DeprecatedV1.TCPRoute")
 	proto.RegisterType((*TcpProxy_WeightedCluster)(nil), "envoy.config.filter.network.tcp_proxy.v3alpha.TcpProxy.WeightedCluster")
 	proto.RegisterType((*TcpProxy_WeightedCluster_ClusterWeight)(nil), "envoy.config.filter.network.tcp_proxy.v3alpha.TcpProxy.WeightedCluster.ClusterWeight")
 }
@@ -489,57 +318,47 @@ func init() {
 }
 
 var fileDescriptor_0cada114fb4da110 = []byte{
-	// 802 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x54, 0xcf, 0x6e, 0xdc, 0x44,
-	0x1c, 0xce, 0x78, 0x93, 0x74, 0x77, 0x36, 0x0b, 0xcd, 0x94, 0xaa, 0xc6, 0x82, 0x68, 0x03, 0x1c,
-	0xa2, 0x20, 0x6c, 0x9a, 0x88, 0x13, 0xe2, 0xd0, 0x4d, 0xa4, 0x26, 0x52, 0x57, 0x6c, 0xac, 0xb4,
-	0x08, 0x2e, 0xd6, 0xc4, 0x9e, 0x75, 0x46, 0xd8, 0x9e, 0x61, 0x66, 0xbc, 0xbb, 0x3d, 0xf0, 0x12,
-	0x5c, 0x39, 0x70, 0xe7, 0x09, 0x10, 0x07, 0xd4, 0x23, 0x47, 0x1e, 0x01, 0x85, 0x53, 0xdf, 0x02,
-	0x79, 0x66, 0xec, 0xf5, 0x92, 0x44, 0xa5, 0x55, 0x4f, 0xbb, 0xfe, 0xe6, 0xf7, 0x7d, 0xdf, 0xfc,
-	0xfe, 0x0d, 0xfc, 0x8a, 0x14, 0x33, 0xf6, 0x3c, 0x88, 0x59, 0x31, 0xa5, 0x69, 0x30, 0xa5, 0x99,
-	0x22, 0x22, 0x28, 0x88, 0x9a, 0x33, 0xf1, 0x7d, 0xa0, 0x62, 0x1e, 0x71, 0xc1, 0x16, 0xcf, 0x83,
-	0xd9, 0x21, 0xce, 0xf8, 0x25, 0x5e, 0x22, 0x3e, 0x17, 0x4c, 0x31, 0xf4, 0x99, 0xa6, 0xfb, 0x86,
-	0xee, 0x1b, 0xba, 0x6f, 0xe9, 0xfe, 0x32, 0xd8, 0xd2, 0xbd, 0x2f, 0x6e, 0x72, 0xc3, 0x71, 0x4c,
-	0xa4, 0xcc, 0x58, 0xda, 0xb8, 0x34, 0x88, 0x71, 0xf1, 0x3e, 0x31, 0x34, 0xcc, 0x69, 0x13, 0x12,
-	0x33, 0x41, 0x02, 0x9c, 0x24, 0x82, 0x48, 0x69, 0xa3, 0x76, 0x6f, 0x89, 0xba, 0xc0, 0x92, 0xd8,
-	0x90, 0x9d, 0x94, 0xb1, 0x34, 0x23, 0x81, 0xfe, 0xba, 0x28, 0xa7, 0x41, 0x52, 0x0a, 0xac, 0x28,
-	0x2b, 0x6e, 0x3b, 0x9f, 0x0b, 0xcc, 0x39, 0x11, 0xb5, 0xc5, 0x83, 0x19, 0xce, 0x68, 0x82, 0x15,
-	0x09, 0xea, 0x3f, 0xe6, 0xe0, 0xa3, 0x3f, 0xfa, 0xb0, 0x7b, 0x1e, 0xf3, 0x49, 0x95, 0x2d, 0xda,
-	0x87, 0x7d, 0xa9, 0xb0, 0x8a, 0xb8, 0x20, 0x53, 0xba, 0x70, 0xc1, 0x10, 0xec, 0xf5, 0x46, 0xbd,
-	0xdf, 0x5f, 0xbe, 0xe8, 0xac, 0x0b, 0x67, 0x08, 0x42, 0x58, 0x9d, 0x4e, 0xf4, 0x21, 0xf2, 0xe0,
-	0x9d, 0x38, 0x2b, 0xa5, 0x22, 0xc2, 0x75, 0xaa, 0xb8, 0x93, 0xb5, 0xb0, 0x06, 0xd0, 0x0c, 0x6e,
-	0xcf, 0x09, 0x4d, 0x2f, 0x15, 0x49, 0x22, 0x8b, 0x49, 0x17, 0x0e, 0xc1, 0x5e, 0xff, 0xe0, 0xb1,
-	0xff, 0x5a, 0x85, 0xf7, 0xeb, 0xbb, 0xf9, 0xdf, 0x58, 0xc1, 0x23, 0xa3, 0x77, 0xb2, 0x16, 0xde,
-	0x9d, 0xaf, 0x42, 0x12, 0x3d, 0x86, 0xef, 0xe4, 0x44, 0xe1, 0x04, 0x2b, 0x1c, 0xe5, 0x58, 0xc5,
-	0x97, 0x6e, 0x4f, 0x9b, 0x0e, 0xad, 0x29, 0xe6, 0xb4, 0x11, 0xae, 0x2a, 0xec, 0x8f, 0x6d, 0x74,
-	0x38, 0xa8, 0x79, 0xe3, 0x8a, 0x86, 0x4e, 0xe0, 0x16, 0x4d, 0x32, 0x12, 0x29, 0x9a, 0x13, 0x56,
-	0x2a, 0xb7, 0xab, 0x65, 0xde, 0xf7, 0x4d, 0x95, 0xfd, 0xba, 0xca, 0xfe, 0xb1, 0xed, 0xc2, 0x08,
-	0x56, 0x45, 0xda, 0xf8, 0x15, 0x38, 0xfb, 0x6b, 0x61, 0xbf, 0xa2, 0x9e, 0x1b, 0x26, 0x3a, 0x83,
-	0x0f, 0x12, 0x36, 0x2f, 0xa4, 0x12, 0x04, 0xe7, 0xd1, 0x8a, 0x68, 0xe7, 0x15, 0xa2, 0xe1, 0xfd,
-	0x25, 0xf3, 0xb4, 0x25, 0x39, 0x86, 0xf7, 0x4b, 0x7e, 0x93, 0xe0, 0xfa, 0xab, 0x04, 0xef, 0xd5,
-	0xbc, 0xb6, 0xdc, 0xd7, 0x10, 0x9a, 0xb1, 0x8d, 0x32, 0x96, 0xba, 0x1b, 0xc3, 0xce, 0x5e, 0xff,
-	0xe0, 0xf3, 0x1b, 0xbb, 0xb4, 0x9c, 0xee, 0xba, 0x88, 0x8f, 0x34, 0xf2, 0x84, 0xa5, 0x61, 0x0f,
-	0xd7, 0x7f, 0x51, 0x0e, 0x07, 0x09, 0xe1, 0x82, 0xc4, 0xb8, 0xea, 0xff, 0xec, 0xa1, 0xbb, 0xa9,
-	0xef, 0x75, 0xfc, 0xa6, 0x9d, 0x3f, 0x6e, 0xc4, 0x9e, 0x3d, 0x1c, 0x39, 0x2e, 0x08, 0xb7, 0x92,
-	0x16, 0x82, 0xbe, 0x85, 0xef, 0xe5, 0x78, 0x11, 0xc5, 0xac, 0x28, 0x48, 0xac, 0x22, 0xac, 0x14,
-	0xc9, 0xb9, 0x92, 0xee, 0x1d, 0xed, 0xfa, 0xc1, 0xb5, 0x6a, 0x3c, 0x3d, 0x2d, 0xd4, 0xe1, 0xc1,
-	0x33, 0x9c, 0x95, 0xc4, 0xce, 0xf6, 0xbe, 0xb3, 0x07, 0x42, 0x94, 0xe3, 0xc5, 0x91, 0xd1, 0x78,
-	0x64, 0x25, 0xbc, 0x5f, 0x3a, 0x70, 0xab, 0xed, 0x8e, 0x7e, 0x80, 0x9b, 0x82, 0x95, 0x8a, 0x48,
-	0x17, 0xe8, 0x3a, 0x8d, 0xdf, 0x46, 0x4e, 0xfe, 0xf9, 0xd1, 0x24, 0xac, 0x54, 0xed, 0x14, 0xfd,
-	0x04, 0x9c, 0x2e, 0x08, 0xad, 0x91, 0xf7, 0xb3, 0x03, 0xbb, 0x75, 0x00, 0xfa, 0x78, 0xb9, 0x74,
-	0xd7, 0x96, 0xb3, 0xd9, 0xbe, 0x33, 0x78, 0x2f, 0x21, 0x52, 0xd1, 0x42, 0x37, 0x3d, 0xa2, 0x3c,
-	0xca, 0xa8, 0x54, 0xae, 0xa3, 0x6f, 0xbc, 0x7b, 0xdb, 0x2a, 0x1c, 0xd1, 0x44, 0x84, 0xb8, 0x48,
-	0x49, 0xb8, 0xdd, 0x62, 0x9f, 0xf2, 0x27, 0x54, 0x2a, 0xf4, 0x29, 0x6c, 0x83, 0x11, 0x67, 0x42,
-	0x49, 0x3d, 0xbf, 0xbd, 0xf0, 0x6e, 0xeb, 0x60, 0x52, 0xe1, 0xd5, 0x16, 0x4a, 0x56, 0x8a, 0x98,
-	0x34, 0xd6, 0xeb, 0xff, 0xd7, 0x7a, 0xcb, 0x10, 0xad, 0xeb, 0x2e, 0xb4, 0xdf, 0xd6, 0x70, 0x43,
-	0x1b, 0xf6, 0x0d, 0xa6, 0xbd, 0xbc, 0x7f, 0x00, 0x7c, 0xf7, 0x3f, 0x2f, 0x03, 0xfa, 0x11, 0x76,
-	0x9b, 0x47, 0xc7, 0xb4, 0xe9, 0xe9, 0x5b, 0x7a, 0x74, 0x7c, 0xfb, 0x6b, 0xe0, 0x95, 0x76, 0x35,
-	0x96, 0xde, 0x19, 0x1c, 0xac, 0x84, 0xa1, 0x0f, 0xe1, 0x7a, 0x81, 0x73, 0x72, 0xbd, 0x63, 0x1a,
-	0x46, 0xbb, 0x70, 0xd3, 0x3c, 0x64, 0xfa, 0x1d, 0x1d, 0xb4, 0x67, 0xd2, 0x1e, 0x8c, 0x3c, 0xb8,
-	0x6d, 0xe5, 0x23, 0xc9, 0x49, 0x4c, 0xa7, 0x94, 0x08, 0xb4, 0xf1, 0xdb, 0xcb, 0x17, 0x1d, 0x30,
-	0xfa, 0xee, 0xcf, 0xab, 0x1d, 0xf0, 0xd7, 0xd5, 0x0e, 0xf8, 0xfb, 0x6a, 0x07, 0xc0, 0x2f, 0x29,
-	0x33, 0xb9, 0x9a, 0x84, 0x5e, 0x2b, 0xed, 0xd1, 0xa0, 0xce, 0x7b, 0x52, 0xed, 0xca, 0x04, 0x5c,
-	0x6c, 0xea, 0xa5, 0x39, 0xfc, 0x37, 0x00, 0x00, 0xff, 0xff, 0x90, 0x98, 0x8d, 0x63, 0x6c, 0x07,
+	// 642 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x53, 0x4f, 0x4f, 0x13, 0x41,
+	0x14, 0x67, 0xda, 0x42, 0xdb, 0xa9, 0x55, 0x58, 0x25, 0xd4, 0x46, 0x9b, 0x62, 0x3c, 0x34, 0x24,
+	0xce, 0x2a, 0xc4, 0x93, 0x7a, 0xa0, 0x98, 0x00, 0x46, 0x62, 0xd9, 0x80, 0x46, 0x2f, 0x9b, 0x61,
+	0xf7, 0x75, 0x99, 0xb8, 0xbb, 0x33, 0x99, 0x9d, 0xfe, 0xe1, 0xe0, 0x97, 0xf0, 0xc3, 0x18, 0xe3,
+	0x89, 0xa3, 0x47, 0x3f, 0x82, 0xc1, 0x13, 0xdf, 0xc2, 0xec, 0xce, 0x6c, 0x0b, 0x02, 0x21, 0x24,
+	0x9e, 0x76, 0xf6, 0xf7, 0x7e, 0xbf, 0xdf, 0x7b, 0xf3, 0xde, 0x1b, 0xfc, 0x0a, 0xe2, 0x21, 0x3f,
+	0xb2, 0x3d, 0x1e, 0xf7, 0x59, 0x60, 0xf7, 0x59, 0xa8, 0x40, 0xda, 0x31, 0xa8, 0x11, 0x97, 0x9f,
+	0x6d, 0xe5, 0x09, 0x57, 0x48, 0x3e, 0x3e, 0xb2, 0x87, 0x6b, 0x34, 0x14, 0x87, 0x74, 0x8a, 0x10,
+	0x21, 0xb9, 0xe2, 0xd6, 0x93, 0x4c, 0x4e, 0xb4, 0x9c, 0x68, 0x39, 0x31, 0x72, 0x32, 0x25, 0x1b,
+	0x79, 0xf3, 0xb1, 0xce, 0x46, 0x05, 0x9b, 0x38, 0x7a, 0x5c, 0x82, 0x4d, 0x7d, 0x5f, 0x42, 0x92,
+	0x68, 0xd3, 0xe6, 0xf2, 0x15, 0xac, 0x03, 0x9a, 0x80, 0xa1, 0x3c, 0xbf, 0xac, 0x6c, 0xea, 0x79,
+	0x90, 0x24, 0x21, 0x0f, 0x26, 0xb2, 0x09, 0x62, 0x64, 0xad, 0x80, 0xf3, 0x20, 0x04, 0x3b, 0xfb,
+	0x3b, 0x18, 0xf4, 0x6d, 0x7f, 0x20, 0xa9, 0x62, 0x3c, 0xbe, 0x2a, 0x3e, 0x92, 0x54, 0x08, 0x90,
+	0x79, 0x65, 0x4b, 0x43, 0x1a, 0x32, 0x9f, 0x2a, 0xb0, 0xf3, 0x83, 0x0e, 0x3c, 0xfa, 0x56, 0xc6,
+	0x95, 0x3d, 0x4f, 0xf4, 0xd2, 0xdb, 0x5a, 0x2b, 0xb8, 0x96, 0x28, 0xaa, 0x5c, 0x21, 0xa1, 0xcf,
+	0xc6, 0x0d, 0xd4, 0x46, 0x9d, 0x6a, 0xb7, 0xfa, 0xe3, 0xf4, 0xb8, 0x58, 0x92, 0x85, 0x36, 0x72,
+	0x70, 0x1a, 0xed, 0x65, 0x41, 0xab, 0x89, 0xcb, 0x5e, 0x38, 0x48, 0x14, 0xc8, 0x46, 0x21, 0xe5,
+	0x6d, 0xcd, 0x38, 0x39, 0x60, 0x0d, 0xf1, 0xc2, 0x08, 0x58, 0x70, 0xa8, 0xc0, 0x77, 0x0d, 0x96,
+	0x34, 0x70, 0x1b, 0x75, 0x6a, 0xab, 0x9b, 0xe4, 0x46, 0x8d, 0x27, 0x79, 0x6d, 0xe4, 0x83, 0x31,
+	0xdc, 0xd0, 0x7e, 0x5b, 0x33, 0xce, 0xfc, 0xe8, 0x3c, 0x94, 0x58, 0x9b, 0xf8, 0x76, 0x04, 0x8a,
+	0xfa, 0x54, 0x51, 0x37, 0xa2, 0xca, 0x3b, 0x6c, 0x54, 0xb3, 0xa4, 0x6d, 0x93, 0x94, 0x0a, 0x36,
+	0x31, 0x4e, 0x07, 0x43, 0x76, 0x0c, 0xdb, 0xa9, 0xe7, 0xba, 0x9d, 0x54, 0x66, 0xbd, 0xc4, 0xb7,
+	0x98, 0x1f, 0x82, 0xab, 0x58, 0x04, 0x7c, 0xa0, 0x1a, 0x95, 0xcc, 0xe6, 0x3e, 0xd1, 0x5d, 0x26,
+	0x79, 0x97, 0xc9, 0x6b, 0x33, 0x05, 0xa7, 0x96, 0xd2, 0xf7, 0x34, 0xdb, 0xda, 0xc5, 0x4b, 0x3e,
+	0x1f, 0xc5, 0x89, 0x92, 0x40, 0x23, 0xf7, 0x9c, 0x51, 0xf1, 0x3a, 0xa3, 0xc5, 0xa9, 0x72, 0xfb,
+	0x8c, 0xe5, 0x0e, 0x5e, 0x1c, 0x88, 0xcb, 0x0c, 0x4b, 0xd7, 0x19, 0xde, 0xcd, 0x75, 0x67, 0xed,
+	0xde, 0x61, 0xac, 0x37, 0xcc, 0x0d, 0x79, 0xd0, 0x98, 0x6d, 0x17, 0x3b, 0xb5, 0xd5, 0xa7, 0x97,
+	0x4e, 0x66, 0xba, 0x88, 0x79, 0xe3, 0xd6, 0x33, 0xe4, 0x2d, 0x0f, 0x9c, 0x2a, 0xcd, 0x8f, 0xd6,
+	0x47, 0x7c, 0x2f, 0xa2, 0x63, 0xd7, 0xe3, 0x71, 0x0c, 0x9e, 0x72, 0xa9, 0x52, 0x10, 0x09, 0x95,
+	0x34, 0xca, 0x59, 0x79, 0x0f, 0x2e, 0x94, 0xb7, 0xbf, 0x1d, 0xab, 0xb5, 0xd5, 0xf7, 0x34, 0x1c,
+	0x80, 0x59, 0xb0, 0x95, 0x42, 0x07, 0x39, 0x56, 0x44, 0xc7, 0x1b, 0xda, 0x63, 0xdd, 0x58, 0x34,
+	0xff, 0x20, 0x7c, 0xe7, 0x9f, 0xe1, 0x5b, 0x5f, 0x70, 0x65, 0xb2, 0x57, 0x28, 0xab, 0x7e, 0xff,
+	0x3f, 0xed, 0x15, 0x31, 0x5f, 0x0d, 0x77, 0x71, 0x5a, 0xdb, 0xec, 0x57, 0x54, 0xa8, 0x20, 0x67,
+	0x92, 0xb2, 0xb9, 0x8b, 0xeb, 0xe7, 0x68, 0xd6, 0x43, 0x5c, 0x8a, 0x69, 0x04, 0x17, 0x5f, 0x4c,
+	0x06, 0x5b, 0xcb, 0x78, 0x4e, 0xef, 0x6a, 0xf6, 0x54, 0xea, 0x67, 0x6f, 0x6c, 0x02, 0xdd, 0x26,
+	0x5e, 0x30, 0xf6, 0x6e, 0x22, 0xc0, 0x63, 0x7d, 0x06, 0xd2, 0x9a, 0xfd, 0x7e, 0x7a, 0x5c, 0x44,
+	0x6f, 0x4a, 0x95, 0xb9, 0xf9, 0xb2, 0x53, 0xf7, 0x41, 0x48, 0xf0, 0x68, 0xfa, 0xa8, 0x86, 0xcf,
+	0xba, 0x9f, 0x7e, 0x9e, 0xb4, 0xd0, 0xaf, 0x93, 0x16, 0xfa, 0x7d, 0xd2, 0x42, 0xf8, 0x05, 0xe3,
+	0xba, 0x01, 0xfa, 0x96, 0x37, 0xea, 0x45, 0xb7, 0x9e, 0x37, 0xa3, 0x97, 0x8e, 0xa7, 0x87, 0x0e,
+	0xe6, 0xb2, 0x39, 0xad, 0xfd, 0x0d, 0x00, 0x00, 0xff, 0xff, 0xb0, 0xfb, 0x0e, 0xf1, 0x64, 0x05,
 	0x00, 0x00,
 }
 
@@ -611,18 +430,6 @@ func (m *TcpProxy) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		}
 		i--
 		dAtA[i] = 0x3a
-	}
-	if m.DeprecatedV1 != nil {
-		{
-			size, err := m.DeprecatedV1.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintTcpProxy(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0x32
 	}
 	if len(m.AccessLog) > 0 {
 		for iNdEx := len(m.AccessLog) - 1; iNdEx >= 0; iNdEx-- {
@@ -705,123 +512,6 @@ func (m *TcpProxy_WeightedClusters) MarshalToSizedBuffer(dAtA []byte) (int, erro
 	}
 	return len(dAtA) - i, nil
 }
-func (m *TcpProxy_DeprecatedV1) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *TcpProxy_DeprecatedV1) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *TcpProxy_DeprecatedV1) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if m.XXX_unrecognized != nil {
-		i -= len(m.XXX_unrecognized)
-		copy(dAtA[i:], m.XXX_unrecognized)
-	}
-	if len(m.Routes) > 0 {
-		for iNdEx := len(m.Routes) - 1; iNdEx >= 0; iNdEx-- {
-			{
-				size, err := m.Routes[iNdEx].MarshalToSizedBuffer(dAtA[:i])
-				if err != nil {
-					return 0, err
-				}
-				i -= size
-				i = encodeVarintTcpProxy(dAtA, i, uint64(size))
-			}
-			i--
-			dAtA[i] = 0xa
-		}
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *TcpProxy_DeprecatedV1_TCPRoute) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *TcpProxy_DeprecatedV1_TCPRoute) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *TcpProxy_DeprecatedV1_TCPRoute) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if m.XXX_unrecognized != nil {
-		i -= len(m.XXX_unrecognized)
-		copy(dAtA[i:], m.XXX_unrecognized)
-	}
-	if len(m.SourcePorts) > 0 {
-		i -= len(m.SourcePorts)
-		copy(dAtA[i:], m.SourcePorts)
-		i = encodeVarintTcpProxy(dAtA, i, uint64(len(m.SourcePorts)))
-		i--
-		dAtA[i] = 0x2a
-	}
-	if len(m.SourceIpList) > 0 {
-		for iNdEx := len(m.SourceIpList) - 1; iNdEx >= 0; iNdEx-- {
-			{
-				size, err := m.SourceIpList[iNdEx].MarshalToSizedBuffer(dAtA[:i])
-				if err != nil {
-					return 0, err
-				}
-				i -= size
-				i = encodeVarintTcpProxy(dAtA, i, uint64(size))
-			}
-			i--
-			dAtA[i] = 0x22
-		}
-	}
-	if len(m.DestinationPorts) > 0 {
-		i -= len(m.DestinationPorts)
-		copy(dAtA[i:], m.DestinationPorts)
-		i = encodeVarintTcpProxy(dAtA, i, uint64(len(m.DestinationPorts)))
-		i--
-		dAtA[i] = 0x1a
-	}
-	if len(m.DestinationIpList) > 0 {
-		for iNdEx := len(m.DestinationIpList) - 1; iNdEx >= 0; iNdEx-- {
-			{
-				size, err := m.DestinationIpList[iNdEx].MarshalToSizedBuffer(dAtA[:i])
-				if err != nil {
-					return 0, err
-				}
-				i -= size
-				i = encodeVarintTcpProxy(dAtA, i, uint64(size))
-			}
-			i--
-			dAtA[i] = 0x12
-		}
-	}
-	if len(m.Cluster) > 0 {
-		i -= len(m.Cluster)
-		copy(dAtA[i:], m.Cluster)
-		i = encodeVarintTcpProxy(dAtA, i, uint64(len(m.Cluster)))
-		i--
-		dAtA[i] = 0xa
-	}
-	return len(dAtA) - i, nil
-}
-
 func (m *TcpProxy_WeightedCluster) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
@@ -940,10 +630,6 @@ func (m *TcpProxy) Size() (n int) {
 			n += 1 + l + sovTcpProxy(uint64(l))
 		}
 	}
-	if m.DeprecatedV1 != nil {
-		l = m.DeprecatedV1.Size()
-		n += 1 + l + sovTcpProxy(uint64(l))
-	}
 	if m.MaxConnectAttempts != nil {
 		l = m.MaxConnectAttempts.Size()
 		n += 1 + l + sovTcpProxy(uint64(l))
@@ -984,60 +670,6 @@ func (m *TcpProxy_WeightedClusters) Size() (n int) {
 	}
 	return n
 }
-func (m *TcpProxy_DeprecatedV1) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if len(m.Routes) > 0 {
-		for _, e := range m.Routes {
-			l = e.Size()
-			n += 1 + l + sovTcpProxy(uint64(l))
-		}
-	}
-	if m.XXX_unrecognized != nil {
-		n += len(m.XXX_unrecognized)
-	}
-	return n
-}
-
-func (m *TcpProxy_DeprecatedV1_TCPRoute) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	l = len(m.Cluster)
-	if l > 0 {
-		n += 1 + l + sovTcpProxy(uint64(l))
-	}
-	if len(m.DestinationIpList) > 0 {
-		for _, e := range m.DestinationIpList {
-			l = e.Size()
-			n += 1 + l + sovTcpProxy(uint64(l))
-		}
-	}
-	l = len(m.DestinationPorts)
-	if l > 0 {
-		n += 1 + l + sovTcpProxy(uint64(l))
-	}
-	if len(m.SourceIpList) > 0 {
-		for _, e := range m.SourceIpList {
-			l = e.Size()
-			n += 1 + l + sovTcpProxy(uint64(l))
-		}
-	}
-	l = len(m.SourcePorts)
-	if l > 0 {
-		n += 1 + l + sovTcpProxy(uint64(l))
-	}
-	if m.XXX_unrecognized != nil {
-		n += len(m.XXX_unrecognized)
-	}
-	return n
-}
-
 func (m *TcpProxy_WeightedCluster) Size() (n int) {
 	if m == nil {
 		return 0
@@ -1280,42 +912,6 @@ func (m *TcpProxy) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
-		case 6:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field DeprecatedV1", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTcpProxy
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthTcpProxy
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthTcpProxy
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if m.DeprecatedV1 == nil {
-				m.DeprecatedV1 = &TcpProxy_DeprecatedV1{}
-			}
-			if err := m.DeprecatedV1.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
 		case 7:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field MaxConnectAttempts", wireType)
@@ -1458,312 +1054,6 @@ func (m *TcpProxy) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			m.ClusterSpecifier = &TcpProxy_WeightedClusters{v}
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipTcpProxy(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if skippy < 0 {
-				return ErrInvalidLengthTcpProxy
-			}
-			if (iNdEx + skippy) < 0 {
-				return ErrInvalidLengthTcpProxy
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *TcpProxy_DeprecatedV1) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowTcpProxy
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: DeprecatedV1: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: DeprecatedV1: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Routes", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTcpProxy
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthTcpProxy
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthTcpProxy
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Routes = append(m.Routes, &TcpProxy_DeprecatedV1_TCPRoute{})
-			if err := m.Routes[len(m.Routes)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipTcpProxy(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if skippy < 0 {
-				return ErrInvalidLengthTcpProxy
-			}
-			if (iNdEx + skippy) < 0 {
-				return ErrInvalidLengthTcpProxy
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *TcpProxy_DeprecatedV1_TCPRoute) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowTcpProxy
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: TCPRoute: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: TCPRoute: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Cluster", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTcpProxy
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthTcpProxy
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthTcpProxy
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Cluster = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field DestinationIpList", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTcpProxy
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthTcpProxy
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthTcpProxy
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.DestinationIpList = append(m.DestinationIpList, &core.CidrRange{})
-			if err := m.DestinationIpList[len(m.DestinationIpList)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		case 3:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field DestinationPorts", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTcpProxy
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthTcpProxy
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthTcpProxy
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.DestinationPorts = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 4:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field SourceIpList", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTcpProxy
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthTcpProxy
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthTcpProxy
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.SourceIpList = append(m.SourceIpList, &core.CidrRange{})
-			if err := m.SourceIpList[len(m.SourceIpList)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		case 5:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field SourcePorts", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTcpProxy
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthTcpProxy
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthTcpProxy
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.SourcePorts = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
