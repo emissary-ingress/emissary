@@ -197,34 +197,44 @@ func triggerOnChange(ctx context.Context, watchFile string, trigger func()) {
 
 // getDiagSnapshot returns a Diag snapshot or waits forever. Note that if we get stuck here, the pod will most likely
 // fail its liveness check, which also hits the Diag daemon.
-func getDiagSnapshot() []byte {
+func getDiagSnapshot(ctx context.Context) []byte {
+	ticker := time.NewTicker(time.Second/10)
+	defer ticker.Stop()
 	for {
-		res := func() []byte {
-			resp, err := http.Get("http://127.0.0.1:8877/ambassador/v0/diag/?json=true")
-			if err != nil {
-				return nil
+		select {
+		case <-ctx.Done():
+			return nil
+		case <-ticker.C:
+			res := func() []byte {
+				resp, err := http.Get("http://127.0.0.1:8877/ambassador/v0/diag/?json=true")
+				if err != nil {
+					return nil
+				}
+				defer resp.Body.Close()
+				bodyBytes, err := ioutil.ReadAll(resp.Body)
+				if err != nil {
+					return nil
+				}
+				if resp.StatusCode != 200 {
+					return nil
+				}
+				return bodyBytes
+			}()
+			if res != nil {
+				return res
 			}
-			defer resp.Body.Close()
-			bodyBytes, err := ioutil.ReadAll(resp.Body)
-			if err != nil {
-				return nil
-			}
-			if resp.StatusCode != 200 {
-				return nil
-			}
-			return bodyBytes
-		}()
-		if res != nil {
-			return res
 		}
-		time.Sleep(100 * time.Millisecond)
 	}
 }
 
 // isFallbackTLSDesired queries a diag snapshot, then returns false if a TLSContext that defines Hosts (a termination
 // context) is present, otherwise returns true. It also includes an explanatory message.
-func isFallbackTLSDesired() (bool, string) {
-	snapshotBytes := getDiagSnapshot()
+func isFallbackTLSDesired(ctx context.Context) (bool, string) {
+	snapshotBytes := getDiagSnapshot(ctx)
+	if snapshotBytes == nil {
+		// this happens if the context is canceled
+		return false, "shutting down"
+	}
 	snapshot := struct {
 		TLSContexts []struct {
 			Hosts     []string `json:"hosts"`
@@ -378,7 +388,7 @@ func runE(cmd *cobra.Command, args []string) error {
 		dynamicClient)
 	group.Go("acme_client", func(hardCtx, softCtx context.Context, cfg types.Config, l dlog.Logger) error {
 		// Don't create a fallback context if a termination context already exists, because that would be redundant.
-		fallbackDesired, reason := isFallbackTLSDesired()
+		fallbackDesired, reason := isFallbackTLSDesired(softCtx)
 		if fallbackDesired {
 			l.Debugln("Creating fallback TLS configuration because", reason)
 			if err := acmeclient.EnsureFallback(cfg, coreClient, dynamicClient); err != nil {
