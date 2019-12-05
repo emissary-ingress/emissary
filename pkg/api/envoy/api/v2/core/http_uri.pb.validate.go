@@ -54,27 +54,6 @@ func (m *HttpUri) Validate() error {
 		}
 	}
 
-	if d := m.GetTimeout(); d != nil {
-		dur, err := types.DurationFromProto(d)
-		if err != nil {
-			return HttpUriValidationError{
-				field:  "Timeout",
-				reason: "value is not a valid duration",
-				cause:  err,
-			}
-		}
-
-		gte := time.Duration(0*time.Second + 0*time.Nanosecond)
-
-		if dur < gte {
-			return HttpUriValidationError{
-				field:  "Timeout",
-				reason: "value must be greater than or equal to 0s",
-			}
-		}
-
-	}
-
 	switch m.HttpUpstreamType.(type) {
 
 	case *HttpUri_Cluster:

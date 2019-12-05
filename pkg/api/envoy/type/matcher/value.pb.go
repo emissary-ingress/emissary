@@ -25,7 +25,6 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // Specifies the way to match a ProtobufWkt::Value. Primitive values and ListValue are supported.
 // StructValue is not supported and is always not matched.
-// [#next-free-field: 7]
 type ValueMatcher struct {
 	// Specifies how to match a value.
 	//

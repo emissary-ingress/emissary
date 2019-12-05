@@ -16,8 +16,6 @@ import (
 	"unicode/utf8"
 
 	"github.com/gogo/protobuf/types"
-
-	envoy_type "github.com/datawire/ambassador/pkg/api/envoy/type"
 )
 
 // ensure the imports are used
@@ -33,8 +31,6 @@ var (
 	_ = (*url.URL)(nil)
 	_ = (*mail.Address)(nil)
 	_ = types.DynamicAny{}
-
-	_ = envoy_type.CodecClientType(0)
 )
 
 // Validate checks the field values on HealthCheck with the rules defined in
@@ -601,13 +597,6 @@ func (m *HealthCheck_HttpHealthCheck) Validate() error {
 			}
 		}
 
-	}
-
-	if _, ok := envoy_type.CodecClientType_name[int32(m.GetCodecClientType())]; !ok {
-		return HealthCheck_HttpHealthCheckValidationError{
-			field:  "CodecClientType",
-			reason: "value must be one of the defined enum values",
-		}
 	}
 
 	return nil

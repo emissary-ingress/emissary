@@ -28,6 +28,7 @@ type SocketAddress_Protocol int32
 
 const (
 	SocketAddress_TCP SocketAddress_Protocol = 0
+	// [#not-implemented-hide:]
 	SocketAddress_UDP SocketAddress_Protocol = 1
 )
 
@@ -100,7 +101,6 @@ func (m *Pipe) GetPath() string {
 	return ""
 }
 
-// [#next-free-field: 7]
 type SocketAddress struct {
 	Protocol SocketAddress_Protocol `protobuf:"varint,1,opt,name=protocol,proto3,enum=envoy.api.v2.core.SocketAddress_Protocol" json:"protocol,omitempty"`
 	// The address for this socket. :ref:`Listeners <config_listeners>` will bind

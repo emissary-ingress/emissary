@@ -55,7 +55,6 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 //       cache_duration:
 //         seconds: 300
 //
-// [#next-free-field: 10]
 type JwtProvider struct {
 	// Specify the `principal <https://tools.ietf.org/html/rfc7519#section-4.1.1>`_ that issued
 	// the JWT, usually a URL or an email address.
@@ -507,7 +506,6 @@ func (m *ProviderWithAudiences) GetAudiences() []string {
 //          - provider_name: provider-B
 //          - provider_name: provider-C
 //
-// [#next-free-field: 6]
 type JwtRequirement struct {
 	// Types that are valid to be assigned to RequiresType:
 	//	*JwtRequirement_ProviderName

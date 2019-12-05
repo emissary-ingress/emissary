@@ -49,6 +49,23 @@ func (m *Filter) Validate() error {
 
 	switch m.ConfigType.(type) {
 
+	case *Filter_Config:
+
+		{
+			tmp := m.GetConfig()
+
+			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+				if err := v.Validate(); err != nil {
+					return FilterValidationError{
+						field:  "Config",
+						reason: "embedded message failed validation",
+						cause:  err,
+					}
+				}
+			}
+		}
+
 	case *Filter_TypedConfig:
 
 		{
@@ -302,6 +319,21 @@ func (m *FilterChain) Validate() error {
 		}
 	}
 
+	{
+		tmp := m.GetTlsContext()
+
+		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+			if err := v.Validate(); err != nil {
+				return FilterChainValidationError{
+					field:  "TlsContext",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+	}
+
 	for idx, item := range m.GetFilters() {
 		_, _ = idx, item
 
@@ -442,6 +474,23 @@ func (m *ListenerFilter) Validate() error {
 	}
 
 	switch m.ConfigType.(type) {
+
+	case *ListenerFilter_Config:
+
+		{
+			tmp := m.GetConfig()
+
+			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+				if err := v.Validate(); err != nil {
+					return ListenerFilterValidationError{
+						field:  "Config",
+						reason: "embedded message failed validation",
+						cause:  err,
+					}
+				}
+			}
+		}
 
 	case *ListenerFilter_TypedConfig:
 

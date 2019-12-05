@@ -8,7 +8,6 @@ import (
 	fmt "fmt"
 	core "github.com/datawire/ambassador/pkg/api/envoy/api/v3alpha/core"
 	listener "github.com/datawire/ambassador/pkg/api/envoy/api/v3alpha/listener"
-	v2 "github.com/datawire/ambassador/pkg/api/envoy/config/listener/v2"
 	_ "github.com/envoyproxy/protoc-gen-validate/validate"
 	proto "github.com/gogo/protobuf/proto"
 	types "github.com/gogo/protobuf/types"
@@ -62,7 +61,7 @@ func (Listener_DrainType) EnumDescriptor() ([]byte, []int) {
 	return fileDescriptor_ba6811f9d8733fb9, []int{0, 0}
 }
 
-// [#next-free-field: 21]
+// [#comment:next free field: 19]
 type Listener struct {
 	// The unique name by which this listener is known. If no name is provided,
 	// Envoy will allocate an internal UUID for the listener. If the listener is to be dynamically
@@ -73,13 +72,29 @@ type Listener struct {
 	// Linux as the actual port will be allocated by the OS.
 	Address *core.Address `protobuf:"bytes,2,opt,name=address,proto3" json:"address,omitempty"`
 	// A list of filter chains to consider for this listener. The
-	// :ref:`FilterChain <envoy_api_msg_api.v3alpha.listener.FilterChain>` with the most specific
-	// :ref:`FilterChainMatch <envoy_api_msg_api.v3alpha.listener.FilterChainMatch>` criteria is used
-	// on a connection.
+	// :ref:`FilterChain <envoy_api_msg_listener.FilterChain>` with the most specific
+	// :ref:`FilterChainMatch <envoy_api_msg_listener.FilterChainMatch>` criteria is used on a
+	// connection.
 	//
 	// Example using SNI for filter chain selection can be found in the
 	// :ref:`FAQ entry <faq_how_to_setup_sni>`.
 	FilterChains []*listener.FilterChain `protobuf:"bytes,3,rep,name=filter_chains,json=filterChains,proto3" json:"filter_chains,omitempty"`
+	// If a connection is redirected using *iptables*, the port on which the proxy
+	// receives it might be different from the original destination address. When this flag is set to
+	// true, the listener hands off redirected connections to the listener associated with the
+	// original destination address. If there is no listener associated with the original destination
+	// address, the connection is handled by the listener that receives it. Defaults to false.
+	//
+	// .. attention::
+	//
+	//   This field is deprecated. Use :ref:`an original_dst <config_listener_filters_original_dst>`
+	//   :ref:`listener filter <envoy_api_field_Listener.listener_filters>` instead.
+	//
+	//   Note that hand off to another listener is *NOT* performed without this flag. Once
+	//   :ref:`FilterChainMatch <envoy_api_msg_listener.FilterChainMatch>` is implemented this flag
+	//   will be removed, as filter chain matching can be used to select a filter chain based on the
+	//   restored destination address.
+	UseOriginalDst *types.BoolValue `protobuf:"bytes,4,opt,name=use_original_dst,json=useOriginalDst,proto3" json:"use_original_dst,omitempty"` // Deprecated: Do not use.
 	// Soft limit on size of the listener’s new connection read and write buffers.
 	// If unspecified, an implementation defined default is applied (1MiB).
 	PerConnectionBufferLimitBytes *types.UInt32Value `protobuf:"bytes,5,opt,name=per_connection_buffer_limit_bytes,json=perConnectionBufferLimitBytes,proto3" json:"per_connection_buffer_limit_bytes,omitempty"`
@@ -91,12 +106,12 @@ type Listener struct {
 	DrainType Listener_DrainType `protobuf:"varint,8,opt,name=drain_type,json=drainType,proto3,enum=envoy.api.v3alpha.Listener_DrainType" json:"drain_type,omitempty"`
 	// Listener filters have the opportunity to manipulate and augment the connection metadata that
 	// is used in connection filter chain matching, for example. These filters are run before any in
-	// :ref:`filter_chains <envoy_api_field_api.v3alpha.Listener.filter_chains>`. Order matters as the
+	// :ref:`filter_chains <envoy_api_field_Listener.filter_chains>`. Order matters as the
 	// filters are processed sequentially right after a socket has been accepted by the listener, and
 	// before a connection is created.
 	// UDP Listener filters can be specified when the protocol in the listener socket address in
-	// :ref:`protocol <envoy_api_field_api.v3alpha.core.SocketAddress.protocol>` is :ref:`UDP
-	// <envoy_api_enum_value_api.v3alpha.core.SocketAddress.Protocol.UDP>`.
+	// :ref:`protocol <envoy_api_field_core.SocketAddress.protocol>` is :ref:'UDP
+	// <envoy_api_field_core.Protocol.UDP>`.
 	// UDP listeners currently support a single filter.
 	ListenerFilters []*listener.ListenerFilter `protobuf:"bytes,9,rep,name=listener_filters,json=listenerFilters,proto3" json:"listener_filters,omitempty"`
 	// The timeout to wait for all listener filters to complete operation. If the timeout is reached,
@@ -117,14 +132,15 @@ type Listener struct {
 	// *iptables* *TPROXY* target, in which case the original source and destination addresses and
 	// ports are preserved on accepted connections. This flag should be used in combination with
 	// :ref:`an original_dst <config_listener_filters_original_dst>` :ref:`listener filter
-	// <envoy_api_field_api.v3alpha.Listener.listener_filters>` to mark the connections' local
-	// addresses as "restored." This can be used to hand off each redirected connection to another
-	// listener associated with the connection's destination address. Direct connections to the socket
-	// without using *TPROXY* cannot be distinguished from connections redirected using *TPROXY* and
-	// are therefore treated as if they were redirected. When this flag is set to false, the
-	// listener's socket is explicitly reset as non-transparent. Setting this flag requires Envoy to
-	// run with the *CAP_NET_ADMIN* capability. When this flag is not set (default), the socket is not
-	// modified, i.e. the transparent option is neither set nor reset.
+	// <envoy_api_field_Listener.listener_filters>` to mark the connections' local addresses as
+	// "restored." This can be used to hand off each redirected connection to another listener
+	// associated with the connection's destination address. Direct connections to the socket without
+	// using *TPROXY* cannot be distinguished from connections redirected using *TPROXY* and are
+	// therefore treated as if they were redirected.
+	// When this flag is set to false, the listener's socket is explicitly reset as non-transparent.
+	// Setting this flag requires Envoy to run with the *CAP_NET_ADMIN* capability.
+	// When this flag is not set (default), the socket is not modified, i.e. the transparent option
+	// is neither set nor reset.
 	Transparent *types.BoolValue `protobuf:"bytes,10,opt,name=transparent,proto3" json:"transparent,omitempty"`
 	// Whether the listener should set the *IP_FREEBIND* socket option. When this
 	// flag is set to true, listeners can be bound to an IP address that is not
@@ -154,32 +170,15 @@ type Listener struct {
 	// Specifies the intended direction of the traffic relative to the local Envoy.
 	TrafficDirection core.TrafficDirection `protobuf:"varint,16,opt,name=traffic_direction,json=trafficDirection,proto3,enum=envoy.api.v3alpha.core.TrafficDirection" json:"traffic_direction,omitempty"`
 	// If the protocol in the listener socket address in :ref:`protocol
-	// <envoy_api_field_api.v3alpha.core.SocketAddress.protocol>` is :ref:`UDP
-	// <envoy_api_enum_value_api.v3alpha.core.SocketAddress.Protocol.UDP>`, this field specifies the
-	// actual udp listener to create, i.e. :ref:`udp_listener_name
-	// <envoy_api_field_api.v3alpha.listener.UdpListenerConfig.udp_listener_name>` =
-	// "raw_udp_listener" for creating a packet-oriented UDP listener. If not present, treat it as
-	// "raw_udp_listener".
-	UdpListenerConfig *listener.UdpListenerConfig `protobuf:"bytes,18,opt,name=udp_listener_config,json=udpListenerConfig,proto3" json:"udp_listener_config,omitempty"`
-	// [#not-implemented-hide:]
-	// Used to represent an API listener, which is used in non-proxy clients. The type of API
-	// exposed to the non-proxy application depends on the type of API listener.
-	// When this field is set, no other field except for
-	// :ref:`name<envoy_api_field_api.v3alpha.Listener.name>` should be set.
-	// [#next-major-version: In the v3 API, instead of this messy approach where the socket
-	// listener fields are directly in the top-level Listener message and the API listener types
-	// are in the ApiListener message, the socket listener messages should be in their own message,
-	// and the top-level Listener should essentially be a oneof that selects between the
-	// socket listener and the various types of API listener. That way, a given Listener message
-	// can structurally only contain the fields of the relevant type.]
-	ApiListener *v2.ApiListener `protobuf:"bytes,19,opt,name=api_listener,json=apiListener,proto3" json:"api_listener,omitempty"`
-	// The listener's connection balancer configuration, currently only applicable to TCP listeners.
-	// If no configuration is specified, Envoy will not attempt to balance active connections between
-	// worker threads.
-	ConnectionBalanceConfig *Listener_ConnectionBalanceConfig `protobuf:"bytes,20,opt,name=connection_balance_config,json=connectionBalanceConfig,proto3" json:"connection_balance_config,omitempty"`
-	XXX_NoUnkeyedLiteral    struct{}                          `json:"-"`
-	XXX_unrecognized        []byte                            `json:"-"`
-	XXX_sizecache           int32                             `json:"-"`
+	// <envoy_api_field_core.SocketAddress.protocol>` is :ref:'UDP
+	// <envoy_api_field_core.Protocol.UDP>`, this field specifies the actual udp listener to create,
+	// i.e. :ref:`udp_listener_name
+	// <envoy_api_field_listener.UdpListenerConfig.udp_listener_name>` = "raw_udp_listener" for
+	// creating a packet-oriented UDP listener. If not present, treat it as "raw_udp_listener".
+	UdpListenerConfig    *listener.UdpListenerConfig `protobuf:"bytes,18,opt,name=udp_listener_config,json=udpListenerConfig,proto3" json:"udp_listener_config,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                    `json:"-"`
+	XXX_unrecognized     []byte                      `json:"-"`
+	XXX_sizecache        int32                       `json:"-"`
 }
 
 func (m *Listener) Reset()         { *m = Listener{} }
@@ -232,6 +231,14 @@ func (m *Listener) GetAddress() *core.Address {
 func (m *Listener) GetFilterChains() []*listener.FilterChain {
 	if m != nil {
 		return m.FilterChains
+	}
+	return nil
+}
+
+// Deprecated: Do not use.
+func (m *Listener) GetUseOriginalDst() *types.BoolValue {
+	if m != nil {
+		return m.UseOriginalDst
 	}
 	return nil
 }
@@ -327,30 +334,16 @@ func (m *Listener) GetUdpListenerConfig() *listener.UdpListenerConfig {
 	return nil
 }
 
-func (m *Listener) GetApiListener() *v2.ApiListener {
-	if m != nil {
-		return m.ApiListener
-	}
-	return nil
-}
-
-func (m *Listener) GetConnectionBalanceConfig() *Listener_ConnectionBalanceConfig {
-	if m != nil {
-		return m.ConnectionBalanceConfig
-	}
-	return nil
-}
-
 // [#not-implemented-hide:]
 type Listener_DeprecatedV1 struct {
 	// Whether the listener should bind to the port. A listener that doesn't
 	// bind can only receive connections redirected from other listeners that
 	// set use_original_dst parameter to true. Default is true.
 	//
-	// This is deprecated in v2, all Listeners will bind to their port. An
-	// additional filter chain must be created for every original destination
-	// port this listener may redirect to in v2, with the original port
-	// specified in the FilterChainMatch destination_port field.
+	// [V2-API-DIFF] This is deprecated in v2, all Listeners will bind to their
+	// port. An additional filter chain must be created for every original
+	// destination port this listener may redirect to in v2, with the original
+	// port specified in the FilterChainMatch destination_port field.
 	//
 	// [#comment:TODO(PiotrSikora): Remove this once verified that we no longer need it.]
 	BindToPort           *types.BoolValue `protobuf:"bytes,1,opt,name=bind_to_port,json=bindToPort,proto3" json:"bind_to_port,omitempty"`
@@ -399,211 +392,75 @@ func (m *Listener_DeprecatedV1) GetBindToPort() *types.BoolValue {
 	return nil
 }
 
-// Configuration for listener connection balancing.
-type Listener_ConnectionBalanceConfig struct {
-	// Types that are valid to be assigned to BalanceType:
-	//	*Listener_ConnectionBalanceConfig_ExactBalance_
-	BalanceType          isListener_ConnectionBalanceConfig_BalanceType `protobuf_oneof:"balance_type"`
-	XXX_NoUnkeyedLiteral struct{}                                       `json:"-"`
-	XXX_unrecognized     []byte                                         `json:"-"`
-	XXX_sizecache        int32                                          `json:"-"`
-}
-
-func (m *Listener_ConnectionBalanceConfig) Reset()         { *m = Listener_ConnectionBalanceConfig{} }
-func (m *Listener_ConnectionBalanceConfig) String() string { return proto.CompactTextString(m) }
-func (*Listener_ConnectionBalanceConfig) ProtoMessage()    {}
-func (*Listener_ConnectionBalanceConfig) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ba6811f9d8733fb9, []int{0, 1}
-}
-func (m *Listener_ConnectionBalanceConfig) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *Listener_ConnectionBalanceConfig) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_Listener_ConnectionBalanceConfig.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *Listener_ConnectionBalanceConfig) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_Listener_ConnectionBalanceConfig.Merge(m, src)
-}
-func (m *Listener_ConnectionBalanceConfig) XXX_Size() int {
-	return m.Size()
-}
-func (m *Listener_ConnectionBalanceConfig) XXX_DiscardUnknown() {
-	xxx_messageInfo_Listener_ConnectionBalanceConfig.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_Listener_ConnectionBalanceConfig proto.InternalMessageInfo
-
-type isListener_ConnectionBalanceConfig_BalanceType interface {
-	isListener_ConnectionBalanceConfig_BalanceType()
-	MarshalTo([]byte) (int, error)
-	Size() int
-}
-
-type Listener_ConnectionBalanceConfig_ExactBalance_ struct {
-	ExactBalance *Listener_ConnectionBalanceConfig_ExactBalance `protobuf:"bytes,1,opt,name=exact_balance,json=exactBalance,proto3,oneof"`
-}
-
-func (*Listener_ConnectionBalanceConfig_ExactBalance_) isListener_ConnectionBalanceConfig_BalanceType() {
-}
-
-func (m *Listener_ConnectionBalanceConfig) GetBalanceType() isListener_ConnectionBalanceConfig_BalanceType {
-	if m != nil {
-		return m.BalanceType
-	}
-	return nil
-}
-
-func (m *Listener_ConnectionBalanceConfig) GetExactBalance() *Listener_ConnectionBalanceConfig_ExactBalance {
-	if x, ok := m.GetBalanceType().(*Listener_ConnectionBalanceConfig_ExactBalance_); ok {
-		return x.ExactBalance
-	}
-	return nil
-}
-
-// XXX_OneofWrappers is for the internal use of the proto package.
-func (*Listener_ConnectionBalanceConfig) XXX_OneofWrappers() []interface{} {
-	return []interface{}{
-		(*Listener_ConnectionBalanceConfig_ExactBalance_)(nil),
-	}
-}
-
-// A connection balancer implementation that does exact balancing. This means that a lock is
-// held during balancing so that connection counts are nearly exactly balanced between worker
-// threads. This is "nearly" exact in the sense that a connection might close in parallel thus
-// making the counts incorrect, but this should be rectified on the next accept. This balancer
-// sacrifices accept throughput for accuracy and should be used when there are a small number of
-// connections that rarely cycle (e.g., service mesh gRPC egress).
-type Listener_ConnectionBalanceConfig_ExactBalance struct {
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *Listener_ConnectionBalanceConfig_ExactBalance) Reset() {
-	*m = Listener_ConnectionBalanceConfig_ExactBalance{}
-}
-func (m *Listener_ConnectionBalanceConfig_ExactBalance) String() string {
-	return proto.CompactTextString(m)
-}
-func (*Listener_ConnectionBalanceConfig_ExactBalance) ProtoMessage() {}
-func (*Listener_ConnectionBalanceConfig_ExactBalance) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ba6811f9d8733fb9, []int{0, 1, 0}
-}
-func (m *Listener_ConnectionBalanceConfig_ExactBalance) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *Listener_ConnectionBalanceConfig_ExactBalance) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_Listener_ConnectionBalanceConfig_ExactBalance.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *Listener_ConnectionBalanceConfig_ExactBalance) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_Listener_ConnectionBalanceConfig_ExactBalance.Merge(m, src)
-}
-func (m *Listener_ConnectionBalanceConfig_ExactBalance) XXX_Size() int {
-	return m.Size()
-}
-func (m *Listener_ConnectionBalanceConfig_ExactBalance) XXX_DiscardUnknown() {
-	xxx_messageInfo_Listener_ConnectionBalanceConfig_ExactBalance.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_Listener_ConnectionBalanceConfig_ExactBalance proto.InternalMessageInfo
-
 func init() {
 	proto.RegisterEnum("envoy.api.v3alpha.Listener_DrainType", Listener_DrainType_name, Listener_DrainType_value)
 	proto.RegisterType((*Listener)(nil), "envoy.api.v3alpha.Listener")
 	proto.RegisterType((*Listener_DeprecatedV1)(nil), "envoy.api.v3alpha.Listener.DeprecatedV1")
-	proto.RegisterType((*Listener_ConnectionBalanceConfig)(nil), "envoy.api.v3alpha.Listener.ConnectionBalanceConfig")
-	proto.RegisterType((*Listener_ConnectionBalanceConfig_ExactBalance)(nil), "envoy.api.v3alpha.Listener.ConnectionBalanceConfig.ExactBalance")
 }
 
 func init() { proto.RegisterFile("envoy/api/v3alpha/lds.proto", fileDescriptor_ba6811f9d8733fb9) }
 
 var fileDescriptor_ba6811f9d8733fb9 = []byte{
-	// 1061 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x56, 0x4f, 0x6f, 0x1b, 0x45,
-	0x14, 0xcf, 0xe6, 0x4f, 0xe3, 0x8c, 0xff, 0xc4, 0x99, 0x42, 0xb3, 0x35, 0x21, 0x75, 0x42, 0x50,
-	0x9d, 0x22, 0xd6, 0xd4, 0x41, 0x1c, 0xaa, 0x1c, 0x88, 0xe3, 0x44, 0x6d, 0x71, 0x9a, 0xb0, 0x49,
-	0x2a, 0x7a, 0x40, 0xab, 0xf1, 0xee, 0xb3, 0xb3, 0xea, 0x66, 0x66, 0x3a, 0x33, 0x6b, 0xea, 0x2b,
-	0xe2, 0x80, 0xb8, 0xf2, 0x29, 0xf8, 0x06, 0x08, 0x2e, 0x3d, 0x72, 0x44, 0xe2, 0x0b, 0xa0, 0x88,
-	0x4b, 0xaf, 0x7c, 0x02, 0xb4, 0xb3, 0xbb, 0x8e, 0xeb, 0x7f, 0x54, 0x48, 0xdc, 0xf6, 0xcd, 0xfb,
-	0xfd, 0x7e, 0xef, 0xcd, 0x7b, 0x6f, 0x9e, 0x8d, 0xde, 0x03, 0xda, 0x65, 0xbd, 0x2a, 0xe1, 0x7e,
-	0xb5, 0xbb, 0x43, 0x02, 0x7e, 0x41, 0xaa, 0x81, 0x27, 0x2d, 0x2e, 0x98, 0x62, 0x78, 0x45, 0x3b,
-	0x2d, 0xc2, 0x7d, 0x2b, 0x71, 0x96, 0xb6, 0x46, 0xf1, 0x2e, 0x13, 0x50, 0x25, 0x9e, 0x27, 0x40,
-	0x26, 0xc4, 0xd2, 0xc6, 0x04, 0x54, 0x8b, 0x48, 0x98, 0x0c, 0xf1, 0x7c, 0xe9, 0xb2, 0x2e, 0x88,
-	0x5e, 0x02, 0xd9, 0x1e, 0x93, 0x9b, 0x2f, 0x15, 0x50, 0x10, 0xfd, 0x8f, 0x04, 0xfa, 0xe9, 0x14,
-	0x68, 0xe8, 0x71, 0x27, 0x35, 0x1c, 0x97, 0xd1, 0xb6, 0xdf, 0x49, 0x58, 0x1f, 0xc5, 0xac, 0xf8,
-	0xec, 0x9a, 0xd0, 0xad, 0x45, 0x42, 0xce, 0x50, 0x88, 0xb5, 0x0e, 0x63, 0x9d, 0x00, 0x74, 0x0c,
-	0x42, 0x29, 0x53, 0x44, 0xf9, 0x8c, 0xa6, 0x37, 0x5e, 0x4f, 0xbc, 0xda, 0x6a, 0x85, 0xed, 0xaa,
-	0x17, 0x0a, 0x0d, 0x98, 0xe4, 0xff, 0x46, 0x10, 0xce, 0x41, 0xa4, 0xfc, 0xd5, 0x2e, 0x09, 0x7c,
-	0x8f, 0x28, 0xa8, 0xa6, 0x1f, 0xb1, 0x63, 0xf3, 0xd7, 0x3c, 0xca, 0x34, 0x93, 0x4c, 0x30, 0x46,
-	0xf3, 0x94, 0x5c, 0x82, 0x69, 0x94, 0x8d, 0xca, 0x92, 0xad, 0xbf, 0xf1, 0x01, 0x5a, 0x4c, 0x8a,
-	0x6f, 0xce, 0x96, 0x8d, 0x4a, 0xb6, 0x76, 0xc7, 0x1a, 0x69, 0x9b, 0x15, 0x55, 0xdf, 0xda, 0x8b,
-	0x61, 0x75, 0xf4, 0xcb, 0xeb, 0x57, 0x73, 0x0b, 0x3f, 0x18, 0xb3, 0x45, 0xc3, 0x4e, 0xb9, 0xb8,
-	0x89, 0xf2, 0x6d, 0x3f, 0x50, 0x51, 0x89, 0x2e, 0x88, 0x4f, 0xa5, 0x39, 0x57, 0x9e, 0xab, 0x64,
-	0x6b, 0x77, 0xc7, 0x88, 0xf5, 0x0b, 0x73, 0xa8, 0x09, 0xfb, 0x11, 0xde, 0xce, 0xb5, 0xaf, 0x0d,
-	0x89, 0xdb, 0x68, 0x83, 0xc7, 0xd5, 0xa6, 0xe0, 0x46, 0x65, 0x70, 0x5a, 0x61, 0xbb, 0x0d, 0xc2,
-	0x09, 0xfc, 0x4b, 0x5f, 0x39, 0xad, 0x9e, 0x02, 0x69, 0x2e, 0xe8, 0x74, 0xd7, 0xac, 0xb8, 0x34,
-	0x56, 0x5a, 0x1a, 0xeb, 0xfc, 0x11, 0x55, 0x3b, 0xb5, 0xa7, 0x24, 0x08, 0xc1, 0x7e, 0x9f, 0x83,
-	0xd8, 0xef, 0xab, 0xd4, 0xb5, 0x48, 0x33, 0xd2, 0xa8, 0x47, 0x12, 0x78, 0x17, 0x65, 0x2e, 0x41,
-	0x11, 0x8f, 0x28, 0x62, 0xde, 0xd0, 0x72, 0xe5, 0x49, 0xb7, 0x3f, 0x4a, 0x70, 0x76, 0x9f, 0x81,
-	0x8f, 0x50, 0xde, 0x03, 0x2e, 0xc0, 0x25, 0x0a, 0x3c, 0xa7, 0x7b, 0xdf, 0x5c, 0xd4, 0x12, 0x95,
-	0x31, 0x12, 0x69, 0x0b, 0xac, 0x46, 0x9f, 0xf0, 0xf4, 0xbe, 0x9d, 0xf3, 0x06, 0x2c, 0xdc, 0x40,
-	0xc8, 0x13, 0xc4, 0xa7, 0x8e, 0xea, 0x71, 0x30, 0x33, 0x65, 0xa3, 0x52, 0xa8, 0x7d, 0x38, 0x55,
-	0x2b, 0x42, 0x9f, 0xf5, 0x38, 0xd8, 0x4b, 0x5e, 0xfa, 0x89, 0xcf, 0x51, 0xb1, 0x3f, 0xad, 0x71,
-	0x4d, 0xa5, 0xb9, 0xa4, 0x7b, 0x71, 0x6f, 0x5a, 0x2f, 0x52, 0xd1, 0xb8, 0x27, 0xf6, 0x72, 0xf0,
-	0x86, 0x2d, 0xf1, 0x29, 0x32, 0x87, 0x65, 0x1d, 0xe5, 0x5f, 0x02, 0x0b, 0x95, 0xb9, 0xac, 0xaf,
-	0x7d, 0x7b, 0xa4, 0x11, 0x8d, 0x64, 0x86, 0xed, 0x5b, 0x43, 0x6a, 0x67, 0x31, 0x11, 0x3f, 0x41,
-	0x5b, 0x2e, 0xa3, 0xca, 0xa7, 0x21, 0x38, 0x8c, 0x3a, 0x13, 0x03, 0xac, 0x94, 0x8d, 0x4a, 0xc6,
-	0x2e, 0xa7, 0xd8, 0x63, 0xda, 0x1c, 0xaf, 0xb7, 0x8b, 0xb2, 0x4a, 0x10, 0x2a, 0x39, 0x11, 0x40,
-	0x95, 0x89, 0x74, 0x5e, 0xa5, 0x91, 0xbc, 0xea, 0x8c, 0x05, 0xf1, 0x78, 0x0c, 0xc2, 0xf1, 0x67,
-	0x28, 0xd3, 0x16, 0x00, 0x2d, 0x9f, 0x7a, 0x66, 0xf6, 0x5f, 0xa9, 0x7d, 0x2c, 0xfe, 0x02, 0x15,
-	0x24, 0x73, 0x9f, 0x83, 0x72, 0x18, 0xd7, 0x6f, 0xda, 0xcc, 0xeb, 0x7a, 0x6f, 0x4d, 0x1a, 0xa5,
-	0x53, 0x8d, 0x3e, 0xd6, 0x60, 0x3b, 0x2f, 0x07, 0x2c, 0x89, 0xbf, 0x42, 0x25, 0xe5, 0x72, 0xa7,
-	0x4d, 0x64, 0x24, 0x07, 0xd4, 0x79, 0x11, 0x42, 0x08, 0x4e, 0x00, 0xb4, 0xa3, 0x2e, 0xcc, 0xdc,
-	0x5b, 0x8c, 0xfc, 0x2d, 0xe5, 0xf2, 0x43, 0x22, 0xd5, 0x31, 0x07, 0xfa, 0x65, 0x44, 0x6e, 0x6a,
-	0x2e, 0x3e, 0x47, 0x2b, 0x4a, 0x90, 0x76, 0xdb, 0x77, 0x1d, 0xcf, 0x17, 0xf1, 0x83, 0x30, 0x8b,
-	0x7a, 0xca, 0x2a, 0x93, 0x32, 0x3d, 0x8b, 0x09, 0x8d, 0x14, 0x6f, 0x17, 0xd5, 0xd0, 0x09, 0xfe,
-	0x1a, 0xdd, 0x1c, 0xb3, 0x21, 0x4d, 0xac, 0x33, 0xfd, 0x78, 0xda, 0xc8, 0x9d, 0x7b, 0x3c, 0xed,
-	0xe3, 0xbe, 0x26, 0xd9, 0x2b, 0xe1, 0xf0, 0x11, 0x7e, 0x88, 0x72, 0x83, 0xcb, 0xd4, 0xbc, 0xa9,
-	0x75, 0xd3, 0x67, 0x91, 0xac, 0xe3, 0xbe, 0x64, 0xb7, 0x66, 0xed, 0x71, 0x3f, 0x95, 0xb0, 0xb3,
-	0xe4, 0xda, 0xc0, 0x0c, 0xdd, 0x1e, 0xdc, 0x27, 0x24, 0x20, 0xd4, 0x85, 0x34, 0xdd, 0x77, 0xb4,
-	0xec, 0xce, 0xb4, 0xd7, 0x36, 0xb0, 0x46, 0x62, 0x6e, 0x92, 0xf4, 0xaa, 0x3b, 0xde, 0x51, 0x6a,
-	0xa2, 0xdc, 0xe0, 0x6b, 0xc7, 0xbb, 0x28, 0x17, 0xcd, 0x8b, 0xa3, 0x98, 0xc3, 0x99, 0x50, 0x7a,
-	0x0b, 0x4f, 0x9f, 0x31, 0x14, 0xe1, 0xcf, 0xd8, 0x09, 0x13, 0xaa, 0xf4, 0x93, 0x81, 0x56, 0x27,
-	0xa4, 0x80, 0x3b, 0x28, 0x0f, 0x2f, 0x89, 0xab, 0xd2, 0x5b, 0x25, 0xd2, 0x9f, 0xff, 0x87, 0xeb,
-	0x58, 0x07, 0x91, 0x50, 0x72, 0xf4, 0x70, 0xc6, 0xce, 0xc1, 0x80, 0x5d, 0x2a, 0xa0, 0xdc, 0xa0,
-	0xbf, 0xfe, 0x2e, 0xca, 0xa5, 0x85, 0x8c, 0x96, 0x16, 0x5e, 0xf8, 0xf9, 0xf5, 0xab, 0x39, 0x63,
-	0x73, 0x1b, 0x2d, 0xf5, 0x77, 0x13, 0xce, 0xa2, 0xc5, 0xc6, 0xc1, 0xe1, 0xde, 0x79, 0xf3, 0xac,
-	0x38, 0x83, 0x97, 0x51, 0xf6, 0xe8, 0xb8, 0xf1, 0xe8, 0xf0, 0x99, 0x73, 0xfc, 0xa4, 0xf9, 0xac,
-	0x68, 0x3c, 0x9e, 0xcf, 0x14, 0x8a, 0xcb, 0x8f, 0xe7, 0x33, 0xf3, 0xc5, 0x05, 0xbb, 0x18, 0x4a,
-	0x70, 0x98, 0xf0, 0x3b, 0x3e, 0x25, 0x81, 0xe3, 0x49, 0x55, 0xfb, 0x7b, 0x16, 0x99, 0x69, 0xc6,
-	0x8d, 0xf4, 0xe7, 0xfd, 0x14, 0x44, 0xd7, 0x77, 0x01, 0x3f, 0x47, 0x85, 0x06, 0x04, 0x8a, 0xa4,
-	0x00, 0x89, 0xc7, 0xcd, 0xb1, 0x86, 0xf4, 0xb9, 0x36, 0xbc, 0x08, 0x41, 0xaa, 0xd2, 0xf6, 0x5b,
-	0x20, 0x25, 0x67, 0x54, 0xc2, 0xe6, 0x4c, 0xc5, 0xf8, 0xc4, 0xc0, 0x2d, 0xb4, 0x7c, 0xaa, 0x04,
-	0x90, 0xcb, 0xeb, 0x68, 0x1f, 0x8c, 0xd3, 0x18, 0x0e, 0xb4, 0x35, 0x1d, 0xf4, 0x46, 0x8c, 0xef,
-	0x0c, 0x54, 0x38, 0x04, 0xe5, 0x5e, 0xfc, 0x2f, 0x31, 0xee, 0x7e, 0xfb, 0xc7, 0x5f, 0x3f, 0xce,
-	0x6e, 0x6c, 0xae, 0x8d, 0xfe, 0x61, 0x7a, 0x90, 0x3e, 0x20, 0xf9, 0xc0, 0xb8, 0x57, 0xdf, 0xfd,
-	0xed, 0x6a, 0xdd, 0xf8, 0xfd, 0x6a, 0xdd, 0xf8, 0xf3, 0x6a, 0xdd, 0x40, 0x77, 0x7c, 0x16, 0xcb,
-	0x73, 0xc1, 0x5e, 0xf6, 0x46, 0x23, 0xd5, 0x33, 0x4d, 0x4f, 0x9e, 0x44, 0xb3, 0x7b, 0x62, 0x7c,
-	0x6f, 0x18, 0xad, 0x1b, 0x7a, 0x8e, 0x77, 0xfe, 0x09, 0x00, 0x00, 0xff, 0xff, 0xe8, 0x29, 0xa2,
-	0x43, 0x1a, 0x0a, 0x00, 0x00,
+	// 944 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x55, 0xcf, 0x6f, 0x1b, 0x45,
+	0x14, 0xee, 0xa6, 0x69, 0xe3, 0x8c, 0x13, 0xc7, 0x19, 0xa4, 0xb2, 0x98, 0x90, 0x3a, 0x21, 0xa8,
+	0x4e, 0x25, 0xd6, 0x34, 0x41, 0x1c, 0xaa, 0x5c, 0xea, 0xb8, 0x11, 0x05, 0xa7, 0x0e, 0x9b, 0xa4,
+	0xa2, 0x07, 0x34, 0x1a, 0xef, 0xbe, 0x4d, 0x46, 0x5d, 0xcf, 0x4c, 0x67, 0x66, 0x0d, 0xbe, 0x22,
+	0x84, 0x10, 0x57, 0xfe, 0x1b, 0x4e, 0x1c, 0x39, 0x22, 0xf1, 0x0f, 0xa0, 0x88, 0x0b, 0x57, 0xfe,
+	0x02, 0xb4, 0xb3, 0xbb, 0x6e, 0xea, 0x5f, 0xed, 0x85, 0xdb, 0xbc, 0x9d, 0xef, 0xfb, 0xde, 0x9b,
+	0xf7, 0xbd, 0x99, 0x45, 0xef, 0x03, 0x1f, 0x88, 0x61, 0x93, 0x4a, 0xd6, 0x1c, 0xec, 0xd3, 0x58,
+	0x5e, 0xd2, 0x66, 0x1c, 0x6a, 0x4f, 0x2a, 0x61, 0x04, 0x5e, 0xb7, 0x9b, 0x1e, 0x95, 0xcc, 0xcb,
+	0x37, 0x6b, 0x3b, 0x93, 0xf8, 0x40, 0x28, 0x68, 0xd2, 0x30, 0x54, 0xa0, 0x73, 0x62, 0x6d, 0x6b,
+	0x06, 0xaa, 0x47, 0x35, 0xcc, 0x86, 0x84, 0x4c, 0x07, 0x62, 0x00, 0x6a, 0x98, 0x43, 0x76, 0xa7,
+	0xd4, 0xc6, 0xb4, 0x01, 0x0e, 0x6a, 0xb4, 0xc8, 0xa1, 0x9f, 0xce, 0x81, 0x26, 0xa1, 0x24, 0x45,
+	0x40, 0x02, 0xc1, 0x23, 0x76, 0x91, 0xb3, 0x36, 0x2e, 0x84, 0xb8, 0x88, 0xc1, 0xd2, 0x28, 0xe7,
+	0xc2, 0x50, 0xc3, 0x04, 0x2f, 0x0e, 0xb1, 0x99, 0xef, 0xda, 0xa8, 0x97, 0x44, 0xcd, 0x30, 0x51,
+	0x16, 0x30, 0x6b, 0xff, 0x5b, 0x45, 0xa5, 0x04, 0x55, 0xf0, 0xdf, 0x1d, 0xd0, 0x98, 0x85, 0xd4,
+	0x40, 0xb3, 0x58, 0x64, 0x1b, 0xdb, 0x3f, 0x96, 0x51, 0xa9, 0x93, 0x17, 0x84, 0x31, 0x5a, 0xe4,
+	0xb4, 0x0f, 0xae, 0x53, 0x77, 0x1a, 0xcb, 0xbe, 0x5d, 0xe3, 0xc7, 0x68, 0x29, 0xef, 0xa7, 0xbb,
+	0x50, 0x77, 0x1a, 0xe5, 0xbd, 0xbb, 0xde, 0x84, 0x13, 0x5e, 0xda, 0x50, 0xef, 0x51, 0x06, 0x6b,
+	0xa1, 0x5f, 0xff, 0xf9, 0xed, 0xe6, 0xad, 0x9f, 0x9d, 0x85, 0xaa, 0xe3, 0x17, 0x5c, 0xdc, 0x41,
+	0xab, 0x11, 0x8b, 0x4d, 0x7a, 0xea, 0x4b, 0xca, 0xb8, 0x76, 0x6f, 0xd6, 0x6f, 0x36, 0xca, 0x7b,
+	0xf7, 0xa6, 0x88, 0x8d, 0xda, 0x79, 0x64, 0x09, 0x87, 0x29, 0xde, 0x5f, 0x89, 0x5e, 0x05, 0x1a,
+	0x7f, 0x8e, 0xaa, 0x89, 0x06, 0x22, 0x14, 0xbb, 0x60, 0x9c, 0xc6, 0x24, 0xd4, 0xc6, 0x5d, 0xb4,
+	0xd5, 0xd5, 0xbc, 0xac, 0x13, 0x5e, 0xd1, 0x09, 0xaf, 0x25, 0x44, 0xfc, 0x8c, 0xc6, 0x09, 0xb4,
+	0x16, 0x5c, 0xc7, 0xaf, 0x24, 0x1a, 0xba, 0x39, 0xad, 0xad, 0x0d, 0x8e, 0xd0, 0x96, 0xcc, 0xac,
+	0xe0, 0x10, 0xa4, 0x0d, 0x25, 0xbd, 0x24, 0x8a, 0x40, 0x91, 0x98, 0xf5, 0x99, 0x21, 0xbd, 0xa1,
+	0x01, 0xed, 0xde, 0xb2, 0xd2, 0x1b, 0x13, 0xd2, 0xe7, 0x4f, 0xb8, 0xd9, 0xdf, 0xb3, 0xe2, 0xfe,
+	0x07, 0x12, 0xd4, 0xe1, 0x48, 0xa5, 0x65, 0x45, 0x3a, 0xa9, 0x46, 0x2b, 0x95, 0xc0, 0x07, 0xa8,
+	0xd4, 0x07, 0x43, 0x43, 0x6a, 0xa8, 0x7b, 0xdb, 0xca, 0xd5, 0x67, 0xf5, 0xf1, 0x38, 0xc7, 0xf9,
+	0x23, 0x06, 0x3e, 0x46, 0xab, 0x21, 0x48, 0x05, 0x01, 0x35, 0x10, 0x92, 0xc1, 0x03, 0x77, 0xc9,
+	0x4a, 0x34, 0xa6, 0x48, 0x14, 0x66, 0x7a, 0xed, 0x11, 0xe1, 0xd9, 0x03, 0x7f, 0x25, 0xbc, 0x16,
+	0xe1, 0x36, 0x42, 0xa1, 0xa2, 0x8c, 0x13, 0x33, 0x94, 0xe0, 0x96, 0xea, 0x4e, 0xa3, 0xb2, 0xf7,
+	0xd1, 0x5c, 0xad, 0x14, 0x7d, 0x36, 0x94, 0xe0, 0x2f, 0x87, 0xc5, 0x12, 0x9f, 0xa3, 0xea, 0x68,
+	0x94, 0x33, 0x77, 0xb4, 0xbb, 0x6c, 0x5d, 0xbd, 0x3f, 0xcf, 0xd5, 0x42, 0x34, 0x73, 0xd7, 0x5f,
+	0x8b, 0x5f, 0x8b, 0x35, 0x3e, 0x45, 0xee, 0xb8, 0x2c, 0x31, 0xac, 0x0f, 0x22, 0x31, 0xee, 0x9a,
+	0x3d, 0xf6, 0x7b, 0x13, 0x46, 0xb4, 0xf3, 0xdb, 0xe0, 0xdf, 0x19, 0x53, 0x3b, 0xcb, 0x88, 0xf8,
+	0x29, 0xda, 0x09, 0x04, 0x37, 0x8c, 0x27, 0x40, 0x04, 0x27, 0x33, 0x13, 0xac, 0xd7, 0x9d, 0x46,
+	0xc9, 0xaf, 0x17, 0xd8, 0x2e, 0xef, 0x4c, 0xd7, 0x3b, 0x40, 0x65, 0xa3, 0x28, 0xd7, 0x92, 0x2a,
+	0xe0, 0xc6, 0x45, 0x6f, 0x9a, 0x3d, 0xff, 0x3a, 0x1c, 0x7f, 0x86, 0x4a, 0x91, 0x02, 0xe8, 0x31,
+	0x1e, 0xba, 0xe5, 0x37, 0x52, 0x47, 0x58, 0xfc, 0x25, 0xaa, 0x68, 0x11, 0xbc, 0x00, 0x43, 0x84,
+	0xb4, 0xaf, 0x83, 0xbb, 0x6a, 0xfb, 0xbd, 0x33, 0x6b, 0x94, 0x4e, 0x2d, 0xba, 0x6b, 0xc1, 0xfe,
+	0xaa, 0xbe, 0x16, 0x69, 0xfc, 0x35, 0xaa, 0x99, 0x40, 0x92, 0x88, 0xea, 0x54, 0x0e, 0x38, 0x79,
+	0x99, 0x40, 0x02, 0x24, 0x06, 0x7e, 0x61, 0x2e, 0xdd, 0x95, 0xb7, 0x18, 0xf9, 0x3b, 0x26, 0x90,
+	0x47, 0x54, 0x9b, 0xae, 0x04, 0xfe, 0x55, 0x4a, 0xee, 0x58, 0x2e, 0x3e, 0x47, 0xeb, 0x46, 0xd1,
+	0x28, 0x62, 0x01, 0x09, 0x99, 0xca, 0x2e, 0x84, 0x5b, 0xb5, 0x53, 0xd6, 0x98, 0x55, 0xe9, 0x59,
+	0x46, 0x68, 0x17, 0x78, 0xbf, 0x6a, 0xc6, 0xbe, 0xe0, 0x6f, 0xd0, 0x3b, 0x53, 0x9e, 0x4f, 0x17,
+	0xdb, 0x4a, 0x3f, 0x9e, 0x37, 0x72, 0xe7, 0xa1, 0x2c, 0x7c, 0x3c, 0xb4, 0x24, 0x7f, 0x3d, 0x19,
+	0xff, 0x54, 0xeb, 0xa0, 0x95, 0xeb, 0x57, 0x06, 0x1f, 0xa0, 0x95, 0xb4, 0xe9, 0xc4, 0x08, 0x22,
+	0x85, 0x32, 0xf6, 0x51, 0x9c, 0x6f, 0x14, 0x4a, 0xf1, 0x67, 0xe2, 0x44, 0x28, 0xb3, 0xbd, 0x8b,
+	0x96, 0x47, 0x97, 0x06, 0x97, 0xd1, 0x52, 0xfb, 0xf1, 0xd1, 0xa3, 0xf3, 0xce, 0x59, 0xf5, 0x06,
+	0x5e, 0x43, 0xe5, 0xe3, 0x6e, 0xfb, 0xc9, 0xd1, 0x73, 0xd2, 0x7d, 0xda, 0x79, 0x5e, 0x75, 0xbe,
+	0x58, 0x2c, 0x55, 0xaa, 0x6b, 0x7b, 0xff, 0x2e, 0x20, 0xb7, 0xa8, 0xa8, 0x5d, 0xfc, 0x7c, 0x4e,
+	0x41, 0x0d, 0x58, 0x00, 0xf8, 0x05, 0xaa, 0xb4, 0x21, 0x36, 0xb4, 0x00, 0x68, 0x3c, 0xad, 0x91,
+	0x16, 0x32, 0xe2, 0xfa, 0xf0, 0x32, 0x01, 0x6d, 0x6a, 0xbb, 0x6f, 0x81, 0xd4, 0x52, 0x70, 0x0d,
+	0xdb, 0x37, 0x1a, 0xce, 0x27, 0x0e, 0xee, 0xa1, 0xb5, 0x53, 0xa3, 0x80, 0xf6, 0x5f, 0x65, 0xfb,
+	0x70, 0x9a, 0xc6, 0x78, 0xa2, 0x9d, 0xf9, 0xa0, 0xd7, 0x72, 0xfc, 0xe0, 0xa0, 0xca, 0x11, 0x98,
+	0xe0, 0xf2, 0x7f, 0xc9, 0x71, 0xef, 0xfb, 0x3f, 0xff, 0xfe, 0x65, 0x61, 0x6b, 0x7b, 0x63, 0xf2,
+	0x77, 0xfe, 0xb0, 0x18, 0x0a, 0xfd, 0xd0, 0xb9, 0xdf, 0x3a, 0xf8, 0xfd, 0x6a, 0xd3, 0xf9, 0xe3,
+	0x6a, 0xd3, 0xf9, 0xeb, 0x6a, 0xd3, 0x41, 0x77, 0x99, 0xc8, 0xe4, 0xa5, 0x12, 0xdf, 0x0d, 0x27,
+	0x33, 0xb5, 0x4a, 0x9d, 0x50, 0x9f, 0xa4, 0xbe, 0x9f, 0x38, 0x3f, 0x39, 0x4e, 0xef, 0xb6, 0x9d,
+	0x81, 0xfd, 0xff, 0x02, 0x00, 0x00, 0xff, 0xff, 0x07, 0xd6, 0xfb, 0xce, 0xb8, 0x08, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -847,34 +704,6 @@ func (m *Listener) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i -= len(m.XXX_unrecognized)
 		copy(dAtA[i:], m.XXX_unrecognized)
 	}
-	if m.ConnectionBalanceConfig != nil {
-		{
-			size, err := m.ConnectionBalanceConfig.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintLds(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0x1
-		i--
-		dAtA[i] = 0xa2
-	}
-	if m.ApiListener != nil {
-		{
-			size, err := m.ApiListener.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintLds(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0x1
-		i--
-		dAtA[i] = 0x9a
-	}
 	if m.UdpListenerConfig != nil {
 		{
 			size, err := m.UdpListenerConfig.MarshalToSizedBuffer(dAtA[:i])
@@ -1025,6 +854,18 @@ func (m *Listener) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x2a
 	}
+	if m.UseOriginalDst != nil {
+		{
+			size, err := m.UseOriginalDst.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintLds(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x22
+	}
 	if len(m.FilterChains) > 0 {
 		for iNdEx := len(m.FilterChains) - 1; iNdEx >= 0; iNdEx-- {
 			{
@@ -1100,89 +941,6 @@ func (m *Listener_DeprecatedV1) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *Listener_ConnectionBalanceConfig) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *Listener_ConnectionBalanceConfig) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *Listener_ConnectionBalanceConfig) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if m.XXX_unrecognized != nil {
-		i -= len(m.XXX_unrecognized)
-		copy(dAtA[i:], m.XXX_unrecognized)
-	}
-	if m.BalanceType != nil {
-		{
-			size := m.BalanceType.Size()
-			i -= size
-			if _, err := m.BalanceType.MarshalTo(dAtA[i:]); err != nil {
-				return 0, err
-			}
-		}
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *Listener_ConnectionBalanceConfig_ExactBalance_) MarshalTo(dAtA []byte) (int, error) {
-	return m.MarshalToSizedBuffer(dAtA[:m.Size()])
-}
-
-func (m *Listener_ConnectionBalanceConfig_ExactBalance_) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	if m.ExactBalance != nil {
-		{
-			size, err := m.ExactBalance.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintLds(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0xa
-	}
-	return len(dAtA) - i, nil
-}
-func (m *Listener_ConnectionBalanceConfig_ExactBalance) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *Listener_ConnectionBalanceConfig_ExactBalance) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *Listener_ConnectionBalanceConfig_ExactBalance) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if m.XXX_unrecognized != nil {
-		i -= len(m.XXX_unrecognized)
-		copy(dAtA[i:], m.XXX_unrecognized)
-	}
-	return len(dAtA) - i, nil
-}
-
 func encodeVarintLds(dAtA []byte, offset int, v uint64) int {
 	offset -= sovLds(v)
 	base := offset
@@ -1213,6 +971,10 @@ func (m *Listener) Size() (n int) {
 			l = e.Size()
 			n += 1 + l + sovLds(uint64(l))
 		}
+	}
+	if m.UseOriginalDst != nil {
+		l = m.UseOriginalDst.Size()
+		n += 1 + l + sovLds(uint64(l))
 	}
 	if m.PerConnectionBufferLimitBytes != nil {
 		l = m.PerConnectionBufferLimitBytes.Size()
@@ -1267,14 +1029,6 @@ func (m *Listener) Size() (n int) {
 		l = m.UdpListenerConfig.Size()
 		n += 2 + l + sovLds(uint64(l))
 	}
-	if m.ApiListener != nil {
-		l = m.ApiListener.Size()
-		n += 2 + l + sovLds(uint64(l))
-	}
-	if m.ConnectionBalanceConfig != nil {
-		l = m.ConnectionBalanceConfig.Size()
-		n += 2 + l + sovLds(uint64(l))
-	}
 	if m.XXX_unrecognized != nil {
 		n += len(m.XXX_unrecognized)
 	}
@@ -1291,45 +1045,6 @@ func (m *Listener_DeprecatedV1) Size() (n int) {
 		l = m.BindToPort.Size()
 		n += 1 + l + sovLds(uint64(l))
 	}
-	if m.XXX_unrecognized != nil {
-		n += len(m.XXX_unrecognized)
-	}
-	return n
-}
-
-func (m *Listener_ConnectionBalanceConfig) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if m.BalanceType != nil {
-		n += m.BalanceType.Size()
-	}
-	if m.XXX_unrecognized != nil {
-		n += len(m.XXX_unrecognized)
-	}
-	return n
-}
-
-func (m *Listener_ConnectionBalanceConfig_ExactBalance_) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if m.ExactBalance != nil {
-		l = m.ExactBalance.Size()
-		n += 1 + l + sovLds(uint64(l))
-	}
-	return n
-}
-func (m *Listener_ConnectionBalanceConfig_ExactBalance) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
 	if m.XXX_unrecognized != nil {
 		n += len(m.XXX_unrecognized)
 	}
@@ -1470,6 +1185,42 @@ func (m *Listener) Unmarshal(dAtA []byte) error {
 			}
 			m.FilterChains = append(m.FilterChains, &listener.FilterChain{})
 			if err := m.FilterChains[len(m.FilterChains)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field UseOriginalDst", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowLds
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthLds
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthLds
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.UseOriginalDst == nil {
+				m.UseOriginalDst = &types.BoolValue{}
+			}
+			if err := m.UseOriginalDst.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -1887,78 +1638,6 @@ func (m *Listener) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
-		case 19:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ApiListener", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowLds
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthLds
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthLds
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if m.ApiListener == nil {
-				m.ApiListener = &v2.ApiListener{}
-			}
-			if err := m.ApiListener.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		case 20:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ConnectionBalanceConfig", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowLds
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthLds
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthLds
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if m.ConnectionBalanceConfig == nil {
-				m.ConnectionBalanceConfig = &Listener_ConnectionBalanceConfig{}
-			}
-			if err := m.ConnectionBalanceConfig.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipLds(dAtA[iNdEx:])
@@ -2049,149 +1728,6 @@ func (m *Listener_DeprecatedV1) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipLds(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if skippy < 0 {
-				return ErrInvalidLengthLds
-			}
-			if (iNdEx + skippy) < 0 {
-				return ErrInvalidLengthLds
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *Listener_ConnectionBalanceConfig) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowLds
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: ConnectionBalanceConfig: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: ConnectionBalanceConfig: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ExactBalance", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowLds
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthLds
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthLds
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			v := &Listener_ConnectionBalanceConfig_ExactBalance{}
-			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			m.BalanceType = &Listener_ConnectionBalanceConfig_ExactBalance_{v}
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipLds(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if skippy < 0 {
-				return ErrInvalidLengthLds
-			}
-			if (iNdEx + skippy) < 0 {
-				return ErrInvalidLengthLds
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *Listener_ConnectionBalanceConfig_ExactBalance) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowLds
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: ExactBalance: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: ExactBalance: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
 		default:
 			iNdEx = preIndex
 			skippy, err := skipLds(dAtA[iNdEx:])

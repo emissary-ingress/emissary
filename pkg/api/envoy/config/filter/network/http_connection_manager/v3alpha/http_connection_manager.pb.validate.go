@@ -106,21 +106,6 @@ func (m *HttpConnectionManager) Validate() error {
 	}
 
 	{
-		tmp := m.GetCommonHttpProtocolOptions()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return HttpConnectionManagerValidationError{
-					field:  "CommonHttpProtocolOptions",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
-			}
-		}
-	}
-
-	{
 		tmp := m.GetHttpProtocolOptions()
 
 		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
@@ -161,13 +146,28 @@ func (m *HttpConnectionManager) Validate() error {
 
 	if wrapper := m.GetMaxRequestHeadersKb(); wrapper != nil {
 
-		if val := wrapper.GetValue(); val <= 0 || val > 96 {
+		if wrapper.GetValue() > 96 {
 			return HttpConnectionManagerValidationError{
 				field:  "MaxRequestHeadersKb",
-				reason: "value must be inside range (0, 96]",
+				reason: "value must be less than or equal to 96",
 			}
 		}
 
+	}
+
+	{
+		tmp := m.GetIdleTimeout()
+
+		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+			if err := v.Validate(); err != nil {
+				return HttpConnectionManagerValidationError{
+					field:  "IdleTimeout",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
 	}
 
 	{
@@ -936,6 +936,23 @@ func (m *HttpFilter) Validate() error {
 
 	switch m.ConfigType.(type) {
 
+	case *HttpFilter_Config:
+
+		{
+			tmp := m.GetConfig()
+
+			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+				if err := v.Validate(); err != nil {
+					return HttpFilterValidationError{
+						field:  "Config",
+						reason: "embedded message failed validation",
+						cause:  err,
+					}
+				}
+			}
+		}
+
 	case *HttpFilter_TypedConfig:
 
 		{
@@ -1020,6 +1037,13 @@ func (m *HttpConnectionManager_Tracing) Validate() error {
 		return nil
 	}
 
+	if _, ok := HttpConnectionManager_Tracing_OperationName_name[int32(m.GetOperationName())]; !ok {
+		return HttpConnectionManager_TracingValidationError{
+			field:  "OperationName",
+			reason: "value must be one of the defined enum values",
+		}
+	}
+
 	{
 		tmp := m.GetClientSampling()
 
@@ -1066,21 +1090,6 @@ func (m *HttpConnectionManager_Tracing) Validate() error {
 	}
 
 	// no validation rules for Verbose
-
-	{
-		tmp := m.GetMaxPathTagLength()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return HttpConnectionManager_TracingValidationError{
-					field:  "MaxPathTagLength",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
-			}
-		}
-	}
 
 	return nil
 }
