@@ -30,7 +30,6 @@ type OriginalSrc struct {
 	// Sets the SO_MARK option on the upstream connection's socket to the provided value. Used to
 	// ensure that non-local addresses may be routed back through envoy when binding to the original
 	// source address. The option will not be applied if the mark is 0.
-	// [#proto-status: experimental]
 	Mark                 uint32   `protobuf:"varint,1,opt,name=mark,proto3" json:"mark,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`

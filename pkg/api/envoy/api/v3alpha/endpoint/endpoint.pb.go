@@ -33,7 +33,7 @@ type Endpoint struct {
 	//
 	//   The form of host address depends on the given cluster type. For STATIC or EDS,
 	//   it is expected to be a direct IP address (or something resolvable by the
-	//   specified :ref:`resolver <envoy_api_field_core.SocketAddress.resolver_name>`
+	//   specified :ref:`resolver <envoy_api_field_api.v3alpha.core.SocketAddress.resolver_name>`
 	//   in the Address). For LOGICAL or STRICT DNS, it is expected to be hostname,
 	//   and will be resolved via DNS.
 	Address *core.Address `protobuf:"bytes,1,opt,name=address,proto3" json:"address,omitempty"`
@@ -152,6 +152,7 @@ func (m *Endpoint_HealthCheckConfig) GetPortValue() uint32 {
 }
 
 // An Endpoint that Envoy can route traffic to.
+// [#next-free-field: 6]
 type LbEndpoint struct {
 	// Upstream host identifier or a named reference.
 	//
@@ -166,7 +167,7 @@ type LbEndpoint struct {
 	// name should be specified as *envoy.lb*. An example boolean key-value pair
 	// is *canary*, providing the optional canary status of the upstream host.
 	// This may be matched against in a route's
-	// :ref:`RouteAction <envoy_api_msg_route.RouteAction>` metadata_match field
+	// :ref:`RouteAction <envoy_api_msg_api.v3alpha.route.RouteAction>` metadata_match field
 	// to subset the endpoints considered in cluster load balancing.
 	Metadata *core.Metadata `protobuf:"bytes,3,opt,name=metadata,proto3" json:"metadata,omitempty"`
 	// The optional load balancing weight of the upstream host; at least 1.
@@ -286,6 +287,7 @@ func (*LbEndpoint) XXX_OneofWrappers() []interface{} {
 // One can have multiple LocalityLbEndpoints for a locality, but this is
 // generally only done if the different groups need to have different load
 // balancing weights or different priorities.
+// [#next-free-field: 7]
 type LocalityLbEndpoints struct {
 	// Identifies location of where the upstream hosts run.
 	Locality *core.Locality `protobuf:"bytes,1,opt,name=locality,proto3" json:"locality,omitempty"`

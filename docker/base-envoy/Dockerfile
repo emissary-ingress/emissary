@@ -17,7 +17,6 @@
 # in the Makefile, then run "make update-base" to build and push the
 # new image.
 
-ARG ENVOY_BUILD_IMAGE
-FROM $ENVOY_BUILD_IMAGE
+FROM ubuntu:18.04
 
 ADD ./envoy-static /usr/local/bin/envoy

@@ -132,6 +132,8 @@ func (m *RouteConfiguration) Validate() error {
 
 	}
 
+	// no validation rules for MostSpecificHeaderMutationsWins
+
 	{
 		tmp := m.GetValidateClusters()
 

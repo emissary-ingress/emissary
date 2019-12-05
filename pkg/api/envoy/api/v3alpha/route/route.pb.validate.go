@@ -35,8 +35,6 @@ var (
 	_ = types.DynamicAny{}
 
 	_ = envoy_api_v3alpha_core.RoutingPriority(0)
-
-	_ = envoy_api_v3alpha_core.RequestMethod(0)
 )
 
 // Validate checks the field values on VirtualHost with the rules defined in
@@ -192,8 +190,6 @@ func (m *VirtualHost) Validate() error {
 		}
 	}
 
-	// no validation rules for PerFilterConfig
-
 	// no validation rules for TypedPerFilterConfig
 
 	// no validation rules for IncludeRequestAttemptCount
@@ -221,6 +217,21 @@ func (m *VirtualHost) Validate() error {
 			if err := v.Validate(); err != nil {
 				return VirtualHostValidationError{
 					field:  "HedgePolicy",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+	}
+
+	{
+		tmp := m.GetPerRequestBufferLimitBytes()
+
+		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+			if err := v.Validate(); err != nil {
+				return VirtualHostValidationError{
+					field:  "PerRequestBufferLimitBytes",
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
@@ -346,8 +357,6 @@ func (m *Route) Validate() error {
 		}
 	}
 
-	// no validation rules for PerFilterConfig
-
 	// no validation rules for TypedPerFilterConfig
 
 	if len(m.GetRequestHeadersToAdd()) > 1000 {
@@ -412,6 +421,21 @@ func (m *Route) Validate() error {
 			if err := v.Validate(); err != nil {
 				return RouteValidationError{
 					field:  "Tracing",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+	}
+
+	{
+		tmp := m.GetPerRequestBufferLimitBytes()
+
+		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+			if err := v.Validate(); err != nil {
+				return RouteValidationError{
+					field:  "PerRequestBufferLimitBytes",
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
@@ -734,6 +758,21 @@ func (m *RouteMatch) Validate() error {
 		}
 	}
 
+	{
+		tmp := m.GetTlsContext()
+
+		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+			if err := v.Validate(); err != nil {
+				return RouteMatchValidationError{
+					field:  "TlsContext",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+	}
+
 	switch m.PathSpecifier.(type) {
 
 	case *RouteMatch_Prefix:
@@ -741,15 +780,6 @@ func (m *RouteMatch) Validate() error {
 
 	case *RouteMatch_Path:
 		// no validation rules for Path
-
-	case *RouteMatch_Regex:
-
-		if len(m.GetRegex()) > 1024 {
-			return RouteMatchValidationError{
-				field:  "Regex",
-				reason: "value length must be at most 1024 bytes",
-			}
-		}
 
 	case *RouteMatch_SafeRegex:
 
@@ -847,18 +877,6 @@ func (m *CorsPolicy) Validate() error {
 		return nil
 	}
 
-	for idx, item := range m.GetAllowOriginRegex() {
-		_, _ = idx, item
-
-		if len(item) > 1024 {
-			return CorsPolicyValidationError{
-				field:  fmt.Sprintf("AllowOriginRegex[%v]", idx),
-				reason: "value length must be at most 1024 bytes",
-			}
-		}
-
-	}
-
 	for idx, item := range m.GetAllowOriginStringMatch() {
 		_, _ = idx, item
 
@@ -918,23 +936,6 @@ func (m *CorsPolicy) Validate() error {
 	}
 
 	switch m.EnabledSpecifier.(type) {
-
-	case *CorsPolicy_Enabled:
-
-		{
-			tmp := m.GetEnabled()
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return CorsPolicyValidationError{
-						field:  "Enabled",
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
-				}
-			}
-		}
 
 	case *CorsPolicy_FilterEnabled:
 
@@ -1104,7 +1105,12 @@ func (m *RouteAction) Validate() error {
 		}
 	}
 
-	// no validation rules for Priority
+	if _, ok := envoy_api_v3alpha_core.RoutingPriority_name[int32(m.GetPriority())]; !ok {
+		return RouteActionValidationError{
+			field:  "Priority",
+			reason: "value must be one of the defined enum values",
+		}
+	}
 
 	for idx, item := range m.GetRateLimits() {
 		_, _ = idx, item
@@ -1462,6 +1468,46 @@ func (m *RetryPolicy) Validate() error {
 				}
 			}
 		}
+	}
+
+	for idx, item := range m.GetRetriableHeaders() {
+		_, _ = idx, item
+
+		{
+			tmp := item
+
+			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+				if err := v.Validate(); err != nil {
+					return RetryPolicyValidationError{
+						field:  fmt.Sprintf("RetriableHeaders[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					}
+				}
+			}
+		}
+
+	}
+
+	for idx, item := range m.GetRetriableRequestHeaders() {
+		_, _ = idx, item
+
+		{
+			tmp := item
+
+			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+				if err := v.Validate(); err != nil {
+					return RetryPolicyValidationError{
+						field:  fmt.Sprintf("RetriableRequestHeaders[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					}
+				}
+			}
+		}
+
 	}
 
 	return nil
@@ -1989,13 +2035,6 @@ func (m *VirtualCluster) Validate() error {
 		return nil
 	}
 
-	if len(m.GetPattern()) > 1024 {
-		return VirtualClusterValidationError{
-			field:  "Pattern",
-			reason: "value length must be at most 1024 bytes",
-		}
-	}
-
 	for idx, item := range m.GetHeaders() {
 		_, _ = idx, item
 
@@ -2022,8 +2061,6 @@ func (m *VirtualCluster) Validate() error {
 			reason: "value length must be at least 1 bytes",
 		}
 	}
-
-	// no validation rules for Method
 
 	return nil
 }
@@ -2208,15 +2245,6 @@ func (m *HeaderMatcher) Validate() error {
 	case *HeaderMatcher_ExactMatch:
 		// no validation rules for ExactMatch
 
-	case *HeaderMatcher_RegexMatch:
-
-		if len(m.GetRegexMatch()) > 1024 {
-			return HeaderMatcherValidationError{
-				field:  "RegexMatch",
-				reason: "value length must be at most 1024 bytes",
-			}
-		}
-
 	case *HeaderMatcher_SafeRegexMatch:
 
 		{
@@ -2343,23 +2371,6 @@ func (m *QueryParameterMatcher) Validate() error {
 		return QueryParameterMatcherValidationError{
 			field:  "Name",
 			reason: "value length must be between 1 and 1024 bytes, inclusive",
-		}
-	}
-
-	// no validation rules for Value
-
-	{
-		tmp := m.GetRegex()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return QueryParameterMatcherValidationError{
-					field:  "Regex",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
-			}
 		}
 	}
 
@@ -2552,8 +2563,6 @@ func (m *WeightedCluster_ClusterWeight) Validate() error {
 
 	}
 
-	// no validation rules for PerFilterConfig
-
 	// no validation rules for TypedPerFilterConfig
 
 	return nil
@@ -2684,6 +2693,89 @@ var _ interface {
 	ErrorName() string
 } = RouteMatch_GrpcRouteMatchOptionsValidationError{}
 
+// Validate checks the field values on RouteMatch_TlsContextMatchOptions with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, an error is returned.
+func (m *RouteMatch_TlsContextMatchOptions) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	{
+		tmp := m.GetPresented()
+
+		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+			if err := v.Validate(); err != nil {
+				return RouteMatch_TlsContextMatchOptionsValidationError{
+					field:  "Presented",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+	}
+
+	return nil
+}
+
+// RouteMatch_TlsContextMatchOptionsValidationError is the validation error
+// returned by RouteMatch_TlsContextMatchOptions.Validate if the designated
+// constraints aren't met.
+type RouteMatch_TlsContextMatchOptionsValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e RouteMatch_TlsContextMatchOptionsValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e RouteMatch_TlsContextMatchOptionsValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e RouteMatch_TlsContextMatchOptionsValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e RouteMatch_TlsContextMatchOptionsValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e RouteMatch_TlsContextMatchOptionsValidationError) ErrorName() string {
+	return "RouteMatch_TlsContextMatchOptionsValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e RouteMatch_TlsContextMatchOptionsValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sRouteMatch_TlsContextMatchOptions.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = RouteMatch_TlsContextMatchOptionsValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = RouteMatch_TlsContextMatchOptionsValidationError{}
+
 // Validate checks the field values on RouteAction_RequestMirrorPolicy with the
 // rules defined in the proto definition for this message. If any rules are
 // violated, an error is returned.
@@ -2698,8 +2790,6 @@ func (m *RouteAction_RequestMirrorPolicy) Validate() error {
 			reason: "value length must be at least 1 bytes",
 		}
 	}
-
-	// no validation rules for RuntimeKey
 
 	{
 		tmp := m.GetRuntimeFraction()
@@ -3244,23 +3334,6 @@ func (m *RetryPolicy_RetryPriority) Validate() error {
 
 	switch m.ConfigType.(type) {
 
-	case *RetryPolicy_RetryPriority_Config:
-
-		{
-			tmp := m.GetConfig()
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return RetryPolicy_RetryPriorityValidationError{
-						field:  "Config",
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
-				}
-			}
-		}
-
 	case *RetryPolicy_RetryPriority_TypedConfig:
 
 		{
@@ -3355,23 +3428,6 @@ func (m *RetryPolicy_RetryHostPredicate) Validate() error {
 	}
 
 	switch m.ConfigType.(type) {
-
-	case *RetryPolicy_RetryHostPredicate_Config:
-
-		{
-			tmp := m.GetConfig()
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return RetryPolicy_RetryHostPredicateValidationError{
-						field:  "Config",
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
-				}
-			}
-		}
 
 	case *RetryPolicy_RetryHostPredicate_TypedConfig:
 

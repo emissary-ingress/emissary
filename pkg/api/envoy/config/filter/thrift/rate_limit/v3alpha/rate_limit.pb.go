@@ -25,13 +25,13 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-// [#comment:next free field: 5]
+// [#next-free-field: 6]
 type RateLimit struct {
 	// The rate limit domain to use in the rate limit service request.
 	Domain string `protobuf:"bytes,1,opt,name=domain,proto3" json:"domain,omitempty"`
 	// Specifies the rate limit configuration stage. Each configured rate limit filter performs a
 	// rate limit check using descriptors configured in the
-	// :ref:`envoy_api_msg_config.filter.network.thrift_proxy.v3alpha.RouteAction` for the request.
+	// :ref:`envoy_api_msg_config.filter.network.thrift_proxy.v2alpha1.RouteAction` for the request.
 	// Only those entries with a matching stage number are used for a given filter. If not set, the
 	// default stage number is 0.
 	//

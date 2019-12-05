@@ -130,7 +130,12 @@ func (m *CircuitBreakers_Thresholds) Validate() error {
 		return nil
 	}
 
-	// no validation rules for Priority
+	if _, ok := envoy_api_v3alpha_core.RoutingPriority_name[int32(m.GetPriority())]; !ok {
+		return CircuitBreakers_ThresholdsValidationError{
+			field:  "Priority",
+			reason: "value must be one of the defined enum values",
+		}
+	}
 
 	{
 		tmp := m.GetMaxConnections()
