@@ -9,7 +9,7 @@ In the zero trust model, every request to a resource is verified, regardless of 
 
 ## Identity-Aware Proxy
 
-One of the key components of a zero trust architecture is the Identity-Aware Proxy. The Ambassador Edge Stack can be deployed in front of an application or microservices, and authenticate users, check authorization, and enforce other types of security policies. Critically, the Ambassador Edge Stack operates at the application level, which means it can take advantage of domain knowledge of users to improve security. Pro interfaces with the Identity Provider (IdP), which is the trusted canonical source for authentication and authorization information.
+One of the key components of a zero trust architecture is the Identity-Aware Proxy. The Ambassador Edge Stack can be deployed in front of an application or microservices, and authenticate users, check authorization, and enforce other types of security policies. Critically, the Ambassador Edge Stack operates at the application level, which means it can take advantage of domain knowledge of users to improve security. Ambassador interfaces with the Identity Provider (IdP), which is the trusted canonical source for authentication and authorization information.
 
 
 ![IAP](/doc-images/pro-iap.png)
@@ -52,7 +52,7 @@ for XSRF-protection purposes
 ## RP-initiated logout
 
 When a logout occurs, it is often not enough to delete the Ambassador
-Pro's session cookie or session data; after this happens, and the web
+Edge Stack's session cookie or session data; after this happens, and the web
 browser is redirected to the Identity Provider to re-log-in, the
 Identity Provider may remember the previous login, and immediately
 re-authorize the user; it would be like the logout never even

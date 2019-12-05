@@ -1,4 +1,4 @@
-# The Ambassador Edge Stack on AWS
+# Ambassador Edge Stack on AWS
 
 For the most part, the Ambassador Edge Stack is platform agnostic and will run in the same way regardless of your Kubernetes installation.
 
@@ -28,7 +28,7 @@ AWS provides three types of load balancers:
   * Supports L4 only
   * Cannot perform SSL/TLS offload
 
-In Kubernetes, when using the AWS integration and a service of type `LoadBalancer`, the only types of load balancers that can be created are ELBs and NLBs (in Kubernetes 1.9 and later). When `aws-load-balancer-backend-protocol` is set to `tcp`, AWS will create a L4 ELB. When `aws-load-balancer-backend-protocol` is set to `http`, AWS will create a L7 ELB.
+In Kubernetes, when using the AWS integration and a service of type `LoadBalancer`, the only types of load balancers that can be created are ELBs and NLBs. When `aws-load-balancer-backend-protocol` is set to `tcp`, AWS will create a L4 ELB. When `aws-load-balancer-backend-protocol` is set to `http`, AWS will create a L7 ELB.
 
 ## Load Balancer Annotations
 
@@ -56,7 +56,7 @@ There are a number of `aws-load-balancer` annotations that can be configured in 
     If setting this value, you need to make sure Envoy is configured to use the proxy protocol. This can be configured by setting `use_proxy_proto: true` and `use_remote_address: false` in the [ambassador `Module`](/reference/core/ambassador). **Note:** a restart of Ambassador Edge Stack is required for this configuration to take effect.
     
 
-## Yaml Configuration
+## YAML Configuration
 
 The following is a sample configuration for deploying Ambassador Edge Stack in AWS using Kubernetes YAML manifests:
 
@@ -96,9 +96,9 @@ In this configuration, an ELB is deployed with a multi-domain AWS Certificate Ma
 
 ## TLS Termination
 
-As with any Kubernetes environment, Ambassador Edge Stack can be configured to perform SSL offload by configuring a tls [`Module`](/reference/core/tls) or [`TLSContext`](/user-guide/sni). Refer to the [TLS Termination](/user-guide/tls-termination) documentation for more information. 
+As with any Kubernetes environment, Ambassador Edge Stack can be configured to perform SSL offload by configuring [`TLSContext`](//reference/core/tls/#tlscontext). Refer to the [TLS Termination](/user-guide/tls-termination) documentation for more information.
 
-In AWS, you can also perform SSL offload with an ELB or ALB. If you choose to terminate TLS at the LB, Ambassador Edge Stack should be configured to listen for cleartext traffic on the default port 80. An example of this using an L4 ELB is shown at the top of this document. 
+In AWS, you can also perform SSL offload with an ELB or ALB. If you choose to terminate TLS at the LB, Ambassador Edge Stack should be configured to listen for cleartext traffic on the default port 80.
 
 Enabling HTTP -> HTTPS redirection will depend on if your load balancer is running in L4 or L7 mode.
 
@@ -174,7 +174,7 @@ metadata:
         server:
           enabled: true
           redirect_cleartext_from: 8080
-spec:
+spec: 
   externalTrafficPolicy: Local
   type: LoadBalancer
   ports:
@@ -190,11 +190,11 @@ spec:
 
 This configuration makes the Ambassador Edge Stack start a new listener on 8080 which redirects all cleartext HTTP traffic to HTTPS.
 
-**Note:** The Ambassador Edge Stack only supports standard ports (80 and 443) on the load balancer for L4 redirection, [yet](https://github.com/datawire/ambassador/issues/702)! For instance, if you configure port 8888 for HTTP and 9999 for HTTPS on the load balancer, then an incoming request to `http://<host>:8888` will be redirected to `https://<host>:8888`. This will fail because HTTPS listener is on port 9999.
+**Note:** The Ambassador Edge Stack only supports standard ports (80 and 443) on the load balancer for L4 redirection at this time. For instance, if you configure port 8888 for HTTP and 9999 for HTTPS on the load balancer, then an incoming request to `http://<host>:8888` will be redirected to `https://<host>:8888` rather than port 9999 and will fail.
 
 ### L7 Load Balancer
 
-If you are running the load balancer in L7 mode, then you will want to redirect all the incoming HTTP requests without the `X-FORWARDED-PROTO: https` header to HTTPS. Here is an example the Ambassador Edge Stack configuration for this scenario:
+If you are running the load balancer in L7 mode, all incoming HTTP requests without the `X-FORWARDED-PROTO: https` header will need to be redirected to HTTPS. Here is an example configuration for this scenario:
 
 ```yaml
 ---

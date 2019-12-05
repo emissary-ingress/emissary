@@ -74,7 +74,7 @@
       items:
       - title: Encryption and Authentication  
         link:  /user-guide/security
-      - title: Enabling HTTPS
+      - title: TLS Termination and HTTPS 
         link: /user-guide/tls-termination
       - title: cert-manager with Ambassador Edge Stack
         link: /user-guide/cert-manager
@@ -132,11 +132,11 @@
       items:  
       - title: Running and Deployment 
         link: /reference/running
-      - title: Ambassador Edge Stack with AWS
+      - title: Ambassador Edge Stack on AWS
         link: /reference/ambassador-with-aws
       - title: Diagnostics
         link: /reference/diagnostics
-    - title: Security Configuration
+    - title: TLS & Cryptography
       items:
       - title: TLS Configuration
         link: /reference/core/tls

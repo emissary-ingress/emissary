@@ -1,8 +1,10 @@
 # Statistics and Monitoring
 
-Ambassador Edge Stack is an API gateway for microservices built on [Envoy Proxy](https://www.envoyproxy.io). A key feature of Envoy is the observability it enables by exposing a multitude of statistics about its own operations. Ambassador Edge Stack makes it easy to direct this information to a statistics and monitoring tool of your choice.
+Ambassador Edge Stack uses [Envoy Proxy](https://www.envoyproxy.io), which has Observability to expose a multitude of statistics about its own operations. You can use the Envoy `/metrics` endpoint to scrap states and metrics directly, so you don't need to configure your Ambassador Edge Stack to output statistics to another tool, such as StatsD.
 
-As an example, for a given service `usersvc`, here are some interesting statistics to investigate:
+To scrape metrics directly, follow the instructions for [Monitoring with Prometheus and Grafana](/user-guide/monitoring).
+
+Ambassador Edge Stack makes it easy to direct this information to a statistics and monitoring tool of your choice. As an example, for a given service `usersvc`, here are some interesting statistics to investigate:
 
 - `envoy.cluster.usersvc_cluster.upstream_rq_total` is the total number of requests that `usersvc` has received via Ambassador Edge Stack. The rate of change of this value is one basic measure of service utilization, i.e. requests per second.
 - `envoy.cluster.usersvc_cluster.upstream_rq_2xx` is the total number of requests to which `usersvc` responded with an HTTP response indicating success. This value divided by the prior one, taken on an rolling window basis, represents the recent success rate of the service. There are corresponding `4xx` and `5xx` counters that can help clarify the nature of unsuccessful requests.
@@ -10,7 +12,7 @@ As an example, for a given service `usersvc`, here are some interesting statisti
 
 ## Exposing statistics via StatsD
 
-Statistics are exposed via the ubiquitous and well-tested [StatsD](https://github.com/etsy/statsd) protocol.
+Statistics can be exposed via the ubiquitous and well-tested [StatsD](https://github.com/etsy/statsd) protocol.
 
 To expose statistics via StatsD, you will need to set an environment variable `STATSD_ENABLED: true` in Ambassador Edge Stack's deployment YAML.
 
@@ -50,7 +52,7 @@ This sets up Graphite access at `http://localhost:8080/`.
 
 ## Prometheus
 
-[Prometheus](https://prometheus.io/) is an open-source monitoring and alerting system. If you use Prometheus, you can deploy the [Prometheus StatsD Exporter](https://github.com/prometheus/statsd_exporter) as the `statsd-sink` service. This will translate StatsD metrics into Prometheus metrics. Configure a Prometheus target to read from `statsd-sink` on port 9102 to complete the Prometheus configuration. A sample configuration for Prometheus is available [here](https://github.com/datawire/ambassador/blob/master/deployments/statsd-sink/prometheus/prom-statsd-sink.yaml).
+[Prometheus](https://prometheus.io/) is an open-source monitoring and alerting system. If you use [Prometheus](https://github.com/prometheus/statsd_exporter), you can use the `/metrics` endpoint for scraping metrics directly from the Ambassador admin port, or deploy the Prometheus StatsD Exporter as the statsd-sink service. Configure a Prometheus target to read from `statsd-sink` on port 9102 to complete the Prometheus configuration. A sample configuration for Prometheus is available [here](https://github.com/datawire/ambassador/blob/master/deployments/statsd-sink/prometheus/prom-statsd-sink.yaml).
 
 You can optionally also add the `statsd-sink` service and Prometheus exporter as a sidecar on the Ambassador Edge Stack pod. If you do this, make sure to set `STATSD_HOST: localhost` so that UDP packets are routed to the sidecar.
 
@@ -64,7 +66,7 @@ For example, by default each service that the API Gateway serves will create a n
 
 #### Configuring for kubectl
 
-In the [ambassador-rbac-prometheus](https://github.com/datawire/ambassador/blob/master/templates) example template there is a `ConfigMap` that should be updated. Add your mapping to the `configuration` property.
+In the [ambassador-rbac-prometheus](https://github.com/datawire/ambassador/blob/master/docs/yaml/ambassador/ambassador-rbac-prometheus.yaml) example template there is a `ConfigMap` that should be updated. Add your mapping to the `configuration` property.
 
 ```yaml
 ---

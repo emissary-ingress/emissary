@@ -112,15 +112,15 @@ spec:
     requireNotBefore: bool          # optional; default is false
 
     injectRequestHeaders:           # optional; default is []
-    - name:   "header-name-string"    # required
-      value:  "go-template-string"    # required
+    - name:   "header-name-string"  # required
+      value:  "go-template-string"  # required
        
     errorResponse:                  # optional
-      contentType: "string"           # deprecated; use 'headers' instead
-      headers:                        # optional; default is [{name: "Content-Type", value: "application/json"}]
-      - name: "header-name-string"      # required
-        value: "go-template-string"     # required
-      bodyTemplate: "string"          # optional; default is `{{ . | json "" }}`
+      contentType: "string"         # deprecated; use 'headers' instead
+      headers:                      # optional; default is [{name: "Content-Type", value: "application/json"}]
+      - name: "header-name-string"  # required
+        value: "go-template-string" # required
+      bodyTemplate: "string"        # optional; default is `{{ . | json "" }}`
 ```
 
  - `insecureTLS` disables TLS verification for the cases when
@@ -293,7 +293,7 @@ metadata:
 spec:
   OAuth2:
     authorizationURL:      "url-string"      # required
-    grantType              "enum-string"     # optional; default is "AuthorizationCode"
+    grantType:              "enum-string"    # optional; default is "AuthorizationCode"
     accessTokenValidation: "enum-string"     # optional; default is "auto"
 
     # Settings for grantType=="AuthorizationCode"
@@ -447,7 +447,7 @@ spec:
 
  - `insteadOfRedirect`: An action to perform instead of redirecting
    the User-Agent to the identity provider.  By default, if the
-   User-Agent does not have an currently-authenticated session, then the
+   User-Agent does not have a currently-authenticated session, then the
    Ambassador Edge Stack will redirect the User-Agent to the identity provider.
    Setting `insteadOfRedirect` causes it to instead serve an
    authorization-denied error page; by default HTTP 403 ("Forbidden"),
@@ -533,12 +533,12 @@ spec:
   rules:
   - host: "glob-string"
     path: "glob-string"
-    filters:                    # optional; omit or set to `null` to apply no filters to this request
+    filters:                      # optional; omit or set to `null` to apply no filters to this request
     - name: "string"              # required
       namespace: "string"         # optional; default is the same namespace as the FilterPolicy
       ifRequestHeader:            # optional; default to apply this filter to all requests matching the host & path
-        name: "string"              # required
-        value: "string"             # optional; default is any non-empty string
+        name: "string"            # required
+        value: "string"           # optional; default is any non-empty string
       onDeny: "enum-string"       # optional; default is "break"
       onAllow: "enum-string"      # optional; default is "continue"
       arguments: DEPENDS          # optional
@@ -553,7 +553,7 @@ When multiple `Filter`s are specified in a rule:
    1. return a direct HTTP *response*, intended to be sent back to the
       requesting HTTP client (normally *denying* the request from
       being forwarded to the upstream service); or
-   2. return a modification to make the the HTTP *request* before
+   2. return a modification to make to the HTTP *request* before
       sending it to other filters or the upstream service (normally
       *allowing* the request to be forwarded to the upstream service
       with modifications).
@@ -624,13 +624,13 @@ spec:
     - name: auth0
 ```
 
-**Note:** THe Ambassador Edge Stack will choose the first `FilterPolicy` rule that matches the incoming request. As in the above example, you must list your rules in the order of least to most generic.
+**Note:** The Ambassador Edge Stack will choose the first `FilterPolicy` rule that matches the incoming request. As in the above example, you must list your rules in the order of least to most generic.
 
 ## Installing self-signed certificates
 
-The `JWT` and `OAuth2` filters speak to other servers over HTTP or HTTPS.  If those servers are configured to speak HTTPS using a
+The `JWT` and `OAuth2` filters speak to other services over HTTP or HTTPS.  If those services are configured to speak HTTPS using a
 self-signed certificate, attempting to talk to them will result in an error mentioning `ERR x509: certificate signed by unknown authority`. You can fix this by installing that self-signed certificate in to the
-Pro container following the standard procedure for Alpine Linux 3.8: Copy the certificate to `/usr/local/share/ca-certificates/` and then run `update-ca-certificates`.  Note that the `amb-sidecar` image sets `USER 1000`, but that `update-ca-certificates` needs to be run as root.
+AES container following the standard procedure for Alpine Linux 3.8: Copy the certificate to `/usr/local/share/ca-certificates/` and then run `update-ca-certificates`.  Note that the `aes` image sets `USER 1000`, but that `update-ca-certificates` needs to be run as root.
 
 ```Dockerfile
 FROM quay.io/datawire/ambassador_pro:amb-sidecar-$aproVersion$

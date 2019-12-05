@@ -1,4 +1,4 @@
-# Manually Enabling HTTPS in Ambassador Edge Stack
+# TLS Termination and Enabling HTTPS
 
 TLS encryption is one of the basic requirements of having a secure system. Ambassador Edge Stack makes enabling TLS encryption easy, centralizing TLS termination for all of your services in Kubernetes automatically during configuration if you have a fully qualified domain name (FQDN).
 

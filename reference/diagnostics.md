@@ -1,11 +1,17 @@
 # Diagnostics
 
-If Ambassador Edge Stack is not routing your services as you'd expect, your first step should be the Ambassador Edge Stack Diagnostics 
-in the Edge Policy Console. Login to your Edge Policy Console and select the "Debugging" tab from the left menu. 
+If you're experiencing issues with the Ambassador Edge Stack, log in to your Edge Policy Console and choose from the left menu whether you want to:
 
-Some of the most important information (your Ambassador Edge Stack version, how recently Ambassador Edge Stack's configuration was updated, and how recently Envoy last reported status to Ambassador Edge Stack) is right at the top. The diagnostics overview can show you what it sees in your configuration map, and which Envoy objects were created based on your configuration.
+* Debug issues from the Debugging tab
+* Check the health status of your services from the Mappings tab
 
-## Health status
+## Debugging
+
+If Ambassador Edge Stack is not routing your services as you'd expect, your first step should be the Ambassador Edge Stack Diagnostics in the Edge Policy Console. Login to your Edge Policy Console and select the "Debugging" tab from the left menu.
+
+Some of the most important information (your Ambassador Edge Stack version, how recently Ambassador Edge Stack's configuration was updated, and how recently Envoy last reported status to Ambassador Edge Stack) is right at the top.
+
+## Health Status
 
 Ambassador Edge Stack displays the health of your services on the Dashboard of your Edge Policy Console. Health is computed as successful requests / total requests and expressed as a percentage. The total requests comes from nvoy `upstream_rq_pending_total` stat. Successful requests is calculated by substracting `upstream_rq_4xx` and `upstream_rq_5xx` from the total.
 
