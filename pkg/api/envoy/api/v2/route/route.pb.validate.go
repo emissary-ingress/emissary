@@ -228,21 +228,6 @@ func (m *VirtualHost) Validate() error {
 		}
 	}
 
-	{
-		tmp := m.GetPerRequestBufferLimitBytes()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return VirtualHostValidationError{
-					field:  "PerRequestBufferLimitBytes",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
-			}
-		}
-	}
-
 	return nil
 }
 
@@ -427,21 +412,6 @@ func (m *Route) Validate() error {
 			if err := v.Validate(); err != nil {
 				return RouteValidationError{
 					field:  "Tracing",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
-			}
-		}
-	}
-
-	{
-		tmp := m.GetPerRequestBufferLimitBytes()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return RouteValidationError{
-					field:  "PerRequestBufferLimitBytes",
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
@@ -757,21 +727,6 @@ func (m *RouteMatch) Validate() error {
 			if err := v.Validate(); err != nil {
 				return RouteMatchValidationError{
 					field:  "Grpc",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
-			}
-		}
-	}
-
-	{
-		tmp := m.GetTlsContext()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return RouteMatchValidationError{
-					field:  "TlsContext",
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
@@ -1149,12 +1104,7 @@ func (m *RouteAction) Validate() error {
 		}
 	}
 
-	if _, ok := envoy_api_v2_core.RoutingPriority_name[int32(m.GetPriority())]; !ok {
-		return RouteActionValidationError{
-			field:  "Priority",
-			reason: "value must be one of the defined enum values",
-		}
-	}
+	// no validation rules for Priority
 
 	for idx, item := range m.GetRateLimits() {
 		_, _ = idx, item
@@ -1512,46 +1462,6 @@ func (m *RetryPolicy) Validate() error {
 				}
 			}
 		}
-	}
-
-	for idx, item := range m.GetRetriableHeaders() {
-		_, _ = idx, item
-
-		{
-			tmp := item
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return RetryPolicyValidationError{
-						field:  fmt.Sprintf("RetriableHeaders[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
-				}
-			}
-		}
-
-	}
-
-	for idx, item := range m.GetRetriableRequestHeaders() {
-		_, _ = idx, item
-
-		{
-			tmp := item
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return RetryPolicyValidationError{
-						field:  fmt.Sprintf("RetriableRequestHeaders[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
-				}
-			}
-		}
-
 	}
 
 	return nil
@@ -2773,89 +2683,6 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = RouteMatch_GrpcRouteMatchOptionsValidationError{}
-
-// Validate checks the field values on RouteMatch_TlsContextMatchOptions with
-// the rules defined in the proto definition for this message. If any rules
-// are violated, an error is returned.
-func (m *RouteMatch_TlsContextMatchOptions) Validate() error {
-	if m == nil {
-		return nil
-	}
-
-	{
-		tmp := m.GetPresented()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return RouteMatch_TlsContextMatchOptionsValidationError{
-					field:  "Presented",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
-			}
-		}
-	}
-
-	return nil
-}
-
-// RouteMatch_TlsContextMatchOptionsValidationError is the validation error
-// returned by RouteMatch_TlsContextMatchOptions.Validate if the designated
-// constraints aren't met.
-type RouteMatch_TlsContextMatchOptionsValidationError struct {
-	field  string
-	reason string
-	cause  error
-	key    bool
-}
-
-// Field function returns field value.
-func (e RouteMatch_TlsContextMatchOptionsValidationError) Field() string { return e.field }
-
-// Reason function returns reason value.
-func (e RouteMatch_TlsContextMatchOptionsValidationError) Reason() string { return e.reason }
-
-// Cause function returns cause value.
-func (e RouteMatch_TlsContextMatchOptionsValidationError) Cause() error { return e.cause }
-
-// Key function returns key value.
-func (e RouteMatch_TlsContextMatchOptionsValidationError) Key() bool { return e.key }
-
-// ErrorName returns error name.
-func (e RouteMatch_TlsContextMatchOptionsValidationError) ErrorName() string {
-	return "RouteMatch_TlsContextMatchOptionsValidationError"
-}
-
-// Error satisfies the builtin error interface
-func (e RouteMatch_TlsContextMatchOptionsValidationError) Error() string {
-	cause := ""
-	if e.cause != nil {
-		cause = fmt.Sprintf(" | caused by: %v", e.cause)
-	}
-
-	key := ""
-	if e.key {
-		key = "key for "
-	}
-
-	return fmt.Sprintf(
-		"invalid %sRouteMatch_TlsContextMatchOptions.%s: %s%s",
-		key,
-		e.field,
-		e.reason,
-		cause)
-}
-
-var _ error = RouteMatch_TlsContextMatchOptionsValidationError{}
-
-var _ interface {
-	Field() string
-	Reason() string
-	Key() bool
-	Cause() error
-	ErrorName() string
-} = RouteMatch_TlsContextMatchOptionsValidationError{}
 
 // Validate checks the field values on RouteAction_RequestMirrorPolicy with the
 // rules defined in the proto definition for this message. If any rules are

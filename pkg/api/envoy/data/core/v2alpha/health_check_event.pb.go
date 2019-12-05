@@ -84,7 +84,6 @@ func (HealthCheckerType) EnumDescriptor() ([]byte, []int) {
 	return fileDescriptor_e866c90440508830, []int{1}
 }
 
-// [#next-free-field: 10]
 type HealthCheckEvent struct {
 	HealthCheckerType HealthCheckerType `protobuf:"varint,1,opt,name=health_checker_type,json=healthCheckerType,proto3,enum=envoy.data.core.v2alpha.HealthCheckerType" json:"health_checker_type,omitempty"`
 	Host              *core.Address     `protobuf:"bytes,2,opt,name=host,proto3" json:"host,omitempty"`

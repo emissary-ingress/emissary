@@ -28,7 +28,6 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 type ProtocolType int32
 
 const (
-	// the default protocol.
 	ProtocolType_Dubbo ProtocolType = 0
 )
 
@@ -52,7 +51,6 @@ func (ProtocolType) EnumDescriptor() ([]byte, []int) {
 type SerializationType int32
 
 const (
-	// the default serialization protocol.
 	SerializationType_Hessian2 SerializationType = 0
 )
 
@@ -72,7 +70,7 @@ func (SerializationType) EnumDescriptor() ([]byte, []int) {
 	return fileDescriptor_cb1d96a9a5769137, []int{1}
 }
 
-// [#next-free-field: 6]
+// [#comment:next free field: 6]
 type DubboProxy struct {
 	// The human readable prefix to use when emitting statistics.
 	StatPrefix string `protobuf:"bytes,1,opt,name=stat_prefix,json=statPrefix,proto3" json:"stat_prefix,omitempty"`
@@ -161,6 +159,7 @@ func (m *DubboProxy) GetDubboFilters() []*DubboFilter {
 }
 
 // DubboFilter configures a Dubbo filter.
+// [#comment:next free field: 3]
 type DubboFilter struct {
 	// The name of the filter to instantiate. The name must match a supported
 	// filter.

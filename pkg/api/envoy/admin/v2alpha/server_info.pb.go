@@ -116,7 +116,6 @@ func (CommandLineOptions_Mode) EnumDescriptor() ([]byte, []int) {
 
 // Proto representation of the value returned by /server_info, containing
 // server version/server status information.
-// [#next-free-field: 7]
 type ServerInfo struct {
 	// Server version.
 	Version string `protobuf:"bytes,1,opt,name=version,proto3" json:"version,omitempty"`
@@ -210,7 +209,6 @@ func (m *ServerInfo) GetCommandLineOptions() *CommandLineOptions {
 	return nil
 }
 
-// [#next-free-field: 27]
 type CommandLineOptions struct {
 	// See :option:`--base-id` for details.
 	BaseId uint64 `protobuf:"varint,1,opt,name=base_id,json=baseId,proto3" json:"base_id,omitempty"`

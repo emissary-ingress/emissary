@@ -6,7 +6,7 @@ ENVOY_FILE ?= $(topsrcdir)/bin_linux_amd64/envoy-static-stripped
 
 # IF YOU MESS WITH ANY OF THESE VALUES, YOU MUST RUN `make update-base`.
   ENVOY_REPO ?= $(if $(IS_PRIVATE),git@github.com:datawire/envoy-private.git,git://github.com/datawire/envoy.git)
-  ENVOY_COMMIT ?= 270782159bcc4976941064fa649f05c01e233e4f
+  ENVOY_COMMIT ?= 6e6ae35f214b040f76666d86b30a6ad3ceb67046
   ENVOY_COMPILATION_MODE ?= opt
 
   # Increment BASE_ENVOY_RELVER on changes to `docker/base-envoy/Dockerfile`, or Envoy recipes
@@ -59,7 +59,7 @@ $(srcdir)/envoy-build-image.txt: $(srcdir)/envoy $(WRITE_IFCHANGED) FORCE
 	    pushd $</ci; \
 	    . envoy_build_sha.sh; \
 	    popd; \
-	    echo docker.io/envoyproxy/envoy-build-ubuntu@sha256:$$ENVOY_BUILD_SHA | $(WRITE_IFCHANGED) $@; \
+	    echo docker.io/envoyproxy/envoy-build-ubuntu:$$ENVOY_BUILD_SHA | $(WRITE_IFCHANGED) $@; \
 	}
 
 $(srcdir)/envoy-build-container.txt: $(srcdir)/envoy-build-image.txt FORCE

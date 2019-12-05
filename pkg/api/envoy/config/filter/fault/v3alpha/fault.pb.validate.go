@@ -40,6 +40,8 @@ func (m *FaultDelay) Validate() error {
 		return nil
 	}
 
+	// no validation rules for Type
+
 	{
 		tmp := m.GetPercentage()
 

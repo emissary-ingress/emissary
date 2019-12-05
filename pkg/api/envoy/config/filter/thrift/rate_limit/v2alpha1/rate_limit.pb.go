@@ -25,7 +25,7 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-// [#next-free-field: 6]
+// [#comment:next free field: 5]
 type RateLimit struct {
 	// The rate limit domain to use in the rate limit service request.
 	Domain string `protobuf:"bytes,1,opt,name=domain,proto3" json:"domain,omitempty"`

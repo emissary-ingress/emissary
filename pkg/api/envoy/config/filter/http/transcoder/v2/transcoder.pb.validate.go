@@ -69,8 +69,6 @@ func (m *GrpcJsonTranscoder) Validate() error {
 
 	// no validation rules for IgnoreUnknownQueryParameters
 
-	// no validation rules for ConvertGrpcStatus
-
 	switch m.DescriptorSet.(type) {
 
 	case *GrpcJsonTranscoder_ProtoDescriptor:

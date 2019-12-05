@@ -241,69 +241,6 @@ func (m *OutlierDetection) Validate() error {
 
 	}
 
-	if wrapper := m.GetFailurePercentageThreshold(); wrapper != nil {
-
-		if wrapper.GetValue() > 100 {
-			return OutlierDetectionValidationError{
-				field:  "FailurePercentageThreshold",
-				reason: "value must be less than or equal to 100",
-			}
-		}
-
-	}
-
-	if wrapper := m.GetEnforcingFailurePercentage(); wrapper != nil {
-
-		if wrapper.GetValue() > 100 {
-			return OutlierDetectionValidationError{
-				field:  "EnforcingFailurePercentage",
-				reason: "value must be less than or equal to 100",
-			}
-		}
-
-	}
-
-	if wrapper := m.GetEnforcingFailurePercentageLocalOrigin(); wrapper != nil {
-
-		if wrapper.GetValue() > 100 {
-			return OutlierDetectionValidationError{
-				field:  "EnforcingFailurePercentageLocalOrigin",
-				reason: "value must be less than or equal to 100",
-			}
-		}
-
-	}
-
-	{
-		tmp := m.GetFailurePercentageMinimumHosts()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return OutlierDetectionValidationError{
-					field:  "FailurePercentageMinimumHosts",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
-			}
-		}
-	}
-
-	{
-		tmp := m.GetFailurePercentageRequestVolume()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return OutlierDetectionValidationError{
-					field:  "FailurePercentageRequestVolume",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
-			}
-		}
-	}
-
 	return nil
 }
 

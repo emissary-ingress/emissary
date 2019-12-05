@@ -47,6 +47,8 @@ func (m *RedisProxy) Validate() error {
 		}
 	}
 
+	// no validation rules for Cluster
+
 	if m.GetSettings() == nil {
 		return RedisProxyValidationError{
 			field:  "Settings",
@@ -291,8 +293,6 @@ func (m *RedisProxy_ConnPoolSettings) Validate() error {
 		}
 	}
 
-	// no validation rules for EnableCommandStats
-
 	if _, ok := RedisProxy_ConnPoolSettings_ReadPolicy_name[int32(m.GetReadPolicy())]; !ok {
 		return RedisProxy_ConnPoolSettingsValidationError{
 			field:  "ReadPolicy",
@@ -389,6 +389,8 @@ func (m *RedisProxy_PrefixRoutes) Validate() error {
 	}
 
 	// no validation rules for CaseInsensitive
+
+	// no validation rules for CatchAllCluster
 
 	{
 		tmp := m.GetCatchAllRoute()

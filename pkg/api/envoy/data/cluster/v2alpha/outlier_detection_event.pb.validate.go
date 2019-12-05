@@ -139,23 +139,6 @@ func (m *OutlierDetectionEvent) Validate() error {
 			}
 		}
 
-	case *OutlierDetectionEvent_EjectFailurePercentageEvent:
-
-		{
-			tmp := m.GetEjectFailurePercentageEvent()
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return OutlierDetectionEventValidationError{
-						field:  "EjectFailurePercentageEvent",
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
-				}
-			}
-		}
-
 	default:
 		return OutlierDetectionEventValidationError{
 			field:  "Event",
@@ -377,78 +360,3 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = OutlierEjectConsecutiveValidationError{}
-
-// Validate checks the field values on OutlierEjectFailurePercentage with the
-// rules defined in the proto definition for this message. If any rules are
-// violated, an error is returned.
-func (m *OutlierEjectFailurePercentage) Validate() error {
-	if m == nil {
-		return nil
-	}
-
-	if m.GetHostSuccessRate() > 100 {
-		return OutlierEjectFailurePercentageValidationError{
-			field:  "HostSuccessRate",
-			reason: "value must be less than or equal to 100",
-		}
-	}
-
-	return nil
-}
-
-// OutlierEjectFailurePercentageValidationError is the validation error
-// returned by OutlierEjectFailurePercentage.Validate if the designated
-// constraints aren't met.
-type OutlierEjectFailurePercentageValidationError struct {
-	field  string
-	reason string
-	cause  error
-	key    bool
-}
-
-// Field function returns field value.
-func (e OutlierEjectFailurePercentageValidationError) Field() string { return e.field }
-
-// Reason function returns reason value.
-func (e OutlierEjectFailurePercentageValidationError) Reason() string { return e.reason }
-
-// Cause function returns cause value.
-func (e OutlierEjectFailurePercentageValidationError) Cause() error { return e.cause }
-
-// Key function returns key value.
-func (e OutlierEjectFailurePercentageValidationError) Key() bool { return e.key }
-
-// ErrorName returns error name.
-func (e OutlierEjectFailurePercentageValidationError) ErrorName() string {
-	return "OutlierEjectFailurePercentageValidationError"
-}
-
-// Error satisfies the builtin error interface
-func (e OutlierEjectFailurePercentageValidationError) Error() string {
-	cause := ""
-	if e.cause != nil {
-		cause = fmt.Sprintf(" | caused by: %v", e.cause)
-	}
-
-	key := ""
-	if e.key {
-		key = "key for "
-	}
-
-	return fmt.Sprintf(
-		"invalid %sOutlierEjectFailurePercentage.%s: %s%s",
-		key,
-		e.field,
-		e.reason,
-		cause)
-}
-
-var _ error = OutlierEjectFailurePercentageValidationError{}
-
-var _ interface {
-	Field() string
-	Reason() string
-	Key() bool
-	Cause() error
-	ErrorName() string
-} = OutlierEjectFailurePercentageValidationError{}
