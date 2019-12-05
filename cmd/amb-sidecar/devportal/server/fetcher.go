@@ -228,6 +228,10 @@ func (f *fetcher) _retrieve(reason string) {
 				continue
 			}
 			location_parts := strings.Split(location, ".")
+			if len(location_parts) < 2 {
+				// This is most likely a Knative mapping: ignore for now.
+				continue
+			}
 			prefix := getString(mapping, "prefix")
 			rewrite := getString(mapping, "rewrite")
 			clusterName := getString(mapping, "cluster.name")
