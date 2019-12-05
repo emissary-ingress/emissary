@@ -1,6 +1,6 @@
 # The Ambassador Edge Stack on AWS
 
-For the most part, the Ambassador Edge Stack is platform agnostic and will run in the same way regardless of the your Kubernetes installation.
+For the most part, the Ambassador Edge Stack is platform agnostic and will run in the same way regardless of your Kubernetes installation.
 
 This is mostly true of AWS as well. The various methods of deploying Ambassador Edge Stack outlined in the [installation guide](/user-guide/install) will all work on AWS the same way they do on any Kubernetes installation.
 
@@ -42,7 +42,7 @@ There are a number of `aws-load-balancer` annotations that can be configured in 
 - `service.beta.kubernetes.io/aws-load-balancer-ssl-ports`:
     Configures which port the load balancer will be listening for SSL traffic on. Defaults to `"*"`.
 
-    If you want to enabled cleartext redirection, make sure to set this to `"443"` so traffic on port 80 will come in over cleartext.
+    If you want to enable cleartext redirection, make sure to set this to `"443"` so traffic on port 80 will come in over cleartext.
 
 - `service.beta.kubernetes.io/aws-load-balancer-backend-protocol`:
     Configures the ELB to operate in L4 or L7 mode. Can be set to `"tcp"`/`"ssl"` for an L4 listener or `"http"`/`"https"` for an L7 listener. Defaults to `"http"` and uses `"https"` if `aws-load-balancer-ssl-cert` is set.

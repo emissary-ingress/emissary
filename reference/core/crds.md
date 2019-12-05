@@ -1,12 +1,10 @@
 # Using CRDs with Ambassador Edge Stack
 
 
-
-
 As of Ambassador 0.70, any Ambassador Edge Stack resource can be expressed as a CRD in the `getambassador.io` API group:
 
 - use `apiVersion: getambassador.io/v2`
-- use the same `kind` as you would in an annotation
+- use the same `kind` as you would in an attribute
 - put the resource name in `metadata.name`
 - put everything else in `spec`
 
@@ -36,32 +34,35 @@ spec:
   service: luatest-http
 ```
 
-(Note that the `namespace` must be declared in the `metadata`, but if needed, `ambassador_id` must be declared in the `spec`.)
+Note that the `namespace` must be declared in the `metadata`, but if needed, `ambassador_id` must be declared in the `spec`.
 
 ## CRDs supported by Ambassador Edge Stack
 
-
-
-The full set of CRDs supported by Ambassador in 0.70.0:
+The full set of CRDs supported by the Abassador Edge Stack:
 
 | `Kind` | Kubernetes singular | Kubernetes plural |
 | :----- | :------------------ | :---------------- |
 | `AuthService` | `authservice` | `authservices` |
 | `ConsulResolver` | `consulresolver` | `consulresolvers` |
+| `Filter` | `filter` | `filters` |
+| `FilterPolicy` | `filterpolicy` | `filterpolicies`|
+| `Host` | `host`| `hosts` |
 | `KubernetesEndpointResolver` | `kubernetesendpointresolver` | `kubernetesendpointresolvers` |
 | `KubernetesServiceResolver` | `kubernetesserviceresolver` | `kubernetesserviceresolvers` |
+| `LogService` | `logservice` | `logservices` |
 | `Mapping` | `mapping` | `mappings` |
 | `Module` | `module` | `modules` |
+| `RateLimit` | `ratelimit` | `ratelimits` |
 | `RateLimitService` | `ratelimitservice` | `ratelimitservices` |
 | `TCPMapping` | `tcpmapping` | `tcpmappings` |
 | `TLSContext` | `tlscontext` | `tlscontexts` |
 | `TracingService` | `tracingservice` | `tracingservices` |
 
-So, for example, if you're using CRDs then 
+So, for example, if you're using CRDs, then
 
 ```kubectl get mappings```
 
-should show all your `Mapping` CRDs.
+should show all your `Mapping` custom resources.
 
 ## CRDs and RBAC
 
@@ -82,7 +83,7 @@ rules:
 
 ## Creating the CRD types within Kubernetes
 
-Before using the CRD types, you must add them to the Kubernetes API server. This is most easily done with the following YAML (which you can find in `docs/yaml/ambassador-crds.yaml`)
+Before using the CRD types, you must add them to the Kubernetes API server. This is most easily done with the following YAML (which you can find in `/yaml/aes-crds.yaml`)
 
 ```yaml
 ---

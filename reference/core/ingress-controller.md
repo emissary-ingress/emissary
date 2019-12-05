@@ -12,7 +12,7 @@ In order to use the `Ingress` resource effectively, it's important to understand
 
 - The Ambassador Edge Stack will need RBAC permissions to get, list, watch, and update `Ingress` resources.
 
-  You can see this in the `https://getambassador.io/yaml/ambassador/ambassador-rbac.yaml`
+  You can see this in the `https://getambassador.io/yaml/aes-crds.yaml`
   file, but this is the critical rule to add to the Ambassador Edge Stack's `Role` or `ClusterRole`:
 
       - apiGroups: [ "extensions" ]
@@ -66,25 +66,25 @@ Yes. All Ambassador Edge Stack configuration mechanisms are the same under the h
 
 ## `Ingress` Support in 0.80.0
 
-The Ambassador Edge Stack 0.80.0 supports basic core functionality of the  `Ingress` resource, as defined by the [`Ingress`](https://kubernetes.io/docs/concepts/services-networking/ingress/) resource itself:
+Ambassador 0.80.0 supports basic core functionality of the  `Ingress` resource, as defined by the [`Ingress`](https://kubernetes.io/docs/concepts/services-networking/ingress/) resource itself:
 
-- Basic routing, including the `route` specification and the default backend
+1. Basic routing, including the `route` specification and the default backend
   functionality, is supported.
-   - it's particularly easy to use a minimal `Ingress` to the Ambassador Edge Stack diagnostic UI
-- TLS termination is supported.
-   - you can use multiple `Ingress` resources for SNI
-- Using the `Ingress` resource in concert with Athe mbassador Edge Stack CRDs or annotations is supported.
-   - this includes the Ambassador Edge Stack annotations on the `Ingress` resource itself
+    - It's particularly easy to use a minimal `Ingress` to the Ambassador Edge Stack diagnostic UI
+2. TLS termination is supported.
+    - you can use multiple `Ingress` resources for SNI
+3. Using the `Ingress` resource in concert with the Ambassador Edge Stack CRDs or annotations is supported.
+    - this includes the Ambassador Edge Stack annotations on the `Ingress` resource itself
 
-The Ambassador Edge Stack 0.80.0 does **not** extend the basic `Ingress` specification except as follows:
+Ambassador 0.80.0 does **not** extend the basic `Ingress` specification except as follows:
 
-- the `getambassador.io/ambassador-id` annotation allows you to set an the Ambassador Edge Stack ID for
+- The `getambassador.io/ambassador-id` annotation allows you to set an the Ambassador Edge Stack ID for
   the `Ingress` itself; and
 
-- the `getambassador.io/config` annotation can be provided on the `Ingress` resource, just
+- The `getambassador.io/config` annotation can be provided on the `Ingress` resource, just
   as on a `Service`.
-     - note that if you need to set `getambassador.io/ambassador-id` on the `Ingress`, you
-       will also need to set `ambassador-id` on resources within the annotation!
+
+Note that if you need to set `getambassador.io/ambassador-id` on the `Ingress`, you will also need to set `ambassador-id` on resources within the annotation.
 
 ### `Ingress` routes and `Mapping`s
 
@@ -251,7 +251,7 @@ spec:
   tls:
   - hosts:
     - sslexample.foo.com
-      secretName: testsecret-tls
+    secretName: testsecret-tls
   rules:
     - host: sslexample.foo.com
       http:
@@ -273,7 +273,7 @@ metadata:
 spec:
   hosts:
   - sslexample.foo.com
-  secret: testsecret-tls
+  secretName: testsecret-tls
 ---
 apiVersion: getambassador.io/v2
 kind: Mapping

@@ -1,6 +1,6 @@
 # Auth0
 
-With Auth0 as your IDP, you will need to create an `Application` to handle authentication requests from Ambassador Edge Stack.
+With Auth0 as your IdP, you will need to create an `Application` to handle authentication requests from Ambassador Edge Stack.
 
 1. Navigate to Applications and Select "CREATE APPLICATION"
 
@@ -20,7 +20,11 @@ With Auth0 as your IDP, you will need to create an `Application` to handle authe
 
   ![](/doc-images/Auth0_none.png)
 
-5. Update the Auth0 `Filter` and `FilterPolicy`. You can get the `ClientID` and `secret` from your application settings:
+## Configure Filter and FilterPolicy
+
+
+Update the Auth0 `Filter` and `FilterPolicy`. You can get the `ClientID` and `secret` from your application settings:
+
 
    ![](/doc-images/Auth0_secret.png)
 

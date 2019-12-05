@@ -2,7 +2,7 @@
 
 ## Set up Saleforce
 
-To use Salesforce as your IDP, you will first need to register an OAuth application with your Salesforce tenant. This guide will walk you through the most basic setup via the "Salesforce Classic Experience".
+To use Salesforce as your IdP, you will first need to register an OAuth application with your Salesforce tenant. This guide will walk you through the most basic setup via the "Salesforce Classic Experience".
 
 1. In the `Setup` page, under `Build` click the dropdown next to `Create` and select `Apps`
 
@@ -25,8 +25,6 @@ To use Salesforce as your IDP, you will first need to register an OAuth applicat
 8. Record the `Consumer Key` and `Consumer Secret` values from the `API (Enable OAuth Settings)` section in the newly created application's description page.
 
 After waiting for salesforce to register the application with their servers, you should be ready to configure Ambassador Edge Stack to Salesforce as an IdP.
-
-
 
 ## Set up Ambassador Edge Stack
 
@@ -82,5 +80,3 @@ After configuring an OAuth application in Salesforce, configuring Ambassador Edg
     ```
 
 Now any requests to `https://{{AMBASSADOR_URL}}/backend/get-quote/` will require authentication from Salesforce.
-
-

@@ -212,7 +212,7 @@ If `tls` is present with a value that is not `true`, the value is assumed to be 
 
 ## Namespaces and Mappings
 
-Given that `AMBASSADOR_NAMESPACE` is correctly set, Ambassador Edge Stack can map to services in other namespaces by taking advantage of Kubernetes DNS:
+If `AMBASSADOR_NAMESPACE` is correctly set, Ambassador Edge Stack can map to services in other namespaces by taking advantage of Kubernetes DNS:
 
 - `service: servicename` will route to a service in the same namespace as the Ambassador Edge Stack, and
 - `service: servicename.namespace` will route to a service in a different namespace.

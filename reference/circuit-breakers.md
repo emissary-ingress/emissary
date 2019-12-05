@@ -1,6 +1,6 @@
 # Circuit Breakers
 
-Circuit breakers are a powerful technique to improve resilience. By preventing additional connections or requests to an overloaded service, circuit breakers limit the blast radius of an overloaded service. By design, Ambassador Edge Stack circuit breakers are distributed, i.e., different Ambassador Edge Stack instances do not coordinate circuit breaker information.
+Circuit breakers are a powerful technique to improve resilience. By preventing additional connections or requests to an overloaded service, circuit breakers limit the ["blast radius"](https://www.ibm.com/garage/method/practices/manage/practice_limited_blast_radius/) of an overloaded service. By design, Ambassador Edge Stack circuit breakers are distributed, i.e., different Ambassador Edge Stack instances do not coordinate circuit breaker information.
 
 ## Circuit breaker configuration
 
@@ -35,8 +35,8 @@ circuit_breakers:
 
 Circuit breakers are best used in conjunction with [automatic retries](/reference/retries). Here are some examples:
 
-* You've configured automatic retries for failed requests to a service. Your service is under heavy load, and starting to timeout on servicing requests. In this case, automatic retries can exacerbate your problem, increasing the total request volume by 2x or more. By aggressively circuit breaking, you can mitigate failure in this scenario.
-* To circuit break when services are slow, you can combine circuit breakers with retries. Reduce the timeout for retries, and then set a circuit breaker that detects many retries. In this setup, if your service doesn't respond quickly, a flood of retries will occur, which can then trip the circuit breaker.
+* You've configured automatic retries for failed requests to a service. Your service is under heavy load, and starting to time out on servicing requests. In this case, automatic retries can exacerbate your problem, increasing the total request volume by 2x or more. By aggressively circuit breaking, you can mitigate failure in this scenario.
+* To circuit break when services are slow, you can combine circuit breakers with retries. Reduce the time out for retries, and then set a circuit breaker that detects many retries. In this setup, if your service doesn't respond quickly, a flood of retries will occur, which can then trip the circuit breaker.
 
 Note that setting circuit breaker thresholds requires careful monitoring and experimentation. We recommend you start with conservative values for circuit breakers, and adjust them over time.
 

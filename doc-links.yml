@@ -132,8 +132,6 @@
       items:  
       - title: Running and Deployment 
         link: /reference/running
-      - title: Debugging Ambassador Edge Stack
-        link: /reference/debugging
       - title: Ambassador Edge Stack with AWS
         link: /reference/ambassador-with-aws
       - title: Diagnostics

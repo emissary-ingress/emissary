@@ -1,8 +1,10 @@
-# Enabling HTTPS in Ambassador Edge Stack
+# Manually Enabling HTTPS in Ambassador Edge Stack
 
-TLS encryption is one of the basic requirements of having a secure system. Ambassador Edge Stack makes enabling TLS encryption easy, centralizing TLS termination for all of your services in Kubernetes.
+TLS encryption is one of the basic requirements of having a secure system. Ambassador Edge Stack makes enabling TLS encryption easy, centralizing TLS termination for all of your services in Kubernetes automatically during configuration if you have a fully qualified domain name (FQDN).
 
-This guide will show you how to quickly enable TLS termination in Ambassador Edge Stack with a self-signed certificate.
+However, if you don't have a FQDN for your Ambassador Edge Stack, you can manually enable TLS. This guide will show you how to quickly enable TLS termination in Ambassador Edge Stack with a self-signed certificate.
+
+**Note** that these instructions do not work with the Ambassador API Gateway.
 
 ## Prerequisites
 
@@ -119,4 +121,3 @@ In Kubernetes, Jetstack's `cert-manager` provides a simple way to manage certifi
 ### Enable advanced TLS options
 
 Ambassador Edge Stack exposes configuration for many more advanced options around TLS termination, origination, client certificate validation, and SNI support. See the full [TLS reference](/reference/core/tls) for more information.
-

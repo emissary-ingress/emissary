@@ -165,7 +165,7 @@ spec:
   service: demo4
 ```
 
-The list syntax (shown in `mapping_used_2` above) permits including a given object in the configuration for multiple Ambassador instances. In this case `mapping_used_2` will be included in the configuration for `ambassador-1` and also for `ambassador-2`.
+The list syntax (shown in `mapping-used-2` above) permits including a given object in the configuration for multiple Ambassador instances. In this case `mapping-used-2` will be included in the configuration for `ambassador-1` and also for `ambassador-2`.
 
 **Note well that _any_ object can and should have an `ambassador_id` included** so, for example, it is _fully supported_ to use `ambassador_id` to qualify the `ambassador Module`, `TLS`, and `AuthService` objects. You will need to set Ambassador_id in all resources you want to use for the Ambassador Edge Stack.
 
@@ -195,12 +195,12 @@ The Ambassador Edge Stack uses some TCP ports in the range 8000-8499 internally,
 
 ## The Ambassador Edge Stack Update Checks (Scout)
 
-AThe mbassador Edge Stack integrates Scout, a service that periodically checks with Datawire servers to advise of available updates. Scout also sends anonymized usage data and the Ambassador Edge Stack version. This information is important to us as we prioritize test coverage, bug fixes, and feature development. Note that the Ambassador Edge Stack will run regardless of the status of Scout (i.e., our uptime has zero impact on your uptime.)
+The Ambassador Edge Stack integrates Scout, a service that periodically checks with Datawire servers to advise of available updates. Scout also sends anonymized usage data and the Ambassador Edge Stack version. This information is important to us as we prioritize test coverage, bug fixes, and feature development. Note that the Ambassador Edge Stack will run regardless of the status of Scout (i.e., our uptime has zero impact on your uptime.)
 
-We do not recommend you disable Scout, since we use this mechanism to notify users of new release (including critical fixes and security issues). This check can be disabled by setting the environment
+We do not recommend you disable Scout, since we use this mechanism to notify users of new releases (including critical fixes and security issues). This check can be disabled by setting the environment
 variable `SCOUT_DISABLE` to `1` in your Ambassador Edge Stack deployment.
   
-Each Ambassador Edge Stack installation generates a unique cluster ID based on the UID of its Kubernetes namespace and its Ambassador Edge Stack ID: the resulting cluster ID is a UUID which cannot be used to reveal the namespace name nor Ambassador Edge Stack ID itself. Ambassador nEdge Stack eeds RBAC permission to get namespaces for this purpose, as shown in the  default YAML files provided by Datawire; if not granted this permission it will generate a UUID based only on the Ambassador Edge Stack ID. To disable cluster ID generation entirely, set the environment variable `AMBASSADOR_CLUSTER_ID` to a UUID that will be used for the cluster ID.
+Each Ambassador Edge Stack installation generates a unique cluster ID based on the UID of its Kubernetes namespace and its Ambassador Edge Stack ID: the resulting cluster ID is a UUID which cannot be used to reveal the namespace name nor Ambassador Edge Stack ID itself. Ambassador Edge Stack needs RBAC permission to get namespaces for this purpose, as shown in the  default YAML files provided by Datawire; if not granted this permission it will generate a UUID based only on the Ambassador Edge Stack ID. To disable cluster ID generation entirely, set the environment variable `AMBASSADOR_CLUSTER_ID` to a UUID that will be used for the cluster ID.
 
 Unless disabled, the Ambassador Edge Stack will also report the following anonymized information back to Datawire:
 
@@ -265,8 +265,8 @@ Unless disabled, the Ambassador Edge Stack will also report the following anonym
 | `service_resource_total` | int | total count of service resources loaded from all discovery sources | 
 | `tls_origination_count` | int | count of TLS origination contexts |
 | `tls_termination_count` | int | count of TLS termination contexts |
-| `tls_using_contexts` | bool | is the old TLS module in use? |
-| `tls_using_module` | bool | are new TLSContext resources in use? |
+| `tls_using_contexts` | bool | are new TLSContext resources in use? ? |
+| `tls_using_module` | bool |is the old TLS module in use |
 | `tracing` | bool | is tracing in use? |
 | `tracing_driver` | str | tracing driver in use ('zipkin', 'lightstep', 'datadog', or `null` if not active) |
 | `use_proxy_proto` | bool | is the `PROXY` protocol in use? |

@@ -54,7 +54,6 @@ metadata:
  labels:
    product: aes
  name: ambassador-redis
- namespace: default
 spec:
  ports:
  - port: 6379
@@ -77,7 +76,6 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: ambassador-edge-stack
-  namespace: ambassador
 data:
   license-key: "" # This secret is just a placeholder, it is mounted as a volume and refreshed when changed
 EOF

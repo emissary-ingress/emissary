@@ -16,7 +16,6 @@ To use Google as and IdP for Single Sign-On, you will first need to create an OA
 6. Record the `client ID` and `client secret` in the pop-up window. You will need these when configuring Ambassador Edge Stack
 
 
-
 ## Set up Ambassador Edge Stack
 
 After creating an OAuth client in Google, configuring Ambassador Edge Stack to make use it for authentication is simple.

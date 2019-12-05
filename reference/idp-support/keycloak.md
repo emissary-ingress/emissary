@@ -1,11 +1,8 @@
 # Keycloak
 
-With Keycloak as your IDP, you will need to create a `Client` to handle authentication requests from Ambassador Edge Stack. The below instructions are known to work for Keycloak 4.8.
-
-
+With Keycloak as your IdP, you will need to create a `Client` to handle authentication requests from Ambassador Edge Stack. The below instructions are known to work for Keycloak 4.8.
 
 1. Under "Realm Settings", record the "Name" of the realm your client is in. This will be needed to configure your `authorizationURL`.
-
 2. Create a new client: navigate to Clients and select `Create`. Use the following settings: 
    - Client ID: Any value (e.g. `ambassador`); this value will be used in the `clientID` field of the Keycloak filter
    - Client Protocol: "openid-connect"
@@ -31,7 +28,9 @@ With Keycloak as your IDP, you will need to create a `Client` to handle authenti
    
    **Note:** All "Assigned Default Client Scopes" must be included in the `FilterPolicy` scopes argument. 
 
-10. Update the Keycloak `Filter` and `FilterPolicy`
+## Configure Filter and FilterPolicy
+
+Update the Keycloak `Filter` and `FilterPolicy` with the following:
 
    ```yaml
    ---
@@ -66,6 +65,3 @@ With Keycloak as your IDP, you will need to create a `Client` to handle authenti
                scopes:
                - "offline_access"
    ```
-
-
-
