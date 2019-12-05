@@ -41,8 +41,8 @@ spec:
     * `X-Forwarded-Proto`
 
 - `allowed_authorization_headers` (optional) lists headers that will be sent from the auth service to the upstream service when the request is allowed, and also headers that will be sent from the auth service back to the client when the request is denied. These headers are always included:
-    * `Location`
     * `Authorization`
+    * `Location`
     * `Proxy-Authenticate`
     * `Set-cookie`
     * `WWW-Authenticate`
@@ -51,9 +51,9 @@ spec:
     * `max_bytes` controls the amount of body data that will be passed to the auth service
     * `allow_partial` controls what happens to messages with bodies larger than `max_bytes`:
        * if `allow_partial` is `true`, the first `max_bytes` of the body are sent to the auth service
-       * if false, the message is rejected. 
+       * if `false`, the message is rejected.
 
-- `allow_request_body` is deprecated. It is exactly equivalent to `include_body` with `max_bytes` 4096 and `allow_partial` true.
+- `allow_request_body` is deprecated. It was exactly equivalent to `include_body` with `max_bytes` 4096 and `allow_partial` true.
 
 - `status_on_error` (optional) status code returned when unable to communicate with auth service. 
     * `code` Defaults to 403
@@ -73,7 +73,7 @@ You may use multiple `AuthService` manifests to round-robin authentication reque
 By design, the AuthService interface is highly flexible. The authentication service is the first external service invoked on an incoming request (e.g., it runs before the rate limit filter). Because the logic of authentication is encapsulated in an external service, you can use this to support a wide variety of use cases. For example:
 
 * Supporting traditional SSO authentication protocols, e.g., OAuth, OpenID Connect, etc.
-* Support HTTP basic authentication (sample implementation available at:  https://github.com/datawire/ambassador-auth-httpbasic)
+* Support HTTP basic authentication (sample implementation available at:  https://github.com/datawire/ambassador-auth-httpbasic
 * Only authenticating requests that are under a rate limit, and rejecting authentication requests above the rate limit
 * Authenticating specific services (URLs), and not others
 

@@ -119,4 +119,4 @@ about each span and associated metadata.
 
 ## Learn More
 
-For more details about configuring the external, distributed tracing service, read about [distrubuted tracing](/reference/services/tracing-service).
+For more details about configuring the external, distributed tracing service, read about [distributed tracing](/reference/services/tracing-service).

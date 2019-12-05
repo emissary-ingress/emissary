@@ -13,4 +13,3 @@ Ambassador Edge Stack enables you to control timeouts in several different ways.
 ## Connect timeout: `connect_timeout_ms`
 
 `connect_timeout_ms` controls the connection-level timeout for Ambassador Edge Stack to an upstream service.
-

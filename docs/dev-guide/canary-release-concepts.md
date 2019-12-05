@@ -12,7 +12,7 @@ This technique is called "canary" releasing because just like canaries that were
 Canary tests can be automated, and are typically run after testing in a pre-production environment has been completed. The canary release is only visible to a fraction of actual users, and any bugs or negative changes can be reversed quickly by either routing traffic away from the canary or by rolling-back the canary deployment.
 
 
-![Canary release process overview](../../doc-images/canary-release-overview.png)
+![Canary release process overview](/doc-images/canary-release-overview.png)
 
 
 ## Basic Kubernetes Canary Releases: Deployments

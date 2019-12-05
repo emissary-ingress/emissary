@@ -18,7 +18,7 @@ Supported load balancer policies:
 For more information on the different policies and the implications, see [load balancing strategies in Kubernetes](https://blog.getambassador.io/load-balancing-strategies-in-kubernetes-l4-round-robin-l7-round-robin-ring-hash-and-more-6a5b81595d6c).
 
 ## Round Robin
-When policy is set to `round_robin`, Ambassador Edge Stack discovers healthy endpoints for the given mapping, and load balances the incoming L7 requests in a round robin fashion. For example:
+When policy is set to `round_robin`, Ambassador Edge Stack discovers healthy endpoints for the given mapping, and load balances the incoming L7 requests with round robin scheduling. To specify this:
 
 ```yaml
 apiVersion: getambassador.io/v2
@@ -36,7 +36,7 @@ Note that load balancing may not appear to be "even" due to Envoy's threading mo
 
 ## Least Request
 
-When policy is set to `least_request`, Ambassador Edge Stack discovers healthy endpoints for the given mapping, and load balances the incoming L7 requests to the endpoint with the fewest active requests. For example:
+When policy is set to `least_request`, Ambassador Edge Stack discovers healthy endpoints for the given mapping, and load balances the incoming L7 requests to the endpoint with the fewest active requests. To specify this:
 
 ```yaml
 apiVersion: getambassador.io/v2
@@ -51,7 +51,7 @@ spec:
 ```
 
 ## Sticky Sessions / Session Affinity
-Configuring sticky sessions makes Ambassador Edge Stack route requests to the your backend service in a given session. In other words, requests in a session are served by the same Kubernetes pod. Ambassador Edge Stack lets you configure session affinity based on the following parameters in an incoming request:
+Configuring sticky sessions makes Ambassador Edge Stack route requests to a specific pod providing your service in a given session. In other words, requests in a session are served by the same Kubernetes pod. Ambassador Edge Stack lets you configure session affinity based on the following parameters in an incoming request:
 
 - Cookie
 - Header
@@ -88,9 +88,9 @@ load_balancer:
   source_ip: <boolean>
 ```
 
-Ambassador Edge Stack allows session affinity based on the source IP of incoming requests. 
+Ambassador Edge Stack allows session affinity based on the source IP of incoming requests.
 
-Load balancing can be configured both globally, and overridden on a per mapping basis. 
+Load balancing can be configured both globally, and overridden on a per mapping basis.
 
 ## Disabling advanced load balancing
 

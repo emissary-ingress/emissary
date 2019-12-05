@@ -4,7 +4,6 @@
 # - /reference
 # 
 		
-- /about/support
 - reference/dev-portal/
 - /user-guide/certified-builds		
 - /reference/filter-reference
@@ -18,7 +17,6 @@
 - /reference/idp-support/azure		
 - /reference/idp-support/salesforce
 - /reference/services/access-control		 
-- /docs/dev-guide/service-preview
 - /user-guide/advanced-rate-limiting
 - /user-guide/oauth-oidc-auth
 - /docs/guides/filter-dev-guide		

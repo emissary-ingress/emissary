@@ -65,7 +65,7 @@ If Ambassador Edge Stack cannot contact the rate limit service, it will allow th
 It is the external rate limit service's responsibility to determine whether rate limiting should take place, depending on custom business logic. The rate limit service must simply respond to the request with an `OK` or `OVER_LIMIT` code:
 
 * If Envoy receives an `OK` response from the rate limit service, then Ambassador Edge Stack allows the client request to resume being processed by the normal Ambassador Envoy flow.
-* If Ambassador Edge Stack receives an `OVER_LIMIT` response, then Ambassador will return an HTTP 429 response to the client and will end the transaction flow, preventing the request from reaching the backing service.
+* If Envoy receives an `OVER_LIMIT` response, then the Ambassador Edge Stack will return an HTTP 429 response to the client and will end the transaction flow, preventing the request from reaching the backing service.
 
 The headers injected by the [AuthService](/reference/services/auth-service) can also be passed to the rate limit service since the `AuthService` is invoked before the `RateLimitService`.
 

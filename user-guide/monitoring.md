@@ -242,9 +242,9 @@ kubectl port-forward -n monitoring service/prometheus 9090
 ```
 and going to http://localhost:9090/ from a web browser
 
-In the UI, click the dropdown and see all of the stats Prometheus is able to scrape from Ambassador Edge Stack!
+In the UI, click the dropdown and see all of the stats Prometheus is able to scrape from Ambassador Edge Stack.
 
-The Prometheus data model is, at it's core, time-series based. Therefore, it makes it easy to represent rates, averages, peaks, minimums, and histograms. Review the [Prometheus documentation](https://prometheus.io/docs/concepts/data_model/) for a full reference on how to work with this data model.
+The Prometheus data model is, at its core, time-series based. Therefore, it makes it easy to represent rates, averages, peaks, minimums, and histograms. Review the [Prometheus documentation](https://prometheus.io/docs/concepts/data_model/) for a full reference on how to work with this data model.
 
 ---
 
@@ -301,5 +301,5 @@ spec:
     matchLabels:
       service: statsd-sink
   endpoints:
-  - port: prometheus-metrics -->
+  - port: prometheus-metrics
 ```

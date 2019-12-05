@@ -16,35 +16,8 @@ Getting the Ambassador Edge Stack working with Istio is straightforward. In this
 
 By default, the Bookinfo application uses the Istio ingress. To use the Ambassador Edge Stack, we need to:
 
-1. Install the Ambassador Edge Stack.
-
-First you will need to deploy the Ambassador Edge Stack ambassador-admin service to your cluster:
-
-It's simplest to use the YAML files we have online for this (though of course you can download them and use them locally if you prefer!).
-
-First, you need to check if Kubernetes has RBAC enabled:
-
-```shell
-kubectl cluster-info dump --namespace kube-system | grep authorization-mode
-```
-If you see something like `--authorization-mode=Node,RBAC` in the output, then RBAC is enabled.
-
-If RBAC is enabled, you'll need to use:
-
-
-```shell
-kubectl apply -f https://getambassador.io/yaml/ambassador/ambassador-rbac.yaml
-```
-
-Without RBAC, you can use:
-
-```shell
-kubectl apply -f https://getambassador.io/yaml/ambassador/ambassador-no-rbac.yaml
-```
-
-(Note that if you are planning to use mutual TLS for communication between the Ambassador Edge Stack and Istio/services in the future, then the order in which you deploy the ambassador-admin service and the ambassador LoadBalancer service below may need to be swapped)
-
-Next you will deploy an `ambassador` service that acts as a point of ingress into the cluster via the LoadBalancer type. Create the following YAML and put it in a file called `ambassador-service.yaml`.
+1. Install the Ambassador Edge Stack following [these instructions](/user-guide/install/#install-the-ambassador-edge-stack).\
+2. Install a sample `Mapping` in the Ambassador Edge Stack by creating a YAML file named `httpbin.yaml` and paste in the following contents:
 
 ```yaml
 ---
@@ -61,10 +34,10 @@ spec:
 Then, apply it to the Kubernetes with `kubectl`:
 
 ```shell
-kubectl apply -f ambassador-service.yaml
+kubectl apply -f httpbin.yaml
 ```
 
-The YAML above does several things:
+The steps above does several things:
 
 * It creates a Kubernetes service for the Ambassador Edge Stack, of type `LoadBalancer`. Note that if you're not deploying in an environment where `LoadBalancer` is a supported type (i.e. MiniKube), you'll need to change this to a different type of service, e.g., `NodePort`.
 * It creates a test route that will route traffic from `/httpbin/` to the public `httpbin.org` HTTP Request and Response service (which provides useful endpoint that can be used for diagnostic purposes). In the Ambassador Edge Stack, Kubernetes annotations (as shown above) are used for configuration. More commonly, you'll want to configure routes as part of your service deployment process, as shown in [this more advanced example](https://www.datawire.io/faster/canary-workflow/).

@@ -24,7 +24,7 @@ spec:
 ```
 
 - `service` gives the URL of the external HTTP trace service.
-- `driver` provides the driver information that handles communicating with the `service`. Supported values are `lightstep` and `zipkin`.
+- `driver` provides the driver information that handles communicating with the `service`. Supported values are `lightstep`, `zipkin`, and `datadog`.
 - `config` provides additional configuration options for the selected `driver`.
 - `tag_headers` (optional) if present, specifies a list of other HTTP request headers which will be used as tags in the trace's span.
 

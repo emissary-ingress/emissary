@@ -94,7 +94,6 @@ spec:
     x_forwarded_proto_redirect: true
 ```
 
-**Note**: Ambassador Edge Stack will need to be restarted for this configuration to take affect.
+**Note**: Ambassador Edge Stack will need to be restarted for this configuration to take effect.
 
-
-See the [AWS documentation](/reference/ambassador-with-aws#l7-load-balancer) an example of protocol-based redirection with TLS termination happening at the load balancer.
+See the [Ambassador on AWS documentation](/reference/ambassador-with-aws#l7-load-balancer) for an example of protocol-based redirection with TLS termination happening at the load balancer.

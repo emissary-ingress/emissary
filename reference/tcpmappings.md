@@ -4,7 +4,7 @@ In addition to managing HTTP, GRPC, and Websockets at layer 7, Ambassador Edge S
 
 ## TCPMapping
 
-An Ambassador Edge Stack `TCPMapping` associates TCP connections with Kubernetes [_services_](#services). Cleartext TCP connections are defined by destination IP address and/or destination TCP port; TLS TCP connections can also by defined by the hostname presented using SNI. A service is exactly the same as in Kubernetes.
+An Ambassador Edge Stack `TCPMapping` associates TCP connections with Kubernetes _services_. Cleartext TCP connections are defined by destination IP address and/or destination TCP port; TLS TCP connections can also be defined by the hostname presented using SNI. A service is exactly the same as in Kubernetes.
 
 ## TCPMapping Configuration
 
@@ -114,7 +114,7 @@ spec:
   service: upstream-host-2:9999
 ```
 
-The example above will accept a TLS connection with SNI on port 2222. If the client requests SNI host `my-host-1`, the decrypted traffic will be relayed to `upstream-host-1`, port 9999. If the client requests SNI host `my-host-2`, the decrypted traffic will be relayed to `upstream-host-1`, port 9999. Any other SNI host will cause the TLS handshake to fail.
+The example above will accept a TLS connection with SNI on port 2222. If the client requests SNI host `my-host-1`, the decrypted traffic will be relayed to `upstream-host-1`, port 9999. If the client requests SNI host `my-host-2`, the decrypted traffic will be relayed to `upstream-host-2`, port 9999. Any other SNI host will cause the TLS handshake to fail.
 
 #### `host` and `tls` are both set
 
@@ -213,7 +213,7 @@ The example above will accept **any** connection to port 2222 and relay it over 
 
 - `name` is a string identifying the `Mapping` (e.g. in diagnostics)
 - `port` is an integer specifying which port to listen on for connections
-- `service` is the name of the [service](#services) handling the resource; must include the namespace (e.g. `myservice.othernamespace`) if the service is in a different namespace than Ambassador Edge Stack
+- `service` is the name of the service handling the resource; must include the namespace (e.g. `myservice.othernamespace`) if the service is in a different namespace than Ambassador Edge Stack
 
 Note that the `service` in a `TCPMapping` should include a port number, and must not include a scheme.
 

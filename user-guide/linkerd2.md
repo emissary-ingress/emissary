@@ -4,7 +4,7 @@
 
 ## Architecture
 
-Linkerd2 is designed for simplicity, security and performance. In the cluster it runs a control plane in its own namespace and then injects sidecar proxy containers in every Pod that should be meshed. mTLS between services is automatically handled by the control plane and the proxies.
+Linkerd2 is designed for simplicity, security and performance. In the cluster it runs a control plane in its own namespace and then injects sidecar proxy containers in every Pod that should be meshed. mTLS between services is automatically handled by the control plane and the proxies. Istio and Consul allow Ambassador to initiate mTLS connections to upstream services by grabbing a certificate from a Kubernetes Secret. LinkerD does not work this way, so Ambassador must rely on LinkerD for mTLS connections to upstream services. This means we want LinkerD to inject its sidecar into Ambassador's pods, but not Istio and Consul.
 
 Ambassador Edge Stack itself also needs to be meshed and then configured to add special linkerd headers to requests so as to tell Linkerd2 where to forward them.
 

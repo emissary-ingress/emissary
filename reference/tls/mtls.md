@@ -1,8 +1,8 @@
 # Mutual TLS (mTLS)
 
-Ambassador Edge Stack can be configured to both provide to and validate certificates from upstream services. This behavior is called mutual TLS (mTLS) and is a commonly done when using a service mesh to enforce end-to-end TLS for all services in your cluster.
+Ambassador Edge Stack can be configured to both provide certificates from upstream services, and to validate them. This behavior is called mutual TLS (mTLS) and is a commonly done when using a service mesh to enforce end-to-end TLS for all services in your cluster.
 
-To configure mTLS between Ambassador Edge Stack and your upstream services, you need to create a `TLSContext` with certificates that are signed by the Certificate Authority (CA) of your upstream service. 
+To configure mTLS between Ambassador Edge Stack and your upstream services, you need to create a `TLSContext` with certificates that are signed by the Certificate Authority (CA) of your upstream service.
 
 Below are examples of how to configure Ambassador Edge Stack to do mTLS with two popular service meshes, Istio and Consul Connect.
 
@@ -12,7 +12,7 @@ Istio stores it's TLS certificates as Kubernetes secrets by default, so accessin
 
 1. Load Istio's TLS certificates
 
-Istio creates stores it's tls certificates in a form that Ambassador Edge Stack is currently unable to automatically read. Because of this, you will need to mount the `istio.default` secret in a volume in the Ambassador Edge Stack container. This is done by configuring a `volume` and `volumeMount` in the Ambassador Edge Stack deployment manifest.
+Istio creates and stores its TLS certificates in a form that Ambassador Edge Stack is currently unable to automatically read. Because of this, you will need to mount the `istio.default` secret in a volume in the Ambassador Edge Stack container. This is done by configuring a `volume` and `volumeMount` in the Ambassador Edge Stack deployment manifest.
 
    ```yaml
     ---
@@ -50,7 +50,7 @@ Istio creates stores it's tls certificates in a form that Ambassador Edge Stack 
 
 3. Configure Ambassador Edge Stack to use this `TLSContext` when making connections to upstream services.
 
-   The `tls` attribute in a `Mapping` configuration tell's Ambassador Edge Stack to use the `TLSContext` we created above when making connections to upstream services.
+   The `tls` attribute in a `Mapping` configuration tells Ambassador Edge Stack to use the `TLSContext` we created above when making connections to upstream services.
 
    ```yaml
    ---
@@ -65,7 +65,7 @@ Istio creates stores it's tls certificates in a form that Ambassador Edge Stack 
      tls: istio-upstream
    ```
 
-Ambassador Edge Stack will now use the certificate stored in the `istio.default` secret to originate TLS to istio-powered services. See the [Ambassador Edge Stack with Istio](/user-guide/with-istio#istio-mutual-tls) documentation) for an example with more information.
+Ambassador Edge Stack will now use the certificate stored in the `istio.default` secret to originate TLS to istio-powered services. See the [Ambassador Edge Stack with Istio](/user-guide/with-istio#istio-mutual-tls) documentation for an example with more information.
 
 ## Consul mTLS
 

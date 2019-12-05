@@ -1,6 +1,6 @@
 # Service discovery configuration
 
-Service discovery is how applications and (micro)services are located on the network. In a cloud environment, services are ephemeral, so a real-time service discovery mechanism is critical. Ambassador Edge Stack uses information from service discovery to determine where to route incoming requests.
+Service discovery is how applications and services are located on the network. In a cloud environment, services are ephemeral, so a real-time service discovery mechanism is critical. Ambassador Edge Stack uses information from service discovery to determine where to route incoming requests.
 
 ## Ambassador Edge Stack support for service discovery
 
@@ -40,7 +40,7 @@ metadata:
 
 ### The Kubernetes Endpoint Resolver
 
-The Kubernetes Endpoint Resolver configures Ambassador Edge Stack to resolve Kubernetes endpoints. This enables the use of more [advanced load balancing configuration](/reference/core/load-balancer). When this resolver is used, the endpoints for the `service` defined in a `Mapping` are resolved and used to determine where requests are sent.
+The Kubernetes Endpoint Resolver configures Ambassador Edge Stack to resolve Kubernetes endpoints. This enables the use of more a [advanced load balancing configuration](/reference/core/load-balancer). When this resolver is used, the endpoints for the `service` defined in a `Mapping` are resolved and used to determine where requests are sent.
 
 ```yaml
 ---

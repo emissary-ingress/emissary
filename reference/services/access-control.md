@@ -42,7 +42,7 @@ In this example, the `foo-keycloak` filter is used for requests to `foo.bar.com`
 
 ```
 apiVersion: getambassador.io/v2
-kind: Policy
+kind: FilterPolicy
 metadata:
   name: multi-domain-policy
 spec:

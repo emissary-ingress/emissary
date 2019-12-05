@@ -4,7 +4,7 @@ Ambassador Edge Stack lets you supply separate TLS certificates for different do
 
 ## Configuring SNI
 
-SNI gives you the ability to host multiple domains behind a single Ambassador Edge Stack and use different TLS certificates for each domain. It is designed to be configured on a per-mapping basis, enabling application developers or service owners to individually manage how their service gets exposed over TLS.
+SNI gives you the ability to host multiple domains behind the Ambassador Edge Stack and use different TLS certificates for each domain. It is designed to be configured on a per-mapping basis, enabling application developers or service owners to individually manage how their service gets exposed over TLS.
 
 To use SNI, you simply need to:
 
@@ -96,7 +96,7 @@ In this configuration:
 
 * Requests with `Host: host.httpbin.org` header set hitting `/httpbin/` prefix get httpbin TLS certificates.
 * Requests with `Host: host.mockbin.org` header set hitting `/mockbin/` prefix get mockbin TLS certificates
-* The `frontend` mapping will be accessible via both via `host.httpbin.org` and `host.mockbin.org`
+* The `frontend` mapping will be accessible via both `host.httpbin.org` and `host.mockbin.org`
 
 ```yaml
 ---

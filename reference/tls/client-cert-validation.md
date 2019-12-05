@@ -4,7 +4,7 @@ Ambassador Edge Stack can be configured to use a provided CA certificate to vali
 
 ## Configuration
 
-To configure client certificate by creating a secret to hold your client's CA certificate and setting `ca_secret` to the value of that secret.
+To configure client certificate by creating a secret to hold your client's CA certificate and setting `ca_secret` to the value of that secret:
 
 1. Create a secret to hold the client CA certificate
 

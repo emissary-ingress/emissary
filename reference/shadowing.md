@@ -14,7 +14,7 @@ Ambassador Edge Stack lets you easily shadow traffic to a given endpoint. In Amb
 
 ![Shadowing](/doc-images/shadowing.png)
 
-## The `shadow` annotation
+## The `shadow` Mapping
 
 In Ambassador Edge Stack, you can enable shadowing for a given mapping by setting `shadow: true` in your `Mapping`.  One copy proceeds as if the shadowing `Mapping` was not present: the request is handed onward per the `service`(s) defined by the non-shadow `Mapping`s, and the reply from whichever `service` is picked is handed back to the client.
 
@@ -26,7 +26,7 @@ During shadowing, the host header is modified such that `-shadow` is appended.
 
 ## Example
 
-The following example may help illustrate how shadowing can be used. This first annotation sets up a basic mapping between the `myservice` Kubernetes service and the `/myservice/` prefix, as expected.
+The following example may help illustrate how shadowing can be used. This first attribute sets up a basic mapping between the `myservice` Kubernetes service and the `/myservice/` prefix, as expected.
 
 ```yaml
 ---
@@ -53,7 +53,7 @@ spec:
   shadow: true
 ```
 
-The `prefix` is set to be the same as the first annotation, which tells Ambassador Edge Stack which production traffic to shadow. The destination service, where the shadow traffic is routed, is a *different* Kubernetes service, `myservice-shadow`. Finally, the `shadow: true` annotation actually enables shadowing.
+The `prefix` is set to be the same as the first mapping, which tells Ambassador Edge Stack which production traffic to shadow. The destination service, where the shadow traffic is routed, is a *different* Kubernetes service, `myservice-shadow`. Finally, the `shadow: true` attribute actually enables shadowing.
 
 ### Shadow traffic weighting
 
