@@ -44,23 +44,6 @@ func (m *StatsSink) Validate() error {
 
 	switch m.ConfigType.(type) {
 
-	case *StatsSink_Config:
-
-		{
-			tmp := m.GetConfig()
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return StatsSinkValidationError{
-						field:  "Config",
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
-				}
-			}
-		}
-
 	case *StatsSink_TypedConfig:
 
 		{

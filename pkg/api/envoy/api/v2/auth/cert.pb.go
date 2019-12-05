@@ -294,6 +294,7 @@ func (*PrivateKeyProvider) XXX_OneofWrappers() []interface{} {
 	}
 }
 
+// [#next-free-field: 7]
 type TlsCertificate struct {
 	// The TLS certificate chain.
 	CertificateChain *core.DataSource `protobuf:"bytes,1,opt,name=certificate_chain,json=certificateChain,proto3" json:"certificate_chain,omitempty"`
@@ -464,6 +465,7 @@ func (m *TlsSessionTicketKeys) GetKeys() []*core.DataSource {
 	return nil
 }
 
+// [#next-free-field: 9]
 type CertificateValidationContext struct {
 	// TLS certificate data containing certificate authority certificates to use in verifying
 	// a presented peer certificate (e.g. server certificate for clusters or client certificate
@@ -494,9 +496,9 @@ type CertificateValidationContext struct {
 	//
 	// .. code-block:: bash
 	//
-	//   $ openssl x509 -in path/to/client.crt -noout -pubkey \
-	//     | openssl pkey -pubin -outform DER \
-	//     | openssl dgst -sha256 -binary \
+	//   $ openssl x509 -in path/to/client.crt -noout -pubkey
+	//     | openssl pkey -pubin -outform DER
+	//     | openssl dgst -sha256 -binary
 	//     | openssl enc -base64
 	//   NvqYIYSbgK2vCJpQhObf77vv+bQWtc5ek5RIOwPiC9A=
 	//
@@ -659,6 +661,7 @@ func (m *CertificateValidationContext) GetAllowExpiredCertificate() bool {
 }
 
 // TLS context shared by both client and server TLS contexts.
+// [#next-free-field: 9]
 type CommonTlsContext struct {
 	// TLS protocol versions, cipher suites etc.
 	TlsParams *TlsParameters `protobuf:"bytes,1,opt,name=tls_params,json=tlsParams,proto3" json:"tls_params,omitempty"`
@@ -873,6 +876,12 @@ func (m *CommonTlsContext_CombinedCertificateValidationContext) GetValidationCon
 
 type UpstreamTlsContext struct {
 	// Common TLS context settings.
+	//
+	// .. attention::
+	//
+	//   Server certificate verification is not enabled by default. Configure
+	//   :ref:`trusted_ca<envoy_api_field_auth.CertificateValidationContext.trusted_ca>` to enable
+	//   verification.
 	CommonTlsContext *CommonTlsContext `protobuf:"bytes,1,opt,name=common_tls_context,json=commonTlsContext,proto3" json:"common_tls_context,omitempty"`
 	// SNI string to use when creating TLS backend connections.
 	Sni string `protobuf:"bytes,2,opt,name=sni,proto3" json:"sni,omitempty"`
@@ -953,6 +962,7 @@ func (m *UpstreamTlsContext) GetMaxSessionKeys() *types.UInt32Value {
 	return nil
 }
 
+// [#next-free-field: 6]
 type DownstreamTlsContext struct {
 	// Common TLS context settings.
 	CommonTlsContext *CommonTlsContext `protobuf:"bytes,1,opt,name=common_tls_context,json=commonTlsContext,proto3" json:"common_tls_context,omitempty"`
@@ -1071,11 +1081,11 @@ func (*DownstreamTlsContext) XXX_OneofWrappers() []interface{} {
 	}
 }
 
-// [#proto-status: experimental]
 type SdsSecretConfig struct {
 	// Name (FQDN, UUID, SPKI, SHA256, etc.) by which the secret can be uniquely referred to.
 	// When both name and config are specified, then secret can be fetched and/or reloaded via SDS.
-	// When only name is specified, then secret will be loaded from static resources [V2-API-DIFF].
+	// When only name is specified, then secret will be loaded from static
+	// resources.
 	Name                 string             `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	SdsConfig            *core.ConfigSource `protobuf:"bytes,2,opt,name=sds_config,json=sdsConfig,proto3" json:"sds_config,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}           `json:"-"`
@@ -1130,7 +1140,6 @@ func (m *SdsSecretConfig) GetSdsConfig() *core.ConfigSource {
 	return nil
 }
 
-// [#proto-status: experimental]
 type Secret struct {
 	// Name (FQDN, UUID, SPKI, SHA256, etc.) by which the secret can be uniquely referred to.
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`

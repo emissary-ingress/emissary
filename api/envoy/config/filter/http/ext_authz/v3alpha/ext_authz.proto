@@ -9,20 +9,24 @@ option java_package = "io.envoyproxy.envoy.config.filter.http.ext_authz.v3alpha"
 import "envoy/api/v3alpha/core/base.proto";
 import "envoy/api/v3alpha/core/grpc_service.proto";
 import "envoy/api/v3alpha/core/http_uri.proto";
-
-import "envoy/type/http_status.proto";
-import "envoy/type/matcher/string.proto";
+import "envoy/type/matcher/v3alpha/string.proto";
+import "envoy/type/v3alpha/http_status.proto";
 
 import "validate/validate.proto";
 
 // [#protodoc-title: External Authorization]
 // External Authorization :ref:`configuration overview <config_http_filters_ext_authz>`.
 
+// [#next-free-field: 10]
 message ExtAuthz {
+  reserved 4;
+
+  reserved "use_alpha";
+
   // External authorization service configuration.
   oneof services {
     // gRPC service configuration (default timeout: 200ms).
-    envoy.api.v3alpha.core.GrpcService grpc_service = 1;
+    api.v3alpha.core.GrpcService grpc_service = 1;
 
     // HTTP service configuration (default timeout: 200ms).
     HttpService http_service = 3;
@@ -41,12 +45,6 @@ message ExtAuthz {
   // Note that errors can be *always* tracked in the :ref:`stats
   // <config_http_filters_ext_authz_stats>`.
   bool failure_mode_allow = 2;
-
-  // Sets the package version the gRPC service should use. This is particularly
-  // useful when transitioning from alpha to release versions assuming that both definitions are
-  // semantically compatible. Deprecation note: This field is deprecated and should only be used for
-  // version upgrade. See release notes for more details.
-  bool use_alpha = 4 [deprecated = true];
 
   // Enables filter to buffer the client request body and send it within the authorization request.
   // A ``x-envoy-auth-partial-body: false|true`` metadata header will be added to the authorization
@@ -67,7 +65,7 @@ message ExtAuthz {
 
   // Sets the HTTP status that is returned to the client when there is a network error between the
   // filter and the authorization server. The default status is HTTP 403 Forbidden.
-  envoy.type.HttpStatus status_on_error = 7;
+  type.v3alpha.HttpStatus status_on_error = 7;
 
   // Specifies a list of metadata namespaces whose values, if present, will be passed to the
   // ext_authz service as an opaque *protobuf::Struct*.
@@ -82,6 +80,14 @@ message ExtAuthz {
   //    - envoy.filters.http.jwt_authn
   //
   repeated string metadata_context_namespaces = 8;
+
+  // Specifies if the filter is enabled.
+  //
+  // If :ref:`runtime_key <envoy_api_field_core.runtimefractionalpercent.runtime_key>` is specified,
+  // Envoy will lookup the runtime key to get the percentage of requests to filter.
+  //
+  // If this field is not specified, the filter will be enabled for all requests.
+  api.v3alpha.core.RuntimeFractionalPercent filter_enabled = 9;
 }
 
 // Configuration for buffering the request data.
@@ -90,7 +96,7 @@ message BufferSettings {
   // *HTTP 413* and will *not* initiate the authorization process when buffer reaches the number
   // set in this field. Note that this setting will have precedence over :ref:`failure_mode_allow
   // <envoy_api_field_config.filter.http.ext_authz.v3alpha.ExtAuthz.failure_mode_allow>`.
-  uint32 max_request_bytes = 1 [(validate.rules).uint32.gt = 0];
+  uint32 max_request_bytes = 1 [(validate.rules).uint32 = {gt: 0}];
 
   // When this field is true, Envoy will buffer the message until *max_request_bytes* is reached.
   // The authorization request will be dispatched and no 413 HTTP error will be returned by the
@@ -122,17 +128,15 @@ message BufferSettings {
 // metadata as well as body may be added to the client's response. See :ref:`allowed_client_headers
 // <envoy_api_field_config.filter.http.ext_authz.v3alpha.AuthorizationResponse.allowed_client_headers>`
 // for details.
+// [#next-free-field: 9]
 message HttpService {
+  reserved 3, 4, 5, 6;
+
   // Sets the HTTP server URI which the authorization requests must be sent to.
-  envoy.api.v3alpha.core.HttpUri server_uri = 1;
+  api.v3alpha.core.HttpUri server_uri = 1;
 
   // Sets a prefix to the value of authorization request header *Path*.
   string path_prefix = 2;
-
-  reserved 3;
-  reserved 4;
-  reserved 5;
-  reserved 6;
 
   // Settings used for controlling authorization request metadata.
   AuthorizationRequest authorization_request = 7;
@@ -143,33 +147,34 @@ message HttpService {
 
 message AuthorizationRequest {
   // Authorization request will include the client request headers that have a correspondent match
-  // in the :ref:`list <envoy_api_msg_type.matcher.ListStringMatcher>`. Note that in addition to the
-  // user's supplied matchers:
+  // in the :ref:`list <envoy_api_msg_type.matcher.v3alpha.ListStringMatcher>`. Note that in
+  // addition to the user's supplied matchers:
   //
   // 1. *Host*, *Method*, *Path* and *Content-Length* are automatically included to the list.
   //
   // 2. *Content-Length* will be set to 0 and the request to the authorization service will not have
   // a message body.
   //
-  envoy.type.matcher.ListStringMatcher allowed_headers = 1;
+  type.matcher.v3alpha.ListStringMatcher allowed_headers = 1;
 
   // Sets a list of headers that will be included to the request to authorization service. Note that
   // client request of the same key will be overridden.
-  repeated envoy.api.v3alpha.core.HeaderValue headers_to_add = 2;
+  repeated api.v3alpha.core.HeaderValue headers_to_add = 2;
 }
 
 message AuthorizationResponse {
-  // When this :ref:`list <envoy_api_msg_type.matcher.ListStringMatcher>` is set, authorization
-  // response headers that have a correspondent match will be added to the original client request.
-  // Note that coexistent headers will be overridden.
-  envoy.type.matcher.ListStringMatcher allowed_upstream_headers = 1;
+  // When this :ref:`list <envoy_api_msg_type.matcher.v3alpha.ListStringMatcher>` is set,
+  // authorization response headers that have a correspondent match will be added to the original
+  // client request. Note that coexistent headers will be overridden.
+  type.matcher.v3alpha.ListStringMatcher allowed_upstream_headers = 1;
 
-  // When this :ref:`list <envoy_api_msg_type.matcher.ListStringMatcher>`. is set, authorization
-  // response headers that have a correspondent match will be added to the client's response. Note
-  // that when this list is *not* set, all the authorization response headers, except *Authority
-  // (Host)* will be in the response to the client. When a header is included in this list, *Path*,
-  // *Status*, *Content-Length*, *WWWAuthenticate* and *Location* are automatically added.
-  envoy.type.matcher.ListStringMatcher allowed_client_headers = 2;
+  // When this :ref:`list <envoy_api_msg_type.matcher.v3alpha.ListStringMatcher>`. is set,
+  // authorization response headers that have a correspondent match will be added to the client's
+  // response. Note that when this list is *not* set, all the authorization response headers, except
+  // *Authority (Host)* will be in the response to the client. When a header is included in this
+  // list, *Path*, *Status*, *Content-Length*, *WWWAuthenticate* and *Location* are automatically
+  // added.
+  type.matcher.v3alpha.ListStringMatcher allowed_client_headers = 2;
 }
 
 // Extra settings on a per virtualhost/route/weighted-cluster level.
@@ -179,10 +184,10 @@ message ExtAuthzPerRoute {
 
     // Disable the ext auth filter for this particular vhost or route.
     // If disabled is specified in multiple per-filter-configs, the most specific one will be used.
-    bool disabled = 1 [(validate.rules).bool.const = true];
+    bool disabled = 1 [(validate.rules).bool = {const: true}];
 
     // Check request settings for this route.
-    CheckSettings check_settings = 2 [(validate.rules).message.required = true];
+    CheckSettings check_settings = 2 [(validate.rules).message = {required: true}];
   }
 }
 

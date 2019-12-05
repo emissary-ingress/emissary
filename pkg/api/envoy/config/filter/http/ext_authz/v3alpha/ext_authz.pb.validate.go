@@ -42,8 +42,6 @@ func (m *ExtAuthz) Validate() error {
 
 	// no validation rules for FailureModeAllow
 
-	// no validation rules for UseAlpha
-
 	{
 		tmp := m.GetWithRequestBody()
 
@@ -69,6 +67,21 @@ func (m *ExtAuthz) Validate() error {
 			if err := v.Validate(); err != nil {
 				return ExtAuthzValidationError{
 					field:  "StatusOnError",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+	}
+
+	{
+		tmp := m.GetFilterEnabled()
+
+		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+			if err := v.Validate(); err != nil {
+				return ExtAuthzValidationError{
+					field:  "FilterEnabled",
 					reason: "embedded message failed validation",
 					cause:  err,
 				}

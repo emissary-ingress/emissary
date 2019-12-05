@@ -28,7 +28,6 @@ type SocketAddress_Protocol int32
 
 const (
 	SocketAddress_TCP SocketAddress_Protocol = 0
-	// [#not-implemented-hide:]
 	SocketAddress_UDP SocketAddress_Protocol = 1
 )
 
@@ -101,19 +100,20 @@ func (m *Pipe) GetPath() string {
 	return ""
 }
 
+// [#next-free-field: 7]
 type SocketAddress struct {
 	Protocol SocketAddress_Protocol `protobuf:"varint,1,opt,name=protocol,proto3,enum=envoy.api.v3alpha.core.SocketAddress_Protocol" json:"protocol,omitempty"`
 	// The address for this socket. :ref:`Listeners <config_listeners>` will bind
 	// to the address. An empty address is not allowed. Specify ``0.0.0.0`` or ``::``
 	// to bind to any address. [#comment:TODO(zuercher) reinstate when implemented:
 	// It is possible to distinguish a Listener address via the prefix/suffix matching
-	// in :ref:`FilterChainMatch <envoy_api_msg_listener.FilterChainMatch>`.] When used
-	// within an upstream :ref:`BindConfig <envoy_api_msg_core.BindConfig>`, the address
+	// in :ref:`FilterChainMatch <envoy_api_msg_api.v3alpha.listener.FilterChainMatch>`.] When used
+	// within an upstream :ref:`BindConfig <envoy_api_msg_api.v3alpha.core.BindConfig>`, the address
 	// controls the source address of outbound connections. For :ref:`clusters
-	// <envoy_api_msg_Cluster>`, the cluster type determines whether the
+	// <envoy_api_msg_api.v3alpha.Cluster>`, the cluster type determines whether the
 	// address must be an IP (*STATIC* or *EDS* clusters) or a hostname resolved by DNS
 	// (*STRICT_DNS* or *LOGICAL_DNS* clusters). Address resolution can be customized
-	// via :ref:`resolver_name <envoy_api_field_core.SocketAddress.resolver_name>`.
+	// via :ref:`resolver_name <envoy_api_field_api.v3alpha.core.SocketAddress.resolver_name>`.
 	Address string `protobuf:"bytes,2,opt,name=address,proto3" json:"address,omitempty"`
 	// Types that are valid to be assigned to PortSpecifier:
 	//	*SocketAddress_PortValue
@@ -317,7 +317,7 @@ type BindConfig struct {
 	SourceAddress *SocketAddress `protobuf:"bytes,1,opt,name=source_address,json=sourceAddress,proto3" json:"source_address,omitempty"`
 	// Whether to set the *IP_FREEBIND* option when creating the socket. When this
 	// flag is set to true, allows the :ref:`source_address
-	// <envoy_api_field_UpstreamBindConfig.source_address>` to be an IP address
+	// <envoy_api_field_api.v3alpha.UpstreamBindConfig.source_address>` to be an IP address
 	// that is not configured on the system running Envoy. When this flag is set
 	// to false, the option *IP_FREEBIND* is disabled on the socket. When this
 	// flag is not set (default), the socket is not modified, i.e. the option is

@@ -343,6 +343,102 @@ var _ interface {
 	ErrorName() string
 } = RuntimeUInt32ValidationError{}
 
+// Validate checks the field values on RuntimeFeatureFlag with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, an error is returned.
+func (m *RuntimeFeatureFlag) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	if m.GetDefaultValue() == nil {
+		return RuntimeFeatureFlagValidationError{
+			field:  "DefaultValue",
+			reason: "value is required",
+		}
+	}
+
+	{
+		tmp := m.GetDefaultValue()
+
+		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+			if err := v.Validate(); err != nil {
+				return RuntimeFeatureFlagValidationError{
+					field:  "DefaultValue",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+	}
+
+	if len(m.GetRuntimeKey()) < 1 {
+		return RuntimeFeatureFlagValidationError{
+			field:  "RuntimeKey",
+			reason: "value length must be at least 1 bytes",
+		}
+	}
+
+	return nil
+}
+
+// RuntimeFeatureFlagValidationError is the validation error returned by
+// RuntimeFeatureFlag.Validate if the designated constraints aren't met.
+type RuntimeFeatureFlagValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e RuntimeFeatureFlagValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e RuntimeFeatureFlagValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e RuntimeFeatureFlagValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e RuntimeFeatureFlagValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e RuntimeFeatureFlagValidationError) ErrorName() string {
+	return "RuntimeFeatureFlagValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e RuntimeFeatureFlagValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sRuntimeFeatureFlag.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = RuntimeFeatureFlagValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = RuntimeFeatureFlagValidationError{}
+
 // Validate checks the field values on HeaderValue with the rules defined in
 // the proto definition for this message. If any rules are violated, an error
 // is returned.
