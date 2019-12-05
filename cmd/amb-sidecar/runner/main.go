@@ -385,6 +385,8 @@ func runE(cmd *cobra.Command, args []string) error {
 				err = errors.Wrap(err, "create fallback TLSContext and TLS Secret")
 				l.Errorln(err)
 				// this is non fatal (mostly just to facilitate local dev); don't `return err`
+			} else {
+				l.Debugln("Created fallback TLS configuration")
 			}
 		} else {
 			l.Debugln("Not creating fallback TLS configuration because", reason)
@@ -459,9 +461,9 @@ func runE(cmd *cobra.Command, args []string) error {
 			rateLimitScope := statsStore.Scope("ratelimit")
 			rateLimitService := lyftservice.NewService(
 				loader.New(
-					cfg.RLSRuntimeDir,                                        // runtime path
-					cfg.RLSRuntimeSubdir,                                     // runtime subdirectory
-					rateLimitScope.Scope("runtime"),                          // stats scope
+					cfg.RLSRuntimeDir,               // runtime path
+					cfg.RLSRuntimeSubdir,            // runtime subdirectory
+					rateLimitScope.Scope("runtime"), // stats scope
 					&loader.SymlinkRefresher{RuntimePath: cfg.RLSRuntimeDir}, // refresher
 				),
 				lyftredis.NewRateLimitCacheImpl(

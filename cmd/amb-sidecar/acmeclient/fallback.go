@@ -107,7 +107,7 @@ func ensureFallbackSecret(cfg types.Config, secretsGetter k8sClientCoreV1.Secret
 func generateSelfSignedPEM() ([]byte, []byte, error) {
 	// See https://golang.org/src/crypto/tls/generate_cert.go
 
-	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	privateKey, err := rsa.GenerateKey(rand.Reader, 8192)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "generate key-pair")
 	}
@@ -124,9 +124,10 @@ func generateSelfSignedPEM() ([]byte, []byte, error) {
 	publicKey := privateKey.Public()
 
 	notBefore := time.Now()
-	// I don't want to write code to update the friggin'
-	// *fallback* certificate.  Just let it last impossibly long.
-	notAfter := notBefore.Add(100 * 365 * 24 * time.Hour)
+	// Chrome on MacOS Catalina complains about self-signed certs that last too long,
+	// so we'll make this cert valid for a year. Sadly, we'll have to sort out how to
+	// upgrade this later. Sigh.
+	notAfter := notBefore.Add(1 * 365 * 24 * time.Hour)
 
 	// Generate a random 128-bit number for the serial number
 	serialNumberLimit := new(big.Int).Lsh(big.NewInt(1), 128)
