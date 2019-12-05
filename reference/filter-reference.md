@@ -406,7 +406,7 @@ General settings:
      functions properly with a wider range of identity providers.  It is
      not valid to set `accessTokenJWTFilter` if
      `accessTokenValidation: userinfo`.
-   * `"auto"` attempts has it do `"jwt"` validation
+   * `"auto"` attempts has it do `"jwt"` validation if
      `accessTokenJWTFilter` is set or if the Access Token parses as a
      JWT and the signature is valid, and otherwise falls back to
      `"userinfo"` validation.
