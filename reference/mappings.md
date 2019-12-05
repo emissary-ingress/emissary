@@ -92,7 +92,7 @@ If you're new to Ambassador Edge Stack, start with the CRD approach. Note that y
 
 ## Additional Example Mappings
 
-Here's an example for a CQRS service (using HTTP):
+Here's an example service for implementing the CQRS pattern (using HTTP):
 
 ```yaml
 ---
