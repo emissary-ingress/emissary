@@ -81,7 +81,16 @@ This `spec.External` is mostly identical to an [`AuthService`](/reference/servic
 
 ### Filter Type: `JWT`
 
-The `JWT` filter type performs JWT validation. The list of acceptable signing keys is loaded from a JWK Set that is loaded over HTTP, as specified in `jwksURI`. Only RSA and `none` algorithms are supported.
+The `JWT` filter type performs JWT validation on a [Bearer token]
+present in the HTTP header.  If the Bearer token JWT doesn't validate,
+or has insufficient scope, an RFC 6750-complaint error response with a
+`WWW-Authenticate` header is returned.  The list of acceptable signing
+keys is loaded from a JWK Set that is loaded over HTTP, as specified
+in `jwksURI`.  Only RSA and `none` algorithms are supported.
+
+[Bearer token]: https://tools.ietf.org/html/rfc6750
+
+#### `JWT` Global Arguments
 
 ```yaml
 ---
@@ -114,6 +123,8 @@ spec:
     injectRequestHeaders:           # optional; default is []
     - name:   "header-name-string"    # required
       value:  "go-template-string"    # required
+
+    realm:            "string"      # optional; defaulti is "{{.metadata.name}}.{{.metadata.namespace}}"
        
     errorResponse:                  # optional
       contentType: "string"           # deprecated; use 'headers' instead
@@ -148,6 +159,8 @@ spec:
 
    Any headers listed will override (not append to) the original
    request header with that name.
+ - `realm` allows specifying the realm to report in the
+   `WWW-Authenticate` response header.
  - `errorResponse` allows templating the error response, overriding
     the default json error format.  Make sure you validate and test
     your template, not to generate server-side errors on top of client
@@ -166,7 +179,7 @@ spec:
        * `.httpStatus` → `integer` an alias for `.status_code` (hidden from `{{ . | json "" }}`)
        * `.message` → `string` the error message string
        * `.error` → `error` the raw Go `error` object that generated `.message` (hidden from `{{ . | json "" }}`)
-       * `.error.ValidationError` → [`jwt.ValidationError`][] the JWT validation error.
+       * `.error.ValidationError` → [`jwt.ValidationError`][] the JWT validation error, will be `nil` if the error is not purely JWT validation (insufficient scope, malformed or missing `Authorization` header)
        * `.request_id` → `string` the Envoy request ID, for correlation (hidden from `{{ . | json "" }}` unless `.status_code` is in the 5XX range)
        * `.requestId` → `string` an alias for `.request_id` (hidden from `{{ . | json "" }}`)
 
@@ -184,6 +197,34 @@ Stack.
 [Go `text/template` functions]: https://golang.org/pkg/text/template/#hdr-Functions
 [`http.Header`]: https://golang.org/pkg/net/http/#Header
 [`jwt.ValidationError`]: https://godoc.org/github.com/dgrijalva/jwt-go#ValidationError
+
+#### `JWT` Path-Specific Arguments
+
+```yaml
+---
+apiVersion: getambassador.io/v1beta2
+kind: FilterPolicy
+metadata:
+  name: "example-filter-policy"
+  namespace: "example-namespace"
+spec:
+  rules:
+  - host: "*"
+    path: "*"
+    filters:
+    - name: "example-jwt-filter"
+      arguments:
+        scope:                    # optional; default is []
+        - "scope-value-1"
+        - "scope-value-2"
+```
+
+ - `scope`: A list of OAuth scope values to require be listed in the
+   [`scope` claim][].  In addition to the normal of the `scope` claim
+   (a JSON string containing a space-separated list of values), the
+   JWT Filter also accepts a JSON array of values.
+
+[`scope` claim]: https://tools.ietf.org/html/draft-ietf-oauth-token-exchange-19#section-4.2
 
 #### Example `JWT` `Filter`
 
@@ -270,8 +311,10 @@ spec:
       bodyTemplate: |-
         {
             "errorMessage": {{ .message | json "    " }},
+            {{- if .error.ValidationError }}
             "altErrorMessage": {{ if eq .error.ValidationError.Errors 16 }}"expired"{{ else }}"invalid"{{ end }},
             "errorCode": {{ .error.ValidationError.Errors | json "    "}},
+            {{- end }}
             "httpStatus": "{{ .status_code }}",
             "requestId": {{ .request_id | json "    " }}
         }
@@ -294,7 +337,14 @@ spec:
   OAuth2:
     authorizationURL:      "url-string"      # required
     grantType              "enum-string"     # optional; default is "AuthorizationCode"
+    extraAuthorizationParameters:            # optional; default is {}
+      "string": "string"
+
     accessTokenValidation: "enum-string"     # optional; default is "auto"
+    accessTokenJWTFilter:                    # optional; default is null
+      name: "string"                           # required
+      namespace: "string"                      # optional; default is the same namespace as the Filter
+      arguments: JWT-Filter-Arguments          # optional
 
     # Settings for grantType=="AuthorizationCode"
     clientURL:             "url-string"      # required
@@ -328,27 +378,38 @@ General settings:
      headers on incoming requests, and using them to authenticate to
      the identity provider.  Support for the `ClientCredentials` is
      currently preliminary, and only goes through limited testing.
+ - `extraAuthorizationParameters`: Extra (non-standard or extension)
+    OAuth authorization parameters to use.  It is not valid to specify
+    a parameter used by OAuth itself ("response_type", "client_id",
+    "redirect_uri", "scope", or "state").
  - `accessTokenValidation`: How to verify the liveness and scope of
    Access Tokens issued by the identity provider.  Valid values are
    either `"auto"`, `"jwt"`, or `"userinfo"`.  Empty or unset is
    equivalent to `"auto"`.
-   * `"jwt"`: Validates the Access Token as a JWT.  It accepts the
-     RS256, RS384, or RS512 signature algorithms, and validates the
-     signature against the JWKS from OIDC Discovery.  It then
-     validates the `exp`, `iat`, `nbf`, `iss` (with the Issuer from
-     OIDC Discovery), and `scope` claims; if present, none of the
-     scopes are required to be present.  This relies on the identity
-     provider using non-encrypted signed JWTs as Access Tokens, and
-     configuring the signing appropriately.
+   * `"jwt"`: Validates the Access Token as a JWT.
+     + By default: It accepts the RS256, RS384, or RS512 signature
+       algorithms, and validates the signature against the JWKS from
+       OIDC Discovery.  It then validates the `exp`, `iat`, `nbf`,
+       `iss` (with the Issuer from OIDC Discovery), and `scope`
+       claims; if present, none of the scopes are required to be
+       present.  This relies on the identity provider using
+       non-encrypted signed JWTs as Access Tokens, and configuring the
+       signing appropriately
+	 + This behavior can be modified by delegating to [`JWT`
+       Filter](#filter-type-jwt) with `accessTokenJWTFilter`.  The
+       arguments are the same as the arguments when erferring to a JWT
+       Filter from a FilterPolicy.
    * `"userinfo"`: Validates the access token by polling the OIDC
-     UserInfo Endpoint.  This means that Ambassador Edge Stack must
-     initiate an HTTP request to the identity provider for each
+     UserInfo Endpoint.  This means that the Ambassador Edge Stack
+     must initiate an HTTP request to the identity provider for each
      authorized request to a protected resource.  This performs
      poorly, but functions properly with a wider range of identity
-     providers.
-   * `"auto"` attempts has it do `"jwt"` validation if the Access
-     Token parses as a JWT and the signature is valid, and otherwise
-     falls back to `"userinfo"` validation.
+     providers.  It is not valid to set `accessTokenJWTFilter` if
+     `accessTokenValidation: userinfo`.
+   * `"auto"` attempts has it do `"jwt"` validation if
+     `accessTokenJWTFilter` is set or if the Access Token parses as a
+     JWT and the signature is valid, and otherwise falls back to
+     `"userinfo"` validation.
 
 Settings that are only valid when `grantType: "AuthorizationCode"`:
 
@@ -414,10 +475,21 @@ spec:
         - "scope1"
         - "scope2"
         insteadOfRedirect:        # optional; default is to do a redirect to the identity provider
-          httpStatusCode: integer # optional; default is 403
           ifRequestHeader:        # optional; default is to return httpStatusCode for all requests that would redirect-to-identity-provider
             name: "string"        # required
             value: "string"       # optional; default is any non-empty string
+          # option 1:
+          httpStatusCode: integer # optional; default is 403 (unless `filters` is set)
+          # option 2:
+          filters:                # optional; default is to use `httpStatusCode` instead
+          - name: "string"          # required
+            namespace: "string"     # optional; default is the same namespace as the FilterPolicy
+            ifRequestHeader:        # optional; default to apply this filter to all requests matching the host & path
+              name: "string"          # required
+              value: "string"         # optional; default is any non-empty string
+            onDeny: "enum-string"   # optional; default is "break"
+            onAllow: "enum-string"  # optional; default is "continue"
+            arguments: DEPENDS      # optional
 ```
 
  - `scopes`: A list of OAuth scope values to include in the scope of
@@ -449,18 +521,30 @@ spec:
    the User-Agent to the identity provider.  By default, if the
    User-Agent does not have an currently-authenticated session, then the
    Ambassador Edge Stack will redirect the User-Agent to the identity provider.
-   Setting `insteadOfRedirect` causes it to instead serve an
-   authorization-denied error page; by default HTTP 403 ("Forbidden"),
-   but this can be configured by the `httpStatusCode` sub-argument.
-   By default, `insteadOfRedirect` will apply to all requests that
-   would cause the redirect; setting the `ifRequestHeader`
-   sub-argument causes it to only apply to requests that have the HTTP
-   header field `name` (case-insensitive) set to `value`
-   (case-sensitive); or requests that have `name` set to any non-empty
-   string if `value` is unset.  `ifRequestHeader` does nothing when
-   `grantType: "ClientCredentials"`, because Ambassador will never
+   Setting `insteadOfRedirect` allows you to modify this behavior.
+   `ifRequestHeader` does nothing when `grantType:
+   "ClientCredentials"`, because the Ambassador Edge Stack will never
    redirect the User-Agent to the identity provider for the client
    credentials grant type.
+    * If `insteadOfRedirect` is non-`null`, then by default it will
+      apply to all requests that would cause the redirect; setting the
+      `ifRequestHeader` sub-argument causes it to only apply to
+      requests that have the HTTP header field `name`
+      (case-insensitive) set to `value` (case-sensitive); or requests
+      that have `name` set to any non-empty string if `value` is
+      unset.
+    * By default, it serves an authorization-denied error page; by
+      default HTTP 403 ("Forbidden"), but this can be configured by
+      the `httpStatusCode` sub-argument.
+    * Instead of serving that simple error page, it can instead be
+      configured to call out to a list of other Filters, by setting
+      the `filters` list.  The syntax and semantics of this list are
+      the same as `.spec.rules[].filters` in a
+      [`FilterPolicy`](#filterpolicy-definition).  Be aware that if
+      one of these filters modify the request rather than returning a
+      response, then the request will be allowed through to the
+      backend service, even though the `OAuth2` Filter denied it.
+    * It is invalid to specify both `httpStatusCode` and `filters`.
 
 ### Filter Type: `Plugin`
 
@@ -533,7 +617,7 @@ spec:
   rules:
   - host: "glob-string"
     path: "glob-string"
-    filters:                    # optional; omit or set to `null` to apply no filters to this request
+    filters:                    # optional; omit or set to `null` or `[]` to apply no filters to this request
     - name: "string"              # required
       namespace: "string"         # optional; default is the same namespace as the FilterPolicy
       ifRequestHeader:            # optional; default to apply this filter to all requests matching the host & path
@@ -566,7 +650,7 @@ When multiple `Filter`s are specified in a rule:
  * `onDeny` identifies what to do when the filter returns an "HTTP
    response":
    - `"break"`: End processing, and return the response directly to
-     the requesitng HTTP client.  Later filters are not called.  The
+     the requesting HTTP client.  Later filters are not called.  The
      request is not forwarded to the upstream service.
    - `"continue"`: Continue processing.  The request is passed to the
      next filter listed; or if at the end of the list, it is forwarded
