@@ -44,7 +44,6 @@ type LimitCrypto struct {
 
 // NewLimitCrypto creates a new limiter crypto engine based off of a license key claims.
 func NewLimitCrypto(claims *licensekeys.LicenseClaimsLatest) *LimitCrypto {
-	// TODO: Is it's problematic if the license key changes and ambassador restarts? For example, going from unregistered to community.
 	keyToUse := "unknown@unknown.com"
 	if claims.CustomerID != "" {
 		keyToUse = claims.CustomerID

@@ -33,6 +33,8 @@ type CountLimiterImpl struct {
 	limit *licensekeys.Limit
 	// cryptoEngine is used for encrypting the values store in redis.
 	cryptoEngine *LimitCrypto
+	// local copy of the encrypted key value
+	localValueCopy string
 }
 
 // newCountLimiter creates a new limit based on a count of items.
@@ -50,6 +52,7 @@ func newCountLimiterImpl(redisPool *pool.Pool, limiter Limiter, limit *licenseke
 		limiter,
 		limit,
 		cryptoEngine,
+		"",
 	}, nil
 }
 
@@ -69,10 +72,7 @@ func (this *CountLimiterImpl) GetUnderlyingValueAtPointInTime() (int, error) {
 		return -1, err
 	}
 
-	decryptedValue, err := this.cryptoEngine.DecryptString(resp)
-	if err != nil {
-		return -1, err
-	}
+	decryptedValue := this.decryptString(resp)
 	keys := strings.Split(decryptedValue, ",")
 	return len(keys), nil
 }
@@ -103,6 +103,22 @@ func (this *CountLimiterImpl) attemptAcquireLock(rc *redis.Client) (bool, string
 // so it's okay to be best effort.
 func (this *CountLimiterImpl) releaseLock(rc *redis.Client, randStr string) {
 	rc.Cmd("EVAL", deleteScript, "1", this.limit.String()+"-lock", randStr)
+}
+
+// encrypt the redis string value, and save a local copy in memory if we are ever unable to decrypt it.
+func (this *CountLimiterImpl) encryptString(val string) (string, error) {
+	this.localValueCopy = val
+	return this.cryptoEngine.EncryptString(val)
+}
+
+// decrypt the redis string value, and use a local copy of a previous representation if we are unable to decrypt it.
+func (this *CountLimiterImpl) decryptString(val string) string {
+	decryptedStr, err := this.cryptoEngine.DecryptString(val)
+	if err != nil {
+		this.redisPool.Cmd("DEL", this.limit.String())
+		return this.localValueCopy
+	}
+	return decryptedStr
 }
 
 // I still can't believe golang doesn't have a builtin check for
@@ -153,10 +169,7 @@ func (this *CountLimiterImpl) attemptToChange(incrementing bool, key string) (in
 	if err == redis.ErrRespNil || val == "" {
 		keys = make([]string, 0)
 	} else {
-		decryptedStr, err := this.cryptoEngine.DecryptString(val)
-		if err != nil {
-			return -1, errors.Wrap(err, "Invalid current limit")
-		}
+		decryptedStr := this.decryptString(val)
 		keys = strings.Split(decryptedStr, ",")
 	}
 
@@ -179,7 +192,7 @@ func (this *CountLimiterImpl) attemptToChange(incrementing bool, key string) (in
 	}
 
 	joinedKey := strings.Join(keys, ",")
-	newEncryptedValue, err := this.cryptoEngine.EncryptString(joinedKey)
+	newEncryptedValue, err := this.encryptString(joinedKey)
 	if err != nil {
 		return -1, err
 	}
