@@ -80,8 +80,10 @@ spec:
       bodyTemplate: |-
         {
             "errorMessage": {{ .message | json "    " }},
+            {{- if .error.ValidationError }}
             "altErrorMessage": {{ if eq .error.ValidationError.Errors 16 }}"expired"{{ else }}"invalid"{{ end }},
             "errorCode": {{ .error.ValidationError.Errors | json "    "}},
+            {{- end }}
             "httpStatus": "{{ .status_code }}",
             "requestId": {{ .request_id | json "    " }}
         }
@@ -97,6 +99,10 @@ spec:
       path: /jwt/**
       filters:
         - name: jwt-filter
+          arguments:
+            scope:
+             - openid
+             - myscope
 ---
 apiVersion: getambassador.io/v2
 kind: Mapping

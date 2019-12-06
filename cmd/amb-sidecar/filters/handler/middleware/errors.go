@@ -16,7 +16,7 @@ import (
 
 var defaultTemplate = func() crd.ErrorResponse {
 	var ret crd.ErrorResponse
-	if err := ret.Validate(); err != nil {
+	if err := ret.Validate(""); err != nil {
 		panic(err)
 	}
 	return ret
