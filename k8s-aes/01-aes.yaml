@@ -292,6 +292,13 @@ spec:
         - name: APP_LOG_LEVEL
           value: DEBUG
         image: {{env "AES_IMAGE"}}
+        resources:
+          limits:
+            cpu: 1
+            memory: 400Mi
+          requests:
+            cpu: 400m
+            memory: 200Mi
         imagePullPolicy: Always
         livenessProbe:
           httpGet:
@@ -339,4 +346,3 @@ spec:
       - name: ambassador-edge-stack-secrets
         secret:
           secretName: ambassador-edge-stack
-
