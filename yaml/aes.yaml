@@ -21,7 +21,6 @@ metadata:
   labels:
     product: aes
 rules:
-# Regular Ambassador access requirements
 - apiGroups: [""]
   resources: [ "endpoints", "namespaces", "services" ]
   verbs: ["get", "list", "watch"]
@@ -43,7 +42,6 @@ rules:
 - apiGroups: [ "extensions" ]
   resources: [ "ingresses/status" ]
   verbs: ["update"]
-# Ambassador Pro access requirements.  Also gets "create" for secrets.
 - apiGroups: [""]
   resources: [ "secrets" ]
   verbs: ["get", "list", "watch", "create", "update"]
@@ -154,19 +152,6 @@ kind: Mapping
 metadata:
   # This Mapping name is referenced by convention, it's important to leave as-is.
   name: ambassador-devportal
-  namespace: ambassador
-  labels:
-    product: aes
-spec:
-  prefix: /documentation/
-  rewrite: "/docs/"
-  service: "127.0.0.1:8500"
----
-apiVersion: getambassador.io/v2
-kind: Mapping
-metadata:
-  # This Mapping name is what the demo uses. Sigh.
-  name: ambassador-devportal-demo
   namespace: ambassador
   labels:
     product: aes
@@ -302,6 +287,13 @@ spec:
         - name: AMBASSADOR_ADMIN_URL
           value: http://127.0.0.1:8877
         image: quay.io/datawire-dev/aes:0.99.0-rc-latest
+        resources:
+          limits:
+            cpu: 1
+            memory: 400Mi
+          requests:
+            cpu: 400m
+            memory: 200Mi
         imagePullPolicy: Always
         livenessProbe:
           httpGet:
@@ -327,8 +319,6 @@ spec:
         - mountPath: /.config/ambassador
           name: ambassador-edge-stack-secrets
           readOnly: true
-      imagePullSecrets:
-      - name: aes-pull-secret
       restartPolicy: Always
       securityContext:
         runAsUser: 8888
