@@ -162,7 +162,7 @@ func (this *CountLimiterImpl) attemptToChange(incrementing bool, key string) (in
 
 	doesContain, idx := containsStrSlice(keys, key)
 	if doesContain && !incrementing {
-		removeStrSlice(keys, idx)
+		keys = removeStrSlice(keys, idx)
 	} else if !doesContain && incrementing {
 		keys = append(keys, key)
 	}

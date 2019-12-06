@@ -44,6 +44,7 @@ func (s *Server) KnownServices() []Service {
 // AddService implements ServiceStore.
 func (s *Server) AddService(service Service, baseURL string, prefix string, openAPIDoc []byte) error {
 	hasDoc := (openAPIDoc != nil)
+	// TODO: Should it counts towards usage `if !hasDoc`?
 	var doc *openapi.OpenAPIDoc = nil
 	if hasDoc {
 		doc = openapi.NewOpenAPI(openAPIDoc, baseURL, prefix)
