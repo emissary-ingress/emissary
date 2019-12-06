@@ -198,12 +198,12 @@ export class Hosts extends ResourceSet {
   }
 
   getResources(snapshot) {
-    if (this.addIfNone && snapshot.getResources("Host").length < 1) {
-      this.addState.mode = "add";
-    } else {
-      this.addIfNone = false
+    let ret = snapshot.getResources("Host");
+    if (this.addIfNone) {
+      this.addState.mode = (ret.length < 1) ? "add" : "off";
+      this.addIfNone = false;
     }
-    return snapshot.getResources("Host");
+    return ret;
   }
 
   render() {
