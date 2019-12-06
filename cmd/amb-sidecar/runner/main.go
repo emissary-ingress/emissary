@@ -464,6 +464,7 @@ func runE(cmd *cobra.Command, args []string) error {
 					cfg.RLSRuntimeDir,               // runtime path
 					cfg.RLSRuntimeSubdir,            // runtime subdirectory
 					rateLimitScope.Scope("runtime"), // stats scope
+					// empty line here because different versions of gofmt disagree :(
 					&loader.SymlinkRefresher{RuntimePath: cfg.RLSRuntimeDir}, // refresher
 				),
 				lyftredis.NewRateLimitCacheImpl(

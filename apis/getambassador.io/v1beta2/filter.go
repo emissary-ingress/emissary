@@ -42,7 +42,7 @@ type FilterStatus struct {
 
 func (filter *Filter) Validate(secretsGetter coreV1client.SecretsGetter, haveRedis bool) error {
 	var err error
-	filter.UnwrappedSpec, filter.Desc, err = filter.Spec.Validate(filter.GetNamespace(), secretsGetter, haveRedis)
+	filter.UnwrappedSpec, filter.Desc, err = filter.Spec.Validate(filter.GetName(), filter.GetNamespace(), secretsGetter, haveRedis)
 	if err == nil {
 		filter.Status = &FilterStatus{
 			State: FilterState_OK,
@@ -75,7 +75,7 @@ func kindNames(isKind map[string]bool) []string {
 	return ret
 }
 
-func (spec *FilterSpec) Validate(namespace string, secretsGetter coreV1client.SecretsGetter, haveRedis bool) (unwrappedSpec interface{}, desc string, err error) {
+func (spec *FilterSpec) Validate(name, namespace string, secretsGetter coreV1client.SecretsGetter, haveRedis bool) (unwrappedSpec interface{}, desc string, err error) {
 	var ret struct {
 		Spec interface{}
 		Desc string
@@ -127,7 +127,7 @@ func (spec *FilterSpec) Validate(namespace string, secretsGetter coreV1client.Se
 			ret.Desc = fmt.Sprintf("plugin=%s", spec.Plugin.Name)
 		}
 	case spec.JWT != nil:
-		ret.Err = spec.JWT.Validate()
+		ret.Err = spec.JWT.Validate(name + "." + namespace)
 		ret.Spec = *spec.JWT
 		if ret.Err == nil {
 			ret.Desc = "jwt"

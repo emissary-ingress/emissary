@@ -1,6 +1,7 @@
 package rfc6749
 
 import (
+	"sort"
 	"strings"
 )
 
@@ -13,6 +14,7 @@ func (scope Scope) String() string {
 	for k := range scope {
 		strs = append(strs, k)
 	}
+	sort.Strings(strs)
 	return strings.Join(strs, " ")
 }
 

@@ -22,6 +22,7 @@ import (
 	rfc6749client "github.com/datawire/apro/client/rfc6749"
 	rfc6750client "github.com/datawire/apro/client/rfc6750"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/middleware"
+	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/oauth2handler/client/clientcommon"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/oauth2handler/discovery"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/oauth2handler/resourceserver"
 	"github.com/datawire/apro/lib/filterapi"
@@ -44,6 +45,8 @@ type OAuth2Client struct {
 
 	PrivateKey *rsa.PrivateKey
 	PublicKey  *rsa.PublicKey
+
+	RunFilters func(filters []crd.FilterReference, ctx context.Context, request *filterapi.FilterRequest) (filterapi.FilterResponse, error)
 }
 
 func (c *OAuth2Client) sessionCookieName() string {
@@ -239,38 +242,7 @@ type SessionInfo struct {
 }
 
 func (sessionInfo *SessionInfo) handleAuthenticatedProxyRequest(ctx context.Context, logger dlog.Logger, httpClient *http.Client, discovered *discovery.Discovered, request *filterapi.FilterRequest, authorization http.Header) filterapi.FilterResponse {
-	addAuthorization := &filterapi.HTTPRequestModification{}
-	for k, vs := range authorization {
-		for _, v := range vs {
-			addAuthorization.Header = append(addAuthorization.Header, &filterapi.HTTPHeaderReplaceValue{
-				Key:   k,
-				Value: v,
-			})
-		}
-	}
-	filterutil.ApplyRequestModification(request, addAuthorization)
-
-	resourceResponse := sessionInfo.c.ResourceServer.Filter(ctx, logger, httpClient, discovered, request, sessionInfo.sessionData.CurrentAccessToken.Scope)
-	if resourceResponse == nil {
-		// nil means to send the same request+authorization to the upstream service, so tell
-		// Envoy to add the authorization to the request.
-		return addAuthorization
-	} else if resourceResponse, typeOK := resourceResponse.(*filterapi.HTTPResponse); typeOK && resourceResponse.StatusCode == http.StatusUnauthorized {
-		// The upstream Resource Server returns 401 Unauthorized to the Client--the Client does NOT pass
-		// 401 along to the User Agent; the User Agent is NOT using an RFC 7235-compatible
-		// authentication scheme to talk to the Client; 401 would be inappropriate.
-		//
-		// Instead, wrap the 401 response in a 403 Forbidden response.
-		return middleware.NewErrorResponse(ctx, http.StatusForbidden,
-			errors.New("authorization rejected"),
-			map[string]interface{}{
-				"synthesized_upstream_response": resourceResponse,
-			},
-		)
-	} else {
-		// Otherwise, just return the upstream resource server's response
-		return resourceResponse
-	}
+	return clientcommon.HandleAuthenticatedProxyRequest(dlog.WithLogger(ctx, logger), httpClient, discovered, request, authorization, sessionInfo.sessionData.CurrentAccessToken.Scope, sessionInfo.c.ResourceServer)
 }
 
 func (sessionInfo *SessionInfo) handleUnauthenticatedProxyRequest(ctx context.Context, logger dlog.Logger, httpClient *http.Client, oauthClient *rfc6749client.AuthorizationCodeClient, discovered *discovery.Discovered, request *filterapi.FilterRequest) filterapi.FilterResponse {
@@ -371,6 +343,7 @@ func (sessionInfo *SessionInfo) handleUnauthenticatedProxyRequest(ctx context.Co
 		sessionInfo.c.Spec.CallbackURL(),
 		scope,
 		state,
+		sessionInfo.c.Spec.ExtraAuthorizationParameters,
 	)
 	if err != nil {
 		return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
@@ -380,14 +353,23 @@ func (sessionInfo *SessionInfo) handleUnauthenticatedProxyRequest(ctx context.Co
 	if sessionInfo.c.Arguments.InsteadOfRedirect != nil {
 		noRedirect := sessionInfo.c.Arguments.InsteadOfRedirect.IfRequestHeader.Matches(filterutil.GetHeader(request))
 		if noRedirect {
-			ret := middleware.NewErrorResponse(ctx, sessionInfo.c.Arguments.InsteadOfRedirect.HTTPStatusCode,
-				errors.New("session cookie is either missing, or refers to an expired or non-authenticated session"),
-				nil)
-			ret.Header["Set-Cookie"] = []string{
-				sessionCookie.String(),
-				xsrfCookie.String(),
+			if sessionInfo.c.Arguments.InsteadOfRedirect.HTTPStatusCode != 0 {
+				ret := middleware.NewErrorResponse(ctx, sessionInfo.c.Arguments.InsteadOfRedirect.HTTPStatusCode,
+					errors.New("session cookie is either missing, or refers to an expired or non-authenticated session"),
+					nil)
+				ret.Header["Set-Cookie"] = []string{
+					sessionCookie.String(),
+					xsrfCookie.String(),
+				}
+				return ret
+			} else {
+				ret, err := sessionInfo.c.RunFilters(sessionInfo.c.Arguments.InsteadOfRedirect.Filters, dlog.WithLogger(ctx, logger), request)
+				if err != nil {
+					return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
+						errors.Wrap(err, "insteadOfRedirect.filters"), nil)
+				}
+				return ret
 			}
-			return ret
 		}
 	}
 
