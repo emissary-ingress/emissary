@@ -1,5 +1,4 @@
 # @TEMPLATE@
-# See also: 03-auth0-secret.yaml
 
 {{ $AmbassadorURL := "https://ambassador.ambassador.svc.cluster.local" }}
 # These come directly from https://manage.auth0.com/#/applications/DOzF9q7U2OrvB7QniW9ikczS1onJgyiC/settings
@@ -77,6 +76,13 @@ spec:
 #     the client secret from a Kubernetes Secret, instead of having it
 #     inline.
 #  2. We test exact-matching with insteadOfRedirect error-responses.
+---
+apiVersion: v1
+metadata:
+  name: auth0-secret
+kind: Secret
+data:
+  oauth2-client-secret: {{ b64enc $Auth0_Client_Secret }}
 ---
 apiVersion: getambassador.io/v2
 kind: Filter
