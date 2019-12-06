@@ -82,6 +82,8 @@ update-yaml: sync
 	cp k8s-aes/00-aes-crds.yaml $${EDGE_STACK_UPDATE}/content/yaml/aes-crds.yaml
 	docker exec $(shell $(BUILDER)) python apro/fix-yaml.py apro ambassador/docs/yaml/ambassador/ambassador-rbac.yaml apro/k8s-aes-src/01-aes.yaml > k8s-aes/01-aes.yaml
 	docker exec $(shell $(BUILDER)) python apro/fix-yaml.py edge_stack ambassador/docs/yaml/ambassador/ambassador-rbac.yaml apro/k8s-aes-src/01-aes.yaml > $${EDGE_STACK_UPDATE}/content/yaml/aes.yaml
+	cp k8s-aes-src/02-oss-migration.yaml $${EDGE_STACK_UPDATE}/content/yaml/oss-migration.yaml
+	cp k8s-aes-src/03-resources-migration.yaml $${EDGE_STACK_UPDATE}/content/yaml/resources-migration.yaml
 	git -C "$${EDGE_STACK_UPDATE}" diff
 	@if [ -n "$$(git -C $${EDGE_STACK_UPDATE} diff)" ]; then printf \
 		"$(RED)Please inspect and commit the above changes to ${EDGE_STACK_UPDATE}$(END)\n" && exit 1; fi
