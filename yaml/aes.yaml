@@ -287,13 +287,6 @@ spec:
         - name: AMBASSADOR_ADMIN_URL
           value: http://127.0.0.1:8877
         image: quay.io/datawire-dev/aes:0.99.0-rc-latest
-        resources:
-          limits:
-            cpu: 1
-            memory: 400Mi
-          requests:
-            cpu: 400m
-            memory: 200Mi
         imagePullPolicy: Always
         livenessProbe:
           httpGet:
@@ -313,12 +306,21 @@ spec:
             path: /ambassador/v0/check_ready
             port: 8877
           periodSeconds: 3
+        resources:
+          limits:
+            cpu: 1
+            memory: 400Mi
+          requests:
+            cpu: 200m
+            memory: 100Mi
         volumeMounts:
         - mountPath: /tmp/ambassador-pod-info
           name: ambassador-pod-info
         - mountPath: /.config/ambassador
           name: ambassador-edge-stack-secrets
           readOnly: true
+      imagePullSecrets:
+      - name: aes-pull-secret
       restartPolicy: Always
       securityContext:
         runAsUser: 8888
