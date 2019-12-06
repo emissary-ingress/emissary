@@ -375,6 +375,8 @@ func (m *RouteAction) Validate() error {
 
 	}
 
+	// no validation rules for StripServiceName
+
 	switch m.ClusterSpecifier.(type) {
 
 	case *RouteAction_Cluster:

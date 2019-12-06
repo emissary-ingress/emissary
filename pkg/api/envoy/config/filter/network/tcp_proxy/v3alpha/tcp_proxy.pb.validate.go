@@ -62,25 +62,19 @@ func (m *TcpProxy) Validate() error {
 		}
 	}
 
-	if d := m.GetIdleTimeout(); d != nil {
-		dur, err := types.DurationFromProto(d)
-		if err != nil {
-			return TcpProxyValidationError{
-				field:  "IdleTimeout",
-				reason: "value is not a valid duration",
-				cause:  err,
+	{
+		tmp := m.GetIdleTimeout()
+
+		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+			if err := v.Validate(); err != nil {
+				return TcpProxyValidationError{
+					field:  "IdleTimeout",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
 			}
 		}
-
-		gt := time.Duration(0*time.Second + 0*time.Nanosecond)
-
-		if dur <= gt {
-			return TcpProxyValidationError{
-				field:  "IdleTimeout",
-				reason: "value must be greater than 0s",
-			}
-		}
-
 	}
 
 	{
@@ -131,21 +125,6 @@ func (m *TcpProxy) Validate() error {
 			}
 		}
 
-	}
-
-	{
-		tmp := m.GetDeprecatedV1()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return TcpProxyValidationError{
-					field:  "DeprecatedV1",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
-			}
-		}
 	}
 
 	if wrapper := m.GetMaxConnectAttempts(); wrapper != nil {
@@ -246,100 +225,6 @@ var _ interface {
 	ErrorName() string
 } = TcpProxyValidationError{}
 
-// Validate checks the field values on TcpProxy_DeprecatedV1 with the rules
-// defined in the proto definition for this message. If any rules are
-// violated, an error is returned.
-func (m *TcpProxy_DeprecatedV1) Validate() error {
-	if m == nil {
-		return nil
-	}
-
-	if len(m.GetRoutes()) < 1 {
-		return TcpProxy_DeprecatedV1ValidationError{
-			field:  "Routes",
-			reason: "value must contain at least 1 item(s)",
-		}
-	}
-
-	for idx, item := range m.GetRoutes() {
-		_, _ = idx, item
-
-		{
-			tmp := item
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return TcpProxy_DeprecatedV1ValidationError{
-						field:  fmt.Sprintf("Routes[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
-				}
-			}
-		}
-
-	}
-
-	return nil
-}
-
-// TcpProxy_DeprecatedV1ValidationError is the validation error returned by
-// TcpProxy_DeprecatedV1.Validate if the designated constraints aren't met.
-type TcpProxy_DeprecatedV1ValidationError struct {
-	field  string
-	reason string
-	cause  error
-	key    bool
-}
-
-// Field function returns field value.
-func (e TcpProxy_DeprecatedV1ValidationError) Field() string { return e.field }
-
-// Reason function returns reason value.
-func (e TcpProxy_DeprecatedV1ValidationError) Reason() string { return e.reason }
-
-// Cause function returns cause value.
-func (e TcpProxy_DeprecatedV1ValidationError) Cause() error { return e.cause }
-
-// Key function returns key value.
-func (e TcpProxy_DeprecatedV1ValidationError) Key() bool { return e.key }
-
-// ErrorName returns error name.
-func (e TcpProxy_DeprecatedV1ValidationError) ErrorName() string {
-	return "TcpProxy_DeprecatedV1ValidationError"
-}
-
-// Error satisfies the builtin error interface
-func (e TcpProxy_DeprecatedV1ValidationError) Error() string {
-	cause := ""
-	if e.cause != nil {
-		cause = fmt.Sprintf(" | caused by: %v", e.cause)
-	}
-
-	key := ""
-	if e.key {
-		key = "key for "
-	}
-
-	return fmt.Sprintf(
-		"invalid %sTcpProxy_DeprecatedV1.%s: %s%s",
-		key,
-		e.field,
-		e.reason,
-		cause)
-}
-
-var _ error = TcpProxy_DeprecatedV1ValidationError{}
-
-var _ interface {
-	Field() string
-	Reason() string
-	Key() bool
-	Cause() error
-	ErrorName() string
-} = TcpProxy_DeprecatedV1ValidationError{}
-
 // Validate checks the field values on TcpProxy_WeightedCluster with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, an error is returned.
@@ -433,125 +318,6 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = TcpProxy_WeightedClusterValidationError{}
-
-// Validate checks the field values on TcpProxy_DeprecatedV1_TCPRoute with the
-// rules defined in the proto definition for this message. If any rules are
-// violated, an error is returned.
-func (m *TcpProxy_DeprecatedV1_TCPRoute) Validate() error {
-	if m == nil {
-		return nil
-	}
-
-	if len(m.GetCluster()) < 1 {
-		return TcpProxy_DeprecatedV1_TCPRouteValidationError{
-			field:  "Cluster",
-			reason: "value length must be at least 1 bytes",
-		}
-	}
-
-	for idx, item := range m.GetDestinationIpList() {
-		_, _ = idx, item
-
-		{
-			tmp := item
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return TcpProxy_DeprecatedV1_TCPRouteValidationError{
-						field:  fmt.Sprintf("DestinationIpList[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
-				}
-			}
-		}
-
-	}
-
-	// no validation rules for DestinationPorts
-
-	for idx, item := range m.GetSourceIpList() {
-		_, _ = idx, item
-
-		{
-			tmp := item
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return TcpProxy_DeprecatedV1_TCPRouteValidationError{
-						field:  fmt.Sprintf("SourceIpList[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
-				}
-			}
-		}
-
-	}
-
-	// no validation rules for SourcePorts
-
-	return nil
-}
-
-// TcpProxy_DeprecatedV1_TCPRouteValidationError is the validation error
-// returned by TcpProxy_DeprecatedV1_TCPRoute.Validate if the designated
-// constraints aren't met.
-type TcpProxy_DeprecatedV1_TCPRouteValidationError struct {
-	field  string
-	reason string
-	cause  error
-	key    bool
-}
-
-// Field function returns field value.
-func (e TcpProxy_DeprecatedV1_TCPRouteValidationError) Field() string { return e.field }
-
-// Reason function returns reason value.
-func (e TcpProxy_DeprecatedV1_TCPRouteValidationError) Reason() string { return e.reason }
-
-// Cause function returns cause value.
-func (e TcpProxy_DeprecatedV1_TCPRouteValidationError) Cause() error { return e.cause }
-
-// Key function returns key value.
-func (e TcpProxy_DeprecatedV1_TCPRouteValidationError) Key() bool { return e.key }
-
-// ErrorName returns error name.
-func (e TcpProxy_DeprecatedV1_TCPRouteValidationError) ErrorName() string {
-	return "TcpProxy_DeprecatedV1_TCPRouteValidationError"
-}
-
-// Error satisfies the builtin error interface
-func (e TcpProxy_DeprecatedV1_TCPRouteValidationError) Error() string {
-	cause := ""
-	if e.cause != nil {
-		cause = fmt.Sprintf(" | caused by: %v", e.cause)
-	}
-
-	key := ""
-	if e.key {
-		key = "key for "
-	}
-
-	return fmt.Sprintf(
-		"invalid %sTcpProxy_DeprecatedV1_TCPRoute.%s: %s%s",
-		key,
-		e.field,
-		e.reason,
-		cause)
-}
-
-var _ error = TcpProxy_DeprecatedV1_TCPRouteValidationError{}
-
-var _ interface {
-	Field() string
-	Reason() string
-	Key() bool
-	Cause() error
-	ErrorName() string
-} = TcpProxy_DeprecatedV1_TCPRouteValidationError{}
 
 // Validate checks the field values on TcpProxy_WeightedCluster_ClusterWeight
 // with the rules defined in the proto definition for this message. If any

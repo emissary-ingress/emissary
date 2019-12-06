@@ -59,23 +59,6 @@ func (m *AccessLog) Validate() error {
 
 	switch m.ConfigType.(type) {
 
-	case *AccessLog_Config:
-
-		{
-			tmp := m.GetConfig()
-
-			if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-				if err := v.Validate(); err != nil {
-					return AccessLogValidationError{
-						field:  "Config",
-						reason: "embedded message failed validation",
-						cause:  err,
-					}
-				}
-			}
-		}
-
 	case *AccessLog_TypedConfig:
 
 		{
@@ -1179,7 +1162,7 @@ func (m *ResponseFlagFilter) Validate() error {
 		if _, ok := _ResponseFlagFilter_Flags_InLookup[item]; !ok {
 			return ResponseFlagFilterValidationError{
 				field:  fmt.Sprintf("Flags[%v]", idx),
-				reason: "value must be in list [LH UH UT LR UR UF UC UO NR DI FI RL UAEX RLSE DC URX SI IH]",
+				reason: "value must be in list [LH UH UT LR UR UF UC UO NR DI FI RL UAEX RLSE DC URX SI IH DPE]",
 			}
 		}
 
@@ -1263,6 +1246,7 @@ var _ResponseFlagFilter_Flags_InLookup = map[string]struct{}{
 	"URX":  {},
 	"SI":   {},
 	"IH":   {},
+	"DPE":  {},
 }
 
 // Validate checks the field values on GrpcStatusFilter with the rules defined

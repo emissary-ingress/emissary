@@ -26,13 +26,7 @@ ARG base="frolvlad/alpine-glibc:alpine-3.10"
 ARG artifacts="builder"
 
 # This controls where we copy envoy from.
-ARG envoy="quay.io/datawire/ambassador:0.85.0"
-
-# XXX In the past we copied Envoy from an Envoy builder image, and it 
-# was important to strip it. At this point we're copying from an 
-# Ambassador image, so it's already stripped, so let's not strip it
-# again.
-# RUN strip /usr/local/bin/envoy
+ARG envoy="quay.io/datawire/ambassador-base:envoy-7.c64ec6cb600928f7aca669cb4ab65a233ba0b921.opt"
 
 ########################################
 # The builder image

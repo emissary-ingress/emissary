@@ -233,10 +233,6 @@ func (m *CommandLineOptions) Validate() error {
 
 	// no validation rules for Mode
 
-	// no validation rules for MaxStats
-
-	// no validation rules for MaxObjNameLen
-
 	// no validation rules for DisableHotRestart
 
 	// no validation rules for EnableMutexTracing
