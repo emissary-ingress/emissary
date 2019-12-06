@@ -90,6 +90,13 @@ class Filter extends SingleResource {
   }
 
   // override
+  minimumNumberOfEditRows() {
+    return 1; // this will show too many rows in the edit UI if the filter type has editable fields
+              // but since we don't have a way to change the edit UI based on changes to the type field
+              // we have to use the minimum here.
+  }
+
+  // override
   onAdd() {
     super.onAdd();
     let type = this.filterType();
@@ -376,10 +383,10 @@ ${(values || []).map((v, i)=>this.headerTemplateListEntry(values, v, i))}
    * Implement.
    */
   renderResource() {
-    let type = this.state.mode === "add" || this.state.mode == "edit" ? this.type : this.filterType();
+    let type = this.state.mode === "add" ? this.type : this.filterType();
     let render = this[`render${type}`].bind(this);
-    let subspec = this.state.mode === "add" || this.state.mode == "edit" ? this.subspec : this.resource.spec[type];
-    let rendered = render(subspec)
+    let subspec = this.state.mode === "add" || this.state.mode === "edit" ? this.subspec : this.resource.spec[type];
+    let rendered = render(subspec);
     return html`
 <div class="attribute-name">Type:</div>
 <div class="attribute-value">
@@ -388,6 +395,7 @@ ${(values || []).map((v, i)=>this.headerTemplateListEntry(values, v, i))}
     <option .selected=${type === "JWT"} value="JWT">JWT</option>
     <option .selected=${type === "External"} value="External">External</option>
     <option .selected=${type === "Plugin"} value="Plugin">Plugin</option>
+    <option .selected=${type === "Internal"} value="Internal">Internal</option>
   </select>
 </div>
 ${rendered}
