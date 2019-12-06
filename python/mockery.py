@@ -126,7 +126,7 @@ class WatchSpec:
         kind: Optional[str] = obj.get('kind') or None
         metadata: Optional[Dict[str, Any]] = obj.get('metadata') or {}
         name: Optional[str] = metadata.get('name') or None
-        namespace: Optional[str] = metadata.get('namespace') or None
+        namespace: Optional[str] = metadata.get('namespace') or 'default'
         labels: Optional[Dict[str, str]] = metadata.get('labels') or {}
 
         if not kind or not name:
@@ -219,6 +219,8 @@ class Mockery:
             if not name:
                 self.logger.debug(f"skipping unnamed object {obj}")
                 continue
+
+            # self.logger.debug(f"consider {obj}")
 
             for w in self.watch_specs.values():
                 m = w.match(obj)
