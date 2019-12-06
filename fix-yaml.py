@@ -76,6 +76,8 @@ dpath.util.merge(dpath.util.get(deployment, 'spec/template/spec/containers/0'), 
     ],
 })
 
+# I don't think we really want to do this.
+# dpath.util.delete(deployment, 'spec/template/spec/containers/0/resources')
 dpath.util.delete(deployment, 'spec/template/spec/containers/0/livenessProbe/initialDelaySeconds')
 dpath.util.delete(deployment, 'spec/template/spec/containers/0/readinessProbe/initialDelaySeconds')
 
