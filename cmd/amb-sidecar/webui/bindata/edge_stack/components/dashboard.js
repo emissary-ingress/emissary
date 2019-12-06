@@ -143,14 +143,14 @@ let LicensePanel = {
 };
 
 /**
- * Panel showing a count of the Hosts, Mappings, and Services
+ * Panel showing a count of the Hosts, Mappings, and Plugins
  */
 let CountsPanel = {
   _title: "Counts",
   _elementId: "counts",
   _hostsCount: 0,
   _mappingsCount: 0,
-  _servicesCount: 0,
+  _pluginsCount: 0,
 
   render: function() {
     return html`
@@ -161,7 +161,7 @@ let CountsPanel = {
         <p><span class = "status" @click=${this.onClickHosts}>${countString(this._hostsCount, "Host", "Hosts")}</span>
           ${this._hostsCount === 0 ? html`<button style="margin: auto; font-size: 100%; display:block" @click=${this.onClickHosts}>Get started by defining a first host.</button>`: html``}</p>
         <p><span class = "status" @click=${this.onClickMappings}>${countString(this._mappingsCount, "Mapping", "Mappings")}</span></p>
-        <p><span class = "status" @click=${this.onClickServices}>${countString(this._servicesCount, "Service", "Services")}</span></p>
+        <p><span class = "status" @click=${this.onClickPlugins}>${countString(this._pluginsCount, "Plugin", "Plugins")}</span></p>
         </div>
       </div>
     </div>`
@@ -176,7 +176,7 @@ let CountsPanel = {
     kinds.forEach((k)=>{
       services.push(...snapshot.getResources(k))
     });
-    this._servicesCount = services.length;
+    this._pluginsCount = services.length;
 
     let mappings = snapshot.getResources('Mapping');
     this._mappingsCount = mappings.length;
@@ -192,8 +192,8 @@ let CountsPanel = {
     window.location.hash = "#mappings";
   },
 
-  onClickServices: function() {
-    window.location.hash = "#services";
+  onClickPlugins: function() {
+    window.location.hash = "#plugins";
   }
 };
 

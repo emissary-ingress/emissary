@@ -10,6 +10,12 @@ module.exports.authenticate = async function(browsertab, username, password) {
 	// page 1: Username
 	await browsertab.waitForSelector('input[type="email"]', { visible: true });
 	await browsertab.waitForSelector('input[type="submit"][value="Next"]', { visible: true });
+
+	let domain_hint = (new URL(browsertab.url())).searchParams.get("domain_hint")
+	if (domain_hint !== "aprotesting.onmicrosoft.com") {
+		throw new Error(`domain_hint extraAuthorizationParameter not set properly: actual=${domain_hint} expected=aprotesting.onmicrosoft.com`);
+	}
+
 	await browsertab.type('input[type="email"]', username);
 	await browsertab.click('input[type="submit"][value="Next"]');
 	// page 2: Password

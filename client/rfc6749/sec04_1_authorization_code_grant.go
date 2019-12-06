@@ -107,6 +107,10 @@ func (session AuthorizationCodeClientSessionData) IsDirty() bool { return sessio
 //
 //  - state: RECOMMENDED.
 //
+//  - extraParams: Extra parameters used by OAuth extensions.  It is not valid to specify a
+//    parameter used by OAuth itself ("response_type", "client_id", "redirect_uri", "scope", or
+//    "state"); if you do specify one of these parameters, it will return an error.
+//
 // The Client is free to use whichever redirection mechanisms it has available to it (perhaps a
 // plain HTTP redirect, or perhaps something fancy with JavaScript).  Note that if using an HTTP
 // redirect, that 302 "Found" may or MAY NOT convert POST->GET; and that to reliably have the
@@ -115,6 +119,7 @@ func (client *AuthorizationCodeClient) AuthorizationRequest(
 	redirectURI *url.URL,
 	scope Scope,
 	state string,
+	extraParams map[string]string,
 ) (*url.URL, *AuthorizationCodeClientSessionData, error) {
 	parameters := url.Values{
 		"response_type": {"code"},
@@ -132,6 +137,19 @@ func (client *AuthorizationCodeClient) AuthorizationRequest(
 	}
 	if state != "" {
 		parameters.Set("state", state)
+	}
+	for k, v := range extraParams {
+		_, conflict := map[string]struct{}{
+			"response_type": {},
+			"client_id":     {},
+			"redirect_uri":  {},
+			"scope":         {},
+			"state":         {},
+		}[k]
+		if conflict {
+			return nil, nil, errors.Errorf("may not manually specify built-in parameter %q", k)
+		}
+		parameters.Set(k, v)
 	}
 
 	session := &AuthorizationCodeClientSessionData{}

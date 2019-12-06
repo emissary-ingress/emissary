@@ -183,7 +183,7 @@ func (fb *firstBootWizard) isAuthorized(r *http.Request) bool {
 	nowUnix := now.Unix()
 	toleratedNowUnix := toleratedNow.Unix()
 
-	tokenString := rfc6750.GetFromHeader(r.Header)
+	tokenString, _ := rfc6750.GetFromHeader(r.Header)
 	if tokenString == "" {
 		return false
 	}

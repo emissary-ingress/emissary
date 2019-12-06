@@ -326,6 +326,13 @@ spec:
             path: /ambassador/v0/check_ready
             port: 8877
           periodSeconds: 3
+        resources:
+          limits:
+            cpu: 1
+            memory: 400Mi
+          requests:
+            cpu: 200m
+            memory: 100Mi
         volumeMounts:
         - mountPath: /tmp/ambassador-pod-info
           name: ambassador-pod-info

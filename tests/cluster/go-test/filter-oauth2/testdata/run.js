@@ -9,15 +9,15 @@ class TestSkipError extends Error {
 }
 
 const writeFile = (file, data) => {
-    return new Promise((resolve, reject) => {
-        fs.writeFile(file, data, error => {
-		if (error) {
-			reject(error);
-		} else {
-			resolve();
-		}
-        });
-    });
+	return new Promise((resolve, reject) => {
+		fs.writeFile(file, data, error => {
+			if (error) {
+				reject(error);
+			} else {
+				resolve();
+			}
+		});
+	});
 };
 
 const withBrowserTab = async function(fn) {
