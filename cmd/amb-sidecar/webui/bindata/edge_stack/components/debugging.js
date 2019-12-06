@@ -48,6 +48,13 @@ export class Debugging extends LitElement {
       .error_message {
         color: red;
       }
+      div.over_limit {
+        color: red;
+        font-weight: bold;
+      }
+      div.over_limit a {
+        color: red;
+      }
     `;
   }
 
@@ -112,7 +119,7 @@ export class Debugging extends LitElement {
         </dl>
         
         ${this.featuresOverLimit.length > 0 
-          ? html`<div style="color:red; font-weight: bold">You've reached the <a href="https://www.getambassador.io/editions/">usage limits</a> for your license. If you need to use Ambassador beyond the current limits, <a href="https://www.getambassador.io/contact/">please contact Datawire</a> for an Enterprise license.</div>`
+          ? html`<div class="over_limit">You've reached the <a href="https://www.getambassador.io/editions/">usage limits</a> for your license. If you need to use Ambassador beyond the current limits, <a href="https://www.getambassador.io/contact/">please contact Datawire</a> for an Enterprise license.</div>`
           : html``
         }
       </fieldset>
