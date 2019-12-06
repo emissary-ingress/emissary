@@ -2,7 +2,7 @@ import { LitElement, html, css } from '../vendor/lit-element.min.js'
 import {SingleResource} from './resources.js'
 import {Snapshot} from './snapshot.js'
 
-export class Service extends SingleResource {
+export class Plugin extends SingleResource {
   // implement
   kind() {
     return this.resource.kind;
@@ -56,15 +56,15 @@ export class Service extends SingleResource {
   }
 }
 
-customElements.define('dw-service', Service);
+customElements.define('dw-plugin', Plugin);
 
-export class Services extends LitElement {
+export class Plugins extends LitElement {
 
   // external ////////////////////////////////////////////////////////
 
   static get properties() {
     return {
-      services: {type: Array},
+      plugins: {type: Array},
       diag: {type: Object},
     };
   }
@@ -73,15 +73,15 @@ export class Services extends LitElement {
     super();
 
     this.diag = {};
-    this.services = [];
+    this.plugins = [];
 
     Snapshot.subscribe(this.onSnapshotChange.bind(this))
   }
 
   render() {
     return html`<div>
-      ${this.services.map(s => {
-        return html`<dw-service .resource=${s} .diag=${this.diag}></dw-service>`;
+      ${this.plugins.map(s => {
+        return html`<dw-plugin .resource=${s} .diag=${this.diag}></dw-plugin>`;
       })}
     </div>`;
   }
@@ -89,14 +89,14 @@ export class Services extends LitElement {
   // internal ////////////////////////////////////////////////////////
 
   onSnapshotChange(snapshot) {
-    let kinds = ['AuthService', 'RateLimitService', 'TracingService', 'LogService']
-    this.services = []
+    let kinds = ['AuthService', 'RateLimitService', 'TracingService', 'LogService'];
+    this.plugins = [];
     kinds.forEach((k)=>{
-      this.services.push(...snapshot.getResources(k))
-    })
+      this.plugins.push(...snapshot.getResources(k))
+    });
     this.diag = snapshot.getDiagnostics();
   }
 
 }
 
-customElements.define('dw-services', Services);
+customElements.define('dw-plugins', Plugins);

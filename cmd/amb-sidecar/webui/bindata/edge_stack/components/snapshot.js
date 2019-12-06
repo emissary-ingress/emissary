@@ -136,8 +136,7 @@ export class Snapshot extends LitElement {
       updateCredentials(window.location.hash.slice(1));
       this.fragment = "trying";
     }
-
-    this.intervalFunction = setInterval(this.fetchData.bind(this), 1000); // fetch a new snapshot every second
+    setTimeout(this.fetchData.bind(this), 1000);
   }
 
   fetchData() {
@@ -156,11 +155,13 @@ export class Snapshot extends LitElement {
             this.fragment = "";
             this.setAuthenticated(false);
             this.setSnapshot(new SnapshotWrapper({}));
+            setTimeout(this.fetchData.bind(this), 1000); // fetch a new snapshot every second
           }
         } else {
           response.text()
             .then((text) => {
               var json;
+              setTimeout(this.fetchData.bind(this), 1000); // fetch a new snapshot every second
               try {
                   json = JSON.parse(text);
               } catch(err) {
@@ -199,6 +200,7 @@ export class Snapshot extends LitElement {
               this.loadingError = err;
               this.requestUpdate();
               console.error('error reading snapshot', err);
+              setTimeout(this.fetchData.bind(this), 1000); // try again every second
             })
         }
       })
@@ -206,6 +208,7 @@ export class Snapshot extends LitElement {
         this.loadingError = err;
         this.requestUpdate();
         console.error('error fetching snapshot', err);
+        setTimeout(this.fetchData.bind(this), 1000); // try again every second
       })
   }
 

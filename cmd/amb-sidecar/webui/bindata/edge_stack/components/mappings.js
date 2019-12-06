@@ -46,7 +46,7 @@ class Mapping extends SingleResource {
       service: this.targetInput().value
     };
 
-    if (this.state.labels) {
+    if (this.state.labels && this.state.labels.length > 0) {
       result["labels"] = {
         ambassador: this.state.labels
       };
