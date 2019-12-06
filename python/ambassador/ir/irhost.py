@@ -15,6 +15,7 @@ class IRHost(IRResource):
         'hostname',
         'selector',
         'tlsSecret',
+        'matchLabels'
     }
 
     def __init__(self, ir: 'IR', aconf: Config,
@@ -67,15 +68,17 @@ class IRHost(IRResource):
                                            rkey=self.rkey,
                                            name=ctx_name,
                                            namespace=self.namespace,
-                                           metadata_labels=self.match_labels,
                                            location=self.location,
                                            hosts=[ self.hostname ],
                                            secret=tls_name)
 
-                        metadata_labels = self.get('match_labels', None)
+                        match_labels = self.get('matchLabels')
 
-                        if metadata_labels:
-                            ctx['metadata_labels'] = metadata_labels
+                        if not match_labels:
+                            match_labels = self.get('match_labels')
+
+                        if match_labels:
+                            ctx['metadata_labels'] = match_labels
 
                         if ctx.is_active():
                             ctx.referenced_by(self)
