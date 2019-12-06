@@ -42,7 +42,6 @@ dpath.util.merge(deployment, {
         'replicas': 1,
         'template': {
             'spec': {
-                'imagePullSecrets': [ { 'name': 'aes-pull-secret' } ],
                 'terminationGracePeriodSeconds': 0,
                 'volumes': [
                     { 'name': 'ambassador-edge-stack-secrets',
@@ -77,7 +76,6 @@ dpath.util.merge(dpath.util.get(deployment, 'spec/template/spec/containers/0'), 
     ],
 })
 
-dpath.util.delete(deployment, 'spec/template/spec/containers/0/resources')
 dpath.util.delete(deployment, 'spec/template/spec/containers/0/livenessProbe/initialDelaySeconds')
 dpath.util.delete(deployment, 'spec/template/spec/containers/0/readinessProbe/initialDelaySeconds')
 
