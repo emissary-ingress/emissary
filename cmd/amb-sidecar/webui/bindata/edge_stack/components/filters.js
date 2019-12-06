@@ -90,6 +90,13 @@ class Filter extends SingleResource {
   }
 
   // override
+  minimumNumberOfEditRows() {
+    return 1; // this will show too many rows in the edit UI if the filter type has editable fields
+              // but since we don't have a way to change the edit UI based on changes to the type field
+              // we have to use the minimum here.
+  }
+
+  // override
   onAdd() {
     super.onAdd();
     let type = this.filterType();
