@@ -107,7 +107,7 @@ func ensureFallbackSecret(cfg types.Config, secretsGetter k8sClientCoreV1.Secret
 func generateSelfSignedPEM() ([]byte, []byte, error) {
 	// See https://golang.org/src/crypto/tls/generate_cert.go
 
-	privateKey, err := rsa.GenerateKey(rand.Reader, 8192)
+	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "generate key-pair")
 	}
