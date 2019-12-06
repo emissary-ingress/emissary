@@ -51,7 +51,7 @@ spec:
 ```
 
 ## Sticky Sessions / Session Affinity
-Configuring sticky sessions makes Ambassador Edge Stack route requests to a specific pod providing your service in a given session. In other words, requests in a session are served by the same Kubernetes pod. Ambassador Edge Stack lets you configure session affinity based on the following parameters in an incoming request:
+Configuring sticky sessions makes Ambassador Edge Stack route requests to a specific pod providing your service in a given session. One pod serves all requests from a given session, eliminating the need for session data to be transferred between pods. Ambassador Edge Stack lets you configure session affinity based on the following parameters in an incoming request:
 
 - Cookie
 - Header

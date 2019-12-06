@@ -2,19 +2,7 @@
 
 Ambassador Edge Stack is designed so that the author of a given Kubernetes service can easily and flexibly configure how traffic gets routed to the service. The core abstraction used to support service authors is a `mapping`, which can apply to HTTP, GRPC, and Websockets at layer 7 via a `Mapping` resource, or to raw TCP connections at layer 4 via a `TCPMapping`.
 
-Ambassador Edge Stack _must_ have one or more mappings defined to provide access to any services at all.
-
-## `Mapping`
-
-An Ambassador Edge Stack `Mapping` associates REST [_resources_](#resources) with Kubernetes [_services_](#services). A resource, here, is a group of things defined by a URL prefix; a service is exactly the same as in Kubernetes.
-
-Each mapping can also specify, among other things:
-
-- a [_rewrite rule_](/reference/rewrites) which modifies the URL as it's handed to the Kubernetes service;
-- a [_weight_](/reference/canary) specifying how much of the traffic for the resource will be routed using the mapping;
-- a [_host_](/reference/host) specifying a required value for the HTTP `Host` header;
-- a [_shadow_](/reference/shadowing) marker, specifying that this mapping will get a copy of traffic for the resource; and
-- other [_headers_](/reference/headers) which must appear in the HTTP request.
+Ambassador Edge Stack _must_ have one or more mappings defined to provide access to any services at all. The name of the mapping must be unique. 
 
 ## Mapping Configuration
 
@@ -82,7 +70,7 @@ These attributes are less commonly used, but can be used to override Ambassador 
 | [`precedence`](#using-precedence)           | an integer overriding Ambassador Edge Stack's internal ordering for `Mapping`s. An absent `precedence` is the same as a `precedence` of 0. Higher `precedence` values are matched earlier. |
 | `bypass_auth`             | if true, tells Ambassador Edge Stack that this service should bypass `ExtAuth` (if configured) |
 
-The name of the mapping must be unique. If no `method` is given, all methods will be proxied.
+If no `method` is given, the Mapping will apply to all HTTP `methods`.
 
 ## Mapping resources and CRDs
 
@@ -172,6 +160,18 @@ Where everything except for the `service` is optional.
 - `port` is the port to which a request should be sent. If not specified, it defaults to `80` when the scheme is `http` or `443` when the scheme is `https`. Note that the [resolver](/reference/core/resolvers) may return a port in which case the `port` setting is ignored.
 
 Note that while using `service.namespace.svc.cluster.local` may work for Kubernetes resolvers, the preferred syntax is `service.namespace`.
+
+## `Mapping`
+
+An Ambassador Edge Stack `Mapping` associates REST [_resources_](#resources) with Kubernetes [_services_](#services). A resource, here, is a group of things defined by a URL prefix; a service is exactly the same as in Kubernetes.
+
+Each mapping can also specify, among other things:
+
+- a [_rewrite rule_](/reference/rewrites) which modifies the URL as it's handed to the Kubernetes service;
+- a [_weight_](/reference/canary) specifying how much of the traffic for the resource will be routed using the mapping;
+- a [_host_](/reference/host) specifying a required value for the HTTP `Host` header;
+- a [_shadow_](/reference/shadowing) marker, specifying that this mapping will get a copy of traffic for the resource; and
+- other [_headers_](/reference/headers) which must appear in the HTTP request.
 
 ## Mapping Evaluation Order
 

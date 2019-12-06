@@ -28,7 +28,16 @@ spec:
   cluster_idle_timeout_ms: 30000
 ```
 
-- `proto` (optional) specifies the protocol to use when communicating with the auth service. Valid options are `http` (default) or `grpc`.
+- `add_linkerd_headers` (optional) when true, adds `l5d-dst-override` to the authorization request and set the hostname of the authorization server as the header value.
+
+- `allowed_authorization_headers` (optional) lists headers that will be sent from the auth service to the upstream service when the request is allowed, and also headers that will be sent from the auth service back to the client when the request is denied. These headers are always included:
+    * `Authorization`
+    * `Location`
+    * `Proxy-Authenticate`
+    * `Set-cookie`
+    * `WWW-Authenticate`
+
+- `allow_request_body` is deprecated. It was exactly equivalent to `include_body` with `max_bytes` 4096 and `allow_partial` true.
 
 - `allowed_request_headers` (optional) lists headers that will be sent from the client to the auth service. These headers are always included:
     * `Authorization`
@@ -40,12 +49,9 @@ spec:
     * `X-Forwarded-Host`
     * `X-Forwarded-Proto`
 
-- `allowed_authorization_headers` (optional) lists headers that will be sent from the auth service to the upstream service when the request is allowed, and also headers that will be sent from the auth service back to the client when the request is denied. These headers are always included:
-    * `Authorization`
-    * `Location`
-    * `Proxy-Authenticate`
-    * `Set-cookie`
-    * `WWW-Authenticate`
+- `cluster_idle_timeout_ms` (optional) sets the timeout, in milliseconds, before an idle connection upstream is closed. The default is provided by the `ambassador Module`; if no `cluster_idle_timeout_ms` is specified, upstream connections will never be closed due to idling.
+
+- `failure_mode_allow` (optional) if requests should be allowed on auth service failure. Defaults to false
 
 - `include_body` (optional) controls how much of the request body to pass to the auth service, for use cases such as computing an HMAC or request signature:
     * `max_bytes` controls the amount of body data that will be passed to the auth service
@@ -53,16 +59,10 @@ spec:
        * if `allow_partial` is `true`, the first `max_bytes` of the body are sent to the auth service
        * if `false`, the message is rejected.
 
-- `allow_request_body` is deprecated. It was exactly equivalent to `include_body` with `max_bytes` 4096 and `allow_partial` true.
+- `proto` (optional) specifies the protocol to use when communicating with the auth service. Valid options are `http` (default) or `grpc`.
 
 - `status_on_error` (optional) status code returned when unable to communicate with auth service. 
     * `code` Defaults to 403
-
-- `failure_mode_allow` (optional) if requests should be allowed on auth service failure. Defaults to false
-
-- `add_linkerd_headers` (optional) when true, adds `l5d-dst-override` to the authorization request and set the hostname of the authorization server as the header value.
-
-- `cluster_idle_timeout_ms` (optional) sets the timeout, in milliseconds, before an idle connection upstream is closed. The default is provided by the `ambassador Module`; if no `cluster_idle_timeout_ms` is specified, upstream connections will never be closed due to idling.
 
 ## Multiple AuthService resources
 
