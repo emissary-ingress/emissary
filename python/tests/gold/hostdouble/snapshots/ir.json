@@ -756,7 +756,7 @@
             ],
             "_rkey": "host-1.default.1",
             "acmeProvider": {
-                "authority": "none"
+                "authority": "ACME"
             },
             "hostname": "tls-context-host-1",
             "kind": "Host",
@@ -780,7 +780,7 @@
             ],
             "_rkey": "host-2.default.1",
             "acmeProvider": {
-                "authority": "none"
+                "authority": "ACME"
             },
             "hostname": "tls-context-host-2",
             "kind": "Host",

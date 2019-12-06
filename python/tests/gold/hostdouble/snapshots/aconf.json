@@ -52,7 +52,7 @@
         "host-1.default.1": {
             "_referenced_by": {},
             "acmeProvider": {
-                "authority": "none"
+                "authority": "ACME"
             },
             "ambassador_id": [
                 "hostdouble"
@@ -75,7 +75,7 @@
                     "hostname": "tls-context-host-1"
                 }
             },
-            "serialization": "acmeProvider:\n  authority: none\nambassador_id:\n- hostdouble\napiVersion: getambassador.io/v2\ngeneration: 1\nhostname: tls-context-host-1\nkind: Host\nmetadata_labels:\n  ambassador_crd: host-1.default\n  kat-ambassador-id: hostdouble\n  scope: AmbassadorTest\nname: host-1\nnamespace: default\nselector:\n  matchLabels:\n    hostname: tls-context-host-1\ntlsSecret:\n  name: test-tlscontext-secret-1\n",
+            "serialization": "acmeProvider:\n  authority: ACME\nambassador_id:\n- hostdouble\napiVersion: getambassador.io/v2\ngeneration: 1\nhostname: tls-context-host-1\nkind: Host\nmetadata_labels:\n  ambassador_crd: host-1.default\n  kat-ambassador-id: hostdouble\n  scope: AmbassadorTest\nname: host-1\nnamespace: default\nselector:\n  matchLabels:\n    hostname: tls-context-host-1\ntlsSecret:\n  name: test-tlscontext-secret-1\n",
             "tlsSecret": {
                 "name": "test-tlscontext-secret-1"
             }
@@ -106,7 +106,7 @@
         "host-2.default.1": {
             "_referenced_by": {},
             "acmeProvider": {
-                "authority": "none"
+                "authority": "ACME"
             },
             "ambassador_id": [
                 "hostdouble"
@@ -129,7 +129,7 @@
                     "hostname": "tls-context-host-2"
                 }
             },
-            "serialization": "acmeProvider:\n  authority: none\nambassador_id:\n- hostdouble\napiVersion: getambassador.io/v2\ngeneration: 1\nhostname: tls-context-host-2\nkind: Host\nmetadata_labels:\n  ambassador_crd: host-2.default\n  kat-ambassador-id: hostdouble\n  scope: AmbassadorTest\nname: host-2\nnamespace: default\nselector:\n  matchLabels:\n    hostname: tls-context-host-2\ntlsSecret:\n  name: test-tlscontext-secret-2\n",
+            "serialization": "acmeProvider:\n  authority: ACME\nambassador_id:\n- hostdouble\napiVersion: getambassador.io/v2\ngeneration: 1\nhostname: tls-context-host-2\nkind: Host\nmetadata_labels:\n  ambassador_crd: host-2.default\n  kat-ambassador-id: hostdouble\n  scope: AmbassadorTest\nname: host-2\nnamespace: default\nselector:\n  matchLabels:\n    hostname: tls-context-host-2\ntlsSecret:\n  name: test-tlscontext-secret-2\n",
             "tlsSecret": {
                 "name": "test-tlscontext-secret-2"
             }
@@ -240,7 +240,7 @@
     "hosts": {
         "host-1": {
             "acmeProvider": {
-                "authority": "none"
+                "authority": "ACME"
             },
             "ambassador_id": [
                 "hostdouble"
@@ -267,7 +267,7 @@
         },
         "host-2": {
             "acmeProvider": {
-                "authority": "none"
+                "authority": "ACME"
             },
             "ambassador_id": [
                 "hostdouble"
