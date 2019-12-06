@@ -60,7 +60,10 @@ func ExampleAuthorizationCodeClient() {
 		u, sessionData, err := client.AuthorizationRequest(
 			mustParseURL("https://example-client.example.com/dashboard"),
 			requiredScopes,
-			randomToken())
+			randomToken(),
+			map[string]string{
+				"domain_hint": "example.com",
+			})
 		if err != nil {
 			http.Error(w, "could not construct authorization request URI", http.StatusInternalServerError)
 			return
