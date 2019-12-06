@@ -84,7 +84,6 @@ func (HealthCheckerType) EnumDescriptor() ([]byte, []int) {
 	return fileDescriptor_ea02efd5197bc7e2, []int{1}
 }
 
-// [#next-free-field: 10]
 type HealthCheckEvent struct {
 	HealthCheckerType HealthCheckerType `protobuf:"varint,1,opt,name=health_checker_type,json=healthCheckerType,proto3,enum=envoy.data.core.v3alpha.HealthCheckerType" json:"health_checker_type,omitempty"`
 	Host              *core.Address     `protobuf:"bytes,2,opt,name=host,proto3" json:"host,omitempty"`
@@ -295,9 +294,8 @@ func (m *HealthCheckEjectUnhealthy) GetFailureType() HealthCheckFailureType {
 
 type HealthCheckAddHealthy struct {
 	// Whether this addition is the result of the first ever health check on a host, in which case
-	// the configured :ref:`healthy threshold
-	// <envoy_api_field_api.v3alpha.core.HealthCheck.healthy_threshold>` is bypassed and the host is
-	// immediately added.
+	// the configured :ref:`healthy threshold <envoy_api_field_core.HealthCheck.healthy_threshold>`
+	// is bypassed and the host is immediately added.
 	FirstCheck           bool     `protobuf:"varint,1,opt,name=first_check,json=firstCheck,proto3" json:"first_check,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`

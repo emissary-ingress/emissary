@@ -152,7 +152,6 @@ func (m *Endpoint_HealthCheckConfig) GetPortValue() uint32 {
 }
 
 // An Endpoint that Envoy can route traffic to.
-// [#next-free-field: 6]
 type LbEndpoint struct {
 	// Upstream host identifier or a named reference.
 	//
@@ -287,7 +286,6 @@ func (*LbEndpoint) XXX_OneofWrappers() []interface{} {
 // One can have multiple LocalityLbEndpoints for a locality, but this is
 // generally only done if the different groups need to have different load
 // balancing weights or different priorities.
-// [#next-free-field: 7]
 type LocalityLbEndpoints struct {
 	// Identifies location of where the upstream hosts run.
 	Locality *core.Locality `protobuf:"bytes,1,opt,name=locality,proto3" json:"locality,omitempty"`

@@ -50,7 +50,6 @@ func (FaultDelay_FaultDelayType) EnumDescriptor() ([]byte, []int) {
 
 // Delay specification is used to inject latency into the
 // HTTP/gRPC/Mongo/Redis operation or delay proxying of TCP connections.
-// [#next-free-field: 6]
 type FaultDelay struct {
 	// Unused and deprecated. Will be removed in the next release.
 	Type FaultDelay_FaultDelayType `protobuf:"varint,1,opt,name=type,proto3,enum=envoy.config.filter.fault.v2.FaultDelay_FaultDelayType" json:"type,omitempty"` // Deprecated: Do not use.

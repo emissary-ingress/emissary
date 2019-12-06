@@ -205,6 +205,21 @@ func (m *Bootstrap) Validate() error {
 	}
 
 	{
+		tmp := m.GetRuntime()
+
+		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+			if err := v.Validate(); err != nil {
+				return BootstrapValidationError{
+					field:  "Runtime",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+	}
+
+	{
 		tmp := m.GetLayeredRuntime()
 
 		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
@@ -252,21 +267,6 @@ func (m *Bootstrap) Validate() error {
 	// no validation rules for EnableDispatcherStats
 
 	// no validation rules for HeaderPrefix
-
-	{
-		tmp := m.GetStatsServerVersionOverride()
-
-		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
-
-			if err := v.Validate(); err != nil {
-				return BootstrapValidationError{
-					field:  "StatsServerVersionOverride",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
-			}
-		}
-	}
 
 	return nil
 }

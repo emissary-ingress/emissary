@@ -293,8 +293,6 @@ func (m *RedisProxy_ConnPoolSettings) Validate() error {
 		}
 	}
 
-	// no validation rules for EnableCommandStats
-
 	if _, ok := RedisProxy_ConnPoolSettings_ReadPolicy_name[int32(m.GetReadPolicy())]; !ok {
 		return RedisProxy_ConnPoolSettingsValidationError{
 			field:  "ReadPolicy",

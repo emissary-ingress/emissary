@@ -91,8 +91,6 @@ func (m *Router) Validate() error {
 
 	}
 
-	// no validation rules for RespectExpectedRqTimeout
-
 	return nil
 }
 

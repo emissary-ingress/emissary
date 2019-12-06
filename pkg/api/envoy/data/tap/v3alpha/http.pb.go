@@ -149,7 +149,6 @@ func (m *HttpBufferedTrace_Message) GetTrailers() []*core.HeaderValue {
 }
 
 // A streamed HTTP trace segment. Multiple segments make up a full trace.
-// [#next-free-field: 8]
 type HttpStreamedTraceSegment struct {
 	// Trace ID unique to the originating Envoy only. Trace IDs can repeat and should not be used
 	// for long term stable uniqueness.

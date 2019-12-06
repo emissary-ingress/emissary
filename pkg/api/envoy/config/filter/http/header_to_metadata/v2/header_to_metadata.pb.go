@@ -140,7 +140,6 @@ func (m *Config) GetResponseRules() []*Config_Rule {
 	return nil
 }
 
-// [#next-free-field: 6]
 type Config_KeyValuePair struct {
 	// The namespace — if this is empty, the filter's namespace will be used.
 	MetadataNamespace string `protobuf:"bytes,1,opt,name=metadata_namespace,json=metadataNamespace,proto3" json:"metadata_namespace,omitempty"`

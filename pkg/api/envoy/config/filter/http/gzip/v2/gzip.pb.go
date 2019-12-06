@@ -83,7 +83,6 @@ func (Gzip_CompressionLevel_Enum) EnumDescriptor() ([]byte, []int) {
 	return fileDescriptor_e2b7bd5745a19167, []int{0, 0, 0}
 }
 
-// [#next-free-field: 10]
 type Gzip struct {
 	// Value from 1 to 9 that controls the amount of internal memory used by zlib. Higher values
 	// use more memory, but are faster and produce better compression results. The default value is 5.

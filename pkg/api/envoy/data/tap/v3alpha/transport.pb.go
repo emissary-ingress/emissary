@@ -343,7 +343,6 @@ func (m *SocketEvent_Closed) XXX_DiscardUnknown() {
 var xxx_messageInfo_SocketEvent_Closed proto.InternalMessageInfo
 
 // Sequence of read/write events that constitute a buffered trace on a socket.
-// [#next-free-field: 6]
 type SocketBufferedTrace struct {
 	// Trace ID unique to the originating Envoy only. Trace IDs can repeat and should not be used
 	// for long term stable uniqueness. Matches connection IDs used in Envoy logs.

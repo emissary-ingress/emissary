@@ -30,18 +30,6 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 // Each attribute has a type and a name, which is logically defined as a proto message field
 // of the `AttributeContext`. The `AttributeContext` is a collection of individual attributes
 // supported by Envoy authorization system.
-// [#comment: The following items are left out of this proto
-// Request.Auth field for jwt tokens
-// Request.Api for api management
-// Origin peer that originated the request
-// Caching Protocol
-// request_context return values to inject back into the filter chain
-// peer.claims -- from X.509 extensions
-// Configuration
-// - field mask to send
-// - which return values from request_context are copied back
-// - which return values are copied into request_headers]
-// [#next-free-field: 12]
 type AttributeContext struct {
 	// The source of a network activity, such as starting a TCP connection.
 	// In a multi hop network activity, the source represents the sender of the
@@ -287,7 +275,6 @@ func (m *AttributeContext_Request) GetHttp() *AttributeContext_HttpRequest {
 
 // This message defines attributes for an HTTP request.
 // HTTP/1.x, HTTP/2, gRPC are all considered as HTTP requests.
-// [#next-free-field: 12]
 type AttributeContext_HttpRequest struct {
 	// The unique ID for a request, which can be propagated to downstream
 	// systems. The ID should have low probability of collision
@@ -298,7 +285,7 @@ type AttributeContext_HttpRequest struct {
 	Method string `protobuf:"bytes,2,opt,name=method,proto3" json:"method,omitempty"`
 	// The HTTP request headers. If multiple headers share the same key, they
 	// must be merged according to the HTTP spec. All header keys must be
-	// lower-cased, because HTTP header keys are case-insensitive.
+	// lowercased, because HTTP header keys are case-insensitive.
 	Headers map[string]string `protobuf:"bytes,3,rep,name=headers,proto3" json:"headers,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
 	// The request target, as it appears in the first line of the HTTP request. This includes
 	// the URL path and query-string. No decoding is performed.

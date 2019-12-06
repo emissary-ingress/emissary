@@ -24,7 +24,7 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-// [#next-free-field: 6]
+// [#proto-status: experimental]
 type Squash struct {
 	// The name of the cluster that hosts the Squash server.
 	Cluster string `protobuf:"bytes,1,opt,name=cluster,proto3" json:"cluster,omitempty"`
