@@ -24,6 +24,7 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/go-acme/lego/v3/acme"
 	"github.com/mediocregopher/radix.v2/pool"
+	"github.com/mholt/certmagic"
 	"github.com/pkg/errors"
 
 	k8sSchema "k8s.io/apimachinery/pkg/runtime/schema"
@@ -305,6 +306,14 @@ func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 		io.WriteString(w, tosURL)
+	case "/edge_stack/api/acme-host-qualifies":
+		if !fb.isAuthorized(r) {
+			fb.forbidden(w, r)
+			return
+		}
+		fb.registerActivity(w, r)
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		json.NewEncoder(w).Encode(certmagic.HostQualifies(r.FormValue("hostname")))
 	case "/edge_stack/api/config/ambassador-cluster-id":
 		// no authentication for this one
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")

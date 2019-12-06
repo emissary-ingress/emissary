@@ -25,10 +25,9 @@ export class SingleHost extends SingleResource {
   spec() {
     return {
       hostname: this.hostname().value,
-      acmeProvider: {
-        authority: this.provider().value,
-        email: this.email().value
-      }
+      acmeProvider: this.useAcme()
+        ? { authority: this.provider().value, email: this.email().value }
+        : { authority: "none" }
     }
   }
 
@@ -47,7 +46,8 @@ export class SingleHost extends SingleResource {
      * of whether the Terms of Service have been agreed to or not.
      */
     this.tos_agree().checked = false;
-    this.state.show_tos = false
+    this.state.show_tos = false;
+    this.hostnameChanged();
   }
 
   validate() {
@@ -58,26 +58,32 @@ export class SingleHost extends SingleResource {
      * then we assume that they have already agreed, or (ii) if we are
      * showing the TOS, then the checkbox needs to be checked.
      */
-    if (this.isTOSshowing() && !this.tos_agree().checked) {
-      this.state.messages.push("You must agree to terms of service")
-    }
-    /*
-     * We validate that the user has provided a plausible looking
-     * email address. In the future, we should actually validate that
-     * it's a real email address using something like
-     * https://www.textmagic.com/free-tools/email-validation-tool
-     * with an appropriate fallback if we are unable to reach
-     * outside the firewall (if we can't reach the outside system,
-     * then use simple pattern matching).
-     */
-    var emailFormat = /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(.\w{2,3})+$/;
-    if (!this.email().value.match(emailFormat)) {
-      this.state.messages.push("That doesn't look like a valid email address")
+    if (this.useAcme()) {
+      if (this.isTOSshowing() && !this.tos_agree().checked) {
+        this.state.messages.push("You must agree to terms of service")
+      }
+      /*
+       * We validate that the user has provided a plausible looking
+       * email address. In the future, we should actually validate that
+       * it's a real email address using something like
+       * https://www.textmagic.com/free-tools/email-validation-tool
+       * with an appropriate fallback if we are unable to reach
+       * outside the firewall (if we can't reach the outside system,
+       * then use simple pattern matching).
+       */
+      var emailFormat = /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(.\w{2,3})+$/;
+      if (!this.email().value.match(emailFormat)) {
+        this.state.messages.push("That doesn't look like a valid email address")
+      }
     }
   }
 
   hostname() {
     return this.shadowRoot.querySelector('input[name="hostname"]')
+  }
+
+  use_acme_element() {
+    return this.shadowRoot.querySelector('input[name="use_acme"]')
   }
 
   provider() {
@@ -93,7 +99,27 @@ export class SingleHost extends SingleResource {
   }
 
   firstUpdated(e) {
+    this.hostnameChanged();
     this.providerChanged(false)
+  }
+
+  useAcme() {
+    return (this.use_acme_element()||{checked:false}).checked;
+  }
+
+  hostnameChanged() {
+    let url = new URL('/edge_stack/api/acme-host-qualifies', window.location);
+    url.searchParams.set('hostname', this.hostname().value);
+    ApiFetch(url, {
+      headers: new Headers({
+        'Authorization': 'Bearer ' + getCookie("edge_stack_auth")
+      })
+    })
+      .then(r=>{
+        r.json().then(qualifies=>{
+          this.use_acme_element().checked = qualifies;
+        })
+      })
   }
 
   providerChanged(userEdit) {
@@ -135,7 +161,7 @@ export class SingleHost extends SingleResource {
   }
 
   isTOSshowing() {
-    return this.state.show_tos || this.state.mode === "add";
+    return (this.state.show_tos || this.state.mode === "add") && this.useAcme();
   }
 
   renderResource() {
@@ -147,6 +173,7 @@ export class SingleHost extends SingleResource {
 
     let state = this.state;
     let tos = this.isTOSshowing() ? "attribute-value" : "off";
+    let editing = state.mode === "add" || state.mode === "edit";
 
     return html`
   <div class="attribute-name">hostname:</div>
@@ -155,29 +182,38 @@ export class SingleHost extends SingleResource {
     <input class="${this.visible("edit", "add")}" type="text" name="hostname"  value="${spec.hostname}" />
   </div>
 
-  <div class="attribute-name">acme provider:</div>
-  <div class="attribute-value">
-    <span class="${this.visible("list")}">${spec.acmeProvider.authority}</span>
-    <input
-      class="${this.visible("edit", "add")}"
-      type="url"
-      size="60"
-      name="provider"
-      value="${spec.acmeProvider.authority}"
-      @change=${()=>this.providerChanged(true)}
-    />
-  </div>
+  <fieldset class="frame">
+    <legend><label><input type="checkbox"
+      name="use_acme"
+      ?disabled="${!editing}"
+      ?checked="${spec.acmeProvider.authority!=="none"}"
+    /> Use ACME to manage TLS</label></legend>
 
-  <div class="${tos}">
-    <input type="checkbox" name="tos_agree" />
-    <span>I have agreed to to the Terms of Service at: ${this.tos}</span>
-  </div>
+    <div class="attribute-name">acme provider:</div>
+    <div class="attribute-value">
+      <span class="${this.visible("list")}">${spec.acmeProvider.authority}</span>
+      <input
+        class="${this.visible("edit", "add")}"
+        type="url"
+        size="60"
+        name="provider"
+        value="${spec.acmeProvider.authority}"
+        @change=${()=>this.providerChanged(true)}
+        ?disabled="${!this.useAcme()}"
+      />
+    </div>
 
-  <div class="attribute-name">email:</div>
-  <div class="attribute-value">
-    <span class="${this.visible("list")}">${spec.acmeProvider.email}</span>
-    <input class="${this.visible("edit", "add")}" type="email" name="email" value="${spec.acmeProvider.email}" />
-  </div>
+    <div class="${tos}">
+      <input type="checkbox" name="tos_agree" ?disabled="${!this.useAcme()}" />
+      <span>I have agreed to to the Terms of Service at: ${this.tos}</span>
+    </div>
+
+    <div class="attribute-name">email:</div>
+    <div class="attribute-value">
+      <span class="${this.visible("list")}">${spec.acmeProvider.email}</span>
+      <input class="${this.visible("edit", "add")}" type="email" name="email" value="${spec.acmeProvider.email}" ?disabled="${!this.useAcme()}" />
+    </div>
+  </fieldset>
 
   <div class="attribute-name ${this.visible("list", "edit")}">status:</div>
   <div class="attribute-value ${this.visible("list", "edit")}">
