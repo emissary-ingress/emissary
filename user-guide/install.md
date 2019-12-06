@@ -83,7 +83,7 @@ To secure your application with HTTPS, you must first add a Host to your Ambassa
 
 **To do so:**
 
-1. From the left menu, go to the **Hosts** tab and then click the **(+)** button on the right.
+1. Navigate to your Edge Policy Console. From the left menu, go to the **Hosts** tab and then click the **(+)** button on the right.
 2. A configuration table appears with your IP address prepopulated in the “Resource” field. You can change this, but we recommend using your hostname in this field.
 
 * Note: If you want to use automatic TLS during this section, your host must be an FQDN. Otherwise, you will see an error message indicating that your host does not qualify for the ACME Certificate. You can continue without TLS configuration.

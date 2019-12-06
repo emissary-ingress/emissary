@@ -93,10 +93,64 @@ labels:
           omit_if_not_present: true
 ```
 
+so the Mapping definition will now look like this:
+
+```yaml
+---
+apiVersion: getambassador.io/v1
+kind: Mapping
+metadata:
+  name: service-backend
+spec:
+  prefix: /backend/
+  service: tour:8080
+  labels:
+    ambassador:    
+      - request_label_group:      
+        - x-ambassador-test-allow:        
+          header: "x-ambassador-test-allow"
+          omit_if_not_present: true
+```
+
 ### v0 API
 
 Ambassador versions 0.40.2 and earlier use the `v0` API version which uses the `rate_limits` attribute to set rate limiting descriptors. Review the [rate_limits mapping attribute configuration documentation](/reference/rate-limits#the-rate_limits-attribute) for more information.
 
+```yaml
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tour
+  annotations:
+    getambassador.io/config: |
+      ---
+      apiVersion: ambassador/v0
+      kind: Mapping
+      name: backend-service_mapping
+      prefix: /
+      service: backend:5000
+      ---
+      apiVersion: ambassador/v0
+      kind: Mapping
+      name: backend-example_mapping
+      prefix: /backend/
+      service: example:8080
+      rate_limits:
+        - descriptor: A test case
+          headers:
+            - "x-ambassador-test-allow"
+spec:
+  ports:
+  - name: ui
+    port: 5000
+    targetPort: 5000
+  - name: backend
+    port: 8080
+    targetPort: 8080
+  selector:
+    app: backend
+```
 
 This configuration tells the Ambassador Edge Stack about the rate limit rules to apply, notably that it needs the `x-ambassador-test-allow` header, and that it should set "A test case" as the `generic_key` descriptor when performing the gRPC request.
 

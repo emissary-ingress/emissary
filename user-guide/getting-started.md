@@ -1,15 +1,15 @@
-# Getting Started with the Ambassador Edge Stack 
+# Getting Started with the Ambassador Edge Stack
 
-The Ambassador Edge Stack is a comprehensive, self-service edge stack for Kubernetes, allowing you to control application traffic to your services with a declarative policy engine, and provide frictionless authentication, access control, and rate limiting to your application and services.
+The Ambassador Edge Stack is a comprehensive, self-service edge stack for Kubernetes. It allows you to control application traffic to your services with a declarative policy engine, and provides frictionless authentication, access control, and rate limiting to your application and services
 
 You’ll also be able to rapidly onboard developers to your application, and easily manage the Ambassador Edge Stack via its administrative interface, the Edge Policy Console.
 
 To start taking advantage of the Ambassador Edge Stack, we recommend the following:
 
 1. [Install the Ambassador Edge Stack](/user-guide/install) in a matter of minutes
-2. [Browse features for comprehensive](/user-guide/getting-started#browse-through-features) product use
-3. [Review Concepts and Tutorials](/user-guide/getting-started#review-concepts-and-tutorials) for maximum value
-4. [Explore Advanced Options](/user-guide/getting-started#explore-advanced-options)
+2. [Browse the features list](/user-guide/getting-started#browse-through-features) to learn about all of the capabilities
+3. [Review Concepts and Tutorials](/user-guide/getting-started#review-concepts-and-tutorials) to get the most out of the Ambassador Edge Stack. 
+4. [Explore Advanced Options](/user-guide/getting-started#explore-advanced-options) to continue learning
 
 [Learn about Ambassador](/about/why-ambassador) and what else you can do with it.
 
@@ -17,9 +17,14 @@ PS: Need help or have something to tell us? Check out our [support pages](/about
 
 ## Install the Ambassador Edge Stack
 
-The Ambassador Edge Stack (community version) is free and available for you to download [here](/user-guide/install). You can also choose to deploy the [Ambassador API Gateway](/user-guide/install-ambassador-oss) instead.
+The Ambassador Edge Stack (community edition) is free and available for you to download [here](/user-guide/install). Check out [recommendations](/user-guide/product-requirements) for the best experience using the administrative interface, the [Edge Policy Console](/reference/dev-portal).
 
-Check out [recommendations](/user-guide/product-requirements) for the best experience using the administrative interface, the [Edge Policy Console](/reference/dev-portal).
+### Other Install Options
+
+You can use [Docker](/about/quickstart) deploy the Ambassador Edge Stack.
+
+You can also choose to deploy the [Ambassador API Gateway](/user-guide/install-ambassador-oss) instead.
+
 
 ## Browse Through Features
 
