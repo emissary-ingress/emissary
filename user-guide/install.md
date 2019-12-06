@@ -71,7 +71,9 @@ Use any of the URLs listed next to `ambassador` to access the Ambassador Edge St
 
 3. Once you have an IP address, navigate to it in your browser. Optionally assign a DNS name to your IP address from step 2 using a provider of your choice, such as gandi.net. Or, continue using the IP address instead.
 
-4. Navigate to `http://<your-host-name>/` or `http://<your-IP-address>` and click through the certificate warning for access to the instructions.
+4. Navigate to `http://<your-host-name>/` or `http://<your-IP-address>` and click through the certificate warning for access to the instructions. 
+    * Chrome users should click **Advanced > Proceed to website**. 
+    * Safari users should click **Show details > visit the website** and provide your password.
 
 5. Follow the instructions to install the `edgectl` executable file.
 
