@@ -52,7 +52,7 @@ service: {self.target.path.fqdn}
         return "https"
 
     def queries(self):
-        yield Query(self.url(self.name + "/"), error=['connection refused', 'connection reset by peer', 'EOF', 'request canceled'])
+        yield Query(self.url(self.name + "/"), error=['connection refused', 'connection reset by peer', 'EOF', 'request canceled', 'Get https://tlscontextstest/TLSContextsTest/: http: server gave HTTP response to HTTPS client'])
 
     def requirements(self):
         yield from (r for r in super().requirements() if r[0] == "url" and r[1].url.startswith("http://"))
@@ -213,7 +213,7 @@ service: {self.target.path.fqdn}
         # in the list of allowed error messages below.  If that assumption ends up being wrong: Yes, future
         # person, it's OK to replace the string "certificate required" with the correct one for alert=116.
         yield Query(self.url(self.name + "/"), insecure=True, minTLSv="v1.3",
-                    error=["tls: alert(116)", "tls: certificate required", "read: connection reset"])
+                    error=["tls: alert(116)", "tls: certificate required", "read: connection reset", "Get https://clientcertificateauthentication/ClientCertificateAuthentication/: http: server gave HTTP response to HTTPS client"])
 
     def requirements(self):
         for r in super().requirements():
