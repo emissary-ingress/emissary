@@ -459,9 +459,10 @@ func runE(cmd *cobra.Command, args []string) error {
 			rateLimitScope := statsStore.Scope("ratelimit")
 			rateLimitService := lyftservice.NewService(
 				loader.New(
-					cfg.RLSRuntimeDir,                                        // runtime path
-					cfg.RLSRuntimeSubdir,                                     // runtime subdirectory
-					rateLimitScope.Scope("runtime"),                          // stats scope
+					cfg.RLSRuntimeDir,               // runtime path
+					cfg.RLSRuntimeSubdir,            // runtime subdirectory
+					rateLimitScope.Scope("runtime"), // stats scope
+					// empty line here because different versions of gofmt disagree :(
 					&loader.SymlinkRefresher{RuntimePath: cfg.RLSRuntimeDir}, // refresher
 				),
 				lyftredis.NewRateLimitCacheImpl(

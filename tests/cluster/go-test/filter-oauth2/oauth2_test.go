@@ -8,6 +8,8 @@ import (
 	"net/url"
 	"testing"
 
+	jwt "github.com/dgrijalva/jwt-go"
+
 	"github.com/datawire/apro/lib/testutil"
 )
 
@@ -52,8 +54,31 @@ func (tc testcase) Run(t *testing.T) {
 
 func TestInsteadOfRedirect(t *testing.T) {
 	t.Parallel()
-	urlAny := urlMust(url.Parse("https://ambassador.ambassador.svc.cluster.local/auth0/httpbin/headers"))
-	urlXHR := urlMust(url.Parse("https://ambassador.ambassador.svc.cluster.local/auth0-k8s/httpbin/headers"))
+	assert := &testutil.Assert{T: t}
+
+	urlAny := urlMust(url.Parse("https://ambassador.ambassador.svc.cluster.local/oauth2-auth0-nojwt-and-anyerror/headers"))
+	urlXHR := urlMust(url.Parse("https://ambassador.ambassador.svc.cluster.local/oauth2-auth0-nojwt-and-k8ssecret-and-xhrerror/headers"))
+	urlJWT := urlMust(url.Parse("https://ambassador.ambassador.svc.cluster.local/oauth2-auth0-complexjwt/headers"))
+
+	insufficientToken, err := jwt.NewWithClaims(jwt.GetSigningMethod("none"), jwt.MapClaims{
+		"sub":   "1234567890",
+		"name":  "John Doe",
+		"aud":   "urn:datawire:ambassador:testapi",
+		"iat":   1516239022,
+		"exp":   1616239022,
+		"scope": "",
+	}).SignedString(jwt.UnsafeAllowNoneSignatureType)
+	assert.NotError(err)
+
+	validToken, err := jwt.NewWithClaims(jwt.GetSigningMethod("none"), jwt.MapClaims{
+		"sub":   "1234567890",
+		"name":  "John Doe",
+		"aud":   "urn:datawire:ambassador:testapi",
+		"iat":   1516239022,
+		"exp":   1616239022,
+		"scope": "openid",
+	}).SignedString(jwt.UnsafeAllowNoneSignatureType)
+	assert.NotError(err)
 
 	testcases := map[string]testcase{
 		"anyNone":  {URL: urlAny, Header: nil, ExpectedStatus: http.StatusSeeOther},
@@ -65,6 +90,13 @@ func TestInsteadOfRedirect(t *testing.T) {
 		"xhrEmpty": {URL: urlXHR, Header: http.Header{"X-Requested-With": {""}}, ExpectedStatus: http.StatusSeeOther},
 		"xhrXHR":   {URL: urlXHR, Header: http.Header{"X-Requested-With": {"XMLHttpRequest"}}, ExpectedStatus: http.StatusUnauthorized},
 		"xhrOther": {URL: urlXHR, Header: http.Header{"X-Requested-With": {"frob"}}, ExpectedStatus: http.StatusSeeOther},
+
+		"jwtNone":         {URL: urlJWT, Header: nil, ExpectedStatus: http.StatusSeeOther},
+		"jwtEmpty":        {URL: urlJWT, Header: http.Header{"X-Requested-With": {""}}, ExpectedStatus: http.StatusSeeOther},
+		"jwtXHR":          {URL: urlJWT, Header: http.Header{"X-Requested-With": {"XMLHttpRequest"}}, ExpectedStatus: http.StatusUnauthorized},
+		"jwtOther":        {URL: urlJWT, Header: http.Header{"X-Requested-With": {"frob"}}, ExpectedStatus: http.StatusUnauthorized},
+		"jwtValid":        {URL: urlJWT, Header: http.Header{"X-Requested-With": {"frob"}, "Authorization": {"Bearer " + validToken}}, ExpectedStatus: http.StatusOK},
+		"jwtInsufficient": {URL: urlJWT, Header: http.Header{"X-Requested-With": {"frob"}, "Authorization": {"Bearer " + insufficientToken}}, ExpectedStatus: http.StatusForbidden},
 	}
 
 	for tcName, tc := range testcases {

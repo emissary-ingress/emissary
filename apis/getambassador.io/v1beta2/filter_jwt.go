@@ -1,11 +1,8 @@
 package v1
 
 import (
-	"bytes"
 	"crypto/tls"
-	"encoding/json"
 	"net/url"
-	"text/template"
 
 	"github.com/pkg/errors"
 )
@@ -52,7 +49,7 @@ type FilterJWT struct {
 	RequireExpiresAt bool `json:"requireExpiresAt"`
 	RequireNotBefore bool `json:"requireNotBefore"`
 
-	InjectRequestHeaders []JWTHeaderField `json:"injectRequestHeaders"`
+	InjectRequestHeaders []HeaderFieldTemplate `json:"injectRequestHeaders"`
 
 	InsecureTLS       bool                     `json:"insecureTLS"`
 	RawRenegotiateTLS string                   `json:"renegotiateTLS"`
@@ -61,21 +58,7 @@ type FilterJWT struct {
 	ErrorResponse ErrorResponse `json:"errorResponse"`
 }
 
-type JWTHeaderField struct {
-	Name     string             `json:"name"`
-	Value    string             `json:"value"`
-	Template *template.Template `json:"-"`
-}
-
-type ErrorResponse struct {
-	ContentType string           `json:"contentType"`
-	Headers     []JWTHeaderField `json:"headers"`
-
-	RawBodyTemplate string             `json:"bodyTemplate"`
-	BodyTemplate    *template.Template `json:"-"`
-}
-
-func (m *FilterJWT) Validate() error {
+func (m *FilterJWT) Validate(qname string) error {
 	if m.RawJSONWebKeySetURI == "" {
 		if !(len(m.ValidAlgorithms) == 1 && m.ValidAlgorithms[0] == "none") {
 			return errors.New("jwksURI is required unless validAlgorithms=[\"none\"]")
@@ -109,70 +92,15 @@ func (m *FilterJWT) Validate() error {
 		return errors.Errorf("invalid renegotiateTLS: %q", m.RawRenegotiateTLS)
 	}
 
-	if err := m.ErrorResponse.Validate(); err != nil {
+	if err := m.ErrorResponse.Validate(qname); err != nil {
 		return errors.Wrap(err, "errorResponse")
 	}
 
 	return nil
 }
 
-func (er *ErrorResponse) Validate() error {
-	// Handle deprecated .ContentType
-	if er.ContentType != "" {
-		er.Headers = append(er.Headers, JWTHeaderField{
-			Name:  "Content-Type",
-			Value: er.ContentType,
-		})
-	}
+//////////////////////////////////////////////////////////////////////
 
-	// Fill defaults
-	if len(er.Headers) == 0 {
-		er.Headers = append(er.Headers, JWTHeaderField{
-			Name:  "Content-Type",
-			Value: "application/json",
-		})
-	}
-	if er.RawBodyTemplate == "" {
-		er.RawBodyTemplate = `{{ . | json "" }}`
-	}
-
-	// Parse+validate the header-field templates
-	for i := range er.Headers {
-		hf := &(er.Headers[i])
-		if err := hf.Validate(); err != nil {
-			return errors.Wrap(err, "headers")
-		}
-	}
-	// Parse+validate the bodyTemplate
-	tmpl, err := template.
-		New("bodyTemplate").
-		Funcs(template.FuncMap{
-			"json": func(prefix string, data interface{}) (string, error) {
-				nonIdentedJSON, err := json.Marshal(data)
-				if err != nil {
-					return "", err
-				}
-				var indentedJSON bytes.Buffer
-				if err := json.Indent(&indentedJSON, nonIdentedJSON, prefix, "\t"); err != nil {
-					return "", err
-				}
-				return indentedJSON.String(), nil
-			},
-		}).
-		Parse(er.RawBodyTemplate)
-	if err != nil {
-		return errors.Wrap(err, "parsing template for bodyTemplate")
-	}
-	er.BodyTemplate = tmpl
-
-	return nil
-}
-
-func (hf *JWTHeaderField) Validate() error {
-	tmpl, err := template.New(hf.Name).Parse(hf.Value)
-	if err != nil {
-		return errors.Wrapf(err, "parsing template for header %q", hf.Name)
-	}
-	hf.Template = tmpl
-	return nil
+type FilterJWTArguments struct {
+	Scope []string `json:"scope"`
 }
