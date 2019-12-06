@@ -42,6 +42,7 @@ dpath.util.merge(deployment, {
         'replicas': 1,
         'template': {
             'spec': {
+				'imagePullSecrets': [ { 'name': 'aes-pull-secret' } ],
                 'terminationGracePeriodSeconds': 0,
                 'volumes': [
                     { 'name': 'ambassador-edge-stack-secrets',
