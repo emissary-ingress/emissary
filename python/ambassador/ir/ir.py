@@ -35,7 +35,7 @@ from .irfilter import IRFilter
 from .ircluster import IRCluster
 from .irbasemappinggroup import IRBaseMappingGroup
 from .irbasemapping import IRBaseMapping
-from .irhost import HostFactory
+from .irhost import IRHost, HostFactory
 from .irmappingfactory import MappingFactory
 from .irratelimit import IRRateLimit
 from .irtls import TLSModuleFactory, IRAmbassadorTLS
@@ -67,6 +67,7 @@ class IR:
     filters: List[IRFilter]
     groups: Dict[str, IRBaseMappingGroup]
     grpc_services: Dict[str, IRCluster]
+    hosts: Dict[str, IRHost]
     listeners: List[IRListener]
     log_services: Dict[str, IRLogService]
     ratelimit: Optional[IRRateLimit]
@@ -131,6 +132,7 @@ class IR:
         self.filters = []
         self.groups = {}
         self.grpc_services = {}
+        self.hosts = {}
         # self.k8s_status_updates is handled below.
         self.listeners = []
         self.log_services = {}
@@ -298,6 +300,21 @@ class IR:
             self.saved_resources[resource.rkey] = resource
 
         return resource
+
+    def save_host(self, host: IRHost) -> None:
+        extant_host = self.hosts.get(host.name, None)
+        is_valid = True
+
+        if extant_host:
+            self.post_error("Duplicate Host %s; keeping definition from %s" % (host.name, extant_host.location))
+            is_valid = False
+
+        if is_valid:
+            self.hosts[host.name] = host
+
+    # Get saved hosts.
+    def get_hosts(self) -> List[IRHost]:
+        return list(self.hosts.values())
 
     # Save secrets from our aconf.
     def save_secret_info(self, aconf):
@@ -630,6 +647,7 @@ class IR:
                           for cluster_name, cluster in self.clusters.items() },
             'grpc_services': { svc_name: cluster.as_dict()
                                for svc_name, cluster in self.grpc_services.items() },
+            'hosts': [ host.as_dict() for host in self.hosts.values() ],
             'listeners': [ listener.as_dict() for listener in self.listeners ],
             'filters': [ filt.as_dict() for filt in self.filters ],
             'groups': [ group.as_dict() for group in self.ordered_groups() ],

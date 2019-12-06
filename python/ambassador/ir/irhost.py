@@ -15,6 +15,7 @@ class IRHost(IRResource):
         'hostname',
         'selector',
         'tlsSecret',
+        'matchLabels'
     }
 
     def __init__(self, ir: 'IR', aconf: Config,
@@ -54,35 +55,48 @@ class IRHost(IRResource):
 
                 if tls_ss:
                     # OK, we have a TLS secret! Fire up a TLS context for it, if one doesn't
-                    # already exist.
+                    # already exist, and if the ACME provider isn't set to "none".
 
-                    ctx_name = f"{self.name}-context"
+                    acme = self.get("acmeProvider") or None
 
-                    if ir.has_tls_context(ctx_name):
-                        ir.logger.info(f"Host {self.name}: TLSContext {ctx_name} already exists")
-                    else:
-                        ir.logger.info(f"Host {self.name}: creating TLSContext {ctx_name}")
+                    if not acme:
+                        acme = self.get("acme_provider") or {}
 
-                        ctx = IRTLSContext(ir, aconf,
-                                           rkey=self.rkey,
-                                           name=ctx_name,
-                                           namespace=self.namespace,
-                                           location=self.location,
-                                           hosts=[ self.hostname ],
-                                           secret=tls_name)
+                    acme_authority = acme.get('authority') or 'none'
 
-                        metadata_labels = self.get('match_labels', None)
+                    if acme_authority.lower() != "none":
+                        ctx_name = f"{self.name}-context"
 
-                        if metadata_labels:
-                            ctx['metadata_labels'] = metadata_labels
-
-                        if ctx.is_active():
-                            ctx.referenced_by(self)
-                            ctx.sourced_by(self)
-
-                            ir.save_tls_context(ctx)
+                        if ir.has_tls_context(ctx_name):
+                            ir.logger.info(f"Host {self.name}: TLSContext {ctx_name} already exists")
                         else:
-                            ir.logger.error(f"Host {self.name}: new TLSContext {ctx_name} is not valid")
+                            ir.logger.info(f"Host {self.name}: creating TLSContext {ctx_name}")
+
+                            ctx = IRTLSContext(ir, aconf,
+                                               rkey=self.rkey,
+                                               name=ctx_name,
+                                               namespace=self.namespace,
+                                               location=self.location,
+                                               hosts=[ self.hostname ],
+                                               secret=tls_name)
+
+                            match_labels = self.get('matchLabels')
+
+                            if not match_labels:
+                                match_labels = self.get('match_labels')
+
+                            if match_labels:
+                                ctx['metadata_labels'] = match_labels
+
+                            if ctx.is_active():
+                                ctx.referenced_by(self)
+                                ctx.sourced_by(self)
+
+                                ir.save_tls_context(ctx)
+                            else:
+                                ir.logger.error(f"Host {self.name}: new TLSContext {ctx_name} is not valid")
+                    else:
+                        ir.logger.info(f"Host {self.name}: not creating TLSContext since ACME authority is none")
                 else:
                     ir.logger.error(f"Host {self.name}: continuing with invalid TLS secret {tls_name}")
                     return False
@@ -129,4 +143,4 @@ class HostFactory:
                     host.referenced_by(config)
                     host.sourced_by(config)
 
-                    ir.save_resource(host)
+                    ir.save_host(host)

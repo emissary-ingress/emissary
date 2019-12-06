@@ -118,6 +118,29 @@ class FakeIR(IR):
         return resource
 
 
+# Watch management
+
+consul_watches = []
+kube_watches = []
+
+
+def add_kube_watch(what: str, kind: str, namespace: Optional[str],
+                   field_selector: Optional[str]=None, label_selector: Optional[str]=None) -> None:
+    watch = { "kind": kind }
+
+    if namespace:
+        watch["namespace"] = namespace
+
+    if field_selector:
+        watch["field-selector"] = field_selector
+
+    if label_selector:
+        watch["label-selector"] = label_selector
+
+    logger.debug(f"{what}: add watch {watch}")
+    kube_watches.append(watch)
+
+
 #### Mainline.
 
 yaml_stream = sys.stdin
@@ -146,13 +169,24 @@ logger.debug(f'mappings: {len(mappings)}')
 logger.debug(f'resolvers: {len(resolvers)}')
 logger.debug(f'contexts: {len(contexts)}')
 
-consul_watches = []
-kube_watches = []
-
 global_resolver = fake.ambassador_module.get('resolver', None)
 
-label_selector = os.environ.get('AMBASSADOR_LABEL_SELECTOR', '')
-logger.debug('label-selector: %s' % label_selector)
+global_label_selector = os.environ.get('AMBASSADOR_LABEL_SELECTOR', '')
+logger.debug('label-selector: %s' % global_label_selector)
+
+# Walk hosts.
+for host in fake.get_hosts():
+    sel = host.get('selector') or {}
+    match_labels = sel.get('matchLabels') or {}
+
+    label_selector = None
+
+    if match_labels:
+        label_selector = ','.join([ f"{l}={v}" for l, v in match_labels.items() ])
+
+    for wanted_kind in [ 'service', 'secret' ]:
+        add_kube_watch(f"Host {host.name}", wanted_kind, host.namespace,
+                       label_selector=label_selector)
 
 for mname, mapping in mappings.items():
     res_name = mapping.get('resolver', None)
@@ -201,34 +235,17 @@ for mname, mapping in mappings.items():
 
                 logger.debug(f'...kube endpoints: svc {svc.hostname} -> host {host} namespace {namespace}')
 
-                kube_watches.append(
-                    {
-                        "kind": "endpoints",
-                        "namespace": namespace,
-                        "label-selector": label_selector,
-                        "field-selector": f'metadata.name={host}'
-                    }
-                )
+                add_kube_watch(f"endpoint", "endpoints", namespace,
+                               label_selector=global_label_selector, field_selector=f"metadata.name={host}")
 
 for secret_key, secret_info in fake.secret_recorder.needed.items():
     logger.debug(f'need secret {secret_info.name}.{secret_info.namespace}')
 
-    kube_watches.append(
-        {
-            "kind": "secret",
-            "namespace": secret_info.namespace,
-            "label-selector": label_selector,
-            "field-selector": f'metadata.name={secret_info.name}'
-        }
-    )
+    add_kube_watch(f"needed secret", "secret", secret_info.namespace, field_selector=f"metadata.name={secret_info.name}")
 
-# kube_watches.append(
-#     {
-#         "kind": "secret",
-#         "namespace": Config.ambassador_namespace if Config.single_namespace else "",
-#         "field-selector": "metadata.namespace!=kube-system,type!=kubernetes.io/service-account-token"
-#     }
-# )
+if fake.edge_stack_allowed:
+    # If the edge stack is allowed, make sure we watch for our fallback context.
+    add_kube_watch("Fallback TLSContext", "TLSContext", namespace=Config.ambassador_namespace)
 
 if ambassador_knative_requested:
     logger.debug('Looking for Knative support...')
@@ -239,24 +256,13 @@ if ambassador_knative_requested:
         # Watch for clusteringresses.networking.internal.knative.dev in any namespace and with any labels.
 
         logger.debug('watching for clusteringresses.networking.internal.knative.dev')
-        kube_watches.append(
-            {
-                'kind': 'clusteringresses.networking.internal.knative.dev',
-                'namespace': ''
-            }
-        )
+        add_kube_watch("Knative clusteringresses", "clusteringresses.networking.internal.knative.dev", None)
 
     if os.path.exists(os.path.join(ambassador_basedir, '.knative_ingress_ok')):
         # Watch for ingresses.networking.internal.knative.dev in any namespace and
         # with any labels.
 
-        logger.debug('watching for ingresses.networking.internal.knative.dev')
-        kube_watches.append(
-            {
-                'kind': 'ingresses.networking.internal.knative.dev',
-                'namespace': ''
-            }
-        )
+        add_kube_watch("Knative ingresses", "ingresses.networking.internal.knative.dev", None)
 
 watchset = {
     "kubernetes-watches": kube_watches,

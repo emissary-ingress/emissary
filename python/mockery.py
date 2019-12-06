@@ -126,7 +126,7 @@ class WatchSpec:
         kind: Optional[str] = obj.get('kind') or None
         metadata: Optional[Dict[str, Any]] = obj.get('metadata') or {}
         name: Optional[str] = metadata.get('name') or None
-        namespace: Optional[str] = metadata.get('namespace') or None
+        namespace: Optional[str] = metadata.get('namespace') or 'default'
         labels: Optional[Dict[str, str]] = metadata.get('labels') or {}
 
         if not kind or not name:
@@ -204,6 +204,7 @@ class Mockery:
         return True
 
     def load(self, manifest: KubeList) -> WattDict:
+        collected: Dict[str, Dict[str, KubeResource]] = {}
         watt_k8s: WattDict = {}
 
         self.logger.info("LOADING:")
@@ -212,11 +213,29 @@ class Mockery:
             self.logger.debug(f"{repr(spec)}")
 
         for obj in manifest:
+            metadata = obj.get('metadata') or {}
+            name = metadata.get('name')
+
+            if not name:
+                self.logger.debug(f"skipping unnamed object {obj}")
+                continue
+
+            # self.logger.debug(f"consider {obj}")
+
             for w in self.watch_specs.values():
                 m = w.match(obj)
 
                 if m:
-                    watt_k8s.setdefault(m.kind, []).append(obj)
+                    by_type = collected.setdefault(m.kind, {})
+
+                    # If we already have this object's name in the collection,
+                    # this is a duplicate find.
+                    if name not in by_type:
+                        by_type[name] = obj
+
+        # Once that's all done, flatten everything.
+        for kind in collected.keys():
+            watt_k8s[kind] = list(collected[kind].values())
 
         return watt_k8s
 
