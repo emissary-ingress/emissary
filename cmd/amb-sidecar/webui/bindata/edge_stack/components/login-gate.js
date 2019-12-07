@@ -359,7 +359,7 @@ img#linuxLogo {
   renderUnauthenticated() {
     return html`
   <div class="login-section">
-    <h1 class="info-title">Welcome to Ambassador Edge Stack</h1>
+    <h1 class="info-title">Welcome to the Ambassador Edge Stack</h1>
     <p class="login-downloadText">
     </p>
    
