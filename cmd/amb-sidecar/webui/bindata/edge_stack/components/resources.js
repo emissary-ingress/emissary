@@ -139,7 +139,7 @@ div.frame, fieldset.frame {
   padding-bottom: 0.2em;
 }
 div.frame fieldset.frame {
-  grid-column: 1 / 11;
+  grid-column: 1 / 10;
 }
 div.frame fieldset.frame div.inner-grid {
   display: grid;
