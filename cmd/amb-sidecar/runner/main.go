@@ -409,6 +409,8 @@ func runE(cmd *cobra.Command, args []string) error {
 				err = errors.Wrap(err, "create fallback TLSContext and TLS Secret")
 				l.Errorln(err)
 				// this is non fatal (mostly just to facilitate local dev); don't `return err`
+			} else {
+				l.Debugln("Created fallback TLS configuration")
 			}
 		} else {
 			l.Debugln("Not creating fallback TLS configuration because", reason)
