@@ -75,7 +75,7 @@ apiVersion: getambassador.io/v1
 kind: TLSContext
 metadata:
   name: fallback-self-signed-context
-  namespace: -automatic-
+  namespace: _automatic_
   labels:
     product: aes
     ambassador_diag_class: private
