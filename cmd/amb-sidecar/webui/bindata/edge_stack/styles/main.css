@@ -1,4 +1,3 @@
-/*
 * {
 	margin: 0;
 	padding: 0;
@@ -9,27 +8,7 @@
 
 html {
 	-ms-text-size-adjust: 100%;
-	-webkit-text-size-adjust: 100%
-}
-
-body, html {
-	height: 100%;
-	color: #000;
-	font-family: 'Source Sans Pro', sans-serif;
-	font-size: 16px;
-	background: #000;
-	-webkit-font-smoothing: antialiased
-}
-
-body, figure {
-	margin: 0
-}
-
-*, textarea {
-	vertical-align: top
-}
-*/
-:root {
+	-webkit-text-size-adjust: 100%;
 	--dw-purple: #5F3EFF;
 	--dw-item-background-fill: #fdfaff;
 	--dw-item-background-hover: #ede7f3;
@@ -37,11 +16,50 @@ body, figure {
 	--dw-orange: #FF4329;
 }
 
-body {
-	font-family: Source Sans Pro, sans-serif;
-	margin-left: 2em;
-	margin-right: 2em;
+body, html {
+	height: 100%;
+	color: #000;
+	font-family: 'Source Sans Pro', sans-serif;
+	font-size: 16px;
+	background: #fff;
+	-webkit-font-smoothing: antialiased
 }
+
+body, figure {
+	margin: 0
+}
+
+.alpha .col_left .logo, body, html, navigation a, navigation a .label, navigation a .label .icon {
+	display: -webkit-flex;
+	display: -ms-flexbox;
+	display: flex;
+	-webkit-justify-content: center;
+	-ms-flex-pack: center;
+	justify-content: center
+}
+
+*, textarea {
+	vertical-align: top
+}
+
+.alpha, .alpha .col_left, .alpha .col_right {
+	display: -webkit-flex;
+	display: -ms-flexbox;
+	display: flex
+}
+
+.alpha {
+	padding: 0;
+	margin: auto;
+	x-max-width: 1440px;
+	position: relative;
+	-webkit-flex: 1 1 auto;
+	-ms-flex: 1 1 auto;
+	flex: 1 1 auto;
+	min-height: 100%
+}
+
+/* --------------------------------------------- */
 
 .main-ui-admin-section-heading {
 	margin: 0 0.1em;
@@ -68,15 +86,8 @@ div.main-ui-admin-section {
 	font-size: 120%;
 }
 
-#main-ui-page-outer-wrapper {
+#main-ui-page-outer-wrapper { /* MOREMORE no longer used */
 	width: 80%;
 	margin-left: 10%;
-}
-#main-ui-ambassador-logo {
-	background-color: white;
-	padding: 5px;
-	width: 456px;
-	height: 42px;
-	margin-bottom: 1em
 }
 
