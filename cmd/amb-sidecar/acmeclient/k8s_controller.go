@@ -658,6 +658,9 @@ func FillDefaults(host *ambassadorTypesV2.Host) {
 			"hostname": host.Spec.Hostname,
 		}
 	}
+	if host.Spec.TlsSecret == nil {
+		host.Spec.TlsSecret = &k8sTypesCoreV1.LocalObjectReference{}
+	}
 	if host.Spec.AcmeProvider == nil {
 		host.Spec.AcmeProvider = &ambassadorTypesV2.ACMEProviderSpec{}
 	}
@@ -671,11 +674,8 @@ func FillDefaults(host *ambassadorTypesV2.Host) {
 		if host.Spec.AcmeProvider.PrivateKeySecret.Name == "" {
 			host.Spec.AcmeProvider.PrivateKeySecret.Name = NameEncode(host.Spec.AcmeProvider.Authority) + "--" + NameEncode(host.Spec.AcmeProvider.Email)
 		}
-		if host.Spec.TlsSecret == nil {
-			host.Spec.TlsSecret = &k8sTypesCoreV1.LocalObjectReference{}
-		}
 		if host.Spec.TlsSecret.Name == "" {
-			//host.Spec.TlsSecret.Name = NameEncode(host.Spec.AcmeProvider.Authority) + "--" + NameEncode(host.Spec.AcmeProvider.Email) + "--" + NameEncode(host.Spec.AcmeProvider.PrivateKeySecret.Name)
+			// host.Spec.TlsSecret.Name = NameEncode(host.Spec.AcmeProvider.Authority) + "--" + NameEncode(host.Spec.AcmeProvider.Email) + "--" + NameEncode(host.Spec.AcmeProvider.PrivateKeySecret.Name)
 			host.Spec.TlsSecret.Name = NameEncode(host.Spec.Hostname)
 		}
 	}
@@ -684,10 +684,13 @@ func FillDefaults(host *ambassadorTypesV2.Host) {
 	}
 	switch {
 	case host.Spec.AcmeProvider.Authority != "none":
+		// TLS using via AES ACME integration
 		host.Status.TlsCertificateSource = ambassadorTypesV2.HostTLSCertificateSource_ACME
-	case host.Spec.TlsSecret.Name == "":
+	case host.Spec.TlsSecret.Name != "":
+		// TLS configured via some other mechanism
 		host.Status.TlsCertificateSource = ambassadorTypesV2.HostTLSCertificateSource_Other
 	default:
+		// No TLS
 		host.Status.TlsCertificateSource = ambassadorTypesV2.HostTLSCertificateSource_None
 	}
 }
