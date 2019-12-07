@@ -55,25 +55,26 @@ export class APIs extends LitElement {
   }
 
   loadFromServer() {
-      ApiFetch('/openapi/services')
-        .then((resp) => {
-          if (resp.status === 401 || resp.status === 403) {
-            return new Promise((_, reject) => {
-              reject(`Invalid Status: ${resp.status}`);
-            });
-          } else {
-            return resp.json();
-          }
-        })
-        .then((json) => {
-          this.apis = json;
-        })
-        .catch((err) => console.log(err));
-
-    if (this.doRefresh) {
-      //console.log("will reload APIs in 10 seconds");
-      setTimeout(this.loadFromServer.bind(this), 10000)
-    }
+    //MOREMORE
+    //   ApiFetch('/openapi/services')
+    //     .then((resp) => {
+    //       if (resp.status === 401 || resp.status === 403) {
+    //         return new Promise((_, reject) => {
+    //           reject(`Invalid Status: ${resp.status}`);
+    //         });
+    //       } else {
+    //         return resp.json();
+    //       }
+    //     })
+    //     .then((json) => {
+    //       this.apis = json;
+    //     })
+    //     .catch((err) => console.log(err));
+    //
+    // if (this.doRefresh) {
+    //   //console.log("will reload APIs in 10 seconds");
+    //   setTimeout(this.loadFromServer.bind(this), 10000)
+    // }
   }
 
   deferHackStyles() {

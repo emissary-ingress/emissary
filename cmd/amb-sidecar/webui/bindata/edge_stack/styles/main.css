@@ -1,16 +1,46 @@
-/* TODO: Place anything below this in per-component styles. */
+/*
+* {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	position: relative;
+	box-sizing: border-box
+}
 
-.section-heading {
+html {
+	-ms-text-size-adjust: 100%;
+	-webkit-text-size-adjust: 100%
+}
+
+body, html {
+	height: 100%;
+	color: #000;
+	font-family: 'Source Sans Pro', sans-serif;
+	font-size: 16px;
+	background: #000;
+	-webkit-font-smoothing: antialiased
+}
+
+body, figure {
+	margin: 0
+}
+
+*, textarea {
+	vertical-align: top
+}
+*/
+
+.main-ui-admin-section-heading {
 	margin: 0 0.1em;
 	font-size: 120%;
 	font-weight: bold;
 }
-.section-text {
+.main-ui-admin-section-text {
 	display: inline-block;
 	margin-right: 10%;
 	margin-left: 2.5px;
 }
-div.admin-section {
+div.main-ui-admin-section {
 	border: 1px solid var(--dw-item-border);
 	box-shadow: 0 2px 4px rgba(0, 0, 0, .1);
 	padding: 0.5em;
@@ -18,18 +48,18 @@ div.admin-section {
 	line-height: 1.3;
 	position: relative;
 }
-.admin-section p {
+.main-ui-admin-section p {
 	margin-top: 0;
 }
-.admin-section code {
+.main-ui-admin-section code {
 	font-size: 120%;
 }
 
-#admin-page-outer-wrapper {
+#main-ui-page-outer-wrapper {
 	width: 80%;
 	margin-left: 10%;
 }
-#ambassador-logo {
+#main-ui-ambassador-logo {
 	background-color: white;
 	padding: 5px;
 	width: 456px;
@@ -37,43 +67,3 @@ div.admin-section {
 	margin-bottom: 1em
 }
 
-div.info-title { /* used in login-gate */
-	font-weight: bold;
-	font-size: 120%;
-}
-
-span.command { /* used in login-gate */
-	background-color: #f5f2f0;
-	padding: 3px;
-	letter-spacing: .2px;
-	font-family: Consolas, Monaco, Andale Mono, Ubuntu Mono, monospace;
-	font-size: 90%;
-	word-spacing: normal;
-	word-break: normal;
-	word-wrap: normal;
-	hyphens: none;
-}
-
-div.overage-alert { /* used in login-gate */
-	border: 3px solid red;
-	border-radius: 0.7em;
-	padding: 0.5em;
-	background-color: #FFe8e8;
-}
-
-div.host, div.mapping {
-	padding: 1em 1em;
-}
-
-details {
-	margin-left: 1em;
-}
-
-h2 {
-	margin: 0.1em;
-}
-
-login-gate {
-	margin: 0;
-	padding: 0;
-}

@@ -20,6 +20,9 @@ export class LoginGate extends LitElement {
     font-family: Source Sans Pro,sans-serif;
     margin-left: 2em;
     margin-right: 2em;
+  margin-top: 0;
+  margin-bottom: 0;
+  padding: 0;
 }
 #all-wrapper {
     width: 80%;
@@ -153,6 +156,9 @@ div.overage-alert {
     border-radius: 0.7em;
     padding: 0.5em;
     background-color: #FFe8e8;
+}
+h2 {
+  margin: 0.1em;
 }
 pre {
     margin: 0 1em 1em 1em;
