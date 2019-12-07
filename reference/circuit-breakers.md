@@ -7,6 +7,7 @@ Circuit breakers are a powerful technique to improve resilience. By preventing a
 Circuit breaking configuration can be set for all Ambassador Edge Stack mappings in the [ambassador](/reference/core/ambassador) Module or set per [mapping](/reference/mappings#configuring-mappings).
 
 The `circuit_breakers` attribute configures circuit breaking. The following fields are supported:
+
 ```yaml
 circuit_breakers:
 - priority: <string>
@@ -17,19 +18,64 @@ circuit_breakers:
 ```
 
 ### `priority`
+
 (Default: `default`) Specifies the priority to which the circuit breaker settings apply to; can be set to either `default` or `high`.
 
 ### `max_connections`
+
 (Default: `1024`) Specifies the maximum number of connections that Ambassador Edge Stack will make to the services. In practice, this is more applicable to HTTP/1.1 than HTTP/2.
 
 ### `max_pending_requests`
+
 (Default: `1024`) Specifies the maximum number of requests that will be queued while waiting for a connection. In practice, this is more applicable to HTTP/1.1 than HTTP/2.
 
 ### `max_requests`
+
 (Default: `1024`) Specifies the maximum number of parallel outstanding requests to hosts. In practice, this is more applicable to HTTP/2 than HTTP/1.1.
 
 ### `max_retries`
+
 (Default: `3`) Specifies the maximum number of parallel retries allowed to hosts.
+
+## Examples
+
+Circuit breakers defined on a single mapping:
+
+```yaml
+---
+apiVersion: getambassador.io/v1
+kind:  Mapping
+metadata:
+  name:  quote-backend
+spec:
+prefix: /backend/
+service: quote
+circuit_breakers:
+- max_connections: 2048
+  max_pending_requests: 2048
+```
+
+A global circuit breaker:
+
+```yaml
+apiVersion: getambassador.io/v1
+kind:  Module
+metadata:
+  name:  ambassador
+spec:
+  config:
+    circuit_breakers:
+    - max_connections: 2048
+      max_pending_requests: 2048
+---
+apiVersion: getambassador.io/v1
+kind:  Mapping
+metadata:
+  name:  quote-backend
+spec:
+prefix: /backend/
+service: quote
+```
 
 ## Circuit breakers and automatic retries
 

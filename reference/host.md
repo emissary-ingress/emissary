@@ -6,7 +6,45 @@ Ambassador Edge Stack supports several different methods for managing the HTTP `
 
 A mapping that specifies the `host` attribute will take effect _only_ if the HTTP `Host` header matches the value in the `host` attribute. If `host_regex` is `true`, the `host` value is taken to be a regular expression, otherwise an exact string match is required.
 
-You may have multiple mappings listing the same resource but different `host` attributes to effect `Host`-based routing.
+You may have multiple mappings listing the same resource but different `host` attributes to effect `Host`-based routing. An example:
+
+```yaml
+---
+apiVersion: getambassador.io/v1
+kind:  Mapping
+metadata:
+  name:  quote-ui
+spec:
+  prefix: /
+  service: quote1
+---
+apiVersion: getambassador.io/v1
+kind:  Mapping
+metadata:
+  name:  quote-ui2
+spec:
+  prefix: /
+  host: quote.datawire.io
+  service: quote2
+---
+apiVersion: getambassador.io/v1
+kind:  Mapping
+metadata:
+  name:  quote-ui3
+spec:
+  prefix: /
+  host: "^quote[2-9]\\.datawire\\.io$"
+  host_regex: true
+  service: quote3
+```
+
+will map requests for `/` to
+
+- the `quote2` service if the `Host` header is `quote.datawire.io`;
+- the `toru3` service if the `Host` header matches `^quote[2-9]\\.datawire\\.io$`; and to
+- the `quote1` service otherwise.
+
+Note that enclosing regular expressions in quotes can be important to prevent backslashes from being doubled.
 
 ## Using `host_rewrite`
 

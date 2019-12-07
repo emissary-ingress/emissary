@@ -15,16 +15,90 @@ Annotations however, can be hard to manage and easy to lose track of since you a
 For example:
 
 Using CRDs you can find all `Mapping`s deployed in the cluster with
+
 ```
 kubectl get mappings -A
 ```
+
 With annotations, you would have to describe and examine the `metadata.annotations` of every service.
+
+## Example
+
+The following is an example of how to configure annotations for the example quote service.
+
+**CRD**
+
+```yaml
+---
+apiVersion: getambassador.io/v1
+kind: Mapping
+metadata:
+  name: quote-ui
+spec:
+  prefix: /
+  service: quote:5000
+---
+apiVersion: getambassador.io/v1
+kind: Mapping
+metadata:
+  name: quote-backend
+spec:
+  prefix: /backend/
+  service: quote
+  labels:
+    ambassador:
+      - request_label:
+        - backend
+```
+
+With CRDs above, we open up routes in Ambassador using two separate Ambassador `Mapping` resource. These objects are managed separate from the service and must be created and deleted independently.
+
+**Annotations:**
+
+```yaml
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: quote
+  annotations:
+    getambassador.io/config: |
+      ---
+      apiVersion: ambassador/v1
+      kind: Mapping
+      name: quote-ui_mapping
+      prefix: /
+      service: quote:5000
+      ---
+      apiVersion: ambassador/v1
+      kind: Mapping
+      name: quote-backend_mapping
+      prefix: /backend/
+      service: tquote
+      labels:
+        ambassador:
+          - request_label:
+            - backend
+spec:
+  ports:
+  - name: ui
+    port: 5000
+    targetPort: 5000
+  - name: backend
+    port: 8080
+    targetPort: 8080
+  selector:
+    app: quote
+```
+
+With the annotation approach above, we can expose the exact same routes my creating the `Mapping` object as part of the Kubernetes Service. There is more overhead for creating and managing the `Mapping`s but the are created and deleted when the service is.
 
 ## CRD Translation
 
 All example configuration in this document is given in CRD format. It is easy to translate any CRD to an `annotation` by following the steps below.
 
 **Example CRD**
+
 ```yaml
 ---
 apiVersion: getambassador.io/v1
@@ -40,6 +114,7 @@ spec:
 Starting with the example above:
 
 1. Change the `apiVersion` from `getambassador.io/v1` to `ambassador/v1`
+
 ```diff
 ---
 -apiVersion: getambassador.io/v1
@@ -54,6 +129,7 @@ spec:
 ```
 
 2. Remove the `metadata` section and resolve the indetation of `name` to be inline with `kind`
+
 ```diff
 ---
 apiVersion: ambassador/v1
@@ -68,6 +144,7 @@ spec:
 ```
 
 3. Remove the `spec` section and drop the indentation of everything below it one level
+
 ```diff
 ---
 apiVersion: ambassador/v1
@@ -83,6 +160,7 @@ name: ambassador
 ```
 
 After this step, we are left with a yaml object that looks like this:
+
 ```yaml
 ---
 apiVersion: ambassador/v1
@@ -93,8 +171,8 @@ config:
     enabled: false
 ```
 
-
 4. Finally, add the object as an annotation of a Kubernetes Service with key `getambassador.io/config`
+
 ```yaml
 
 ---

@@ -23,10 +23,10 @@ The various timeouts are applied onto a Mapping resource and can be combined.
 apiVersion: getambassador.io/v1
 kind:  Mapping
 metadata:
-  name:  tour-backend
+  name:  quote-backend
 spec:
   prefix: /backend/
-  service: tour
+  service: quote
   timeout_ms: 4000
   idle_timeout_ms: 500000
   connect_timeout_ms: 4000

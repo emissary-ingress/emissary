@@ -97,10 +97,20 @@ containers:
 
 Once a resolver is defined, you can use them in a given `Mapping`:
 
-
 ```yaml
 ---
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v1
+kind: Mapping
+metadata:
+  name: quote-ui
+spec:
+  prefix: /
+  service: quote
+  resolver: endpoint
+  load_balancer:
+    policy: round_robin
+---
+apiVersion: getambassador.io/v1
 kind: Mapping
 metadata:
   name: bar
@@ -112,5 +122,6 @@ spec:
   load_balancer:
     policy: round_robin
 ```
+
 
 The YAML configuration above will configure Ambassador Edge Stack to use Kubernetes Service Discovery to route to the Consul Service Discovery to route to the `bar` service on requests with `prefix: /bar/`.

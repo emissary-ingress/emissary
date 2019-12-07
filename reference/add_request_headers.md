@@ -14,7 +14,7 @@ Envoy dynamic values `%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%` and `%PROTOCOL%`
 apiVersion: getambassador.io/v1
 kind:  Mapping
 metadata:
-  name:  tour-backend
+  name:  quote-backend
 spec:
   prefix: /backend/
   add_request_headers:
@@ -26,7 +26,7 @@ spec:
     x-test-object:
       value: This the value
       append: False #True by default
-  service: tour:8080
+  service: quote
   ```
 
 will add the protocol, client IP, and a static header to `/backend/`.

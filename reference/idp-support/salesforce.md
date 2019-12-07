@@ -60,7 +60,7 @@ After configuring an OAuth application in Salesforce, configuring Ambassador Edg
       rules:
           # Requires authentication on requests from any hostname
         - host: "*"
-          # Tells Ambassador Edge Stack to apply the Filter only on request to the /backend/get-quote/ endpoint
+          # Tells Ambassador Edge Stack to apply the Filter only on request to the quote /backend/get-quote/ endpoint
           path: /backend/get-quote/
           # Identifies which Filter to use for the path and hose above
           filters:

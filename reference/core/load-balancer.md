@@ -10,6 +10,7 @@ load_balancer:
 ```
 
 Supported load balancer policies:
+
 - `round_robin`
 - `least_request`
 - `ring_hash`
@@ -21,7 +22,7 @@ For more information on the different policies and the implications, see [load b
 When policy is set to `round_robin`, Ambassador Edge Stack discovers healthy endpoints for the given mapping, and load balances the incoming L7 requests with round robin scheduling. To specify this:
 
 ```yaml
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v1
 kind:  Module
 metadata:
   name:  ambassador
@@ -32,6 +33,22 @@ spec:
       policy: round_robin
 ```
 
+or, per mapping:
+
+```yaml
+---
+apiVersion: getambassador.io/v1
+kind:  Mapping
+metadata:
+  name:  quote-ui
+spec:
+  prefix: /
+  service: quote:5000
+  resolver: my-resolver
+  load_balancer:
+    policy: round_robin
+```
+
 Note that load balancing may not appear to be "even" due to Envoy's threading model. For more details, see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/latest/faq/load_balancing/concurrency_lb).
 
 ## Least Request
@@ -39,7 +56,7 @@ Note that load balancing may not appear to be "even" due to Envoy's threading mo
 When policy is set to `least_request`, Ambassador Edge Stack discovers healthy endpoints for the given mapping, and load balances the incoming L7 requests to the endpoint with the fewest active requests. To specify this:
 
 ```yaml
-apiVersion: getambassador.io/v2
+apiVersion: getambassador.io/v1
 kind:  Module
 metadata:
   name:  ambassador
@@ -50,7 +67,24 @@ spec:
       policy: least_request
 ```
 
+or, per mapping:
+
+```yaml
+---
+apiVersion: getambassador.io/v1
+kind:  Mapping
+metadata:
+  name:  quote-ui
+spec:
+  prefix: /
+  service: quote:5000
+  resolver: my-resolver
+  load_balancer:
+    policy: least_request
+```
+
 ## Sticky Sessions / Session Affinity
+
 Configuring sticky sessions makes Ambassador Edge Stack route requests to a specific pod providing your service in a given session. One pod serves all requests from a given session, eliminating the need for session data to be transferred between pods. Ambassador Edge Stack lets you configure session affinity based on the following parameters in an incoming request:
 
 - Cookie
@@ -59,8 +93,8 @@ Configuring sticky sessions makes Ambassador Edge Stack route requests to a spec
 
 **NOTE:** Ambassador Edge Stack supports sticky sessions using two load balancing policies, `ring_hash` and `maglev`.
 
-
 ### Cookie
+
 ```yaml
 load_balancer:
   policy: ring_hash
@@ -72,14 +106,47 @@ load_balancer:
 
 If the cookie you wish to set affinity on is already present in incoming requests, then you only need the `cookie.name` field. However, if you want Ambassador Edge Stack to generate and set a cookie in response to the first request, then you need to specify a value for the `cookie.ttl` field which generates a cookie with the given expiration time.
 
+```yaml
+apiVersion: getambassador.io/v1
+kind:  Mapping
+metadata:
+  name:  quote-ui
+spec:
+  prefix: /
+service: quote:5000
+resolver: my-resolver
+load_balancer:
+  policy: ring_hash
+  cookie:
+    name: sticky-cookie
+    ttl: 60s
+```
+
 ### Header
+
 ```yaml
 load_balancer:
   policy: ring_hash
   header: <header name>
 ```
 
-Ambassador Edge Stack allows header based session affinity if the given header is present on incoming requests.
+Ambassador allows header based session affinity if the given header is present on incoming requests.
+
+Example:
+
+```yaml
+apiVersion: getambassador.io/v1
+kind:  Mapping
+metadata:
+  name:  quote-ui
+spec:
+  prefix: /
+  service: quote:5000
+  resolver: my-resolver
+  load_balancer:
+    policy: ring_hash
+    header: STICKY_HEADER
+```
 
 ##### Source IP
 ```yaml
@@ -90,7 +157,48 @@ load_balancer:
 
 Ambassador Edge Stack allows session affinity based on the source IP of incoming requests.
 
+```yaml
+apiVersion: getambassador.io/v1
+kind:  Mapping
+metadata:
+  name:  quote-ui
+spec:
+  prefix: /
+  service: quote:5000
+  resolver: my-resolver
+  load_balancer:
+    policy: ring_hash
+    source_ip: true
+```
+
+Load balancing can be configured both globally, and overridden on a per mapping basis. The following example configures the default load balancing policy to be round robin, while using header-based session affinity for requests to the `/backend/` endpoint of the quote application:
+
 Load balancing can be configured both globally, and overridden on a per mapping basis.
+
+```yaml
+apiVersion: getambassador.io/v1
+kind:  Module
+metadata:
+  name:  ambassador
+spec:
+  config:
+    resolver: my-resolver
+    load_balancer:
+      policy: round_robin
+```
+```yaml
+apiVersion: getambassador.io/v1
+kind:  Mapping
+metadata:
+  name:  quote-backend
+spec:
+  prefix: /backend/
+  service: quote
+  resolver: my-resolver
+  load_balancer:
+    policy: ring_hash
+    header: STICKY_HEADER
+```
 
 ## Disabling advanced load balancing
 

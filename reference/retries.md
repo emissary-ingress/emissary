@@ -22,3 +22,45 @@ retry_policy:
 
 ### `per_try_timeout`
 (Default: global request timeout) Specify the timeout for each retry, e.g., `1s`, `1500ms`.
+
+
+## Examples
+
+A per mapping retry policy:
+
+```yaml
+---
+apiVersion: getambassador.io/v1
+kind:  Mapping
+metadata:
+  name:  quote-backend
+spec:
+  prefix: /backend/
+  service: quote
+  retry_policy:
+    retry_on: "5xx"
+    num_retries: 10
+```
+
+A global retry policy (not recommended):
+
+```yaml
+---
+apiVersion: getambassador.io/v1
+kind:  Module
+metadata:
+  name:  ambassador
+spec:
+  config:
+    retry_policy:
+      retry_on: "retriable-4xx"
+      num_retries: 4
+---
+apiVersion: getambassador.io/v1
+kind:  Mapping
+metadata:
+  name:  quote-backend
+spec:
+prefix: /backend/
+service: quote
+```

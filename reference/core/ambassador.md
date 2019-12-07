@@ -241,7 +241,13 @@ A `Mapping` can override both `enable_ipv4` and `enable_ipv6`, but if either is 
 
 ### Readiness and Liveness probes (`readiness_probe` and `liveness_probe`)
 
-The default liveness and readiness probes map `/ambassador/v0/check_alive` and `ambassador/v0/check_ready` internally to check Envoy itself. If you'd like to, you can change these to route requests to some other service. 
+The default liveness and readiness probes map `/ambassador/v0/check_alive` and `ambassador/v0/check_ready` internally to check Envoy itself. If you'd like to, you can change these to route requests to some other service. For example, to have the readiness probe map to the quote application's health check, you could do
+
+```yaml
+readiness_probe:
+  service: quote
+  rewrite: /backend/health
+```
 
 The liveness and readiness probe both support `prefix`, `rewrite`, and `service`, with the same meanings as for [mappings](/reference/mappings). Additionally, the `enabled` boolean may be set to `false` (as in the commented-out examples above) to disable support for the probe entirely.
 

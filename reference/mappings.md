@@ -76,7 +76,42 @@ If no `method` is given, the Mapping will apply to all HTTP `methods`.
 
 Mapping resources can be defined as annotations on Kubernetes services or as independent custom resource definitions.
 
-If you're new to Ambassador Edge Stack, start with the CRD approach. Note that you *must* use the `getambassador.io/v2` `apiVersion` as specified below.
+For example, here is a `Mapping` on a Kubernetes `service`:
+
+```
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: httpbin
+  annotations:
+    getambassador.io/config: |
+      ---
+      apiVersion: ambassador/v1
+      kind:  Mapping
+      name:  quote-ui_mapping
+      prefix: /
+      service: http://quote
+spec:
+  ports:
+  - name: httpbin
+    port: 80
+```
+
+The same `Mapping` can be created as an independent resource:
+
+```
+---
+apiVersion: getambassador.io/v1
+kind:  Mapping
+metadata:
+  name:  quote-ui
+spec:
+  prefix: /
+  service: http://quote
+```
+
+If you're new to Ambassador, start with the CRD approach. Note that you *must* use the `getambassador.io/v1` `apiVersion` as noted above.
 
 ## Additional Example Mappings
 

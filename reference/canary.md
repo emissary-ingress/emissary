@@ -23,19 +23,19 @@ Here's an example, which might appear during a canary deployment:
 apiVersion: getambassador.io/v1
 kind:  Mapping
 metadata:
-  name:  tour-backend
+  name:  quote-backend
 spec:
   prefix: /backend/
-  service: tour
+  service: quote
 ---
 apiVersion: getambassador.io/v1
 kind:  Mapping
 metadata:
-  name:  tour-backend2
+  name:  quote-backend2
 spec:
   prefix: /backend/
-  service: tourv2
+  service: quotev2
   weight: 10
 ```
 
-In this case, the tour-backend2 will receive 10% of the requests for /backend/, and Ambassador will assign the remaining 90% to the tour-backend.
+In this case, the quote-backend2 will receive 10% of the requests for /backend/, and Ambassador will assign the remaining 90% to the quote-backend.

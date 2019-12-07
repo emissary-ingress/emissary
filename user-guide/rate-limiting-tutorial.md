@@ -103,7 +103,7 @@ metadata:
   name: service-backend
 spec:
   prefix: /backend/
-  service: tour:8080
+  service: quote
   labels:
     ambassador:    
       - request_label_group:      
@@ -121,21 +121,21 @@ Ambassador versions 0.40.2 and earlier use the `v0` API version which uses the `
 apiVersion: v1
 kind: Service
 metadata:
-  name: tour
+  name: quote
   annotations:
     getambassador.io/config: |
       ---
       apiVersion: ambassador/v0
       kind: Mapping
-      name: backend-service_mapping
+      name: quote-backend
       prefix: /
-      service: backend:5000
+      service: quote:5000
       ---
       apiVersion: ambassador/v0
       kind: Mapping
-      name: backend-example_mapping
+      name: quote-backend
       prefix: /backend/
-      service: example:8080
+      service: quote
       rate_limits:
         - descriptor: A test case
           headers:
