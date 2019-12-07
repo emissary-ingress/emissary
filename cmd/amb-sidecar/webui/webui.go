@@ -264,6 +264,16 @@ func (fb *firstBootWizard) forbidden(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, "Ambassador Edge Stack admin webui API forbidden")
 }
 
+// We use this http client for the UI inner dev loop in order to proxy
+// requests to the snapshot api endpoint through to the in-cluster
+// deployment.
+var devProxyClient = &http.Client{
+	Transport: &http.Transport{
+		// #nosec G402
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	},
+}
+
 //nolint:gocyclo
 func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if !strings.HasPrefix(r.URL.Path, "/edge_stack/") {
@@ -322,12 +332,6 @@ func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	case "/edge_stack/api/snapshot":
 		snapshotHost := fb.cfg.DevWebUISnapshotHost
 		if snapshotHost != "" {
-			client := &http.Client{
-				Transport: &http.Transport{
-					// #nosec G402
-					TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-				},
-			}
 			req, err := http.NewRequest("GET",
 				fmt.Sprintf("https://%s/edge_stack/api/snapshot", snapshotHost),
 				nil)
@@ -337,7 +341,7 @@ func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			}
 			req.Header = r.Header
 
-			resp, err := client.Do(req)
+			resp, err := devProxyClient.Do(req)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
