@@ -264,6 +264,9 @@ func (fb *firstBootWizard) forbidden(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, "Ambassador Edge Stack admin webui API forbidden")
 }
 
+// We use this http client for the UI inner dev loop in order to proxy
+// requests to the snapshot api endpoint through to the in-cluster
+// deployment.
 var devProxyClient = &http.Client{
 	Transport: &http.Transport{
 		// #nosec G402
