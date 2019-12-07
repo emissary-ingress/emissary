@@ -5,48 +5,22 @@
     <link rel="icon" href="/edge_stack/favicon.ico">
 
     <title>
-      Ambassador Edge Stack Admin
+      Ambassador Edge Stack Edge Policy Console
     </title>
 
-    <!--
-      If you're thinking about adding a script/css here, please don't.
-
-      The only thing that should live in head are things critical to rendering
-      anything on the page. If anything fails to load here for whatever reason.
-
-      Plus async defer can't kick in so we can start rendering content as it comes
-      in progressively.
-    -->
-
-    <!-- Gritical Global Styles -->
-    <style>
-      :root {
-        --dw-purple: #5F3EFF;
-        --dw-item-background-fill: #fdfaff;
-        --dw-item-background-hover: #ede7f3;
-        --dw-item-border: #ede7f3;
-        --dw-orange: #FF4329;
-      }
-
-      body {
-        font-family: Source Sans Pro, sans-serif;
-        margin-left: 2em;
-        margin-right: 2em;
-      }
-    </style>
     <link rel="stylesheet" type="text/css" href="../styles/main.css"/>
   </head>
 
   <body>
-    <div id="main-ui-page-outer-wrapper">
-      <div id="main-ui-ambassador-logo">
-        <a href="https://www.getambassador.io/">
-          <img src="https://www.getambassador.io/images/ambassador-logo-black.svg" alt="Ambassador Edge Stack" />
-        </a>
-      </div>
+    <login-gate>
+      <div id="main-ui-page-outer-wrapper">
+        <div id="main-ui-ambassador-logo">
+          <a href="https://www.getambassador.io/">
+            <img src="https://www.getambassador.io/images/ambassador-logo-black.svg" alt="Ambassador Edge Stack" />
+          </a>
+        </div>
 
-      <div id="main">
-        <login-gate>
+        <div id="main">
           <aes-snapshot-provider>
             <dw-tabs>
               <dw-signup></dw-signup>
@@ -157,10 +131,10 @@
               </dw-tab>
             </dw-tabs>
           </aes-snapshot-provider>
-        </login-gate>
       </div>
 
     </div>
+    </login-gate>
   </body>
 
   <!--

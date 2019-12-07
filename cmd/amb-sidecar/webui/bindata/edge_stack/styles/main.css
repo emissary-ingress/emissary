@@ -29,6 +29,19 @@ body, figure {
 	vertical-align: top
 }
 */
+:root {
+	--dw-purple: #5F3EFF;
+	--dw-item-background-fill: #fdfaff;
+	--dw-item-background-hover: #ede7f3;
+	--dw-item-border: #ede7f3;
+	--dw-orange: #FF4329;
+}
+
+body {
+	font-family: Source Sans Pro, sans-serif;
+	margin-left: 2em;
+	margin-right: 2em;
+}
 
 .main-ui-admin-section-heading {
 	margin: 0 0.1em;
