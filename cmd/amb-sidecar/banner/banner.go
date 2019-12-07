@@ -21,7 +21,7 @@ func NewBanner(limit limiter.Limiter, redisPool *pool.Pool) http.Handler {
 {{- if not .hasRedis -}}
 <div style="color:red; font-weight: bold">Authentication and Rate Limiting are disabled as Ambassador Edge Stack is not configured to use Redis. Please follow the <a href="https://www.getambassador.io/user-guide/install">Ambassador Edge Stack installation guide</a> to complete your setup.</div>
 {{- else if .features_over_limit -}}
-<div style="color:red; font-weight: bold">You've reached the usage limits for your license. If you need to use Ambassador beyond the current limits, <a href="https://www.getambassador.io/contact/">please contact Datawire</a> for an Enterprise license.</div>
+<div style="color:red; font-weight: bold">You've reached the <a href="https://www.getambassador.io/editions/">usage limits</a> for your license. If you need to use Ambassador beyond the current limits, <a href="https://www.getambassador.io/contact/">please contact Datawire</a> for an Enterprise license.</div>
 {{- end -}}
 `)
 	return &banner{t: t, limit: limit, redisPool: redisPool}

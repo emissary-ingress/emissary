@@ -34,6 +34,19 @@ spec:
 apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
+  name: edgestack-direct-mapping
+  labels:
+    product: aes
+    ambassador_diag_class: private
+spec:
+  prefix: /edge_stack/
+  rewrite: /edge_stack_ui/edge_stack/
+  service: 127.0.0.1:8500
+  precedence: 1000000
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
   name: edgestack-acme-mapping
   labels:
     product: aes

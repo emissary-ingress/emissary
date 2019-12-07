@@ -17,7 +17,7 @@ type AccessTokenType struct {
 	SpecificationDocuments            []string
 
 	// Implementation
-	ValidateAuthorization func(*http.Request) (bool, error)
+	ValidateAuthorization func(*http.Request) error
 }
 
 // RegisterAccessTokenType registers an Access Token Type with the ResourceServer such that the

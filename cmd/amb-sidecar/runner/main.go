@@ -195,36 +195,53 @@ func triggerOnChange(ctx context.Context, watchFile string, trigger func()) {
 	eventsWG.Wait()
 }
 
-// getDiagSnapshot returns a Diag snapshot or waits forever. Note that if we get stuck here, the pod will most likely
-// fail its liveness check, which also hits the Diag daemon.
-func getDiagSnapshot() []byte {
+// getDiagSnapshot returns a diagd snapshot; it will block until either diagd becomes ready and gives us a snapshot (in
+// which case the snapshot is returned), or until the context is canceled (in which case nil is returned).  If neither
+// of those conditions happens, then it blocks forever; this is OK, because if diagd fails to become ready then the
+// Kubernetes liveness checks (which hit diagd) will fail, and the pod will get killed; we don't need to worry about
+// detecting that situation ourselves.
+func getDiagSnapshot(ctx context.Context) []byte {
+	ticker := time.NewTicker(time.Second)
+	defer ticker.Stop()
 	for {
-		res := func() []byte {
-			resp, err := http.Get("http://127.0.0.1:8877/ambassador/v0/diag/?json=true")
-			if err != nil {
-				return nil
+		select {
+		case <-ctx.Done():
+			return nil
+		case <-ticker.C:
+			res := func() []byte {
+				req, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://127.0.0.1:8877/ambassador/v0/diag/?json=true", nil)
+				if err != nil {
+					return nil
+				}
+				resp, err := http.DefaultClient.Do(req)
+				if err != nil {
+					return nil
+				}
+				defer resp.Body.Close()
+				bodyBytes, err := ioutil.ReadAll(resp.Body)
+				if err != nil {
+					return nil
+				}
+				if resp.StatusCode != 200 {
+					return nil
+				}
+				return bodyBytes
+			}()
+			if res != nil {
+				return res
 			}
-			defer resp.Body.Close()
-			bodyBytes, err := ioutil.ReadAll(resp.Body)
-			if err != nil {
-				return nil
-			}
-			if resp.StatusCode != 200 {
-				return nil
-			}
-			return bodyBytes
-		}()
-		if res != nil {
-			return res
 		}
-		time.Sleep(100 * time.Millisecond)
 	}
 }
 
 // isFallbackTLSDesired queries a diag snapshot, then returns false if a TLSContext that defines Hosts (a termination
 // context) is present, otherwise returns true. It also includes an explanatory message.
-func isFallbackTLSDesired() (bool, string) {
-	snapshotBytes := getDiagSnapshot()
+func isFallbackTLSDesired(ctx context.Context) (bool, string) {
+	snapshotBytes := getDiagSnapshot(ctx)
+	if snapshotBytes == nil {
+		// this happens if the context is canceled
+		return false, "shutting down"
+	}
 	snapshot := struct {
 		TLSContexts []struct {
 			Hosts     []string `json:"hosts"`
@@ -315,6 +332,10 @@ func runE(cmd *cobra.Command, args []string) error {
 	})
 
 	// Launch all of the worker goroutines...
+	//
+	// softCtx is canceled for graceful shutdown, hardCtx is
+	// canceled on not-so-graceful shutdown.  When in doubt, use
+	// softCtx.
 
 	if licenseWatch.Filename != "" {
 		group.Go("license_refresh", func(hardCtx, softCtx context.Context, cfg types.Config, l dlog.Logger) error {
@@ -324,7 +345,9 @@ func runE(cmd *cobra.Command, args []string) error {
 	}
 
 	group.Go("watt_shutdown", func(hardCtx, softCtx context.Context, cfg types.Config, l dlog.Logger) error {
+		// Wait for shutdown to be initiated...
 		<-softCtx.Done()
+		// ... then signal snapshotStore.Subscribe()rs to shutdown.
 		snapshotStore.Close()
 		return nil
 	})
@@ -378,17 +401,22 @@ func runE(cmd *cobra.Command, args []string) error {
 		dynamicClient)
 	group.Go("acme_client", func(hardCtx, softCtx context.Context, cfg types.Config, l dlog.Logger) error {
 		// Don't create a fallback context if a termination context already exists, because that would be redundant.
-		fallbackDesired, reason := isFallbackTLSDesired()
+		fallbackDesired, reason := isFallbackTLSDesired(softCtx)
 		if fallbackDesired {
 			l.Debugln("Creating fallback TLS configuration because", reason)
+			// FIXME(lukeshu): Perhaps EnsureFallback should observe softCtx.Done()?
 			if err := acmeclient.EnsureFallback(cfg, coreClient, dynamicClient); err != nil {
 				err = errors.Wrap(err, "create fallback TLSContext and TLS Secret")
 				l.Errorln(err)
 				// this is non fatal (mostly just to facilitate local dev); don't `return err`
+			} else {
+				l.Debugln("Created fallback TLS configuration")
 			}
 		} else {
 			l.Debugln("Not creating fallback TLS configuration because", reason)
 		}
+		// acmeController.Worker() doesn't need to observe softCtx.Done() because as a
+		// snapshotStore.Subscribe()r it will notice the shutdown from snapshotStore.
 		acmeController.Worker(l)
 		return nil
 	})
@@ -459,9 +487,10 @@ func runE(cmd *cobra.Command, args []string) error {
 			rateLimitScope := statsStore.Scope("ratelimit")
 			rateLimitService := lyftservice.NewService(
 				loader.New(
-					cfg.RLSRuntimeDir,                                        // runtime path
-					cfg.RLSRuntimeSubdir,                                     // runtime subdirectory
-					rateLimitScope.Scope("runtime"),                          // stats scope
+					cfg.RLSRuntimeDir,               // runtime path
+					cfg.RLSRuntimeSubdir,            // runtime subdirectory
+					rateLimitScope.Scope("runtime"), // stats scope
+					// empty line here because different versions of gofmt disagree :(
 					&loader.SymlinkRefresher{RuntimePath: cfg.RLSRuntimeDir}, // refresher
 				),
 				lyftredis.NewRateLimitCacheImpl(
