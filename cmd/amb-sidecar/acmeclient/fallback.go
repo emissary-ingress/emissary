@@ -18,11 +18,9 @@ import (
 	"github.com/pkg/errors"
 
 	k8sErrors "k8s.io/apimachinery/pkg/api/errors"
-	k8sSchema "k8s.io/apimachinery/pkg/runtime/schema"
 
 	k8sTypesCoreV1 "k8s.io/api/core/v1"
 	k8sTypesMetaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	k8sTypesUnstructured "k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 
 	k8sClientDynamic "k8s.io/client-go/dynamic"
 	k8sClientCoreV1 "k8s.io/client-go/kubernetes/typed/core/v1"
@@ -31,47 +29,25 @@ import (
 )
 
 const (
-	SelfSignedSecretName  = "fallback-self-signed-cert"
-	SelfSignedContextName = "fallback-self-signed-context"
+	SelfSignedSecretName = "fallback-self-signed-cert"
+	// The fallback context exists in the init-config, so we do not have to
+	// create it here.
+	//SelfSignedContextName = "fallback-self-signed-context"
 )
 
 func EnsureFallback(cfg types.Config, coreClient k8sClientCoreV1.SecretsGetter, dynamicClient k8sClientDynamic.Interface) error {
 	if err := ensureFallbackSecret(cfg, coreClient); err != nil {
 		return err
 	}
-	if err := ensureFallbackContext(cfg, dynamicClient); err != nil {
-		return err
-	}
-	return nil
-}
-
-func ensureFallbackContext(cfg types.Config, dynamicClient k8sClientDynamic.Interface) error {
-	tlsContextGetter := dynamicClient.Resource(k8sSchema.GroupVersionResource{Group: "getambassador.io", Version: "v1", Resource: "tlscontexts"})
-	tlsContextInterface := tlsContextGetter.Namespace(cfg.PodNamespace)
-	_, err := tlsContextInterface.Create(&k8sTypesUnstructured.Unstructured{
-		Object: map[string]interface{}{
-			"apiVersion": "getambassador.io/v1",
-			"kind":       "TLSContext",
-			"metadata": map[string]string{
-				"name":      SelfSignedContextName,
-				"namespace": cfg.PodNamespace,
-			},
-			"spec": map[string]interface{}{
-				"hosts": []string{
-					"*",
-				},
-				"secret": SelfSignedSecretName,
-			},
-		},
-	}, k8sTypesMetaV1.CreateOptions{})
-	if err != nil && !k8sErrors.IsAlreadyExists(err) {
-		return err
-	}
+	// The fallback context exists in the init-config, so we do not have to
+	// create it here. This means the fallback context is not exposed to
+	// Kubernetes, and thus cannot affect old versions of Ambassador, like 0.85,
+	// which turn off cleartext once any TLSContext is found.
 	return nil
 }
 
 func ensureFallbackSecret(cfg types.Config, secretsGetter k8sClientCoreV1.SecretsGetter) error {
-	secretInterface := secretsGetter.Secrets(cfg.PodNamespace)
+	secretInterface := secretsGetter.Secrets(cfg.AmbassadorNamespace)
 	_, err := secretInterface.Get(SelfSignedSecretName, k8sTypesMetaV1.GetOptions{})
 	if err == nil {
 		// already done; nothing to do
@@ -90,7 +66,7 @@ func ensureFallbackSecret(cfg types.Config, secretsGetter k8sClientCoreV1.Secret
 	_, err = secretInterface.Create(&k8sTypesCoreV1.Secret{
 		ObjectMeta: k8sTypesMetaV1.ObjectMeta{
 			Name:      SelfSignedSecretName,
-			Namespace: cfg.PodNamespace,
+			Namespace: cfg.AmbassadorNamespace,
 		},
 		Type: k8sTypesCoreV1.SecretTypeTLS,
 		Data: map[string][]byte{
