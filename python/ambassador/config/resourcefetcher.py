@@ -279,9 +279,9 @@ class ResourceFetcher:
         generation = metadata.get('generation', 1)
         spec = obj.get('spec') or {}
 
-        # Replace a sentinal value with the namespace of this ambassador pod.
+        # Replace a sentinel value with the namespace of this ambassador pod.
         # This allows hard-coded initialization resources to have a useful namespace.
-        if namespace = "-automatic-":
+        if namespace == "-automatic-":
             namespace = Config.ambassador_namespace
 
         if not apiVersion:
