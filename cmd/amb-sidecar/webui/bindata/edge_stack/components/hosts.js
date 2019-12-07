@@ -108,6 +108,11 @@ export class SingleHost extends SingleResource {
   }
 
   hostnameChanged() {
+    /*
+     * This is called when the hostname field changes in an Edit or Add
+     * dialog to check if the new hostname can be used with ACME.
+     * If it can be, we check the checkbox, otherwise we uncheck it.
+     */
     let url = new URL('/edge_stack/api/acme-host-qualifies', window.location);
     url.searchParams.set('hostname', this.hostname().value);
     ApiFetch(url, {
@@ -117,7 +122,11 @@ export class SingleHost extends SingleResource {
     })
       .then(r=>{
         r.json().then(qualifies=>{
-          this.use_acme_element().checked = qualifies;
+          if( this.resource.spec.acmeProvider.authority === "none") {
+            this.use_acme_element().checked = false; // if the spec says "none", then the user has explicitly said "no" so don't re-check the box
+          } else {
+            this.use_acme_element().checked = qualifies; // if the spec is an ACME provider (not "none") and the hostname qualifies, then check the box
+          }
         })
       })
   }
@@ -179,14 +188,14 @@ export class SingleHost extends SingleResource {
   <div class="attribute-name">hostname:</div>
   <div class="attribute-value">
     <span class="${this.visible("list")}">${spec.hostname}</span>
-    <input class="${this.visible("edit", "add")}" type="text" name="hostname"  value="${spec.hostname}" />
+    <input class="${this.visible("edit", "add")}" type="text" name="hostname"  value="${spec.hostname}" @change="${this.hostnameChanged.bind(this)}"/>
   </div>
 
-  <fieldset class="frame">
+  <fieldset class="frame" id="acme-sub-dialog">
     <legend><label><input type="checkbox"
       name="use_acme"
       ?disabled="${!editing}"
-      ?checked="${spec.acmeProvider.authority!=="none"}"
+      ?checked="${spec.acmeProvider.authority !== "none"}"
     /> Use ACME to manage TLS</label></legend>
     <div class="inner-grid">
     <div class="attribute-name">acme provider:</div>
