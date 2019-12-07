@@ -14,9 +14,9 @@ import (
 	"github.com/pkg/errors"
 
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta2"
+	"github.com/datawire/apro/cmd/amb-sidecar/devportal/devportalfilter"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/controller"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/externalhandler"
-	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/internalhandler"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/jwthandler"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/middleware"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/oauth2handler"
@@ -231,18 +231,24 @@ func (c *FilterMux) runFilterRefs(filters []crd.FilterReference, ctx context.Con
 func (c *FilterMux) runFilterRef(filterRef crd.FilterReference, ctx context.Context, request *filterapi.FilterRequest) (filterapi.FilterResponse, error) {
 	filterQName := filterRef.Name + "." + filterRef.Namespace
 
-	filter := findFilter(c.Controller, filterQName)
-	if filter == nil {
-		return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
-			errors.Errorf("could not find not filter: %q", filterQName), nil), nil
-	}
-	if filter.Status.State != crd.FilterState_OK {
-		return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
-			errors.Errorf("error in filter %q configuration: %s", filterQName, filter.Status.Reason), nil), nil
-	}
-	filterImpl, errResponse := c.getFilterImpl(filter, filterRef.Name, filterRef.Namespace, filterRef.Arguments, ctx)
-	if errResponse != nil {
-		return errResponse, nil
+	var filterImpl filterapi.Filter
+	if filterRef.Impl != nil {
+		filterImpl = filterRef.Impl
+	} else {
+		filter := findFilter(c.Controller, filterQName)
+		if filter == nil {
+			return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
+				errors.Errorf("could not find not filter: %q", filterQName), nil), nil
+		}
+		if filter.Status.State != crd.FilterState_OK {
+			return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
+				errors.Errorf("error in filter %q configuration: %s", filterQName, filter.Status.Reason), nil), nil
+		}
+		var errResponse filterapi.FilterResponse
+		filterImpl, errResponse = c.getFilterImpl(filter, filterRef.Name, filterRef.Namespace, filterRef.Arguments, ctx)
+		if errResponse != nil {
+			return errResponse, nil
+		}
 	}
 
 	return filterImpl.Filter(dlog.WithLogger(ctx, dlog.GetLogger(ctx).WithField("FILTER", filterQName)), request)
@@ -329,13 +335,25 @@ func (c *FilterMux) getFilterImpl(filter *crd.Filter, filterName, filterNamespac
 		filterImpl = &externalhandler.ExternalFilter{
 			Spec: filterSpec,
 		}
-	case crd.FilterInternal:
-		filterImpl = internalhandler.MakeInternalFilter()
 	default:
 		panic(errors.Errorf("unexpected filter type %T", filterSpec))
 	}
 
 	return filterImpl, nil
+}
+
+func syntheticRule(filterImpl filterapi.Filter) *crd.Rule {
+	ret := &crd.Rule{
+		Filters: []crd.FilterReference{
+			{Impl: filterImpl},
+		},
+	}
+	if err := ret.Validate(""); err != nil {
+		// This should never happen; the Rule we created above
+		// should be valid.
+		panic(err)
+	}
+	return ret
 }
 
 func ruleForURL(c *controller.Controller, u *url.URL) *crd.Rule {
@@ -355,7 +373,12 @@ func ruleForURL(c *controller.Controller, u *url.URL) *crd.Rule {
 		}
 		return findRule(c, u.Host, u.Path)
 	default:
-		return findRule(c, u.Host, u.Path)
+		switch {
+		case strings.Contains(u.Path, "/.ambassador-internal/"):
+			return syntheticRule(devportalfilter.MakeDevPortalFilter())
+		default:
+			return findRule(c, u.Host, u.Path)
+		}
 	}
 }
 
