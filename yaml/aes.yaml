@@ -21,6 +21,9 @@ metadata:
   labels:
     product: aes
 rules:
+# Edge Stack mostly needs the same permissions as Ambassador OSS,
+# but it needs extra permissions to write getambassador.io CRs and
+# to create and update secrets.
 - apiGroups: [""]
   resources: [ "endpoints", "namespaces", "services" ]
   verbs: ["get", "list", "watch"]
