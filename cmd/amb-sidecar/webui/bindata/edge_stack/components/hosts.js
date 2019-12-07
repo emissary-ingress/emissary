@@ -188,7 +188,7 @@ export class SingleHost extends SingleResource {
       ?disabled="${!editing}"
       ?checked="${spec.acmeProvider.authority!=="none"}"
     /> Use ACME to manage TLS</label></legend>
-
+    <div class="inner-grid">
     <div class="attribute-name">acme provider:</div>
     <div class="attribute-value">
       <span class="${this.visible("list")}">${spec.acmeProvider.authority}</span>
@@ -212,6 +212,7 @@ export class SingleHost extends SingleResource {
     <div class="attribute-value">
       <span class="${this.visible("list")}">${spec.acmeProvider.email}</span>
       <input class="${this.visible("edit", "add")}" type="email" name="email" value="${spec.acmeProvider.email}" ?disabled="${!this.useAcme()}" />
+    </div>
     </div>
   </fieldset>
 

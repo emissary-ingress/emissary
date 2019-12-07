@@ -141,6 +141,10 @@ div.frame, fieldset.frame {
 div.frame fieldset.frame {
   grid-column: 1 / 11;
 }
+div.frame fieldset.frame div.inner-grid {
+  display: grid;
+  grid-template-columns: repeat(10, 10%);
+}
 div.title {
   grid-column: 1 / 11;
   background: var(--dw-item-background-fill);
