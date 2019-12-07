@@ -72,7 +72,6 @@ ambassador_root="/ambassador"
 export LC_ALL=C.UTF-8
 export LANG=C.UTF-8
 
-export POD_NAMESPACE="${POD_NAMESPACE:-$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace)}"
 export AMBASSADOR_NAMESPACE="${AMBASSADOR_NAMESPACE:-default}"
 export AMBASSADOR_CONFIG_BASE_DIR="${AMBASSADOR_CONFIG_BASE_DIR:-$ambassador_root}"
 export ENVOY_DIR="${AMBASSADOR_CONFIG_BASE_DIR}/envoy"
