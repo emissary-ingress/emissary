@@ -1,4 +1,4 @@
-# NOT a generated file.
+# GENERATED FILE: DO NOT EDIT.
 ---
 apiVersion: getambassador.io/v2
 kind: RateLimitService
