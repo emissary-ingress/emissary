@@ -128,7 +128,7 @@ button:focus {
 div {
 /*  margin: 0.4em; */
 }
-div.frame {
+div.frame, fieldset.frame {
   display: grid;
   margin: 0.4em;
   grid-template-columns: repeat(10, 10%);
@@ -137,6 +137,13 @@ div.frame {
   border-radius: 0.4em;
   position: relative;
   padding-bottom: 0.2em;
+}
+div.frame fieldset.frame {
+  grid-column: 1 / 10;
+}
+div.frame fieldset.frame div.inner-grid {
+  display: grid;
+  grid-template-columns: repeat(10, 10%);
 }
 div.title {
   grid-column: 1 / 11;
