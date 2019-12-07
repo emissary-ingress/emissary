@@ -38,10 +38,6 @@ const (
 	NamespaceNone = metav1.NamespaceNone
 )
 
-var (
-	ErrUnkResource = errors.New("unknown resource type in API server")
-)
-
 // KubeInfo holds the data required to talk to a cluster
 type KubeInfo struct {
 	flags       *pflag.FlagSet
@@ -209,16 +205,6 @@ func NewClient(info *KubeInfo) (*Client, error) {
 	}, nil
 }
 
-// Refresh refreshes the list of discovered resources
-func (c *Client) Refresh() error {
-	resources, err := restmapper.GetAPIGroupResources(c.discoveryClient)
-	if err != nil {
-		return err
-	}
-	c.restMapper = restmapper.NewDiscoveryRESTMapper(resources)
-	return nil
-}
-
 // ResourceType describes a Kubernetes resource type in a particular cluster.
 // See ResolveResourceType() for more information.
 //
@@ -304,7 +290,7 @@ func mappingFor(resourceOrKindArg string, restMapper meta.RESTMapper) (*meta.RES
 		// if the error is _not_ a *meta.NoKindMatchError, then we had trouble doing discovery,
 		// so we should return the original error since it may help a user diagnose what is actually wrong
 		if meta.IsNoMatchError(err) {
-			return nil, fmt.Errorf("%w: %q", ErrUnkResource, groupResource.Resource)
+			return nil, fmt.Errorf("the server doesn't have a resource type %q", groupResource.Resource)
 		}
 		return nil, err
 	}
