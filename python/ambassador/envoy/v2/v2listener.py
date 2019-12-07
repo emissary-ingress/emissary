@@ -614,8 +614,23 @@ class V2Listener(dict):
             config.ir.logger.info("V2L: wizard allowed, need cleartext")
             need_cleartext = True
 
+            # We want the wizard acme challenge to NEVER be served over HTTPS.
+            # TODO(xxx): make this overridable.
+            if 'cluster_127_0_0_1_8500' in config.ir.clusters:
+                config.ir.logger.info('Ensuring well-known acme challenges go to wizard on http.')
+                # Our new route needs to come first.
+                self.routes = [{
+                    'match': {
+                        'prefix': '/.well-known/acme-challenge/',
+                    },
+                    'route': {
+                        'cluster': 'cluster_127_0_0_1_8500'
+                    }
+                }] + self.routes
+            else:
+                config.ir.logger.warn('No cluster_127_0_0_1_8500 in clusters, but wizard allowed? Will live with redirecting acme-challenge.')
+
         host_dict = config.ir.aconf.get_config("hosts") or {}
-    
         for host in host_dict.values():
             if host.get('acme-provider', 'zzz').lower() == 'none':
                 config.ir.logger.info(f"V2L: host {host.hostname} has ACME none, need cleartext")
