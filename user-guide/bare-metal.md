@@ -1,4 +1,4 @@
-# Deploying Ambassador on a Bare Metal Kubernetes Installation
+# Deploying on a Bare Metal Kubernetes Installation
 
 In cloud environments, provisioning a readily available network load balancer with Ambassador is the best option for handling ingress into your Kubernetes cluster. When running kubernetes on a bare-metal setup, where network load balancers are not available by default, we need to consider different options for exposing Ambassador. 
 

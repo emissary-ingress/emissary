@@ -3,16 +3,8 @@
   items:
     - title: Getting Started with the Ambassador Edge Stack
       link: /user-guide/getting-started
-    - title: Why Ambassador Edge Stack?
+    - title: Why the Ambassador Edge Stack?
       link: /about/why-ambassador
-    - title: Features and Benefits
-      link: /about/features-and-benefits
-    - title: Using Ambassador Edge Stack in Your Organization
-      link: /concepts/using-ambassador-in-org
-    - title: Ambassador Edge Stack vs. Other Software
-      link: /about/alternatives
-    - title: Certified Builds
-      link: /user-guide/certified-builds
     - title: Need help?
       link: /about/support
         
@@ -20,6 +12,8 @@
   items: 
   - title: Quick Start Installation Guide
     link: /user-guide/install
+  - title: Edge Policy Console
+    link: /about/edge-policy-console
   - title: Other Install & Upgrade Options
     items: 
     - title: Upgrade to the Ambassador Edge Stack
@@ -40,6 +34,14 @@
   items: 
   - title: Ambassador 101
     link: /concepts/overview
+  - title: Features and Benefits
+    link: /about/features-and-benefits
+  - title: Using Ambassador Edge Stack in Your Organization
+    link: /concepts/using-ambassador-in-org
+  - title: Ambassador Edge Stack vs. Other Software
+    link: /about/alternatives
+  - title: Certified Builds
+    link: /user-guide/certified-builds
   - title: Ambassador Edge Stack Architecture
     link: /concepts/architecture
   - title: Ambassador Edge Stack Deployment Architecture
@@ -64,7 +66,7 @@
     - title: Available Guides
       link: /docs/guides/
       items:
-    - title: Connecting Services
+    - title: Service Routing
       items:
       - title: Adding a Custom Filter for Routing
         link: /docs/guides/filter-dev-guide
@@ -120,12 +122,12 @@
   items:
     - title: Configuring Ambassador Edge Stack
       link: /reference/configuration
-    - title: Global Configuration
-      link: /reference/core/ambassador
-    - title: Global Module Configuration
-      link: /reference/modules
     - title: Core Configuration
       items:
+        - title: Global Configuration
+          link: /reference/core/ambassador
+        - title: Global Module Configuration
+          link: /reference/modules
         - title: Gzip compression
           link: /reference/gzip
         - title: Load Balancing Configuration

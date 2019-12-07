@@ -38,7 +38,7 @@ The following table lists all of the features available to you with the Ambassad
 
 Once you’ve installed the Ambassador Edge Stack, you can read about the best practices for configuration and usage in your production environment, along with tutorials and guides on just how to get you there.
 
-[Core Concepts](/reference/core/ambassador) cover Ambassador's architecture and how it should be used.
+[Core Concepts](/concepts/overview) cover Ambassador's architecture and how it should be used.
 
 [Guides and tutorials](/docs/guides) walk you through how to configure Ambassador for specific use cases, from rate limiting to Istio integration to gRPC.
 

@@ -9,3 +9,10 @@ The "strangler" pattern is a common approach to incrementally migrating from a m
 ## Testing
 
 Ambassador Edge Stack can be used for testing services and accelerating continuous delivery. With features such as canary releases and traffic shadowing, Ambassador Edge Stack enables rapid iteration of services. [Read more here](https://blog.getambassador.io/next-level-testing-with-an-api-gateway-and-continuous-delivery-9cbb9c4564b5).
+
+## Other Applications
+
+Check out the [Resources](https://www.getambassador.io/resources/) section that includes case studies, articles, videos, and strategies for building and using the Ambassador API Gateway, and the Ambassador Edge Stack. 
+
+Plus, hear from real people and organizations about how they implemented Ambassador in their company.
+
