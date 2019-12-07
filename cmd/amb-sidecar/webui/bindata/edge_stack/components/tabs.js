@@ -8,7 +8,7 @@ import {useContext} from './context.js';
 export class Tabs extends LitElement {
   static get styles() {
     return css`
-.tabs {
+.col_left {
   float: left;
   width: 190px;
   background-color: black;
@@ -18,7 +18,7 @@ export class Tabs extends LitElement {
   font-weight: bold;
 }
 
-.main {
+.col_right {
   margin-left: 190px;
 }
 
@@ -55,9 +55,9 @@ export class Tabs extends LitElement {
 .tab-text {
   color: white;
 }
-    `;
-  }
 
+`
+  }
   /**
    * A list of properties to track for "re-render".
    *
@@ -114,7 +114,7 @@ export class Tabs extends LitElement {
     for (let idx = 0; idx < this.tabs.length; ++idx) {
       let classes = "tab";
       if (this.tabs[idx].name === currentTab) {
-        this.tabs[idx].style.display = "block";
+        //MOREMORE this.tabs[idx].style.display = "block";
 
         if( window.location.hash.length > 300 ) {
           /* if a long hash, then it might be a login cookie */
@@ -162,15 +162,16 @@ export class Tabs extends LitElement {
     }
 
     let tabName = this.current;
-    if (tabName == '') {
+    if (tabName === '') {
       tabName = this.tabs[0].name;
     }
 
     return html`
-      <div class="tabs">
+      <!-- MOREMORE <link rel="stylesheet" href="../styles/tabs.css"> -->
+      <div class="col_left">
         ${this.renderLinks()}
       </div>
-      <div class="main">
+      <div class="col_right">
         <slot name="${tabName}"></slot>
       </div>
     `;
