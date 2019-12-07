@@ -47,7 +47,7 @@ func EnsureFallback(cfg types.Config, coreClient k8sClientCoreV1.SecretsGetter, 
 }
 
 func ensureFallbackSecret(cfg types.Config, secretsGetter k8sClientCoreV1.SecretsGetter) error {
-	secretInterface := secretsGetter.Secrets(cfg.PodNamespace)
+	secretInterface := secretsGetter.Secrets(cfg.AmbassadorNamespace)
 	_, err := secretInterface.Get(SelfSignedSecretName, k8sTypesMetaV1.GetOptions{})
 	if err == nil {
 		// already done; nothing to do
@@ -66,7 +66,7 @@ func ensureFallbackSecret(cfg types.Config, secretsGetter k8sClientCoreV1.Secret
 	_, err = secretInterface.Create(&k8sTypesCoreV1.Secret{
 		ObjectMeta: k8sTypesMetaV1.ObjectMeta{
 			Name:      SelfSignedSecretName,
-			Namespace: cfg.PodNamespace,
+			Namespace: cfg.AmbassadorNamespace,
 		},
 		Type: k8sTypesCoreV1.SecretTypeTLS,
 		Data: map[string][]byte{
