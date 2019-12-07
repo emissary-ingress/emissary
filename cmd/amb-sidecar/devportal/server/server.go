@@ -51,7 +51,7 @@ func (s *Server) AddService(service Service, baseURL string, prefix string, open
 	return s.serviceStore.Set(
 		service, ServiceMetadata{
 			Prefix: prefix, BaseURL: baseURL,
-			HasDoc: hasDoc, Doc: doc})
+			HasDoc: hasDoc, Doc: doc}, hasDoc)
 }
 
 // DeleteService implements ServiceStore.
