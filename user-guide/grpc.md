@@ -212,17 +212,15 @@ Next, you need to change the client code slightly and tell it to open a secure R
     print("Greeter client received: " + response.message)
 ```
 
-`grpc.ssl_channel_credentials(root_certificates=None, private_key=None, certificate_chain=None)`returns the root certificate that will be used to validate the certificate and public key sent by Ambassador Edge Stack. The default values of `None` tells the gRPC runtime to grab the root certificate from the default location packaged with gRPC and ignore the private key and certificate chain fields.
+`grpc.ssl_channel_credentials(root_certificates=None, private_key=None, certificate_chain=None)`returns the root certificate that will be used to validate the certificate and public key sent by Ambassador Edge Stack. The default values of `None` tells the gRPC runtime to grab the root certificate from the default location packaged with gRPC and ignore the private key and certificate chain fields. Generally, passing no arguments to the method that requests credentials gives the same behavior. Refer to the languages [API Reference](https://grpc.io/docs/) if this is not the case.  
 
-Ambassador Edge Stack is now terminating TLS from the gRPC client and proxying the call to the application over cleartext.
+Ambassador Edge Stack is now terminating TLS from the gRPC client and proxying the call to the application over cleartext. 
 
 ![](/doc-images/gRPC-TLS-Ambassador.png)
 
 Refer to the Ambassador Edge Stack [TLS termination guide](/user-guide/tls-termination) for more information on the TLS module.
 
-[gRPC provides examples](https://grpc.io/docs/guides/auth.html) with proper syntax for other languages. Generally, passing no arguments to the method that requests credentials gives the same behavior as above.
-
-Refer to the languages [API Reference](https://grpc.io/docs/) if this is not the case.  
+If you want to configure authentication in another language, [gRPC provides examples](https://grpc.io/docs/guides/auth.html) with proper syntax for other languages. 
 
 #### Originating TLS with gRPC Service
 

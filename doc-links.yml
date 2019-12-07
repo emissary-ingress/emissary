@@ -22,10 +22,14 @@
     link: /user-guide/install
   - title: Other Install & Upgrade Options
     items: 
-    - title: Upgrade Ambassador OSS to Ambassador Edge Stack
+    - title: Upgrade to the Ambassador Edge Stack
       link: /user-guide/upgrade-from-oss-to-edge-stack
-    - title: Upgrade from Ambassador Pro to Ambassador Edge Stack
-      link: /user-guide/upgrade-from-pro-to-edge-stack
+    - title: Install with Helm
+      link: /user-guide/helm
+    - title: Install with Docker
+      link: /about/quickstart
+    - title: Install with Bare Metal
+      link: /user-guide/bare-metal
     - title: Install Ambassador Open Source
       link: /user-guide/install-ambassador-oss  
     - title: Early Access Releases

@@ -21,10 +21,12 @@ The Ambassador Edge Stack (community edition) is free and available for you to d
 
 ### Other Install Options
 
-You can use [Docker](/about/quickstart) deploy the Ambassador Edge Stack.
+There are several other options for using Ambassador for local or production instances:
+
+* Use [Docker](/about/quickstart) to deploy the Ambassador Edge Stack locally
+* Use [Helm](/user-guide/helm) to deploy the Ambassador Edge Stack locally and in production.
 
 You can also choose to deploy the [Ambassador API Gateway](/user-guide/install-ambassador-oss) instead.
-
 
 ## Browse Through Features
 
