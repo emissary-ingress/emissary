@@ -7,15 +7,14 @@ import {SingleResource, SortableResourceSet} from './resources.js';
 class Filter extends SingleResource {
 
   // internal
-  constructor() {
-    super();
-    this.type = "OAuth2";
-    this.subspec = null;
-    this.OAuth2 = null;
-    this.External = null;
-    this.JWT = null;
-    this.Plugin = null;
-    this.Internal = null;
+  init() {
+    this.state.type = "OAuth2";
+    this.state.subspec = null;
+    this.state.OAuth2 = null;
+    this.state.External = null;
+    this.state.JWT = null;
+    this.state.Plugin = null;
+    this.state.Internal = null;
   }
 
   /**
@@ -51,7 +50,7 @@ class Filter extends SingleResource {
    */
   mergeStrategy(path) {
     if (path === `spec.${this.filterType()}`) {
-      if (this.type === this.filterType()) {
+      if (this.state.type === this.filterType()) {
         return "merge";
       } else {
         return "replace";
@@ -64,7 +63,7 @@ class Filter extends SingleResource {
    */
   spec() {
     let result = {};
-    result[this.type] = this.subspec;
+    result[this.state.type] = this.state.subspec;
     return result;
   }
 
@@ -99,17 +98,21 @@ class Filter extends SingleResource {
   // override
   onAdd() {
     super.onAdd();
-    let type = this.filterType();
-    this.subspec = this.resource.spec[type];
-    this[type] = this.subspec;
+    this.onAddOrEdit();
   }
 
   // override
   onEdit() {
     super.onEdit();
+    this.onAddOrEdit();
+  }
+
+  // internal
+  onAddOrEdit() {
     let type = this.filterType();
-    this.subspec = this.resource.spec[type];
-    this[type] = this.subspec;
+    this.state.type = type;
+    this.state.subspec = this.resource.spec[type];
+    this.state[type] = this.state.subspec;
   }
 
   // internal
@@ -137,7 +140,7 @@ class Filter extends SingleResource {
   bool(subspec, name) {
     return html`
   <input ?disabled=${this.disabled()} type="checkbox" .checked=${subspec[name]}
-         @change=${(e)=>{subspec[name]=e.target.checked; this.requestUpdate(); console.log(subspec[name])}}
+         @change=${(e)=>{subspec[name]=e.target.checked; this.requestUpdate()}}
   />
 `
   }
@@ -370,12 +373,12 @@ ${(values || []).map((v, i)=>this.headerTemplateListEntry(values, v, i))}
 
   // internal
   updateType(newType) {
-    this[this.type] = this.subspec;
-    if (this[newType] === null || this[newType] === undefined) {
-      this[newType] = {}
+    this[this.state.type] = this.state.subspec;
+    if (this.state[newType] === null || this.state[newType] === undefined) {
+      this.state[newType] = {}
     }
-    this.subspec = this[newType];
-    this.type = newType;
+    this.state.subspec = this.state[newType];
+    this.state.type = newType;
     this.requestUpdate();
   }
 
@@ -383,9 +386,9 @@ ${(values || []).map((v, i)=>this.headerTemplateListEntry(values, v, i))}
    * Implement.
    */
   renderResource() {
-    let type = this.state.mode === "add" ? this.type : this.filterType();
+    let type = this.state.mode === "add" || this.state.mode === "edit" ? this.state.type : this.filterType();
     let render = this[`render${type}`].bind(this);
-    let subspec = this.state.mode === "add" || this.state.mode === "edit" ? this.subspec : this.resource.spec[type];
+    let subspec = this.state.mode === "add" || this.state.mode === "edit" ? this.state.subspec : this.resource.spec[type];
     let rendered = render(subspec);
     return html`
 <div class="attribute-name">Type:</div>
