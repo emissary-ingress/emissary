@@ -29,8 +29,10 @@ import (
 )
 
 const (
-	SelfSignedSecretName  = "fallback-self-signed-cert"
-	SelfSignedContextName = "fallback-self-signed-context"
+	SelfSignedSecretName = "fallback-self-signed-cert"
+	// The fallback context exists in the init-config, so we do not have to
+	// create it here.
+	//SelfSignedContextName = "fallback-self-signed-context"
 )
 
 func EnsureFallback(cfg types.Config, coreClient k8sClientCoreV1.SecretsGetter, dynamicClient k8sClientDynamic.Interface) error {
