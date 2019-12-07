@@ -67,7 +67,7 @@ Special plugin services enhance the functionality of Ambassador Edge Stack. Thes
 
 On this page you can add a new plugin or manage existing plugins.
 
-See [Filter Type: Plugin](/reference/filter-reference/#filter-type-plugin) for detailed information. 
+See [Plugins](/reference/services/services/) for detailed information.
 
 ### Resolvers
 

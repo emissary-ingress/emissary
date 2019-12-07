@@ -196,7 +196,7 @@
         link: /reference/shadowing
     - title: Plugins
       items:
-      - title: Available Services
+      - title: Available Plugins
         link: /reference/services/services
       - title: Authentication
         link: /reference/services/auth-service
