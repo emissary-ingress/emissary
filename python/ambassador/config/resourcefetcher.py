@@ -282,7 +282,7 @@ class ResourceFetcher:
         # Replace a sentinel value with the namespace of this ambassador pod.
         # This allows hard-coded initialization resources to have a useful namespace.
         if namespace == "_automatic_":
-            namespace = Config.ambassador_namespace
+            namespace = Config.pod_namespace
 
         if not apiVersion:
             # I think this is impossible.

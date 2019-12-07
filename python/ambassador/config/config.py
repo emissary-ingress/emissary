@@ -55,6 +55,7 @@ Validator = Callable[[ACResource], RichStatus]
 class Config:
     # CLASS VARIABLES
     # When using multiple Ambassadors in one cluster, use AMBASSADOR_ID to distinguish them.
+    pod_namespace: ClassVar[str] = os.environ.get('POD_NAMESPACE')
     ambassador_id: ClassVar[str] = os.environ.get('AMBASSADOR_ID', 'default')
     ambassador_namespace: ClassVar[str] = os.environ.get('AMBASSADOR_NAMESPACE', 'default')
     single_namespace: ClassVar[bool] = bool(os.environ.get('AMBASSADOR_SINGLE_NAMESPACE'))
