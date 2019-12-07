@@ -214,6 +214,63 @@
                     }
                 ],
                 "name": "ambassador-listener-8443"
+            },
+            {
+                "address": {
+                    "socket_address": {
+                        "address": "0.0.0.0",
+                        "port_value": 8080,
+                        "protocol": "TCP"
+                    }
+                },
+                "filter_chains": [
+                    {
+                        "filters": [
+                            {
+                                "config": {
+                                    "access_log": [],
+                                    "http_filters": [
+                                        {
+                                            "name": "envoy.router"
+                                        }
+                                    ],
+                                    "http_protocol_options": {
+                                        "accept_http_10": false
+                                    },
+                                    "normalize_path": true,
+                                    "route_config": {
+                                        "virtual_hosts": [
+                                            {
+                                                "domains": [
+                                                    "*"
+                                                ],
+                                                "name": "backend",
+                                                "require_tls": "EXTERNAL_ONLY",
+                                                "routes": [
+                                                    {
+                                                        "match": {
+                                                            "prefix": "/"
+                                                        },
+                                                        "redirect": {
+                                                            "https_redirect": true
+                                                        }
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    "server_name": "envoy",
+                                    "stat_prefix": "ingress_http",
+                                    "use_remote_address": true,
+                                    "xff_num_trusted_hops": 0
+                                },
+                                "name": "envoy.http_connection_manager"
+                            }
+                        ],
+                        "use_proxy_proto": false
+                    }
+                ],
+                "name": "redirect_listener"
             }
         ]
     }

@@ -547,6 +547,7 @@
                         "location": "host-2.default.1",
                         "name": "host-2-context",
                         "namespace": "default",
+                        "redirect_cleartext_from": 8080,
                         "secret_info": {
                             "cert_chain_file": "/tmp/ambassador/snapshots/default/secrets-decoded/test-tlscontext-secret-2/4CB5C4C15C3BBBF727E8572838933519EA42D103.crt",
                             "private_key_file": "/tmp/ambassador/snapshots/default/secrets-decoded/test-tlscontext-secret-2/4CB5C4C15C3BBBF727E8572838933519EA42D103.key",
@@ -583,6 +584,7 @@
                 "location": "host-2.default.1",
                 "name": "host-2-context",
                 "namespace": "default",
+                "redirect_cleartext_from": 8080,
                 "secret_info": {
                     "cert_chain_file": "/tmp/ambassador/snapshots/default/secrets-decoded/test-tlscontext-secret-2/4CB5C4C15C3BBBF727E8572838933519EA42D103.crt",
                     "private_key_file": "/tmp/ambassador/snapshots/default/secrets-decoded/test-tlscontext-secret-2/4CB5C4C15C3BBBF727E8572838933519EA42D103.key",
@@ -702,6 +704,7 @@
                         "location": "host-1.default.1",
                         "name": "host-1-context",
                         "namespace": "default",
+                        "redirect_cleartext_from": 8080,
                         "secret_info": {
                             "cert_chain_file": "/tmp/ambassador/snapshots/default/secrets-decoded/test-tlscontext-secret-1/6B4919697C5D70BB8E4A73A59DDF51A53AE24264.crt",
                             "private_key_file": "/tmp/ambassador/snapshots/default/secrets-decoded/test-tlscontext-secret-1/6B4919697C5D70BB8E4A73A59DDF51A53AE24264.key",
@@ -738,6 +741,7 @@
                 "location": "host-1.default.1",
                 "name": "host-1-context",
                 "namespace": "default",
+                "redirect_cleartext_from": 8080,
                 "secret_info": {
                     "cert_chain_file": "/tmp/ambassador/snapshots/default/secrets-decoded/test-tlscontext-secret-1/6B4919697C5D70BB8E4A73A59DDF51A53AE24264.crt",
                     "private_key_file": "/tmp/ambassador/snapshots/default/secrets-decoded/test-tlscontext-secret-1/6B4919697C5D70BB8E4A73A59DDF51A53AE24264.key",
@@ -846,6 +850,7 @@
                     "location": "host-1.default.1",
                     "name": "host-1-context",
                     "namespace": "default",
+                    "redirect_cleartext_from": 8080,
                     "secret_info": {
                         "cert_chain_file": "/tmp/ambassador/snapshots/default/secrets-decoded/test-tlscontext-secret-1/6B4919697C5D70BB8E4A73A59DDF51A53AE24264.crt",
                         "private_key_file": "/tmp/ambassador/snapshots/default/secrets-decoded/test-tlscontext-secret-1/6B4919697C5D70BB8E4A73A59DDF51A53AE24264.key",
@@ -866,6 +871,7 @@
                     "location": "host-2.default.1",
                     "name": "host-2-context",
                     "namespace": "default",
+                    "redirect_cleartext_from": 8080,
                     "secret_info": {
                         "cert_chain_file": "/tmp/ambassador/snapshots/default/secrets-decoded/test-tlscontext-secret-2/4CB5C4C15C3BBBF727E8572838933519EA42D103.crt",
                         "private_key_file": "/tmp/ambassador/snapshots/default/secrets-decoded/test-tlscontext-secret-2/4CB5C4C15C3BBBF727E8572838933519EA42D103.key",
@@ -873,6 +879,22 @@
                     }
                 }
             },
+            "use_proxy_proto": false,
+            "use_remote_address": true,
+            "xff_num_trusted_hops": 0
+        },
+        {
+            "_active": true,
+            "_errored": false,
+            "_rkey": "ir.listener",
+            "kind": "IRListener",
+            "location": "host-2.default.1",
+            "name": "ir.listener",
+            "namespace": "default",
+            "redirect_listener": true,
+            "require_tls": true,
+            "server_name": "envoy",
+            "service_port": 8080,
             "use_proxy_proto": false,
             "use_remote_address": true,
             "xff_num_trusted_hops": 0
@@ -961,6 +983,7 @@
             "location": "host-1.default.1",
             "name": "host-1-context",
             "namespace": "default",
+            "redirect_cleartext_from": 8080,
             "secret_info": {
                 "cert_chain_file": "/tmp/ambassador/snapshots/default/secrets-decoded/test-tlscontext-secret-1/6B4919697C5D70BB8E4A73A59DDF51A53AE24264.crt",
                 "private_key_file": "/tmp/ambassador/snapshots/default/secrets-decoded/test-tlscontext-secret-1/6B4919697C5D70BB8E4A73A59DDF51A53AE24264.key",
@@ -981,6 +1004,7 @@
             "location": "host-2.default.1",
             "name": "host-2-context",
             "namespace": "default",
+            "redirect_cleartext_from": 8080,
             "secret_info": {
                 "cert_chain_file": "/tmp/ambassador/snapshots/default/secrets-decoded/test-tlscontext-secret-2/4CB5C4C15C3BBBF727E8572838933519EA42D103.crt",
                 "private_key_file": "/tmp/ambassador/snapshots/default/secrets-decoded/test-tlscontext-secret-2/4CB5C4C15C3BBBF727E8572838933519EA42D103.key",

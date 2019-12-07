@@ -78,7 +78,8 @@ class IRHost(IRResource):
                                                namespace=self.namespace,
                                                location=self.location,
                                                hosts=[ self.hostname ],
-                                               secret=tls_name)
+                                               secret=tls_name,
+                                               redirect_cleartext_from=8080)
 
                             match_labels = self.get('matchLabels')
 
