@@ -279,6 +279,11 @@ class ResourceFetcher:
         generation = metadata.get('generation', 1)
         spec = obj.get('spec') or {}
 
+        # Replace a sentinel value with the namespace of this ambassador pod.
+        # This allows hard-coded initialization resources to have a useful namespace.
+        if namespace == "_automatic_":
+            namespace = Config.ambassador_namespace
+
         if not apiVersion:
             # I think this is impossible.
             self.logger.debug(f'{self.location}: ignoring K8s {kind} CRD, no apiVersion')
