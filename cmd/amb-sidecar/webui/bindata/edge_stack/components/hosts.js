@@ -230,6 +230,8 @@ export class SingleHost extends SingleResource {
   <div class="attribute-value ${this.visible("list", "edit")}">
     <span>${hostState} ${reason}</span>
   </div>
+  
+
 `
   }
 
@@ -253,7 +255,7 @@ export class Hosts extends ResourceSet {
     return ret;
   }
 
-  render() {
+  renderInner() {
     let addHost = {
       metadata: {
         namespace: "default",
@@ -268,6 +270,15 @@ export class Hosts extends ResourceSet {
       },
       status: {}};
     return html`
+<div class="header_con">
+  <div class="col">
+    <!-- MOREMORE include the icon -->
+  </div>
+  <div class="col">
+    <h1>Hosts</h1>
+    <p>Hosts are domains that are managed by Ambassador Edge Stack, e.g., example.org</p>
+  </div>
+</div>
 <dw-host .resource=${addHost} .state=${this.addState}><add-button></add-button></dw-host>
 <div>
   ${this.resources.map(h => html`<dw-host .resource=${h} .state=${this.state(h)}></dw-host>`)}

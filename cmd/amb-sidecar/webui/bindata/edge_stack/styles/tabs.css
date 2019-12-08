@@ -272,6 +272,14 @@ navigation a.selected .label .name {
 	padding: 30px
 }
 
+.content a.button_large {
+	display: -webkit-flex;
+	display: -ms-flexbox;
+	display: flex;
+	-webkit-justify-content: center;
+	-ms-flex-pack: center;
+	justify-content: center
+}
 /* MOREMORE old stuff
 .tab {
 	display: block;

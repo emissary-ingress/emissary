@@ -26,9 +26,12 @@ export class LoginGate extends LitElement {
   padding: 0;
 }
 */
+/*MOREMORE move this stuff below to a login-gate.css file */
+
 #unauthenticated-outer-wrapper {
   width: 80%;
   margin-left: 10%;
+  background-color: #fff;
 }
 #all-wrapper {
     width: 80%;
