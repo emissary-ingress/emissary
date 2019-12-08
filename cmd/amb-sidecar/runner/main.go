@@ -2,10 +2,8 @@ package runner
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"math/rand"
 	"net/http"
 	"os"
@@ -195,73 +193,6 @@ func triggerOnChange(ctx context.Context, watchFile string, trigger func()) {
 	eventsWG.Wait()
 }
 
-// getDiagSnapshot returns a diagd snapshot; it will block until either diagd becomes ready and gives us a snapshot (in
-// which case the snapshot is returned), or until the context is canceled (in which case nil is returned).  If neither
-// of those conditions happens, then it blocks forever; this is OK, because if diagd fails to become ready then the
-// Kubernetes liveness checks (which hit diagd) will fail, and the pod will get killed; we don't need to worry about
-// detecting that situation ourselves.
-func getDiagSnapshot(ctx context.Context) []byte {
-	ticker := time.NewTicker(time.Second)
-	defer ticker.Stop()
-	for {
-		select {
-		case <-ctx.Done():
-			return nil
-		case <-ticker.C:
-			res := func() []byte {
-				req, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://127.0.0.1:8877/ambassador/v0/diag/?json=true", nil)
-				if err != nil {
-					return nil
-				}
-				resp, err := http.DefaultClient.Do(req)
-				if err != nil {
-					return nil
-				}
-				defer resp.Body.Close()
-				bodyBytes, err := ioutil.ReadAll(resp.Body)
-				if err != nil {
-					return nil
-				}
-				if resp.StatusCode != 200 {
-					return nil
-				}
-				return bodyBytes
-			}()
-			if res != nil {
-				return res
-			}
-		}
-	}
-}
-
-// isFallbackTLSDesired queries a diag snapshot, then returns false if a TLSContext that defines Hosts (a termination
-// context) is present, otherwise returns true. It also includes an explanatory message.
-func isFallbackTLSDesired(ctx context.Context) (bool, string) {
-	snapshotBytes := getDiagSnapshot(ctx)
-	if snapshotBytes == nil {
-		// this happens if the context is canceled
-		return false, "shutting down"
-	}
-	snapshot := struct {
-		TLSContexts []struct {
-			Hosts     []string `json:"hosts"`
-			Name      string   `json:"name"`
-			Namespace string   `json:"namespace"`
-		} `json:"tlscontexts"`
-	}{}
-	if err := json.Unmarshal(snapshotBytes, &snapshot); err != nil {
-		err = errors.Wrap(err, "parse diag snapshot for acme")
-		return true, err.Error()
-	}
-	for _, obj := range snapshot.TLSContexts {
-		// A TLSContext that defines Hosts is a “termination context”. Without Hosts it’s an “origination context”.
-		if len(obj.Hosts) > 0 {
-			return false, fmt.Sprintf("TLSContext %q (ns=%q) exists with Hosts defined", obj.Name, obj.Namespace)
-		}
-	}
-	return true, "No termination TLSContext found in snapshot"
-}
-
 func runE(cmd *cobra.Command, args []string) error {
 	// Load the configuration
 	cfg, warn, fatal := types.ConfigFromEnv()
@@ -400,20 +331,11 @@ func runE(cmd *cobra.Command, args []string) error {
 		coreClient,
 		dynamicClient)
 	group.Go("acme_client", func(hardCtx, softCtx context.Context, cfg types.Config, l dlog.Logger) error {
-		// Don't create a fallback context if a termination context already exists, because that would be redundant.
-		fallbackDesired, reason := isFallbackTLSDesired(softCtx)
-		if fallbackDesired {
-			l.Debugln("Creating fallback TLS configuration because", reason)
-			// FIXME(lukeshu): Perhaps EnsureFallback should observe softCtx.Done()?
-			if err := acmeclient.EnsureFallback(cfg, coreClient, dynamicClient); err != nil {
-				err = errors.Wrap(err, "create fallback TLSContext and TLS Secret")
-				l.Errorln(err)
-				// this is non fatal (mostly just to facilitate local dev); don't `return err`
-			} else {
-				l.Debugln("Created fallback TLS configuration")
-			}
-		} else {
-			l.Debugln("Not creating fallback TLS configuration because", reason)
+		// FIXME(lukeshu): Perhaps EnsureFallback should observe softCtx.Done()?
+		if err := acmeclient.EnsureFallback(cfg, coreClient, dynamicClient); err != nil {
+			err = errors.Wrap(err, "create fallback TLSContext and TLS Secret")
+			l.Errorln(err)
+			// this is non fatal (mostly just to facilitate local dev); don't `return err`
 		}
 		// acmeController.Worker() doesn't need to observe softCtx.Done() because as a
 		// snapshotStore.Subscribe()r it will notice the shutdown from snapshotStore.
