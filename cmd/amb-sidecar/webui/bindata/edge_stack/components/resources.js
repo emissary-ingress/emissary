@@ -116,6 +116,7 @@ export class SingleResource extends LitElement {
    * base class styles by including the result of super.styles() in
    * your result.
    */
+  /*MOREMORE unused
   static get styles() {
     return css`
 .error {
@@ -126,7 +127,7 @@ button:focus {
   background-color: #ede7f3;
 }
 div {
-/*  margin: 0.4em; */
+/*  margin: 0.4em;
 }
 div.frame, fieldset.frame {
   display: grid;
@@ -233,6 +234,7 @@ span.code {
 }
 `
   }
+   */
 
   // internal
   static get properties() {
@@ -675,7 +677,7 @@ ${entries}
   render() {
     return html`
 <slot class="${this.state.mode === "off" ? "" : "off"}" @click=${this.onAdd.bind(this)}></slot>
-<div class="${this.state.mode === "off" ? "off" : "frame"}">
+      <div class="${this.state.mode === "off" ? "off" : "frame"}">
   <div class="title-button">
     ${typeof this.sourceURI() == 'string'
       ? html`<button @click=${(x)=>this.onSource(x)}>Source</button>`

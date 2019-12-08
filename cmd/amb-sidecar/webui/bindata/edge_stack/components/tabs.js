@@ -8,6 +8,7 @@ import {useContext} from './context.js';
 export class Tabs extends LitElement {
   static get styles() {
     return css`
+/*MOREMORE moved to css file
 .col_left {
   float: left;
   width: 190px;
@@ -55,7 +56,7 @@ export class Tabs extends LitElement {
 .tab-text {
   color: white;
 }
-
+*/
 `
   }
   /**
@@ -112,7 +113,7 @@ export class Tabs extends LitElement {
     }
 
     for (let idx = 0; idx < this.tabs.length; ++idx) {
-      let classes = "tab";
+      let classes = "";
       if (this.tabs[idx].name === currentTab) {
         //MOREMORE this.tabs[idx].style.display = "block";
 
@@ -129,20 +130,34 @@ export class Tabs extends LitElement {
           window.location.hash = "#" + this.tabs[idx].tabHashName();
         }
 
-        classes += " active";
+        classes += " selected";
       }
 
       if (this.tabs[idx].tabIconFilename()) {
         links.push(html`
-          <a class="${classes}" href="#${this.tabs[idx].tabHashName()}">
-            <img src="${this.tabs[idx].tabIconFilename()}"/>
-            <span class="tab-text icon-aligned">${this.tabs[idx].tabName()}</span>
+          <a href="#${this.tabs[idx].tabHashName()}" class="${classes}">
+            <div class="selected_stripe"></div>
+            <div class="label">
+              <div class="icon">
+                <!-- MOREMORE potentially another div class=icon -->
+                  <img src="${this.tabs[idx].tabIconFilename()}"/> <!-- MOREMORE replace with svg -->
+                <!-- MOREMORE potentially end-div -->
+              </div>
+              <div class="name">${this.tabs[idx].tabName()}</div>
+            </div>
           </a>
         `);
       } else {
         links.push(html`
-          <a class="${classes}" href="#${this.tabs[idx].tabHashName()}">
-            <span class="tab-text with-no-icon">${this.tabs[idx].tabName()}</span>
+          <a href="#${this.tabs[idx].tabHashName()}" class="${classes}">
+            <div class="selected_stripe"></div>
+            <div class="label">
+              <div class="icon">
+                <!-- MOREMORE potentially another div class=icon -->
+                <!-- MOREMORE potentially end-div -->
+              </div>
+              <div class="name">${this.tabs[idx].tabName()}</div>
+            </div>
           </a>
         `);
       }
@@ -167,12 +182,19 @@ export class Tabs extends LitElement {
     }
 
     return html`
-      <!-- MOREMORE <link rel="stylesheet" href="../styles/tabs.css"> -->
-      <div class="col_left">
-        ${this.renderLinks()}
-      </div>
-      <div class="col_right">
-        <slot name="${tabName}"></slot>
+      <link rel="stylesheet" href="../styles/tabs.css">
+      <div class="col_wrapper">
+        <div class="col_left">
+          <div class="logo"><img src="../images/ambassador-logo-white.svg"/></div>
+          <navigation>
+            ${this.renderLinks()}
+          </navigation>
+        </div>
+        <div class="col_right">
+          <div class="content">
+            <slot name="${tabName}"></slot>
+          </div>
+        </div>
       </div>
     `;
   }
