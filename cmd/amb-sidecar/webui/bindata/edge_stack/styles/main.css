@@ -165,30 +165,3 @@ button::-moz-focus-inner, input::-moz-focus-inner {
 	padding: 0
 }
 
-/* --------------------------------------------- */
-
-.main-ui-admin-section-heading {
-	margin: 0 0.1em;
-	font-size: 120%;
-	font-weight: bold;
-}
-.main-ui-admin-section-text {
-	display: inline-block;
-	margin-right: 10%;
-	margin-left: 2.5px;
-}
-div.main-ui-admin-section {
-	border: 1px solid var(--dw-item-border);
-	box-shadow: 0 2px 4px rgba(0, 0, 0, .1);
-	padding: 0.5em;
-	margin-bottom: 0.6em;
-	line-height: 1.3;
-	position: relative;
-}
-.main-ui-admin-section p {
-	margin-top: 0;
-}
-.main-ui-admin-section code {
-	font-size: 120%;
-}
-
