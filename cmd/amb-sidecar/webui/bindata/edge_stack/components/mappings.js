@@ -1,6 +1,7 @@
 import {html} from '../vendor/lit-element.min.js'
 import {SingleResource, SortableResourceSet} from './resources.js';
 import './request-labels.js';
+//MOREMORE do the new look for the mappings page
 
 class Mapping extends SingleResource {
 

@@ -1,6 +1,7 @@
 /* ===================================================================================*/
 /* Dashboard and dashboard element classes using LitElement.                          */
 /* ===================================================================================*/
+//MOREMORE do the new look for the dashboard page
 
 import { LitElement, html, css, svg } from '../vendor/lit-element.min.js';
 import { Snapshot } from './snapshot.js';

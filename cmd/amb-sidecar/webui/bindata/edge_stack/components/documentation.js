@@ -1,4 +1,5 @@
 import { LitElement, html, css } from '../vendor/lit-element.min.js'
+//MOREMORE do the new look for the documentation page
 
 export class Documentation extends LitElement {
   static get properties() {

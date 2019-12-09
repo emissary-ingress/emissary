@@ -1,5 +1,6 @@
 import {html} from '../vendor/lit-element.min.js'
 import {SingleResource, SortableResourceSet} from './resources.js';
+//MOREMORE do the new look for the filters page
 
 /**
  * The UI component for a filter.

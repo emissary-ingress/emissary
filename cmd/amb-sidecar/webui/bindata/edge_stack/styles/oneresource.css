@@ -149,6 +149,9 @@ div.off, span.off, input.off {
 	border-bottom: none;
 }
 
+.errors ul {
+	color: red;
+}
 
 .margin-right {
 	margin-right: 20px
@@ -181,4 +184,33 @@ input {
 	padding: 5px;
 	margin: -5px 0;
 	width: 100%;
+}
+input[type=checkbox], input[type=radio] {
+	box-sizing: border-box;
+	padding: 0;
+	width: inherit;
+	margin: 0.2em 0;
+}
+
+div.yaml-wrapper {
+	overflow-x: scroll;
+}
+div.yaml-wrapper pre {
+	width: 500px;
+	font-size: 90%;
+}
+
+div.yaml ul {
+	color: var(--dw-purple);
+	margin-left: 2em;
+	margin-bottom: 0.5em;
+}
+div.yaml li {
+}
+div.yaml li .yaml-path {
+}
+div.yaml li .yaml-change {
+}
+div.yaml li .yaml-change::before {
+	content: " \2192  ";
 }

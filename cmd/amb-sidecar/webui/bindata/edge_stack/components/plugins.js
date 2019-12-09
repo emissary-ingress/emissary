@@ -1,6 +1,7 @@
 import { LitElement, html, css } from '../vendor/lit-element.min.js'
 import {SingleResource} from './resources.js'
 import {Snapshot} from './snapshot.js'
+////MOREMORE do the new look for the plugins page
 
 export class Plugin extends SingleResource {
   // implement

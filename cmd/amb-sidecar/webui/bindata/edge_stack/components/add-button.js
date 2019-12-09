@@ -36,6 +36,7 @@ template.innerHTML = `
   </div>
 `;
 class AddButton extends HTMLElement {
+  //MOREMORE need to do the add button
   constructor() {
     super();
     this._shadowRoot = this.attachShadow({ mode: 'open' });

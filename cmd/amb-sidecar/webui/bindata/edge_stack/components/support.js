@@ -1,6 +1,7 @@
 import { LitElement, html, css } from '../vendor/lit-element.min.js'
 import { Snapshot } from './snapshot.js'
 import { License } from './license.js'
+//MOREMORE do the new look for the Support page
 
 export class Support extends LitElement {
 

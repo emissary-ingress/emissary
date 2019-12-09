@@ -400,18 +400,19 @@ export class SingleResource extends LitElement {
         if (v !== "ignored") {
           changes = true;
           entries.push(html`
-<div class="yaml-path">${k}</div> <div class="yaml-change">${v}</div>
+<li><span class="yaml-path">${k}</span> <span class="yaml-change">${v}</span></li>
 `);
         }
       });
 
       return html`
 <div class="yaml" style="display: ${this.state.showingYaml ? "block" : "none"}">
-  ${changes ? html`Changes:` : html``}
-  <div class="changes">
+  <div class="yaml-changes"><ul>
 ${entries}
+  </ul></div>
+  <div class="yaml-wrapper">
+    <pre>${yaml}</pre>
   </div>
-  <pre>${yaml}</pre>
 </div>
 `;
     } catch (e) {
@@ -579,22 +580,11 @@ ${entries}
 
     ${this.renderResource()}
 
-${this.state.renderErrors()} <!-- MOREMORE check the render errors -->
+${this.state.renderErrors()}
 ${this.renderMergedYaml()}  <!-- MOREMORE check the render yaml -->
-<!-- MOREMORE I don't think all this is needed anymore:
-${((this.state.mode === "add") && (this.minimumNumberOfAddRows() < 2)) ? 
-      html`<div class="attribute-value">&nbsp;</div>` : ""}
-${((this.state.mode === "edit") && (this.minimumNumberOfEditRows() < 2)) ? 
-      html`<div class="attribute-value">&nbsp;</div>` : ""}
-${((this.state.mode === "edit") && (this.minimumNumberOfEditRows() < 3)) ? 
-      html`<div class="attribute-value">&nbsp;</div>` : ""}
-${((this.state.mode === "edit") && (this.minimumNumberOfEditRows() < 4)) ? 
-      html`<div class="attribute-value">&nbsp;</div>` : ""}
-  -->
   
     </div>
     <div class="col2">
-      <!-- MOREMORE need to check that the onSource stuff still works -->
       <a class="cta source ${typeof this.sourceURI() == 'string' ? "" : "off"}" @click=${(x)=>this.onSource(x)}>
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M14.078 7.061l2.861 2.862-10.799 10.798-3.584.723.724-3.585 10.798-10.798zm0-2.829l-12.64 12.64-1.438 7.128 7.127-1.438 12.642-12.64-5.691-5.69zm7.105 4.277l2.817-2.82-5.691-5.689-2.816 2.817 5.69 5.692z"/></svg>
         <div class="label">source</div>
@@ -615,7 +605,6 @@ ${((this.state.mode === "edit") && (this.minimumNumberOfEditRows() < 4)) ?
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 16"><defs><style>.cls-1{fill-rule:evenodd;}</style></defs><title>delete</title><g id="Layer_2" data-name="Layer 2"><g id="Layer_1-2" data-name="Layer 1"><path class="cls-1" d="M24,16H7L0,8,7,0H24V16ZM7.91,2,2.66,8,7.9,14H22V2ZM14,6.59,16.59,4,18,5.41,15.41,8,18,10.59,16.59,12,14,9.41,11.41,12,10,10.59,12.59,8,10,5.41,11.41,4,14,6.59Z"/></g></g></svg>
         <div class="label">delete</div>
       </a>
-      <!-- MOREMORE need to fix the YAML button because it's not a checkbox anymore so the function won't work -->
       <a class="cta edit ${this.visible("list", "detail", "edit", "add")}" @click=${(e)=>this.onYaml(e.target.checked)}>
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M14.078 7.061l2.861 2.862-10.799 10.798-3.584.723.724-3.585 10.798-10.798zm0-2.829l-12.64 12.64-1.438 7.128 7.127-1.438 12.642-12.64-5.691-5.69zm7.105 4.277l2.817-2.82-5.691-5.689-2.816 2.817 5.69 5.692z"/></svg>
         <div class="label">yaml</div>
@@ -1065,10 +1054,13 @@ export class UIState {
   renderErrors() {
     if (this.messages.length > 0) {
       return html`
-<div class="error-value">
-  <ul>
-    ${this.messages.map(m=>html`<li><span class="error">${m}</span></li>`)}
-  </ul>
+<div class="row line">
+  <div class="row-col"></div>
+  <div class="row-col errors">
+    <ul>
+      ${this.messages.map(m=>html`<li><span class="error">${m}</span></li>`)}
+    </ul>
+  </div>
 </div>`
     } else {
       return html``

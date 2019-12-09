@@ -2,6 +2,7 @@ import { getCookie } from '/edge_stack/components/cookies.js';
 import { css, html } from '/edge_stack/vendor/lit-element.min.js'
 import { SingleResource, ResourceSet } from '/edge_stack/components/resources.js';
 import { aes_res_editable, aes_res_changed, aes_res_downloaded } from '/edge_stack/components/snapshot.js'
+//MOREMORE do the new look for the YAML page
 
 /* Extremely simple SingleResource subclass to list resource items. */
 class YAMLItem extends SingleResource {
