@@ -129,10 +129,15 @@ img {
               <img src="../images/logos/datawire-mark.png" alt=""/>
               <span>Enterprise Support</span>
             </a></li>`
-          : html `<li><a href="https://www.getambassador.io/contact" target="_blank">
+          : html `
+           <li>
+             <!-- TODO: after Early-Access, change the link back to the github support -->
+             <!--<a href="https://www.getambassador.io/contact" target="_blank">-->
+             <a href="mailto:support@datawire.io" target="_blank">
               <img src="../images/logos/datawire-mark.png" alt=""/>
               <span>Contact Ambassador</span>
-            </a></li>`
+             </a>
+            </li>`
         }
 
         ${this.hasEmailSupport()
