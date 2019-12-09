@@ -204,7 +204,6 @@ export class SingleResource extends LitElement {
           })
       .then(r=>{
         r.text().then(t=>{
-        */
           this.reset();
           if (r.ok) {
             // happy path
