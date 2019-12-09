@@ -358,6 +358,7 @@ class TLSContextFactory:
         # are just ACResources; they need to be turned into IRTLSContexts.
         tls_contexts = aconf.get_config('tls_contexts')
 
+        found_termination_context = False
         if tls_contexts is not None:
             for config in tls_contexts.values():
                 ctx = IRTLSContext(ir, aconf, **config)
@@ -368,3 +369,20 @@ class TLSContextFactory:
 
                     ir.save_tls_context(ctx)
 
+                    if ctx.hosts:  # not None and not the empty list
+                        found_termination_context = True
+
+        if ir.edge_stack_allowed and not found_termination_context:
+            # Edge Stack always wants a termination context
+            ctx_name = "fallback-self-signed-context"
+            tls_name = "fallback-self-signed-cert"
+            ctx = IRTLSContext(ir,
+                               aconf,
+                               rkey=f"{ctx_name}.99999",
+                               name=ctx_name,
+                               location="-internal-",
+                               hosts=["*"],
+                               secret=tls_name,
+                               redirect_cleartext_from=8080)
+            assert ctx.is_active()
+            ir.save_tls_context(ctx)
