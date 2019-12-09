@@ -1241,7 +1241,7 @@ class Runner:
         self.names_to_ignore = {}
 
         for n in (n for n in self.nodes if n in selected):
-            local_possible, local_checked = n.check_local(self.gold_root, fname)
+            local_possible, local_checked = n.check_local(GOLD_ROOT, fname)
 
             if local_possible:
                 if local_checked:
