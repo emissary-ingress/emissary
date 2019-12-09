@@ -83,7 +83,7 @@ For example, here is a `Mapping` on a Kubernetes `service`:
 apiVersion: v1
 kind: Service
 metadata:
-  name: httpbin
+  name: qu
   annotations:
     getambassador.io/config: |
       ---

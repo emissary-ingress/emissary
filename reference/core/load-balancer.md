@@ -162,7 +162,7 @@ Ambassador Edge Stack allows session affinity based on the source IP of incoming
 apiVersion: getambassador.io/v1
 kind:  Mapping
 metadata:
-  name:  quote
+  name:  quote-backend
 spec:
   prefix: /backend/
   service: quote
