@@ -16,8 +16,6 @@ export class LoginGate extends LitElement {
 
   static get styles() {
     return css`
-/*MOREMORE move this stuff below to a login-gate.css file */
-
 #unauthenticated-outer-wrapper {
   width: 80%;
   margin-left: 10%;
