@@ -70,9 +70,10 @@ class ResourceFetcher:
         self.helm_chart: Optional[str] = None
 
         if not skip_init_dir:
-            # Check AMBASSADOR_CONFIG_BASE_DIR/init_config for initialization resources.
-            base = os.environ.get('AMBASSADOR_CONFIG_BASE_DIR') or '/ambassador'
-            init_dir = os.path.join(base, 'init-config')
+            # Check /ambassador/init-config for initialization resources -- note NOT
+            # $AMBASSADOR_CONFIG_BASE_DIR/init-config! This is compile-time stuff that
+            # doesn't move around if you change the configuration base.
+            init_dir = '/ambassador/init-config'
 
             if os.path.isdir(init_dir):
                 self.load_from_filesystem(init_dir, k8s=True, recurse=True, finalize=False)
