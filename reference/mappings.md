@@ -1,4 +1,4 @@
-# Configuring Services
+# Mappings Services
 
 Ambassador Edge Stack is designed so that the author of a given Kubernetes service can easily and flexibly configure how traffic gets routed to the service. The core abstraction used to support service authors is a `mapping`, which can apply to HTTP, GRPC, and Websockets at layer 7 via a `Mapping` resource, or to raw TCP connections at layer 4 via a `TCPMapping`.
 
@@ -8,7 +8,7 @@ Ambassador Edge Stack _must_ have one or more mappings defined to provide access
 
 Ambassador Edge Stack supports a number of attributes to configure and customize mappings.
 
-### Required attributes for mappings:
+### Required attributes for mappings
 
 | Required attribute        | Description               |
 | :------------------------ | :------------------------ |
@@ -16,7 +16,7 @@ Ambassador Edge Stack supports a number of attributes to configure and customize
 | [`prefix`](#resources)    | is the URL prefix identifying your [resource](#resources) |
 | [`service`](#services)    | is the name of the [service](#services) handling the resource; must include the namespace (e.g. `myservice.othernamespace`) if the service is in a different namespace than Ambassador |
 
-### Additional attributes:
+### Additional Attributes
 
 | Attribute                 | Description               |
 | :------------------------ | :------------------------ |

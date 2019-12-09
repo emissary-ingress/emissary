@@ -1,4 +1,4 @@
-# The Ambassador Edge Stack Configuration
+# Configuring the Ambassador Edge Stack
 
 The Ambassador Edge Stack is configured in a declarative fashion, using YAML manifests to describe the state of the world. As with Kubernetes, the Ambassador Edge Stack's manifests are identified with `apiVersion`, `kind`, and `name`. The current `apiVersion` is `getambassador.io/v2`; some of the currently-supported `kind`s are:
 

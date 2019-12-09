@@ -1,4 +1,4 @@
-# Need a Hand? 
+# Need Help?
 
 If you need help deploying Ambassador at your organization, there are several different options available to you.
 

@@ -1,4 +1,4 @@
-# Load Balancing in Ambassador Edge Stack
+# Load Balancing Configuration
 
 Load balancing configuration can be set for all Ambassador Edge Stack mappings in the [`ambassador`](/reference/core/ambassador) Module, or set per [mapping](/reference/mappings#configuring-mappings). If nothing is set, simple round robin balancing is used via Kubernetes services.
 

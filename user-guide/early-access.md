@@ -1,4 +1,4 @@
-# Ambassador Edge Stack Early Access Releases
+# Early Access Releases
 
 From time to time, the Ambassador Edge Stack may ship early access releases to test major changes. **Early access releases are not supported for production use**, but are intended to gain early feedback from our community prior to shipping a release.
 

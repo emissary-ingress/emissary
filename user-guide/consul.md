@@ -1,6 +1,6 @@
 # Consul Integration
 
-[Consul](https://www.consul.io) is a widely used service mesh. Ambassador Edge Stack natively supports Consul for service discovery and end-to-end TLS (including mTLS between services). This capability is particularly useful when deploying Ambassador Edge Stack in so-called hybrid clouds, where applications are deployed on VMs and Kubernetes. In this environment, Ambassador Edge Stack can securely route over TLS to any application regardless of where it is deployed.
+[Consul](https://www.consul.io) is a widely used service mesh. You can use Consul with Ambassador Edge Stack, as it natively supports Consul for service discovery and end-to-end TLS (including mTLS between services). This capability is particularly useful when deploying Ambassador Edge Stack in so-called hybrid clouds, where applications are deployed on VMs and Kubernetes. In this environment, Ambassador Edge Stack can securely route over TLS to any application regardless of where it is deployed.
 
 ## Architecture Overview
 
