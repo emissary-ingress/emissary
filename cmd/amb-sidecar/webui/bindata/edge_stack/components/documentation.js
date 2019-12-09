@@ -13,7 +13,6 @@ export class Documentation extends LitElement {
     return css`
 div.center {
    margin: auto;
-   max-width: 6.6in;
 }
 
 ul {
@@ -21,6 +20,7 @@ ul {
   flex-direction: row;
   flex-wrap: wrap;
   padding: 0;
+  justify-content: center;
 }
 
 ul > li {
@@ -35,15 +35,19 @@ ul > li > a {
 
   margin: 0.4em;
   border: 2px solid var(--dw-item-border);
-  border-radius: 0.4em;
-  background-color: var(--dw-item-background-fill);
+  border-radius: 10px;
+  background-color: #fff;
+  padding: 10px 30px 10px 30px;
+  box-shadow: 0 10px 5px -11px rgba(0, 0, 0, .6);
 
   text-decoration: none;
   color: black;
 }
 
 ul > li > a:hover {
-  background-color: var(--dw-item-background-hover);
+  color: #5f3eff;
+  transition: all .2s ease;
+  border: 2px #5f3eff solid
 }
 
 ul > li > a > * {

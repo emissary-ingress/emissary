@@ -16,17 +16,13 @@ export class LoginGate extends LitElement {
 
   static get styles() {
     return css`
-:host {
-    font-family: Source Sans Pro,sans-serif;
-    margin-left: 2em;
-    margin-right: 2em;
-}
-#all-wrapper {
-    width: 80%;
-    margin-left: 10%;
+#unauthenticated-outer-wrapper {
+  width: 80%;
+  margin-left: 10%;
+  background-color: #fff;
 }
 #ambassador-logo {
-    background-color: black;
+    background-color: white;
     padding: 5px;
     width: 456px;
     height: 42px;
@@ -153,6 +149,9 @@ div.overage-alert {
     border-radius: 0.7em;
     padding: 0.5em;
     background-color: #FFe8e8;
+}
+h2 {
+  margin: 0.1em;
 }
 pre {
     margin: 0 1em 1em 1em;
@@ -358,6 +357,12 @@ img#linuxLogo {
 
   renderUnauthenticated() {
     return html`
+<div id="unauthenticated-outer-wrapper">
+  <div id="ambassador-logo">
+    <a href="https://www.getambassador.io/">
+      <img src="https://www.getambassador.io/images/ambassador-logo-black.svg" alt="Ambassador Edge Stack" />
+    </a>
+  </div>
   <div class="login-section">
     <h1 class="info-title">Welcome to the Ambassador Edge Stack</h1>
     <p class="login-downloadText">
@@ -392,6 +397,7 @@ img#linuxLogo {
     </div>
         ${this.renderDebugDetails()}
   </div>
+</div>
     `;
   }
 

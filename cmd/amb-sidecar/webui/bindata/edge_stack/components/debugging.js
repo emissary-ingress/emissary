@@ -2,6 +2,7 @@ import { LitElement, html, css } from '../vendor/lit-element.min.js'
 import { Snapshot } from './snapshot.js'
 import { getCookie } from './cookies.js';
 import {ApiFetch} from "./api-fetch.js";
+//TODO need to finish converting the debug page to the new look
 
 export class Debugging extends LitElement {
   // external ////////////////////////////////////////////////////////

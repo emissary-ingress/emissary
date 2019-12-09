@@ -26,17 +26,23 @@ export class Plugin extends SingleResource {
   // implement
   renderResource() {
     let str = `
-     <div class="attribute-name">service url:</div>
-     <div class="attribute-value">${this.irData().name}</div>
+<div class="row line">
+  <div class="row-col margin-right justify-right">service url:</div>
+  <div class="row-col">${this.irData().name}</div>
+</div>
 
-     <div class="attribute-name">weight:</div>
-     <div class="attribute-value">${this.irData()._service_weight}</div>
+<div class="row line">
+  <div class="row-col margin-right justify-right">weight:</div>
+  <div class="row-col">${this.irData()._service_weight}</div>
+</div>
 `;
     let spec = (this.spec()||{});
     for (let key in spec) {
       if (spec.hasOwnProperty(key)) {
-        str += `<div class="attribute-name">${key}:</div>
-        <div class="attribute-value">${(typeof spec[key] === 'string') ? spec[key] : JSON.stringify(spec[key])}</div>`;
+        str += `<div class="row line">
+  <div class="row-col margin-right justify-right">${key}:</div>
+  <div class="row-col">${(typeof spec[key] === 'string') ? spec[key] : JSON.stringify(spec[key])}</div>
+</div>`;
       }
     }
     return html([str]);
@@ -69,6 +75,11 @@ export class Plugins extends LitElement {
     };
   }
 
+  // override; this tab is read-only
+  readOnly() {
+    return true;
+  }
+
   constructor() {
     super();
 
@@ -79,11 +90,23 @@ export class Plugins extends LitElement {
   }
 
   render() {
-    return html`<div>
+    return html`
+<link rel="stylesheet" href="../styles/resources.css">
+<div class="header_con">
+  <div class="col">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24.99 21.04"><defs><style>.cls-1{fill:#fff;}</style></defs><title>services</title><g id="Layer_2" data-name="Layer 2"><g id="Layer_1-2" data-name="Layer 1"><path class="cls-1" d="M0,0V21H25V0ZM5.94,14.4l.94-.94,1.85,1.32L9,14.63a6.39,6.39,0,0,1,2.23-.92l.27-.06.37-2.24h1.34l.36,2.24.27.06a6.39,6.39,0,0,1,2.23.92l.23.15,1.85-1.33.94,1-1.32,1.85.15.23a6.39,6.39,0,0,1,.92,2.23l.06.27,2.24.36v.89H3.89v-.89L6.13,19l.06-.27a6.39,6.39,0,0,1,.92-2.23l.15-.23Zm18.24,5.83H21.91v-1a.7.7,0,0,0-.58-.69l-1.8-.29a7.12,7.12,0,0,0-.83-2l1.06-1.47a.7.7,0,0,0-.07-.9l-1.08-1.08a.7.7,0,0,0-.9-.07l-1.47,1.06a7.12,7.12,0,0,0-2-.83L14,11.18a.7.7,0,0,0-.68-.58H11.73a.69.69,0,0,0-.68.58l-.3,1.8a7.12,7.12,0,0,0-2,.83L7.27,12.74a.69.69,0,0,0-.89.07L5.29,13.9a.71.71,0,0,0-.07.89l1.07,1.48a7.12,7.12,0,0,0-.83,2l-1.79.29a.71.71,0,0,0-.59.69v1H.81V5.2H24.18ZM.81,4.4V.81H24.18V4.4Z"/><rect class="cls-1" x="2.15" y="2.2" width="1.33" height="0.81"/><rect class="cls-1" x="4.01" y="2.2" width="1.33" height="0.81"/><rect class="cls-1" x="5.88" y="2.2" width="1.33" height="0.81"/><path class="cls-1" d="M12.5,17a3.23,3.23,0,0,1,3.22,3.23h.81a4,4,0,0,0-8.07,0h.81A3.23,3.23,0,0,1,12.5,17Z"/></g></g></svg>
+  </div>
+  <div class="col">
+    <h1>Plugins</h1>
+    <p>Special plugin services that enhance the functionality of Ambassador Edge Stack.<br/>
+       These plugin services are called when Ambassador handles requests.</p>
+  </div>
+</div>
+<div>
       ${this.plugins.map(s => {
         return html`<dw-plugin .resource=${s} .diag=${this.diag}></dw-plugin>`;
       })}
-    </div>`;
+</div>`;
   }
 
   // internal ////////////////////////////////////////////////////////

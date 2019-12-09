@@ -164,45 +164,65 @@ class Filter extends SingleResource {
   renderOAuth2(subspec) {
     let grantTypes = ["AuthorizationCode", "ClientCredentials"];
     return html`
-<div class="attribute-name">Authorization URL:</div>
-<div class="attribute-value">${this.input(subspec, "authorizationURL", "url")}</div>
+<div class="row line">
+  <div class="row-col margin-right justify-right">Authorization URL:</div>
+  <div class="row-col">${this.input(subspec, "authorizationURL", "url")}</div>
+</div>
 
-<div class="attribute-name">Grant Type:</div>
-<div class="attribute-value">${this.select(subspec, "grantType", grantTypes)}</div>
+<div class="row line">
+  <div class="row-col margin-right justify-right">Grant Type:</div>
+  <div class="row-col">${this.select(subspec, "grantType", grantTypes)}</div>
+</div>
 
-<div class="attribute-name">Access Token Validation:</div>
-<div class="attribute-value">${this.select(subspec, "accessTokenValidation", ["auto", "jwt", "userinfo"])}</div>
+<div class="row line">
+  <div class="row-col margin-right justify-right">Access Token Validation:</div>
+  <div class="row-col">${this.select(subspec, "accessTokenValidation", ["auto", "jwt", "userinfo"])}</div>
+</div>
 
-<hr>
+<div class="row line">
+  <div class="row-col margin-right justify-right">Client URL:</div>
+  <div class="row-col">${this.input(subspec, "clientURL", "url")}</div>
+</div>
 
-<div class="attribute-name">Client URL:</div>
-<div class="attribute-value">${this.input(subspec, "clientURL", "url")}</div>
+<div class="row line">
+  <div class="row-col margin-right justify-right">Client ID:</div>
+  <div class="row-col">${this.input(subspec, "clientID")}</div>
+</div>
 
-<div class="attribute-name">Client ID:</div>
-<div class="attribute-value">${this.input(subspec, "clientID")}</div>
+<div class="row line">
+  <div class="row-col margin-right justify-right">State TTL:</div>
+  <div class="row-col">${this.input(subspec, "stateTTL", "number")}</div>
+</div>
 
-<div class="attribute-name">State TTL:</div>
-<div class="attribute-value">${this.input(subspec, "stateTTL", "number")}</div>
+<div class="row line">
+  <div class="row-col margin-right justify-right">Secret:</div>
+  <div class="row-col">${this.input(subspec, "secret")}</div>
+</div>
 
-<div class="attribute-name">Secret:</div>
-<div class="attribute-value">${this.input(subspec, "secret")}</div>
+<div class="row line">
+  <div class="row-col margin-right justify-right">Secret Name:</div>
+  <div class="row-col">${this.input(subspec, "secretName")}</div>
+</div>
 
-<div class="attribute-name">Secret Name:</div>
-<div class="attribute-value">${this.input(subspec, "secretName")}</div>
+<div class="row line">
+  <div class="row-col margin-right justify-right">Secret Namespace:</div>
+  <div class="row-col">${this.input(subspec, "secretNamespace")}</div>
+</div>
 
-<div class="attribute-name">Secret Namespace:</div>
-<div class="attribute-value">${this.input(subspec, "secretNamespace")}</div>
+<div class="row line">
+  <div class="row-col margin-right justify-right">Insecure TLS:</div>
+  <div class="row-col">${this.bool(subspec, "insecureTLS")}</div>
+</div>
 
-<hr>
+<div class="row line">
+  <div class="row-col margin-right justify-right">Renegotiate TLS:</div>
+  <div class="row-col">${this.bool(subspec, "renegotiateTLS")}</div>
+</div>
 
-<div class="attribute-name">Insecure TLS:</div>
-<div class="attribute-value">${this.bool(subspec, "insecureTLS")}</div>
-
-<div class="attribute-name">Renegotiate TLS:</div>
-<div class="attribute-value">${this.bool(subspec, "renegotiateTLS")}</div>
-
-<div class="attribute-name">Max Stale:</div>
-<div class="attribute-value">${this.duration(subspec, "maxStale")}</div>
+<div class="row line">
+  <div class="row-col margin-right justify-right">Max Stale:</div>
+  <div class="row-col">${this.duration(subspec, "maxStale")}</div>
+</div>
 `
   }
 
@@ -240,29 +260,45 @@ ${(values || []).map((v, i)=>this.headerListEntry(values, v, i))}
   // internal
   renderExternal(subspec) {
     return html`
-<div class="attribute-name">Auth Service:</div>
-<div class="attribute-value">${this.input(subspec, "auth_service")}</div>
+<div class="row line">
+  <div class="row-col margin-right justify-right">Auth Service:</div>
+  <div class="row-col">${this.input(subspec, "auth_service")}</div>
+</div>
 
-<div class="attribute-name">Path Prefix:</div>
-<div class="attribute-value">${this.input(subspec, "path_prefix")}</div>
+<div class="row line">
+  <div class="row-col margin-right justify-right">Path Prefix:</div>
+  <div class="row-col">${this.input(subspec, "path_prefix")}</div>
+</div>
 
-<div class="attribute-name">TLS:</div>
-<div class="attribute-value">${this.bool(subspec, "tls")}</div>
+<div class="row line">
+  <div class="row-col margin-right justify-right">TLS:</div>
+  <div class="row-col">${this.bool(subspec, "tls")}</div>
+</div>
 
-<div class="attribute-name">Protocol:</div>
-<div class="attribute-value">${this.select(subspec, "proto", ["http", "grpc"])}</div>
+<div class="row line">
+  <div class="row-col margin-right justify-right">Protocol:</div>
+  <div class="row-col">${this.select(subspec, "proto", ["http", "grpc"])}</div>
+</div>
 
-<div class="attribute-name">Allow Request Body:</div>
-<div class="attribute-value">${this.bool(subspec, "allow_request_body")}</div>
+<div class="row line">
+  <div class="row-col margin-right justify-right">Allow Request Body:</div>
+  <div class="row-col">${this.bool(subspec, "allow_request_body")}</div>
+</div>
 
-<div class="attribute-name">Timeout:</div>
-<div class="attribute-value">${this.input(subspec, "timeout_ms", "number")}</div>
+<div class="row line">
+  <div class="row-col margin-right justify-right">Timeout:</div>
+  <div class="row-col">${this.input(subspec, "timeout_ms", "number")}</div>
+</div>
 
-<div class="attribute-name">Allowed Request Headers:</div>
-<div class="attribute-value">${this.headerList(subspec, "allowed_request_headers")}</div>
+<div class="row line">
+  <div class="row-col margin-right justify-right">Allowed Request Headers:</div>
+  <div class="row-col">${this.headerList(subspec, "allowed_request_headers")}</div>
+</div>
 
-<div class="attribute-name">Allowed Authorization Headers:</div>
-<div class="attribute-value">${this.headerList(subspec, "allowed_authorization_headers")}</div>
+<div class="row line">
+  <div class="row-col margin-right justify-right">Allowed Authorization Headers:</div>
+  <div class="row-col">${this.headerList(subspec, "allowed_authorization_headers")}</div>
+</div>
 `
   }
 
@@ -310,51 +346,77 @@ ${(values || []).map((v, i)=>this.headerTemplateListEntry(values, v, i))}
     // XXX: the validAlgorithms field should probably be something
     // more custom, but for now we will use headerList
     return html`
-<div class="attribute-name">Valid Algorithms:</div>
-<div class="attribute-value">${this.headerList(subspec, "validAlgorithms")}</div>
+<div class="row line">
+  <div class="row-col margin-right justify-right">Valid algorithms:</div>
+  <div class="row-col">${this.headerList(subspec, "validAlgorithms")}</div>
+</div>
 
-<div class="attribute-name">JWKS URI:</div>
-<div class="attribute-value">${this.input(subspec, "jwksURI", "url")}</div>
+<div class="row line">
+  <div class="row-col margin-right justify-right">JWKS URI:</div>
+  <div class="row-col">${this.input(subspec, "jwksURI", "url")}</div>
+</div>
 
-<div class="attribute-name">Audience:</div>
-<div class="attribute-value">${this.input(subspec, "audience")}</div>
+<div class="row line">
+  <div class="row-col margin-right justify-right">Audience:</div>
+  <div class="row-col">${this.input(subspec, "audience")}</div>
+</div>
 
-<div class="attribute-name">Require Audience:</div>
-<div class="attribute-value">${this.bool(subspec, "requireAudience")}</div>
+<div class="row line">
+  <div class="row-col margin-right justify-right">Require Audience:</div>
+  <div class="row-col">${this.bool(subspec, "requireAudience")}</div>
+</div>
 
-<div class="attribute-name">Issuer:</div>
-<div class="attribute-value">${this.input(subspec, "issuer", "url")}</div>
+<div class="row line">
+  <div class="row-col margin-right justify-right">Issuer:</div>
+  <div class="row-col">${this.input(subspec, "issuer", "url")}</div>
+</div>
 
-<div class="attribute-name">Require Issuer:</div>
-<div class="attribute-value">${this.bool(subspec, "requireIssuer")}</div>
+<div class="row line">
+  <div class="row-col margin-right justify-right">Require Issuer:</div>
+  <div class="row-col">${this.bool(subspec, "requireIssuer")}</div>
+</div>
 
-<div class="attribute-name">Require Issued At:</div>
-<div class="attribute-value">${this.bool(subspec, "requireIssuedAt")}</div>
+<div class="row line">
+  <div class="row-col margin-right justify-right">Require Issued At:</div>
+  <div class="row-col">${this.input(subspec, "requireIssuedAt", "url")}</div>
+</div>
 
-<div class="attribute-name">Require Expires At:</div>
-<div class="attribute-value">${this.bool(subspec, "requireExpiresAt")}</div>
+<div class="row line">
+  <div class="row-col margin-right justify-right">Require Expires At:</div>
+  <div class="row-col">${this.bool(subspec, "requireExpiresAt")}</div>
+</div>
 
-<div class="attribute-name">Require Not Before:</div>
-<div class="attribute-value">${this.bool(subspec, "requireNotBefore")}</div>
+<div class="row line">
+  <div class="row-col margin-right justify-right">Require Not Before:</div>
+  <div class="row-col">${this.input(subspec, "requireNotBefore", "url")}</div>
+</div>
 
-<div class="attribute-name">Inject Request Headers:</div>
-<div class="attribute-value">${this.headerTemplateList(subspec, "injectRequestHeaders")}</div>
+<div class="row line">
+  <div class="row-col margin-right justify-right">Inject Request Headers:</div>
+  <div class="row-col">${this.headerTemplateList(subspec, "injectRequestHeaders")}</div>
+</div>
 
-<div class="attribute-name">Insecure TLS:</div>
-<div class="attribute-value">${this.bool(subspec, "insecureTLS")}</div>
+<div class="row line">
+  <div class="row-col margin-right justify-right">Insecure TLS:</div>
+  <div class="row-col">${this.bool(subspec, "insecureTLS")}</div>
+</div>
 
-<div class="attribute-name">Renegotiate TLS:</div>
-<div class="attribute-value">${this.bool(subspec, "renegotiateTLS")}</div>
+<div class="row line">
+  <div class="row-col margin-right justify-right">Renegotiate TLS:</div>
+  <div class="row-col">${this.bool(subspec, "renegotiateTLS")}</div>
+</div>
 
-<div class="attribute-name">Error Headers:</div>
-<div class="attribute-value">${this.headerTemplateList(errorResponse, "headers")}</div>
+<div class="row line">
+  <div class="row-col margin-right justify-right">Error Headers:</div>
+  <div class="row-col">${this.headerTemplateList(errorResponse, "headers")}</div>
+</div>
 
-<div class="attribute-name">Error Body:</div>
-<div class="attribute-value">
-  <textarea ?disabled=${this.disabled()} rows="10" cols="60"
+<div class="row line">
+  <div class="row-col margin-right justify-right">Error Body:</div>
+  <div class="row-col"><textarea ?disabled=${this.disabled()} rows="10" cols="60"
             @change=${(e)=>{errorResponse.bodyTemplate=e.target.value; this.requestUpdate()}}>
     ${errorResponse.bodyTemplate}
-  </textarea>
+  </textarea></div>
 </div>
 `
   }
@@ -362,8 +424,10 @@ ${(values || []).map((v, i)=>this.headerTemplateListEntry(values, v, i))}
   // internal
   renderPlugin(subspec) {
     return html`
-<div class="attribute-name">Name:</div>
-<div class="attribute-value">${this.input(subspec, "name")}</div>
+<div class="row line">
+  <div class="row-col margin-right justify-right">name:</div>
+  <div class="row-col">${this.input(subspec, "name")}</div>
+</div>
 `
   }
 
@@ -391,15 +455,17 @@ ${(values || []).map((v, i)=>this.headerTemplateListEntry(values, v, i))}
     let subspec = this.state.mode === "add" || this.state.mode === "edit" ? this.state.subspec : this.resource.spec[type];
     let rendered = render(subspec);
     return html`
-<div class="attribute-name">Type:</div>
-<div class="attribute-value">
-  <select ?disabled=${this.disabled()} @change=${(e)=>this.updateType(e.target.value)}>
+<div class="row line">
+  <div class="row-col margin-right justify-right">type:</div>
+  <div class="row-col">
+    <select ?disabled=${this.disabled()} @change=${(e)=>this.updateType(e.target.value)}>
     <option .selected=${type === "OAuth2"} value="OAuth2">OAuth2</option>
     <option .selected=${type === "JWT"} value="JWT">JWT</option>
     <option .selected=${type === "External"} value="External">External</option>
     <option .selected=${type === "Plugin"} value="Plugin">Plugin</option>
     <option .selected=${type === "Internal"} value="Internal">Internal</option>
   </select>
+  </div>
 </div>
 ${rendered}
 `
@@ -435,8 +501,8 @@ export class Filters extends SortableResourceSet {
     }
   }
 
-  // implement
-  renderSet() {
+  renderInner() {
+    let shtml = super.renderInner();
     let newFilter = {
       metadata: {
         namespace: "default",
@@ -447,11 +513,35 @@ export class Filters extends SortableResourceSet {
       }
     };
     return html`
-<dw-filter
-  .resource=${newFilter}
-  .state=${this.addState}>
-  <add-button></add-button>
-</dw-filter>
+<div class="header_con">
+  <div class="col">
+  </div>
+  <div class="col">
+    <h1>Filters</h1>
+    <p>Configure middleware for your requests.</p>
+  </div>
+  <div class="col2">
+    <a class="cta add ${this.readOnly() ? "off" : ""}" @click=${()=>this.shadowRoot.getElementById("add-filter").onAdd()}>
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M14.078 7.061l2.861 2.862-10.799 10.798-3.584.723.724-3.585 10.798-10.798zm0-2.829l-12.64 12.64-1.438 7.128 7.127-1.438 12.642-12.64-5.691-5.69zm7.105 4.277l2.817-2.82-5.691-5.689-2.816 2.817 5.69 5.692z"/></svg>
+      <div class="label">add</div>
+    </a>
+    <div class="sortby">
+      <select id="sortByAttribute" @change=${this.onChangeSortByAttribute.bind(this)}>
+    ${this.sortFields.map(f => {
+      return html`<option value="${f.value}">${f.label}</option>`
+    })}
+      </select>
+    </div>
+  </div>
+</div>
+<dw-filter id="add-filter" .resource=${newFilter} .state=${this.addState}></dw-filter>
+${shtml}
+`;
+  }
+
+  // implement
+  renderSet() {
+    return html`
 <div>
   ${this.resources.map(r => {
     return html`<dw-filter .resource=${r} .state=${this.state(r)}></dw-filter>`

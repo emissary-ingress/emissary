@@ -1,250 +1,78 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="utf-8">
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1">
     <link rel="icon" href="/edge_stack/favicon.ico">
 
     <title>
-      Ambassador Edge Stack Admin
+      Ambassador Edge Stack Edge Policy Console
     </title>
-
-    <!--
-      If you're thinking about adding a script/css here, please don't.
-
-      The only thing that should live in head are things critical to rendering
-      anything on the page. If anything fails to load here for whatever reason.
-
-      Plus async defer can't kick in so we can start rendering content as it comes
-      in progressively.
-    -->
-
-    <!-- Gritical Global Styles -->
-    <style>
-      :root {
-        --dw-purple: #5F3EFF;
-        --dw-item-background-fill: #fdfaff;
-        --dw-item-background-hover: #ede7f3;
-        --dw-item-border: #ede7f3;
-        --dw-orange: #FF4329;
-      }
-
-      body {
-        font-family: Source Sans Pro, sans-serif;
-        margin-left: 2em;
-        margin-right: 2em;
-      }
-
-      /* TODO: Place anything below this in per-component styles. */
-
-      .section-heading {
-        margin: 0 0.1em;
-        font-size: 120%;
-        font-weight: bold;
-      }
-      .section-text {
-        display: inline-block;
-        margin-right: 10%;
-        margin-left: 2.5px;
-      }
-      div.admin-section {
-        border: 1px solid var(--dw-item-border);
-        box-shadow: 0 2px 4px rgba(0, 0, 0, .1);
-        padding: 0.5em;
-        margin-bottom: 0.6em;
-        line-height: 1.3;
-        position: relative;
-      }
-      .admin-section p {
-        margin-top: 0;
-      }
-      .admin-section code {
-        font-size: 120%;
-      }
-
-      #admin-page-outer-wrapper {
-        width: 80%;
-        margin-left: 10%;
-      }
-      #ambassador-logo {
-        background-color: white;
-        padding: 5px;
-        width: 456px;
-        height: 42px;
-        margin-bottom: 1em
-      }
-
-      div.info-title { /* used in login-gate */
-        font-weight: bold;
-        font-size: 120%;
-      }
-
-      span.command { /* used in login-gate */
-        background-color: #f5f2f0;
-        padding: 3px;
-        letter-spacing: .2px;
-        font-family: Consolas, Monaco, Andale Mono, Ubuntu Mono, monospace;
-        font-size: 90%;
-        word-spacing: normal;
-        word-break: normal;
-        word-wrap: normal;
-        hyphens: none;
-      }
-
-      div.overage-alert { /* used in login-gate */
-        border: 3px solid red;
-        border-radius: 0.7em;
-        padding: 0.5em;
-        background-color: #FFe8e8;
-      }
-
-      div.host, div.mapping {
-        padding: 1em 1em;
-      }
-
-      /*span.json {*/
-      /*  unicode-bidi: embed;*/
-      /*  font-family: monospace;*/
-      /*}*/
-
-      details {
-        margin-left: 1em;
-      }
-
-      h2 {
-        margin: 0.1em;
-      }
-
-      login-gate {
-        margin: 0;
-        padding: 0;
-      }
-    </style>
+    <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="../styles/main.css">
   </head>
 
-  <body>
-    <div id="admin-page-outer-wrapper">
-      <div id="ambassador-logo">
-        <a href="https://www.getambassador.io/">
-          <img src="https://www.getambassador.io/images/ambassador-logo-black.svg" alt="Ambassador Edge Stack" />
-        </a>
-      </div>
+  <body style="zoom: 1; opacity: 1;">
+    <login-gate>
+      <div class="alpha">
 
-      <div id="main">
-        <login-gate>
           <aes-snapshot-provider>
             <dw-tabs>
               <dw-signup></dw-signup>
 
               <dw-tab slot="Dashboard">
-                <div class="admin-section">
                   <dw-dashboard></dw-dashboard>
-                </div>
               </dw-tab>
 
-              <dw-tab slot="Hosts" icon="/edge_stack/images/hosts.png">
-                <div class="admin-section">
-                  <div class="section-heading">Hosts.</div>
-                    <p><span class="section-text">Hosts are domains that are managed by Ambassador Edge Stack, e.g., <code>example.org</code>.</span></p>
-
+              <dw-tab slot="Hosts">
                   <dw-hosts></dw-hosts>
-                </div>
               </dw-tab>
 
-              <dw-tab slot="Mappings" icon="/edge_stack/images/mappings.png">
-                <div class="admin-section">
-                  <div class="section-heading">Mappings.</div>
-                  <p><span class="section-text">Associations between prefix URLs
-                    and target services.</span>
-                  </p>
-
+              <dw-tab slot="Mappings">
                   <dw-mappings></dw-mappings>
-                </div>
-
-                <div class="admin-section">
-                  <div class="section-heading">Route Table.</div>
-                  <p><span class="section-text">Active Envoy Route Table.</span>
-                  </p>
-
                   <dw-routetable></dw-routetable>
-                </div>
               </dw-tab>
 
               <dw-tab slot="Filters">
-                <div class="admin-section">
-                  <div class="section-heading">Filters.</div>
-                  <p><span class="section-text">Configure middleware for your requests.</span>
-                  </p>
-
                   <dw-filters></dw-filters>
-                </div>
               </dw-tab>
 
-              <dw-tab slot="Rate Limits" icon="/edge_stack/images/mappings.png">
-                <div class="admin-section">
-                  <div class="section-heading">Rate Limits.</div>
-                  <p><span class="section-text">Rate limits for different request classes.</span>
-                  </p>
-
+              <dw-tab slot="Rate Limits">
                   <dw-limits></dw-limits>
-                </div>
               </dw-tab>
 
-              <dw-tab slot="Plugins" icon="/edge_stack/images/plugins.png">
-                <div class="admin-section">
-                    <div class="section-heading">Plugins.</div>
-                    <p><span class="section-text">Special plugin services that enhance the functionality of
-                    Ambassador Edge Stack. These plugin services are called when Ambassador
-                      handles requests.</span>
-                  </p>
-
+              <dw-tab slot="Plugins">
                   <dw-plugins></dw-plugins>
-                </div>
               </dw-tab>
 
               <dw-tab slot="Resolvers">
-                <div class="admin-section">
-                  <div class="section-heading">Resolvers.</div>
-                  <p><span class="section-text">Resolvers in use.</span></p>
-
                   <dw-resolvers></dw-resolvers>
-                </div>
               </dw-tab>
 
               <dw-tab slot="Debugging">
-                <div class="admin-section">
                   <dw-debugging></dw-debugging>
-                </div>
               </dw-tab>
 
                <dw-tab slot="YAML Download">
-                <div class="admin-section">
                   <dw-yaml-dl></dw-yaml-dl>
-                </div>
               </dw-tab>
 
-             <dw-tab slot="APIs" icon="/edge_stack/images/apis.png">
-                <div class="admin-section">
+             <dw-tab slot="APIs">
                   <dw-apis id="apis"></dw-apis>
-                </div>
               </dw-tab>
 
-              <dw-tab slot="Documentation" icon="/edge_stack/images/docs.png">
-                <div class="admin-section">
+              <dw-tab slot="Documentation">
                   <dw-documentation></dw-documentation>
-                </div>
               </dw-tab>
 
               <dw-tab slot="Support">
-                <div class="admin-section">
                   <dw-support></dw-support>
-                </div>
               </dw-tab>
             </dw-tabs>
           </aes-snapshot-provider>
-        </login-gate>
-      </div>
 
     </div>
+    </login-gate>
   </body>
 
   <!--
@@ -273,7 +101,6 @@
   <script async defer type="module" src="../components/dashboard.js"></script>
 
   <!-- Later Page Scripts -->
-  <script async defer type="module" src="../components/add-button.js"></script>
   <script async defer type="module" src="../components/hosts.js"></script>
   <script async defer type="module" src="../components/mappings.js"></script>
   <script async defer type="module" src="../components/filters.js"></script>

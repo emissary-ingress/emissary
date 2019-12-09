@@ -111,129 +111,6 @@ import {ApiFetch} from "./api-fetch.js";
  */
 export class SingleResource extends LitElement {
 
-  /**
-   * Override this to add custom styles. Make sure you include the
-   * base class styles by including the result of super.styles() in
-   * your result.
-   */
-  static get styles() {
-    return css`
-.error {
-  color: red;
-}
-button:hover,
-button:focus {
-  background-color: #ede7f3;
-}
-div {
-/*  margin: 0.4em; */
-}
-div.frame, fieldset.frame {
-  display: grid;
-  margin: 0.4em;
-  grid-template-columns: repeat(10, 10%);
-  grid-gap: 0 0;
-  border: 2px solid var(--dw-item-border);
-  border-radius: 0.4em;
-  position: relative;
-  padding-bottom: 0.2em;
-}
-div.frame fieldset.frame {
-  grid-column: 1 / 10;
-}
-div.frame fieldset.frame div.inner-grid {
-  display: grid;
-  grid-template-columns: repeat(10, 10%);
-}
-div.title {
-  grid-column: 1 / 11;
-  background: var(--dw-item-background-fill);
-  margin: 0;
-  padding: 0.5em;
-  max-height: 1.3em;
-}
-div.title-button {
-  position: absolute;
-  top: 0.4em;
-  right: 0.5em;
-}
-div.edit-buttons {
-  position: absolute;
-  right: 0.5em;
-  top: 38px;
-}
-div.edit-buttons-column {
-  display: grid;
-  grid-template-columns: 3em;
-  grid-gap:0.2em;
-}
-div.edit-buttons button {
-  grid-column: 1 / 2;
-}
-div.edit-buttons button.delete-button {
-  margin-top: 0.9em;
-}
-div.attribute-name {
-  grid-column: 1 / 4;
-  padding-right: 0.5em;
-  text-align: right;
-  font-variant: small-caps;
-}
-div.attribute-value {
-  grid-column: 4 / 11;
-}
-div.error-value {
-  grid-column: 3 / 11;
-}
-div.error-value ul {
-  margin-block-start: 0.3em;
-  padding-inline-start: 0;
-}
-div.error-value li {
-  list-style-type: none;
-}
-.crd-name {
-  font-weight: bold;
-}
-.crd-namespace {
-  color: #888888;
-  font-size: 80%;
-}
-
-div.yaml {
-  margin: 0.4em;
-  grid-column: 1 / 11;
-}
-
-div.yaml pre {
-  overflow-x: auto;
-}
-
-div.changes {
-  display: grid;
-  grid-gap: 0 0;
-  padding-bottom: 0.2em;
-}
-div.yaml-path {
-  grid-column: 2;
-}
-div.yaml-change {
-  grid-column: 3;
-}
-
-.off { 
-  display: none; 
-}
-input:hover,
-input:focus {
-  background-color: #ede7f3;
-}
-span.code { 
-  font-family: Monaco, monospace;
-}
-`
-  }
-
   // internal
   static get properties() {
     return {
@@ -517,18 +394,19 @@ span.code {
         if (v !== "ignored") {
           changes = true;
           entries.push(html`
-<div class="yaml-path">${k}</div> <div class="yaml-change">${v}</div>
+<li><span class="yaml-path">${k}</span> <span class="yaml-change">${v}</span></li>
 `);
         }
       });
 
       return html`
 <div class="yaml" style="display: ${this.state.showingYaml ? "block" : "none"}">
-  ${changes ? html`Changes:` : html``}
-  <div class="changes">
+  <div class="yaml-changes"><ul>
 ${entries}
+  </ul></div>
+  <div class="yaml-wrapper">
+    <pre>${yaml}</pre>
   </div>
-  <pre>${yaml}</pre>
 </div>
 `;
     } catch (e) {
@@ -661,6 +539,11 @@ ${entries}
 
   // deprecated, use <visible-modes>...</visible-modes> instead
   visible() {
+    if( [...arguments].includes("!readOnly") ) {
+      if( this.readOnly() ) {
+        return "off";
+      }
+    }
     return [...arguments].includes(this.state.mode) ? "" : "off"
   }
 
@@ -674,46 +557,56 @@ ${entries}
   // internal
   render() {
     return html`
-<slot class="${this.state.mode === "off" ? "" : "off"}" @click=${this.onAdd.bind(this)}></slot>
-<div class="${this.state.mode === "off" ? "off" : "frame"}">
-  <div class="title-button">
-    ${typeof this.sourceURI() == 'string'
-      ? html`<button @click=${(x)=>this.onSource(x)}>Source</button>`
-      : html``}
-    <visible-modes list detail add edit>
-      <input type="checkbox" .checked=${this.state.showingYaml} @click=${(e)=>this.onYaml(e.target.checked)}>Show Yaml</input>
-    </visible-modes>
-    <visible-modes list detail>
-      <button ?disabled=${this.readOnly()} @click=${()=>this.onEdit()}>Edit</button>
-    </visible-modes>
-  </div>
-  <div class="title">
-    ${this.kind()}: <span class="crd-name ${this.visible("list", "edit")}">${this.name()}</span>
+<link rel="stylesheet" href="../styles/oneresource.css">
+${this.modifiedStyles() ? this.modifiedStyles() : ""}
+<form>
+  <div class="card ${this.state.mode === "off" ? "off" : ""}">
+    <div class="col">
+      <div class="row line">
+        <div class="row-col margin-right">${this.kind()}:</div>
+        <div class="row-col">
+          <b class="${this.visible("list", "edit")}">${this.name()}</b>
           <input class="${this.visible("add")}" name="name" type="text" value="${this.name()}"/>
-      <span class="crd-namespace">(<span class="${this.visible("list", "edit")}">${this.namespace()}</span><input class="${this.visible("add")}" name="namespace" type="text" value="${this.namespace()}"/>)</span></div>
+          <div class="namespace${this.visible("list", "edit")}">(${this.namespace()})</div>
+          <div class="namespace-input ${this.visible("add")}"><div class="pararen">(</div><input class="${this.visible("add")}" name="namespace" type="text" value="${this.namespace()}"/><div class="pararen">)</div></div>
+        </div>
+      </div>
 
-  ${this.renderResource()}
+    ${this.renderResource()}
 
-  ${((this.state.mode === "add") && (this.minimumNumberOfAddRows() < 2)) ? 
-      html`<div class="attribute-value">&nbsp;</div>` : ""}
-  ${((this.state.mode === "edit") && (this.minimumNumberOfEditRows() < 2)) ? 
-      html`<div class="attribute-value">&nbsp;</div>` : ""}
-  ${((this.state.mode === "edit") && (this.minimumNumberOfEditRows() < 3)) ? 
-      html`<div class="attribute-value">&nbsp;</div>` : ""}
-  ${((this.state.mode === "edit") && (this.minimumNumberOfEditRows() < 4)) ? 
-      html`<div class="attribute-value">&nbsp;</div>` : ""}
+${this.state.renderErrors()}
+${this.renderMergedYaml()}
   
-  <div class="edit-buttons ${this.visible("edit", "add")}">
-    <div class="edit-buttons-column">
-      <button class="${this.visible("edit", "add")}" @click=${()=>this.onSave()}>Save</button>
-      <button class="${this.visible("edit", "add")}" @click=${()=>this.onCancel()}>Cancel</button>
-      <button class="${this.visible("edit")} delete-button" @click=${()=>this.onDelete()}>Delete</button>
+    </div>
+    <div class="col2">
+      <a class="cta source ${typeof this.sourceURI() == 'string' ? "" : "off"}" @click=${(x)=>this.onSource(x)}>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M14.078 7.061l2.861 2.862-10.799 10.798-3.584.723.724-3.585 10.798-10.798zm0-2.829l-12.64 12.64-1.438 7.128 7.127-1.438 12.642-12.64-5.691-5.69zm7.105 4.277l2.817-2.82-5.691-5.689-2.816 2.817 5.69 5.692z"/></svg>
+        <div class="label">source</div>
+      </a>
+      <a class="cta edit ${this.visible("list", "detail", "!readOnly")}" @click=${()=>this.onEdit()}>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M14.078 7.061l2.861 2.862-10.799 10.798-3.584.723.724-3.585 10.798-10.798zm0-2.829l-12.64 12.64-1.438 7.128 7.127-1.438 12.642-12.64-5.691-5.69zm7.105 4.277l2.817-2.82-5.691-5.689-2.816 2.817 5.69 5.692z"/></svg>
+        <div class="label">edit</div>
+      </a>
+      <a class="cta save ${this.visible("edit", "add", "!readOnly")}" @click=${()=>this.onSave()}>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>Asset 1</title><g id="Layer_2" data-name="Layer 2"><g id="iconmonstr"><path id="save-2" d="M13,3h3V8H13ZM24,4V24H0V0H20ZM7,9H17V2H7ZM22,4.83,19.17,2H19v9H5V2H2V22H22Z"/></g></g></svg>
+        <div class="label">save</div>
+      </a>
+      <a class="cta cancel ${this.visible("edit", "add")}" @click=${()=>this.onCancel()}>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>cancel</title><g id="Layer_2" data-name="Layer 2"><g id="iconmonstr"><polygon id="x-mark-2" points="24 21.08 14.81 11.98 23.91 2.81 21.08 0 11.99 9.18 2.81 0.09 0 2.9 9.19 12.01 0.09 21.19 2.9 24 12.01 14.81 21.19 23.91 24 21.08"/></g></g></svg>
+        <div class="label">cancel</div>
+      </a>
+      <a class="cta delete ${this.visible("edit", "!readOnly")}" @click=${()=>this.onDelete()}>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 16"><defs><style>.cls-1{fill-rule:evenodd;}</style></defs><title>delete</title><g id="Layer_2" data-name="Layer 2"><g id="Layer_1-2" data-name="Layer 1"><path class="cls-1" d="M24,16H7L0,8,7,0H24V16ZM7.91,2,2.66,8,7.9,14H22V2ZM14,6.59,16.59,4,18,5.41,15.41,8,18,10.59,16.59,12,14,9.41,11.41,12,10,10.59,12.59,8,10,5.41,11.41,4,14,6.59Z"/></g></g></svg>
+        <div class="label">delete</div>
+      </a>
+      <a class="cta edit ${this.visible("list", "detail", "edit", "add")}" @click=${(e)=>this.onYaml(e.target.checked)}>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M14.078 7.061l2.861 2.862-10.799 10.798-3.584.723.724-3.585 10.798-10.798zm0-2.829l-12.64 12.64-1.438 7.128 7.127-1.438 12.642-12.64-5.691-5.69zm7.105 4.277l2.817-2.82-5.691-5.689-2.816 2.817 5.69 5.692z"/></svg>
+        <div class="label">yaml</div>
+      </a>
     </div>
   </div>
-
-  ${this.state.renderErrors()}
-  ${this.renderMergedYaml()}
-</div>`
+</form>
+`
   }
 
   /**
@@ -738,6 +631,13 @@ ${entries}
     else {
       return false;
     }
+  }
+
+  /**
+   * Override to extend the styles of this resource (see yaml download tab).
+   */
+  modifiedStyles() {
+    return null;
   }
 
   /**
@@ -908,6 +808,13 @@ export class ResourceSet extends LitElement {
   }
 
   /**
+   * Override to true to prevent the Add button from showing up.
+   */
+  readOnly() {
+    return false;
+  }
+
+  /**
    * This method is invoked with the snapshot of server state (aka the
    * watt snapshot). Said snapshot comes from the
    * /edge_stack/api/snapshot endpoint which can be found in webui.go
@@ -955,40 +862,18 @@ export class ResourceSet extends LitElement {
   }
 
   /**
-   * Override this to show control how the collection renders. Most of the time this should look like this:
-   *
-   *    render() {
-   *      let addHost = {
-   *        metadata: {
-   *          namespace: "default",
-   *          name: window.location.hostname
-   *        },
-   *        spec: {
-   *          hostname: window.location.hostname,
-   *          acmeProvider: {
-   *            authority: "https://acme-v02.api.letsencrypt.org/directory",
-   *            email: ""
-   *          }
-   *        },
-   *        status: {}}
-   *      return html`
-   *  <dw-host .resource=${addHost} .state=${this.addState}><add-button></add-button></dw-host>
-   *  <div>
-   *    ${this.resources.map(h => html`<dw-host .resource=${h} .state=${this.state(h)}></dw-host>`)}
-   *  </div>`
-   *    }
-   *
-   * The key elements being:
-   *
-   *   a) define the default resource for when you click add
-   *   b) include a single resource component (the <dw-host...>)
-   *      for where you want add to be
-   *   c) render the <dw-host> elements that form the existing
-   *      resources and pass in the resource data and ui state
-   *
+   * Override renderInner to show control how the collection renders. Most of the time this should look like this:
+   * See hosts.js for an example.
    */
   render() {
-    throw new Error("please implement render()")
+    return html`
+<link rel="stylesheet" href="../styles/resources.css">
+  ${this.renderInner()}
+`;
+  }
+
+  renderInner() {
+    throw new Error("please implement renderInner()")
   }
 
 }
@@ -1052,25 +937,22 @@ export class SortableResourceSet extends ResourceSet {
     return css`
 div.sortby {
     text-align: right;
-    font-size: 80%;
-    margin: -20px 8px 0 0;
 }
-select:hover,
-select:focus {
-    background-color: #ede7f3;
+div.sortby select {
+  font-size: 0.85rem;
+  border: 2px #c8c8c8 solid;
+  text-transform: uppercase; 
+}
+div.sortby select:hover {
+  color: #5f3eff;
+  transition: all .2s ease;
+  border: 2px #5f3eff solid;
 }
     `
   }
 
-  render() {
+  renderInner() {
     return html`
-<div class="sortby">Sort by
-  <select id="sortByAttribute" @change=${this.onChangeSortByAttribute}>
-    ${this.sortFields.map(f => {
-      return html`<option value="${f.value}">${f.label}</option>`
-    })}
-  </select>
-</div>
 ${this.resources.sort(this.sortFn(this.sortBy)) && this.renderSet()}`
   }
 
@@ -1148,10 +1030,13 @@ export class UIState {
   renderErrors() {
     if (this.messages.length > 0) {
       return html`
-<div class="error-value">
-  <ul>
-    ${this.messages.map(m=>html`<li><span class="error">${m}</span></li>`)}
-  </ul>
+<div class="row line">
+  <div class="row-col"></div>
+  <div class="row-col errors">
+    <ul>
+      ${this.messages.map(m=>html`<li><span class="error">${m}</span></li>`)}
+    </ul>
+  </div>
 </div>`
     } else {
       return html``
