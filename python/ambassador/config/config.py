@@ -234,6 +234,14 @@ class Config:
         # Is an ambassador_id present in this object?
         allowed_ids: StringOrList = resource.get('ambassador_id', 'default')
 
+        # If we find the array [ '_automatic_' ] then allow it, so that hardcoded resources
+        # can have a useful effect. This is mostly for init-config, but could be used for
+        # other things, too.
+
+        if allowed_ids == [ "_automatic_" ]:
+            self.logger.debug(f"ambassador_id {allowed_ids} always accepted")
+            return True
+
         if allowed_ids:
             # Make sure it's a list. Yes, this is Draconian,
             # but the jsonschema will allow only a string or a list,
