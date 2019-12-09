@@ -19,9 +19,17 @@ except AttributeError:
 from typing import Any, ClassVar, Dict, List, Optional, Sequence
 from typing import cast as typecast
 
-from kat.harness import abstract_test, sanitize, Name, Node, Test, Query
-from kat import manifests
+from kat.harness import abstract_test, sanitize, Name, Node, Test, Query, load_manifest
 from kat.utils import ShellCommand
+
+RBAC_CLUSTER_SCOPE = load_manifest("rbac_cluster_scope")
+RBAC_NAMESPACE_SCOPE = load_manifest("rbac_namespace_scope")
+AMBASSADOR = load_manifest("ambassador")
+ISOLATED_BACKEND = load_manifest("isolated_backend")
+BACKEND = load_manifest("backend")
+GRPC_ECHO_BACKEND = load_manifest("grpc_echo_backend")
+AUTH_BACKEND = load_manifest("auth_backend")
+GRPC_AUTH_BACKEND = load_manifest("grpc_auth_backend")
 
 AMBASSADOR_LOCAL = """
 ---
@@ -88,7 +96,7 @@ class AmbassadorTest(Test):
     env = []
 
     def manifests(self) -> str:
-        rbac = manifests.RBAC_CLUSTER_SCOPE
+        rbac = RBAC_CLUSTER_SCOPE
 
         if self.debug_diagd:
             self.manifest_envs += """
@@ -107,7 +115,7 @@ class AmbassadorTest(Test):
     - name: AMBASSADOR_SINGLE_NAMESPACE
       value: "yes"
 """
-            rbac = manifests.RBAC_NAMESPACE_SCOPE
+            rbac = RBAC_NAMESPACE_SCOPE
 
         if self.disable_endpoints:
             self.manifest_envs += """
@@ -129,7 +137,7 @@ class AmbassadorTest(Test):
         if DEV:
             return self.format(rbac + AMBASSADOR_LOCAL, extra_ports=eports)
         else:
-            return self.format(rbac + manifests.AMBASSADOR,
+            return self.format(rbac + AMBASSADOR,
                                image=os.environ["AMBASSADOR_DOCKER_IMAGE"], envs=self.manifest_envs, extra_ports=eports, capabilities_block = "")
 
     # Will tear this out of the harness shortly
@@ -321,7 +329,7 @@ class IsolatedServiceType(Node):
 
     def __init__(self, service_manifests: str=None, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-        self._manifests = service_manifests or manifests.ISOLATED_BACKEND
+        self._manifests = service_manifests or ISOLATED_BACKEND
 
     def config(self):
         yield from ()
@@ -373,7 +381,7 @@ class ServiceTypeGrpc(Node):
 
     def __init__(self, service_manifests: str=None, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-        self._manifests = service_manifests or manifests.BACKEND
+        self._manifests = service_manifests or BACKEND
 
     def config(self):
         yield from ()
@@ -397,7 +405,7 @@ class EGRPC(ServiceType):
     skip_variant: ClassVar[bool] = True
 
     def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, service_manifests=manifests.GRPC_ECHO_BACKEND, **kwargs)
+        super().__init__(*args, service_manifests=GRPC_ECHO_BACKEND, **kwargs)
 
     def requirements(self):
         yield ("url", Query("http://%s/echo.EchoService/Echo" % self.path.fqdn,
@@ -410,14 +418,14 @@ class AHTTP(ServiceType):
     skip_variant: ClassVar[bool] = True
 
     def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, service_manifests=manifests.AUTH_BACKEND, **kwargs)
+        super().__init__(*args, service_manifests=AUTH_BACKEND, **kwargs)
 
 
 class AGRPC(ServiceType):
     skip_variant: ClassVar[bool] = True
 
     def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, service_manifests=manifests.GRPC_AUTH_BACKEND, **kwargs)
+        super().__init__(*args, service_manifests=GRPC_AUTH_BACKEND, **kwargs)
 
     def requirements(self):
         yield ("pod", self.path.k8s)

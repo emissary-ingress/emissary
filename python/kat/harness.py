@@ -56,7 +56,7 @@ else:
 
 
 def load_manifest(manifest_name: str) -> str:
-    return open(os.path.join(GOLD_ROOT, f"{manifest_name.lower()}.yaml"), "r").read()
+    return open(os.path.join(MANIFEST_ROOT, f"{manifest_name.lower()}.yaml"), "r").read()
 
 
 class TestImage:
