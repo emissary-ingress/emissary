@@ -1,4 +1,4 @@
-# Resolvers and Service Discovery configuration
+# Service discovery configuration
 
 Service discovery is how applications and services are located on the network. In a cloud environment, services are ephemeral, so a real-time service discovery mechanism is critical. Ambassador Edge Stack uses information from service discovery to determine where to route incoming requests.
 
@@ -102,9 +102,9 @@ Once a resolver is defined, you can use them in a given `Mapping`:
 apiVersion: getambassador.io/v1
 kind: Mapping
 metadata:
-  name: quote-ui
+  name: quote-backend
 spec:
-  prefix: /
+  prefix: /backend/
   service: quote
   resolver: endpoint
   load_balancer:

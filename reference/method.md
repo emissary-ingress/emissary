@@ -10,7 +10,7 @@ For example:
 
 ```yaml
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
   name: get
@@ -23,4 +23,3 @@ spec:
 ## Using `method_regex`
 
 When `method_regex` is set to `true`, the value of the `method` annotation will be interpreted as a regular expression.
-

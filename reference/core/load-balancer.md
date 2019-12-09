@@ -1,4 +1,4 @@
-# Load Balancing Configuration
+# Load Balancing in Ambassador Edge Stack
 
 Load balancing configuration can be set for all Ambassador Edge Stack mappings in the [`ambassador`](/reference/core/ambassador) Module, or set per [mapping](/reference/mappings#configuring-mappings). If nothing is set, simple round robin balancing is used via Kubernetes services.
 
@@ -40,10 +40,10 @@ or, per mapping:
 apiVersion: getambassador.io/v1
 kind:  Mapping
 metadata:
-  name:  quote-ui
+  name:  quote-backend
 spec:
-  prefix: /
-  service: quote:5000
+  prefix: /backend/
+  service: quote
   resolver: my-resolver
   load_balancer:
     policy: round_robin
@@ -74,10 +74,10 @@ or, per mapping:
 apiVersion: getambassador.io/v1
 kind:  Mapping
 metadata:
-  name:  quote-ui
+  name:  quote-backend/
 spec:
-  prefix: /
-  service: quote:5000
+  prefix: /backend/
+  service: quote
   resolver: my-resolver
   load_balancer:
     policy: least_request
@@ -110,10 +110,10 @@ If the cookie you wish to set affinity on is already present in incoming request
 apiVersion: getambassador.io/v1
 kind:  Mapping
 metadata:
-  name:  quote-ui
+  name:  quote-backend
 spec:
-  prefix: /
-service: quote:5000
+  prefix: /backend/
+service: quote
 resolver: my-resolver
 load_balancer:
   policy: ring_hash
@@ -138,17 +138,18 @@ Example:
 apiVersion: getambassador.io/v1
 kind:  Mapping
 metadata:
-  name:  quote-ui
+  name:  quote-backend
 spec:
-  prefix: /
-  service: quote:5000
+  prefix: /backend/
+  service: quote
   resolver: my-resolver
   load_balancer:
     policy: ring_hash
     header: STICKY_HEADER
 ```
 
-##### Source IP
+#### Source IP
+
 ```yaml
 load_balancer:
   policy: ring_hash
@@ -161,10 +162,10 @@ Ambassador Edge Stack allows session affinity based on the source IP of incoming
 apiVersion: getambassador.io/v1
 kind:  Mapping
 metadata:
-  name:  quote-ui
+  name:  quote
 spec:
-  prefix: /
-  service: quote:5000
+  prefix: /backend/
+  service: quote
   resolver: my-resolver
   load_balancer:
     policy: ring_hash
@@ -186,6 +187,7 @@ spec:
     load_balancer:
       policy: round_robin
 ```
+
 ```yaml
 apiVersion: getambassador.io/v1
 kind:  Mapping
