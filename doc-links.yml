@@ -104,7 +104,7 @@
       items:
       - title: Implementing GitOps with Ambassador Edge Stack
         link: /user-guide/gitops-ambassador
-      - title: Safely Testing in Productions
+      - title: Kubernetes Canary Releases
         link: /docs/dev-guide/canary-release-concepts
     - title: Observability
       items:
