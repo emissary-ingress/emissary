@@ -24,9 +24,6 @@ export class Signup extends LitElement {
     color: #fe0000;
 }
 
-.invalid {
-    background-color: #fe0000;
-}
 button:hover,
 button:focus{
   background-color: #ede7f3;
@@ -37,11 +34,8 @@ input:focus {
 }
 
 div.admin-section {
-    border: 1px solid #ede7f3;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, .1);
     padding: 0.5em;
     margin-bottom: 0.6em;
-    line-height: 1.3;
     position: relative;
 }
 
@@ -87,37 +81,33 @@ form input[type=text] {
     }
   }
 
-  handleSubmit() {
-    if (this.email().value === "") {
-      this.email().classList.add("invalid");
-      this.message = "Please supply an email."
-    } else {
-      this.email().classList.remove("invalid");
-      this.message = "Requesting a license key...";
-      this.state = "pending";
+  handleSubmit(e) {
+    e.preventDefault();
 
-      ApiFetch("https://metriton.datawire.io/signup", {
-        method: "POST",
-        headers:{
-          "content-type": "application/json; charset=UTF-8"
-        },
-        body: JSON.stringify({
-          email: this.email().value,
-          confirm: this.email().value
-        })
+    this.message = "Requesting a license key...";
+    this.state = "pending";
+
+    ApiFetch("https://metriton.datawire.io/signup", {
+      method: "POST",
+      headers:{
+        "content-type": "application/json; charset=UTF-8"
+      },
+      body: JSON.stringify({
+        email: this.email().value,
+        confirm: this.email().value
       })
-        .then(data=>{return data.json()})
-        .then(res=>{
-          console.log(res);
-          if ("vid" in res) {
-            this.message = "Congratulations! A license key has been sent to " + this.email().value
-          } else {
-            this.message = "Sorry, there was a problem processing your request. Please contact support@datawire.io";
-            console.error(btoa(JSON.stringify(res)));
-          }
-        })
-        .catch(error=>console.log(error))
-    }
+    })
+      .then(data=>{return data.json()})
+      .then(res=>{
+        console.log(res);
+        if ("vid" in res) {
+          this.message = "Congratulations! A license key has been sent to " + this.email().value
+        } else {
+          this.message = "Sorry, there was a problem processing your request. Please contact support@datawire.io";
+          console.error(btoa(JSON.stringify(res)));
+        }
+      })
+      .catch(error=>console.log(error))
   }
 
   email() {
@@ -133,14 +123,13 @@ form input[type=text] {
   </button>
   
   <div style="display:${this.state === "entry" ? "block" : "none"}">
-    <form style="width:100%; display:table;">
+    <form @submit=${this.handleSubmit} style="width:100%; display:table;">
       <span style="display: table-cell; padding-right: 4px; font-size: 90%;">
         Email:
       </span>
-      <input id="email" type="text" name="email" value="" style="display: table-cell; width: 100%"/> 
-      <input @click=${this.reset} type="button" value="Cancel" /> <input @click=${this.handleSubmit} type="button" value="Signup" /> 
+      <input id="email" type="email" name="email" value="" style="display: table-cell; width: 100%" required/> 
+      <input type="submit" value="Sign up"/> <input @click=${this.reset} type="button" value="Cancel" /> 
     </form>
-    <div class="invalid">${this.message}</div>
   </div>
   
   <div style="display:${this.state === "pending" ? "block" : "none"}">
