@@ -61,7 +61,8 @@
 	display: flex;
 	-webkit-justify-content: center;
 	-ms-flex-pack: center;
-	justify-content: center
+	justify-content: center;
+	border-bottom: 6px solid #2e3147;
 }
 
 .col_left .logo {
