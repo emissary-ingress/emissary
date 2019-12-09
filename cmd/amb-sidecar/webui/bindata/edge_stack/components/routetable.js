@@ -49,7 +49,7 @@ thead {
   </div>
   <div class="col">
     <h1>Route Table</h1>
-    <p>The active Envoy rRoute table.</p>
+    <p>The active Envoy route table.</p>
   </div>
 </div>
 
