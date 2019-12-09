@@ -566,22 +566,20 @@ ${entries}
 <form>
   <div class="card ${this.state.mode === "off" ? "off" : ""}">
     <div class="col">
-<!-- MOREMORE add this back? <slot class="${this.state.mode === "off" ? "" : "off"}" @click=${this.onAdd.bind(this)}></slot> -->
-
       <div class="row line">
         <div class="row-col margin-right">${this.kind()}:</div>
         <div class="row-col">
           <b class="${this.visible("list", "edit")}">${this.name()}</b>
           <input class="${this.visible("add")}" name="name" type="text" value="${this.name()}"/>
-          (<span class="${this.visible("list", "edit")}">${this.namespace()}</span>)
-          <input class="${this.visible("add")}" name="namespace" type="text" value="${this.namespace()}"/>
+          <div class="namespace${this.visible("list", "edit")}">(${this.namespace()})</div>
+          <div class="namespace-input ${this.visible("add")}"><div class="pararen">(</div><input class="${this.visible("add")}" name="namespace" type="text" value="${this.namespace()}"/><div class="pararen">)</div></div>
         </div>
       </div>
 
     ${this.renderResource()}
 
 ${this.state.renderErrors()}
-${this.renderMergedYaml()}  <!-- MOREMORE check the render yaml -->
+${this.renderMergedYaml()}
   
     </div>
     <div class="col2">
@@ -804,6 +802,13 @@ export class ResourceSet extends LitElement {
     this.addState = new UIState();
     this.addState.mode = "off";
     Snapshot.subscribe(this.onSnapshotChange.bind(this))
+  }
+
+  /**
+   * Override to true to prevent the Add button from showing up.
+   */
+  readOnly() {
+    return false;
   }
 
   /**

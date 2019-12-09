@@ -187,3 +187,75 @@ input:focus {
 span.code {
 	font-family: Monaco, monospace;
 }
+
+.header_con .col2, .col2 a.cta .label {
+	-webkit-align-self: center;
+	-ms-flex-item-align: center;
+	-ms-grid-row-align: center;
+	align-self: center
+}
+
+.col2 a.cta  {
+	text-decoration: none;
+	border: 2px #efefef solid;
+	border-radius: 10px;
+	width: 90px;
+	padding: 6px 8px;
+	-webkit-flex: auto;
+	-ms-flex: auto;
+	flex: auto;
+	margin: 10px auto;
+	color: #000;
+	transition: all .2s ease;
+	cursor: pointer;
+}
+
+.header_con .col2 a.cta  {
+	border-color: #c8c8c8;
+}
+
+.col2 a.cta .label {
+	text-transform: uppercase;
+	font-size: .8rem;
+	font-weight: 600;
+	line-height: 1rem;
+	padding: 0 0 0 10px;
+	-webkit-flex: 1 0 auto;
+	-ms-flex: 1 0 auto;
+	flex: 1 0 auto
+}
+
+.col2 a.cta svg {
+	width: 15px;
+	height: auto
+}
+
+.col2 a.cta svg path, .col2 a.cta svg polygon {
+	transition: fill .7s ease;
+	fill: #000
+}
+
+.col2 a.cta:hover {
+	color: #5f3eff;
+	transition: all .2s ease;
+	border: 2px #5f3eff solid
+}
+
+.col2 a.cta:hover svg path, .col2 a.cta:hover svg polygon {
+	transition: fill .2s ease;
+	fill: #5f3eff
+}
+
+.col2 a.cta {
+	display: -webkit-flex;
+	display: -ms-flexbox;
+	display: flex;
+	-webkit-flex-direction: row;
+	-ms-flex-direction: row;
+	flex-direction: row
+}
+
+.col2 a.off {
+	display: none;
+}
+

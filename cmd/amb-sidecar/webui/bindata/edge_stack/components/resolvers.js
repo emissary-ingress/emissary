@@ -81,6 +81,11 @@ export class Resolvers extends LitElement {
     };
   }
 
+  // override; this tab is read-only
+  readOnly() {
+    return true;
+  }
+
   constructor() {
     super();
     Snapshot.subscribe(this.onSnapshotChange.bind(this))

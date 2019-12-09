@@ -70,6 +70,11 @@ export class Plugins extends LitElement {
     };
   }
 
+  // override; this tab is read-only
+  readOnly() {
+    return true;
+  }
+
   constructor() {
     super();
 

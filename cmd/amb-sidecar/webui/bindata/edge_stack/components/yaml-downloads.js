@@ -39,6 +39,11 @@ export class YAMLDownloads extends ResourceSet {
     }`
   };
 
+  // override; this tab is read-only
+  readOnly() {
+    return true;
+  }
+
   getResources(snapshot) {
     return snapshot.getChangedResources()
   }

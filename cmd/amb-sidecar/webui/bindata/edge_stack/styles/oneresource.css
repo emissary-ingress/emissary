@@ -51,14 +51,14 @@
 }
 
 
-.card .col, .card .col .con label, .card .col2, .card .col2 a.cta .label {
+.card .col, .card .col .con label, .card .col2, .col2 a.cta .label {
 	-webkit-align-self: center;
 	-ms-flex-item-align: center;
 	-ms-grid-row-align: center;
 	align-self: center
 }
 
-.card .col2 a.cta {
+.col2 a.cta  {
 	text-decoration: none;
 	border: 2px #efefef solid;
 	border-radius: 10px;
@@ -69,10 +69,11 @@
 	flex: auto;
 	margin: 10px auto;
 	color: #000;
-	transition: all .2s ease
+	transition: all .2s ease;
+	cursor: pointer;
 }
 
-.card .col2 a.cta .label {
+.col2 a.cta .label {
 	text-transform: uppercase;
 	font-size: .8rem;
 	font-weight: 600;
@@ -83,28 +84,28 @@
 	flex: 1 0 auto
 }
 
-.card .col2 a.cta svg {
+.col2 a.cta svg {
 	width: 15px;
 	height: auto
 }
 
-.card .col2 a.cta svg path, .card .col2 a.cta svg polygon {
+.col2 a.cta svg path, .col2 a.cta svg polygon {
 	transition: fill .7s ease;
 	fill: #000
 }
 
-.card .col2 a.cta:hover {
+.col2 a.cta:hover {
 	color: #5f3eff;
 	transition: all .2s ease;
 	border: 2px #5f3eff solid
 }
 
-.card .col2 a.cta:hover svg path, .card .col2 a.cta:hover svg polygon {
+.col2 a.cta:hover svg path, .col2 a.cta:hover svg polygon {
 	transition: fill .2s ease;
 	fill: #5f3eff
 }
 
-.card .col2 a.cta {
+.col2 a.cta {
 	display: -webkit-flex;
 	display: -ms-flexbox;
 	display: flex;
@@ -113,11 +114,11 @@
 	flex-direction: row
 }
 
-.card .col2 a.off {
+.col2 a.off {
 	display: none;
 }
 
-div.off, span.off, input.off {
+div.off, span.off, input.off, b.off {
 	display: none;
 }
 
@@ -213,4 +214,34 @@ div.yaml li .yaml-change {
 }
 div.yaml li .yaml-change::before {
 	content: " \2192  ";
+}
+
+div.namespace {
+	display: inline;
+}
+div.namespaceoff {
+	display: none;
+}
+div.namespace-input {
+	margin-top: 1.1em;
+}
+.pararen {
+	-webkit-justify-content: center;
+	-ms-flex-pack: center;
+	justify-content: center;
+	-webkit-align-content: center;
+	-ms-flex-line-pack: center;
+	align-content: center;
+	-webkit-align-items: center;
+	-ms-flex-align: center;
+	align-items: center;
+}
+div.namespace-input .pararen {
+	font-size: 1.2rem;
+	padding: 0 5px;
+	display: inline;
+	top: -0.2em;
+}
+div.namespace-input input {
+	width: 90%;
 }
