@@ -144,7 +144,7 @@ export class SingleHost extends SingleResource {
      * directly due to CORS restrictions.
      */
     let value = this.provider().value;
-    //MOREMORE
+    //MOREMORE temporarily removed during debugging to keep console less cluttered
     // let url = new URL('/edge_stack/api/tos-url', window.location);
     // url.searchParams.set('ca-url', value);
     // ApiFetch(url, {
@@ -190,7 +190,7 @@ export class SingleHost extends SingleResource {
   <div class="row-col margin-right justify-right">hostname:</div>
   <div class="row-col">
     <span class="${this.visible("list")}">${spec.hostname}</span>
-    <!-- MOREMORE <input class="${this.visible("edit", "add")}" type="text" name="hostname"  value="${spec.hostname}" @change="${this.hostnameChanged.bind(this)}"/> -->
+    <input class="${this.visible("edit", "add")}" type="text" name="hostname"  value="${spec.hostname}" @change="${this.hostnameChanged.bind(this)}"/>
   </div>
 </div>
 
@@ -209,7 +209,7 @@ export class SingleHost extends SingleResource {
   <div class="row-col margin-right justify-right">acme provider:</div>
   <div class="row-col">
     <span class="${this.visible("list")}">${spec.acmeProvider.authority}</span>
-    <!-- MOREMORE <input
+    <input
         class="${this.visible("edit", "add")}"
         type="url"
         size="60"
@@ -217,7 +217,7 @@ export class SingleHost extends SingleResource {
         value="${spec.acmeProvider.authority}"
         @change=${()=>this.providerChanged(true)}
         ?disabled="${!this.useAcme()}"
-      /> -->
+      />
   </div>
 </div>
 
@@ -233,7 +233,7 @@ export class SingleHost extends SingleResource {
   <div class="row-col margin-right justify-right">email:</div>
   <div class="row-col">
     <span class="${this.visible("list")}">${spec.acmeProvider.email}</span>
-    <!-- MOREMORE <input class="${this.visible("edit", "add")}" type="email" name="email" value="${spec.acmeProvider.email}" ?disabled="${!this.useAcme()}" /> -->
+    <input class="${this.visible("edit", "add")}" type="email" name="email" value="${spec.acmeProvider.email}" ?disabled="${!this.useAcme()}" />
   </div>
 </div>
 

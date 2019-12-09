@@ -55,7 +55,7 @@ export class APIs extends LitElement {
   }
 
   loadFromServer() {
-    //MOREMORE
+    //MOREMORE temporarily removed during debugging to keep console less cluttered
     //   ApiFetch('/openapi/services')
     //     .then((resp) => {
     //       if (resp.status === 401 || resp.status === 403) {
