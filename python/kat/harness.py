@@ -49,8 +49,8 @@ if os.path.exists("/buildroot/apro.version"):
     # Hey look, we're running inside Edge Stack!
     print("RUNNING IN EDGE STACK")
     EDGE_STACK = True
-    GOLD_ROOT = "/buildroot/apro/tests/gold"
-    MANIFEST_ROOT = "/buildroot/apro/tests/manifests"
+    GOLD_ROOT = "/buildroot/apro/tests/pytest/gold"
+    MANIFEST_ROOT = "/buildroot/apro/tests/pytest/manifests"
 else:
     print("RUNNING IN OSS")
 
