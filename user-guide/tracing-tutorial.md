@@ -6,3 +6,6 @@ Ambassador Edge Stack can support distributed tracing, one of the ["3 pillars of
 
 - [DataDog APM](/user-guide/tracing-tutorial-datadog)
 - [Zipkin](/user-guide/tracing-tutorial-zipkin)
+- [Monitoring Ingress](/user-guide/monitoring) with Prometheus and Grafana
+
+Also note that you can use the Ambassador Edge Stack as an [ingress controller](/reference/core/ingress-controller).

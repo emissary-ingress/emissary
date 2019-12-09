@@ -1,4 +1,4 @@
-# Headers
+# Header-based Routing
 
 Ambassador Edge Stack can route to target services based on HTTP headers with the `headers` and `regex_headers` specifications. Multiple mappings with different annotations can be applied to construct more complex routing rules.
 

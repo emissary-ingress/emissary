@@ -180,11 +180,11 @@
         link: /reference/remove_request_headers
       - title: Remove Response Headers
         link: /reference/remove_response_headers
-      - title: Request Headers
+      - title: Add Request Headers
         link: /reference/add_request_headers
-      - title: Response Headers
+      - title: Add Response Headers
         link: /reference/add_response_headers
-      - title: Retries
+      - title: Automatic Retries
         link: /reference/retries
       - title: Rewrites
         link: /reference/rewrites
@@ -198,13 +198,13 @@
       items:
       - title: Available Plugins
         link: /reference/services/services
-      - title: Authentication
-        link: /reference/services/auth-service
-      - title: Access Control
+      - title: FilterPolicy Plugin for Access Control
         link: /reference/services/access-control
-      - title: Rate Limiting
+      - title: AuthService Plugin
+        link: /reference/services/auth-service
+      - title: RateLimtingService Plugin
         link: /reference/services/rate-limit-service
-      - title: Tracing
+      - title: TracingService Plugin
         link: /reference/services/tracing-service
     - title: IDP Support
       items:
@@ -212,21 +212,21 @@
         link: /reference/idp-support/auth0
       - title: Azure AD
         link: /reference/idp-support/azure
-      - title: Google
+      - title: Google Single Sign-on
         link: /reference/idp-support/google
       - title: Keycloak
         link: /reference/idp-support/keycloak
       - title: Okta
         link: /reference/idp-support/okta
-      - title: Salesforce
+      - title: Salesforce Single Sign-on
         link: /reference/idp-support/salesforce
       - title: User Account and Authentication (UAA)
         link: /reference/idp-support/uaa
-    - title: Custom Resource Definitions
+    - title: Using Custom Resource Definitions
       link: /reference/core/crds
     - title: Ambassador as an Ingress Controller
       link: /reference/core/ingress-controller
-    - title: Filters
+    - title: Filter Reference
       link: /reference/filter-reference
     - title: Developer Portal
       link: /reference/dev-portal
