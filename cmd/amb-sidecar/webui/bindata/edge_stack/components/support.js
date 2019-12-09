@@ -1,7 +1,6 @@
 import { LitElement, html, css } from '../vendor/lit-element.min.js'
 import { Snapshot } from './snapshot.js'
 import { License } from './license.js'
-//MOREMORE do the new look for the Support page
 
 export class Support extends LitElement {
 
@@ -77,21 +76,25 @@ ul > li {
 
 ul > li > a {
   display: block;
-  width: 1.7in;
+  width: 2in;
   height: 3in;
   text-align: center;
 
   margin: 0.4em;
   border: 2px solid var(--dw-item-border);
-  border-radius: 0.4em;
-  background-color: var(--dw-item-background-fill);
+  border-radius: 10px;
+  background-color: #fff;
+  padding: 10px 30px 10px 30px;
+  box-shadow: 0 10px 5px -11px rgba(0, 0, 0, .6);
 
   text-decoration: none;
   color: black;
 }
 
 ul > li > a:hover {
-  background-color: var(--dw-item-background-hover);
+  color: #5f3eff;
+  transition: all .2s ease;
+  border: 2px #5f3eff solid
 }
 
 ul > li > a > * {
