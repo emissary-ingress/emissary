@@ -1,8 +1,7 @@
-import { getCookie } from '/edge_stack/components/cookies.js';
-import { css, html } from '/edge_stack/vendor/lit-element.min.js'
-import { SingleResource, ResourceSet } from '/edge_stack/components/resources.js';
-import { aes_res_editable, aes_res_changed, aes_res_downloaded } from '/edge_stack/components/snapshot.js'
-//MOREMORE do the new look for the YAML page
+import { getCookie } from '../components/cookies.js';
+import { css, html } from '../vendor/lit-element.min.js'
+import { SingleResource, ResourceSet } from '../components/resources.js';
+import { aes_res_editable, aes_res_changed, aes_res_downloaded } from '../components/snapshot.js'
 
 /* Extremely simple SingleResource subclass to list resource items. */
 class YAMLItem extends SingleResource {
@@ -17,6 +16,18 @@ class YAMLItem extends SingleResource {
     return true;
   };
 
+  modifiedStyles() {
+    return html`
+<style>
+form div.card {
+  margin-top: 10px;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+</style>
+    `;
+  }
+
   /* renderResource: no content, resources.js will draw titles. */
   renderResource() {
     return html``
@@ -28,16 +39,6 @@ customElements.define('dw-yaml-item', YAMLItem);
 
 /* Extremely simple ResourceSet subclass to list changed resources. */
 export class YAMLDownloads extends ResourceSet {
-
-  static get styles() {
-    return css`
-    .section-heading {
-      margin: 0.1em;
-      font-size: 120%;
-      font-weight: bold;
-      margin-top: 0;
-    }`
-  };
 
   // override; this tab is read-only
   readOnly() {
@@ -61,23 +62,23 @@ export class YAMLDownloads extends ResourceSet {
      * do not exist (in which case true is returned) so no
      * exception handling is needed here.
      */
-    delete annotations["kubectl.kubernetes.io/last-applied-configuration"]
-    delete annotations.aes_res_editable
-    delete annotations.aes_res_changed
+    delete annotations["kubectl.kubernetes.io/last-applied-configuration"];
+    delete annotations.aes_res_editable;
+    delete annotations.aes_res_changed;
 
     /* but add the timestamp for download.
      */
-    annotations.aes_res_downloaded = timestamp
+    annotations.aes_res_downloaded = timestamp;
 
     /* Delete other metadata */
-    delete metadata.creationTimestamp
-    delete metadata.generation
-    delete metadata.resourceVersion
-    delete metadata.selfLink
-    delete metadata.uid
+    delete metadata.creationTimestamp;
+    delete metadata.generation;
+    delete metadata.resourceVersion;
+    delete metadata.selfLink;
+    delete metadata.uid;
 
     /* Delete the resource status. */
-    delete resource.status
+    delete resource.status;
 
     /* Return the cleaned resource. Note that this has changed
      * the original resource object, so we expect a new snapshot
@@ -132,27 +133,27 @@ spec: ${JSON.stringify(resource.spec)}
     let timestamp = new Date().toISOString();
 
     /* dump each resource as YAML */
-    var res_yml = this.resources.map((res) => {
+    let res_yml = this.resources.map((res) => {
       res = this.cleanResource(res, timestamp)
       return "---\n" + jsyaml.safeDump(res)
-    })
+    });
 
     /* Write back to Kubernetes, with change flag cleared
      * and a download timestamp.
      */
     this.resources.map((res) => {
       this.applyResource(res, timestamp)
-    })
+    });
 
     /* Write out a single file with all the changed resources */
-    var blob = new Blob(res_yml, {type: "text/plain;charset=utf-8"});
+    let blob = new Blob(res_yml, {type: "text/plain;charset=utf-8"});
     saveAs(blob, "resources.yml");
 
     /* update the page -- changed resources should disappear... */
     this.requestUpdate()
   }
 
-  render() {
+  renderInner() {
     /* Template for ResourceSet*/
     let newItem = {
       metadata: {
@@ -170,12 +171,28 @@ spec: ${JSON.stringify(resource.spec)}
     /* Title depending on whether there are changes to download. */
     let changed_title =
       count > 0
-        ? "Changed Resources to download:"
-        : "No Changed Resources";
+        ? "Changed resources to download to your configuration-as-code source files"
+        : "No changed resources";
 
     /* The HTML: */
     return html`
-    <div class="section-heading">${changed_title}</div>
+<link rel="stylesheet" href="../styles/yamldownloads.css">
+<div class="header_con yaml-download">
+  <div class="col">
+    <!-- TODO need a download icon -->
+  </div>
+  <div class="col">
+    <h1>Download YAML</h1>
+    <p>${changed_title}</p>
+  </div>
+  <div class="col2">
+    <a class="cta download ${count > 0 ? "" : "off"}" @click=${()=>this.doDownload()}>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>Asset 1</title><g id="Layer_2" data-name="Layer 2"><g id="iconmonstr"><path id="save-2" d="M13,3h3V8H13ZM24,4V24H0V0H20ZM7,9H17V2H7ZM22,4.83,19.17,2H19v9H5V2H2V22H22Z"/></g></g></svg>
+      <div class="label">download</div>
+    </a>
+  </div>
+</div>
+
     <dw-yaml-item .resource=${newItem} .state=${this.addState}>
     </dw-yaml-item>
     
@@ -183,15 +200,7 @@ spec: ${JSON.stringify(resource.spec)}
     ${this.resources.map(r => {
     return html`<dw-yaml-item .resource=${r} .state=${this.state(r)}></dw-yaml-item>`
     })}
-    </div>
-    
-    ${count > 0 ?
-      html`<div align="center">
-        <button @click=${this.doDownload.bind(this)} style="display:"block" id="click_to_dl">
-        Download ${count} changed
-        </button>
-        </div>` : html``}
-    
+    </div>    
 `
   }
 }

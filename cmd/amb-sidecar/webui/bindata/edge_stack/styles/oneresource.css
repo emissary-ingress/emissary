@@ -13,7 +13,7 @@
 .card {
 	background: #fff;
 	border-radius: 10px;
-	padding: 30px;
+	padding: 10px 30px 10px 30px;
 	box-shadow: 0 10px 5px -11px rgba(0, 0, 0, .6);
 	width: 100%;
 	-webkit-flex-direction: row;
