@@ -1,7 +1,7 @@
-# Canary Releases
+# Canary releases
 
 Canary releasing is a deployment pattern where a small percentage of traffic is diverted to an early ("canary") release of a particular service. This technique lets you test a release on a small subset of users, mitigating the impact of any given bug. Canary releasing also allows you to quickly roll back to a known good version in the event of an unexpected error. Detailed monitoring of core service metrics is an essential part of canary releasing, as monitoring enables the rapid detection of problems in the canary release.
- 
+
 ## Canary releases in Kubernetes
 
 Kubernetes supports a basic canary release workflow using its core objects. In this workflow, a service owner can create a Kubernetes [service](https://kubernetes.io/docs/concepts/services-networking/service/). This service can then be pointed to multiple [deployments](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/). Each deployment can be a different version. By specifying the number of `replicas` in a given deployment, you can control how much traffic goes between different versions. For example, you could set `replicas: 3` for `v1`, and `replicas: 1` for `v2`, to ensure that 25% of traffic goes to `v2`. This approach works, but is fairly coarse grained unless you have lots of replicas. Moreover, auto scaling doesn't work well with this strategy.

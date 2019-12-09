@@ -1,4 +1,4 @@
-# Upgrade to the Ambassador Edge Stack
+# Upgrade from the API Gateway to the Ambassador Edge Stack
 
 If you currently have the open source API Gateway version of Ambassador, you can upgrade to the Ambassador Edge Stack with a few simple commands.
 
@@ -9,12 +9,12 @@ If you currently have the open source API Gateway version of Ambassador, you can
 
 **To upgrade your instance of Ambassador**:
 
-1. [Apply the Migration Manifest](/user-guide/upgrade-to-edge-stack#1-apply-the-migration-manifest)
-2. [Test the New Deployment](/user-guide/upgrade-to-edge-stack#2-test-the-new-deployment)
-3. [Redirect Traffic](/user-guide/upgrade-to-edge-stack#3-redirect-traffic)
-4. [Delete the Old Deployment](/user-guide/upgrade-to-edge-stack#4-delete-the-old-deployment)
-5. [Update and Restart](/user-guide/upgrade-to-edge-stack#5-update-and-restart)
-6. [What's Next?](/user-guide/upgrade-to-edge-stack#6-whats-next)
+1. [Apply the Migration Manifest](/user-guide/upgrade-from-oss-to-edge-stack#1-apply-the-migration-manifest)
+2. [Test the New Deployment](/user-guide/upgrade-from-oss-to-edge-stack#2-test-the-new-deployment)
+3. [Redirect Traffic](/user-guide/upgrade-from-oss-to-edge-stack#3-redirect-traffic)
+4. [Delete the Old Deployment](/user-guide/upgrade-from-oss-to-edge-stack#4-delete-the-old-deployment)
+5. [Update and Restart](/user-guide/upgrade-from-oss-to-edge-stack#5-update-and-restart)
+6. [What's Next?](/user-guide/upgrade-from-oss-to-edge-stack#6-whats-next)
 
 ## Before You Begin
 
@@ -63,7 +63,7 @@ Apply the new CRDs, resources and restart the Ambassador Edge Stack pod for chan
 ```
 kubectl apply -n <namespace> -f https://deploy-preview-91--datawire-ambassador.netlify.com/yaml/aes-crds.yaml && \
 kubectl apply -n <namespace> -f https://deploy-preview-91--datawire-ambassador.netlify.com/yaml/resources-migration.yaml && \
-kubectl rollout restart deployment/aes
+kubectl delete pods -l product=aes
 ```
 
 ## 6. What's Next?

@@ -1,4 +1,4 @@
-# Filter Reference
+# Filters
 
 Filters are used to extend the Ambassador Edge Stack to modify or
 intercept an HTTP request before sending to your backend service.  You

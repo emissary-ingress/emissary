@@ -1,4 +1,4 @@
-# Developing Custom Filters for Routing
+# Developing Filters
 
 Sometimes you may want Ambassador Edge Stack to manipulate an incoming request. Some example use cases:
 

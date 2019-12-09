@@ -1,6 +1,7 @@
-# Safely Testing in Production 
+# Kubernetes Canary Releases
 
 Canary release is a technique to reduce the risk of introducing a new version of software in production by slowly rolling out the change to a small subset of users, before rolling it out to the entire infrastructure and making it available to everybody.
+
 
 ## Benefits of Canary Releases
 

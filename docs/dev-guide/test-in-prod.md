@@ -1,6 +1,6 @@
-# Safely Testing in Production
+# Testing Safely with Production Traffic
 
-No code is ever truly proven or tested until it’s running in production and with production traffic. This is particularly true of today’s cloud-native applications. Applications today are continuously deployed, and have multiple layers of dependencies. Thus, traditional strategies such as mocks, staging environments, and integration testing are no longer sufficient for testing cloud-native applications.
+No code is ever truly proven or tested until it’s running in production. This is particularly true of today’s cloud-native applications. Applications today are continuously deployed, and have multiple layers of dependencies. Thus, traditional strategies such as mocks, staging environments, and integration testing are no longer sufficient for testing cloud-native applications.
 
 ## Testing in production
 

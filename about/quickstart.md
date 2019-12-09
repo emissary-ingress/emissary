@@ -1,6 +1,6 @@
-# Install Ambassador with Docker
+# Docker Quickstart Installation
 
-In this Docker quickstart guide, we'll get Ambassador Edge Stack running locally with a demo configuration. In the next section, we'll then walk through how to deploy Ambassador Edge Stack in Kubernetes with a custom configuration.
+In this section, we'll get Ambassador Edge Stack running locally with a demo configuration. In the next section, we'll then walk through how to deploy Ambassador Edge Stack in Kubernetes with a custom configuration.
 
 ## 1. Running the Demo Configuration
 

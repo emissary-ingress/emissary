@@ -148,8 +148,7 @@ spec:
     header: STICKY_HEADER
 ```
 
-#### Source IP
-
+##### Source IP
 ```yaml
 load_balancer:
   policy: ring_hash
@@ -187,7 +186,6 @@ spec:
     load_balancer:
       policy: round_robin
 ```
-
 ```yaml
 apiVersion: getambassador.io/v1
 kind:  Mapping

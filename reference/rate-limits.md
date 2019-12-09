@@ -4,7 +4,7 @@ Rate limits are a powerful way to improve availability and scalability for your 
 
 ## Request labels
 
-In Ambassador 0.50 and later, each mapping in Ambassador Edge Stack can have multiple `labels` which annotate a given request. These labels are then passed to a rate limiting service through a gRPC interface. These labels have the `labels` attribute:
+In Ambassador 0.50 and later, each mapping in Ambassador Edge Stack can have multiple *labels* which annotate a given request. These labels are then passed to a rate limiting service through a gRPC interface. These labels have the `labels` specification:
 
 ```yaml
 ---

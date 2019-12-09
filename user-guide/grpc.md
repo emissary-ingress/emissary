@@ -1,4 +1,4 @@
-# Using gRPC and Ambassador
+# gRPC and Ambassador Edge Stack
 
 Ambassador Edge Stack makes it easy to access your services from outside your application. This includes gRPC services, although a little bit of additional configuration is required: by default, Envoy connects to upstream services using HTTP/1.x and then upgrades to HTTP/2 whenever possible. However, gRPC is built on HTTP/2 and most gRPC servers do not speak HTTP/1.x at all. Ambassador Edge Stack must tell its underlying Envoy that your gRPC service only wants to speak to that HTTP/2, using the `grpc` attribute of a `Mapping`.
 

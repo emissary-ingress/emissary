@@ -1,4 +1,4 @@
-# Available Guides and Tutorials
+# Guides
 
 Guides are hands-on tutorials to walk you through configuring the Ambassador Edge Stack or the Ambassador API Gateway for specific functionality.
 

@@ -1,4 +1,4 @@
-# Developer Portal
+# Dev Portal
 
 ## Rendering API Documentation
 

@@ -1,4 +1,4 @@
-# Running and Deployment
+# Running the Ambassador Edge Stack
 
 This section is intended for operators running the Ambassador Edge Stack, and covers various aspects of deploying and configuring the Ambassador Edge Stack in production.
 

@@ -1,6 +1,8 @@
-# User Account and Authentication Service (UAA)
+# Cloud Foundry User Account and Authentication Service (UAA)
 
-**IMPORTANT:** Ambassador Edge Stack requires the IdP return a JWT signed by the RS256 algorithm (asymmetric key). Cloud Foundry's UAA defaults to symmetric key encryption which Ambassador Edge Stack cannot read. You will need to provide your own asymmetric key when configuring UAA. e.g.
+**IMPORTANT:** Ambassador Edge Stack requires the IdP return a JWT signed by the RS256 algorithm (asymmetric key). UAA defaults to symmetric key encryption which Ambassador Edge Stack cannot read. You will need to provide your own asymmetric key when configuring UAA. e.g.
+
+
 
 
 `uaa.yml`

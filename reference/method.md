@@ -23,3 +23,4 @@ spec:
 ## Using `method_regex`
 
 When `method_regex` is set to `true`, the value of the `method` annotation will be interpreted as a regular expression.
+

@@ -1,4 +1,4 @@
-# Using Knative and Ambassador
+# Knative Integration
 
 [Knative](https://knative.dev/) is a popular Kubernetes-based platform for managing serverless workloads with 2 main components:
 - Eventing - Management and delivery of events

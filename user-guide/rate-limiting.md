@@ -1,4 +1,4 @@
-# Rate Limiting Concepts at the Edge
+# Rate Limiting at the Edge
 
 Rate limiting at the edge is a technique that is used to prevent a sudden or sustained increase in user traffic from breaking an API or underlying service. On the Internet, users can do whatever they want to your APIs, as you have no direct control over these end users. Whether it’s intentional or not, these users can impact the availability, responsiveness, and scalability of your service.
 
@@ -31,3 +31,5 @@ The Ambassador Edge Stack rate limiting configuration allows centralised operati
 Modern applications and APIs can experience floods of traffic over a short time period (e.g. from achieving a HackerNews front page link), and increasingly bad actors and cyber criminals are targeting public-facing services.
 
 By implementing rate limiting and load shedding capabilities at the edge a large amount of scenarios that are bad for business can be mitigated. These capabilities also make the life of the operations and development team that much easier, as the need to constantly firefight ingress traffic is reduced.
+
+

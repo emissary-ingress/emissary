@@ -1,4 +1,4 @@
-# Using WebSockets and Ambassador
+# WebSockets and Ambassador Edge Stack
 
 Ambassador Edge Stack makes it easy to access your services from outside your application, and this includes services that use WebSockets, such as [Github](https://github.com/websockets). Only a small amount of additional configuration is required, which is as simple as adding the `use_websocket` attribute with a value of `true` on a `Mapping`.
 
