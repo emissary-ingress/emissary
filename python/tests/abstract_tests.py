@@ -25,7 +25,6 @@ from kat.utils import ShellCommand
 RBAC_CLUSTER_SCOPE = load_manifest("rbac_cluster_scope")
 RBAC_NAMESPACE_SCOPE = load_manifest("rbac_namespace_scope")
 AMBASSADOR = load_manifest("ambassador")
-ISOLATED_BACKEND = load_manifest("isolated_backend")
 BACKEND = load_manifest("backend")
 GRPC_ECHO_BACKEND = load_manifest("grpc_echo_backend")
 AUTH_BACKEND = load_manifest("auth_backend")
@@ -320,26 +319,6 @@ class AmbassadorTest(Test):
     def requirements(self):
         yield ("url", Query(self.url("ambassador/v0/check_ready")))
         yield ("url", Query(self.url("ambassador/v0/check_alive")))
-
-
-@abstract_test
-class IsolatedServiceType(Node):
-
-    path: Name
-
-    def __init__(self, service_manifests: str=None, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-        self._manifests = service_manifests or ISOLATED_BACKEND
-
-    def config(self):
-        yield from ()
-
-    def manifests(self):
-        return self.format(self._manifests)
-
-    def requirements(self):
-        yield ("url", Query("http://%s" % self.path.fqdn))
-        yield ("url", Query("https://%s" % self.path.fqdn))
 
 
 @abstract_test
