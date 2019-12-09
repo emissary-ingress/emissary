@@ -82,6 +82,7 @@ metadata:
 spec:
   hosts: [ "*" ]
   secret: fallback-self-signed-cert
+  redirect_cleartext_from: 8080
 EOF
 
 sudo mv /tmp/edge-stack-mappings.yaml /ambassador/init-config
