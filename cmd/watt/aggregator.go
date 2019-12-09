@@ -28,15 +28,9 @@ type aggregator struct {
 	consulWatches chan<- []ConsulWatchSpec
 	// Output channel used to communicate with the invoker.
 	snapshots chan<- string
-	// We won't consider ourselves "bootstrapped" until we hear about
-	// every kind that has a true value here (i.e. if we find that
-	// requiredKinds["service"] == true, but requiredKinds["Mappings"] == false,
-	// we will require service to be present but we won't require Mappings
-	// to be present.
-	//
-	// (This is a map rather than a list because it makes it easier to be
-	// certain that we don't list the same requiredKind twice.)
-	requiredKinds       map[string]bool
+	// We won't consider ourselves "bootstrapped" until we hear
+	// about all these kinds.
+	requiredKinds       []string
 	watchHook           WatchHook
 	limiter             limiter.Limiter
 	ids                 map[string]bool
@@ -48,14 +42,14 @@ type aggregator struct {
 }
 
 func NewAggregator(snapshots chan<- string, k8sWatches chan<- []KubernetesWatchSpec, consulWatches chan<- []ConsulWatchSpec,
-	watchHook WatchHook, limiter limiter.Limiter) *aggregator {
+	requiredKinds []string, watchHook WatchHook, limiter limiter.Limiter) *aggregator {
 	return &aggregator{
 		KubernetesEvents:    make(chan k8sEvent),
 		ConsulEvents:        make(chan consulEvent),
 		k8sWatches:          k8sWatches,
 		consulWatches:       consulWatches,
 		snapshots:           snapshots,
-		requiredKinds:       make(map[string]bool),
+		requiredKinds:       requiredKinds,
 		watchHook:           watchHook,
 		limiter:             limiter,
 		ids:                 make(map[string]bool),
@@ -80,10 +74,6 @@ func (a *aggregator) Work(p *supervisor.Process) error {
 			return nil
 		}
 	}
-}
-
-func (a *aggregator) MarkRequired(key string, required bool) {
-	a.requiredKinds[key] = required
 }
 
 func (a *aggregator) updateConsulResources(event consulEvent) {
@@ -133,12 +123,10 @@ func (a *aggregator) isKubernetesBootstrapped(p *supervisor.Process) bool {
 	if !sok {
 		return false
 	}
-	for k, v := range a.requiredKinds {
-		if v {
-			_, ok := submap[k]
-			if !ok {
-				return false
-			}
+	for _, k := range a.requiredKinds {
+		_, ok := submap[k]
+		if !ok {
+			return false
 		}
 	}
 	return true
