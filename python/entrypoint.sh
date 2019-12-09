@@ -364,25 +364,25 @@ wait_for_url "diagd" "http://localhost:8877/_internal/v0/ping"
 if [[ -z "${AMBASSADOR_NO_KUBEWATCH}" ]]; then
     KUBEWATCH_SYNC_KINDS="-s service"
 
-    # if [ ! -f "${AMBASSADOR_CONFIG_BASE_DIR}/.ambassador_ignore_ingress" ]; then
+    if [ ! -f "${AMBASSADOR_CONFIG_BASE_DIR}/.ambassador_ignore_ingress" ]; then
         KUBEWATCH_SYNC_KINDS="$KUBEWATCH_SYNC_KINDS -s ingresses"
-    # fi
+    fi
 
-    # if [ ! -f "${AMBASSADOR_CONFIG_BASE_DIR}/.ambassador_ignore_crds" ]; then
+    if [ ! -f "${AMBASSADOR_CONFIG_BASE_DIR}/.ambassador_ignore_crds" ]; then
         KUBEWATCH_SYNC_KINDS="$KUBEWATCH_SYNC_KINDS -s AuthService -s Mapping -s Module -s RateLimitService -s TCPMapping -s TLSContext -s TracingService"
-    # fi
+    fi
 
-    # if [ ! -f "${AMBASSADOR_CONFIG_BASE_DIR}/.ambassador_ignore_crds_2" ]; then
+    if [ ! -f "${AMBASSADOR_CONFIG_BASE_DIR}/.ambassador_ignore_crds_2" ]; then
         KUBEWATCH_SYNC_KINDS="$KUBEWATCH_SYNC_KINDS -s ConsulResolver -s KubernetesEndpointResolver -s KubernetesServiceResolver"
-    # fi
+    fi
 
-    # if [ ! -f "${AMBASSADOR_CONFIG_BASE_DIR}/.ambassador_ignore_crds_3" ]; then
+    if [ ! -f "${AMBASSADOR_CONFIG_BASE_DIR}/.ambassador_ignore_crds_3" ]; then
         KUBEWATCH_SYNC_KINDS="$KUBEWATCH_SYNC_KINDS -s Host"
-    # fi
+    fi
 
-    # if [ ! -f "${AMBASSADOR_CONFIG_BASE_DIR}/.ambassador_ignore_crds_4" ]; then
+    if [ ! -f "${AMBASSADOR_CONFIG_BASE_DIR}/.ambassador_ignore_crds_4" ]; then
         KUBEWATCH_SYNC_KINDS="$KUBEWATCH_SYNC_KINDS -s LogService"
-    # fi
+    fi
 
     AMBASSADOR_FIELD_SELECTOR_ARG=""
     if [ -n "$AMBASSADOR_FIELD_SELECTOR" ] ; then
