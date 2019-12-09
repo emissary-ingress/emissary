@@ -18,7 +18,6 @@ import time
 import threading
 import traceback
 
-from .manifests import KAT_CLIENT_POD, BACKEND_SERVICE, SUPERPOD_POD, CRDS, KNATIVE_SERVING_CRDS
 from .utils import ShellCommand
 
 from yaml.scanner import ScannerError as YAMLScanError
@@ -40,6 +39,24 @@ except AttributeError:
 # Run mode can be local (don't do any Envoy stuff), envoy (only do Envoy stuff),
 # or all (allow both). Default is all.
 RUN_MODE = os.environ.get('KAT_RUN_MODE', 'all').lower()
+
+# Figure out if we're running in Edge Stack or what.
+EDGE_STACK = False
+GOLD_ROOT = "/buildroot/ambassador/python/tests/gold"
+MANIFEST_ROOT = "/buildroot/ambassador/python/tests/manifests"
+
+if os.path.exists("/buildroot/apro.version"):
+    # Hey look, we're running inside Edge Stack!
+    print("RUNNING IN EDGE STACK")
+    EDGE_STACK = True
+    GOLD_ROOT = "/buildroot/apro/tests/gold"
+    MANIFEST_ROOT = "/buildroot/apro/tests/manifests"
+else:
+    print("RUNNING IN OSS")
+
+
+def load_manifest(manifest_name: str) -> str:
+    return open(os.path.join(GOLD_ROOT, f"{manifest_name.lower()}.yaml"), "r").read()
 
 
 class TestImage:
@@ -383,7 +400,7 @@ class Node(ABC):
 
         return end_result
 
-    def check_local(self, k8s_yaml_path: str) -> Tuple[bool, bool]:
+    def check_local(self, gold_root: str, k8s_yaml_path: str) -> Tuple[bool, bool]:
         testname = self.format('{self.path.k8s}')
 
         if not self.is_ambassador:
@@ -402,7 +419,7 @@ class Node(ABC):
 
         # print(f"{testname}: ns {ambassador_namespace} ({'single' if ambassador_single_namespace else 'multi'})")
 
-        gold_path = os.path.join("/buildroot/ambassador/python/tests/gold", testname)
+        gold_path = os.path.join(gold_root, testname)
 
         if os.path.isdir(gold_path) and not no_local_mode:
             # print(f"==== {testname} running locally from {gold_path}")
@@ -1001,6 +1018,7 @@ class Superpod:
         return ports
 
     def get_manifest_list(self) -> List[Dict[str, Any]]:
+        SUPERPOD_POD = load_manifest("superpod_pod")
         manifest = load('superpod', SUPERPOD_POD.format(environ=os.environ), Tag.MAPPING)
 
         assert len(manifest) == 1, "SUPERPOD manifest must have exactly one object"
@@ -1151,6 +1169,7 @@ class Runner:
                 # print(f'superpodifying {n.name}')
 
                 # Next up: use the BACKEND_SERVICE manifest as a template...
+                BACKEND_SERVICE = load_manifest("backend_service")
                 yaml = n.format(BACKEND_SERVICE)
                 manifest = load(n.path, yaml, Tag.MAPPING)
 
@@ -1222,7 +1241,7 @@ class Runner:
         self.names_to_ignore = {}
 
         for n in (n for n in self.nodes if n in selected):
-            local_possible, local_checked = n.check_local(fname)
+            local_possible, local_checked = n.check_local(self.gold_root, fname)
 
             if local_possible:
                 if local_checked:
@@ -1372,8 +1391,11 @@ class Runner:
         manifest_changed, manifest_reason = has_changed(yaml, fname)
 
         # First up: CRDs.
+        CRDS = load_manifest("crds")
         final_crds = CRDS
+
         if is_knative():
+            KNATIVE_SERVING_CRDS = load_manifest("knative_serving_crds")
             final_crds += KNATIVE_SERVING_CRDS
 
         changed, reason = has_changed(final_crds, "/tmp/k8s-CRDs.yaml")
@@ -1396,6 +1418,7 @@ class Runner:
             print(f'CRDS unchanged {reason}, skipping apply.')
 
         # Next up: the KAT pod.
+        KAT_CLIENT_POD = load_manifest("kat_client_pod")
         changed, reason = has_changed(KAT_CLIENT_POD.format(environ=os.environ), "/tmp/k8s-kat-pod.yaml")
 
         if changed:

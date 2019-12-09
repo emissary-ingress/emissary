@@ -1,7 +1,9 @@
 import pytest
 
-from kat.harness import Query, is_knative
-from kat.manifests import KNATIVE_SERVING_071, KNATIVE_SERVING_080
+from kat.harness import Query, is_knative, load_manifest
+
+KNATIVE_SERVING_071 = load_manifest("knative_serving_071")
+KNATIVE_SERVING_080 = load_manifest("knative_serving_080")
 
 from packaging import version
 

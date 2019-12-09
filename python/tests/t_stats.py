@@ -1,11 +1,12 @@
 import os
 import re
 
-from kat.harness import Query
-from kat.manifests import AMBASSADOR, RBAC_CLUSTER_SCOPE
+from kat.harness import Query, load_manifest
 
 from abstract_tests import DEV, AmbassadorTest, HTTP
 
+AMBASSADOR = load_manifest("ambassador")
+RBAC_CLUSTER_SCOPE = load_manifest("rbac_cluster_scope")
 
 GRAPHITE_CONFIG = """
 ---
