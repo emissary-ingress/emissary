@@ -112,7 +112,7 @@ $ minikube service list
 |-------------|----------------------|-----------------------------|
 ```
 
-Open your web browser to the Zipkin dashboard http://192.168.99.107:31043/zipkin/.
+Open your web browser to the Zipkin dashboard `http://192.168.99.107:31043/zipkin/`.
 
 In the Zipkin UI, click on the "Find Traces" button to get a listing instrumented traces. Each of the traces that are displayed can be clicked on, which provides further information
 about each span and associated metadata.

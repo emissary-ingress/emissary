@@ -48,7 +48,7 @@ spec:
 
 ### Additional `config` field examples
 
-`circuit_breakers` sets the global circuit breaking configuration that Ambassador will use for all mappings, unless overridden in a mapping. More information at the [circuit breaking reference](/reference/core/circuit-breaking). 
+`circuit_breakers` sets the global circuit breaking configuration that Ambassador will use for all mappings, unless overridden in a mapping. More information at the [circuit breaking reference](/reference/circuit-breakers). 
 ```
 circuit_breakers
   max_connections: 2048

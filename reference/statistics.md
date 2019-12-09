@@ -101,7 +101,7 @@ kubectl apply -f statsd-sink.yaml
 kubectl apply -f prometheus.yaml
 ```
 
-Wait for a minute after the pods spin up and then access the Prometheus dashboard by port-forwarding the prometheus pod and going to http://localhost:9090/ on a web-browser.
+Wait for a minute after the pods spin up and then access the Prometheus dashboard by port-forwarding the prometheus pod and going to `http://localhost:9090/` on a web-browser.
 
 ```
 kubectl port-forward prometheus-prometheus-0 9090

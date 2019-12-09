@@ -12,7 +12,7 @@ The Ambassador Edge Stack enables GitOps-style management of your application, i
 To start using the Ambassador Edge Stack and its features right away:
 
 1. [Install the Ambassador Edge Stack](/user-guide/install#install-the-ambassador-edge-stack)
-2. [Add Hosts for automatic HTTPS](user-guide/install#add-hosts-and-configure-tls)
+2. [Add Hosts for automatic HTTPS](/user-guide/install#add-hosts-and-configure-tls)
 3. [Create and Verify Mappings](/user-guide/install#create-mappings)
 4. [What's Next?](/user-guide/install#whats-next)
 

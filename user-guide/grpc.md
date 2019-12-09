@@ -184,7 +184,7 @@ Greeter client received: Hello, you!
 
 There is some extra configuration required to connect to a gRPC service through Ambassador Edge Stack over an encrypted channel. Currently, the gRPC call is being sent over cleartext to Ambassador Edge Stack which proxies it to the gRPC application.
 
-![](/doc-images/gRPC-TLS.png)
+![](/doc-images/grpc-tls.png)
 
 If you want to add TLS encyrption to your gRPC calls, first you need to tell Ambassador Edge Stack to add [ALPN protocols](/reference/core/tls) which are required by HTTP/2 to do TLS.
 

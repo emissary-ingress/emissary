@@ -106,7 +106,7 @@ Forwarding local port 8877 to one of the pods:
 kubectl port-forward ambassador-3655608000-43x86 8877
 ```
 
-will then let us view the diagnostics at http://localhost:8877/ambassador/v0/diag/.
+will then let us view the diagnostics at `http://localhost:8877/ambassador/v0/diag/`.
 
 ## 6. Enable HTTPS
 
