@@ -20,6 +20,7 @@ ul {
   flex-direction: row;
   flex-wrap: wrap;
   padding: 0;
+  justify-content: center;
 }
 
 ul > li {

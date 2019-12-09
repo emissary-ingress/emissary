@@ -19,7 +19,8 @@ div.element-titlebar {
 	top: -10px;
 	width: 200px;
 	height: 16px;
-	padding: 8px;
+	padding: 8px 8px 20px 8px;
+	border-bottom: 1px solid rgba(0, 0, 0, .1);
 }
 
 div.element-content {
@@ -28,6 +29,7 @@ div.element-content {
 	width: 200px;
 	height: 200px;
 	padding: 8px;
+	margin-top: -10px;
 }
 div.centered {
 	display: flex;
