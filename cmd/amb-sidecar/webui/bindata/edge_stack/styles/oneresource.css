@@ -192,7 +192,11 @@ input[type=checkbox], input[type=radio] {
 	width: inherit;
 	margin: 0.2em 0;
 }
-
+textarea {
+	background-color: #efefef;
+	padding: 5px;
+	width: 100%;
+}
 div.yaml-wrapper {
 	overflow-x: scroll;
 }
