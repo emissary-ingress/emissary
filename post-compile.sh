@@ -22,10 +22,12 @@ apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
   name: edgestack-fallback-mapping
+  namespace: _automatic_
   labels:
     product: aes
     ambassador_diag_class: private
 spec:
+  ambassador_id: [ "_automatic_" ]
   prefix: /
   rewrite: /edge_stack_ui/
   service: 127.0.0.1:8500
@@ -35,10 +37,12 @@ apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
   name: edgestack-direct-mapping
+  namespace: _automatic_
   labels:
     product: aes
     ambassador_diag_class: private
 spec:
+  ambassador_id: [ "_automatic_" ]
   prefix: /edge_stack/
   rewrite: /edge_stack_ui/edge_stack/
   service: 127.0.0.1:8500
@@ -48,10 +52,12 @@ apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
   name: edgestack-acme-mapping
+  namespace: _automatic_
   labels:
     product: aes
     ambassador_diag_class: private
 spec:
+  ambassador_id: [ "_automatic_" ]
   prefix: /.well-known/acme-challenge/
   rewrite: /.well-known/acme-challenge/
   service: 127.0.0.1:8500
@@ -61,11 +67,12 @@ apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
   name: ambassador-edge-stack
-  namespace: ambassador
+  namespace: _automatic_
   labels:
     product: aes
     ambassador_diag_class: private
 spec:
+  ambassador_id: [ "_automatic_" ]
   prefix: /.ambassador/
   rewrite: ""
   service: "127.0.0.1:8500"
@@ -80,6 +87,7 @@ metadata:
     product: aes
     ambassador_diag_class: private
 spec:
+  ambassador_id: [ "_automatic_" ]
   hosts: [ "*" ]
   secret: fallback-self-signed-cert
   redirect_cleartext_from: 8080
