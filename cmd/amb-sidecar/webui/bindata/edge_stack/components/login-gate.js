@@ -16,16 +16,6 @@ export class LoginGate extends LitElement {
 
   static get styles() {
     return css`
-/* MOREMORE unused
-:host {
-    font-family: Source Sans Pro,sans-serif;
-    margin-left: 2em;
-    margin-right: 2em;
-  margin-top: 0;
-  margin-bottom: 0;
-  padding: 0;
-}
-*/
 /*MOREMORE move this stuff below to a login-gate.css file */
 
 #unauthenticated-outer-wrapper {
