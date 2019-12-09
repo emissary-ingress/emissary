@@ -149,6 +149,7 @@ export class LimitPattern extends LitElement {
 
   // internal
   addElement() {
+    // Each element of a pattern list is a map with one key and one value.
     this.pattern.push({"": ""});
     this.requestUpdate("pattern");
     this.changed();
