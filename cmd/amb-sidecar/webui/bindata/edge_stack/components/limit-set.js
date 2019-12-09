@@ -149,7 +149,7 @@ export class LimitPattern extends LitElement {
 
   // internal
   addElement() {
-    this.pattern.push("");
+    this.pattern.push({"": ""});
     this.requestUpdate("pattern");
     this.changed();
   }
