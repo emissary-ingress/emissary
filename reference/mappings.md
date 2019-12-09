@@ -83,15 +83,15 @@ For example, here is a `Mapping` on a Kubernetes `service`:
 apiVersion: v1
 kind: Service
 metadata:
-  name: httpbin
+  name: qu
   annotations:
     getambassador.io/config: |
       ---
       apiVersion: ambassador/v1
       kind:  Mapping
-      name:  quote-ui_mapping
-      prefix: /
-      service: http://quote
+      name:  httpbin-mapping
+      prefix: /httpbin/
+      service: http://httpbin.org
 spec:
   ports:
   - name: httpbin
@@ -100,15 +100,15 @@ spec:
 
 The same `Mapping` can be created as an independent resource:
 
-```
+```yaml
 ---
-apiVersion: getambassador.io/v1
+apiVersion: getambassador.io/v2
 kind:  Mapping
 metadata:
-  name:  quote-ui
+  name:  httpbin-mapping
 spec:
-  prefix: /
-  service: http://quote
+  prefix: /httpbin/
+  service: http://httpbin.org
 ```
 
 If you're new to Ambassador, start with the CRD approach. Note that you *must* use the `getambassador.io/v1` `apiVersion` as noted above.

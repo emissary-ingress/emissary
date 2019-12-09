@@ -13,26 +13,26 @@ You may have multiple mappings listing the same resource but different `host` at
 apiVersion: getambassador.io/v1
 kind:  Mapping
 metadata:
-  name:  quote-ui
+  name:  quote-backend
 spec:
-  prefix: /
+  prefix: /backend/
   service: quote1
 ---
 apiVersion: getambassador.io/v1
 kind:  Mapping
 metadata:
-  name:  quote-ui2
+  name:  quote-backend-2
 spec:
-  prefix: /
+  prefix: /backend/
   host: quote.datawire.io
   service: quote2
 ---
 apiVersion: getambassador.io/v1
 kind:  Mapping
 metadata:
-  name:  quote-ui3
+  name:  quote-backend-3
 spec:
-  prefix: /
+  prefix: /backend/
   host: "^quote[2-9]\\.datawire\\.io$"
   host_regex: true
   service: quote3

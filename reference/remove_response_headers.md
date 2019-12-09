@@ -13,9 +13,9 @@ The `remove_response_headers` attribute takes a list of keys used to match to th
 apiVersion: getambassador.io/v1
 kind:  Mapping
 metadata:
-  name:  quote-ui
+  name:  quote-backend
 spec:
-  prefix: /
+  prefix: /backend/
   remove_response_headers:
   - x-envoy-upstream-service-time
   service: quote

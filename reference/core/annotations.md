@@ -33,14 +33,6 @@ The following is an example of how to configure annotations for the example quot
 apiVersion: getambassador.io/v1
 kind: Mapping
 metadata:
-  name: quote-ui
-spec:
-  prefix: /
-  service: quote:5000
----
-apiVersion: getambassador.io/v1
-kind: Mapping
-metadata:
   name: quote-backend
 spec:
   prefix: /backend/
@@ -66,12 +58,6 @@ metadata:
       ---
       apiVersion: ambassador/v1
       kind: Mapping
-      name: quote-ui_mapping
-      prefix: /
-      service: quote:5000
-      ---
-      apiVersion: ambassador/v1
-      kind: Mapping
       name: quote-backend_mapping
       prefix: /backend/
       service: tquote
@@ -81,11 +67,8 @@ metadata:
             - backend
 spec:
   ports:
-  - name: ui
-    port: 5000
-    targetPort: 5000
-  - name: backend
-    port: 8080
+  - name: http
+    port: 80
     targetPort: 8080
   selector:
     app: quote

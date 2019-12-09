@@ -35,7 +35,7 @@ kind:  Mapping
 metadata:
   name:  quote-mode
 spec:
-  prefix: /
+  prefix: /backend/
   service: quote-mode
   headers:
     x-quote-mode: true
@@ -46,7 +46,7 @@ kind:  Mapping
 metadata:
   name:  quote-regular
 spec:
-  prefix: /
+  prefix: /backend/
   service: quote-regular
 ```
 
@@ -65,6 +65,6 @@ metadata:
 spec:
   regex_headers:
     user-agent: "^(?=.*\\bAndroid\\b)(?=.*\\b(m|M)obile\\b).*|(?=.*\\biPhone\\b)(?=.*\\b(m|M)obile\\b).*$"
-  prefix: /
-  service: mobile-ui
+  prefix: /backend/
+  service: quote
 ```

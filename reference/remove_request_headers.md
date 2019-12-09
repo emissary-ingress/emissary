@@ -13,12 +13,12 @@ The `remove_request_headers` attribute takes a list of keys used to match to the
 apiVersion: getambassador.io/v1
 kind:  Mapping
 metadata:
-  name:  quote-ui
+  name:  quote-backend
 spec:
-  prefix: /
+  prefix: /backend/
   remove_request_headers:
   - authorization
-  service: quote:5000
+  service: quote
 ```
 
 will drop header with key `authorization`.

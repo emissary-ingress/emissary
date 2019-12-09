@@ -40,10 +40,10 @@ or, per mapping:
 apiVersion: getambassador.io/v1
 kind:  Mapping
 metadata:
-  name:  quote-ui
+  name:  quote-backend
 spec:
-  prefix: /
-  service: quote:5000
+  prefix: /backend/
+  service: quote
   resolver: my-resolver
   load_balancer:
     policy: round_robin
@@ -74,10 +74,10 @@ or, per mapping:
 apiVersion: getambassador.io/v1
 kind:  Mapping
 metadata:
-  name:  quote-ui
+  name:  quote-backend/
 spec:
-  prefix: /
-  service: quote:5000
+  prefix: /backend/
+  service: quote
   resolver: my-resolver
   load_balancer:
     policy: least_request
@@ -110,10 +110,10 @@ If the cookie you wish to set affinity on is already present in incoming request
 apiVersion: getambassador.io/v1
 kind:  Mapping
 metadata:
-  name:  quote-ui
+  name:  quote-backend
 spec:
-  prefix: /
-service: quote:5000
+  prefix: /backend/
+service: quote
 resolver: my-resolver
 load_balancer:
   policy: ring_hash
@@ -138,10 +138,10 @@ Example:
 apiVersion: getambassador.io/v1
 kind:  Mapping
 metadata:
-  name:  quote-ui
+  name:  quote-backend
 spec:
-  prefix: /
-  service: quote:5000
+  prefix: /backend/
+  service: quote
   resolver: my-resolver
   load_balancer:
     policy: ring_hash
@@ -161,10 +161,10 @@ Ambassador Edge Stack allows session affinity based on the source IP of incoming
 apiVersion: getambassador.io/v1
 kind:  Mapping
 metadata:
-  name:  quote-ui
+  name:  quote-backend
 spec:
-  prefix: /
-  service: quote:5000
+  prefix: /backend/
+  service: quote
   resolver: my-resolver
   load_balancer:
     policy: ring_hash
