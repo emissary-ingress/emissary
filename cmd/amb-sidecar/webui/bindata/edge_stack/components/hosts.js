@@ -144,26 +144,25 @@ export class SingleHost extends SingleResource {
      * directly due to CORS restrictions.
      */
     let value = this.provider().value;
-    //MOREMORE temporarily removed during debugging to keep console less cluttered
-    // let url = new URL('/edge_stack/api/tos-url', window.location);
-    // url.searchParams.set('ca-url', value);
-    // ApiFetch(url, {
-    //   headers: new Headers({
-    //     'Authorization': 'Bearer ' + getCookie("edge_stack_auth")
-    //   })
-    // })
-    //   .then(r=>{
-    //     r.text().then(t=>{
-    //       if (r.ok) {
-    //         let domain_matcher = /\/\/([^\/]*)\//;
-    //         let d = t.match(domain_matcher);
-    //         if(d) { d = d[1]; } else { d = t; }
-    //         this.tos = html`<a href="${t}" target="_blank">${d}</a>`
-    //       } else {
-    //         this.tos = html`...`
-    //       }
-    //     })
-    //   })
+    let url = new URL('/edge_stack/api/tos-url', window.location);
+    url.searchParams.set('ca-url', value);
+    ApiFetch(url, {
+      headers: new Headers({
+        'Authorization': 'Bearer ' + getCookie("edge_stack_auth")
+      })
+    })
+      .then(r=>{
+        r.text().then(t=>{
+          if (r.ok) {
+            let domain_matcher = /\/\/([^\/]*)\//;
+            let d = t.match(domain_matcher);
+            if(d) { d = d[1]; } else { d = t; }
+            this.tos = html`<a href="${t}" target="_blank">${d}</a>`
+          } else {
+            this.tos = html`...`
+          }
+        })
+      })
   }
 
   kind() {

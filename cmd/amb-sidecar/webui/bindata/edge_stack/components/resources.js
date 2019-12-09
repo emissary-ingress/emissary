@@ -191,7 +191,6 @@ export class SingleResource extends LitElement {
       return; // user canceled the action
     }
 
-    console.log("onDelete"); /* MOREMORE temporarily add logging and remove the actual delete for debugging
     ApiFetch('/edge_stack/api/delete',
           {
             method: "POST",
@@ -207,23 +206,19 @@ export class SingleResource extends LitElement {
         r.text().then(t=>{
         */
           this.reset();
-    /* MOREMORE temporarily remove the actual delete for debugging
           if (r.ok) {
             // happy path
           } else {
             console.error(t);
             this.addError(`Unexpected error while deleting resource: ${r.statusText}`); // Make sure we add this error to the stack after calling this.reset();
           }
-          */
           if (this.state.mode === "add") {
             this.state.mode = "off"
           } else {
             this.state.mode = "list"
           }
-    /* MOREMORE temporarily remove the actual delete for debugging
         })
       })
-     */
   }
 
   // internal
@@ -517,7 +512,6 @@ ${entries}
 
     let yaml = this.mergedYaml();
 
-    console.log("onSave: " + yaml); /* MOREMORE temporarily add logging and remove the actual save for debugging
     ApiFetch('/edge_stack/api/apply',
           {
             method: "POST",
@@ -530,21 +524,18 @@ ${entries}
         r.text().then(t=>{
           if (r.ok) {
             // happy path
-            */
             this.reset();
             if (this.state.mode === "add") {
               this.state.mode = "off"
             } else {
               this.state.mode = "list"
             }
-            /* MOREMORE temporarily remove the actual save for debugging
           } else {
             console.error(t);
             this.addError(`Unable to ${this.state.mode === "add" ? "create" : "save"} because: ${t}`); // Make sure we add this error to the stack after calling this.reset();
           }
         })
       })
-       */
   }
 
   // deprecated, use <visible-modes>...</visible-modes> instead
