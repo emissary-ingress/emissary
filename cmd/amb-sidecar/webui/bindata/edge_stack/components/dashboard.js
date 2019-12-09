@@ -621,7 +621,6 @@ export class Dashboard extends LitElement {
      * Return the concatenated html renderings for each panel
      */
     return( html `
-<link rel="stylesheet" href="../styles/dashboard.css">
 ${this._panels.reduce( (accum, each) => html`${accum} ${each.render()}`, html`` )}` );
   }
 
