@@ -682,10 +682,15 @@ ${entries}
     <div class="col">
 <!-- MOREMORE add this back? <slot class="${this.state.mode === "off" ? "" : "off"}" @click=${this.onAdd.bind(this)}></slot> -->
 
-<div class="title">
-${this.kind()}: <span class="crd-name ${this.visible("list", "edit")}">${this.name()}</span>
-<input class="${this.visible("add")}" name="name" type="text" value="${this.name()}"/>
-<span class="crd-namespace">(<span class="${this.visible("list", "edit")}">${this.namespace()}</span><input class="${this.visible("add")}" name="namespace" type="text" value="${this.namespace()}"/>)</span></div>
+      <div class="row line">
+        <div class="row-col margin-right">${this.kind()}:</div>
+        <div class="row-col">
+          <b class="${this.visible("list", "edit")}">${this.name()}</b>
+          <!-- MOREMORE <input class="${this.visible("add")}" name="name" type="text" value="${this.name()}"/> -->
+          (<span class="${this.visible("list", "edit")}">${this.namespace()}</span>)
+          <!-- MOREMORE <input class="${this.visible("add")}" name="namespace" type="text" value="${this.namespace()}"/> -->
+        </div>
+      </div>
 
     ${this.renderResource()}
 

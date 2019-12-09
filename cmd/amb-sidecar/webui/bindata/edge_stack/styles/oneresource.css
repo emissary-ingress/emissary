@@ -22,7 +22,8 @@
 	-webkit-flex: 1 1 1;
 	-ms-flex: 1 1 1;
 	flex: 1 1 1;
-	margin: 30px 0 0
+	margin: 30px 0 0;
+	font-size: .9rem;
 }
 
 .card, .card .col .con {
@@ -118,4 +119,40 @@
 
 div.off {
 	display: none;
+}
+
+.row {
+	display: -webkit-flex;
+	display: -ms-flexbox;
+	display: flex;
+	-webkit-flex-direction: row;
+	-ms-flex-direction: row;
+	flex-direction: row
+}
+
+.row .row-col {
+	flex: 1;
+	padding: 10px 5px;
+}
+.row .row-col:nth-child(1) {
+	font-weight: 600;
+}
+.row .row-col:nth-child(2) {
+	flex: 2;
+}
+
+.card .row {
+	border-bottom: 1px solid rgba(0, 0, 0, .1);
+}
+
+.card div.line:nth-last-child(2) {
+	border-bottom: none;
+}
+
+
+.margin-right {
+	margin-right: 20px
+}
+.justify-right {
+	text-align: right;
 }

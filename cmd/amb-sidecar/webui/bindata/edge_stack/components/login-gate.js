@@ -33,10 +33,6 @@ export class LoginGate extends LitElement {
   margin-left: 10%;
   background-color: #fff;
 }
-#all-wrapper {
-    width: 80%;
-    margin-left: 10%;
-}
 #ambassador-logo {
     background-color: white;
     padding: 5px;

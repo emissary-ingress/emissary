@@ -186,23 +186,30 @@ export class SingleHost extends SingleResource {
     let editing = state.mode === "add" || state.mode === "edit";
 
     return html`
-  <div class="attribute-name">hostname:</div>
-  <div class="attribute-value">
+<div class="row line">
+  <div class="row-col margin-right justify-right">hostname:</div>
+  <div class="row-col">
     <span class="${this.visible("list")}">${spec.hostname}</span>
-    <input class="${this.visible("edit", "add")}" type="text" name="hostname"  value="${spec.hostname}" @change="${this.hostnameChanged.bind(this)}"/>
+    <!-- MOREMORE <input class="${this.visible("edit", "add")}" type="text" name="hostname"  value="${spec.hostname}" @change="${this.hostnameChanged.bind(this)}"/> -->
   </div>
+</div>
 
-  <fieldset class="frame" id="acme-sub-dialog">
-    <legend><label><input type="checkbox"
+<div class="row line">
+  <div class="row-col margin-right justify-right"></div>
+  <div class="row-col">
+    <input type="checkbox"
       name="use_acme"
       ?disabled="${!editing}"
       ?checked="${spec.acmeProvider.authority !== "none"}"
-    /> Use ACME to manage TLS</label></legend>
-    <div class="inner-grid">
-    <div class="attribute-name">acme provider:</div>
-    <div class="attribute-value">
-      <span class="${this.visible("list")}">${spec.acmeProvider.authority}</span>
-      <input
+    /> Use ACME to manage TLS</label>
+  </div>
+</div>
+
+<div class="row line">
+  <div class="row-col margin-right justify-right">acme provider:</div>
+  <div class="row-col">
+    <span class="${this.visible("list")}">${spec.acmeProvider.authority}</span>
+    <!-- MOREMORE <input
         class="${this.visible("edit", "add")}"
         type="url"
         size="60"
@@ -210,27 +217,32 @@ export class SingleHost extends SingleResource {
         value="${spec.acmeProvider.authority}"
         @change=${()=>this.providerChanged(true)}
         ?disabled="${!this.useAcme()}"
-      />
-    </div>
-
-    <div class="${tos}">
-      <input type="checkbox" name="tos_agree" ?disabled="${!this.useAcme()}" />
-      <span>I have agreed to to the Terms of Service at: ${this.tos}</span>
-    </div>
-
-    <div class="attribute-name">email:</div>
-    <div class="attribute-value">
-      <span class="${this.visible("list")}">${spec.acmeProvider.email}</span>
-      <input class="${this.visible("edit", "add")}" type="email" name="email" value="${spec.acmeProvider.email}" ?disabled="${!this.useAcme()}" />
-    </div>
-    </div>
-  </fieldset>
-
-  <div class="attribute-name ${this.visible("list", "edit")}">status:</div>
-  <div class="attribute-value ${this.visible("list", "edit")}">
-    <span>${hostState} ${reason}</span>
+      /> -->
   </div>
-  
+</div>
+
+<div class="${tos} row line">
+  <div class="row-col margin-right justify-right"></div>
+  <div class="row-col">
+    <input type="checkbox" name="tos_agree" ?disabled="${!this.useAcme()}" />
+      <span>I have agreed to to the Terms of Service at: ${this.tos}</span>
+  </div>
+</div>
+
+<div class="row ${this.state.mode !== "add" ? "line" : ""}">
+  <div class="row-col margin-right justify-right">email:</div>
+  <div class="row-col">
+    <span class="${this.visible("list")}">${spec.acmeProvider.email}</span>
+    <!-- MOREMORE <input class="${this.visible("edit", "add")}" type="email" name="email" value="${spec.acmeProvider.email}" ?disabled="${!this.useAcme()}" /> -->
+  </div>
+</div>
+
+<div class="row line">
+  <div class="row-col margin-right justify-right ${this.visible("list", "edit")}">status:</div>
+  <div class="row-col">
+    <span class="${this.visible("list", "edit")}">${hostState} ${reason}</span>
+  </div>
+</div>
 
 `
   }

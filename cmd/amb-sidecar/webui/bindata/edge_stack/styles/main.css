@@ -52,6 +52,7 @@ body, html {
 	padding: 0;
 	margin: auto;
 	x-max-width: 1440px;
+	max-width: 1200px; /* MOREMORE added */
 	position: relative;
 	-webkit-flex: 1 1 auto;
 	-ms-flex: 1 1 auto;
@@ -59,7 +60,12 @@ body, html {
 	min-height: 100%
 }
 
-
+login-gate {
+	width: 100%;
+}
+aes-snapshot-provider {
+	width: 100%;
+}
 a:focus {
 	outline: thin dotted
 }
@@ -184,10 +190,5 @@ div.main-ui-admin-section {
 }
 .main-ui-admin-section code {
 	font-size: 120%;
-}
-
-#main-ui-page-outer-wrapper { /* MOREMORE no longer used */
-	width: 80%;
-	margin-left: 10%;
 }
 
