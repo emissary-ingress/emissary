@@ -872,37 +872,8 @@ export class ResourceSet extends LitElement {
   }
 
   /**
-   * Override this to show control how the collection renders. Most of the time this should look like this:
-   *
-   *    render() {
-   *      let addHost = {
-   *        metadata: {
-   *          namespace: "default",
-   *          name: window.location.hostname
-   *        },
-   *        spec: {
-   *          hostname: window.location.hostname,
-   *          acmeProvider: {
-   *            authority: "https://acme-v02.api.letsencrypt.org/directory",
-   *            email: ""
-   *          }
-   *        },
-   *        status: {}}
-   *      return html`
-   *  <dw-host .resource=${addHost} .state=${this.addState}><add-button></add-button></dw-host>
-   *  <div>
-   *    ${this.resources.map(h => html`<dw-host .resource=${h} .state=${this.state(h)}></dw-host>`)}
-   *  </div>`
-   *    }
-   *
-   * The key elements being:
-   *
-   *   a) define the default resource for when you click add
-   *   b) include a single resource component (the <dw-host...>)
-   *      for where you want add to be
-   *   c) render the <dw-host> elements that form the existing
-   *      resources and pass in the resource data and ui state
-   *
+   * Override renderInner to show control how the collection renders. Most of the time this should look like this:
+   * See hosts.js for an example.
    */
   render() {
     return html`
@@ -976,25 +947,22 @@ export class SortableResourceSet extends ResourceSet {
     return css`
 div.sortby {
     text-align: right;
-    font-size: 80%;
-    margin: -20px 8px 0 0;
 }
-select:hover,
-select:focus {
-    background-color: #ede7f3;
+div.sortby select {
+  font-size: 0.85rem;
+  border: 2px #c8c8c8 solid;
+  text-transform: uppercase; 
+}
+div.sortby select:hover {
+  color: #5f3eff;
+  transition: all .2s ease;
+  border: 2px #5f3eff solid;
 }
     `
   }
 
-  render() {
+  renderInner() {
     return html`
-<div class="sortby">Sort by
-  <select id="sortByAttribute" @change=${this.onChangeSortByAttribute}>
-    ${this.sortFields.map(f => {
-      return html`<option value="${f.value}">${f.label}</option>`
-    })}
-  </select>
-</div>
 ${this.resources.sort(this.sortFn(this.sortBy)) && this.renderSet()}`
   }
 

@@ -1,6 +1,7 @@
 import {html} from '../vendor/lit-element.min.js'
 import {SingleResource, SortableResourceSet} from './resources.js';
 import './limit-set.js';
+//MOREMORE do the new look for the limits page
 
 export class Limit extends SingleResource {
 

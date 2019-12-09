@@ -52,7 +52,7 @@ body, html {
 	padding: 0;
 	margin: auto;
 	x-max-width: 1440px;
-	max-width: 1200px; /* MOREMORE added */
+	max-width: 1200px; /* needed for some reason */
 	position: relative;
 	-webkit-flex: 1 1 auto;
 	-ms-flex: 1 1 auto;
