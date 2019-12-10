@@ -8,13 +8,7 @@ Starting in the Ambassador API Gateway 0.50.0, Ambassador will automatically wat
 
 There are many different ways to [install cert-manager](https://docs.cert-manager.io/en/latest/getting-started/install.html). For simplicity, we will use Helm.
 
-1. Create the CustomResourceDefinitions
-
-```
-kubectl apply -f https://raw.githubusercontent.com/jetstack/cert-manager/release-0.6/deploy/manifests/00-crds.yaml
-```
-
-2. Install cert-manager
+1. Install cert-manager
 
 ```
 helm install -n cert-manager --set webhook.enabled=false stable/cert-manager
@@ -132,7 +126,7 @@ cert-manager uses an `Ingress` resource to issue the challenge to `/.well-known/
       - port: 80
         targetPort: 8089
       selector:
-        certmanager.k8s.io/acme-http01-solver: "true"
+        acme.cert-manager.io/http01-solver: "true"
 ```
 
 Apply the YAML and wait a couple of minutes. cert-manager will retry the challenge and issue the certificate.
