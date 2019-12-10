@@ -147,7 +147,7 @@ spec:
               value: '1'
             - name: APP_LOG_LEVEL
               value: DEBUG
-          image: quay.io/datawire-dev/aes:0.99.0-rc-latest
+          image: quay.io/datawire/aes:1.0.0-ea-latest
           imagePullPolicy: Always
           livenessProbe:
             httpGet:
