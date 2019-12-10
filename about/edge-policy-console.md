@@ -33,9 +33,9 @@ The landing page of the EPC is your dashboard, which shows metrics for:
 
 ### Hosts
 
-Hosts are domains that are managed by Ambassador Edge Stack. On this page, you can add and manage your hosts.
+Hosts are domains that are managed by Ambassador Edge Stack. On this page, you can add and manage your hosts, which configures automatic HTTPS and TLS.
 
-See [Hosts](../../reference/host) for detailed information.
+See [Hosts](../../reference/host-crd) for detailed information.
 
 ### Mappings
 
