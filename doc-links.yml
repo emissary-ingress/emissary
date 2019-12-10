@@ -170,6 +170,8 @@
         link: /reference/headers
       - title: Host Header
         link: /reference/host
+      - title: Host CRD
+        link: /reference/host-crd
       - title: Prefix Regex
         link: /reference/prefix_regex
       - title: Rate Limits
