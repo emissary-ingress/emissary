@@ -1,7 +1,9 @@
 # Installing Ambassador with Helm
 
 <div style="border: thick solid red"> 
+
 This installation method is not supported for Early Access release. Check back soon!
+
 </div>
 
 [Helm](https://helm.sh) is a package manager for Kubernetes that automates the release and management of software on Kubernetes. The Ambassador Edge Stack can be installed via a Helm chart with a few simple steps, depending on if you are deploying for the first time, or upgrading from an existing installation.
