@@ -1,4 +1,4 @@
-# Ambassador Edge Stack as an Ingress Controller
+# Ambassador as an Ingress Controller
 
 Starting with version 0.80.0, the Ambassador Edge Stack can act as a Kubernetes [ingress controller](https://kubernetes.io/docs/concepts/services-networking/ingress-controllers/), reading configuration data from Kubernetes [`Ingress`](https://kubernetes.io/docs/concepts/services-networking/ingress/) resources. This makes it easier to work with other `Ingress`-oriented tools within the Kubernetes ecosystem, and it makes it easier for users migrating from other ingress controllers to try the Ambassador Edge Stack.
 

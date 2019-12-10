@@ -1,4 +1,4 @@
-# Alternatives to the Ambassador Edge Stack
+# Ambassador Edge Stack vs. Other Software
 
 Alternatives to the Ambassador Edge Stack fall into three basic categories:
 
