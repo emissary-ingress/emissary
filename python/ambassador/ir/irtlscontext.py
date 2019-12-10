@@ -369,7 +369,7 @@ class TLSContextFactory:
 
                     ir.save_tls_context(ctx)
 
-                    if ctx.hosts:  # not None and not the empty list
+                    if ctx.get('hosts'):  # not None and not the empty list
                         found_termination_context = True
 
         if ir.edge_stack_allowed and not found_termination_context:
