@@ -32,7 +32,6 @@ export class APIs extends LitElement {
     return {
       apis: { type: Array },
       details: { type: Object },
-      // message: { type: String }
     }
   }
 
@@ -40,7 +39,7 @@ export class APIs extends LitElement {
     super();
     this.reset();
     this.doRefresh = true;             // true to allow auto-refreshing
-    this.waitingForHackStyles = false   // true while we have a deferred hackStyles call
+    this.waitingForHackStyles = false; // true while we have a deferred hackStyles call
   }
 
   reset() {
@@ -50,7 +49,6 @@ export class APIs extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
-    //console.log("APIs doing initial load");
     this.loadFromServer()
   }
 
@@ -79,12 +77,8 @@ export class APIs extends LitElement {
   deferHackStyles() {
     if (!this.waitingForHackStyles) {
       this.waitingForHackStyles = true;
-      // console.log("DEFERRING HACKSTYLES")
       setTimeout(this.hackStyles.bind(this), 1)
     }
-    // else {
-    //   console.log("ALREADY DEFERRING HACKSTYLES")
-    // }
   }
 
   linkCSS(href) {
@@ -99,46 +93,32 @@ export class APIs extends LitElement {
     this.waitingForHackStyles = false;
     let apiDivs = this.shadowRoot.children[0].getElementsByTagName('rapi-doc');
 
-    // console.log("HACKSTYLES", api/Divs)
-
     for (let i = 0; i < apiDivs.length; i++) {
       let aDiv = apiDivs[i];
-
-      // console.log("HACKING", aDiv)
-
-      var needLinks = false;
+      let needLinks = false;
 
       while (true) {
         if (!aDiv.shadowRoot) {
-          // Reschedule. FFS.
-          // console.log("NOT YET READY")
           this.deferHackStyles();
-          return
+          return;
         }
 
         let aDivChildren = aDiv.shadowRoot.children;
-        // console.log("  CHILDREN", aDivChildren)
-
         if (!aDivChildren) {
-          break
+          break;
         }
 
         let aKid = aDivChildren[0];
-        // console.log("  CHILD0", aKid)
-
         if (aKid.tagName === 'STYLE') {
-          // console.log("  SMITE")
           aKid.remove();
           needLinks = true
         }
         else {
-          break
+          break;
         }
       }
 
       if (needLinks) {
-        //console.log("  ADDLINKS");
-
         aDiv.shadowRoot.prepend(this.linkCSS("/edge_stack/styles/rapidoc-table.css"));
         aDiv.shadowRoot.prepend(this.linkCSS("/edge_stack/styles/rapidoc-input.css"));
         aDiv.shadowRoot.prepend(this.linkCSS("/edge_stack/styles/rapidoc-fonts.css"));
@@ -153,19 +133,18 @@ export class APIs extends LitElement {
   apiName(api) {
     let apiName = `${api.service_name}.${api.service_namespace}`;
 
-    return `${apiName}`
+    return `${apiName}`;
   }
 
   compareAPIs(api1, api2) {
     let name1 = this.apiName(api1);
     let name2 = this.apiName(api2);
 
-    return name1.localeCompare(name2)
+    return name1.localeCompare(name2);
   }
 
   render() {
     window.apis = this;
-    //console.log(`APIs rendering ${this.apis.length} API${(this.apis.length === 1) ? "" : "s"}`);
 
     if (this.apis.length === 0) {
       return html`
@@ -184,7 +163,7 @@ export class APIs extends LitElement {
     else {
       this.deferHackStyles();
 
-      var rendered = [];
+      let rendered = [];
 
       this.apis.sort(this.compareAPIs.bind(this));
 
@@ -207,7 +186,6 @@ export class APIs extends LitElement {
   ${rendered}
 </div>
 `
-// ${repeat(this.apis, (api) => this.apiKey(api), (api, idx) => this.renderAPIDocs(api, idx))}
     }
   }
 
@@ -238,7 +216,7 @@ export class APIs extends LitElement {
 `
     }
     else {
-      return ''
+      return '';
     }
   }
 }
