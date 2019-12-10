@@ -3,7 +3,7 @@ PLUGIN_DIR ?= .
 DOCKER_REGISTRY ?= localhost:31000
 DOCKER_IMAGE ?= $(DOCKER_REGISTRY)/amb-sidecar-custom:$(shell git describe --tags --always --dirty)
 
-APRO_VERSION = 0.10.0
+APRO_VERSION = 0.11.0
 
 apro-abi@%.txt:
 	curl --fail -o $@ https://s3.amazonaws.com/datawire-static-files/apro-abi/apro-abi@$(APRO_VERSION).txt
