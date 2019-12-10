@@ -156,6 +156,7 @@ export class APIs extends LitElement {
   <div class="col">
     <h1>APIs</h1>
     <p>No API documentation is available.</p>
+    <p><a href="https://www.getambassador.io/reference/dev-portal" target="_blank">Publish your API documentation and get started with the Dev Portal.</a></p>
   </div>
 </div>
 `
@@ -179,9 +180,11 @@ export class APIs extends LitElement {
   </div>
   <div class="col">
     <h1>APIs</h1>
+    <p><a href="https://www.getambassador.io/reference/dev-portal" target="_blank">Learn how to publish your API documentation.</a></p>
     <p>APIs with documentation.</p>
   </div>
 </div>
+<br/>
 <div>
   ${rendered}
 </div>
