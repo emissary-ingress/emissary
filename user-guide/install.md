@@ -34,10 +34,9 @@ The Ambassador Edge Stack is deployed to Kubernetes from the command line via ou
 1. In a command line tool, run the following command:
 
     ```bash
-    kubectl apply -f secret.yaml && \
-    kubectl apply -f https://deploy-preview-91--datawire-ambassador.netlify.com/yaml/aes-crds.yaml && \
+    kubectl apply -f https://www.getambassador.io/early-access/yaml/aes-crds.yaml && \
     kubectl wait --for condition=established --timeout=60s crd -lproduct=aes && \
-    kubectl apply -f https://deploy-preview-91--datawire-ambassador.netlify.com/yaml/aes.yaml && \
+    kubectl apply -f https://www.getambassador.io/early-access/yaml/aes.yaml && \
     kubectl -n ambassador wait --for condition=available --timeout=60s deploy -lproduct=aes
     ```
 

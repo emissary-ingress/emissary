@@ -12,7 +12,7 @@ In order to use the `Ingress` resource effectively, it's important to understand
 
 - The Ambassador Edge Stack will need RBAC permissions to get, list, watch, and update `Ingress` resources.
 
-  You can see this in the `https://getambassador.io/yaml/aes-crds.yaml`
+  You can see this in the [`aes-crds.yaml`](../../../yaml/aes-crds.yaml)
   file, but this is the critical rule to add to the Ambassador Edge Stack's `Role` or `ClusterRole`:
 
       - apiGroups: [ "extensions" ]

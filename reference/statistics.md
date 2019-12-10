@@ -66,7 +66,7 @@ For example, by default each service that the API Gateway serves will create a n
 
 #### Configuring for kubectl
 
-In the [ambassador-rbac-prometheus](https://github.com/datawire/ambassador/blob/master/docs/yaml/ambassador/ambassador-rbac-prometheus.yaml) example template there is a `ConfigMap` that should be updated. Add your mapping to the `configuration` property.
+In the [`ambassador-rbac-prometheus.yaml`](../../yaml/ambassador/ambassador-rbac-prometheus.yaml) example template there is a `ConfigMap` that should be updated. Add your mapping to the `configuration` property.
 
 ```yaml
 ---
