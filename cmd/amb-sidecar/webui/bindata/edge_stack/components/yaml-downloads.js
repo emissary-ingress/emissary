@@ -24,6 +24,9 @@ form div.card {
   padding-top: 0;
   padding-bottom: 0;
 }
+.yaml-download a.cta {
+	width: 120px;
+}
 </style>
     `;
   }
@@ -176,7 +179,6 @@ spec: ${JSON.stringify(resource.spec)}
 
     /* The HTML: */
     return html`
-<link rel="stylesheet" href="../styles/yamldownloads.css">
 <div class="header_con yaml-download">
   <div class="col">
     <!-- TODO need a download icon -->
