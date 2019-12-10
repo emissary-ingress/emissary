@@ -31,6 +31,8 @@ import time
 import uuid
 import requests
 
+import concurrent.futures
+
 from pkg_resources import Requirement, resource_filename
 
 import clize
@@ -112,6 +114,7 @@ class DiagApp (Flask):
     last_request_time: Optional[datetime.datetime]
     latest_snapshot: str
     banner_endpoint: Optional[str]
+    kspool: concurrent.futures.ProcessPoolExecutor
 
     def setup(self, snapshot_path: str, bootstrap_path: str, ads_path: str,
               config_path: Optional[str], ambex_pid: int, kick: Optional[str], banner_endpoint: Optional[str],
@@ -132,6 +135,7 @@ class DiagApp (Flask):
         self.local_scout = local_scout
         self.report_action_keys = report_action_keys
         self.banner_endpoint = banner_endpoint
+        self.kspool = concurrent.futures.ProcessPoolExecutor(max_workers=5)
 
         # This will raise an exception and crash if you pass it a string. That's intentional.
         self.ambex_pid = int(ambex_pid)
@@ -656,6 +660,28 @@ class SystemStatus:
         return { key: info.to_dict() for key, info in self.status.items() }
 
 
+def kubestatus(kind: str, name: str, namespace: str, text: str) -> str:
+    cmd = ['kubestatus', kind, '-f', f'metadata.name={name}', '-n', namespace, '-u', '/dev/fd/0']
+    print(f"KUBESTATUS: PID {os.getpid()} running command: {cmd}")
+
+    try:
+        rc = subprocess.run(cmd, input=text.encode('utf-8'), timeout=5)
+        print(f'KUBESTATUS: PID {os.getpid()}: update finished, rc {rc.returncode}')
+
+        if rc.returncode == 0:
+            return f"{name}.{namespace}: update OK"
+        else:
+            return f"{name}.{namespace}: error {rc.returncode}"
+
+    except subprocess.TimeoutExpired as e:
+        print(f'PID {os.getpid()}: update timed out, {e}')
+        return f"{name}.{namespace}: timed out"
+
+
+def note_update_done(f: concurrent.futures.Future) -> None:
+    print(f"KUBESTATUS: update done: {f.result()}")
+
+
 class AmbassadorEventWatcher(threading.Thread):
     # The key for 'Actions' is chimed - chimed_ok - env_good. This will make more sense
     # if you read through the _load_ir method.
@@ -983,26 +1009,20 @@ class AmbassadorEventWatcher(threading.Thread):
             self.logger.info("notifying PID %d ambex" % app.ambex_pid)
             os.kill(app.ambex_pid, signal.SIGHUP)
 
-        if app.ir.k8s_status_updates:
-            for name in app.ir.k8s_status_updates.keys():
-                # Strip off any namespace in the name.
-                resource_name = name.split('.', 1)[0]
-                kind, namespace, update = app.ir.k8s_status_updates[name]
-                text = json.dumps(update)
-
-                self.logger.info(f"doing K8s status update for {kind} {namespace} {resource_name}: {text}...")
-
-                with open(f'/tmp/kstat-{kind}-{name}-{namespace}', 'w') as out:
-                    out.write(text)
-
-                cmd = [ 'kubestatus', kind, '-f', f'metadata.name={resource_name}', '-n', namespace, '-u', '/dev/fd/0' ]
-                self.logger.info(f"Running command: {cmd}")
-
-                try:
-                    rc = subprocess.run(cmd, input=text.encode('utf-8'), timeout=5)
-                    self.logger.info(f'...update finished, rc {rc.returncode}')
-                except subprocess.TimeoutExpired as e:
-                    self.logger.error(f'...update timed out, {e}')
+        # if app.ir.k8s_status_updates:
+        #     update_count = 0
+        #
+        #     for name in app.ir.k8s_status_updates.keys():
+        #         update_count += 1
+        #         # Strip off any namespace in the name.
+        #         resource_name = name.split('.', 1)[0]
+        #         kind, namespace, update = app.ir.k8s_status_updates[name]
+        #         text = json.dumps(update)
+        #
+        #         self.logger.info(f"posting K8s status update for {kind} {resource_name}.{namespace}: {text}...")
+        #
+        #         f = app.kspool.submit(kubestatus, kind, resource_name, namespace, text)
+        #         f.add_done_callback(note_update_done)
 
         self.logger.info("configuration updated from snapshot %s" % snapshot)
         self._respond(rqueue, 200, 'configuration updated from snapshot %s' % snapshot)
