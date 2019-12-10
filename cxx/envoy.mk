@@ -9,7 +9,7 @@ YES_I_AM_OK_WITH_COMPILING_ENVOY ?=
 	_git_remote_urls := $(shell git remote | xargs -n1 git remote get-url --all)
 	IS_PRIVATE ?= $(findstring private,$(_git_remote_urls))
   ENVOY_REPO ?= $(if $(IS_PRIVATE),git@github.com:datawire/envoy-private.git,git://github.com/datawire/envoy.git)
-  ENVOY_COMMIT ?= c64ec6cb600928f7aca669cb4ab65a233ba0b921
+  ENVOY_COMMIT ?= d17d947caef13f1bdd235c3fccff77814883bb46
   ENVOY_COMPILATION_MODE ?= opt
 	# Increment BASE_ENVOY_RELVER on changes to `docker/base-envoy/Dockerfile`, or Envoy recipes
   BASE_ENVOY_RELVER ?= 7
