@@ -55,7 +55,7 @@ circuit_breakers
   ...
 ```
 
-`cors` sets default CORS configuration for all mappings in the cluster. See the [CORS syntax](../../cors.html).
+`cors` sets default CORS configuration for all mappings in the cluster. See the [CORS syntax](../../cors).
 
 ```
 cors:
