@@ -49,14 +49,14 @@ spec:
 
 The Host resource will usually be a Kubernetes CRD, but it could appear in other forms. The `HostSpec` is part of the Host resource and does not change, no matter what form it's in -- when it's a CRD, this is the part in the "spec" dictionary.
 
-| Attribute | Descriptions |
-|------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------|
-| repeated string ambassador_id = 1 | Common to all Ambassador objects (and optional) |
-| int32 generation = 2 | Common to all Ambassador objects (and optional) |
-| string hostname = 3 | Hostname by which the Ambassador can be reached. |
-| k8s.io.apimachinery.pkg.apis.meta.v1.LabelSelector selector = 4 | Selector by which we can find further configuration. Defaults to hostname=$hostname |
-| ACMEProviderSpec acmeProvider = 5; | Specifies who to talk ACME with to get certs. Defaults to Let's Encrypt; if "none", do not try to do TLS for this Host. |
-| k8s.io.api.core.v1.LocalObjectReference tlsSecret = 6; | Name of the Kubernetes secret into which to save generated certificates. Defaults to $hostname |
+| Attribute | Descriptions | Example |
+|-------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------|
+| repeated string ambassador_id | Common to all Ambassador objects (and optional) | repeated string ambassador_id = 1 |
+| int32 generation | Common to all Ambassador objects (and optional) | int32 generation = 2 |
+| string hostname | Hostname by which the Ambassador can be reached. | string hostname = 3 |
+| k8s.io.apimachinery.pkg.apis.meta.v1.LabelSelector selector | Selector by which we can find further configuration. Defaults to hostname=$hostname | k8s.io.apimachinery.pkg.apis.meta.v1.LabelSelector selector = 4 |
+| ACMEProviderSpec acmeProvider | Specifies who to talk ACME with to get certs. Defaults to Let's Encrypt; if "none", do not try to do TLS for this Host. | ACMEProviderSpec acmeProvider = 5 |
+| k8s.io.api.core.v1.LocalObjectReference tlsSecret | Name of the Kubernetes secret into which to save generated certificates. Defaults to $hostname | k8s.io.api.core.v1.LocalObjectReference tlsSecret = 6 |
 
 The attribute `HostTLSCertificateSource` can have the following:
 ```
