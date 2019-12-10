@@ -1,4 +1,4 @@
-# Distributed Tracing
+# TracingService Plugin
 
 Applications that consist of multiple services can be difficult to debug, as a single request can span multiple services. Distributed tracing tells the story of your request as it is processed through your system. Distributed tracing is a powerful tool to debug and analyze your system in addition to request logging and [metrics](../../statistics).
 

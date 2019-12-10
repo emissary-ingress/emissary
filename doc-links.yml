@@ -17,14 +17,14 @@
   - title: Other Install & Upgrade Options
     items: 
     - title: Upgrade to the Ambassador Edge Stack
-      link: /user-guide/upgrade-from-oss-to-edge-stack
+      link: /user-guide/upgrade-to-edge-stack
     - title: Install with Helm
       link: /user-guide/helm
     - title: Install with Docker
       link: /about/quickstart
     - title: Install with Bare Metal
       link: /user-guide/bare-metal
-    - title: Install Ambassador Open Source
+    - title: Install the Ambassador API Gateway
       link: /user-guide/install-ambassador-oss  
     - title: Early Access Releases
       link: /user-guide/early-access
@@ -63,18 +63,22 @@
 
 - title: Guides & Tutorials 
   items: 
-    - title: Available Guides
+    - title: Available Guides & Tutorials
       link: /docs/guides/
       items:
-    - title: Service Routing
+    - title: Routing
       items:
-      - title: Adding a Custom Filter for Routing
+      - title: Basic Rate Limiting
+        link: /user-guide/rate-limiting-tutorial
+      - title: Advanced Rate Limiting
+        link: /user-guide/advanced-rate-limiting
+      - title: Developing Custom Filters for Routing
         link: /docs/guides/filter-dev-guide
-      - title: Knative and Ambassador Edge Stack
+      - title: Using Knative
         link: /user-guide/knative
-      - title: Use gRPC with Ambassador Edge Stack
+      - title: Using gRPC
         link: /user-guide/grpc
-      - title: Use WebSockets with Ambassador Edge Stack
+      - title: Using WebSockets
         link: /user-guide/websockets-ambassador
     - title: Security
       items:
@@ -84,27 +88,23 @@
         link: /user-guide/tls-termination
       - title: cert-manager with Ambassador Edge Stack
         link: /user-guide/cert-manager
-      - title: Basic Authentication
+      - title: Authentication
         link: /user-guide/auth-tutorial
       - title: Single Sign-On with OAuth & OIDC
         link: /user-guide/oauth-oidc-auth
-      - title: Basic Rate Limiting
-        link: /user-guide/rate-limiting-tutorial
-      - title: Advanced Rate Limiting
-        link: /user-guide/advanced-rate-limiting
     - title: Service Mesh
       items:
-      - title: Consul and Ambassador Edge Stack
+      - title: Consul Integration
         link: /user-guide/consul
-      - title: Istio and Ambassador Edge Stack
+      - title: Istio Integration
         link: /user-guide/with-istio
-      - title: Linkerd2
+      - title: Linkerd 2 Integration
         link: /user-guide/linkerd2
     - title: Best Practices
       items:
       - title: Implementing GitOps with Ambassador Edge Stack
         link: /user-guide/gitops-ambassador
-      - title: Testing in Production with Canary Releases
+      - title: Kubernetes Canary Releases
         link: /docs/dev-guide/canary-release-concepts
     - title: Observability
       items:
@@ -126,13 +126,13 @@
       items:
         - title: Global Configuration
           link: /reference/core/ambassador
-        - title: Global Module Configuration
+        - title: Global Configuration - Modules
           link: /reference/modules
         - title: Gzip compression
           link: /reference/gzip
         - title: Load Balancing Configuration
           link: /reference/core/load-balancer
-        - title: Service Discovery Configuration
+        - title: Resolvers and Service Discovery Configuration
           link: /reference/core/resolvers
     - title: Running Ambassador Edge Stack
       items:  
@@ -144,7 +144,7 @@
         link: /reference/diagnostics
     - title: TLS & Cryptography
       items:
-      - title: TLS Configuration
+      - title: Transport Layer Security (TLS)
         link: /reference/core/tls
       - title: Client Certificate Validation
         link: /reference/tls/client-cert-validation
@@ -156,9 +156,9 @@
         link: /user-guide/sni
       - title: TLS Origination
         link: /reference/tls/origination
-    - title: Configuring Services
+    - title: Configuring Kubernetes Services
       items:
-      - title: Configure Mappings
+      - title: Mapping Services
         link: /reference/mappings
       - title: Canary Releases
         link: /reference/canary
@@ -180,11 +180,11 @@
         link: /reference/remove_request_headers
       - title: Remove Response Headers
         link: /reference/remove_response_headers
-      - title: Request Headers
+      - title: Add Request Headers
         link: /reference/add_request_headers
-      - title: Response Headers
+      - title: Add Response Headers
         link: /reference/add_response_headers
-      - title: Retries
+      - title: Automatic Retries
         link: /reference/retries
       - title: Rewrites
         link: /reference/rewrites
@@ -198,13 +198,13 @@
       items:
       - title: Available Plugins
         link: /reference/services/services
-      - title: Authentication
-        link: /reference/services/auth-service
-      - title: Access Control
+      - title: FilterPolicy Plugin for Access Control
         link: /reference/services/access-control
-      - title: Rate Limiting
+      - title: AuthService Plugin
+        link: /reference/services/auth-service
+      - title: RateLimtingService Plugin
         link: /reference/services/rate-limit-service
-      - title: Tracing
+      - title: TracingService Plugin
         link: /reference/services/tracing-service
     - title: IDP Support
       items:
@@ -212,21 +212,21 @@
         link: /reference/idp-support/auth0
       - title: Azure AD
         link: /reference/idp-support/azure
-      - title: Google
+      - title: Google Single Sign-on
         link: /reference/idp-support/google
       - title: Keycloak
         link: /reference/idp-support/keycloak
       - title: Okta
         link: /reference/idp-support/okta
-      - title: Salesforce
+      - title: Salesforce Single Sign-on
         link: /reference/idp-support/salesforce
       - title: User Account and Authentication (UAA)
         link: /reference/idp-support/uaa
-    - title: Custom Resource Definitions
+    - title: Using Custom Resource Definitions
       link: /reference/core/crds
     - title: Ambassador as an Ingress Controller
       link: /reference/core/ingress-controller
-    - title: Filters
+    - title: Filter Reference
       link: /reference/filter-reference
     - title: Developer Portal
       link: /reference/dev-portal

@@ -1,4 +1,4 @@
-# Routing TCP connections
+# Routing TCP Connections
 
 In addition to managing HTTP, GRPC, and Websockets at layer 7, Ambassador Edge Stack can also manage TCP connections at layer 4. The core abstraction used to support TCP connections is the `TCPMapping`.
 

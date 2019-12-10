@@ -1,4 +1,4 @@
-# Configuring Services
+# Mappings Services
 
 Ambassador Edge Stack is designed so that the author of a given Kubernetes service can easily and flexibly configure how traffic gets routed to the service. The core abstraction used to support service authors is a `mapping`, which can apply to HTTP, GRPC, and Websockets at layer 7 via a `Mapping` resource, or to raw TCP connections at layer 4 via a `TCPMapping`.
 
@@ -8,7 +8,7 @@ Ambassador Edge Stack _must_ have one or more mappings defined to provide access
 
 Ambassador Edge Stack supports a number of attributes to configure and customize mappings.
 
-### Required attributes for mappings:
+### Required attributes for mappings
 
 | Required attribute        | Description               |
 | :------------------------ | :------------------------ |
@@ -16,39 +16,38 @@ Ambassador Edge Stack supports a number of attributes to configure and customize
 | [`prefix`](#resources)    | is the URL prefix identifying your [resource](#resources) |
 | [`service`](#services)    | is the name of the [service](#services) handling the resource; must include the namespace (e.g. `myservice.othernamespace`) if the service is in a different namespace than Ambassador |
 
-### Additional attributes:
+### Additional Attributes
 
-| Attribute                 | Description               |
-| :------------------------ | :------------------------ |
-| `add_linkerd_headers` | if true, automatically adds `l5d-dst-override` headers for Linkerd interoperability (the default is set by the `ambassador` [Module](../modules)) |
-| [`add_request_headers`](../add_request_headers) | specifies a dictionary of other HTTP headers that should be added to each request when talking to the service |
-| [`add_response_headers`](../add_response_headers) | specifies a dictionary of other HTTP headers that should be added to each response when returning response to client |
-| `cluster_idle_timeout_ms` | the timeout, in milliseconds, before an idle connection upstream is closed (may be set on a `Mapping`, `AuthService`, or in the `ambassador Module`) | 
-| [`cors`](../cors)           | enables Cross-Origin Resource Sharing (CORS) setting on a mapping |
-| [`circuit_breakers`](../circuit-breakers) | configures circuit breaking on a mapping
-| `enable_ipv4` | if true, enables IPv4 DNS lookups for this mapping's service (the default is set by the `ambassador`[Module](../modules)) |
-| `enable_ipv6` | if true, enables IPv6 DNS lookups for this mapping's service (the default is set by the `ambassador`[Module](../modules)) |
-| [`grpc`](../../user-guide/grpc) | if true, tells the system that the service will be handling gRPC calls |
-| [`headers`](../headers)      | specifies a list of other HTTP headers which _must_ appear in the request for this mapping to be used to route the request |
-| [`host`](../host) | specifies the value which _must_ appear in the request's HTTP `Host` header for this mapping to be used to route the request |
-| [`host_regex`](../host) | if true, tells the system to interpret the `host` as a [regular expression](http://en.cppreference.com/w/cpp/regex/ecmascript) |
-| [`host_rewrite`](../host) | forces the HTTP `Host` header to a specific value when talking to the service |
-| [`load_balancer`](../core/load-balancer) | configures load balancer on a mapping
-| [`method`](../method)                  | defines the HTTP method for this mapping (e.g. GET, PUT, etc. -- must be all uppercase) |
-| `method_regex`            | if true, tells the system to interpret the `method` as a [regular expression](http://en.cppreference.com/w/cpp/regex/ecmascript) |
-| `prefix_regex`            | if true, tells the system to interpret the `prefix` as a [regular expression](http://en.cppreference.com/w/cpp/regex/ecmascript) and requires that the entire path must match the regex, not just the prefix. |
-| [`rate_limits`](../rate-limits) | specifies a list rate limit rules on a mapping |
-| [`remove_request_headers`](../remove_request_headers) | specifies a list of HTTP headers that are dropped from the request before sending to upstream |
-| [`remove_response_headers`](../remove_response_headers) | specifies a list of HTTP headers that are dropped from the response before sending to client |
-| [`regex_headers`](../headers)           | specifies a list of HTTP headers and [regular expressions](http://en.cppreference.com/w/cpp/regex/ecmascript) which _must_ match for this mapping to be used to route the request |
-| [`rewrite`](../rewrites)      | replaces the URL prefix with when talking to the service. Defaults to `""`, meaning the prefix is stripped. |
-| [`retry_policy`](../retries) | performs automatic retries upon request failures |
-| [`timeout_ms`](../timeouts)            | the timeout, in milliseconds, for requests through this `Mapping`. Defaults to 3000. |
-| [`connect_timeout_ms`](../timeouts)      | the timeout, in milliseconds, for requests coming through the `Cluster` for this `Mapping`. Defaults to 3000. |
-| [`idle_timeout_ms`](../timeouts)         | the timeout, in milliseconds, after which connections through this `Mapping` will be terminated if no traffic is seen. Defaults to 300000 (5 minutes). |
-| [`tls`](#using-tls)       | if true, tells the system that it should use HTTPS to contact this service. (It's also possible to use `tls` to specify a certificate to present to the service.) |
-| `use_websocket`           | if true, tells Ambassador Edge Stack that this service will use websockets |
-| `add_linkerd_headers`           | when true, Ambassador Edge Stack adds the `l5d-dst-override` header to the request and the `service` field is used as a value. Note that when `add_linkerd_headers` is set to true in the `ambassador Module`, the configuration will be applied to all mappings, including auth. `ambassador Module` and individual mapping configurations can be used together, and the latest will always take precedence over the module’s configurations. |
+| Attribute | Description &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Output |
+|-------------------------|------------------------------------------------------------------------------------------------------------|-------------|
+| `add_linkerd_headers` | When true, Ambassador Edge Stack adds the `l5d-dst-overrideheader` to the request and the service field is used as a value. Note that when `add_linkerd_headers` is set to true in the `ambassador` Module, the configuration will be applied to all mappings, including auth. `ambassador` Module and individual mapping configurations can be used together, and the latest will always take precedence over the module's configurations. | boolean |
+| `add_request_headers` | Specifies a dictionary of other HTTP headers that should be added to each request when talking to the service. | string list |
+| `add_response_headers` | Specifies a dictionary of other HTTP headers that should be added to each response when returning response to client. | string list |
+| `cluster_idle_timeout_ms` | The timeout, in milliseconds, before an idle connection upstream is closed (may be set on a Mapping, AuthService, or in the `ambassador` Module). | integer |
+| `connect_timeout_ms` | The timeout, in milliseconds, for requests coming through the Clusterfor this Mapping. Defaults to 3000. | integer |
+| `cors` | Enables Cross-Origin Resource Sharing (CORS) setting on a mapping | dictionary |
+| `circuit_breakers` | Configures circuit breaking on a mapping. | dictionary |
+| `enable_ipv4` | If true, enables IPv4 DNS lookups for this mapping's service (the default is set by the ambassadorModule) | boolean |
+| `enable_ipv6` | If true, enables IPv6 DNS lookups for this mapping's service (the default is set by the `ambassador` Module). | boolean |
+| `grpc` | If true, tells the system that the service will be handling gRPC calls. | boolean |
+| `headers` | Specifies a list of other HTTP headers which must appear in the request for this mapping to be used to route the request. | string list |
+| `host` | Specifies the value which must appear in the request's HTTP Hostheader for this mapping to be used to route the request. | string |
+| `host_regex`| If true, tells the system to interpret the host as a regular expression. | boolean |
+| `host_rewrite` | Forces the HTTP Host header to a specific value when talking to the service. | string |
+| `idle_timeout_ms` | The timeout, in milliseconds, after which connections through this Mapping will be terminated if no traffic is seen. Defaults to 300000 (5 minutes). | integer |
+| `load_balancer` | Configures load balancer on a mapping. | dictionary |
+| `method` | Defines the HTTP method for this mapping (e.g. GET, PUT, etc. -- must be all uppercase). | string |
+| `method_regex` | If true, tells the system to interpret the method as a regular expression. | boolean |
+| `prefix_regex` | If true, tells the system to interpret the prefix as a regular expression and requires that the entire path must match the regex, not just the prefix. | boolean |
+| `rate_limits` | Specifies a list rate limit rules on a mapping. | dictionary |
+| `remove_request_headers` | Specifies a list of HTTP headers that are dropped from the request before sending to upstream. | string list |
+| `remove_response_headers` | Specifies a list of HTTP headers that are dropped from the response before sending to client. | string list |
+| `regex_headers` | Specifies a list of HTTP headers and regular expressions which mustmatch for this mapping to be used to route the request. | string list |
+| `rewrite` | Replaces the URL prefix with when talking to the service. Defaults to `""`, meaning the prefix is stripped. | string |
+| `retry_policy` | Performs automatic retries upon request failures. | dictionary |
+| `timeout_ms` | The timeout, in milliseconds, for requests through this Mapping. Defaults to 3000. | integer |
+| `tls` | If true, tells the system that it should use HTTPS to contact this service. (It's also possible to use tls to specify a certificate to present to the service.) | boolean |
+| `use_websocket` | If true, tells Ambassador Edge Stack that this service will use websockets. | boolean |
 
 If both `enable_ipv4` and `enable_ipv6` are set, Ambassador Edge Stack will prefer IPv6 to IPv4. See the `ambassador`[Module](../modules) documentation for more information.
 
@@ -78,7 +77,7 @@ Mapping resources can be defined as annotations on Kubernetes services or as ind
 
 For example, here is a `Mapping` on a Kubernetes `service`:
 
-```
+```yaml
 ---
 apiVersion: v1
 kind: Service

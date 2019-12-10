@@ -1,4 +1,4 @@
-# Upgrade from the API Gateway to the Ambassador Edge Stack
+# Upgrade to the Ambassador Edge Stack
 
 If you currently have the open source API Gateway version of Ambassador, you can upgrade to the Ambassador Edge Stack with a few simple commands.
 
@@ -63,7 +63,7 @@ Apply the new CRDs, resources and restart the Ambassador Edge Stack pod for chan
 ```
 kubectl apply -n <namespace> -f https://deploy-preview-91--datawire-ambassador.netlify.com/yaml/aes-crds.yaml && \
 kubectl apply -n <namespace> -f https://deploy-preview-91--datawire-ambassador.netlify.com/yaml/resources-migration.yaml && \
-kubectl delete pods -l product=aes
+kubectl rollout restart deployment/aes
 ```
 
 ## 6. What's Next?
