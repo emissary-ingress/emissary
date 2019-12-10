@@ -12,7 +12,7 @@ Normally, to combat this frenzy, you could deploy an API Gateway and an Ingress 
 
 ## Enter the Ambassador Edge Stack
 
-The Ambassador Edge Stack is engineered for cloud-native applications andprovides you with a single, comprehensive self-service solution for your Kubernetes cluster. The self-service nature allows app devs to configure the edge, and op erators to set and enforce global policies. It’s decentralized as well, allowing multiple teams to independently configure different parts of Ambassador.
+[The Ambassador Edge Stack](../..user-guide/install) is engineered for cloud-native applications andprovides you with a single, comprehensive self-service solution for your Kubernetes cluster. The self-service nature allows app devs to configure the edge, and op erators to set and enforce global policies. It’s decentralized as well, allowing multiple teams to independently configure different parts of Ambassador.
 
 Plus, there’s an interface for you to manage you Ambassador Edge Stack instance if you don’t want to use the command line. The Edge Policy Console supports a fully “round trip” creation of CRDs, such as hosts and mappings, and contains a Developer Portal for you to configure your own API documentation. These features, along with all the rest, are visually displayed so you know exactly what you’re doing.
 [Check out the Edge Policy Console](../edge-policy-console) and all it has to offer.
