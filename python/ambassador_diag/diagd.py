@@ -31,6 +31,8 @@ import time
 import uuid
 import requests
 
+import concurrent.futures
+
 from pkg_resources import Requirement, resource_filename
 
 import clize
@@ -140,6 +142,8 @@ class DiagApp (Flask):
         # This feels like overkill.
         self.logger = logging.getLogger("ambassador.diagd")
         self.logger.setLevel(logging.INFO)
+
+        self.kubestatus = KubeStatus()
 
         if debug:
             self.logger.setLevel(logging.DEBUG)
@@ -656,6 +660,67 @@ class SystemStatus:
         return { key: info.to_dict() for key, info in self.status.items() }
 
 
+class KubeStatus:
+    pool: concurrent.futures.ProcessPoolExecutor
+
+    def __init__(self) -> None:
+        self.live: Dict[str,  bool] = {}
+        self.current_status: Dict[str, str] = {}
+        self.pool = concurrent.futures.ProcessPoolExecutor(max_workers=5)
+
+    def mark_live(self, kind: str, name: str, namespace: str) -> None:
+        key = f"{kind}/{name}.{namespace}"
+
+        print(f"KubeStatus MASTER {os.getpid()}: mark_live {key}")
+        self.live[key] = True
+
+    def prune(self) -> None:
+        drop: List[str] = []
+
+        for key in self.current_status.keys():
+            if not self.live.get(key, False):
+                drop.append(key)
+
+        for key in drop:
+            print(f"KubeStatus MASTER {os.getpid()}: prune {key}")
+            del(self.current_status[key])
+
+        self.live = {}
+
+    def post(self, kind: str, name: str, namespace: str, text: str) -> None:
+        key = f"{kind}/{name}.{namespace}"
+        extant = self.current_status.get(key, None)
+
+        if extant == text:
+            print(f"KubeStatus MASTER {os.getpid()}: {key} == {text}")
+        else:
+            print(f"KubeStatus MASTER {os.getpid()}: {key} needs {text}")
+
+            # For now we're going to assume that this works.
+            self.current_status[key] = text
+            f = self.pool.submit(kubestatus_update, kind, name, namespace, text)
+            f.add_done_callback(kubestatus_update_done)
+
+
+def kubestatus_update(kind: str, name: str, namespace: str, text: str) -> str:
+    cmd = [ 'kubestatus', kind, '-f', f'metadata.name={name}', '-n', namespace, '-u', '/dev/fd/0' ]
+    print(f"KubeStatus UPDATE {os.getpid()}: running command: {cmd}")
+
+    try:
+        rc = subprocess.run(cmd, input=text.encode('utf-8'), timeout=5)
+
+        if rc.returncode == 0:
+            return f"{name}.{namespace}: update OK"
+        else:
+            return f"{name}.{namespace}: error {rc.returncode}"
+
+    except subprocess.TimeoutExpired as e:
+        return f"{name}.{namespace}: timed out"
+
+def kubestatus_update_done(f: concurrent.futures.Future) -> None:
+    print(f"KubeStatus DONE {os.getpid()}: result {f.result()}")
+
+
 class AmbassadorEventWatcher(threading.Thread):
     # The key for 'Actions' is chimed - chimed_ok - env_good. This will make more sense
     # if you read through the _load_ir method.
@@ -983,26 +1048,28 @@ class AmbassadorEventWatcher(threading.Thread):
             self.logger.info("notifying PID %d ambex" % app.ambex_pid)
             os.kill(app.ambex_pid, signal.SIGHUP)
 
+        # don't worry about TCPMappings yet
+        mappings = app.aconf.get_config('mappings')
+
+        if mappings:
+            for mapping_name, mapping in mappings.items():
+                app.kubestatus.mark_live("Mapping", mapping_name, mapping.namespace)
+
+        app.kubestatus.prune()
+
         if app.ir.k8s_status_updates:
+            update_count = 0
+
             for name in app.ir.k8s_status_updates.keys():
+                update_count += 1
                 # Strip off any namespace in the name.
                 resource_name = name.split('.', 1)[0]
                 kind, namespace, update = app.ir.k8s_status_updates[name]
                 text = json.dumps(update)
 
-                self.logger.info(f"doing K8s status update for {kind} {namespace} {resource_name}: {text}...")
+                self.logger.info(f"K8s status update: {kind} {resource_name}.{namespace}, {text}...")
 
-                with open(f'/tmp/kstat-{kind}-{name}-{namespace}', 'w') as out:
-                    out.write(text)
-
-                cmd = [ 'kubestatus', kind, '-f', f'metadata.name={resource_name}', '-n', namespace, '-u', '/dev/fd/0' ]
-                self.logger.info(f"Running command: {cmd}")
-
-                try:
-                    rc = subprocess.run(cmd, input=text.encode('utf-8'), timeout=5)
-                    self.logger.info(f'...update finished, rc {rc.returncode}')
-                except subprocess.TimeoutExpired as e:
-                    self.logger.error(f'...update timed out, {e}')
+                app.kubestatus.post(kind, resource_name, namespace, text)
 
         self.logger.info("configuration updated from snapshot %s" % snapshot)
         self._respond(rqueue, 200, 'configuration updated from snapshot %s' % snapshot)
