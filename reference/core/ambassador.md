@@ -13,7 +13,7 @@ metadata:
   name:  ambassador
 spec:
 # Use ambassador_id only if you are using multiple ambassadors in the same cluster.
-# For more information: https://www.getambassador.io/reference/running/#ambassador_id.
+# For more information: ../../running#ambassador_id.
   # ambassador_id: "<ambassador_id>"
   config:
 # Use the following table for config fields
@@ -23,15 +23,15 @@ spec:
 | :----- | :----- | :-- |
 | `add_linkerd_headers` | Should we automatically add Linkerd `l5d-dst-override` headers? | `add_linkerd_headers: false` |
 | `admin_port` | The port where Ambassador's Envoy will listen for low-level admin requests. You should almost never need to change this. | `admin_port: 8001` |
-| `ambassador_id` | Use only if you are using multiple ambassadors in the same cluster. [Learn more](https://www.getambassador.io/reference/running/#ambassador_id). | `ambassador_id: "<ambassador_id>"` |
+| `ambassador_id` | Use only if you are using multiple ambassadors in the same cluster. [Learn more](../../running#ambassador_id). | `ambassador_id: "<ambassador_id>"` |
 | `cluster_idle_timeout_ms` | Set the default upstream-connection idle timeout. If not set (the default), upstream connections will never be closed due to idling. | `cluster_idle_timeout_ms: 30000` |
 | `default_label_domain  and default_labels` | Set a default domain and request labels to every request for use by rate limiting. For more on how to use these, see the Rate Limit reference. |  |
 | `diag_port` | The port where Ambassador will listen for requests  to the diagnostic service. | `diag_port: 8877`|
 | `enable_grpc_http11_bridge` | Should we enable the gRPC-http11 bridge? | `enable_grpc_http11_bridge: false `|
 | `enable_grpc_web` | Should we enable the grpc-Web protocol? | `enable_grpc_web: false` |
 | `enable_http10` | Should we enable http/1.0 protocol? | `enable_http10: false` |
-| `enable_ipv4`| Should we do IPv4 DNS lookups when contacting services? Defaults to true, but can be overridden in a [`Mapping`](/reference/mappings). | `enable_ipv4: true` |
-| `enable_ipv6` | Should we do IPv6 DNS lookups when contacting services? Defaults to false, but can be overridden in a [`Mapping`](/reference/mappings). | `enable_ipv6: false` |
+| `enable_ipv4`| Should we do IPv4 DNS lookups when contacting services? Defaults to true, but can be overridden in a [`Mapping`](../../mappings). | `enable_ipv4: true` |
+| `enable_ipv6` | Should we do IPv6 DNS lookups when contacting services? Defaults to false, but can be overridden in a [`Mapping`](../../mappings). | `enable_ipv6: false` |
 | `envoy_log_format` | Defines the envoy log line format. See [this page](https://www.envoyproxy.io/docs/envoy/latest/configuration/observability/access_log) for a complete list of operators | See [this page](https://www.envoyproxy.io/docs/envoy/latest/configuration/observability/access_log#default-format-string) for the standard log format. |
 | `envoy_log_path` | Defines the path of log envoy will use. By default this is standard output | `envoy_log_path: /dev/fd/1` |
 | `envoy_log_type` | Defines the type of log envoy will use, currently only support json or text | `envoy_log_type: text` |
@@ -40,7 +40,7 @@ spec:
 | `regex_type` | Set which regular expression engine to use. See the "Regular Expressions" section below. | `regex_type: safe` |
 | `server_name: envoy` | By default Envoy sets server_name response header to `envoy`. Override it with this variable |  |
 | `service_port: 8080` | If present, service_port will be the port Ambassador listens on for microservice access. If not present, Ambassador will use 8443 if TLS is configured, 8080 otherwise. |  |
-| `statsd` | Configures Ambassador statistics. These values can be set in the Ambassador module or in an environment variable. For more information, see the [Statistics reference](/reference/statistics/#exposing-statistics-via-statsd). |  |
+| `statsd` | Configures Ambassador statistics. These values can be set in the Ambassador module or in an environment variable. For more information, see the [Statistics reference](../../statistics#exposing-statistics-via-statsd). |  |
 | `use_proxy_proto` | Controls whether Envoy will honor the PROXY protocol on incoming requests. | `use_proxy_proto: false` |
 | `use_remote_address` | Controls whether Envoy will trust the remote address of incoming connections or rely exclusively on the X-Forwarded_For header. | `use_remote_address: true` |
 | `x_forwarded_proto_redirect` | Ambassador lets through only the HTTP requests with `X-FORWARDED-PROTO: https` header set, and redirects all the other requests to HTTPS if this field is set to true. Note that `use_remote_address` must be set to false for this feature to work as expected. | `x_forwarded_proto_redirect: false` |
@@ -48,14 +48,14 @@ spec:
 
 ### Additional `config` field examples
 
-`circuit_breakers` sets the global circuit breaking configuration that Ambassador will use for all mappings, unless overridden in a mapping. More information at the [circuit breaking reference](/reference/circuit-breakers). 
+`circuit_breakers` sets the global circuit breaking configuration that Ambassador will use for all mappings, unless overridden in a mapping. More information at the [circuit breaking reference](../../circuit-breakers). 
 ```
 circuit_breakers
   max_connections: 2048
   ...
 ```
 
-`cors` sets default CORS configuration for all mappings in the cluster. See the [CORS syntax](https://www.getambassador.io/reference/cors.html).
+`cors` sets default CORS configuration for all mappings in the cluster. See the [CORS syntax](../../cors.html).
 
 ```
 cors:
@@ -78,7 +78,7 @@ liveness_probe:
       enabled: true
 ```
 
-`load_balancer` sets the global load balancing type and policy that Ambassador will use for all mappings, unless overridden in a mapping. Defaults to round robin with Kubernetes. More information at the [load balancer reference](/reference/core/load-balancer).
+`load_balancer` sets the global load balancing type and policy that Ambassador will use for all mappings, unless overridden in a mapping. Defaults to round robin with Kubernetes. More information at the [load balancer reference](../load-balancer).
 
 ```
 load_balancer:
@@ -150,14 +150,14 @@ Some caveats around the embedded scripts:
 
 
 
-If you need more flexible and configurable options, Ambassador Edge Stack supports a [pluggable Filter system](/reference/filter-reference).
+If you need more flexible and configurable options, Ambassador Edge Stack supports a [pluggable Filter system](../../filter-reference).
 
 
 
 
 ### Linkerd Interoperability (`add_linkerd_headers`)
 
-When using Linkerd, requests going to an upstream service need to include the `l5d-dst-override` header to ensure that Linkerd will route them correctly. Setting `add_linkerd_headers` does this automatically; see the [Mapping](/reference/mappings) documentation for more details.
+When using Linkerd, requests going to an upstream service need to include the `l5d-dst-override` header to ensure that Linkerd will route them correctly. Setting `add_linkerd_headers` does this automatically; see the [Mapping](../../mappings) documentation for more details.
 
 ### Upstream Idle Timeout (`cluster_idle_timeout_ms`)
 
@@ -191,7 +191,7 @@ readiness_probe:
   rewrite: /backend/health
 ```
 
-The liveness and readiness probe both support `prefix`, `rewrite`, and `service`, with the same meanings as for [mappings](/reference/mappings). Additionally, the `enabled` boolean may be set to `false` (as in the commented-out examples above) to disable support for the probe entirely.
+The liveness and readiness probe both support `prefix`, `rewrite`, and `service`, with the same meanings as for [mappings](../../mappings). Additionally, the `enabled` boolean may be set to `false` (as in the commented-out examples above) to disable support for the probe entirely.
 
 **Note well** that configuring the probes in the `ambassador Module` only means that Ambassador Edge Stack will respond to the probes. You must still configure Kubernetes to perform the checks, as shown in the Datawire-provided YAML files.
 

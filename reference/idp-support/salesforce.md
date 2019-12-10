@@ -30,7 +30,7 @@ After waiting for salesforce to register the application with their servers, you
 
 After configuring an OAuth application in Salesforce, configuring Ambassador Edge Stack to make use it for authentication is simple.
 
-1. Create an [OAuth Filter](/reference/filter-reference#filter-type-oauth2) with the credentials from above
+1. Create an [OAuth Filter](../../filter-reference#filter-type-oauth2) with the credentials from above
 
     ```yaml
     apiVersion: getambassador.io/v2
@@ -49,7 +49,7 @@ After configuring an OAuth application in Salesforce, configuring Ambassador Edg
         secret: {{Consumer Secret}}
     ```
 
-2. Create a [FilterPolicy](/reference/filter-reference#filterpolicy-definition) to use the `Filter` created above
+2. Create a [FilterPolicy](../../filter-reference#filterpolicy-definition) to use the `Filter` created above
 
     ```yaml
     apiVersion: getambassador.io/v2

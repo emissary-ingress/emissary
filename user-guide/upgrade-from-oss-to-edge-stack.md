@@ -4,17 +4,17 @@ If you currently have the open source API Gateway version of Ambassador, you can
 
 **Prerequisites**:
 
-* You must have properly installed Ambassador previously following [these](/user-guide/install-ambassador-oss) instructions.
-* You must have TLS configured and working properly on your Ambassador instance following [these](/user-guide/tls-termination/) instructions.
+* You must have properly installed Ambassador previously following [these](../install-ambassador-oss) instructions.
+* You must have TLS configured and working properly on your Ambassador instance following [these](../tls-termination) instructions.
 
 **To upgrade your instance of Ambassador**:
 
-1. [Apply the Migration Manifest](/user-guide/upgrade-from-oss-to-edge-stack#1-apply-the-migration-manifest)
-2. [Test the New Deployment](/user-guide/upgrade-from-oss-to-edge-stack#2-test-the-new-deployment)
-3. [Redirect Traffic](/user-guide/upgrade-from-oss-to-edge-stack#3-redirect-traffic)
-4. [Delete the Old Deployment](/user-guide/upgrade-from-oss-to-edge-stack#4-delete-the-old-deployment)
-5. [Update and Restart](/user-guide/upgrade-from-oss-to-edge-stack#5-update-and-restart)
-6. [What's Next?](/user-guide/upgrade-from-oss-to-edge-stack#6-whats-next)
+1. [Apply the Migration Manifest](#1-apply-the-migration-manifest)
+2. [Test the New Deployment](#2-test-the-new-deployment)
+3. [Redirect Traffic](#3-redirect-traffic)
+4. [Delete the Old Deployment](#4-delete-the-old-deployment)
+5. [Update and Restart](#5-update-and-restart)
+6. [What's Next?](#6-whats-next)
 
 ## Before You Begin
 
@@ -68,4 +68,4 @@ kubectl delete pods -l product=aes
 
 ## 6. What's Next?
 
-Now that you have the Ambassador Edge Stack up and running, check out the [Getting Started](/user-guide/getting-started) guide for recommendations on what to do next and take full advantage of its features.
+Now that you have the Ambassador Edge Stack up and running, check out the [Getting Started](../getting-started) guide for recommendations on what to do next and take full advantage of its features.

@@ -2,11 +2,11 @@
 
 Ambassador Edge Stack's robust TLS support exposes configuration options for different TLS use cases including:
 
-- [Client Certificate Validation](/reference/tls/client-cert-validation)
-- [HTTP -> HTTPS Redirection](/reference/tls/cleartext-redirection)
-- [Mutual TLS](/reference/tls/mtls)
-- [Server Name Indication (SNI)](/user-guide/sni)
-- [TLS Origination](/reference/tls/origination)
+- [Client Certificate Validation](../../tls/client-cert-validation)
+- [HTTP -> HTTPS Redirection](../../tls/cleartext-redirection)
+- [Mutual TLS](../../tls/mtls)
+- [Server Name Indication (SNI)](../../../user-guide/sni)
+- [TLS Origination](../../tls/origination)
 
 ## TLSContext
 

@@ -98,4 +98,4 @@ rules:
 
 ## Creating the CRD types within Kubernetes
 
-Before using the CRD types, you must add them to the Kubernetes API server. This is most easily done by downloading the following YAML: [https://getambassador.io/yaml/aes-crds.yaml](/yaml/aes-crds.yaml).
+Before using the CRD types, you must add them to the Kubernetes API server. This is most easily done by downloading the following YAML: [https://getambassador.io../../../yaml/aes-crds.yaml](../../../yaml/aes-crds.yaml).

@@ -2,7 +2,7 @@
 
 Cross-Origin resource sharing lets users request resources (e.g., images, fonts, videos) from domains outside the original domain.
 
-CORS configuration can be set for all Ambassador Edge Stack mappings in the [Ambassador Edge Stack](/reference/modules#the-ambassador-module) module, or set per [mapping](/reference/mappings#configuring-mappings).
+CORS configuration can be set for all Ambassador Edge Stack mappings in the [Ambassador Edge Stack](../modules#the-ambassador-module) module, or set per [mapping](../mappings#configuring-mappings).
 
 When the CORS attribute is set at either the `Mapping` or `Module` level, Ambassador Edge Stack will intercept the pre-flight `OPTIONS` request and respond with the appropriate CORS headers. This means you will not need to implement any logic in your upstreams to handle these CORS `OPTIONS` requests.
 
@@ -87,7 +87,7 @@ spec:
     exposed_headers: X-Custom-Header
     max_age: "86400"
 ```
-## [AuthService](/reference/services/auth-service) and Cross-Origin Resource Sharing
+## [AuthService](../services/auth-service) and Cross-Origin Resource Sharing
 
 When you use external authorization, each incoming request is authenticated before routing to its destination, including pre-flight `OPTIONS` requests.  
 

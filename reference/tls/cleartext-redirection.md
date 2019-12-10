@@ -69,7 +69,7 @@ To configure Ambassador Edge Stack to handle this behavior you need set `redirec
 
 **Notes:**
 
-- The ability to `redirect_cleartext_from` was added to the `TLSContext` in Ambassador 0.84.0. Earlier versions of Ambassador need to use a [tls `Module`](/reference/core/tls/#tls-module) for cleartext redirection.
+- The ability to `redirect_cleartext_from` was added to the `TLSContext` in Ambassador 0.84.0. Earlier versions of Ambassador need to use a [tls `Module`](../../core/tls#tls-module) for cleartext redirection.
 
 - As shown above, Ambassador Edge Stack performs this http -> https redirection by issuing a `301` redirect to `https://<hostname>/`. The `<hostname>` represents the domain name/IP address and port of the incoming request. This means if a port is defined on an incoming request, it will be redirected to https on that port. Because of this, cleartext redirection is not supported when using non-default http and https ports.
 
@@ -96,4 +96,4 @@ spec:
 
 **Note**: Ambassador Edge Stack will need to be restarted for this configuration to take effect.
 
-See the [Ambassador on AWS documentation](/reference/ambassador-with-aws#l7-load-balancer) for an example of protocol-based redirection with TLS termination happening at the load balancer.
+See the [Ambassador on AWS documentation](../../ambassador-with-aws#l7-load-balancer) for an example of protocol-based redirection with TLS termination happening at the load balancer.

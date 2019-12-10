@@ -9,7 +9,7 @@ programming language of your choice.
 
 Filters are created with the `Filter` resource type, which contains global arguments to that filter.  Which Filter(s) to use for which HTTP requests is then configured in `FilterPolicy` resources, which may contain path-specific arguments to the filter.
 
-For more information about developing filters, see the [Filter Development Guide](/docs/guides/filter-dev-guide).
+For more information about developing filters, see the [Filter Development Guide](../../docs/guides/filter-dev-guide).
 
 ## `Filter` Definition
 
@@ -72,7 +72,7 @@ spec:
    external filter, in milliseconds.
  - `proto` is either `"http"` or `"grpc"`.
 
-This `spec.External` is mostly identical to an [`AuthService`](/reference/services/auth-service), with the following exceptions:
+This `spec.External` is mostly identical to an [`AuthService`](../services/auth-service), with the following exceptions:
 
 * It does not contain the `apiVersion` field
 * It does not contain the `kind` field

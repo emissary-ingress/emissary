@@ -1,6 +1,6 @@
 # Product Requirements and Recommendations
 
-Before [installing](/user-guide/install) the Ambassador Edge Stack, make sure you have, at a very minimum the following:
+Before [installing](../install) the Ambassador Edge Stack, make sure you have, at a very minimum the following:
 
 * A Clean, running Kubernetes cluster v1.11 or higher
 * `Kubectl`
@@ -38,7 +38,7 @@ Because resource usage is expected to be linear with your traffic, we recommend 
 
 We recommend that you stay on the latest version of Ambassador. While you can always read back Ambassador's configuration from `annotation`s or its diagnostic service, Ambassador will not do versioning for you.
 
-If you want to be part of the early access releases, learn about how to do so [here](/user-guide/early-access).
+If you want to be part of the early access releases, learn about how to do so [here](../early-access).
 
 ## Edge Policy Console Requirements
 

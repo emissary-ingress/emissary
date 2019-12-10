@@ -16,7 +16,7 @@ Getting the Ambassador Edge Stack working with Istio is straightforward. In this
 
 By default, the Bookinfo application uses the Istio ingress. To use the Ambassador Edge Stack, we need to:
 
-1. Install the Ambassador Edge Stack following [these instructions](/user-guide/install/#install-the-ambassador-edge-stack).\
+1. Install the Ambassador Edge Stack following [these instructions](../install#install-the-ambassador-edge-stack).\
 2. Install a sample `Mapping` in the Ambassador Edge Stack by creating a YAML file named `httpbin.yaml` and paste in the following contents:
 
 ```yaml
@@ -245,7 +245,7 @@ spec:
 ```
 Note the `tls: istio-upstream`, which lets the Ambassador Edge Stack know which certificate to use when communicating with that service.
 
-In the definition above we also have TLS termination enabled; please see [the TLS termination tutorial](/user-guide/tls-termination) for more details.
+In the definition above we also have TLS termination enabled; please see [the TLS termination tutorial](../tls-termination) for more details.
 
 ### PERMISSIVE mTLS
 
@@ -304,15 +304,15 @@ spec:
   config: {}
 ```
 
-*Note:* We are using the DNS entry `zipkin.istio-system` as well as the port that our service is running, in this case `9411`. Please see [Distributed Tracing](/reference/services/tracing-service) for more details on Tracing configuration.
+*Note:* We are using the DNS entry `zipkin.istio-system` as well as the port that our service is running, in this case `9411`. Please see [Distributed Tracing](../../reference/services/tracing-service) for more details on Tracing configuration.
 
 ## Monitoring/Statistics Integration
 
 Istio also provides a Prometheus service that is an open-source monitoring and alerting system which is supported by the Ambassador Edge Stack as well. It is possible to integrate the Ambassador Edge Stack into Istio's Prometheus to have all statistics and monitoring in a single place.
 
-First we need to change our Ambassador Edge Stack Deployment to use the [Prometheus StatsD Exporter](https://github.com/prometheus/statsd_exporter) as its sidecar. Do this by applying the [ambassador-rbac-prometheus.yaml](https://www.getambassador.io/yaml/ambassador/ambassador-rbac-prometheus.yaml):
+First we need to change our Ambassador Edge Stack Deployment to use the [Prometheus StatsD Exporter](https://github.com/prometheus/statsd_exporter) as its sidecar. Do this by applying the [ambassador-rbac-prometheus.yaml](../../yaml/ambassador/ambassador-rbac-prometheus.yaml):
 ```sh
-$ kubectl apply -f https://www.getambassador.io/yaml/ambassador/ambassador-rbac-prometheus.yaml
+$ kubectl apply -f ../../yaml/ambassador/ambassador-rbac-prometheus.yaml
 ```
 
 This YAML is changing the StatsD container definition on our Deployment to use the Prometheus StatsD Exporter as a sidecar:
@@ -363,7 +363,7 @@ $ export PROMETHEUS_POD=`kubectl get pods -n istio-system | grep prometheus | aw
 $ kubectl delete pod $PROMETHEUS_POD -n istio-system
 ```
 
-More details can be found in [Statistics and Monitoring](/reference/statistics).
+More details can be found in [Statistics and Monitoring](../../reference/statistics).
 
 
 ## Grafana Dashboard

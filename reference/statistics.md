@@ -2,7 +2,7 @@
 
 Ambassador Edge Stack uses [Envoy Proxy](https://www.envoyproxy.io), which has Observability to expose a multitude of statistics about its own operations. You can use the Envoy `/metrics` endpoint to scrap states and metrics directly, so you don't need to configure your Ambassador Edge Stack to output statistics to another tool, such as StatsD.
 
-To scrape metrics directly, follow the instructions for [Monitoring with Prometheus and Grafana](/user-guide/monitoring).
+To scrape metrics directly, follow the instructions for [Monitoring with Prometheus and Grafana](../../user-guide/monitoring).
 
 Ambassador Edge Stack makes it easy to direct this information to a statistics and monitoring tool of your choice. As an example, for a given service `usersvc`, here are some interesting statistics to investigate:
 
@@ -113,7 +113,7 @@ If you want to set up the StatsD sink as an independent deployment, [this exampl
 
 ## Grafana
 
-![Grafana dashboard](/doc-images/grafana.png)
+![Grafana dashboard](../../doc-images/grafana.png)
 
 If you're using Grafana, [Alex Gervais](https://twitter.com/alex_gervais) has written a template [Grafana dashboard for Ambassador Edge Stack](https://grafana.com/dashboards/4698).
 

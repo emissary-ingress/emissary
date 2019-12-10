@@ -51,12 +51,12 @@ spec:
  
 ## The `ambassador` module
 
-The [`ambassador`](/reference/core/ambassador) module covers general configuration options for Ambassador Edge Stack as a whole. These configuration options generally pertain to routing, protocol support, and the like. Most of these options are likely of interest to operations.
+The [`ambassador`](../core/ambassador) module covers general configuration options for Ambassador Edge Stack as a whole. These configuration options generally pertain to routing, protocol support, and the like. Most of these options are likely of interest to operations.
 
 ## The `tls` module
 
-The `tls` module is now deprecated. Use the [TLSContext](/reference/core/tls) manifest type instead.
+The `tls` module is now deprecated. Use the [TLSContext](../core/tls) manifest type instead.
 
 ## The `authentication` Module
 
-The `authentication` Module is now deprecated. Use the [AuthService](/reference/services/auth-service) manifest type instead.
+The `authentication` Module is now deprecated. Use the [AuthService](../services/auth-service) manifest type instead.

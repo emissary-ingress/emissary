@@ -36,4 +36,4 @@ The Auth0 docs provide a guide for adding social IdP "[connections](https://auth
 
 ## Learn More With the Ambassador Edge Stack and Auth0 Tutorial
 
-You can learn more from the [Single Sign-On with OAuth & OIDC](/user-guide/oauth-oidc-auth) tutorial, which also contains a full walkthrough of how to configure Ambassador Edge Stack with Auth0.
+You can learn more from the [Single Sign-On with OAuth & OIDC](../../user-guide/oauth-oidc-auth) tutorial, which also contains a full walkthrough of how to configure Ambassador Edge Stack with Auth0.

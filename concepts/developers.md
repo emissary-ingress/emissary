@@ -61,4 +61,4 @@ With this approach, there is no centralized Ambassador Edge Stack configuration 
 
 ## Ingress resources
 
-You can use Ambassador Edge Stack as an [Ingress Controller](/reference/core/ingress-controller).
+You can use Ambassador Edge Stack as an [Ingress Controller](../../reference/core/ingress-controller).

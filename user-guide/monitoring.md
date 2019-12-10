@@ -12,7 +12,7 @@ This guide will focus on deploying Prometheus and Grafana alongside Ambassador E
 
 Ambassador Edge Stack makes it easy to output Envoy-generated statistics to Prometheus. For the remainder of this guide, it is assumed that you have installed and configured Ambassador Edge Stack into your Kubernetes cluster, and that it is possible for you to modify the global configuration of the Ambassador Edge Stack deployment.
 
-Starting with Ambassador `0.71.0`, Prometheus can scrape stats/metrics directly from Envoy's `/metrics` endpoint, removing the need to [configure Ambassador Edge Stack to output stats to StatsD](/user-guide/monitoring#statsd-exporter-output-statistics-to-ambassador-edge-stack).
+Starting with Ambassador `0.71.0`, Prometheus can scrape stats/metrics directly from Envoy's `/metrics` endpoint, removing the need to [configure Ambassador Edge Stack to output stats to StatsD](#statsd-exporter-output-statistics-to-ambassador-edge-stack).
 
 The `/metrics` endpoint can be accessed internally via the Ambassador Edge Stack admin port (default 8877):
 

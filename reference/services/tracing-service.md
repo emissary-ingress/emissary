@@ -1,6 +1,6 @@
 # Distributed Tracing
 
-Applications that consist of multiple services can be difficult to debug, as a single request can span multiple services. Distributed tracing tells the story of your request as it is processed through your system. Distributed tracing is a powerful tool to debug and analyze your system in addition to request logging and [metrics](/reference/statistics).
+Applications that consist of multiple services can be difficult to debug, as a single request can span multiple services. Distributed tracing tells the story of your request as it is processed through your system. Distributed tracing is a powerful tool to debug and analyze your system in addition to request logging and [metrics](../../statistics).
 
 ## The TracingService
 
@@ -47,8 +47,8 @@ Please note that you must use the HTTP/2 preudo-header names. For example:
 
 - `service_name` the name of the service which is attached to the traces. The default value is `ambassador`.
 
-You may only use a single `TracingService` manifest per Ambassador deployment. Ensure [ambassador_id](/reference/running/#ambassador_id) is set correctly in the `TracingService` manifest.
+You may only use a single `TracingService` manifest per Ambassador deployment. Ensure [ambassador_id](../../running#ambassador_id) is set correctly in the `TracingService` manifest.
 
 ## Example
 
-The [Ambassador Edge Stack Tracing Tutorial](/user-guide/tracing-tutorial) has a simple Zipkin and DataDog tracing tutorials.
+The [Ambassador Edge Stack Tracing Tutorial](../../../user-guide/tracing-tutorial) has a simple Zipkin and DataDog tracing tutorials.

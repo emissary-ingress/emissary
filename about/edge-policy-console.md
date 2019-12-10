@@ -2,24 +2,24 @@
 
 The Ambassador Edge Stack provides you with an easy-to-use interface that so you can create custom resource defintiions, download YAML files, and visit the Developer Portal, all in one place. 
 
-After you [install the Ambassador Edge Stack](/user-guide/install), you can log in to the Edge Policy Console (EPC) to manage your deployment.
+After you [install the Ambassador Edge Stack](../../user-guide/install), you can log in to the Edge Policy Console (EPC) to manage your deployment.
 
 ## Available Pages
 
 The EPC makes it easy to configure what you need for a successful deployment. However, you'll also be able to use the command line to complete any of your configuration, which we will link here for you.
 
-* [Dashboard](/about/edge-policy-console#dashboard)
-* [Hosts](/about/edge-policy-console#hosts)
-* [Mappings](/about/edge-policy-console#mappings)
-* [Filters](/about/edge-policy-console#filters)
-* [Rate Limits](/about/edge-policy-console#rate-limits)
-* [Plugins](/about/edge-policy-console#plugins)
-* [Resolvers](/about/edge-policy-console#resolvers)
-* [Debugging](/about/edge-policy-console#debugging)
-* [YAML Download](/about/edge-policy-console#yaml-download)
-* [APIs](/about/edge-policy-console#apis)
-* [Documentation](/about/edge-policy-console#documentation)
-* [Support](/about/edge-policy-console#support)
+* [Dashboard](#dashboard)
+* [Hosts](#hosts)
+* [Mappings](#mappings)
+* [Filters](#filters)
+* [Rate Limits](#rate-limits)
+* [Plugins](#plugins)
+* [Resolvers](#resolvers)
+* [Debugging](#debugging)
+* [YAML Download](#yaml-download)
+* [APIs](#apis)
+* [Documentation](#documentation)
+* [Support](#support)
 
 On most pages, you have the option to click `See YAML` which will provide you the raw YAML file for your CRD. For those that want YAML changes for Git source control, all of your configuration changes will be saved to the YAML Download" tab.
 
@@ -35,7 +35,7 @@ The landing page of the EPC is your dashboard, which shows metrics for:
 
 Hosts are domains that are managed by Ambassador Edge Stack. On this page, you can add and manage your hosts.
 
-See [Hosts](/reference/host) for detailed information.
+See [Hosts](../../reference/host) for detailed information.
 
 ### Mappings
 
@@ -45,13 +45,13 @@ On this page, you can add new mappings and manage any existing ones. You can sor
 
 You can also see the Envoy route table, which includes URL, service IP, and weight in regards to load balancing.
 
-See [Mappings](/reference/mappings) for detailed information.
+See [Mappings](../../reference/mappings) for detailed information.
 
 ### Filters
 
 Filters allow you to configure middleware for your requests. On this page, you can add a new filter or manage an existing filter. You can sort filters by name and namespace.
 
-See [Filters](/reference/filter-reference) for detailed information.
+See [Filters](../../reference/filter-reference) for detailed information.
 
 ### Rate Limits
 
@@ -59,7 +59,7 @@ Rate limits allow you to control traffic for different request classes.
 
 On this page, you can add a new rate limit or manage existing ones. You can sort rate limits by name and namespace.
 
-See [rate limits](/reference/rate-limits) for more information.
+See [rate limits](../../reference/rate-limits) for more information.
 
 ### Plugins
 
@@ -67,11 +67,11 @@ Special plugin services enhance the functionality of Ambassador Edge Stack. Thes
 
 On this page you can add a new plugin or manage existing plugins.
 
-See [Plugins](/reference/services/services/) for detailed information.
+See [Plugins](../../reference/services/services) for detailed information.
 
 ### Resolvers
 
-This page shows all of the current Resolvers that are in use to discover your services. See [Resolvers](/reference/core/resolvers) for more information.
+This page shows all of the current Resolvers that are in use to discover your services. See [Resolvers](../../reference/core/resolvers) for more information.
 
 ### Debugging
 
@@ -92,7 +92,7 @@ The **Configuration Errors** box provides further information about any configur
 <!--
 See [Debugging](/reference/debugging) for more information.
 -->
-Also take a look at the [Diagnostics](/reference/diagnostics/) resource.
+Also take a look at the [Diagnostics](../../reference/diagnostics) resource.
 
 ### YAML Download
 
@@ -102,7 +102,7 @@ The YAML Download page stores all of the configuration changes you make across t
 
 The APIs page shows you all of the existing APIs with documentation that you configured from the Developer Portal.
 
-See the [Developer Portal](/reference/dev-portal) documentation for more information.
+See the [Developer Portal](../../reference/dev-portal) documentation for more information.
 
 ### Documentation
 
@@ -110,4 +110,4 @@ The Documentation page provides you direct links to the Ambassador Edge Stack do
 
 ### Support
 
-Need help? Check in here to ask for help on Slack, file an issue, or contact us. See [Support](/about/support) for additional information.
+Need help? Check in here to ask for help on Slack, file an issue, or contact us. See [Support](../support) for additional information.

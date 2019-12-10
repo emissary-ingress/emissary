@@ -4,7 +4,7 @@ In this tutorial, we'll configure Ambassador Edge Stack to initiate a trace on s
 
 ## Before You Get Started
 
-This tutorial assumes you have already followed the Ambassador Edge Stack [Getting Started](/user-guide/getting-started) guide. If you haven't done that already, you should do that now.
+This tutorial assumes you have already followed the Ambassador Edge Stack [Getting Started](../getting-started) guide. If you haven't done that already, you should do that now.
 
 After completing the Getting Started guide you will have a Kubernetes cluster running Ambassador Edge Stack and the Quote of the Moment service. Let's walk through adding tracing to this setup.
 
@@ -119,4 +119,4 @@ about each span and associated metadata.
 
 ## Learn More
 
-For more details about configuring the external, distributed tracing service, read about [distributed tracing](/reference/services/tracing-service).
+For more details about configuring the external, distributed tracing service, read about [distributed tracing](../../reference/services/tracing-service).

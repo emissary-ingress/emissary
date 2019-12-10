@@ -28,13 +28,13 @@ cert-manager issues certificates from a CA such as [Let's Encrypt](https://letse
 
 ### Issuer
 
-An `Issuer` or `ClusterIssuer` identifies which Certificate Authority cert-manager will use to issue a certificate. `Issuer` is a namespaced resource allowing for you to use different CAs in each namespace, a `ClusterIssuer` is used to issue certificates in any namespace. Configuration depends on which ACME [challenge](/user-guide/cert-manager#challenge) you are using.
+An `Issuer` or `ClusterIssuer` identifies which Certificate Authority cert-manager will use to issue a certificate. `Issuer` is a namespaced resource allowing for you to use different CAs in each namespace, a `ClusterIssuer` is used to issue certificates in any namespace. Configuration depends on which ACME [challenge](#challenge) you are using.
 
 ### Certificate
 
-A [Certificate](https://cert-manager.readthedocs.io/en/latest/reference/certificates.html) is a namespaced resource that references an `Issuer` or `ClusterIssuer` for issuing certificates. `Certificate`s define the DNS name(s) a key and certificate should be issued for, as well as the secret to store those files (e.g. `ambassador-certs`). Configuration depends on which ACME [challenge](/user-guide/cert-manager#challenge) you are using.
+A [Certificate](https://cert-manager.readthedocs.io/en/latest/reference/certificates.html) is a namespaced resource that references an `Issuer` or `ClusterIssuer` for issuing certificates. `Certificate`s define the DNS name(s) a key and certificate should be issued for, as well as the secret to store those files (e.g. `ambassador-certs`). Configuration depends on which ACME [challenge](#challenge) you are using.
 
-By duplicating issuers, certificates, and secrets one can support multiple domains with [SNI](/user-guide/sni).
+By duplicating issuers, certificates, and secrets one can support multiple domains with [SNI](../sni).
 
 ### Challenge
 

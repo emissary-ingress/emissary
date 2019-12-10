@@ -1,6 +1,6 @@
 # The Ambassador API Gateway
 
-In this tutorial, we'll walk through the process of deploying the Ambassador API Gateway in Kubernetes for ingress routing. The Ambassador API Gateway provides all the functionality of a traditional ingress controller (i.e., path-based routing) while exposing many additional capabilities such as [authentication](/user-guide/auth-tutorial), URL rewriting, CORS, rate limiting, and automatic metrics collection (the [mappings reference](/reference/mappings) contains a full list of supported options). Note that the Ambassador Edge Stack can be used as an [Ingress Controller](/reference/core/ingress-controller).
+In this tutorial, we'll walk through the process of deploying the Ambassador API Gateway in Kubernetes for ingress routing. The Ambassador API Gateway provides all the functionality of a traditional ingress controller (i.e., path-based routing) while exposing many additional capabilities such as [authentication](../auth-tutorial), URL rewriting, CORS, rate limiting, and automatic metrics collection (the [mappings reference](../../reference/mappings) contains a full list of supported options). Note that the Ambassador Edge Stack can be used as an [Ingress Controller](../../reference/core/ingress-controller).
 
 For more background on Kubernetes ingress, [read this blog post](https://blog.getambassador.io/kubernetes-ingress-nodeport-load-balancers-and-ingress-controllers-6e29f1c44f2d).
 
@@ -78,7 +78,7 @@ the Ambassador API Gateway includes an integrated diagnostics service to help wi
 
 By default, this is exposed to the internet at the URL `http://{{AMBASSADOR_HOST}}/ambassador/v0/diag/`. Go to that URL from a web browser to view the diagnostic UI.
 
-You can change the default so it is not exposed externally by default by setting `diagnostics.enabled: false` in the [ambassador `Module`](/reference/core/ambassador).
+You can change the default so it is not exposed externally by default by setting `diagnostics.enabled: false` in the [ambassador `Module`](../../reference/core/ambassador).
 
 ```yaml
 apiVersion: getambassador.io/v2
@@ -112,8 +112,8 @@ will then let us view the diagnostics at `http://localhost:8877/ambassador/v0/di
 
 The versatile HTTPS configuration of the Ambassador API Gateway lets it support various HTTPS use cases whether simple or complex.
 
-Follow our [enabling HTTPS guide](/user-guide/tls-termination) to quickly enable HTTPS support for your applications.
+Follow our [enabling HTTPS guide](../tls-termination) to quickly enable HTTPS support for your applications.
 
 ## Want more?
 
-For more features, check out the latest build of the [Ambassador Edge Stack](/user-guide/install).
+For more features, check out the latest build of the [Ambassador Edge Stack](../install).

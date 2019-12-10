@@ -49,17 +49,17 @@ spec:
             - "scope2"
 ```
 
-Save the configuration to a file and apply it to the cluster: `kubectl apply -f httpbin-filter-policy.yaml`. For more information about filters and filter policies, consult the [filter reference](/reference/filter-reference).
+Save the configuration to a file and apply it to the cluster: `kubectl apply -f httpbin-filter-policy.yaml`. For more information about filters and filter policies, consult the [filter reference](../../reference/filter-reference).
 
 ## IDP Configuration
 
 You will need to configure your IDP to handle authentication requests. The way to do this varies by IDP.
 
-- [Auth0](/reference/idp-support/auth0)
-- [Google](/reference/idp-support/google)
-- [Keycloak](/reference/idp-support/keycloak)
-- [Okta](/reference/idp-support/okta)
-- [UAA](/reference/idp-support/uaa)
+- [Auth0](../../reference/idp-support/auth0)
+- [Google](../../reference/idp-support/google)
+- [Keycloak](../../reference/idp-support/keycloak)
+- [Okta](../../reference/idp-support/okta)
+- [UAA](../../reference/idp-support/uaa)
 
 ## Configure Authentication Across Multiple Domains (Optional)
 
@@ -100,4 +100,4 @@ Create a separate `FilterPolicy` that specifies which specific filters are appli
 
 ## Further reading
 
-The [filter reference](/reference/filter-reference) covers the specifics of filters and filter policies in much more detail.
+The [filter reference](../../reference/filter-reference) covers the specifics of filters and filter policies in much more detail.

@@ -11,10 +11,10 @@ The Ambassador Edge Stack enables GitOps-style management of your application, i
 
 To start using the Ambassador Edge Stack and its features right away:
 
-1. [Install the Ambassador Edge Stack](/user-guide/install#install-the-ambassador-edge-stack)
-2. [Add Hosts for automatic HTTPS](/user-guide/install#add-hosts-and-configure-tls)
-3. [Create and Verify Mappings](/user-guide/install#create-mappings)
-4. [What's Next?](/user-guide/install#whats-next)
+1. [Install the Ambassador Edge Stack](#install-the-ambassador-edge-stack)
+2. [Add Hosts for automatic HTTPS](#add-hosts-and-configure-tls)
+3. [Create and Verify Mappings](#create-mappings)
+4. [What's Next?](#whats-next)
 
 ## Before You Begin
 
@@ -23,7 +23,7 @@ The Ambassador Edge Stack is designed to run in Kubernetes for production. The m
 * Kubernetes Cluster 1.11 or later
 * `Kubectl`
 
-Find additional requirements and recommendations for a successful installation and deployment on the [Product Requirements](/user-guide/product-requirements) page.
+Find additional requirements and recommendations for a successful installation and deployment on the [Product Requirements](../product-requirements) page.
 
 ## Install the Ambassador Edge Stack
 
@@ -94,7 +94,7 @@ To secure your application with HTTPS, you must first add a Host to your Ambassa
 4. Read and check the box to agree to the Terms of Service.
 5. Enter your email address to receive your TLS certificate.
 
-Your hostname will appear in a pending state as the Ambassador Edge Stack configures automatic TLS. In the “Status” field, you will see the TLS status change. If you receive an error that your hostname does not qualify for ACME management, you can still configure TLS following [these instructions](/reference/core/tls).
+Your hostname will appear in a pending state as the Ambassador Edge Stack configures automatic TLS. In the “Status” field, you will see the TLS status change. If you receive an error that your hostname does not qualify for ACME management, you can still configure TLS following [these instructions](../../reference/core/tls).
 
 To upgrade from evaluation mode, sign up for a free community license today from your Edge Policy Console.
 
@@ -126,4 +126,4 @@ Kubernetes will print the Custom Resource Definitions that were installed with t
 
 ## What’s Next?
 
-To learn more about how the Ambassador Edge Stack works, along with use cases, best practices, and more, check out the [Ambassador](/about/why-ambassador) story.
+To learn more about how the Ambassador Edge Stack works, along with use cases, best practices, and more, check out the [Ambassador](../../about/why-ambassador) story.

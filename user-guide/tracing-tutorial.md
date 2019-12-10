@@ -4,5 +4,5 @@ Ambassador Edge Stack can support distributed tracing, one of the ["3 pillars of
 
 ## Tutorials
 
-- [DataDog APM](/user-guide/tracing-tutorial-datadog)
-- [Zipkin](/user-guide/tracing-tutorial-zipkin)
+- [DataDog APM](../tracing-tutorial-datadog)
+- [Zipkin](../tracing-tutorial-zipkin)
