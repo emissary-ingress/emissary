@@ -29,7 +29,7 @@ services:
 env:
   global:
     - DEV_REGISTRY=quay.io/datawire-dev
-    - RELEASE_REGISTRY=quay.io/datawire-dev
+    - RELEASE_REGISTRY=quay.io/datawire
     # - DBUILD_ARGS="--cache-from ${DEV_REGISTRY}/builder:latest"
 
     # Set from the repository settings:
