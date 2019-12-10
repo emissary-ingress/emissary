@@ -8,18 +8,19 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/pkg/errors"
 	yaml "gopkg.in/yaml.v2"
 
-	"github.com/datawire/teleproxy/pkg/k8s"
-
+	"github.com/datawire/ambassador/pkg/dlog"
+	"github.com/datawire/ambassador/pkg/k8s"
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta2"
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
 	"github.com/datawire/apro/lib/mapstructure"
 )
 
-var rlslog types.Logger
+var rlslog dlog.Logger
 
 func max(a, b int) int {
 	if a > b {
@@ -29,10 +30,37 @@ func max(a, b int) int {
 	}
 }
 
-func DoWatch(ctx context.Context, cfg types.Config, _rlslog types.Logger) error {
+type RateLimitController struct {
+	lock   sync.RWMutex // everything after this is guarded by the lock
+	limits []crd.RateLimit
+}
+
+func (r *RateLimitController) setLimits(limits []crd.RateLimit) {
+	r.lock.Lock()
+	defer r.lock.Unlock()
+	r.limits = limits
+}
+
+func (r *RateLimitController) GetLimits() []crd.RateLimit {
+	r.lock.Lock()
+	defer r.lock.Unlock()
+	return r.limits
+}
+
+func New() *RateLimitController {
+	return &RateLimitController{}
+}
+
+func (r *RateLimitController) DoWatch(ctx context.Context, cfg types.Config, kubeinfo *k8s.KubeInfo, _rlslog dlog.Logger) error {
 	rlslog = _rlslog
 
-	w := k8s.NewClient(nil).Watcher()
+	client, err := k8s.NewClient(kubeinfo)
+	if err != nil {
+		// this is non fatal (mostly just to facilitate local dev); don't `return err`
+		rlslog.Errorln("not watching RateLimit resources:", errors.Wrap(err, "k8s.NewClient"))
+		return nil
+	}
+	w := client.Watcher()
 
 	count := 0
 
@@ -55,23 +83,29 @@ func DoWatch(ctx context.Context, cfg types.Config, _rlslog types.Logger) error 
 	fatal := make(chan error)
 	w.Watch("ratelimits", func(w *k8s.Watcher) {
 		config := &Config{Domains: make(map[string]*Domain)}
-		for _, r := range w.List("ratelimits") {
-			var spec crd.RateLimitSpec
-			err := mapstructure.Convert(r.Spec(), &spec)
-			if err != nil {
-				rlslog.Errorln(errors.Wrap(err, "malformed ratelimit resource spec"))
+		var limits []crd.RateLimit
+		for _, _r := range w.List("ratelimits") {
+			if cfg.AmbassadorSingleNamespace && _r.Namespace() != cfg.AmbassadorNamespace {
 				continue
 			}
-			if cfg.AmbassadorSingleNamespace && r.Namespace() != cfg.AmbassadorNamespace {
+			var r crd.RateLimit
+			err := mapstructure.Convert(_r, &r)
+			if err != nil || r.Spec == nil {
+				rlslog.Errorln(errors.Wrap(err, "malformed RateLimit resource"))
 				continue
 			}
-			if !spec.AmbassadorID.Matches(cfg.AmbassadorID) {
+			if !r.Spec.AmbassadorID.Matches(cfg.AmbassadorID) {
 				continue
 			}
 
-			SetSource(&spec, r.QName())
-			config.add(spec)
+			limits = append(limits, r)
+
+			qname := r.GetName() + "." + r.GetNamespace()
+			SetSource(r.Spec, qname)
+			config.add(*r.Spec)
 		}
+
+		r.setLimits(limits)
 
 		count += 1
 		realout := fmt.Sprintf("%s-%d/%s", cfg.RLSRuntimeDir, count, cfg.RLSRuntimeSubdir)

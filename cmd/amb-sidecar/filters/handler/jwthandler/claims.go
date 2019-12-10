@@ -3,7 +3,8 @@ package jwthandler
 import (
 	jwt "github.com/dgrijalva/jwt-go"
 
-	"github.com/datawire/apro/cmd/amb-sidecar/types"
+	"github.com/datawire/ambassador/pkg/dlog"
+
 	"github.com/datawire/apro/resourceserver/rfc6749"
 )
 
@@ -31,7 +32,7 @@ func GetAudience(claims jwt.MapClaims) []string {
 	}
 }
 
-func GetScope(logger types.Logger, claims jwt.MapClaims) rfc6749.Scope {
+func GetScope(logger dlog.Logger, claims jwt.MapClaims) rfc6749.Scope {
 	// Parse the 'scope' claim (draft standard).
 	// https://www.iana.org/assignments/jwt/jwt.xhtml
 	// https://tools.ietf.org/html/draft-ietf-oauth-token-exchange-19#section-4.2

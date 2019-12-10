@@ -10,8 +10,8 @@ import (
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 
-	pb_struct "github.com/datawire/ambassador/go/apis/envoy/api/v2/ratelimit"
-	pb "github.com/datawire/ambassador/go/apis/envoy/service/ratelimit/v2"
+	pb_struct "github.com/datawire/ambassador/pkg/api/envoy/api/v2/ratelimit"
+	pb "github.com/datawire/ambassador/pkg/api/envoy/service/ratelimit/v2"
 )
 
 type descriptorValue struct {

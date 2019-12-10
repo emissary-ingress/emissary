@@ -50,3 +50,73 @@ func NewOpenAPI(jsonDoc []byte, base_url string, prefix string) *OpenAPIDoc {
 	server.Set(serverURL, "url")
 	return &OpenAPIDoc{JSON: result}
 }
+
+func (doc *OpenAPIDoc) Redact() {
+	infodesc := "info.description"
+	s := doc.JSON
+
+	// Place redacted notice on top of documentation
+
+	desc, _ := s.Path(infodesc).Data().(string)
+	notice := `
+# This document exceeds Developer Portal service limit in the license
+
+Just the skeleton of the service URL space will be shown.
+
+Please contact sales@datawire.io
+
+`
+	s.SetP(notice+desc, infodesc)
+
+	for _, p := range childrenMap(s.S("paths")) {
+		for _, op := range childrenMap(p) {
+			redactOp(op)
+		}
+	}
+	for _, r := range childrenMap(s.S("responses")) {
+		redactResponses(r)
+	}
+	s.Delete("definitions")
+}
+
+func childrenMap(node *gabs.Container) (c map[string]*gabs.Container) {
+	if node != nil {
+		c, _ = node.ChildrenMap()
+	}
+	return
+}
+
+func redactOp(op *gabs.Container) {
+	rsp := gabs.New()
+	rsp.Set("Redacted", "200", "description")
+
+	for tag, t := range childrenMap(op) {
+		switch tag {
+		case "tags":
+			continue
+		case "description":
+			d, _ := t.Data().(string)
+			op.Set("# Redacted\n\n"+d, tag)
+			continue
+		case "responses":
+			redactResponses(t)
+		default:
+			op.Delete(tag)
+		}
+		op.Set("# Redacted", "summary")
+	}
+}
+
+func redactResponses(r *gabs.Container) {
+	for _, code := range childrenMap(r) {
+		for tag, t := range childrenMap(code) {
+			switch tag {
+			case "description":
+			case "$ref":
+				continue
+			default:
+				t.Delete(tag)
+			}
+		}
+	}
+}

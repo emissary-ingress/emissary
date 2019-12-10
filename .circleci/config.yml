@@ -162,24 +162,23 @@ commands:
   "main":
     steps:
       - checkout
+      - run: ln -s project/ambassador ../ambassador
       - with-go-mod-cache:
           steps:
             - with-go-build-cache:
                 steps:
-                 - run: "docker login -u=\"${DOCKER_BUILD_USERNAME}\" -p=\"${DOCKER_BUILD_PASSWORD}\" quay.io"
-                 - run: "make build # main build"
-                 - run: "make build # no-op build"
-                 - run: "make push-docker-buildcache || true"
-                 - run: "make deploy # main deploy"
-                 - run: "make deploy # no-op deploy"
-                 # FIXME: Figure out what's not parallel-safe about
-                 # the tests
-                 - run: "trap 'make unproxy' EXIT; set -x; make -j1 check"
+                 - run: ".circleci/kubernaut-claim.sh"
+
+# RHS: disabling this because it gave me an incomprehensible error
+#      message, please don't reenable before Dec 10th
+#                 - run: "make lint"
+                 - run: "docker login -u=\"datawire-dev+aes\" -p=\"3M43T8BXB3L46H40R8W3K1JDNMIN6KP8Q5SC1SY2DRJQ7DZFE7LUJ1WE35QG3F0U\" quay.io"
+                 - run: "DEV_REGISTRY=quay.io/datawire-dev DEV_KUBECONFIG=~/.kube/$(cat ~/kubernaut-claim.txt).yaml make gotest GOTEST_PKGS=github.com/datawire/apro/..."
                  - run:
-                     command: "make unclaim"
-                     when: always
+                     command: ".circleci/kubernaut-unclaim.sh"
+                     when: "always"
+                 - run: "git status && test -z \"$(git status --porcelain)\""
                  - save-logs
-                 - run: "make help # verify that the build is not dirty"
   "release":
     steps:
       - run:
@@ -188,10 +187,8 @@ commands:
             if [[ "$CIRCLE_TAG" =~ ^v[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+(-.*)?$ ]]; then
                 export AWS_ACCESS_KEY_ID=$DEPLOY_KEY_ID
                 export AWS_SECRET_ACCESS_KEY=$DEPLOY_KEY
-                docker login -u="${DOCKER_RELEASE_USERNAME}" -p="${DOCKER_RELEASE_PASSWORD}" quay.io
-                make release
-            else
-                make release RELEASE_DRYRUN=y
+                #docker login -u="${DOCKER_RELEASE_USERNAME}" -p="${DOCKER_RELEASE_PASSWORD}" quay.io
+                DEV_KUBECONFIG="-skip-for-release-" RELEASE_REGISTRY=quay.io/datawire-dev make rc
             fi
   "clobber":
     steps:
@@ -200,6 +197,27 @@ commands:
      # wipe out artifacts that are useful for debugging.
      - run: make clobber
      - run: "git clean -ndx; test -z \"$(git clean -ndx)\""
+  "edgectl":
+    steps:
+      - checkout
+      - run: make target_does_not_exist || true
+      - run: ln -s project/ambassador ../ambassador
+      - run: ./ambassador/builder/module_version.sh apro
+      - with-go-mod-cache:
+          steps:
+            - with-go-build-cache:
+                steps:
+                  - run: ./ambassador/builder/build_push_cli.sh build
+      - run: ~/bin/edgectl version || true
+      - run:
+          name: "Release"
+          command: |
+            if [[ "$CIRCLE_TAG" =~ ^v[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+(-.*)?$ ]]; then
+                export AWS_ACCESS_KEY_ID=$DEPLOY_KEY_ID
+                export AWS_SECRET_ACCESS_KEY=$DEPLOY_KEY
+                ./ambassador/builder/build_push_cli.sh push
+                ./ambassador/builder/build_push_cli.sh tag
+            fi
 
 jobs:
 
@@ -233,16 +251,44 @@ jobs:
           executor-key: "201903-01"
       - main
       - release
-      - clobber
+#      - clobber
+
+  "macOS-edgectl":
+    macos:
+      xcode: "10.1.0"
+    steps:
+      - pip-install:
+          packages: awscli
+      - install-go
+      - edgectl
+
+  "Ubuntu-edgectl":
+    machine:
+      # If you bump this, be sure to bump install-python.executor-key
+      # below.
+      image: "ubuntu-1604:201903-01"
+    steps:
+      - pip-install:
+          packages: awscli
+      - install-go
+      - edgectl
 
 workflows:
   "APro CI":
     jobs:
+      - "Ubuntu-edgectl":
+          filters:
+            tags:
+              only: /.*/
+      - "macOS-edgectl":
+          filters:
+            tags:
+              only: /.*/
       - "Ubuntu":
           filters:
             tags:
               only: /.*/
-      - "macOS":
-          filters:
-            branches:
-              only: master
+#      - "macOS":
+#          filters:
+#            branches:
+#              only: master

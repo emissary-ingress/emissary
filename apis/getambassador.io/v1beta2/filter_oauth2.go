@@ -191,7 +191,7 @@ func (m *FilterOAuth2) Validate(namespace string, secretsGetter coreV1client.Sec
 }
 
 func (m FilterOAuth2) CallbackURL() *url.URL {
-	u, _ := m.ClientURL.Parse("/callback")
+	u, _ := m.ClientURL.Parse("/.ambassador/oauth2/redirection-endpoint")
 	return u
 }
 

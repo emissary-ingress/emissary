@@ -10,7 +10,7 @@ import (
 	"github.com/spf13/cobra"
 	yaml "gopkg.in/yaml.v2"
 
-	"github.com/datawire/teleproxy/pkg/k8s"
+	"github.com/datawire/ambassador/pkg/k8s"
 
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta2"
 	"github.com/datawire/apro/lib/licensekeys"
@@ -40,7 +40,6 @@ func init() {
 var offline bool
 
 func doValidate(cmd *cobra.Command, args []string) {
-	var err error
 	var local_resources []k8s.Resource
 	var remote_resources []k8s.Resource
 
@@ -56,7 +55,8 @@ func doValidate(cmd *cobra.Command, args []string) {
 	fmt.Printf("Found %d local resources.\n", len(local_resources))
 
 	if !offline {
-		c := k8s.NewClient(nil)
+		c, err := k8s.NewClient(nil)
+		die(err)
 		remote_resources, err = c.List("ratelimits")
 		die(err)
 

@@ -4,10 +4,10 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/datawire/ambassador/pkg/dlog"
 	"github.com/pkg/errors"
 
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta2"
-	"github.com/datawire/apro/cmd/amb-sidecar/types"
 	"github.com/datawire/apro/lib/jwks"
 	"github.com/datawire/apro/lib/util"
 )
@@ -45,7 +45,7 @@ type Discovered struct {
 
 // Discover fetches OpenID configuration and certificate information
 // from the IDP (per OIDC Discovery).
-func Discover(client *http.Client, mw crd.FilterOAuth2, logger types.Logger) (*Discovered, error) {
+func Discover(client *http.Client, mw crd.FilterOAuth2, logger dlog.Logger) (*Discovered, error) {
 	configURL, _ := url.Parse(mw.AuthorizationURL.String() + "/.well-known/openid-configuration")
 	config, err := fetchOpenIDConfig(client, configURL.String())
 	if err != nil {

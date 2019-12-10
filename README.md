@@ -24,7 +24,7 @@ arbitrary string `PRE`), CircleCI does the
 proceeds to:
  - push `apictl` and `apictl-key` for Linux and Darwin to AWS S3
  - push all 4 Docker images to
-   [`quay.io/datawire/ambassador_pro`](https://quay.io/repository/datawire/ambassador_pro?tab=tags)
+   [`quay.io/datawire/aes`](https://quay.io/repository/datawire/aes?tab=tags)
 
 ### Manual release
 

@@ -13,7 +13,6 @@ import (
 	"github.com/Jeffail/gabs"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/datawire/apro/cmd/amb-sidecar/devportal/kubernetes"
 	"github.com/datawire/apro/cmd/amb-sidecar/internalaccess"
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
 	"github.com/datawire/apro/lib/util"
@@ -22,7 +21,7 @@ import (
 // Retrieve a URL.
 type HTTPGetFunc func(requestURL *url.URL, internalSecret string, logger *log.Entry) ([]byte, error)
 
-type serviceMap map[kubernetes.Service]bool
+type serviceMap map[Service]bool
 
 // Figure out what services no longer exist and need to be deleted.
 type diffCalculator struct {
@@ -30,7 +29,7 @@ type diffCalculator struct {
 	current  serviceMap
 }
 
-func NewDiffCalculator(known []kubernetes.Service) *diffCalculator {
+func NewDiffCalculator(known []Service) *diffCalculator {
 	knownMap := make(serviceMap)
 	for _, service := range known {
 		knownMap[service] = true
@@ -40,8 +39,8 @@ func NewDiffCalculator(known []kubernetes.Service) *diffCalculator {
 
 // Done retrieving all known services: this will return list of services to
 // delete.
-func (d *diffCalculator) NewRound() []kubernetes.Service {
-	toDelete := make([]kubernetes.Service, 0)
+func (d *diffCalculator) NewRound() []Service {
+	toDelete := make([]Service, 0)
 	for service := range d.previous {
 		if !d.current[service] {
 			toDelete = append(toDelete, service)
@@ -53,7 +52,7 @@ func (d *diffCalculator) NewRound() []kubernetes.Service {
 }
 
 // Add a Service that was successfully retrieved this round
-func (d *diffCalculator) Add(s kubernetes.Service) {
+func (d *diffCalculator) Add(s Service) {
 	d.current[s] = true
 }
 
@@ -86,8 +85,8 @@ type MappingSubscriptions interface {
 
 type ServiceStore interface {
 	Init(fetcher MappingSubscriptions)
-	AddService(service kubernetes.Service, baseURL string, prefix string, openAPIDoc []byte)
-	DeleteService(service kubernetes.Service)
+	AddService(service Service, baseURL string, prefix string, openAPIDoc []byte) error
+	DeleteService(service Service) error
 }
 
 // Object that retrieves service info and OpenAPI docs (if available) and
@@ -95,7 +94,7 @@ type ServiceStore interface {
 func NewFetcher(
 	store ServiceStore,
 	httpGet HTTPGetFunc,
-	known []kubernetes.Service,
+	known []Service,
 	cfg types.Config,
 ) *fetcher {
 	f := &fetcher{
@@ -131,7 +130,7 @@ func (f *fetcher) Run(ctx context.Context) {
 
 // Get a string attribute of a JSON object:
 func getString(o *gabs.Container, attr string) string {
-	return o.S(attr).Data().(string)
+	return o.Path(attr).Data().(string)
 }
 
 var dialer = &net.Dialer{
@@ -229,8 +228,14 @@ func (f *fetcher) _retrieve(reason string) {
 				continue
 			}
 			location_parts := strings.Split(location, ".")
+			if len(location_parts) < 2 {
+				// This is most likely a Knative mapping: ignore for now.
+				// See apro issue #618 https://github.com/datawire/apro/issues/618
+				continue
+			}
 			prefix := getString(mapping, "prefix")
 			rewrite := getString(mapping, "rewrite")
+			clusterName := getString(mapping, "cluster.name")
 			prefix = strings.TrimRight(prefix, "/")
 			name := location_parts[0]
 			namespace := location_parts[1]
@@ -242,7 +247,7 @@ func (f *fetcher) _retrieve(reason string) {
 				baseURL = f.cfg.AmbassadorExternalURL.String()
 			}
 			mappingName := getString(mapping, "name")
-			if f.observeInternalMapping(mappingName, prefix, rewrite) {
+			if f.observeInternalMapping(mappingName, prefix, rewrite) || f.isInternalCluster(clusterName) {
 				f.logger.WithFields(log.Fields{
 					"mappingName": mappingName,
 					"name":        name,
@@ -250,6 +255,7 @@ func (f *fetcher) _retrieve(reason string) {
 					"baseURL":     baseURL,
 					"prefix":      prefix,
 					"rewrite":     rewrite,
+					"clusterName": clusterName,
 				}).Info("Found internal mapping, skipping")
 				continue
 			}
@@ -275,9 +281,11 @@ func (f *fetcher) _retrieve(reason string) {
 			if err != nil {
 				doc = nil
 			}
-			service := kubernetes.Service{Namespace: namespace, Name: name}
-			f.store.AddService(service, baseURL, prefix, doc)
-			f.diff.Add(service)
+			service := Service{Namespace: namespace, Name: name}
+			err = f.store.AddService(service, baseURL, prefix, doc)
+			if err == nil {
+				f.diff.Add(service)
+			}
 		}
 	}
 
@@ -311,4 +319,11 @@ func (o *observer) observe(prefix, rewrite string) bool {
 		o.lastPrefix = prefix
 	}
 	return o.ret
+}
+
+func (f *fetcher) isInternalCluster(clusterName string) bool {
+	if clusterName == "cluster_127_0_0_1_8877" || clusterName == "cluster_127_0_0_1_8500" {
+		return true
+	}
+	return false
 }

@@ -1,6 +1,0 @@
-#!/usr/bin/env bash
-cat <<EOF
-FROM $(cat $1)
-
-COPY ./*.so /etc/ambassador-plugins/
-EOF

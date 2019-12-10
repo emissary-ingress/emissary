@@ -1,13 +1,13 @@
 const run = require('./run.js');
 
 var server = require('http').createServer((request, response) => {
-	response.writeHead(307, {"Location": "https://ambassador.standalone.svc.cluster.local"+request.url});
+	response.writeHead(307, {"Location": "https://ambassador.ambassador.svc.cluster.local"+request.url});
 	response.end();
 });
 
 module.exports.testcases = {
 	"Google": {
-		resource: "https://ambassador.standalone.svc.cluster.local/google/httpbin/headers",
+		resource: "https://ambassador.ambassador.svc.cluster.local/google/httpbin/headers",
 		username: "ambassadorprotesting@gmail.com",
 		password: "NO2I27Bg1XY",
 		before: () => { server.listen(31001); },
@@ -36,7 +36,7 @@ const authenticate = async function(browsertab, username, password) {
 	await browsertab.type('input[type="password"]', password);
 	await clickNext(browsertab);
 
-	await browsertab.waitForResponse((resp) => {return resp.url().startsWith("http://localhost:31001/callback?");})
+	await browsertab.waitForResponse((resp) => {return resp.url().startsWith("http://localhost:31001/");})
 };
 
 const waitUntilRender = function(browsertab) {

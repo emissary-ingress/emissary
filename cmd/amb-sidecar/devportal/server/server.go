@@ -3,6 +3,7 @@ package server
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 
@@ -11,24 +12,27 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/datawire/apro/cmd/amb-sidecar/devportal/content"
-	"github.com/datawire/apro/cmd/amb-sidecar/devportal/kubernetes"
 	"github.com/datawire/apro/cmd/amb-sidecar/devportal/openapi"
+	"github.com/datawire/apro/cmd/amb-sidecar/limiter"
+	"github.com/datawire/apro/lib/licensekeys"
 	"github.com/datawire/apro/lib/logging"
 )
 
 type Server struct {
-	router   *mux.Router
-	content  *content.Content
-	K8sStore kubernetes.ServiceStore
+	router       *mux.Router
+	content      *content.Content
+	limiter      limiter.Limiter
+	climiter     limiter.CountLimiter
+	serviceStore *inMemoryStore
 
 	pool *bpool.BufferPool
 
 	prefix string
 }
 
-func (s *Server) KnownServices() []kubernetes.Service {
-	serviceMap := s.K8sStore.List()
-	knownServices := make([]kubernetes.Service, len(serviceMap))
+func (s *Server) KnownServices() []Service {
+	serviceMap := s.serviceStore.List()
+	knownServices := make([]Service, len(serviceMap))
 	i := 0
 	for k := range serviceMap {
 		knownServices[i] = k
@@ -38,21 +42,21 @@ func (s *Server) KnownServices() []kubernetes.Service {
 }
 
 // AddService implements ServiceStore.
-func (s *Server) AddService(service kubernetes.Service, baseURL string, prefix string, openAPIDoc []byte) {
+func (s *Server) AddService(service Service, baseURL string, prefix string, openAPIDoc []byte) error {
 	hasDoc := (openAPIDoc != nil)
 	var doc *openapi.OpenAPIDoc = nil
 	if hasDoc {
 		doc = openapi.NewOpenAPI(openAPIDoc, baseURL, prefix)
 	}
-	s.K8sStore.Set(
-		service, kubernetes.ServiceMetadata{
+	return s.serviceStore.Set(
+		service, ServiceMetadata{
 			Prefix: prefix, BaseURL: baseURL,
-			HasDoc: hasDoc, Doc: doc})
+			HasDoc: hasDoc, Doc: doc}, hasDoc)
 }
 
 // DeleteService implements ServiceStore.
-func (s *Server) DeleteService(service kubernetes.Service) {
-	s.K8sStore.Delete(service)
+func (s *Server) DeleteService(service Service) error {
+	return s.serviceStore.Delete(service)
 }
 
 func (s *Server) Router() http.Handler {
@@ -70,7 +74,7 @@ type openAPIListing struct {
 func (s *Server) handleOpenAPIListing() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		result := make([]openAPIListing, 0)
-		for service, metadata := range s.K8sStore.List() {
+		for service, metadata := range s.serviceStore.List() {
 			result = append(result, openAPIListing{
 				ServiceName:      service.Name,
 				ServiceNamespace: service.Namespace,
@@ -93,7 +97,7 @@ func (s *Server) handleOpenAPIListing() http.HandlerFunc {
 func (s *Server) handleOpenAPIGet() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
-		metadata := s.K8sStore.Get(kubernetes.Service{
+		metadata := s.serviceStore.Get(Service{
 			Name: vars["service"], Namespace: vars["namespace"]},
 			true)
 		if metadata == nil {
@@ -135,19 +139,35 @@ func (s *Server) handleOpenAPIUpdate() http.HandlerFunc {
 		} else {
 			buf = nil
 		}
-		s.AddService(
-			kubernetes.Service{
+		err = s.AddService(
+			Service{
 				Name: msg.ServiceName, Namespace: msg.ServiceNamespace},
 			msg.BaseURL, msg.Prefix, buf)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
 	}
 }
 
 type contentVars struct {
-	S      *Server
+	S      ServerView
 	Ctx    string
 	Prefix string
 	Pages  []string
 	Rq     map[string]string
+}
+
+type ServerView interface {
+	K8sStore() ServiceStoreView
+}
+
+type ServiceStoreView interface {
+	Slice() []ServiceRecord
+}
+
+func (s *Server) K8sStore() ServiceStoreView {
+	return s.serviceStore
 }
 
 func (s *Server) vars(r *http.Request, context string) content.ContentVars {
@@ -183,7 +203,12 @@ func (s *Server) handleHTML(context string) http.HandlerFunc {
 		vars := s.vars(r, context)
 		tmpl, err := s.content.Get(vars)
 		if err != nil {
-			log.Fatal(err)
+			log.Warn(s.content.Source(), err)
+			w.WriteHeader(http.StatusInternalServerError)
+			io.WriteString(w, err.Error())
+			io.WriteString(w, "\n\n")
+			io.WriteString(w, s.content.Source().String())
+			return
 		}
 		buffer := s.pool.Get()
 		defer s.pool.Put(buffer)
@@ -191,7 +216,7 @@ func (s *Server) handleHTML(context string) http.HandlerFunc {
 		if err != nil {
 			log.Warn(err)
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(err.Error()))
+			io.WriteString(w, err.Error())
 			return
 		}
 		w.Header().Set("Content-Type", "text/html")
@@ -225,13 +250,14 @@ func (s *Server) Init(fetcher MappingSubscriptions) {
 		s.prefix = prefix
 		return true
 	})
-	fetcher.SubscribeMappingObserver("ambassador-pro-devportal-api", func(prefix, rewrite string) bool {
+	fetcher.SubscribeMappingObserver("ambassador-devportal", func(prefix, rewrite string) bool {
 		prefix += "/"
 		log.WithFields(log.Fields{
 			"oldPrefix": s.prefix,
 			"prefix":    prefix,
 			"rewrite":   rewrite,
-		}).Info("API prefix detected from ambassador-pro-devportal-api (TODO)")
+		}).Info("Prefix detected from ambassador-devportal")
+		s.prefix = prefix
 		return true
 	})
 }
@@ -241,46 +267,77 @@ func (s *Server) Init(fetcher MappingSubscriptions) {
 // TODO The URL scheme exposes Service names and K8s namespace names, which is
 // perhaps a security risk, and more broadly might be embarrassing for some
 // organizations. So might want some better URL scheme.
-func NewServer(docroot string, content *content.Content) *Server {
+func NewServer(docroot string, content *content.Content, limiter limiter.Limiter) *Server {
 	router := mux.NewRouter()
 	router.Use(logging.LoggingMiddleware)
 
-	root := docroot + "/"
-	s := &Server{
-		router:   router,
-		content:  content,
-		K8sStore: kubernetes.NewInMemoryStore(),
-		pool:     bpool.NewBufferPool(64),
-		prefix:   root,
+	// Error should never be set due to hardcoded enums
+	// but if it is make it break hard.
+	climiter, err := limiter.CreateCountLimiter(&licensekeys.LimitDevPortalServices)
+	if err != nil {
+		return nil
 	}
 
+	root := docroot + "/"
+	s := &Server{
+		router:       router,
+		limiter:      limiter,
+		climiter:     climiter,
+		serviceStore: newInMemoryStore(climiter, limiter),
+		content:      content,
+		pool:         bpool.NewBufferPool(64),
+		prefix:       root,
+	}
+
+	s.mountDocs(docroot)
+
+	switch content.Config().Version {
+	case "1":
+		s.mountAPI("/openapi")
+	case "2":
+		s.mountAPI(docroot + "/api/v2")
+	}
+	return s
+}
+
+func (s *Server) mountDocs(docroot string) {
 	// TODO in a later design iteration, we would serve static HTML, and
 	// have Javascript UI that queries the API endpoints. for this
 	// iteration, just doing it server-side.
-	router.HandleFunc(docroot+"/", s.handleHTML("landing"))
-	router.PathPrefix(docroot + "/assets/").HandlerFunc(s.handleStatic(docroot))
-	router.PathPrefix(docroot + "/styles/").HandlerFunc(s.handleStatic(docroot))
-	router.HandleFunc(docroot+"/page/{page}", s.handleHTML("page"))
-	router.HandleFunc(docroot+"/doc/{namespace}/{service}", s.handleHTML("doc"))
+	s.router.
+		HandleFunc(docroot+"/", s.handleHTML("landing")).
+		Methods("GET")
+	s.router.
+		PathPrefix(docroot + "/assets/").HandlerFunc(s.handleStatic(docroot)).
+		Methods("GET")
+	s.router.
+		PathPrefix(docroot + "/styles/").HandlerFunc(s.handleStatic(docroot)).
+		Methods("GET")
+	s.router.
+		HandleFunc(docroot+"/page/{page}", s.handleHTML("page")).
+		Methods("GET")
+	s.router.
+		HandleFunc(docroot+"/doc/{namespace}/{service}", s.handleHTML("doc")).
+		Methods("GET")
+}
 
+func (s *Server) mountAPI(apiroot string) {
 	// *** Read-only API, requires less access control and may be exposed ***
 	// publicly:
 	// List services:
-	router.
-		HandleFunc("/openapi/services", s.handleOpenAPIListing()).
+	s.router.
+		HandleFunc(apiroot+"/services", s.handleOpenAPIListing()).
 		Methods("GET")
 	// Return the OpenAPI JSON:
-	router.
+	s.router.
 		HandleFunc(
-			"/openapi/services/{namespace}/{service}/openapi.json",
+			apiroot+"/services/{namespace}/{service}/openapi.json",
 			s.handleOpenAPIGet()).
 		Methods("GET")
 
 	// *** Write API, needs access control at some point ***
 	// Set information about new service:
-	router.
-		HandleFunc("/openapi/services", s.handleOpenAPIUpdate()).
+	s.router.
+		HandleFunc(apiroot+"/services", s.handleOpenAPIUpdate()).
 		Methods("POST")
-
-	return s
 }

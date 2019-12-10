@@ -2,7 +2,7 @@ module.exports.testcases = (() => {
 	let testcases = {}
 	let addTestcase = function(name) {
 		testcases[`Auth0 (/${name})`] = {
-			resource: `https://ambassador.standalone.svc.cluster.local/${name}/headers`,
+			resource: `https://ambassador.ambassador.svc.cluster.local/${name}/headers`,
 			username: "testuser@datawire.com",
 			password: "TestUser321",
 		};

@@ -11,7 +11,7 @@ import (
 	gomock "github.com/golang/mock/gomock"
 	gostats "github.com/lyft/gostats"
 
-	ratelimit "github.com/datawire/ambassador/go/apis/envoy/api/v2/ratelimit"
+	ratelimit "github.com/datawire/ambassador/pkg/api/envoy/api/v2/ratelimit"
 
 	config "github.com/lyft/ratelimit/src/config"
 )

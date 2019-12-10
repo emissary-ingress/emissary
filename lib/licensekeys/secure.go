@@ -1,21 +1,18 @@
 package licensekeys
 
 import (
-	"bytes"
 	"crypto/rsa"
-	"encoding/json"
 	"fmt"
+	"math"
 	"math/big"
-	"net/http"
 
-	jwt "github.com/dgrijalva/jwt-go"
-	"github.com/google/uuid"
+	"github.com/dgrijalva/jwt-go"
 	"github.com/pkg/errors"
 
 	"github.com/datawire/apro/lib/jwtsupport"
 )
 
-type LicenseClaimsLatest = LicenseClaimsV1
+type LicenseClaimsLatest = LicenseClaimsV2
 
 type LicenseClaims interface {
 	ToLatest() *LicenseClaimsLatest
@@ -28,7 +25,7 @@ type LicenseClaimsV0 struct {
 }
 
 func (v0 *LicenseClaimsV0) ToLatest() *LicenseClaimsLatest {
-	return &LicenseClaimsLatest{
+	v1 := &LicenseClaimsV1{
 		LicenseKeyVersion: "v0",
 		CustomerID:        fmt.Sprintf("%v", v0.ID),
 		EnabledFeatures: []Feature{
@@ -39,6 +36,7 @@ func (v0 *LicenseClaimsV0) ToLatest() *LicenseClaimsLatest {
 		},
 		StandardClaims: v0.StandardClaims,
 	}
+	return v1.ToLatest()
 }
 
 type LicenseClaimsV1 struct {
@@ -48,8 +46,57 @@ type LicenseClaimsV1 struct {
 	jwt.StandardClaims
 }
 
-func (cl *LicenseClaimsLatest) ToLatest() *LicenseClaimsLatest {
-	return cl
+func (v1 *LicenseClaimsV1) ToLatest() *LicenseClaimsLatest {
+	v2 := &LicenseClaimsV2{
+		LicenseKeyVersion: v1.LicenseKeyVersion,
+		CustomerID:        v1.CustomerID,
+		CustomerEmail:     "",
+		EnabledFeatures:   v1.EnabledFeatures,
+		StandardClaims:    v1.StandardClaims,
+		EnforcedLimits: []LimitValue{
+			// Make v1 license virtually unlimited.
+			{LimitDevPortalServices, math.MaxUint32},
+			{LimitRateLimitService, math.MaxUint32},
+			{LimitAuthFilterService, math.MaxUint32},
+		},
+		Metadata: map[string]string{},
+	}
+
+	// Assuming all pre-v2 licenses have business-support, even if the feature flag was added afterwards
+	shouldAddPaidSupport := true
+	for _, feature := range v2.EnabledFeatures {
+		if feature == FeatureSupportBusinessTier {
+			shouldAddPaidSupport = false
+		}
+	}
+	if shouldAddPaidSupport {
+		v2.EnabledFeatures = append(v2.EnabledFeatures, FeatureSupportBusinessTier)
+	}
+
+	return v2.ToLatest()
+}
+
+type LicenseClaimsV2 struct {
+	LicenseKeyVersion string            `json:"license_key_version"`
+	CustomerID        string            `json:"customer_id"`
+	CustomerEmail     string            `json:"customer_email"`
+	EnabledFeatures   []Feature         `json:"enabled_features"`
+	EnforcedLimits    []LimitValue      `json:"enforced_limits"`
+	Metadata          map[string]string `json:"metadata"`
+	jwt.StandardClaims
+}
+
+type LimitValue struct {
+	Name  Limit `json:"l"`
+	Value int   `json:"v"`
+}
+
+func (v2 *LicenseClaimsV2) ToLatest() *LicenseClaimsLatest {
+	return v2
+}
+
+func (limit LimitValue) String() string {
+	return fmt.Sprintf("%v=%v", limit.Name, limit.Value)
 }
 
 func newBigIntFromBytes(bs []byte) *big.Int {
@@ -77,6 +124,8 @@ func ParseKey(licenseKey string) (*LicenseClaimsLatest, error) {
 		switch version {
 		case "v1":
 			licenseClaims = &LicenseClaimsV1{}
+		case "v2":
+			licenseClaims = &LicenseClaimsV2{}
 		default:
 			return nil, errors.Errorf("invalid license key: unrecognized license key version %q", version)
 		}
@@ -99,32 +148,20 @@ func ParseKey(licenseKey string) (*LicenseClaimsLatest, error) {
 	return licenseClaims.ToLatest(), nil
 }
 
-func PhoneHome(claims *LicenseClaimsLatest, component, version string) error {
-	customerID := ""
-	if claims != nil {
-		customerID = claims.CustomerID
-	}
-	space, err := uuid.Parse("a4b394d6-02f4-11e9-87ca-f8344185863f")
-	if err != nil {
-		panic(err)
-	}
-	data := map[string]interface{}{
-		"application": "ambassador-pro",
-		"install_id":  uuid.NewSHA1(space, []byte(customerID)).String(),
-		"version":     version,
-		"metadata": map[string]string{
-			"id":        customerID,
-			"component": component,
+func NewCommunityLicenseClaims() *LicenseClaimsLatest {
+	return &LicenseClaimsLatest{
+		EnabledFeatures: []Feature{
+			FeatureUnrecognized,
+			FeatureFilter,
+			FeatureRateLimit,
+			FeatureTraffic,
+			FeatureDevPortal,
 		},
+		EnforcedLimits: []LimitValue{
+			{LimitDevPortalServices, 5},
+			{LimitRateLimitService, 5},
+			{LimitAuthFilterService, 5},
+		},
+		Metadata: map[string]string{},
 	}
-	body, err := json.MarshalIndent(data, "", "  ")
-	if err != nil {
-		panic(err)
-	}
-	resp, err := http.Post("https://kubernaut.io/scout", "application/json", bytes.NewBuffer(body))
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-	return nil
 }

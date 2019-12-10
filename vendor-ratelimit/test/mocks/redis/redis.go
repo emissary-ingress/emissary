@@ -8,7 +8,7 @@ import (
 
 	gomock "github.com/golang/mock/gomock"
 
-	ratelimit "github.com/datawire/ambassador/go/apis/envoy/service/ratelimit/v2"
+	ratelimit "github.com/datawire/ambassador/pkg/api/envoy/service/ratelimit/v2"
 
 	config "github.com/lyft/ratelimit/src/config"
 	redis "github.com/lyft/ratelimit/src/redis"

@@ -1,5 +1,24 @@
 ## Ambassador Pro CHANGELOG
 
+## 1.0.0 (TBD)
+
+Behavior:
+
+ * Developer portal no longer requires the /openapi Mapping
+ * Renamed environment variable APRO_DEVPORTAL_CONTENT_URL to DEVPORTAL_CONTENT_URL
+ * Feature: Developer portal can check out a non-default branch. Control with DEVPORTAL_CONTENT_BRANCH env var
+ * Feature: Developer portal can use a subdir of a checkout. Control with DEVPORTAL_CONTENT_DIR env var
+ * `apictl traffic initialize` no longer waits for the traffic-proxy to become ready before exiting.
+ * Feature: Developer portal will show swagger documentation for up to five services (or more with appropriate license)
+ * Feature: local-devportal is now a standalone go binary with no external dependencies
+ * `v1` license keys were not being used so augment them to include emails
+ * The OAuth2 redirection endpoint has moved from `/callback` to `/.ambassador/oauth2/redirection-endpoint`.  Migrating Pro users will need to notify thier IDP of the change.
+
+Other:
+
+ * `amb-core` and `amb-sidecar` have been merged in to a combined `aes` which is based on Ambassador OSS [version TBD].
+ * `login-gate-js`content has been updated for a clearer first time experience. 
+
 ## 0.11.0 (2019-12-10)
 
 Configuration:

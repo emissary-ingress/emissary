@@ -1,16 +1,16 @@
 module.exports.testcases = {
 	"UAA": {
-		resource: "https://ambassador.standalone.svc.cluster.local/uaa/httpbin/headers",
+		resource: "https://ambassador.ambassador.svc.cluster.local/uaa/httpbin/headers",
 		username: "testuser@example.com",
 		password: "12345",
 	},
 	"UAA (filter action IfRequestHeader)": {
-		resource: "https://ambassador.standalone.svc.cluster.local/filter-actions/if/headers",
+		resource: "https://ambassador.ambassador.svc.cluster.local/filter-actions/if/headers",
 		username: "testuser@example.com",
 		password: "12345",
 	},
 	"UAA (filter action OnAction)": {
-		resource: "https://ambassador.standalone.svc.cluster.local/filter-actions/on/headers",
+		resource: "https://ambassador.ambassador.svc.cluster.local/filter-actions/on/headers",
 		username: "testuser@example.com",
 		password: "12345",
 	},
@@ -24,7 +24,7 @@ module.exports.authenticate = async function(browsertab, username, password) {
 	await browsertab.click('input[type="submit"]');
 	await done;
 	// page 2: authorize (which it only sometimes shows)
-	if ((new URL(browsertab.url())).hostname == "uaa.standalone.svc.cluster.local") {
+	if ((new URL(browsertab.url())).hostname == "uaa.default.svc.cluster.local") {
 		await browsertab.click('button#authorize');
 	}
 };

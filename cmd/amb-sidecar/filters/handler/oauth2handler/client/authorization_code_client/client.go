@@ -12,20 +12,19 @@ import (
 	"strings"
 	"time"
 
+	"github.com/datawire/ambassador/pkg/dlog"
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/mediocregopher/radix.v2/redis"
 	"github.com/pkg/errors"
 	uuid "github.com/satori/go.uuid"
 
+	crd "github.com/datawire/apro/apis/getambassador.io/v1beta2"
 	rfc6749client "github.com/datawire/apro/client/rfc6749"
 	rfc6750client "github.com/datawire/apro/client/rfc6750"
-
-	crd "github.com/datawire/apro/apis/getambassador.io/v1beta2"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/middleware"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/oauth2handler/client/clientcommon"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/oauth2handler/discovery"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/oauth2handler/resourceserver"
-	"github.com/datawire/apro/cmd/amb-sidecar/types"
 	"github.com/datawire/apro/lib/filterapi"
 	"github.com/datawire/apro/lib/filterapi/filterutil"
 	"github.com/datawire/apro/lib/jwtsupport"
@@ -58,7 +57,7 @@ func (c *OAuth2Client) xsrfCookieName() string {
 	return "ambassador_xsrf." + c.QName
 }
 
-func (c *OAuth2Client) Filter(ctx context.Context, logger types.Logger, httpClient *http.Client, discovered *discovery.Discovered, redisClient *redis.Client, request *filterapi.FilterRequest) filterapi.FilterResponse {
+func (c *OAuth2Client) Filter(ctx context.Context, logger dlog.Logger, httpClient *http.Client, discovered *discovery.Discovered, redisClient *redis.Client, request *filterapi.FilterRequest) filterapi.FilterResponse {
 	oauthClient, err := rfc6749client.NewAuthorizationCodeClient(
 		c.Spec.ClientID,
 		discovered.AuthorizationEndpoint,
@@ -123,7 +122,7 @@ func (c *OAuth2Client) Filter(ctx context.Context, logger types.Logger, httpClie
 			errors.Wrapf(err, "could not parse URI: %q", request.GetRequest().GetHttp().GetPath()), nil)
 	}
 	switch u.Path {
-	case "/callback":
+	case "/.ambassador/oauth2/redirection-endpoint":
 		if sessionInfo.sessionData == nil {
 			return middleware.NewErrorResponse(ctx, http.StatusForbidden,
 				errors.Errorf("no %q cookie", c.sessionCookieName()), nil)
@@ -139,14 +138,17 @@ func (c *OAuth2Client) Filter(ctx context.Context, logger types.Logger, httpClie
 					errors.Wrapf(err, "invalid state"), nil)
 			}
 			u, _ := url.Parse(originalURL)
-			if u.Path == "/callback" {
+			if u.Path == "/.ambassador/oauth2/redirection-endpoint" {
 				// Avoid a redirect loop.  This "shouldn't" happen; we "shouldn't"
 				// have generated (in .handleUnauthenticatedProxyRequest) a
 				// sessionData.Request.State with this URL with this path.  However,
 				// APro 0.8.0 and older could be tricked in to generating such a
-				// .State.  So turn it in to an error page.
+				// .State.  So turn it in to an error page.  Of course, APro 0.8.0
+				// used "/callback" instead of
+				// "/.ambassador/oauth2/redirection-endpoint", so this even more
+				// "shouldn't" happen now.
 				return middleware.NewErrorResponse(ctx, http.StatusNotAcceptable,
-					errors.New("no representation of /callback resource"), nil)
+					errors.New("no representation of /.ambassador/oauth2/redirection-endpoint resource"), nil)
 			}
 		} else {
 			authorizationCode, err := oauthClient.ParseAuthorizationResponse(sessionInfo.sessionData, u)
@@ -239,11 +241,11 @@ type SessionInfo struct {
 	sessionData *rfc6749client.AuthorizationCodeClientSessionData
 }
 
-func (sessionInfo *SessionInfo) handleAuthenticatedProxyRequest(ctx context.Context, logger types.Logger, httpClient *http.Client, discovered *discovery.Discovered, request *filterapi.FilterRequest, authorization http.Header) filterapi.FilterResponse {
-	return clientcommon.HandleAuthenticatedProxyRequest(middleware.WithLogger(ctx, logger), httpClient, discovered, request, authorization, sessionInfo.sessionData.CurrentAccessToken.Scope, sessionInfo.c.ResourceServer)
+func (sessionInfo *SessionInfo) handleAuthenticatedProxyRequest(ctx context.Context, logger dlog.Logger, httpClient *http.Client, discovered *discovery.Discovered, request *filterapi.FilterRequest, authorization http.Header) filterapi.FilterResponse {
+	return clientcommon.HandleAuthenticatedProxyRequest(dlog.WithLogger(ctx, logger), httpClient, discovered, request, authorization, sessionInfo.sessionData.CurrentAccessToken.Scope, sessionInfo.c.ResourceServer)
 }
 
-func (sessionInfo *SessionInfo) handleUnauthenticatedProxyRequest(ctx context.Context, logger types.Logger, httpClient *http.Client, oauthClient *rfc6749client.AuthorizationCodeClient, discovered *discovery.Discovered, request *filterapi.FilterRequest) filterapi.FilterResponse {
+func (sessionInfo *SessionInfo) handleUnauthenticatedProxyRequest(ctx context.Context, logger dlog.Logger, httpClient *http.Client, oauthClient *rfc6749client.AuthorizationCodeClient, discovered *discovery.Discovered, request *filterapi.FilterRequest) filterapi.FilterResponse {
 	// Use X-Forwarded-Proto instead of .GetScheme() to build the URL.
 	// https://github.com/datawire/ambassador/issues/1581
 	originalURL, err := url.ParseRequestURI(filterutil.GetHeader(request).Get("X-Forwarded-Proto") + "://" + request.GetRequest().GetHttp().GetHost() + request.GetRequest().GetHttp().GetPath())
@@ -278,7 +280,8 @@ func (sessionInfo *SessionInfo) handleUnauthenticatedProxyRequest(ctx context.Co
 		Value: sessionInfo.sessionID,
 
 		// Expose the cookie to all paths on this host, not just directories of {{originalURL.Path}}.
-		// This is important, because `/callback` is probably not a subdirectory of originalURL.Path.
+		// This is important, because `/.ambassador/oauth2/redirection-endpoint` is probably not a
+		// subdirectory of originalURL.Path.
 		Path: "/",
 
 		// Strictly match {{originalURL.Hostname}}.  Explicitly setting it to originalURL.Hostname()
@@ -308,7 +311,8 @@ func (sessionInfo *SessionInfo) handleUnauthenticatedProxyRequest(ctx context.Co
 		Value: sessionInfo.xsrfToken,
 
 		// Expose the cookie to all paths on this host, not just directories of {{originalURL.Path}}.
-		// This is important, because `/callback` is probably not a subdirectory of originalURL.Path.
+		// This is important, because `/.ambassador/oauth2/redirection-endpoint` is probably not a
+		// subdirectory of originalURL.Path.
 		Path: "/",
 
 		// Strictly match {{originalURL.Hostname}}.  Explicitly setting it to originalURL.Hostname()
@@ -329,11 +333,16 @@ func (sessionInfo *SessionInfo) handleUnauthenticatedProxyRequest(ctx context.Co
 	}
 
 	// Build the full request
+	state, err := sessionInfo.c.signState(originalURL)
+	if err != nil {
+		return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
+			err, nil)
+	}
 	var authorizationRequestURI *url.URL
 	authorizationRequestURI, sessionInfo.sessionData, err = oauthClient.AuthorizationRequest(
 		sessionInfo.c.Spec.CallbackURL(),
 		scope,
-		sessionInfo.c.signState(originalURL, logger),
+		state,
 		sessionInfo.c.Spec.ExtraAuthorizationParameters,
 	)
 	if err != nil {
@@ -354,7 +363,7 @@ func (sessionInfo *SessionInfo) handleUnauthenticatedProxyRequest(ctx context.Co
 				}
 				return ret
 			} else {
-				ret, err := sessionInfo.c.RunFilters(sessionInfo.c.Arguments.InsteadOfRedirect.Filters, middleware.WithLogger(ctx, logger), request)
+				ret, err := sessionInfo.c.RunFilters(sessionInfo.c.Arguments.InsteadOfRedirect.Filters, dlog.WithLogger(ctx, logger), request)
 				if err != nil {
 					return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
 						errors.Wrap(err, "insteadOfRedirect.filters"), nil)
@@ -457,7 +466,7 @@ func (c *OAuth2Client) saveSession(redisClient *redis.Client, sessionID, xsrfTok
 	return nil
 }
 
-func (c *OAuth2Client) signState(originalURL *url.URL, logger types.Logger) string {
+func (c *OAuth2Client) signState(originalURL *url.URL) (string, error) {
 	t := jwt.New(jwt.SigningMethodRS256)
 	t.Claims = jwt.MapClaims{
 		"exp":          time.Now().Add(c.Spec.StateTTL).Unix(), // time when the token will expire (10 minutes from now)
@@ -467,15 +476,24 @@ func (c *OAuth2Client) signState(originalURL *url.URL, logger types.Logger) stri
 		"redirect_url": originalURL.String(),                   // original request url
 	}
 
-	k, err := t.SignedString(c.PrivateKey)
-	if err != nil {
-		logger.Errorf("failed to sign state: %v", err)
+	var ret string
+	var err error
+	if c.PrivateKey == nil {
+		err = errors.New("could not read internal Secret from Kubernetes")
+	} else {
+		ret, err = t.SignedString(c.PrivateKey)
 	}
 
-	return k
+	if err != nil {
+		return "", errors.Wrap(err, "failed to sign state")
+	}
+	return ret, nil
 }
 
 func checkState(state string, pubkey *rsa.PublicKey) (string, error) {
+	if pubkey == nil {
+		return "", errors.New("could not read internal Secret from Kubernetes")
+	}
 	if state == "" {
 		return "", errors.New("empty state param")
 	}

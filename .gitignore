@@ -11,6 +11,8 @@ venv
 /ambassador/
 /ambassador.stamp
 
+/devportal-content/
+
 *.docker
 *.docker.stamp
 *.docker.tag.*
@@ -23,15 +25,15 @@ venv
 *.pid
 
 *.pem
-/k8s-*/*.o
-/k8s-*/??-ambassador-certs.yaml
-/k8s-*/??-auth0-secret.yaml
+/k8s*/*.o
+/k8s*/??-auth0-secret.yaml
 /build-aux/docker-registry.preload
 node_modules/
 
 *.log
 .tmp*
 *.tmp
+.DS_Store
 
 # --- IDE/text editor stuff ---
 .idea
@@ -44,6 +46,14 @@ node_modules/
 # Remove the tail of this list when the commit making the change gets
 # far enough in to the past.
 
+# 2019-10-24
+/k8s*/??-ambassador-certs.yaml
+# 2019-10-19
+/docker/amb-sidecar/amb-sidecar
+/docker/model-cluster-amb-sidecar-plugins/Dockerfile
+/docker/model-cluster-amb-sidecar-plugins/*.so
+# 2019-10-18
+/cmd/certified-envoy/envoy.go
 # 2019-10-10
 /tests/cluster/oauth-e2e/*.png
 /tests/cluster/oauth-e2e/node_modules/

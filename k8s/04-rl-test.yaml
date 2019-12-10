@@ -1,0 +1,10 @@
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: rl-test
+spec:
+  prefix: /rl/
+  service: httpbin.org
+  rate_limits:
+  - descriptor: rldesc

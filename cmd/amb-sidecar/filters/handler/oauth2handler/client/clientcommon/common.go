@@ -6,8 +6,9 @@ import (
 
 	"github.com/pkg/errors"
 
-	rfc6749client "github.com/datawire/apro/client/rfc6749"
+	"github.com/datawire/ambassador/pkg/dlog"
 
+	"github.com/datawire/apro/client/rfc6749"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/middleware"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/oauth2handler/discovery"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/oauth2handler/resourceserver"
@@ -15,7 +16,7 @@ import (
 	"github.com/datawire/apro/lib/filterapi/filterutil"
 )
 
-func HandleAuthenticatedProxyRequest(ctx context.Context, httpClient *http.Client, discovered *discovery.Discovered, request *filterapi.FilterRequest, authorization http.Header, scope rfc6749client.Scope, resourceServer *resourceserver.OAuth2ResourceServer) filterapi.FilterResponse {
+func HandleAuthenticatedProxyRequest(ctx context.Context, httpClient *http.Client, discovered *discovery.Discovered, request *filterapi.FilterRequest, authorization http.Header, scope rfc6749.Scope, resourceServer *resourceserver.OAuth2ResourceServer) filterapi.FilterResponse {
 	addAuthorization := &filterapi.HTTPRequestModification{}
 	for k, vs := range authorization {
 		for _, v := range vs {
@@ -27,7 +28,7 @@ func HandleAuthenticatedProxyRequest(ctx context.Context, httpClient *http.Clien
 	}
 	filterutil.ApplyRequestModification(request, addAuthorization)
 
-	resourceResponse := resourceServer.Filter(ctx, middleware.GetLogger(ctx), httpClient, discovered, request, scope)
+	resourceResponse := resourceServer.Filter(ctx, dlog.GetLogger(ctx), httpClient, discovered, request, scope)
 	switch resourceResponse := resourceResponse.(type) {
 	case *filterapi.HTTPResponse:
 		if resourceResponse.StatusCode == http.StatusUnauthorized {

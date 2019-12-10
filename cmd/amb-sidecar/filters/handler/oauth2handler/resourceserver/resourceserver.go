@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/datawire/ambassador/pkg/dlog"
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/pkg/errors"
 
@@ -11,7 +12,6 @@ import (
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/jwthandler"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/middleware"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/oauth2handler/discovery"
-	"github.com/datawire/apro/cmd/amb-sidecar/types"
 	"github.com/datawire/apro/lib/filterapi"
 	"github.com/datawire/apro/lib/filterapi/filterutil"
 	"github.com/datawire/apro/lib/jwtsupport"
@@ -36,9 +36,9 @@ type OAuth2ResourceServer struct {
 // Token without writing IDP-specific code.  But the (Client) caller
 // has that information, so just accept it as an argument (breaking
 // the layering/abstraction).
-func (rs *OAuth2ResourceServer) Filter(ctx context.Context, logger types.Logger, httpClient *http.Client, discovered *discovery.Discovered, request *filterapi.FilterRequest, clientScope rfc6749.Scope) filterapi.FilterResponse {
+func (rs *OAuth2ResourceServer) Filter(ctx context.Context, logger dlog.Logger, httpClient *http.Client, discovered *discovery.Discovered, request *filterapi.FilterRequest, clientScope rfc6749.Scope) filterapi.FilterResponse {
 	if rs.Spec.AccessTokenJWTFilter.Name != "" {
-		ret, err := rs.RunJWTFilter(rs.Spec.AccessTokenJWTFilter, middleware.WithLogger(ctx, logger), request)
+		ret, err := rs.RunJWTFilter(rs.Spec.AccessTokenJWTFilter, dlog.WithLogger(ctx, logger), request)
 		if err != nil {
 			return middleware.NewErrorResponse(ctx, http.StatusInternalServerError, err, nil)
 		}
@@ -104,7 +104,7 @@ func (rs *OAuth2ResourceServer) Filter(ctx context.Context, logger types.Logger,
 	return &filterapi.HTTPRequestModification{}
 }
 
-func (rs *OAuth2ResourceServer) validateAccessToken(token string, discovered *discovery.Discovered, httpClient *http.Client, logger types.Logger) (scope rfc6749.Scope, tokenErr error, serverErr error) {
+func (rs *OAuth2ResourceServer) validateAccessToken(token string, discovered *discovery.Discovered, httpClient *http.Client, logger dlog.Logger) (scope rfc6749.Scope, tokenErr error, serverErr error) {
 	switch rs.Spec.AccessTokenValidation {
 	case "auto":
 		claims, err := rs.parseJWT(token, discovered)
@@ -160,7 +160,7 @@ func (rs *OAuth2ResourceServer) parseJWT(token string, discovered *discovery.Dis
 	return claims, nil
 }
 
-func (rs *OAuth2ResourceServer) validateJWT(claims jwt.MapClaims, discovered *discovery.Discovered, logger types.Logger) (rfc6749.Scope, error) {
+func (rs *OAuth2ResourceServer) validateJWT(claims jwt.MapClaims, discovered *discovery.Discovered, logger dlog.Logger) (rfc6749.Scope, error) {
 	// Validate 'exp', 'iat', and 'nbf' claims.
 	if err := claims.Valid(); err != nil {
 		return nil, err

@@ -53,7 +53,7 @@ func TestJWTInjectHeaders(t *testing.T) {
 	}
 
 	// run the filter //////////////////////////////////////////////////////
-	u, err := url.Parse("https://ambassador.standalone.svc.cluster.local/jwt/headers")
+	u, err := url.Parse("https://ambassador.ambassador.svc.cluster.local/jwt/headers")
 	assert.NotError(err)
 	client := &http.Client{
 		Transport: &http.Transport{
@@ -162,7 +162,7 @@ func TestJWTErrorResponse(t *testing.T) {
 	}).SignedString(jwt.UnsafeAllowNoneSignatureType)
 	assert.NotError(err)
 
-	u, err := url.Parse("https://ambassador.standalone.svc.cluster.local/jwt/headers")
+	u, err := url.Parse("https://ambassador.ambassador.svc.cluster.local/jwt/headers")
 	assert.NotError(err)
 
 	testcases := map[string]struct {
@@ -223,7 +223,7 @@ func TestJWTErrorResponse(t *testing.T) {
 				Header: map[string]string{
 					"X-Correlation-ID": "foobar",
 					"Content-Type":     "application/json",
-					"WWW-Authenticate": `Bearer error=invalid_token, error_description="Token validation error: token is invalid: errorFlags=0x00000010=(ValidationErrorExpired) wrappedError=(Token is expired)", realm="jwt-filter.standalone"`,
+					"WWW-Authenticate": `Bearer error=invalid_token, error_description="Token validation error: token is invalid: errorFlags=0x00000010=(ValidationErrorExpired) wrappedError=(Token is expired)", realm="jwt-filter.default"`,
 				},
 				Body: customErrorResponse{
 					ErrorMessage:    "Token validation error: token is invalid: errorFlags=0x00000010=(ValidationErrorExpired) wrappedError=(Token is expired)",
@@ -248,7 +248,7 @@ func TestJWTErrorResponse(t *testing.T) {
 				Header: map[string]string{
 					"X-Correlation-ID": "",
 					"Content-Type":     "application/json",
-					"WWW-Authenticate": `Bearer error=invalid_token, error_description="Token validation error: token is invalid: errorFlags=0x00000010=(ValidationErrorExpired) wrappedError=(Token is expired)", realm="jwt-filter.standalone"`,
+					"WWW-Authenticate": `Bearer error=invalid_token, error_description="Token validation error: token is invalid: errorFlags=0x00000010=(ValidationErrorExpired) wrappedError=(Token is expired)", realm="jwt-filter.default"`,
 				},
 				Body: customErrorResponse{
 					ErrorMessage:    "Token validation error: token is invalid: errorFlags=0x00000010=(ValidationErrorExpired) wrappedError=(Token is expired)",
@@ -271,7 +271,7 @@ func TestJWTErrorResponse(t *testing.T) {
 				StatusCode: http.StatusBadRequest,
 				Header: map[string]string{
 					"Content-Type":     "application/json",
-					"WWW-Authenticate": `Bearer error=invalid_request, error_description="invalid Bearer credentials: used auth-param syntax instead of token68 syntax", realm="jwt-filter.standalone"`,
+					"WWW-Authenticate": `Bearer error=invalid_request, error_description="invalid Bearer credentials: used auth-param syntax instead of token68 syntax", realm="jwt-filter.default"`,
 				},
 				Body: customErrorResponse{
 					ErrorMessage: "invalid Bearer credentials: used auth-param syntax instead of token68 syntax",
@@ -292,7 +292,7 @@ func TestJWTErrorResponse(t *testing.T) {
 				StatusCode: http.StatusForbidden,
 				Header: map[string]string{
 					"Content-Type":     "application/json",
-					"WWW-Authenticate": `Bearer error=insufficient_scope, error_description="missing required scope value: \"myscope\"", scope="myscope openid", realm="jwt-filter.standalone"`,
+					"WWW-Authenticate": `Bearer error=insufficient_scope, error_description="missing required scope value: \"myscope\"", scope="myscope openid", realm="jwt-filter.default"`,
 				},
 				Body: customErrorResponse{
 					ErrorMessage: `missing required scope value: "myscope"`,
@@ -311,7 +311,7 @@ func TestJWTErrorResponse(t *testing.T) {
 				StatusCode: http.StatusUnauthorized,
 				Header: map[string]string{
 					"Content-Type":     "application/json",
-					"WWW-Authenticate": `Bearer realm="jwt-filter.standalone"`,
+					"WWW-Authenticate": `Bearer realm="jwt-filter.default"`,
 				},
 				Body: customErrorResponse{
 					ErrorMessage: `no Bearer token`,

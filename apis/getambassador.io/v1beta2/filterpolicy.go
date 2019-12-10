@@ -3,11 +3,42 @@ package v1
 import (
 	"github.com/gobwas/glob"
 	"github.com/pkg/errors"
+
+	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
+
+type FilterPolicy struct {
+	*metaV1.TypeMeta   `json:",inline"`
+	*metaV1.ObjectMeta `json:"metadata"`
+	Spec               *FilterPolicySpec   `json:"spec"`
+	Status             *FilterPolicyStatus `json:"status"`
+}
 
 type FilterPolicySpec struct {
 	AmbassadorID AmbassadorID `json:"ambassador_id"`
 	Rules        []Rule       `json:"rules"`
+}
+
+const (
+	FilterPolicyState_OK           = "OK"
+	FilterPolicyState_Error        = "Error"
+	FilterPolicyState_PartialError = "PartialError"
+)
+
+type FilterPolicyStatus struct {
+	State        string       `json:"state"`
+	Reason       string       `json:"reason"`
+	RuleStatuses []RuleStatus `json:"ruleStatuses"`
+}
+
+const (
+	RuleState_OK    = "OK"
+	RuleState_Error = "Error"
+)
+
+type RuleStatus struct {
+	State  string `json:"state"`
+	Reason string `json:"reason"`
 }
 
 // Rule defines authorization rules object.
@@ -27,6 +58,46 @@ type FilterReference struct {
 }
 
 //////////////////////////////////////////////////////////////////////
+
+func (fp *FilterPolicy) Validate() error {
+	if fp.Spec == nil {
+		err := errors.New("spec must be set")
+		fp.Spec = &FilterPolicySpec{}
+		fp.Status = &FilterPolicyStatus{
+			State:  FilterPolicyState_Error,
+			Reason: err.Error(),
+		}
+		return err
+	}
+
+	ruleErrors := 0
+	fp.Status = &FilterPolicyStatus{
+		RuleStatuses: make([]RuleStatus, 0, len(fp.Spec.Rules)),
+	}
+	for _, rule := range fp.Spec.Rules {
+		if err := rule.Validate(fp.GetNamespace()); err == nil {
+			fp.Status.RuleStatuses = append(fp.Status.RuleStatuses, RuleStatus{
+				State: RuleState_OK,
+			})
+		} else {
+			fp.Status.RuleStatuses = append(fp.Status.RuleStatuses, RuleStatus{
+				State:  RuleState_Error,
+				Reason: err.Error(),
+			})
+			ruleErrors++
+		}
+	}
+
+	if ruleErrors > 0 {
+		err := errors.Errorf("%d of the rules in .spec.rules have errors", ruleErrors)
+		fp.Status.State = FilterPolicyState_PartialError
+		fp.Status.Reason = err.Error()
+		return err
+	}
+
+	fp.Status.State = FilterPolicyState_OK
+	return nil
+}
 
 // MatchHTTPHeaders return true if rules matches the supplied hostname and path.
 func (r Rule) MatchHTTPHeaders(host, path string) bool {

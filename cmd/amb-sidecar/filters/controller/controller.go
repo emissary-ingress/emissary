@@ -3,7 +3,6 @@ package controller
 import (
 	"context"
 	"fmt"
-	"sort"
 	"strings"
 	"sync/atomic"
 
@@ -11,78 +10,58 @@ import (
 
 	k8sClientCoreV1 "k8s.io/client-go/kubernetes/typed/core/v1"
 
-	"github.com/datawire/teleproxy/pkg/k8s"
-
+	"github.com/datawire/ambassador/pkg/dlog"
+	"github.com/datawire/ambassador/pkg/k8s"
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta2"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/httpclient"
 	"github.com/datawire/apro/cmd/amb-sidecar/types"
-	"github.com/datawire/apro/lib/licensekeys"
 	"github.com/datawire/apro/lib/mapstructure"
 )
 
 // Controller is monitors changes in app configuration and policy custom resources.
 type Controller struct {
-	Logger  types.Logger
-	Config  types.Config
-	rules   atomic.Value
-	filters atomic.Value
+	Logger   dlog.Logger
+	Config   types.Config
+	policies atomic.Value
+	filters  atomic.Value
 }
 
-func (c *Controller) storeRules(rules []crd.Rule) {
-	c.rules.Store(rules)
+func (c *Controller) storePolicies(policies []crd.FilterPolicy, rules []crd.Rule) {
+	c.policies.Store(struct {
+		Policies []crd.FilterPolicy
+		Rules    []crd.Rule
+	}{policies, rules})
 }
 
-func (c *Controller) LoadRules() []crd.Rule {
-	untyped := c.rules.Load()
+func (c *Controller) LoadPolicies() ([]crd.FilterPolicy, []crd.Rule) {
+	untyped := c.policies.Load()
 	if untyped == nil {
-		return nil
+		return nil, nil
 	}
-	typed, ok := untyped.([]crd.Rule)
+	typed, ok := untyped.(struct {
+		Policies []crd.FilterPolicy
+		Rules    []crd.Rule
+	})
 	if !ok {
-		return nil
+		return nil, nil
 	}
-	return typed
+	return typed.Policies, typed.Rules
 }
 
-func (c *Controller) storeFilters(filters map[string]FilterInfo) {
+func (c *Controller) storeFilters(filters map[string]crd.Filter) {
 	c.filters.Store(filters)
 }
 
-func (c *Controller) LoadFilters() map[string]FilterInfo {
+func (c *Controller) LoadFilters() map[string]crd.Filter {
 	untyped := c.filters.Load()
 	if untyped == nil {
 		return nil
 	}
-	typed, ok := untyped.(map[string]FilterInfo)
+	typed, ok := untyped.(map[string]crd.Filter)
 	if !ok {
 		return nil
 	}
 	return typed
-}
-
-func kindCount(isKind map[string]bool) uint {
-	var cnt uint
-	for _, is := range isKind {
-		if is {
-			cnt++
-		}
-	}
-	return cnt
-}
-
-func kindNames(isKind map[string]bool) []string {
-	ret := make([]string, 0, len(isKind))
-	for kind := range isKind {
-		ret = append(ret, kind)
-	}
-	sort.Strings(ret)
-	return ret
-}
-
-type FilterInfo struct {
-	Spec interface{}
-	Desc string
-	Err  error
 }
 
 type NotThisAmbassadorError struct {
@@ -93,99 +72,50 @@ func (e *NotThisAmbassadorError) Error() string {
 	return e.Message
 }
 
-func processFilterSpec(filter k8s.Resource, cfg types.Config, coreClient *k8sClientCoreV1.CoreV1Client, licenseClaims *licensekeys.LicenseClaimsLatest) FilterInfo {
-	if cfg.AmbassadorSingleNamespace && filter.Namespace() != cfg.AmbassadorNamespace {
-		return FilterInfo{Err: &NotThisAmbassadorError{
-			Message: fmt.Sprintf("AMBASSADOR_SINGLE_NAMESPACE: .metadata.namespace=%q != AMBASSADOR_NAMESPACE=%q", filter.Namespace(), cfg.AmbassadorNamespace),
-		}}
-	}
-	var spec crd.FilterSpec
-	if err := mapstructure.Convert(filter.Spec(), &spec); err != nil {
-		return FilterInfo{Err: errors.Wrap(err, "malformed filter resource spec")}
-	}
-	ret := FilterInfo{
-		Spec: spec,
-	}
-	if !spec.AmbassadorID.Matches(cfg.AmbassadorID) {
-		return FilterInfo{Err: &NotThisAmbassadorError{
-			Message: fmt.Sprintf("AMBASSADOR_ID: .spec.ambassador_id=%v not contains AMBASSADOR_ID=%q", spec.AmbassadorID, cfg.AmbassadorID),
-		}}
-	}
-
-	isKind := map[string]bool{
-		"OAuth2":   spec.OAuth2 != nil,
-		"Plugin":   spec.Plugin != nil,
-		"JWT":      spec.JWT != nil,
-		"External": spec.External != nil,
-		"Internal": spec.Internal != nil,
-	}
-	if kindCount(isKind) != 1 {
-		ret.Err = errors.Errorf("must specify exactly 1 of: %v", kindNames(isKind))
-		return ret
-	}
-
-	switch {
-	case spec.OAuth2 != nil:
-		ret.Err = spec.OAuth2.Validate(filter.Namespace(), coreClient)
-		ret.Spec = *spec.OAuth2
-		if ret.Err == nil {
-			switch spec.OAuth2.GrantType {
-			case crd.GrantType_AuthorizationCode:
-				ret.Desc = fmt.Sprintf("oauth2_domain=%s, oauth2_client_id=%s", spec.OAuth2.Domain(), spec.OAuth2.ClientID)
-			case crd.GrantType_ClientCredentials:
-				ret.Desc = fmt.Sprintf("oauth2_client_credentials=%s", spec.OAuth2.AuthorizationURL)
-			default:
-				panic("should not happen")
-			}
+func parseFilter(untypedFilter k8s.Resource, cfg types.Config) (crd.Filter, error) {
+	if cfg.AmbassadorSingleNamespace && untypedFilter.Namespace() != cfg.AmbassadorNamespace {
+		return crd.Filter{}, &NotThisAmbassadorError{
+			Message: fmt.Sprintf("AMBASSADOR_SINGLE_NAMESPACE: .metadata.namespace=%q != AMBASSADOR_NAMESPACE=%q", untypedFilter.Namespace(), cfg.AmbassadorNamespace),
 		}
-	case spec.Plugin != nil:
-		ret.Err = spec.Plugin.Validate()
-		ret.Spec = *spec.Plugin
-		if ret.Err == nil {
-			ret.Desc = fmt.Sprintf("plugin=%s", spec.Plugin.Name)
-		}
-	case spec.JWT != nil:
-		ret.Err = spec.JWT.Validate(filter.QName())
-		ret.Spec = *spec.JWT
-		if ret.Err == nil {
-			ret.Desc = "jwt"
-		}
-	case spec.External != nil:
-		ret.Err = spec.External.Validate()
-		ret.Spec = *spec.External
-		if ret.Err == nil {
-			ret.Desc = fmt.Sprintf("external=%s", spec.External.AuthService)
-		}
-	case spec.Internal != nil:
-		ret.Spec = *spec.Internal
-		ret.Desc = "internal"
-	default:
-		panic("should not happen")
 	}
+	var filter crd.Filter
+	if err := mapstructure.Convert(untypedFilter, &filter); err != nil {
+		return crd.Filter{}, errors.Wrap(err, "malformed filter resource spec")
+	}
+	if !filter.Spec.AmbassadorID.Matches(cfg.AmbassadorID) {
+		return crd.Filter{}, &NotThisAmbassadorError{
+			Message: fmt.Sprintf("AMBASSADOR_ID: .spec.ambassador_id=%v does not contain AMBASSADOR_ID=%q", filter.Spec.AmbassadorID, cfg.AmbassadorID),
+		}
+	}
+	return filter, nil
+}
 
-	// Do the license key check consolidated here at the end,
-	// instead of in the above switch, so that it's hard to forget
-	// to put it in one of the 'case's.
-	var licenseErr error
-	if spec.Internal == nil {
-		// Everything except for the Internal Filter requires FeatureFilter.
-		licenseErr = licenseClaims.RequireFeature(licensekeys.FeatureFilter)
-	} else {
-		// As an exception, the Internal Filter requires
-		// FeatureDevPortal.
-		licenseErr = licenseClaims.RequireFeature(licensekeys.FeatureDevPortal)
+func parseFilterPolicy(untypedFilterPolicy k8s.Resource, cfg types.Config) (crd.FilterPolicy, error) {
+	if cfg.AmbassadorSingleNamespace && untypedFilterPolicy.Namespace() != cfg.AmbassadorNamespace {
+		return crd.FilterPolicy{}, &NotThisAmbassadorError{
+			Message: fmt.Sprintf("AMBASSADOR_SINGLE_NAMESPACE: .metadata.namespace=%q != AMBASSADOR_NAMESPACE=%q", untypedFilterPolicy.Namespace(), cfg.AmbassadorNamespace),
+		}
 	}
-	if licenseErr != nil {
-		ret.Err = licenseErr
+	var filterPolicy crd.FilterPolicy
+	if err := mapstructure.Convert(untypedFilterPolicy, &filterPolicy); err != nil {
+		return crd.FilterPolicy{}, errors.Wrap(err, "malformed filterPolicy resource spec")
 	}
-
-	return ret
+	if !filterPolicy.Spec.AmbassadorID.Matches(cfg.AmbassadorID) {
+		return crd.FilterPolicy{}, &NotThisAmbassadorError{
+			Message: fmt.Sprintf("AMBASSADOR_ID: .spec.ambassador_id=%v does not contain AMBASSADOR_ID=%q", filterPolicy.Spec.AmbassadorID, cfg.AmbassadorID),
+		}
+	}
+	return filterPolicy, nil
 }
 
 // Watch monitor changes in k8s cluster and updates rules
-func (c *Controller) Watch(ctx context.Context, kubeinfo *k8s.KubeInfo, licenseClaims *licensekeys.LicenseClaimsLatest) error {
-	c.storeRules([]crd.Rule{})
-	c.storeFilters(map[string]FilterInfo{})
+func (c *Controller) Watch(
+	ctx context.Context,
+	kubeinfo *k8s.KubeInfo,
+	haveRedis bool,
+) error {
+	c.storePolicies([]crd.FilterPolicy{}, []crd.Rule{})
+	c.storeFilters(map[string]crd.Filter{})
 
 	restconfig, err := kubeinfo.GetRestConfig()
 	if err != nil {
@@ -196,22 +126,31 @@ func (c *Controller) Watch(ctx context.Context, kubeinfo *k8s.KubeInfo, licenseC
 		return err
 	}
 
-	w := k8s.NewClient(kubeinfo).Watcher()
+	client, err := k8s.NewClient(kubeinfo)
+	if err != nil {
+		// this is non fatal (mostly just to facilitate local dev); don't `return err`
+		c.Logger.Errorln("not watching Filter or FilterPolicy resources:", errors.Wrap(err, "k8s.NewClient"))
+		return nil
+	}
+	w := client.Watcher()
 
 	w.Watch("filters", func(w *k8s.Watcher) {
-		filters := map[string]FilterInfo{}
-		for _, mw := range w.List("filters") {
-			filterInfo := processFilterSpec(mw, c.Config, coreClient, licenseClaims)
-			if filterInfo.Err != nil {
-				if _, notThisAmbassador := filterInfo.Err.(*NotThisAmbassadorError); notThisAmbassador {
-					c.Logger.Debugf("ignoring filter resource %q: %v", mw.QName(), filterInfo.Err)
+		filters := map[string]crd.Filter{}
+		for _, untypedFilter := range w.List("filters") {
+			filter, err := parseFilter(untypedFilter, c.Config)
+			if err != nil {
+				if _, notThisAmbassador := err.(*NotThisAmbassadorError); notThisAmbassador {
+					c.Logger.Debugf("ignoring Filter resource %q: %v", untypedFilter.QName(), err)
 				} else {
-					c.Logger.Errorf("error in filter resource %q: %v", mw.QName(), filterInfo.Err)
+					c.Logger.Errorf("malformed Filter resource %q: %v", untypedFilter.QName(), err)
 				}
-			} else {
-				c.Logger.Infof("loaded filter resource %q: %v", mw.QName(), filterInfo.Desc)
+				continue
 			}
-			filters[mw.QName()] = filterInfo
+			if err := filter.Validate(coreClient, haveRedis); err != nil {
+				c.Logger.Errorf("error in Filter resource %q: %v", untypedFilter.QName(), err)
+			}
+			c.Logger.Infof("loaded filter resource %q: %v", untypedFilter.QName(), filter.Desc)
+			filters[untypedFilter.QName()] = filter
 		}
 
 		if len(filters) == 0 {
@@ -231,35 +170,28 @@ func (c *Controller) Watch(ctx context.Context, kubeinfo *k8s.KubeInfo, licenseC
 	})
 
 	w.Watch("filterpolicies", func(w *k8s.Watcher) {
-		rules := make([]crd.Rule, 1)
+		var policies []crd.FilterPolicy
+		var rules []crd.Rule
 
-		// callback is always default.
-		rules = append(rules, crd.Rule{
-			Host: "*",
-			Path: "/callback",
-		})
-		for _, p := range w.List("filterpolicies") {
-			logger := c.Logger.WithField("FILTERPOLICY", p.QName())
+		for _, untypedPolicy := range w.List("filterpolicies") {
+			logger := c.Logger.WithField("FILTERPOLICY", untypedPolicy.QName())
 
-			var spec crd.FilterPolicySpec
-			err := mapstructure.Convert(p.Spec(), &spec)
+			policy, err := parseFilterPolicy(untypedPolicy, c.Config)
 			if err != nil {
-				logger.Errorln(errors.Wrap(err, "malformed filter policy resource spec"))
+				if _, notThisAmbassador := err.(*NotThisAmbassadorError); notThisAmbassador {
+					c.Logger.Debugf("ignoring FilterPolicy resource %q: %v", untypedPolicy.QName(), err)
+				} else {
+					c.Logger.Errorf("malformed FilterPolicy resource %q: %v", untypedPolicy.QName(), err)
+				}
 				continue
 			}
-			if c.Config.AmbassadorSingleNamespace && p.Namespace() != c.Config.AmbassadorNamespace {
-				continue
-			}
-			if !spec.AmbassadorID.Matches(c.Config.AmbassadorID) {
-				continue
-			}
-
-			for _, rule := range spec.Rules {
-				if err := rule.Validate(p.Namespace()); err != nil {
-					logger.Errorln(errors.Wrap(err, "filter policy resource rule"))
+			policyErr := policy.Validate()
+			for i := range policy.Spec.Rules {
+				if policy.Status.RuleStatuses[i].State != crd.RuleState_OK {
+					logger.Errorf("error in FilterPolicy resource .spec.rules[%d]: %s", i, policy.Status.RuleStatuses[i].Reason)
 					continue
 				}
-
+				rule := policy.Spec.Rules[i]
 				filterStrs := make([]string, 0, len(rule.Filters))
 				for _, filterRef := range rule.Filters {
 					filterStrs = append(filterStrs, filterRef.Name+"."+filterRef.Namespace)
@@ -269,9 +201,13 @@ func (c *Controller) Watch(ctx context.Context, kubeinfo *k8s.KubeInfo, licenseC
 
 				rules = append(rules, rule)
 			}
+			if policyErr != nil {
+				logger.Errorf("error in FilterPolicy resource: %v", err)
+			}
+			policies = append(policies, policy)
 		}
 
-		c.storeRules(rules)
+		c.storePolicies(policies, rules)
 	})
 
 	go func() {

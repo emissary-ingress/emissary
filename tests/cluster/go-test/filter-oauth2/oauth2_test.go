@@ -56,9 +56,9 @@ func TestInsteadOfRedirect(t *testing.T) {
 	t.Parallel()
 	assert := &testutil.Assert{T: t}
 
-	urlAny := urlMust(url.Parse("https://ambassador.standalone.svc.cluster.local/oauth2-auth0-nojwt-and-anyerror/headers"))
-	urlXHR := urlMust(url.Parse("https://ambassador.standalone.svc.cluster.local/oauth2-auth0-nojwt-and-k8ssecret-and-xhrerror/headers"))
-	urlJWT := urlMust(url.Parse("https://ambassador.standalone.svc.cluster.local/oauth2-auth0-complexjwt/headers"))
+	urlAny := urlMust(url.Parse("https://ambassador.ambassador.svc.cluster.local/oauth2-auth0-nojwt-and-anyerror/headers"))
+	urlXHR := urlMust(url.Parse("https://ambassador.ambassador.svc.cluster.local/oauth2-auth0-nojwt-and-k8ssecret-and-xhrerror/headers"))
+	urlJWT := urlMust(url.Parse("https://ambassador.ambassador.svc.cluster.local/oauth2-auth0-complexjwt/headers"))
 
 	insufficientToken, err := jwt.NewWithClaims(jwt.GetSigningMethod("none"), jwt.MapClaims{
 		"sub":   "1234567890",
@@ -106,7 +106,7 @@ func TestInsteadOfRedirect(t *testing.T) {
 }
 
 func TestClientCredentials(t *testing.T) {
-	u := urlMust(url.Parse("https://ambassador.standalone.svc.cluster.local/okta-client-credentials/httpbin/headers"))
+	u := urlMust(url.Parse("https://ambassador.ambassador.svc.cluster.local/okta-client-credentials/httpbin/headers"))
 
 	testcases := map[string]testcase{
 		"empty":   {URL: u, Header: nil, ExpectedStatus: http.StatusForbidden},

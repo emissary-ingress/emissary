@@ -8,6 +8,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/datawire/apro/lib/licensekeys"
+	"github.com/datawire/apro/lib/metriton"
 )
 
 var apictl = &cobra.Command{
@@ -20,15 +21,16 @@ var Version = "(unknown version)"
 var licenseClaims *licensekeys.LicenseClaimsLatest
 
 func init() {
-	keycheck := licensekeys.InitializeCommandFlags(apictl.PersistentFlags(), "apictl", Version)
+	cmdContext := licensekeys.InitializeCommandFlags(apictl.PersistentFlags())
 	apictl.PersistentPreRun = func(cmd *cobra.Command, args []string) {
 		cmd.SilenceUsage = true // https://github.com/spf13/cobra/issues/340
 		if cmd.Name() == "help" {
 			return
 		}
 		var err error
-		licenseClaims, err = keycheck(cmd.PersistentFlags())
+		licenseClaims, err = cmdContext.KeyCheck(cmd.PersistentFlags(), false)
 		if err == nil {
+			go metriton.PhoneHome(licenseClaims, nil, "apictl", Version)
 			return
 		}
 		fmt.Fprintln(os.Stderr, err)
@@ -43,12 +45,12 @@ Information about open source code used in this executable is found at
 
 Information about open source code used in the Docker image installed by
 'apictl traffic initialize' is found in the '/traffic-proxy.opensource.tar.gz'
-file in the 'quay.io/datawire/ambassador_pro:traffic-proxy-{{.Version}}'
+file in the 'quay.io/datawire/aes:traffic-proxy-{{.Version}}'
 Docker image.
 
 Information about open source code used in the Docker image installed by
 'apictl traffic inject' is found in the '/app-sidecar.opensource.tar.gz'
-file in the 'quay.io/datawire/ambassador_pro:app-sidecar-{{.Version}}'
+file in the 'quay.io/datawire/aes:app-sidecar-{{.Version}}'
 Docker image.
 `)
 }

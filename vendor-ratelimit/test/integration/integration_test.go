@@ -14,8 +14,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
 
-	pb_legacy "github.com/datawire/ambassador/go/apis/envoy/service/ratelimit/v1"
-	pb "github.com/datawire/ambassador/go/apis/envoy/service/ratelimit/v2"
+	pb_legacy "github.com/datawire/ambassador/pkg/api/envoy/service/ratelimit/v1"
+	pb "github.com/datawire/ambassador/pkg/api/envoy/service/ratelimit/v2"
 
 	"github.com/lyft/ratelimit/src/service_cmd/runner"
 	"github.com/lyft/ratelimit/test/common"
@@ -58,7 +58,6 @@ func testBasicConfig(grpcPort, perSecond string) func(*testing.T) {
 		os.Setenv("RUNTIME_SUBDIRECTORY", "ratelimit")
 		os.Setenv("REDIS_PERSECOND_SOCKET_TYPE", "tcp")
 		os.Setenv("REDIS_PERSECOND_URL", "localhost:6380")
-		os.Setenv("REDIS_SOCKET_TYPE", "tcp")
 		os.Setenv("REDIS_URL", "localhost:6379")
 
 		go func() {

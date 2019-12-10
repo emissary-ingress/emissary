@@ -5,8 +5,8 @@ import (
 
 	stats "github.com/lyft/gostats"
 
-	pb_legacy "github.com/datawire/ambassador/go/apis/envoy/service/ratelimit/v1"
-	pb "github.com/datawire/ambassador/go/apis/envoy/service/ratelimit/v2"
+	pb_legacy "github.com/datawire/ambassador/pkg/api/envoy/service/ratelimit/v1"
+	pb "github.com/datawire/ambassador/pkg/api/envoy/service/ratelimit/v2"
 )
 
 type RateLimitLegacyServiceServer interface {

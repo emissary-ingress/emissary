@@ -7,12 +7,14 @@ import (
 	"github.com/golang/mock/gomock"
 	stats "github.com/lyft/gostats"
 
-	pb "github.com/datawire/ambassador/go/apis/envoy/service/ratelimit/v2"
+	pb "github.com/datawire/ambassador/pkg/api/envoy/service/ratelimit/v2"
 
 	"github.com/lyft/ratelimit/src/config"
 	"github.com/lyft/ratelimit/src/redis"
 	ratelimit "github.com/lyft/ratelimit/src/service"
 	"github.com/lyft/ratelimit/test/common"
+
+	mock_limiter "github.com/datawire/apro/cmd/amb-sidecar/limiter/mocks"
 )
 
 func convertRatelimits(ratelimits []*config.RateLimit) ([]*pb.RateLimitResponse_RateLimit, error) {
@@ -203,7 +205,7 @@ func TestInitialLoadErrorLegacy(test *testing.T) {
 	).Do(func([]config.RateLimitConfigToLoad, stats.Scope) {
 		panic(config.RateLimitConfigError("load error"))
 	})
-	service := ratelimit.NewService(t.runtime, t.cache, t.configLoader, t.statStore)
+	service := ratelimit.NewService(t.runtime, t.cache, t.configLoader, t.statStore, mock_limiter.NewMockLimiter())
 
 	request := common.NewRateLimitRequestLegacy("test-domain", [][][2]string{{{"hello", "world"}}}, 1)
 	response, err := service.GetLegacyService().ShouldRateLimit(context.Background(), request)

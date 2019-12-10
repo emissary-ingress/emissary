@@ -17,7 +17,7 @@ func TestInvalid(t *testing.T) {
 	t.Parallel()
 	assert := &testutil.Assert{T: t}
 
-	u, err := url.Parse("https://ambassador.standalone.svc.cluster.local/invalid/headers")
+	u, err := url.Parse("https://ambassador.ambassador.svc.cluster.local/invalid/headers")
 	assert.NotError(err)
 	client := &http.Client{
 		Transport: &http.Transport{

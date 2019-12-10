@@ -13,10 +13,16 @@ import (
 	"time"
 
 	"github.com/jcuga/golongpoll"
+	// golongpoll doesn't have a go.mod, and something about that
+	// confuses Go about whether it needs golongpoll's gouuid
+	// dependency or not.  So, tell Go explicitly: We need gouuid.
+	_ "github.com/nu7hatch/gouuid"
+
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
 	"github.com/datawire/apro/lib/licensekeys"
+	"github.com/datawire/apro/lib/metriton"
 )
 
 // PatternInfo represents one Envoy header regex_match
@@ -332,13 +338,14 @@ func main() {
 		Version: Version,
 		Run:     Main,
 	}
-	keycheck := licensekeys.InitializeCommandFlags(argparser.PersistentFlags(), "traffic-proxy", Version)
+	cmdContext := licensekeys.InitializeCommandFlags(argparser.PersistentFlags())
 	argparser.PersistentPreRun = func(cmd *cobra.Command, args []string) {
-		licenseClaims, err := keycheck(cmd.PersistentFlags())
+		licenseClaims, err := cmdContext.KeyCheck(cmd.PersistentFlags(), false)
 		if err == nil {
 			err = licenseClaims.RequireFeature(licensekeys.FeatureTraffic)
 		}
 		if err == nil {
+			go metriton.PhoneHome(licenseClaims, nil, "traffic-proxy", Version)
 			return
 		}
 		fmt.Fprintln(os.Stderr, err)

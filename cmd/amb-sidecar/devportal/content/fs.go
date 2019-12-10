@@ -33,6 +33,14 @@ func (bfs *BetterFS) Fs() Globbable {
 	return bfs
 }
 
+func NewChroot(fs Globbable, path string) (*BetterFS, error) {
+	chroot, err := fs.Chroot(path)
+	if err != nil {
+		return nil, err
+	}
+	return &BetterFS{chroot}, nil
+}
+
 func (bfs *BetterFS) ReadFileBytes(fn string) (bytes []byte, err error) {
 	logger := log.WithFields(log.Fields{
 		"subsystem": "fs",

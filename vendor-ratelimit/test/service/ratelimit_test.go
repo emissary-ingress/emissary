@@ -9,7 +9,7 @@ import (
 	stats "github.com/lyft/gostats"
 	"github.com/stretchr/testify/assert"
 
-	pb "github.com/datawire/ambassador/go/apis/envoy/service/ratelimit/v2"
+	pb "github.com/datawire/ambassador/pkg/api/envoy/service/ratelimit/v2"
 
 	"github.com/lyft/ratelimit/src/config"
 	"github.com/lyft/ratelimit/src/redis"
@@ -19,6 +19,8 @@ import (
 	mock_redis "github.com/lyft/ratelimit/test/mocks/redis"
 	mock_loader "github.com/lyft/ratelimit/test/mocks/runtime/loader"
 	mock_snapshot "github.com/lyft/ratelimit/test/mocks/runtime/snapshot"
+
+	mock_limiter "github.com/datawire/apro/cmd/amb-sidecar/limiter/mocks"
 )
 
 type barrier struct {
@@ -89,7 +91,7 @@ func (this *rateLimitServiceTestSuite) setupBasicService() ratelimit.RateLimitSe
 		// stats scope
 		gomock.Any(),
 	).Return(this.config)
-	return ratelimit.NewService(this.runtime, this.cache, this.configLoader, this.statStore)
+	return ratelimit.NewService(this.runtime, this.cache, this.configLoader, this.statStore, mock_limiter.NewMockLimiter())
 }
 
 func TestService(test *testing.T) {
@@ -249,7 +251,7 @@ func TestInitialLoadError(test *testing.T) {
 	).Do(func([]config.RateLimitConfigToLoad, stats.Scope) {
 		panic(config.RateLimitConfigError("load error"))
 	})
-	service := ratelimit.NewService(t.runtime, t.cache, t.configLoader, t.statStore)
+	service := ratelimit.NewService(t.runtime, t.cache, t.configLoader, t.statStore, mock_limiter.NewMockLimiter())
 
 	request := common.NewRateLimitRequest("test-domain", [][][2]string{{{"hello", "world"}}}, 1)
 	response, err := service.ShouldRateLimit(context.Background(), request)

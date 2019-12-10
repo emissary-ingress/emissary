@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/datawire/ambassador/pkg/dlog"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/pkg/errors"
 
@@ -40,7 +41,7 @@ type errorWithValidationError struct {
 }
 
 func (h *JWTFilter) Filter(ctx context.Context, r *filterapi.FilterRequest) (filterapi.FilterResponse, error) {
-	logger := middleware.GetLogger(ctx)
+	logger := dlog.GetLogger(ctx)
 	httpClient := httpclient.NewHTTPClient(logger, 0, h.Spec.InsecureTLS, h.Spec.RenegotiateTLS)
 
 	var tokenParsed *jwt.Token

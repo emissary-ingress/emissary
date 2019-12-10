@@ -3,15 +3,14 @@ package resourceserver
 import (
 	"net/http"
 
+	"github.com/datawire/ambassador/pkg/dlog"
 	"github.com/pkg/errors"
 
 	rfc6750client "github.com/datawire/apro/client/rfc6750"
-
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/oauth2handler/discovery"
-	"github.com/datawire/apro/cmd/amb-sidecar/types"
 )
 
-func (rs *OAuth2ResourceServer) validateAccessTokenUserinfo(token string, discovered *discovery.Discovered, httpClient *http.Client, logger types.Logger) (tokenErr, serverErr error) {
+func (rs *OAuth2ResourceServer) validateAccessTokenUserinfo(token string, discovered *discovery.Discovered, httpClient *http.Client, logger dlog.Logger) (tokenErr, serverErr error) {
 	// This method is a little funny, since it has the Resource
 	// Server acting like a Client to a different Resource server.
 
