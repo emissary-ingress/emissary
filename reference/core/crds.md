@@ -57,11 +57,7 @@ The full set of CRDs supported by the Abassador Edge Stack:
 | `TLSContext` | `tlscontext` | `tlscontexts` |
 | `TracingService` | `tracingservice` | `tracingservices` |
 
-So, for example, if you're using CRDs, then
-
-```kubectl get mappings```
-
-should show all your `Mapping` custom resources.
+So, for example, if you're using CRDs, then `kubectl get mappings` should show all your `Mapping` custom resources.
 
 ## CRDs and RBAC
 
