@@ -10,12 +10,16 @@
     </title>
     <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,900&display=swap" rel="stylesheet">
     <link rel="stylesheet" type="text/css" href="../styles/main.css">
+    <style>
+      .hide_until_ready {
+        visibility: hidden !important;
+      }
+    </style>
   </head>
 
-  <body style="zoom: 1; opacity: 1;">
+  <body class="hide_until_ready">
     <login-gate>
       <div class="alpha">
-
           <aes-snapshot-provider>
             <dw-tabs>
               <dw-signup></dw-signup>
@@ -70,8 +74,7 @@
               </dw-tab>
             </dw-tabs>
           </aes-snapshot-provider>
-
-    </div>
+      </div>
     </login-gate>
   </body>
 
@@ -85,35 +88,37 @@
   -->
 
   <!-- Critical Vendor Scripts -->
-  <script async defer type="module" src="../vendor/polyfill.js"></script>
-  <script async defer type="module" src="../vendor/lit-element.min.js"></script>
-  <script async defer type="module" src="../vendor/js-yaml.min.js"></script>
-  <script async defer type="module" src="../vendor/FileSaver.js"></script>
+  <script type="module" src="../vendor/polyfill.js"></script>
+  <script type="module" src="../vendor/lit-element.min.js"></script>
 
   <!-- First Page Needed -->
-  <script async defer type="module" src="../components/license.js"></script>
-  <script async defer type="module" src="../components/api-fetch.js"></script>
-  <script async defer type="module" src="../components/context.js"></script>
-  <script async defer type="module" src="../components/login-gate.js"></script>
-  <script async defer type="module" src="../components/snapshot.js"></script>
-  <script async defer type="module" src="../components/tabs.js"></script>
-  <script async defer type="module" src="../components/signup.js"></script>
-  <script async defer type="module" src="../components/dashboard.js"></script>
+  <script type="module" src="../components/license.js"></script>
+  <script type="module" src="../components/api-fetch.js"></script>
+  <script type="module" src="../components/context.js"></script>
+  <script type="module" src="../components/login-gate.js"></script>
+  <script type="module" src="../components/snapshot.js"></script>
+  <script type="module" src="../components/tabs.js"></script>
+  <script type="module" src="../components/signup.js"></script>
+  <script type="module" src="../components/dashboard.js"></script>
 
   <!-- Later Page Scripts -->
-  <script async defer type="module" src="../components/hosts.js"></script>
-  <script async defer type="module" src="../components/mappings.js"></script>
-  <script async defer type="module" src="../components/filters.js"></script>
-  <script async defer type="module" src="../components/limits.js"></script>
-  <script async defer type="module" src="../components/plugins.js"></script>
-  <script async defer type="module" src="../components/resolvers.js"></script>
-  <script async defer type="module" src="../components/debugging.js"></script>
-  <script async defer type="module" src="../components/yaml-downloads.js"></script>
-  <script async defer type="module" src="../components/routetable.js"></script>
-  <script async defer type="module" src="../vendor/rapidoc.min.js"></script>
-  <script async defer type="module" src="../components/apis.js"></script>
-  <script async defer type="module" src="../components/documentation.js"></script>
-  <script async defer type="module" src="../components/wholepage-error.js"></script>
-  <script async defer type="module" src="../components/support.js"></script>
+  <script type="module" src="../components/hosts.js"></script>
+  <script type="module" src="../components/mappings.js"></script>
+  <script type="module" src="../components/filters.js"></script>
+  <script type="module" src="../components/limits.js"></script>
+  <script type="module" src="../components/plugins.js"></script>
+  <script type="module" src="../components/resolvers.js"></script>
+  <script type="module" src="../components/debugging.js"></script>
+  <script type="module" src="../vendor/js-yaml.min.js"></script>
+  <script type="module" src="../vendor/FileSaver.js"></script>
+  <script type="module" src="../components/yaml-downloads.js"></script>
+  <script type="module" src="../components/routetable.js"></script>
+  <script type="module" src="../vendor/rapidoc.min.js"></script>
+  <script type="module" src="../components/apis.js"></script>
+  <script type="module" src="../components/documentation.js"></script>
+  <script type="module" src="../components/wholepage-error.js"></script>
+  <script type="module" src="../components/support.js"></script>
 
+  <!-- MUST BE LAST -->
+  <script type="module" src="../components/load_at_end.js"></script>
 </html>
