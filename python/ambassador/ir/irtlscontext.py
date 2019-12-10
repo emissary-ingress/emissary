@@ -385,4 +385,5 @@ class TLSContextFactory:
                                secret=tls_name,
                                redirect_cleartext_from=8080)
             assert ctx.is_active()
-            ir.save_tls_context(ctx)
+            if ctx.resolve_secret(tls_name):
+                ir.save_tls_context(ctx)
