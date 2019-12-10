@@ -90,8 +90,6 @@ The attribute `HostPhase` can have the following:
   ACMEUserRegistered        = 3;
   ACMECertificateChallenge  = 4;
 ```
-When `state==Error`
-
 
 ### HostStatus
 
@@ -105,7 +103,6 @@ When `state==Error`
   ```
 
 If `state==Error`, then `string reason` is valid.
-
 
 ## ACMEProviderSpec
 
