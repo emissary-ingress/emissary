@@ -150,6 +150,10 @@ class IR:
         # Copy k8s_status_updates from our aconf.
         self.k8s_status_updates = aconf.k8s_status_updates
 
+        # Check on the edge stack. Note that the Edge Stack touchfile is _not_ within
+        # $AMBASSADOR_CONFIG_BASE_DIR: it stays in /ambassador no matter what.
+        self.edge_stack_allowed = os.path.exists('/ambassador/.edge_stack')
+
         # OK, time to get this show on the road. First things first: set up the
         # Ambassador module.
         #
@@ -184,11 +188,7 @@ class IR:
             # Uhoh.
             self.ambassador_module.set_active(False)    # This can't be good.
 
-        # Check on the edge stack and the wizard. Note that the Edge Stack touchfile is _not_ within
-        # $AMBASSADOR_CONFIG_BASE_DIR: it stays in /ambassador no matter what.
-        self.edge_stack_allowed = os.path.exists('/ambassador/.edge_stack')
         self.wizard_allowed = self.edge_stack_allowed and self.ambassador_module.get('allow-wizard', True)
-
         _activity_str = 'watching' if watch_only else 'starting'
         _mode_str = 'Edge Stack' if self.edge_stack_allowed else 'OSS'
         _wizard_str = ''
