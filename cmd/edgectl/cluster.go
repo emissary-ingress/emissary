@@ -19,25 +19,38 @@ import (
 )
 
 // Connect the daemon to a cluster
-func (d *Daemon) Connect(p *supervisor.Process, out *Emitter, rai *RunAsInfo, kargs []string) error {
+func (d *Daemon) Connect(
+	p *supervisor.Process, out *Emitter, rai *RunAsInfo,
+	context, namespace string, kargs []string,
+) error {
 	// Sanity checks
 	if d.cluster != nil {
 		out.Println("Already connected")
+		out.Send("connect", "Already connected")
 		return nil
 	}
 	if d.bridge != nil {
 		out.Println("Not ready: Trying to disconnect")
+		out.Send("connect", "Not ready: Trying to disconnect")
+		return nil
+	}
+	if d.network == nil {
+		out.Println("Not ready: Network overrides are paused (use \"edgectl resume\")")
+		out.Send("connect", "Not ready: Paused")
 		return nil
 	}
 	if !d.network.IsOkay() {
 		out.Println("Not ready: Establishing network overrides")
+		out.Send("connect", "Not ready: Establishing network overrides")
 		return nil
 	}
 
 	out.Println("Connecting...")
-	cluster, err := TrackKCluster(p, rai, kargs)
+	out.Send("connect", "Connecting...")
+	cluster, err := TrackKCluster(p, rai, context, namespace, kargs)
 	if err != nil {
 		out.Println(err.Error())
+		out.Send("failed", err.Error())
 		out.SendExit(1)
 		return nil
 	}
@@ -46,13 +59,14 @@ func (d *Daemon) Connect(p *supervisor.Process, out *Emitter, rai *RunAsInfo, ka
 	bridge, err := CheckedRetryingCommand(
 		p,
 		"bridge",
-		[]string{edgectl, "teleproxy", "bridge"},
+		[]string{edgectl, "teleproxy", "bridge", cluster.context, cluster.namespace},
 		rai,
 		checkBridge,
 		15*time.Second,
 	)
 	if err != nil {
 		out.Println(err.Error())
+		out.Send("failed", err.Error())
 		out.SendExit(1)
 		d.cluster.Close()
 		d.cluster = nil
@@ -64,6 +78,8 @@ func (d *Daemon) Connect(p *supervisor.Process, out *Emitter, rai *RunAsInfo, ka
 	out.Printf(
 		"Connected to context %s (%s)\n", d.cluster.Context(), d.cluster.Server(),
 	)
+	out.Send("cluster.context", d.cluster.Context())
+	out.Send("cluster.server", d.cluster.Server())
 
 	tmgr, err := NewTrafficManager(p, d.cluster)
 	if err != nil {
@@ -72,8 +88,10 @@ func (d *Daemon) Connect(p *supervisor.Process, out *Emitter, rai *RunAsInfo, ka
 		out.Println("The intercept feature will not be available.")
 		out.Println("Error was:", err)
 		// out.Println("Use <some command> to set up the traffic manager.") // FIXME
+		out.Send("intercept", false)
 	} else {
 		d.trafficMgr = tmgr
+		out.Send("intercept", true)
 	}
 	return nil
 }
@@ -83,6 +101,7 @@ func (d *Daemon) Disconnect(p *supervisor.Process, out *Emitter) error {
 	// Sanity checks
 	if d.cluster == nil {
 		out.Println("Not connected")
+		out.Send("disconnect", "Not connected")
 		return nil
 	}
 
@@ -100,6 +119,7 @@ func (d *Daemon) Disconnect(p *supervisor.Process, out *Emitter) error {
 	d.cluster = nil
 
 	out.Println("Disconnected")
+	out.Send("disconnect", "Disconnected")
 	return err
 }
 
@@ -113,7 +133,7 @@ func checkBridge(p *supervisor.Process) error {
 		// #nosec G402
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 	}
-	client := http.Client{Timeout: 5 * time.Second, Transport: tr}
+	client := http.Client{Timeout: 10 * time.Second, Transport: tr}
 	res, err := client.Get("https://kubernetes.default/api/")
 	if err != nil {
 		return errors.Wrap(err, "get")
@@ -186,7 +206,7 @@ func NewTrafficManager(p *supervisor.Process, cluster *KCluster) (*TrafficManage
 		return nil, err
 	}
 	tm.crc = pf
-	tm.client = &http.Client{Timeout: 3 * time.Second}
+	tm.client = &http.Client{Timeout: 10 * time.Second}
 	return tm, nil
 }
 

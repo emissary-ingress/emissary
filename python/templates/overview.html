@@ -105,15 +105,15 @@ limitations under the License
                   </tr>
                   <tr>
                     <td><a href="https://www.getambassador.io/reference/running?utm_source=diagnostics">Running Ambassador</a></td>
-                    <td><a href="https://www.getambassador.io/user-guide/oauth-oidc-auth?utm_source=diagnostics">Single Sign-On with OAuth/OIDC (Pro only)</a></td>
+                    <td><a href="https://www.getambassador.io/user-guide/oauth-oidc-auth?utm_source=diagnostics">Single Sign-On with OAuth/OIDC</a></td>
                   </tr>
                   <tr>
                     <td><a href="https://www.getambassador.io/reference/statistics?utm_source=diagnostics">Statistics and Monitoring</a></td>
-                    <td><a href="https://www.getambassador.io/reference/filter-reference?utm_source=diagnostics">Custom Filters (Pro only)</a></td>
+                    <td><a href="https://www.getambassador.io/reference/filter-reference?utm_source=diagnostics">Custom Filters</a></td>
                   </tr>
                   <tr>
                     <td><a href="https://www.getambassador.io/reference/debugging?utm_source=diagnostics">Troubleshooting Ambassador</a></td>
-                    <td><a href="https://www.getambassador.io/user-guide/advanced-rate-limiting?utm_source=diagnostics">Rate Limiting (Pro only)</a></td>
+                    <td><a href="https://www.getambassador.io/user-guide/advanced-rate-limiting?utm_source=diagnostics">Rate Limiting</a></td>
                   </tr>
                 </tbody>
               </table>
@@ -217,18 +217,28 @@ limitations under the License
                 <tbody>
                   {% for route in route_info %}
                     <tr 
-                      {% if loop.index % 2 %}
-                        style="background: rgba(86,61,124,.05);"
-                      {% endif %}
-                      >
+                      style="
+                        {%- if loop.index % 2 -%}
+                        background: rgba(86,61,124,.05);
+                        {%- endif -%}
+                        {%- if route.diag_class == "private" -%}
+                        font-style: oblique; opacity: 60%;
+                        {%- endif -%}
+                      ">
                       <td>
                         <a href="/ambassador/v0/diag/grp-{{ route['_group_id'] }}">
-                          <code>{{ route.key }}
+                          <code>
+                            {%- if route.diag_class == "private" -%}[internal route]<br/>{%- endif -%}
+                            {{ route.key }}
                           {% if route['headers'] %}
                             {% for hdr in route['headers'] %}
                               <br/>
                               {{ hdr['name'] }}: {{ hdr['value'] }}
                             {% endfor %}
+                          {% endif %}
+                          {% if route['precedence'] != 0 %}
+                            <br/>
+                            precedence {{ route.precedence }}
                           {% endif %}
                           </code>
                         </a>

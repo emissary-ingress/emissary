@@ -27,11 +27,11 @@ class ACResource (Resource):
     - name (keyword-only) is the name of the Ambassador resource.
 
     - apiVersion (keyword-only) specifies the API version in use. It defaults to
-    "ambassador/v0" if not specified.
+      "getambassador.io/v0" if not specified.
 
     - serialization (keyword-only) is the _original input serialization_, if we have
-    it, of the object. If we don't have it, this should be None -- don't just serialize
-    the object to no purpose.
+      it, of the object. If we don't have it, this should be None -- don't just serialize
+      the object to no purpose.
 
     - any additional keyword arguments are saved in the Resource.
 
@@ -39,7 +39,9 @@ class ACResource (Resource):
     :param location: where should a human go to find the source of this resource?
     :param kind: what kind of thing is this?
     :param name: what's the name of this thing?
-    :param apiVersion: API version, defaults to "ambassador/v0" if not present
+    :param namespace: what namespace is this in?
+    :param metadata_labels: what label did we select to get this thing?
+    :param apiVersion: API version, defaults to "getambassador.io/v0" if not present
     :param serialization: original input serialization of obj, if we have it
     :param kwargs: key-value pairs that form the data object for this resource
     """
@@ -50,7 +52,9 @@ class ACResource (Resource):
     def __init__(self, rkey: str, location: str, *,
                  kind: str,
                  name: Optional[str]=None,
-                 apiVersion: Optional[str]="ambassador/v0",
+                 namespace: Optional[str]=None,
+                 metadata_labels: Optional[str]=None,
+                 apiVersion: Optional[str]="getambassador.io/v0",
                  serialization: Optional[str]=None,
                  **kwargs) -> None:
 
@@ -66,10 +70,17 @@ class ACResource (Resource):
         if not apiVersion:
             raise Exception("ACResource requires apiVersion")
 
+        # This next bit is a little odd -- we don't want a label_selector of None
+        # to appear with a null value in the dict, so we move it to kwargs if present
+        # and don't bother passing it as an explicit keyword argument.
+
+        if metadata_labels:
+            kwargs["metadata_labels"] = metadata_labels
+
         # print("ACResource __init__ (%s %s)" % (kind, name))
 
         super().__init__(rkey=rkey, location=location,
-                         kind=kind, name=name,
+                         kind=kind, name=name, namespace=namespace,
                          apiVersion=typecast(str, apiVersion),
                          serialization=serialization,
                          **kwargs)
@@ -82,10 +93,14 @@ class ACResource (Resource):
                       kind: Optional[str]=None,
                       serialization: Optional[str]=None,
                       name: Optional[str]=None,
+                      namespace: Optional[str]=None,
+                      metadata_labels: Optional[str] = None,
                       apiVersion: Optional[str]=None,
                       **kwargs) -> R:
         new_name = name or other.name
         new_apiVersion = apiVersion or other.apiVersion
+        new_namespace = namespace or other.namespace
+        new_metadata_labels = metadata_labels or other.get('metadata_labels', None)
 
         # mypy 0.730 is Just Flat Wrong here. It tries to be "more strict" about
         # super(), which is fine, but it also flags this particular super() call
@@ -99,8 +114,8 @@ class ACResource (Resource):
             assert(isinstance(cls, Resource))
 
         return super().from_resource(other, rkey=rkey, location=location, kind=kind,
-                                     name=new_name, apiVersion=new_apiVersion,
-                                     serialization=serialization, **kwargs)
+                                     name=new_name, apiVersion=new_apiVersion, namespace=new_namespace,
+                                     metadata_labels=new_metadata_labels, serialization=serialization, **kwargs)
 
     # ACResource.INTERNAL is the magic ACResource we use to represent something created by
     # Ambassador's internals.
@@ -110,7 +125,7 @@ class ACResource (Resource):
             "--internal--", "--internal--",
             kind="Internal",
             name="Ambassador Internals",
-            version="ambassador/v0",
+            version="getambassador.io/v0",
             description="The '--internal--' source marks objects created by Ambassador's internal logic."
         )
 
@@ -123,7 +138,7 @@ class ACResource (Resource):
             "--diagnostics--", "--diagnostics--",
             kind="Diagnostics",
             name="Ambassador Diagnostics",
-            version="ambassador/v0",
+            version="getambassador.io/v0",
             description="The '--diagnostics--' source marks objects created by Ambassador to assist with diagnostic output."
         )
 

@@ -29,6 +29,9 @@ import signal
 import threading
 import time
 import uuid
+import requests
+
+import concurrent.futures
 
 from pkg_resources import Requirement, resource_filename
 
@@ -110,9 +113,10 @@ class DiagApp (Flask):
     last_request_info: Dict[str, int]
     last_request_time: Optional[datetime.datetime]
     latest_snapshot: str
+    banner_endpoint: Optional[str]
 
     def setup(self, snapshot_path: str, bootstrap_path: str, ads_path: str,
-              config_path: Optional[str], ambex_pid: int, kick: Optional[str],
+              config_path: Optional[str], ambex_pid: int, kick: Optional[str], banner_endpoint: Optional[str],
               k8s=False, do_checks=True, no_envoy=False, reload=False, debug=False, verbose=False,
               notices=None, validation_retries=5, allow_fs_commands=False, local_scout=False,
               report_action_keys=False):
@@ -129,6 +133,7 @@ class DiagApp (Flask):
         self.allow_fs_commands = allow_fs_commands
         self.local_scout = local_scout
         self.report_action_keys = report_action_keys
+        self.banner_endpoint = banner_endpoint
 
         # This will raise an exception and crash if you pass it a string. That's intentional.
         self.ambex_pid = int(ambex_pid)
@@ -137,6 +142,8 @@ class DiagApp (Flask):
         # This feels like overkill.
         self.logger = logging.getLogger("ambassador.diagd")
         self.logger.setLevel(logging.INFO)
+
+        self.kubestatus = KubeStatus()
 
         if debug:
             self.logger.setLevel(logging.DEBUG)
@@ -313,8 +320,8 @@ def system_info(app):
         "ambassador_id": Config.ambassador_id,
         "ambassador_namespace": Config.ambassador_namespace,
         "single_namespace": Config.single_namespace,
-        "knative_enabled": bool(os.environ.get('AMBASSADOR_KNATIVE_SUPPORT', None)),
-        "statsd_enabled": bool(os.environ.get('STATSD_ENABLED', None)),
+        "knative_enabled": os.environ.get('AMBASSADOR_KNATIVE_SUPPORT', '').lower() == 'true',
+        "statsd_enabled": os.environ.get('STATSD_ENABLED', '').lower() == 'true',
         "endpoints_enabled": Config.enable_endpoints,
         "cluster_id": os.environ.get('AMBASSADOR_CLUSTER_ID',
                                      os.environ.get('AMBASSADOR_SCOUT_ID', "00000000-0000-0000-0000-000000000000")),
@@ -460,10 +467,20 @@ def show_overview(reqid=None):
 
     ddict = collect_errors_and_notices(request, reqid, "overview", diag)
 
+    banner_content = None
+    if app.banner_endpoint and app.ir and app.ir.edge_stack_allowed:
+        try:
+            response = requests.get(app.banner_endpoint)
+            if response.status_code == 200:
+                banner_content = response.text
+        except Exception as e:
+            app.logger.error("could not get banner_content: %s" % e)
+
     tvars = dict(system=system_info(app),
                  envoy_status=envoy_status(app.estats),
                  loginfo=app.estats.loginfo,
                  notices=app.notices.notices,
+                 banner_content=banner_content,
                  **ov, **ddict)
 
     if request.args.get('json', None):
@@ -643,6 +660,67 @@ class SystemStatus:
         return { key: info.to_dict() for key, info in self.status.items() }
 
 
+class KubeStatus:
+    pool: concurrent.futures.ProcessPoolExecutor
+
+    def __init__(self) -> None:
+        self.live: Dict[str,  bool] = {}
+        self.current_status: Dict[str, str] = {}
+        self.pool = concurrent.futures.ProcessPoolExecutor(max_workers=5)
+
+    def mark_live(self, kind: str, name: str, namespace: str) -> None:
+        key = f"{kind}/{name}.{namespace}"
+
+        print(f"KubeStatus MASTER {os.getpid()}: mark_live {key}")
+        self.live[key] = True
+
+    def prune(self) -> None:
+        drop: List[str] = []
+
+        for key in self.current_status.keys():
+            if not self.live.get(key, False):
+                drop.append(key)
+
+        for key in drop:
+            print(f"KubeStatus MASTER {os.getpid()}: prune {key}")
+            del(self.current_status[key])
+
+        self.live = {}
+
+    def post(self, kind: str, name: str, namespace: str, text: str) -> None:
+        key = f"{kind}/{name}.{namespace}"
+        extant = self.current_status.get(key, None)
+
+        if extant == text:
+            print(f"KubeStatus MASTER {os.getpid()}: {key} == {text}")
+        else:
+            print(f"KubeStatus MASTER {os.getpid()}: {key} needs {text}")
+
+            # For now we're going to assume that this works.
+            self.current_status[key] = text
+            f = self.pool.submit(kubestatus_update, kind, name, namespace, text)
+            f.add_done_callback(kubestatus_update_done)
+
+
+def kubestatus_update(kind: str, name: str, namespace: str, text: str) -> str:
+    cmd = [ 'kubestatus', kind, '-f', f'metadata.name={name}', '-n', namespace, '-u', '/dev/fd/0' ]
+    print(f"KubeStatus UPDATE {os.getpid()}: running command: {cmd}")
+
+    try:
+        rc = subprocess.run(cmd, input=text.encode('utf-8'), timeout=5)
+
+        if rc.returncode == 0:
+            return f"{name}.{namespace}: update OK"
+        else:
+            return f"{name}.{namespace}: error {rc.returncode}"
+
+    except subprocess.TimeoutExpired as e:
+        return f"{name}.{namespace}: timed out"
+
+def kubestatus_update_done(f: concurrent.futures.Future) -> None:
+    print(f"KubeStatus DONE {os.getpid()}: result {f.result()}")
+
+
 class AmbassadorEventWatcher(threading.Thread):
     # The key for 'Actions' is chimed - chimed_ok - env_good. This will make more sense
     # if you read through the _load_ir method.
@@ -697,12 +775,14 @@ class AmbassadorEventWatcher(threading.Thread):
                 except Exception as e:
                     self.logger.error("could not update estats: %s" % e)
                     self.logger.exception(e)
+                    self._respond(rqueue, 500, 'Envoy stats update failed')
             elif cmd == 'CONFIG_FS':
                 try:
                     self.load_config_fs(rqueue, arg)
                 except Exception as e:
                     self.logger.error("could not reconfigure: %s" % e)
                     self.logger.exception(e)
+                    self._respond(rqueue, 500, 'configuration from filesystem failed')
             elif cmd == 'CONFIG':
                 version, url = arg
 
@@ -716,6 +796,7 @@ class AmbassadorEventWatcher(threading.Thread):
                 except Exception as e:
                     self.logger.error("could not reconfigure: %s" % e)
                     self.logger.exception(e)
+                    self._respond(rqueue, 500, 'configuration failed')
             elif cmd == 'SCOUT':
                 try:
                     self._respond(rqueue, 200, 'checking Scout')
@@ -723,8 +804,10 @@ class AmbassadorEventWatcher(threading.Thread):
                 except Exception as e:
                     self.logger.error("could not reconfigure: %s" % e)
                     self.logger.exception(e)
+                    self._respond(rqueue, 500, 'scout check failed')
             else:
-                self.logger.error("unknown event type: '%s' '%s'" % (cmd, arg))
+                self.logger.error(f"unknown event type: '{cmd}' '{arg}'")
+                self._respond(rqueue, 400, f"unknown event type '{cmd}' '{arg}'")
 
     def _respond(self, rqueue: queue.Queue, status: int, info='') -> None:
         self.logger.debug("responding to query with %s %s" % (status, info))
@@ -965,25 +1048,28 @@ class AmbassadorEventWatcher(threading.Thread):
             self.logger.info("notifying PID %d ambex" % app.ambex_pid)
             os.kill(app.ambex_pid, signal.SIGHUP)
 
+        # don't worry about TCPMappings yet
+        mappings = app.aconf.get_config('mappings')
+
+        if mappings:
+            for mapping_name, mapping in mappings.items():
+                app.kubestatus.mark_live("Mapping", mapping_name, mapping.namespace)
+
+        app.kubestatus.prune()
+
         if app.ir.k8s_status_updates:
+            update_count = 0
+
             for name in app.ir.k8s_status_updates.keys():
+                update_count += 1
+                # Strip off any namespace in the name.
+                resource_name = name.split('.', 1)[0]
                 kind, namespace, update = app.ir.k8s_status_updates[name]
-
-                self.logger.info(f"doing K8s status update for {kind} {namespace} {name}...")
-
                 text = json.dumps(update)
 
-                with open(f'/tmp/kstat-{kind}-{name}', 'w') as out:
-                    out.write(text)
+                self.logger.info(f"K8s status update: {kind} {resource_name}.{namespace}, {text}...")
 
-                cmd = [ 'kubestatus', kind, '-f', f'metadata.name={name}', '-n', namespace, '-u', '/dev/fd/0' ]
-                self.logger.info(f"Running command: {cmd}")
-
-                try:
-                    rc = subprocess.run(cmd, input=text.encode('utf-8'), timeout=5)
-                    self.logger.info(f'...update finished, rc {rc.returncode}')
-                except subprocess.TimeoutExpired as e:
-                    self.logger.error(f'...update timed out, {e}')
+                app.kubestatus.post(kind, resource_name, namespace, text)
 
         self.logger.info("configuration updated from snapshot %s" % snapshot)
         self._respond(rqueue, 200, 'configuration updated from snapshot %s' % snapshot)
@@ -1271,7 +1357,8 @@ class StandaloneApplication(gunicorn.app.base.BaseApplication):
 
 
 def _main(snapshot_path=None, bootstrap_path=None, ads_path=None,
-          *, dev_magic=False, config_path=None, ambex_pid=0, kick=None, k8s=False,
+          *, dev_magic=False, config_path=None, ambex_pid=0, kick=None,
+          banner_endpoint="http://127.0.0.1:8500/banner", k8s=False,
           no_checks=False, no_envoy=False, reload=False, debug=False, verbose=False,
           workers=None, port=Constants.DIAG_PORT, host='0.0.0.0', notices=None,
           validation_retries=5, allow_fs_commands=False, local_scout=False,
@@ -1286,6 +1373,7 @@ def _main(snapshot_path=None, bootstrap_path=None, ads_path=None,
     :param k8s: If True, assume config_path contains Kubernetes resources (only relevant with config_path)
     :param ambex_pid: Optional PID to signal with HUP after updating Envoy configuration
     :param kick: Optional command to run after updating Envoy configuration
+    :param banner_endpoint: Optional endpoint of extra banner to include
     :param no_checks: If True, don't do Envoy-cluster health checking
     :param no_envoy: If True, don't interact with Envoy at all
     :param reload: If True, run Flask in debug mode for live reloading
@@ -1326,7 +1414,7 @@ def _main(snapshot_path=None, bootstrap_path=None, ads_path=None,
         no_checks = True
 
     # Create the application itself.
-    app.setup(snapshot_path, bootstrap_path, ads_path, config_path, ambex_pid, kick,
+    app.setup(snapshot_path, bootstrap_path, ads_path, config_path, ambex_pid, kick, banner_endpoint,
               k8s, not no_checks, no_envoy, reload, debug, verbose, notices,
               validation_retries, allow_fs_commands, local_scout, report_action_keys)
 

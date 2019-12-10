@@ -1,0 +1,141 @@
+{
+    "_errors": {},
+    "_notices": {},
+    "_sources": {
+        "--diagnostics--": {
+            "_referenced_by": {},
+            "apiVersion": "ambassador/v0",
+            "description": "The '--diagnostics--' source marks objects created by Ambassador to assist with diagnostic output.",
+            "kind": "Diagnostics",
+            "location": "--diagnostics--",
+            "name": "Ambassador Diagnostics",
+            "namespace": null,
+            "rkey": "--diagnostics--",
+            "serialization": null,
+            "version": "ambassador/v0"
+        },
+        "--internal--": {
+            "_referenced_by": {},
+            "apiVersion": "ambassador/v0",
+            "description": "The '--internal--' source marks objects created by Ambassador's internal logic.",
+            "kind": "Internal",
+            "location": "--internal--",
+            "name": "Ambassador Internals",
+            "namespace": null,
+            "rkey": "--internal--",
+            "serialization": null,
+            "version": "ambassador/v0"
+        },
+        "k8s-redirecttestswithproxyproto-admin-default": {
+            "_referenced_by": {},
+            "ambassador_id": "redirecttestswithproxyproto",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-redirecttestswithproxyproto-admin-default",
+            "name": "redirecttestswithproxyproto-admin",
+            "namespace": "default",
+            "rkey": "k8s-redirecttestswithproxyproto-admin-default",
+            "serialization": "ambassador_id: redirecttestswithproxyproto\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: redirecttestswithproxyproto-admin\nnamespace: default\n"
+        },
+        "k8s-redirecttestswithproxyproto-default": {
+            "_referenced_by": {},
+            "ambassador_id": "redirecttestswithproxyproto",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-redirecttestswithproxyproto-default",
+            "name": "redirecttestswithproxyproto",
+            "namespace": "default",
+            "rkey": "k8s-redirecttestswithproxyproto-default",
+            "serialization": "ambassador_id: redirecttestswithproxyproto\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: redirecttestswithproxyproto\nnamespace: default\n"
+        },
+        "k8s-redirecttestswithproxyproto-http-default": {
+            "_referenced_by": {},
+            "ambassador_id": "redirecttestswithproxyproto",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-redirecttestswithproxyproto-http-default",
+            "name": "redirecttestswithproxyproto-http",
+            "namespace": "default",
+            "rkey": "k8s-redirecttestswithproxyproto-http-default",
+            "serialization": "ambassador_id: redirecttestswithproxyproto\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: redirecttestswithproxyproto-http\nnamespace: default\n"
+        },
+        "redirecttestswithproxyproto-http.default.1": {
+            "_referenced_by": {},
+            "ambassador_id": "redirecttestswithproxyproto",
+            "apiVersion": "ambassador/v1",
+            "kind": "Mapping",
+            "location": "redirecttestswithproxyproto-http.default.1",
+            "name": "tls_target_mapping",
+            "namespace": "default",
+            "prefix": "/tls-target/",
+            "rkey": "redirecttestswithproxyproto-http.default.1",
+            "serialization": "ambassador_id: redirecttestswithproxyproto\napiVersion: ambassador/v1\nkind: Mapping\nname: tls_target_mapping\nprefix: /tls-target/\nservice: redirecttestswithproxyproto-http\n",
+            "service": "redirecttestswithproxyproto-http"
+        },
+        "redirecttestswithproxyproto.default.1": {
+            "_referenced_by": {},
+            "ambassador_id": "redirecttestswithproxyproto",
+            "apiVersion": "ambassador/v1",
+            "config": {
+                "enable_ipv6": true,
+                "use_proxy_proto": true
+            },
+            "kind": "Module",
+            "location": "redirecttestswithproxyproto.default.1",
+            "name": "ambassador",
+            "namespace": "default",
+            "rkey": "redirecttestswithproxyproto.default.1",
+            "serialization": "ambassador_id: redirecttestswithproxyproto\napiVersion: ambassador/v1\nconfig:\n  enable_ipv6: true\n  use_proxy_proto: true\nkind: Module\nname: ambassador\n"
+        }
+    },
+    "mappings": {
+        "tls_target_mapping": {
+            "ambassador_id": "redirecttestswithproxyproto",
+            "apiVersion": "ambassador/v1",
+            "kind": "Mapping",
+            "name": "tls_target_mapping",
+            "namespace": "default",
+            "prefix": "/tls-target/",
+            "service": "redirecttestswithproxyproto-http"
+        }
+    },
+    "modules": {
+        "ambassador": {
+            "apiVersion": "ambassador/v1",
+            "enable_ipv6": true,
+            "kind": "Module",
+            "name": "ambassador",
+            "namespace": "default",
+            "use_proxy_proto": true
+        }
+    },
+    "service": {
+        "k8s-redirecttestswithproxyproto-admin-default": {
+            "ambassador_id": "redirecttestswithproxyproto",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "name": "redirecttestswithproxyproto-admin",
+            "namespace": "default"
+        },
+        "k8s-redirecttestswithproxyproto-default": {
+            "ambassador_id": "redirecttestswithproxyproto",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "name": "redirecttestswithproxyproto",
+            "namespace": "default"
+        },
+        "k8s-redirecttestswithproxyproto-http-default": {
+            "ambassador_id": "redirecttestswithproxyproto",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "name": "redirecttestswithproxyproto-http",
+            "namespace": "default"
+        }
+    }
+}

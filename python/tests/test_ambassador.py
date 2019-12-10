@@ -12,6 +12,7 @@ import t_grpc_bridge
 import t_grpc_web
 import t_gzip
 import t_headerrouting
+import t_hosts
 import t_loadbalancer
 import t_logservice
 import t_lua_scripts

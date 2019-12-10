@@ -1,0 +1,167 @@
+{
+    "_errors": {},
+    "_notices": {
+        "tracingtest-http.default.1": [
+            "apiVersion ambassador/v0 is deprecated, consider upgrading"
+        ],
+        "tracingtest.default.1": [
+            "apiVersion ambassador/v0 is deprecated, consider upgrading"
+        ]
+    },
+    "_sources": {
+        "--diagnostics--": {
+            "_referenced_by": {},
+            "apiVersion": "ambassador/v0",
+            "description": "The '--diagnostics--' source marks objects created by Ambassador to assist with diagnostic output.",
+            "kind": "Diagnostics",
+            "location": "--diagnostics--",
+            "name": "Ambassador Diagnostics",
+            "namespace": null,
+            "rkey": "--diagnostics--",
+            "serialization": null,
+            "version": "ambassador/v0"
+        },
+        "--internal--": {
+            "_referenced_by": {},
+            "apiVersion": "ambassador/v0",
+            "description": "The '--internal--' source marks objects created by Ambassador's internal logic.",
+            "kind": "Internal",
+            "location": "--internal--",
+            "name": "Ambassador Internals",
+            "namespace": null,
+            "rkey": "--internal--",
+            "serialization": null,
+            "version": "ambassador/v0"
+        },
+        "k8s-tracingtest-admin-default": {
+            "_referenced_by": {},
+            "ambassador_id": "tracingtest",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-tracingtest-admin-default",
+            "name": "tracingtest-admin",
+            "namespace": "default",
+            "rkey": "k8s-tracingtest-admin-default",
+            "serialization": "ambassador_id: tracingtest\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: tracingtest-admin\nnamespace: default\n"
+        },
+        "k8s-tracingtest-default": {
+            "_referenced_by": {},
+            "ambassador_id": "tracingtest",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-tracingtest-default",
+            "name": "tracingtest",
+            "namespace": "default",
+            "rkey": "k8s-tracingtest-default",
+            "serialization": "ambassador_id: tracingtest\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: tracingtest\nnamespace: default\n"
+        },
+        "k8s-tracingtest-http-default": {
+            "_referenced_by": {},
+            "ambassador_id": "tracingtest",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-tracingtest-http-default",
+            "name": "tracingtest-http",
+            "namespace": "default",
+            "rkey": "k8s-tracingtest-http-default",
+            "serialization": "ambassador_id: tracingtest\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: tracingtest-http\nnamespace: default\n"
+        },
+        "k8s-zipkin-default": {
+            "_referenced_by": {},
+            "ambassador_id": "tracingtest",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-zipkin-default",
+            "name": "zipkin",
+            "namespace": "default",
+            "rkey": "k8s-zipkin-default",
+            "serialization": "ambassador_id: tracingtest\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: zipkin\nnamespace: default\n"
+        },
+        "tracingtest-http.default.1": {
+            "_referenced_by": {},
+            "ambassador_id": "tracingtest",
+            "apiVersion": "ambassador/v0",
+            "kind": "Mapping",
+            "location": "tracingtest-http.default.1",
+            "name": "tracing_target_mapping",
+            "namespace": "default",
+            "prefix": "/target/",
+            "rkey": "tracingtest-http.default.1",
+            "serialization": "ambassador_id: tracingtest\napiVersion: ambassador/v0\nkind: Mapping\nname: tracing_target_mapping\nprefix: /target/\nservice: tracingtest-http\n",
+            "service": "tracingtest-http"
+        },
+        "tracingtest.default.1": {
+            "_referenced_by": {},
+            "ambassador_id": "tracingtest",
+            "apiVersion": "ambassador/v0",
+            "driver": "zipkin",
+            "kind": "TracingService",
+            "location": "tracingtest.default.1",
+            "name": "tracing",
+            "namespace": "default",
+            "rkey": "tracingtest.default.1",
+            "serialization": "ambassador_id: tracingtest\napiVersion: ambassador/v0\ndriver: zipkin\nkind: TracingService\nname: tracing\nservice: zipkin:9411\n",
+            "service": "zipkin:9411"
+        }
+    },
+    "mappings": {
+        "tracing_target_mapping": {
+            "ambassador_id": "tracingtest",
+            "apiVersion": "ambassador/v0",
+            "kind": "Mapping",
+            "name": "tracing_target_mapping",
+            "namespace": "default",
+            "prefix": "/target/",
+            "service": "tracingtest-http"
+        }
+    },
+    "service": {
+        "k8s-tracingtest-admin-default": {
+            "ambassador_id": "tracingtest",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "name": "tracingtest-admin",
+            "namespace": "default"
+        },
+        "k8s-tracingtest-default": {
+            "ambassador_id": "tracingtest",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "name": "tracingtest",
+            "namespace": "default"
+        },
+        "k8s-tracingtest-http-default": {
+            "ambassador_id": "tracingtest",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "name": "tracingtest-http",
+            "namespace": "default"
+        },
+        "k8s-zipkin-default": {
+            "ambassador_id": "tracingtest",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "name": "zipkin",
+            "namespace": "default"
+        }
+    },
+    "tracing_configs": {
+        "tracing": {
+            "ambassador_id": "tracingtest",
+            "apiVersion": "ambassador/v0",
+            "driver": "zipkin",
+            "kind": "TracingService",
+            "name": "tracing",
+            "namespace": "default",
+            "service": "zipkin:9411"
+        }
+    }
+}

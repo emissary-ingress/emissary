@@ -5,12 +5,24 @@ import (
 
 	"github.com/datawire/ambassador/pkg/k8s"
 	"github.com/datawire/ambassador/pkg/supervisor"
+	"github.com/datawire/ambassador/pkg/watt"
 )
 
 type k8sEvent struct {
 	watchId   string
 	kind      string
 	resources []k8s.Resource
+	errors    []watt.Error
+}
+
+// makeErrorEvent returns a k8sEvent that contains one error entry for each
+// message passed in, all attributed to the same source.
+func makeErrorEvent(source string, messages ...string) k8sEvent {
+	errors := make([]watt.Error, len(messages))
+	for idx, message := range messages {
+		errors[idx] = watt.NewError(source, message)
+	}
+	return k8sEvent{errors: errors}
 }
 
 type KubernetesWatchMaker struct {
@@ -118,6 +130,14 @@ func fmtNamespace(ns string) string {
 	}
 
 	return ns
+}
+
+// SaveError emits an error from kubebootstrap with the given message
+func (b *kubebootstrap) SaveError(message string) {
+	evt := makeErrorEvent("kubebootstrap", message)
+	for _, n := range b.notify {
+		n <- evt
+	}
 }
 
 func (b *kubebootstrap) Work(p *supervisor.Process) error {

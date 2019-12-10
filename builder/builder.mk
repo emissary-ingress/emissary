@@ -2,11 +2,13 @@
 #DEV_REGISTRY=localhost:5000
 #DEV_KUBECONFIG=/tmp/k3s.yaml
 
+# Choose colors carefully. If they don't work on both a black 
+# background and a white background, pick other colors (so white,
+# yellow, and black are poor choices).
 RED=\033[1;31m
 GRN=\033[1;32m
-YEL=\033[1;33m
 BLU=\033[1;34m
-WHT=\033[1;37m
+CYN=\033[1;36m
 BLD=\033[1m
 END=\033[0m
 
@@ -16,7 +18,7 @@ module = $(eval MODULES += $(1))$(eval SOURCE_$(1)=$(abspath $(2)))
 
 BUILDER_HOME := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
-BUILDER = $(abspath $(BUILDER_HOME)/builder.sh)
+BUILDER = BUILDER_NAME=$(NAME) $(abspath $(BUILDER_HOME)/builder.sh)
 DBUILD = $(abspath $(BUILDER_HOME)/dbuild.sh)
 
 all: help
@@ -29,7 +31,7 @@ export DOCKER_ERR=$(RED)ERROR: cannot find docker, please make sure docker is in
 
 preflight:
 ifeq ($(strip $(shell $(BUILDER))),)
-	@printf "$(WHT)==$(GRN)Preflight checks$(WHT)==$(END)\n"
+	@printf "$(CYN)==> $(GRN)Preflight checks$(END)\n"
 # Checking for rsync --info
 	test -n "$$(rsync --help | fgrep -- --info)" || (printf "$${RSYNC_ERR}\n"; exit 1)
 # Checking for docker
@@ -37,62 +39,62 @@ ifeq ($(strip $(shell $(BUILDER))),)
 endif
 .PHONY: preflight
 
-sync: preflight base-envoy.docker
+sync: preflight
 	@$(foreach MODULE,$(MODULES),$(BUILDER) sync $(MODULE) $(SOURCE_$(MODULE)) &&) true
+	@test -n "$(DEV_KUBECONFIG)" || (printf "$${KUBECONFIG_ERR}\n"; exit 1)
+	@if [ "$(DEV_KUBECONFIG)" != '-skip-for-release-' ]; then \
+		printf "$(CYN)==> $(GRN)Checking for test cluster$(END)\n" ;\
+		kubectl --kubeconfig $(DEV_KUBECONFIG) -n default get service kubernetes > /dev/null || (printf "$${KUBECTL_ERR}\n"; exit 1) ;\
+		cat $(DEV_KUBECONFIG) | docker exec -i $$($(BUILDER)) sh -c "cat > /buildroot/kubeconfig.yaml" ;\
+	else \
+		printf "$(CYN)==> $(RED)Skipping test cluster checks$(END)\n" ;\
+	fi
+	@if [ -e ~/.docker/config.json ]; then \
+		cat ~/.docker/config.json | docker exec -i $$($(BUILDER)) sh -c "mkdir -p /home/dw/.docker && cat > /home/dw/.docker/config.json" ; \
+	fi
 .PHONY: sync
 
-compile: sync
-	@$(BUILDER) compile $(SOURCES)
+builder:
+	@$(BUILDER) builder
+.PHONY: builder
+
+version:
+	@$(BUILDER) version
+.PHONY: version
+
+compile:
+	@$(MAKE) --no-print-directory sync
+	@$(BUILDER) compile
 .PHONY: compile
 
+SNAPSHOT=snapshot-$(NAME)
+
 commit:
-	@$(BUILDER) commit snapshot
+	@$(BUILDER) commit $(SNAPSHOT)
 .PHONY: commit
 
-# Docker images that are built from the unified ./builder/Dockerfile
-images.builder = $(shell sed -n '/\#external/{N;s/.* as  *//p;}' < $(BUILDER_HOME)/Dockerfile)
+REPO=$(NAME)
 
-images.all += $(images.builder)
-images.cluster += $(images.builder)
-
-images: $(addsuffix .docker.tag.dev,$(images.all))
-.PHONY: images
-snapshot.docker.stamp: compile
+images:
+	@$(MAKE) --no-print-directory compile
 	@$(MAKE) --no-print-directory commit
-	@docker image inspect snapshot --format='{{.Id}}' > $@
-$(addsuffix .docker.stamp,$(images.builder)): %.docker.stamp: snapshot.docker base-envoy.docker
-	@printf "$(WHT)==$(GRN)Building $(BLU)$*$(GRN) image$(WHT)==$(END)\n"
-	@$(DBUILD) $(BUILDER_HOME) --iidfile $@ --build-arg artifacts=$$(cat snapshot.docker) --build-arg envoy=$$(cat base-envoy.docker) --target $*
-%.docker: %.docker.stamp $(COPY_IFCHANGED)
-	@$(COPY_IFCHANGED) $< $@
-# As a special case, don't enforce the "can't change in CI" rule for
-# snapshot.docker, since `docker commit` will bump timestamps.
-snapshot.docker: %.docker: %.docker.stamp $(COPY_IFCHANGED)
-	@CI= $(COPY_IFCHANGED) $< $@
-# Fricking frick, the __pycache__ and .egg files aren't staying the
-# same.  Just take off the seat-belt for now, we need to get a release
-# out.
-ambassador.docker: %.docker: %.docker.stamp $(COPY_IFCHANGED)
-	@CI= $(COPY_IFCHANGED) $< $@
+.PHONY: images
 
-define REGISTRY_ERR
-$(shell printf '$(RED)ERROR: please set the DEV_REGISTRY make/env variable to the docker registry\n       you would like to use for development$(END)\n' >&2)
-$(error error)
-endef
+AMB_IMAGE=$(DEV_REGISTRY)/$(REPO):$(shell docker images -q $(REPO):latest)
+KAT_CLI_IMAGE=$(DEV_REGISTRY)/kat-client:$(shell docker images -q kat-client:latest)
+KAT_SRV_IMAGE=$(DEV_REGISTRY)/kat-server:$(shell docker images -q kat-server:latest)
 
-push: $(addsuffix .docker.push.dev,$(images.cluster))
+export REGISTRY_ERR=$(RED)ERROR: please set the DEV_REGISTRY make/env variable to the docker registry\n       you would like to use for development$(END)
+
+push: images
+	@test -n "$(DEV_REGISTRY)" || (printf "$${REGISTRY_ERR}\n"; exit 1)
+	@$(BUILDER) push $(AMB_IMAGE) $(KAT_CLI_IMAGE) $(KAT_SRV_IMAGE)
 .PHONY: push
 
-export KUBECONFIG_ERR=$(RED)ERROR: please set the $(YEL)DEV_KUBECONFIG$(RED) make/env variable to the docker registry\n       you would like to use for development. Note this cluster must have access\n       to $(YEL)DEV_REGISTRY$(RED) ($(WHT)$(DEV_REGISTRY)$(RED))$(END)
+export KUBECONFIG_ERR=$(RED)ERROR: please set the $(BLU)DEV_KUBECONFIG$(RED) make/env variable to the cluster\n       you would like to use for development. Note this cluster must have access\n       to $(BLU)DEV_REGISTRY$(RED) (currently $(BLD)$(DEV_REGISTRY)$(END)$(RED))$(END)
 export KUBECTL_ERR=$(RED)ERROR: preflight kubectl check failed$(END)
 
 test-ready: push
-	@test -n "$(DEV_KUBECONFIG)" || (printf "$${KUBECONFIG_ERR}\n"; exit 1)
-	@kubectl --kubeconfig $(DEV_KUBECONFIG) -n default get service kubernetes > /dev/null || (printf "$${KUBECTL_ERR}\n"; exit 1)
-	@cat $(DEV_KUBECONFIG) | docker exec -i $(shell $(BUILDER)) sh -c "cat > /buildroot/kubeconfig.yaml"
-	@if [ -e ~/.docker/config.json ]; then \
-		cat ~/.docker/config.json | docker exec -i $(shell $(BUILDER)) sh -c "mkdir -p /home/dw/.docker && cat > /home/dw/.docker/config.json" ; \
-	fi
 # XXX noop target for teleproxy tests
 	@docker exec -w /buildroot/ambassador -i $(shell $(BUILDER)) sh -c "echo bin_linux_amd64/edgectl: > Makefile"
 	@docker exec -w /buildroot/ambassador -i $(shell $(BUILDER)) sh -c "mkdir -p bin_linux_amd64"
@@ -100,30 +102,41 @@ test-ready: push
 .PHONY: test-ready
 
 PYTEST_ARGS ?=
+export PYTEST_ARGS
 
 pytest: test-ready
-	@printf "$(WHT)==$(GRN)Running $(BLU)py$(GRN) tests$(WHT)==$(END)\n"
-	docker exec \
-		-e AMBASSADOR_DOCKER_IMAGE=$$(sed -n 2p ambassador.docker.push.dev) \
-		-e KAT_CLIENT_DOCKER_IMAGE=$$(sed -n 2p kat-client.docker.push.dev) \
-		-e KAT_SERVER_DOCKER_IMAGE=$$(sed -n 2p kat-server.docker.push.dev) \
-		-e TEST_SERVICE_AUTH=$$(sed -n 2p test-auth.docker.push.dev) \
-		-e TEST_SERVICE_AUTH_TLS=$$(sed -n 2p test-auth-tls.docker.push.dev) \
-		-e TEST_SERVICE_RATELIMIT=$$(sed -n 2p test-ratelimit.docker.push.dev) \
-		-e TEST_SERVICE_SHADOW=$$(sed -n 2p test-shadow.docker.push.dev) \
-		-e TEST_SERVICE_STATS=$$(sed -n 2p test-stats.docker.push.dev) \
-		-e KAT_IMAGE_PULL_POLICY=Always \
-		-e KAT_REQ_LIMIT \
-		-it $(shell $(BUILDER)) sh -c 'cd ambassador && pytest --tb=short -ra $(PYTEST_ARGS)'
+	$(MAKE) pytest-only
 .PHONY: pytest
+
+pytest-only: sync
+	@printf "$(CYN)==> $(GRN)Running $(BLU)py$(GRN) tests$(END)\n"
+	docker exec \
+		-e AMBASSADOR_DOCKER_IMAGE=$(AMB_IMAGE) \
+		-e KAT_CLIENT_DOCKER_IMAGE=$(KAT_CLI_IMAGE) \
+		-e KAT_SERVER_DOCKER_IMAGE=$(KAT_SRV_IMAGE) \
+		-e KAT_IMAGE_PULL_POLICY=Always \
+		-e DOCKER_NETWORK=$(NAME) \
+		-e KAT_REQ_LIMIT \
+		-e KAT_RUN_MODE \
+		-e KAT_VERBOSE \
+		-e PYTEST_ARGS \
+		-it $(shell $(BUILDER)) /buildroot/builder.sh pytest-internal
+.PHONY: pytest-only
 
 
 GOTEST_PKGS ?= ./...
+export GOTEST_PKGS
 GOTEST_ARGS ?=
+export GOTEST_ARGS
 
 gotest: test-ready
-	@printf "$(WHT)==$(GRN)Running $(BLU)go$(GRN) tests$(WHT)==$(END)\n"
-	docker exec -w /buildroot/$(MODULE) -e DTEST_REGISTRY=$(DEV_REGISTRY) -e DTEST_KUBECONFIG=/buildroot/kubeconfig.yaml -e GOTEST_PKGS=$(GOTEST_PKGS) -e GOTEST_ARGS=$(GOTEST_ARGS) $(shell $(BUILDER)) /buildroot/builder.sh test-internal
+	@printf "$(CYN)==> $(GRN)Running $(BLU)go$(GRN) tests$(END)\n"
+	docker exec \
+		-e DTEST_REGISTRY=$(DEV_REGISTRY) \
+		-e DTEST_KUBECONFIG=/buildroot/kubeconfig.yaml \
+		-e GOTEST_PKGS \
+		-e GOTEST_ARGS \
+		-it $(shell $(BUILDER)) /buildroot/builder.sh gotest-internal
 .PHONY: gotest
 
 test: gotest pytest
@@ -133,27 +146,86 @@ shell:
 	@$(BUILDER) shell
 .PHONY: shell
 
+AMB_IMAGE_RC=$(RELEASE_REGISTRY)/$(REPO):$(RELEASE_VERSION)
+AMB_IMAGE_RC_LATEST=$(RELEASE_REGISTRY)/$(REPO):$(BUILD_VERSION)-rc-latest
+AMB_IMAGE_RELEASE=$(RELEASE_REGISTRY)/$(REPO):$(BUILD_VERSION)
+
+export RELEASE_REGISTRY_ERR=$(RED)ERROR: please set the RELEASE_REGISTRY make/env variable to the docker registry\n       you would like to use for release$(END)
+
+RELEASE_TYPE=$$($(BUILDER) release-type)
+RELEASE_VERSION=$$($(BUILDER) release-version)
+BUILD_VERSION=$$($(BUILDER) version)
+
+rc: images
+	@test -n "$(RELEASE_REGISTRY)" || (printf "$${RELEASE_REGISTRY_ERR}\n"; exit 1)
+	@if [ "$(RELEASE_TYPE)" = release ]; then \
+		(printf "$(RED)ERROR: 'make rc' can only be used for non-release tags$(END)\n" && exit 1); \
+	fi
+	@printf "$(CYN)==> $(GRN)Pushing release candidate $(BLU)$(REPO)$(GRN) image$(END)\n"
+	docker tag $(REPO) $(AMB_IMAGE_RC)
+	docker push $(AMB_IMAGE_RC)
+	@if [ "$(RELEASE_TYPE)" = rc ]; then \
+		docker tag $(REPO) $(AMB_IMAGE_RC_LATEST) && \
+		docker push $(AMB_IMAGE_RC_LATEST) && \
+		printf "$(GRN)Tagged $(RELEASE_VERSION) as latest RC$(END)\n" ; \
+	fi
+.PHONY: rc
+
+release-prep:
+	bash $(OSS_HOME)/releng/release-prep.sh
+.PHONY: release-prep
+
+release:
+	@test -n "$(RELEASE_REGISTRY)" || (printf "$${RELEASE_REGISTRY_ERR}\n"; exit 1)
+	@$(MAKE) --no-print-directory sync
+	@if [ "$(RELEASE_TYPE)" != release ]; then \
+		(printf "$(RED)ERROR: 'make release' can only be used for release tags ('vX.Y.Z')$(END)\n" && exit 1); \
+	fi
+	@printf "$(CYN)==> $(GRN)Promoting release $(BLU)$(REPO)$(GRN) image$(END)\n"
+	docker pull $(AMB_IMAGE_RC_LATEST)
+	docker tag $(AMB_IMAGE_RC_LATEST) $(AMB_IMAGE_RELEASE)
+	docker push $(AMB_IMAGE_RELEASE)
+.PHONY: release
+
 clean:
 	@$(BUILDER) clean
 .PHONY: clean
 
-clobber: clean $(addsuffix .docker.clean,$(images.all) snapshot)
+clobber:
 	@$(BUILDER) clobber
 .PHONY: clobber
+
+CURRENT_CONTEXT=$(shell kubectl --kubeconfig=$(DEV_KUBECONFIG) config current-context)
+CURRENT_NAMESPACE=$(shell kubectl config view -o=jsonpath="{.contexts[?(@.name==\"$(CURRENT_CONTEXT)\")].context.namespace}")
+
+env:
+	@printf "$(BLD)DEV_KUBECONFIG$(END)=$(BLU)\"$(DEV_KUBECONFIG)\"$(END)"
+	@printf " # Context: $(BLU)$(CURRENT_CONTEXT)$(END), Namespace: $(BLU)$(CURRENT_NAMESPACE)$(END)\n"
+	@printf "$(BLD)DEV_REGISTRY$(END)=$(BLU)\"$(DEV_REGISTRY)\"$(END)\n"
+	@printf "$(BLD)RELEASE_REGISTRY$(END)=$(BLU)\"$(RELEASE_REGISTRY)\"$(END)\n"
+.PHONY: env
 
 help:
 	@printf "$(subst $(NL),\n,$(HELP))\n"
 .PHONY: help
 
+# NOTE: this is not a typo, this is actually how you spell newline in Make
 define NL
 
 
 endef
 
+# NOTE: this is not a typo, this is actually how you spell space in Make
+define SPACE
+ 
+endef
+
+COMMA = ,
+
 define HELP
 
 This Makefile builds Ambassador using a standard build environment inside
-a Docker container. The $(BLD)ambassador$(END), $(BLD)kat-server$(END), and $(BLD)kat-client$(END) images are
+a Docker container. The $(BLD)$(REPO)$(END), $(BLD)kat-server$(END), and $(BLD)kat-client$(END) images are
 created from this container after the build stage is finished.
 
 The build works by maintaining a running build container in the background.
@@ -177,9 +249,13 @@ $(BLD)Targets:$(END)
 
   $(BLD)make $(BLU)help$(END)      -- displays this message.
 
+  $(BLD)make $(BLU)env$(END)       -- display the value of important env vars.
+
   $(BLD)make $(BLU)preflight$(END) -- checks dependencies of this makefile.
 
   $(BLD)make $(BLU)sync$(END)      -- syncs source code into the build container.
+
+  $(BLD)make $(BLU)version$(END)   -- display source code version.
 
   $(BLD)make $(BLU)compile$(END)   -- syncs and compiles the source code in the build container.
 
@@ -203,6 +279,18 @@ $(BLD)Targets:$(END)
     Use $(BLD)\$$PYTEST_ARGS$(END) to pass args to pytest. ($(PYTEST_ARGS))
 
   $(BLD)make $(BLU)shell$(END)     -- starts a shell in the build container.
+
+  $(BLD)make $(BLU)rc$(END)        -- push a release candidate image to $(BLD)\$$RELEASE_REGISTRY$(END). ($(RELEASE_REGISTRY))
+
+    The current commit must be tagged for this to work, and your tree must be clean.
+    If the tag is of the form 'vX.Y.Z-rc[0-9]*', this will also push a tag of the
+    form 'vX.Y.Z-rc-latest'.
+
+  $(BLD)make $(BLU)release$(END)   -- promote a release candidate to a release.
+
+    The current commit must be tagged for this to work, and your tree must be clean.
+    Additionally, the tag must be of the form 'vX.Y.Z'. You must also have previously
+    build an RC for the same tag using the current $(BLD)\$$RELEASE_REGISTRY$(END).
 
   $(BLD)make $(BLU)clean$(END)     -- kills the build container.
 

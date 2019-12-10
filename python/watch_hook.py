@@ -44,6 +44,7 @@ from ambassador import Config, IR
 from ambassador.config.resourcefetcher import ResourceFetcher
 from ambassador.ir.irserviceresolver import IRServiceResolverFactory
 from ambassador.ir.irtls import TLSModuleFactory, IRAmbassadorTLS
+from ambassador.ir.irhost import HostFactory
 from ambassador.ir.irambassador import IRAmbassador
 from ambassador.utils import SecretInfo, SavedSecret, SecretHandler
 
@@ -59,21 +60,36 @@ class SecretRecorder(SecretHandler):
         super().__init__(logger, "-source_root-", "-cache_dir-", "0")
         self.needed: Dict[Tuple[str, str], SecretInfo] = {}
 
-    # Record what was requested, and always return True.
-    def load_secret(self, context: 'IRTLSContext',
+    # Record what was requested, and always return success.
+    def load_secret(self, resource: 'IRResource',
                     secret_name: str, namespace: str) -> Optional[SecretInfo]:
-        self.logger.info(f"SecretRecorder: Trying to load secret {secret_name} in namespace {namespace} from TLSContext {context}")
-        secret_key = ( secret_name, namespace )
+        self.logger.debug("SecretRecorder (%s %s): load secret %s in namespace %s" %
+                          (resource.kind, resource.name, secret_name, namespace))
+
+        return self.record_secret(secret_name, namespace)
+
+    def record_secret(self, secret_name: str, namespace: str) -> Optional[SecretInfo]:
+        secret_key = (secret_name, namespace)
 
         if secret_key not in self.needed:
-            self.needed[secret_key] = SecretInfo(secret_name, namespace, '-crt-', '-key-', decode_b64=False)
-
+            self.needed[secret_key] = SecretInfo(secret_name, namespace, 'needed-secret', '-crt-', '-key-',
+                                                 decode_b64=False)
         return self.needed[secret_key]
 
+    # Secrets that're still needed also get recorded.
+    def still_needed(self, resource: 'IRResource', secret_name: str, namespace: str) -> None:
+        self.logger.debug("SecretRecorder (%s %s): secret %s in namespace %s is still needed" %
+                          (resource.kind, resource.name, secret_name, namespace))
+
+        self.record_secret(secret_name, namespace)
+
     # Never cache anything.
-    def cache_secret(self, context: 'IRTLSContext', secret_info: SecretInfo):
-        return SavedSecret(secret_info.name, secret_info.namespace, '-crt-path-', '-key-path-',
-                           { 'tls_crt': '-crt-', 'tls_key': '-key-' })
+    def cache_secret(self, resource: 'IRResource', secret_info: SecretInfo):
+        self.logger.debug("SecretRecorder (%s %s): skipping cache step for secret %s in namespace %s" %
+                          (resource.kind, resource.name, secret_info.name, secret_info.namespace))
+                          
+        return SavedSecret(secret_info.name, secret_info.namespace, '-crt-path-', '-key-path-', '-user-path-',
+                           { 'tls.crt': '-crt-', 'tls.key': '-key-', 'user.key': '-user-' })
 
 
 # XXX Sooooo there's some ugly stuff here.
@@ -82,55 +98,47 @@ class SecretRecorder(SecretHandler):
 # managing Resolvers and parsing service names. However, we really don't want to
 # do all the work of instantiating an IR.
 #
-# So we kinda fake it. And yeah, it's kind of disgusting.
+# The solution here is to subclass the IR and take advantage of the watch_only
+# initialization keyword, which skips the hard parts of building an IR.
 
 class FakeIR(IR):
-    def __init__(self, logger, aconf):
-        self.ambassador_id = Config.ambassador_id
-        self.ambassador_namespace = Config.ambassador_namespace
-        self.ambassador_nodename = aconf.ambassador_nodename
-
-        self.logger = logger
-        self.aconf = aconf
-
+    def __init__(self, aconf: Config, logger=None) -> None:
         # If we're asked about a secret, record interest in that secret.
-        self.secret_recorder = SecretRecorder(self.logger)
-        self.secret_handler = self.secret_recorder
+        self.secret_recorder = SecretRecorder(logger)
 
         # If we're asked about a file, it's good.
-        self.file_checker = lambda path: True
+        file_checker = lambda path: True
 
-        self.clusters = {}
-        self.grpc_services = {}
-        self.filters = []
-        self.tls_contexts = {}
-        self.tls_module = None
-        self.listeners = []
-        self.log_services = []
-        self.groups = {}
-        self.resolvers = {}
-        self.breakers = {}
-        self.outliers = {}
-        self.services = {}
-        self.tracing = None
-        self.ratelimit = None
-        self.saved_secrets = {}
-        self.secret_info = {}
-        self.k8s_status_updates = {}
-        self.redirect_cleartext_from = None
-
-        self.ambassador_module = IRAmbassador(self, aconf)
-
-        IRServiceResolverFactory.load_all(self, aconf)
-        TLSModuleFactory.load_all(self, aconf)
-        self.save_tls_contexts(aconf)
-
-        self.ambassador_module.finalize(self, aconf)
+        super().__init__(aconf, logger=logger, watch_only=True,
+                         secret_handler=self.secret_recorder, file_checker=file_checker)
 
     # Don't bother actually saving resources that come up when working with
     # the faked modules.
     def save_resource(self, resource: 'IRResource') -> 'IRResource':
         return resource
+
+
+# Watch management
+
+consul_watches = []
+kube_watches = []
+
+
+def add_kube_watch(what: str, kind: str, namespace: Optional[str],
+                   field_selector: Optional[str]=None, label_selector: Optional[str]=None) -> None:
+    watch = { "kind": kind }
+
+    if namespace:
+        watch["namespace"] = namespace
+
+    if field_selector:
+        watch["field-selector"] = field_selector
+
+    if label_selector:
+        watch["label-selector"] = label_selector
+
+    logger.debug(f"{what}: add watch {watch}")
+    kube_watches.append(watch)
 
 
 #### Mainline.
@@ -141,7 +149,7 @@ if args:
     yaml_stream = open(args[0], "r")
 
 aconf = Config()
-fetcher = ResourceFetcher(logger, aconf)
+fetcher = ResourceFetcher(logger, aconf, watch_only=True)
 fetcher.parse_watt(yaml_stream.read())
 
 aconf.load_all(fetcher.sorted())
@@ -150,9 +158,9 @@ aconf.load_all(fetcher.sorted())
 mappings = aconf.get_config('mappings') or {}
 
 # ...but we need the fake IR to deal with resolvers and TLS contexts.
-fake = FakeIR(logger, aconf)
+fake = FakeIR(aconf, logger=logger)
 
-logger.debug("FakeIR: %s" % fake.as_json())
+logger.debug("IR: %s" % fake.as_json())
 
 resolvers = fake.resolvers
 contexts = fake.tls_contexts
@@ -161,13 +169,24 @@ logger.debug(f'mappings: {len(mappings)}')
 logger.debug(f'resolvers: {len(resolvers)}')
 logger.debug(f'contexts: {len(contexts)}')
 
-consul_watches = []
-kube_watches = []
-
 global_resolver = fake.ambassador_module.get('resolver', None)
 
-label_selector = os.environ.get('AMBASSADOR_LABEL_SELECTOR', '')
-logger.debug('label-selector: %s' % label_selector)
+global_label_selector = os.environ.get('AMBASSADOR_LABEL_SELECTOR', '')
+logger.debug('label-selector: %s' % global_label_selector)
+
+# Walk hosts.
+for host in fake.get_hosts():
+    sel = host.get('selector') or {}
+    match_labels = sel.get('matchLabels') or {}
+
+    label_selector = None
+
+    if match_labels:
+        label_selector = ','.join([ f"{l}={v}" for l, v in match_labels.items() ])
+
+    for wanted_kind in [ 'service', 'secret' ]:
+        add_kube_watch(f"Host {host.name}", wanted_kind, host.namespace,
+                       label_selector=label_selector)
 
 for mname, mapping in mappings.items():
     res_name = mapping.get('resolver', None)
@@ -206,39 +225,27 @@ for mname, mapping in mappings.items():
                 host = svc.hostname
                 namespace = Config.ambassador_namespace
 
+                if not host:
+                    # This is really kind of impossible.
+                    logger.error(f"KubernetesEndpointResolver {res_name} has no 'hostname'")
+                    continue
+
                 if "." in host:
                     (host, namespace) = host.split(".", 2)[0:2]
 
                 logger.debug(f'...kube endpoints: svc {svc.hostname} -> host {host} namespace {namespace}')
 
-                kube_watches.append(
-                    {
-                        "kind": "endpoints",
-                        "namespace": namespace,
-                        "label-selector": label_selector,
-                        "field-selector": f'metadata.name={host}'
-                    }
-                )
+                add_kube_watch(f"endpoint", "endpoints", namespace,
+                               label_selector=global_label_selector, field_selector=f"metadata.name={host}")
 
 for secret_key, secret_info in fake.secret_recorder.needed.items():
     logger.debug(f'need secret {secret_info.name}.{secret_info.namespace}')
 
-    kube_watches.append(
-        {
-            "kind": "secret",
-            "namespace": secret_info.namespace,
-            "label-selector": label_selector,
-            "field-selector": f'metadata.name={secret_info.name}'
-        }
-    )
+    add_kube_watch(f"needed secret", "secret", secret_info.namespace, field_selector=f"metadata.name={secret_info.name}")
 
-# kube_watches.append(
-#     {
-#         "kind": "secret",
-#         "namespace": Config.ambassador_namespace if Config.single_namespace else "",
-#         "field-selector": "metadata.namespace!=kube-system,type!=kubernetes.io/service-account-token"
-#     }
-# )
+if fake.edge_stack_allowed:
+    # If the edge stack is allowed, make sure we watch for our fallback context.
+    add_kube_watch("Fallback TLSContext", "TLSContext", namespace=Config.ambassador_namespace)
 
 if ambassador_knative_requested:
     logger.debug('Looking for Knative support...')
@@ -249,24 +256,13 @@ if ambassador_knative_requested:
         # Watch for clusteringresses.networking.internal.knative.dev in any namespace and with any labels.
 
         logger.debug('watching for clusteringresses.networking.internal.knative.dev')
-        kube_watches.append(
-            {
-                'kind': 'clusteringresses.networking.internal.knative.dev',
-                'namespace': ''
-            }
-        )
+        add_kube_watch("Knative clusteringresses", "clusteringresses.networking.internal.knative.dev", None)
 
     if os.path.exists(os.path.join(ambassador_basedir, '.knative_ingress_ok')):
         # Watch for ingresses.networking.internal.knative.dev in any namespace and
         # with any labels.
 
-        logger.debug('watching for ingresses.networking.internal.knative.dev')
-        kube_watches.append(
-            {
-                'kind': 'ingresses.networking.internal.knative.dev',
-                'namespace': ''
-            }
-        )
+        add_kube_watch("Knative ingresses", "ingresses.networking.internal.knative.dev", None)
 
 watchset = {
     "kubernetes-watches": kube_watches,

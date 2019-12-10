@@ -26,7 +26,7 @@ if TYPE_CHECKING:
 class V2Cluster(dict):
     def __init__(self, config: 'V2Config', cluster: IRCluster) -> None:
         super().__init__()
-        
+
         dns_lookup_family = 'V4_ONLY'
 
         if cluster.enable_ipv6:

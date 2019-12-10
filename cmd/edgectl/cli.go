@@ -14,20 +14,29 @@ import (
 
 func (d *Daemon) handleCommand(p *supervisor.Process, conn net.Conn, data *ClientMessage) error {
 	out := NewEmitter(conn)
+	rootCmd := d.getRootCommand(p, out, data)
+	rootCmd.SetOutput(conn) // FIXME replace with SetOut and SetErr
+	rootCmd.PersistentPreRun = func(cmd *cobra.Command, _ []string) {
+		if batch, _ := cmd.Flags().GetBool("batch"); batch {
+			out.SetKV()
+		}
+	}
+	rootCmd.SetArgs(data.Args[1:])
+	err := rootCmd.Execute()
+	if err != nil {
+		out.SendExit(1)
+	}
+	return out.Err()
+}
+
+func (d *Daemon) getRootCommand(p *supervisor.Process, out *Emitter, data *ClientMessage) *cobra.Command {
 	rootCmd := &cobra.Command{
 		Use:          "edgectl",
 		Short:        "Edge Control",
 		SilenceUsage: true, // https://github.com/spf13/cobra/issues/340
-		RunE: func(_ *cobra.Command, _ []string) error {
-			out.Println("Running \"edgectl status\". Use \"edgectl help\" to get help.")
-			if err := d.Status(p, out); err != nil {
-				return err
-			}
-			return out.Err()
-		},
 	}
-	rootCmd.SetOutput(conn) // FIXME replace with SetOut and SetErr
-	rootCmd.SetArgs(data.Args[1:])
+	_ = rootCmd.PersistentFlags().Bool("batch", false, "Emit machine-readable output")
+	_ = rootCmd.PersistentFlags().MarkHidden("batch")
 
 	rootCmd.AddCommand(&cobra.Command{
 		Use:   "version",
@@ -36,29 +45,8 @@ func (d *Daemon) handleCommand(p *supervisor.Process, conn net.Conn, data *Clien
 		RunE: func(_ *cobra.Command, _ []string) error {
 			out.Println("Client", data.ClientVersion)
 			out.Println("Daemon", displayVersion)
-			return out.Err()
-		},
-	})
-	rootCmd.AddCommand(&cobra.Command{
-		Use:    "daemon-foreground",
-		Short:  "Launch Edge Control Daemon in the foreground (debug)",
-		Args:   cobra.ExactArgs(0),
-		Hidden: true,
-		RunE: func(_ *cobra.Command, _ []string) error {
-			out.Println("Daemon", displayVersion, "is already running.")
-			out.Println("Use \"edgectl quit\" to terminate the daemon.")
-			out.SendExit(1)
-			return out.Err()
-		},
-	})
-	rootCmd.AddCommand(&cobra.Command{
-		Use:   "daemon",
-		Short: "Launch Edge Control Daemon in the background (sudo)",
-		Args:  cobra.ExactArgs(0),
-		RunE: func(_ *cobra.Command, _ []string) error {
-			out.Println("Daemon", displayVersion, "is already running.")
-			out.Println("Use \"edgectl quit\" to terminate the daemon.")
-			out.SendExit(1)
+			out.Send("daemon.version", Version)
+			out.Send("daemon.apiVersion", apiVersion)
 			return out.Err()
 		},
 	})
@@ -74,15 +62,83 @@ func (d *Daemon) handleCommand(p *supervisor.Process, conn net.Conn, data *Clien
 		},
 	})
 	rootCmd.AddCommand(&cobra.Command{
-		Use:   "connect [-- additional kubectl arguments...]",
+		Use:   "pause",
+		Short: "Turn off network overrides (to use a VPN)",
+		Args:  cobra.ExactArgs(0),
+		RunE: func(_ *cobra.Command, _ []string) error {
+			if d.network == nil {
+				out.Println("Network overrides are already paused")
+				out.Send("paused", true)
+				return out.Err()
+			}
+			if d.cluster != nil {
+				out.Println("Edge Control is connected to a cluster.")
+				out.Println("See \"edgectl status\" for details.")
+				out.Println("Please disconnect before pausing.")
+				out.Send("paused", false)
+				out.SendExit(1)
+				return out.Err()
+			}
+
+			if err := d.network.Close(); err != nil {
+				p.Logf("pause: %v", err)
+				out.Printf("Unexpected error while pausing: %v\n", err)
+			}
+			d.network = nil
+
+			out.Println("Network overrides paused.")
+			out.Println("Used \"edgectl resume\" to reestablish network overrides.")
+			out.Send("paused", true)
+
+			return out.Err()
+		},
+	})
+	rootCmd.AddCommand(&cobra.Command{
+		Use:     "resume",
+		Short:   "Turn network overrides on (after using edgectl pause)",
+		Aliases: []string{"unpause"},
+		Args:    cobra.ExactArgs(0),
+		RunE: func(_ *cobra.Command, _ []string) error {
+			if d.network != nil {
+				if d.network.IsOkay() {
+					out.Println("Network overrides are established (not paused)")
+				} else {
+					out.Println("Network overrides are being reestablished...")
+				}
+				out.Send("paused", false)
+				return out.Err()
+			}
+
+			if err := d.MakeNetOverride(p); err != nil {
+				p.Logf("resume: %v", err)
+				out.Printf("Unexpected error establishing network overrides: %v", err)
+			}
+			out.Send("paused", d.network == nil)
+
+			return out.Err()
+		},
+	})
+	connectCmd := &cobra.Command{
+		Use:   "connect [flags] [-- additional kubectl arguments...]",
 		Short: "Connect to a cluster",
-		RunE: func(_ *cobra.Command, args []string) error {
-			if err := d.Connect(p, out, data.RAI, args); err != nil {
+		RunE: func(cmd *cobra.Command, args []string) error {
+			context, _ := cmd.Flags().GetString("context")
+			namespace, _ := cmd.Flags().GetString("namespace")
+			if err := d.Connect(p, out, data.RAI, context, namespace, args); err != nil {
 				return err
 			}
 			return out.Err()
 		},
-	})
+	}
+	_ = connectCmd.Flags().StringP(
+		"context", "c", "",
+		"The Kubernetes context to use. Defaults to the current kubectl context.",
+	)
+	_ = connectCmd.Flags().StringP(
+		"namespace", "n", "",
+		"The Kubernetes namespace to use. Defaults to kubectl's default for the context.",
+	)
+	rootCmd.AddCommand(connectCmd)
 	rootCmd.AddCommand(&cobra.Command{
 		Use:   "disconnect",
 		Short: "Disconnect from the connected cluster",
@@ -100,6 +156,7 @@ func (d *Daemon) handleCommand(p *supervisor.Process, conn net.Conn, data *Clien
 		Args:  cobra.ExactArgs(0),
 		RunE: func(_ *cobra.Command, _ []string) error {
 			out.Println("Edge Control Daemon quitting...")
+			out.Send("quit", true)
 			p.Supervisor().Shutdown()
 			return out.Err()
 		},
@@ -110,13 +167,6 @@ func (d *Daemon) handleCommand(p *supervisor.Process, conn net.Conn, data *Clien
 		Long: "Manage deployment intercepts. An intercept arranges for a subset of requests to be " +
 			"diverted to the local machine.",
 		Short: "Manage deployment intercepts",
-		RunE: func(_ *cobra.Command, _ []string) error {
-			out.Println("Running \"edgectl intercept list\". Use \"edgectl intercept --help\" to get help.")
-			if err := d.ListIntercepts(p, out); err != nil {
-				return err
-			}
-			return out.Err()
-		},
 	}
 	interceptCmd.AddCommand(&cobra.Command{
 		Use:     "available",
@@ -124,19 +174,21 @@ func (d *Daemon) handleCommand(p *supervisor.Process, conn net.Conn, data *Clien
 		Short:   "List deployments available for intercept",
 		Args:    cobra.ExactArgs(0),
 		RunE: func(_ *cobra.Command, _ []string) error {
+			msg := d.interceptMessage()
+			if msg != "" {
+				out.Println(msg)
+				out.Send("intercept", msg)
+				return out.Err()
+			}
+			out.Send("interceptable", len(d.trafficMgr.interceptables))
 			switch {
-			case d.cluster == nil:
-				out.Println("Not connected")
-			case d.trafficMgr == nil:
-				out.Println("Intercept unavailable: no traffic manager")
-			case !d.trafficMgr.IsOkay():
-				out.Println("Connecting to traffic manager...")
 			case len(d.trafficMgr.interceptables) == 0:
 				out.Println("No interceptable deployments")
 			default:
 				out.Printf("Found %d interceptable deployment(s):\n", len(d.trafficMgr.interceptables))
 				for idx, deployment := range d.trafficMgr.interceptables {
 					out.Printf("%4d. %s\n", idx+1, deployment)
+					out.Send(fmt.Sprintf("interceptable.deployment.%d", idx+1), deployment)
 				}
 			}
 			return out.Err()
@@ -191,6 +243,7 @@ func (d *Daemon) handleCommand(p *supervisor.Process, conn net.Conn, data *Clien
 			port, err := strconv.Atoi(portStr)
 			if err != nil {
 				out.Printf("Failed to parse %q as HOST:PORT: %v", intercept.TargetHost, err)
+				out.Send("failed", "parse target")
 				out.SendExit(1)
 				return nil
 			}
@@ -211,9 +264,5 @@ func (d *Daemon) handleCommand(p *supervisor.Process, conn net.Conn, data *Clien
 	interceptCmd.AddCommand(interceptAddCmd)
 	rootCmd.AddCommand(interceptCmd)
 
-	err := rootCmd.Execute()
-	if err != nil {
-		out.SendExit(1)
-	}
-	return out.Err()
+	return rootCmd
 }

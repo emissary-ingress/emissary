@@ -1,3 +1,31 @@
+THIS IS OUT OF DATE
+===================
+
+This really hasn't been updated for awhile. Sorry about that. 
+
+To use `copy-gold`:
+
+1. Do a full KAT run:
+   1. Get a cluster.
+   2. Set up `DEV_KUBECONFIG` and `DEV_REGISTRY` to access your cluster.
+   3. `make push pytest KAT_RUN_MODE=envoy`
+   4. **MAKE SURE YOU GET A CLEAN TEST RUN.** This is super-critical.
+
+2. Run `copy-gold /tmp/gold` to copy the snapshot directories of all the Ambassadors running in KAT back to your system in the `/tmp/gold` directory.
+
+3. Compare `/tmp/gold` to `python/tests/gold` and see what, if any, changes have happened.
+   1. New directories should appear **only** if you've added tests.
+   2. Old directories should disappear **only** if you've removed tests.
+   3. Changes to `aconf.json` or `ir.json` files should happen **only** if you've changed test inputs.
+   4. Changes to `envoy.json` files should **really** happen **only** if you've changed things.
+
+4. If there are **any** unexplained changes, **STOP**. Figure out what's going on, fix it, and rerun the steps above.
+
+5. Once there are **no** unintended changes, copy everything from `/tmp/gold` to `python/tests/gold`.
+
+Original Notes
+--------------
+
 *Note*: `flynn/dev/watt` has the watt binary integrated into `entrypoint.sh` and such, so if
 you build Docker images from there you'll get watt running too. The 'copy snapshots and use them
 to mock stuff' bit is still very very relevant.

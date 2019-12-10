@@ -37,6 +37,7 @@ func (lw listWatchAdapter) Watch(options v1.ListOptions) (pwatch.Interface, erro
 	return lw.resource.Watch(options)
 }
 
+// Watcher is a kubernetes watcher that can watch multiple queries simultaneously
 type Watcher struct {
 	Client  *Client
 	watches map[ResourceType]watch
@@ -190,6 +191,7 @@ func (w *Watcher) WatchQuery(query Query, listener func(*Watcher)) error {
 	return nil
 }
 
+// Start starts the watcher
 func (w *Watcher) Start() {
 	w.mutex.Lock()
 	if w.started {
@@ -229,6 +231,7 @@ func (w *Watcher) sync(kind ResourceType) {
 	}
 }
 
+// List lists all the resources with kind `kind`
 func (w *Watcher) List(kind string) []Resource {
 	ri, err := w.Client.ResolveResourceType(kind)
 	if err != nil {
@@ -247,6 +250,7 @@ func (w *Watcher) List(kind string) []Resource {
 	}
 }
 
+// UpdateStatus updates the status of the `resource` provided
 func (w *Watcher) UpdateStatus(resource Resource) (Resource, error) {
 	ri, err := w.Client.ResolveResourceType(resource.QKind())
 	if err != nil {
@@ -276,6 +280,7 @@ func (w *Watcher) UpdateStatus(resource Resource) (Resource, error) {
 	}
 }
 
+// Get gets the `qname` resource (of kind `kind`)
 func (w *Watcher) Get(kind, qname string) Resource {
 	resources := w.List(kind)
 	for _, res := range resources {
@@ -286,6 +291,7 @@ func (w *Watcher) Get(kind, qname string) Resource {
 	return Resource{}
 }
 
+// Exists returns true if the `qname` resource (of kind `kind`) exists
 func (w *Watcher) Exists(kind, qname string) bool {
 	return w.Get(kind, qname).Name() != ""
 }

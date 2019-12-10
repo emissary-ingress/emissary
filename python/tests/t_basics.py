@@ -105,12 +105,6 @@ service: {self.target.path.fqdn}
         assert self.results[0].headers["Server"] == [ "test-server" ]
 
 
-class CliTest(AmbassadorTest):
-    def check(self):
-        cmd = ShellCommand('kubectl', 'exec', self.path.k8s, '--', 'ambassador', '--help')
-        assert cmd.check("ambassador cli")
-
-
 class SafeRegexMapping(AmbassadorTest):
 
     target: ServiceType
@@ -156,7 +150,7 @@ class UnsafeRegexMapping(AmbassadorTest):
     def config(self):
         yield self, self.format("""
 ---
-apiVersion: ambassador/v1
+apiVersion: ambassador/v2
 kind:  Mapping
 name:  {self.name}
 prefix: /{self.name}/
@@ -167,7 +161,7 @@ regex_headers:
   X-Foo: "^[a-z].*"
 service: http://{self.target.path.fqdn}
 ---
-apiVersion: ambassador/v1
+apiVersion: ambassador/v2
 kind:  Module
 name:  ambassador
 config:

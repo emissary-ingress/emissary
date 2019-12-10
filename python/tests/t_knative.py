@@ -28,6 +28,8 @@ spec:
 class Knative071Test(AmbassadorTest):
     target: ServiceType
 
+    no_local_mode = True
+
     def init(self) -> None:
         self.target = HTTP()
 
@@ -58,6 +60,8 @@ class Knative071Test(AmbassadorTest):
 
 class Knative080Test(AmbassadorTest):
     target: ServiceType
+
+    no_local_mode = True
 
     def init(self) -> None:
         self.target = HTTP()

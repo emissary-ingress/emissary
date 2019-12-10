@@ -1,0 +1,151 @@
+{
+    "_errors": {},
+    "_notices": {},
+    "_sources": {
+        "--diagnostics--": {
+            "_referenced_by": {},
+            "apiVersion": "ambassador/v0",
+            "description": "The '--diagnostics--' source marks objects created by Ambassador to assist with diagnostic output.",
+            "kind": "Diagnostics",
+            "location": "--diagnostics--",
+            "name": "Ambassador Diagnostics",
+            "namespace": null,
+            "rkey": "--diagnostics--",
+            "serialization": null,
+            "version": "ambassador/v0"
+        },
+        "--internal--": {
+            "_referenced_by": {},
+            "apiVersion": "ambassador/v0",
+            "description": "The '--internal--' source marks objects created by Ambassador's internal logic.",
+            "kind": "Internal",
+            "location": "--internal--",
+            "name": "Ambassador Internals",
+            "namespace": null,
+            "rkey": "--internal--",
+            "serialization": null,
+            "version": "ambassador/v0"
+        },
+        "k8s-unsaferegexmapping-admin-default": {
+            "_referenced_by": {},
+            "ambassador_id": "unsaferegexmapping",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-unsaferegexmapping-admin-default",
+            "name": "unsaferegexmapping-admin",
+            "namespace": "default",
+            "rkey": "k8s-unsaferegexmapping-admin-default",
+            "serialization": "ambassador_id: unsaferegexmapping\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: unsaferegexmapping-admin\nnamespace: default\n"
+        },
+        "k8s-unsaferegexmapping-default": {
+            "_referenced_by": {},
+            "ambassador_id": "unsaferegexmapping",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-unsaferegexmapping-default",
+            "name": "unsaferegexmapping",
+            "namespace": "default",
+            "rkey": "k8s-unsaferegexmapping-default",
+            "serialization": "ambassador_id: unsaferegexmapping\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: unsaferegexmapping\nnamespace: default\n"
+        },
+        "k8s-unsaferegexmapping-http-default": {
+            "_referenced_by": {},
+            "ambassador_id": "unsaferegexmapping",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-unsaferegexmapping-http-default",
+            "name": "unsaferegexmapping-http",
+            "namespace": "default",
+            "rkey": "k8s-unsaferegexmapping-http-default",
+            "serialization": "ambassador_id: unsaferegexmapping\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: unsaferegexmapping-http\nnamespace: default\n"
+        },
+        "unsaferegexmapping.default.1": {
+            "_referenced_by": {},
+            "ambassador_id": "unsaferegexmapping",
+            "apiVersion": "ambassador/v1",
+            "host": "[a-zA-Z].*",
+            "host_regex": true,
+            "kind": "Mapping",
+            "location": "unsaferegexmapping.default.1",
+            "name": "UnsafeRegexMapping",
+            "namespace": "default",
+            "prefix": "/UnsafeRegexMapping/",
+            "prefix_regex": true,
+            "regex_headers": {
+                "X-Foo": "^[a-z].*"
+            },
+            "rkey": "unsaferegexmapping.default.1",
+            "serialization": "ambassador_id: unsaferegexmapping\napiVersion: ambassador/v1\nhost: '[a-zA-Z].*'\nhost_regex: true\nkind: Mapping\nname: UnsafeRegexMapping\nprefix: /UnsafeRegexMapping/\nprefix_regex: true\nregex_headers:\n  X-Foo: ^[a-z].*\nservice: http://unsaferegexmapping-http\n",
+            "service": "http://unsaferegexmapping-http"
+        },
+        "unsaferegexmapping.default.2": {
+            "_referenced_by": {},
+            "ambassador_id": "unsaferegexmapping",
+            "apiVersion": "ambassador/v1",
+            "config": {
+                "regex_type": "unsafe"
+            },
+            "kind": "Module",
+            "location": "unsaferegexmapping.default.2",
+            "name": "ambassador",
+            "namespace": "default",
+            "rkey": "unsaferegexmapping.default.2",
+            "serialization": "ambassador_id: unsaferegexmapping\napiVersion: ambassador/v1\nconfig:\n  regex_type: unsafe\nkind: Module\nname: ambassador\n"
+        }
+    },
+    "mappings": {
+        "UnsafeRegexMapping": {
+            "ambassador_id": "unsaferegexmapping",
+            "apiVersion": "ambassador/v1",
+            "host": "[a-zA-Z].*",
+            "host_regex": true,
+            "kind": "Mapping",
+            "name": "UnsafeRegexMapping",
+            "namespace": "default",
+            "prefix": "/UnsafeRegexMapping/",
+            "prefix_regex": true,
+            "regex_headers": {
+                "X-Foo": "^[a-z].*"
+            },
+            "service": "http://unsaferegexmapping-http"
+        }
+    },
+    "modules": {
+        "ambassador": {
+            "apiVersion": "ambassador/v1",
+            "kind": "Module",
+            "name": "ambassador",
+            "namespace": "default",
+            "regex_type": "unsafe"
+        }
+    },
+    "service": {
+        "k8s-unsaferegexmapping-admin-default": {
+            "ambassador_id": "unsaferegexmapping",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "name": "unsaferegexmapping-admin",
+            "namespace": "default"
+        },
+        "k8s-unsaferegexmapping-default": {
+            "ambassador_id": "unsaferegexmapping",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "name": "unsaferegexmapping",
+            "namespace": "default"
+        },
+        "k8s-unsaferegexmapping-http-default": {
+            "ambassador_id": "unsaferegexmapping",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "name": "unsaferegexmapping-http",
+            "namespace": "default"
+        }
+    }
+}

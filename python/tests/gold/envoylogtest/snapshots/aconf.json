@@ -1,0 +1,117 @@
+{
+    "_errors": {},
+    "_notices": {},
+    "_sources": {
+        "--diagnostics--": {
+            "_referenced_by": {},
+            "apiVersion": "ambassador/v0",
+            "description": "The '--diagnostics--' source marks objects created by Ambassador to assist with diagnostic output.",
+            "kind": "Diagnostics",
+            "location": "--diagnostics--",
+            "name": "Ambassador Diagnostics",
+            "namespace": null,
+            "rkey": "--diagnostics--",
+            "serialization": null,
+            "version": "ambassador/v0"
+        },
+        "--internal--": {
+            "_referenced_by": {},
+            "apiVersion": "ambassador/v0",
+            "description": "The '--internal--' source marks objects created by Ambassador's internal logic.",
+            "kind": "Internal",
+            "location": "--internal--",
+            "name": "Ambassador Internals",
+            "namespace": null,
+            "rkey": "--internal--",
+            "serialization": null,
+            "version": "ambassador/v0"
+        },
+        "envoylogtest.default.1": {
+            "_referenced_by": {},
+            "ambassador_id": "envoylogtest",
+            "apiVersion": "ambassador/v1",
+            "config": {
+                "envoy_log_format": "MY_REQUEST %RESPONSE_CODE% \"%REQ(:AUTHORITY)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%UPSTREAM_HOST%\"",
+                "envoy_log_path": "/tmp/ambassador/ambassador.log"
+            },
+            "kind": "Module",
+            "location": "envoylogtest.default.1",
+            "name": "ambassador",
+            "namespace": "default",
+            "rkey": "envoylogtest.default.1",
+            "serialization": "ambassador_id: envoylogtest\napiVersion: ambassador/v1\nconfig:\n  envoy_log_format: MY_REQUEST %RESPONSE_CODE% \"%REQ(:AUTHORITY)%\" \"%REQ(USER-AGENT)%\"\n    \"%REQ(X-REQUEST-ID)%\" \"%UPSTREAM_HOST%\"\n  envoy_log_path: /tmp/ambassador/ambassador.log\nkind: Module\nname: ambassador\n"
+        },
+        "k8s-envoylogtest-admin-default": {
+            "_referenced_by": {},
+            "ambassador_id": "envoylogtest",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-envoylogtest-admin-default",
+            "name": "envoylogtest-admin",
+            "namespace": "default",
+            "rkey": "k8s-envoylogtest-admin-default",
+            "serialization": "ambassador_id: envoylogtest\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: envoylogtest-admin\nnamespace: default\n"
+        },
+        "k8s-envoylogtest-default": {
+            "_referenced_by": {},
+            "ambassador_id": "envoylogtest",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-envoylogtest-default",
+            "name": "envoylogtest",
+            "namespace": "default",
+            "rkey": "k8s-envoylogtest-default",
+            "serialization": "ambassador_id: envoylogtest\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: envoylogtest\nnamespace: default\n"
+        },
+        "k8s-envoylogtest-http-default": {
+            "_referenced_by": {},
+            "ambassador_id": "envoylogtest",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-envoylogtest-http-default",
+            "name": "envoylogtest-http",
+            "namespace": "default",
+            "rkey": "k8s-envoylogtest-http-default",
+            "serialization": "ambassador_id: envoylogtest\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: envoylogtest-http\nnamespace: default\n"
+        }
+    },
+    "modules": {
+        "ambassador": {
+            "apiVersion": "ambassador/v1",
+            "envoy_log_format": "MY_REQUEST %RESPONSE_CODE% \"%REQ(:AUTHORITY)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%UPSTREAM_HOST%\"",
+            "envoy_log_path": "/tmp/ambassador/ambassador.log",
+            "kind": "Module",
+            "name": "ambassador",
+            "namespace": "default"
+        }
+    },
+    "service": {
+        "k8s-envoylogtest-admin-default": {
+            "ambassador_id": "envoylogtest",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "name": "envoylogtest-admin",
+            "namespace": "default"
+        },
+        "k8s-envoylogtest-default": {
+            "ambassador_id": "envoylogtest",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "name": "envoylogtest",
+            "namespace": "default"
+        },
+        "k8s-envoylogtest-http-default": {
+            "ambassador_id": "envoylogtest",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "name": "envoylogtest-http",
+            "namespace": "default"
+        }
+    }
+}

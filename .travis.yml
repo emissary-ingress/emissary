@@ -1,9 +1,11 @@
----
-dist: bionic
+language: generic
 
-language: python
-python:
-  - "3.7"
+jobs:
+  include:
+    - os: linux
+      name: "Linux"
+      dist: bionic
+
 addons:
   apt:
     packages:
@@ -26,6 +28,10 @@ services:
 
 env:
   global:
+    - DEV_REGISTRY=quay.io/datawire-dev
+    - RELEASE_REGISTRY=quay.io/datawire-dev
+    # - DBUILD_ARGS="--cache-from ${DEV_REGISTRY}/builder:latest"
+
     # Set from the repository settings:
     #- DOCKER_BUILD_USERNAME=[secure] (optional)
     #- DOCKER_BUILD_PASSWORD=[secure] (optional)
@@ -45,11 +51,13 @@ install:
   - PATH=~/bin:$PATH
   - source ~/.gimme/envs/latest.env
   - export DEV_KUBECONFIG=~/.kube/$(cat ~/kubernaut-claim.txt).yaml
-  - export DEV_REGISTRY=localhost:31000
 
 script:
-  - ./releng/travis-script.sh
+  - docker pull ${DEV_REGISTRY}/builder:latest
+  # XXX temporarily override for testing
+  - DOCKER_RELEASE_USERNAME=datawire-dev+ci DOCKER_RELEASE_PASSWORD=CEAWVNREJHTOAHSOJFJHJZQYI7H9MELSU1RG1CD6XIFAURD5D7Y1N8F8MU0JO912 ./releng/travis-script.sh
 
 after_script:
   # release the kubernaut claim
   - ./releng/travis-cleanup.sh
+  # - docker tag builder:latest ${DEV_REGISTRY}/builder:latest && docker push ${DEV_REGISTRY}/builder:latest

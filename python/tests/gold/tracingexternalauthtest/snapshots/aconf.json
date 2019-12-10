@@ -1,0 +1,222 @@
+{
+    "_errors": {},
+    "_notices": {
+        "tracingexternalauthtest-http.default.1": [
+            "apiVersion ambassador/v0 is deprecated, consider upgrading"
+        ],
+        "tracingexternalauthtest.default.1": [
+            "apiVersion ambassador/v0 is deprecated, consider upgrading"
+        ],
+        "tracingexternalauthtest.default.2": [
+            "apiVersion ambassador/v0 is deprecated, consider upgrading"
+        ]
+    },
+    "_sources": {
+        "--diagnostics--": {
+            "_referenced_by": {},
+            "apiVersion": "ambassador/v0",
+            "description": "The '--diagnostics--' source marks objects created by Ambassador to assist with diagnostic output.",
+            "kind": "Diagnostics",
+            "location": "--diagnostics--",
+            "name": "Ambassador Diagnostics",
+            "namespace": null,
+            "rkey": "--diagnostics--",
+            "serialization": null,
+            "version": "ambassador/v0"
+        },
+        "--internal--": {
+            "_referenced_by": {},
+            "apiVersion": "ambassador/v0",
+            "description": "The '--internal--' source marks objects created by Ambassador's internal logic.",
+            "kind": "Internal",
+            "location": "--internal--",
+            "name": "Ambassador Internals",
+            "namespace": null,
+            "rkey": "--internal--",
+            "serialization": null,
+            "version": "ambassador/v0"
+        },
+        "k8s-tracingexternalauthtest-admin-default": {
+            "_referenced_by": {},
+            "ambassador_id": "tracingexternalauthtest",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-tracingexternalauthtest-admin-default",
+            "name": "tracingexternalauthtest-admin",
+            "namespace": "default",
+            "rkey": "k8s-tracingexternalauthtest-admin-default",
+            "serialization": "ambassador_id: tracingexternalauthtest\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: tracingexternalauthtest-admin\nnamespace: default\n"
+        },
+        "k8s-tracingexternalauthtest-ahttp-auth-default": {
+            "_referenced_by": {},
+            "ambassador_id": "tracingexternalauthtest",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-tracingexternalauthtest-ahttp-auth-default",
+            "name": "tracingexternalauthtest-ahttp-auth",
+            "namespace": "default",
+            "rkey": "k8s-tracingexternalauthtest-ahttp-auth-default",
+            "serialization": "ambassador_id: tracingexternalauthtest\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: tracingexternalauthtest-ahttp-auth\nnamespace: default\n"
+        },
+        "k8s-tracingexternalauthtest-default": {
+            "_referenced_by": {},
+            "ambassador_id": "tracingexternalauthtest",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-tracingexternalauthtest-default",
+            "name": "tracingexternalauthtest",
+            "namespace": "default",
+            "rkey": "k8s-tracingexternalauthtest-default",
+            "serialization": "ambassador_id: tracingexternalauthtest\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: tracingexternalauthtest\nnamespace: default\n"
+        },
+        "k8s-tracingexternalauthtest-http-default": {
+            "_referenced_by": {},
+            "ambassador_id": "tracingexternalauthtest",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-tracingexternalauthtest-http-default",
+            "name": "tracingexternalauthtest-http",
+            "namespace": "default",
+            "rkey": "k8s-tracingexternalauthtest-http-default",
+            "serialization": "ambassador_id: tracingexternalauthtest\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: tracingexternalauthtest-http\nnamespace: default\n"
+        },
+        "k8s-zipkin-auth-default": {
+            "_referenced_by": {},
+            "ambassador_id": "tracingexternalauthtest",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-zipkin-auth-default",
+            "name": "zipkin-auth",
+            "namespace": "default",
+            "rkey": "k8s-zipkin-auth-default",
+            "serialization": "ambassador_id: tracingexternalauthtest\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: zipkin-auth\nnamespace: default\n"
+        },
+        "tracingexternalauthtest-http.default.1": {
+            "_referenced_by": {},
+            "ambassador_id": "tracingexternalauthtest",
+            "apiVersion": "ambassador/v0",
+            "kind": "Mapping",
+            "location": "tracingexternalauthtest-http.default.1",
+            "name": "tracing_target_mapping",
+            "namespace": "default",
+            "prefix": "/target/",
+            "rkey": "tracingexternalauthtest-http.default.1",
+            "serialization": "ambassador_id: tracingexternalauthtest\napiVersion: ambassador/v0\nkind: Mapping\nname: tracing_target_mapping\nprefix: /target/\nservice: tracingexternalauthtest-http\n",
+            "service": "tracingexternalauthtest-http"
+        },
+        "tracingexternalauthtest.default.1": {
+            "_referenced_by": {},
+            "ambassador_id": "tracingexternalauthtest",
+            "apiVersion": "ambassador/v0",
+            "driver": "zipkin",
+            "kind": "TracingService",
+            "location": "tracingexternalauthtest.default.1",
+            "name": "tracing-auth",
+            "namespace": "default",
+            "rkey": "tracingexternalauthtest.default.1",
+            "serialization": "ambassador_id: tracingexternalauthtest\napiVersion: ambassador/v0\ndriver: zipkin\nkind: TracingService\nname: tracing-auth\nservice: zipkin-auth:9411\n",
+            "service": "zipkin-auth:9411"
+        },
+        "tracingexternalauthtest.default.2": {
+            "_referenced_by": {},
+            "allowed_headers": [
+                "Requested-Status",
+                "Requested-Header"
+            ],
+            "ambassador_id": "tracingexternalauthtest",
+            "apiVersion": "ambassador/v0",
+            "auth_service": "tracingexternalauthtest-ahttp-auth",
+            "kind": "AuthService",
+            "location": "tracingexternalauthtest.default.2",
+            "name": "tracingexternalauthtest-ahttp-auth",
+            "namespace": "default",
+            "path_prefix": "/extauth",
+            "rkey": "tracingexternalauthtest.default.2",
+            "serialization": "allowed_headers:\n- Requested-Status\n- Requested-Header\nambassador_id: tracingexternalauthtest\napiVersion: ambassador/v0\nauth_service: tracingexternalauthtest-ahttp-auth\nkind: AuthService\nname: tracingexternalauthtest-ahttp-auth\npath_prefix: /extauth\n"
+        }
+    },
+    "auth_configs": {
+        "tracingexternalauthtest-ahttp-auth": {
+            "allowed_headers": [
+                "Requested-Status",
+                "Requested-Header"
+            ],
+            "ambassador_id": "tracingexternalauthtest",
+            "apiVersion": "ambassador/v0",
+            "auth_service": "tracingexternalauthtest-ahttp-auth",
+            "kind": "AuthService",
+            "name": "tracingexternalauthtest-ahttp-auth",
+            "namespace": "default",
+            "path_prefix": "/extauth"
+        }
+    },
+    "mappings": {
+        "tracing_target_mapping": {
+            "ambassador_id": "tracingexternalauthtest",
+            "apiVersion": "ambassador/v0",
+            "kind": "Mapping",
+            "name": "tracing_target_mapping",
+            "namespace": "default",
+            "prefix": "/target/",
+            "service": "tracingexternalauthtest-http"
+        }
+    },
+    "service": {
+        "k8s-tracingexternalauthtest-admin-default": {
+            "ambassador_id": "tracingexternalauthtest",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "name": "tracingexternalauthtest-admin",
+            "namespace": "default"
+        },
+        "k8s-tracingexternalauthtest-ahttp-auth-default": {
+            "ambassador_id": "tracingexternalauthtest",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "name": "tracingexternalauthtest-ahttp-auth",
+            "namespace": "default"
+        },
+        "k8s-tracingexternalauthtest-default": {
+            "ambassador_id": "tracingexternalauthtest",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "name": "tracingexternalauthtest",
+            "namespace": "default"
+        },
+        "k8s-tracingexternalauthtest-http-default": {
+            "ambassador_id": "tracingexternalauthtest",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "name": "tracingexternalauthtest-http",
+            "namespace": "default"
+        },
+        "k8s-zipkin-auth-default": {
+            "ambassador_id": "tracingexternalauthtest",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "name": "zipkin-auth",
+            "namespace": "default"
+        }
+    },
+    "tracing_configs": {
+        "tracing-auth": {
+            "ambassador_id": "tracingexternalauthtest",
+            "apiVersion": "ambassador/v0",
+            "driver": "zipkin",
+            "kind": "TracingService",
+            "name": "tracing-auth",
+            "namespace": "default",
+            "service": "zipkin-auth:9411"
+        }
+    }
+}

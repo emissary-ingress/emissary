@@ -60,4 +60,9 @@
       </table>
     </div>
   </div>
+  {% if banner_content %}
+  <div class="col-12">
+    {{banner_content|safe}}
+  </div>
+  {% endif %}
 </div>
