@@ -133,7 +133,7 @@ func image(dir, dockerfile string) (string, error) {
 		if registry == "" {
 			return errors.Errorf("please set the DOCKER_REGISTRY environment variable")
 		}
-		tag := fmt.Sprintf("%s/%s", registry, short)
+		tag := fmt.Sprintf("%s/kubeapply:%s", registry, short)
 
 		cmd = p.Command("docker", "tag", iid, tag)
 		err = cmd.Run()

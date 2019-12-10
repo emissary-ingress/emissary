@@ -14,6 +14,8 @@ from ..utils import parse_yaml, dump_yaml
 AnyDict = Dict[str, Any]
 HandlerResult = Optional[Tuple[str, List[AnyDict]]]
 
+# XXX ALL OF THE BELOW COMMENT IS PROBABLY OUT OF DATE. (Flynn, 2019-10-29)
+#
 # Some thoughts:
 # - loading a bunch of Ambassador resources is different from loading a bunch of K8s
 #   services, because we should assume that if we're being a fed a bunch of Ambassador
@@ -37,22 +39,44 @@ HandlerResult = Optional[Tuple[str, List[AnyDict]]]
 # - Endpoint resources probably have just a name, a service name, and an endpoint
 #   address.
 
+CRDTypes = frozenset([
+    'AuthService', 'ConsulResolver', 'Host',
+    'KubernetesEndpointResolver', 'KubernetesServiceResolver',
+    'LogService', 'Mapping', 'Module', 'RateLimitService',
+    'TCPMapping', 'TLSContext', 'TracingService',
+    'clusteringresses.networking.internal.knative.dev',
+    'ingresses.networking.internal.knative.dev'
+])
+
 class ResourceFetcher:
-    def __init__(self, logger: logging.Logger, aconf: 'Config') -> None:
+    def __init__(self, logger: logging.Logger, aconf: 'Config',
+                 skip_init_dir: bool=False, watch_only=False) -> None:
         self.aconf = aconf
         self.logger = logger
         self.elements: List[ACResource] = []
         self.filename: Optional[str] = None
         self.ocount: int = 1
         self.saved: List[Tuple[Optional[str], int]] = []
+        self.watch_only = watch_only
 
         self.k8s_endpoints: Dict[str, AnyDict] = {}
         self.k8s_services: Dict[str, AnyDict] = {}
         self.services: Dict[str, AnyDict] = {}
         self.ambassador_service_raw: AnyDict = {}
 
+        self.alerted_about_labels = False
+
         # Ugh. Should we worry about multiple Helm charts for a single Ambassador?
         self.helm_chart: Optional[str] = None
+
+        if not skip_init_dir:
+            # Check /ambassador/init-config for initialization resources -- note NOT
+            # $AMBASSADOR_CONFIG_BASE_DIR/init-config! This is compile-time stuff that
+            # doesn't move around if you change the configuration base.
+            init_dir = '/ambassador/init-config'
+
+            if os.path.isdir(init_dir):
+                self.load_from_filesystem(init_dir, k8s=True, recurse=True, finalize=False)
 
     @property
     def location(self):
@@ -113,7 +137,8 @@ class ResourceFetcher:
             self.finalize()
 
     def parse_yaml(self, serialization: str, k8s=False, rkey: Optional[str]=None,
-                   filename: Optional[str]=None, finalize: bool=True) -> None:
+                   filename: Optional[str]=None, finalize: bool=True, namespace: Optional[str]=None,
+                   metadata_labels: Optional[Dict[str, str]]=None) -> None:
         # self.logger.debug("%s: parsing %d byte%s of YAML:\n%s" %
         #                   (self.location, len(serialization), "" if (len(serialization) == 1) else "s",
         #                    serialization))
@@ -122,8 +147,10 @@ class ResourceFetcher:
         serialization = os.path.expandvars(serialization)
 
         try:
+            # UGH. This parse_yaml is the one we imported from utils. XXX This needs to be fixed.
             objects = parse_yaml(serialization)
-            self.parse_object(objects=objects, k8s=k8s, rkey=rkey, filename=filename)
+            self.parse_object(objects=objects, k8s=k8s, rkey=rkey, filename=filename,
+                              namespace=namespace)
         except yaml.error.YAMLError as e:
             self.aconf.post_error("%s: could not parse YAML: %s" % (self.location, e))
 
@@ -157,6 +184,12 @@ class ResourceFetcher:
         if os.path.isfile(os.path.join(basedir, '.ambassador_ignore_crds_2')):
             self.aconf.post_error("Ambassador could not find Resolver type CRD definitions. Please visit https://www.getambassador.io/reference/core/crds/ for more information. You can continue using Ambassador via Kubernetes annotations, any configuration via CRDs will be ignored...")
 
+        if os.path.isfile(os.path.join(basedir, '.ambassador_ignore_crds_3')):
+            self.aconf.post_error("Ambassador could not find the Host CRD definition. Please visit https://www.getambassador.io/reference/core/crds/ for more information. You can continue using Ambassador via Kubernetes annotations, any configuration via CRDs will be ignored...")
+
+        if os.path.isfile(os.path.join(basedir, '.ambassador_ignore_crds_4')):
+            self.aconf.post_error("Ambassador could not find the LogService CRD definition. Please visit https://www.getambassador.io/reference/core/crds/ for more information. You can continue using Ambassador via Kubernetes annotations, any configuration via CRDs will be ignored...")
+
         if os.path.isfile(os.path.join(basedir, '.ambassador_ignore_ingress')):
             self.aconf.post_error("Ambassador is not permitted to read Ingress resources. Please visit https://www.getambassador.io/user-guide/ingress-controller/ for more information. You can continue using Ambassador, but Ingress resources will be ignored...")
         
@@ -171,18 +204,13 @@ class ResourceFetcher:
             # Handle normal Kube objects...
             for key in [ 'service', 'endpoints', 'secret', 'ingresses' ]:
                 for obj in watt_k8s.get(key) or []:
-                    self.logger.debug(f"Handling Kubernetes {key}...")
+                    # self.logger.debug(f"Handling Kubernetes {key}...")
                     self.handle_k8s(obj)
 
             # ...then handle Ambassador CRDs.
-            for key in [ 'AuthService', 'ConsulResolver',
-                         'KubernetesEndpointResolver', 'KubernetesServiceResolver',
-                         'LoggingService', 'Mapping', 'Module', 'RateLimitService',
-                         'TCPMapping', 'TLSContext', 'TracingService',
-                         'clusteringresses.networking.internal.knative.dev',
-                         'ingresses.networking.internal.knative.dev']:
+            for key in CRDTypes:
                 for obj in watt_k8s.get(key) or []:
-                    self.logger.debug(f"Handling CRD {key}...")
+                    # self.logger.debug(f"Handling CRD {key}...")
                     self.handle_k8s_crd(obj)
 
             watt_consul = watt_dict.get('Consul', {})
@@ -211,12 +239,20 @@ class ResourceFetcher:
             # self.logger.debug("%s: ignoring K8s object, no kind" % self.location)
             return
 
-        handler_name = f'handle_k8s_{kind.lower()}'
-        self.logger.debug(f"looking for handler {handler_name}")
-        handler = getattr(self, handler_name, None)
+        metadata = obj.get('metadata') or {}
+        name = metadata.get('name') or '(no name?)'
+
+        handler = None
+
+        if kind in CRDTypes:
+            handler = self.handle_k8s_crd
+        else:
+            handler_name = f'handle_k8s_{kind.lower()}'
+            # self.logger.debug(f"looking for handler {handler_name} for K8s {kind} {name}")
+            handler = getattr(self, handler_name, None)
 
         if not handler:
-            # self.logger.debug("%s: ignoring K8s object, no kind" % self.location)
+            self.logger.debug(f"{self.location}: skipping K8s {kind}")
             return
 
         result = handler(obj)
@@ -224,13 +260,11 @@ class ResourceFetcher:
         if result:
             rkey, parsed_objects = result
 
-            self.parse_object(parsed_objects, k8s=False,
-                              filename=self.filename, rkey=rkey)
+            self.parse_object(parsed_objects, k8s=False, filename=self.filename, rkey=rkey)
 
     def handle_k8s_crd(self, obj: dict) -> None:
         # CRDs are _not_ allowed to have embedded objects in annotations, because ew.
-
-        self.logger.debug(f"Handling K8s CRD: {obj}")
+        # self.logger.debug(f"Handling K8s CRD: {obj}")
 
         kind = obj.get('kind')
 
@@ -242,8 +276,14 @@ class ResourceFetcher:
         metadata = obj.get('metadata') or {}
         name = metadata.get('name')
         namespace = metadata.get('namespace') or 'default'
+        metadata_labels: Optional[Dict[str, str]] = metadata.get('labels')
         generation = metadata.get('generation', 1)
         spec = obj.get('spec') or {}
+
+        # Replace a sentinel value with the namespace of this ambassador pod.
+        # This allows hard-coded initialization resources to have a useful namespace.
+        if namespace == "_automatic_":
+            namespace = Config.ambassador_namespace
 
         if not apiVersion:
             # I think this is impossible.
@@ -276,19 +316,27 @@ class ResourceFetcher:
         # ...and then stuff in a couple of other things.
         amb_object['apiVersion'] = apiVersion
         amb_object['name'] = name
+        amb_object['namespace'] = namespace
         amb_object['kind'] = kind
         amb_object['generation'] = generation
+        amb_object['metadata_labels'] = {}
+
+        if metadata_labels:
+            amb_object['metadata_labels'] = metadata_labels
+
+        amb_object['metadata_labels']['ambassador_crd'] = resource_identifier
 
         # Done. Parse it.
         self.parse_object([ amb_object ], k8s=False, filename=self.filename, rkey=resource_identifier)
 
-    def parse_object(self, objects, k8s=False, rkey: Optional[str]=None, filename: Optional[str]=None):
+    def parse_object(self, objects, k8s=False, rkey: Optional[str]=None,
+                     filename: Optional[str]=None, namespace: Optional[str]=None):
         self.push_location(filename, 1)
 
         # self.logger.debug("PARSE_OBJECT: incoming %d" % len(objects))
 
         for obj in objects:
-            self.logger.debug("PARSE_OBJECT: checking %s" % obj)
+            # self.logger.debug("PARSE_OBJECT: checking %s" % obj)
 
             if k8s:
                 self.handle_k8s(obj)
@@ -296,12 +344,12 @@ class ResourceFetcher:
                 # if not obj:
                 #     self.logger.debug("%s: empty object from %s" % (self.location, serialization))
 
-                self.process_object(obj, rkey=rkey)
+                self.process_object(obj, rkey=rkey, namespace=namespace)
                 self.ocount += 1
 
         self.pop_location()
 
-    def process_object(self, obj: dict, rkey: Optional[str]=None) -> None:
+    def process_object(self, obj: dict, rkey: Optional[str]=None, namespace: Optional[str]=None) -> None:
         if not isinstance(obj, dict):
             # Bug!!
             if not obj:
@@ -344,6 +392,10 @@ class ResourceFetcher:
 
         # self.logger.debug("%s PROCESS %s updated rkey to %s" % (self.location, obj['kind'], rkey))
 
+        # Force the namespace and metadata_labels, if need be.
+        if namespace and not obj.get('namespace', None):
+            obj['namespace'] = namespace
+
         # Brutal hackery.
         if obj['kind'] == 'Service':
             self.logger.debug("%s PROCESS saving service %s" % (self.location, obj['name']))
@@ -365,6 +417,7 @@ class ResourceFetcher:
 
     def handle_k8s_ingress(self, k8s_object: AnyDict) -> HandlerResult:
         metadata = k8s_object.get('metadata', None)
+        metadata_labels: Optional[Dict[str, str]] = metadata.get('labels')
         ingress_name = metadata.get('name') if metadata else None
         ingress_namespace = metadata.get('namespace', 'default') if metadata else None
 
@@ -395,7 +448,7 @@ class ResourceFetcher:
         if skip:
             return None
 
-        # Let's see if our Ingress resource has Ambassdaor annotations on it
+        # Let's see if our Ingress resource has Ambassador annotations on it
         annotations = metadata.get('annotations', {})
         ambassador_annotations = annotations.get('getambassador.io/config', None)
 
@@ -405,7 +458,7 @@ class ResourceFetcher:
                 self.filename += ":annotation"
 
             try:
-                parsed_ambassador_annotations = parse_yaml(ambassador_annotations)
+                parsed_ambassador_annotations = parse_yaml(ambassador_annotations, namespace=ingress_namespace)
             except yaml.error.YAMLError as e:
                 self.logger.debug("could not parse YAML: %s" % e)
 
@@ -426,7 +479,7 @@ class ResourceFetcher:
 
             if tls_secret is not None:
                 ingress_tls_context: Dict[str, Any] = {
-                    'apiVersion': 'ambassador/v1',
+                    'apiVersion': 'getambassador.io/v2',
                     'kind': 'TLSContext',
                     'metadata': {
                         'name': tls_unique_identifier,
@@ -437,6 +490,9 @@ class ResourceFetcher:
                         'ambassador_id': ambassador_id
                     }
                 }
+
+                if metadata_labels:
+                    ingress_tls_context['metadata']['labels'] = metadata_labels
 
                 tls_hosts = tls.get('hosts', None)
                 if tls_hosts is not None:
@@ -453,7 +509,7 @@ class ResourceFetcher:
             db_mapping_identifier = f"{ingress_name}-default-backend"
 
             default_backend_mapping = {
-                'apiVersion': 'ambassador/v1',
+                'apiVersion': 'getambassador.io/v2',
                 'kind': 'Mapping',
                 'metadata': {
                     'name': db_mapping_identifier,
@@ -465,6 +521,9 @@ class ResourceFetcher:
                     'service': f'{db_service_name}.{ingress_namespace}:{db_service_port}'
                 }
             }
+
+            if metadata_labels:
+                default_backend_mapping['metadata']['labels'] = metadata_labels
 
             self.logger.info(f"Generated mapping from Ingress {ingress_name}: {default_backend_mapping}")
             self.handle_k8s_crd(default_backend_mapping)
@@ -491,7 +550,7 @@ class ResourceFetcher:
                 mapping_identifier = f"{ingress_name}-{unique_suffix}"
 
                 path_mapping: Dict[str, Any] = {
-                    'apiVersion': 'ambassador/v1',
+                    'apiVersion': 'getambassador.io/v2',
                     'kind': 'Mapping',
                     'metadata': {
                         'name': mapping_identifier,
@@ -503,6 +562,9 @@ class ResourceFetcher:
                         'service': f'{service_name}.{ingress_namespace}:{service_port}'
                     }
                 }
+
+                if metadata_labels:
+                    path_mapping['metadata']['labels'] = metadata_labels
 
                 if rule_host is not None:
                     path_mapping['spec']['host'] = rule_host
@@ -520,11 +582,18 @@ class ResourceFetcher:
             self.aconf.k8s_status_updates[ingress_name] = ingress_status_update
 
         if parsed_ambassador_annotations is not None:
+            # Copy metadata_labels to parsed annotations, if need be.
+            if metadata_labels:
+                for p in parsed_ambassador_annotations:
+                    if p.get('metadata_labels') is None:
+                        p['metadata_labels'] = metadata_labels
+
             return resource_identifier, parsed_ambassador_annotations
 
         return None
 
     def is_ambassador_service(self, service_labels, service_selector):
+        # self.logger.info(f"is_ambassador_service checking {service_labels} - {service_selector}")
 
         # Every Ambassador service must have the label 'app.kubernetes.io/component: ambassador-service'
         if service_labels is None:
@@ -538,7 +607,11 @@ class ResourceFetcher:
         # We do this by checking that the pod's labels match the selector in the service.
         pod_labels_path = '/tmp/ambassador-pod-info/labels'
         if not os.path.isfile(pod_labels_path):
-            self.aconf.post_error(f"pod labels are not mounted in Ambassador container, please check pod configuration")
+            if not self.alerted_about_labels:
+                self.aconf.post_error(f"Pod labels are not mounted in the Ambassador container; Kubernetes Ingress support is likely to be limited")
+                self.alerted_about_labels = True
+
+            return False
 
         with open(pod_labels_path) as pod_labels_file:
             pod_labels = pod_labels_file.readlines()
@@ -555,6 +628,7 @@ class ResourceFetcher:
             return None
 
         metadata = k8s_object.get('metadata', None)
+        metadata_labels: Optional[Dict[str, str]] = metadata.get('labels')
         resource_name = metadata.get('name') if metadata else None
         resource_namespace = metadata.get('namespace', 'default') if metadata else None
         resource_subsets = k8s_object.get('subsets', None)
@@ -665,6 +739,10 @@ class ResourceFetcher:
                     'addresses': addresses,
                     'ports': port_dict
                 }
+
+                if metadata_labels:
+                    self.k8s_endpoints[resource_identifier]['metadata_labels'] = metadata_labels
+
             else:
                 self.logger.debug(f"ignoring K8s Endpoints {resource_identifier} with no routable ports")
 
@@ -678,6 +756,7 @@ class ResourceFetcher:
         # Again, we're trusting that the input isn't overly bloated on that latter bit.
 
         metadata = k8s_object.get('metadata', None)
+        metadata_labels: Optional[Dict[str, str]] = metadata.get('labels')
         resource_name = metadata.get('name') if metadata else None
         resource_namespace = metadata.get('namespace', 'default') if metadata else None
 
@@ -728,6 +807,9 @@ class ResourceFetcher:
                 'ports': ports
             }
 
+            if metadata_labels:
+                self.k8s_services[resource_identifier]['metadata_labels'] = metadata_labels
+
             selector = spec.get('selector', {})
 
             if self.is_ambassador_service(labels, selector):
@@ -744,7 +826,12 @@ class ResourceFetcher:
                 self.filename += ":annotation"
 
             try:
-                objects = parse_yaml(annotations)
+                objects = parse_yaml(annotations, namespace=resource_namespace)
+
+                if metadata_labels:
+                    for obj in objects:
+                        if obj.get('metadata_labels') is None:
+                            obj['metadata_labels'] = metadata_labels
             except yaml.error.YAMLError as e:
                 self.logger.debug("could not parse YAML: %s" % e)
 
@@ -756,6 +843,7 @@ class ResourceFetcher:
 
         secret_type = k8s_object.get('type', None)
         metadata = k8s_object.get('metadata', None)
+        metadata_labels: Optional[Dict[str, str]] = metadata.get('labels')
         resource_name = metadata.get('name') if metadata else None
         resource_namespace = metadata.get('namespace', 'default') if metadata else None
         data = k8s_object.get('data', None)
@@ -790,10 +878,14 @@ class ResourceFetcher:
         # This resource identifier is useful for log output since filenames can be duplicated (multiple subdirectories)
         resource_identifier = f'{resource_name}.{resource_namespace}'
 
-        tls_crt = data.get('tls.crt', None)
-        tls_key = data.get('tls.key', None)
+        found_any = False
 
-        if not tls_crt and not tls_key:
+        for key in [ 'tls.crt', 'tls.key', 'user.key' ]:
+            if data.get(key, None):
+                found_any = True
+                break
+
+        if not found_any:
             # Uh. WTFO?
             self.logger.debug(f'ignoring K8s Secret {resource_identifier} with no keys')
             return None
@@ -801,18 +893,19 @@ class ResourceFetcher:
         # No need to muck about with resolution later, just immediately turn this
         # into an Ambassador Secret resource.
         secret_info = {
-            'apiVersion': 'ambassador/v1',
+            'apiVersion': 'getambassador.io/v2',
             'ambassador_id': Config.ambassador_id,
             'kind': 'Secret',
             'name': resource_name,
-            'namespace': resource_namespace
+            'namespace': resource_namespace,
+            'secret_type': secret_type
         }
 
-        if tls_crt:
-            secret_info['tls_crt'] = tls_crt
+        if metadata_labels:
+            secret_info['metadata_labels'] = metadata_labels
 
-        if tls_key:
-            secret_info['tls_key'] = tls_key
+        for key, value in data.items():
+            secret_info[key.replace('.', '_')] = value
 
         return resource_identifier, [ secret_info ]
 
@@ -836,7 +929,7 @@ class ResourceFetcher:
         # That's a function of the watch_hook putting it there.
 
         svc = {
-            'apiVersion': 'ambassador/v1',
+            'apiVersion': 'getambassador.io/v2',
             'ambassador_id': Config.ambassador_id,
             'kind': 'Service',
             'name': name,
@@ -897,134 +990,137 @@ class ResourceFetcher:
         # self.logger.debug("==== FINALIZE START\n%s" % json.dumps(od, sort_keys=True, indent=4))
 
         for key, k8s_svc in self.k8s_services.items():
-            # See if we can find endpoints for this service.
-            k8s_ep = self.k8s_endpoints.get(key, None)
-            k8s_ep_ports = k8s_ep.get('ports', None) if k8s_ep else None
-
             k8s_name = k8s_svc['name']
             k8s_namespace = k8s_svc['namespace']
-
-            # OK, Kube is weird. The way all this works goes like this:
-            #
-            # 1. When you create a Kube Service, Kube will allocate a clusterIP
-            #    for it and update DNS to resolve the name of the service to
-            #    that clusterIP.
-            # 2. Kube will look over the pods matched by the Service's selectors
-            #    and stick those pods' IP addresses into Endpoints for the Service.
-            # 3. The Service will have ports listed. These service.port entries can
-            #    contain:
-            #      port -- a port number you can talk to at the clusterIP
-            #      name -- a name for this port
-            #      targetPort -- a port number you can talk to at the _endpoint_ IP
-            #    We'll call the 'port' entry here the "service-port".
-            # 4. If you talk to clusterIP:service-port, you will get magically
-            #    proxied by the Kube CNI to a target port at one of the endpoint IPs.
-            #
-            # The $64K question is: how does Kube decide which target port to use?
-            #
-            # First, if there's only one endpoint port, that's the one that gets used.
-            #
-            # If there's more than one, if the Service's port entry has a targetPort
-            # number, it uses that. Otherwise it tries to find an endpoint port with
-            # the same name as the service port. Otherwise, I dunno, it punts and uses
-            # the service-port.
-            #
-            # So that's how Ambassador is going to do it, for each Service port entry.
-            #
-            # If we have no endpoints at all, Ambassador will end up routing using
-            # just the service name and port per the Mapping's service spec.
+            k8s_metadata_labels = k8s_svc.get('metadata_labels', None)
 
             target_ports = {}
             target_addrs = []
             svc_endpoints = {}
 
-            if not k8s_ep or not k8s_ep_ports:
-                # No endpoints at all, so we're done with this service.
-                self.logger.debug(f'{key}: no endpoints at all')
-            else:
-                idx = -1
+            if not self.watch_only:
+                # If we're not in watch mode, try to find endpoints for this service.
 
-                for port in k8s_svc['ports']:
-                    idx += 1
+                k8s_ep = self.k8s_endpoints.get(key, None)
+                k8s_ep_ports = k8s_ep.get('ports', None) if k8s_ep else None
 
-                    k8s_target: Optional[int] = None
+                # OK, Kube is weird. The way all this works goes like this:
+                #
+                # 1. When you create a Kube Service, Kube will allocate a clusterIP
+                #    for it and update DNS to resolve the name of the service to
+                #    that clusterIP.
+                # 2. Kube will look over the pods matched by the Service's selectors
+                #    and stick those pods' IP addresses into Endpoints for the Service.
+                # 3. The Service will have ports listed. These service.port entries can
+                #    contain:
+                #      port -- a port number you can talk to at the clusterIP
+                #      name -- a name for this port
+                #      targetPort -- a port number you can talk to at the _endpoint_ IP
+                #    We'll call the 'port' entry here the "service-port".
+                # 4. If you talk to clusterIP:service-port, you will get magically
+                #    proxied by the Kube CNI to a target port at one of the endpoint IPs.
+                #
+                # The $64K question is: how does Kube decide which target port to use?
+                #
+                # First, if there's only one endpoint port, that's the one that gets used.
+                #
+                # If there's more than one, if the Service's port entry has a targetPort
+                # number, it uses that. Otherwise it tries to find an endpoint port with
+                # the same name as the service port. Otherwise, I dunno, it punts and uses
+                # the service-port.
+                #
+                # So that's how Ambassador is going to do it, for each Service port entry.
+                #
+                # If we have no endpoints at all, Ambassador will end up routing using
+                # just the service name and port per the Mapping's service spec.
 
-                    src_port = port.get('port', None)
+                if not k8s_ep or not k8s_ep_ports:
+                    # No endpoints at all, so we're done with this service.
+                    self.logger.debug(f'{key}: no endpoints at all')
+                else:
+                    idx = -1
 
-                    if not src_port:
-                        # WTFO. This is impossible.
-                        self.logger.error(f"Kubernetes service {key} has no port number at index {idx}?")
-                        continue
+                    for port in k8s_svc['ports']:
+                        idx += 1
 
-                    if len(k8s_ep_ports) == 1:
-                        # Just one endpoint port. Done.
-                        k8s_target = list(k8s_ep_ports.values())[0]
+                        k8s_target: Optional[int] = None
+
+                        src_port = port.get('port', None)
+
+                        if not src_port:
+                            # WTFO. This is impossible.
+                            self.logger.error(f"Kubernetes service {key} has no port number at index {idx}?")
+                            continue
+
+                        if len(k8s_ep_ports) == 1:
+                            # Just one endpoint port. Done.
+                            k8s_target = list(k8s_ep_ports.values())[0]
+                            target_ports[src_port] = k8s_target
+
+                            self.logger.debug(f'{key} port {src_port}: single endpoint port {k8s_target}')
+                            continue
+
+                        # Hmmm, we need to try to actually map whatever ports are listed for
+                        # this service. Oh well.
+
+                        found_key = False
+                        fallback: Optional[int] = None
+
+                        for attr in [ 'targetPort', 'name', 'port' ]:
+                            port_key = port.get(attr)   # This could be a name or a number, in general.
+
+                            if port_key:
+                                found_key = True
+
+                                if not fallback and (port_key != 'name') and str(port_key).isdigit():
+                                    # fallback can only be digits.
+                                    fallback = port_key
+
+                                # Do we have a destination port for this?
+                                k8s_target = k8s_ep_ports.get(str(port_key), None)
+
+                                if k8s_target:
+                                    self.logger.debug(f'{key} port {src_port} #{idx}: {attr} {port_key} -> {k8s_target}')
+                                    break
+                                else:
+                                    self.logger.debug(f'{key} port {src_port} #{idx}: {attr} {port_key} -> miss')
+
+                        if not found_key:
+                            # WTFO. This is impossible.
+                            self.logger.error(f"Kubernetes service {key} port {src_port} has an empty port spec at index {idx}?")
+                            continue
+
+                        if not k8s_target:
+                            # This is most likely because we don't have endpoint info at all, so we'll do service
+                            # routing.
+                            #
+                            # It's actually impossible for fallback to be unset, but WTF.
+                            k8s_target = fallback or src_port
+
+                            self.logger.debug(f'{key} port {src_port} #{idx}: falling back to {k8s_target}')
+
                         target_ports[src_port] = k8s_target
 
-                        self.logger.debug(f'{key} port {src_port}: single endpoint port {k8s_target}')
-                        continue
+                    if not target_ports:
+                        # WTFO. This is impossible. I guess we'll fall back to service routing.
+                        self.logger.error(f"Kubernetes service {key} has no routable ports at all?")
 
-                    # Hmmm, we need to try to actually map whatever ports are listed for
-                    # this service. Oh well.
+                    # OK. Once _that's_ done we have to take the endpoint addresses into
+                    # account, or just use the service name if we don't have that.
 
-                    found_key = False
-                    fallback: Optional[int] = None
+                    k8s_ep_addrs = k8s_ep.get('addresses', None)
 
-                    for attr in [ 'targetPort', 'name', 'port' ]:
-                        port_key = port.get(attr)   # This could be a name or a number, in general.
+                    if k8s_ep_addrs:
+                        for addr in k8s_ep_addrs:
+                            ip = addr.get('ip', None)
 
-                        if port_key:
-                            found_key = True
-
-                            if not fallback and (port_key != 'name') and str(port_key).isdigit():
-                                # fallback can only be digits.
-                                fallback = port_key
-
-                            # Do we have a destination port for this?
-                            k8s_target = k8s_ep_ports.get(str(port_key), None)
-
-                            if k8s_target:
-                                self.logger.debug(f'{key} port {src_port} #{idx}: {attr} {port_key} -> {k8s_target}')
-                                break
-                            else:
-                                self.logger.debug(f'{key} port {src_port} #{idx}: {attr} {port_key} -> miss')
-
-                    if not found_key:
-                        # WTFO. This is impossible.
-                        self.logger.error(f"Kubernetes service {key} port {src_port} has an empty port spec at index {idx}?")
-                        continue
-
-                    if not k8s_target:
-                        # This is most likely because we don't have endpoint info at all, so we'll do service
-                        # routing.
-                        #
-                        # It's actually impossible for fallback to be unset, but WTF.
-                        k8s_target = fallback or src_port
-
-                        self.logger.debug(f'{key} port {src_port} #{idx}: falling back to {k8s_target}')
-
-                    target_ports[src_port] = k8s_target
-
-                if not target_ports:
-                    # WTFO. This is impossible. I guess we'll fall back to service routing.
-                    self.logger.error(f"Kubernetes service {key} has no routable ports at all?")
-
-                # OK. Once _that's_ done we have to take the endpoint addresses into
-                # account, or just use the service name if we don't have that.
-
-                k8s_ep_addrs = k8s_ep.get('addresses', None)
-
-                if k8s_ep_addrs:
-                    for addr in k8s_ep_addrs:
-                        ip = addr.get('ip', None)
-
-                        if ip:
-                            target_addrs.append(ip)
+                            if ip:
+                                target_addrs.append(ip)
 
             # OK! If we have no target addresses, just use service routing.
-
             if not target_addrs:
-                self.logger.debug(f'{key} falling back to service routing')
+                if not self.watch_only:
+                    self.logger.debug(f'{key} falling back to service routing')
                 target_addrs = [ key ]
 
             for src_port, target_port in target_ports.items():
@@ -1033,15 +1129,19 @@ class ResourceFetcher:
                     'port': target_port
                 } for target_addr in target_addrs ]
 
-            # Nope. Set this up for service routing.
-            self.services[f'k8s-{k8s_name}-{k8s_namespace}'] = {
-                'apiVersion': 'ambassador/v1',
+            svc_resource = {
+                'apiVersion': 'getambassador.io/v2',
                 'ambassador_id': Config.ambassador_id,
                 'kind': 'Service',
                 'name': k8s_name,
                 'namespace': k8s_namespace,
                 'endpoints': svc_endpoints
             }
+
+            if k8s_metadata_labels:
+                svc_resource['metadata_labels'] = k8s_metadata_labels
+
+            self.services[f'k8s-{k8s_name}-{k8s_namespace}'] = svc_resource
 
         # OK. After all that, go turn all of the things in self.services into Ambassador
         # Service resources.

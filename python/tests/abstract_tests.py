@@ -40,7 +40,11 @@ def assert_default_errors(errors, include_ingress_errors=True):
         ["",
          "Ambassador could not find core CRD definitions. Please visit https://www.getambassador.io/reference/core/crds/ for more information. You can continue using Ambassador via Kubernetes annotations, any configuration via CRDs will be ignored..."],
         ["",
-         "Ambassador could not find Resolver type CRD definitions. Please visit https://www.getambassador.io/reference/core/crds/ for more information. You can continue using Ambassador via Kubernetes annotations, any configuration via CRDs will be ignored..."]
+         "Ambassador could not find Resolver type CRD definitions. Please visit https://www.getambassador.io/reference/core/crds/ for more information. You can continue using Ambassador via Kubernetes annotations, any configuration via CRDs will be ignored..."],
+        ["",
+         "Ambassador could not find the Host CRD definition. Please visit https://www.getambassador.io/reference/core/crds/ for more information. You can continue using Ambassador via Kubernetes annotations, any configuration via CRDs will be ignored..."],
+        ["",
+         "Ambassador could not find the LogService CRD definition. Please visit https://www.getambassador.io/reference/core/crds/ for more information. You can continue using Ambassador via Kubernetes annotations, any configuration via CRDs will be ignored..."]
     ]
 
     if include_ingress_errors:
@@ -79,6 +83,7 @@ class AmbassadorTest(Test):
     extra_ports: Optional[List[int]] = None
     debug_diagd: bool = False
     manifest_envs = ""
+    is_ambassador = True
 
     env = []
 
@@ -424,10 +429,13 @@ class MappingTest(Test):
     options: Sequence['OptionTest']
     parent: AmbassadorTest
 
+    no_local_mode = True
+    skip_local_instead_of_xfail = "Plain (MappingTest)"
+
     def init(self, target: ServiceType, options=()) -> None:
         self.target = target
         self.options = list(options)
-
+        self.is_ambassador = True
 
 @abstract_test
 class OptionTest(Test):
@@ -435,6 +443,9 @@ class OptionTest(Test):
     VALUES: ClassVar[Any] = None
     value: Any
     parent: Test
+
+    no_local_mode = True
+    skip_local_instead_of_xfail = "Plain (OptionTests)"
 
     @classmethod
     def variants(cls):

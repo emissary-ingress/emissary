@@ -10,6 +10,20 @@ if TYPE_CHECKING:
     from .ir import IR
 
 
+def unique_mapping_name(aconf: Config, name: str) -> str:
+    http_mappings = aconf.get_config('mappings') or {}
+    tcp_mappings = aconf.get_config('tcpmappings') or {}
+
+    basename = name
+    counter = 0
+
+    while name in http_mappings or name in tcp_mappings:
+        name = f"{basename}-{counter}"
+        counter += 1
+
+    return name
+
+
 class MappingFactory:
     @classmethod
     def load_all(cls, ir: 'IR', aconf: Config) -> None:

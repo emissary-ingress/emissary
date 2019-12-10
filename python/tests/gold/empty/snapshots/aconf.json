@@ -1,0 +1,87 @@
+{
+    "_errors": {
+        "-global-": [
+            {
+                "error": "Ambassador could not find core CRD definitions. Please visit https://www.getambassador.io/reference/core/crds/ for more information. You can continue using Ambassador via Kubernetes annotations, any configuration via CRDs will be ignored...",
+                "hostname": "empty",
+                "ok": false,
+                "version": "0.86.0-rc5-131-g4bcda0e6-dirty"
+            },
+            {
+                "error": "Ambassador could not find Resolver type CRD definitions. Please visit https://www.getambassador.io/reference/core/crds/ for more information. You can continue using Ambassador via Kubernetes annotations, any configuration via CRDs will be ignored...",
+                "hostname": "empty",
+                "ok": false,
+                "version": "0.86.0-rc5-131-g4bcda0e6-dirty"
+            }
+        ]
+    },
+    "_notices": {},
+    "_sources": {
+        "--diagnostics--": {
+            "_referenced_by": {},
+            "apiVersion": "ambassador/v0",
+            "description": "The '--diagnostics--' source marks objects created by Ambassador to assist with diagnostic output.",
+            "kind": "Diagnostics",
+            "location": "--diagnostics--",
+            "name": "Ambassador Diagnostics",
+            "namespace": null,
+            "rkey": "--diagnostics--",
+            "serialization": null,
+            "version": "ambassador/v0"
+        },
+        "--internal--": {
+            "_referenced_by": {},
+            "apiVersion": "ambassador/v0",
+            "description": "The '--internal--' source marks objects created by Ambassador's internal logic.",
+            "kind": "Internal",
+            "location": "--internal--",
+            "name": "Ambassador Internals",
+            "namespace": null,
+            "rkey": "--internal--",
+            "serialization": null,
+            "version": "ambassador/v0"
+        },
+        "k8s-empty-admin-empty-namespace": {
+            "_referenced_by": {},
+            "ambassador_id": "empty",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-empty-admin-empty-namespace",
+            "name": "empty-admin",
+            "namespace": "empty-namespace",
+            "rkey": "k8s-empty-admin-empty-namespace",
+            "serialization": "ambassador_id: empty\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: empty-admin\nnamespace: empty-namespace\n"
+        },
+        "k8s-empty-empty-namespace": {
+            "_referenced_by": {},
+            "ambassador_id": "empty",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-empty-empty-namespace",
+            "name": "empty",
+            "namespace": "empty-namespace",
+            "rkey": "k8s-empty-empty-namespace",
+            "serialization": "ambassador_id: empty\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: empty\nnamespace: empty-namespace\n"
+        }
+    },
+    "service": {
+        "k8s-empty-admin-empty-namespace": {
+            "ambassador_id": "empty",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "name": "empty-admin",
+            "namespace": "empty-namespace"
+        },
+        "k8s-empty-empty-namespace": {
+            "ambassador_id": "empty",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "name": "empty",
+            "namespace": "empty-namespace"
+        }
+    }
+}

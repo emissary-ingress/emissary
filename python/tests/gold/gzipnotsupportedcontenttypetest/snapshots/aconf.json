@@ -1,0 +1,156 @@
+{
+    "_errors": {},
+    "_notices": {
+        "gzipnotsupportedcontenttypetest.default.1": [
+            "apiVersion ambassador/v0 is deprecated, consider upgrading"
+        ],
+        "gzipnotsupportedcontenttypetest.default.2": [
+            "apiVersion ambassador/v0 is deprecated, consider upgrading"
+        ]
+    },
+    "_sources": {
+        "--diagnostics--": {
+            "_referenced_by": {},
+            "apiVersion": "ambassador/v0",
+            "description": "The '--diagnostics--' source marks objects created by Ambassador to assist with diagnostic output.",
+            "kind": "Diagnostics",
+            "location": "--diagnostics--",
+            "name": "Ambassador Diagnostics",
+            "namespace": null,
+            "rkey": "--diagnostics--",
+            "serialization": null,
+            "version": "ambassador/v0"
+        },
+        "--internal--": {
+            "_referenced_by": {},
+            "apiVersion": "ambassador/v0",
+            "description": "The '--internal--' source marks objects created by Ambassador's internal logic.",
+            "kind": "Internal",
+            "location": "--internal--",
+            "name": "Ambassador Internals",
+            "namespace": null,
+            "rkey": "--internal--",
+            "serialization": null,
+            "version": "ambassador/v0"
+        },
+        "gzipnotsupportedcontenttypetest.default.1": {
+            "_referenced_by": {},
+            "ambassador_id": "gzipnotsupportedcontenttypetest",
+            "apiVersion": "ambassador/v0",
+            "config": {
+                "gzip": {
+                    "content_type": [
+                        "application/json"
+                    ],
+                    "min_content_length": 32
+                }
+            },
+            "kind": "Module",
+            "location": "gzipnotsupportedcontenttypetest.default.1",
+            "name": "ambassador",
+            "namespace": "default",
+            "rkey": "gzipnotsupportedcontenttypetest.default.1",
+            "serialization": "ambassador_id: gzipnotsupportedcontenttypetest\napiVersion: ambassador/v0\nconfig:\n  gzip:\n    content_type:\n    - application/json\n    min_content_length: 32\nkind: Module\nname: ambassador\n"
+        },
+        "gzipnotsupportedcontenttypetest.default.2": {
+            "_referenced_by": {},
+            "ambassador_id": "gzipnotsupportedcontenttypetest",
+            "apiVersion": "ambassador/v0",
+            "kind": "Mapping",
+            "location": "gzipnotsupportedcontenttypetest.default.2",
+            "name": "gzipnotsupportedcontenttypetest-http",
+            "namespace": "default",
+            "prefix": "/target/",
+            "rkey": "gzipnotsupportedcontenttypetest.default.2",
+            "serialization": "ambassador_id: gzipnotsupportedcontenttypetest\napiVersion: ambassador/v0\nkind: Mapping\nname: gzipnotsupportedcontenttypetest-http\nprefix: /target/\nservice: gzipnotsupportedcontenttypetest-http\n",
+            "service": "gzipnotsupportedcontenttypetest-http"
+        },
+        "k8s-gzipnotsupportedcontenttypetest-admin-default": {
+            "_referenced_by": {},
+            "ambassador_id": "gzipnotsupportedcontenttypetest",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-gzipnotsupportedcontenttypetest-admin-default",
+            "name": "gzipnotsupportedcontenttypetest-admin",
+            "namespace": "default",
+            "rkey": "k8s-gzipnotsupportedcontenttypetest-admin-default",
+            "serialization": "ambassador_id: gzipnotsupportedcontenttypetest\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: gzipnotsupportedcontenttypetest-admin\nnamespace: default\n"
+        },
+        "k8s-gzipnotsupportedcontenttypetest-default": {
+            "_referenced_by": {},
+            "ambassador_id": "gzipnotsupportedcontenttypetest",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-gzipnotsupportedcontenttypetest-default",
+            "name": "gzipnotsupportedcontenttypetest",
+            "namespace": "default",
+            "rkey": "k8s-gzipnotsupportedcontenttypetest-default",
+            "serialization": "ambassador_id: gzipnotsupportedcontenttypetest\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: gzipnotsupportedcontenttypetest\nnamespace: default\n"
+        },
+        "k8s-gzipnotsupportedcontenttypetest-http-default": {
+            "_referenced_by": {},
+            "ambassador_id": "gzipnotsupportedcontenttypetest",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-gzipnotsupportedcontenttypetest-http-default",
+            "name": "gzipnotsupportedcontenttypetest-http",
+            "namespace": "default",
+            "rkey": "k8s-gzipnotsupportedcontenttypetest-http-default",
+            "serialization": "ambassador_id: gzipnotsupportedcontenttypetest\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: gzipnotsupportedcontenttypetest-http\nnamespace: default\n"
+        }
+    },
+    "mappings": {
+        "gzipnotsupportedcontenttypetest-http": {
+            "ambassador_id": "gzipnotsupportedcontenttypetest",
+            "apiVersion": "ambassador/v0",
+            "kind": "Mapping",
+            "name": "gzipnotsupportedcontenttypetest-http",
+            "namespace": "default",
+            "prefix": "/target/",
+            "service": "gzipnotsupportedcontenttypetest-http"
+        }
+    },
+    "modules": {
+        "ambassador": {
+            "apiVersion": "ambassador/v0",
+            "gzip": {
+                "content_type": [
+                    "application/json"
+                ],
+                "min_content_length": 32
+            },
+            "kind": "Module",
+            "name": "ambassador",
+            "namespace": "default"
+        }
+    },
+    "service": {
+        "k8s-gzipnotsupportedcontenttypetest-admin-default": {
+            "ambassador_id": "gzipnotsupportedcontenttypetest",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "name": "gzipnotsupportedcontenttypetest-admin",
+            "namespace": "default"
+        },
+        "k8s-gzipnotsupportedcontenttypetest-default": {
+            "ambassador_id": "gzipnotsupportedcontenttypetest",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "name": "gzipnotsupportedcontenttypetest",
+            "namespace": "default"
+        },
+        "k8s-gzipnotsupportedcontenttypetest-http-default": {
+            "ambassador_id": "gzipnotsupportedcontenttypetest",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "name": "gzipnotsupportedcontenttypetest-http",
+            "namespace": "default"
+        }
+    }
+}

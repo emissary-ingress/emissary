@@ -1,0 +1,141 @@
+{
+    "_errors": {},
+    "_notices": {},
+    "_sources": {
+        "--diagnostics--": {
+            "_referenced_by": {},
+            "apiVersion": "ambassador/v0",
+            "description": "The '--diagnostics--' source marks objects created by Ambassador to assist with diagnostic output.",
+            "kind": "Diagnostics",
+            "location": "--diagnostics--",
+            "name": "Ambassador Diagnostics",
+            "namespace": null,
+            "rkey": "--diagnostics--",
+            "serialization": null,
+            "version": "ambassador/v0"
+        },
+        "--internal--": {
+            "_referenced_by": {},
+            "apiVersion": "ambassador/v0",
+            "description": "The '--internal--' source marks objects created by Ambassador's internal logic.",
+            "kind": "Internal",
+            "location": "--internal--",
+            "name": "Ambassador Internals",
+            "namespace": null,
+            "rkey": "--internal--",
+            "serialization": null,
+            "version": "ambassador/v0"
+        },
+        "k8s-xfpredirect-admin-default": {
+            "_referenced_by": {},
+            "ambassador_id": "xfpredirect",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-xfpredirect-admin-default",
+            "name": "xfpredirect-admin",
+            "namespace": "default",
+            "rkey": "k8s-xfpredirect-admin-default",
+            "serialization": "ambassador_id: xfpredirect\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: xfpredirect-admin\nnamespace: default\n"
+        },
+        "k8s-xfpredirect-default": {
+            "_referenced_by": {},
+            "ambassador_id": "xfpredirect",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-xfpredirect-default",
+            "name": "xfpredirect",
+            "namespace": "default",
+            "rkey": "k8s-xfpredirect-default",
+            "serialization": "ambassador_id: xfpredirect\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: xfpredirect\nnamespace: default\n"
+        },
+        "k8s-xfpredirect-http-default": {
+            "_referenced_by": {},
+            "ambassador_id": "xfpredirect",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-xfpredirect-http-default",
+            "name": "xfpredirect-http",
+            "namespace": "default",
+            "rkey": "k8s-xfpredirect-http-default",
+            "serialization": "ambassador_id: xfpredirect\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: xfpredirect-http\nnamespace: default\n"
+        },
+        "xfpredirect-http.default.1": {
+            "_referenced_by": {},
+            "ambassador_id": "xfpredirect",
+            "apiVersion": "ambassador/v1",
+            "config": {
+                "use_remote_address": false,
+                "x_forwarded_proto_redirect": true
+            },
+            "kind": "Module",
+            "location": "xfpredirect-http.default.1",
+            "name": "ambassador",
+            "namespace": "default",
+            "rkey": "xfpredirect-http.default.1",
+            "serialization": "ambassador_id: xfpredirect\napiVersion: ambassador/v1\nconfig:\n  use_remote_address: false\n  x_forwarded_proto_redirect: true\nkind: Module\nname: ambassador\n"
+        },
+        "xfpredirect-http.default.2": {
+            "_referenced_by": {},
+            "ambassador_id": "xfpredirect",
+            "apiVersion": "ambassador/v1",
+            "kind": "Mapping",
+            "location": "xfpredirect-http.default.2",
+            "name": "XFPRedirect",
+            "namespace": "default",
+            "prefix": "/XFPRedirect/",
+            "rkey": "xfpredirect-http.default.2",
+            "serialization": "ambassador_id: xfpredirect\napiVersion: ambassador/v1\nkind: Mapping\nname: XFPRedirect\nprefix: /XFPRedirect/\nservice: xfpredirect-http\n",
+            "service": "xfpredirect-http"
+        }
+    },
+    "mappings": {
+        "XFPRedirect": {
+            "ambassador_id": "xfpredirect",
+            "apiVersion": "ambassador/v1",
+            "kind": "Mapping",
+            "name": "XFPRedirect",
+            "namespace": "default",
+            "prefix": "/XFPRedirect/",
+            "service": "xfpredirect-http"
+        }
+    },
+    "modules": {
+        "ambassador": {
+            "apiVersion": "ambassador/v1",
+            "kind": "Module",
+            "name": "ambassador",
+            "namespace": "default",
+            "use_remote_address": false,
+            "x_forwarded_proto_redirect": true
+        }
+    },
+    "service": {
+        "k8s-xfpredirect-admin-default": {
+            "ambassador_id": "xfpredirect",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "name": "xfpredirect-admin",
+            "namespace": "default"
+        },
+        "k8s-xfpredirect-default": {
+            "ambassador_id": "xfpredirect",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "name": "xfpredirect",
+            "namespace": "default"
+        },
+        "k8s-xfpredirect-http-default": {
+            "ambassador_id": "xfpredirect",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "name": "xfpredirect-http",
+            "namespace": "default"
+        }
+    }
+}
