@@ -579,7 +579,7 @@ ${this.renderMergedYaml()}
   
     </div>
     <div class="col2">
-      <a class="cta source ${typeof this.sourceURI() == 'string' ? "" : "MOREMOREoff"}" @click=${(x)=>this.onSource(x)}>
+      <a class="cta source ${typeof this.sourceURI() == 'string' ? "" : "off"}" @click=${(x)=>this.onSource(x)}>
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18.83 10.83"><defs><style>.cls-2{fill:none;stroke:#000;stroke-linecap:square;stroke-miterlimit:10;stroke-width:2px;}</style></defs><title>source_2</title><g id="Layer_2" data-name="Layer 2"><g id="Layer_1-2" data-name="Layer 1"><polyline class="cls-2" points="5.41 1.41 1.41 5.41 5.41 9.41"/><polyline class="cls-2" points="13.41 1.41 17.41 5.41 13.41 9.41"/></g></g></svg>
         <div class="label">source</div>
       </a>
@@ -600,7 +600,7 @@ ${this.renderMergedYaml()}
         <div class="label">delete</div>
       </a>
       <a class="cta edit ${this.visible("list", "detail", "edit", "add")}" @click=${(e)=>this.onYaml(e.target.checked)}>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 82.61 25.05"><title>yml</title><g id="Layer_2" data-name="Layer 2"><g id="Layer_1-2" data-name="Layer 1"><path d="M0,0H8.6l5.05,8.45L18.71,0h8.55L17.52,14.56V25.05H9.76V14.56Z"/><path d="M29.67,0H39.85l3.93,15.24L47.67,0H57.85V25.05H51.51V6l-4.89,19.1H40.88L36,6v19.1H29.67Z"/><path d="M62.79,0h7.74V18.88H82.61v6.17H62.79Z"/></g></g></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64"><title>zoom</title><g class="nc-icon-wrapper" stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" fill="#000000" stroke="#000000"><line data-color="color-2" x1="59" y1="59" x2="42.556" y2="42.556" fill="none" stroke-miterlimit="10"/><circle cx="27" cy="27" r="22" fill="none" stroke="#000000" stroke-miterlimit="10"/></g></svg>
         <div class="label">yaml</div>
       </a>
     </div>
