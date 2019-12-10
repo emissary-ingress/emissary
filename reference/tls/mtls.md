@@ -41,7 +41,7 @@ Istio creates and stores its TLS certificates in a form that Ambassador Edge Sta
    apiVersion: getambassador.io/v2
    kind: TLSContext
    metadata:
-     name: tls
+     name: istio-upstream
    spec:
      cert_chain_file: /etc/istiocerts/cert-chain.pem
      private_key_file: /etc/istiocerts/key.pem
