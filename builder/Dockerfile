@@ -34,7 +34,6 @@ ARG envoy="quay.io/datawire/ambassador-base:envoy-7.c64ec6cb600928f7aca669cb4ab6
 ########################################
 
 FROM ${envoy} as envoy
-RUN strip /usr/local/bin/envoy
 
 FROM ${base} as builder
 
