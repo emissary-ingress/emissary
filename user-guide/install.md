@@ -12,7 +12,7 @@ The Ambassador Edge Stack enables GitOps-style management of your application, i
 To start using the Ambassador Edge Stack and its features right away:
 
 1. [Install the Ambassador Edge Stack](#install-the-ambassador-edge-stack)
-2. [Add Hosts for automatic HTTPS](#add-hosts-and-configure-tls)
+2. [Add Hosts for Automatic HTTPS](#add-hosts-and-configure-tls)
 3. [Create and Verify Mappings](#create-mappings)
 4. [What's Next?](#whats-next)
 
@@ -77,11 +77,11 @@ Use any of the URLs listed next to `ambassador` to access the Ambassador Edge St
 
 5. Follow the instructions to install the `edgectl` executable file.
 
-## Add Hosts and Configure TLS
+## Add Hosts for Automatic HTTPS
 
 You now have access to the Edge Policy Console, where you can start to secure your application with automatic HTTPS, configure TLS with ease, and create CRDs and mappings independently of your Ops teams.
 
-To secure your application with HTTPS, you must first add a Host to your Ambassador Edge Stack Configuration. 
+To secure your application with HTTPS, you must first add a Host to your Ambassador Edge Stack Configuration.
 
 **To do so:**
 
@@ -90,7 +90,8 @@ To secure your application with HTTPS, you must first add a Host to your Ambassa
 
 * Note: If you want to use automatic TLS during this section, your host must be an FQDN. Otherwise, you will see an error message indicating that your host does not qualify for the ACME Certificate. You can continue without TLS configuration.
 
-3. To the right of the “Host” field, enter an existing namespace for the host. We recommend that it matches the namespace of your Kubeconfig context, or leaving it set to “Default.”
+3. Below the “Host” field, enter an existing namespace for the host. We recommend that it matches the namespace of your Kubeconfig context, or leaving it set to “Default.”
+4. If your host is an FQDN, check the box to Use ACME to manage TLS, which provides automatic HTTPS. If you want to use your own TLS certificate, leave the box unchecked and follow later insrtuctions.
 4. Read and check the box to agree to the Terms of Service.
 5. Enter your email address to receive your TLS certificate.
 
