@@ -27,14 +27,13 @@ ARG base="frolvlad/alpine-glibc:alpine-3.10"
 ARG artifacts="builder"
 
 # This controls where we copy envoy from.
-ARG envoy
+ARG envoy="quay.io/datawire/ambassador-base:envoy-7.c64ec6cb600928f7aca669cb4ab65a233ba0b921.opt"
 
 ########################################
 # The builder image
 ########################################
 
 FROM ${envoy} as envoy
-RUN strip /usr/local/bin/envoy
 
 FROM ${base} as builder
 

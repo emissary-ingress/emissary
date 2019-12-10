@@ -87,8 +87,6 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 // would result in the routing table defined by the `route-config1`
 // RouteConfiguration being assigned to the HTTP request/stream.
 //
-// [#comment:next free field: 4]
-// [#proto-status: experimental]
 type ScopedRouteConfiguration struct {
 	// The name assigned to the routing scope.
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`

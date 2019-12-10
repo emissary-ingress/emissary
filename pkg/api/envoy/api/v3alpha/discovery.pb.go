@@ -27,6 +27,7 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // A DiscoveryRequest requests a set of versioned resources of the same type for
 // a given Envoy node on some API.
+// [#next-free-field: 7]
 type DiscoveryRequest struct {
 	// The version_info provided in the request messages will be the version_info
 	// received with the most recent successfully processed response or empty on
@@ -46,19 +47,21 @@ type DiscoveryRequest struct {
 	// which will be explicitly enumerated in resource_names.
 	ResourceNames []string `protobuf:"bytes,3,rep,name=resource_names,json=resourceNames,proto3" json:"resource_names,omitempty"`
 	// Type of the resource that is being requested, e.g.
-	// "type.googleapis.com/envoy.api.v3alpha.ClusterLoadAssignment". This is implicit
+	// "type.googleapis.com/envoy.api.v2.ClusterLoadAssignment". This is implicit
 	// in requests made via singleton xDS APIs such as CDS, LDS, etc. but is
 	// required for ADS.
 	TypeUrl string `protobuf:"bytes,4,opt,name=type_url,json=typeUrl,proto3" json:"type_url,omitempty"`
 	// nonce corresponding to DiscoveryResponse being ACK/NACKed. See above
 	// discussion on version_info and the DiscoveryResponse nonce comment. This
-	// may be empty if no nonce is available, e.g. at startup or for non-stream
-	// xDS implementations.
+	// may be empty only if 1) this is a non-persistent-stream xDS such as HTTP,
+	// or 2) the client has not yet accepted an update in this xDS stream (unlike
+	// delta, where it is populated only for new explicit ACKs).
 	ResponseNonce string `protobuf:"bytes,5,opt,name=response_nonce,json=responseNonce,proto3" json:"response_nonce,omitempty"`
-	// This is populated when the previous :ref:`DiscoveryResponse <envoy_api_msg_DiscoveryResponse>`
-	// failed to update configuration. The *message* field in *error_details* provides the Envoy
-	// internal exception related to the failure. It is only intended for consumption during manual
-	// debugging, the string provided is not guaranteed to be stable across Envoy versions.
+	// This is populated when the previous :ref:`DiscoveryResponse
+	// <envoy_api_msg_api.v3alpha.DiscoveryResponse>` failed to update configuration. The *message*
+	// field in *error_details* provides the Envoy internal exception related to the failure. It is
+	// only intended for consumption during manual debugging, the string provided is not guaranteed to
+	// be stable across Envoy versions.
 	ErrorDetail          *rpc.Status `protobuf:"bytes,6,opt,name=error_detail,json=errorDetail,proto3" json:"error_detail,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}    `json:"-"`
 	XXX_unrecognized     []byte      `json:"-"`
@@ -140,6 +143,7 @@ func (m *DiscoveryRequest) GetErrorDetail() *rpc.Status {
 	return nil
 }
 
+// [#next-free-field: 7]
 type DiscoveryResponse struct {
 	// The version of the response data.
 	VersionInfo string `protobuf:"bytes,1,opt,name=version_info,json=versionInfo,proto3" json:"version_info,omitempty"`
@@ -287,11 +291,12 @@ func (m *DiscoveryResponse) GetControlPlane() *core.ControlPlane {
 // In particular, initial_resource_versions being sent at the "start" of every
 // gRPC stream actually entails a message for each type_url, each with its own
 // initial_resource_versions.
+// [#next-free-field: 8]
 type DeltaDiscoveryRequest struct {
 	// The node making the request.
 	Node *core.Node `protobuf:"bytes,1,opt,name=node,proto3" json:"node,omitempty"`
 	// Type of the resource that is being requested, e.g.
-	// "type.googleapis.com/envoy.api.v3alpha.ClusterLoadAssignment".
+	// "type.googleapis.com/envoy.api.v2.ClusterLoadAssignment".
 	TypeUrl string `protobuf:"bytes,2,opt,name=type_url,json=typeUrl,proto3" json:"type_url,omitempty"`
 	// DeltaDiscoveryRequests allow the client to add or remove individual
 	// resources to the set of tracked resources in the context of a stream.
@@ -329,11 +334,11 @@ type DeltaDiscoveryRequest struct {
 	// When the DeltaDiscoveryRequest is a ACK or NACK message in response
 	// to a previous DeltaDiscoveryResponse, the response_nonce must be the
 	// nonce in the DeltaDiscoveryResponse.
-	// Otherwise response_nonce must be omitted.
+	// Otherwise (unlike in DiscoveryRequest) response_nonce must be omitted.
 	ResponseNonce string `protobuf:"bytes,6,opt,name=response_nonce,json=responseNonce,proto3" json:"response_nonce,omitempty"`
-	// This is populated when the previous :ref:`DiscoveryResponse <envoy_api_msg_DiscoveryResponse>`
-	// failed to update configuration. The *message* field in *error_details*
-	// provides the Envoy internal exception related to the failure.
+	// This is populated when the previous :ref:`DiscoveryResponse
+	// <envoy_api_msg_api.v3alpha.DiscoveryResponse>` failed to update configuration. The *message*
+	// field in *error_details* provides the Envoy internal exception related to the failure.
 	ErrorDetail          *rpc.Status `protobuf:"bytes,7,opt,name=error_detail,json=errorDetail,proto3" json:"error_detail,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}    `json:"-"`
 	XXX_unrecognized     []byte      `json:"-"`
@@ -422,6 +427,7 @@ func (m *DeltaDiscoveryRequest) GetErrorDetail() *rpc.Status {
 	return nil
 }
 
+// [#next-free-field: 7]
 type DeltaDiscoveryResponse struct {
 	// The version of the response data (used for debugging).
 	SystemVersionInfo string `protobuf:"bytes,1,opt,name=system_version_info,json=systemVersionInfo,proto3" json:"system_version_info,omitempty"`

@@ -2,9 +2,9 @@ Building Ambassador
 ===================
 
 **HEADS UP!!** We have dramatically changed the world, and are now
-working on dramatically updating our documentation. 
+working on dramatically updating our documentation.
 
-In the meantime: 
+In the meantime:
 
 - If you just want to **use** Ambassador, check out https://www.getambassador.io/! You don't need to build anything, and in fact you shouldn't.
 
@@ -17,7 +17,7 @@ In the meantime:
 0. Use `make help` to get more information about what sorts of things
 you can do. There are a lot of options!
 
-1. Have a Kubernetes cluster that you can test with. We'll call the `KUBECONFIG` setting for this `your-kubeconfig`. 
+1. Have a Kubernetes cluster that you can test with. We'll call the `KUBECONFIG` setting for this `your-kubeconfig`.
 
 2. Have a Docker registry to which you can push, and from which your test cluster can pull. We'll call this `your-registry`.
 
@@ -45,14 +45,81 @@ make test
 
 ## Making Documentation-Only Changes
 
-If you want to make a change that **only** affects documentation, and is not 
+If you want to make a change that **only** affects documentation, and is not
 tied to a future feature, you'll need to make your change directly in the
 `datawire/ambassador-docs` repository. Clone that repository and check out
-its `README.md`. 
+its `README.md`.
 
 (It is technically possible to make these changes from the `ambassador` repo.
 Please don't, unless you're fixing docs for an upcoming feature that hasn't
 yet shipped.)
+
+## Testing Locally
+
+One of the quickest ways to do local tests is the `mockery` tool.
+This tool runs inside the Docker container used to build Ambassador, using
+`make shell`, so it's important to realize that it won't have access to your
+entire filesystem. There are two easy ways to arrange to get data in and out
+of the container:
+
+1. If you `make sync`, everything in the Ambassador source tree gets rsync'd
+   into the container's `/buildroot/ambassador`. The first time you start the
+   shell, this can take a bit, but after that it's pretty fast. You'll
+   probably need to use `docker cp` to get data out of the container, though.
+
+2. You may be able to use Docker volume mounts by exporting `BUILDER_MOUNTS`
+   with the appropriate `-v` switches before running `make shell` -- e.g.
+
+    ```
+    export BUILDER_MOUNTS=$(pwd)/xfer:/xfer
+    make shell
+    ```
+
+   will cause the dev shell to mount `xfer` in your current directory as `/xfer`.
+   This is known to work well on MacOS (though volume mounts are slow on Mac,
+   so moving gigabytes of data around this way isn't ideal).
+
+Once you've sorted out how to move data around:
+
+1. Put together a set of Ambassador configuration CRDs in a file that's somewhere
+   that you'll be able to get them into the builder container. The easy way to do
+   this is to use the files you'd feed to `kubectl apply`; they should be actual
+   Kubernetes objects with `metadata` and `spec` sections, etc. (If you want to
+   use annotations, that's OK too, just put the whole `Service` object in there.)
+
+2. Run `make compile shell` to build everything and start the dev shell.
+
+3. From inside the build shell, run
+
+   ```
+   python ambassador/python/mockery.py $path_to_your_file
+   ```
+
+   If you're using a non-default `ambassador_id` you need to provide it in the
+   environment:
+
+   ```
+   AMBASSADOR_ID=whatever python ambassador/python/mockery.py $path_to_your_file
+   ```
+
+   Finally, if you're trying to mimic `KAT`, copy the `/tmp/k8s-AmbassadorTest.yaml`
+   file from a KAT run to use as input, then
+
+   ```
+   python ambassador/python/mockery.py --kat $kat_test_name $path_to_k8s_AmbassadorTest.yaml
+   ```
+
+   where `$kat_test_name` is the class name of a `KAT` test class, like `LuaTest` or
+   `TLSContextTest`.
+
+
+4. Once it's done, `/tmp/ambassador/snapshots` will have all the output from the
+   compiler phase of Ambassador.
+
+The point of `mockery` is that it mimics the configuration cycle of real Ambassador,
+without relying at all on a Kubernetes cluster. This means that you can easily and
+quickly take a Kubernetes input and look at the generated Envoy configuration without
+any other infrastructure.
 
 ----------------------------------
 
@@ -85,14 +152,14 @@ Running Tests
 -------------
 
 Ambassador is infrastructure software, so robust testing is a must. To build
-Ambassador and run all of the regression tests, run `make` with the following 
+Ambassador and run all of the regression tests, run `make` with the following
 arguments:
 
 ```console
 ambassador$ DEV_DOCKER_REPO=<YOUR_DOCKER_REPO> KUBECONFIG=<YOUR_KUBE_CONFIG> make test
 ```
 
-The regression tests need a Kubernetes cluster to run, **and they assume that they have 
+The regression tests need a Kubernetes cluster to run, **and they assume that they have
 total control of that cluster**. Do **not** run the Ambassador test suite against a
 cluster with anything important in it!
 
@@ -121,7 +188,7 @@ The documentation in the `docs` directory is actually a Git subtree from the `am
 ### Making Code Changes
 
 1. **All development must be on branches cut from `master`**.
-   - We recommend that your branches start with your username. 
+   - We recommend that your branches start with your username.
       - At Datawire we typically use `git-flow`-style naming, e.g. `flynn/dev/telepathic-ui`
    - Please do not use a branch name starting with `release`.
 
@@ -130,7 +197,7 @@ The documentation in the `docs` directory is actually a Git subtree from the `am
    - If you're using a branch name that starts with your username, `git rebase` is also OK and no one from Datawire will scream at you for force-pushing.
    - Please do **not** rebase any branch that does **not** start with your username.
 
-3. **Code changes must include relevant documentation updates.** 
+3. **Code changes must include relevant documentation updates.**
    - Make changes in the `docs` directory as necessary, and commit them to your
      branch so that they can be incorporated when the feature is merged into `master`.
 
@@ -149,10 +216,10 @@ The documentation in the `docs` directory is actually a Git subtree from the `am
 
 ### Making Documentation-Only Changes
 
-If you want to make a change that **only** affects documentation, and is not 
+If you want to make a change that **only** affects documentation, and is not
 tied to a future feature, you'll need to make your change directly in the
 `datawire/ambassador-docs` repository. Clone that repository and check out
-its `README.md`. 
+its `README.md`.
 
 (It is technically possible to make these changes from the `ambassador` repo.
 Please don't, unless you're fixing docs for an upcoming feature that hasn't yet
@@ -231,7 +298,7 @@ you run it, because it does a lot of work:
 - make sure the Envoy generated code is OK
 - etc.
 
-The simplest way to actually use this stuff once it's set up is to 
+The simplest way to actually use this stuff once it's set up is to
 run the tests with `make test`, or to e.g. run the Ambassador CLI
 (see the "ambassador dump" section below).
 
@@ -243,7 +310,7 @@ its name (because if the name doesn't change when you commit new code,
 it can be very hard to get some Kubernetes environments to actually
 pull the new image!).
 
-**Whenever you commit new code, you must rerun `make docker-push` 
+**Whenever you commit new code, you must rerun `make docker-push`
 before doing things that try to use the image.** Yes, this is annoying,
 but the other ways we tried were all worse. Sigh.
 
@@ -252,13 +319,13 @@ but the other ways we tried were all worse. Sigh.
 If you prefer, you can run `make shell` instead of (or after) `make
 setup-develop`. This will do all the `setup-develop` work, then start
 a shell with the `PATH` and other Ambassador environment variables
-set for you, allowing you to run `pytest` and the `ambassador` CLI 
+set for you, allowing you to run `pytest` and the `ambassador` CLI
 without using `make` targets.
 
 **If you use a dev shell, you _must_ exit the shell and rerun `make shell`
 every time you run `make docker-push`.**
 
-This is because the dev shell caches the current image name in the 
+This is because the dev shell caches the current image name in the
 environment. Some of us (e.g. Flynn) have mostly stopped using dev shells
 for this reason: it's just easier to use `make` targets than it is to
 keep the dev shell up-to-date. (If anyone wants to make this better, it
@@ -266,7 +333,7 @@ would be welcome!)
 
 If you do use the dev shell, you can start as many of them as you
 want. Exiting and restarting the dev shell should be quick as long as
-you don't `make clean` or `make clobber` in between. 
+you don't `make clean` or `make clobber` in between.
 
 #### `ambassador dump`
 
@@ -294,7 +361,7 @@ will dump the Ambassador IR and v2 Envoy configuration into `test.json`. Here
 - `--k8s` for Kubernetes resources; or
 - `--watt` for a `watt` snapshot.
 
-You can get more information with 
+You can get more information with
 
 ```
 venv/bin/ambassador dump --help
@@ -338,7 +405,7 @@ PRs will not pass CI if the type checker fails.
 We strongly recommend using an editor that can do realtime type checking
 (at Datawire we tend to use PyCharm and VSCode a lot, but many many editors
 can do this now) and also running the type checker by hand before submitting
-anything: 
+anything:
 
 - make sure you've done `make setup-develop` or `make shell` to get
 everything set up, then
@@ -379,7 +446,7 @@ Updating Ambassador's Envoy
 Ambassador currently relies on a custom Envoy build. This build lives in
 `https://github.com/datawire/envoy`, which is a fork of
 `https://github.com/envoyproxy/envoy`, and it'll need to be updated at
-least as often as Envoy releases happen. 
+least as often as Envoy releases happen.
 
 Ambassador's current release engineering works by using `git clone`ing the
 `datawire/envoy` tree into the `cxx/envoy/` subdirectory of Ambassador's
@@ -396,7 +463,7 @@ appears as a subdirectory of the other.
       Ambassador will build Envoy. Typically this is the tip of the
       `rebase/master` branch in the `datawire/envoy` repo.
 
-    You **must** edit `$ENVOY_COMMIT` as part of the updating procedure. 
+    You **must** edit `$ENVOY_COMMIT` as part of the updating procedure.
     Think hard before changing `$ENVOY_REPO`!
 
  1. Within your `datawire/ambassador` clone, use `make cxx/envoy` to clone
@@ -404,11 +471,15 @@ appears as a subdirectory of the other.
     (instead of `master`):
 
     ```console
-    ambassador$ make cxx/envoy
+    ambassador$ make envoy-shell
     git init cxx/envoy
     …
     HEAD is now at a484da25f updated legacy RLS name
+    $
     ```
+
+    Send a: `Ctrl-D` to exit out of the build container.
+            (`Cmd-D` on OSX).
 
  2. You'll need to manipulate branches in `$ENVOY_REPO`, so
 
@@ -457,7 +528,7 @@ appears as a subdirectory of the other.
     ambassador$ ENVOY_COMMIT=- make bin_linux_amd64/envoy-static
     ```
 
-    If there are problems with the build, you can run 
+    If there are problems with the build, you can run
 
     ```console
     ambassador$ ENVOY_COMMIT=- make envoy-shell
@@ -486,8 +557,7 @@ appears as a subdirectory of the other.
     …
     ```
 
- 10. Edit `ENVOY_COMMIT ?=` in the Makefile to point to your new Envoy commit.  Follow the instructions in the Makefile when doing so:
-
+ 10. Edit `ENVOY_COMMIT ?=` in the Makefile to point to your new Envoy commit.
     a. Then run `make update-base` to compile Envoy, update the
        generated protobuf bindings to use with that Envoy, and
        build+push a new Docker base image with that Envoy binary.
@@ -495,6 +565,55 @@ appears as a subdirectory of the other.
        any of Envoy's protobuf definitions have changed; make sure to
        commit those changes when you commit the change to
        `ENVOY_COMMIT`.
+
+ 11. Finally update: `ARG envoy=` in builder/Dockerfile to point to the new
+     docker image that you just pushed.
+
+Updating the Test Services
+--------------------------
+
+When running the tests, Ambassador relies on several different backend test services.
+These all live in the `test-services` directory, and can be rebuild with
+
+```
+make test-services
+```
+
+which will build the test services, then push them to `$(DOCKER_REGISTRY)`.
+
+**Using locally-built tests:**
+
+To use a single test service that you've built locally, set the environment variable
+`TEST_SERVICE_$svc` to point to the image you've just built and pushed, e.g.
+
+```
+export TEST_SERVICE_AUTH=dwflynn/test_services:test-auth-v0.80.0-28-g3ed96316
+```
+
+before running `make test`. The different `$svc` possibilities are `auth`, `auth-tls`,
+`ratelimit`, `shadow`, and `stats`.
+
+To use your copy of _all_ the test services:
+
+```
+export TEST_SERVICE_REGISTRY=$registry
+export TEST_SERVICE_VERSION=$version
+```
+
+before running `make test`, e.g.
+
+```
+export TEST_SERVICE_REGISTRY=dwflynn/test_services
+export TEST_SERVICE_VERSION=v0.80.0-28-g3ed96316
+```
+
+to match the example above.
+
+**Updating the official tests:**
+
+The official versions of the test services live in the `quay.io/datawire/test_services` registry.
+To update those (which will require you to work at Datawire!), update `TEST_SERVICE_VERSION`
+in the Makefile and then `make test-services-release`.
 
 Version Numbering
 -----------------

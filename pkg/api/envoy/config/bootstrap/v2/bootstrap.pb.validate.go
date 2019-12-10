@@ -268,6 +268,21 @@ func (m *Bootstrap) Validate() error {
 
 	// no validation rules for HeaderPrefix
 
+	{
+		tmp := m.GetStatsServerVersionOverride()
+
+		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+			if err := v.Validate(); err != nil {
+				return BootstrapValidationError{
+					field:  "StatsServerVersionOverride",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+	}
+
 	return nil
 }
 

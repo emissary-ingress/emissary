@@ -327,10 +327,10 @@ func (m *AccessLogCommon) Validate() error {
 		return nil
 	}
 
-	if m.GetSampleRate() > 1 {
+	if val := m.GetSampleRate(); val <= 0 || val > 1 {
 		return AccessLogCommonValidationError{
 			field:  "SampleRate",
-			reason: "value must be less than or equal to 1",
+			reason: "value must be inside range (0, 1]",
 		}
 	}
 
@@ -565,6 +565,21 @@ func (m *AccessLogCommon) Validate() error {
 
 	// no validation rules for RouteName
 
+	{
+		tmp := m.GetDownstreamDirectRemoteAddress()
+
+		if v, ok := interface{}(tmp).(interface{ Validate() error }); ok {
+
+			if err := v.Validate(); err != nil {
+				return AccessLogCommonValidationError{
+					field:  "DownstreamDirectRemoteAddress",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+	}
+
 	return nil
 }
 
@@ -678,6 +693,8 @@ func (m *ResponseFlags) Validate() error {
 	// no validation rules for StreamIdleTimeout
 
 	// no validation rules for InvalidEnvoyRequestHeaders
+
+	// no validation rules for DownstreamProtocolError
 
 	return nil
 }
@@ -860,7 +877,12 @@ func (m *HTTPRequestProperties) Validate() error {
 		return nil
 	}
 
-	// no validation rules for RequestMethod
+	if _, ok := envoy_api_v2_core.RequestMethod_name[int32(m.GetRequestMethod())]; !ok {
+		return HTTPRequestPropertiesValidationError{
+			field:  "RequestMethod",
+			reason: "value must be one of the defined enum values",
+		}
+	}
 
 	// no validation rules for Scheme
 
