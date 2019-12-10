@@ -1,0 +1,72 @@
+{
+    "_errors": {},
+    "_notices": {},
+    "_sources": {
+        "--diagnostics--": {
+            "_referenced_by": {},
+            "apiVersion": "ambassador/v0",
+            "description": "The '--diagnostics--' source marks objects created by Ambassador to assist with diagnostic output.",
+            "kind": "Diagnostics",
+            "location": "--diagnostics--",
+            "name": "Ambassador Diagnostics",
+            "namespace": null,
+            "rkey": "--diagnostics--",
+            "serialization": null,
+            "version": "ambassador/v0"
+        },
+        "--internal--": {
+            "_referenced_by": {},
+            "apiVersion": "ambassador/v0",
+            "description": "The '--internal--' source marks objects created by Ambassador's internal logic.",
+            "kind": "Internal",
+            "location": "--internal--",
+            "name": "Ambassador Internals",
+            "namespace": null,
+            "rkey": "--internal--",
+            "serialization": null,
+            "version": "ambassador/v0"
+        },
+        "k8s-clitest-admin-default": {
+            "_referenced_by": {},
+            "ambassador_id": "clitest",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-clitest-admin-default",
+            "name": "clitest-admin",
+            "namespace": "default",
+            "rkey": "k8s-clitest-admin-default",
+            "serialization": "ambassador_id: clitest\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: clitest-admin\nnamespace: default\n"
+        },
+        "k8s-clitest-default": {
+            "_referenced_by": {},
+            "ambassador_id": "clitest",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-clitest-default",
+            "name": "clitest",
+            "namespace": "default",
+            "rkey": "k8s-clitest-default",
+            "serialization": "ambassador_id: clitest\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: clitest\nnamespace: default\n"
+        }
+    },
+    "service": {
+        "k8s-clitest-admin-default": {
+            "ambassador_id": "clitest",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "name": "clitest-admin",
+            "namespace": "default"
+        },
+        "k8s-clitest-default": {
+            "ambassador_id": "clitest",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "name": "clitest",
+            "namespace": "default"
+        }
+    }
+}

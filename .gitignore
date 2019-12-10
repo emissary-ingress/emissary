@@ -9,7 +9,6 @@
 .skip_test_warning
 venv
 __pycache__
-VERSION.py
 .pytest_cache
 .mypy_cache
 
@@ -33,6 +32,7 @@ dist
 *.out
 *.log
 *.tmp
+*.bak
 log.txt
 
 # From `make update-aws`

@@ -281,8 +281,17 @@ class DiagResult:
             'method': method,
             'headers': headers,
             'clusters': [ x.default_missing() for x in route_clusters ],
-            'host': host if host else '*'
+            'host': host if host else '*',
         }
+
+        if 'precedence' in group:
+            route_info['precedence'] = group['precedence']
+
+        metadata_labels = group.get('metadata_labels') or {}
+        diag_class = metadata_labels.get('ambassador_diag_class') or None
+
+        if diag_class:
+            route_info['diag_class'] = diag_class
 
         self.routes.append(route_info)
         self.include_referenced_elements(group)
@@ -576,7 +585,8 @@ class Diagnostics:
             'errors': self.errors,
             'notices': self.notices,
             'groups': { key: value.as_dict() for key, value in self.groups.items() },
-            'clusters': { key: value.as_dict() for key, value in self.clusters.items() }
+            'clusters': { key: value.as_dict() for key, value in self.clusters.items() },
+            'tlscontexts': [ x.as_dict() for x in self.ir.tls_contexts.values() ]
         }
 
     def _remember_source(self, src_key: str, dest_key: str) -> None:

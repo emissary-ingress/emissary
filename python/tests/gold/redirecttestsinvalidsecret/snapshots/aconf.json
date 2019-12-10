@@ -1,0 +1,147 @@
+{
+    "_errors": {},
+    "_notices": {},
+    "_sources": {
+        "--diagnostics--": {
+            "_referenced_by": {},
+            "apiVersion": "ambassador/v0",
+            "description": "The '--diagnostics--' source marks objects created by Ambassador to assist with diagnostic output.",
+            "kind": "Diagnostics",
+            "location": "--diagnostics--",
+            "name": "Ambassador Diagnostics",
+            "namespace": null,
+            "rkey": "--diagnostics--",
+            "serialization": null,
+            "version": "ambassador/v0"
+        },
+        "--internal--": {
+            "_referenced_by": {},
+            "apiVersion": "ambassador/v0",
+            "description": "The '--internal--' source marks objects created by Ambassador's internal logic.",
+            "kind": "Internal",
+            "location": "--internal--",
+            "name": "Ambassador Internals",
+            "namespace": null,
+            "rkey": "--internal--",
+            "serialization": null,
+            "version": "ambassador/v0"
+        },
+        "k8s-redirecttestsinvalidsecret-admin-default": {
+            "_referenced_by": {},
+            "ambassador_id": "redirecttestsinvalidsecret",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-redirecttestsinvalidsecret-admin-default",
+            "name": "redirecttestsinvalidsecret-admin",
+            "namespace": "default",
+            "rkey": "k8s-redirecttestsinvalidsecret-admin-default",
+            "serialization": "ambassador_id: redirecttestsinvalidsecret\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: redirecttestsinvalidsecret-admin\nnamespace: default\n"
+        },
+        "k8s-redirecttestsinvalidsecret-default": {
+            "_referenced_by": {},
+            "ambassador_id": "redirecttestsinvalidsecret",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-redirecttestsinvalidsecret-default",
+            "name": "redirecttestsinvalidsecret",
+            "namespace": "default",
+            "rkey": "k8s-redirecttestsinvalidsecret-default",
+            "serialization": "ambassador_id: redirecttestsinvalidsecret\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: redirecttestsinvalidsecret\nnamespace: default\n"
+        },
+        "k8s-redirecttestsinvalidsecret-http-default": {
+            "_referenced_by": {},
+            "ambassador_id": "redirecttestsinvalidsecret",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-redirecttestsinvalidsecret-http-default",
+            "name": "redirecttestsinvalidsecret-http",
+            "namespace": "default",
+            "rkey": "k8s-redirecttestsinvalidsecret-http-default",
+            "serialization": "ambassador_id: redirecttestsinvalidsecret\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: redirecttestsinvalidsecret-http\nnamespace: default\n"
+        },
+        "redirecttestsinvalidsecret-http.default.1": {
+            "_referenced_by": {},
+            "ambassador_id": "redirecttestsinvalidsecret",
+            "apiVersion": "ambassador/v1",
+            "kind": "Mapping",
+            "location": "redirecttestsinvalidsecret-http.default.1",
+            "name": "tls_target_mapping",
+            "namespace": "default",
+            "prefix": "/tls-target/",
+            "rkey": "redirecttestsinvalidsecret-http.default.1",
+            "serialization": "ambassador_id: redirecttestsinvalidsecret\napiVersion: ambassador/v1\nkind: Mapping\nname: tls_target_mapping\nprefix: /tls-target/\nservice: redirecttestsinvalidsecret-http\n",
+            "service": "redirecttestsinvalidsecret-http"
+        },
+        "redirecttestsinvalidsecret.default.1": {
+            "_referenced_by": {},
+            "ambassador_id": "redirecttestsinvalidsecret",
+            "apiVersion": "ambassador/v1",
+            "config": {
+                "server": {
+                    "enabled": true,
+                    "redirect_cleartext_from": 8080,
+                    "secret": "does-not-exist-secret"
+                }
+            },
+            "kind": "Module",
+            "location": "redirecttestsinvalidsecret.default.1",
+            "name": "tls",
+            "namespace": "default",
+            "rkey": "redirecttestsinvalidsecret.default.1",
+            "serialization": "ambassador_id: redirecttestsinvalidsecret\napiVersion: ambassador/v1\nconfig:\n  server:\n    enabled: true\n    redirect_cleartext_from: 8080\n    secret: does-not-exist-secret\nkind: Module\nname: tls\n"
+        }
+    },
+    "mappings": {
+        "tls_target_mapping": {
+            "ambassador_id": "redirecttestsinvalidsecret",
+            "apiVersion": "ambassador/v1",
+            "kind": "Mapping",
+            "name": "tls_target_mapping",
+            "namespace": "default",
+            "prefix": "/tls-target/",
+            "service": "redirecttestsinvalidsecret-http"
+        }
+    },
+    "modules": {
+        "tls": {
+            "apiVersion": "ambassador/v1",
+            "kind": "Module",
+            "name": "tls",
+            "namespace": "default",
+            "server": {
+                "enabled": true,
+                "redirect_cleartext_from": 8080,
+                "secret": "does-not-exist-secret"
+            }
+        }
+    },
+    "service": {
+        "k8s-redirecttestsinvalidsecret-admin-default": {
+            "ambassador_id": "redirecttestsinvalidsecret",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "name": "redirecttestsinvalidsecret-admin",
+            "namespace": "default"
+        },
+        "k8s-redirecttestsinvalidsecret-default": {
+            "ambassador_id": "redirecttestsinvalidsecret",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "name": "redirecttestsinvalidsecret",
+            "namespace": "default"
+        },
+        "k8s-redirecttestsinvalidsecret-http-default": {
+            "ambassador_id": "redirecttestsinvalidsecret",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "name": "redirecttestsinvalidsecret-http",
+            "namespace": "default"
+        }
+    }
+}

@@ -39,7 +39,7 @@ kat_files = [
     for subdirpath, folders, filenames in os.walk("kat")
 ]
 
-data_files = template_files + schema_files + kat_files
+data_files = [("", ["ambassador.version"])] + template_files + schema_files + kat_files
 
 setup(
     name="ambassador",

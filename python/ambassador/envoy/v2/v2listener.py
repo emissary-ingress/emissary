@@ -83,18 +83,21 @@ ExtAuthRequestHeaders = {
     'WWW-Authenticate': True,
 }
 
+def header_pattern_key(x: Dict[str, str]) -> List[Tuple[str, str]]:
+    return sorted([ (k, v) for k, v in x.items() ])
+
 @multi
 def v2filter(irfilter: IRFilter, v2config: 'V2Config'):
     del v2config  # silence unused-variable warning
 
     if irfilter.kind == 'IRAuth':
-        if irfilter.api_version == 'ambassador/v1':
-            return 'IRAuth_v1'
-        elif irfilter.api_version == 'ambassador/v0':
+        if irfilter.api_version == 'getambassador.io/v0':
             return 'IRAuth_v0'
+        elif (irfilter.api_version == 'getambassador.io/v1') or (irfilter.api_version == 'getambassador.io/v2'):
+            return 'IRAuth_v1-2'
         else:
-            irfilter.post_error('AuthService version %s unknown, treating as v1' % irfilter.api_version)
-            return 'IRAuth_v1'
+            irfilter.post_error('AuthService version %s unknown, treating as v2' % irfilter.api_version)
+            return 'IRAuth_v1-2'
     else:
         return irfilter.kind
 
@@ -169,7 +172,7 @@ def v2filter_authv0(auth: IRAuth, v2config: 'V2Config'):
     assert auth.cluster
     cluster = typecast(IRCluster, auth.cluster)
 
-    assert auth.api_version == "ambassador/v0"
+    assert auth.api_version == "getambassador.io/v0"
 
     # This preserves almost exactly the same logic prior to ambassador/v1 implementation.
     request_headers = dict(ExtAuthRequestHeaders)
@@ -205,15 +208,15 @@ def v2filter_authv0(auth: IRAuth, v2config: 'V2Config'):
                 'path_prefix': auth.path_prefix,
                 'authorization_request': {
                     'allowed_headers': {
-                        'patterns': allowed_request_headers
+                        'patterns': sorted(allowed_request_headers, key=header_pattern_key)
                     }
                 },
                 'authorization_response' : {
                     'allowed_upstream_headers': {
-                        'patterns': allowed_authorization_headers
+                        'patterns': sorted(allowed_authorization_headers, key=header_pattern_key)
                     },
                     'allowed_client_headers': {
-                        'patterns': allowed_authorization_headers
+                        'patterns': sorted(allowed_authorization_headers, key=header_pattern_key)
                     }
                 }
             }
@@ -221,14 +224,14 @@ def v2filter_authv0(auth: IRAuth, v2config: 'V2Config'):
     }
 
 
-@v2filter.when("IRAuth_v1")
+@v2filter.when("IRAuth_v1-2")
 def v2filter_authv1(auth: IRAuth, v2config: 'V2Config'):
     del v2config  # silence unused-variable warning
 
     assert auth.cluster
     cluster = typecast(IRCluster, auth.cluster)
 
-    if auth.api_version != "ambassador/v1":
+    if (auth.api_version != "getambassador.io/v1") and (auth.api_version != "getambassador.io/v2"):
         auth.ir.logger.warning("IRAuth_v1 working on %s, mismatched at %s" % (auth.name, auth.api_version))
 
     assert auth.proto
@@ -285,16 +288,16 @@ def v2filter_authv1(auth: IRAuth, v2config: 'V2Config'):
                     'path_prefix': auth.path_prefix,
                     'authorization_request': {
                         'allowed_headers': {
-                            'patterns': allowed_request_headers
+                            'patterns': sorted(allowed_request_headers, key=header_pattern_key)
                         },
                         'headers_to_add' : headers_to_add
                     },
                     'authorization_response' : {
                         'allowed_upstream_headers': {
-                            'patterns': allowed_authorization_headers
+                            'patterns': sorted(allowed_authorization_headers, key=header_pattern_key)
                         },
                         'allowed_client_headers': {
-                            'patterns': allowed_authorization_headers
+                            'patterns': sorted(allowed_authorization_headers, key=header_pattern_key)
                         }
                     }
                 },
@@ -392,15 +395,6 @@ class V2TCPListener(dict):
 
         self.tls_context: Optional[V2TLSContext] = None
 
-        # # Use a sane access log spec
-        # self.access_log = [ {
-        #     'name': 'envoy.file_access_log',
-        #     'config': {
-        #         'path': '/dev/fd/1',
-        #         'format': 'ACCESS [%START_TIME%] \"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\" %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% \"%REQ(X-FORWARDED-FOR)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\" \"%UPSTREAM_HOST%\"\n'
-        #     }
-        # } ]
-
         # Set the basics like our name and listening address.
         self.update({
             'name': self.name,
@@ -481,6 +475,7 @@ class V2Listener(dict):
         self.http_filters: List[dict] = []
         self.listener_filters: List[dict] = []
         self.filter_chains: List[dict] = []
+        self.need_tls_inspector = False
 
         self.upgrade_configs: Optional[List[dict]] = None
 
@@ -567,8 +562,10 @@ class V2Listener(dict):
             else:
                 # Use a sane access log spec
                 log_format = config.ir.ambassador_module.get('envoy_log_format', None)
+
                 if not log_format:
-                    log_format = 'ACCESS [%START_TIME%] \"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\" %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% \"%REQ(X-FORWARDED-FOR)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\" \"%UPSTREAM_HOST%\"\n'
+                    log_format = 'ACCESS [%START_TIME%] \"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\" %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% \"%REQ(X-FORWARDED-FOR)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\" \"%UPSTREAM_HOST%\"'
+
                 config.ir.logger.info("V2Listener: Using log_format '%s'" % log_format)
                 self.access_log.append({
                     'name': 'envoy.file_access_log',
@@ -601,12 +598,60 @@ class V2Listener(dict):
             # Let self.handle_sni do the heavy lifting for SNI.
             self.handle_sni(config)
 
-        # If the filter chain is empty here, we had no contexts. Add a single empty element to
-        # to filter chain to make the logic below a bit simpler.
+        # We need to add a cleartext listener if any of the following are true:
+        #
+        # 1. We don't have any termination contexts.
+        # 2. We have a Host that explicitly says "acme-provider: none".
+        # 3. We are allowing the fallback UI route.
+
+        need_cleartext = False
+
         if not self.filter_chains:
-            self.filter_chains.append({
-                'routes': self.routes
+            config.ir.logger.info("V2L: no filter chains, need cleartext")
+            need_cleartext = True
+
+        if config.ir.wizard_allowed:
+            config.ir.logger.info("V2L: wizard allowed, need cleartext")
+            need_cleartext = True
+
+        host_dict = config.ir.aconf.get_config("hosts") or {}
+    
+        for host in host_dict.values():
+            if host.get('acme-provider', 'zzz').lower() == 'none':
+                config.ir.logger.info(f"V2L: host {host.hostname} has ACME none, need cleartext")
+                need_cleartext = True
+                break
+
+        if need_cleartext:
+            # By definition, this chain has no TLS contexts.
+            cleartext_chain = {
+                'routes': self.routes,
+                '_ctx_name': '-cleartext-',
+                '_ctx_hosts': ['*']
+            }
+
+            if self.need_tls_inspector:
+                cleartext_chain['filter_chain_match'] = {}
+
+            self.filter_chains.append(cleartext_chain)
+
+            self.dump_chains(config)
+
+        # Set up the TLS inspector if we need it.
+        if self.need_tls_inspector:
+            config.ir.logger.info("V2L: enabling TLS inspector")
+
+            self.listener_filters.append({
+                'name': 'envoy.listener.tls_inspector',
+                'config': {}
             })
+        else:
+            config.ir.logger.info("V2L: leaving TLS inspector disabled")
+
+        # Clean up our filter chains...
+        for chain in self.filter_chains:
+            chain.pop('_ctx_name', None)
+            chain.pop('_ctx_hosts', None)
 
         # OK. Build our base HTTP config...
         base_http_config: Dict[str, Any] = {
@@ -703,10 +748,10 @@ class V2Listener(dict):
 
         for tls_context in config.ir.get_tls_contexts():
             if tls_context.get('hosts', None):
-                config.ir.logger.debug("V2Listener: SNI operating on termination context '%s'" % tls_context.name)
+                config.ir.logger.debug("V2Listener: SNI taking termination context '%s'" % tls_context.name)
                 config.ir.logger.debug(tls_context.as_json())
                 v2ctx = V2TLSContext(tls_context)
-                config.ir.logger.debug(json.dumps(v2ctx, indent=4, sort_keys=True))
+                # config.ir.logger.debug(json.dumps(v2ctx, indent=4, sort_keys=True))
                 envoy_contexts.append((tls_context.name, tls_context.hosts, v2ctx))
             else:
                 config.ir.logger.debug("V2Listener: SNI skipping origination context '%s'" % tls_context.name)
@@ -714,38 +759,42 @@ class V2Listener(dict):
         # OK. If we have multiple contexts here, SNI is likely a thing.
         if len(envoy_contexts) > 1:
             config.ir.logger.debug("V2Listener: enabling SNI, %d contexts" % len(envoy_contexts))
-            config.ir.logger.debug(json.dumps(envoy_contexts, indent=4, sort_keys=True))
+            config.ir.logger.debug("            [ %s ]" % ", ".join([ x[0] for x in envoy_contexts ]))
 
             global_sni = True
-
-            self.listener_filters.append({
-                'name': 'envoy.listener.tls_inspector',
-                'config': {}
-            })
+        else:
+            config.ir.logger.debug("V2Listener: disabling SNI, %d contexts" % len(envoy_contexts))
 
         for name, hosts, ctx in envoy_contexts:
             if not ctx:
                 continue
 
-            config.ir.logger.info("V2Listener: SNI (1) route check %s, %s, %s" %
-                                  (name, hosts, json.dumps(ctx, indent=4, sort_keys=True)))
+            config.ir.logger.info(f"V2Listener: SNI (1) route check {name} - {hosts}")
 
             routes = list(self.routes)
 
-            chain: Dict[str, Any] = { 'tls_context': ctx }
+            chain: Dict[str, Any] = {
+                'tls_context': ctx,
+                '_ctx_name': name,
+                '_ctx_hosts': hosts
+            }
 
-            if global_sni:
-                filter_chain_match = {}
+            # We have a TLS context, so we should make sure they're speaking TLS!
+            self.need_tls_inspector = True
+            filter_chain_match: Dict[str, Any] = {
+                'transport_protocol': 'tls'
+            }
 
-                if hosts != [ '*' ]:
-                    filter_chain_match['server_names'] = hosts
+            if global_sni and (hosts != [ '*' ]):
+                filter_chain_match['server_names'] = hosts
 
-                chain['filter_chain_match'] = filter_chain_match
+            chain['filter_chain_match'] = filter_chain_match
 
             for sni_route in config.sni_routes:
                 # Check if filter chain and SNI route have matching hosts
                 context_hosts = sorted(hosts or [])
-                matched = sorted(sni_route['info']['hosts']) == context_hosts
+                route_hosts = sorted(sni_route['info']['hosts'])
+                matched = (route_hosts == context_hosts)
 
                 # Check for certificate match too.
                 for sni_key, ctx_key in [ ('cert_chain_file', 'certificate_chain'),
@@ -758,15 +807,30 @@ class V2Listener(dict):
                         matched = False
                         break
 
-                config.ir.logger.info("V2Listener:   SNI (2 - %s) route check %s, route %s" %
-                                      ("TAKE" if matched else "SKIP", name,
-                                       json.dumps(sni_route, indent=4, sort_keys=True)))
+                config.ir.logger.info("V2Listener:   SNI (2) route check %s %s route for %s" %
+                                      (name, "TAKE" if matched else "SKIP", route_hosts))
 
                 if matched:
                     routes.append(sni_route['route'])
 
             chain['routes'] = routes
             self.filter_chains.append(chain)
+
+        self.dump_chains(config)
+
+    def dump_chains(self, config):
+        dumpinfo = []
+        for chain in self.filter_chains:
+            di = {
+                'filter_chain_match': chain.get('filter_chain_match') or {},
+                'route_count': len(chain['routes']),
+                'ctx_name': chain['_ctx_name'],
+                'ctx_hosts': chain['_ctx_hosts']
+            }
+
+            dumpinfo.append(di)
+        config.ir.logger.info("V2Listener: SNI filter chains\n%s" %
+                              json.dumps(dumpinfo, indent=4, sort_keys=True))
 
     @classmethod
     def generate(cls, config: 'V2Config') -> None:

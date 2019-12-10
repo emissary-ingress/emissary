@@ -35,13 +35,14 @@ from .irfilter import IRFilter
 from .ircluster import IRCluster
 from .irbasemappinggroup import IRBaseMappingGroup
 from .irbasemapping import IRBaseMapping
+from .irhost import IRHost, HostFactory
 from .irmappingfactory import MappingFactory
 from .irratelimit import IRRateLimit
 from .irtls import TLSModuleFactory, IRAmbassadorTLS
 from .irlistener import ListenerFactory, IRListener
 from .irlogservice import IRLogService, IRLogServiceFactory
 from .irtracing import IRTracing
-from .irtlscontext import IRTLSContext
+from .irtlscontext import IRTLSContext, TLSContextFactory
 from .irserviceresolver import IRServiceResolver, IRServiceResolverFactory, SvcEndpoint, SvcEndpointSet
 
 from ..VERSION import Version, Build
@@ -61,10 +62,12 @@ class IR:
     ambassador_nodename: str
     aconf: Config
     clusters: Dict[str, IRCluster]
+    edge_stack_allowed: bool
     file_checker: Callable[[str], bool]
     filters: List[IRFilter]
     groups: Dict[str, IRBaseMappingGroup]
     grpc_services: Dict[str, IRCluster]
+    hosts: Dict[str, IRHost]
     listeners: List[IRListener]
     log_services: Dict[str, IRLogService]
     ratelimit: Optional[IRRateLimit]
@@ -78,14 +81,15 @@ class IR:
     tls_contexts: Dict[str, IRTLSContext]
     tls_module: Optional[IRAmbassadorTLS]
     tracing: Optional[IRTracing]
+    wizard_allowed: bool
 
-    def __init__(self, aconf: Config, secret_handler=None, file_checker=None) -> None:
+    def __init__(self, aconf: Config, secret_handler=None, file_checker=None, logger=None, watch_only=False) -> None:
         self.ambassador_id = Config.ambassador_id
         self.ambassador_namespace = Config.ambassador_namespace
         self.ambassador_nodename = aconf.ambassador_nodename
         self.statsd = aconf.statsd
 
-        self.logger = logging.getLogger("ambassador.ir")
+        self.logger = logger or logging.getLogger("ambassador.ir")
 
         # We're using setattr since since mypy complains about assigning directly to a method.
         secret_root = os.environ.get('AMBASSADOR_CONFIG_BASE_DIR', "/ambassador")
@@ -108,7 +112,6 @@ class IR:
 
         # First up: save the Config object. Its source map may be necessary later.
         self.aconf = aconf
-        self.k8s_status_updates = aconf.k8s_status_updates
 
         # Next, we'll want a way to keep track of resources we end up working
         # with. It starts out empty.
@@ -118,23 +121,38 @@ class IR:
         self.saved_secrets = {}
         self.secret_info: Dict[str, SecretInfo] = {}
 
-        # ...and the initial IR state is empty.
+        # ...and the initial IR state is empty _except for k8s_status_updates_.
         #
         # Note that we use a map for clusters, not a list -- the reason is that
         # multiple mappings can use the same service, and we don't want multiple
         # clusters.
+
+        self.breakers = {}
         self.clusters = {}
         self.filters = []
+        self.groups = {}
         self.grpc_services = {}
+        self.hosts = {}
+        # self.k8s_status_updates is handled below.
         self.listeners = []
         self.log_services = {}
-        self.groups = {}
+        self.outliers = {}
         self.ratelimit = None
         self.redirect_cleartext_from = None
         self.resolvers = {}
+        self.saved_secrets = {}
+        self.secret_info = {}
+        self.services = {}
         self.tls_contexts = {}
         self.tls_module = None
         self.tracing = None
+
+        # Copy k8s_status_updates from our aconf.
+        self.k8s_status_updates = aconf.k8s_status_updates
+
+        # Check on the edge stack. Note that the Edge Stack touchfile is _not_ within
+        # $AMBASSADOR_CONFIG_BASE_DIR: it stays in /ambassador no matter what.
+        self.edge_stack_allowed = os.path.exists('/ambassador/.edge_stack')
 
         # OK, time to get this show on the road. First things first: set up the
         # Ambassador module.
@@ -159,13 +177,33 @@ class IR:
         # this though.
 
         TLSModuleFactory.load_all(self, aconf)
-        self.save_tls_contexts(aconf)
+        TLSContextFactory.load_all(self, aconf)
+
+        # ...then grab whatever we know about Hosts...
+        HostFactory.load_all(self, aconf)
 
         # Now we can finalize the Ambassador module, to tidy up secrets et al. We do this
         # here so that secrets and TLS contexts are available.
         if not self.ambassador_module.finalize(self, aconf):
             # Uhoh.
             self.ambassador_module.set_active(False)    # This can't be good.
+
+        self.wizard_allowed = self.edge_stack_allowed and self.ambassador_module.get('allow-wizard', True)
+        _activity_str = 'watching' if watch_only else 'starting'
+        _mode_str = 'Edge Stack' if self.edge_stack_allowed else 'OSS'
+        _wizard_str = ''
+
+        if self.edge_stack_allowed:
+            _wizard_str = f"; wizard {'allowed' if self.wizard_allowed else 'not allowed'}"
+
+        self.logger.info(f"IR: {_activity_str} {_mode_str}{_wizard_str}")
+
+        # Next up, initialize our IRServiceResolvers.
+        IRServiceResolverFactory.load_all(self, aconf)
+
+        # Once here, if we're only watching, we're done.
+        if watch_only:
+            return
 
         # REMEMBER FOR SAVING YOU NEED TO CALL save_resource!
         # THIS IS VERY IMPORTANT!
@@ -177,29 +215,26 @@ class IR:
 
         self.cluster_ingresses_to_mappings()
 
-        # Next up, initialize our IRServiceResolvers.
-        IRServiceResolverFactory.load_all(self, aconf)
-
         # Save tracing, ratelimit, and logging settings.
         self.tracing = typecast(IRTracing, self.save_resource(IRTracing(self, aconf)))
         self.ratelimit = typecast(IRRateLimit, self.save_resource(IRRateLimit(self, aconf)))
         IRLogServiceFactory.load_all(self, aconf)
 
         # After the Ambassador and TLS modules are done, we need to set up the
-        # filter chains, which requires checking in on the auth, and
-        # ratelimit configuration. Note that order of the filters matter.
+        # filter chains. Note that order of the filters matters. Start with auth,
+        # since it needs to be able to override everything...
         self.save_filter(IRAuth(self, aconf))
-
-        # ...note that ratelimit is a filter too...
-        if self.ratelimit:
-            self.save_filter(self.ratelimit, already_saved=True)
 
         # ...then deal with the non-configurable cors filter...
         self.save_filter(IRFilter(ir=self, aconf=aconf,
                                   rkey="ir.cors", kind="ir.cors", name="cors",
                                   config={}))
 
-        # ...and the marginally-configurable router filter.
+        # ...then the ratelimit filter...
+        if self.ratelimit:
+            self.save_filter(self.ratelimit, already_saved=True)
+
+        # ...and, finally, the barely-configurable router filter.
         router_config = {}
 
         if self.tracing:
@@ -266,6 +301,21 @@ class IR:
 
         return resource
 
+    def save_host(self, host: IRHost) -> None:
+        extant_host = self.hosts.get(host.name, None)
+        is_valid = True
+
+        if extant_host:
+            self.post_error("Duplicate Host %s; keeping definition from %s" % (host.name, extant_host.location))
+            is_valid = False
+
+        if is_valid:
+            self.hosts[host.name] = host
+
+    # Get saved hosts.
+    def get_hosts(self) -> List[IRHost]:
+        return list(self.hosts.values())
+
     # Save secrets from our aconf.
     def save_secret_info(self, aconf):
         aconf_secrets = aconf.get_config("secrets") or {}
@@ -281,18 +331,6 @@ class IR:
                 self.logger.debug(f'saving {secret_name}.{secret_namespace} (from {secret_key}) in secret_info')
                 self.secret_info[f'{secret_name}.{secret_namespace}'] = secret_info
 
-    # Save TLS contexts from the aconf into the IR. Note that the contexts in the aconf
-    # are just ACResources; they need to be turned into IRTLSContexts.
-    def save_tls_contexts(self, aconf):
-        tls_contexts = aconf.get_config('tls_contexts')
-
-        if tls_contexts is not None:
-            for config in tls_contexts.values():
-                ctx = IRTLSContext(self, config)
-
-                if ctx.is_active():
-                    self.save_tls_context(ctx)
-
     def save_tls_context(self, ctx: IRTLSContext) -> None:
         extant_ctx = self.tls_contexts.get(ctx.name, None)
         is_valid = True
@@ -301,12 +339,12 @@ class IR:
             self.post_error("Duplicate TLSContext %s; keeping definition from %s" % (ctx.name, extant_ctx.location))
             is_valid = False
 
-        if ctx.redirect_cleartext_from is not None:
+        if ctx.get('redirect_cleartext_from', None) is not None:
             if self.redirect_cleartext_from is None:
                 self.redirect_cleartext_from = ctx.redirect_cleartext_from
             else:
                 if self.redirect_cleartext_from != ctx.redirect_cleartext_from:
-                    self.post_error("TLSContext: %s; configured conflicting redirect_from port: %d" % (ctx.name, ctx.redirect_cleartext_from))
+                    self.post_error("TLSContext: %s; configured conflicting redirect_from port: %s" % (ctx.name, ctx.redirect_cleartext_from))
                     is_valid = False
 
         if is_valid:
@@ -318,8 +356,8 @@ class IR:
     def add_resolver(self, resolver: IRServiceResolver) -> None:
         self.resolvers[resolver.name] = resolver
 
-    # def has_tls_context(self, name: str) -> bool:
-    #     return bool(self.get_tls_context(name))
+    def has_tls_context(self, name: str) -> bool:
+        return bool(self.get_tls_context(name))
 
     def get_tls_context(self, name: str) -> Optional[IRTLSContext]:
         return self.tls_contexts.get(name, None)
@@ -327,26 +365,7 @@ class IR:
     def get_tls_contexts(self) -> ValuesView[IRTLSContext]:
         return self.tls_contexts.values()
 
-    def resolve_secret(self, context: IRTLSContext, secret_name: str) -> SavedSecret:
-        # Start by figuring out a namespace to look in. Assume that we're
-        # in the Ambassador's namespace...
-        namespace = self.ambassador_namespace
-
-        # You can't just always allow '.' in a secret name to span namespaces, or you end up with
-        # https://github.com/datawire/ambassador/issues/1255, which is particularly problematic
-        # because (https://github.com/datawire/ambassador/issues/1475) Istio likes to use '.' in
-        # mTLS secret names. So we default to allowing the '.' as a namespace separator, but
-        # you can set secret_namespacing to False in a TLSContext or tls_secret_namespacing False
-        # in the Ambassador module's defaults to prevent that.
-
-        secret_namespacing = context.lookup('secret_namespacing', True,
-                                            default_key='tls_secret_namespacing')
-
-        self.logger.info(f"resolve_secret {secret_name}, namespace {namespace}: namespacing is {secret_namespacing}")
-
-        if "." in secret_name and secret_namespacing:
-            secret_name, namespace = secret_name.split('.', 1)
-
+    def resolve_secret(self, resource: IRResource, secret_name: str, namespace: str):
         # OK. Do we already have a SavedSecret for this?
         ss_key = f'{secret_name}.{namespace}'
 
@@ -355,32 +374,34 @@ class IR:
         if ss:
             # Done. Return it.
             self.logger.info(f"resolve_secret {ss_key}: using cached SavedSecret")
+            self.secret_handler.still_needed(resource, secret_name, namespace)
             return ss
 
         # OK, do we have a secret_info for it??
-        self.logger.debug(f"trying to get key {ss_key} from secret_info {self.secret_info}")
+        # self.logger.debug(f"resolve_secret {ss_key}: checking secret_info")
+
         secret_info = self.secret_info.get(ss_key, None)
 
         if secret_info:
             self.logger.info(f"resolve_secret {ss_key}: found secret_info")
+            self.secret_handler.still_needed(resource, secret_name, namespace)
         else:
             # No secret_info, so ask the secret_handler to find us one.
-            self.logger.info(f"resolve_secret {ss_key}: asking handler to load")
-            secret_info = self.secret_handler.load_secret(context, secret_name, namespace)
+            self.logger.info(f"resolve_secret {ss_key}: no secret_info, asking handler to load")
+            secret_info = self.secret_handler.load_secret(resource, secret_name, namespace)
 
         if not secret_info:
             self.logger.error(f"Secret {ss_key} unknown")
 
-            ss = SavedSecret(secret_name, namespace, None, None, None)
+            ss = SavedSecret(secret_name, namespace, None, None, None, None)
         else:
-            self.logger.info(f"resolve_secret {ss_key}: asking handler to cache")
+            self.logger.info(f"resolve_secret {ss_key}: found secret, asking handler to cache")
 
             # OK, we got a secret_info. Cache that using the secret handler.
-            ss = self.secret_handler.cache_secret(context, secret_info)
+            ss = self.secret_handler.cache_secret(resource, secret_info)
 
             # Save this for next time.
             self.saved_secrets[secret_name] = ss
-
         return ss
 
     def resolve_targets(self, cluster: IRCluster, resolver_name: Optional[str],
@@ -449,6 +470,8 @@ class IR:
         return self.add_to_listener(primary_listener, **kwargs)
 
     def add_mapping(self, aconf: Config, mapping: IRBaseMapping) -> Optional[IRBaseMappingGroup]:
+        mapping.check_status()
+
         if mapping.is_active():
             if mapping.group_id not in self.groups:
                 group_name = "GROUP: %s" % mapping.name
@@ -518,7 +541,7 @@ class IR:
                             ci_mapping = {
                                 'rkey': mapping_identifier,
                                 'location': mapping_identifier,
-                                'apiVersion': 'ambassador/v1',
+                                'apiVersion': 'getambassador.io/v2',
                                 'kind': 'Mapping',
                                 'name': mapping_identifier,
                                 'prefix': '/'
@@ -624,12 +647,13 @@ class IR:
                           for cluster_name, cluster in self.clusters.items() },
             'grpc_services': { svc_name: cluster.as_dict()
                                for svc_name, cluster in self.grpc_services.items() },
+            'hosts': [ host.as_dict() for host in self.hosts.values() ],
             'listeners': [ listener.as_dict() for listener in self.listeners ],
             'filters': [ filt.as_dict() for filt in self.filters ],
             'groups': [ group.as_dict() for group in self.ordered_groups() ],
             'tls_contexts': [ context.as_dict() for context in self.tls_contexts.values() ],
             'services': self.services,
-            'k8s_status_updates': self.k8s_status_updates,
+            'k8s_status_updates': self.k8s_status_updates
         }
 
         if self.log_services:

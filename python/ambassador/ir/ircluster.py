@@ -62,7 +62,7 @@ class IRCluster (IRResource):
 
                  rkey: str="-override-",
                  kind: str="IRCluster",
-                 apiVersion: str="ambassador/v0",   # Not a typo! See below.
+                 apiVersion: str="getambassador.io/v0",   # Not a typo! See below.
                  **kwargs) -> None:
         # Step one: look at the service and such and figure out a cluster name
         # and TLS origination info.

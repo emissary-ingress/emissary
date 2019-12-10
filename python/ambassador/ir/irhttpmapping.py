@@ -109,9 +109,10 @@ class IRHTTPMapping (IRBaseMapping):
                  rkey: str,      # REQUIRED
                  name: str,      # REQUIRED
                  location: str,  # REQUIRED
-
-                 kind: str="IRMapping",
-                 apiVersion: str="ambassador/v1",   # Not a typo! See below.
+                 namespace: Optional[str] = None,
+                 metadata_labels: Optional[Dict[str, str]] = None,
+                 kind: str="IRHTTPMapping",
+                 apiVersion: str="getambassador.io/v2",   # Not a typo! See below.
                  precedence: int=0,
                  rewrite: str="/",
                  **kwargs) -> None:
@@ -157,8 +158,8 @@ class IRHTTPMapping (IRBaseMapping):
         # ...and then init the superclass.
         super().__init__(
             ir=ir, aconf=aconf, rkey=rkey, location=location,
-            kind=kind, name=name, apiVersion=apiVersion,
-            headers=hdrs, add_request_headers=add_request_hdrs,
+            kind=kind, name=name, namespace=namespace, metadata_labels=metadata_labels,
+            apiVersion=apiVersion, headers=hdrs, add_request_headers=add_request_hdrs,
             precedence=precedence, rewrite=rewrite,
             **new_args
         )
@@ -192,15 +193,15 @@ class IRHTTPMapping (IRBaseMapping):
             else:
                 return False
 
-        # Likewise, labels is supported only in V1:
+        # Likewise, labels is supported only in V1+:
         if 'labels' in self:
-            if self.apiVersion != 'ambassador/v1':
-                self.post_error("labels supported only in ambassador/v1 Mapping resources")
+            if self.apiVersion == 'getambassador.io/v0':
+                self.post_error("labels not supported in getambassador.io/v0 Mapping resources")
                 return False
 
         if 'rate_limits' in self:
-            if self.apiVersion != 'ambassador/v0':
-                self.post_error("rate_limits supported only in ambassador/v0 Mapping resources")
+            if self.apiVersion != 'getambassador.io/v0':
+                self.post_error("rate_limits supported only in getambassador.io/v0 Mapping resources")
                 return False
 
             # Let's turn this into a set of labels instead.
@@ -343,6 +344,9 @@ class IRHTTPMapping (IRBaseMapping):
             if hdr.value is not None:
                 h.update(hdr.value.encode('utf-8'))
 
+        if self.precedence != 0:
+            h.update(str(self.precedence).encode('utf-8'))
+
         return h.hexdigest()
 
     def _route_weight(self) -> List[Union[str, int]]:
@@ -357,3 +361,21 @@ class IRHTTPMapping (IRBaseMapping):
         weight += [ hdr.key() for hdr in self.headers ]
 
         return weight
+
+    def summarize_errors(self) -> str:
+        errors = self.ir.aconf.errors.get(self.rkey, [])
+        errstr = "(no errors)"
+
+        if errors:
+            errstr = errors[0].get('error') or 'unknown error?'
+
+            if len(errors) > 1:
+                errstr += " (and more)"
+
+        return errstr
+
+    def status(self) -> Dict[str, str]:
+        if not self.is_active():
+            return { 'state': 'Inactive', 'reason': self.summarize_errors() }
+        else:
+            return { 'state': 'Running' }

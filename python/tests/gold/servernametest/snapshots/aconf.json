@@ -1,0 +1,146 @@
+{
+    "_errors": {},
+    "_notices": {
+        "servernametest.default.1": [
+            "apiVersion ambassador/v0 is deprecated, consider upgrading"
+        ],
+        "servernametest.default.2": [
+            "apiVersion ambassador/v0 is deprecated, consider upgrading"
+        ]
+    },
+    "_sources": {
+        "--diagnostics--": {
+            "_referenced_by": {},
+            "apiVersion": "ambassador/v0",
+            "description": "The '--diagnostics--' source marks objects created by Ambassador to assist with diagnostic output.",
+            "kind": "Diagnostics",
+            "location": "--diagnostics--",
+            "name": "Ambassador Diagnostics",
+            "namespace": null,
+            "rkey": "--diagnostics--",
+            "serialization": null,
+            "version": "ambassador/v0"
+        },
+        "--internal--": {
+            "_referenced_by": {},
+            "apiVersion": "ambassador/v0",
+            "description": "The '--internal--' source marks objects created by Ambassador's internal logic.",
+            "kind": "Internal",
+            "location": "--internal--",
+            "name": "Ambassador Internals",
+            "namespace": null,
+            "rkey": "--internal--",
+            "serialization": null,
+            "version": "ambassador/v0"
+        },
+        "k8s-servernametest-admin-default": {
+            "_referenced_by": {},
+            "ambassador_id": "servernametest",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-servernametest-admin-default",
+            "name": "servernametest-admin",
+            "namespace": "default",
+            "rkey": "k8s-servernametest-admin-default",
+            "serialization": "ambassador_id: servernametest\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: servernametest-admin\nnamespace: default\n"
+        },
+        "k8s-servernametest-default": {
+            "_referenced_by": {},
+            "ambassador_id": "servernametest",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-servernametest-default",
+            "name": "servernametest",
+            "namespace": "default",
+            "rkey": "k8s-servernametest-default",
+            "serialization": "ambassador_id: servernametest\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: servernametest\nnamespace: default\n"
+        },
+        "k8s-servernametest-http-default": {
+            "_referenced_by": {},
+            "ambassador_id": "servernametest",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-servernametest-http-default",
+            "name": "servernametest-http",
+            "namespace": "default",
+            "rkey": "k8s-servernametest-http-default",
+            "serialization": "ambassador_id: servernametest\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: servernametest-http\nnamespace: default\n"
+        },
+        "servernametest.default.1": {
+            "_referenced_by": {},
+            "ambassador_id": "servernametest",
+            "apiVersion": "ambassador/v0",
+            "config": {
+                "server_name": "test-server"
+            },
+            "kind": "Module",
+            "location": "servernametest.default.1",
+            "name": "ambassador",
+            "namespace": "default",
+            "rkey": "servernametest.default.1",
+            "serialization": "ambassador_id: servernametest\napiVersion: ambassador/v0\nconfig:\n  server_name: test-server\nkind: Module\nname: ambassador\n"
+        },
+        "servernametest.default.2": {
+            "_referenced_by": {},
+            "ambassador_id": "servernametest",
+            "apiVersion": "ambassador/v0",
+            "kind": "Mapping",
+            "location": "servernametest.default.2",
+            "name": "servernametest/server-name",
+            "namespace": "default",
+            "prefix": "/server-name",
+            "rkey": "servernametest.default.2",
+            "serialization": "ambassador_id: servernametest\napiVersion: ambassador/v0\nkind: Mapping\nname: servernametest/server-name\nprefix: /server-name\nservice: servernametest-http\n",
+            "service": "servernametest-http"
+        }
+    },
+    "mappings": {
+        "servernametest/server-name": {
+            "ambassador_id": "servernametest",
+            "apiVersion": "ambassador/v0",
+            "kind": "Mapping",
+            "name": "servernametest/server-name",
+            "namespace": "default",
+            "prefix": "/server-name",
+            "service": "servernametest-http"
+        }
+    },
+    "modules": {
+        "ambassador": {
+            "apiVersion": "ambassador/v0",
+            "kind": "Module",
+            "name": "ambassador",
+            "namespace": "default",
+            "server_name": "test-server"
+        }
+    },
+    "service": {
+        "k8s-servernametest-admin-default": {
+            "ambassador_id": "servernametest",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "name": "servernametest-admin",
+            "namespace": "default"
+        },
+        "k8s-servernametest-default": {
+            "ambassador_id": "servernametest",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "name": "servernametest",
+            "namespace": "default"
+        },
+        "k8s-servernametest-http-default": {
+            "ambassador_id": "servernametest",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "name": "servernametest-http",
+            "namespace": "default"
+        }
+    }
+}

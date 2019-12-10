@@ -1,0 +1,158 @@
+{
+    "_errors": {},
+    "_notices": {
+        "gziptest.default.1": [
+            "apiVersion ambassador/v0 is deprecated, consider upgrading"
+        ],
+        "gziptest.default.2": [
+            "apiVersion ambassador/v0 is deprecated, consider upgrading"
+        ]
+    },
+    "_sources": {
+        "--diagnostics--": {
+            "_referenced_by": {},
+            "apiVersion": "ambassador/v0",
+            "description": "The '--diagnostics--' source marks objects created by Ambassador to assist with diagnostic output.",
+            "kind": "Diagnostics",
+            "location": "--diagnostics--",
+            "name": "Ambassador Diagnostics",
+            "namespace": null,
+            "rkey": "--diagnostics--",
+            "serialization": null,
+            "version": "ambassador/v0"
+        },
+        "--internal--": {
+            "_referenced_by": {},
+            "apiVersion": "ambassador/v0",
+            "description": "The '--internal--' source marks objects created by Ambassador's internal logic.",
+            "kind": "Internal",
+            "location": "--internal--",
+            "name": "Ambassador Internals",
+            "namespace": null,
+            "rkey": "--internal--",
+            "serialization": null,
+            "version": "ambassador/v0"
+        },
+        "gziptest.default.1": {
+            "_referenced_by": {},
+            "ambassador_id": "gziptest",
+            "apiVersion": "ambassador/v0",
+            "config": {
+                "gzip": {
+                    "content_type": [
+                        "text/plain"
+                    ],
+                    "min_content_length": 32,
+                    "window_bits": 15
+                }
+            },
+            "kind": "Module",
+            "location": "gziptest.default.1",
+            "name": "ambassador",
+            "namespace": "default",
+            "rkey": "gziptest.default.1",
+            "serialization": "ambassador_id: gziptest\napiVersion: ambassador/v0\nconfig:\n  gzip:\n    content_type:\n    - text/plain\n    min_content_length: 32\n    window_bits: 15\nkind: Module\nname: ambassador\n"
+        },
+        "gziptest.default.2": {
+            "_referenced_by": {},
+            "ambassador_id": "gziptest",
+            "apiVersion": "ambassador/v0",
+            "kind": "Mapping",
+            "location": "gziptest.default.2",
+            "name": "gziptest-http",
+            "namespace": "default",
+            "prefix": "/target/",
+            "rkey": "gziptest.default.2",
+            "serialization": "ambassador_id: gziptest\napiVersion: ambassador/v0\nkind: Mapping\nname: gziptest-http\nprefix: /target/\nservice: gziptest-http\n",
+            "service": "gziptest-http"
+        },
+        "k8s-gziptest-admin-default": {
+            "_referenced_by": {},
+            "ambassador_id": "gziptest",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-gziptest-admin-default",
+            "name": "gziptest-admin",
+            "namespace": "default",
+            "rkey": "k8s-gziptest-admin-default",
+            "serialization": "ambassador_id: gziptest\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: gziptest-admin\nnamespace: default\n"
+        },
+        "k8s-gziptest-default": {
+            "_referenced_by": {},
+            "ambassador_id": "gziptest",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-gziptest-default",
+            "name": "gziptest",
+            "namespace": "default",
+            "rkey": "k8s-gziptest-default",
+            "serialization": "ambassador_id: gziptest\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: gziptest\nnamespace: default\n"
+        },
+        "k8s-gziptest-http-default": {
+            "_referenced_by": {},
+            "ambassador_id": "gziptest",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "location": "k8s-gziptest-http-default",
+            "name": "gziptest-http",
+            "namespace": "default",
+            "rkey": "k8s-gziptest-http-default",
+            "serialization": "ambassador_id: gziptest\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: gziptest-http\nnamespace: default\n"
+        }
+    },
+    "mappings": {
+        "gziptest-http": {
+            "ambassador_id": "gziptest",
+            "apiVersion": "ambassador/v0",
+            "kind": "Mapping",
+            "name": "gziptest-http",
+            "namespace": "default",
+            "prefix": "/target/",
+            "service": "gziptest-http"
+        }
+    },
+    "modules": {
+        "ambassador": {
+            "apiVersion": "ambassador/v0",
+            "gzip": {
+                "content_type": [
+                    "text/plain"
+                ],
+                "min_content_length": 32,
+                "window_bits": 15
+            },
+            "kind": "Module",
+            "name": "ambassador",
+            "namespace": "default"
+        }
+    },
+    "service": {
+        "k8s-gziptest-admin-default": {
+            "ambassador_id": "gziptest",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "name": "gziptest-admin",
+            "namespace": "default"
+        },
+        "k8s-gziptest-default": {
+            "ambassador_id": "gziptest",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "name": "gziptest",
+            "namespace": "default"
+        },
+        "k8s-gziptest-http-default": {
+            "ambassador_id": "gziptest",
+            "apiVersion": "ambassador/v1",
+            "endpoints": {},
+            "kind": "Service",
+            "name": "gziptest-http",
+            "namespace": "default"
+        }
+    }
+}
