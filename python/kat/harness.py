@@ -436,6 +436,9 @@ class Node(ABC):
                 envstuff.append("AMBASSADOR_SINGLE_NAMESPACE=yes")
                 cmd += ["-n", ambassador_namespace]
 
+            if not getattr(self, 'allow_edge_stack_redirect', False):
+                envstuff.append("AMBASSADOR_NO_HOST_REDIRECT=yes")
+
             cmd = envstuff + cmd
 
             w = ShellCommand(*cmd)

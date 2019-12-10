@@ -1,5 +1,7 @@
 from typing import Optional, TYPE_CHECKING
 
+import os
+
 from ..utils import SavedSecret
 from ..config import Config
 from .irresource import IRResource
@@ -72,14 +74,19 @@ class IRHost(IRResource):
                         else:
                             ir.logger.info(f"Host {self.name}: creating TLSContext {ctx_name}")
 
-                            ctx = IRTLSContext(ir, aconf,
-                                               rkey=self.rkey,
-                                               name=ctx_name,
-                                               namespace=self.namespace,
-                                               location=self.location,
-                                               hosts=[ self.hostname ],
-                                               secret=tls_name,
-                                               redirect_cleartext_from=8080)
+                            new_ctx = dict(
+                                rkey=self.rkey,
+                                name=ctx_name,
+                                namespace=self.namespace,
+                                location=self.location,
+                                hosts=[ self.hostname ],
+                                secret=tls_name
+                            )
+
+                            if not os.environ.get('AMBASSADOR_NO_HOST_REDIRECT', None):
+                                new_ctx['redirect_cleartext_from'] = 8080
+
+                            ctx = IRTLSContext(ir, aconf, **new_ctx)
 
                             match_labels = self.get('matchLabels')
 
