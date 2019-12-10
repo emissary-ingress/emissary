@@ -39,10 +39,50 @@ func NewInvoker(port int, notify []string) *invoker {
 func (a *invoker) Work(p *supervisor.Process) error {
 	a.process = p
 	p.Ready()
+
+	invoking := make(chan string)
+
+	go func() {
+		for snapshot := range invoking {
+			// ignore empty snapshots to deal with the
+			// corner case where we haven't yet received a
+			// snapshot
+			if snapshot != "" {
+				a.latestSnapshot = snapshot
+				a.invoke()
+			}
+		}
+	}()
+
+	potentialSnapshot := ""
+
 	for {
 		select {
-		case a.latestSnapshot = <-a.Snapshots:
-			a.invoke()
+		case potentialSnapshot = <-a.Snapshots:
+			// if a new snapshot is available to be read,
+			// and we can't write to the invoking channel,
+			// then we will overwrite potentialSnapshot
+			// with a newer snapshot
+		case invoking <- potentialSnapshot:
+			// if we aren't currently blocked in
+			// a.invoke() then the above goroutine will be
+			// reading from the invoking channel and we
+			// will send the current potentialSnapshot
+			// value over the invoking channel to be
+			// processed
+
+			select {
+			case potentialSnapshot = <-a.Snapshots:
+				// whenever we write a
+				// potentialSnapshot to invoking, we
+				// also need to do a synchronous read
+				// from a.Snapshots to make sure we
+				// won't ever invoke the same snapshot
+				// twice
+			case <-p.Shutdown():
+				p.Logf("shutdown initiated")
+				return nil
+			}
 		case <-p.Shutdown():
 			p.Logf("shutdown initiated")
 			return nil
