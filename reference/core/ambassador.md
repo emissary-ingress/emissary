@@ -72,6 +72,18 @@ diagnostics:
   enabled: true
 ```
 
+`keepalive` sets the global keepalive settings.
+Ambassador will use for all mappings, unless overridden in a
+mapping. No default value is provided by Ambassador.
+More information at https://www.envoyproxy.io/docs/envoy/latest/api-v2/api/v2/core/address.proto#envoy-api-msg-core-tcpkeepalive
+
+```
+keepalive:
+  time: 2
+  interval: 2
+  probes: 100
+```
+
 `liveness_probe` defaults on, but you can disable the api route. It will remain accessible on diag_port.
 ```
 liveness_probe:
