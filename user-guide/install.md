@@ -3,7 +3,7 @@
 The Ambassador Edge Stack provides a comprehensive, self-service edge stack in the Kubernetes cluster with a decentralized deployment model and a declarative paradigm. So what does that mean, exactly?
 
 * **Comprehensive** allows you to take all the different pieces of your cluster, application, traffic, security, etc, and conveniently manage them all in one place, instead of having to individually configure them all, or their interactions with one another.
-* **Self service** is the ability for an application developer to independently complete configurations without bothering their Operations team. For the Ambassador Edge Stack, this means app-devs can configure the traffic at the “edge” of their application.
+* **Self-service** is the ability for an application developer to independently complete configurations without bothering their Operations team. For the Ambassador Edge Stack, this means app-devs can configure the traffic at the “edge” of their application.
 
 In other words, **the Ambassador Edge Stack is an all-in-one edge stack management tool** that allows developers and platform engineers alike to skip the red tape and get things done without stepping on each other’s toes.
 

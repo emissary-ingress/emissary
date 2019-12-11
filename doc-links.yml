@@ -220,6 +220,8 @@
         link: /reference/idp-support/keycloak
       - title: Okta
         link: /reference/idp-support/okta
+      - title: OneLogin
+        link: /reference/idp-support/onelogin  
       - title: Salesforce Single Sign-on
         link: /reference/idp-support/salesforce
       - title: User Account and Authentication (UAA)
