@@ -3,14 +3,16 @@ apiVersion: getambassador.io/v1
 kind: Mapping
 metadata:
   name: quote-backend
+  namespace: ambassador
 spec:
   prefix: /backend/
-  service: quote
+  service: quote.ambassador
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: quote
+  namespace: ambassador
 spec:
   ports:
   - name: http
@@ -23,6 +25,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: quote
+  namespace: ambassador
 spec:
   replicas: 1
   selector:
