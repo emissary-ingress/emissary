@@ -54,7 +54,7 @@ Format:
 
 All of Ambassador's CRDs have been switched to `apiVersion: getambassador.io/v2`, and 
 **your resources will be upgraded when you apply the new CRDs**. We recommend that you
-follow the [migration instructions](https://getambassador.io/) and check your installation's
+follow the [migration instructions](https://getambassador.io/early-access/user-guide/upgrade-to-edge-stack/) and check your installation's
 behavior before upgrading your CRDs.
 
 ### Features
