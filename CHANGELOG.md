@@ -94,12 +94,15 @@ Format:
 --->
 
 <!--- CueAddReleaseNotes --->
-## [0.86.0] December 10, 2019
-[0.86.0]: https://github.com/datawire/ambassador/compare/v0.84.1...v0.86.0
+## [0.86.1] December 10, 2019
+[0.86.1]: https://github.com/datawire/ambassador/compare/v0.84.1...v0.86.1
 
 - Envoy updated to 1.12.2 for security fixes
 - Envoy TCP keepalives are now supported (thanks, [Bartek Kowalczyk](https://github.com/KowalczykBartek)!)
 - Envoy remote access logs are now supported
+- Correctly handle upgrades when the `LogService` CRD is not present
+
+(Ambassador 0.86.0 was superseded by Ambassador 0.86.1.)
 
 ## [0.85.0] October 22, 2019
 [0.85.0]: https://github.com/datawire/ambassador/compare/v0.84.1...v0.85.0

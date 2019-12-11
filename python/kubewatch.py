@@ -202,6 +202,12 @@ def main(debug):
                     'kubernetesendpointresolvers.getambassador.io',
                     'kubernetesserviceresolvers.getambassador.io'
                 ]
+            ),
+            (
+                '.ambassador_ignore_crds_4', 'LogService CRDs',
+                [
+                    'logservices.getambassador.io'
+                ]
             )
         ]
 
