@@ -10,7 +10,7 @@ export class SingleHost extends SingleResource {
 
   constructor() {
     super();
-    this.tos = html`...`
+    this.tos = html`...`;
   }
 
   init() {
@@ -19,7 +19,7 @@ export class SingleHost extends SingleResource {
      * Once the user has agreed to the Terms of Service, we no longer show the checkbox (and link)
      * in the Host detail display.
      */
-    this.state.show_tos = false
+    this.state.show_tos = false;
   }
 
   spec() {
@@ -28,7 +28,7 @@ export class SingleHost extends SingleResource {
       acmeProvider: this.useAcme()
         ? { authority: this.provider().value, email: this.email().value }
         : { authority: "none" }
-    }
+    };
   }
 
   reset() {
@@ -62,17 +62,7 @@ export class SingleHost extends SingleResource {
       if (this.isTOSshowing() && !this.tos_agree().checked) {
         this.state.messages.push("You must agree to terms of service")
       }
-      /*
-       * We validate that the user has provided a plausible looking
-       * email address. In the future, we should actually validate that
-       * it's a real email address using something like
-       * https://www.textmagic.com/free-tools/email-validation-tool
-       * with an appropriate fallback if we are unable to reach
-       * outside the firewall (if we can't reach the outside system,
-       * then use simple pattern matching).
-       */
-      var emailFormat = /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(.\w{2,3})+$/;
-      if (!this.email().value.match(emailFormat)) {
+      if (!this.email().checkValidity()) {
         this.state.messages.push("That doesn't look like a valid email address")
       }
     }
