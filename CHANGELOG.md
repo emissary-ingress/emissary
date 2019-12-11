@@ -62,7 +62,7 @@ Format:
 
 <!--- CueAddReleaseNotes --->
 ## [1.0.0] January 15, 2020
-[1.0.0]: https://github.com/datawire/ambassador/compare/v0.86.0...v1.0.0
+[1.0.0]: https://github.com/datawire/ambassador/compare/v0.86.1...v1.0.0
 
 ### Caution!
 
@@ -237,7 +237,7 @@ behavior before upgrading your CRDs.
 - The reconfiguration engine is better protected from exceptions
 
 ## [0.86.1] December 10, 2019
-[0.86.1]: https://github.com/datawire/ambassador/compare/v0.84.1...v0.86.0
+[0.86.1]: https://github.com/datawire/ambassador/compare/v0.84.1...v0.86.1
 
 - Envoy updated to 1.12.2 for security fixes
 - Envoy TCP keepalives are now supported (thanks, [Bartek Kowalczyk](https://github.com/KowalczykBartek)!)
