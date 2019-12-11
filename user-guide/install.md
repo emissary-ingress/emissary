@@ -85,6 +85,7 @@ In a typical configuration workflow, Custom Resource Definitions (CRDs) are used
    kind: Service
    metadata:
      name: quote
+     namespace: ambassador
    spec:
      ports:
      - name: http
@@ -97,6 +98,7 @@ In a typical configuration workflow, Custom Resource Definitions (CRDs) are used
    kind: Deployment
    metadata:
      name: quote
+     namespace: ambassador
    spec:
      replicas: 1
      selector:
@@ -127,6 +129,7 @@ In a typical configuration workflow, Custom Resource Definitions (CRDs) are used
    kind: Mapping
    metadata:
      name: quote-backend
+     namespace: ambassador
    spec:
      prefix: /backend/
      service: quote
@@ -134,7 +137,16 @@ In a typical configuration workflow, Custom Resource Definitions (CRDs) are used
 
 4. Apply the configuration to the cluster by typing `kubectl apply -f quote-backend.yaml`.
 
-5. Test the configuration by typing `curl -k https://<hostname>/backend/` or `curl -k https://<IP address>/backend/`. 
+5. Test the configuration by typing `curl -k https://<hostname>/backend/` or `curl -k https://<IP address>/backend/`:
+
+   ```
+   (⎈ |gke_rdl-1:default)$ curl -k https://aes.ri.k36.net/backend/
+   {
+    "server": "idle-cranberry-8tbb6iks",
+    "quote": "Non-locality is the driver of truth. By summoning, we vibrate.",
+    "time": "2019-12-11T20:10:16.525471212Z"
+   }
+   ```
 
 ## A single source of configuration
 
@@ -157,5 +169,7 @@ The Quote service we just deployed publishes its API as a Swagger document. This
 2. Navigate to `https://<hostname>/docs/` or `https://<IP address>/docs/` to see the externally visible Developer Portal. This is a fully customizable portal that you can share with third parties who need to information about your APIs. 
 
 ## What’s Next?
+
+The Ambassador Edge Stack has a comprehensive range of [features](/features/) to support the requirements of any edge microservice.
 
 To learn more about how the Ambassador Edge Stack works, along with use cases, best practices, and more, check out the [Ambassador](../../about/why-ambassador) story.
