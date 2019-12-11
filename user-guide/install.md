@@ -11,7 +11,7 @@ The Ambassador Edge Stack is designed to run in Kubernetes for production. The m
 
 ## Install the Ambassador Edge Stack
 
-The Ambassador Edge Stack is typically deployed to Kubernetes from the command line. If you don't have Kubernetes, you should use our [Docker](../../about/quickstart) to deploy the Ambassador Edge Stack locally. We also have [instructions for the Helm package manager](../helm).
+The Ambassador Edge Stack is typically deployed to Kubernetes from the command line. If you don't have Kubernetes, you should use our [Docker](../../about/quickstart) to deploy the Ambassador Edge Stack locally.
 
 
 1. In your terminal, run the following command:
@@ -50,26 +50,25 @@ The Ambassador Edge Stack is typically deployed to Kubernetes from the command l
 
     Use any of the URLs listed next to `ambassador` to access the Ambassador Edge Stack.
 
-3. Navigate to `http://<your-IP-address>` and click through the certificate warning for access the Edge Policy Console UI. The certificate warning appears because, by default, the Ambassador Edge Stack uses a self-signed certificate for HTTPS.
+3. Navigate to `http://<your-IP-address>` and click through the certificate warning for access the Edge Policy Console interface. The certificate warning appears because, by default, the Ambassador Edge Stack uses a self-signed certificate for HTTPS.
     * Chrome users should click **Advanced > Proceed to website**. 
     * Safari users should click **Show details > visit the website** and provide your password.
 
 ## Configure TLS for Automatic HTTPS
 
-If you have the ability to update your DNS, Ambassador can automatically configure a valid TLS certificate for you, eliminating the TLS warning. If you do not have the ability to update your DNS, skip to the next section.
+If you have the ability to update your DNS, Ambassador can automatically configure a valid TLS certificate for you, eliminating the TLS warning. If you do not have the ability to update your DNS, skip to the next section, "Create a Mapping."
 
 1. Update your DNS so that your domain points to the IP address for your cluster.
 
 2. In the Edge Policy Console, create a `Host` resource:
-   * Click on the **Hosts** tab.
-   * Click the **Add** button on the right.
+   * On the "Hosts" tab, click the **Add** button on the right.
    * Enter your hostname (domain) in the hostname field.
    * Check the "Use ACME to manage TLS" box.
    * Review the Terms of Service and check the box that you agree to the Terms of Service.
    * Enter the email address to be associated with your TLS certificate.
-   * Click **Save**.
+   * Click the **Save** button.
 
-3. You'll see the newly created `Host` resource appear in the UI with a status of Pending. This will change to Ready once the certificate is fully provisioned. If you receive an error that your hostname does not qualify for ACME management, you can still configure TLS following [these instructions](../../reference/core/tls).
+  You'll see the newly created `Host` resource appear in the UI with a status of Pending. This will change to Ready once the certificate is fully provisioned. If you receive an error that your hostname does not qualify for ACME management, you can still configure TLS following [these instructions](../../reference/core/tls).
 
 4. Once the Host is ready, navigate to `https://<hostname>` in your browser. Note that the certificate warning has gone away. In addition, the Ambassador Edge Stack automatically will redirect HTTP connections to HTTPS.
 
@@ -77,7 +76,7 @@ If you have the ability to update your DNS, Ambassador can automatically configu
 
 In a typical configuration workflow, Custom Resource Definitions (CRDs) are used to define the intended behavior of Ambassador Edge Stack. In this example, we'll deploy a sample service and create a `Mapping` resource. Mappings allow you to associate parts of your domain with different URLs, IP addresses, or prefixes.
 
-1. We'll start by deploying the `quote` service. Save the below configuration into a file named `quote.yaml`. This is a vanilla configuration that tells Kubernetes to deploy the `quote` container and create a Kubernetes `service` that points to the `quote` container.
+1. We'll start by deploying the `quote` service. Save the below configuration into a file named `quote.yaml`. This is a basic configuration that tells Kubernetes to deploy the `quote` container and create a Kubernetes `service` that points to the `quote` container.
 
    ```
    ---
@@ -119,7 +118,7 @@ In a typical configuration workflow, Custom Resource Definitions (CRDs) are used
              containerPort: 8080
    ```
 
-2. Deploy the `quote` service to the cluster by typing `kubectl apply -f quote.yaml`.
+2. Deploy the `quote` service to the cluster by typing the command `kubectl apply -f quote.yaml`.
 
 3. Now, create a `Mapping` configuration that tells Ambassador to route all traffic from `/backend/` to the `quote` service. Copy the YAML and save to a file called `quote-backend.yaml`.
 
@@ -135,9 +134,9 @@ In a typical configuration workflow, Custom Resource Definitions (CRDs) are used
      service: quote
    ```
 
-4. Apply the configuration to the cluster by typing `kubectl apply -f quote-backend.yaml`.
+4. Apply the configuration to the cluster by typing the command `kubectl apply -f quote-backend.yaml`.
 
-5. Test the configuration by typing `curl -k https://<hostname>/backend/` or `curl -k https://<IP address>/backend/`:
+5. Test the configuration by typing `curl -k https://<hostname>/backend/` or `curl -k https://<IP address>/backend/`. You should see something similar to the following:
 
    ```
    (⎈ |gke_rdl-1:default)$ curl -k https://aes.ri.k36.net/backend/
@@ -152,7 +151,7 @@ In a typical configuration workflow, Custom Resource Definitions (CRDs) are used
 
 1. In the Ambassador Edge Stack, Kubernetes serves as the single source of configuration. Changes made on the command line (via `kubectl`) are reflected in the UI, and vice versa. This enables a consistent configuration workflow. You can see this in action by navigating to the Mappings tab. You'll see an entry for the `quote-backend` Mapping that was just created on the command line.
 
-2. Likewise, if you type `kubectl get hosts`, you'll see the `Host` resource that was created (assuming you configured TLS):
+2. If you configured TLS, you can type `kubectl get hosts` to see the `Host` resource that was created:
 
    ```
    (⎈ |rdl-1:default)$ kubectl get hosts
@@ -166,7 +165,7 @@ The Quote service we just deployed publishes its API as a Swagger document. This
 
 1. In the Edge Policy Console, navigate to the **APIs** tab. You'll see the documentation there for internal use.
 
-2. Navigate to `https://<hostname>/docs/` or `https://<IP address>/docs/` to see the externally visible Developer Portal. This is a fully customizable portal that you can share with third parties who need to information about your APIs. 
+2. Navigate to `https://<hostname>/docs/` or `https://<IP address>/docs/` to see the externally visible Developer Portal (make sure you include the trailing `/`). This is a fully customizable portal that you can share with third parties who need to information about your APIs. 
 
 ## What’s Next?
 
