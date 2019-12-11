@@ -207,7 +207,7 @@
               link: /reference/idp-support/keycloak
             - title: Okta
               link: /reference/idp-support/okta
-            - title: Onelogin
+            - title: OneLogin
               link: /reference/idp-support/onelogin
             - title: Salesforce
               link: /reference/idp-support/salesforce
