@@ -64,7 +64,7 @@ Here is an example YAML:
 
 2. Next, create a [FilterPolicy](../../reference/filter-reference#filterpolicy-definition) to use the `Filter` you just created.
 
-Here is an example YAML:
+Some example YAML:
 
 ```yaml
 apiVersion: getambassador.io/v1beta2

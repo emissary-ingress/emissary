@@ -14,7 +14,7 @@ With Auth0 as your IdP, you will need to create an `Application` to handle authe
 
   ![](../../../doc-images/scopes.png)
   
-4. In your newly created application, click on the Settings tab, add the Domain and Callback URLs for your service and ensure the "Token Endpoint Authentication Method" is set to `Post`. The default YAML installation of Ambassador Edge Stack uses `/c.ambassador/oauth2/redirection-endpoint` for the URL, so the values should be the domain name that points to Ambassador, e.g., `example.com/.ambassador/oauth2/redirection-endpoint` and `example.com`.
+4. In your newly created application, click on the Settings tab, add the Domain and Callback URLs for your service and ensure the "Token Endpoint Authentication Method" is set to `Post`. The default YAML installation of Ambassador Edge Stack uses `/.ambassador/oauth2/redirection-endpoint` for the URL, so the values should be the domain name that points to Ambassador, e.g., `example.com/.ambassador/oauth2/redirection-endpoint` and `example.com`.
 
 
 
