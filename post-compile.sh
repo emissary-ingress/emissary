@@ -77,20 +77,6 @@ spec:
   rewrite: ""
   service: "127.0.0.1:8500"
   precedence: 1000000
----
-apiVersion: getambassador.io/v1
-kind: TLSContext
-metadata:
-  name: fallback-self-signed-context
-  namespace: _automatic_
-  labels:
-    product: aes
-    ambassador_diag_class: private
-spec:
-  ambassador_id: [ "_automatic_" ]
-  hosts: [ "*" ]
-  secret: fallback-self-signed-cert
-  redirect_cleartext_from: 8080
 EOF
 
 sudo mv /tmp/edge-stack-mappings.yaml /ambassador/init-config
