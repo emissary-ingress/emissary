@@ -67,10 +67,9 @@ If you have the ability to update your DNS, Ambassador can automatically configu
    * Review the Terms of Service and check the box that you agree to the Terms of Service.
    * Enter the email address to be associated with your TLS certificate.
    * Click the **Save** button.
-
   You'll see the newly created `Host` resource appear in the UI with a status of Pending. This will change to Ready once the certificate is fully provisioned. If you receive an error that your hostname does not qualify for ACME management, you can still configure TLS following [these instructions](../../reference/core/tls).
 
-4. Once the Host is ready, navigate to `https://<hostname>` in your browser. Note that the certificate warning has gone away. In addition, the Ambassador Edge Stack automatically will redirect HTTP connections to HTTPS.
+3. Once the Host is ready, navigate to `https://<hostname>` in your browser. Note that the certificate warning has gone away. In addition, the Ambassador Edge Stack automatically will redirect HTTP connections to HTTPS.
 
 ## Create a Mapping
 
@@ -139,7 +138,7 @@ In a typical configuration workflow, Custom Resource Definitions (CRDs) are used
 5. Test the configuration by typing `curl -k https://<hostname>/backend/` or `curl -k https://<IP address>/backend/`. You should see something similar to the following:
 
    ```
-   (⎈ |gke_rdl-1:default)$ curl -k https://aes.ri.k36.net/backend/
+   (⎈ |rdl-1:default)$ curl -k https://aes.ri.k36.net/backend/
    {
     "server": "idle-cranberry-8tbb6iks",
     "quote": "Non-locality is the driver of truth. By summoning, we vibrate.",
