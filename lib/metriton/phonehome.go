@@ -133,14 +133,17 @@ func prepareData(claims *licensekeys.LicenseClaimsLatest, limiter *limiter.Limit
 	if activeClaims != nil {
 		customerContact = activeClaims.CustomerEmail
 	}
-	namespace, err := uuid.Parse("a4b394d6-02f4-11e9-87ca-f8344185863f")
+
+	installID, err := uuid.Parse(
+		getenvDefault("AMBASSADOR_CLUSTER_ID",
+			getenvDefault("AMBASSADOR_SCOUT_ID", "00000000-0000-0000-0000-000000000000")))
 	if err != nil {
 		panic(err)
 	}
 
 	return map[string]interface{}{
 		"application": "aes",
-		"install_id":  uuid.NewSHA1(namespace, []byte(customerID)).String(),
+		"install_id":  installID,
 		"version":     version,
 		"metadata": map[string]interface{}{
 			"id":        customerID,
@@ -149,4 +152,12 @@ func prepareData(claims *licensekeys.LicenseClaimsLatest, limiter *limiter.Limit
 			"features":  featuresDataSet,
 		},
 	}
+}
+
+func getenvDefault(key, fallback string) string {
+	ret := os.Getenv(key)
+	if ret == "" {
+		ret = fallback
+	}
+	return ret
 }
