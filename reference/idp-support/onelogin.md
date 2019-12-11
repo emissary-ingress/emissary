@@ -85,8 +85,8 @@ spec:
 3. Lastly, apply both the `Filter` and `FilterPolicy` you created with a `kubectl` command in your terminal:
 
 ```
-kubectl apply -f azure-ad-filter.yaml
-kubectl apply -f azure-policy.yaml
+kubectl apply -f onelogin-filter.yaml
+kubectl apply -f oauth-policy.yaml
 ```
 
 Now any requests to `https://{{AMBASSADOR_URL}}/backend/get-quote/` will require authentication from OneLogin.
