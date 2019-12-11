@@ -123,6 +123,15 @@ spec:
   #   policy: round_robin/least_request/ring_hash/maglev
   #   ...
 
+  # keepalive sets the global keepalive settings.
+  # Ambassador will use for all mappings, unless overridden in a
+  # mapping. No default value is provided by ambassador.
+  # More information at https://www.envoyproxy.io/docs/envoy/latest/api-v2/api/v2/core/address.proto#envoy-api-msg-core-tcpkeepalive
+  # keepalive:
+  #   time: 2
+  #   interval: 2
+  #   probes: 100
+
   # circuit_breakers sets the global circuit breaking configuration that
   # Ambassador will use for all mappings, unless overridden in a
   # mapping.
