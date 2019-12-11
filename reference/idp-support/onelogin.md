@@ -25,7 +25,7 @@ To use OneLogin as your IdP, you will first need to create an OIDC custom connec
 9. Select the connector you just created.
 10. Click the **Save** button.  
 
-You will see a success banner, which also brings you back to the main portal page. OneLogin is now configured to function as a OIDC backend for authentication with Ambassador.
+You will see a success banner, which also brings you back to the main portal page. OneLogin is now configured to function as an OIDC backend for authentication with Ambassador.
 
 ## Gather OneLogin Credentials
 
