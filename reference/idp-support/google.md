@@ -10,7 +10,7 @@ To use Google as and IdP for Single Sign-On, you will first need to create an OA
 4. Under **Restrictions**, fill in the **Authorized redirect URIs** with
    
    ```
-   http(s)://{{AMBASSADOR_URL}}/callback
+   http(s)://{{AMBASSADOR_URL}}/.ambassador/oauth2/redirection-endpoint
    ```
 5. Click `Create` 
 6. Record the `client ID` and `client secret` in the pop-up window. You will need these when configuring Ambassador Edge Stack
