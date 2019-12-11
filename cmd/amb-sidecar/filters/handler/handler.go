@@ -14,6 +14,7 @@ import (
 	"github.com/pkg/errors"
 
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta2"
+	"github.com/datawire/apro/cmd/amb-sidecar/acmeclient"
 	"github.com/datawire/apro/cmd/amb-sidecar/devportal/devportalfilter"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/controller"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/externalhandler"
@@ -169,7 +170,7 @@ func (c *FilterMux) filter(ctx context.Context, request *filterapi.FilterRequest
 		return nil, err
 	}
 
-	rule := ruleForURL(c.Controller, originalURL)
+	rule := c.ruleForURL(originalURL)
 	if rule == nil {
 		logger.Info("using default rule")
 		rule = c.DefaultRule
@@ -356,7 +357,7 @@ func syntheticRule(filterImpl filterapi.Filter) *crd.Rule {
 	return ret
 }
 
-func ruleForURL(c *controller.Controller, u *url.URL) *crd.Rule {
+func (c *FilterMux) ruleForURL(u *url.URL) *crd.Rule {
 	switch u.Path {
 	case "/.ambassador/oauth2/logout":
 		return nil
@@ -371,13 +372,18 @@ func ruleForURL(c *controller.Controller, u *url.URL) *crd.Rule {
 				}
 			}
 		}
-		return findRule(c, u.Host, u.Path)
+		return findRule(c.Controller, u.Host, u.Path)
 	default:
 		switch {
+		case strings.HasPrefix(u.Path, "/.well-known/acme-challenge/"):
+			if c.RedisPool == nil {
+				return nil
+			}
+			return syntheticRule(acmeclient.NewChallengeHandler(c.RedisPool))
 		case strings.Contains(u.Path, "/.ambassador-internal/"):
 			return syntheticRule(devportalfilter.MakeDevPortalFilter())
 		default:
-			return findRule(c, u.Host, u.Path)
+			return findRule(c.Controller, u.Host, u.Path)
 		}
 	}
 }
