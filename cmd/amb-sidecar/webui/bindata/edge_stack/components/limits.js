@@ -96,6 +96,7 @@ export class Limits extends SortableResourceSet {
     return html`
 <div class="header_con">
   <div class="col">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 23.74 21.9"><defs><style>.cls-1{fill:#fff;}</style></defs><title>Rate</title><g id="Layer_2" data-name="Layer 2"><g id="Layer_1-2" data-name="Layer 1"><path class="cls-1" d="M23.09,20.54H.66a.69.69,0,0,0-.66.7.66.66,0,0,0,.66.66H23.09a.7.7,0,0,0,.65-.71A.65.65,0,0,0,23.09,20.54Z"/><path class="cls-1" d="M23.09,5.14H18.6a.66.66,0,0,0-.66.66V9.34H14.77V.66A.65.65,0,0,0,14.11,0H9.63A.66.66,0,0,0,9,.66V11.21H5.8V9.07a.66.66,0,0,0-.66-.66H.66A.66.66,0,0,0,0,9.07v8.41a.66.66,0,0,0,.66.66H23.09a.66.66,0,0,0,.65-.66V5.8A.65.65,0,0,0,23.09,5.14ZM1.32,9.73H4.49v7.09H1.32Zm4.48,2.8H9v4.29H5.8Zm4.49-.66V1.32h3.17v15.5H10.29Zm4.48-1.21h3.17v6.16H14.77Zm7.66,6.16H19.26V6.46h3.17Z"/></g></g></svg>
   </div>
   <div class="col">
     <h1>Rate Limits</h1>
@@ -103,7 +104,7 @@ export class Limits extends SortableResourceSet {
   </div>
   <div class="col2">
     <a class="cta add ${this.readOnly() ? "off" : ""}" @click=${()=>this.shadowRoot.getElementById("add-limit").onAdd()}>
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M14.078 7.061l2.861 2.862-10.799 10.798-3.584.723.724-3.585 10.798-10.798zm0-2.829l-12.64 12.64-1.438 7.128 7.127-1.438 12.642-12.64-5.691-5.69zm7.105 4.277l2.817-2.82-5.691-5.689-2.816 2.817 5.69 5.692z"/></svg>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30"><defs><style>.cls-a{fill:none;stroke:#000;stroke-linecap:square;stroke-miterlimit:10;stroke-width:2px;}</style></defs><title>add_1</title><g id="Layer_2" data-name="Layer 2"><g id="Layer_1-2" data-name="Layer 1"><line class="cls-a" x1="15" y1="9" x2="15" y2="21"/><line class="cls-a" x1="9" y1="15" x2="21" y2="15"/><circle class="cls-a" cx="15" cy="15" r="14"/></g></g></svg>
       <div class="label">add</div>
     </a>
     <div class="sortby">
