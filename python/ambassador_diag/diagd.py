@@ -452,8 +452,6 @@ def show_overview(reqid=None):
 
     diag = app.diag
 
-    app.check_scout("overview")
-
     if app.verbose:
         app.logger.debug("OV %s: DIAG" % reqid)
         app.logger.debug("%s" % json.dumps(diag.as_dict(), sort_keys=True, indent=4))
@@ -491,6 +489,7 @@ def show_overview(reqid=None):
         else:
             return jsonify(tvars)
     else:
+        app.check_scout("overview")
         return Response(render_template("overview.html", **tvars))
 
 
@@ -547,8 +546,6 @@ def show_intermediate(source=None, reqid=None):
 
     diag = app.diag
 
-    app.check_scout("detail: %s" % source)
-
     method = request.args.get('method', None)
     resource = request.args.get('resource', None)
 
@@ -574,6 +571,7 @@ def show_intermediate(source=None, reqid=None):
         else:
             return jsonify(tvars)
     else:
+        app.check_scout("detail: %s" % source)
         return Response(render_template("diag.html", **tvars))
 
 
