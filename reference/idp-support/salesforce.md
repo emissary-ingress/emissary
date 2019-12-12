@@ -10,7 +10,7 @@ To use Salesforce as your IdP, you will first need to register an OAuth applicat
 
 3. Fill in the following fields with whichever values you want
 
-    - Connected App Name 
+    - Connected App Name
     - API Name
     - Contact Email 
 
