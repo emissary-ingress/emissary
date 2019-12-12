@@ -243,6 +243,29 @@ func (c *FilterMux) runFilterRef(filterRef crd.FilterReference, ctx context.Cont
 	return c.runFilter(filter, filterRef.Arguments, filterRef.Name, filterRef.Namespace, ctx, request)
 }
 
+func (c *FilterMux) runJWTFilterRef(filterRef crd.JWTFilterReference, ctx context.Context, request *filterapi.FilterRequest) (filterapi.FilterResponse, error) {
+	// This is *almost* a copy of c.runFilterRef, but
+	//  1. clarifies that this is a JWT-sub-filter in log/error messages, and
+	//  2. validates that it's a JWT filter, and not a filter of another type.
+	filterQName := filterRef.Name + "." + filterRef.Namespace
+	ctx = dlog.WithLogger(ctx, dlog.GetLogger(ctx).WithField("JWTFILTER", filterQName))
+
+	filter := findFilter(c.Controller, filterQName)
+	if filter == nil {
+		return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
+			errors.Errorf("could not find not JWT filter: %q", filterQName), nil), nil
+	}
+	if _, isJWT := filter.UnwrappedSpec.(crd.FilterJWT); !isJWT {
+		return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
+			errors.Errorf("filter %q is not a JWT filter", filterQName), nil), nil
+	}
+	if filter.Status.State != crd.FilterState_OK {
+		return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
+			errors.Errorf("error in JWT filter %q configuration: %s", filterQName, filter.Status.Reason), nil), nil
+	}
+	return c.runFilter(filter, filterRef.Arguments, filterRef.Name, filterRef.Namespace, ctx, request)
+}
+
 func (c *FilterMux) runFilter(filter *crd.Filter, filterArguments interface{}, filterName, filterNamespace string, ctx context.Context, request *filterapi.FilterRequest) (filterapi.FilterResponse, error) {
 	filterQName := filterName + "." + filterNamespace
 	var filterImpl filterapi.Filter
@@ -257,34 +280,13 @@ func (c *FilterMux) runFilter(filter *crd.Filter, filterArguments interface{}, f
 		}
 
 		_filterImpl := &oauth2handler.OAuth2Filter{
-			PrivateKey: c.PrivateKey,
-			PublicKey:  c.PublicKey,
-			RedisPool:  c.RedisPool,
-			QName:      filterQName,
-			Spec:       filterSpec,
-			RunFilters: c.runFilterRefs,
-			RunJWTFilter: func(filterRef crd.JWTFilterReference, ctx context.Context, request *filterapi.FilterRequest) (filterapi.FilterResponse, error) {
-				// This is *almost* a copy of c.runFilterRef, but
-				//  1. clarifies that this is a JWT-sub-filter in log/error messages, and
-				//  2. validates that it's a JWT filter, and not a filter of another type.
-				filterQName := filterRef.Name + "." + filterRef.Namespace
-				ctx = dlog.WithLogger(ctx, dlog.GetLogger(ctx).WithField("JWTFILTER", filterQName))
-
-				filter := findFilter(c.Controller, filterQName)
-				if filter == nil {
-					return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
-						errors.Errorf("could not find not JWT filter: %q", filterQName), nil), nil
-				}
-				if _, isJWT := filter.UnwrappedSpec.(crd.FilterJWT); !isJWT {
-					return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
-						errors.Errorf("filter %q is not a JWT filter", filterQName), nil), nil
-				}
-				if filter.Status.State != crd.FilterState_OK {
-					return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
-						errors.Errorf("error in JWT filter %q configuration: %s", filterQName, filter.Status.Reason), nil), nil
-				}
-				return c.runFilter(filter, filterRef.Arguments, filterRef.Name, filterRef.Namespace, ctx, request)
-			},
+			PrivateKey:   c.PrivateKey,
+			PublicKey:    c.PublicKey,
+			RedisPool:    c.RedisPool,
+			QName:        filterQName,
+			Spec:         filterSpec,
+			RunFilters:   c.runFilterRefs,
+			RunJWTFilter: c.runJWTFilterRef,
 		}
 		if err := mapstructure.Convert(filterArguments, &_filterImpl.Arguments); err != nil {
 			return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
