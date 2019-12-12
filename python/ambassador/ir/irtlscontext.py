@@ -376,14 +376,20 @@ class TLSContextFactory:
             # Edge Stack always wants a termination context
             ctx_name = "fallback-self-signed-context"
             tls_name = "fallback-self-signed-cert"
-            ctx = IRTLSContext(ir,
-                               aconf,
-                               rkey=f"{ctx_name}.99999",
-                               name=ctx_name,
-                               location="-internal-",
-                               hosts=["*"],
-                               secret=tls_name,
-                               redirect_cleartext_from=8080)
+
+            new_ctx = dict(
+                rkey=f"{ctx_name}.99999",
+                name=ctx_name,
+                location="-internal-",
+                hosts=["*"],
+                secret=tls_name,
+            )
+
+            if not os.environ.get('AMBASSADOR_NO_HOST_REDIRECT', None):
+                new_ctx['redirect_cleartext_from'] = 8080
+
+            ctx = IRTLSContext(ir, aconf, **new_ctx)
+
             assert ctx.is_active()
             if ctx.resolve_secret(tls_name):
                 ir.save_tls_context(ctx)
