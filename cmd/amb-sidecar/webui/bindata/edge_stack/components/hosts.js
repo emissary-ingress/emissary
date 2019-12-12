@@ -10,7 +10,7 @@ export class SingleHost extends SingleResource {
 
   constructor() {
     super();
-    this.tos = html`...`
+    this.tos = html`...`;
   }
 
   init() {
@@ -19,7 +19,7 @@ export class SingleHost extends SingleResource {
      * Once the user has agreed to the Terms of Service, we no longer show the checkbox (and link)
      * in the Host detail display.
      */
-    this.state.show_tos = false
+    this.state.show_tos = false;
   }
 
   spec() {
@@ -28,7 +28,7 @@ export class SingleHost extends SingleResource {
       acmeProvider: this.useAcme()
         ? { authority: this.provider().value, email: this.email().value }
         : { authority: "none" }
-    }
+    };
   }
 
   reset() {
@@ -62,17 +62,7 @@ export class SingleHost extends SingleResource {
       if (this.isTOSshowing() && !this.tos_agree().checked) {
         this.state.messages.push("You must agree to terms of service")
       }
-      /*
-       * We validate that the user has provided a plausible looking
-       * email address. In the future, we should actually validate that
-       * it's a real email address using something like
-       * https://www.textmagic.com/free-tools/email-validation-tool
-       * with an appropriate fallback if we are unable to reach
-       * outside the firewall (if we can't reach the outside system,
-       * then use simple pattern matching).
-       */
-      var emailFormat = /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(.\w{2,3})+$/;
-      if (!this.email().value.match(emailFormat)) {
+      if (!this.email().checkValidity()) {
         this.state.messages.push("That doesn't look like a valid email address")
       }
     }
@@ -291,7 +281,7 @@ export class Hosts extends ResourceSet {
   </div>
   <div class="col2">
     <a class="cta add ${this.readOnly() ? "off" : ""}" @click=${()=>this.shadowRoot.getElementById("add-host").onAdd()}>
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M14.078 7.061l2.861 2.862-10.799 10.798-3.584.723.724-3.585 10.798-10.798zm0-2.829l-12.64 12.64-1.438 7.128 7.127-1.438 12.642-12.64-5.691-5.69zm7.105 4.277l2.817-2.82-5.691-5.689-2.816 2.817 5.69 5.692z"/></svg>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30"><defs><style>.cls-a{fill:none;stroke:#000;stroke-linecap:square;stroke-miterlimit:10;stroke-width:2px;}</style></defs><title>add_1</title><g id="Layer_2" data-name="Layer 2"><g id="Layer_1-2" data-name="Layer 1"><line class="cls-a" x1="15" y1="9" x2="15" y2="21"/><line class="cls-a" x1="9" y1="15" x2="21" y2="15"/><circle class="cls-a" cx="15" cy="15" r="14"/></g></g></svg>
       <div class="label">add</div>
     </a>
   </div>
