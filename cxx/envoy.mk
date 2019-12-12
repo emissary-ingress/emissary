@@ -9,7 +9,7 @@ YES_I_AM_OK_WITH_COMPILING_ENVOY ?=
 	_git_remote_urls := $(shell git remote | xargs -n1 git remote get-url --all)
 	IS_PRIVATE ?= $(findstring private,$(_git_remote_urls))
   ENVOY_REPO ?= $(if $(IS_PRIVATE),git@github.com:datawire/envoy-private.git,git://github.com/datawire/envoy.git)
-  ENVOY_COMMIT ?= c64ec6cb600928f7aca669cb4ab65a233ba0b921
+  ENVOY_COMMIT ?= d17d947caef13f1bdd235c3fccff77814883bb46
   ENVOY_COMPILATION_MODE ?= opt
 	# Increment BASE_ENVOY_RELVER on changes to `docker/base-envoy/Dockerfile`, or Envoy recipes
   BASE_ENVOY_RELVER ?= 7
@@ -117,7 +117,7 @@ $(topsrcdir)/bin_linux_amd64/envoy-static: $(ENVOY_BASH.deps) FORCE
 	            exit 1; \
 	        fi; \
 	        $(call ENVOY_BASH.cmd, \
- 	            docker exec --workdir=/root/envoy $$(cat $(srcdir)/envoy-build-container.txt) /bin/bash -c "export CC=/opt/llvm/bin/clang && export CXX=/opt/llvm/bin/clang++ && bazel build --verbose_failures -c $(ENVOY_COMPILATION_MODE) --config=clang //source/exe:envoy-static;" \
+	            docker exec --workdir=/root/envoy $$(cat $(srcdir)/envoy-build-container.txt) /bin/bash -c "export CC=/opt/llvm/bin/clang && export CXX=/opt/llvm/bin/clang++ && bazel build --verbose_failures -c $(ENVOY_COMPILATION_MODE) --config=clang //source/exe:envoy-static;" \
 	            rsync -Pav --blocking-io -e 'docker exec -i' $$(cat $(srcdir)/envoy-build-container.txt):/root/envoy/bazel-bin/source/exe/envoy-static $@; \
 	        ); \
 	    fi; \
@@ -132,7 +132,7 @@ $(topsrcdir)/bin_linux_amd64/envoy-static: $(ENVOY_BASH.deps) FORCE
 check-envoy: ## Run the Envoy test suite
 check-envoy: $(ENVOY_BASH.deps)
 	$(call ENVOY_BASH.cmd, \
- 	    docker exec --workdir=/root/envoy $$(cat $(srcdir)/envoy-build-container.txt) /bin/bash -c 'export CC=/opt/llvm/bin/clang && export CXX=/opt/llvm/bin/clang++ && bazel test --config=clang --test_output=errors --verbose_failures -c dbg --test_env=ENVOY_IP_TEST_VERSIONS=v4only //test/...;' \
+	    docker exec --workdir=/root/envoy $$(cat $(srcdir)/envoy-build-container.txt) /bin/bash -c 'export CC=/opt/llvm/bin/clang && export CXX=/opt/llvm/bin/clang++ && bazel test --config=clang --test_output=errors --verbose_failures -c dbg --test_env=ENVOY_IP_TEST_VERSIONS=v4only //test/...;' \
 	)
 .PHONY: check-envoy
 

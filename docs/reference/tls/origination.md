@@ -26,7 +26,7 @@ If your upstream services require more than basic HTTPS support (e.g. minimum TL
 apiVersion: getambassador.io/v1
 kind: TLSContext
 metadata:
-  name: tls
+  name: tls-context
 spec:
   secret: self-signed-cert
   min_tls_version: v1.3
@@ -39,10 +39,11 @@ Configure Ambassador to use this `TLSContext` for connections to upstream servic
 apiVersion: getambassador.io/v1
 kind: Mapping
 metadata:
-  name: basic-tls
+  name: mapping-with-tls-context
 spec:
   prefix: /
   service: https://example-service
+  tls: tls-context
 ```
 
 The `example-service` service must now support tls v1.3 for Ambassador to connect.

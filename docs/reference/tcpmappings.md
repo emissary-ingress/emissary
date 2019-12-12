@@ -86,7 +86,7 @@ Example:
 ```yaml
 ---
 apiVersion: getambassador.io/v1
-kind:  TCPMapping
+kind:  TLSContext
 metadata:
   name:  my-context
 spec:
@@ -129,7 +129,7 @@ Example:
 ```yaml
 ---
 apiVersion: getambassador.io/v1
-kind:  TCPMapping
+kind:  TLSContext
 metadata:
   name:  my-context
 spec:
@@ -139,7 +139,7 @@ spec:
   secret: supersecret
 ---
 apiVersion: getambassador.io/v1
-kind:  TCPMapping
+kind:  TLSContext
 metadata:
   name:  origination-context
 spec:
@@ -183,7 +183,7 @@ Example:
 ```yaml
 ---
 apiVersion: getambassador.io/v1
-kind:  TCPMapping
+kind:  TLSContext
 metadata:
   name:  origination-context
 spec:

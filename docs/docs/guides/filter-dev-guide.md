@@ -8,6 +8,19 @@ Sometimes you may want Ambassador to manipulate an incoming request. Some exampl
 
 Ambassador supports these use cases by allowing you to execute custom logic in `Filters`. Filters are written in Golang, and managed by Ambassador Pro.
 
+## Prerequisites
+
+`Plugin` `Filter`s are built as [Go plugins](https://golang.org/pkg/plugin/) and loaded directly into the Ambassador Pro container so they can run in-process with the rest of Ambassador Pro.
+
+To build a `Plugin` `Filter` into the Ambassador Pro container you will need
+- Linux or MacOS host (Windows Subsystem for Linux is ok)
+- [Docker](https://docs.docker.com/v17.09/engine/installation/) 
+- [rsync](https://rsync.samba.org/)
+
+The `Plugin` `Filter` is built by `make` which uses Docker to create a stable build environment in a container and `rsync` to copy files between the container and your host machine.
+
+See the [README](https://github.com/datawire/apro-example-plugin) for more information on how the `Plugin` works.
+
 ## Creating and Deploying Filters
 
 We've created an example filter that you can customize for your particular use case.
