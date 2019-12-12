@@ -37,6 +37,41 @@ func NewInvoker(port int, notify []string) *invoker {
 }
 
 func (a *invoker) Work(p *supervisor.Process) error {
+	// The general strategy here is:
+	//
+	// 1. Be continuously reading all available snapshots from
+	//    a.Snapshots and store them in the potentialSnapshot
+	//    variable. This means at any given point (modulo caveats
+	//    below), the potentialSnapshot variable will have the
+	//    latest and greatest snapshot available.
+	//
+	// 2. At the same time, whenever there is capacity to write
+	//    down the invoking channel, we send potentialSnapshot to
+	//    be invoked.
+	//
+	//    The anonymous goroutine below will be constantly reading
+	//    from the invoking channel and performing a blocking
+	//    a.invoke(). This means that we can only *write* to the
+	//    invoking channel when we are not currently processing a
+	//    snapshot, but when that happens, we will still read from
+	//    a.Snapshots and update potentialSnapshot.
+	//
+	// There are two caveats to the above:
+	//
+	// 1. At startup, we don't yet have a snapshot to write, but
+	//    we're not invoking anything, so we will try to write
+	//    something down the invoking channel. To cope with this,
+	//    the invoking goroutine will ignore snapshots that
+	//    consist of the empty string.
+	//
+	// 2. If we process a snapshot quickly, or if there aren't new
+	//    snapshots available, then we end up busy looping and
+	//    sending the same potentialSnapshot value down the
+	//    invoking channel multiple times. To cope with this,
+	//    whenever we have successfully written to the invoking
+	//    channel, we do a *blocking* read of the next snapshot
+	//    from a.Snapshots.
+
 	a.process = p
 	p.Ready()
 
