@@ -79,7 +79,7 @@ img {
 
         <li><a href="https://blog.getambassador.io/" target="_blank">
           <img src="../images/logos/medium-mark.png" alt=""/>
-          <span>Ambassador Edge Stack Blog</span>
+          <span>Ambassador Blog</span>
         </a></li>
 
       </ul></div>
