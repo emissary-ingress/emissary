@@ -14,6 +14,294 @@ export class Tabs extends LitElement {
    *       a re-render (these will be debounced if a lot of updates
    *       happen at once).
    */
+  /* styles() returns the styles for the tab elements. */	
+  static get styles() {	
+    return css`
+      .col_left { /* old stuff */
+        /*
+        float: left;
+        width: 190px;
+        background-color: black;
+        color: white;
+        height: 90vh;
+        font-size: 85%;
+        font-weight: bold;
+        */
+      }
+      
+      .col_right { /* old stuff */
+        /*
+        margin-left: 190px;
+        */
+      }
+      
+      * {
+        margin: 0;
+        padding: 0;
+        border: 0;
+        position: relative;
+        box-sizing: border-box
+      }
+      
+      *, textarea {
+        vertical-align: top
+      }
+      
+      .col_wrapper {
+        display: flex;
+      }
+      
+      .col_left {
+      }
+      
+      .col_left, .col_right {
+        display: -webkit-flex;
+        display: -ms-flexbox;
+        display: flex
+      }
+      
+      .col_left, .col_right {
+        -webkit-flex-direction: column;
+        -ms-flex-direction: column;
+        flex-direction: column
+      }
+      
+      .col_left {
+        background: #2e3147;
+        -webkit-flex: 0 0 250px;
+        -ms-flex: 0 0 250px;
+        flex: 0 0 250px
+      }
+      
+      .col_left .logo {
+        display: -webkit-flex;
+        display: -ms-flexbox;
+        display: flex;
+        -webkit-justify-content: center;
+        -ms-flex-pack: center;
+        justify-content: center;
+        border-bottom: 6px solid #2e3147;
+      }
+      
+      .col_left .logo {
+        -webkit-align-content: center;
+        -ms-flex-line-pack: center;
+        align-content: center
+      }
+      
+      .col_left .logo {
+        -webkit-flex: 0 0 80px;
+        -ms-flex: 0 0 80px;
+        flex: 0 0 80px;
+        background: #5f3eff;
+        padding: 20px
+      }
+      
+      .col_left .logo img {
+        width: 80%;
+        max-width: 150px
+      }
+      
+      .col_right {
+        -webkit-flex: 3 0 auto;
+        -ms-flex: 3 0 auto;
+        flex: 3 0 auto;
+        background: #f3f3f3
+      }
+      
+      navigation a, navigation a .label, navigation a .label .icon {
+        display: -webkit-flex;
+        display: -ms-flexbox;
+        display: flex;
+        -webkit-justify-content: center;
+        -ms-flex-pack: center;
+        justify-content: center
+      }
+      
+      navigation a, navigation a .label, navigation a .label .icon {
+        -webkit-align-content: center;
+        -ms-flex-line-pack: center;
+        align-content: center
+      }
+      
+      
+      navigation {
+        display: block;
+        width: 100%
+      }
+      
+      navigation a {
+        padding: 0;
+        text-decoration: none;
+        height: 70px;
+        transition: all .9s ease
+      }
+      
+      navigation a .selected_stripe {
+        -webkit-flex: 0 0 10px;
+        -ms-flex: 0 0 10px;
+        flex: 0 0 10px;
+        background: #ff4329;
+        min-height: 100%;
+        opacity: 0
+      }
+      
+      navigation a, navigation a .label, navigation a .label .icon {
+        -webkit-align-items: center;
+        -ms-flex-align: center;
+        align-items: center
+      }
+      
+      navigation a .label {
+        -webkit-flex-direction: row;
+        -ms-flex-direction: row;
+        flex-direction: row;
+        margin-left: 6%;
+        -webkit-flex: 3 0 0;
+        -ms-flex: 3 0 0px;
+        flex: 3 0 0
+      }
+      
+      navigation a .label .icon {
+        height: 100%;
+        -webkit-flex: 0 0 25px;
+        -ms-flex: 0 0 25px;
+        flex: 0 0 25px
+      }
+      
+      navigation a .label .icon svg, navigation a.selected .label .icon svg {
+        width: 100%;
+        height: auto;
+        max-height: 35px
+      }
+      
+      navigation a .label .icon svg path, navigation a .label .icon svg polygon, navigation a .label .icon svg rect {
+        fill: #9a9a9a;
+        transition: fill .7s ease
+      }
+      
+      navigation a .label .name {
+        -webkit-flex: 1 0 auto;
+        -ms-flex: 1 0 auto;
+        flex: 1 0 auto;
+        color: #9a9a9a;
+        padding-left: 20px;
+        font-size: 1rem;
+        transition: all .7s ease
+      }
+      
+      navigation a:hover {
+        background: #363a58;
+        transition: all .8s ease
+      }
+      
+      navigation a:hover .label .icon svg path, navigation a:hover .label .icon svg polygon, navigation a:hover .label .icon svg rect {
+        fill: #53f7d2;
+        transition: fill .7s ease
+      }
+      
+      navigation a:hover .label .name {
+        color: #53f7d2;
+        transition: all .7s ease
+      }
+      
+      navigation a.selected {
+        background: #5f3eff;
+        transition: all 2.8s ease
+      }
+      
+      navigation a.selected .selected_stripe {
+        -webkit-flex: 0 0 10px;
+        -ms-flex: 0 0 10px;
+        flex: 0 0 10px;
+        background: #ff4329;
+        min-height: 100%;
+        opacity: 1
+      }
+      
+      .content a.button_large, navigation a.selected .label {
+        -webkit-align-content: center;
+        -ms-flex-line-pack: center;
+        align-content: center;
+        -webkit-align-items: center;
+        -ms-flex-align: center;
+        align-items: center
+      }
+      
+      .content, navigation a.selected .label {
+        display: -webkit-flex;
+        display: -ms-flexbox;
+        display: flex
+      }
+      
+      navigation a.selected .label, navigation a.selected .label .icon {
+        -webkit-justify-content: center;
+        -ms-flex-pack: center;
+        justify-content: center
+      }
+      
+      navigation a.selected .label {
+        margin-left: 6%;
+        -webkit-flex-direction: row;
+        -ms-flex-direction: row;
+        flex-direction: row;
+        -webkit-flex: 3 0 0;
+        -ms-flex: 3 0 0px;
+        flex: 3 0 0
+      }
+      
+      navigation a.selected .label .icon {
+        height: 100%;
+        -webkit-flex: 0 0 25px;
+        -ms-flex: 0 0 25px;
+        flex: 0 0 25px;
+        display: -webkit-flex;
+        display: -ms-flexbox;
+        display: flex;
+        -webkit-align-items: center;
+        -ms-flex-align: center;
+        align-items: center;
+        -webkit-align-content: center;
+        -ms-flex-line-pack: center;
+        align-content: center
+      }
+      
+      navigation a.selected .label .icon svg path, navigation a.selected .label .icon svg polygon, navigation a.selected .label .icon svg rect {
+        fill: #fff;
+        transition: fill .7s ease
+      }
+      
+      navigation a.selected .label .name {
+        -webkit-flex: 1 0 auto;
+        -ms-flex: 1 0 auto;
+        flex: 1 0 auto;
+        color: #fff;
+        padding-left: 20px;
+        font-size: 1rem;
+        transition: all .7s ease
+      }
+      
+      .content {
+        width: 100%;
+        -webkit-flex-direction: column;
+        -ms-flex-direction: column;
+        flex-direction: column;
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 30px
+      }
+      
+      .content a.button_large {
+        display: -webkit-flex;
+        display: -ms-flexbox;
+        display: flex;
+        -webkit-justify-content: center;
+        -ms-flex-pack: center;
+        justify-content: center
+      }
+    `	
+  };
+      
   static get properties() {
     return {
       current: { type: String },
@@ -138,7 +426,6 @@ export class Tabs extends LitElement {
     }
 
     return html`
-      <link rel="stylesheet" href="../styles/tabs.css">
       <div class="col_wrapper">
         <div class="col_left">
           <div class="logo"><img src="../images/ambassador-logo-white.svg"/></div>
