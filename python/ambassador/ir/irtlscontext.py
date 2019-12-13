@@ -1,6 +1,7 @@
 from typing import ClassVar, Dict, List, Optional, TYPE_CHECKING
 
 import base64
+import os
 
 from ..utils import SavedSecret
 from ..config import Config
