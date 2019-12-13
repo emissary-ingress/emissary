@@ -19,7 +19,7 @@ Other:
  * `amb-core` and `amb-sidecar` have been merged in to a combined `aes` which is based on Ambassador OSS [version TBD].
  * `login-gate-js`content has been updated for a clearer first time experience. 
 
-## 0.10.1 (TBD)
+## 0.11.0 (2019-12-10)
 
 Configuration:
 
@@ -32,6 +32,10 @@ Configuration:
 Behavior:
 
  * Feature: `JWT` Filter now generates RFC 6750-compliant responses with the `WWW-Authenticate` header set.
+
+Other:
+
+ * Update Ambassador Core from Ambassador 0.85.0 (Envoy 1.11+half-way-to-1.12) to 0.86.0 (Envoy 1.12.2)
 
 ## 0.10.0 (2019-11-11)
 
