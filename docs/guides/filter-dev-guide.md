@@ -44,15 +44,14 @@ We've created an example filter that you can customize for your particular use c
    image instead of the standard sidecar.
 
    ```patch
-      containers:
-      - name: ambassador-pro
-   -    image: quay.io/datawire/ambassador_pro:amb-sidecar-$aproVersion$
-   +    image: DOCKER_REGISTRY/amb-sidecar-plugin:VERSION
-        ports:
-        - name: ratelimit-grpc
-          containerPort: 8081
-        - name: ratelimit-debug
-          containerPort: 6070
+              value: https://127.0.0.1:8443
+            - name: AMBASSADOR_ADMIN_URL
+              value: http://127.0.0.1:8877
+   -        image: quay.io/datawire/aes:$version$
+   +        image: DOCKER_REGISTRY/aes-plugin:VERSION
+            imagePullPolicy: Always
+            livenessProbe:
+              httpGet:
    ```
 
 ## Rapid development of a custom filter
