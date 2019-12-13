@@ -309,7 +309,6 @@ export class Debugging extends LitElement {
       .col2 a.off {
         display: none;
       }
-      
     `;
   }
 
