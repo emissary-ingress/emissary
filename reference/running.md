@@ -33,7 +33,7 @@ spec:
         service: ambassador
     spec:
       containers:
-        image: quay.io/datawire/ambassador:$version$
+        image: quay.io/datawire/aes:$version$
         name: ambassador
      restartPolicy: Always
      securityContext:
