@@ -717,7 +717,7 @@ self-signed certificate, attempting to talk to them will result in an error ment
 AES container following the standard procedure for Alpine Linux 3.8: Copy the certificate to `/usr/local/share/ca-certificates/` and then run `update-ca-certificates`.  Note that the `aes` image sets `USER 1000`, but that `update-ca-certificates` needs to be run as root.
 
 ```Dockerfile
-FROM quay.io/datawire/ambassador_pro:amb-sidecar-$aproVersion$
+FROM quay.io/datawire/aes:$version$
 USER root
 COPY ./my-certificate.pem /usr/local/share/ca-certificates/my-certificate.crt
 RUN update-ca-certificates
@@ -725,4 +725,4 @@ USER 1000
 ```
 
 When deploying the Ambassador Edge Stack, refer to that custom Docker image,
-rather than to `quay.io/datawire/ambassador_pro:amb-sidecar-$aproVersion$`
+rather than to `quay.io/datawire/aes:$version$`
