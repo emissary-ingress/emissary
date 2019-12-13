@@ -515,6 +515,7 @@ export class Filters extends SortableResourceSet {
     return html`
 <div class="header_con">
   <div class="col">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32"><title>filter</title><g class="nc-icon-wrapper" stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" fill="#608cee" stroke="#608cee"><polygon points="30 5 19 16 19 26 13 30 13 16 2 5 2 1 30 1 30 5" fill="none" stroke="#111111" stroke-miterlimit="10"/></g></svg>
   </div>
   <div class="col">
     <h1>Filters</h1>
@@ -522,7 +523,7 @@ export class Filters extends SortableResourceSet {
   </div>
   <div class="col2">
     <a class="cta add ${this.readOnly() ? "off" : ""}" @click=${()=>this.shadowRoot.getElementById("add-filter").onAdd()}>
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M14.078 7.061l2.861 2.862-10.799 10.798-3.584.723.724-3.585 10.798-10.798zm0-2.829l-12.64 12.64-1.438 7.128 7.127-1.438 12.642-12.64-5.691-5.69zm7.105 4.277l2.817-2.82-5.691-5.689-2.816 2.817 5.69 5.692z"/></svg>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30"><defs><style>.cls-a{fill:none;stroke:#000;stroke-linecap:square;stroke-miterlimit:10;stroke-width:2px;}</style></defs><title>add_1</title><g id="Layer_2" data-name="Layer 2"><g id="Layer_1-2" data-name="Layer 1"><line class="cls-a" x1="15" y1="9" x2="15" y2="21"/><line class="cls-a" x1="9" y1="15" x2="21" y2="15"/><circle class="cls-a" cx="15" cy="15" r="14"/></g></g></svg>
       <div class="label">add</div>
     </a>
     <div class="sortby">
