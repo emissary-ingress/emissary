@@ -62,11 +62,24 @@ func NewAggregator(snapshots chan<- string, k8sWatches chan<- []KubernetesWatchS
 func (a *aggregator) Work(p *supervisor.Process) error {
 	p.Ready()
 
-	for {
-		select {
-		case event := <-a.KubernetesEvents:
+	kubernetesEventProcessor := make(chan k8sEvent)
+	go func() {
+		for event := range kubernetesEventProcessor {
 			a.setKubernetesResources(event)
 			a.maybeNotify(p)
+		}
+	}()
+
+	var potentialKubernetesEvent k8sEvent
+	for {
+		select {
+		case potentialKubernetesEvent = <-a.KubernetesEvents:
+		case kubernetesEventProcessor <- potentialKubernetesEvent:
+			select {
+			case potentialKubernetesEvent = <-a.KubernetesEvents:
+			case <-p.Shutdown():
+				return nil
+			}
 		case event := <-a.ConsulEvents:
 			a.updateConsulResources(event)
 			a.maybeNotify(p)
