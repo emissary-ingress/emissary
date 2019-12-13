@@ -311,6 +311,7 @@ class Node(ABC):
     def __init__(self, *args, **kwargs) -> None:
         # If self.skip is set to true, this node is skipped
         self.skip_node = False
+        self.xfail = None
 
         self.test_image = GLOBAL_TEST_IMAGE
 
@@ -1070,17 +1071,20 @@ class Runner:
 
         @pytest.mark.parametrize("t", self.tests, ids=self.ids)
         def test(request, capsys, t):
-            selected = set(item.callspec.getparam('t') for item in request.session.items if item.function == test)
+            if t.xfail:
+                pytest.xfail(t.xfail)
+            else:
+                selected = set(item.callspec.getparam('t') for item in request.session.items if item.function == test)
 
-            with capsys.disabled():
-                self.setup(selected)
+                with capsys.disabled():
+                    self.setup(selected)
 
-            if not t.handle_local_result():
-                # XXX: should aggregate the result of url checks
-                for r in t.results:
-                    r.check()
+                if not t.handle_local_result():
+                    # XXX: should aggregate the result of url checks
+                    for r in t.results:
+                        r.check()
 
-                t.check()
+                    t.check()
 
         self.__func__ = test
         self.__test__ = True
@@ -1097,13 +1101,15 @@ class Runner:
 
             for s in selected:
                 for n in s.ancestors:
-                    expanded_up.add(n)
+                    if not n.xfail:
+                        expanded_up.add(n)
 
             expanded = set(expanded_up)
 
             for s in selected:
                 for n in s.traversal:
-                    expanded.add(n)
+                    if not n.xfail:
+                        expanded.add(n)
 
             try:
                 self._setup_k8s(expanded)
@@ -1134,7 +1140,7 @@ class Runner:
         manifests = OrderedDict()  # type: ignore
         superpods: Dict[str, Superpod] = {}
 
-        for n in (n for n in self.nodes if n in selected):
+        for n in (n for n in self.nodes if n in selected and not n.xfail):
             manifest = None
             nsp = None
             ambassador_id = None
@@ -1259,7 +1265,7 @@ class Runner:
         manifests = self.get_manifests(selected)
 
         configs = OrderedDict()
-        for n in (n for n in self.nodes if n in selected):
+        for n in (n for n in self.nodes if n in selected and not n.xfail):
             configs[n] = []
             for cfg in n.config():
                 if isinstance(cfg, str):
@@ -1463,7 +1469,7 @@ class Runner:
             self.applied_manifests = True
 
         for n in self.nodes:
-            if n in selected:
+            if n in selected and not n.xfail:
                 action = getattr(n, "post_manifest", None)
                 if action:
                     action()
@@ -1486,6 +1492,9 @@ class Runner:
         requirements = []
 
         for node in selected:
+            if node.xfail:
+                continue
+
             node_name = node.format("{self.path.k8s}")
             ambassador_id = getattr(node, 'ambassador_id', None)
 
