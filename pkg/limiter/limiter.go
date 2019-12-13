@@ -34,9 +34,12 @@ type Limiter interface {
 }
 
 type limiter struct {
-	interval   time.Duration
+	// we should never fire more than one event within this timespan
+	interval time.Duration
+	// records the last event we fired
 	lastAction time.Time
-	deadline   time.Time
+	// records the point in the future to which we delayed an event
+	deadline time.Time
 }
 
 // Constructs a new limiter that will coalesce any events occurring
@@ -51,11 +54,19 @@ func (l *limiter) Limit(now time.Time) time.Duration {
 	since := now.Sub(l.lastAction)
 	switch {
 	case since >= l.interval:
+		// we haven't triggered any event recently, so we
+		// trigger this event and record that we did so
 		l.lastAction = now
 		return 0
 	case l.deadline.After(now):
+		// we are still waiting for an event that we delayed
+		// into the future, so we can drop this one
 		return -1
 	default:
+		// we have multiple events within the same interval,
+		// and there are no delayed events, so we delay this
+		// one and record the point in the future to which we
+		// delayed it
 		delay := l.interval - since
 		l.deadline = now.Add(delay)
 		return delay
