@@ -1,6 +1,6 @@
-from kat.harness import Query
-from abstract_tests import AmbassadorTest, ServiceType, HTTP
+from kat.harness import Query, EDGE_STACK
 
+from abstract_tests import AmbassadorTest, ServiceType, HTTP
 
 # STILL TO ADD:
 # Host referencing a Secret in another namespace?
@@ -148,6 +148,9 @@ class HostClearText(AmbassadorTest):
         self.allow_edge_stack_redirect = True
         self.target = HTTP()
 
+        if EDGE_STACK:
+            self.xfail = "Not yet supported in Edge Stack"
+
     def manifests(self) -> str:
         return super().manifests() + self.format('''
 ---
@@ -197,6 +200,9 @@ class HostDouble(AmbassadorTest):
         self.allow_edge_stack_redirect = True
         self.target1 = HTTP(name="target1")
         self.target2 = HTTP(name="target2")
+
+        if EDGE_STACK:
+            self.xfail = "Not yet supported in Edge Stack"
 
     def manifests(self) -> str:
         return super().manifests() + self.format('''
