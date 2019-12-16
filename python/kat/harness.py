@@ -439,7 +439,7 @@ class Node(ABC):
                 cmd += ["-n", ambassador_namespace]
 
             if not getattr(self, 'allow_edge_stack_redirect', False):
-                envstuff.append("AMBASSADOR_NO_HOST_REDIRECT=yes")
+                envstuff.append("AMBASSADOR_NO_TLS_REDIRECT=yes")
 
             cmd = envstuff + cmd
 

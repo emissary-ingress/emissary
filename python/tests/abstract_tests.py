@@ -124,7 +124,7 @@ class AmbassadorTest(Test):
 """
         if not self.allow_edge_stack_redirect:
             self.manifest_envs += """
-    - name: AMBASSADOR_NO_HOST_REDIRECT
+    - name: AMBASSADOR_NO_TLS_REDIRECT
       value: "yes"
 """
 

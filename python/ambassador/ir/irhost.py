@@ -83,7 +83,7 @@ class IRHost(IRResource):
                                 secret=tls_name
                             )
 
-                            if not os.environ.get('AMBASSADOR_NO_HOST_REDIRECT', None):
+                            if not os.environ.get('AMBASSADOR_NO_TLS_REDIRECT', None):
                                 new_ctx['redirect_cleartext_from'] = 8080
 
                             ctx = IRTLSContext(ir, aconf, **new_ctx)
