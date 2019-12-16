@@ -1,57 +1,56 @@
-# Headers
+# Header-based Routing
 
-Ambassador can route to target services based on HTTP headers with the `headers` and `regex_headers` annotations. Multiple mappings with different annotations can be applied to construct more complex routing rules.
+Ambassador Edge Stack can route to target services based on HTTP headers with the `headers` and `regex_headers` specifications. Multiple mappings with different annotations can be applied to construct more complex routing rules.
 
 ## The `headers` annotation
 
-The `headers` attribute is a dictionary of `header`: `value` pairs. Ambassador will only allow requests that match the specified `header`: `value` pairs to reach the target service.
+The `headers` attribute is a dictionary of `header`: `value` pairs. Ambassador Edge Stack will only allow requests that match the specified `header`: `value` pairs to reach the target service.
 
 You can also set the `value` of a header to `true` to test for the existence of a header.
 
-## A basic example
+### A basic example
 
 ```yaml
 ---
 apiVersion: getambassador.io/v1
 kind:  Mapping
 metadata:
-  name:  tour-backend
+  name:  quote-backend
 spec:
   prefix: /backend/
-  service: tour
+  service: quote
   headers:
-    x-tour-mode: backend
+    x-quote-mode: backend
     x-random-header: datawire
-
 ```
 
-will allow requests to `/backend/` to succeed only if the `x-tour-mode` header has the value `backend` _and_ the `x-random-header` has the value `datawire`.
+will allow requests to /backend/ to succeed only if the x-quote-mode header has the value backend and the x-random-header has the value datawire.
 
-## A conditional example
+### A conditional example
 
 ```yaml
 ---
 apiVersion: getambassador.io/v1
 kind:  Mapping
 metadata:
-  name:  tour-mode
+  name:  quote-mode
 spec:
-  prefix: /
-  service: tour-mode
+  prefix: /backend/
+  service: quote-mode
   headers:
-    x-tour-mode: true
+    x-quote-mode: true
 
 ---
 apiVersion: getambassador.io/v1
 kind:  Mapping
 metadata:
-  name:  tour-regular
+  name:  quote-regular
 spec:
-  prefix: /
-  service: tour-regular
+  prefix: /backend/
+  service: quote-regular
 ```
 
-will send requests that contain the `x-tour-mode` header to the `tour-mode` target, while routing all other requests to the `tour-regular` target.
+will send requests that contain the x-quote-mode header to the quote-mode target, while routing all other requests to the quote-regular target.
 
 ## `regex_headers`
 
@@ -62,10 +61,10 @@ The following mapping will route mobile requests from Android and iPhones to a m
 apiVersion: getambassador.io/v1
 kind:  Mapping
 metadata:
-  name:  tour-backend
+  name:  quote-backend
 spec:
   regex_headers:
     user-agent: "^(?=.*\\bAndroid\\b)(?=.*\\b(m|M)obile\\b).*|(?=.*\\biPhone\\b)(?=.*\\b(m|M)obile\\b).*$"
-  prefix: /
-  service: mobile-ui
+  prefix: /backend/
+  service: quote
 ```
