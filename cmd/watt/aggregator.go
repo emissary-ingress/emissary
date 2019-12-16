@@ -62,21 +62,41 @@ func NewAggregator(snapshots chan<- string, k8sWatches chan<- []KubernetesWatchS
 func (a *aggregator) Work(p *supervisor.Process) error {
 	p.Ready()
 
-	kubernetesEventProcessor := make(chan k8sEvent)
+	type eventSignal struct {
+		kubernetesEvent k8sEvent
+		skip            bool
+	}
+
+	kubernetesEventProcessor := make(chan eventSignal)
 	go func() {
 		for event := range kubernetesEventProcessor {
-			a.setKubernetesResources(event)
+			if event.skip {
+				continue
+			}
+			a.setKubernetesResources(event.kubernetesEvent)
 			a.maybeNotify(p)
 		}
 	}()
 
-	var potentialKubernetesEvent k8sEvent
+	potentialKubernetesEventSignal := eventSignal{kubernetesEvent: k8sEvent{}, skip: true}
 	for {
 		select {
-		case potentialKubernetesEvent = <-a.KubernetesEvents:
-		case kubernetesEventProcessor <- potentialKubernetesEvent:
+		case potentialKubernetesEvent := <-a.KubernetesEvents:
+			// Don't coalesce events with watches
+			if potentialKubernetesEvent.watchId != "" {
+				kubernetesEventProcessor <- eventSignal{kubernetesEvent: potentialKubernetesEvent, skip: false}
+			} else {
+				potentialKubernetesEventSignal = eventSignal{kubernetesEvent: potentialKubernetesEvent, skip: false}
+			}
+		case kubernetesEventProcessor <- potentialKubernetesEventSignal:
 			select {
-			case potentialKubernetesEvent = <-a.KubernetesEvents:
+			case potentialKubernetesEvent := <-a.KubernetesEvents:
+				// Don't coalesce events with watches
+				if potentialKubernetesEvent.watchId != "" {
+					kubernetesEventProcessor <- eventSignal{kubernetesEvent: potentialKubernetesEvent, skip: false}
+				} else {
+					potentialKubernetesEventSignal = eventSignal{kubernetesEvent: potentialKubernetesEvent, skip: false}
+				}
 			case <-p.Shutdown():
 				return nil
 			}
