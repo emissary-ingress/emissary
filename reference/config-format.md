@@ -2,7 +2,7 @@
 
 Ambassador exposes three methods for configuration.
 
-- [Ambassador Customer Resource Definitions (CRDs)](/reference/core/crds)
+- [Ambassador Custom Resource Definitions (CRDs)](/reference/core/crds)
 - [Kubernetes Service Annotations](/reference/core/annotations)
 - [Kubernetes Ingress Resource](/reference/core/ingress-controller)
 
