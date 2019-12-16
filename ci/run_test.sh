@@ -1,5 +1,4 @@
 #!/bin/bash
-
 KUBECONFIG=$DEV_KUBECONFIG
 export OSS_TAG=$(cat ../Chart.yaml | grep ossVersion | sed s/'ossVersion: '/''/)
 

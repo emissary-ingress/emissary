@@ -1,18 +1,41 @@
 #!/bin/bash
 
-wget https://get.helm.sh/helm-v2.16.1-linux-amd64.tar.gz -O /tmp/helm2.tar.gz
-wget https://get.helm.sh/helm-v3.0.1-linux-amd64.tar.gz -O /tmp/helm.tar.gz
+printf"== Begin: travis-install.sh ==\n"
 
-tar -xzf /tmp/helm2.tar.gz
-sudo mv linux-amd64/helm /usr/local/bin/helm2
-rm -rf linux-amd64
+mkdir -p ~/bin
+PATH=~/bin:$PATH
 
-tar -xzf /tmp/helm.tar.gz
-sudo mv linux-amd64/helm /usr/local/bin/helm
-rm -rf linux-amd64
+## Install kubectl
+##
+curl -L -o ~/bin/kubectl https://storage.googleapis.com/kubernetes-release/release/v${KUBECTL_VERSION}/bin/linux/amd64/kubectl
+chmod +x ~/bin/kubectl
 
-curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
-chmod +x ./kubectl
-sudo mv ./kubectl /usr/local/bin/kubectl
+## Install Helm 3
+##
+curl -L https://storage.googleapis.com/kubernetes-helm/helm-v${HELM_VERSION}-linux-amd64.tar.gz | tar -x -z -O linux-amd64/helm > ~/bin/helm
+chmod +x ~/bin/helm
 
+## Install Helm 2
+##
+curl -L https://storage.googleapis.com/kubernetes-helm/helm-v${HELM2_VERSION}-linux-amd64.tar.gz | tar -x -z -O linux-amd64/helm > ~/bin/helm2
+chmod +x ~/bin/helm2
+
+## Install Kubernaut
+##
+curl -L -o ~/bin/kubernaut http://releases.datawire.io/kubernaut/${KUBERNAUT_VERSION}/linux/amd64/kubernaut
+chmod +x ~/bin/kubernaut
+
+## Get Kubernaut cluster
+##
+base64 -d < ci/kconf.b64 | ( cd ~ ; tar xzf - )
+
+CLAIM_NAME=kat-${USER}-$(uuidgen)
+DEV_KUBECONFIG=~/.kube/${CLAIM_NAME}.yaml
+echo $CLAIM_NAME > ~/kubernaut-claim.txt
+kubernaut claims delete ${CLAIM_NAME}
+kubernaut claims create --name ${CLAIM_NAME} --cluster-group main
+# Do a quick sanity check on that cluster
+kubectl --kubeconfig ${DEV_KUBECONFIG} -n default get service kubernetes
+
+printf "== End:   travis-install.sh ==\n"
 
