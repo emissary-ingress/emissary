@@ -1,6 +1,6 @@
 # Rewrites
 
-Once Ambassador uses a prefix to identify the service to which a given request should be passed, it can rewrite the URL before handing it off to the service. By default, the `prefix` is rewritten to `/`, so e.g., if we map `/prefix1/` to the service `service1`, then
+Once Ambassador Edge Stack uses a prefix to identify the service to which a given request should be passed, it can rewrite the URL before handing it off to the service. By default, the `prefix` is rewritten to `/`, so e.g., if we map `/prefix1/` to the service `service1`, then
 
 ```shell
 http://ambassador.example.com/prefix1/foo/bar
@@ -32,7 +32,8 @@ would be "rewritten" as:
 http://service1/prefix1/foo/bar
 ```
 
-Ambassador can be configured to not change the prefix as it forwards a request to the upstream service. To do that, specify an empty `rewrite` directive:
+Ambassador Edge Stack can be configured to not change the prefix as it forwards a request to the upstream service. To do that, specify an empty `rewrite` directive:
 
 - `rewrite: ""`
 
+For more information on how rewrite and prefix can be configured, see [Mappings](../mappings).
