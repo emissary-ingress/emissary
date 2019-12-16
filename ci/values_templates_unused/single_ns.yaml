@@ -1,0 +1,9 @@
+service:
+  type: NodePort
+
+scope:
+  # tells Ambassador to only use resources in the namespace or namespace set by namespace.name
+  singleNamespace: true
+
+deploymentStrategy:
+  type: Recreate

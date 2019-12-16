@@ -1,0 +1,9 @@
+image:
+  repository: quay.io/datawire/ambassador
+  tag: $OSS_TAG
+
+service:
+  type: NodePort
+
+deploymentStrategy:
+  type: Recreate

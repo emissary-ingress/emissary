@@ -1,0 +1,41 @@
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: mappings.getambassador.io
+  labels:
+    product: aes
+    app.kubernetes.io/name: ambassador
+  annotations:
+    "helm.sh/hook": crd-install
+spec:
+  additionalPrinterColumns:
+  - JSONPath: .spec.prefix
+    name: Prefix
+    type: string
+  - JSONPath: .spec.service
+    name: Service
+    type: string
+  - JSONPath: .status.state
+    name: State
+    type: string
+  - JSONPath: .status.reason
+    name: Reason
+    type: string
+  group: getambassador.io
+  names:
+    categories:
+    - ambassador-crds
+    kind: Mapping
+    plural: mappings
+    singular: mapping
+  scope: Namespaced
+  subresources:
+    status: {}
+  version: v1
+  versions:
+  - name: v1
+    served: true
+    storage: false
+  - name: v2
+    served: true
+    storage: true

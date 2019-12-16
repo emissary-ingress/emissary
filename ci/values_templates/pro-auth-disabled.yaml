@@ -1,0 +1,13 @@
+service:
+  type: NodePort
+
+pro:
+  enabled: true
+  licenseKey:
+    value: $LICENSE_KEY
+
+  authService:
+    enabled: false
+
+deploymentStrategy:
+  type: Recreate

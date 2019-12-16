@@ -1,0 +1,7 @@
+{{- if and .Values.namespaceOverride .Values.createNamespace }}
+---
+kind: Namespace
+apiVersion: v1
+metadata:
+  name: {{ include "ambassador.namespace" . }}
+{{- end }}
