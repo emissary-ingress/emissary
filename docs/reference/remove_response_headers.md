@@ -1,10 +1,10 @@
-# Remove response headers
+# Remove Response Headers
 
-Ambassador can remove a list of HTTP headers that would be sent to the client in the response (eg. default `x-envoy-upstream-service-time`)
+Ambassador Edge Stack can remove a list of HTTP headers that would be sent to the client in the response (eg. default `x-envoy-upstream-service-time`).
 
-## The `remove_response_headers` annotation
+## The `remove_response_headers` attribute
 
-The `remove_response_headers` attribute takes a list of keys used to match to the header
+The `remove_response_headers` attribute takes a list of keys used to match to the header.
 
 ## A basic example
 
@@ -13,12 +13,12 @@ The `remove_response_headers` attribute takes a list of keys used to match to th
 apiVersion: getambassador.io/v1
 kind:  Mapping
 metadata:
-  name:  tour-ui
+  name:  quote-backend
 spec:
-  prefix: /
+  prefix: /backend/
   remove_response_headers:
   - x-envoy-upstream-service-time
-  service: tour
+  service: quote
 ```
 
 will drop header with key `x-envoy-upstream-service-time`.
