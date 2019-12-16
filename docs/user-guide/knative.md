@@ -1,23 +1,22 @@
-# Knative Integration
+# Using Knative and Ambassador
 
-[Knative](https://knative.dev/) is a popular Kubernetes-based platform for managing serverless workloads with 3 main components:
-- Build - Source-to-container build orchestration
+[Knative](https://knative.dev/) is a popular Kubernetes-based platform for managing serverless workloads with 2 main components:
 - Eventing - Management and delivery of events
 - Serving - Request-driven compute that can scale to zero
 
 We will be focusing on Knative Serving which builds on Kubernetes to support deploying and serving of serverless applications and functions.
 
-Ambassador can watch for changes in Knative configuration in your Kubernetes cluster and set up routing accordingly.
+The Ambassador Edge Stack can watch for changes in Knative configuration in your Kubernetes cluster and set up routing accordingly.
 
-**Note:** Knative was originally built with Istio handling cluster networking. This integration lets us replace Istio with Ambassador which will dramatically reduce the operational overhead of running Knative.
+**Note:** Knative was originally built with Istio handling cluster networking. This integration lets us replace Istio with the Ambassador Edge Stack which will dramatically reduce the operational overhead of running Knative.
 
 ## Getting started
 
 #### Prerequisites
 
-- Knative requires a Kubernetes cluster v1.11 or newer with the MutatingAdmissionWebhook admission controller enabled. kubectl v1.10 is also required. This guide assumes that you’ve already created a Kubernetes cluster which you’re comfortable installing alpha software on.
-
-- Ambassador should be installed in your cluster. Follow one of the [installation guides](https://www.getambassador.io/user-guide/install) for instructions on installing Ambassador.
+- Knative now requires Kubernetes v1.14, as well as a [compatible kubectl](https://knative.dev/docs/install/knative-with-ambassador/)
+- `kubectl` v1.10 is also required. This guide assumes that you’ve already created a Kubernetes cluster which you’re comfortable installing alpha software on.
+- The Ambassador Edge Stack should be installed in your cluster. Follow the [installation guides](../install) for instructions on installing the Ambassador Edge Stack.
 
 #### Installation
 
@@ -25,13 +24,13 @@ Ambassador can watch for changes in Knative configuration in your Kubernetes clu
 
    Knative is installed from remote YAML manifests. Check the [Knative install documentation](https://knative.dev/docs/install/knative-with-ambassador/) to install the most recent version of Knative.
 
-   **Note:** You can safely ignore the `no matches for kind "Gateway" in version "networking.istio.io/v1alpha3"` warnings during the installation since we will be using Ambassador instead of the Istio gateway.
-   
-2. Configure Ambassador to listen for Knative Services
+   **Note:** You can safely ignore the `no matches for kind "Gateway" in version "networking.istio.io/v1alpha3"` warnings during the installation since we will be using the Ambassador Edge Stack instead of the Istio gateway.
 
-    After Knative is installed, we need to tell Ambassador to start looking for any Knative service we create.
+2. Configure the Ambassador Edge Stack to listen for Knative Services
 
-    This is done by setting the `AMBASSADOR_KNATIVE_SUPPORT` environment variable to `"true"` in the Ambassador deployment.
+    After Knative is installed, we need to tell the Ambassador Edge Stack to start looking for any Knative service we create.
+
+    This is done by setting the `AMBASSADOR_KNATIVE_SUPPORT` environment variable to `"true"` in the Ambassador Edge Stack deployment.
 
     ```yaml
     ---
@@ -93,10 +92,10 @@ Ambassador can watch for changes in Knative configuration in your Kubernetes clu
     helloworld-go   ExternalName   <none>       helloworld-go.default.example.com   <none>    3m
     ```
 
-    We can now use this value and the `EXTERNAL-IP` of Ambassador's Kubernetes service to route to the application:
+    We can now use this value and the `EXTERNAL-IP` of Ambassador Edge Stack's Kubernetes service to route to the application:
 
     ```
     curl -H “Host: helloworld-go.default.example.com” <ambassador IP>
     ```
 
-We have now installed Knative with Ambassador handling traffic to our serverless applications. See the [Knative documentation](https://knative.dev/umentation/) for more information on what else Knative can do.
+We have now installed Knative with Ambassador Edge Stack handling traffic to our serverless applications. See the [Knative documentation](https://knative.dev/docs/) for more information on what else Knative can do.
