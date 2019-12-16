@@ -47,6 +47,15 @@ Format:
 --->
 
 <!--- CueAddReleaseNotes --->
+## [1.0.0-ea3] December 16, 2019
+[1.0.0-ea3]: https://github.com/datawire/ambassador/compare/v1.0.0-ea1...v1.0.0-ea3
+
+- Feature: initial edgectl support for Windows!
+- UX: be explicit that seeing the license applied can take a few minutes
+- Bugfix: don’t try to check for upgrades on every UI snapshot update
+- Bugfix: don’t activate the fallback TLSContext if its secret is not available
+- Bugfix: first cut at reducing reconfiguration churn
+
 ## [1.0.0-ea1] December 10, 2019
 [1.0.0-ea1]: https://github.com/datawire/ambassador/compare/v0.85.0...v1.0.0-ea1
 
