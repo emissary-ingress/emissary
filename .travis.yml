@@ -9,4 +9,8 @@ branches:
   only:
   - master
 
-script: ci/run_test.sh
+script: 
+#- ci/run_test.sh
+- pwd
+- ls
+
