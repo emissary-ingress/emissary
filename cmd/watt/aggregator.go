@@ -73,7 +73,6 @@ func (a *aggregator) Work(p *supervisor.Process) error {
 			if event.skip {
 				continue
 			}
-			a.setKubernetesResources(event.kubernetesEvent)
 			a.maybeNotify(p)
 		}
 	}()
@@ -82,21 +81,13 @@ func (a *aggregator) Work(p *supervisor.Process) error {
 	for {
 		select {
 		case potentialKubernetesEvent := <-a.KubernetesEvents:
-			// Don't coalesce events with watches
-			if potentialKubernetesEvent.watchId != "" {
-				kubernetesEventProcessor <- eventSignal{kubernetesEvent: potentialKubernetesEvent, skip: false}
-			} else {
-				potentialKubernetesEventSignal = eventSignal{kubernetesEvent: potentialKubernetesEvent, skip: false}
-			}
+			a.setKubernetesResources(potentialKubernetesEvent)
+			potentialKubernetesEventSignal = eventSignal{kubernetesEvent: potentialKubernetesEvent, skip: false}
 		case kubernetesEventProcessor <- potentialKubernetesEventSignal:
 			select {
 			case potentialKubernetesEvent := <-a.KubernetesEvents:
-				// Don't coalesce events with watches
-				if potentialKubernetesEvent.watchId != "" {
-					kubernetesEventProcessor <- eventSignal{kubernetesEvent: potentialKubernetesEvent, skip: false}
-				} else {
-					potentialKubernetesEventSignal = eventSignal{kubernetesEvent: potentialKubernetesEvent, skip: false}
-				}
+				a.setKubernetesResources(potentialKubernetesEvent)
+				potentialKubernetesEventSignal = eventSignal{kubernetesEvent: potentialKubernetesEvent, skip: false}
 			case <-p.Shutdown():
 				return nil
 			}
