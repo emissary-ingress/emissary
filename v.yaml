@@ -1,4 +1,0 @@
-env:
-  APP_LOG_LEVEL: debug
-
-replicaCount: 1
