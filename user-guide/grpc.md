@@ -316,4 +316,4 @@ A simple way around this is to use Ambassador with a `LoadBalancer` service, rat
 
 ## gRPC-Web
 
-gRPC must be configured to work with [gRPC Web](../../reference/core/ambassador#grpc-web-enable_grpc_web) if you want the same benefits in a browser.
+Ambassador also supports the [gRPC-Web](../../reference/core/ambassador#grpc-web-enable_grpc_web) protocol for browser-based gRPC applications.
