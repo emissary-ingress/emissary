@@ -203,7 +203,11 @@ spec: ${JSON.stringify(resource.spec)}
   </div>
   <div class="col2">
     <a class="cta download ${count > 0 ? "" : "off"}" @click=${()=>this.doDownload()}>
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>Asset 1</title><g id="Layer_2" data-name="Layer 2"><g id="iconmonstr"><path id="save-2" d="M13,3h3V8H13ZM24,4V24H0V0H20ZM7,9H17V2H7ZM22,4.83,19.17,2H19v9H5V2H2V22H22Z"/></g></g></svg>
+      <img alt="yaml-downloads logo" class="img" src="../images/svgs/yaml-downloads.svg">
+        <g id="Layer_2" data-name="Layer 2">
+          <g id="iconmonstr"></g>
+        </g>
+      </img>
       <div class="label">download</div>
     </a>
   </div>

@@ -153,7 +153,7 @@ export class Mappings extends SortableResourceSet {
     return html`
 <div class="header_con">
   <div class="col">
-    <img alt="mappings logo" class="img" src="../images/svgs/mappings.svg"
+    <img alt="mappings logo" class="img" src="../images/svgs/mappings.svg">
       <defs><style>.cls-1{fill:#fff;}</style></defs>
         <g id="Layer_2" data-name="Layer 2">
           <g id="Layer_1-2" data-name="Layer 1"></g>

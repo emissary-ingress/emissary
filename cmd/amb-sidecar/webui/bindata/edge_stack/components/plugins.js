@@ -248,7 +248,7 @@ export class Plugins extends LitElement {
     return html`
 <div class="header_con">
   <div class="col">
-    <img alt="plugins logo" class="img" src="../images/svgs/plugins.svg"
+    <img alt="plugins logo" class="img" src="../images/svgs/plugins.svg">
       <defs><style>.cls-1{fill:#fff;}</style></defs>
         <g id="Layer_2" data-name="Layer 2">
           <g id="Layer_1-2" data-name="Layer 1"></g>
