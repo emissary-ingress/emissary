@@ -88,16 +88,25 @@ update-yaml-locally: k8s-aes/00-aes-crds.yaml k8s-aes/01-aes.yaml
 .PHONY: update-yaml
 
 update-yaml: update-yaml-locally
-	@if [ -z "$${EDGE_STACK_UPDATE}" ]; then printf "$(RED)Please set EDGE_STACK_UPDATE to point to your getambassador.io clone$(END)\n" >&2; exit 1; fi
-	git -C "$${EDGE_STACK_UPDATE}" checkout Edge-stack-update
-	git -C "$${EDGE_STACK_UPDATE}" pull
-	cp k8s-aes/00-aes-crds.yaml $${EDGE_STACK_UPDATE}/content/yaml/aes-crds.yaml
-	docker exec $(shell $(BUILDER)) python apro/fix-yaml.py edge_stack ambassador/docs/yaml/ambassador/ambassador-rbac.yaml apro/k8s-aes-src/01-aes.yaml > $${EDGE_STACK_UPDATE}/content/yaml/aes.yaml
-	sed -e 's/# NOT a generated file/# GENERATED FILE: DO NOT EDIT/' < k8s-aes-src/02-oss-migration.yaml > $${EDGE_STACK_UPDATE}/content/yaml/oss-migration.yaml
-	sed -e 's/# NOT a generated file/# GENERATED FILE: DO NOT EDIT/' < k8s-aes-src/03-resources-migration.yaml > $${EDGE_STACK_UPDATE}/content/yaml/resources-migration.yaml
-	git -C "$${EDGE_STACK_UPDATE}" diff
-	@if [ -n "$$(git -C $${EDGE_STACK_UPDATE} diff)" ]; then \
-		printf "$(RED)Please inspect and commit the above changes to $(BLU)${EDGE_STACK_UPDATE}$(RED); then re-run the $(BLU)$(MAKE) $(MAKECMDGOALS)$(RED) command$(END)\n"; \
+	@if [ -z "$${AMBASSADOR_DOCS}" ]; then printf "$(RED)Please set AMBASSADOR_DOCS to point to your ambassador-docs.git checkout$(END)\n" >&2; exit 1; fi
+	@if ! [ -f "$${AMBASSADOR_DOCS}/versions.yml" ]; then printf "$(RED)AMBASSADOR_DOCS=$${AMBASSADOR_DOCS} does not look like an ambassador-docs.git checkout$(END)\n" >&2; exit 1; fi
+	git -C "$${AMBASSADOR_DOCS}" fetch --all --prune --tags
+	@printf "$(GRN)In another terminal, verify that your AMBASSADOR_DOCS ($(AMBASSADOR_DOCS)) checkout is up-to-date with the desired branch (probably $(BLU)early-access$(GRN))$(END)\n"
+	@read -s -p "$$(printf '$(GRN)Press $(BLU)enter$(GRN) once you have verified this$(END)')"
+	@echo
+	@printf "$(CYN)==> $(GRN)Updating AMBASSADOR_DOCS YAML$(END)\n"
+	@printf '  $(CYN)$${AMBASSADOR_DOCS}/yaml/aes-crds.yaml$(END)\n'
+	cp k8s-aes/00-aes-crds.yaml $${AMBASSADOR_DOCS}/yaml/aes-crds.yaml
+	@printf '  $(CYN)$${AMBASSADOR_DOCS}/yaml/aes.yaml$(END)\n'
+	docker exec $(shell $(BUILDER)) python apro/fix-yaml.py edge_stack ambassador/docs/yaml/ambassador/ambassador-rbac.yaml apro/k8s-aes-src/01-aes.yaml > $${AMBASSADOR_DOCS}/yaml/aes.yaml
+	@printf '  $(CYN)$${AMBASSADOR_DOCS}/yaml/oss-migration.yaml$(END)\n'
+	sed -e 's/# NOT a generated file/# GENERATED FILE: DO NOT EDIT/' < k8s-aes-src/02-oss-migration.yaml > $${AMBASSADOR_DOCS}/yaml/oss-migration.yaml
+	@printf '  $(CYN)$${AMBASSADOR_DOCS}/yaml/resources-migration.yaml$(END)\n'
+	sed -e 's/# NOT a generated file/# GENERATED FILE: DO NOT EDIT/' < k8s-aes-src/03-resources-migration.yaml > $${AMBASSADOR_DOCS}/yaml/resources-migration.yaml
+	@printf "$(CYN)==> $(GRN)Checking whether those changes were no-op$(END)\n"
+	git -C "$${AMBASSADOR_DOCS}" diff .
+	@if [ -n "$$(git -C $${AMBASSADOR_DOCS} diff .)" ]; then \
+		printf "$(RED)Please inspect and commit the above changes to $(BLU)${AMBASSADOR_DOCS}$(RED); then re-run the $(BLU)$(MAKE) $(MAKECMDGOALS)$(RED) command$(END)\n"; \
 		exit 1; \
 	fi
 .PHONY: update-yaml
@@ -107,8 +116,8 @@ final-push:
 	@if [ "$$(git push --tags --dry-run 2>&1)" != "Everything up-to-date" ]; then \
 		printf "$(RED)Please run: git push --tags$(END)\n"; \
 	fi	
-	@if [ "$$(git -C $${EDGE_STACK_UPDATE} push --dry-run 2>&1)" != "Everything up-to-date" ]; then \
-		printf "$(RED)Please run: git -C $${EDGE_STACK_UPDATE} push$(END)\n"; \
+	@if [ "$$(git -C $${AMBASSADOR_DOCS} push --dry-run 2>&1)" != "Everything up-to-date" ]; then \
+		printf "$(RED)Please run: git -C $${AMBASSADOR_DOCS} push$(END)\n"; \
 	fi	
 
 tag-rc:
