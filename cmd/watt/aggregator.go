@@ -193,7 +193,6 @@ func (a *aggregator) isComplete(p *supervisor.Process, watchset WatchSet) bool {
 func (a *aggregator) maybeNotify(p *supervisor.Process) {
 	now := time.Now()
 	delay := a.limiter.Limit(now)
-	p.Logf("maybeNotify %s", delay)
 	if delay == 0 {
 		a.notify(p)
 	} else if delay > 0 {
