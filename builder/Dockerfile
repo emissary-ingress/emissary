@@ -56,6 +56,8 @@ RUN apk --no-cache add bash bash-completion ncurses curl jq rsync python3 python
     curl --fail -L https://raw.githubusercontent.com/ahmetb/kubectx/v0.7.0/completion/kubens.bash -o /usr/share/bash-completion/completions/kubens && \
     curl -L https://raw.githubusercontent.com/jonmosco/kube-ps1/v0.7.0/kube-ps1.sh -o /usr/local/bin/kube-ps1.sh && \
     ln -s /usr/bin/python3 /usr/bin/python && \
+    npm config set user 0 && \
+    npm config set unsafe-perm true && \
     npm install -g rollup rollup-plugin-terser
 
 RUN sh -c "/usr/bin/kubectl completion bash > /usr/share/bash-completion/completions/kubectl"
