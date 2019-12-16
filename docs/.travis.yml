@@ -4,6 +4,7 @@ language: generic
 branches:
   only:
   - master
+  - early-access
 
 deploy:
   - provider: script
@@ -11,3 +12,8 @@ deploy:
     skip_cleanup: true
     on:
       branch: master
+  - provider: script
+    script: ./publish-website.sh
+    skip_cleanup: true
+    on:
+      branch: early-access
