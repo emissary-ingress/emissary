@@ -84,10 +84,14 @@ func (a *aggregator) Work(p *supervisor.Process) error {
 			a.setKubernetesResources(potentialKubernetesEvent)
 			potentialKubernetesEventSignal = eventSignal{kubernetesEvent: potentialKubernetesEvent, skip: false}
 		case kubernetesEventProcessor <- potentialKubernetesEventSignal:
+			// Keep dispatching events to other channels while kubernetesEventProcessor is busy.
 			select {
 			case potentialKubernetesEvent := <-a.KubernetesEvents:
 				a.setKubernetesResources(potentialKubernetesEvent)
 				potentialKubernetesEventSignal = eventSignal{kubernetesEvent: potentialKubernetesEvent, skip: false}
+			case event := <-a.ConsulEvents:
+				a.updateConsulResources(event)
+				a.maybeNotify(p)
 			case <-p.Shutdown():
 				return nil
 			}
@@ -189,6 +193,7 @@ func (a *aggregator) isComplete(p *supervisor.Process, watchset WatchSet) bool {
 func (a *aggregator) maybeNotify(p *supervisor.Process) {
 	now := time.Now()
 	delay := a.limiter.Limit(now)
+	p.Logf("maybeNotify %s", delay)
 	if delay == 0 {
 		a.notify(p)
 	} else if delay > 0 {
