@@ -1,12 +1,13 @@
 #!/bin/bash
-printf"==Begin: Helm tests==\n"
+printf "==Begin: Helm tests==\n"
 
-KUBECONFIG=$DEV_KUBECONFIG
+export KUBECONFIG=$DEV_KUBECONFIG
 export OSS_TAG=$(cat ../Chart.yaml | grep ossVersion | sed s/'ossVersion: '/''/)
 
+echo $KUBECONFIG
 ## Generate values files
 ##
-printf"==Generating values files==\n"
+printf "==Generating values files==\n"
 
 mkdir values
 for file in $(ls values_templates)
@@ -15,7 +16,7 @@ do
   envsubst < $(pwd)/values_templates/$file > $(pwd)/values/$file
 done
 
-printf"==Bootstrapping Helm installs==\n"
+printf "==Bootstrapping Helm installs==\n"
 ## Bootstrap Helm 2
 ## 
 kubectl apply -f helm-init.yaml
@@ -40,7 +41,7 @@ done
 
 success=1
 
-printf"==Begin: Testing Helm 3 releases==\n"
+printf "==Begin: Testing Helm 3 releases==\n"
 
 for v_file in $(ls values)
 do
@@ -69,11 +70,11 @@ do
   pkill kubectl port-forward service/ambassador 8443:443
 done
 
-printf"End: Testing Helm 3 releases==\n"
+printf "End: Testing Helm 3 releases==\n"
 
 ## Test Helm 2
 ##
-printf"Begin: Testing Helm 2 release==\n"
+printf "Begin: Testing Helm 2 release==\n"
 
 helm2 install -n ambassador-helm2 .. -f helm2-values.yaml --wait 2>&1 > /dev/null
 
@@ -91,11 +92,11 @@ else
   success=0
 fi
 
-printf"==End: Testing Helm 2 releases==\n"
+printf "==End: Testing Helm 2 releases==\n"
 
 ## Clean up
 ##
-printf"==Begin: Cleanup==\n"
+printf "==Begin: Cleanup==\n"
 rm -rf values
 
 kubectl delete -f backend.yaml
@@ -121,11 +122,11 @@ done
                                                                                 
 echo helm 2 chart uninstalled
 
-printf"==End: Cleanup==\n"
+printf "==End: Cleanup==\n"
 
 if [ $success != 1 ]
 then
   exit 1
 fi
 
-printf"End: Helm tests==\n"
+printf "End: Helm tests==\n"

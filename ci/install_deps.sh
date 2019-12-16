@@ -5,7 +5,7 @@ KUBECTL_VERSION=1.15.3
 KUBERNAUT_VERSION=2018.10.24-d46c1f1
 
 
-printf"== Begin: travis-install.sh ==\n"
+printf "== Begin: travis-install.sh ==\n"
 
 mkdir -p ~/bin
 PATH=~/bin:$PATH
@@ -34,7 +34,7 @@ chmod +x ~/bin/kubernaut
 ##
 base64 -d < ci/kconf.b64 | ( cd ~ ; tar xzf - )
 
-CLAIM_NAME=kat-${USER}-$(uuidgen)
+CLAIM_NAME=ambassador-chart-${USER}-$(uuidgen)
 DEV_KUBECONFIG=~/.kube/${CLAIM_NAME}.yaml
 echo $CLAIM_NAME > ~/kubernaut-claim.txt
 kubernaut claims delete ${CLAIM_NAME}
