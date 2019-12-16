@@ -2,7 +2,6 @@
 
 before_script:
   - sudo ./ci/install_deps.sh
-  - sudo apt-get install -y kubectl
 
 language: generic
 
