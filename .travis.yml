@@ -1,8 +1,5 @@
 ---
 
-before_script:
-  - sudo ./ci/install_deps.sh
-
 install:
   - ./ci/install_deps.sh
   - PATH=~/bin:$PATH
@@ -16,8 +13,7 @@ branches:
   - master
 
 script: 
-  - cd ci
-  - ./run_test.sh
+  - cd ci && ./run_test.sh
 
 
 after_script:

@@ -1,4 +1,9 @@
 #!/bin/bash
+HELM_VERSION=3.0.1
+HELM2_VERSION=2.16.1
+KUBECTL_VERSION=1.15.3
+KUBERNAUT_VERSION=2018.10.24-d46c1f1
+
 
 printf"== Begin: travis-install.sh ==\n"
 
