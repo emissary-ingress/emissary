@@ -200,7 +200,7 @@ spec:
   hosts:
   - "*"
   secret: ambassador-cert
-  alpn_protocol: h2
+  alpn_protocols: h2
 ```
 
 Next, you need to change the client code slightly and tell it to open a secure RPC channel with Ambassador.
@@ -308,9 +308,12 @@ gRPC services use [HTTP/2 headers](https://github.com/grpc/grpc/blob/master/doc/
 headers:
   :authority: subdomain.host.com
 ```
-
 ## Note
 
 Some [Kubernetes ingress controllers](https://kubernetes.io/docs/concepts/services-networking/ingress/) do not support HTTP/2 fully. As a result, if you are running Ambassador with an ingress controller in front, you may find that gRPC requests fail even with correct Ambassador configuration.
 
 A simple way around this is to use Ambassador with a `LoadBalancer` service, rather than an Ingress controller.
+
+## gRPC-Web
+
+Ambassador also supports the [gRPC-Web](../../reference/core/ambassador#grpc-web-enable_grpc_web) protocol for browser-based gRPC applications.
