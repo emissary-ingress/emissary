@@ -486,10 +486,6 @@ func runE(cmd *cobra.Command, args []string) error {
 
 		httpHandler.AddEndpoint("/banner/", "Diag UI banner", http.StripPrefix("/banner", banner.NewBanner(limit, redisPool)).ServeHTTP)
 
-		if redisPool != nil {
-			httpHandler.AddEndpoint("/.well-known/acme-challenge/", "ACME http-01 challenge", acmeclient.NewChallengeHandler(redisPool).ServeHTTP)
-		}
-
 		httpHandler.AddEndpoint("/_internal/v0/watt", "watt→post_update.py→this", snapshotStore.ServeHTTP)
 
 		// Launch the server

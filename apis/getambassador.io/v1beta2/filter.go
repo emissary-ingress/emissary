@@ -27,7 +27,6 @@ type FilterSpec struct {
 	Plugin   *FilterPlugin   `json:",omitempty"`
 	JWT      *FilterJWT      `json:",omitempty"`
 	External *FilterExternal `json:",omitempty"`
-	Internal *FilterInternal `json:",omitempty"`
 }
 
 const (
@@ -96,7 +95,6 @@ func (spec *FilterSpec) Validate(name, namespace string, secretsGetter coreV1cli
 		"Plugin":   spec.Plugin != nil,
 		"JWT":      spec.JWT != nil,
 		"External": spec.External != nil,
-		"Internal": spec.Internal != nil,
 	}
 	if kindCount(isKind) != 1 {
 		ret.Err = errors.Errorf("must specify exactly 1 of: %v", kindNames(isKind))
@@ -138,9 +136,6 @@ func (spec *FilterSpec) Validate(name, namespace string, secretsGetter coreV1cli
 		if ret.Err == nil {
 			ret.Desc = fmt.Sprintf("external=%s", spec.External.AuthService)
 		}
-	case spec.Internal != nil:
-		ret.Spec = *spec.Internal
-		ret.Desc = "internal"
 	default:
 		panic("should not happen")
 	}
