@@ -94,9 +94,10 @@ preflight-docs:
 .PHONY: preflight-docs
 
 update-yaml: update-yaml-locally preflight-docs
+	@printf "$(CYN)==> $(GRN)Checking whether AMBASSADOR_DOCS is up to date$(END)\n"
 	git -C "$${AMBASSADOR_DOCS}" fetch --all --prune --tags
 	@printf "$(GRN)In another terminal, verify that your AMBASSADOR_DOCS ($(AMBASSADOR_DOCS)) checkout is up-to-date with the desired branch (probably $(BLU)early-access$(GRN))$(END)\n"
-	@read -s -p "$$(printf '$(GRN)Press $(BLU)enter$(GRN) once you have verified this$(END)')"
+	@read -s -p "$$(printf '$(GRN)Press $(BLU)enter$(GRN) once you have verified this:$(END)')"
 	@echo
 	@printf "$(CYN)==> $(GRN)Updating AMBASSADOR_DOCS YAML$(END)\n"
 	@printf '  $(CYN)$${AMBASSADOR_DOCS}/yaml/aes-crds.yaml$(END)\n'
