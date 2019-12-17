@@ -672,7 +672,11 @@ func FillDefaults(host *ambassadorTypesV2.Host) {
 			host.Spec.AcmeProvider.PrivateKeySecret = &k8sTypesCoreV1.LocalObjectReference{}
 		}
 		if host.Spec.AcmeProvider.PrivateKeySecret.Name == "" {
-			host.Spec.AcmeProvider.PrivateKeySecret.Name = NameEncode(host.Spec.AcmeProvider.Authority) + "--" + NameEncode(host.Spec.AcmeProvider.Email)
+			if host.Spec.AcmeProvider.Email == "" {
+				host.Spec.AcmeProvider.PrivateKeySecret.Name = NameEncode(host.Spec.AcmeProvider.Authority)
+			} else {
+				host.Spec.AcmeProvider.PrivateKeySecret.Name = NameEncode(host.Spec.AcmeProvider.Authority) + "--" + NameEncode(host.Spec.AcmeProvider.Email)
+			}
 		}
 		if host.Spec.TlsSecret.Name == "" {
 			// host.Spec.TlsSecret.Name = NameEncode(host.Spec.AcmeProvider.Authority) + "--" + NameEncode(host.Spec.AcmeProvider.Email) + "--" + NameEncode(host.Spec.AcmeProvider.PrivateKeySecret.Name)
