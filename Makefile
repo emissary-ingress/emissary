@@ -74,18 +74,19 @@ deploy-aes-backend: images
 	cat k8s-aes-backend/*.yaml | AES_BACKEND_IMAGE=$(AES_BACKEND_IMAGE) envsubst | kubectl --kubeconfig="$(PROD_KUBECONFIG)" apply -f -
 .PHONY: deploy-aes-backend
 
-k8s-aes/00-aes-crds.yaml: k8s-aes-src/00-aes-crds.yaml fix-crds.py sync
+update-yaml-locally: sync
+	@printf "$(CYN)==> $(GRN)Updating development YAML$(END)\n"
+	@printf '  $(CYN)k8s-aes/00-aes-crds.yaml$(END)\n'
 	docker exec $(shell $(BUILDER)) python apro/fix-crds.py ambassador/docs/yaml/ambassador/ambassador-crds.yaml apro/k8s-aes-src/00-aes-crds.yaml > k8s-aes/00-aes-crds.yaml
-k8s-aes/01-aes.yaml: k8s-aes-src/01-aes.yaml fix-yaml.py sync
+	@printf '  $(CYN)k8s-aes/01-aes.yaml$(END)\n'
 	docker exec $(shell $(BUILDER)) python apro/fix-yaml.py apro ambassador/docs/yaml/ambassador/ambassador-rbac.yaml apro/k8s-aes-src/01-aes.yaml > k8s-aes/01-aes.yaml
-
-update-yaml-locally: k8s-aes/00-aes-crds.yaml k8s-aes/01-aes.yaml
+	@printf "$(CYN)==> $(GRN)Checking whether those changes were no-op$(END)\n"
 	git diff k8s-aes
 	@if [ -n "$$(git diff k8s-aes)" ]; then \
 		printf "$(RED)Please inspect and commit the above changes; then re-run the $(BLU)$(MAKE) $(MAKECMDGOALS)$(RED) command$(END)\n"; \
 		exit 1; \
 	fi
-.PHONY: update-yaml
+.PHONY: update-yaml-locally
 
 update-yaml: update-yaml-locally
 	@if [ -z "$${AMBASSADOR_DOCS}" ]; then printf "$(RED)Please set AMBASSADOR_DOCS to point to your ambassador-docs.git checkout$(END)\n" >&2; exit 1; fi
