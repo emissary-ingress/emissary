@@ -140,6 +140,7 @@ func (a *aggregator) Work(p *supervisor.Process) error {
 			// processed
 			select {
 			case potentialKubernetesEvent := <-a.KubernetesEvents:
+				// here we do blocking read of the next event for caveat #2.
 				a.setKubernetesResources(potentialKubernetesEvent)
 				potentialKubernetesEventSignal = eventSignal{kubernetesEvent: potentialKubernetesEvent, skip: false}
 			case event := <-a.ConsulEvents:
