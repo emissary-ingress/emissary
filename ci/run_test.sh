@@ -18,6 +18,7 @@ do
 done
 
 printf "==Bootstrapping Helm installs==\n"
+
 ## Bootstrap Helm 2
 ## 
 kubectl apply -f helm-init.yaml
@@ -27,7 +28,7 @@ helm2 init --service-account=tiller --wait
 ## Bootstrap Ambassador release
 ##
 helm version
-helm install ambassador .. --wait -f ci-default-values.yaml
+helm install ambassador .. --wait -f ci-default-values.yaml 2>&1 > /dev/null
 
 kubectl apply -f tls.yaml
 
@@ -39,6 +40,7 @@ do
   sleep 5
 done
 
+
 success=1
 
 printf "==Begin: Testing Helm 3 releases==\n"
@@ -48,7 +50,7 @@ do
 
   ## Upgrade the Ambassador release with new values file
   ##
-  helm upgrade ambassador .. --wait -f values/$v_file 
+  helm upgrade ambassador .. --wait -f values/$v_file 2>&1 > /dev/null
   
   echo Release upgraded with $v_file
   
@@ -67,7 +69,7 @@ do
     success=0
   fi
 
-  pkill kubectl port-forward service/ambassador 8443:443
+  pkill "kubectl port-forward service/ambassador 8443:443"
 done
 
 printf "End: Testing Helm 3 releases==\n"
@@ -76,7 +78,7 @@ printf "End: Testing Helm 3 releases==\n"
 ##
 printf "Begin: Testing Helm 2 release==\n"
 
-helm2 install -n ambassador-helm2 .. -f helm2-values.yaml --wait 
+helm2 install -n ambassador-helm2 .. -f helm2-values.yaml --wait 2>&1 > /dev/null
 
 echo Release installed with Helm 2
 
@@ -101,9 +103,9 @@ rm -rf values
 
 kubectl delete -f backend.yaml
 
-pkill kubectl port-forward service/ambassador-helm2 9443:443
+pkill "kubectl port-forward service/ambassador-helm2 9443:443"
 
-helm uninstall ambassador
+helm uninstall ambassador > /dev/null
 helm2 del --purge ambassador-helm2
 
 while [[ $(kubectl get po -l app.kubernetes.io/instance=ambassador -o name) != '' ]];
