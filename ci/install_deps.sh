@@ -30,6 +30,11 @@ chmod +x ~/bin/helm2
 curl -L -o ~/bin/kubernaut http://releases.datawire.io/kubernaut/${KUBERNAUT_VERSION}/linux/amd64/kubernaut
 chmod +x ~/bin/kubernaut
 
+
+## Check all binarys exist in $PATH
+##
+echo $PATH
+ls -al ~/bin
 ## Get Kubernaut cluster
 ##
 base64 -d < ci/kconf.b64 | ( cd ~ ; tar xzf - )
