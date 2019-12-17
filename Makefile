@@ -74,22 +74,31 @@ deploy-aes-backend: images
 	cat k8s-aes-backend/*.yaml | AES_BACKEND_IMAGE=$(AES_BACKEND_IMAGE) envsubst | kubectl --kubeconfig="$(PROD_KUBECONFIG)" apply -f -
 .PHONY: deploy-aes-backend
 
-update-yaml: sync
+k8s-aes/00-aes-crds.yaml: k8s-aes-src/00-aes-crds.yaml fix-crds.py sync
+	docker exec $(shell $(BUILDER)) python apro/fix-crds.py ambassador/docs/yaml/ambassador/ambassador-crds.yaml apro/k8s-aes-src/00-aes-crds.yaml > k8s-aes/00-aes-crds.yaml
+k8s-aes/01-aes.yaml: k8s-aes-src/01-aes.yaml fix-yaml.py sync
+	docker exec $(shell $(BUILDER)) python apro/fix-yaml.py apro ambassador/docs/yaml/ambassador/ambassador-rbac.yaml apro/k8s-aes-src/01-aes.yaml > k8s-aes/01-aes.yaml
+
+update-yaml-locally: k8s-aes/00-aes-crds.yaml k8s-aes/01-aes.yaml
+	git diff k8s-aes
+	@if [ -n "$$(git diff k8s-aes)" ]; then \
+		printf "$(RED)Please inspect and commit the above changes; then re-run the $(BLU)$(MAKE) $(MAKECMDGOALS)$(RED) command$(END)\n"; \
+		exit 1; \
+	fi
+.PHONY: update-yaml
+
+update-yaml: update-yaml-locally
 	@if [ -z "$${EDGE_STACK_UPDATE}" ]; then printf "$(RED)Please set EDGE_STACK_UPDATE to point to your getambassador.io clone$(END)\n" >&2; exit 1; fi
 	git -C "$${EDGE_STACK_UPDATE}" checkout Edge-stack-update
 	git -C "$${EDGE_STACK_UPDATE}" pull
-	docker exec $(shell $(BUILDER)) python apro/fix-crds.py ambassador/docs/yaml/ambassador/ambassador-crds.yaml apro/k8s-aes-src/00-aes-crds.yaml > k8s-aes/00-aes-crds.yaml
 	cp k8s-aes/00-aes-crds.yaml $${EDGE_STACK_UPDATE}/content/yaml/aes-crds.yaml
-	docker exec $(shell $(BUILDER)) python apro/fix-yaml.py apro ambassador/docs/yaml/ambassador/ambassador-rbac.yaml apro/k8s-aes-src/01-aes.yaml > k8s-aes/01-aes.yaml
 	docker exec $(shell $(BUILDER)) python apro/fix-yaml.py edge_stack ambassador/docs/yaml/ambassador/ambassador-rbac.yaml apro/k8s-aes-src/01-aes.yaml > $${EDGE_STACK_UPDATE}/content/yaml/aes.yaml
 	sed -e 's/# NOT a generated file/# GENERATED FILE: DO NOT EDIT/' < k8s-aes-src/02-oss-migration.yaml > $${EDGE_STACK_UPDATE}/content/yaml/oss-migration.yaml
 	sed -e 's/# NOT a generated file/# GENERATED FILE: DO NOT EDIT/' < k8s-aes-src/03-resources-migration.yaml > $${EDGE_STACK_UPDATE}/content/yaml/resources-migration.yaml
 	git -C "$${EDGE_STACK_UPDATE}" diff
-	@if [ -n "$$(git -C $${EDGE_STACK_UPDATE} diff)" ]; then printf \
-		"$(RED)Please inspect and commit the above changes to ${EDGE_STACK_UPDATE}$(END)\n" && exit 1; fi
-	git diff k8s-aes
-	@if [ -n "$$(git diff k8s-aes)" ]; then \
-		printf "$(RED)Please inspect and commit the above changes.$(END)\n" && exit 1; \
+	@if [ -n "$$(git -C $${EDGE_STACK_UPDATE} diff)" ]; then \
+		printf "$(RED)Please inspect and commit the above changes to $(BLU)${EDGE_STACK_UPDATE}$(RED); then re-run the $(BLU)$(MAKE) $(MAKECMDGOALS)$(RED) command$(END)\n"; \
+		exit 1; \
 	fi
 .PHONY: update-yaml
 
