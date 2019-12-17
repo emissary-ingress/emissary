@@ -4,7 +4,6 @@ import pytest
 from typing import ClassVar, Dict, List, Sequence, Tuple, Union
 
 from kat.harness import sanitize, variants, Query, Runner
-from kat import manifests
 
 from abstract_tests import AmbassadorTest, HTTP
 from abstract_tests import assert_default_errors, MappingTest, OptionTest, ServiceType, Node, Test

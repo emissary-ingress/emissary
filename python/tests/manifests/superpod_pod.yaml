@@ -1,0 +1,25 @@
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: superpod
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      backend: superpod
+  template:
+    metadata:
+      labels:
+        backend: superpod
+    spec:
+      containers:
+      - name: backend
+        image: {environ[KAT_SERVER_DOCKER_IMAGE]}
+        # ports:
+        # (ports)
+        env:
+        - name: INCLUDE_EXTAUTH_HEADER
+          value: "yes"
+        # (envs)
