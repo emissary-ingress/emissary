@@ -18,7 +18,6 @@ import time
 import threading
 import traceback
 
-from .manifests import KAT_CLIENT_POD, BACKEND_SERVICE, SUPERPOD_POD, CRDS, KNATIVE_SERVING_CRDS
 from .utils import ShellCommand
 
 from yaml.scanner import ScannerError as YAMLScanError
@@ -40,6 +39,25 @@ except AttributeError:
 # Run mode can be local (don't do any Envoy stuff), envoy (only do Envoy stuff),
 # or all (allow both). Default is all.
 RUN_MODE = os.environ.get('KAT_RUN_MODE', 'all').lower()
+
+# Figure out if we're running in Edge Stack or what.
+EDGE_STACK = False
+GOLD_ROOT = "/buildroot/ambassador/python/tests/gold"
+MANIFEST_ROOT = "/buildroot/ambassador/python/tests/manifests"
+
+if os.path.exists("/buildroot/apro.version"):
+    # Hey look, we're running inside Edge Stack!
+    print("RUNNING IN EDGE STACK")
+    EDGE_STACK = True
+    GOLD_ROOT = "/buildroot/apro/tests/pytest/gold"
+    MANIFEST_ROOT = "/buildroot/apro/tests/pytest/manifests"
+    RUN_MODE = "envoy"
+else:
+    print("RUNNING IN OSS")
+
+
+def load_manifest(manifest_name: str) -> str:
+    return open(os.path.join(MANIFEST_ROOT, f"{manifest_name.lower()}.yaml"), "r").read()
 
 
 class TestImage:
@@ -294,6 +312,7 @@ class Node(ABC):
     def __init__(self, *args, **kwargs) -> None:
         # If self.skip is set to true, this node is skipped
         self.skip_node = False
+        self.xfail = None
 
         self.test_image = GLOBAL_TEST_IMAGE
 
@@ -383,7 +402,7 @@ class Node(ABC):
 
         return end_result
 
-    def check_local(self, k8s_yaml_path: str) -> Tuple[bool, bool]:
+    def check_local(self, gold_root: str, k8s_yaml_path: str) -> Tuple[bool, bool]:
         testname = self.format('{self.path.k8s}')
 
         if not self.is_ambassador:
@@ -402,7 +421,7 @@ class Node(ABC):
 
         # print(f"{testname}: ns {ambassador_namespace} ({'single' if ambassador_single_namespace else 'multi'})")
 
-        gold_path = os.path.join("/buildroot/ambassador/python/tests/gold", testname)
+        gold_path = os.path.join(gold_root, testname)
 
         if os.path.isdir(gold_path) and not no_local_mode:
             # print(f"==== {testname} running locally from {gold_path}")
@@ -418,6 +437,9 @@ class Node(ABC):
             if ambassador_single_namespace:
                 envstuff.append("AMBASSADOR_SINGLE_NAMESPACE=yes")
                 cmd += ["-n", ambassador_namespace]
+
+            if not getattr(self, 'allow_edge_stack_redirect', False):
+                envstuff.append("AMBASSADOR_NO_TLS_REDIRECT=yes")
 
             cmd = envstuff + cmd
 
@@ -1001,6 +1023,7 @@ class Superpod:
         return ports
 
     def get_manifest_list(self) -> List[Dict[str, Any]]:
+        SUPERPOD_POD = load_manifest("superpod_pod")
         manifest = load('superpod', SUPERPOD_POD.format(environ=os.environ), Tag.MAPPING)
 
         assert len(manifest) == 1, "SUPERPOD manifest must have exactly one object"
@@ -1049,17 +1072,20 @@ class Runner:
 
         @pytest.mark.parametrize("t", self.tests, ids=self.ids)
         def test(request, capsys, t):
-            selected = set(item.callspec.getparam('t') for item in request.session.items if item.function == test)
+            if t.xfail:
+                pytest.xfail(t.xfail)
+            else:
+                selected = set(item.callspec.getparam('t') for item in request.session.items if item.function == test)
 
-            with capsys.disabled():
-                self.setup(selected)
+                with capsys.disabled():
+                    self.setup(selected)
 
-            if not t.handle_local_result():
-                # XXX: should aggregate the result of url checks
-                for r in t.results:
-                    r.check()
+                if not t.handle_local_result():
+                    # XXX: should aggregate the result of url checks
+                    for r in t.results:
+                        r.check()
 
-                t.check()
+                    t.check()
 
         self.__func__ = test
         self.__test__ = True
@@ -1076,13 +1102,15 @@ class Runner:
 
             for s in selected:
                 for n in s.ancestors:
-                    expanded_up.add(n)
+                    if not n.xfail:
+                        expanded_up.add(n)
 
             expanded = set(expanded_up)
 
             for s in selected:
                 for n in s.traversal:
-                    expanded.add(n)
+                    if not n.xfail:
+                        expanded.add(n)
 
             try:
                 self._setup_k8s(expanded)
@@ -1113,7 +1141,7 @@ class Runner:
         manifests = OrderedDict()  # type: ignore
         superpods: Dict[str, Superpod] = {}
 
-        for n in (n for n in self.nodes if n in selected):
+        for n in (n for n in self.nodes if n in selected and not n.xfail):
             manifest = None
             nsp = None
             ambassador_id = None
@@ -1151,6 +1179,7 @@ class Runner:
                 # print(f'superpodifying {n.name}')
 
                 # Next up: use the BACKEND_SERVICE manifest as a template...
+                BACKEND_SERVICE = load_manifest("backend_service")
                 yaml = n.format(BACKEND_SERVICE)
                 manifest = load(n.path, yaml, Tag.MAPPING)
 
@@ -1222,7 +1251,7 @@ class Runner:
         self.names_to_ignore = {}
 
         for n in (n for n in self.nodes if n in selected):
-            local_possible, local_checked = n.check_local(fname)
+            local_possible, local_checked = n.check_local(GOLD_ROOT, fname)
 
             if local_possible:
                 if local_checked:
@@ -1237,7 +1266,7 @@ class Runner:
         manifests = self.get_manifests(selected)
 
         configs = OrderedDict()
-        for n in (n for n in self.nodes if n in selected):
+        for n in (n for n in self.nodes if n in selected and not n.xfail):
             configs[n] = []
             for cfg in n.config():
                 if isinstance(cfg, str):
@@ -1372,8 +1401,11 @@ class Runner:
         manifest_changed, manifest_reason = has_changed(yaml, fname)
 
         # First up: CRDs.
+        CRDS = load_manifest("crds")
         final_crds = CRDS
+
         if is_knative():
+            KNATIVE_SERVING_CRDS = load_manifest("knative_serving_crds")
             final_crds += KNATIVE_SERVING_CRDS
 
         changed, reason = has_changed(final_crds, "/tmp/k8s-CRDs.yaml")
@@ -1396,6 +1428,7 @@ class Runner:
             print(f'CRDS unchanged {reason}, skipping apply.')
 
         # Next up: the KAT pod.
+        KAT_CLIENT_POD = load_manifest("kat_client_pod")
         changed, reason = has_changed(KAT_CLIENT_POD.format(environ=os.environ), "/tmp/k8s-kat-pod.yaml")
 
         if changed:
@@ -1437,7 +1470,7 @@ class Runner:
             self.applied_manifests = True
 
         for n in self.nodes:
-            if n in selected:
+            if n in selected and not n.xfail:
                 action = getattr(n, "post_manifest", None)
                 if action:
                     action()
@@ -1460,6 +1493,9 @@ class Runner:
         requirements = []
 
         for node in selected:
+            if node.xfail:
+                continue
+
             node_name = node.format("{self.path.k8s}")
             ambassador_id = getattr(node, 'ambassador_id', None)
 

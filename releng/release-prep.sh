@@ -41,7 +41,24 @@ echo
 git log --pretty=oneline --abbrev-commit ${CURRENT_VERSION}^..
 echo
 echo "^ these changes have been made since the last release, pick the right version number accordingly"
-read -p "Enter new version: " DESIRED_VERSION
+
+while true; do
+	read -p "Enter new version: " DESIRED_VERSION
+
+	if [[ "$DESIRED_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+-rc[0-9]+$ ]]; then
+	    # RC: good.
+	    break
+	elif [[ "$DESIRED_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+-ea[0-9]+$ ]]; then
+	    # EA: good.
+	    break
+	else
+	    echo "'$DESIRED_VERSION' is not in one of the recognized tag formats:" >&2
+	    echo " - 'SEMVER-rcN'" >&2
+	    echo " - 'SEMVER-eaN'" >&2
+	    echo "Note that the tag name must not start with 'v'" >&2
+	fi
+done
+
 echo "Desired version: ${DESIRED_VERSION}"
 press_enter
 echo
