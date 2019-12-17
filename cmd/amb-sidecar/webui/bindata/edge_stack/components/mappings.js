@@ -77,7 +77,7 @@ class Mapping extends SingleResource {
 
     return html`
 <div class="row line">
-  <div class="row-col margin-right justify-right">prefix url:</div>
+  <label class="row-col margin-right justify-right">prefix url:</label>
   <div class="row-col">
     <span class="${this.visible("list")}">${this.resource.spec.prefix}</span>
     <input class="${this.visible("edit", "add")}" type="text" name="prefix"  value="${this.resource.spec.prefix}"/>
@@ -157,8 +157,7 @@ export class Mappings extends SortableResourceSet {
   </div>
   <div class="col">
     <h1>Mappings</h1>
-    <p>Associations between prefix URLs
-    and target services.</p>
+    <p>Associations between prefix URLs and target services.</p>
   </div>
   <div class="col2">
     <a class="cta add ${this.readOnly() ? "off" : ""}" @click=${()=>this.shadowRoot.getElementById("add-mapping").onAdd()}>
