@@ -1,5 +1,5 @@
 #!/bin/bash
-HELM_VERSION=3.0.1
+HELM_VERSION=3.0.2
 HELM2_VERSION=2.16.1
 KUBECTL_VERSION=1.15.3
 KUBERNAUT_VERSION=2018.10.24-d46c1f1
@@ -17,7 +17,7 @@ chmod +x ~/bin/kubectl
 
 ## Install Helm 3
 ##
-curl -L https://storage.googleapis.com/kubernetes-helm/helm-v${HELM_VERSION}-linux-amd64.tar.gz | tar -x -z -O linux-amd64/helm > ~/bin/helm
+curl -L https://get.helm.sh/helm-v${HELM_VERSION}-linux-amd64.tar.gz | tar -x -z -O linux-amd64/helm > ~/bin/helm
 chmod +x ~/bin/helm
 
 ## Install Helm 2
