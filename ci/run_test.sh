@@ -69,7 +69,7 @@ do
     success=0
   fi
 
-  pkill "kubectl port-forward service/ambassador 8443:443"
+  pkill "kubectl"
 done
 
 printf "End: Testing Helm 3 releases==\n"
@@ -103,7 +103,7 @@ rm -rf values
 
 kubectl delete -f backend.yaml
 
-pkill "kubectl port-forward service/ambassador-helm2 9443:443"
+pkill "kubectl"
 
 helm uninstall ambassador > /dev/null
 helm2 del --purge ambassador-helm2
