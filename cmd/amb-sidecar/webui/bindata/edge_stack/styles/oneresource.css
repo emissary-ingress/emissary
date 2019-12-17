@@ -114,7 +114,11 @@
 	flex-direction: row
 }
 
-.off {
+.col2 a.off {
+	display: none;
+}
+
+div.off, span.off, input.off, b.off {
 	display: none;
 }
 
