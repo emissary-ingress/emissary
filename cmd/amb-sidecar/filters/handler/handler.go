@@ -14,9 +14,10 @@ import (
 	"github.com/pkg/errors"
 
 	crd "github.com/datawire/apro/apis/getambassador.io/v1beta2"
+	"github.com/datawire/apro/cmd/amb-sidecar/acmeclient"
+	"github.com/datawire/apro/cmd/amb-sidecar/devportal/devportalfilter"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/controller"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/externalhandler"
-	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/internalhandler"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/jwthandler"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/middleware"
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/oauth2handler"
@@ -169,7 +170,7 @@ func (c *FilterMux) filter(ctx context.Context, request *filterapi.FilterRequest
 		return nil, err
 	}
 
-	rule := ruleForURL(c.Controller, originalURL)
+	rule := c.ruleForURL(originalURL)
 	if rule == nil {
 		logger.Info("using default rule")
 		rule = c.DefaultRule
@@ -231,19 +232,57 @@ func (c *FilterMux) runFilterRefs(filters []crd.FilterReference, ctx context.Con
 func (c *FilterMux) runFilterRef(filterRef crd.FilterReference, ctx context.Context, request *filterapi.FilterRequest) (filterapi.FilterResponse, error) {
 	filterQName := filterRef.Name + "." + filterRef.Namespace
 
+	var filterImpl filterapi.Filter
+	if filterRef.Impl != nil {
+		filterImpl = filterRef.Impl
+	} else {
+		filter := findFilter(c.Controller, filterQName)
+		if filter == nil {
+			return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
+				errors.Errorf("could not find not filter: %q", filterQName), nil), nil
+		}
+		if filter.Status.State != crd.FilterState_OK {
+			return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
+				errors.Errorf("error in filter %q configuration: %s", filterQName, filter.Status.Reason), nil), nil
+		}
+		var errResponse filterapi.FilterResponse
+		filterImpl, errResponse = c.getFilterImpl(filter, filterRef.Name, filterRef.Namespace, filterRef.Arguments, ctx)
+		if errResponse != nil {
+			return errResponse, nil
+		}
+	}
+
+	return filterImpl.Filter(dlog.WithLogger(ctx, dlog.GetLogger(ctx).WithField("FILTER", filterQName)), request)
+}
+
+func (c *FilterMux) runJWTFilterRef(filterRef crd.JWTFilterReference, ctx context.Context, request *filterapi.FilterRequest) (filterapi.FilterResponse, error) {
+	// This is *almost* a copy of c.runFilterRef, but
+	//  1. clarifies that this is a JWT-sub-filter in log/error messages, and
+	//  2. validates that it's a JWT filter, and not a filter of another type.
+	filterQName := filterRef.Name + "." + filterRef.Namespace
+
 	filter := findFilter(c.Controller, filterQName)
 	if filter == nil {
 		return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
-			errors.Errorf("could not find not filter: %q", filterQName), nil), nil
+			errors.Errorf("could not find not JWT filter: %q", filterQName), nil), nil
+	}
+	if _, isJWT := filter.UnwrappedSpec.(crd.FilterJWT); !isJWT {
+		return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
+			errors.Errorf("filter %q is not a JWT filter", filterQName), nil), nil
 	}
 	if filter.Status.State != crd.FilterState_OK {
 		return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
-			errors.Errorf("error in filter %q configuration: %s", filterQName, filter.Status.Reason), nil), nil
+			errors.Errorf("error in JWT filter %q configuration: %s", filterQName, filter.Status.Reason), nil), nil
 	}
-	return c.runFilter(filter, filterRef.Arguments, filterRef.Name, filterRef.Namespace, ctx, request)
+	filterImpl, errResponse := c.getFilterImpl(filter, filterRef.Name, filterRef.Namespace, filterRef.Arguments, ctx)
+	if errResponse != nil {
+		return errResponse, nil
+	}
+
+	return filterImpl.Filter(dlog.WithLogger(ctx, dlog.GetLogger(ctx).WithField("JWTFILTER", filterQName)), request)
 }
 
-func (c *FilterMux) runFilter(filter *crd.Filter, filterArguments interface{}, filterName, filterNamespace string, ctx context.Context, request *filterapi.FilterRequest) (filterapi.FilterResponse, error) {
+func (c *FilterMux) getFilterImpl(filter *crd.Filter, filterName, filterNamespace string, filterArguments interface{}, ctx context.Context) (filterapi.Filter, filterapi.FilterResponse) {
 	filterQName := filterName + "." + filterNamespace
 	var filterImpl filterapi.Filter
 	switch filterSpec := filter.UnwrappedSpec.(type) {
@@ -251,48 +290,27 @@ func (c *FilterMux) runFilter(filter *crd.Filter, filterArguments interface{}, f
 		err := c.AuthRateLimiter.IncrementUsage()
 		if err != nil {
 			if err == limiter.ErrRateLimiterNoRedis {
-				return middleware.NewErrorResponse(ctx, http.StatusInternalServerError, err, nil), nil
+				return nil, middleware.NewErrorResponse(ctx, http.StatusInternalServerError, err, nil)
 			}
-			return middleware.NewErrorResponse(ctx, http.StatusTooManyRequests, err, nil), nil
+			return nil, middleware.NewErrorResponse(ctx, http.StatusTooManyRequests, err, nil)
 		}
 
 		_filterImpl := &oauth2handler.OAuth2Filter{
-			PrivateKey: c.PrivateKey,
-			PublicKey:  c.PublicKey,
-			RedisPool:  c.RedisPool,
-			QName:      filterQName,
-			Spec:       filterSpec,
-			RunFilters: c.runFilterRefs,
-			RunJWTFilter: func(filterRef crd.JWTFilterReference, ctx context.Context, request *filterapi.FilterRequest) (filterapi.FilterResponse, error) {
-				// This is *almost* a copy of c.runFilterRef, but
-				//  1. clarifies that this is a JWT-sub-filter in log/error messages, and
-				//  2. validates that it's a JWT filter, and not a filter of another type.
-				filterQName := filterRef.Name + "." + filterRef.Namespace
-				ctx = dlog.WithLogger(ctx, dlog.GetLogger(ctx).WithField("JWTFILTER", filterQName))
-
-				filter := findFilter(c.Controller, filterQName)
-				if filter == nil {
-					return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
-						errors.Errorf("could not find not JWT filter: %q", filterQName), nil), nil
-				}
-				if _, isJWT := filter.UnwrappedSpec.(crd.FilterJWT); !isJWT {
-					return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
-						errors.Errorf("filter %q is not a JWT filter", filterQName), nil), nil
-				}
-				if filter.Status.State != crd.FilterState_OK {
-					return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
-						errors.Errorf("error in JWT filter %q configuration: %s", filterQName, filter.Status.Reason), nil), nil
-				}
-				return c.runFilter(filter, filterRef.Arguments, filterRef.Name, filterRef.Namespace, ctx, request)
-			},
+			PrivateKey:   c.PrivateKey,
+			PublicKey:    c.PublicKey,
+			RedisPool:    c.RedisPool,
+			QName:        filterQName,
+			Spec:         filterSpec,
+			RunFilters:   c.runFilterRefs,
+			RunJWTFilter: c.runJWTFilterRef,
 		}
 		if err := mapstructure.Convert(filterArguments, &_filterImpl.Arguments); err != nil {
-			return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
-				errors.Wrap(err, "invalid filter.argument"), nil), nil
+			return nil, middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
+				errors.Wrap(err, "invalid filter.argument"), nil)
 		}
 		if err := _filterImpl.Arguments.Validate(filterNamespace); err != nil {
-			return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
-				errors.Wrap(err, "invalid filter.argument"), nil), nil
+			return nil, middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
+				errors.Wrap(err, "invalid filter.argument"), nil)
 		}
 		filterImpl = _filterImpl
 	case crd.FilterPlugin:
@@ -301,33 +319,45 @@ func (c *FilterMux) runFilter(filter *crd.Filter, filterArguments interface{}, f
 		err := c.AuthRateLimiter.IncrementUsage()
 		if err != nil {
 			if err == limiter.ErrRateLimiterNoRedis {
-				return middleware.NewErrorResponse(ctx, http.StatusInternalServerError, err, nil), nil
+				return nil, middleware.NewErrorResponse(ctx, http.StatusInternalServerError, err, nil)
 			}
-			return middleware.NewErrorResponse(ctx, http.StatusTooManyRequests, err, nil), nil
+			return nil, middleware.NewErrorResponse(ctx, http.StatusTooManyRequests, err, nil)
 		}
 
 		_filterImpl := &jwthandler.JWTFilter{
 			Spec: filterSpec,
 		}
 		if err := mapstructure.Convert(filterArguments, &_filterImpl.Arguments); err != nil {
-			return middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
-				errors.Wrap(err, "invalid filter.argument"), nil), nil
+			return nil, middleware.NewErrorResponse(ctx, http.StatusInternalServerError,
+				errors.Wrap(err, "invalid filter.argument"), nil)
 		}
 		filterImpl = _filterImpl
 	case crd.FilterExternal:
 		filterImpl = &externalhandler.ExternalFilter{
 			Spec: filterSpec,
 		}
-	case crd.FilterInternal:
-		filterImpl = internalhandler.MakeInternalFilter()
 	default:
 		panic(errors.Errorf("unexpected filter type %T", filterSpec))
 	}
 
-	return filterImpl.Filter(dlog.WithLogger(ctx, dlog.GetLogger(ctx).WithField("FILTER", filterQName)), request)
+	return filterImpl, nil
 }
 
-func ruleForURL(c *controller.Controller, u *url.URL) *crd.Rule {
+func syntheticRule(filterImpl filterapi.Filter) *crd.Rule {
+	ret := &crd.Rule{
+		Filters: []crd.FilterReference{
+			{Impl: filterImpl},
+		},
+	}
+	if err := ret.Validate(""); err != nil {
+		// This should never happen; the Rule we created above
+		// should be valid.
+		panic(err)
+	}
+	return ret
+}
+
+func (c *FilterMux) ruleForURL(u *url.URL) *crd.Rule {
 	switch u.Path {
 	case "/.ambassador/oauth2/logout":
 		return nil
@@ -342,9 +372,19 @@ func ruleForURL(c *controller.Controller, u *url.URL) *crd.Rule {
 				}
 			}
 		}
-		return findRule(c, u.Host, u.Path)
+		return findRule(c.Controller, u.Host, u.Path)
 	default:
-		return findRule(c, u.Host, u.Path)
+		switch {
+		case strings.HasPrefix(u.Path, "/.well-known/acme-challenge/"):
+			if c.RedisPool == nil {
+				return nil
+			}
+			return syntheticRule(acmeclient.NewChallengeHandler(c.RedisPool))
+		case strings.Contains(u.Path, "/.ambassador-internal/"):
+			return syntheticRule(devportalfilter.MakeDevPortalFilter())
+		default:
+			return findRule(c.Controller, u.Host, u.Path)
+		}
 	}
 }
 

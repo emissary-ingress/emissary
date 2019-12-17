@@ -4,6 +4,7 @@
 package acmeclient
 
 import (
+	"context"
 	"net/http"
 	"strings"
 
@@ -11,37 +12,50 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/datawire/apro/cmd/amb-sidecar/filters/handler/middleware"
+	"github.com/datawire/apro/lib/filterapi"
 )
 
-func NewChallengeHandler(redisPool *pool.Pool) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// sanity check
-		if !strings.HasPrefix(r.URL.Path, "/.well-known/acme-challenge/") {
-			panic("a programmer installed the ACME challenge handler wrong")
-		}
+type challengeHandler struct {
+	redisPool *pool.Pool
+}
 
-		redisClient, err := redisPool.Get()
-		if err != nil {
-			middleware.ServeErrorResponse(w, r.Context(), http.StatusBadGateway, err, nil)
-			return
-		}
-		defer redisPool.Put(redisClient)
+func (h *challengeHandler) Filter(ctx context.Context, request *filterapi.FilterRequest) (filterapi.FilterResponse, error) {
+	// sanity check
+	urlPath := request.GetRequest().GetHttp().GetPath()
+	if !strings.HasPrefix(urlPath, "/.well-known/acme-challenge/") {
+		panic("a programmer installed the ACME challenge handler wrong")
+	}
 
-		challengeToken := strings.TrimPrefix(r.URL.Path, "/.well-known/acme-challenge/")
-		challengeResponse, err := redisClient.Cmd("GET", "acme-challenge:"+challengeToken).Bytes()
-		if err != nil {
-			http.NotFound(w, r)
-			return
-		}
+	redisClient, err := h.redisPool.Get()
+	if err != nil {
+		return middleware.NewErrorResponse(ctx, http.StatusBadGateway, err, nil), nil
+	}
+	defer h.redisPool.Put(redisClient)
 
-		if r.Method != "GET" {
-			middleware.ServeErrorResponse(w, r.Context(), http.StatusMethodNotAllowed,
-				errors.New("method not allowed"), nil)
-			return
-		}
+	challengeToken := strings.TrimPrefix(urlPath, "/.well-known/acme-challenge/")
+	challengeResponse, err := redisClient.Cmd("GET", "acme-challenge:"+challengeToken).Str()
+	if err != nil {
+		// Fall through to a mapping -- probably 404, but
+		// could be a user-provided ACME client.
+		return &filterapi.HTTPRequestModification{}, nil
+	}
 
-		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-		w.Write(challengeResponse)
-		r.Close = true
-	})
+	if request.GetRequest().GetHttp().GetMethod() != http.MethodGet {
+		return middleware.NewErrorResponse(ctx, http.StatusMethodNotAllowed,
+			errors.New("method not allowed"), nil), nil
+	}
+
+	return &filterapi.HTTPResponse{
+		StatusCode: http.StatusOK,
+		Header: http.Header{
+			"Content-Type": {"text/plain; charset=utf-8"},
+		},
+		Body: challengeResponse,
+	}, nil
+}
+
+func NewChallengeHandler(redisPool *pool.Pool) filterapi.Filter {
+	return &challengeHandler{
+		redisPool: redisPool,
+	}
 }
