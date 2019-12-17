@@ -5,6 +5,8 @@ import (
 	"github.com/pkg/errors"
 
 	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	"github.com/datawire/apro/lib/filterapi"
 )
 
 type FilterPolicy struct {
@@ -55,6 +57,11 @@ type FilterReference struct {
 	OnAllow         string              `json:"onAllow"`
 	IfRequestHeader HeaderFieldSelector `json:"ifRequestHeader"`
 	Arguments       interface{}         `json:"arguments"`
+
+	// This is a bypass so that we can have internal rules that
+	// have an already-hydrated Filter, instead of having to try
+	// to figure out how to reference an internal-only Filter.
+	Impl filterapi.Filter `json:"-"`
 }
 
 //////////////////////////////////////////////////////////////////////
