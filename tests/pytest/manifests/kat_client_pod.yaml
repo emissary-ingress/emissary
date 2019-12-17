@@ -1,0 +1,12 @@
+
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: kat
+  labels:
+    backend: kat
+spec:
+  containers:
+  - name: backend
+    image: {environ[KAT_CLIENT_DOCKER_IMAGE]}
