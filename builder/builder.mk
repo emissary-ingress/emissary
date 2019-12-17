@@ -223,7 +223,18 @@ endef
 COMMA = ,
 
 define HELP
+$(_help.intro)
 
+$(BLD)Targets:$(END)
+
+$(_help.targets)
+
+$(BLD)Codebases:$(END)
+  $(foreach MODULE,$(MODULES),\n  $(BLD)$(SOURCE_$(MODULE)) ==> $(BLU)$(MODULE)$(END))
+
+endef
+
+define _help.intro
 This Makefile builds Ambassador using a standard build environment inside
 a Docker container. The $(BLD)$(REPO)$(END), $(BLD)kat-server$(END), and $(BLD)kat-client$(END) images are
 created from this container after the build stage is finished.
@@ -244,9 +255,9 @@ Python code only gets set up once, so if you change $(BLD)requirements.txt$(END)
 $(BLD)setup.py$(END), then you will need to do a clean build to see the effects.
 Assuming you didn't $(BLD)make clobber$(END), this shouldn't take long due to the
 cache in the Docker volume.
+endef
 
-$(BLD)Targets:$(END)
-
+define _help.targets
   $(BLD)make $(BLU)help$(END)      -- displays this message.
 
   $(BLD)make $(BLU)env$(END)       -- display the value of important env vars.
@@ -295,8 +306,4 @@ $(BLD)Targets:$(END)
   $(BLD)make $(BLU)clean$(END)     -- kills the build container.
 
   $(BLD)make $(BLU)clobber$(END)   -- kills the build container and the cache volume.
-
-$(BLD)Codebases:$(END)
-  $(foreach MODULE,$(MODULES),\n  $(BLD)$(SOURCE_$(MODULE)) ==> $(BLU)$(MODULE)$(END))
-
 endef
