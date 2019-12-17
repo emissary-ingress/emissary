@@ -1,8 +1,8 @@
-# AES pages should be represented in a yaml array with the pathnames as the value
+# API Gateway pages should be represented in a yaml array with the pathnames as the value
 # Ex:
 # - /docs
 # - /reference
-# 
+#
 - /docs/dev-guide/canary-release-concepts
 - /docs/dev-guide/test-in-prod
 - /docs/guides/
@@ -55,6 +55,7 @@
 - /user-guide/gitops-ambassador
 - /user-guide/grpc
 - /user-guide/helm
+- /user-guide/install-ambassador-oss
 - /user-guide/knative
 - /user-guide/linkerd2
 - /user-guide/monitoring
@@ -68,26 +69,3 @@
 - /user-guide/tracing-tutorial-zipkin
 - /user-guide/websockets-ambassador
 - /user-guide/with-istio
-- /about/edge-policy-console
-- /about/quickstart
-- /about/support
-- /docs/guides/filter-dev-guide
-- /reference/dev-portal/
-- /reference/filter-reference
-- /reference/host-crd
-- /reference/idp-support/auth0
-- /reference/idp-support/azure
-- /reference/idp-support/google
-- /reference/idp-support/keycloak
-- /reference/idp-support/okta
-- /reference/idp-support/onelogin
-- /reference/idp-support/salesforce
-- /reference/idp-support/uaa
-- /reference/pro/authentication
-- /reference/pro/environment
-- /reference/services/access-control
-- /user-guide/advanced-rate-limiting
-- /user-guide/certified-builds
-- /user-guide/install
-- /user-guide/oauth-oidc-auth
-- /user-guide/upgrade-to-edge-stack
