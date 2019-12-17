@@ -123,6 +123,7 @@ final-push: preflight-docs
 	@if [ "$$(git -C $${AMBASSADOR_DOCS} push --dry-run 2>&1)" != "Everything up-to-date" ]; then \
 		printf "$(RED)Please run: git -C $${AMBASSADOR_DOCS} push$(END)\n"; \
 	fi	
+.PHONY: final-push
 
 tag-rc:
 	@if [ -z "$$(git describe --exact-match HEAD)" ]; then \
@@ -132,11 +133,13 @@ tag-rc:
 		git tag -a $$(cat /tmp/rc.tag) ; \
 		git push --tags ; \
 	fi
+.PHONY: tag-rc
 
 aes-rc: update-yaml
 	@$(MAKE) --no-print-directory tag-rc
 	@$(MAKE) --no-print-directory final-push
 	@printf "Please check your release here: https://circleci.com/gh/datawire/apro\n"
+.PHONY: aes-rc
 
 aes-rc-now: update-yaml
 	@if [ -n "$$(git status --porcelain)" ]; then \
@@ -145,3 +148,30 @@ aes-rc-now: update-yaml
 	@$(MAKE) --no-print-directory tag-rc
 	@$(MAKE) --no-print-directory rc RELEASE_REGISTRY=quay.io/datawire-dev
 	@$(MAKE) --no-print-directory final-push
+.PHONY: aes-rc-now
+
+define _help.aes-targets
+  $(BLD)make $(BLU)lint$(END)                -- runs golangci-lint.
+
+  $(BLD)make $(BLU)format$(END)              -- runs golangci-lint with --fix.
+
+  $(BLD)make $(BLU)deploy$(END)              -- deploys AES to $(BLD)\$$DEV_REGISTRY$(END) and $(BLD)\$$DEV_KUBECONFIG$(END). ($(DEV_REGISTRY) and $(DEV_KUBECONFIG))
+
+  $(BLD)make $(BLU)deploy-aes-backend$(END)  -- ???
+
+  $(BLD)make $(BLU)update-yaml-locally$(END) -- updates the YAML in $(BLD)k8s-aes/$(END).
+
+    The YAML in $(BLD)k8s-aes/$(END) is generated from $(BLD)k8s-aes-src/$(END) and
+    from $(BLD)\$$OSS_HOME/docs/yaml/ambassador/ambassador-rbac.yaml$(END).
+
+  $(BLD)make $(BLU)update-yaml$(END)         -- updates the YAML in $(BLD)k8s-aes/$(END) and in $(BLD)\$$AMBASSADOR_DOCS/yaml/$(END). ($(AMBASSADOR_DOCS)/yaml/)
+
+  $(BLD)make $(BLU)final-push$(END)          -- ???
+
+  $(BLD)make $(BLU)tag-rc$(END)              -- ???
+
+  $(BLD)make $(BLU)aes-rc$(END)              -- ???
+
+  $(BLD)make $(BLU)aes-rc-now$(END)          -- ???
+endef
+_help.targets += $(NL)$(NL)$(_help.aes-targets)
