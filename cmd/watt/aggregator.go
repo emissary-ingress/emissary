@@ -60,6 +60,48 @@ func NewAggregator(snapshots chan<- string, k8sWatches chan<- []KubernetesWatchS
 }
 
 func (a *aggregator) Work(p *supervisor.Process) error {
+	// In order to invoke `maybeNotify`, which is a very time consuming
+	// operation, we coalesce events:
+	//
+	// 1. Be continuously reading all available events from
+	//    a.KubernetesEvents and a.ConsulEvents and store k8sEvents
+	//    in the potentialKubernetesEventSignal variable. This means
+	//    at any given point (modulo caveats below), the
+	//    potentialKubernetesEventSignal variable will have the
+	//    latest Kubernetes event available.
+	//
+	// 2. At the same time, whenever there is capacity to write
+	//    down the kubernetesEventProcessor channel, we send
+	//    potentialKubernetesEventSignal to be processed.
+	//
+	//    The anonymous goroutine below will be constantly reading
+	//    from the kubernetesEventProcessor channel and performing
+	//    a blocking a.maybeNotify(). This means that we can only
+	//    *write* to the kubernetesEventProcessor channel when we are
+	//    not currently processing an event, but when that happens, we
+	//    will still read from a.KubernetesEvents and a.ConsulEvents
+	//    and update potentialKubernetesEventSignal.
+	//
+	// There are three caveats to the above:
+	//
+	// 1. At startup, we don't yet have a event to write, but
+	//    we're not processing anything, so we will try to write
+	//    something down the kubernetesEventProcessor channel.
+	//    To cope with this, the invoking goroutine will ignore events
+	//    signals that have a event.skip flag.
+	//
+	// 2. If we process an event quickly, or if there aren't new
+	//    events available, then we end up busy looping and
+	//    sending the same potentialKubernetesEventSignal value down
+	//    the kubernetesEventProcessor channel multiple times. To cope
+	//    with this, whenever we have successfully written to the
+	//    kubernetesEventProcessor channel, we do a *blocking* read of
+	//    the next event from a.KubernetesEvents and a.ConsulEvents.
+	//
+	// 3. Always be calling a.setKubernetesResources as soon as we
+	//    receive an event. This is a fast non-blocking call that
+	//    update watches, we can't coalesce this call.
+
 	p.Ready()
 
 	type eventSignal struct {
@@ -71,6 +113,8 @@ func (a *aggregator) Work(p *supervisor.Process) error {
 	go func() {
 		for event := range kubernetesEventProcessor {
 			if event.skip {
+				// ignore the initial eventSignal to deal with the
+				// corner case where we haven't yet received an event yet.
 				continue
 			}
 			a.maybeNotify(p)
@@ -81,10 +125,19 @@ func (a *aggregator) Work(p *supervisor.Process) error {
 	for {
 		select {
 		case potentialKubernetesEvent := <-a.KubernetesEvents:
+			// if a new KubernetesEvents is available to be read,
+			// and we can't write to the kubernetesEventProcessor channel,
+			// then we will overwrite potentialKubernetesEvent
+			// with a newer event while still processing a.setKubernetesResources
 			a.setKubernetesResources(potentialKubernetesEvent)
 			potentialKubernetesEventSignal = eventSignal{kubernetesEvent: potentialKubernetesEvent, skip: false}
 		case kubernetesEventProcessor <- potentialKubernetesEventSignal:
-			// Keep dispatching events to other channels while kubernetesEventProcessor is busy.
+			// if we aren't currently blocked in
+			// a.maybeNotify() then the above goroutine will be
+			// reading from the kubernetesEventProcessor channel and we
+			// will send the current potentialKubernetesEventSignal
+			// value over the kubernetesEventProcessor channel to be
+			// processed
 			select {
 			case potentialKubernetesEvent := <-a.KubernetesEvents:
 				a.setKubernetesResources(potentialKubernetesEvent)
@@ -96,6 +149,8 @@ func (a *aggregator) Work(p *supervisor.Process) error {
 				return nil
 			}
 		case event := <-a.ConsulEvents:
+			// we are always reading and processing ConsulEvents directly,
+			// not coalescing them.
 			a.updateConsulResources(event)
 			a.maybeNotify(p)
 		case <-p.Shutdown():
