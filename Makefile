@@ -88,9 +88,12 @@ update-yaml-locally: sync
 	fi
 .PHONY: update-yaml-locally
 
-update-yaml: update-yaml-locally
+preflight-docs:
 	@if [ -z "$${AMBASSADOR_DOCS}" ]; then printf "$(RED)Please set AMBASSADOR_DOCS to point to your ambassador-docs.git checkout$(END)\n" >&2; exit 1; fi
 	@if ! [ -f "$${AMBASSADOR_DOCS}/versions.yml" ]; then printf "$(RED)AMBASSADOR_DOCS=$${AMBASSADOR_DOCS} does not look like an ambassador-docs.git checkout$(END)\n" >&2; exit 1; fi
+.PHONY: preflight-docs
+
+update-yaml: update-yaml-locally preflight-docs
 	git -C "$${AMBASSADOR_DOCS}" fetch --all --prune --tags
 	@printf "$(GRN)In another terminal, verify that your AMBASSADOR_DOCS ($(AMBASSADOR_DOCS)) checkout is up-to-date with the desired branch (probably $(BLU)early-access$(GRN))$(END)\n"
 	@read -s -p "$$(printf '$(GRN)Press $(BLU)enter$(GRN) once you have verified this$(END)')"
@@ -113,7 +116,7 @@ update-yaml: update-yaml-locally
 .PHONY: update-yaml
 
 
-final-push:
+final-push: preflight-docs
 	@if [ "$$(git push --tags --dry-run 2>&1)" != "Everything up-to-date" ]; then \
 		printf "$(RED)Please run: git push --tags$(END)\n"; \
 	fi	
