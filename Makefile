@@ -74,42 +74,57 @@ deploy-aes-backend: images
 	cat k8s-aes-backend/*.yaml | AES_BACKEND_IMAGE=$(AES_BACKEND_IMAGE) envsubst | kubectl --kubeconfig="$(PROD_KUBECONFIG)" apply -f -
 .PHONY: deploy-aes-backend
 
-k8s-aes/00-aes-crds.yaml: k8s-aes-src/00-aes-crds.yaml fix-crds.py sync
+update-yaml-locally: sync
+	@printf "$(CYN)==> $(GRN)Updating development YAML$(END)\n"
+	@printf '  $(CYN)k8s-aes/00-aes-crds.yaml$(END)\n'
 	docker exec $(shell $(BUILDER)) python apro/fix-crds.py ambassador/docs/yaml/ambassador/ambassador-crds.yaml apro/k8s-aes-src/00-aes-crds.yaml > k8s-aes/00-aes-crds.yaml
-k8s-aes/01-aes.yaml: k8s-aes-src/01-aes.yaml fix-yaml.py sync
+	@printf '  $(CYN)k8s-aes/01-aes.yaml$(END)\n'
 	docker exec $(shell $(BUILDER)) python apro/fix-yaml.py apro ambassador/docs/yaml/ambassador/ambassador-rbac.yaml apro/k8s-aes-src/01-aes.yaml > k8s-aes/01-aes.yaml
-
-update-yaml-locally: k8s-aes/00-aes-crds.yaml k8s-aes/01-aes.yaml
+	@printf "$(CYN)==> $(GRN)Checking whether those changes were no-op$(END)\n"
 	git diff k8s-aes
 	@if [ -n "$$(git diff k8s-aes)" ]; then \
 		printf "$(RED)Please inspect and commit the above changes; then re-run the $(BLU)$(MAKE) $(MAKECMDGOALS)$(RED) command$(END)\n"; \
 		exit 1; \
 	fi
-.PHONY: update-yaml
+.PHONY: update-yaml-locally
 
-update-yaml: update-yaml-locally
-	@if [ -z "$${EDGE_STACK_UPDATE}" ]; then printf "$(RED)Please set EDGE_STACK_UPDATE to point to your getambassador.io clone$(END)\n" >&2; exit 1; fi
-	git -C "$${EDGE_STACK_UPDATE}" checkout Edge-stack-update
-	git -C "$${EDGE_STACK_UPDATE}" pull
-	cp k8s-aes/00-aes-crds.yaml $${EDGE_STACK_UPDATE}/content/yaml/aes-crds.yaml
-	docker exec $(shell $(BUILDER)) python apro/fix-yaml.py edge_stack ambassador/docs/yaml/ambassador/ambassador-rbac.yaml apro/k8s-aes-src/01-aes.yaml > $${EDGE_STACK_UPDATE}/content/yaml/aes.yaml
-	sed -e 's/# NOT a generated file/# GENERATED FILE: DO NOT EDIT/' < k8s-aes-src/02-oss-migration.yaml > $${EDGE_STACK_UPDATE}/content/yaml/oss-migration.yaml
-	sed -e 's/# NOT a generated file/# GENERATED FILE: DO NOT EDIT/' < k8s-aes-src/03-resources-migration.yaml > $${EDGE_STACK_UPDATE}/content/yaml/resources-migration.yaml
-	git -C "$${EDGE_STACK_UPDATE}" diff
-	@if [ -n "$$(git -C $${EDGE_STACK_UPDATE} diff)" ]; then \
-		printf "$(RED)Please inspect and commit the above changes to $(BLU)${EDGE_STACK_UPDATE}$(RED); then re-run the $(BLU)$(MAKE) $(MAKECMDGOALS)$(RED) command$(END)\n"; \
+preflight-docs:
+	@if [ -z "$${AMBASSADOR_DOCS}" ]; then printf "$(RED)Please set AMBASSADOR_DOCS to point to your ambassador-docs.git checkout$(END)\n" >&2; exit 1; fi
+	@if ! [ -f "$${AMBASSADOR_DOCS}/versions.yml" ]; then printf "$(RED)AMBASSADOR_DOCS=$${AMBASSADOR_DOCS} does not look like an ambassador-docs.git checkout$(END)\n" >&2; exit 1; fi
+.PHONY: preflight-docs
+
+update-yaml: update-yaml-locally preflight-docs
+	@printf "$(CYN)==> $(GRN)Checking whether AMBASSADOR_DOCS is up to date$(END)\n"
+	git -C "$${AMBASSADOR_DOCS}" fetch --all --prune --tags
+	@printf "$(GRN)In another terminal, verify that your AMBASSADOR_DOCS ($(AMBASSADOR_DOCS)) checkout is up-to-date with the desired branch (probably $(BLU)early-access$(GRN))$(END)\n"
+	@read -s -p "$$(printf '$(GRN)Press $(BLU)enter$(GRN) once you have verified this:$(END)')"
+	@echo
+	@printf "$(CYN)==> $(GRN)Updating AMBASSADOR_DOCS YAML$(END)\n"
+	@printf '  $(CYN)$${AMBASSADOR_DOCS}/yaml/aes-crds.yaml$(END)\n'
+	cp k8s-aes/00-aes-crds.yaml $${AMBASSADOR_DOCS}/yaml/aes-crds.yaml
+	@printf '  $(CYN)$${AMBASSADOR_DOCS}/yaml/aes.yaml$(END)\n'
+	docker exec $(shell $(BUILDER)) python apro/fix-yaml.py edge_stack ambassador/docs/yaml/ambassador/ambassador-rbac.yaml apro/k8s-aes-src/01-aes.yaml > $${AMBASSADOR_DOCS}/yaml/aes.yaml
+	@printf '  $(CYN)$${AMBASSADOR_DOCS}/yaml/oss-migration.yaml$(END)\n'
+	sed -e 's/# NOT a generated file/# GENERATED FILE: DO NOT EDIT/' < k8s-aes-src/02-oss-migration.yaml > $${AMBASSADOR_DOCS}/yaml/oss-migration.yaml
+	@printf '  $(CYN)$${AMBASSADOR_DOCS}/yaml/resources-migration.yaml$(END)\n'
+	sed -e 's/# NOT a generated file/# GENERATED FILE: DO NOT EDIT/' < k8s-aes-src/03-resources-migration.yaml > $${AMBASSADOR_DOCS}/yaml/resources-migration.yaml
+	@printf "$(CYN)==> $(GRN)Checking whether those changes were no-op$(END)\n"
+	git -C "$${AMBASSADOR_DOCS}" diff .
+	@if [ -n "$$(git -C $${AMBASSADOR_DOCS} diff .)" ]; then \
+		printf "$(RED)Please inspect and commit the above changes to $(BLU)${AMBASSADOR_DOCS}$(RED); then re-run the $(BLU)$(MAKE) $(MAKECMDGOALS)$(RED) command$(END)\n"; \
 		exit 1; \
 	fi
 .PHONY: update-yaml
 
 
-final-push:
+final-push: preflight-docs
 	@if [ "$$(git push --tags --dry-run 2>&1)" != "Everything up-to-date" ]; then \
 		printf "$(RED)Please run: git push --tags$(END)\n"; \
 	fi	
-	@if [ "$$(git -C $${EDGE_STACK_UPDATE} push --dry-run 2>&1)" != "Everything up-to-date" ]; then \
-		printf "$(RED)Please run: git -C $${EDGE_STACK_UPDATE} push$(END)\n"; \
+	@if [ "$$(git -C $${AMBASSADOR_DOCS} push --dry-run 2>&1)" != "Everything up-to-date" ]; then \
+		printf "$(RED)Please run: git -C $${AMBASSADOR_DOCS} push$(END)\n"; \
 	fi	
+.PHONY: final-push
 
 tag-rc:
 	@if [ -z "$$(git describe --exact-match HEAD)" ]; then \
@@ -119,11 +134,13 @@ tag-rc:
 		git tag -a $$(cat /tmp/rc.tag) ; \
 		git push --tags ; \
 	fi
+.PHONY: tag-rc
 
 aes-rc: update-yaml
 	@$(MAKE) --no-print-directory tag-rc
 	@$(MAKE) --no-print-directory final-push
 	@printf "Please check your release here: https://circleci.com/gh/datawire/apro\n"
+.PHONY: aes-rc
 
 aes-rc-now: update-yaml
 	@if [ -n "$$(git status --porcelain)" ]; then \
@@ -132,3 +149,30 @@ aes-rc-now: update-yaml
 	@$(MAKE) --no-print-directory tag-rc
 	@$(MAKE) --no-print-directory rc RELEASE_REGISTRY=quay.io/datawire-dev
 	@$(MAKE) --no-print-directory final-push
+.PHONY: aes-rc-now
+
+define _help.aes-targets
+  $(BLD)make $(BLU)lint$(END)                -- runs golangci-lint.
+
+  $(BLD)make $(BLU)format$(END)              -- runs golangci-lint with --fix.
+
+  $(BLD)make $(BLU)deploy$(END)              -- deploys AES to $(BLD)\$$DEV_REGISTRY$(END) and $(BLD)\$$DEV_KUBECONFIG$(END). ($(DEV_REGISTRY) and $(DEV_KUBECONFIG))
+
+  $(BLD)make $(BLU)deploy-aes-backend$(END)  -- ???
+
+  $(BLD)make $(BLU)update-yaml-locally$(END) -- updates the YAML in $(BLD)k8s-aes/$(END).
+
+    The YAML in $(BLD)k8s-aes/$(END) is generated from $(BLD)k8s-aes-src/$(END) and
+    from $(BLD)\$$OSS_HOME/docs/yaml/ambassador/ambassador-rbac.yaml$(END).
+
+  $(BLD)make $(BLU)update-yaml$(END)         -- updates the YAML in $(BLD)k8s-aes/$(END) and in $(BLD)\$$AMBASSADOR_DOCS/yaml/$(END). ($(AMBASSADOR_DOCS)/yaml/)
+
+  $(BLD)make $(BLU)final-push$(END)          -- ???
+
+  $(BLD)make $(BLU)tag-rc$(END)              -- ???
+
+  $(BLD)make $(BLU)aes-rc$(END)              -- ???
+
+  $(BLD)make $(BLU)aes-rc-now$(END)          -- ???
+endef
+_help.targets += $(NL)$(NL)$(_help.aes-targets)
