@@ -5,6 +5,7 @@ export KUBECONFIG=$DEV_KUBECONFIG
 export OSS_TAG=$(cat ../Chart.yaml | grep ossVersion | sed s/'ossVersion: '/''/)
 
 echo $KUBECONFIG
+kubectl get svc
 ## Generate values files
 ##
 printf "==Generating values files==\n"
@@ -20,13 +21,13 @@ printf "==Bootstrapping Helm installs==\n"
 ## Bootstrap Helm 2
 ## 
 kubectl apply -f helm-init.yaml
-
+helm2 version
 helm2 init --service-account=tiller --wait
 
 ## Bootstrap Ambassador release
 ##
-
-helm install ambassador .. --wait -f ci-default-values.yaml 2>&1 > /dev/null
+helm version
+helm install ambassador .. --wait -f ci-default-values.yaml
 
 kubectl apply -f tls.yaml
 
@@ -38,7 +39,6 @@ do
   sleep 5
 done
 
-
 success=1
 
 printf "==Begin: Testing Helm 3 releases==\n"
@@ -48,7 +48,7 @@ do
 
   ## Upgrade the Ambassador release with new values file
   ##
-  helm upgrade ambassador .. --wait -f values/$v_file 2>&1 > /dev/null
+  helm upgrade ambassador .. --wait -f values/$v_file 
   
   echo Release upgraded with $v_file
   
@@ -76,7 +76,7 @@ printf "End: Testing Helm 3 releases==\n"
 ##
 printf "Begin: Testing Helm 2 release==\n"
 
-helm2 install -n ambassador-helm2 .. -f helm2-values.yaml --wait 2>&1 > /dev/null
+helm2 install -n ambassador-helm2 .. -f helm2-values.yaml --wait 
 
 echo Release installed with Helm 2
 
@@ -103,7 +103,7 @@ kubectl delete -f backend.yaml
 
 pkill kubectl port-forward service/ambassador-helm2 9443:443
 
-helm uninstall ambassador > /dev/null
+helm uninstall ambassador
 helm2 del --purge ambassador-helm2
 
 while [[ $(kubectl get po -l app.kubernetes.io/instance=ambassador -o name) != '' ]];
