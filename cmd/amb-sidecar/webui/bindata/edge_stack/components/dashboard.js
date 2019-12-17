@@ -491,6 +491,92 @@ let ResYAMLPanel = {
 
 export class Dashboard extends LitElement {
 
+  /* styles() returns the styles for the dashboard elements. */	
+  static get styles() {	
+    return css`
+      .error {
+        color: red;
+      }
+      
+      div.element {
+        display: inline-grid;
+        background: #fff;
+        border-radius: 10px;
+        box-shadow: 0 10px 15px -20px rgba(0,0,0,.8);
+        padding: 0.5em;
+        margin: 30px 0 0 20px;
+      }
+  
+      div.element-titlebar {
+        text-align: center;
+        font-weight: 400;
+        font-size: 1.6rem;
+        position: relative;
+        top: -10px;
+        width: 200px;
+        height: 16px;
+        padding: 8px 8px 20px 8px;
+        border-bottom: 1px solid rgba(0, 0, 0, .1);
+      }
+      
+      div.element-content {
+        position: relative;
+        text-align: center;
+        width: 200px;
+        height: 200px;
+        padding: 8px;
+        margin-top: -10px;
+      }
+      div.centered {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      
+      div.element-content p {
+        margin-top: 0.5em;
+        margin-bottom: 0.5em;
+      }
+      
+      span.code { font-family: Monaco, monospace; }
+      span.status {
+        font-weight: 600;
+        font-size: 130%;
+        color: #555555;
+      }
+  
+      svg.element-svg-overlay {
+        position:absolute;
+        height:200px;
+        width:200px;
+        top:0.5em;
+        left:0.5em;
+      }
+      
+      div.system-status {
+        font-size: 90%;
+        padding-top: 65px;
+      }
+      
+      div.system-status p {
+        margin: 0;
+      }
+      
+      button:hover,
+      button:focus{
+        background-color: #ede7f3;
+      }
+      
+      div.over_limit {
+        color: red;
+        font-weight: bold;
+      }
+      div.over_limit a {
+        color: red;
+      }
+    `	
+  };  
+
   static get properties() {
     return {
       snapshot: { type: Object }
@@ -535,7 +621,6 @@ export class Dashboard extends LitElement {
      * Return the concatenated html renderings for each panel
      */
     return( html `
-<link rel="stylesheet" href="../styles/dashboard.css">
 ${this._panels.reduce( (accum, each) => html`${accum} ${each.render()}`, html`` )}` );
   }
 

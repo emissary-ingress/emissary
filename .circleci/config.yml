@@ -1,4 +1,6 @@
 version: 2.1
+orbs:
+  win: circleci/windows@1.0.0
 
 # Secure environement variables set from the Web UI:
 # - DEPLOY_KEY_ID (AWS S3)
@@ -187,8 +189,8 @@ commands:
             if [[ "$CIRCLE_TAG" =~ ^v[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+(-.*)?$ ]]; then
                 export AWS_ACCESS_KEY_ID=$DEPLOY_KEY_ID
                 export AWS_SECRET_ACCESS_KEY=$DEPLOY_KEY
-                #docker login -u="${DOCKER_RELEASE_USERNAME}" -p="${DOCKER_RELEASE_PASSWORD}" quay.io
-                DEV_KUBECONFIG="-skip-for-release-" RELEASE_REGISTRY=quay.io/datawire-dev make rc
+                docker login -u="${DOCKER_RELEASE_USERNAME}" -p="${DOCKER_RELEASE_PASSWORD}" quay.io
+                DEV_KUBECONFIG="-skip-for-release-" RELEASE_REGISTRY=quay.io/datawire make rc
             fi
   "clobber":
     steps:
@@ -203,11 +205,7 @@ commands:
       - run: make target_does_not_exist || true
       - run: ln -s project/ambassador ../ambassador
       - run: ./ambassador/builder/module_version.sh apro
-      - with-go-mod-cache:
-          steps:
-            - with-go-build-cache:
-                steps:
-                  - run: ./ambassador/builder/build_push_cli.sh build
+      - run: ./ambassador/builder/build_push_cli.sh build
       - run: ~/bin/edgectl version || true
       - run:
           name: "Release"
@@ -273,9 +271,28 @@ jobs:
       - install-go
       - edgectl
 
+  "Windows-edgectl":
+    executor:
+      name: win/vs2019
+      shell: bash
+    steps:
+      - run:
+          name: "Environment"
+          command: env
+      - run:
+          name: "Packages"
+          command: |
+            choco upgrade golang --version 1.13
+            choco install make rsync
+      - edgectl
+
 workflows:
   "APro CI":
     jobs:
+      - "Windows-edgectl":
+          filters:
+            tags:
+              only: /.*/
       - "Ubuntu-edgectl":
           filters:
             tags:

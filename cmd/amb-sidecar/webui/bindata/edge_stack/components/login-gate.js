@@ -63,7 +63,7 @@ summary:focus {
     outline: none;
     color: #5F3EFF;
 }
-.darwinLink, .linuxLink{
+.darwinLink, .linuxLink, .windowsLink {
     color: #5F3EFF;
 }
 div.login-section {
@@ -88,6 +88,16 @@ div.login-darwin {
     overflow: hidden;
 }
 div.login-linux {
+    width: 50%;
+    border: 1px solid #ede7f3;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, .1);
+    padding: 0.5em;
+    margin-bottom: 0.6em;
+    line-height: 1.3;
+    position: relative;
+    overflow: hidden;
+}
+div.login-windows {
     width: 50%;
     border: 1px solid #ede7f3;
     box-shadow: 0 2px 4px rgba(0, 0, 0, .1);
@@ -171,18 +181,22 @@ details {
   width: 90%;
   text-align: center;
   border: thin dashed black;
-  padding: 0.5em; 
+  padding: 0.5em;
 }
 #debug-dev-loop-box div {
   margin: auto;
 }
 #debug-dev-loop-box button {
-}  
+}
 img#darwinLogo {
     width: 35px;
     margin: 0 0 -5px 0;
 }
 img#linuxLogo {
+  width: 35px;
+  margin: 0 0 -8px 0;
+}
+img#windowsLogo {
   width: 35px;
   margin: 0 0 -8px 0;
 }
@@ -197,7 +211,7 @@ img#linuxLogo {
 
     this.namespace = '';
     this.os = this.getOS();
-    
+
     this.loadData();
 
     this.authenticated = useContext('auth-state', null)[0];
@@ -294,6 +308,10 @@ img#linuxLogo {
     this.copyToKeyboard('install-linux');
   }
 
+  copyWindowsInstallToKeyboard() {
+    this.copyToKeyboard('install-windows');
+  }
+
   renderDebugDetails() {
     if( hasDebugBackend() ) {
     return html`
@@ -321,13 +339,13 @@ img#linuxLogo {
     return html`
   <details id="darwin" ?open=${this.os === 'darwin'}>
   <summary id="darwinFocus"><h2 style="display:inline">MacOS
-    <img id="darwinLogo" src="/edge_stack/images/logos/apple.svg" alt="linux logo" display=inline>
+    <img id="darwinLogo" src="/edge_stack/images/logos/apple.svg" alt="apple logo" display=inline>
           </h2>
   </summary>
   <h3>1. Download with this CLI:</h3>
-  
+
   <pre id="install-darwin">sudo curl -fL https://metriton.datawire.io/downloads/darwin/edgectl -o /usr/local/bin/edgectl && \\sudo chmod a+x /usr/local/bin/edgectl</pre>
-  
+
   <button @click=${this.copyDarwinInstallToKeyboard.bind(this)}>Copy to Clipboard</button>
   <h3>2. Or download the executable:</h3>
   <p class="download">Download <a href="https://metriton.datawire.io/downloads/darwin/edgectl" class="darwinLink">edgectl for MacOS</a></p>
@@ -337,20 +355,36 @@ img#linuxLogo {
 
   renderLinuxDetails() {
     return html`
-    
+
 <details id="linux" ?open=${this.os === 'linux'}>
   <summary id="linuxFocus"><h2 style="display:inline">Linux
     <img id="linuxLogo" src="/edge_stack/images/logos/linuxTux.svg" alt="linux logo" display=inline>
           </h2>
   </summary>
   <h3>1. Download with this CLI:</h3>
-  
+
   <pre id="install-linux">sudo curl -fL https://metriton.datawire.io/downloads/linux/edgectl -o /usr/local/bin/edgectl && \\sudo chmod a+x /usr/local/bin/edgectl</pre>
 
   <button @click=${this.copyLinuxInstallToKeyboard.bind(this)}>Copy to Clipboard</button>
   <h3>2. Or download the executable:</h3>
   <p class="download">Download <a href="https://metriton.datawire.io/downloads/linux/edgectl" class="linuxLink">edgectl for Linux </a></p>
-  
+
+</details>
+    `;
+  }
+
+  renderWindowsDetails() {
+    return html`
+
+<details id="windows" ?open=${this.os === 'windows'}>
+  <summary id="windowsFocus"><h2 style="display:inline">Windows
+    <img id="windowsLogo" src="/edge_stack/images/logos/windows.svg" alt="windows logo" display=inline>
+          </h2>
+  </summary>
+  <h3>1. Download the executable:</h3>
+  <p class="download">Download <a href="https://metriton.datawire.io/downloads/windows/edgectl" class="windowsLink">edgectl for Windows </a></p>
+  <h3>2. Rename the file to edgectl.exe</h3>
+  <h3>3. Place the file somewhere in your PATH, e.g., C:\\windows</h3>
 </details>
     `;
   }
@@ -367,7 +401,7 @@ img#linuxLogo {
     <h1 class="info-title">Welcome to the Ambassador Edge Stack</h1>
     <p class="login-downloadText">
     </p>
-   
+
     <p class="login-instr">
       <div class="login-repeatUser">
         <span class="repeatUser">
@@ -376,23 +410,26 @@ img#linuxLogo {
     </p>
 
     <p class="login-edgectl">
-      <span class="command" id="login" style="block">edgectl login --namespace=${this.namespace} ${window.location.host}</span> 
+      <span class="command" id="login" style="block">edgectl login --namespace=${this.namespace} ${window.location.host}</span>
       <button style="margin-left: 1em" @click=${this.copyLoginToKeyboard.bind(this)}>Copy to Clipboard</button>
         </span>
-    </p>  
+    </p>
   </div>
 
     <p class="login-instr">
     <div class="login-newUser">
     <span class="newUser"><span class="newUserIcon" style="display: inline">&#128037;&nbsp;</span>First time users will need to download and install the edgectl executable. Once complete, log in to Ambassador with the edgectl command above.</p>
     </span></div>
-    
+
     <div class="login-container">
       <div class="login-darwin">
         ${this.renderDarwinDetails()}
       </div>
       <div class="login-linux">
         ${this.renderLinuxDetails()}
+      </div>
+      <div class="login-windows">
+        ${this.renderWindowsDetails()}
       </div>
     </div>
         ${this.renderDebugDetails()}
@@ -402,12 +439,15 @@ img#linuxLogo {
   }
 
   renderFocus() {
-    if (this.os === "darwin"){
+    if (this.os === "darwin") {
       let element = this.shadowRoot.getElementById('darwinFocus');
-      if( element ) { element.focus(); }
+      if (element) { element.focus(); }
     } else if (this.os === "linux") {
       let element = this.shadowRoot.getElementById('linuxFocus');
-      if( element ) { element.focus(); }
+      if (element) { element.focus(); }
+    } else if (this.os === "windows") {
+      let element = this.shadowRoot.getElementById('windowsFocus');
+      if (element) { element.focus(); }
     }
   }
 
