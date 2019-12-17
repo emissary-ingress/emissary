@@ -47,6 +47,12 @@ Format:
 --->
 
 <!--- CueAddReleaseNotes --->
+## [1.0.0-ea5] December 17, 2019
+[1.0.0-ea5]: https://github.com/datawire/ambassador/compare/v0.86.0...v1.0.0-ea5
+
+- Internal: Improved the reliability of CI
+- Internal: Improved the release process
+
 ## [1.0.0-ea3] December 16, 2019
 [1.0.0-ea3]: https://github.com/datawire/ambassador/compare/v1.0.0-ea1...v1.0.0-ea3
 

@@ -1,4 +1,6 @@
-from kat.harness import Query
+import pytest
+
+from kat.harness import Query, EDGE_STACK
 
 from abstract_tests import AmbassadorTest, HTTP, ServiceType
 
@@ -11,6 +13,9 @@ class TLSContextsTest(AmbassadorTest):
 
     def init(self):
         self.target = HTTP()
+
+        if EDGE_STACK:
+            self.xfail = "Not yet supported in Edge Stack"
 
     def manifests(self) -> str:
         return super().manifests() + """
@@ -141,6 +146,9 @@ AJfULDOksXSEodSf+mGCkUhuod/h8LMGWLXzCgtHpJ2wZTp9kVVUkJvJjIU=
     def init(self):
         self.target = HTTP()
 
+        if EDGE_STACK:
+            self.xfail = "Not yet supported in Edge Stack"
+
     def manifests(self) -> str:
         return super().manifests() + """
 ---
@@ -231,6 +239,9 @@ class TLSOriginationSecret(AmbassadorTest):
     def init(self):
         self.target = HTTP()
 
+        if EDGE_STACK:
+            self.xfail = "Not yet supported in Edge Stack"
+
     def manifests(self) -> str:
         return super().manifests() + """
 ---
@@ -296,6 +307,9 @@ class TLS(AmbassadorTest):
 
     def init(self):
         self.target = HTTP()
+
+        if EDGE_STACK:
+            self.xfail = "Not yet supported in Edge Stack"
 
     def manifests(self) -> str:
         return super().manifests() + """
@@ -369,6 +383,9 @@ class TLSInvalidSecret(AmbassadorTest):
     def init(self):
         self.target = HTTP()
 
+        if EDGE_STACK:
+            self.xfail = "Not yet supported in Edge Stack"
+
     def config(self):
         yield self, self.format("""
 ---
@@ -431,6 +448,9 @@ class TLSContextTest(AmbassadorTest):
 
     def init(self):
         self.target = HTTP()
+
+        if EDGE_STACK:
+            self.xfail = "Not yet supported in Edge Stack"
 
     def manifests(self) -> str:
         return super().manifests() + """
@@ -706,6 +726,9 @@ class TLSIngressTest(AmbassadorTest):
     def init(self):
         self.target = HTTP()
 
+        if EDGE_STACK:
+            self.xfail = "Not yet supported in Edge Stack"
+
     def manifests(self) -> str:
         self.manifest_envs = """
     - name: AMBASSADOR_DEBUG
@@ -935,6 +958,9 @@ class TLSContextProtocolMaxVersion(AmbassadorTest):
     def init(self):
         self.target = HTTP()
 
+        if EDGE_STACK:
+            self.xfail = "Not yet supported in Edge Stack"
+
     def manifests(self) -> str:
         return super().manifests() + """
 ---
@@ -1053,6 +1079,9 @@ class TLSContextProtocolMinVersion(AmbassadorTest):
     def init(self):
         self.target = HTTP()
 
+        if EDGE_STACK:
+            self.xfail = "Not yet supported in Edge Stack"
+
     def manifests(self) -> str:
         return super().manifests() + """
 ---
@@ -1150,6 +1179,9 @@ class TLSContextCipherSuites(AmbassadorTest):
 
     def init(self):
         self.target = HTTP()
+
+        if EDGE_STACK:
+            self.xfail = "Not yet supported in Edge Stack"
 
     def manifests(self) -> str:
         return super().manifests() + """
