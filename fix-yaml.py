@@ -94,7 +94,7 @@ if which == 'apro':
         ]
     })
 elif which == 'edge_stack':
-    dpath.util.set(deployment, 'spec/template/spec/containers/0/image', 'quay.io/datawire-dev/aes:0.99.0-rc-latest')
+    dpath.util.set(deployment, 'spec/template/spec/containers/0/image', 'quay.io/datawire/aes:$version$')
 else:
     sys.stderr.write('only apro and edge_stack are valid\n')
     sys.exit(1)

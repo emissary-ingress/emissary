@@ -564,9 +564,17 @@ ${this.modifiedStyles() ? this.modifiedStyles() : ""}
     <div class="col">
       <div class="row line">
         <div class="row-col margin-right">${this.kind()}:</div>
+      </div>
+      <div class="row line">
+        <label class="row-col margin-right justify-right">name:</label>
         <div class="row-col">
           <b class="${this.visible("list", "edit")}">${this.name()}</b>
           <input class="${this.visible("add")}" name="name" type="text" value="${this.name()}"/>
+        </div>
+      </div>
+      <div class="row line">
+        <label class="row-col margin-right justify-right">namespace:</label>
+        <div class="row-col">
           <div class="namespace${this.visible("list", "edit")}">(${this.namespace()})</div>
           <div class="namespace-input ${this.visible("add")}"><div class="pararen">(</div><input class="${this.visible("add")}" name="namespace" type="text" value="${this.namespace()}"/><div class="pararen">)</div></div>
         </div>
@@ -576,7 +584,7 @@ ${this.modifiedStyles() ? this.modifiedStyles() : ""}
 
 ${this.state.renderErrors()}
 ${this.renderMergedYaml()}
-  
+
     </div>
     <div class="col2">
       <a class="cta source ${typeof this.sourceURI() == 'string' ? "" : "off"}" @click=${(x)=>this.onSource(x)}>
@@ -722,7 +730,7 @@ ${this.renderMergedYaml()}
    *
    * You can use this to provide a detail view whose fields change
    * in-place to become editable:
-   * 
+   *
    *   Field: <visible-modes list>${value}</visible-modes>
    *          <visible-modes add edit><input type=text value=${value}/></visible-modes>
    *
@@ -941,7 +949,7 @@ div.sortby {
 div.sortby select {
   font-size: 0.85rem;
   border: 2px #c8c8c8 solid;
-  text-transform: uppercase; 
+  text-transform: uppercase;
 }
 div.sortby select:hover {
   color: #5f3eff;
@@ -1007,7 +1015,7 @@ ${this.resources.sort(this.sortFn(this.sortBy)) && this.renderSet()}`
  *         `
  *       }
  *       ...
- *   
+ *
  */
 export class UIState {
 
