@@ -14,7 +14,6 @@ class Filter extends SingleResource {
     this.state.External = null;
     this.state.JWT = null;
     this.state.Plugin = null;
-    this.state.Internal = null;
   }
 
   /**
@@ -81,9 +80,6 @@ class Filter extends SingleResource {
     }
     if (spec.Plugin) {
       return "Plugin";
-    }
-    if (spec.Internal) {
-      return "Internal";
     }
     return "<unknown>";
   }
@@ -432,10 +428,6 @@ ${(values || []).map((v, i)=>this.headerTemplateListEntry(values, v, i))}
   }
 
   // internal
-  renderInternal(subspec) {
-  }
-
-  // internal
   updateType(newType) {
     this[this.state.type] = this.state.subspec;
     if (this.state[newType] === null || this.state[newType] === undefined) {
@@ -463,7 +455,6 @@ ${(values || []).map((v, i)=>this.headerTemplateListEntry(values, v, i))}
     <option .selected=${type === "JWT"} value="JWT">JWT</option>
     <option .selected=${type === "External"} value="External">External</option>
     <option .selected=${type === "Plugin"} value="Plugin">Plugin</option>
-    <option .selected=${type === "Internal"} value="Internal">Internal</option>
   </select>
   </div>
 </div>

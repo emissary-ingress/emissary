@@ -51,21 +51,6 @@ spec:
 apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
-  name: edgestack-acme-mapping
-  namespace: _automatic_
-  labels:
-    product: aes
-    ambassador_diag_class: private
-spec:
-  ambassador_id: [ "_automatic_" ]
-  prefix: /.well-known/acme-challenge/
-  rewrite: /.well-known/acme-challenge/
-  service: 127.0.0.1:8500
-  precedence: 1000000
----
-apiVersion: getambassador.io/v2
-kind: Mapping
-metadata:
   name: ambassador-edge-stack
   namespace: _automatic_
   labels:

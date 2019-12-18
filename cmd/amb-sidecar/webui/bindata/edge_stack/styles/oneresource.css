@@ -155,7 +155,7 @@ div.off, span.off, input.off, b.off {
 }
 
 .margin-right {
-	margin-right: 20px
+	margin-right: 20px;
 }
 .justify-right {
 	text-align: right;
@@ -227,7 +227,7 @@ div.namespaceoff {
 	display: none;
 }
 div.namespace-input {
-	margin-top: 1.1em;
+	margin-top: 0.1em;
 }
 .pararen {
 	-webkit-justify-content: center;
