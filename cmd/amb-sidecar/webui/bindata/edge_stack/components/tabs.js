@@ -416,22 +416,8 @@ export class Tabs extends LitElement {
                     : (this.tabs[idx].name === "APIs") ? svg`<img alt="api logo" class="tabLogo" src="../images/svgs/apis.svg"><defs><style>.cls-1{fill:#fff;}</style></defs><title>hosts</title><g id="Layer_2" data-name="Layer 2"><g id="Layer_1-2" data-name="Layer 1"></g></g></img>`
                       : (this.tabs[idx].name === "Documentation") ? svg`<img alt="docs logo" class="tabLogo" src="../images/svgs/docs.svg"><defs><style>.cls-1{fill:#fff;}</style></defs><title>hosts</title><g id="Layer_2" data-name="Layer 2"><g id="Layer_1-2" data-name="Layer 1"></g></g></img>`
                         : (this.tabs[idx].name === "Support") ? svg`<img alt="support logo" class="tabLogo" src="../images/svgs/support.svg"><defs><style>.cls-1{fill:#fff;}</style></defs><title>hosts</title><g id="Layer_2" data-name="Layer 2"><g id="Layer_1-2" data-name="Layer 1"></g></g></img>`
-                          : (this.tabs[idx].name === "Filters") ? svg`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32"><title>filter</title><g class="nc-icon-wrapper" stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" fill="#608cee" stroke="#608cee"><polygon points="30 5 19 16 19 26 13 30 13 16 2 5 2 1 30 1 30 5" fill="none" stroke="#111111" stroke-miterlimit="10"/></g></svg>`
-                            : (this.tabs[idx].name === "YAML Download") ? svg`<?xml version="1.0" encoding="utf-8"?>
-<!-- Generator: Adobe Illustrator 24.0.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
-<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
-         viewBox="0 0 24 24" style="enable-background:new 0 0 24 24;" xml:space="preserve">
-<style type="text/css">
-        .st0{fill:none;stroke:#000000;stroke-width:2;stroke-miterlimit:10;}
-        .st1{fill:none;stroke:#000000;stroke-width:2;stroke-linecap:square;stroke-miterlimit:10;}
-</style>
-<title>move layer down</title>
-<g>
-        <line class="st0" x1="12" y1="1" x2="12" y2="17"/>
-        <polyline class="st1" points="18,11 12,17 6,11  "/>
-        <line class="st1" x1="22" y1="22" x2="2" y2="22"/>
-</g>
-</svg>`
+                          : (this.tabs[idx].name === "Filters") ? svg`<img alt="filters logo" class="tabLogo" src="../images/svgs/filters.svg"><defs><style>.cls-1{fill:#fff;}</style></defs><title>hosts</title><g id="Layer_2" data-name="Layer 2"><g id="Layer_1-2" data-name="Layer 1"></g></g></img>`
+                            : (this.tabs[idx].name === "YAML Download") ? svg`<img alt="yaml logo" class="tabLogo" src="../images/svgs/yaml-downloads2.svg"><defs><style>.cls-1{fill:#fff;}</style></defs><title>hosts</title><g id="Layer_2" data-name="Layer 2"><g id="Layer_1-2" data-name="Layer 1"></g></g></img>`
                             : html``}
               </div>
               <div class="name">${this.tabs[idx].tabName()}</div>
