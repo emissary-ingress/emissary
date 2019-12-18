@@ -1,4 +1,4 @@
-import {html} from '../vendor/lit-element.min.js'
+import {html, css} from '../vendor/lit-element.min.js'
 import {SingleResource, SortableResourceSet} from './resources.js';
 import './filterpolicies-rules.js';
 
@@ -28,20 +28,59 @@ class FilterPolicy extends SingleResource {
     this.shadowRoot.querySelectorAll('dw-filterpolicy-rule-list').forEach((el)=>{el.reset();});
   }
 
+  // override
+  static get styles() {
+    return css`
+* {
+  box-sizing: border-box;
+}
+
+:host {
+  display: block
+}
+
+dl {
+  display: grid;
+  grid-template-columns: max-content;
+  grid-gap: 0;
+  margin: 0;
+}
+dl > dt {
+  grid-column: 1 / 2;
+  text-align: right;
+	font-weight: 600;
+}
+dl > dt::after {
+  content: ":";
+}
+dl > dd {
+  grid-column: 2 / 3;
+}
+dl > * {
+  margin: 0;
+	padding: 10px 5px;
+	border-bottom: 1px solid rgba(0, 0, 0, .1);
+}
+dl > :nth-last-child(2), dl > :last-child {
+	border-bottom: none;
+}
+    `;
+  }
+
   // implement
   renderResource() {
     return html`
-<div class="row line">
-  <div class="row-col margin-right justify-right">rules:</div>
-  <div class="row-col">
+<dl>
+  <dt>rules</dt>
+  <dd style="padding-top: 0">
     <dw-filterpolicy-rule-list
       .mode=${this.state.mode}
       .data=${this.resource.spec.rules}
       .namespace=${this.resource.metadata.namespace}
       @change=${(ev)=>{this.formRules = ev.target.rules;}}
     ></dw-filterpolicy-rule-list>
-  </div>
-</div>
+  </dd>
+</dl>
 `;
   }
 

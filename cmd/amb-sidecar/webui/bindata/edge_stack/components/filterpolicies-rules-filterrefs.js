@@ -106,12 +106,12 @@ class FilterRef extends LitElement {
   }
 
   reset() {
+    this._value = null;
     this.shadowRoot.querySelectorAll('dw-filterref-list').forEach((el)=>{el.reset();});
     this.shadowRoot.querySelectorAll('dw-header-field-selector').forEach((el)=>{el.reset();});
     this.shadowRoot.querySelectorAll('dw-scope-values').forEach((el)=>{el.reset();});
     this.shadowRoot.querySelectorAll('input').forEach((el)=>{el.value = el.defaultValue;});
     this.shadowRoot.querySelectorAll('select').forEach((el)=>{el.value = el.querySelector('option[selected]').value;});
-    this._value = null;
   }
 
   _filterType(qname) {
@@ -131,12 +131,49 @@ class FilterRef extends LitElement {
     return "<unknown>";
   }
 
-  render() {
-    return html`
-<div class="row line">
+  static get styles() {
+    return css`
+* {
+  box-sizing: border-box;
+}
 
-  <div class="row-col margin-right justify-right">filter:</div>
-  <div class="row-col">
+:host {
+  display: block
+}
+
+dl {
+  display: grid;
+  grid-template-columns: max-content;
+  grid-gap: 0;
+  margin: 0;
+}
+dl > dt {
+  grid-column: 1 / 2;
+  text-align: right;
+	font-weight: 600;
+}
+dl > dt::after {
+  content: ":";
+}
+dl > dd {
+  grid-column: 2 / 3;
+}
+dl > * {
+  margin: 0;
+	padding: 10px 5px;
+	border-bottom: 1px solid rgba(0, 0, 0, .1);
+}
+dl > :nth-last-child(2), dl > :last-child {
+	border-bottom: none;
+}
+`;
+  }
+
+  render() {
+    return html`<dl>
+
+  <dt>filter</dt>
+  <dd>
     <visible-modes .mode=${this.mode} list><span>${this.data.name}.${this.data.namespace}</span></visible-modes>
     <visible-modes .mode=${this.mode} edit add><select
       @change=${(ev)=>{
@@ -154,75 +191,70 @@ class FilterRef extends LitElement {
       ${Object.entries(this.filters).sort((a, b) => b[0].localeCompare(a[0])).map(([k, v])=>{
         return html`<option ?selected=${k===`${this.data.name}.${this.data.namespace}`} value=${k}>${k} (${this._filterType(k)})</option>`;
       })}
-    </select></visible-modes> 
-  </div>
+    </select></visible-modes>
+  </dd>
 
-  <div class="row-col margin-right justify-right">onDeny:</div>
-  <div class="row-col">
+  <dt>onDeny</dt>
+  <dd>
     <visible-modes .mode=${this.mode} list><span><tt>${this.data.onDeny}</tt></span></visible-modes>
     <visible-modes .mode=${this.mode} edit add><select
       @change=${(ev)=>{this.rawValue = {...this.rawValue, onDeny: ev.target.value};}}
     >
       <option ?selected=${this.data.onDeny==="break"} value="break"><tt>break</tt> (default)</option>
       <option ?selected=${this.data.onDeny==="continue"} value="continue"><tt>continue</tt></option>
-    </select></visible-modes> 
-  </div>
+    </select></visible-modes>
+  </dd>
 
-  <div class="row-col margin-right justify-right">onAllow:</div>
-  <div class="row-col">
+  <dt>onAllow</dt>
+  <dd>
     <visible-modes .mode=${this.mode} list><span><tt>${this.data.onAllow}</tt></span></visible-modes>
     <visible-modes .mode=${this.mode} edit add><select
       @change=${(ev)=>{this.rawValue = {...this.rawValue, onAllow: ev.target.value};}}
     >
       <option ?selected=${this.data.onAllow==="break"} value="break"><tt>break</tt></option>
       <option ?selected=${this.data.onAllow==="continue"} value="continue"><tt>continue</tt> (default)</option>
-    </select></visible-modes> 
-  </div>
+    </select></visible-modes>
+  </dd>
 
-  <div class="row-col margin-right justify-right">ifRequestHeader:</div>
-  <div class="row-col"><dw-header-field-selector
+  <dt>ifRequestHeader</dt>
+  <dd><dw-header-field-selector
     .mode=${this.mode}
     .data=${this.data.ifRequestHeader}
     @change=${(ev)=>{this.rawValue = {...this.rawValue, ifRequestHeader: ev.target.value};}}
-  ></dw-header-field-selector></div>
+  ></dw-header-field-selector></dd>
 
   ${(()=>{switch (this._filterType(`${this.rawValue.name}.${this.rawValue.namespace}`)) {
     case 'OAuth2':
       return html`
-        <div class="row-col margin-right justify-right">arguments:</div>
-        <div class="row-col">
-          <dw-filterargs-oauth2
-            .mode=${this.mode}
-            .data=${(this.rawValue['arguments'][`${this.rawValue.name}.${this.rawValue.namespace}`]||{})}
-            @change=${(ev)=>{
-              let dat = this.rawValue;
-              dat['arguments'][`${dat.name}.${dat.namespace}`] = ev.target.value;
-              this.rawValue = dat;
-            }}
-          ></dw-scope-values>
-        </div>
+        <dt>arguments</dt>
+        <dd><dw-filterargs-oauth2
+          .mode=${this.mode}
+          .data=${(this.rawValue['arguments'][`${this.rawValue.name}.${this.rawValue.namespace}`]||{})}
+          @change=${(ev)=>{
+            let dat = this.rawValue;
+            dat['arguments'][`${dat.name}.${dat.namespace}`] = ev.target.value;
+            this.rawValue = dat;
+          }}
+        ></dw-scope-values></dd>
       `;
     case 'JWT':
       return html`
-        <div class="row-col margin-right justify-right">arguments:</div>
-        <div class="row-col">
-          <dw-filterargs-jwt
-            .mode=${this.mode}
-            .data=${(this.rawValue['arguments'][`${this.rawValue.name}.${this.rawValue.namespace}`]||{})}
-            @change=${(ev)=>{
-              let dat = this.rawValue;
-              dat['arguments'][`${dat.name}.${dat.namespace}`] = ev.target.value;
-              this.rawValue = dat;
-            }}
-          ></dw-scope-values>
-        </div>
+        <dt>arguments</dt>
+        <dd><dw-filterargs-jwt
+          .mode=${this.mode}
+          .data=${(this.rawValue['arguments'][`${this.rawValue.name}.${this.rawValue.namespace}`]||{})}
+          @change=${(ev)=>{
+            let dat = this.rawValue;
+            dat['arguments'][`${dat.name}.${dat.namespace}`] = ev.target.value;
+            this.rawValue = dat;
+          }}
+        ></dw-scope-values></dd>
       `;
     default:
       return html``;
   }})()}
 
-</div>
-`;
+</dl>`;
   }
 }
 customElements.define('dw-filterref', FilterRef);
@@ -246,8 +278,8 @@ class FilterRefList extends LitElement {
   }
 
   reset() {
-    this.shadowRoot.querySelectorAll('dw-filterref').forEach((el)=>{el.reset();});
     this._value = null;
+    this.shadowRoot.querySelectorAll('dw-filterref').forEach((el)=>{el.reset();});
   }
 
   // implement
@@ -255,6 +287,42 @@ class FilterRefList extends LitElement {
     super();
     this.mode = "list";
     this.data = [];
+  }
+
+  static get styles() {
+    return css`
+* {
+  box-sizing: border-box;
+}
+ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: mycounter;
+}
+li::before {
+  /* content */
+  counter-increment: mycounter;
+  content: counter(mycounter) ".";
+  font-weight: 600;
+
+  /* same as a row */
+	padding: 10px 5px;
+
+  /* positioning */
+  float: left;
+  margin: 0;
+  width: 1.1em;
+  vertical-align: middle;
+  text-align: center;
+}
+li {
+	border-bottom: 1px solid rgba(0, 0, 0, .1);
+}
+li:last-child {
+	border-bottom: none;
+}
+`;
   }
 
   // implement
@@ -267,33 +335,33 @@ class FilterRefList extends LitElement {
       ifRequestHeader: null,
       'arguments': null,
     };
-    return html`
-<visible-modes list>
-  ${this.data.length == 0 ? html`(none)` : html``}
-</visible-modes>
+    return html`<div>
 
-<ul>
-${this.data.map((refData, i) => {
-  return html`<li>
-    <dw-filterref
-      .mode=${this.mode}
-      .data=${refData}
-      @change=${(ev)=>{
-        let dat = this.value;
-        dat[i] = ev.target.value;
-        this.value = dat;
-      }}
-    ></dw-filterref>
-  </li>`;
-})}
-</ul>
+  ${(this.data.length == 0 && this.mode != "add" && this.mode != "edit") ? html`(none)` : ``}
 
-<visible-modes add edit>
-  <button
-    @click=${(ev)=>{this.value = [...this.value, newRefData];}}
-  >Add filter reference</button>
-</visible-modes>
-`;
+  <ol>
+
+    ${this.value.map((refData, i) => {
+      return html`<li><dw-filterref
+        .mode=${this.mode}
+        .data=${refData}
+        @change=${(ev)=>{
+          let dat = this.value;
+          dat[i] = ev.target.value;
+          this.value = dat;
+        }}
+      ></dw-filterref></li>`;
+    })}
+
+    ${ (this.mode === "add" || this.mode === "edit") ? html`
+     <li><button
+        @click=${(ev)=>{this.value = [...this.value, newRefData];}}
+      >Add filter reference</button></li>
+    ` : html`` }
+
+  </ol>
+
+</div>`;
   }
 
 }

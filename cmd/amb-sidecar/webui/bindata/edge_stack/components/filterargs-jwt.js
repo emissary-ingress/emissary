@@ -31,21 +31,55 @@ class FilterArgsJWT extends LitElement {
     };
   }
 
+  static get styles() {
+    return css`
+* {
+  box-sizing: border-box;
+}
+
+:host {
+  display: block
+}
+
+dl {
+  display: grid;
+  grid-template-columns: max-content;
+  grid-gap: 0;
+  margin: 0;
+}
+dl > dt {
+  grid-column: 1 / 2;
+  text-align: right;
+	font-weight: 600;
+}
+dl > dt::after {
+  content: ":";
+}
+dl > dd {
+  grid-column: 2 / 3;
+}
+dl > * {
+  margin: 0;
+	padding: 10px 5px;
+	border-bottom: 1px solid rgba(0, 0, 0, .1);
+}
+dl > :nth-last-child(2), dl > :last-child {
+	border-bottom: none;
+}
+`;
+  }
+
   render() {
-    return html`
-<div class="row line">
+    return html`<dl>
 
-  <div class="row-col margin-right justify-right">scope:</div>
-  <div class="row-col">
-    <dw-scope-values
-      .mode=${this.mode}
-      .data=${this.data.scope}
-      @change=${(ev)=>{this.value = {scope: ev.target.value}}}
-    ></dw-scope-values>
-  </div>
+  <dt>scope</dt>
+  <dd style="padding-top: 0"><dw-scope-values
+    .mode=${this.mode}
+    .data=${this.data.scope}
+    @change=${(ev)=>{this.value = {scope: ev.target.value}}}
+  ></dw-scope-values></dd>
 
-</div>
-      `;
+</dl>`;
   }
 }
 customElements.define('dw-filterargs-jwt', FilterArgsJWT);

@@ -38,76 +38,99 @@ class FilterArgsOAuth2 extends LitElement {
     };
   }
 
+  static get styles() {
+    return css`
+* {
+  box-sizing: border-box;
+}
+
+:host {
+  display: block
+}
+
+dl > dt {
+	font-weight: 600;
+}
+dl > dt::after {
+  content: ":";
+}
+dl > dd {
+	padding: 10px 5px;
+
+  margin-left: 0;
+  padding-left: 1.5em;
+	border-bottom: 1px solid rgba(0, 0, 0, .1);
+}
+dl > dd:nth-last-child(2), dl > dd:last-child {
+	border-bottom: none;
+}
+`;
+  }
+
   render() {
-    return html`
-<div class="row line">
+    return html`<dl>
 
-  <div class="row-col margin-right justify-right">scope:</div>
-  <div class="row-col">
-    <dw-scope-values
-      .mode=${this.mode}
-      .data=${this.data.scope}
-      @change=${(ev)=>{this.value = {...this.value, scope: ev.target.value}}}
-    ></dw-scope-values>
-  </div>
+  <dt>scope</dt>
+  <dd><dw-scope-values
+    .mode=${this.mode}
+    .data=${this.data.scope}
+    @change=${(ev)=>{this.value = {...this.value, scope: ev.target.value}}}
+  ></dw-scope-values></dd>
 
-  <fieldset style=${this.granttype === "ClientCredentials" ? "display: none" : ""}>>
-    <legend>When unauthorized: <select
+  <dt>when unauthorized</dt>
+  <dd><fieldset style=${this.granttype === "ClientCredentials" ? "display: none" : ""}>
+    <legend><select
         ?disabled=${this.mode !== "add" && this.mode !== "edit"}
         @change=${(ev)=>{this.value = {...this.value, useInsteadOfRedirect: (ev.target.value === "insteadOfRedirect")}}}
       >
-      <option ?selected=${!this.data.useInsteadOfRedirect} value="redirect">Always redirect to IDP</option>
-      <option ?selected=${this.data.useInsteadOfRedirect} value="insteadOfRedirect">Sometimes do something else</option>
+      <option ?selected=${!this.data.useInsteadOfRedirect} value="redirect">always redirect to IDP</option>
+      <option ?selected=${this.data.useInsteadOfRedirect} value="insteadOfRedirect">sometimes do something else</option>
     </select></legend>
+    <dl style=${this.value.useInsteadOfRedirect ? "" : "display: none"}>
 
-    <div style=${this.value.useInsteadOfRedirect ? "" : "display: none"}>
-      <div class="row-col margin-right justify-right">when to do something else:</div>
-      <div class="row-col">
+      <dt>when to do something else</dt>
+      <dd style=${this.value.useInsteadOfRedirect ? "" : "display: none"}>
         <dw-header-field-selector
           .mode=${this.mode}
           .data=${this.data.ifRequestHeader}
           @change=${(ev)=>{this.value = {...this.value, ifRequestHeader: ev.target.value}}}
         ></dw-header-field-selector>
-      </div>
+      </dd>
 
-      <fieldset>
-        <legend>what to do: <select
-            ?disabled=${this.mode !== "add" && this.mode !== "edit"}
-            @change=${(ev)=>{this.value = {...this.value, insteadOfRedirectAction: ev.target.value}}}
-          >
+      <dt>what to do</dt>
+      <dd><fieldset>
+        <legend><select
+          ?disabled=${this.mode !== "add" && this.mode !== "edit"}
+          @change=${(ev)=>{this.value = {...this.value, insteadOfRedirectAction: ev.target.value}}}
+        >
           <option ?selected=${this.data.insteadOfRedirectAction==="http"} value="http">simple HTTP error response</option>
           <option ?selected=${this.data.insteadOfRedirectAction==="filters"} value="filters">run other filters</option>
         </select></legend>
-  
-        <div style=${this.value.insteadOfRedirectAction === "http" ? "" : "display: none"}>
-          <div class="row-col margin-right justify-right">HTTP status code:</div>
-          <div class="row-col">
-            <input type="number" min="100" max="599"
+
+        <dl style=${this.value.insteadOfRedirectAction === "http" ? "" : "display: none"}>
+            <dt>HTTP status code</dt>
+            <dd><input type="number" min="100" max="599"
               value=${this.data.httpStatusCode}
-              @change=${(ev)=>{this.value = {...this.value, httpStatusCode: ev.target.value}}}
-            />
-         </div>
-        </div>
+                @change=${(ev)=>{this.value = {...this.value, httpStatusCode: ev.target.value}}}
+            /></dd>
+        </dl>
 
-        <div style=${this.value.insteadOfRedirectAction === "filters" ? "" : "display: none"}>
-          <div class="row-col margin-right justify-right">filters:</div>
-          <div class="row-col">
-            <dw-filterref-list
-              .mode=${this.mode}
-              .data=${this.data.filters}
-              .namespace=${this.namespace}
-              @change=${(ev)=>{this.value = {...this.value, filters: ev.target.value};}}
-            ></dw-filterref-list>
-          </div>
-        </div>
+        <dl style=${this.value.insteadOfRedirectAction === "filters" ? "" : "display: none"}>
+          <dt>filters</dt>
+          <dd><dw-filterref-list
+            .mode=${this.mode}
+            .data=${this.data.filters}
+            .namespace=${this.namespace}
+            @change=${(ev)=>{this.value = {...this.value, filters: ev.target.value};}}
+          ></dw-filterref-list></dd>
+        </dl>
 
-      </fieldset><!-- insteadOfRedirectAction -->
+      </fieldset></dd><!-- "what to do" -->
 
-    </div><!-- useInsteadOfRedirect===true -->
+    </dl><!-- "when unauthorized" -->
+  </fieldset></dd><!-- "when unauthorized" -->
 
-  </fieldset><!-- useInsteadOfRedirect -->
-
-</div>
+</dl>
 `;
   }
 }
