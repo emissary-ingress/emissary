@@ -47,6 +47,18 @@ Format:
 --->
 
 <!--- CueAddReleaseNotes --->
+## [1.0.0-ea6] December 18, 2019
+[1.0.0-ea6]: https://github.com/datawire/ambassador/compare/v0.86.0...v1.0.0-ea6
+
+- Feature: Improve performance of processing events from Kubernetes
+- Feature: Automatic HTTPS should work with any ACME clients doing the HTTP-01 challenge
+- Internal: General improvements to test infrastructure
+- Internal: Improved the release process
+
+`ambassador-internal-access-control` `Filter` and `FilterPolicy` are now
+created internally. Remove them from your cluster if upgrading from a
+previous version.
+
 ## [1.0.0-ea5] December 17, 2019
 [1.0.0-ea5]: https://github.com/datawire/ambassador/compare/v0.86.0...v1.0.0-ea5
 
