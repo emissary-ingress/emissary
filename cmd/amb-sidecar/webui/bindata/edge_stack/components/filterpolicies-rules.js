@@ -63,7 +63,7 @@ class FilterPolicyRule extends LitElement {
   <div class="row-col">
     <dw-filterref-list
       .mode=${this.mode}
-      .data=${this.data.filters}
+      .data=${this.data.filters||[]}
       .namespace=${this.namespace}
       @change=${(ev)=>{this.value = {...this.value, filters: ev.target.value};}}
     ></dw-filterref-list>
