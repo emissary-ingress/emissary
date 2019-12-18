@@ -85,6 +85,10 @@
 	align-self: center
 }
 
+.logo {
+	filter: invert(19%) sepia(64%) saturate(4904%) hue-rotate(248deg) brightness(107%) contrast(101%);
+}
+
 .col2 a.cta  {
 	text-decoration: none;
 	border: 2px #efefef solid;

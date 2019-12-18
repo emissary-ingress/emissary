@@ -515,7 +515,7 @@ export class Filters extends SortableResourceSet {
     return html`
 <div class="header_con">
   <div class="col">
-    <img alt="filters logo" class="img" src="../images/svgs/filters.svg" width="32" height="32">
+    <img alt="filters logo" class="logo" src="../images/svgs/filters.svg" width="32" height="32">
       <g class="nc-icon-wrapper" stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" fill="#608cee" stroke="#608cee"></g>
     </img>
   </div>

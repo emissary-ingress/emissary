@@ -151,7 +151,7 @@ export class APIs extends LitElement {
 <link rel="stylesheet" href="../styles/resources.css">
 <div class="header_con">
   <div class="col">
-    <img alt="apis logo" class="img" src="../images/svgs/apis.svg">
+    <img alt="apis logo" class="logo" src="../images/svgs/apis.svg">
       <g id="Layer_2" data-name="Layer 2">
         <g id="Layer_1-2" data-name="Layer 1"></g>
       </g>
@@ -181,7 +181,7 @@ export class APIs extends LitElement {
 <link rel="stylesheet" href="../styles/resources.css">
 <div class="header_con">
   <div class="col">
-    <img alt="apis2 logo" class="img" src="../images/svgs/apis2.svg"> 
+    <img alt="apis2 logo" src="../images/svgs/apis2.svg"> 
       <g id="Layer_2" data-name="Layer 2">
         <g id="Layer_1-2" data-name="Layer 1"></g>
       </g>
