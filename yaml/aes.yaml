@@ -175,30 +175,6 @@ spec:
   prefix: /openapi/
   rewrite: ""
   service: "127.0.0.1:8500"
----
-apiVersion: getambassador.io/v2
-kind: FilterPolicy
-metadata:
-  name: ambassador-internal-access-control
-  namespace: ambassador
-  labels:
-    product: aes
-spec:
-  rules:
-    - host: "*"
-      path: "*/.ambassador-internal/*"
-      filters:
-        - name: ambassador-internal-access-control
----
-apiVersion: getambassador.io/v2
-kind: Filter
-metadata:
-  name: ambassador-internal-access-control
-  namespace: ambassador
-  labels:
-    product: aes
-spec:
-  Internal: {}
 
 ######################################################################
 # Create the 'ambassador' and 'ambassador-admin' Services.
