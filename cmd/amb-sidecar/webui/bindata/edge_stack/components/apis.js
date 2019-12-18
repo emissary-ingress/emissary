@@ -212,6 +212,8 @@ export class APIs extends LitElement {
   spec-url="${detailURL}"
   show-header="false"
   show-info="true"
+  allow-try="false"
+  allow-server-selection="false"
   allow-authentication="false"
 >
   <div>Documentation for ${apiName} at ${api.routing_prefix}</div>
