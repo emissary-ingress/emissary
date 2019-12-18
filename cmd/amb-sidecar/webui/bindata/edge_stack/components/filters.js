@@ -443,9 +443,14 @@ ${(values || []).map((v, i)=>this.headerTemplateListEntry(values, v, i))}
    */
   renderResource() {
     let type = this.state.mode === "add" || this.state.mode === "edit" ? this.state.type : this.filterType();
-    let render = this[`render${type}`].bind(this);
+    let renderMethod = this[`render${type}`];
+    if (!renderMethod) {
+      renderMethod = () => {
+        return html`Invalid type <q>${type}</q>`;
+      };
+    }
     let subspec = this.state.mode === "add" || this.state.mode === "edit" ? this.state.subspec : this.resource.spec[type];
-    let rendered = render(subspec);
+    let rendered = renderMethod.bind(this)(subspec);
     return html`
 <div class="row line">
   <div class="row-col margin-right justify-right">type:</div>
