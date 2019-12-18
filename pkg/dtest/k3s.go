@@ -53,8 +53,15 @@ func dockerUp(tag string, args ...string) string {
 		id = tag2id(tag)
 
 		if id == "" {
-			cmd := supervisor.Command(prefix, "docker", append([]string{"run", "-d", "-l",
-				fmt.Sprintf("scope=%s", scope), "-l", tag, "--rm"}, args...)...)
+			runArgs := []string{
+				"run",
+				"-d",
+				"--rm",
+				fmt.Sprintf("--label=scope=%s", scope),
+				fmt.Sprintf("--label=%s", tag),
+				fmt.Sprintf("--name=%s-%s", scope, tag),
+			}
+			cmd := supervisor.Command(prefix, "docker", append(runArgs, args...)...)
 			out := cmd.MustCapture(nil)
 			id = strings.TrimSpace(out)[:12]
 		}
