@@ -252,8 +252,10 @@ class Config:
             if Config.ambassador_id in allowed_ids:
                 return True
             else:
-                self.logger.debug(f"Ambassador ID {Config.ambassador_id} does not exist in allowed IDs {allowed_ids}")
-                self.logger.debug(resource)
+                rkey = resource.get('rkey', '-anonymous-yaml-')
+                name = resource.get('name', '-no-name-')
+
+                self.logger.debug(f"{rkey}: {resource_kind} {name} has IDs {allowed_ids}, no match with {Config.ambassador_id}")
                 return False
 
     def save_source(self, resource: ACResource) -> None:

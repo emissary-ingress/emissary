@@ -373,7 +373,7 @@ class IR:
 
         if ss:
             # Done. Return it.
-            self.logger.info(f"resolve_secret {ss_key}: using cached SavedSecret")
+            self.logger.debug(f"resolve_secret {ss_key}: using cached SavedSecret")
             self.secret_handler.still_needed(resource, secret_name, namespace)
             return ss
 
@@ -383,11 +383,11 @@ class IR:
         secret_info = self.secret_info.get(ss_key, None)
 
         if secret_info:
-            self.logger.info(f"resolve_secret {ss_key}: found secret_info")
+            self.logger.debug(f"resolve_secret {ss_key}: found secret_info")
             self.secret_handler.still_needed(resource, secret_name, namespace)
         else:
             # No secret_info, so ask the secret_handler to find us one.
-            self.logger.info(f"resolve_secret {ss_key}: no secret_info, asking handler to load")
+            self.logger.debug(f"resolve_secret {ss_key}: no secret_info, asking handler to load")
             secret_info = self.secret_handler.load_secret(resource, secret_name, namespace)
 
         if not secret_info:
@@ -395,7 +395,7 @@ class IR:
 
             ss = SavedSecret(secret_name, namespace, None, None, None, None)
         else:
-            self.logger.info(f"resolve_secret {ss_key}: found secret, asking handler to cache")
+            self.logger.debug(f"resolve_secret {ss_key}: found secret, asking handler to cache")
 
             # OK, we got a secret_info. Cache that using the secret handler.
             ss = self.secret_handler.cache_secret(resource, secret_info)

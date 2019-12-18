@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING
 
 import sys
 
@@ -27,6 +27,9 @@ from ambassador import Config, IR, Diagnostics, EnvoyConfig
 from ambassador.config.resourcefetcher import ResourceFetcher
 from ambassador.utils import parse_yaml, SecretHandler
 from kat.utils import ShellCommand
+
+if TYPE_CHECKING:
+    from ambassador.ir import IRResource
 
 KubeResource = Dict[str, Any]
 KubeList = List[KubeResource]
