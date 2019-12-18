@@ -20,7 +20,7 @@ func MakeDevPortalFilter() *DevPortalFilter {
 }
 
 func (f *DevPortalFilter) Filter(ctx context.Context, r *filterapi.FilterRequest) (filterapi.FilterResponse, error) {
-	secret := filterutil.GetHeader(r).Get("X-Ambassador-DevPortal-Auth")
+	secret := filterutil.GetHeader(r).Get("X-Ambassador-Internal-Auth")
 	if f.secret.Compare(secret) != 1 {
 		// hide the internal URL from the outside world
 		return &filterapi.HTTPResponse{
