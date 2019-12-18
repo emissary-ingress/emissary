@@ -85,7 +85,9 @@ class AmbScout:
         self.runtime = "kubernetes" if os.environ.get('KUBERNETES_SERVICE_HOST', None) else "docker"
         self.namespace = os.environ.get('AMBASSADOR_NAMESPACE', 'default')
 
-        self.version = self.parse_git_description(Version, Build)
+        self.is_edge_stack = os.path.exists('/ambassador/.edge_stack')
+        self.app = "aes" if self.is_edge_stack else "ambassador"
+        self.version = Version if self.is_edge_stack else self.parse_git_description(Version, Build)
         self.semver = self.get_semver(self.version)
 
         self.logger = logging.getLogger("ambassador.scout")
@@ -126,11 +128,11 @@ class AmbScout:
         if not self._scout:
             if self._local_only:
                 self._scout = LocalScout(logger=self.logger,
-                                         app="ambassador", version=self.version, install_id=self.install_id)
+                                         app=self.app, version=self.version, install_id=self.install_id)
                 self.logger.debug("LocalScout initialized")
             else:
                 try:
-                    self._scout = Scout(app="ambassador", version=self.version, install_id=self.install_id)
+                    self._scout = Scout(app=self.app, version=self.version, install_id=self.install_id)
                     self._scout_error = None
                     self.logger.debug("Scout connection established")
                 except OSError as e:
