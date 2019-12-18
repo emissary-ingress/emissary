@@ -3,8 +3,10 @@ import os
 import pytest
 
 from abstract_tests import AmbassadorTest, HTTP, ServiceType
-from kat.harness import Query
-from kat.manifests import AMBASSADOR, RBAC_CLUSTER_SCOPE
+from kat.harness import Query, load_manifest
+
+AMBASSADOR = load_manifest("ambassador")
+RBAC_CLUSTER_SCOPE = load_manifest("rbac_cluster_scope")
 
 STATSD_MANIFEST = """
 ---

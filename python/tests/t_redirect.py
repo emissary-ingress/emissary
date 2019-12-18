@@ -1,4 +1,4 @@
-from kat.harness import Query
+from kat.harness import Query, EDGE_STACK
 
 from abstract_tests import AmbassadorTest, HTTP
 from abstract_tests import ServiceType
@@ -17,6 +17,9 @@ class RedirectTests(AmbassadorTest):
     target: ServiceType
 
     def init(self):
+        if EDGE_STACK:
+            self.xfail = "Not yet supported in Edge Stack"
+
         self.target = HTTP()
 
     def requirements(self):
