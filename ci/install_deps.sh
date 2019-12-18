@@ -30,6 +30,9 @@ chmod +x ~/bin/helm2
 curl -L -o ~/bin/kubernaut http://releases.datawire.io/kubernaut/${KUBERNAUT_VERSION}/linux/amd64/kubernaut
 chmod +x ~/bin/kubernaut
 
+## Install awscli
+##
+sudo pip install awscli
 
 ## Check all binarys exist in $PATH
 ##

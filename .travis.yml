@@ -15,6 +15,12 @@ branches:
 script: 
   - cd ci && ./run_test.sh
 
-
 after_script:
-  - kubernaut claims delete $(cat ~/kubernaut-claim.txt) 
+  - kubernaut claims delete $(cat ~/kubernaut-claim.txt)
+
+deploy:
+  provider: script
+  script: ci/push_chart.sh
+  on:
+    branch: master
+    tags: true
