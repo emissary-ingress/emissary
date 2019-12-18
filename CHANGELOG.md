@@ -52,7 +52,7 @@ Format:
 
 - Feature: Improve performance of processing events from Kubernetes
 - Feature: Automatic HTTPS should work with any ACME clients doing the HTTP-01 challenge
-- Internal: General improvements to test infrasture
+- Internal: General improvements to test infrastructure
 - Internal: Improved the release process
 
 `ambassador-internal-access-control` `Filter` and `FilterPolicy` are now
