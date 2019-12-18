@@ -6,9 +6,9 @@ The Ambassador Edge Stack is a free comprehensive, self-service API Gateway and 
 
 The Ambassador Edge Stack installs in minutes. There are three general methods for installing the Ambassador Edge Stack:
 
-* [Standard install](../../install). If you're new to Kubernetes and/or Ambassador, use this method.
+* [Standard install](../install). If you're new to Kubernetes and/or Ambassador, use this method.
 * [Docker](../../about/quickstart). Don't have Kubernetes, but want to try out Ambassador? The Ambassador Edge Stack can run locally on your laptop in a Docker container.
-* [Helm](../../helm). Helm is a popular package manager for Kubernetes. If you're using Helm, Ambassador Edge Stack comes pre-packaged as a Helm chart.
+* [Helm](../helm). Helm is a popular package manager for Kubernetes. If you're using Helm, Ambassador Edge Stack comes pre-packaged as a Helm chart.
 
 ## More about the Ambassador Edge Stack
 
