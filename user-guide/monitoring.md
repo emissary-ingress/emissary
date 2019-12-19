@@ -235,7 +235,7 @@ metadata: 
   name: grafana
 spec:     
   prefix: /grafana/
-  service: grafana
+  service: grafana:{{GRAFANA_NAMESPACE}}
 ```
 
 Now, access Grafana by going to `{AMBASSADOR_IP}/grafana/` and logging in with `username: admin` : `password: admin`. 
