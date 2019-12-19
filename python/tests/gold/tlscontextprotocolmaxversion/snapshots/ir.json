@@ -426,6 +426,7 @@
                         "hosts": [
                             "tls-context-host-1"
                         ],
+                        "is_fallback": false,
                         "kind": "TLSContext",
                         "location": "tlscontextprotocolmaxversion.default.3",
                         "max_tls_version": "v1.2",
@@ -468,6 +469,7 @@
                 "hosts": [
                     "tls-context-host-1"
                 ],
+                "is_fallback": false,
                 "kind": "TLSContext",
                 "location": "tlscontextprotocolmaxversion.default.3",
                 "max_tls_version": "v1.2",
@@ -608,6 +610,7 @@
                     "hosts": [
                         "tls-context-host-1"
                     ],
+                    "is_fallback": false,
                     "kind": "TLSContext",
                     "location": "tlscontextprotocolmaxversion.default.3",
                     "max_tls_version": "v1.2",
@@ -694,6 +697,7 @@
             "hosts": [
                 "tls-context-host-1"
             ],
+            "is_fallback": false,
             "kind": "TLSContext",
             "location": "tlscontextprotocolmaxversion.default.3",
             "max_tls_version": "v1.2",

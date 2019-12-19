@@ -110,6 +110,7 @@
                 "_ambassador_enabled": true,
                 "_errored": false,
                 "_rkey": "ir.no-cert-upstream",
+                "is_fallback": false,
                 "kind": "null-TLS-context",
                 "location": "ir.no-cert-upstream",
                 "name": "no-cert-upstream",
@@ -388,6 +389,7 @@
                             "_ambassador_enabled": true,
                             "_errored": false,
                             "_rkey": "ir.no-cert-upstream",
+                            "is_fallback": false,
                             "kind": "null-TLS-context",
                             "location": "ir.no-cert-upstream",
                             "name": "no-cert-upstream",
@@ -448,6 +450,7 @@
                         "hosts": [
                             "tls-context-host-1"
                         ],
+                        "is_fallback": false,
                         "kind": "TLSContext",
                         "location": "tlscontextciphersuites.default.2",
                         "max_tls_version": "v1.2",
@@ -496,6 +499,7 @@
                 "hosts": [
                     "tls-context-host-1"
                 ],
+                "is_fallback": false,
                 "kind": "TLSContext",
                 "location": "tlscontextciphersuites.default.2",
                 "max_tls_version": "v1.2",
@@ -642,6 +646,7 @@
                     "hosts": [
                         "tls-context-host-1"
                     ],
+                    "is_fallback": false,
                     "kind": "TLSContext",
                     "location": "tlscontextciphersuites.default.2",
                     "max_tls_version": "v1.2",
@@ -734,6 +739,7 @@
             "hosts": [
                 "tls-context-host-1"
             ],
+            "is_fallback": false,
             "kind": "TLSContext",
             "location": "tlscontextciphersuites.default.2",
             "max_tls_version": "v1.2",
@@ -756,6 +762,7 @@
             "_ambassador_enabled": true,
             "_errored": false,
             "_rkey": "ir.no-cert-upstream",
+            "is_fallback": false,
             "kind": "null-TLS-context",
             "location": "ir.no-cert-upstream",
             "name": "no-cert-upstream",

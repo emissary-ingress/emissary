@@ -11,13 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License
-
 from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING
 from typing import cast as typecast
 
 import json
-
-# from copy import deepcopy
 
 from multi import multi
 from ...ir.irlistener import IRListener
@@ -29,14 +26,16 @@ from ...ir.irratelimit import IRRateLimit
 from ...ir.ircors import IRCORS
 from ...ir.ircluster import IRCluster
 from ...ir.irtcpmappinggroup import IRTCPMappingGroup
+from ...ir.irtlscontext import IRTLSContext
 
-from ambassador.utils import ParsedService as Service
+from ...utils import ParsedService as Service
 
 from .v2tls import V2TLSContext
-# from .v2route import V2Route
 
 if TYPE_CHECKING:
     from . import V2Config
+
+EnvoyCTXInfo = Tuple[str, Optional[List[str]], V2TLSContext]
 
 # Static header keys normally used in the context of an authorization request.
 AllowedRequestHeaders = frozenset([
@@ -513,7 +512,6 @@ class V2Listener(dict):
                 # tcp loggers do not support additional headers
                 self.access_log.append({"name": "envoy.tcp_grpc_access_log", "config": access_log_obj})
 
-
         if listener.redirect_listener:
             self.http_filters = [{'name': 'envoy.router'}]
         else:
@@ -732,6 +730,13 @@ class V2Listener(dict):
         if self.listener_filters:
             self['listener_filters'] = self.listener_filters
 
+    @staticmethod
+    def envoy_ctx_info(tls_context: IRTLSContext) -> EnvoyCTXInfo:
+        v2ctx = V2TLSContext(tls_context)
+
+        # config.ir.logger.debug(json.dumps(v2ctx, indent=4, sort_keys=True))
+        return (tls_context.name, tls_context.hosts, v2ctx)
+
     def handle_sni(self, config: 'V2Config') -> None:
         """
         Manage filter chains, etc., for SNI.
@@ -744,17 +749,43 @@ class V2Listener(dict):
 
         # We'll assemble a list of active TLS contexts here. It may end up empty,
         # of course.
-        envoy_contexts: List[Tuple[str, Optional[List[str]], V2TLSContext]] = []
+        #
+        # Note that if we have a fallback context, it will not be part of this list.
+        envoy_contexts: List[EnvoyCTXInfo] = []
+        fallback_context: Optional[IRTLSContext] = None
+        have_wildcard_hosts = False
 
         for tls_context in config.ir.get_tls_contexts():
-            if tls_context.get('hosts', None):
-                config.ir.logger.debug("V2Listener: SNI taking termination context '%s'" % tls_context.name)
+            ctx_hosts = tls_context.get('hosts', None)
+            wildcard_str = ""
+
+            if ctx_hosts:
+                if tls_context.is_fallback:
+                    config.ir.logger.debug("V2Listener: SNI delaying fallback context '%s'" % tls_context.name)
+                    fallback_context = tls_context
+                    continue
+
+                for host in ctx_hosts:
+                    if host == '*':
+                        wildcard_str = " wildcard"
+                        have_wildcard_hosts = True
+
+                config.ir.logger.info("V2Listener: SNI taking%s termination context '%s'" %
+                                       (wildcard_str, tls_context.name))
                 config.ir.logger.debug(tls_context.as_json())
-                v2ctx = V2TLSContext(tls_context)
-                # config.ir.logger.debug(json.dumps(v2ctx, indent=4, sort_keys=True))
-                envoy_contexts.append((tls_context.name, tls_context.hosts, v2ctx))
+
+                envoy_contexts.append(self.envoy_ctx_info(tls_context))
             else:
                 config.ir.logger.debug("V2Listener: SNI skipping origination context '%s'" % tls_context.name)
+
+        if fallback_context:
+            # OK, we have a fallback context. Is it in play?
+            if have_wildcard_hosts:
+                config.ir.logger.info(f"V2Listener: SNI skipping fallback context '%s' since we have a wildcard context" %
+                                       fallback_context.name)
+            else:
+                config.ir.logger.info("V2Listener: SNI taking fallback context '%s'" % fallback_context.name)
+                envoy_contexts.append(self.envoy_ctx_info(fallback_context))
 
         # OK. If we have multiple contexts here, SNI is likely a thing.
         if len(envoy_contexts) > 1:
@@ -838,7 +869,13 @@ class V2Listener(dict):
                 'ctx_hosts': chain['_ctx_hosts']
             }
 
+            ctx = chain.get('tls_context') or None
+
+            if ctx and ctx.is_fallback:
+                di['is_fallback'] = True
+
             dumpinfo.append(di)
+
         config.ir.logger.info("V2Listener: SNI filter chains\n%s" %
                               json.dumps(dumpinfo, indent=4, sort_keys=True))
 

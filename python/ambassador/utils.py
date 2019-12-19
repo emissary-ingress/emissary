@@ -414,12 +414,15 @@ class SecretHandler:
         tls_key = secret_info.tls_key
         user_key = secret_info.user_key
 
+        return self.cache_internal(name, namespace, tls_crt, tls_key, user_key)
+
+    def cache_internal(self, name: str, namespace: str,tls_crt: str, tls_key: str, user_key: str) -> SavedSecret:
+        h = hashlib.new('sha1')
+
         tls_crt_path = None
         tls_key_path = None
         user_key_path = None
         cert_data = None
-
-        h = hashlib.new('sha1')
 
         # Don't save if it has neither a tls_crt or a user_key.
         if tls_crt or user_key:
@@ -453,6 +456,8 @@ class SecretHandler:
                 'tls_key': tls_key,
                 'user_key': user_key,
             }
+
+            self.logger.debug(f"saved secret {name}.{namespace}: {tls_crt_path}, {tls_key_path}")
 
         return SavedSecret(name, namespace, tls_crt_path, tls_key_path, user_key_path, cert_data)
 
