@@ -186,11 +186,11 @@ li:last-child {
     };
     return html`<div>
 
-  ${(this.data.length == 0 && this.mode != "add" && this.mode != "edit") ? html`(none)` : ``}
+  ${((this.data||[]).length == 0 && this.mode != "add" && this.mode != "edit") ? html`(none)` : ``}
 
   <ul>
 
-    ${this.value.map((ruleData, i) => {
+    ${(this.value||[]).map((ruleData, i) => {
       return html`<li><dw-filterpolicy-rule
         .mode=${this.mode}
         .data=${ruleData}

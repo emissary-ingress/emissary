@@ -7,7 +7,6 @@ class FilterPolicy extends SingleResource {
   // override
   constructor() {
     super();
-    this.formRules = [];
   }
 
   // implement
@@ -18,7 +17,7 @@ class FilterPolicy extends SingleResource {
   // implement
   spec() {
     return {
-      rules: this.formRules
+      rules: this.shadowRoot.querySelector('dw-filterpolicy-rule-list').value,
     };
   }
 
@@ -77,7 +76,6 @@ dl > :nth-last-child(2), dl > :last-child {
       .mode=${this.state.mode}
       .data=${this.resource.spec.rules}
       .namespace=${this.resource.metadata.namespace}
-      @change=${(ev)=>{this.formRules = ev.target.rules;}}
     ></dw-filterpolicy-rule-list>
   </dd>
 </dl>
