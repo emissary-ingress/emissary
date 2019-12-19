@@ -19,8 +19,8 @@ class FilterArgsJWT extends LitElement {
   }
 
   reset() {
-    this.shadowRoot.querySelectorAll('dw-scope-values').forEach((el)=>{el.reset();});
     this._value = null;
+    this.shadowRoot.querySelectorAll('dw-scope-values').forEach((el)=>{el.reset();});
   }
 
   constructor() {

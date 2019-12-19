@@ -107,10 +107,9 @@ class FilterRef extends LitElement {
 
   reset() {
     this._value = null;
-    this.shadowRoot.querySelectorAll('dw-filterref-list').forEach((el)=>{el.reset();});
+    this.shadowRoot.querySelectorAll('dw-filterargs-jwt').forEach((el)=>{el.reset();});
+    this.shadowRoot.querySelectorAll('dw-filterargs-oauth2').forEach((el)=>{el.reset();});
     this.shadowRoot.querySelectorAll('dw-header-field-selector').forEach((el)=>{el.reset();});
-    this.shadowRoot.querySelectorAll('dw-scope-values').forEach((el)=>{el.reset();});
-    this.shadowRoot.querySelectorAll('input').forEach((el)=>{el.value = el.defaultValue;});
     this.shadowRoot.querySelectorAll('select').forEach((el)=>{el.value = el.querySelector('option[selected]').value;});
   }
 
@@ -235,7 +234,7 @@ dl > :nth-last-child(2), dl > :last-child {
             dat['arguments'][`${dat.name}.${dat.namespace}`] = ev.target.value;
             this.rawValue = dat;
           }}
-        ></dw-scope-values></dd>
+        ></dw-filterargs-oauth2></dd>
       `;
     case 'JWT':
       return html`
@@ -248,7 +247,7 @@ dl > :nth-last-child(2), dl > :last-child {
             dat['arguments'][`${dat.name}.${dat.namespace}`] = ev.target.value;
             this.rawValue = dat;
           }}
-        ></dw-scope-values></dd>
+        ></dw-filterargs-jwt></dd>
       `;
     default:
       return html``;

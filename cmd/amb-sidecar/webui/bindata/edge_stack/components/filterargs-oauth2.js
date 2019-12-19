@@ -20,8 +20,12 @@ class FilterArgsOAuth2 extends LitElement {
   }
 
   reset() {
-    this.shadowRoot.querySelectorAll('dw-scope-values').forEach((el)=>{el.reset();});
     this._value = null;
+    this.shadowRoot.querySelectorAll('dw-filterref-list').forEach((el)=>{el.reset();});
+    this.shadowRoot.querySelectorAll('dw-header-field-selector').forEach((el)=>{el.reset();});
+    this.shadowRoot.querySelectorAll('dw-scope-values').forEach((el)=>{el.reset();});
+    this.shadowRoot.querySelectorAll('input').forEach((el)=>{el.value = el.defaultValue;});
+    this.shadowRoot.querySelectorAll('select').forEach((el)=>{el.value = el.querySelector('option[selected]').value;});
   }
 
   constructor() {
@@ -109,10 +113,16 @@ dl > dd:nth-last-child(2), dl > dd:last-child {
 
         <dl style=${this.value.insteadOfRedirectAction === "http" ? "" : "display: none"}>
             <dt>HTTP status code</dt>
-            <dd><input type="number" min="100" max="599"
-              value=${this.data.httpStatusCode}
+            <dd>
+              <visible-modes .mode=${this.mode} list><span>${this.data.httpStatusCode}</span></visible-modes>
+              <visible-modes .mode=${this.mode} edit add><input
+                type="number"
+                min="100"
+                max="599"
+                value=${this.data.httpStatusCode}
                 @change=${(ev)=>{this.value = {...this.value, httpStatusCode: ev.target.value}}}
-            /></dd>
+              /></visible-modes>
+           </dd>
         </dl>
 
         <dl style=${this.value.insteadOfRedirectAction === "filters" ? "" : "display: none"}>
