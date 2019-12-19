@@ -47,6 +47,15 @@ Format:
 --->
 
 <!--- CueAddReleaseNotes --->
+## [1.0.0-ea7] December 19, 2019
+[1.0.0-ea7]: https://github.com/datawire/ambassador/compare/v0.86.0...v1.0.0-ea7
+
+- Bugfix: UI buttons can hide themselves
+- Bugfix: Developer Portal API acquisition 
+- Bugfix: Developer Portal internal routing
+- Internal: Better JS console usage
+- Internal: Rationalize usage reporting for Edge Stack
+
 ## [1.0.0-ea6] December 18, 2019
 [1.0.0-ea6]: https://github.com/datawire/ambassador/compare/v0.86.0...v1.0.0-ea6
 

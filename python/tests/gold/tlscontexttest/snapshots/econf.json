@@ -316,6 +316,31 @@
                                                     {
                                                         "match": {
                                                             "case_sensitive": true,
+                                                            "headers": [
+                                                                {
+                                                                    "exact_match": "tls-context-host-1",
+                                                                    "name": ":authority"
+                                                                }
+                                                            ],
+                                                            "prefix": "/tls-context-same/",
+                                                            "runtime_fraction": {
+                                                                "default_value": {
+                                                                    "denominator": "HUNDRED",
+                                                                    "numerator": 100
+                                                                },
+                                                                "runtime_key": "routing.traffic_shift.cluster_http___tlscontexttest_http"
+                                                            }
+                                                        },
+                                                        "route": {
+                                                            "cluster": "cluster_http___tlscontexttest_http",
+                                                            "prefix_rewrite": "/",
+                                                            "priority": null,
+                                                            "timeout": "3.000s"
+                                                        }
+                                                    },
+                                                    {
+                                                        "match": {
+                                                            "case_sensitive": true,
                                                             "prefix": "/TLSContextTest/",
                                                             "runtime_fraction": {
                                                                 "default_value": {
@@ -349,31 +374,6 @@
                                                             "prefix_rewrite": "/ambassador/v0/",
                                                             "priority": null,
                                                             "timeout": "10.000s"
-                                                        }
-                                                    },
-                                                    {
-                                                        "match": {
-                                                            "case_sensitive": true,
-                                                            "headers": [
-                                                                {
-                                                                    "exact_match": "tls-context-host-1",
-                                                                    "name": ":authority"
-                                                                }
-                                                            ],
-                                                            "prefix": "/tls-context-same/",
-                                                            "runtime_fraction": {
-                                                                "default_value": {
-                                                                    "denominator": "HUNDRED",
-                                                                    "numerator": 100
-                                                                },
-                                                                "runtime_key": "routing.traffic_shift.cluster_http___tlscontexttest_http"
-                                                            }
-                                                        },
-                                                        "route": {
-                                                            "cluster": "cluster_http___tlscontexttest_http",
-                                                            "prefix_rewrite": "/",
-                                                            "priority": null,
-                                                            "timeout": "3.000s"
                                                         }
                                                     }
                                                 ]
@@ -488,6 +488,31 @@
                                                     {
                                                         "match": {
                                                             "case_sensitive": true,
+                                                            "headers": [
+                                                                {
+                                                                    "exact_match": "tls-context-host-2",
+                                                                    "name": ":authority"
+                                                                }
+                                                            ],
+                                                            "prefix": "/tls-context-same/",
+                                                            "runtime_fraction": {
+                                                                "default_value": {
+                                                                    "denominator": "HUNDRED",
+                                                                    "numerator": 100
+                                                                },
+                                                                "runtime_key": "routing.traffic_shift.cluster_http___tlscontexttest_http"
+                                                            }
+                                                        },
+                                                        "route": {
+                                                            "cluster": "cluster_http___tlscontexttest_http",
+                                                            "prefix_rewrite": "/",
+                                                            "priority": null,
+                                                            "timeout": "3.000s"
+                                                        }
+                                                    },
+                                                    {
+                                                        "match": {
+                                                            "case_sensitive": true,
                                                             "prefix": "/TLSContextTest/",
                                                             "runtime_fraction": {
                                                                 "default_value": {
@@ -521,31 +546,6 @@
                                                             "prefix_rewrite": "/ambassador/v0/",
                                                             "priority": null,
                                                             "timeout": "10.000s"
-                                                        }
-                                                    },
-                                                    {
-                                                        "match": {
-                                                            "case_sensitive": true,
-                                                            "headers": [
-                                                                {
-                                                                    "exact_match": "tls-context-host-2",
-                                                                    "name": ":authority"
-                                                                }
-                                                            ],
-                                                            "prefix": "/tls-context-same/",
-                                                            "runtime_fraction": {
-                                                                "default_value": {
-                                                                    "denominator": "HUNDRED",
-                                                                    "numerator": 100
-                                                                },
-                                                                "runtime_key": "routing.traffic_shift.cluster_http___tlscontexttest_http"
-                                                            }
-                                                        },
-                                                        "route": {
-                                                            "cluster": "cluster_http___tlscontexttest_http",
-                                                            "prefix_rewrite": "/",
-                                                            "priority": null,
-                                                            "timeout": "3.000s"
                                                         }
                                                     }
                                                 ]

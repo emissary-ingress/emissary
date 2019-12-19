@@ -48,6 +48,8 @@ class IRTLSContext(IRResource):
     secret_namespacing: Optional[bool]
     secret_info: dict
 
+    is_fallback: bool
+
     _ambassador_enabled: bool
     _legacy: bool
 
@@ -59,6 +61,7 @@ class IRTLSContext(IRResource):
                  metadata_labels: Optional[Dict[str, str]]=None,
                  kind: str="IRTLSContext",
                  apiVersion: str = "getambassador.io/v2",
+                 is_fallback: Optional[bool]=False,
                  **kwargs) -> None:
 
         new_args = {
@@ -69,7 +72,7 @@ class IRTLSContext(IRResource):
         super().__init__(
             ir=ir, aconf=aconf, rkey=rkey, location=location,
             kind=kind, name=name, namespace=namespace, metadata_labels=metadata_labels,
-            apiVersion=apiVersion,
+            is_fallback=is_fallback, apiVersion=apiVersion,
             **new_args
         )
 
@@ -138,7 +141,7 @@ class IRTLSContext(IRResource):
         secret_namespacing = self.lookup('secret_namespacing', True,
                                          default_key='tls_secret_namespacing')
 
-        self.ir.logger.info(f"TLSContext.resolve_secret {secret_name}, namespace {namespace}: namespacing is {secret_namespacing}")
+        self.ir.logger.debug(f"TLSContext.resolve_secret {secret_name}, namespace {namespace}: namespacing is {secret_namespacing}")
 
         if "." in secret_name and secret_namespacing:
             secret_name, namespace = secret_name.split('.', 1)
@@ -384,6 +387,7 @@ class TLSContextFactory:
                 location="-internal-",
                 hosts=["*"],
                 secret=tls_name,
+                is_fallback=True
             )
 
             if not os.environ.get('AMBASSADOR_NO_TLS_REDIRECT', None):
