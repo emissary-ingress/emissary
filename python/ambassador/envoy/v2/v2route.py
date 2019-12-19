@@ -56,6 +56,13 @@ class V2Route(dict):
     def __init__(self, config: 'V2Config', group: IRHTTPMappingGroup, mapping: IRBaseMapping) -> None:
         super().__init__()
 
+        # Stash SNI info where we can find it later.
+        if group.get('sni'):
+            self['_sni'] = {
+                'hosts': group['tls_context']['hosts'],
+                'secret_info': group['tls_context']['secret_info']
+            }
+
         envoy_route = EnvoyRoute(group).envoy_route
 
         mapping_prefix = mapping.get('prefix', None)
@@ -243,15 +250,7 @@ class V2Route(dict):
 
             for mapping in irgroup.mappings:
                 route = config.save_element('route', irgroup, V2Route(config, irgroup, mapping))
-
-                if irgroup.get('sni'):
-                    info = {
-                        'hosts': irgroup['tls_context']['hosts'],
-                        'secret_info': irgroup['tls_context']['secret_info']
-                    }
-                    config.sni_routes.append({'route': route, 'info': info})
-                else:
-                    config.routes.append(route)
+                config.routes.append(route)
 
     @staticmethod
     def generate_headers(config: 'V2Config', mapping_group: IRHTTPMappingGroup) -> List[dict]:
