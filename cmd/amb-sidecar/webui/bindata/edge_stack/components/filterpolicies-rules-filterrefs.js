@@ -190,6 +190,9 @@ dl > :nth-last-child(2), dl > :last-child {
       ${Object.entries(this.filters).sort((a, b) => b[0].localeCompare(a[0])).map(([k, v])=>{
         return html`<option ?selected=${k===`${this.data.name}.${this.data.namespace}`} value=${k}>${k} (${this._filterType(k)})</option>`;
       })}
+      ${ (this.filters[`${this.data.name}.${this.data.namespace}`]) ? html`` : html`
+        <option selected value=${`${this.data.name}.${this.data.namespace}`}>${this.data.name}.${this.data.namespace} (missing)</option>
+      `}
     </select></visible-modes>
   </dd>
 
