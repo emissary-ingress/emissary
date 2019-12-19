@@ -195,23 +195,23 @@ dl > :nth-last-child(2), dl > :last-child {
 
   <dt>onDeny</dt>
   <dd>
-    <visible-modes .mode=${this.mode} list><span><tt>${this.data.onDeny}</tt></span></visible-modes>
+    <visible-modes .mode=${this.mode} list><span><tt>${this.data.onDeny||"break"}</tt></span></visible-modes>
     <visible-modes .mode=${this.mode} edit add><select
       @change=${(ev)=>{this.rawValue = {...this.rawValue, onDeny: ev.target.value};}}
     >
-      <option ?selected=${this.data.onDeny==="break"} value="break"><tt>break</tt> (default)</option>
-      <option ?selected=${this.data.onDeny==="continue"} value="continue"><tt>continue</tt></option>
+      <option ?selected=${(this.data.onDeny||"break")==="break"} value="break"><tt>break</tt> (default)</option>
+      <option ?selected=${(this.data.onDeny||"break")==="continue"} value="continue"><tt>continue</tt></option>
     </select></visible-modes>
   </dd>
 
   <dt>onAllow</dt>
   <dd>
-    <visible-modes .mode=${this.mode} list><span><tt>${this.data.onAllow}</tt></span></visible-modes>
+    <visible-modes .mode=${this.mode} list><span><tt>${this.data.onAllow||"continue"}</tt></span></visible-modes>
     <visible-modes .mode=${this.mode} edit add><select
       @change=${(ev)=>{this.rawValue = {...this.rawValue, onAllow: ev.target.value};}}
     >
-      <option ?selected=${this.data.onAllow==="break"} value="break"><tt>break</tt></option>
-      <option ?selected=${this.data.onAllow==="continue"} value="continue"><tt>continue</tt> (default)</option>
+      <option ?selected=${(this.data.onAllow||"continue")==="break"} value="break"><tt>break</tt></option>
+      <option ?selected=${(this.data.onAllow||"continue")==="continue"} value="continue"><tt>continue</tt> (default)</option>
     </select></visible-modes>
   </dd>
 
