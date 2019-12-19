@@ -42,14 +42,12 @@ class V2Config (EnvoyConfig):
     listeners: List[V2Listener]
     clusters: List[V2Cluster]
     static_resources: V2StaticResources
-    sni_routes: List[Dict[str, Any]]
 
     def __init__(self, ir: IR) -> None:
         super().__init__(ir)
         V2Admin.generate(self)
         V2Tracing.generate(self)
 
-        self.sni_routes = []
         V2RateLimit.generate(self)
         V2Route.generate(self)
         V2Listener.generate(self)
