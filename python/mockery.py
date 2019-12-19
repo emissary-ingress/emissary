@@ -22,10 +22,9 @@ from watch_hook import WatchHook
 click_option = functools.partial(click.option, show_default=True)
 click_option_no_default = functools.partial(click.option, show_default=False)
 
-
 from ambassador import Config, IR, Diagnostics, EnvoyConfig
 from ambassador.config.resourcefetcher import ResourceFetcher
-from ambassador.utils import parse_yaml, SecretHandler
+from ambassador.utils import parse_yaml, SecretHandler, SecretInfo
 from kat.utils import ShellCommand
 
 if TYPE_CHECKING:
@@ -271,6 +270,21 @@ class Mockery:
 
         return True, any_changes
 
+
+class MockSecretHandler(SecretHandler):
+    def load_secret(self, resource: 'IRResource', secret_name: str, namespace: str) -> Optional[SecretInfo]:
+        if os.path.exists('/ambassador/.edge_stack'):
+            if ((secret_name == "fallback-self-signed-cert") and
+                (namespace == Config.ambassador_namespace)):
+                # This is Edge Stack. Force the fake TLS secret.
+
+                self.logger.info(f"MockSecretHandler: mocking fallback secret {secret_name}.{namespace}")
+                return SecretInfo(secret_name, namespace, "mocked-fallback-secret",
+                                  "-fallback-cert-", "-fallback-key-", decode_b64=False)
+
+        self.logger.debug(f"MockSecretHandler: cannot load {secret_name}.{namespace}")
+        return None
+
 @click.command(help="Mock the watt/watch_hook/diagd cycle to generate an IR from a Kubernetes YAML manifest.")
 @click_option('--debug/--no-debug', default=True,
               help="enable debugging")
@@ -406,7 +420,7 @@ def main(k8s_yaml_path: str, debug: bool, force_pod_labels: bool, update: bool,
         if e.errno != errno.EEXIST:
             raise
 
-    scc = SecretHandler(logger, "mockery", "/tmp/ambassador/snapshots", f"v{iteration}")
+    scc = MockSecretHandler(logger, "mockery", "/tmp/ambassador/snapshots", f"v{iteration}")
 
     aconf = Config()
 

@@ -144,6 +144,7 @@
                 "_ambassador_enabled": true,
                 "_errored": false,
                 "_rkey": "ir.no-cert-upstream",
+                "is_fallback": false,
                 "kind": "null-TLS-context",
                 "location": "ir.no-cert-upstream",
                 "name": "no-cert-upstream",
@@ -242,7 +243,7 @@
                     },
                     "group_id": "b4db12f5b638f1750062dd4220911c4f6f44fc57",
                     "headers": [],
-                    "kind": "IRMapping",
+                    "kind": "IRHTTPMapping",
                     "location": "--internal--",
                     "name": "internal_readiness_probe_mapping",
                     "namespace": "default",
@@ -331,7 +332,7 @@
                     },
                     "group_id": "7df546235997704c909d473af2cbcb5e606d20de",
                     "headers": [],
-                    "kind": "IRMapping",
+                    "kind": "IRHTTPMapping",
                     "location": "--internal--",
                     "name": "internal_liveness_probe_mapping",
                     "namespace": "default",
@@ -434,6 +435,11 @@
                     "host": "tls-context-host-2",
                     "kind": "Mapping",
                     "location": "tlscontexttest.default.3",
+                    "metadata_labels": {
+                        "app.kubernetes.io/component": "ambassador-service",
+                        "kat-ambassador-id": "tlscontexttest",
+                        "scope": "AmbassadorTest"
+                    },
                     "name": "TLSContextTest-same-prefix-2",
                     "namespace": "default",
                     "precedence": 0,
@@ -448,7 +454,7 @@
                         "GET",
                         ":authority-tls-context-host-2"
                     ],
-                    "serialization": "ambassador_id: tlscontexttest\napiVersion: ambassador/v1\nhost: tls-context-host-2\nkind: Mapping\nname: TLSContextTest-same-prefix-2\nprefix: /tls-context-same/\nservice: http://tlscontexttest-http\n",
+                    "serialization": "ambassador_id: tlscontexttest\napiVersion: ambassador/v1\nhost: tls-context-host-2\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlscontexttest\n  scope: AmbassadorTest\nname: TLSContextTest-same-prefix-2\nprefix: /tls-context-same/\nservice: http://tlscontexttest-http\n",
                     "service": "http://tlscontexttest-http",
                     "sni": true,
                     "tls_context": {
@@ -462,8 +468,14 @@
                         "hosts": [
                             "tls-context-host-2"
                         ],
+                        "is_fallback": false,
                         "kind": "TLSContext",
                         "location": "tlscontexttest.default.4",
+                        "metadata_labels": {
+                            "app.kubernetes.io/component": "ambassador-service",
+                            "kat-ambassador-id": "tlscontexttest",
+                            "scope": "AmbassadorTest"
+                        },
                         "name": "TLSContextTest-same-context-2",
                         "namespace": "default",
                         "redirect_cleartext_from": 8080,
@@ -476,12 +488,17 @@
                     "weight": 100
                 }
             ],
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "tlscontexttest",
+                "scope": "AmbassadorTest"
+            },
             "name": "GROUP: TLSContextTest-same-prefix-2",
             "namespace": "default",
             "precedence": 0,
             "prefix": "/tls-context-same/",
             "rewrite": "/",
-            "serialization": "ambassador_id: tlscontexttest\napiVersion: ambassador/v1\nhost: tls-context-host-2\nkind: Mapping\nname: TLSContextTest-same-prefix-2\nprefix: /tls-context-same/\nservice: http://tlscontexttest-http\n",
+            "serialization": "ambassador_id: tlscontexttest\napiVersion: ambassador/v1\nhost: tls-context-host-2\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlscontexttest\n  scope: AmbassadorTest\nname: TLSContextTest-same-prefix-2\nprefix: /tls-context-same/\nservice: http://tlscontexttest-http\n",
             "sni": true,
             "tls_context": {
                 "_active": true,
@@ -494,8 +511,14 @@
                 "hosts": [
                     "tls-context-host-2"
                 ],
+                "is_fallback": false,
                 "kind": "TLSContext",
                 "location": "tlscontexttest.default.4",
+                "metadata_labels": {
+                    "app.kubernetes.io/component": "ambassador-service",
+                    "kat-ambassador-id": "tlscontexttest",
+                    "scope": "AmbassadorTest"
+                },
                 "name": "TLSContextTest-same-context-2",
                 "namespace": "default",
                 "redirect_cleartext_from": 8080,
@@ -582,6 +605,11 @@
                     "host": "tls-context-host-1",
                     "kind": "Mapping",
                     "location": "tlscontexttest.default.1",
+                    "metadata_labels": {
+                        "app.kubernetes.io/component": "ambassador-service",
+                        "kat-ambassador-id": "tlscontexttest",
+                        "scope": "AmbassadorTest"
+                    },
                     "name": "TLSContextTest-same-prefix-1",
                     "namespace": "default",
                     "precedence": 0,
@@ -596,7 +624,7 @@
                         "GET",
                         ":authority-tls-context-host-1"
                     ],
-                    "serialization": "ambassador_id: tlscontexttest\napiVersion: ambassador/v0\nhost: tls-context-host-1\nkind: Mapping\nname: TLSContextTest-same-prefix-1\nprefix: /tls-context-same/\nservice: http://tlscontexttest-http\n",
+                    "serialization": "ambassador_id: tlscontexttest\napiVersion: ambassador/v0\nhost: tls-context-host-1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlscontexttest\n  scope: AmbassadorTest\nname: TLSContextTest-same-prefix-1\nprefix: /tls-context-same/\nservice: http://tlscontexttest-http\n",
                     "service": "http://tlscontexttest-http",
                     "sni": true,
                     "tls_context": {
@@ -609,9 +637,15 @@
                         "hosts": [
                             "tls-context-host-1"
                         ],
+                        "is_fallback": false,
                         "kind": "TLSContext",
                         "location": "tlscontexttest.default.2",
                         "max_tls_version": "v1.3",
+                        "metadata_labels": {
+                            "app.kubernetes.io/component": "ambassador-service",
+                            "kat-ambassador-id": "tlscontexttest",
+                            "scope": "AmbassadorTest"
+                        },
                         "min_tls_version": "v1.0",
                         "name": "TLSContextTest-same-context-1",
                         "namespace": "default",
@@ -625,12 +659,17 @@
                     "weight": 100
                 }
             ],
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "tlscontexttest",
+                "scope": "AmbassadorTest"
+            },
             "name": "GROUP: TLSContextTest-same-prefix-1",
             "namespace": "default",
             "precedence": 0,
             "prefix": "/tls-context-same/",
             "rewrite": "/",
-            "serialization": "ambassador_id: tlscontexttest\napiVersion: ambassador/v0\nhost: tls-context-host-1\nkind: Mapping\nname: TLSContextTest-same-prefix-1\nprefix: /tls-context-same/\nservice: http://tlscontexttest-http\n",
+            "serialization": "ambassador_id: tlscontexttest\napiVersion: ambassador/v0\nhost: tls-context-host-1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlscontexttest\n  scope: AmbassadorTest\nname: TLSContextTest-same-prefix-1\nprefix: /tls-context-same/\nservice: http://tlscontexttest-http\n",
             "sni": true,
             "tls_context": {
                 "_active": true,
@@ -642,9 +681,15 @@
                 "hosts": [
                     "tls-context-host-1"
                 ],
+                "is_fallback": false,
                 "kind": "TLSContext",
                 "location": "tlscontexttest.default.2",
                 "max_tls_version": "v1.3",
+                "metadata_labels": {
+                    "app.kubernetes.io/component": "ambassador-service",
+                    "kat-ambassador-id": "tlscontexttest",
+                    "scope": "AmbassadorTest"
+                },
                 "min_tls_version": "v1.0",
                 "name": "TLSContextTest-same-context-1",
                 "namespace": "default",
@@ -713,6 +758,7 @@
                             "_ambassador_enabled": true,
                             "_errored": false,
                             "_rkey": "ir.no-cert-upstream",
+                            "is_fallback": false,
                             "kind": "null-TLS-context",
                             "location": "ir.no-cert-upstream",
                             "name": "no-cert-upstream",
@@ -728,6 +774,11 @@
                     "headers": [],
                     "kind": "Mapping",
                     "location": "tlscontexttest.default.6",
+                    "metadata_labels": {
+                        "app.kubernetes.io/component": "ambassador-service",
+                        "kat-ambassador-id": "tlscontexttest",
+                        "scope": "AmbassadorTest"
+                    },
                     "name": "TLSContextTest-other-mapping",
                     "namespace": "default",
                     "precedence": 0,
@@ -741,17 +792,22 @@
                         "/TLSContextTest/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: tlscontexttest\napiVersion: ambassador/v1\nkind: Mapping\nname: TLSContextTest-other-mapping\nprefix: /TLSContextTest/\nservice: https://tlscontexttest-http\n",
+                    "serialization": "ambassador_id: tlscontexttest\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlscontexttest\n  scope: AmbassadorTest\nname: TLSContextTest-other-mapping\nprefix: /TLSContextTest/\nservice: https://tlscontexttest-http\n",
                     "service": "https://tlscontexttest-http",
                     "weight": 100
                 }
             ],
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "tlscontexttest",
+                "scope": "AmbassadorTest"
+            },
             "name": "GROUP: TLSContextTest-other-mapping",
             "namespace": "default",
             "precedence": 0,
             "prefix": "/TLSContextTest/",
             "rewrite": "/",
-            "serialization": "ambassador_id: tlscontexttest\napiVersion: ambassador/v1\nkind: Mapping\nname: TLSContextTest-other-mapping\nprefix: /TLSContextTest/\nservice: https://tlscontexttest-http\n"
+            "serialization": "ambassador_id: tlscontexttest\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlscontexttest\n  scope: AmbassadorTest\nname: TLSContextTest-other-mapping\nprefix: /TLSContextTest/\nservice: https://tlscontexttest-http\n"
         },
         {
             "_active": true,
@@ -815,7 +871,7 @@
                     },
                     "group_id": "8de18501d2044fe30db225289b318d5fda913b64",
                     "headers": [],
-                    "kind": "IRMapping",
+                    "kind": "IRHTTPMapping",
                     "location": "--internal--",
                     "name": "internal_diagnostics_probe_mapping",
                     "namespace": "default",
@@ -844,6 +900,7 @@
         }
     ],
     "grpc_services": {},
+    "hosts": [],
     "identity": {
         "ambassador_id": "tlscontexttest",
         "ambassador_namespace": "default",
@@ -874,9 +931,15 @@
                     "hosts": [
                         "tls-context-host-1"
                     ],
+                    "is_fallback": false,
                     "kind": "TLSContext",
                     "location": "tlscontexttest.default.2",
                     "max_tls_version": "v1.3",
+                    "metadata_labels": {
+                        "app.kubernetes.io/component": "ambassador-service",
+                        "kat-ambassador-id": "tlscontexttest",
+                        "scope": "AmbassadorTest"
+                    },
                     "min_tls_version": "v1.0",
                     "name": "TLSContextTest-same-context-1",
                     "namespace": "default",
@@ -898,8 +961,14 @@
                     "hosts": [
                         "tls-context-host-2"
                     ],
+                    "is_fallback": false,
                     "kind": "TLSContext",
                     "location": "tlscontexttest.default.4",
+                    "metadata_labels": {
+                        "app.kubernetes.io/component": "ambassador-service",
+                        "kat-ambassador-id": "tlscontexttest",
+                        "scope": "AmbassadorTest"
+                    },
                     "name": "TLSContextTest-same-context-2",
                     "namespace": "default",
                     "redirect_cleartext_from": 8080,
@@ -917,6 +986,7 @@
                     "hosts": [
                         "*"
                     ],
+                    "is_fallback": false,
                     "kind": "synthesized-TLS-context",
                     "location": "tlscontexttest.default.5",
                     "name": "server",
@@ -953,38 +1023,52 @@
         "k8s-tlscontexttest-admin-default": {
             "_referenced_by": {},
             "ambassador_id": "tlscontexttest",
-            "apiVersion": "ambassador/v1",
+            "apiVersion": "getambassador.io/v2",
             "endpoints": {},
             "kind": "Service",
             "location": "k8s-tlscontexttest-admin-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "tlscontexttest",
+                "scope": "AmbassadorTest",
+                "service": "tlscontexttest-admin"
+            },
             "name": "tlscontexttest-admin",
             "namespace": "default",
             "rkey": "k8s-tlscontexttest-admin-default",
-            "serialization": "ambassador_id: tlscontexttest\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: tlscontexttest-admin\nnamespace: default\n"
+            "serialization": "ambassador_id: tlscontexttest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: tlscontexttest\n  scope: AmbassadorTest\n  service: tlscontexttest-admin\nname: tlscontexttest-admin\nnamespace: default\n"
         },
         "k8s-tlscontexttest-default": {
             "_referenced_by": {},
             "ambassador_id": "tlscontexttest",
-            "apiVersion": "ambassador/v1",
+            "apiVersion": "getambassador.io/v2",
             "endpoints": {},
             "kind": "Service",
             "location": "k8s-tlscontexttest-default",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "tlscontexttest",
+                "scope": "AmbassadorTest"
+            },
             "name": "tlscontexttest",
             "namespace": "default",
             "rkey": "k8s-tlscontexttest-default",
-            "serialization": "ambassador_id: tlscontexttest\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: tlscontexttest\nnamespace: default\n"
+            "serialization": "ambassador_id: tlscontexttest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlscontexttest\n  scope: AmbassadorTest\nname: tlscontexttest\nnamespace: default\n"
         },
         "k8s-tlscontexttest-http-default": {
             "_referenced_by": {},
             "ambassador_id": "tlscontexttest",
-            "apiVersion": "ambassador/v1",
+            "apiVersion": "getambassador.io/v2",
             "endpoints": {},
             "kind": "Service",
             "location": "k8s-tlscontexttest-http-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "tlscontexttest",
+                "scope": "AmbassadorTest"
+            },
             "name": "tlscontexttest-http",
             "namespace": "default",
             "rkey": "k8s-tlscontexttest-http-default",
-            "serialization": "ambassador_id: tlscontexttest\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: tlscontexttest-http\nnamespace: default\n"
+            "serialization": "ambassador_id: tlscontexttest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: tlscontexttest\n  scope: AmbassadorTest\nname: tlscontexttest-http\nnamespace: default\n"
         }
     },
     "tls_contexts": [
@@ -996,6 +1080,7 @@
             "hosts": [
                 "*"
             ],
+            "is_fallback": false,
             "kind": "synthesized-TLS-context",
             "location": "tlscontexttest.default.5",
             "name": "server",
@@ -1016,9 +1101,15 @@
             "hosts": [
                 "tls-context-host-1"
             ],
+            "is_fallback": false,
             "kind": "TLSContext",
             "location": "tlscontexttest.default.2",
             "max_tls_version": "v1.3",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "tlscontexttest",
+                "scope": "AmbassadorTest"
+            },
             "min_tls_version": "v1.0",
             "name": "TLSContextTest-same-context-1",
             "namespace": "default",
@@ -1040,8 +1131,14 @@
             "hosts": [
                 "tls-context-host-2"
             ],
+            "is_fallback": false,
             "kind": "TLSContext",
             "location": "tlscontexttest.default.4",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "tlscontexttest",
+                "scope": "AmbassadorTest"
+            },
             "name": "TLSContextTest-same-context-2",
             "namespace": "default",
             "redirect_cleartext_from": 8080,
@@ -1058,9 +1155,15 @@
                 "tlscontexttest.default.7"
             ],
             "_rkey": "tlscontexttest.default.7",
+            "is_fallback": false,
             "kind": "TLSContext",
             "location": "tlscontexttest.default.7",
             "max_tls_version": "v1.3",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "tlscontexttest",
+                "scope": "AmbassadorTest"
+            },
             "min_tls_version": "v1.0",
             "name": "TLSContextTest-no-secret",
             "namespace": "default",
@@ -1072,6 +1175,7 @@
             "_ambassador_enabled": true,
             "_errored": false,
             "_rkey": "ir.no-cert-upstream",
+            "is_fallback": false,
             "kind": "null-TLS-context",
             "location": "ir.no-cert-upstream",
             "name": "no-cert-upstream",

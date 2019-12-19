@@ -110,6 +110,7 @@
                 "_ambassador_enabled": true,
                 "_errored": false,
                 "_rkey": "ir.no-cert-upstream",
+                "is_fallback": false,
                 "kind": "null-TLS-context",
                 "location": "ir.no-cert-upstream",
                 "name": "no-cert-upstream",
@@ -208,7 +209,7 @@
                     },
                     "group_id": "b4db12f5b638f1750062dd4220911c4f6f44fc57",
                     "headers": [],
-                    "kind": "IRMapping",
+                    "kind": "IRHTTPMapping",
                     "location": "--internal--",
                     "name": "internal_readiness_probe_mapping",
                     "namespace": "default",
@@ -297,7 +298,7 @@
                     },
                     "group_id": "7df546235997704c909d473af2cbcb5e606d20de",
                     "headers": [],
-                    "kind": "IRMapping",
+                    "kind": "IRHTTPMapping",
                     "location": "--internal--",
                     "name": "internal_liveness_probe_mapping",
                     "namespace": "default",
@@ -388,6 +389,7 @@
                             "_ambassador_enabled": true,
                             "_errored": false,
                             "_rkey": "ir.no-cert-upstream",
+                            "is_fallback": false,
                             "kind": "null-TLS-context",
                             "location": "ir.no-cert-upstream",
                             "name": "no-cert-upstream",
@@ -410,6 +412,11 @@
                     "host": "tls-context-host-1",
                     "kind": "Mapping",
                     "location": "tlscontextprotocolminversion.default.1",
+                    "metadata_labels": {
+                        "app.kubernetes.io/component": "ambassador-service",
+                        "kat-ambassador-id": "tlscontextprotocolminversion",
+                        "scope": "AmbassadorTest"
+                    },
                     "name": "TLSContextProtocolMinVersion-same-prefix-1",
                     "namespace": "default",
                     "precedence": 0,
@@ -424,7 +431,7 @@
                         "GET",
                         ":authority-tls-context-host-1"
                     ],
-                    "serialization": "ambassador_id: tlscontextprotocolminversion\napiVersion: ambassador/v0\nhost: tls-context-host-1\nkind: Mapping\nname: TLSContextProtocolMinVersion-same-prefix-1\nprefix: /tls-context-same/\nservice: https://tlscontextprotocolminversion-http\n",
+                    "serialization": "ambassador_id: tlscontextprotocolminversion\napiVersion: ambassador/v0\nhost: tls-context-host-1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlscontextprotocolminversion\n  scope: AmbassadorTest\nname: TLSContextProtocolMinVersion-same-prefix-1\nprefix: /tls-context-same/\nservice: https://tlscontextprotocolminversion-http\n",
                     "service": "https://tlscontextprotocolminversion-http",
                     "sni": true,
                     "tls_context": {
@@ -437,9 +444,15 @@
                         "hosts": [
                             "tls-context-host-1"
                         ],
+                        "is_fallback": false,
                         "kind": "TLSContext",
                         "location": "tlscontextprotocolminversion.default.2",
                         "max_tls_version": "v1.3",
+                        "metadata_labels": {
+                            "app.kubernetes.io/component": "ambassador-service",
+                            "kat-ambassador-id": "tlscontextprotocolminversion",
+                            "scope": "AmbassadorTest"
+                        },
                         "min_tls_version": "v1.2",
                         "name": "TLSContextProtocolMinVersion-same-context-1",
                         "namespace": "default",
@@ -453,12 +466,17 @@
                     "weight": 100
                 }
             ],
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "tlscontextprotocolminversion",
+                "scope": "AmbassadorTest"
+            },
             "name": "GROUP: TLSContextProtocolMinVersion-same-prefix-1",
             "namespace": "default",
             "precedence": 0,
             "prefix": "/tls-context-same/",
             "rewrite": "/",
-            "serialization": "ambassador_id: tlscontextprotocolminversion\napiVersion: ambassador/v0\nhost: tls-context-host-1\nkind: Mapping\nname: TLSContextProtocolMinVersion-same-prefix-1\nprefix: /tls-context-same/\nservice: https://tlscontextprotocolminversion-http\n",
+            "serialization": "ambassador_id: tlscontextprotocolminversion\napiVersion: ambassador/v0\nhost: tls-context-host-1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlscontextprotocolminversion\n  scope: AmbassadorTest\nname: TLSContextProtocolMinVersion-same-prefix-1\nprefix: /tls-context-same/\nservice: https://tlscontextprotocolminversion-http\n",
             "sni": true,
             "tls_context": {
                 "_active": true,
@@ -470,9 +488,15 @@
                 "hosts": [
                     "tls-context-host-1"
                 ],
+                "is_fallback": false,
                 "kind": "TLSContext",
                 "location": "tlscontextprotocolminversion.default.2",
                 "max_tls_version": "v1.3",
+                "metadata_labels": {
+                    "app.kubernetes.io/component": "ambassador-service",
+                    "kat-ambassador-id": "tlscontextprotocolminversion",
+                    "scope": "AmbassadorTest"
+                },
                 "min_tls_version": "v1.2",
                 "name": "TLSContextProtocolMinVersion-same-context-1",
                 "namespace": "default",
@@ -546,7 +570,7 @@
                     },
                     "group_id": "8de18501d2044fe30db225289b318d5fda913b64",
                     "headers": [],
-                    "kind": "IRMapping",
+                    "kind": "IRHTTPMapping",
                     "location": "--internal--",
                     "name": "internal_diagnostics_probe_mapping",
                     "namespace": "default",
@@ -575,6 +599,7 @@
         }
     ],
     "grpc_services": {},
+    "hosts": [],
     "identity": {
         "ambassador_id": "tlscontextprotocolminversion",
         "ambassador_namespace": "default",
@@ -605,9 +630,15 @@
                     "hosts": [
                         "tls-context-host-1"
                     ],
+                    "is_fallback": false,
                     "kind": "TLSContext",
                     "location": "tlscontextprotocolminversion.default.2",
                     "max_tls_version": "v1.3",
+                    "metadata_labels": {
+                        "app.kubernetes.io/component": "ambassador-service",
+                        "kat-ambassador-id": "tlscontextprotocolminversion",
+                        "scope": "AmbassadorTest"
+                    },
                     "min_tls_version": "v1.2",
                     "name": "TLSContextProtocolMinVersion-same-context-1",
                     "namespace": "default",
@@ -628,38 +659,52 @@
         "k8s-tlscontextprotocolminversion-admin-default": {
             "_referenced_by": {},
             "ambassador_id": "tlscontextprotocolminversion",
-            "apiVersion": "ambassador/v1",
+            "apiVersion": "getambassador.io/v2",
             "endpoints": {},
             "kind": "Service",
             "location": "k8s-tlscontextprotocolminversion-admin-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "tlscontextprotocolminversion",
+                "scope": "AmbassadorTest",
+                "service": "tlscontextprotocolminversion-admin"
+            },
             "name": "tlscontextprotocolminversion-admin",
             "namespace": "default",
             "rkey": "k8s-tlscontextprotocolminversion-admin-default",
-            "serialization": "ambassador_id: tlscontextprotocolminversion\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: tlscontextprotocolminversion-admin\nnamespace: default\n"
+            "serialization": "ambassador_id: tlscontextprotocolminversion\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: tlscontextprotocolminversion\n  scope: AmbassadorTest\n  service: tlscontextprotocolminversion-admin\nname: tlscontextprotocolminversion-admin\nnamespace: default\n"
         },
         "k8s-tlscontextprotocolminversion-default": {
             "_referenced_by": {},
             "ambassador_id": "tlscontextprotocolminversion",
-            "apiVersion": "ambassador/v1",
+            "apiVersion": "getambassador.io/v2",
             "endpoints": {},
             "kind": "Service",
             "location": "k8s-tlscontextprotocolminversion-default",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "tlscontextprotocolminversion",
+                "scope": "AmbassadorTest"
+            },
             "name": "tlscontextprotocolminversion",
             "namespace": "default",
             "rkey": "k8s-tlscontextprotocolminversion-default",
-            "serialization": "ambassador_id: tlscontextprotocolminversion\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: tlscontextprotocolminversion\nnamespace: default\n"
+            "serialization": "ambassador_id: tlscontextprotocolminversion\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlscontextprotocolminversion\n  scope: AmbassadorTest\nname: tlscontextprotocolminversion\nnamespace: default\n"
         },
         "k8s-tlscontextprotocolminversion-http-default": {
             "_referenced_by": {},
             "ambassador_id": "tlscontextprotocolminversion",
-            "apiVersion": "ambassador/v1",
+            "apiVersion": "getambassador.io/v2",
             "endpoints": {},
             "kind": "Service",
             "location": "k8s-tlscontextprotocolminversion-http-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "tlscontextprotocolminversion",
+                "scope": "AmbassadorTest"
+            },
             "name": "tlscontextprotocolminversion-http",
             "namespace": "default",
             "rkey": "k8s-tlscontextprotocolminversion-http-default",
-            "serialization": "ambassador_id: tlscontextprotocolminversion\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: tlscontextprotocolminversion-http\nnamespace: default\n"
+            "serialization": "ambassador_id: tlscontextprotocolminversion\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: tlscontextprotocolminversion\n  scope: AmbassadorTest\nname: tlscontextprotocolminversion-http\nnamespace: default\n"
         }
     },
     "tls_contexts": [
@@ -673,9 +718,15 @@
             "hosts": [
                 "tls-context-host-1"
             ],
+            "is_fallback": false,
             "kind": "TLSContext",
             "location": "tlscontextprotocolminversion.default.2",
             "max_tls_version": "v1.3",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "tlscontextprotocolminversion",
+                "scope": "AmbassadorTest"
+            },
             "min_tls_version": "v1.2",
             "name": "TLSContextProtocolMinVersion-same-context-1",
             "namespace": "default",
@@ -691,6 +742,7 @@
             "_ambassador_enabled": true,
             "_errored": false,
             "_rkey": "ir.no-cert-upstream",
+            "is_fallback": false,
             "kind": "null-TLS-context",
             "location": "ir.no-cert-upstream",
             "name": "no-cert-upstream",
