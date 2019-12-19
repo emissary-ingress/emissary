@@ -24,7 +24,7 @@ fi
 
 { set +x 1; } 2>/dev/null
 
-if [ -n "${INIT}" ] || [ "$(cd ambassador && git rev-parse HEAD)" != "${AMBASSADOR_COMMIT}" ]; then
+if [ -n "${INIT}" ] || [ "$(cd ambassador >/dev/null && git rev-parse HEAD)" != "${AMBASSADOR_COMMIT}" ]; then
 	set -x
 	git -C ambassador fetch
 	git -C ambassador checkout -q "${AMBASSADOR_COMMIT}"
