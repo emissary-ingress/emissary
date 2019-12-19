@@ -52,6 +52,12 @@ sync: preflight
 	@if [ -e ~/.docker/config.json ]; then \
 		cat ~/.docker/config.json | docker exec -i $$($(BUILDER)) sh -c "mkdir -p /home/dw/.docker && cat > /home/dw/.docker/config.json" ; \
 	fi
+
+	@if [ -n "$(GCLOUD_CONFIG)" ]; then \
+		printf "Copying gcloud config to builder container\n"; \
+		docker cp $(GCLOUD_CONFIG) $$($(BUILDER)):/home/dw/.config/; \
+	fi
+
 .PHONY: sync
 
 builder:
