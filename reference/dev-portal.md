@@ -2,7 +2,7 @@
 
 ## Rendering API Documentation
 
-The Dev Portal will automatically discover all services known by Ambassador (i.e., have a valid `Mapping`). For each `prefix` in a `Mapping`, the Dev Portal will attempt to fetch a Swagger or OpenAPI specification from `$PREFIX/.ambassador-internal/openapi-docs/`. You will need to update your microservice to return a Swagger or OAPI document at this URL.
+The Dev Portal will automatically discover all services known by Ambassador (i.e., have a valid `Mapping`). For each `prefix` in a `Mapping`, the Dev Portal will attempt to fetch a Swagger or OpenAPI specification from `$PREFIX/.ambassador-internal/openapi-docs`. You will need to update your microservice to return a Swagger or OAPI document at this URL.
 
 ### `/docs/`
 
