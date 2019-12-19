@@ -146,9 +146,6 @@ AJfULDOksXSEodSf+mGCkUhuod/h8LMGWLXzCgtHpJ2wZTp9kVVUkJvJjIU=
     def init(self):
         self.target = HTTP()
 
-        if EDGE_STACK:
-            self.xfail = "Not yet supported in Edge Stack"
-
     def manifests(self) -> str:
         return super().manifests() + """
 ---
@@ -239,9 +236,6 @@ class TLSOriginationSecret(AmbassadorTest):
     def init(self):
         self.target = HTTP()
 
-        if EDGE_STACK:
-            self.xfail = "Not yet supported in Edge Stack"
-
     def manifests(self) -> str:
         return super().manifests() + """
 ---
@@ -307,10 +301,7 @@ class TLS(AmbassadorTest):
 
     def init(self):
         self.target = HTTP()
-
-        if EDGE_STACK:
-            self.xfail = "Not yet supported in Edge Stack"
-
+        #
     def manifests(self) -> str:
         return super().manifests() + """
 ---
@@ -383,9 +374,6 @@ class TLSInvalidSecret(AmbassadorTest):
     def init(self):
         self.target = HTTP()
 
-        if EDGE_STACK:
-            self.xfail = "Not yet supported in Edge Stack"
-
     def config(self):
         yield self, self.format("""
 ---
@@ -448,9 +436,6 @@ class TLSContextTest(AmbassadorTest):
 
     def init(self):
         self.target = HTTP()
-
-        if EDGE_STACK:
-            self.xfail = "Not yet supported in Edge Stack"
 
     def manifests(self) -> str:
         return super().manifests() + """
@@ -725,9 +710,6 @@ class TLSIngressTest(AmbassadorTest):
 
     def init(self):
         self.target = HTTP()
-
-        if EDGE_STACK:
-            self.xfail = "Not yet supported in Edge Stack"
 
     def manifests(self) -> str:
         self.manifest_envs = """
@@ -1079,9 +1061,6 @@ class TLSContextProtocolMinVersion(AmbassadorTest):
     def init(self):
         self.target = HTTP()
 
-        if EDGE_STACK:
-            self.xfail = "Not yet supported in Edge Stack"
-
     def manifests(self) -> str:
         return super().manifests() + """
 ---
@@ -1179,9 +1158,6 @@ class TLSContextCipherSuites(AmbassadorTest):
 
     def init(self):
         self.target = HTTP()
-
-        if EDGE_STACK:
-            self.xfail = "Not yet supported in Edge Stack"
 
     def manifests(self) -> str:
         return super().manifests() + """

@@ -144,6 +144,7 @@
                 "_ambassador_enabled": true,
                 "_errored": false,
                 "_rkey": "ir.no-cert-upstream",
+                "is_fallback": false,
                 "kind": "null-TLS-context",
                 "location": "ir.no-cert-upstream",
                 "name": "no-cert-upstream",
@@ -467,6 +468,7 @@
                         "hosts": [
                             "tls-context-host-2"
                         ],
+                        "is_fallback": false,
                         "kind": "TLSContext",
                         "location": "tlscontexttest.default.4",
                         "metadata_labels": {
@@ -509,6 +511,7 @@
                 "hosts": [
                     "tls-context-host-2"
                 ],
+                "is_fallback": false,
                 "kind": "TLSContext",
                 "location": "tlscontexttest.default.4",
                 "metadata_labels": {
@@ -634,6 +637,7 @@
                         "hosts": [
                             "tls-context-host-1"
                         ],
+                        "is_fallback": false,
                         "kind": "TLSContext",
                         "location": "tlscontexttest.default.2",
                         "max_tls_version": "v1.3",
@@ -677,6 +681,7 @@
                 "hosts": [
                     "tls-context-host-1"
                 ],
+                "is_fallback": false,
                 "kind": "TLSContext",
                 "location": "tlscontexttest.default.2",
                 "max_tls_version": "v1.3",
@@ -753,6 +758,7 @@
                             "_ambassador_enabled": true,
                             "_errored": false,
                             "_rkey": "ir.no-cert-upstream",
+                            "is_fallback": false,
                             "kind": "null-TLS-context",
                             "location": "ir.no-cert-upstream",
                             "name": "no-cert-upstream",
@@ -925,6 +931,7 @@
                     "hosts": [
                         "tls-context-host-1"
                     ],
+                    "is_fallback": false,
                     "kind": "TLSContext",
                     "location": "tlscontexttest.default.2",
                     "max_tls_version": "v1.3",
@@ -954,6 +961,7 @@
                     "hosts": [
                         "tls-context-host-2"
                     ],
+                    "is_fallback": false,
                     "kind": "TLSContext",
                     "location": "tlscontexttest.default.4",
                     "metadata_labels": {
@@ -978,6 +986,7 @@
                     "hosts": [
                         "*"
                     ],
+                    "is_fallback": false,
                     "kind": "synthesized-TLS-context",
                     "location": "tlscontexttest.default.5",
                     "name": "server",
@@ -1071,6 +1080,7 @@
             "hosts": [
                 "*"
             ],
+            "is_fallback": false,
             "kind": "synthesized-TLS-context",
             "location": "tlscontexttest.default.5",
             "name": "server",
@@ -1091,6 +1101,7 @@
             "hosts": [
                 "tls-context-host-1"
             ],
+            "is_fallback": false,
             "kind": "TLSContext",
             "location": "tlscontexttest.default.2",
             "max_tls_version": "v1.3",
@@ -1120,6 +1131,7 @@
             "hosts": [
                 "tls-context-host-2"
             ],
+            "is_fallback": false,
             "kind": "TLSContext",
             "location": "tlscontexttest.default.4",
             "metadata_labels": {
@@ -1143,6 +1155,7 @@
                 "tlscontexttest.default.7"
             ],
             "_rkey": "tlscontexttest.default.7",
+            "is_fallback": false,
             "kind": "TLSContext",
             "location": "tlscontexttest.default.7",
             "max_tls_version": "v1.3",
@@ -1162,6 +1175,7 @@
             "_ambassador_enabled": true,
             "_errored": false,
             "_rkey": "ir.no-cert-upstream",
+            "is_fallback": false,
             "kind": "null-TLS-context",
             "location": "ir.no-cert-upstream",
             "name": "no-cert-upstream",

@@ -51,6 +51,8 @@ class V2TLSContext(Dict):
 
         super().__init__()
 
+        self.is_fallback = False
+
         if ctx:
             self.add_context(ctx)
 
@@ -111,6 +113,9 @@ class V2TLSContext(Dict):
         if TYPE_CHECKING:
             # This is needed because otherwise self.__setitem__ confuses things.
             handler: Callable[[str, str], None]
+
+        if ctx.is_fallback:
+            self.is_fallback = True
 
         for secretinfokey, handler, hkey in [
             ( 'cert_chain_file', self.update_cert_zero, 'certificate_chain' ),
