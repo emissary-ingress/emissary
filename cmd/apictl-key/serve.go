@@ -203,7 +203,13 @@ func init() {
 
 		http.HandleFunc("/downloads/windows/edgectl", func(w http.ResponseWriter, r *http.Request) {
 			version := getEdgectlStable()
-			url := fmt.Sprintf("https://datawire-static-files.s3.amazonaws.com/edgectl/%s/windows/amd64/edgectl", version)
+			url := fmt.Sprintf("https://datawire-static-files.s3.amazonaws.com/edgectl/%s/windows/amd64/edgectl.exe", version)
+			http.Redirect(w, r, url, http.StatusFound) // 302
+		})
+
+		http.HandleFunc("/downloads/windows/edgectl.exe", func(w http.ResponseWriter, r *http.Request) {
+			version := getEdgectlStable()
+			url := fmt.Sprintf("https://datawire-static-files.s3.amazonaws.com/edgectl/%s/windows/amd64/edgectl.exe", version)
 			http.Redirect(w, r, url, http.StatusFound) // 302
 		})
 
