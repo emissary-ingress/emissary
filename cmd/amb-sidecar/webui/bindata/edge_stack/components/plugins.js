@@ -122,6 +122,15 @@ export class Plugins extends LitElement {
     .header_con .col svg path {
       fill: #5f3eff
     }
+
+    .header_con .col img {
+      width: 100%;
+      height: 60px
+    }
+    
+    .header_con .col img path {
+      fill: #5f3eff
+    }
     
     .header_con .col:nth-child(2) {
       -webkit-flex: 2 0 auto;
@@ -210,7 +219,11 @@ export class Plugins extends LitElement {
     
     .col2 a.off {
       display: none;
-    }    
+    }
+    
+    .logo {
+      filter: invert(19%) sepia(64%) saturate(4904%) hue-rotate(248deg) brightness(107%) contrast(101%);
+    }
   `
 }
 
@@ -239,7 +252,12 @@ export class Plugins extends LitElement {
     return html`
 <div class="header_con">
   <div class="col">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24.99 21.04"><defs><style>.cls-1{fill:#fff;}</style></defs><title>services</title><g id="Layer_2" data-name="Layer 2"><g id="Layer_1-2" data-name="Layer 1"><path class="cls-1" d="M0,0V21H25V0ZM5.94,14.4l.94-.94,1.85,1.32L9,14.63a6.39,6.39,0,0,1,2.23-.92l.27-.06.37-2.24h1.34l.36,2.24.27.06a6.39,6.39,0,0,1,2.23.92l.23.15,1.85-1.33.94,1-1.32,1.85.15.23a6.39,6.39,0,0,1,.92,2.23l.06.27,2.24.36v.89H3.89v-.89L6.13,19l.06-.27a6.39,6.39,0,0,1,.92-2.23l.15-.23Zm18.24,5.83H21.91v-1a.7.7,0,0,0-.58-.69l-1.8-.29a7.12,7.12,0,0,0-.83-2l1.06-1.47a.7.7,0,0,0-.07-.9l-1.08-1.08a.7.7,0,0,0-.9-.07l-1.47,1.06a7.12,7.12,0,0,0-2-.83L14,11.18a.7.7,0,0,0-.68-.58H11.73a.69.69,0,0,0-.68.58l-.3,1.8a7.12,7.12,0,0,0-2,.83L7.27,12.74a.69.69,0,0,0-.89.07L5.29,13.9a.71.71,0,0,0-.07.89l1.07,1.48a7.12,7.12,0,0,0-.83,2l-1.79.29a.71.71,0,0,0-.59.69v1H.81V5.2H24.18ZM.81,4.4V.81H24.18V4.4Z"/><rect class="cls-1" x="2.15" y="2.2" width="1.33" height="0.81"/><rect class="cls-1" x="4.01" y="2.2" width="1.33" height="0.81"/><rect class="cls-1" x="5.88" y="2.2" width="1.33" height="0.81"/><path class="cls-1" d="M12.5,17a3.23,3.23,0,0,1,3.22,3.23h.81a4,4,0,0,0-8.07,0h.81A3.23,3.23,0,0,1,12.5,17Z"/></g></g></svg>
+    <img alt="plugins logo" class="logo" src="../images/svgs/plugins.svg">
+      <defs><style>.cls-1{fill:#fff;}</style></defs>
+        <g id="Layer_2" data-name="Layer 2">
+          <g id="Layer_1-2" data-name="Layer 1"></g>
+        </g>
+    </img>
   </div>
   <div class="col">
     <h1>Plugins</h1>

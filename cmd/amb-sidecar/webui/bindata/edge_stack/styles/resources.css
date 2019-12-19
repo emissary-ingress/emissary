@@ -47,6 +47,15 @@
 	height: 60px
 }
 
+.header_con .col img {
+	width: 100%;
+	height: 60px;
+}
+
+.header_con .col img path {
+	fill: #5f3eff
+}
+
 .header_con .col svg path {
 	fill: #5f3eff
 }
@@ -74,6 +83,10 @@
 	-ms-flex-item-align: center;
 	-ms-grid-row-align: center;
 	align-self: center
+}
+
+.logo {
+	filter: invert(19%) sepia(64%) saturate(4904%) hue-rotate(248deg) brightness(107%) contrast(101%);
 }
 
 .col2 a.cta  {
