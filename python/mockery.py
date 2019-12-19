@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING
 
 import sys
 
@@ -8,6 +8,7 @@ import difflib
 import errno
 import filecmp
 import functools
+import io
 import json
 import logging
 import os
@@ -15,6 +16,7 @@ import shlex
 import shutil
 
 import click
+from watch_hook import WatchHook
 
 # Use this instead of click.option
 click_option = functools.partial(click.option, show_default=True)
@@ -25,6 +27,9 @@ from ambassador import Config, IR, Diagnostics, EnvoyConfig
 from ambassador.config.resourcefetcher import ResourceFetcher
 from ambassador.utils import parse_yaml, SecretHandler
 from kat.utils import ShellCommand
+
+if TYPE_CHECKING:
+    from ambassador.ir import IRResource
 
 KubeResource = Dict[str, Any]
 KubeList = List[KubeResource]
@@ -237,37 +242,21 @@ class Mockery:
         for kind in collected.keys():
             watt_k8s[kind] = list(collected[kind].values())
 
+        self.snapshot = json.dumps({ 'Consul': {}, 'Kubernetes': watt_k8s }, sort_keys=True, indent=4)
+
         return watt_k8s
 
-    def run_hook(self, watt_k8s: WattDict) -> Tuple[bool, bool]:
-        json.dump({ 'Consul': {}, 'Kubernetes': watt_k8s },
-                  open("/tmp/mockery.json", "w"), sort_keys=True, indent=4)
+    def run_hook(self) -> Tuple[bool, bool]:
+        self.logger.info("RUNNING HOOK")
 
-        cmdline = shlex.split(self.watch)
+        yaml_stream = io.StringIO(self.snapshot)
 
-        if self.debug:
-            cmdline.append("--debug")
-
-        cmdline.append("/tmp/mockery.json")
-
-        self.logger.info(f"Running watch hook {cmdline}")
-
-        hook = ShellCommand(*cmdline)
-
-        if not hook.check(" ".join(cmdline)):
-            return False, False
-
-        for line in hook.stderr.splitlines(keepends=False):
-            self.logger.info(f"hook stderr: {line}")
+        wh = WatchHook(self.logger, yaml_stream)
 
         any_changes = False
-        hook_output = hook.stdout
 
-        if hook_output:
-            new_watches = json.loads(hook_output)
-            self.logger.info(f"new watches: {new_watches}")
-
-            for w in new_watches.get("kubernetes-watches") or []:
+        if wh.watchset:
+            for w in wh.watchset.get("kubernetes-watches") or []:
                 potential = WatchSpec(
                     logger=self.logger,
                     kind=w['kind'],
@@ -393,22 +382,21 @@ def main(k8s_yaml_path: str, debug: bool, force_pod_labels: bool, update: bool,
             logger.error("Not stable after 10 iterations, failing")
             sys.exit(1)
 
-        print(f"==== ITERATION {iteration}")
+        logger.info(f"======== START ITERATION {iteration}")
 
-        watt_k8s = w.load(manifest)
+        w.load(manifest)
 
-        logger.info(f"WATT_K8S: {json.dumps(watt_k8s, sort_keys=True, indent=4)}")
+        logger.info(f"WATT_K8S: {w.snapshot}")
 
-        hook_ok, any_changes = w.run_hook(watt_k8s)
+        hook_ok, any_changes = w.run_hook()
         
         if not hook_ok:
             raise Exception("hook failed")
             
         if any_changes:
-            logger.info("WATT_K8S: some changes from the hook!")
-            print("====== watches changed!")
+            logger.info(f"======== END ITERATION {iteration}: watches changed!")
         else:
-            print("====== stable!")
+            logger.info(f"======== END ITERATION {iteration}: stable!")
             break
 
     # Once here, we should be good to go.
@@ -425,8 +413,10 @@ def main(k8s_yaml_path: str, debug: bool, force_pod_labels: bool, update: bool,
     logger.debug(f"Config.ambassador_id {Config.ambassador_id}")
     logger.debug(f"Config.ambassador_namespace {Config.ambassador_namespace}")
 
+    logger.info(f"STABLE WATT_K8S: {w.snapshot}")
+
     fetcher = ResourceFetcher(logger, aconf)
-    fetcher.parse_watt(open("/tmp/mockery.json", "r", encoding="utf-8").read())
+    fetcher.parse_watt(w.snapshot)
     aconf.load_all(fetcher.sorted())
 
     open("/tmp/ambassador/snapshots/aconf.json", "w", encoding="utf-8").write(aconf.as_json())

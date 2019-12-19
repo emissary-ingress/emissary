@@ -138,7 +138,7 @@ class IRTLSContext(IRResource):
         secret_namespacing = self.lookup('secret_namespacing', True,
                                          default_key='tls_secret_namespacing')
 
-        self.ir.logger.info(f"TLSContext.resolve_secret {secret_name}, namespace {namespace}: namespacing is {secret_namespacing}")
+        self.ir.logger.debug(f"TLSContext.resolve_secret {secret_name}, namespace {namespace}: namespacing is {secret_namespacing}")
 
         if "." in secret_name and secret_namespacing:
             secret_name, namespace = secret_name.split('.', 1)
