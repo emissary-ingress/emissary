@@ -110,7 +110,6 @@ In this section, we will deploy the Prometheus Operator using the standard YAML 
     kind: ServiceMonitor
     metadata:
       name: ambassador-monitor
-      namespace: monitoring
       labels:
         app: ambassador
     spec:
@@ -147,55 +146,83 @@ We have published a [sample dashboard](https://grafana.com/dashboards/10434) you
 
 **Note:** If you deployed the Prometheus Operator via the Helm Chart, a Grafana dashboard is created by default. You can use this dashboard or set `grafana.enabled: false` and follow the instructions below.
 
-To deploy Grafana behind Ambassador: replace `{{AMBASSADOR_IP}}` with the IP address of your Ambassador service, copy the YAML below, and apply it with `kubectl`:
+To deploy Grafana behind Ambassador: replace `{{AMBASSADOR_IP}}` with the IP address or DNS name of your Ambassador service, copy the YAML below, and apply it with `kubectl`:
 
 ```yaml
 ---
-apiVersion: apps/v1
 kind: Deployment
+apiVersion: apps/v1
 metadata:
   name: grafana
-  namespace: default
+  labels:
+    app: grafana
+    component: core
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: grafana
-      componenet: core
+      component: core
   template:
     metadata:
+      creationTimestamp: null
       labels:
         app: grafana
         component: core
+      annotations:
+        sidecar.istio.io/inject: 'false'
     spec:
-      containers:
-      - image: grafana/grafana:6.2.0
-        name: grafana-core
-        imagePullPolicy: IfNotPresent
-        resources:
-          limits:
-            cpu: 100m
-            memory: 100Mi
-          requests:
-            cpu: 100m
-            memory: 100Mi
-        env:
-          - name: GF_SERVER_ROOT_URL
-            value: {{AMBASSADOR_IP}}/grafana
-          - name: GF_AUTH_BASIC_ENABLED
-            value: "true"
-          - name: GF_AUTH_ANONYMOUS_ENABLED
-            value: "false"
-        readinessProbe:
-          httpGet:
-            path: /login
-            port: 3000
-        volumeMounts:
-        - name: grafana-persistent-storage
-          mountPath: /var
       volumes:
-      - name: grafana-persistent-storage
-        emptyDir: {}
+        - name: data
+          emptyDir: {}
+      containers:
+        - name: grafana
+          image: 'grafana/grafana:6.4.3'
+          ports:
+            - containerPort: 3000
+              protocol: TCP
+          env:
+            - name: GF_SERVER_ROOT_URL
+              value: {{AMBASSADOR_IP}}/grafana
+            - name: GRAFANA_PORT
+              value: '3000'
+            - name: GF_AUTH_BASIC_ENABLED
+              value: 'false'
+            - name: GF_AUTH_ANONYMOUS_ENABLED
+              value: 'true'
+            - name: GF_AUTH_ANONYMOUS_ORG_ROLE
+              value: Admin
+            - name: GF_PATHS_DATA
+              value: /data/grafana
+          resources:
+            requests:
+              cpu: 10m
+          volumeMounts:
+            - name: data
+              mountPath: /data/grafana
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: 3000
+              scheme: HTTP
+            timeoutSeconds: 1
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
+          imagePullPolicy: IfNotPresent
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: grafana
+spec:
+  ports:
+    - port: 80
+      targetPort: 3000
+  selector:
+    app: grafana
+    component: core
 ```
 
 Now, create a service and `Mapping` to expose Grafana behind Ambassador:
@@ -206,23 +233,9 @@ apiVersion: getambassador.io/v1
 kind: Mapping
 metadata: 
   name: grafana
-  namespace: monitoring
 spec:     
   prefix: /grafana/
-  service: grafana.monitoring
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: grafana
-  namespace: monitoring
-spec:
-  ports:
-    - port: 80
-      targetPort: 3000
-  selector:
-    app: grafana
-    component: core
+  service: grafana
 ```
 
 Now, access Grafana by going to `{AMBASSADOR_IP}/grafana/` and logging in with `username: admin` : `password: admin`. 
@@ -295,7 +308,6 @@ apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
   name: statsd-monitor
-  namespace: monitoring
   labels:
     app: ambassador
 spec:
@@ -334,7 +346,6 @@ This section will focus on setting up Prometheus to scrape stats from Ambassador
     kind: ServiceMonitor
     metadata:
       name: ambassador-monitor
-      namespace: monitoring
       labels:
         release: prometheus
     spec:
@@ -356,7 +367,6 @@ This section will focus on setting up Prometheus to scrape stats from Ambassador
     kind: ServiceMonitor
     metadata:
       name: statsd-monitor
-      namespace: monitoring
       labels:
         release: prometheus
     spec:
