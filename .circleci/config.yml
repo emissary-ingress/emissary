@@ -202,7 +202,7 @@ commands:
   "edgectl":
     steps:
       - checkout
-      - run: make target_does_not_exist || true
+      - run: ./get-amb-repo.sh
       - run: ln -s project/ambassador ../ambassador
       - run: ./ambassador/builder/module_version.sh apro
       - run: ./ambassador/builder/build_push_cli.sh build
@@ -280,10 +280,12 @@ jobs:
           name: "Environment"
           command: env
       - run:
-          name: "Packages"
+          name: "Install Go for Windows"
           command: |
-            choco upgrade golang --version 1.13
-            choco install make rsync
+            curl https://dl.google.com/go/go1.13.windows-amd64.zip -o /tmp/go.zip
+            mv /c/go /c/go-112
+            unzip -q /tmp/go.zip -d /c/
+            go version
       - edgectl
 
 workflows:

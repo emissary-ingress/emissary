@@ -382,9 +382,8 @@ img#windowsLogo {
           </h2>
   </summary>
   <h3>1. Download the executable:</h3>
-  <p class="download">Download <a href="https://metriton.datawire.io/downloads/windows/edgectl" class="windowsLink">edgectl for Windows </a></p>
-  <h3>2. Rename the file to edgectl.exe</h3>
-  <h3>3. Place the file somewhere in your PATH, e.g., C:\\windows</h3>
+  <p class="download">Download <a href="https://metriton.datawire.io/downloads/windows/edgectl.exe" class="windowsLink">edgectl.exe for Windows </a></p>
+  <h3>2. Place the file somewhere in your PATH, e.g., C:\\windows</h3>
 </details>
     `;
   }
