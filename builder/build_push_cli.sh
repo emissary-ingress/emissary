@@ -22,15 +22,27 @@ SRCDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" > /dev/null && pwd )"
 # Set BUILD_VERSION and RELEASE_VERSION (and other junk)
 eval "$("${SRCDIR}/module_version.sh" unused)"
 
+case "$(go env GOOS)" in
+windows)
+    EXE_NAME=edgectl.exe
+    ;;
+*)
+    EXE_NAME=edgectl
+    ;;
+esac
+
+DIST=~/bin
+EXE_PATH=${DIST}/${EXE_NAME}
+
 case "$1" in
     build)
-        cd "${SRCDIR}/.." && go build -trimpath -ldflags "-X main.Version=$BUILD_VERSION" -o ~/bin/edgectl ./cmd/edgectl
+        cd "${SRCDIR}/.." && go build -trimpath -ldflags "-X main.Version=$BUILD_VERSION" -o "${EXE_PATH}" ./cmd/edgectl
         ;;
     push)
         # Push this OS/arch binary
 	    aws s3 cp --acl public-read \
-            ~/bin/edgectl \
-            "s3://datawire-static-files/edgectl/${RELEASE_VERSION}/$(go env GOOS)/$(go env GOARCH)/edgectl"
+            "${EXE_PATH}" \
+            "s3://datawire-static-files/edgectl/${RELEASE_VERSION}/$(go env GOOS)/$(go env GOARCH)/${EXE_NAME}"
         ;;
     tag)
         # Update latest.txt
