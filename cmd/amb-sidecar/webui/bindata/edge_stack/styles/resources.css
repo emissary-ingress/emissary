@@ -95,6 +95,7 @@
 	border-radius: 10px;
 	width: 90px;
 	padding: 6px 8px;
+	max-height: 35px;
 	-webkit-flex: auto;
 	-ms-flex: auto;
 	flex: auto;

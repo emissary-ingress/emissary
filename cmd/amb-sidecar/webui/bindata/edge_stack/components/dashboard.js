@@ -157,7 +157,7 @@ let CountsPanel = {
     <div class="element" style="cursor:pointer">
       <div class="element-titlebar">${this._title}</div>
       <div class="element-content centered " id=“${this._elementId}”>
-        <div>
+        <div class="DashboardCountSafari">
         <p><span class = "status" @click=${this.onClickHosts}>${countString(this._hostsCount, "Host", "Hosts")}</span>
           ${this._hostsCount === 0 ? html`<button style="margin: auto; font-size: 100%; display:block" @click=${this.onClickHosts}>Get started by defining a first host.</button>`: html``}</p>
         <p><span class = "status" @click=${this.onClickMappings}>${countString(this._mappingsCount, "Mapping", "Mappings")}</span></p>
@@ -536,6 +536,10 @@ export class Dashboard extends LitElement {
       div.element-content p {
         margin-top: 0.5em;
         margin-bottom: 0.5em;
+      }
+
+      div.DashboardCountSafari {
+        width: 150px;
       }
       
       span.code { font-family: Monaco, monospace; }

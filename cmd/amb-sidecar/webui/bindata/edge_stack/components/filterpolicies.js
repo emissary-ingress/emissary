@@ -136,7 +136,7 @@ class FilterPolicies extends SortableResourceSet {
     return html`
 <div class="header_con">
   <div class="col">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32"><title>filterpolicy</title><g class="nc-icon-wrapper" stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" fill="#608cee" stroke="#608cee"><polygon points="30 5 19 16 19 26 13 30 13 16 2 5 2 1 30 1 30 5" fill="none" stroke="#111111" stroke-miterlimit="10"/></g></svg>
+    <img alt="filters logo" class="logo" src="../images/svgs/filters.svg" width="32" height="32">
   </div>
   <div class="col">
     <h1>FilterPolicies</h1>
