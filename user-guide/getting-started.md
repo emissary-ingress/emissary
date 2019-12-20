@@ -1,7 +1,3 @@
----
-canonical: https://www.getamabassador.io/user-guide/getting-started
-description: The Ambassador Edge Stack is a comprehensive, self-service edge stack for Kubernetes.
----
 # Getting Started with the Ambassador Edge Stack
 
 The Ambassador Edge Stack is a comprehensive, self-service edge stack for Kubernetes. It allows you to control application traffic to your services with a declarative policy engine, and provides frictionless authentication, access control, and rate limiting to your application and services
