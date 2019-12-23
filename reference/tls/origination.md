@@ -26,7 +26,7 @@ If your upstream services require more than basic HTTPS support (e.g. minimum TL
 apiVersion: getambassador.io/v2
 kind: TLSContext
 metadata:
-  name: tls
+  name: tls-context
 spec:
   secret: self-signed-cert
   min_tls_version: v1.3
@@ -39,10 +39,11 @@ Configure Ambassador Edge Stack to use this `TLSContext` for connections to upst
 apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
-  name: basic-tls
+  name: mapping-with-tls-context
 spec:
   prefix: /
   service: https://example-service
+  tls: tls-context
 ```
 
 The `example-service` service must now support TLS v1.3 for Ambassador Edge Stack to connect.
