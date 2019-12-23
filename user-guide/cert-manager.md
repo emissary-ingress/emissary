@@ -11,7 +11,8 @@ There are many different ways to [install cert-manager](https://docs.cert-manage
 1. Install cert-manager
 
 ```
-helm install -n cert-manager --set webhook.enabled=false stable/cert-manager
+kubectl create ns cert-manager
+kubectl apply -f https://github.com/jetstack/cert-manager/releases/download/v0.11.1/cert-manager-no-webhook.yaml
 ```
 
 **Note:** The resource validation webhook is not required and requires addition configuration.
@@ -42,24 +43,30 @@ The HTTP-01 challenge verifies ownership of the domain by sending a request for 
 
     ```yaml
     ---
-    apiVersion: certmanager.k8s.io/v1alpha1
+    apiVersion: cert-manager.io/v1alpha2
     kind: ClusterIssuer
     metadata:
       name: letsencrypt-prod
     spec:
       acme:
-        email: exampe@example.com
+        email: example@example.com
         server: https://acme-v02.api.letsencrypt.org/directory
         privateKeySecretRef:
           name: letsencrypt-prod
-        http01: {}
+        http01:
+          serviceType: ClusterIP
+        solvers:
+        - http01:
+            ingress:
+              class: nginx
+          selector: {}
     ```
 
 2. Configure a `Certificate` to use this `ClusterIssuer`:
 
     ```yaml
     ---
-    apiVersion: certmanager.k8s.io/v1alpha1
+    apiVersion: cert-manager.io/v1alpha2
     kind: Certificate
     metadata:
       name: ambassador-certs
@@ -81,7 +88,7 @@ The HTTP-01 challenge verifies ownership of the domain by sending a request for 
         - http01:
             ingressClass: nginx
           domains:
-         - example.com
+          - example.com
     ```
 
 3. Apply both the `ClusterIssuer` and `Certificate`
@@ -114,7 +121,7 @@ cert-manager uses an `Ingress` resource to issue the challenge to `/.well-known/
     spec:
       prefix: /.well-known/acme-challenge
       rewrite: ""
-      service: acme-challeneg-service
+      service: acme-challenge-service
 
     ---
     apiVersion: v1
@@ -147,13 +154,13 @@ The DNS-01 challenge verifies domain ownership by proving you have control over 
 
 1. Create the IAM policy specified in the cert-manager [AWS Route53](https://cert-manager.readthedocs.io/en/latest/tasks/acme/configuring-dns01/route53.html) documentation.
 
-2. Note the `accessKeyID` and create a secret named `prod-route53-credentials-secret` holding the `secret-access-key`. 
+2. Note the `accessKeyID` and create a secret named `prod-route53-credentials-secret` holding the `secret-access-key`.
 
 3. Create and apply a `ClusterIssuer`:
 
     ```yaml
     ---
-    apiVersion: certmanager.k8s.io/v1alpha1
+    apiVersion: cert-manager.io/v1alpha2
     kind: ClusterIssuer
     metadata:
       name: letsencrypt-prod
@@ -180,7 +187,7 @@ The DNS-01 challenge verifies domain ownership by proving you have control over 
 
     ```yaml
     ---
-    apiVersion: certmanager.k8s.io/v1alpha1
+    apiVersion: cert-manager.io/v1alpha2
     kind: Certificate
     metadata:
       name: ambassador-certs
