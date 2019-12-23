@@ -68,7 +68,7 @@
                                     "endpoint": {
                                         "address": {
                                             "socket_address": {
-                                                "address": "stenography",
+                                                "address": "stenography.default",
                                                 "port_value": 25565,
                                                 "protocol": "TCP"
                                             }
