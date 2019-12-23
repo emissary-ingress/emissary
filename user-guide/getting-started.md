@@ -14,7 +14,7 @@ The Ambassador Edge Stack installs in minutes. There are three general methods f
 
 Want to learn more about the Ambassador Edge Stack? Read [Why Ambassador](../../about/why-ambassador) and review a summary of the features of the Ambassador Edge Stack below.
 
-![Features](../doc-images/features-table.jpg)
+![Features](../../doc-images/features-table.jpg)
 
 ## Documentation and Help
 
