@@ -41,7 +41,7 @@ Istio creates and stores its TLS certificates in a form that Ambassador Edge Sta
    apiVersion: getambassador.io/v2
    kind: TLSContext
    metadata:
-     name: istio-upstream
+     name: tls
    spec:
      cert_chain_file: /etc/istiocerts/cert-chain.pem
      private_key_file: /etc/istiocerts/key.pem
@@ -74,7 +74,7 @@ Since Consul does not expose TLS Certificates as Kubernetes secrets, we will nee
 1. Install the Ambassador Edge Stack Consul connector.
 
    ```
-   kubectl apply -f https://www.getambassador.io/yaml/consul/ambassador-consul-connector.yaml
+   kubectl apply -f https://www.getambassador.io/early-access/yaml/consul/ambassador-consul-connector.yaml
    ```
 
    This will grab the certificate issued by Consul CA and store it in a Kubernetes secret named `ambassador-consul-connect`. It will also create a Service named `ambassador-consul-connector` which will configure the following `TLSContext`:
