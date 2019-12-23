@@ -23,17 +23,19 @@ class ConsulTest(AmbassadorTest):
     def init(self):
         self.k8s_target = HTTP(name="k8s")
 
+    def config(self):
+        yield self, self.format("""
+---
+apiVersion: ambassador/v1
+kind: Module
+name: ambassador
+ambassador_id: {self.ambassador_id}
+config:
+  upstream_ambassador_namespace: true
+""")
+
     def manifests(self) -> str:
         return super().manifests() + self.format("""
----
-apiVersion: getambassador.io/v1
-kind: Module
-metadata:
-  name: ambassador
-spec:
-  ambassador_id: consultest
-  config:
-    upstream_ambassador_namespace: true
 ---
 apiVersion: v1
 kind: Service
