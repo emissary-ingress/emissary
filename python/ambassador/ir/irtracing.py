@@ -90,6 +90,7 @@ class IRTracing (IRResource):
             IRCluster(
                 ir=ir,
                 aconf=aconf,
+                parent_ir_resource=self,
                 location=self.location,
                 service=self.service,
                 host_rewrite=self.get('host_rewrite', None),

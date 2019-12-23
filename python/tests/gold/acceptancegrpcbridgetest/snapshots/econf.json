@@ -42,7 +42,7 @@
                                     "endpoint": {
                                         "address": {
                                             "socket_address": {
-                                                "address": "acceptancegrpcbridgetest-egrpc",
+                                                "address": "acceptancegrpcbridgetest-egrpc.default",
                                                 "port_value": 80,
                                                 "protocol": "TCP"
                                             }

@@ -41,7 +41,7 @@
                                     "endpoint": {
                                         "address": {
                                             "socket_address": {
-                                                "address": "authenticationheaderrouting-headerroutingauth",
+                                                "address": "authenticationheaderrouting-headerroutingauth.default",
                                                 "port_value": 80,
                                                 "protocol": "TCP"
                                             }
@@ -68,7 +68,7 @@
                                     "endpoint": {
                                         "address": {
                                             "socket_address": {
-                                                "address": "authenticationheaderrouting-http-target1",
+                                                "address": "authenticationheaderrouting-http-target1.default",
                                                 "port_value": 80,
                                                 "protocol": "TCP"
                                             }
@@ -95,7 +95,7 @@
                                     "endpoint": {
                                         "address": {
                                             "socket_address": {
-                                                "address": "authenticationheaderrouting-http-target2",
+                                                "address": "authenticationheaderrouting-http-target2.default",
                                                 "port_value": 80,
                                                 "protocol": "TCP"
                                             }

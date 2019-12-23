@@ -41,7 +41,7 @@
                                     "endpoint": {
                                         "address": {
                                             "socket_address": {
-                                                "address": "authenticationgrpctest-http",
+                                                "address": "authenticationgrpctest-http.default",
                                                 "port_value": 80,
                                                 "protocol": "TCP"
                                             }
@@ -69,7 +69,7 @@
                                     "endpoint": {
                                         "address": {
                                             "socket_address": {
-                                                "address": "authenticationgrpctest-agrpc-auth",
+                                                "address": "authenticationgrpctest-agrpc-auth.default",
                                                 "port_value": 80,
                                                 "protocol": "TCP"
                                             }

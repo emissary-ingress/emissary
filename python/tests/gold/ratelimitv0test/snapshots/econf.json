@@ -42,7 +42,7 @@
                                     "endpoint": {
                                         "address": {
                                             "socket_address": {
-                                                "address": "rate-limit-v0",
+                                                "address": "rate-limit-v0.default",
                                                 "port_value": 5000,
                                                 "protocol": "TCP"
                                             }
@@ -69,7 +69,7 @@
                                     "endpoint": {
                                         "address": {
                                             "socket_address": {
-                                                "address": "ratelimitv0test-http",
+                                                "address": "ratelimitv0test-http.default",
                                                 "port_value": 80,
                                                 "protocol": "TCP"
                                             }

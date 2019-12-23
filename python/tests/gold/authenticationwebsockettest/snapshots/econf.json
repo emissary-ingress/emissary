@@ -41,7 +41,7 @@
                                     "endpoint": {
                                         "address": {
                                             "socket_address": {
-                                                "address": "authenticationwebsockettest-http-auth",
+                                                "address": "authenticationwebsockettest-http-auth.default",
                                                 "port_value": 80,
                                                 "protocol": "TCP"
                                             }

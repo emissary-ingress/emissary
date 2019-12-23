@@ -71,7 +71,7 @@ class IRAuth (IRFilter):
                               (service, weight, grpc, ctx_name, location))
 
             cluster = IRCluster(
-                ir=ir, aconf=aconf, location=location,
+                ir=ir, aconf=aconf, parent_ir_resource=self, location=location,
                 service=service,
                 host_rewrite=self.get('host_rewrite', False),
                 ctx_name=ctx_name,

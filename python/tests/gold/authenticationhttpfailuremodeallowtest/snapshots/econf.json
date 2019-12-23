@@ -41,7 +41,7 @@
                                     "endpoint": {
                                         "address": {
                                             "socket_address": {
-                                                "address": "authenticationhttpfailuremodeallowtest-http",
+                                                "address": "authenticationhttpfailuremodeallowtest-http.default",
                                                 "port_value": 80,
                                                 "protocol": "TCP"
                                             }
@@ -68,7 +68,7 @@
                                     "endpoint": {
                                         "address": {
                                             "socket_address": {
-                                                "address": "authenticationhttpfailuremodeallowtest-http-auth",
+                                                "address": "authenticationhttpfailuremodeallowtest-http-auth.default",
                                                 "port_value": 443,
                                                 "protocol": "TCP"
                                             }

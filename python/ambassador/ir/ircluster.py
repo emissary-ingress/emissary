@@ -38,7 +38,7 @@ if TYPE_CHECKING:
 
 
 class IRCluster (IRResource):
-    def __init__(self, ir: 'IR', aconf: Config,
+    def __init__(self, ir: 'IR', aconf: Config, parent_ir_resource: 'IRResource',
                  location: str,  # REQUIRED
 
                  service: str,   # REQUIRED
@@ -172,6 +172,12 @@ class IRCluster (IRResource):
         # p is read-only, so break stuff out.
 
         hostname = p.hostname
+        fully_qualified = "." in hostname
+        namespace = parent_ir_resource.namespace
+        if not ir.ambassador_module.upstream_ambassador_namespace and not fully_qualified and namespace:
+            hostname = f"{hostname}.{namespace}"
+            ir.logger.debug("upstream_ambassador_namespace %s, fully qualified %s, upstream hostname %s" % (ir.ambassador_module.upstream_ambassador_namespace, fully_qualified, hostname))
+
         try:
             port = p.port
         except ValueError as e:

@@ -41,7 +41,7 @@
                                     "endpoint": {
                                         "address": {
                                             "socket_address": {
-                                                "address": "authenticationtestv1-http",
+                                                "address": "authenticationtestv1-http.default",
                                                 "port_value": 80,
                                                 "protocol": "TCP"
                                             }
@@ -68,7 +68,7 @@
                                     "endpoint": {
                                         "address": {
                                             "socket_address": {
-                                                "address": "authenticationtestv1-ahttp-auth1",
+                                                "address": "authenticationtestv1-ahttp-auth1.default",
                                                 "port_value": 80,
                                                 "protocol": "TCP"
                                             }
@@ -79,7 +79,7 @@
                                     "endpoint": {
                                         "address": {
                                             "socket_address": {
-                                                "address": "authenticationtestv1-ahttp-auth2",
+                                                "address": "authenticationtestv1-ahttp-auth2.default",
                                                 "port_value": 80,
                                                 "protocol": "TCP"
                                             }

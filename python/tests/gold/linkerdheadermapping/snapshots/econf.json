@@ -41,7 +41,7 @@
                                     "endpoint": {
                                         "address": {
                                             "socket_address": {
-                                                "address": "linkerdheadermapping-http",
+                                                "address": "linkerdheadermapping-http.default",
                                                 "port_value": 80,
                                                 "protocol": "TCP"
                                             }
@@ -68,7 +68,7 @@
                                     "endpoint": {
                                         "address": {
                                             "socket_address": {
-                                                "address": "linkerdheadermapping-http-addlinkerdonly",
+                                                "address": "linkerdheadermapping-http-addlinkerdonly.default",
                                                 "port_value": 80,
                                                 "protocol": "TCP"
                                             }
@@ -95,7 +95,7 @@
                                     "endpoint": {
                                         "address": {
                                             "socket_address": {
-                                                "address": "linkerdheadermapping-http-noheader",
+                                                "address": "linkerdheadermapping-http-noheader.default",
                                                 "port_value": 80,
                                                 "protocol": "TCP"
                                             }

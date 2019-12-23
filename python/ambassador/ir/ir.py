@@ -707,7 +707,7 @@ class IR:
             od[key] = self.ambassador_module.get(key, {}).get('enabled', False)
 
         for key in [ 'use_proxy_proto', 'use_remote_address', 'x_forwarded_proto_redirect', 'enable_http10',
-                     'add_linkerd_headers' ]:
+                     'add_linkerd_headers', 'upstream_ambassador_namespace' ]:
             od[key] = self.ambassador_module.get(key, False)
 
         od['service_resource_total'] = len(list(self.services.keys()))

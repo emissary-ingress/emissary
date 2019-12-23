@@ -41,7 +41,7 @@
                                     "endpoint": {
                                         "address": {
                                             "socket_address": {
-                                                "address": "servernametest-http",
+                                                "address": "servernametest-http.default",
                                                 "port_value": 80,
                                                 "protocol": "TCP"
                                             }

@@ -41,7 +41,7 @@
                                     "endpoint": {
                                         "address": {
                                             "socket_address": {
-                                                "address": "ambassadoridtest-http",
+                                                "address": "ambassadoridtest-http.default",
                                                 "port_value": 80,
                                                 "protocol": "TCP"
                                             }
