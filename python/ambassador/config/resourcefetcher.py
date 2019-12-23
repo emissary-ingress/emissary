@@ -69,6 +69,9 @@ class ResourceFetcher:
         # Ugh. Should we worry about multiple Helm charts for a single Ambassador?
         self.helm_chart: Optional[str] = None
 
+        # For deduplicating objects coming in from watt
+        self.k8s_parsed: Dict[str, bool] = {}
+
         if not skip_init_dir:
             # Check /ambassador/init-config for initialization resources -- note NOT
             # $AMBASSADOR_CONFIG_BASE_DIR/init-config! This is compile-time stuff that
@@ -139,9 +142,7 @@ class ResourceFetcher:
     def parse_yaml(self, serialization: str, k8s=False, rkey: Optional[str]=None,
                    filename: Optional[str]=None, finalize: bool=True, namespace: Optional[str]=None,
                    metadata_labels: Optional[Dict[str, str]]=None) -> None:
-        # self.logger.debug("%s: parsing %d byte%s of YAML:\n%s" %
-        #                   (self.location, len(serialization), "" if (len(serialization) == 1) else "s",
-        #                    serialization))
+        # self.logger.info(f"RF YAML: {serialization}")
 
         # Expand environment variables allowing interpolation in manifests.
         serialization = os.path.expandvars(serialization)
@@ -196,6 +197,8 @@ class ResourceFetcher:
         # Expand environment variables allowing interpolation in manifests.
         serialization = os.path.expandvars(serialization)
 
+        # self.logger.info(f"RF WATT: {serialization}")
+
         try:
             watt_dict = json.loads(serialization)
 
@@ -230,6 +233,17 @@ class ResourceFetcher:
         if finalize:
             self.finalize()
 
+    def check_k8s_dup(self, kind: str, namespace: str, name: str) -> bool:
+        key = f"{kind}/{name}.{namespace}"
+
+        if key in self.k8s_parsed:
+            self.logger.info(f"dropping K8s dup {key}")
+            return False
+
+        # self.logger.info(f"remembering K8s {key}")
+        self.k8s_parsed[key] = True
+        return True
+
     def handle_k8s(self, obj: dict) -> None:
         # self.logger.debug("handle_k8s obj %s" % json.dumps(obj, indent=4, sort_keys=True))
 
@@ -241,11 +255,15 @@ class ResourceFetcher:
 
         metadata = obj.get('metadata') or {}
         name = metadata.get('name') or '(no name?)'
+        namespace = metadata.get('namespace') or 'default'
 
         handler = None
+        check_dup = True
 
         if kind in CRDTypes:
             handler = self.handle_k8s_crd
+            # self.handle_k8s_crd will do its own dup checking.
+            check_dup = False
         else:
             handler_name = f'handle_k8s_{kind.lower()}'
             # self.logger.debug(f"looking for handler {handler_name} for K8s {kind} {name}")
@@ -254,6 +272,10 @@ class ResourceFetcher:
         if not handler:
             self.logger.debug(f"{self.location}: skipping K8s {kind}")
             return
+
+        if check_dup:
+            if not self.check_k8s_dup(kind, namespace, name):
+                return
 
         result = handler(obj)
 
@@ -278,6 +300,10 @@ class ResourceFetcher:
         namespace = metadata.get('namespace') or 'default'
         metadata_labels: Optional[Dict[str, str]] = metadata.get('labels')
         generation = metadata.get('generation', 1)
+
+        if not self.check_k8s_dup(kind, namespace, name):
+            return
+
         spec = obj.get('spec') or {}
 
         # Replace a sentinel value with the namespace of this ambassador pod.
