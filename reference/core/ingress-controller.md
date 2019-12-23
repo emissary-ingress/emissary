@@ -1,88 +1,16 @@
 # Ambassador as an Ingress Controller
 
-Starting with version 0.80.0, Ambassador can act as a Kubernetes
-[ingress controller](https://kubernetes.io/docs/concepts/services-networking/ingress-controllers/),
-reading configuration data from Kubernetes 
-[`Ingress`](https://kubernetes.io/docs/concepts/services-networking/ingress/) resources.
-This makes it easier to work with other `Ingress`-oriented tools within the Kubernetes
-ecosystem, and it makes it easier for users migrating from other
-ingress controllers to try Ambassador.
+An `Ingress` resource is a popular way to expose Kubernetes services to the Internet. In order to use `Ingress` resources, you need to install an [ingress controller](https://kubernetes.io/docs/concepts/services-networking/ingress-controllers/). Ambassador can function as a full-fledged Ingress controller, making it easy to work with other `Ingress`-oriented tools within the Kubernetes ecosystem.
 
 ## When and How to Use the `Ingress` Resource
 
-In order to use the `Ingress` resource effectively, it's important to understand not
-just how to use it, but also when to use it, and how it interacts with CRDs and
-annotations.
+If you're new to Ambassador and Kubernetes, we'd recommend you start with our [quickstart](/user-guide/getting-started/).
 
-### What is required to use the `Ingress` resource?
+If you're a power user and need to integrate with other software that leverages the `Ingress` resource, read on. The `Ingress` specification is very basic, and, as such, does not support many of the features of Ambassador, so you'll be using both `Ingress` resources and `Mapping` resources to manage your Kubernetes services.
 
-- You will need RBAC permissions to create `Ingress` resources.
+## Ambassador `Ingress` Support
 
-- Ambassador will need RBAC permissions to get, list, watch, and update `Ingress` resources. 
-
-  You can see this in the `https://getambassador.io/yaml/ambassador/ambassador-rbac.yaml`
-  file, but this is the critical rule to add to Ambassador's `Role` or `ClusterRole`:
-
-      - apiGroups: [ "extensions" ]
-        resources: [ "ingresses" ]
-        verbs: ["get", "list", "watch"]
-      - apiGroups: [ "extensions" ]
-        resources: [ "ingresses/status" ]
-        verbs: ["update"]
-
-- You must create your `Ingress` resource with the correct `ingress.class`.
-
-  Ambassador will automatically read Ingress resources with the annotation
-  `kubernetes.io/ingress.class: ambassador`.
-
-- You may need to set your `Ingress` resources' `ambassador-id`.
-
-  If you're not using the `default` ID, you'll need to add the `getambassador.io/ambassador-id`
-  annotation to your `Ingress`. See the examples below.
-
-- You must create a `Service` resource with the correct `app.kubernetes.io/component` label.
-
-  Ambassador will automatically load balance Ingress resources using the endpoint exposed 
-  from the Service with the annotation `app.kubernetes.io/component: ambassador-service`.
-  
-      kind: Service
-      apiVersion: v1
-      metadata:
-        name: ingress-ambassador
-        labels:
-          app.kubernetes.io/component: ambassador-service
-      spec:
-        externalTrafficPolicy: Local
-        type: LoadBalancer
-        selector:
-          service: ambassador
-        ports:
-          - name: http
-            port: 80
-            targetPort: http
-          - name: https
-            port: 443
-            targetPort: https
-
-### When should I use an `Ingress` instead of annotations or CRDs?
-
-As of 0.80.0, Datawire recommends that Ambassador be configured with CRDs. The `Ingress`
-resource is available to users who need it for integration with other ecosystem tools, or
-who feel that it more closely matches their workflows -- however, it is important to 
-recognize that the `Ingress` resource is rather more limited than the Ambassador `Mapping`
-is (for example, the `Ingress` spec has no support for rewriting or for TLS origination).
-**When in doubt, use CRDs.**
-
-### Can 0.80.0 support using an `Ingress` and CRDs in concert?
-
-Yes. All Ambassador configuration mechanisms are the same under the hood: from
-Ambassador's point of view, it doesn't matter if you use CRDs, annotations, or
-`Ingress` resources. Even in 0.80.0, it is definitely supported to use an `Ingress`
-to define the edge of your cluster, and CRDs for more advanced functionality.
-
-## `Ingress` Support in 0.80.0
-
-Ambassador 0.80.0 supports basic core functionality of the  `Ingress` resource, as
+Ambassador supports basic core functionality of the  `Ingress` resource, as
 defined by the [`Ingress`](https://kubernetes.io/docs/concepts/services-networking/ingress/)
 resource itself:
 
@@ -94,7 +22,7 @@ resource itself:
 - Using the `Ingress` resource in concert with Ambassador CRDs or annotations is supported.
    - this includes Ambassador annotations on the `Ingress` resource itself
 
-Ambassador 0.80.0 does **not** extend the basic `Ingress` specification except as follows:
+Ambassador does **not** extend the basic `Ingress` specification except as follows:
 
 - the `getambassador.io/ambassador-id` annotation allows you to set an Ambassador ID for
   the `Ingress` itself; and
@@ -310,3 +238,54 @@ spec:
 
 Note that this shows TLS termination, not origination: the `Ingress` spec does not
 support origination.
+
+### What is required to use the `Ingress` resource?
+
+The following covers the basic requirements to use the `Ingress` resource with Ambassador. 
+
+- You will need RBAC permissions to create `Ingress` resources.
+
+- Ambassador will need RBAC permissions to get, list, watch, and update `Ingress` resources. The
+  default Ambassador installation does this for you. If you are using a custom configuration
+  of Ambassador, ensure the following rule is added to Ambassador's `Role` or `ClusterRole`:
+
+      - apiGroups: [ "extensions" ]
+        resources: [ "ingresses" ]
+        verbs: ["get", "list", "watch"]
+      - apiGroups: [ "extensions" ]
+        resources: [ "ingresses/status" ]
+        verbs: ["update"]
+
+- You must create your `Ingress` resource with the correct `ingress.class`.
+
+  Ambassador will automatically read Ingress resources with the annotation
+  `kubernetes.io/ingress.class: ambassador`.
+
+- You may need to set your `Ingress` resources' `ambassador-id`.
+
+  If you're not using the `default` ID, you'll need to add the `getambassador.io/ambassador-id`
+  annotation to your `Ingress`. See the examples below.
+
+- You must create a `Service` resource with the correct `app.kubernetes.io/component` label.
+
+  Ambassador will automatically load balance Ingress resources using the endpoint exposed 
+  from the Service with the annotation `app.kubernetes.io/component: ambassador-service`.
+  
+      kind: Service
+      apiVersion: v1
+      metadata:
+        name: ingress-ambassador
+        labels:
+          app.kubernetes.io/component: ambassador-service
+      spec:
+        externalTrafficPolicy: Local
+        type: LoadBalancer
+        selector:
+          service: ambassador
+        ports:
+          - name: http
+            port: 80
+            targetPort: http
+          - name: https
+            port: 443
+            targetPort: https
