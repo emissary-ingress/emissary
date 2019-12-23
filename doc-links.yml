@@ -117,7 +117,6 @@
       - title: Monitoring Ingress with Prometheus and Grafana
         link: /user-guide/monitoring
 
-
 - title: Reference & Configurations
   items:
     - title: Configuring Ambassador Edge Stack
@@ -134,6 +133,10 @@
           link: /reference/core/load-balancer
         - title: Resolvers and Service Discovery Configuration
           link: /reference/core/resolvers
+    - title: Configuring Edge Control
+      items: 
+        - title: Edge Control Installation
+          link: /reference/edge-control
     - title: Running Ambassador Edge Stack
       items:  
       - title: Running and Deployment 
