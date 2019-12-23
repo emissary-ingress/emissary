@@ -26,6 +26,15 @@ class ConsulTest(AmbassadorTest):
     def manifests(self) -> str:
         return super().manifests() + self.format("""
 ---
+apiVersion: getambassador.io/v1
+kind: Module
+metadata:
+  name: ambassador
+spec:
+  ambassador_id: consultest
+  config:
+    upstream_ambassador_namespace: true
+---
 apiVersion: v1
 kind: Service
 metadata:
