@@ -47,6 +47,15 @@ Format:
 --->
 
 <!--- CueAddReleaseNotes --->
+## [1.0.0-ea9] December 23, 2019
+[1.0.0-ea9]: https://github.com/datawire/ambassador/compare/v0.86.0...v1.0.0-ea9
+
+
+### Minor changes:
+- Bugfix: Use proper executable name for Windows edgectl
+- Bugfix: Don't force SNI routes to be lower-priority than non-SNI routes
+- Bugfix: Prevent the self-signed fallback context from conflicting with a manual context
+
 ## [1.0.0-ea7] December 19, 2019
 [1.0.0-ea7]: https://github.com/datawire/ambassador/compare/v0.86.0...v1.0.0-ea7
 

@@ -58,7 +58,10 @@ RUN apk --no-cache add bash bash-completion ncurses curl jq rsync python3 python
     ln -s /usr/bin/python3 /usr/bin/python && \
     npm config set user 0 && \
     npm config set unsafe-perm true && \
-    npm install -g rollup rollup-plugin-terser
+    npm install -g rollup rollup-plugin-terser && \
+    curl https://sdk.cloud.google.com > /tmp/install.sh && \
+    mkdir /usr/lib64/ && \
+    bash /tmp/install.sh --disable-prompts --install-dir=/usr/lib64
 
 RUN sh -c "/usr/bin/kubectl completion bash > /usr/share/bash-completion/completions/kubectl"
 RUN chmod u+s $(which docker)
