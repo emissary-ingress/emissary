@@ -8,7 +8,7 @@
    - Select `Applications`
    - Select `Add Application`
    - Choose `Web` and `OpenID Connect`. Then click `Create`.
-   - Give it a name, enter the URL of your Ambassador load balancer in `Base URIs` and the callback URL `{AMBASSADOR_URL}/callback` as the `Login redirect URIs`
+   - Give it a name, enter the URL of your Ambassador load balancer in `Base URIs` and the callback URL `{AMBASSADOR_URL}/.ambassador/oauth2/redirection-endpoint` as the `Login redirect URIs`
 
 2. Copy the `Client ID` and `Client Secret` and use them to fill in the `ClientID` and `Secret` of you Okta OAuth `Filter`.
 

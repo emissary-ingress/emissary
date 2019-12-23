@@ -12,7 +12,7 @@ To use Azure as your IdP, you will first need to register an OAuth application w
 
 4. Click on `Authentication` in the left sidebar.
 
-      - Under `Redirect URIs` at the top, add a `Redirect URI` with the type `Web` and set it to `https://{{AMBASSADOR_URL}}/callback`
+      - Under `Redirect URIs` at the top, add a `Redirect URI` with the type `Web` and set it to `https://{{AMBASSADOR_URL}}/.ambassador/oauth2/redirection-endpoint`
         
         **Note:** Azure AD requires the redirect endpoint to handle TLS
       - Under `Advanced settings`, make sure the application is issuing `Access tokens` by checking next to the box that says `Access tokens`

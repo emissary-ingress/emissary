@@ -20,7 +20,7 @@ jwt:
 1. Create an OIDC Client
 
    ```shell
-   uaac client add ambassador --name ambassador-client --scope openid --authorized_grant_types authorization_code,refresh_token --redirect_uri {AMBASSADOR_URL}/callback --secret CLIENT_SECRET
+   uaac client add ambassador --name ambassador-client --scope openid --authorized_grant_types authorization_code,refresh_token --redirect_uri {AMBASSADOR_URL}/.ambassador/oauth2/redirection-endpoint --secret CLIENT_SECRET
    ```
 
    **Note:** Change the value of `{AMBASSADOR_URL}` with the IP or DNS of your Ambassador load balancer.
