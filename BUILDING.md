@@ -43,6 +43,9 @@ export DEV_REGISTRY=dwflynn
 make test
 ```
 
+**Note**: To run tests in GKE set up using gcloud, set the variable `GCLOUD_CONFIG` to point to your gcloud config file.
+By default, it should be `GCLOUD_CONFIG=~/.config/gcloud/`.
+
 ## Making Documentation-Only Changes
 
 If you want to make a change that **only** affects documentation, and is not
