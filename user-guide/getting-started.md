@@ -1,12 +1,12 @@
 # Getting Started with the Ambassador Edge Stack
 
-The Ambassador Edge Stack is a free comprehensive, self-service API Gateway and load balancer for Kubernetes. With the Ambassador Edge Stack, application developers can *independently* manage your edge (e.g., authentication, routing, rate limiting) without centralized operational intervention, reducing toil. The Ambassador Edge Stack provides a comprehensive set of capabilities for the edge ranging from traffic management (e.g., rate limiting, load balancing), security (e.g., TLS, single sign-on, rate limiting), and developer onboarding (e.g., developer portal, Swagger/OpenAPI support).
+The Ambassador Edge Stack is a free comprehensive, self-service API Gateway and load balancer for Kubernetes. With the Ambassador Edge Stack, application developers can *independently* manage their edge (e.g., authentication, routing, rate limiting) without centralized operational intervention, reducing toil. The Ambassador Edge Stack provides a comprehensive set of capabilities for the edge ranging from traffic management (e.g., rate limiting, load balancing), security (e.g., TLS, single sign-on, rate limiting), and developer onboarding (e.g., developer portal, Swagger/OpenAPI support).
 
 ## Install the Ambassador Edge Stack
 
 The Ambassador Edge Stack installs in minutes. There are three general methods for installing the Ambassador Edge Stack:
 
-* [Standard install](install). If you're new to Kubernetes and/or Ambassador, use this method.
+* [Standard install](../install). If you're new to Kubernetes and/or Ambassador, use this method.
 * [Docker](../../about/quickstart). Don't have Kubernetes, but want to try out Ambassador? The Ambassador Edge Stack can run locally on your laptop in a Docker container.
 * [Helm](../helm). Helm is a popular package manager for Kubernetes. If you're using Helm, Ambassador Edge Stack comes pre-packaged as a Helm chart.
 
@@ -14,7 +14,7 @@ The Ambassador Edge Stack installs in minutes. There are three general methods f
 
 Want to learn more about the Ambassador Edge Stack? Read [Why Ambassador](../../about/why-ambassador) and review a summary of the features of the Ambassador Edge Stack below.
 
-![Features](../doc-images/features-table.png)
+![Features](../doc-images/features-table.jpg)
 
 ## Documentation and Help
 
