@@ -4,7 +4,7 @@ Ambassador supports several different methods for managing the HTTP `Host` heade
 
 ## Using `host` and `host_regex`
 
-A mapping that specifies the `host` attribute will take effect _only_ if the HTTP `Host` header matches the value in the `host` attribute. If `host_regex` is `true`, the `host` value is taken to be a regular expression, otherwise an exact string match is required.
+A mapping that specifies the `host` attribute will take effect _only_ if the HTTP `Host` header matches the value in the `host` attribute. If `host_regex` is `true`, the `host` value is taken to be a regular expression. Otherwise, an exact string match is required.
 
 You may have multiple mappings listing the same resource but different `host` attributes to effect `Host`-based routing. An example:
 
@@ -41,7 +41,7 @@ spec:
 will map requests for `/` to
 
 - the `tour2` service if the `Host` header is `tour.datawire.io`;
-- the `toru3` service if the `Host` header matches `^tour[2-9]\\.datawire\\.io$`; and to
+- the `tour3` service if the `Host` header matches `^tour[2-9]\\.datawire\\.io$`; and to
 - the `tour1` service otherwise.
 
 Note that enclosing regular expressions in quotes can be important to prevent backslashes from being doubled.
