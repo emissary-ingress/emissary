@@ -4,7 +4,7 @@ An `Ingress` resource is a popular way to expose Kubernetes services to the Inte
 
 ## When and How to Use the `Ingress` Resource
 
-If you're new to Ambassador and Kubernetes, we'd recommend you start with our [quickstart](/user-guide/getting-started/).
+If you're new to Ambassador and Kubernetes, we'd recommend you start with our [quickstart](/user-guide/getting-started/), instead of using `Ingress`.
 
 If you're a power user and need to integrate with other software that leverages the `Ingress` resource, read on. The `Ingress` specification is very basic, and, as such, does not support many of the features of Ambassador, so you'll be using both `Ingress` resources and `Mapping` resources to manage your Kubernetes services.
 
