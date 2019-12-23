@@ -4,6 +4,9 @@ root = true
 end_of_line = lf
 insert_final_newline = true
 
+[*.json]
+insert_final_newline = false
+
 [*.py]
 indent_style = space
 indent_size = 4
