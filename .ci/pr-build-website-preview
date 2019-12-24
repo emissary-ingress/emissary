@@ -21,7 +21,7 @@ case "${TRAVIS_PULL_REQUEST_SHA:+${TRAVIS_BRANCH:-}}" in
 	master) submodule=content;;
 	early-access) submodule=content-ea/early-access;;
 	*)
-		echo "[pr-build-preview] skipping: not a PR in to 'master' or 'early-access'"
+		echo "[pr-build-website-preview] skipping: not a PR in to 'master' or 'early-access'"
 		exit 0
 		;;
 esac

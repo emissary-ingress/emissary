@@ -18,7 +18,7 @@ set -o errexit
 set -o nounset
 
 if ! [[ -d /tmp/getambassador.io/public ]]; then
-	echo '[publish-preview] skipping: website preview was not built'
+	echo '[publish-website-preview] skipping: website preview was not built'
 	exit 0
 fi
 
