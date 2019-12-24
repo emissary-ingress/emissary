@@ -28,10 +28,21 @@ esac
 
 set -o verbose
 
+# Don't trust $TRAVIS_COMMIT, use $(git rev-parse HEAD) instead.
+#
+# For PRs, it's often set to a stale merge commit that isn't fetched,
+# instead of the actual commit pointed to by refs/pull/NNN/merge which
+# is checked out.  For example, on
+# <https://travis-ci.org/datawire/ambassador-docs/builds/629117603>,
+# the webui says         it's testing commit cb8dc0029465119ada1ee9222539c825f5a7c015,
+# and TRAVIS_COMMIT says it's testing commit cb8dc0029465119ada1ee9222539c825f5a7c015,
+# but in fact            it's testing commit d23659347cd125267b079f2f7900c3e1b032ea4b.
+docs_commit=$(git rev-parse HEAD)
+
 rm -rf /tmp/getambassador.io
 git clone https://d6e-automaton:${GH_TOKEN}@github.com/datawire/getambassador.io.git /tmp/getambassador.io
 cd /tmp/getambassador.io
 git submodule update --init --reference="$TRAVIS_BUILD_DIR"
-git -C "$submodule" checkout "$TRAVIS_COMMIT"
+git -C "$submodule" checkout "$docs_commit"
 npm install
 npm run build
