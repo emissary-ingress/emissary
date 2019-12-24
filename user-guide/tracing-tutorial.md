@@ -4,5 +4,5 @@ Ambassador can support distributed tracing, one of the ["3 pillars of observabil
 
 ## Tutorials
 
-- [DataDog APM](/user-guide/tracing-tutorial-datadog.html)
-- [Zipkin](/user-guide/tracing-tutorial-zipkin.html)
+- [DataDog APM](/user-guide/tracing-tutorial-datadog)
+- [Zipkin](/user-guide/tracing-tutorial-zipkin)

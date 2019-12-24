@@ -4,7 +4,7 @@ The implementation of an effective authentication strategy is vital to any appli
 
 Typically with web applications the authentication is implemented at the edge, either via an API/edge gateway, or via a top-level request filter within your application framework. It is also increasingly common for applications to use external identity providers -- such as Google, GitHub, or Facebook -- typically via an Identity hub like [Auth0](https://auth0.com/), [Keycloak](https://www.keycloak.org/) or [Okta](https://www.okta.com/) that provides authentication-as-a-service, rather than taking on the high cost (and risk) of maintaining their own identity database.
 
-This article is focused on implementing authentication at the edge with the Kubernetes-native [Ambassador Pro API gateway](https://www.getambassador.io/pro/), and shows an example of how to integrate this with third-party identity providers.
+This article is focused on implementing authentication at the edge with the Kubernetes-native [Ambassador Pro API gateway](/pro/), and shows an example of how to integrate this with third-party identity providers.
 
 ## How Ambassador Integrates with OAuth and OIDC
 
@@ -28,11 +28,11 @@ If you look back at the authentication process diagram, the function of the enti
 
 ## Why Use an Identity Hub like Auth0 or Keycloak?
 
-Using an identity hub or broker allows you to support many IdPs without having to code individual integrations with them. For example, [Auth0](https://auth0.com/docs/identityproviders) and [Keycloak](https://www.keycloak.org/docs/2.5/server_admin/topics/identity-broker/social-login.html) both offer support for using Google and GitHub as an IdP.
+Using an identity hub or broker allows you to support many IdPs without having to code individual integrations with them. For example, [Auth0](https://auth0.com/docs/identityproviders) and [Keycloak](https://www.keycloak.org/docs/latest/server_admin/index.html#social-identity-providers) both offer support for using Google and GitHub as an IdP.
 
 An identity hub sits between your application and the IdP that authenticates your users, which not only adds a level of abstraction so that your application (and Ambassador) is isolated from any changes to each provider's implementation, but it also allows your users to chose which provider they use to authenticate (and you can set a default, or restrict these options).
 
-The Auth0 docs provide a guide for adding social IdP "[connections](https://auth0.com/docs/identityproviders)" to your Auth0 account, and the Keycloak docs provide a guide for adding social identity "[brokers](https://www.keycloak.org/docs/2.5/server_admin/topics/identity-broker/social-login.html)".
+The Auth0 docs provide a guide for adding social IdP "[connections](https://auth0.com/docs/identityproviders)" to your Auth0 account, and the Keycloak docs provide a guide for adding social identity "[brokers](https://www.keycloak.org/docs/latest/server_admin/index.html#social-identity-providers)".
 
 ## Learn More With the Ambassador and Auth0 Tutorial
 You can learn more from the [Single Sign-On with OAuth & OIDC](/user-guide/oauth-oidc-auth) tutorial, which also contains a full walkthrough of how to configure Ambassador with Auth0.

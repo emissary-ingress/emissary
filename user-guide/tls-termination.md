@@ -14,7 +14,7 @@ This guide requires you have the following installed:
 
 ## Install Ambassador
 
-Install Ambassador in Kubernetes using either [YAML manifests](https://www.getambassador.io/user-guide/getting-started) or the [Helm chart](https://www.getambassador.io/user-guide/helm). If you do not know which to do, use the YAML manifests.
+Install Ambassador in Kubernetes using either [YAML manifests](../../user-guide/getting-started) or the [Helm chart](../../user-guide/helm). If you do not know which to do, use the YAML manifests.
 
 ## Create a Self-Signed Certificate
 

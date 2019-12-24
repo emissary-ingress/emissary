@@ -2,7 +2,7 @@
 
 Cross-Origin resource sharing lets users request resources (e.g., images, fonts, videos) from domains outside the original domain.
 
-CORS configuration can be set for all Ambassador mappings in the [ambassador](https://www.getambassador.io/reference/modules#the-ambassador-module) module, or set per [mapping](https://www.getambassador.io/reference/mappings#configuring-mappings).
+CORS configuration can be set for all Ambassador mappings in the [ambassador](../modules#the-ambassador-module) module, or set per [mapping](../mappings#configuring-mappings).
 
 When the CORS attribute is set at either the `Mapping` or `Module` level, Ambassador will intercept the pre-flight `OPTIONS` request and respond with the appropriate CORS headers. This means you will not need to implement any logic in your upstreams to handle these CORS `OPTIONS` requests.
 

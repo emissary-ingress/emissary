@@ -79,7 +79,7 @@ If you deploy using Helm the value that you should change is `prometheusExporter
 
 #### Configuring for kubectl
 
-In the [ambassador-rbac-prometheus](https://github.com/datawire/ambassador/blob/master/templates/ambassador/ambassador-rbac-prometheus.yaml) example template there is a `ConfigMap` that should be updated. Add your mapping to the `configuration` property.
+In the [`ambassador-rbac-prometheus.yaml`](../../yaml/ambassador/ambassador-rbac-prometheus.yaml) example template there is a `ConfigMap` that should be updated. Add your mapping to the `configuration` property.
 
 ```yaml
 ---
@@ -102,8 +102,8 @@ data:
 
 If you don't already have a Prometheus setup, the [Prometheus operator](https://github.com/coreos/prometheus-operator) is a powerful way to create and deploy Prometheus instances. Use the following YAML to quickly configure the Prometheus Operator with Ambassador:
 
-- [`statsd-sink.yaml`](https://github.com/datawire/ambassador/blob/master/statsd-sink/prometheus/statsd-sink.yaml) Creates the statsd-sink service that collects stats date from Ambassador and translates it to Prometheus metrics. It also creates a `ServiceMonitor` that adds `statsd-sink` as a Prometheus target.
-- [`prometheus.yaml`](https://github.com/datawire/ambassador/blob/master/statsd-sink/prometheus/prometheus.yaml) Deploys the Prometheus Operator and creates a `Prometheus` object that collects data from the location defined by the `ServiceMonitor`. 
+- [`statsd-sink.yaml`](https://github.com/datawire/ambassador/blob/master/deployments/statsd-sink/prometheus/statsd-sink.yaml) Creates the statsd-sink service that collects stats date from Ambassador and translates it to Prometheus metrics. It also creates a `ServiceMonitor` that adds `statsd-sink` as a Prometheus target.
+- [`prometheus.yaml`](https://github.com/datawire/ambassador/blob/master/deployments/statsd-sink/prometheus/prometheus.yaml) Deploys the Prometheus Operator and creates a `Prometheus` object that collects data from the location defined by the `ServiceMonitor`. 
 
 Make sure that the `ServiceMonitor` is in the same namespace as Ambassador. A walk-through of the basics of configuring the Prometheus operator with Ambassador and Envoy is available [here](http://www.datawire.io/faster/ambassador-prometheus/).
 
@@ -114,7 +114,7 @@ kubectl apply -f statsd-sink.yaml
 kubectl apply -f prometheus.yaml
 ```
 
-Wait for a minute after the pods spin up and then access the Prometheus dashboard by port-forwarding the prometheus pod and going to http://localhost:9090/ on a web-browser.
+Wait for a minute after the pods spin up and then access the Prometheus dashboard by port-forwarding the prometheus pod and going to `http://localhost:9090/` on a web-browser.
 
 ```
 kubectl port-forward prometheus-prometheus-0 9090

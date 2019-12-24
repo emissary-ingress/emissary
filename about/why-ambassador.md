@@ -46,14 +46,14 @@ Ambassador takes full advantage of Kubernetes and Envoy Proxy.
 
 ## For more information
 
-[Deploy Ambassador today](https://www.getambassador.io/user-guide/install) and join the community [Slack Channel](http://d6e.co/slack).
+[Deploy Ambassador today](../../user-guide/install) and join the community [Slack Channel](http://d6e.co/slack).
 
-If you're interested in commercial support and additional features, see [Ambassador Pro](https://www.getambassador.io/pro).
+If you're interested in commercial support and additional features, see [Ambassador Pro](/pro).
 
 Interested in learning more?
 
 * [Why did we start building Ambassador?](https://blog.getambassador.io/building-ambassador-an-open-source-api-gateway-on-kubernetes-and-envoy-ed01ed520844).
-* [Ambassador Architecture overview](https://www.getambassador.io/concepts/architecture)
+* [Ambassador Architecture overview](../../concepts/architecture)
 
 
 

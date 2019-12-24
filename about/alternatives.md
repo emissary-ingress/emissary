@@ -3,7 +3,7 @@
 Alternatives to Ambassador fall in three basic categories.
 
 * Hosted API gateways, such as the [Amazon API gateway](https://aws.amazon.com/api-gateway/).
-* Traditional API gateways, such as [Kong](https://getkong.org/).
+* Traditional API gateways, such as [Kong](https://konghq.org/).
 * L7 proxies, such as [Traefik](https://traefik.io/), [NGINX](http://nginx.org/), [HAProxy](http://www.haproxy.org/), or [Envoy](https://www.envoyproxy.io), or Ingress controllers built on these proxies.
 
 Both hosted API gateways and traditional API gateways are:

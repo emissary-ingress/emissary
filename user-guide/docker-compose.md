@@ -213,7 +213,7 @@ docker-compose up -d
 docker-compose up -d -V ambassador
 ```
 
-Go to http://localhost:8080/ in your browser and see the tour-ui application.
+Go to `http://localhost:8080/` in your browser and see the tour-ui application.
 
 ## 4. Add Authentication
 
@@ -407,7 +407,7 @@ docker-compose up -d -V ambassador
 curl --user username:password localhost:8080/backend/get-quote/
 ```
 
-In a browser you can go to [http://localhost:16686/](http://localhost:16686/) and search for traces. To make this demonstration more useful one should implement Zipkin tracing middleware into their webserver.
+In a browser you can go to `http://localhost:16686/` and search for traces. To make this demonstration more useful one should implement Zipkin tracing middleware into their webserver.
 
 ## Next Steps
 

@@ -1,5 +1,4 @@
 ---
-    canonical: https://wwww.getambassador.io/user-guide/getting-started
     description: In this tutorial, we'll walk through the process of deploying Ambassador in Kubernetes for ingress routing.
 ---
 # Deploying Ambassador to Kubernetes
@@ -197,7 +196,7 @@ ambassador   10.11.12.13     35.36.37.38     80:31656/TCP   1m
 
 You should now be able to reach the `tour-ui` application from a web browser:
 
-http://35.36.37.38/
+`http://35.36.37.38/`
 
 or on minikube:
 
@@ -210,7 +209,7 @@ $ minikube service list
 | default     | ambassador           | http://192.168.99.107:31893 |
 |-------------|----------------------|-----------------------------|
 ```
-http://192.168.99.107:31893/
+`http://192.168.99.107:31893/`
 
 or on Docker for Mac/Windows:
 
@@ -222,7 +221,7 @@ ambassador-admin   NodePort       10.107.188.149   <none>        8877:30993/TCP 
 tour               ClusterIP      10.107.77.153    <none>        80/TCP           13m
 kubernetes         ClusterIP      10.96.0.1        <none>        443/TCP          84d
 ```
-http://localhost/
+`http://localhost/`
 
 ## 5. The Diagnostics Service in Kubernetes
 
@@ -258,7 +257,7 @@ Forwarding local port 8877 to one of the pods:
 kubectl port-forward ambassador-3655608000-43x86 8877
 ```
 
-will then let us view the diagnostics at http://localhost:8877/ambassador/v0/diag/.
+will then let us view the diagnostics at `http://localhost:8877/ambassador/v0/diag/`.
 
 ## 6. Enable HTTPS
 

@@ -4,7 +4,7 @@ Circuit breakers are a powerful technique to improve resilience. By preventing a
 
 ## Circuit breaker configuration
 
-Circuit breaking configuration can be set for all Ambassador mappings in the [ambassador](/reference/core/ambassador) module or set per [mapping](https://www.getambassador.io/reference/mappings#configuring-mappings).
+Circuit breaking configuration can be set for all Ambassador mappings in the [ambassador](/reference/core/ambassador) module or set per [mapping](../mappings#configuring-mappings).
 
 The `circuit_breakers` attribute configures circuit breaking. The following fields are supported:
 ```yaml

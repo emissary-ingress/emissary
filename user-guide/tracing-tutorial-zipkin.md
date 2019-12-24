@@ -4,7 +4,7 @@ In this tutorial, we'll configure Ambassador to initiate a trace on some sample 
 
 ## Before You Get Started
 
-This tutorial assumes you have already followed the [Ambassador Getting Started](/user-guide/getting-started.html) guide. If you haven't done that already, you should do that now.
+This tutorial assumes you have already followed the [Ambassador Getting Started](/user-guide/getting-started) guide. If you haven't done that already, you should do that now.
 
 After completing the Getting Started guide you will have a Kubernetes cluster running Ambassador and the Quote of the Moment service. Let's walk through adding tracing to this setup.
 
@@ -119,7 +119,7 @@ $ minikube service list
 |-------------|----------------------|-----------------------------|
 ```
 
-Open your web browser to the Zipkin dashboard http://192.168.99.107:31043/zipkin/.
+Open your web browser to the Zipkin dashboard `http://192.168.99.107:31043/zipkin/`.
 
 In the Zipkin UI, click on the "Find Traces" button to get a listing instrumented traces. Each of the traces that are displayed can be clicked on, which provides further information
 about each span and associated metadata.

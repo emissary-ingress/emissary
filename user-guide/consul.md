@@ -115,7 +115,7 @@ You'll now register a demo application with Consul, and show how Ambassador can 
    kubectl port-forward service/consul-ui 8500:80
    ```
 
-   Go to http://localhost:8500 from a web browser and you should see a service named `qotm-consul`. 
+   Go to `http://localhost:8500/` from a web browser and you should see a service named `qotm-consul`. 
 
 3. Create a `Mapping` for the `qotm-consul` service. 
 
@@ -204,7 +204,7 @@ This will install into your cluster:
 
    This will deploy a demo application called `qotm-mtls` with the Connect sidecar proxy. The Connect proxy will register the application with Consul, require TLS to access the application, and expose other [Consul Service Segmentation](https://www.consul.io/segmentation.html) features.
 
-3. Verify the `qotm-mtls` application is registered in Consul by accessing the Consul UI on http://localhost:8500/ after running:
+3. Verify the `qotm-mtls` application is registered in Consul by accessing the Consul UI on `http://localhost:8500/` after running:
 
    ```
    kubectl port-forward service/consul-ui 8500:80
