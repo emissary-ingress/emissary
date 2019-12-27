@@ -50,7 +50,8 @@ class AmbassadorIDTest(AmbassadorTest):
 apiVersion: ambassador/v0
 kind:  Module
 name:  ambassador
-config: {}
+config: 
+  upstream_ambassador_namespace: true
 """
         for prefix, amb_id in (("findme", "{self.ambassador_id}"),
                                ("findme-array", "[{self.ambassador_id}, missme]"),
