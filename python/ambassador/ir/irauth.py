@@ -20,12 +20,13 @@ class IRAuth (IRFilter):
                  rkey: str="ir.auth",
                  kind: str="IRAuth",
                  name: str="extauth",
+                 namespace: Optional[str] = None,
                  type: Optional[str] = "decoder",
                  **kwargs) -> None:
 
 
         super().__init__(
-            ir=ir, aconf=aconf, rkey=rkey, kind=kind, name=name,
+            ir=ir, aconf=aconf, rkey=rkey, kind=kind, name=name, namespace=namespace,
             cluster=None,
             timeout_ms=None,
             connect_timeout_ms=3000,
@@ -95,6 +96,7 @@ class IRAuth (IRFilter):
             self.referenced_by(typecast(IRCluster, self.cluster))
 
     def _load_auth(self, module: Resource, ir: 'IR'):
+        self.namespace = module.get("namespace", self.namespace)
         if self.location == '--internal--':
             self.sourced_by(module)
 
