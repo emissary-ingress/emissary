@@ -61,17 +61,13 @@
   - title: Why Ambassador Edge Stack Uses Envoy Proxy (External Link)
     link: https://blog.getambassador.io/envoy-vs-nginx-vs-haproxy-why-the-open-source-ambassador-api-gateway-chose-envoy-23826aed79ef
 
-- title: Guides & Tutorials 
+- title: Guides
   items: 
-    - title: Available Guides & Tutorials
+    - title: Available Guides 
       link: /docs/guides/
       items:
     - title: Routing
       items:
-      - title: Basic Rate Limiting
-        link: /user-guide/rate-limiting-tutorial
-      - title: Advanced Rate Limiting
-        link: /user-guide/advanced-rate-limiting
       - title: Developing Custom Filters for Routing
         link: /docs/guides/filter-dev-guide
       - title: Using Knative
@@ -92,6 +88,10 @@
         link: /user-guide/auth-tutorial
       - title: Single Sign-On with OAuth & OIDC
         link: /user-guide/oauth-oidc-auth
+      - title: Basic Rate Limiting
+        link: /user-guide/rate-limiting-tutorial
+      - title: Advanced Rate Limiting
+        link: /user-guide/advanced-rate-limiting
     - title: Service Mesh
       items:
       - title: Consul Integration
