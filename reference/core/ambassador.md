@@ -177,11 +177,13 @@ If set, `cluster_idle_timeout_ms` specifies the timeout (in milliseconds) after 
 
 ### gRPC HTTP/1.1 bridge (`enable_grpc_http11_bridge`)
 
-Ambassador Edge Stack supports bridging HTTP/1.1 clients to backend gRPC servers. When an HTTP/1.1 connection is opened and the request content type is `application/grpc`, Ambassador Edge Stack will buffer the response and translate into gRPC requests. For more details on the translation process, see the [Envoy gRPC HTTP/1.1 bridge documentation](https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/grpc_http1_bridge_filter). This setting can be enabled by setting `enable_grpc_http11_bridge: true`.
+Ambassador supports bridging HTTP/1.1 clients to backend gRPC servers. When an HTTP/1.1 connection is opened and the request content type is `application/grpc`, Ambassador will buffer the response and translate into gRPC requests. For more details on the translation process, see the [Envoy gRPC HTTP/1.1 bridge documentation](https://www.envoyproxy.io/docs/envoy/v1.11.2/configuration/http_filters/grpc_http1_bridge_filter.html). This setting can be enabled by setting `enable_grpc_http11_bridge: true`. Read more about [gRPC and Ambassador](user-guide/grpc).
 
 ### gRPC-Web (`enable_grpc_web`)
 
-gRPC-Web is a protocol built on gRPC that extends the benefits of gRPC to the browser. The gRPC-Web specification requires a server-side proxy to translate between gRPC-Web requests and gRPC backend services. Ambassador Edge Stack can serve as the service-side proxy for gRPC-Web when `enable_grpc_web: true` is set.
+gRPC is a binary HTTP/2-based protocol that extends the benefits of gRPC to the browser, as some programs cannot speak raw HTTP/2 (such as Javascript in a browser). gRPC-Web is a JSON, HTTP-based protocol that wraps around the non-web gRPC to alleviate this problem and prevent performance issues.
+
+The gRPC-Web specification requires a server-side proxy to translate between gRPC-Web requests and gRPC backend services. Ambassador can serve as the service-side proxy for gRPC-Web when `enable_grpc_web: true` is set. Find more on the gRPC Web client [GitHub](https://github.com/grpc/grpc-web).
 
 ### HTTP/1.0 support (`enable_http10`)
 
