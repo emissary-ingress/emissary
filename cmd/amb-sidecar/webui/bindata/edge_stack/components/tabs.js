@@ -1,4 +1,4 @@
-import { LitElement, html, svg, css } from '../vendor/lit-element.min.js'
+import { LitElement, html, css } from '../vendor/lit-element.min.js'
 import {useContext} from './context.js';
 
 /**
@@ -124,7 +124,6 @@ export class Tabs extends LitElement {
         align-content: center
       }
       
-      
       navigation {
         display: block;
         width: 100%
@@ -134,7 +133,7 @@ export class Tabs extends LitElement {
         padding: 0;
         text-decoration: none;
         height: 70px;
-        transition: all .9s ease
+        transition: all .7s ease
       }
       
       navigation a .selected_stripe {
@@ -168,29 +167,13 @@ export class Tabs extends LitElement {
         -ms-flex: 0 0 25px;
         flex: 0 0 25px
       }
-      
-      navigation a .label .icon svg, navigation a.selected .label .icon svg {
-        width: 100%;
-        height: auto;
-        max-height: 35px
-      }
 
       navigation a .label .icon img, navigation a.selected .label .icon img {
-        width: 100%;
-        height: auto;
+        width: 25px;
+        height: 25px;
         max-height: 35px
       }
-      
-      navigation a .label .icon svg path, navigation a .label .icon svg polygon, navigation a .label .icon svg rect {
-        fill: #9a9a9a;
-        transition: fill .7s ease
-      }
 
-      navigation a .label .icon img path, navigation a .label .icon img polygon, navigation a .label .icon img rect {
-        fill: #9a9a9a;
-        transition: fill .7s ease
-      }
-      
       navigation a .label .name {
         -webkit-flex: 1 0 auto;
         -ms-flex: 1 0 auto;
@@ -210,8 +193,6 @@ export class Tabs extends LitElement {
         fill: #53f7d2;
         transition: fill .7s ease
       }
-
-
 
       navigation a:hover .label .icon img path, navigation a:hover .label .icon img polygon, navigation a:hover .label .icon img rect {
         fill: #53f7d2;
@@ -319,6 +300,7 @@ export class Tabs extends LitElement {
       }
       .tabLogo {
         filter: invert(58%) sepia(20%) saturate(0%) hue-rotate(262deg) brightness(103%) contrast(87%);
+        transition: all .7s ease;
       }
       navigation a:hover .tabLogo {
         filter: invert(95%) sepia(93%) saturate(687%) hue-rotate(85deg) brightness(101%) contrast(94%);
@@ -328,9 +310,7 @@ export class Tabs extends LitElement {
         filter: invert(99%) sepia(37%) saturate(0%) hue-rotate(263deg) brightness(113%) contrast(100%);
         transition: fill .7s ease
       }
-      navigation a img.tabLogo {
-        transition: all .9s ease
-      }
+
     `	
   };
       
@@ -406,18 +386,18 @@ export class Tabs extends LitElement {
             <div class="selected_stripe"></div>
             <div class="label">
               <div class="icon">
-                 ${(this.tabs[idx].name === "Dashboard") ? svg`<img alt="dashboard logo" class="tabLogo" src="../images/svgs/dashboard.svg"><defs><style>.cls-1{fill:#fff;}</style></defs><title>hosts</title><g id="Layer_2" data-name="Layer 2"><g id="Layer_1-2" data-name="Layer 1"></g></g></img>`
-        : (this.tabs[idx].name === "Hosts") ? svg`<img alt="hosts logo" class="tabLogo" src="../images/svgs/hosts.svg"><defs><style>.cls-1{fill:#fff;}</style></defs><title>hosts</title><g id="Layer_2" data-name="Layer 2"><g id="Layer_1-2" data-name="Layer 1"></g></g></img>`
-          : (this.tabs[idx].name === "Mappings") ? svg`<img alt="mappings logo" class="tabLogo" src="../images/svgs/mappings.svg"><defs><style>.cls-1{fill:#fff;}</style></defs><title>hosts</title><g id="Layer_2" data-name="Layer 2"><g id="Layer_1-2" data-name="Layer 1"></g></g></img>`
-            : (this.tabs[idx].name === "Rate Limits") ? svg`<img alt="ratelimits logo" class="tabLogo" src="../images/svgs/ratelimits.svg"><defs><style>.cls-1{fill:#fff;}</style></defs><title>hosts</title><g id="Layer_2" data-name="Layer 2"><g id="Layer_1-2" data-name="Layer 1"></g></g></img>`
-              : (this.tabs[idx].name === "Plugins") ? svg`<img alt="plugins logo" class="tabLogo" src="../images/svgs/plugins.svg"><defs><style>.cls-1{fill:#fff;}</style></defs><title>hosts</title><g id="Layer_2" data-name="Layer 2"><g id="Layer_1-2" data-name="Layer 1"></g></g></img>`
-                : (this.tabs[idx].name === "Resolvers") ? svg`<img alt="resolvers logo" class="tabLogo" src="../images/svgs/resolvers.svg"><defs><style>.cls-1{fill:#fff;}</style></defs><title>hosts</title><g id="Layer_2" data-name="Layer 2"><g id="Layer_1-2" data-name="Layer 1"></g></g></img>`
-                  : (this.tabs[idx].name === "Debugging") ? svg`<img alt="debugging logo" class="tabLogo" src="../images/svgs/debugging.svg"><defs><style>.cls-1{fill:#fff;}</style></defs><title>hosts</title><g id="Layer_2" data-name="Layer 2"><g id="Layer_1-2" data-name="Layer 1"></g></g></img>`
-                    : (this.tabs[idx].name === "APIs") ? svg`<img alt="api logo" class="tabLogo" src="../images/svgs/apis.svg"><defs><style>.cls-1{fill:#fff;}</style></defs><title>hosts</title><g id="Layer_2" data-name="Layer 2"><g id="Layer_1-2" data-name="Layer 1"></g></g></img>`
-                      : (this.tabs[idx].name === "Documentation") ? svg`<img alt="docs logo" class="tabLogo" src="../images/svgs/docs.svg"><defs><style>.cls-1{fill:#fff;}</style></defs><title>hosts</title><g id="Layer_2" data-name="Layer 2"><g id="Layer_1-2" data-name="Layer 1"></g></g></img>`
-                        : (this.tabs[idx].name === "Support") ? svg`<img alt="support logo" class="tabLogo" src="../images/svgs/support.svg"><defs><style>.cls-1{fill:#fff;}</style></defs><title>hosts</title><g id="Layer_2" data-name="Layer 2"><g id="Layer_1-2" data-name="Layer 1"></g></g></img>`
-                          : (this.tabs[idx].name === "Filters") ? svg`<img alt="filters logo" class="tabLogo" src="../images/svgs/filters.svg"><defs><style>.cls-1{fill:#fff;}</style></defs><title>hosts</title><g id="Layer_2" data-name="Layer 2"><g id="Layer_1-2" data-name="Layer 1"></g></g></img>`
-                            : (this.tabs[idx].name === "YAML Download") ? svg`<img alt="yaml logo" class="tabLogo" src="../images/svgs/yaml-downloads2.svg"><defs><style>.cls-1{fill:#fff;}</style></defs><title>hosts</title><g id="Layer_2" data-name="Layer 2"><g id="Layer_1-2" data-name="Layer 1"></g></g></img>`
+                 ${(this.tabs[idx].name === "Dashboard") ? html`<img alt="dashboard logo" class="tabLogo" src="../images/svgs/dashboard.svg"><defs><style>.cls-1{fill:#fff;}</style></defs><title>hosts</title><g id="Layer_2" data-name="Layer 2"><g id="Layer_1-2" data-name="Layer 1"></g></g></img>`
+        : (this.tabs[idx].name === "Hosts") ? html`<img alt="hosts logo" class="tabLogo" src="../images/svgs/hosts.svg"><defs><style>.cls-1{fill:#fff;}</style></defs><title>hosts</title><g id="Layer_2" data-name="Layer 2"><g id="Layer_1-2" data-name="Layer 1"></g></g></img>`
+          : (this.tabs[idx].name === "Mappings") ? html`<img alt="mappings logo" class="tabLogo" src="../images/svgs/mappings.svg"><defs><style>.cls-1{fill:#fff;}</style></defs><title>hosts</title><g id="Layer_2" data-name="Layer 2"><g id="Layer_1-2" data-name="Layer 1"></g></g></img>`
+            : (this.tabs[idx].name === "Rate Limits") ? html`<img alt="ratelimits logo" class="tabLogo" src="../images/svgs/ratelimits.svg"><defs><style>.cls-1{fill:#fff;}</style></defs><title>hosts</title><g id="Layer_2" data-name="Layer 2"><g id="Layer_1-2" data-name="Layer 1"></g></g></img>`
+              : (this.tabs[idx].name === "Plugins") ? html`<img alt="plugins logo" class="tabLogo" src="../images/svgs/plugins.svg"><defs><style>.cls-1{fill:#fff;}</style></defs><title>hosts</title><g id="Layer_2" data-name="Layer 2"><g id="Layer_1-2" data-name="Layer 1"></g></g></img>`
+                : (this.tabs[idx].name === "Resolvers") ? html`<img alt="resolvers logo" class="tabLogo" src="../images/svgs/resolvers.svg"><defs><style>.cls-1{fill:#fff;}</style></defs><title>hosts</title><g id="Layer_2" data-name="Layer 2"><g id="Layer_1-2" data-name="Layer 1"></g></g></img>`
+                  : (this.tabs[idx].name === "Debugging") ? html`<img alt="debugging logo" class="tabLogo" src="../images/svgs/debugging.svg"><defs><style>.cls-1{fill:#fff;}</style></defs><title>hosts</title><g id="Layer_2" data-name="Layer 2"><g id="Layer_1-2" data-name="Layer 1"></g></g></img>`
+                    : (this.tabs[idx].name === "APIs") ? html`<img alt="api logo" class="tabLogo" src="../images/svgs/apis.svg"><defs><style>.cls-1{fill:#fff;}</style></defs><title>hosts</title><g id="Layer_2" data-name="Layer 2"><g id="Layer_1-2" data-name="Layer 1"></g></g></img>`
+                      : (this.tabs[idx].name === "Documentation") ? html`<img alt="docs logo" class="tabLogo" src="../images/svgs/docs.svg"><defs><style>.cls-1{fill:#fff;}</style></defs><title>hosts</title><g id="Layer_2" data-name="Layer 2"><g id="Layer_1-2" data-name="Layer 1"></g></g></img>`
+                        : (this.tabs[idx].name === "Support") ? html`<img alt="support logo" class="tabLogo" src="../images/svgs/support.svg"><defs><style>.cls-1{fill:#fff;}</style></defs><title>hosts</title><g id="Layer_2" data-name="Layer 2"><g id="Layer_1-2" data-name="Layer 1"></g></g></img>`
+                          : (this.tabs[idx].name === "Filters") ? html`<img alt="filters logo" class="tabLogo" src="../images/svgs/filters.svg"><defs><style>.cls-1{fill:#fff;}</style></defs><title>hosts</title><g id="Layer_2" data-name="Layer 2"><g id="Layer_1-2" data-name="Layer 1"></g></g></img>`
+                            : (this.tabs[idx].name === "YAML Download") ? html`<img alt="yaml logo" class="tabLogo" src="../images/svgs/yaml-downloads2.svg"><defs><style>.cls-1{fill:#fff;}</style></defs><title>hosts</title><g id="Layer_2" data-name="Layer 2"><g id="Layer_1-2" data-name="Layer 1"></g></g></img>`
                             : html``}
               </div>
               <div class="name">${this.tabs[idx].tabName()}</div>
