@@ -1,6 +1,6 @@
-# Service discovery configuration
+# Service Discovery and Resolver configuration
 
-Service discovery is how applications and services are located on the network. In a cloud environment, services are ephemeral, so a real-time service discovery mechanism is critical. Ambassador Edge Stack uses information from service discovery to determine where to route incoming requests.
+Service discovery is how web-applications and their microservices are located on the network. In a cloud environment, services are ephemeral, existing and dying only as long as they are needed and used in a web-app, so a real-time service discovery mechanism is critical. Ambassador Edge Stack uses information from service discovery to determine where in an application to route incoming requests.
 
 ## Ambassador Edge Stack support for service discovery
 
