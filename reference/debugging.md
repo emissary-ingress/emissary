@@ -1,10 +1,11 @@
 # Debugging
 
-If you’re experiencing issues with Ambassador and cannot diagnose the issue through the "Diagnostics" tab from the [Edge Policy Console](/about/edge-policy-console), or through the Ambassador [Diagnostic](/reference/diagnostics) service, this document covers various approaches and advanced use cases for debugging Ambassador issues.
+If you’re experiencing issues with Ambassador and cannot diagnose the issue through the "Diagnostics" tab from the [Edge Policy Console](../../about/edge-policy-console), this document covers various approaches and advanced use cases for debugging Ambassador issues.
 
 First, create an example configuration for debugging demonstrations that are available throughout this document.
 
 Then, complete the following debugging options:
+
 * Check Ambassador Status
 * Review Ambassador Logs
 * Examine Pod and Container Contents
@@ -14,7 +15,7 @@ Then, complete the following debugging options:
 
 To see a demonstration of how you can debug your Ambassador instance, follow the instructions to create an example mapping configuration.
 
-Note: The following assumes that you deployed Ambassador and the following services from the [quick start installation guide](/user-guide/install) to a Kubernetes cluster.
+Note: The following assumes that you deployed Ambassador and the following services from the [quick start installation guide](../../user-guide/install) to a Kubernetes cluster.
 
 **In the command line:**
 
@@ -67,11 +68,12 @@ You should now be able to utilize this example mapping for debugging demonstrati
 
 ## Check Ambassador Status
 
-First, check to see if the [Diagnostics Console](/reference/diagnostics) is reachable with the command: `kubectl port-forward <ambassador_pod_name> 8877`
+First, check to see if the [Diagnostics](/reference/diagnostics) service is reachable with the command: `kubectl port-forward <ambassador_pod_name> 8877`
 
 If it is successful, try to diagnose your original issue with the Diagnostics Console.
 
 **If it is not successful, complete the following to see if Ambassador is running:**
+
 1. Check the Ambassador deployment with the following: `kubectl get deployments`
 2. After a brief period, the terminal will print something similar to the following:
 
@@ -257,10 +259,10 @@ If the generated Envoy configuration does not look correct, you can edit and res
 3. Modify the `envoy/envoy.json` file: `/ambassador $ vi envoy/envoy.json`
 4. Get the PID of the `ambex` process with: `ps -ef | grep ambex`
 5. Then, restart the `ambex` process which will pass the updated `envoy.json` to Envoy with: `kill -HUP $AMBEX_PID`
-6. In your Edge Policy Console, go to Diagnostics > Logging and choose “Set Debug to On.”
+6. In your Edge Policy Console, go to **Diagnostics > Logging** and choose the “set log level to debug” option.
 7. Verify that the restart and new configuration was successful with the correct configuration by following the Ambassador/Envoy logs.
 
-Be aware that even though you have modified the configuration files, the Edge Policy Console and/or the Diagnostics Console may not accurately reflect your updates.
+Be aware that even though you have modified the configuration files, the Edge Policy Console and/or the Diagnostics service may not accurately reflect your updates.
 
 The command history will look similar to the following:
 

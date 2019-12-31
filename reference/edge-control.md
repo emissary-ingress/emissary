@@ -6,7 +6,7 @@ You can use Edge Control for developing new services, and debugging existing ser
 
 **New Service**: If you are a developer and you want to write a new service, it depends on existing services running in your cluster. You can use the `edgectl connect` command to set up outbound connectivity from your laptop to your cluster. This allows the work-in-progress implementation of your new service to connect to existing services on your laptop.
 
-**Debugging Existing Services**: If you need to test a bug fix for an existing service running in the cluster, you can use `edgecutl intercept`. Designate a subset of requests for this service as intercepted, which will then be redirected to your laptop. You can then run a modified implementation of the service to test the bug fix. All other requests will go to the existing service running in your cluster without disruption.
+**Debugging Existing Services**: If you need to test a bug fix for an existing service running in the cluster, you can use `edgectl intercept`. Designate a subset of requests for this service as intercepted, which will then be redirected to your laptop. You can then run a modified implementation of the service to test the bug fix. All other requests will go to the existing service running in your cluster without disruption.
 
 To start using Edge Control:
 
