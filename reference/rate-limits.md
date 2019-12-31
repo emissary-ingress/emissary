@@ -11,7 +11,7 @@ In Ambassador 0.50 and later, each mapping in Ambassador Edge Stack can have mul
 apiVersion: getambassador.io/v2
 kind:  Mapping
 metadata:
-  name:  catalog
+  name:  catalog 
 spec:
   prefix: /catalog/
   service: catalog
