@@ -1,6 +1,6 @@
 # Why the Ambassador Edge Stack?
 
-The Ambassador Edge Stack gives platform engineers a comprehensive ,self-service edge stack for managing the boundary between end users and Kubernetes. Built on the [Envoy Proxy](https://www.envoyproxy.io) and fully Kubernetes-native, the Ambassador Edge Stack is made to support multiple, independent teams that need to rapidly publish, monitor, and update services for end users. A true edge stack, Ambassador can also be used to handle the functions of an API Gateway, a Kubernetes ingress controller and a layer 7 load balancer (for more, see [this blog post](https://blog.getambassador.io/kubernetes-ingress-nodeport-load-balancers-and-ingress-controllers-6e29f1c44f2d)).
+The Ambassador Edge Stack gives platform engineers a comprehensive, self-service edge stack for managing the boundary between end users and Kubernetes. Built on the [Envoy Proxy](https://www.envoyproxy.io) and fully Kubernetes-native, the Ambassador Edge Stack is made to support multiple, independent teams that need to rapidly publish, monitor, and update services for end users. A true edge stack, Ambassador can also be used to handle the functions of an API Gateway, a Kubernetes ingress controller and a layer 7 load balancer (for more, see [this blog post](https://blog.getambassador.io/kubernetes-ingress-nodeport-load-balancers-and-ingress-controllers-6e29f1c44f2d)).
 
 ## How does Ambassador Work?
 
