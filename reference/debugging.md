@@ -171,7 +171,7 @@ You can examine the contents of the Ambassador Pod for issues, such as if volume
 
     The terminal will print a typical file list from a pre-0.50 Ambassador instance, similar to the following:
 
-    ```shell
+    ```console
     $ kubectl get pods
     NAME                         READY     STATUS    RESTARTS   AGE
     ambassador-85c4cf67b-4pfj2   1/1       Running   0          14m
