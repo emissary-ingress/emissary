@@ -16,7 +16,19 @@ The Ambassador Edge Stack is configured in a declarative fashion, using YAML man
 
 - [`Ingress`](../reference/core/ingress-controller) manifests allows you to use Ambassador as a Kubernetes ingress controller. See the provided documention on configuration with Ambassador, and review the [Kubernetes documentation](https://kubernetes.io/docs/concepts/services-networking/ingress/) for detailed information on the `Ingress` resource.
 
-Note that each of these `kind`s are supported as both annotations and as Custom Resource Definitions (CRDs).
+- `LogService`manifests help you configure logging. See [Kubernertes Logging Architecture](https://kubernetes.io/docs/concepts/cluster-administration/logging/) for more details.
+
+- [TCPMapping`](../reference/tcpmappings/) manifests associate TCP mappings with Kubernetes services.
+
+Additional`kind`s for the Ambassador Edge Stack are:
+
+- RateLimit
+- Filter
+- FilterPolicy
+- Host
+- Resolvers
+
+Note that each of these `kind`s are supported as both annotations and as [Custom Resource Definitions (CRDs)](reference/core/crds/#supported-crds).
 
 ## Configuration sources
 
