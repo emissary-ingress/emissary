@@ -21,7 +21,7 @@ Note: The following assumes that you deployed Ambassador and the following servi
 
 1. Create a cluster in GKE with RBAC support enabled, and your user account configured correctly. Then run the following:
 
-    ```shell
+    ```console
     $ gcloud container clusters create ambassador-demo --preemptible
     $ kubectl create clusterrolebinding cluster-admin-binding-new \
     --clusterrole cluster-admin --user <your_user_name>
