@@ -69,13 +69,6 @@ spec:
         yield self.k8s_target, self.format("""
 ---
 apiVersion: ambassador/v1
-kind: Module
-name: ambassador
-ambassador_id: {self.ambassador_id}
-config:
-  upstream_ambassador_namespace: true
----
-apiVersion: ambassador/v1
 kind:  Mapping
 name:  {self.path.k8s}_k8s_mapping
 prefix: /{self.path.k8s}_k8s/

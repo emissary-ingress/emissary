@@ -172,11 +172,7 @@ class IRCluster (IRResource):
         # p is read-only, so break stuff out.
 
         hostname = p.hostname
-        fully_qualified = "." in hostname
         namespace = parent_ir_resource.namespace
-        if not ir.ambassador_module.upstream_ambassador_namespace and not fully_qualified and namespace:
-            hostname = f"{hostname}.{namespace}"
-            ir.logger.debug("upstream_ambassador_namespace %s, fully qualified %s, upstream hostname %s" % (ir.ambassador_module.upstream_ambassador_namespace, fully_qualified, hostname))
 
         try:
             port = p.port
@@ -266,7 +262,7 @@ class IRCluster (IRResource):
         new_args: Dict[str, Any] = {
             "type": dns_type,
             "lb_type": lb_type,
-            "urls": [ url ],
+            "urls": [ url ],  # TODO: Should we completely eliminate `urls` in favor of `targets`?
             "load_balancer": load_balancer,
             "keepalive": keepalive,
             "circuit_breakers": circuit_breakers,
@@ -296,6 +292,7 @@ class IRCluster (IRResource):
         # Stash the resolver, hostname, and port for setup.
         self._resolver = resolver
         self._hostname = hostname
+        self._namespace = namespace
         self._port = port
 
         super().__init__(
@@ -316,7 +313,7 @@ class IRCluster (IRResource):
             return False
 
         # Resolve our actual targets.
-        targets = ir.resolve_targets(self, self._resolver, self._hostname, self._port)
+        targets = ir.resolve_targets(self, self._resolver, self._hostname, self._namespace, self._port)
 
         if targets:
             # Great.
