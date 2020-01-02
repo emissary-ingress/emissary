@@ -181,7 +181,7 @@ Ambassador supports bridging HTTP/1.1 clients to backend gRPC servers. When an H
 
 ### gRPC-Web (`enable_grpc_web`)
 
-gRPC is a binary HTTP/2-based protocol that extends the benefits of gRPC to the browser, as some programs cannot speak raw HTTP/2 (such as Javascript in a browser). gRPC-Web is a JSON, HTTP-based protocol that wraps around the non-web gRPC to alleviate this problem and prevent performance issues.
+gRPC is a binary HTTP/2-based protocol. While this allows high performance, it is problematic for any programs that cannot speak raw HTTP/2 (such as JavaScript in a browser). gRPC-Web is a JSON and HTTP-based protocol that wraps around the plain gRPC to alleviate this problem and extend benefits of gRPC to the browser, at the cost of performance.
 
 The gRPC-Web specification requires a server-side proxy to translate between gRPC-Web requests and gRPC backend services. Ambassador can serve as the service-side proxy for gRPC-Web when `enable_grpc_web: true` is set. Find more on the gRPC Web client [GitHub](https://github.com/grpc/grpc-web).
 
