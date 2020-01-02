@@ -1,5 +1,5 @@
 ---
-name: Docs
+name: Doc Request
 about: Template for doc requests, updates, and fixes.
 title: 'Docs request: '
 labels: ''
