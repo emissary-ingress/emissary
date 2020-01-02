@@ -305,7 +305,7 @@ Import the [provided dashboard](https://grafana.com/dashboards/10434) by clickin
 
 ## Viewing Stats/Metrics
 
-Above, you have created an environment where the Ambassador Edge Stack is a comprehensive, self-service edge stack in addition to being an API gateway, and it contains Prometheus scraping and collecting statistics output by Envoy about ingress into our cluster, as well as a Grafana dashboard to view these statistics.
+Above, you have created an environment where Ambassador is handling ingress traffic, Prometheus is scraping and collecting statistics from Envoy, and Grafana is displaying these statistics in a dashboard.
 
 You can easily view a sample of these statistics via the Grafana dashboard at `{AMBASSADOR_IP}/grafana/` and logging in with the credentials above.
 
