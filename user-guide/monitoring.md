@@ -255,7 +255,7 @@ To view the full set of stats available to Prometheus you can access the Prometh
 ```
 kubectl port-forward -n monitoring service/prometheus 9090
 ```
-and going to http://localhost:9090/ from a web browser
+and going to `http://localhost:9090/` from a web browser
 
 In the UI, click the dropdown and see all of the stats Prometheus is able to scrape from Ambassador! 
 

@@ -75,7 +75,7 @@ spec:
    external filter, in milliseconds.
  - `proto` is either `"http"` or `"grpc"`.
 
-This `spec.External` is mostly identical to an [`AuthService`](./auth-service), with the following exceptions:
+This `spec.External` is mostly identical to an [`AuthService`](../services/auth-service), with the following exceptions:
 
 * It does not contain the `apiVersion` field
 * It does not contain the `kind` field

@@ -62,7 +62,7 @@ Setting up Linkerd2 requires to install three components. The first is the CLI o
         add_linkerd_headers: true
     ```
 
-    This will tell Ambassador to add additional headers to each request forwarded to Linkerd2 with information about where to route this request to. This is a general setting. You can also set `add_linkerd_headers` per [Mapping](https://www.getambassador.io/reference/mappings#mapping-configuration).
+    This will tell Ambassador to add additional headers to each request forwarded to Linkerd2 with information about where to route this request to. This is a general setting. You can also set `add_linkerd_headers` per [Mapping](../../reference/mappings#mapping-configuration).
 
 ## Routing to Linkerd2 Services
 

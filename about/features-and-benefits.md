@@ -36,4 +36,4 @@ Ambassador supports rate limiting incoming requests. When configured, Ambassador
 
 ## Integrated Diagnostics
 
-Ambassador includes a diagnostics service so that you can quickly debug issues associated with configuring Ambassador. For more information, see [running Ambassador](https://www.getambassador.io/reference/running).
+Ambassador includes a diagnostics service so that you can quickly debug issues associated with configuring Ambassador. For more information, see [running Ambassador](../../reference/running).

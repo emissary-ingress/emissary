@@ -42,7 +42,7 @@ Check out a local copy of your content repo (see `APRO_DEVPORTAL_CONTENT_URL` ab
 docker run -it --rm --volume $PWD:/content --publish 8877:8877 quay.io/datawire/ambassador_pro:local-devportal-%aproVersion%
 ```
 
-and open http://localhost:8877 in your browser. Any changes made locally to devportal content will be reflected immediately on page refresh
+and open `http://localhost:8877` in your browser. Any changes made locally to devportal content will be reflected immediately on page refresh
 
 ## Customizing the Dev Portal URL prefix
 

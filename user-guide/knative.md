@@ -17,7 +17,7 @@ Ambassador can watch for changes in Knative configuration in your Kubernetes clu
 
 - Knative requires a Kubernetes cluster v1.11 or newer with the MutatingAdmissionWebhook admission controller enabled. kubectl v1.10 is also required. This guide assumes that you’ve already created a Kubernetes cluster which you’re comfortable installing alpha software on.
 
-- Ambassador should be installed in your cluster. Follow one of the [installation guides](https://www.getambassador.io/user-guide/install) for instructions on installing Ambassador.
+- Ambassador should be installed in your cluster. Follow one of the [installation guides](../install) for instructions on installing Ambassador.
 
 #### Installation
 
@@ -99,4 +99,4 @@ Ambassador can watch for changes in Knative configuration in your Kubernetes clu
     curl -H “Host: helloworld-go.default.example.com” <ambassador IP>
     ```
 
-We have now installed Knative with Ambassador handling traffic to our serverless applications. See the [Knative documentation](https://knative.dev/umentation/) for more information on what else Knative can do.
+We have now installed Knative with Ambassador handling traffic to our serverless applications. See the [Knative documentation](https://knative.dev/docs/) for more information on what else Knative can do.

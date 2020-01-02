@@ -2,7 +2,7 @@
 Our support team is here to help!
 
 ## Community Support
-[Join our Slack channel](http://d6e.co/slack) to talk with other users in the community and get your questions answered. If you can’t find an answer there, [contact us about a support contract](https://www.getambassador.io/contact).
+[Join our Slack channel](http://d6e.co/slack) to talk with other users in the community and get your questions answered. If you can’t find an answer there, [contact us about a support contract](/contact).
 
 ## Deployment Support
 Ambassador can accelerate your migration to Kubernetes. Deployment support helps you with Ambassador and Kubernetes migration, before you move to production.
@@ -14,4 +14,4 @@ We offer both business hour (8am - 5pm EST, M-F) and 24x7 Sev 1 support for Amba
 
 ## Pricing
 
-[Contact us](https://www.getambassador.io/contact) to learn how we can help, and for detailed pricing information.
+[Contact us](/contact) to learn how we can help, and for detailed pricing information.
