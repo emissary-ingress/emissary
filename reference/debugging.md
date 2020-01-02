@@ -100,7 +100,7 @@ If it is successful, try to diagnose your original issue with the Diagnostics Co
         `Replicas: 3 desired | 3 updated | 3 total | 3 available | 0 unavailable`
 
     * Look for data in the “Events” log field near the bottom of the output, which often displays data such as a fail image pull, RBAC issues, or a lack of cluster resources. For example:
-        ```shell
+        ```
         Events:
         Type    Reason              Age     From                      Message
         ----    ------              ----    ----                      -------
