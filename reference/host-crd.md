@@ -117,3 +117,20 @@ An example:
   // This is normally set automatically
   string registration = 4;
 ```
+
+## TLS and HTTPS Support
+
+The `requestPolicy` element allows the `Host` CRD to configure actions for both secure and insecure requests based on whether or not `TLSContext` exists and what kind of Load Balancer you have in place.
+
+An example:
+
+```yaml
+requestPolicy:
+  secure:
+    action: route
+  insecure:
+    action: redirect
+    additionalPort: 8080
+```
+
+Incoming traffic, regardless of which port it is directed to, will be treated as insecure in order for Ambassador to grab and encrypt it. This sets the action for `requestPolicy.insecure.action` and `requestPolicy.insecure.additionalPort:` as `route`. 
