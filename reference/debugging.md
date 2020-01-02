@@ -77,6 +77,7 @@ If it is successful, try to diagnose your original issue with the Diagnostics Co
     ambassador-85c4cf67b-4pfj2   1/1       Running   0          1m
     ambassador-85c4cf67b-fqp9g   1/1       Running   0          1m
     ambassador-85c4cf67b-vg6p5   1/1       Running   0          1m
+    ```
 
 4. If any of the Pods have a status of “not started,” use the following command to “describe” the Deployment pods: `kubectl describe deployment ambassador`
 
@@ -249,7 +250,7 @@ Be aware that even though you have modified the configuration files, the Edge Po
 
 The command history will look similar to the following:
 
-```shell
+```console
 $ kubectl scale deployment ambassador --replicas=1
 deployment.apps/ambassador scaled
 tmp $ kubectl get pods
