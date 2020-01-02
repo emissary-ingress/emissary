@@ -87,7 +87,7 @@ If it is successful, try to diagnose your original issue with the Diagnostics Co
 
     The terminal should print something similar to the following:
 
-    ```shell
+    ```console
     $ kubectl get pods
     NAME                         READY     STATUS    RESTARTS   AGE
     ambassador-85c4cf67b-4pfj2   1/1       Running   0          1m
