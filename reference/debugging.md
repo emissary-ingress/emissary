@@ -207,7 +207,7 @@ The `ambassador-config-N` lines indicate the directories which contain the speci
 
     The terminal will print something similar to the following:
 
-    ```
+    ```yaml
     ---
     apiVersion: v0.1
     kind: Pragma
@@ -229,7 +229,7 @@ The `ambassador-config-N` lines indicate the directories which contain the speci
 
     The terminal will print something similar to the following:
 
-    ```json
+    ```console
     /ambassador # cat envoy-2.json
 
     {
