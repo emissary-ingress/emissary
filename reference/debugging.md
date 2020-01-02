@@ -1,11 +1,11 @@
 # Debugging
 
-If you’re experiencing issues with Ambassador and cannot diagnose the issue through the "Diagnostics" tab from the [Edge Policy Console](../../about/edge-policy-console), this document covers various approaches and advanced use cases for debugging Ambassador issues.
+If you’re experiencing issues with the Ambassador Edge Stack and cannot diagnose the issue through the "Diagnostics" tab from the [Edge Policy Console](../../about/edge-policy-console), this document covers various approaches and advanced use cases for debugging Ambassador issues.
 
 First, create an example configuration for debugging demonstrations that are available throughout this document.
 
 Then, complete the following debugging options:
-
+ 
 * Check Ambassador Status
 * Review Ambassador Logs
 * Examine Pod and Container Contents
@@ -30,13 +30,12 @@ Note: The following assumes that you deployed Ambassador and the following servi
 2. Deploy the latest version of Ambassador:
 
     ```shell
-    $ kubectl apply -f https://getambassador.io/yaml/ambassador/ambassador-rbac.yaml
+    $ kubectl apply -f https://www.getambassador.io/early-access/yaml/aes-crds.yaml
     ```
 
 3. Next, create an Ambassador Service and deploy a basic `httpbin` Ambassador Mapping by saving the following YAML to a file named `ambassador-services.yaml`
 
     ```yaml
-    ---
     apiVersion: v1
     kind: Service
     metadata:
@@ -46,7 +45,8 @@ Note: The following assumes that you deployed Ambassador and the following servi
     ports:
     - port: 80
     selector:
-    service: ambassador
+        service: ambassador
+
     ---
     apiVersion: getambassador.io/v1
     kind:  Mapping
@@ -68,7 +68,7 @@ You should now be able to utilize this example mapping for debugging demonstrati
 
 ## Check Ambassador Status
 
-First, check to see if the [Diagnostics](/reference/diagnostics) service is reachable with the command: `kubectl port-forward <ambassador_pod_name> 8877`
+First, check to see if the [Diagnostics](../diagnostics) service is reachable with the command: `kubectl port-forward <ambassador_pod_name> 8877`
 
 If it is successful, try to diagnose your original issue with the Diagnostics Console.
 
@@ -77,8 +77,8 @@ If it is successful, try to diagnose your original issue with the Diagnostics Co
 1. Check the Ambassador deployment with the following: `kubectl get deployments`
 2. After a brief period, the terminal will print something similar to the following:
 
-    ```shell
-    kubectl get deployments
+    ```console
+    $ kubectl get deployments
     NAME         DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
     ambassador   3         3         3            3           1m
     ```
@@ -87,13 +87,11 @@ If it is successful, try to diagnose your original issue with the Diagnostics Co
 
     The terminal should print something similar to the following:
 
-    ```shell
     $ kubectl get pods
     NAME                         READY     STATUS    RESTARTS   AGE
     ambassador-85c4cf67b-4pfj2   1/1       Running   0          1m
     ambassador-85c4cf67b-fqp9g   1/1       Running   0          1m
     ambassador-85c4cf67b-vg6p5   1/1       Running   0          1m
-    ```
 
 4. If any of the Pods have a status of “not started,” use the following command to “describe” the Deployment pods: `kubectl describe deployment ambassador`
 
@@ -103,9 +101,9 @@ If it is successful, try to diagnose your original issue with the Diagnostics Co
     * Look for data in the “Events” log field near the bottom of the output, which often displays data such as a fail image pull, RBAC issues, or a lack of cluster resources. For example:
         ```shell
         Events:
-        Type    Reason         Age   From                   Message
-        ----    ------         ----  ----                   -------
-        Normal  ScalingReplicaSet  2m    deployment-controller  Scaled up replica set ambassador-85c4cf67b to 3
+        Type    Reason              Age     From                      Message
+        ----    ------              ----    ----                      -------
+        Normal  ScalingReplicaSet    2m     deployment-controller      Scaled up replica set ambassador-85c4cf67b to 3
         ```
 
 5. Additionally, use the following command to “describe” the individual pods: `kubectl get pods` and then `kubectl describe pods ambassador-<name>`
