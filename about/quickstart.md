@@ -22,7 +22,7 @@ Some of the most important information - your Ambassador Edge Stack version, how
 
 ## 3. The Quote of the Moment Service
 
-Since Ambassador Edge Stack is an API gateway, its primary purpose is to provide access to microservices. The demo is preconfigured with a mapping that connects the `/qotm/` resource to the "Quote of the Moment" service -- a demo service that supplies quotations. You can try it out by opening
+Since Ambassador Edge Stack is a comprehensive, self-service edge stack, its primary purpose is to provide access and control to microservices for the teams that manage them. The demo is preconfigured with a mapping that connects the `/qotm/` resource to the "Quote of the Moment" service -- a demo service that supplies quotations. You can try it out by opening
 
 `http://localhost:8080/qotm/`
 
