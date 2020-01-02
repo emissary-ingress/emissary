@@ -137,7 +137,7 @@ You can turn on Debug mode in the [Edge Policy Console](../../about/edge-policy-
 
     The terminal will print something similar to the following:
 
-    ```shell
+    ```console
     $ kubectl get pods
     NAME                         READY     STATUS    RESTARTS   AGE
     ambassador-85c4cf67b-4pfj2   1/1       Running   0          3m
