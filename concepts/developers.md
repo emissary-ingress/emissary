@@ -6,7 +6,7 @@ Traditionally, API Gateways have focused on operators as the primary user. Ambas
 
 The Ambassador Edge Stack model is a decentralized, declarative configuration model. What does this mean?
 
-* Decentralized. Ambassador Edge Stack is designed so that lots of developers can individually configure a specific aspect of it's configuration (usually a route). Ambassador Edge Stack then aggregates these individual bits of configuration into a master configuration for the gateway.
+* Decentralized. Ambassador Edge Stack is designed so that lots of developers can individually configure a specific aspect of its configuration (usually a route). Ambassador Edge Stack then aggregates these individual bits of configuration into a master configuration for the gateway.
 
 * Declarative. In Ambassador Edge Stack, the user declares the desired end state of the configuration. Ambassador Edge Stack then figures out how to achieve that desired end state. If the desired end state is already in effect, no change happens. This is a contrast from an imperative model (most frequently seen as a REST API configuration), which forces the user to understand *how* to configure the gateway.
 
