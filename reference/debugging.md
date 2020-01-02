@@ -29,7 +29,7 @@ Note: The following assumes that you deployed Ambassador and the following servi
 
 2. Deploy the latest version of Ambassador:
 
-    ```shell
+    ```console
     $ kubectl apply -f https://getambassador.io/yaml/ambassador/ambassador-rbac.yaml
     ```
 
