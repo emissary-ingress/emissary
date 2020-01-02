@@ -60,7 +60,7 @@ Note: The following assumes that you deployed Ambassador and the following servi
 
 4. Apply this into your cluster with the following command:
 
-    ```shell
+    ```console
     $ kubectl apply -f ambassador-services.yaml
     ```
 
