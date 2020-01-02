@@ -48,7 +48,7 @@ mv edgectl ~/bin  # Somewhere in your PATH
 
    `GO111MODULE=on go get github.com/datawire/ambassador/cmd/edgectl`
 
-    leaves you with a binary that has no embedded version number. If you really want to build from source, clone the repository and run ./builder/build_push_cli.sh build, which will leave a binary in the ~/bin directory. We will have a better answer for building from source soon.
+    leaves you with a binary that has no embedded version number. If you really want to build from source, clone the repository and run `./builder/build_push_cli.sh build`, which will leave a binary in the `~/bin directory`. We will have a better answer for building from source soon.
 
 2. Launch the daemon component using sudo
 

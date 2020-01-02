@@ -1,4 +1,4 @@
-# Using Custom Resource Definitions
+# Ambassador Edge Stack configuration with Custom Resource Definitions (CRDs)
 
 As of Ambassador 0.70, any Ambassador Edge Stack resource can be expressed as a CRD in the `getambassador.io` API group:
 
