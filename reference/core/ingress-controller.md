@@ -1,6 +1,6 @@
 # Ambassador as an Ingress Controller
 
-An `Ingress` resource is a popular way to expose Kubernetes services to the Internet. In order to use `Ingress` resources, you need to install an [ingress controller](https://kubernetes.io/docs/concepts/services-networking/ingress-controllers/). The Ambassador Edge Stack can function as a full-fledged Ingress controller, making it easy to work with other `Ingress`-oriented tools within the Kubernetes ecosystem.
+An `Ingress` resource is a popular way to expose Kubernetes services to the Internet. In order to use `Ingress` resources, you need to install an [ingress controller](https://kubernetes.io/docs/concepts/services-networking/ingress-controllers/). The Ambassador Edge Stack can function as a fully-fledged Ingress controller, making it easy to work with other `Ingress`-oriented tools within the Kubernetes ecosystem.
 
 ## When and How to Use the `Ingress` Resource
 
