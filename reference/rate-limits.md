@@ -72,7 +72,7 @@ This will annotate every request with the string `default`, creating a key for a
 
 ## The `rate_limits` attribute
 
-In pre-0.50 versions of the Ambassador API Gateway, a mapping can specify the `rate_limits` list attribute and at least one `rate-limit` rule which will call the external [RateLimitService](../services/rate-limit-service) before proceeding with the request. Read about Envoy's "Rate limit" service [here](https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/rate_limit_filter.html?highlight=rate%20limit%20header).
+In pre-0.50 versions of the Ambassador API Gateway, a mapping can specify the `rate_limits` list attribute and at least one `rate-limit` rule which will call the external [RateLimitService](../services/rate-limit-service) before proceeding with the request. Read about Envoy's rate limit service [here](https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/rate_limit_filter.html?highlight=rate%20limit%20header).
 
 An example:
 
