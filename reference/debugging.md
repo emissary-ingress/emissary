@@ -27,35 +27,19 @@ Note: The following assumes that you deployed Ambassador and the following servi
     --clusterrole cluster-admin --user <your_user_name>
     ```
 
-2. Deploy the latest version of Ambassador:
-
-    ```console
-    $ kubectl apply -f https://www.getambassador.io/early-access/yaml/aes-crds.yaml
-    ```
-
+2. Deploy the latest version of Ambassador following the instructions from [here](../../user-guide/install).
 3. Next, create an Ambassador Service and deploy a basic `httpbin` Ambassador Mapping by saving the following YAML to a file named `ambassador-services.yaml`
 
-    ```yaml
-    apiVersion: v1
-    kind: Service
-    metadata:
-    name: ambassador
-    spec:
-    type: LoadBalancer
-    ports:
-    - port: 80
-    selector:
-        service: ambassador
-
+   ```yaml
     ---
-    apiVersion: getambassador.io/v1
+    apiVersion: getambassador.io/v2
     kind:  Mapping
     metadata:
-    name:  httpbin
+      name:  httpbin
     spec:
-    prefix: /httpbin/
-    service: httpbin.org
-    host_rewrite: httpbin.org
+      prefix: /httpbin/
+      service: httpbin.org
+      host_rewrite: httpbin.org
     ```
 
 4. Apply this into your cluster with the following command:
