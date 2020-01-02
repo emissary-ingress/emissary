@@ -265,7 +265,7 @@ Be aware that even though you have modified the configuration files, the Edge Po
 
 The command history will look similar to the following:
 
-```shell
+```console
 $ kubectl scale deployment ambassador --replicas=1
 deployment.apps/ambassador scaled
 tmp $ kubectl get pods
