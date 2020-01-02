@@ -21,7 +21,7 @@ Note: The following assumes that you deployed Ambassador and the following servi
 
 1. Create a cluster in GKE with RBAC support enabled, and your user account configured correctly. Then run the following:
 
-    ```shell
+    ```console
     $ gcloud container clusters create ambassador-demo --preemptible
     $ kubectl create clusterrolebinding cluster-admin-binding-new \
     --clusterrole cluster-admin --user <your_user_name>
@@ -60,7 +60,7 @@ Note: The following assumes that you deployed Ambassador and the following servi
 
 4. Apply this into your cluster with the following command:
 
-    ```shell
+    ```console
     $ kubectl apply -f ambassador-services.yaml
     ```
 
@@ -87,6 +87,7 @@ If it is successful, try to diagnose your original issue with the Diagnostics Co
 
     The terminal should print something similar to the following:
 
+    ```console
     $ kubectl get pods
     NAME                         READY     STATUS    RESTARTS   AGE
     ambassador-85c4cf67b-4pfj2   1/1       Running   0          1m
@@ -129,13 +130,13 @@ In both the Deployment pod and the individual pods, take the necessary action to
 
 The Ambassador logging can provide information on anything that might be abnormal or malfunctioning. While there may be a large amount of data to sort through, look for key errors such as the Ambassador process restarting unexpectedly, or a malformed Envoy configuration.
 
-You can turn on Debug mode in the [Edge Policy Console](/about/edge-policy-console), which generates verbose logging data that can be useful when trying to find a subtle error or bug.
+You can turn on Debug mode in the [Edge Policy Console](../../about/edge-policy-console), which generates verbose logging data that can be useful when trying to find a subtle error or bug.
 
 1. Use the following command to target an individual Ambassador Pod: `kubectl get pods`
 
     The terminal will print something similar to the following:
 
-    ```shell
+    ```console
     $ kubectl get pods
     NAME                         READY     STATUS    RESTARTS   AGE
     ambassador-85c4cf67b-4pfj2   1/1       Running   0          3m
@@ -145,7 +146,7 @@ You can turn on Debug mode in the [Edge Policy Console](/about/edge-policy-conso
 
 The terminal will print something similar to the following:
 
-    ```
+    ```console
     $ kubectl logs ambassador-85c4cf67b-4pfj2
     2018-10-10 12:26:50 kubewatch 0.40.0 INFO: generating config with gencount 1 (0 changes)
     /usr/lib/python3.6/site-packages/pkg_resources/__init__.py:1235: UserWarning: /ambassador is writable by group/others and vulnerable to attack when used with get_resource_filename. Consider a more secure location (set with .set_extraction_path or the PYTHON_EGG_CACHE environment variable).
@@ -169,7 +170,7 @@ You can examine the contents of the Ambassador Pod for issues, such as if volume
 
     The terminal will print a typical file list from a pre-0.50 Ambassador instance, similar to the following:
 
-    ```shell
+    ```console
     $ kubectl get pods
     NAME                         READY     STATUS    RESTARTS   AGE
     ambassador-85c4cf67b-4pfj2   1/1       Running   0          14m
@@ -205,7 +206,7 @@ The `ambassador-config-N` lines indicate the directories which contain the speci
 
     The terminal will print something similar to the following:
 
-    ```
+    ```yaml
     ---
     apiVersion: v0.1
     kind: Pragma
@@ -227,7 +228,7 @@ The `ambassador-config-N` lines indicate the directories which contain the speci
 
     The terminal will print something similar to the following:
 
-    ```json
+    ```console
     /ambassador # cat envoy-2.json
 
     {
