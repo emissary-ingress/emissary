@@ -4,7 +4,7 @@
 ---
 # Getting Started with the Ambassador Edge Stack
 
-The Ambassador Edge Stack is a free comprehensive, self-service API Gateway and load balancer for Kubernetes. With the Ambassador Edge Stack, application developers can *independently* manage their edge (e.g., authentication, routing, rate limiting) without centralized operational intervention, reducing toil. The Ambassador Edge Stack provides a comprehensive set of capabilities for the edge ranging from traffic management (e.g., rate limiting, load balancing), security (e.g., TLS, single sign-on, rate limiting), and developer onboarding (e.g., developer portal, Swagger/OpenAPI support).
+The Ambassador Edge Stack is a free comprehensive, self-service edge stack that is Kubernetes-native and built on the power of [Envoy Proxy](https://www.envoyproxy.io/). With the Ambassador Edge Stack, application developers can *independently* manage their edge (e.g., authentication, routing, rate limiting) without centralized operational intervention, reducing toil. The Ambassador Edge Stack provides a comprehensive set of capabilities for the edge ranging from traffic management (e.g., rate limiting, load balancing), security (e.g., TLS, single sign-on, rate limiting), and developer onboarding (e.g., developer portal, Swagger/OpenAPI support).
 
 ## Install the Ambassador Edge Stack
 

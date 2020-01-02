@@ -1,6 +1,6 @@
 # Ambassador 101
 
-The Ambassador Edge Stack is an API gateway and an all-in-one edge stack that was designed from the ground up to support independent development teams working with cloud native technologies like Kubernetes, provide self-service functionality, and work best with declarative configuration. This section of the documentation provides a high-level overview of key concepts for any team looking to use the Ambassador Edge Stack.
+The Ambassador Edge Stack is an comprehensive, self-service edge stack that was designed from the ground up to support independent development teams working with cloud native technologies like Kubernetes, provide self-service functionality, and work best with declarative configuration. This section of the documentation provides a high-level overview of key concepts for any team looking to use the Ambassador Edge Stack.
 
 **The Ambassador Edge Stack core concepts include...**
 
