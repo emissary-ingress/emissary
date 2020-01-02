@@ -1,3 +1,7 @@
+---
+    canonical: https://wwww.getambassador.io/user-guide/getting-started
+    description: In this tutorial, we'll walk through the process of deploying Ambassador in Kubernetes for ingress routing.
+---
 # Getting Started with the Ambassador Edge Stack
 
 The Ambassador Edge Stack is a free comprehensive, self-service API Gateway and load balancer for Kubernetes. With the Ambassador Edge Stack, application developers can *independently* manage their edge (e.g., authentication, routing, rate limiting) without centralized operational intervention, reducing toil. The Ambassador Edge Stack provides a comprehensive set of capabilities for the edge ranging from traffic management (e.g., rate limiting, load balancing), security (e.g., TLS, single sign-on, rate limiting), and developer onboarding (e.g., developer portal, Swagger/OpenAPI support).

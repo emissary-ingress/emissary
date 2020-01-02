@@ -6,7 +6,7 @@ In this Docker quickstart guide, we'll get Ambassador Edge Stack running locally
 
 By default, Ambassador Edge Stack uses a demo configuration to show some of its basic features. Get it running with Docker, and expose Ambassador Edge Stack on port 8080:
 
-```shell
+```
 docker run -it -p 8080:8080 --name=ambassador --rm quay.io/datawire/aes:$version$ --demo
 ```
 
