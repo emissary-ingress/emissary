@@ -62,7 +62,7 @@ The obvious downside to implementing Kubernetes canary releases like this is tha
 
 ## Flexible Kubernetes Canary Releases: Smart Routing with Ambassador Edge Stack
 
-A more effective approach to Kubernetes canary releases is to use some kind of smart proxy, load balancer or API gateway -- all all functionalities of the Ambassador Edge Stack. Dynamically routing traffic at the request level means that only one Deployment is required for each of the "stable" and "canary" versions of the application. Instead of relying on a round robin load balancing implementation, the smart proxy can direct a specified percentage of Service requests to each Deployment. This is exactly how Ambassador Edge Stack can be configured to canary release applications.
+A more effective approach to Kubernetes canary releases is to use some kind of smart proxy, load balancer or API gateway -- like the Ambassador Edge Stack. Dynamically routing traffic at the request level means that only one Deployment is required for each of the "stable" and "canary" versions of the application. Instead of relying on a round robin load balancing implementation, the smart proxy can direct a specified percentage of Service requests to each Deployment. This is exactly how Ambassador Edge Stack can be configured to canary release applications.
 
 Using the smart routing approach requires two Kubernetes Services to be created -- one for the stable version of the app e.g. "payment", and one for the canary version of the app e.g. "payment-canary"-- and associated Deployments can be created a configured as required (the Deployments are not involved with smart routing).
 
