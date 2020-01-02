@@ -89,7 +89,7 @@ The **Ambassador Configuration** box shows an immediate status along with detail
 
 The **Configuration Errors** box provides further information about any configuration errors.
 
-See [Debugging](/reference/debugging) for more information.
+ See [Debugging](../../reference/debugging) for more information.
 
 Also take a look at the [Diagnostics](../../reference/diagnostics) resource.
 
