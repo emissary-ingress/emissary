@@ -8,7 +8,7 @@ Below are examples of how to configure Ambassador Edge Stack to do mTLS with two
 
 ## Istio mTLS
 
-Istio stores it's TLS certificates as Kubernetes secrets by default, so accessing them is a matter of YAML configuration changes.
+Istio stores its TLS certificates as Kubernetes secrets by default, so accessing them is a matter of YAML configuration changes.
 
 1. Load Istio's TLS certificates
 
