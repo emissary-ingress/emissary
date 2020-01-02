@@ -147,7 +147,7 @@ You can turn on Debug mode in the [Edge Policy Console](../../about/edge-policy-
 
 The terminal will print something similar to the following:
 
-    ```
+    ```console
     $ kubectl logs ambassador-85c4cf67b-4pfj2
     2018-10-10 12:26:50 kubewatch 0.40.0 INFO: generating config with gencount 1 (0 changes)
     /usr/lib/python3.6/site-packages/pkg_resources/__init__.py:1235: UserWarning: /ambassador is writable by group/others and vulnerable to attack when used with get_resource_filename. Consider a more secure location (set with .set_extraction_path or the PYTHON_EGG_CACHE environment variable).
