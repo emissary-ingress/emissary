@@ -37,6 +37,7 @@ In order to use the `Ingress` resource effectively, it's important to understand
   The Ambassador Edge Stack will automatically load balance Ingress resources using the endpoint exposed 
   from the Service with the annotation `app.kubernetes.io/component: ambassador-service`.
   
+  ```yaml
       kind: Service
       apiVersion: v1
       metadata:
@@ -55,6 +56,7 @@ In order to use the `Ingress` resource effectively, it's important to understand
           - name: https
             port: 443
             targetPort: https
+            ```
 
 ### When should I use an `Ingress` instead of annotations or CRDs?
 

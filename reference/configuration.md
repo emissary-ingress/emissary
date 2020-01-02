@@ -1,4 +1,4 @@
-# Configuring the Ambassador Edge Stack 
+# Configuring the Ambassador Edge Stack
 
 The Ambassador Edge Stack is configured in a declarative fashion, using YAML manifests to describe the state of the world. As with Kubernetes, the Ambassador Edge Stack's manifests are identified with `apiVersion`, `kind`, and `name`. The current `apiVersion` is `getambassador.io/v2`; some of the currently-supported `kind`s are:
 
@@ -12,16 +12,11 @@ The Ambassador Edge Stack is configured in a declarative fashion, using YAML man
 
 - [`Mapping`](../mappings) manifests associate REST _resources_ with Kubernetes _services_. The Ambassador Edge Stack _must_ have one or more mappings defined to provide access to any services at all.
 
+- [`TLSContext`](../reference/core/tls) manifests control the TLS configuration options for a number of different use cases.
+
+- [`Ingress`](../reference/core/ingress-controller) manifests allows you to use Ambassador as a Kubernetes ingress controller. See the provided documention on configuration with Ambassador, and review the [Kubernetes documentation](https://kubernetes.io/docs/concepts/services-networking/ingress/) for detailed information on the `Ingress` resource.
+
 Note that each of these `kind`s are supported as both annotations and as Custom Resource Definitions (CRDs).
-
-`ClusterIssuer` 
- `Certificate`
-Istio `volume` and `volumeMount`
-Ambassador Daemonset - In manifest files `kind: Deployment` needs to be updated to `kind: DaemonSet`  and  `replicas` should be removed in `spec` section.
-TLS Context (deprecated)
-Edge Control
-Amb on AWS
-
 
 ## Configuration sources
 
