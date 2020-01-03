@@ -207,8 +207,8 @@
         link: /reference/ambassador-with-aws
       - title: Diagnostics
         link: /reference/diagnostics
-      #- title: Debugging
-      #  link: /reference/debugging  
+      - title: Debugging
+        link: /reference/debugging  
     - title: Plugins
       items:
       - title: Available Plugins
