@@ -105,16 +105,6 @@ export class HostResource extends Resource {
     throw new Error("Please implement Resource:getSpec()");
   }
 
-  /* getYAML()
-  * Return the YAML object to JSON.stringify for the implementation of the Save function which uses kubectl apply.
-  * Like getSpec, this method must return an object to be serialized and supplied to kubectl apply.  Note that this
-  * likewise is only a partial YAML structure (getSpec being the spec: portion).  The full YAML for the resource
-  * should be saved separately.  See the Host class for an example implementation.
-  */
-  getYAML() {
-    throw new Error("Please implement Resource:getYAML()");
-  }
-
   /* sourceURI()
    * Return the source URI for this resource, if one exists.  IN the case we have a source URI, the view may provide
    * a button which, when clicked, opens a window on that source URI.  This is useful for tracking resource as they

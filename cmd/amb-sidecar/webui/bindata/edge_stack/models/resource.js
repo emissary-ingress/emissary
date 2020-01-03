@@ -152,12 +152,21 @@ export class Resource extends Model {
 
   /* getYAML()
   * Return the YAML object to JSON.stringify for the implementation of the Save function which uses kubectl apply.
-  * Like getSpec, this method must return an object to be serialized and supplied to kubectl apply.  Note that this
-  * likewise is only a partial YAML structure (getSpec being the spec: portion).  The full YAML for the resource
-  * should be saved separately.  See the Host class for an example implementation.
+  * Like getSpec, this method must return an object to be serialized and supplied to kubectl apply.  This requires
+  * getSpec to be implemented
   */
   getYAML() {
-    throw new Error("Please implement Resource:getYAML()");
+    return {
+      apiVersion: "getambassador.io/v2",
+      kind: this.kind,
+      metadata: {
+        name:        this.name,
+        namespace:   this.namespace,
+        labels:      this.labels,
+        annotations: this.annotations
+      },
+      spec: this.getSpec()
+    }
   }
 
   /* sourceURI()
