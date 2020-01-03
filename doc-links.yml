@@ -145,6 +145,8 @@
         link: /reference/ambassador-with-aws
       - title: Diagnostics
         link: /reference/diagnostics
+      - title: Debugging
+        link: /reference/debugging
     - title: TLS & Cryptography
       items:
       - title: Transport Layer Security (TLS)
