@@ -164,7 +164,11 @@ export class LimitPattern extends LitElement {
 
   // internal
   swapElements(a, b) {
-    [this.pattern[a], this.pattern[b]] = [this.pattern[b], this.pattern[a]]
+    if (!this.pattern[a] || !this.pattern[b]) {
+      console.error('At least one element is not part of the current limit pattern; skip the update');
+      return;
+    }
+    [this.pattern[a], this.pattern[b]] = [this.pattern[b], this.pattern[a]];
     this.requestUpdate("pattern");
     this.changed();
   }
