@@ -18,17 +18,11 @@ The Ambassador Edge Stack is configured in a declarative fashion, using YAML man
 
 - `LogService`manifests help you configure logging. See [Kubernertes Logging Architecture](https://kubernetes.io/docs/concepts/cluster-administration/logging/) for more details.
 
-- [TCPMapping`](../reference/tcpmappings/) manifests associate TCP mappings with Kubernetes services.
+- [`TCPMapping`](../reference/tcpmappings/) manifests associate TCP mappings with Kubernetes services.
 
-Additional`kind`s for the Ambassador Edge Stack are:
+For an exhaustive list, see the [CRDs](reference/core/crds/#supported-crds) page.
 
-- RateLimit
-- Filter
-- FilterPolicy
-- Host
-- Resolvers
-
-Note that each of these `kind`s are supported as both annotations and as [Custom Resource Definitions (CRDs)](reference/core/crds/#supported-crds).
+Note that each of these `kind`s are supported as both annotations and as CRDs.
 
 ## Configuration sources
 
