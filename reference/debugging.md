@@ -2,75 +2,15 @@
 
 If you’re experiencing issues with the Ambassador Edge Stack and cannot diagnose the issue through the "Diagnostics" tab from the [Edge Policy Console](../../about/edge-policy-console), this document covers various approaches and advanced use cases for debugging Ambassador issues.
 
-We assume that you already have a running Ambassador installation. Our examples use the following CRDs as the Ambassador configuration:
-
-?
-
-First, create an example configuration for debugging demonstrations that are available throughout this document.
-
-Then, complete the following debugging options:
- 
-* Check Ambassador Status
-* Review Ambassador Logs
-* Examine Pod and Container Contents
-
-## Example Configuration
-
-To see a demonstration of how you can debug your Ambassador instance, follow the instructions to create an example mapping configuration.
-
-Note: The following assumes that you deployed Ambassador and the following services from the [quick start installation guide](../../user-guide/install) to a Kubernetes cluster.
-
-**In the command line:**
-
-1. Create a cluster in GKE with RBAC support enabled, and your user account configured correctly. Then run the following:
-
-    ```console
-    $ gcloud container clusters create ambassador-demo --preemptible
-    $ kubectl create clusterrolebinding cluster-admin-binding-new \
-    --clusterrole cluster-admin --user <your_user_name>
-    ```
-
-2. Deploy the latest version of Ambassador following the instructions from [here](../../user-guide/install).
-3. Next, create an Ambassador Service and deploy a basic `httpbin` Ambassador Mapping by saving the following YAML to a file named `ambassador-services.yaml`
-
-   ```yaml
-    ---
-    apiVersion: getambassador.io/v2
-    kind:  Mapping
-    metadata:
-      name:  httpbin
-    spec:
-      prefix: /httpbin/
-      service: httpbin.org
-      host_rewrite: httpbin.org
-    ```
-
-4. Apply this into your cluster with the following command:
-
-    ```console
-    $ kubectl apply -f ambassador-services.yaml
-    ```
-
-You should now be able to utilize this example mapping for debugging demonstrations and purposes.
+We assume that you already have a running Ambassador installation in the following sections.
 
 ## Check Ambassador Status
 
-First, check to see if the [Diagnostics](../diagnostics) service is reachable. The following command assumes you have installed Ambassador in the `ambassador` name space: `kubectl port-forward -n ambassador_<pod name> 8877`
-
-If it is successful, try to diagnose your original issue with the Diagnostics Console.
+First, check to see if the [Diagnostics](../diagnostics) service is reachable. If it is successful, try to diagnose your original issue with the Diagnostics Console.
 
 **If it is not successful, complete the following to see if Ambassador is running:**
 
-1. Check the Ambassador deployment with the following: `kubectl get deployments`
-2. After a brief period, the terminal will print something similar to the following:
-
-    ```console
-    $ kubectl get deployments
-    NAME         DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
-    ambassador   3         3         3            3           1m
-    ```
-
-3. Check that the “desired” number of Pods equals the “current” or “available” number of pods. If they are **not** equal, check the status of the associated pods with the following command: `kubectl get pods`
+1. Get a list of pods in the `ambassador` namespace with `kubectl get pods -n ambassador`.
 
     The terminal should print something similar to the following:
 
@@ -82,20 +22,33 @@ If it is successful, try to diagnose your original issue with the Diagnostics Co
     ambassador-85c4cf67b-vg6p5   1/1       Running   0          1m
     ```
 
-4. If any of the Pods have a status of “not started,” use the following command to “describe” the Deployment pods: `kubectl describe deployment ambassador`
+2. Choose a pod that you want to examine in the Diagnostics Console with: `kubectl port-forward -n ambassador <ambassador-pod-name> 8877`.
+3. Then, check the Ambassador deployment with the following: `kubectl get -n ambassador deployments`
+
+    After a brief period, the terminal will print something similar to the following:
+
+    ```console
+    $ kubectl get deployments
+    NAME         DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
+    ambassador   3         3         3            3           1m
+    ```
+
+4. Check that the “desired” number of Pods equals the “current” or “available” number of pods. If they are **not** equal, check the status of the associated pods with the following command: `kubectl get pods -n ambassador`.
+5. Use the following command for details about the history of the Deployment: `kubectl describe -n ambassador deployment ambassador`
 
     * Look for data in the “Replicas” field near the top of the output. For example: 
         `Replicas: 3 desired | 3 updated | 3 total | 3 available | 0 unavailable`
 
     * Look for data in the “Events” log field near the bottom of the output, which often displays data such as a fail image pull, RBAC issues, or a lack of cluster resources. For example:
-        ```
+
+        ```console
         Events:
         Type    Reason              Age     From                      Message
         ----    ------              ----    ----                      -------
         Normal  ScalingReplicaSet    2m     deployment-controller      Scaled up replica set ambassador-85c4cf67b to 3
         ```
 
-5. Additionally, use the following command to “describe” the individual pods: `kubectl get pods` and then `kubectl describe pods ambassador-<name>`
+5. Additionally, use the following command to “describe” the individual pods: `kubectl describe pods -n ambassador <ambassador-pod-name>`
 
     * Look for data in the “Status” field near the top of the output. For example, `Status: Running`
 
@@ -120,7 +73,7 @@ The Ambassador logging can provide information on anything that might be abnorma
 
 You can turn on Debug mode in the [Edge Policy Console](../../about/edge-policy-console), which generates verbose logging data that can be useful when trying to find a subtle error or bug.
 
-1. Use the following command to target an individual Ambassador Pod: `kubectl get pods`
+1. Use the following command to target an individual Ambassador Pod: `kubectl get pods -n ambassador`
 
     The terminal will print something similar to the following:
 
@@ -130,7 +83,7 @@ You can turn on Debug mode in the [Edge Policy Console](../../about/edge-policy-
     ambassador-85c4cf67b-4pfj2   1/1       Running   0          3m
     ```
 
-2. Then, run the following: `kubectl logs ambassador-<pod>`
+2. Then, run the following: `kubectl logs -n ambassador <ambassador-pod-name>`
 
 The terminal will print something similar to the following:
 
@@ -154,40 +107,7 @@ The terminal will print something similar to the following:
 
 You can examine the contents of the Ambassador Pod for issues, such as if volume mounts are correct and TLS certificates are present in the required directory, to determine if the Pod has the latest Ambassador configuration, or if the generated Envoy configuration is correct or as expected. In these instructions, we will look for problems related to the Envoy configuration.
 
-1. To look into an Ambassador Pod, use the container shell with the `kube-exec` and the `/bin/sh` commands. For example, `kubectl exec -it ambassador-<pod> -- /bin/sh`
-
-    The terminal will print a typical file list from a pre-0.50 Ambassador instance, similar to the following:
-
-    ```console
-    $ kubectl get pods
-    NAME                         READY     STATUS    RESTARTS   AGE
-    ambassador-85c4cf67b-4pfj2   1/1       Running   0          14m
-    ambassador-85c4cf67b-fqp9g   1/1       Running   0          14m
-    ambassador-85c4cf67b-vg6p5   1/1       Running   0          14m
-    $
-    $ kubectl exec -it ambassador-85c4cf67b-4pfj2 -- /bin/sh
-    /ambassador # pwd
-    /ambassador
-    /ambassador # ls -lsa
-    total 84
-        4 drwxrwxr-x    1 root     root          4096 Oct 15 12:35 .
-        4 drwxr-xr-x    1 root     root          4096 Oct 15 12:26 ..
-        4 drwxr-xr-x    4 root     root          4096 Oct 15 12:26 ambassador-0.40.0-py3.6.egg-tmp
-        4 drwxrwxr-x    1 root     root          4096 Sep 25 20:29 ambassador-config
-        4 drwxr-xr-x    2 root     root          4096 Oct 15 12:26 ambassador-config-1
-        4 drwxr-xr-x    2 root     root          4096 Oct 15 12:35 ambassador-config-2
-        4 drwxrwxr-x    1 root     root          4096 Sep 25 20:29 ambassador-demo-config
-        8 -rwxr-xr-x    1 root     root          4179 Sep 25 20:28 entrypoint.sh
-        4 -rw-r--r--    1 root     root          3322 Oct 15 12:26 envoy-1.json
-        8 -rw-r--r--    1 root     root          4101 Oct 15 12:35 envoy-2.json
-        8 -rw-rw-r--    1 root     root          5245 Sep 25 20:28 hot-restarter.py
-    20 -rw-rw-r--    1 root     root         16952 Sep 25 20:28 kubewatch.py
-        4 -rwxrwxr--    1 root     root           175 Sep 25 20:28 requirements.txt
-        4 -rwxr-xr-x    1 root     root           997 Sep 25 20:28 start-envoy.sh
-    ```
-
-The `ambassador-config-N` lines indicate the directories which contain the specific Ambassador configuration used in YAML files during updates. Higher numbers indicate the most recent configuration, as verified by the directory timestamp.
-
+1. To look into an Ambassador Pod, use the container shell with the `kube-exec` and the `/bin/sh` commands. For example, `kubectl exec -it -n ambassador <ambassador-pod-name> -- /bin/sh`
 2. Determine the latest configuration. If you haven't overridden the configuration directory, the latest configuration will be in `/ambassador/snapshots`. If you have overridden it, Ambassador saves  configurations in `$AMBASSADOR_CONFIG_BASE_DIR/snapshots`.
 
     In the snapshots directory:
@@ -202,8 +122,9 @@ The `ambassador-config-N` lines indicate the directories which contain the speci
     In the snapshots directory, the current configuration will be stored in files with no digit suffix, and older configurations have increasing numbers. For example, `ir.json` is current, `ir-1.json` is the next oldest, then `ir-2.json`, etc.
 
 5. If something is wrong with `snapshot` or `aconf`, there is an issue with your configuration. If something is wrong with `ir` or `econf`, you should [open an issue on Github](https://github.com/datawire/ambassador/issues/new/choose).
-6. Next, find the corresponding Envoy file. The file will be titled `envoy-N.json` where N matches the number of the `ambassador-config-N` directory number.
-7. Print the contents of the corresponding Envoy file that is generated during Ambassador configuration with the following command: `/ambassador # cat envoy-2.json`
+6. To find the main configuration for Envoy, run: `$AMBASSADOR_CONFIG_BASE_DIR/envoy/envoy.json`.
+7. For the bootstrap configuration, which has details about Envoy statistics, logging, and auth, run: `$AMBASSADOR_CONFIG_BASE_DIR/bootstrap-ads.json`.
+8. For further details, you can print the Envoy configuration that is geenerated during the Ambassador configuration. The file will be titled `envoy-N.json` where N matches the number of the `ambassador-config-N` directory number. Run the following command: `/ambassador # cat envoy-2.json`
 
     The terminal will print something similar to the following:
 
