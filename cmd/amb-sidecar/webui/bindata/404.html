@@ -19,12 +19,11 @@
         margin-bottom: 0.6em;
         line-height: 1.3;
         position: relative;
-        
-        height: 430px;
+        height: 530px;
         display: flex;
       }
-      .hero-penguin { width: 400px; height: 400px; margin-left: 4em; margin-top: 10px; display: block; opacity: .8; }
-      .right-side { font-family: "Source Sans Pro", sans-serif; margin-top: 2em; margin-right: 4em; margin-left: .5em; }
+      .hero-penguin { width: 400px; height: 450px; margin-left: 2em; margin-top: 10px; display: block; opacity: .8; }
+      .right-side { font-family: "Source Sans Pro", sans-serif; width: 80%; display: center; margin-top: 2em; margin-right: 1em; margin-left: 1em; }
 
       .app-link {
         /* Location Placing */
@@ -35,9 +34,118 @@
       .app-title { font-size: 3em; text-align: center; margin-top: 15px; margin-bottom: 0px; }
       .app-subtitle { font-size: 1.5em; text-align: center; margin-top: 0; }
       .app-text { font-size: 1.3em; text-align: center; }
-      .app-notice { font-size: 1.3em; text-align: center; font-style: italic; margin-top: 1rem; color: #545452 }
-      @media screen and (max-width: 920px) { .hero-penguin { display: none; }  }
-    
+      .app-notice { font-size: 1.3em; text-align: center; font-style: italic; margin-top: 1rem; margin-bottom: 0; color: #545452 }
+
+      button {
+        margin-left: 1.5em;
+      }
+      button:hover {
+        background-color: #ede7f3;
+      }
+      button:focus {
+        background-color: #ede7f3;
+      }
+      summary:hover {
+        outline: none;
+        color: #5F3EFF;
+      }
+      summary:focus {
+        outline: none;
+        color: #5F3EFF;
+      }
+      div.login-section {
+          border: 1px solid var(--dw-item-border);
+          box-shadow: 0 2px 4px rgba(0,0,0,.1);
+          padding: 0.5em;
+          margin-bottom: 0.6em;
+          line-height: 1.3;
+          
+      }
+      div.login-container {
+          display: flex;
+          justify-content: space-between;
+      }
+      details.login-chrome .login-safari .login-firefox{
+          width: 50%;
+          border: 1px solid #ede7f3;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, .1);
+          padding: 0.5em;
+          margin-bottom: 0.6em;
+          line-height: 1.3;
+          position: relative;
+          overflow: hidden;
+      }
+      div.info-title {
+          font-weight: bold;
+          font-size: 120%;
+      }
+      h1.info-title, p.login-downloadText {
+          text-align: center;
+      }
+      p.login-instr {
+          font-size: 90%;
+          text-align: center;
+          margin-bottom: 1em;
+      }
+      p.login-edgectl {
+          font-size: 120%;
+          text-align: center;
+          margin-bottom: 2em;
+      }
+      p.download {
+          margin: 16px;
+      }
+      span.repeatUserText {
+          font-size: 140%;
+      }
+      span.command {
+          background-color: #f5f2f0;
+          color: #5F3EFF;
+          padding: 3px;
+          letter-spacing: .2px;
+          font-family: Consolas,Monaco,Andale Mono,Ubuntu Mono,monospace;
+          font-size: 150%;
+          word-spacing: normal;
+          word-break: normal;
+          word-wrap: normal;
+      }
+
+      h3 {
+        margin: 0.1em;
+      }
+      pre {
+          margin: 0 1em 1em 1em;
+          padding: .5em;
+          background-color: #f5f2f0;
+          letter-spacing: .2px;
+          font-family: Consolas,Monaco,Andale Mono,Ubuntu Mono,monospace;
+          font-size: 80%;
+          white-space: normal;
+          overflow-wrap: break-word;
+          width: 92%;
+      }
+      details {
+          margin: 1em;
+      }
+      img#chromeLogo {
+          width: 25px;
+          margin: 0 0 -5px 0;
+      }
+      img#safariLogo {
+        width: 30px;
+        margin: 0 0 -8px 0;
+      }
+      img#firefoxLogo {
+        width: 25px;
+        margin: 0 0 -8px 0;
+      }
+      img#securityWarning {
+        height: 100px;
+        width: auto;
+        display: block;
+        margin-top: 15px;
+      }
+      
     </style>
   </head>
   <body class="enterPage", onclick="location.href=`https://${window.location.host}/edge_stack/admin`";>
@@ -51,9 +159,41 @@
           <div class="right-side">
             <h1 class="app-title">CONGRATULATIONS!</h1>
             <p class="app-subtitle">You've installed the Ambassador Edge Stack</p>
-            <p class="app-text"><a class="app-link">As the blackbird flies, clicking here is<br>the quickest way to the Edge Policy Console.</a></p><br>
-            <p class="app-notice" style="display: none;">Please accept the Ambassador Edge Stack self-signed<br> TLS certificate to establish a secure connection.<br>Then set your own certificate using the Edge Policy Console.</p>
+            <p class="app-text"><a class="app-link">As the blackbird flies, clicking here is<br>the quickest way to the Edge Policy Console.</a></p>
+            <p class="app-notice" style="display: none;">Please accept the Ambassador Edge Stack self-signed TLS certificate to establish a secure connection. Then set your own certificate using the Edge Policy Console. Browser security warnings may appear. For help navigating these please select your browser below.</p>
+          
+            <div class="login-container">
+              <div class="login-chrome">
+                <details id="chrome" open>
+                  <summary><h3 style="display:inline">Chrome</h3>
+                    <img id="chromeLogo" src="/edge_stack/images/logos/chrome.svg" alt="chrome logo" display=inline>
+                    <img id="securityWarning" src="/edge_stack/images/svgs/chromeSecWarning.png" alt="chrome security warning logo">    
+                  </summary>
+                </details>
+              </div>
+
+              <div class="login-safari">
+              <details >
+                  <summary><h3 style="display:inline">Safari</h3>
+                    <img id="safariLogo" src="/edge_stack/images/logos/safari.svg" alt="safari logo">
+                    <img id="securityWarning" src="/edge_stack/images/svgs/safariSecWarning.png" alt="chrome security warning logo"> 
+                  </summary>
+              </details>
+            </div>
+
+              <div class="login-firefox">
+              <details >
+                  <summary><h3 style="display:inline">Firefox</h3>
+                    <img id="firefoxLogo" src="/edge_stack/images/logos/firefox.png" alt="firefox logo">
+                    <img id="securityWarning" src="/edge_stack/images/svgs/firefoxSecWarning.png" alt="chrome security warning logo"> 
+                  </summary>
+              </details>
+              </div>
+              </div>
+
+
           </div>
+
         </div>
       </main>   
     </div>
@@ -64,5 +204,7 @@
         document.getElementsByClassName('app-notice')[0].removeAttribute('style');
       }     
     </script>
+
   </body>
+
 </html>
