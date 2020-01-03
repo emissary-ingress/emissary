@@ -16,10 +16,14 @@
  * a spec--that we display and modify in the Web user interface.
  *
  * This class is the generic interface for all Kubernetes resource that are created, viewed, modified
- * and deleted in the Web UI.
+ * and deleted in the Web UI.  For example implementations, see the Host class, which is a concrete implementation
+ * of the IResource interface.
  */
 
-export class IResource {
+/* Interface class for Model */
+import { IModel } from "./imodel.js"
+
+export class IResource extends IModel {
 
   /* constructor()
    * Here the model initializes any internal state that is common to all Resources.
@@ -27,30 +31,30 @@ export class IResource {
    * and other useful state to be maintained in the Resource instance.
    */
 
-  constructor(kind, name, namespace) {
+  constructor(data) {
     /* do nothing for now, concrete subclasses will implement, but subclasses must call
-     * super(kind, name, namespace) in their own constructor.
+     * super(data) in their own constructor.
     */
+
+    /* call IModel's constructor, which is a no-op as well. */
+    super();
   }
 
-  /* resourceKey()
-   * Model instances are typically created from a chunk of Kubernetes resource data, which is
-   * a hierarchical key/value structure (JSON or dictionary).  To determine whether a particular
-   * Model corresponds to an existing Kubernetes resource, there must be a key that is invariant
-   * for that particular Resource and its Kubernetes data.  This is needed to maintain a collection
-   * of Resources that map 1-1 to objects in the Kubernetes resource space.
+  /* dataExtractor(snapshot)
+   * Given a snapshot as received from the backend via snapshot.js, return a list of resource data blocks
+   * given the resource's class name (e.g. Host, Mapping, Filter...)
    */
 
-  resourceKey() {
-    throw new Error("Please implement Resource:resourceKey()")
+  static dataExtractor(snapshot) {
+    throw new Error("please implement dataExtractor(snapshot)")
   }
 
   /* static resourceKeyFor(data)
-   * Return a computed modelKey given some structured data (as above, a hierarchical key/value
-   * structure).  This is a static function that is given the data from a snapshot and returns
-   * the model key for that data.  Each Model subclass will know the structure and extract
-   * the appropriate information to create the Model's key.  This is needed for identity in a
-   * collection of Models.  It is a static function because a given Model may not yet exist in
+   * Return a computed modelKey given some structured data (a hierarchical key/value
+   * structure).  This is a static function that is given the data block from a snapshot and returns
+   * the model key for that data.  Each Resource subclass will know the structure and extract
+   * the appropriate information to create the Resource's key.  This is needed for identity in a
+   * collection of Resources.  It is a static function because a given Resource may not yet exist in
    * the collection and its key must be created from the raw data.
    */
 
@@ -58,13 +62,77 @@ export class IResource {
     throw new Error("please implement Resource:resourceKeyFor(data) if this Resource is part of a Collection");
   }
 
-  /* resourceExtractor(snapshot)
-  * Return a list of resources from the snapshot, given the resource's class name (e.g. Host, Mapping,
-  * Filter, ...)
-  */
+  /* resourceKey()
+   * Resource instances are typically created from a chunk of Kubernetes resource data, which is
+   * a hierarchical key/value structure (JSON or dictionary).  To determine whether a particular
+   * Resource corresponds to an existing Kubernetes resource, there must be a key that is invariant
+   * for that particular Resource and its Kubernetes data.  This is needed to maintain a collection
+   * of Resources that map 1-1 to objects in the Kubernetes resource space.
+   */
 
-  static resourceExtractor(snapshot) {
-    throw new Error("please implement resourceExtractor()")
+  resourceKey() {
+    throw new Error("Please implement Resource:resourceKey()");
+  }
+
+  /* updateFrom(data)
+   * Update the Resource object state from the snapshot data block for this Resource.  Compare the values in the
+   * data block with the stored state in the Resource.  If the data block has different data than is currently
+   * stored, update that instance variable with the new data and set a flag to notify listeners of the changed
+   * state once the Resource has been fully updated.
+   */
+
+  updateFrom(data) {
+    throw new Error("Please implement Resource:updateFrom(data)");
+  }
+
+  /* getEmptyStatus()
+   * Utility method for initializing the status of the resource.  Returns a dictionary that has the basic
+   * structure of the status attribute in the Kubernetes resource structure.
+   */
+
+  getEmptyStatus() {
+    throw new Error("Please implement Resource:getEmptyStatus()");
+  }
+
+  /* getSpec()
+   * Return the spec attribute of the Resource.  This method is needed for the implementation of the Save
+   * function which uses kubectl apply.  This method must return an object that will be serialized with JSON.stringify
+   * and supplied as the "spec:" portion of the Kubernetes YAML that is passed to kubectl.  See the Host class for
+   * an example implementation.
+   */
+
+  getSpec() {
+    throw new Error("Please implement Resource:getSpec()");
+  }
+
+  /* getYAML()
+  * Return the YAML object to JSON.stringify for the implementation of the Save function which uses kubectl apply.
+  * Like getSpec, this method must return an object to be serialized and supplied to kubectl apply.  Note that this
+  * likewise is only a partial YAML structure (getSpec being the spec: portion).  The full YAML for the resource
+  * should be saved separately.  See the Host class for an example implementation.
+  */
+  getYAML() {
+    throw new Error("Please implement Resource:getYAML()");
+  }
+
+  /* sourceURI()
+   * Return the source URI for this resource, if one exists.  IN the case we have a source URI, the view may provide
+   * a button which, when clicked, opens a window on that source URI.  This is useful for tracking resource as they
+   * are applied using GitOps, though an annotation specifying the sourceURI must be applied in the GitOps pipeline
+   * in order for this to have a value.  If there is no sourceURI, return undefined.
+   */
+  sourceURI() {
+    throw new Error("Please implement Resource:sourceURI()");
+  }
+
+  /* validate()
+   * Validate this Resource's state by checking each object instance variable for correctness (e.g. email address
+   * format, URL format, date/time, name restrictions).  Returns a dictionary of property: errorString if there
+   * are any errors. If the dictionary is empty, there are no errors.
+   */
+
+  validate() {
+    throw new Error("Please implement Resource:validate()");
   }
 }
 

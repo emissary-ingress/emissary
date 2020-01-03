@@ -29,24 +29,10 @@ export class Model extends IModel {
     this._listenersToAll      = new Set();
   }
 
-  /* uniqueID()
-   * We have a unique ID for every model created during the session.  This is needed for labeling views
-   * with their corresponding model ID's, for identifying the views in the DOM.
-   */
-
-  uniqueID() {
-    return `Model#${this._modelUID}`;
-  }
-
   /* Add a new listener for changes.  The Listener's onModelNotification method will be called when the
-  *  model is notifying it for any of the  messages listed in the message set.  if the message set is
-  *  null, then add this listener for all messages.
-  */
-  /* Add a new listener for changes.  The function will be called
-  *  when the model is notifying listeners for any of the given
-  *  messages listed in the message set.  if the message set is
-  *  null, then add this listener for all messages.
-  */
+   *  model is notifying it for any of the  messages listed in the message set.  if the message set is
+   *  null, then add this listener for all messages.
+   */
 
   addListener(listener, messageSet = null) {
     if (messageSet === null) {
@@ -91,9 +77,9 @@ export class Model extends IModel {
    * will also receive a callback. Includes a notification message, the model itself, and an optional parameter.
    */
 
-  notifyListeners(model = this, message, parameter = null) {
-    for (let listener of this.listenersForMessage(message)) {
-      listener(message, model, parameter);
+  notifyListeners(notifyingModel = this, message, parameter = null) {
+    for (let listener of this._listenersForMessage(message)) {
+      listener.onModelNotification(notifyingModel, message, parameter);
     }
   }
 

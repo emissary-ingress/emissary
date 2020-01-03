@@ -32,26 +32,17 @@ export class IModel {
     */
   }
 
-  /* uniqueID()
-   * We have a unique ID for every model created during the session.  This is needed for labeling views
-   * with their corresponding model ID's, for identifying the views in the DOM.
-   */
-
-  uniqueID() {
-    throw new Error("Please implement Model:uniqueID()")
-  }
-
   /* Add a new listener for changes.  The Listener's onModelNotification method will be called when the
   *  model is notifying it for any of the  messages listed in the message set.  if the message set is
   *  null, then add this listener for all messages.
   */
   addListener(listener, messageSet = null) {
-    throw new Error("Please implement Model:addListener()")
+    throw new Error("Please implement Model:addListener()");
   }
 
   /* Remove a listener from the given messages, or from all messages if null */
   removeListener(listener, messageSet = null) {
-    throw new Error("Please implement Model:removeListener()")
+    throw new Error("Please implement Model:removeListener()");
   }
 
   /* Notify listeners of a update in the model with the given message.  Only listeners who have subscribed
@@ -60,8 +51,8 @@ export class IModel {
    * who have subscribed to the message will be notified. Listeners that have subscribed to all messages
    * will also receive a callback. Includes a notification message, the model itself, and an optional parameter.
    */
-  notifyListeners(model = this, message, parameter = null) {
-    throw new Error("Please implement Model:notifyListeners()")
+  notifyListeners(notifyingModel = this, message, parameter = null) {
+    throw new Error("Please implement Model:notifyListeners()");
   }
 }
 
