@@ -21,9 +21,9 @@
  */
 
 /* Interface class for Model */
-import { IModel } from "./imodel.js"
+import { Resource } from "./resource.js"
 
-export class IResource extends IModel {
+export class IResource extends Resource {
 
   /* constructor()
    * Here the model initializes any internal state that is common to all Resources.
@@ -40,16 +40,7 @@ export class IResource extends IModel {
     super();
   }
 
-  /* dataExtractor(snapshot)
-   * Given a snapshot as received from the backend via snapshot.js, return a list of resource data blocks
-   * given the resource's class name (e.g. Host, Mapping, Filter...)
-   */
-
-  static dataExtractor(snapshot) {
-    throw new Error("please implement dataExtractor(snapshot)")
-  }
-
-  /* static resourceKeyFor(data)
+  /* static uniqueKeyFor(data)
    * Return a computed modelKey given some structured data (a hierarchical key/value
    * structure).  This is a static function that is given the data block from a snapshot and returns
    * the model key for that data.  Each Resource subclass will know the structure and extract
@@ -58,23 +49,11 @@ export class IResource extends IModel {
    * the collection and its key must be created from the raw data.
    */
 
-  static resourceKeyFor(data) {
-    throw new Error("please implement Resource:resourceKeyFor(data) if this Resource is part of a Collection");
+  static uniqueKeyFor(data) {
+    throw new Error("please implement Resource:uniqueKeyFor(data) if this Resource is part of a Collection");
   }
 
-  /* resourceKey()
-   * Resource instances are typically created from a chunk of Kubernetes resource data, which is
-   * a hierarchical key/value structure (JSON or dictionary).  To determine whether a particular
-   * Resource corresponds to an existing Kubernetes resource, there must be a key that is invariant
-   * for that particular Resource and its Kubernetes data.  This is needed to maintain a collection
-   * of Resources that map 1-1 to objects in the Kubernetes resource space.
-   */
-
-  resourceKey() {
-    throw new Error("Please implement Resource:resourceKey()");
-  }
-
-  /* updateFrom(data)
+   /* updateFrom(data)
    * Update the Resource object state from the snapshot data block for this Resource.  Compare the values in the
    * data block with the stored state in the Resource.  If the data block has different data than is currently
    * stored, update that instance variable with the new data and set a flag to notify listeners of the changed
@@ -131,8 +110,8 @@ export class IResource extends IModel {
    * are any errors. If the dictionary is empty, there are no errors.
    */
 
-  validate() {
-    throw new Error("Please implement Resource:validate()");
+  validateSelf() {
+    throw new Error("Please implement Resource:validateSelf()");
   }
 }
 

@@ -13,7 +13,7 @@ import { Resource } from "./resource.js"
 /* Annotation key for sourceURI. */
 const aes_res_source = "aes_res_source";
 
-export class HostResource extends Resource {
+export class HostResource extends IResource {
 
   /* constructor()
    * Here the model initializes any internal state that is common to all Resources.
@@ -36,14 +36,6 @@ export class HostResource extends Resource {
     this.acmeProvider = data.spec.acmeProvider.authority || "";
     this.acmeEmail    = data.spec.acmeProvider.email || "";
     this.useAcme      = (this.acmeEmail !== "" && this.acmeProvider !== "");
-  }
-
-  /* dataExtractor(snapshot)
-   * Given a snapshot as received from the backend via snapshot.js, return a list of Host data blocks.
-   */
-
-  static dataExtractor(snapshot) {
-    return snapshot.getResources("Host");
   }
 
   /* updateFrom(data)
@@ -97,28 +89,15 @@ export class HostResource extends Resource {
   /* getSpec()
    * Return the spec attribute of the Resource.  This method is needed for the implementation of the Save
    * function which uses kubectl apply.  This method must return an object that will be serialized with JSON.stringify
-   * and supplied as the "spec:" portion of the Kubernetes YAML that is passed to kubectl.  See the Host class for
-   * an example implementation.
+   * and supplied as the "spec:" portion of the Kubernetes YAML that is passed to kubectl.
    */
 
   getSpec() {
-    throw new Error("Please implement Resource:getSpec()");
-  }
-
-  /* sourceURI()
-   * Return the source URI for this resource, if one exists.  IN the case we have a source URI, the view may provide
-   * a button which, when clicked, opens a window on that source URI.  This is useful for tracking resource as they
-   * are applied using GitOps, though an annotation specifying the sourceURI must be applied in the GitOps pipeline
-   * in order for this to have a value.  If there is no sourceURI, return undefined.
-   */
-  sourceURI() {
-    /* Make sure we have annotations, and return the aes_res_source, or undefined */
-    let annotations = this.annotations;
-    if (aes_res_source in annotations) {
-      return annotations[aes_res_source];
-    } else {
-      /* Return undefined (same as nonexistent property, vs. null) */
-      return undefined;
+    return {
+      hostname:     this.hostname,
+      acmeProvider: this.useAcme
+        ? {authority: this.acmeProvider, email: this.acmeEmail}
+        : {authority: "none"}
     }
   }
 
@@ -127,12 +106,12 @@ export class HostResource extends Resource {
    * format, URL format, date/time, name restrictions).  Returns a dictionary of property: errorString if there
    * are any errors. If the dictionary is empty, there are no errors.
    *
-   * in a HostResopurce, we need to validate the hostname, the acmeProvider, and the acmeEmail.
+   * in a HostResource, we need to validate the hostname, the acmeProvider, and the acmeEmail.
    */
 
   validate() {
     /* First let Resource.validate do its work. */
-    let errors  = super.validate() || new Map();
+    let errors  = Resource.validate() || new Map();
     let message = null;
 
     message = this._validateName(this.hostname);

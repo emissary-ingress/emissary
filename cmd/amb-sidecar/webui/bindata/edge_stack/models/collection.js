@@ -3,28 +3,8 @@
  * This is a Model subclass that monitors the snapshot data and keeps a consistent set of Resource objects
  * that mirror the actual model data in the snapshot.
  *
- * Collection subclasses, such as HostCollection, need only define one method to specialize:
- *  - resourceClass(), which returns the class that should be instantiated if a new item (e.g. Host) is added
- *
- * The Resource subclass must implement two static functions on the class that are needed for Collections:
- *
- * - dataExtractor(snapshot)
- *   this method is responsible for finding the right place in the snapshot to extract data objects that are used
- *   by the Resource's initFrom method to create a new instance of that resource.  This function returns a
- *   list that can be iterated over, returning data objects.
- *
- * - resourceKeyFor(data)
- *   this function takes a data object that dataExtractor returns and computes a unique key for the model so that
- *   the collection can determine whether a new data object represents a new Model or if it already exists in the
- *   collection.
- *
- * Most Resources (CRD's) have the same data formats but there are other objects in the snapshot that
- * are not CRD's, have different structure, and are not in the same part of the snapshot (e.g. Resolvers).  Similarly,
- * different Model classes will generate different unique keys, and so each will implement a class function
- * resourceKeyFor(data).
- *
- * Listeners will be notified when Models are added, updated, or removed from the collection.  The collection's
- * listeners are generally Views.
+ * The ICollection interface class, which inherits from Collection, defines the two required methods for
+ * creating specialized subclasses of Collection: resourceClass() and extractDataFrom(snapshot)
  */
 
 import {Model}    from "./model.js";
@@ -56,8 +36,8 @@ export class Collection extends Model {
     let ResourceClass = this.resourceClass;
 
     /* For each of the snapshot data records for this model... */
-    for (let data of this._modelExtractor(snapshot)) {
-      let key = resourceClass.modelKeyFor(data);
+    for (let data of this.extractDataFrom(snapshot)) {
+      let key = ResourceClass.uniqueKeyFor(data);
       /*
        * ...if we already have a model object for this data, then ask
        *    that object to check if it needs to update any data fields.
@@ -91,13 +71,5 @@ export class Collection extends Model {
       this.notifyListenersDeleted(oldModel);
       this._resources.delete(key);
     }
-  }
-
-  /* resourceClass()
-   * Return the class of the resource that is being collected from the snapshot.
-   */
-
-  resourceClass() {
-    throw new Error("Please implement Collection:resourceClass()");
   }
 }

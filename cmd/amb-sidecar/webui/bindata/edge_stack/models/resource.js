@@ -1,8 +1,12 @@
 /**
  * Resource
- * This is the Resource class, a concrete implementation of the IModel and IResource interfaces. It inherits
- * from the concrete Model class which implements the IModel interface.  The Resource class will implement the
- * IResource interfaces directly.
+ * This is the Resource class, the base class for all Resources and the superclass for IResource.  New Resource
+ * classes will subclass from IResource and implement only those methods that are defined in the IResource interface;
+ * the methods here are private methods that need not be reimplemented but can be used through inheritance in
+ * any subclasses that require them.  For example, a new Resource subclass may need to extend the validation
+ * method but would like to use the existing Resource validate() to handle basic validation; this can be done by
+ * explicitly calling Resource.validate() from the subclass's validate() method.
+ *
  *
  * This class is the basis for all Kubernetes resources that are created, viewed, modified and deleted in the Web UI.
  */
@@ -43,17 +47,7 @@ export class Resource extends Model {
     this._data = data;
   }
 
-  /* dataExtractor(snapshot)
-   * Given a snapshot as received from the backend via snapshot.js, return a list of resource data blocks
-   * given the resource's class name (e.g. Host, Mapping, Filter...).  Since this is a Resource superclass
-   * from which other Resource classes will inherit, they must implement their own dataExtractor methods.
-   */
-
-  static dataExtractor(snapshot) {
-    throw new Error("please implement Resource:dataExtractor(snapshot)")
-  }
-
-  /* static resourceKeyFor(data)
+  /* static uniqueKeyFor(data)
    * Return a computed modelKey given some structured data (a hierarchical key/value
    * structure).  This is a static function that is given the data block from a snapshot and returns
    * the model key for that data.  Each Resource subclass will know the structure and extract
@@ -64,26 +58,11 @@ export class Resource extends Model {
    * A basic Resource uses the kind, name, and namespace to build the resource key.
    */
 
-  static resourceKeyFor(data) {
+  static uniqueKeyFor(data) {
     return data.kind + "::" + data.metadata.name + "::" + data.metadata.namespace;
   }
 
-  /* resourceKey()
-   * Resource instances are typically created from a chunk of Kubernetes resource data, which is
-   * a hierarchical key/value structure (JSON or dictionary).  To determine whether a particular
-   * Resource corresponds to an existing Kubernetes resource, there must be a key that is invariant
-   * for that particular Resource and its Kubernetes data.  This is needed to maintain a collection
-   * of Resources that map 1-1 to objects in the Kubernetes resource space.
-   *
-   * A basic Resource uses the kind, name, and namespace to build the resource key.  It must be exactly
-   * the same structure as resourceKeyFor would return.
-   */
-
-  resourceKey() {
-    return this.kind + "::" + this.name + "::" + this.namespace
-  }
-
-  /* updateFrom(data)
+   /* updateFrom(data)
    * Update the Resource object state from the snapshot data block for this Resource.  Compare the values in the
    * data block with the stored state in the Resource.  If the data block has different data than is currently
    * stored, update that instance variable with the new data and set a flag to notify listeners of the changed
@@ -198,11 +177,18 @@ export class Resource extends Model {
     let errors  = new Map();
     let message = "";
 
+    /* Perform basic validation.  This can be extended by subclasses that implement validateSelf() */
     message = this._validateName(this.name);
     if (message) errors.set("name", message);
 
     message = this._validateName(this.namespace);
     if (message) errors.set("namespace", message);
+
+    /* Any errors from self validation? Merge the results of validateSelf with the existing results from above.
+     * validateSelf() overrides.  The spread operator (...) converts the Map into an Array which the Map
+     * constructor then uses for the new key/value entries.
+     */
+    errors = new Map(...errors, ...this.validateSelf());
 
     return errors;
   }
