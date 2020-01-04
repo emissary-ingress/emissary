@@ -21,7 +21,7 @@
  */
 
 /* Interface class for Model */
-import { Resource } from "./resource.js"
+import { Resource } from "../framework/resource.js"
 
 export class IResource extends Resource {
 
@@ -32,20 +32,7 @@ export class IResource extends Resource {
     super(data);
   }
 
-  /* static uniqueKeyFor(data)
-   * Return a computed modelKey given some structured data (a hierarchical key/value
-   * structure).  This is a static function that is given the data block from a snapshot and returns
-   * the model key for that data.  Each Resource subclass will know the structure and extract
-   * the appropriate information to create the Resource's key.  This is needed for identity in a
-   * collection of Resources.  It is a static function because a given Resource may not yet exist in
-   * the collection and its key must be created from the raw data.
-   */
-
-  static uniqueKeyFor(data) {
-    throw new Error("please implement Resource:uniqueKeyFor(data)");
-  }
-
-   /* updateSelfFrom(data)
+  /* updateSelfFrom(data)
    * Update the Resource object state from the snapshot data block for this Resource.  Compare the values in the
    * data block with the stored state in the Resource.  If the data block has different data than is currently
    * stored, update that instance variable with the new data and set a flag to return true if any changes have

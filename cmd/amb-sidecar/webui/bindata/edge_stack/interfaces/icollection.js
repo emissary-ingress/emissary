@@ -5,6 +5,10 @@
  * ICollection subclasses, such as HostCollection, need only define one method to specialize:
  * - resourceClass(), which returns the class that should be instantiated if a new item (e.g. Host) is added
  *
+ * - uniqueKeyFor(data)
+ *   this method computes a unique key for the collection's Resource, to determine whether the Resource described
+ *   by the data block has already been initialized and stored in the Collection.
+ *
  * - dataExtractor(snapshot)
  *   this method is responsible for finding the right place in the snapshot to extract data objects that are used
  *   by the Resource's initFrom method to create a new instance of that resource.  This function returns a
@@ -19,7 +23,7 @@
  * listeners are generally Views.
  */
 
-import {Collection} from "./collection.js";
+import {Collection} from "../framework/collection.js";
 
 export class ICollection extends Collection {
   /* constructor()
@@ -35,6 +39,18 @@ export class ICollection extends Collection {
 
   resourceClass() {
     throw new Error("Please implement Collection:resourceClass()");
+  }
+
+  /* uniqueKeyFor(data)
+   * Return a computed modelKey given some structured data (a hierarchical key/value
+   * structure).  This is a method that is given the data block from a snapshot and returns
+   * the unique key for that data.  Each Collection subclass will know the structure and extract
+   * the appropriate information to create the Resource's key.  This is needed for identity in a
+   * collection of Resources.
+   */
+
+  uniqueKeyFor(data) {
+    throw new Error("please implement Collection:uniqueKeyFor(data)");
   }
 
   /* extractDataFrom(snapshot)

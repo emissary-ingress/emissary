@@ -3,8 +3,8 @@
  * This is a Model subclass that monitors the snapshot data and keeps a consistent set of Resource objects
  * that mirror the actual model data in the snapshot.
  *
- * The ICollection interface class, which inherits from Collection, defines the two required methods for
- * creating specialized subclasses of Collection: resourceClass() and extractDataFrom(snapshot).
+ * The ICollection interface class, which inherits from Collection, defines the three required methods for
+ * creating specialized subclasses of Collection: resourceClass(), uniqueKeyFor(data), and extractDataFrom(snapshot).
  *
  * See ICollection for further details.
  */
@@ -39,7 +39,7 @@ export class Collection extends Model {
 
     /* For each of the snapshot data records for this model... */
     for (let data of this.extractDataFrom(snapshot)) {
-      let key = ResourceClass.uniqueKeyFor(data);
+      let key = this.uniqueKeyFor(data);
       /*
        * ...if we already have a model object for this data, then ask
        *    that object to check if it needs to update any data fields.

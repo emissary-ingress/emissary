@@ -8,7 +8,7 @@
  */
 
 import {HostResource}  from "./host_resource.js"
-import {ICollection}   from "./icollection.js";
+import {ICollection}   from "../interfaces/icollection.js";
 
 export class HostCollection extends ICollection {
   /* constructor()
@@ -16,6 +16,20 @@ export class HostCollection extends ICollection {
   */
   constructor() {
     super();
+  }
+
+  /* uniqueKeyFor(data)
+   * Return a computed modelKey given some structured data (a hierarchical key/value
+   * structure).  This is a method that is given the data block from a snapshot and returns
+   * the unique key for that data.  Each Collection subclass will know the structure and extract
+   * the appropriate information to create the Resource's key.  This is needed for identity in a
+   * collection of Resources.
+   *
+   * Here we use the Resource kind, name, and namespace concatenated together for a unique key.
+   */
+
+  uniqueKeyFor(data) {
+    return data.kind + "::" + data.metadata.name + "::" + data.metadata.namespace;
   }
 
   /* resourceClass()

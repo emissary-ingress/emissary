@@ -47,27 +47,12 @@ export class Resource extends Model {
     this._data = data;
   }
 
-  /* static uniqueKeyFor(data)
-   * Return a computed modelKey given some structured data (a hierarchical key/value
-   * structure).  This is a static function that is given the data block from a snapshot and returns
-   * the model key for that data.  Each Resource subclass will know the structure and extract
-   * the appropriate information to create the Resource's key.  This is needed for identity in a
-   * collection of Resources.  It is a static function because a given Resource may not yet exist in
-   * the collection and its key must be created from the raw data.
-   *
-   * A basic Resource uses the kind, name, and namespace to build the resource key.
-   */
-
-  static uniqueKeyFor(data) {
-    return data.kind + "::" + data.metadata.name + "::" + data.metadata.namespace;
-  }
-
    /* updateFrom(data)
-   * Update the Resource object state from the snapshot data block for this Resource.  Compare the values in the
-   * data block with the stored state in the Resource.  If the data block has different data than is currently
-   * stored, update that instance variable with the new data and set a flag to indicate an update has been made.
-   * If any of the state has changed, notify listeners.
-   */
+    * Update the Resource object state from the snapshot data block for this Resource.  Compare the values in the
+    * data block with the stored state in the Resource.  If the data block has different data than is currently
+    * stored, update that instance variable with the new data and set a flag to indicate an update has been made.
+    * If any of the state has changed, notify listeners.
+    */
 
   updateFrom(data) {
     let updated = false;
@@ -216,7 +201,7 @@ export class Resource extends Model {
   }
 
 
-  /* validateEmail(name)
+  /* validateEmail(email)
    * We validate that the user has provided a plausible looking email address. In the future, we should actually
    * validate that it's a real email address using something like
    * https://www.textmagic.com/free-tools/email-validation-tool
@@ -234,7 +219,7 @@ export class Resource extends Model {
   * returns null if url is valid, error string if not.
   */
 
-  validateURL(email) {
+  validateURL(url) {
       return null;
     }
 }
