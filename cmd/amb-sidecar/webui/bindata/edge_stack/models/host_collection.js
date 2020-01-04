@@ -1,15 +1,16 @@
 /**
  * HostCollection
- * This is a Collection subclass for Host objects.  It simply defines the following method:
+ * This is a Collection subclass for Host objects.  It simply defines the following methods:
  * - resourceClass() => return the Host class
+ * - extractDataFrom(snapshot) => return a list of data objects representing Hosts for instantiation.
  *
  * * Everything else is implemented in Collection.
  */
 
 import {Host}       from "./host.js"
-import {Collection} from "./collection.js";
+import {ICollection} from "./icollection.js";
 
-export class HostCollection extends Collection {
+export class HostCollection extends ICollection {
   /* constructor()
   * call Collection's constructor.
   */
@@ -37,7 +38,7 @@ export class HostCollection extends Collection {
 }
 
 
-/* Export a Collection for Hosts.  This object manages every Host instance and synchronizes the list of Hosts
+/* Export a HostCollection instance.  This object manages every Host instance and synchronizes the list of Hosts
  * that are instantiated with the real world of Kubernetes.
  */
 

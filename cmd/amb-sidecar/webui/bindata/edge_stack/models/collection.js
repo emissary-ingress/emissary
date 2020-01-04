@@ -4,7 +4,9 @@
  * that mirror the actual model data in the snapshot.
  *
  * The ICollection interface class, which inherits from Collection, defines the two required methods for
- * creating specialized subclasses of Collection: resourceClass() and extractDataFrom(snapshot)
+ * creating specialized subclasses of Collection: resourceClass() and extractDataFrom(snapshot).
+ *
+ * See ICollection for further details.
  */
 
 import {Model}    from "./model.js";

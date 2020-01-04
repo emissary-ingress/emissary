@@ -1,4 +1,4 @@
-/**
+/*
  * set.js
  * Utility functions for sets, since Javascript doesn't provide them.
  */

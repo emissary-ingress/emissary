@@ -38,6 +38,18 @@ export class HostResource extends IResource {
     this.useAcme      = (this.acmeEmail !== "" && this.acmeProvider !== "");
   }
 
+  /* static uniqueKeyFor(data)
+   * Return a computed modelKey given some structured data (a hierarchical key/value
+   * structure).  This is a static function that is given the data block from a snapshot and returns
+   * the model key for that data.  Each Resource subclass will know the structure and extract
+   * the appropriate information to create the Resource's key.  This is needed for identity in a
+   * collection of Resources.  It is a static function because a given Resource may not yet exist in
+   * the collection and its key must be created from the raw data.
+   */
+
+  static uniqueKeyFor(data) {
+    return Resource.uniqueKeyFor(data);
+  }
   /* updateFrom(data)
    * Update the HostResource object state from the snapshot data block for this HostResource.  Compare the values
    * in the data block with the stored state in the Host.  If the data block has different data than is currently
@@ -101,7 +113,7 @@ export class HostResource extends IResource {
     }
   }
 
-  /* validate()
+  /* validateSelf()
    * Validate this HostResource's state by checking each object instance variable for correctness (e.g. email address
    * format, URL format, date/time, name restrictions).  Returns a dictionary of property: errorString if there
    * are any errors. If the dictionary is empty, there are no errors.
@@ -109,9 +121,8 @@ export class HostResource extends IResource {
    * in a HostResource, we need to validate the hostname, the acmeProvider, and the acmeEmail.
    */
 
-  validate() {
-    /* First let Resource.validate do its work. */
-    let errors  = Resource.validate() || new Map();
+  validateSelf() {
+    let errors  = new Map();
     let message = null;
 
     message = this._validateName(this.hostname);

@@ -3,7 +3,7 @@
  * This is the Interface class for Collection.
  *
  * ICollection subclasses, such as HostCollection, need only define one method to specialize:
- *  - resourceClass(), which returns the class that should be instantiated if a new item (e.g. Host) is added
+ * - resourceClass(), which returns the class that should be instantiated if a new item (e.g. Host) is added
  *
  * - dataExtractor(snapshot)
  *   this method is responsible for finding the right place in the snapshot to extract data objects that are used
