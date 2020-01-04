@@ -1,20 +1,15 @@
 /*
  * HostResource
- * This is the HostResource class, a subclass of Resource.  It implements the Host-specific state and methods
+ * This is the HostResource class, an implementation of IResource.  It implements the Host-specific state and methods
  * that are needed to model a single Host CRD.
  *
- * See the comments in ./resource.js, ./iresource.js and ./imodel.js for more details on the expected interfaces
- * for a HostResource.
+ * See the comments in ./resource.js, ./iresource.js and ./imodel.js for more details.
  */
 
-/* Interface class for Model */
-import { Resource } from "./resource.js"
-
-/* Annotation key for sourceURI. */
-const aes_res_source = "aes_res_source";
+/* Interface class for Resource */
+import { IResource } from "./iresource.js"
 
 export class HostResource extends IResource {
-
   /* constructor()
    * Here the model initializes any internal state that is common to all Resources.
    * Typically a concrete Resource class would initialize the Resource kind, name, namespace,
@@ -48,21 +43,22 @@ export class HostResource extends IResource {
    */
 
   static uniqueKeyFor(data) {
-    return Resource.uniqueKeyFor(data);
+    return data.kind + "::" + data.metadata.name + "::" + data.metadata.namespace;
   }
-  /* updateFrom(data)
+
+  /* updateSelfFrom(data)
    * Update the HostResource object state from the snapshot data block for this HostResource.  Compare the values
    * in the data block with the stored state in the Host.  If the data block has different data than is currently
-   * stored, update that instance variable with the new data and set a flag to notify listeners of the changed
-   * state once the HostResource has been fully updated.
+   * stored, update that instance variable with the new data and set a flag to return true if any changes have
+   * occurred.  The Resource class's method, updateFrom, will call this method and then notify listeners as needed.
    */
 
-  updateFrom(data) {
+  updateSelfFrom(data) {
     /* Let Resources do its part on the update. notifyListenersUpdated will not be called by Resources.updateFrom
      * but will return whether it made a change or not.  Since the HostResource class (for now) is a final class,
      * it calls this.notifyListenersUpdated.
      */
-    let changed = super.updateFrom(data);
+    let changed = false;
 
     /* Check hostname */
     if (this.hostname !== data.spec.hostname) {
@@ -85,17 +81,14 @@ export class HostResource extends IResource {
     /* Are we using Acme or not? we just check to see
      * if the authority is "none".
      */
-    let useAcme = (this.acmeProvider != "none");
+    let useAcme = (this.acmeProvider !== "none");
 
     if (this.useAcme !== useAcme) {
       this.useAcme = useAcme;
       changed = true;
     }
 
-    /* Notify listeners - HostResource is a final class. */
-    if (changed) {
-      this.notifyListenersUpdated();
-    }
+    return changed;
   }
 
   /* getSpec()
@@ -106,8 +99,8 @@ export class HostResource extends IResource {
 
   getSpec() {
     return {
-      hostname:     this.hostname,
-      acmeProvider: this.useAcme
+      hostname:       this.hostname,
+      acmeProvider:   this.useAcme
         ? {authority: this.acmeProvider, email: this.acmeEmail}
         : {authority: "none"}
     }
@@ -125,14 +118,14 @@ export class HostResource extends IResource {
     let errors  = new Map();
     let message = null;
 
-    message = this._validateName(this.hostname);
+    message = this.validateName(this.hostname);
     if (message) errors.set("hostname", message);
 
     if (this.useAcme) {
-      message = this._validateURL(this.acmeProvider);
+      message = this.validateURL(this.acmeProvider);
       if (message) errors.set("acmeProvider", message);
 
-      message = this._validateEmail(this.acmeEmail);
+      message = this.validateEmail(this.acmeEmail);
       if (message) errors.set("acmeEmail", message);
     }
 

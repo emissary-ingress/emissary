@@ -7,8 +7,8 @@
  * * Everything else is implemented in Collection.
  */
 
-import {Host}       from "./host.js"
-import {ICollection} from "./icollection.js";
+import {HostResource}  from "./host_resource.js"
+import {ICollection}   from "./icollection.js";
 
 export class HostCollection extends ICollection {
   /* constructor()
@@ -23,12 +23,12 @@ export class HostCollection extends ICollection {
   */
 
   resourceClass() {
-    return Host;
+    return HostResource;
   }
 
   /* extractDataFrom(snapshot)
   * Given a snapshot as received from the backend via snapshot.js, return a list of resource data blocks
-  * given the resource's class name (e.g. Host, Mapping, Filter...).  Since this is a Collection superclass
+  * given the resource's class name (e.g. HostResource...).  Since this is a Collection superclass
   * from which other Collection classes will inherit, they must implement their own extracDataFrom methods.
   */
 

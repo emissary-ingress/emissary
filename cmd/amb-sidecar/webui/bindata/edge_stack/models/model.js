@@ -22,9 +22,6 @@
 /* Utility functions for sets. */
 import {union} from "./set.js"
 
-/* Interface class for Model */
-import { IModel } from "./imodel.js"
-
 export class Model {
   /* constructor()
    * Here the model initializes any internal state including any structures for storing Listeners
@@ -36,8 +33,6 @@ export class Model {
       * message names and the values are sets of listeners to be called when that message is sent.
       * _listenersToAll is the set of listeners that want to be notified on all messages.
       */
-
-    super();
 
     this._listenersByMessage  = new Map();
     this._listenersToAll      = new Set();

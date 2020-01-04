@@ -65,12 +65,8 @@ export class Resource extends Model {
    /* updateFrom(data)
    * Update the Resource object state from the snapshot data block for this Resource.  Compare the values in the
    * data block with the stored state in the Resource.  If the data block has different data than is currently
-   * stored, update that instance variable with the new data and set a flag to notify listeners of the changed
-   * state once the Resource has been fully updated.
-   *
-   * Every Resource object has invariant kind, name, and namespace, so labels, annotations and status must be
-   * checked to determine if they still match the data from the snapshot.  Return true if any of the state
-   * has changed so that listeners can be notified of the change(s).
+   * stored, update that instance variable with the new data and set a flag to indicate an update has been made.
+   * If any of the state has changed, notify listeners.
    */
 
   updateFrom(data) {
@@ -101,8 +97,13 @@ export class Resource extends Model {
       updated = true;
     }
 
-    /* Return true if any of the state was updated. */
-    return updated;
+    /* Give subclasses a chance to update themselves. */
+    updated = updated || this.updateSelfFrom(data);
+
+    /* Notify listeners if any updates occurred. */
+    if (updated) {
+      this.notifyListenersUpdated();
+    }
   }
 
   /* getEmptyStatus()
@@ -178,10 +179,10 @@ export class Resource extends Model {
     let message = "";
 
     /* Perform basic validation.  This can be extended by subclasses that implement validateSelf() */
-    message = this._validateName(this.name);
+    message = this.validateName(this.name);
     if (message) errors.set("name", message);
 
-    message = this._validateName(this.namespace);
+    message = this.validateName(this.namespace);
     if (message) errors.set("namespace", message);
 
     /* Any errors from self validation? Merge the results of validateSelf with the existing results from above.
@@ -194,7 +195,7 @@ export class Resource extends Model {
   }
 
   /* ============================================================
-   * Private methods -- Validation
+   * Utility methods -- Validation
    * ============================================================
    */
 
@@ -204,7 +205,7 @@ export class Resource extends Model {
    * returns null if name is valid, error string if not.
    */
 
-  _validateName(name) {
+  validateName(name) {
     // lower-case letters, numbers, dash, and dot allowed.
     let format = /^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$/;
     if (name.match(format) && name.length <= 253) {
@@ -215,19 +216,17 @@ export class Resource extends Model {
   }
 
 
-  /* _validateEmail(name)
-   * We validate that the user has provided a plausible looking
-   * email address. In the future, we should actually validate that
-   * it's a real email address using something like
+  /* validateEmail(name)
+   * We validate that the user has provided a plausible looking email address. In the future, we should actually
+   * validate that it's a real email address using something like
    * https://www.textmagic.com/free-tools/email-validation-tool
-   * with an appropriate fallback if we are unable to reach
-   * outside the firewall (if we can't reach the outside system,
-   * then use simple pattern matching).
+   * with an appropriate fallback if we are unable to reach outside the firewall (if we can't reach the outside
+   * system, then use simple pattern matching).
    *
    * returns null if email is valid, error string if not.
    */
 
-  _validateEmail(email) {
+  validateEmail(email) {
     return null;
   }
 
@@ -235,12 +234,8 @@ export class Resource extends Model {
   * returns null if url is valid, error string if not.
   */
 
-  _validateURL(email) {
-    return null;
-  }
-
-
-
-
+  validateURL(email) {
+      return null;
+    }
 }
 
