@@ -53,7 +53,7 @@ export class Collection extends Model {
   onSnapshotChange(snapshot) {
     /* Save the keys of all our existing resources */
     let previousKeys = new Set(this._resources.keys());
-    let resourceClass = this.resourceClass();
+    let ResourceClass = this.resourceClass;
 
     /* For each of the snapshot data records for this model... */
     for (let data of this._modelExtractor(snapshot)) {
@@ -72,7 +72,7 @@ export class Collection extends Model {
          * Resource object. After creating the object, notify all my listeners of the creation. See views/resources.js
          * for more information on how the ResourceListView uses that notification to add new child web components.
          */
-        let newResource = new resourceClass(data);
+        let newResource = new ResourceClass(data);
         this._resources.set(key, newResource);
         this.notifyListenersCreated(newResource);
       }
