@@ -50,13 +50,58 @@ Model                  - defines the behavior for notifying listeners
 
 # Model subclasses
 
-Resource
+```
+class Model {
+  constructor()
+  addListener(listener, messageSet)
+  removeListener(listener, messageSet)
+  notifyListeners(notifyingModel, message, parameter)
+  notifyListenersUpdated(notifyingModel)
+  notifyListenersCreated(notifyingModel)
+  notifyListenersDeleted(notifyingModel)
+}
+```
 
-IResource
+```
+class Resource extends Model {
+  constructor(data)
+  updateFrom(data)
+  getEmptyStatus()
+  getYAML()
+  sourceURI()
+  validate()
+  validateName(name)
+  validateEmail(email)
+  validateURL(url)
+}
+```
 
-Collection
+```
+class IResource extends Resource {
+  constructor(data)
+  updateSelfFrom(data)
+  getSpec()
+  validateSelf()
+}
+```
 
-ICollection
+
+```
+class Collection extends Model {
+  constructor()
+  onSnapshotChange(snapshot)
+}
+```
+
+```
+class ICollection extends Collection {
+  constructor()
+  resourceClass()
+  uniqueKeyFor(data)
+  extractDataFrom(snapshot)
+}
+```
+
 
 # Examples
 

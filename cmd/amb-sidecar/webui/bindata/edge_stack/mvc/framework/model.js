@@ -92,7 +92,20 @@ export class Model {
     }
   }
 
-   /* Return the listeners for a given message, or an empty set if none. */
+  /* Convenience methods for updated, created, deleted. */
+  notifyListenersUpdated(notifyingModel) {
+    this.notifyListeners(notifyingModel, 'updated');
+  }
+
+  notifyListenersCreated(notifyingModel) {
+    this.notifyListeners(notifyingModel, 'created');
+  }
+
+  notifyListenersDeleted(notifyingModel) {
+    this.notifyListeners(notifyingModel, 'deleted');
+  }
+
+  /* Return the listeners for a given message, or an empty set if none. */
   _listenersForMessage(message) {
     let allListeners = this._listenersToAll;
     let msgListeners = this._listenersByMessage.has(message) ? this._listenersByMessage[message] : new Set();
@@ -100,16 +113,5 @@ export class Model {
     return union(allListeners, msgListeners);
   }
 
-  /* Convenience methods for updated, created, deleted. */
-  notifyListenersUpdated(model) {
-    this.notifyListeners(model, 'updated');
-  }
 
-  notifyListenersCreated(model) {
-    this.notifyListeners(model, 'created');
-  }
-
-  notifyListenersDeleted(model) {
-    this.notifyListeners(model, 'deleted');
-  }
 }
