@@ -1,30 +1,36 @@
 # MVC: Models
 
-describe a bit what a Model is and how it fits into the scheme of things
+describe a bit what a `Model` is and how it fits into the scheme of things
 
 ## What is a Model?
 
 an object that has listeners
-listeners define a single method, onModelNotification
-views listen to individual resources (e.g. HostResource)
-views also listen to collections of resources (e.g. HostCollection)
+listeners define a single method, `onModelNotification`
+views listen to individual resources (e.g. `HostResource`)
+views also listen to collections of resources (e.g. `HostCollection`)
 
-## Framework
+## The mvc/ directory hierarchy
+
+```
+mvc            - toplevel directory, under edge_stack
+  framework    - Classes that define the MVC fundamental state and behavior
+  interfaces   - Interface classes.  Subclass these for new Resource types and Collections
+  models       - The user/developer code, implementing the interfaces
+  tests        - unit tests for the new models and views
+  views        - View classes
+```
+
+#### Framework
 
 basic functionality for model, collection and resource classes is defined
 here.
 
-## Interfaces
+#### Interfaces
 
-In Ambassador Pro, a _descriptor_ defines what is rate
-limited. Descriptors can contain arbitrary metadata about a request.
-Ambassador Pro uses this approach instead of using fixed fields (e.g.,
-URLs, client IPs, etc.) to give the end user more control over what
-exactly is rate limited.
-
-A descriptor is a key/value pair, e.g., `database:users` or
-`catalog:*`. Each descriptor is configured to have its own rate limit.
-
+These classes define the interface -- the required methods -- that must be implemented in concrete subclasses.
+Kubernetes CRD resources will be represented by subclass implementations of `IResource`, such as `HostResource`
+representing a Host CRD.  Similarly, collections of these resources will be implemented by subclassing
+`ICollection`, such as `HostCollection` (a collection of `HostResource` objects).
 
 # Class Definitions
 
@@ -34,7 +40,7 @@ Developers will primarily be subclassing `IResource` and `ICollection`, implemen
 but may also call methods from their subclasses that are defined in the framework classes
 `Model`, `Resource`, and `Collection`.
 
-## The MVC Class Hierarchy
+### The MVC Class Hierarchy
 
 ```
 Model                  - defines the behavior for notifying listeners
@@ -48,7 +54,7 @@ Model                  - defines the behavior for notifying listeners
 ```
 
 
-# Model subclasses
+### Model subclasses
 
 ```
 class Model {
@@ -105,9 +111,4 @@ class ICollection extends Collection {
 
 # Examples
 
-## HostResource
-
-
-## HostCollection
-
-
+See `HostResource` and `HostCollection` in mvc/models.
