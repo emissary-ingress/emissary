@@ -23,9 +23,6 @@ message HostSpec {
   // Common to all Ambassador objects (and optional).
   repeated string ambassador_id = 1;
 
-  // Common to all Ambassador objects (and optional).
-  int32 generation = 2;
-
   // Hostname by which the Ambassador can be reached.
   string hostname = 3;
 
