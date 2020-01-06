@@ -180,8 +180,6 @@ spec:
             - mountPath: /.config/ambassador
               name: ambassador-edge-stack-secrets
               readOnly: true
-      imagePullSecrets:
-        - name: aes-pull-secret
       restartPolicy: Always
       securityContext:
         runAsUser: 8888
