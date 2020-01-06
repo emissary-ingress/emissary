@@ -35,20 +35,22 @@ chmod a+x edgectl
 mv edgectl ~/bin  # Somewhere in your PATH
 ```
 
- Note: Similar instructions work for Windows:
+Note: Similar instructions work for Windows:
 
-    ```
-    curl -fLO https://metriton.datawire.io/downloads/windows/edgectl.exe
-    mv edgectl.exe C:\windows\  # Somewhere in your PATH
-    ```
+```bash
+curl -fLO https://metriton.datawire.io/downloads/windows/edgectl.exe
+mv edgectl.exe C:\windows\  # Somewhere in your PATH
+```
 
-    but Edge Control’s cluster features, as described in this document, do not work correctly on Windows at this time.
+but Edge Control’s cluster features, as described in this document, do not work correctly on Windows at this time.
 
-    Note: You can build Edge Control from source, but the straightforward way
+Note: You can build Edge Control from source, but the straightforward way
 
-   `GO111MODULE=on go get github.com/datawire/ambassador/cmd/edgectl`
+```bash
+GO111MODULE=on go get github.com/datawire/ambassador/cmd/edgectl`
+```
 
-    leaves you with a binary that has no embedded version number. If you really want to build from source, clone the repository and run `./builder/build_push_cli.sh build`, which will leave a binary in the `~/bin directory`. We will have a better answer for building from source soon.
+leaves you with a binary that has no embedded version number. If you really want to build from source, clone the repository and run `./builder/build_push_cli.sh build`, which will leave a binary in the `~/bin directory`. We will have a better answer for building from source soon.
 
 2. Launch the daemon component using sudo
 
@@ -74,7 +76,7 @@ The daemon’s logging output may be found in `/tmp/edgectl.log`.
 
 Tell the running daemon to exit with:
 
-```
+```bash
 $ edgectl quit
 Edge Control Daemon quitting...
 ```
@@ -140,7 +142,7 @@ spec:
 
 4. Apply them:
 
-```yaml
+```bash
 $ kubectl apply -f traffic-manager.yaml
 service/telepresence-proxy created
 deployment.apps/telepresence-proxy created
@@ -150,7 +152,7 @@ deployment.apps/telepresence-proxy created
 
 Any microservice running in a cluster with a traffic manager can opt in to intercept functionality by including the traffic agent in its pods. The following manifests represent a simple microservice.
 
-````yaml
+```yaml
 # This is hello.yaml
 ---
 apiVersion: v1
@@ -188,7 +190,7 @@ spec:
           image: datawire/hello-world:latest
           ports:
             - containerPort: 8000   # Application port
-````
+```
 
 Here is a modified set of manifests that includes the traffic agent.
 
@@ -324,7 +326,7 @@ deployment.apps/hello configured
 
 2. Launch a local service on your laptop. If you were debugging the hello service, you might run a local copy in your debugger. In this example, we will start an arbitrary service on port 9000.
 
-```python
+```bash
 $ # using Python
 
 $ python3 -m http.server 9000
@@ -364,46 +366,45 @@ Hello, world!
 4. Set up an intercept. In this example, we’ll capture requests that have the x-dev header set to $USER.
 
 ```bash
-    $ edgectl intercept avail
-    Found 1 interceptable deployment(s):
-        1. hello
+$ edgectl intercept avail
+Found 1 interceptable deployment(s):
+    1. hello
 
-    $ edgectl intercept list
-    No intercepts
+$ edgectl intercept list
+No intercepts
 
-    $ edgectl intercept add hello -n example -m x-dev=$USER -t localhost:9000
-    Added intercept "example"
+$ edgectl intercept add hello -n example -m x-dev=$USER -t localhost:9000
+Added intercept "example"
 
-    $ edgectl intercept list
-    1. example
-        Intercepting requests to hello when
-        - x-dev: ark3
-        and redirecting them to localhost:9000
+$ edgectl intercept list
+1. example
+    Intercepting requests to hello when
+    - x-dev: ark3
+    and redirecting them to localhost:9000
 
-    $ curl hello
-    Hello, world!
+$ curl hello
+Hello, world!
 
-    $ curl hello -H x-dev:$USER
-    <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
-    <html>
-    <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>Directory listing for /</title>
-    </head>
-    <body>
-    <h1>Directory listing for /</h1>
-    <hr>
-    <ul>
-    </ul>
-    <hr>
-    </body>
-    </html>
+$ curl hello -H x-dev:$USER
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>Directory listing for /</title>
+</head>
+<body>
+<h1>Directory listing for /</h1>
+<hr>
+<ul>
+</ul>
+<hr>
+</body>
+</html>
 ```
 
 As you can see, the second request, which includes the specified x-dev header, is served by the local server.
 
 5. Next, remove the intercept to restore normal operation.
-
 
 ```bash
 $ edgectl intercept remove example
