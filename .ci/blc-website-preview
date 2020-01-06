@@ -24,8 +24,6 @@ fi
 
 set -o verbose
 
-docs_commit=$(git rev-parse HEAD)
-
 cd /tmp
 git clone https://github.com/datawire/getambassador.io-blc.git
 cd getambassador.io-blc
@@ -71,4 +69,4 @@ curl \
 	-H "Content-Type: application/json" \
 	-X POST \
 	--data '@/tmp/github-status.json' \
-	"https://${GH_TOKEN}@api.github.com/repos/datawire/ambassador-docs/statuses/${TRAVIS_PULL_REQUEST_SHA:-${docs_commit}}"
+	"https://${GH_TOKEN}@api.github.com/repos/datawire/ambassador-docs/statuses/${TRAVIS_PULL_REQUEST_SHA:-${TRAVIS_COMMIT}}"
