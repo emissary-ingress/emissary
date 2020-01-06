@@ -20,7 +20,7 @@
  */
 
 /* Utility functions for sets. */
-import {union} from "./set.js"
+import { union } from "./set.js"
 
 export class Model {
   /* constructor()

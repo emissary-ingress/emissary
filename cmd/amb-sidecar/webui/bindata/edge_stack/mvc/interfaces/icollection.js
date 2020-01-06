@@ -23,7 +23,7 @@
  * listeners are generally Views.
  */
 
-import {Collection} from "../framework/collection.js";
+import { Collection } from "../framework/collection.js";
 
 export class ICollection extends Collection {
   /* constructor()

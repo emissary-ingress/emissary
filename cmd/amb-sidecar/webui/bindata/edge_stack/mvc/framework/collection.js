@@ -9,8 +9,8 @@
  * See ICollection for further details.
  */
 
-import {Model}    from "./model.js";
-import {Snapshot} from "../../components/snapshot.js";
+import { Model }    from "./model.js";
+import { Snapshot } from "../../components/snapshot.js";
 
 export class Collection extends Model {
 

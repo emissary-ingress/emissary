@@ -7,8 +7,8 @@
  * * Everything else is implemented in Collection.
  */
 
-import {HostResource}  from "./host_resource.js"
-import {ICollection}   from "../interfaces/icollection.js";
+import { HostResource }  from "./host_resource.js"
+import { ICollection }   from "../interfaces/icollection.js";
 
 export class HostCollection extends ICollection {
   /* constructor()
