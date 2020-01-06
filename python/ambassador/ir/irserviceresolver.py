@@ -122,12 +122,12 @@ class IRServiceResolver(IRResource):
         # The K8s service resolver always returns a single endpoint.
 
         fully_qualified = "." in svc_name
-        if not ir.ambassador_module.upstream_ambassador_namespace and not fully_qualified and svc_namespace:
+        if not ir.ambassador_module.use_ambassador_namespace_for_service_resolution and not fully_qualified and svc_namespace:
             # The target service name is not fully qualified.
             # We are most likely targeting a simple k8s svc with kube-dns resolution.
             # Make sure we actually resolve the service it's namespace, not the Ambassador process namespace.
             svc_name = f"{svc_name}.{svc_namespace}"
-            ir.logger.debug("KubernetesServiceResolver upstream_ambassador_namespace %s, fully qualified %s, upstream hostname %s" % (ir.ambassador_module.upstream_ambassador_namespace, fully_qualified, svc_name))
+            ir.logger.debug("KubernetesServiceResolver use_ambassador_namespace_for_service_resolution %s, fully qualified %s, upstream hostname %s" % (ir.ambassador_module.use_ambassador_namespace_for_service_resolution, fully_qualified, svc_name))
 
         return [ {
             'ip': svc_name,
@@ -150,9 +150,9 @@ class IRServiceResolver(IRResource):
             # elements if there are more, but still work if there are not.
 
             (svc, namespace) = svc.split(".", 2)[0:2]
-        elif not ir.ambassador_module.upstream_ambassador_namespace and svc_namespace:
+        elif not ir.ambassador_module.use_ambassador_namespace_for_service_resolution and svc_namespace:
             namespace = svc_namespace
-            ir.logger.debug("KubernetesEndpointResolver upstream_ambassador_namespace %s, upstream key %s" % (ir.ambassador_module.upstream_ambassador_namespace, f'{svc}-{namespace}'))
+            ir.logger.debug("KubernetesEndpointResolver use_ambassador_namespace_for_service_resolution %s, upstream key %s" % (ir.ambassador_module.use_ambassador_namespace_for_service_resolution, f'{svc}-{namespace}'))
 
         # Find endpoints, and try for a port match!
         return self.get_endpoints(ir, f'k8s-{svc}-{namespace}', port)

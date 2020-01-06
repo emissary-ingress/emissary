@@ -51,7 +51,7 @@ apiVersion: ambassador/v0
 kind:  Module
 name:  ambassador
 config: 
-  upstream_ambassador_namespace: true
+  use_ambassador_namespace_for_service_resolution: true
 """
         for prefix, amb_id in (("findme", "{self.ambassador_id}"),
                                ("findme-array", "[{self.ambassador_id}, missme]"),

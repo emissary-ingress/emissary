@@ -64,6 +64,8 @@ class IRTLSContext(IRResource):
                  is_fallback: Optional[bool]=False,
                  **kwargs) -> None:
 
+        ir.logger.info(f"IRTLSContext ARGS NAMESPACE: {namespace} {rkey} {name}")
+
         new_args = {
             x: kwargs[x] for x in kwargs.keys()
             if x in IRTLSContext.AllowedKeys.union(IRTLSContext.CertKeys)
@@ -75,6 +77,7 @@ class IRTLSContext(IRResource):
             is_fallback=is_fallback, apiVersion=apiVersion,
             **new_args
         )
+        ir.logger.info(f"IRTLSContext INIT NAMESPACE: {self.namespace} {self.rkey} {self.name}")
 
     def setup(self, ir: 'IR', aconf: Config) -> bool:
         if not self.get('_ambassador_enabled', False):
@@ -124,6 +127,7 @@ class IRTLSContext(IRResource):
                 self.secret_info[key] = self.pop(key)
 
         ir.logger.info(f"IRTLSContext setup good: {self.as_json()}")
+        ir.logger.info(f"IRTLSContext SETUP NAMESPACE: {self.namespace} {self.rkey} {self.name}")
 
         return True
 
