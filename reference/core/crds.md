@@ -35,9 +35,9 @@ spec:
 
 Note that the `namespace` must be declared in the `metadata`, but if needed, `ambassador_id` must be declared in the `spec`.
 
-## CRDs supported by Ambassador Edge Stack
+## Supported CRDs
 
-The full set of CRDs supported by the Abassador Edge Stack:
+The full set of CRDs supported by the Ambassador Edge Stack:
 
 | `Kind` | Kubernetes singular | Kubernetes plural |
 | :----- | :------------------ | :---------------- |
