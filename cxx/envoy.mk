@@ -1,7 +1,6 @@
-srcdir := $(patsubst %/,%,$(dir $(lastword $(MAKEFILE_LIST))))
-topsrcdir := $(patsubst %/,%,$(dir $(firstword $(MAKEFILE_LIST))))
+srcdir := $(OSS_HOME)/cxx
 
-include $(topsrcdir)/build-aux/prelude.mk
+include $(OSS_HOME)/build-aux/prelude.mk
 
 YES_I_AM_OK_WITH_COMPILING_ENVOY ?=
 
@@ -26,12 +25,12 @@ $(srcdir)/envoy: FORCE
 # Migrate from old layouts
 	@set -e; { \
 	    if ! test -d $@; then \
-	        if test -d $(topsrcdir)/envoy; then \
+	        if test -d $(OSS_HOME)/envoy; then \
 	            set -x; \
-	            mv $(topsrcdir)/envoy $@; \
-	        elif test -d $(topsrcdir)/envoy-src; then \
+	            mv $(OSS_HOME)/envoy $@; \
+	        elif test -d $(OSS_HOME)/envoy-src; then \
 	            set -x; \
-	            mv $(topsrcdir)/envoy-src $@; \
+	            mv $(OSS_HOME)/envoy-src $@; \
 	        fi; \
 	    fi; \
 	}
@@ -98,7 +97,7 @@ ENVOY_SYNC_DOCKER_TO_HOST = rsync -Pav --delete --blocking-io -e "docker exec -i
 ENVOY_BASH.cmd = bash -c 'PS4=; set -ex; $(ENVOY_SYNC_HOST_TO_DOCKER); trap '\''$(ENVOY_SYNC_DOCKER_TO_HOST)'\'' EXIT; '$(call quote.shell,$1)
 ENVOY_BASH.deps = $(srcdir)/envoy-build-container.txt
 
-$(topsrcdir)/bin_linux_amd64/envoy-static: $(ENVOY_BASH.deps) FORCE
+$(OSS_HOME)/bin_linux_amd64/envoy-static: $(ENVOY_BASH.deps) FORCE
 	mkdir -p $(@D)
 	@PS4=; set -ex; { \
 	    if docker run --rm --entrypoint=true $(BASE_IMAGE.envoy); then \
@@ -151,9 +150,9 @@ generate: api/envoy
 api/envoy: $(srcdir)/envoy
 	rsync --recursive --delete --delete-excluded --prune-empty-dirs --include='*/' --include='*.proto' --exclude='*' $</api/envoy/ $@
 
-update-base: $(topsrcdir)/bin_linux_amd64/envoy-static-stripped
-	cp --force $(topsrcdir)/bin_linux_amd64/envoy-static-stripped $(srcdir)/envoy-static
-	docker build -f $(topsrcdir)/docker/base-envoy/Dockerfile $(srcdir) -t $(ENVOY_DOCKER_TAG)
+update-base: $(OSS_HOME)/bin_linux_amd64/envoy-static-stripped
+	cp --force $(OSS_HOME)/bin_linux_amd64/envoy-static-stripped $(srcdir)/envoy-static
+	docker build -f $(OSS_HOME)/docker/base-envoy/Dockerfile $(srcdir) -t $(ENVOY_DOCKER_TAG)
 	$(MAKE) generate
 	docker push $(ENVOY_DOCKER_TAG)
 .PHONY: update-base
@@ -171,18 +170,18 @@ _clean-envoy: $(srcdir)/envoy-build-container.txt.clean
 _clobber-envoy: _clean-envoy
 	$(if $(filter-out -,$(ENVOY_COMMIT)),rm -rf $(srcdir)/envoy)
 _generate-clean-envoy: _clobber-envoy
-	rm -rf $(topsrcdir)/api/envoy
+	rm -rf $(OSS_HOME)/api/envoy
 .PHONY: _clean-envoy _clobber-envoy _generate-clean-envoy
 
 # Files made by older versions.  Remove the tail of this list when the
 # commit making the change gets far enough in to the past.
 _clean-envoy-old:
 # 2019-10-11
-_clean-envoy-old: $(topsrcdir)/envoy-build-container.txt.clean
+_clean-envoy-old: $(OSS_HOME)/envoy-build-container.txt.clean
 # 2019-10-11
-	rm -rf $(topsrcdir)/envoy-bin
-	$(if $(filter-out -,$(ENVOY_COMMIT)),rm -rf $(topsrcdir)/envoy-src)
-	rm -f $(topsrcdir)/envoy-build-image.txt
+	rm -rf $(OSS_HOME)/envoy-bin
+	$(if $(filter-out -,$(ENVOY_COMMIT)),rm -rf $(OSS_HOME)/envoy-src)
+	rm -f $(OSS_HOME)/envoy-build-image.txt
 # older than that
-	$(if $(filter-out -,$(ENVOY_COMMIT)),rm -rf $(topsrcdir)/envoy)
+	$(if $(filter-out -,$(ENVOY_COMMIT)),rm -rf $(OSS_HOME)/envoy)
 .PHONY: _clean-envoy-old
