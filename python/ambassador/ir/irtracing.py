@@ -22,11 +22,12 @@ class IRTracing (IRResource):
                  rkey: str="ir.tracing",
                  kind: str="ir.tracing",
                  name: str="tracing",
+                 namespace: Optional[str] = None,
                  **kwargs) -> None:
         del kwargs  # silence unused-variable warning
 
         super().__init__(
-            ir=ir, aconf=aconf, rkey=rkey, kind=kind, name=name
+            ir=ir, aconf=aconf, rkey=rkey, kind=kind, name=name, namespace=namespace
         )
         self.cluster = None
 
@@ -60,6 +61,8 @@ class IRTracing (IRResource):
             self.post_error(RichStatus.fromError("driver field is required in TracingService"))
             return False
 
+        self.namespace = config.get("namespace", self.namespace)
+
         grpc = False
         if driver == "lightstep":
             grpc = True
@@ -90,6 +93,7 @@ class IRTracing (IRResource):
             IRCluster(
                 ir=ir,
                 aconf=aconf,
+                parent_ir_resource=self,
                 location=self.location,
                 service=self.service,
                 host_rewrite=self.get('host_rewrite', None),

@@ -108,17 +108,26 @@ class IRServiceResolver(IRResource):
         return valid
 
     @multi
-    def resolve(self, ir: 'IR', cluster: 'IRCluster', svc_name: str, port: int) -> str:
+    def resolve(self, ir: 'IR', cluster: 'IRCluster', svc_name: str, svc_namespace: str, port: int) -> str:
         del ir      # silence warnings
         del cluster
         del svc_name
+        del svc_namespace
         del port
 
         return self.kind
 
     @resolve.when("KubernetesServiceResolver")
-    def _k8s_svc_resolver(self, ir: 'IR', cluster: 'IRCluster', svc_name: str, port: int) -> Optional[SvcEndpointSet]:
+    def _k8s_svc_resolver(self, ir: 'IR', cluster: 'IRCluster', svc_name: str, svc_namespace: str, port: int) -> Optional[SvcEndpointSet]:
         # The K8s service resolver always returns a single endpoint.
+
+        fully_qualified = "." in svc_name
+        if not ir.ambassador_module.use_ambassador_namespace_for_service_resolution and not fully_qualified and svc_namespace:
+            # The target service name is not fully qualified.
+            # We are most likely targeting a simple k8s svc with kube-dns resolution.
+            # Make sure we actually resolve the service it's namespace, not the Ambassador process namespace.
+            svc_name = f"{svc_name}.{svc_namespace}"
+            ir.logger.debug("KubernetesServiceResolver use_ambassador_namespace_for_service_resolution %s, fully qualified %s, upstream hostname %s" % (ir.ambassador_module.use_ambassador_namespace_for_service_resolution, fully_qualified, svc_name))
 
         return [ {
             'ip': svc_name,
@@ -127,7 +136,7 @@ class IRServiceResolver(IRResource):
         } ]
 
     @resolve.when("KubernetesEndpointResolver")
-    def _k8s_resolver(self, ir: 'IR', cluster: 'IRCluster', svc_name: str, port: int) -> Optional[SvcEndpointSet]:
+    def _k8s_resolver(self, ir: 'IR', cluster: 'IRCluster', svc_name: str, svc_namespace: str, port: int) -> Optional[SvcEndpointSet]:
         # K8s service names can be 'svc' or 'svc.namespace'. Which does this look like?
 
         svc = svc_name
@@ -141,12 +150,15 @@ class IRServiceResolver(IRResource):
             # elements if there are more, but still work if there are not.
 
             (svc, namespace) = svc.split(".", 2)[0:2]
+        elif not ir.ambassador_module.use_ambassador_namespace_for_service_resolution and svc_namespace:
+            namespace = svc_namespace
+            ir.logger.debug("KubernetesEndpointResolver use_ambassador_namespace_for_service_resolution %s, upstream key %s" % (ir.ambassador_module.use_ambassador_namespace_for_service_resolution, f'{svc}-{namespace}'))
 
         # Find endpoints, and try for a port match!
         return self.get_endpoints(ir, f'k8s-{svc}-{namespace}', port)
 
     @resolve.when("ConsulResolver")
-    def _consul_resolver(self, ir: 'IR', cluster: 'IRCluster', svc_name: str, port: int) -> Optional[SvcEndpointSet]:
+    def _consul_resolver(self, ir: 'IR', cluster: 'IRCluster', svc_name: str, svc_namespace: str, port: int) -> Optional[SvcEndpointSet]:
         # For Consul, we look things up with the service name and the datacenter at present.
         # We ignore the port in the lookup (we should've already posted a warning about the port
         # being present, actually).

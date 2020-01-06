@@ -41,7 +41,7 @@
                                     "endpoint": {
                                         "address": {
                                             "socket_address": {
-                                                "address": "hostsingle-http",
+                                                "address": "hostsingle-http.default",
                                                 "port_value": 80,
                                                 "protocol": "TCP"
                                             }

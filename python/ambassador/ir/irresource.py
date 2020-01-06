@@ -47,6 +47,7 @@ class IRResource (Resource):
 
         if not namespace:
             namespace = ir.ambassador_namespace
+        self.namespace = namespace
 
         super().__init__(rkey=rkey, location=location,
                          kind=kind, name=name, namespace=namespace, metadata_labels=metadata_labels,

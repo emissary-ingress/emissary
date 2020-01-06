@@ -41,7 +41,7 @@
                                     "endpoint": {
                                         "address": {
                                             "socket_address": {
-                                                "address": "redirecttests-http",
+                                                "address": "redirecttests-http.default",
                                                 "port_value": 80,
                                                 "protocol": "TCP"
                                             }

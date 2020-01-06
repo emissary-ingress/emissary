@@ -41,7 +41,7 @@
                                     "endpoint": {
                                         "address": {
                                             "socket_address": {
-                                                "address": "hostmanualtls-http",
+                                                "address": "hostmanualtls-http.default",
                                                 "port_value": 80,
                                                 "protocol": "TCP"
                                             }

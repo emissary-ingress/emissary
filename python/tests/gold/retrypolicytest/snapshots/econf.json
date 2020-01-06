@@ -41,7 +41,7 @@
                                     "endpoint": {
                                         "address": {
                                             "socket_address": {
-                                                "address": "retrypolicytest-http",
+                                                "address": "retrypolicytest-http.default",
                                                 "port_value": 80,
                                                 "protocol": "TCP"
                                             }

@@ -41,7 +41,7 @@
                                     "endpoint": {
                                         "address": {
                                             "socket_address": {
-                                                "address": "hostdouble-http-target1",
+                                                "address": "hostdouble-http-target1.default",
                                                 "port_value": 80,
                                                 "protocol": "TCP"
                                             }
@@ -68,7 +68,7 @@
                                     "endpoint": {
                                         "address": {
                                             "socket_address": {
-                                                "address": "hostdouble-http-target2",
+                                                "address": "hostdouble-http-target2.default",
                                                 "port_value": 80,
                                                 "protocol": "TCP"
                                             }

@@ -41,7 +41,7 @@
                                     "endpoint": {
                                         "address": {
                                             "socket_address": {
-                                                "address": "tracingexternalauthtest-ahttp-auth",
+                                                "address": "tracingexternalauthtest-ahttp-auth.default",
                                                 "port_value": 80,
                                                 "protocol": "TCP"
                                             }
@@ -68,7 +68,7 @@
                                     "endpoint": {
                                         "address": {
                                             "socket_address": {
-                                                "address": "zipkin-auth",
+                                                "address": "zipkin-auth.default",
                                                 "port_value": 9411,
                                                 "protocol": "TCP"
                                             }
@@ -95,7 +95,7 @@
                                     "endpoint": {
                                         "address": {
                                             "socket_address": {
-                                                "address": "tracingexternalauthtest-http",
+                                                "address": "tracingexternalauthtest-http.default",
                                                 "port_value": 80,
                                                 "protocol": "TCP"
                                             }

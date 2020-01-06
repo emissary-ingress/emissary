@@ -38,7 +38,7 @@ if TYPE_CHECKING:
 
 
 class IRCluster (IRResource):
-    def __init__(self, ir: 'IR', aconf: Config,
+    def __init__(self, ir: 'IR', aconf: Config, parent_ir_resource: 'IRResource',
                  location: str,  # REQUIRED
 
                  service: str,   # REQUIRED
@@ -172,6 +172,8 @@ class IRCluster (IRResource):
         # p is read-only, so break stuff out.
 
         hostname = p.hostname
+        namespace = parent_ir_resource.namespace
+
         try:
             port = p.port
         except ValueError as e:
@@ -260,7 +262,7 @@ class IRCluster (IRResource):
         new_args: Dict[str, Any] = {
             "type": dns_type,
             "lb_type": lb_type,
-            "urls": [ url ],
+            "urls": [ url ],  # TODO: Should we completely eliminate `urls` in favor of `targets`?
             "load_balancer": load_balancer,
             "keepalive": keepalive,
             "circuit_breakers": circuit_breakers,
@@ -290,6 +292,7 @@ class IRCluster (IRResource):
         # Stash the resolver, hostname, and port for setup.
         self._resolver = resolver
         self._hostname = hostname
+        self._namespace = namespace
         self._port = port
 
         super().__init__(
@@ -310,7 +313,7 @@ class IRCluster (IRResource):
             return False
 
         # Resolve our actual targets.
-        targets = ir.resolve_targets(self, self._resolver, self._hostname, self._port)
+        targets = ir.resolve_targets(self, self._resolver, self._hostname, self._namespace, self._port)
 
         if targets:
             # Great.

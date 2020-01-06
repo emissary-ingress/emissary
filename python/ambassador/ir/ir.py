@@ -405,7 +405,7 @@ class IR:
         return ss
 
     def resolve_targets(self, cluster: IRCluster, resolver_name: Optional[str],
-                        hostname: str, port: int) -> Optional[SvcEndpointSet]:
+                        hostname: str, namespace: str, port: int) -> Optional[SvcEndpointSet]:
         # Is the host already an IP address?
         is_ip_address = False
 
@@ -442,7 +442,7 @@ class IR:
 
         # OK, ask the resolver for the target list. Understanding the mechanics of resolution
         # and the load balancer policy and all that is up to the resolver.
-        return resolver.resolve(self, cluster, hostname, port)
+        return resolver.resolve(self, cluster, hostname, namespace, port)
 
     def save_filter(self, resource: IRFilter, already_saved=False) -> None:
         if resource.is_active():
@@ -707,7 +707,7 @@ class IR:
             od[key] = self.ambassador_module.get(key, {}).get('enabled', False)
 
         for key in [ 'use_proxy_proto', 'use_remote_address', 'x_forwarded_proto_redirect', 'enable_http10',
-                     'add_linkerd_headers' ]:
+                     'add_linkerd_headers', 'use_ambassador_namespace_for_service_resolution' ]:
             od[key] = self.ambassador_module.get(key, False)
 
         od['service_resource_total'] = len(list(self.services.keys()))

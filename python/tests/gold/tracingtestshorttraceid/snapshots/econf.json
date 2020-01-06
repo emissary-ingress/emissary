@@ -41,7 +41,7 @@
                                     "endpoint": {
                                         "address": {
                                             "socket_address": {
-                                                "address": "zipkin-64",
+                                                "address": "zipkin-64.default",
                                                 "port_value": 9411,
                                                 "protocol": "TCP"
                                             }
@@ -68,7 +68,7 @@
                                     "endpoint": {
                                         "address": {
                                             "socket_address": {
-                                                "address": "tracingtestshorttraceid-http",
+                                                "address": "tracingtestshorttraceid-http.default",
                                                 "port_value": 80,
                                                 "protocol": "TCP"
                                             }

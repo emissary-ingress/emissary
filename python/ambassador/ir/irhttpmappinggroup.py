@@ -191,7 +191,7 @@ class IRHTTPMappingGroup (IRBaseMappingGroup):
                                 marker: Optional[str] = None) -> IRCluster:
         # Find or create the cluster for this Mapping...
 
-        cluster = IRCluster(ir=ir, aconf=aconf,
+        cluster = IRCluster(ir=ir, aconf=aconf, parent_ir_resource=mapping,
                             location=mapping.location,
                             service=mapping.service,
                             resolver=mapping.resolver,

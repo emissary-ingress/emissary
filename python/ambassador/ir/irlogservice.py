@@ -23,11 +23,12 @@ class IRLogService(IRResource):
                  rkey: str = "ir.logservice",
                  kind: str = "ir.logservice",
                  name: str = "logservice",
+                 namespace: Optional[str] = None,
                  **kwargs) -> None:
         del kwargs  # silence unused-variable warning
 
         super().__init__(
-            ir=ir, aconf=config, rkey=rkey, kind=kind, name=name
+            ir=ir, aconf=config, rkey=rkey, kind=kind, name=name, namespace=namespace
         )
 
     def setup(self, ir: 'IR', config) -> bool:
@@ -36,6 +37,7 @@ class IRLogService(IRResource):
             self.post_error("service must be present for a remote log service!")
             return False
 
+        self.namespace = config.get("namespace", self.namespace)
         self.cluster = None
         self.grpc = config.get('grpc', False)
         self.driver = config.get('driver')
@@ -64,6 +66,7 @@ class IRLogService(IRResource):
             IRCluster(
                 ir=ir,
                 aconf=aconf,
+                parent_ir_resource=self,
                 location=self.location,
                 service=self.service,
                 host_rewrite=self.get('host_rewrite', None),

@@ -41,7 +41,7 @@
                                     "endpoint": {
                                         "address": {
                                             "socket_address": {
-                                                "address": "tlsinvalidsecret-http",
+                                                "address": "tlsinvalidsecret-http.default",
                                                 "port_value": 80,
                                                 "protocol": "TCP"
                                             }

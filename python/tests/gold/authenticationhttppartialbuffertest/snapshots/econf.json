@@ -41,7 +41,7 @@
                                     "endpoint": {
                                         "address": {
                                             "socket_address": {
-                                                "address": "authenticationhttppartialbuffertest-http",
+                                                "address": "authenticationhttppartialbuffertest-http.default",
                                                 "port_value": 80,
                                                 "protocol": "TCP"
                                             }
@@ -68,7 +68,7 @@
                                     "endpoint": {
                                         "address": {
                                             "socket_address": {
-                                                "address": "authenticationhttppartialbuffertest-http-auth",
+                                                "address": "authenticationhttppartialbuffertest-http-auth.default",
                                                 "port_value": 443,
                                                 "protocol": "TCP"
                                             }

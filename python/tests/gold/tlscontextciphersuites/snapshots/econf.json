@@ -41,7 +41,7 @@
                                     "endpoint": {
                                         "address": {
                                             "socket_address": {
-                                                "address": "tlscontextciphersuites-http",
+                                                "address": "tlscontextciphersuites-http.default",
                                                 "port_value": 443,
                                                 "protocol": "TCP"
                                             }

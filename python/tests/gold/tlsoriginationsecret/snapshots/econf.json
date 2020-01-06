@@ -41,7 +41,7 @@
                                     "endpoint": {
                                         "address": {
                                             "socket_address": {
-                                                "address": "tlsoriginationsecret-http",
+                                                "address": "tlsoriginationsecret-http.default",
                                                 "port_value": 443,
                                                 "protocol": "TCP"
                                             }
@@ -82,7 +82,7 @@
                                     "endpoint": {
                                         "address": {
                                             "socket_address": {
-                                                "address": "tlsoriginationsecret-http",
+                                                "address": "tlsoriginationsecret-http.default",
                                                 "port_value": 443,
                                                 "protocol": "TCP"
                                             }
