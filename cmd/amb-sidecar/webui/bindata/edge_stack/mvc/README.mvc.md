@@ -57,15 +57,7 @@ mvc            - toplevel directory, under edge_stack
 The basic functionality for `Model`, `Collection` and `Resource` classes is defined in
 this directory. These are the internal classes of the framework and should not need to
 be modified or overridden.
-  
-(DELETE SINCE THIS MAY NOT BE NECESSARY) Subclasses of the interfaces will utilize methods
-defined in these framework classes.
-
-NOTE FROM BJORN TO BRUCE: ASK ME ABOUT THIS ^^^
-
-I WANTED A STRUCTURE WHERE THE DEVELOPERS DIDN'T HAVE TO KNOW ANYTHING EXCEPT WHAT IS IN
-THE INTERFACES, SO PERHAPS WE NEED TO HAVE LARGER INTERFACES??  OR MAYBE A SECOND SET OF
-INTERFACES FOR METHODS TO USE RATHER THAN TO OVERRIDE??
+ 
 
 #### interfaces
 
@@ -104,15 +96,6 @@ The following are the basic classes that make up the MVC foundation.
 As previously mentioned, developers will be subclassing the interfaces `IResource` and `ICollection`, 
 implementing the methods that are required.
 
-
-NOTE FROM BJORN TO BRUCE: ASK ME ABOUT THIS ^^^^
-(not necessary to read the other classes although they are so simple maybe it's OK?)
-
-HMMM, I'D REALLY LIKE TO AVOID THE DEVELOPERS HAVING TO READ THE LARGER FRAMEWORK CLASSES
-IF AT ALL POSSIBLE. THE PROBLEM I FORESEE IS THAT THEY THEN GET OVERLY INVOLVED IN THE
-IMPLEMENTATION DETAILS RATHER THAN JUST "THIS IS WHAT THAT FUNCTION DOES FOR ME" E.G.
-"I CAN REGISTER A LISTENER" -- THE DETAILS OF HOW THAT IS DONE IS IRRELEVANT.
-
 ### The MVC Class Hierarchy
 
 The following is the class hierarchy, starting with `Model`, and including both concrete and interface classes.
@@ -129,9 +112,18 @@ Model                  - defines the behavior for notifying listeners
 ```
 
 
-### Model subclasses
+### Implementation Details
 
+The following simply provides an overview of the actual implementations of `Model`, `Resource`, and `Collection`,
+and their interface classes `IResource` and `ICollection`.  Users will typically need only to subclass from
+`IResource` and `ICollection`; the framework and interface classes will not be modified.
+
+For more detail on these implementations, see the source code in the `mvc/framework` and `mvc/interfaces`
+directories.
+
+#### Model
 The `Model` class simply defines methods for managing a group of `Listeners` that may be notified when desired.
+As a framework class, this will not be subclassed by the user.
 
 ```
 class Model {
@@ -145,18 +137,10 @@ class Model {
 }
 ```
 
-NOTE FROM BJORN TO BRUCE: ASK ME ABOUT THIS ^^^^
-
-FOR ALL THESE CLASSES, I THINK THE READER SHOULD JUST REFER TO THE COMMENTS IN THE
-CORRESPONDING CODE. THE CORRESPONDING CODE (AS YOU'VE SEEN FROM MY OTHER COMMENTS) SHOULD
-BE ONLY THE NECESSARY BITS, MAYBE EVEN ANOTHER SET OF INTERFACES WHERE THE INTERFACE
-HAS ONLY THE DETAILED COMMENTS AND ITS IMPLEMENTATION IS SUPER().FOO()??  BUT IN ANY CASE,
-THE GOAL WOULD BE TO HAVE THE DEVELOPER NOT HAVE TO READ THE IMPLEMENTATION AND TO HAVE
-THE DEVELOPER HAVE ONE PLACE (THE CODE COMMENTS) TO READ THE DETAILS.
-
-The Resource class extends the `Model`, so it can have `Listeners`, and it adds state that is common among all Resources
-(e.g. `kind`, `name`, `namespace`, etc.) and methods for updating its state from snapshot data, constructing
-YAML for communication with Kubernetes, and validation of its internal instance variables.
+#### Resource
+The `Resource` class extends the `Model`, so it can have `Listeners`, and it adds state that is common among all
+`Resources` (e.g. `kind`, `name`, `namespace`, etc.) and methods for updating its state from snapshot data,
+constructing YAML for communication with Kubernetes, and validation of its internal instance variables.
 
 ```
 class Resource extends Model {
@@ -172,6 +156,8 @@ class Resource extends Model {
 }
 ```
 
+#### IResource
+
 The `IResource` interface is subclassed when defining a new `Resource` class.  It is quite simple, 
 requiring only methods for updating state, constructing a Kubernetes Spec, and validation.  
 
@@ -184,6 +170,8 @@ class IResource extends Resource {
 }
 ```
 
+#### Collection
+
 The `Collection` class extends the `Model`, so it can have `Listeners`.  It subscribes to the snapshot service, 
 extracts data from the snapshot when notified, and creates, modifies, or deletes `Resource` objects that it maintains
 in the `Collection`.
@@ -194,6 +182,8 @@ class Collection extends Model {
   onSnapshotChange(snapshot)
 }
 ```
+
+#### ICollection
 
 The `ICollection` interface is subclassed when defining a collection of a specific kind of `Resource`.  It requires
 subclasses to identify the class of the Resources in the collection (e.g. a Host), to be able to create a special

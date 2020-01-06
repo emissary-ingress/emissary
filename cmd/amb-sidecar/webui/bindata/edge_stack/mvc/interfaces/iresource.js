@@ -25,6 +25,11 @@ import { Resource } from "../framework/resource.js"
 
 export class IResource extends Resource {
 
+  /* ====================================================================================================
+   *  These methods must be implemented by subclasses.
+   * ====================================================================================================
+   */
+
   /* constructor() */
 
   constructor(data) {
@@ -63,5 +68,84 @@ export class IResource extends Resource {
   validateSelf() {
     throw new Error("Please implement Resource:validateSelf()");
   }
+
+  /* ====================================================================================================
+   *  Subclasses do not implement these methods.  They are implemented by Model and may be used by
+   *  subclasses directly.
+   * ====================================================================================================
+   */
+
+  /* Add a new listener for changes.  The Listener's onModelNotification method will be called when the
+   *  model is notifying it for any of the  messages listed in the message set.  if the message set is
+   *  null, then add this listener for all messages.
+   */
+
+  addListener(listener, messageSet = null) {
+    super.addListener(listener, messageSet);
+  }
+
+
+  /* Remove a listener from the given messages, or from all messages if null */
+  removeListener(listener, messageSet = null) {
+    super.removeListener(listener, messageSet);
+  }
+
+  /* Notify listeners of a update in the model with the given message.  Only listeners who have subscribed
+   * to the message will be notified.  Listeners that have subscribed to all messages will also be notified.
+   * The Listener's onModelNotification(model, message, parameter) method will be called.  Only Listeners
+   * who have subscribed to the message will be notified. Listeners that have subscribed to all messages
+   * will also receive a callback. Includes a notification message, the model itself, and an optional parameter.
+   */
+
+  notifyListeners(notifyingModel = this, message, parameter = null) {
+    super.notifyListeners(notifyingModel, message, parameter);
+  }
+
+  /* Convenience methods for updated, created, deleted. */
+  notifyListenersUpdated(notifyingModel) {
+    super.notifyListeners(notifyingModel, 'updated');
+  }
+
+  notifyListenersCreated(notifyingModel) {
+    super.notifyListeners(notifyingModel, 'created');
+  }
+
+  notifyListenersDeleted(notifyingModel) {
+    super.notifyListeners(notifyingModel, 'deleted');
+  }
+
+
+  /* ====================================================================================================
+   *  Subclasses do not implement these methods.  They are implemented by Resource and may be used by
+   *  subclasses directly.
+   * ====================================================================================================
+   */
+
+  /* validateName(name)
+   * returns null if name is valid, error string if not.
+   */
+
+  validateName(name) {
+    return super.validateName(email)
+  }
+
+
+  /* validateEmail(email)
+   * returns null if email is valid, error string if not.
+   */
+
+  validateEmail(email) {
+    return super.validateEmail(email);
+  }
+
+  /* _validateURL(url)
+  * returns null if url is valid, error string if not.
+  */
+
+  validateURL(url) {
+    return super.validateURL();
+  }
+
+
 }
 
