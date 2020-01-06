@@ -157,6 +157,8 @@
       items: 
         - title: Edge Control Installation
           link: /reference/edge-control
+        - title: Edge Control in CI
+          link: /reference/edge-control-in-ci
     - title: Developer Portal
       link: /reference/dev-portal
     - title: Configuring Kubernetes Services
