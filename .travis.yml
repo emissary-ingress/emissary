@@ -14,9 +14,16 @@ env:
 git:
   depth: false
 
+install:
+  - node --version
+  - nvm use 11
+  - node --version
+  - source ./.ci/travis-fix-env
+
 script:
   - ./.ci/pr-build-website-preview
   - ./.ci/publish-website-preview
+  - ./.ci/blc-website-preview
 
 deploy:
   - provider: script

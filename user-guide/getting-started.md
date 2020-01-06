@@ -1,5 +1,4 @@
 ---
-    canonical: https://wwww.getambassador.io/user-guide/getting-started
     description: In this tutorial, we'll walk through the process of deploying Ambassador in Kubernetes for ingress routing.
 ---
 # Getting Started with the Ambassador Edge Stack
