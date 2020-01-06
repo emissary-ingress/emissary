@@ -1,0 +1,25 @@
+#!/hint/sh
+
+# Don't trust $TRAVIS_COMMIT, use $(git rev-parse HEAD) instead.
+#
+# For PRs, it's often set to a stale merge commit that isn't fetched,
+# instead of the actual commit pointed to by refs/pull/NNN/merge which
+# is checked out.  For example, on
+# <https://travis-ci.org/datawire/ambassador-docs/builds/629117603>,
+# the webui says         it's testing commit cb8dc0029465119ada1ee9222539c825f5a7c015,
+# and TRAVIS_COMMIT says it's testing commit cb8dc0029465119ada1ee9222539c825f5a7c015,
+# but in fact            it's testing commit d23659347cd125267b079f2f7900c3e1b032ea4b.
+original_TRAVIS_COMMIT=$TRAVIS_COMMIT
+TRAVIS_COMMIT=$(git rev-parse HEAD)
+echo "adjusted TRAVIS_COMMIT : ${original_TRAVIS_COMMIT} -> ${TRAVIS_COMMIT}"
+
+# Don't trust $TRAVIS_BRANCH for PRs; it can be wrong in the same way
+# that $TRAVIS_COMMIT is wrong.
+#
+# For example: https://travis-ci.org/datawire/ambassador-docs/builds/632583559
+if [ -n "$TRAVIS_PULL_REQUEST_SHA" ]; then
+	original_TRAVIS_BRANCH=$TRAVIS_BRANCH
+	# Resolve the "multiple branches" question by limiting to just "master" or "early-access".
+	TRAVIS_BRANCH=$(git show-ref | awk -vcommit="$(git rev-parse "$TRAVIS_COMMIT^")" '$1 == commit && $2 ~ /^refs\/remotes\/origin\/(master|early-access)$/ { sub("refs/remotes/origin/", ""); print $2; exit; }')
+	echo "adjusted TRAVIS_BRANCH : ${original_TRAVIS_BRANCH} -> ${TRAVIS_BRANCH}"
+fi
