@@ -2,22 +2,20 @@
  * ICollection
  * This is the Interface class for Collection.
  *
- * ICollection subclasses, such as HostCollection, need only define one method to specialize:
+ * ICollection subclasses, such as HostCollection, need only define three methods to specialize:
  * - resourceClass(), which returns the class that should be instantiated if a new item (e.g. Host) is added
  *
- * - uniqueKeyFor(data)
+ * - uniqueKeyFor(resourceData)
  *   this method computes a unique key for the collection's Resource, to determine whether the Resource described
  *   by the data block has already been initialized and stored in the Collection.
  *
- * - dataExtractor(snapshot)
+ * - extractResourcesFrom(snapshot)
  *   this method is responsible for finding the right place in the snapshot to extract data objects that are used
  *   by the Resource's initFrom method to create a new instance of that resource.  This function returns a
  *   list that can be iterated over, returning data objects.
  *
  * Most Resources (CRD's) have the same data formats but there are other objects in the snapshot that
- * are not CRD's, have different structure, and are not in the same part of the snapshot (e.g. Resolvers).  Similarly,
- * different Model classes will generate different unique keys, and so each will implement a class function
- * resourceKeyFor(data).
+ * are not CRD's, have different structure, and are not in the same part of the snapshot (e.g. Resolvers).
  *
  * Listeners will be notified when Models are added, updated, or removed from the collection.  The collection's
  * listeners are generally Views.
