@@ -187,6 +187,7 @@ metadata:
   namespace: ambassador
   labels:
     product: aes
+    app.kubernetes.io/component: ambassador-service
 spec:
   type: LoadBalancer
   externalTrafficPolicy: Local
