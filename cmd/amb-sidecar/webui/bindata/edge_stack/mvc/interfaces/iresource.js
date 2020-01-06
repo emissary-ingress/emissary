@@ -32,15 +32,15 @@ export class IResource extends Resource {
     super(data);
   }
 
-  /* updateSelfFrom(data)
+  /* updateSelfFrom(resourceData)
    * Update the Resource object state from the snapshot data block for this Resource.  Compare the values in the
    * data block with the stored state in the Resource.  If the data block has different data than is currently
    * stored, update that instance variable with the new data and set a flag to return true if any changes have
    * occurred.  The Resource class's method, updateFrom, will call this method and then notify listeners as needed.
    */
 
-  updateSelfFrom(data) {
-    throw new Error("Please implement Resource:updateSelfFrom(data)");
+  updateSelfFrom(resourceData) {
+    throw new Error("Please implement Resource:updateSelfFrom(resourceData)");
   }
 
   /* getSpec()

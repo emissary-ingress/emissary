@@ -16,20 +16,21 @@ export class HostResource extends IResource {
    * and other useful state to be maintained in the Resource instance.
    */
 
-  constructor(data) {
+  constructor(resourceData) {
     /* Define the instance variables that are part of the model. Views and other Resource users will access
      * these for rendering and modification.  All resource objects have a kind, a name, and a namespace, which
      * together are a unique identifier throughout the Kubernetes system.  They may also have annotations,
-     * labels, and a status, which are also saved as object state.
+     * labels, and a status, which are also saved as object state.  A HostResource adds a hostname,
+     * an acmeProvider and email, and a flag specifying whether acme is being used.
     */
 
     /* calling Resource.constructor(data) */
-    super(data);
+    super(resourceData);
 
     /* host-specific instance variables. */
-    this.hostname     = data.spec.hostname;
-    this.acmeProvider = data.spec.acmeProvider.authority || "";
-    this.acmeEmail    = data.spec.acmeProvider.email || "";
+    this.hostname     = resourceData.spec.hostname;
+    this.acmeProvider = resourceData.spec.acmeProvider.authority || "";
+    this.acmeEmail    = resourceData.spec.acmeProvider.email || "";
     this.useAcme      = (this.acmeEmail !== "" && this.acmeProvider !== "");
   }
 
@@ -40,28 +41,24 @@ export class HostResource extends IResource {
    * occurred.  The Resource class's method, updateFrom, will call this method and then notify listeners as needed.
    */
 
-  updateSelfFrom(data) {
-    /* Let Resources do its part on the update. notifyListenersUpdated will not be called by Resources.updateFrom
-     * but will return whether it made a change or not.  Since the HostResource class (for now) is a final class,
-     * it calls this.notifyListenersUpdated.
-     */
+  updateSelfFrom(resourceData) {
     let changed = false;
 
     /* Check hostname */
-    if (this.hostname !== data.spec.hostname) {
-      this.hostname = data.spec.hostname;
+    if (this.hostname !== resourceData.spec.hostname) {
+      this.hostname = resourceData.spec.hostname;
       changed = true;
     }
 
     /* Check acmeProvider */
-    if (this.acmeProvider !== data.spec.acmeProvider.authority) {
-      this.acmeProvider = data.spec.acmeProvider.authority;
+    if (this.acmeProvider !== resourceData.spec.acmeProvider.authority) {
+      this.acmeProvider = resourceData.spec.acmeProvider.authority;
       changed = true;
     }
 
     /* Check acmeEmail */
-    if (this.acmeEmail !== data.spec.acmeProvider.email) {
-      this.acmeEmail = data.spec.acmeProvider.email;
+    if (this.acmeEmail !== resourceData.spec.acmeProvider.email) {
+      this.acmeEmail = resourceData.spec.acmeProvider.email;
       changed = true;
     }
 

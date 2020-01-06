@@ -18,18 +18,13 @@ export class HostCollection extends ICollection {
     super();
   }
 
-  /* uniqueKeyFor(data)
-   * Return a computed modelKey given some structured data (a hierarchical key/value
-   * structure).  This is a method that is given the data block from a snapshot and returns
-   * the unique key for that data.  Each Collection subclass will know the structure and extract
-   * the appropriate information to create the Resource's key.  This is needed for identity in a
-   * collection of Resources.
-   *
-   * Here we use the Resource kind, name, and namespace concatenated together for a unique key.
+  /* uniqueKeyFor(resourceData)
+   * Return a computed modelKey given some structured resource data (a hierarchical key/value
+   * structure). Here we use the Resource kind, name, and namespace concatenated together for a unique key.
    */
 
-  uniqueKeyFor(data) {
-    return data.kind + "::" + data.metadata.name + "::" + data.metadata.namespace;
+  uniqueKeyFor(resourceData) {
+    return resourceData.kind + "::" + resourceData.metadata.name + "::" + resourceData.metadata.namespace;
   }
 
   /* resourceClass()
@@ -40,13 +35,13 @@ export class HostCollection extends ICollection {
     return HostResource;
   }
 
-  /* extractDataFrom(snapshot)
+  /* extractResourcesFrom(snapshot)
   * Given a snapshot as received from the backend via snapshot.js, return a list of resource data blocks
-  * given the resource's class name (e.g. HostResource...).  Since this is a Collection superclass
-  * from which other Collection classes will inherit, they must implement their own extracDataFrom methods.
+  * given the resource's type name, Host in this case.  Since the snapshot itself has a method to get resource
+  * data for given types, we can simply call the snapshot to return the list of Host data blocks.
   */
 
-  extractDataFrom(snapshot) {
+  extractResourcesFrom(snapshot) {
     return snapshot.getResources("Host");
   }
 }

@@ -9,6 +9,7 @@ export function isSuperset(set, subset) {
       return false;
     }
   }
+
   return true;
 }
 
@@ -17,6 +18,7 @@ export function union(setA, setB) {
   for (var elem of setB) {
     _union.add(elem);
   }
+
   return _union;
 }
 
@@ -27,6 +29,7 @@ export function intersection(setA, setB) {
       _intersection.add(elem);
     }
   }
+
   return _intersection;
 }
 
@@ -35,10 +38,12 @@ export function symmetricDifference(setA, setB) {
   for (var elem of setB) {
     if (_difference.has(elem)) {
       _difference.delete(elem);
-    } else {
+    }
+    else {
       _difference.add(elem);
     }
   }
+
   return _difference;
 }
 
@@ -47,5 +52,6 @@ export function difference(setA, setB) {
   for (var elem of setB) {
     _difference.delete(elem);
   }
+
   return _difference;
 }

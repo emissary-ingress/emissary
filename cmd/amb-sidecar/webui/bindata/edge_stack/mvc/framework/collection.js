@@ -38,23 +38,24 @@ export class Collection extends Model {
     let ResourceClass = this.resourceClass;
 
     /* For each of the snapshot data records for this model... */
-    for (let data of this.extractDataFrom(snapshot)) {
-      let key = this.uniqueKeyFor(data);
+    for (let resourceData of this.extractResourcesFrom(snapshot)) {
+      let key = this.uniqueKeyFor(resourceData);
       /*
        * ...if we already have a model object for this data, then ask
        *    that object to check if it needs to update any data fields.
        */
-      let existingModel = this._resources.get(key);
-      if (existingModel) {
+      let existingResource = this._resources.get(key);
+      if (existingResource) {
         previousKeys.delete(key);
-        existingModel.updateFrom(data);
-      } else {
+        existingResource.updateFrom(resourceData);
+      }
+      else {
         /*
          * ...if we do not have a model object for this Resource (as defined by the unique key), then create a new
          * Resource object. After creating the object, notify all my listeners of the creation. See views/resources.js
          * for more information on how the ResourceListView uses that notification to add new child web components.
          */
-        let newResource = new ResourceClass(data);
+        let newResource = new ResourceClass(resourceData);
         this._resources.set(key, newResource);
         this.notifyListenersCreated(newResource);
       }
@@ -69,8 +70,8 @@ export class Collection extends Model {
      * information on how the View uses that notification to delete the corresponding child component.
      */
     for (let key of previousKeys) {
-      let oldModel = this._resources.get(key);
-      this.notifyListenersDeleted(oldModel);
+      let oldResource = this._resources.get(key);
+      this.notifyListenersDeleted(oldResource);
       this._resources.delete(key);
     }
   }

@@ -25,7 +25,7 @@ export class Resource extends Model {
    * and other useful state to be maintained in the Resource instance.
    */
 
-  constructor(data) {
+  constructor(resourceData) {
     /* Define the instance variables that are part of the model. Views and other Resource users will access
      * these for rendering and modification.  All resource objects have a kind, a name, and a namespace, which
      * together are a unique identifier throughout the Kubernetes system.  They may also have annotations,
@@ -36,29 +36,29 @@ export class Resource extends Model {
     super();
 
     /* Initialize instance variables */
-    this.kind        = data.kind;
-    this.name        = data.metadata.name;
-    this.namespace   = data.metadata.namespace;
-    this.labels      = data.metadata.labels || {};
-    this.annotations = data.metadata.annotations || {};
-    this.status      = data.status || this.getEmptyStatus();
+    this.kind        = resourceData.kind;
+    this.name        = resourceData.metadata.name;
+    this.namespace   = resourceData.metadata.namespace;
+    this.labels      = resourceData.metadata.labels || {};
+    this.annotations = resourceData.metadata.annotations || {};
+    this.status      = resourceData.status || this.getEmptyStatus();
 
     /* Save the initialization data */
     this._data = data;
   }
 
-   /* updateFrom(data)
+   /* updateFrom(resourceData)
     * Update the Resource object state from the snapshot data block for this Resource.  Compare the values in the
     * data block with the stored state in the Resource.  If the data block has different data than is currently
     * stored, update that instance variable with the new data and set a flag to indicate an update has been made.
     * If any of the state has changed, notify listeners.
     */
 
-  updateFrom(data) {
+  updateFrom(resourceData) {
     let updated = false;
 
     /* get the new labels value from the data, or an empty object if undefined. */
-    let new_labels = data.metadata.labels || {};
+    let new_labels = resourceData.metadata.labels || {};
 
     if (this.labels !== new_labels) {
       this.labels = new_labels;
@@ -66,7 +66,7 @@ export class Resource extends Model {
     }
 
     /* get the new annotations value from the data, or an empty object if undefined. */
-    let new_annotations = data.metadata.annotations || {};
+    let new_annotations = resourceData.metadata.annotations || {};
 
     if (this.annotations !== new_annotations) {
       this.annotations = new_annotations;
@@ -74,7 +74,7 @@ export class Resource extends Model {
     }
 
     /* get the new status value from the data, or the emptyStatus object if undefined. */
-    let new_status = data.status || this.getEmptyStatus();
+    let new_status = resourceData.status || this.getEmptyStatus();
 
     if ((this.status.state  !== new_status.state) ||
         (this.status.reason !== new_status.reason)) {
@@ -83,7 +83,7 @@ export class Resource extends Model {
     }
 
     /* Give subclasses a chance to update themselves. */
-    updated = updated || this.updateSelfFrom(data);
+    updated = updated || this.updateSelfFrom(resourceData);
 
     /* Notify listeners if any updates occurred. */
     if (updated) {
@@ -198,6 +198,8 @@ export class Resource extends Model {
    * system, then use simple pattern matching).
    *
    * returns null if email is valid, error string if not.
+   *
+   * TODO: Implement real email validation.
    */
 
   validateEmail(email) {
@@ -206,6 +208,8 @@ export class Resource extends Model {
 
   /* _validateURL(url)
   * returns null if url is valid, error string if not.
+  *
+  * TODO: Implement real URL validation.
   */
 
   validateURL(url) {

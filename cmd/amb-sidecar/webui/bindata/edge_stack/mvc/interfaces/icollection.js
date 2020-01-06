@@ -41,26 +41,26 @@ export class ICollection extends Collection {
     throw new Error("Please implement Collection:resourceClass()");
   }
 
-  /* uniqueKeyFor(data)
-   * Return a computed modelKey given some structured data (a hierarchical key/value
+  /* uniqueKeyFor(resourceData)
+   * Return a computed modelKey given some structured resource data (a hierarchical key/value
    * structure).  This is a method that is given the data block from a snapshot and returns
    * the unique key for that data.  Each Collection subclass will know the structure and extract
    * the appropriate information to create the Resource's key.  This is needed for identity in a
    * collection of Resources.
    */
 
-  uniqueKeyFor(data) {
-    throw new Error("please implement Collection:uniqueKeyFor(data)");
+  uniqueKeyFor(resourceData) {
+    throw new Error("please implement Collection:uniqueKeyFor(resourceData)");
   }
 
-  /* extractDataFrom(snapshot)
+  /* extractResourcesFrom(snapshot)
    * Given a snapshot as received from the backend via snapshot.js, return a list of resource data blocks
    * given the resource's class name (e.g. Host, Mapping, Filter...).  Since this is a Collection superclass
-   * from which other Collection classes will inherit, they must implement their own extracDataFrom methods.
+   * from which other Collection classes will inherit, they must implement their own extractResourcesFrom methods.
    */
 
-  extractDataFrom(snapshot) {
-    throw new Error("please implement Collection:extractDataFrom(snapshot)")
+  extractResourcesFrom(snapshot) {
+    throw new Error("please implement Collection:extractResourcesFrom(snapshot)")
   }
 }
 
