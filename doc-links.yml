@@ -157,8 +157,8 @@
       items: 
         - title: Edge Control Installation
           link: /reference/edge-control
-        - title: Developer Portal
-          link: /reference/dev-portal
+    - title: Developer Portal
+      link: /reference/dev-portal
     - title: Configuring Kubernetes Services
       items:
         - title: Mapping Services
