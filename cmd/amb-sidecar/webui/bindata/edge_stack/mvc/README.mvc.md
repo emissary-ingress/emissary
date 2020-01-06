@@ -6,10 +6,10 @@ Model/View/Controller is a design pattern that structures code that:
 - from the `View` (how that model is presented to the user, in potentially many different ways)
 - and the `Controller` (how you can change the Model’s state through one or more Views).
 
-MVC was invented at Xerox Palo Alto Research Center in the late 1970’s but has been adopted for GUI’s and web
-applications, and the pattern used broadly since then (Spring, Angular, React, JQuery Mobile, Vue).  In our
-usage in the Admin UI, due to limitations of HTML as well as practicality, the `View` and `Controller` are not
-separate objects; `Controller` functionality is simply combined in with View functionality.
+MVC was invented at Xerox Palo Alto Research Center in the late 1970’s in the Smalltalk system, but has been adopted
+for other GUI’s and web applications, and the pattern used broadly since then (Spring, Angular, React, JQuery Mobile,
+Vue).  In our usage in the Admin UI, due to limitations of HTML as well as practicality, the `View` and `Controller`
+are not separate objects; `Controller` functionality is simply combined in with View functionality.
 
 A `Model` is an object with state that has `Listeners` that are interested in being notified on certain changes
 in that state. A model can add and remove listeners, and listeners can specify which messages they are interested
@@ -54,37 +54,49 @@ mvc            - toplevel directory, under edge_stack
 
 #### framework
 
-basic functionality for model, collection and resource classes is defined
-here.
+The basic functionality for `Model`, `Collection` and `Resource` classes is defined here.  Subclasses of the interfaces
+will utilize methods defined in these framework classes.
 
 #### interfaces
 
-These classes define the interface -- the required methods -- that must be implemented in concrete subclasses.
+These classes define the interface that must be implemented in concrete subclasses.
+
+Interface classes only define the methods for subclasses to implement. Interface classes do not define
+any behavior in these methods, but simply raise an error if they are called (typically only if a subclass fails
+to override the required method). All interface classes begin with a capital I to distinguish from concrete classes
+that do define state and behavior.
+
 Kubernetes CRD resources will be represented by subclass implementations of `IResource`, such as `HostResource`
 representing a Host CRD.  Similarly, collections of these resources will be implemented by subclassing
 `ICollection`, such as `HostCollection` (a collection of `HostResource` objects).
 
+
 #### models
 
-user/developer code goes here for `Models` and subclasses of `IResource` and `ICollection` (more TBD)
+User/developer code goes here for `Models` and subclasses of `IResource` and `ICollection`.  Currently there are two
+existing example classes, `HostResource` and `HostCollection`, that are functional and useful for understanding how
+one writes concrete implementations of `Resource` and `Collection` classes by subclassing from the interfaces.
 
 #### tests
 
-unit tests
+This directory contains code for testing `Model` and `View` implementations, as well as mock implementations of
+required external functionality and example data, such as the snapshot service.  (TBD)
 
 #### views
 
-user/developer code goes here for `Views`, subclasses of LitElement...
+User/developer code goes here for `Views`, subclasses of `LitElement`.  (TBD in future PR's)
 
 # Class Definitions
 
 The following are the basic classes that make up the MVC foundation.
 
-Developers will primarily be subclassing `IResource` and `ICollection`, implementing the interfaces that are required,
-but may also call methods from their subclasses that are defined in the framework classes
+As previously mentioned, developers will primarily be subclassing `IResource` and `ICollection`, implementing the
+interfaces that are required, but may also call methods from their subclasses that are defined in the framework classes
 `Model`, `Resource`, and `Collection`.
 
 ### The MVC Class Hierarchy
+
+The following is the class hierarchy, starting with `Model`, and including both concrete and interface classes.
 
 ```
 Model                  - defines the behavior for notifying listeners
@@ -100,6 +112,8 @@ Model                  - defines the behavior for notifying listeners
 
 ### Model subclasses
 
+The `Model` class simply defines methods for managing a group of `Listeners` that may be notified when desired.
+
 ```
 class Model {
   constructor()
@@ -111,6 +125,10 @@ class Model {
   notifyListenersDeleted(notifyingModel)
 }
 ```
+
+The Resource class extends the `Model`, so it can have `Listeners`, and it adds state that is common among all Resources
+(e.g. `kind`, `name`, `namespace`, etc.) and methods for updating its state from snapshot data, constructing
+YAML for communication with Kubernetes, and validation of its internal instance variables.
 
 ```
 class Resource extends Model {
@@ -126,6 +144,9 @@ class Resource extends Model {
 }
 ```
 
+The `IResource` interface is subclassed when defining a new `Resource` class.  It is quite simple, 
+requiring only methods for updating state, constructing a Kubernetes Spec, and validation.  
+
 ```
 class IResource extends Resource {
   constructor(data)
@@ -135,6 +156,9 @@ class IResource extends Resource {
 }
 ```
 
+The `Collection` class extends the `Model`, so it can have `Listeners`.  It subscribes to the snapshot service, 
+extracts data from the snapshot when notified, and creates, modifies, or deletes `Resource` objects that it maintains
+in the `Collection`.
 
 ```
 class Collection extends Model {
@@ -142,6 +166,12 @@ class Collection extends Model {
   onSnapshotChange(snapshot)
 }
 ```
+
+The `ICollection` interface is subclassed when defining a collection of a specific kind of `Resource`.  It requires
+subclasses to identify the class of the Resources in the collection (e.g. a Host), to be able to create a special
+string key from snapshot data that is unique for that individual `Resource` instance, and to extract data from
+the snapshot to pass to a `Resource` constructor for initializing a new `Resource`, or to an existing `Resource` in
+the collection for updating that `Resource`'s state.
 
 ```
 class ICollection extends Collection {
@@ -152,7 +182,6 @@ class ICollection extends Collection {
 }
 ```
 
-
 # Examples
 
-See `HostResource` and `HostCollection` in mvc/models.
+See `HostResource` and `HostCollection` in mvc/models for specific details on implementation.

@@ -1,12 +1,11 @@
 /**
- * Test_Model
- * Instantiate this class with a model to test the Model's functionality, or call Test_Model.run() to run
- * a standard suite.
+ * MockSnapshot
+ * Instantiate this class with a file path to mock snapshot data.  Running this
  */
 
 import { Model } from "../models/model.js"
 
-export class TestModel {
+export class MockSnapshot {
 
   /* constructor()
    * Here the model initializes any internal state including any structures for storing Listeners
@@ -15,7 +14,6 @@ export class TestModel {
 
   constructor(model) {
     this.model = model;
-    
   }
 
   static run() {
@@ -24,15 +22,15 @@ export class TestModel {
     /* ... */
   }
 
-  testAddListener() {
+  test_add_listener() {
     /* ... */
   }
 
-  testRemoveListener() {
+  test_remove_listener() {
     /* ... */
   }
 
-  testNotifyListeners() {
+  test_notify_listeners() {
     /* ... */
   }
 }
