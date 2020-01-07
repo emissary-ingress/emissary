@@ -221,7 +221,7 @@ class ResourceFetcher:
                 if result:
                     rkey, parsed_objects = result
 
-                    self.parse_object(parsed_objects, k8s=False,
+                    self.parse_object(parsed_objects,
                                       filename=self.filename, rkey=rkey)
         except json.decoder.JSONDecodeError as e:
             self.aconf.post_error("%s: could not parse WATT: %s" % (self.location, e))
@@ -240,7 +240,14 @@ class ResourceFetcher:
         self.k8s_parsed[key] = True
         return True
 
-    def handle_k8s(self, obj: dict) -> None:
+    def handle_k8s(self, obj: dict, k8s=True) -> None:
+        """Take a Kubernetes resource object, dispatch to the appropriate
+        .handle_k8s_WHATEVER handler, and then pass the result (if
+        any) to .parse_object().
+
+        :param k8s: whether to allow the resource to contain "getambassador.io/config" annotations
+        """
+
         # self.logger.debug("handle_k8s obj %s" % json.dumps(obj, indent=4, sort_keys=True))
 
         kind = obj.get('kind')
@@ -269,9 +276,12 @@ class ResourceFetcher:
         if result:
             rkey, parsed_objects = result
 
-            self.parse_object(parsed_objects, k8s=False, filename=self.filename, rkey=rkey)
+            self.parse_object(parsed_objects, filename=self.filename, rkey=rkey)
 
-    def handle_k8s_crd(self, obj: dict) -> None:
+    def handle_k8s_crd(self, obj: dict) -> HandlerResult:
+        """This is a fallback handler called for CRDTypes that do not have a
+        more specific f'handle_k8s_{kind.lower()}' method.
+        """
         # CRDs are _not_ allowed to have embedded objects in annotations, because ew.
         # self.logger.debug(f"Handling K8s CRD: {obj}")
 
@@ -331,10 +341,9 @@ class ResourceFetcher:
 
         amb_object['metadata_labels']['ambassador_crd'] = resource_identifier
 
-        # Done. Parse it.
-        self.parse_object([ amb_object ], k8s=False, filename=self.filename, rkey=resource_identifier)
+        return resource_identifier, amb_object
 
-    def parse_object(self, objects, k8s=False, rkey: Optional[str]=None,
+    def parse_object(self, objects, rkey: Optional[str]=None,
                      filename: Optional[str]=None, namespace: Optional[str]=None):
         self.push_location(filename, 1)
 
@@ -343,14 +352,11 @@ class ResourceFetcher:
         for obj in objects:
             # self.logger.debug("PARSE_OBJECT: checking %s" % obj)
 
-            if k8s:
-                self.handle_k8s(obj)
-            else:
-                # if not obj:
-                #     self.logger.debug("%s: empty object from %s" % (self.location, serialization))
+            # if not obj:
+            #     self.logger.debug("%s: empty object from %s" % (self.location, serialization))
 
-                self.process_object(obj, rkey=rkey, namespace=namespace)
-                self.ocount += 1
+            self.process_object(obj, rkey=rkey, namespace=namespace)
+            self.ocount += 1
 
         self.pop_location()
 
