@@ -39,6 +39,8 @@ HandlerResult = Optional[Tuple[str, List[AnyDict]]]
 # - Endpoint resources probably have just a name, a service name, and an endpoint
 #   address.
 
+BuiltinTypes = frozenset([ 'service', 'endpoints', 'secret', 'ingresses' ])
+
 CRDTypes = frozenset([
     'AuthService', 'ConsulResolver', 'Host',
     'KubernetesEndpointResolver', 'KubernetesServiceResolver',
@@ -204,17 +206,11 @@ class ResourceFetcher:
 
             watt_k8s = watt_dict.get('Kubernetes', {})
 
-            # Handle normal Kube objects...
-            for key in [ 'service', 'endpoints', 'secret', 'ingresses' ]:
+            # Handle resources from Kubernetes (both builtin Kube types, and CRD types)...
+            for key in BuiltinTypes.union(CRDTypes):
                 for obj in watt_k8s.get(key) or []:
                     # self.logger.debug(f"Handling Kubernetes {key}...")
                     self.handle_k8s(obj)
-
-            # ...then handle Ambassador CRDs.
-            for key in CRDTypes:
-                for obj in watt_k8s.get(key) or []:
-                    # self.logger.debug(f"Handling CRD {key}...")
-                    self.handle_k8s_crd(obj)
 
             watt_consul = watt_dict.get('Consul', {})
             consul_endpoints = watt_consul.get('Endpoints', {})
@@ -257,25 +253,16 @@ class ResourceFetcher:
         name = metadata.get('name') or '(no name?)'
         namespace = metadata.get('namespace') or 'default'
 
-        handler = None
-        check_dup = True
-
-        if kind in CRDTypes:
-            handler = self.handle_k8s_crd
-            # self.handle_k8s_crd will do its own dup checking.
-            check_dup = False
-        else:
-            handler_name = f'handle_k8s_{kind.lower()}'
-            # self.logger.debug(f"looking for handler {handler_name} for K8s {kind} {name}")
-            handler = getattr(self, handler_name, None)
-
+        handler = getattr(self, f'handle_k8s_{kind.lower()}', None)
         if not handler:
-            self.logger.debug(f"{self.location}: skipping K8s {kind}")
-            return
-
-        if check_dup:
-            if not self.check_k8s_dup(kind, namespace, name):
+            if kind in CRDTypes:
+                handler = self.handle_k8s_crd
+            else:
+                self.logger.debug(f"{self.location}: skipping K8s {kind}")
                 return
+
+        if not self.check_k8s_dup(kind, namespace, name):
+            return
 
         result = handler(obj)
 
@@ -289,20 +276,12 @@ class ResourceFetcher:
         # self.logger.debug(f"Handling K8s CRD: {obj}")
 
         kind = obj.get('kind')
-
-        if not kind:
-            self.logger.debug("%s: ignoring K8s CRD, no kind" % self.location)
-            return
-
         apiVersion = obj.get('apiVersion', '')
         metadata = obj.get('metadata') or {}
         name = metadata.get('name')
         namespace = metadata.get('namespace') or 'default'
         metadata_labels: Optional[Dict[str, str]] = metadata.get('labels')
         generation = metadata.get('generation', 1)
-
-        if not self.check_k8s_dup(kind, namespace, name):
-            return
 
         spec = obj.get('spec') or {}
 
@@ -525,7 +504,7 @@ class ResourceFetcher:
                     ingress_tls_context['spec']['hosts'] = tls_hosts
 
                 self.logger.info(f"Generated TLS Context from ingress {ingress_name}: {ingress_tls_context}")
-                self.handle_k8s_crd(ingress_tls_context)
+                self.handle_k8s(ingress_tls_context)
 
         # parse ingress.spec.backend
         default_backend = ingress_spec.get('backend', {})
@@ -552,7 +531,7 @@ class ResourceFetcher:
                 default_backend_mapping['metadata']['labels'] = metadata_labels
 
             self.logger.info(f"Generated mapping from Ingress {ingress_name}: {default_backend_mapping}")
-            self.handle_k8s_crd(default_backend_mapping)
+            self.handle_k8s(default_backend_mapping)
 
         # parse ingress.spec.rules
         ingress_rules = ingress_spec.get('rules', [])
@@ -596,7 +575,7 @@ class ResourceFetcher:
                     path_mapping['spec']['host'] = rule_host
 
                 self.logger.info(f"Generated mapping from Ingress {ingress_name}: {path_mapping}")
-                self.handle_k8s_crd(path_mapping)
+                self.handle_k8s(path_mapping)
 
         # let's make arrangements to update Ingress' status now
         if not self.ambassador_service_raw:
