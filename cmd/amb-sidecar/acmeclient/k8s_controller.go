@@ -237,8 +237,22 @@ func (c *Controller) rectifyPhase1(logger dlog.Logger) []*ambassadorTypesV2.Host
 		logger := logger.WithField("host", host.GetName()+"."+host.GetNamespace())
 		logger.Debugln("rectify: processing Host...")
 
-		FillDefaults(host)
-		if !proto.Equal(host.Spec, _host.Spec) {
+		host.Spec = getEffectiveSpec(host)
+		if host.Status == nil {
+			host.Status = &ambassadorTypesV2.HostStatus{}
+		}
+		switch {
+		case host.Spec.AcmeProvider.Authority != "none":
+			// TLS using via AES ACME integration
+			host.Status.TlsCertificateSource = ambassadorTypesV2.HostTLSCertificateSource_ACME
+		case host.Spec.TlsSecret.Name != "":
+			// TLS configured via some other mechanism
+			host.Status.TlsCertificateSource = ambassadorTypesV2.HostTLSCertificateSource_Other
+		default:
+			// No TLS
+			host.Status.TlsCertificateSource = ambassadorTypesV2.HostTLSCertificateSource_None
+		}
+		if !proto.Equal(host.Spec, _host.Spec) || !proto.Equal(host.Status, _host.Status) {
 			logger.Debugln("rectify: Host: saving defaults")
 			nextPhase := ambassadorTypesV2.HostPhase_NA
 			if host.Status.TlsCertificateSource == ambassadorTypesV2.HostTLSCertificateSource_ACME {
@@ -656,55 +670,54 @@ func (c *Controller) rectifyPhase4(logger dlog.Logger,
 	logger.Debugln("rectify: finished")
 }
 
-func FillDefaults(host *ambassadorTypesV2.Host) {
-	if host.Spec == nil {
-		host.Spec = &ambassadorTypesV2.HostSpec{}
+func getEffectiveSpec(host *ambassadorTypesV2.Host) *ambassadorTypesV2.HostSpec {
+	hostSpec := deepCopyHostSpec(host.Spec)
+
+	// Ensure that all nested structures exist, so we don't need to worry about nil pointers
+	if hostSpec == nil {
+		hostSpec = &ambassadorTypesV2.HostSpec{}
 	}
-	if host.Spec.Selector == nil {
-		host.Spec.Selector = &k8sTypesMetaV1.LabelSelector{}
+	if hostSpec.Selector == nil {
+		hostSpec.Selector = &k8sTypesMetaV1.LabelSelector{}
 	}
-	if len(host.Spec.Selector.MatchLabels)+len(host.Spec.Selector.MatchExpressions) == 0 {
-		host.Spec.Selector.MatchLabels = map[string]string{
-			"hostname": host.Spec.Hostname,
+	if hostSpec.AcmeProvider == nil {
+		hostSpec.AcmeProvider = &ambassadorTypesV2.ACMEProviderSpec{}
+	}
+	if hostSpec.TlsSecret == nil {
+		hostSpec.TlsSecret = &k8sTypesCoreV1.LocalObjectReference{}
+	}
+
+	// Now actually fill the values
+	if hostSpec.AmbassadorId == nil { // XXX: should this be `len(hostSpec.AmbassadorId) == 0`?
+		hostSpec.AmbassadorId = []string{"default"}
+	}
+	if hostSpec.Hostname == "" {
+		hostSpec.Hostname = host.GetName()
+	}
+	if len(hostSpec.Selector.MatchLabels)+len(hostSpec.Selector.MatchExpressions) == 0 {
+		hostSpec.Selector.MatchLabels = map[string]string{
+			"hostname": hostSpec.Hostname,
 		}
 	}
-	if host.Spec.TlsSecret == nil {
-		host.Spec.TlsSecret = &k8sTypesCoreV1.LocalObjectReference{}
+	if hostSpec.AcmeProvider.Authority == "" {
+		hostSpec.AcmeProvider.Authority = "https://acme-v02.api.letsencrypt.org/directory"
 	}
-	if host.Spec.AcmeProvider == nil {
-		host.Spec.AcmeProvider = &ambassadorTypesV2.ACMEProviderSpec{}
-	}
-	if host.Spec.AcmeProvider.Authority == "" {
-		host.Spec.AcmeProvider.Authority = "https://acme-v02.api.letsencrypt.org/directory"
-	}
-	if host.Spec.AcmeProvider.Authority != "none" {
-		if host.Spec.AcmeProvider.PrivateKeySecret == nil {
-			host.Spec.AcmeProvider.PrivateKeySecret = &k8sTypesCoreV1.LocalObjectReference{}
+	if hostSpec.AcmeProvider.Authority != "none" {
+		if hostSpec.AcmeProvider.PrivateKeySecret == nil {
+			hostSpec.AcmeProvider.PrivateKeySecret = &k8sTypesCoreV1.LocalObjectReference{}
 		}
-		if host.Spec.AcmeProvider.PrivateKeySecret.Name == "" {
-			if host.Spec.AcmeProvider.Email == "" {
-				host.Spec.AcmeProvider.PrivateKeySecret.Name = NameEncode(host.Spec.AcmeProvider.Authority)
+		if hostSpec.AcmeProvider.PrivateKeySecret.Name == "" {
+			if hostSpec.AcmeProvider.Email == "" {
+				hostSpec.AcmeProvider.PrivateKeySecret.Name = NameEncode(hostSpec.AcmeProvider.Authority)
 			} else {
-				host.Spec.AcmeProvider.PrivateKeySecret.Name = NameEncode(host.Spec.AcmeProvider.Authority) + "--" + NameEncode(host.Spec.AcmeProvider.Email)
+				hostSpec.AcmeProvider.PrivateKeySecret.Name = NameEncode(hostSpec.AcmeProvider.Authority) + "--" + NameEncode(hostSpec.AcmeProvider.Email)
 			}
 		}
-		if host.Spec.TlsSecret.Name == "" {
-			// host.Spec.TlsSecret.Name = NameEncode(host.Spec.AcmeProvider.Authority) + "--" + NameEncode(host.Spec.AcmeProvider.Email) + "--" + NameEncode(host.Spec.AcmeProvider.PrivateKeySecret.Name)
-			host.Spec.TlsSecret.Name = NameEncode(host.Spec.Hostname)
+		if hostSpec.TlsSecret.Name == "" {
+			// hostSpec.TlsSecret.Name = NameEncode(hostSpec.AcmeProvider.Authority) + "--" + NameEncode(hostSpec.AcmeProvider.Email) + "--" + NameEncode(hostSpec.AcmeProvider.PrivateKeySecret.Name)
+			hostSpec.TlsSecret.Name = NameEncode(hostSpec.Hostname)
 		}
 	}
-	if host.Status == nil {
-		host.Status = &ambassadorTypesV2.HostStatus{}
-	}
-	switch {
-	case host.Spec.AcmeProvider.Authority != "none":
-		// TLS using via AES ACME integration
-		host.Status.TlsCertificateSource = ambassadorTypesV2.HostTLSCertificateSource_ACME
-	case host.Spec.TlsSecret.Name != "":
-		// TLS configured via some other mechanism
-		host.Status.TlsCertificateSource = ambassadorTypesV2.HostTLSCertificateSource_Other
-	default:
-		// No TLS
-		host.Status.TlsCertificateSource = ambassadorTypesV2.HostTLSCertificateSource_None
-	}
+
+	return hostSpec
 }

@@ -89,6 +89,24 @@ func deepCopyHost(in *ambassadorTypesV2.Host) *ambassadorTypesV2.Host {
 	return &out
 }
 
+// *grumble grumble* k8s.io/code-generator/cmd/deepcopy-gen *grumble*
+func deepCopyHostSpec(in *ambassadorTypesV2.HostSpec) *ambassadorTypesV2.HostSpec {
+	b, err := json.Marshal(in)
+	if err != nil {
+		// 'in' is a valid object.  This should never happen.
+		panic(err)
+	}
+
+	var out ambassadorTypesV2.HostSpec
+	if err := json.Unmarshal(b, &out); err != nil {
+		// 'bs' is a valid JSON, we just generated it.  This
+		// should never happen.
+		panic(err)
+	}
+
+	return &out
+}
+
 // unstructureMetadata marshals a *k8sTypesMetaV1.ObjectMeta for us
 // in a `*k8sTypesUnstructured.Unstructured`.
 //
