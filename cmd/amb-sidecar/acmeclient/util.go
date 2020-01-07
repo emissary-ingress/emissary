@@ -73,9 +73,19 @@ func NameEncode(in string) string {
 
 // *grumble grumble* k8s.io/code-generator/cmd/deepcopy-gen *grumble*
 func deepCopyHost(in *ambassadorTypesV2.Host) *ambassadorTypesV2.Host {
-	b, _ := json.Marshal(in)
+	b, err := json.Marshal(in)
+	if err != nil {
+		// 'in' is a valid object.  This should never happen.
+		panic(err)
+	}
+
 	var out ambassadorTypesV2.Host
-	_ = json.Unmarshal(b, &out)
+	if err := json.Unmarshal(b, &out); err != nil {
+		// 'bs' is a valid JSON, we just generated it.  This
+		// should never happen.
+		panic(err)
+	}
+
 	return &out
 }
 
@@ -93,11 +103,13 @@ func unstructureMetadata(in *k8sTypesMetaV1.ObjectMeta) map[string]interface{} {
 		// 'in' is a valid object.  This should never happen.
 		panic(err)
 	}
+
 	if err := json.Unmarshal(bs, &metadata); err != nil {
 		// 'bs' is a valid JSON, we just generated it.  This
 		// should never happen.
 		panic(err)
 	}
+
 	return metadata
 }
 
