@@ -41,7 +41,75 @@ Some of the benefits of the MVC approach include:
   - We can have multiple simultaneous `Views` on a single `Model`.
   - A single `View` can incorporate data from multiple `Models`.
 
-## The mvc/ directory hierarchy
+## The rationale for using MVC to implement our Admin UX
+
+### Benefits
+
+The MVC implementation of `Resource` and `ResourceView` provide the building blocks for displaying, adding, and editing
+Kubernetes Resources, most importantly the CRD's (Custom Resource Definitions) that Ambassador uses to get input
+from users and communicate back to users.
+
+There several different goals of using this kind of abstraction:
+
+- Consistency of experience for cross-cutting aspects of CRD's.  One of the things that makes Kubernetes powerful
+for advanced users is the fact that that they can treat all the resources the same way.  Names, namespaces,
+labels, annotations, and status are some of the examples of shared concepts for which we want to provide
+a consistent experience.
+
+- GitOps workflow.  A particularly important example of the uniform handling of `Resource` objects is the
+ability to use a GitOps workflow to manage your Kubernetes resources. For example, defining your "source of truth"
+declaratively in `git`, and updating your cluster via `kubectl apply` makes it easy to localize changes and
+simplify your cluster management.  We need our UI to work well with this GitOps-style workflow.
+ 
+ - Ease of extension to new types of CRD's.  Since all `Resource` objects have a shared format, new kinds may be easily
+defined by subclassing the `IResource` interface class and implementing the required methods that specialize
+that `Resource`'s state and behavior.
+ 
+ - Ease of customization of CRD display and editing.  With MVC we can easily customize each Resource object
+ (e.g. Host, Mapping, etc.) and its corresponding ResourceView so that it can be created, displayed,
+and edited in the best way for that particular Resource type.  With built-in links to other relevant resources
+we can make naviation much easier and in general, help new users become advanced users much faster than before.
+ 
+### Resource, ResourceView, and ResourceListView
+ 
+There are two Model interfaces (`IResource` and `ICollection`) and two corresponding View interfaces
+(`IResourceView` and `IResourceListView`) that are extended via concrete class implementations to define web
+components that work with each other.  `IResourceView` is a view on a single `Resource` and `IResourceListView`
+is a view on a `Collection` of `Resources`, both web components that work with each other.  For example, a
+`HostView` would extend `IResourceView` and define the layout and interaction behavior for a `HostResource`.
+A list of hosts, a `HostListView`, is implemented by extending `IResourceListView`, whose model is an instance
+of `HostCollection`.
+ 
+### New Functionality
+ 
+There are a number of future features we expect to be adding to the fundamental Model and View specializations
+(e.g. `ResourceListViews` and their models:
+
+- Searching/sorting/filtering can be done based on the Kubernetes metadata that is common to all `Resources`
+(`name`, `namespace`, `labels`, `annotations`), and custom searching/sorting/filtering for specific kinds.
+
+- Selection of a number of `Resources` and export the yaml.
+
+- Editing of a specific `Resource` and, instead of saving to Kubernetes, downloading the modified YAML.
+
+- Leveraging Kubernetes generate-id to avoid read/modify/write hazards when you edit/save a resource.
+
+- Showing all `Resources` with a non-green status to show prominently on the dashboard.
+
+    - Disallowing editing of Resources that were not created in the UI, so that we never try to write to
+Resources that are maintained via GitOps.
+
+- Attaching a URI to a `Resource` that originates from `git`, so that the user can navigate directly to the
+`Resource` in the `git` repository from the `Resource` view.
+
+- Leveraging the git repo annotation to allow editing of those `Resources` by filing a PR.
+
+## Implementation Details
+
+The following describes the framework, interfaces, and example classes using the Admin MVC approach.
+
+
+### The mvc/ directory hierarchy
 
 ```
 mvc            - toplevel directory, under edge_stack
@@ -89,14 +157,14 @@ service.  (TBD)
 
 User/developer code goes here for `Views`, subclasses of `LitElement`.  (TBD in future PR's)
 
-# Class Definitions
+### Class definitions
 
 The following are the basic classes that make up the MVC foundation.
 
 As previously mentioned, developers will be subclassing the interfaces `IResource` and `ICollection`, 
 implementing the methods that are required.
 
-### The MVC Class Hierarchy
+#### The MVC Class Hierarchy
 
 The following is the class hierarchy, starting with `Model`, and including both concrete and interface classes.
 
@@ -118,7 +186,7 @@ View                   - implements basic behavior: handling Model notifications
 ```
 
 
-### Implementation Details for Model and its subclasses
+#### Model and its subclasses
 
 The following simply provides an overview of the actual implementations of `Model`, `Resource`, and `Collection`,
 and their interface classes `IResource` and `ICollection`.  Users will typically need only to subclass from
@@ -127,7 +195,7 @@ and their interface classes `IResource` and `ICollection`.  Users will typically
 For more detail on these implementations, see the source code in the `mvc/framework` and `mvc/interfaces`
 directories.
 
-#### Model
+##### Model
 The `Model` class simply defines methods for managing a group of `Listeners` that may be notified when desired.
 As a framework class, this will not be subclassed by the user.
 
@@ -143,7 +211,7 @@ class Model {
 }
 ```
 
-#### Resource
+##### Resource
 The `Resource` class extends the `Model`, so it can have `Listeners`, and it adds state that is common among all
 `Resources` (e.g. `kind`, `name`, `namespace`, etc.) and methods for updating its state from snapshot data,
 constructing YAML for communication with Kubernetes, and validation of its internal instance variables.
@@ -162,7 +230,7 @@ class Resource extends Model {
 }
 ```
 
-#### IResource
+##### IResource
 
 The `IResource` interface is subclassed when defining a new `Resource` class.  It is quite simple, 
 requiring only methods for updating state, constructing a Kubernetes Spec, and validation.  
@@ -176,7 +244,7 @@ class IResource extends Resource {
 }
 ```
 
-#### Collection
+##### Collection
 
 The `Collection` class extends the `Model`, so it can have `Listeners`.  It subscribes to the snapshot service, 
 extracts data from the snapshot when notified, and creates, modifies, or deletes `Resource` objects that it maintains
@@ -189,7 +257,7 @@ class Collection extends Model {
 }
 ```
 
-#### ICollection
+##### ICollection
 
 The `ICollection` interface is subclassed when defining a collection of a specific kind of `Resource`.  It requires
 subclasses to identify the class of the Resources in the collection (e.g. a Host), to be able to create a special
@@ -206,7 +274,7 @@ class ICollection extends Collection {
 }
 ```
 
-### Implementation Details for View and its subclasses
+#### View and its subclasses
 
 The following simply provides an overview of the actual implementations of `View`, `ResourceView`, and
 `ResourceListView`,  and their interface classes `IView` and `IResourceView`.  Users will typically need
@@ -216,18 +284,18 @@ be modified.
 For more detail on these implementations, see the source code in the `mvc/framework` and `mvc/interfaces`
 directories.
 
-#### View
+##### View
 The `View` class...
 As a framework class, this will not be subclassed by the user.
 
-#### IView
+##### IView
 The `IView` class...
 
-#### ResourceView
+##### ResourceView
 The `ResourceView` class...
 As a framework class, this will not be subclassed by the user.
 
-#### IResourceView
+##### IResourceView
 The `IResourceView` class...
 
 # Examples

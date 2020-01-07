@@ -1,6 +1,11 @@
 /**
  * View
- * This is the framework class for Views.
+ * This is the framework class for Views, which are Web Component elements to be rendered in a browser.
+ * The View implements listener behavior, receiving notifications from Model objects when they change state,
+ * and update their properties to be redisplayed.
+ *
+ * This View implementation also assumes quite a bit about the HTML environment it renders in.  There may be
+ * modifiedStyles
  *
  */
 

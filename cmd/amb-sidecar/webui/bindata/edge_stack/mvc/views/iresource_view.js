@@ -4,9 +4,7 @@
  * its Resource model object, as well as state used for the different view variants (edit, add, etc.)
  */
 
-import { LitElement, html, css } from '../vendor/lit-element.min.js'
-import { getCookie }             from '../components/cookies.js';
-import { ResourceView }          from './resource_view.js'
+import { ResourceView } from './resource_view.js'
 
 export class IResourceView extends ResourceView {
 

@@ -19,11 +19,11 @@ export class ResourceView extends View {
 
   static get properties() {
     return {
-      kind: {type: String},  // Resource
-      name: {type: String},  // Resource
+      kind:      {type: String},  // Resource
+      name:      {type: String},  // Resource
       namespace: {type: String},  // Resource
       viewState: {type: String},  // View
-      showYAML: {type: Boolean} // ResourceView
+      showYAML:  {type: Boolean}  // ResourceView
     }
   }
 
