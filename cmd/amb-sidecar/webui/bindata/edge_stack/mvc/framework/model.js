@@ -112,6 +112,4 @@ export class Model {
 
     return union(allListeners, msgListeners);
   }
-
-
 }

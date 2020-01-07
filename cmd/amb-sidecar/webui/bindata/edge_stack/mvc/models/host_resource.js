@@ -34,6 +34,30 @@ export class HostResource extends IResource {
     this.useAcme      = (this.acmeEmail !== "" && this.acmeProvider !== "");
   }
 
+  /* copySelf()
+   * Create a copy of the Resource, with all Resource state (but not Model's listener list}
+   */
+
+  copySelf() {
+    return new HostResource(this.getYAML());
+  }
+
+
+  /* getSpec()
+   * Return the spec attribute of the Host.  This method is needed for the implementation of the Save
+   * function which uses kubectl apply.  This method must return an object that will be serialized with JSON.stringify
+   * and supplied as the "spec:" portion of the Kubernetes YAML that is passed to kubectl.
+   */
+
+  getSpec() {
+    return {
+      hostname:       this.hostname,
+      acmeProvider:   this.useAcme
+        ? {authority: this.acmeProvider, email: this.acmeEmail}
+        : {authority: "none"}
+    }
+  }
+
   /* updateSelfFrom(data)
    * Update the HostResource object state from the snapshot data block for this HostResource.  Compare the values
    * in the data block with the stored state in the Host.  If the data block has different data than is currently
@@ -73,21 +97,6 @@ export class HostResource extends IResource {
     }
 
     return changed;
-  }
-
-  /* getSpec()
-   * Return the spec attribute of the Resource.  This method is needed for the implementation of the Save
-   * function which uses kubectl apply.  This method must return an object that will be serialized with JSON.stringify
-   * and supplied as the "spec:" portion of the Kubernetes YAML that is passed to kubectl.
-   */
-
-  getSpec() {
-    return {
-      hostname:       this.hostname,
-      acmeProvider:   this.useAcme
-        ? {authority: this.acmeProvider, email: this.acmeEmail}
-        : {authority: "none"}
-    }
   }
 
   /* validateSelf()

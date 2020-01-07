@@ -11,8 +11,12 @@
  * This class is the basis for all Kubernetes resources that are created, viewed, modified and deleted in the Web UI.
  */
 
+/* Kubernetes operations: apply, delete. */
+import { ApiFetch } from "../../components/api-fetch.js";
+
 /* Interface class for Model */
 import { Model } from "./model.js"
+import { merge } from "./map.js"
 
 /* Annotation key for sourceURI. */
 const aes_res_source = "aes_res_source";
@@ -39,28 +43,94 @@ export class Resource extends Model {
     this.kind        = resourceData.kind;
     this.name        = resourceData.metadata.name;
     this.namespace   = resourceData.metadata.namespace;
+    this.version     = resourceData.metadata.resourceVersion;
     this.labels      = resourceData.metadata.labels || {};
     this.annotations = resourceData.metadata.annotations || {};
     this.status      = resourceData.status || this.getEmptyStatus();
-
-    /* Save the initialization data */
-    this._data = data;
   }
 
+  /* copySelf()
+   * Create a copy of the Resource, with all Resource state (but not Model's listener list}
+   */
 
-  /* doAdd()
+  copySelf() {
+    return new Resource(this.getYAML());
+  }
+
+  /* doApply(yaml, cookie)
+   * call the edge_stack API to apply the object's current state
+   * as YAML.  Returns null if success, an error string if not.
+    */
+
+  doApply(yaml, cookie) {
+    let error  = null;
+    let params = {
+      method: "POST",
+      headers: new Headers({'Authorization': 'Bearer ' + cookie}),
+      body: JSON.stringify(yaml)
+    };
+
+    /* Make the call to apply */
+    ApiFetch('/edge_stack/api/apply', params).then(
+      r => { r.text().then(t => {
+        if (r.ok) {
+          error = null;
+        } else {
+          error = t;
+          console.error(error);
+          error = `Unable to complete add or save resource because: ${error}`;
+        }
+      });
+      });
+
+    return error;
+  }
+
+  /* doAdd(cookie)
    * Add this Resource to Kubernetes using kubectl apply.
    */
 
-  doAdd() {
+  doAdd(cookie) {
     throw Error("Not Yet Implemented");
   }
 
-  /* doSave()
+  /* doDelete(cookie)
+  * call the edge_stack API to delete this object.
+  * Returns null if success, an error string if not.
+   */
+
+  doDelete(cookie) {
+    let error  = null;
+    let params = {
+      method: "POST",
+      headers: new Headers({ 'Authorization': 'Bearer ' + cookie }),
+      body: JSON.stringify({
+        Namespace: this.namespace,
+        Names: [`${this.kind}/${this.name}`]
+      })
+    };
+
+    ApiFetch('/edge_stack/api/delete', params).then(
+      r=>{
+        r.text().then(t=>{
+          if (r.ok) {
+            error = null;
+          } else {
+            error = t;
+            console.error(error);
+            error = `Unexpected error while deleting resource: ${r.statusText}`;
+          }
+        });
+      });
+
+    return error;
+  }
+
+  /* doSave(cookie)
    * Save the changes in this Resource to Kubernetes using kubectl apply.
    */
 
-  doSave() {
+  doSave(cookie) {
     throw Error("Not Yet Implemented");
   }
 
@@ -72,7 +142,7 @@ export class Resource extends Model {
 
   getEmptyStatus() {
     return {
-      "state": "none",
+      "state":  "none",
       "reason": ""
     };
   }
@@ -87,10 +157,11 @@ export class Resource extends Model {
       apiVersion: "getambassador.io/v2",
       kind: this.kind,
       metadata: {
-        name:        this.name,
-        namespace:   this.namespace,
-        labels:      this.labels,
-        annotations: this.annotations
+        name:            this.name,
+        namespace:       this.namespace,
+        labels:          this.labels,
+        annotations:     this.annotations,
+        resourceVersion: this.version
       },
       spec: this.getSpec()
     }
@@ -177,12 +248,10 @@ export class Resource extends Model {
     if (message) errors.set("namespace", message);
 
     /* Any errors from self validation? Merge the results of validateSelf with the existing results from above.
-     * validateSelf() overrides.  The spread operator (...) converts the Map into an Array which the Map
-     * constructor then uses for the new key/value entries.
+     * validateSelf() overrides any errors returned above with the same name (i.e. name or namespace)
      */
-    errors = new Map(...errors, ...this.validateSelf());
 
-    return errors;
+    return merge(errors, this.validateSelf());
   }
 
   /* ============================================================

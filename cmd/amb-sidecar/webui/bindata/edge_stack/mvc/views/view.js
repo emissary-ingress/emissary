@@ -43,10 +43,27 @@ export class View extends LitElement {
     model.addListener(this);
   }
 
-  /* onModelNotification(model, message, parameter)
-   * When we get a notification from the model that one or more model values have changed, the properties are updated.
-   * Because this is a web component, the property updates queue the appropriate re-rendering at the correct time.
+   /* minimumNumberOfAddRows()
+   * minimumNumberOfEditRows()
+   *
+   * To help the UI place buttons within the rectangle border (or more precisely, to help the UI grow the rectangle
+   * border to fit all the buttons), these two functions should be overridden if the renderSelf has fewer than four
+   * rows in edit mode and/or fewer than two rows in add mode.
+   * (Override these functions if the add and edit buttons on the right side of the frame are extending below the
+   * bottom of the frame.)
    */
+
+  minimumNumberOfAddRows() {
+    return 2;
+  }
+  minimumNumberOfEditRows() {
+    return 4;
+  }
+
+  /* onModelNotification(model, message, parameter)
+    * When we get a notification from the model that one or more model values have changed, the properties are updated.
+    * Because this is a web component, the property updates queue the appropriate re-rendering at the correct time.
+    */
 
   onModelNotification(model, message, parameter) {
     switch (message) {
@@ -62,23 +79,6 @@ export class View extends LitElement {
         this.parentElement.removeChild(this);
         break;
     }
-  }
-
-  /* minimumNumberOfAddRows()
-   * minimumNumberOfEditRows()
-   *
-   * To help the UI place buttons within the rectangle border (or more precisely, to help the UI grow the rectangle
-   * border to fit all the buttons), these two functions should be overridden if the renderSelf has fewer than four
-   * rows in edit mode and/or fewer than two rows in add mode.
-   * (Override these functions if the add and edit buttons on the right side of the frame are extending below the
-   * bottom of the frame.)
-   */
-
-  minimumNumberOfAddRows() {
-    return 2;
-  }
-  minimumNumberOfEditRows() {
-    return 4;
   }
 
   /* render()

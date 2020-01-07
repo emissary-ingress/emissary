@@ -45,9 +45,12 @@ export class Collection extends Model {
        *    that object to check if it needs to update any data fields.
        */
       let existingResource = this._resources.get(key);
+
       if (existingResource) {
-        previousKeys.delete(key);
-        existingResource.updateFrom(resourceData);
+        if (existingResource.version !== resourceData.metadata.resourceVersion) {
+          previousKeys.delete(key);
+          existingResource.updateFrom(resourceData);
+        }
       }
       else {
         /*

@@ -37,16 +37,22 @@ export class IResource extends Resource {
     super(data);
   }
 
-  getSpec() {
-    throw new Error("Please implement Resource:getSpec()");
-  }
-
   /* copySelf()
   *  Return a new instance that is a copy of the Resource object, with the same state.
   */
 
   copySelf() {
     throw new Error("Please implement Resource:copySelf()");
+  }
+
+  /* getSpec()
+   * Return the spec attribute of the Resource.  This method is needed for the implementation of the Save
+   * function which uses kubectl apply.  This method must return an object that will be serialized with JSON.stringify
+   * and supplied as the "spec:" portion of the Kubernetes YAML that is passed to kubectl.
+   */
+
+  getSpec() {
+    throw new Error("Please implement Resource:getSpec()");
   }
 
   /* updateSelfFrom(resourceData)

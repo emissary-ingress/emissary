@@ -46,20 +46,55 @@ export class ResourceView extends View {
   }
 
   /* onEdit()
-   * This method is called on the View when the View needs to change to its Edit mode.
+   * This method is called on the View when the View needs to change to its Edit mode.  The View needs
+   * to create a new copy of its Model for editing, and stop listening to any updates to the old Model.
    */
 
   onEdit() {
-    throw Error("Not Yet Implemented");
+    /* Save the View's existing model and stop listening to it. */
+    this.savedModel = this.model;
+    this.model.removeListener(this);
+
+    /* Create a new model for editing, based on the state in the existing model, and start listening to it. */
+    this.model = this.model.copySelf()
+    this.model.addListener(this)
+
+    /* Change to "edit" state. */
+    this.viewState = "edit";
   }
 
   /* onSave()
    * This method is called on the View when the View is in Edit mode, and the user clicks on the
-   * Save button to save the changes.
+   * Save button to save the changes.  Ask the modified Model to save its state, however it needs to do that.
+   * in the case of a Resource it will write back to Kubernetes with kubectl apply.
    */
 
   onSave() {
-    throw Error("Not Yet Implemented");
+    if viewState == "add" {
+      /* Add the new resource to the system. */
+      this.model.doAdd();
+
+      /* Remove the view.  The next snapshot will create a new Resource which then will create a corresponding
+       * View that represents the added resource.  In the future, we will not remove the view but change it to a
+       * "pending" state.
+       */
+      this.parentElement.removeChild(this);
+    }
+    else
+    if viewState == "edit" {
+      /* Save the changes in the resource. */
+      let error = this.model.doSave();
+
+      /* Swap models back, restoring listeners to the saved Model. */
+      this.model.removeListener(this);
+      this.model = this.savedModel;
+      this.model.addListener(this);
+
+      /* Now wait for the system to come back and update the Model, which will update the View.
+       * In the future we will leave the View state as it was when edited, and watch for the
+       * snapshot data to confirm the change.
+       */
+    }
   }
 
   /* onCancel()

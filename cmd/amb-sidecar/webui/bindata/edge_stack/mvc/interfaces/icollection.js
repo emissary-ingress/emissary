@@ -37,6 +37,16 @@ export class ICollection extends Collection {
     super();
   }
 
+  /* extractResourcesFrom(snapshot)
+   * Given a snapshot as received from the backend via snapshot.js, return a list of resource data blocks
+   * given the resource's class name (e.g. Host, Mapping, Filter...).  Since this is a Collection superclass
+   * from which other Collection classes will inherit, they must implement their own extractResourcesFrom methods.
+   */
+
+  extractResourcesFrom(snapshot) {
+    throw new Error("please implement Collection:extractResourcesFrom(snapshot)")
+  }
+
   /* resourceClass()
    * Return the class of the resource that is being czollected from the snapshot.
    */
@@ -55,16 +65,6 @@ export class ICollection extends Collection {
 
   uniqueKeyFor(resourceData) {
     throw new Error("please implement Collection:uniqueKeyFor(resourceData)");
-  }
-
-  /* extractResourcesFrom(snapshot)
-   * Given a snapshot as received from the backend via snapshot.js, return a list of resource data blocks
-   * given the resource's class name (e.g. Host, Mapping, Filter...).  Since this is a Collection superclass
-   * from which other Collection classes will inherit, they must implement their own extractResourcesFrom methods.
-   */
-
-  extractResourcesFrom(snapshot) {
-    throw new Error("please implement Collection:extractResourcesFrom(snapshot)")
   }
 
   /* ====================================================================================================
