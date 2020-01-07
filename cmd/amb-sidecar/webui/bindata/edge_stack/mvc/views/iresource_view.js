@@ -26,7 +26,7 @@ export class IResourceView extends ResourceView {
     throw new Error("please implement static function ResourceView:properties()")
   }
 
-  /* constructor
+  /* constructor(model)
    * The IResourceView constructor, which takes a Resource (model) as its parameter.
    */
 
@@ -54,13 +54,13 @@ export class IResourceView extends ResourceView {
   }
 
   /* validateSelf()
-* This method is invoked on save in order to validate input prior to proceeding with the save action.
-* The model validates its current state, so anything that the View wants to validate must already be in the model.
-*
-* validate() returns a Map of fieldnames and error strings. If the dictionary is empty, there are no errors.
-*
-* For now we will have a side-effect of validate in that any errors will be added to the message list.
- */
+   * This method is invoked on save in order to validate input prior to proceeding with the save action.
+   * The model validates its current state, so anything that the View wants to validate must already be in the model.
+   *
+   * validateSelf() returns a Map of fieldnames and error strings. If the dictionary is empty, there are no errors.
+   *
+   * For now we will have a side-effect of validate in that any errors will be added to the message list.
+   */
 
   validateSelf() {
     throw new Error("please implement ResourceView:validateSelf()")

@@ -47,8 +47,8 @@ export class ListView extends LitElement {
         break;
     }
   }
-  /**
-   * render
+
+  /* render()
    * Render the list.  Subclasses will override but most will
    * look like the example below, the key elements being:
    *

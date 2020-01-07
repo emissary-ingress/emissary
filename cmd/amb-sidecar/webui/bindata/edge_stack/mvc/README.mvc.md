@@ -101,18 +101,24 @@ implementing the methods that are required.
 The following is the class hierarchy, starting with `Model`, and including both concrete and interface classes.
 
 ```
-Model                  - defines the behavior for notifying listeners
-  Resource             - defines basic Resource state and behavior
+Model                  - implements the behavior for notifying listeners
+  Resource             - implements basic Resource state and behavior
     IResource          - defines the interface for extending to new Resource kinds
       HostResource     - a concrete implementation of a Host resource
       
-  Collection           - defines the behavior and state for maintaining a collection of unique Resources
+  Collection           - implements the behavior and state for maintaining a collection of unique Resources
     ICollection        - defines the interface for extending to new Collections of Resources
       HostCollection   - a concrete implementation of a HostResource Collection
+
+View                   - implements basic behavior: handling Model notifications and rendering. 
+  IView                - defines Model reading, writing, and rendering interfaces
+    ResourceView       - implements Resource state reading, writing, and validation
+      IResourceView    - defines the interface for extending Resource reading, writing, and validation
+        HostView       - a concrete implementation of a HostResource view
 ```
 
 
-### Implementation Details
+### Implementation Details for Model and its subclasses
 
 The following simply provides an overview of the actual implementations of `Model`, `Resource`, and `Collection`,
 and their interface classes `IResource` and `ICollection`.  Users will typically need only to subclass from
@@ -199,6 +205,30 @@ class ICollection extends Collection {
   extractDataFrom(snapshot)
 }
 ```
+
+### Implementation Details for View and its subclasses
+
+The following simply provides an overview of the actual implementations of `View`, `ResourceView`, and
+`ResourceListView`,  and their interface classes `IView` and `IResourceView`.  Users will typically need
+only to subclass from `IResourceView` and `IResourceListView`; the framework and interface classes will not
+be modified.
+
+For more detail on these implementations, see the source code in the `mvc/framework` and `mvc/interfaces`
+directories.
+
+#### View
+The `View` class...
+As a framework class, this will not be subclassed by the user.
+
+#### IView
+The `IView` class...
+
+#### ResourceView
+The `ResourceView` class...
+As a framework class, this will not be subclassed by the user.
+
+#### IResourceView
+The `IResourceView` class...
 
 # Examples
 

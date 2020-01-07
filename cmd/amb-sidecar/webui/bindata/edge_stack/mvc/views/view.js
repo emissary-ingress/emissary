@@ -22,7 +22,7 @@ export class View extends LitElement {
     }
   }
 
-  /* constructor
+  /* constructor(model)
    * The View constructor, which takes a Model (model) as its parameter.
    */
 
@@ -31,11 +31,15 @@ export class View extends LitElement {
     this.model     = model;
     this.viewState = "list";
 
-    /* and listen to model changes for updates. */
-    model.addListener(this.onModelNotification.bind(this));
+    /* and listen to model changes for updates. Model will call this.onModelNotification with
+     * the model itself, a message, and an optional parameter.
+     */
+
+    model.addListener(this);
   }
 
-  /* When we get a notification from the model that one or more model values have changed, the properties are updated.
+  /* onModelNotification(model, message, parameter)
+   * When we get a notification from the model that one or more model values have changed, the properties are updated.
    * Because this is a web component, the property updates queue the appropriate re-rendering at the correct time.
    */
 
@@ -55,7 +59,10 @@ export class View extends LitElement {
     }
   }
 
-  /* To help the UI place buttons within the rectangle border (or more precisely, to help the UI grow the rectangle
+  /* minimumNumberOfAddRows()
+   * minimumNumberOfEditRows()
+   *
+   * To help the UI place buttons within the rectangle border (or more precisely, to help the UI grow the rectangle
    * border to fit all the buttons), these two functions should be overridden if the renderSelf has fewer than four
    * rows in edit mode and/or fewer than two rows in add mode.
    * (Override these functions if the add and edit buttons on the right side of the frame are extending below the
@@ -69,7 +76,8 @@ export class View extends LitElement {
     return 4;
   }
 
-  /* Render the view.  This html assumes styles are imported properly and a common layout of the view that has
+  /* render()
+   * Render the view.  This html assumes styles are imported properly and a common layout of the view that has
    * list, edit, detail, and add variants, the current value of which is saved in the viewState instance variable.
    * The concrete subclass implementation of a View is responsible only for rendering itself (renderSelf()) and
    * hiding and showing fields based on the viewState.
@@ -77,7 +85,7 @@ export class View extends LitElement {
 
   render() {
     return html`
-      <link rel="stylesheet" href="../styles/oneresource.css">
+      <link rel="stylesheet" href="../../styles/oneresource.css">
       ${this.modifiedStyles() ? this.modifiedStyles() : ""}
       <form>
         <div class="card ${this.viewState === "off" ? "off" : ""}">
