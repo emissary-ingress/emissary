@@ -47,48 +47,21 @@ export class Resource extends Model {
     this._data = data;
   }
 
-   /* updateFrom(resourceData)
-    * Update the Resource object state from the snapshot data block for this Resource.  Compare the values in the
-    * data block with the stored state in the Resource.  If the data block has different data than is currently
-    * stored, update that instance variable with the new data and set a flag to indicate an update has been made.
-    * If any of the state has changed, notify listeners.
-    */
 
-  updateFrom(resourceData) {
-    let updated = false;
+  /* doAdd()
+   * Add this Resource to Kubernetes using kubectl apply.
+   */
 
-    /* get the new labels value from the data, or an empty object if undefined. */
-    let new_labels = resourceData.metadata.labels || {};
+  doAdd() {
+    throw Error("Not Yet Implemented");
+  }
 
-    if (this.labels !== new_labels) {
-      this.labels = new_labels;
-      updated = true;
-    }
+  /* doSave()
+   * Save the changes in this Resource to Kubernetes using kubectl apply.
+   */
 
-    /* get the new annotations value from the data, or an empty object if undefined. */
-    let new_annotations = resourceData.metadata.annotations || {};
-
-    if (this.annotations !== new_annotations) {
-      this.annotations = new_annotations;
-      updated = true;
-    }
-
-    /* get the new status value from the data, or the emptyStatus object if undefined. */
-    let new_status = resourceData.status || this.getEmptyStatus();
-
-    if ((this.status.state  !== new_status.state) ||
-        (this.status.reason !== new_status.reason)) {
-      this.status = new_status;
-      updated = true;
-    }
-
-    /* Give subclasses a chance to update themselves. */
-    updated = updated || this.updateSelfFrom(resourceData);
-
-    /* Notify listeners if any updates occurred. */
-    if (updated) {
-      this.notifyListenersUpdated();
-    }
+  doSave() {
+    throw Error("Not Yet Implemented");
   }
 
   /* getEmptyStatus()
@@ -137,6 +110,50 @@ export class Resource extends Model {
     } else {
       /* Return undefined (same as nonexistent property, vs. null) */
       return undefined;
+    }
+  }
+
+  /* updateFrom(resourceData)
+   * Update the Resource object state from the snapshot data block for this Resource.  Compare the values in the
+   * data block with the stored state in the Resource.  If the data block has different data than is currently
+   * stored, update that instance variable with the new data and set a flag to indicate an update has been made.
+   * If any of the state has changed, notify listeners.
+   */
+
+  updateFrom(resourceData) {
+    let updated = false;
+
+    /* get the new labels value from the data, or an empty object if undefined. */
+    let new_labels = resourceData.metadata.labels || {};
+
+    if (this.labels !== new_labels) {
+      this.labels = new_labels;
+      updated = true;
+    }
+
+    /* get the new annotations value from the data, or an empty object if undefined. */
+    let new_annotations = resourceData.metadata.annotations || {};
+
+    if (this.annotations !== new_annotations) {
+      this.annotations = new_annotations;
+      updated = true;
+    }
+
+    /* get the new status value from the data, or the emptyStatus object if undefined. */
+    let new_status = resourceData.status || this.getEmptyStatus();
+
+    if ((this.status.state  !== new_status.state) ||
+      (this.status.reason !== new_status.reason)) {
+      this.status = new_status;
+      updated = true;
+    }
+
+    /* Give subclasses a chance to update themselves. */
+    updated = updated || this.updateSelfFrom(resourceData);
+
+    /* Notify listeners if any updates occurred. */
+    if (updated) {
+      this.notifyListenersUpdated();
     }
   }
 

@@ -37,6 +37,18 @@ export class IResource extends Resource {
     super(data);
   }
 
+  getSpec() {
+    throw new Error("Please implement Resource:getSpec()");
+  }
+
+  /* copySelf()
+  *  Return a new instance that is a copy of the Resource object, with the same state.
+  */
+
+  copySelf() {
+    throw new Error("Please implement Resource:copySelf()");
+  }
+
   /* updateSelfFrom(resourceData)
    * Update the Resource object state from the snapshot data block for this Resource.  Compare the values in the
    * data block with the stored state in the Resource.  If the data block has different data than is currently
@@ -54,10 +66,6 @@ export class IResource extends Resource {
    * and supplied as the "spec:" portion of the Kubernetes YAML that is passed to kubectl.  See the Host class for
    * an example implementation.
    */
-
-  getSpec() {
-    throw new Error("Please implement Resource:getSpec()");
-  }
 
   /* validateSelf()
    * Validate this Resource's state by checking each object instance variable for correctness (e.g. email address

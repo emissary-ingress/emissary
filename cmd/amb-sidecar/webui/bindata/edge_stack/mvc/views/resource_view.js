@@ -1,12 +1,10 @@
 /*
  * ResourceView
- * A LitElement subclass that implements a generic view on a Resource model object.  It contains cached values of
+ * A View subclass that implements a generic view on a Resource model object.  It contains cached values of
  * its Resource model object, as well as state used for the different view variants (edit, add, etc.)
  */
 
-import { LitElement, html, css } from '../vendor/lit-element.min.js'
-import { getCookie }             from '../components/cookies.js';
-import { View }                  from './view.js'
+import { View } from './view.js'
 
 export class ResourceView extends View {
 
@@ -19,9 +17,9 @@ export class ResourceView extends View {
 
   static get properties() {
     return {
-      kind:      {type: String},  // Resource
-      name:      {type: String},  // Resource
-      namespace: {type: String},  // Resource
+      kind:      {type: String},  // Resource state
+      name:      {type: String},  // Resource state
+      namespace: {type: String},  // Resource state
       viewState: {type: String},  // View
       showYAML:  {type: Boolean}  // ResourceView
     }
@@ -37,17 +35,44 @@ export class ResourceView extends View {
     super(model);
 
     /* Cache state from the model. */
-    this.kind = model.kind;
-    this.name = model.name;
+    this.kind      = model.kind;
+    this.name      = model.name;
     this.namespace = model.namespace;
-    this.status = model.status;
+    this.status    = model.status;
 
     /* Since we are managing a Resource view, we may have messages to display, and optional YAML */
     this.messages = [];
     this.showYAML = false;
   }
 
-  /**
+  /* onEdit()
+   * This method is called on the View when the View needs to change to its Edit mode.
+   */
+
+  onEdit() {
+    throw Error("Not Yet Implemented");
+  }
+
+  /* onSave()
+   * This method is called on the View when the View is in Edit mode, and the user clicks on the
+   * Save button to save the changes.
+   */
+
+  onSave() {
+    throw Error("Not Yet Implemented");
+  }
+
+  /* onCancel()
+   * This method is called on the View when the View is in Edit mode, and the user clicks on the
+   * Cancel button to discard the changes and return to the original state.
+   */
+
+  onCancel() {
+    throw Error("Not Yet Implemented");
+  }
+
+
+  /* readFromModel()
    * This method is called on the View when the View needs to match the current state of its Model.
    * Generally this happens during initialization and during editing when the Cancel button is pressed and the
    * View reverts to displaying the original Model's state.
@@ -57,11 +82,11 @@ export class ResourceView extends View {
     this.clearMessages();
 
     /* Get the name and namespace from the model */
-    this.name = this.model.name;
+    this.name      = this.model.name;
     this.namespace = this.model.namespace;
 
     /* Set the edit fields */
-    this.nameInput().value = this.name;
+    this.nameInput().value      = this.name;
     this.namespaceInput().value = this.namespace;
 
     /* Allow subclasses to read their state from the model. */
@@ -74,7 +99,7 @@ export class ResourceView extends View {
    */
 
   writeToModel() {
-    this.model.name = this.nameInput().value;
+    this.model.name      = this.nameInput().value;
     this.model.namespace = this.namespaceInput().value;
 
     /* Allow subclasses to write their state to the model. */

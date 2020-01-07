@@ -21,7 +21,23 @@ export class IResourceView extends ResourceView {
    */
 
   static get properties() {
-    throw new Error("please implement static function ResourceView:properties()")
+    /* For reference, subclasses implement the static function properties() by returning a Map
+     * that lists the properties in the subclass, and merging with the parent's properties():
+
+     let myProperties = {
+        hostname:     {type: String},   // Host
+        acmeProvider: {type: String},   // Host
+        acmeEmail:    {type: String},   // Host
+        tos:          {type: String},   // HostView
+        showTos:      {type: Boolean}   // HostView
+      };
+
+      return new Map(...myProperties, ...ResourceView.properties());
+     */
+
+
+    /* The interface simply returns the properties of the ResourceView. */
+    return ResourceView.properties();
   }
 
   /* constructor(model)
@@ -63,5 +79,19 @@ export class IResourceView extends ResourceView {
   validateSelf() {
     throw new Error("please implement ResourceView:validateSelf()")
   }
+
+  /* renderSelf()
+  * This method is invoked on save in order to validate input prior to proceeding with the save action.
+  * The model validates its current state, so anything that the View wants to validate must already be in the model.
+  *
+  * validateSelf() returns a Map of fieldnames and error strings. If the dictionary is empty, there are no errors.
+  *
+  * For now we will have a side-effect of validate in that any errors will be added to the message list.
+  */
+
+  renderSelf() {
+    throw new Error("please implement ResourceView:renderSelf()")
+  }
+
 }
 

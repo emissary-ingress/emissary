@@ -179,10 +179,12 @@ Model                  - implements the behavior for notifying listeners
       HostCollection   - a concrete implementation of a HostResource Collection
 
 View                   - implements basic behavior: handling Model notifications and rendering. 
-  IView                - defines Model reading, writing, and rendering interfaces
-    ResourceView       - implements Resource state reading, writing, and validation
-      IResourceView    - defines the interface for extending Resource reading, writing, and validation
-        HostView       - a concrete implementation of a HostResource view
+  ResourceView         - implements basic behavior, standard Resource state. 
+    IResourceView      - defines the interface for extending Resource reading, writing, and validation
+      HostView         - a concrete implementation of a HostResource view
+
+  CollectionView       - implements basic behavior: handling Model notifications and list rendering.
+    ICollectionView    - defines the interface for extending the CollectionView
 ```
 
 
