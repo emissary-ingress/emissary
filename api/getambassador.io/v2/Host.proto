@@ -76,8 +76,8 @@ message HostStatus {
   HostPhase phaseCompleted = 3;
   HostPhase phasePending = 4;
 
-  // reason is valid when state==Error
-  string reason = 5;
+  // errorReason is valid when state==Error.
+  string errorReason = 5;
 }
 
 message ACMEProviderSpec {
