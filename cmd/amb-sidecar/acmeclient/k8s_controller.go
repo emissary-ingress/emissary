@@ -169,6 +169,8 @@ func (c *Controller) recordHostPending(logger dlog.Logger, host *ambassadorTypes
 	host.Status.PhaseCompleted = phaseCompleted
 	host.Status.PhasePending = phasePending
 	host.Status.ErrorReason = ""
+	host.Status.ErrorTimestamp = nil
+	host.Status.ErrorBackoff = nil
 	if err := c.updateHost(host); err != nil {
 		logger.Errorln(err)
 	}
@@ -181,6 +183,8 @@ func (c *Controller) recordHostReady(logger dlog.Logger, host *ambassadorTypesV2
 	host.Status.PhaseCompleted = ambassadorTypesV2.HostPhase_NA
 	host.Status.PhasePending = ambassadorTypesV2.HostPhase_NA
 	host.Status.ErrorReason = ""
+	host.Status.ErrorTimestamp = nil
+	host.Status.ErrorBackoff = nil
 	if err := c.updateHost(host); err != nil {
 		logger.Errorln(err)
 	}
@@ -191,7 +195,19 @@ func (c *Controller) recordHostError(logger dlog.Logger, host *ambassadorTypesV2
 	logger.Debugln("updating errored host:", err)
 	host.Status.State = ambassadorTypesV2.HostState_Error
 	host.Status.PhasePending = phase
+
 	host.Status.ErrorReason = err.Error()
+
+	now := time.Now()
+	host.Status.ErrorTimestamp = &now
+
+	var prevBackoff time.Duration
+	if host.Status.ErrorBackoff != nil {
+		prevBackoff = *host.Status.ErrorBackoff
+	}
+	nextBackoff := getNextBackoff(prevBackoff)
+	host.Status.ErrorBackoff = &nextBackoff
+
 	if err := c.updateHost(host); err != nil {
 		logger.Errorln(err)
 	}
@@ -261,6 +277,13 @@ func (c *Controller) rectifyPhase1(logger dlog.Logger) []*ambassadorTypesV2.Host
 			c.recordHostPending(logger, host,
 				ambassadorTypesV2.HostPhase_DefaultsFilled,
 				nextPhase, "waiting for Host DefaultsFilled change to be reflected in snapshot")
+			continue
+		}
+
+		if host.Status.State == ambassadorTypesV2.HostState_Error &&
+			host.Status.ErrorTimestamp != nil && host.Status.ErrorBackoff != nil &&
+			time.Now().Before(host.Status.ErrorTimestamp.Add(*host.Status.ErrorBackoff)) {
+			logger.Debugln("rectify: Host: in error backoff; skipping")
 			continue
 		}
 
@@ -668,6 +691,21 @@ func (c *Controller) rectifyPhase4(logger dlog.Logger,
 		}
 	}
 	logger.Debugln("rectify: finished")
+}
+
+func getNextBackoff(prevBackoff time.Duration) time.Duration {
+	// The letsencrypt ratelimit is 5 failures per account, per
+	// hostname, per hour.  So we could be pretty safe with, say,
+	// a 15m backoff.  But let's do an exponential backoff anyway,
+	// starting at 10m, and maxing out at 24h.
+	if prevBackoff == 0 {
+		return 10 * time.Minute
+	}
+	ret := prevBackoff * 2
+	if ret > 24*time.Hour {
+		return 24 * time.Hour
+	}
+	return ret
 }
 
 func getEffectiveSpec(host *ambassadorTypesV2.Host) *ambassadorTypesV2.HostSpec {
