@@ -17,16 +17,19 @@ body {
     width:100%;
     height: 100%;
 }
-details {
-    margin: 1em;
-    align-content: center;
-    text-align: center;
-}
 #browser-warning-outer-wrapper {
     width: 100%;
     background-color: #fff;
     align-content: center;
     text-align: center;
+}
+details {
+  margin: 1em;
+  align-content: center;
+  text-align: center;
+}
+details > summary::-webkit-details-marker {
+  display: none;
 }
 div.login-container {
     display: flex;
@@ -50,6 +53,15 @@ div.warning-chrome .warning-safari .warning-firefox .warning-other{
     overflow: hidden;
     align-content: center;
     text-align: center;
+}
+.dropdown {
+  border: 1px solid #ede7f3;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, .1);
+  padding: 0.5em;
+  margin-bottom: 0.6em;
+  line-height: 1.3;
+  position: relative;
+  display: flex;
 }
 h3 {
     margin: 0.1em;
@@ -114,18 +126,6 @@ summary {
   margin-bottom: 10px;
   prevent-default: true;
 }
-details > summary::-webkit-details-marker {
-  display: none;
-}
-.dropdown {
-  border: 1px solid #ede7f3;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, .1);
-  padding: 0.5em;
-  margin-bottom: 0.6em;
-  line-height: 1.3;
-  position: relative;
-  display: flex;
-}
     `;
   }
 
@@ -187,7 +187,7 @@ renderSafariDetails() {
           <img id="safariLogo" src="/edge_stack/images/logos/safari.svg" alt="safari logo">
         </summary>
         <div class="dropdown">
-          <p id="browser-warning-text">This warning appears because a secure connection has not yet been established. Click 'Advanced' to view details and then 'Proceed' to continue to the Edge Policy Console, where you can set your own certificate. Image provided is a generic example for reference.</p>  
+          <p id="browser-warning-text">This warning appears because a secure connection has not yet been established. Click 'Show Details' and then 'Visit This Website' to continue to the Edge Policy Console, where you can set your own certificate. Image provided is a generic example for reference.</p>  
           <img id="securityWarning" src="/edge_stack/images/svgs/safariSecWarning.png" alt="safari security warning logo"> 
         </details>
       </div>
