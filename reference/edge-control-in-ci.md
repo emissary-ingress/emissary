@@ -24,13 +24,14 @@ The CI job that performs system tests of MyService would look roughly like this
    CI_TAG="MyService-$(git describe --always --tags)"
    edgectl intercept add MyService -n "$CI_TAG" -m "x-ci-tag=$CI_TAG" -t localhost:9000
    ```
-6. Run system tests by injecting requests into the application with the appropriate header set
+6. Run system tests by sending requests to the application with the appropriate header set
    ```console
    curl "$API_GATEWAY" -H "x-ci-tag:$CI_TAG"
    # (or)
    env "TEST_HEADER_VALUE=$CI_TAG" pytest ...
    # (etc)
    ```
+   These requests will go to your shared cluster just as any request would, but calls to MyService from within the application will be routed back to the modified version running in CI because the intercepted header is set appropriately. All other calls to MyService will function as usual, going to the version of MyService running in the cluster.
 7. Delete the intercept when the job is done. This is not strictly necessary, as the Traffic Manager will clean up automatically after a while, but doing so here keeps diagnostic output (`edgectl intercept list`, etc.) clean.
    ```console
    edgectl intercept remove "$CI_TAG"
