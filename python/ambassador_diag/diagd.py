@@ -30,6 +30,9 @@ import threading
 import time
 import uuid
 import requests
+import jsonpatch
+
+from expiringdict import ExpiringDict
 
 import concurrent.futures
 
@@ -38,6 +41,7 @@ from pkg_resources import Requirement, resource_filename
 import clize
 from clize import Parameter
 from flask import Flask, render_template, send_from_directory, request, jsonify, Response
+from flask import json as flask_json
 import gunicorn.app.base
 from gunicorn.six import iteritems
 
@@ -56,6 +60,7 @@ if TYPE_CHECKING:
 __version__ = Version
 
 boot_time = datetime.datetime.now()
+tvars_cache = ExpiringDict(max_len=10, max_age_seconds=60)
 
 logging.basicConfig(
     level=logging.INFO,
@@ -481,11 +486,24 @@ def show_overview(reqid=None):
                  banner_content=banner_content,
                  **ov, **ddict)
 
+    patch_client = request.args.get('patch_client', None)
     if request.args.get('json', None):
         key = request.args.get('filter', None)
 
         if key:
             return jsonify(tvars.get(key, None))
+        elif patch_client:
+            # Get the previous full representation
+            cached_tvars_json = tvars_cache.get(patch_client, "{}")
+            # Generate the json-string response for this call, using the same jsonify Flask serializer
+            response_content = flask_json.dumps(tvars)
+            # Diff between the previous representation and the current full representation  (http://jsonpatch.com/)
+            patch = jsonpatch.make_patch(json.loads(cached_tvars_json), json.loads(response_content))
+            # Save the current full representation in memory
+            tvars_cache[patch_client] = response_content
+
+            # Return only the diff
+            return Response(patch.to_string(), mimetype="application/json")
         else:
             return jsonify(tvars)
     else:
@@ -1315,7 +1333,7 @@ class AmbassadorEventWatcher(threading.Thread):
                 odict['exit_code'] = 1
                 odict['output'] = e.output
                 self.logger.warn("envoy configuration validation timed out after {} seconds{}\n{}",
-                    timeout, ', retrying...' if retry < retries - 1 else '', e.output)
+                                 timeout, ', retrying...' if retry < retries - 1 else '', e.output)
                 continue
 
         if odict['exit_code'] == 0:
