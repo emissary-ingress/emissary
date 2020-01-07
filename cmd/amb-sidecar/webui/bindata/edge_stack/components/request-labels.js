@@ -256,7 +256,11 @@ export class RequestLabel extends LitElement {
 
   // internal
   swapElements(a, b) {
-    [this.path[a], this.path[b]] = [this.path[b], this.path[a]]
+    if (!this.path[a] || !this.path[b]) {
+      console.error('At least one element is not part of the current label; skip the update');
+      return;
+    }
+    [this.path[a], this.path[b]] = [this.path[b], this.path[a]];
     this.requestUpdate("path");
     this.changed();
   }
