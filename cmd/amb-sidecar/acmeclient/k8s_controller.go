@@ -168,7 +168,7 @@ func (c *Controller) recordHostPending(logger dlog.Logger, host *ambassadorTypes
 	host.Status.State = ambassadorTypesV2.HostState_Pending
 	host.Status.PhaseCompleted = phaseCompleted
 	host.Status.PhasePending = phasePending
-	host.Status.Reason = ""
+	host.Status.ErrorReason = ""
 	if err := c.updateHost(host); err != nil {
 		logger.Errorln(err)
 	}
@@ -180,7 +180,7 @@ func (c *Controller) recordHostReady(logger dlog.Logger, host *ambassadorTypesV2
 	host.Status.State = ambassadorTypesV2.HostState_Ready
 	host.Status.PhaseCompleted = ambassadorTypesV2.HostPhase_NA
 	host.Status.PhasePending = ambassadorTypesV2.HostPhase_NA
-	host.Status.Reason = ""
+	host.Status.ErrorReason = ""
 	if err := c.updateHost(host); err != nil {
 		logger.Errorln(err)
 	}
@@ -191,7 +191,7 @@ func (c *Controller) recordHostError(logger dlog.Logger, host *ambassadorTypesV2
 	logger.Debugln("updating errored host:", err)
 	host.Status.State = ambassadorTypesV2.HostState_Error
 	host.Status.PhasePending = phase
-	host.Status.Reason = err.Error()
+	host.Status.ErrorReason = err.Error()
 	if err := c.updateHost(host); err != nil {
 		logger.Errorln(err)
 	}
