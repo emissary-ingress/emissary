@@ -186,6 +186,7 @@ metadata:
   namespace: ambassador
   labels:
     product: aes
+    app.kubernetes.io/component: ambassador-service
 spec:
   type: LoadBalancer
   externalTrafficPolicy: Local
@@ -298,8 +299,6 @@ spec:
         - mountPath: /.config/ambassador
           name: ambassador-edge-stack-secrets
           readOnly: true
-      imagePullSecrets:
-      - name: aes-pull-secret
       restartPolicy: Always
       securityContext:
         runAsUser: 8888
