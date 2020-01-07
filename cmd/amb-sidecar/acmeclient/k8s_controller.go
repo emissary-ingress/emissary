@@ -143,10 +143,20 @@ func (c *Controller) getSecret(namespace, name string) *k8sTypesCoreV1.Secret {
 }
 
 func (c *Controller) updateHost(host *ambassadorTypesV2.Host) error {
-	_, err := c.hostsGetter.Namespace(host.GetNamespace()).Update(unstructureHost(host), k8sTypesMetaV1.UpdateOptions{})
+	var err error
+	uHost := unstructureHost(host)
+
+	uHost, err = c.hostsGetter.Namespace(host.GetNamespace()).Update(uHost, k8sTypesMetaV1.UpdateOptions{})
 	if err != nil {
 		return errors.Wrapf(err, "update %q.%q", host.GetName(), host.GetNamespace())
 	}
+	uHost.Object["status"] = host.Status
+
+	_, err = c.hostsGetter.Namespace(host.GetNamespace()).UpdateStatus(uHost, k8sTypesMetaV1.UpdateOptions{})
+	if err != nil {
+		return errors.Wrapf(err, "updateStatus %q.%q", host.GetName(), host.GetNamespace())
+	}
+
 	return err
 }
 
