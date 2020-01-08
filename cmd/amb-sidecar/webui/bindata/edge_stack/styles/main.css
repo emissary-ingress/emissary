@@ -25,7 +25,7 @@ body, html {
 	color: #000;
 	font-family: 'Source Sans Pro', sans-serif;
 	font-size: 16px;
-	background: #000;
+	/* background: #000; */
 	-webkit-font-smoothing: antialiased
 }
 
