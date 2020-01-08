@@ -568,6 +568,7 @@ class IR:
                             ci_namespace = ci_split.get('serviceNamespace', 'default')
                             ci_port = ci_split.get('servicePort', 80)
 
+                            ci_mapping['namespace'] = ci_namespace
                             ci_mapping['service'] = f"{ci_service}.{ci_namespace}:{ci_port}"
 
                             self.logger.debug(f"Generated mapping from ClusterIngress: {ci_mapping}")
