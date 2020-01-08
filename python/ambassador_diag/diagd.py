@@ -1069,7 +1069,7 @@ class AmbassadorEventWatcher(threading.Thread):
 
         if mappings:
             for mapping_name, mapping in mappings.items():
-                app.kubestatus.mark_live("Mapping", mapping_name, mapping.namespace)
+                app.kubestatus.mark_live("Mapping", mapping_name, mapping.get('namespace', Config.ambassador_namespace))
 
         app.kubestatus.prune()
 
