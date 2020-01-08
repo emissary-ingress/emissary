@@ -142,8 +142,6 @@ export class Snapshot extends LitElement {
     };
   }
 
-  static theTimeoutId = 0; // we use this to make sure that we only ever have one active timeout
-
   constructor() {
     super();
 
@@ -274,5 +272,7 @@ export class Snapshot extends LitElement {
     }
   }
 }
+
+Snapshot.theTimeoutId = 0; // we use this to make sure that we only ever have one active timeout
 
 customElements.define('aes-snapshot-provider', Snapshot);
