@@ -86,7 +86,7 @@ img#securityWarning {
     align-content: center;
 }
 p#browser-warning-text {
-    font-size: 70%;
+    font-size: 75%;
     width: 200px;
     margin-left: 10px;
     margin-right: 5px;
@@ -115,11 +115,9 @@ span.command {
 }
 summary:hover {
     outline: none;
-    color: #5F3EFF;
 }
 summary:focus {
     outline: none;
-    color: #5F3EFF;
 }
 summary {
   list-style: none;
@@ -135,16 +133,21 @@ summary {
   }
 
 // Detects user's browser to guide response to browser security warnings
+
   getBrowser() {
     if (!!window.chrome && (!!window.chrome.webstore || !!window.chrome.runtime)) {
+      localStorage.setItem('browser', 'chrome');
       return "chrome";
     } else if (/constructor/i.test(window.HTMLElement) || (function (p) { return p.toString() === "[object SafariRemoteNotification]"; })(!window['safari'] || (typeof safari !== 'undefined' && safari.pushNotification))) {
+      localStorage.setItem('browser', 'safari');
       return "safari";
     } else if (typeof InstallTrigger !== 'undefined') {
+      localStorage.setItem('browser', 'firefox');
       return "firefox";
     } else {
+      localStorage.setItem('browser', 'other');
       return "other";
-    }
+    } 
   }
 
   renderError() {
@@ -171,7 +174,7 @@ renderChromeDetails() {
           <img id="chromeLogo" src="/edge_stack/images/logos/chrome.svg" alt="chrome logo" display=inline></h3>
         </summary>
         <div class="dropdown">
-          <p id="browser-warning-text">This warning appears because a secure connection has not yet been established. Click 'Advanced' to view details and then 'Proceed' to continue to the Edge Policy Console, where you can set your own certificate. Image provided is a generic example for reference.</p>  
+          <p id="browser-warning-text">A kind of "chicken or egg" situation, this warning appears because Ambassador Edge Stack's self-signed certificate is not recognized by your browser. However, once you click through you will land on a secure page where Ambassador Edge Stack will set up a production-quality TLS certificate for you. Click 'Advanced' to view details and then 'Proceed' to continue to the Edge Policy Console. Image provided is a generic example for reference.</p>  
           <img id="securityWarning" src="/edge_stack/images/svgs/chromeSecWarning.png" alt="chrome security warning logo">
         </details>
       </div> 
@@ -187,7 +190,7 @@ renderSafariDetails() {
           <img id="safariLogo" src="/edge_stack/images/logos/safari.svg" alt="safari logo">
         </summary>
         <div class="dropdown">
-          <p id="browser-warning-text">This warning appears because a secure connection has not yet been established. Click 'Show Details' and then 'Visit This Website' to continue to the Edge Policy Console, where you can set your own certificate. Image provided is a generic example for reference.</p>  
+          <p id="browser-warning-text">A kind of "chicken or egg" situation, this warning appears because Ambassador Edge Stack's self-signed certificate is not recognized by your browser. However, once you click through you will land on a secure page where Ambassador Edge Stack will set up a production-quality TLS certificate for you. Click 'Show Details' and then 'Visit This Website' to continue to the Edge Policy Console. Image provided is a generic example for reference.</p>  
           <img id="securityWarning" src="/edge_stack/images/svgs/safariSecWarning.png" alt="safari security warning logo"> 
         </details>
       </div>
@@ -203,7 +206,7 @@ renderFirefoxDetails() {
           <img id="firefoxLogo" src="/edge_stack/images/logos/firefox.png" alt="firefox logo">
         </summary>
         <div class="dropdown">
-          <p id="browser-warning-text">This warning appears because a secure connection has not yet been established. Click 'Advanced' to view details and then 'Accept the Risk and Continue' to the Edge Policy Console, where you can set your own certificate. Image provided is a generic example for reference.</p>  
+          <p id="browser-warning-text">A kind of "chicken or egg" situation, this warning appears because Ambassador Edge Stack's self-signed certificate is not recognized by your browser. However, once you click through you will land on a secure page where Ambassador Edge Stack will set up a production-quality TLS certificate for you. Click 'Advanced' to view details and then 'Accept the Risk and Continue' to the Edge Policy Console. Image provided is a generic example for reference.</p>  
           <img id="securityWarning" src="/edge_stack/images/svgs/firefoxSecWarning.png" alt="firefox security warning logo"> 
         </details>
       </div>
@@ -218,7 +221,7 @@ renderOtherDetails() {
         <summary id="otherFocus"><h3 style="display:inline">Browser Security Warning</h3>
         </summary>
         <div class="dropdown">
-          <p id="browser-warning-text-other">This warning appears because a secure connection has not yet been established. Follow browser instructions to view details and Accept Risk/Proceed to continue to the Edge Policy Console, where you can set your own certificate.</p>  
+          <p id="browser-warning-text-other">A kind of "chicken or egg" situation, a warning appears because Ambassador Edge Stack's self-signed certificate is not recognized by your browser. However, once you click through you will land on a secure page where Ambassador Edge Stack will set up a production-quality TLS certificate for you. Follow your browser's instructions to view details and Accept Risk/Proceed/Visit Website to continue to the Edge Policy Console.</p>  
         </details>
       </div> 
     </div>
@@ -235,6 +238,7 @@ renderOtherDetails() {
         ${this.renderFirefoxDetails()}
 
         ${this.renderOtherDetails()}
+
       </div>
     `;
   }
