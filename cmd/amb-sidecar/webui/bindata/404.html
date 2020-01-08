@@ -66,12 +66,11 @@
       if (window.location.protocol == 'http:') {
         document.getElementsByClassName('app-notice')[0].removeAttribute('style');
       }  
-      if (browser === "chrome" || "safari" || "firefox" ) {
-      document.getElementById('browserType').innerHTML = browserCapitalized;
-      } else {
-      return null;  
-      }
-      console.log(browser);
+        if (browser === "chrome" || browser === "safari" || browser === "firefox" ) {
+        document.getElementById('browserType').innerHTML = browserCapitalized;
+        } else {
+        document.getElementById('browserType').innerHTML = "";
+        }
     </script>
   </body>
   <script type="module" src="../edge_stack/components/browser-warning.js"></script>
