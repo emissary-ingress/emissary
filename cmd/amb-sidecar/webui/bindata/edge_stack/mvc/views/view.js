@@ -23,12 +23,12 @@ export class View extends LitElement {
 
   static get properties() {
     return {
-      viewState: {type: String},  // View
+      viewState: {type: String}  // View
     }
   }
 
   /* constructor(model)
-   * The View constructor, which takes a Model (model) as its parameter.
+   * The View constructor, which takes a Model as its parameter.
    */
 
   constructor(model) {
@@ -36,14 +36,14 @@ export class View extends LitElement {
     this.model     = model;
     this.viewState = "list";
 
-    /* and listen to model changes for updates. Model will call this.onModelNotification with
+    /* listen to model changes for updates. Model will call this.onModelNotification with
      * the model itself, a message, and an optional parameter.
      */
 
     model.addListener(this);
   }
 
-   /* minimumNumberOfAddRows()
+  /* minimumNumberOfAddRows()
    * minimumNumberOfEditRows()
    *
    * To help the UI place buttons within the rectangle border (or more precisely, to help the UI grow the rectangle
