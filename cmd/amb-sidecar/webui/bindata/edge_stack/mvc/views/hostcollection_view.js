@@ -1,5 +1,5 @@
 /*
- * CollectionView
+ * HostCollectionView
  * An ICollectionView concrete subclass that implements a view on a Collection of HostViews.
  */
 
@@ -18,7 +18,7 @@ export class HostCollectionView extends ICollectionView {
    */
 
   static get properties() {
-    return ICollectionView.properties();
+    return ICollectionView.properties;
   }
 
   /* styles
@@ -27,7 +27,7 @@ export class HostCollectionView extends ICollectionView {
    */
 
   static get styles() {
-    return ICollectionView.styles();
+    return ICollectionView.styles;
    }
 
   /* constructor(model, sortFields)
@@ -52,25 +52,21 @@ export class HostCollectionView extends ICollectionView {
   }
 
   /* onModelNotification.
-  * Listener for model-created notifications.  This is
-  * called when a new Resource has been created, and a
-  * new view must be created to display that Resource.
+  * Listener for model-created notifications.  This is called when a new Host has been created, and a
+  * new view must be created to display that Host.
   */
 
   onModelNotification(model, message, parameter) {
-    switch(message) {
+    if (message === 'created') {
+      /* Create a new dw-host web component and add it as a child. Because this view is a web component, adding
+       * that child component queues the appropriate re-render at the correct time,and are rendered in our <slot>.
+      */
 
-      /*
-       * Create a new dw-host web component and add it as a child.
-       * Because this view is a web component, adding that child component
-       * queues the appropriate re-render at the correct time. Our children
-       * are rendered in our <slot>.
-       */
-      case 'created':
-        let child_view = new HostView(model);
-        this.appendChild(child_view);
-        break;
+      let child_view = new HostView(model);
+      this.appendChild(child_view);
     }
   }
 }
 
+/* Bind our custom elements to the HostCollectionView. */
+customElements.define('dw-hosts', HostCollectionView);

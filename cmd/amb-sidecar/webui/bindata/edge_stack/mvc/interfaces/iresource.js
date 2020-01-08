@@ -42,7 +42,7 @@ export class IResource extends Resource {
   */
 
   copySelf() {
-    throw new Error("Please implement Resource:copySelf()");
+    throw new Error("Please implement ${this.constructor.name}:copySelf()");
   }
 
   /* getSpec()
@@ -52,8 +52,19 @@ export class IResource extends Resource {
    */
 
   getSpec() {
-    throw new Error("Please implement Resource:getSpec()");
+    throw new Error("Please implement ${this.constructor.name}:getSpec()");
   }
+
+
+  /* kind()
+   * Return the name of the Kind of the Resource.
+   */
+
+  kind() {
+    throw new Error("Please implement ${this.constructor.name}:getSpec()");
+  }
+
+
 
   /* updateSelfFrom(resourceData)
    * Update the Resource object state from the snapshot data block for this Resource.  Compare the values in the
@@ -63,7 +74,7 @@ export class IResource extends Resource {
    */
 
   updateSelfFrom(resourceData) {
-    throw new Error("Please implement Resource:updateSelfFrom(resourceData)");
+    throw new Error("Please implement ${this.constructor.name}:updateSelfFrom(resourceData)");
   }
 
   /* getSpec()
@@ -80,7 +91,7 @@ export class IResource extends Resource {
    */
 
   validateSelf() {
-    throw new Error("Please implement Resource:validateSelf()");
+    throw new Error("Please implement ${this.constructor.name}:validateSelf()");
   }
 
   /* ====================================================================================================

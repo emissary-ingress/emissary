@@ -5,11 +5,8 @@
  * as needed.
  */
 
-/* Map merge operation */
-import { mapMerge } from "./map.js"
-
 /* LitElement superclass. */
-import { LitElement, html } from '../../vendor/lit-element.min.js'
+import { LitElement, html, css } from '../../vendor/lit-element.min.js'
 
 export class CollectionView extends LitElement {
 
@@ -21,6 +18,7 @@ export class CollectionView extends LitElement {
 
   static get properties() {
     return {
+      addState:   { type: Boolean },
       sortFields: { type: Array },
       sortBy:     { type: String }
     };

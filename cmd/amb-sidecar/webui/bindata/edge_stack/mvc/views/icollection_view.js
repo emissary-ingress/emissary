@@ -3,8 +3,7 @@
  * This is the Interface class to the CollectionView.
  */
 
-/* Map merge operation */
-import { mapMerge } from "./map.js"
+import { CollectionView } from "./collection_view.js"
 
 export class ICollectionView extends CollectionView {
 
@@ -31,7 +30,7 @@ export class ICollectionView extends CollectionView {
      */
 
     /* The interface simply returns the properties of the CollectionView. */
-    return CollectionView.properties();
+    return CollectionView.properties;
   }
 
   /* styles
@@ -42,7 +41,7 @@ export class ICollectionView extends CollectionView {
    */
 
   static get styles() {
-    return CollectionView.styles();
+    return CollectionView.styles;
   }
 
   /* constructor(model, sortFields)
@@ -56,7 +55,7 @@ export class ICollectionView extends CollectionView {
   }
 
   onAdd() {
-    throw Error("Please implement CollectionView.onAdd()")
+    throw Error("Please implement ${this.constructor.name}.onAdd()")
   }
 
   /**

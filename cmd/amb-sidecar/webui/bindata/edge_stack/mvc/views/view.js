@@ -98,10 +98,10 @@ export class View extends LitElement {
             <div class="row line">
               <div class="row-col margin-right">${this.kind}:</div>
               <div class="row-col">
-                <b class="${this.visible("list", "edit")}">${this.name}</b>
-                <input class="${this.visible("add")}" name="name" type="text" value="${this.name}"/>
-                <div class="namespace${this.visible("list", "edit")}">(${this.namespace})</div>
-                <div class="namespace-input ${this.visible("add")}"><div class="pararen">(</div><input class="${this.visible("add")}" name="namespace" type="text" value="${this.namespace}"/><div class="pararen">)</div></div>
+                <b class="${this.visibleWhen("list", "edit")}">${this.name}</b>
+                <input class="${this.visibleWhen("add")}" name="name" type="text" value="${this.name}"/>
+                <div class="namespace${this.visibleWhen("list", "edit")}">(${this.namespace})</div>
+                <div class="namespace-input ${this.visibleWhen("add")}"><div class="pararen">(</div><input class="${this.visibleWhen("add")}" name="namespace" type="text" value="${this.namespace}"/><div class="pararen">)</div></div>
               </div>
             </div>
       
@@ -109,7 +109,7 @@ export class View extends LitElement {
          
           </div>
           <div class="col2">
-            <a class="cta edit ${this.visible("list", "detail", "edit", "add")}" @click=${(e)=>this.onYaml(e.target.checked)}>
+            <a class="cta edit ${this.visibleWhen("list", "detail", "edit", "add")}" @click=${(e)=>this.onYaml(e.target.checked)}>
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64"><title>zoom</title><g class="nc-icon-wrapper" stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" fill="#000000" stroke="#000000"><line data-color="color-2" x1="59" y1="59" x2="42.556" y2="42.556" fill="none" stroke-miterlimit="10"/><circle cx="27" cy="27" r="22" fill="none" stroke="#000000" stroke-miterlimit="10"/></g></svg>
               <div class="label">yaml</div>
             </a>
@@ -117,4 +117,14 @@ export class View extends LitElement {
         </div>
       </form>`
   }
+
+  /* visibleWhen(...arguments)
+  * return the empty string if the current viewState is listed in the arguments, "off" otherwise.
+  */
+
+  visibleWhen() {
+    return [...arguments].includes(this.viewState) ? "" : "off";
+  }
+
+
 }
