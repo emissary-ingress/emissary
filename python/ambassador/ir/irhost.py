@@ -15,9 +15,10 @@ class IRHost(IRResource):
     AllowedKeys = {
         'acmeProvider',
         'hostname',
+        'matchLabels',
+        'requestPolicy',
         'selector',
         'tlsSecret',
-        'matchLabels'
     }
 
     def __init__(self, ir: 'IR', aconf: Config,

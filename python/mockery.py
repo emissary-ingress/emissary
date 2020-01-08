@@ -167,7 +167,7 @@ class WatchSpec:
 
         # Woo, it worked!
         self.logger.debug(f"match {self} - {match_kind_str}: good!")
-        self.logger.debug(f"{obj}")
+        # self.logger.debug(f"{obj}")
 
         return WatchResult(kind=self.kind, watch_id=str(self))
 
