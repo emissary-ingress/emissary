@@ -107,7 +107,7 @@ func deepCopyHostSpec(in *ambassadorTypesV2.HostSpec) *ambassadorTypesV2.HostSpe
 	return &out
 }
 
-// unstructureMetadata marshals a *k8sTypesMetaV1.ObjectMeta for us
+// unstructureMetadata marshals a *k8sTypesMetaV1.ObjectMeta for use
 // in a `*k8sTypesUnstructured.Unstructured`.
 //
 // `*k8sTypesUnstructured.Unstructured` requires that the "metadata"
@@ -132,8 +132,8 @@ func unstructureMetadata(in *k8sTypesMetaV1.ObjectMeta) map[string]interface{} {
 }
 
 // unstructureHost returns a *k8sTypesUnstructured.Unstructured
-// representation of an *ambassadorTypesV2.Host.  There are a 2
-// reasons why we might want this:
+// representation of an *ambassadorTypesV2.Host.  There are 2 reasons
+// why we might want this:
 //
 //  1. For use with a k8sClientDynamic.Interface
 //  2. For use as a k8sRuntime.Object
