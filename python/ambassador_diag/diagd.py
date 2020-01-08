@@ -494,11 +494,11 @@ def show_overview(reqid=None):
             return jsonify(tvars.get(key, None))
         elif patch_client:
             # Get the previous full representation
-            cached_tvars_json = tvars_cache.get(patch_client, "{}")
-            # Generate the json-string response for this call, using the same jsonify Flask serializer
-            response_content = flask_json.dumps(tvars)
+            cached_tvars_json = tvars_cache.get(patch_client, dict())
+            # Serialize the tvars into a json-string using the same jsonify Flask serializer, then load the json object
+            response_content = json.loads(flask_json.dumps(tvars))
             # Diff between the previous representation and the current full representation  (http://jsonpatch.com/)
-            patch = jsonpatch.make_patch(json.loads(cached_tvars_json), json.loads(response_content))
+            patch = jsonpatch.make_patch(cached_tvars_json, response_content)
             # Save the current full representation in memory
             tvars_cache[patch_client] = response_content
 
@@ -1333,7 +1333,7 @@ class AmbassadorEventWatcher(threading.Thread):
                 odict['exit_code'] = 1
                 odict['output'] = e.output
                 self.logger.warn("envoy configuration validation timed out after {} seconds{}\n{}",
-                                 timeout, ', retrying...' if retry < retries - 1 else '', e.output)
+                    timeout, ', retrying...' if retry < retries - 1 else '', e.output)
                 continue
 
         if odict['exit_code'] == 0:
