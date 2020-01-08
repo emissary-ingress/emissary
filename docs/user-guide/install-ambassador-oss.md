@@ -25,13 +25,13 @@ kubectl create clusterrolebinding my-cluster-admin-binding --clusterrole=cluster
 If RBAC is enabled:
 
 ```shell
-kubectl apply -f https://getambassador.io/yaml/ambassador/ambassador-rbac.yaml
+kubectl apply -f https://www.getambassador.io/early-access/yaml/ambassador/ambassador-rbac.yaml
 ```
 
 Without RBAC, you can use:
 
 ```shell
-kubectl apply -f https://getambassador.io/yaml/ambassador/ambassador-no-rbac.yaml
+kubectl apply -f https://www.getambassador.io/early-access/yaml/ambassador/ambassador-no-rbac.yaml
 ```
 
 We recommend downloading the YAML files and exploring the content. You will see
