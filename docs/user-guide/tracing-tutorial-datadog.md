@@ -54,7 +54,7 @@ $ curl $AMBASSADOR_IP/httpbin/ip
 
 ## 5. Test traces
 
-Once you have made some requests you should be able to [view your traces](https://app.datadoghq.com/apm/traces) within a few minutes in the DataDog UI. If you would like more information on DataDog APM to learn about it's features and benefits you can view the [documentation](https://docs.datadoghq.com/tracing/).
+Once you have made some requests you should be able to [view your traces](https://app.datadoghq.com/apm/traces) within a few minutes in the DataDog UI. If you would like more information on DataDog APM to learn about its features and benefits you can view the [documentation](https://docs.datadoghq.com/tracing/).
 
 ## More
 
