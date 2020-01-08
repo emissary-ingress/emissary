@@ -183,8 +183,8 @@ View                   - implements basic behavior: handling Model notifications
     IResourceView      - defines the interface for extending Resource reading, writing, and validation
       HostView         - a concrete implementation of a HostResource view
 
-  CollectionView       - implements basic behavior: handling Model notifications and list rendering.
-    ICollectionView    - defines the interface for extending the CollectionView
+CollectionView         - implements basic behavior: handling Model notifications, rendering a sortable list of Views.
+  ICollectionView      - defines the interface for extending the CollectionView
 ```
 
 

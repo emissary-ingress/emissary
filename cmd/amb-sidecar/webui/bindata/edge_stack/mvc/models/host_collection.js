@@ -18,13 +18,14 @@ export class HostCollection extends ICollection {
     super();
   }
 
-  /* uniqueKeyFor(resourceData)
-   * Return a computed modelKey given some structured resource data (a hierarchical key/value
-   * structure). Here we use the Resource kind, name, and namespace concatenated together for a unique key.
+  /* extractResourcesFrom(snapshot)
+   * Given a snapshot as received from the backend via snapshot.js, return a list of resource data blocks
+   * given the resource's type name, Host in this case.  Since the snapshot itself has a method to get resource
+   * data for given types, we can simply call the snapshot to return the list of Host data blocks.
    */
 
-  uniqueKeyFor(resourceData) {
-    return resourceData.kind + "::" + resourceData.metadata.name + "::" + resourceData.metadata.namespace;
+  extractResourcesFrom(snapshot) {
+    return snapshot.getResources("Host");
   }
 
   /* resourceClass()
@@ -35,16 +36,15 @@ export class HostCollection extends ICollection {
     return HostResource;
   }
 
-  /* extractResourcesFrom(snapshot)
-  * Given a snapshot as received from the backend via snapshot.js, return a list of resource data blocks
-  * given the resource's type name, Host in this case.  Since the snapshot itself has a method to get resource
-  * data for given types, we can simply call the snapshot to return the list of Host data blocks.
-  */
+  /* uniqueKeyFor(resourceData)
+   * Return a computed modelKey given some structured resource data (a hierarchical key/value
+   * structure). Here we use the Resource kind, name, and namespace concatenated together for a unique key.
+   */
 
-  extractResourcesFrom(snapshot) {
-    return snapshot.getResources("Host");
+  uniqueKeyFor(resourceData) {
+    return resourceData.kind + "::" + resourceData.metadata.name + "::" + resourceData.metadata.namespace;
   }
-}
+ }
 
 
 /* Export a HostCollection instance.  This object manages every Host instance and synchronizes the list of Hosts

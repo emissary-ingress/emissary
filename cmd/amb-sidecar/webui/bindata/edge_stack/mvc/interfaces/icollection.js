@@ -3,16 +3,17 @@
  * This is the Interface class for Collection.
  *
  * ICollection subclasses, such as HostCollection, need only define three methods to specialize:
- * - resourceClass(), which returns the class that should be instantiated if a new item (e.g. Host) is added
- *
- * - uniqueKeyFor(resourceData)
- *   this method computes a unique key for the collection's Resource, to determine whether the Resource described
- *   by the data block has already been initialized and stored in the Collection.
  *
  * - extractResourcesFrom(snapshot)
  *   this method is responsible for finding the right place in the snapshot to extract data objects that are used
  *   by the Resource's initFrom method to create a new instance of that resource.  This function returns a
  *   list that can be iterated over, returning data objects.
+ *
+ * - resourceClass(), which returns the class that should be instantiated if a new item (e.g. Host) is added
+ *
+ * - uniqueKeyFor(resourceData)
+ *   this method computes a unique key for the collection's Resource, to determine whether the Resource described
+ *   by the data block has already been initialized and stored in the Collection.
  *
  * Most Resources (CRD's) have the same data formats but there are other objects in the snapshot that
  * are not CRD's, have different structure, and are not in the same part of the snapshot (e.g. Resolvers).
@@ -44,7 +45,7 @@ export class ICollection extends Collection {
    */
 
   extractResourcesFrom(snapshot) {
-    throw new Error("please implement Collection:extractResourcesFrom(snapshot)")
+    throw new Error("please implement ${this.constructor.name}.extractResourcesFrom(snapshot)")
   }
 
   /* resourceClass()
@@ -52,7 +53,7 @@ export class ICollection extends Collection {
    */
 
   resourceClass() {
-    throw new Error("Please implement Collection:resourceClass()");
+    throw new Error("Please implement ${this.constructor.name}.resourceClass()");
   }
 
   /* uniqueKeyFor(resourceData)
@@ -64,7 +65,7 @@ export class ICollection extends Collection {
    */
 
   uniqueKeyFor(resourceData) {
-    throw new Error("please implement Collection:uniqueKeyFor(resourceData)");
+    throw new Error("please implement ${this.constructor.name}.uniqueKeyFor(resourceData)");
   }
 
   /* ====================================================================================================

@@ -47,7 +47,7 @@ export class HostView extends IResourceView {
    */
 
   readSelfFromModel() {
-    throw new Error("please implement ResourceView:readSelfFromModel()")
+    throw new Error("please implement ${this.constructor.name}.readSelfFromModel()")
   }
 
   /* writeSelfToModel()
@@ -56,7 +56,7 @@ export class HostView extends IResourceView {
    */
 
   writeSelfToModel() {
-    throw new Error("please implement ResourceView:writeSelfToModel()")
+    throw new Error("please implement ${this.constructor.name}.writeSelfToModel()")
   }
 
   /* validateSelf()
@@ -69,7 +69,7 @@ export class HostView extends IResourceView {
    */
 
   validateSelf() {
-    throw new Error("please implement ResourceView:validateSelf()")
+    throw new Error("please implement ${this.constructor.name}.validateSelf()")
   }
 
   /* renderSelf()
@@ -82,7 +82,7 @@ export class HostView extends IResourceView {
   */
 
   renderSelf() {
-    throw new Error("please implement ResourceView:renderSelf()")
+    throw new Error("please implement ${this.constructor.name}.renderSelf()")
   }
 
 }

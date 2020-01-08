@@ -64,7 +64,7 @@ export class Resource extends Model {
    * as YAML.  Returns null if success, an error string if not.
     */
 
-  doApply(yaml, cookie) {
+  doApply(cookie, yaml) {
     let error  = null;
     let params = {
       method: "POST",

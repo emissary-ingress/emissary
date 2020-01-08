@@ -1,16 +1,15 @@
 /*
  * CollectionView
- * A View subclass that implements a generic view on a Resource model object.  It contains cached values of
- * its Resource model object, as well as state used for the different view variants (edit, add, etc.)
+ * A LitElement subclass that implements a generic view on a sortable list of Views.
  */
 
 /* Map merge operation */
 import { mapMerge } from "./map.js"
 
-/* View superclass. */
-import { View } from './view.js'
+/* LitElement superclass. */
+import { LitElement, html } from '../../vendor/lit-element.min.js'
 
-export class CollectionView extends View {
+export class CollectionView extends LitElement {
 
   /* properties()
    * These are the properties of the CollectionView. LitElement manages these declared properties and
@@ -131,11 +130,11 @@ export class CollectionView extends View {
   }
 
   renderSet() {
-    throw new Error("please implement CollectionView.renderSet()");
+    throw new Error("please implement ${this.constructor.name}.renderSet()");
   }
 
   sortFn(sortByAttribute) {
-    throw new Error("please implement CollectionView.sortFn(sortByAttribute)");
+    throw new Error("please implement ${this.constructor.name}.sortFn(sortByAttribute)");
   }
 
 

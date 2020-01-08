@@ -5,7 +5,7 @@
  * and update their properties to be redisplayed.
  *
  * This View implementation also assumes quite a bit about the HTML environment it renders in.  There may be
- * modifiedStyles
+ * modifiedStyles as well.  This View is for rendering Resources and Resource subclasses.
  *
  */
 

@@ -40,21 +40,22 @@ export class Collection extends Model {
     /* For each of the snapshot data records for this model... */
     for (let resourceData of this.extractResourcesFrom(snapshot)) {
       let key = this.uniqueKeyFor(resourceData);
-      /*
-       * ...if we already have a model object for this data, then ask
-       *    that object to check if it needs to update any data fields.
+      /* ...if we already have a model object for this data, then ask
+       * that object to check if it needs to update any data fields.
        */
       let existingResource = this._resources.get(key);
-
       if (existingResource) {
+        /* Only need to update if the existing Resource's version has changed.  Note that
+         * resourceVersion can only be compared with equality, and is not necessarily
+         * a monotonically increasing value.
+         */
         if (existingResource.version !== resourceData.metadata.resourceVersion) {
           previousKeys.delete(key);
           existingResource.updateFrom(resourceData);
         }
       }
       else {
-        /*
-         * ...if we do not have a model object for this Resource (as defined by the unique key), then create a new
+        /* ...if we do not have a model object for this Resource (as defined by the unique key), then create a new
          * Resource object. After creating the object, notify all my listeners of the creation. See views/resources.js
          * for more information on how the ResourceListView uses that notification to add new child web components.
          */

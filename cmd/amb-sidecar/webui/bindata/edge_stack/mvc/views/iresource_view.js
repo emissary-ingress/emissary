@@ -60,7 +60,7 @@ export class IResourceView extends ResourceView {
    */
 
   readSelfFromModel() {
-    throw new Error("please implement ResourceView:readSelfFromModel()")
+    throw new Error("please implement ${this.constructor.name}.readSelfFromModel()")
   }
 
   /* writeSelfToModel()
@@ -69,7 +69,7 @@ export class IResourceView extends ResourceView {
    */
 
   writeSelfToModel() {
-    throw new Error("please implement ResourceView:writeSelfToModel()")
+    throw new Error("please implement ${this.constructor.name}.writeSelfToModel()")
   }
 
   /* validateSelf()
@@ -82,7 +82,7 @@ export class IResourceView extends ResourceView {
    */
 
   validateSelf() {
-    throw new Error("please implement ResourceView:validateSelf()")
+    throw new Error("please implement ${this.constructor.name}.validateSelf()")
   }
 
   /* renderSelf()
@@ -95,7 +95,7 @@ export class IResourceView extends ResourceView {
   */
 
   renderSelf() {
-    throw new Error("please implement ResourceView:renderSelf()")
+    throw new Error("please implement ${this.constructor.name}.renderSelf()")
   }
 
 }
