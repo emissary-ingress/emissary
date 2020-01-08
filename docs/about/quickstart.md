@@ -6,7 +6,7 @@ In this Docker quickstart guide, we'll get Ambassador Edge Stack running locally
 
 By default, Ambassador Edge Stack uses a demo configuration to show some of its basic features. Get it running with Docker, and expose Ambassador Edge Stack on port 8080:
 
-```shell
+```
 docker run -it -p 8080:8080 --name=ambassador --rm quay.io/datawire/aes:$version$ --demo
 ```
 
@@ -22,7 +22,7 @@ Some of the most important information - your Ambassador Edge Stack version, how
 
 ## 3. The Quote of the Moment Service
 
-Since Ambassador Edge Stack is an API gateway, its primary purpose is to provide access to microservices. The demo is preconfigured with a mapping that connects the `/qotm/` resource to the "Quote of the Moment" service -- a demo service that supplies quotations. You can try it out by opening
+Since Ambassador Edge Stack is a comprehensive, self-service edge stack, its primary purpose is to provide access and control to microservices for the teams that manage them. The demo is preconfigured with a mapping that connects the `/qotm/` resource to the "Quote of the Moment" service -- a demo service that supplies quotations. You can try it out by opening
 
 `http://localhost:8080/qotm/`
 
