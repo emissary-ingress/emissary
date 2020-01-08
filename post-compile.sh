@@ -32,6 +32,7 @@ spec:
   rewrite: /edge_stack_ui/
   service: 127.0.0.1:8500
   precedence: -1000000
+  timeout_ms: 60000
 ---
 apiVersion: getambassador.io/v2
 kind: Mapping
@@ -47,6 +48,7 @@ spec:
   rewrite: /edge_stack_ui/edge_stack/
   service: 127.0.0.1:8500
   precedence: 1000000
+  timeout_ms: 60000
 ---
 apiVersion: getambassador.io/v2
 kind: Mapping
