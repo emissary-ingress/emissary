@@ -1,6 +1,8 @@
 /*
  * CollectionView
  * A LitElement subclass that implements a generic view on a sortable list of Views.
+ * This class listens to a Collection of Resources, and adds/removes views on those Resources
+ * as needed.
  */
 
 /* Map merge operation */
@@ -46,12 +48,13 @@ export class CollectionView extends LitElement {
       }
     `
   }
-  /* constructor(sortFields)
+  /* constructor(model, sortFields)
+   * model is the Collection that is being rendered by this CollectionView.
    * sortFields is an array of {value: label} objects, where the value is the Resource property
    * on which to sort, and label is the display name for the HTML component.
    */
 
-  constructor(sortFields) {
+  constructor(model, sortFields) {
     super();
 
     if (!sortFields || sortFields.length === 0) {
@@ -60,50 +63,17 @@ export class CollectionView extends LitElement {
     this.sortFields = sortFields;
     this.sortBy     = this.sortFields[0].value;
     this.addState   = "off";
+
+    /* Add this as a listener to the model (a Collection of Resources) */
+    model.addListener(this);
   }
-
-  onAdd() {
-
-  }
-
 
   onChangeSortByAttribute(e) {
     this.sortBy = e.target.options[e.target.selectedIndex].value;
   }
 
-  /**
-   * Override to false to allow the Add button to show up.
-   */
-  readOnly() {
-    return true;
-  }
-
-  /* onCollectionNotification.
-  * Listener for model-created notifications.  This is
-  * called when a new Resource has been created, and a
-  * new view must be created to display that Resource.
-  */
-
-  onCollectionNotification(message, model, parameter) {
-    switch(message) {
-
-      /*
-       * Create a new dw-host web component and add it as a child.
-       * Because this view is a web component, adding that child component
-       * queues the appropriate re-render at the correct time. Our children
-       * are rendered in our <slot>.
-       */
-      case 'created':
-        let child_view = new View(model);
-        this.appendChild(child_view);
-        break;
-    }
-  }
-
   /* render()
-   * Render the list.  Subclasses will override but most will
-   * look like the example below, the key elements being:
-   *
+   * Render the list.  Key requirements:
    *   a) include the add-button
    *   b) include a single slot for where you want add to be
    *   c) include a slot for all the rest of the data
@@ -136,7 +106,5 @@ export class CollectionView extends LitElement {
   sortFn(sortByAttribute) {
     throw new Error("please implement ${this.constructor.name}.sortFn(sortByAttribute)");
   }
-
-
 }
 

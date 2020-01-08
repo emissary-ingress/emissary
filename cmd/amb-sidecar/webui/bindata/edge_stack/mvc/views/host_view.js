@@ -87,3 +87,4 @@ export class HostView extends IResourceView {
 
 }
 
+customElements.define('dw-host', HostView);
