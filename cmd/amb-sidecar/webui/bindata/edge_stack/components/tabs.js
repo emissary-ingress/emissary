@@ -132,7 +132,7 @@ export class Tabs extends LitElement {
       navigation a {
         padding: 0;
         text-decoration: none;
-        height: 50px;
+        height: 53px;
         transition: all .7s ease
       }
       
