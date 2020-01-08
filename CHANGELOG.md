@@ -50,7 +50,24 @@ Format:
 ## [1.0.0-ea12] January 08, 2020
 [1.0.0-ea12]: https://github.com/datawire/ambassador/compare/v0.86.0...v1.0.0-ea12
 
-Internal: Streamline code generation from protobufs
+### Breaking Change
+
+When a resource specifies a service or secret name without a corresponding namespace, Ambassador uses the namespace of the resource. In the past, Ambassador would use its own namespace.
+
+### Bugfixes
+
+- Add the appropriate label so Ingress works with Edge Stack
+- Remove superfluous imagePullSecret
+- Fix various admin UI quirks, especially in Firefox
+  - Bogus warnings about duplicate resources
+  - Drag-and-drop reordering of rate limit configuration
+  - Missing icons
+
+### Internal
+
+- Drop duplicated resources earlier in the processing chain
+- Streamline code generation from protobufs
+- Automated broken-link checks in the documentation
 
 ## [1.0.0-ea9] December 23, 2019
 [1.0.0-ea9]: https://github.com/datawire/ambassador/compare/v0.86.0...v1.0.0-ea9
