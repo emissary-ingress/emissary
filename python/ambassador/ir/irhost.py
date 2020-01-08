@@ -35,6 +35,8 @@ class IRHost(IRResource):
             if x in IRHost.AllowedKeys
         }
 
+        self.context: Optional[IRTLSContext] = None
+
         super().__init__(
             ir=ir, aconf=aconf, rkey=rkey, location=location,
             kind=kind, name=name, namespace=namespace, apiVersion=apiVersion,
@@ -95,6 +97,7 @@ class IRHost(IRResource):
                                 ctx['metadata_labels'] = match_labels
 
                             if ctx.is_active():
+                                self.context = ctx
                                 ctx.referenced_by(self)
                                 ctx.sourced_by(self)
 
@@ -141,7 +144,7 @@ class HostFactory:
 
         if hosts:
             for config in hosts.values():
-                ir.logger.debug("creating host for %s" % repr(config.as_dict()))
+                ir.logger.debug("HostFactory: creating host for %s" % repr(config.as_dict()))
 
                 host = IRHost(ir, aconf, **config)
 
@@ -149,4 +152,7 @@ class HostFactory:
                     host.referenced_by(config)
                     host.sourced_by(config)
 
+                    ir.logger.info(f"HostFactory: saving host {host.name}")
                     ir.save_host(host)
+                else:
+                    ir.logger.info(f"HostFactory: not saving inactive host {host.name}")

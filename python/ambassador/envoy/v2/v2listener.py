@@ -14,6 +14,9 @@
 from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING
 from typing import cast as typecast
 
+import sys
+
+import copy
 import json
 
 from multi import multi
@@ -30,6 +33,7 @@ from ...ir.irtlscontext import IRTLSContext
 
 from ...utils import ParsedService as Service
 
+from .v2route import V2Route
 from .v2tls import V2TLSContext
 
 if TYPE_CHECKING:
@@ -461,34 +465,136 @@ class V2TCPListener(dict):
         self['filter_chains'].append(chain_entry)
 
 
-class V2Listener(dict):
-    def __init__(self, config: 'V2Config', listener: IRListener) -> None:
+class V2VirtualHost(dict):
+    def __init__(self, config: 'V2Config', listener: 'V2Listener',
+                 hostname: Optional[str], ctx: Optional[IRTLSContext],
+                 secure: bool, action: str, insecure_action: Optional[str],
+                 use_proxy_proto: bool) -> None:
         super().__init__()
 
-        # Default some things to the way they should be for the redirect listener
-        self.name = "redirect_listener"
-        self.access_log: List[dict] = []
-        self.require_tls: Optional[str] = 'EXTERNAL_ONLY'
-        self.use_proxy_proto = listener.get('use_proxy_proto')
+        self._config = config
+        self._listener = listener
+        self._hostname = hostname
+        self._ctx = ctx
+        self._secure = secure
+        self._action = action
+        self._insecure_action = insecure_action
+        self._needs_redirect = False
 
+        self["tls_context"] = V2TLSContext(ctx)
+        self["use_proxy_proto"] = use_proxy_proto
+        self["routes"]: List['V2Route'] = []
+
+    def needs_redirect(self) -> None:
+        self._needs_redirect = True
+
+    def append_route(self, route: V2Route):
+        self["routes"].append(route)
+
+    def finalize(self, enable_sni: bool) -> None:
+        # Even though this is called V2VirtualHost, we track the filter_chain_match here,
+        # because it makes more sense, because this is where we have the domain information.
+        # The 1:1 correspondence that this implies between filters and domains may need to
+        # change later, of course...
+        match = {}
+
+        if self._ctx:
+            match["transport_protocol"] = "tls"
+
+        if enable_sni and self._ctx and self._hostname and (self._hostname != '*'):
+            match["server_names"] = [ self._hostname ]
+
+        self["filter_chain_match"] = match
+
+        # If we're doing insecure redirection...
+        if self._needs_redirect:
+            # ...then make sure to punch a hole for ACME challenges if we're on Edge Stack...
+            if self._config.ir.edge_stack_allowed:
+                found_acme = False
+
+                for route in self["routes"]:
+                    if route["match"].get("prefix", None) == "/.well-known/acme-challenge/":
+                        found_acme = True
+                        break
+
+                if not found_acme:
+                    self["routes"].insert(0, {
+                        "match": {
+                            "case_sensitive": True,
+                            "prefix": "/.well-known/acme-challenge/"
+                        },
+                        "route": {
+                            "cluster": "cluster_127_0_0_1_8500",
+                            "prefix_rewrite": "/.well-known/acme-challenge/",
+                            "timeout": "3.000s"
+                        }
+                    })
+
+            # ...and then make sure the redirection rule is applied!
+
+            self["routes"].append({
+                "match": {
+                    "prefix": "/"
+                },
+                "redirect": {
+                    "https_redirect": True
+                }
+            })
+
+    def verbose_dict(self) -> dict:
+        return {
+            "_hostname": self._hostname,
+            "_secure": self._secure,
+            "_action": self._action,
+            "_insecure_action": self._insecure_action,
+            "_needs_redirect": self._needs_redirect,
+            "tls_context": self["tls_context"],
+            "use_proxy_proto": self["use_proxy_proto"],
+            "routes": self["routes"],
+        }
+
+
+class V2ListenerCollection:
+    def __init__(self, config: 'V2Config') -> None:
+        self.listeners: Dict[int, 'V2Listener'] = {}
+        self.config = config
+
+    def __getitem__(self, port: int) -> 'V2Listener':
+        listener = self.listeners.get(port, None)
+
+        if listener is None:
+            listener = V2Listener(self.config, port)
+            self.listeners[port] = listener
+
+        return listener
+
+    def items(self):
+        return self.listeners.items()
+
+class V2Listener(dict):
+    def __init__(self, config: 'V2Config', service_port: int) -> None:
+        super().__init__()
+
+        self.config = config
+        self.service_port = service_port
+        self.name = f"ambassador-listener-{self.service_port}"
+        self.access_log: List[dict] = []
+        self.upgrade_configs: Optional[List[dict]] = None
+        self.vhosts: Dict[str, V2VirtualHost] = {}
         self.http_filters: List[dict] = []
         self.listener_filters: List[dict] = []
-        self.filter_chains: List[dict] = []
-        self.need_tls_inspector = False
 
-        self.upgrade_configs: Optional[List[dict]] = None
+        self.config.ir.logger.info(f"V2Listener {self.name} created")
 
-        self.routes: List[dict] = [ {
-                'match': {
-                    'prefix': '/',
-                },
-                'redirect': {
-                    'https_redirect': True
-                }
-            } ]
+        # Assemble filters
+        for f in self.config.ir.filters:
+            v2f: dict = v2filter(f, self.config)
+
+            if v2f:
+                self.http_filters.append(v2f)
 
         # Get Access Log Rules
-        for al in config.ir.log_services.values():
+        for al in self.config.ir.log_services.values():
             access_log_obj = { "common_config": al.get_common_config() }
             req_headers = []
             resp_headers = []
@@ -512,147 +618,69 @@ class V2Listener(dict):
                 # tcp loggers do not support additional headers
                 self.access_log.append({"name": "envoy.tcp_grpc_access_log", "config": access_log_obj})
 
-        if listener.redirect_listener:
-            self.http_filters = [{'name': 'envoy.router'}]
-        else:
-            # Use the actual listener name & port number
-            self.name = "ambassador-listener-%s" % listener.service_port
-
-            # Use sane access log spec in JSON
-            if(config.ir.ambassador_module.envoy_log_type.lower() == "json") :
-                json_format = {
-                    'start_time': '%START_TIME%',
-                    'method': '%REQ(:METHOD)%',
-                    'path': '%REQ(X-ENVOY-ORIGINAL-PATH?:PATH)%',
-                    'protocol': '%PROTOCOL%',
-                    'response_code': '%RESPONSE_CODE%',
-                    'response_flags': '%RESPONSE_FLAGS%',
-                    'bytes_received': '%BYTES_RECEIVED%',
-                    'bytes_sent': '%BYTES_SENT%',
-                    'duration': '%DURATION%',
-                    'upstream_service_time': '%RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)%',
-                    'x_forwarded_for': '%REQ(X-FORWARDED-FOR)%',
-                    'user_agent': '%REQ(USER-AGENT)%',
-                    'request_id': '%REQ(X-REQUEST-ID)%',
-                    'authority': '%REQ(:AUTHORITY)%',
-                    'upstream_host': '%UPSTREAM_HOST%',
-                    'upstream_cluster': '%UPSTREAM_CLUSTER%',
-                    'upstream_local_address': '%UPSTREAM_LOCAL_ADDRESS%',
-                    'downstream_local_address': '%DOWNSTREAM_LOCAL_ADDRESS%',
-                    'downstream_remote_address': '%DOWNSTREAM_REMOTE_ADDRESS%',
-                    'requested_server_name': '%REQUESTED_SERVER_NAME%',
-                    'istio_policy_status': '%DYNAMIC_METADATA(istio.mixer:status)%',
-                    'upstream_transport_failure_reason': '%UPSTREAM_TRANSPORT_FAILURE_REASON%'
-                }
-
-                tracing_config = config.ir.tracing
-                if tracing_config and tracing_config.driver == 'envoy.tracers.datadog':
-                    json_format['dd.trace_id'] = '%REQ(X-DATADOG-TRACE-ID)%'
-                    json_format['dd.span_id'] = '%REQ(X-DATADOG-PARENT-ID)%'
-
-                self.access_log.append({
-                    'name': 'envoy.file_access_log',
-                    'config': {
-                        'path': config.ir.ambassador_module.envoy_log_path,
-                        'json_format': json_format
-                    }
-                })
-            else:
-                # Use a sane access log spec
-                log_format = config.ir.ambassador_module.get('envoy_log_format', None)
-
-                if not log_format:
-                    log_format = 'ACCESS [%START_TIME%] \"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\" %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% \"%REQ(X-FORWARDED-FOR)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\" \"%UPSTREAM_HOST%\"'
-
-                config.ir.logger.info("V2Listener: Using log_format '%s'" % log_format)
-                self.access_log.append({
-                    'name': 'envoy.file_access_log',
-                    'config': {
-                        'path': config.ir.ambassador_module.envoy_log_path,
-                        'format': log_format + '\n'
-                    }
-                })
-
-            # Assemble filters
-            for f in config.ir.filters:
-                v2f: dict = v2filter(f, config)
-
-                if v2f:
-                    self.http_filters.append(v2f)
-
-            # Grab routes from the config (we do this as a shallow copy).
-            self.routes = [ dict(r) for r in config.routes ]
-
-            # Don't require TLS.
-            if not listener.require_tls:
-                self.require_tls = None
-
-            # Save upgrade configs.
-            for group in config.ir.ordered_groups():
-                if group.get('use_websocket'):
-                    self.upgrade_configs = [{ 'upgrade_type': 'websocket' }]
-                    break
-
-            # Let self.handle_sni do the heavy lifting for SNI.
-            self.handle_sni(config)
-
-        # We need to add a cleartext listener if any of the following are true:
-        #
-        # 1. We don't have any termination contexts.
-        # 2. We have a Host that explicitly says "acme-provider: none".
-        # 3. We are allowing the fallback UI route.
-
-        need_cleartext = False
-
-        if not self.filter_chains:
-            config.ir.logger.info("V2L: no filter chains, need cleartext")
-            need_cleartext = True
-
-        if config.ir.wizard_allowed:
-            config.ir.logger.info("V2L: wizard allowed, need cleartext")
-            need_cleartext = True
-
-        host_dict = config.ir.aconf.get_config("hosts") or {}
-    
-        for host in host_dict.values():
-            if host.get('acme-provider', 'zzz').lower() == 'none':
-                config.ir.logger.info(f"V2L: host {host.hostname} has ACME none, need cleartext")
-                need_cleartext = True
-                break
-
-        if need_cleartext:
-            # By definition, this chain has no TLS contexts, so we don't include SNI routes.
-            cleartext_chain = {
-                'routes': [ route for route in self.routes if ('_sni' not in route) ],
-                '_ctx_name': '-cleartext-',
-                '_ctx_hosts': [ '*' ]
+        # Use sane access log spec in JSON
+        if self.config.ir.ambassador_module.envoy_log_type.lower() == "json":
+            json_format = {
+                'start_time': '%START_TIME%',
+                'method': '%REQ(:METHOD)%',
+                'path': '%REQ(X-ENVOY-ORIGINAL-PATH?:PATH)%',
+                'protocol': '%PROTOCOL%',
+                'response_code': '%RESPONSE_CODE%',
+                'response_flags': '%RESPONSE_FLAGS%',
+                'bytes_received': '%BYTES_RECEIVED%',
+                'bytes_sent': '%BYTES_SENT%',
+                'duration': '%DURATION%',
+                'upstream_service_time': '%RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)%',
+                'x_forwarded_for': '%REQ(X-FORWARDED-FOR)%',
+                'user_agent': '%REQ(USER-AGENT)%',
+                'request_id': '%REQ(X-REQUEST-ID)%',
+                'authority': '%REQ(:AUTHORITY)%',
+                'upstream_host': '%UPSTREAM_HOST%',
+                'upstream_cluster': '%UPSTREAM_CLUSTER%',
+                'upstream_local_address': '%UPSTREAM_LOCAL_ADDRESS%',
+                'downstream_local_address': '%DOWNSTREAM_LOCAL_ADDRESS%',
+                'downstream_remote_address': '%DOWNSTREAM_REMOTE_ADDRESS%',
+                'requested_server_name': '%REQUESTED_SERVER_NAME%',
+                'istio_policy_status': '%DYNAMIC_METADATA(istio.mixer:status)%',
+                'upstream_transport_failure_reason': '%UPSTREAM_TRANSPORT_FAILURE_REASON%'
             }
 
-            if self.need_tls_inspector:
-                cleartext_chain['filter_chain_match'] = {}
+            tracing_config = self.config.ir.tracing
+            if tracing_config and tracing_config.driver == 'envoy.tracers.datadog':
+                json_format['dd.trace_id'] = '%REQ(X-DATADOG-TRACE-ID)%'
+                json_format['dd.span_id'] = '%REQ(X-DATADOG-PARENT-ID)%'
 
-            self.filter_chains.append(cleartext_chain)
-
-            self.dump_chains(config)
-
-        # Set up the TLS inspector if we need it.
-        if self.need_tls_inspector:
-            config.ir.logger.info("V2L: enabling TLS inspector")
-
-            self.listener_filters.append({
-                'name': 'envoy.listener.tls_inspector',
-                'config': {}
+            self.access_log.append({
+                'name': 'envoy.file_access_log',
+                'config': {
+                    'path': self.config.ir.ambassador_module.envoy_log_path,
+                    'json_format': json_format
+                }
             })
         else:
-            config.ir.logger.info("V2L: leaving TLS inspector disabled")
+            # Use a sane access log spec
+            log_format = self.config.ir.ambassador_module.get('envoy_log_format', None)
 
-        # Clean up our filter chains...
-        for chain in self.filter_chains:
-            chain.pop('_ctx_name', None)
-            chain.pop('_ctx_hosts', None)
+            if not log_format:
+                log_format = 'ACCESS [%START_TIME%] \"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\" %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% \"%REQ(X-FORWARDED-FOR)%\" \"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\" \"%UPSTREAM_HOST%\"'
 
-        # OK. Build our base HTTP config...
-        base_http_config: Dict[str, Any] = {
+            self.config.ir.logger.info("V2Listener: Using log_format '%s'" % log_format)
+            self.access_log.append({
+                'name': 'envoy.file_access_log',
+                'config': {
+                    'path': self.config.ir.ambassador_module.envoy_log_path,
+                    'format': log_format + '\n'
+                }
+            })
+
+        # Save upgrade configs.
+        for group in self.config.ir.ordered_groups():
+            if group.get('use_websocket'):
+                self.upgrade_configs = [{'upgrade_type': 'websocket'}]
+                break
+
+        # Start by building our base HTTP config...
+        self.base_http_config: Dict[str, Any] = {
             'stat_prefix': 'ingress_http',
             'access_log': self.access_log,
             'http_filters': self.http_filters,
@@ -660,232 +688,319 @@ class V2Listener(dict):
         }
 
         if self.upgrade_configs:
-            base_http_config['upgrade_configs'] = self.upgrade_configs
+            self.base_http_config['upgrade_configs'] = self.upgrade_configs
 
-        if 'use_remote_address' in config.ir.ambassador_module:
-            base_http_config["use_remote_address"] = config.ir.ambassador_module.use_remote_address
+        if 'use_remote_address' in self.config.ir.ambassador_module:
+            self.base_http_config["use_remote_address"] = self.config.ir.ambassador_module.use_remote_address
 
-        if 'xff_num_trusted_hops' in config.ir.ambassador_module:
-            base_http_config["xff_num_trusted_hops"] = config.ir.ambassador_module.xff_num_trusted_hops
+        if 'xff_num_trusted_hops' in self.config.ir.ambassador_module:
+            self.base_http_config["xff_num_trusted_hops"] = self.config.ir.ambassador_module.xff_num_trusted_hops
 
-        if 'server_name' in config.ir.ambassador_module:
-            base_http_config["server_name"] = config.ir.ambassador_module.server_name
+        if 'server_name' in self.config.ir.ambassador_module:
+            self.base_http_config["server_name"] = self.config.ir.ambassador_module.server_name
 
-        if 'enable_http10' in config.ir.ambassador_module:
-            base_http_config["http_protocol_options"] = { 'accept_http_10': config.ir.ambassador_module.enable_http10 }
+        if 'enable_http10' in self.config.ir.ambassador_module:
+            self.base_http_config["http_protocol_options"] = { 'accept_http_10': self.config.ir.ambassador_module.enable_http10 }
 
-        if config.ir.tracing:
-            base_http_config["generate_request_id"] = True
+        if self.config.ir.tracing:
+            self.base_http_config["generate_request_id"] = True
 
-            base_http_config["tracing"] = {
+            self.base_http_config["tracing"] = {
                 "operation_name": "egress"
             }
 
-            req_hdrs = config.ir.tracing.get('tag_headers', [])
+            req_hdrs = self.config.ir.tracing.get('tag_headers', [])
 
             if req_hdrs:
-                base_http_config["tracing"]["request_headers_for_tags"] = req_hdrs
+                self.base_http_config["tracing"]["request_headers_for_tags"] = req_hdrs
 
-        # OK. For each entry in our filter chain, we need to set up the rest of the
-        # config.
+    def add_irlistener(self, listener: IRListener) -> None:
+        if listener.service_port != self.service_port:
+            # This is a problem.
+            raise Exception("V2Listener %s: trying to add listener %s on %s:%d??" %
+                            (self.name, listener.name, listener.hostname, listener.service_port))
 
-        for chain in self.filter_chains:
-            vhost = {
-                'name': 'backend',
-                'domains': [ '*' ],
-                'routes': chain.pop('routes')
+        # OK, make sure we don't somehow have a VHost collision.
+        if listener.hostname in self.vhosts:
+            raise Exception("V2Listener %s: listener %s on %s:%d already has a vhost??" %
+                            (self.name, listener.name, listener.hostname, listener.service_port))
+
+    # Weirdly, the action is optional but the insecure_action is not. This is not a typo.
+    def make_vhost(self, name: str, hostname: str, context: Optional[IRTLSContext], secure: bool,
+                   action: Optional[str], insecure_action: str, use_proxy_proto: bool) -> None:
+        self.config.ir.logger.info("V2Listener %s: adding VHost %s for host %s, secure %s, insecure %s)" %
+                                   (self.name, name, hostname, action, insecure_action))
+
+        vhost = self.vhosts.get(name)
+
+        if vhost:
+            if ((hostname != vhost._hostname) or
+                (context != vhost._ctx) or
+                (secure != vhost._secure) or
+                (action != vhost._action) or
+                (insecure_action != vhost._insecure_action) or
+                (use_proxy_proto != vhost["use_proxy_proto"])):
+                raise Exception("V2Listener %s: trying to make vhost %s for %s but one already exists" %
+                                (self.name, name, hostname))
+            else:
+                return
+
+        vhost = V2VirtualHost(config=self.config, listener=self,
+                              hostname=hostname, ctx=context,
+                              secure=secure, action=action, insecure_action=insecure_action,
+                              use_proxy_proto=use_proxy_proto)
+        self.vhosts[name] = vhost
+
+    def finalize(self, enable_sni: bool) -> None:
+        # OK. Assemble the high-level stuff for Envoy.
+        self.address = {
+            "socket_address": {
+                "address": "0.0.0.0",
+                "port_value": self.service_port,
+                "protocol": "TCP"
+            }
+        }
+
+        self.filter_chains: List[dict] = []
+        need_tcp_inspector = False
+
+        for vhostname, vhost in self.vhosts.items():
+            # Finalize this VirtualHost...
+            vhost.finalize(enable_sni)
+
+            # ...then build up the Envoy structures around it.
+            filter_chain = {
+                "filter_chain_match": vhost["filter_chain_match"],
+                "use_proxy_proto": vhost["use_proxy_proto"],
             }
 
-            if self.require_tls:
-                vhost['require_tls'] = self.require_tls
+            if vhost["tls_context"]:
+                filter_chain["tls_context"] = vhost["tls_context"]
+                need_tcp_inspector = True
 
-            http_config = dict(base_http_config)    # Shallow copy is enough.
-
-            http_config['route_config'] = {
-                'virtual_hosts': [ vhost ]
+            http_config = dict(self.base_http_config)
+            http_config["route_config"] = {
+                "virtual_hosts": [
+                    {
+                        "name": f"{self.name}-{vhostname}",
+                        "domains": [ vhost._hostname ],
+                        "routes": vhost["routes"]
+                    }
+                ]
             }
 
-            chain['filters'] = [
+            filter_chain["filters"] = [
                 {
-                    'name': 'envoy.http_connection_manager',
-                    'config': http_config
+                    "name": "envoy.http_connection_manager",
+                    "config": http_config
                 }
             ]
 
-            if self.use_proxy_proto is not None:
-                chain['use_proxy_proto'] = self.use_proxy_proto
+            self.filter_chains.append(filter_chain)
 
-        self.update({
-            'name': self.name,
-            'address': {
-                'socket_address': {
-                    'address': '0.0.0.0',
-                    'port_value': listener.service_port,
-                    'protocol': 'TCP'
+        if need_tcp_inspector:
+            self.listener_filters.append({
+                'name': 'envoy.listener.tls_inspector',
+                'config': {}
+            })
+
+    def as_dict(self) -> dict:
+        return {
+            "name": self.name,
+            "address": self.address,
+            "filter_chains": self.filter_chains,
+            "listener_filters": self.listener_filters
+        }
+
+    def verbose_dict(self) -> dict:
+        return {
+            "name": self.name,
+            "address": {
+                "socket_address": {
+                    "address": "0.0.0.0",
+                    "port_value": self.service_port,
+                    "protocol": "TCP"
                 }
             },
-            'filter_chains': self.filter_chains
-        })
-
-        if self.listener_filters:
-            self['listener_filters'] = self.listener_filters
-
-    @staticmethod
-    def envoy_ctx_info(tls_context: IRTLSContext) -> EnvoyCTXInfo:
-        v2ctx = V2TLSContext(tls_context)
-
-        # config.ir.logger.debug(json.dumps(v2ctx, indent=4, sort_keys=True))
-        return (tls_context.name, tls_context.hosts, v2ctx)
-
-    def handle_sni(self, config: 'V2Config') -> None:
-        """
-        Manage filter chains, etc., for SNI.
-
-        :param config: the V2Config within which we're working
-        """
-
-        # Is SNI active?
-        global_sni = False
-
-        # We'll assemble a list of active TLS contexts here. It may end up empty,
-        # of course.
-        #
-        # Note that if we have a fallback context, it will not be part of this list.
-        envoy_contexts: List[EnvoyCTXInfo] = []
-        fallback_context: Optional[IRTLSContext] = None
-        have_wildcard_hosts = False
-
-        for tls_context in config.ir.get_tls_contexts():
-            ctx_hosts = tls_context.get('hosts', None)
-            wildcard_str = ""
-
-            if ctx_hosts:
-                if tls_context.is_fallback:
-                    config.ir.logger.debug("V2Listener: SNI delaying fallback context '%s'" % tls_context.name)
-                    fallback_context = tls_context
-                    continue
-
-                for host in ctx_hosts:
-                    if host == '*':
-                        wildcard_str = " wildcard"
-                        have_wildcard_hosts = True
-
-                config.ir.logger.info("V2Listener: SNI taking%s termination context '%s'" %
-                                       (wildcard_str, tls_context.name))
-                config.ir.logger.debug(tls_context.as_json())
-
-                envoy_contexts.append(self.envoy_ctx_info(tls_context))
-            else:
-                config.ir.logger.debug("V2Listener: SNI skipping origination context '%s'" % tls_context.name)
-
-        if fallback_context:
-            # OK, we have a fallback context. Is it in play?
-            if have_wildcard_hosts:
-                config.ir.logger.info(f"V2Listener: SNI skipping fallback context '%s' since we have a wildcard context" %
-                                       fallback_context.name)
-            else:
-                config.ir.logger.info("V2Listener: SNI taking fallback context '%s'" % fallback_context.name)
-                envoy_contexts.append(self.envoy_ctx_info(fallback_context))
-
-        # OK. If we have multiple contexts here, SNI is likely a thing.
-        if len(envoy_contexts) > 1:
-            config.ir.logger.debug("V2Listener: enabling SNI, %d contexts" % len(envoy_contexts))
-            config.ir.logger.debug("            [ %s ]" % ", ".join([ x[0] for x in envoy_contexts ]))
-
-            global_sni = True
-        else:
-            config.ir.logger.debug("V2Listener: disabling SNI, %d contexts" % len(envoy_contexts))
-
-        for name, hosts, ctx in envoy_contexts:
-            if not ctx:
-                continue
-
-            config.ir.logger.info(f"V2Listener: SNI (1) route check {name} - {hosts}")
-
-            routes = list(self.routes)
-
-            chain: Dict[str, Any] = {
-                'tls_context': ctx,
-                '_ctx_name': name,
-                '_ctx_hosts': hosts
-            }
-
-            # We have a TLS context, so we should make sure they're speaking TLS!
-            self.need_tls_inspector = True
-            filter_chain_match: Dict[str, Any] = {
-                'transport_protocol': 'tls'
-            }
-
-            if global_sni and (hosts != [ '*' ]):
-                filter_chain_match['server_names'] = hosts
-
-            chain['filter_chain_match'] = filter_chain_match
-
-            chain_routes = []
-
-            for route in config.routes:
-                if '_sni' not in route:
-                    chain_routes.append(route)
-                else:
-                    # Check if filter chain and SNI route have matching hosts
-                    context_hosts = sorted(hosts or [])
-                    route_sni = route['_sni']
-                    route_hosts = sorted(route_sni['hosts'])
-                    matched = (route_hosts == context_hosts)
-
-                    # Check for certificate match too.
-                    for sni_key, ctx_key in [ ('cert_chain_file', 'certificate_chain'),
-                                              ('private_key_file', 'private_key') ]:
-                        sni_value = route_sni['secret_info'][sni_key]
-                        # XXX ugh. Multiple certs?
-                        ctx_value = ctx['common_tls_context']['tls_certificates'][0][ctx_key]['filename']
-
-                        if sni_value != ctx_value:
-                            matched = False
-                            break
-
-                    config.ir.logger.info("V2Listener:   SNI (2) route check %s %s route for %s" %
-                                          (name, "TAKE" if matched else "SKIP", route_hosts))
-
-                    if matched:
-                        # Add the route, but strip off the '_sni' element.
-                        route_copy = dict(route)
-                        route_copy.pop('_sni')
-                        chain_routes.append(route_copy)
-
-            chain['routes'] = chain_routes
-            self.filter_chains.append(chain)
-
-        self.dump_chains(config)
-
-    def dump_chains(self, config):
-        dumpinfo = []
-
-        for chain in self.filter_chains:
-            di = {
-                'filter_chain_match': chain.get('filter_chain_match') or {},
-                'route_count': len(chain['routes']),
-                'ctx_name': chain['_ctx_name'],
-                'ctx_hosts': chain['_ctx_hosts']
-            }
-
-            ctx = chain.get('tls_context') or None
-
-            if ctx and ctx.is_fallback:
-                di['is_fallback'] = True
-
-            dumpinfo.append(di)
-
-        config.ir.logger.info("V2Listener: SNI filter chains\n%s" %
-                              json.dumps(dumpinfo, indent=4, sort_keys=True))
+            "vhosts": {k: v.verbose_dict() for k, v in self.vhosts.items()},
+        }
 
     @classmethod
     def generate(cls, config: 'V2Config') -> None:
         config.listeners = []
+        logger = config.ir.logger
+
+        # OK, so we need to construct one or more V2Listeners, based on our IRListeners.
+        # The highest-level thing that defines an Envoy listener is a port, so start
+        # with that.
+
+        listeners_by_port = V2ListenerCollection(config)
+
+        # While doing this, figure out how many distinct hostnames we need to pay attention to.
+        # If it's more than one, we'll actually do SNI matching, but if it's only one, we won't
+        # (this is because Envoy's error reporting for SNI mismatches isn't very graceful).
+        distinct_domains: Dict[str, bool] = {}
 
         for irlistener in config.ir.listeners:
-            listener = config.save_element('listener', irlistener, V2Listener(config, irlistener))
-            config.listeners.append(listener)
+            logger.info(f"V2Listeners: working on {irlistener.pretty()}")
+            # What port is this?
+            listener = listeners_by_port[irlistener.service_port]
+            listener.add_irlistener(irlistener)
+
+            # What VirtualHost hostname are we trying to work with here?
+            vhostname = irlistener.hostname or "*"
+
+            if vhostname != '*':
+                distinct_domains[vhostname] = True
+
+            listener.make_vhost(name=vhostname,
+                                hostname=vhostname,
+                                context=irlistener.context,
+                                secure=True,
+                                action=irlistener.secure_action,
+                                insecure_action=irlistener.insecure_action,
+                                use_proxy_proto=irlistener.use_proxy_proto)
+
+            if irlistener.insecure_addl_port is not None:
+                # Make sure we have a listener on the right port for this.
+                listener = listeners_by_port[irlistener.insecure_addl_port]
+
+                # This insecure vhost can _only_ have a hostname of "*", since (by definition)
+                # there is no SNI associated with it.
+                #
+                # Also, no, it is not a bug to have action=None. There is no secure action
+                # for this vhost.
+                listener.make_vhost(name="redirector",
+                                    hostname="*",
+                                    context=None,
+                                    secure=False,
+                                    action=None,
+                                    insecure_action=irlistener.insecure_action,
+                                    use_proxy_proto=irlistener.use_proxy_proto)
+
+        num_distinct_domains = len(distinct_domains.keys())
+        enable_sni = (num_distinct_domains > 1)
+
+        logger.info(f"V2Listeners: distinct domain count {num_distinct_domains}, global SNI {'enabled' if enable_sni else 'disabled'}")
+
+        listeners_dict = { k: v.verbose_dict() for k, v in listeners_by_port.items() }
+        logger.info(f"V2Listeners: {json.dumps(listeners_dict, sort_keys=True, indent=4)}")
+
+        # OK. We have all the listeners. Time to walk the routes (note that they are already ordered).
+        for route in config.routes:
+            # If this an SNI route, remember the host[s] to which it pertains.
+            route_sni = route.get('_sni', {})
+            route_hostlist = route_sni.get('hosts', [])
+            route_hosts = set(route_hostlist)
+
+            logger.info(f"V2Listeners: route {json.dumps(dict(route), sort_keys=True, indent=4)}...")
+
+            # Build a cleaned-up version of this route without the '_sni' element...
+            insecure_route = dict(route)
+            insecure_route.pop('_sni', None)
+
+            # ...then copy _that_ so we can make a secured version with an explicit XFP check.
+            #
+            # (Obviously the user may have put in an XFP check by hand here, in which case the
+            # insecure_route isn't really insecure, but that's not actually up to us to mess with.)
+            #
+            # But wait, I hear you cry! Can't we use use require_tls: True in a VirtualHost?? Well,
+            # no, not if we want to allow ACME challenges to flow through as cleartext at the same
+            # time...
+            secure_route = dict(insecure_route)
+
+            found_xfp = False
+            for header in secure_route["match"].get("headers", []):
+                if header.get("name", "").lower() == "x-forwarded-proto":
+                    found_xfp = True
+                    break
+
+            if not found_xfp:
+                # Ew.
+                match_copy = dict(secure_route["match"])
+                secure_route["match"] = match_copy
+
+                headers_copy = list(match_copy.get("headers") or [])
+                match_copy["headers"] = headers_copy
+
+                headers_copy.append({
+                    "name": "x-forwarded-proto",
+                    "exact_match": "https"
+                })
+
+            # Also gen up a redirecting route.
+            redirect_route = dict(insecure_route)
+            redirect_route.pop("route", None)
+            redirect_route["redirect"] = {
+                "https_redirect": True
+            }
+
+            # We now have a secure route and an insecure route, so we need to walk all listeners
+            # and all vhosts, and match up the routes with the vhosts.
+
+            for port, listener in listeners_by_port.items():
+                for vhostname, vhost in listener.vhosts.items():
+                    # For each vhost, we need to look at things for the secure world as well
+                    # as the insecure world, depending on what the action is exactly (and note
+                    # that we can have an action of None if we're looking at a vhost created
+                    # by an insecure_addl_port).
+
+                    candidates = []
+
+                    if vhost._action is not None:
+                        candidates.append(( True, secure_route, vhost._action ))
+
+                    if vhost._insecure_action == "Redirect":
+                        candidates.append(( False, redirect_route, "Redirect" ))
+                    elif vhost._insecure_action is not None:
+                        candidates.append((False, insecure_route, vhost._insecure_action))
+
+                    for secure, route, action in candidates:
+                        variant = "secure" if secure else "insecure"
+
+                        if route["match"].get("prefix", None) == "/.well-known/acme-challenge/":
+                            # ACME challenges can never be secure.
+                            if secure:
+                                logger.info(
+                                    f"V2Listeners: {listener.name} {vhostname} secure: force Drop for ACME challenge")
+                                action = "Drop"
+                            else:
+                                # Force the action to "Route" for the insecure side of the world.
+                                logger.info(
+                                    f"V2Listeners: {listener.name} {vhostname} insecure: force Route for ACME challenge")
+                                action = "Route"
+                        elif route_hosts and (vhostname != '*') and (vhostname not in route_hosts):
+                            # Drop this because the host is mismatched.
+                            logger.info(
+                                f"V2Listeners: {listener.name} {vhostname} {variant}: Drop due to wrong host")
+                            action = "Drop"
+                        elif action == "Reject":
+                            logger.info(
+                                f"V2Listeners: {listener.name} {vhostname} {variant}: Drop due to Reject action")
+                            action = "Drop"
+                        else:
+                            logger.info(
+                                f"V2Listeners: {listener.name} {vhostname} {variant}: Accept as {action}")
+
+                        if action != 'Reject':
+                            vhost.append_route(route)
+                        # elif action == 'Redirect':
+                        #     vhost.needs_redirect()
+
+        listeners_dict = { k: v.verbose_dict() for k, v in listeners_by_port.items() }
+        logger.info(f"V2Listeners: {json.dumps(listeners_dict, sort_keys=True, indent=4)}")
+
+        # OK. Finalize the world.
+        for port, listener in listeners_by_port.items():
+            listener.finalize(enable_sni)
+
+        listeners_dict = { k: v.verbose_dict() for k, v in listeners_by_port.items() }
+        logger.info(f"V2Listeners: {json.dumps(listeners_dict, sort_keys=True, indent=4)}")
+
+        for k, v in listeners_by_port.items():
+            config.listeners.append(v.as_dict())
+
+        logger.info(f"==== ENVOY LISTENERS ====: {json.dumps(config.listeners, sort_keys=True, indent=4)}")
 
         # We need listeners for the TCPMappingGroups too.
         tcplisteners: Dict[str, V2TCPListener] = {}
