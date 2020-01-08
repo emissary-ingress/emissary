@@ -77,7 +77,7 @@ type firstBootWizard struct {
 	pubkey  *rsa.PublicKey
 }
 
-func (fb *firstBootWizard) getSnapshot() Snapshot {
+func (fb *firstBootWizard) getSnapshot(clientSession string) Snapshot {
 	var ret Snapshot
 
 	if err := json.Unmarshal(fb.snapshotStore.Get().Raw, &ret.Watt); err != nil || ret.Watt == nil {
@@ -107,7 +107,7 @@ func (fb *firstBootWizard) getSnapshot() Snapshot {
 	ret.Watt["Kubernetes"]["FilterPolicy"], _ = fb.filterController.LoadPolicies()
 
 	ret.Diag = func() json.RawMessage {
-		resp, err := http.Get("http://127.0.0.1:8877/ambassador/v0/diag/?json=true")
+		resp, err := http.Get(fmt.Sprintf("http://127.0.0.1:8877/ambassador/v0/diag/?json=true&patch_client=%s", clientSession))
 		if err != nil {
 			return nil
 		}
@@ -339,10 +339,11 @@ func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		io.WriteString(w, os.Getenv("DEV_WEBUI_PORT"))
 		io.WriteString(w, "\n")
 	case "/edge_stack/api/snapshot":
+		clientSession := r.URL.Query().Get("client_session")
 		snapshotHost := fb.cfg.DevWebUISnapshotHost
 		if snapshotHost != "" {
 			req, err := http.NewRequest("GET",
-				fmt.Sprintf("https://%s/edge_stack/api/snapshot", snapshotHost),
+				fmt.Sprintf("https://%s/edge_stack/api/snapshot?client_session=%s", snapshotHost, clientSession),
 				nil)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -377,7 +378,7 @@ func (fb *firstBootWizard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
-		json.NewEncoder(w).Encode(fb.getSnapshot())
+		json.NewEncoder(w).Encode(fb.getSnapshot(clientSession))
 	case "/edge_stack/api/activity":
 		if !fb.isAuthorized(r) {
 			fb.forbidden(w, r)
