@@ -4,11 +4,15 @@
  * its Resource model object, as well as state used for the different view variants (edit, add, etc.)
  */
 
+/* Map merge operation */
+import { mapMerge } from "./map.js"
+
+/* View superclass. */
 import { View } from './view.js'
 
 export class CollectionView extends View {
 
-  /* properties
+  /* properties()
    * These are the properties of the CollectionView. LitElement manages these declared properties and
    * provides various services depending on how they are used.  For further details on LitElement, see
    * https://lit-element.polymer-project.org/guide/properties
@@ -58,6 +62,11 @@ export class CollectionView extends View {
     this.sortBy     = this.sortFields[0].value;
     this.addState   = "off";
   }
+
+  onAdd() {
+
+  }
+
 
   onChangeSortByAttribute(e) {
     this.sortBy = e.target.options[e.target.selectedIndex].value;

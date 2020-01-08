@@ -20,7 +20,7 @@
  */
 
 /* Utility functions for sets. */
-import { union } from "./set.js"
+import { setUnion } from "./set.js"
 
 export class Model {
   /* constructor()
@@ -110,6 +110,6 @@ export class Model {
     let allListeners = this._listenersToAll;
     let msgListeners = this._listenersByMessage.has(message) ? this._listenersByMessage[message] : new Set();
 
-    return union(allListeners, msgListeners);
+    return setUnion(allListeners, msgListeners);
   }
 }

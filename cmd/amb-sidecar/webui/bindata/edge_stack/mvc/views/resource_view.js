@@ -4,6 +4,10 @@
  * its Resource model object, as well as state used for the different view variants (edit, add, etc.)
  */
 
+/* Map merge operation */
+import { mapMerge } from "./map.js"
+
+/* View superclass */
 import { View } from './view.js'
 
 export class ResourceView extends View {
@@ -16,13 +20,15 @@ export class ResourceView extends View {
    */
 
   static get properties() {
-    return {
+    let myProperties =  {
       kind:      {type: String},  // Resource state
       name:      {type: String},  // Resource state
       namespace: {type: String},  // Resource state
-      viewState: {type: String},  // View
       showYAML:  {type: Boolean}  // ResourceView
-    }
+    };
+
+    /* Merge ResourceView properties with the View's properties. */
+    return mapMerge(myProperties, View.properties());
   }
 
   /* constructor
@@ -56,8 +62,8 @@ export class ResourceView extends View {
     this.model.removeListener(this);
 
     /* Create a new model for editing, based on the state in the existing model, and start listening to it. */
-    this.model = this.model.copySelf()
-    this.model.addListener(this)
+    this.model = this.model.copySelf();
+    this.model.addListener(this);
 
     /* Change to "edit" state. */
     this.viewState = "edit";
@@ -69,10 +75,10 @@ export class ResourceView extends View {
    * in the case of a Resource it will write back to Kubernetes with kubectl apply.
    */
 
-  onSave() {
-    if viewState == "add" {
+  onSave(cookie) {
+    if (this.viewState === "add") {
       /* Add the new resource to the system. */
-      this.model.doAdd();
+      this.model.doAdd(cookie);
 
       /* Remove the view.  The next snapshot will create a new Resource which then will create a corresponding
        * View that represents the added resource.  In the future, we will not remove the view but change it to a
@@ -81,9 +87,9 @@ export class ResourceView extends View {
       this.parentElement.removeChild(this);
     }
     else
-    if viewState == "edit" {
+    if (this.viewState === "edit") {
       /* Save the changes in the resource. */
-      let error = this.model.doSave();
+      this.model.doSave(cookie);
 
       /* Swap models back, restoring listeners to the saved Model. */
       this.model.removeListener(this);

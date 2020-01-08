@@ -16,7 +16,9 @@ import { ApiFetch } from "../../components/api-fetch.js";
 
 /* Interface class for Model */
 import { Model } from "./model.js"
-import { merge } from "./map.js"
+
+/* Map merge operation */
+import { mapMerge } from "./map.js"
 
 /* Annotation key for sourceURI. */
 const aes_res_source = "aes_res_source";
@@ -251,7 +253,7 @@ export class Resource extends Model {
      * validateSelf() overrides any errors returned above with the same name (i.e. name or namespace)
      */
 
-    return merge(errors, this.validateSelf());
+    return mapMerge(errors, this.validateSelf());
   }
 
   /* ============================================================

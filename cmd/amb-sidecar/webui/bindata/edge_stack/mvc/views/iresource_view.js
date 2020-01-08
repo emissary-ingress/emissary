@@ -4,6 +4,7 @@
  * its Resource model object, as well as state used for the different view variants (edit, add, etc.)
  */
 
+/* ResourceView superclass. */
 import { ResourceView } from './resource_view.js'
 
 export class IResourceView extends ResourceView {
@@ -24,7 +25,11 @@ export class IResourceView extends ResourceView {
     /* For reference, subclasses implement the static function properties() by returning a Map
      * that lists the properties in the subclass, and merging with the parent's properties():
 
-     let myProperties = {
+*     first, import set merge:
+*     import { mapMerge } from "./map.js"
+
+      in properties():
+      let myProperties = {
         hostname:     {type: String},   // Host
         acmeProvider: {type: String},   // Host
         acmeEmail:    {type: String},   // Host
@@ -32,7 +37,7 @@ export class IResourceView extends ResourceView {
         showTos:      {type: Boolean}   // HostView
       };
 
-      return new Map(...myProperties, ...ResourceView.properties());
+      return mapMerge(myProperties, ResourceView.properties());
      */
 
 
