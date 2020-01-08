@@ -106,6 +106,15 @@ func (fb *firstBootWizard) getSnapshot(clientSession string) Snapshot {
 	}()
 	ret.Watt["Kubernetes"]["FilterPolicy"], _ = fb.filterController.LoadPolicies()
 
+	// Elide secret data: delete every ret.Watt.Kubernetes.secret[*].data entry
+	if wattSecrets, ok := ret.Watt["Kubernetes"]["secret"].([]interface{}); ok {
+		for _, maybeSecret := range wattSecrets {
+			if secret, ok := maybeSecret.(map[string]interface{}); ok {
+				delete(secret, "data")
+			}
+		}
+	}
+
 	ret.Diag = func() json.RawMessage {
 		resp, err := http.Get(fmt.Sprintf("http://127.0.0.1:8877/ambassador/v0/diag/?json=true&patch_client=%s", clientSession))
 		if err != nil {
