@@ -16,7 +16,7 @@ The Ambassador Edge Stack can watch for changes in Knative configuration in your
 
 - Knative now requires Kubernetes v1.14, as well as a [compatible kubectl](https://knative.dev/docs/install/knative-with-ambassador/)
 - `kubectl` v1.10 is also required. This guide assumes that you’ve already created a Kubernetes cluster which you’re comfortable installing alpha software on.
-- The Ambassador Edge Stack should be installed in your cluster. Follow the [installation guides](../install) for instructions on installing the Ambassador Edge Stack.
+- The Ambassador Edge Stack should be installed in your cluster. Follow the [installation guide](../install) for instructions on installing the Ambassador Edge Stack.
 
 #### Installation
 
