@@ -75,15 +75,14 @@ h3 {
 img#chromeLogo {
   width: 25px;
   margin: 0 0 15px 0;
-  align-content: center;
 }
 img#safariLogo {
   width: 25px;
-  margin: 0 0 -8px 0;
+  margin: 0 0 15px 0;
 }
 img#firefoxLogo {
   width: 25px;
-  margin: 0 0 -8px 0;
+  margin: 0 0 15px 0;
 }
 img#securityWarning {
   height: 100%;
@@ -94,7 +93,8 @@ img#securityWarning {
 }
 p.browserLabel {
   display: inline-block;
-  margin: 0 0 15px 5px;
+  margin: 0 0 13px 5px;
+  font-weight: bold;
 }
 p#browser-warning-text {
   font-size: 75%;
@@ -112,7 +112,6 @@ p#browser-warning-text-other{
   margin-top: 15px;
   text-align: left;
 }
-
 span.command {
   background-color: #f5f2f0;
   color: #5F3EFF;
@@ -182,16 +181,13 @@ renderChromeDetails() {
   return html`
     <div class="warning-chrome">
       <details id="chrome" ?open=${this.browser === 'chrome'}>
-        <summary id="chromeFocus"><h3 style="display:inline" type="button">Chrome
-          <img id="chromeLogo" src="/edge_stack/images/logos/chrome.svg" alt="chrome logo" display=inline></h3>
+        <summary id="chromeFocus">
         </summary>
         <div class="browserLogoContainer">
-          <img id="chromeLogo" src="/edge_stack/images/logos/chrome.svg" alt="chrome logo"></h3><p class="browserLabel">Chrome</p>
+          <img id="chromeLogo" src="/edge_stack/images/logos/chrome.svg" alt="chrome logo"><p class="browserLabel">Chrome</p>
         </div>
         <div id="dropdown">
-          
           <p id="browser-warning-text">A kind of "chicken or egg" situation, this warning appears because Ambassador Edge Stack's self-signed certificate is not recognized by your browser. However, once you click through you will land on a secure page where Ambassador Edge Stack will set up a production-quality TLS certificate for you. Click 'Advanced' to view details and then 'Proceed' to continue to the Edge Policy Console. Image provided is a generic example for reference.</p>  
-         
           <img id="securityWarning" src="/edge_stack/images/svgs/chromeSecWarning.png" alt="chrome security warning logo">
         </details>
       </div> 
@@ -203,9 +199,11 @@ renderSafariDetails() {
   return html`
     <div class="warning-safari">
       <details id="safari" ?open=${this.browser === 'safari'}>
-        <summary id="safariFocus"><h3 style="display:inline">Safari</h3>
-          <img id="safariLogo" src="/edge_stack/images/logos/safari.svg" alt="safari logo">
+        <summary id="safariFocus">
         </summary>
+        <div class="browserLogoContainer">
+          <img id="safariLogo" src="/edge_stack/images/logos/safari.svg" alt="safari logo"><p class="browserLabel">Safari</p>
+        </div>  
         <div id="dropdown">
           <p id="browser-warning-text">A kind of "chicken or egg" situation, this warning appears because Ambassador Edge Stack's self-signed certificate is not recognized by your browser. However, once you click through you will land on a secure page where Ambassador Edge Stack will set up a production-quality TLS certificate for you. Click 'Show Details' and then 'Visit This Website' to continue to the Edge Policy Console. Image provided is a generic example for reference.</p>  
           <img id="securityWarning" src="/edge_stack/images/svgs/safariSecWarning.png" alt="safari security warning logo"> 
@@ -219,9 +217,11 @@ renderFirefoxDetails() {
   return html`
     <div class="warning-firefox">
       <details id="firefox" ?open=${this.browser === 'firefox'}>
-        <summary id="firefoxFocus"><h3 style="display:inline">Firefox</h3>
-          <img id="firefoxLogo" src="/edge_stack/images/logos/firefox.png" alt="firefox logo">
+        <summary id="firefoxFocus">
         </summary>
+        <div class="browserLogoContainer">
+          <img id="firefoxLogo" src="/edge_stack/images/logos/firefox.png" alt="firefox logo"><p class="browserLabel">Firefox</p>
+        </div>
         <div id="dropdown">
           <p id="browser-warning-text">A kind of "chicken or egg" situation, this warning appears because Ambassador Edge Stack's self-signed certificate is not recognized by your browser. However, once you click through you will land on a secure page where Ambassador Edge Stack will set up a production-quality TLS certificate for you. Click 'Advanced' to view details and then 'Accept the Risk and Continue' to the Edge Policy Console. Image provided is a generic example for reference.</p>  
           <img id="securityWarning" src="/edge_stack/images/svgs/firefoxSecWarning.png" alt="firefox security warning logo"> 
@@ -235,8 +235,11 @@ renderOtherDetails() {
   return html`
     <div class="warning-other">
       <details id="other" ?open=${this.browser === 'other'}>
-        <summary id="otherFocus"><h3 style="display:inline">Browser Security Warning</h3>
+        <summary id="otherFocus">
         </summary>
+        <div class="browserLogoContainer">
+          <h3 style="display:inline">Browser Security Warning</h3>
+        </div>
         <div id="dropdown">
           <p id="browser-warning-text-other">A kind of "chicken or egg" situation, a warning appears because Ambassador Edge Stack's self-signed certificate is not recognized by your browser. However, once you click through you will land on a secure page where Ambassador Edge Stack will set up a production-quality TLS certificate for you. Follow your browser's instructions to view details and Accept Risk/Proceed/Visit Website to continue to the Edge Policy Console.</p>  
         </details>
@@ -258,40 +261,7 @@ renderOtherDetails() {
       </div>
     `;
   }
-/*
-renderFocus() {
-  let chrome = this.shadowRoot.getElementById('chromeFocus');
-  let safari = this.shadowRoot.getElementById('safariFocus');
-  let firefox = this.shadowRoot.getElementById('firefoxFocus');
-  let other = this.shadowRoot.getElementById('otherFocus');
-  if (this.browser === "chrome") {
-    let element = this.shadowRoot.getElementById('chromeFocus');
-      if (safari) { safari.setAttribute("hidden", "true") };
-      if (firefox) { firefox.setAttribute("hidden", "true") };
-      if (other) { other.setAttribute("hidden", "true") };
-      if (element) { element.focus() }; 
-  } else if (this.browser === "safari") {
-    let element = this.shadowRoot.getElementById('safariFocus');
-      if (chrome) { chrome.setAttribute("hidden", "true") };
-      if (firefox) { firefox.setAttribute("hidden", "true") };
-      if (other) { other.setAttribute("hidden", "true") };
-      if (element) { element.focus() };
-  } else if (this.browser === "firefox") {
-    let element = this.shadowRoot.getElementById('firefoxFocus');
-      if (chrome) { chrome.setAttribute("hidden", "true") };
-      if (safari) { safari.setAttribute("hidden", "true") };
-      if (other) { other.setAttribute("hidden", "true") };
-      if (element) { element.focus() };
-  } else if (this.browser === "other") {
-    let element = this.shadowRoot.getElementById('otherFocus');
-      if (chrome) { chrome.setAttribute("hidden", "true") };
-      if (safari) { safari.setAttribute("hidden", "true") };
-      if (firefox) { firefox.setAttribute("hidden", "true") };
-      if (element) { element.focus() } ;
-    }
-    console.log(this.browser);
-  }
-*/
+
 renderFocus() {
   this.shadowRoot.getElementById('chromeFocus').setAttribute("hidden", "true");
   this.shadowRoot.getElementById('safariFocus').setAttribute("hidden", "true");
@@ -302,15 +272,11 @@ renderFocus() {
       this.shadowRoot.getElementById('dropdown').setAttribute("hidden", "false");
     case "safari":
       this.shadowRoot.getElementById('dropdown').setAttribute("hidden", "false");
-  
     case "firefox":
       this.shadowRoot.getElementById('dropdown').setAttribute("hidden", "false");
-    
     case "other":
       this.shadowRoot.getElementById('dropdown').setAttribute("hidden", "false");
-
     } 
-    console.log(this.browser);
   }
 
 render() {
