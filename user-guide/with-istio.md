@@ -73,7 +73,7 @@ Above we see that external IP assigned to our LoadBalancer is 35.224.41.XX (XX i
 You can test if the Ambassador Edge Stack has been installed correctly by using the test route to `httpbin.org` to get the external cluster [Origin IP](https://httpbin.org/ip) from which the request was made:
 
 ```shell
-$ curl 35.224.41.XX/httpbin/ip
+$ curl -L 35.224.41.XX/httpbin/ip
 {
   "origin": "35.192.109.XX"
 }
@@ -81,7 +81,7 @@ $ curl 35.224.41.XX/httpbin/ip
 
 If you're seeing a similar response, then everything is working great!
 
-(Bonus: If you want to use a little bit of awk magic to export the LoadBalancer IP to a variable AMBASSADOR_IP, then you can type `export AMBASSADOR_IP=$(kubectl get services ambassador | tail -1 | awk '{ print $4 }')` and use `curl $AMBASSADOR_IP/httpbin/ip`
+(Bonus: If you want to use a little bit of awk magic to export the LoadBalancer IP to a variable AMBASSADOR_IP, then you can type `export AMBASSADOR_IP=$(kubectl get services ambassador | tail -1 | awk '{ print $4 }')` and use `curl -L $AMBASSADOR_IP/httpbin/ip`
 
 2. Now you are going to modify the bookinfo demo `bookinfo.yaml` manifest to include the necessary Ambassador annotations. See below.
 
