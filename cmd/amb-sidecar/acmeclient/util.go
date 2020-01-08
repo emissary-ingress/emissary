@@ -73,15 +73,15 @@ func NameEncode(in string) string {
 
 // *grumble grumble* k8s.io/code-generator/cmd/deepcopy-gen *grumble*
 func deepCopyHost(in *ambassadorTypesV2.Host) *ambassadorTypesV2.Host {
-	b, err := json.Marshal(in)
+	bs, err := json.Marshal(in)
 	if err != nil {
 		// 'in' is a valid object.  This should never happen.
 		panic(err)
 	}
 
 	var out ambassadorTypesV2.Host
-	if err := json.Unmarshal(b, &out); err != nil {
-		// 'bs' is a valid JSON, we just generated it.  This
+	if err := json.Unmarshal(bs, &out); err != nil {
+		// 'bs' is valid JSON, we just generated it.  This
 		// should never happen.
 		panic(err)
 	}
@@ -91,15 +91,15 @@ func deepCopyHost(in *ambassadorTypesV2.Host) *ambassadorTypesV2.Host {
 
 // *grumble grumble* k8s.io/code-generator/cmd/deepcopy-gen *grumble*
 func deepCopyHostSpec(in *ambassadorTypesV2.HostSpec) *ambassadorTypesV2.HostSpec {
-	b, err := json.Marshal(in)
+	bs, err := json.Marshal(in)
 	if err != nil {
 		// 'in' is a valid object.  This should never happen.
 		panic(err)
 	}
 
 	var out ambassadorTypesV2.HostSpec
-	if err := json.Unmarshal(b, &out); err != nil {
-		// 'bs' is a valid JSON, we just generated it.  This
+	if err := json.Unmarshal(bs, &out); err != nil {
+		// 'bs' is valid JSON, we just generated it.  This
 		// should never happen.
 		panic(err)
 	}
@@ -123,7 +123,7 @@ func unstructureMetadata(in *k8sTypesMetaV1.ObjectMeta) map[string]interface{} {
 	}
 
 	if err := json.Unmarshal(bs, &metadata); err != nil {
-		// 'bs' is a valid JSON, we just generated it.  This
+		// 'bs' is valid JSON, we just generated it.  This
 		// should never happen.
 		panic(err)
 	}
