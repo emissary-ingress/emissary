@@ -134,10 +134,10 @@ In a typical configuration workflow, Custom Resource Definitions (CRDs) are used
 
 4. Apply the configuration to the cluster by typing the command `kubectl apply -f quote-backend.yaml`.
 
-5. Test the configuration by typing `curl -k https://<hostname>/backend/` or `curl -k https://<IP address>/backend/`. You should see something similar to the following:
+5. Test the configuration by typing `curl -Lk https://<hostname>/backend/` or `curl -Lk https://<IP address>/backend/`. You should see something similar to the following:
 
    ```
-   (⎈ |rdl-1:default)$ curl -k https://aes.ri.k36.net/backend/
+   (⎈ |rdl-1:default)$ curl -Lk https://aes.ri.k36.net/backend/
    {
     "server": "idle-cranberry-8tbb6iks",
     "quote": "Non-locality is the driver of truth. By summoning, we vibrate.",
