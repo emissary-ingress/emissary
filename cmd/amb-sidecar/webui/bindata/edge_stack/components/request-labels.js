@@ -82,30 +82,6 @@ import {LitElement, html} from '/edge_stack/vendor/lit-element.min.js'
  *   specify patterns that match those labels. This can be difficult
  *   because there is little feedback in this process.
  *
- * TODO:
- *
- *   The UI here tries to introduce some helpful terminology for the
- *   different elements of a label, but it's all way more obtuse than
- *   I would like it to be. Each label part is either "Global",
- *   "Client", or "Header".
- *
- *   From what I recall messing with rate limiting before, the most
- *   difficult piece was that there is very poor feedback about
- *   whether your pattern is actually matching the labels the way you
- *   think it is. I think a way to make this way better would be to
- *   have the rate limiting backend expose the top N most recent keys
- *   to the client. This would allow the labels tab itself to show you
- *   realtime feedback on what your labels are actually doing. It
- *   would also allow the rate limits tab show you see exactly what
- *   your patterns need to match agains as well as let us have a "make
- *   this label into a pattern" button.
- *
- *   We probably need a bunch more validation, but I don't know what
- *   that is yet, because everything this UI produces seems to not
- *   generate any complaints from ambassador. That may be because the
- *   server side validation isn't very good. Once we wire up more
- *   feedback we will find out.
- *
  */
 
 
