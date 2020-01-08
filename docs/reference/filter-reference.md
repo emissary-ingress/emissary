@@ -124,7 +124,7 @@ spec:
     - name:   "header-name-string"    # required
       value:  "go-template-string"    # required
 
-    realm:            "string"      # optional; defaulti is "{{.metadata.name}}.{{.metadata.namespace}}"
+    realm:            "string"      # optional; default is "{{.metadata.name}}.{{.metadata.namespace}}"
        
     errorResponse:                  # optional
       contentType: "string"         # deprecated; use 'headers' instead

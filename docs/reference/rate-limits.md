@@ -51,6 +51,7 @@ Ambassador Edge Stack supports several special labels:
 Note: In Envoy, labels are referred to as descriptors.
 
 ### Global Rate Limiting
+
 Rate limit labels can be configured on a global level within the [`ambassador Module`](../modules#the-ambassador-module).
 
 ```yaml
@@ -71,7 +72,9 @@ This will annotate every request with the string `default`, creating a key for a
 
 ## The `rate_limits` attribute
 
-In pre-0.50 versions of the Ambassador API Gateway, a mapping can specify the `rate_limits` list attribute and at least one `rate_limits` rule which will call the external [RateLimitService](../services/rate-limit-service) before proceeding with the request. An example:
+In pre-0.50 versions of the Ambassador API Gateway, a mapping can specify the `rate_limits` list attribute and at least one `rate-limit` rule which will call the external [RateLimitService](../services/rate-limit-service) before proceeding with the request. Read about Envoy's rate limit service [here](https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/rate_limit_filter.html?highlight=rate%20limit%20header).
+
+An example:
 
 ```yaml
 apiVersion: getambassador.io/v0
@@ -88,7 +91,7 @@ rate_limits:
 
 Rate limit rule settings:
 
-- `descriptor`: if present, specifies a string identifying the triggered rate limit rule. This descriptor will be sent to the `RateLimitService`.
+- `descriptor`: if present, specifies a string identifying the triggered `rate-limit` rule. This descriptor will be sent to the `RateLimitService`.
 - `headers`: if present, specifies a list of other HTTP headers which **must** appear in the request for the rate limiting rule to apply. These headers will be sent to the `RateLimitService`.
 
 As with request labels, you must use the internal HTTP/2 request header names in `rate_limits` rules.
