@@ -102,8 +102,6 @@
     name = name || blob.name || 'download';
     a.download = name;
     a.rel = 'noopener'; // tabnabbing
-    // TODO: detect chrome extensions & packaged apps
-    // a.target = '_blank'
 
     if (typeof blob === 'string') {
       // Support regular links
