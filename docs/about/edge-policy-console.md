@@ -1,12 +1,12 @@
 # Edge Policy Console
 
-The Ambassador Edge Stack provides you with an easy-to-use interface that so you can create custom resource defintiions, download YAML files, and visit the Developer Portal, all in one place. 
+The Ambassador Edge Stack provides you with an easy-to-use interface that so you can create custom resource defintiions, download YAML files, and visit the Developer Portal, all in one place.
 
 After you [install the Ambassador Edge Stack](../../user-guide/install), you can log in to the Edge Policy Console (EPC) to manage your deployment.
 
 ## Available Pages
 
-The EPC makes it easy to configure what you need for a successful deployment. However, you'll also be able to use the command line to complete any of your configuration, which we will link here for you.
+The EPC makes it easy to configure what you need for a successful deployment. However, you'll also be able to use the command line to complete any of your configuration.
 
 * [Dashboard](#dashboard)
 * [Hosts](#hosts)
@@ -22,6 +22,8 @@ The EPC makes it easy to configure what you need for a successful deployment. Ho
 * [Support](#support)
 
 On most pages, you have the option to click `See YAML` which will provide you the raw YAML file for your CRD. For those that want YAML changes for Git source control, all of your configuration changes will be saved to the YAML Download" tab.
+
+You can also browse the [Edge Control](../../reference/edge-control) for information on using the `edgectl` commands for additional actions.
 
 ### Dashboard
 

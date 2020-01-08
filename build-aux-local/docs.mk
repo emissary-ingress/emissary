@@ -11,7 +11,7 @@ PUSH_BRANCH ?= early-access
 # ------------------------------------------------------------------------------
 
 subtree-preflight:
-	@if ! grep -q split_list_relevant_parents $(firstword $(wildcard $(shell git --exec-path)/git-subtree $(shell which git-subtree) /dev/null)); then \
+	@if ! grep -q split_list_relevant_parents $$(PATH=$$(git --exec-path):$$PATH which git-subtree 2>/dev/null) /dev/null; then \
 	    printf '$(RED)Please upgrade your git-subtree:$(END)\n'; \
 	    printf '$(BLD)  sudo curl -fL https://raw.githubusercontent.com/LukeShu/git/lukeshu/subtree-2020-01-03/contrib/subtree/git-subtree.sh -o $$(git --exec-path)/git-subtree && sudo chmod 755 $$(git --exec-path)/git-subtree$(END)\n'; \
 	    false; \
