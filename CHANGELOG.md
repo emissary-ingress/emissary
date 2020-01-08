@@ -47,6 +47,11 @@ Format:
 --->
 
 <!--- CueAddReleaseNotes --->
+## [1.0.0-ea12] January 08, 2020
+[1.0.0-ea12]: https://github.com/datawire/ambassador/compare/v0.86.0...v1.0.0-ea12
+
+Internal: Streamline code generation from protobufs
+
 ## [1.0.0-ea9] December 23, 2019
 [1.0.0-ea9]: https://github.com/datawire/ambassador/compare/v0.86.0...v1.0.0-ea9
 
