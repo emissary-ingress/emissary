@@ -51,12 +51,32 @@ export class ResourceView extends View {
     this.showYAML = false;
   }
 
+  /* addMessage(message)
+ * Add a message to the messages list.  This list can be rendered
+ * indicate there is an error. If any errors have been added by
+ * validate(), they are displayed to the user rather than allowing
+ * the save action to proceed.
+ */
+  addMessage(message) {
+    this.messages.push(message)
+  }
+
+  /* clearMessages()
+   * This method is called to clear the message list.
+   */
+  clearMessages() {
+    this.messages  = [];
+  }
+
+
   /* onEdit()
    * This method is called on the View when the View needs to change to its Edit mode.  The View needs
    * to create a new copy of its Model for editing, and stop listening to any updates to the old Model.
    */
 
   onEdit() {
+    throw Error("Not Yet Implemented");
+
     /* Save the View's existing model and stop listening to it. */
     this.savedModel = this.model;
     this.model.removeListener(this);
@@ -76,6 +96,8 @@ export class ResourceView extends View {
    */
 
   onSave(cookie) {
+    throw Error("Not Yet Implemented");
+
     if (this.viewState === "add") {
       /* Add the new resource to the system. */
       this.model.doAdd(cookie);

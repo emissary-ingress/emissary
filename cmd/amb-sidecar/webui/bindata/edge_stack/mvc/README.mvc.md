@@ -185,6 +185,7 @@ View                   - implements basic behavior: handling Model notifications
 
 CollectionView         - implements basic behavior: handling Model notifications, rendering a sortable list of Views.
   ICollectionView      - defines the interface for extending the CollectionView
+    HostCollectionView - implements the Host-specific CollectionView behavior
 ```
 
 
