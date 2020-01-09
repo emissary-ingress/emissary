@@ -51,12 +51,10 @@ else
 fi
 set -o verbose
 
-# XXX: always mark this as "success" for now, because we still need to
-# land broken-link fixes in a few repos.
 cat >/tmp/github-status.json <<EOF
 {
   "context": "continuous-integration/broken-link-check",
-  "state": "success",
+  "state": "$(if [[ $num_complaints -eq 0 ]]; then echo success; else echo failure; fi)",
   "target_url": "${TRAVIS_JOB_WEB_URL}",
   "description": "Found ${num_complaints} bad links in the website preview"
 }

@@ -95,7 +95,7 @@ The Ambassador Edge Stack can watch for changes in Knative configuration in your
     We can now use this value and the `EXTERNAL-IP` of Ambassador Edge Stack's Kubernetes service to route to the application:
 
     ```
-    curl -H “Host: helloworld-go.default.example.com” <ambassador IP>
+    curl -L -H "Host: helloworld-go.default.example.com" <ambassador IP>
     ```
 
 We have now installed Knative with Ambassador Edge Stack handling traffic to our serverless applications. See the [Knative documentation](https://knative.dev/docs/) for more information on what else Knative can do.

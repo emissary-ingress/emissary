@@ -29,7 +29,7 @@ Since Ambassador Edge Stack is a comprehensive, self-service edge stack, its pri
 in your browser, or from the command line as
 
 ```shell
-curl 'http://localhost:8080/qotm/?json=true'
+curl -L 'http://localhost:8080/qotm/?json=true'
 ```
 
 This request will route to the `qotm` service at `demo.getambassador.io`, and return a random quote for this very moment.
@@ -47,13 +47,13 @@ You saw above that access to the diagnostic overview required you to authenticat
 in your brower. From the command line, you can see that 
 
 ```shell
-curl -v 'http://localhost:8080/qotm/quote/5?json=true'
+curl -Lv 'http://localhost:8080/qotm/quote/5?json=true'
 ```
 
 will return a 401, but
 
 ```shell
-curl -v -u username:password 'http://localhost:8080/qotm/quote/5?json=true'
+curl -Lv -u username:password 'http://localhost:8080/qotm/quote/5?json=true'
 ```
 
 will succeed. (Note that that's literally "username" and "password" -- the demo auth service is deliberately not very secure!)
