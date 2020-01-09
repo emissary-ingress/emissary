@@ -166,20 +166,17 @@ RELEASE_TYPE=$$($(BUILDER) release-type)
 RELEASE_VERSION=$$($(BUILDER) release-version)
 BUILD_VERSION=$$($(BUILDER) version)
 
-rc: images
+# 'rc' is a deprecated alias for 'release-bits', kept around for the
+# moment to avoid pain with needing to update apro.git in lockstep.
+rc: release-bits
+.PHONY: rc
+
+release/bits: images
 	@test -n "$(RELEASE_REGISTRY)" || (printf "$${RELEASE_REGISTRY_ERR}\n"; exit 1)
-	@if [ "$(RELEASE_TYPE)" = release ]; then \
-		(printf "$(RED)ERROR: 'make rc' can only be used for non-release tags$(END)\n" && exit 1); \
-	fi
-	@printf "$(CYN)==> $(GRN)Pushing release candidate $(BLU)$(REPO)$(GRN) image$(END)\n"
+	@printf "$(CYN)==> $(GRN)Pushing $(BLU)$(REPO)$(GRN) Docker image$(END)\n"
 	docker tag $(REPO) $(AMB_IMAGE_RC)
 	docker push $(AMB_IMAGE_RC)
-	@if [ "$(RELEASE_TYPE)" = rc ]; then \
-		docker tag $(REPO) $(AMB_IMAGE_RC_LATEST) && \
-		docker push $(AMB_IMAGE_RC_LATEST) && \
-		printf "$(GRN)Tagged $(RELEASE_VERSION) as latest RC$(END)\n" ; \
-	fi
-.PHONY: rc
+.PHONY: release/bits
 
 release-prep:
 	bash $(OSS_HOME)/releng/release-prep.sh
@@ -301,7 +298,7 @@ define _help.targets
 
   $(BLD)make $(BLU)shell$(END)     -- starts a shell in the build container.
 
-  $(BLD)make $(BLU)rc$(END)        -- push a release candidate image to $(BLD)\$$RELEASE_REGISTRY$(END). ($(RELEASE_REGISTRY))
+  $(BLD)make $(BLU)release/bits$(END) -- do the "push some bits" part of a release
 
     The current commit must be tagged for this to work, and your tree must be clean.
     If the tag is of the form 'vX.Y.Z-rc[0-9]*', this will also push a tag of the
