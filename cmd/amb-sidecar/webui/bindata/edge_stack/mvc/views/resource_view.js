@@ -52,10 +52,10 @@ export class ResourceView extends View {
   }
 
   /* addMessage(message)
- * Add a message to the messages list.  This list can be rendered
- * indicate there is an error. If any errors have been added by
- * validate(), they are displayed to the user rather than allowing
- * the save action to proceed.
+ * Add a message to the messages list.  This list can be rendered along with the Resource information to
+ * display errors, warnings, or other information.  Typically, messages will be added during validation,
+ * when the Save operation is performed.  If any messages have been added they are displayed to the user
+ * rather than allowing the save action to proceed.
  */
   addMessage(message) {
     this.messages.push(message)
@@ -67,7 +67,6 @@ export class ResourceView extends View {
   clearMessages() {
     this.messages  = [];
   }
-
 
   /* nameInput()
    * This method returns the name input field, referenced below in the render() HTML.
@@ -178,33 +177,16 @@ export class ResourceView extends View {
    */
 
   writeToModel() {
-    this.model.name      = this.nameInput().value;
-    this.model.namespace = this.namespaceInput().value;
+    /* Get the new values from the form */
+    this.name      = this.nameInput().value;
+    this.namespace = this.namespaceInput().value;
+
+    /* Write back to the model. */
+    this.model.name      = this.name;
+    this.model.namespace = this.namespace;
 
     /* Allow subclasses to write their state to the model. */
     this.writeSelfToModel();
-  }
-
-  /* validate()
-  * This method is invoked on save in order to validate input prior to proceeding with the save action.
-  * The model validates its current state, so anything that the View wants to validate must already be in the model.
-  *
-  * validate() returns a Map of fieldnames and error strings. If the dictionary is empty, there are no errors.
-  *
-  * For now we will have a side-effect of validate in that any errors will be added to the message list.
-   */
-
-  validate() {
-    let errors = this.model.validate() || new Map();
-
-    for (let [property, errorStr] of errors) {
-      this.addMessage(`Resource property ${property} not valid: ${errorStr}`)
-    }
-
-    /* Allow subclasses to validate as well. */
-    errors = new Map(...errors, ...this.validateSelf());
-
-    return errors;
   }
 
   /* render()
@@ -246,7 +228,7 @@ export class ResourceView extends View {
       
           ${this.renderSelf()}
           ${this.renderMessages()}
-          ${this.renderMergedYaml()}
+          <!-- ${this.renderMergedYaml()} -->
       
           </div>
           <!-- Disable buttons for now
@@ -340,6 +322,26 @@ export class ResourceView extends View {
     }
   }
 
+  /* validate()
+ * This method is invoked on save in order to validate input prior to proceeding with the save action.
+ * The model validates its current state, so anything that the View wants to validate must already be in the model.
+ *
+ * validate() returns a Map of fieldnames and error strings. If the dictionary is empty, there are no errors.
+ *
+ * For now we will have a side-effect of validate in that any errors will be added to the message list.
+  */
 
+  validate() {
+    let errors = this.model.validate() || new Map();
+
+    for (let [property, errorStr] of errors) {
+      this.addMessage(`Resource property ${property} not valid: ${errorStr}`)
+    }
+
+    /* Allow subclasses to validate as well. */
+    errors = new Map(...errors, ...this.validateSelf());
+
+    return errors;
+  }
 }
 

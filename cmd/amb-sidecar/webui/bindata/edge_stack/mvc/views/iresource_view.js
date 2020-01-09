@@ -28,7 +28,7 @@ export class IResourceView extends ResourceView {
 *     first, import set merge:
 *     import { mapMerge } from "./map.js"
 
-      in properties():
+      static get properties() {
       let myProperties = {
         hostname:     {type: String},   // Host
         acmeProvider: {type: String},   // Host
@@ -37,12 +37,12 @@ export class IResourceView extends ResourceView {
         showTos:      {type: Boolean}   // HostView
       };
 
-      return mapMerge(myProperties, ResourceView.properties());
+      return mapMerge(myProperties, ResourceView.properties);
      */
 
 
     /* The interface simply returns the properties of the ResourceView. */
-    return ResourceView.properties();
+    return ResourceView.properties;
   }
 
   /* constructor(model)
@@ -97,6 +97,5 @@ export class IResourceView extends ResourceView {
   renderSelf() {
     throw new Error("please implement ${this.constructor.name}.renderSelf()")
   }
-
 }
 

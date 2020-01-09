@@ -55,17 +55,6 @@ export class IResource extends Resource {
     throw new Error("Please implement ${this.constructor.name}:getSpec()");
   }
 
-
-  /* kind()
-   * Return the name of the Kind of the Resource.
-   */
-
-  kind() {
-    throw new Error("Please implement ${this.constructor.name}:getSpec()");
-  }
-
-
-
   /* updateSelfFrom(resourceData)
    * Update the Resource object state from the snapshot data block for this Resource.  Compare the values in the
    * data block with the stored state in the Resource.  If the data block has different data than is currently

@@ -63,9 +63,17 @@ export class HostView extends IResourceView {
    */
 
   readSelfFromModel() {
+    /* Get the values from the model. */
+    this.hostname     = model.hostname;
     this.acmeProvider = model.acmeProvider;
     this.acmeEmail    = model.acmeEmail;
     this.useAcme      = model.useAcme;
+
+    /* Set the fields of the form.  The DOM must be generated before calling readFromModel. */
+    this.hostnameInput().value     = this.hostname;
+    this.acmeEmailInput().value    = this.acmeEmail;
+    this.acmeProviderInput().value = this.acmeProvider;
+    this.useAcmeCheckbox().value   = this.useAcme;
   }
 
   /* writeSelfToModel()
@@ -74,7 +82,17 @@ export class HostView extends IResourceView {
    */
 
   writeSelfToModel() {
-    throw new Error("please implement ${this.constructor.name}.writeSelfToModel()")
+    /* Get the values from the form.  The DOM must be generated before calling writeToModel. */
+    this.hostname      = this.hostnameInput().value;
+    this.acmeEmail     = this.acmeEmailInput().value;
+    this.acmeProvider  = this.acmeProviderInput().value;
+    this.useAcme       = this.useAcmeCheckbox().value;
+
+    /* Write back to the model */
+    model.hostname     = this.hostname;
+    model.acmeProvider = this.acmeProvider;
+    model.acmeEmail    = this.acmeEmail;
+    model.useAcme      = this.useAcme;
   }
 
   /* validateSelf()
@@ -87,7 +105,27 @@ export class HostView extends IResourceView {
    */
 
   validateSelf() {
-    throw new Error("please implement ${this.constructor.name}.validateSelf()")
+    let errors = new Map();
+
+    /*
+     * We validate that the user has agreed to the Terms of Service,
+     * which is either: (i) if we are not showing the Terms of Service,
+     * then we assume that they have already agreed, or (ii) if we are
+     * showing the TOS, then the checkbox needs to be checked.
+     */
+    if (this.useAcme && this.showTos && !this.tosAgreeCheckbox().checked) {
+      errors.set("tos", "You must agree to terms of service");
+    }
+
+    /* Validate the user's email address.  The model is responsible
+     * for correctly validating the input value.
+     */
+
+    if (this.model.validateEmail(this.acmeEmailInput().value)) {
+      errors.set("acmeEmail", "That doesn't look like a valid email address");
+    }
+
+    return errors;
   }
 
   /* renderSelf()
@@ -156,7 +194,8 @@ export class HostView extends IResourceView {
         <div class="row-col margin-right justify-right">email:</div>
         <div class="row-col">
           <span class="${this.visible("list")}">${this.acmeEmail}</span>
-          <input class="${this.visible("edit", "add")}" type="email" name="email" value="${this.acmeEmail}" ?disabled="${!this.useAcme}" />
+          <input class="${this.visible("edit", "add")}" type="email" name="email"
+                 value="${this.acmeEmail}" ?disabled="${!this.useAcme}" />
         </div>
       </div>
       
@@ -176,26 +215,25 @@ export class HostView extends IResourceView {
 
   /* Accessors for querySelectors */
 
-  hostnameInput() {
-    return this.shadowRoot.querySelector('input[name="hostname"]')
-  }
-
-  useAcmeCheckbox() {
-    return this.shadowRoot.querySelector('input[name="use_acme"]')
+  acmeEmailInput() {
+    return this.shadowRoot.querySelector('input[name="email"]')
   }
 
   acmeProviderInput() {
     return this.shadowRoot.querySelector('input[name="provider"]')
   }
 
+  hostnameInput() {
+    return this.shadowRoot.querySelector('input[name="hostname"]')
+  }
+
   tosAgreeCheckbox() {
     return this.shadowRoot.querySelector('input[name="tos_agree"]')
   }
 
-  acmeEmailInput() {
-    return this.shadowRoot.querySelector('input[name="email"]')
+  useAcmeCheckbox() {
+    return this.shadowRoot.querySelector('input[name="use_acme"]')
   }
-
 }
 
 /* Bind our custom elements to the HostView. */

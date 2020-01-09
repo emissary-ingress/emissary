@@ -125,6 +125,4 @@ export class View extends LitElement {
   visibleWhen() {
     return [...arguments].includes(this.viewState) ? "" : "off";
   }
-
-
 }
