@@ -56,12 +56,15 @@ class V2Route(dict):
     def __init__(self, config: 'V2Config', group: IRHTTPMappingGroup, mapping: IRBaseMapping) -> None:
         super().__init__()
 
-        # Stash SNI info where we can find it later.
+        # Stash SNI and precedence info where we can find it later.
         if group.get('sni'):
             self['_sni'] = {
                 'hosts': group['tls_context']['hosts'],
                 'secret_info': group['tls_context']['secret_info']
             }
+
+        if group.get('precedence'):
+            self['_precedence'] = group['precedence']
 
         envoy_route = EnvoyRoute(group).envoy_route
 

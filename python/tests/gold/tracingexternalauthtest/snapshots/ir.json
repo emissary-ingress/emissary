@@ -38,6 +38,7 @@
         },
         "server_name": "envoy",
         "service_port": 8080,
+        "use_ambassador_namespace_for_service_resolution": false,
         "use_proxy_proto": false,
         "use_remote_address": true,
         "x_forwarded_proto_redirect": false,
@@ -48,6 +49,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "127.0.0.1",
+            "_namespace": "default",
             "_port": 8877,
             "_referenced_by": [
                 "--internal--"
@@ -81,6 +83,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "tracingexternalauthtest-ahttp-auth",
+            "_namespace": "default",
             "_port": 80,
             "_referenced_by": [
                 "tracingexternalauthtest.default.2"
@@ -99,7 +102,7 @@
             "service": "tracingexternalauthtest-ahttp-auth",
             "targets": [
                 {
-                    "ip": "tracingexternalauthtest-ahttp-auth",
+                    "ip": "tracingexternalauthtest-ahttp-auth.default",
                     "port": 80,
                     "target_kind": "DNSname"
                 }
@@ -113,6 +116,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "zipkin-auth",
+            "_namespace": "default",
             "_port": 9411,
             "_referenced_by": [
                 "tracingexternalauthtest.default.1"
@@ -131,7 +135,7 @@
             "service": "zipkin-auth:9411",
             "targets": [
                 {
-                    "ip": "zipkin-auth",
+                    "ip": "zipkin-auth.default",
                     "port": 9411,
                     "target_kind": "DNSname"
                 }
@@ -145,6 +149,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "tracingexternalauthtest-http",
+            "_namespace": "default",
             "_port": 80,
             "_referenced_by": [
                 "tracingexternalauthtest-http.default.1"
@@ -164,7 +169,7 @@
             "service": "tracingexternalauthtest-http",
             "targets": [
                 {
-                    "ip": "tracingexternalauthtest-http",
+                    "ip": "tracingexternalauthtest-http.default",
                     "port": 80,
                     "target_kind": "DNSname"
                 }
@@ -191,11 +196,12 @@
                 "requested-status"
             ],
             "allowed_request_headers": [],
-            "api_version": "ambassador/v0",
+            "api_version": "getambassador.io/v0",
             "cluster": {
                 "_active": true,
                 "_errored": false,
                 "_hostname": "tracingexternalauthtest-ahttp-auth",
+                "_namespace": "default",
                 "_port": 80,
                 "_referenced_by": [
                     "tracingexternalauthtest.default.2"
@@ -214,7 +220,7 @@
                 "service": "tracingexternalauthtest-ahttp-auth",
                 "targets": [
                     {
-                        "ip": "tracingexternalauthtest-ahttp-auth",
+                        "ip": "tracingexternalauthtest-ahttp-auth.default",
                         "port": 80,
                         "target_kind": "DNSname"
                     }
@@ -298,6 +304,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "127.0.0.1",
+                        "_namespace": "default",
                         "_port": 8877,
                         "_referenced_by": [
                             "--internal--"
@@ -329,7 +336,7 @@
                     },
                     "group_id": "b4db12f5b638f1750062dd4220911c4f6f44fc57",
                     "headers": [],
-                    "kind": "IRMapping",
+                    "kind": "IRHTTPMapping",
                     "location": "--internal--",
                     "name": "internal_readiness_probe_mapping",
                     "namespace": "default",
@@ -387,6 +394,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "127.0.0.1",
+                        "_namespace": "default",
                         "_port": 8877,
                         "_referenced_by": [
                             "--internal--"
@@ -418,7 +426,7 @@
                     },
                     "group_id": "7df546235997704c909d473af2cbcb5e606d20de",
                     "headers": [],
-                    "kind": "IRMapping",
+                    "kind": "IRHTTPMapping",
                     "location": "--internal--",
                     "name": "internal_liveness_probe_mapping",
                     "namespace": "default",
@@ -476,6 +484,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "127.0.0.1",
+                        "_namespace": "default",
                         "_port": 8877,
                         "_referenced_by": [
                             "--internal--"
@@ -507,7 +516,7 @@
                     },
                     "group_id": "8de18501d2044fe30db225289b318d5fda913b64",
                     "headers": [],
-                    "kind": "IRMapping",
+                    "kind": "IRHTTPMapping",
                     "location": "--internal--",
                     "name": "internal_diagnostics_probe_mapping",
                     "namespace": "default",
@@ -562,6 +571,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "tracingexternalauthtest-http",
+                        "_namespace": "default",
                         "_port": 80,
                         "_referenced_by": [
                             "tracingexternalauthtest-http.default.1"
@@ -581,7 +591,7 @@
                         "service": "tracingexternalauthtest-http",
                         "targets": [
                             {
-                                "ip": "tracingexternalauthtest-http",
+                                "ip": "tracingexternalauthtest-http.default",
                                 "port": 80,
                                 "target_kind": "DNSname"
                             }
@@ -595,6 +605,10 @@
                     "headers": [],
                     "kind": "Mapping",
                     "location": "tracingexternalauthtest-http.default.1",
+                    "metadata_labels": {
+                        "kat-ambassador-id": "tracingexternalauthtest",
+                        "scope": "AmbassadorTest"
+                    },
                     "name": "tracing_target_mapping",
                     "namespace": "default",
                     "precedence": 0,
@@ -608,20 +622,25 @@
                         "/target/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: tracingexternalauthtest\napiVersion: ambassador/v0\nkind: Mapping\nname: tracing_target_mapping\nprefix: /target/\nservice: tracingexternalauthtest-http\n",
+                    "serialization": "ambassador_id: tracingexternalauthtest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: tracingexternalauthtest\n  scope: AmbassadorTest\nname: tracing_target_mapping\nprefix: /target/\nservice: tracingexternalauthtest-http\n",
                     "service": "tracingexternalauthtest-http",
                     "weight": 100
                 }
             ],
+            "metadata_labels": {
+                "kat-ambassador-id": "tracingexternalauthtest",
+                "scope": "AmbassadorTest"
+            },
             "name": "GROUP: tracing_target_mapping",
             "namespace": "default",
             "precedence": 0,
             "prefix": "/target/",
             "rewrite": "/",
-            "serialization": "ambassador_id: tracingexternalauthtest\napiVersion: ambassador/v0\nkind: Mapping\nname: tracing_target_mapping\nprefix: /target/\nservice: tracingexternalauthtest-http\n"
+            "serialization": "ambassador_id: tracingexternalauthtest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: tracingexternalauthtest\n  scope: AmbassadorTest\nname: tracing_target_mapping\nprefix: /target/\nservice: tracingexternalauthtest-http\n"
         }
     ],
     "grpc_services": {},
+    "hosts": [],
     "identity": {
         "ambassador_id": "tracingexternalauthtest",
         "ambassador_namespace": "default",
@@ -633,79 +652,101 @@
             "_active": true,
             "_errored": false,
             "_rkey": "ir.listener",
+            "hostname": "*",
+            "insecure_action": "Route",
             "kind": "IRListener",
             "location": "--internal--",
             "name": "ir.listener",
             "namespace": "default",
             "redirect_listener": false,
             "require_tls": false,
-            "server_name": "envoy",
+            "secure_action": "Route",
             "service_port": 8080,
-            "use_proxy_proto": false,
-            "use_remote_address": true,
-            "xff_num_trusted_hops": 0
+            "use_proxy_proto": false
         }
     ],
     "services": {
         "k8s-tracingexternalauthtest-admin-default": {
             "_referenced_by": {},
             "ambassador_id": "tracingexternalauthtest",
-            "apiVersion": "ambassador/v1",
+            "apiVersion": "getambassador.io/v2",
             "endpoints": {},
             "kind": "Service",
             "location": "k8s-tracingexternalauthtest-admin-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "tracingexternalauthtest",
+                "scope": "AmbassadorTest",
+                "service": "tracingexternalauthtest-admin"
+            },
             "name": "tracingexternalauthtest-admin",
             "namespace": "default",
             "rkey": "k8s-tracingexternalauthtest-admin-default",
-            "serialization": "ambassador_id: tracingexternalauthtest\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: tracingexternalauthtest-admin\nnamespace: default\n"
+            "serialization": "ambassador_id: tracingexternalauthtest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: tracingexternalauthtest\n  scope: AmbassadorTest\n  service: tracingexternalauthtest-admin\nname: tracingexternalauthtest-admin\nnamespace: default\n"
         },
         "k8s-tracingexternalauthtest-ahttp-auth-default": {
             "_referenced_by": {},
             "ambassador_id": "tracingexternalauthtest",
-            "apiVersion": "ambassador/v1",
+            "apiVersion": "getambassador.io/v2",
             "endpoints": {},
             "kind": "Service",
             "location": "k8s-tracingexternalauthtest-ahttp-auth-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "tracingexternalauthtest",
+                "scope": "AmbassadorTest"
+            },
             "name": "tracingexternalauthtest-ahttp-auth",
             "namespace": "default",
             "rkey": "k8s-tracingexternalauthtest-ahttp-auth-default",
-            "serialization": "ambassador_id: tracingexternalauthtest\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: tracingexternalauthtest-ahttp-auth\nnamespace: default\n"
+            "serialization": "ambassador_id: tracingexternalauthtest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: tracingexternalauthtest\n  scope: AmbassadorTest\nname: tracingexternalauthtest-ahttp-auth\nnamespace: default\n"
         },
         "k8s-tracingexternalauthtest-default": {
             "_referenced_by": {},
             "ambassador_id": "tracingexternalauthtest",
-            "apiVersion": "ambassador/v1",
+            "apiVersion": "getambassador.io/v2",
             "endpoints": {},
             "kind": "Service",
             "location": "k8s-tracingexternalauthtest-default",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "tracingexternalauthtest",
+                "scope": "AmbassadorTest"
+            },
             "name": "tracingexternalauthtest",
             "namespace": "default",
             "rkey": "k8s-tracingexternalauthtest-default",
-            "serialization": "ambassador_id: tracingexternalauthtest\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: tracingexternalauthtest\nnamespace: default\n"
+            "serialization": "ambassador_id: tracingexternalauthtest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tracingexternalauthtest\n  scope: AmbassadorTest\nname: tracingexternalauthtest\nnamespace: default\n"
         },
         "k8s-tracingexternalauthtest-http-default": {
             "_referenced_by": {},
             "ambassador_id": "tracingexternalauthtest",
-            "apiVersion": "ambassador/v1",
+            "apiVersion": "getambassador.io/v2",
             "endpoints": {},
             "kind": "Service",
             "location": "k8s-tracingexternalauthtest-http-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "tracingexternalauthtest",
+                "scope": "AmbassadorTest"
+            },
             "name": "tracingexternalauthtest-http",
             "namespace": "default",
             "rkey": "k8s-tracingexternalauthtest-http-default",
-            "serialization": "ambassador_id: tracingexternalauthtest\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: tracingexternalauthtest-http\nnamespace: default\n"
+            "serialization": "ambassador_id: tracingexternalauthtest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: tracingexternalauthtest\n  scope: AmbassadorTest\nname: tracingexternalauthtest-http\nnamespace: default\n"
         },
         "k8s-zipkin-auth-default": {
             "_referenced_by": {},
             "ambassador_id": "tracingexternalauthtest",
-            "apiVersion": "ambassador/v1",
+            "apiVersion": "getambassador.io/v2",
             "endpoints": {},
             "kind": "Service",
             "location": "k8s-zipkin-auth-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "tracingexternalauthtest",
+                "scope": "AmbassadorTest"
+            },
             "name": "zipkin-auth",
             "namespace": "default",
             "rkey": "k8s-zipkin-auth-default",
-            "serialization": "ambassador_id: tracingexternalauthtest\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: zipkin-auth\nnamespace: default\n"
+            "serialization": "ambassador_id: tracingexternalauthtest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: tracingexternalauthtest\n  scope: AmbassadorTest\nname: zipkin-auth\nnamespace: default\n"
         }
     },
     "tls_contexts": [],
@@ -720,6 +761,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "zipkin-auth",
+            "_namespace": "default",
             "_port": 9411,
             "_referenced_by": [
                 "tracingexternalauthtest.default.1"
@@ -738,7 +780,7 @@
             "service": "zipkin-auth:9411",
             "targets": [
                 {
-                    "ip": "zipkin-auth",
+                    "ip": "zipkin-auth.default",
                     "port": 9411,
                     "target_kind": "DNSname"
                 }

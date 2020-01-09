@@ -458,17 +458,6 @@ class IR:
     def add_listener(self, listener: IRListener) -> None:
         self.listeners.append(listener)
 
-    def add_to_listener(self, listener_name: str, **kwargs) -> bool:
-        for listener in self.listeners:
-            if listener.get('name') == listener_name:
-                listener.update(kwargs)
-                return True
-        return False
-
-    def add_to_primary_listener(self, **kwargs) -> bool:
-        primary_listener = 'ir.listener'
-        return self.add_to_listener(primary_listener, **kwargs)
-
     def add_mapping(self, aconf: Config, mapping: IRBaseMapping) -> Optional[IRBaseMappingGroup]:
         mapping.check_status()
 

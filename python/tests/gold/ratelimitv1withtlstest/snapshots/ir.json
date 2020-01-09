@@ -38,6 +38,7 @@
         },
         "server_name": "envoy",
         "service_port": 8080,
+        "use_ambassador_namespace_for_service_resolution": false,
         "use_proxy_proto": false,
         "use_remote_address": true,
         "x_forwarded_proto_redirect": false,
@@ -48,6 +49,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "127.0.0.1",
+            "_namespace": "default",
             "_port": 8877,
             "_referenced_by": [
                 "--internal--"
@@ -81,6 +83,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "rate-limit-tls",
+            "_namespace": "default",
             "_port": 5000,
             "_referenced_by": [
                 "ratelimitv1withtlstest.default.1"
@@ -100,7 +103,7 @@
             "service": "rate-limit-tls:5000",
             "targets": [
                 {
-                    "ip": "rate-limit-tls",
+                    "ip": "rate-limit-tls.default",
                     "port": 5000,
                     "target_kind": "DNSname"
                 }
@@ -114,6 +117,7 @@
                 ],
                 "_rkey": "ratelimitv1withtlstest-http.default.1",
                 "alpn_protocols": "h2",
+                "is_fallback": false,
                 "kind": "TLSContext",
                 "location": "ratelimitv1withtlstest-http.default.1",
                 "metadata_labels": {
@@ -137,6 +141,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "ratelimitv1withtlstest-http",
+            "_namespace": "default",
             "_port": 80,
             "_referenced_by": [
                 "ratelimitv1withtlstest-http.default.2"
@@ -156,7 +161,7 @@
             "service": "ratelimitv1withtlstest-http",
             "targets": [
                 {
-                    "ip": "ratelimitv1withtlstest-http",
+                    "ip": "ratelimitv1withtlstest-http.default",
                     "port": 80,
                     "target_kind": "DNSname"
                 }
@@ -189,6 +194,7 @@
                 "_active": true,
                 "_errored": false,
                 "_hostname": "rate-limit-tls",
+                "_namespace": "default",
                 "_port": 5000,
                 "_referenced_by": [
                     "ratelimitv1withtlstest.default.1"
@@ -208,7 +214,7 @@
                 "service": "rate-limit-tls:5000",
                 "targets": [
                     {
-                        "ip": "rate-limit-tls",
+                        "ip": "rate-limit-tls.default",
                         "port": 5000,
                         "target_kind": "DNSname"
                     }
@@ -222,6 +228,7 @@
                     ],
                     "_rkey": "ratelimitv1withtlstest-http.default.1",
                     "alpn_protocols": "h2",
+                    "is_fallback": false,
                     "kind": "TLSContext",
                     "location": "ratelimitv1withtlstest-http.default.1",
                     "metadata_labels": {
@@ -253,6 +260,7 @@
                 "_active": true,
                 "_errored": false,
                 "_hostname": "rate-limit-tls",
+                "_namespace": "default",
                 "_port": 5000,
                 "_referenced_by": [
                     "ratelimitv1withtlstest.default.1"
@@ -272,7 +280,7 @@
                 "service": "rate-limit-tls:5000",
                 "targets": [
                     {
-                        "ip": "rate-limit-tls",
+                        "ip": "rate-limit-tls.default",
                         "port": 5000,
                         "target_kind": "DNSname"
                     }
@@ -286,6 +294,7 @@
                     ],
                     "_rkey": "ratelimitv1withtlstest-http.default.1",
                     "alpn_protocols": "h2",
+                    "is_fallback": false,
                     "kind": "TLSContext",
                     "location": "ratelimitv1withtlstest-http.default.1",
                     "metadata_labels": {
@@ -356,6 +365,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "127.0.0.1",
+                        "_namespace": "default",
                         "_port": 8877,
                         "_referenced_by": [
                             "--internal--"
@@ -445,6 +455,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "127.0.0.1",
+                        "_namespace": "default",
                         "_port": 8877,
                         "_referenced_by": [
                             "--internal--"
@@ -534,6 +545,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "127.0.0.1",
+                        "_namespace": "default",
                         "_port": 8877,
                         "_referenced_by": [
                             "--internal--"
@@ -634,6 +646,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "ratelimitv1withtlstest-http",
+                        "_namespace": "default",
                         "_port": 80,
                         "_referenced_by": [
                             "ratelimitv1withtlstest-http.default.2"
@@ -653,7 +666,7 @@
                         "service": "ratelimitv1withtlstest-http",
                         "targets": [
                             {
-                                "ip": "ratelimitv1withtlstest-http",
+                                "ip": "ratelimitv1withtlstest-http.default",
                                 "port": 80,
                                 "target_kind": "DNSname"
                             }
@@ -720,6 +733,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "rate-limit-tls",
+            "_namespace": "default",
             "_port": 5000,
             "_referenced_by": [
                 "ratelimitv1withtlstest.default.1"
@@ -739,7 +753,7 @@
             "service": "rate-limit-tls:5000",
             "targets": [
                 {
-                    "ip": "rate-limit-tls",
+                    "ip": "rate-limit-tls.default",
                     "port": 5000,
                     "target_kind": "DNSname"
                 }
@@ -753,6 +767,7 @@
                 ],
                 "_rkey": "ratelimitv1withtlstest-http.default.1",
                 "alpn_protocols": "h2",
+                "is_fallback": false,
                 "kind": "TLSContext",
                 "location": "ratelimitv1withtlstest-http.default.1",
                 "metadata_labels": {
@@ -773,6 +788,7 @@
             ]
         }
     },
+    "hosts": [],
     "identity": {
         "ambassador_id": "ratelimitv1withtlstest",
         "ambassador_namespace": "default",
@@ -784,17 +800,17 @@
             "_active": true,
             "_errored": false,
             "_rkey": "ir.listener",
+            "hostname": "*",
+            "insecure_action": "Route",
             "kind": "IRListener",
             "location": "--internal--",
             "name": "ir.listener",
             "namespace": "default",
             "redirect_listener": false,
             "require_tls": false,
-            "server_name": "envoy",
+            "secure_action": "Route",
             "service_port": 8080,
-            "use_proxy_proto": false,
-            "use_remote_address": true,
-            "xff_num_trusted_hops": 0
+            "use_proxy_proto": false
         }
     ],
     "ratelimit": {
@@ -808,6 +824,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "rate-limit-tls",
+            "_namespace": "default",
             "_port": 5000,
             "_referenced_by": [
                 "ratelimitv1withtlstest.default.1"
@@ -827,7 +844,7 @@
             "service": "rate-limit-tls:5000",
             "targets": [
                 {
-                    "ip": "rate-limit-tls",
+                    "ip": "rate-limit-tls.default",
                     "port": 5000,
                     "target_kind": "DNSname"
                 }
@@ -841,6 +858,7 @@
                 ],
                 "_rkey": "ratelimitv1withtlstest-http.default.1",
                 "alpn_protocols": "h2",
+                "is_fallback": false,
                 "kind": "TLSContext",
                 "location": "ratelimitv1withtlstest-http.default.1",
                 "metadata_labels": {
@@ -872,6 +890,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "rate-limit-tls",
+            "_namespace": "default",
             "_port": 5000,
             "_referenced_by": [
                 "ratelimitv1withtlstest.default.1"
@@ -891,7 +910,7 @@
             "service": "rate-limit-tls:5000",
             "targets": [
                 {
-                    "ip": "rate-limit-tls",
+                    "ip": "rate-limit-tls.default",
                     "port": 5000,
                     "target_kind": "DNSname"
                 }
@@ -905,6 +924,7 @@
                 ],
                 "_rkey": "ratelimitv1withtlstest-http.default.1",
                 "alpn_protocols": "h2",
+                "is_fallback": false,
                 "kind": "TLSContext",
                 "location": "ratelimitv1withtlstest-http.default.1",
                 "metadata_labels": {
@@ -1009,6 +1029,7 @@
             ],
             "_rkey": "ratelimitv1withtlstest-http.default.1",
             "alpn_protocols": "h2",
+            "is_fallback": false,
             "kind": "TLSContext",
             "location": "ratelimitv1withtlstest-http.default.1",
             "metadata_labels": {

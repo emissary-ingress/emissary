@@ -533,7 +533,7 @@ class Config:
         try:
             json_format.Parse(serialized, protoclass())
         except json_format.ParseError as e:
-            return RichStatus.fromError(e)
+            return RichStatus.fromError(str(e))
 
         return RichStatus.OK(msg=f"good {resource.kind}")
 

@@ -405,6 +405,15 @@ class Node(ABC):
     def check_local(self, gold_root: str, k8s_yaml_path: str) -> Tuple[bool, bool]:
         testname = self.format('{self.path.k8s}')
 
+        if self.xfail:
+            # XFail early -- but still return True, True so that we don't try to run Envoy on it.
+            self.local_result = {
+                'result': 'xfail',
+                'reason': self.xfail
+            }
+            # print(f"==== XFAIL: {testname} local: {self.xfail}")
+            return (True, True)
+
         if not self.is_ambassador:
             # print(f"{testname} ({type(self)}) is not an Ambassador")
             return (False, False)

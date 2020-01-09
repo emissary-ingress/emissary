@@ -36,7 +36,7 @@ metadata:
     kat-ambassador-id: {self.ambassador_id}
 spec:
   ambassador_id: [ {self.ambassador_id} ]
-  hostname: edgy.example.com
+  hostname: {self.path.fqdn}
   acmeProvider:
     authority: ACME
   selector:
@@ -97,7 +97,7 @@ metadata:
     kat-ambassador-id: {self.ambassador_id}
 spec:
   ambassador_id: [ {self.ambassador_id} ]
-  hostname: manual-hostname
+  hostname: {self.path.fqdn}
   acmeProvider:
     authority: none
   selector:
@@ -115,7 +115,7 @@ metadata:
 spec:
   ambassador_id: [ {self.ambassador_id} ]
   hosts:
-  - manual-hostname
+  - {self.path.fqdn}
   secret: manual-secret
 ---
 apiVersion: getambassador.io/v1
@@ -162,12 +162,15 @@ metadata:
     kat-ambassador-id: {self.ambassador_id}
 spec:
   ambassador_id: [ {self.ambassador_id} ]
-  hostname: cleartext-host
+  hostname: {self.path.fqdn}
   acmeProvider:
     authority: none
   selector:
     matchLabels:
       hostname: host-cleartext
+  requestPolicy:
+    insecure: 
+      action: Route
 ---
 apiVersion: getambassador.io/v1
 kind: Mapping

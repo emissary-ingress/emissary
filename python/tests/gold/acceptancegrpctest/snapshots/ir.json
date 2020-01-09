@@ -38,6 +38,7 @@
         },
         "server_name": "envoy",
         "service_port": 8080,
+        "use_ambassador_namespace_for_service_resolution": false,
         "use_proxy_proto": false,
         "use_remote_address": true,
         "x_forwarded_proto_redirect": false,
@@ -48,6 +49,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "127.0.0.1",
+            "_namespace": "default",
             "_port": 8877,
             "_referenced_by": [
                 "--internal--"
@@ -81,6 +83,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "acceptancegrpctest-egrpc",
+            "_namespace": "default",
             "_port": 80,
             "_referenced_by": [
                 "acceptancegrpctest.default.1"
@@ -101,7 +104,7 @@
             "service": "acceptancegrpctest-egrpc",
             "targets": [
                 {
-                    "ip": "acceptancegrpctest-egrpc",
+                    "ip": "acceptancegrpctest-egrpc.default",
                     "port": 80,
                     "target_kind": "DNSname"
                 }
@@ -167,6 +170,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "127.0.0.1",
+                        "_namespace": "default",
                         "_port": 8877,
                         "_referenced_by": [
                             "--internal--"
@@ -198,7 +202,7 @@
                     },
                     "group_id": "b4db12f5b638f1750062dd4220911c4f6f44fc57",
                     "headers": [],
-                    "kind": "IRMapping",
+                    "kind": "IRHTTPMapping",
                     "location": "--internal--",
                     "name": "internal_readiness_probe_mapping",
                     "namespace": "default",
@@ -256,6 +260,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "127.0.0.1",
+                        "_namespace": "default",
                         "_port": 8877,
                         "_referenced_by": [
                             "--internal--"
@@ -287,7 +292,7 @@
                     },
                     "group_id": "7df546235997704c909d473af2cbcb5e606d20de",
                     "headers": [],
-                    "kind": "IRMapping",
+                    "kind": "IRHTTPMapping",
                     "location": "--internal--",
                     "name": "internal_liveness_probe_mapping",
                     "namespace": "default",
@@ -343,6 +348,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "acceptancegrpctest-egrpc",
+                        "_namespace": "default",
                         "_port": 80,
                         "_referenced_by": [
                             "acceptancegrpctest.default.1"
@@ -363,7 +369,7 @@
                         "service": "acceptancegrpctest-egrpc",
                         "targets": [
                             {
-                                "ip": "acceptancegrpctest-egrpc",
+                                "ip": "acceptancegrpctest-egrpc.default",
                                 "port": 80,
                                 "target_kind": "DNSname"
                             }
@@ -378,6 +384,11 @@
                     "headers": [],
                     "kind": "Mapping",
                     "location": "acceptancegrpctest.default.1",
+                    "metadata_labels": {
+                        "app.kubernetes.io/component": "ambassador-service",
+                        "kat-ambassador-id": "acceptancegrpctest",
+                        "scope": "AmbassadorTest"
+                    },
                     "name": "acceptancegrpctest-egrpc",
                     "namespace": "default",
                     "precedence": 0,
@@ -391,17 +402,22 @@
                         "/echo.EchoService/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: acceptancegrpctest\napiVersion: ambassador/v0\ngrpc: true\nkind: Mapping\nname: acceptancegrpctest-egrpc\nprefix: /echo.EchoService/\nrewrite: /echo.EchoService/\nservice: acceptancegrpctest-egrpc\n",
+                    "serialization": "ambassador_id: acceptancegrpctest\napiVersion: ambassador/v0\ngrpc: true\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: acceptancegrpctest\n  scope: AmbassadorTest\nname: acceptancegrpctest-egrpc\nprefix: /echo.EchoService/\nrewrite: /echo.EchoService/\nservice: acceptancegrpctest-egrpc\n",
                     "service": "acceptancegrpctest-egrpc",
                     "weight": 100
                 }
             ],
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "acceptancegrpctest",
+                "scope": "AmbassadorTest"
+            },
             "name": "GROUP: acceptancegrpctest-egrpc",
             "namespace": "default",
             "precedence": 0,
             "prefix": "/echo.EchoService/",
             "rewrite": "/echo.EchoService/",
-            "serialization": "ambassador_id: acceptancegrpctest\napiVersion: ambassador/v0\ngrpc: true\nkind: Mapping\nname: acceptancegrpctest-egrpc\nprefix: /echo.EchoService/\nrewrite: /echo.EchoService/\nservice: acceptancegrpctest-egrpc\n"
+            "serialization": "ambassador_id: acceptancegrpctest\napiVersion: ambassador/v0\ngrpc: true\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: acceptancegrpctest\n  scope: AmbassadorTest\nname: acceptancegrpctest-egrpc\nprefix: /echo.EchoService/\nrewrite: /echo.EchoService/\nservice: acceptancegrpctest-egrpc\n"
         },
         {
             "_active": true,
@@ -434,6 +450,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "127.0.0.1",
+                        "_namespace": "default",
                         "_port": 8877,
                         "_referenced_by": [
                             "--internal--"
@@ -465,7 +482,7 @@
                     },
                     "group_id": "8de18501d2044fe30db225289b318d5fda913b64",
                     "headers": [],
-                    "kind": "IRMapping",
+                    "kind": "IRHTTPMapping",
                     "location": "--internal--",
                     "name": "internal_diagnostics_probe_mapping",
                     "namespace": "default",
@@ -494,6 +511,7 @@
         }
     ],
     "grpc_services": {},
+    "hosts": [],
     "identity": {
         "ambassador_id": "acceptancegrpctest",
         "ambassador_namespace": "default",
@@ -505,55 +523,69 @@
             "_active": true,
             "_errored": false,
             "_rkey": "ir.listener",
+            "hostname": "*",
+            "insecure_action": "Route",
             "kind": "IRListener",
             "location": "--internal--",
             "name": "ir.listener",
             "namespace": "default",
             "redirect_listener": false,
             "require_tls": false,
-            "server_name": "envoy",
+            "secure_action": "Route",
             "service_port": 8080,
-            "use_proxy_proto": false,
-            "use_remote_address": true,
-            "xff_num_trusted_hops": 0
+            "use_proxy_proto": false
         }
     ],
     "services": {
         "k8s-acceptancegrpctest-admin-default": {
             "_referenced_by": {},
             "ambassador_id": "acceptancegrpctest",
-            "apiVersion": "ambassador/v1",
+            "apiVersion": "getambassador.io/v2",
             "endpoints": {},
             "kind": "Service",
             "location": "k8s-acceptancegrpctest-admin-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "acceptancegrpctest",
+                "scope": "AmbassadorTest",
+                "service": "acceptancegrpctest-admin"
+            },
             "name": "acceptancegrpctest-admin",
             "namespace": "default",
             "rkey": "k8s-acceptancegrpctest-admin-default",
-            "serialization": "ambassador_id: acceptancegrpctest\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: acceptancegrpctest-admin\nnamespace: default\n"
+            "serialization": "ambassador_id: acceptancegrpctest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: acceptancegrpctest\n  scope: AmbassadorTest\n  service: acceptancegrpctest-admin\nname: acceptancegrpctest-admin\nnamespace: default\n"
         },
         "k8s-acceptancegrpctest-default": {
             "_referenced_by": {},
             "ambassador_id": "acceptancegrpctest",
-            "apiVersion": "ambassador/v1",
+            "apiVersion": "getambassador.io/v2",
             "endpoints": {},
             "kind": "Service",
             "location": "k8s-acceptancegrpctest-default",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "acceptancegrpctest",
+                "scope": "AmbassadorTest"
+            },
             "name": "acceptancegrpctest",
             "namespace": "default",
             "rkey": "k8s-acceptancegrpctest-default",
-            "serialization": "ambassador_id: acceptancegrpctest\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: acceptancegrpctest\nnamespace: default\n"
+            "serialization": "ambassador_id: acceptancegrpctest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: acceptancegrpctest\n  scope: AmbassadorTest\nname: acceptancegrpctest\nnamespace: default\n"
         },
         "k8s-acceptancegrpctest-egrpc-default": {
             "_referenced_by": {},
             "ambassador_id": "acceptancegrpctest",
-            "apiVersion": "ambassador/v1",
+            "apiVersion": "getambassador.io/v2",
             "endpoints": {},
             "kind": "Service",
             "location": "k8s-acceptancegrpctest-egrpc-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "acceptancegrpctest",
+                "scope": "AmbassadorTest"
+            },
             "name": "acceptancegrpctest-egrpc",
             "namespace": "default",
             "rkey": "k8s-acceptancegrpctest-egrpc-default",
-            "serialization": "ambassador_id: acceptancegrpctest\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: acceptancegrpctest-egrpc\nnamespace: default\n"
+            "serialization": "ambassador_id: acceptancegrpctest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: acceptancegrpctest\n  scope: AmbassadorTest\nname: acceptancegrpctest-egrpc\nnamespace: default\n"
         }
     },
     "tls_contexts": []

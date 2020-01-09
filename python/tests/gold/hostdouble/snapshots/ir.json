@@ -38,6 +38,7 @@
         },
         "server_name": "envoy",
         "service_port": 8443,
+        "use_ambassador_namespace_for_service_resolution": false,
         "use_proxy_proto": false,
         "use_remote_address": true,
         "x_forwarded_proto_redirect": false,
@@ -48,6 +49,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "127.0.0.1",
+            "_namespace": "default",
             "_port": 8877,
             "_referenced_by": [
                 "--internal--"
@@ -81,6 +83,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "hostdouble-http-target1",
+            "_namespace": "default",
             "_port": 80,
             "_referenced_by": [
                 "host-1-mapping.default.1"
@@ -100,7 +103,7 @@
             "service": "hostdouble-http-target1",
             "targets": [
                 {
-                    "ip": "hostdouble-http-target1",
+                    "ip": "hostdouble-http-target1.default",
                     "port": 80,
                     "target_kind": "DNSname"
                 }
@@ -114,6 +117,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "hostdouble-http-target2",
+            "_namespace": "default",
             "_port": 80,
             "_referenced_by": [
                 "host-2-mapping.default.1"
@@ -133,7 +137,7 @@
             "service": "hostdouble-http-target2",
             "targets": [
                 {
-                    "ip": "hostdouble-http-target2",
+                    "ip": "hostdouble-http-target2.default",
                     "port": 80,
                     "target_kind": "DNSname"
                 }
@@ -199,6 +203,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "127.0.0.1",
+                        "_namespace": "default",
                         "_port": 8877,
                         "_referenced_by": [
                             "--internal--"
@@ -288,6 +293,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "127.0.0.1",
+                        "_namespace": "default",
                         "_port": 8877,
                         "_referenced_by": [
                             "--internal--"
@@ -377,6 +383,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "127.0.0.1",
+                        "_namespace": "default",
                         "_port": 8877,
                         "_referenced_by": [
                             "--internal--"
@@ -470,6 +477,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "hostdouble-http-target2",
+                        "_namespace": "default",
                         "_port": 80,
                         "_referenced_by": [
                             "host-2-mapping.default.1"
@@ -489,7 +497,7 @@
                         "service": "hostdouble-http-target2",
                         "targets": [
                             {
-                                "ip": "hostdouble-http-target2",
+                                "ip": "hostdouble-http-target2.default",
                                 "port": 80,
                                 "target_kind": "DNSname"
                             }
@@ -543,6 +551,7 @@
                         "hosts": [
                             "tls-context-host-2"
                         ],
+                        "is_fallback": false,
                         "kind": "IRTLSContext",
                         "location": "host-2.default.1",
                         "name": "host-2-context",
@@ -580,6 +589,7 @@
                 "hosts": [
                     "tls-context-host-2"
                 ],
+                "is_fallback": false,
                 "kind": "IRTLSContext",
                 "location": "host-2.default.1",
                 "name": "host-2-context",
@@ -627,6 +637,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "hostdouble-http-target1",
+                        "_namespace": "default",
                         "_port": 80,
                         "_referenced_by": [
                             "host-1-mapping.default.1"
@@ -646,7 +657,7 @@
                         "service": "hostdouble-http-target1",
                         "targets": [
                             {
-                                "ip": "hostdouble-http-target1",
+                                "ip": "hostdouble-http-target1.default",
                                 "port": 80,
                                 "target_kind": "DNSname"
                             }
@@ -700,6 +711,7 @@
                         "hosts": [
                             "tls-context-host-1"
                         ],
+                        "is_fallback": false,
                         "kind": "IRTLSContext",
                         "location": "host-1.default.1",
                         "name": "host-1-context",
@@ -737,6 +749,7 @@
                 "hosts": [
                     "tls-context-host-1"
                 ],
+                "is_fallback": false,
                 "kind": "IRTLSContext",
                 "location": "host-1.default.1",
                 "name": "host-1-context",
@@ -762,6 +775,28 @@
             "acmeProvider": {
                 "authority": "ACME"
             },
+            "context": {
+                "_active": true,
+                "_errored": false,
+                "_referenced_by": [
+                    "host-1.default.1"
+                ],
+                "_rkey": "host-1.default.1",
+                "hosts": [
+                    "tls-context-host-1"
+                ],
+                "is_fallback": false,
+                "kind": "IRTLSContext",
+                "location": "host-1.default.1",
+                "name": "host-1-context",
+                "namespace": "default",
+                "redirect_cleartext_from": 8080,
+                "secret_info": {
+                    "cert_chain_file": "/tmp/ambassador/snapshots/default/secrets-decoded/test-tlscontext-secret-1/6B4919697C5D70BB8E4A73A59DDF51A53AE24264.crt",
+                    "private_key_file": "/tmp/ambassador/snapshots/default/secrets-decoded/test-tlscontext-secret-1/6B4919697C5D70BB8E4A73A59DDF51A53AE24264.key",
+                    "secret": "test-tlscontext-secret-1"
+                }
+            },
             "hostname": "tls-context-host-1",
             "kind": "Host",
             "location": "host-1.default.1",
@@ -785,6 +820,28 @@
             "_rkey": "host-2.default.1",
             "acmeProvider": {
                 "authority": "ACME"
+            },
+            "context": {
+                "_active": true,
+                "_errored": false,
+                "_referenced_by": [
+                    "host-2.default.1"
+                ],
+                "_rkey": "host-2.default.1",
+                "hosts": [
+                    "tls-context-host-2"
+                ],
+                "is_fallback": false,
+                "kind": "IRTLSContext",
+                "location": "host-2.default.1",
+                "name": "host-2-context",
+                "namespace": "default",
+                "redirect_cleartext_from": 8080,
+                "secret_info": {
+                    "cert_chain_file": "/tmp/ambassador/snapshots/default/secrets-decoded/test-tlscontext-secret-2/4CB5C4C15C3BBBF727E8572838933519EA42D103.crt",
+                    "private_key_file": "/tmp/ambassador/snapshots/default/secrets-decoded/test-tlscontext-secret-2/4CB5C4C15C3BBBF727E8572838933519EA42D103.key",
+                    "secret": "test-tlscontext-secret-2"
+                }
             },
             "hostname": "tls-context-host-2",
             "kind": "Host",
@@ -826,78 +883,78 @@
         {
             "_active": true,
             "_errored": false,
-            "_rkey": "host-1.default.1",
+            "_rkey": "ir.listener",
+            "context": {
+                "_active": true,
+                "_errored": false,
+                "_referenced_by": [
+                    "host-1.default.1"
+                ],
+                "_rkey": "host-1.default.1",
+                "hosts": [
+                    "tls-context-host-1"
+                ],
+                "is_fallback": false,
+                "kind": "IRTLSContext",
+                "location": "host-1.default.1",
+                "name": "host-1-context",
+                "namespace": "default",
+                "redirect_cleartext_from": 8080,
+                "secret_info": {
+                    "cert_chain_file": "/tmp/ambassador/snapshots/default/secrets-decoded/test-tlscontext-secret-1/6B4919697C5D70BB8E4A73A59DDF51A53AE24264.crt",
+                    "private_key_file": "/tmp/ambassador/snapshots/default/secrets-decoded/test-tlscontext-secret-1/6B4919697C5D70BB8E4A73A59DDF51A53AE24264.key",
+                    "secret": "test-tlscontext-secret-1"
+                }
+            },
+            "hostname": "tls-context-host-1",
+            "insecure_action": "Redirect",
             "kind": "IRListener",
             "location": "host-1.default.1",
             "name": "ir.listener",
             "namespace": "default",
             "redirect_listener": false,
             "require_tls": false,
-            "server_name": "envoy",
+            "secure_action": "Route",
             "service_port": 8443,
-            "tls_contexts": {
-                "host-1-context": {
-                    "_active": true,
-                    "_errored": false,
-                    "_referenced_by": [
-                        "host-1.default.1"
-                    ],
-                    "_rkey": "host-1.default.1",
-                    "hosts": [
-                        "tls-context-host-1"
-                    ],
-                    "kind": "IRTLSContext",
-                    "location": "host-1.default.1",
-                    "name": "host-1-context",
-                    "namespace": "default",
-                    "redirect_cleartext_from": 8080,
-                    "secret_info": {
-                        "cert_chain_file": "/tmp/ambassador/snapshots/default/secrets-decoded/test-tlscontext-secret-1/6B4919697C5D70BB8E4A73A59DDF51A53AE24264.crt",
-                        "private_key_file": "/tmp/ambassador/snapshots/default/secrets-decoded/test-tlscontext-secret-1/6B4919697C5D70BB8E4A73A59DDF51A53AE24264.key",
-                        "secret": "test-tlscontext-secret-1"
-                    }
-                },
-                "host-2-context": {
-                    "_active": true,
-                    "_errored": false,
-                    "_referenced_by": [
-                        "host-2.default.1"
-                    ],
-                    "_rkey": "host-2.default.1",
-                    "hosts": [
-                        "tls-context-host-2"
-                    ],
-                    "kind": "IRTLSContext",
-                    "location": "host-2.default.1",
-                    "name": "host-2-context",
-                    "namespace": "default",
-                    "redirect_cleartext_from": 8080,
-                    "secret_info": {
-                        "cert_chain_file": "/tmp/ambassador/snapshots/default/secrets-decoded/test-tlscontext-secret-2/4CB5C4C15C3BBBF727E8572838933519EA42D103.crt",
-                        "private_key_file": "/tmp/ambassador/snapshots/default/secrets-decoded/test-tlscontext-secret-2/4CB5C4C15C3BBBF727E8572838933519EA42D103.key",
-                        "secret": "test-tlscontext-secret-2"
-                    }
-                }
-            },
-            "use_proxy_proto": false,
-            "use_remote_address": true,
-            "xff_num_trusted_hops": 0
+            "use_proxy_proto": false
         },
         {
             "_active": true,
             "_errored": false,
             "_rkey": "ir.listener",
+            "context": {
+                "_active": true,
+                "_errored": false,
+                "_referenced_by": [
+                    "host-2.default.1"
+                ],
+                "_rkey": "host-2.default.1",
+                "hosts": [
+                    "tls-context-host-2"
+                ],
+                "is_fallback": false,
+                "kind": "IRTLSContext",
+                "location": "host-2.default.1",
+                "name": "host-2-context",
+                "namespace": "default",
+                "redirect_cleartext_from": 8080,
+                "secret_info": {
+                    "cert_chain_file": "/tmp/ambassador/snapshots/default/secrets-decoded/test-tlscontext-secret-2/4CB5C4C15C3BBBF727E8572838933519EA42D103.crt",
+                    "private_key_file": "/tmp/ambassador/snapshots/default/secrets-decoded/test-tlscontext-secret-2/4CB5C4C15C3BBBF727E8572838933519EA42D103.key",
+                    "secret": "test-tlscontext-secret-2"
+                }
+            },
+            "hostname": "tls-context-host-2",
+            "insecure_action": "Redirect",
             "kind": "IRListener",
             "location": "host-2.default.1",
             "name": "ir.listener",
             "namespace": "default",
-            "redirect_listener": true,
-            "require_tls": true,
-            "server_name": "envoy",
-            "service_port": 8080,
-            "use_proxy_proto": false,
-            "use_remote_address": true,
-            "xff_num_trusted_hops": 0
+            "redirect_listener": false,
+            "require_tls": false,
+            "secure_action": "Route",
+            "service_port": 8443,
+            "use_proxy_proto": false
         }
     ],
     "services": {
@@ -979,6 +1036,7 @@
             "hosts": [
                 "tls-context-host-1"
             ],
+            "is_fallback": false,
             "kind": "IRTLSContext",
             "location": "host-1.default.1",
             "name": "host-1-context",
@@ -1000,6 +1058,7 @@
             "hosts": [
                 "tls-context-host-2"
             ],
+            "is_fallback": false,
             "kind": "IRTLSContext",
             "location": "host-2.default.1",
             "name": "host-2-context",

@@ -41,6 +41,7 @@
         },
         "server_name": "envoy",
         "service_port": 8080,
+        "use_ambassador_namespace_for_service_resolution": true,
         "use_proxy_proto": false,
         "use_remote_address": true,
         "x_forwarded_proto_redirect": false,
@@ -51,6 +52,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "127.0.0.1",
+            "_namespace": "default",
             "_port": 8877,
             "_referenced_by": [
                 "ambassadoridtest.default.1"
@@ -84,6 +86,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "ambassadoridtest-http",
+            "_namespace": "default",
             "_port": 80,
             "_referenced_by": [
                 "ambassadoridtest-http.default.1",
@@ -171,6 +174,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "127.0.0.1",
+                        "_namespace": "default",
                         "_port": 8877,
                         "_referenced_by": [
                             "ambassadoridtest.default.1"
@@ -202,7 +206,7 @@
                     },
                     "group_id": "b4db12f5b638f1750062dd4220911c4f6f44fc57",
                     "headers": [],
-                    "kind": "IRMapping",
+                    "kind": "IRHTTPMapping",
                     "location": "ambassadoridtest.default.1",
                     "name": "internal_readiness_probe_mapping",
                     "namespace": "default",
@@ -260,6 +264,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "127.0.0.1",
+                        "_namespace": "default",
                         "_port": 8877,
                         "_referenced_by": [
                             "ambassadoridtest.default.1"
@@ -291,7 +296,7 @@
                     },
                     "group_id": "7df546235997704c909d473af2cbcb5e606d20de",
                     "headers": [],
-                    "kind": "IRMapping",
+                    "kind": "IRHTTPMapping",
                     "location": "ambassadoridtest.default.1",
                     "name": "internal_liveness_probe_mapping",
                     "namespace": "default",
@@ -346,6 +351,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "ambassadoridtest-http",
+                        "_namespace": "default",
                         "_port": 80,
                         "_referenced_by": [
                             "ambassadoridtest-http.default.1",
@@ -381,6 +387,10 @@
                     "headers": [],
                     "kind": "Mapping",
                     "location": "ambassadoridtest-http.default.3",
+                    "metadata_labels": {
+                        "kat-ambassador-id": "ambassadoridtest",
+                        "scope": "AmbassadorTest"
+                    },
                     "name": "ambassadoridtest-findme-array2",
                     "namespace": "default",
                     "precedence": 0,
@@ -394,17 +404,21 @@
                         "/findme-array2/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id:\n- missme\n- ambassadoridtest\napiVersion: ambassador/v0\nkind: Mapping\nname: ambassadoridtest-findme-array2\nprefix: /findme-array2/\nservice: ambassadoridtest-http\n",
+                    "serialization": "ambassador_id:\n- missme\n- ambassadoridtest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: ambassadoridtest\n  scope: AmbassadorTest\nname: ambassadoridtest-findme-array2\nprefix: /findme-array2/\nservice: ambassadoridtest-http\n",
                     "service": "ambassadoridtest-http",
                     "weight": 100
                 }
             ],
+            "metadata_labels": {
+                "kat-ambassador-id": "ambassadoridtest",
+                "scope": "AmbassadorTest"
+            },
             "name": "GROUP: ambassadoridtest-findme-array2",
             "namespace": "default",
             "precedence": 0,
             "prefix": "/findme-array2/",
             "rewrite": "/",
-            "serialization": "ambassador_id:\n- missme\n- ambassadoridtest\napiVersion: ambassador/v0\nkind: Mapping\nname: ambassadoridtest-findme-array2\nprefix: /findme-array2/\nservice: ambassadoridtest-http\n"
+            "serialization": "ambassador_id:\n- missme\n- ambassadoridtest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: ambassadoridtest\n  scope: AmbassadorTest\nname: ambassadoridtest-findme-array2\nprefix: /findme-array2/\nservice: ambassadoridtest-http\n"
         },
         {
             "_active": true,
@@ -437,6 +451,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "127.0.0.1",
+                        "_namespace": "default",
                         "_port": 8877,
                         "_referenced_by": [
                             "ambassadoridtest.default.1"
@@ -468,7 +483,7 @@
                     },
                     "group_id": "8de18501d2044fe30db225289b318d5fda913b64",
                     "headers": [],
-                    "kind": "IRMapping",
+                    "kind": "IRHTTPMapping",
                     "location": "ambassadoridtest.default.1",
                     "name": "internal_diagnostics_probe_mapping",
                     "namespace": "default",
@@ -523,6 +538,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "ambassadoridtest-http",
+                        "_namespace": "default",
                         "_port": 80,
                         "_referenced_by": [
                             "ambassadoridtest-http.default.1",
@@ -558,6 +574,10 @@
                     "headers": [],
                     "kind": "Mapping",
                     "location": "ambassadoridtest-http.default.2",
+                    "metadata_labels": {
+                        "kat-ambassador-id": "ambassadoridtest",
+                        "scope": "AmbassadorTest"
+                    },
                     "name": "ambassadoridtest-findme-array",
                     "namespace": "default",
                     "precedence": 0,
@@ -571,17 +591,21 @@
                         "/findme-array/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id:\n- ambassadoridtest\n- missme\napiVersion: ambassador/v0\nkind: Mapping\nname: ambassadoridtest-findme-array\nprefix: /findme-array/\nservice: ambassadoridtest-http\n",
+                    "serialization": "ambassador_id:\n- ambassadoridtest\n- missme\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: ambassadoridtest\n  scope: AmbassadorTest\nname: ambassadoridtest-findme-array\nprefix: /findme-array/\nservice: ambassadoridtest-http\n",
                     "service": "ambassadoridtest-http",
                     "weight": 100
                 }
             ],
+            "metadata_labels": {
+                "kat-ambassador-id": "ambassadoridtest",
+                "scope": "AmbassadorTest"
+            },
             "name": "GROUP: ambassadoridtest-findme-array",
             "namespace": "default",
             "precedence": 0,
             "prefix": "/findme-array/",
             "rewrite": "/",
-            "serialization": "ambassador_id:\n- ambassadoridtest\n- missme\napiVersion: ambassador/v0\nkind: Mapping\nname: ambassadoridtest-findme-array\nprefix: /findme-array/\nservice: ambassadoridtest-http\n"
+            "serialization": "ambassador_id:\n- ambassadoridtest\n- missme\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: ambassadoridtest\n  scope: AmbassadorTest\nname: ambassadoridtest-findme-array\nprefix: /findme-array/\nservice: ambassadoridtest-http\n"
         },
         {
             "_active": true,
@@ -611,6 +635,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "ambassadoridtest-http",
+                        "_namespace": "default",
                         "_port": 80,
                         "_referenced_by": [
                             "ambassadoridtest-http.default.1",
@@ -646,6 +671,10 @@
                     "headers": [],
                     "kind": "Mapping",
                     "location": "ambassadoridtest-http.default.1",
+                    "metadata_labels": {
+                        "kat-ambassador-id": "ambassadoridtest",
+                        "scope": "AmbassadorTest"
+                    },
                     "name": "ambassadoridtest-findme",
                     "namespace": "default",
                     "precedence": 0,
@@ -659,20 +688,25 @@
                         "/findme/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: ambassadoridtest\napiVersion: ambassador/v0\nkind: Mapping\nname: ambassadoridtest-findme\nprefix: /findme/\nservice: ambassadoridtest-http\n",
+                    "serialization": "ambassador_id: ambassadoridtest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: ambassadoridtest\n  scope: AmbassadorTest\nname: ambassadoridtest-findme\nprefix: /findme/\nservice: ambassadoridtest-http\n",
                     "service": "ambassadoridtest-http",
                     "weight": 100
                 }
             ],
+            "metadata_labels": {
+                "kat-ambassador-id": "ambassadoridtest",
+                "scope": "AmbassadorTest"
+            },
             "name": "GROUP: ambassadoridtest-findme",
             "namespace": "default",
             "precedence": 0,
             "prefix": "/findme/",
             "rewrite": "/",
-            "serialization": "ambassador_id: ambassadoridtest\napiVersion: ambassador/v0\nkind: Mapping\nname: ambassadoridtest-findme\nprefix: /findme/\nservice: ambassadoridtest-http\n"
+            "serialization": "ambassador_id: ambassadoridtest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: ambassadoridtest\n  scope: AmbassadorTest\nname: ambassadoridtest-findme\nprefix: /findme/\nservice: ambassadoridtest-http\n"
         }
     ],
     "grpc_services": {},
+    "hosts": [],
     "identity": {
         "ambassador_id": "ambassadoridtest",
         "ambassador_namespace": "default",
@@ -684,55 +718,69 @@
             "_active": true,
             "_errored": false,
             "_rkey": "ir.listener",
+            "hostname": "*",
+            "insecure_action": "Route",
             "kind": "IRListener",
             "location": "ambassadoridtest.default.1",
             "name": "ir.listener",
             "namespace": "default",
             "redirect_listener": false,
             "require_tls": false,
-            "server_name": "envoy",
+            "secure_action": "Route",
             "service_port": 8080,
-            "use_proxy_proto": false,
-            "use_remote_address": true,
-            "xff_num_trusted_hops": 0
+            "use_proxy_proto": false
         }
     ],
     "services": {
         "k8s-ambassadoridtest-admin-default": {
             "_referenced_by": {},
             "ambassador_id": "ambassadoridtest",
-            "apiVersion": "ambassador/v1",
+            "apiVersion": "getambassador.io/v2",
             "endpoints": {},
             "kind": "Service",
             "location": "k8s-ambassadoridtest-admin-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "ambassadoridtest",
+                "scope": "AmbassadorTest",
+                "service": "ambassadoridtest-admin"
+            },
             "name": "ambassadoridtest-admin",
             "namespace": "default",
             "rkey": "k8s-ambassadoridtest-admin-default",
-            "serialization": "ambassador_id: ambassadoridtest\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: ambassadoridtest-admin\nnamespace: default\n"
+            "serialization": "ambassador_id: ambassadoridtest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: ambassadoridtest\n  scope: AmbassadorTest\n  service: ambassadoridtest-admin\nname: ambassadoridtest-admin\nnamespace: default\n"
         },
         "k8s-ambassadoridtest-default": {
             "_referenced_by": {},
             "ambassador_id": "ambassadoridtest",
-            "apiVersion": "ambassador/v1",
+            "apiVersion": "getambassador.io/v2",
             "endpoints": {},
             "kind": "Service",
             "location": "k8s-ambassadoridtest-default",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "ambassadoridtest",
+                "scope": "AmbassadorTest"
+            },
             "name": "ambassadoridtest",
             "namespace": "default",
             "rkey": "k8s-ambassadoridtest-default",
-            "serialization": "ambassador_id: ambassadoridtest\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: ambassadoridtest\nnamespace: default\n"
+            "serialization": "ambassador_id: ambassadoridtest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: ambassadoridtest\n  scope: AmbassadorTest\nname: ambassadoridtest\nnamespace: default\n"
         },
         "k8s-ambassadoridtest-http-default": {
             "_referenced_by": {},
             "ambassador_id": "ambassadoridtest",
-            "apiVersion": "ambassador/v1",
+            "apiVersion": "getambassador.io/v2",
             "endpoints": {},
             "kind": "Service",
             "location": "k8s-ambassadoridtest-http-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "ambassadoridtest",
+                "scope": "AmbassadorTest"
+            },
             "name": "ambassadoridtest-http",
             "namespace": "default",
             "rkey": "k8s-ambassadoridtest-http-default",
-            "serialization": "ambassador_id: ambassadoridtest\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: ambassadoridtest-http\nnamespace: default\n"
+            "serialization": "ambassador_id: ambassadoridtest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: ambassadoridtest\n  scope: AmbassadorTest\nname: ambassadoridtest-http\nnamespace: default\n"
         }
     },
     "tls_contexts": []

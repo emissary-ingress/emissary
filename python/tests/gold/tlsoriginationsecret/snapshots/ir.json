@@ -38,6 +38,7 @@
         },
         "server_name": "envoy",
         "service_port": 8080,
+        "use_ambassador_namespace_for_service_resolution": false,
         "use_proxy_proto": false,
         "use_remote_address": true,
         "x_forwarded_proto_redirect": false,
@@ -48,6 +49,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "127.0.0.1",
+            "_namespace": "default",
             "_port": 8877,
             "_referenced_by": [
                 "--internal--"
@@ -81,6 +83,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "tlsoriginationsecret-http",
+            "_namespace": "default",
             "_port": 443,
             "_referenced_by": [
                 "tlsoriginationsecret.default.2"
@@ -100,7 +103,7 @@
             "service": "tlsoriginationsecret-http",
             "targets": [
                 {
-                    "ip": "tlsoriginationsecret-http",
+                    "ip": "tlsoriginationsecret-http.default",
                     "port": 443,
                     "target_kind": "DNSname"
                 }
@@ -113,6 +116,7 @@
                     "tlsoriginationsecret.default.2"
                 ],
                 "_rkey": "tlsoriginationsecret.default.1",
+                "is_fallback": false,
                 "kind": "synthesized-TLS-context",
                 "location": "tlsoriginationsecret.default.1",
                 "name": "upstream",
@@ -132,6 +136,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "tlsoriginationsecret-http",
+            "_namespace": "default",
             "_port": 443,
             "_referenced_by": [
                 "tlsoriginationsecret.default.3"
@@ -151,7 +156,7 @@
             "service": "tlsoriginationsecret-http",
             "targets": [
                 {
-                    "ip": "tlsoriginationsecret-http",
+                    "ip": "tlsoriginationsecret-http.default",
                     "port": 443,
                     "target_kind": "DNSname"
                 }
@@ -164,6 +169,7 @@
                     "tlsoriginationsecret.default.3"
                 ],
                 "_rkey": "tlsoriginationsecret.default.1",
+                "is_fallback": false,
                 "kind": "synthesized-TLS-context",
                 "location": "tlsoriginationsecret.default.1",
                 "name": "upstream-files",
@@ -231,6 +237,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "tlsoriginationsecret-http",
+                        "_namespace": "default",
                         "_port": 443,
                         "_referenced_by": [
                             "tlsoriginationsecret.default.3"
@@ -250,7 +257,7 @@
                         "service": "tlsoriginationsecret-http",
                         "targets": [
                             {
-                                "ip": "tlsoriginationsecret-http",
+                                "ip": "tlsoriginationsecret-http.default",
                                 "port": 443,
                                 "target_kind": "DNSname"
                             }
@@ -263,6 +270,7 @@
                                 "tlsoriginationsecret.default.3"
                             ],
                             "_rkey": "tlsoriginationsecret.default.1",
+                            "is_fallback": false,
                             "kind": "synthesized-TLS-context",
                             "location": "tlsoriginationsecret.default.1",
                             "name": "upstream-files",
@@ -281,6 +289,11 @@
                     "headers": [],
                     "kind": "Mapping",
                     "location": "tlsoriginationsecret.default.3",
+                    "metadata_labels": {
+                        "app.kubernetes.io/component": "ambassador-service",
+                        "kat-ambassador-id": "tlsoriginationsecret",
+                        "scope": "AmbassadorTest"
+                    },
                     "name": "tlsoriginationsecret-http-files",
                     "namespace": "default",
                     "precedence": 0,
@@ -294,18 +307,23 @@
                         "/TLSOriginationSecret-files/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: tlsoriginationsecret\napiVersion: ambassador/v0\nkind: Mapping\nname: tlsoriginationsecret-http-files\nprefix: /TLSOriginationSecret-files/\nservice: tlsoriginationsecret-http\ntls: upstream-files\n",
+                    "serialization": "ambassador_id: tlsoriginationsecret\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlsoriginationsecret\n  scope: AmbassadorTest\nname: tlsoriginationsecret-http-files\nprefix: /TLSOriginationSecret-files/\nservice: tlsoriginationsecret-http\ntls: upstream-files\n",
                     "service": "tlsoriginationsecret-http",
                     "tls": "upstream-files",
                     "weight": 100
                 }
             ],
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "tlsoriginationsecret",
+                "scope": "AmbassadorTest"
+            },
             "name": "GROUP: tlsoriginationsecret-http-files",
             "namespace": "default",
             "precedence": 0,
             "prefix": "/TLSOriginationSecret-files/",
             "rewrite": "/",
-            "serialization": "ambassador_id: tlsoriginationsecret\napiVersion: ambassador/v0\nkind: Mapping\nname: tlsoriginationsecret-http-files\nprefix: /TLSOriginationSecret-files/\nservice: tlsoriginationsecret-http\ntls: upstream-files\n",
+            "serialization": "ambassador_id: tlsoriginationsecret\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlsoriginationsecret\n  scope: AmbassadorTest\nname: tlsoriginationsecret-http-files\nprefix: /TLSOriginationSecret-files/\nservice: tlsoriginationsecret-http\ntls: upstream-files\n",
             "tls": "upstream-files"
         },
         {
@@ -339,6 +357,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "127.0.0.1",
+                        "_namespace": "default",
                         "_port": 8877,
                         "_referenced_by": [
                             "--internal--"
@@ -370,7 +389,7 @@
                     },
                     "group_id": "b4db12f5b638f1750062dd4220911c4f6f44fc57",
                     "headers": [],
-                    "kind": "IRMapping",
+                    "kind": "IRHTTPMapping",
                     "location": "--internal--",
                     "name": "internal_readiness_probe_mapping",
                     "namespace": "default",
@@ -428,6 +447,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "127.0.0.1",
+                        "_namespace": "default",
                         "_port": 8877,
                         "_referenced_by": [
                             "--internal--"
@@ -459,7 +479,7 @@
                     },
                     "group_id": "7df546235997704c909d473af2cbcb5e606d20de",
                     "headers": [],
-                    "kind": "IRMapping",
+                    "kind": "IRHTTPMapping",
                     "location": "--internal--",
                     "name": "internal_liveness_probe_mapping",
                     "namespace": "default",
@@ -514,6 +534,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "tlsoriginationsecret-http",
+                        "_namespace": "default",
                         "_port": 443,
                         "_referenced_by": [
                             "tlsoriginationsecret.default.2"
@@ -533,7 +554,7 @@
                         "service": "tlsoriginationsecret-http",
                         "targets": [
                             {
-                                "ip": "tlsoriginationsecret-http",
+                                "ip": "tlsoriginationsecret-http.default",
                                 "port": 443,
                                 "target_kind": "DNSname"
                             }
@@ -546,6 +567,7 @@
                                 "tlsoriginationsecret.default.2"
                             ],
                             "_rkey": "tlsoriginationsecret.default.1",
+                            "is_fallback": false,
                             "kind": "synthesized-TLS-context",
                             "location": "tlsoriginationsecret.default.1",
                             "name": "upstream",
@@ -565,6 +587,11 @@
                     "headers": [],
                     "kind": "Mapping",
                     "location": "tlsoriginationsecret.default.2",
+                    "metadata_labels": {
+                        "app.kubernetes.io/component": "ambassador-service",
+                        "kat-ambassador-id": "tlsoriginationsecret",
+                        "scope": "AmbassadorTest"
+                    },
                     "name": "tlsoriginationsecret-http",
                     "namespace": "default",
                     "precedence": 0,
@@ -578,18 +605,23 @@
                         "/TLSOriginationSecret/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: tlsoriginationsecret\napiVersion: ambassador/v0\nkind: Mapping\nname: tlsoriginationsecret-http\nprefix: /TLSOriginationSecret/\nservice: tlsoriginationsecret-http\ntls: upstream\n",
+                    "serialization": "ambassador_id: tlsoriginationsecret\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlsoriginationsecret\n  scope: AmbassadorTest\nname: tlsoriginationsecret-http\nprefix: /TLSOriginationSecret/\nservice: tlsoriginationsecret-http\ntls: upstream\n",
                     "service": "tlsoriginationsecret-http",
                     "tls": "upstream",
                     "weight": 100
                 }
             ],
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "tlsoriginationsecret",
+                "scope": "AmbassadorTest"
+            },
             "name": "GROUP: tlsoriginationsecret-http",
             "namespace": "default",
             "precedence": 0,
             "prefix": "/TLSOriginationSecret/",
             "rewrite": "/",
-            "serialization": "ambassador_id: tlsoriginationsecret\napiVersion: ambassador/v0\nkind: Mapping\nname: tlsoriginationsecret-http\nprefix: /TLSOriginationSecret/\nservice: tlsoriginationsecret-http\ntls: upstream\n",
+            "serialization": "ambassador_id: tlsoriginationsecret\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlsoriginationsecret\n  scope: AmbassadorTest\nname: tlsoriginationsecret-http\nprefix: /TLSOriginationSecret/\nservice: tlsoriginationsecret-http\ntls: upstream\n",
             "tls": "upstream"
         },
         {
@@ -623,6 +655,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "127.0.0.1",
+                        "_namespace": "default",
                         "_port": 8877,
                         "_referenced_by": [
                             "--internal--"
@@ -654,7 +687,7 @@
                     },
                     "group_id": "8de18501d2044fe30db225289b318d5fda913b64",
                     "headers": [],
-                    "kind": "IRMapping",
+                    "kind": "IRHTTPMapping",
                     "location": "--internal--",
                     "name": "internal_diagnostics_probe_mapping",
                     "namespace": "default",
@@ -683,6 +716,7 @@
         }
     ],
     "grpc_services": {},
+    "hosts": [],
     "identity": {
         "ambassador_id": "tlsoriginationsecret",
         "ambassador_namespace": "default",
@@ -694,55 +728,69 @@
             "_active": true,
             "_errored": false,
             "_rkey": "ir.listener",
+            "hostname": "*",
+            "insecure_action": "Route",
             "kind": "IRListener",
             "location": "--internal--",
             "name": "ir.listener",
             "namespace": "default",
             "redirect_listener": false,
             "require_tls": false,
-            "server_name": "envoy",
+            "secure_action": "Route",
             "service_port": 8080,
-            "use_proxy_proto": false,
-            "use_remote_address": true,
-            "xff_num_trusted_hops": 0
+            "use_proxy_proto": false
         }
     ],
     "services": {
         "k8s-tlsoriginationsecret-admin-default": {
             "_referenced_by": {},
             "ambassador_id": "tlsoriginationsecret",
-            "apiVersion": "ambassador/v1",
+            "apiVersion": "getambassador.io/v2",
             "endpoints": {},
             "kind": "Service",
             "location": "k8s-tlsoriginationsecret-admin-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "tlsoriginationsecret",
+                "scope": "AmbassadorTest",
+                "service": "tlsoriginationsecret-admin"
+            },
             "name": "tlsoriginationsecret-admin",
             "namespace": "default",
             "rkey": "k8s-tlsoriginationsecret-admin-default",
-            "serialization": "ambassador_id: tlsoriginationsecret\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: tlsoriginationsecret-admin\nnamespace: default\n"
+            "serialization": "ambassador_id: tlsoriginationsecret\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: tlsoriginationsecret\n  scope: AmbassadorTest\n  service: tlsoriginationsecret-admin\nname: tlsoriginationsecret-admin\nnamespace: default\n"
         },
         "k8s-tlsoriginationsecret-default": {
             "_referenced_by": {},
             "ambassador_id": "tlsoriginationsecret",
-            "apiVersion": "ambassador/v1",
+            "apiVersion": "getambassador.io/v2",
             "endpoints": {},
             "kind": "Service",
             "location": "k8s-tlsoriginationsecret-default",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "tlsoriginationsecret",
+                "scope": "AmbassadorTest"
+            },
             "name": "tlsoriginationsecret",
             "namespace": "default",
             "rkey": "k8s-tlsoriginationsecret-default",
-            "serialization": "ambassador_id: tlsoriginationsecret\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: tlsoriginationsecret\nnamespace: default\n"
+            "serialization": "ambassador_id: tlsoriginationsecret\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlsoriginationsecret\n  scope: AmbassadorTest\nname: tlsoriginationsecret\nnamespace: default\n"
         },
         "k8s-tlsoriginationsecret-http-default": {
             "_referenced_by": {},
             "ambassador_id": "tlsoriginationsecret",
-            "apiVersion": "ambassador/v1",
+            "apiVersion": "getambassador.io/v2",
             "endpoints": {},
             "kind": "Service",
             "location": "k8s-tlsoriginationsecret-http-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "tlsoriginationsecret",
+                "scope": "AmbassadorTest"
+            },
             "name": "tlsoriginationsecret-http",
             "namespace": "default",
             "rkey": "k8s-tlsoriginationsecret-http-default",
-            "serialization": "ambassador_id: tlsoriginationsecret\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: tlsoriginationsecret-http\nnamespace: default\n"
+            "serialization": "ambassador_id: tlsoriginationsecret\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: tlsoriginationsecret\n  scope: AmbassadorTest\nname: tlsoriginationsecret-http\nnamespace: default\n"
         }
     },
     "tls_contexts": [
@@ -754,6 +802,7 @@
                 "tlsoriginationsecret.default.2"
             ],
             "_rkey": "tlsoriginationsecret.default.1",
+            "is_fallback": false,
             "kind": "synthesized-TLS-context",
             "location": "tlsoriginationsecret.default.1",
             "name": "upstream",
@@ -772,6 +821,7 @@
                 "tlsoriginationsecret.default.3"
             ],
             "_rkey": "tlsoriginationsecret.default.1",
+            "is_fallback": false,
             "kind": "synthesized-TLS-context",
             "location": "tlsoriginationsecret.default.1",
             "name": "upstream-files",

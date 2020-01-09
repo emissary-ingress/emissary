@@ -38,6 +38,7 @@
         },
         "server_name": "envoy",
         "service_port": 8443,
+        "use_ambassador_namespace_for_service_resolution": false,
         "use_proxy_proto": false,
         "use_remote_address": true,
         "x_forwarded_proto_redirect": false,
@@ -48,6 +49,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "127.0.0.1",
+            "_namespace": "default",
             "_port": 8877,
             "_referenced_by": [
                 "--internal--"
@@ -81,6 +83,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "hostmanualtls-http",
+            "_namespace": "default",
             "_port": 80,
             "_referenced_by": [
                 "manual-target-mapping.default.1"
@@ -100,7 +103,7 @@
             "service": "hostmanualtls-http",
             "targets": [
                 {
-                    "ip": "hostmanualtls-http",
+                    "ip": "hostmanualtls-http.default",
                     "port": 80,
                     "target_kind": "DNSname"
                 }
@@ -166,6 +169,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "127.0.0.1",
+                        "_namespace": "default",
                         "_port": 8877,
                         "_referenced_by": [
                             "--internal--"
@@ -255,6 +259,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "127.0.0.1",
+                        "_namespace": "default",
                         "_port": 8877,
                         "_referenced_by": [
                             "--internal--"
@@ -344,6 +349,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "127.0.0.1",
+                        "_namespace": "default",
                         "_port": 8877,
                         "_referenced_by": [
                             "--internal--"
@@ -430,6 +436,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "hostmanualtls-http",
+                        "_namespace": "default",
                         "_port": 80,
                         "_referenced_by": [
                             "manual-target-mapping.default.1"
@@ -449,7 +456,7 @@
                         "service": "hostmanualtls-http",
                         "targets": [
                             {
-                                "ip": "hostmanualtls-http",
+                                "ip": "hostmanualtls-http.default",
                                 "port": 80,
                                 "target_kind": "DNSname"
                             }
@@ -513,7 +520,7 @@
             "acmeProvider": {
                 "authority": "none"
             },
-            "hostname": "manual-hostname",
+            "hostname": "hostmanualtls",
             "kind": "Host",
             "location": "manual-host.default.1",
             "name": "manual-host",
@@ -546,45 +553,44 @@
         {
             "_active": true,
             "_errored": false,
-            "_rkey": "manual-context.default.1",
+            "_rkey": "ir.listener",
+            "context": {
+                "_active": true,
+                "_errored": false,
+                "_referenced_by": [
+                    "manual-context.default.1"
+                ],
+                "_rkey": "manual-context.default.1",
+                "hosts": [
+                    "hostmanualtls"
+                ],
+                "is_fallback": false,
+                "kind": "TLSContext",
+                "location": "manual-context.default.1",
+                "metadata_labels": {
+                    "ambassador_crd": "manual-context.default",
+                    "kat-ambassador-id": "hostmanualtls",
+                    "scope": "AmbassadorTest"
+                },
+                "name": "manual-context",
+                "namespace": "default",
+                "secret_info": {
+                    "cert_chain_file": "/tmp/ambassador/snapshots/default/secrets-decoded/manual-secret/F94E4DCF30ABC50DEF240AA8024599B67CC03991.crt",
+                    "private_key_file": "/tmp/ambassador/snapshots/default/secrets-decoded/manual-secret/F94E4DCF30ABC50DEF240AA8024599B67CC03991.key",
+                    "secret": "manual-secret"
+                }
+            },
+            "hostname": "hostmanualtls",
+            "insecure_action": "Redirect",
             "kind": "IRListener",
-            "location": "manual-context.default.1",
+            "location": "manual-host.default.1",
             "name": "ir.listener",
             "namespace": "default",
             "redirect_listener": false,
             "require_tls": false,
-            "server_name": "envoy",
+            "secure_action": "Route",
             "service_port": 8443,
-            "tls_contexts": {
-                "manual-context": {
-                    "_active": true,
-                    "_errored": false,
-                    "_referenced_by": [
-                        "manual-context.default.1"
-                    ],
-                    "_rkey": "manual-context.default.1",
-                    "hosts": [
-                        "manual-hostname"
-                    ],
-                    "kind": "TLSContext",
-                    "location": "manual-context.default.1",
-                    "metadata_labels": {
-                        "ambassador_crd": "manual-context.default",
-                        "kat-ambassador-id": "hostmanualtls",
-                        "scope": "AmbassadorTest"
-                    },
-                    "name": "manual-context",
-                    "namespace": "default",
-                    "secret_info": {
-                        "cert_chain_file": "/tmp/ambassador/snapshots/default/secrets-decoded/manual-secret/F94E4DCF30ABC50DEF240AA8024599B67CC03991.crt",
-                        "private_key_file": "/tmp/ambassador/snapshots/default/secrets-decoded/manual-secret/F94E4DCF30ABC50DEF240AA8024599B67CC03991.key",
-                        "secret": "manual-secret"
-                    }
-                }
-            },
-            "use_proxy_proto": false,
-            "use_remote_address": true,
-            "xff_num_trusted_hops": 0
+            "use_proxy_proto": false
         }
     ],
     "services": {
@@ -648,8 +654,9 @@
             ],
             "_rkey": "manual-context.default.1",
             "hosts": [
-                "manual-hostname"
+                "hostmanualtls"
             ],
+            "is_fallback": false,
             "kind": "TLSContext",
             "location": "manual-context.default.1",
             "metadata_labels": {

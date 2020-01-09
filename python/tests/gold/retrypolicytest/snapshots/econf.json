@@ -67,6 +67,7 @@
                 },
                 "filter_chains": [
                     {
+                        "filter_chain_match": {},
                         "filters": [
                             {
                                 "config": {
@@ -97,8 +98,37 @@
                                                 "domains": [
                                                     "*"
                                                 ],
-                                                "name": "backend",
+                                                "name": "ambassador-listener-8080-*",
                                                 "routes": [
+                                                    {
+                                                        "match": {
+                                                            "case_sensitive": true,
+                                                            "headers": [
+                                                                {
+                                                                    "exact_match": "https",
+                                                                    "name": "x-forwarded-proto"
+                                                                }
+                                                            ],
+                                                            "prefix": "/ambassador/v0/check_ready",
+                                                            "runtime_fraction": {
+                                                                "default_value": {
+                                                                    "denominator": "HUNDRED",
+                                                                    "numerator": 100
+                                                                },
+                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877"
+                                                            }
+                                                        },
+                                                        "route": {
+                                                            "cluster": "cluster_127_0_0_1_8877",
+                                                            "prefix_rewrite": "/ambassador/v0/check_ready",
+                                                            "priority": null,
+                                                            "retry_policy": {
+                                                                "num_retries": 4,
+                                                                "retry_on": "retriable-4xx"
+                                                            },
+                                                            "timeout": "10.000s"
+                                                        }
+                                                    },
                                                     {
                                                         "match": {
                                                             "case_sensitive": true,
@@ -114,6 +144,35 @@
                                                         "route": {
                                                             "cluster": "cluster_127_0_0_1_8877",
                                                             "prefix_rewrite": "/ambassador/v0/check_ready",
+                                                            "priority": null,
+                                                            "retry_policy": {
+                                                                "num_retries": 4,
+                                                                "retry_on": "retriable-4xx"
+                                                            },
+                                                            "timeout": "10.000s"
+                                                        }
+                                                    },
+                                                    {
+                                                        "match": {
+                                                            "case_sensitive": true,
+                                                            "headers": [
+                                                                {
+                                                                    "exact_match": "https",
+                                                                    "name": "x-forwarded-proto"
+                                                                }
+                                                            ],
+                                                            "prefix": "/ambassador/v0/check_alive",
+                                                            "runtime_fraction": {
+                                                                "default_value": {
+                                                                    "denominator": "HUNDRED",
+                                                                    "numerator": 100
+                                                                },
+                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877"
+                                                            }
+                                                        },
+                                                        "route": {
+                                                            "cluster": "cluster_127_0_0_1_8877",
+                                                            "prefix_rewrite": "/ambassador/v0/check_alive",
                                                             "priority": null,
                                                             "retry_policy": {
                                                                 "num_retries": 4,
@@ -148,6 +207,12 @@
                                                     {
                                                         "match": {
                                                             "case_sensitive": true,
+                                                            "headers": [
+                                                                {
+                                                                    "exact_match": "https",
+                                                                    "name": "x-forwarded-proto"
+                                                                }
+                                                            ],
                                                             "prefix": "/RetryPolicyTest-normal/",
                                                             "runtime_fraction": {
                                                                 "default_value": {
@@ -164,6 +229,58 @@
                                                             "retry_policy": {
                                                                 "num_retries": 4,
                                                                 "retry_on": "retriable-4xx"
+                                                            },
+                                                            "timeout": "3.000s"
+                                                        }
+                                                    },
+                                                    {
+                                                        "match": {
+                                                            "case_sensitive": true,
+                                                            "prefix": "/RetryPolicyTest-normal/",
+                                                            "runtime_fraction": {
+                                                                "default_value": {
+                                                                    "denominator": "HUNDRED",
+                                                                    "numerator": 100
+                                                                },
+                                                                "runtime_key": "routing.traffic_shift.cluster_retrypolicytest_http"
+                                                            }
+                                                        },
+                                                        "route": {
+                                                            "cluster": "cluster_retrypolicytest_http",
+                                                            "prefix_rewrite": "/",
+                                                            "priority": null,
+                                                            "retry_policy": {
+                                                                "num_retries": 4,
+                                                                "retry_on": "retriable-4xx"
+                                                            },
+                                                            "timeout": "3.000s"
+                                                        }
+                                                    },
+                                                    {
+                                                        "match": {
+                                                            "case_sensitive": true,
+                                                            "headers": [
+                                                                {
+                                                                    "exact_match": "https",
+                                                                    "name": "x-forwarded-proto"
+                                                                }
+                                                            ],
+                                                            "prefix": "/RetryPolicyTest-retry/",
+                                                            "runtime_fraction": {
+                                                                "default_value": {
+                                                                    "denominator": "HUNDRED",
+                                                                    "numerator": 100
+                                                                },
+                                                                "runtime_key": "routing.traffic_shift.cluster_retrypolicytest_http"
+                                                            }
+                                                        },
+                                                        "route": {
+                                                            "cluster": "cluster_retrypolicytest_http",
+                                                            "prefix_rewrite": "/",
+                                                            "priority": null,
+                                                            "retry_policy": {
+                                                                "num_retries": 4,
+                                                                "retry_on": "5xx"
                                                             },
                                                             "timeout": "3.000s"
                                                         }
@@ -189,6 +306,35 @@
                                                                 "retry_on": "5xx"
                                                             },
                                                             "timeout": "3.000s"
+                                                        }
+                                                    },
+                                                    {
+                                                        "match": {
+                                                            "case_sensitive": true,
+                                                            "headers": [
+                                                                {
+                                                                    "exact_match": "https",
+                                                                    "name": "x-forwarded-proto"
+                                                                }
+                                                            ],
+                                                            "prefix": "/ambassador/v0/",
+                                                            "runtime_fraction": {
+                                                                "default_value": {
+                                                                    "denominator": "HUNDRED",
+                                                                    "numerator": 100
+                                                                },
+                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877"
+                                                            }
+                                                        },
+                                                        "route": {
+                                                            "cluster": "cluster_127_0_0_1_8877",
+                                                            "prefix_rewrite": "/ambassador/v0/",
+                                                            "priority": null,
+                                                            "retry_policy": {
+                                                                "num_retries": 4,
+                                                                "retry_on": "retriable-4xx"
+                                                            },
+                                                            "timeout": "10.000s"
                                                         }
                                                     },
                                                     {
@@ -229,6 +375,7 @@
                         "use_proxy_proto": false
                     }
                 ],
+                "listener_filters": [],
                 "name": "ambassador-listener-8080"
             }
         ]

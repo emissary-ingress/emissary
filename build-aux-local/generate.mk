@@ -1,7 +1,7 @@
 generate/files += $(patsubst $(OSS_HOME)/api/%.proto,                   $(OSS_HOME)/pkg/api/%.pb.go                         , $(shell find $(OSS_HOME)/api/                  -name '*.proto'))
 generate/files += $(patsubst $(OSS_HOME)/api/%.proto,                   $(OSS_HOME)/pkg/api/%.pb.validate.go                , $(shell find $(OSS_HOME)/api/envoy/            -name '*.proto'))
 generate/files += $(patsubst $(OSS_HOME)/api/%.proto,                   $(OSS_HOME)/pkg/api/%.pb.json.go                    , $(shell find $(OSS_HOME)/api/getambassador.io/ -name '*.proto' -not -name '*_nojson.proto'))
-generate/files += $(patsubst $(OSS_HOME)/api/getambassador.io/%.proto,  $(OSS_HOME)/python/ambassador/proto/%_pb2.py        , $(shell find $(OSS_HOME)/api/getambassador.io/ -name '*.proto'))
+generate/files += $(patsubst $(OSS_HOME)/api/getambassador.io/%.proto,  $(OSS_HOME)/python/ambassador/proto/%_pb2.py        , $(shell find $(OSS_HOME)/api/getambassador.io/ -name '*.proto' -not -name '*_nojson.proto'))
 generate/files += $(patsubst $(OSS_HOME)/api/kat/%.proto,               $(OSS_HOME)/tools/sandbox/grpc_web/%_pb.js          , $(shell find $(OSS_HOME)/api/kat/              -name '*.proto'))
 generate/files += $(patsubst $(OSS_HOME)/api/kat/%.proto,               $(OSS_HOME)/tools/sandbox/grpc_web/%_grpc_web_pb.js , $(shell find $(OSS_HOME)/api/kat/              -name '*.proto'))
 generate: ## Update generated sources that get committed to git
@@ -196,9 +196,18 @@ $(OSS_HOME)/generate.tmp/%_grpc_web_pb.js: $(OSS_HOME)/api/%.proto $(tools/proto
 	$(call protoc,grpc-web,$(OSS_HOME)/generate.tmp,\
 	    $(tools/protoc-gen-grpc-web))
 
+# This madness with sed is because protoc likes to insert broken imports when generating
+# Python code, and my attempts to sort out how to fix the protoc invocation are taking 
+# longer than I have right now.
+# (Previous we just did cp $< $@ instead of the sed call.)
+
 $(OSS_HOME)/python/ambassador/proto/%.py: $(OSS_HOME)/generate.tmp/getambassador.io/%.py
 	mkdir -p $(@D)
-	cp $< $@
+	sed \
+		-e 's/github_dot_com_dot_gogo_dot_protobuf_dot_gogoproto_dot_gogo__pb2.DESCRIPTOR,//' \
+		-e '/from github.com.gogo.protobuf.gogoproto import/d' \
+		< $< > $@
+
 $(OSS_HOME)/tools/sandbox/grpc_web/%.js: $(OSS_HOME)/generate.tmp/kat/%.js
 	cp $< $@
 

@@ -38,6 +38,7 @@
         },
         "server_name": "envoy",
         "service_port": 8443,
+        "use_ambassador_namespace_for_service_resolution": false,
         "use_proxy_proto": false,
         "use_remote_address": true,
         "x_forwarded_proto_redirect": false,
@@ -48,6 +49,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "127.0.0.1",
+            "_namespace": "default",
             "_port": 8877,
             "_referenced_by": [
                 "--internal--"
@@ -81,6 +83,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "redirecttestsinvalidsecret-http",
+            "_namespace": "default",
             "_port": 80,
             "_referenced_by": [
                 "redirecttestsinvalidsecret-http.default.1"
@@ -100,7 +103,7 @@
             "service": "redirecttestsinvalidsecret-http",
             "targets": [
                 {
-                    "ip": "redirecttestsinvalidsecret-http",
+                    "ip": "redirecttestsinvalidsecret-http.default",
                     "port": 80,
                     "target_kind": "DNSname"
                 }
@@ -166,6 +169,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "127.0.0.1",
+                        "_namespace": "default",
                         "_port": 8877,
                         "_referenced_by": [
                             "--internal--"
@@ -197,7 +201,7 @@
                     },
                     "group_id": "b4db12f5b638f1750062dd4220911c4f6f44fc57",
                     "headers": [],
-                    "kind": "IRMapping",
+                    "kind": "IRHTTPMapping",
                     "location": "--internal--",
                     "name": "internal_readiness_probe_mapping",
                     "namespace": "default",
@@ -255,6 +259,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "127.0.0.1",
+                        "_namespace": "default",
                         "_port": 8877,
                         "_referenced_by": [
                             "--internal--"
@@ -286,7 +291,7 @@
                     },
                     "group_id": "7df546235997704c909d473af2cbcb5e606d20de",
                     "headers": [],
-                    "kind": "IRMapping",
+                    "kind": "IRHTTPMapping",
                     "location": "--internal--",
                     "name": "internal_liveness_probe_mapping",
                     "namespace": "default",
@@ -344,6 +349,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "127.0.0.1",
+                        "_namespace": "default",
                         "_port": 8877,
                         "_referenced_by": [
                             "--internal--"
@@ -375,7 +381,7 @@
                     },
                     "group_id": "8de18501d2044fe30db225289b318d5fda913b64",
                     "headers": [],
-                    "kind": "IRMapping",
+                    "kind": "IRHTTPMapping",
                     "location": "--internal--",
                     "name": "internal_diagnostics_probe_mapping",
                     "namespace": "default",
@@ -430,6 +436,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "redirecttestsinvalidsecret-http",
+                        "_namespace": "default",
                         "_port": 80,
                         "_referenced_by": [
                             "redirecttestsinvalidsecret-http.default.1"
@@ -449,7 +456,7 @@
                         "service": "redirecttestsinvalidsecret-http",
                         "targets": [
                             {
-                                "ip": "redirecttestsinvalidsecret-http",
+                                "ip": "redirecttestsinvalidsecret-http.default",
                                 "port": 80,
                                 "target_kind": "DNSname"
                             }
@@ -463,6 +470,10 @@
                     "headers": [],
                     "kind": "Mapping",
                     "location": "redirecttestsinvalidsecret-http.default.1",
+                    "metadata_labels": {
+                        "kat-ambassador-id": "redirecttestsinvalidsecret",
+                        "scope": "AmbassadorTest"
+                    },
                     "name": "tls_target_mapping",
                     "namespace": "default",
                     "precedence": 0,
@@ -476,20 +487,25 @@
                         "/tls-target/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: redirecttestsinvalidsecret\napiVersion: ambassador/v1\nkind: Mapping\nname: tls_target_mapping\nprefix: /tls-target/\nservice: redirecttestsinvalidsecret-http\n",
+                    "serialization": "ambassador_id: redirecttestsinvalidsecret\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: redirecttestsinvalidsecret\n  scope: AmbassadorTest\nname: tls_target_mapping\nprefix: /tls-target/\nservice: redirecttestsinvalidsecret-http\n",
                     "service": "redirecttestsinvalidsecret-http",
                     "weight": 100
                 }
             ],
+            "metadata_labels": {
+                "kat-ambassador-id": "redirecttestsinvalidsecret",
+                "scope": "AmbassadorTest"
+            },
             "name": "GROUP: tls_target_mapping",
             "namespace": "default",
             "precedence": 0,
             "prefix": "/tls-target/",
             "rewrite": "/",
-            "serialization": "ambassador_id: redirecttestsinvalidsecret\napiVersion: ambassador/v1\nkind: Mapping\nname: tls_target_mapping\nprefix: /tls-target/\nservice: redirecttestsinvalidsecret-http\n"
+            "serialization": "ambassador_id: redirecttestsinvalidsecret\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: redirecttestsinvalidsecret\n  scope: AmbassadorTest\nname: tls_target_mapping\nprefix: /tls-target/\nservice: redirecttestsinvalidsecret-http\n"
         }
     ],
     "grpc_services": {},
+    "hosts": [],
     "identity": {
         "ambassador_id": "redirecttestsinvalidsecret",
         "ambassador_namespace": "default",
@@ -501,88 +517,86 @@
             "_active": true,
             "_errored": false,
             "_rkey": "ir.listener",
+            "context": {
+                "_active": true,
+                "_errored": true,
+                "_legacy": true,
+                "_rkey": "redirecttestsinvalidsecret.default.1",
+                "hosts": [
+                    "*"
+                ],
+                "is_fallback": false,
+                "kind": "synthesized-TLS-context",
+                "location": "redirecttestsinvalidsecret.default.1",
+                "name": "server",
+                "namespace": "default",
+                "redirect_cleartext_from": 8080,
+                "secret_info": {}
+            },
+            "hostname": "*",
+            "insecure_action": "Redirect",
+            "insecure_addl_port": 8080,
             "kind": "IRListener",
             "location": "redirecttestsinvalidsecret.default.1",
             "name": "ir.listener",
             "namespace": "default",
             "redirect_listener": false,
             "require_tls": false,
-            "server_name": "envoy",
+            "secure_action": "Route",
             "service_port": 8443,
-            "tls_contexts": {
-                "server": {
-                    "_active": true,
-                    "_errored": true,
-                    "_legacy": true,
-                    "_rkey": "redirecttestsinvalidsecret.default.1",
-                    "hosts": [
-                        "*"
-                    ],
-                    "kind": "synthesized-TLS-context",
-                    "location": "redirecttestsinvalidsecret.default.1",
-                    "name": "server",
-                    "namespace": "default",
-                    "redirect_cleartext_from": 8080,
-                    "secret_info": {}
-                }
-            },
-            "use_proxy_proto": false,
-            "use_remote_address": true,
-            "xff_num_trusted_hops": 0
-        },
-        {
-            "_active": true,
-            "_errored": false,
-            "_rkey": "ir.listener",
-            "kind": "IRListener",
-            "location": "redirecttestsinvalidsecret.default.1",
-            "name": "ir.listener",
-            "namespace": "default",
-            "redirect_listener": true,
-            "require_tls": true,
-            "server_name": "envoy",
-            "service_port": 8080,
-            "use_proxy_proto": false,
-            "use_remote_address": true,
-            "xff_num_trusted_hops": 0
+            "use_proxy_proto": false
         }
     ],
     "services": {
         "k8s-redirecttestsinvalidsecret-admin-default": {
             "_referenced_by": {},
             "ambassador_id": "redirecttestsinvalidsecret",
-            "apiVersion": "ambassador/v1",
+            "apiVersion": "getambassador.io/v2",
             "endpoints": {},
             "kind": "Service",
             "location": "k8s-redirecttestsinvalidsecret-admin-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "redirecttestsinvalidsecret",
+                "scope": "AmbassadorTest",
+                "service": "redirecttestsinvalidsecret-admin"
+            },
             "name": "redirecttestsinvalidsecret-admin",
             "namespace": "default",
             "rkey": "k8s-redirecttestsinvalidsecret-admin-default",
-            "serialization": "ambassador_id: redirecttestsinvalidsecret\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: redirecttestsinvalidsecret-admin\nnamespace: default\n"
+            "serialization": "ambassador_id: redirecttestsinvalidsecret\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: redirecttestsinvalidsecret\n  scope: AmbassadorTest\n  service: redirecttestsinvalidsecret-admin\nname: redirecttestsinvalidsecret-admin\nnamespace: default\n"
         },
         "k8s-redirecttestsinvalidsecret-default": {
             "_referenced_by": {},
             "ambassador_id": "redirecttestsinvalidsecret",
-            "apiVersion": "ambassador/v1",
+            "apiVersion": "getambassador.io/v2",
             "endpoints": {},
             "kind": "Service",
             "location": "k8s-redirecttestsinvalidsecret-default",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "redirecttestsinvalidsecret",
+                "scope": "AmbassadorTest"
+            },
             "name": "redirecttestsinvalidsecret",
             "namespace": "default",
             "rkey": "k8s-redirecttestsinvalidsecret-default",
-            "serialization": "ambassador_id: redirecttestsinvalidsecret\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: redirecttestsinvalidsecret\nnamespace: default\n"
+            "serialization": "ambassador_id: redirecttestsinvalidsecret\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: redirecttestsinvalidsecret\n  scope: AmbassadorTest\nname: redirecttestsinvalidsecret\nnamespace: default\n"
         },
         "k8s-redirecttestsinvalidsecret-http-default": {
             "_referenced_by": {},
             "ambassador_id": "redirecttestsinvalidsecret",
-            "apiVersion": "ambassador/v1",
+            "apiVersion": "getambassador.io/v2",
             "endpoints": {},
             "kind": "Service",
             "location": "k8s-redirecttestsinvalidsecret-http-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "redirecttestsinvalidsecret",
+                "scope": "AmbassadorTest"
+            },
             "name": "redirecttestsinvalidsecret-http",
             "namespace": "default",
             "rkey": "k8s-redirecttestsinvalidsecret-http-default",
-            "serialization": "ambassador_id: redirecttestsinvalidsecret\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: redirecttestsinvalidsecret-http\nnamespace: default\n"
+            "serialization": "ambassador_id: redirecttestsinvalidsecret\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: redirecttestsinvalidsecret\n  scope: AmbassadorTest\nname: redirecttestsinvalidsecret-http\nnamespace: default\n"
         }
     },
     "tls_contexts": [
@@ -594,6 +608,7 @@
             "hosts": [
                 "*"
             ],
+            "is_fallback": false,
             "kind": "synthesized-TLS-context",
             "location": "redirecttestsinvalidsecret.default.1",
             "name": "server",

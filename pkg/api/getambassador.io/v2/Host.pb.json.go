@@ -56,3 +56,35 @@ func (msg *ACMEProviderSpec) MarshalJSON() ([]byte, error) {
 func (msg *ACMEProviderSpec) UnmarshalJSON(b []byte) error {
 	return jsonpb.Unmarshal(bytes.NewReader(b), msg)
 }
+
+// MarshalJSON implements json.Marshaler
+func (msg *RequestPolicy) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	err := (&jsonpb.Marshaler{
+		EnumsAsInts:  false,
+		EmitDefaults: false,
+		OrigName:     false,
+	}).Marshal(&buf, msg)
+	return buf.Bytes(), err
+}
+
+// UnmarshalJSON implements json.Unmarshaler
+func (msg *RequestPolicy) UnmarshalJSON(b []byte) error {
+	return jsonpb.Unmarshal(bytes.NewReader(b), msg)
+}
+
+// MarshalJSON implements json.Marshaler
+func (msg *InsecureRequestPolicy) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	err := (&jsonpb.Marshaler{
+		EnumsAsInts:  false,
+		EmitDefaults: false,
+		OrigName:     false,
+	}).Marshal(&buf, msg)
+	return buf.Bytes(), err
+}
+
+// UnmarshalJSON implements json.Unmarshaler
+func (msg *InsecureRequestPolicy) UnmarshalJSON(b []byte) error {
+	return jsonpb.Unmarshal(bytes.NewReader(b), msg)
+}

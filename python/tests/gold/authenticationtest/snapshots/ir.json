@@ -38,6 +38,7 @@
         },
         "server_name": "envoy",
         "service_port": 8080,
+        "use_ambassador_namespace_for_service_resolution": false,
         "use_proxy_proto": false,
         "use_remote_address": true,
         "x_forwarded_proto_redirect": false,
@@ -48,6 +49,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "127.0.0.1",
+            "_namespace": "default",
             "_port": 8877,
             "_referenced_by": [
                 "--internal--"
@@ -81,6 +83,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "authenticationtest-http",
+            "_namespace": "default",
             "_port": 80,
             "_referenced_by": [
                 "authenticationtest.default.2"
@@ -100,7 +103,7 @@
             "service": "authenticationtest-http",
             "targets": [
                 {
-                    "ip": "authenticationtest-http",
+                    "ip": "authenticationtest-http.default",
                     "port": 80,
                     "target_kind": "DNSname"
                 }
@@ -114,6 +117,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "authenticationtest-ahttp-auth",
+            "_namespace": "default",
             "_port": 80,
             "_referenced_by": [
                 "authenticationtest.default.1"
@@ -132,7 +136,7 @@
             "service": "authenticationtest-ahttp-auth",
             "targets": [
                 {
-                    "ip": "authenticationtest-ahttp-auth",
+                    "ip": "authenticationtest-ahttp-auth.default",
                     "port": 80,
                     "target_kind": "DNSname"
                 }
@@ -163,11 +167,12 @@
                 "x-foo"
             ],
             "allowed_request_headers": [],
-            "api_version": "ambassador/v0",
+            "api_version": "getambassador.io/v0",
             "cluster": {
                 "_active": true,
                 "_errored": false,
                 "_hostname": "authenticationtest-ahttp-auth",
+                "_namespace": "default",
                 "_port": 80,
                 "_referenced_by": [
                     "authenticationtest.default.1"
@@ -186,7 +191,7 @@
                 "service": "authenticationtest-ahttp-auth",
                 "targets": [
                     {
-                        "ip": "authenticationtest-ahttp-auth",
+                        "ip": "authenticationtest-ahttp-auth.default",
                         "port": 80,
                         "target_kind": "DNSname"
                     }
@@ -268,6 +273,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "127.0.0.1",
+                        "_namespace": "default",
                         "_port": 8877,
                         "_referenced_by": [
                             "--internal--"
@@ -299,7 +305,7 @@
                     },
                     "group_id": "b4db12f5b638f1750062dd4220911c4f6f44fc57",
                     "headers": [],
-                    "kind": "IRMapping",
+                    "kind": "IRHTTPMapping",
                     "location": "--internal--",
                     "name": "internal_readiness_probe_mapping",
                     "namespace": "default",
@@ -357,6 +363,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "127.0.0.1",
+                        "_namespace": "default",
                         "_port": 8877,
                         "_referenced_by": [
                             "--internal--"
@@ -388,7 +395,7 @@
                     },
                     "group_id": "7df546235997704c909d473af2cbcb5e606d20de",
                     "headers": [],
-                    "kind": "IRMapping",
+                    "kind": "IRHTTPMapping",
                     "location": "--internal--",
                     "name": "internal_liveness_probe_mapping",
                     "namespace": "default",
@@ -446,6 +453,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "127.0.0.1",
+                        "_namespace": "default",
                         "_port": 8877,
                         "_referenced_by": [
                             "--internal--"
@@ -477,7 +485,7 @@
                     },
                     "group_id": "8de18501d2044fe30db225289b318d5fda913b64",
                     "headers": [],
-                    "kind": "IRMapping",
+                    "kind": "IRHTTPMapping",
                     "location": "--internal--",
                     "name": "internal_diagnostics_probe_mapping",
                     "namespace": "default",
@@ -532,6 +540,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "authenticationtest-http",
+                        "_namespace": "default",
                         "_port": 80,
                         "_referenced_by": [
                             "authenticationtest.default.2"
@@ -551,7 +560,7 @@
                         "service": "authenticationtest-http",
                         "targets": [
                             {
-                                "ip": "authenticationtest-http",
+                                "ip": "authenticationtest-http.default",
                                 "port": 80,
                                 "target_kind": "DNSname"
                             }
@@ -565,6 +574,11 @@
                     "headers": [],
                     "kind": "Mapping",
                     "location": "authenticationtest.default.2",
+                    "metadata_labels": {
+                        "app.kubernetes.io/component": "ambassador-service",
+                        "kat-ambassador-id": "authenticationtest",
+                        "scope": "AmbassadorTest"
+                    },
                     "name": "authenticationtest-http",
                     "namespace": "default",
                     "precedence": 0,
@@ -578,20 +592,26 @@
                         "/target/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: authenticationtest\napiVersion: ambassador/v0\nkind: Mapping\nname: authenticationtest-http\nprefix: /target/\nservice: authenticationtest-http\n",
+                    "serialization": "ambassador_id: authenticationtest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: authenticationtest\n  scope: AmbassadorTest\nname: authenticationtest-http\nprefix: /target/\nservice: authenticationtest-http\n",
                     "service": "authenticationtest-http",
                     "weight": 100
                 }
             ],
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "authenticationtest",
+                "scope": "AmbassadorTest"
+            },
             "name": "GROUP: authenticationtest-http",
             "namespace": "default",
             "precedence": 0,
             "prefix": "/target/",
             "rewrite": "/",
-            "serialization": "ambassador_id: authenticationtest\napiVersion: ambassador/v0\nkind: Mapping\nname: authenticationtest-http\nprefix: /target/\nservice: authenticationtest-http\n"
+            "serialization": "ambassador_id: authenticationtest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: authenticationtest\n  scope: AmbassadorTest\nname: authenticationtest-http\nprefix: /target/\nservice: authenticationtest-http\n"
         }
     ],
     "grpc_services": {},
+    "hosts": [],
     "identity": {
         "ambassador_id": "authenticationtest",
         "ambassador_namespace": "default",
@@ -603,67 +623,85 @@
             "_active": true,
             "_errored": false,
             "_rkey": "ir.listener",
+            "hostname": "*",
+            "insecure_action": "Route",
             "kind": "IRListener",
             "location": "--internal--",
             "name": "ir.listener",
             "namespace": "default",
             "redirect_listener": false,
             "require_tls": false,
-            "server_name": "envoy",
+            "secure_action": "Route",
             "service_port": 8080,
-            "use_proxy_proto": false,
-            "use_remote_address": true,
-            "xff_num_trusted_hops": 0
+            "use_proxy_proto": false
         }
     ],
     "services": {
         "k8s-authenticationtest-admin-default": {
             "_referenced_by": {},
             "ambassador_id": "authenticationtest",
-            "apiVersion": "ambassador/v1",
+            "apiVersion": "getambassador.io/v2",
             "endpoints": {},
             "kind": "Service",
             "location": "k8s-authenticationtest-admin-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "authenticationtest",
+                "scope": "AmbassadorTest",
+                "service": "authenticationtest-admin"
+            },
             "name": "authenticationtest-admin",
             "namespace": "default",
             "rkey": "k8s-authenticationtest-admin-default",
-            "serialization": "ambassador_id: authenticationtest\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: authenticationtest-admin\nnamespace: default\n"
+            "serialization": "ambassador_id: authenticationtest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: authenticationtest\n  scope: AmbassadorTest\n  service: authenticationtest-admin\nname: authenticationtest-admin\nnamespace: default\n"
         },
         "k8s-authenticationtest-ahttp-auth-default": {
             "_referenced_by": {},
             "ambassador_id": "authenticationtest",
-            "apiVersion": "ambassador/v1",
+            "apiVersion": "getambassador.io/v2",
             "endpoints": {},
             "kind": "Service",
             "location": "k8s-authenticationtest-ahttp-auth-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "authenticationtest",
+                "scope": "AmbassadorTest"
+            },
             "name": "authenticationtest-ahttp-auth",
             "namespace": "default",
             "rkey": "k8s-authenticationtest-ahttp-auth-default",
-            "serialization": "ambassador_id: authenticationtest\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: authenticationtest-ahttp-auth\nnamespace: default\n"
+            "serialization": "ambassador_id: authenticationtest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: authenticationtest\n  scope: AmbassadorTest\nname: authenticationtest-ahttp-auth\nnamespace: default\n"
         },
         "k8s-authenticationtest-default": {
             "_referenced_by": {},
             "ambassador_id": "authenticationtest",
-            "apiVersion": "ambassador/v1",
+            "apiVersion": "getambassador.io/v2",
             "endpoints": {},
             "kind": "Service",
             "location": "k8s-authenticationtest-default",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "authenticationtest",
+                "scope": "AmbassadorTest"
+            },
             "name": "authenticationtest",
             "namespace": "default",
             "rkey": "k8s-authenticationtest-default",
-            "serialization": "ambassador_id: authenticationtest\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: authenticationtest\nnamespace: default\n"
+            "serialization": "ambassador_id: authenticationtest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: authenticationtest\n  scope: AmbassadorTest\nname: authenticationtest\nnamespace: default\n"
         },
         "k8s-authenticationtest-http-default": {
             "_referenced_by": {},
             "ambassador_id": "authenticationtest",
-            "apiVersion": "ambassador/v1",
+            "apiVersion": "getambassador.io/v2",
             "endpoints": {},
             "kind": "Service",
             "location": "k8s-authenticationtest-http-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "authenticationtest",
+                "scope": "AmbassadorTest"
+            },
             "name": "authenticationtest-http",
             "namespace": "default",
             "rkey": "k8s-authenticationtest-http-default",
-            "serialization": "ambassador_id: authenticationtest\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: authenticationtest-http\nnamespace: default\n"
+            "serialization": "ambassador_id: authenticationtest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: authenticationtest\n  scope: AmbassadorTest\nname: authenticationtest-http\nnamespace: default\n"
         }
     },
     "tls_contexts": []

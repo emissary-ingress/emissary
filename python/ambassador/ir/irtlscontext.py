@@ -76,6 +76,11 @@ class IRTLSContext(IRResource):
             **new_args
         )
 
+    def pretty(self) -> str:
+        secret_name = self.secret_info.get('secret', '-no secret-')
+
+        return f"<IRTLSContext {self.name}: hosts {self.hosts} secret {secret_name}>"
+
     def setup(self, ir: 'IR', aconf: Config) -> bool:
         if not self.get('_ambassador_enabled', False):
             spec_count = 0

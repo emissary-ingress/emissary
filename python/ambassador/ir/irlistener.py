@@ -1,6 +1,7 @@
-from typing import Optional, Tuple, TYPE_CHECKING
+from typing import Dict, Optional, Tuple, TYPE_CHECKING
 
 import copy
+import json
 
 from ..config import Config
 from .irresource import IRResource
@@ -26,13 +27,10 @@ class IRListener (IRResource):
     An Envoy listener, by contrast, is something more akin to an environment
     definition. See V2Listener for more.
     """
-    @staticmethod
-    def helper_contexts(res: IRResource, k: str) -> Tuple[str, dict]:
-        return k, { ctx_key: ctx.as_dict() for ctx_key, ctx in res[k].items() }
 
     def __init__(self, ir: 'IR', aconf: Config,
                  service_port: int,
-                 require_tls: bool,
+                 # require_tls: bool,
                  use_proxy_proto: bool,
                  redirect_listener: bool = False,
 
@@ -45,162 +43,215 @@ class IRListener (IRResource):
         super().__init__(
             ir=ir, aconf=aconf, rkey=rkey, kind=kind, name=name,
             service_port=service_port,
-            require_tls=require_tls,
+            # require_tls=require_tls,
             use_proxy_proto=use_proxy_proto,
             **kwargs)
 
         self.redirect_listener: bool = redirect_listener
-        self.require_tls: bool = require_tls
-        self.add_dict_helper('tls_contexts', IRListener.helper_contexts)
+        # self.require_tls: bool = require_tls
+
+    def pretty(self) -> str:
+        ctx = self.get('context', None)
+        ctx_name = '-none-' if not ctx else ctx.name
+
+        return "<Listener %s for %s:%d, ctx %s, secure %s, insecure %s/%s>" % \
+               (self.name, self.hostname, self.service_port, ctx_name,
+                self.secure_action, self.insecure_action, self.insecure_addl_port)
+
 
 class ListenerFactory:
     @classmethod
     def load_all(cls, ir: 'IR', aconf: Config) -> None:
         amod = ir.ambassador_module
 
-        # OK, so start by assuming that we're not redirecting cleartext...
-        redirect_cleartext_from: Optional[int] = None
-        redirection_context: Optional[IRTLSContext] = None
-
-        # ...that we have no TLS termination contexts...
-        contexts = {}
-
-        # ...and that the primary listener is being defined by the Ambassador module,
-        # rather than by a TLSContext.
-        primary_location = amod.location
-        primary_context: Optional[IRTLSContext] = None
-
-        # Finally, make a call about whether we'll allow overriding that location later.
+        # An IRListener roughly corresponds to something partway between an Envoy
+        # FilterChain and an Envoy VirtualHost -- it's a single domain entry (which
+        # could be a wildcard) that can have routes and such associated with it.
         #
-        # Here's the story: if there are no TLS contexts in play, the primary
-        # listener is implicitly defined by the Ambassador module -- that's where
-        # the service port is specified, so that's where the user needs to go to
-        # make changes to the listener. ("The Ambassador module" might be implicit
-        # too, of course, but still, it's the best we have in this case.)
+        # A single IRListener can require TLS, or not. If TLS is around, it can
+        # require a specific SNI host. Since it contains VirtualHosts, it can also
+        # do things like require the PROXY protocol, and we can use an IRListener
+        # to say "any host without TLS", then do things on a per-host basis within
+        # it -- but the guts of all _that_ are down in V2Listener, since it's very
+        # highly Envoy-specific.
         #
-        # Now suppose there is at least one TLS termination context in play. If the
-        # user did _not_ supply an Ambassador module, the existence of the context
-        # will flip the primary listener from port 8080 to port 8443, and that means
-        # that it's the _TLS context_ that's really defining the service port. So
-        # we flip the listener's location to the context.
+        # Port-based TCPMappings also happen down in V2Listener at the moment. This
+        # means that if you try to do a port-based TCPMapping for a port that you
+        # also try to have an IRListener on, that won't work. That's OK for now.
         #
-        # If they supply an Ambassador module _and_ a TLS termination context, we
-        # leave the listener's location as the Ambassador module, because in that
-        # case it'll be the Ambassador module that wins again.
+        # The way this works goes like this:
         #
-        # XXX Well. In theory. Need to doublecheck to see what happens if they
-        # supplied an Ambassador module that doesn't define the service port...
-        override_location = bool(amod.location == '--internal--')
+        # 1. Collect all our TLSContexts with their host entries.
+        # 2. Walk our Hosts and figure out which port(s) each needs to listen on.
+        #    If a Host has TLS info, pull the corresponding TLSContext from the set
+        #    of leftover TLSContexts.
+        # 3. If any TLSContexts are left when we're done with Hosts, walk over those
+        #    and treat them like a Host that's asking for secure routing, using the
+        #    global redirect_cleartext_from setting to decide what to do for insecure
+        #    routing.
+        #
+        # So. First build our set of TLSContexts.
+        unused_contexts: Dict[str, IRTLSContext] = {}
 
-        # OK. After those assumptions, we can walk the list of extant contexts
-        # and figure out which are termination contexts.
         for ctx in ir.get_tls_contexts():
-            if ctx.is_active() and ctx.get('hosts', None):
-                # This is a termination context.
-                contexts[ctx.name] = ctx
+            if ctx.is_active:
+                ctx_hosts = ctx.get('hosts', [])
 
-                ctx_kind = "a" if primary_context else "the primary"
-                ir.logger.info(f"ListenerFactory: ctx {ctx.name} is {ctx_kind} termination context")
+                if ctx_hosts:
+                    # This is a termination context.
+                    for hostname in ctx_hosts:
+                        extant_context = unused_contexts.get(hostname, None)
 
-                if not primary_context:
-                    primary_context = ctx
+                        if extant_context:
+                            ir.post_error("TLSContext %s claims hostname %s, which was already claimed by %s" %
+                                          (ctx.name, hostname, extant_context.name))
+                            continue
 
-                    if override_location:
-                        # We'll need to override the location of the primary listener with
-                        # this later.
-                        primary_location = ctx.location
+                        unused_contexts[hostname] = ctx
 
-                if ctx.get('redirect_cleartext_from', None):
-                    # We are indeed redirecting cleartext.
-                    redirect_cleartext_from = ctx.redirect_cleartext_from
+        # Next, start with an empty set of listeners...
+        listeners: Dict[str, IRListener] = {}
 
-                    if 'location' in ctx:
-                        redirection_context = ctx
+        cls.dump_info(ir, "AT START", listeners, unused_contexts)
 
-                    ir.logger.debug(f"ListenerFactory: {ctx.name} sets redirect_cleartext_from {redirect_cleartext_from}")
+        # OK. Walk hosts.
+        hosts = ir.get_hosts() or []
 
-        # Set up our primary listener. If we have TLS termination
-        # contexts, we'll attach them to this listener, and it'll do TLS on whatever service port
-        # the user has configured.
-        primary_listener = IRListener(
-            ir=ir, aconf=aconf, location=primary_location,
-            service_port=amod.service_port,
-            require_tls=amod.get('x_forwarded_proto_redirect', False),
-            use_proxy_proto=amod.use_proxy_proto
-        )
+        for host in hosts:
+            hostname = host.hostname
+            request_policy = host.get('requestPolicy', {})
+            insecure_policy = request_policy.get('insecure', {})
+            insecure_action = insecure_policy.get('action', 'Redirect')
+            insecure_addl_port = insecure_policy.get('additional-port', None)
 
-        if primary_context:
-            primary_listener.sourced_by(primary_context)
+            # The presence of a TLSContext matching our hostname is good enough
+            # to go on here, so let's see if there is one.
+            ctx = unused_contexts.get(hostname, None)
 
-        if contexts:
-            primary_listener['tls_contexts'] = contexts
+            # Let's also check to see if the host has a context defined. If it
+            # does, check for mismatches.
+            if host.context:
+                if ctx:
+                    if ctx != host.context:
+                        # Huh. This is actually "impossible" but let's complain about it
+                        # anyway.
+                        ir.post_error("Host %s and mismatched TLSContext %s both claim hostname %s?" %
+                                      (host.name, ctx.name, hostname))
+                        # Skip this Host, something weird is going on.
+                        continue
+                else:
+                    # Huh. This is actually a different kind of "impossible".
+                    ctx = host.context
+                    ir.post_error("Host %s contains unsaved TLSContext %s?" %
+                                  (host.name, ctx.name))
+                    # DON'T skip this Host. This "can't happen" but it clearly did.
 
-        # If x_forwarded_proto_redirect is set, then we enable require_tls in primary_listener,
-        # which in turn sets require_ssl to true in envoy aconf. Once set, then all requests
-        # that contain X-FORWARDED-PROTO set to https, are processes normally by envoy. In all
-        # the other cases, including X-FORWARDED-PROTO set to http, a 301 redirect response to
-        # https://host is sent
-        if primary_listener.require_tls:
-            ir.logger.debug("x_forwarded_proto_redirect is set to true, enabling 'require_tls' in listener")
+            # OK, once here, either ctx is not None, or this Host isn't interested in
+            # TLS termination.
 
-        if 'use_remote_address' in amod:
-            primary_listener.use_remote_address = amod.use_remote_address
+            if ctx:
+                ir.logger.info(f"ListenerFactory: {hostname} terminating TLS with context {ctx.name}")
 
-        if 'xff_num_trusted_hops' in amod:
-            primary_listener.xff_num_trusted_hops = amod.xff_num_trusted_hops
+                # We could check for the secure action here, but we're only supporting
+                # 'route' right now.
 
-        if 'server_name' in amod:
-            primary_listener.server_name = amod.server_name
+            # So. At this point, we know the hostname, the TLSContext, the secure action,
+            # the insecure action, and any additional insecure port. Save everything.
 
-        ir.add_listener(primary_listener)
-
-        if redirect_cleartext_from:
-            ir.logger.info(f"ListenerFactory: creating redirect listener on {redirect_cleartext_from}")
-
-            # We're redirecting cleartext. This means a second listener that has no TLS contexts,
-            # and does nothing but redirects.
-            new_listener = IRListener(
-                ir=ir, aconf=aconf, location=redirection_context.location,
-                service_port=redirect_cleartext_from,
+            listener = IRListener(
+                ir=ir, aconf=aconf, location=host.location,
+                service_port=amod.service_port,
+                hostname=hostname,
+                # require_tls=amod.get('x_forwarded_proto_redirect', False),
                 use_proxy_proto=amod.use_proxy_proto,
-                # Note: no TLS context here, this is a cleartext listener.
-                # We can set require_tls True because we can let the upstream
-                # tell us about that.
-                require_tls=True,
-                redirect_listener=True
+                context=ctx,
+                secure_action='Route',
+                insecure_action=insecure_action,
+                insecure_addl_port=insecure_addl_port
             )
 
-            if 'use_remote_address' in amod:
-                new_listener.use_remote_address = amod.use_remote_address
+            # Do we somehow have a collision on the hostname?
+            extant_listener = listeners.get(hostname, None)
 
-            if 'xff_num_trusted_hops' in amod:
-                new_listener.xff_num_trusted_hops = amod.xff_num_trusted_hops
+            if extant_listener:
+                # Uh whut.
+                ir.post_error("Hostname %s is defined by both Host %s and Host %s?" %
+                              (hostname, extant_listener.name, listener.name))
+                continue
 
-            if 'server_name' in amod:
-                new_listener.server_name = amod.server_name
+            # OK, so far so good. Save what we have so far...
+            listeners[hostname] = listener
 
-            ir.add_listener(new_listener)
-        elif ir.wizard_allowed:
-            # No redirection, and the wizard is allowed. If the primary listener
-            # (which has all the TLS contexts alreday, right?) is on 8080 or 8443,
-            # copy it (including all the contexts) and swap the port.
+            # ...make sure we don't try to use this hostname's TLSContext again...
+            unused_contexts.pop(hostname, None)
 
-            primary_port = primary_listener.service_port
-            copy_to_port: Optional[int] = None
+        cls.dump_info(ir, "AFTER HOSTS", listeners, unused_contexts)
 
-            if primary_port == 8080:
-                copy_to_port = 8443
-            elif primary_port == 8443:
-                copy_to_port = 8080
+        # Walk the remaining unused contexts, if any, and turn them into listeners too.
+        for hostname, ctx in unused_contexts.items():
+            insecure_action = 'Reject'
+            insecure_addl_port = None
 
-            if copy_to_port is None:
-                ir.logger.info(f"IRL: wizard allowed, but primary port is {primary_port} -- doing nothing")
-            else:
-                ir.logger.info(f"IRL: wizard allowed, primary port is {primary_port}, copying to {copy_to_port}")
+            redirect_cleartext_from = ctx.get('redirect_cleartext_from', None)
 
-                copied_listener = copy.deepcopy(primary_listener)
-                copied_listener.service_port = copy_to_port
-                ir.add_listener(copied_listener)
+            if redirect_cleartext_from is not None:
+                insecure_action = 'Redirect'
+                insecure_addl_port = redirect_cleartext_from
+
+            listener = IRListener(
+                ir=ir, aconf=aconf, location=ctx.location,
+                service_port=amod.service_port,
+                hostname=hostname,
+                # require_tls=amod.get('x_forwarded_proto_redirect', False),
+                use_proxy_proto=amod.use_proxy_proto,
+                context=ctx,
+                secure_action='Route',
+                insecure_action=insecure_action,
+                insecure_addl_port=insecure_addl_port
+            )
+
+            listeners[hostname] = listener
+
+        unused_contexts = {}
+
+        cls.dump_info(ir, "AFTER CONTEXTS", listeners, unused_contexts)
+
+        # If we have no listeners, that implies that we had no Hosts _and_ no termination contexts,
+        # so let's synthesize a fallback listener. We'll default to using Route as the insecure action
+        # (which means accepting either TLS or cleartext), but x_forwarded_proto_redirect can override
+        # that.
+
+        xfp_redirect = amod.get('x_forwarded_proto_redirect', False)
+        insecure_action = "Redirect" if xfp_redirect else "Route"
+
+        if not listeners:
+            listeners['*'] = IRListener(
+                ir=ir, aconf=aconf, location=amod.location,
+                service_port=amod.service_port,
+                hostname='*',
+                # require_tls=amod.get('x_forwarded_proto_redirect', False),
+                use_proxy_proto=amod.use_proxy_proto,
+                context=None,
+                secure_action='Route',
+                insecure_action=insecure_action,
+                insecure_addl_port=None
+            )
+
+        cls.dump_info(ir, "AFTER FALLBACK", listeners, unused_contexts)
+
+        # OK. Now that all that's taken care of, add these listeners to the IR.
+        for hostname, listener in listeners.items():
+            ir.add_listener(listener)
+
+    @classmethod
+    def dump_info(cls, ir, what, listeners, unused_contexts):
+        ir.logger.info(f"ListenerFactory: {what}")
+
+        pretty_listeners = {k: v.pretty() for k, v in listeners.items()}
+        ir.logger.info(f"listeners: {json.dumps(pretty_listeners, sort_keys=True, indent=4)}")
+
+        pretty_contexts = {k: v.pretty() for k, v in unused_contexts.items()}
+        ir.logger.info(f"unused_contexts: {json.dumps(pretty_contexts, sort_keys=True, indent=4)}")
 
     @classmethod
     def finalize(cls, ir: 'IR', aconf: Config) -> None:

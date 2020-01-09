@@ -1356,6 +1356,12 @@ class AmbassadorEventWatcher(threading.Thread):
             self.logger.info("successfully validated the resulting envoy configuration, continuing...")
             return True
 
+        try:
+            decoded_error = odict['output'].decode('utf-8')
+            odict['output'] = decoded_error
+        except:
+            pass
+
         self.logger.error("{}\ncould not validate the envoy configuration above after {} retries, failed with error \n{}\nAborting update...".format(config_json, retries, odict['output']))
         return False
 

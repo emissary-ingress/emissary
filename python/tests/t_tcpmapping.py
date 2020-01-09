@@ -129,6 +129,13 @@ service: {self.target3.path.fqdn}
 tls: true
 """)
 
+    def requirements(self):
+        # We're replacing super()'s requirements deliberately here. Without a Host header they can't work.
+        yield ("url", Query(self.url("ambassador/v0/check_ready"), headers={"Host": "tls-context-host-1"}, insecure=True, sni=True))
+        yield ("url", Query(self.url("ambassador/v0/check_alive"), headers={"Host": "tls-context-host-1"}, insecure=True, sni=True))
+        yield ("url", Query(self.url("ambassador/v0/check_ready"), headers={"Host": "tls-context-host-2"}, insecure=True, sni=True))
+        yield ("url", Query(self.url("ambassador/v0/check_alive"), headers={"Host": "tls-context-host-2"}, insecure=True, sni=True))
+
     # scheme defaults to HTTP; if you need to use HTTPS, have it return
     # "https"...
     def scheme(self):

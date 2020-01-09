@@ -36,7 +36,7 @@
             ],
             "apiVersion": "getambassador.io/v2",
             "generation": 1,
-            "hostname": "edgy.example.com",
+            "hostname": "hostsingle",
             "kind": "Host",
             "location": "edgy-host.default.1",
             "metadata_labels": {
@@ -52,7 +52,7 @@
                     "hostname": "edgy.example.com"
                 }
             },
-            "serialization": "acmeProvider:\n  authority: ACME\nambassador_id:\n- hostsingle\napiVersion: getambassador.io/v2\ngeneration: 1\nhostname: edgy.example.com\nkind: Host\nmetadata_labels:\n  ambassador_crd: edgy-host.default\n  kat-ambassador-id: hostsingle\n  scope: AmbassadorTest\nname: edgy-host\nnamespace: default\nselector:\n  matchLabels:\n    hostname: edgy.example.com\ntlsSecret:\n  name: edgy-secret\n",
+            "serialization": "acmeProvider:\n  authority: ACME\nambassador_id:\n- hostsingle\napiVersion: getambassador.io/v2\ngeneration: 1\nhostname: hostsingle\nkind: Host\nmetadata_labels:\n  ambassador_crd: edgy-host.default\n  kat-ambassador-id: hostsingle\n  scope: AmbassadorTest\nname: edgy-host\nnamespace: default\nselector:\n  matchLabels:\n    hostname: edgy.example.com\ntlsSecret:\n  name: edgy-secret\n",
             "tlsSecret": {
                 "name": "edgy-secret"
             }
@@ -158,7 +158,7 @@
             ],
             "apiVersion": "getambassador.io/v2",
             "generation": 1,
-            "hostname": "edgy.example.com",
+            "hostname": "hostsingle",
             "kind": "Host",
             "metadata_labels": {
                 "ambassador_crd": "edgy-host.default",
