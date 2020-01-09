@@ -26,7 +26,7 @@ The CI job that performs system tests of MyService would look roughly like this
    ```
 6. Run system tests by sending requests to the application with the appropriate header set
    ```console
-   curl "$API_GATEWAY" -H "x-ci-tag:$CI_TAG"
+   curl -L -H "x-ci-tag:$CI_TAG" "$API_GATEWAY"
    # (or)
    env "TEST_HEADER_VALUE=$CI_TAG" pytest ...
    # (etc)
