@@ -52,8 +52,8 @@ Format:
 
 - Bugfix: Knative mappings populate and fallback to the ambassador namespace if unspecified
 - Internal: Knative tests for versions 0.7.1 and 0.8.0 were removed
-- Internal: Knative tests version 0.11.0 were added
-- Internal: /ambassador/v0/diag/ supports an optional `patch_client` query param to send a partial representation in JSON Patch format
+- Internal: Knative tests for version 0.11.0 were added
+- Internal: Improved performance with Edge Stack using /ambassador/v0/diag/ with an optional `patch_client` query param to send a partial representation in JSON Patch format, reducing the memory and network traffic for large deployments
 - Internal: Silencing warnings from `which` in docs preflight-check
 
 ## [1.0.0-ea12] January 08, 2020
