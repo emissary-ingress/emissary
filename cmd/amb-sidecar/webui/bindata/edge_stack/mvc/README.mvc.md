@@ -263,7 +263,7 @@ class ResourceCollection extends Model {
 
 ##### IResourceCollection
 
-The `IResourceCollection` interface is subclassed when defining a collection of a specific kind of `Resource`.
+The `IResourceCollection` interface is subclassed when defining a new `ResourceCollection` for a specific `Resource`.
 It requires subclasses to identify the class of the Resources in the collection (e.g. a Host), to be able to create
 a special string key from snapshot data that is unique for that individual `Resource` instance, and to extract data from
 the snapshot to pass to a `Resource` constructor for initializing a new `Resource`, or to an existing `Resource` in

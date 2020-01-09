@@ -3,7 +3,7 @@
  * This is the Interface class to the ResourceCollectionView.
  */
 
-import { ResourceCollectionView } from "./collection_view.js"
+import { ResourceCollectionView } from "./resourcecollection_view.js"
 
 export class IResourceCollectionView extends ResourceCollectionView {
 
@@ -51,24 +51,19 @@ export class IResourceCollectionView extends ResourceCollectionView {
     super();
   }
 
-  onAdd() {
-    throw Error("Please implement ${this.constructor.name}.onAdd()")
-  }
-
-  /**
-   * Override to false to allow the Add button to show up.
+  /* readOnly()
+   * Override to false to allow the Add button to show up.  Defaults to false.
    */
   readOnly() {
-    throw new Error("please implement ${this.constructor.name}.readOnly()")
+    return super.readOnly();
   }
 
-  /* onModelNotification.
-  * This method is called for model-created notifications when a new Resource has been created, and a
-  * new view must be created to display that Resource.
-  */
-
-  onModelNotification(model, message, parameter) {
-    throw new Error("please implement ${this.constructor.name}.onModelNotification(model, message, parameter)")
+  /* viewClass()
+   * Return the viewClass that the subclass uses to create a new view in the ResourceCollectionView.
+   * e.g. for a HostCollection, return HostView.
+   */
+  viewClass() {
+    throw new Error("please implement ${this.constructor.name}.viewClass()")
   }
 }
 

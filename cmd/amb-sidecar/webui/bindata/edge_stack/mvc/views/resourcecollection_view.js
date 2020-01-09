@@ -7,6 +7,7 @@
 
 /* LitElement superclass. */
 import { LitElement, html, css } from '../../vendor/lit-element.min.js'
+import {HostView} from "./host_view";
 
 export class ResourceCollectionView extends LitElement {
 
@@ -18,9 +19,9 @@ export class ResourceCollectionView extends LitElement {
 
   static get properties() {
     return {
-      addState:   { type: Boolean },
-      sortFields: { type: Array },
-      sortBy:     { type: String }
+      addState: {type: Boolean},
+      sortFields: {type: Array},
+      sortBy: {type: String}
     };
   }
 
@@ -46,6 +47,7 @@ export class ResourceCollectionView extends LitElement {
       }
     `
   }
+
   /* constructor()
    * model is the ResourceCollection that is being rendered by this ResourceCollectionView.
    */
@@ -55,17 +57,47 @@ export class ResourceCollectionView extends LitElement {
 
     /* sortFields is an array of {value: label} objects, where the value is the Resource property
      * on which to sort, and label is the display name for the HTML component.  For example, to allow
-     * the option to sort by Resource name only, provide the following array:
-     * [{label: "Resource Name", value: "name"}];
+     * the option to sort by Resource name only, namespace, and hostname, set sortFields to:
+     * [
+     *  {label: "Resource Name", value: "name"},
+     *  {label: "Namespace", value: "namespace"},
+     *  {label: "Hostname", value: "hostname"},
+     * ];
      */
-    this.sortFields = null; /* No sorting by default.
+    this.sortFields = null; /* No sorting by default. */
+    this.sortBy = "name";
+    this.addState = "off";
+  }
 
-    this.sortBy     = "name";
-    this.addState   = "off";
+  onAdd() {
+    throw Error("Not Yet Implemented");
   }
 
   onChangeSortByAttribute(e) {
     this.sortBy = e.target.options[e.target.selectedIndex].value;
+  }
+
+  /* onModelNotification.
+  * This method is called for model-created notifications when a new Host has been created, and a
+  * new view must be created to display that Host.
+  */
+
+  onModelNotification(model, message, parameter) {
+    /* Create a new dw-host web component and add it as a child. Because this view is a web component, adding
+     * that child component queues the appropriate re-render at the correct time,and are rendered in our <slot>.
+    */
+    if (message === 'created') {
+      let viewClass  = this.viewClass();
+      let child_view = new viewClass(model);
+      this.appendChild(child_view);
+    }
+  }
+
+  /* readOnly()
+   * Override to true to remove the Add button.
+   */
+  readOnly() {
+    return false;
   }
 
   /* render()
@@ -98,7 +130,6 @@ export class ResourceCollectionView extends LitElement {
   renderSet() {
     throw new Error("please implement ${this.constructor.name}.renderSet()");
   }
-
 
   sortFn(sortByAttribute) {
     throw new Error("please implement ${this.constructor.name}.sortFn(sortByAttribute)");

@@ -43,31 +43,12 @@ export class HostCollectionView extends IResourceCollectionView {
     AllHosts.addListener(this);
   }
 
-  onAdd() {
-    throw Error("Not Yet Implemented");
-  }
-
-  /**
-   * Override to true to remove the Add button.
+  /* viewClass()
+   * Return HostView for instantiating new views in this resource collection.
    */
-  readOnly() {
-    return false;
-  }
 
-  /* onModelNotification.
-  * This method is called for model-created notifications when a new Host has been created, and a
-  * new view must be created to display that Host.
-  */
-
-  onModelNotification(model, message, parameter) {
-    if (message === 'created') {
-      /* Create a new dw-host web component and add it as a child. Because this view is a web component, adding
-       * that child component queues the appropriate re-render at the correct time,and are rendered in our <slot>.
-      */
-
-      let child_view = new HostView(model);
-      this.appendChild(child_view);
-    }
+  viewClass() {
+    return HostView;
   }
 }
 

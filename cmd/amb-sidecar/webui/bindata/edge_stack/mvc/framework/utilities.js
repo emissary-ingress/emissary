@@ -24,7 +24,7 @@ export function mapMerge(mapA, mapB) {
  */
 
 export function setIsSuperset(set, subset) {
-  for (var elem of subset) {
+  for (let elem of subset) {
     if (!set.has(elem)) {
       return false;
     }
@@ -38,8 +38,8 @@ export function setIsSuperset(set, subset) {
  */
 
 export function setUnion(setA, setB) {
-  var _union = new Set(setA);
-  for (var elem of setB) {
+  let _union = new Set(setA);
+  for (let elem of setB) {
     _union.add(elem);
   }
 
@@ -51,8 +51,8 @@ export function setUnion(setA, setB) {
  */
 
 export function setIntersection(setA, setB) {
-  var _intersection = new Set();
-  for (var elem of setB) {
+  let _intersection = new Set();
+  for (let elem of setB) {
     if (setA.has(elem)) {
       _intersection.add(elem);
     }
@@ -69,8 +69,8 @@ export function setIntersection(setA, setB) {
  */
 
 export function setSymmetricDifference(setA, setB) {
-  var _difference = new Set(setA);
-  for (var elem of setB) {
+  let _difference = new Set(setA);
+  for (let elem of setB) {
     if (_difference.has(elem)) {
       _difference.delete(elem);
     }
@@ -89,8 +89,8 @@ export function setSymmetricDifference(setA, setB) {
 
 
 export function setDifference(setA, setB) {
-  var _difference = new Set(setA);
-  for (var elem of setB) {
+  let _difference = new Set(setA);
+  for (let elem of setB) {
     _difference.delete(elem);
   }
 
