@@ -29,6 +29,10 @@ all: help
 export RSYNC_ERR=$(RED)ERROR: please update to a version of rsync with the --info option$(END)
 export DOCKER_ERR=$(RED)ERROR: cannot find docker, please make sure docker is installed$(END)
 
+# the name of the Docker network
+# note: use your local k3d/microk8s/kind network for running tests
+DOCKER_NETWORK ?= $(NAME)
+
 preflight:
 ifeq ($(strip $(shell $(BUILDER))),)
 	@printf "$(CYN)==> $(GRN)Preflight checks$(END)\n"
@@ -121,7 +125,7 @@ pytest-only: sync
 		-e KAT_CLIENT_DOCKER_IMAGE=$(KAT_CLI_IMAGE) \
 		-e KAT_SERVER_DOCKER_IMAGE=$(KAT_SRV_IMAGE) \
 		-e KAT_IMAGE_PULL_POLICY=Always \
-		-e DOCKER_NETWORK=$(NAME) \
+		-e DOCKER_NETWORK=$(DOCKER_NETWORK) \
 		-e KAT_REQ_LIMIT \
 		-e KAT_RUN_MODE \
 		-e KAT_VERBOSE \

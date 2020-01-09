@@ -294,7 +294,7 @@ Connected
   Proxy:         ON (networking to the cluster is enabled)
   Intercepts:    Unavailable: no traffic manager
 
-$ curl hello
+$ curl -L hello
 Hello, world!
 ```
 
@@ -359,7 +359,7 @@ Connected
   Interceptable: 1 deployments
   Intercepts:    0 total, 0 local
 
-$ curl hello
+$ curl -L hello
 Hello, world!
 ```
 
@@ -382,10 +382,10 @@ $ edgectl intercept list
     - x-dev: ark3
     and redirecting them to localhost:9000
 
-$ curl hello
+$ curl -L hello
 Hello, world!
 
-$ curl hello -H x-dev:$USER
+$ curl -L -H x-dev:$USER hello
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html>
 <head>
@@ -410,7 +410,7 @@ As you can see, the second request, which includes the specified x-dev header, i
 $ edgectl intercept remove example
 Removed intercept "example"
 
-$ curl hello -H x-dev:$USER
+$ curl -L -H x-dev:$USER hello
 Hello, world!
 ```
 
