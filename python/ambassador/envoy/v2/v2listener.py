@@ -508,7 +508,7 @@ class V2VirtualHost(dict):
 
         # If we're doing insecure redirection...
         if self._needs_redirect:
-            # ...then make sure to punch a hole for ACME challenges if we're on Edge Stack...
+            # ...then make sure to punch a hole for ACME challenges if we're on Edge Stack.
             if self._config.ir.edge_stack_allowed:
                 found_acme = False
 
@@ -518,6 +518,14 @@ class V2VirtualHost(dict):
                         break
 
                 if not found_acme:
+                    # The target cluster doesn't actually matter -- the auth service grabs the
+                    # challenge and does the right thing. But we do need a cluster that actually
+                    # exists. Try cluster_127_0_0_1_8500 first (that should exist, it's the
+                    # amb-sidecar). If that doesn't work, how is Edge Stack running exactly?
+
+                    if not self._config.ir.get_cluster("cluster_127_0_0_1_8500"):
+                        raise Exception("Edge Stack claims to be running, but we have no sidecar cluster??")
+
                     self["routes"].insert(0, {
                         "match": {
                             "case_sensitive": True,
@@ -530,16 +538,17 @@ class V2VirtualHost(dict):
                         }
                     })
 
-            # ...and then make sure the redirection rule is applied!
-
-            self["routes"].append({
-                "match": {
-                    "prefix": "/"
-                },
-                "redirect": {
-                    "https_redirect": True
-                }
-            })
+            # We used to put in a fallback to redirect everything, but that turns out to actually
+            # not be what we want (especially for Edge Stack).
+            #
+            # self["routes"].append({
+            #     "match": {
+            #         "prefix": "/"
+            #     },
+            #     "redirect": {
+            #         "https_redirect": True
+            #     }
+            # })
 
     def verbose_dict(self) -> dict:
         return {
@@ -984,8 +993,11 @@ class V2Listener(dict):
 
                         if action != 'Reject':
                             vhost.append_route(route)
-                        # elif action == 'Redirect':
-                        #     vhost.needs_redirect()
+
+                        # Also, remember if we're redirecting so that the VHost finalizer can DTRT
+                        # for ACME.
+                        if action == 'Redirect':
+                            vhost.needs_redirect()
 
         listeners_dict = { k: v.verbose_dict() for k, v in listeners_by_port.items() }
         logger.info(f"V2Listeners: {json.dumps(listeners_dict, sort_keys=True, indent=4)}")
