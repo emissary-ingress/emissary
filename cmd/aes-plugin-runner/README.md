@@ -1,14 +1,8 @@
-# aes-plugin-runner: Run Ambassador Pro middleware plugins locally
+# aes-plugin-runner: Run Ambassador Edge Stack Filter plugins locally
 
-`aes-plugin-runner` lets you run an Ambassador Pro filter
-as a stand-alone Ambassador AuthService, making it much easier to
-develop the filter.
-
-## Installation
-
-	$ go get github.com/datawire/aes-plugin-runner
-
-Then make sure `$(go env GOPATH)/bin` is in your `$PATH`.
+`aes-plugin-runner` lets you run an Ambassador Edge Stack Filter
+plugin as a stand-alone Ambassador AuthService, making it much easier
+to develop the plugin.
 
 ## Usage:
 

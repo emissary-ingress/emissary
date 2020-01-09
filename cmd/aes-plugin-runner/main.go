@@ -25,7 +25,7 @@ func usage() {
 	fmt.Printf("Usage: %s [OPTIONS] TCP_ADDR PATH/TO/PLUGIN.so\n", os.Args[0])
 	fmt.Printf("   or: %s <-h|--help>\n", os.Args[0])
 	fmt.Printf("   or: %s --version\n", os.Args[0])
-	fmt.Printf("Run an Ambassador Pro middleware plugin as an Ambassador AuthService, for plugin development\n")
+	fmt.Printf("Run an Ambassador Edge Stack Filter plugin as an Ambassador AuthService, for plugin development\n")
 	fmt.Printf("\n")
 	fmt.Printf("OPTIONS:\n")
 	fmt.Printf("  --docker   Force the use of Docker, for increased realism\n")
