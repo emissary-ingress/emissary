@@ -124,7 +124,7 @@ Note that the cluster does not yet contain any Ambassador Edge Stack AuthService
 If we `curl` to a protected URL:
 
 ```shell
-$ curl -v $AMBASSADORURL/backend/get-quote/
+$ curl -Lv $AMBASSADORURL/backend/get-quote/
 ```
 
 We get a 401, since we haven't authenticated.
@@ -149,7 +149,7 @@ We get a 401, since we haven't authenticated.
 If we authenticate to the service, we will get a quote successfully:
 
 ```shell
-$ curl -v -u username:password $AMBASSADORURL/backend/get-quote/
+$ curl -Lv -u username:password $AMBASSADORURL/backend/get-quote/
 
 * TCP_NODELAY set
 * Connected to 54.165.128.189 (54.165.128.189) port 32281 (#0)
