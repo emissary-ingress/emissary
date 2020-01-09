@@ -26,7 +26,7 @@ export class IResourceView extends ResourceView {
      * that lists the properties in the subclass, and merging with the parent's properties():
 
 *     first, import object merge:
-*     import { objectMerge } from "../utilities/object.js"
+*     import { objectMerge } from "../framework/utilities.js"
 
       static get properties() {
       let myProperties = {

@@ -18,7 +18,7 @@ import { ApiFetch } from "../../components/api-fetch.js";
 import { Model } from "./model.js"
 
 /* Object merge operation */
-import { objectMerge } from "../utilities/object.js"
+import { objectMerge } from "../framework/utilities.js"
 
 /* Annotation key for sourceURI. */
 const aes_res_source = "aes_res_source";

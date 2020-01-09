@@ -8,7 +8,7 @@
 import { html } from '../../vendor/lit-element.min.js'
 
 /* Object merge operation */
-import { objectMerge } from "../utilities/object.js"
+import { objectMerge } from "../framework/utilities.js"
 
 /* ResourceView interface class */
 import { IResourceView } from './iresource_view.js'
@@ -217,11 +217,6 @@ export class HostView extends IResourceView {
       </div>
       `
   }
-
-  /* ====================================================================================================
-   *  These methods are specific to the HostView and extend IResourceView.
-   * ====================================================================================================
-   */
 
   /* ================================ QuerySelector Accessors ================================ */
 

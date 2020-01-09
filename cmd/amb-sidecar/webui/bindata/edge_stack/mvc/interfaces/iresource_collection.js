@@ -9,7 +9,9 @@
  *   by the Resource's initFrom method to create a new instance of that resource.  This function returns a
  *   list that can be iterated over, returning data objects.
  *
- * - resourceClass(), which returns the class that should be instantiated if a new item (e.g. Host) is added
+ * - resourceClass()
+ *   this method returns the IResource class to be instantiated when adding a new item, e.g. when implementing
+ *   HostCollection, the resourceClass() should return HostResource.
  *
  * - uniqueKeyFor(resourceData)
  *   this method computes a unique key for the collection's Resource, to determine whether the Resource described
@@ -74,7 +76,7 @@ export class IResourceCollection extends ResourceCollection {
    * ====================================================================================================
    */
 
-  /* Add a new listener for changes.  The Listener's onModelNotification method will be called when the
+  /* Add a new listener for changes.  The listener's onModelNotification method will be called when the
    *  model is notifying it for any of the  messages listed in the message set.  if the message set is
    *  null, then add this listener for all messages.
    */
@@ -91,7 +93,7 @@ export class IResourceCollection extends ResourceCollection {
 
   /* Notify listeners of a update in the model with the given message.  Only listeners who have subscribed
    * to the message will be notified.  Listeners that have subscribed to all messages will also be notified.
-   * The Listener's onModelNotification(model, message, parameter) method will be called.  Only Listeners
+   * The listener's onModelNotification(model, message, parameter) method will be called.  Only Listeners
    * who have subscribed to the message will be notified. Listeners that have subscribed to all messages
    * will also receive a callback. Includes a notification message, the model itself, and an optional parameter.
    */

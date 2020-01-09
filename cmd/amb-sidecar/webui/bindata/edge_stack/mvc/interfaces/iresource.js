@@ -89,7 +89,7 @@ export class IResource extends Resource {
    * ====================================================================================================
    */
 
-  /* Add a new listener for changes.  The Listener's onModelNotification method will be called when the
+  /* Add a new listener for changes.  The listener's onModelNotification method will be called when the
    *  model is notifying it for any of the  messages listed in the message set.  if the message set is
    *  null, then add this listener for all messages.
    */
@@ -106,7 +106,7 @@ export class IResource extends Resource {
 
   /* Notify listeners of a update in the model with the given message.  Only listeners who have subscribed
    * to the message will be notified.  Listeners that have subscribed to all messages will also be notified.
-   * The Listener's onModelNotification(model, message, parameter) method will be called.  Only Listeners
+   * The listener's onModelNotification(model, message, parameter) method will be called.  Only Listeners
    * who have subscribed to the message will be notified. Listeners that have subscribed to all messages
    * will also receive a callback. Includes a notification message, the model itself, and an optional parameter.
    */

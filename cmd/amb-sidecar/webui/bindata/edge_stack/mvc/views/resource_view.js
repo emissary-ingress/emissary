@@ -7,7 +7,7 @@
 import { html } from '../../vendor/lit-element.min.js'
 
 /* Object merge operation */
-import { objectMerge } from "../utilities/object.js"
+import { objectMerge } from "../framework/utilities.js"
 
 /* View superclass */
 import { View } from './view.js'

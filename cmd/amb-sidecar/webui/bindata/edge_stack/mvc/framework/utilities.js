@@ -1,7 +1,23 @@
 /*
- * set.js
- * Utility functions for sets, since Javascript doesn't provide them.
+ * utilities.js
+ * Utility functions for Maps, Sets, and Objects, since Javascript doesn't provide them.
  */
+
+/* ================================ Map Utilities ================================ */
+
+/* mapMerge(mapA, mapB)
+ * Return a Map of all key:value pairs that exist in mapA and mapB.
+ *
+ * The spread operator (...) converts the Map into an Array which the Map constructor then uses to initialize
+ * the Map with the new key:value entries.  mapB's key:value pairs override any key:value pairs that exist in
+ * mapA with the same key.
+ */
+
+export function mapMerge(mapA, mapB) {
+  return new Map([...mapA, ...mapB]);
+}
+
+/* ================================ Set Utilities ================================ */
 
 /* setIsSuperset(set, subset)
  * Return true if the subset's elements all exist in the set, false otherwise.
@@ -79,4 +95,21 @@ export function setDifference(setA, setB) {
   }
 
   return _difference;
+}
+
+/* ================================ Object Utilities ================================ */
+
+export function objectMerge(objA, objB) {
+  /* Convert to maps, and merge */
+  let mapA   = new Map(Object.entries(objA));
+  let mapB   = new Map(Object.entries(objB));
+  let merge  = mapMerge(mapA, mapB);
+
+  /* Iterate over the keys and values in the merged Map and set them in the result */
+  let result = new Object();
+  for (let [k, v] of merge) {
+    result[k] = v;
+  }
+
+  return result;
 }

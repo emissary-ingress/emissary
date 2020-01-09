@@ -54,7 +54,9 @@ export class ResourceCollection extends Model {
           existingResource.updateFrom(resourceData);
         }
 
-        /* Note that we've seen this resource, so don't delete from the collection. */
+        /* Note that we've seen this resource, so delete this key from our set of initial object
+        * keys.  If any keys are left at the end of the process, that means that the objects
+        * with those keys were not observed in the snapshot and thus must be removed. */
         previousKeys.delete(key);
       }
       else {

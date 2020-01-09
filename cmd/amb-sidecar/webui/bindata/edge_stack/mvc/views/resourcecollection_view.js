@@ -54,9 +54,12 @@ export class ResourceCollectionView extends LitElement {
     super();
 
     /* sortFields is an array of {value: label} objects, where the value is the Resource property
-     * on which to sort, and label is the display name for the HTML component.
+     * on which to sort, and label is the display name for the HTML component.  For example, to allow
+     * the option to sort by Resource name only, provide the following array:
+     * [{label: "Resource Name", value: "name"}];
      */
-    this.sortFields = [{label: "Resource Name", value: "name"}];
+    this.sortFields = null; /* No sorting by default.
+
     this.sortBy     = "name";
     this.addState   = "off";
   }

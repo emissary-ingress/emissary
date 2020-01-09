@@ -183,7 +183,7 @@ View                      - implements basic behavior: handling Model notificati
     IResourceView         - defines the interface for extending Resource reading, writing, and validation
       HostView            - a concrete implementation of a HostResource view
 
-ResourceCollectionView    - implements basic behavior: handling Model notifications, rendering a sortable list of Views.
+ResourceCollectionView    - implements basic behavior: handling Model notifications, rendering an optionally sortable list of Views.
   IResourceCollectionView - defines the interface for extending the ResourceCollectionView
     HostCollectionView    - implements the Host-specific ResourceCollectionView behavior
 ```
@@ -216,7 +216,7 @@ class Model {
 ```
 
 ##### Resource
-The `Resource` class extends the `Model`, so it can have `Listeners`, and it adds state that is common among all
+The `Resource` class is a `Model`, so it can have listeners, and it adds state that is common among all
 `Resources` (e.g. `kind`, `name`, `namespace`, etc.) and methods for updating its state from snapshot data,
 constructing YAML for communication with Kubernetes, and validation of its internal instance variables.
 
@@ -250,7 +250,7 @@ class IResource extends Resource {
 
 ##### ResourceCollection
 
-The `ResourceCollection` class extends the `Model`, so it can have listeners.  It subscribes to the snapshot service, 
+The `ResourceCollection` class is `Model`, so it can have listeners.  It subscribes to the snapshot service, 
 extracts data from the snapshot when notified, and creates, modifies, or deletes `Resource` objects that it maintains
 in the `ResourceCollection`.
 

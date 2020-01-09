@@ -18,7 +18,7 @@ export class IResourceCollectionView extends ResourceCollectionView {
      * that lists the properties in the subclass, and merging with the parent's properties():
 
 *     first, import object merge:
-*     import { objectMerge } from "../utilities/object.js"
+*     import { objectMerge } from "../framework/utilities.js"
 
       in properties():
       let myProperties = {
@@ -63,7 +63,7 @@ export class IResourceCollectionView extends ResourceCollectionView {
   }
 
   /* onModelNotification.
-  * Listener for model-created notifications.  This is called when a new Resource has been created, and a
+  * This method is called for model-created notifications when a new Resource has been created, and a
   * new view must be created to display that Resource.
   */
 

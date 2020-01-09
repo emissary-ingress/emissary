@@ -48,14 +48,14 @@ export class HostCollectionView extends IResourceCollectionView {
   }
 
   /**
-   * Override to false to allow the Add button to show up.
+   * Override to true to remove the Add button.
    */
   readOnly() {
-    return true;
+    return false;
   }
 
   /* onModelNotification.
-  * Listener for model-created notifications.  This is called when a new Host has been created, and a
+  * This method is called for model-created notifications when a new Host has been created, and a
   * new view must be created to display that Host.
   */
 
