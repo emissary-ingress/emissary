@@ -109,7 +109,7 @@ class ListenerFactory:
 
                         unused_contexts[hostname] = ctx
 
-        # Next, start with an empty set of listeners.
+        # Next, start with an empty set of listeners...
         listeners: Dict[str, IRListener] = {}
 
         cls.dump_info(ir, "AT START", listeners, unused_contexts)
@@ -217,7 +217,12 @@ class ListenerFactory:
         cls.dump_info(ir, "AFTER CONTEXTS", listeners, unused_contexts)
 
         # If we have no listeners, that implies that we had no Hosts _and_ no termination contexts,
-        # so let's synthesize a fallback listener.
+        # so let's synthesize a fallback listener. We'll default to using Route as the insecure action
+        # (which means accepting either TLS or cleartext), but x_forwarded_proto_redirect can override
+        # that.
+
+        xfp_redirect = amod.get('x_forwarded_proto_redirect', False)
+        insecure_action = "Redirect" if xfp_redirect else "Route"
 
         if not listeners:
             listeners['*'] = IRListener(
@@ -228,7 +233,7 @@ class ListenerFactory:
                 use_proxy_proto=amod.use_proxy_proto,
                 context=None,
                 secure_action='Route',
-                insecure_action='Route',
+                insecure_action=insecure_action,
                 insecure_addl_port=None
             )
 
