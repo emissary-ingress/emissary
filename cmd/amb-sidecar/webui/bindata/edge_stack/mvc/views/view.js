@@ -60,6 +60,13 @@ export class View extends LitElement {
     return 4;
   }
 
+  /**
+   * Override to extend the styles of this resource (see yaml download tab).
+   */
+  modifiedStyles() {
+    return null;
+  }
+
   /* onModelNotification(model, message, parameter)
     * When we get a notification from the model that one or more model values have changed, the properties are updated.
     * Because this is a web component, the property updates queue the appropriate re-rendering at the correct time.

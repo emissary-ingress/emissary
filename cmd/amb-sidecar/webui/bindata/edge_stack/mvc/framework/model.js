@@ -20,7 +20,7 @@
  */
 
 /* Utility functions for sets. */
-import { setUnion } from "./set.js"
+import { setUnion } from "../utilities/set.js"
 
 export class Model {
 

@@ -5,6 +5,8 @@
  * and adds new properties for acmeProvider, acmeEmail, tos (terms of service), and whether to show tos.
  */
 
+import { html } from '../../vendor/lit-element.min.js'
+
 /* Object merge operation */
 import { objectMerge } from "../utilities/object.js"
 
@@ -18,7 +20,6 @@ export class HostView extends IResourceView {
    * ====================================================================================================
    */
 
-
   /* properties
    * These are the properties of the HostView, which reflect the properties of the underlying Resource,
    * and also include transient state (e.g. viewState). LitElement manages these declared properties and
@@ -28,12 +29,12 @@ export class HostView extends IResourceView {
 
   static get properties() {
     let myProperties = {
-      hostname:     {type: String},   // Host
+      hostname: {type: String},   // Host
       acmeProvider: {type: String},   // Host
-      acmeEmail:    {type: String},   // Host
-      useAcme:      {type: Boolean},  // HostView
-      tos:          {type: String},   // HostView
-      showTos:      {type: Boolean}   // HostView
+      acmeEmail: {type: String},   // Host
+      useAcme: {type: Boolean},  // HostView
+      tos: {type: String},   // HostView
+      showTos: {type: Boolean}   // HostView
 
     };
 
@@ -51,7 +52,7 @@ export class HostView extends IResourceView {
     /* The Host object has a Terms of Service checkbox. Once the user has agreed to the TOS, we no longer
      * show the checkbox or link in the Host detail display.
      */
-    this.tos     = html`...`;
+    this.tos = html`...`;
     this.showTos = false;
   }
 
@@ -64,16 +65,16 @@ export class HostView extends IResourceView {
 
   readSelfFromModel() {
     /* Get the values from the model. */
-    this.hostname     = model.hostname;
+    this.hostname = model.hostname;
     this.acmeProvider = model.acmeProvider;
-    this.acmeEmail    = model.acmeEmail;
-    this.useAcme      = model.useAcme;
+    this.acmeEmail = model.acmeEmail;
+    this.useAcme = model.useAcme;
 
     /* Set the fields of the form.  The DOM must be generated before calling readFromModel. */
-    this.hostnameInput().value     = this.hostname;
-    this.acmeEmailInput().value    = this.acmeEmail;
+    this.hostnameInput().value = this.hostname;
+    this.acmeEmailInput().value = this.acmeEmail;
     this.acmeProviderInput().value = this.acmeProvider;
-    this.useAcmeCheckbox().value   = this.useAcme;
+    this.useAcmeCheckbox().value = this.useAcme;
   }
 
   /* writeSelfToModel()
@@ -83,16 +84,16 @@ export class HostView extends IResourceView {
 
   writeSelfToModel() {
     /* Get the values from the form.  The DOM must be generated before calling writeToModel. */
-    this.hostname      = this.hostnameInput().value;
-    this.acmeEmail     = this.acmeEmailInput().value;
-    this.acmeProvider  = this.acmeProviderInput().value;
-    this.useAcme       = this.useAcmeCheckbox().value;
+    this.hostname = this.hostnameInput().value;
+    this.acmeEmail = this.acmeEmailInput().value;
+    this.acmeProvider = this.acmeProviderInput().value;
+    this.useAcme = this.useAcmeCheckbox().value;
 
     /* Write back to the model */
-    model.hostname     = this.hostname;
+    model.hostname = this.hostname;
     model.acmeProvider = this.acmeProvider;
-    model.acmeEmail    = this.acmeEmail;
-    model.useAcme      = this.useAcme;
+    model.acmeEmail = this.acmeEmail;
+    model.useAcme = this.useAcme;
   }
 
   /* validateSelf()
@@ -129,29 +130,24 @@ export class HostView extends IResourceView {
   }
 
   /* renderSelf()
-  * This method renders the Host view.
+  * This method renders the Host view within the HTML framework set up by ResourceView.render().
   */
 
-  /* need:
-  this.visible
-  this.onProviderChanged
-
-   */
   renderSelf() {
-    let host       = this.model;
-    let spec       = host.getSpec();
-    let status     = host.status || {"state": "<none>"};
-    let hostState  = status.state;
-    let reason     = (hostState === "Error") ? `(${status.reason})` : '';
-    let tos        = this.isTOSshowing() ? "attribute-value" : "off";
-    let editing =    this.viewState === "add" || this.viewState === "edit";
+    let host = this.model;
+    let spec = host.getSpec();
+    let status = host.status || {"state": "<none>"};
+    let hostState = status.state;
+    let reason = (hostState === "Error") ? `(${status.reason})` : '';
+    let tos = this.isTOSShowing() ? "attribute-value" : "off";
+    let editing = this.viewState === "add" || this.viewState === "edit";
 
     return html`
       <div class="row line">
         <div class="row-col margin-right justify-right">hostname:</div>
         <div class="row-col">
-          <span class="${this.visible("list")}">${this.hostname}</span>
-          <input class="${this.visible("edit", "add")}" type="text" name="hostname"  value="${this.hostname}"/>
+          <span class="${this.visibleWhen("list")}">${this.hostname}</span>
+          <input class="${this.visibleWhen("edit", "add")}" type="text" name="hostname"  value="${this.hostname}"/>
         </div>
       </div>
       
@@ -169,15 +165,15 @@ export class HostView extends IResourceView {
       <div class="row line">
         <div class="row-col margin-right justify-right">acme provider:</div>
         <div class="row-col">
-          <span class="${this.visible("list")}">${this.acmeProvider}</span>
+          <span class="${this.visibleWhen("list")}">${this.acmeProvider}</span>
           <input
-              class="${this.visible("edit", "add")}"
+              class="${this.visibleWhen("edit", "add")}"
               type="url"
               size="60"
               name="provider"
               value="${this.acmeProvider}"
               @change="${this.onProviderChanged.bind(this)}"
-              ?disabled="${!this.useAcme()}"
+              ?disabled="${!this.useAcme}"
             />
         </div>
       </div>
@@ -193,16 +189,16 @@ export class HostView extends IResourceView {
       <div class="row ${this.viewState !== "add" ? "line" : ""}">
         <div class="row-col margin-right justify-right">email:</div>
         <div class="row-col">
-          <span class="${this.visible("list")}">${this.acmeEmail}</span>
-          <input class="${this.visible("edit", "add")}" type="email" name="email"
+          <span class="${this.visibleWhen("list")}">${this.acmeEmail}</span>
+          <input class="${this.visibleWhen("edit", "add")}" type="email" name="email"
                  value="${this.acmeEmail}" ?disabled="${!this.useAcme}" />
         </div>
       </div>
       
       <div class="row line">
-        <div class="row-col margin-right justify-right ${this.visible("list", "edit")}">status:</div>
+        <div class="row-col margin-right justify-right ${this.visibleWhen("list", "edit")}">status:</div>
         <div class="row-col">
-          <span class="${this.visible("list", "edit")}">${hostState} ${reason}</span>
+          <span class="${this.visibleWhen("list", "edit")}">${hostState} ${reason}</span>
         </div>
       </div>
       `
@@ -213,7 +209,7 @@ export class HostView extends IResourceView {
    * ====================================================================================================
    */
 
-  /* Accessors for querySelectors */
+  /* ================================ QuerySelector Accessors ================================ */
 
   acmeEmailInput() {
     return this.shadowRoot.querySelector('input[name="email"]')
@@ -233,6 +229,122 @@ export class HostView extends IResourceView {
 
   useAcmeCheckbox() {
     return this.shadowRoot.querySelector('input[name="use_acme"]')
+  }
+
+  /* ================================ Callback Functions ================================ */
+
+  /* onACMECheckbox
+   * TODO: When the checkbox changes, either hide or show the ACME
+   * provider, TOS checkbox, and email fields.
+   */
+
+  onACMECheckbox() {
+    this.useAcme = this.useAcmeCheckbox().checked;
+    this.setAcmeFields(this.useAcme);
+  }
+
+  /* Email address has changed.  Because state is not a property,
+  * we have to manually request the update.
+  */
+  onEmailChanged() {
+    /* Write back to the model for validation. */
+    this.writeToModel();
+
+    /* The email changed, update the YAML if showing. */
+    if (this.showYAML) {
+      this.mergedYamlElement().requestUpdate();
+    }
+  }
+
+  /* onHostnameChanged()
+   * This is called when the hostname field changes in an Edit or Add dialog to check if the new hostname can
+   * be used with ACME. If it can be, we check the checkbox, otherwise we uncheck it.
+   */
+
+  onHostnameChanged() {
+    /* TODO: let the model check, and return whether it is valid. */
+
+    /* Write back to the model for validation.
+     * TODO: at some point, writing back view data to the model
+     * will be on timer and this will no longer be necessary.
+     */
+    this.writeToModel();
+
+    /* update the YAML if showing. */
+    if (this.showYAML) {
+      this.mergedYamlElement().requestUpdate();
+    }
+  }
+
+  /* Provider has changed.  Because state is not a property,
+   * we have to manually request the update.
+   */
+  onProviderChanged() {
+    this.showTos = true;
+    this.fetchTermsOfService(this.acmeProviderInput().value);
+
+    /* Write back to the model for validation.
+     * NOTE: will be on timer and this
+     * will no longer be necessary.
+     */
+    this.writeToModel();
+
+    /* update the YAML if showing. */
+    if (this.showYAML) {
+      this.mergedYamlElement().requestUpdate();
+    }
+
+    this.requestUpdate();
+  }
+
+  /* onTOSAgreeCheckbox
+    * TODO: When the checkbox changes, either hide or show the ACME
+    * provider, TOS checkbox, and email fields.
+    */
+
+  onTOSAgreeCheckbox() {
+    this.tosAgreed = this.tosAgreeCheckbox().checked;
+  }
+
+  /* ================================ Utility Functions ================================ */
+
+  /* fetchTermsOfService()
+   * Here we get the Terms of Service url from the ACME provider so that we can show it to the user. We do this
+   * by calling an API on AES that then turns around and calls an API on the ACME provider. We cannot call the API
+   * on the ACME provider directly due to CORS restrictions.
+   */
+
+  fetchTermsOfService(acmeProviderValue) {
+    /* TODO: Let the model do this */
+  }
+
+  /* isTOSShowing()
+   * Are the terms of service being shown during an Add operation?
+   */
+
+  isTOSShowing() {
+    return (this.showTos || this.viewState === "add") && this.useAcme;
+  }
+
+  /* setAcmeFields(enabled)
+   * Enable or disable the acmeProvider, acmeEmail, and tosAgree widgets,
+   * depending on whether the Acme checkbox is set.
+   */
+
+  setAcmeFields(enabled) {
+    if (enabled) {
+      /* Use previous values of acmeProvider or acmeEmail if we have a shadow copy during editing. */
+      let shadow = this.model.shadow();
+      this.acmeProviderInput().value = shadow ? shadow.acmeProvider : _defaultAcmeProvider;
+      this.acmeEmailInput().value = shadow ? shadow.acmeEmail : _defaultAcmeEmail;
+    } else {
+      /* Disabled, set the values to empty. */
+      this.acmeProviderInput().value = "";
+      this.acmeEmailInput().value = "";
+    }
+
+    /* Make sure the model reflects the view. */
+    this.writeToModel();
   }
 }
 

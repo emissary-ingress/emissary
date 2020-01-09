@@ -4,6 +4,8 @@
  * its Resource model object, as well as state used for the different view variants (edit, add, etc.)
  */
 
+import { html } from '../../vendor/lit-element.min.js'
+
 /* Object merge operation */
 import { objectMerge } from "../utilities/object.js"
 
@@ -84,6 +86,15 @@ export class ResourceView extends View {
     return this.shadowRoot.querySelector(`input[name="namespace"]`);
   }
 
+  /* onCancel()
+   * This method is called on the View when the View is in Edit mode, and the user clicks on the
+   * Cancel button to discard the changes and return to the original state.
+   */
+
+  onCancel() {
+    throw Error("Not Yet Implemented");
+  }
+
   /* onEdit()
    * This method is called on the View when the View needs to change to its Edit mode.  The View needs
    * to create a new copy of its Model for editing, and stop listening to any updates to the old Model.
@@ -140,14 +151,16 @@ export class ResourceView extends View {
     }
   }
 
-  /* onCancel()
-   * This method is called on the View when the View is in Edit mode, and the user clicks on the
-   * Cancel button to discard the changes and return to the original state.
+  /* onSource()
+   * This method opens a window on the Resource's source URI.
    */
 
-  onCancel() {
-    throw Error("Not Yet Implemented");
-  }
+    onSource(mouseEvent) {
+      window.open(this.model.sourceURI());
+
+      /* Defocus the button */
+      mouseEvent.currentTarget.blur();
+    }
 
 
   /* readFromModel()
@@ -206,7 +219,7 @@ export class ResourceView extends View {
       <link rel="stylesheet" href="../styles/oneresource.css">
       ${this.modifiedStyles() ? this.modifiedStyles() : ""}
       <form>
-        <div class="card ${this.state.mode === "off" ? "off" : ""}">
+        <div class="card ${this.viewMode === "off" ? "off" : ""}">
           <div class="col">
             <div class="row line">
               <div class="row-col margin-right">${this.kind}:</div>
@@ -228,13 +241,13 @@ export class ResourceView extends View {
       
           ${this.renderSelf()}
           ${this.renderMessages()}
-          <!-- ${this.renderMergedYaml()} -->
+          ${this.renderYAML()}
       
           </div>
           <!-- Disable buttons for now
           
           <div class="col2">
-            <a class="cta source ${typeof this.sourceURI() == 'string' ? "" : "off"}" @click=${(x)=>this.onSource(x)}>
+            <a class="cta source ${typeof this.model.sourceURI() == 'string' ? "" : "off"}" @click=${(x)=>this.onSource(x)}>
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18.83 10.83"><defs><style>.cls-2{fill:none;stroke:#000;stroke-linecap:square;stroke-miterlimit:10;stroke-width:2px;}</style></defs><title>source_2</title><g id="Layer_2" data-name="Layer 2"><g id="Layer_1-2" data-name="Layer 1"><polyline class="cls-2" points="5.41 1.41 1.41 5.41 5.41 9.41"/><polyline class="cls-2" points="13.41 1.41 17.41 5.41 13.41 9.41"/></g></g></svg>
               <div class="label">source</div>
             </a>
@@ -293,7 +306,7 @@ export class ResourceView extends View {
    */
 
   renderYAML() {
-    throw Error("Not Yet Implemented");
+    return;
     /* TODO: rewrite using current YAML merge code and returned diffs, rather than this.state.* */
 
     try {
