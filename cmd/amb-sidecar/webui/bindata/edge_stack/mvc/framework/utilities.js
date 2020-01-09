@@ -1,7 +1,18 @@
 /*
  * utilities.js
- * Utility functions for Maps, Sets, and Objects, since Javascript doesn't provide them.
+ * Utility functions for debugging, as well as for Maps, Sets, and Objects, since
+ * Javascript doesn't provide them.
  */
+
+import { hasDebugBackend } from "../../components/api-fetch.js"
+
+var debug_mvc = true;
+
+/* ================================ Debugging  ================================ */
+
+export function debugMVC() {
+  return debug_mvc || hasDebugBackend();
+}
 
 /* ================================ Map Utilities ================================ */
 
