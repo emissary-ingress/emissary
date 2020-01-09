@@ -1,4 +1,4 @@
-import  {LitElement, html} from '../vendor/lit-element.min.js';
+import {LitElement, html} from '../vendor/lit-element.min.js';
 import {registerContextChangeHandler, useContext} from './context.js';
 import {getCookie} from './cookies.js';
 import {ApiFetch} from "./api-fetch.js";
@@ -29,8 +29,28 @@ export function updateCredentials(value) {
  * accessing the data.
  */
 class SnapshotWrapper {
-  constructor(data) {
-    this.data = data
+  constructor(previousData, newData) {
+    // Save the raw data
+    this.data = {
+      Watt: newData.Watt,
+      License: newData.License,
+      RedisInUse: newData.RedisInUse,
+    };
+
+    if (Array.isArray(newData.Diag)) {
+      // `Diag` is an array, assume it's a json-patch and not a full representation
+      if (previousData && previousData.Diag) {
+        this.data.Diag = previousData.Diag;
+      }
+      try {
+        this.data.Diag = jsonpatch.applyPatch(this.data.Diag || {}, newData.Diag).newDocument;
+      } catch (err) {
+        console.error('Snapshot Diag update failed!', err);
+      }
+    } else {
+      // `Diag` is coming in as full JSON representation
+      this.data.Diag = newData.Diag;
+    }
   }
 
   /**
@@ -108,7 +128,7 @@ export class Snapshot extends LitElement {
    * instance of the SnapshotWrapper class.
    */
   static subscribe(onSnapshotChange) {
-    const arr = useContext('aes-api-snapshot', new SnapshotWrapper({}));
+    const arr = useContext('aes-api-snapshot', new SnapshotWrapper({}, {}));
     onSnapshotChange(arr[0]);
     registerContextChangeHandler('aes-api-snapshot', onSnapshotChange);
   }
@@ -125,7 +145,16 @@ export class Snapshot extends LitElement {
   constructor() {
     super();
 
-    this.setSnapshot = useContext('aes-api-snapshot', new SnapshotWrapper({}))[1];
+    Snapshot.subscribe((snapshot)=>{
+      this.currentSnapshot = snapshot;
+    });
+
+    // This is basically just a feature-flag to short-circuit the Snapshot patches
+    this.snapshotPatches = true;
+    // Use a unique token for this page's lifetime; enabling Snapshot patches
+    this.clientSession = Math.random();
+
+    this.setSnapshot = useContext('aes-api-snapshot', new SnapshotWrapper(this.currentSnapshot.data, {}))[1];
     this.setAuthenticated = useContext('auth-state', null)[1];
     this.loading = true;
     this.loadingError = null;
@@ -136,11 +165,14 @@ export class Snapshot extends LitElement {
       updateCredentials(window.location.hash.slice(1));
       this.fragment = "trying";
     }
-    setTimeout(this.fetchData.bind(this), 1000);
   }
 
   fetchData() {
-    ApiFetch('/edge_stack/api/snapshot', {
+      if( Snapshot.theTimeoutId !== 0 ) {
+        clearTimeout(Snapshot.theTimeoutId); // it's ok to clear a timeout that has already expired
+        Snapshot.theTimeoutId = 0;
+      }
+    ApiFetch(`/edge_stack/api/snapshot?client_session=${this.snapshotPatches ? this.clientSession : ''}`, {
       headers: {
         'Authorization': 'Bearer ' + getCookie("edge_stack_auth")
       }
@@ -154,14 +186,18 @@ export class Snapshot extends LitElement {
           } else {
             this.fragment = "";
             this.setAuthenticated(false);
-            this.setSnapshot(new SnapshotWrapper({}));
-            setTimeout(this.fetchData.bind(this), 1000); // fetch a new snapshot every second
+            this.setSnapshot(new SnapshotWrapper(this.currentSnapshot.data, {}));
+            if( Snapshot.theTimeoutId === 0 ) { // if we aren't already waiting to fetch a new snapshot...
+              Snapshot.theTimeoutId = setTimeout(this.fetchData.bind(this), 1000); // fetch a new snapshot every second
+            }
           }
         } else {
           response.text()
             .then((text) => {
               var json;
-              setTimeout(this.fetchData.bind(this), 1000); // fetch a new snapshot every second
+              if( Snapshot.theTimeoutId === 0 ) { // if we aren't already waiting to fetch a new snapshot...
+                Snapshot.theTimeoutId = setTimeout(this.fetchData.bind(this), 1000); // fetch a new snapshot every second
+              }
               try {
                   json = JSON.parse(text);
               } catch(err) {
@@ -176,7 +212,7 @@ export class Snapshot extends LitElement {
 
               this.fragment = "";
               this.setAuthenticated(true);
-              this.setSnapshot(new SnapshotWrapper(json || {}));
+              this.setSnapshot(new SnapshotWrapper(this.currentSnapshot.data, json || {}));
               if (this.loading) {
                 this.loading = false;
                 this.loadingError = null;
@@ -200,7 +236,9 @@ export class Snapshot extends LitElement {
               this.loadingError = err;
               this.requestUpdate();
               console.error('error reading snapshot', err);
-              setTimeout(this.fetchData.bind(this), 1000); // try again every second
+              if( Snapshot.theTimeoutId === 0 ) { // if we aren't already waiting to fetch a new snapshot...
+                Snapshot.theTimeoutId = setTimeout(this.fetchData.bind(this), 1000); // fetch a new snapshot every second
+              }
             })
         }
       })
@@ -208,7 +246,9 @@ export class Snapshot extends LitElement {
         this.loadingError = err;
         this.requestUpdate();
         console.error('error fetching snapshot', err);
-        setTimeout(this.fetchData.bind(this), 1000); // try again every second
+        if( Snapshot.theTimeoutId === 0 ) { // if we aren't already waiting to fetch a new snapshot...
+          Snapshot.theTimeoutId = setTimeout(this.fetchData.bind(this), 1000); // fetch a new snapshot every second
+        }
       })
   }
 
@@ -232,5 +272,7 @@ export class Snapshot extends LitElement {
     }
   }
 }
+
+Snapshot.theTimeoutId = 0; // we use this to make sure that we only ever have one active timeout
 
 customElements.define('aes-snapshot-provider', Snapshot);

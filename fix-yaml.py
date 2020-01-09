@@ -74,6 +74,16 @@ dpath.util.merge(dpath.util.get(deployment, 'spec/template/spec/containers/0'), 
           'readOnly':  True
         }
     ],
+    'resources': {
+        'limits': {
+            'cpu': '1000m',
+            'memory': '600Mi'
+        },
+        'requests': {
+            'cpu': '200m',
+            'memory': '300Mi'
+        }
+    }
 })
 
 # I don't think we really want to do this.
