@@ -168,6 +168,10 @@ export class Snapshot extends LitElement {
   }
 
   fetchData() {
+      if( Snapshot.theTimeoutId !== 0 ) {
+        clearTimeout(Snapshot.theTimeoutId); // it's ok to clear a timeout that has already expired
+        Snapshot.theTimeoutId = 0;
+      }
     ApiFetch(`/edge_stack/api/snapshot?client_session=${this.snapshotPatches ? this.clientSession : ''}`, {
       headers: {
         'Authorization': 'Bearer ' + getCookie("edge_stack_auth")
@@ -183,13 +187,17 @@ export class Snapshot extends LitElement {
             this.fragment = "";
             this.setAuthenticated(false);
             this.setSnapshot(new SnapshotWrapper(this.currentSnapshot.data, {}));
-            setTimeout(this.fetchData.bind(this), 1000); // fetch a new snapshot every second
+            if( Snapshot.theTimeoutId === 0 ) { // if we aren't already waiting to fetch a new snapshot...
+              Snapshot.theTimeoutId = setTimeout(this.fetchData.bind(this), 1000); // fetch a new snapshot every second
+            }
           }
         } else {
           response.text()
             .then((text) => {
               var json;
-              setTimeout(this.fetchData.bind(this), 1000); // fetch a new snapshot every second
+              if( Snapshot.theTimeoutId === 0 ) { // if we aren't already waiting to fetch a new snapshot...
+                Snapshot.theTimeoutId = setTimeout(this.fetchData.bind(this), 1000); // fetch a new snapshot every second
+              }
               try {
                   json = JSON.parse(text);
               } catch(err) {
@@ -228,7 +236,9 @@ export class Snapshot extends LitElement {
               this.loadingError = err;
               this.requestUpdate();
               console.error('error reading snapshot', err);
-              setTimeout(this.fetchData.bind(this), 1000); // try again every second
+              if( Snapshot.theTimeoutId === 0 ) { // if we aren't already waiting to fetch a new snapshot...
+                Snapshot.theTimeoutId = setTimeout(this.fetchData.bind(this), 1000); // fetch a new snapshot every second
+              }
             })
         }
       })
@@ -236,7 +246,9 @@ export class Snapshot extends LitElement {
         this.loadingError = err;
         this.requestUpdate();
         console.error('error fetching snapshot', err);
-        setTimeout(this.fetchData.bind(this), 1000); // try again every second
+        if( Snapshot.theTimeoutId === 0 ) { // if we aren't already waiting to fetch a new snapshot...
+          Snapshot.theTimeoutId = setTimeout(this.fetchData.bind(this), 1000); // fetch a new snapshot every second
+        }
       })
   }
 
@@ -260,5 +272,7 @@ export class Snapshot extends LitElement {
     }
   }
 }
+
+Snapshot.theTimeoutId = 0; // we use this to make sure that we only ever have one active timeout
 
 customElements.define('aes-snapshot-provider', Snapshot);
