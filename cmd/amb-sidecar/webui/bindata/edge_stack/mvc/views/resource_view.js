@@ -4,8 +4,8 @@
  * its Resource model object, as well as state used for the different view variants (edit, add, etc.)
  */
 
-/* Map merge operation */
-import { mapMerge } from "./map.js"
+/* Object merge operation */
+import { objectMerge } from "../utilities/object.js"
 
 /* View superclass */
 import { View } from './view.js'
@@ -28,7 +28,7 @@ export class ResourceView extends View {
     };
 
     /* Merge ResourceView properties with the View's properties. */
-    return mapMerge(myProperties, View.properties);
+    return objectMerge(myProperties, View.properties);
   }
 
   /* constructor

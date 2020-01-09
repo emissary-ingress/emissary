@@ -25,8 +25,8 @@ export class IResourceView extends ResourceView {
     /* For reference, subclasses implement the static function properties() by returning a Map
      * that lists the properties in the subclass, and merging with the parent's properties():
 
-*     first, import set merge:
-*     import { mapMerge } from "./map.js"
+*     first, import object merge:
+*     import { objectMerge } from "../utilities/object.js"
 
       static get properties() {
       let myProperties = {
@@ -37,7 +37,7 @@ export class IResourceView extends ResourceView {
         showTos:      {type: Boolean}   // HostView
       };
 
-      return mapMerge(myProperties, ResourceView.properties);
+      return objectMerge(myProperties, ResourceView.properties);
      */
 
 

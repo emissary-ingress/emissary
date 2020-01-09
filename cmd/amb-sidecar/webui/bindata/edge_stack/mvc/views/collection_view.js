@@ -46,24 +46,19 @@ export class CollectionView extends LitElement {
       }
     `
   }
-  /* constructor(model, sortFields)
+  /* constructor()
    * model is the Collection that is being rendered by this CollectionView.
-   * sortFields is an array of {value: label} objects, where the value is the Resource property
-   * on which to sort, and label is the display name for the HTML component.
    */
 
-  constructor(model, sortFields) {
+  constructor() {
     super();
 
-    if (!sortFields || sortFields.length === 0) {
-      throw new Error('please pass `sortFields` to new CollectionView()');
-    }
-    this.sortFields = sortFields;
-    this.sortBy     = this.sortFields[0].value;
+    /* sortFields is an array of {value: label} objects, where the value is the Resource property
+     * on which to sort, and label is the display name for the HTML component.
+     */
+    this.sortFields = [{label: "Resource Name", value: "name"}];
+    this.sortBy     = "name";
     this.addState   = "off";
-
-    /* Add this as a listener to the model (a Collection of Resources) */
-    model.addListener(this);
   }
 
   onChangeSortByAttribute(e) {
@@ -100,6 +95,7 @@ export class CollectionView extends LitElement {
   renderSet() {
     throw new Error("please implement ${this.constructor.name}.renderSet()");
   }
+
 
   sortFn(sortByAttribute) {
     throw new Error("please implement ${this.constructor.name}.sortFn(sortByAttribute)");

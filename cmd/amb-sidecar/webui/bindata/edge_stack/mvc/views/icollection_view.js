@@ -17,8 +17,8 @@ export class ICollectionView extends CollectionView {
     /* For reference, subclasses implement the static function properties() by returning a Map
      * that lists the properties in the subclass, and merging with the parent's properties():
 
-*     first, import set merge:
-*     import { mapMerge } from "./map.js"
+*     first, import object merge:
+*     import { objectMerge } from "../utilities/object.js"
 
       in properties():
       let myProperties = {
@@ -26,7 +26,7 @@ export class ICollectionView extends CollectionView {
         ...
       };
 
-      return mapMerge(myProperties, CollectionView.properties());
+      return objectMerge(myProperties, CollectionView.properties());
      */
 
     /* The interface simply returns the properties of the CollectionView. */
@@ -44,14 +44,11 @@ export class ICollectionView extends CollectionView {
     return CollectionView.styles;
   }
 
-  /* constructor(model, sortFields)
-   * model is the Collection that is being rendered by this CollectionView.
-   * sortFields is an array of {value: label} objects, where the value is the Resource property
-   * on which to sort, and label is the display name for the HTML component.
+  /* constructor()
    */
 
-  constructor(model, sortFields) {
-    super(model, sortFields);
+  constructor() {
+    super();
   }
 
   onAdd() {

@@ -3,6 +3,9 @@
  * An ICollectionView concrete subclass that implements a view on a Collection of HostViews.
  */
 
+/* The Collection we're listening to. */
+import { AllHosts } from "../models/host_collection.js"
+
 /* The HostView that will be rendered in the CollectionView. */
 import { HostView } from "./host_view.js"
 
@@ -30,14 +33,14 @@ export class HostCollectionView extends ICollectionView {
     return ICollectionView.styles;
    }
 
-  /* constructor(model, sortFields)
-   * model is the Collection that is being rendered by this CollectionView.
-   * sortFields is an array of {value: label} objects, where the value is the Resource property
-   * on which to sort, and label is the display name for the HTML component.
+  /* constructor()
    */
 
-  constructor(model, sortFields) {
-    super(model, sortFields);
+  constructor() {
+    super();
+
+    /* Listen to AllHosts for updates. */
+    AllHosts.addListener(this);
   }
 
   onAdd() {

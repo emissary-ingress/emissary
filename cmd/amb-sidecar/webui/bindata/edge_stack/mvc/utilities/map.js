@@ -12,5 +12,5 @@
  */
 
 export function mapMerge(mapA, mapB) {
-  return new Map(...mapA, ...mapB);
+  return new Map([...mapA, ...mapB]);
 }

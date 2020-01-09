@@ -5,8 +5,8 @@
  * and adds new properties for acmeProvider, acmeEmail, tos (terms of service), and whether to show tos.
  */
 
-/* Set merge operation */
-import { mapMerge } from "./map.js"
+/* Object merge operation */
+import { objectMerge } from "../utilities/object.js"
 
 /* ResourceView interface class */
 import { IResourceView } from './iresource_view.js'
@@ -38,7 +38,7 @@ export class HostView extends IResourceView {
     };
 
     /* Merge my properties with those defined by my superclasses. */
-    return mapMerge(myProperties, ResourceView.properties);
+    return objectMerge(myProperties, IResourceView.properties);
   }
 
   /* constructor(model)
