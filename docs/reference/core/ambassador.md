@@ -35,6 +35,7 @@ spec:
 | `envoy_log_format` | Defines the envoy log line format. See [this page](https://www.envoyproxy.io/docs/envoy/latest/configuration/observability/access_log) for a complete list of operators | See [this page](https://www.envoyproxy.io/docs/envoy/latest/configuration/observability/access_log#default-format-string) for the standard log format. |
 | `envoy_log_path` | Defines the path of log envoy will use. By default this is standard output | `envoy_log_path: /dev/fd/1` |
 | `envoy_log_type` | Defines the type of log envoy will use, currently only support json or text | `envoy_log_type: text` |
+| `idle_timeout` | Controls how Envoy configures the tcp idle timeout on the http listener. Default is no timeout (TCP connection may remain idle indefinitely) | `idle_timeout: 300s` |
 | `lua_scripts` | Run a custom lua script on every request. see below for more details. |  |
 | `regex_max_size` | This field controls the RE2 âprogram sizeâ which is a rough estimate of how complex a compiled regex is to evaluate. A regex that has a program size greater than the configured value will fail to compile    | `regex_max_size: 200` |
 | `regex_type` | Set which regular expression engine to use. See the "Regular Expressions" section below. | `regex_type: safe` |
@@ -189,6 +190,10 @@ The gRPC-Web specification requires a server-side proxy to translate between gRP
 ### HTTP/1.0 support (`enable_http10`)
 
 Enable/disable handling of incoming HTTP/1.0 and HTTP 0.9 requests.
+
+### `idle_timeout`
+
+Controls how Envoy configures the tcp idle timeout on the http listener. Default is no timeout (TCP connection may remain idle indefinitely). This is useful if you have proxies and/or firewalls in front of Ambassador and need to control how Ambassador initiates closing an idle TCP connection. Please see the [Envoy documentation](https://www.envoyproxy.io/docs/envoy/v1.12.2/api-v2/api/v2/core/protocol.proto#envoy-api-msg-core-httpprotocoloptions) for more information.
 
 ### `enable_ivp4` and `enable_ipv6`
 
