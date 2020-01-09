@@ -777,6 +777,10 @@ class V2Listener(dict):
         if 'server_name' in self.config.ir.ambassador_module:
             self.base_http_config["server_name"] = self.config.ir.ambassador_module.server_name
 
+        idle_timeout = self.config.ir.ambassador_module.get('idle_timeout', '0s')
+        if idle_timeout != '0s':
+            self.base_http_config["common_http_protocol_options"] = { 'idle_timeout': idle_timeout }
+
         if 'enable_http10' in self.config.ir.ambassador_module:
             self.base_http_config["http_protocol_options"] = { 'accept_http_10': self.config.ir.ambassador_module.enable_http10 }
 
