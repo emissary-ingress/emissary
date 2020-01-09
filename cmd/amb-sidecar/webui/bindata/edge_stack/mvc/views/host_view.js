@@ -11,7 +11,7 @@ import { html } from '../../vendor/lit-element.min.js'
 import { objectMerge } from "../framework/utilities.js"
 
 /* ResourceView interface class */
-import { IResourceView } from './iresource_view.js'
+import { IResourceView } from '../interfaces/iresource_view.js'
 
 const _defaultAcmeProvider = "https://acme-v02.api.letsencrypt.org/directory";
 const _defaultAcmeEmail    = "yourname@yourcompany.com";
@@ -357,4 +357,4 @@ export class HostView extends IResourceView {
 }
 
 /* Bind our custom elements to the HostView. */
-customElements.define('dw-host', HostView);
+customElements.define('dw-mvc-host', HostView);

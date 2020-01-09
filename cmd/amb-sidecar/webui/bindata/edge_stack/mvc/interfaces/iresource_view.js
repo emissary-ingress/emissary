@@ -5,7 +5,7 @@
  */
 
 /* ResourceView superclass. */
-import { ResourceView } from './resource_view.js'
+import { ResourceView } from '../framework/resource_view.js'
 
 export class IResourceView extends ResourceView {
 

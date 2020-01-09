@@ -3,7 +3,7 @@
  * This is the Interface class to the ResourceCollectionView.
  */
 
-import { ResourceCollectionView } from "./resourcecollection_view.js"
+import { ResourceCollectionView } from "../framework/resourcecollection_view.js"
 
 export class IResourceCollectionView extends ResourceCollectionView {
 
@@ -52,7 +52,7 @@ export class IResourceCollectionView extends ResourceCollectionView {
   }
 
   /* readOnly()
-   * Override to false to allow the Add button to show up.  Defaults to false.
+   * Override to true to hide the Add button.  Defaults to false.
    */
   readOnly() {
     return super.readOnly();

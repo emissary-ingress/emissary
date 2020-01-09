@@ -5,6 +5,8 @@
  * as needed.
  */
 
+import { hasDebugBackend } from "../../components/api-fetch.js"
+
 /* LitElement superclass. */
 import { LitElement, html, css } from '../../vendor/lit-element.min.js'
 
@@ -93,7 +95,7 @@ export class ResourceCollectionView extends LitElement {
   }
 
   /* readOnly()
-   * Override to true to remove the Add button.
+   * Override to true to hide the Add button.  Defaults to false.
    */
   readOnly() {
     return false;
@@ -107,31 +109,19 @@ export class ResourceCollectionView extends LitElement {
    */
 
   render() {
-    return html`
+    if (hasDebugBackend()) {
+      return html`
+        <div style="border:thick solid red">
         <link rel="stylesheet" href="../styles/resources.css">
         <add-button @click=${this.onAdd.bind(this)}></add-button>
                  <slot name="add"></slot>
-                 <slot></slot>`
-  }
+                 <slot></slot>
+        </div>`
 
-  renderSorted() {
-    return html`
-      <div class="sortby">Sort by
-        <select id="sortByAttribute" @change=${this.onChangeSortByAttribute}>
-          ${this.sortFields.map(f => {
-      return html`<option value="${f.value}">${f.label}</option>`
-    })}
-        </select>
-      </div>
-      ${this.resources.sort(this.sortFn(this.sortBy)) && this.renderSet()}`
-  }
-
-  renderSet() {
-    throw new Error("please implement ${this.constructor.name}.renderSet()");
-  }
-
-  sortFn(sortByAttribute) {
-    throw new Error("please implement ${this.constructor.name}.sortFn(sortByAttribute)");
+    }
+    else {
+      return html``
+    }
   }
 }
 

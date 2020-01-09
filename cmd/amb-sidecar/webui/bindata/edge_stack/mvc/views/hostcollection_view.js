@@ -3,6 +3,8 @@
  * An IResourceCollectionView concrete subclass that implements a view on a ResourceCollection of HostViews.
  */
 
+import { hasDebugBackend } from "../../components/api-fetch.js"
+
 /* The ResourceCollection we're listening to. */
 import { AllHosts } from "../models/host_collection.js"
 
@@ -10,7 +12,7 @@ import { AllHosts } from "../models/host_collection.js"
 import { HostView } from "./host_view.js"
 
 /* ResourceCollectionView interface class */
-import { IResourceCollectionView } from './iresourcecollection_view.js'
+import { IResourceCollectionView } from '../interfaces/iresourcecollection_view.js'
 
 export class HostCollectionView extends IResourceCollectionView {
 
@@ -53,4 +55,4 @@ export class HostCollectionView extends IResourceCollectionView {
 }
 
 /* Bind our custom elements to the HostCollectionView. */
-customElements.define('dw-hosts', HostCollectionView);
+customElements.define('dw-mvc-hosts', HostCollectionView);
