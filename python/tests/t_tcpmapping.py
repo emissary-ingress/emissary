@@ -3,7 +3,6 @@ import json
 from kat.harness import Query, Test, variants
 
 from abstract_tests import AmbassadorTest, ServiceType, HTTP
-import pytest
 
 # An AmbassadorTest subclass will actually create a running Ambassador.
 # "self" in this class will refer to the Ambassador.
@@ -131,7 +130,11 @@ tls: true
 """)
 
     def requirements(self):
-        yield from ()
+        # We're replacing super()'s requirements deliberately here. Without a Host header they can't work.
+        yield ("url", Query(self.url("ambassador/v0/check_ready"), headers={"Host": "tls-context-host-1"}, insecure=True, sni=True))
+        yield ("url", Query(self.url("ambassador/v0/check_alive"), headers={"Host": "tls-context-host-1"}, insecure=True, sni=True))
+        yield ("url", Query(self.url("ambassador/v0/check_ready"), headers={"Host": "tls-context-host-2"}, insecure=True, sni=True))
+        yield ("url", Query(self.url("ambassador/v0/check_alive"), headers={"Host": "tls-context-host-2"}, insecure=True, sni=True))
 
     # scheme defaults to HTTP; if you need to use HTTPS, have it return
     # "https"...
@@ -143,9 +146,6 @@ tls: true
     # complete response object will be dumped.
 
     def queries(self):
-        yield from ()
-        return
-
         # 0: should hit target1, and use TLS
         yield Query(self.url(self.name + "/wtfo/", port=9876),
                     insecure=True)
@@ -182,8 +182,6 @@ tls: true
     # to.)
 
     def check(self):
-        pytest.xfail("XFail for now")
-
         for idx, target, tls_wanted in [
             ( 0, self.target1, True ),
             ( 1, self.target2, True ),
