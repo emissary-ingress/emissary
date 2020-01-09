@@ -356,6 +356,16 @@ def envoy_status(estats):
     }
 
 
+def drop_serializer_key(d: Dict[Any, Any]) -> Dict[Any, Any]:
+    """
+    Delete the "serialization" key (if present) in any dictionary passed in and
+    return that dictionary. This function is intended to be used as the
+    object_hook value for json.load[s].
+    """
+    _ = d.pop("serialization", None)
+    return d
+
+
 @app.route('/_internal/v0/ping', methods=[ 'GET' ])
 def handle_ping():
     return "ACK\n", 200
@@ -493,10 +503,16 @@ def show_overview(reqid=None):
         if key:
             return jsonify(tvars.get(key, None))
         elif patch_client:
+            # Assume this is the Admin UI. Recursively drop all "serialization"
+            # keys. This avoids leaking secrets and generally makes the
+            # snapshot a lot smaller without losing information that the Admin
+            # UI cares about. We do this below by setting the object_hook
+            # parameter of the json.loads(...) call.
+
             # Get the previous full representation
             cached_tvars_json = tvars_cache.get(patch_client, dict())
             # Serialize the tvars into a json-string using the same jsonify Flask serializer, then load the json object
-            response_content = json.loads(flask_json.dumps(tvars))
+            response_content = json.loads(flask_json.dumps(tvars), object_hook=drop_serializer_key)
             # Diff between the previous representation and the current full representation  (http://jsonpatch.com/)
             patch = jsonpatch.make_patch(cached_tvars_json, response_content)
             # Save the current full representation in memory
