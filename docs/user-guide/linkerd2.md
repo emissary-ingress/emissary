@@ -155,7 +155,7 @@ to apply this configuration to your Kubernetes cluster. Note that in the above c
 1. Send a request to the `qotm-Linkerd2` API.
 
    ```shell
-   curl http://$AMBASSADOR_IP/qotm-Linkerd2/
+   curl -L http://$AMBASSADOR_IP/qotm-Linkerd2/
 
    {"hostname":"qotm-749c675c6c-hq58f","ok":true,"quote":"The last sentence you read is often sensible nonsense.","time":"2019-03-29T22:21:42.197663","version":"1.7"}
    ```

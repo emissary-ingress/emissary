@@ -49,7 +49,7 @@ spec:
 Use `curl` to generate a few requests to an existing Ambassador Edge Stack mapping. You may need to perform many requests since only a subset of random requests are sampled and instrumented with traces.
 
 ```shell
-$ curl $AMBASSADOR_IP/httpbin/ip
+$ curl -L $AMBASSADOR_IP/httpbin/ip
 ```
 
 ## 5. Test traces

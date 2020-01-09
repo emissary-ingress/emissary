@@ -73,7 +73,7 @@ Now, you can quickly test and develop your filter.
 2. Test the filter by running `curl`:
 
     ```
-    $ curl -v localhost:8080?db=2
+    $ curl -Lv localhost:8080?db=2
     * Rebuilt URL to: localhost:8080/?db=2
     *   Trying ::1...
     * TCP_NODELAY set
