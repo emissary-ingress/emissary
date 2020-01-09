@@ -333,7 +333,7 @@ kick_ads() {
 
         if [ -n "$AMBASSADOR_DEMO_MODE" -a -z "$demo_chimed" ]; then
             # Wait for Envoy...
-            wait_for_url "envoy" "http://localhost:8001/ready"
+            wait_for_url "envoy" "http://localhost:8877/ambassador/v0/check_ready"
 
             log "AMBASSADOR DEMO RUNNING"
             demo_chimed=yes
