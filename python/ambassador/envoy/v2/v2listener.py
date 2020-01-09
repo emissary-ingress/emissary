@@ -862,9 +862,7 @@ class V2Listener(dict):
 
             # What VirtualHost hostname are we trying to work with here?
             vhostname = irlistener.hostname or "*"
-
-            if vhostname != '*':
-                distinct_domains[vhostname] = True
+            distinct_domains[vhostname] = True
 
             listener.make_vhost(name=vhostname,
                                 hostname=vhostname,
@@ -1024,15 +1022,15 @@ class V2Listener(dict):
                         if action == 'Redirect':
                             vhost.needs_redirect()
 
-        listeners_dict = { k: v.verbose_dict() for k, v in listeners_by_port.items() }
-        logger.info(f"V2Listeners: {json.dumps(listeners_dict, sort_keys=True, indent=4)}")
+        # listeners_dict = { k: v.verbose_dict() for k, v in listeners_by_port.items() }
+        # logger.info(f"V2Listeners: {json.dumps(listeners_dict, sort_keys=True, indent=4)}")
 
         # OK. Finalize the world.
         for port, listener in listeners_by_port.items():
             listener.finalize(enable_sni)
 
-        listeners_dict = { k: v.verbose_dict() for k, v in listeners_by_port.items() }
-        logger.info(f"V2Listeners: {json.dumps(listeners_dict, sort_keys=True, indent=4)}")
+        # listeners_dict = { k: v.verbose_dict() for k, v in listeners_by_port.items() }
+        # logger.info(f"V2Listeners: {json.dumps(listeners_dict, sort_keys=True, indent=4)}")
 
         for k, v in listeners_by_port.items():
             config.listeners.append(v.as_dict())
