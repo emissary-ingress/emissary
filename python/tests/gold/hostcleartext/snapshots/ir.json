@@ -38,6 +38,7 @@
         },
         "server_name": "envoy",
         "service_port": 8080,
+        "use_ambassador_namespace_for_service_resolution": false,
         "use_proxy_proto": false,
         "use_remote_address": true,
         "x_forwarded_proto_redirect": false,
@@ -48,6 +49,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "127.0.0.1",
+            "_namespace": "default",
             "_port": 8877,
             "_referenced_by": [
                 "--internal--"
@@ -81,6 +83,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "hostcleartext-http",
+            "_namespace": "default",
             "_port": 80,
             "_referenced_by": [
                 "cleartext-target-mapping.default.1"
@@ -100,7 +103,7 @@
             "service": "hostcleartext-http",
             "targets": [
                 {
-                    "ip": "hostcleartext-http",
+                    "ip": "hostcleartext-http.default",
                     "port": 80,
                     "target_kind": "DNSname"
                 }
@@ -166,6 +169,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "127.0.0.1",
+                        "_namespace": "default",
                         "_port": 8877,
                         "_referenced_by": [
                             "--internal--"
@@ -255,6 +259,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "127.0.0.1",
+                        "_namespace": "default",
                         "_port": 8877,
                         "_referenced_by": [
                             "--internal--"
@@ -344,6 +349,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "127.0.0.1",
+                        "_namespace": "default",
                         "_port": 8877,
                         "_referenced_by": [
                             "--internal--"
@@ -430,6 +436,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "hostcleartext-http",
+                        "_namespace": "default",
                         "_port": 80,
                         "_referenced_by": [
                             "cleartext-target-mapping.default.1"
@@ -449,7 +456,7 @@
                         "service": "hostcleartext-http",
                         "targets": [
                             {
-                                "ip": "hostcleartext-http",
+                                "ip": "hostcleartext-http.default",
                                 "port": 80,
                                 "target_kind": "DNSname"
                             }
@@ -513,11 +520,16 @@
             "acmeProvider": {
                 "authority": "none"
             },
-            "hostname": "cleartext-host",
+            "hostname": "hostcleartext",
             "kind": "Host",
             "location": "cleartext-host.default.1",
             "name": "cleartext-host",
             "namespace": "default",
+            "requestPolicy": {
+                "insecure": {
+                    "action": "Route"
+                }
+            },
             "selector": {
                 "matchLabels": {
                     "hostname": "host-cleartext"
@@ -544,17 +556,17 @@
             "_active": true,
             "_errored": false,
             "_rkey": "ir.listener",
+            "hostname": "hostcleartext",
+            "insecure_action": "Route",
             "kind": "IRListener",
-            "location": "--internal--",
+            "location": "cleartext-host.default.1",
             "name": "ir.listener",
             "namespace": "default",
             "redirect_listener": false,
             "require_tls": false,
-            "server_name": "envoy",
+            "secure_action": "Route",
             "service_port": 8080,
-            "use_proxy_proto": false,
-            "use_remote_address": true,
-            "xff_num_trusted_hops": 0
+            "use_proxy_proto": false
         }
     ],
     "services": {

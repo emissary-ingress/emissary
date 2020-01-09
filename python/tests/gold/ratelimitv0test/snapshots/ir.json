@@ -38,6 +38,7 @@
         },
         "server_name": "envoy",
         "service_port": 8080,
+        "use_ambassador_namespace_for_service_resolution": false,
         "use_proxy_proto": false,
         "use_remote_address": true,
         "x_forwarded_proto_redirect": false,
@@ -48,6 +49,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "127.0.0.1",
+            "_namespace": "default",
             "_port": 8877,
             "_referenced_by": [
                 "--internal--"
@@ -81,6 +83,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "rate-limit-v0",
+            "_namespace": "default",
             "_port": 5000,
             "_referenced_by": [
                 "ratelimitv0test.default.1"
@@ -100,7 +103,7 @@
             "service": "rate-limit-v0:5000",
             "targets": [
                 {
-                    "ip": "rate-limit-v0",
+                    "ip": "rate-limit-v0.default",
                     "port": 5000,
                     "target_kind": "DNSname"
                 }
@@ -114,6 +117,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "ratelimitv0test-http",
+            "_namespace": "default",
             "_port": 80,
             "_referenced_by": [
                 "ratelimitv0test-http.default.1",
@@ -134,7 +138,7 @@
             "service": "ratelimitv0test-http",
             "targets": [
                 {
-                    "ip": "ratelimitv0test-http",
+                    "ip": "ratelimitv0test-http.default",
                     "port": 80,
                     "target_kind": "DNSname"
                 }
@@ -167,6 +171,7 @@
                 "_active": true,
                 "_errored": false,
                 "_hostname": "rate-limit-v0",
+                "_namespace": "default",
                 "_port": 5000,
                 "_referenced_by": [
                     "ratelimitv0test.default.1"
@@ -186,7 +191,7 @@
                 "service": "rate-limit-v0:5000",
                 "targets": [
                     {
-                        "ip": "rate-limit-v0",
+                        "ip": "rate-limit-v0.default",
                         "port": 5000,
                         "target_kind": "DNSname"
                     }
@@ -207,6 +212,7 @@
                 "_active": true,
                 "_errored": false,
                 "_hostname": "rate-limit-v0",
+                "_namespace": "default",
                 "_port": 5000,
                 "_referenced_by": [
                     "ratelimitv0test.default.1"
@@ -226,7 +232,7 @@
                 "service": "rate-limit-v0:5000",
                 "targets": [
                     {
-                        "ip": "rate-limit-v0",
+                        "ip": "rate-limit-v0.default",
                         "port": 5000,
                         "target_kind": "DNSname"
                     }
@@ -287,6 +293,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "127.0.0.1",
+                        "_namespace": "default",
                         "_port": 8877,
                         "_referenced_by": [
                             "--internal--"
@@ -376,6 +383,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "127.0.0.1",
+                        "_namespace": "default",
                         "_port": 8877,
                         "_referenced_by": [
                             "--internal--"
@@ -465,6 +473,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "127.0.0.1",
+                        "_namespace": "default",
                         "_port": 8877,
                         "_referenced_by": [
                             "--internal--"
@@ -571,6 +580,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "ratelimitv0test-http",
+                        "_namespace": "default",
                         "_port": 80,
                         "_referenced_by": [
                             "ratelimitv0test-http.default.1",
@@ -591,7 +601,7 @@
                         "service": "ratelimitv0test-http",
                         "targets": [
                             {
-                                "ip": "ratelimitv0test-http",
+                                "ip": "ratelimitv0test-http.default",
                                 "port": 80,
                                 "target_kind": "DNSname"
                             }
@@ -716,6 +726,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "ratelimitv0test-http",
+                        "_namespace": "default",
                         "_port": 80,
                         "_referenced_by": [
                             "ratelimitv0test-http.default.1",
@@ -736,7 +747,7 @@
                         "service": "ratelimitv0test-http",
                         "targets": [
                             {
-                                "ip": "ratelimitv0test-http",
+                                "ip": "ratelimitv0test-http.default",
                                 "port": 80,
                                 "target_kind": "DNSname"
                             }
@@ -819,6 +830,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "rate-limit-v0",
+            "_namespace": "default",
             "_port": 5000,
             "_referenced_by": [
                 "ratelimitv0test.default.1"
@@ -838,7 +850,7 @@
             "service": "rate-limit-v0:5000",
             "targets": [
                 {
-                    "ip": "rate-limit-v0",
+                    "ip": "rate-limit-v0.default",
                     "port": 5000,
                     "target_kind": "DNSname"
                 }
@@ -849,6 +861,7 @@
             ]
         }
     },
+    "hosts": [],
     "identity": {
         "ambassador_id": "ratelimitv0test",
         "ambassador_namespace": "default",
@@ -860,17 +873,17 @@
             "_active": true,
             "_errored": false,
             "_rkey": "ir.listener",
+            "hostname": "*",
+            "insecure_action": "Route",
             "kind": "IRListener",
             "location": "--internal--",
             "name": "ir.listener",
             "namespace": "default",
             "redirect_listener": false,
             "require_tls": false,
-            "server_name": "envoy",
+            "secure_action": "Route",
             "service_port": 8080,
-            "use_proxy_proto": false,
-            "use_remote_address": true,
-            "xff_num_trusted_hops": 0
+            "use_proxy_proto": false
         }
     ],
     "ratelimit": {
@@ -884,6 +897,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "rate-limit-v0",
+            "_namespace": "default",
             "_port": 5000,
             "_referenced_by": [
                 "ratelimitv0test.default.1"
@@ -903,7 +917,7 @@
             "service": "rate-limit-v0:5000",
             "targets": [
                 {
-                    "ip": "rate-limit-v0",
+                    "ip": "rate-limit-v0.default",
                     "port": 5000,
                     "target_kind": "DNSname"
                 }
@@ -924,6 +938,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "rate-limit-v0",
+            "_namespace": "default",
             "_port": 5000,
             "_referenced_by": [
                 "ratelimitv0test.default.1"
@@ -943,7 +958,7 @@
             "service": "rate-limit-v0:5000",
             "targets": [
                 {
-                    "ip": "rate-limit-v0",
+                    "ip": "rate-limit-v0.default",
                     "port": 5000,
                     "target_kind": "DNSname"
                 }

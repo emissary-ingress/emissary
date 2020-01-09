@@ -55,6 +55,7 @@
         },
         "server_name": "envoy",
         "service_port": 8080,
+        "use_ambassador_namespace_for_service_resolution": false,
         "use_proxy_proto": false,
         "use_remote_address": true,
         "x_forwarded_proto_redirect": false,
@@ -65,6 +66,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "127.0.0.1",
+            "_namespace": "default",
             "_port": 8877,
             "_referenced_by": [
                 "gziptest.default.1"
@@ -98,6 +100,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "gziptest-http",
+            "_namespace": "default",
             "_port": 80,
             "_referenced_by": [
                 "gziptest.default.2"
@@ -117,7 +120,7 @@
             "service": "gziptest-http",
             "targets": [
                 {
-                    "ip": "gziptest-http",
+                    "ip": "gziptest-http.default",
                     "port": 80,
                     "target_kind": "DNSname"
                 }
@@ -197,6 +200,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "127.0.0.1",
+                        "_namespace": "default",
                         "_port": 8877,
                         "_referenced_by": [
                             "gziptest.default.1"
@@ -228,7 +232,7 @@
                     },
                     "group_id": "b4db12f5b638f1750062dd4220911c4f6f44fc57",
                     "headers": [],
-                    "kind": "IRMapping",
+                    "kind": "IRHTTPMapping",
                     "location": "gziptest.default.1",
                     "name": "internal_readiness_probe_mapping",
                     "namespace": "default",
@@ -286,6 +290,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "127.0.0.1",
+                        "_namespace": "default",
                         "_port": 8877,
                         "_referenced_by": [
                             "gziptest.default.1"
@@ -317,7 +322,7 @@
                     },
                     "group_id": "7df546235997704c909d473af2cbcb5e606d20de",
                     "headers": [],
-                    "kind": "IRMapping",
+                    "kind": "IRHTTPMapping",
                     "location": "gziptest.default.1",
                     "name": "internal_liveness_probe_mapping",
                     "namespace": "default",
@@ -375,6 +380,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "127.0.0.1",
+                        "_namespace": "default",
                         "_port": 8877,
                         "_referenced_by": [
                             "gziptest.default.1"
@@ -406,7 +412,7 @@
                     },
                     "group_id": "8de18501d2044fe30db225289b318d5fda913b64",
                     "headers": [],
-                    "kind": "IRMapping",
+                    "kind": "IRHTTPMapping",
                     "location": "gziptest.default.1",
                     "name": "internal_diagnostics_probe_mapping",
                     "namespace": "default",
@@ -461,6 +467,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "gziptest-http",
+                        "_namespace": "default",
                         "_port": 80,
                         "_referenced_by": [
                             "gziptest.default.2"
@@ -480,7 +487,7 @@
                         "service": "gziptest-http",
                         "targets": [
                             {
-                                "ip": "gziptest-http",
+                                "ip": "gziptest-http.default",
                                 "port": 80,
                                 "target_kind": "DNSname"
                             }
@@ -494,6 +501,11 @@
                     "headers": [],
                     "kind": "Mapping",
                     "location": "gziptest.default.2",
+                    "metadata_labels": {
+                        "app.kubernetes.io/component": "ambassador-service",
+                        "kat-ambassador-id": "gziptest",
+                        "scope": "AmbassadorTest"
+                    },
                     "name": "gziptest-http",
                     "namespace": "default",
                     "precedence": 0,
@@ -507,20 +519,26 @@
                         "/target/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: gziptest\napiVersion: ambassador/v0\nkind: Mapping\nname: gziptest-http\nprefix: /target/\nservice: gziptest-http\n",
+                    "serialization": "ambassador_id: gziptest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: gziptest\n  scope: AmbassadorTest\nname: gziptest-http\nprefix: /target/\nservice: gziptest-http\n",
                     "service": "gziptest-http",
                     "weight": 100
                 }
             ],
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "gziptest",
+                "scope": "AmbassadorTest"
+            },
             "name": "GROUP: gziptest-http",
             "namespace": "default",
             "precedence": 0,
             "prefix": "/target/",
             "rewrite": "/",
-            "serialization": "ambassador_id: gziptest\napiVersion: ambassador/v0\nkind: Mapping\nname: gziptest-http\nprefix: /target/\nservice: gziptest-http\n"
+            "serialization": "ambassador_id: gziptest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: gziptest\n  scope: AmbassadorTest\nname: gziptest-http\nprefix: /target/\nservice: gziptest-http\n"
         }
     ],
     "grpc_services": {},
+    "hosts": [],
     "identity": {
         "ambassador_id": "gziptest",
         "ambassador_namespace": "default",
@@ -532,55 +550,69 @@
             "_active": true,
             "_errored": false,
             "_rkey": "ir.listener",
+            "hostname": "*",
+            "insecure_action": "Route",
             "kind": "IRListener",
             "location": "gziptest.default.1",
             "name": "ir.listener",
             "namespace": "default",
             "redirect_listener": false,
             "require_tls": false,
-            "server_name": "envoy",
+            "secure_action": "Route",
             "service_port": 8080,
-            "use_proxy_proto": false,
-            "use_remote_address": true,
-            "xff_num_trusted_hops": 0
+            "use_proxy_proto": false
         }
     ],
     "services": {
         "k8s-gziptest-admin-default": {
             "_referenced_by": {},
             "ambassador_id": "gziptest",
-            "apiVersion": "ambassador/v1",
+            "apiVersion": "getambassador.io/v2",
             "endpoints": {},
             "kind": "Service",
             "location": "k8s-gziptest-admin-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "gziptest",
+                "scope": "AmbassadorTest",
+                "service": "gziptest-admin"
+            },
             "name": "gziptest-admin",
             "namespace": "default",
             "rkey": "k8s-gziptest-admin-default",
-            "serialization": "ambassador_id: gziptest\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: gziptest-admin\nnamespace: default\n"
+            "serialization": "ambassador_id: gziptest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: gziptest\n  scope: AmbassadorTest\n  service: gziptest-admin\nname: gziptest-admin\nnamespace: default\n"
         },
         "k8s-gziptest-default": {
             "_referenced_by": {},
             "ambassador_id": "gziptest",
-            "apiVersion": "ambassador/v1",
+            "apiVersion": "getambassador.io/v2",
             "endpoints": {},
             "kind": "Service",
             "location": "k8s-gziptest-default",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "gziptest",
+                "scope": "AmbassadorTest"
+            },
             "name": "gziptest",
             "namespace": "default",
             "rkey": "k8s-gziptest-default",
-            "serialization": "ambassador_id: gziptest\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: gziptest\nnamespace: default\n"
+            "serialization": "ambassador_id: gziptest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: gziptest\n  scope: AmbassadorTest\nname: gziptest\nnamespace: default\n"
         },
         "k8s-gziptest-http-default": {
             "_referenced_by": {},
             "ambassador_id": "gziptest",
-            "apiVersion": "ambassador/v1",
+            "apiVersion": "getambassador.io/v2",
             "endpoints": {},
             "kind": "Service",
             "location": "k8s-gziptest-http-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "gziptest",
+                "scope": "AmbassadorTest"
+            },
             "name": "gziptest-http",
             "namespace": "default",
             "rkey": "k8s-gziptest-http-default",
-            "serialization": "ambassador_id: gziptest\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: gziptest-http\nnamespace: default\n"
+            "serialization": "ambassador_id: gziptest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: gziptest\n  scope: AmbassadorTest\nname: gziptest-http\nnamespace: default\n"
         }
     },
     "tls_contexts": []

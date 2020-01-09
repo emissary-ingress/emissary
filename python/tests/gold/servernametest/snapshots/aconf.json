@@ -11,7 +11,7 @@
     "_sources": {
         "--diagnostics--": {
             "_referenced_by": {},
-            "apiVersion": "ambassador/v0",
+            "apiVersion": "getambassador.io/v0",
             "description": "The '--diagnostics--' source marks objects created by Ambassador to assist with diagnostic output.",
             "kind": "Diagnostics",
             "location": "--diagnostics--",
@@ -19,11 +19,11 @@
             "namespace": null,
             "rkey": "--diagnostics--",
             "serialization": null,
-            "version": "ambassador/v0"
+            "version": "getambassador.io/v0"
         },
         "--internal--": {
             "_referenced_by": {},
-            "apiVersion": "ambassador/v0",
+            "apiVersion": "getambassador.io/v0",
             "description": "The '--internal--' source marks objects created by Ambassador's internal logic.",
             "kind": "Internal",
             "location": "--internal--",
@@ -31,77 +31,106 @@
             "namespace": null,
             "rkey": "--internal--",
             "serialization": null,
-            "version": "ambassador/v0"
+            "version": "getambassador.io/v0"
         },
         "k8s-servernametest-admin-default": {
             "_referenced_by": {},
             "ambassador_id": "servernametest",
-            "apiVersion": "ambassador/v1",
+            "apiVersion": "getambassador.io/v2",
             "endpoints": {},
             "kind": "Service",
             "location": "k8s-servernametest-admin-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "servernametest",
+                "scope": "AmbassadorTest",
+                "service": "servernametest-admin"
+            },
             "name": "servernametest-admin",
             "namespace": "default",
             "rkey": "k8s-servernametest-admin-default",
-            "serialization": "ambassador_id: servernametest\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: servernametest-admin\nnamespace: default\n"
+            "serialization": "ambassador_id: servernametest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: servernametest\n  scope: AmbassadorTest\n  service: servernametest-admin\nname: servernametest-admin\nnamespace: default\n"
         },
         "k8s-servernametest-default": {
             "_referenced_by": {},
             "ambassador_id": "servernametest",
-            "apiVersion": "ambassador/v1",
+            "apiVersion": "getambassador.io/v2",
             "endpoints": {},
             "kind": "Service",
             "location": "k8s-servernametest-default",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "servernametest",
+                "scope": "AmbassadorTest"
+            },
             "name": "servernametest",
             "namespace": "default",
             "rkey": "k8s-servernametest-default",
-            "serialization": "ambassador_id: servernametest\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: servernametest\nnamespace: default\n"
+            "serialization": "ambassador_id: servernametest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: servernametest\n  scope: AmbassadorTest\nname: servernametest\nnamespace: default\n"
         },
         "k8s-servernametest-http-default": {
             "_referenced_by": {},
             "ambassador_id": "servernametest",
-            "apiVersion": "ambassador/v1",
+            "apiVersion": "getambassador.io/v2",
             "endpoints": {},
             "kind": "Service",
             "location": "k8s-servernametest-http-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "servernametest",
+                "scope": "AmbassadorTest"
+            },
             "name": "servernametest-http",
             "namespace": "default",
             "rkey": "k8s-servernametest-http-default",
-            "serialization": "ambassador_id: servernametest\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: servernametest-http\nnamespace: default\n"
+            "serialization": "ambassador_id: servernametest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: servernametest\n  scope: AmbassadorTest\nname: servernametest-http\nnamespace: default\n"
         },
         "servernametest.default.1": {
             "_referenced_by": {},
             "ambassador_id": "servernametest",
-            "apiVersion": "ambassador/v0",
+            "apiVersion": "getambassador.io/v0",
             "config": {
                 "server_name": "test-server"
             },
             "kind": "Module",
             "location": "servernametest.default.1",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "servernametest",
+                "scope": "AmbassadorTest"
+            },
             "name": "ambassador",
             "namespace": "default",
             "rkey": "servernametest.default.1",
-            "serialization": "ambassador_id: servernametest\napiVersion: ambassador/v0\nconfig:\n  server_name: test-server\nkind: Module\nname: ambassador\n"
+            "serialization": "ambassador_id: servernametest\napiVersion: ambassador/v0\nconfig:\n  server_name: test-server\nkind: Module\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: servernametest\n  scope: AmbassadorTest\nname: ambassador\n"
         },
         "servernametest.default.2": {
             "_referenced_by": {},
             "ambassador_id": "servernametest",
-            "apiVersion": "ambassador/v0",
+            "apiVersion": "getambassador.io/v0",
             "kind": "Mapping",
             "location": "servernametest.default.2",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "servernametest",
+                "scope": "AmbassadorTest"
+            },
             "name": "servernametest/server-name",
             "namespace": "default",
             "prefix": "/server-name",
             "rkey": "servernametest.default.2",
-            "serialization": "ambassador_id: servernametest\napiVersion: ambassador/v0\nkind: Mapping\nname: servernametest/server-name\nprefix: /server-name\nservice: servernametest-http\n",
+            "serialization": "ambassador_id: servernametest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: servernametest\n  scope: AmbassadorTest\nname: servernametest/server-name\nprefix: /server-name\nservice: servernametest-http\n",
             "service": "servernametest-http"
         }
     },
     "mappings": {
         "servernametest/server-name": {
             "ambassador_id": "servernametest",
-            "apiVersion": "ambassador/v0",
+            "apiVersion": "getambassador.io/v0",
             "kind": "Mapping",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "servernametest",
+                "scope": "AmbassadorTest"
+            },
             "name": "servernametest/server-name",
             "namespace": "default",
             "prefix": "/server-name",
@@ -110,8 +139,13 @@
     },
     "modules": {
         "ambassador": {
-            "apiVersion": "ambassador/v0",
+            "apiVersion": "getambassador.io/v0",
             "kind": "Module",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "servernametest",
+                "scope": "AmbassadorTest"
+            },
             "name": "ambassador",
             "namespace": "default",
             "server_name": "test-server"
@@ -120,25 +154,39 @@
     "service": {
         "k8s-servernametest-admin-default": {
             "ambassador_id": "servernametest",
-            "apiVersion": "ambassador/v1",
+            "apiVersion": "getambassador.io/v2",
             "endpoints": {},
             "kind": "Service",
+            "metadata_labels": {
+                "kat-ambassador-id": "servernametest",
+                "scope": "AmbassadorTest",
+                "service": "servernametest-admin"
+            },
             "name": "servernametest-admin",
             "namespace": "default"
         },
         "k8s-servernametest-default": {
             "ambassador_id": "servernametest",
-            "apiVersion": "ambassador/v1",
+            "apiVersion": "getambassador.io/v2",
             "endpoints": {},
             "kind": "Service",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "servernametest",
+                "scope": "AmbassadorTest"
+            },
             "name": "servernametest",
             "namespace": "default"
         },
         "k8s-servernametest-http-default": {
             "ambassador_id": "servernametest",
-            "apiVersion": "ambassador/v1",
+            "apiVersion": "getambassador.io/v2",
             "endpoints": {},
             "kind": "Service",
+            "metadata_labels": {
+                "kat-ambassador-id": "servernametest",
+                "scope": "AmbassadorTest"
+            },
             "name": "servernametest-http",
             "namespace": "default"
         }

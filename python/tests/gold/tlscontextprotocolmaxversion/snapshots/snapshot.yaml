@@ -26,26 +26,16 @@
                     "annotations": {
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"data\":{\"tls.crt\":\"LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURnRENDQW1pZ0F3SUJBZ0lKQUpycUl0ekY2MTBpTUEwR0NTcUdTSWIzRFFFQkN3VUFNRlV4Q3pBSkJnTlYKQkFZVEFsVlRNUXN3Q1FZRFZRUUlEQUpOUVRFUE1BMEdBMVVFQnd3R1FtOXpkRzl1TVFzd0NRWURWUVFLREFKRQpWekViTUJrR0ExVUVBd3dTZEd4ekxXTnZiblJsZUhRdGFHOXpkQzB4TUI0WERURTRNVEV3TVRFek5UTXhPRm9YCkRUSTRNVEF5T1RFek5UTXhPRm93VlRFTE1Ba0dBMVVFQmhNQ1ZWTXhDekFKQmdOVkJBZ01BazFCTVE4d0RRWUQKVlFRSERBWkNiM04wYjI0eEN6QUpCZ05WQkFvTUFrUlhNUnN3R1FZRFZRUUREQkowYkhNdFkyOXVkR1Y0ZEMxbwpiM04wTFRFd2dnRWlNQTBHQ1NxR1NJYjNEUUVCQVFVQUE0SUJEd0F3Z2dFS0FvSUJBUUM5T2dDOHd4eUlyUHpvCkdYc0xwUEt0NzJERXgyd2p3VzhuWFcyd1dieWEzYzk2bjJuU0NLUEJuODVoYnFzaHpqNWloU1RBTURJb2c5RnYKRzZSS1dVUFhUNEtJa1R2M0NESHFYc0FwSmxKNGxTeW5ReW8yWnYwbytBZjhDTG5nWVpCK3JmenRad3llRGhWcAp3WXpCVjIzNXp6NisycWJWbUNabHZCdVhiVXFUbEVZWXZ1R2xNR3o3cFBmT1dLVXBlWW9kYkcyZmIraEZGcGVvCkN4a1VYclFzT29SNUpkSEc1aldyWnVCTzQ1NVNzcnpCTDhSbGU1VUhvMDVXY0s3YkJiaVF6MTA2cEhDSllaK3AKdmxQSWNOU1g1S2gzNEZnOTZVUHg5bFFpQTN6RFRLQmZ5V2NMUStxMWNabExjV2RnUkZjTkJpckdCLzdyYTFWVApnRUplR2tQekFnTUJBQUdqVXpCUk1CMEdBMVVkRGdRV0JCUkRWVUtYWWJsRFdNTzE3MUJuWWZhYlkzM0NFVEFmCkJnTlZIU01FR0RBV2dCUkRWVUtYWWJsRFdNTzE3MUJuWWZhYlkzM0NFVEFQQmdOVkhSTUJBZjhFQlRBREFRSC8KTUEwR0NTcUdTSWIzRFFFQkN3VUFBNElCQVFBUE8vRDRUdDUyWHJsQ0NmUzZnVUVkRU5DcnBBV05YRHJvR2M2dApTVGx3aC8rUUxRYk5hZEtlaEtiZjg5clhLaituVXF0cS9OUlpQSXNBSytXVWtHOVpQb1FPOFBRaVY0V1g1clE3CjI5dUtjSmZhQlhrZHpVVzdxTlFoRTRjOEJhc0JySWVzcmtqcFQ5OVF4SktuWFFhTitTdzdvRlBVSUFOMzhHcWEKV2wvS1BNVHRicWt3eWFjS01CbXExVkx6dldKb0g1Q2l6Skp3aG5rWHh0V0tzLzY3clROblBWTXorbWVHdHZTaQpkcVg2V1NTbUdMRkVFcjJoZ1VjQVpqazNWdVFoLzc1aFh1K1UySXRzQys1cXBsaEc3Q1hzb1huS0t5MVhsT0FFCmI4a3IyZFdXRWs2STVZNm5USnpXSWxTVGtXODl4d1hyY3RtTjlzYjlxNFNuaVZsegotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg==\",\"tls.key\":\"LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JSUV2UUlCQURBTkJna3Foa2lHOXcwQkFRRUZBQVNDQktjd2dnU2pBZ0VBQW9JQkFRQzlPZ0M4d3h5SXJQem8KR1hzTHBQS3Q3MkRFeDJ3andXOG5YVzJ3V2J5YTNjOTZuMm5TQ0tQQm44NWhicXNoemo1aWhTVEFNRElvZzlGdgpHNlJLV1VQWFQ0S0lrVHYzQ0RIcVhzQXBKbEo0bFN5blF5bzJadjBvK0FmOENMbmdZWkIrcmZ6dFp3eWVEaFZwCndZekJWMjM1eno2KzJxYlZtQ1psdkJ1WGJVcVRsRVlZdnVHbE1HejdwUGZPV0tVcGVZb2RiRzJmYitoRkZwZW8KQ3hrVVhyUXNPb1I1SmRIRzVqV3JadUJPNDU1U3NyekJMOFJsZTVVSG8wNVdjSzdiQmJpUXoxMDZwSENKWVorcAp2bFBJY05TWDVLaDM0Rmc5NlVQeDlsUWlBM3pEVEtCZnlXY0xRK3ExY1psTGNXZGdSRmNOQmlyR0IvN3JhMVZUCmdFSmVHa1B6QWdNQkFBRUNnZ0VBQmFsN3BpcE1hMGFKMXNRVWEzZkhEeTlQZlBQZXAzODlQVGROZGU1cGQxVFYKeFh5SnBSQS9IaWNTL05WYjU0b05VZE5jRXlnZUNCcFJwUHAxd3dmQ3dPbVBKVmo3SzF3aWFqbmxsQldpZUJzMgpsOWFwcDdFVE9DdWJ5WTNWU2dLQldWa0piVzBjOG9uSFdEL0RYM0duUjhkTXdGYzRrTUdadkllUlo4bU1acmdHCjZPdDNKOHI2eVZsZWI2OGF1WmtneXMwR2VGc3pNdVRubHJCOEw5djI1UUtjVGtESjIvRWx1Y1p5aER0eGF0OEIKTzZOUnNubmNyOHhwUVdPci9sV3M5VVFuZEdCdHFzbXMrdGNUN1ZUNU9UanQ4WHY5NVhNSHB5Z29pTHk3czhvYwpJMGprNDJabzRKZW5JT3c2Rm0weUFEZ0E3eWlXcks0bEkzWGhqaTVSb1FLQmdRRGRqaWNkTUpYVUZWc28rNTJkCkUwT2EwcEpVMFNSaC9JQmdvRzdNakhrVWxiaXlpR1pNanA5MEo5VHFaL1ErM1pWZVdqMmxPSWF0OG5nUzB6MDAKVzA3T1ZxYXprMVNYaFZlY2tGNWFEcm5PRDNhU2VWMSthV3JUdDFXRWdqOVFxYnJZYVA5emd4UkpkRzV3WENCUApGNDNFeXE5ZEhXOWF6SSt3UHlJQ0JqNnZBd0tCZ1FEYXBTelhPR2ViMi9SMWhlWXdWV240czNGZEtYVjgzemtTCnFSWDd6d1pLdkk5OGMybDU1Y1ZNUzBoTGM0bTVPMXZCaUd5SG80eTB2SVAvR0k0Rzl4T1FhMXdpVnNmUVBiSU4KLzJPSDFnNXJLSFdCWVJUaHZGcERqdHJRU2xyRHVjWUNSRExCd1hUcDFrbVBkL09mY2FybG42MjZEamthZllieAp3dWUydlhCTVVRS0JnQm4vTmlPOHNiZ0RFWUZMbFFEN1k3RmxCL3FmMTg4UG05aTZ1b1dSN2hzMlBrZmtyV3hLClIvZVBQUEtNWkNLRVNhU2FuaVVtN3RhMlh0U0dxT1hkMk85cFI0Skd4V1JLSnkrZDJSUmtLZlU5NTBIa3I4M0gKZk50KzVhLzR3SWtzZ1ZvblorSWIvV05wSUJSYkd3ZHMwaHZIVkxCdVpjU1h3RHlFQysrRTRCSVZBb0dCQUoxUQp6eXlqWnRqYnI4NkhZeEpQd29teEF0WVhLSE9LWVJRdUdLVXZWY1djV2xrZTZUdE51V0dsb1FTNHd0VkdBa1VECmxhTWFaL2o2MHJaT3dwSDhZRlUvQ2ZHakl1MlFGbmEvMUtzOXR1NGZGRHpjenh1RVhDWFR1Vmk0eHdtZ3R2bVcKZkRhd3JTQTZrSDdydlp4eE9wY3hCdHloc3pCK05RUHFTckpQSjJlaEFvR0FkdFJKam9vU0lpYURVU25lZUcyZgpUTml1T01uazJkeFV3RVF2S1E4eWNuUnpyN0QwaEtZVWIycThHKzE2bThQUjNCcFMzZDFLbkpMVnI3TUhaWHpSCitzZHNaWGtTMWVEcEZhV0RFREFEWWI0ckRCb2RBdk8xYm03ZXdTMzhSbk1UaTlhdFZzNVNTODNpZG5HbFZiSmsKYkZKWG0rWWxJNHFkaXowTFdjWGJyREE9Ci0tLS0tRU5EIFBSSVZBVEUgS0VZLS0tLS0K\"},\"kind\":\"Secret\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"tlscontextprotocolmaxversion\",\"scope\":\"AmbassadorTest\"},\"name\":\"secret.max-version\",\"namespace\":\"default\"},\"type\":\"kubernetes.io/tls\"}\n"
                     },
-<<<<<<< Updated upstream
-                    "creationTimestamp": "2019-12-18T23:57:36Z",
-=======
-                    "creationTimestamp": "2019-12-18T20:55:30Z",
->>>>>>> Stashed changes
+                    "creationTimestamp": "2020-01-09T12:55:59Z",
                     "labels": {
                         "kat-ambassador-id": "tlscontextprotocolmaxversion",
                         "scope": "AmbassadorTest"
                     },
                     "name": "secret.max-version",
                     "namespace": "default",
-<<<<<<< Updated upstream
-                    "resourceVersion": "20527",
+                    "resourceVersion": "15758",
                     "selfLink": "/api/v1/namespaces/default/secrets/secret.max-version",
-                    "uid": "2a7fa5e5-21f2-11ea-82d6-128842395df1"
-=======
-                    "resourceVersion": "97075",
-                    "selfLink": "/api/v1/namespaces/default/secrets/secret.max-version",
-                    "uid": "ba3b27a6-21d8-11ea-9921-0a06efab3df7"
->>>>>>> Stashed changes
+                    "uid": "621baaf0-32df-11ea-906a-16ae7cdef087"
                 },
                 "type": "kubernetes.io/tls"
             }
@@ -56,55 +46,74 @@
                 "kind": "Service",
                 "metadata": {
                     "annotations": {
-                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"tlscontextprotocolmaxversion\",\"scope\":\"AmbassadorTest\"},\"name\":\"tlscontextprotocolmaxversion-http\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8088},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8451}],\"selector\":{\"backend\":\"superpod-default\"}}}\n"
+                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"tlscontextprotocolmaxversion\",\"scope\":\"AmbassadorTest\",\"service\":\"tlscontextprotocolmaxversion-admin\"},\"name\":\"tlscontextprotocolmaxversion-admin\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"tlscontextprotocolmaxversion-admin\",\"port\":8877,\"targetPort\":8877}],\"selector\":{\"service\":\"tlscontextprotocolmaxversion\"},\"type\":\"NodePort\"}}\n"
                     },
-<<<<<<< Updated upstream
-                    "creationTimestamp": "2019-12-18T23:57:36Z",
-=======
-                    "creationTimestamp": "2019-12-18T20:55:30Z",
->>>>>>> Stashed changes
+                    "creationTimestamp": "2020-01-09T12:55:58Z",
+                    "labels": {
+                        "kat-ambassador-id": "tlscontextprotocolmaxversion",
+                        "scope": "AmbassadorTest",
+                        "service": "tlscontextprotocolmaxversion-admin"
+                    },
+                    "name": "tlscontextprotocolmaxversion-admin",
+                    "namespace": "default",
+                    "resourceVersion": "15743",
+                    "selfLink": "/api/v1/namespaces/default/services/tlscontextprotocolmaxversion-admin",
+                    "uid": "61a3c530-32df-11ea-906a-16ae7cdef087"
+                },
+                "spec": {
+                    "clusterIP": "10.99.86.58",
+                    "externalTrafficPolicy": "Cluster",
+                    "ports": [
+                        {
+                            "name": "tlscontextprotocolmaxversion-admin",
+                            "nodePort": 32517,
+                            "port": 8877,
+                            "protocol": "TCP",
+                            "targetPort": 8877
+                        }
+                    ],
+                    "selector": {
+                        "service": "tlscontextprotocolmaxversion"
+                    },
+                    "sessionAffinity": "None",
+                    "type": "NodePort"
+                },
+                "status": {
+                    "loadBalancer": {}
+                }
+            },
+            {
+                "apiVersion": "v1",
+                "kind": "Service",
+                "metadata": {
+                    "annotations": {
+                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"tlscontextprotocolmaxversion\",\"scope\":\"AmbassadorTest\"},\"name\":\"tlscontextprotocolmaxversion-http\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8127},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8490}],\"selector\":{\"backend\":\"superpod-default\"}}}\n"
+                    },
+                    "creationTimestamp": "2020-01-09T12:55:59Z",
                     "labels": {
                         "kat-ambassador-id": "tlscontextprotocolmaxversion",
                         "scope": "AmbassadorTest"
                     },
                     "name": "tlscontextprotocolmaxversion-http",
                     "namespace": "default",
-<<<<<<< Updated upstream
-                    "resourceVersion": "20529",
+                    "resourceVersion": "15764",
                     "selfLink": "/api/v1/namespaces/default/services/tlscontextprotocolmaxversion-http",
-                    "uid": "2a8c69dc-21f2-11ea-82d6-128842395df1"
+                    "uid": "626dde22-32df-11ea-906a-16ae7cdef087"
                 },
                 "spec": {
-                    "clusterIP": "10.105.206.28",
+                    "clusterIP": "10.97.48.121",
                     "ports": [
                         {
                             "name": "http",
-=======
-                    "resourceVersion": "97065",
-                    "selfLink": "/api/v1/namespaces/default/services/tlscontextprotocolmaxversion",
-                    "uid": "ba0c4004-21d8-11ea-9921-0a06efab3df7"
-                },
-                "spec": {
-                    "clusterIP": "10.99.161.42",
-                    "externalTrafficPolicy": "Cluster",
-                    "ports": [
-                        {
-                            "name": "http",
-                            "nodePort": 32214,
->>>>>>> Stashed changes
                             "port": 80,
                             "protocol": "TCP",
-                            "targetPort": 8088
+                            "targetPort": 8127
                         },
                         {
                             "name": "https",
-<<<<<<< Updated upstream
-=======
-                            "nodePort": 30425,
->>>>>>> Stashed changes
                             "port": 443,
                             "protocol": "TCP",
-                            "targetPort": 8451
+                            "targetPort": 8490
                         }
                     ],
                     "selector": {
@@ -125,11 +134,7 @@
                         "getambassador.io/config": "---\napiVersion: ambassador/v0\nkind: Module\nname: ambassador\nconfig:\n  defaults:\n    tls_secret_namespacing: False\nambassador_id: tlscontextprotocolmaxversion\n---\napiVersion: ambassador/v0\nkind: Mapping\nname: TLSContextProtocolMaxVersion-same-prefix-1\nprefix: /tls-context-same/\nservice: http://tlscontextprotocolmaxversion-http\nhost: tls-context-host-1\nambassador_id: tlscontextprotocolmaxversion\n---\napiVersion: ambassador/v1\nkind: TLSContext\nname: TLSContextProtocolMaxVersion-same-context-1\nhosts:\n- tls-context-host-1\nsecret: secret.max-version\nmin_tls_version: v1.1\nmax_tls_version: v1.2\nambassador_id: tlscontextprotocolmaxversion\n",
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{\"getambassador.io/config\":\"---\\napiVersion: ambassador/v0\\nkind: Module\\nname: ambassador\\nconfig:\\n  defaults:\\n    tls_secret_namespacing: False\\nambassador_id: tlscontextprotocolmaxversion\\n---\\napiVersion: ambassador/v0\\nkind: Mapping\\nname: TLSContextProtocolMaxVersion-same-prefix-1\\nprefix: /tls-context-same/\\nservice: http://tlscontextprotocolmaxversion-http\\nhost: tls-context-host-1\\nambassador_id: tlscontextprotocolmaxversion\\n---\\napiVersion: ambassador/v1\\nkind: TLSContext\\nname: TLSContextProtocolMaxVersion-same-context-1\\nhosts:\\n- tls-context-host-1\\nsecret: secret.max-version\\nmin_tls_version: v1.1\\nmax_tls_version: v1.2\\nambassador_id: tlscontextprotocolmaxversion\\n\"},\"labels\":{\"app.kubernetes.io/component\":\"ambassador-service\",\"kat-ambassador-id\":\"tlscontextprotocolmaxversion\",\"scope\":\"AmbassadorTest\"},\"name\":\"tlscontextprotocolmaxversion\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8080},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8443}],\"selector\":{\"service\":\"tlscontextprotocolmaxversion\"},\"type\":\"NodePort\"}}\n"
                     },
-<<<<<<< Updated upstream
-                    "creationTimestamp": "2019-12-18T23:57:36Z",
-=======
-                    "creationTimestamp": "2019-12-18T20:55:30Z",
->>>>>>> Stashed changes
+                    "creationTimestamp": "2020-01-09T12:55:58Z",
                     "labels": {
                         "app.kubernetes.io/component": "ambassador-service",
                         "kat-ambassador-id": "tlscontextprotocolmaxversion",
@@ -137,110 +142,27 @@
                     },
                     "name": "tlscontextprotocolmaxversion",
                     "namespace": "default",
-<<<<<<< Updated upstream
-                    "resourceVersion": "20513",
+                    "resourceVersion": "15735",
                     "selfLink": "/api/v1/namespaces/default/services/tlscontextprotocolmaxversion",
-                    "uid": "2a4f28b4-21f2-11ea-82d6-128842395df1"
+                    "uid": "6177601e-32df-11ea-906a-16ae7cdef087"
                 },
                 "spec": {
-                    "clusterIP": "10.110.251.168",
+                    "clusterIP": "10.109.185.253",
                     "externalTrafficPolicy": "Cluster",
                     "ports": [
                         {
                             "name": "http",
-                            "nodePort": 31666,
+                            "nodePort": 31877,
                             "port": 80,
-=======
-                    "resourceVersion": "97069",
-                    "selfLink": "/api/v1/namespaces/default/services/tlscontextprotocolmaxversion-admin",
-                    "uid": "ba29b88c-21d8-11ea-9921-0a06efab3df7"
-                },
-                "spec": {
-                    "clusterIP": "10.110.250.245",
-                    "externalTrafficPolicy": "Cluster",
-                    "ports": [
-                        {
-                            "name": "tlscontextprotocolmaxversion-admin",
-                            "nodePort": 32666,
-                            "port": 8877,
->>>>>>> Stashed changes
                             "protocol": "TCP",
                             "targetPort": 8080
                         },
                         {
                             "name": "https",
-                            "nodePort": 31394,
+                            "nodePort": 30334,
                             "port": 443,
                             "protocol": "TCP",
                             "targetPort": 8443
-                        }
-                    ],
-                    "selector": {
-                        "service": "tlscontextprotocolmaxversion"
-                    },
-                    "sessionAffinity": "None",
-                    "type": "NodePort"
-                },
-                "status": {
-                    "loadBalancer": {}
-                }
-            },
-            {
-                "apiVersion": "v1",
-                "kind": "Service",
-                "metadata": {
-                    "annotations": {
-<<<<<<< Updated upstream
-                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"tlscontextprotocolmaxversion\",\"scope\":\"AmbassadorTest\",\"service\":\"tlscontextprotocolmaxversion-admin\"},\"name\":\"tlscontextprotocolmaxversion-admin\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"tlscontextprotocolmaxversion-admin\",\"port\":8877,\"targetPort\":8877}],\"selector\":{\"service\":\"tlscontextprotocolmaxversion\"},\"type\":\"NodePort\"}}\n"
-                    },
-                    "creationTimestamp": "2019-12-18T23:57:36Z",
-=======
-                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"tlscontextprotocolmaxversion\",\"scope\":\"AmbassadorTest\"},\"name\":\"tlscontextprotocolmaxversion-http\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8088},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8451}],\"selector\":{\"backend\":\"superpod-default\"}}}\n"
-                    },
-                    "creationTimestamp": "2019-12-18T20:55:31Z",
->>>>>>> Stashed changes
-                    "labels": {
-                        "kat-ambassador-id": "tlscontextprotocolmaxversion",
-                        "scope": "AmbassadorTest",
-                        "service": "tlscontextprotocolmaxversion-admin"
-                    },
-                    "name": "tlscontextprotocolmaxversion-admin",
-                    "namespace": "default",
-<<<<<<< Updated upstream
-                    "resourceVersion": "20520",
-                    "selfLink": "/api/v1/namespaces/default/services/tlscontextprotocolmaxversion-admin",
-                    "uid": "2a66cb2e-21f2-11ea-82d6-128842395df1"
-                },
-                "spec": {
-                    "clusterIP": "10.103.22.182",
-                    "externalTrafficPolicy": "Cluster",
-                    "ports": [
-                        {
-                            "name": "tlscontextprotocolmaxversion-admin",
-                            "nodePort": 32274,
-                            "port": 8877,
-                            "protocol": "TCP",
-                            "targetPort": 8877
-=======
-                    "resourceVersion": "97088",
-                    "selfLink": "/api/v1/namespaces/default/services/tlscontextprotocolmaxversion-http",
-                    "uid": "ba6b61db-21d8-11ea-9921-0a06efab3df7"
-                },
-                "spec": {
-                    "clusterIP": "10.110.64.134",
-                    "ports": [
-                        {
-                            "name": "http",
-                            "port": 80,
-                            "protocol": "TCP",
-                            "targetPort": 8088
-                        },
-                        {
-                            "name": "https",
-                            "port": 443,
-                            "protocol": "TCP",
-                            "targetPort": 8451
->>>>>>> Stashed changes
                         }
                     ],
                     "selector": {

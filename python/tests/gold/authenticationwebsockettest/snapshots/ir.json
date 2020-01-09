@@ -38,6 +38,7 @@
         },
         "server_name": "envoy",
         "service_port": 8080,
+        "use_ambassador_namespace_for_service_resolution": false,
         "use_proxy_proto": false,
         "use_remote_address": true,
         "x_forwarded_proto_redirect": false,
@@ -48,6 +49,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "127.0.0.1",
+            "_namespace": "default",
             "_port": 8877,
             "_referenced_by": [
                 "--internal--"
@@ -81,6 +83,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "authenticationwebsockettest-http-auth",
+            "_namespace": "default",
             "_port": 80,
             "_referenced_by": [
                 "authenticationwebsockettest.default.1"
@@ -99,7 +102,7 @@
             "service": "authenticationwebsockettest-http-auth",
             "targets": [
                 {
-                    "ip": "authenticationwebsockettest-http-auth",
+                    "ip": "authenticationwebsockettest-http-auth.default",
                     "port": 80,
                     "target_kind": "DNSname"
                 }
@@ -113,6 +116,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "echo.websocket.org",
+            "_namespace": "default",
             "_port": 80,
             "_referenced_by": [
                 "authenticationwebsockettest.default.2"
@@ -159,11 +163,12 @@
             "allowed_request_headers": [
                 "requested-status"
             ],
-            "api_version": "ambassador/v1",
+            "api_version": "getambassador.io/v1",
             "cluster": {
                 "_active": true,
                 "_errored": false,
                 "_hostname": "authenticationwebsockettest-http-auth",
+                "_namespace": "default",
                 "_port": 80,
                 "_referenced_by": [
                     "authenticationwebsockettest.default.1"
@@ -182,7 +187,7 @@
                 "service": "authenticationwebsockettest-http-auth",
                 "targets": [
                     {
-                        "ip": "authenticationwebsockettest-http-auth",
+                        "ip": "authenticationwebsockettest-http-auth.default",
                         "port": 80,
                         "target_kind": "DNSname"
                     }
@@ -262,6 +267,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "echo.websocket.org",
+                        "_namespace": "default",
                         "_port": 80,
                         "_referenced_by": [
                             "authenticationwebsockettest.default.2"
@@ -297,6 +303,11 @@
                     "host_rewrite": "echo.websocket.org",
                     "kind": "Mapping",
                     "location": "authenticationwebsockettest.default.2",
+                    "metadata_labels": {
+                        "app.kubernetes.io/component": "ambassador-service",
+                        "kat-ambassador-id": "authenticationwebsockettest",
+                        "scope": "AmbassadorTest"
+                    },
                     "name": "AuthenticationWebsocketTest",
                     "namespace": "default",
                     "precedence": 0,
@@ -310,18 +321,23 @@
                         "/AuthenticationWebsocketTest/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: authenticationwebsockettest\napiVersion: ambassador/v0\nhost_rewrite: echo.websocket.org\nkind: Mapping\nname: AuthenticationWebsocketTest\nprefix: /AuthenticationWebsocketTest/\nservice: http://echo.websocket.org\nuse_websocket: true\n",
+                    "serialization": "ambassador_id: authenticationwebsockettest\napiVersion: ambassador/v0\nhost_rewrite: echo.websocket.org\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: authenticationwebsockettest\n  scope: AmbassadorTest\nname: AuthenticationWebsocketTest\nprefix: /AuthenticationWebsocketTest/\nservice: http://echo.websocket.org\nuse_websocket: true\n",
                     "service": "http://echo.websocket.org",
                     "use_websocket": true,
                     "weight": 100
                 }
             ],
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "authenticationwebsockettest",
+                "scope": "AmbassadorTest"
+            },
             "name": "GROUP: AuthenticationWebsocketTest",
             "namespace": "default",
             "precedence": 0,
             "prefix": "/AuthenticationWebsocketTest/",
             "rewrite": "/",
-            "serialization": "ambassador_id: authenticationwebsockettest\napiVersion: ambassador/v0\nhost_rewrite: echo.websocket.org\nkind: Mapping\nname: AuthenticationWebsocketTest\nprefix: /AuthenticationWebsocketTest/\nservice: http://echo.websocket.org\nuse_websocket: true\n",
+            "serialization": "ambassador_id: authenticationwebsockettest\napiVersion: ambassador/v0\nhost_rewrite: echo.websocket.org\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: authenticationwebsockettest\n  scope: AmbassadorTest\nname: AuthenticationWebsocketTest\nprefix: /AuthenticationWebsocketTest/\nservice: http://echo.websocket.org\nuse_websocket: true\n",
             "use_websocket": true
         },
         {
@@ -355,6 +371,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "127.0.0.1",
+                        "_namespace": "default",
                         "_port": 8877,
                         "_referenced_by": [
                             "--internal--"
@@ -386,7 +403,7 @@
                     },
                     "group_id": "b4db12f5b638f1750062dd4220911c4f6f44fc57",
                     "headers": [],
-                    "kind": "IRMapping",
+                    "kind": "IRHTTPMapping",
                     "location": "--internal--",
                     "name": "internal_readiness_probe_mapping",
                     "namespace": "default",
@@ -444,6 +461,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "127.0.0.1",
+                        "_namespace": "default",
                         "_port": 8877,
                         "_referenced_by": [
                             "--internal--"
@@ -475,7 +493,7 @@
                     },
                     "group_id": "7df546235997704c909d473af2cbcb5e606d20de",
                     "headers": [],
-                    "kind": "IRMapping",
+                    "kind": "IRHTTPMapping",
                     "location": "--internal--",
                     "name": "internal_liveness_probe_mapping",
                     "namespace": "default",
@@ -533,6 +551,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "127.0.0.1",
+                        "_namespace": "default",
                         "_port": 8877,
                         "_referenced_by": [
                             "--internal--"
@@ -564,7 +583,7 @@
                     },
                     "group_id": "8de18501d2044fe30db225289b318d5fda913b64",
                     "headers": [],
-                    "kind": "IRMapping",
+                    "kind": "IRHTTPMapping",
                     "location": "--internal--",
                     "name": "internal_diagnostics_probe_mapping",
                     "namespace": "default",
@@ -593,6 +612,7 @@
         }
     ],
     "grpc_services": {},
+    "hosts": [],
     "identity": {
         "ambassador_id": "authenticationwebsockettest",
         "ambassador_namespace": "default",
@@ -604,55 +624,69 @@
             "_active": true,
             "_errored": false,
             "_rkey": "ir.listener",
+            "hostname": "*",
+            "insecure_action": "Route",
             "kind": "IRListener",
             "location": "--internal--",
             "name": "ir.listener",
             "namespace": "default",
             "redirect_listener": false,
             "require_tls": false,
-            "server_name": "envoy",
+            "secure_action": "Route",
             "service_port": 8080,
-            "use_proxy_proto": false,
-            "use_remote_address": true,
-            "xff_num_trusted_hops": 0
+            "use_proxy_proto": false
         }
     ],
     "services": {
         "k8s-authenticationwebsockettest-admin-default": {
             "_referenced_by": {},
             "ambassador_id": "authenticationwebsockettest",
-            "apiVersion": "ambassador/v1",
+            "apiVersion": "getambassador.io/v2",
             "endpoints": {},
             "kind": "Service",
             "location": "k8s-authenticationwebsockettest-admin-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "authenticationwebsockettest",
+                "scope": "AmbassadorTest",
+                "service": "authenticationwebsockettest-admin"
+            },
             "name": "authenticationwebsockettest-admin",
             "namespace": "default",
             "rkey": "k8s-authenticationwebsockettest-admin-default",
-            "serialization": "ambassador_id: authenticationwebsockettest\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: authenticationwebsockettest-admin\nnamespace: default\n"
+            "serialization": "ambassador_id: authenticationwebsockettest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: authenticationwebsockettest\n  scope: AmbassadorTest\n  service: authenticationwebsockettest-admin\nname: authenticationwebsockettest-admin\nnamespace: default\n"
         },
         "k8s-authenticationwebsockettest-default": {
             "_referenced_by": {},
             "ambassador_id": "authenticationwebsockettest",
-            "apiVersion": "ambassador/v1",
+            "apiVersion": "getambassador.io/v2",
             "endpoints": {},
             "kind": "Service",
             "location": "k8s-authenticationwebsockettest-default",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "authenticationwebsockettest",
+                "scope": "AmbassadorTest"
+            },
             "name": "authenticationwebsockettest",
             "namespace": "default",
             "rkey": "k8s-authenticationwebsockettest-default",
-            "serialization": "ambassador_id: authenticationwebsockettest\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: authenticationwebsockettest\nnamespace: default\n"
+            "serialization": "ambassador_id: authenticationwebsockettest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: authenticationwebsockettest\n  scope: AmbassadorTest\nname: authenticationwebsockettest\nnamespace: default\n"
         },
         "k8s-authenticationwebsockettest-http-auth-default": {
             "_referenced_by": {},
             "ambassador_id": "authenticationwebsockettest",
-            "apiVersion": "ambassador/v1",
+            "apiVersion": "getambassador.io/v2",
             "endpoints": {},
             "kind": "Service",
             "location": "k8s-authenticationwebsockettest-http-auth-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "authenticationwebsockettest",
+                "scope": "AmbassadorTest"
+            },
             "name": "authenticationwebsockettest-http-auth",
             "namespace": "default",
             "rkey": "k8s-authenticationwebsockettest-http-auth-default",
-            "serialization": "ambassador_id: authenticationwebsockettest\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: authenticationwebsockettest-http-auth\nnamespace: default\n"
+            "serialization": "ambassador_id: authenticationwebsockettest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: authenticationwebsockettest\n  scope: AmbassadorTest\nname: authenticationwebsockettest-http-auth\nnamespace: default\n"
         }
     },
     "tls_contexts": []

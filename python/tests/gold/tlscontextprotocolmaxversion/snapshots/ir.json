@@ -44,6 +44,7 @@
         },
         "server_name": "envoy",
         "service_port": 8443,
+        "use_ambassador_namespace_for_service_resolution": false,
         "use_proxy_proto": false,
         "use_remote_address": true,
         "x_forwarded_proto_redirect": false,
@@ -54,6 +55,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "127.0.0.1",
+            "_namespace": "default",
             "_port": 8877,
             "_referenced_by": [
                 "tlscontextprotocolmaxversion.default.1"
@@ -87,6 +89,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "tlscontextprotocolmaxversion-http",
+            "_namespace": "default",
             "_port": 80,
             "_referenced_by": [
                 "tlscontextprotocolmaxversion.default.2"
@@ -106,7 +109,7 @@
             "service": "tlscontextprotocolmaxversion-http",
             "targets": [
                 {
-                    "ip": "tlscontextprotocolmaxversion-http",
+                    "ip": "tlscontextprotocolmaxversion-http.default",
                     "port": 80,
                     "target_kind": "DNSname"
                 }
@@ -172,6 +175,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "127.0.0.1",
+                        "_namespace": "default",
                         "_port": 8877,
                         "_referenced_by": [
                             "tlscontextprotocolmaxversion.default.1"
@@ -261,6 +265,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "127.0.0.1",
+                        "_namespace": "default",
                         "_port": 8877,
                         "_referenced_by": [
                             "tlscontextprotocolmaxversion.default.1"
@@ -354,6 +359,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "tlscontextprotocolmaxversion-http",
+                        "_namespace": "default",
                         "_port": 80,
                         "_referenced_by": [
                             "tlscontextprotocolmaxversion.default.2"
@@ -373,7 +379,7 @@
                         "service": "tlscontextprotocolmaxversion-http",
                         "targets": [
                             {
-                                "ip": "tlscontextprotocolmaxversion-http",
+                                "ip": "tlscontextprotocolmaxversion-http.default",
                                 "port": 80,
                                 "target_kind": "DNSname"
                             }
@@ -519,6 +525,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "127.0.0.1",
+                        "_namespace": "default",
                         "_port": 8877,
                         "_referenced_by": [
                             "tlscontextprotocolmaxversion.default.1"
@@ -590,48 +597,46 @@
         {
             "_active": true,
             "_errored": false,
-            "_rkey": "tlscontextprotocolmaxversion.default.3",
+            "_rkey": "ir.listener",
+            "context": {
+                "_active": true,
+                "_errored": false,
+                "_referenced_by": [
+                    "tlscontextprotocolmaxversion.default.3"
+                ],
+                "_rkey": "tlscontextprotocolmaxversion.default.3",
+                "hosts": [
+                    "tls-context-host-1"
+                ],
+                "is_fallback": false,
+                "kind": "TLSContext",
+                "location": "tlscontextprotocolmaxversion.default.3",
+                "max_tls_version": "v1.2",
+                "metadata_labels": {
+                    "app.kubernetes.io/component": "ambassador-service",
+                    "kat-ambassador-id": "tlscontextprotocolmaxversion",
+                    "scope": "AmbassadorTest"
+                },
+                "min_tls_version": "v1.1",
+                "name": "TLSContextProtocolMaxVersion-same-context-1",
+                "namespace": "default",
+                "secret_info": {
+                    "cert_chain_file": "/tmp/ambassador/snapshots/default/secrets-decoded/secret.max-version/6B4919697C5D70BB8E4A73A59DDF51A53AE24264.crt",
+                    "private_key_file": "/tmp/ambassador/snapshots/default/secrets-decoded/secret.max-version/6B4919697C5D70BB8E4A73A59DDF51A53AE24264.key",
+                    "secret": "secret.max-version"
+                }
+            },
+            "hostname": "tls-context-host-1",
+            "insecure_action": "Reject",
             "kind": "IRListener",
             "location": "tlscontextprotocolmaxversion.default.3",
             "name": "ir.listener",
             "namespace": "default",
             "redirect_listener": false,
             "require_tls": false,
-            "server_name": "envoy",
+            "secure_action": "Route",
             "service_port": 8443,
-            "tls_contexts": {
-                "TLSContextProtocolMaxVersion-same-context-1": {
-                    "_active": true,
-                    "_errored": false,
-                    "_referenced_by": [
-                        "tlscontextprotocolmaxversion.default.3"
-                    ],
-                    "_rkey": "tlscontextprotocolmaxversion.default.3",
-                    "hosts": [
-                        "tls-context-host-1"
-                    ],
-                    "is_fallback": false,
-                    "kind": "TLSContext",
-                    "location": "tlscontextprotocolmaxversion.default.3",
-                    "max_tls_version": "v1.2",
-                    "metadata_labels": {
-                        "app.kubernetes.io/component": "ambassador-service",
-                        "kat-ambassador-id": "tlscontextprotocolmaxversion",
-                        "scope": "AmbassadorTest"
-                    },
-                    "min_tls_version": "v1.1",
-                    "name": "TLSContextProtocolMaxVersion-same-context-1",
-                    "namespace": "default",
-                    "secret_info": {
-                        "cert_chain_file": "/tmp/ambassador/snapshots/default/secrets-decoded/secret.max-version/6B4919697C5D70BB8E4A73A59DDF51A53AE24264.crt",
-                        "private_key_file": "/tmp/ambassador/snapshots/default/secrets-decoded/secret.max-version/6B4919697C5D70BB8E4A73A59DDF51A53AE24264.key",
-                        "secret": "secret.max-version"
-                    }
-                }
-            },
-            "use_proxy_proto": false,
-            "use_remote_address": true,
-            "xff_num_trusted_hops": 0
+            "use_proxy_proto": false
         }
     ],
     "services": {

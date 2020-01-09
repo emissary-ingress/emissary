@@ -45,6 +45,7 @@
         },
         "server_name": "envoy",
         "service_port": 8080,
+        "use_ambassador_namespace_for_service_resolution": false,
         "use_proxy_proto": false,
         "use_remote_address": true,
         "x_forwarded_proto_redirect": false,
@@ -55,6 +56,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "127.0.0.1",
+            "_namespace": "default",
             "_port": 8877,
             "_referenced_by": [
                 "retrypolicytest.default.3"
@@ -88,6 +90,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "retrypolicytest-http",
+            "_namespace": "default",
             "_port": 80,
             "_referenced_by": [
                 "retrypolicytest.default.1",
@@ -108,7 +111,7 @@
             "service": "retrypolicytest-http",
             "targets": [
                 {
-                    "ip": "retrypolicytest-http",
+                    "ip": "retrypolicytest-http.default",
                     "port": 80,
                     "target_kind": "DNSname"
                 }
@@ -174,6 +177,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "127.0.0.1",
+                        "_namespace": "default",
                         "_port": 8877,
                         "_referenced_by": [
                             "retrypolicytest.default.3"
@@ -205,7 +209,7 @@
                     },
                     "group_id": "b4db12f5b638f1750062dd4220911c4f6f44fc57",
                     "headers": [],
-                    "kind": "IRMapping",
+                    "kind": "IRHTTPMapping",
                     "location": "retrypolicytest.default.3",
                     "name": "internal_readiness_probe_mapping",
                     "namespace": "default",
@@ -263,6 +267,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "127.0.0.1",
+                        "_namespace": "default",
                         "_port": 8877,
                         "_referenced_by": [
                             "retrypolicytest.default.3"
@@ -294,7 +299,7 @@
                     },
                     "group_id": "7df546235997704c909d473af2cbcb5e606d20de",
                     "headers": [],
-                    "kind": "IRMapping",
+                    "kind": "IRHTTPMapping",
                     "location": "retrypolicytest.default.3",
                     "name": "internal_liveness_probe_mapping",
                     "namespace": "default",
@@ -349,6 +354,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "retrypolicytest-http",
+                        "_namespace": "default",
                         "_port": 80,
                         "_referenced_by": [
                             "retrypolicytest.default.1",
@@ -369,7 +375,7 @@
                         "service": "retrypolicytest-http",
                         "targets": [
                             {
-                                "ip": "retrypolicytest-http",
+                                "ip": "retrypolicytest-http.default",
                                 "port": 80,
                                 "target_kind": "DNSname"
                             }
@@ -383,6 +389,11 @@
                     "headers": [],
                     "kind": "Mapping",
                     "location": "retrypolicytest.default.1",
+                    "metadata_labels": {
+                        "app.kubernetes.io/component": "ambassador-service",
+                        "kat-ambassador-id": "retrypolicytest",
+                        "scope": "AmbassadorTest"
+                    },
                     "name": "RetryPolicyTest-normal",
                     "namespace": "default",
                     "precedence": 0,
@@ -396,18 +407,23 @@
                         "/RetryPolicyTest-normal/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: retrypolicytest\napiVersion: ambassador/v0\nkind: Mapping\nname: RetryPolicyTest-normal\nprefix: /RetryPolicyTest-normal/\nservice: retrypolicytest-http\ntimeout_ms: 3000\n",
+                    "serialization": "ambassador_id: retrypolicytest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: retrypolicytest\n  scope: AmbassadorTest\nname: RetryPolicyTest-normal\nprefix: /RetryPolicyTest-normal/\nservice: retrypolicytest-http\ntimeout_ms: 3000\n",
                     "service": "retrypolicytest-http",
                     "timeout_ms": 3000,
                     "weight": 100
                 }
             ],
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "retrypolicytest",
+                "scope": "AmbassadorTest"
+            },
             "name": "GROUP: RetryPolicyTest-normal",
             "namespace": "default",
             "precedence": 0,
             "prefix": "/RetryPolicyTest-normal/",
             "rewrite": "/",
-            "serialization": "ambassador_id: retrypolicytest\napiVersion: ambassador/v0\nkind: Mapping\nname: RetryPolicyTest-normal\nprefix: /RetryPolicyTest-normal/\nservice: retrypolicytest-http\ntimeout_ms: 3000\n",
+            "serialization": "ambassador_id: retrypolicytest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: retrypolicytest\n  scope: AmbassadorTest\nname: RetryPolicyTest-normal\nprefix: /RetryPolicyTest-normal/\nservice: retrypolicytest-http\ntimeout_ms: 3000\n",
             "timeout_ms": 3000
         },
         {
@@ -438,6 +454,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "retrypolicytest-http",
+                        "_namespace": "default",
                         "_port": 80,
                         "_referenced_by": [
                             "retrypolicytest.default.1",
@@ -458,7 +475,7 @@
                         "service": "retrypolicytest-http",
                         "targets": [
                             {
-                                "ip": "retrypolicytest-http",
+                                "ip": "retrypolicytest-http.default",
                                 "port": 80,
                                 "target_kind": "DNSname"
                             }
@@ -472,6 +489,11 @@
                     "headers": [],
                     "kind": "Mapping",
                     "location": "retrypolicytest.default.2",
+                    "metadata_labels": {
+                        "app.kubernetes.io/component": "ambassador-service",
+                        "kat-ambassador-id": "retrypolicytest",
+                        "scope": "AmbassadorTest"
+                    },
                     "name": "RetryPolicyTest-target",
                     "namespace": "default",
                     "precedence": 0,
@@ -489,12 +511,17 @@
                         "/RetryPolicyTest-retry/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: retrypolicytest\napiVersion: ambassador/v1\nkind: Mapping\nname: RetryPolicyTest-target\nprefix: /RetryPolicyTest-retry/\nretry_policy:\n  num_retries: 4\n  retry_on: 5xx\nservice: retrypolicytest-http\ntimeout_ms: 3000\n",
+                    "serialization": "ambassador_id: retrypolicytest\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: retrypolicytest\n  scope: AmbassadorTest\nname: RetryPolicyTest-target\nprefix: /RetryPolicyTest-retry/\nretry_policy:\n  num_retries: 4\n  retry_on: 5xx\nservice: retrypolicytest-http\ntimeout_ms: 3000\n",
                     "service": "retrypolicytest-http",
                     "timeout_ms": 3000,
                     "weight": 100
                 }
             ],
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "retrypolicytest",
+                "scope": "AmbassadorTest"
+            },
             "name": "GROUP: RetryPolicyTest-target",
             "namespace": "default",
             "precedence": 0,
@@ -504,7 +531,7 @@
                 "retry_on": "5xx"
             },
             "rewrite": "/",
-            "serialization": "ambassador_id: retrypolicytest\napiVersion: ambassador/v1\nkind: Mapping\nname: RetryPolicyTest-target\nprefix: /RetryPolicyTest-retry/\nretry_policy:\n  num_retries: 4\n  retry_on: 5xx\nservice: retrypolicytest-http\ntimeout_ms: 3000\n",
+            "serialization": "ambassador_id: retrypolicytest\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: retrypolicytest\n  scope: AmbassadorTest\nname: RetryPolicyTest-target\nprefix: /RetryPolicyTest-retry/\nretry_policy:\n  num_retries: 4\n  retry_on: 5xx\nservice: retrypolicytest-http\ntimeout_ms: 3000\n",
             "timeout_ms": 3000
         },
         {
@@ -538,6 +565,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "127.0.0.1",
+                        "_namespace": "default",
                         "_port": 8877,
                         "_referenced_by": [
                             "retrypolicytest.default.3"
@@ -569,7 +597,7 @@
                     },
                     "group_id": "8de18501d2044fe30db225289b318d5fda913b64",
                     "headers": [],
-                    "kind": "IRMapping",
+                    "kind": "IRHTTPMapping",
                     "location": "retrypolicytest.default.3",
                     "name": "internal_diagnostics_probe_mapping",
                     "namespace": "default",
@@ -598,6 +626,7 @@
         }
     ],
     "grpc_services": {},
+    "hosts": [],
     "identity": {
         "ambassador_id": "retrypolicytest",
         "ambassador_namespace": "default",
@@ -609,55 +638,69 @@
             "_active": true,
             "_errored": false,
             "_rkey": "ir.listener",
+            "hostname": "*",
+            "insecure_action": "Route",
             "kind": "IRListener",
             "location": "retrypolicytest.default.3",
             "name": "ir.listener",
             "namespace": "default",
             "redirect_listener": false,
             "require_tls": false,
-            "server_name": "envoy",
+            "secure_action": "Route",
             "service_port": 8080,
-            "use_proxy_proto": false,
-            "use_remote_address": true,
-            "xff_num_trusted_hops": 0
+            "use_proxy_proto": false
         }
     ],
     "services": {
         "k8s-retrypolicytest-admin-default": {
             "_referenced_by": {},
             "ambassador_id": "retrypolicytest",
-            "apiVersion": "ambassador/v1",
+            "apiVersion": "getambassador.io/v2",
             "endpoints": {},
             "kind": "Service",
             "location": "k8s-retrypolicytest-admin-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "retrypolicytest",
+                "scope": "AmbassadorTest",
+                "service": "retrypolicytest-admin"
+            },
             "name": "retrypolicytest-admin",
             "namespace": "default",
             "rkey": "k8s-retrypolicytest-admin-default",
-            "serialization": "ambassador_id: retrypolicytest\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: retrypolicytest-admin\nnamespace: default\n"
+            "serialization": "ambassador_id: retrypolicytest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: retrypolicytest\n  scope: AmbassadorTest\n  service: retrypolicytest-admin\nname: retrypolicytest-admin\nnamespace: default\n"
         },
         "k8s-retrypolicytest-default": {
             "_referenced_by": {},
             "ambassador_id": "retrypolicytest",
-            "apiVersion": "ambassador/v1",
+            "apiVersion": "getambassador.io/v2",
             "endpoints": {},
             "kind": "Service",
             "location": "k8s-retrypolicytest-default",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "retrypolicytest",
+                "scope": "AmbassadorTest"
+            },
             "name": "retrypolicytest",
             "namespace": "default",
             "rkey": "k8s-retrypolicytest-default",
-            "serialization": "ambassador_id: retrypolicytest\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: retrypolicytest\nnamespace: default\n"
+            "serialization": "ambassador_id: retrypolicytest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: retrypolicytest\n  scope: AmbassadorTest\nname: retrypolicytest\nnamespace: default\n"
         },
         "k8s-retrypolicytest-http-default": {
             "_referenced_by": {},
             "ambassador_id": "retrypolicytest",
-            "apiVersion": "ambassador/v1",
+            "apiVersion": "getambassador.io/v2",
             "endpoints": {},
             "kind": "Service",
             "location": "k8s-retrypolicytest-http-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "retrypolicytest",
+                "scope": "AmbassadorTest"
+            },
             "name": "retrypolicytest-http",
             "namespace": "default",
             "rkey": "k8s-retrypolicytest-http-default",
-            "serialization": "ambassador_id: retrypolicytest\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: retrypolicytest-http\nnamespace: default\n"
+            "serialization": "ambassador_id: retrypolicytest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: retrypolicytest\n  scope: AmbassadorTest\nname: retrypolicytest-http\nnamespace: default\n"
         }
     },
     "tls_contexts": []

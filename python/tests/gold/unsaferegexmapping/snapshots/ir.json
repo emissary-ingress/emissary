@@ -42,6 +42,7 @@
         "regex_type": "unsafe",
         "server_name": "envoy",
         "service_port": 8080,
+        "use_ambassador_namespace_for_service_resolution": false,
         "use_proxy_proto": false,
         "use_remote_address": true,
         "x_forwarded_proto_redirect": false,
@@ -52,6 +53,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "127.0.0.1",
+            "_namespace": "default",
             "_port": 8877,
             "_referenced_by": [
                 "unsaferegexmapping.default.2"
@@ -85,6 +87,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "unsaferegexmapping-http",
+            "_namespace": "default",
             "_port": 80,
             "_referenced_by": [
                 "unsaferegexmapping.default.1"
@@ -104,7 +107,7 @@
             "service": "unsaferegexmapping-http",
             "targets": [
                 {
-                    "ip": "unsaferegexmapping-http",
+                    "ip": "unsaferegexmapping-http.default",
                     "port": 80,
                     "target_kind": "DNSname"
                 }
@@ -170,6 +173,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "127.0.0.1",
+                        "_namespace": "default",
                         "_port": 8877,
                         "_referenced_by": [
                             "unsaferegexmapping.default.2"
@@ -201,7 +205,7 @@
                     },
                     "group_id": "b4db12f5b638f1750062dd4220911c4f6f44fc57",
                     "headers": [],
-                    "kind": "IRMapping",
+                    "kind": "IRHTTPMapping",
                     "location": "unsaferegexmapping.default.2",
                     "name": "internal_readiness_probe_mapping",
                     "namespace": "default",
@@ -259,6 +263,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "127.0.0.1",
+                        "_namespace": "default",
                         "_port": 8877,
                         "_referenced_by": [
                             "unsaferegexmapping.default.2"
@@ -290,7 +295,7 @@
                     },
                     "group_id": "7df546235997704c909d473af2cbcb5e606d20de",
                     "headers": [],
-                    "kind": "IRMapping",
+                    "kind": "IRHTTPMapping",
                     "location": "unsaferegexmapping.default.2",
                     "name": "internal_liveness_probe_mapping",
                     "namespace": "default",
@@ -359,6 +364,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "unsaferegexmapping-http",
+                        "_namespace": "default",
                         "_port": 80,
                         "_referenced_by": [
                             "unsaferegexmapping.default.1"
@@ -378,7 +384,7 @@
                         "service": "unsaferegexmapping-http",
                         "targets": [
                             {
-                                "ip": "unsaferegexmapping-http",
+                                "ip": "unsaferegexmapping-http.default",
                                 "port": 80,
                                 "target_kind": "DNSname"
                             }
@@ -405,6 +411,11 @@
                     "host_regex": true,
                     "kind": "Mapping",
                     "location": "unsaferegexmapping.default.1",
+                    "metadata_labels": {
+                        "app.kubernetes.io/component": "ambassador-service",
+                        "kat-ambassador-id": "unsaferegexmapping",
+                        "scope": "AmbassadorTest"
+                    },
                     "name": "X-Foo",
                     "namespace": "default",
                     "precedence": 0,
@@ -421,18 +432,23 @@
                         "X-Foo-^[a-z].*",
                         ":authority-[a-zA-Z].*"
                     ],
-                    "serialization": "ambassador_id: unsaferegexmapping\napiVersion: ambassador/v1\nhost: '[a-zA-Z].*'\nhost_regex: true\nkind: Mapping\nname: UnsafeRegexMapping\nprefix: /UnsafeRegexMapping/\nprefix_regex: true\nregex_headers:\n  X-Foo: ^[a-z].*\nservice: http://unsaferegexmapping-http\n",
+                    "serialization": "ambassador_id: unsaferegexmapping\napiVersion: ambassador/v2\nhost: '[a-zA-Z].*'\nhost_regex: true\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: unsaferegexmapping\n  scope: AmbassadorTest\nname: UnsafeRegexMapping\nprefix: /UnsafeRegexMapping/\nprefix_regex: true\nregex_headers:\n  X-Foo: ^[a-z].*\nservice: http://unsaferegexmapping-http\n",
                     "service": "http://unsaferegexmapping-http",
                     "weight": 100
                 }
             ],
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "unsaferegexmapping",
+                "scope": "AmbassadorTest"
+            },
             "name": "GROUP: X-Foo",
             "namespace": "default",
             "precedence": 0,
             "prefix": "/UnsafeRegexMapping/",
             "prefix_regex": true,
             "rewrite": "/",
-            "serialization": "ambassador_id: unsaferegexmapping\napiVersion: ambassador/v1\nhost: '[a-zA-Z].*'\nhost_regex: true\nkind: Mapping\nname: UnsafeRegexMapping\nprefix: /UnsafeRegexMapping/\nprefix_regex: true\nregex_headers:\n  X-Foo: ^[a-z].*\nservice: http://unsaferegexmapping-http\n"
+            "serialization": "ambassador_id: unsaferegexmapping\napiVersion: ambassador/v2\nhost: '[a-zA-Z].*'\nhost_regex: true\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: unsaferegexmapping\n  scope: AmbassadorTest\nname: UnsafeRegexMapping\nprefix: /UnsafeRegexMapping/\nprefix_regex: true\nregex_headers:\n  X-Foo: ^[a-z].*\nservice: http://unsaferegexmapping-http\n"
         },
         {
             "_active": true,
@@ -465,6 +481,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "127.0.0.1",
+                        "_namespace": "default",
                         "_port": 8877,
                         "_referenced_by": [
                             "unsaferegexmapping.default.2"
@@ -496,7 +513,7 @@
                     },
                     "group_id": "8de18501d2044fe30db225289b318d5fda913b64",
                     "headers": [],
-                    "kind": "IRMapping",
+                    "kind": "IRHTTPMapping",
                     "location": "unsaferegexmapping.default.2",
                     "name": "internal_diagnostics_probe_mapping",
                     "namespace": "default",
@@ -525,6 +542,7 @@
         }
     ],
     "grpc_services": {},
+    "hosts": [],
     "identity": {
         "ambassador_id": "unsaferegexmapping",
         "ambassador_namespace": "default",
@@ -536,55 +554,69 @@
             "_active": true,
             "_errored": false,
             "_rkey": "ir.listener",
+            "hostname": "*",
+            "insecure_action": "Route",
             "kind": "IRListener",
             "location": "unsaferegexmapping.default.2",
             "name": "ir.listener",
             "namespace": "default",
             "redirect_listener": false,
             "require_tls": false,
-            "server_name": "envoy",
+            "secure_action": "Route",
             "service_port": 8080,
-            "use_proxy_proto": false,
-            "use_remote_address": true,
-            "xff_num_trusted_hops": 0
+            "use_proxy_proto": false
         }
     ],
     "services": {
         "k8s-unsaferegexmapping-admin-default": {
             "_referenced_by": {},
             "ambassador_id": "unsaferegexmapping",
-            "apiVersion": "ambassador/v1",
+            "apiVersion": "getambassador.io/v2",
             "endpoints": {},
             "kind": "Service",
             "location": "k8s-unsaferegexmapping-admin-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "unsaferegexmapping",
+                "scope": "AmbassadorTest",
+                "service": "unsaferegexmapping-admin"
+            },
             "name": "unsaferegexmapping-admin",
             "namespace": "default",
             "rkey": "k8s-unsaferegexmapping-admin-default",
-            "serialization": "ambassador_id: unsaferegexmapping\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: unsaferegexmapping-admin\nnamespace: default\n"
+            "serialization": "ambassador_id: unsaferegexmapping\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: unsaferegexmapping\n  scope: AmbassadorTest\n  service: unsaferegexmapping-admin\nname: unsaferegexmapping-admin\nnamespace: default\n"
         },
         "k8s-unsaferegexmapping-default": {
             "_referenced_by": {},
             "ambassador_id": "unsaferegexmapping",
-            "apiVersion": "ambassador/v1",
+            "apiVersion": "getambassador.io/v2",
             "endpoints": {},
             "kind": "Service",
             "location": "k8s-unsaferegexmapping-default",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "unsaferegexmapping",
+                "scope": "AmbassadorTest"
+            },
             "name": "unsaferegexmapping",
             "namespace": "default",
             "rkey": "k8s-unsaferegexmapping-default",
-            "serialization": "ambassador_id: unsaferegexmapping\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: unsaferegexmapping\nnamespace: default\n"
+            "serialization": "ambassador_id: unsaferegexmapping\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: unsaferegexmapping\n  scope: AmbassadorTest\nname: unsaferegexmapping\nnamespace: default\n"
         },
         "k8s-unsaferegexmapping-http-default": {
             "_referenced_by": {},
             "ambassador_id": "unsaferegexmapping",
-            "apiVersion": "ambassador/v1",
+            "apiVersion": "getambassador.io/v2",
             "endpoints": {},
             "kind": "Service",
             "location": "k8s-unsaferegexmapping-http-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "unsaferegexmapping",
+                "scope": "AmbassadorTest"
+            },
             "name": "unsaferegexmapping-http",
             "namespace": "default",
             "rkey": "k8s-unsaferegexmapping-http-default",
-            "serialization": "ambassador_id: unsaferegexmapping\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: unsaferegexmapping-http\nnamespace: default\n"
+            "serialization": "ambassador_id: unsaferegexmapping\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: unsaferegexmapping\n  scope: AmbassadorTest\nname: unsaferegexmapping-http\nnamespace: default\n"
         }
     },
     "tls_contexts": []

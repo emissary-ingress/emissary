@@ -27,7 +27,7 @@
         }
     },
     "node": {
-        "cluster": "clitest-default",
+        "cluster": "gzipminimumconfigtest-default",
         "id": "test-id"
     },
     "static_resources": {

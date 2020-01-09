@@ -38,6 +38,7 @@
         },
         "server_name": "envoy",
         "service_port": 8080,
+        "use_ambassador_namespace_for_service_resolution": false,
         "use_proxy_proto": false,
         "use_remote_address": true,
         "x_forwarded_proto_redirect": false,
@@ -48,6 +49,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "127.0.0.1",
+            "_namespace": "default",
             "_port": 8877,
             "_referenced_by": [
                 "--internal--"
@@ -81,6 +83,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "zipkin-64",
+            "_namespace": "default",
             "_port": 9411,
             "_referenced_by": [
                 "tracingtestshorttraceid.default.1"
@@ -99,7 +102,7 @@
             "service": "zipkin-64:9411",
             "targets": [
                 {
-                    "ip": "zipkin-64",
+                    "ip": "zipkin-64.default",
                     "port": 9411,
                     "target_kind": "DNSname"
                 }
@@ -113,6 +116,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "tracingtestshorttraceid-http",
+            "_namespace": "default",
             "_port": 80,
             "_referenced_by": [
                 "tracingtestshorttraceid-http.default.1"
@@ -132,7 +136,7 @@
             "service": "tracingtestshorttraceid-http",
             "targets": [
                 {
-                    "ip": "tracingtestshorttraceid-http",
+                    "ip": "tracingtestshorttraceid-http.default",
                     "port": 80,
                     "target_kind": "DNSname"
                 }
@@ -200,6 +204,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "127.0.0.1",
+                        "_namespace": "default",
                         "_port": 8877,
                         "_referenced_by": [
                             "--internal--"
@@ -231,7 +236,7 @@
                     },
                     "group_id": "b4db12f5b638f1750062dd4220911c4f6f44fc57",
                     "headers": [],
-                    "kind": "IRMapping",
+                    "kind": "IRHTTPMapping",
                     "location": "--internal--",
                     "name": "internal_readiness_probe_mapping",
                     "namespace": "default",
@@ -289,6 +294,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "127.0.0.1",
+                        "_namespace": "default",
                         "_port": 8877,
                         "_referenced_by": [
                             "--internal--"
@@ -320,7 +326,7 @@
                     },
                     "group_id": "7df546235997704c909d473af2cbcb5e606d20de",
                     "headers": [],
-                    "kind": "IRMapping",
+                    "kind": "IRHTTPMapping",
                     "location": "--internal--",
                     "name": "internal_liveness_probe_mapping",
                     "namespace": "default",
@@ -378,6 +384,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "127.0.0.1",
+                        "_namespace": "default",
                         "_port": 8877,
                         "_referenced_by": [
                             "--internal--"
@@ -409,7 +416,7 @@
                     },
                     "group_id": "8de18501d2044fe30db225289b318d5fda913b64",
                     "headers": [],
-                    "kind": "IRMapping",
+                    "kind": "IRHTTPMapping",
                     "location": "--internal--",
                     "name": "internal_diagnostics_probe_mapping",
                     "namespace": "default",
@@ -464,6 +471,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "tracingtestshorttraceid-http",
+                        "_namespace": "default",
                         "_port": 80,
                         "_referenced_by": [
                             "tracingtestshorttraceid-http.default.1"
@@ -483,7 +491,7 @@
                         "service": "tracingtestshorttraceid-http",
                         "targets": [
                             {
-                                "ip": "tracingtestshorttraceid-http",
+                                "ip": "tracingtestshorttraceid-http.default",
                                 "port": 80,
                                 "target_kind": "DNSname"
                             }
@@ -497,6 +505,10 @@
                     "headers": [],
                     "kind": "Mapping",
                     "location": "tracingtestshorttraceid-http.default.1",
+                    "metadata_labels": {
+                        "kat-ambassador-id": "tracingtestshorttraceid",
+                        "scope": "AmbassadorTest"
+                    },
                     "name": "tracing_target_mapping_64",
                     "namespace": "default",
                     "precedence": 0,
@@ -510,20 +522,25 @@
                         "/target-64/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: tracingtestshorttraceid\napiVersion: ambassador/v0\nkind: Mapping\nname: tracing_target_mapping_64\nprefix: /target-64/\nservice: tracingtestshorttraceid-http\n",
+                    "serialization": "ambassador_id: tracingtestshorttraceid\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: tracingtestshorttraceid\n  scope: AmbassadorTest\nname: tracing_target_mapping_64\nprefix: /target-64/\nservice: tracingtestshorttraceid-http\n",
                     "service": "tracingtestshorttraceid-http",
                     "weight": 100
                 }
             ],
+            "metadata_labels": {
+                "kat-ambassador-id": "tracingtestshorttraceid",
+                "scope": "AmbassadorTest"
+            },
             "name": "GROUP: tracing_target_mapping_64",
             "namespace": "default",
             "precedence": 0,
             "prefix": "/target-64/",
             "rewrite": "/",
-            "serialization": "ambassador_id: tracingtestshorttraceid\napiVersion: ambassador/v0\nkind: Mapping\nname: tracing_target_mapping_64\nprefix: /target-64/\nservice: tracingtestshorttraceid-http\n"
+            "serialization": "ambassador_id: tracingtestshorttraceid\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: tracingtestshorttraceid\n  scope: AmbassadorTest\nname: tracing_target_mapping_64\nprefix: /target-64/\nservice: tracingtestshorttraceid-http\n"
         }
     ],
     "grpc_services": {},
+    "hosts": [],
     "identity": {
         "ambassador_id": "tracingtestshorttraceid",
         "ambassador_namespace": "default",
@@ -535,67 +552,85 @@
             "_active": true,
             "_errored": false,
             "_rkey": "ir.listener",
+            "hostname": "*",
+            "insecure_action": "Route",
             "kind": "IRListener",
             "location": "--internal--",
             "name": "ir.listener",
             "namespace": "default",
             "redirect_listener": false,
             "require_tls": false,
-            "server_name": "envoy",
+            "secure_action": "Route",
             "service_port": 8080,
-            "use_proxy_proto": false,
-            "use_remote_address": true,
-            "xff_num_trusted_hops": 0
+            "use_proxy_proto": false
         }
     ],
     "services": {
         "k8s-tracingtestshorttraceid-admin-default": {
             "_referenced_by": {},
             "ambassador_id": "tracingtestshorttraceid",
-            "apiVersion": "ambassador/v1",
+            "apiVersion": "getambassador.io/v2",
             "endpoints": {},
             "kind": "Service",
             "location": "k8s-tracingtestshorttraceid-admin-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "tracingtestshorttraceid",
+                "scope": "AmbassadorTest",
+                "service": "tracingtestshorttraceid-admin"
+            },
             "name": "tracingtestshorttraceid-admin",
             "namespace": "default",
             "rkey": "k8s-tracingtestshorttraceid-admin-default",
-            "serialization": "ambassador_id: tracingtestshorttraceid\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: tracingtestshorttraceid-admin\nnamespace: default\n"
+            "serialization": "ambassador_id: tracingtestshorttraceid\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: tracingtestshorttraceid\n  scope: AmbassadorTest\n  service: tracingtestshorttraceid-admin\nname: tracingtestshorttraceid-admin\nnamespace: default\n"
         },
         "k8s-tracingtestshorttraceid-default": {
             "_referenced_by": {},
             "ambassador_id": "tracingtestshorttraceid",
-            "apiVersion": "ambassador/v1",
+            "apiVersion": "getambassador.io/v2",
             "endpoints": {},
             "kind": "Service",
             "location": "k8s-tracingtestshorttraceid-default",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "tracingtestshorttraceid",
+                "scope": "AmbassadorTest"
+            },
             "name": "tracingtestshorttraceid",
             "namespace": "default",
             "rkey": "k8s-tracingtestshorttraceid-default",
-            "serialization": "ambassador_id: tracingtestshorttraceid\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: tracingtestshorttraceid\nnamespace: default\n"
+            "serialization": "ambassador_id: tracingtestshorttraceid\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tracingtestshorttraceid\n  scope: AmbassadorTest\nname: tracingtestshorttraceid\nnamespace: default\n"
         },
         "k8s-tracingtestshorttraceid-http-default": {
             "_referenced_by": {},
             "ambassador_id": "tracingtestshorttraceid",
-            "apiVersion": "ambassador/v1",
+            "apiVersion": "getambassador.io/v2",
             "endpoints": {},
             "kind": "Service",
             "location": "k8s-tracingtestshorttraceid-http-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "tracingtestshorttraceid",
+                "scope": "AmbassadorTest"
+            },
             "name": "tracingtestshorttraceid-http",
             "namespace": "default",
             "rkey": "k8s-tracingtestshorttraceid-http-default",
-            "serialization": "ambassador_id: tracingtestshorttraceid\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: tracingtestshorttraceid-http\nnamespace: default\n"
+            "serialization": "ambassador_id: tracingtestshorttraceid\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: tracingtestshorttraceid\n  scope: AmbassadorTest\nname: tracingtestshorttraceid-http\nnamespace: default\n"
         },
         "k8s-zipkin-64-default": {
             "_referenced_by": {},
             "ambassador_id": "tracingtestshorttraceid",
-            "apiVersion": "ambassador/v1",
+            "apiVersion": "getambassador.io/v2",
             "endpoints": {},
             "kind": "Service",
             "location": "k8s-zipkin-64-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "tracingtestshorttraceid",
+                "scope": "AmbassadorTest"
+            },
             "name": "zipkin-64",
             "namespace": "default",
             "rkey": "k8s-zipkin-64-default",
-            "serialization": "ambassador_id: tracingtestshorttraceid\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: zipkin-64\nnamespace: default\n"
+            "serialization": "ambassador_id: tracingtestshorttraceid\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: tracingtestshorttraceid\n  scope: AmbassadorTest\nname: zipkin-64\nnamespace: default\n"
         }
     },
     "tls_contexts": [],
@@ -610,6 +645,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "zipkin-64",
+            "_namespace": "default",
             "_port": 9411,
             "_referenced_by": [
                 "tracingtestshorttraceid.default.1"
@@ -628,7 +664,7 @@
             "service": "zipkin-64:9411",
             "targets": [
                 {
-                    "ip": "zipkin-64",
+                    "ip": "zipkin-64.default",
                     "port": 9411,
                     "target_kind": "DNSname"
                 }

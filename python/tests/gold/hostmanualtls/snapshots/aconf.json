@@ -84,7 +84,7 @@
             "apiVersion": "getambassador.io/v1",
             "generation": 1,
             "hosts": [
-                "manual-hostname"
+                "hostmanualtls"
             ],
             "kind": "TLSContext",
             "location": "manual-context.default.1",
@@ -97,7 +97,7 @@
             "namespace": "default",
             "rkey": "manual-context.default.1",
             "secret": "manual-secret",
-            "serialization": "ambassador_id:\n- hostmanualtls\napiVersion: getambassador.io/v1\ngeneration: 1\nhosts:\n- manual-hostname\nkind: TLSContext\nmetadata_labels:\n  ambassador_crd: manual-context.default\n  kat-ambassador-id: hostmanualtls\n  scope: AmbassadorTest\nname: manual-context\nnamespace: default\nsecret: manual-secret\n"
+            "serialization": "ambassador_id:\n- hostmanualtls\napiVersion: getambassador.io/v1\ngeneration: 1\nhosts:\n- hostmanualtls\nkind: TLSContext\nmetadata_labels:\n  ambassador_crd: manual-context.default\n  kat-ambassador-id: hostmanualtls\n  scope: AmbassadorTest\nname: manual-context\nnamespace: default\nsecret: manual-secret\n"
         },
         "manual-host.default.1": {
             "_referenced_by": {},
@@ -109,7 +109,7 @@
             ],
             "apiVersion": "getambassador.io/v2",
             "generation": 1,
-            "hostname": "manual-hostname",
+            "hostname": "hostmanualtls",
             "kind": "Host",
             "location": "manual-host.default.1",
             "metadata_labels": {
@@ -125,7 +125,7 @@
                     "hostname": "manual-hostname"
                 }
             },
-            "serialization": "acmeProvider:\n  authority: none\nambassador_id:\n- hostmanualtls\napiVersion: getambassador.io/v2\ngeneration: 1\nhostname: manual-hostname\nkind: Host\nmetadata_labels:\n  ambassador_crd: manual-host.default\n  kat-ambassador-id: hostmanualtls\n  scope: AmbassadorTest\nname: manual-host\nnamespace: default\nselector:\n  matchLabels:\n    hostname: manual-hostname\ntlsSecret:\n  name: manual-secret\n",
+            "serialization": "acmeProvider:\n  authority: none\nambassador_id:\n- hostmanualtls\napiVersion: getambassador.io/v2\ngeneration: 1\nhostname: hostmanualtls\nkind: Host\nmetadata_labels:\n  ambassador_crd: manual-host.default\n  kat-ambassador-id: hostmanualtls\n  scope: AmbassadorTest\nname: manual-host\nnamespace: default\nselector:\n  matchLabels:\n    hostname: manual-hostname\ntlsSecret:\n  name: manual-secret\n",
             "tlsSecret": {
                 "name": "manual-secret"
             }
@@ -181,7 +181,7 @@
             ],
             "apiVersion": "getambassador.io/v2",
             "generation": 1,
-            "hostname": "manual-hostname",
+            "hostname": "hostmanualtls",
             "kind": "Host",
             "metadata_labels": {
                 "ambassador_crd": "manual-host.default",
@@ -284,7 +284,7 @@
             "apiVersion": "getambassador.io/v1",
             "generation": 1,
             "hosts": [
-                "manual-hostname"
+                "hostmanualtls"
             ],
             "kind": "TLSContext",
             "metadata_labels": {

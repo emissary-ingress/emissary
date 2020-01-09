@@ -36,7 +36,7 @@
             ],
             "apiVersion": "getambassador.io/v2",
             "generation": 1,
-            "hostname": "cleartext-host",
+            "hostname": "hostcleartext",
             "kind": "Host",
             "location": "cleartext-host.default.1",
             "metadata_labels": {
@@ -46,13 +46,18 @@
             },
             "name": "cleartext-host",
             "namespace": "default",
+            "requestPolicy": {
+                "insecure": {
+                    "action": "Route"
+                }
+            },
             "rkey": "cleartext-host.default.1",
             "selector": {
                 "matchLabels": {
                     "hostname": "host-cleartext"
                 }
             },
-            "serialization": "acmeProvider:\n  authority: none\nambassador_id:\n- hostcleartext\napiVersion: getambassador.io/v2\ngeneration: 1\nhostname: cleartext-host\nkind: Host\nmetadata_labels:\n  ambassador_crd: cleartext-host.default\n  kat-ambassador-id: hostcleartext\n  scope: AmbassadorTest\nname: cleartext-host\nnamespace: default\nselector:\n  matchLabels:\n    hostname: host-cleartext\n"
+            "serialization": "acmeProvider:\n  authority: none\nambassador_id:\n- hostcleartext\napiVersion: getambassador.io/v2\ngeneration: 1\nhostname: hostcleartext\nkind: Host\nmetadata_labels:\n  ambassador_crd: cleartext-host.default\n  kat-ambassador-id: hostcleartext\n  scope: AmbassadorTest\nname: cleartext-host\nnamespace: default\nrequestPolicy:\n  insecure:\n    action: Route\nselector:\n  matchLabels:\n    hostname: host-cleartext\n"
         },
         "cleartext-target-mapping.default.1": {
             "_referenced_by": {},
@@ -137,7 +142,7 @@
             ],
             "apiVersion": "getambassador.io/v2",
             "generation": 1,
-            "hostname": "cleartext-host",
+            "hostname": "hostcleartext",
             "kind": "Host",
             "metadata_labels": {
                 "ambassador_crd": "cleartext-host.default",
@@ -146,6 +151,11 @@
             },
             "name": "cleartext-host",
             "namespace": "default",
+            "requestPolicy": {
+                "insecure": {
+                    "action": "Route"
+                }
+            },
             "selector": {
                 "matchLabels": {
                     "hostname": "host-cleartext"

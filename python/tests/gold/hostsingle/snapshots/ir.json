@@ -38,6 +38,7 @@
         },
         "server_name": "envoy",
         "service_port": 8443,
+        "use_ambassador_namespace_for_service_resolution": false,
         "use_proxy_proto": false,
         "use_remote_address": true,
         "x_forwarded_proto_redirect": false,
@@ -48,6 +49,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "127.0.0.1",
+            "_namespace": "default",
             "_port": 8877,
             "_referenced_by": [
                 "--internal--"
@@ -81,6 +83,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "hostsingle-http",
+            "_namespace": "default",
             "_port": 80,
             "_referenced_by": [
                 "edgy-target-mapping.default.1"
@@ -100,7 +103,7 @@
             "service": "hostsingle-http",
             "targets": [
                 {
-                    "ip": "hostsingle-http",
+                    "ip": "hostsingle-http.default",
                     "port": 80,
                     "target_kind": "DNSname"
                 }
@@ -166,6 +169,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "127.0.0.1",
+                        "_namespace": "default",
                         "_port": 8877,
                         "_referenced_by": [
                             "--internal--"
@@ -255,6 +259,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "127.0.0.1",
+                        "_namespace": "default",
                         "_port": 8877,
                         "_referenced_by": [
                             "--internal--"
@@ -344,6 +349,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "127.0.0.1",
+                        "_namespace": "default",
                         "_port": 8877,
                         "_referenced_by": [
                             "--internal--"
@@ -430,6 +436,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "hostsingle-http",
+                        "_namespace": "default",
                         "_port": 80,
                         "_referenced_by": [
                             "edgy-target-mapping.default.1"
@@ -449,7 +456,7 @@
                         "service": "hostsingle-http",
                         "targets": [
                             {
-                                "ip": "hostsingle-http",
+                                "ip": "hostsingle-http.default",
                                 "port": 80,
                                 "target_kind": "DNSname"
                             }
@@ -513,7 +520,29 @@
             "acmeProvider": {
                 "authority": "ACME"
             },
-            "hostname": "edgy.example.com",
+            "context": {
+                "_active": true,
+                "_errored": false,
+                "_referenced_by": [
+                    "edgy-host.default.1"
+                ],
+                "_rkey": "edgy-host.default.1",
+                "hosts": [
+                    "hostsingle"
+                ],
+                "is_fallback": false,
+                "kind": "IRTLSContext",
+                "location": "edgy-host.default.1",
+                "name": "edgy-host-context",
+                "namespace": "default",
+                "redirect_cleartext_from": 8080,
+                "secret_info": {
+                    "cert_chain_file": "/tmp/ambassador/snapshots/default/secrets-decoded/edgy-secret/F94E4DCF30ABC50DEF240AA8024599B67CC03991.crt",
+                    "private_key_file": "/tmp/ambassador/snapshots/default/secrets-decoded/edgy-secret/F94E4DCF30ABC50DEF240AA8024599B67CC03991.key",
+                    "secret": "edgy-secret"
+                }
+            },
+            "hostname": "hostsingle",
             "kind": "Host",
             "location": "edgy-host.default.1",
             "name": "edgy-host",
@@ -546,57 +575,40 @@
         {
             "_active": true,
             "_errored": false,
-            "_rkey": "edgy-host.default.1",
+            "_rkey": "ir.listener",
+            "context": {
+                "_active": true,
+                "_errored": false,
+                "_referenced_by": [
+                    "edgy-host.default.1"
+                ],
+                "_rkey": "edgy-host.default.1",
+                "hosts": [
+                    "hostsingle"
+                ],
+                "is_fallback": false,
+                "kind": "IRTLSContext",
+                "location": "edgy-host.default.1",
+                "name": "edgy-host-context",
+                "namespace": "default",
+                "redirect_cleartext_from": 8080,
+                "secret_info": {
+                    "cert_chain_file": "/tmp/ambassador/snapshots/default/secrets-decoded/edgy-secret/F94E4DCF30ABC50DEF240AA8024599B67CC03991.crt",
+                    "private_key_file": "/tmp/ambassador/snapshots/default/secrets-decoded/edgy-secret/F94E4DCF30ABC50DEF240AA8024599B67CC03991.key",
+                    "secret": "edgy-secret"
+                }
+            },
+            "hostname": "hostsingle",
+            "insecure_action": "Redirect",
             "kind": "IRListener",
             "location": "edgy-host.default.1",
             "name": "ir.listener",
             "namespace": "default",
             "redirect_listener": false,
             "require_tls": false,
-            "server_name": "envoy",
+            "secure_action": "Route",
             "service_port": 8443,
-            "tls_contexts": {
-                "edgy-host-context": {
-                    "_active": true,
-                    "_errored": false,
-                    "_referenced_by": [
-                        "edgy-host.default.1"
-                    ],
-                    "_rkey": "edgy-host.default.1",
-                    "hosts": [
-                        "edgy.example.com"
-                    ],
-                    "kind": "IRTLSContext",
-                    "location": "edgy-host.default.1",
-                    "name": "edgy-host-context",
-                    "namespace": "default",
-                    "redirect_cleartext_from": 8080,
-                    "secret_info": {
-                        "cert_chain_file": "/tmp/ambassador/snapshots/default/secrets-decoded/edgy-secret/F94E4DCF30ABC50DEF240AA8024599B67CC03991.crt",
-                        "private_key_file": "/tmp/ambassador/snapshots/default/secrets-decoded/edgy-secret/F94E4DCF30ABC50DEF240AA8024599B67CC03991.key",
-                        "secret": "edgy-secret"
-                    }
-                }
-            },
-            "use_proxy_proto": false,
-            "use_remote_address": true,
-            "xff_num_trusted_hops": 0
-        },
-        {
-            "_active": true,
-            "_errored": false,
-            "_rkey": "ir.listener",
-            "kind": "IRListener",
-            "location": "edgy-host.default.1",
-            "name": "ir.listener",
-            "namespace": "default",
-            "redirect_listener": true,
-            "require_tls": true,
-            "server_name": "envoy",
-            "service_port": 8080,
-            "use_proxy_proto": false,
-            "use_remote_address": true,
-            "xff_num_trusted_hops": 0
+            "use_proxy_proto": false
         }
     ],
     "services": {
@@ -660,8 +672,9 @@
             ],
             "_rkey": "edgy-host.default.1",
             "hosts": [
-                "edgy.example.com"
+                "hostsingle"
             ],
+            "is_fallback": false,
             "kind": "IRTLSContext",
             "location": "edgy-host.default.1",
             "name": "edgy-host-context",

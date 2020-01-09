@@ -38,6 +38,7 @@
         },
         "server_name": "envoy",
         "service_port": 8080,
+        "use_ambassador_namespace_for_service_resolution": false,
         "use_proxy_proto": false,
         "use_remote_address": true,
         "x_forwarded_proto_redirect": false,
@@ -48,6 +49,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "127.0.0.1",
+            "_namespace": "default",
             "_port": 8877,
             "_referenced_by": [
                 "--internal--"
@@ -81,6 +83,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "127.0.0.1",
+            "_namespace": "default",
             "_port": 8001,
             "_referenced_by": [
                 "logservicetest.default.2"
@@ -114,6 +117,7 @@
             "_active": true,
             "_errored": false,
             "_hostname": "stenography",
+            "_namespace": "default",
             "_port": 25565,
             "_referenced_by": [
                 "logservicetest.default.1"
@@ -132,7 +136,7 @@
             "service": "stenography:25565",
             "targets": [
                 {
-                    "ip": "stenography",
+                    "ip": "stenography.default",
                     "port": 25565,
                     "target_kind": "DNSname"
                 }
@@ -198,6 +202,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "127.0.0.1",
+                        "_namespace": "default",
                         "_port": 8877,
                         "_referenced_by": [
                             "--internal--"
@@ -229,7 +234,7 @@
                     },
                     "group_id": "b4db12f5b638f1750062dd4220911c4f6f44fc57",
                     "headers": [],
-                    "kind": "IRMapping",
+                    "kind": "IRHTTPMapping",
                     "location": "--internal--",
                     "name": "internal_readiness_probe_mapping",
                     "namespace": "default",
@@ -287,6 +292,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "127.0.0.1",
+                        "_namespace": "default",
                         "_port": 8877,
                         "_referenced_by": [
                             "--internal--"
@@ -318,7 +324,7 @@
                     },
                     "group_id": "7df546235997704c909d473af2cbcb5e606d20de",
                     "headers": [],
-                    "kind": "IRMapping",
+                    "kind": "IRHTTPMapping",
                     "location": "--internal--",
                     "name": "internal_liveness_probe_mapping",
                     "namespace": "default",
@@ -376,6 +382,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "127.0.0.1",
+                        "_namespace": "default",
                         "_port": 8877,
                         "_referenced_by": [
                             "--internal--"
@@ -407,7 +414,7 @@
                     },
                     "group_id": "8de18501d2044fe30db225289b318d5fda913b64",
                     "headers": [],
-                    "kind": "IRMapping",
+                    "kind": "IRHTTPMapping",
                     "location": "--internal--",
                     "name": "internal_diagnostics_probe_mapping",
                     "namespace": "default",
@@ -462,6 +469,7 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "127.0.0.1",
+                        "_namespace": "default",
                         "_port": 8001,
                         "_referenced_by": [
                             "logservicetest.default.2"
@@ -495,6 +503,11 @@
                     "headers": [],
                     "kind": "Mapping",
                     "location": "logservicetest.default.2",
+                    "metadata_labels": {
+                        "app.kubernetes.io/component": "ambassador-service",
+                        "kat-ambassador-id": "logservicetest",
+                        "scope": "AmbassadorTest"
+                    },
                     "name": "config__dump",
                     "namespace": "default",
                     "precedence": 0,
@@ -508,20 +521,26 @@
                         "/config_dump",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: logservicetest\napiVersion: ambassador/v0\nkind: Mapping\nname: config__dump\nprefix: /config_dump\nrewrite: /config_dump\nservice: http://127.0.0.1:8001\n",
+                    "serialization": "ambassador_id: logservicetest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: logservicetest\n  scope: AmbassadorTest\nname: config__dump\nprefix: /config_dump\nrewrite: /config_dump\nservice: http://127.0.0.1:8001\n",
                     "service": "http://127.0.0.1:8001",
                     "weight": 100
                 }
             ],
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "logservicetest",
+                "scope": "AmbassadorTest"
+            },
             "name": "GROUP: config__dump",
             "namespace": "default",
             "precedence": 0,
             "prefix": "/config_dump",
             "rewrite": "/config_dump",
-            "serialization": "ambassador_id: logservicetest\napiVersion: ambassador/v0\nkind: Mapping\nname: config__dump\nprefix: /config_dump\nrewrite: /config_dump\nservice: http://127.0.0.1:8001\n"
+            "serialization": "ambassador_id: logservicetest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: logservicetest\n  scope: AmbassadorTest\nname: config__dump\nprefix: /config_dump\nrewrite: /config_dump\nservice: http://127.0.0.1:8001\n"
         }
     ],
     "grpc_services": {},
+    "hosts": [],
     "identity": {
         "ambassador_id": "logservicetest",
         "ambassador_namespace": "default",
@@ -533,17 +552,17 @@
             "_active": true,
             "_errored": false,
             "_rkey": "ir.listener",
+            "hostname": "*",
+            "insecure_action": "Route",
             "kind": "IRListener",
             "location": "--internal--",
             "name": "ir.listener",
             "namespace": "default",
             "redirect_listener": false,
             "require_tls": false,
-            "server_name": "envoy",
+            "secure_action": "Route",
             "service_port": 8080,
-            "use_proxy_proto": false,
-            "use_remote_address": true,
-            "xff_num_trusted_hops": 0
+            "use_proxy_proto": false
         }
     ],
     "log_services": [
@@ -558,6 +577,7 @@
                 "_active": true,
                 "_errored": false,
                 "_hostname": "stenography",
+                "_namespace": "default",
                 "_port": 25565,
                 "_referenced_by": [
                     "logservicetest.default.1"
@@ -576,7 +596,7 @@
                 "service": "stenography:25565",
                 "targets": [
                     {
-                        "ip": "stenography",
+                        "ip": "stenography.default",
                         "port": 25565,
                         "target_kind": "DNSname"
                     }
@@ -623,50 +643,68 @@
         "k8s-logservicetest-admin-default": {
             "_referenced_by": {},
             "ambassador_id": "logservicetest",
-            "apiVersion": "ambassador/v1",
+            "apiVersion": "getambassador.io/v2",
             "endpoints": {},
             "kind": "Service",
             "location": "k8s-logservicetest-admin-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "logservicetest",
+                "scope": "AmbassadorTest",
+                "service": "logservicetest-admin"
+            },
             "name": "logservicetest-admin",
             "namespace": "default",
             "rkey": "k8s-logservicetest-admin-default",
-            "serialization": "ambassador_id: logservicetest\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: logservicetest-admin\nnamespace: default\n"
+            "serialization": "ambassador_id: logservicetest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: logservicetest\n  scope: AmbassadorTest\n  service: logservicetest-admin\nname: logservicetest-admin\nnamespace: default\n"
         },
         "k8s-logservicetest-default": {
             "_referenced_by": {},
             "ambassador_id": "logservicetest",
-            "apiVersion": "ambassador/v1",
+            "apiVersion": "getambassador.io/v2",
             "endpoints": {},
             "kind": "Service",
             "location": "k8s-logservicetest-default",
+            "metadata_labels": {
+                "app.kubernetes.io/component": "ambassador-service",
+                "kat-ambassador-id": "logservicetest",
+                "scope": "AmbassadorTest"
+            },
             "name": "logservicetest",
             "namespace": "default",
             "rkey": "k8s-logservicetest-default",
-            "serialization": "ambassador_id: logservicetest\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: logservicetest\nnamespace: default\n"
+            "serialization": "ambassador_id: logservicetest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: logservicetest\n  scope: AmbassadorTest\nname: logservicetest\nnamespace: default\n"
         },
         "k8s-logservicetest-http-default": {
             "_referenced_by": {},
             "ambassador_id": "logservicetest",
-            "apiVersion": "ambassador/v1",
+            "apiVersion": "getambassador.io/v2",
             "endpoints": {},
             "kind": "Service",
             "location": "k8s-logservicetest-http-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "logservicetest",
+                "scope": "AmbassadorTest"
+            },
             "name": "logservicetest-http",
             "namespace": "default",
             "rkey": "k8s-logservicetest-http-default",
-            "serialization": "ambassador_id: logservicetest\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: logservicetest-http\nnamespace: default\n"
+            "serialization": "ambassador_id: logservicetest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: logservicetest\n  scope: AmbassadorTest\nname: logservicetest-http\nnamespace: default\n"
         },
         "k8s-stenography-default": {
             "_referenced_by": {},
             "ambassador_id": "logservicetest",
-            "apiVersion": "ambassador/v1",
+            "apiVersion": "getambassador.io/v2",
             "endpoints": {},
             "kind": "Service",
             "location": "k8s-stenography-default",
+            "metadata_labels": {
+                "kat-ambassador-id": "logservicetest",
+                "scope": "AmbassadorTest"
+            },
             "name": "stenography",
             "namespace": "default",
             "rkey": "k8s-stenography-default",
-            "serialization": "ambassador_id: logservicetest\napiVersion: ambassador/v1\nendpoints: {}\nkind: Service\nname: stenography\nnamespace: default\n"
+            "serialization": "ambassador_id: logservicetest\napiVersion: getambassador.io/v2\nendpoints: {}\nkind: Service\nmetadata_labels:\n  kat-ambassador-id: logservicetest\n  scope: AmbassadorTest\nname: stenography\nnamespace: default\n"
         }
     },
     "tls_contexts": []
