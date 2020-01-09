@@ -54,11 +54,11 @@ export class ResourceView extends View {
   }
 
   /* addMessage(message)
- * Add a message to the messages list.  This list can be rendered along with the Resource information to
- * display errors, warnings, or other information.  Typically, messages will be added during validation,
- * when the Save operation is performed.  If any messages have been added they are displayed to the user
- * rather than allowing the save action to proceed.
- */
+   * Add a message to the messages list.  This list can be rendered along with the Resource information to
+   * display errors, warnings, or other information.  Typically, messages will be added during validation,
+   * when the Save operation is performed.  If any messages have been added they are displayed to the user
+   * rather than allowing the save action to proceed.
+   */
   addMessage(message) {
     this.messages.push(message)
   }
@@ -215,6 +215,7 @@ export class ResourceView extends View {
   *
    */
   render() {
+    /* Return the HTML, including calls to renderSelf() to allow subclasses to specialize. */
     return html`
       <link rel="stylesheet" href="../styles/oneresource.css">
       ${this.modifiedStyles() ? this.modifiedStyles() : ""}

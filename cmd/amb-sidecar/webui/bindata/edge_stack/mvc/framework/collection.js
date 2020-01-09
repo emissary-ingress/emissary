@@ -45,14 +45,15 @@ export class Collection extends Model {
        */
       let existingResource = this._resources.get(key);
       if (existingResource) {
-        /* Only need to update if the existing Resource's version has changed.  Note that
-         * resourceVersion can only be compared with equality, and is not necessarily
-         * a monotonically increasing value.
+        /* Only need to update if the existing Resource's version has changed.  Note that resourceVersion can only
+         * be compared with equality, and is not necessarily a monotonically increasing value.
          */
         if (existingResource.version !== resourceData.metadata.resourceVersion) {
-          previousKeys.delete(key);
           existingResource.updateFrom(resourceData);
         }
+
+        /* Note that we've seen this resource, so don't delete from the collection. */
+        previousKeys.delete(key);
       }
       else {
         /* ...if we do not have a model object for this Resource (as defined by the unique key), then create a new

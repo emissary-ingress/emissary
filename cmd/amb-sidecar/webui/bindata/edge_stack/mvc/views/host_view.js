@@ -13,7 +13,12 @@ import { objectMerge } from "../utilities/object.js"
 /* ResourceView interface class */
 import { IResourceView } from './iresource_view.js'
 
+const _defaultAcmeProvider = "https://acme-v02.api.letsencrypt.org/directory";
+const _defaultAcmeEmail    = "yourname@yourcompany.com";
+
+
 export class HostView extends IResourceView {
+
 
   /* ====================================================================================================
    *  These functions and methods implement the IResourceView interface.
@@ -48,6 +53,15 @@ export class HostView extends IResourceView {
 
   constructor(model) {
     super(model);
+
+    /* Cache state from the model. Don't call
+    *  readFromModel yet, since that updates the UI
+    *  which hasn't been instantiated.
+    */
+    this.hostname     = model.hostname;
+    this.useAcme      = model.useAcme;
+    this.acmeProvider = model.acmeProvider;
+    this.acmeEmail    = model.acmeEmail;
 
     /* The Host object has a Terms of Service checkbox. Once the user has agreed to the TOS, we no longer
      * show the checkbox or link in the Host detail display.
@@ -333,10 +347,9 @@ export class HostView extends IResourceView {
 
   setAcmeFields(enabled) {
     if (enabled) {
-      /* Use previous values of acmeProvider or acmeEmail if we have a shadow copy during editing. */
-      let shadow = this.model.shadow();
-      this.acmeProviderInput().value = shadow ? shadow.acmeProvider : _defaultAcmeProvider;
-      this.acmeEmailInput().value = shadow ? shadow.acmeEmail : _defaultAcmeEmail;
+      /* TODO: Use previous values of acmeProvider or acmeEmail if we have a saved copy during editing */
+      this.acmeProviderInput().value =  _defaultAcmeProvider;
+      this.acmeEmailInput().value =  _defaultAcmeEmail;
     } else {
       /* Disabled, set the values to empty. */
       this.acmeProviderInput().value = "";

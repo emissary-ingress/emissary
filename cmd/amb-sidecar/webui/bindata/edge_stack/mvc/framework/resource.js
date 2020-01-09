@@ -196,6 +196,9 @@ export class Resource extends Model {
   updateFrom(resourceData) {
     let updated = false;
 
+    /* Since we are being updated, we know that our version is out of date; get the new version value. */
+    this.version = resourceData.metadata.resourceVersion;
+
     /* get the new labels value from the data, or an empty object if undefined. */
     let new_labels = resourceData.metadata.labels || {};
 
