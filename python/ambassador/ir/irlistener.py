@@ -30,7 +30,7 @@ class IRListener (IRResource):
 
     def __init__(self, ir: 'IR', aconf: Config,
                  service_port: int,
-                 require_tls: bool,
+                 # require_tls: bool,
                  use_proxy_proto: bool,
                  redirect_listener: bool = False,
 
@@ -43,12 +43,12 @@ class IRListener (IRResource):
         super().__init__(
             ir=ir, aconf=aconf, rkey=rkey, kind=kind, name=name,
             service_port=service_port,
-            require_tls=require_tls,
+            # require_tls=require_tls,
             use_proxy_proto=use_proxy_proto,
             **kwargs)
 
         self.redirect_listener: bool = redirect_listener
-        self.require_tls: bool = require_tls
+        # self.require_tls: bool = require_tls
 
     def pretty(self) -> str:
         ctx = self.get('context', None)
@@ -162,7 +162,7 @@ class ListenerFactory:
                 ir=ir, aconf=aconf, location=host.location,
                 service_port=amod.service_port,
                 hostname=hostname,
-                require_tls=amod.get('x_forwarded_proto_redirect', False),
+                # require_tls=amod.get('x_forwarded_proto_redirect', False),
                 use_proxy_proto=amod.use_proxy_proto,
                 context=ctx,
                 secure_action='Route',
@@ -202,7 +202,7 @@ class ListenerFactory:
                 ir=ir, aconf=aconf, location=ctx.location,
                 service_port=amod.service_port,
                 hostname=hostname,
-                require_tls=amod.get('x_forwarded_proto_redirect', False),
+                # require_tls=amod.get('x_forwarded_proto_redirect', False),
                 use_proxy_proto=amod.use_proxy_proto,
                 context=ctx,
                 secure_action='Route',
@@ -224,7 +224,7 @@ class ListenerFactory:
                 ir=ir, aconf=aconf, location=amod.location,
                 service_port=amod.service_port,
                 hostname='*',
-                require_tls=amod.get('x_forwarded_proto_redirect', False),
+                # require_tls=amod.get('x_forwarded_proto_redirect', False),
                 use_proxy_proto=amod.use_proxy_proto,
                 context=None,
                 secure_action='Route',
