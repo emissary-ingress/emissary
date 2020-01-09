@@ -73,13 +73,41 @@ func NameEncode(in string) string {
 
 // *grumble grumble* k8s.io/code-generator/cmd/deepcopy-gen *grumble*
 func deepCopyHost(in *ambassadorTypesV2.Host) *ambassadorTypesV2.Host {
-	b, _ := json.Marshal(in)
+	bs, err := json.Marshal(in)
+	if err != nil {
+		// 'in' is a valid object.  This should never happen.
+		panic(err)
+	}
+
 	var out ambassadorTypesV2.Host
-	_ = json.Unmarshal(b, &out)
+	if err := json.Unmarshal(bs, &out); err != nil {
+		// 'bs' is valid JSON, we just generated it.  This
+		// should never happen.
+		panic(err)
+	}
+
 	return &out
 }
 
-// unstructureMetadata marshals a *k8sTypesMetaV1.ObjectMeta for us
+// *grumble grumble* k8s.io/code-generator/cmd/deepcopy-gen *grumble*
+func deepCopyHostSpec(in *ambassadorTypesV2.HostSpec) *ambassadorTypesV2.HostSpec {
+	bs, err := json.Marshal(in)
+	if err != nil {
+		// 'in' is a valid object.  This should never happen.
+		panic(err)
+	}
+
+	var out ambassadorTypesV2.HostSpec
+	if err := json.Unmarshal(bs, &out); err != nil {
+		// 'bs' is valid JSON, we just generated it.  This
+		// should never happen.
+		panic(err)
+	}
+
+	return &out
+}
+
+// unstructureMetadata marshals a *k8sTypesMetaV1.ObjectMeta for use
 // in a `*k8sTypesUnstructured.Unstructured`.
 //
 // `*k8sTypesUnstructured.Unstructured` requires that the "metadata"
@@ -93,17 +121,19 @@ func unstructureMetadata(in *k8sTypesMetaV1.ObjectMeta) map[string]interface{} {
 		// 'in' is a valid object.  This should never happen.
 		panic(err)
 	}
+
 	if err := json.Unmarshal(bs, &metadata); err != nil {
-		// 'bs' is a valid JSON, we just generated it.  This
+		// 'bs' is valid JSON, we just generated it.  This
 		// should never happen.
 		panic(err)
 	}
+
 	return metadata
 }
 
 // unstructureHost returns a *k8sTypesUnstructured.Unstructured
-// representation of an *ambassadorTypesV2.Host.  There are a 2
-// reasons why we might want this:
+// representation of an *ambassadorTypesV2.Host.  There are 2 reasons
+// why we might want this:
 //
 //  1. For use with a k8sClientDynamic.Interface
 //  2. For use as a k8sRuntime.Object
