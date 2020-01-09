@@ -850,6 +850,10 @@ class V2Listener(dict):
         # (this is because Envoy's error reporting for SNI mismatches isn't very graceful).
         distinct_domains: Dict[str, bool] = {}
 
+        # Also, in Edge Stack, the magic extremely-low-precedence / Mapping is always routed,
+        # rather than being redirected. If a user doesn't want this behavior, they can override
+        # the Mapping.
+
         for irlistener in config.ir.listeners:
             logger.info(f"V2Listeners: working on {irlistener.pretty()}")
             # What port is this?
@@ -902,11 +906,15 @@ class V2Listener(dict):
             route_hostlist = route_sni.get('hosts', [])
             route_hosts = set(route_hostlist)
 
+            # Remember, also, if a precedence was set.
+            route_precedence = route.get('_precedence', None)
+
             logger.info(f"V2Listeners: route {json.dumps(dict(route), sort_keys=True, indent=4)}...")
 
-            # Build a cleaned-up version of this route without the '_sni' element...
+            # Build a cleaned-up version of this route without the '_sni' and '_precedence' elements...
             insecure_route = dict(route)
             insecure_route.pop('_sni', None)
+            insecure_route.pop('_precedence', None)
 
             # ...then copy _that_ so we can make a secured version with an explicit XFP check.
             #
@@ -978,6 +986,12 @@ class V2Listener(dict):
                                 logger.info(
                                     f"V2Listeners: {listener.name} {vhostname} insecure: force Route for ACME challenge")
                                 action = "Route"
+
+                                # Force the actual route entry, instead of using the redirect_route, too.
+                                # (Note that right now, the user can't create a Mapping that forces redirection.
+                                # When they can do this per-Mapping, well, really, we can't force them to not
+                                # redirect if they explicit ask for it, and that'll be OK.)
+                                route = insecure_route
                         elif route_hosts and (vhostname != '*') and (vhostname not in route_hosts):
                             # Drop this because the host is mismatched.
                             logger.info(
@@ -987,6 +1001,17 @@ class V2Listener(dict):
                             logger.info(
                                 f"V2Listeners: {listener.name} {vhostname} {variant}: Drop due to Reject action")
                             action = "Drop"
+                        elif (config.ir.edge_stack_allowed and
+                              (route["match"].get("prefix", None) == "/") and
+                              (route_precedence == -1000000)):
+                            logger.info(
+                                f"V2Listeners: {listener.name} {vhostname} {variant}: force Route for fallback Mapping")
+                            action = "Route"
+
+                            # Force the actual route entry, instead of using the redirect_route, too.
+                            # (If the user overrides the fallback with their own route at precedence -1000000,
+                            # uh.... y'know what, on their own head be it.)
+                            route = insecure_route
                         else:
                             logger.info(
                                 f"V2Listeners: {listener.name} {vhostname} {variant}: Accept as {action}")
