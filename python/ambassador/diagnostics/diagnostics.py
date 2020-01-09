@@ -472,6 +472,8 @@ class Diagnostics:
 
             serialization = rsrc.get('serialization', None)
             if serialization:
+                if ambassador_element["kind"] == "Secret":
+                    serialization = "kind: Secret\ndata: (elided by Ambassador)\n"
                 ambassador_element['serialization'] = serialization
 
         # Next up, the Envoy elements.
