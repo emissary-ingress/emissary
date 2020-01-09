@@ -1,14 +1,14 @@
 /*
- * ICollectionView
- * This is the Interface class to the CollectionView.
+ * IResourceCollectionView
+ * This is the Interface class to the ResourceCollectionView.
  */
 
-import { CollectionView } from "./collection_view.js"
+import { ResourceCollectionView } from "./collection_view.js"
 
-export class ICollectionView extends CollectionView {
+export class IResourceCollectionView extends ResourceCollectionView {
 
   /* properties()
-   * These are the properties of the CollectionView. LitElement manages these declared properties and
+   * These are the properties of the ResourceCollectionView. LitElement manages these declared properties and
    * provides various services depending on how they are used.  For further details on LitElement, see
    * https://lit-element.polymer-project.org/guide/properties
    */
@@ -26,22 +26,22 @@ export class ICollectionView extends CollectionView {
         ...
       };
 
-      return objectMerge(myProperties, CollectionView.properties());
+      return objectMerge(myProperties, ResourceCollectionView.properties());
      */
 
-    /* The interface simply returns the properties of the CollectionView. */
-    return CollectionView.properties;
+    /* The interface simply returns the properties of the ResourceCollectionView. */
+    return ResourceCollectionView.properties;
   }
 
   /* styles
-   * These are the styles of the CollectionView. LitElement allows each Element to provide
+   * These are the styles of the ResourceCollectionView. LitElement allows each Element to provide
    * additional css style specifications that are valid only for that LitElement.
    *
-   * The interface simply returns the styles of the CollectionView.
+   * The interface simply returns the styles of the ResourceCollectionView.
    */
 
   static get styles() {
-    return CollectionView.styles;
+    return ResourceCollectionView.styles;
   }
 
   /* constructor()

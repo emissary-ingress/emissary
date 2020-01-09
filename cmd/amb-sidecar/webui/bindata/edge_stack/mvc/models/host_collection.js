@@ -1,18 +1,18 @@
 /**
  * HostCollection
- * This is a Collection subclass for Host objects.  It simply defines the following methods:
+ * This is a ResourceCollection subclass for Host objects.  It simply defines the following methods:
  * - resourceClass() => return the Host class
  * - extractDataFrom(snapshot) => return a list of data objects representing Hosts for instantiation.
  *
- * * Everything else is implemented in Collection.
+ * * Everything else is implemented in ResourceCollection.
  */
 
-import { HostResource }  from "./host_resource.js"
-import { ICollection }   from "../interfaces/icollection.js";
+import { HostResource }          from "./host_resource.js"
+import { IResourceCollection }   from "../interfaces/iresource_collection.js";
 
-export class HostCollection extends ICollection {
+export class HostCollection extends IResourceCollection {
   /* constructor()
-  * call Collection's constructor.
+  * call IResourceCollection's constructor.
   */
   constructor() {
     super();

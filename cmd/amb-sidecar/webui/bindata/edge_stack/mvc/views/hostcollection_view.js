@@ -1,18 +1,18 @@
 /*
  * HostCollectionView
- * An ICollectionView concrete subclass that implements a view on a Collection of HostViews.
+ * An IResourceCollectionView concrete subclass that implements a view on a ResourceCollection of HostViews.
  */
 
-/* The Collection we're listening to. */
+/* The ResourceCollection we're listening to. */
 import { AllHosts } from "../models/host_collection.js"
 
-/* The HostView that will be rendered in the CollectionView. */
+/* The HostView that will be rendered in the HostCollectionView. */
 import { HostView } from "./host_view.js"
 
-/* CollectionView interface class */
-import { ICollectionView } from './icollection_view.js'
+/* ResourceCollectionView interface class */
+import { IResourceCollectionView } from './iresourcecollection_view.js'
 
-export class HostCollectionView extends ICollectionView {
+export class HostCollectionView extends IResourceCollectionView {
 
   /* properties()
    * These are the properties of the HoatCollectionView. LitElement manages these declared properties and
@@ -21,7 +21,7 @@ export class HostCollectionView extends ICollectionView {
    */
 
   static get properties() {
-    return ICollectionView.properties;
+    return IResourceCollectionView.properties;
   }
 
   /* styles
@@ -30,7 +30,7 @@ export class HostCollectionView extends ICollectionView {
    */
 
   static get styles() {
-    return ICollectionView.styles;
+    return IResourceCollectionView.styles;
    }
 
   /* constructor()

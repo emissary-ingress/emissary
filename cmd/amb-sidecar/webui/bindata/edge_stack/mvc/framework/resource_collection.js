@@ -1,18 +1,20 @@
 /**
- * Collection
+ * ResourceCollection
  * This is a Model subclass that monitors the snapshot data and keeps a consistent set of Resource objects
  * that mirror the actual model data in the snapshot.
  *
- * The ICollection interface class, which inherits from Collection, defines the three required methods for
- * creating specialized subclasses of Collection: resourceClass(), uniqueKeyFor(data), and extractDataFrom(snapshot).
+ * The IResourceCollection interface class, which inherits from ResourceCollection, defines the three required methods
+ * for creating specialized subclasses of ResourceCollection:
  *
- * See ICollection for further details.
+ * resourceClass(), uniqueKeyFor(data), and extractDataFrom(snapshot).
+ *
+ * See IResourceCollection for further details.
  */
 
 import { Model }    from "./model.js";
 import { Snapshot } from "../../components/snapshot.js";
 
-export class Collection extends Model {
+export class ResourceCollection extends Model {
 
   /* constructor()
    * Create a map to hold the collection of resources, and subscribe to Snapshot changes.

@@ -1,17 +1,17 @@
 /*
- * CollectionView
+ * ResourceCollectionView
  * A LitElement subclass that implements a generic view on a sortable list of Views.
- * This class listens to a Collection of Resources, and adds/removes views on those Resources
+ * This class listens to a ResourceCollection, and adds/removes views on those Resources
  * as needed.
  */
 
 /* LitElement superclass. */
 import { LitElement, html, css } from '../../vendor/lit-element.min.js'
 
-export class CollectionView extends LitElement {
+export class ResourceCollectionView extends LitElement {
 
   /* properties()
-   * These are the properties of the CollectionView. LitElement manages these declared properties and
+   * These are the properties of the ResourceCollectionView. LitElement manages these declared properties and
    * provides various services depending on how they are used.  For further details on LitElement, see
    * https://lit-element.polymer-project.org/guide/properties
    */
@@ -25,7 +25,7 @@ export class CollectionView extends LitElement {
   }
 
   /* styles
-   * These are the styles of the CollectionView. LitElement allows each Element to provide
+   * These are the styles of the ResourceCollectionView. LitElement allows each Element to provide
    * additional css style specifications that are valid only for that LitElement.
    */
 
@@ -47,7 +47,7 @@ export class CollectionView extends LitElement {
     `
   }
   /* constructor()
-   * model is the Collection that is being rendered by this CollectionView.
+   * model is the ResourceCollection that is being rendered by this ResourceCollectionView.
    */
 
   constructor() {

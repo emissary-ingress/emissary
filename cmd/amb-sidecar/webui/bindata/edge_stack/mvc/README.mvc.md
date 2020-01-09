@@ -72,10 +72,10 @@ we can make naviation much easier and in general, help new users become advanced
  
 ### Resource, ResourceView, and ResourceListView
  
-There are two Model interfaces (`IResource` and `ICollection`) and two corresponding View interfaces
+There are two Model interfaces (`IResource` and `IResourceCollection`) and two corresponding View interfaces
 (`IResourceView` and `IResourceListView`) that are extended via concrete class implementations to define web
 components that work with each other.  `IResourceView` is a view on a single `Resource` and `IResourceListView`
-is a view on a `Collection` of `Resources`, both web components that work with each other.  For example, a
+is a view on a `ResourceCollection`, both web components that work with each other.  For example, a
 `HostView` would extend `IResourceView` and define the layout and interaction behavior for a `HostResource`.
 A list of hosts, a `HostListView`, is implemented by extending `IResourceListView`, whose model is an instance
 of `HostCollection`.
@@ -122,7 +122,7 @@ mvc            - toplevel directory, under edge_stack
 
 #### framework
 
-The basic functionality for `Model`, `Collection` and `Resource` classes is defined in
+The basic functionality for `Model`, `ResourceCollection` and `Resource` classes is defined in
 this directory. These are the internal classes of the framework and should not need to
 be modified or overridden.
  
@@ -137,15 +137,15 @@ distinguish from concrete classes that do define state and behavior.
 
 Kubernetes CRD resources will be represented by subclass implementations of `IResource`, 
 such as `HostResource` representing a Host CRD.  Similarly, collections of these resources 
-will be implemented by subclassing `ICollection`, such as `HostCollection` (a collection 
+will be implemented by subclassing `IResourceCollection`, such as `HostCollection` (a collection 
 of `HostResource` objects).
 
 #### models
 
-User/developer code goes here for models, subclasses of `IResource` and `ICollection`.  
+User/developer code goes here for models, subclasses of `IResource` and `IResourceCollection`.  
 For example, the `HostResource` and `HostCollection` classes are models of the Hosts CRDs
 and are useful for understanding how one writes concrete implementations of `IResource`
-and `ICollection` classes.
+and `IResourceCollection` classes.
 
 #### tests
 
@@ -161,7 +161,7 @@ User/developer code goes here for `Views`, subclasses of `LitElement`.  (TBD in 
 
 The following are the basic classes that make up the MVC foundation.
 
-As previously mentioned, developers will be subclassing the interfaces `IResource` and `ICollection`, 
+As previously mentioned, developers will be subclassing the interfaces `IResource` and `IResourceCollection`, 
 implementing the methods that are required.
 
 #### The MVC Class Hierarchy
@@ -169,37 +169,38 @@ implementing the methods that are required.
 The following is the class hierarchy, starting with `Model`, and including both concrete and interface classes.
 
 ```
-Model                  - implements the behavior for notifying listeners
-  Resource             - implements basic Resource state and behavior
-    IResource          - defines the interface for extending to new Resource kinds
-      HostResource     - a concrete implementation of a Host resource
+Model                     - implements the behavior for notifying listeners
+  Resource                - implements basic Resource state and behavior
+    IResource             - defines the interface for extending to new Resource kinds
+      HostResource        - a concrete implementation of a Host resource
       
-  Collection           - implements the behavior and state for maintaining a collection of unique Resources
-    ICollection        - defines the interface for extending to new Collections of Resources
-      HostCollection   - a concrete implementation of a HostResource Collection
+  ResourceCollection      - implements the behavior and state for maintaining a collection of unique Resources
+    IResourceCollection   - defines the interface for extending to new ResourceCollections
+      HostCollection      - a concrete implementation of a HostResource ResourceCollection
 
-View                   - implements basic behavior: handling Model notifications and rendering. 
-  ResourceView         - implements basic behavior, standard Resource state. 
-    IResourceView      - defines the interface for extending Resource reading, writing, and validation
-      HostView         - a concrete implementation of a HostResource view
+View                      - implements basic behavior: handling Model notifications and rendering. 
+  ResourceView            - implements basic behavior, standard Resource state. 
+    IResourceView         - defines the interface for extending Resource reading, writing, and validation
+      HostView            - a concrete implementation of a HostResource view
 
-CollectionView         - implements basic behavior: handling Model notifications, rendering a sortable list of Views.
-  ICollectionView      - defines the interface for extending the CollectionView
-    HostCollectionView - implements the Host-specific CollectionView behavior
+ResourceCollectionView    - implements basic behavior: handling Model notifications, rendering a sortable list of Views.
+  IResourceCollectionView - defines the interface for extending the ResourceCollectionView
+    HostCollectionView    - implements the Host-specific ResourceCollectionView behavior
 ```
 
 
 #### Model and its subclasses
 
-The following simply provides an overview of the actual implementations of `Model`, `Resource`, and `Collection`,
-and their interface classes `IResource` and `ICollection`.  Users will typically need only to subclass from
-`IResource` and `ICollection`; the framework and interface classes will not be modified.
+The following simply provides an overview of the actual implementations of `Model`, `Resource`, and `ResourceCollection`,
+and their interface classes `IResource` and `IResourceCollection`.  Users will typically need only to subclass from
+`IResource` and `IResourceCollection`; the framework and interface classes will not be modified.
 
 For more detail on these implementations, see the source code in the `mvc/framework` and `mvc/interfaces`
 directories.
 
 ##### Model
-The `Model` class simply defines methods for managing a group of `Listeners` that may be notified when desired.
+The `Model` class simply defines methods for managing a group of listeners that may be notified when desired.
+A listener is simply an object that defines the method `onModelNotification(model, message, parameter)`.
 As a framework class, this will not be subclassed by the user.
 
 ```
@@ -247,29 +248,29 @@ class IResource extends Resource {
 }
 ```
 
-##### Collection
+##### ResourceCollection
 
-The `Collection` class extends the `Model`, so it can have `Listeners`.  It subscribes to the snapshot service, 
+The `ResourceCollection` class extends the `Model`, so it can have listeners.  It subscribes to the snapshot service, 
 extracts data from the snapshot when notified, and creates, modifies, or deletes `Resource` objects that it maintains
-in the `Collection`.
+in the `ResourceCollection`.
 
 ```
-class Collection extends Model {
+class ResourceCollection extends Model {
   constructor()
   onSnapshotChange(snapshot)
 }
 ```
 
-##### ICollection
+##### IResourceCollection
 
-The `ICollection` interface is subclassed when defining a collection of a specific kind of `Resource`.  It requires
-subclasses to identify the class of the Resources in the collection (e.g. a Host), to be able to create a special
-string key from snapshot data that is unique for that individual `Resource` instance, and to extract data from
+The `IResourceCollection` interface is subclassed when defining a collection of a specific kind of `Resource`.
+It requires subclasses to identify the class of the Resources in the collection (e.g. a Host), to be able to create
+a special string key from snapshot data that is unique for that individual `Resource` instance, and to extract data from
 the snapshot to pass to a `Resource` constructor for initializing a new `Resource`, or to an existing `Resource` in
 the collection for updating that `Resource`'s state.
 
 ```
-class ICollection extends Collection {
+class IResourceCollection extends ResourceCollection {
   constructor()
   resourceClass()
   uniqueKeyFor(data)
@@ -280,9 +281,9 @@ class ICollection extends Collection {
 #### View and its subclasses
 
 The following simply provides an overview of the actual implementations of `View`, `ResourceView`, and
-`ResourceListView`,  and their interface classes `IView` and `IResourceView`.  Users will typically need
+`ResourceCollectionView`,  and their interface classes `IView` and `IResourceView`.  Users will typically need
 only to subclass from `IResourceView` and `IResourceListView`; the framework and interface classes will not
-be modified.
+be modified. (TBD: names are incorrect here)
 
 For more detail on these implementations, see the source code in the `mvc/framework` and `mvc/interfaces`
 directories.

@@ -1,8 +1,8 @@
 /**
- * ICollection
- * This is the Interface class for Collection.
+ * IResourceCollection
+ * This is the Interface class for ResourceCollection.
  *
- * ICollection subclasses, such as HostCollection, need only define three methods to specialize:
+ * IResourceCollection subclasses, such as HostCollection, need only define three methods to specialize:
  *
  * - extractResourcesFrom(snapshot)
  *   this method is responsible for finding the right place in the snapshot to extract data objects that are used
@@ -13,18 +13,18 @@
  *
  * - uniqueKeyFor(resourceData)
  *   this method computes a unique key for the collection's Resource, to determine whether the Resource described
- *   by the data block has already been initialized and stored in the Collection.
+ *   by the data block has already been initialized and stored in the ResourceCollection.
  *
  * Most Resources (CRD's) have the same data formats but there are other objects in the snapshot that
  * are not CRD's, have different structure, and are not in the same part of the snapshot (e.g. Resolvers).
  *
  * Listeners will be notified when Models are added, updated, or removed from the collection.  The collection's
- * listeners are generally Views.
+ * listeners are generally Views, which implement the method onModelNotification(model, message, parameter).
  */
 
-import { Collection } from "../framework/collection.js";
+import { ResourceCollection } from "../framework/resource_collection.js";
 
-export class ICollection extends Collection {
+export class IResourceCollection extends ResourceCollection {
 
   /* ====================================================================================================
    *  These methods must be implemented by subclasses.
@@ -32,7 +32,7 @@ export class ICollection extends Collection {
    */
 
   /* constructor()
-   * Simply calls Collection to initialize the object state.
+   * Simply calls ResourceCollection to initialize the object state.
    */
   constructor() {
     super();
@@ -40,8 +40,8 @@ export class ICollection extends Collection {
 
   /* extractResourcesFrom(snapshot)
    * Given a snapshot as received from the backend via snapshot.js, return a list of resource data blocks
-   * given the resource's class name (e.g. Host, Mapping, Filter...).  Since this is a Collection superclass
-   * from which other Collection classes will inherit, they must implement their own extractResourcesFrom methods.
+   * given the resource's class name (e.g. Host, Mapping, Filter...).  Since this is a ResourceCollection superclass
+   * from which other ResourceCollection classes will inherit, they must implement their own extractResourcesFrom methods.
    */
 
   extractResourcesFrom(snapshot) {
@@ -59,7 +59,7 @@ export class ICollection extends Collection {
   /* uniqueKeyFor(resourceData)
    * Return a computed modelKey given some structured resource data (a hierarchical key/value
    * structure).  This is a method that is given the data block from a snapshot and returns
-   * the unique key for that data.  Each Collection subclass will know the structure and extract
+   * the unique key for that data.  Each ResourceCollection subclass will know the structure and extract
    * the appropriate information to create the Resource's key.  This is needed for identity in a
    * collection of Resources.
    */
