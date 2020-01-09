@@ -7,7 +7,6 @@
 
 /* LitElement superclass. */
 import { LitElement, html, css } from '../../vendor/lit-element.min.js'
-import {HostView} from "./host_view";
 
 export class ResourceCollectionView extends LitElement {
 
