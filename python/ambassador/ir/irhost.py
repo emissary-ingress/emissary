@@ -59,10 +59,7 @@ class IRHost(IRResource):
                     # OK, we have a TLS secret! Fire up a TLS context for it, if one doesn't
                     # already exist, and if the ACME provider isn't set to "none".
 
-                    acme = self.get("acmeProvider") or None
-
-                    if not acme:
-                        acme = self.get("acme_provider") or {}
+                    acme = self.get("acmeProvider") or {}
 
                     acme_authority = acme.get('authority') or 'none'
 
@@ -79,7 +76,7 @@ class IRHost(IRResource):
                                 name=ctx_name,
                                 namespace=self.namespace,
                                 location=self.location,
-                                hosts=[ self.hostname ],
+                                hosts=[ self.hostname or self.name ],
                                 secret=tls_name
                             )
 

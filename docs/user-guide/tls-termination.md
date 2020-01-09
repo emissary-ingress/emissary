@@ -97,7 +97,7 @@ If the output to the `kubectl` command is not similar to the example above, edit
 After verifying Ambassador Edge Stack is listening on port 443, send a request to your backend service with curl:
 
 ```
-curl -k https://{{AMBASSADOR_IP}}/backend/
+curl -Lk https://{{AMBASSADOR_IP}}/backend/
 
 {
     "server": "trim-kumquat-fccjxh8x",
