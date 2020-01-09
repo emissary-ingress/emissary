@@ -74,7 +74,7 @@ class Config:
         'logservice': "log_services",
     }
 
-    KnativeResources = { 'ClusterIngress', 'KnativeIngress' }
+    KnativeResources = { 'clusteringress', 'knativeingress' }
 
     SupportedVersions: ClassVar[Dict[str, str]] = {
         "v0": "is deprecated, consider upgrading",
