@@ -33,8 +33,8 @@ DOCKER_RUN=${DOCKER_RUN:-docker run}
 # note: use your local k3d/microk8s/kind network for running tests
 DOCKER_NETWORK=${DOCKER_NETWORK:-${BUILDER_NAME}}
 
-builder() { docker ps -q -f label=builder -f label=${BUILDER_NAME}; }
-builder_network() { docker network ls -q -f name=${DOCKER_NETWORK}; }
+builder() { docker ps -q -f label=builder -f label="${BUILDER_NAME}"; }
+builder_network() { docker network ls -q -f name="${DOCKER_NETWORK}"; }
 
 builder_volume() { docker volume ls -q -f label=builder; }
 
@@ -61,7 +61,7 @@ bootstrap() {
     fi
 
     if [ -z "$(builder_network)" ]; then
-        docker network create ${DOCKER_NETWORK} > /dev/null
+        docker network create "${DOCKER_NETWORK}" > /dev/null
         printf "${GRN}Created docker network ${BLU}${DOCKER_NETWORK}${END}\n"
     else
         printf "${GRN}Connecting to existing network ${BLU}${DOCKER_NETWORK}${GRN}${END}\n"
@@ -81,7 +81,7 @@ bootstrap() {
         fi
 
         echo_on
-        $DOCKER_RUN --network ${DOCKER_NETWORK} --network-alias "builder" --group-add ${DOCKER_GID} -d --rm -v /var/run/docker.sock:/var/run/docker.sock -v $(builder_volume):/home/dw ${BUILDER_MOUNTS} --cap-add NET_ADMIN -lbuilder -l${BUILDER_NAME} ${BUILDER_PORTMAPS} -e BUILDER_NAME=${BUILDER_NAME} --entrypoint tail builder -f /dev/null > /dev/null
+        $DOCKER_RUN --network "${DOCKER_NETWORK}" --network-alias "builder" --group-add ${DOCKER_GID} -d --rm -v /var/run/docker.sock:/var/run/docker.sock -v $(builder_volume):/home/dw ${BUILDER_MOUNTS} --cap-add NET_ADMIN -lbuilder -l${BUILDER_NAME} ${BUILDER_PORTMAPS} -e BUILDER_NAME=${BUILDER_NAME} --entrypoint tail builder -f /dev/null > /dev/null
         echo_off
 
         printf "${GRN}Started build container ${BLU}$(builder)${END}\n"
@@ -282,7 +282,7 @@ case "${cmd}" in
         # This runs inside the builder image
         for MODDIR in $(find-modules); do
             module=$(basename ${MODDIR})
-            eval "$(grep BUILD_VERSION apro.version 2>/dev/null)" # this will `eval ''` for OSS-only builds, leaving BUILD_VERSION unset; don't embed the version-number in OSS Go binaries
+            eval "$(grep BUILD_VERSION apro.version 2>/dev/null)" # this will `eval ''` for OSS-only builds, leaving BUILD_VERSION unset; dont embed the version-number in OSS Go binaries
 
             if [ -e ${module}.dirty ]; then
                 if [ -e "${MODDIR}/go.mod" ]; then
