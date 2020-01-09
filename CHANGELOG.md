@@ -47,6 +47,15 @@ Format:
 --->
 
 <!--- CueAddReleaseNotes --->
+## [1.0.0-ea13] January 09, 2020
+[1.0.0-ea13]: https://github.com/datawire/ambassador/compare/v0.86.0...v1.0.0-ea13
+
+- Bugfix: Knative mappings populate and fallback to the ambassador namespace if unspecified
+- Internal: Knative tests for versions 0.7.1 and 0.8.0 were removed
+- Internal: Knative tests version 0.11.0 were added
+- Internal: /ambassador/v0/diag/ supports an optional `patch_client` query param to send a partial representation in JSON Patch format
+- Internal: Silencing warnings from `which` in docs preflight-check
+
 ## [1.0.0-ea12] January 08, 2020
 [1.0.0-ea12]: https://github.com/datawire/ambassador/compare/v0.86.0...v1.0.0-ea12
 
