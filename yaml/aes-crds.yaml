@@ -79,6 +79,8 @@ spec:
     plural: hosts
     singular: host
   scope: Namespaced
+  subresources:
+    status: {}
   version: v2
   versions:
   - name: v2
