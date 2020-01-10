@@ -97,6 +97,16 @@ update-yaml: update-yaml-locally preflight-docs
 	fi
 .PHONY: update-yaml
 
+release/bits: release/bits/aes-plugin-runner
+release/bits/aes-plugin-runner: bin_linux_amd64/aes-plugin-runner bin_darwin_amd64/aes-plugin-runner
+	aws s3 cp --acl public-read bin_linux_amd64/aes-plugin-runner 's3://datawire-static-files/aes-plugin-runner/$(RELEASE_VERSION)/linux/amd64/aes-plugin-runner'
+	aws s3 cp --acl public-read bin_darwin_amd64/aes-plugin-runner 's3://datawire-static-files/aes-plugin-runner/$(RELEASE_VERSION)/darwin/amd64/aes-plugin-runner'
+bin_linux_amd64/aes-plugin-runner: FORCE
+	mkdir -p $(@D)
+	docker cp $$($(BUILDER)):/buildroot/bin/aes-plugin-runner $@
+bin_darwin_amd64/aes-plugin-runner: FORCE
+	mkdir -p $(@D)
+	docker cp $$($(BUILDER)):/buildroot/bin-darwin/aes-plugin-runner $@
 
 final-push: preflight-docs
 	@if [ "$$(git push --tags --dry-run 2>&1)" != "Everything up-to-date" ]; then \
