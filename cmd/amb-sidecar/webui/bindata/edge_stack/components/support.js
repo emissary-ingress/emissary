@@ -131,9 +131,7 @@ img {
             </a></li>`
           : html `
            <li>
-             <!-- TODO: after Early-Access, change the link back to the github support -->
-             <!--<a href="https://www.getambassador.io/contact" target="_blank">-->
-             <a href="mailto:support@datawire.io" target="_blank">
+             <a href="https://www.getambassador.io/contact" target="_blank">
               <img src="../images/logos/datawire-mark.png" alt=""/>
               <span>Contact Ambassador</span>
              </a>
