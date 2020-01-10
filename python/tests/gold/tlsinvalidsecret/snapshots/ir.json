@@ -45,7 +45,7 @@
         "xff_num_trusted_hops": 0
     },
     "clusters": {
-        "cluster_127_0_0_1_8877": {
+        "cluster_127_0_0_1_8877_default": {
             "_active": true,
             "_errored": false,
             "_hostname": "127.0.0.1",
@@ -55,7 +55,7 @@
                 "--internal--"
             ],
             "_resolver": "kubernetes-service",
-            "_rkey": "cluster_127_0_0_1_8877",
+            "_rkey": "cluster_127_0_0_1_8877_default",
             "connect_timeout_ms": 3000,
             "enable_endpoints": false,
             "enable_ipv4": true,
@@ -64,7 +64,7 @@
             "kind": "IRCluster",
             "lb_type": "round_robin",
             "location": "--internal--",
-            "name": "cluster_127_0_0_1_8877",
+            "name": "cluster_127_0_0_1_8877_default",
             "namespace": "default",
             "service": "127.0.0.1:8877",
             "targets": [
@@ -79,7 +79,7 @@
                 "tcp://127.0.0.1:8877"
             ]
         },
-        "cluster_tlsinvalidsecret_http": {
+        "cluster_tlsinvalidsecret_http_default": {
             "_active": true,
             "_errored": false,
             "_hostname": "tlsinvalidsecret-http",
@@ -89,7 +89,7 @@
                 "tlsinvalidsecret-http.default.1"
             ],
             "_resolver": "kubernetes-service",
-            "_rkey": "cluster_tlsinvalidsecret_http",
+            "_rkey": "cluster_tlsinvalidsecret_http_default",
             "connect_timeout_ms": 3000,
             "enable_endpoints": false,
             "enable_ipv4": true,
@@ -98,7 +98,7 @@
             "kind": "IRCluster",
             "lb_type": "round_robin",
             "location": "tlsinvalidsecret-http.default.1",
-            "name": "cluster_tlsinvalidsecret_http",
+            "name": "cluster_tlsinvalidsecret_http_default",
             "namespace": "default",
             "service": "tlsinvalidsecret-http",
             "targets": [
@@ -175,7 +175,7 @@
                             "--internal--"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_127_0_0_1_8877",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -184,7 +184,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "--internal--",
-                        "name": "cluster_127_0_0_1_8877",
+                        "name": "cluster_127_0_0_1_8877_default",
                         "namespace": "default",
                         "service": "127.0.0.1:8877",
                         "targets": [
@@ -265,7 +265,7 @@
                             "--internal--"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_127_0_0_1_8877",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -274,7 +274,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "--internal--",
-                        "name": "cluster_127_0_0_1_8877",
+                        "name": "cluster_127_0_0_1_8877_default",
                         "namespace": "default",
                         "service": "127.0.0.1:8877",
                         "targets": [
@@ -355,7 +355,7 @@
                             "--internal--"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_127_0_0_1_8877",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -364,7 +364,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "--internal--",
-                        "name": "cluster_127_0_0_1_8877",
+                        "name": "cluster_127_0_0_1_8877_default",
                         "namespace": "default",
                         "service": "127.0.0.1:8877",
                         "targets": [
@@ -442,7 +442,7 @@
                             "tlsinvalidsecret-http.default.1"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_tlsinvalidsecret_http",
+                        "_rkey": "cluster_tlsinvalidsecret_http_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -451,7 +451,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "tlsinvalidsecret-http.default.1",
-                        "name": "cluster_tlsinvalidsecret_http",
+                        "name": "cluster_tlsinvalidsecret_http_default",
                         "namespace": "default",
                         "service": "tlsinvalidsecret-http",
                         "targets": [
@@ -487,7 +487,7 @@
                         "/tls-target/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: tlsinvalidsecret\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: tlsinvalidsecret\n  scope: AmbassadorTest\nname: tls_target_mapping\nprefix: /tls-target/\nservice: tlsinvalidsecret-http\n",
+                    "serialization": "ambassador_id: tlsinvalidsecret\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: tlsinvalidsecret\n  scope: AmbassadorTest\nname: tls_target_mapping\nnamespace: default\nprefix: /tls-target/\nservice: tlsinvalidsecret-http\n",
                     "service": "tlsinvalidsecret-http",
                     "weight": 100
                 }
@@ -501,7 +501,7 @@
             "precedence": 0,
             "prefix": "/tls-target/",
             "rewrite": "/",
-            "serialization": "ambassador_id: tlsinvalidsecret\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: tlsinvalidsecret\n  scope: AmbassadorTest\nname: tls_target_mapping\nprefix: /tls-target/\nservice: tlsinvalidsecret-http\n"
+            "serialization": "ambassador_id: tlsinvalidsecret\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: tlsinvalidsecret\n  scope: AmbassadorTest\nname: tls_target_mapping\nnamespace: default\nprefix: /tls-target/\nservice: tlsinvalidsecret-http\n"
         }
     ],
     "grpc_services": {},
@@ -524,7 +524,6 @@
             "name": "ir.listener",
             "namespace": "default",
             "redirect_listener": false,
-            "require_tls": false,
             "secure_action": "Route",
             "service_port": 8080,
             "use_proxy_proto": false

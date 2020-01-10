@@ -58,7 +58,7 @@
         "xff_num_trusted_hops": 0
     },
     "clusters": {
-        "cluster_127_0_0_1_8877": {
+        "cluster_127_0_0_1_8877_default": {
             "_active": true,
             "_errored": false,
             "_hostname": "127.0.0.1",
@@ -68,7 +68,7 @@
                 "acceptancegrpcbridgetest.default.1"
             ],
             "_resolver": "kubernetes-service",
-            "_rkey": "cluster_127_0_0_1_8877",
+            "_rkey": "cluster_127_0_0_1_8877_default",
             "connect_timeout_ms": 3000,
             "enable_endpoints": false,
             "enable_ipv4": true,
@@ -77,7 +77,7 @@
             "kind": "IRCluster",
             "lb_type": "round_robin",
             "location": "acceptancegrpcbridgetest.default.1",
-            "name": "cluster_127_0_0_1_8877",
+            "name": "cluster_127_0_0_1_8877_default",
             "namespace": "default",
             "service": "127.0.0.1:8877",
             "targets": [
@@ -92,7 +92,7 @@
                 "tcp://127.0.0.1:8877"
             ]
         },
-        "cluster_acceptancegrpcbridgetest_egrpc": {
+        "cluster_acceptancegrpcbridgetest_egrpc_default": {
             "_active": true,
             "_errored": false,
             "_hostname": "acceptancegrpcbridgetest-egrpc",
@@ -102,7 +102,7 @@
                 "acceptancegrpcbridgetest.default.2"
             ],
             "_resolver": "kubernetes-service",
-            "_rkey": "cluster_acceptancegrpcbridgetest_egrpc",
+            "_rkey": "cluster_acceptancegrpcbridgetest_egrpc_default",
             "connect_timeout_ms": 3000,
             "enable_endpoints": false,
             "enable_ipv4": true,
@@ -112,7 +112,7 @@
             "kind": "IRCluster",
             "lb_type": "round_robin",
             "location": "acceptancegrpcbridgetest.default.2",
-            "name": "cluster_acceptancegrpcbridgetest_egrpc",
+            "name": "cluster_acceptancegrpcbridgetest_egrpc_default",
             "namespace": "default",
             "service": "acceptancegrpcbridgetest-egrpc",
             "targets": [
@@ -199,7 +199,7 @@
                             "acceptancegrpcbridgetest.default.1"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_127_0_0_1_8877",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -208,7 +208,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "acceptancegrpcbridgetest.default.1",
-                        "name": "cluster_127_0_0_1_8877",
+                        "name": "cluster_127_0_0_1_8877_default",
                         "namespace": "default",
                         "service": "127.0.0.1:8877",
                         "targets": [
@@ -289,7 +289,7 @@
                             "acceptancegrpcbridgetest.default.1"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_127_0_0_1_8877",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -298,7 +298,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "acceptancegrpcbridgetest.default.1",
-                        "name": "cluster_127_0_0_1_8877",
+                        "name": "cluster_127_0_0_1_8877_default",
                         "namespace": "default",
                         "service": "127.0.0.1:8877",
                         "targets": [
@@ -377,7 +377,7 @@
                             "acceptancegrpcbridgetest.default.2"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_acceptancegrpcbridgetest_egrpc",
+                        "_rkey": "cluster_acceptancegrpcbridgetest_egrpc_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -387,7 +387,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "acceptancegrpcbridgetest.default.2",
-                        "name": "cluster_acceptancegrpcbridgetest_egrpc",
+                        "name": "cluster_acceptancegrpcbridgetest_egrpc_default",
                         "namespace": "default",
                         "service": "acceptancegrpcbridgetest-egrpc",
                         "targets": [
@@ -425,7 +425,7 @@
                         "/echo.EchoService/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: acceptancegrpcbridgetest\napiVersion: ambassador/v0\ngrpc: true\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: acceptancegrpcbridgetest\n  scope: AmbassadorTest\nname: acceptancegrpcbridgetest-egrpc\nprefix: /echo.EchoService/\nrewrite: /echo.EchoService/\nservice: acceptancegrpcbridgetest-egrpc\n",
+                    "serialization": "ambassador_id: acceptancegrpcbridgetest\napiVersion: ambassador/v0\ngrpc: true\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: acceptancegrpcbridgetest\n  scope: AmbassadorTest\nname: acceptancegrpcbridgetest-egrpc\nnamespace: default\nprefix: /echo.EchoService/\nrewrite: /echo.EchoService/\nservice: acceptancegrpcbridgetest-egrpc\n",
                     "service": "acceptancegrpcbridgetest-egrpc",
                     "weight": 100
                 }
@@ -440,7 +440,7 @@
             "precedence": 0,
             "prefix": "/echo.EchoService/",
             "rewrite": "/echo.EchoService/",
-            "serialization": "ambassador_id: acceptancegrpcbridgetest\napiVersion: ambassador/v0\ngrpc: true\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: acceptancegrpcbridgetest\n  scope: AmbassadorTest\nname: acceptancegrpcbridgetest-egrpc\nprefix: /echo.EchoService/\nrewrite: /echo.EchoService/\nservice: acceptancegrpcbridgetest-egrpc\n"
+            "serialization": "ambassador_id: acceptancegrpcbridgetest\napiVersion: ambassador/v0\ngrpc: true\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: acceptancegrpcbridgetest\n  scope: AmbassadorTest\nname: acceptancegrpcbridgetest-egrpc\nnamespace: default\nprefix: /echo.EchoService/\nrewrite: /echo.EchoService/\nservice: acceptancegrpcbridgetest-egrpc\n"
         },
         {
             "_active": true,
@@ -479,7 +479,7 @@
                             "acceptancegrpcbridgetest.default.1"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_127_0_0_1_8877",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -488,7 +488,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "acceptancegrpcbridgetest.default.1",
-                        "name": "cluster_127_0_0_1_8877",
+                        "name": "cluster_127_0_0_1_8877_default",
                         "namespace": "default",
                         "service": "127.0.0.1:8877",
                         "targets": [
@@ -553,7 +553,6 @@
             "name": "ir.listener",
             "namespace": "default",
             "redirect_listener": false,
-            "require_tls": false,
             "secure_action": "Route",
             "service_port": 8080,
             "use_proxy_proto": false

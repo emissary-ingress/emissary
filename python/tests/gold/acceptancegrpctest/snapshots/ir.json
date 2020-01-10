@@ -45,7 +45,7 @@
         "xff_num_trusted_hops": 0
     },
     "clusters": {
-        "cluster_127_0_0_1_8877": {
+        "cluster_127_0_0_1_8877_default": {
             "_active": true,
             "_errored": false,
             "_hostname": "127.0.0.1",
@@ -55,7 +55,7 @@
                 "--internal--"
             ],
             "_resolver": "kubernetes-service",
-            "_rkey": "cluster_127_0_0_1_8877",
+            "_rkey": "cluster_127_0_0_1_8877_default",
             "connect_timeout_ms": 3000,
             "enable_endpoints": false,
             "enable_ipv4": true,
@@ -64,7 +64,7 @@
             "kind": "IRCluster",
             "lb_type": "round_robin",
             "location": "--internal--",
-            "name": "cluster_127_0_0_1_8877",
+            "name": "cluster_127_0_0_1_8877_default",
             "namespace": "default",
             "service": "127.0.0.1:8877",
             "targets": [
@@ -79,7 +79,7 @@
                 "tcp://127.0.0.1:8877"
             ]
         },
-        "cluster_acceptancegrpctest_egrpc": {
+        "cluster_acceptancegrpctest_egrpc_default": {
             "_active": true,
             "_errored": false,
             "_hostname": "acceptancegrpctest-egrpc",
@@ -89,7 +89,7 @@
                 "acceptancegrpctest.default.1"
             ],
             "_resolver": "kubernetes-service",
-            "_rkey": "cluster_acceptancegrpctest_egrpc",
+            "_rkey": "cluster_acceptancegrpctest_egrpc_default",
             "connect_timeout_ms": 3000,
             "enable_endpoints": false,
             "enable_ipv4": true,
@@ -99,7 +99,7 @@
             "kind": "IRCluster",
             "lb_type": "round_robin",
             "location": "acceptancegrpctest.default.1",
-            "name": "cluster_acceptancegrpctest_egrpc",
+            "name": "cluster_acceptancegrpctest_egrpc_default",
             "namespace": "default",
             "service": "acceptancegrpctest-egrpc",
             "targets": [
@@ -176,7 +176,7 @@
                             "--internal--"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_127_0_0_1_8877",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -185,7 +185,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "--internal--",
-                        "name": "cluster_127_0_0_1_8877",
+                        "name": "cluster_127_0_0_1_8877_default",
                         "namespace": "default",
                         "service": "127.0.0.1:8877",
                         "targets": [
@@ -266,7 +266,7 @@
                             "--internal--"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_127_0_0_1_8877",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -275,7 +275,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "--internal--",
-                        "name": "cluster_127_0_0_1_8877",
+                        "name": "cluster_127_0_0_1_8877_default",
                         "namespace": "default",
                         "service": "127.0.0.1:8877",
                         "targets": [
@@ -354,7 +354,7 @@
                             "acceptancegrpctest.default.1"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_acceptancegrpctest_egrpc",
+                        "_rkey": "cluster_acceptancegrpctest_egrpc_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -364,7 +364,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "acceptancegrpctest.default.1",
-                        "name": "cluster_acceptancegrpctest_egrpc",
+                        "name": "cluster_acceptancegrpctest_egrpc_default",
                         "namespace": "default",
                         "service": "acceptancegrpctest-egrpc",
                         "targets": [
@@ -402,7 +402,7 @@
                         "/echo.EchoService/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: acceptancegrpctest\napiVersion: ambassador/v0\ngrpc: true\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: acceptancegrpctest\n  scope: AmbassadorTest\nname: acceptancegrpctest-egrpc\nprefix: /echo.EchoService/\nrewrite: /echo.EchoService/\nservice: acceptancegrpctest-egrpc\n",
+                    "serialization": "ambassador_id: acceptancegrpctest\napiVersion: ambassador/v0\ngrpc: true\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: acceptancegrpctest\n  scope: AmbassadorTest\nname: acceptancegrpctest-egrpc\nnamespace: default\nprefix: /echo.EchoService/\nrewrite: /echo.EchoService/\nservice: acceptancegrpctest-egrpc\n",
                     "service": "acceptancegrpctest-egrpc",
                     "weight": 100
                 }
@@ -417,7 +417,7 @@
             "precedence": 0,
             "prefix": "/echo.EchoService/",
             "rewrite": "/echo.EchoService/",
-            "serialization": "ambassador_id: acceptancegrpctest\napiVersion: ambassador/v0\ngrpc: true\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: acceptancegrpctest\n  scope: AmbassadorTest\nname: acceptancegrpctest-egrpc\nprefix: /echo.EchoService/\nrewrite: /echo.EchoService/\nservice: acceptancegrpctest-egrpc\n"
+            "serialization": "ambassador_id: acceptancegrpctest\napiVersion: ambassador/v0\ngrpc: true\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: acceptancegrpctest\n  scope: AmbassadorTest\nname: acceptancegrpctest-egrpc\nnamespace: default\nprefix: /echo.EchoService/\nrewrite: /echo.EchoService/\nservice: acceptancegrpctest-egrpc\n"
         },
         {
             "_active": true,
@@ -456,7 +456,7 @@
                             "--internal--"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_127_0_0_1_8877",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -465,7 +465,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "--internal--",
-                        "name": "cluster_127_0_0_1_8877",
+                        "name": "cluster_127_0_0_1_8877_default",
                         "namespace": "default",
                         "service": "127.0.0.1:8877",
                         "targets": [
@@ -530,7 +530,6 @@
             "name": "ir.listener",
             "namespace": "default",
             "redirect_listener": false,
-            "require_tls": false,
             "secure_action": "Route",
             "service_port": 8080,
             "use_proxy_proto": false

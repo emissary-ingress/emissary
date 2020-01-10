@@ -49,7 +49,7 @@
         "xff_num_trusted_hops": 0
     },
     "clusters": {
-        "cluster_127_0_0_1_8877": {
+        "cluster_127_0_0_1_8877_default": {
             "_active": true,
             "_errored": false,
             "_hostname": "127.0.0.1",
@@ -59,7 +59,7 @@
                 "linkerdheadermapping.default.1"
             ],
             "_resolver": "kubernetes-service",
-            "_rkey": "cluster_127_0_0_1_8877",
+            "_rkey": "cluster_127_0_0_1_8877_default",
             "connect_timeout_ms": 3000,
             "enable_endpoints": false,
             "enable_ipv4": true,
@@ -68,7 +68,7 @@
             "kind": "IRCluster",
             "lb_type": "round_robin",
             "location": "linkerdheadermapping.default.1",
-            "name": "cluster_127_0_0_1_8877",
+            "name": "cluster_127_0_0_1_8877_default",
             "namespace": "default",
             "service": "127.0.0.1:8877",
             "targets": [
@@ -83,41 +83,7 @@
                 "tcp://127.0.0.1:8877"
             ]
         },
-        "cluster_linkerdheadermapping_http": {
-            "_active": true,
-            "_errored": false,
-            "_hostname": "linkerdheadermapping-http",
-            "_namespace": "default",
-            "_port": 80,
-            "_referenced_by": [
-                "linkerdheadermapping.default.4"
-            ],
-            "_resolver": "kubernetes-service",
-            "_rkey": "cluster_linkerdheadermapping_http",
-            "connect_timeout_ms": 3000,
-            "enable_endpoints": false,
-            "enable_ipv4": true,
-            "enable_ipv6": false,
-            "ignore_cluster": false,
-            "kind": "IRCluster",
-            "lb_type": "round_robin",
-            "location": "linkerdheadermapping.default.4",
-            "name": "cluster_linkerdheadermapping_http",
-            "namespace": "default",
-            "service": "linkerdheadermapping-http",
-            "targets": [
-                {
-                    "ip": "linkerdheadermapping-http.default",
-                    "port": 80,
-                    "target_kind": "DNSname"
-                }
-            ],
-            "type": "strict_dns",
-            "urls": [
-                "tcp://linkerdheadermapping-http:80"
-            ]
-        },
-        "cluster_linkerdheadermapping_http_addlinkerdonly": {
+        "cluster_linkerdheadermapping_http_addlinkerdonly_default": {
             "_active": true,
             "_errored": false,
             "_hostname": "linkerdheadermapping-http-addlinkerdonly",
@@ -127,7 +93,7 @@
                 "linkerdheadermapping.default.2"
             ],
             "_resolver": "kubernetes-service",
-            "_rkey": "cluster_linkerdheadermapping_http_addlinkerdonly",
+            "_rkey": "cluster_linkerdheadermapping_http_addlinkerdonly_default",
             "connect_timeout_ms": 3000,
             "enable_endpoints": false,
             "enable_ipv4": true,
@@ -136,7 +102,7 @@
             "kind": "IRCluster",
             "lb_type": "round_robin",
             "location": "linkerdheadermapping.default.2",
-            "name": "cluster_linkerdheadermapping_http_addlinkerdonly",
+            "name": "cluster_linkerdheadermapping_http_addlinkerdonly_default",
             "namespace": "default",
             "service": "linkerdheadermapping-http-addlinkerdonly",
             "targets": [
@@ -151,7 +117,41 @@
                 "tcp://linkerdheadermapping-http-addlinkerdonly:80"
             ]
         },
-        "cluster_linkerdheadermapping_http_noheader": {
+        "cluster_linkerdheadermapping_http_default": {
+            "_active": true,
+            "_errored": false,
+            "_hostname": "linkerdheadermapping-http",
+            "_namespace": "default",
+            "_port": 80,
+            "_referenced_by": [
+                "linkerdheadermapping.default.4"
+            ],
+            "_resolver": "kubernetes-service",
+            "_rkey": "cluster_linkerdheadermapping_http_default",
+            "connect_timeout_ms": 3000,
+            "enable_endpoints": false,
+            "enable_ipv4": true,
+            "enable_ipv6": false,
+            "ignore_cluster": false,
+            "kind": "IRCluster",
+            "lb_type": "round_robin",
+            "location": "linkerdheadermapping.default.4",
+            "name": "cluster_linkerdheadermapping_http_default",
+            "namespace": "default",
+            "service": "linkerdheadermapping-http",
+            "targets": [
+                {
+                    "ip": "linkerdheadermapping-http.default",
+                    "port": 80,
+                    "target_kind": "DNSname"
+                }
+            ],
+            "type": "strict_dns",
+            "urls": [
+                "tcp://linkerdheadermapping-http:80"
+            ]
+        },
+        "cluster_linkerdheadermapping_http_noheader_default": {
             "_active": true,
             "_errored": false,
             "_hostname": "linkerdheadermapping-http-noheader",
@@ -161,7 +161,7 @@
                 "linkerdheadermapping.default.3"
             ],
             "_resolver": "kubernetes-service",
-            "_rkey": "cluster_linkerdheadermapping_http_noheader",
+            "_rkey": "cluster_linkerdheadermapping_http_noheader_default",
             "connect_timeout_ms": 3000,
             "enable_endpoints": false,
             "enable_ipv4": true,
@@ -170,7 +170,7 @@
             "kind": "IRCluster",
             "lb_type": "round_robin",
             "location": "linkerdheadermapping.default.3",
-            "name": "cluster_linkerdheadermapping_http_noheader",
+            "name": "cluster_linkerdheadermapping_http_noheader_default",
             "namespace": "default",
             "service": "linkerdheadermapping-http-noheader",
             "targets": [
@@ -249,7 +249,7 @@
                             "linkerdheadermapping.default.2"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_linkerdheadermapping_http_addlinkerdonly",
+                        "_rkey": "cluster_linkerdheadermapping_http_addlinkerdonly_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -258,7 +258,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "linkerdheadermapping.default.2",
-                        "name": "cluster_linkerdheadermapping_http_addlinkerdonly",
+                        "name": "cluster_linkerdheadermapping_http_addlinkerdonly_default",
                         "namespace": "default",
                         "service": "linkerdheadermapping-http-addlinkerdonly",
                         "targets": [
@@ -295,7 +295,7 @@
                         "/target_add_linkerd_header_only/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: linkerdheadermapping\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: linkerdheadermapping\n  scope: AmbassadorTest\nname: linkerdheadermapping-http-addlinkerdonly\nprefix: /target_add_linkerd_header_only/\nservice: linkerdheadermapping-http-addlinkerdonly\n",
+                    "serialization": "ambassador_id: linkerdheadermapping\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: linkerdheadermapping\n  scope: AmbassadorTest\nname: linkerdheadermapping-http-addlinkerdonly\nnamespace: default\nprefix: /target_add_linkerd_header_only/\nservice: linkerdheadermapping-http-addlinkerdonly\n",
                     "service": "linkerdheadermapping-http-addlinkerdonly",
                     "weight": 100
                 }
@@ -310,7 +310,7 @@
             "precedence": 0,
             "prefix": "/target_add_linkerd_header_only/",
             "rewrite": "/",
-            "serialization": "ambassador_id: linkerdheadermapping\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: linkerdheadermapping\n  scope: AmbassadorTest\nname: linkerdheadermapping-http-addlinkerdonly\nprefix: /target_add_linkerd_header_only/\nservice: linkerdheadermapping-http-addlinkerdonly\n"
+            "serialization": "ambassador_id: linkerdheadermapping\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: linkerdheadermapping\n  scope: AmbassadorTest\nname: linkerdheadermapping-http-addlinkerdonly\nnamespace: default\nprefix: /target_add_linkerd_header_only/\nservice: linkerdheadermapping-http-addlinkerdonly\n"
         },
         {
             "_active": true,
@@ -354,7 +354,7 @@
                             "linkerdheadermapping.default.1"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_127_0_0_1_8877",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -363,7 +363,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "linkerdheadermapping.default.1",
-                        "name": "cluster_127_0_0_1_8877",
+                        "name": "cluster_127_0_0_1_8877_default",
                         "namespace": "default",
                         "service": "127.0.0.1:8877",
                         "targets": [
@@ -449,7 +449,7 @@
                             "linkerdheadermapping.default.1"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_127_0_0_1_8877",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -458,7 +458,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "linkerdheadermapping.default.1",
-                        "name": "cluster_127_0_0_1_8877",
+                        "name": "cluster_127_0_0_1_8877_default",
                         "namespace": "default",
                         "service": "127.0.0.1:8877",
                         "targets": [
@@ -549,7 +549,7 @@
                             "linkerdheadermapping.default.3"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_linkerdheadermapping_http_noheader",
+                        "_rkey": "cluster_linkerdheadermapping_http_noheader_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -558,7 +558,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "linkerdheadermapping.default.3",
-                        "name": "cluster_linkerdheadermapping_http_noheader",
+                        "name": "cluster_linkerdheadermapping_http_noheader_default",
                         "namespace": "default",
                         "service": "linkerdheadermapping-http-noheader",
                         "targets": [
@@ -595,7 +595,7 @@
                         "/target_no_header/",
                         "GET"
                     ],
-                    "serialization": "add_linkerd_headers: false\nadd_request_headers:\n  fruit:\n    append: false\n    value: orange\nambassador_id: linkerdheadermapping\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: linkerdheadermapping\n  scope: AmbassadorTest\nname: linkerdheadermapping-http-noheader\nprefix: /target_no_header/\nservice: linkerdheadermapping-http-noheader\n",
+                    "serialization": "add_linkerd_headers: false\nadd_request_headers:\n  fruit:\n    append: false\n    value: orange\nambassador_id: linkerdheadermapping\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: linkerdheadermapping\n  scope: AmbassadorTest\nname: linkerdheadermapping-http-noheader\nnamespace: default\nprefix: /target_no_header/\nservice: linkerdheadermapping-http-noheader\n",
                     "service": "linkerdheadermapping-http-noheader",
                     "weight": 100
                 }
@@ -610,7 +610,7 @@
             "precedence": 0,
             "prefix": "/target_no_header/",
             "rewrite": "/",
-            "serialization": "add_linkerd_headers: false\nadd_request_headers:\n  fruit:\n    append: false\n    value: orange\nambassador_id: linkerdheadermapping\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: linkerdheadermapping\n  scope: AmbassadorTest\nname: linkerdheadermapping-http-noheader\nprefix: /target_no_header/\nservice: linkerdheadermapping-http-noheader\n"
+            "serialization": "add_linkerd_headers: false\nadd_request_headers:\n  fruit:\n    append: false\n    value: orange\nambassador_id: linkerdheadermapping\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: linkerdheadermapping\n  scope: AmbassadorTest\nname: linkerdheadermapping-http-noheader\nnamespace: default\nprefix: /target_no_header/\nservice: linkerdheadermapping-http-noheader\n"
         },
         {
             "_active": true,
@@ -654,7 +654,7 @@
                             "linkerdheadermapping.default.1"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_127_0_0_1_8877",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -663,7 +663,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "linkerdheadermapping.default.1",
-                        "name": "cluster_127_0_0_1_8877",
+                        "name": "cluster_127_0_0_1_8877_default",
                         "namespace": "default",
                         "service": "127.0.0.1:8877",
                         "targets": [
@@ -754,7 +754,7 @@
                             "linkerdheadermapping.default.4"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_linkerdheadermapping_http",
+                        "_rkey": "cluster_linkerdheadermapping_http_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -763,7 +763,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "linkerdheadermapping.default.4",
-                        "name": "cluster_linkerdheadermapping_http",
+                        "name": "cluster_linkerdheadermapping_http_default",
                         "namespace": "default",
                         "service": "linkerdheadermapping-http",
                         "targets": [
@@ -800,7 +800,7 @@
                         "/target/",
                         "GET"
                     ],
-                    "serialization": "add_request_headers:\n  fruit:\n    append: false\n    value: banana\nambassador_id: linkerdheadermapping\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: linkerdheadermapping\n  scope: AmbassadorTest\nname: linkerdheadermapping-http\nprefix: /target/\nservice: linkerdheadermapping-http\n",
+                    "serialization": "add_request_headers:\n  fruit:\n    append: false\n    value: banana\nambassador_id: linkerdheadermapping\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: linkerdheadermapping\n  scope: AmbassadorTest\nname: linkerdheadermapping-http\nnamespace: default\nprefix: /target/\nservice: linkerdheadermapping-http\n",
                     "service": "linkerdheadermapping-http",
                     "weight": 100
                 }
@@ -815,7 +815,7 @@
             "precedence": 0,
             "prefix": "/target/",
             "rewrite": "/",
-            "serialization": "add_request_headers:\n  fruit:\n    append: false\n    value: banana\nambassador_id: linkerdheadermapping\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: linkerdheadermapping\n  scope: AmbassadorTest\nname: linkerdheadermapping-http\nprefix: /target/\nservice: linkerdheadermapping-http\n"
+            "serialization": "add_request_headers:\n  fruit:\n    append: false\n    value: banana\nambassador_id: linkerdheadermapping\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: linkerdheadermapping\n  scope: AmbassadorTest\nname: linkerdheadermapping-http\nnamespace: default\nprefix: /target/\nservice: linkerdheadermapping-http\n"
         }
     ],
     "grpc_services": {},
@@ -838,7 +838,6 @@
             "name": "ir.listener",
             "namespace": "default",
             "redirect_listener": false,
-            "require_tls": false,
             "secure_action": "Route",
             "service_port": 8080,
             "use_proxy_proto": false

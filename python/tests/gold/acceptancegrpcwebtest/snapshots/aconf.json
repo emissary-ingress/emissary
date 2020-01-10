@@ -50,7 +50,7 @@
             "name": "ambassador",
             "namespace": "default",
             "rkey": "acceptancegrpcwebtest.default.1",
-            "serialization": "ambassador_id: acceptancegrpcwebtest\napiVersion: ambassador/v0\nconfig:\n  enable_grpc_web: true\nkind: Module\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: acceptancegrpcwebtest\n  scope: AmbassadorTest\nname: ambassador\n"
+            "serialization": "ambassador_id: acceptancegrpcwebtest\napiVersion: ambassador/v0\nconfig:\n  enable_grpc_web: true\nkind: Module\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: acceptancegrpcwebtest\n  scope: AmbassadorTest\nname: ambassador\nnamespace: default\n"
         },
         "acceptancegrpcwebtest.default.2": {
             "_referenced_by": {},
@@ -69,7 +69,7 @@
             "prefix": "/echo.EchoService/",
             "rewrite": "/echo.EchoService/",
             "rkey": "acceptancegrpcwebtest.default.2",
-            "serialization": "ambassador_id: acceptancegrpcwebtest\napiVersion: ambassador/v0\ngrpc: true\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: acceptancegrpcwebtest\n  scope: AmbassadorTest\nname: acceptancegrpcwebtest-egrpc\nprefix: /echo.EchoService/\nrewrite: /echo.EchoService/\nservice: acceptancegrpcwebtest-egrpc\n",
+            "serialization": "ambassador_id: acceptancegrpcwebtest\napiVersion: ambassador/v0\ngrpc: true\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: acceptancegrpcwebtest\n  scope: AmbassadorTest\nname: acceptancegrpcwebtest-egrpc\nnamespace: default\nprefix: /echo.EchoService/\nrewrite: /echo.EchoService/\nservice: acceptancegrpcwebtest-egrpc\n",
             "service": "acceptancegrpcwebtest-egrpc"
         },
         "k8s-acceptancegrpcwebtest-admin-default": {

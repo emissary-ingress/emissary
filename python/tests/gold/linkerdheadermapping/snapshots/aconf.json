@@ -129,7 +129,7 @@
             "name": "ambassador",
             "namespace": "default",
             "rkey": "linkerdheadermapping.default.1",
-            "serialization": "ambassador_id: linkerdheadermapping\napiVersion: ambassador/v0\nconfig:\n  add_linkerd_headers: true\nkind: Module\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: linkerdheadermapping\n  scope: AmbassadorTest\nname: ambassador\n"
+            "serialization": "ambassador_id: linkerdheadermapping\napiVersion: ambassador/v0\nconfig:\n  add_linkerd_headers: true\nkind: Module\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: linkerdheadermapping\n  scope: AmbassadorTest\nname: ambassador\nnamespace: default\n"
         },
         "linkerdheadermapping.default.2": {
             "_referenced_by": {},
@@ -146,7 +146,7 @@
             "namespace": "default",
             "prefix": "/target_add_linkerd_header_only/",
             "rkey": "linkerdheadermapping.default.2",
-            "serialization": "ambassador_id: linkerdheadermapping\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: linkerdheadermapping\n  scope: AmbassadorTest\nname: linkerdheadermapping-http-addlinkerdonly\nprefix: /target_add_linkerd_header_only/\nservice: linkerdheadermapping-http-addlinkerdonly\n",
+            "serialization": "ambassador_id: linkerdheadermapping\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: linkerdheadermapping\n  scope: AmbassadorTest\nname: linkerdheadermapping-http-addlinkerdonly\nnamespace: default\nprefix: /target_add_linkerd_header_only/\nservice: linkerdheadermapping-http-addlinkerdonly\n",
             "service": "linkerdheadermapping-http-addlinkerdonly"
         },
         "linkerdheadermapping.default.3": {
@@ -171,7 +171,7 @@
             "namespace": "default",
             "prefix": "/target_no_header/",
             "rkey": "linkerdheadermapping.default.3",
-            "serialization": "add_linkerd_headers: false\nadd_request_headers:\n  fruit:\n    append: false\n    value: orange\nambassador_id: linkerdheadermapping\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: linkerdheadermapping\n  scope: AmbassadorTest\nname: linkerdheadermapping-http-noheader\nprefix: /target_no_header/\nservice: linkerdheadermapping-http-noheader\n",
+            "serialization": "add_linkerd_headers: false\nadd_request_headers:\n  fruit:\n    append: false\n    value: orange\nambassador_id: linkerdheadermapping\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: linkerdheadermapping\n  scope: AmbassadorTest\nname: linkerdheadermapping-http-noheader\nnamespace: default\nprefix: /target_no_header/\nservice: linkerdheadermapping-http-noheader\n",
             "service": "linkerdheadermapping-http-noheader"
         },
         "linkerdheadermapping.default.4": {
@@ -195,7 +195,7 @@
             "namespace": "default",
             "prefix": "/target/",
             "rkey": "linkerdheadermapping.default.4",
-            "serialization": "add_request_headers:\n  fruit:\n    append: false\n    value: banana\nambassador_id: linkerdheadermapping\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: linkerdheadermapping\n  scope: AmbassadorTest\nname: linkerdheadermapping-http\nprefix: /target/\nservice: linkerdheadermapping-http\n",
+            "serialization": "add_request_headers:\n  fruit:\n    append: false\n    value: banana\nambassador_id: linkerdheadermapping\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: linkerdheadermapping\n  scope: AmbassadorTest\nname: linkerdheadermapping-http\nnamespace: default\nprefix: /target/\nservice: linkerdheadermapping-http\n",
             "service": "linkerdheadermapping-http"
         }
     },

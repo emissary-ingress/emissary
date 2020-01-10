@@ -45,7 +45,7 @@
         "xff_num_trusted_hops": 0
     },
     "clusters": {
-        "cluster_127_0_0_1_8877": {
+        "cluster_127_0_0_1_8877_default": {
             "_active": true,
             "_errored": false,
             "_hostname": "127.0.0.1",
@@ -55,7 +55,7 @@
                 "--internal--"
             ],
             "_resolver": "kubernetes-service",
-            "_rkey": "cluster_127_0_0_1_8877",
+            "_rkey": "cluster_127_0_0_1_8877_default",
             "connect_timeout_ms": 3000,
             "enable_endpoints": false,
             "enable_ipv4": true,
@@ -64,7 +64,7 @@
             "kind": "IRCluster",
             "lb_type": "round_robin",
             "location": "--internal--",
-            "name": "cluster_127_0_0_1_8877",
+            "name": "cluster_127_0_0_1_8877_default",
             "namespace": "default",
             "service": "127.0.0.1:8877",
             "targets": [
@@ -79,7 +79,7 @@
                 "tcp://127.0.0.1:8877"
             ]
         },
-        "cluster_http___tlscontexttest_http": {
+        "cluster_http___tlscontexttest_http_default": {
             "_active": true,
             "_errored": false,
             "_hostname": "tlscontexttest-http",
@@ -90,7 +90,7 @@
                 "tlscontexttest.default.3"
             ],
             "_resolver": "kubernetes-service",
-            "_rkey": "cluster_http___tlscontexttest_http",
+            "_rkey": "cluster_http___tlscontexttest_http_default",
             "connect_timeout_ms": 3000,
             "enable_endpoints": false,
             "enable_ipv4": true,
@@ -99,7 +99,7 @@
             "kind": "IRCluster",
             "lb_type": "round_robin",
             "location": "tlscontexttest.default.1",
-            "name": "cluster_http___tlscontexttest_http",
+            "name": "cluster_http___tlscontexttest_http_default",
             "namespace": "default",
             "service": "tlscontexttest-http",
             "targets": [
@@ -114,7 +114,7 @@
                 "tcp://tlscontexttest-http:80"
             ]
         },
-        "cluster_https___tlscontexttest_http_otls": {
+        "cluster_https___tlscontexttest_http_otls_default": {
             "_active": true,
             "_errored": false,
             "_hostname": "tlscontexttest-http",
@@ -124,7 +124,7 @@
                 "tlscontexttest.default.6"
             ],
             "_resolver": "kubernetes-service",
-            "_rkey": "cluster_https___tlscontexttest_http_otls",
+            "_rkey": "cluster_https___tlscontexttest_http_otls_default",
             "connect_timeout_ms": 3000,
             "enable_endpoints": false,
             "enable_ipv4": true,
@@ -133,7 +133,7 @@
             "kind": "IRCluster",
             "lb_type": "round_robin",
             "location": "tlscontexttest.default.6",
-            "name": "cluster_https___tlscontexttest_http_otls",
+            "name": "cluster_https___tlscontexttest_http_otls_default",
             "namespace": "default",
             "service": "tlscontexttest-http",
             "targets": [
@@ -222,7 +222,7 @@
                             "--internal--"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_127_0_0_1_8877",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -231,7 +231,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "--internal--",
-                        "name": "cluster_127_0_0_1_8877",
+                        "name": "cluster_127_0_0_1_8877_default",
                         "namespace": "default",
                         "service": "127.0.0.1:8877",
                         "targets": [
@@ -312,7 +312,7 @@
                             "--internal--"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_127_0_0_1_8877",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -321,7 +321,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "--internal--",
-                        "name": "cluster_127_0_0_1_8877",
+                        "name": "cluster_127_0_0_1_8877_default",
                         "namespace": "default",
                         "service": "127.0.0.1:8877",
                         "targets": [
@@ -407,7 +407,7 @@
                             "tlscontexttest.default.3"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_http___tlscontexttest_http",
+                        "_rkey": "cluster_http___tlscontexttest_http_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -416,7 +416,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "tlscontexttest.default.1",
-                        "name": "cluster_http___tlscontexttest_http",
+                        "name": "cluster_http___tlscontexttest_http_default",
                         "namespace": "default",
                         "service": "tlscontexttest-http",
                         "targets": [
@@ -461,7 +461,7 @@
                         "GET",
                         ":authority-tls-context-host-2"
                     ],
-                    "serialization": "ambassador_id: tlscontexttest\napiVersion: ambassador/v1\nhost: tls-context-host-2\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlscontexttest\n  scope: AmbassadorTest\nname: TLSContextTest-same-prefix-2\nprefix: /tls-context-same/\nservice: http://tlscontexttest-http\n",
+                    "serialization": "ambassador_id: tlscontexttest\napiVersion: ambassador/v1\nhost: tls-context-host-2\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlscontexttest\n  scope: AmbassadorTest\nname: TLSContextTest-same-prefix-2\nnamespace: default\nprefix: /tls-context-same/\nservice: http://tlscontexttest-http\n",
                     "service": "http://tlscontexttest-http",
                     "sni": true,
                     "tls_context": {
@@ -505,7 +505,7 @@
             "precedence": 0,
             "prefix": "/tls-context-same/",
             "rewrite": "/",
-            "serialization": "ambassador_id: tlscontexttest\napiVersion: ambassador/v1\nhost: tls-context-host-2\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlscontexttest\n  scope: AmbassadorTest\nname: TLSContextTest-same-prefix-2\nprefix: /tls-context-same/\nservice: http://tlscontexttest-http\n",
+            "serialization": "ambassador_id: tlscontexttest\napiVersion: ambassador/v1\nhost: tls-context-host-2\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlscontexttest\n  scope: AmbassadorTest\nname: TLSContextTest-same-prefix-2\nnamespace: default\nprefix: /tls-context-same/\nservice: http://tlscontexttest-http\n",
             "sni": true,
             "tls_context": {
                 "_active": true,
@@ -578,7 +578,7 @@
                             "tlscontexttest.default.3"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_http___tlscontexttest_http",
+                        "_rkey": "cluster_http___tlscontexttest_http_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -587,7 +587,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "tlscontexttest.default.1",
-                        "name": "cluster_http___tlscontexttest_http",
+                        "name": "cluster_http___tlscontexttest_http_default",
                         "namespace": "default",
                         "service": "tlscontexttest-http",
                         "targets": [
@@ -632,7 +632,7 @@
                         "GET",
                         ":authority-tls-context-host-1"
                     ],
-                    "serialization": "ambassador_id: tlscontexttest\napiVersion: ambassador/v0\nhost: tls-context-host-1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlscontexttest\n  scope: AmbassadorTest\nname: TLSContextTest-same-prefix-1\nprefix: /tls-context-same/\nservice: http://tlscontexttest-http\n",
+                    "serialization": "ambassador_id: tlscontexttest\napiVersion: ambassador/v0\nhost: tls-context-host-1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlscontexttest\n  scope: AmbassadorTest\nname: TLSContextTest-same-prefix-1\nnamespace: default\nprefix: /tls-context-same/\nservice: http://tlscontexttest-http\n",
                     "service": "http://tlscontexttest-http",
                     "sni": true,
                     "tls_context": {
@@ -677,7 +677,7 @@
             "precedence": 0,
             "prefix": "/tls-context-same/",
             "rewrite": "/",
-            "serialization": "ambassador_id: tlscontexttest\napiVersion: ambassador/v0\nhost: tls-context-host-1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlscontexttest\n  scope: AmbassadorTest\nname: TLSContextTest-same-prefix-1\nprefix: /tls-context-same/\nservice: http://tlscontexttest-http\n",
+            "serialization": "ambassador_id: tlscontexttest\napiVersion: ambassador/v0\nhost: tls-context-host-1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlscontexttest\n  scope: AmbassadorTest\nname: TLSContextTest-same-prefix-1\nnamespace: default\nprefix: /tls-context-same/\nservice: http://tlscontexttest-http\n",
             "sni": true,
             "tls_context": {
                 "_active": true,
@@ -743,7 +743,7 @@
                             "tlscontexttest.default.6"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_https___tlscontexttest_http_otls",
+                        "_rkey": "cluster_https___tlscontexttest_http_otls_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -752,7 +752,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "tlscontexttest.default.6",
-                        "name": "cluster_https___tlscontexttest_http_otls",
+                        "name": "cluster_https___tlscontexttest_http_otls_default",
                         "namespace": "default",
                         "service": "tlscontexttest-http",
                         "targets": [
@@ -801,7 +801,7 @@
                         "/TLSContextTest/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: tlscontexttest\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlscontexttest\n  scope: AmbassadorTest\nname: TLSContextTest-other-mapping\nprefix: /TLSContextTest/\nservice: https://tlscontexttest-http\n",
+                    "serialization": "ambassador_id: tlscontexttest\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlscontexttest\n  scope: AmbassadorTest\nname: TLSContextTest-other-mapping\nnamespace: default\nprefix: /TLSContextTest/\nservice: https://tlscontexttest-http\n",
                     "service": "https://tlscontexttest-http",
                     "weight": 100
                 }
@@ -816,7 +816,7 @@
             "precedence": 0,
             "prefix": "/TLSContextTest/",
             "rewrite": "/",
-            "serialization": "ambassador_id: tlscontexttest\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlscontexttest\n  scope: AmbassadorTest\nname: TLSContextTest-other-mapping\nprefix: /TLSContextTest/\nservice: https://tlscontexttest-http\n"
+            "serialization": "ambassador_id: tlscontexttest\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlscontexttest\n  scope: AmbassadorTest\nname: TLSContextTest-other-mapping\nnamespace: default\nprefix: /TLSContextTest/\nservice: https://tlscontexttest-http\n"
         },
         {
             "_active": true,
@@ -855,7 +855,7 @@
                             "--internal--"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_127_0_0_1_8877",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -864,7 +864,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "--internal--",
-                        "name": "cluster_127_0_0_1_8877",
+                        "name": "cluster_127_0_0_1_8877_default",
                         "namespace": "default",
                         "service": "127.0.0.1:8877",
                         "targets": [
@@ -948,7 +948,6 @@
             "name": "ir.listener",
             "namespace": "default",
             "redirect_listener": false,
-            "require_tls": false,
             "secure_action": "Route",
             "service_port": 8443,
             "use_proxy_proto": false
@@ -994,7 +993,6 @@
             "name": "ir.listener",
             "namespace": "default",
             "redirect_listener": false,
-            "require_tls": false,
             "secure_action": "Route",
             "service_port": 8443,
             "use_proxy_proto": false
@@ -1039,7 +1037,6 @@
             "name": "ir.listener",
             "namespace": "default",
             "redirect_listener": false,
-            "require_tls": false,
             "secure_action": "Route",
             "service_port": 8443,
             "use_proxy_proto": false

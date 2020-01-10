@@ -6,7 +6,7 @@
                 "dns_lookup_family": "V4_ONLY",
                 "lb_policy": "ROUND_ROBIN",
                 "load_assignment": {
-                    "cluster_name": "cluster_127_0_0_1_8877",
+                    "cluster_name": "cluster_127_0_0_1_8877_tcp_namespace",
                     "endpoints": [
                         {
                             "lb_endpoints": [
@@ -25,7 +25,7 @@
                         }
                     ]
                 },
-                "name": "cluster_127_0_0_1_8877",
+                "name": "cluster_127_0_0_1_8877_tcp_namespace",
                 "type": "STRICT_DNS"
             },
             {
@@ -33,7 +33,7 @@
                 "dns_lookup_family": "V4_ONLY",
                 "lb_policy": "ROUND_ROBIN",
                 "load_assignment": {
-                    "cluster_name": "cluster_tcpmappingtest_http_target1_tcp_namespace_443",
+                    "cluster_name": "cluster_tcpmappingtest_http_target1_tcp_-0",
                     "endpoints": [
                         {
                             "lb_endpoints": [
@@ -52,7 +52,7 @@
                         }
                     ]
                 },
-                "name": "cluster_tcpmappingtest_http_target1_tcp_namespace_443",
+                "name": "cluster_tcpmappingtest_http_target1_tcp_-0",
                 "type": "STRICT_DNS"
             },
             {
@@ -60,7 +60,7 @@
                 "dns_lookup_family": "V4_ONLY",
                 "lb_policy": "ROUND_ROBIN",
                 "load_assignment": {
-                    "cluster_name": "cluster_tcpmappingtest_http_target1_tcp_namespace_80",
+                    "cluster_name": "cluster_tcpmappingtest_http_target1_tcp_-1",
                     "endpoints": [
                         {
                             "lb_endpoints": [
@@ -79,7 +79,7 @@
                         }
                     ]
                 },
-                "name": "cluster_tcpmappingtest_http_target1_tcp_namespace_80",
+                "name": "cluster_tcpmappingtest_http_target1_tcp_-1",
                 "type": "STRICT_DNS"
             },
             {
@@ -248,11 +248,11 @@
                                                                     "denominator": "HUNDRED",
                                                                     "numerator": 100
                                                                 },
-                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877"
+                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_tcp_namespace"
                                                             }
                                                         },
                                                         "route": {
-                                                            "cluster": "cluster_127_0_0_1_8877",
+                                                            "cluster": "cluster_127_0_0_1_8877_tcp_namespace",
                                                             "prefix_rewrite": "/ambassador/v0/check_ready",
                                                             "priority": null,
                                                             "timeout": "10.000s"
@@ -267,11 +267,11 @@
                                                                     "denominator": "HUNDRED",
                                                                     "numerator": 100
                                                                 },
-                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877"
+                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_tcp_namespace"
                                                             }
                                                         },
                                                         "route": {
-                                                            "cluster": "cluster_127_0_0_1_8877",
+                                                            "cluster": "cluster_127_0_0_1_8877_tcp_namespace",
                                                             "prefix_rewrite": "/ambassador/v0/check_ready",
                                                             "priority": null,
                                                             "timeout": "10.000s"
@@ -292,11 +292,11 @@
                                                                     "denominator": "HUNDRED",
                                                                     "numerator": 100
                                                                 },
-                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877"
+                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_tcp_namespace"
                                                             }
                                                         },
                                                         "route": {
-                                                            "cluster": "cluster_127_0_0_1_8877",
+                                                            "cluster": "cluster_127_0_0_1_8877_tcp_namespace",
                                                             "prefix_rewrite": "/ambassador/v0/check_alive",
                                                             "priority": null,
                                                             "timeout": "10.000s"
@@ -311,11 +311,11 @@
                                                                     "denominator": "HUNDRED",
                                                                     "numerator": 100
                                                                 },
-                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877"
+                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_tcp_namespace"
                                                             }
                                                         },
                                                         "route": {
-                                                            "cluster": "cluster_127_0_0_1_8877",
+                                                            "cluster": "cluster_127_0_0_1_8877_tcp_namespace",
                                                             "prefix_rewrite": "/ambassador/v0/check_alive",
                                                             "priority": null,
                                                             "timeout": "10.000s"
@@ -336,11 +336,11 @@
                                                                     "denominator": "HUNDRED",
                                                                     "numerator": 100
                                                                 },
-                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877"
+                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_tcp_namespace"
                                                             }
                                                         },
                                                         "route": {
-                                                            "cluster": "cluster_127_0_0_1_8877",
+                                                            "cluster": "cluster_127_0_0_1_8877_tcp_namespace",
                                                             "prefix_rewrite": "/ambassador/v0/",
                                                             "priority": null,
                                                             "timeout": "10.000s"
@@ -355,11 +355,11 @@
                                                                     "denominator": "HUNDRED",
                                                                     "numerator": 100
                                                                 },
-                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877"
+                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_tcp_namespace"
                                                             }
                                                         },
                                                         "route": {
-                                                            "cluster": "cluster_127_0_0_1_8877",
+                                                            "cluster": "cluster_127_0_0_1_8877_tcp_namespace",
                                                             "prefix_rewrite": "/ambassador/v0/",
                                                             "priority": null,
                                                             "timeout": "10.000s"
@@ -447,11 +447,11 @@
                                                                     "denominator": "HUNDRED",
                                                                     "numerator": 100
                                                                 },
-                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877"
+                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_tcp_namespace"
                                                             }
                                                         },
                                                         "route": {
-                                                            "cluster": "cluster_127_0_0_1_8877",
+                                                            "cluster": "cluster_127_0_0_1_8877_tcp_namespace",
                                                             "prefix_rewrite": "/ambassador/v0/check_ready",
                                                             "priority": null,
                                                             "timeout": "10.000s"
@@ -466,11 +466,11 @@
                                                                     "denominator": "HUNDRED",
                                                                     "numerator": 100
                                                                 },
-                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877"
+                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_tcp_namespace"
                                                             }
                                                         },
                                                         "route": {
-                                                            "cluster": "cluster_127_0_0_1_8877",
+                                                            "cluster": "cluster_127_0_0_1_8877_tcp_namespace",
                                                             "prefix_rewrite": "/ambassador/v0/check_ready",
                                                             "priority": null,
                                                             "timeout": "10.000s"
@@ -491,11 +491,11 @@
                                                                     "denominator": "HUNDRED",
                                                                     "numerator": 100
                                                                 },
-                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877"
+                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_tcp_namespace"
                                                             }
                                                         },
                                                         "route": {
-                                                            "cluster": "cluster_127_0_0_1_8877",
+                                                            "cluster": "cluster_127_0_0_1_8877_tcp_namespace",
                                                             "prefix_rewrite": "/ambassador/v0/check_alive",
                                                             "priority": null,
                                                             "timeout": "10.000s"
@@ -510,11 +510,11 @@
                                                                     "denominator": "HUNDRED",
                                                                     "numerator": 100
                                                                 },
-                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877"
+                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_tcp_namespace"
                                                             }
                                                         },
                                                         "route": {
-                                                            "cluster": "cluster_127_0_0_1_8877",
+                                                            "cluster": "cluster_127_0_0_1_8877_tcp_namespace",
                                                             "prefix_rewrite": "/ambassador/v0/check_alive",
                                                             "priority": null,
                                                             "timeout": "10.000s"
@@ -535,11 +535,11 @@
                                                                     "denominator": "HUNDRED",
                                                                     "numerator": 100
                                                                 },
-                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877"
+                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_tcp_namespace"
                                                             }
                                                         },
                                                         "route": {
-                                                            "cluster": "cluster_127_0_0_1_8877",
+                                                            "cluster": "cluster_127_0_0_1_8877_tcp_namespace",
                                                             "prefix_rewrite": "/ambassador/v0/",
                                                             "priority": null,
                                                             "timeout": "10.000s"
@@ -554,11 +554,11 @@
                                                                     "denominator": "HUNDRED",
                                                                     "numerator": 100
                                                                 },
-                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877"
+                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_tcp_namespace"
                                                             }
                                                         },
                                                         "route": {
-                                                            "cluster": "cluster_127_0_0_1_8877",
+                                                            "cluster": "cluster_127_0_0_1_8877_tcp_namespace",
                                                             "prefix_rewrite": "/ambassador/v0/",
                                                             "priority": null,
                                                             "timeout": "10.000s"
@@ -646,11 +646,11 @@
                                                                     "denominator": "HUNDRED",
                                                                     "numerator": 100
                                                                 },
-                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877"
+                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_tcp_namespace"
                                                             }
                                                         },
                                                         "route": {
-                                                            "cluster": "cluster_127_0_0_1_8877",
+                                                            "cluster": "cluster_127_0_0_1_8877_tcp_namespace",
                                                             "prefix_rewrite": "/ambassador/v0/check_ready",
                                                             "priority": null,
                                                             "timeout": "10.000s"
@@ -665,11 +665,11 @@
                                                                     "denominator": "HUNDRED",
                                                                     "numerator": 100
                                                                 },
-                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877"
+                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_tcp_namespace"
                                                             }
                                                         },
                                                         "route": {
-                                                            "cluster": "cluster_127_0_0_1_8877",
+                                                            "cluster": "cluster_127_0_0_1_8877_tcp_namespace",
                                                             "prefix_rewrite": "/ambassador/v0/check_ready",
                                                             "priority": null,
                                                             "timeout": "10.000s"
@@ -690,11 +690,11 @@
                                                                     "denominator": "HUNDRED",
                                                                     "numerator": 100
                                                                 },
-                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877"
+                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_tcp_namespace"
                                                             }
                                                         },
                                                         "route": {
-                                                            "cluster": "cluster_127_0_0_1_8877",
+                                                            "cluster": "cluster_127_0_0_1_8877_tcp_namespace",
                                                             "prefix_rewrite": "/ambassador/v0/check_alive",
                                                             "priority": null,
                                                             "timeout": "10.000s"
@@ -709,11 +709,11 @@
                                                                     "denominator": "HUNDRED",
                                                                     "numerator": 100
                                                                 },
-                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877"
+                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_tcp_namespace"
                                                             }
                                                         },
                                                         "route": {
-                                                            "cluster": "cluster_127_0_0_1_8877",
+                                                            "cluster": "cluster_127_0_0_1_8877_tcp_namespace",
                                                             "prefix_rewrite": "/ambassador/v0/check_alive",
                                                             "priority": null,
                                                             "timeout": "10.000s"
@@ -734,11 +734,11 @@
                                                                     "denominator": "HUNDRED",
                                                                     "numerator": 100
                                                                 },
-                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877"
+                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_tcp_namespace"
                                                             }
                                                         },
                                                         "route": {
-                                                            "cluster": "cluster_127_0_0_1_8877",
+                                                            "cluster": "cluster_127_0_0_1_8877_tcp_namespace",
                                                             "prefix_rewrite": "/ambassador/v0/",
                                                             "priority": null,
                                                             "timeout": "10.000s"
@@ -753,11 +753,11 @@
                                                                     "denominator": "HUNDRED",
                                                                     "numerator": 100
                                                                 },
-                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877"
+                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_tcp_namespace"
                                                             }
                                                         },
                                                         "route": {
-                                                            "cluster": "cluster_127_0_0_1_8877",
+                                                            "cluster": "cluster_127_0_0_1_8877_tcp_namespace",
                                                             "prefix_rewrite": "/ambassador/v0/",
                                                             "priority": null,
                                                             "timeout": "10.000s"
@@ -896,7 +896,7 @@
                                     "weighted_clusters": {
                                         "clusters": [
                                             {
-                                                "name": "cluster_tcpmappingtest_http_target1_tcp_namespace_80",
+                                                "name": "cluster_tcpmappingtest_http_target1_tcp_-1",
                                                 "weight": 100
                                             }
                                         ]
@@ -976,7 +976,7 @@
                                     "weighted_clusters": {
                                         "clusters": [
                                             {
-                                                "name": "cluster_tcpmappingtest_http_target1_tcp_namespace_443",
+                                                "name": "cluster_tcpmappingtest_http_target1_tcp_-0",
                                                 "weight": 100
                                             }
                                         ]
@@ -1006,7 +1006,7 @@
                                     "weighted_clusters": {
                                         "clusters": [
                                             {
-                                                "name": "cluster_tcpmappingtest_http_target1_tcp_namespace_443",
+                                                "name": "cluster_tcpmappingtest_http_target1_tcp_-0",
                                                 "weight": 100
                                             }
                                         ]

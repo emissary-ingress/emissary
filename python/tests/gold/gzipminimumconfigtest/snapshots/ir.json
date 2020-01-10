@@ -59,7 +59,7 @@
         "xff_num_trusted_hops": 0
     },
     "clusters": {
-        "cluster_127_0_0_1_8877": {
+        "cluster_127_0_0_1_8877_default": {
             "_active": true,
             "_errored": false,
             "_hostname": "127.0.0.1",
@@ -69,7 +69,7 @@
                 "gzipminimumconfigtest.default.1"
             ],
             "_resolver": "kubernetes-service",
-            "_rkey": "cluster_127_0_0_1_8877",
+            "_rkey": "cluster_127_0_0_1_8877_default",
             "connect_timeout_ms": 3000,
             "enable_endpoints": false,
             "enable_ipv4": true,
@@ -78,7 +78,7 @@
             "kind": "IRCluster",
             "lb_type": "round_robin",
             "location": "gzipminimumconfigtest.default.1",
-            "name": "cluster_127_0_0_1_8877",
+            "name": "cluster_127_0_0_1_8877_default",
             "namespace": "default",
             "service": "127.0.0.1:8877",
             "targets": [
@@ -93,7 +93,7 @@
                 "tcp://127.0.0.1:8877"
             ]
         },
-        "cluster_gzipminimumconfigtest_http": {
+        "cluster_gzipminimumconfigtest_http_default": {
             "_active": true,
             "_errored": false,
             "_hostname": "gzipminimumconfigtest-http",
@@ -103,7 +103,7 @@
                 "gzipminimumconfigtest.default.2"
             ],
             "_resolver": "kubernetes-service",
-            "_rkey": "cluster_gzipminimumconfigtest_http",
+            "_rkey": "cluster_gzipminimumconfigtest_http_default",
             "connect_timeout_ms": 3000,
             "enable_endpoints": false,
             "enable_ipv4": true,
@@ -112,7 +112,7 @@
             "kind": "IRCluster",
             "lb_type": "round_robin",
             "location": "gzipminimumconfigtest.default.2",
-            "name": "cluster_gzipminimumconfigtest_http",
+            "name": "cluster_gzipminimumconfigtest_http_default",
             "namespace": "default",
             "service": "gzipminimumconfigtest-http",
             "targets": [
@@ -200,7 +200,7 @@
                             "gzipminimumconfigtest.default.1"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_127_0_0_1_8877",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -209,7 +209,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "gzipminimumconfigtest.default.1",
-                        "name": "cluster_127_0_0_1_8877",
+                        "name": "cluster_127_0_0_1_8877_default",
                         "namespace": "default",
                         "service": "127.0.0.1:8877",
                         "targets": [
@@ -290,7 +290,7 @@
                             "gzipminimumconfigtest.default.1"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_127_0_0_1_8877",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -299,7 +299,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "gzipminimumconfigtest.default.1",
-                        "name": "cluster_127_0_0_1_8877",
+                        "name": "cluster_127_0_0_1_8877_default",
                         "namespace": "default",
                         "service": "127.0.0.1:8877",
                         "targets": [
@@ -380,7 +380,7 @@
                             "gzipminimumconfigtest.default.1"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_127_0_0_1_8877",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -389,7 +389,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "gzipminimumconfigtest.default.1",
-                        "name": "cluster_127_0_0_1_8877",
+                        "name": "cluster_127_0_0_1_8877_default",
                         "namespace": "default",
                         "service": "127.0.0.1:8877",
                         "targets": [
@@ -467,7 +467,7 @@
                             "gzipminimumconfigtest.default.2"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_gzipminimumconfigtest_http",
+                        "_rkey": "cluster_gzipminimumconfigtest_http_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -476,7 +476,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "gzipminimumconfigtest.default.2",
-                        "name": "cluster_gzipminimumconfigtest_http",
+                        "name": "cluster_gzipminimumconfigtest_http_default",
                         "namespace": "default",
                         "service": "gzipminimumconfigtest-http",
                         "targets": [
@@ -513,7 +513,7 @@
                         "/target/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: gzipminimumconfigtest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: gzipminimumconfigtest\n  scope: AmbassadorTest\nname: gzipminimumconfigtest-http\nprefix: /target/\nservice: gzipminimumconfigtest-http\n",
+                    "serialization": "ambassador_id: gzipminimumconfigtest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: gzipminimumconfigtest\n  scope: AmbassadorTest\nname: gzipminimumconfigtest-http\nnamespace: default\nprefix: /target/\nservice: gzipminimumconfigtest-http\n",
                     "service": "gzipminimumconfigtest-http",
                     "weight": 100
                 }
@@ -528,7 +528,7 @@
             "precedence": 0,
             "prefix": "/target/",
             "rewrite": "/",
-            "serialization": "ambassador_id: gzipminimumconfigtest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: gzipminimumconfigtest\n  scope: AmbassadorTest\nname: gzipminimumconfigtest-http\nprefix: /target/\nservice: gzipminimumconfigtest-http\n"
+            "serialization": "ambassador_id: gzipminimumconfigtest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: gzipminimumconfigtest\n  scope: AmbassadorTest\nname: gzipminimumconfigtest-http\nnamespace: default\nprefix: /target/\nservice: gzipminimumconfigtest-http\n"
         }
     ],
     "grpc_services": {},
@@ -551,7 +551,6 @@
             "name": "ir.listener",
             "namespace": "default",
             "redirect_listener": false,
-            "require_tls": false,
             "secure_action": "Route",
             "service_port": 8080,
             "use_proxy_proto": false

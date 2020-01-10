@@ -56,7 +56,7 @@
             "name": "ambassador",
             "namespace": "default",
             "rkey": "gziptest.default.1",
-            "serialization": "ambassador_id: gziptest\napiVersion: ambassador/v0\nconfig:\n  gzip:\n    content_type:\n    - text/plain\n    min_content_length: 32\n    window_bits: 15\nkind: Module\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: gziptest\n  scope: AmbassadorTest\nname: ambassador\n"
+            "serialization": "ambassador_id: gziptest\napiVersion: ambassador/v0\nconfig:\n  gzip:\n    content_type:\n    - text/plain\n    min_content_length: 32\n    window_bits: 15\nkind: Module\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: gziptest\n  scope: AmbassadorTest\nname: ambassador\nnamespace: default\n"
         },
         "gziptest.default.2": {
             "_referenced_by": {},
@@ -73,7 +73,7 @@
             "namespace": "default",
             "prefix": "/target/",
             "rkey": "gziptest.default.2",
-            "serialization": "ambassador_id: gziptest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: gziptest\n  scope: AmbassadorTest\nname: gziptest-http\nprefix: /target/\nservice: gziptest-http\n",
+            "serialization": "ambassador_id: gziptest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: gziptest\n  scope: AmbassadorTest\nname: gziptest-http\nnamespace: default\nprefix: /target/\nservice: gziptest-http\n",
             "service": "gziptest-http"
         },
         "k8s-gziptest-admin-default": {

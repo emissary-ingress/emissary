@@ -48,7 +48,7 @@
         "xff_num_trusted_hops": 0
     },
     "clusters": {
-        "cluster_127_0_0_1_8877": {
+        "cluster_127_0_0_1_8877_default": {
             "_active": true,
             "_errored": false,
             "_hostname": "127.0.0.1",
@@ -58,7 +58,7 @@
                 "xfpredirect-http.default.1"
             ],
             "_resolver": "kubernetes-service",
-            "_rkey": "cluster_127_0_0_1_8877",
+            "_rkey": "cluster_127_0_0_1_8877_default",
             "connect_timeout_ms": 3000,
             "enable_endpoints": false,
             "enable_ipv4": true,
@@ -67,7 +67,7 @@
             "kind": "IRCluster",
             "lb_type": "round_robin",
             "location": "xfpredirect-http.default.1",
-            "name": "cluster_127_0_0_1_8877",
+            "name": "cluster_127_0_0_1_8877_default",
             "namespace": "default",
             "service": "127.0.0.1:8877",
             "targets": [
@@ -82,7 +82,7 @@
                 "tcp://127.0.0.1:8877"
             ]
         },
-        "cluster_xfpredirect_http": {
+        "cluster_xfpredirect_http_default": {
             "_active": true,
             "_errored": false,
             "_hostname": "xfpredirect-http",
@@ -92,7 +92,7 @@
                 "xfpredirect-http.default.2"
             ],
             "_resolver": "kubernetes-service",
-            "_rkey": "cluster_xfpredirect_http",
+            "_rkey": "cluster_xfpredirect_http_default",
             "connect_timeout_ms": 3000,
             "enable_endpoints": false,
             "enable_ipv4": true,
@@ -101,7 +101,7 @@
             "kind": "IRCluster",
             "lb_type": "round_robin",
             "location": "xfpredirect-http.default.2",
-            "name": "cluster_xfpredirect_http",
+            "name": "cluster_xfpredirect_http_default",
             "namespace": "default",
             "service": "xfpredirect-http",
             "targets": [
@@ -178,7 +178,7 @@
                             "xfpredirect-http.default.1"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_127_0_0_1_8877",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -187,7 +187,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "xfpredirect-http.default.1",
-                        "name": "cluster_127_0_0_1_8877",
+                        "name": "cluster_127_0_0_1_8877_default",
                         "namespace": "default",
                         "service": "127.0.0.1:8877",
                         "targets": [
@@ -268,7 +268,7 @@
                             "xfpredirect-http.default.1"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_127_0_0_1_8877",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -277,7 +277,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "xfpredirect-http.default.1",
-                        "name": "cluster_127_0_0_1_8877",
+                        "name": "cluster_127_0_0_1_8877_default",
                         "namespace": "default",
                         "service": "127.0.0.1:8877",
                         "targets": [
@@ -358,7 +358,7 @@
                             "xfpredirect-http.default.1"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_127_0_0_1_8877",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -367,7 +367,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "xfpredirect-http.default.1",
-                        "name": "cluster_127_0_0_1_8877",
+                        "name": "cluster_127_0_0_1_8877_default",
                         "namespace": "default",
                         "service": "127.0.0.1:8877",
                         "targets": [
@@ -445,7 +445,7 @@
                             "xfpredirect-http.default.2"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_xfpredirect_http",
+                        "_rkey": "cluster_xfpredirect_http_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -454,7 +454,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "xfpredirect-http.default.2",
-                        "name": "cluster_xfpredirect_http",
+                        "name": "cluster_xfpredirect_http_default",
                         "namespace": "default",
                         "service": "xfpredirect-http",
                         "targets": [
@@ -490,7 +490,7 @@
                         "/XFPRedirect/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: xfpredirect\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: xfpredirect\n  scope: AmbassadorTest\nname: XFPRedirect\nprefix: /XFPRedirect/\nservice: xfpredirect-http\n",
+                    "serialization": "ambassador_id: xfpredirect\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: xfpredirect\n  scope: AmbassadorTest\nname: XFPRedirect\nnamespace: default\nprefix: /XFPRedirect/\nservice: xfpredirect-http\n",
                     "service": "xfpredirect-http",
                     "weight": 100
                 }
@@ -504,7 +504,7 @@
             "precedence": 0,
             "prefix": "/XFPRedirect/",
             "rewrite": "/",
-            "serialization": "ambassador_id: xfpredirect\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: xfpredirect\n  scope: AmbassadorTest\nname: XFPRedirect\nprefix: /XFPRedirect/\nservice: xfpredirect-http\n"
+            "serialization": "ambassador_id: xfpredirect\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: xfpredirect\n  scope: AmbassadorTest\nname: XFPRedirect\nnamespace: default\nprefix: /XFPRedirect/\nservice: xfpredirect-http\n"
         }
     ],
     "grpc_services": {},
