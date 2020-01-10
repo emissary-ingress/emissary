@@ -11,6 +11,9 @@
  * This class is the basis for all Kubernetes resources that are created, viewed, modified and deleted in the Web UI.
  */
 
+/* For getting the edge-stack authorization. */
+import {getCookie} from '../../components/cookies.js';
+
 /* Kubernetes operations: apply, delete. */
 import { ApiFetch } from "../../components/api-fetch.js";
 
@@ -88,20 +91,23 @@ export class Resource extends Model {
     return error;
   }
 
-  /* doAdd(cookie)
+  /* doAdd()
    * Add this Resource to Kubernetes using kubectl apply.
    */
 
-  doAdd(cookie) {
+  doAdd() {
+    let cookie = getCookie("edge_stack_auth");
+
     throw Error("Not Yet Implemented");
   }
 
-  /* doDelete(cookie)
+  /* doDelete()
   * call the edge_stack API to delete this object.
   * Returns null if success, an error string if not.
    */
 
-  doDelete(cookie) {
+  doDelete() {
+    let cookie = getCookie("edge_stack_auth");
     let error  = null;
     let params = {
       method: "POST",
@@ -128,11 +134,13 @@ export class Resource extends Model {
     return error;
   }
 
-  /* doSave(cookie)
+  /* doSave()
    * Save the changes in this Resource to Kubernetes using kubectl apply.
    */
 
-  doSave(cookie) {
+  doSave() {
+    let cookie = getCookie("edge_stack_auth");
+
     throw Error("Not Yet Implemented");
   }
 

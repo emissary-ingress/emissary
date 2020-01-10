@@ -121,12 +121,12 @@ export class ResourceView extends View {
    * in the case of a Resource it will write back to Kubernetes with kubectl apply.
    */
 
-  onSave(cookie) {
+  onSave() {
     throw Error("Not Yet Implemented");
 
     if (this.viewState === "add") {
       /* Add the new resource to the system. */
-      this.model.doAdd(cookie);
+      this.model.doAdd();
 
       /* Remove the view.  The next snapshot will create a new Resource which then will create a corresponding
        * View that represents the added resource.  In the future, we will not remove the view but change it to a
@@ -137,7 +137,7 @@ export class ResourceView extends View {
     else
     if (this.viewState === "edit") {
       /* Save the changes in the resource. */
-      this.model.doSave(cookie);
+      this.model.doSave();
 
       /* Swap models back, restoring listeners to the saved Model. */
       this.model.removeListener(this);

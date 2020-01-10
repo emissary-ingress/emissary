@@ -6,7 +6,7 @@
  */
 
 /* Debug flag */
-import { debugMVC } from "./utilities.js"
+import { enableMVC } from "./utilities.js"
 
 /* LitElement superclass. */
 import { LitElement, html, css } from '../../vendor/lit-element.min.js'
@@ -110,7 +110,7 @@ export class ResourceCollectionView extends LitElement {
    */
 
   render() {
-    if (debugMVC()) {
+    if (enableMVC()) {
       return html`
         <div style="border:thick solid red">
         <link rel="stylesheet" href="../styles/resources.css">

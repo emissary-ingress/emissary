@@ -6,12 +6,11 @@
 
 import { hasDebugBackend } from "../../components/api-fetch.js"
 
-var debug_mvc = true;
-
 /* ================================ Debugging  ================================ */
 
-export function debugMVC() {
-  return debug_mvc || hasDebugBackend();
+export function enableMVC() {
+  return true;
+  /* return hasDebugBackend */
 }
 
 /* ================================ Map Utilities ================================ */
