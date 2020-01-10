@@ -284,15 +284,19 @@ class IResourceCollection extends ResourceCollection {
 #### View and its subclasses
 
 The following simply provides an overview of the actual implementations of `View`, `ResourceView`, and
-`ResourceCollectionView`,  and their interface classes `IView` and `IResourceView`.  Users will typically need
-only to subclass from `IResourceView` and `IResourceCollectionView`; the framework and interface classes will not
-be modified. (TBD: names are incorrect here)
+`ResourceCollectionView`,  and their interface classes `IResourceView` and `IResourceCollectionView`.
+Users will typically need only to subclass from `IResourceView` and `IResourceCollectionView`; the framework
+and interface classes will not be modified.
 
 For more detail on these implementations, see the source code in the `mvc/framework` and `mvc/interfaces`
 directories.
 
 ##### View
-The `View` class...
+The `View` class defines the basic HTML framework, rendering, and model notification handling for display of
+a single `Resource` (e.g. a `HostResource`).  The `render()` method here assumes styles are imported properly
+and a common layout of the view that has list, edit, detail, and add variants.  The developer
+should not have to subclass this but would instead subclass `IResourceView` and implement the methods
+required there.
 
 ```
 class View extends LitElement {
@@ -306,11 +310,15 @@ class View extends LitElement {
   visibleWhen(...arguments)
 }
 ```
-As a framework class, this will not be subclassed by the user.
 
 ##### ResourceView
-The `ResourceView` class...
-As a framework class, this will not be subclassed by the user.
+The `ResourceView` class is a `View` subclass that adds Resource-specific state and handling for rendering a single
+Resource object.  It handles the edit operations (edit, save, cancel) and rendering of the different variants of
+the ResourceView in these view states.  It also provides the ability to add messages to the end of the View as well
+as an optional YAML display showing the YAML that represents the resource.  When editing, the YAML will display the
+actual structure that would be sent to Kubernetes apply.
+
+The developer will not subclass `ResourceView` but instead `IResourceView`, implementing the required methods there.
 
 ```
 class ResourceView extends View {
@@ -334,7 +342,10 @@ class ResourceView extends View {
 ```
 
 ##### IResourceView
-The `IResourceView` class...
+The `IResourceView` class is the interface class that developers will subclass for their specialized views
+for Resources.  Because most of the functionality of rendering, editing and updating Resources is handled in the
+concrete classes ResourceView and View, the developer need only implement the methods in the interface.  For
+an example, see `HostResourceView`, which extends `IResourceView`.
 
 ```
 class IResourceView extends ResourceView {
@@ -347,8 +358,14 @@ class IResourceView extends ResourceView {
 ```
 
 ##### ResourceCollectionView
-The `ResourceCollectionView` class...
-As a framework class, this will not be subclassed by the user.
+The `ResourceCollectionView` class implements the display of a list of `IResourceView` subclasses
+(e.g. `HostResourceView`).  It listens for messages from a `ResourceCollection` subclass (e.g.
+`HostCollection`) which manages the list of `IResources` (e.g. `HostResources`) and creates and deletes the
+appropriate `IResourceViews` as needed.  Irt also provides sorting of these views by an attribute of the
+`IResources` being displayed (e.g. the `HostResource`'s name, namespace, or other attribute).
+
+Developers will not subclass `ResourceCollectionView` but instead will subclass `IResourceCollectionView` and 
+implement the required methods there.
 
 ```
 class ResourceCollectionView extends LitElement {
@@ -364,7 +381,9 @@ class ResourceCollectionView extends LitElement {
 ```
 
 ##### IResourceCollectionView
-The `IResourceCollectionView` class...
+The `IResourceCollectionView` class is the interface class that developers will subclass for their specialized
+list views of `Resources`.  The developer need only define the methods listed below.  For a concrete example,
+see `HostCollectionView` which implements a concrete class displaying a list of `HostResource` objects.
 
 ```
 class IResourceCollectionView extends ResourceCollectionView {
@@ -379,5 +398,6 @@ class IResourceCollectionView extends ResourceCollectionView {
 
 # Examples
 
-See `HostResource`, `HostCollection` in mvc/models, and `HostView` and `HostCollectionView` for specific details
-on implementation.
+See `HostResource`, `HostCollection` in mvc/models, and `HostView` and `HostCollectionView` in mvc/views
+for specific details on creating new model and view classes for other Resources based on `IResource`, `IResourceView`,
+`IResourceCollection`, and `IResourceCollectionView`.
