@@ -1,6 +1,7 @@
 set -e
 
 sudo cp /buildroot/bin/amb-sidecar /ambassador/sidecars
+sudo cp /buildroot/bin/aes-plugin-runner /ambassador
 sudo touch /ambassador/.edge_stack
 
 sudo mkdir -p /ambassador/webui/bindata && sudo rsync -a --delete /buildroot/apro/cmd/amb-sidecar/webui/bindata/  /ambassador/webui/bindata

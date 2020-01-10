@@ -134,17 +134,18 @@ func mainDocker(socketName, pluginFilepath string) error {
 		return errors.Wrap(err, "unable to find absolute path of plugin file path")
 	}
 
-	aes_plugin_runner_image := os.Getenv("APRO_PLUGIN_RUNNER_IMAGE")
-	if aes_plugin_runner_image == "" {
-		aes_plugin_runner_image = "quay.io/datawire/aes:apro-plugin-runner-" + Version
+	aes_image := os.Getenv("AES_IMAGE")
+	if aes_image == "" {
+		aes_image = "quay.io/datawire/aes:" + Version
 	}
 
 	pluginFileDir := filepath.Dir(pluginFilepath)
 	cmd := exec.Command("docker", "run", "--rm", "-it",
 		"--volume="+pluginFileDir+":"+pluginFileDir+":ro",
 		"--publish="+net.JoinHostPort(host, strconv.Itoa(portNumber))+":"+strconv.Itoa(portNumber),
-		aes_plugin_runner_image,
-		"aes-plugin-runner", fmt.Sprintf(":%d", portNumber), pluginFilepath)
+		"--entrypoint=/ambassador/aes-plugin-runner",
+		aes_image,
+		fmt.Sprintf(":%d", portNumber), pluginFilepath)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
