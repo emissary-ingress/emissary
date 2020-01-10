@@ -127,6 +127,16 @@ class IRHost(IRResource):
 
         return True
 
+    def pretty(self) -> str:
+        request_policy = self.get('requestPolicy', {})
+        insecure_policy = request_policy.get('insecure', {})
+        insecure_action = insecure_policy.get('action', 'Redirect')
+        insecure_addl_port = insecure_policy.get('additionalPort', None)
+
+        ctx_name = self.context.name if self.context else "-none-"
+        return "<Host %s for %s ctx %s ia %s iap %s>" % (self.name, self.hostname or '*', ctx_name,
+                                                         insecure_action, insecure_addl_port)
+
     def resolve(self, ir: 'IR', secret_name: str) -> SavedSecret:
         # Try to use our namespace for secret resolution. If we somehow have no
         # namespace, fall back to the Ambassador's namespace.
@@ -152,7 +162,7 @@ class HostFactory:
                     host.referenced_by(config)
                     host.sourced_by(config)
 
-                    ir.logger.info(f"HostFactory: saving host {host.name}")
+                    ir.logger.info(f"HostFactory: saving host {host.pretty()}")
                     ir.save_host(host)
                 else:
-                    ir.logger.info(f"HostFactory: not saving inactive host {host.name}")
+                    ir.logger.info(f"HostFactory: not saving inactive host {host.pretty()}")
