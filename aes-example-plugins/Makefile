@@ -1,22 +1,26 @@
 PLUGIN_DIR ?= .
 
 DOCKER_REGISTRY ?= localhost:31000
-DOCKER_IMAGE ?= $(DOCKER_REGISTRY)/amb-sidecar-custom:$(shell git describe --tags --always --dirty)
+DOCKER_IMAGE ?= $(DOCKER_REGISTRY)/aes-custom:$(shell git describe --tags --always --dirty)
 
-APRO_VERSION = 0.11.0
+AES_VERSION ?= 1.0.0
+AES_IMAGE ?= quay.io/datawire/aes:$(AES_VERSION)
 
-apro-abi@%.txt:
-	curl --fail -o $@ https://s3.amazonaws.com/datawire-static-files/apro-abi/apro-abi@$(APRO_VERSION).txt
+all: .docker.stamp
+.PHONY: all
+
+aes-abi.txt: .var.AES_IMAGE
+	docker run --rm --entrypoint=cat $(AES_IMAGE) /ambassador/aes-abi.txt > $@
 %.mk: %.txt
 	{ \
-		sed -n 's/^# *_*/APRO_/p' < $<; \
-		echo APRO_GOENV=$$(sed -En 's/^# *([A-Z])/\1/p' < $<); \
+		sed -n 's/^# *_*/AES_/p' < $<; \
+		echo AES_GOENV=$$(sed -En 's/^# *([A-Z])/\1/p' < $<); \
 	} > $@
 %.pkgs.txt: %.txt
 	grep -v '^#' < $< > $@
--include apro-abi@$(APRO_VERSION).mk
+-include aes-abi.mk
 
-go.DOCKER_IMAGE = golang:$(APRO_GOVERSION)$(if $(filter 2,$(words $(subst ., ,$(APRO_GOVERSION)))),.0)
+go.DOCKER_IMAGE = golang:$(AES_GOVERSION)$(if $(filter 2,$(words $(subst ., ,$(AES_GOVERSION)))),.0)
 
 # Since the GOPATH must match amb-sidecar, we *always* compile in
 # Docker, so that we can put it at an arbitrary path without fuss.
@@ -24,13 +28,10 @@ go.GOBUILD  = docker exec -i $(shell docker ps -q -f label=component=plugin-buil
 
 container.ID = $(shell docker ps -q -f label=component=plugin-builder)
 
-all: .docker.stamp
-.PHONY: all
-
-.var.APRO_VERSION: .var.%: FORCE
-	@echo $($*) > .tmp$@ && if cmp -s $@ .tmp$@; then cp -f .tmp$@ $@; else rm -f .tmp$@ || true; fi
-Dockerfile: Dockerfile.in .var.APRO_VERSION
-	sed 's,@APRO_VERSION@,$(APRO_VERSION),' < $< > $@
+.var.AES_IMAGE: .var.%: FORCE
+	@echo $($*) > .tmp$@ && if cmp -s $@ .tmp$@; then rm -f .tmp$@ || true; else cp -f .tmp$@ $@; fi
+Dockerfile: Dockerfile.in .var.AES_IMAGE
+	sed 's,@AES_IMAGE@,$(AES_IMAGE),' < $< > $@
 .docker.stamp: $(patsubst $(PLUGIN_DIR)/%.go,%.so,$(wildcard $(PLUGIN_DIR)/*)) Dockerfile
 	docker build -t $(DOCKER_IMAGE) .
 	date > $@
@@ -47,8 +48,8 @@ download-docker:
 
 build-container:
 ifeq "$(container.ID)" ""
-	docker build -t plugin-builder --build-arg CUR_DIR=$(CURDIR) --build-arg AES_GOVERSION=$(APRO_GOVERSION)$(if $(filter 2,$(words $(subst ., ,$(APRO_GOVERSION)))),.0) --build-arg UID=$(shell id -u) build/
-	docker run --rm -d --env-file=${CURDIR}/apro-abi@$(APRO_VERSION).mk plugin-builder
+	docker build -t plugin-builder --build-arg CUR_DIR=$(CURDIR) --build-arg AES_GOVERSION=$(AES_GOVERSION)$(if $(filter 2,$(words $(subst ., ,$(AES_GOVERSION)))),.0) --build-arg UID=$(shell id -u) build/
+	docker run --rm -d --env-file=${CURDIR}/aes-abi.mk plugin-builder
 endif
 
 sync: build-container
@@ -56,11 +57,11 @@ sync: build-container
 	rsync --exclude-from=${CURDIR}/build/sync-excludes.txt -e 'docker exec -i' -r . $(container.ID):$(CURDIR)
 	rsync -e 'docker exec -i' -r $(shell go env GOPATH)/pkg/mod/cache/download/ $(container.ID):/mnt/goproxy/
 
-.common-pkgs.txt: apro-abi@$(APRO_VERSION).pkgs.txt download-go
+.common-pkgs.txt: aes-abi.pkgs.txt download-go
 	@bash -c 'comm -12 <(go list -m all|cut -d" " -f1|sort) <(< $< cut -d" " -f1|sort)' > $@
-version-check: .common-pkgs.txt apro-abi@$(APRO_VERSION).pkgs.txt
-	@bash -c 'diff -u <(grep -F -f $< apro-abi@$(APRO_VERSION).pkgs.txt) <(go list -m all | grep -F -f $<)' || { \
-		printf '\nKey:\n  -APro version\n  +Plugin version\n\nERROR: dependency versions do not match APro\n\n'; \
+version-check: .common-pkgs.txt aes-abi.pkgs.txt
+	@bash -c 'diff -u <(grep -F -f $< aes-abi.pkgs.txt) <(go list -m all | grep -F -f $<)' || { \
+		printf '\nKey:\n  -version in AES\n  +version in Plugin\n\nERROR: dependency versions do not match AES\n\n'; \
 		false; \
 	}
 .PHONY: version-check
@@ -70,11 +71,12 @@ version-check: .common-pkgs.txt apro-abi@$(APRO_VERSION).pkgs.txt
 	rsync -e 'docker exec -i' -r $(container.ID):${CURDIR}/ .
 
 clean:
-	rm -f -- *.so .docker.stamp .common-pkgs.txt .tmp.* .var.* Dockerfile apro-abi@*
+	rm -f -- *.so .docker.stamp .common-pkgs.txt .tmp.* .var.* Dockerfile aes-abi*
 ifneq "$(container.ID)" ""
 	docker kill $(container.ID)
 endif	
 .PHONY: clean
 
 .DELETE_ON_ERROR:
+.NOTPARALLEL:
 .PHONY: FORCE
