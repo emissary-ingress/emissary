@@ -14,7 +14,6 @@ func PluginMain(w http.ResponseWriter, r *http.Request) {
 	resp, err := client.Get("https://en.wikipedia.org/wiki/Special:Random")
 	if err != nil {
 		// fail open?
-		w.Header().Set("X-Wikipedia", "err "+err.Error())
 		w.WriteHeader(http.StatusOK)
 		return
 	}

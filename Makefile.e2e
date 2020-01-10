@@ -30,10 +30,20 @@ venv/bin/consul-kube: %/bin/consul-kube: | %/bin/activate
 	$*/bin/pip install git+https://github.com/tradel/consul-kube
 
 # UAA's ~3m bootup time is the main motivator for the big --timeout
-deploy: $(foreach i,$(images), docker/$i.docker.push.dev )
-	set -a && . ./k8s-env.sh && go run github.com/datawire/ambassador/cmd/edgectl license "$$AMBASSADOR_LICENSE_KEY" && go run github.com/datawire/ambassador/cmd/kubeapply --timeout=3m30s --filename=k8s
-apply: | $(foreach i,$(images), docker/$i.docker.push.dev )
-	set -a && . ./k8s-env.sh && go run github.com/datawire/ambassador/cmd/edgectl license "$$AMBASSADOR_LICENSE_KEY" && go run github.com/datawire/ambassador/cmd/kubeapply --timeout=3m30s --filename=k8s
+deploy: $(foreach i,$(images) aes-example-plugins, docker/$i.docker.push.dev )
+	@PS4=; set -ex; { \
+	  set -a && . ./k8s-env.sh; \
+	  go run github.com/datawire/ambassador/cmd/edgectl license "$$AMBASSADOR_LICENSE_KEY"; \
+	  kubectl --namespace=ambassador set image deployment/ambassador aes="$$AES_EXAMPLE_PLUGINS_IMAGE"; \
+	  go run github.com/datawire/ambassador/cmd/kubeapply --timeout=3m30s --filename=k8s; \
+	}
+apply: | $(foreach i,$(images) aes-example-plugins, docker/$i.docker.push.dev )
+	@PS4=; set -ex; { \
+	  set -a && . ./k8s-env.sh; \
+	  go run github.com/datawire/ambassador/cmd/edgectl license "$$AMBASSADOR_LICENSE_KEY"; \
+	  kubectl --namespace=ambassador set image deployment/ambassador aes="$$AES_EXAMPLE_PLUGINS_IMAGE"; \
+	  go run github.com/datawire/ambassador/cmd/kubeapply --timeout=3m30s --filename=k8s; \
+	}
 .PHONY: deploy apply
 
 tests.src += $(wildcard tests/*/*.test)
@@ -49,6 +59,10 @@ $(tests.run): deploy proxy venv/bin/consul-kube bin_$(GOHOSTOS)_$(GOHOSTARCH)/ap
 test-suite.tap: $(tests.tap)
 
 # Docker build
+
+docker/aes-example-plugins.docker.stamp: FORCE
+	$(MAKE) -C aes-example-plugins AES_IMAGE=$$(docker images -q aes:latest) DOCKER_IMAGE=aes-example-plugins
+	docker image inspect aes-example-plugins --format='{{.Id}}' > $@
 
 # "Release"-ish binaries
 bins += github.com/datawire/apro/cmd/app-sidecar
