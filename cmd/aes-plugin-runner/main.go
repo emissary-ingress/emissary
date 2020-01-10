@@ -25,12 +25,12 @@ func usage() {
 	fmt.Printf("Usage: %s [OPTIONS] TCP_ADDR PATH/TO/PLUGIN.so\n", os.Args[0])
 	fmt.Printf("   or: %s <-h|--help>\n", os.Args[0])
 	fmt.Printf("   or: %s --version\n", os.Args[0])
-	fmt.Printf("Run an Ambassador Pro middleware plugin as an Ambassador AuthService, for plugin development\n")
+	fmt.Printf("Run an Ambassador Edge Stack Filter plugin as an Ambassador AuthService, for plugin development\n")
 	fmt.Printf("\n")
 	fmt.Printf("OPTIONS:\n")
 	fmt.Printf("  --docker   Force the use of Docker, for increased realism\n")
 	if mainNative == nil {
-		fmt.Printf("             (no-op; this build of apro-plugin-runner always uses Docker)\n")
+		fmt.Printf("             (no-op; this build of aes-plugin-runner always uses Docker)\n")
 	}
 	fmt.Printf("\n")
 	fmt.Printf("Example:\n")
@@ -70,7 +70,7 @@ the 'quay.io/datawire/aes:{{.Name}}-{{.Version}}'
 Docker image.
 `))
 		t.Execute(os.Stdout, map[string]string{
-			"Name":      "apro-plugin-runner",
+			"Name":      "aes-plugin-runner",
 			"Version":   Version,
 			"GoVersion": runtime.Version(),
 			"GOOS":      runtime.GOOS,
@@ -93,7 +93,7 @@ Docker image.
 		errusage(fmt.Sprintf("invalid TCP port: %q", portName))
 	}
 
-	fmt.Fprintf(os.Stderr, " > apro-plugin-runner %s (%s %s/%s)\n", Version, runtime.Version(), runtime.GOOS, runtime.GOARCH)
+	fmt.Fprintf(os.Stderr, " > aes-plugin-runner %s (%s %s/%s)\n", Version, runtime.Version(), runtime.GOOS, runtime.GOARCH)
 
 	if !*flagDocker && mainNative != nil {
 		fmt.Fprintf(os.Stderr, " > running natively\n")
@@ -134,17 +134,18 @@ func mainDocker(socketName, pluginFilepath string) error {
 		return errors.Wrap(err, "unable to find absolute path of plugin file path")
 	}
 
-	apro_plugin_runner_image := os.Getenv("APRO_PLUGIN_RUNNER_IMAGE")
-	if apro_plugin_runner_image == "" {
-		apro_plugin_runner_image = "quay.io/datawire/aes:apro-plugin-runner-" + Version
+	aes_image := os.Getenv("AES_IMAGE")
+	if aes_image == "" {
+		aes_image = "quay.io/datawire/aes:" + Version
 	}
 
 	pluginFileDir := filepath.Dir(pluginFilepath)
 	cmd := exec.Command("docker", "run", "--rm", "-it",
 		"--volume="+pluginFileDir+":"+pluginFileDir+":ro",
 		"--publish="+net.JoinHostPort(host, strconv.Itoa(portNumber))+":"+strconv.Itoa(portNumber),
-		apro_plugin_runner_image,
-		"apro-plugin-runner", fmt.Sprintf(":%d", portNumber), pluginFilepath)
+		"--entrypoint=/ambassador/aes-plugin-runner",
+		aes_image,
+		fmt.Sprintf(":%d", portNumber), pluginFilepath)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr

@@ -1,20 +1,14 @@
-# apro-plugin-runner: Run Ambassador Pro middleware plugins locally
+# aes-plugin-runner: Run Ambassador Edge Stack Filter plugins locally
 
-`apro-plugin-runner` lets you run an Ambassador Pro filter
-as a stand-alone Ambassador AuthService, making it much easier to
-develop the filter.
-
-## Installation
-
-	$ go get github.com/datawire/apro-plugin-runner
-
-Then make sure `$(go env GOPATH)/bin` is in your `$PATH`.
+`aes-plugin-runner` lets you run an Ambassador Edge Stack Filter
+plugin as a stand-alone Ambassador AuthService, making it much easier
+to develop the plugin.
 
 ## Usage:
 
-	$ apro-plugin-runner --help
-	Usage: apro-plugin-runner TCP_ADDR PATH/TO/PLUGIN.so
-	   or: apro-plugin-runner <-h|--help>
+	$ aes-plugin-runner --help
+	Usage: aes-plugin-runner TCP_ADDR PATH/TO/PLUGIN.so
+	   or: aes-plugin-runner <-h|--help>
 	Run an Ambassador Pro filter as an Ambassador AuthService, for plugin development
 	
 
@@ -22,7 +16,7 @@ You can then use `curl` to create an HTTP request, and examine the subsequent re
 
 ## Example:
 
-	$ apro-plugin-runner :8080 ./wiki-plugin.so
+	$ aes-plugin-runner :8080 ./wiki-plugin.so
 	...
 	$ curl -v localhost:8080
 	* Rebuilt URL to: localhost:8080/

@@ -322,7 +322,7 @@ func (o *observer) observe(prefix, rewrite string) bool {
 }
 
 func (f *fetcher) isInternalCluster(clusterName string) bool {
-	if clusterName == "cluster_127_0_0_1_8877" || clusterName == "cluster_127_0_0_1_8500" {
+	if strings.HasPrefix(clusterName, "cluster_127_0_0_1") {
 		return true
 	}
 	return false
