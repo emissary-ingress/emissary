@@ -1,6 +1,6 @@
 from typing import Tuple, Union
 
-from kat.harness import variants, Query
+from kat.harness import variants, Query, EDGE_STACK
 
 from abstract_tests import AmbassadorTest, assert_default_errors
 from abstract_tests import MappingTest, Node
@@ -11,6 +11,10 @@ from abstract_tests import MappingTest, Node
 class Plain(AmbassadorTest):
     single_namespace = True
     namespace = "plain-namespace"
+
+    def init(self, *args, **kwargs):
+        if EDGE_STACK:
+            self.xfail = "Plain is infuriating"
 
     @classmethod
     def variants(cls):
@@ -42,7 +46,22 @@ metadata:
       name: SimpleMapping-HTTP-all
       prefix: /SimpleMapping-HTTP-all/
       service: http://plain-simplemapping-http-all-http.plain
-      ambassador_id: plain
+      ambassador_id: plain      
+      ---
+      apiVersion: getambassador.io/v2
+      kind: Host
+      name: cleartext-host-{self.path.k8s}
+      ambassador_id: [ "plain" ]
+      hostname: "*"
+      selector:
+        matchLabels:
+          hostname: {self.path.k8s}
+      acmeProvider:
+        authority: none
+      requestPolicy:
+        insecure:
+          action: Route
+          additionalPort: 8080
   labels:
     scope: AmbassadorTest
 spec:

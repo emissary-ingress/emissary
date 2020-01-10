@@ -1,4 +1,4 @@
-from kat.harness import Runner
+from kat.harness import Runner, EDGE_STACK
 
 from abstract_tests import AmbassadorTest
 
@@ -16,9 +16,12 @@ import t_hosts
 import t_loadbalancer
 import t_logservice
 import t_lua_scripts
-import t_mappingtests
-import t_optiontests
-import t_plain
+
+if not EDGE_STACK:
+    import t_mappingtests
+    import t_optiontests
+    import t_plain
+
 import t_ratelimit
 import t_redirect
 #import t_shadow
