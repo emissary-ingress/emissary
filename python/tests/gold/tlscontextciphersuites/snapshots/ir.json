@@ -45,7 +45,7 @@
         "xff_num_trusted_hops": 0
     },
     "clusters": {
-        "cluster_127_0_0_1_8877": {
+        "cluster_127_0_0_1_8877_default": {
             "_active": true,
             "_errored": false,
             "_hostname": "127.0.0.1",
@@ -55,7 +55,7 @@
                 "--internal--"
             ],
             "_resolver": "kubernetes-service",
-            "_rkey": "cluster_127_0_0_1_8877",
+            "_rkey": "cluster_127_0_0_1_8877_default",
             "connect_timeout_ms": 3000,
             "enable_endpoints": false,
             "enable_ipv4": true,
@@ -64,7 +64,7 @@
             "kind": "IRCluster",
             "lb_type": "round_robin",
             "location": "--internal--",
-            "name": "cluster_127_0_0_1_8877",
+            "name": "cluster_127_0_0_1_8877_default",
             "namespace": "default",
             "service": "127.0.0.1:8877",
             "targets": [
@@ -79,7 +79,7 @@
                 "tcp://127.0.0.1:8877"
             ]
         },
-        "cluster_https___tlscontextciphersuites_http_otls": {
+        "cluster_https___tlscontextciphersuites_http_otls_default": {
             "_active": true,
             "_errored": false,
             "_hostname": "tlscontextciphersuites-http",
@@ -89,7 +89,7 @@
                 "tlscontextciphersuites.default.1"
             ],
             "_resolver": "kubernetes-service",
-            "_rkey": "cluster_https___tlscontextciphersuites_http_otls",
+            "_rkey": "cluster_https___tlscontextciphersuites_http_otls_default",
             "connect_timeout_ms": 3000,
             "enable_endpoints": false,
             "enable_ipv4": true,
@@ -98,7 +98,7 @@
             "kind": "IRCluster",
             "lb_type": "round_robin",
             "location": "tlscontextciphersuites.default.1",
-            "name": "cluster_https___tlscontextciphersuites_http_otls",
+            "name": "cluster_https___tlscontextciphersuites_http_otls_default",
             "namespace": "default",
             "service": "tlscontextciphersuites-http",
             "targets": [
@@ -187,7 +187,7 @@
                             "--internal--"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_127_0_0_1_8877",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -196,7 +196,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "--internal--",
-                        "name": "cluster_127_0_0_1_8877",
+                        "name": "cluster_127_0_0_1_8877_default",
                         "namespace": "default",
                         "service": "127.0.0.1:8877",
                         "targets": [
@@ -277,7 +277,7 @@
                             "--internal--"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_127_0_0_1_8877",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -286,7 +286,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "--internal--",
-                        "name": "cluster_127_0_0_1_8877",
+                        "name": "cluster_127_0_0_1_8877_default",
                         "namespace": "default",
                         "service": "127.0.0.1:8877",
                         "targets": [
@@ -371,7 +371,7 @@
                             "tlscontextciphersuites.default.1"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_https___tlscontextciphersuites_http_otls",
+                        "_rkey": "cluster_https___tlscontextciphersuites_http_otls_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -380,7 +380,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "tlscontextciphersuites.default.1",
-                        "name": "cluster_https___tlscontextciphersuites_http_otls",
+                        "name": "cluster_https___tlscontextciphersuites_http_otls_default",
                         "namespace": "default",
                         "service": "tlscontextciphersuites-http",
                         "targets": [
@@ -437,7 +437,7 @@
                         "GET",
                         ":authority-tls-context-host-1"
                     ],
-                    "serialization": "ambassador_id: tlscontextciphersuites\napiVersion: ambassador/v0\nhost: tls-context-host-1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlscontextciphersuites\n  scope: AmbassadorTest\nname: TLSContextCipherSuites-same-prefix-1\nprefix: /tls-context-same/\nservice: https://tlscontextciphersuites-http\n",
+                    "serialization": "ambassador_id: tlscontextciphersuites\napiVersion: ambassador/v0\nhost: tls-context-host-1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlscontextciphersuites\n  scope: AmbassadorTest\nname: TLSContextCipherSuites-same-prefix-1\nnamespace: default\nprefix: /tls-context-same/\nservice: https://tlscontextciphersuites-http\n",
                     "service": "https://tlscontextciphersuites-http",
                     "sni": true,
                     "tls_context": {
@@ -487,7 +487,7 @@
             "precedence": 0,
             "prefix": "/tls-context-same/",
             "rewrite": "/",
-            "serialization": "ambassador_id: tlscontextciphersuites\napiVersion: ambassador/v0\nhost: tls-context-host-1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlscontextciphersuites\n  scope: AmbassadorTest\nname: TLSContextCipherSuites-same-prefix-1\nprefix: /tls-context-same/\nservice: https://tlscontextciphersuites-http\n",
+            "serialization": "ambassador_id: tlscontextciphersuites\napiVersion: ambassador/v0\nhost: tls-context-host-1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlscontextciphersuites\n  scope: AmbassadorTest\nname: TLSContextCipherSuites-same-prefix-1\nnamespace: default\nprefix: /tls-context-same/\nservice: https://tlscontextciphersuites-http\n",
             "sni": true,
             "tls_context": {
                 "_active": true,
@@ -561,7 +561,7 @@
                             "--internal--"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_127_0_0_1_8877",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -570,7 +570,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "--internal--",
-                        "name": "cluster_127_0_0_1_8877",
+                        "name": "cluster_127_0_0_1_8877_default",
                         "namespace": "default",
                         "service": "127.0.0.1:8877",
                         "targets": [
@@ -669,7 +669,6 @@
             "name": "ir.listener",
             "namespace": "default",
             "redirect_listener": false,
-            "require_tls": false,
             "secure_action": "Route",
             "service_port": 8443,
             "use_proxy_proto": false

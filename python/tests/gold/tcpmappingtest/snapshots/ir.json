@@ -45,7 +45,7 @@
         "xff_num_trusted_hops": 0
     },
     "clusters": {
-        "cluster_127_0_0_1_8877": {
+        "cluster_127_0_0_1_8877_tcp_namespace": {
             "_active": true,
             "_errored": false,
             "_hostname": "127.0.0.1",
@@ -55,7 +55,7 @@
                 "--internal--"
             ],
             "_resolver": "kubernetes-service",
-            "_rkey": "cluster_127_0_0_1_8877",
+            "_rkey": "cluster_127_0_0_1_8877_tcp_namespace",
             "connect_timeout_ms": 3000,
             "enable_endpoints": false,
             "enable_ipv4": true,
@@ -64,7 +64,7 @@
             "kind": "IRCluster",
             "lb_type": "round_robin",
             "location": "--internal--",
-            "name": "cluster_127_0_0_1_8877",
+            "name": "cluster_127_0_0_1_8877_tcp_namespace",
             "namespace": "tcp-namespace",
             "service": "127.0.0.1:8877",
             "targets": [
@@ -79,7 +79,7 @@
                 "tcp://127.0.0.1:8877"
             ]
         },
-        "cluster_tcpmappingtest_http_target1_tcp_namespace_443": {
+        "cluster_tcpmappingtest_http_target1_tcp_namespace_443_tcp_namespace": {
             "_active": true,
             "_errored": false,
             "_hostname": "tcpmappingtest-http-target1.tcp-namespace",
@@ -90,7 +90,7 @@
                 "tcpmappingtest-http-target1.tcp-namespace.2"
             ],
             "_resolver": "kubernetes-service",
-            "_rkey": "cluster_tcpmappingtest_http_target1_tcp_namespace_443",
+            "_rkey": "cluster_tcpmappingtest_http_target1_tcp_namespace_443_tcp_namespace",
             "connect_timeout_ms": 3000,
             "enable_endpoints": false,
             "enable_ipv4": true,
@@ -99,7 +99,7 @@
             "kind": "IRCluster",
             "lb_type": "round_robin",
             "location": "tcpmappingtest-http-target1.tcp-namespace.1",
-            "name": "cluster_tcpmappingtest_http_target1_tcp_namespace_443",
+            "name": "cluster_tcpmappingtest_http_target1_tcp_-0",
             "namespace": "tcp-namespace",
             "service": "tcpmappingtest-http-target1.tcp-namespace:443",
             "targets": [
@@ -114,7 +114,7 @@
                 "tcp://tcpmappingtest-http-target1.tcp-namespace:443"
             ]
         },
-        "cluster_tcpmappingtest_http_target1_tcp_namespace_80": {
+        "cluster_tcpmappingtest_http_target1_tcp_namespace_80_tcp_namespace": {
             "_active": true,
             "_errored": false,
             "_hostname": "tcpmappingtest-http-target1.tcp-namespace",
@@ -124,7 +124,7 @@
                 "tcpmappingtest-http-target1.tcp-namespace.4"
             ],
             "_resolver": "kubernetes-service",
-            "_rkey": "cluster_tcpmappingtest_http_target1_tcp_namespace_80",
+            "_rkey": "cluster_tcpmappingtest_http_target1_tcp_namespace_80_tcp_namespace",
             "connect_timeout_ms": 3000,
             "enable_endpoints": false,
             "enable_ipv4": true,
@@ -133,7 +133,7 @@
             "kind": "IRCluster",
             "lb_type": "round_robin",
             "location": "tcpmappingtest-http-target1.tcp-namespace.4",
-            "name": "cluster_tcpmappingtest_http_target1_tcp_namespace_80",
+            "name": "cluster_tcpmappingtest_http_target1_tcp_-1",
             "namespace": "tcp-namespace",
             "service": "tcpmappingtest-http-target1.tcp-namespace:80",
             "targets": [
@@ -148,7 +148,7 @@
                 "tcp://tcpmappingtest-http-target1.tcp-namespace:80"
             ]
         },
-        "cluster_tcpmappingtest_http_target2_other_namespace_443_otls_no_cert_upstream": {
+        "cluster_tcpmappingtest_http_target2_other_namespace_443_otls_no_cert_upstream_tcp_namespace": {
             "_active": true,
             "_errored": false,
             "_hostname": "tcpmappingtest-http-target2.other-namespace",
@@ -158,7 +158,7 @@
                 "tcpmappingtest-http-target1.tcp-namespace.3"
             ],
             "_resolver": "kubernetes-service",
-            "_rkey": "cluster_tcpmappingtest_http_target2_other_namespace_443_otls_no_cert_upstream",
+            "_rkey": "cluster_tcpmappingtest_http_target2_other_namespace_443_otls_no_cert_upstream_tcp_namespace",
             "connect_timeout_ms": 3000,
             "enable_endpoints": false,
             "enable_ipv4": true,
@@ -198,17 +198,17 @@
                 "tcp://tcpmappingtest-http-target2.other-namespace:443"
             ]
         },
-        "cluster_tcpmappingtest_http_target2_other_namespace_otls_TCPMappingTest_tlscontext": {
+        "cluster_tcpmappingtest_http_target2_other_namespace_otls_TCPMappingTest_tlscontext_other_namespace": {
             "_active": true,
             "_errored": false,
             "_hostname": "tcpmappingtest-http-target2.other-namespace",
-            "_namespace": "tcp-namespace",
+            "_namespace": "other-namespace",
             "_port": 443,
             "_referenced_by": [
                 "tcpmappingtest-http-target2.other-namespace.1"
             ],
             "_resolver": "kubernetes-service",
-            "_rkey": "cluster_tcpmappingtest_http_target2_other_namespace_otls_TCPMappingTest_tlscontext",
+            "_rkey": "cluster_tcpmappingtest_http_target2_other_namespace_otls_TCPMappingTest_tlscontext_other_namespace",
             "connect_timeout_ms": 3000,
             "enable_endpoints": false,
             "enable_ipv4": true,
@@ -261,7 +261,7 @@
                 "tcp://tcpmappingtest-http-target2.other-namespace:443"
             ]
         },
-        "cluster_tcpmappingtest_http_target3_tcp_namespace_otls_no_cert_upstream": {
+        "cluster_tcpmappingtest_http_target3_tcp_namespace_otls_no_cert_upstream_tcp_namespace": {
             "_active": true,
             "_errored": false,
             "_hostname": "tcpmappingtest-http-target3.tcp-namespace",
@@ -271,7 +271,7 @@
                 "tcpmappingtest-http-target3.tcp-namespace.1"
             ],
             "_resolver": "kubernetes-service",
-            "_rkey": "cluster_tcpmappingtest_http_target3_tcp_namespace_otls_no_cert_upstream",
+            "_rkey": "cluster_tcpmappingtest_http_target3_tcp_namespace_otls_no_cert_upstream_tcp_namespace",
             "connect_timeout_ms": 3000,
             "enable_endpoints": false,
             "enable_ipv4": true,
@@ -373,7 +373,7 @@
                             "--internal--"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_127_0_0_1_8877",
+                        "_rkey": "cluster_127_0_0_1_8877_tcp_namespace",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -382,7 +382,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "--internal--",
-                        "name": "cluster_127_0_0_1_8877",
+                        "name": "cluster_127_0_0_1_8877_tcp_namespace",
                         "namespace": "tcp-namespace",
                         "service": "127.0.0.1:8877",
                         "targets": [
@@ -463,7 +463,7 @@
                             "--internal--"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_127_0_0_1_8877",
+                        "_rkey": "cluster_127_0_0_1_8877_tcp_namespace",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -472,7 +472,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "--internal--",
-                        "name": "cluster_127_0_0_1_8877",
+                        "name": "cluster_127_0_0_1_8877_tcp_namespace",
                         "namespace": "tcp-namespace",
                         "service": "127.0.0.1:8877",
                         "targets": [
@@ -553,7 +553,7 @@
                             "--internal--"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_127_0_0_1_8877",
+                        "_rkey": "cluster_127_0_0_1_8877_tcp_namespace",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -562,7 +562,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "--internal--",
-                        "name": "cluster_127_0_0_1_8877",
+                        "name": "cluster_127_0_0_1_8877_tcp_namespace",
                         "namespace": "tcp-namespace",
                         "service": "127.0.0.1:8877",
                         "targets": [
@@ -635,7 +635,7 @@
                             "tcpmappingtest-http-target3.tcp-namespace.1"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_tcpmappingtest_http_target3_tcp_namespace_otls_no_cert_upstream",
+                        "_rkey": "cluster_tcpmappingtest_http_target3_tcp_namespace_otls_no_cert_upstream_tcp_namespace",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -691,7 +691,7 @@
                     "route_weight": [
                         0
                     ],
-                    "serialization": "ambassador_id: tcpmappingtest\napiVersion: ambassador/v1\nhost: tls-context-host-3\nkind: TCPMapping\nmetadata_labels:\n  kat-ambassador-id: tcpmappingtest\n  scope: AmbassadorTest\nname: TCPMappingTest-3\nport: 6789\nservice: tcpmappingtest-http-target3.tcp-namespace\ntls: true\n",
+                    "serialization": "ambassador_id: tcpmappingtest\napiVersion: ambassador/v1\nhost: tls-context-host-3\nkind: TCPMapping\nmetadata_labels:\n  kat-ambassador-id: tcpmappingtest\n  scope: AmbassadorTest\nname: TCPMappingTest-3\nnamespace: tcp-namespace\nport: 6789\nservice: tcpmappingtest-http-target3.tcp-namespace\ntls: true\n",
                     "service": "tcpmappingtest-http-target3.tcp-namespace",
                     "sni": true,
                     "tls": true,
@@ -736,7 +736,7 @@
             "port": 6789,
             "precedence": 0,
             "resolver": "kubernetes-service",
-            "serialization": "ambassador_id: tcpmappingtest\napiVersion: ambassador/v1\nhost: tls-context-host-3\nkind: TCPMapping\nmetadata_labels:\n  kat-ambassador-id: tcpmappingtest\n  scope: AmbassadorTest\nname: TCPMappingTest-3\nport: 6789\nservice: tcpmappingtest-http-target3.tcp-namespace\ntls: true\n",
+            "serialization": "ambassador_id: tcpmappingtest\napiVersion: ambassador/v1\nhost: tls-context-host-3\nkind: TCPMapping\nmetadata_labels:\n  kat-ambassador-id: tcpmappingtest\n  scope: AmbassadorTest\nname: TCPMappingTest-3\nnamespace: tcp-namespace\nport: 6789\nservice: tcpmappingtest-http-target3.tcp-namespace\ntls: true\n",
             "sni": true,
             "tls": true,
             "tls_context": {
@@ -792,13 +792,13 @@
                         "_active": true,
                         "_errored": false,
                         "_hostname": "tcpmappingtest-http-target2.other-namespace",
-                        "_namespace": "tcp-namespace",
+                        "_namespace": "other-namespace",
                         "_port": 443,
                         "_referenced_by": [
                             "tcpmappingtest-http-target2.other-namespace.1"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_tcpmappingtest_http_target2_other_namespace_otls_TCPMappingTest_tlscontext",
+                        "_rkey": "cluster_tcpmappingtest_http_target2_other_namespace_otls_TCPMappingTest_tlscontext_other_namespace",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -860,14 +860,14 @@
                         "scope": "AmbassadorTest"
                     },
                     "name": "TCPMappingTest-2",
-                    "namespace": "tcp-namespace",
+                    "namespace": "other-namespace",
                     "port": 6789,
                     "precedence": 0,
                     "resolver": "kubernetes-service",
                     "route_weight": [
                         0
                     ],
-                    "serialization": "ambassador_id: tcpmappingtest\napiVersion: ambassador/v1\nhost: tls-context-host-2\nkind: TCPMapping\nmetadata_labels:\n  kat-ambassador-id: tcpmappingtest\n  scope: AmbassadorTest\nname: TCPMappingTest-2\nport: 6789\nservice: tcpmappingtest-http-target2.other-namespace\ntls: TCPMappingTest-tlscontext\n",
+                    "serialization": "ambassador_id: tcpmappingtest\napiVersion: ambassador/v1\nhost: tls-context-host-2\nkind: TCPMapping\nmetadata_labels:\n  kat-ambassador-id: tcpmappingtest\n  scope: AmbassadorTest\nname: TCPMappingTest-2\nnamespace: other-namespace\nport: 6789\nservice: tcpmappingtest-http-target2.other-namespace\ntls: TCPMappingTest-tlscontext\n",
                     "service": "tcpmappingtest-http-target2.other-namespace",
                     "sni": true,
                     "tls": "TCPMappingTest-tlscontext",
@@ -908,11 +908,11 @@
                 "scope": "AmbassadorTest"
             },
             "name": "GROUP: TCPMappingTest-2",
-            "namespace": "tcp-namespace",
+            "namespace": "other-namespace",
             "port": 6789,
             "precedence": 0,
             "resolver": "kubernetes-service",
-            "serialization": "ambassador_id: tcpmappingtest\napiVersion: ambassador/v1\nhost: tls-context-host-2\nkind: TCPMapping\nmetadata_labels:\n  kat-ambassador-id: tcpmappingtest\n  scope: AmbassadorTest\nname: TCPMappingTest-2\nport: 6789\nservice: tcpmappingtest-http-target2.other-namespace\ntls: TCPMappingTest-tlscontext\n",
+            "serialization": "ambassador_id: tcpmappingtest\napiVersion: ambassador/v1\nhost: tls-context-host-2\nkind: TCPMapping\nmetadata_labels:\n  kat-ambassador-id: tcpmappingtest\n  scope: AmbassadorTest\nname: TCPMappingTest-2\nnamespace: other-namespace\nport: 6789\nservice: tcpmappingtest-http-target2.other-namespace\ntls: TCPMappingTest-tlscontext\n",
             "sni": true,
             "tls": "TCPMappingTest-tlscontext",
             "tls_context": {
@@ -974,7 +974,7 @@
                             "tcpmappingtest-http-target1.tcp-namespace.4"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_tcpmappingtest_http_target1_tcp_namespace_80",
+                        "_rkey": "cluster_tcpmappingtest_http_target1_tcp_namespace_80_tcp_namespace",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -983,7 +983,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "tcpmappingtest-http-target1.tcp-namespace.4",
-                        "name": "cluster_tcpmappingtest_http_target1_tcp_namespace_80",
+                        "name": "cluster_tcpmappingtest_http_target1_tcp_-1",
                         "namespace": "tcp-namespace",
                         "service": "tcpmappingtest-http-target1.tcp-namespace:80",
                         "targets": [
@@ -1014,7 +1014,7 @@
                     "route_weight": [
                         0
                     ],
-                    "serialization": "ambassador_id: tcpmappingtest\napiVersion: ambassador/v1\nhost: tls-context-host-1\nkind: TCPMapping\nmetadata_labels:\n  kat-ambassador-id: tcpmappingtest\n  scope: AmbassadorTest\nname: TCPMappingTest-1\nport: 6789\nservice: tcpmappingtest-http-target1.tcp-namespace:80\n",
+                    "serialization": "ambassador_id: tcpmappingtest\napiVersion: ambassador/v1\nhost: tls-context-host-1\nkind: TCPMapping\nmetadata_labels:\n  kat-ambassador-id: tcpmappingtest\n  scope: AmbassadorTest\nname: TCPMappingTest-1\nnamespace: tcp-namespace\nport: 6789\nservice: tcpmappingtest-http-target1.tcp-namespace:80\n",
                     "service": "tcpmappingtest-http-target1.tcp-namespace:80",
                     "sni": true,
                     "tls_context": {
@@ -1058,7 +1058,7 @@
             "port": 6789,
             "precedence": 0,
             "resolver": "kubernetes-service",
-            "serialization": "ambassador_id: tcpmappingtest\napiVersion: ambassador/v1\nhost: tls-context-host-1\nkind: TCPMapping\nmetadata_labels:\n  kat-ambassador-id: tcpmappingtest\n  scope: AmbassadorTest\nname: TCPMappingTest-1\nport: 6789\nservice: tcpmappingtest-http-target1.tcp-namespace:80\n",
+            "serialization": "ambassador_id: tcpmappingtest\napiVersion: ambassador/v1\nhost: tls-context-host-1\nkind: TCPMapping\nmetadata_labels:\n  kat-ambassador-id: tcpmappingtest\n  scope: AmbassadorTest\nname: TCPMappingTest-1\nnamespace: tcp-namespace\nport: 6789\nservice: tcpmappingtest-http-target1.tcp-namespace:80\n",
             "sni": true,
             "tls_context": {
                 "_active": true,
@@ -1118,7 +1118,7 @@
                             "tcpmappingtest-http-target1.tcp-namespace.3"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_tcpmappingtest_http_target2_other_namespace_443_otls_no_cert_upstream",
+                        "_rkey": "cluster_tcpmappingtest_http_target2_other_namespace_443_otls_no_cert_upstream_tcp_namespace",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -1173,7 +1173,7 @@
                     "route_weight": [
                         0
                     ],
-                    "serialization": "ambassador_id: tcpmappingtest\napiVersion: ambassador/v1\nkind: TCPMapping\nmetadata_labels:\n  kat-ambassador-id: tcpmappingtest\n  scope: AmbassadorTest\nname: TCPMappingTest-clear-to-tls\nport: 7654\nservice: tcpmappingtest-http-target2.other-namespace:443\ntls: true\n",
+                    "serialization": "ambassador_id: tcpmappingtest\napiVersion: ambassador/v1\nkind: TCPMapping\nmetadata_labels:\n  kat-ambassador-id: tcpmappingtest\n  scope: AmbassadorTest\nname: TCPMappingTest-clear-to-tls\nnamespace: tcp-namespace\nport: 7654\nservice: tcpmappingtest-http-target2.other-namespace:443\ntls: true\n",
                     "service": "tcpmappingtest-http-target2.other-namespace:443",
                     "tls": true,
                     "weight": 100
@@ -1188,7 +1188,7 @@
             "port": 7654,
             "precedence": 0,
             "resolver": "kubernetes-service",
-            "serialization": "ambassador_id: tcpmappingtest\napiVersion: ambassador/v1\nkind: TCPMapping\nmetadata_labels:\n  kat-ambassador-id: tcpmappingtest\n  scope: AmbassadorTest\nname: TCPMappingTest-clear-to-tls\nport: 7654\nservice: tcpmappingtest-http-target2.other-namespace:443\ntls: true\n",
+            "serialization": "ambassador_id: tcpmappingtest\napiVersion: ambassador/v1\nkind: TCPMapping\nmetadata_labels:\n  kat-ambassador-id: tcpmappingtest\n  scope: AmbassadorTest\nname: TCPMappingTest-clear-to-tls\nnamespace: tcp-namespace\nport: 7654\nservice: tcpmappingtest-http-target2.other-namespace:443\ntls: true\n",
             "tls": true
         },
         {
@@ -1222,7 +1222,7 @@
                             "tcpmappingtest-http-target1.tcp-namespace.2"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_tcpmappingtest_http_target1_tcp_namespace_443",
+                        "_rkey": "cluster_tcpmappingtest_http_target1_tcp_namespace_443_tcp_namespace",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -1231,7 +1231,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "tcpmappingtest-http-target1.tcp-namespace.1",
-                        "name": "cluster_tcpmappingtest_http_target1_tcp_namespace_443",
+                        "name": "cluster_tcpmappingtest_http_target1_tcp_-0",
                         "namespace": "tcp-namespace",
                         "service": "tcpmappingtest-http-target1.tcp-namespace:443",
                         "targets": [
@@ -1261,7 +1261,7 @@
                     "route_weight": [
                         0
                     ],
-                    "serialization": "address: 127.0.0.1\nambassador_id: tcpmappingtest\napiVersion: ambassador/v1\nkind: TCPMapping\nmetadata_labels:\n  kat-ambassador-id: tcpmappingtest\n  scope: AmbassadorTest\nname: TCPMappingTest-local-only\nport: 8765\nservice: tcpmappingtest-http-target1.tcp-namespace:443\n",
+                    "serialization": "address: 127.0.0.1\nambassador_id: tcpmappingtest\napiVersion: ambassador/v1\nkind: TCPMapping\nmetadata_labels:\n  kat-ambassador-id: tcpmappingtest\n  scope: AmbassadorTest\nname: TCPMappingTest-local-only\nnamespace: tcp-namespace\nport: 8765\nservice: tcpmappingtest-http-target1.tcp-namespace:443\n",
                     "service": "tcpmappingtest-http-target1.tcp-namespace:443",
                     "weight": 100
                 }
@@ -1275,7 +1275,7 @@
             "port": 8765,
             "precedence": 0,
             "resolver": "kubernetes-service",
-            "serialization": "address: 127.0.0.1\nambassador_id: tcpmappingtest\napiVersion: ambassador/v1\nkind: TCPMapping\nmetadata_labels:\n  kat-ambassador-id: tcpmappingtest\n  scope: AmbassadorTest\nname: TCPMappingTest-local-only\nport: 8765\nservice: tcpmappingtest-http-target1.tcp-namespace:443\n"
+            "serialization": "address: 127.0.0.1\nambassador_id: tcpmappingtest\napiVersion: ambassador/v1\nkind: TCPMapping\nmetadata_labels:\n  kat-ambassador-id: tcpmappingtest\n  scope: AmbassadorTest\nname: TCPMappingTest-local-only\nnamespace: tcp-namespace\nport: 8765\nservice: tcpmappingtest-http-target1.tcp-namespace:443\n"
         },
         {
             "_active": true,
@@ -1306,7 +1306,7 @@
                             "tcpmappingtest-http-target1.tcp-namespace.2"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_tcpmappingtest_http_target1_tcp_namespace_443",
+                        "_rkey": "cluster_tcpmappingtest_http_target1_tcp_namespace_443_tcp_namespace",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -1315,7 +1315,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "tcpmappingtest-http-target1.tcp-namespace.1",
-                        "name": "cluster_tcpmappingtest_http_target1_tcp_namespace_443",
+                        "name": "cluster_tcpmappingtest_http_target1_tcp_-0",
                         "namespace": "tcp-namespace",
                         "service": "tcpmappingtest-http-target1.tcp-namespace:443",
                         "targets": [
@@ -1345,7 +1345,7 @@
                     "route_weight": [
                         0
                     ],
-                    "serialization": "ambassador_id: tcpmappingtest\napiVersion: ambassador/v1\nkind: TCPMapping\nmetadata_labels:\n  kat-ambassador-id: tcpmappingtest\n  scope: AmbassadorTest\nname: TCPMappingTest\nport: 9876\nservice: tcpmappingtest-http-target1.tcp-namespace:443\n",
+                    "serialization": "ambassador_id: tcpmappingtest\napiVersion: ambassador/v1\nkind: TCPMapping\nmetadata_labels:\n  kat-ambassador-id: tcpmappingtest\n  scope: AmbassadorTest\nname: TCPMappingTest\nnamespace: tcp-namespace\nport: 9876\nservice: tcpmappingtest-http-target1.tcp-namespace:443\n",
                     "service": "tcpmappingtest-http-target1.tcp-namespace:443",
                     "weight": 100
                 }
@@ -1359,7 +1359,7 @@
             "port": 9876,
             "precedence": 0,
             "resolver": "kubernetes-service",
-            "serialization": "ambassador_id: tcpmappingtest\napiVersion: ambassador/v1\nkind: TCPMapping\nmetadata_labels:\n  kat-ambassador-id: tcpmappingtest\n  scope: AmbassadorTest\nname: TCPMappingTest\nport: 9876\nservice: tcpmappingtest-http-target1.tcp-namespace:443\n"
+            "serialization": "ambassador_id: tcpmappingtest\napiVersion: ambassador/v1\nkind: TCPMapping\nmetadata_labels:\n  kat-ambassador-id: tcpmappingtest\n  scope: AmbassadorTest\nname: TCPMappingTest\nnamespace: tcp-namespace\nport: 9876\nservice: tcpmappingtest-http-target1.tcp-namespace:443\n"
         }
     ],
     "grpc_services": {},
@@ -1411,7 +1411,6 @@
             "name": "ir.listener",
             "namespace": "tcp-namespace",
             "redirect_listener": false,
-            "require_tls": false,
             "secure_action": "Route",
             "service_port": 8443,
             "use_proxy_proto": false
@@ -1456,7 +1455,6 @@
             "name": "ir.listener",
             "namespace": "tcp-namespace",
             "redirect_listener": false,
-            "require_tls": false,
             "secure_action": "Route",
             "service_port": 8443,
             "use_proxy_proto": false
@@ -1501,7 +1499,6 @@
             "name": "ir.listener",
             "namespace": "tcp-namespace",
             "redirect_listener": false,
-            "require_tls": false,
             "secure_action": "Route",
             "service_port": 8443,
             "use_proxy_proto": false

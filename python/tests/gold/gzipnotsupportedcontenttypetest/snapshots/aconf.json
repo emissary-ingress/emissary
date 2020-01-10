@@ -55,7 +55,7 @@
             "name": "ambassador",
             "namespace": "default",
             "rkey": "gzipnotsupportedcontenttypetest.default.1",
-            "serialization": "ambassador_id: gzipnotsupportedcontenttypetest\napiVersion: ambassador/v0\nconfig:\n  gzip:\n    content_type:\n    - application/json\n    min_content_length: 32\nkind: Module\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: gzipnotsupportedcontenttypetest\n  scope: AmbassadorTest\nname: ambassador\n"
+            "serialization": "ambassador_id: gzipnotsupportedcontenttypetest\napiVersion: ambassador/v0\nconfig:\n  gzip:\n    content_type:\n    - application/json\n    min_content_length: 32\nkind: Module\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: gzipnotsupportedcontenttypetest\n  scope: AmbassadorTest\nname: ambassador\nnamespace: default\n"
         },
         "gzipnotsupportedcontenttypetest.default.2": {
             "_referenced_by": {},
@@ -72,7 +72,7 @@
             "namespace": "default",
             "prefix": "/target/",
             "rkey": "gzipnotsupportedcontenttypetest.default.2",
-            "serialization": "ambassador_id: gzipnotsupportedcontenttypetest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: gzipnotsupportedcontenttypetest\n  scope: AmbassadorTest\nname: gzipnotsupportedcontenttypetest-http\nprefix: /target/\nservice: gzipnotsupportedcontenttypetest-http\n",
+            "serialization": "ambassador_id: gzipnotsupportedcontenttypetest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: gzipnotsupportedcontenttypetest\n  scope: AmbassadorTest\nname: gzipnotsupportedcontenttypetest-http\nnamespace: default\nprefix: /target/\nservice: gzipnotsupportedcontenttypetest-http\n",
             "service": "gzipnotsupportedcontenttypetest-http"
         },
         "k8s-gzipnotsupportedcontenttypetest-admin-default": {
