@@ -93,7 +93,7 @@
             "name": "ambassador",
             "namespace": "default",
             "rkey": "xfpredirect-http.default.1",
-            "serialization": "ambassador_id: xfpredirect\napiVersion: ambassador/v1\nconfig:\n  use_remote_address: false\n  x_forwarded_proto_redirect: true\nkind: Module\nmetadata_labels:\n  kat-ambassador-id: xfpredirect\n  scope: AmbassadorTest\nname: ambassador\n"
+            "serialization": "ambassador_id: xfpredirect\napiVersion: ambassador/v1\nconfig:\n  use_remote_address: false\n  x_forwarded_proto_redirect: true\nkind: Module\nmetadata_labels:\n  kat-ambassador-id: xfpredirect\n  scope: AmbassadorTest\nname: ambassador\nnamespace: default\n"
         },
         "xfpredirect-http.default.2": {
             "_referenced_by": {},
@@ -109,7 +109,7 @@
             "namespace": "default",
             "prefix": "/XFPRedirect/",
             "rkey": "xfpredirect-http.default.2",
-            "serialization": "ambassador_id: xfpredirect\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: xfpredirect\n  scope: AmbassadorTest\nname: XFPRedirect\nprefix: /XFPRedirect/\nservice: xfpredirect-http\n",
+            "serialization": "ambassador_id: xfpredirect\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: xfpredirect\n  scope: AmbassadorTest\nname: XFPRedirect\nnamespace: default\nprefix: /XFPRedirect/\nservice: xfpredirect-http\n",
             "service": "xfpredirect-http"
         }
     },

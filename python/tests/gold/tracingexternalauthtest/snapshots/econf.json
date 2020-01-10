@@ -6,7 +6,7 @@
                 "dns_lookup_family": "V4_ONLY",
                 "lb_policy": "ROUND_ROBIN",
                 "load_assignment": {
-                    "cluster_name": "cluster_127_0_0_1_8877",
+                    "cluster_name": "cluster_127_0_0_1_8877_default",
                     "endpoints": [
                         {
                             "lb_endpoints": [
@@ -25,7 +25,7 @@
                         }
                     ]
                 },
-                "name": "cluster_127_0_0_1_8877",
+                "name": "cluster_127_0_0_1_8877_default",
                 "type": "STRICT_DNS"
             },
             {
@@ -33,7 +33,7 @@
                 "dns_lookup_family": "V4_ONLY",
                 "lb_policy": "ROUND_ROBIN",
                 "load_assignment": {
-                    "cluster_name": "cluster_extauth_tracingexternalauthtest_ahttp_auth",
+                    "cluster_name": "cluster_extauth_tracingexternalauthtest_ahttp_auth_default",
                     "endpoints": [
                         {
                             "lb_endpoints": [
@@ -52,7 +52,7 @@
                         }
                     ]
                 },
-                "name": "cluster_extauth_tracingexternalauthtest_ahttp_auth",
+                "name": "cluster_extauth_tracingexternalauthtest_ahttp_auth_default",
                 "type": "STRICT_DNS"
             },
             {
@@ -60,7 +60,7 @@
                 "dns_lookup_family": "V4_ONLY",
                 "lb_policy": "ROUND_ROBIN",
                 "load_assignment": {
-                    "cluster_name": "cluster_tracing_zipkin_auth_9411",
+                    "cluster_name": "cluster_tracing_zipkin_auth_9411_default",
                     "endpoints": [
                         {
                             "lb_endpoints": [
@@ -79,7 +79,7 @@
                         }
                     ]
                 },
-                "name": "cluster_tracing_zipkin_auth_9411",
+                "name": "cluster_tracing_zipkin_auth_9411_default",
                 "type": "STRICT_DNS"
             },
             {
@@ -87,7 +87,7 @@
                 "dns_lookup_family": "V4_ONLY",
                 "lb_policy": "ROUND_ROBIN",
                 "load_assignment": {
-                    "cluster_name": "cluster_tracingexternalauthtest_http",
+                    "cluster_name": "cluster_tracingexternalauthtest_http_default",
                     "endpoints": [
                         {
                             "lb_endpoints": [
@@ -106,7 +106,7 @@
                         }
                     ]
                 },
-                "name": "cluster_tracingexternalauthtest_http",
+                "name": "cluster_tracingexternalauthtest_http_default",
                 "type": "STRICT_DNS"
             }
         ],
@@ -265,7 +265,7 @@
                                                     },
                                                     "path_prefix": "/extauth",
                                                     "server_uri": {
-                                                        "cluster": "cluster_extauth_tracingexternalauthtest_ahttp_auth",
+                                                        "cluster": "cluster_extauth_tracingexternalauthtest_ahttp_auth_default",
                                                         "timeout": "5.000s",
                                                         "uri": "http://extauth"
                                                     }
@@ -310,11 +310,11 @@
                                                                     "denominator": "HUNDRED",
                                                                     "numerator": 100
                                                                 },
-                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877"
+                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
                                                             }
                                                         },
                                                         "route": {
-                                                            "cluster": "cluster_127_0_0_1_8877",
+                                                            "cluster": "cluster_127_0_0_1_8877_default",
                                                             "prefix_rewrite": "/ambassador/v0/check_ready",
                                                             "priority": null,
                                                             "timeout": "10.000s"
@@ -329,11 +329,11 @@
                                                                     "denominator": "HUNDRED",
                                                                     "numerator": 100
                                                                 },
-                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877"
+                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
                                                             }
                                                         },
                                                         "route": {
-                                                            "cluster": "cluster_127_0_0_1_8877",
+                                                            "cluster": "cluster_127_0_0_1_8877_default",
                                                             "prefix_rewrite": "/ambassador/v0/check_ready",
                                                             "priority": null,
                                                             "timeout": "10.000s"
@@ -354,11 +354,11 @@
                                                                     "denominator": "HUNDRED",
                                                                     "numerator": 100
                                                                 },
-                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877"
+                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
                                                             }
                                                         },
                                                         "route": {
-                                                            "cluster": "cluster_127_0_0_1_8877",
+                                                            "cluster": "cluster_127_0_0_1_8877_default",
                                                             "prefix_rewrite": "/ambassador/v0/check_alive",
                                                             "priority": null,
                                                             "timeout": "10.000s"
@@ -373,11 +373,11 @@
                                                                     "denominator": "HUNDRED",
                                                                     "numerator": 100
                                                                 },
-                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877"
+                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
                                                             }
                                                         },
                                                         "route": {
-                                                            "cluster": "cluster_127_0_0_1_8877",
+                                                            "cluster": "cluster_127_0_0_1_8877_default",
                                                             "prefix_rewrite": "/ambassador/v0/check_alive",
                                                             "priority": null,
                                                             "timeout": "10.000s"
@@ -398,11 +398,11 @@
                                                                     "denominator": "HUNDRED",
                                                                     "numerator": 100
                                                                 },
-                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877"
+                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
                                                             }
                                                         },
                                                         "route": {
-                                                            "cluster": "cluster_127_0_0_1_8877",
+                                                            "cluster": "cluster_127_0_0_1_8877_default",
                                                             "prefix_rewrite": "/ambassador/v0/",
                                                             "priority": null,
                                                             "timeout": "10.000s"
@@ -417,11 +417,11 @@
                                                                     "denominator": "HUNDRED",
                                                                     "numerator": 100
                                                                 },
-                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877"
+                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
                                                             }
                                                         },
                                                         "route": {
-                                                            "cluster": "cluster_127_0_0_1_8877",
+                                                            "cluster": "cluster_127_0_0_1_8877_default",
                                                             "prefix_rewrite": "/ambassador/v0/",
                                                             "priority": null,
                                                             "timeout": "10.000s"
@@ -442,11 +442,11 @@
                                                                     "denominator": "HUNDRED",
                                                                     "numerator": 100
                                                                 },
-                                                                "runtime_key": "routing.traffic_shift.cluster_tracingexternalauthtest_http"
+                                                                "runtime_key": "routing.traffic_shift.cluster_tracingexternalauthtest_http_default"
                                                             }
                                                         },
                                                         "route": {
-                                                            "cluster": "cluster_tracingexternalauthtest_http",
+                                                            "cluster": "cluster_tracingexternalauthtest_http_default",
                                                             "prefix_rewrite": "/",
                                                             "priority": null,
                                                             "timeout": "3.000s"
@@ -461,11 +461,11 @@
                                                                     "denominator": "HUNDRED",
                                                                     "numerator": 100
                                                                 },
-                                                                "runtime_key": "routing.traffic_shift.cluster_tracingexternalauthtest_http"
+                                                                "runtime_key": "routing.traffic_shift.cluster_tracingexternalauthtest_http_default"
                                                             }
                                                         },
                                                         "route": {
-                                                            "cluster": "cluster_tracingexternalauthtest_http",
+                                                            "cluster": "cluster_tracingexternalauthtest_http_default",
                                                             "prefix_rewrite": "/",
                                                             "priority": null,
                                                             "timeout": "3.000s"

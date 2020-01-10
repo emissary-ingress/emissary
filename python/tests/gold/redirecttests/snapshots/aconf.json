@@ -108,7 +108,7 @@
             "namespace": "default",
             "prefix": "/tls-target/",
             "rkey": "redirecttests-http.default.1",
-            "serialization": "ambassador_id: redirecttests\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: redirecttests\n  scope: AmbassadorTest\nname: tls_target_mapping\nprefix: /tls-target/\nservice: redirecttests-http\n",
+            "serialization": "ambassador_id: redirecttests\napiVersion: ambassador/v1\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: redirecttests\n  scope: AmbassadorTest\nname: tls_target_mapping\nnamespace: default\nprefix: /tls-target/\nservice: redirecttests-http\n",
             "service": "redirecttests-http"
         },
         "redirecttests.default.1": {
@@ -132,7 +132,7 @@
             "name": "tls",
             "namespace": "default",
             "rkey": "redirecttests.default.1",
-            "serialization": "ambassador_id: redirecttests\napiVersion: ambassador/v1\nconfig:\n  server:\n    enabled: true\n    redirect_cleartext_from: 8080\n    secret: redirect-cert\nkind: Module\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: redirecttests\n  scope: AmbassadorTest\nname: tls\n"
+            "serialization": "ambassador_id: redirecttests\napiVersion: ambassador/v1\nconfig:\n  server:\n    enabled: true\n    redirect_cleartext_from: 8080\n    secret: redirect-cert\nkind: Module\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: redirecttests\n  scope: AmbassadorTest\nname: tls\nnamespace: default\n"
         }
     },
     "mappings": {

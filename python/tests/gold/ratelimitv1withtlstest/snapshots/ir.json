@@ -45,7 +45,7 @@
         "xff_num_trusted_hops": 0
     },
     "clusters": {
-        "cluster_127_0_0_1_8877": {
+        "cluster_127_0_0_1_8877_default": {
             "_active": true,
             "_errored": false,
             "_hostname": "127.0.0.1",
@@ -55,7 +55,7 @@
                 "--internal--"
             ],
             "_resolver": "kubernetes-service",
-            "_rkey": "cluster_127_0_0_1_8877",
+            "_rkey": "cluster_127_0_0_1_8877_default",
             "connect_timeout_ms": 3000,
             "enable_endpoints": false,
             "enable_ipv4": true,
@@ -64,7 +64,7 @@
             "kind": "IRCluster",
             "lb_type": "round_robin",
             "location": "--internal--",
-            "name": "cluster_127_0_0_1_8877",
+            "name": "cluster_127_0_0_1_8877_default",
             "namespace": "default",
             "service": "127.0.0.1:8877",
             "targets": [
@@ -79,7 +79,7 @@
                 "tcp://127.0.0.1:8877"
             ]
         },
-        "cluster_rate_limit_tls_5000_otls_ratelimit_tls_context": {
+        "cluster_rate_limit_tls_5000_otls_ratelimit_tls_context_default": {
             "_active": true,
             "_errored": false,
             "_hostname": "rate-limit-tls",
@@ -88,7 +88,7 @@
             "_referenced_by": [
                 "ratelimitv1withtlstest.default.1"
             ],
-            "_rkey": "cluster_rate_limit_tls_5000_otls_ratelimit_tls_context",
+            "_rkey": "cluster_rate_limit_tls_5000_otls_ratelimit_tls_context_default",
             "connect_timeout_ms": 3000,
             "enable_endpoints": false,
             "enable_ipv4": true,
@@ -98,7 +98,7 @@
             "kind": "IRCluster",
             "lb_type": "round_robin",
             "location": "ratelimitv1withtlstest.default.1",
-            "name": "cluster_rate_limit_tls_5000_otls_ratelimit_tls_context",
+            "name": "cluster_rate_limit_tls_5000_otls_ratelim-0",
             "namespace": "default",
             "service": "rate-limit-tls:5000",
             "targets": [
@@ -137,7 +137,7 @@
                 "tcp://rate-limit-tls:5000"
             ]
         },
-        "cluster_ratelimitv1withtlstest_http": {
+        "cluster_ratelimitv1withtlstest_http_default": {
             "_active": true,
             "_errored": false,
             "_hostname": "ratelimitv1withtlstest-http",
@@ -147,7 +147,7 @@
                 "ratelimitv1withtlstest-http.default.2"
             ],
             "_resolver": "kubernetes-service",
-            "_rkey": "cluster_ratelimitv1withtlstest_http",
+            "_rkey": "cluster_ratelimitv1withtlstest_http_default",
             "connect_timeout_ms": 3000,
             "enable_endpoints": false,
             "enable_ipv4": true,
@@ -156,7 +156,7 @@
             "kind": "IRCluster",
             "lb_type": "round_robin",
             "location": "ratelimitv1withtlstest-http.default.2",
-            "name": "cluster_ratelimitv1withtlstest_http",
+            "name": "cluster_ratelimitv1withtlstest_http_default",
             "namespace": "default",
             "service": "ratelimitv1withtlstest-http",
             "targets": [
@@ -199,7 +199,7 @@
                 "_referenced_by": [
                     "ratelimitv1withtlstest.default.1"
                 ],
-                "_rkey": "cluster_rate_limit_tls_5000_otls_ratelimit_tls_context",
+                "_rkey": "cluster_rate_limit_tls_5000_otls_ratelimit_tls_context_default",
                 "connect_timeout_ms": 3000,
                 "enable_endpoints": false,
                 "enable_ipv4": true,
@@ -209,7 +209,7 @@
                 "kind": "IRCluster",
                 "lb_type": "round_robin",
                 "location": "ratelimitv1withtlstest.default.1",
-                "name": "cluster_rate_limit_tls_5000_otls_ratelimit_tls_context",
+                "name": "cluster_rate_limit_tls_5000_otls_ratelim-0",
                 "namespace": "default",
                 "service": "rate-limit-tls:5000",
                 "targets": [
@@ -265,7 +265,7 @@
                 "_referenced_by": [
                     "ratelimitv1withtlstest.default.1"
                 ],
-                "_rkey": "cluster_rate_limit_tls_5000_otls_ratelimit_tls_context",
+                "_rkey": "cluster_rate_limit_tls_5000_otls_ratelimit_tls_context_default",
                 "connect_timeout_ms": 3000,
                 "enable_endpoints": false,
                 "enable_ipv4": true,
@@ -275,7 +275,7 @@
                 "kind": "IRCluster",
                 "lb_type": "round_robin",
                 "location": "ratelimitv1withtlstest.default.1",
-                "name": "cluster_rate_limit_tls_5000_otls_ratelimit_tls_context",
+                "name": "cluster_rate_limit_tls_5000_otls_ratelim-0",
                 "namespace": "default",
                 "service": "rate-limit-tls:5000",
                 "targets": [
@@ -371,7 +371,7 @@
                             "--internal--"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_127_0_0_1_8877",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -380,7 +380,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "--internal--",
-                        "name": "cluster_127_0_0_1_8877",
+                        "name": "cluster_127_0_0_1_8877_default",
                         "namespace": "default",
                         "service": "127.0.0.1:8877",
                         "targets": [
@@ -461,7 +461,7 @@
                             "--internal--"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_127_0_0_1_8877",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -470,7 +470,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "--internal--",
-                        "name": "cluster_127_0_0_1_8877",
+                        "name": "cluster_127_0_0_1_8877_default",
                         "namespace": "default",
                         "service": "127.0.0.1:8877",
                         "targets": [
@@ -551,7 +551,7 @@
                             "--internal--"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_127_0_0_1_8877",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -560,7 +560,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "--internal--",
-                        "name": "cluster_127_0_0_1_8877",
+                        "name": "cluster_127_0_0_1_8877_default",
                         "namespace": "default",
                         "service": "127.0.0.1:8877",
                         "targets": [
@@ -652,7 +652,7 @@
                             "ratelimitv1withtlstest-http.default.2"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_ratelimitv1withtlstest_http",
+                        "_rkey": "cluster_ratelimitv1withtlstest_http_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -661,7 +661,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "ratelimitv1withtlstest-http.default.2",
-                        "name": "cluster_ratelimitv1withtlstest_http",
+                        "name": "cluster_ratelimitv1withtlstest_http_default",
                         "namespace": "default",
                         "service": "ratelimitv1withtlstest-http",
                         "targets": [
@@ -711,7 +711,7 @@
                         "/target/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: ratelimitv1withtlstest\napiVersion: ambassador/v1\nkind: Mapping\nlabels:\n  ambassador:\n  - request_label_group:\n    - x-ambassador-test-allow:\n        header: x-ambassador-test-allow\n        omit_if_not_present: true\nmetadata_labels:\n  kat-ambassador-id: ratelimitv1withtlstest\n  scope: AmbassadorTest\nname: ratelimit_target_mapping\nprefix: /target/\nservice: ratelimitv1withtlstest-http\n",
+                    "serialization": "ambassador_id: ratelimitv1withtlstest\napiVersion: ambassador/v1\nkind: Mapping\nlabels:\n  ambassador:\n  - request_label_group:\n    - x-ambassador-test-allow:\n        header: x-ambassador-test-allow\n        omit_if_not_present: true\nmetadata_labels:\n  kat-ambassador-id: ratelimitv1withtlstest\n  scope: AmbassadorTest\nname: ratelimit_target_mapping\nnamespace: default\nprefix: /target/\nservice: ratelimitv1withtlstest-http\n",
                     "service": "ratelimitv1withtlstest-http",
                     "weight": 100
                 }
@@ -725,7 +725,7 @@
             "precedence": 0,
             "prefix": "/target/",
             "rewrite": "/",
-            "serialization": "ambassador_id: ratelimitv1withtlstest\napiVersion: ambassador/v1\nkind: Mapping\nlabels:\n  ambassador:\n  - request_label_group:\n    - x-ambassador-test-allow:\n        header: x-ambassador-test-allow\n        omit_if_not_present: true\nmetadata_labels:\n  kat-ambassador-id: ratelimitv1withtlstest\n  scope: AmbassadorTest\nname: ratelimit_target_mapping\nprefix: /target/\nservice: ratelimitv1withtlstest-http\n"
+            "serialization": "ambassador_id: ratelimitv1withtlstest\napiVersion: ambassador/v1\nkind: Mapping\nlabels:\n  ambassador:\n  - request_label_group:\n    - x-ambassador-test-allow:\n        header: x-ambassador-test-allow\n        omit_if_not_present: true\nmetadata_labels:\n  kat-ambassador-id: ratelimitv1withtlstest\n  scope: AmbassadorTest\nname: ratelimit_target_mapping\nnamespace: default\nprefix: /target/\nservice: ratelimitv1withtlstest-http\n"
         }
     ],
     "grpc_services": {
@@ -738,7 +738,7 @@
             "_referenced_by": [
                 "ratelimitv1withtlstest.default.1"
             ],
-            "_rkey": "cluster_rate_limit_tls_5000_otls_ratelimit_tls_context",
+            "_rkey": "cluster_rate_limit_tls_5000_otls_ratelimit_tls_context_default",
             "connect_timeout_ms": 3000,
             "enable_endpoints": false,
             "enable_ipv4": true,
@@ -748,7 +748,7 @@
             "kind": "IRCluster",
             "lb_type": "round_robin",
             "location": "ratelimitv1withtlstest.default.1",
-            "name": "cluster_rate_limit_tls_5000_otls_ratelimit_tls_context",
+            "name": "cluster_rate_limit_tls_5000_otls_ratelim-0",
             "namespace": "default",
             "service": "rate-limit-tls:5000",
             "targets": [
@@ -807,7 +807,6 @@
             "name": "ir.listener",
             "namespace": "default",
             "redirect_listener": false,
-            "require_tls": false,
             "secure_action": "Route",
             "service_port": 8080,
             "use_proxy_proto": false
@@ -829,7 +828,7 @@
             "_referenced_by": [
                 "ratelimitv1withtlstest.default.1"
             ],
-            "_rkey": "cluster_rate_limit_tls_5000_otls_ratelimit_tls_context",
+            "_rkey": "cluster_rate_limit_tls_5000_otls_ratelimit_tls_context_default",
             "connect_timeout_ms": 3000,
             "enable_endpoints": false,
             "enable_ipv4": true,
@@ -839,7 +838,7 @@
             "kind": "IRCluster",
             "lb_type": "round_robin",
             "location": "ratelimitv1withtlstest.default.1",
-            "name": "cluster_rate_limit_tls_5000_otls_ratelimit_tls_context",
+            "name": "cluster_rate_limit_tls_5000_otls_ratelim-0",
             "namespace": "default",
             "service": "rate-limit-tls:5000",
             "targets": [
@@ -895,7 +894,7 @@
             "_referenced_by": [
                 "ratelimitv1withtlstest.default.1"
             ],
-            "_rkey": "cluster_rate_limit_tls_5000_otls_ratelimit_tls_context",
+            "_rkey": "cluster_rate_limit_tls_5000_otls_ratelimit_tls_context_default",
             "connect_timeout_ms": 3000,
             "enable_endpoints": false,
             "enable_ipv4": true,
@@ -905,7 +904,7 @@
             "kind": "IRCluster",
             "lb_type": "round_robin",
             "location": "ratelimitv1withtlstest.default.1",
-            "name": "cluster_rate_limit_tls_5000_otls_ratelimit_tls_context",
+            "name": "cluster_rate_limit_tls_5000_otls_ratelim-0",
             "namespace": "default",
             "service": "rate-limit-tls:5000",
             "targets": [

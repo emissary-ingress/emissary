@@ -45,7 +45,7 @@
         "xff_num_trusted_hops": 0
     },
     "clusters": {
-        "cluster_127_0_0_1_8877": {
+        "cluster_127_0_0_1_8877_default": {
             "_active": true,
             "_errored": false,
             "_hostname": "127.0.0.1",
@@ -55,7 +55,7 @@
                 "--internal--"
             ],
             "_resolver": "kubernetes-service",
-            "_rkey": "cluster_127_0_0_1_8877",
+            "_rkey": "cluster_127_0_0_1_8877_default",
             "connect_timeout_ms": 3000,
             "enable_endpoints": false,
             "enable_ipv4": true,
@@ -64,7 +64,7 @@
             "kind": "IRCluster",
             "lb_type": "round_robin",
             "location": "--internal--",
-            "name": "cluster_127_0_0_1_8877",
+            "name": "cluster_127_0_0_1_8877_default",
             "namespace": "default",
             "service": "127.0.0.1:8877",
             "targets": [
@@ -79,7 +79,7 @@
                 "tcp://127.0.0.1:8877"
             ]
         },
-        "cluster_tlsoriginationsecret_http_otls_upstream": {
+        "cluster_tlsoriginationsecret_http_otls_upstream_default": {
             "_active": true,
             "_errored": false,
             "_hostname": "tlsoriginationsecret-http",
@@ -89,7 +89,7 @@
                 "tlsoriginationsecret.default.2"
             ],
             "_resolver": "kubernetes-service",
-            "_rkey": "cluster_tlsoriginationsecret_http_otls_upstream",
+            "_rkey": "cluster_tlsoriginationsecret_http_otls_upstream_default",
             "connect_timeout_ms": 3000,
             "enable_endpoints": false,
             "enable_ipv4": true,
@@ -98,7 +98,7 @@
             "kind": "IRCluster",
             "lb_type": "round_robin",
             "location": "tlsoriginationsecret.default.2",
-            "name": "cluster_tlsoriginationsecret_http_otls_upstream",
+            "name": "cluster_tlsoriginationsecret_http_otls_upstream_default",
             "namespace": "default",
             "service": "tlsoriginationsecret-http",
             "targets": [
@@ -132,7 +132,7 @@
                 "tcp://tlsoriginationsecret-http:443"
             ]
         },
-        "cluster_tlsoriginationsecret_http_otls_upstream_files": {
+        "cluster_tlsoriginationsecret_http_otls_upstream_files_default": {
             "_active": true,
             "_errored": false,
             "_hostname": "tlsoriginationsecret-http",
@@ -142,7 +142,7 @@
                 "tlsoriginationsecret.default.3"
             ],
             "_resolver": "kubernetes-service",
-            "_rkey": "cluster_tlsoriginationsecret_http_otls_upstream_files",
+            "_rkey": "cluster_tlsoriginationsecret_http_otls_upstream_files_default",
             "connect_timeout_ms": 3000,
             "enable_endpoints": false,
             "enable_ipv4": true,
@@ -151,7 +151,7 @@
             "kind": "IRCluster",
             "lb_type": "round_robin",
             "location": "tlsoriginationsecret.default.3",
-            "name": "cluster_tlsoriginationsecret_http_otls_upstream_files",
+            "name": "cluster_tlsoriginationsecret_http_otls_u-0",
             "namespace": "default",
             "service": "tlsoriginationsecret-http",
             "targets": [
@@ -243,7 +243,7 @@
                             "tlsoriginationsecret.default.3"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_tlsoriginationsecret_http_otls_upstream_files",
+                        "_rkey": "cluster_tlsoriginationsecret_http_otls_upstream_files_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -252,7 +252,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "tlsoriginationsecret.default.3",
-                        "name": "cluster_tlsoriginationsecret_http_otls_upstream_files",
+                        "name": "cluster_tlsoriginationsecret_http_otls_u-0",
                         "namespace": "default",
                         "service": "tlsoriginationsecret-http",
                         "targets": [
@@ -307,7 +307,7 @@
                         "/TLSOriginationSecret-files/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: tlsoriginationsecret\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlsoriginationsecret\n  scope: AmbassadorTest\nname: tlsoriginationsecret-http-files\nprefix: /TLSOriginationSecret-files/\nservice: tlsoriginationsecret-http\ntls: upstream-files\n",
+                    "serialization": "ambassador_id: tlsoriginationsecret\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlsoriginationsecret\n  scope: AmbassadorTest\nname: tlsoriginationsecret-http-files\nnamespace: default\nprefix: /TLSOriginationSecret-files/\nservice: tlsoriginationsecret-http\ntls: upstream-files\n",
                     "service": "tlsoriginationsecret-http",
                     "tls": "upstream-files",
                     "weight": 100
@@ -323,7 +323,7 @@
             "precedence": 0,
             "prefix": "/TLSOriginationSecret-files/",
             "rewrite": "/",
-            "serialization": "ambassador_id: tlsoriginationsecret\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlsoriginationsecret\n  scope: AmbassadorTest\nname: tlsoriginationsecret-http-files\nprefix: /TLSOriginationSecret-files/\nservice: tlsoriginationsecret-http\ntls: upstream-files\n",
+            "serialization": "ambassador_id: tlsoriginationsecret\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlsoriginationsecret\n  scope: AmbassadorTest\nname: tlsoriginationsecret-http-files\nnamespace: default\nprefix: /TLSOriginationSecret-files/\nservice: tlsoriginationsecret-http\ntls: upstream-files\n",
             "tls": "upstream-files"
         },
         {
@@ -363,7 +363,7 @@
                             "--internal--"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_127_0_0_1_8877",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -372,7 +372,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "--internal--",
-                        "name": "cluster_127_0_0_1_8877",
+                        "name": "cluster_127_0_0_1_8877_default",
                         "namespace": "default",
                         "service": "127.0.0.1:8877",
                         "targets": [
@@ -453,7 +453,7 @@
                             "--internal--"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_127_0_0_1_8877",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -462,7 +462,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "--internal--",
-                        "name": "cluster_127_0_0_1_8877",
+                        "name": "cluster_127_0_0_1_8877_default",
                         "namespace": "default",
                         "service": "127.0.0.1:8877",
                         "targets": [
@@ -540,7 +540,7 @@
                             "tlsoriginationsecret.default.2"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_tlsoriginationsecret_http_otls_upstream",
+                        "_rkey": "cluster_tlsoriginationsecret_http_otls_upstream_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -549,7 +549,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "tlsoriginationsecret.default.2",
-                        "name": "cluster_tlsoriginationsecret_http_otls_upstream",
+                        "name": "cluster_tlsoriginationsecret_http_otls_upstream_default",
                         "namespace": "default",
                         "service": "tlsoriginationsecret-http",
                         "targets": [
@@ -605,7 +605,7 @@
                         "/TLSOriginationSecret/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: tlsoriginationsecret\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlsoriginationsecret\n  scope: AmbassadorTest\nname: tlsoriginationsecret-http\nprefix: /TLSOriginationSecret/\nservice: tlsoriginationsecret-http\ntls: upstream\n",
+                    "serialization": "ambassador_id: tlsoriginationsecret\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlsoriginationsecret\n  scope: AmbassadorTest\nname: tlsoriginationsecret-http\nnamespace: default\nprefix: /TLSOriginationSecret/\nservice: tlsoriginationsecret-http\ntls: upstream\n",
                     "service": "tlsoriginationsecret-http",
                     "tls": "upstream",
                     "weight": 100
@@ -621,7 +621,7 @@
             "precedence": 0,
             "prefix": "/TLSOriginationSecret/",
             "rewrite": "/",
-            "serialization": "ambassador_id: tlsoriginationsecret\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlsoriginationsecret\n  scope: AmbassadorTest\nname: tlsoriginationsecret-http\nprefix: /TLSOriginationSecret/\nservice: tlsoriginationsecret-http\ntls: upstream\n",
+            "serialization": "ambassador_id: tlsoriginationsecret\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlsoriginationsecret\n  scope: AmbassadorTest\nname: tlsoriginationsecret-http\nnamespace: default\nprefix: /TLSOriginationSecret/\nservice: tlsoriginationsecret-http\ntls: upstream\n",
             "tls": "upstream"
         },
         {
@@ -661,7 +661,7 @@
                             "--internal--"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_127_0_0_1_8877",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -670,7 +670,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "--internal--",
-                        "name": "cluster_127_0_0_1_8877",
+                        "name": "cluster_127_0_0_1_8877_default",
                         "namespace": "default",
                         "service": "127.0.0.1:8877",
                         "targets": [
@@ -735,7 +735,6 @@
             "name": "ir.listener",
             "namespace": "default",
             "redirect_listener": false,
-            "require_tls": false,
             "secure_action": "Route",
             "service_port": 8080,
             "use_proxy_proto": false

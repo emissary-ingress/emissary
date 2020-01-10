@@ -113,7 +113,7 @@
             "namespace": "default",
             "prefix": "/target/",
             "rkey": "tracingtest-http.default.1",
-            "serialization": "ambassador_id: tracingtest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: tracingtest\n  scope: AmbassadorTest\nname: tracing_target_mapping\nprefix: /target/\nservice: tracingtest-http\n",
+            "serialization": "ambassador_id: tracingtest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: tracingtest\n  scope: AmbassadorTest\nname: tracing_target_mapping\nnamespace: default\nprefix: /target/\nservice: tracingtest-http\n",
             "service": "tracingtest-http"
         },
         "tracingtest.default.1": {
@@ -131,7 +131,7 @@
             "name": "tracing",
             "namespace": "default",
             "rkey": "tracingtest.default.1",
-            "serialization": "ambassador_id: tracingtest\napiVersion: ambassador/v0\ndriver: zipkin\nkind: TracingService\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tracingtest\n  scope: AmbassadorTest\nname: tracing\nservice: zipkin:9411\n",
+            "serialization": "ambassador_id: tracingtest\napiVersion: ambassador/v0\ndriver: zipkin\nkind: TracingService\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tracingtest\n  scope: AmbassadorTest\nname: tracing\nnamespace: default\nservice: zipkin:9411\n",
             "service": "zipkin:9411"
         }
     },

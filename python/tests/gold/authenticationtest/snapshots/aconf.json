@@ -58,7 +58,7 @@
             "namespace": "default",
             "path_prefix": "/extauth",
             "rkey": "authenticationtest.default.1",
-            "serialization": "allowed_headers:\n- X-Foo\n- X-Bar\n- Requested-Location\n- Requested-Status\n- Requested-Header\n- X-Foo\n- Extauth\nambassador_id: authenticationtest\napiVersion: ambassador/v0\nauth_service: authenticationtest-ahttp-auth\nkind: AuthService\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: authenticationtest\n  scope: AmbassadorTest\nname: authenticationtest-ahttp-auth\npath_prefix: /extauth\n"
+            "serialization": "allowed_headers:\n- X-Foo\n- X-Bar\n- Requested-Location\n- Requested-Status\n- Requested-Header\n- X-Foo\n- Extauth\nambassador_id: authenticationtest\napiVersion: ambassador/v0\nauth_service: authenticationtest-ahttp-auth\nkind: AuthService\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: authenticationtest\n  scope: AmbassadorTest\nname: authenticationtest-ahttp-auth\nnamespace: default\npath_prefix: /extauth\n"
         },
         "authenticationtest.default.2": {
             "_referenced_by": {},
@@ -75,7 +75,7 @@
             "namespace": "default",
             "prefix": "/target/",
             "rkey": "authenticationtest.default.2",
-            "serialization": "ambassador_id: authenticationtest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: authenticationtest\n  scope: AmbassadorTest\nname: authenticationtest-http\nprefix: /target/\nservice: authenticationtest-http\n",
+            "serialization": "ambassador_id: authenticationtest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: authenticationtest\n  scope: AmbassadorTest\nname: authenticationtest-http\nnamespace: default\nprefix: /target/\nservice: authenticationtest-http\n",
             "service": "authenticationtest-http"
         },
         "k8s-authenticationtest-admin-default": {

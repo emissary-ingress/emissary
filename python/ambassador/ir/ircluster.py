@@ -173,6 +173,8 @@ class IRCluster (IRResource):
 
         hostname = p.hostname
         namespace = parent_ir_resource.namespace
+        # Make sure we save the namespace in the cluster name, to prevent clashes with non-fully qualified service resolution
+        name_fields.append(namespace)
 
         try:
             port = p.port

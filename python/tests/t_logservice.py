@@ -105,7 +105,7 @@ service: http://127.0.0.1:8001
             clusters = config_obj.get('bootstrap').get('static_resources').get('clusters')
             found_stenography = False
             for cluster in clusters:
-              if cluster.get('name') == 'cluster_logging_stenography_25565':
+              if cluster.get('name') == 'cluster_logging_stenography_25565_default':
                 found_stenography = True
                 break
             assert found_stenography
@@ -114,7 +114,7 @@ service: http://127.0.0.1:8001
               clusters = config_obj.get('static_clusters')
               found_stenography = False
               for cluster in clusters:
-                if cluster.get('cluster').get('name') == 'cluster_logging_stenography_25565':
+                if cluster.get('cluster').get('name') == 'cluster_logging_stenography_25565_default':
                   found_stenography = True
                   break
               assert found_stenography
@@ -126,7 +126,7 @@ service: http://127.0.0.1:8001
                   access_logs = filter_obj.get('config').get('access_log')
                   found_configured_access_log = False
                   for access_log in access_logs:
-                    if access_log.get('name') == 'envoy.http_grpc_access_log' and access_log.get('config').get('common_config').get('grpc_service').get('envoy_grpc').get('cluster_name') == 'cluster_logging_stenography_25565':
+                    if access_log.get('name') == 'envoy.http_grpc_access_log' and access_log.get('config').get('common_config').get('grpc_service').get('envoy_grpc').get('cluster_name') == 'cluster_logging_stenography_25565_default':
                       found_configured_access_log = True
                       break
 

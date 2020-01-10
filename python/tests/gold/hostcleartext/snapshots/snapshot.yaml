@@ -12,7 +12,7 @@
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"getambassador.io/v2\",\"kind\":\"Host\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"hostcleartext\",\"scope\":\"AmbassadorTest\"},\"name\":\"cleartext-host\",\"namespace\":\"default\"},\"spec\":{\"acmeProvider\":{\"authority\":\"none\"},\"ambassador_id\":[\"hostcleartext\"],\"hostname\":\"hostcleartext\",\"requestPolicy\":{\"insecure\":{\"action\":\"Route\"}},\"selector\":{\"matchLabels\":{\"hostname\":\"host-cleartext\"}}}}\n"
                     },
                     "clusterName": "",
-                    "creationTimestamp": "2020-01-09T12:55:03Z",
+                    "creationTimestamp": "2020-01-10T16:10:44Z",
                     "generation": 1,
                     "labels": {
                         "kat-ambassador-id": "hostcleartext",
@@ -20,9 +20,9 @@
                     },
                     "name": "cleartext-host",
                     "namespace": "default",
-                    "resourceVersion": "14302",
+                    "resourceVersion": "51429",
                     "selfLink": "/apis/getambassador.io/v2/namespaces/default/hosts/cleartext-host",
-                    "uid": "40a0577c-32df-11ea-906a-16ae7cdef087"
+                    "uid": "c150af72-33c3-11ea-966c-16b58b03f3a1"
                 },
                 "spec": {
                     "acmeProvider": {
@@ -57,7 +57,7 @@
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"getambassador.io/v1\",\"kind\":\"Mapping\",\"metadata\":{\"annotations\":{},\"labels\":{\"hostname\":\"host-cleartext\",\"kat-ambassador-id\":\"hostcleartext\",\"scope\":\"AmbassadorTest\"},\"name\":\"cleartext-target-mapping\",\"namespace\":\"default\"},\"spec\":{\"ambassador_id\":[\"hostcleartext\"],\"prefix\":\"/target/\",\"service\":\"hostcleartext-http\"}}\n"
                     },
                     "clusterName": "",
-                    "creationTimestamp": "2020-01-09T12:55:03Z",
+                    "creationTimestamp": "2020-01-10T16:10:44Z",
                     "generation": 1,
                     "labels": {
                         "hostname": "host-cleartext",
@@ -66,9 +66,9 @@
                     },
                     "name": "cleartext-target-mapping",
                     "namespace": "default",
-                    "resourceVersion": "14304",
+                    "resourceVersion": "51433",
                     "selfLink": "/apis/getambassador.io/v1/namespaces/default/mappings/cleartext-target-mapping",
-                    "uid": "40a72fd6-32df-11ea-906a-16ae7cdef087"
+                    "uid": "c180fbe8-33c3-11ea-966c-16b58b03f3a1"
                 },
                 "spec": {
                     "ambassador_id": [
@@ -94,7 +94,7 @@
                     "annotations": {
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"app.kubernetes.io/component\":\"ambassador-service\",\"kat-ambassador-id\":\"hostcleartext\",\"scope\":\"AmbassadorTest\"},\"name\":\"hostcleartext\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8080},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8443}],\"selector\":{\"service\":\"hostcleartext\"},\"type\":\"NodePort\"}}\n"
                     },
-                    "creationTimestamp": "2020-01-09T12:55:02Z",
+                    "creationTimestamp": "2020-01-10T16:54:20Z",
                     "labels": {
                         "app.kubernetes.io/component": "ambassador-service",
                         "kat-ambassador-id": "hostcleartext",
@@ -102,24 +102,24 @@
                     },
                     "name": "hostcleartext",
                     "namespace": "default",
-                    "resourceVersion": "14290",
+                    "resourceVersion": "59671",
                     "selfLink": "/api/v1/namespaces/default/services/hostcleartext",
-                    "uid": "40839b47-32df-11ea-906a-16ae7cdef087"
+                    "uid": "d889b7e8-33c9-11ea-966c-16b58b03f3a1"
                 },
                 "spec": {
-                    "clusterIP": "10.97.113.65",
+                    "clusterIP": "10.98.18.124",
                     "externalTrafficPolicy": "Cluster",
                     "ports": [
                         {
                             "name": "http",
-                            "nodePort": 30187,
+                            "nodePort": 31619,
                             "port": 80,
                             "protocol": "TCP",
                             "targetPort": 8080
                         },
                         {
                             "name": "https",
-                            "nodePort": 31408,
+                            "nodePort": 32709,
                             "port": 443,
                             "protocol": "TCP",
                             "targetPort": 8443
@@ -142,7 +142,7 @@
                     "annotations": {
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"hostcleartext\",\"scope\":\"AmbassadorTest\",\"service\":\"hostcleartext-admin\"},\"name\":\"hostcleartext-admin\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"hostcleartext-admin\",\"port\":8877,\"targetPort\":8877}],\"selector\":{\"service\":\"hostcleartext\"},\"type\":\"NodePort\"}}\n"
                     },
-                    "creationTimestamp": "2020-01-09T12:55:03Z",
+                    "creationTimestamp": "2020-01-10T16:54:20Z",
                     "labels": {
                         "kat-ambassador-id": "hostcleartext",
                         "scope": "AmbassadorTest",
@@ -150,17 +150,17 @@
                     },
                     "name": "hostcleartext-admin",
                     "namespace": "default",
-                    "resourceVersion": "14296",
+                    "resourceVersion": "59680",
                     "selfLink": "/api/v1/namespaces/default/services/hostcleartext-admin",
-                    "uid": "408d88f7-32df-11ea-906a-16ae7cdef087"
+                    "uid": "d8f66082-33c9-11ea-966c-16b58b03f3a1"
                 },
                 "spec": {
-                    "clusterIP": "10.100.145.174",
+                    "clusterIP": "10.96.24.253",
                     "externalTrafficPolicy": "Cluster",
                     "ports": [
                         {
                             "name": "hostcleartext-admin",
-                            "nodePort": 31665,
+                            "nodePort": 30652,
                             "port": 8877,
                             "protocol": "TCP",
                             "targetPort": 8877
@@ -183,19 +183,19 @@
                     "annotations": {
                         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"hostcleartext\",\"scope\":\"AmbassadorTest\"},\"name\":\"hostcleartext-http\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8102},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8465}],\"selector\":{\"backend\":\"superpod-default\"}}}\n"
                     },
-                    "creationTimestamp": "2020-01-09T12:55:03Z",
+                    "creationTimestamp": "2020-01-10T16:54:21Z",
                     "labels": {
                         "kat-ambassador-id": "hostcleartext",
                         "scope": "AmbassadorTest"
                     },
                     "name": "hostcleartext-http",
                     "namespace": "default",
-                    "resourceVersion": "14307",
+                    "resourceVersion": "59691",
                     "selfLink": "/api/v1/namespaces/default/services/hostcleartext-http",
-                    "uid": "40b080dd-32df-11ea-906a-16ae7cdef087"
+                    "uid": "d94db634-33c9-11ea-966c-16b58b03f3a1"
                 },
                 "spec": {
-                    "clusterIP": "10.99.43.46",
+                    "clusterIP": "10.102.21.1",
                     "ports": [
                         {
                             "name": "http",
