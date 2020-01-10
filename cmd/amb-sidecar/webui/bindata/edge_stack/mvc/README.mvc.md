@@ -115,9 +115,9 @@ The following describes the framework, interfaces, and example classes using the
 mvc            - toplevel directory, under edge_stack
   framework    - Classes that define the MVC fundamental state and behavior
   interfaces   - Interface classes.  Subclass these for new Resource types and new Views
-  models       - The user/developer code, implementing the interfaces
+  models       - The user/developer models, based on IResource and IResourceCollection
   tests        - unit tests for the new models and views
-  views        - View classes based on LitElement and using Models and Collections
+  views        - The user/developer views, based on IResourceView and IResourceCollectionView
 ```
 
 #### framework
@@ -155,7 +155,10 @@ service.  (TBD)
 
 #### views
 
-User/developer code goes here for `Views`, subclasses of `LitElement`.  (TBD in future PR's)
+User/developer code goes here for `Views`, subclasses of `IResourceView` and `IResourceCollectionView`.
+For example, the `HostView` and `HostCollectionView` are views on `HostResource` and `HostCollection`
+respectively, and are useful for understanding how one writes concrete implementations of views to show
+`Resources` and `ResourceCollections`.
 
 ### Class definitions
 
@@ -272,9 +275,9 @@ the collection for updating that `Resource`'s state.
 ```
 class IResourceCollection extends ResourceCollection {
   constructor()
+  extractResourcesFrom(snapshot)
   resourceClass()
-  uniqueKeyFor(data)
-  extractDataFrom(snapshot)
+  uniqueKeyFor(resource)
 }
 ```
 
@@ -282,7 +285,7 @@ class IResourceCollection extends ResourceCollection {
 
 The following simply provides an overview of the actual implementations of `View`, `ResourceView`, and
 `ResourceCollectionView`,  and their interface classes `IView` and `IResourceView`.  Users will typically need
-only to subclass from `IResourceView` and `IResourceListView`; the framework and interface classes will not
+only to subclass from `IResourceView` and `IResourceCollectionView`; the framework and interface classes will not
 be modified. (TBD: names are incorrect here)
 
 For more detail on these implementations, see the source code in the `mvc/framework` and `mvc/interfaces`
@@ -290,22 +293,91 @@ directories.
 
 ##### View
 The `View` class...
-As a framework class, this will not be subclassed by the user.
 
-##### IView
-The `IView` class...
+```
+class View extends LitElement {
+  static get properties()
+  constructor(model)
+  minimumNumberOfAddRows()
+  minimumNumberOfEditRows()
+  modifiedStyles()
+  onModelNotification(model, message, parameter)
+  render()
+  visibleWhen(...arguments)
+}
+```
+As a framework class, this will not be subclassed by the user.
 
 ##### ResourceView
 The `ResourceView` class...
 As a framework class, this will not be subclassed by the user.
 
+```
+class ResourceView extends View {
+  static get properties()
+  constructor(model)
+  addMessage(message)
+  clearMessages()
+  nameInput()
+  namespaceInput()
+  onCancel()
+  onEdit()
+  onSave()
+  onSource(mouseEvent)
+  readFromModel()
+  writeToModel()
+  render()
+  renderMessages()
+  renderYAML()
+  validate()
+}
+```
+
 ##### IResourceView
 The `IResourceView` class...
 
+```
+class IResourceView extends ResourceView {
+  static get properties()
+  constructor(model)
+  readSelfFromModel()
+  writeSelfToModel()
+  renderSelf()
+  validateSelf()
+```
+
+##### ResourceCollectionView
+The `ResourceCollectionView` class...
+As a framework class, this will not be subclassed by the user.
+
+```
+class ResourceCollectionView extends LitElement {
+  static get properties()
+  static get styles()
+  constructor()
+  onAdd()
+  onChangeSortByAttribute(e)
+  onModelNotification(model, message, parameter)
+  readOnly()
+  render()
+}
+```
+
+##### IResourceCollectionView
+The `IResourceCollectionView` class...
+
+```
+class IResourceCollectionView extends ResourceCollectionView {
+  static get properties()
+  static get styles()
+  constructor()
+  readOnly()
+  viewClass()
+}
+
+```
+
 # Examples
 
-See `HostResource` and `HostCollection` in mvc/models for specific details on implementation.
-
-# TO DO
-
-HostView, HostListView examples (TBD)
+See `HostResource`, `HostCollection` in mvc/models, and `HostView` and `HostCollectionView` for specific details
+on implementation.

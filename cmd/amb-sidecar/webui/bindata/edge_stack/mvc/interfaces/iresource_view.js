@@ -72,19 +72,6 @@ export class IResourceView extends ResourceView {
     throw new Error("please implement ${this.constructor.name}.writeSelfToModel()")
   }
 
-  /* validateSelf()
-   * This method is invoked on save in order to validate input prior to proceeding with the save action.
-   * The model validates its current state, so anything that the View wants to validate must already be in the model.
-   *
-   * validateSelf() returns a Map of fieldnames and error strings. If the dictionary is empty, there are no errors.
-   *
-   * For now we will have a side-effect of validate in that any errors will be added to the message list.
-   */
-
-  validateSelf() {
-    throw new Error("please implement ${this.constructor.name}.validateSelf()")
-  }
-
   /* renderSelf()
   * This method is invoked on save in order to validate input prior to proceeding with the save action.
   * The model validates its current state, so anything that the View wants to validate must already be in the model.
@@ -96,6 +83,20 @@ export class IResourceView extends ResourceView {
 
   renderSelf() {
     throw new Error("please implement ${this.constructor.name}.renderSelf()")
+  }
+
+
+  /* validateSelf()
+   * This method is invoked on save in order to validate input prior to proceeding with the save action.
+   * The model validates its current state, so anything that the View wants to validate must already be in the model.
+   *
+   * validateSelf() returns a Map of fieldnames and error strings. If the dictionary is empty, there are no errors.
+   *
+   * For now we will have a side-effect of validate in that any errors will be added to the message list.
+   */
+
+  validateSelf() {
+    throw new Error("please implement ${this.constructor.name}.validateSelf()")
   }
 }
 
