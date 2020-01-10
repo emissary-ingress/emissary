@@ -523,7 +523,7 @@ class V2VirtualHost(dict):
                     # exists. Try cluster_127_0_0_1_8500_{namespace} first (that should exist, it's
                     # the amb-sidecar). If that doesn't work, how is Edge Stack running exactly?
 
-                    ns = self._config.ir.ambasssador_namespace.replace("-", "_")
+                    ns = self._config.ir.ambassador_namespace.replace("-", "_")
 
                     if not self._config.ir.get_cluster("cluster_127_0_0_1_8500_" + ns):
                         raise Exception("Edge Stack claims to be running, but we have no sidecar cluster??")
