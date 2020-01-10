@@ -260,7 +260,7 @@ export class HostView extends IResourceView {
 
     /* The email changed, update the YAML if showing. */
     if (this.showYAML) {
-      this.mergedYamlElement().requestUpdate();
+      this.yamlamlElement().requestUpdate();
     }
   }
 
@@ -280,7 +280,7 @@ export class HostView extends IResourceView {
 
     /* update the YAML if showing. */
     if (this.showYAML) {
-      this.mergedYamlElement().requestUpdate();
+      this.yamlElement().requestUpdate();
     }
   }
 

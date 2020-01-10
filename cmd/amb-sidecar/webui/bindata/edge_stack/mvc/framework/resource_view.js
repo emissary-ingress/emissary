@@ -86,6 +86,10 @@ export class ResourceView extends View {
     return this.shadowRoot.querySelector(`input[name="namespace"]`);
   }
 
+  yamlElement() {
+    return this.shadowRoot.getElementById("merged-yaml");
+  }
+
   /* onCancel()
    * This method is called on the View when the View is in Edit mode, and the user clicks on the
    * Cancel button to discard the changes and return to the original state.
@@ -322,7 +326,7 @@ export class ResourceView extends View {
       });
 
       return html`
-        <div class="yaml" style="display: ${this.showYAML ? "block" : "none"}">
+        <div class="yaml" id="merged-yaml" style="display: ${this.showYAML ? "block" : "none"}">
           <div class="yaml-changes"><ul>
         ${entries}
           </ul></div>
