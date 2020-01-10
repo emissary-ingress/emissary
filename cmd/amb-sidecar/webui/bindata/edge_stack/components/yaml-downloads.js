@@ -66,12 +66,12 @@ export class YAMLDownloads extends ResourceSet {
      * exception handling is needed here.
      */
     delete annotations["kubectl.kubernetes.io/last-applied-configuration"];
-    delete annotations.aes_res_editable;
-    delete annotations.aes_res_changed;
+    delete annotations[aes_res_editable];
+    delete annotations[aes_res_changed];
 
     /* but add the timestamp for download.
      */
-    annotations.aes_res_downloaded = timestamp;
+    annotations[aes_res_downloaded] = timestamp;
 
     /* Delete other metadata */
     delete metadata.creationTimestamp;

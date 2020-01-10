@@ -143,10 +143,20 @@ func (c *Controller) getSecret(namespace, name string) *k8sTypesCoreV1.Secret {
 }
 
 func (c *Controller) updateHost(host *ambassadorTypesV2.Host) error {
-	_, err := c.hostsGetter.Namespace(host.GetNamespace()).Update(unstructureHost(host), k8sTypesMetaV1.UpdateOptions{})
+	var err error
+	uHost := unstructureHost(host)
+
+	uHost, err = c.hostsGetter.Namespace(host.GetNamespace()).Update(uHost, k8sTypesMetaV1.UpdateOptions{})
 	if err != nil {
 		return errors.Wrapf(err, "update %q.%q", host.GetName(), host.GetNamespace())
 	}
+	uHost.Object["status"] = host.Status
+
+	_, err = c.hostsGetter.Namespace(host.GetNamespace()).UpdateStatus(uHost, k8sTypesMetaV1.UpdateOptions{})
+	if err != nil {
+		return errors.Wrapf(err, "updateStatus %q.%q", host.GetName(), host.GetNamespace())
+	}
+
 	return err
 }
 
@@ -158,7 +168,9 @@ func (c *Controller) recordHostPending(logger dlog.Logger, host *ambassadorTypes
 	host.Status.State = ambassadorTypesV2.HostState_Pending
 	host.Status.PhaseCompleted = phaseCompleted
 	host.Status.PhasePending = phasePending
-	host.Status.Reason = ""
+	host.Status.ErrorReason = ""
+	host.Status.ErrorTimestamp = nil
+	host.Status.ErrorBackoff = nil
 	if err := c.updateHost(host); err != nil {
 		logger.Errorln(err)
 	}
@@ -170,7 +182,9 @@ func (c *Controller) recordHostReady(logger dlog.Logger, host *ambassadorTypesV2
 	host.Status.State = ambassadorTypesV2.HostState_Ready
 	host.Status.PhaseCompleted = ambassadorTypesV2.HostPhase_NA
 	host.Status.PhasePending = ambassadorTypesV2.HostPhase_NA
-	host.Status.Reason = ""
+	host.Status.ErrorReason = ""
+	host.Status.ErrorTimestamp = nil
+	host.Status.ErrorBackoff = nil
 	if err := c.updateHost(host); err != nil {
 		logger.Errorln(err)
 	}
@@ -181,7 +195,19 @@ func (c *Controller) recordHostError(logger dlog.Logger, host *ambassadorTypesV2
 	logger.Debugln("updating errored host:", err)
 	host.Status.State = ambassadorTypesV2.HostState_Error
 	host.Status.PhasePending = phase
-	host.Status.Reason = err.Error()
+
+	host.Status.ErrorReason = err.Error()
+
+	now := time.Now()
+	host.Status.ErrorTimestamp = &now
+
+	var prevBackoff time.Duration
+	if host.Status.ErrorBackoff != nil {
+		prevBackoff = *host.Status.ErrorBackoff
+	}
+	nextBackoff := getNextBackoff(prevBackoff)
+	host.Status.ErrorBackoff = &nextBackoff
+
 	if err := c.updateHost(host); err != nil {
 		logger.Errorln(err)
 	}
@@ -227,8 +253,22 @@ func (c *Controller) rectifyPhase1(logger dlog.Logger) []*ambassadorTypesV2.Host
 		logger := logger.WithField("host", host.GetName()+"."+host.GetNamespace())
 		logger.Debugln("rectify: processing Host...")
 
-		FillDefaults(host)
-		if !proto.Equal(host.Spec, _host.Spec) {
+		host.Spec = getEffectiveSpec(host)
+		if host.Status == nil {
+			host.Status = &ambassadorTypesV2.HostStatus{}
+		}
+		switch {
+		case host.Spec.AcmeProvider.Authority != "none":
+			// TLS using via AES ACME integration
+			host.Status.TlsCertificateSource = ambassadorTypesV2.HostTLSCertificateSource_ACME
+		case host.Spec.TlsSecret.Name != "":
+			// TLS configured via some other mechanism
+			host.Status.TlsCertificateSource = ambassadorTypesV2.HostTLSCertificateSource_Other
+		default:
+			// No TLS
+			host.Status.TlsCertificateSource = ambassadorTypesV2.HostTLSCertificateSource_None
+		}
+		if !proto.Equal(host.Spec, _host.Spec) || !proto.Equal(host.Status, _host.Status) {
 			logger.Debugln("rectify: Host: saving defaults")
 			nextPhase := ambassadorTypesV2.HostPhase_NA
 			if host.Status.TlsCertificateSource == ambassadorTypesV2.HostTLSCertificateSource_ACME {
@@ -237,6 +277,13 @@ func (c *Controller) rectifyPhase1(logger dlog.Logger) []*ambassadorTypesV2.Host
 			c.recordHostPending(logger, host,
 				ambassadorTypesV2.HostPhase_DefaultsFilled,
 				nextPhase, "waiting for Host DefaultsFilled change to be reflected in snapshot")
+			continue
+		}
+
+		if host.Status.State == ambassadorTypesV2.HostState_Error &&
+			host.Status.ErrorTimestamp != nil && host.Status.ErrorBackoff != nil &&
+			time.Now().Before(host.Status.ErrorTimestamp.Add(*host.Status.ErrorBackoff)) {
+			logger.Debugln("rectify: Host: in error backoff; skipping")
 			continue
 		}
 
@@ -646,55 +693,69 @@ func (c *Controller) rectifyPhase4(logger dlog.Logger,
 	logger.Debugln("rectify: finished")
 }
 
-func FillDefaults(host *ambassadorTypesV2.Host) {
-	if host.Spec == nil {
-		host.Spec = &ambassadorTypesV2.HostSpec{}
+func getNextBackoff(prevBackoff time.Duration) time.Duration {
+	// The letsencrypt ratelimit is 5 failures per account, per
+	// hostname, per hour.  So we could be pretty safe with, say,
+	// a 15m backoff.  But let's do an exponential backoff anyway,
+	// starting at 10m, and maxing out at 24h.
+	if prevBackoff == 0 {
+		return 10 * time.Minute
 	}
-	if host.Spec.Selector == nil {
-		host.Spec.Selector = &k8sTypesMetaV1.LabelSelector{}
+	ret := prevBackoff * 2
+	if ret > 24*time.Hour {
+		return 24 * time.Hour
 	}
-	if len(host.Spec.Selector.MatchLabels)+len(host.Spec.Selector.MatchExpressions) == 0 {
-		host.Spec.Selector.MatchLabels = map[string]string{
-			"hostname": host.Spec.Hostname,
+	return ret
+}
+
+func getEffectiveSpec(host *ambassadorTypesV2.Host) *ambassadorTypesV2.HostSpec {
+	hostSpec := deepCopyHostSpec(host.Spec)
+
+	// Ensure that all nested structures exist, so we don't need to worry about nil pointers
+	if hostSpec == nil {
+		hostSpec = &ambassadorTypesV2.HostSpec{}
+	}
+	if hostSpec.Selector == nil {
+		hostSpec.Selector = &k8sTypesMetaV1.LabelSelector{}
+	}
+	if hostSpec.AcmeProvider == nil {
+		hostSpec.AcmeProvider = &ambassadorTypesV2.ACMEProviderSpec{}
+	}
+	if hostSpec.TlsSecret == nil {
+		hostSpec.TlsSecret = &k8sTypesCoreV1.LocalObjectReference{}
+	}
+
+	// Now actually fill the values
+	if hostSpec.AmbassadorId == nil { // XXX: should this be `len(hostSpec.AmbassadorId) == 0`?
+		hostSpec.AmbassadorId = []string{"default"}
+	}
+	if hostSpec.Hostname == "" {
+		hostSpec.Hostname = host.GetName()
+	}
+	if len(hostSpec.Selector.MatchLabels)+len(hostSpec.Selector.MatchExpressions) == 0 {
+		hostSpec.Selector.MatchLabels = map[string]string{
+			"hostname": hostSpec.Hostname,
 		}
 	}
-	if host.Spec.TlsSecret == nil {
-		host.Spec.TlsSecret = &k8sTypesCoreV1.LocalObjectReference{}
+	if hostSpec.AcmeProvider.Authority == "" {
+		hostSpec.AcmeProvider.Authority = "https://acme-v02.api.letsencrypt.org/directory"
 	}
-	if host.Spec.AcmeProvider == nil {
-		host.Spec.AcmeProvider = &ambassadorTypesV2.ACMEProviderSpec{}
-	}
-	if host.Spec.AcmeProvider.Authority == "" {
-		host.Spec.AcmeProvider.Authority = "https://acme-v02.api.letsencrypt.org/directory"
-	}
-	if host.Spec.AcmeProvider.Authority != "none" {
-		if host.Spec.AcmeProvider.PrivateKeySecret == nil {
-			host.Spec.AcmeProvider.PrivateKeySecret = &k8sTypesCoreV1.LocalObjectReference{}
+	if hostSpec.AcmeProvider.Authority != "none" {
+		if hostSpec.AcmeProvider.PrivateKeySecret == nil {
+			hostSpec.AcmeProvider.PrivateKeySecret = &k8sTypesCoreV1.LocalObjectReference{}
 		}
-		if host.Spec.AcmeProvider.PrivateKeySecret.Name == "" {
-			if host.Spec.AcmeProvider.Email == "" {
-				host.Spec.AcmeProvider.PrivateKeySecret.Name = NameEncode(host.Spec.AcmeProvider.Authority)
+		if hostSpec.AcmeProvider.PrivateKeySecret.Name == "" {
+			if hostSpec.AcmeProvider.Email == "" {
+				hostSpec.AcmeProvider.PrivateKeySecret.Name = NameEncode(hostSpec.AcmeProvider.Authority)
 			} else {
-				host.Spec.AcmeProvider.PrivateKeySecret.Name = NameEncode(host.Spec.AcmeProvider.Authority) + "--" + NameEncode(host.Spec.AcmeProvider.Email)
+				hostSpec.AcmeProvider.PrivateKeySecret.Name = NameEncode(hostSpec.AcmeProvider.Authority) + "--" + NameEncode(hostSpec.AcmeProvider.Email)
 			}
 		}
-		if host.Spec.TlsSecret.Name == "" {
-			// host.Spec.TlsSecret.Name = NameEncode(host.Spec.AcmeProvider.Authority) + "--" + NameEncode(host.Spec.AcmeProvider.Email) + "--" + NameEncode(host.Spec.AcmeProvider.PrivateKeySecret.Name)
-			host.Spec.TlsSecret.Name = NameEncode(host.Spec.Hostname)
+		if hostSpec.TlsSecret.Name == "" {
+			// hostSpec.TlsSecret.Name = NameEncode(hostSpec.AcmeProvider.Authority) + "--" + NameEncode(hostSpec.AcmeProvider.Email) + "--" + NameEncode(hostSpec.AcmeProvider.PrivateKeySecret.Name)
+			hostSpec.TlsSecret.Name = NameEncode(hostSpec.Hostname)
 		}
 	}
-	if host.Status == nil {
-		host.Status = &ambassadorTypesV2.HostStatus{}
-	}
-	switch {
-	case host.Spec.AcmeProvider.Authority != "none":
-		// TLS using via AES ACME integration
-		host.Status.TlsCertificateSource = ambassadorTypesV2.HostTLSCertificateSource_ACME
-	case host.Spec.TlsSecret.Name != "":
-		// TLS configured via some other mechanism
-		host.Status.TlsCertificateSource = ambassadorTypesV2.HostTLSCertificateSource_Other
-	default:
-		// No TLS
-		host.Status.TlsCertificateSource = ambassadorTypesV2.HostTLSCertificateSource_None
-	}
+
+	return hostSpec
 }
