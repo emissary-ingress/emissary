@@ -10,9 +10,11 @@ import (
 // Version is inserted at build using --ldflags -X
 var Version = "(unknown version)"
 
-const socketName = "/var/run/edgectl.socket"
-const logfile = "/tmp/edgectl.log"
-const apiVersion = 1
+const (
+	socketName = "/var/run/edgectl.socket"
+	logfile    = "/tmp/edgectl.log"
+	apiVersion = 1
+)
 
 var displayVersion = fmt.Sprintf("v%s (api v%d)", Version, apiVersion)
 
@@ -32,33 +34,6 @@ to troubleshoot problems.
 // edgectl is the full path to the Edge Control binary
 var edgectl string
 
-/*
-Future command help layout
-
-Edge Stack Commands:
-  login             Access the Ambassador Edge Stack admin UI
-  license           Set or update the Ambassador Edge Stack license key
-
-Cluster Commands:
-  status            Show connectivity status
-  connect           Connect to a cluster
-  disconnect        Disconnect from the connected cluster
-  intercept         Manage deployment intercepts
-
-Daemon Commands:
-  daemon            Launch Edge Control Daemon in the background (sudo)
-  pause             Turn off network overrides (to use a VPN)
-  resume            Turn network overrides on (after using edgectl pause)
-  quit              Tell Edge Control Daemon to quit (for upgrades)
-
-Other Commands:
-  version           Show program's version number and exit
-  help              Help about any command
-
-https://github.com/kubernetes/kubernetes/blob/master/pkg/kubectl/cmd/cmd.go#L487
-
- */
-
 func main() {
 	// Figure out our executable and save it
 	if executable, err := os.Executable(); err != nil {
@@ -69,6 +44,42 @@ func main() {
 	}
 
 	rootCmd := getRootCommand()
+
+	var cg []CmdGroup
+	if DaemonWorks() {
+		cg = []CmdGroup{
+			CmdGroup{
+				GroupName: "Management Commands",
+				CmdNames:  []string{"login", "license"},
+			},
+			CmdGroup{
+				GroupName: "Development Commands",
+				CmdNames:  []string{"status", "connect", "disconnect", "intercept"},
+			},
+			CmdGroup{
+				GroupName: "Advanced Commands",
+				CmdNames:  []string{"daemon", "pause", "resume", "quit"},
+			},
+			CmdGroup{
+				GroupName: "Other Commands",
+				CmdNames:  []string{"version", "help"},
+			},
+		}
+	} else {
+		cg = []CmdGroup{
+			CmdGroup{
+				GroupName: "Management Commands",
+				CmdNames:  []string{"login", "license"},
+			},
+			CmdGroup{
+				GroupName: "Other Commands",
+				CmdNames:  []string{"version", "help"},
+			},
+		}
+	}
+
+	usageFunc := NewCmdUsage(rootCmd, cg)
+	rootCmd.SetUsageFunc(usageFunc)
 	err := rootCmd.Execute()
 	if err != nil {
 		os.Exit(1)
@@ -81,9 +92,14 @@ func getRootCommand() *cobra.Command {
 		myName = "Edge Control (daemon unavailable)"
 	}
 
+	myHelp := myName + `
+  https://www.getambassador.io/user-guide/install/
+`
+
 	rootCmd := &cobra.Command{
 		Use:          "edgectl",
 		Short:        myName,
+		Long:         myHelp,
 		SilenceUsage: true, // https://github.com/spf13/cobra/issues/340
 	}
 
@@ -126,16 +142,18 @@ func getRootCommand() *cobra.Command {
 
 	// Client commands. These are never sent to the daemon.
 
-	rootCmd.AddCommand(&cobra.Command{
-		Use:   "daemon",
-		Short: "Launch Edge Control Daemon in the background (sudo)",
-		Long:  daemonHelp,
-		Args:  cobra.ExactArgs(0),
-		RunE:  launchDaemon,
-	})
+	if DaemonWorks() {
+		rootCmd.AddCommand(&cobra.Command{
+			Use:   "daemon",
+			Short: "Launch Edge Control Daemon in the background (sudo)",
+			Long:  daemonHelp,
+			Args:  cobra.ExactArgs(0),
+			RunE:  launchDaemon,
+		})
+	}
 	loginCmd := &cobra.Command{
 		Use:   "login [flags] HOSTNAME",
-		Short: "Access the Ambassador Edge Stack admin UI",
+		Short: "Access the Ambassador Edge Policy Console",
 		Args:  cobra.ExactArgs(1),
 		RunE:  aesLogin,
 	}
@@ -168,11 +186,26 @@ func getRootCommand() *cobra.Command {
 
 	// Daemon commands. These should be forwarded to the daemon.
 
-	nilDaemon := &Daemon{}
-	daemonCmd := nilDaemon.getRootCommand(nil, nil, nil)
-	walkSubcommands(daemonCmd)
-	rootCmd.AddCommand(daemonCmd.Commands()...)
-	rootCmd.PersistentFlags().AddFlagSet(daemonCmd.PersistentFlags())
+	if DaemonWorks() {
+		nilDaemon := &Daemon{}
+		daemonCmd := nilDaemon.getRootCommand(nil, nil, nil)
+		walkSubcommands(daemonCmd)
+		rootCmd.AddCommand(daemonCmd.Commands()...)
+		rootCmd.PersistentFlags().AddFlagSet(daemonCmd.PersistentFlags())
+	} else {
+		rootCmd.AddCommand(&cobra.Command{
+			Use:   "version",
+			Short: "Show program's version number and exit",
+			Args:  cobra.ExactArgs(0),
+			RunE: func(_ *cobra.Command, _ []string) error {
+				fmt.Println("Client", displayVersion)
+				fmt.Println("Daemon unavailable on this platform")
+				return nil
+			},
+		})
+	}
+
+	rootCmd.InitDefaultHelpCmd()
 
 	return rootCmd
 }
@@ -198,4 +231,3 @@ func forwardToDaemon(cmd *cobra.Command, _ []string) error {
 	}
 	return err
 }
-
