@@ -34,12 +34,11 @@ export class HostView extends IResourceView {
 
   static get properties() {
     let myProperties = {
-      hostname: {type: String},   // Host
-      acmeProvider: {type: String},   // Host
-      acmeEmail: {type: String},   // Host
-      useAcme: {type: Boolean},  // HostView
-      tos: {type: String},   // HostView
-      showTos: {type: Boolean}   // HostView
+      hostname: {type: String},     // Host
+      acmeProvider: {type: String}, // Host
+      acmeEmail: {type: String},    // Host
+      useAcme: {type: Boolean},     // HostView
+      tos: {type: String}           // HostView
 
     };
 
@@ -285,8 +284,9 @@ export class HostView extends IResourceView {
     }
   }
 
-  /* Provider has changed.  Because state is not a property,
-   * we have to manually request the update.
+  /* onProviderChanged()
+   * The ACME provider has been changed by the user.  Fetch the terms of service for the new provider,
+   * and write back to the model.
    */
   onProviderChanged() {
     this.showTos = true;
@@ -297,13 +297,6 @@ export class HostView extends IResourceView {
      * will no longer be necessary.
      */
     this.writeToModel();
-
-    /* update the YAML if showing. */
-    if (this.showYAML) {
-      this.mergedYamlElement().requestUpdate();
-    }
-
-    this.requestUpdate();
   }
 
   /* onTOSAgreeCheckbox

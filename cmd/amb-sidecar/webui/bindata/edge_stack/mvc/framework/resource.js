@@ -67,8 +67,10 @@ export class Resource extends Model {
    * as YAML.  Returns null if success, an error string if not.
     */
 
-  doApply(cookie, yaml) {
+  doApply(yaml) {
+    let cookie = getCookie("edge_stack_auth");
     let error  = null;
+
     let params = {
       method: "POST",
       headers: new Headers({'Authorization': 'Bearer ' + cookie}),

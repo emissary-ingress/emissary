@@ -3,8 +3,6 @@
  * An IResourceCollectionView concrete subclass that implements a view on a ResourceCollection of HostViews.
  */
 
-import { hasDebugBackend } from "../../components/api-fetch.js"
-
 /* The ResourceCollection we're listening to. */
 import { AllHosts } from "../models/host_collection.js"
 

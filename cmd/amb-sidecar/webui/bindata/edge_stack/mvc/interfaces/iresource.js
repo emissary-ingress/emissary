@@ -84,8 +84,9 @@ export class IResource extends Resource {
   }
 
   /* ====================================================================================================
-   *  Subclasses do not implement these methods.  They are implemented by Model and may be used by
-   *  subclasses directly.
+   * The following methods are implemented by Model, and may be useful for subclasses to use in their
+   * implementation of the required interface methods.  The methods below should not be overridden by
+   * subclasses.
    * ====================================================================================================
    */
 
@@ -130,8 +131,9 @@ export class IResource extends Resource {
 
 
   /* ====================================================================================================
-   *  Subclasses do not implement these methods.  They are implemented by Resource and may be used by
-   *  subclasses directly.
+   * The following methods are implemented by Resource, and may be useful for subclasses to use in their
+   * implementation of the required interface methods.  The methods below should not be overridden by
+   * subclasses.
    * ====================================================================================================
    */
 

@@ -89,14 +89,20 @@ export class ResourceCollectionView extends LitElement {
      * that child component queues the appropriate re-render at the correct time,and are rendered in our <slot>.
     */
     if (message === 'created') {
-      let viewClass  = this.viewClass();
+      let viewClass = this.viewClass();
       let child_view = new viewClass(model);
       this.appendChild(child_view);
     }
   }
 
   /* readOnly()
-   * Override to true to hide the Add button.  Defaults to false.
+   * If readOnly is set to false, then the collection can be added to by the user, e.g. a HostCollection, if
+   * readOnly is false, will provide an Add button so that the end user can create a new Host and set its
+   * attributes.
+   *
+   * if readOnly is set to true, then the collection's contents are only those Resources that are observed
+   * in the snapshot, and there is no Add button or any mechanism for the user, from the Edge Admin UI, to
+   * add new Resources.
    */
   readOnly() {
     return false;
@@ -113,14 +119,12 @@ export class ResourceCollectionView extends LitElement {
     if (enableMVC()) {
       return html`
         <div style="border:thick solid red">
-        <link rel="stylesheet" href="../styles/resources.css">
-        <add-button @click=${this.onAdd.bind(this)}></add-button>
-                 <slot name="add"></slot>
-                 <slot></slot>
+          <link rel="stylesheet" href="../styles/resources.css">
+          ${this.readOnly() ? "" : html`<add-button @click=${this.onAdd.bind(this)}></add-button>`}
+          <slot name="add"></slot>
+          <slot></slot>
         </div>`
-
-    }
-    else {
+    } else {
       return html``
     }
   }

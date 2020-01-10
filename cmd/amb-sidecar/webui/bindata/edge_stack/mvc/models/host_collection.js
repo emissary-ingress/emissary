@@ -35,16 +35,7 @@ export class HostCollection extends IResourceCollection {
   resourceClass() {
     return HostResource;
   }
-
-  /* uniqueKeyFor(resourceData)
-   * Return a computed modelKey given some structured resource data (a hierarchical key/value
-   * structure). Here we use the Resource kind, name, and namespace concatenated together for a unique key.
-   */
-
-  uniqueKeyFor(resourceData) {
-    return resourceData.kind + "::" + resourceData.metadata.name + "::" + resourceData.metadata.namespace;
-  }
- }
+}
 
 
 /* Export a HostCollection instance.  This object manages every Host instance and synchronizes the list of Hosts

@@ -84,4 +84,26 @@ export class ResourceCollection extends Model {
       this._resources.delete(key);
     }
   }
+
+  /* uniqueKeyFor(resourceData)
+ * Return a unique key given some structured resource data (a hierarchical key/value
+ * structure) that is used to determine whether a collection already has an instance of the
+ * Resource or whether a new one should be created.
+ *
+ * This is a method that is given the data block from a snapshot and returns
+ * the unique key for that data.  Each ResourceCollection subclass will know the structure and extract
+ * the appropriate information to create the Resource's key.  This is needed for identity in a
+ * collection of Resources.
+ *
+ * It's only necessary to implement this method in a subclass of IResource if the resource data for the
+ * particular kind of resource being collected has a different structure than a standard resource,
+ * which always has kind, name, and namespace attributes, which together uniquely identify a Resource
+ * within Kubernetes.
+ *
+ * Here we simply concatenate kind, name, and namespace to return the uniqueKey.
+ */
+
+  uniqueKeyFor(resourceData) {
+    return resourceData.kind + "::" + resourceData.metadata.name + "::" + resourceData.metadata.namespace;
+  }
 }

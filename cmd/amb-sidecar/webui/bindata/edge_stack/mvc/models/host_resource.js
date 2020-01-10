@@ -68,29 +68,32 @@ export class HostResource extends IResource {
   updateSelfFrom(resourceData) {
     let changed = false;
 
-    /* Check hostname */
+    /* Update the hostname if it has changed since the last snapshot */
     if (this.hostname !== resourceData.spec.hostname) {
       this.hostname = resourceData.spec.hostname;
       changed = true;
     }
 
-    /* Check acmeProvider */
+    /* Update the acmeProvider if it has changed */
     if (this.acmeProvider !== resourceData.spec.acmeProvider.authority) {
       this.acmeProvider = resourceData.spec.acmeProvider.authority;
       changed = true;
     }
 
-    /* Check acmeEmail */
+    /* Update the acmeEmail if it has changed. */
     if (this.acmeEmail !== resourceData.spec.acmeProvider.email) {
       this.acmeEmail = resourceData.spec.acmeProvider.email;
       changed = true;
     }
 
-    /* Are we using Acme or not? we just check to see
-     * if the authority is "none".
+    /* Are we using Acme or not? we just check to see if the authority is "none" and assume if there is an
+     * authority, the user intends to use Acme.
      */
     let useAcme = (this.acmeProvider !== "none");
 
+    /* Update the useAcme flag if it is different than before, e.g. there is a provider now and there wasn't before,
+     * or there is no longer a provider when there once was one specified.
+     */
     if (this.useAcme !== useAcme) {
       this.useAcme = useAcme;
       changed = true;
