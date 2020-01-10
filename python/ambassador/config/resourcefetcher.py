@@ -852,12 +852,14 @@ class ResourceFetcher:
                 self.filename += ":annotation"
 
             try:
-                objects = parse_yaml(annotations, namespace=resource_namespace)
+                objects = parse_yaml(annotations)
 
-                if metadata_labels:
-                    for obj in objects:
-                        if obj.get('metadata_labels') is None:
-                            obj['metadata_labels'] = metadata_labels
+                for obj in objects:
+                    if obj.get('metadata_labels') is None and metadata_labels:
+                        obj['metadata_labels'] = metadata_labels
+                    if obj.get('namespace') is None:
+                        obj['namespace'] = resource_namespace
+
             except yaml.error.YAMLError as e:
                 self.logger.debug("could not parse YAML: %s" % e)
 
