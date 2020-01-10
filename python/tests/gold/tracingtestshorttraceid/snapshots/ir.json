@@ -45,7 +45,7 @@
         "xff_num_trusted_hops": 0
     },
     "clusters": {
-        "cluster_127_0_0_1_8877": {
+        "cluster_127_0_0_1_8877_default": {
             "_active": true,
             "_errored": false,
             "_hostname": "127.0.0.1",
@@ -55,7 +55,7 @@
                 "--internal--"
             ],
             "_resolver": "kubernetes-service",
-            "_rkey": "cluster_127_0_0_1_8877",
+            "_rkey": "cluster_127_0_0_1_8877_default",
             "connect_timeout_ms": 3000,
             "enable_endpoints": false,
             "enable_ipv4": true,
@@ -64,7 +64,7 @@
             "kind": "IRCluster",
             "lb_type": "round_robin",
             "location": "--internal--",
-            "name": "cluster_127_0_0_1_8877",
+            "name": "cluster_127_0_0_1_8877_default",
             "namespace": "default",
             "service": "127.0.0.1:8877",
             "targets": [
@@ -79,7 +79,7 @@
                 "tcp://127.0.0.1:8877"
             ]
         },
-        "cluster_tracing_zipkin_64_9411": {
+        "cluster_tracing_zipkin_64_9411_default": {
             "_active": true,
             "_errored": false,
             "_hostname": "zipkin-64",
@@ -88,7 +88,7 @@
             "_referenced_by": [
                 "tracingtestshorttraceid.default.1"
             ],
-            "_rkey": "cluster_tracing_zipkin_64_9411",
+            "_rkey": "cluster_tracing_zipkin_64_9411_default",
             "connect_timeout_ms": 3000,
             "enable_endpoints": false,
             "enable_ipv4": true,
@@ -97,7 +97,7 @@
             "kind": "IRCluster",
             "lb_type": "round_robin",
             "location": "tracingtestshorttraceid.default.1",
-            "name": "cluster_tracing_zipkin_64_9411",
+            "name": "cluster_tracing_zipkin_64_9411_default",
             "namespace": "default",
             "service": "zipkin-64:9411",
             "targets": [
@@ -112,7 +112,7 @@
                 "tcp://zipkin-64:9411"
             ]
         },
-        "cluster_tracingtestshorttraceid_http": {
+        "cluster_tracingtestshorttraceid_http_default": {
             "_active": true,
             "_errored": false,
             "_hostname": "tracingtestshorttraceid-http",
@@ -122,7 +122,7 @@
                 "tracingtestshorttraceid-http.default.1"
             ],
             "_resolver": "kubernetes-service",
-            "_rkey": "cluster_tracingtestshorttraceid_http",
+            "_rkey": "cluster_tracingtestshorttraceid_http_default",
             "connect_timeout_ms": 3000,
             "enable_endpoints": false,
             "enable_ipv4": true,
@@ -131,7 +131,7 @@
             "kind": "IRCluster",
             "lb_type": "round_robin",
             "location": "tracingtestshorttraceid-http.default.1",
-            "name": "cluster_tracingtestshorttraceid_http",
+            "name": "cluster_tracingtestshorttraceid_http_default",
             "namespace": "default",
             "service": "tracingtestshorttraceid-http",
             "targets": [
@@ -210,7 +210,7 @@
                             "--internal--"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_127_0_0_1_8877",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -219,7 +219,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "--internal--",
-                        "name": "cluster_127_0_0_1_8877",
+                        "name": "cluster_127_0_0_1_8877_default",
                         "namespace": "default",
                         "service": "127.0.0.1:8877",
                         "targets": [
@@ -300,7 +300,7 @@
                             "--internal--"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_127_0_0_1_8877",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -309,7 +309,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "--internal--",
-                        "name": "cluster_127_0_0_1_8877",
+                        "name": "cluster_127_0_0_1_8877_default",
                         "namespace": "default",
                         "service": "127.0.0.1:8877",
                         "targets": [
@@ -390,7 +390,7 @@
                             "--internal--"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_127_0_0_1_8877",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -399,7 +399,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "--internal--",
-                        "name": "cluster_127_0_0_1_8877",
+                        "name": "cluster_127_0_0_1_8877_default",
                         "namespace": "default",
                         "service": "127.0.0.1:8877",
                         "targets": [
@@ -477,7 +477,7 @@
                             "tracingtestshorttraceid-http.default.1"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_tracingtestshorttraceid_http",
+                        "_rkey": "cluster_tracingtestshorttraceid_http_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -486,7 +486,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "tracingtestshorttraceid-http.default.1",
-                        "name": "cluster_tracingtestshorttraceid_http",
+                        "name": "cluster_tracingtestshorttraceid_http_default",
                         "namespace": "default",
                         "service": "tracingtestshorttraceid-http",
                         "targets": [
@@ -522,7 +522,7 @@
                         "/target-64/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: tracingtestshorttraceid\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: tracingtestshorttraceid\n  scope: AmbassadorTest\nname: tracing_target_mapping_64\nprefix: /target-64/\nservice: tracingtestshorttraceid-http\n",
+                    "serialization": "ambassador_id: tracingtestshorttraceid\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: tracingtestshorttraceid\n  scope: AmbassadorTest\nname: tracing_target_mapping_64\nnamespace: default\nprefix: /target-64/\nservice: tracingtestshorttraceid-http\n",
                     "service": "tracingtestshorttraceid-http",
                     "weight": 100
                 }
@@ -536,7 +536,7 @@
             "precedence": 0,
             "prefix": "/target-64/",
             "rewrite": "/",
-            "serialization": "ambassador_id: tracingtestshorttraceid\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: tracingtestshorttraceid\n  scope: AmbassadorTest\nname: tracing_target_mapping_64\nprefix: /target-64/\nservice: tracingtestshorttraceid-http\n"
+            "serialization": "ambassador_id: tracingtestshorttraceid\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: tracingtestshorttraceid\n  scope: AmbassadorTest\nname: tracing_target_mapping_64\nnamespace: default\nprefix: /target-64/\nservice: tracingtestshorttraceid-http\n"
         }
     ],
     "grpc_services": {},
@@ -559,7 +559,6 @@
             "name": "ir.listener",
             "namespace": "default",
             "redirect_listener": false,
-            "require_tls": false,
             "secure_action": "Route",
             "service_port": 8080,
             "use_proxy_proto": false
@@ -650,7 +649,7 @@
             "_referenced_by": [
                 "tracingtestshorttraceid.default.1"
             ],
-            "_rkey": "cluster_tracing_zipkin_64_9411",
+            "_rkey": "cluster_tracing_zipkin_64_9411_default",
             "connect_timeout_ms": 3000,
             "enable_endpoints": false,
             "enable_ipv4": true,
@@ -659,7 +658,7 @@
             "kind": "IRCluster",
             "lb_type": "round_robin",
             "location": "tracingtestshorttraceid.default.1",
-            "name": "cluster_tracing_zipkin_64_9411",
+            "name": "cluster_tracing_zipkin_64_9411_default",
             "namespace": "default",
             "service": "zipkin-64:9411",
             "targets": [
@@ -676,7 +675,7 @@
         },
         "driver": "zipkin",
         "driver_config": {
-            "collector_cluster": "cluster_tracing_zipkin_64_9411",
+            "collector_cluster": "cluster_tracing_zipkin_64_9411_default",
             "trace_id_128bit": false
         },
         "grpc": false,

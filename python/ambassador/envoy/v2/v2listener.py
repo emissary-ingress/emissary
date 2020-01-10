@@ -520,10 +520,10 @@ class V2VirtualHost(dict):
                 if not found_acme:
                     # The target cluster doesn't actually matter -- the auth service grabs the
                     # challenge and does the right thing. But we do need a cluster that actually
-                    # exists. Try cluster_127_0_0_1_8500 first (that should exist, it's the
-                    # amb-sidecar). If that doesn't work, how is Edge Stack running exactly?
+                    # exists. Try cluster_127_0_0_1_8500_{namespace} first (that should exist, it's
+                    # the amb-sidecar). If that doesn't work, how is Edge Stack running exactly?
 
-                    if not self._config.ir.get_cluster("cluster_127_0_0_1_8500"):
+                    if not self._config.ir.get_cluster("cluster_127_0_0_1_8500_" + self._config.ir.ambassador_namespace):
                         raise Exception("Edge Stack claims to be running, but we have no sidecar cluster??")
 
                     self["routes"].insert(0, {
@@ -532,7 +532,7 @@ class V2VirtualHost(dict):
                             "prefix": "/.well-known/acme-challenge/"
                         },
                         "route": {
-                            "cluster": "cluster_127_0_0_1_8500",
+                            "cluster": "cluster_127_0_0_1_8500_" + self._config.ir.ambassador_namespace,
                             "prefix_rewrite": "/.well-known/acme-challenge/",
                             "timeout": "3.000s"
                         }

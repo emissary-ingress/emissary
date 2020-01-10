@@ -45,7 +45,7 @@
         "xff_num_trusted_hops": 0
     },
     "clusters": {
-        "cluster_127_0_0_1_8877": {
+        "cluster_127_0_0_1_8877_default": {
             "_active": true,
             "_errored": false,
             "_hostname": "127.0.0.1",
@@ -55,7 +55,7 @@
                 "--internal--"
             ],
             "_resolver": "kubernetes-service",
-            "_rkey": "cluster_127_0_0_1_8877",
+            "_rkey": "cluster_127_0_0_1_8877_default",
             "connect_timeout_ms": 3000,
             "enable_endpoints": false,
             "enable_ipv4": true,
@@ -64,7 +64,7 @@
             "kind": "IRCluster",
             "lb_type": "round_robin",
             "location": "--internal--",
-            "name": "cluster_127_0_0_1_8877",
+            "name": "cluster_127_0_0_1_8877_default",
             "namespace": "default",
             "service": "127.0.0.1:8877",
             "targets": [
@@ -79,7 +79,7 @@
                 "tcp://127.0.0.1:8877"
             ]
         },
-        "cluster_http___127_0_0_1_8001": {
+        "cluster_http___127_0_0_1_8001_default": {
             "_active": true,
             "_errored": false,
             "_hostname": "127.0.0.1",
@@ -89,7 +89,7 @@
                 "logservicetest.default.2"
             ],
             "_resolver": "kubernetes-service",
-            "_rkey": "cluster_http___127_0_0_1_8001",
+            "_rkey": "cluster_http___127_0_0_1_8001_default",
             "connect_timeout_ms": 3000,
             "enable_endpoints": false,
             "enable_ipv4": true,
@@ -98,7 +98,7 @@
             "kind": "IRCluster",
             "lb_type": "round_robin",
             "location": "logservicetest.default.2",
-            "name": "cluster_http___127_0_0_1_8001",
+            "name": "cluster_http___127_0_0_1_8001_default",
             "namespace": "default",
             "service": "127.0.0.1:8001",
             "targets": [
@@ -113,7 +113,7 @@
                 "tcp://127.0.0.1:8001"
             ]
         },
-        "cluster_logging_stenography_25565": {
+        "cluster_logging_stenography_25565_default": {
             "_active": true,
             "_errored": false,
             "_hostname": "stenography",
@@ -122,7 +122,7 @@
             "_referenced_by": [
                 "logservicetest.default.1"
             ],
-            "_rkey": "cluster_logging_stenography_25565",
+            "_rkey": "cluster_logging_stenography_25565_default",
             "connect_timeout_ms": 3000,
             "enable_endpoints": false,
             "enable_ipv4": true,
@@ -131,7 +131,7 @@
             "kind": "IRCluster",
             "lb_type": "round_robin",
             "location": "logservicetest.default.1",
-            "name": "cluster_logging_stenography_25565",
+            "name": "cluster_logging_stenography_25565_default",
             "namespace": "default",
             "service": "stenography:25565",
             "targets": [
@@ -208,7 +208,7 @@
                             "--internal--"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_127_0_0_1_8877",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -217,7 +217,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "--internal--",
-                        "name": "cluster_127_0_0_1_8877",
+                        "name": "cluster_127_0_0_1_8877_default",
                         "namespace": "default",
                         "service": "127.0.0.1:8877",
                         "targets": [
@@ -298,7 +298,7 @@
                             "--internal--"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_127_0_0_1_8877",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -307,7 +307,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "--internal--",
-                        "name": "cluster_127_0_0_1_8877",
+                        "name": "cluster_127_0_0_1_8877_default",
                         "namespace": "default",
                         "service": "127.0.0.1:8877",
                         "targets": [
@@ -388,7 +388,7 @@
                             "--internal--"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_127_0_0_1_8877",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -397,7 +397,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "--internal--",
-                        "name": "cluster_127_0_0_1_8877",
+                        "name": "cluster_127_0_0_1_8877_default",
                         "namespace": "default",
                         "service": "127.0.0.1:8877",
                         "targets": [
@@ -475,7 +475,7 @@
                             "logservicetest.default.2"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_http___127_0_0_1_8001",
+                        "_rkey": "cluster_http___127_0_0_1_8001_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -484,7 +484,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "logservicetest.default.2",
-                        "name": "cluster_http___127_0_0_1_8001",
+                        "name": "cluster_http___127_0_0_1_8001_default",
                         "namespace": "default",
                         "service": "127.0.0.1:8001",
                         "targets": [
@@ -521,7 +521,7 @@
                         "/config_dump",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: logservicetest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: logservicetest\n  scope: AmbassadorTest\nname: config__dump\nprefix: /config_dump\nrewrite: /config_dump\nservice: http://127.0.0.1:8001\n",
+                    "serialization": "ambassador_id: logservicetest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: logservicetest\n  scope: AmbassadorTest\nname: config__dump\nnamespace: default\nprefix: /config_dump\nrewrite: /config_dump\nservice: http://127.0.0.1:8001\n",
                     "service": "http://127.0.0.1:8001",
                     "weight": 100
                 }
@@ -536,7 +536,7 @@
             "precedence": 0,
             "prefix": "/config_dump",
             "rewrite": "/config_dump",
-            "serialization": "ambassador_id: logservicetest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: logservicetest\n  scope: AmbassadorTest\nname: config__dump\nprefix: /config_dump\nrewrite: /config_dump\nservice: http://127.0.0.1:8001\n"
+            "serialization": "ambassador_id: logservicetest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: logservicetest\n  scope: AmbassadorTest\nname: config__dump\nnamespace: default\nprefix: /config_dump\nrewrite: /config_dump\nservice: http://127.0.0.1:8001\n"
         }
     ],
     "grpc_services": {},
@@ -559,7 +559,6 @@
             "name": "ir.listener",
             "namespace": "default",
             "redirect_listener": false,
-            "require_tls": false,
             "secure_action": "Route",
             "service_port": 8080,
             "use_proxy_proto": false
@@ -582,7 +581,7 @@
                 "_referenced_by": [
                     "logservicetest.default.1"
                 ],
-                "_rkey": "cluster_logging_stenography_25565",
+                "_rkey": "cluster_logging_stenography_25565_default",
                 "connect_timeout_ms": 3000,
                 "enable_endpoints": false,
                 "enable_ipv4": true,
@@ -591,7 +590,7 @@
                 "kind": "IRCluster",
                 "lb_type": "round_robin",
                 "location": "logservicetest.default.1",
-                "name": "cluster_logging_stenography_25565",
+                "name": "cluster_logging_stenography_25565_default",
                 "namespace": "default",
                 "service": "stenography:25565",
                 "targets": [

@@ -47,7 +47,7 @@
             "prefix": "/echo.EchoService/",
             "rewrite": "/echo.EchoService/",
             "rkey": "acceptancegrpctest.default.1",
-            "serialization": "ambassador_id: acceptancegrpctest\napiVersion: ambassador/v0\ngrpc: true\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: acceptancegrpctest\n  scope: AmbassadorTest\nname: acceptancegrpctest-egrpc\nprefix: /echo.EchoService/\nrewrite: /echo.EchoService/\nservice: acceptancegrpctest-egrpc\n",
+            "serialization": "ambassador_id: acceptancegrpctest\napiVersion: ambassador/v0\ngrpc: true\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: acceptancegrpctest\n  scope: AmbassadorTest\nname: acceptancegrpctest-egrpc\nnamespace: default\nprefix: /echo.EchoService/\nrewrite: /echo.EchoService/\nservice: acceptancegrpctest-egrpc\n",
             "service": "acceptancegrpctest-egrpc"
         },
         "k8s-acceptancegrpctest-admin-default": {

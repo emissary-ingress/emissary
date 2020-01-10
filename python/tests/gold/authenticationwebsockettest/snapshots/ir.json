@@ -45,7 +45,7 @@
         "xff_num_trusted_hops": 0
     },
     "clusters": {
-        "cluster_127_0_0_1_8877": {
+        "cluster_127_0_0_1_8877_default": {
             "_active": true,
             "_errored": false,
             "_hostname": "127.0.0.1",
@@ -55,7 +55,7 @@
                 "--internal--"
             ],
             "_resolver": "kubernetes-service",
-            "_rkey": "cluster_127_0_0_1_8877",
+            "_rkey": "cluster_127_0_0_1_8877_default",
             "connect_timeout_ms": 3000,
             "enable_endpoints": false,
             "enable_ipv4": true,
@@ -64,7 +64,7 @@
             "kind": "IRCluster",
             "lb_type": "round_robin",
             "location": "--internal--",
-            "name": "cluster_127_0_0_1_8877",
+            "name": "cluster_127_0_0_1_8877_default",
             "namespace": "default",
             "service": "127.0.0.1:8877",
             "targets": [
@@ -79,7 +79,7 @@
                 "tcp://127.0.0.1:8877"
             ]
         },
-        "cluster_extauth_authenticationwebsockettest_http_auth": {
+        "cluster_extauth_authenticationwebsockettest_http_auth_default": {
             "_active": true,
             "_errored": false,
             "_hostname": "authenticationwebsockettest-http-auth",
@@ -88,7 +88,7 @@
             "_referenced_by": [
                 "authenticationwebsockettest.default.1"
             ],
-            "_rkey": "cluster_extauth_authenticationwebsockettest_http_auth",
+            "_rkey": "cluster_extauth_authenticationwebsockettest_http_auth_default",
             "connect_timeout_ms": 3000,
             "enable_endpoints": false,
             "enable_ipv4": true,
@@ -97,7 +97,7 @@
             "kind": "IRCluster",
             "lb_type": "round_robin",
             "location": "authenticationwebsockettest.default.1",
-            "name": "cluster_extauth_authenticationwebsockettest_http_auth",
+            "name": "cluster_extauth_authenticationwebsockett-0",
             "namespace": "default",
             "service": "authenticationwebsockettest-http-auth",
             "targets": [
@@ -112,7 +112,7 @@
                 "tcp://authenticationwebsockettest-http-auth:80"
             ]
         },
-        "cluster_http___echo_websocket_org": {
+        "cluster_http___echo_websocket_org_default": {
             "_active": true,
             "_errored": false,
             "_hostname": "echo.websocket.org",
@@ -122,7 +122,7 @@
                 "authenticationwebsockettest.default.2"
             ],
             "_resolver": "kubernetes-service",
-            "_rkey": "cluster_http___echo_websocket_org",
+            "_rkey": "cluster_http___echo_websocket_org_default",
             "connect_timeout_ms": 3000,
             "enable_endpoints": false,
             "enable_ipv4": true,
@@ -132,7 +132,7 @@
             "kind": "IRCluster",
             "lb_type": "round_robin",
             "location": "authenticationwebsockettest.default.2",
-            "name": "cluster_http___echo_websocket_org",
+            "name": "cluster_http___echo_websocket_org_default",
             "namespace": "default",
             "service": "echo.websocket.org",
             "targets": [
@@ -173,7 +173,7 @@
                 "_referenced_by": [
                     "authenticationwebsockettest.default.1"
                 ],
-                "_rkey": "cluster_extauth_authenticationwebsockettest_http_auth",
+                "_rkey": "cluster_extauth_authenticationwebsockettest_http_auth_default",
                 "connect_timeout_ms": 3000,
                 "enable_endpoints": false,
                 "enable_ipv4": true,
@@ -182,7 +182,7 @@
                 "kind": "IRCluster",
                 "lb_type": "round_robin",
                 "location": "authenticationwebsockettest.default.1",
-                "name": "cluster_extauth_authenticationwebsockettest_http_auth",
+                "name": "cluster_extauth_authenticationwebsockett-0",
                 "namespace": "default",
                 "service": "authenticationwebsockettest-http-auth",
                 "targets": [
@@ -273,7 +273,7 @@
                             "authenticationwebsockettest.default.2"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_http___echo_websocket_org",
+                        "_rkey": "cluster_http___echo_websocket_org_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -283,7 +283,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "authenticationwebsockettest.default.2",
-                        "name": "cluster_http___echo_websocket_org",
+                        "name": "cluster_http___echo_websocket_org_default",
                         "namespace": "default",
                         "service": "echo.websocket.org",
                         "targets": [
@@ -321,7 +321,7 @@
                         "/AuthenticationWebsocketTest/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: authenticationwebsockettest\napiVersion: ambassador/v0\nhost_rewrite: echo.websocket.org\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: authenticationwebsockettest\n  scope: AmbassadorTest\nname: AuthenticationWebsocketTest\nprefix: /AuthenticationWebsocketTest/\nservice: http://echo.websocket.org\nuse_websocket: true\n",
+                    "serialization": "ambassador_id: authenticationwebsockettest\napiVersion: ambassador/v0\nhost_rewrite: echo.websocket.org\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: authenticationwebsockettest\n  scope: AmbassadorTest\nname: AuthenticationWebsocketTest\nnamespace: default\nprefix: /AuthenticationWebsocketTest/\nservice: http://echo.websocket.org\nuse_websocket: true\n",
                     "service": "http://echo.websocket.org",
                     "use_websocket": true,
                     "weight": 100
@@ -337,7 +337,7 @@
             "precedence": 0,
             "prefix": "/AuthenticationWebsocketTest/",
             "rewrite": "/",
-            "serialization": "ambassador_id: authenticationwebsockettest\napiVersion: ambassador/v0\nhost_rewrite: echo.websocket.org\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: authenticationwebsockettest\n  scope: AmbassadorTest\nname: AuthenticationWebsocketTest\nprefix: /AuthenticationWebsocketTest/\nservice: http://echo.websocket.org\nuse_websocket: true\n",
+            "serialization": "ambassador_id: authenticationwebsockettest\napiVersion: ambassador/v0\nhost_rewrite: echo.websocket.org\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: authenticationwebsockettest\n  scope: AmbassadorTest\nname: AuthenticationWebsocketTest\nnamespace: default\nprefix: /AuthenticationWebsocketTest/\nservice: http://echo.websocket.org\nuse_websocket: true\n",
             "use_websocket": true
         },
         {
@@ -377,7 +377,7 @@
                             "--internal--"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_127_0_0_1_8877",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -386,7 +386,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "--internal--",
-                        "name": "cluster_127_0_0_1_8877",
+                        "name": "cluster_127_0_0_1_8877_default",
                         "namespace": "default",
                         "service": "127.0.0.1:8877",
                         "targets": [
@@ -467,7 +467,7 @@
                             "--internal--"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_127_0_0_1_8877",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -476,7 +476,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "--internal--",
-                        "name": "cluster_127_0_0_1_8877",
+                        "name": "cluster_127_0_0_1_8877_default",
                         "namespace": "default",
                         "service": "127.0.0.1:8877",
                         "targets": [
@@ -557,7 +557,7 @@
                             "--internal--"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_127_0_0_1_8877",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -566,7 +566,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "--internal--",
-                        "name": "cluster_127_0_0_1_8877",
+                        "name": "cluster_127_0_0_1_8877_default",
                         "namespace": "default",
                         "service": "127.0.0.1:8877",
                         "targets": [
@@ -631,7 +631,6 @@
             "name": "ir.listener",
             "namespace": "default",
             "redirect_listener": false,
-            "require_tls": false,
             "secure_action": "Route",
             "service_port": 8080,
             "use_proxy_proto": false

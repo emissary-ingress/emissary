@@ -45,7 +45,7 @@
         "xff_num_trusted_hops": 0
     },
     "clusters": {
-        "cluster_127_0_0_1_8877": {
+        "cluster_127_0_0_1_8877_default": {
             "_active": true,
             "_errored": false,
             "_hostname": "127.0.0.1",
@@ -55,7 +55,7 @@
                 "--internal--"
             ],
             "_resolver": "kubernetes-service",
-            "_rkey": "cluster_127_0_0_1_8877",
+            "_rkey": "cluster_127_0_0_1_8877_default",
             "connect_timeout_ms": 3000,
             "enable_endpoints": false,
             "enable_ipv4": true,
@@ -64,7 +64,7 @@
             "kind": "IRCluster",
             "lb_type": "round_robin",
             "location": "--internal--",
-            "name": "cluster_127_0_0_1_8877",
+            "name": "cluster_127_0_0_1_8877_default",
             "namespace": "default",
             "service": "127.0.0.1:8877",
             "targets": [
@@ -79,7 +79,7 @@
                 "tcp://127.0.0.1:8877"
             ]
         },
-        "cluster_extauth_authenticationheaderrouting_headerroutingauth": {
+        "cluster_extauth_authenticationheaderrouting_headerroutingauth_default": {
             "_active": true,
             "_errored": false,
             "_hostname": "authenticationheaderrouting-headerroutingauth",
@@ -88,7 +88,7 @@
             "_referenced_by": [
                 "authenticationheaderrouting.default.1"
             ],
-            "_rkey": "cluster_extauth_authenticationheaderrouting_headerroutingauth",
+            "_rkey": "cluster_extauth_authenticationheaderrouting_headerroutingauth_default",
             "connect_timeout_ms": 3000,
             "enable_endpoints": false,
             "enable_ipv4": true,
@@ -112,7 +112,7 @@
                 "tcp://authenticationheaderrouting-headerroutingauth:80"
             ]
         },
-        "cluster_http___authenticationheaderrouting_http_target1": {
+        "cluster_http___authenticationheaderrouting_http_target1_default": {
             "_active": true,
             "_errored": false,
             "_hostname": "authenticationheaderrouting-http-target1",
@@ -122,7 +122,7 @@
                 "authenticationheaderrouting-http-target1.default.1"
             ],
             "_resolver": "kubernetes-service",
-            "_rkey": "cluster_http___authenticationheaderrouting_http_target1",
+            "_rkey": "cluster_http___authenticationheaderrouting_http_target1_default",
             "connect_timeout_ms": 3000,
             "enable_endpoints": false,
             "enable_ipv4": true,
@@ -131,7 +131,7 @@
             "kind": "IRCluster",
             "lb_type": "round_robin",
             "location": "authenticationheaderrouting-http-target1.default.1",
-            "name": "cluster_http___authenticationheaderrouting_http_target1",
+            "name": "cluster_http___authenticationheaderrouti-0",
             "namespace": "default",
             "service": "authenticationheaderrouting-http-target1",
             "targets": [
@@ -146,7 +146,7 @@
                 "tcp://authenticationheaderrouting-http-target1:80"
             ]
         },
-        "cluster_http___authenticationheaderrouting_http_target2": {
+        "cluster_http___authenticationheaderrouting_http_target2_default": {
             "_active": true,
             "_errored": false,
             "_hostname": "authenticationheaderrouting-http-target2",
@@ -156,7 +156,7 @@
                 "authenticationheaderrouting-http-target2.default.1"
             ],
             "_resolver": "kubernetes-service",
-            "_rkey": "cluster_http___authenticationheaderrouting_http_target2",
+            "_rkey": "cluster_http___authenticationheaderrouting_http_target2_default",
             "connect_timeout_ms": 3000,
             "enable_endpoints": false,
             "enable_ipv4": true,
@@ -165,7 +165,7 @@
             "kind": "IRCluster",
             "lb_type": "round_robin",
             "location": "authenticationheaderrouting-http-target2.default.1",
-            "name": "cluster_http___authenticationheaderrouting_http_target2",
+            "name": "cluster_http___authenticationheaderrouti-1",
             "namespace": "default",
             "service": "authenticationheaderrouting-http-target2",
             "targets": [
@@ -207,7 +207,7 @@
                 "_referenced_by": [
                     "authenticationheaderrouting.default.1"
                 ],
-                "_rkey": "cluster_extauth_authenticationheaderrouting_headerroutingauth",
+                "_rkey": "cluster_extauth_authenticationheaderrouting_headerroutingauth_default",
                 "connect_timeout_ms": 3000,
                 "enable_endpoints": false,
                 "enable_ipv4": true,
@@ -308,7 +308,7 @@
                             "--internal--"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_127_0_0_1_8877",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -317,7 +317,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "--internal--",
-                        "name": "cluster_127_0_0_1_8877",
+                        "name": "cluster_127_0_0_1_8877_default",
                         "namespace": "default",
                         "service": "127.0.0.1:8877",
                         "targets": [
@@ -398,7 +398,7 @@
                             "--internal--"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_127_0_0_1_8877",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -407,7 +407,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "--internal--",
-                        "name": "cluster_127_0_0_1_8877",
+                        "name": "cluster_127_0_0_1_8877_default",
                         "namespace": "default",
                         "service": "127.0.0.1:8877",
                         "targets": [
@@ -488,7 +488,7 @@
                             "--internal--"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_127_0_0_1_8877",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -497,7 +497,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "--internal--",
-                        "name": "cluster_127_0_0_1_8877",
+                        "name": "cluster_127_0_0_1_8877_default",
                         "namespace": "default",
                         "service": "127.0.0.1:8877",
                         "targets": [
@@ -582,7 +582,7 @@
                             "authenticationheaderrouting-http-target2.default.1"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_http___authenticationheaderrouting_http_target2",
+                        "_rkey": "cluster_http___authenticationheaderrouting_http_target2_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -591,7 +591,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "authenticationheaderrouting-http-target2.default.1",
-                        "name": "cluster_http___authenticationheaderrouting_http_target2",
+                        "name": "cluster_http___authenticationheaderrouti-1",
                         "namespace": "default",
                         "service": "authenticationheaderrouting-http-target2",
                         "targets": [
@@ -634,7 +634,7 @@
                         "GET",
                         "X-Auth-Route-Route"
                     ],
-                    "serialization": "ambassador_id: authenticationheaderrouting\napiVersion: ambassador/v0\nheaders:\n  X-Auth-Route: Route\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: authenticationheaderrouting\n  scope: AmbassadorTest\nname: AuthenticationHeaderRouting-target2\nprefix: /target/\nservice: http://authenticationheaderrouting-http-target2\n",
+                    "serialization": "ambassador_id: authenticationheaderrouting\napiVersion: ambassador/v0\nheaders:\n  X-Auth-Route: Route\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: authenticationheaderrouting\n  scope: AmbassadorTest\nname: AuthenticationHeaderRouting-target2\nnamespace: default\nprefix: /target/\nservice: http://authenticationheaderrouting-http-target2\n",
                     "service": "http://authenticationheaderrouting-http-target2",
                     "weight": 100
                 }
@@ -648,7 +648,7 @@
             "precedence": 0,
             "prefix": "/target/",
             "rewrite": "/",
-            "serialization": "ambassador_id: authenticationheaderrouting\napiVersion: ambassador/v0\nheaders:\n  X-Auth-Route: Route\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: authenticationheaderrouting\n  scope: AmbassadorTest\nname: AuthenticationHeaderRouting-target2\nprefix: /target/\nservice: http://authenticationheaderrouting-http-target2\n"
+            "serialization": "ambassador_id: authenticationheaderrouting\napiVersion: ambassador/v0\nheaders:\n  X-Auth-Route: Route\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: authenticationheaderrouting\n  scope: AmbassadorTest\nname: AuthenticationHeaderRouting-target2\nnamespace: default\nprefix: /target/\nservice: http://authenticationheaderrouting-http-target2\n"
         },
         {
             "_active": true,
@@ -684,7 +684,7 @@
                             "authenticationheaderrouting-http-target1.default.1"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_http___authenticationheaderrouting_http_target1",
+                        "_rkey": "cluster_http___authenticationheaderrouting_http_target1_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -693,7 +693,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "authenticationheaderrouting-http-target1.default.1",
-                        "name": "cluster_http___authenticationheaderrouting_http_target1",
+                        "name": "cluster_http___authenticationheaderrouti-0",
                         "namespace": "default",
                         "service": "authenticationheaderrouting-http-target1",
                         "targets": [
@@ -729,7 +729,7 @@
                         "/target/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: authenticationheaderrouting\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: authenticationheaderrouting\n  scope: AmbassadorTest\nname: AuthenticationHeaderRouting-target1\nprefix: /target/\nservice: http://authenticationheaderrouting-http-target1\n",
+                    "serialization": "ambassador_id: authenticationheaderrouting\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: authenticationheaderrouting\n  scope: AmbassadorTest\nname: AuthenticationHeaderRouting-target1\nnamespace: default\nprefix: /target/\nservice: http://authenticationheaderrouting-http-target1\n",
                     "service": "http://authenticationheaderrouting-http-target1",
                     "weight": 100
                 }
@@ -743,7 +743,7 @@
             "precedence": 0,
             "prefix": "/target/",
             "rewrite": "/",
-            "serialization": "ambassador_id: authenticationheaderrouting\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: authenticationheaderrouting\n  scope: AmbassadorTest\nname: AuthenticationHeaderRouting-target1\nprefix: /target/\nservice: http://authenticationheaderrouting-http-target1\n"
+            "serialization": "ambassador_id: authenticationheaderrouting\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  kat-ambassador-id: authenticationheaderrouting\n  scope: AmbassadorTest\nname: AuthenticationHeaderRouting-target1\nnamespace: default\nprefix: /target/\nservice: http://authenticationheaderrouting-http-target1\n"
         }
     ],
     "grpc_services": {},
@@ -766,7 +766,6 @@
             "name": "ir.listener",
             "namespace": "default",
             "redirect_listener": false,
-            "require_tls": false,
             "secure_action": "Route",
             "service_port": 8080,
             "use_proxy_proto": false

@@ -45,7 +45,7 @@
         "xff_num_trusted_hops": 0
     },
     "clusters": {
-        "cluster_127_0_0_1_8877": {
+        "cluster_127_0_0_1_8877_default": {
             "_active": true,
             "_errored": false,
             "_hostname": "127.0.0.1",
@@ -55,7 +55,7 @@
                 "--internal--"
             ],
             "_resolver": "kubernetes-service",
-            "_rkey": "cluster_127_0_0_1_8877",
+            "_rkey": "cluster_127_0_0_1_8877_default",
             "connect_timeout_ms": 3000,
             "enable_endpoints": false,
             "enable_ipv4": true,
@@ -64,7 +64,7 @@
             "kind": "IRCluster",
             "lb_type": "round_robin",
             "location": "--internal--",
-            "name": "cluster_127_0_0_1_8877",
+            "name": "cluster_127_0_0_1_8877_default",
             "namespace": "default",
             "service": "127.0.0.1:8877",
             "targets": [
@@ -79,7 +79,7 @@
                 "tcp://127.0.0.1:8877"
             ]
         },
-        "cluster_hostdouble_http_target1": {
+        "cluster_hostdouble_http_target1_default": {
             "_active": true,
             "_errored": false,
             "_hostname": "hostdouble-http-target1",
@@ -89,7 +89,7 @@
                 "host-1-mapping.default.1"
             ],
             "_resolver": "kubernetes-service",
-            "_rkey": "cluster_hostdouble_http_target1",
+            "_rkey": "cluster_hostdouble_http_target1_default",
             "connect_timeout_ms": 3000,
             "enable_endpoints": false,
             "enable_ipv4": true,
@@ -98,7 +98,7 @@
             "kind": "IRCluster",
             "lb_type": "round_robin",
             "location": "host-1-mapping.default.1",
-            "name": "cluster_hostdouble_http_target1",
+            "name": "cluster_hostdouble_http_target1_default",
             "namespace": "default",
             "service": "hostdouble-http-target1",
             "targets": [
@@ -113,7 +113,7 @@
                 "tcp://hostdouble-http-target1:80"
             ]
         },
-        "cluster_hostdouble_http_target2": {
+        "cluster_hostdouble_http_target2_default": {
             "_active": true,
             "_errored": false,
             "_hostname": "hostdouble-http-target2",
@@ -123,7 +123,7 @@
                 "host-2-mapping.default.1"
             ],
             "_resolver": "kubernetes-service",
-            "_rkey": "cluster_hostdouble_http_target2",
+            "_rkey": "cluster_hostdouble_http_target2_default",
             "connect_timeout_ms": 3000,
             "enable_endpoints": false,
             "enable_ipv4": true,
@@ -132,7 +132,7 @@
             "kind": "IRCluster",
             "lb_type": "round_robin",
             "location": "host-2-mapping.default.1",
-            "name": "cluster_hostdouble_http_target2",
+            "name": "cluster_hostdouble_http_target2_default",
             "namespace": "default",
             "service": "hostdouble-http-target2",
             "targets": [
@@ -209,7 +209,7 @@
                             "--internal--"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_127_0_0_1_8877",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -218,7 +218,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "--internal--",
-                        "name": "cluster_127_0_0_1_8877",
+                        "name": "cluster_127_0_0_1_8877_default",
                         "namespace": "default",
                         "service": "127.0.0.1:8877",
                         "targets": [
@@ -299,7 +299,7 @@
                             "--internal--"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_127_0_0_1_8877",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -308,7 +308,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "--internal--",
-                        "name": "cluster_127_0_0_1_8877",
+                        "name": "cluster_127_0_0_1_8877_default",
                         "namespace": "default",
                         "service": "127.0.0.1:8877",
                         "targets": [
@@ -389,7 +389,7 @@
                             "--internal--"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_127_0_0_1_8877",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -398,7 +398,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "--internal--",
-                        "name": "cluster_127_0_0_1_8877",
+                        "name": "cluster_127_0_0_1_8877_default",
                         "namespace": "default",
                         "service": "127.0.0.1:8877",
                         "targets": [
@@ -483,7 +483,7 @@
                             "host-2-mapping.default.1"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_hostdouble_http_target2",
+                        "_rkey": "cluster_hostdouble_http_target2_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -492,7 +492,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "host-2-mapping.default.1",
-                        "name": "cluster_hostdouble_http_target2",
+                        "name": "cluster_hostdouble_http_target2_default",
                         "namespace": "default",
                         "service": "hostdouble-http-target2",
                         "targets": [
@@ -643,7 +643,7 @@
                             "host-1-mapping.default.1"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_hostdouble_http_target1",
+                        "_rkey": "cluster_hostdouble_http_target1_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -652,7 +652,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "host-1-mapping.default.1",
-                        "name": "cluster_hostdouble_http_target1",
+                        "name": "cluster_hostdouble_http_target1_default",
                         "namespace": "default",
                         "service": "hostdouble-http-target1",
                         "targets": [
@@ -913,7 +913,6 @@
             "name": "ir.listener",
             "namespace": "default",
             "redirect_listener": false,
-            "require_tls": false,
             "secure_action": "Route",
             "service_port": 8443,
             "use_proxy_proto": false
@@ -951,7 +950,6 @@
             "name": "ir.listener",
             "namespace": "default",
             "redirect_listener": false,
-            "require_tls": false,
             "secure_action": "Route",
             "service_port": 8443,
             "use_proxy_proto": false
