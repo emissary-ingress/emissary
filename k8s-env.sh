@@ -1,5 +1,6 @@
 #!/hint/sh
 
+AES_EXAMPLE_PLUGINS_IMAGE=$(          sed -n 2p docker/aes-example-plugins.docker.push.dev)
 CONSUL_CONNECT_INTEGRATION_IMAGE=$(   sed -n 2p docker/consul_connect_integration.docker.push.dev)
 PROXY_IMAGE=$(                        sed -n 2p docker/traffic-proxy.docker.push.dev)
 SIDECAR_IMAGE=$(                      sed -n 2p docker/app-sidecar.docker.push.dev)

@@ -17,8 +17,8 @@ module.exports.testcases = (() => {
 
 module.exports.authenticate = async function(browsertab, username, password) {
 	console.log("[auth0] email...");
-	await browsertab.waitForSelector('input[type="email"]', { visible: true });
-	await browsertab.type('input[type="email"]', username);
+	await browsertab.waitForSelector('input[type="email"], input[inputmode="email"]', { visible: true });
+	await browsertab.type('input[type="email"], input[inputmode="email"]', username);
 	console.log("[auth0] password...");
 	await browsertab.waitForSelector('input[type="password"]', { visible: true });
 	await browsertab.type('input[type="password"]', password);
