@@ -118,11 +118,13 @@ class ListenerFactory:
         hosts = ir.get_hosts() or []
 
         for host in hosts:
+            ir.logger.info(f"ListenerFactory: consider Host {host.pretty()}")
+
             hostname = host.hostname
             request_policy = host.get('requestPolicy', {})
             insecure_policy = request_policy.get('insecure', {})
             insecure_action = insecure_policy.get('action', 'Redirect')
-            insecure_addl_port = insecure_policy.get('additional-port', None)
+            insecure_addl_port = insecure_policy.get('additionalPort', None)
 
             # The presence of a TLSContext matching our hostname is good enough
             # to go on here, so let's see if there is one.
@@ -150,7 +152,7 @@ class ListenerFactory:
             # TLS termination.
 
             if ctx:
-                ir.logger.info(f"ListenerFactory: {hostname} terminating TLS with context {ctx.name}")
+                ir.logger.info(f"ListenerFactory: Host {hostname} terminating TLS with context {ctx.name}")
 
                 # We could check for the secure action here, but we're only supporting
                 # 'route' right now.
@@ -193,6 +195,12 @@ class ListenerFactory:
             insecure_addl_port = None
 
             redirect_cleartext_from = ctx.get('redirect_cleartext_from', None)
+
+            if ir.edge_stack_allowed and ctx.is_fallback:
+                # If this is the fallback context in Edge Stack, force redirection:
+                # this way the fallback context will listen on both ports, to make
+                # things easier on the user.
+                redirect_cleartext_from = 8080
 
             if redirect_cleartext_from is not None:
                 insecure_action = 'Redirect'
