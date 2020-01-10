@@ -1,0 +1,154 @@
+{
+    "Consul": {},
+    "Kubernetes": {
+        "AuthService": null,
+        "ConsulResolver": null,
+        "Host": null,
+        "KubernetesEndpointResolver": null,
+        "KubernetesServiceResolver": null,
+        "LogService": null,
+        "Mapping": null,
+        "Module": null,
+        "RateLimitService": null,
+        "TCPMapping": null,
+        "TLSContext": null,
+        "TracingService": null,
+        "ingresses": null,
+        "service": [
+            {
+                "apiVersion": "v1",
+                "kind": "Service",
+                "metadata": {
+                    "annotations": {
+                        "getambassador.io/config": "---\napiVersion: ambassador/v1\nkind: Module\nname: ambassador\nambassador_id: idletimeout\nconfig:\n  idle_timeout: '30s'\n\n---\napiVersion: ambassador/v0\nkind: Mapping\nname: config__dump\nprefix: /config_dump\nrewrite: /config_dump\nservice: http://127.0.0.1:8001\nambassador_id: idletimeout\n",
+                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{\"getambassador.io/config\":\"---\\napiVersion: ambassador/v1\\nkind: Module\\nname: ambassador\\nambassador_id: idletimeout\\nconfig:\\n  idle_timeout: '30s'\\n\\n---\\napiVersion: ambassador/v0\\nkind: Mapping\\nname: config__dump\\nprefix: /config_dump\\nrewrite: /config_dump\\nservice: http://127.0.0.1:8001\\nambassador_id: idletimeout\\n\"},\"labels\":{\"app.kubernetes.io/component\":\"ambassador-service\",\"kat-ambassador-id\":\"idletimeout\",\"scope\":\"AmbassadorTest\"},\"name\":\"idletimeout\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8080},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8443}],\"selector\":{\"service\":\"idletimeout\"},\"type\":\"NodePort\"}}\n"
+                    },
+                    "creationTimestamp": "2020-01-10T15:48:46Z",
+                    "labels": {
+                        "app.kubernetes.io/component": "ambassador-service",
+                        "kat-ambassador-id": "idletimeout",
+                        "scope": "AmbassadorTest"
+                    },
+                    "name": "idletimeout",
+                    "namespace": "default",
+                    "resourceVersion": "55682",
+                    "selfLink": "/api/v1/namespaces/default/services/idletimeout",
+                    "uid": "caf22849-5d01-4e66-a3c2-216e2ee7da0e"
+                },
+                "spec": {
+                    "clusterIP": "10.245.24.6",
+                    "externalTrafficPolicy": "Cluster",
+                    "ports": [
+                        {
+                            "name": "http",
+                            "nodePort": 31257,
+                            "port": 80,
+                            "protocol": "TCP",
+                            "targetPort": 8080
+                        },
+                        {
+                            "name": "https",
+                            "nodePort": 31034,
+                            "port": 443,
+                            "protocol": "TCP",
+                            "targetPort": 8443
+                        }
+                    ],
+                    "selector": {
+                        "service": "idletimeout"
+                    },
+                    "sessionAffinity": "None",
+                    "type": "NodePort"
+                },
+                "status": {
+                    "loadBalancer": {}
+                }
+            },
+            {
+                "apiVersion": "v1",
+                "kind": "Service",
+                "metadata": {
+                    "annotations": {
+                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"idletimeout\",\"scope\":\"AmbassadorTest\",\"service\":\"idletimeout-admin\"},\"name\":\"idletimeout-admin\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"idletimeout-admin\",\"port\":8877,\"targetPort\":8877}],\"selector\":{\"service\":\"idletimeout\"},\"type\":\"NodePort\"}}\n"
+                    },
+                    "creationTimestamp": "2020-01-10T15:48:46Z",
+                    "labels": {
+                        "kat-ambassador-id": "idletimeout",
+                        "scope": "AmbassadorTest",
+                        "service": "idletimeout-admin"
+                    },
+                    "name": "idletimeout-admin",
+                    "namespace": "default",
+                    "resourceVersion": "51614",
+                    "selfLink": "/api/v1/namespaces/default/services/idletimeout-admin",
+                    "uid": "1374be82-e2af-4b58-8a50-25dfbadbe0e0"
+                },
+                "spec": {
+                    "clusterIP": "10.245.114.21",
+                    "externalTrafficPolicy": "Cluster",
+                    "ports": [
+                        {
+                            "name": "idletimeout-admin",
+                            "nodePort": 30079,
+                            "port": 8877,
+                            "protocol": "TCP",
+                            "targetPort": 8877
+                        }
+                    ],
+                    "selector": {
+                        "service": "idletimeout"
+                    },
+                    "sessionAffinity": "None",
+                    "type": "NodePort"
+                },
+                "status": {
+                    "loadBalancer": {}
+                }
+            },
+            {
+                "apiVersion": "v1",
+                "kind": "Service",
+                "metadata": {
+                    "annotations": {
+                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"kat-ambassador-id\":\"idletimeout\",\"scope\":\"AmbassadorTest\"},\"name\":\"idletimeout-http\",\"namespace\":\"default\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":80,\"protocol\":\"TCP\",\"targetPort\":8080},{\"name\":\"https\",\"port\":443,\"protocol\":\"TCP\",\"targetPort\":8443}],\"selector\":{\"backend\":\"superpod-default\"}}}\n"
+                    },
+                    "creationTimestamp": "2020-01-10T15:48:46Z",
+                    "labels": {
+                        "kat-ambassador-id": "idletimeout",
+                        "scope": "AmbassadorTest"
+                    },
+                    "name": "idletimeout-http",
+                    "namespace": "default",
+                    "resourceVersion": "51623",
+                    "selfLink": "/api/v1/namespaces/default/services/idletimeout-http",
+                    "uid": "689ee135-c0a3-45c9-bbb2-a5756cc6e6bf"
+                },
+                "spec": {
+                    "clusterIP": "10.245.71.242",
+                    "ports": [
+                        {
+                            "name": "http",
+                            "port": 80,
+                            "protocol": "TCP",
+                            "targetPort": 8080
+                        },
+                        {
+                            "name": "https",
+                            "port": 443,
+                            "protocol": "TCP",
+                            "targetPort": 8443
+                        }
+                    ],
+                    "selector": {
+                        "backend": "superpod-default"
+                    },
+                    "sessionAffinity": "None",
+                    "type": "ClusterIP"
+                },
+                "status": {
+                    "loadBalancer": {}
+                }
+            }
+        ]
+    }
+}
