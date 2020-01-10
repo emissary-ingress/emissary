@@ -115,7 +115,7 @@ case "$COMMIT_TYPE" in
         if [[ -n "${DOCKER_RELEASE_USERNAME:-}" ]]; then
             docker login -u="$DOCKER_RELEASE_USERNAME" --password-stdin "${RELEASE_REGISTRY}" <<<"$DOCKER_RELEASE_PASSWORD"
         fi
-        make rc
+        make release/bits
         # XXX
 	#SCOUT_APP_KEY=testapp.json STABLE_TXT_KEY=teststable.txt update-aws
         ;;
@@ -123,7 +123,7 @@ case "$COMMIT_TYPE" in
         if [[ -n "${DOCKER_RELEASE_USERNAME:-}" ]]; then
             docker login -u="$DOCKER_RELEASE_USERNAME" --password-stdin "${RELEASE_REGISTRY}" <<<"$DOCKER_RELEASE_PASSWORD"
         fi
-        make rc
+        make release/bits
         # XXX
         #SCOUT_APP_KEY=earlyapp.json STABLE_TXT_KEY=earlystable.txt update-aws
         ;;
