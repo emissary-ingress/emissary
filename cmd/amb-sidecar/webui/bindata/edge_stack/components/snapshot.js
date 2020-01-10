@@ -3,10 +3,10 @@ import {registerContextChangeHandler, useContext} from './context.js';
 import {getCookie} from './cookies.js';
 import {ApiFetch} from "./api-fetch.js";
 
-export const aes_res_editable   = "aes_res_editable";
-export const aes_res_changed    = "aes_res_changed";
-export const aes_res_source     = "aes_res_source";
-export const aes_res_downloaded = "aes_res_downloaded";
+export const aes_res_editable   = "getambassador.io/resource-editable";
+export const aes_res_changed    = "getambassador.io/resource-changed";
+export const aes_res_source     = "getambassador.io/resource-source";
+export const aes_res_downloaded = "getambassador.io/resource-downloaded";
 
 export function updateCredentials(value) {
   // Keep this in-sync with webui.go:registerActivity()
@@ -90,7 +90,7 @@ class SnapshotWrapper {
     var changed = resources.filter((res) => {
       let md = res.metadata;
       if ("annotations" in md) {
-        var changed = md.annotations.aes_res_changed;
+        var changed = md.annotations[aes_res_changed];
         /* changed is undefined, true, or false. */
         return changed === "true"
       }

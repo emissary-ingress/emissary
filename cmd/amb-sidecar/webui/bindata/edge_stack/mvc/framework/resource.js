@@ -24,7 +24,7 @@ import { Model } from "./model.js"
 import { objectMerge } from "../framework/utilities.js"
 
 /* Annotation key for sourceURI. */
-const aes_res_source = "aes_res_source";
+const aes_res_source = "getambassador.io/resource-source";
 
 export class Resource extends Model {
 
