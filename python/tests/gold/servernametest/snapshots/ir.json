@@ -48,7 +48,7 @@
         "xff_num_trusted_hops": 0
     },
     "clusters": {
-        "cluster_127_0_0_1_8877": {
+        "cluster_127_0_0_1_8877_default": {
             "_active": true,
             "_errored": false,
             "_hostname": "127.0.0.1",
@@ -58,7 +58,7 @@
                 "servernametest.default.1"
             ],
             "_resolver": "kubernetes-service",
-            "_rkey": "cluster_127_0_0_1_8877",
+            "_rkey": "cluster_127_0_0_1_8877_default",
             "connect_timeout_ms": 3000,
             "enable_endpoints": false,
             "enable_ipv4": true,
@@ -67,7 +67,7 @@
             "kind": "IRCluster",
             "lb_type": "round_robin",
             "location": "servernametest.default.1",
-            "name": "cluster_127_0_0_1_8877",
+            "name": "cluster_127_0_0_1_8877_default",
             "namespace": "default",
             "service": "127.0.0.1:8877",
             "targets": [
@@ -82,7 +82,7 @@
                 "tcp://127.0.0.1:8877"
             ]
         },
-        "cluster_servernametest_http": {
+        "cluster_servernametest_http_default": {
             "_active": true,
             "_errored": false,
             "_hostname": "servernametest-http",
@@ -92,7 +92,7 @@
                 "servernametest.default.2"
             ],
             "_resolver": "kubernetes-service",
-            "_rkey": "cluster_servernametest_http",
+            "_rkey": "cluster_servernametest_http_default",
             "connect_timeout_ms": 3000,
             "enable_endpoints": false,
             "enable_ipv4": true,
@@ -101,7 +101,7 @@
             "kind": "IRCluster",
             "lb_type": "round_robin",
             "location": "servernametest.default.2",
-            "name": "cluster_servernametest_http",
+            "name": "cluster_servernametest_http_default",
             "namespace": "default",
             "service": "servernametest-http",
             "targets": [
@@ -178,7 +178,7 @@
                             "servernametest.default.1"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_127_0_0_1_8877",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -187,7 +187,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "servernametest.default.1",
-                        "name": "cluster_127_0_0_1_8877",
+                        "name": "cluster_127_0_0_1_8877_default",
                         "namespace": "default",
                         "service": "127.0.0.1:8877",
                         "targets": [
@@ -268,7 +268,7 @@
                             "servernametest.default.1"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_127_0_0_1_8877",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -277,7 +277,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "servernametest.default.1",
-                        "name": "cluster_127_0_0_1_8877",
+                        "name": "cluster_127_0_0_1_8877_default",
                         "namespace": "default",
                         "service": "127.0.0.1:8877",
                         "targets": [
@@ -358,7 +358,7 @@
                             "servernametest.default.1"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_127_0_0_1_8877",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -367,7 +367,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "servernametest.default.1",
-                        "name": "cluster_127_0_0_1_8877",
+                        "name": "cluster_127_0_0_1_8877_default",
                         "namespace": "default",
                         "service": "127.0.0.1:8877",
                         "targets": [
@@ -445,7 +445,7 @@
                             "servernametest.default.2"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_servernametest_http",
+                        "_rkey": "cluster_servernametest_http_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -454,7 +454,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "servernametest.default.2",
-                        "name": "cluster_servernametest_http",
+                        "name": "cluster_servernametest_http_default",
                         "namespace": "default",
                         "service": "servernametest-http",
                         "targets": [
@@ -491,7 +491,7 @@
                         "/server-name",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: servernametest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: servernametest\n  scope: AmbassadorTest\nname: servernametest/server-name\nprefix: /server-name\nservice: servernametest-http\n",
+                    "serialization": "ambassador_id: servernametest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: servernametest\n  scope: AmbassadorTest\nname: servernametest/server-name\nnamespace: default\nprefix: /server-name\nservice: servernametest-http\n",
                     "service": "servernametest-http",
                     "weight": 100
                 }
@@ -506,7 +506,7 @@
             "precedence": 0,
             "prefix": "/server-name",
             "rewrite": "/",
-            "serialization": "ambassador_id: servernametest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: servernametest\n  scope: AmbassadorTest\nname: servernametest/server-name\nprefix: /server-name\nservice: servernametest-http\n"
+            "serialization": "ambassador_id: servernametest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: servernametest\n  scope: AmbassadorTest\nname: servernametest/server-name\nnamespace: default\nprefix: /server-name\nservice: servernametest-http\n"
         }
     ],
     "grpc_services": {},
@@ -529,7 +529,6 @@
             "name": "ir.listener",
             "namespace": "default",
             "redirect_listener": false,
-            "require_tls": false,
             "secure_action": "Route",
             "service_port": 8080,
             "use_proxy_proto": false

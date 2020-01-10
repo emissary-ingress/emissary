@@ -110,7 +110,7 @@ driver: zipkin
 
         tracelist = { x: True for x in self.results[101].backend.response }
 
-        assert 'router cluster_tracingtest_http egress' in tracelist
+        assert 'router cluster_tracingtest_http_default egress' in tracelist
 
         # Look for the host that we actually queried, since that's what appears in the spans.
         assert self.results[0].backend.request.host in tracelist

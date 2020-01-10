@@ -61,7 +61,7 @@
         "xff_num_trusted_hops": 0
     },
     "clusters": {
-        "cluster_127_0_0_1_8877": {
+        "cluster_127_0_0_1_8877_default": {
             "_active": true,
             "_errored": false,
             "_hostname": "127.0.0.1",
@@ -71,7 +71,7 @@
                 "gzipnotsupportedcontenttypetest.default.1"
             ],
             "_resolver": "kubernetes-service",
-            "_rkey": "cluster_127_0_0_1_8877",
+            "_rkey": "cluster_127_0_0_1_8877_default",
             "connect_timeout_ms": 3000,
             "enable_endpoints": false,
             "enable_ipv4": true,
@@ -80,7 +80,7 @@
             "kind": "IRCluster",
             "lb_type": "round_robin",
             "location": "gzipnotsupportedcontenttypetest.default.1",
-            "name": "cluster_127_0_0_1_8877",
+            "name": "cluster_127_0_0_1_8877_default",
             "namespace": "default",
             "service": "127.0.0.1:8877",
             "targets": [
@@ -95,7 +95,7 @@
                 "tcp://127.0.0.1:8877"
             ]
         },
-        "cluster_gzipnotsupportedcontenttypetest_http": {
+        "cluster_gzipnotsupportedcontenttypetest_http_default": {
             "_active": true,
             "_errored": false,
             "_hostname": "gzipnotsupportedcontenttypetest-http",
@@ -105,7 +105,7 @@
                 "gzipnotsupportedcontenttypetest.default.2"
             ],
             "_resolver": "kubernetes-service",
-            "_rkey": "cluster_gzipnotsupportedcontenttypetest_http",
+            "_rkey": "cluster_gzipnotsupportedcontenttypetest_http_default",
             "connect_timeout_ms": 3000,
             "enable_endpoints": false,
             "enable_ipv4": true,
@@ -114,7 +114,7 @@
             "kind": "IRCluster",
             "lb_type": "round_robin",
             "location": "gzipnotsupportedcontenttypetest.default.2",
-            "name": "cluster_gzipnotsupportedcontenttypetest_http",
+            "name": "cluster_gzipnotsupportedcontenttypetest_http_default",
             "namespace": "default",
             "service": "gzipnotsupportedcontenttypetest-http",
             "targets": [
@@ -204,7 +204,7 @@
                             "gzipnotsupportedcontenttypetest.default.1"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_127_0_0_1_8877",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -213,7 +213,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "gzipnotsupportedcontenttypetest.default.1",
-                        "name": "cluster_127_0_0_1_8877",
+                        "name": "cluster_127_0_0_1_8877_default",
                         "namespace": "default",
                         "service": "127.0.0.1:8877",
                         "targets": [
@@ -294,7 +294,7 @@
                             "gzipnotsupportedcontenttypetest.default.1"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_127_0_0_1_8877",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -303,7 +303,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "gzipnotsupportedcontenttypetest.default.1",
-                        "name": "cluster_127_0_0_1_8877",
+                        "name": "cluster_127_0_0_1_8877_default",
                         "namespace": "default",
                         "service": "127.0.0.1:8877",
                         "targets": [
@@ -384,7 +384,7 @@
                             "gzipnotsupportedcontenttypetest.default.1"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_127_0_0_1_8877",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -393,7 +393,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "gzipnotsupportedcontenttypetest.default.1",
-                        "name": "cluster_127_0_0_1_8877",
+                        "name": "cluster_127_0_0_1_8877_default",
                         "namespace": "default",
                         "service": "127.0.0.1:8877",
                         "targets": [
@@ -471,7 +471,7 @@
                             "gzipnotsupportedcontenttypetest.default.2"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_gzipnotsupportedcontenttypetest_http",
+                        "_rkey": "cluster_gzipnotsupportedcontenttypetest_http_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -480,7 +480,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "gzipnotsupportedcontenttypetest.default.2",
-                        "name": "cluster_gzipnotsupportedcontenttypetest_http",
+                        "name": "cluster_gzipnotsupportedcontenttypetest_http_default",
                         "namespace": "default",
                         "service": "gzipnotsupportedcontenttypetest-http",
                         "targets": [
@@ -517,7 +517,7 @@
                         "/target/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: gzipnotsupportedcontenttypetest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: gzipnotsupportedcontenttypetest\n  scope: AmbassadorTest\nname: gzipnotsupportedcontenttypetest-http\nprefix: /target/\nservice: gzipnotsupportedcontenttypetest-http\n",
+                    "serialization": "ambassador_id: gzipnotsupportedcontenttypetest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: gzipnotsupportedcontenttypetest\n  scope: AmbassadorTest\nname: gzipnotsupportedcontenttypetest-http\nnamespace: default\nprefix: /target/\nservice: gzipnotsupportedcontenttypetest-http\n",
                     "service": "gzipnotsupportedcontenttypetest-http",
                     "weight": 100
                 }
@@ -532,7 +532,7 @@
             "precedence": 0,
             "prefix": "/target/",
             "rewrite": "/",
-            "serialization": "ambassador_id: gzipnotsupportedcontenttypetest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: gzipnotsupportedcontenttypetest\n  scope: AmbassadorTest\nname: gzipnotsupportedcontenttypetest-http\nprefix: /target/\nservice: gzipnotsupportedcontenttypetest-http\n"
+            "serialization": "ambassador_id: gzipnotsupportedcontenttypetest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: gzipnotsupportedcontenttypetest\n  scope: AmbassadorTest\nname: gzipnotsupportedcontenttypetest-http\nnamespace: default\nprefix: /target/\nservice: gzipnotsupportedcontenttypetest-http\n"
         }
     ],
     "grpc_services": {},
@@ -555,7 +555,6 @@
             "name": "ir.listener",
             "namespace": "default",
             "redirect_listener": false,
-            "require_tls": false,
             "secure_action": "Route",
             "service_port": 8080,
             "use_proxy_proto": false

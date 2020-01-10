@@ -58,7 +58,7 @@
             "name": "tls",
             "namespace": "default",
             "rkey": "clientcertificateauthentication.default.1",
-            "serialization": "ambassador_id: clientcertificateauthentication\napiVersion: ambassador/v0\nconfig:\n  client:\n    cert_required: true\n    enabled: true\n    secret: test-clientcert-client-secret\n  server:\n    enabled: true\n    secret: test-clientcert-server-secret\nkind: Module\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: clientcertificateauthentication\n  scope: AmbassadorTest\nname: tls\n"
+            "serialization": "ambassador_id: clientcertificateauthentication\napiVersion: ambassador/v0\nconfig:\n  client:\n    cert_required: true\n    enabled: true\n    secret: test-clientcert-client-secret\n  server:\n    enabled: true\n    secret: test-clientcert-server-secret\nkind: Module\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: clientcertificateauthentication\n  scope: AmbassadorTest\nname: tls\nnamespace: default\n"
         },
         "clientcertificateauthentication.default.2": {
             "_referenced_by": {},
@@ -75,7 +75,7 @@
             "namespace": "default",
             "prefix": "/ClientCertificateAuthentication/",
             "rkey": "clientcertificateauthentication.default.2",
-            "serialization": "ambassador_id: clientcertificateauthentication\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: clientcertificateauthentication\n  scope: AmbassadorTest\nname: clientcertificateauthentication-http\nprefix: /ClientCertificateAuthentication/\nservice: clientcertificateauthentication-http\n",
+            "serialization": "ambassador_id: clientcertificateauthentication\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: clientcertificateauthentication\n  scope: AmbassadorTest\nname: clientcertificateauthentication-http\nnamespace: default\nprefix: /ClientCertificateAuthentication/\nservice: clientcertificateauthentication-http\n",
             "service": "clientcertificateauthentication-http"
         },
         "k8s-clientcertificateauthentication-admin-default": {

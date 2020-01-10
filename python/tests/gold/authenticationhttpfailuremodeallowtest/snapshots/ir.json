@@ -45,7 +45,7 @@
         "xff_num_trusted_hops": 0
     },
     "clusters": {
-        "cluster_127_0_0_1_8877": {
+        "cluster_127_0_0_1_8877_default": {
             "_active": true,
             "_errored": false,
             "_hostname": "127.0.0.1",
@@ -55,7 +55,7 @@
                 "--internal--"
             ],
             "_resolver": "kubernetes-service",
-            "_rkey": "cluster_127_0_0_1_8877",
+            "_rkey": "cluster_127_0_0_1_8877_default",
             "connect_timeout_ms": 3000,
             "enable_endpoints": false,
             "enable_ipv4": true,
@@ -64,7 +64,7 @@
             "kind": "IRCluster",
             "lb_type": "round_robin",
             "location": "--internal--",
-            "name": "cluster_127_0_0_1_8877",
+            "name": "cluster_127_0_0_1_8877_default",
             "namespace": "default",
             "service": "127.0.0.1:8877",
             "targets": [
@@ -79,7 +79,7 @@
                 "tcp://127.0.0.1:8877"
             ]
         },
-        "cluster_authenticationhttpfailuremodeallowtest_http": {
+        "cluster_authenticationhttpfailuremodeallowtest_http_default": {
             "_active": true,
             "_errored": false,
             "_hostname": "authenticationhttpfailuremodeallowtest-http",
@@ -89,7 +89,7 @@
                 "authenticationhttpfailuremodeallowtest.default.3"
             ],
             "_resolver": "kubernetes-service",
-            "_rkey": "cluster_authenticationhttpfailuremodeallowtest_http",
+            "_rkey": "cluster_authenticationhttpfailuremodeallowtest_http_default",
             "connect_timeout_ms": 3000,
             "enable_endpoints": false,
             "enable_ipv4": true,
@@ -98,7 +98,7 @@
             "kind": "IRCluster",
             "lb_type": "round_robin",
             "location": "authenticationhttpfailuremodeallowtest.default.3",
-            "name": "cluster_authenticationhttpfailuremodeallowtest_http",
+            "name": "cluster_authenticationhttpfailuremodeallowtest_http_default",
             "namespace": "default",
             "service": "authenticationhttpfailuremodeallowtest-http",
             "targets": [
@@ -113,7 +113,7 @@
                 "tcp://authenticationhttpfailuremodeallowtest-http:80"
             ]
         },
-        "cluster_extauth_authenticationhttpfailuremodeallowtest_http_auth_otls_AuthenticationHTTPFailureModeAllowTest_failure_context": {
+        "cluster_extauth_authenticationhttpfailuremodeallowtest_http_auth_otls_AuthenticationHTTPFailureModeAllowTest_failure_context_default": {
             "_active": true,
             "_errored": false,
             "_hostname": "authenticationhttpfailuremodeallowtest-http-auth",
@@ -122,7 +122,7 @@
             "_referenced_by": [
                 "authenticationhttpfailuremodeallowtest.default.2"
             ],
-            "_rkey": "cluster_extauth_authenticationhttpfailuremodeallowtest_http_auth_otls_AuthenticationHTTPFailureModeAllowTest_failure_context",
+            "_rkey": "cluster_extauth_authenticationhttpfailuremodeallowtest_http_auth_otls_AuthenticationHTTPFailureModeAllowTest_failure_context_default",
             "connect_timeout_ms": 3000,
             "enable_endpoints": false,
             "enable_ipv4": true,
@@ -197,7 +197,7 @@
                 "_referenced_by": [
                     "authenticationhttpfailuremodeallowtest.default.2"
                 ],
-                "_rkey": "cluster_extauth_authenticationhttpfailuremodeallowtest_http_auth_otls_AuthenticationHTTPFailureModeAllowTest_failure_context",
+                "_rkey": "cluster_extauth_authenticationhttpfailuremodeallowtest_http_auth_otls_AuthenticationHTTPFailureModeAllowTest_failure_context_default",
                 "connect_timeout_ms": 3000,
                 "enable_endpoints": false,
                 "enable_ipv4": true,
@@ -324,7 +324,7 @@
                             "--internal--"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_127_0_0_1_8877",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -333,7 +333,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "--internal--",
-                        "name": "cluster_127_0_0_1_8877",
+                        "name": "cluster_127_0_0_1_8877_default",
                         "namespace": "default",
                         "service": "127.0.0.1:8877",
                         "targets": [
@@ -414,7 +414,7 @@
                             "--internal--"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_127_0_0_1_8877",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -423,7 +423,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "--internal--",
-                        "name": "cluster_127_0_0_1_8877",
+                        "name": "cluster_127_0_0_1_8877_default",
                         "namespace": "default",
                         "service": "127.0.0.1:8877",
                         "targets": [
@@ -504,7 +504,7 @@
                             "--internal--"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_127_0_0_1_8877",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -513,7 +513,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "--internal--",
-                        "name": "cluster_127_0_0_1_8877",
+                        "name": "cluster_127_0_0_1_8877_default",
                         "namespace": "default",
                         "service": "127.0.0.1:8877",
                         "targets": [
@@ -591,7 +591,7 @@
                             "authenticationhttpfailuremodeallowtest.default.3"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_authenticationhttpfailuremodeallowtest_http",
+                        "_rkey": "cluster_authenticationhttpfailuremodeallowtest_http_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -600,7 +600,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "authenticationhttpfailuremodeallowtest.default.3",
-                        "name": "cluster_authenticationhttpfailuremodeallowtest_http",
+                        "name": "cluster_authenticationhttpfailuremodeallowtest_http_default",
                         "namespace": "default",
                         "service": "authenticationhttpfailuremodeallowtest-http",
                         "targets": [
@@ -637,7 +637,7 @@
                         "/target/",
                         "GET"
                     ],
-                    "serialization": "ambassador_id: authenticationhttpfailuremodeallowtest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: authenticationhttpfailuremodeallowtest\n  scope: AmbassadorTest\nname: authenticationhttpfailuremodeallowtest-http\nprefix: /target/\nservice: authenticationhttpfailuremodeallowtest-http\n",
+                    "serialization": "ambassador_id: authenticationhttpfailuremodeallowtest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: authenticationhttpfailuremodeallowtest\n  scope: AmbassadorTest\nname: authenticationhttpfailuremodeallowtest-http\nnamespace: default\nprefix: /target/\nservice: authenticationhttpfailuremodeallowtest-http\n",
                     "service": "authenticationhttpfailuremodeallowtest-http",
                     "weight": 100
                 }
@@ -652,7 +652,7 @@
             "precedence": 0,
             "prefix": "/target/",
             "rewrite": "/",
-            "serialization": "ambassador_id: authenticationhttpfailuremodeallowtest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: authenticationhttpfailuremodeallowtest\n  scope: AmbassadorTest\nname: authenticationhttpfailuremodeallowtest-http\nprefix: /target/\nservice: authenticationhttpfailuremodeallowtest-http\n"
+            "serialization": "ambassador_id: authenticationhttpfailuremodeallowtest\napiVersion: ambassador/v0\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: authenticationhttpfailuremodeallowtest\n  scope: AmbassadorTest\nname: authenticationhttpfailuremodeallowtest-http\nnamespace: default\nprefix: /target/\nservice: authenticationhttpfailuremodeallowtest-http\n"
         }
     ],
     "grpc_services": {},
@@ -675,7 +675,6 @@
             "name": "ir.listener",
             "namespace": "default",
             "redirect_listener": false,
-            "require_tls": false,
             "secure_action": "Route",
             "service_port": 8080,
             "use_proxy_proto": false

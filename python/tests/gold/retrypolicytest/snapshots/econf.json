@@ -6,7 +6,7 @@
                 "dns_lookup_family": "V4_ONLY",
                 "lb_policy": "ROUND_ROBIN",
                 "load_assignment": {
-                    "cluster_name": "cluster_127_0_0_1_8877",
+                    "cluster_name": "cluster_127_0_0_1_8877_default",
                     "endpoints": [
                         {
                             "lb_endpoints": [
@@ -25,7 +25,7 @@
                         }
                     ]
                 },
-                "name": "cluster_127_0_0_1_8877",
+                "name": "cluster_127_0_0_1_8877_default",
                 "type": "STRICT_DNS"
             },
             {
@@ -33,7 +33,7 @@
                 "dns_lookup_family": "V4_ONLY",
                 "lb_policy": "ROUND_ROBIN",
                 "load_assignment": {
-                    "cluster_name": "cluster_retrypolicytest_http",
+                    "cluster_name": "cluster_retrypolicytest_http_default",
                     "endpoints": [
                         {
                             "lb_endpoints": [
@@ -52,7 +52,7 @@
                         }
                     ]
                 },
-                "name": "cluster_retrypolicytest_http",
+                "name": "cluster_retrypolicytest_http_default",
                 "type": "STRICT_DNS"
             }
         ],
@@ -115,11 +115,11 @@
                                                                     "denominator": "HUNDRED",
                                                                     "numerator": 100
                                                                 },
-                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877"
+                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
                                                             }
                                                         },
                                                         "route": {
-                                                            "cluster": "cluster_127_0_0_1_8877",
+                                                            "cluster": "cluster_127_0_0_1_8877_default",
                                                             "prefix_rewrite": "/ambassador/v0/check_ready",
                                                             "priority": null,
                                                             "retry_policy": {
@@ -138,11 +138,11 @@
                                                                     "denominator": "HUNDRED",
                                                                     "numerator": 100
                                                                 },
-                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877"
+                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
                                                             }
                                                         },
                                                         "route": {
-                                                            "cluster": "cluster_127_0_0_1_8877",
+                                                            "cluster": "cluster_127_0_0_1_8877_default",
                                                             "prefix_rewrite": "/ambassador/v0/check_ready",
                                                             "priority": null,
                                                             "retry_policy": {
@@ -167,11 +167,11 @@
                                                                     "denominator": "HUNDRED",
                                                                     "numerator": 100
                                                                 },
-                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877"
+                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
                                                             }
                                                         },
                                                         "route": {
-                                                            "cluster": "cluster_127_0_0_1_8877",
+                                                            "cluster": "cluster_127_0_0_1_8877_default",
                                                             "prefix_rewrite": "/ambassador/v0/check_alive",
                                                             "priority": null,
                                                             "retry_policy": {
@@ -190,11 +190,11 @@
                                                                     "denominator": "HUNDRED",
                                                                     "numerator": 100
                                                                 },
-                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877"
+                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
                                                             }
                                                         },
                                                         "route": {
-                                                            "cluster": "cluster_127_0_0_1_8877",
+                                                            "cluster": "cluster_127_0_0_1_8877_default",
                                                             "prefix_rewrite": "/ambassador/v0/check_alive",
                                                             "priority": null,
                                                             "retry_policy": {
@@ -219,11 +219,11 @@
                                                                     "denominator": "HUNDRED",
                                                                     "numerator": 100
                                                                 },
-                                                                "runtime_key": "routing.traffic_shift.cluster_retrypolicytest_http"
+                                                                "runtime_key": "routing.traffic_shift.cluster_retrypolicytest_http_default"
                                                             }
                                                         },
                                                         "route": {
-                                                            "cluster": "cluster_retrypolicytest_http",
+                                                            "cluster": "cluster_retrypolicytest_http_default",
                                                             "prefix_rewrite": "/",
                                                             "priority": null,
                                                             "retry_policy": {
@@ -242,11 +242,11 @@
                                                                     "denominator": "HUNDRED",
                                                                     "numerator": 100
                                                                 },
-                                                                "runtime_key": "routing.traffic_shift.cluster_retrypolicytest_http"
+                                                                "runtime_key": "routing.traffic_shift.cluster_retrypolicytest_http_default"
                                                             }
                                                         },
                                                         "route": {
-                                                            "cluster": "cluster_retrypolicytest_http",
+                                                            "cluster": "cluster_retrypolicytest_http_default",
                                                             "prefix_rewrite": "/",
                                                             "priority": null,
                                                             "retry_policy": {
@@ -271,11 +271,11 @@
                                                                     "denominator": "HUNDRED",
                                                                     "numerator": 100
                                                                 },
-                                                                "runtime_key": "routing.traffic_shift.cluster_retrypolicytest_http"
+                                                                "runtime_key": "routing.traffic_shift.cluster_retrypolicytest_http_default"
                                                             }
                                                         },
                                                         "route": {
-                                                            "cluster": "cluster_retrypolicytest_http",
+                                                            "cluster": "cluster_retrypolicytest_http_default",
                                                             "prefix_rewrite": "/",
                                                             "priority": null,
                                                             "retry_policy": {
@@ -294,11 +294,11 @@
                                                                     "denominator": "HUNDRED",
                                                                     "numerator": 100
                                                                 },
-                                                                "runtime_key": "routing.traffic_shift.cluster_retrypolicytest_http"
+                                                                "runtime_key": "routing.traffic_shift.cluster_retrypolicytest_http_default"
                                                             }
                                                         },
                                                         "route": {
-                                                            "cluster": "cluster_retrypolicytest_http",
+                                                            "cluster": "cluster_retrypolicytest_http_default",
                                                             "prefix_rewrite": "/",
                                                             "priority": null,
                                                             "retry_policy": {
@@ -323,11 +323,11 @@
                                                                     "denominator": "HUNDRED",
                                                                     "numerator": 100
                                                                 },
-                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877"
+                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
                                                             }
                                                         },
                                                         "route": {
-                                                            "cluster": "cluster_127_0_0_1_8877",
+                                                            "cluster": "cluster_127_0_0_1_8877_default",
                                                             "prefix_rewrite": "/ambassador/v0/",
                                                             "priority": null,
                                                             "retry_policy": {
@@ -346,11 +346,11 @@
                                                                     "denominator": "HUNDRED",
                                                                     "numerator": 100
                                                                 },
-                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877"
+                                                                "runtime_key": "routing.traffic_shift.cluster_127_0_0_1_8877_default"
                                                             }
                                                         },
                                                         "route": {
-                                                            "cluster": "cluster_127_0_0_1_8877",
+                                                            "cluster": "cluster_127_0_0_1_8877_default",
                                                             "prefix_rewrite": "/ambassador/v0/",
                                                             "priority": null,
                                                             "retry_policy": {

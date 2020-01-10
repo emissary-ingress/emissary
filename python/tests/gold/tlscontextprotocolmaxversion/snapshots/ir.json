@@ -51,7 +51,7 @@
         "xff_num_trusted_hops": 0
     },
     "clusters": {
-        "cluster_127_0_0_1_8877": {
+        "cluster_127_0_0_1_8877_default": {
             "_active": true,
             "_errored": false,
             "_hostname": "127.0.0.1",
@@ -61,7 +61,7 @@
                 "tlscontextprotocolmaxversion.default.1"
             ],
             "_resolver": "kubernetes-service",
-            "_rkey": "cluster_127_0_0_1_8877",
+            "_rkey": "cluster_127_0_0_1_8877_default",
             "connect_timeout_ms": 3000,
             "enable_endpoints": false,
             "enable_ipv4": true,
@@ -70,7 +70,7 @@
             "kind": "IRCluster",
             "lb_type": "round_robin",
             "location": "tlscontextprotocolmaxversion.default.1",
-            "name": "cluster_127_0_0_1_8877",
+            "name": "cluster_127_0_0_1_8877_default",
             "namespace": "default",
             "service": "127.0.0.1:8877",
             "targets": [
@@ -85,7 +85,7 @@
                 "tcp://127.0.0.1:8877"
             ]
         },
-        "cluster_http___tlscontextprotocolmaxversion_http": {
+        "cluster_http___tlscontextprotocolmaxversion_http_default": {
             "_active": true,
             "_errored": false,
             "_hostname": "tlscontextprotocolmaxversion-http",
@@ -95,7 +95,7 @@
                 "tlscontextprotocolmaxversion.default.2"
             ],
             "_resolver": "kubernetes-service",
-            "_rkey": "cluster_http___tlscontextprotocolmaxversion_http",
+            "_rkey": "cluster_http___tlscontextprotocolmaxversion_http_default",
             "connect_timeout_ms": 3000,
             "enable_endpoints": false,
             "enable_ipv4": true,
@@ -104,7 +104,7 @@
             "kind": "IRCluster",
             "lb_type": "round_robin",
             "location": "tlscontextprotocolmaxversion.default.2",
-            "name": "cluster_http___tlscontextprotocolmaxversion_http",
+            "name": "cluster_http___tlscontextprotocolmaxversion_http_default",
             "namespace": "default",
             "service": "tlscontextprotocolmaxversion-http",
             "targets": [
@@ -181,7 +181,7 @@
                             "tlscontextprotocolmaxversion.default.1"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_127_0_0_1_8877",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -190,7 +190,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "tlscontextprotocolmaxversion.default.1",
-                        "name": "cluster_127_0_0_1_8877",
+                        "name": "cluster_127_0_0_1_8877_default",
                         "namespace": "default",
                         "service": "127.0.0.1:8877",
                         "targets": [
@@ -271,7 +271,7 @@
                             "tlscontextprotocolmaxversion.default.1"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_127_0_0_1_8877",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -280,7 +280,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "tlscontextprotocolmaxversion.default.1",
-                        "name": "cluster_127_0_0_1_8877",
+                        "name": "cluster_127_0_0_1_8877_default",
                         "namespace": "default",
                         "service": "127.0.0.1:8877",
                         "targets": [
@@ -365,7 +365,7 @@
                             "tlscontextprotocolmaxversion.default.2"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_http___tlscontextprotocolmaxversion_http",
+                        "_rkey": "cluster_http___tlscontextprotocolmaxversion_http_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -374,7 +374,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "tlscontextprotocolmaxversion.default.2",
-                        "name": "cluster_http___tlscontextprotocolmaxversion_http",
+                        "name": "cluster_http___tlscontextprotocolmaxversion_http_default",
                         "namespace": "default",
                         "service": "tlscontextprotocolmaxversion-http",
                         "targets": [
@@ -419,7 +419,7 @@
                         "GET",
                         ":authority-tls-context-host-1"
                     ],
-                    "serialization": "ambassador_id: tlscontextprotocolmaxversion\napiVersion: ambassador/v0\nhost: tls-context-host-1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlscontextprotocolmaxversion\n  scope: AmbassadorTest\nname: TLSContextProtocolMaxVersion-same-prefix-1\nprefix: /tls-context-same/\nservice: http://tlscontextprotocolmaxversion-http\n",
+                    "serialization": "ambassador_id: tlscontextprotocolmaxversion\napiVersion: ambassador/v0\nhost: tls-context-host-1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlscontextprotocolmaxversion\n  scope: AmbassadorTest\nname: TLSContextProtocolMaxVersion-same-prefix-1\nnamespace: default\nprefix: /tls-context-same/\nservice: http://tlscontextprotocolmaxversion-http\n",
                     "service": "http://tlscontextprotocolmaxversion-http",
                     "sni": true,
                     "tls_context": {
@@ -463,7 +463,7 @@
             "precedence": 0,
             "prefix": "/tls-context-same/",
             "rewrite": "/",
-            "serialization": "ambassador_id: tlscontextprotocolmaxversion\napiVersion: ambassador/v0\nhost: tls-context-host-1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlscontextprotocolmaxversion\n  scope: AmbassadorTest\nname: TLSContextProtocolMaxVersion-same-prefix-1\nprefix: /tls-context-same/\nservice: http://tlscontextprotocolmaxversion-http\n",
+            "serialization": "ambassador_id: tlscontextprotocolmaxversion\napiVersion: ambassador/v0\nhost: tls-context-host-1\nkind: Mapping\nmetadata_labels:\n  app.kubernetes.io/component: ambassador-service\n  kat-ambassador-id: tlscontextprotocolmaxversion\n  scope: AmbassadorTest\nname: TLSContextProtocolMaxVersion-same-prefix-1\nnamespace: default\nprefix: /tls-context-same/\nservice: http://tlscontextprotocolmaxversion-http\n",
             "sni": true,
             "tls_context": {
                 "_active": true,
@@ -531,7 +531,7 @@
                             "tlscontextprotocolmaxversion.default.1"
                         ],
                         "_resolver": "kubernetes-service",
-                        "_rkey": "cluster_127_0_0_1_8877",
+                        "_rkey": "cluster_127_0_0_1_8877_default",
                         "connect_timeout_ms": 3000,
                         "enable_endpoints": false,
                         "enable_ipv4": true,
@@ -540,7 +540,7 @@
                         "kind": "IRCluster",
                         "lb_type": "round_robin",
                         "location": "tlscontextprotocolmaxversion.default.1",
-                        "name": "cluster_127_0_0_1_8877",
+                        "name": "cluster_127_0_0_1_8877_default",
                         "namespace": "default",
                         "service": "127.0.0.1:8877",
                         "targets": [
@@ -633,7 +633,6 @@
             "name": "ir.listener",
             "namespace": "default",
             "redirect_listener": false,
-            "require_tls": false,
             "secure_action": "Route",
             "service_port": 8443,
             "use_proxy_proto": false
