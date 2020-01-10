@@ -166,9 +166,9 @@ RELEASE_TYPE=$$($(BUILDER) release-type)
 RELEASE_VERSION=$$($(BUILDER) release-version)
 BUILD_VERSION=$$($(BUILDER) version)
 
-# 'rc' is a deprecated alias for 'release-bits', kept around for the
+# 'rc' is a deprecated alias for 'release/bits', kept around for the
 # moment to avoid pain with needing to update apro.git in lockstep.
-rc: release-bits
+rc: release/bits
 .PHONY: rc
 
 release/bits: images
