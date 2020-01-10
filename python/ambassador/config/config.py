@@ -232,7 +232,14 @@ class Config:
             return True
 
         # Is an ambassador_id present in this object?
-        allowed_ids: StringOrList = resource.get('ambassador_id', 'default')
+        #
+        # NOTE WELL: when we update the status of a Host (or a Mapping?) then reserialization
+        # can cause the `ambassador_id` element to turn into an `ambassadorId` element. So
+        # treat those as synonymous.
+        allowed_ids: StringOrList = resource.get('ambassadorId', None)
+
+        if allowed_ids is None:
+            allowed_ids = resource.get('ambassador_id', 'default')
 
         # If we find the array [ '_automatic_' ] then allow it, so that hardcoded resources
         # can have a useful effect. This is mostly for init-config, but could be used for
