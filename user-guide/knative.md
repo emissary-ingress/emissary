@@ -1,14 +1,14 @@
 # Using Knative and Ambassador
 
-[Knative](https://knative.dev/) is a popular Kubernetes-based platform for managing serverless workloads with 2 main components:
-- Eventing - Management and delivery of events
-- Serving - Request-driven compute that can scale to zero
+[Knative](https://knative.dev/) is a popular Kubernetes-based platform for managing serverless workloads with two main components:
+- Eventing: Management and delivery of events
+- Serving: Request-driven compute that can scale to zero
 
-We will be focusing on Knative Serving which builds on Kubernetes to support deploying and serving of serverless applications and functions.
+We will be focusing on Knative Serving, which builds on Kubernetes to support deploying and serving of serverless applications and functions.
 
 Ambassador can watch for changes in Knative configuration in your Kubernetes cluster and set up routing accordingly.
 
-**Note:** Knative was originally built with Istio handling cluster networking. This integration lets us replace Istio with the Ambassador which will dramatically reduce the operational overhead of running Knative.
+**Note:** Knative was originally built with Istio handling cluster networking. This integration lets us replace Istio with  Ambassador, which will dramatically reduce the operational overhead of running Knative.
 
 ## Getting started
 
@@ -19,6 +19,6 @@ Ambassador can watch for changes in Knative configuration in your Kubernetes clu
 
 #### Installation
 
-Install latest Knative serving with Ambassdaor handling traffic to your serverless applications by following the instructions [here](https://knative.dev/docs/install/knative-with-ambassador/).
+Install the latest Knative Serving with Ambassador handling traffic to your serverless applications by following the instructions [here](https://knative.dev/docs/install/knative-with-ambassador/).
 
-See the [Knative documentation](https://knative.dev/docs/) for more information on what else Knative can do.
+See the [Knative documentation](https://knative.dev/docs/) for more information.
