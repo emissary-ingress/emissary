@@ -1236,8 +1236,10 @@ class Runner:
                 yaml = n.manifests()
 
                 if yaml is not None:
-                    # print(f"{n.path.k8s} is_ambassador {n.is_ambassador}")
-                    if EDGE_STACK and n.is_ambassador and not n.path.k8s.startswith("plain-"):
+                    add_cleartext_host = getattr(n, 'edge_stack_cleartext_host', False)
+                    is_plain_test = n.path.k8s.startswith("plain-")
+
+                    if EDGE_STACK and n.is_ambassador and add_cleartext_host and not is_plain_test:
                         # print(f"{n.path.k8s} adding Host")
 
                         host_yaml = CLEARTEXT_HOST_YAML % nsp
