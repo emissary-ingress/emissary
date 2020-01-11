@@ -17,32 +17,6 @@
 set -o errexit
 set -o nounset
 
-update-aws() {
-    if [ -z "${AWS_ACCESS_KEY_ID}" ]; then
-        @echo 'AWS credentials not configured; not updating either https://s3.amazonaws.com/datawire-static-files/ambassador/$(STABLE_TXT_KEY) or the latest version in Scout'
-        exit
-    fi
-
-    if [ -n "${STABLE_TXT_KEY}" ]; then
-        printf "${RELEASE_VERSION}" > stable.txt
-        echo "updating ${STABLE_TXT_KEY} with $(cat stable.txt)"
-        aws s3api put-object \
-            --bucket datawire-static-files \
-            --key ambassador/${STABLE_TXT_KEY} \
-            --body stable.txt
-    fi
-
-    if [ -n "${SCOUT_APP_KEY}" ]; then
-        printf '{"application":"ambassador","latest_version":"${RELEASE_VERSION}","notices":[]}' > app.json
-        echo "updating ${SCOUT_APP_KEY} with $(cat app.json)"
-        aws s3api put-object \
-            --bucket scout-datawire-io \
-            --key ambassador/$(SCOUT_APP_KEY) \
-            --body app.json
-    fi
-}
-
-
 printf "== Begin: travis-script.sh ==\n"
 
 if [[ -n "$TRAVIS_TAG" ]]; then
@@ -107,25 +81,19 @@ case "$COMMIT_TYPE" in
         if [[ -n "${DOCKER_RELEASE_USERNAME:-}" ]]; then
             docker login -u="$DOCKER_RELEASE_USERNAME" --password-stdin "${RELEASE_REGISTRY}" <<<"$DOCKER_RELEASE_PASSWORD"
         fi
-        make release
-        # XXX
-	#SCOUT_APP_KEY=app.json STABLE_TXT_KEY=stable.txt update-aws
+        make release/promote-oss/to-ga
         ;;
     RC)
         if [[ -n "${DOCKER_RELEASE_USERNAME:-}" ]]; then
             docker login -u="$DOCKER_RELEASE_USERNAME" --password-stdin "${RELEASE_REGISTRY}" <<<"$DOCKER_RELEASE_PASSWORD"
         fi
         make release/bits
-        # XXX
-	#SCOUT_APP_KEY=testapp.json STABLE_TXT_KEY=teststable.txt update-aws
         ;;
     EA)
         if [[ -n "${DOCKER_RELEASE_USERNAME:-}" ]]; then
             docker login -u="$DOCKER_RELEASE_USERNAME" --password-stdin "${RELEASE_REGISTRY}" <<<"$DOCKER_RELEASE_PASSWORD"
         fi
         make release/bits
-        # XXX
-        #SCOUT_APP_KEY=earlyapp.json STABLE_TXT_KEY=earlystable.txt update-aws
         ;;
     *)
         : # Nothing to do
