@@ -88,6 +88,13 @@ behavior before upgrading your CRDs.
 - There is now an `edgectl` program that you can use for interacting with Ambassador from the command line
 - There is a web user-interface for Ambassador
 
+## [1.0.0-rc1] January 11, 2020
+[1.0.0-rc1]: https://github.com/datawire/ambassador/compare/v1.0.0-rc0...v1.0.0-rc1
+
+- Internal: Improvements to release machinery
+- Internal: Fix the dev shell
+- Internal: Adjust KAT tests to work with the Edge Stack
+
 ## [1.0.0-rc0] January 10, 2020
 [1.0.0-rc0]: https://github.com/datawire/ambassador/compare/v1.0.0-ea13...v1.0.0-rc0
 
