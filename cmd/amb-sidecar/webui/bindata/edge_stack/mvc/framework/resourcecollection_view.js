@@ -73,7 +73,7 @@ export class ResourceCollectionView extends LitElement {
     this.addState = "off";
   }
 
-  onAdd() {
+ onAdd() {
     throw Error("Not Yet Implemented");
   }
 
@@ -119,12 +119,18 @@ export class ResourceCollectionView extends LitElement {
 
   render() {
     if (enableMVC()) {
+      let logoPair  = this.pageLogo();
+      let logoText  = logoPair[0];
+      let logoPath  = "../images/svgs/" + logoPair[1];
+      let pageTitle = this.pageTitle();
+      let description  = this.pageDescription();
+
       return html`
         <div style="border:thick solid red">
             <link rel="stylesheet" href="../styles/resources.css">
             <div class="header_con">
                 <div class="col">
-                    <img alt="hosts logo" class="logo" src="../images/svgs/hosts.svg">
+                    <img alt=${logoText} class="logo" src=${logoPath}>
                         <defs><style>.cls-1{fill:#fff;}</style></defs>
                         <g id="Layer_2" data-name="Layer 2">
                             <g id="Layer_1-2" data-name="Layer 1">
@@ -134,8 +140,8 @@ export class ResourceCollectionView extends LitElement {
                 </div>
                 
                 <div class="col">
-                    <h1>Hosts</h1>
-                        <p>Hosts are domains that are managed by Ambassador Edge Stack, e.g., example.org</p>
+                    <h1>${pageTitle}</h1>
+                        <p>${description}</p>
                 </div>
                 
                  <div class="col2">

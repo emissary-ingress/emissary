@@ -43,6 +43,28 @@ export class HostCollectionView extends IResourceCollectionView {
     AllHosts.addListener(this);
   }
 
+  /* pageDescription()
+   * Return the text describing the contents of the HostCollectionView
+   */
+  pageDescription() {
+    return "Hosts are domains that are managed by Ambassador Edge Stack, e.g., example.org"
+  }
+
+
+  /* pageLogo()
+  * Return the alternate text and logo filename for the HostCollectionView
+  */
+  pageLogo() {
+    return ["Hosts Logo", "hosts.svg"]
+  }
+
+  /* pageTitle()
+  * Return the title of the HostCollectionView
+  */
+  pageTitle() {
+    return "Hosts"
+  }
+
   /* viewClass()
    * Return HostView for instantiating new views in this resource collection.
    */

@@ -51,9 +51,32 @@ export class IResourceCollectionView extends ResourceCollectionView {
     super();
   }
 
-  /* readOnly()
-   * Override to true to hide the Add button.  Defaults to false.
+  /* pageDescription()
+   * Return the text describing the contents of the ResourceCollection being viewed
+   * e.g. "Hosts are domains that are managed by Ambassador Edge Stack, e.g., example.org"
    */
+  pageDescription() {
+    throw new Error("please implement ${this.constructor.name}.pageDescription()")
+  }
+
+  /* pageLogo()
+  * Return the alternate text and logo filename in an array [] of the ResourceCollection being viewed
+  * e.g. ["Hosts Logo", "hosts.svg"]
+  */
+  pageLogo() {
+    throw new Error("please implement ${this.constructor.name}.pageLogo()")
+  }
+
+  /* pageTitle()
+  * Return the title of the ResourceCollection being viewed (e.g. "Hosts").
+  */
+  pageTitle() {
+    throw new Error("please implement ${this.constructor.name}.pageTitle()")
+  }
+
+  /* readOnly()
+  * Override to true to hide the Add button.  Defaults to false.
+  */
   readOnly() {
     return super.readOnly();
   }
