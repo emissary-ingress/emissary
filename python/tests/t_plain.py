@@ -12,16 +12,12 @@ class Plain(AmbassadorTest):
     single_namespace = True
     namespace = "plain-namespace"
 
-    def init(self, *args, **kwargs):
-        if EDGE_STACK:
-            self.xfail = "Plain is infuriating"
-
     @classmethod
     def variants(cls):
         yield cls(variants(MappingTest))
 
     def manifests(self) -> str:
-        return """
+        m = """
 ---
 apiVersion: v1
 kind: Namespace
@@ -76,7 +72,50 @@ spec:
     protocol: TCP
     port: 443
     targetPort: 8443
-""" + super().manifests()
+"""
+
+        if EDGE_STACK:
+            m += """
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: plain-host-carrier
+  namespace: plain-namespace
+  annotations:
+    getambassador.io/config: |
+      ---
+      apiVersion: getambassador.io/v2
+      kind: Host
+      name: cleartext-host-{self.path.k8s}
+      ambassador_id: [ "plain" ]
+      hostname: "*"
+      selector:
+        matchLabels:
+          hostname: {self.path.k8s}
+      acmeProvider:
+        authority: none
+      requestPolicy:
+        insecure:
+          action: Route
+          additionalPort: 8080
+  labels:
+    scope: AmbassadorTest
+spec:
+  selector:
+    backend: plain-simplemapping-http-all-http
+  ports:
+  - name: http
+    protocol: TCP
+    port: 80
+    targetPort: 8080
+  - name: https
+    protocol: TCP
+    port: 443
+    targetPort: 8443
+"""
+
+        return m + super().manifests()
 
     def config(self) -> Union[str, Tuple[Node, str]]:
         yield self, """

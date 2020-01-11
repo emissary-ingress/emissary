@@ -16,12 +16,9 @@ import t_hosts
 import t_loadbalancer
 import t_logservice
 import t_lua_scripts
-
-if not EDGE_STACK:
-    import t_mappingtests
-    import t_optiontests
-    import t_plain
-
+import t_mappingtests
+import t_optiontests
+import t_plain
 import t_ratelimit
 import t_redirect
 #import t_shadow
