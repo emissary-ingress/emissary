@@ -8,7 +8,6 @@
        Body.enterPage { cursor: pointer; z-index: 1;}
       .root { width: 100%; max-width: 72rem; margin: 0 auto; }
       
-      .title { font-family: "Source Sans Pro", sans-serif; width: 13.75rem; font-size: 1.5em; text-align: right; }
       .logo { margin-left: 0; }
 
       main { margin-top: 2.5em; }
@@ -35,7 +34,17 @@
       .app-subtitle { font-size: 1.5em; text-align: center; margin-top: 0; }
       .app-text { font-size: 1.3em; text-align: center; }
       .app-notice { font-size: 1em; text-align: center; font-style: italic; margin-top: 1rem; margin-bottom: 0; color: #545452 }
-      .browser-warning { font-size: 1em; text-align: center; font-style: italic; margin-top: .5rem; margin: 0; color: #545452; display: block; }
+       p#browser-warning-text-other{
+         padding-left: 2em;
+         font-size: 90%;
+         width: 90%;
+         font-style: italic;
+         color: #545452;
+         margin-left: 10px;
+         margin-right: 5px;
+         margin-top: 15px;
+         text-align: left;
+       }
   </style>
   </head>
   <body class="enterPage" onclick="location.href=`https://${window.location.host}/edge_stack/admin`">
@@ -57,8 +66,13 @@
             <h1 class="app-title">CONGRATULATIONS!</h1>
             <p class="app-subtitle">You've installed the Ambassador Edge Stack</p>
             <p class="app-text"><a class="app-link">As the blackbird flies, clicking here is<br>the quickest way to the Edge Policy Console.</a></p>
-            <p class="app-notice">Please accept the Ambassador Edge Stack self-signed TLS certificate to establish an initial secure connection to the Edge Policy Console. Your <span id="browserType"></span> browser will display a security warning as below:</p>
-            <browser-warning class="browser-warning"></browser-warning>
+            <p class="app-notice">Note: you will need to accept the Ambassador Edge Stack self-signed TLS certificate to establish an initial secure connection to the Edge Policy Console.</p>
+              <p id="browser-warning-text-other">(In a kind of "chicken or egg" situation, your browser will show a warning because
+                your browser does not recognize Ambassador Edge Stack's self-signed
+                certificate as 'safe'. However, once you click through the warning, you will land on a secure page where Ambassador Edge Stack
+                will set up a production-quality TLS certificate for you. Follow your browser's instructions to view warning details
+                and "Accept Risk" / "Proceed" / "Visit Website" / etc to continue to the Edge Policy Console.)</p>
+
           </div>
         </div>  
       </main>   
@@ -69,13 +83,6 @@
       if (window.location.protocol == 'http:') {
         document.getElementsByClassName('app-notice')[0].removeAttribute('style');
       }  
-        if (browser === "chrome" || browser === "safari" || browser === "firefox" ) {
-        document.getElementById('browserType').innerHTML = browserCapitalized;
-        } else {
-        document.getElementById('browserType').innerHTML = "";
-        }
     </script>
   </body>
-  <script type="module" src="../edge_stack/components/browser-warning.js"></script>
-  <script type="module" src="../edge_stack/components/wholepage-error.js"></script>
 </html>
