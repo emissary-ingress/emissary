@@ -3,10 +3,10 @@
 
 
 
-| Variable                         | Default                                           | Value type                                                                    | Purpose &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; |
+| Variable | Default  | Value type    | Purpose &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; |
 |----------------------------------|---------------------------------------------------|-------------------------------------------------------------------------------|------------------------------------------------------|
 | `AMBASSADOR_ID`                  | `default`                                         | plain string                                                                  | Ambassador                                           |
-| `AMBASSADOR_NAMESPACE`           | `default`[^1]                                     | Kubernetes namespace                                                          | Ambassador                                           |
+| `AMBASSADOR_NAMESPACE`           | `default` [^1]                                     | Kubernetes namespace                                                          | Ambassador                                           |
 | `AMBASSADOR_SINGLE_NAMESPACE`    | empty                                             | Boolean; non-empty=true, empty=false                                          | Ambassador                                           |
 | <hr/>                            | <hr/>                                             | <hr/>                                                                         | <hr/>                                                |
 | `APRO_HTTP_PORT`                 | `8500`                                            | TCP port number or name                                                       | Filter gRPC, RateLimit gRPC, health HTTP, debug HTTP |

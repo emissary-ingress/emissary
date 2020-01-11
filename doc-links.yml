@@ -241,6 +241,12 @@
         link: /reference/idp-support/salesforce
       - title: User Account and Authentication (UAA)
         link: /reference/idp-support/uaa
+    - title: Pro
+      items:
+        - title: Authentication and Identity Aware Proxy
+          link: /reference/pro/authentication
+        - title: Environmental Variables
+          link: /reference/pro/environment  
     - title: Filter Reference
       link: /reference/filter-reference
     - title: Statistics and Monitoring
