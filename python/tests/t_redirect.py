@@ -15,6 +15,7 @@ from abstract_tests import ServiceType
 
 class RedirectTests(AmbassadorTest):
     target: ServiceType
+    edge_stack_cleartext_host = False
 
     def init(self):
         if EDGE_STACK:
@@ -161,6 +162,9 @@ class RedirectTestsInvalidSecret(AmbassadorTest):
     target: ServiceType
 
     def init(self):
+        if EDGE_STACK:
+            self.xfail = "Not yet supported in Edge Stack"
+
         self.target = HTTP()
 
     def requirements(self):
@@ -211,8 +215,12 @@ service: {self.target.path.fqdn}
 class XFPRedirect(AmbassadorTest):
     parent: AmbassadorTest
     target: ServiceType
+    edge_stack_cleartext_host = False
 
     def init(self):
+        if EDGE_STACK:
+            self.xfail = "Not yet supported in Edge Stack"
+
         self.target = HTTP()
 
     def config(self):
