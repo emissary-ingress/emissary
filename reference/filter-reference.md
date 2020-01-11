@@ -553,16 +553,14 @@ The `Plugin` filter type allows you to plug in your own custom code. This code i
 #### The Plugin Interface
 
 This code is written in the Go programming language (golang), and must
-be compiled with the exact same compiler settings as the Ambassador Edge
-Stack; and any overlapping libraries used must have their versions
-match exactly. This information is documented in an [apro-abi.txt][]
-file for each Ambassador Edge Stack release.
+be compiled with the exact same compiler settings as the Ambassador
+Edge Stack; and any overlapping libraries used must have their
+versions match exactly. This information is documented in the
+`/ambassador/aes-abi.txt` file in the AES docker image.
 
-[apro-abi.txt]: https://s3.amazonaws.com/datawire-static-files/apro-abi/apro-abi@$aproVersion$.txt
-
-Plugins are compiled with `go build -buildmode=plugin`, and must have
-a `main.PluginMain` function with the signature `PluginMain(w
-http.ResponseWriter, r *http.Request)`:
+Plugins are compiled with `go build -buildmode=plugin -trimpath`, and
+must have a `main.PluginMain` function with the signature
+`PluginMain(w http.ResponseWriter, r *http.Request)`:
 
 ```go
 package main
