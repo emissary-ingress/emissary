@@ -190,7 +190,11 @@ commands:
                 export AWS_ACCESS_KEY_ID=$DEPLOY_KEY_ID
                 export AWS_SECRET_ACCESS_KEY=$DEPLOY_KEY
                 docker login -u="${DOCKER_RELEASE_USERNAME}" -p="${DOCKER_RELEASE_PASSWORD}" quay.io
-                DEV_KUBECONFIG="-skip-for-release-" RELEASE_REGISTRY=quay.io/datawire make rc
+                if [[ "$CIRCLE_TAG" == *-* ]]; then
+                  DEV_KUBECONFIG="-skip-for-release-" RELEASE_REGISTRY=quay.io/datawire make release/bits
+                else
+                  DEV_KUBECONFIG="-skip-for-release-" RELEASE_REGISTRY=quay.io/datawire make release/promote-aes/to-ga
+                fi
             fi
   "clobber":
     steps:
@@ -209,8 +213,10 @@ commands:
       - run: ~/bin/edgectl version || true
       - run:
           name: "Release"
+          # This only runs for pre-release tags; for GA tags the
+          # "main" command promotes the pre-release artifacts.
           command: |
-            if [[ "$CIRCLE_TAG" =~ ^v[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+(-.*)?$ ]]; then
+            if [[ "$CIRCLE_TAG" =~ ^v[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+-.*$ ]]; then
                 export AWS_ACCESS_KEY_ID=$DEPLOY_KEY_ID
                 export AWS_SECRET_ACCESS_KEY=$DEPLOY_KEY
                 ./ambassador/builder/build_push_cli.sh push

@@ -168,7 +168,7 @@ export class SingleHost extends SingleResource {
     let spec = host.spec;
     let status = host.status || {"state": "<none>"};
     let hostState = status.state;
-    let reason = (hostState === "Error") ? `(${status.reason})` : '';
+    let reason = (hostState === "Error") ? `(${status.errorReason})` : '';
 
     let state = this.state;
     let tos = this.isTOSshowing() ? "attribute-value" : "off";

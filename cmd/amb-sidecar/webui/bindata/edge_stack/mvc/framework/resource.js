@@ -229,7 +229,8 @@ export class Resource extends Model {
     let new_status = resourceData.status || this.getEmptyStatus();
 
     if ((this.status.state  !== new_status.state) ||
-      (this.status.reason !== new_status.reason)) {
+      (this.status.reason !== new_status.reason) ||
+      (this.status.errorReason !== new_status.errorReason)) {
       this.status = new_status;
       updated = true;
     }

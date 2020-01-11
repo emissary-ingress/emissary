@@ -1089,6 +1089,17 @@ navigation a.selected .label {
     this.copyToKeyboard('install-windows');
   }
 
+  static get properties() {
+    return {
+      namespace: String
+    };
+  }
+
+  constructor() {
+    super();
+    this.namespace = this.getAttribute("namespace");
+  }
+
   render() {
     return html`
     <div class="alpha login">
@@ -1102,7 +1113,7 @@ navigation a.selected .label {
                 <h1>Welcome to the Ambassador Edge Stack</h1>
                 <p><span>Repeat users</span> can log in to the Edge Policy Console directly with this command:</p>
                 <div class="cta">
-                    <div class="copy" id="login-cmd">edgectl login --namespace=${this.getAttribute('namespace')} ${window.location.host}</div>
+                    <div class="copy" id="login-cmd">edgectl login --namespace=${this.namespace} ${window.location.host}</div>
                     <a class="button" href="#" @click=${this.copyLoginToKeyboard.bind(this)}><?xml version="1.0" encoding="UTF-8"?>
 <svg width="16px" height="15px" viewBox="0 0 16 15" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
     <g id="Screen" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
