@@ -92,6 +92,7 @@ class AmbassadorTest(Test):
     manifest_envs = ""
     is_ambassador = True
     allow_edge_stack_redirect = False
+    edge_stack_cleartext_host = True
 
     env = []
 
