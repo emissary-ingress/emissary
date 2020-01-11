@@ -20,7 +20,7 @@ The Ambassador Edge Stack is typically deployed to Kubernetes from the command l
     kubectl apply -f https://www.getambassador.io/early-access/yaml/aes-crds.yaml && \
     kubectl wait --for condition=established --timeout=90s crd -lproduct=aes && \
     kubectl apply -f https://www.getambassador.io/early-access/yaml/aes.yaml && \
-    kubectl -n ambassador wait --for condition=available --timeout=60s deploy -lproduct=aes
+    kubectl -n ambassador wait --for condition=available --timeout=90s deploy -lproduct=aes
     ```
 
 2. Determine the IP address of your cluster by running the following command:
