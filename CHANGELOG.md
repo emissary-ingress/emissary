@@ -1193,7 +1193,7 @@ You can also use `adminService.type=LoadBalancer`.
 - Correctly support `timeout_ms` in a `Mapping`
 - Various build tweaks and end-to-end test speedups
 
-## [0.23.0] January 17, 2017
+## [0.23.0] January 17, 2018
 [0.23.0]: https://github.com/datawire/ambassador/compare/v0.22.0...v0.23.0
 
 ### Changed
@@ -1206,7 +1206,7 @@ You can also use `adminService.type=LoadBalancer`.
 - Don't default to `imagePullAlways`
 - Switch to Alpine base with a stripped Envoy image
 
-## [0.22.0] January 17, 2017
+## [0.22.0] January 17, 2018
 [0.22.0]: https://github.com/datawire/ambassador/compare/v0.21.1...v0.22.0
 
 ### Changed
@@ -1217,14 +1217,14 @@ You can also use `adminService.type=LoadBalancer`.
 - Make sure that Ambassador won't generate cluster names that are too long for Envoy.
 - Fix a bug where Ambassador could crash if there were too many egregious errors in its configuration.
 
-## [0.21.1] January 11, 2017
+## [0.21.1] January 11, 2018
 [0.21.1]: https://github.com/datawire/ambassador/compare/v0.21.0...v0.21.1
 
 ### Changed
 
 - Ambassador will no longer generate cluster names that exceed Envoy's 60-character limit.
 
-## [0.21.0] January 3, 2017
+## [0.21.0] January 3, 2018
 [0.21.0]: https://github.com/datawire/ambassador/compare/v0.20.1...v0.21.0
 
 ### Changed
