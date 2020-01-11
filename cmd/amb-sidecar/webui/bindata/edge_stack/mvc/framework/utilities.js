@@ -25,7 +25,7 @@ import { hasDebugBackend } from "../../components/api-fetch.js"
  */
 
 export function enableMVC() {
-  return false;
+  return true;
   /* return hasDebugBackend */
 }
 

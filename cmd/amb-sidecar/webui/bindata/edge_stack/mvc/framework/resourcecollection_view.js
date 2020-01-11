@@ -40,7 +40,7 @@ export class ResourceCollectionView extends LitElement {
       div.sortby select {
         font-size: 0.85rem;
         border: 2px #c8c8c8 solid;
-        text-transform: uppercase; 
+        text-transform: none; 
       }
       div.sortby select:hover {
         color: #5f3eff;
@@ -66,7 +66,9 @@ export class ResourceCollectionView extends LitElement {
      *  {label: "Hostname", value: "hostname"},
      * ];
      */
-    this.sortFields = null; /* No sorting by default. */
+    this.sortFields = [ {label: "Resource Name", value: "name"},
+                        {label: "Namespace", value: "namespace"},
+                        {label: "Hostname", value: "hostname"},];
     this.sortBy = "name";
     this.addState = "off";
   }
@@ -119,14 +121,42 @@ export class ResourceCollectionView extends LitElement {
     if (enableMVC()) {
       return html`
         <div style="border:thick solid red">
-          <link rel="stylesheet" href="../styles/resources.css">
-          ${this.readOnly() ? "" : html`<add-button @click=${this.onAdd.bind(this)}></add-button>`}
-          <slot name="add"></slot>
-          <slot></slot>
+            <link rel="stylesheet" href="../styles/resources.css">
+            <div class="header_con">
+                <div class="col">
+                    <img alt="hosts logo" class="logo" src="../images/svgs/hosts.svg">
+                        <defs><style>.cls-1{fill:#fff;}</style></defs>
+                        <g id="Layer_2" data-name="Layer 2">
+                            <g id="Layer_1-2" data-name="Layer 1">
+                            </g>
+                        </g>
+                    </img>
+                </div>
+                
+                <div class="col">
+                    <h1>Hosts</h1>
+                        <p>Hosts are domains that are managed by Ambassador Edge Stack, e.g., example.org</p>
+                </div>
+                
+                 <div class="col2">
+                    <a class="cta add ${this.readOnly() ? "off" : ""}" @click=${this.onAdd.bind(this)}>
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30"><defs><style>.cls-a{fill:none;stroke:#000;stroke-linecap:square;stroke-miterlimit:10;stroke-width:2px;}</style></defs><title>add_1</title><g id="Layer_2" data-name="Layer 2"><g id="Layer_1-2" data-name="Layer 1"><line class="cls-a" x1="15" y1="9" x2="15" y2="21"/><line class="cls-a" x1="9" y1="15" x2="21" y2="15"/><circle class="cls-a" cx="15" cy="15" r="14"/></g></g></svg>
+                      <div class="label">add</div>
+                    </a>
+ 
+                    <div class="sortby" >
+                    <select id="sortByAttribute" @change=${this.onChangeSortByAttribute.bind(this)}>
+                        ${this.sortFields.map(f => {return html`<option value="${f.value}">${f.label}</option>`})}
+                    </select>
+                </div>
+ 
+            </div>
+            </div>
+            <slot name="add"></slot>
+            <slot></slot>
         </div>`
     } else {
       return html``
     }
   }
 }
-
