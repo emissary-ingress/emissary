@@ -166,9 +166,9 @@ RELEASE_TYPE=$$($(BUILDER) release-type)
 RELEASE_VERSION=$$($(BUILDER) release-version)
 BUILD_VERSION=$$($(BUILDER) version)
 
-# 'rc' is a deprecated alias for 'release-bits', kept around for the
+# 'rc' is a deprecated alias for 'release/bits', kept around for the
 # moment to avoid pain with needing to update apro.git in lockstep.
-rc: release-bits
+rc: release/bits
 .PHONY: rc
 
 release/bits: images
@@ -178,21 +178,70 @@ release/bits: images
 	docker push $(AMB_IMAGE_RC)
 .PHONY: release/bits
 
+release/promote-oss/.main:
+	@[[ '$(PROMOTE_FROM_VERSION)' =~ ^[0-9]+\.[0-9]+\.[0-9]+(-.*)?$$ ]]
+	@[[ '$(PROMOTE_TO_VERSION)'   =~ ^[0-9]+\.[0-9]+\.[0-9]+(-.*)?$$ ]]
+	@[[ '$(PROMOTE_CHANNEL)' =~ ^(|early|test)$$ ]]
+	@printf "$(CYN)==> $(GRN)Promoting $(BLU)%s$(GRN) to $(BLU)%s$(GRN) (channel=$(BLU)%s$(GRN))$(END)\n" '$(PROMOTE_FROM_VERSION)' '$(PROMOTE_TO_VERSION)' '$(PROMOTE_CHANNEL)'
+
+	@printf '  $(CYN)$(RELEASE_REGISTRY)/$(REPO):$(PROMOTE_FROM_VERSION)$(END)\n'
+	docker pull $(RELEASE_REGISTRY)/$(REPO):$(PROMOTE_FROM_VERSION)
+	docker tag $(RELEASE_REGISTRY)/$(REPO):$(PROMOTE_FROM_VERSION) $(RELEASE_REGISTRY)/$(REPO):$(PROMOTE_TO_VERSION)
+	docker push $(RELEASE_REGISTRY)/$(REPO):$(PROMOTE_TO_VERSION)
+
+	@printf '  $(CYN)https://s3.amazonaws.com/datawire-static-files/ambassador/$(PROMOTE_CHANNEL)stable.txt$(END)\n'
+	printf '%s' '$(PROMOTE_FROM_VERSION)' | aws s3 cp - s3://datawire-static-files/ambassador/$(PROMOTE_CHANNEL)stable.txt
+
+	@printf '  $(CYN)s3://scout-datawire-io/ambassador/$(PROMOTE_CHANNEL)app.json$(END)\n'
+	printf '{"application":"ambassador","latest_version":"%s","notices":[]}' '$(PROMOTE_FROM_VERSION)' | aws s3 cp - s3://scout-datawire-io/ambassador/$(PROMOTE_CHANNEL)app.json
+.PHONY: release/promote-oss/.main
+
+# To be run from a checkout at the tag you are promoting _from_.
+# At present, this is to be run by-hand.
+release/promote-oss/to-ea-latest:
+	@test -n "$(RELEASE_REGISTRY)" || (printf "$${RELEASE_REGISTRY_ERR}\n"; exit 1)
+	@[[ "$(RELEASE_VERSION)" =~ ^[0-9]+\.[0-9]+\.[0-9]+-ea[0-9]+$$ ]] || (printf '$(RED)ERROR: RELEASE_VERSION=%s does not look like an EA tag\n' "$(RELEASE_VERSION)"; exit 1)
+	@{ $(MAKE) release/promote-oss/.main \
+	  PROMOTE_FROM_VERSION="$(RELEASE_VERSION)" \
+	  PROMOTE_TO_VERSION="$$(echo "$(RELEASE_VERSION)" | sed 's/-ea.*/-ea-latest/')" \
+	  PROMOTE_CHANNEL=early \
+	; }
+.PHONY: release/promote-oss/to-ea-latest
+
+# To be run from a checkout at the tag you are promoting _from_.
+# At present, this is to be run by-hand.
+release/promote-oss/to-rc-latest:
+	@test -n "$(RELEASE_REGISTRY)" || (printf "$${RELEASE_REGISTRY_ERR}\n"; exit 1)
+	@[[ "$(RELEASE_VERSION)" =~ ^[0-9]+\.[0-9]+\.[0-9]+-rc[0-9]+$$ ]] || (printf '$(RED)ERROR: RELEASE_VERSION=%s does not look like an RC tag\n' "$(RELEASE_VERSION)"; exit 1)
+	@{ $(MAKE) release/promote-oss/.main \
+	  PROMOTE_FROM_VERSION="$(RELEASE_VERSION)" \
+	  PROMOTE_TO_VERSION="$$(echo "$(RELEASE_VERSION)" | sed 's/-rc.*/-rc-latest/')" \
+	  PROMOTE_CHANNEL=test \
+	; }
+.PHONY: release/promote-oss/to-rc-latest
+
+# To be run from a checkout at the tag you are promoting _to_.
+# This is normally run from CI by creating the GA tag.
+release/promote-oss/to-ga:
+	@test -n "$(RELEASE_REGISTRY)" || (printf "$${RELEASE_REGISTRY_ERR}\n"; exit 1)
+	@[[ "$(RELEASE_VERSION)" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || (printf '$(RED)ERROR: RELEASE_VERSION=%s does not look like a GA tag\n' "$(RELEASE_VERSION)"; exit 1)
+	@set -e; {
+	  rc_latest=$(curl -sL --fail https://s3.amazonaws.com/datawire-static-files/ambassador/teststable.txt); \
+	  if ! [[ "$$rc_latest" == "$(RELEASE_VERSION)"-rc* ]]; then \
+	    printf '$(RED)ERROR: https://s3.amazonaws.com/datawire-static-files/ambassador/teststable.txt => %s does not look like a RC of %s' "$$rc_latest" "$(RELEASE_VERSION)"; \
+	    exit 1; \
+	  fi; \
+	  $(MAKE) release/promote-oss/.main \
+	    PROMOTE_FROM_VERSION="$$rc_latest" \
+	    PROMOTE_TO_VERSION="$(RELEASE_VERSION)" \
+	    PROMOTE_CHANNEL='' \
+	    ; \
+	}
+.PHONY: release/promote-oss/to-ga
+
 release-prep:
 	bash $(OSS_HOME)/releng/release-prep.sh
 .PHONY: release-prep
-
-release:
-	@test -n "$(RELEASE_REGISTRY)" || (printf "$${RELEASE_REGISTRY_ERR}\n"; exit 1)
-	@$(MAKE) --no-print-directory sync
-	@if [ "$(RELEASE_TYPE)" != release ]; then \
-		(printf "$(RED)ERROR: 'make release' can only be used for release tags ('vX.Y.Z')$(END)\n" && exit 1); \
-	fi
-	@printf "$(CYN)==> $(GRN)Promoting release $(BLU)$(REPO)$(GRN) image$(END)\n"
-	docker pull $(AMB_IMAGE_RC_LATEST)
-	docker tag $(AMB_IMAGE_RC_LATEST) $(AMB_IMAGE_RELEASE)
-	docker push $(AMB_IMAGE_RELEASE)
-.PHONY: release
 
 clean:
 	@$(BUILDER) clean
@@ -310,17 +359,29 @@ define _help.targets
 
   $(BLD)make $(BLU)shell$(END)     -- starts a shell in the build container.
 
-  $(BLD)make $(BLU)release/bits$(END) -- do the "push some bits" part of a release
+  $(BLD)make $(BLU)release/bits$(END) -- do the 'push some bits' part of a release
 
     The current commit must be tagged for this to work, and your tree must be clean.
-    If the tag is of the form 'vX.Y.Z-rc[0-9]*', this will also push a tag of the
-    form 'vX.Y.Z-rc-latest'.
+    If the tag is of the form 'vX.Y.Z-(ea|rc)[0-9]*'.
 
-  $(BLD)make $(BLU)release$(END)   -- promote a release candidate to a release.
+  $(BLD)make $(BLU)release/promote-oss/to-ea-latest$(END) -- promote an early-access '-eaN' release to '-ea-latest'
+
+    The current commit must be tagged for this to work, and your tree must be clean.
+    Additionally, the tag must be of the form 'vX.Y.Z-eaN'. You must also have previously
+    built an EA for the same tag using $(BLD)release/bits$(END).
+
+  $(BLD)make $(BLU)release/promote-oss/to-rc-latest$(END) -- promote a release candidate '-rcN' release to '-rc-latest'
+
+    The current commit must be tagged for this to work, and your tree must be clean.
+    Additionally, the tag must be of the form 'vX.Y.Z-rcN'. You must also have previously
+    built an RC for the same tag using $(BLD)release/bits$(END).
+
+  $(BLD)make $(BLU)release/promote-oss/to-ga$(END) -- promote a release candidate to general availability
 
     The current commit must be tagged for this to work, and your tree must be clean.
     Additionally, the tag must be of the form 'vX.Y.Z'. You must also have previously
-    build an RC for the same tag using the current $(BLD)\$$RELEASE_REGISTRY$(END).
+    built and promoted the RC that will become GA, using $(BLD)release/bits$(END) and
+    $(BLD)release/promote-oss/to-rc-latest$(END).
 
   $(BLD)make $(BLU)clean$(END)     -- kills the build container.
 

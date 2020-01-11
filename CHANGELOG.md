@@ -47,48 +47,94 @@ Format:
 --->
 
 <!--- CueAddReleaseNotes --->
-## [1.0.0-ea13] January 09, 2020
-[1.0.0-ea13]: https://github.com/datawire/ambassador/compare/v0.86.0...v1.0.0-ea13
+## [1.0.0] TBD
+[1.0.0]: https://github.com/datawire/ambassador/compare/v0.86.0...v1.0.0
 
-- Bugfix: Knative mappings populate and fallback to the ambassador namespace if unspecified
+### Caution!
+
+All of Ambassador's CRDs have been switched to `apiVersion: getambassador.io/v2`, and
+**your resources will be upgraded when you apply the new CRDs**. We recommend that you
+follow the [migration instructions](https://getambassador.io/early-access/user-guide/upgrade-to-edge-stack/) and check your installation's
+behavior before upgrading your CRDs.
+
+### Breaking changes
+
+- When a resource specifies a service or secret name without a corresponding namespace, Ambassador uses the namespace of the resource. In the past, Ambassador would use its own namespace.
+
+### Features
+
+- The Host CR provides an easy way to tell Ambassador about domains it should expect to handle
+- Redirection from HTTP to HTTPS defaults to ON when termination contexts are present
+- Mapping and Host CRs, as well as Ingress resources, get Status updates to provide better feedback
+- Improve performance of processing events from Kubernetes
+- Automatic HTTPS should work with any ACME clients doing the http-01 challenge
+
+### Bugfixes
+
+- CORS now happens before rate limiting
+- The reconfiguration engine is better protected from exceptions
+- Don’t try to check for upgrades on every UI snapshot update
+- Don’t activate the fallback TLSContext if its secret is not available
+- Reduced reconfiguration churn
+- Don't force SNI routes to be lower-priority than non-SNI routes
+- Knative mappings populate and fallback to the Ambassador namespace if unspecified
+- Fix `ambassador_id` handling for Knative resources
+- Treat `ambassadorId` as a synonym for `ambassador_id` (`ambassadorId` is the Protobuf 3 canonical form of `ambassador_id`)
+
+### Ambassador Edge Stack
+
+- Authentication and ratelimiting are now available under a free community license
+- Given a Host CR, Ambassador can manage TLS certificates using ACME (or you can manage them by hand)
+- There is now an `edgectl` program that you can use for interacting with Ambassador from the command line
+- There is a web user-interface for Ambassador
+
+## [1.0.0-rc0] January 10, 2020
+[1.0.0-rc0]: https://github.com/datawire/ambassador/compare/v1.0.0-ea13...v1.0.0-rc0
+
+- BREAKING CHANGE: Rename Host CR status field `reason` to `errorReason`
+- Feature: Host CRs now default `.spec.hostname` to `.metadata.name`
+- Feature: Host CRs now have a `requestPolicy` field to control redirecting from cleartext to TLS
+- Feature: Redirecting from cleartext to TLS no longer interferes with ACME http-01 challenges
+- Feature: Improved `edgectl` help and informational messages
+- Bugfix: Host CR status is now a sub-resource
+- Bugfix: Have diagd snapshot JSON not include "serialization" keys (which could potentially leak secrets)
+- Bugfix: Fix `ambassador_id` handling for Knative resources
+- Bugfix: Use the correct namespace for resources found via annotations
+- Bugfix: Treat `ambassadorId` as a synonym for `ambassador_id` (`ambassadorId` is the Protobuf 3 canonical form of `ambassador_id`)
+- Internal: Allow passing a `DOCKER_NETWORK` variable to the build-system
+
+## [1.0.0-ea13] January 09, 2020
+[1.0.0-ea13]: https://github.com/datawire/ambassador/compare/v1.0.0-ea12...v1.0.0-ea13
+
+- Bugfix: Knative mappings populate and fallback to the Ambassador namespace if unspecified
 - Internal: Knative tests for versions 0.7.1 and 0.8.0 were removed
 - Internal: Knative tests for version 0.11.0 were added
 - Internal: Improved performance with Edge Stack using /ambassador/v0/diag/ with an optional `patch_client` query param to send a partial representation in JSON Patch format, reducing the memory and network traffic for large deployments
 - Internal: Silencing warnings from `which` in docs preflight-check
 
 ## [1.0.0-ea12] January 08, 2020
-[1.0.0-ea12]: https://github.com/datawire/ambassador/compare/v0.86.0...v1.0.0-ea12
+[1.0.0-ea12]: https://github.com/datawire/ambassador/compare/v1.0.0-ea9...v1.0.0-ea12
 
-### Breaking Change
-
-When a resource specifies a service or secret name without a corresponding namespace, Ambassador uses the namespace of the resource. In the past, Ambassador would use its own namespace.
-
-### Bugfixes
-
-- Add the appropriate label so Ingress works with Edge Stack
-- Remove superfluous imagePullSecret
-- Fix various admin UI quirks, especially in Firefox
+- BREAKING CHANGE: When a resource specifies a service or secret name without a corresponding namespace, Ambassador uses the namespace of the resource. In the past, Ambassador would use its own namespace.
+- Bugfix: Add the appropriate label so Ingress works with Edge Stack
+- Bugfix: Remove superfluous imagePullSecret
+- Bugfix: Fix various admin UI quirks, especially in Firefox
   - Bogus warnings about duplicate resources
   - Drag-and-drop reordering of rate limit configuration
   - Missing icons
-
-### Internal
-
-- Drop duplicated resources earlier in the processing chain
-- Streamline code generation from protobufs
-- Automated broken-link checks in the documentation
+- Internal: Drop duplicated resources earlier in the processing chain
+- Internal: Streamline code generation from protobufs
+- Internal: Automated broken-link checks in the documentation
 
 ## [1.0.0-ea9] December 23, 2019
-[1.0.0-ea9]: https://github.com/datawire/ambassador/compare/v0.86.0...v1.0.0-ea9
+[1.0.0-ea9]: https://github.com/datawire/ambassador/compare/v1.0.0-ea7...v1.0.0-ea9
 
-
-### Minor changes:
 - Bugfix: Use proper executable name for Windows edgectl
 - Bugfix: Don't force SNI routes to be lower-priority than non-SNI routes
 - Bugfix: Prevent the self-signed fallback context from conflicting with a manual context
 
 ## [1.0.0-ea7] December 19, 2019
-[1.0.0-ea7]: https://github.com/datawire/ambassador/compare/v0.86.0...v1.0.0-ea7
+[1.0.0-ea7]: https://github.com/datawire/ambassador/compare/v1.0.0-ea6...v1.0.0-ea7
 
 - Bugfix: UI buttons can hide themselves
 - Bugfix: Developer Portal API acquisition 
@@ -97,10 +143,10 @@ When a resource specifies a service or secret name without a corresponding names
 - Internal: Rationalize usage reporting for Edge Stack
 
 ## [1.0.0-ea6] December 18, 2019
-[1.0.0-ea6]: https://github.com/datawire/ambassador/compare/v0.86.0...v1.0.0-ea6
+[1.0.0-ea6]: https://github.com/datawire/ambassador/compare/v1.0.0-ea5...v1.0.0-ea6
 
 - Feature: Improve performance of processing events from Kubernetes
-- Feature: Automatic HTTPS should work with any ACME clients doing the HTTP-01 challenge
+- Feature: Automatic HTTPS should work with any ACME clients doing the http-01 challenge
 - Internal: General improvements to test infrastructure
 - Internal: Improved the release process
 
@@ -109,7 +155,7 @@ created internally. Remove them from your cluster if upgrading from a
 previous version.
 
 ## [1.0.0-ea5] December 17, 2019
-[1.0.0-ea5]: https://github.com/datawire/ambassador/compare/v0.86.0...v1.0.0-ea5
+[1.0.0-ea5]: https://github.com/datawire/ambassador/compare/v1.0.0-ea3...v1.0.0-ea5
 
 - Internal: Improved the reliability of CI
 - Internal: Improved the release process
