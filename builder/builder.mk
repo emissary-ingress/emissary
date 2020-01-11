@@ -210,7 +210,19 @@ env:
 	@printf " # Context: $(BLU)$(CURRENT_CONTEXT)$(END), Namespace: $(BLU)$(CURRENT_NAMESPACE)$(END)\n"
 	@printf "$(BLD)DEV_REGISTRY$(END)=$(BLU)\"$(DEV_REGISTRY)\"$(END)\n"
 	@printf "$(BLD)RELEASE_REGISTRY$(END)=$(BLU)\"$(RELEASE_REGISTRY)\"$(END)\n"
+	@printf "$(BLD)AMBASSADOR_DOCKER_IMAGE$(END)=$(BLU)\"$(AMB_IMAGE)\"$(END)\n"
+	@printf "$(BLD)KAT_CLIENT_DOCKER_IMAGE$(END)=$(BLU)\"$(KAT_CLI_IMAGE)\"$(END)\n"
+	@printf "$(BLD)KAT_SERVER_DOCKER_IMAGE$(END)=$(BLU)\"$(KAT_SRV_IMAGE)\"$(END)\n"
 .PHONY: env
+
+export:
+	@printf "export DEV_KUBECONFIG=\"$(DEV_KUBECONFIG)\"\n"
+	@printf "export DEV_REGISTRY=\"$(DEV_REGISTRY)\"\n"
+	@printf "export RELEASE_REGISTRY=\"$(RELEASE_REGISTRY)\"\n"
+	@printf "export AMBASSADOR_DOCKER_IMAGE=\"$(AMB_IMAGE)\"\n"
+	@printf "export KAT_CLIENT_DOCKER_IMAGE=\"$(KAT_CLI_IMAGE)\"\n"
+	@printf "export KAT_SERVER_DOCKER_IMAGE=\"$(KAT_SRV_IMAGE)\"\n"
+.PHONY: export
 
 help:
 	@printf "$(subst $(NL),\n,$(HELP))\n"
