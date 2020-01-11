@@ -1284,17 +1284,6 @@ export class LoginGate extends LitElement {
     //fetch('http://localhost:9000/edge_stack/api/config/pod-namespace', { mode:'no-cors'})
       .then(data => data.text()).then(body => {
         this.namespace = body;
-        /*
-         * for some unknown reason, there is a timing-race-condition
-         * if this console.log is not here. So don't remove this apparently
-         * useless console.log. The timing problem that it oddly solves is
-         * that the unauthenticated state can render before this asynchronous
-         * data fetch of the pod namespace returns. And then, in spite of this.namespace
-         * being a property and thus changing it should trigger a re-render, we
-         * don't get a re-render, at least not one that changes to show the now
-         * correct namespace. But if we have this console.log here, it seems to work.
-         */
-        console.log("pod-namespace=" + this.namespace);
         //this.loading = false;
         this.hasError = false;
       })
