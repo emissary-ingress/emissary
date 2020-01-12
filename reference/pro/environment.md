@@ -1,7 +1,7 @@
 # Environment variables for the Ambassador Edge Stack container
 
 
-| Purpose | Variable | Default  | Value type    |
+| Purpose | Variable | Default  | Value type &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;   |
 |----------------------------------	|---------------------------------------------------	|-------------------------------------------------------------------------------	|------------------------------------------------------	|
 | Ambassador	| `AMBASSADOR_ID`	| `default`	| Plain string	|
 | Ambassador	| `AMBASSADOR_NAMESPACE`	| `default` ([^1])	| Kubernetes namespace	|
