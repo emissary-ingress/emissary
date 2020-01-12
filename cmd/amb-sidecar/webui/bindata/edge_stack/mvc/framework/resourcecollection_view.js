@@ -73,17 +73,66 @@ export class ResourceCollectionView extends LitElement {
     this.addState = "off";
   }
 
- onAdd() {
-    throw Error("Not Yet Implemented");
+  /* doSort(attribute)
+   * Sort the ResourceCollectionView entries by the given attribute.  Since sorting in-place is not
+   * possible, remove all the views from the slot, sort them, and then re-append them in order.
+   *
+   */
+
+  doSort(attribute) {
+    /* Copy all the child views from  <slot> ... </slot> and remove from the parent. */
+    let children = [];
+
+    /* Clear out the shadowRoot DOM entries, by removing each child in turn from the parent and appending to
+     * our children array.  This is done by repeatedly removing the last child from the parent until there
+     * are no more children. this is expected to be the highest-performance approach).
+     */
+    while (this.lastChild) {
+      let child = this.lastChild;
+      children.push(child);
+      this.removeChild(child);
+    }
+
+    /* Sort our array using localeCompare.  Note that for resources to be compared, they must
+     * directly implement the attribute as part of the resource, and keep the value of that attribute
+     * up to date by properly implementing IResource.updateSelfFrom(resourceData).
+     */
+
+    children.sort((child1, child2) => {
+      return child1.model[attribute].localeCompare(child2.model[attribute])
+    });
+
+    /* Re-append the sorted views in order. */
+    for (const child of children) {
+      this.appendChild(child);
+    }
+
+    /* Save the sort choice */
+    this.sortBy = attribute;
   }
 
-  onChangeSortByAttribute(e) {
-    this.sortBy = e.target.options[e.target.selectedIndex].value;
+  /* onAdd()
+  * This method is called when the user has clicked on the Add button, to create a new Resource in the collection.
+  */
+
+  onAdd() {
+    throw new Error("please implement ${this.constructor.name}.onAdd()")
+  }
+
+
+  /* onChangeSortByAttribute(event)
+  * This method is called when the user has selected an attribute for sorting the ResourceCollectionView.
+  *
+  */
+  onChangeSortByAttribute(event) {
+    let attribute = event.target.options[event.target.selectedIndex].value;
+    this.doSort(attribute);
   }
 
   /* onModelNotification.
   * This method is called for model-created notifications when a new Host has been created, and a
-  * new view must be created to display that Host.
+  * new view must be created to display that Host, or when a Host has been deleted, and thus the
+  * view must be removed from the ResourceCollectionView.
   */
 
   onModelNotification(model, message, parameter) {
@@ -95,6 +144,20 @@ export class ResourceCollectionView extends LitElement {
       let child_view = new viewClass(model);
       this.appendChild(child_view);
     }
+
+    /* The model is being deleted.  Have it notify any views that it might have, including ones in this
+    * ResourceCollectionView.  The ResourceView object will remove itself from its parent.
+    */
+    if (message === 'deleted') {
+      model.notifyListenersDeleted();
+    }
+
+    /* If created or deleted, there may be a different number of views being displayed, in which case
+     * we hide the sortMenu if there are fewer than 2 ResourceViews, or show them if there are 2 or more.
+     * TODO: find a better place to do this since rendering may happen afterwards and override this change.
+     */
+
+    this.sortMenu().style.display == (this.children.length < 2 ? "none" : "block");
   }
 
   /* readOnly()
@@ -151,12 +214,11 @@ export class ResourceCollectionView extends LitElement {
                     </a>
  
                     <div class="sortby" >
-                    <select id="sortByAttribute" @change=${this.onChangeSortByAttribute.bind(this)}>
+                      <select id="sortByAttribute" @change=${this.onChangeSortByAttribute.bind(this)}>
                         ${this.sortFields.map(f => {return html`<option value="${f.value}">${f.label}</option>`})}
-                    </select>
-                </div>
- 
-            </div>
+                      </select>
+                    </div>
+                 </div>
             </div>
             <slot name="add"></slot>
             <slot></slot>
@@ -165,4 +227,14 @@ export class ResourceCollectionView extends LitElement {
       return html``
     }
   }
+
+  /* sortMenu()
+   * Returns the element for the sort popup menu.  This is used for dynamically hiding and showing the element
+   * depending on whether there are any views being displayed; if none, no need for sorting.
+   */
+
+  sortMenu() {
+    return this.shadowRoot.getElementById("sortByAttribute");
+  }
+
 }

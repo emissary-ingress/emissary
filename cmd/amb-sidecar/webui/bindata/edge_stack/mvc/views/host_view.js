@@ -78,10 +78,10 @@ export class HostView extends IResourceView {
 
   readSelfFromModel() {
     /* Get the values from the model. */
-    this.hostname = model.hostname;
-    this.acmeProvider = model.acmeProvider;
-    this.acmeEmail = model.acmeEmail;
-    this.useAcme = model.useAcme;
+    this.hostname = this.model.hostname;
+    this.acmeProvider = this.model.acmeProvider;
+    this.acmeEmail = this.model.acmeEmail;
+    this.useAcme = this.model.useAcme;
 
     /* Set the fields of the form.  The DOM must be generated before calling readFromModel. */
     this.hostnameInput().value = this.hostname;
@@ -103,10 +103,10 @@ export class HostView extends IResourceView {
     this.useAcme = this.useAcmeCheckbox().value;
 
     /* Write back to the model */
-    model.hostname = this.hostname;
-    model.acmeProvider = this.acmeProvider;
-    model.acmeEmail = this.acmeEmail;
-    model.useAcme = this.useAcme;
+    this.model.hostname = this.hostname;
+    this.model.acmeProvider = this.acmeProvider;
+    this.model.acmeEmail = this.acmeEmail;
+    this.model.useAcme = this.useAcme;
   }
 
   /* validateSelf()
