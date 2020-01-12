@@ -143,10 +143,6 @@ spec:
               value: https://127.0.0.1:8443
             - name: AMBASSADOR_ADMIN_URL
               value: http://127.0.0.1:8877
-            - name: SCOUT_DISABLE
-              value: '1'
-            - name: APP_LOG_LEVEL
-              value: DEBUG
           image: quay.io/datawire/aes:$version$
           imagePullPolicy: Always
           livenessProbe:
