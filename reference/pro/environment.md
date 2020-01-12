@@ -1,7 +1,9 @@
-# Environment variables for the Ambassador Edge Stack container
+# Environment variables for the Ambassador container
 
 
-| Purpose&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  | Variable | Default  | Value type &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;   |
+Use the following variables for the environment of your Ambassdor container:
+
+| Purpose | Variable | Default Value | Value type    |
 |----------------------------------	|---------------------------------------------------	|-------------------------------------------------------------------------------	|------------------------------------------------------	|
 | Ambassador	| `AMBASSADOR_ID`	| `default`	| Plain string	|
 | Ambassador	| `AMBASSADOR_NAMESPACE`	| `default` ([^1])	| Kubernetes namespace	|
@@ -33,31 +35,17 @@
 
 -->
 
-Port names are well-known port names that are recognized by
-`/etc/services`, they are *not* Kubernetes port names.
+Port names are well-known port names that are recognized by `/etc/services`, they are *not* Kubernetes port names.
 
-Log levels are case-insensitive. From least verbose to most verbose,
-valid log levels are `error`, `warn`/`warning`, `info`, `debug`, and
-`trace`.
+Log levels are case-insensitive. From least verbose to most verbose, valid log levels are `error`, `warn`/`warning`, `info`, `debug`, and `trace`.
 
-The AuthService and the RateLimitService share a Redis connection
-pool; there will be up to `REDIS_POOL_SIZE` connections to Redis.
+The AuthService and the RateLimitService share a Redis connection pool; there will be up to `REDIS_POOL_SIZE` connections to Redis.
 
-If `REDIS_PERSECOND` is true, a second Redis connection pool is
-created (to a potentially different Redis instance) that is only used
-for per-second RateLimits.
+If `REDIS_PERSECOND` is true, a second Redis connection pool is created (to a potentially different Redis instance) that is only used for per-second RateLimits.
 
-If the `APRO_KEYPAIR_SECRET_NAME`/`APRO_KEYPAIR_SECRET_NAMESPACE`
-Kubernetes secret does not already exist when Ambassador Edge Stack starts,
-it will be automatically created; which obviously requires permission
-in the ClusterRole to create secrets.  If the secret already exists
-(either because an earlier instance of Ambassador Edge Stack already created
-it, or because it was created manually), then the "create" permission
-for secrets can be be removed from the ClusterRole.  If manually
-providing the secret, it must have the "Opaque" type, with two data
-fields: `rsa.key` and `rsa.crt`, which contain PEM-encoded RSA private
-and public keys respectively.
+If the `APRO_KEYPAIR_SECRET_NAME`/`APRO_KEYPAIR_SECRET_NAMESPACE` Kubernetes secret does not already exist when Ambassador Edge Stack starts, it will be automatically created; which obviously requires permission in the ClusterRole to create secrets.  If the secret already exists (either because an earlier instance of Ambassador Edge Stack already created it, or because it was created manually), then the "create" permission for secrets can be be removed from the ClusterRole. 
 
+If manually providing the secret, it must have the "Opaque" type, with two data fields: `rsa.key` and `rsa.crt`, which contain PEM-encoded RSA private and public keys respectively.
 
 
 [^1]: This may change in a future release to reflect the Pods's
