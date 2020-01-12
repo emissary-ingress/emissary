@@ -87,6 +87,14 @@ behavior before upgrading your CRDs.
 - Given a Host CR, Ambassador can manage TLS certificates using ACME (or you can manage them by hand)
 - There is now an `edgectl` program that you can use for interacting with Ambassador from the command line
 - There is a web user-interface for Ambassador
+- BREAKING CHANGE: `APP_LOG_LEVEL` is now `AES_LOG_LEVEL`
+
+## [1.0.0-rc2] January 12, 2020
+[1.0.0-rc2]: https://github.com/datawire/ambassador/compare/v1.0.0-rc1...v1.0.0-rc2
+
+- AES: Bugfix: Fix rendering mapping labels YAML in the webui
+- AES: Change: Don't disable scout or enable extra-verbose logging when migrating from OSS
+- AES: BREAKING CHANGE: `APP_LOG_LEVEL` is now `AES_LOG_LEVEL`
 
 ## [1.0.0-rc1] January 11, 2020
 [1.0.0-rc1]: https://github.com/datawire/ambassador/compare/v1.0.0-rc0...v1.0.0-rc1
