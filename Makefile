@@ -128,6 +128,8 @@ release/promote-aes/to-ea-latest:
 	  PROMOTE_FROM_VERSION="$(RELEASE_VERSION)" \
 	  PROMOTE_TO_VERSION="$$(echo "$(RELEASE_VERSION)" | sed 's/-ea.*/-ea-latest/')" \
 	; }
+	@printf '  $(CYN)edgectl (metadata)$(END)\n'
+	./ambassador/builder/build_push_cli.sh tag
 .PHONY: release/promote-aes/to-ea-latest
 
 # To be run from a checkout at the tag you are promoting _from_.
@@ -139,6 +141,8 @@ release/promote-aes/to-rc-latest:
 	  PROMOTE_FROM_VERSION="$(RELEASE_VERSION)" \
 	  PROMOTE_TO_VERSION="$$(echo "$(RELEASE_VERSION)" | sed 's/-rc.*/-rc-latest/')" \
 	; }
+	@printf '  $(CYN)edgectl (metadata)$(END)\n'
+	./ambassador/builder/build_push_cli.sh tag
 .PHONY: release/promote-aes/to-rc-latest
 
 # To be run from a checkout at the tag you are promoting _to_.

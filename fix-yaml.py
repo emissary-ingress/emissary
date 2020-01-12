@@ -98,7 +98,7 @@ if which == 'apro':
         'env': [
             { 'name':  'SCOUT_DISABLE',
               'value': '1' },
-            { 'name':  'APP_LOG_LEVEL',
+            { 'name':  'AES_LOG_LEVEL',
               'value': 'DEBUG' }
         ]
     })
