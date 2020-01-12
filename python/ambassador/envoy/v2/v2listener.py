@@ -1034,17 +1034,17 @@ class V2Listener(dict):
                         if action == 'Redirect':
                             vhost.needs_redirect()
 
-        logger.info("V2Listeners: after routes")
-        cls.dump_listeners(logger, listeners_by_port)
-
         # OK. Finalize the world.
         for port, listener in listeners_by_port.items():
             listener.finalize(enable_sni)
 
+        logger.info("V2Listeners: after finalize")
+        cls.dump_listeners(logger, listeners_by_port)
+
         for k, v in listeners_by_port.items():
             config.listeners.append(v.as_dict())
 
-        logger.info(f"==== ENVOY LISTENERS ====: {json.dumps(config.listeners, sort_keys=True, indent=4)}")
+        # logger.info(f"==== ENVOY LISTENERS ====: {json.dumps(config.listeners, sort_keys=True, indent=4)}")
 
         # We need listeners for the TCPMappingGroups too.
         tcplisteners: Dict[str, V2TCPListener] = {}
