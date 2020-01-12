@@ -54,9 +54,9 @@ Filter gRPC, RateLimit gRPC, health HTTP, and debug HTTp share the variable `APR
 
 **`APRO_KEYPAIR_SECRET`**:
 
-If the `APRO_KEYPAIR_SECRET_NAME`/`APRO_KEYPAIR_SECRET_NAMESPACE` Kubernetes secret does not already exist when Ambassador  starts, it will be automatically created; which obviously requires permission in the ClusterRole to create secrets. If the secret already exists (either because an earlier instance of Ambassador Edge Stack already created it, or because it was created manually), then the "create" permission for secrets can be be removed from the ClusterRole. 
+* If the `APRO_KEYPAIR_SECRET_NAME`/`APRO_KEYPAIR_SECRET_NAMESPACE` Kubernetes secret does not already exist when Ambassador  starts, it will be automatically created; which obviously requires permission in the ClusterRole to create secrets. If the secret already exists (either because an earlier instance of Ambassador Edge Stack already created it, or because it was created manually), then the "create" permission for secrets can be be removed from the ClusterRole. 
 
-If manually providing the secret, it must have the "Opaque" type, with two data fields: `rsa.key` and `rsa.crt`, which contain PEM-encoded RSA private and public keys respectively.
+* If manually providing the secret, it must have the "Opaque" type, with two data fields: `rsa.key` and `rsa.crt`, which contain PEM-encoded RSA private and public keys respectively.
 
 
 [^1]: This may change in a future release to reflect the Pods's
