@@ -15,6 +15,8 @@
 from typing import Callable, Dict, List, Optional, Union, TYPE_CHECKING
 from typing import cast as typecast
 
+import os
+
 from ...ir.irtlscontext import IRTLSContext
 
 # This stuff isn't really accurate, but it'll do for now.
@@ -148,3 +150,18 @@ class V2TLSContext(Dict):
 
             if value is not None:
                 list_handler(hkey, value)
+
+    def pretty(self) -> str:
+        common_ctx = self.get("common_tls_context", {})
+        certs = common_ctx.get("tls_certificates", [])
+        cert0 = certs[0] if certs else {}
+        chain0 = cert0.get("certificate_chain", {})
+        filename = chain0.get("filename", None)
+
+        if filename:
+            basename = os.path.basename(filename)[0:8] + "..."
+            dirname = os.path.basename(os.path.dirname(filename))
+            filename = f".../{dirname}/{basename}"
+
+        return "<V2TLSContext%s chain_file %s>" % \
+               (" (fallback)" if self.is_fallback else "", filename)

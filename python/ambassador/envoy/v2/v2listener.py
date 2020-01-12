@@ -552,6 +552,20 @@ class V2VirtualHost(dict):
             #     }
             # })
 
+    def pretty(self) -> str:
+        ctx_name = "-none-"
+
+        if self["tls_context"]:
+            ctx_name = self["tls_context"].pretty()
+
+        route_count = len(self["routes"])
+        route_plural = "" if (route_count == 1) else "s"
+
+        return "<VHost %s ctx %s upp %s redir %s a %s ia %s %d route%s>" % \
+               (self._hostname, ctx_name, self["use_proxy_proto"],
+                self._needs_redirect, self._action, self._insecure_action,
+                route_count, route_plural)
+
     def verbose_dict(self) -> dict:
         return {
             "_hostname": self._hostname,
@@ -823,18 +837,16 @@ class V2Listener(dict):
             "listener_filters": self.listener_filters
         }
 
-    def verbose_dict(self) -> dict:
-        return {
-            "name": self.name,
-            "address": {
-                "socket_address": {
-                    "address": "0.0.0.0",
-                    "port_value": self.service_port,
-                    "protocol": "TCP"
-                }
-            },
-            "vhosts": {k: v.verbose_dict() for k, v in self.vhosts.items()},
-        }
+    def pretty(self) -> dict:
+        return { "name": self.name,
+                 "port": self.service_port,
+                 "vhosts": { k: v.pretty() for k, v in self.vhosts.items() } }
+
+    @classmethod
+    def dump_listeners(cls, logger, listeners_by_port) -> None:
+        pretty = { k: v.pretty() for k, v in listeners_by_port.items() }
+
+        logger.info(f"V2Listeners: {json.dumps(pretty, sort_keys=True, indent=4)}")
 
     @classmethod
     def generate(cls, config: 'V2Config') -> None:
@@ -895,9 +907,7 @@ class V2Listener(dict):
         enable_sni = (num_distinct_domains > 1)
 
         logger.info(f"V2Listeners: distinct domain count {num_distinct_domains}, global SNI {'enabled' if enable_sni else 'disabled'}")
-
-        listeners_dict = { k: v.verbose_dict() for k, v in listeners_by_port.items() }
-        logger.info(f"V2Listeners: {json.dumps(listeners_dict, sort_keys=True, indent=4)}")
+        cls.dump_listeners(logger, listeners_by_port)
 
         # OK. We have all the listeners. Time to walk the routes (note that they are already ordered).
         for route in config.routes:
@@ -1024,15 +1034,12 @@ class V2Listener(dict):
                         if action == 'Redirect':
                             vhost.needs_redirect()
 
-        # listeners_dict = { k: v.verbose_dict() for k, v in listeners_by_port.items() }
-        # logger.info(f"V2Listeners: {json.dumps(listeners_dict, sort_keys=True, indent=4)}")
+        logger.info("V2Listeners: after routes")
+        cls.dump_listeners(logger, listeners_by_port)
 
         # OK. Finalize the world.
         for port, listener in listeners_by_port.items():
             listener.finalize(enable_sni)
-
-        # listeners_dict = { k: v.verbose_dict() for k, v in listeners_by_port.items() }
-        # logger.info(f"V2Listeners: {json.dumps(listeners_dict, sort_keys=True, indent=4)}")
 
         for k, v in listeners_by_port.items():
             config.listeners.append(v.as_dict())
