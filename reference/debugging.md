@@ -10,7 +10,7 @@ First, check to see if the [Diagnostics](../diagnostics) service is reachable. I
 
 **If it is not successful, complete the following to see if Ambassador is running:**
 
-1. Get a list of pods in the `ambassador` namespace with `kubectl get pods -n ambassador`.
+1. Get a list of Pods in the `ambassador` namespace with `kubectl get pods -n ambassador`.
 
     The terminal should print something similar to the following:
 
@@ -22,18 +22,18 @@ First, check to see if the [Diagnostics](../diagnostics) service is reachable. I
     ambassador-85c4cf67b-vg6p5   1/1       Running   0          1m
     ```
 
-2. Choose a pod that you want to examine in the Diagnostics Console with: `kubectl port-forward -n ambassador <ambassador-pod-name> 8877`.
-3. Then, check the Ambassador deployment with the following: `kubectl get -n ambassador deployments`
+2. Choose a Pod that you want to examine in the Diagnostics Console with: `kubectl port-forward -n ambassador <ambassador-pod-name> 8877`.
+3. Then, check the Ambassador Deployment with the following: `kubectl get -n ambassador deployments`
 
     After a brief period, the terminal will print something similar to the following:
 
     ```console
-    $ kubectl get deployments
+    $ kubectl get -n ambassador deployments
     NAME         DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
     ambassador   3         3         3            3           1m
     ```
 
-4. Check that the “desired” number of Pods equals the “current” or “available” number of pods. If they are **not** equal, check the status of the associated pods with the following command: `kubectl get pods -n ambassador`.
+4. Check that the “desired” number of Pods equals the “current” and “available” number of Pods. If they are **not** equal, check the status of the associated Pods with the following command: `kubectl get pods -n ambassador`.
 5. Use the following command for details about the history of the Deployment: `kubectl describe -n ambassador deployment ambassador`
 
     * Look for data in the “Replicas” field near the top of the output. For example: 
@@ -41,14 +41,14 @@ First, check to see if the [Diagnostics](../diagnostics) service is reachable. I
 
     * Look for data in the “Events” log field near the bottom of the output, which often displays data such as a fail image pull, RBAC issues, or a lack of cluster resources. For example:
 
-        ```console
+        ```
         Events:
         Type    Reason              Age     From                      Message
         ----    ------              ----    ----                      -------
         Normal  ScalingReplicaSet    2m     deployment-controller      Scaled up replica set ambassador-85c4cf67b to 3
         ```
 
-5. Additionally, use the following command to “describe” the individual pods: `kubectl describe pods -n ambassador <ambassador-pod-name>`
+5. Additionally, use the following command to “describe” the individual Pods: `kubectl describe pods -n ambassador <ambassador-pod-name>`
 
     * Look for data in the “Status” field near the top of the output. For example, `Status: Running`
 
@@ -65,7 +65,7 @@ First, check to see if the [Diagnostics](../diagnostics) service is reachable. I
         Normal  Started                4m    kubelet, gke-ambassador-demo-default-pool-912378e5-dkxc  Started container
         ```
 
-In both the Deployment pod and the individual pods, take the necessary action to address any discovered issues.
+In both the Deployment Pod and the individual Pods, take the necessary action to address any discovered issues.
 
 ## Review Ambassador Logs
 
@@ -78,7 +78,7 @@ You can turn on Debug mode in the [Edge Policy Console](../../about/edge-policy-
     The terminal will print something similar to the following:
 
     ```console
-    $ kubectl get pods
+    $ kubectl get pods -n ambassador
     NAME                         READY     STATUS    RESTARTS   AGE
     ambassador-85c4cf67b-4pfj2   1/1       Running   0          3m
     ```
@@ -88,7 +88,7 @@ You can turn on Debug mode in the [Edge Policy Console](../../about/edge-policy-
 The terminal will print something similar to the following:
 
     ```console
-    $ kubectl logs ambassador-85c4cf67b-4pfj2
+    $ kubectl logs -n ambassador ambassador-85c4cf67b-4pfj2
     2018-10-10 12:26:50 kubewatch 0.40.0 INFO: generating config with gencount 1 (0 changes)
     /usr/lib/python3.6/site-packages/pkg_resources/__init__.py:1235: UserWarning: /ambassador is writable by group/others and vulnerable to attack when used with get_resource_filename. Consider a more secure location (set with .set_extraction_path or the PYTHON_EGG_CACHE environment variable).
     warnings.warn(msg, UserWarning)
@@ -124,7 +124,7 @@ You can examine the contents of the Ambassador Pod for issues, such as if volume
 5. If something is wrong with `snapshot` or `aconf`, there is an issue with your configuration. If something is wrong with `ir` or `econf`, you should [open an issue on Github](https://github.com/datawire/ambassador/issues/new/choose).
 6. To find the main configuration for Envoy, run: `$AMBASSADOR_CONFIG_BASE_DIR/envoy/envoy.json`.
 7. For the bootstrap configuration, which has details about Envoy statistics, logging, and auth, run: `$AMBASSADOR_CONFIG_BASE_DIR/bootstrap-ads.json`.
-8. For further details, you can print the Envoy configuration that is geenerated during the Ambassador configuration. The file will be titled `envoy-N.json` where N matches the number of the `ambassador-config-N` directory number. Run the following command: `/ambassador # cat envoy-2.json`
+8. For further details, you can print the Envoy configuration that is geenerated during the Ambassador configuration. The file will be titled `envoy-N.json` where N matches the number of the `ambassador-config-N` directory number. Run the following command: `# cat envoy-2.json`
 
     The terminal will print something similar to the following:
 
