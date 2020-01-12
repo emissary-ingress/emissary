@@ -66,9 +66,9 @@ export class ResourceCollectionView extends LitElement {
      *  {label: "Hostname", value: "hostname"},
      * ];
      */
-    this.sortFields = [ {label: "Resource Name", value: "name"},
+    this.sortFields = [ {label: "Name",      value: "name"},
                         {label: "Namespace", value: "namespace"},
-                        {label: "Hostname", value: "hostname"},];
+                        {label: "Hostname",  value: "hostname"},];
     this.sortBy = "name";
     this.addState = "off";
   }
@@ -80,31 +80,34 @@ export class ResourceCollectionView extends LitElement {
    */
 
   doSort(attribute) {
-    /* Copy all the child views from  <slot> ... </slot> and remove from the parent. */
-    let children = [];
+    /* Perform the sort if the attribute being given is not null. */
+    if (attribute !== null) {
+      /* Copy all the child views from  <slot> ... </slot> and remove from the parent. */
+      let children = [];
 
-    /* Clear out the shadowRoot DOM entries, by removing each child in turn from the parent and appending to
-     * our children array.  This is done by repeatedly removing the last child from the parent until there
-     * are no more children. this is expected to be the highest-performance approach).
-     */
-    while (this.lastChild) {
-      let child = this.lastChild;
-      children.push(child);
-      this.removeChild(child);
-    }
+      /* Clear out the shadowRoot DOM entries, by removing each child in turn from the parent and appending to
+       * our children array.  This is done by repeatedly removing the last child from the parent until there
+       * are no more children. this is expected to be the highest-performance approach).
+       */
+      while (this.lastChild) {
+        let child = this.lastChild;
+        children.push(child);
+        this.removeChild(child);
+      }
 
-    /* Sort our array using localeCompare.  Note that for resources to be compared, they must
-     * directly implement the attribute as part of the resource, and keep the value of that attribute
-     * up to date by properly implementing IResource.updateSelfFrom(resourceData).
-     */
+      /* Sort our array using localeCompare.  Note that for resources to be compared, they must
+       * directly implement the attribute as part of the resource, and keep the value of that attribute
+       * up to date by properly implementing IResource.updateSelfFrom(resourceData).
+       */
 
-    children.sort((child1, child2) => {
-      return child1.model[attribute].localeCompare(child2.model[attribute])
-    });
+      children.sort((child1, child2) => {
+        return child1.model[attribute].localeCompare(child2.model[attribute])
+      });
 
-    /* Re-append the sorted views in order. */
-    for (const child of children) {
-      this.appendChild(child);
+      /* Re-append the sorted views in order. */
+      for (const child of children) {
+        this.appendChild(child);
+      }
     }
 
     /* Save the sort choice */
@@ -158,6 +161,9 @@ export class ResourceCollectionView extends LitElement {
      */
 
     this.sortMenu().style.display == (this.children.length < 2 ? "none" : "block");
+
+    /* Re-sort the views if needed, by the sortBy attribute.  If null, doSort will not attempt to sort. */
+    this.doSort(this.sortBy);
   }
 
   /* readOnly()
