@@ -220,7 +220,6 @@ commands:
                 export AWS_ACCESS_KEY_ID=$DEPLOY_KEY_ID
                 export AWS_SECRET_ACCESS_KEY=$DEPLOY_KEY
                 ./ambassador/builder/build_push_cli.sh push
-                ./ambassador/builder/build_push_cli.sh tag
             fi
 
 jobs:
