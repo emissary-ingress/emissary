@@ -524,13 +524,14 @@ class V2TCPListener(dict):
 
 class V2VirtualHost(dict):
     def __init__(self, config: 'V2Config', listener: 'V2Listener',
-                 hostname: Optional[str], ctx: Optional[IRTLSContext],
+                 name: str, hostname: Optional[str], ctx: Optional[IRTLSContext],
                  secure: bool, action: str, insecure_action: Optional[str],
                  use_proxy_proto: bool) -> None:
         super().__init__()
 
         self._config = config
         self._listener = listener
+        self._name = name
         self._hostname = hostname
         self._ctx = ctx
         self._secure = secure
@@ -616,6 +617,7 @@ class V2VirtualHost(dict):
 
     def verbose_dict(self) -> dict:
         return {
+            "_name": self._name,
             "_hostname": self._hostname,
             "_secure": self._secure,
             "_action": self._action,
@@ -807,7 +809,7 @@ class V2Listener(dict):
         self.config.ir.logger.info("V2Listener %s: adding VHost %s for host %s, secure %s, insecure %s)" %
                                    (self.name, name, hostname, action, insecure_action))
 
-        vhost = self.vhosts.get(name)
+        vhost = self.vhosts.get(hostname)
 
         if vhost:
             if ((hostname != vhost._hostname) or
@@ -822,10 +824,10 @@ class V2Listener(dict):
                 return
 
         vhost = V2VirtualHost(config=self.config, listener=self,
-                              hostname=hostname, ctx=context,
+                              name=name, hostname=hostname, ctx=context,
                               secure=secure, action=action, insecure_action=insecure_action,
                               use_proxy_proto=use_proxy_proto)
-        self.vhosts[name] = vhost
+        self.vhosts[hostname] = vhost
 
     def finalize(self, enable_sni: bool) -> None:
         self.config.ir.logger.info(f"V2Listener finalize {self.pretty()}")
@@ -860,7 +862,7 @@ class V2Listener(dict):
             http_config["route_config"] = {
                 "virtual_hosts": [
                     {
-                        "name": f"{self.name}-{vhostname}",
+                        "name": f"{self.name}-{vhost._name}",
                         "domains": [ vhost._hostname ],
                         "routes": vhost["routes"]
                     }
@@ -961,22 +963,24 @@ class V2Listener(dict):
                                     insecure_action=irlistener.insecure_action,
                                     use_proxy_proto=irlistener.use_proxy_proto)
 
-        # Make sure we have an 8080 listener
-        if config.ir.edge_stack_allowed and not 8080 in listeners_by_port:
+        if config.ir.edge_stack_allowed:
+            # If we're running Edge Stack, make sure we have a listener on port 8080, so that
+            # we have a place to stand for ACME.
             listener = listeners_by_port[8080]
 
-            # This insecure vhost can _only_ have a hostname of "*", since (by definition)
-            # there is no SNI associated with it.
-            #
-            # Also, no, it is not a bug to have action=None. There is no secure action
-            # for this vhost.
-            listener.make_vhost(name="forced-8080",
-                                hostname="*",
-                                context=None,
-                                secure=False,
-                                action=None,
-                                insecure_action='Reject',
-                                use_proxy_proto=irlistener8443.use_proxy_proto)
+            # Given the listener, if it has no vhost for '*', add one that rejects everything.
+            # The ACME hole-puncher will override the reject for ACME, and nothing else will
+            # get through.
+            if '*' not in listener.vhosts:
+                # Remember, it is not a bug to have action=None. There is no secure action
+                # for this vhost.
+                listener.make_vhost(name="forced-8080",
+                                    hostname="*",
+                                    context=None,
+                                    secure=False,
+                                    action=None,
+                                    insecure_action='Reject',
+                                    use_proxy_proto=irlistener8443.use_proxy_proto)
 
         num_distinct_domains = len(distinct_domains.keys())
         enable_sni = (num_distinct_domains > 1)
