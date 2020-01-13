@@ -83,7 +83,7 @@ The **system info** box shows information such as IDs, system statuses, and othe
 
 The **logging level** box has two buttons, `set log level to debug` and `set log level to info` which controls how verbose your logging is.
 
-To see the logs, follow [these instructions](/reference/debugging/#review-ambassador-logs).
+To see the logs, follow [these instructions](../../reference/debugging/#review-ambassador-logs).
 
 The **Ambassador Configuration** box shows an immediate status along with details about the status. For example, if the status is `has issues`, it will specify some information about those issues.
 
